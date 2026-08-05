@@ -2113,74 +2113,74 @@ static void GenieCameraCalc(UnkGenieCameraStruct *arg0, s32 arg1, float arg2, Ve
     Vec unused_zero = { 0.0f, 0.0f, 0.0f };
     float t_squared = arg2 * arg2;
     float t_cubed = t_squared * arg2;
-    Vec *position_previous;
-    Vec *target_previous;
-    Vec *position_current;
-    Vec *position_next;
-    Vec *target_current;
-    Vec *target_next;
+    Vec *position_current_or_previous;
+    Vec *target_current_or_previous;
+    Vec *position_next_or_current;
+    Vec *position_following_or_next;
+    Vec *target_next_or_current;
+    Vec *target_following_or_next;
     Vec *position_following;
     Vec *target_following;
 
     if (arg1 == 0) {
-        position_current = &arg0[arg1].position;
-        position_next = &arg0[arg1 + 1].position;
-        position_following = &arg0[arg1 + 2].position;
-        target_current = &arg0[arg1].target;
-        target_next = &arg0[arg1 + 1].target;
-        target_following = &arg0[arg1 + 2].target;
+        position_current_or_previous = &arg0[arg1].position;
+        position_next_or_current = &arg0[arg1 + 1].position;
+        position_following_or_next = &arg0[arg1 + 2].position;
+        target_current_or_previous = &arg0[arg1].target;
+        target_next_or_current = &arg0[arg1 + 1].target;
+        target_following_or_next = &arg0[arg1 + 2].target;
         arg3->x = 0.5f
-            * ((position_current->x - position_next->x * 2.0f + position_following->x) * t_squared + (position_current->x * -3.0f + position_next->x * 4.0f - position_following->x) * arg2
-                + position_current->x * 2.0f);
+            * ((position_current_or_previous->x - position_next_or_current->x * 2.0f + position_following_or_next->x) * t_squared + (position_current_or_previous->x * -3.0f + position_next_or_current->x * 4.0f - position_following_or_next->x) * arg2
+                + position_current_or_previous->x * 2.0f);
         arg3->y = 0.5f
-            * ((position_current->y - position_next->y * 2.0f + position_following->y) * t_squared + (position_current->y * -3.0f + position_next->y * 4.0f - position_following->y) * arg2
-                + position_current->y * 2.0f);
+            * ((position_current_or_previous->y - position_next_or_current->y * 2.0f + position_following_or_next->y) * t_squared + (position_current_or_previous->y * -3.0f + position_next_or_current->y * 4.0f - position_following_or_next->y) * arg2
+                + position_current_or_previous->y * 2.0f);
         arg3->z = 0.5f
-            * ((position_current->z - position_next->z * 2.0f + position_following->z) * t_squared + (position_current->z * -3.0f + position_next->z * 4.0f - position_following->z) * arg2
-                + position_current->z * 2.0f);
+            * ((position_current_or_previous->z - position_next_or_current->z * 2.0f + position_following_or_next->z) * t_squared + (position_current_or_previous->z * -3.0f + position_next_or_current->z * 4.0f - position_following_or_next->z) * arg2
+                + position_current_or_previous->z * 2.0f);
         arg4->x = 0.5f
-            * ((target_current->x - target_next->x * 2.0f + target_following->x) * t_squared + (target_current->x * -3.0f + target_next->x * 4.0f - target_following->x) * arg2
-                + target_current->x * 2.0f);
+            * ((target_current_or_previous->x - target_next_or_current->x * 2.0f + target_following_or_next->x) * t_squared + (target_current_or_previous->x * -3.0f + target_next_or_current->x * 4.0f - target_following_or_next->x) * arg2
+                + target_current_or_previous->x * 2.0f);
         arg4->y = 0.5f
-            * ((target_current->y - target_next->y * 2.0f + target_following->y) * t_squared + (target_current->y * -3.0f + target_next->y * 4.0f - target_following->y) * arg2
-                + target_current->y * 2.0f);
+            * ((target_current_or_previous->y - target_next_or_current->y * 2.0f + target_following_or_next->y) * t_squared + (target_current_or_previous->y * -3.0f + target_next_or_current->y * 4.0f - target_following_or_next->y) * arg2
+                + target_current_or_previous->y * 2.0f);
         arg4->z = 0.5f
-            * ((target_current->z - target_next->z * 2.0f + target_following->z) * t_squared + (target_current->z * -3.0f + target_next->z * 4.0f - target_following->z) * arg2
-                + target_current->z * 2.0f);
+            * ((target_current_or_previous->z - target_next_or_current->z * 2.0f + target_following_or_next->z) * t_squared + (target_current_or_previous->z * -3.0f + target_next_or_current->z * 4.0f - target_following_or_next->z) * arg2
+                + target_current_or_previous->z * 2.0f);
     }
     else {
-        position_previous = &arg0[arg1 - 1].position;
-        position_current = &arg0[arg1].position;
-        position_next = &arg0[arg1 + 1].position;
+        position_current_or_previous = &arg0[arg1 - 1].position;
+        position_next_or_current = &arg0[arg1].position;
+        position_following_or_next = &arg0[arg1 + 1].position;
         position_following = &arg0[arg1 + 2].position;
-        target_previous = &arg0[arg1 - 1].target;
-        target_current = &arg0[arg1].target;
-        target_next = &arg0[arg1 + 1].target;
+        target_current_or_previous = &arg0[arg1 - 1].target;
+        target_next_or_current = &arg0[arg1].target;
+        target_following_or_next = &arg0[arg1 + 1].target;
         target_following = &arg0[arg1 + 2].target;
         arg3->x = 0.5f
-            * ((-position_previous->x + position_current->x * 3.0f - position_next->x * 3.0f + position_following->x) * t_squared * arg2
-                + (position_previous->x * 2.0f - position_current->x * 5.0f + position_next->x * 4.0f - position_following->x) * t_squared + (-position_previous->x + position_next->x) * arg2
-                + position_current->x * 2.0f);
+            * ((-position_current_or_previous->x + position_next_or_current->x * 3.0f - position_following_or_next->x * 3.0f + position_following->x) * t_squared * arg2
+                + (position_current_or_previous->x * 2.0f - position_next_or_current->x * 5.0f + position_following_or_next->x * 4.0f - position_following->x) * t_squared + (-position_current_or_previous->x + position_following_or_next->x) * arg2
+                + position_next_or_current->x * 2.0f);
         arg3->y = 0.5f
-            * ((-position_previous->y + position_current->y * 3.0f - position_next->y * 3.0f + position_following->y) * t_squared * arg2
-                + (position_previous->y * 2.0f - position_current->y * 5.0f + position_next->y * 4.0f - position_following->y) * t_squared + (-position_previous->y + position_next->y) * arg2
-                + position_current->y * 2.0f);
+            * ((-position_current_or_previous->y + position_next_or_current->y * 3.0f - position_following_or_next->y * 3.0f + position_following->y) * t_squared * arg2
+                + (position_current_or_previous->y * 2.0f - position_next_or_current->y * 5.0f + position_following_or_next->y * 4.0f - position_following->y) * t_squared + (-position_current_or_previous->y + position_following_or_next->y) * arg2
+                + position_next_or_current->y * 2.0f);
         arg3->z = 0.5f
-            * ((-position_previous->z + position_current->z * 3.0f - position_next->z * 3.0f + position_following->z) * t_squared * arg2
-                + (position_previous->z * 2.0f - position_current->z * 5.0f + position_next->z * 4.0f - position_following->z) * t_squared + (-position_previous->z + position_next->z) * arg2
-                + position_current->z * 2.0f);
+            * ((-position_current_or_previous->z + position_next_or_current->z * 3.0f - position_following_or_next->z * 3.0f + position_following->z) * t_squared * arg2
+                + (position_current_or_previous->z * 2.0f - position_next_or_current->z * 5.0f + position_following_or_next->z * 4.0f - position_following->z) * t_squared + (-position_current_or_previous->z + position_following_or_next->z) * arg2
+                + position_next_or_current->z * 2.0f);
         arg4->x = 0.5f
-            * ((-target_previous->x + target_current->x * 3.0f - target_next->x * 3.0f + target_following->x) * t_squared * arg2
-                + (target_previous->x * 2.0f - target_current->x * 5.0f + target_next->x * 4.0f - target_following->x) * t_squared + (-target_previous->x + target_next->x) * arg2
-                + target_current->x * 2.0f);
+            * ((-target_current_or_previous->x + target_next_or_current->x * 3.0f - target_following_or_next->x * 3.0f + target_following->x) * t_squared * arg2
+                + (target_current_or_previous->x * 2.0f - target_next_or_current->x * 5.0f + target_following_or_next->x * 4.0f - target_following->x) * t_squared + (-target_current_or_previous->x + target_following_or_next->x) * arg2
+                + target_next_or_current->x * 2.0f);
         arg4->y = 0.5f
-            * ((-target_previous->y + target_current->y * 3.0f - target_next->y * 3.0f + target_following->y) * t_squared * arg2
-                + (target_previous->y * 2.0f - target_current->y * 5.0f + target_next->y * 4.0f - target_following->y) * t_squared + (-target_previous->y + target_next->y) * arg2
-                + target_current->y * 2.0f);
+            * ((-target_current_or_previous->y + target_next_or_current->y * 3.0f - target_following_or_next->y * 3.0f + target_following->y) * t_squared * arg2
+                + (target_current_or_previous->y * 2.0f - target_next_or_current->y * 5.0f + target_following_or_next->y * 4.0f - target_following->y) * t_squared + (-target_current_or_previous->y + target_following_or_next->y) * arg2
+                + target_next_or_current->y * 2.0f);
         arg4->z = 0.5f
-            * ((-target_previous->z + target_current->z * 3.0f - target_next->z * 3.0f + target_following->z) * t_squared * arg2
-                + (target_previous->z * 2.0f - target_current->z * 5.0f + target_next->z * 4.0f - target_following->z) * t_squared + (-target_previous->z + target_next->z) * arg2
-                + target_current->z * 2.0f);
+            * ((-target_current_or_previous->z + target_next_or_current->z * 3.0f - target_following_or_next->z * 3.0f + target_following->z) * t_squared * arg2
+                + (target_current_or_previous->z * 2.0f - target_next_or_current->z * 5.0f + target_following_or_next->z * 4.0f - target_following->z) * t_squared + (-target_current_or_previous->z + target_following_or_next->z) * arg2
+                + target_next_or_current->z * 2.0f);
     }
 }
 
