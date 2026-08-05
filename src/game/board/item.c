@@ -68,9 +68,9 @@ static void ItemDestroy(void);
 static void RestoreDestroy(void);
 static void ItemSizeShowAnim(void);
 static void ItemRotProc(void);
-static HUPROCESS *ItemShowProc(UnkItemShowProcStruct *arg0, Vec *arg1);
+static HUPROCESS *ItemShowProc(UnkItemShowProcStruct *work, Vec *scale);
 static s16 ItemGetTarget(void);
-static void ItemSizeSet(s32 arg0);
+static void ItemSizeSet(s32 size);
 static void ExecItemMini(void);
 static void ExecItemMega(void);
 static void ExecItemMiniSuper(void);
@@ -86,7 +86,7 @@ static void ExecItemBooBall(void);
 static void LampParticleUpdate(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 static void GenieParticleUpdate(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 static void GenieCameraProc(void);
-static void GenieCameraCalc(UnkGenieCameraStruct *arg0, s32 arg1, float arg2, Vec *arg3, Vec *arg4);
+static void GenieCameraCalc(UnkGenieCameraStruct *camera_path, s32 segment, float progress, Vec *position_out, Vec *target_out);
 static void GenieSceneExec(void);
 static void ExecItemGenie(void);
 static void ExecItemBagJump(void);
@@ -157,11 +157,11 @@ static s32 suitMotTbl[][2] = { { DATA_MAKE_NUM(DATADIR_BKOOPASUIT, 1), DATA_MAKE
     { DATA_MAKE_NUM(DATADIR_BKOOPASUIT, 19), DATA_MAKE_NUM(DATADIR_BKOOPASUIT, 20) },
     { DATA_MAKE_NUM(DATADIR_BKOOPASUIT, 22), DATA_MAKE_NUM(DATADIR_BKOOPASUIT, 23) } };
 
-/** @brief Start the use animation for a player's board item. @param arg0 Player using the item. @param arg1 Item index into the board item behavior table. */
-void BoardItemStart(s32 arg0, s32 arg1)
+/** @brief Start the use animation for a player's board item. @param player Player using the item. @param item Item index into the board item behavior table. */
+void BoardItemStart(s32 player, s32 item)
 {
-    currItemRestore = arg0;
-    currItem = arg1;
+    currItemRestore = player;
+    currItem = item;
     suitMdl = -1;
     itemProc = HuPrcChildCreate(ItemProcess, 0x2004, 0x1000, 0, boardMainProc);
     HuPrcDestructorSet2(itemProc, ItemDestroy);
@@ -178,11 +178,11 @@ BOOL BoardItemDoneCheck(void)
     }
 }
 
-/** @brief Restore a player's persistent size or Bowser-suit state. @param arg0 Player to restore. @param arg1 Previous item index selecting the restoration routine. */
-void BoardItemPlayerRestore(s32 arg0, s32 arg1)
+/** @brief Restore a player's persistent size or Bowser-suit state. @param player Player to restore. @param item Previous item index selecting the restoration routine. */
+void BoardItemPlayerRestore(s32 player, s32 item)
 {
-    currItemRestore = arg0;
-    currItem = arg1;
+    currItemRestore = player;
+    currItem = item;
     itemProc = HuPrcChildCreate(RestoreProcess, 0x2004, 0x1000, 0, boardMainProc);
     HuPrcDestructorSet2(itemProc, RestoreDestroy);
 }
@@ -307,8 +307,8 @@ static void ItemRotProc(void)
 // TODO: needs the inline keyword to be inlined into ExecItemHammer, but adding it messes up sdata2.
 // sdata2 order should be: 1000.0f, 0.15f, then 20.0f.
 // With the inline keyword, it becomes 0.15f, 20.0f, then 1000.0f (workaround in BoardUiInlineFunc02 below).
-/** @brief Drop the item model to its display height while applying angular velocity. @param arg0 Per-frame rotation in degrees on each axis. */
-static inline void BoardUiInlineFunc01(Vec *arg0)
+/** @brief Drop the item model to its display height while applying angular velocity. @param rotation_step Per-frame rotation in degrees on each axis. */
+static inline void BoardUiInlineFunc01(Vec *rotation_step)
 {
     Vec player_position;
     Vec item_position;
@@ -339,7 +339,7 @@ static inline void BoardUiInlineFunc01(Vec *arg0)
         }
         item_position.y -= fall_speed;
         BoardModelPosSetV(suitMdl, &item_position);
-        VECAdd(&item_rotation, arg0, &item_rotation);
+        VECAdd(&item_rotation, rotation_step, &item_rotation);
         for (i = 0; i < 3; i++) {
             if (((float *)&item_rotation)[i] < 0.0f) {
                 ((float *)&item_rotation)[i] += 360.0f;
@@ -386,52 +386,52 @@ static void BoardUiInlineFunc02(void)
     BoardModelPosSetV(suitMdl, &item_position);
 }
 
-/** @brief Move a player back to the center of their current space and return them to idle. @param arg0 Player to reposition. */
-static inline void BoardUiInlineFunc03(s32 arg0)
+/** @brief Move a player back to the center of their current space and return them to idle. @param player Player to reposition. */
+static inline void BoardUiInlineFunc03(s32 player)
 {
     Vec player_position;
     Vec space_position;
-    s32 space = GWPlayer[arg0].space_curr;
+    s32 space = GWPlayer[player].space_curr;
 
     BoardSpacePosGet(0, space, &space_position);
-    BoardPlayerPosGet(arg0, &player_position);
-    BoardPlayerPosLerpStart(arg0, &player_position, &space_position, 0x14);
-    while (GWPlayer[arg0].moving) {
+    BoardPlayerPosGet(player, &player_position);
+    BoardPlayerPosLerpStart(player, &player_position, &space_position, 0x14);
+    while (GWPlayer[player].moving) {
         HuPrcVSleep();
     }
-    BoardPlayerMotBlendSet(arg0, 0, 7);
-    while (!BoardPlayerMotBlendCheck(arg0)) {
+    BoardPlayerMotBlendSet(player, 0, 7);
+    while (!BoardPlayerMotBlendCheck(player)) {
         HuPrcVSleep();
     }
-    BoardPlayerIdleSet(arg0);
+    BoardPlayerIdleSet(player);
 }
 
-/** @brief Pause or resume an item model's bob-and-rotate process. @param arg0 Item rotation process. @param arg1 Zero to animate; nonzero to pause. */
-static inline void BoardUiInlineFunc04(HUPROCESS *arg0, s32 arg1)
+/** @brief Pause or resume an item model's bob-and-rotate process. @param process Item rotation process. @param paused Zero to animate; nonzero to pause. */
+static inline void BoardUiInlineFunc04(HUPROCESS *process, s32 paused)
 {
-    UnkItemShowProcStruct *work = arg0->user_data;
+    UnkItemShowProcStruct *work = process->user_data;
 
-    work->paused = arg1;
+    work->paused = paused;
 }
 
-/** @brief Start the bob-and-rotate process for a displayed item. @param arg0 Persistent animation work owned by the caller. @return New process using @p arg0 as user data. */
-static inline HUPROCESS *BoardUiInlineFunc05(UnkItemShowProcStruct *arg0)
+/** @brief Start the bob-and-rotate process for a displayed item. @param work Persistent animation work owned by the caller. @return New process using @p work as user data. */
+static inline HUPROCESS *BoardUiInlineFunc05(UnkItemShowProcStruct *work)
 {
     HUPROCESS *process;
 
     process = HuPrcCreate(ItemRotProc, 0x2004, 0x1000, 0);
-    process->user_data = arg0;
+    process->user_data = work;
     BoardUiInlineFunc04(process, 0);
     return process;
 }
 
 /**
  * @brief Reveal the current item above its user and optionally animate it.
- * @param arg0 Animation work that remains caller-owned, or NULL for a static model.
- * @param arg1 Model scale, or NULL for unit scale.
+ * @param work Animation work that remains caller-owned, or NULL for a static model.
+ * @param scale Model scale, or NULL for unit scale.
  * @return Bob-and-rotate process for the model, or NULL when no process was started.
  */
-static HUPROCESS *ItemShowProc(UnkItemShowProcStruct *arg0, Vec *arg1)
+static HUPROCESS *ItemShowProc(UnkItemShowProcStruct *work, Vec *scale)
 {
     Vec item_position;
     Vec rotation;
@@ -445,11 +445,11 @@ static HUPROCESS *ItemShowProc(UnkItemShowProcStruct *arg0, Vec *arg1)
     if (currItem == 0xD) {
         item_position.y -= 50.0f;
     }
-    if (arg1 == NULL) {
+    if (scale == NULL) {
         item_scale.x = item_scale.y = item_scale.z = 1.0f;
     }
     else {
-        item_scale = *arg1;
+        item_scale = *scale;
     }
     if (suitMdl >= 0) {
         BoardModelLayerSet(suitMdl, 2);
@@ -459,7 +459,7 @@ static HUPROCESS *ItemShowProc(UnkItemShowProcStruct *arg0, Vec *arg1)
         BoardModelVisibilitySet(suitMdl, 0);
     }
     BoardCameraRotGet(&rotation);
-    if (arg0 == NULL || arg0->show_smoke != 0) {
+    if (work == NULL || work->show_smoke != 0) {
         CharEffectLayerSet(3);
         item_position.y += 35.0f;
         item_position.z += 50.0 * cosd(rotation.y);
@@ -469,8 +469,8 @@ static HUPROCESS *ItemShowProc(UnkItemShowProcStruct *arg0, Vec *arg1)
     }
     if (suitMdl >= 0) {
         BoardModelVisibilitySet(suitMdl, 1);
-        if (arg0 != NULL) {
-            rotation_process = BoardUiInlineFunc05(arg0);
+        if (work != NULL) {
+            rotation_process = BoardUiInlineFunc05(work);
         }
     }
     HuPrcSleep(30);
@@ -552,8 +552,8 @@ static s16 ItemGetTarget(void)
     return selected_player;
 }
 
-/** @brief Animate the player between normal, Mini, and Mega scales. @param arg0 Destination size state: 0 normal, 1 Mini, or 2 Mega. */
-static void ItemSizeSet(s32 arg0)
+/** @brief Animate the player between normal, Mini, and Mega scales. @param size Destination size state: 0 normal, 1 Mini, or 2 Mega. */
+static void ItemSizeSet(s32 size)
 {
     float scale_sequence[9];
     float key_scales[4];
@@ -568,9 +568,9 @@ static void ItemSizeSet(s32 arg0)
 
     current_scale = size_scales[BoardPlayerSizeGet(currItemRestore)];
     key_scales[0] = current_scale;
-    key_scales[1] = current_scale + (size_scales[arg0] - current_scale) / 3.0f;
-    key_scales[2] = current_scale + (size_scales[arg0] - current_scale) / 1.5f;
-    key_scales[3] = size_scales[arg0];
+    key_scales[1] = current_scale + (size_scales[size] - current_scale) / 3.0f;
+    key_scales[2] = current_scale + (size_scales[size] - current_scale) / 1.5f;
+    key_scales[3] = size_scales[size];
     scale_sequence[0] = key_scales[1];
     scale_sequence[1] = key_scales[0];
     scale_sequence[2] = key_scales[1];
@@ -593,7 +593,7 @@ static void ItemSizeSet(s32 arg0)
         }
     }
     Hu3DModelAttrReset(model_id, HU3D_MOTATTR_PAUSE);
-    BoardPlayerSizeSet(currItemRestore, arg0);
+    BoardPlayerSizeSet(currItemRestore, size);
 }
 
 /** @brief Use a Mini Mushroom and shrink the current player. */
@@ -2102,17 +2102,17 @@ static void GenieCameraProc(void)
 
 /**
  * @brief Interpolate one segment of the genie camera path with spline control points.
- * @param arg0 Camera path containing segment durations, positions, and targets.
- * @param arg1 Path segment index; zero uses the three-point endpoint formula.
- * @param arg2 Normalized progress through the segment, from 0 to 1.
- * @param arg3 Receives the interpolated camera position.
- * @param arg4 Receives the interpolated camera target.
+ * @param camera_path Camera path containing segment durations, positions, and targets.
+ * @param segment Path segment index; zero uses the three-point endpoint formula.
+ * @param progress Normalized progress through the segment, from 0 to 1.
+ * @param position_out Receives the interpolated camera position.
+ * @param target_out Receives the interpolated camera target.
  */
-static void GenieCameraCalc(UnkGenieCameraStruct *arg0, s32 arg1, float arg2, Vec *arg3, Vec *arg4)
+static void GenieCameraCalc(UnkGenieCameraStruct *camera_path, s32 segment, float progress, Vec *position_out, Vec *target_out)
 {
     Vec unused_zero = { 0.0f, 0.0f, 0.0f };
-    float t_squared = arg2 * arg2;
-    float t_cubed = t_squared * arg2;
+    float t_squared = progress * progress;
+    float t_cubed = t_squared * progress;
     Vec *position_current_or_previous;
     Vec *target_current_or_previous;
     Vec *position_next_or_current;
@@ -2122,64 +2122,64 @@ static void GenieCameraCalc(UnkGenieCameraStruct *arg0, s32 arg1, float arg2, Ve
     Vec *position_following;
     Vec *target_following;
 
-    if (arg1 == 0) {
-        position_current_or_previous = &arg0[arg1].position;
-        position_next_or_current = &arg0[arg1 + 1].position;
-        position_following_or_next = &arg0[arg1 + 2].position;
-        target_current_or_previous = &arg0[arg1].target;
-        target_next_or_current = &arg0[arg1 + 1].target;
-        target_following_or_next = &arg0[arg1 + 2].target;
-        arg3->x = 0.5f
-            * ((position_current_or_previous->x - position_next_or_current->x * 2.0f + position_following_or_next->x) * t_squared + (position_current_or_previous->x * -3.0f + position_next_or_current->x * 4.0f - position_following_or_next->x) * arg2
+    if (segment == 0) {
+        position_current_or_previous = &camera_path[segment].position;
+        position_next_or_current = &camera_path[segment + 1].position;
+        position_following_or_next = &camera_path[segment + 2].position;
+        target_current_or_previous = &camera_path[segment].target;
+        target_next_or_current = &camera_path[segment + 1].target;
+        target_following_or_next = &camera_path[segment + 2].target;
+        position_out->x = 0.5f
+            * ((position_current_or_previous->x - position_next_or_current->x * 2.0f + position_following_or_next->x) * t_squared + (position_current_or_previous->x * -3.0f + position_next_or_current->x * 4.0f - position_following_or_next->x) * progress
                 + position_current_or_previous->x * 2.0f);
-        arg3->y = 0.5f
-            * ((position_current_or_previous->y - position_next_or_current->y * 2.0f + position_following_or_next->y) * t_squared + (position_current_or_previous->y * -3.0f + position_next_or_current->y * 4.0f - position_following_or_next->y) * arg2
+        position_out->y = 0.5f
+            * ((position_current_or_previous->y - position_next_or_current->y * 2.0f + position_following_or_next->y) * t_squared + (position_current_or_previous->y * -3.0f + position_next_or_current->y * 4.0f - position_following_or_next->y) * progress
                 + position_current_or_previous->y * 2.0f);
-        arg3->z = 0.5f
-            * ((position_current_or_previous->z - position_next_or_current->z * 2.0f + position_following_or_next->z) * t_squared + (position_current_or_previous->z * -3.0f + position_next_or_current->z * 4.0f - position_following_or_next->z) * arg2
+        position_out->z = 0.5f
+            * ((position_current_or_previous->z - position_next_or_current->z * 2.0f + position_following_or_next->z) * t_squared + (position_current_or_previous->z * -3.0f + position_next_or_current->z * 4.0f - position_following_or_next->z) * progress
                 + position_current_or_previous->z * 2.0f);
-        arg4->x = 0.5f
-            * ((target_current_or_previous->x - target_next_or_current->x * 2.0f + target_following_or_next->x) * t_squared + (target_current_or_previous->x * -3.0f + target_next_or_current->x * 4.0f - target_following_or_next->x) * arg2
+        target_out->x = 0.5f
+            * ((target_current_or_previous->x - target_next_or_current->x * 2.0f + target_following_or_next->x) * t_squared + (target_current_or_previous->x * -3.0f + target_next_or_current->x * 4.0f - target_following_or_next->x) * progress
                 + target_current_or_previous->x * 2.0f);
-        arg4->y = 0.5f
-            * ((target_current_or_previous->y - target_next_or_current->y * 2.0f + target_following_or_next->y) * t_squared + (target_current_or_previous->y * -3.0f + target_next_or_current->y * 4.0f - target_following_or_next->y) * arg2
+        target_out->y = 0.5f
+            * ((target_current_or_previous->y - target_next_or_current->y * 2.0f + target_following_or_next->y) * t_squared + (target_current_or_previous->y * -3.0f + target_next_or_current->y * 4.0f - target_following_or_next->y) * progress
                 + target_current_or_previous->y * 2.0f);
-        arg4->z = 0.5f
-            * ((target_current_or_previous->z - target_next_or_current->z * 2.0f + target_following_or_next->z) * t_squared + (target_current_or_previous->z * -3.0f + target_next_or_current->z * 4.0f - target_following_or_next->z) * arg2
+        target_out->z = 0.5f
+            * ((target_current_or_previous->z - target_next_or_current->z * 2.0f + target_following_or_next->z) * t_squared + (target_current_or_previous->z * -3.0f + target_next_or_current->z * 4.0f - target_following_or_next->z) * progress
                 + target_current_or_previous->z * 2.0f);
     }
     else {
-        position_current_or_previous = &arg0[arg1 - 1].position;
-        position_next_or_current = &arg0[arg1].position;
-        position_following_or_next = &arg0[arg1 + 1].position;
-        position_following = &arg0[arg1 + 2].position;
-        target_current_or_previous = &arg0[arg1 - 1].target;
-        target_next_or_current = &arg0[arg1].target;
-        target_following_or_next = &arg0[arg1 + 1].target;
-        target_following = &arg0[arg1 + 2].target;
-        arg3->x = 0.5f
-            * ((-position_current_or_previous->x + position_next_or_current->x * 3.0f - position_following_or_next->x * 3.0f + position_following->x) * t_squared * arg2
-                + (position_current_or_previous->x * 2.0f - position_next_or_current->x * 5.0f + position_following_or_next->x * 4.0f - position_following->x) * t_squared + (-position_current_or_previous->x + position_following_or_next->x) * arg2
+        position_current_or_previous = &camera_path[segment - 1].position;
+        position_next_or_current = &camera_path[segment].position;
+        position_following_or_next = &camera_path[segment + 1].position;
+        position_following = &camera_path[segment + 2].position;
+        target_current_or_previous = &camera_path[segment - 1].target;
+        target_next_or_current = &camera_path[segment].target;
+        target_following_or_next = &camera_path[segment + 1].target;
+        target_following = &camera_path[segment + 2].target;
+        position_out->x = 0.5f
+            * ((-position_current_or_previous->x + position_next_or_current->x * 3.0f - position_following_or_next->x * 3.0f + position_following->x) * t_squared * progress
+                + (position_current_or_previous->x * 2.0f - position_next_or_current->x * 5.0f + position_following_or_next->x * 4.0f - position_following->x) * t_squared + (-position_current_or_previous->x + position_following_or_next->x) * progress
                 + position_next_or_current->x * 2.0f);
-        arg3->y = 0.5f
-            * ((-position_current_or_previous->y + position_next_or_current->y * 3.0f - position_following_or_next->y * 3.0f + position_following->y) * t_squared * arg2
-                + (position_current_or_previous->y * 2.0f - position_next_or_current->y * 5.0f + position_following_or_next->y * 4.0f - position_following->y) * t_squared + (-position_current_or_previous->y + position_following_or_next->y) * arg2
+        position_out->y = 0.5f
+            * ((-position_current_or_previous->y + position_next_or_current->y * 3.0f - position_following_or_next->y * 3.0f + position_following->y) * t_squared * progress
+                + (position_current_or_previous->y * 2.0f - position_next_or_current->y * 5.0f + position_following_or_next->y * 4.0f - position_following->y) * t_squared + (-position_current_or_previous->y + position_following_or_next->y) * progress
                 + position_next_or_current->y * 2.0f);
-        arg3->z = 0.5f
-            * ((-position_current_or_previous->z + position_next_or_current->z * 3.0f - position_following_or_next->z * 3.0f + position_following->z) * t_squared * arg2
-                + (position_current_or_previous->z * 2.0f - position_next_or_current->z * 5.0f + position_following_or_next->z * 4.0f - position_following->z) * t_squared + (-position_current_or_previous->z + position_following_or_next->z) * arg2
+        position_out->z = 0.5f
+            * ((-position_current_or_previous->z + position_next_or_current->z * 3.0f - position_following_or_next->z * 3.0f + position_following->z) * t_squared * progress
+                + (position_current_or_previous->z * 2.0f - position_next_or_current->z * 5.0f + position_following_or_next->z * 4.0f - position_following->z) * t_squared + (-position_current_or_previous->z + position_following_or_next->z) * progress
                 + position_next_or_current->z * 2.0f);
-        arg4->x = 0.5f
-            * ((-target_current_or_previous->x + target_next_or_current->x * 3.0f - target_following_or_next->x * 3.0f + target_following->x) * t_squared * arg2
-                + (target_current_or_previous->x * 2.0f - target_next_or_current->x * 5.0f + target_following_or_next->x * 4.0f - target_following->x) * t_squared + (-target_current_or_previous->x + target_following_or_next->x) * arg2
+        target_out->x = 0.5f
+            * ((-target_current_or_previous->x + target_next_or_current->x * 3.0f - target_following_or_next->x * 3.0f + target_following->x) * t_squared * progress
+                + (target_current_or_previous->x * 2.0f - target_next_or_current->x * 5.0f + target_following_or_next->x * 4.0f - target_following->x) * t_squared + (-target_current_or_previous->x + target_following_or_next->x) * progress
                 + target_next_or_current->x * 2.0f);
-        arg4->y = 0.5f
-            * ((-target_current_or_previous->y + target_next_or_current->y * 3.0f - target_following_or_next->y * 3.0f + target_following->y) * t_squared * arg2
-                + (target_current_or_previous->y * 2.0f - target_next_or_current->y * 5.0f + target_following_or_next->y * 4.0f - target_following->y) * t_squared + (-target_current_or_previous->y + target_following_or_next->y) * arg2
+        target_out->y = 0.5f
+            * ((-target_current_or_previous->y + target_next_or_current->y * 3.0f - target_following_or_next->y * 3.0f + target_following->y) * t_squared * progress
+                + (target_current_or_previous->y * 2.0f - target_next_or_current->y * 5.0f + target_following_or_next->y * 4.0f - target_following->y) * t_squared + (-target_current_or_previous->y + target_following_or_next->y) * progress
                 + target_next_or_current->y * 2.0f);
-        arg4->z = 0.5f
-            * ((-target_current_or_previous->z + target_next_or_current->z * 3.0f - target_following_or_next->z * 3.0f + target_following->z) * t_squared * arg2
-                + (target_current_or_previous->z * 2.0f - target_next_or_current->z * 5.0f + target_following_or_next->z * 4.0f - target_following->z) * t_squared + (-target_current_or_previous->z + target_following_or_next->z) * arg2
+        target_out->z = 0.5f
+            * ((-target_current_or_previous->z + target_next_or_current->z * 3.0f - target_following_or_next->z * 3.0f + target_following->z) * t_squared * progress
+                + (target_current_or_previous->z * 2.0f - target_next_or_current->z * 5.0f + target_following_or_next->z * 4.0f - target_following->z) * t_squared + (-target_current_or_previous->z + target_following_or_next->z) * progress
                 + target_next_or_current->z * 2.0f);
     }
 }
@@ -2539,13 +2539,13 @@ static void ExecItemGenie(void)
     }
 }
 
-/** @brief Set the three item indices dispensed by the next Item Bag. @param arg0 Array of three item indices; -1 entries are randomized when the bag is used. */
-void BoardItemBagItemSet(s16 *arg0)
+/** @brief Set the three item indices dispensed by the next Item Bag. @param items Array of three item indices; -1 entries are randomized when the bag is used. */
+void BoardItemBagItemSet(s16 *items)
 {
     s32 i;
 
     for (i = 0; i < 3; i++) {
-        itemBagItems[i] = arg0[i];
+        itemBagItems[i] = items[i];
     }
 }
 

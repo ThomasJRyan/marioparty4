@@ -20,7 +20,7 @@ typedef struct platform_work {
         u8 kill : 1;
 		u8 state : 2;
     };
-    s16 write_only_value;
+    s16 unidentified_02;
     s16 model;
 } PlatformWork;
 
@@ -229,7 +229,7 @@ static void CreateFortunePlatform(void)
 	fortunePlatformObj = omAddObjEx(boardObjMan, 257, 0, 0, -1, ExecFortunePlatform);
 	work = omObjGetWork(fortunePlatformObj, PlatformWork);
 	work->kill = 0;
-	work->write_only_value = 0;
+	work->unidentified_02 = 0;
 	work->model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 3), NULL, 0);
 	BoardSpacePosGet(0, GWPlayer[currPlayer].space_curr, &pos);
 	BoardSpaceRotGet(0, GWPlayer[currPlayer].space_curr, &rot);
@@ -344,7 +344,7 @@ static void ConfigComFortune(void)
 {
 	s32 type;
 	s32 random;
-	s8 prizeTbl[] = { 5, 3, 0, 1, 4 };
+	s8 prize_type_table[] = { 5, 3, 0, 1, 4 };
 	random = BoardRandMod(100);
 	if(random > 95) {
 		type = 0;
@@ -355,11 +355,11 @@ static void ConfigComFortune(void)
 	}
 	switch(type) {
 		case 0:
-			comPrize = prizeTbl[BoardRandMod(2)];
+			comPrize = prize_type_table[BoardRandMod(2)];
 			break;
 			
 		case 1:
-			comPrize = prizeTbl[BoardRandMod(3)+2];
+			comPrize = prize_type_table[BoardRandMod(3)+2];
 			break;
 			
 		case 2:
