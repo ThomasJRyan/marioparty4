@@ -517,7 +517,7 @@ s32 BoardModelMotionCreate(s16 model, s32 data_num)
 /**
  * @brief Detach and release one motion slot.
  * @param [in] model Wrapper from which the selected additional motion is detached and released.
- * @param [in] motion Additional motion slot from 1 through 31 to detach and release; other values are ignored.
+ * @param [in] motion Additional motion slot from 1 through 31 to detach and release; values outside that range are rejected with -1.
  * @return 0 after clearing the slot, or -1 when model is invalid or motion is outside slots 1 through 31.
  */
 s32 BoardModelMotionKill(s16 model, s32 motion)
@@ -600,7 +600,7 @@ s32 BoardModelMotionUpdateSet(s16 model, s32 flag)
  * @brief Enable or disable character voice triggers for a motion.
  * @param [in] model Character-backed wrapper whose selected motion's voice triggers are changed.
  * @param [in] motion Motion slot from 0 through 31 whose character-motion voice setting receives enable.
- * @param [in] flag Nonzero enables voice triggers; zero disables them.
+ * @param [in] flag Value assigned as the selected character motion's voice enable/disable setting; nonzero enables and zero disables.
  * @return -1 when model is invalid; otherwise 0, including for an out-of-range motion or non-character model.
  */
 s32 BoardModelVoiceEnableSet(s16 model, s32 motion, s32 flag)

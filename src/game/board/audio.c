@@ -26,8 +26,8 @@ void BoardMusStartBoard(void) {
 
 /**
  * @brief Start a music sequence on one of the two board music channels.
- * @param [in] board_no Board music channel whose tracked sequence is replaced or reused (0 or 1).
- * @param [in] music_id Requested sequence ID to play and retain for duplicate-request detection.
+ * @param [in] board_no Board music channel normally selected for playback and tracking; when replacing an active entry, the baseline body instead passes its stored sequence handle to BoardAudSeqFadeOutFast as the channel argument.
+ * @param [in] music_id Requested sequence ID to play and store; a match with the tracked ID returns without changing the tracked selection.
  * @param [in] vol Target volume; a negative value selects full volume (127).
  * @param [in] speed Music fade-in duration; zero starts immediately.
  */
@@ -57,8 +57,8 @@ void BoardMusStart(s32 board_no, s32 music_id, s8 vol, u16 speed) {
 }
 
 /**
- * @brief Fade a board music channel out over 100 audio ticks.
- * @param [in] board_no Board music channel forwarded to the fixed 100-frame fade-out path.
+ * @brief Forward a board music channel to BoardAudSeqFadeOut with the literal duration argument 0x64.
+ * @param [in] board_no Board music channel forwarded unchanged to BoardAudSeqFadeOut.
  */
 void BoardAudSeqFadeOutFast(s32 board_no) {
     BoardAudSeqFadeOut(board_no, 0x64);
@@ -67,7 +67,7 @@ void BoardAudSeqFadeOutFast(s32 board_no) {
 /**
  * @brief Fade out the active sequence on a board music channel and clear its tracked handles.
  * @param [in] board_no Board music channel whose active sequence is faded and tracking state is cleared.
- * @param [in] speed Sequence fade-out duration in audio ticks.
+ * @param [in] speed Fade-duration argument forwarded to HuAudSeqFadeOut.
  */
 void BoardAudSeqFadeOut(s32 board_no, u16 speed) {
     s16 *board = boardSeq[board_no];
@@ -80,9 +80,9 @@ void BoardAudSeqFadeOut(s32 board_no, u16 speed) {
 }
 
 /**
- * @brief Fade a board music channel between the normal volume and the quieter event volume.
- * @param [in] board_no Board music channel faded to the quieter or full-volume preset.
- * @param [in] is_quieter Nonzero to fade to volume 96; zero to fade to full volume 127.
+ * @brief Request volume 96 or 127 for a board music channel.
+ * @param [in] board_no Board music channel passed to BoardMusVolPanSet for the volume request.
+ * @param [in] is_quieter Nonzero requests volume 96; zero requests volume 127.
  */
 void BoardMusLoudSet(s32 board_no, s32 is_quieter) {
     if (is_quieter != 0) {
@@ -93,10 +93,10 @@ void BoardMusLoudSet(s32 board_no, s32 is_quieter) {
 }
 
 /**
- * @brief Fade the active sequence on a board music channel to a new volume.
- * @param [in] board_no Board music channel whose active sequence receives volume and pan parameters.
+ * @brief Submit channel and volume parameters for an active board music sequence.
+ * @param [in] board_no Board music channel used for sequence lookup and written to MSM_MUSPARAM.chan.
  * @param [in] vol Target volume; a negative value selects full volume (127).
- * @param [in] fade_speed Value written to MSM_MUSPARAM.fadeSpeed before msmMusSetParam; no fade-speed flag is added here.
+ * @param [in] fade_speed Value written to MSM_MUSPARAM.fadeSpeed, although the enabled MSM_MUSPARAM_CHAN and MSM_MUSPARAM_VOL flags do not include MSM_MUSPARAM_FADESPEED.
  */
 void BoardMusVolPanSet(s32 board_no, s8 vol, u16 fade_speed) {
     s16 *board = boardSeq[board_no];
@@ -119,7 +119,7 @@ void BoardMusVolPanSet(s32 board_no, s8 vol, u16 fade_speed) {
  * @brief Pause or resume the active sequence when its current status permits the transition.
  * @param [in] board_no Board music channel whose active sequence and paused state are updated.
  * @param [in] pause Nonzero to pause and zero to resume.
- * @param [in] speed Pause or resume transition duration in audio ticks.
+ * @param [in] speed Pause or resume transition argument forwarded to HuAudSeqPause.
  */
 void BoardAudSeqPause(s32 board_no, s32 pause, u16 speed) {
     s16 *board = boardSeq[board_no];

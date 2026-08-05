@@ -36,7 +36,7 @@ typedef struct {
         u8 sequence_complete : 1; ///< Set after the result display finishes so the manager deletes this player object.
         u8 state : 3;
         u8 index : 2;
-        u8 landing_complete : 1; ///< Set when PlayerFall reaches the board and consumes its landing delay.
+        u8 landing_complete : 1; ///< Set at touchdown; after the dispatcher consumes the landing delay, it causes PlayerFall to finish.
         u8 has_rolled : 1;
     };
     u8 delay;
@@ -414,7 +414,7 @@ static void ExecPlayerStart(OMOBJ *object) {
 /**
  * @brief Animate a player falling into the opening lineup.
  * @param [in,out] object Per-player opening object whose Y translation tracks the falling player.
- * @param [in,out] data Player record whose index selects the model, whose time and delay advance the fall, and whose landing_complete flag records touchdown.
+ * @param [in,out] data Player record whose index selects the player and whose time advances the fall; touchdown initializes delay and sets landing_complete for completion after the dispatcher consumes that delay.
  */
 static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
     float fall_duration;
@@ -444,9 +444,9 @@ static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
 }
 
 /**
- * @brief Play the waiting player's voice and advance to the dice-drop state.
+ * @brief Turn the indexed player 180 degrees, wait for the blend, restore idle motion, and clear the opening state.
  * @param [in] unused_object Unused object callback argument.
- * @param [in,out] data Player record whose index selects the speaker and whose time gates the wait before advancing state.
+ * @param [in,out] data Player record whose index selects the player and whose time records whether the rotation blend has been initialized.
  */
 static void PlayerWaitSpeak(OMOBJ *unused_object, PlayerStartWork *data) {
     float target_y_rotation;
@@ -620,7 +620,7 @@ static void PlayerDiceNumShow(OMOBJ *unused_object, PlayerStartWork *data) {
 }
 
 /**
- * @brief Hide the opening roll, lower the player, and mark that player complete.
+ * @brief Rotate, squash, and hide the opening-roll result model, then mark the player's sequence complete.
  * @param [in,out] object Per-player opening object whose rotation fields supply the result model's animated X/Y scale.
  * @param [in,out] data Player record whose time and rotation angle animate and hide the result model, then set sequence_complete.
  */

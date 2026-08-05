@@ -352,7 +352,7 @@ void BoardWinAttrReset(s32 attr) {
 
 /**
  * @brief Disable a choice index in the pending board window.
- * @param [in] choice Choice index marked in the pending disable table and disabled on the active choice window.
+ * @param [in] choice Choice index marked only in the pending disable table; ExecBoardWindow applies it while configuring the engine window.
  */
 void BoardWinChoiceDisable(s32 choice) {
     choiceDisableTbl[choice] = 1;

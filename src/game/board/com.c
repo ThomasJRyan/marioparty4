@@ -779,10 +779,10 @@ static BOOL CheckBooUse(s32 player, s32 item) {
 }
 
 /**
- * @brief Decide probabilistically whether an owned Magic Lamp should be used at the current difficulty.
- * @param [in] player Computer-controlled player whose item ownership and difficulty set the lamp-use probability.
- * @param [in] item Owned Magic Lamp whose difficulty-dependent use chance is evaluated.
- * @return TRUE when the lamp is owned and the difficulty-based random roll permits use; otherwise FALSE.
+ * @brief Check whether an owned Magic Lamp meets the coin or last-five-turn condition for use.
+ * @param [in] player Player whose inventory and coin count are checked.
+ * @param [in] item Magic Lamp item ID searched for in the player's inventory.
+ * @return TRUE when the player owns item and either has at least 20 coins or GWSystem.last5_effect equals 4; otherwise FALSE.
  */
 static BOOL CheckLampUse(s32 player, s32 item) {
     if ((BoardPlayerCoinsGet(player) >= 0x14 || GWSystem.last5_effect == 4) && BoardPlayerItemFind(player, item) != -1) {
