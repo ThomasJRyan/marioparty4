@@ -54,21 +54,21 @@ static void ExecBattle(void);
 static void TakeCoins(void);
 static void InitExplode(void);
 static s32 CheckExplode(void);
-static void UpdateExplode(OMOBJ *arg0);
+static void UpdateExplode(OMOBJ *object);
 static void CreateBattleMain(void);
-static void UpdateBattleMain(OMOBJ *arg0);
-static void DescendBattleBomb(BattleWork *arg0, OMOBJ *arg1);
-static void EndBattle(BattleWork *arg0, OMOBJ *arg1);
-static void ShowBattleGame(BattleWork *arg0, OMOBJ *arg1);
-static void RaiseBattleGame(BattleWork *arg0, OMOBJ *arg1);
-static void UpdateBattleCoin(BattleWork *arg0, OMOBJ *arg1);
-static void ShowBattleCoin(BattleWork *arg0, OMOBJ *arg1);
-static void InitBattleGameSpr(BattleWork *arg0, OMOBJ *arg1);
+static void UpdateBattleMain(OMOBJ *object);
+static void DescendBattleBomb(BattleWork *work, OMOBJ *object);
+static void EndBattle(BattleWork *work, OMOBJ *object);
+static void ShowBattleGame(BattleWork *work, OMOBJ *object);
+static void RaiseBattleGame(BattleWork *work, OMOBJ *object);
+static void UpdateBattleCoin(BattleWork *work, OMOBJ *object);
+static void ShowBattleCoin(BattleWork *work, OMOBJ *object);
+static void InitBattleGameSpr(BattleWork *work, OMOBJ *object);
 static void HideBattleSpr(void);
-static void VibratePad(BattleWork *arg0, OMOBJ *arg1);
+static void VibratePad(BattleWork *work, OMOBJ *object);
 static void StopBattleBomb(void);
 static s32 GetBattleBombState(void);
-static void SetBattleBombState(s32 arg0);
+static void SetBattleBombState(s32 state);
 static void SetBattleCoinValue(void);
 
 static s16 battleMGList[8];
@@ -461,9 +461,9 @@ static s32 CheckExplode(void) {
  * @brief Advance or destroy the Battle Space bomb animation.
  *
  * @details Triggers reactions for players on the Battle Space, raises the bomb, then keeps it aligned to a screen-space point.
- * @param arg0 Bomb object carrying the transform and ExplodeWork state.
+ * @param object Bomb object carrying the transform and ExplodeWork state.
  */
-static void UpdateExplode(OMOBJ *arg0) {
+static void UpdateExplode(OMOBJ *object) {
     Vec screen_pos;
     Vec camera_rot;
     float motion_time;
@@ -472,14 +472,14 @@ static void UpdateExplode(OMOBJ *arg0) {
     s32 i;
 
     (void) 1000.0f; // TODO: 1000.0f needs to appear right before 20.0f in sdata2 to match.
-    work = omObjGetWork(arg0, ExplodeWork);
+    work = omObjGetWork(object, ExplodeWork);
     if (work->kill != 0 || BoardIsKill()) {
         BoardModelKill(work->bomb_model);
         for (i = 0; i < 4; i++) {
             BoardModelKill(work->burst_models[i]);
         }
         explodeObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     switch (work->state) {
@@ -495,11 +495,11 @@ static void UpdateExplode(OMOBJ *arg0) {
                 CharEffectLayerSet(2);
             }
             if (work->delay-- <= 0) {
-                arg0->trans.y += 50.0f;
-                if (arg0->trans.y >= 800.0f) {
-                    arg0->scale.x = 288.0f;
-                    arg0->scale.y = -128.0f;
-                    arg0->scale.z = 1000.0f;
+                object->trans.y += 50.0f;
+                if (object->trans.y >= 800.0f) {
+                    object->scale.x = 288.0f;
+                    object->scale.y = -128.0f;
+                    object->scale.z = 1000.0f;
                     for (i = 0; i < 4; i++) {
                         BoardModelVisibilitySet(work->burst_models[i], 0);
                     }
@@ -516,16 +516,16 @@ static void UpdateExplode(OMOBJ *arg0) {
             PSMTXRotRad(model_mtx, 'x', MTXDegToRad(camera_rot.x + 10.0f));
             BoardModelMtxSet(work->bomb_model, &model_mtx);
             BoardModelRotSet(work->bomb_model, 0.0f, 0.0f, 0.0f);
-            screen_pos.x = arg0->scale.x;
-            screen_pos.y = arg0->scale.y;
-            screen_pos.z = arg0->scale.z;
+            screen_pos.x = object->scale.x;
+            screen_pos.y = object->scale.y;
+            screen_pos.z = object->scale.z;
             Hu3D2Dto3D(&screen_pos, 1, &screen_pos);
-            arg0->trans.x = screen_pos.x;
-            arg0->trans.y = screen_pos.y;
-            arg0->trans.z = screen_pos.z;
+            object->trans.x = screen_pos.x;
+            object->trans.y = screen_pos.y;
+            object->trans.z = screen_pos.z;
             break;
     }
-    BoardModelPosSet(work->bomb_model, arg0->trans.x, arg0->trans.y, arg0->trans.z);
+    BoardModelPosSet(work->bomb_model, object->trans.x, object->trans.y, object->trans.z);
 }
 
 /**
@@ -580,132 +580,132 @@ static void CreateBattleMain(void) {
  * @brief Dispatch one frame of the Battle Space overlay state machine.
  *
  * @details Also aligns the bomb presentation with the moving overlay.
- * @param arg0 Overlay object whose transform and BattleWork state are updated.
+ * @param object Overlay object whose transform and BattleWork state are updated.
  */
-static void UpdateBattleMain(OMOBJ *arg0) {
+static void UpdateBattleMain(OMOBJ *object) {
     BattleWork *work;
     ExplodeWork *explode_work;
     float bomb_screen_y;
 
-    work = omObjGetWork(arg0, BattleWork);
+    work = omObjGetWork(object, BattleWork);
     if (work->kill != 0 || BoardIsKill()) {
         HuSprGrpKill(work->sprite_group);
         battleObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     switch (work->state) {
         case 0:
-            DescendBattleBomb(work, arg0);
+            DescendBattleBomb(work, object);
             break;
         case 1:
-            EndBattle(work, arg0);
+            EndBattle(work, object);
             break;
         case 2:
-            ShowBattleGame(work, arg0);
+            ShowBattleGame(work, object);
             break;
         case 3:
-            RaiseBattleGame(work, arg0);
+            RaiseBattleGame(work, object);
             break;
         case 4:
-            UpdateBattleCoin(work, arg0);
+            UpdateBattleCoin(work, object);
             break;
         case 5:
-            InitBattleGameSpr(work, arg0);
+            InitBattleGameSpr(work, object);
             break;
         case 6:
-            VibratePad(work, arg0);
+            VibratePad(work, object);
             break;
         case 7:
-            ShowBattleCoin(work, arg0);
+            ShowBattleCoin(work, object);
             break;
         case 8:
             break;
     }
-    bomb_screen_y = arg0->trans.x + 240.0f;
+    bomb_screen_y = object->trans.x + 240.0f;
     explode_work = omObjGetWork(explodeObj, ExplodeWork);
     if (explode_work->state == 2) {
         explodeObj->scale.x = 288.0f;
         explodeObj->scale.y = bomb_screen_y;
         explodeObj->scale.z = 1000.0f;
     }
-    HuSprPosSet(work->sprite_group, 0, 0.0f, arg0->trans.y);
-    HuSprScaleSet(work->sprite_group, 0, arg0->trans.z, arg0->trans.z);
+    HuSprPosSet(work->sprite_group, 0, 0.0f, object->trans.y);
+    HuSprScaleSet(work->sprite_group, 0, object->trans.z, object->trans.z);
 }
 
 /**
  * @brief Ease the overlay from off-screen to its opening position.
- * @param arg0 Overlay work state, changed to title reveal when the destination is reached.
- * @param arg1 Overlay object whose x position approaches -132.
+ * @param work Overlay work state, changed to title reveal when the destination is reached.
+ * @param object Overlay object whose x position approaches -132.
  */
-static void DescendBattleBomb(BattleWork *arg0, OMOBJ *arg1) {
-    float distance = -132.0f - arg1->trans.x;
+static void DescendBattleBomb(BattleWork *work, OMOBJ *object) {
+    float distance = -132.0f - object->trans.x;
 
     if (distance < 0.1f) {
-        arg1->trans.x = -132.0f;
-        arg0->state = 2;
+        object->trans.x = -132.0f;
+        work->state = 2;
     } else {
-        arg1->trans.x += 0.3f * distance;
+        object->trans.x += 0.3f * distance;
     }
 }
 
 /**
  * @brief Move the overlay off-screen and finish its fade.
- * @param arg0 Overlay work state, changed to idle after the exit completes.
- * @param arg1 Overlay object whose x position approaches 548.
+ * @param work Overlay work state, changed to idle after the exit completes.
+ * @param object Overlay object whose x position approaches 548.
  */
-static void EndBattle(BattleWork *arg0, OMOBJ *arg1) {
-    float distance = 548.0f - arg1->trans.x;
+static void EndBattle(BattleWork *work, OMOBJ *object) {
+    float distance = 548.0f - object->trans.x;
 
     if (distance < 0.1f) {
         BoardFilterFadeOut(30);
-        arg0->state = 8;
+        work->state = 8;
     } else {
-        arg1->trans.x += 0.3f * distance;
+        object->trans.x += 0.3f * distance;
     }
 }
 
 /**
  * @brief Reveal the Battle Game title with a sine-scaled entrance.
- * @param arg0 Overlay work containing the reveal timer and sprite group.
- * @param arg1 Overlay object supplying the title scale and position.
+ * @param work Overlay work containing the reveal timer and sprite group.
+ * @param object Overlay object supplying the title scale and position.
  */
-static void ShowBattleGame(BattleWork *arg0, OMOBJ *arg1) {
+static void ShowBattleGame(BattleWork *work, OMOBJ *object) {
     float angle;
 
-    if (arg0->timer == 0) {
+    if (work->timer == 0) {
         if (BoardFilterFadePauseCheck()) {
-            arg0->timer = 1;
-            arg1->trans.z = 0.01f;
-            arg1->trans.y = 0.0f;
-            HuSprAttrReset(arg0->sprite_group, 0, HUSPR_ATTR_DISPOFF);
-            HuSprPosSet(arg0->sprite_group, 0, 0.0f, 0.0f);
+            work->timer = 1;
+            object->trans.z = 0.01f;
+            object->trans.y = 0.0f;
+            HuSprAttrReset(work->sprite_group, 0, HUSPR_ATTR_DISPOFF);
+            HuSprPosSet(work->sprite_group, 0, 0.0f, 0.0f);
         } else {
             return;
         }
     }
-    if (arg0->timer >= 90) {
-        arg0->state = 8;
-        arg0->timer = 90;
+    if (work->timer >= 90) {
+        work->state = 8;
+        work->timer = 90;
     }
-    OSs8tof32((s8*) &arg0->timer, &angle);
-    arg1->trans.z = sind(angle);
-    arg0->timer += 4;
+    OSs8tof32((s8*) &work->timer, &angle);
+    object->trans.z = sind(angle);
+    work->timer += 4;
 }
 
 /**
  * @brief Raise the Battle Game title to its selection position.
- * @param arg0 Overlay work, changed to idle when the title reaches y = -60.
- * @param arg1 Overlay object whose y position is eased upward.
+ * @param work Overlay work, changed to idle when the title reaches y = -60.
+ * @param object Overlay object whose y position is eased upward.
  */
-static void RaiseBattleGame(BattleWork *arg0, OMOBJ *arg1) {
-    float distance = -60.0f - arg1->trans.y;
+static void RaiseBattleGame(BattleWork *work, OMOBJ *object) {
+    float distance = -60.0f - object->trans.y;
 
     if (ABS(distance) < 0.1f) {
-        arg1->trans.y = -60.0f;
-        arg0->state = 8;
+        object->trans.y = -60.0f;
+        work->state = 8;
     } else {
-        arg1->trans.y += 0.2f * distance;
+        object->trans.y += 0.2f * distance;
     }
 }
 
@@ -713,34 +713,34 @@ static void RaiseBattleGame(BattleWork *arg0, OMOBJ *arg1) {
  * @brief Animate and progressively slow the coin-stake roulette.
  *
  * @details The roulette stops only on the stake index chosen by SetBattleCoinValue.
- * @param arg0 Overlay work containing the roulette timers, slowdown state, and sprite group.
- * @param arg1 Overlay object used when initializing the selector.
+ * @param work Overlay work containing the roulette timers, slowdown state, and sprite group.
+ * @param object Overlay object used when initializing the selector.
  */
-static void UpdateBattleCoin(BattleWork *arg0, OMOBJ *arg1) {
+static void UpdateBattleCoin(BattleWork *work, OMOBJ *object) {
     s8 coin_index;
 
-    if (arg0->coin_display_initialized != 0) {
-        if (arg0->step_timer++ < arg0->step_delay) {
-            arg0->slowdown_level++;
-            if (arg0->slowdown_level > 20) {
-                arg0->slowdown_level = 20;
+    if (work->coin_display_initialized != 0) {
+        if (work->step_timer++ < work->step_delay) {
+            work->slowdown_level++;
+            if (work->slowdown_level > 20) {
+                work->slowdown_level = 20;
             }
             return;
         }
-        if (arg0->coin_selection_slowing == 0 && arg0->slowdown_level >= 20 && BoardRandMod(100) > 50) {
-            arg0->coin_selection_slowing = 1;
+        if (work->coin_selection_slowing == 0 && work->slowdown_level >= 20 && BoardRandMod(100) > 50) {
+            work->coin_selection_slowing = 1;
         }
-        arg0->step_timer = 0;
-        if (arg0->coin_selection_slowing != 0) {
-            arg0->step_delay += 4;
-            if (arg0->step_delay > 30) {
-                arg0->step_delay = 30;
+        work->step_timer = 0;
+        if (work->coin_selection_slowing != 0) {
+            work->step_delay += 4;
+            if (work->step_delay > 30) {
+                work->step_delay = 30;
             }
         }
         OSf32tos8(&battleCoinPosF, &coin_index);
-        if (arg0->step_delay >= 30 && coin_index == battleCoinIdx) {
-            arg0->state = 7;
-            arg0->timer = 0;
+        if (work->step_delay >= 30 && coin_index == battleCoinIdx) {
+            work->state = 7;
+            work->timer = 0;
             coinTakeMax = battleCoinTbl[coin_index];
             HuAudFXPlay(0x305);
         } else {
@@ -750,35 +750,35 @@ static void UpdateBattleCoin(BattleWork *arg0, OMOBJ *arg1) {
                 battleCoinPosF = 0.0f;
             }
         }
-        HuSprBankSet(arg0->sprite_group, 1, coin_index);
+        HuSprBankSet(work->sprite_group, 1, coin_index);
         return;
     }
-    HuSprAttrReset(arg0->sprite_group, 2, HUSPR_ATTR_DISPOFF);
-    HuSprAttrReset(arg0->sprite_group, 1, HUSPR_ATTR_NOANIM | HUSPR_ATTR_DISPOFF);
-    HuSprPosSet(arg0->sprite_group, 2, 0.0f, 40.0f);
-    HuSprPosSet(arg0->sprite_group, 1, 34.0f, 40.0f);
-    HuSprScaleSet(arg0->sprite_group, 1, 0.9f, 0.9f);
-    arg0->coin_display_initialized = 1;
-    arg0->timer = 0;
-    arg1->rot.x = 50.0f;
+    HuSprAttrReset(work->sprite_group, 2, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(work->sprite_group, 1, HUSPR_ATTR_NOANIM | HUSPR_ATTR_DISPOFF);
+    HuSprPosSet(work->sprite_group, 2, 0.0f, 40.0f);
+    HuSprPosSet(work->sprite_group, 1, 34.0f, 40.0f);
+    HuSprScaleSet(work->sprite_group, 1, 0.9f, 0.9f);
+    work->coin_display_initialized = 1;
+    work->timer = 0;
+    object->rot.x = 50.0f;
 }
 
 /**
  * @brief Pulse the selected stake sprite for ninety frames.
- * @param arg0 Overlay work containing the display timer and sprite group.
- * @param arg1 Unused overlay object retained by the state-handler interface.
+ * @param work Overlay work containing the display timer and sprite group.
+ * @param object Unused overlay object retained by the state-handler interface.
  */
-static void ShowBattleCoin(BattleWork *arg0, OMOBJ *arg1) {
+static void ShowBattleCoin(BattleWork *work, OMOBJ *object) {
     float coin_scale;
     float angle;
 
-    if (arg0->timer >= 90) {
-        arg0->timer = 0;
-        arg0->state = 8;
+    if (work->timer >= 90) {
+        work->timer = 0;
+        work->state = 8;
         angle = 90.0f;
     } else {
-        arg0->timer++;
-        OSu8tof32(&arg0->timer, &angle);
+        work->timer++;
+        OSu8tof32(&work->timer, &angle);
     }
     if (coinTakeMax != 50) {
         angle *= 6.0f;
@@ -789,15 +789,15 @@ static void ShowBattleCoin(BattleWork *arg0, OMOBJ *arg1) {
         angle -= 180.0f;
     }
     coin_scale = 0.9f + sind(angle);
-    HuSprScaleSet(arg0->sprite_group, 1, coin_scale, coin_scale);
+    HuSprScaleSet(work->sprite_group, 1, coin_scale, coin_scale);
 }
 
 /**
  * @brief Reveal and position the two minigame choices and their cursors.
- * @param arg0 Overlay work containing the candidate sprite indices and group.
- * @param arg1 Unused overlay object retained by the state-handler interface.
+ * @param work Overlay work containing the candidate sprite indices and group.
+ * @param object Unused overlay object retained by the state-handler interface.
  */
-static void InitBattleGameSpr(BattleWork *arg0, OMOBJ *arg1) {
+static void InitBattleGameSpr(BattleWork *work, OMOBJ *object) {
     s8 left_minigame;
     s8 right_minigame;
     float cursor_positions[2][2] = {
@@ -807,15 +807,15 @@ static void InitBattleGameSpr(BattleWork *arg0, OMOBJ *arg1) {
 
     left_minigame = battleMGIdx[0];
     right_minigame = battleMGIdx[1];
-    HuSprAttrReset(arg0->sprite_group, 3, HUSPR_ATTR_DISPOFF);
-    HuSprAttrReset(arg0->sprite_group, 4, HUSPR_ATTR_DISPOFF);
-    HuSprAttrReset(arg0->sprite_group, left_minigame + 5, HUSPR_ATTR_DISPOFF);
-    HuSprAttrReset(arg0->sprite_group, right_minigame + 5, HUSPR_ATTR_DISPOFF);
-    HuSprPosSet(arg0->sprite_group, 3, cursor_positions[0][0], cursor_positions[0][1]);
-    HuSprPosSet(arg0->sprite_group, 4, cursor_positions[1][0], cursor_positions[1][1]);
-    HuSprPosSet(arg0->sprite_group, left_minigame + 5, cursor_positions[0][0], cursor_positions[0][1]);
-    HuSprPosSet(arg0->sprite_group, right_minigame + 5, cursor_positions[1][0], cursor_positions[1][1]);
-    arg0->state = 8;
+    HuSprAttrReset(work->sprite_group, 3, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(work->sprite_group, 4, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(work->sprite_group, left_minigame + 5, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(work->sprite_group, right_minigame + 5, HUSPR_ATTR_DISPOFF);
+    HuSprPosSet(work->sprite_group, 3, cursor_positions[0][0], cursor_positions[0][1]);
+    HuSprPosSet(work->sprite_group, 4, cursor_positions[1][0], cursor_positions[1][1]);
+    HuSprPosSet(work->sprite_group, left_minigame + 5, cursor_positions[0][0], cursor_positions[0][1]);
+    HuSprPosSet(work->sprite_group, right_minigame + 5, cursor_positions[1][0], cursor_positions[1][1]);
+    work->state = 8;
 }
 
 /**
@@ -833,16 +833,16 @@ static void HideBattleSpr(void) {
 
 /**
  * @brief Start the battle-reveal vibration on all four controller ports.
- * @param arg0 Overlay work returned to idle after vibration starts.
- * @param arg1 Unused overlay object retained by the state-handler interface.
+ * @param work Overlay work returned to idle after vibration starts.
+ * @param object Unused overlay object retained by the state-handler interface.
  */
-static void VibratePad(BattleWork *arg0, OMOBJ *arg1) {
+static void VibratePad(BattleWork *work, OMOBJ *object) {
     s32 i;
 
     for (i = 0; i < 4; i++) {
         omVibrate(i, 12, 0xC, 0);
     }
-    arg0->state = 8;
+    work->state = 8;
 }
 
 /**
@@ -864,12 +864,12 @@ static s32 GetBattleBombState(void) {
 
 /**
  * @brief Enter a Battle Space overlay state and reset its frame timer.
- * @param arg0 State number from 0 through 8; 0-7 select animation handlers and 8 is idle.
+ * @param state State number from 0 through 8; 0-7 select animation handlers and 8 is idle.
  */
-static void SetBattleBombState(s32 arg0) {
+static void SetBattleBombState(s32 state) {
     BattleWork *work = omObjGetWork(battleObj, BattleWork);
 
-    work->state = arg0;
+    work->state = state;
     work->timer = 0;
 }
 

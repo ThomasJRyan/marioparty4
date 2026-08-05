@@ -127,7 +127,7 @@ static void ExecNullSteal(void);
 static void ExecStarSteal(void);
 static void ExecCoinSteal(void);
 static void ApplySteal(void);
-static void ApplyCoinSteal(s16 arg0, s16 arg1);
+static void ApplyCoinSteal(s16 stolen_coins, s16 punch_reduction);
 static void ApplyStarSteal(void);
 static void ApplyBooLight(void);
 static void SetBooBallPos(void);
@@ -135,11 +135,11 @@ static void SetBooBallPos(void);
 // FUNCTIONS //
 /**
  * @brief Register the board-specific Boo House host model.
- * @param arg0 Model handle supplied by the active board overlay.
+ * @param host_model Model handle supplied by the active board overlay.
  */
-void BoardBooHouseHostSet(s16 arg0)
+void BoardBooHouseHostSet(s16 host_model)
 {
-    hostMdl = arg0;
+    hostMdl = host_model;
 }
 
 /**
@@ -187,11 +187,11 @@ void BoardBooHouseKill(void)
  * @brief Resolve a player's visit to the Boo House.
  *
  * @details Mini players can enter; Mega players skip the event. The routine hides the roll display while its child process runs.
- * @param arg0 Index of the visiting player.
+ * @param visitor_player Index of the visiting player.
  */
-void BoardBooHouseExec(s32 arg0)
+void BoardBooHouseExec(s32 visitor_player)
 {
-    currPlayer = arg0;
+    currPlayer = visitor_player;
     if (BoardPlayerSizeGet(currPlayer) != 2) {
         BoardRollDispSet(0);
         houseProc = HuPrcChildCreate(&ExecBooHouse, 0x2003, 0x3800, 0, boardMainProc);
@@ -373,9 +373,9 @@ static void DestroyBooHouse(void)
  * @brief Choose coin or star theft input for a computer visitor.
  *
  * @details Prefers a star when the player can afford fifty coins and an eligible opponent owns one; otherwise selects coins.
- * @param arg0 Index of the computer player visiting the house.
+ * @param player Index of the computer player visiting the house.
  */
-static void PickComStealType(s32 arg0)
+static void PickComStealType(s32 player)
 {
     s32 player_index;
     s32 opponent_coins;
@@ -383,14 +383,14 @@ static void PickComStealType(s32 arg0)
 
     opponent_coins = opponent_stars = 0;
     for (player_index = 0; player_index < 4; player_index++) {
-        if (player_index != arg0) {
+        if (player_index != player) {
             opponent_coins += BoardPlayerCoinsGet(player_index);
             opponent_stars += GWStarsGet(player_index);
         }
     }
-    if (BoardPlayerCoinsGet(arg0) >= 0x32) {
+    if (BoardPlayerCoinsGet(player) >= 0x32) {
         for (player_index = 0; player_index < 4; player_index++) {
-            if ((player_index != arg0) && (GWStarsGet(player_index) != 0) && (((s32)GWSystem.team == 0) || (player_index != BoardPlayerSameTeamFind(arg0)))) {
+            if ((player_index != player) && (GWStarsGet(player_index) != 0) && (((s32)GWSystem.team == 0) || (player_index != BoardPlayerSameTeamFind(player)))) {
                 if (opponent_coins != 0) {
                     BoardComKeySetDown();
                 }
@@ -752,30 +752,30 @@ void ApplySteal(void)
  * @brief Show the coin-theft result and add the stolen coins to the visitor.
  *
  * @details Coins are added one at a time while the visitor's status panel is forced visible.
- * @param arg0 Number of coins successfully stolen.
- * @param arg1 Punch-reduction tier used to choose the result message.
+ * @param stolen_coins Number of coins successfully stolen.
+ * @param punch_reduction Punch-reduction tier used to choose the result message.
  */
-void ApplyCoinSteal(s16 arg0, s16 arg1)
+void ApplyCoinSteal(s16 stolen_coins, s16 punch_reduction)
 {
     u32 message_id;
     s32 coin_index;
 
-    if ((s16)arg1 == 0) {
+    if ((s16)punch_reduction == 0) {
         message_id = MAKE_MESSID(7, 9);
     }
-    else if ((s16)arg1 < 3) {
+    else if ((s16)punch_reduction < 3) {
         message_id = MAKE_MESSID(7, 8);
     }
-    else if ((s16)arg1 < 6) {
+    else if ((s16)punch_reduction < 6) {
         message_id = MAKE_MESSID(7, 7);
     }
-    else if ((s16)arg1 < 8) {
+    else if ((s16)punch_reduction < 8) {
         message_id = MAKE_MESSID(7, 6);
     }
     else {
         message_id = MAKE_MESSID(7, 5);
     }
-    sprintf(stealAmountStr, "%d", arg0);
+    sprintf(stealAmountStr, "%d", stolen_coins);
     HuAudFXPlay(0x4B);
     BoardWinCreate(2, message_id, 3);
     BoardWinInsertMesSet(MAKE_MESSID_PTR(stealAmountStr), 0);
@@ -785,7 +785,7 @@ void ApplyCoinSteal(s16 arg0, s16 arg1)
     BoardStatusShowSet(currPlayer, 1);
     BoardPlayerMotionShiftSet(currPlayer, 7, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
 
-    for (coin_index = 0; coin_index < arg0; coin_index++) {
+    for (coin_index = 0; coin_index < stolen_coins; coin_index++) {
         BoardPlayerCoinsAdd(currPlayer, 1);
         HuAudFXPlay(0xE);
         HuPrcSleep(6);
@@ -865,10 +865,10 @@ void SetBooBallPos(void)
  * @brief Find whether a computer player has a viable Boo House target.
  *
  * @details Ignores teammates and may avoid opponents carrying a repellent light according to the acting player's difficulty.
- * @param arg0 Index of the computer player considering the house.
+ * @param player Index of the computer player considering the house.
  * @return One when an eligible opponent with coins or stars is found; zero otherwise.
  */
-s32 BoardBooComUseCheck(s32 arg0)
+s32 BoardBooComUseCheck(s32 player)
 {
     s32 player_index;
     u32 light_ignore_chance;
@@ -878,10 +878,10 @@ s32 BoardBooComUseCheck(s32 arg0)
     s32 max_target_stars;
     s32 player_coins;
 
-    player_coins = BoardPlayerCoinsGet(arg0);
+    player_coins = BoardPlayerCoinsGet(player);
     comStarStealTarget = comCoinStealTarget = -1;
     max_target_stars = max_target_coins = -1;
-    switch (GWPlayer[arg0].diff) {
+    switch (GWPlayer[player].diff) {
         case 0:
             light_ignore_chance = 0x5F;
             break;
@@ -897,8 +897,8 @@ s32 BoardBooComUseCheck(s32 arg0)
     }
 
     for (player_index = 0; player_index < 4; player_index++) {
-        if (player_index != arg0) {
-            if ((s32)GWSystem.team == 0 || player_index != BoardPlayerSameTeamFind(arg0)) {
+        if (player_index != player) {
+            if ((s32)GWSystem.team == 0 || player_index != BoardPlayerSameTeamFind(player)) {
                 if (BoardPlayerItemFind(player_index, 8) == -1 || BoardRandMod(0x64) < light_ignore_chance) {
                     target_coins = BoardPlayerCoinsGet(player_index);
                     target_stars = GWStarsGet(player_index);

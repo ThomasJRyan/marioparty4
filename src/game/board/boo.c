@@ -99,44 +99,44 @@ typedef struct {
 
 static BOOL CheckBallCoinDone(void);
 static void TakeBallStar(void);
-static void ComSetupStealPlayer(s32 arg0);
-static void ComSetStealPlayerInput(s32 arg0, s32 arg1);
+static void ComSetupStealPlayer(s32 player);
+static void ComSetStealPlayerInput(s32 player, s32 choice_offset);
 static void ExecCoinSteal(void);
 static void ExecStarSteal(void);
 static void ExecLightSteal(void);
-static void SetBooMode(s32 arg0);
-static void CreateBallMdl(s16 *arg0, Vec *arg1);
+static void SetBooMode(s32 mode);
+static void CreateBallMdl(s16 *model_handles, Vec *position);
 static void CreateBallView(void);
-static void SetBallView(s32 arg0);
-static void SetBallActive(s32 arg0);
+static void SetBallView(s32 show_inset);
+static void SetBallActive(s32 fade_direction);
 static s32 CheckBallKill(void);
-static void BallMain(OMOBJ *arg0);
+static void BallMain(OMOBJ *object);
 static void BallRenderHook(void);
-static void ExecBoo(OMOBJ *arg0);
-static void UpdateBallCamera(OMOBJ *arg0);
+static void ExecBoo(OMOBJ *object);
+static void UpdateBallCamera(OMOBJ *object);
 static void CreateBallPlayer(void);
 static s32 GetBallPlayerState(void);
-static void SetBallPlayerState(s32 arg0);
-static void ExecBallPlayer(OMOBJ *arg0);
-static void BallPlayerZoomOut(OMOBJ *arg0, BallPlayerWork *arg1);
-static void BallPlayerScare(OMOBJ *arg0, BallPlayerWork *arg1);
-static void BallPlayerTurn(OMOBJ *arg0, BallPlayerWork *arg1);
-static void BallPlayerPunch(OMOBJ *arg0, BallPlayerWork *arg1);
-static void BallPlayerUseLight(OMOBJ *arg0, BallPlayerWork *arg1);
-static void BallPlayerCatch(OMOBJ *arg0, BallPlayerWork *arg1);
+static void SetBallPlayerState(s32 state);
+static void ExecBallPlayer(OMOBJ *object);
+static void BallPlayerZoomOut(OMOBJ *object, BallPlayerWork *work);
+static void BallPlayerScare(OMOBJ *object, BallPlayerWork *work);
+static void BallPlayerTurn(OMOBJ *player_object, BallPlayerWork *work);
+static void BallPlayerPunch(OMOBJ *object, BallPlayerWork *work);
+static void BallPlayerUseLight(OMOBJ *object, BallPlayerWork *work);
+static void BallPlayerCatch(OMOBJ *object, BallPlayerWork *work);
 static void BallBooCreate(void);
-static void SetBallBooState(s32 arg0);
+static void SetBallBooState(s32 state);
 static s32 GetBallBooState(void);
-static void ExecBallBoo(OMOBJ *arg0);
-static void BallBooSpawn(OMOBJ *arg0, BallBooWork *arg1);
-static void BallBooChase(OMOBJ *arg0, BallBooWork *arg1);
-static void BallBooBattle(OMOBJ *arg0, BallBooWork *arg1);
-static void BallBooAttack(OMOBJ *arg0, BallBooWork *arg1);
-static void BallBooFlash(OMOBJ *arg0, BallBooWork *arg1);
+static void ExecBallBoo(OMOBJ *object);
+static void BallBooSpawn(OMOBJ *boo_object, BallBooWork *work);
+static void BallBooChase(OMOBJ *object, BallBooWork *work);
+static void BallBooBattle(OMOBJ *boo_object, BallBooWork *work);
+static void BallBooAttack(OMOBJ *object, BallBooWork *work);
+static void BallBooFlash(OMOBJ *object, BallBooWork *work);
 static void TakeBallCoin(void);
-static void ExecTakeBallCoin(OMOBJ *arg0);
-static void ExecTakeBallStar(OMOBJ *arg0);
-static void TakeBallCoinPosSet(BallTakeCoinData *arg0, Vec *arg1);
+static void ExecTakeBallCoin(OMOBJ *object);
+static void ExecTakeBallStar(OMOBJ *object);
+static void TakeBallCoinPosSet(BallTakeCoinData *coin_data, Vec *reference_pos);
 static void UpdatePlayerCoins(void);
 static BOOL CheckTakeBallStarDone(void);
 
@@ -206,16 +206,16 @@ static s32 ballMdlTbl[] = {
  * @brief Create the two-model Boo ball controller.
  *
  * @details Resets theft state and creates the object that owns both ball model handles.
- * @param arg0 Player index treated as the event owner.
- * @param arg1 Optional world position for the ball; NULL places it at the origin.
+ * @param owner_player Player index treated as the event owner.
+ * @param position Optional world position for the ball; NULL places it at the origin.
  * @return The primary ball model handle.
  */
-s16 BoardBooCreate(s32 arg0, Vec *arg1) {
+s16 BoardBooCreate(s32 owner_player, Vec *position) {
     BooEventWork *work;
     Vec position;
 
-    if (arg1) {
-        position = *arg1;
+    if (position) {
+        position = *position;
     } else {
         position.x = position.y = position.z = 0.0f;
     }
@@ -223,7 +223,7 @@ s16 BoardBooCreate(s32 arg0, Vec *arg1) {
     work = omObjGetWork(booEventObj, BooEventWork);
     work->kill = 0;
     work->mode = 0;
-    work->owner_player = arg0;
+    work->owner_player = owner_player;
     booKillF = 0;
     stealTarget = -1;
     lbl_801D41E2 = 0;
@@ -251,10 +251,10 @@ void BoardBooKill(void) {
  * @brief Present the target picker for a coin or star theft.
  *
  * @details Disables ineligible targets, supplies computer input when needed, records the selected player, and enables the inset theft view.
- * @param arg0 Theft type: 0 for coins or 1 for a star.
+ * @param theft_type Theft type: 0 for coins or 1 for a star.
  * @return Zero when no opponent can supply the requested reward; the successful path has no explicit return and callers ignore its value.
  */
-s32 BoardBooStealTypeSet(s32 arg0) {
+s32 BoardBooStealTypeSet(s32 theft_type) {
     BooEventWork *work = omObjGetWork(booEventObj, BooEventWork);
     s32 portrait;
     s32 target_player;
@@ -263,7 +263,7 @@ s32 BoardBooStealTypeSet(s32 arg0) {
     s32 choice_index;
     s32 i;
 
-    stealType = arg0;
+    stealType = theft_type;
     for (available_count = choice_index = i = 0; i < 4; i++) {
         if (i != work->owner_player) {
             target_player = i;
@@ -327,9 +327,9 @@ s32 BoardBooStealTypeSet(s32 arg0) {
  * @brief Choose a target-selection index for a computer player.
  *
  * @details Scores eligible opponents by coins or stars while accounting for teams, difficulty, and Boo-repellent lights.
- * @param arg0 Index of the computer player initiating the theft.
+ * @param player Index of the computer player initiating the theft.
  */
-static void ComSetupStealPlayer(s32 arg0) {
+static void ComSetupStealPlayer(s32 player) {
     s32 best_value;
     s32 available_index;
     s32 light_ignore_chance;
@@ -341,7 +341,7 @@ static void ComSetupStealPlayer(s32 arg0) {
     s32 i;
     s16 target_values[3];
 
-    switch (GWPlayer[arg0].diff) {
+    switch (GWPlayer[player].diff) {
         case 0:
             light_ignore_chance = 95;
             break;
@@ -371,7 +371,7 @@ static void ComSetupStealPlayer(s32 arg0) {
         if (starChoiceEnable[i] == 0) {
             target_value = -1;
         }
-        if ((s32) GWSystem.team != 0 && target_player == BoardPlayerSameTeamFind(arg0)) {
+        if ((s32) GWSystem.team != 0 && target_player == BoardPlayerSameTeamFind(player)) {
             target_value = 0;
         }
         if (BoardPlayerItemFind(target_player, 8) != -1 && ignore_light != 0) {
@@ -393,26 +393,26 @@ static void ComSetupStealPlayer(s32 arg0) {
     if (best_choice == -1) {
         best_choice = 0;
     }
-    ComSetStealPlayerInput(arg0, best_choice);
+    ComSetStealPlayerInput(player, best_choice);
 }
 
 /**
  * @brief Send simulated window-navigation input for a computer target choice.
- * @param arg0 Index of the computer player whose controller port is used.
- * @param arg1 Number of downward choice movements before confirming.
+ * @param player Index of the computer player whose controller port is used.
+ * @param choice_offset Number of downward choice movements before confirming.
  */
-static void ComSetStealPlayerInput(s32 arg0, s32 arg1) {
+static void ComSetStealPlayerInput(s32 player, s32 choice_offset) {
     s32 controller_inputs[4];
     s32 port;
     s32 i;
     s16 input_delay;
 
     controller_inputs[0] = controller_inputs[1] = controller_inputs[2] = controller_inputs[3] = 0;
-    port = GWPlayer[arg0].port;
+    port = GWPlayer[player].port;
     input_delay = GWMessDelayGet();
     controller_inputs[port] = 4;
-    if (arg1 != 0) {
-        for (i = 0; i < arg1; i++) {
+    if (choice_offset != 0) {
+        for (i = 0; i < choice_offset; i++) {
             HuWinComKeyWait(controller_inputs[0], controller_inputs[1], controller_inputs[2], controller_inputs[3], input_delay);
         }
     }
@@ -577,28 +577,28 @@ static void ExecLightSteal(void) {
 
 /**
  * @brief Store the display mode used by the Boo ball controller.
- * @param arg0 Value stored in BooEventWork.mode; callers use 2 for coins and 1 for stars or a light defense, but this file contains no reader for the field.
+ * @param mode Value stored in BooEventWork.mode; callers use 2 for coins and 1 for stars or a light defense, but this file contains no reader for the field.
  */
-static void SetBooMode(s32 arg0) {
-    omObjGetWork(booEventObj, BooEventWork)->mode = arg0;
+static void SetBooMode(s32 mode) {
+    omObjGetWork(booEventObj, BooEventWork)->mode = mode;
 }
 
 /**
  * @brief Create and hook together the outer and inner Boo ball models.
- * @param arg0 Two-element array that receives the created model handles.
- * @param arg1 World position applied to both models.
+ * @param model_handles Two-element array that receives the created model handles.
+ * @param position World position applied to both models.
  */
-static void CreateBallMdl(s16 *arg0, Vec *arg1) {
+static void CreateBallMdl(s16 *model_handles, Vec *position) {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        arg0[i] = BoardModelCreate(ballMdlTbl[i], NULL, 0);
-        BoardModelPosSetV(arg0[i], arg1);
+        model_handles[i] = BoardModelCreate(ballMdlTbl[i], NULL, 0);
+        BoardModelPosSetV(model_handles[i], position);
     }
-    BoardModelMotionStart(arg0[0], 0, 0x40000001);
-    BoardModelHookSet(arg0[0], "sui", arg0[1]);
-    BoardModelPosSet(arg0[1], 0.0f, 0.0f, 0.0f);
-    BoardModelVisibilitySet(arg0[1], 1);
+    BoardModelMotionStart(model_handles[0], 0, 0x40000001);
+    BoardModelHookSet(model_handles[0], "sui", model_handles[1]);
+    BoardModelPosSet(model_handles[1], 0.0f, 0.0f, 0.0f);
+    BoardModelVisibilitySet(model_handles[1], 1);
 }
 
 /**
@@ -640,13 +640,13 @@ static void CreateBallView(void) {
 
 /**
  * @brief Switch board rendering between the theft inset and normal camera.
- * @param arg0 Nonzero to use camera mask 2 for the inset; zero to restore camera mask 1.
+ * @param show_inset Nonzero to use camera mask 2 for the inset; zero to restore camera mask 1.
  */
-static void SetBallView(s32 arg0) {
+static void SetBallView(s32 show_inset) {
     u16 camera_mask;
     s32 i;
 
-    if (arg0 != 0) {
+    if (show_inset != 0) {
         camera_mask = 2;
     } else {
         Hu3DCameraPerspectiveSet(2, -1.0f, 0.0f, 0.0f, 0.0f);
@@ -663,12 +663,12 @@ static void SetBallView(s32 arg0) {
 
 /**
  * @brief Start fading the projected theft image in or out.
- * @param arg0 Fade direction multiplier: 1 increases opacity and -1 decreases it, in steps of eight.
+ * @param fade_direction Fade direction multiplier: 1 increases opacity and -1 decreases it, in steps of eight.
  */
-static void SetBallActive(s32 arg0) {
+static void SetBallActive(s32 fade_direction) {
     BallWork *work = omObjGetWork(ballObj, BallWork);
 
-    work->fade_step = arg0 * 8;
+    work->fade_step = fade_direction * 8;
 }
 
 /**
@@ -693,10 +693,10 @@ static s32 CheckBallKill(void) {
  * @brief Update the theft-image projection and fade opacity.
  *
  * @details Destroys the projection and render-hook model when the Boo event ends.
- * @param arg0 Ball-view object containing the projection and captured texture state.
+ * @param object Ball-view object containing the projection and captured texture state.
  */
-static void BallMain(OMOBJ *arg0) {
-    BallWork *work = omObjGetWork(arg0, BallWork);
+static void BallMain(OMOBJ *object) {
+    BallWork *work = omObjGetWork(object, BallWork);
     Vec camera_target;
     Vec camera_rot;
     Vec projection_up;
@@ -711,7 +711,7 @@ static void BallMain(OMOBJ *arg0) {
         Hu3DProjectionKill(work->projection);
         Hu3DModelKill(work->render_model);
         ballObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     camera_distance = 240.0f;
@@ -814,10 +814,10 @@ static void BallRenderHook(void) {
 
 /**
  * @brief Destroy the Boo ball models when the event is killed.
- * @param arg0 Boo controller object that owns the two ball model handles.
+ * @param object Boo controller object that owns the two ball model handles.
  */
-static void ExecBoo(OMOBJ *arg0) {
-    BooEventWork *work = omObjGetWork(arg0, BooEventWork);
+static void ExecBoo(OMOBJ *object) {
+    BooEventWork *work = omObjGetWork(object, BooEventWork);
     s32 i;
 
     if (work->kill != 0 || BoardIsKill()) {
@@ -826,35 +826,35 @@ static void ExecBoo(OMOBJ *arg0) {
         }
         BoardWinKill();
         booEventObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
 }
 
 /**
  * @brief Update the dedicated theft camera from its object transform.
- * @param arg0 Camera object whose translation, pitch, height, and distance define the view.
+ * @param object Camera object whose translation, pitch, height, and distance define the view.
  */
-static void UpdateBallCamera(OMOBJ *arg0) {
-    BallCameraWork *work = omObjGetWork(arg0, BallCameraWork);
+static void UpdateBallCamera(OMOBJ *object) {
+    BallCameraWork *work = omObjGetWork(object, BallCameraWork);
     Vec camera_target;
     Vec camera_pos;
     Vec camera_up;
 
     if (booKillF != 0 || BoardIsKill()) {
         ballCameraObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
-    camera_target.x = arg0->trans.x;
-    camera_target.y = arg0->trans.y + arg0->rot.y;
-    camera_target.z = arg0->trans.z;
-    camera_pos.x = camera_target.x + sin(0.0) * cosd(arg0->rot.x) * arg0->rot.z;
-    camera_pos.y = camera_target.y + -sind(arg0->rot.x) * arg0->rot.z;
-    camera_pos.z = camera_target.z + cos(0.0) * cosd(arg0->rot.x) * arg0->rot.z;
-    camera_up.x = sin(0.0) * sind(arg0->rot.x);
-    camera_up.y = cosd(arg0->rot.x);
-    camera_up.z = cos(0.0) * sind(arg0->rot.x);
+    camera_target.x = object->trans.x;
+    camera_target.y = object->trans.y + object->rot.y;
+    camera_target.z = object->trans.z;
+    camera_pos.x = camera_target.x + sin(0.0) * cosd(object->rot.x) * object->rot.z;
+    camera_pos.y = camera_target.y + -sind(object->rot.x) * object->rot.z;
+    camera_pos.z = camera_target.z + cos(0.0) * cosd(object->rot.x) * object->rot.z;
+    camera_up.x = sin(0.0) * sind(object->rot.x);
+    camera_up.y = cosd(object->rot.x);
+    camera_up.z = cos(0.0) * sind(object->rot.x);
     Hu3DCameraPosSetV(work->camera, &camera_pos, &camera_up, &camera_target);
 }
 
@@ -950,12 +950,12 @@ static s32 GetBallPlayerState(void) {
 
 /**
  * @brief Enter a selected-player animation state and reset its phase.
- * @param arg0 Player state number dispatched by ExecBallPlayer.
+ * @param state Player state number dispatched by ExecBallPlayer.
  */
-static void SetBallPlayerState(s32 arg0) {
+static void SetBallPlayerState(s32 state) {
     BallPlayerWork *work = omObjGetWork(ballPlayerObj, BallPlayerWork);
 
-    work->state = arg0;
+    work->state = state;
     work->phase = 0;
 }
 
@@ -963,16 +963,16 @@ static void SetBallPlayerState(s32 arg0) {
  * @brief Dispatch the selected player's theft-scene state machine.
  *
  * @details Cleanup restores the player model, camera, layer, position, and default motion.
- * @param arg0 Player controller object containing saved position, motions, and BallPlayerWork.
+ * @param object Player controller object containing saved position, motions, and BallPlayerWork.
  */
-static void ExecBallPlayer(OMOBJ *arg0) {
-    BallPlayerWork *work = omObjGetWork(arg0, BallPlayerWork);
-    BallPlayerData *data = arg0->data;
+static void ExecBallPlayer(OMOBJ *object) {
+    BallPlayerWork *work = omObjGetWork(object, BallPlayerWork);
+    BallPlayerData *data = object->data;
     BallWork *ball_work;
     s32 i;
 
     if (booKillF != 0 || BoardIsKill()) {
-        BoardPlayerPosSet(stealTarget, arg0->scale.x, arg0->scale.y, arg0->scale.z);
+        BoardPlayerPosSet(stealTarget, object->scale.x, object->scale.y, object->scale.z);
         BoardPlayerRotYSet(stealTarget, 0.0f);
         BoardPlayerLayerSet(stealTarget, 0);
         BoardPlayerCameraSet(stealTarget, 1);
@@ -984,34 +984,34 @@ static void ExecBallPlayer(OMOBJ *arg0) {
         for (i = 0; i < 6; i++) {
             BoardPlayerMotionKill(stealTarget, data->motions[i]);
         }
-        if (arg0->data) {
-            HuMemDirectFree(arg0->data);
-            arg0->data = NULL;
+        if (object->data) {
+            HuMemDirectFree(object->data);
+            object->data = NULL;
         }
         ballPlayerObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     ball_work = omObjGetWork(ballObj, BallWork);
     if (ball_work->fade_step == 0) {
         switch (work->state) {
             case 1:
-                BallPlayerZoomOut(arg0, work);
+                BallPlayerZoomOut(object, work);
                 break;
             case 3:
-                BallPlayerScare(arg0, work);
+                BallPlayerScare(object, work);
                 break;
             case 2:
-                BallPlayerTurn(arg0, work);
+                BallPlayerTurn(object, work);
                 break;
             case 4:
-                BallPlayerPunch(arg0, work);
+                BallPlayerPunch(object, work);
                 break;
             case 6:
-                BallPlayerUseLight(arg0, work);
+                BallPlayerUseLight(object, work);
                 break;
             case 5:
-                BallPlayerCatch(arg0, work);
+                BallPlayerCatch(object, work);
                 break;
         }
     }
@@ -1019,21 +1019,21 @@ static void ExecBallPlayer(OMOBJ *arg0) {
 
 /**
  * @brief Move the theft camera outward before the encounter begins.
- * @param arg0 Player controller object holding the current and target camera distances.
- * @param arg1 Player work changed to the scare state when the zoom completes.
+ * @param object Player controller object holding the current and target camera distances.
+ * @param work Player work changed to the scare state when the zoom completes.
  */
-static void BallPlayerZoomOut(OMOBJ *arg0, BallPlayerWork *arg1) {
+static void BallPlayerZoomOut(OMOBJ *object, BallPlayerWork *work) {
     Vec start_pos;
     Vec end_pos;
     float camera_distance;
     s32 character;
 
-    arg0->rot.x += 8.0f;
-    if (arg0->rot.y < arg0->rot.x) {
-        arg0->rot.x = arg0->rot.y;
-        start_pos.x = arg0->trans.x;
-        start_pos.y = arg0->trans.y;
-        start_pos.z = arg0->trans.z;
+    object->rot.x += 8.0f;
+    if (object->rot.y < object->rot.x) {
+        object->rot.x = object->rot.y;
+        start_pos.x = object->trans.x;
+        start_pos.y = object->trans.y;
+        start_pos.z = object->trans.z;
         end_pos.x = start_pos.x + 120.0 * sind(-90);
         end_pos.y = start_pos.y;
         end_pos.z = start_pos.z + 120.0 * cosd(-90);
@@ -1042,7 +1042,7 @@ static void BallPlayerZoomOut(OMOBJ *arg0, BallPlayerWork *arg1) {
         HuAudFXPlay(booSfxTbl[0][character]);
         SetBallPlayerState(3);
     }
-    camera_distance = arg0->rot.x;
+    camera_distance = object->rot.x;
     if (ballCameraObj && camera_distance != -1.0f) {
         ballCameraObj->rot.z = camera_distance;
     }
@@ -1052,15 +1052,15 @@ static void BallPlayerZoomOut(OMOBJ *arg0, BallPlayerWork *arg1) {
  * @brief Wait for player movement to stop, then face the encounter.
  *
  * @details A light defense uses its held-light motion; other thefts rotate the player toward Boo.
- * @param arg0 Player controller object containing the character motions.
- * @param arg1 Player work advanced to the next encounter state.
+ * @param object Player controller object containing the character motions.
+ * @param work Player work advanced to the next encounter state.
  */
-static void BallPlayerScare(OMOBJ *arg0, BallPlayerWork *arg1) {
+static void BallPlayerScare(OMOBJ *object, BallPlayerWork *work) {
     BallPlayerData *data;
     float target_angle;
 
     if (!GWPlayer[stealTarget].moving) {
-        data = arg0->data;
+        data = object->data;
         target_angle = -BoardPlayerRotYGet(stealTarget);
         if (stealType == 2) {
             BoardPlayerMotionShiftSet(stealTarget, data->motions[3], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
@@ -1074,13 +1074,13 @@ static void BallPlayerScare(OMOBJ *arg0, BallPlayerWork *arg1) {
 
 /**
  * @brief Finish the selected player's turn toward Boo.
- * @param arg0 Unused player object retained by the state-handler interface.
- * @param arg1 Player work whose state and punch flag are cleared when blending ends.
+ * @param player_object Unused player object retained by the state-handler interface.
+ * @param work Player work whose state and punch flag are cleared when blending ends.
  */
-static void BallPlayerTurn(OMOBJ *arg0, BallPlayerWork *arg1) {
+static void BallPlayerTurn(OMOBJ *player_object, BallPlayerWork *work) {
     if (BoardPlayerMotBlendCheck(stealTarget)) {
         SetBallPlayerState(0);
-        arg1->punching = 0;
+        work->punching = 0;
     }
 }
 
@@ -1088,16 +1088,16 @@ static void BallPlayerTurn(OMOBJ *arg0, BallPlayerWork *arg1) {
  * @brief Read or synthesize punch input during a coin-theft struggle.
  *
  * @details Computer punch probability depends on difficulty; accepted presses increment punchCount before the 120-frame battle limit.
- * @param arg0 Player controller object containing the punch motion.
- * @param arg1 Player work tracking whether the punch motion is active.
+ * @param object Player controller object containing the punch motion.
+ * @param work Player work tracking whether the punch motion is active.
  */
-static void BallPlayerPunch(OMOBJ *arg0, BallPlayerWork *arg1) {
+static void BallPlayerPunch(OMOBJ *object, BallPlayerWork *work) {
     BallPlayerData *data;
     s32 random_roll;
     u32 punch_input;
 
     punch_input = 0;
-    data = arg0->data;
+    data = object->data;
     if (GWPlayer[stealTarget].com) {
         random_roll = BoardRandMod(100);
         switch (GWPlayer[stealTarget].diff) {
@@ -1128,14 +1128,14 @@ static void BallPlayerPunch(OMOBJ *arg0, BallPlayerWork *arg1) {
     if ((punch_input & 0x100) && GetBallBooState() == 3 && battleTimer < 120) {
         punchCount++;
     }
-    if (arg1->punching != 0) {
+    if (work->punching != 0) {
         if (BoardPlayerMotionEndCheck(stealTarget)) {
-            arg1->punching = 0;
+            work->punching = 0;
             BoardPlayerMotionStart(stealTarget, 1, 0x40000001);
         }
     } else {
         if (punch_input & 0x100) {
-            arg1->punching = 1;
+            work->punching = 1;
             BoardPlayerMotionStart(stealTarget, data->motions[2], 0);
         }
     }
@@ -1143,23 +1143,23 @@ static void BallPlayerPunch(OMOBJ *arg0, BallPlayerWork *arg1) {
 
 /**
  * @brief Play the two-stage Boo-repellent light animation.
- * @param arg0 Player controller object containing the light models and motions.
- * @param arg1 Player work whose phase selects raise-light, repel-Boo, or completion.
+ * @param object Player controller object containing the light models and motions.
+ * @param work Player work whose phase selects raise-light, repel-Boo, or completion.
  */
-static void BallPlayerUseLight(OMOBJ *arg0, BallPlayerWork *arg1) {
-    BallPlayerData *data = arg0->data;
+static void BallPlayerUseLight(OMOBJ *object, BallPlayerWork *work) {
+    BallPlayerData *data = object->data;
 
-    switch (arg1->phase) {
+    switch (work->phase) {
         case 0:
             BoardModelScaleSet(data->light_glow_model, 2.5f, 2.5f, 2.5f);
             BoardPlayerMotionStart(stealTarget, data->motions[4], 0);
-            arg1->phase = 1;
+            work->phase = 1;
             break;
         case 1:
             if (BoardPlayerMotionEndCheck(stealTarget)) {
                 SetBallBooState(7);
                 BoardPlayerMotionStart(stealTarget, data->motions[5], 0);
-                arg1->phase = 2;
+                work->phase = 2;
             }
             break;
         case 2:
@@ -1172,15 +1172,15 @@ static void BallPlayerUseLight(OMOBJ *arg0, BallPlayerWork *arg1) {
 
 /**
  * @brief Apply the coin or star loss and wait for its pickup effect.
- * @param arg0 Player controller object containing the reaction motion.
- * @param arg1 Player work whose phase prevents applying the loss twice.
+ * @param object Player controller object containing the reaction motion.
+ * @param work Player work whose phase prevents applying the loss twice.
  */
-static void BallPlayerCatch(OMOBJ *arg0, BallPlayerWork *arg1) {
+static void BallPlayerCatch(OMOBJ *object, BallPlayerWork *work) {
     s32 character;
-    BallPlayerData *data = arg0->data;
+    BallPlayerData *data = object->data;
 
     character = GWPlayer[stealTarget].character;
-    if (arg1->phase == 0) {
+    if (work->phase == 0) {
         if (stealType == 0) {
             UpdatePlayerCoins();
             HuAudFXPlay(booSfxTbl[2][character]);
@@ -1194,7 +1194,7 @@ static void BallPlayerCatch(OMOBJ *arg0, BallPlayerWork *arg1) {
             TakeBallStar();
         }
         BoardPlayerMotionShiftSet(stealTarget, data->motions[0], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-        arg1->phase = 1;
+        work->phase = 1;
     }
     if (stealType == 0) {
         if (CheckBallCoinDone()) {
@@ -1270,17 +1270,17 @@ static void BallBooCreate(void) {
 
 /**
  * @brief Enter a Boo encounter state and initialize its movement or animation.
- * @param arg0 Boo state number; states 2 and 4 configure approaches, 3 starts the punch battle, 5 starts attack scaling, and 7 starts the light retreat.
+ * @param state Boo state number; states 2 and 4 configure approaches, 3 starts the punch battle, 5 starts attack scaling, and 7 starts the light retreat.
  */
-static void SetBallBooState(s32 arg0) {
+static void SetBallBooState(s32 state) {
     BallBooWork *work = omObjGetWork(ballBooObj, BallBooWork);
     Vec target_pos;
 
-    work->state = arg0;
-    if (arg0 == 2) {
+    work->state = state;
+    if (state == 2) {
         HuAudFXPlay(0x64);
     }
-    if (arg0 == 4) {
+    if (state == 4) {
         BoardPlayerPosGet(stealTarget, &target_pos);
         target_pos.y += 100.0f;
         ballBooObj->rot.x = (target_pos.x - ballBooObj->trans.x) / 30.0f;
@@ -1289,16 +1289,16 @@ static void SetBallBooState(s32 arg0) {
         work->timer = 30;
         BoardModelMotionShiftSet(work->model, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
     }
-    if (arg0 == 5) {
+    if (state == 5) {
         HuAudFXPlay(0x64);
         work->timer = 0;
     }
-    if (arg0 == 7) {
+    if (state == 7) {
         work->target_angle = -ballBooObj->scale.y;
         HuAudFXPlay(0x64);
         BoardModelMotionShiftSet(work->model, 5, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
     }
-    if (arg0 == 3) {
+    if (state == 3) {
         battleTimer = 0;
         attackTimer = 0;
     }
@@ -1316,14 +1316,14 @@ static s32 GetBallBooState(void) {
 
 /**
  * @brief Dispatch Boo's encounter state and synchronize its model transform.
- * @param arg0 Boo object containing movement deltas and BallBooWork.
+ * @param object Boo object containing movement deltas and BallBooWork.
  */
-static void ExecBallBoo(OMOBJ *arg0) {
-    BallBooWork *work = omObjGetWork(arg0, BallBooWork);
+static void ExecBallBoo(OMOBJ *object) {
+    BallBooWork *work = omObjGetWork(object, BallBooWork);
 
     if (booKillF != 0 || BoardIsKill()) {
         BoardModelKill(work->model);
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     if (work->delay != 0) {
@@ -1332,56 +1332,56 @@ static void ExecBallBoo(OMOBJ *arg0) {
     }
     switch (work->state) {
         case 1:
-            BallBooSpawn(arg0, work);
+            BallBooSpawn(object, work);
             break;
         case 2:
         case 4:
         case 6:
-            BallBooChase(arg0, work);
+            BallBooChase(object, work);
             break;
         case 3:
-            BallBooBattle(arg0, work);
+            BallBooBattle(object, work);
             break;
         case 5:
-            BallBooAttack(arg0, work);
+            BallBooAttack(object, work);
             break;
         case 7:
-            BallBooFlash(arg0, work);
+            BallBooFlash(object, work);
             break;
     }
-    BoardModelRotYSet(work->model, arg0->scale.y);
-    BoardModelPosSet(work->model, arg0->trans.x, arg0->trans.y, arg0->trans.z);
-    BoardModelScaleSet(work->model, arg0->scale.z, arg0->scale.z, arg0->scale.z);
+    BoardModelRotYSet(work->model, object->scale.y);
+    BoardModelPosSet(work->model, object->trans.x, object->trans.y, object->trans.z);
+    BoardModelScaleSet(work->model, object->scale.z, object->scale.z, object->scale.z);
 }
 
 /**
  * @brief Make Boo fully opaque and mark its initial spawn complete.
- * @param arg0 Boo object retained by the state-handler interface.
- * @param arg1 Boo work containing the model handle.
+ * @param boo_object Boo object retained by the state-handler interface.
+ * @param work Boo work containing the model handle.
  */
-static void BallBooSpawn(OMOBJ *arg0, BallBooWork *arg1) {
-    BoardModelAlphaSet(arg1->model, 0xFF);
+static void BallBooSpawn(OMOBJ *boo_object, BallBooWork *work) {
+    BoardModelAlphaSet(work->model, 0xFF);
     SetBallBooState(0);
 }
 
 /**
  * @brief Move Boo along its precomputed per-frame approach vector.
- * @param arg0 Boo object containing the position and movement delta.
- * @param arg1 Boo work containing the remaining frames and destination state.
+ * @param object Boo object containing the position and movement delta.
+ * @param work Boo work containing the remaining frames and destination state.
  */
-static void BallBooChase(OMOBJ *arg0, BallBooWork *arg1) {
-    if (arg1->timer != 0) {
-        arg1->timer--;
-        arg0->trans.x += arg0->rot.x;
-        arg0->trans.y += arg0->rot.y;
-        arg0->trans.z += arg0->rot.z;
+static void BallBooChase(OMOBJ *object, BallBooWork *work) {
+    if (work->timer != 0) {
+        work->timer--;
+        object->trans.x += object->rot.x;
+        object->trans.y += object->rot.y;
+        object->trans.z += object->rot.z;
     } else {
-        if (arg1->state == 4) {
+        if (work->state == 4) {
             SetBallBooState(5);
         } else {
             SetBallBooState(0);
         }
-        BoardModelMotionShiftSet(arg1->model, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+        BoardModelMotionShiftSet(work->model, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
     }
 }
 
@@ -1389,10 +1389,10 @@ static void BallBooChase(OMOBJ *arg0, BallBooWork *arg1) {
  * @brief Animate Boo attacks during the 120-frame coin struggle.
  *
  * @details Random attacks can trigger the selected character's reaction sound and controller vibration.
- * @param arg0 Unused Boo object retained by the state-handler interface.
- * @param arg1 Boo work containing the attack-motion flag and model.
+ * @param boo_object Unused Boo object retained by the state-handler interface.
+ * @param work Boo work containing the attack-motion flag and model.
  */
-static void BallBooBattle(OMOBJ *arg0, BallBooWork *arg1) {
+static void BallBooBattle(OMOBJ *boo_object, BallBooWork *work) {
     s32 character;
 
     battleTimer++;
@@ -1403,16 +1403,16 @@ static void BallBooBattle(OMOBJ *arg0, BallBooWork *arg1) {
         SetBallBooState(4);
         return;
     }
-    if (arg1->motion_active != 0) {
-        if (BoardModelMotionEndCheck(arg1->model)) {
-            arg1->motion_active = 0;
-            BoardModelMotionStart(arg1->model, 1, 0x40000001);
+    if (work->motion_active != 0) {
+        if (BoardModelMotionEndCheck(work->model)) {
+            work->motion_active = 0;
+            BoardModelMotionStart(work->model, 1, 0x40000001);
         }
         return;
     }
     if (BoardRandMod(100) <= 70) {
-        BoardModelMotionStart(arg1->model, 2, 0);
-        arg1->motion_active = 1;
+        BoardModelMotionStart(work->model, 2, 0);
+        work->motion_active = 1;
         if (BoardRandMod(100) > 50 && attackTimer == 0) {
             character = GWPlayer[stealTarget].character;
             HuAudFXPlay(booSfxTbl[1][character]);
@@ -1424,45 +1424,45 @@ static void BallBooBattle(OMOBJ *arg0, BallBooWork *arg1) {
 
 /**
  * @brief Scale Boo through its post-capture attack pulse.
- * @param arg0 Boo object whose scale is animated.
- * @param arg1 Boo work containing the attack angle timer.
+ * @param object Boo object whose scale is animated.
+ * @param work Boo work containing the attack angle timer.
  */
-static void BallBooAttack(OMOBJ *arg0, BallBooWork *arg1) {
+static void BallBooAttack(OMOBJ *object, BallBooWork *work) {
     float attack_angle;
 
-    if (arg1->timer < 90) {
-        arg1->timer += 6;
-        if (arg1->timer >= 90) {
-            arg1->timer = 90;
+    if (work->timer < 90) {
+        work->timer += 6;
+        if (work->timer >= 90) {
+            work->timer = 90;
             SetBallBooState(0);
             SetBallPlayerState(5);
         }
     }
-    OSu8tof32(&arg1->timer, &attack_angle);
-    arg0->scale.z = 1.0 + sind(attack_angle);
+    OSu8tof32(&work->timer, &attack_angle);
+    object->scale.z = 1.0 + sind(attack_angle);
 }
 
 /**
  * @brief Rotate Boo toward its light-repelled retreat path.
- * @param arg0 Boo object whose heading and movement delta are updated.
- * @param arg1 Boo work containing the target angle, model, and retreat timer.
+ * @param object Boo object whose heading and movement delta are updated.
+ * @param work Boo work containing the target angle, model, and retreat timer.
  */
-static void BallBooFlash(OMOBJ *arg0, BallBooWork *arg1) {
+static void BallBooFlash(OMOBJ *object, BallBooWork *work) {
     Vec target_pos;
     float player_angle;
 
-    if (BoardDAngleCalcRange(&arg0->scale.y, arg1->target_angle, 8.0f) != 0) {
+    if (BoardDAngleCalcRange(&object->scale.y, work->target_angle, 8.0f) != 0) {
         SetBallBooState(6);
-        BoardModelMotionShiftSet(arg1->model, 3, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+        BoardModelMotionShiftSet(work->model, 3, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
         player_angle = BoardPlayerRotYGet(stealTarget);
         BoardPlayerPosGet(stealTarget, &target_pos);
         target_pos.x += 500.0 * sind(-player_angle);
         target_pos.y = target_pos.y + 160.0f;
         target_pos.z += 500.0 * cosd(-player_angle);
-        arg0->rot.x = (target_pos.x - arg0->trans.x) / 72.0f;
-        arg0->rot.y = (target_pos.y - arg0->trans.y) / 72.0f;
-        arg0->rot.z = (target_pos.z - arg0->trans.z) / 72.0f;
-        arg1->timer = 72;
+        object->rot.x = (target_pos.x - object->trans.x) / 72.0f;
+        object->rot.y = (target_pos.y - object->trans.y) / 72.0f;
+        object->rot.z = (target_pos.z - object->trans.z) / 72.0f;
+        work->timer = 72;
     }
 }
 
@@ -1503,26 +1503,26 @@ static void TakeBallCoin(void) {
 
 /**
  * @brief Update or clean up the ten scattered coin pickups.
- * @param arg0 Coin-effect object owning the BallTakeCoinData array.
+ * @param object Coin-effect object owning the BallTakeCoinData array.
  */
-static void ExecTakeBallCoin(OMOBJ *arg0) {
+static void ExecTakeBallCoin(OMOBJ *object) {
     BallTakeCoinData *coin_data;
     Vec player_pos;
     s32 i;
 
     if (CheckBallCoinDone() || booKillF != 0 || BoardIsKill()) {
-        if (arg0->data) {
-            HuMemDirectFree(arg0->data);
-            arg0->data = NULL;
+        if (object->data) {
+            HuMemDirectFree(object->data);
+            object->data = NULL;
         }
         ballTakeCoinObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
-    player_pos.x = arg0->trans.x;
-    player_pos.y = arg0->trans.y;
-    player_pos.z = arg0->trans.z;
-    coin_data = arg0->data;
+    player_pos.x = object->trans.x;
+    player_pos.y = object->trans.y;
+    player_pos.z = object->trans.z;
+    coin_data = object->data;
     for (i = 0; i < 10; i++, coin_data++) {
         if (coin_data->model != -1) {
             TakeBallCoinPosSet(coin_data, &player_pos);
@@ -1534,19 +1534,19 @@ static void ExecTakeBallCoin(OMOBJ *arg0) {
  * @brief Integrate one scattered coin's position and gravity.
  *
  * @details Kills the model once it falls more than 50 world units below the reference.
- * @param arg0 Coin entry containing its model and motion vectors.
- * @param arg1 Reference player position used as the vertical cleanup threshold.
+ * @param coin_data Coin entry containing its model and motion vectors.
+ * @param reference_pos Reference player position used as the vertical cleanup threshold.
  */
-static void TakeBallCoinPosSet(BallTakeCoinData *arg0, Vec *arg1) {
-    if (arg1->y > arg0->position.y + 50.0f) {
-        BoardModelKill(arg0->model);
-        arg0->model = -1;
+static void TakeBallCoinPosSet(BallTakeCoinData *coin_data, Vec *reference_pos) {
+    if (reference_pos->y > coin_data->position.y + 50.0f) {
+        BoardModelKill(coin_data->model);
+        coin_data->model = -1;
         return;
     }
-    VECAdd(&arg0->position, &arg0->gravity_velocity, &arg0->position);
-    VECAdd(&arg0->position, &arg0->drift_velocity, &arg0->position);
-    arg0->gravity_velocity.y += -0.98f;
-    BoardModelPosSetV(arg0->model, &arg0->position);
+    VECAdd(&coin_data->position, &coin_data->gravity_velocity, &coin_data->position);
+    VECAdd(&coin_data->position, &coin_data->drift_velocity, &coin_data->position);
+    coin_data->gravity_velocity.y += -0.98f;
+    BoardModelPosSetV(coin_data->model, &coin_data->position);
 }
 
 /**
@@ -1601,35 +1601,35 @@ static void TakeBallStar(void) {
 
 /**
  * @brief Advance and clean up the stolen-star ballistic effect.
- * @param arg0 Star-effect object containing its trajectory and BallTakeCoinWork.
+ * @param object Star-effect object containing its trajectory and BallTakeCoinWork.
  */
-static void ExecTakeBallStar(OMOBJ *arg0) {
-    BallTakeCoinWork *work = omObjGetWork(arg0, BallTakeCoinWork);
+static void ExecTakeBallStar(OMOBJ *object) {
+    BallTakeCoinWork *work = omObjGetWork(object, BallTakeCoinWork);
     Vec player_pos;
     float elapsed_frames;
 
     if (work->kill != 0) {
-        if (arg0->data) {
-            HuMemDirectFree(arg0->data);
-            arg0->data = NULL;
+        if (object->data) {
+            HuMemDirectFree(object->data);
+            object->data = NULL;
         }
         BoardModelKill(work->model);
         ballTakeCoinObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     BoardPlayerPosGet(stealTarget, &player_pos);
     work->elapsed_frames++;
     OSu8tof32(&work->elapsed_frames, &elapsed_frames);
-    arg0->trans.x += arg0->rot.x;
-    arg0->trans.z += arg0->rot.z;
-    arg0->trans.y += 20.0f + elapsed_frames * elapsed_frames * -0.08166667f * 0.3f;
-    arg0->rot.y = BoardDAngleCalc(arg0->rot.y + 24.0f);
-    if (work->floor_y > arg0->trans.y) {
+    object->trans.x += object->rot.x;
+    object->trans.z += object->rot.z;
+    object->trans.y += 20.0f + elapsed_frames * elapsed_frames * -0.08166667f * 0.3f;
+    object->rot.y = BoardDAngleCalc(object->rot.y + 24.0f);
+    if (work->floor_y > object->trans.y) {
         work->kill = 1;
     }
-    BoardModelPosSet(work->model, arg0->trans.x, arg0->trans.y, arg0->trans.z);
-    BoardModelRotYSet(work->model, arg0->rot.y);
+    BoardModelPosSet(work->model, object->trans.x, object->trans.y, object->trans.z);
+    BoardModelRotYSet(work->model, object->rot.y);
 }
 
 /**
@@ -1646,16 +1646,16 @@ static BOOL CheckTakeBallStarDone(void) {
 
 /**
  * @brief Return the resolved coin-theft amount and punch reduction.
- * @param arg0 Receives the number of coins removed from the target.
- * @param arg1 Receives the reduction tier derived from the target's punch count.
+ * @param stolen_coins Receives the number of coins removed from the target.
+ * @param punch_reduction Receives the reduction tier derived from the target's punch count.
  * @return Zero when a repellent light prevented theft; one when the output values are valid.
  */
-s32 BoardBooStealValueGet(s16 *arg0, s16 *arg1) {
+s32 BoardBooStealValueGet(s16 *stolen_coins, s16 *punch_reduction) {
     if (stealType == 2) {
         return 0;
     }
-    *arg0 = stealValue;
-    *arg1 = stealSuccess;
+    *stolen_coins = stealValue;
+    *punch_reduction = stealSuccess;
     return 1;
 }
 

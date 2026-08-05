@@ -445,12 +445,12 @@ static void ExecBowserSpecial(void)
 static void ExecBowserGame(void)
 {
     s32 i;
-    s16 mgTbl[3] = {
+    s16 minigame_ids[3] = {
         435,
         436,
         437
     };
-    s32 messLoss[3] = {
+    s32 loss_message_ids[3] = {
         MAKE_MESSID(3, 9),
         MAKE_MESSID(3, 12),
         MAKE_MESSID(3, 14)
@@ -463,7 +463,7 @@ static void ExecBowserGame(void)
     }
     BoardWinCreate(2, MAKE_MESSID(3, 8), 5);
     BoardWinWait();
-    mess = messLoss[GWSystem.bowser_loss];
+    mess = loss_message_ids[GWSystem.bowser_loss];
     BoardWinCreate(2, mess, 5);
     BoardWinWait();
     BoardWinKill();
@@ -492,7 +492,7 @@ static void ExecBowserGame(void)
     KillBowserFire();
     HuPrcSleep(60);
     BoardModelMotionStart(bowserMdl, 1, 0);
-    mg = (s16)mgTbl[BoardRandMod(3)];
+    mg = (s16)minigame_ids[BoardRandMod(3)];
     GWMGAvailSet(mg);
     GWSystem.mg_next = mg-401;
     _SetFlag(0x10003);
@@ -508,7 +508,7 @@ static void ExecBowserGame(void)
  */
 static void DoMGReturnEffect(void)
 {
-    s32 messTbl[3] = {
+    s32 loss_message_ids[3] = {
         MAKE_MESSID(3, 10),
         MAKE_MESSID(3, 13),
         MAKE_MESSID(3, 15)
@@ -525,7 +525,7 @@ static void DoMGReturnEffect(void)
             break;
         }
     }
-    mess = messTbl[GWSystem.bowser_loss];
+    mess = loss_message_ids[GWSystem.bowser_loss];
     mess_char = BoardPlayerGetCharMess(player);
     BoardStatusShowSetForce(player);
     BoardStatusShowSet(player, 1);
@@ -1207,7 +1207,7 @@ static void CreateBowserEvent(void)
 {
     Vec pos_2d;
     Vec pos_3d;
-    s32 eventSpr[] = {
+    s32 event_sprite_resources[] = {
         DATA_MAKE_NUM(DATADIR_BKOOPA, 1),
         DATA_MAKE_NUM(DATADIR_BKOOPA, 2),
         DATA_MAKE_NUM(DATADIR_BKOOPA, 3),
@@ -1227,7 +1227,7 @@ static void CreateBowserEvent(void)
     memset(&bowserEvent, 0, sizeof(BowserEventData));
     data = &bowserEvent;
     data->group = HuSprGrpCreate(3);
-    sprite = eventSpr[GWSystem.bowser_event];
+    sprite = event_sprite_resources[GWSystem.bowser_event];
     for(i=0; i<3; i++) {
         BoardSpriteCreate(sprite, 100, NULL, &data->sprite[i]);
         HuSprGrpMemberSet(data->group, i, data->sprite[i]);
@@ -1422,7 +1422,7 @@ static void ConfigBowserEvent(void)
  */
 static void CreatePlayerMot(void)
 {
-    s32 scareMotTbl[] = {
+    s32 scare_motion_resources[] = {
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 27),
         DATA_MAKE_NUM(DATADIR_LUIGIMOT, 27),
         DATA_MAKE_NUM(DATADIR_PEACHMOT, 27),
@@ -1432,7 +1432,7 @@ static void CreatePlayerMot(void)
         DATA_MAKE_NUM(DATADIR_DAISYMOT, 27),
         DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 27),
     };
-    s32 jumpMotTbl[] = {
+    s32 jump_motion_resources[] = {
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 26),
         DATA_MAKE_NUM(DATADIR_LUIGIMOT, 26),
         DATA_MAKE_NUM(DATADIR_PEACHMOT, 26),
@@ -1442,7 +1442,7 @@ static void CreatePlayerMot(void)
         DATA_MAKE_NUM(DATADIR_DAISYMOT, 26),
         DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 26),
     };
-    s32 playerMotTbl[] = {
+    s32 squish_motion_resources[] = {
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 31),
         DATA_MAKE_NUM(DATADIR_LUIGIMOT, 31),
         DATA_MAKE_NUM(DATADIR_PEACHMOT, 31),
@@ -1455,11 +1455,11 @@ static void CreatePlayerMot(void)
     s32 i;
     s32 character;
     character = GWPlayer[eventPlayer].character;
-    scareMot = BoardPlayerMotionCreate(eventPlayer, scareMotTbl[character]);
-    jumpMot = BoardPlayerMotionCreate(eventPlayer, jumpMotTbl[character]);
+    scareMot = BoardPlayerMotionCreate(eventPlayer, scare_motion_resources[character]);
+    jumpMot = BoardPlayerMotionCreate(eventPlayer, jump_motion_resources[character]);
     for(i=0; i<4; i++) {
         character = GWPlayer[i].character;
-        playerMot[i] = BoardPlayerMotionCreate(i, playerMotTbl[character]);
+        playerMot[i] = BoardPlayerMotionCreate(i, squish_motion_resources[character]);
     }
 }
 
@@ -1489,8 +1489,8 @@ static void KillPlayerMot(void)
 
 static void BowserFireHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 
-static void SpawnBowserFire(HU3DPARTICLEDATA *arg0);
-static s32 CheckBowserFire(HU3DPARTICLEDATA *arg0);
+static void SpawnBowserFire(HU3DPARTICLEDATA *particle_data);
+static s32 CheckBowserFire(HU3DPARTICLEDATA *particle_data);
 
 /**
  * @brief Create the thirty-particle fire effect used for the minigame transition.
@@ -1556,44 +1556,44 @@ static void BowserFireHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
  * @brief Initialize one fire particle to expand away from the camera.
  *
  * @details Sets zero velocity, randomized acceleration opposite the camera direction, alpha 254, and scale 100.
- * @param arg0 Free particle slot whose position was set to Bowser's hand.
+ * @param particle_data Free particle slot whose position was set to Bowser's hand.
  */
-static void SpawnBowserFire(HU3DPARTICLEDATA *arg0)
+static void SpawnBowserFire(HU3DPARTICLEDATA *particle_data)
 {
     Vec dir;
     BoardCameraDirGet(&dir);
-    arg0->vel.x = 0.0f;
-    arg0->vel.y = 0.0f;
-    arg0->vel.z = 0.0f;
-    arg0->accel.x = -dir.x*((0.5f*BoardRandFloat())+0.5f);
-    arg0->accel.y = -dir.y*((0.5f*BoardRandFloat())+0.5f);
-    arg0->accel.z = -dir.z*((0.5f*BoardRandFloat())+0.5f);
-    arg0->colorIdx = 1.025f;
-    arg0->color.a = 254;
-    arg0->color.r = 255;
-    arg0->color.g = 255;
-    arg0->color.b = 255;
-    arg0->scale = 100.0f;
+    particle_data->vel.x = 0.0f;
+    particle_data->vel.y = 0.0f;
+    particle_data->vel.z = 0.0f;
+    particle_data->accel.x = -dir.x*((0.5f*BoardRandFloat())+0.5f);
+    particle_data->accel.y = -dir.y*((0.5f*BoardRandFloat())+0.5f);
+    particle_data->accel.z = -dir.z*((0.5f*BoardRandFloat())+0.5f);
+    particle_data->colorIdx = 1.025f;
+    particle_data->color.a = 254;
+    particle_data->color.r = 255;
+    particle_data->color.g = 255;
+    particle_data->color.b = 255;
+    particle_data->scale = 100.0f;
 }
 
 /**
  * @brief Integrate and fade one active fire particle.
- * @param arg0 Active particle whose position, velocity, alpha, and scale are updated.
+ * @param particle_data Active particle whose position, velocity, alpha, and scale are updated.
  * @return One when alpha reaches zero and the slot is released; otherwise zero.
  */
-static s32 CheckBowserFire(HU3DPARTICLEDATA *arg0)
+static s32 CheckBowserFire(HU3DPARTICLEDATA *particle_data)
 {
-    arg0->pos.x += arg0->vel.x;
-    arg0->pos.y += arg0->vel.y;
-    arg0->pos.z += arg0->vel.z;
-    arg0->vel.x += arg0->accel.x;
-    arg0->vel.y += arg0->accel.y;
-    arg0->vel.z += arg0->accel.z;
-    arg0->color.a -= 8;
-    arg0->scale *= arg0->colorIdx;
-    if(arg0->color.a == 0.0f) {
-        arg0->color.a = 0;
-        arg0->scale = 0.0f;
+    particle_data->pos.x += particle_data->vel.x;
+    particle_data->pos.y += particle_data->vel.y;
+    particle_data->pos.z += particle_data->vel.z;
+    particle_data->vel.x += particle_data->accel.x;
+    particle_data->vel.y += particle_data->accel.y;
+    particle_data->vel.z += particle_data->accel.z;
+    particle_data->color.a -= 8;
+    particle_data->scale *= particle_data->colorIdx;
+    if(particle_data->color.a == 0.0f) {
+        particle_data->color.a = 0;
+        particle_data->scale = 0.0f;
         return 1;
     }
     return 0;
@@ -1701,7 +1701,7 @@ static s32 ExecMiniBowserEvent(void)
  */
 static void MiniBowserTake(void)
 {
-    u8 coinSteal[][3] = {
+    u8 coin_steal_by_rank[][3] = {
         20, 20, 30,
         20, 20, 30,
         10, 15, 20,
@@ -1721,7 +1721,7 @@ static void MiniBowserTake(void)
     if(game_part >= 3) {
         game_part = 2;
     }
-    steal = (u8)coinSteal[GWPlayer[eventPlayer].rank][game_part];
+    steal = (u8)coin_steal_by_rank[GWPlayer[eventPlayer].rank][game_part];
     sprintf(coinStealStrAll, "%d", steal);
     SetMiniBowserMotion(2, 10, 0);
     if(steal >= 20) {
@@ -1781,7 +1781,7 @@ static void MiniBowserTake(void)
  */
 static void MiniBowserTakeAll(void)
 {
-    u8 coinSteal[] = {
+    u8 coin_steal_by_phase[] = {
         10, 20, 30,
     };
     s32 i;
@@ -1800,7 +1800,7 @@ static void MiniBowserTakeAll(void)
     if(game_part >= 3) {
         game_part = 2;
     }
-    steal = (u8)coinSteal[game_part];
+    steal = (u8)coin_steal_by_phase[game_part];
     sprintf(coinStealStr, "%d", steal);
     SetMiniBowserMotion(2, 10, 0);
     for(coin_total=j=0; j<4; j++) {

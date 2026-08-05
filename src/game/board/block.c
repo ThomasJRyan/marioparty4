@@ -42,19 +42,19 @@ typedef struct {
 
 static void BlockProc(void);
 static void DestroyBlock(void);
-static void ExecBlockObj(OMOBJ *arg0);
-static void CreateBlockObj(s32 arg0);
+static void ExecBlockObj(OMOBJ *object);
+static void CreateBlockObj(s32 player);
 static void DestroyBlockObj(BlockWork *unused0, OMOBJ *unused1);
-static void SpawnBlock(BlockWork *arg0, OMOBJ *arg1);
-static void HitBlock(BlockWork *arg0, OMOBJ *arg1);
-static void OpenBlock(BlockWork *arg0, OMOBJ *arg1);
+static void SpawnBlock(BlockWork *work, OMOBJ *object);
+static void HitBlock(BlockWork *work, OMOBJ *object);
+static void OpenBlock(BlockWork *work, OMOBJ *object);
 static void SetBlockOpen(void);
 static void SetBlockStop(void);
 static void WaitBlockHit(void);
 static void CreateCoinMdl(void);
 static void KillCoinMdl(void);
 static void PopupCoin(void);
-static void PopupCoinExec(OMOBJ *arg0);
+static void PopupCoinExec(OMOBJ *obj);
 
 extern s8 boardTutorialBlockF;
 extern s8 boardTutorialBlockItem;
@@ -76,12 +76,12 @@ static s32 coinF[10];
  * @brief Resolve a hidden-block event for a normal-sized player.
  *
  * @details Other eligible players wait for a child process that awards either a star or twenty coins.
- * @param arg0 Index of the player who triggered the block.
+ * @param player Index of the player who triggered the block.
  * @return Always 0; Mega players return immediately without creating a block.
  */
-s32 BoardBlockExec(s32 arg0)
+s32 BoardBlockExec(s32 player)
 {
-    if (BoardPlayerSizeGet(arg0) == 2) {
+    if (BoardPlayerSizeGet(player) == 2) {
         return 0;
     }
 
@@ -212,15 +212,15 @@ static void DestroyBlock(void)
  * @brief Create and position a hidden block above a player.
  *
  * @details Randomly chooses a star or coin reward unless the tutorial override supplies the reward type.
- * @param arg0 Index of the player beneath the block.
+ * @param player Index of the player beneath the block.
  */
-static void CreateBlockObj(s32 arg0)
+static void CreateBlockObj(s32 player)
 {
     Vec player_pos;
     BlockWork *work;
     s8 contains_star;
 
-    BoardPlayerPosGet(arg0, &player_pos);
+    BoardPlayerPosGet(player, &player_pos);
     starMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 4), NULL, 0);
     BoardModelVisibilitySet(starMdl, 0);
     BoardModelMotionSpeedSet(starMdl, 0);
@@ -271,30 +271,30 @@ static void CreateBlockObj(s32 arg0)
 
 /**
  * @brief Update the hidden block state and synchronize its reward model.
- * @param arg0 Block object whose spawn, bob, or opening animation is processed.
+ * @param object Block object whose spawn, bob, or opening animation is processed.
  */
-static void ExecBlockObj(OMOBJ *arg0)
+static void ExecBlockObj(OMOBJ *object)
 {
     BlockWork *work;
 
-    work = omObjGetWork(arg0, BlockWork);
+    work = omObjGetWork(object, BlockWork);
 
     if (work->kill != 0 || BoardIsKill() != 0) {
-        DestroyBlockObj(work, arg0);
+        DestroyBlockObj(work, object);
         blockObj = 0;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
 
     switch (work->state) {
         case BLOCK_SPAWN:
-            SpawnBlock(work, arg0);
+            SpawnBlock(work, object);
             break;
         case BLOCK_HIT:
-            HitBlock(work, arg0);
+            HitBlock(work, object);
             break;
         case BLOCK_OPEN:
-            OpenBlock(work, arg0);
+            OpenBlock(work, object);
             break;
     }
 
@@ -302,9 +302,9 @@ static void ExecBlockObj(OMOBJ *arg0)
         BoardModelVisibilitySet(starMdl, 0);
     }
 
-    BoardModelPosSet(starMdl, arg0->trans.x, arg0->trans.y, arg0->trans.z);
-    BoardModelRotSet(starMdl, arg0->rot.x, arg0->rot.y, arg0->rot.z);
-    BoardModelScaleSet(starMdl, arg0->scale.x, arg0->scale.y, arg0->scale.z);
+    BoardModelPosSet(starMdl, object->trans.x, object->trans.y, object->trans.z);
+    BoardModelRotSet(starMdl, object->rot.x, object->rot.y, object->rot.z);
+    BoardModelScaleSet(starMdl, object->scale.x, object->scale.y, object->scale.z);
 }
 
 /**
@@ -322,10 +322,10 @@ static void DestroyBlockObj(BlockWork *unused0, OMOBJ *unused1)
 
 /**
  * @brief Scale and spin the hidden block into view.
- * @param arg0 Block work changed to the hittable state once the entrance settles.
- * @param arg1 Block object whose rotation and scale are animated.
+ * @param work Block work changed to the hittable state once the entrance settles.
+ * @param object Block object whose rotation and scale are animated.
  */
-static void SpawnBlock(BlockWork *arg0, OMOBJ *arg1)
+static void SpawnBlock(BlockWork *work, OMOBJ *object)
 {
     if (scaleAngle < 90.0f) {
         scaleAngle += 3.75f;
@@ -338,8 +338,8 @@ static void SpawnBlock(BlockWork *arg0, OMOBJ *arg1)
         if (rotMax < 0.8f) {
             rotY = 0.0f;
             rotMax = 0.0f;
-            arg0->hit_y_velocity = 0;
-            arg0->state = BLOCK_HIT;
+            work->hit_y_velocity = 0;
+            work->state = BLOCK_HIT;
         }
     }
 
@@ -350,58 +350,58 @@ static void SpawnBlock(BlockWork *arg0, OMOBJ *arg1)
         }
     }
 
-    arg1->rot.y = rotY;
-    arg1->scale.x = arg1->scale.y = arg1->scale.z = sind(scaleAngle);
+    object->rot.y = rotY;
+    object->scale.x = object->scale.y = object->scale.z = sind(scaleAngle);
 }
 
 /**
  * @brief Apply the block's continuous vertical bob.
- * @param arg0 Block work containing the wrapped bobbing angle.
- * @param arg1 Block object whose y position is offset each frame.
+ * @param work Block work containing the wrapped bobbing angle.
+ * @param object Block object whose y position is offset each frame.
  */
-static void HitBlock(BlockWork *arg0, OMOBJ *arg1)
+static void HitBlock(BlockWork *work, OMOBJ *object)
 {
     float angle;
 
-    arg0->hit_y_velocity += 3;
-    if (arg0->hit_y_velocity > 0x168) {
-        arg0->hit_y_velocity -= 0x168;
+    work->hit_y_velocity += 3;
+    if (work->hit_y_velocity > 0x168) {
+        work->hit_y_velocity -= 0x168;
     }
 
-    OSs16tof32(&arg0->hit_y_velocity, &angle);
-    arg1->trans.y += 0.2f * sind(angle);
+    OSs16tof32(&work->hit_y_velocity, &angle);
+    object->trans.y += 0.2f * sind(angle);
 }
 
 /**
  * @brief Bounce the block upward once, then return it to its saved height.
  *
  * @details The first update starts the reward-model motion.
- * @param arg0 Block work containing the resting height and opening flags.
- * @param arg1 Block object whose y position is animated.
+ * @param work Block work containing the resting height and opening flags.
+ * @param object Block object whose y position is animated.
  */
-static void OpenBlock(BlockWork *arg0, OMOBJ *arg1)
+static void OpenBlock(BlockWork *work, OMOBJ *object)
 {
     f32 target_y_pos;
 
-    if (arg0->opened == 0) {
-        arg0->opened = 1;
+    if (work->opened == 0) {
+        work->opened = 1;
         HuAudFXPlay(0x33B);
         BoardModelMotionStart(starMdl, 0, 0);
     }
 
-    if (arg0->returning_to_rest == 0) {
-        OSf32tos16(&arg1->trans.y, &arg0->target_y_pos);
+    if (work->returning_to_rest == 0) {
+        OSf32tos16(&object->trans.y, &work->target_y_pos);
 
-        arg1->trans.y += 80.0f;
-        arg0->returning_to_rest = 1;
+        object->trans.y += 80.0f;
+        work->returning_to_rest = 1;
     }
     else {
-        OSs16tof32(&arg0->target_y_pos, &target_y_pos);
-        arg1->trans.y += -8.0f;
+        OSs16tof32(&work->target_y_pos, &target_y_pos);
+        object->trans.y += -8.0f;
 
-        if (arg1->trans.y < target_y_pos) {
-            arg1->trans.y = target_y_pos;
-            arg0->state = BLOCK_HIT;
+        if (object->trans.y < target_y_pos) {
+            object->trans.y = target_y_pos;
+            work->state = BLOCK_HIT;
         }
     }
 }
