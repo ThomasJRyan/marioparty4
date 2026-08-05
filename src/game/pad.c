@@ -52,6 +52,9 @@ static u32 chanTbl[4] = { PAD_CHAN0_BIT, PAD_CHAN1_BIT, PAD_CHAN2_BIT, PAD_CHAN3
 
 extern int HuDvdErrWait;
 
+/**
+ * @brief Initializes all four controller ports, retrace sampling, and rumble state.
+ */
 void HuPadInit(void)
 {
     int i;
@@ -149,6 +152,10 @@ void HuPadRead(void)
     }
 }
 
+/**
+ * @brief Samples controllers, derives pressed and repeated inputs, services rumble, and resets failed channels each retrace.
+ * @param retraceCount Retrace counter supplied by the VI callback; sampling does not otherwise depend on its value.
+ */
 static void PadReadVSync(u32 retraceCount)
 {
     u32 chan;
@@ -226,6 +233,11 @@ static void PadReadVSync(u32 retraceCount)
     VCounter++;
 }
 
+/**
+ * @brief Converts one controller main-stick position into held and auto-repeating directional button masks.
+ * @param pad Controller port index from 0 through 3.
+ * @param status Raw PAD sample whose main-stick axes are classified.
+ */
 static void PadADConv(s16 pad, PADStatus *status)
 {
     s16 stickX, stickY;
@@ -271,6 +283,13 @@ static void PadADConv(s16 pad, PADStatus *status)
     }
 }
 
+/**
+ * @brief Starts a controller motor pattern with caller-specified duration and off/on intervals.
+ * @param pad Controller port index from 0 through 3.
+ * @param duration Total rumble duration in retraces.
+ * @param off Number of retraces before each motor-on interval.
+ * @param on Number of retraces in each motor-on interval.
+ */
 void HuPadRumbleSet(s16 pad, s16 duration, s16 off, s16 on)
 {
     PadRumble *rumble = &rumbleData[pad];
@@ -282,6 +301,10 @@ void HuPadRumbleSet(s16 pad, s16 duration, s16 off, s16 on)
     }
 }
 
+/**
+ * @brief Stops one controller motor immediately and clears its pending rumble duration.
+ * @param pad Controller port index from 0 through 3.
+ */
 void HuPadRumbleStop(s16 pad)
 {
     PadRumble *rumble = &rumbleData[pad];
@@ -291,6 +314,9 @@ void HuPadRumbleStop(s16 pad)
     }
 }
 
+/**
+ * @brief Stops all four controller motors and clears every pending rumble duration.
+ */
 void HuPadRumbleAllStop(void)
 {
     int i;
@@ -302,11 +328,20 @@ void HuPadRumbleAllStop(void)
     }
 }
 
+/**
+ * @brief Reads the most recently sampled error status for one controller port.
+ * @param pad Controller port index from 0 through 3.
+ * @return Last PAD error code for the selected port.
+ */
 s16 HuPadStatGet(s16 pad)
 {
     return _PadErr[pad];
 }
 
+/**
+ * @brief Returns the channel bitmask reported by the most recent PADRead call.
+ * @return Channel bitmask returned by PADRead.
+ */
 u32 HuPadRumbleGet(void)
 {
     return RumbleBit;

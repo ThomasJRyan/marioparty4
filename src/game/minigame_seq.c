@@ -105,6 +105,9 @@ static s32 seqLanguage;
 
 void fn_80036BC8(void);
 
+/**
+ * @brief Clears all eight sequence slots, stages shared graphics data in ARAM, and initializes sequence timing and language state.
+ */
 void MGSeqInit(void)
 {
     s32 i;
@@ -127,6 +130,9 @@ void MGSeqInit(void)
     seqLanguage = GWLanguageGet();
 }
 
+/**
+ * @brief Advances every active minigame sequence and retires slots whose update callback reports completion.
+ */
 void MGSeqMain(void)
 {
     SeqInfo *info;
@@ -179,6 +185,12 @@ void MGSeqMain(void)
     }
 }
 
+/**
+ * @brief Allocates and initializes one of the eight sequence slots from a sequence-table entry.
+ * @param seq_no Index into the sequence definition table.
+ * @param params Type-specific arguments forwarded unchanged to the selected initializer.
+ * @return Allocated sequence slot index, or -1 when all slots are occupied or type initialization fails.
+ */
 static s16 CreateSeq(s16 seq_no, va_list params)
 {
     SeqWork *work;
@@ -226,6 +238,11 @@ static s16 CreateSeq(s16 seq_no, va_list params)
     return i;
 }
 
+/**
+ * @brief Resolves automatic sequence types and creates a sequence using type-specific variadic arguments.
+ * @param type MG_SEQ_TYPE_* selector; MG_SEQ_TYPE_AUTO resolves from the next minigame category.
+ * @return Allocated sequence slot index, or -1 on allocation or initialization failure.
+ */
 s16 MGSeqCreate(s16 type, ...)
 {
     s16 ret;
@@ -244,6 +261,11 @@ s16 MGSeqCreate(s16 type, ...)
     return ret;
 }
 
+/**
+ * @brief Reads one sequence status or combines the status bits of all sequence slots.
+ * @param id Sequence slot index from 0 through 7; negative values select all slots where supported.
+ * @return Selected sequence status bits, or the bitwise union of all slots when id is negative.
+ */
 u8 MGSeqStatGet(s16 id)
 {
     SeqWork *work;
@@ -263,6 +285,12 @@ u8 MGSeqStatGet(s16 id)
     return ret;
 }
 
+/**
+ * @brief Overrides the screen position of a valid sequence slot.
+ * @param id Sequence slot index from 0 through 7; negative values select all slots where supported.
+ * @param x New sequence center X coordinate in screen pixels.
+ * @param y New sequence center Y coordinate in screen pixels.
+ */
 void MGSeqPosSet(s16 id, float x, float y)
 {
     if (id >= 0 && id < 8) {
@@ -271,6 +299,12 @@ void MGSeqPosSet(s16 id, float x, float y)
     }
 }
 
+/**
+ * @brief Queues two control parameters for a valid sequence update callback.
+ * @param id Sequence slot index from 0 through 7; negative values select all slots where supported.
+ * @param param1 Sequence control command consumed by the next update.
+ * @param param2 Command-specific sequence value.
+ */
 void MGSeqParamSet(s16 id, s16 param1, s16 param2)
 {
     if (id >= 0 && id < 8) {
@@ -279,6 +313,10 @@ void MGSeqParamSet(s16 id, s16 param1, s16 param2)
     }
 }
 
+/**
+ * @brief Marks a valid active sequence slot for termination on its next update.
+ * @param id Sequence slot index from 0 through 7; negative values select all slots where supported.
+ */
 void MGSeqKill(s16 id)
 {
     if (id >= 0 && id < 8) {
@@ -288,6 +326,9 @@ void MGSeqKill(s16 id)
     }
 }
 
+/**
+ * @brief Forces one update with global completion enabled so every sequence releases its sprites.
+ */
 void MGSeqKillAll(void)
 {
     seqDoneF = 1;
@@ -297,6 +338,10 @@ void MGSeqKillAll(void)
     lbl_801D3D94 = 0;
 }
 
+/**
+ * @brief Tests whether all sequences have completed and the post-sequence delay has elapsed.
+ * @return 1 when sequence activity and the post-sequence timer are complete; otherwise 0.
+ */
 s32 MGSeqDoneCheck(void)
 {
     u8 stat = MGSeqStatGet(-1);
@@ -308,8 +353,15 @@ s32 MGSeqDoneCheck(void)
     return 0;
 }
 
+/**
+ * @brief Provides an intentionally empty sequence hook.
+ */
 void MGSeqStub(void) { }
 
+/**
+ * @brief Destroys every sprite group and standalone sprite owned by a sequence.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ */
 void MGSeqSprKill(SeqWork *work)
 {
     s32 i;
@@ -323,11 +375,22 @@ void MGSeqSprKill(SeqWork *work)
     }
 }
 
+/**
+ * @brief Copies one sequence asset from ARAM into model-heap memory.
+ * @param file Packed sequence asset identifier in ARAM.
+ * @return New model-heap buffer containing the requested ARAM file.
+ */
 static void *SeqReadFile(s32 file)
 {
     return HuAR_ARAMtoMRAMFileRead(file, HU_MEMNUM_OVL, HEAP_MODEL);
 }
 
+/**
+ * @brief Creates the two-digit countdown timer, shadow, and frame sprites from variadic duration and position arguments.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @param params Countdown value followed by optional X and Y screen coordinates; negative coordinates keep table defaults.
+ * @return 1 after timer sprite initialization.
+ */
 s32 MGSeqInitTimer(SeqWork *work, va_list params)
 {
     ANIMDATA *spr_anim;
@@ -390,6 +453,11 @@ s32 MGSeqInitTimer(SeqWork *work, va_list params)
     return 1;
 }
 
+/**
+ * @brief Updates countdown digits and the timer appear, pause, resume, and disappear states.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the timer remains active; 0 after its sprites are destroyed.
+ */
 s32 MGSeqUpdateTimer(SeqWork *work)
 {
     float scale;
@@ -547,6 +615,12 @@ s32 MGSeqUpdateTimer(SeqWork *work)
     }
 }
 
+/**
+ * @brief Creates the localized START, FINISH, or DRAW word sprites for sequence type 2.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @param params Encoded word pointer, maximum hold time, and optional X and Y screen coordinates.
+ * @return Always 1 after sprite initialization.
+ */
 s32 MGSeqInitType2(SeqWork *work, va_list params)
 {
     s16 spr_idx;
@@ -656,6 +730,11 @@ s32 MGSeqInitType2(SeqWork *work, va_list params)
     return 1;
 }
 
+/**
+ * @brief Animates a type-2 word through its entrance, hold, pulse, and exit states.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the word remains active; 0 after cleanup.
+ */
 s32 MGSeqUpdateType2(SeqWork *work)
 {
     float tp_lvl;
@@ -779,6 +858,9 @@ static char *wordMgTbl[6] = {
     wordDrawE,
 };
 
+/**
+ * @brief Loads localized sequence font data and builds the reusable START, FINISH, and DRAW word tables.
+ */
 void fn_80036BC8(void)
 {
     if (!letterBufTbl[0]) {
@@ -805,6 +887,13 @@ void fn_80036BC8(void)
 
 static ANIMDATA *SeqLoadFontChar(char *str, s16 flags);
 
+/**
+ * @brief Creates sprite resources for a localized word and records its measured width.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @param str Encoded localized word or character string.
+ * @param flags Font-selection and word-layout flags.
+ * @return Number of glyph sprites created, or 0 when a glyph asset cannot be loaded.
+ */
 static s32 SeqMakeWord(SeqWork *work, char *str, s16 flags)
 {
     s16 len;
@@ -870,6 +959,12 @@ static s32 SeqMakeWord(SeqWork *work, char *str, s16 flags)
     return grp_idx;
 }
 
+/**
+ * @brief Finds and loads the animation containing one encoded sequence-font character.
+ * @param str Encoded localized word or character string.
+ * @param flags Font-selection and word-layout flags.
+ * @return Animation containing the requested glyph, or NULL when no font-table match exists.
+ */
 static ANIMDATA *SeqLoadFontChar(char *str, s16 flags)
 {
     s32 data_num;
@@ -932,6 +1027,10 @@ static ANIMDATA *SeqLoadFontChar(char *str, s16 flags)
     return NULL;
 }
 
+/**
+ * @brief Returns the fixed vertical display extent used by sequence layout.
+ * @return The constant 480.0.
+ */
 static float ForceDefine480()
 {
     return 480.0f;
@@ -939,6 +1038,12 @@ static float ForceDefine480()
 
 static void SeqPlayStartFX(void);
 
+/**
+ * @brief Creates a basic minigame START or FINISH sequence using the next minigame category.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @param params Word selector: START, FINISH, or DRAW.
+ * @return 1 after initialization, including when DRAW delegates to MGSeqInitDraw.
+ */
 s32 MGSeqInitMGBasic(SeqWork *work, va_list params)
 {
     s16 i;
@@ -989,6 +1094,11 @@ s32 MGSeqInitMGBasic(SeqWork *work, va_list params)
     return 1;
 }
 
+/**
+ * @brief Animates the basic minigame word, plays start cues, and releases it after completion.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the sequence remains active; 0 after cleanup.
+ */
 s32 MGSeqUpdateMGBasic(SeqWork *work)
 {
     s16 idx;
@@ -1158,6 +1268,12 @@ s32 MGSeqUpdateMGBasic(SeqWork *work)
     return 1;
 }
 
+/**
+ * @brief Creates shared word and background sprites used by team, battle, story, and Bowser sequences.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @param params Word selector: START, FINISH, or DRAW.
+ * @return 1 after initialization, including when DRAW delegates to MGSeqInitDraw.
+ */
 s32 MGSeqInitMGCommon(SeqWork *work, va_list params)
 {
     s16 i;
@@ -1237,6 +1353,11 @@ s32 MGSeqInitMGCommon(SeqWork *work, va_list params)
     return 1;
 }
 
+/**
+ * @brief Animates the battle-minigame title sequence and its start cue.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the battle sequence remains active; 0 after cleanup.
+ */
 s32 MGSeqUpdateMGBattle(SeqWork *work)
 {
     s16 idx;
@@ -1476,6 +1597,11 @@ s32 MGSeqUpdateMGBattle(SeqWork *work)
     return 1;
 }
 
+/**
+ * @brief Animates the 1-vs-3 team layout and its start cue.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the 1-vs-3 sequence remains active; 0 after cleanup.
+ */
 s32 MGSeqUpdateMG1vs3(SeqWork *work)
 {
     s16 idx;
@@ -1689,6 +1815,11 @@ s32 MGSeqUpdateMG1vs3(SeqWork *work)
     return 1;
 }
 
+/**
+ * @brief Animates the story-minigame layout and its start cue.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the story sequence remains active; 0 after cleanup.
+ */
 s32 MGSeqUpdateMGStory(SeqWork *work)
 {
     s16 idx;
@@ -1900,6 +2031,11 @@ s32 MGSeqUpdateMGStory(SeqWork *work)
     return 1;
 }
 
+/**
+ * @brief Animates the 2-vs-2 team layout and its start cue.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the 2-vs-2 sequence remains active; 0 after cleanup.
+ */
 s32 MGSeqUpdateMG2vs2(SeqWork *work)
 {
     s16 idx;
@@ -2073,6 +2209,12 @@ s32 MGSeqUpdateMG2vs2(SeqWork *work)
     return 1;
 }
 
+/**
+ * @brief Creates the flipping word sprites used by the pinball-style sequence.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @param params Word selector: START, FINISH, or DRAW.
+ * @return 1 after initialization, including when DRAW delegates to MGSeqInitDraw.
+ */
 s32 MGSeqInitFlip(SeqWork *work, va_list params)
 {
     s16 i;
@@ -2159,6 +2301,11 @@ s32 MGSeqInitFlip(SeqWork *work, va_list params)
     return 1;
 }
 
+/**
+ * @brief Animates flip angles, scaling, timing, and cleanup for the pinball-style word.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the flip sequence remains active; 0 after cleanup.
+ */
 s32 MGSeqUpdateFlip(SeqWork *work)
 {
     s16 idx;
@@ -2332,6 +2479,11 @@ s32 MGSeqUpdateFlip(SeqWork *work)
     return 1;
 }
 
+/**
+ * @brief Animates the Bowser-minigame layout and its start cue.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the Bowser sequence remains active; 0 after cleanup.
+ */
 s32 MGSeqUpdateMGBowser(SeqWork *work)
 {
     s16 idx;
@@ -2383,7 +2535,7 @@ s32 MGSeqUpdateMGBowser(SeqWork *work)
                 float time;
                 float pos_x, pos_y;
 
-                float temp_f25;
+                float pulse_scale;
                 float center_x;
                 s16 spr_idx[16];
                 float scale_arr[16];
@@ -2407,8 +2559,8 @@ s32 MGSeqUpdateMGBowser(SeqWork *work)
                                 pos_x = work->x + (center_x * sind(angle + time_angle));
                                 pos_y = work->y - (HU_DISP_CENTERY * (1.0 - (time / 50.0f)));
                                 HuSprPosSet(work->spr_grp[0], idx, pos_x, pos_y);
-                                temp_f25 = 0.9 + (0.1 * cosd(angle + time_angle));
-                                HuSprScaleSet(work->spr_grp[0], idx, temp_f25 * cosd(angle + time_angle), temp_f25);
+                                pulse_scale = 0.9 + (0.1 * cosd(angle + time_angle));
+                                HuSprScaleSet(work->spr_grp[0], idx, pulse_scale * cosd(angle + time_angle), pulse_scale);
                                 scale_arr[idx] = cosd(angle + time_angle);
                                 spr_idx[idx] = idx;
                             }
@@ -2556,6 +2708,12 @@ s32 MGSeqUpdateMGBowser(SeqWork *work)
     return 1;
 }
 
+/**
+ * @brief Creates the DRAW result word and supporting sprite group.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @param params Unused; retained for the common sequence-initializer callback signature.
+ * @return Always 1 after DRAW sprite initialization.
+ */
 s32 MGSeqInitDraw(SeqWork *work, va_list params)
 {
     s16 word_grp;
@@ -2587,6 +2745,11 @@ s32 MGSeqInitDraw(SeqWork *work, va_list params)
     return 1;
 }
 
+/**
+ * @brief Animates the DRAW result through its entrance, hold, and exit states.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the DRAW sequence remains active; 0 after cleanup.
+ */
 s32 MGSeqUpdateDraw(SeqWork *work)
 {
     s16 idx;
@@ -2723,6 +2886,12 @@ static s16 winnerNameW[8];
 #define GET_LANG_IDX() ((seqLanguage == 0) ? 0 : 1)
 #define GET_WIN_KANAF() ((seqLanguage == 0) ? 1 : 0)
 
+/**
+ * @brief Creates localized winner, loser, or champion text and character-name sprites.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @param params Result type followed by four character indices; negative character indices are omitted from the winner list.
+ * @return 1 after result initialization; 0 when no nonnegative winner character was supplied.
+ */
 s32 MGSeqInitWin(SeqWork *work, va_list params)
 {
     int win_type = va_arg(params, int);
@@ -2926,6 +3095,11 @@ s32 MGSeqInitWin(SeqWork *work, va_list params)
     return 1;
 }
 
+/**
+ * @brief Animates result text and winner character names, then releases their sprite resources.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the result sequence remains active; 0 after cleanup.
+ */
 s32 MGSeqUpdateWin(SeqWork *work)
 {
     s32 idx;
@@ -3054,6 +3228,12 @@ s32 MGSeqUpdateWin(SeqWork *work)
     return 1;
 }
 
+/**
+ * @brief Creates the NEW RECORD display and numeric record-value sprites.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @param params Numeric record value displayed by the sequence.
+ * @return 1 after record-display initialization.
+ */
 s32 MGSeqInitRecord(SeqWork *work, va_list params)
 {
     ANIMDATA *spr_data;
@@ -3173,6 +3353,11 @@ s32 MGSeqInitRecord(SeqWork *work, va_list params)
     return 1;
 }
 
+/**
+ * @brief Animates the record display, waits for its hold time, and fades it out.
+ * @param work Active sequence state whose sprites and state machine are initialized or advanced.
+ * @return 1 while the record display remains active; 0 after cleanup.
+ */
 s32 MGSeqUpdateRecord(SeqWork *work)
 {
     s16 group;
@@ -3256,6 +3441,9 @@ s32 MGSeqUpdateRecord(SeqWork *work)
 
 static void PauseProc(void);
 
+/**
+ * @brief Creates the pause-menu process and waits until its state is initialized.
+ */
 void MGSeqPauseInit(void)
 {
     MGSeqPauseEnableCtrl(0);
@@ -3271,6 +3459,9 @@ void MGSeqPauseInit(void)
 #define PAUSE_WIN_DIST (HU_DISP_CENTERX + 112)
 #define PAUSE_EXIT_Y (HU_DISP_HEIGHT - 80)
 
+/**
+ * @brief Runs pause input, option changes, exit confirmation, and pause-window cleanup.
+ */
 static void PauseProc(void)
 {
     s16 mg;
@@ -3421,11 +3612,18 @@ static void PauseProc(void)
     } while (1);
 }
 
+/**
+ * @brief Requests pause-process termination and waits for cleanup to finish.
+ */
 void MGSeqPauseKill(void)
 {
     pauseExitF = 1;
 }
 
+/**
+ * @brief Enables or disables controller-driven interaction with the pause menu.
+ * @param flag Nonzero to enable system pause controls; zero to disable them.
+ */
 void MGSeqPauseEnableCtrl(s32 flag)
 {
     if (!_CheckFlag(FLAG_ID_MAKE(1, 8))) {
@@ -3524,6 +3722,9 @@ static s16 practiceTbl[][2] = {
     0,
 };
 
+/**
+ * @brief Creates the practice-mode instruction and exit process.
+ */
 void MGSeqPracticeInit(void)
 {
     HUPROCESS *process;
@@ -3543,6 +3744,9 @@ void MGSeqPracticeInit(void)
     }
 }
 
+/**
+ * @brief Displays practice instructions and watches for a player exit request.
+ */
 static void PracticeProc(void)
 {
 
@@ -3604,6 +3808,9 @@ static s16 seqStartFXTbl[][2]
           DLL_m441dll, 16, DLL_m442dll, 16, DLL_m443dll, -1, DLL_m444dll, -1, DLL_m445dll, 12, DLL_m446dll, -1, DLL_m447dll, 12, DLL_m448dll, -1, DLL_m449dll, 16, DLL_m450dll, 12,
           DLL_m455dll, 17, DLL_m456dll, 17, DLL_m457dll, 12, DLL_m458dll, 12, DLL_m459dll, 17, DLL_m460dll, 12, DLL_m461dll, 12, DLL_m462dll, 12, DLL_NONE, 0 };
 
+/**
+ * @brief Plays the minigame-specific sound effect associated with the START cue.
+ */
 static void SeqPlayStartFX(void)
 {
     s16 i;
@@ -3618,6 +3825,10 @@ static void SeqPlayStartFX(void)
     HuAudFXPlay(seqStartFXTbl[i][1]);
 }
 
+/**
+ * @brief Ends practice mode and requests overlay return when the watched object reports exit.
+ * @param object Practice-mode object whose work fields signal an exit request.
+ */
 void MGSeqPracticeExitCheck(OMOBJ *object)
 {
     s16 input;

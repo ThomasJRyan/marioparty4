@@ -17,6 +17,7 @@ SystemState GWSystem;
 PlayerState GWPlayer[4];
 PlayerConfig GWPlayerCfg[4];
 
+/** @brief Zeroes the runtime player configuration, player state, and system state. */
 static inline void GWErase(void)
 {
     memset(GWPlayerCfg, 0, sizeof(GWPlayerCfg));
@@ -24,6 +25,10 @@ static inline void GWErase(void)
     memset(&GWSystem, 0, sizeof(GWSystem));
 }
 
+/**
+ * @brief Assigns each player its matching character, controller port, and group defaults.
+ * @details A player is marked CPU-controlled when its corresponding controller reports an error.
+ */
 static inline void InitPlayerConfig(void)
 {
     PlayerConfig *config;
@@ -43,6 +48,7 @@ static inline void InitPlayerConfig(void)
     }
 }
 
+/** @brief Restores runtime board options such as rumble, explanations, and save mode. */
 static inline void ResetBoardSettings(void)
 {
     GWRumbleSet(1);
@@ -52,6 +58,7 @@ static inline void ResetBoardSettings(void)
     GWSaveModeSet(0);
 }
 
+/** @brief Initializes persistent defaults, flags, runtime state, players, language, and board options. */
 void GWInit(void)
 {
     GWGameStatReset();
@@ -68,6 +75,10 @@ void GWInit(void)
     ResetBoardSettings();
 }
 
+/**
+ * @brief Restores all fifteen minigame records to their game-specific initial values.
+ * @param game_stat Persistent statistics record whose minigame records are reset.
+ */
 static inline void ResetMGRecord(GameStat *game_stat)
 {
     game_stat->mg_record[0] = 300 * REFRESH_RATE;
@@ -87,6 +98,10 @@ static inline void ResetMGRecord(GameStat *game_stat)
     game_stat->mg_record[14] = 0;
 }
 
+/**
+ * @brief Clears per-board play counts, records, and character win counts.
+ * @param game_stat Persistent statistics record whose nine board entries are cleared.
+ */
 static inline void ResetBoardRecord(GameStat *game_stat)
 {
     s32 i;
@@ -102,6 +117,10 @@ static inline void ResetBoardRecord(GameStat *game_stat)
     }
 }
 
+/**
+ * @brief Marks every present entry as uncollected.
+ * @param game_stat Persistent statistics record containing the 60 present flags.
+ */
 static inline void ResetPresent(GameStat *game_stat)
 {
     s32 i;
@@ -111,6 +130,10 @@ static inline void ResetPresent(GameStat *game_stat)
     (void)i; // HACK to match GWResetGameStat
 }
 
+/**
+ * @brief Clears continue-state and unlock-related persistent flags.
+ * @param game_stat Persistent statistics record containing the flags.
+ */
 static inline void ResetFlag(GameStat *game_stat)
 {
     game_stat->story_continue = 0;
@@ -121,6 +144,10 @@ static inline void ResetFlag(GameStat *game_stat)
     game_stat->musicAllF = 0;
 }
 
+/**
+ * @brief Restores the story and party pause-menu options to their defaults.
+ * @param game_stat Persistent statistics record containing both pause configurations.
+ */
 static inline void ResetPauseConfig(GameStat *game_stat)
 {
     game_stat->story_pause.explain_mg = game_stat->party_pause.explain_mg = 1;
@@ -130,6 +157,10 @@ static inline void ResetPauseConfig(GameStat *game_stat)
     game_stat->story_pause.save_mode = game_stat->party_pause.save_mode = 0;
 }
 
+/**
+ * @brief Constructs the default persistent game statistics and copies them into the active record.
+ * @details The reset includes language, audio, records, unlock flags, pause options, and runtime board options.
+ */
 void GWGameStatReset(void)
 {
     GameStat *game_stat = &GWGameStatDefault;
@@ -159,6 +190,10 @@ void GWGameStatReset(void)
     ResetBoardSettings();
 }
 
+/**
+ * @brief Returns the runtime message delay, repairing values outside the region-specific range.
+ * @return Message delay in frames after validation.
+ */
 s32 GWMessDelayGet(void)
 {
 #if VERSION_NTSC
@@ -175,6 +210,11 @@ s32 GWMessDelayGet(void)
     return GWSystem.mess_delay;
 }
 
+/**
+ * @brief Stores a minigame record unless game-work writes are locked by system flag 1:12.
+ * @param index Zero-based index in the fifteen-entry record table.
+ * @param value Minigame-specific record value, commonly measured in frames or points.
+ */
 void GWMGRecordSet(s32 index, u32 value)
 {
     if (!_CheckFlag(FLAG_ID_MAKE(1, 12))) {
@@ -182,11 +222,21 @@ void GWMGRecordSet(s32 index, u32 value)
     }
 }
 
+/**
+ * @brief Reads a minigame record.
+ * @param index Zero-based index in the fifteen-entry record table.
+ * @return Stored minigame-specific record value.
+ */
 u32 GWMGRecordGet(s32 index)
 {
     return GWGameStat.mg_record[index];
 }
 
+/**
+ * @brief Looks up the opaque interface color assigned to a playable character.
+ * @param character Character index from 0 through 7.
+ * @param color Destination for the character's RGBA color.
+ */
 void GWCharColorGet(s32 character, GXColor *color)
 {
     GXColor char_color[] = { { 227, 67, 67, 255 }, { 68, 67, 227, 255 }, { 241, 158, 220, 255 }, { 67, 228, 68, 255 }, { 138, 60, 180, 255 },
@@ -194,6 +244,11 @@ void GWCharColorGet(s32 character, GXColor *color)
     *color = char_color[character];
 }
 
+/**
+ * @brief Sets a board's play count, clamped to 99.
+ * @param board Board-record index.
+ * @param value New play count.
+ */
 void GWBoardPlayCountSet(s32 board, u8 value)
 {
     if (value > 99) {
@@ -202,6 +257,11 @@ void GWBoardPlayCountSet(s32 board, u8 value)
     GWGameStat.board_play_count[board] = value;
 }
 
+/**
+ * @brief Adds to a board's play count, saturating at 99.
+ * @param board Board-record index.
+ * @param value Unsigned number of plays to add.
+ */
 void GWBoardPlayCountAdd(s32 board, u8 value)
 {
     value += GWGameStat.board_play_count[board];
@@ -211,31 +271,62 @@ void GWBoardPlayCountAdd(s32 board, u8 value)
     GWGameStat.board_play_count[board] = value;
 }
 
+/**
+ * @brief Reads a board's accumulated play count.
+ * @param board Board-record index.
+ * @return Stored play count in the range 0 through 99.
+ */
 u8 GWBoardPlayCountGet(s32 board)
 {
     return GWGameStat.board_play_count[board];
 }
 
+/**
+ * @brief Stores the star record for a board.
+ * @param board Board-record index.
+ * @param value Star record to store; this routine does not clamp it.
+ */
 void GWBoardMaxStarsSet(s32 board, s16 value)
 {
     GWGameStat.board_max_stars[board] = value;
 }
 
+/**
+ * @brief Reads the star record for a board.
+ * @param board Board-record index.
+ * @return Stored star record.
+ */
 s32 GWBoardMaxStarsGet(s32 board)
 {
     return GWGameStat.board_max_stars[board];
 }
 
+/**
+ * @brief Stores the coin record for a board.
+ * @param board Board-record index.
+ * @param value Coin record to store; this routine does not clamp it.
+ */
 void GWBoardMaxCoinsSet(s32 board, s32 value)
 {
     GWGameStat.board_max_coins[board] = value;
 }
 
+/**
+ * @brief Reads the coin record for a board.
+ * @param board Board-record index.
+ * @return Stored coin record.
+ */
 s32 GWBoardMaxCoinsGet(s32 board)
 {
     return GWGameStat.board_max_coins[board];
 }
 
+/**
+ * @brief Increments a character's win count on a board, saturating at 99.
+ * @param character Character index within the board record.
+ * @param board Board-record index.
+ * @return Updated win count in the range 0 through 99.
+ */
 s32 GWBoardWinCountInc(s32 character, s32 board)
 {
     s32 win_count = GWGameStat.board_win_count[board][character] + 1;
@@ -246,16 +337,33 @@ s32 GWBoardWinCountInc(s32 character, s32 board)
     return win_count;
 }
 
+/**
+ * @brief Reads a character's win count on a board.
+ * @param character Character index within the board record.
+ * @param board Board-record index.
+ * @return Stored win count.
+ */
 s32 GWBoardWinCountGet(s32 character, s32 board)
 {
     return GWGameStat.board_win_count[board][character];
 }
 
+/**
+ * @brief Stores a character's win count on a board without clamping.
+ * @param character Character index within the board record.
+ * @param board Board-record index.
+ * @param value Win count to store.
+ */
 void GWBoardWinCountSet(s32 character, s32 board, s32 value)
 {
     GWGameStat.board_win_count[board][character] = value;
 }
 
+/**
+ * @brief Tests the persistent availability bit for a minigame.
+ * @param id Minigame overlay ID, with 401 corresponding to bit zero.
+ * @return 1 when the minigame is available; otherwise 0.
+ */
 s32 GWMGAvailGet(s32 id)
 {
     s32 word;
@@ -271,6 +379,10 @@ s32 GWMGAvailGet(s32 id)
     }
 }
 
+/**
+ * @brief Marks a minigame as available in persistent statistics.
+ * @param id Minigame overlay ID, with 401 corresponding to bit zero.
+ */
 void GWMGAvailSet(s32 id)
 {
     s32 word;
@@ -281,6 +393,11 @@ void GWMGAvailSet(s32 id)
     GWGameStat.mg_avail[word] |= (1 << bit);
 }
 
+/**
+ * @brief Tests whether a minigame belongs to the custom pack.
+ * @param id Minigame overlay ID, with 401 corresponding to bit zero.
+ * @return 1 when selected for the custom pack; otherwise 0.
+ */
 s32 GWMGCustomGet(s32 id)
 {
     s32 word;
@@ -296,6 +413,10 @@ s32 GWMGCustomGet(s32 id)
     }
 }
 
+/**
+ * @brief Adds a minigame to the custom pack bitset.
+ * @param id Minigame overlay ID, with 401 corresponding to bit zero.
+ */
 void GWMGCustomSet(s32 id)
 {
     s32 word;
@@ -306,6 +427,10 @@ void GWMGCustomSet(s32 id)
     GWGameStat.mg_custom[word] |= (1 << bit);
 }
 
+/**
+ * @brief Removes a minigame from the custom pack bitset.
+ * @param id Minigame overlay ID, with 401 corresponding to bit zero.
+ */
 void GWMGCustomReset(s32 id)
 {
     s32 word;
@@ -316,11 +441,22 @@ void GWMGCustomReset(s32 id)
     GWGameStat.mg_custom[word] &= ~(1 << bit);
 }
 
+/**
+ * @brief Reads a player's current coin count.
+ * @param player Player index from 0 through 3.
+ * @return Current coin count.
+ */
 s16 GWCoinsGet(s32 player)
 {
     return GWPlayer[player].coins;
 }
 
+/**
+ * @brief Sets a player's coins and updates their lifetime maximum.
+ * @details Values are clamped to 0 through 999; writes are ignored while system flag 1:12 is set.
+ * @param player Player index from 0 through 3.
+ * @param value Desired coin count.
+ */
 void GWCoinsSet(s32 player, s16 value)
 {
     if (!_CheckFlag(FLAG_ID_MAKE(1, 12))) {
@@ -337,11 +473,21 @@ void GWCoinsSet(s32 player, s16 value)
     }
 }
 
+/**
+ * @brief Adds a signed amount to a player's coin count using normal clamping and write-lock rules.
+ * @param player Player index from 0 through 3.
+ * @param amount Signed coin delta.
+ */
 void GWCoinsAdd(s32 player, s16 amount)
 {
     GWCoinsSet(player, GWPlayer[player].coins + amount);
 }
 
+/**
+ * @brief Sets a player's stars and updates their lifetime maximum.
+ * @param player Player index from 0 through 3.
+ * @param value Desired star count, clamped to 0 through 999.
+ */
 void GWStarsSet(s32 player, s16 value)
 {
     if (value < 0) {
@@ -356,16 +502,30 @@ void GWStarsSet(s32 player, s16 value)
     GWPlayer[player].stars = value;
 }
 
+/**
+ * @brief Adds a signed amount to a player's star count with 0-through-999 clamping.
+ * @param player Player index from 0 through 3.
+ * @param amount Signed star delta.
+ */
 void GWStarsAdd(s32 player, s16 amount)
 {
     GWStarsSet(player, GWPlayer[player].stars + amount);
 }
 
+/**
+ * @brief Reads a player's current star count.
+ * @param player Player index from 0 through 3.
+ * @return Current star count.
+ */
 s32 GWStarsGet(s32 player)
 {
     return GWPlayer[player].stars;
 }
 
+/**
+ * @brief Sets the persistent total-star count.
+ * @param value Desired total, clamped to 0 through 10000.
+ */
 void GWTotalStarsSet(s16 value)
 {
     if (value < 0) {
@@ -377,11 +537,19 @@ void GWTotalStarsSet(s16 value)
     GWGameStat.total_stars = value;
 }
 
+/**
+ * @brief Adds a signed amount to the persistent total-star count.
+ * @param amount Signed star delta applied with 0-through-10000 clamping.
+ */
 void GWTotalStarsAdd(s16 amount)
 {
     GWTotalStarsSet(GWGameStat.total_stars + amount);
 }
 
+/**
+ * @brief Reads the persistent total-star count.
+ * @return Total collected stars in the range 0 through 10000.
+ */
 u16 GWTotalStarsGet(void)
 {
     return GWGameStat.total_stars;

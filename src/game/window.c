@@ -141,6 +141,9 @@ static s32 winVoiceTbl[]
 
 static s16 winPrio = 1000;
 
+/**
+ * @brief Initializes the message subsystem, sprite manager, fonts, palette, and window slots.
+ */
 void HuWindowInit(void)
 {
     s16 i;
@@ -153,6 +156,10 @@ void HuWindowInit(void)
     winPrio = 1000;
 }
 
+/**
+ * @brief Loads a message-data set and resets all window slots.
+ * @param mess_data_no Regional message-data archive index.
+ */
 void HuWinInit(s32 mess_data_no)
 {
     s16 i;
@@ -204,6 +211,15 @@ void HuWinInit(s32 mess_data_no)
     }
 }
 
+/**
+ * @brief Allocates a window, its character buffer, background group, and cursor sprite.
+ * @param x Left screen coordinate in pixels, or -10000.0 to center horizontally.
+ * @param y Top screen coordinate in pixels, or -10000.0 to center vertically.
+ * @param w Requested width in pixels, rounded up to a multiple of 16.
+ * @param h Requested height in pixels, rounded up to a multiple of 16.
+ * @param frame Frame style index from 0 through 3; out-of-range values select style 0.
+ * @return Allocated window index, or -1 when no slot is available.
+ */
 s16 HuWinCreate(float x, float y, s16 w, s16 h, s16 frame)
 {
     ANIMDATA *bg_anim;
@@ -317,6 +333,10 @@ s16 HuWinCreate(float x, float y, s16 w, s16 h, s16 frame)
     return window_id;
 }
 
+/**
+ * @brief Destroys one window and all sprites and buffers owned by it.
+ * @param window Window slot index.
+ */
 void HuWinKill(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -334,6 +354,9 @@ void HuWinKill(s16 window)
     }
 }
 
+/**
+ * @brief Destroys every active window.
+ */
 void HuWinAllKill(void)
 {
     s16 i;
@@ -374,6 +397,10 @@ void HuWinAllKill(void)
     HuDataDirClose(DATADIR_WIN);
 }
 
+/**
+ * @brief Draws all visible glyph quads for one window message sprite.
+ * @param sprite Sprite slot index, or sprite state passed to a draw callback.
+ */
 static void MesDispFunc(HUSPRITE *sprite)
 {
     WindowData *window = &winData[sprite->work[0]];
@@ -469,6 +496,12 @@ static void MesDispFunc(HUSPRITE *sprite)
     }
 }
 
+/**
+ * @brief Builds a nine-slice window background animation from frame and fill images.
+ * @param bg Destination background animation whose indexed pixel buffer is allocated and filled.
+ * @param frame Frame animation supplying the palette to patch for the generated background.
+ * @return Palette index whose original color matched 0xFC00, or frame->bmp->palNum when no entry matched.
+ */
 static u8 winBGMake(ANIMDATA *bg, ANIMDATA *frame)
 {
     ANIMBMP *bmp;
@@ -540,6 +573,9 @@ static u8 winBGMake(ANIMDATA *bg, ANIMDATA *frame)
     return w;
 }
 
+/**
+ * @brief Advances message printing for every active window.
+ */
 static void HuWinProc(void)
 {
     WindowData *window;
@@ -573,6 +609,14 @@ static void HuWinProc(void)
     }
 }
 
+/**
+ * @brief Appends one positioned and colored glyph to a window character buffer.
+ * @param window Window slot index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ * @param char_idx Glyph code written to the character buffer.
+ * @param color Message-palette index stored with the emitted glyph.
+ */
 static inline void charEntry(s16 window, s16 x, s16 y, s16 char_idx, s16 color)
 {
     WindowData *window_ptr = &winData[window];
@@ -590,6 +634,10 @@ static inline void charEntry(s16 window, s16 x, s16 y, s16 char_idx, s16 color)
     }
 }
 
+/**
+ * @brief Interprets message control codes and emits the next printable glyphs for a window.
+ * @param window Window slot index.
+ */
 static void HuWinDrawMes(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -836,6 +884,11 @@ static void HuWinDrawMes(s16 window)
     }
 }
 
+/**
+ * @brief Advances the message cursor to a new line, scrolling existing glyphs when necessary.
+ * @param window Window state being queried or updated.
+ * @return 1 when scrolling is required to make room for the new line; otherwise 0.
+ */
 static s32 HuWinCR(WindowData *window)
 {
     if (window->mess_y + 48 > window->mess_rect_h) {
@@ -850,6 +903,10 @@ static s32 HuWinCR(WindowData *window)
     }
 }
 
+/**
+ * @brief Clears rendered characters and resets message cursor, choice, and stack state.
+ * @param window Window state being queried or updated.
+ */
 static void _HuWinHomeClear(WindowData *window)
 {
     s16 i;
@@ -864,6 +921,10 @@ static void _HuWinHomeClear(WindowData *window)
     }
 }
 
+/**
+ * @brief Resets one window to an empty home position.
+ * @param window Window slot index.
+ */
 void HuWinHomeClear(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -871,6 +932,10 @@ void HuWinHomeClear(s16 window)
     _HuWinHomeClear(window_ptr);
 }
 
+/**
+ * @brief Marks a window as waiting for advance-button input.
+ * @param window Window slot index.
+ */
 void HuWinKeyWaitEntry(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -884,6 +949,10 @@ void HuWinKeyWaitEntry(s16 window)
     }
 }
 
+/**
+ * @brief Waits until an active player supplies an accepted advance button.
+ * @param window Window slot index.
+ */
 static void HuWinKeyWait(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -900,6 +969,14 @@ static void HuWinKeyWait(s16 window)
     }
 }
 
+/**
+ * @brief Adds a special-font icon sprite at a message-relative position.
+ * @param window Window state being queried or updated.
+ * @param entry Special-font table entry or insertion slot index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ * @return Window sprite-entry index used by the new icon, or -1 when full.
+ */
 static s16 HuWinSpcFontEntry(WindowData *window, s16 entry, s16 x, s16 y)
 {
     HUSPRGRP *group = &HuSprGrpData[window->group];
@@ -919,6 +996,13 @@ static s16 HuWinSpcFontEntry(WindowData *window, s16 entry, s16 x, s16 y)
     return i;
 }
 
+/**
+ * @brief Moves one special-font icon relative to the current message cursor.
+ * @param window Window state being queried or updated.
+ * @param index Window-owned sprite, palette, special-font, or insertion slot index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ */
 static void HuWinSpcFontPosSet(WindowData *window, s16 index, s16 x, s16 y)
 {
     HUSPRGRP *group = &HuSprGrpData[window->group];
@@ -926,6 +1010,10 @@ static void HuWinSpcFontPosSet(WindowData *window, s16 index, s16 x, s16 y)
     HuSprPosSet(window->group, index, x - window->w / 2, y - window->h / 2);
 }
 
+/**
+ * @brief Removes all special-font icon sprites from a window.
+ * @param window Window state being queried or updated.
+ */
 static void HuWinSpcFontClear(WindowData *window)
 {
     s16 i;
@@ -938,6 +1026,10 @@ static void HuWinSpcFontClear(WindowData *window)
     }
 }
 
+/**
+ * @brief Runs cursor movement and confirmation for the choices parsed from a message.
+ * @param window Window state being queried or updated.
+ */
 static void HuWinChoice(WindowData *window)
 {
     WinChoice *choice;
@@ -1127,6 +1219,11 @@ static void HuWinChoice(WindowData *window)
         window->choice_data[choice_next].y + spcFontTbl[20].center_y);
 }
 
+/**
+ * @brief Builds the controller-port mask currently allowed to advance a window.
+ * @param window Window state being queried or updated.
+ * @return Bitmask of controller ports allowed to advance the window.
+ */
 u32 HuWinActivePadGet(WindowData *window)
 {
     s32 win_key;
@@ -1141,6 +1238,11 @@ u32 HuWinActivePadGet(WindowData *window)
     return win_key;
 }
 
+/**
+ * @brief Returns accepted pressed or repeated buttons from the window active-player mask.
+ * @param window Window state being queried or updated.
+ * @return Accepted pressed or repeated controller-button mask.
+ */
 u32 HuWinActiveKeyGetX(WindowData *window)
 {
     u32 button;
@@ -1165,6 +1267,12 @@ u32 HuWinActiveKeyGetX(WindowData *window)
     return button;
 }
 
+/**
+ * @brief Sets a window group screen position.
+ * @param window Window slot index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ */
 void HuWinPosSet(s16 window, float x, float y)
 {
     WindowData *window_ptr = &winData[window];
@@ -1174,6 +1282,12 @@ void HuWinPosSet(s16 window, float x, float y)
     HuSprGrpPosSet(window_ptr->group, x, y);
 }
 
+/**
+ * @brief Sets a window group scale.
+ * @param window Window slot index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ */
 void HuWinScaleSet(s16 window, float x, float y)
 {
     WindowData *window_ptr = &winData[window];
@@ -1183,6 +1297,11 @@ void HuWinScaleSet(s16 window, float x, float y)
     HuSprGrpScaleSet(window_ptr->group, x, y);
 }
 
+/**
+ * @brief Sets a window group Z rotation.
+ * @param window Window slot index.
+ * @param z_rot Z-axis rotation in degrees.
+ */
 void HuWinZRotSet(s16 window, float z_rot)
 {
     WindowData *window_ptr = &winData[window];
@@ -1191,6 +1310,12 @@ void HuWinZRotSet(s16 window, float z_rot)
     HuSprGrpZRotSet(window_ptr->group, z_rot);
 }
 
+/**
+ * @brief Sets a window group rotation and scale center.
+ * @param window Window slot index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ */
 void HuWinCenterPosSet(s16 window, float x, float y)
 {
     WindowData *window_ptr = &winData[window];
@@ -1198,6 +1323,11 @@ void HuWinCenterPosSet(s16 window, float x, float y)
     HuSprGrpCenterSet(window_ptr->group, window_ptr->w / 2.0f - x, window_ptr->h / 2.0f - y);
 }
 
+/**
+ * @brief Assigns a window group to a sprite draw pass.
+ * @param window Window slot index.
+ * @param draw_no Sprite draw-pass number.
+ */
 void HuWinDrawNoSet(s16 window, s16 draw_no)
 {
     WindowData *window_ptr = &winData[window];
@@ -1205,6 +1335,14 @@ void HuWinDrawNoSet(s16 window, s16 draw_no)
     HuSprGrpDrawNoSet(window_ptr->group, draw_no);
 }
 
+/**
+ * @brief Sets a window scissor rectangle and applies it to the group.
+ * @param window Window slot index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ * @param w Scissor rectangle or window width in pixels.
+ * @param h Scissor rectangle or window height in pixels.
+ */
 void HuWinScissorSet(s16 window, s16 x, s16 y, s16 w, s16 h)
 {
     WindowData *window_ptr = &winData[window];
@@ -1212,6 +1350,11 @@ void HuWinScissorSet(s16 window, s16 x, s16 y, s16 w, s16 h)
     HuSprGrpScissorSet(window_ptr->group, x, y, w, h);
 }
 
+/**
+ * @brief Sets the base priority used by a window and its sprites.
+ * @param window Window slot index.
+ * @param prio Lower numeric sprite draw priority.
+ */
 void HuWinPriSet(s16 window, s16 prio)
 {
     WindowData *window_ptr = &winData[window];
@@ -1227,6 +1370,11 @@ void HuWinPriSet(s16 window, s16 prio)
     window_ptr->prio = prio;
 }
 
+/**
+ * @brief Sets window behavior attribute bits.
+ * @param window Window slot index.
+ * @param attr HUSPR attribute bitmask.
+ */
 void HuWinAttrSet(s16 window, u32 attr)
 {
     WindowData *window_ptr = &winData[window];
@@ -1234,6 +1382,11 @@ void HuWinAttrSet(s16 window, u32 attr)
     window_ptr->attr |= attr;
 }
 
+/**
+ * @brief Clears window behavior attribute bits.
+ * @param window Window slot index.
+ * @param attr HUSPR attribute bitmask.
+ */
 void HuWinAttrReset(s16 window, u32 attr)
 {
     WindowData *window_ptr = &winData[window];
@@ -1241,6 +1394,11 @@ void HuWinAttrReset(s16 window, u32 attr)
     window_ptr->attr &= ~attr;
 }
 
+/**
+ * @brief Reads a window status byte.
+ * @param window Window slot index.
+ * @return Current window status byte.
+ */
 s16 HuWinStatGet(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -1248,6 +1406,11 @@ s16 HuWinStatGet(s16 window)
     return window_ptr->stat;
 }
 
+/**
+ * @brief Selects the palette index for subsequently emitted message glyphs.
+ * @param window Window slot index.
+ * @param color Message-palette index used for subsequently emitted glyphs.
+ */
 void HuWinMesColSet(s16 window, u8 color)
 {
     WindowData *window_ptr = &winData[window];
@@ -1256,6 +1419,14 @@ void HuWinMesColSet(s16 window, u8 color)
     window_ptr->attr |= 0x80;
 }
 
+/**
+ * @brief Replaces one RGB entry in a window message palette.
+ * @param window Window slot index.
+ * @param index Window-owned sprite, palette, special-font, or insertion slot index.
+ * @param r Red channel from 0 through 255.
+ * @param g Green channel from 0 through 255.
+ * @param b Blue channel from 0 through 255.
+ */
 void HuWinMesPalSet(s16 window, u8 index, u8 r, u8 g, u8 b)
 {
     WindowData *window_ptr = &winData[window];
@@ -1265,6 +1436,11 @@ void HuWinMesPalSet(s16 window, u8 index, u8 r, u8 g, u8 b)
     window_ptr->mess_pal[index][2] = b;
 }
 
+/**
+ * @brief Sets the opacity of the nine background sprites.
+ * @param window Window slot index.
+ * @param tp_level Background opacity level, clamped by the sprite manager to 0.0 through 1.0.
+ */
 void HuWinBGTPLvlSet(s16 window, float tp_level)
 {
     WindowData *window_ptr = &winData[window];
@@ -1272,6 +1448,11 @@ void HuWinBGTPLvlSet(s16 window, float tp_level)
     HuSprTPLvlSet(window_ptr->group, 0, tp_level);
 }
 
+/**
+ * @brief Sets the RGB modulation color of the nine background sprites.
+ * @param window Window slot index.
+ * @param bg_color RGB modulation color applied to the window background.
+ */
 void HuWinBGColSet(s16 window, GXColor *bg_color)
 {
     WindowData *window_ptr = &winData[window];
@@ -1279,6 +1460,11 @@ void HuWinBGColSet(s16 window, GXColor *bg_color)
     HuSprColorSet(window_ptr->group, 0, bg_color->r, bg_color->g, bg_color->b);
 }
 
+/**
+ * @brief Sets the number of update ticks between printed glyphs.
+ * @param window Window slot index.
+ * @param speed Animation frames advanced per sprite update.
+ */
 void HuWinMesSpeedSet(s16 window, s16 speed)
 {
     WindowData *window_ptr = &winData[window];
@@ -1286,6 +1472,10 @@ void HuWinMesSpeedSet(s16 window, s16 speed)
     window_ptr->speed = speed;
 }
 
+/**
+ * @brief Loads one regional message-data archive into the message heap.
+ * @param mess_data_no Regional message-data archive index.
+ */
 void HuWinMesRead(s32 mess_data_no)
 {
     void *dvd_mess;
@@ -1311,6 +1501,11 @@ void HuWinMesRead(s32 mess_data_no)
     HuMemDirectFree(dvd_mess);
 }
 
+/**
+ * @brief Clears a window and starts displaying a message ID or direct message pointer.
+ * @param window Window slot index.
+ * @param mess Message ID or direct message pointer encoded with MAKE_MESSID_PTR.
+ */
 void HuWinMesSet(s16 window, u32 mess)
 {
     WindowData *window_ptr = &winData[window];
@@ -1341,6 +1536,12 @@ void HuWinMesSet(s16 window, u32 mess)
     }
 }
 
+/**
+ * @brief Assigns a message ID or direct pointer to one insertion slot.
+ * @param window Window slot index.
+ * @param mess Message ID or direct message pointer encoded with MAKE_MESSID_PTR.
+ * @param index Window-owned sprite, palette, special-font, or insertion slot index.
+ */
 void HuWinInsertMesSet(s16 window, u32 mess, s16 index)
 {
     WindowData *window_ptr = &winData[window];
@@ -1360,6 +1561,12 @@ void HuWinInsertMesSet(s16 window, u32 mess, s16 index)
     }
 }
 
+/**
+ * @brief Displays choices and blocks until one is selected.
+ * @param window Window slot index.
+ * @param start_choice Initial zero-based choice selection.
+ * @return Confirmed zero-based choice index.
+ */
 s16 HuWinChoiceGet(s16 window, s16 start_choice)
 {
     WindowData *window_ptr = &winData[window];
@@ -1392,6 +1599,11 @@ s16 HuWinChoiceGet(s16 window, s16 start_choice)
     return window_ptr->choice;
 }
 
+/**
+ * @brief Reads the number of choices parsed for a window.
+ * @param window Window slot index.
+ * @return Number of choices parsed from the current message.
+ */
 s16 HuWinChoiceNumGet(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -1399,6 +1611,11 @@ s16 HuWinChoiceNumGet(s16 window)
     return window_ptr->num_choices;
 }
 
+/**
+ * @brief Marks one parsed choice unavailable for cursor selection.
+ * @param window Window slot index.
+ * @param choice Zero-based parsed choice index.
+ */
 void HuWinChoiceDisable(s16 window, s16 choice)
 {
     WindowData *window_ptr = &winData[window];
@@ -1406,6 +1623,11 @@ void HuWinChoiceDisable(s16 window, s16 choice)
     window_ptr->choice_disable[choice] = 1;
 }
 
+/**
+ * @brief Reads the currently highlighted choice.
+ * @param window Window slot index.
+ * @return Currently highlighted zero-based choice index.
+ */
 s16 HuWinChoiceNowGet(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -1418,6 +1640,10 @@ s16 HuWinChoiceNowGet(s16 window)
     }
 }
 
+/**
+ * @brief Blocks until a window finishes printing or is killed.
+ * @param window Window slot index.
+ */
 void HuWinMesWait(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -1427,6 +1653,15 @@ void HuWinMesWait(s16 window)
     }
 }
 
+/**
+ * @brief Creates an animation sprite owned by a window.
+ * @param window Window slot index.
+ * @param anim Animation data referenced by the sprite.
+ * @param bank Animation bank index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ * @return Window sprite-entry index, or -1 when the window sprite table is full.
+ */
 s16 HuWinAnimSet(s16 window, ANIMDATA *anim, s16 bank, float x, float y)
 {
     WindowData *window_ptr = &winData[window];
@@ -1436,6 +1671,14 @@ s16 HuWinAnimSet(s16 window, ANIMDATA *anim, s16 bank, float x, float y)
     return HuWinSprSet(window, sprite, x, y);
 }
 
+/**
+ * @brief Adds an existing sprite slot to a window.
+ * @param window Window slot index.
+ * @param sprite Sprite slot index, or sprite state passed to a draw callback.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ * @return Window sprite-entry index, or -1 when the window sprite table is full.
+ */
 s16 HuWinSprSet(s16 window, s16 sprite, float x, float y)
 {
     WindowData *window_ptr = &winData[window];
@@ -1453,6 +1696,13 @@ s16 HuWinSprSet(s16 window, s16 sprite, float x, float y)
     return i;
 }
 
+/**
+ * @brief Moves one window-owned sprite.
+ * @param window Window slot index.
+ * @param index Window-owned sprite, palette, special-font, or insertion slot index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ */
 void HuWinSprPosSet(s16 window, s16 index, float x, float y)
 {
     WindowData *window_ptr = &winData[window];
@@ -1461,6 +1711,12 @@ void HuWinSprPosSet(s16 window, s16 index, float x, float y)
     HuSprPosSet(window_ptr->group, index, x - group->center.x, y - group->center.y);
 }
 
+/**
+ * @brief Sets one window-owned sprite priority relative to the window base priority.
+ * @param window Window slot index.
+ * @param index Window-owned sprite, palette, special-font, or insertion slot index.
+ * @param prio Lower numeric sprite draw priority.
+ */
 void HuWinSprPriSet(s16 window, s16 index, s16 prio)
 {
     WindowData *window_ptr = &winData[window];
@@ -1469,6 +1725,12 @@ void HuWinSprPriSet(s16 window, s16 index, s16 prio)
     HuSprPriSet(window_ptr->group, index, prio);
 }
 
+/**
+ * @brief Reads the sprite slot stored in one window sprite entry.
+ * @param window Window slot index.
+ * @param index Window-owned sprite, palette, special-font, or insertion slot index.
+ * @return Underlying sprite slot index stored at the requested entry.
+ */
 s16 HuWinSprIDGet(s16 window, s16 index)
 {
     WindowData *window_ptr = &winData[window];
@@ -1476,6 +1738,11 @@ s16 HuWinSprIDGet(s16 window, s16 index)
     return window_ptr->sprite_id[index];
 }
 
+/**
+ * @brief Destroys and clears one window-owned sprite entry.
+ * @param window Window slot index.
+ * @param index Window-owned sprite, palette, special-font, or insertion slot index.
+ */
 void HuWinSprKill(s16 window, s16 index)
 {
     WindowData *window_ptr = &winData[window];
@@ -1484,6 +1751,10 @@ void HuWinSprKill(s16 window, s16 index)
     window_ptr->sprite_id[index] = -1;
 }
 
+/**
+ * @brief Hides a window group and suspends message processing.
+ * @param window Window slot index.
+ */
 void HuWinDispOff(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -1497,6 +1768,10 @@ void HuWinDispOff(s16 window)
     window_ptr->attr |= 8;
 }
 
+/**
+ * @brief Shows a window group and resumes message processing.
+ * @param window Window slot index.
+ */
 void HuWinDispOn(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -1510,6 +1785,14 @@ void HuWinDispOn(s16 window)
     window_ptr->attr = window_ptr->attr & ~8;
 }
 
+/**
+ * @brief Queues simulated button presses for four players after a frame delay.
+ * @param player_1 Simulated button mask for player 1.
+ * @param player_2 Simulated button mask for player 2.
+ * @param player_3 Simulated button mask for player 3.
+ * @param player_4 Simulated button mask for player 4.
+ * @param delay Retraces before simulated input becomes available.
+ */
 void HuWinComKeyWait(s32 player_1, s32 player_2, s32 player_3, s32 player_4, s16 delay)
 {
     s32 wait_input_p4;
@@ -1545,11 +1828,26 @@ void HuWinComKeyWait(s32 player_1, s32 player_2, s32 player_3, s32 player_4, s16
     _HuWinComKeySet(player_1, player_2, player_3, player_4, 1);
 }
 
+/**
+ * @brief Queues immediate simulated button presses for four players.
+ * @param player_1 Simulated button mask for player 1.
+ * @param player_2 Simulated button mask for player 2.
+ * @param player_3 Simulated button mask for player 3.
+ * @param player_4 Simulated button mask for player 4.
+ */
 void HuWinComKeySet(s32 player_1, s32 player_2, s32 player_3, s32 player_4)
 {
     _HuWinComKeySet(player_1, player_2, player_3, player_4, 1);
 }
 
+/**
+ * @brief Stores per-player simulated button masks and a countdown delay.
+ * @param player_1 Simulated button mask for player 1.
+ * @param player_2 Simulated button mask for player 2.
+ * @param player_3 Simulated button mask for player 3.
+ * @param player_4 Simulated button mask for player 4.
+ * @param delay Retraces before simulated input becomes available.
+ */
 void _HuWinComKeySet(s32 player_1, s32 player_2, s32 player_3, s32 player_4, s16 delay)
 {
     winComKeyBuf[comKeyIdx].player[0] = player_1;
@@ -1561,6 +1859,11 @@ void _HuWinComKeySet(s32 player_1, s32 player_2, s32 player_3, s32 player_4, s16
     comKeyIdx &= 0xFF;
 }
 
+/**
+ * @brief Combines due simulated input for the players active in a window.
+ * @param window Window slot index.
+ * @param data Serialized animation data; ownership is retained through the animation use count.
+ */
 void HuWinComKeyGet(s16 window, u32 *data)
 {
     WindowData *window_ptr = &winData[window];
@@ -1596,11 +1899,19 @@ void HuWinComKeyGet(s16 window, u32 *data)
     }
 }
 
+/**
+ * @brief Clears simulated button masks and delay state.
+ */
 void HuWinComKeyReset(void)
 {
     comKeyIdx = comKeyIdxNow = 0;
 }
 
+/**
+ * @brief Measures the maximum width and height needed by a variadic list of messages.
+ * @param mess_num Number of variadic message IDs to measure.
+ * @param size Two-float destination receiving maximum width and height in pixels.
+ */
 void HuWinMesMaxSizeGet(s16 mess_num, float *size, ...)
 {
     s16 i;
@@ -1624,6 +1935,11 @@ void HuWinMesMaxSizeGet(s16 mess_num, float *size, ...)
     va_end(list);
 }
 
+/**
+ * @brief Registers an insertion message used by subsequent size measurement.
+ * @param mess Message ID or direct message pointer encoded with MAKE_MESSID_PTR.
+ * @param index Window-owned sprite, palette, special-font, or insertion slot index.
+ */
 void HuWinInsertMesSizeGet(u32 mess, s16 index)
 {
     winInsertF = 1;
@@ -1632,11 +1948,21 @@ void HuWinInsertMesSizeGet(u32 mess, s16 index)
     mesWInsert[index] = winMaxWidth;
 }
 
+/**
+ * @brief Controls whether line breaks terminate message-size measurement.
+ * @param cancel_cr Nonzero to continue size measurement across line-break control codes.
+ */
 void HuWinMesSizeCancelCRSet(s32 cancel_cr)
 {
     cancelCRF = cancel_cr;
 }
 
+/**
+ * @brief Measures the largest message in an inclusive ID range.
+ * @param size Two-float destination receiving maximum width and height in pixels.
+ * @param start First message ID in the inclusive measurement range.
+ * @param end Last message ID in the inclusive measurement range.
+ */
 void HuWinMesMaxSizeBetGet(float *size, u32 start, u32 end)
 {
     u32 i;
@@ -1660,6 +1986,10 @@ void HuWinMesMaxSizeBetGet(float *size, u32 start, u32 end)
     }
 }
 
+/**
+ * @brief Parses one message and accumulates global maximum line width and height.
+ * @param mess Message ID or direct message pointer encoded with MAKE_MESSID_PTR.
+ */
 static void GetMesMaxSizeSub(u32 mess)
 {
     s16 line_h;
@@ -1767,9 +2097,15 @@ static void GetMesMaxSizeSub(u32 mess)
     }
 }
 
+/**
+ * @brief Measures the first printable line of message data with window-specific formatting.
+ * @param window Window state being queried or updated.
+ * @param mess_data Pointer to encoded message bytes.
+ * @return Width in pixels of the measured printable line.
+ */
 static s32 GetMesMaxSizeSub2(WindowData *window, u8 *mess_data)
 {
-    s32 sp8;
+    s32 current_line_width;
     u8 mess_finish;
     s16 mess_h;
     s16 char_w;
@@ -1778,7 +2114,7 @@ static s32 GetMesMaxSizeSub2(WindowData *window, u8 *mess_data)
     s16 char_h;
     u8 *mess;
 
-    sp8 = 0;
+    current_line_width = 0;
     mess_end = 0;
     mess = mess_data;
     mess_h = 0x1A;
@@ -1841,6 +2177,11 @@ static s32 GetMesMaxSizeSub2(WindowData *window, u8 *mess_data)
     return mess_w;
 }
 
+/**
+ * @brief Counts advance-button wait markers in a message.
+ * @param mess Message ID or direct message pointer encoded with MAKE_MESSID_PTR.
+ * @return Number of advance-button wait control codes in the message.
+ */
 s16 HuWinKeyWaitNumGet(u32 mess)
 {
     s16 wait_num;
@@ -1860,6 +2201,11 @@ s16 HuWinKeyWaitNumGet(u32 mess)
     return wait_num;
 }
 
+/**
+ * @brief Sets the button mask accepted for message advancement.
+ * @param window Window slot index.
+ * @param push_key Button mask accepted for advancing the message.
+ */
 void HuWinPushKeySet(s16 window, s16 push_key)
 {
     WindowData *window_ptr = &winData[window];
@@ -1867,6 +2213,11 @@ void HuWinPushKeySet(s16 window, s16 push_key)
     window_ptr->push_key = push_key;
 }
 
+/**
+ * @brief Prevents one player index from advancing a window.
+ * @param window Window slot index.
+ * @param player Player index from 0 through 3.
+ */
 void HuWinDisablePlayerSet(s16 window, u8 player)
 {
     WindowData *window_ptr = &winData[window];
@@ -1874,6 +2225,11 @@ void HuWinDisablePlayerSet(s16 window, u8 player)
     window_ptr->player_disable |= player;
 }
 
+/**
+ * @brief Allows one player index to advance a window again.
+ * @param window Window slot index.
+ * @param player Player index from 0 through 3.
+ */
 void HuWinDisablePlayerReset(s16 window, u8 player)
 {
     WindowData *window_ptr = &winData[window];
@@ -1886,11 +2242,27 @@ static s32 winPortraitTbl[]
           WIN_KOOPA_TALK_ANM, WIN_CONDOR_TALK_ANM, WIN_BOO_BLUE_TALK_ANM, WIN_DOLPHIN_TALK_ANM, WIN_BOO_RED_TALK_ANM, WIN_THWOMP_TALK_ANM,
           WIN_W01_HOST_TALK_ANM, WIN_W02_HOST_TALK_ANM, WIN_W03_HOST_TALK_ANM, WIN_W04_HOST_TALK_ANM, WIN_W05_HOST_TALK_ANM, WIN_W06_HOST_TALK_ANM };
 
+/**
+ * @brief Creates a framed dialogue window with an optional portrait.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ * @param w Scissor rectangle or window width in pixels.
+ * @param h Scissor rectangle or window height in pixels.
+ * @param portrait Portrait index; negative values request no portrait.
+ * @return Allocated dialogue-window index, or -1 when allocation fails.
+ */
 s16 HuWinExCreate(float x, float y, s16 w, s16 h, s16 portrait)
 {
     return HuWinExCreateStyled(x, y, w, h, portrait, 0);
 }
 
+/**
+ * @brief Creates and positions the portrait and portrait-frame sprites for a dialogue window.
+ * @param window Window slot index.
+ * @param portrait Portrait index; negative values request no portrait.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ */
 static void HuWinExCreatePortrait(s16 window, s16 portrait, float x, float y)
 {
     s16 sprite;
@@ -1905,6 +2277,16 @@ static void HuWinExCreatePortrait(s16 window, s16 portrait, float x, float y)
     HuWinSprSet(window, sprite, x, y);
 }
 
+/**
+ * @brief Creates a dialogue window with explicit frame style and optional portrait.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ * @param w Scissor rectangle or window width in pixels.
+ * @param h Scissor rectangle or window height in pixels.
+ * @param portrait Portrait index; negative values request no portrait.
+ * @param frame Window-frame style index or frame animation data.
+ * @return Allocated dialogue-window index, or -1 when allocation fails.
+ */
 s16 HuWinExCreateStyled(float x, float y, s16 w, s16 h, s16 portrait, s16 frame)
 {
     WindowData *window_ptr;
@@ -1925,6 +2307,10 @@ s16 HuWinExCreateStyled(float x, float y, s16 w, s16 h, s16 portrait, s16 frame)
     return window;
 }
 
+/**
+ * @brief Animates a dialogue window from zero scale to full size.
+ * @param window Window slot index.
+ */
 void HuWinExAnimIn(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -1961,6 +2347,10 @@ void HuWinExAnimIn(s16 window)
     }
 }
 
+/**
+ * @brief Animates a dialogue window from full size to zero scale.
+ * @param window Window slot index.
+ */
 void HuWinExAnimOut(s16 window)
 {
     WindowData *window_ptr = &winData[window];
@@ -1989,11 +2379,20 @@ void HuWinExAnimOut(s16 window)
     }
 }
 
+/**
+ * @brief Destroys a dialogue window after removing its portrait sprites.
+ * @param window Window slot index.
+ */
 void HuWinExCleanup(s16 window)
 {
     HuWinKill(window);
 }
 
+/**
+ * @brief Animates a dialogue window in with a brief overshoot and optional portrait motion.
+ * @param window Window slot index.
+ * @param portrait Portrait index; negative values request no portrait.
+ */
 void HuWinExAnimPopIn(s16 window, s16 portrait)
 {
     WindowData *window_ptr = &winData[window];

@@ -31,6 +31,9 @@ static BOOL HuSprPauseF;
 static void HuSprOrderEntry(s16 group, s16 sprite);
 
 
+/**
+ * @brief Clears sprite groups, sprite slots, animation ownership, and draw-order state.
+ */
 void HuSprInit(void)
 {
     s16 i;
@@ -48,6 +51,9 @@ void HuSprInit(void)
     HuSprPauseF = FALSE;
 }
 
+/**
+ * @brief Destroys every active sprite group and sprite.
+ */
 void HuSprClose(void)
 {
     s16 i;
@@ -67,6 +73,10 @@ void HuSprClose(void)
     HuSprPauseF = FALSE;
 }
 
+/**
+ * @brief Iterates the prepared draw-order list and renders visible sprites assigned to one pass.
+ * @param draw_no Sprite draw-pass number.
+ */
 void HuSprExec(s16 draw_no)
 {
     HUSPRITE *sprite;
@@ -77,6 +87,9 @@ void HuSprExec(s16 draw_no)
     }
 }
 
+/**
+ * @brief Rebuilds group transforms and the priority-sorted draw-order list for the next sprite pass.
+ */
 void HuSprBegin(void)
 {
     Mtx temp, rot;
@@ -105,6 +118,11 @@ void HuSprBegin(void)
     HuSprOrderNo = 0;
 }
 
+/**
+ * @brief Inserts a group member into the priority-sorted sprite draw table.
+ * @param group Sprite group index.
+ * @param sprite Sprite slot index to enter in the draw-order table.
+ */
 static void HuSprOrderEntry(s16 group, s16 sprite)
 {
     SpriteOrder *order = &HuSprOrder[HuSprOrderNum];
@@ -128,6 +146,10 @@ static void HuSprOrderEntry(s16 group, s16 sprite)
     HuSprOrderNum++;
 }
 
+/**
+ * @brief Advances to the next entry in the prepared sprite draw-order list.
+ * @return Sprite state for the next ordered entry, or NULL at the end of the list.
+ */
 HUSPRITE *HuSprCall(void)
 {
     HuSprOrderNo = HuSprOrder[HuSprOrderNo].next;
@@ -146,6 +168,13 @@ HUSPRITE *HuSprCall(void)
     }
 }
 
+/**
+ * @brief Advances an animation bank and resolves its current bitmap frame, including loop handling.
+ * @param sprite Sprite state whose animation time and frame pointer are updated.
+ * @param bank Animation bank index.
+ * @param frame Receives the selected animation-frame pointer.
+ * @param loop Nonzero to wrap the bank time when it passes the final frame.
+ */
 static inline void SpriteCalcFrame(HUSPRITE *sprite, ANIMBANK *bank, ANIMFRAME **frame, s16 loop)
 {
     if(sprite->time >= (*frame)->time) {
@@ -173,6 +202,9 @@ static inline void SpriteCalcFrame(HUSPRITE *sprite, ANIMBANK *bank, ANIMFRAME *
     }
 }
 
+/**
+ * @brief Advances animation time and frame selection for all eligible sprites after drawing.
+ */
 void HuSprFinish(void)
 {
     ANIMDATA *anim;
@@ -206,11 +238,20 @@ void HuSprFinish(void)
     }
 }
 
+/**
+ * @brief Enables or disables global sprite animation advancement.
+ * @param value New global pause setting.
+ */
 void HuSprPauseSet(BOOL value)
 {
     HuSprPauseF = value;
 }
 
+/**
+ * @brief Relocates serialized animation offsets and registers one owner reference.
+ * @param data Serialized animation data; ownership is retained through the animation use count.
+ * @return Relocated animation-data pointer.
+ */
 ANIMDATA *HuSprAnimRead(void *data)
 {
     s16 i;
@@ -243,11 +284,22 @@ ANIMDATA *HuSprAnimRead(void *data)
     return anim;
 }
 
+/**
+ * @brief Marks animation data as permanently retained by setting its use count to -1.
+ * @param anim Animation data referenced by the sprite.
+ */
 void HuSprAnimLock(ANIMDATA *anim)
 {
     anim->useNum++;
 }
 
+/**
+ * @brief Creates a bitmap sprite from animation data, priority, and initial bank.
+ * @param anim Animation data referenced by the sprite.
+ * @param prio Lower numeric sprite draw priority.
+ * @param bank Animation bank index.
+ * @return Allocated sprite index, or -1 when no slot is available.
+ */
 s16 HuSprCreate(ANIMDATA *anim, s16 prio, s16 bank)
 {
     HUSPRITE *sprite;
@@ -283,6 +335,12 @@ s16 HuSprCreate(ANIMDATA *anim, s16 prio, s16 bank)
     return i;
 }
 
+/**
+ * @brief Creates a sprite whose draw operation is supplied by a callback.
+ * @param func Custom sprite drawing callback.
+ * @param prio Lower numeric sprite draw priority.
+ * @return Allocated callback-sprite index, or -1 when no slot is available.
+ */
 s16 HuSprFuncCreate(HUSPRFUNC func, s16 prio)
 {
     HUSPRITE *sprite;
@@ -296,6 +354,11 @@ s16 HuSprFuncCreate(HUSPRFUNC func, s16 prio)
     return index;
 }
 
+/**
+ * @brief Allocates a sprite group with storage for a fixed number of members.
+ * @param capacity Number of member slots to allocate.
+ * @return Allocated group index, or -1 when no group is available.
+ */
 s16 HuSprGrpCreate(s16 capacity)
 {
     HUSPRGRP *group;
@@ -318,6 +381,11 @@ s16 HuSprGrpCreate(s16 capacity)
     return i;
 }
 
+/**
+ * @brief Creates a group with copied transform and member references from an existing group.
+ * @param group Sprite group index.
+ * @return Allocated group index, or -1 when the source is invalid or allocation fails.
+ */
 s16 HuSprGrpCopy(s16 group)
 {
     HUSPRGRP *new_group_ptr;
@@ -346,6 +414,12 @@ s16 HuSprGrpCopy(s16 group)
     return new_group;
 }
 
+/**
+ * @brief Places a sprite in a group member slot and links it to the group transform.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param sprite Sprite slot index assigned to the member.
+ */
 void HuSprGrpMemberSet(s16 group, s16 member, s16 sprite)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -356,6 +430,11 @@ void HuSprGrpMemberSet(s16 group, s16 member, s16 sprite)
     group_ptr->members[member] = sprite;
 }
 
+/**
+ * @brief Destroys the sprite occupying one group member slot.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ */
 void HuSprGrpMemberKill(s16 group, s16 member)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -366,6 +445,10 @@ void HuSprGrpMemberKill(s16 group, s16 member)
     group_ptr->members[member] = HUSPR_NONE;
 }
 
+/**
+ * @brief Destroys every sprite member and releases the group.
+ * @param group Sprite group index.
+ */
 void HuSprGrpKill(s16 group)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -379,6 +462,10 @@ void HuSprGrpKill(s16 group)
     HuMemDirectFree(group_ptr->members);
 }
 
+/**
+ * @brief Releases one sprite slot and its animation/background references.
+ * @param sprite Sprite slot index to release.
+ */
 void HuSprKill(s16 sprite)
 {
     HUSPRITE *sprite_ptr = &HuSprData[sprite];
@@ -395,6 +482,10 @@ void HuSprKill(s16 sprite)
     sprite_ptr->data = NULL;
 }
 
+/**
+ * @brief Drops one animation reference and frees unlocked data when its use count reaches zero.
+ * @param anim Animation data referenced by the sprite.
+ */
 void HuSprAnimKill(ANIMDATA *anim)
 {
     if(--anim->useNum <= 0) {
@@ -410,6 +501,12 @@ void HuSprAnimKill(ANIMDATA *anim)
     }
 }
 
+/**
+ * @brief Sets attribute bits on one grouped sprite.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param attr HUSPR attribute bitmask.
+ */
 void HuSprAttrSet(s16 group, s16 member, s32 attr)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -422,6 +519,12 @@ void HuSprAttrSet(s16 group, s16 member, s32 attr)
     sprite_ptr->dirty |= SPRITE_DIRTY_ATTR;
 }
 
+/**
+ * @brief Clears attribute bits on one grouped sprite.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param attr HUSPR attribute bitmask.
+ */
 void HuSprAttrReset(s16 group, s16 member, s32 attr)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -434,6 +537,13 @@ void HuSprAttrReset(s16 group, s16 member, s32 attr)
     sprite_ptr->dirty |= SPRITE_DIRTY_ATTR;
 }
 
+/**
+ * @brief Sets a grouped sprite position in pixels relative to its group.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ */
 void HuSprPosSet(s16 group, s16 member, float x, float y)
 {
     HUSPRITE *sprite_ptr = &HuSprData[HuSprGrpData[group].members[member]];
@@ -442,6 +552,12 @@ void HuSprPosSet(s16 group, s16 member, float x, float y)
     sprite_ptr->dirty |= SPRITE_DIRTY_XFORM;
 }
 
+/**
+ * @brief Sets a grouped sprite Z rotation in degrees.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param z_rot Z-axis rotation in degrees.
+ */
 void HuSprZRotSet(s16 group, s16 member, float z_rot)
 {
     HUSPRITE *sprite_ptr = &HuSprData[HuSprGrpData[group].members[member]];
@@ -449,6 +565,13 @@ void HuSprZRotSet(s16 group, s16 member, float z_rot)
     sprite_ptr->dirty |= SPRITE_DIRTY_XFORM;
 }
 
+/**
+ * @brief Sets a grouped sprite horizontal and vertical scale.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ */
 void HuSprScaleSet(s16 group, s16 member, float x, float y)
 {
     HUSPRITE *sprite_ptr = &HuSprData[HuSprGrpData[group].members[member]];
@@ -457,6 +580,12 @@ void HuSprScaleSet(s16 group, s16 member, float x, float y)
     sprite_ptr->dirty |= SPRITE_DIRTY_XFORM;
 }
 
+/**
+ * @brief Sets a grouped sprite opacity after clamping the level to 0.0 through 1.0.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param tp_lvl Opacity level, clamped to 0.0 through 1.0.
+ */
 void HuSprTPLvlSet(s16 group, s16 member, float tp_lvl)
 {
     HUSPRITE *sprite_ptr = &HuSprData[HuSprGrpData[group].members[member]];
@@ -464,6 +593,14 @@ void HuSprTPLvlSet(s16 group, s16 member, float tp_lvl)
     sprite_ptr->dirty |= SPRITE_DIRTY_COLOR;
 }
 
+/**
+ * @brief Sets a grouped sprite RGB modulation color.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param r Red channel from 0 through 255.
+ * @param g Green channel from 0 through 255.
+ * @param b Blue channel from 0 through 255.
+ */
 void HuSprColorSet(s16 group, s16 member, u8 r, u8 g, u8 b)
 {
     HUSPRITE *sprite_ptr = &HuSprData[HuSprGrpData[group].members[member]];
@@ -473,12 +610,24 @@ void HuSprColorSet(s16 group, s16 member, u8 r, u8 g, u8 b)
     sprite_ptr->dirty |= SPRITE_DIRTY_COLOR;
 }
 
+/**
+ * @brief Sets a grouped sprite animation rate in frames advanced per update.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param speed Animation frames advanced per sprite update.
+ */
 void HuSprSpeedSet(s16 group, s16 member, float speed)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
     HuSprData[group_ptr->members[member]].speed = speed;
 }
 
+/**
+ * @brief Selects a grouped sprite animation bank and resets its frame position.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param bank Animation bank index.
+ */
 void HuSprBankSet(s16 group, s16 member, s16 bank)
 {
     HUSPRITE *sprite_ptr = &HuSprData[HuSprGrpData[group].members[member]];
@@ -496,6 +645,12 @@ void HuSprBankSet(s16 group, s16 member, s16 bank)
     }
 }
 
+/**
+ * @brief Sets a group position in screen pixels.
+ * @param group Sprite group index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ */
 void HuSprGrpPosSet(s16 group, float x, float y)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -509,6 +664,12 @@ void HuSprGrpPosSet(s16 group, float x, float y)
     }
 }
 
+/**
+ * @brief Sets the rotation and scale center of a sprite group.
+ * @param group Sprite group index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ */
 void HuSprGrpCenterSet(s16 group, float x, float y)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -522,6 +683,11 @@ void HuSprGrpCenterSet(s16 group, float x, float y)
     }
 }
 
+/**
+ * @brief Sets a group Z rotation in degrees.
+ * @param group Sprite group index.
+ * @param z_rot Z-axis rotation in degrees.
+ */
 void HuSprGrpZRotSet(s16 group, float z_rot)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -534,6 +700,12 @@ void HuSprGrpZRotSet(s16 group, float z_rot)
     }
 }
 
+/**
+ * @brief Sets a group horizontal and vertical scale.
+ * @param group Sprite group index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ */
 void HuSprGrpScaleSet(s16 group, float x, float y)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -547,6 +719,11 @@ void HuSprGrpScaleSet(s16 group, float x, float y)
     }
 }
 
+/**
+ * @brief Applies an opacity level to every member of a group.
+ * @param group Sprite group index.
+ * @param tp_lvl Opacity level, clamped to 0.0 through 1.0.
+ */
 void HuSprGrpTPLvlSet(s16 group, float tp_lvl)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -559,6 +736,11 @@ void HuSprGrpTPLvlSet(s16 group, float tp_lvl)
     }
 }
 
+/**
+ * @brief Assigns every group member to a sprite draw pass.
+ * @param group Sprite group index.
+ * @param draw_no Sprite draw-pass number.
+ */
 void HuSprGrpDrawNoSet(s16 group, s32 draw_no)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -570,18 +752,38 @@ void HuSprGrpDrawNoSet(s16 group, s32 draw_no)
     }
 }
 
+/**
+ * @brief Assigns one grouped sprite to a sprite draw pass.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param draw_no Sprite draw-pass number.
+ */
 void HuSprDrawNoSet(s16 group, s16 member, s32 draw_no)
 {
     HUSPRITE *sprite_ptr = &HuSprData[HuSprGrpData[group].members[member]];
     sprite_ptr->drawNo = draw_no;
 }
 
+/**
+ * @brief Sets one grouped sprite priority.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param prio Lower numeric sprite draw priority.
+ */
 void HuSprPriSet(s16 group, s16 member, s16 prio)
 {
     HUSPRITE *sprite_ptr = &HuSprData[HuSprGrpData[group].members[member]];
     sprite_ptr->prio = prio;
 }
 
+/**
+ * @brief Sets the scissor rectangle for every member of a group.
+ * @param group Sprite group index.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ * @param w Scissor rectangle or window width in pixels.
+ * @param h Scissor rectangle or window height in pixels.
+ */
 void HuSprGrpScissorSet(s16 group, s16 x, s16 y, s16 w, s16 h)
 {
     HUSPRGRP *group_ptr = &HuSprGrpData[group];
@@ -593,6 +795,15 @@ void HuSprGrpScissorSet(s16 group, s16 x, s16 y, s16 w, s16 h)
     }
 }
 
+/**
+ * @brief Sets one grouped sprite scissor rectangle.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param x Horizontal position, center, or scale component.
+ * @param y Vertical position, center, or scale component.
+ * @param w Scissor rectangle or window width in pixels.
+ * @param h Scissor rectangle or window height in pixels.
+ */
 void HuSprScissorSet(s16 group, s16 member, s16 x, s16 y, s16 w, s16 h)
 {
     HUSPRITE *sprite_ptr = &HuSprData[HuSprGrpData[group].members[member]];
@@ -604,6 +815,13 @@ void HuSprScissorSet(s16 group, s16 member, s16 x, s16 y, s16 w, s16 h)
 
 static s16 bitSizeTbl[11] = { 32, 24, 16, 8, 4, 16, 8, 8, 4, 8, 4 };
 
+/**
+ * @brief Allocates a one-bank, one-frame animation and its pixel buffer.
+ * @param sizeX Pixel width of the allocated bitmap.
+ * @param sizeY Pixel height of the allocated bitmap.
+ * @param dataFmt GX texture format for the bitmap.
+ * @return New heap-allocated animation data, or NULL when allocation fails.
+ */
 ANIMDATA *HuSprAnimMake(s16 sizeX, s16 sizeY, s16 dataFmt)
 {
     ANIMLAYER *layer;
@@ -667,12 +885,25 @@ ANIMDATA *HuSprAnimMake(s16 sizeX, s16 sizeY, s16 dataFmt)
     return anim;
 }
 
+/**
+ * @brief Assigns background animation data and bank to a grouped sprite.
+ * @param group Sprite group index.
+ * @param member Member slot within the sprite group.
+ * @param bg Background animation data retained by the sprite.
+ * @param bg_bank Background animation bank index.
+ */
 void HuSprBGSet(s16 group, s16 member,  ANIMDATA *bg, s16 bg_bank)
 {
     s16 sprite = HuSprGrpData[group].members[member];
     HuSprSprBGSet(sprite, bg, bg_bank);
 }
 
+/**
+ * @brief Assigns background animation data and bank directly to a sprite slot.
+ * @param sprite Sprite slot index receiving the background animation.
+ * @param bg Background animation data retained by the sprite.
+ * @param bg_bank Background animation bank index.
+ */
 void HuSprSprBGSet(s16 sprite, ANIMDATA *bg, s16 bg_bank)
 {
     HUSPRITE *sprite_ptr = &HuSprData[sprite];
@@ -682,6 +913,10 @@ void HuSprSprBGSet(s16 sprite, ANIMDATA *bg, s16 bg_bank)
     sprite_ptr->attr &= ~HUSPR_ATTR_LINEAR;
 }
 
+/**
+ * @brief Prints animation banks, frames, bitmap metadata, and pattern-layer metadata.
+ * @param anim Animation data referenced by the sprite.
+ */
 void AnimDebug(ANIMDATA *anim)
 {
     ANIMPAT *pat;

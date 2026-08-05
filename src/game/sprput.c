@@ -15,6 +15,9 @@ void mtxTransCat(Mtx matrix, float x, float y, float z);
 
 static void HuSprLayerHook(short layer);
 
+/**
+ * @brief Initializes GX state shared by sprite drawing and creates display-list layer hooks.
+ */
 void HuSprDispInit(void)
 {
     Mtx44 proj;
@@ -41,6 +44,10 @@ void HuSprDispInit(void)
     GXSetZMode(GX_FALSE, GX_ALWAYS, GX_FALSE);
 }
 
+/**
+ * @brief Draws one sprite frame using its transform, color, texture, and background-texture state.
+ * @param sprite Fully resolved sprite state to draw; ownership remains with the sprite manager.
+ */
 void HuSprDisp(HUSPRITE *sprite)
 {
     short i;
@@ -182,6 +189,15 @@ void HuSprDisp(HUSPRITE *sprite)
     }
 }
 
+/**
+ * @brief Loads one animation bitmap into a GX texture unit and configures palette data when required.
+ * @param anim Animation data referenced by the sprite.
+ * @param bmp Bitmap index within the animation.
+ * @param slot GX texture-map slot.
+ * @param wrap_s Horizontal GX texture wrap mode.
+ * @param wrap_t Vertical GX texture wrap mode.
+ * @param filter GX texture minification and magnification filter.
+ */
 void HuSprTexLoad(ANIMDATA *anim, short bmp, short slot, GXTexWrapMode wrap_s, GXTexWrapMode wrap_t, GXTexFilter filter)
 {
     GXTexObj tex_obj;
@@ -242,12 +258,21 @@ void HuSprTexLoad(ANIMDATA *anim, short bmp, short slot, GXTexWrapMode wrap_s, G
     GXLoadTexObj(&tex_obj, slot);
 }
 
+/**
+ * @brief Associates a sprite draw pass with one engine display-list layer.
+ * @param draw_no Sprite draw-pass number.
+ * @param layer Engine display-list layer.
+ */
 void HuSprExecLayerSet(short draw_no, short layer)
 {
     HuSprLayerDrawNo[layer] = draw_no;
     Hu3DLayerHookSet(layer, HuSprLayerHook);
 }
 
+/**
+ * @brief Executes the sprite draw pass registered for a display-list layer.
+ * @param layer Engine display-list layer.
+ */
 static void HuSprLayerHook(short layer)
 {
     HuSprDispInit();
