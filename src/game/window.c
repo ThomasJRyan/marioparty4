@@ -1463,7 +1463,7 @@ void HuWinBGColSet(s16 window, GXColor *bg_color)
 /**
  * @brief Sets the number of update ticks between printed glyphs.
  * @param window Active winData slot from 0 through 31 whose message speed is read or updated.
- * @param speed Animation frames advanced per sprite update.
+ * @param speed Message-glyph delay threshold stored in winData[window].speed; zero disables the timed wait so text can be emitted immediately.
  */
 void HuWinMesSpeedSet(s16 window, s16 speed)
 {
