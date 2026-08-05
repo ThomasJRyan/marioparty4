@@ -412,7 +412,7 @@ static void PickComStealType(s32 player)
 static void OpenBooHouse(void)
 {
     s16 host_model;
-    s32 unused_value;
+    s32 open_boo_house_unused_temp_r5;
     s32 motion_index;
 
     ballMdl = BoardBooCreate(currPlayer, 0);
@@ -517,7 +517,7 @@ static void CreateBooHouseModel(void)
  */
 static void KillBooHouseModel(void)
 {
-    s32 unused_value;
+    s32 kill_boo_house_model_unused_temp_r4;
     s32 model_index;
 
     for (model_index = 1; model_index < 6; model_index++) {
@@ -715,8 +715,8 @@ void ApplySteal(void)
 {
     s16 stolen_value;
     s16 punch_reduction;
-    s32 unused_value0;
-    s32 unused_value1;
+    s32 apply_steal_unused_temp_r5;
+    s32 apply_steal_unused_var_r30;
     s32 steal_succeeded;
     float facing_angle;
 
@@ -940,7 +940,7 @@ void BoardBooHouseTutorialExec(void)
     s16 linked_space;
     s16 house_space;
     s32 data_read_id;
-    s32 unused_value;
+    s32 board_boo_house_tutorial_exec_unused_temp_r4;
     s32 model_index;
     s32 cleanup_model_index;
 

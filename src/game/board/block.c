@@ -106,11 +106,11 @@ static void BlockProc(void)
         DATA_MAKE_NUM(DATADIR_YOSHIMOT, 0x60), DATA_MAKE_NUM(DATADIR_WARIOMOT, 0x60), DATA_MAKE_NUM(DATADIR_DONKEYMOT, 0x60),
         DATA_MAKE_NUM(DATADIR_DAISYMOT, 0x60), DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 0x60) };
     Vec star_pos;
-    s32 unused_value;
+    s32 block_proc_unused_var_r28;
     s32 i;
     s32 player;
     BlockWork *work;
-    s32 *unused_motion_data;
+    s32 *block_proc_unused_temp_r4;
     s32 player_character;
 
     player = GWSystem.player_curr;
