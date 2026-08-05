@@ -72,7 +72,7 @@ typedef struct {
     };
     s8 angle;
     char padding[2];
-    float write_only_float;
+    float write_only_field;
 } UnkUiWork02;
 
 typedef struct {
@@ -1029,7 +1029,7 @@ static void ShrinkYourTurn(UnkUiWork02 *work, OMOBJ *object) {
     if ((HuPadBtnDown[port] & 0x100) || GWPlayer[work->player].com || _CheckFlag(FLAG_ID_MAKE(1, 11))) {
         work->state = 2;
         work->angle = 0;
-        work->write_only_float = 1.0f;
+        work->write_only_field = 1.0f;
     }
 }
 
