@@ -14,17 +14,17 @@
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 1;
-        u8 unk00_field2 : 1;
-        u8 unk00_field3 : 4;
+        u8 kill : 1;
+        u8 include_current_player : 1;
+        u8 stopping : 1;
+        u8 state : 4;
     };
-    s8 unk01;
-    s8 unk02;
-    u8 unk03;
-    s16 unk04;
-    s16 unk06;
-    s16 unk08;
+    s8 player;
+    s8 scale_angle;
+    u8 result_flash_timer;
+    s16 input_timeout;
+    s16 wheel_angle;
+    s16 wheel_velocity;
 } CharWheelWork;
 
 static void ExecCharWheel(OMOBJ *arg0);
@@ -84,41 +84,53 @@ static s32 wheelCharIconTbl[] = {
     DATA_MAKE_NUM(DATADIR_BOARD, 0x42)
 };
 
+/**
+ * @brief Start the character-selection wheel for a player.
+ *
+ * @param arg0 Player controlling the wheel.
+ * @param arg1 Wheel mode; this implementation currently forces the
+ *     three-candidate mode.
+ * @return This legacy entry point has no meaningful return value.
+ */
 s32 BoardCharWheelInit(s32 arg0, s32 arg1) {
-    CharWheelWork *temp_r31;
+    CharWheelWork *work;
 
     arg1 = 3;
     charWheelObj = omAddObjEx(boardObjMan, 0x104, 0, 0, -1, ExecCharWheel);
-    temp_r31 = omObjGetWork(charWheelObj, CharWheelWork);
-    temp_r31->unk00_field0 = 0;
-    temp_r31->unk00_field2 = 0;
-    temp_r31->unk00_field1 = (arg1 == 3) ? 0 : 1;
-    temp_r31->unk01 = arg0;
-    temp_r31->unk02 = 0;
-    temp_r31->unk03 = 0;
-    temp_r31->unk06 = 0;
+    work = omObjGetWork(charWheelObj, CharWheelWork);
+    work->kill = 0;
+    work->stopping = 0;
+    work->include_current_player = (arg1 == 3) ? 0 : 1;
+    work->player = arg0;
+    work->scale_angle = 0;
+    work->result_flash_timer = 0;
+    work->wheel_angle = 0;
     wheelSpeed = 18.0f;
-    if (GWPlayer[temp_r31->unk01].com) {
-        temp_r31->unk04 = 360;
+    if (GWPlayer[work->player].com) {
+        work->input_timeout = 360;
     } else {
-        temp_r31->unk04 = 3600;
+        work->input_timeout = 3600;
     }
 }
 
+/** @brief Check whether the character wheel has finished. @return TRUE once the wheel object is gone. */
 BOOL BoardCharWheelCheck(void) {
     return (charWheelObj != NULL) ? FALSE : TRUE;
 }
 
+/** @brief Wait until the active character wheel has finished. */
 void BoardCharWheelWait(void) {
     while (!BoardCharWheelCheck()) {
         HuPrcVSleep();
     }
 }
 
+/** @brief Get the player selected by the last wheel spin. @return Selected player index. */
 s32 BoardCharWheelResultGet(void) {
     return wheelChars[wheelPos];
 }
 
+/** @brief Set the wheel's maximum angular speed. @param arg0 Speed in degrees per frame, or a nonpositive value for the default. */
 void BoardCharWheelSpeedSet(float arg0) {
     if (arg0 <= 0.0f) {
         arg0 = 18.0f;
@@ -126,11 +138,12 @@ void BoardCharWheelSpeedSet(float arg0) {
     wheelSpeed = arg0;
 }
 
+/** @brief Advance wheel creation, spinning, result flashing, or teardown for one frame. @param arg0 Object that owns the character-wheel work state. */
 static void ExecCharWheel(OMOBJ *arg0) {
-    CharWheelWork *temp_r31;
+    CharWheelWork *work;
 
-    temp_r31 = omObjGetWork(arg0, CharWheelWork);;
-    if (temp_r31->unk00_field0 != 0 || BoardIsKill()) {
+    work = omObjGetWork(arg0, CharWheelWork);;
+    if (work->kill != 0 || BoardIsKill()) {
         KillCharWheelSpr();
         #if VERSION_PAL
         if (wheelFXStat != -1) {
@@ -142,71 +155,72 @@ static void ExecCharWheel(OMOBJ *arg0) {
         omDelObjEx(HuPrcCurrentGet(), arg0);
         return;
     }
-    if (wheelTimer < temp_r31->unk04) {
+    if (wheelTimer < work->input_timeout) {
         wheelTimer++;
     }
-    switch (temp_r31->unk00_field3) {
+    switch (work->state) {
         case 0:
-            InitCharWheel(temp_r31);
+            InitCharWheel(work);
             break;
         case 1:
-            GrowCharWheel(temp_r31);
+            GrowCharWheel(work);
             break;
         case 2:
-            UpdateCharWheel(temp_r31);
+            UpdateCharWheel(work);
             break;
         case 3:
-            StopCharWheel(temp_r31);
+            StopCharWheel(work);
             break;
         case 4:
-            ShrinkCharWheel(temp_r31);
+            ShrinkCharWheel(work);
             break;
     }
 }
 
+/** @brief Create the three- or four-candidate wheel sprites and choose CPU timing. @param arg0 Work state containing the controlling player and candidate mode. */
 static void InitCharWheel(CharWheelWork *arg0) {
-    GXColor spE;
-    float temp_f29;
-    float temp_f28;
-    float temp_f27;
-    s32 var_r26;
-    s16 var_r27;
-    s16 var_r25;
+    GXColor character_color;
+    float segment_angle;
+    float segment_index;
+    float unused_half_segment_angle;
+    s32 segment_sprite_offset;
+    s16 com_delay_jitter;
+    s16 character;
     s16 i;
-    s16 spA;
-    s16 sp8;
+    s16 candidate_count;
+    s16 sprite;
 
     wheelChars[0] = wheelChars[1] = wheelChars[2] = wheelChars[3] = -1;
     wheelFXStat = -1;
     wheelTimer = 0;
-    if (arg0->unk00_field1 != 0) {
-        spA = 4;
-        var_r26 = 4;
-        temp_f27 = 45.0f;
+    if (arg0->include_current_player != 0) {
+        candidate_count = 4;
+        segment_sprite_offset = 4;
+        unused_half_segment_angle = 45.0f;
     } else {
-        spA = 3;
-        var_r26 = 1;
-        temp_f27 = 60.0f;
+        candidate_count = 3;
+        segment_sprite_offset = 1;
+        unused_half_segment_angle = 60.0f;
     }
-    wheelSprGrp = HuSprGrpCreate(spA + 14);
-    SetCharWheelChars(arg0->unk00_field1, arg0->unk01, wheelChars);
-    if (GWPlayer[arg0->unk01].com) {
-        comDelay = GetComDelay(arg0->unk01, arg0->unk00_field1);
-        switch (GWPlayer[arg0->unk01].diff) {
+    wheelSprGrp = HuSprGrpCreate(candidate_count + 14);
+    SetCharWheelChars(arg0->include_current_player, arg0->player, wheelChars);
+    if (GWPlayer[arg0->player].com) {
+        comDelay = GetComDelay(arg0->player, arg0->include_current_player);
+        switch (GWPlayer[arg0->player].diff) {
             case 0:
-                var_r27 = BoardRandMod(120);
+                com_delay_jitter = BoardRandMod(120);
                 break;
             case 1:
-                var_r27 = BoardRandMod(60);
+                com_delay_jitter = BoardRandMod(60);
                 break;
             case 2:
-                var_r27 = BoardRandMod(30);
+                com_delay_jitter = BoardRandMod(30);
                 break;
             case 3:
-                var_r27 = 0;
+                com_delay_jitter = 0;
                 break;
         }
-        comDelay += var_r27;
+        comDelay += com_delay_jitter;
         if (comDelay > 360.0f) {
             comDelay -= 360.0f;
         }
@@ -217,11 +231,11 @@ static void InitCharWheel(CharWheelWork *arg0) {
         comDelay = 0;
     }
     for (i = 0; i <= 9; i++) {
-        BoardSpriteCreate(wheelSprTbl[i], wheelSprPrio[i], 0, &sp8);
-        HuSprGrpMemberSet(wheelSprGrp, i, sp8);
+        BoardSpriteCreate(wheelSprTbl[i], wheelSprPrio[i], 0, &sprite);
+        HuSprGrpMemberSet(wheelSprGrp, i, sprite);
         HuSprAttrSet(wheelSprGrp, i, 8);
     }
-    if (arg0->unk00_field1 == 0) {
+    if (arg0->include_current_player == 0) {
         for (i = 0; i < 4; i++) {
             HuSprAttrSet(wheelSprGrp, i + 4, 4);
         }
@@ -230,20 +244,20 @@ static void InitCharWheel(CharWheelWork *arg0) {
             HuSprAttrSet(wheelSprGrp, i + 1, 4);
         }
     }
-    for (i = 0; i < spA; i++) {
-        var_r25 = GWPlayer[wheelChars[i]].character;
-        BoardSpriteCreate(wheelCharIconTbl[var_r25], wheelSprPrio[i + 10], 0, &sp8);
-        HuSprGrpMemberSet(wheelSprGrp, i + 10, sp8);
+    for (i = 0; i < candidate_count; i++) {
+        character = GWPlayer[wheelChars[i]].character;
+        BoardSpriteCreate(wheelCharIconTbl[character], wheelSprPrio[i + 10], 0, &sprite);
+        HuSprGrpMemberSet(wheelSprGrp, i + 10, sprite);
         HuSprAttrSet(wheelSprGrp, i + 10, 8);
     }
     HuSprPosSet(wheelSprGrp, 9, 3.0f, 3.0f);
     HuSprColorSet(wheelSprGrp, 9, 0x40, 0x40, 0x40);
     HuSprGrpPosSet(wheelSprGrp, 288.0f, 240.0f);
     HuSprGrpScaleSet(wheelSprGrp, 0.01f, 0.01f);
-    OSs16tof32(&spA, &temp_f29);
-    temp_f29 = 360.0f / temp_f29;
-    for (i = 0; i < spA; i++) {
-        if (arg0->unk00_field1 != 0) {
+    OSs16tof32(&candidate_count, &segment_angle);
+    segment_angle = 360.0f / segment_angle;
+    for (i = 0; i < candidate_count; i++) {
+        if (arg0->include_current_player != 0) {
             switch (i) {
                 case 0:
                     HuSprPosSet(wheelSprGrp, i + 10, 50.0f, -57.0f);
@@ -271,10 +285,10 @@ static void InitCharWheel(CharWheelWork *arg0) {
                     break;
             }
         }
-        OSs16tof32(&i, &temp_f28);
-        HuSprZRotSet(wheelSprGrp, var_r26 + i, temp_f29 * temp_f28);
-        GWCharColorGet(GWPlayer[wheelChars[i]].character, &spE);
-        HuSprColorSet(wheelSprGrp, var_r26 + i, spE.r, spE.g, spE.b);
+        OSs16tof32(&i, &segment_index);
+        HuSprZRotSet(wheelSprGrp, segment_sprite_offset + i, segment_angle * segment_index);
+        GWCharColorGet(GWPlayer[wheelChars[i]].character, &character_color);
+        HuSprColorSet(wheelSprGrp, segment_sprite_offset + i, character_color.r, character_color.g, character_color.b);
     }
     for (i = 0; i < 3; i++) {
         if (wheelChars[i] == targetVal) {
@@ -285,112 +299,115 @@ static void InitCharWheel(CharWheelWork *arg0) {
     if (angleOfs > 180.0f) {
         angleOfs -= 360.0f;
     }
-    arg0->unk00_field3 = 1;
+    arg0->state = 1;
 }
 
+/** @brief Accelerate the wheel, accept stop input, then decelerate to a candidate. @param arg0 Work state holding fixed-point angle, velocity, and stop status. */
 static void UpdateCharWheel(CharWheelWork *arg0) {
-    float var_f24;
-    float var_f25;
-    float var_f23;
-    u32 var_r18;
-    s16 temp_r20;
-    s16 var_r19;
-    s16 var_r17;
+    float angle;
+    float velocity;
+    float pitch_offset;
+    u32 input;
+    s16 angle_in_segment;
+    s16 segment_degrees;
+    s16 pitch;
 
-    OSs16tof32(&arg0->unk06, &var_f24);
-    OSs16tof32(&arg0->unk08, &var_f25);
-    var_f24 = var_f24 * 0.0625f;
-    var_f25 = var_f25 * 0.0625f;
-    if (arg0->unk00_field2 == 0) {
-        if (var_f25 < 18.0f) {
-            var_f25 += 0.7f;
-            if (var_f25 > wheelSpeed) {
-                var_f25 = wheelSpeed;
+    OSs16tof32(&arg0->wheel_angle, &angle);
+    OSs16tof32(&arg0->wheel_velocity, &velocity);
+    angle = angle * 0.0625f;
+    velocity = velocity * 0.0625f;
+    if (arg0->stopping == 0) {
+        if (velocity < 18.0f) {
+            velocity += 0.7f;
+            if (velocity > wheelSpeed) {
+                velocity = wheelSpeed;
             }
         } else {
-            var_r18 = GetInput(arg0);
-            if (var_r18 & 0x100) {
-                arg0->unk00_field2 = 1;
+            input = GetInput(arg0);
+            if (input & 0x100) {
+                arg0->stopping = 1;
             }
         }
     } else {
-        OSf32tos16(&var_f24, &temp_r20);
-        if (arg0->unk00_field1 == 0) {
-            var_r19 = 120;
+        OSf32tos16(&angle, &angle_in_segment);
+        if (arg0->include_current_player == 0) {
+            segment_degrees = 120;
         } else {
-            var_r19 = 90;
+            segment_degrees = 90;
         }
-        temp_r20 %= var_r19;
-        if (var_f25 < 0.5f && (temp_r20 < 2 || temp_r20 >= var_r19 - 2)) {
-            var_f25 += var_f25 / 2;
+        angle_in_segment %= segment_degrees;
+        if (velocity < 0.5f && (angle_in_segment < 2 || angle_in_segment >= segment_degrees - 2)) {
+            velocity += velocity / 2;
         }
-        var_f25 *= 0.92f;
+        velocity *= 0.92f;
     }
-    var_f23 = 8191.0f - 8191.0f * (var_f25 / wheelSpeed);
-    OSf32tos16(&var_f23, &var_r17);
+    pitch_offset = 8191.0f - 8191.0f * (velocity / wheelSpeed);
+    OSf32tos16(&pitch_offset, &pitch);
     #if VERSION_PAL
     if(wheelFXStat != -1) {
-        HuAudFXPitchSet(wheelFXStat, -var_r17);
+        HuAudFXPitchSet(wheelFXStat, -pitch);
     }
     #else
-    HuAudFXPitchSet(wheelFXStat, -var_r17);
+    HuAudFXPitchSet(wheelFXStat, -pitch);
     #endif
-    if (var_f25 > -0.0000001f && var_f25 < 0.0000001f) {
-        arg0->unk00_field3 = 3;
+    if (velocity > -0.0000001f && velocity < 0.0000001f) {
+        arg0->state = 3;
         if (wheelFXStat != -1) {
             HuAudFXStop(wheelFXStat);
             wheelFXStat = -1;
         }
         HuAudFXPlay(0x30B);
     }
-    var_f24 += var_f25;
-    if (var_f24 > 360.0f) {
-        var_f24 -= 360.0f;
+    angle += velocity;
+    if (angle > 360.0f) {
+        angle -= 360.0f;
     }
-    HuSprZRotSet(wheelSprGrp, 8, var_f24);
-    HuSprZRotSet(wheelSprGrp, 9, var_f24);
-    var_f24 *= 16.0f;
-    var_f25 *= 16.0f;
-    OSf32tos16(&var_f24, &arg0->unk06);
-    OSf32tos16(&var_f25, &arg0->unk08);
+    HuSprZRotSet(wheelSprGrp, 8, angle);
+    HuSprZRotSet(wheelSprGrp, 9, angle);
+    angle *= 16.0f;
+    velocity *= 16.0f;
+    OSf32tos16(&angle, &arg0->wheel_angle);
+    OSf32tos16(&velocity, &arg0->wheel_velocity);
 }
 
+/** @brief Resolve the selected segment and flash its portrait before closing. @param arg0 Work state holding the final wheel angle and flash timer. */
 static void StopCharWheel(CharWheelWork *arg0) {
-    u8 var_r30;
+    u8 flash_phase;
 
-    if (arg0->unk03 == 0) {
-        arg0->unk06 >>= 4;
-        if (arg0->unk00_field1 == 0) {
-            wheelPos = arg0->unk06 / 120;
+    if (arg0->result_flash_timer == 0) {
+        arg0->wheel_angle >>= 4;
+        if (arg0->include_current_player == 0) {
+            wheelPos = arg0->wheel_angle / 120;
         } else {
-            wheelPos = arg0->unk06 / 90;
+            wheelPos = arg0->wheel_angle / 90;
         }
     }
-    var_r30 = arg0->unk03 % 6;
-    if (var_r30 < 3) {
+    flash_phase = arg0->result_flash_timer % 6;
+    if (flash_phase < 3) {
         HuSprAttrSet(wheelSprGrp, wheelPos + 10, HUSPR_ATTR_DISPOFF);
     } else {
         HuSprAttrReset(wheelSprGrp, wheelPos + 10, HUSPR_ATTR_DISPOFF);
     }
-    if (arg0->unk03 < 90) {
-        arg0->unk03++;
+    if (arg0->result_flash_timer < 90) {
+        arg0->result_flash_timer++;
     } else {
         HuSprAttrReset(wheelSprGrp, wheelPos + 10, HUSPR_ATTR_DISPOFF);
-        arg0->unk00_field3 = 4;
+        arg0->state = 4;
     }
 }
 
+/** @brief Scale the wheel into view over 30 frames and begin its spin. @param arg0 Work state whose scale angle and state are advanced. */
 static void GrowCharWheel(CharWheelWork *arg0) {
-    float temp_f30;
+    float scale_angle;
 
-    if (arg0->unk02 < 90) {
-        arg0->unk02 += 3;
+    if (arg0->scale_angle < 90) {
+        arg0->scale_angle += 3;
     } else {
         if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
             BoardTutorialHookExec(0x14, 0);
         }
-        arg0->unk02 = 90;
-        arg0->unk00_field3 = 2;
+        arg0->scale_angle = 90;
+        arg0->state = 2;
         #if VERSION_PAL
         if(!BoardIsKill()) {
             wheelFXStat = HuAudFXPlay(0x30A);
@@ -400,25 +417,27 @@ static void GrowCharWheel(CharWheelWork *arg0) {
         #endif
         
     }
-    OSs8tof32(&arg0->unk02, &temp_f30);
-    HuSprGrpScaleSet(wheelSprGrp, sind(temp_f30), sind(temp_f30));
+    OSs8tof32(&arg0->scale_angle, &scale_angle);
+    HuSprGrpScaleSet(wheelSprGrp, sind(scale_angle), sind(scale_angle));
 }
 
+/** @brief Scale the wheel out over 30 frames and mark the object for deletion. @param arg0 Work state whose scale angle and kill flag are updated. */
 static void ShrinkCharWheel(CharWheelWork *arg0) {
-    float temp_f30;
+    float scale_angle;
 
-    if (arg0->unk02 > 0) {
-        arg0->unk02 -= 3;
+    if (arg0->scale_angle > 0) {
+        arg0->scale_angle -= 3;
     } else {
-        arg0->unk02 = 0;
-        arg0->unk00_field0 = 1;
-        arg0->unk00_field3 = -1;
+        arg0->scale_angle = 0;
+        arg0->kill = 1;
+        arg0->state = -1;
         targetF = 0;
     }
-    OSs8tof32(&arg0->unk02, &temp_f30);
-    HuSprGrpScaleSet(wheelSprGrp, sind(temp_f30), sind(temp_f30));
+    OSs8tof32(&arg0->scale_angle, &scale_angle);
+    HuSprGrpScaleSet(wheelSprGrp, sind(scale_angle), sind(scale_angle));
 }
 
+/** @brief Destroy the wheel sprite group if it exists. */
 static void KillCharWheelSpr(void) {
     if (wheelSprGrp != -1) {
         HuSprGrpKill(wheelSprGrp);
@@ -426,125 +445,140 @@ static void KillCharWheelSpr(void) {
     }
 }
 
+/**
+ * @brief Fill the wheel with distinct random player indices.
+ * @param arg0 Whether the controlling player may appear.
+ * @param arg1 Controlling player index.
+ * @param arg2 Output candidate array.
+ */
 static void SetCharWheelChars(s32 arg0, s32 arg1, s8 *arg2) {
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r31;
-    s32 var_r30;
+    s32 player;
+    s32 candidate_index;
+    s32 existing_index;
+    s32 candidate;
 
-    for (var_r28 = var_r29 = 0; var_r29 < 4; var_r29++) {
-        if (var_r29 == arg1 && arg0 == 0) {
+    for (candidate_index = player = 0; player < 4; player++) {
+        if (player == arg1 && arg0 == 0) {
             continue;
         }
         do {
             do {
-                var_r30 = BoardRandMod(4);
-            } while (var_r30 == arg1 && arg0 == 0);
-            for (var_r31 = 0; var_r31 < 4; var_r31++) {
-                if (var_r30 == arg2[var_r31]) {
-                    var_r30 = -1;
+                candidate = BoardRandMod(4);
+            } while (candidate == arg1 && arg0 == 0);
+            for (existing_index = 0; existing_index < 4; existing_index++) {
+                if (candidate == arg2[existing_index]) {
+                    candidate = -1;
                     break;
                 }
             }
-        } while (var_r30 == -1);
-        arg2[var_r28] = var_r30;
-        var_r28++;
+        } while (candidate == -1);
+        arg2[candidate_index] = candidate;
+        candidate_index++;
     }
 }
 
+/** @brief Read human or CPU stop input for the wheel. @param arg0 Wheel state. @return Button mask. */
 static s32 GetInput(CharWheelWork *arg0) {
-    CharWheelWork *var_r27;
-    float temp_f26;
-    float temp_f27;
-    float var_f28;
-    float var_f29;
-    s32 var_r28;
+    CharWheelWork *work;
+    float angle;
+    float velocity;
+    float target_delta;
+    float predicted_angle;
+    s32 input;
 
-    if (wheelTimer >= arg0->unk04) {
+    if (wheelTimer >= arg0->input_timeout) {
         return 0x100;
     }
-    if (!GWPlayer[arg0->unk01].com) {
-        var_r28 = HuPadBtnDown[GWPlayer[arg0->unk01].port];
-        return  var_r28;
+    if (!GWPlayer[arg0->player].com) {
+        input = HuPadBtnDown[GWPlayer[arg0->player].port];
+        return  input;
     }
-    var_r28 = GetComInput(arg0);
+    input = GetComInput(arg0);
     if (targetF != 0) {
-        var_r27 = omObjGetWork(charWheelObj, CharWheelWork);
-        OSs16tof32(&var_r27->unk06, &temp_f26);
-        OSs16tof32(&var_r27->unk08, &temp_f27);
-        temp_f26 = temp_f26 * 0.0625f;
-        temp_f27 = temp_f27 * 0.0625f;
-        var_f29 = temp_f26 + 46.0f * temp_f27;
-        var_f29 = fmod(var_f29, 360.0);
-        if (var_f29 > 180.0f) {
-            var_f29 -= 360.0f;
+        work = omObjGetWork(charWheelObj, CharWheelWork);
+        OSs16tof32(&work->wheel_angle, &angle);
+        OSs16tof32(&work->wheel_velocity, &velocity);
+        angle = angle * 0.0625f;
+        velocity = velocity * 0.0625f;
+        predicted_angle = angle + 46.0f * velocity;
+        predicted_angle = fmod(predicted_angle, 360.0);
+        if (predicted_angle > 180.0f) {
+            predicted_angle -= 360.0f;
         }
-        var_f28 = angleOfs - var_f29;
-        if (var_f28 >= 360.0f) {
-            var_f28 += 360.0f;
+        target_delta = angleOfs - predicted_angle;
+        if (target_delta >= 360.0f) {
+            target_delta += 360.0f;
         }
-        if (var_f28 >= 0.0f && var_f28 < 120.0f - 2.0f * temp_f27) {
-            var_r28 = 0x100;
+        if (target_delta >= 0.0f && target_delta < 120.0f - 2.0f * velocity) {
+            input = 0x100;
         } else {
-            var_r28 = 0;
+            input = 0;
         }
-        OSReport("%f %f : %f %f\n", temp_f26, temp_f27, var_f29, var_f28);
+        OSReport("%f %f : %f %f\n", angle, velocity, predicted_angle, target_delta);
     }
-    return var_r28;
+    return input;
 }
 
+/** @brief Force the wheel to aim for a player. @param arg0 Target player index. */
 void BoardCharWheelTargetSet(s16 arg0) {
     targetF = 1;
     targetVal = arg0;
 }
 
+/**
+ * @brief Choose the angular interval in which a CPU player stops the wheel.
+ * @param arg0 CPU player spinning the wheel.
+ * @param arg1 Nonzero when all four players are wheel candidates.
+ * @return Start angle of the chosen candidate's stop interval, in degrees.
+ */
 static s16 GetComDelay(s32 arg0, s32 arg1) {
-    float var_f30;
-    s16 var_r26;
-    s32 var_r27;
-    s32 var_r28;
+    float stop_angle;
+    s16 stop_angle_int;
+    s32 candidate_count;
+    s32 target_player;
     s32 i;
 
-    var_r28 = BoardComFarPlayerFind();
-    if (var_r28 == -1 || var_r28 == arg0) {
+    target_player = BoardComFarPlayerFind();
+    if (target_player == -1 || target_player == arg0) {
         do {
-            var_r28 = BoardRandMod(4);
-        } while (var_r28 == arg0);
+            target_player = BoardRandMod(4);
+        } while (target_player == arg0);
     }
     if (arg1 != 0) {
-        var_r27 = 4;
+        candidate_count = 4;
     } else {
-        var_r27 = 3;
+        candidate_count = 3;
     }
-    for (var_r26 = i = 0; i < var_r27; i++) {
-        if (var_r28 == wheelChars[i]) {
-            var_f30 = i * (360 / var_r27);
-            var_f30 += 45.0f;
-            var_f30 -= 180.0f;
-            if (var_f30 < 0.0f) {
-                var_f30 += 360.0f;
+    for (stop_angle_int = i = 0; i < candidate_count; i++) {
+        if (target_player == wheelChars[i]) {
+            stop_angle = i * (360 / candidate_count);
+            stop_angle += 45.0f;
+            stop_angle -= 180.0f;
+            if (stop_angle < 0.0f) {
+                stop_angle += 360.0f;
             }
-            if (var_f30 >= 360.0f) {
-                var_f30 -= 360.0f;
+            if (stop_angle >= 360.0f) {
+                stop_angle -= 360.0f;
             }
-            OSf32tos16(&var_f30, &var_r26);
+            OSf32tos16(&stop_angle, &stop_angle_int);
             break;
         }
     }
-    return var_r26;
+    return stop_angle_int;
 }
 
+/** @brief Press A while the wheel crosses the CPU's selected angular interval. @param arg0 Wheel state containing the current angle and mode. @return A-button mask while inside the interval, otherwise zero. */
 static s32 GetComInput(CharWheelWork *arg0) {
-    s16 temp_r31;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
+    s16 angle;
+    s32 interval_end;
+    s32 interval_start;
+    s32 segment_degrees;
 
-    temp_r31 = (arg0->unk06 >> 4);
-    var_r27 = (arg0->unk00_field1 != 0) ? 90 : 120;
-    var_r28 = comDelay;
-    var_r29 = comDelay + var_r27;
-    if (temp_r31 >= var_r28 && temp_r31 < var_r29) {
+    angle = (arg0->wheel_angle >> 4);
+    segment_degrees = (arg0->include_current_player != 0) ? 90 : 120;
+    interval_start = comDelay;
+    interval_end = comDelay + segment_degrees;
+    if (angle >= interval_start && angle < interval_end) {
         return 0x100;
     } else {
         return 0;
