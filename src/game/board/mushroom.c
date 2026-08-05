@@ -24,7 +24,7 @@ static void KillMushroom();
 static void MushroomMain();
 static void KillItemMdl(void);
 static void MarkKillBox(void);
-static void InitBox(s32 arg0);
+static void InitBox(s32 player);
 
 static const float boxOfs[2] = {-150.0f, 150.0f};
 static OMOBJ *boxObj[2] = {};
@@ -36,10 +36,10 @@ static HUPROCESS* mushroomProc;
 
 /**
  * @brief Runs and waits for a player's mushroom-space item-box event.
- * @param arg0 Player index landing on the mushroom space.
+ * @param player Player index landing on the mushroom space.
  */
-void BoardMushroomExec(s32 arg0) {
-    omVibrate(arg0, 0xC, 6, 6);
+void BoardMushroomExec(s32 player) {
+    omVibrate(player, 0xC, 6, 6);
     mushroomProc = HuPrcChildCreate(MushroomMain, 0x2003U, 0x3800U, 0, boardMainProc);
     HuPrcDestructorSet2(mushroomProc, KillMushroom);
     
@@ -47,7 +47,7 @@ void BoardMushroomExec(s32 arg0) {
         HuPrcVSleep();
     }
     
-    GWPlayer[arg0].color = 3;
+    GWPlayer[player].color = 3;
 }
 
 
@@ -66,13 +66,13 @@ typedef struct {
     f32 arc_angle;
 } boxObjWork;
 
-static void SetBoxHide(s32 arg0);
-static void SetBoxCenter(s32 arg0);
-static void SetBoxShow(s32 arg0);
-static void WaitBoxOpen(s32 arg0);
-static void WaitBoxCenter(s32 arg0);
+static void SetBoxHide(s32 box_index);
+static void SetBoxCenter(s32 box_index);
+static void SetBoxShow(s32 box_index);
+static void WaitBoxOpen(s32 box_index);
+static void WaitBoxCenter(s32 box_index);
 static s32 CheckBox(void);
-static void StartItemGive(s32 arg0);
+static void StartItemGive(s32 player);
 static void ShowItemMdl(void);
 static void WaitItemGive(void);
 
@@ -82,9 +82,9 @@ static void WaitItemGive(void);
 static void MushroomMain(void) {
     Vec picker_positions[2];
     Vec box_position;
-    s32 _unused;
-    s32 _unused_alt;
-    s32 _unused_aux;
+    s32 unknown_s32_first_after_box_position;
+    s32 unknown_s32_second_after_box_position;
+    s32 unknown_s32_third_after_box_position;
     s32 current_player;
     s8 cpu_choice;
     boxObjWork* box;
@@ -245,144 +245,144 @@ typedef struct {
 } itemObjWork;
 
 static void CenterBox(ItemGiveWork2*, OMOBJ*);
-static void ExitBox(ItemGiveWork2* arg0, OMOBJ* arg1);
+static void ExitBox(ItemGiveWork2* box_work, OMOBJ* box_object);
 static void HideBox(ItemGiveWork2*, OMOBJ*);
 static void ShowBox(ItemGiveWork2*, OMOBJ*);
 
 
 /**
  * @brief Updates one mushroom-event box according to its animation state.
- * @param arg0 Object controlling one item box.
+ * @param box_object Object controlling one item box.
  */
-static void BoxMain(OMOBJ* arg0) {
+static void BoxMain(OMOBJ* box_object) {
     s32 unused;
     ItemGiveWork2* box_work;
 
-    box_work = omObjGetWork(arg0, ItemGiveWork2);
+    box_work = omObjGetWork(box_object, ItemGiveWork2);
 
     if ((box_work->kill) || (BoardIsKill() != 0)) {
         BoardModelKill(box_work->box_model);
         boxObj[box_work->box_index] = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), box_object);
         return;
     }
     switch (box_work->state) {
     case 0:
-        ShowBox(box_work, arg0);
+        ShowBox(box_work, box_object);
         break;
     case 2:
-        CenterBox(box_work, arg0);
+        CenterBox(box_work, box_object);
         break;
     case 3:
-        ExitBox(box_work, arg0);
+        ExitBox(box_work, box_object);
         break;
     case 4:
-        HideBox(box_work, arg0);
+        HideBox(box_work, box_object);
         break;
     }
-    BoardModelPosSet(box_work->box_model, arg0->trans.x, arg0->trans.y, arg0->trans.z);
-    BoardModelRotSet(box_work->box_model, arg0->rot.x, arg0->rot.y, arg0->rot.z);
+    BoardModelPosSet(box_work->box_model, box_object->trans.x, box_object->trans.y, box_object->trans.z);
+    BoardModelRotSet(box_work->box_model, box_object->rot.x, box_object->rot.y, box_object->rot.z);
 }
 
 /**
  * @brief Drops and spins a box into its selectable position.
- * @param arg0 Mutable box animation state.
- * @param arg1 Box object whose transform is updated.
+ * @param box_work Mutable box animation state.
+ * @param box_object Box object whose transform is updated.
  */
-static void ShowBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
+static void ShowBox(ItemGiveWork2* box_work, OMOBJ* box_object) {
     Vec player_position;
 
-    BoardPlayerPosGet(arg0->player, &player_position);
+    BoardPlayerPosGet(box_work->player, &player_position);
     player_position.y += 300.0f;
     
-    if (arg0->arc_angle >= 90.0f) {
-        arg0->arc_angle = 90.0f;
-        arg0->ready = 1;
-        arg0->state = 1;
+    if (box_work->arc_angle >= 90.0f) {
+        box_work->arc_angle = 90.0f;
+        box_work->ready = 1;
+        box_work->state = 1;
     }
     
-    OSs16tof32(&arg0->rotation, &arg1->rot.y);
-    arg1->trans.y = (player_position.y + (700.0f * cosd(arg0->arc_angle)));
-    arg0->arc_angle += 1.5f;
-    arg0->rotation += 30;
+    OSs16tof32(&box_work->rotation, &box_object->rot.y);
+    box_object->trans.y = (player_position.y + (700.0f * cosd(box_work->arc_angle)));
+    box_work->arc_angle += 1.5f;
+    box_work->rotation += 30;
 }
 
 
 /**
  * @brief Raises and spins the unselected box out of view.
- * @param arg0 Mutable box animation state.
- * @param arg1 Box object whose transform is updated.
+ * @param box_work Mutable box animation state.
+ * @param box_object Box object whose transform is updated.
  */
-static void ExitBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
+static void ExitBox(ItemGiveWork2* box_work, OMOBJ* box_object) {
     Vec player_position;
     s16 wrapped_rotation;
     f32 rotation_degrees;
 
-    wrapped_rotation = (arg0->rotation % 360);
+    wrapped_rotation = (box_work->rotation % 360);
     OSs16tof32(&wrapped_rotation, &rotation_degrees);
-    BoardPlayerPosGet(arg0->player, &player_position);
+    BoardPlayerPosGet(box_work->player, &player_position);
     player_position.y += 300.0f;
 
-    if (arg0->arc_angle <= 0.0f) {
-        arg0->arc_angle = 0.0f;
-        arg0->state = 1;
+    if (box_work->arc_angle <= 0.0f) {
+        box_work->arc_angle = 0.0f;
+        box_work->state = 1;
     }
 
-    arg1->trans.y = player_position.y + (700.0f * cosd(arg0->arc_angle));
-    arg1->rot.y = sind(rotation_degrees);
-    arg0->arc_angle -= 1.5f;
-    arg0->rotation -= 30;
+    box_object->trans.y = player_position.y + (700.0f * cosd(box_work->arc_angle));
+    box_object->rot.y = sind(rotation_degrees);
+    box_work->arc_angle -= 1.5f;
+    box_work->rotation -= 30;
 }
 
 /**
  * @brief Fades out the selected box after it opens.
- * @param arg0 Mutable box animation state.
- * @param arg1 Box object retained for the common state-handler signature.
+ * @param box_work Mutable box animation state.
+ * @param box_object Box object retained for the common state-handler signature.
  */
-static void HideBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
-    arg0->alpha -= 4;
+static void HideBox(ItemGiveWork2* box_work, OMOBJ* box_object) {
+    box_work->alpha -= 4;
 
-    if (arg0->alpha < 0) {
-        arg0->state = 1;
-        arg0->alpha = 0;
+    if (box_work->alpha < 0) {
+        box_work->state = 1;
+        box_work->alpha = 0;
     }
 
-    BoardModelAlphaSet(arg0->box_model, arg0->alpha);
+    BoardModelAlphaSet(box_work->box_model, box_work->alpha);
 }
 
 /**
  * @brief Moves the selected box horizontally to the player.
- * @param arg0 Mutable box animation state.
- * @param arg1 Box object moved toward the player.
+ * @param box_work Mutable box animation state.
+ * @param box_object Box object moved toward the player.
  */
-static void CenterBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
+static void CenterBox(ItemGiveWork2* box_work, OMOBJ* box_object) {
     Vec player_position;
     Vec box_position;
     Vec offset;
 
-    box_position.x = arg1->trans.x;
-    box_position.y = arg1->trans.y;
-    box_position.z = arg1->trans.z;
-    BoardPlayerPosGet(arg0->player, &player_position);
+    box_position.x = box_object->trans.x;
+    box_position.y = box_object->trans.y;
+    box_position.z = box_object->trans.z;
+    BoardPlayerPosGet(box_work->player, &player_position);
     VECSubtract(&player_position, &box_position, &offset);
     VECScale(&offset, &offset, 0.2f);
     VECAdd(&offset, &box_position, &box_position);
 
     if (BoardVecMaxDistXZCheck(&player_position, &box_position, 3.0f) != 0) {
-        arg1->trans.x = player_position.x;
-        arg1->trans.z = player_position.z;
-        arg0->state = 1;
+        box_object->trans.x = player_position.x;
+        box_object->trans.z = player_position.z;
+        box_work->state = 1;
     }
     
-    arg1->trans.x = box_position.x;
-    arg1->trans.z = box_position.z;
+    box_object->trans.x = box_position.x;
+    box_object->trans.z = box_position.z;
 }
 
 /**
  * @brief Creates both boxes and randomly assigns the item and enlarged box.
- * @param arg0 Player index used to position and own both boxes.
+ * @param player Player index used to position and own both boxes.
  */
-static void InitBox(s32 arg0) {
+static void InitBox(s32 player) {
     Vec player_position;
     s32 item_model_resources[2] = {DATA_MAKE_NUM(DATADIR_BOARD, 0x6D), DATA_MAKE_NUM(DATADIR_BOARD, 0x6E)};
     s32 enlarged_box;
@@ -391,14 +391,14 @@ static void InitBox(s32 arg0) {
     s32 i;
     boxObjWork* box_work;
 
-    BoardPlayerPosGet(arg0, &player_position);
+    BoardPlayerPosGet(player, &player_position);
 
     for (i = 0; i < 2; i++) {
         boxObj[i] = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, BoxMain);
         box_work = omObjGetWork(boxObj[i], boxObjWork);
         box_work->kill = 0;
         box_work->ready = 0;
-        box_work->player = arg0;
+        box_work->player = player;
         box_work->box_index = i;
         box_work->state = 0;
         box_work->rotation = 0;
@@ -459,20 +459,20 @@ static void MarkKillBox(void) {
 
 /**
  * @brief Starts a box's upward exit animation.
- * @param arg0 Index of the unselected box that should leave the scene.
+ * @param box_index Index of the unselected box that should leave the scene.
  */
-static void SetBoxHide(s32 arg0) {
-    boxObjWork* box_work = omObjGetWork(boxObj[arg0], boxObjWork);
+static void SetBoxHide(s32 box_index) {
+    boxObjWork* box_work = omObjGetWork(boxObj[box_index], boxObjWork);
 
     box_work->state = 3;
 }
 
 /**
  * @brief Starts fading the opened box and plays its close sound.
- * @param arg0 Index of the opened box to fade out.
+ * @param box_index Index of the opened box to fade out.
  */
-static void SetBoxCenter(s32 arg0) {
-    boxObjWork* box_work = omObjGetWork(boxObj[arg0], boxObjWork);
+static void SetBoxCenter(s32 box_index) {
+    boxObjWork* box_work = omObjGetWork(boxObj[box_index], boxObjWork);
     
     box_work->state = 4;
     HuAudFXPlay(0x341);
@@ -480,20 +480,20 @@ static void SetBoxCenter(s32 arg0) {
 
 /**
  * @brief Starts moving the selected box to the player.
- * @param arg0 Index of the box to move toward the player.
+ * @param box_index Index of the box to move toward the player.
  */
-static void SetBoxShow(s32 arg0) {
-    boxObjWork* box_work = omObjGetWork(boxObj[arg0], boxObjWork);
+static void SetBoxShow(s32 box_index) {
+    boxObjWork* box_work = omObjGetWork(boxObj[box_index], boxObjWork);
 
     box_work->state = 2;
 }
 
 /**
  * @brief Starts the box-opening motion and waits for it to finish.
- * @param arg0 Index of the box whose opening motion is awaited.
+ * @param box_index Index of the box whose opening motion is awaited.
  */
-static void WaitBoxOpen(s32 arg0) {
-    boxObjWork* box_work = omObjGetWork(boxObj[arg0], boxObjWork);
+static void WaitBoxOpen(s32 box_index) {
+    boxObjWork* box_work = omObjGetWork(boxObj[box_index], boxObjWork);
     
     BoardModelMotionSpeedSet(box_work->box_model, 2.0f);
     do {
@@ -503,10 +503,10 @@ static void WaitBoxOpen(s32 arg0) {
 
 /**
  * @brief Waits until a box finishes its current movement.
- * @param arg0 Index of the box whose movement is awaited.
+ * @param box_index Index of the box whose movement is awaited.
  */
-static void WaitBoxCenter(s32 arg0) {
-    boxObjWork* box_work = omObjGetWork(boxObj[arg0], boxObjWork);
+static void WaitBoxCenter(s32 box_index) {
+    boxObjWork* box_work = omObjGetWork(boxObj[box_index], boxObjWork);
 
     while (box_work->state != 1) {
         HuPrcVSleep();
@@ -532,21 +532,21 @@ static s32 CheckBox(void) {
 
 /**
  * @brief Animates the revealed item and adds it to the player when it descends.
- * @param arg0 Object controlling the revealed mushroom item.
+ * @param item_object Object controlling the revealed mushroom item.
  */
-static void DoItemGive(OMOBJ* arg0) {
+static void DoItemGive(OMOBJ* item_object) {
     Vec item_position;
     Vec item_rotation;
     Vec player_position;
     s32 item_ids[2] = {0, 1};
     itemObjWork* item_work;
 
-    item_work = omObjGetWork(arg0, itemObjWork);
+    item_work = omObjGetWork(item_object, itemObjWork);
     
     if ((item_work->kill != 0) || (BoardIsKill() != 0)) {
         KillItemMdl();
         itemGiveObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), item_object);
         return;
     }
     
@@ -595,9 +595,9 @@ static void DoItemGive(OMOBJ* arg0) {
 
 /**
  * @brief Creates the mushroom reward object at the chosen box.
- * @param arg0 Player index stored as the reward owner and eventual item recipient.
+ * @param player Player index stored as the reward owner and eventual item recipient.
  */
-static void StartItemGive(s32 arg0) {
+static void StartItemGive(s32 player) {
     Vec box_position;
     itemObjWork* item_work;
     boxObjWork* box;
@@ -606,7 +606,7 @@ static void StartItemGive(s32 arg0) {
     item_work = omObjGetWork(itemGiveObj, itemObjWork);
 
     item_work->kill = 0;
-    item_work->player = arg0;
+    item_work->player = player;
     item_work->state = 1;
     item_work->frame = 0;
     item_work->vertical_velocity = 0.0f;

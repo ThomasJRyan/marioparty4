@@ -59,33 +59,33 @@ static void CreateModel(void);
 static void KillModel(void);
 static void DestroyLottery(void);
 static void ExecLottery(void);
-static void DoMiniJumpUp(s32 arg0);
-static void DoMiniJumpDown(s32 arg0);
-static void PayEnterFee(s32 arg0);
+static void DoMiniJumpUp(s32 player);
+static void DoMiniJumpDown(s32 player);
+static void PayEnterFee(s32 game_type);
 static void ShowTicket(void);
-static void SetupTicket(s32 arg0);
+static void SetupTicket(s32 player);
 static void ExecBallGame(void);
 static void SetBallPrize(void);
 static void ExecBallPrize(void);
-static void ExecScratchTicket(s32 arg0);
+static void ExecScratchTicket(s32 ticket_index);
 static void ExecScratch(void);
 static void KillScratch(void);
-static void ExecScratchSpr(OMOBJ *arg0);
+static void ExecScratchSpr(OMOBJ *ticket_object);
 static void HideScratchSpr(void);
 static void InitScratchSpr(void);
-static void ExecScratchPick(OMOBJ *arg0);
+static void ExecScratchPick(OMOBJ *picker_object);
 static void InitScratchPick(void);
 static void InitTicketPrizes(void);
-static void ExecTicketFocus(s32 arg0);
-static BOOL ScratchTicketCheckDone(ANIMBMP *arg0);
-static u16 TicketGetPixel(u16 arg0, u16 arg1, u16 arg2);
-static s32 TicketUpdate(ANIMBMP *arg0, Vec *arg1, s32 arg2);
+static void ExecTicketFocus(s32 ticket_index);
+static BOOL ScratchTicketCheckDone(ANIMBMP *ticket_bitmap);
+static u16 TicketGetPixel(u16 texture_width, u16 pixel_x, u16 pixel_y);
+static s32 TicketUpdate(ANIMBMP *ticket_bitmap, Vec *cursor_position, s32 scratch_sound);
 static void ExecCoinPrize(void);
 static void ExecItemPrize(void);
 static void KillCoin(void);
 static void ExecPrize(void);
-static void ExecLose(s32 arg0);
-static void CreateLotteryWin(s32 arg0);
+static void ExecLose(s32 player);
+static void CreateLotteryWin(s32 prize_tier);
 static void KillLotteryWin(void);
 
 static s16 lotteryMdl[6];
@@ -205,10 +205,10 @@ static s8 comInputBall[][2] = {
 
 /**
  * @brief Sets the board model used as the lottery host.
- * @param arg0 Board-model handle for the lottery host.
+ * @param host_model Board-model handle for the lottery host.
  */
-void BoardLotteryHostSet(s16 arg0) {
-    hostMdl = arg0;
+void BoardLotteryHostSet(s16 host_model) {
+    hostMdl = host_model;
 }
 
 /**
@@ -637,9 +637,9 @@ static void ExecLottery(void) {
 
 /**
  * @brief Animates a player jumping upward at the lottery entrance.
- * @param arg0 Player index to move upward.
+ * @param player Player index to move upward.
  */
-static void DoMiniJumpUp(s32 arg0) {
+static void DoMiniJumpUp(s32 player) {
     Mtx player_transform;
     Vec player_position;
     Vec player_scale;
@@ -654,9 +654,9 @@ static void DoMiniJumpUp(s32 arg0) {
     frame = BoardModelIDGet(lotteryMdl[0]);
     Hu3DModelObjMtxGet(frame, "toto_chibidai", player_transform);
     Hu3DMtxTransGet(player_transform, &player_position);
-    BoardPlayerMotionStart(arg0, 4, 0);
-    jump_angle = BoardPlayerMotionMaxTimeGet(arg0);
-    BoardPlayerPosGet(arg0, &player_scale);
+    BoardPlayerMotionStart(player, 4, 0);
+    jump_angle = BoardPlayerMotionMaxTimeGet(player);
+    BoardPlayerPosGet(player, &player_scale);
     player_position.y += 52.5308f;
     VECSubtract(&player_position, &player_scale, &jump_offset);
     jump_offset.x /= jump_angle;
@@ -673,19 +673,19 @@ static void DoMiniJumpUp(s32 arg0) {
         player_scale.x += jump_offset.x;
         player_scale.y += jump_offset.y + jump_height - 0.016666668f * base_scale * base_scale;
         player_scale.z += jump_offset.z;
-        BoardPlayerPosSetV(arg0, &player_scale);
+        BoardPlayerPosSetV(player, &player_scale);
         HuPrcVSleep();
     }
     player_scale.y = player_position.y;
-    BoardPlayerPosSetV(arg0, &player_scale);
-    BoardPlayerIdleSet(arg0);
+    BoardPlayerPosSetV(player, &player_scale);
+    BoardPlayerIdleSet(player);
 }
 
 /**
  * @brief Animates a player descending from the lottery entrance jump.
- * @param arg0 Player index to move downward.
+ * @param player Player index to move downward.
  */
-static void DoMiniJumpDown(s32 arg0) {
+static void DoMiniJumpDown(s32 player) {
     Vec player_position;
     Vec landing_position;
     Vec jump_offset;
@@ -693,10 +693,10 @@ static void DoMiniJumpDown(s32 arg0) {
     float base_height;
     s16 i;
 
-    BoardPlayerPosGet(arg0, &landing_position);
+    BoardPlayerPosGet(player, &landing_position);
     BoardSpacePosGet(0, lotterySpace, &player_position);
     VECSubtract(&player_position, &landing_position, &jump_offset);
-    BoardPlayerMotionStart(arg0, 4, 0);
+    BoardPlayerMotionStart(player, 4, 0);
     jump_offset.x /= 30.0f;
     jump_offset.z /= 30.0f;
     for (i = 0; i < 30; i++) {
@@ -713,21 +713,21 @@ static void DoMiniJumpDown(s32 arg0) {
             landing_position.y = player_position.y;
             break;
         }
-        BoardPlayerPosSetV(arg0, &landing_position);
+        BoardPlayerPosSetV(player, &landing_position);
         HuPrcVSleep();
     }
-    BoardPlayerMotionStart(arg0, 5, 0);
-    BoardPlayerPosSetV(arg0, &player_position);
-    while (!BoardPlayerMotionEndCheck(arg0)) {
+    BoardPlayerMotionStart(player, 5, 0);
+    BoardPlayerPosSetV(player, &player_position);
+    while (!BoardPlayerMotionEndCheck(player)) {
         HuPrcVSleep();
     }
 }
 
 /**
  * @brief Deducts the lottery admission fee from a player one coin at a time.
- * @param arg0 Player index charged five coins.
+ * @param game_type Lottery game selector; zero uses the standard fee message and nonzero uses the alternate message.
  */
-static void PayEnterFee(s32 arg0) {
+static void PayEnterFee(s32 game_type) {
     s32 message;
     s32 player;
     s32 i;
@@ -735,7 +735,7 @@ static void PayEnterFee(s32 arg0) {
     player = GWSystem.player_curr;
     BoardStatusShowSetForce(player);
     BoardStatusShowSet(player, 1);
-    if (arg0 != 0) {
+    if (game_type != 0) {
         message = lotteryMessBase + 12;
     } else {
         message = lotteryMessBase;
@@ -839,9 +839,9 @@ static void ShowTicket(void) {
 /**
  * @brief Assigns a random nonduplicating lottery-ticket code to a player.
  * @details The candidate is compared with ticket codes already assigned to the other players before it is stored and the player's draw-ticket flag is set.
- * @param arg0 Board-player index receiving the lottery ticket.
+ * @param player Board-player index receiving the lottery ticket.
  */
-static void SetupTicket(s32 arg0) {
+static void SetupTicket(s32 player) {
     u8 existing_ticket_codes[4];
     u8 candidate_code;
     s32 candidate_attempt;
@@ -849,7 +849,7 @@ static void SetupTicket(s32 arg0) {
     s32 entry_index;
 
     for (existing_ticket_count = entry_index = 0; entry_index < 4; entry_index++) {
-        if (arg0 != entry_index && GWPlayer[entry_index].draw_ticket != 0) {
+        if (player != entry_index && GWPlayer[entry_index].draw_ticket != 0) {
             existing_ticket_codes[existing_ticket_count] = GWPlayer[entry_index].ticket_player;
             existing_ticket_count++;
         }
@@ -866,16 +866,16 @@ static void SetupTicket(s32 arg0) {
             break;
         }
     }
-    GWPlayer[arg0].ticket_player = candidate_code;
-    GWPlayer[arg0].draw_ticket = 1;
+    GWPlayer[player].ticket_player = candidate_code;
+    GWPlayer[player].draw_ticket = 1;
 }
 
 /**
- * @brief Places a sprite group at one of the two scratch-ticket screen anchors.
- * @param arg0 Sprite-group handle to reposition.
- * @param arg1 Anchor index selecting the normal or focused ticket position.
+ * @brief Moves the lottery instruction sprite on or off screen.
+ * @param sprite_variant Index selecting the instruction sprite resource and its screen geometry.
+ * @param hide_sprite Zero creates and moves the sprite on screen; nonzero moves it off screen and destroys it.
  */
-static void LotteryInlineFunc00(s32 arg0, s32 arg1) {
+static void LotteryInlineFunc00(s32 sprite_variant, s32 hide_sprite) {
     s32 anchor_resources[2] = {
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 18),
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 19)
@@ -886,24 +886,24 @@ static void LotteryInlineFunc00(s32 arg0, s32 arg1) {
     float interpolation;
     s16 anchor_index;
 
-    screen_position.x = (anchor_y[arg0] / 2) + 32;
-    if (arg1 == 0) {
-        screen_position.y = -anchor_x[arg0] / 2;
+    screen_position.x = (anchor_y[sprite_variant] / 2) + 32;
+    if (hide_sprite == 0) {
+        screen_position.y = -anchor_x[sprite_variant] / 2;
         interpolation = 4.0f;
         if (lotterySpr == -1) {
-            lotterySpr = espEntry(anchor_resources[arg0], 30001, 0);
+            lotterySpr = espEntry(anchor_resources[sprite_variant], 30001, 0);
             espAttrSet(lotterySpr, HUSPR_ATTR_NOANIM);
         }
     } else {
-        screen_position.y = (anchor_x[arg0] / 2) + 40;
+        screen_position.y = (anchor_x[sprite_variant] / 2) + 40;
         interpolation = -4.0f;
     }
-    for (anchor_index = anchor_x[arg0] + 40; anchor_index > 0; anchor_index -= 4) {
+    for (anchor_index = anchor_x[sprite_variant] + 40; anchor_index > 0; anchor_index -= 4) {
         screen_position.y += interpolation;
         espPosSet(lotterySpr, screen_position.x, screen_position.y);
         HuPrcVSleep();
     }
-    if (arg1 != 0 && lotterySpr >= 0) {
+    if (hide_sprite != 0 && lotterySpr >= 0) {
         espKill(lotterySpr);
         lotterySpr = -1;
     }
@@ -1209,9 +1209,9 @@ static s32 loseMotTbl[] = {
 
 /**
  * @brief Runs scratch-ticket setup, play, result evaluation, and cleanup.
- * @param arg0 Scratch-ticket grid index in the range 0 through 11.
+ * @param ticket_index Scratch-ticket grid index in the range 0 through 11.
  */
-static void ExecScratchTicket(s32 arg0) {
+static void ExecScratchTicket(s32 ticket_index) {
     Vec cursor_position;
     Vec hand_position;
     Vec camera_direction;
@@ -1226,7 +1226,7 @@ static void ExecScratchTicket(s32 arg0) {
     ANIMBMP *ticket_bitmap;
 
     character = GWPlayer[GWSystem.player_curr].character;
-    ticket_object = ticketObj[arg0];
+    ticket_object = ticketObj[ticket_index];
     ticket_work = omObjGetWork(ticket_object, TicketWork);
     lotteryMdl[4] = BoardModelCreate(handMdl[character], NULL, 0);
     BoardModelLayerSet(lotteryMdl[4], 6);
@@ -1349,33 +1349,33 @@ static void KillScratch(void) {
 }
 
 /**
- * @brief Updates the scratch cursor position and erases ticket pixels beneath it.
- * @param arg0 Object controlling the visible scratch cursor.
+ * @brief Moves one scratch-ticket sprite pair toward its target screen position.
+ * @param ticket_object Object carrying the ticket sprite's current and target positions.
  */
-static void ExecScratchSpr(OMOBJ *arg0) {
+static void ExecScratchSpr(OMOBJ *ticket_object) {
     Vec target_position;
     Vec current_position;
     Vec position_delta;
     s32 sprite_index;
     TicketWork *ticket_work;
 
-    ticket_work = omObjGetWork(arg0, TicketWork);
+    ticket_work = omObjGetWork(ticket_object, TicketWork);
     if (ticket_work->kill != 0 || BoardIsKill()) {
         sprite_index = ticket_work->sprite_index;
         HuSprAttrSet(ticketSprGrp, sprite_index, 4);
         HuSprAttrSet(ticketSprGrp, sprite_index + 12, 4);
         ticketObj[sprite_index] = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), ticket_object);
         return;
     }
     if (ticket_work->delay != 0) {
         ticket_work->delay--;
         return;
     }
-    current_position.x = arg0->trans.x;
-    current_position.y = arg0->trans.y;
-    target_position.x = arg0->rot.x;
-    target_position.y = arg0->rot.y;
+    current_position.x = ticket_object->trans.x;
+    current_position.y = ticket_object->trans.y;
+    target_position.x = ticket_object->rot.x;
+    target_position.y = ticket_object->rot.y;
     VECSubtract(&current_position, &target_position, &position_delta);
     if (ABS(position_delta.x) < 1.0f && ABS(position_delta.y) < 1.0f) {
         position_delta = current_position;
@@ -1387,8 +1387,8 @@ static void ExecScratchSpr(OMOBJ *arg0) {
     }
     HuSprPosSet(ticketSprGrp, ticket_work->sprite_index, position_delta.x, position_delta.y);
     HuSprPosSet(ticketSprGrp, ticket_work->sprite_index + 12, position_delta.x, position_delta.y);
-    arg0->rot.x = position_delta.x;
-    arg0->rot.y = position_delta.y;
+    ticket_object->rot.x = position_delta.x;
+    ticket_object->rot.y = position_delta.y;
 }
 
 /**
@@ -1476,9 +1476,9 @@ static inline u32 ExecStratchPickInlineFunc(LotteryTicketPickWork *picker_work) 
 
 /**
  * @brief Moves the scratch-ticket selector and accepts a ticket choice.
- * @param arg0 Object controlling the scratch-ticket selection cursor.
+ * @param picker_object Object controlling the scratch-ticket selection cursor.
  */
-static void ExecScratchPick(OMOBJ *arg0) {
+static void ExecScratchPick(OMOBJ *picker_object) {
     float cursor_x;
     float cursor_y;
     s8 horizontal_step;
@@ -1487,11 +1487,11 @@ static void ExecScratchPick(OMOBJ *arg0) {
     u32 input;
     LotteryTicketPickWork *picker_work;
 
-    picker_work = omObjGetWork(arg0, LotteryTicketPickWork);
+    picker_work = omObjGetWork(picker_object, LotteryTicketPickWork);
     if (picker_work->kill || BoardIsKill()) {
         HuSprGrpKill(picker_work->sprite_group);
         lotteryTicketPickObj = 0;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), picker_object);
         return;
     }
     if (picker_work->input_delay != 0) {
@@ -1597,24 +1597,24 @@ static void InitTicketPrizes(void) {
 
 /**
  * @brief Moves the selected scratch ticket to or from the focused position.
- * @param arg0 Selected scratch-ticket index in the range 0 through 11.
+ * @param ticket_index Selected scratch-ticket index in the range 0 through 11.
  */
-static void ExecTicketFocus(s32 arg0) {
+static void ExecTicketFocus(s32 ticket_index) {
     float phase_angle;
     float ticket_scale;
     OMOBJ *ticket_object;
     TicketWork *ticket_work;
     s32 i;
 
-    ticket_object = ticketObj[arg0];
+    ticket_object = ticketObj[ticket_index];
     ticket_object->trans.x = 288.0f;
     ticket_object->trans.y = 240.0f;
     for (i = 0; i < 12; i++) {
-        if (i != arg0) {
+        if (i != ticket_index) {
             omObjGetWork(ticketObj[i], TicketWork)->kill = 1;
         }
     }
-    ticket_work = omObjGetWork(ticketObj[arg0], TicketWork);
+    ticket_work = omObjGetWork(ticketObj[ticket_index], TicketWork);
     for (phase_angle = 0.0f; phase_angle < 90.0f; phase_angle += 2.0f) {
         ticket_scale = 1.0 + 1.3f * sind(phase_angle);
         HuSprScaleSet(ticketSprGrp, ticket_work->sprite_index, ticket_scale, ticket_scale);
@@ -1625,24 +1625,24 @@ static void ExecTicketFocus(s32 arg0) {
 
 /**
  * @brief Checks whether the required fraction of scratchable pixels is uncovered.
- * @param arg0 Bitmap whose scratchable pixels are counted.
+ * @param ticket_bitmap Bitmap whose scratchable pixels are counted.
  * @return Nonzero once the uncovered pixel threshold is reached; otherwise zero.
  */
-static BOOL ScratchTicketCheckDone(ANIMBMP *arg0) {
+static BOOL ScratchTicketCheckDone(ANIMBMP *ticket_bitmap) {
     s32 erased_count;
     s32 column;
     s32 row;
     u16 *pixel_data;
 
-    pixel_data = arg0->data;
-    for (erased_count = row = 0; row < arg0->sizeY; row++) {
-        for (column = 0; column < arg0->sizeX; column++) {
-            if (pixel_data[column + row * arg0->sizeX] == 0) {
+    pixel_data = ticket_bitmap->data;
+    for (erased_count = row = 0; row < ticket_bitmap->sizeY; row++) {
+        for (column = 0; column < ticket_bitmap->sizeX; column++) {
+            if (pixel_data[column + row * ticket_bitmap->sizeX] == 0) {
                 erased_count++;
             }
         }
     }
-    if (erased_count >= arg0->sizeX * arg0->sizeY - 300) {
+    if (erased_count >= ticket_bitmap->sizeX * ticket_bitmap->sizeY - 300) {
         return TRUE;
     } else {
         return FALSE;
@@ -1651,32 +1651,32 @@ static BOOL ScratchTicketCheckDone(ANIMBMP *arg0) {
 
 /**
  * @brief Calculates the swizzled texture-data index for a ticket pixel.
- * @param arg0 Texture width in pixels.
- * @param arg1 Pixel X coordinate.
- * @param arg2 Pixel Y coordinate.
+ * @param texture_width Texture width in pixels.
+ * @param pixel_x Pixel X coordinate.
+ * @param pixel_y Pixel Y coordinate.
  * @return Element index for the requested pixel in the tiled texture data.
  */
-static u16 TicketGetPixel(u16 arg0, u16 arg1, u16 arg2) {
+static u16 TicketGetPixel(u16 texture_width, u16 pixel_x, u16 pixel_y) {
     u16 tile_x;
     u16 tile_y;
     u16 local_x;
     u16 local_y;
 
-    local_x = (arg1 & 3);
-    local_y = (arg2 & 3);
-    tile_x = (arg1 >> 2);
-    tile_y = (arg2 >> 2);
-    return local_x + (local_y << 2) + ((tile_x + tile_y * (arg0 >> 2)) << 4);
+    local_x = (pixel_x & 3);
+    local_y = (pixel_y & 3);
+    tile_x = (pixel_x >> 2);
+    tile_y = (pixel_y >> 2);
+    return local_x + (local_y << 2) + ((tile_x + tile_y * (texture_width >> 2)) << 4);
 }
 
 /**
  * @brief Erases scratch-ticket pixels covered by the cursor and updates the texture.
- * @param arg0 Mutable ticket bitmap to erase.
- * @param arg1 Scratch cursor position in ticket coordinates.
- * @param arg2 Sound-effect handle whose volume follows scratch input strength.
+ * @param ticket_bitmap Mutable ticket bitmap to erase.
+ * @param cursor_position Scratch cursor position in ticket coordinates.
+ * @param scratch_sound Sound-effect handle whose volume follows scratch input strength.
  * @return -1 when scripted CPU input is exhausted; otherwise zero.
  */
-static s32 TicketUpdate(ANIMBMP *arg0, Vec *arg1, s32 arg2) {
+static s32 TicketUpdate(ANIMBMP *ticket_bitmap, Vec *cursor_position, s32 scratch_sound) {
     Vec input_direction;
     Vec next_cursor;
     float input_strength;
@@ -1707,9 +1707,9 @@ static s32 TicketUpdate(ANIMBMP *arg0, Vec *arg1, s32 arg2) {
     }
     input_direction.z = 0.0f;
     if (input_direction.x == 0.0f && input_direction.y == 0.0f) {
-        handLastPos = *arg1;
+        handLastPos = *cursor_position;
         handUpdateF = 0;
-        HuAudFXVolSet(arg2, 0);
+        HuAudFXVolSet(scratch_sound, 0);
         return 0;
     }
     if (handUpdateF == 0) {
@@ -1721,10 +1721,10 @@ static s32 TicketUpdate(ANIMBMP *arg0, Vec *arg1, s32 arg2) {
     input_direction.y = cos(angle);
     input_strength = 127.0f * VECMag(&input_direction);
     OSf32tos8(&input_strength, &sound_volume);
-    HuAudFXVolSet(arg2, sound_volume);
+    HuAudFXVolSet(scratch_sound, sound_volume);
     input_direction.x *= 8.0f;
     input_direction.y *= 8.0f;
-    VECAdd(&input_direction, arg1, &next_cursor);
+    VECAdd(&input_direction, cursor_position, &next_cursor);
     cursor_clamped = 0;
     if (next_cursor.x < 192.0f) {
         next_cursor.x = 192.0f;
@@ -1743,34 +1743,34 @@ static s32 TicketUpdate(ANIMBMP *arg0, Vec *arg1, s32 arg2) {
         cursor_clamped = 1;
     }
     if (cursor_clamped != 0) {
-        HuAudFXVolSet(arg2, 0);
+        HuAudFXVolSet(scratch_sound, 0);
     }
-    *arg1 = next_cursor;
+    *cursor_position = next_cursor;
     Hu3D2Dto3D(&next_cursor, 1, &next_cursor);
     BoardModelPosSetV(lotteryMdl[4], &next_cursor);
-    next_cursor = *arg1;
+    next_cursor = *cursor_position;
     next_cursor.x -= 192.0f;
     next_cursor.y -= 192.0f;
-    next_cursor.x *= arg0->sizeX / 192.0f;
-    next_cursor.y *= arg0->sizeY / 96.0f;
-    texture_width = arg0->sizeX;
-    texture_data = arg0->data;
+    next_cursor.x *= ticket_bitmap->sizeX / 192.0f;
+    next_cursor.y *= ticket_bitmap->sizeY / 96.0f;
+    texture_width = ticket_bitmap->sizeX;
+    texture_data = ticket_bitmap->data;
     for (brush_y = -8; brush_y < 9; brush_y++) {
         for (brush_x = -8; brush_x < 9; brush_x++) {
             OSf32tos16(&next_cursor.x, &scratch_x);
             OSf32tos16(&next_cursor.y, &scratch_y);
-            if (scratch_x + brush_x < arg0->sizeX && scratch_y + brush_y < arg0->sizeY && scratch_x + brush_x >= 0 && scratch_y + brush_y >= 0) {
+            if (scratch_x + brush_x < ticket_bitmap->sizeX && scratch_y + brush_y < ticket_bitmap->sizeY && scratch_x + brush_x >= 0 && scratch_y + brush_y >= 0) {
                 scratch_x += brush_x;
                 scratch_y += brush_y;
                 texture_index = TicketGetPixel(texture_width, scratch_x, scratch_y);
-                if (texture_index < arg0->sizeX * arg0->sizeY) {
+                if (texture_index < ticket_bitmap->sizeX * ticket_bitmap->sizeY) {
                     texture_data[texture_index] = 0;
                 }
             }
         }
     }
-    DCFlushRange(arg0->data, (u32) (arg0->sizeX * arg0->sizeY * 2) >> 3);
-    handLastPos = *arg1;
+    DCFlushRange(ticket_bitmap->data, (u32) (ticket_bitmap->sizeX * ticket_bitmap->sizeY * 2) >> 3);
+    handLastPos = *cursor_position;
     return 0;
 }
 
@@ -2107,35 +2107,35 @@ static void ExecPrize(void) {
 
 /**
  * @brief Plays the losing lottery reaction for a player.
- * @param arg0 Player index that performs the losing reaction.
+ * @param player Player index that performs the losing reaction.
  */
-static void ExecLose(s32 arg0) {
+static void ExecLose(s32 player) {
     s32 player_motion;
 
-    player_motion = GWPlayer[arg0].character;
-    loseMot = BoardPlayerMotionCreate(arg0, loseMotTbl[player_motion]);
-    BoardPlayerMotionShiftSet(arg0, loseMot, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+    player_motion = GWPlayer[player].character;
+    loseMot = BoardPlayerMotionCreate(player, loseMotTbl[player_motion]);
+    BoardPlayerMotionShiftSet(player, loseMot, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
     HuPrcSleep(10);
-    while (!BoardPlayerMotionEndCheck(arg0)) {
+    while (!BoardPlayerMotionEndCheck(player)) {
         HuPrcVSleep();
     }
 }
 
 /**
  * @brief Creates the lottery result message window for a prize tier.
- * @param arg0 Prize tier used to select the result message.
+ * @param prize_tier Prize tier used to select the result message.
  */
-static void CreateLotteryWin(s32 arg0) {
+static void CreateLotteryWin(s32 prize_tier) {
     float window_size[2];
     float width;
     float height;
     s32 message;
 
     width = -10000.0f;
-    if (arg0 == 0) {
+    if (prize_tier == 0) {
         message = MAKE_MESSID(6, 80);
         height = 352.0f;
-    } else if (arg0 == 1) {
+    } else if (prize_tier == 1) {
         height = 352.0f;
         message = MAKE_MESSID(6, 81);
     } else {
