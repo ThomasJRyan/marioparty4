@@ -541,11 +541,41 @@ void *HuDataSelHeapReadNum(s32 dataNum, s32 num, HeapID heap)
     return buf;
 }
 
+/**
+ * @brief Read multiple packed data files using untagged main-heap allocations.
+ *
+ * @param [in] dataNum List of packed data numbers terminated by
+ *                     `HU_DATANUM_NONE`; each high 16-bit half selects a
+ *                     directory and each low 16-bit half selects a file.
+ *
+ * @return The NULL-terminated pointer list produced by HuDataReadMultiSub()
+ *         with `use_num == FALSE`, or `NULL` on its validation/capacity failure.
+ */
 void **HuDataReadMulti(s32 *dataNum)
 {
     return HuDataReadMultiSub(dataNum, FALSE, 0);
 }
 
+/**
+ * @brief Load missing directories and decode a list of packed data files.
+ *
+ * @details The routine discovers unique uncached directories, reads them in one
+ * DVD batch, registers each archive in a free `ReadDataStat` slot, then decodes
+ * every requested file. The output pointer array contains one entry per input
+ * followed by `NULL`. The array and decoded files use ordinary HEAP_HEAP
+ * allocations when `use_num` is false and allocation-tagged paths when it is
+ * true. An out-of-range directory or exhausted status table returns `NULL`.
+ *
+ * @param [in] dataNum `HU_DATANUM_NONE`-terminated packed data-number list;
+ *                     high 16 bits select a directory and low 16 bits select a file.
+ * @param [in] use_num Nonzero selects HuDataReadNum() and a tagged output-list
+ *                     allocation; zero selects HuDataRead() and an untagged list.
+ * @param [in] num Allocation tag passed to HuDataReadNum() for each decoded
+ *                 file and to the output-list allocation when `use_num` is nonzero.
+ *
+ * @return NULL-terminated array of decoded-file pointers, or `NULL` when a
+ *         directory number is invalid or no directory status slot is available.
+ */
 void **HuDataReadMultiSub(s32 *dataNum, BOOL use_num, s32 num)
 {
     s32 *dirIds;

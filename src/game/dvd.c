@@ -99,6 +99,17 @@ void *HuDvdDataRead(char *path)
     return data;
 }
 
+/**
+ * @brief Read a sequence of complete DVD files into separate DVD-heap buffers.
+ *
+ * @param [in] paths NULL-terminated array of NUL-terminated DVD paths, read
+ *                   sequentially in array order.
+ *
+ * @return Caller-owned main-heap array containing exactly one caller-owned
+ *         HEAP_DVD file-buffer pointer per input path; the returned array itself
+ *         is not NULL-terminated. Returns `NULL` if a DVD path cannot be opened
+ *         after reporting a panic.
+ */
 void **HuDvdDataReadMulti(char **paths)
 {
     DVDFileInfo file;

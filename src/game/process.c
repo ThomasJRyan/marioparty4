@@ -317,6 +317,15 @@ void HuPrcWakeup(HUPROCESS *process)
     process->sleep_time = 0;
 }
 
+/**
+ * @brief Set or clear the destructor of an explicitly supplied process.
+ *
+ * @param [in, out] process Process whose `dtor` field is assigned directly;
+ *                          unlike HuPrcDestructorSet(), the current process is
+ *                          not selected implicitly.
+ * @param [in] func Destructor invoked when `process` terminates, or `NULL` to
+ *                  clear the process's destructor.
+ */
 void HuPrcDestructorSet2(HUPROCESS *process, void (*func)(void))
 {
     process->dtor = func;

@@ -544,6 +544,16 @@ void omMakeGroupEx(HUPROCESS *objman_process, u16 group, u16 max_objs)
     }
 }
 
+/**
+ * @brief Borrow an object group's internal member-pointer array.
+ *
+ * @param [in] objman_process Process whose `user_data` is interpreted as the
+ *                            owning `omObjMan`.
+ * @param [in] group Direct index into the manager's group table; this function
+ *                   performs no bounds or initialization validation.
+ *
+ * @return The selected group's internal `OMOBJ **obj` array, not a copy.
+ */
 OMOBJ **omGetGroupMemberListEx(HUPROCESS *objman_process, s16 group)
 {
     omObjMan *objman = objman_process->user_data;

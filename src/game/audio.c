@@ -727,7 +727,17 @@ void HuAudDllSndGrpSet(u16 ovl) {
 #define SNDGRP_WAIT(tickStart) \
     while((msmMusGetNumPlay(TRUE) != 0 || msmSeGetNumPlay(TRUE) != 0) && OSTicksToMilliseconds(OSGetTick()-(tickStart)) < SNDGRP_TIMEOUT)
 
-
+/**
+ * @brief Replace the currently cached MSM sound group set when its ID changes.
+ *
+ * @details A changed ID stops all music and sound effects, waits up to 500 ms
+ * for playback counts to drain, deletes all loaded groups, allocates a temporary
+ * sample buffer, loads the requested group set, frees the buffer, and caches the
+ * new ID. Passing the already cached ID performs no work.
+ *
+ * @param [in] grpSet MSM group-set ID selected by overlay, boot, and option
+ *                    audio setup callers and passed to msmSysLoadGroupSet().
+ */
 void HuAudSndGrpSetSet(s16 grpSet) {
     void *buf;
     OSTick tickStart;
