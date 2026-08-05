@@ -40,7 +40,7 @@ typedef struct {
     s8 spin_speed;
     char padding[1];
     s16 delay;
-    s16 unknown_s16_at_0x06;
+    s16 unidentified_s16_at_0x06;
     s16 shrink_angle;
     s16 arc_frame;
     s16 star_model;
@@ -672,7 +672,7 @@ void BoardStarGive(s32 player, Vec *start_position) {
     star_work->sound_played = 0;
     star_work->state = 4;
     star_work->player = player;
-    star_work->unknown_s16_at_0x06 = 0;
+    star_work->unidentified_s16_at_0x06 = 0;
     star_work->spin_speed = 0;
     star_work->shrink_angle = 0;
     star_work->star_model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 11), NULL, 0);

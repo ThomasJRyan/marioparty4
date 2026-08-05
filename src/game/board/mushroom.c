@@ -82,9 +82,9 @@ static void WaitItemGive(void);
 static void MushroomMain(void) {
     Vec picker_positions[2];
     Vec box_position;
-    s32 unknown_s32_first_after_box_position;
-    s32 unknown_s32_second_after_box_position;
-    s32 unknown_s32_third_after_box_position;
+    s32 unidentified_s32_first_after_box_position;
+    s32 unidentified_s32_second_after_box_position;
+    s32 unidentified_s32_third_after_box_position;
     s32 current_player;
     s8 cpu_choice;
     boxObjWork* box;

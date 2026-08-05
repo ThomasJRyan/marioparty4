@@ -1299,7 +1299,7 @@ typedef struct ticket_work {
 		u8 ticket_index : 2;
 	};
 	s8 state;
-	u8 unknown_u8_at_0x02;
+	u8 unidentified_u8_at_0x02;
 	s8 character[3];
 	u16 angle;
 	s16 group;
@@ -1351,7 +1351,7 @@ static void InitLotteryTicket(void)
 		ticket_work->player = i;
 		ticket_work->ticket_index = numTickets;
 		ticket_work->angle = 0;
-		ticket_work->unknown_u8_at_0x02 = 0;
+		ticket_work->unidentified_u8_at_0x02 = 0;
 		ticket_work->done = 0;
 		ticket_work->group = HuSprGrpCreate(6);
 		ticket_object->trans.x = 680.0f;
