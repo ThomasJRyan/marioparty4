@@ -31,10 +31,21 @@ class UnlabelledIdentifierTests(unittest.TestCase):
 
         self.assertEqual(find_unlabelled_identifiers(source), [])
 
-    def test_member_accesses_are_ignored(self):
+    def test_compact_member_accesses_are_ignored(self):
         source = "object.arg2 = pointer->temp_r3 + var_r4;"
 
         self.assertEqual(find_unlabelled_identifiers(source), ["var_r4"])
+
+    def test_spaced_and_multiline_member_accesses_are_ignored(self):
+        source = '''
+        s32 arg1;
+        object
+            .
+            arg0 = pointer ->
+            temp_r2 + var_r3;
+        '''
+
+        self.assertEqual(find_unlabelled_identifiers(source), ["arg1", "var_r3"])
 
     def test_callback_parameter_is_scanned_without_hiding_outer_definition(self):
         source = "void CallbackSet(void (*callback)(s16 arg0)) {}"

@@ -92,7 +92,7 @@ def find_documented_functions(content, function_matches):
 # prototypes while excluding ordinary names such as `speed` that merely begin
 # with the letters "sp".
 UNLABELLED_IDENTIFIER = re.compile(
-    r"(?<!\.)(?<!->)\b(?:arg[0-9A-Fa-f]+|var_[A-Za-z0-9_]+|temp_[A-Za-z0-9_]+|"
+    r"\b(?:arg[0-9A-Fa-f]+|var_[A-Za-z0-9_]+|temp_[A-Za-z0-9_]+|"
     r"sp(?:[0-9][A-Fa-f0-9]*|[A-F][A-Fa-f0-9]*)|unk[A-Za-z0-9_]*|"
     r"lbl_\d+_[A-Za-z0-9_]+)\b"
 )
@@ -101,7 +101,26 @@ UNLABELLED_IDENTIFIER = re.compile(
 def find_unlabelled_identifiers(content):
     """Find decompiler-style identifiers outside comments and literals."""
     code = strip_comments_and_literals(content)
-    return sorted(set(UNLABELLED_IDENTIFIER.findall(code)))
+    return sorted({
+        match.group(0)
+        for match in UNLABELLED_IDENTIFIER.finditer(code)
+        if not is_member_identifier(code, match.start())
+    })
+
+
+def is_member_identifier(code, identifier_start):
+    """Return whether the preceding non-whitespace token is `.` or `->`."""
+    operator_end = identifier_start - 1
+    while operator_end >= 0 and code[operator_end].isspace():
+        operator_end -= 1
+
+    if operator_end >= 0 and code[operator_end] == ".":
+        return True
+    return (
+        operator_end >= 1
+        and code[operator_end] == ">"
+        and code[operator_end - 1] == "-"
+    )
 
 
 def strip_comments_and_literals(content):
