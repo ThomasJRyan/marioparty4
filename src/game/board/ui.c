@@ -96,7 +96,6 @@ typedef struct {
     UnkUiWindowStruct *unk04;
 } UnkUiWork04;
 
-void BoardPlayerSparkSet(s32);
 void BoardBowserSuitMotionCreate(void);
 s16 BoardBowserSuitPlayerModelGet(void);
 

@@ -3105,7 +3105,9 @@ void BoardBowserSuitInit(s32 player)
 /**
  * @brief Removes the Bowser suit from a player.
  *
- * @param player Player whose suit flag and motion voices are restored while global suit models are destroyed.
+ * @param player Player whose `bowser_suit` flag is cleared. The player's
+ * board-model handle is forwarded to `BoardModelVoiceEnableSet` for motion
+ * slots 3 and 4; this function does not verify the effect of those calls.
  */
 void BoardBowserSuitKill(s32 player)
 {
