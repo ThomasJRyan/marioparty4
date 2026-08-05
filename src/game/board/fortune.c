@@ -20,7 +20,7 @@ typedef struct platform_work {
         u8 kill : 1;
 		u8 state : 2;
     };
-    s16 initialization_only_field;
+    s16 unidentified_02;
     s16 model;
 } PlatformWork;
 
@@ -229,7 +229,7 @@ static void CreateFortunePlatform(void)
 	fortunePlatformObj = omAddObjEx(boardObjMan, 257, 0, 0, -1, ExecFortunePlatform);
 	work = omObjGetWork(fortunePlatformObj, PlatformWork);
 	work->kill = 0;
-	work->initialization_only_field = 0;
+	work->unidentified_02 = 0;
 	work->model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 3), NULL, 0);
 	BoardSpacePosGet(0, GWPlayer[currPlayer].space_curr, &pos);
 	BoardSpaceRotGet(0, GWPlayer[currPlayer].space_curr, &rot);
@@ -426,20 +426,20 @@ static void ComFortuneAddCoin(s32 player1, s32 player2, s32 max_coins)
 	BoardPlayerCoinsAdd(player2, stars);
 }
 
-/** @brief Exchange the complete coin totals of two players. @param player1 First player. @param player2 Second player. */
+/** @brief Exchange the complete coin totals of two players. @param player1 Player whose coin total is saved for @p player2, then replaced with @p player2's total. @param player2 Player whose coin total is copied to @p player1 before receiving @p player1's saved total. */
 static void ComFortuneSwapCoin(s32 player1, s32 player2)
 {
-	s32 temp;
-	temp = BoardPlayerCoinsGet(player1);
+	s32 player1_coin_total;
+	player1_coin_total = BoardPlayerCoinsGet(player1);
 	BoardPlayerCoinsSet(player1, BoardPlayerCoinsGet(player2));
-	BoardPlayerCoinsSet(player2, temp);
+	BoardPlayerCoinsSet(player2, player1_coin_total);
 }
 
-/** @brief Exchange the complete star totals of two players. @param player1 First player. @param player2 Second player. */
+/** @brief Exchange the complete star totals of two players. @param player1 Player whose star total is saved for @p player2, then replaced with @p player2's total. @param player2 Player whose star total is copied to @p player1 before receiving @p player1's saved total. */
 static void ComFortuneSwapStar(s32 player1, s32 player2)
 {
-	s32 temp;
-	temp = GWStarsGet(player1);
+	s32 player1_star_total;
+	player1_star_total = GWStarsGet(player1);
 	GWStarsSet(player1, GWStarsGet(player2));
-	GWStarsSet(player2, temp);
+	GWStarsSet(player2, player1_star_total);
 }
