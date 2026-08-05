@@ -3,12 +3,12 @@
 
 #include "string.h"
 
-static void SetEnvelopMtx(HSFOBJECT *arg0, HSFOBJECT *arg1, Mtx arg2);
-static void SetEnvelopMain(HSFDATA *arg0);
-static void SetEnvelop(HSFCENV *arg0);
-static void SetMtx(HSFOBJECT *arg0, Mtx arg1);
+static void SetEnvelopMtx(HSFOBJECT *object_base, HSFOBJECT *object, Mtx parent_matrix);
+static void SetEnvelopMain(HSFDATA *model_hsf);
+static void SetEnvelop(HSFCENV *envelope);
+static void SetMtx(HSFOBJECT *object, Mtx parent_matrix);
 static void SetRevMtx(void);
-static HSFSKELETON *SearchSklenton(char *arg0);
+static HSFSKELETON *SearchSklenton(char *object_name);
 
 Vec *Vertextop;
 Mtx *MtxTop;
@@ -29,9 +29,9 @@ static s32 Meshno;
  * then world and inverse bind matrices are built for later skinning passes.
  * Models without cluster-envelope records are left unchanged.
  *
- * @param arg0 HSF model whose mesh and matrix data are initialized.
+ * @param model_hsf HSF model whose mesh and matrix data are initialized.
  */
-void InitEnvelope(HSFDATA *arg0) {
+void InitEnvelope(HSFDATA *model_hsf) {
     HSFBUFFER *vertex_buffer;
     HSFBUFFER *normal_buffer;
     HSFMATRIX *matrix_buffer;
@@ -41,9 +41,9 @@ void InitEnvelope(HSFDATA *arg0) {
     s32 i;
     s32 j;
 
-    if (arg0->cenvNum != 0) {
-        object = arg0->object;
-        for (Meshcnt = i = 0; i < arg0->objectNum; i++, object++) {
+    if (model_hsf->cenvNum != 0) {
+        object = model_hsf->object;
+        for (Meshcnt = i = 0; i < model_hsf->objectNum; i++, object++) {
             if (object->type == 2) {
                 if (object->mesh.file[0]) {
                     vertex_buffer = object->mesh.vertex;
@@ -53,8 +53,8 @@ void InitEnvelope(HSFDATA *arg0) {
                     continue;
                 }
             }
-            skeleton = arg0->skeleton;
-            for (j = 0; j < arg0->skeletonNum; j++, skeleton++) {
+            skeleton = model_hsf->skeleton;
+            for (j = 0; j < model_hsf->skeletonNum; j++, skeleton++) {
                 if (strcmp(object->name, skeleton->name) == 0) {
                     object->mesh.base.pos.x = skeleton->transform.pos.x;
                     object->mesh.base.pos.y = skeleton->transform.pos.y;
@@ -77,8 +77,8 @@ void InitEnvelope(HSFDATA *arg0) {
             object->mesh.curr.scale.y = object->mesh.base.scale.y;
             object->mesh.curr.scale.z = object->mesh.base.scale.z;
         }
-        CurHsf = arg0;
-        objtop = arg0->object;
+        CurHsf = model_hsf;
+        objtop = model_hsf->object;
         matrix_buffer = CurHsf->matrix;
         if (matrix_buffer) {
             MtxTop = matrix_buffer->data;
@@ -86,7 +86,7 @@ void InitEnvelope(HSFDATA *arg0) {
             nMesh = matrix_buffer->base_idx;
         }
         PSMTXIdentity(identity_matrix);
-        SetMtx(arg0->root, identity_matrix);
+        SetMtx(model_hsf->root, identity_matrix);
         SetRevMtx();
     }
 }
@@ -94,85 +94,85 @@ void InitEnvelope(HSFDATA *arg0) {
 /**
  * @brief Recursively builds current world matrices for an object hierarchy.
  *
- * @param arg0 Base of the contiguous object array, used to derive matrix slots.
- * @param arg1 Current hierarchy object whose transform is evaluated.
- * @param arg2 Parent object's world matrix.
+ * @param object_base Base of the contiguous object array, used to derive matrix slots.
+ * @param object Current hierarchy object whose transform is evaluated.
+ * @param parent_matrix Parent object's world matrix.
  */
-static void SetEnvelopMtx(HSFOBJECT *arg0, HSFOBJECT *arg1, Mtx arg2) {
+static void SetEnvelopMtx(HSFOBJECT *object_base, HSFOBJECT *object, Mtx parent_matrix) {
     Mtx rotation_matrix;
     Mtx world_matrix;
     Mtx translation_matrix;
     s32 object_index;
     s32 i;
 
-    PSMTXTrans(translation_matrix, arg1->mesh.curr.pos.x, arg1->mesh.curr.pos.y, arg1->mesh.curr.pos.z);
-    PSMTXConcat(arg2, translation_matrix, world_matrix);
-    if (arg1->mesh.curr.rot.z) {
-        PSMTXRotRad(rotation_matrix, 'z', MTXDegToRad(arg1->mesh.curr.rot.z));
+    PSMTXTrans(translation_matrix, object->mesh.curr.pos.x, object->mesh.curr.pos.y, object->mesh.curr.pos.z);
+    PSMTXConcat(parent_matrix, translation_matrix, world_matrix);
+    if (object->mesh.curr.rot.z) {
+        PSMTXRotRad(rotation_matrix, 'z', MTXDegToRad(object->mesh.curr.rot.z));
         PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
     }
-    if (arg1->mesh.curr.rot.y) {
-        PSMTXRotRad(rotation_matrix, 'y', MTXDegToRad(arg1->mesh.curr.rot.y));
+    if (object->mesh.curr.rot.y) {
+        PSMTXRotRad(rotation_matrix, 'y', MTXDegToRad(object->mesh.curr.rot.y));
         PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
     }
-    if (arg1->mesh.curr.rot.x) {
-        PSMTXRotRad(rotation_matrix, 'x', MTXDegToRad(arg1->mesh.curr.rot.x));
+    if (object->mesh.curr.rot.x) {
+        PSMTXRotRad(rotation_matrix, 'x', MTXDegToRad(object->mesh.curr.rot.x));
         PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
     }
-    if (arg1->mesh.curr.scale.x != 1.0f) {
-        world_matrix[0][0] *= arg1->mesh.curr.scale.x;
-        world_matrix[1][0] *= arg1->mesh.curr.scale.x;
-        world_matrix[2][0] *= arg1->mesh.curr.scale.x;
+    if (object->mesh.curr.scale.x != 1.0f) {
+        world_matrix[0][0] *= object->mesh.curr.scale.x;
+        world_matrix[1][0] *= object->mesh.curr.scale.x;
+        world_matrix[2][0] *= object->mesh.curr.scale.x;
     }
-    if (arg1->mesh.curr.scale.y != 1.0f) {
-        world_matrix[0][1] *= arg1->mesh.curr.scale.y;
-        world_matrix[1][1] *= arg1->mesh.curr.scale.y;
-        world_matrix[2][1] *= arg1->mesh.curr.scale.y;
+    if (object->mesh.curr.scale.y != 1.0f) {
+        world_matrix[0][1] *= object->mesh.curr.scale.y;
+        world_matrix[1][1] *= object->mesh.curr.scale.y;
+        world_matrix[2][1] *= object->mesh.curr.scale.y;
     }
-    if (arg1->mesh.curr.scale.z != 1.0f) {
-        world_matrix[0][2] *= arg1->mesh.curr.scale.z;
-        world_matrix[1][2] *= arg1->mesh.curr.scale.z;
-        world_matrix[2][2] *= arg1->mesh.curr.scale.z;
+    if (object->mesh.curr.scale.z != 1.0f) {
+        world_matrix[0][2] *= object->mesh.curr.scale.z;
+        world_matrix[1][2] *= object->mesh.curr.scale.z;
+        world_matrix[2][2] *= object->mesh.curr.scale.z;
     }
-    object_index = arg1 - arg0;
+    object_index = object - object_base;
     PSMTXCopy(world_matrix, MtxTop[nMesh + object_index]);
-    for (i = 0; i < arg1->mesh.childrenCount; i++) {
-        SetEnvelopMtx(arg0, arg1->mesh.children[i], world_matrix);
+    for (i = 0; i < object->mesh.childrenCount; i++) {
+        SetEnvelopMtx(object_base, object->mesh.children[i], world_matrix);
     }
 }
 
 /**
  * @brief Rebuilds current hierarchy matrices and skins all enveloped meshes.
  *
- * @param arg0 HSF model containing the hierarchy, matrices, and envelope data.
+ * @param model_hsf HSF model containing the hierarchy, matrices, and envelope data.
  */
-void EnvelopeProc(HSFDATA *arg0) {
+void EnvelopeProc(HSFDATA *model_hsf) {
     HSFMATRIX *matrix_buffer;
     HSFOBJECT *root_object;
     Mtx identity_matrix;
 
-    CurHsf = arg0;
+    CurHsf = model_hsf;
     matrix_buffer = CurHsf->matrix;
     MtxTop = matrix_buffer->data;
     nObj = matrix_buffer->count;
     nMesh = matrix_buffer->base_idx;
-    root_object = arg0->root;
+    root_object = model_hsf->root;
     PSMTXIdentity(identity_matrix);
-    SetEnvelopMtx(arg0->object, root_object, identity_matrix);
-    SetEnvelopMain(arg0);
+    SetEnvelopMtx(model_hsf->object, root_object, identity_matrix);
+    SetEnvelopMain(model_hsf);
 }
 
 /**
  * @brief Clears the per-frame vertex-write counters for all HSF mesh objects.
  *
- * @param arg0 HSF model whose mesh objects are reset.
+ * @param model_hsf HSF model whose mesh objects are reset.
  */
-void InitVtxParm(HSFDATA *arg0) {
+void InitVtxParm(HSFDATA *model_hsf) {
     HSFOBJECT *object;
     s32 i;
 
-    object = arg0->object;
-    for (i = 0; i < arg0->objectNum; i++, object++) {
+    object = model_hsf->object;
+    for (i = 0; i < model_hsf->objectNum; i++, object++) {
         if (object->type == 2) {
             object->mesh.writeNum = 0;
         }
@@ -182,9 +182,9 @@ void InitVtxParm(HSFDATA *arg0) {
 /**
  * @brief Skins each mesh with its cluster-envelope records and flushes results.
  *
- * @param arg0 HSF model whose mesh vertex and normal buffers are updated.
+ * @param model_hsf HSF model whose mesh vertex and normal buffers are updated.
  */
-static void SetEnvelopMain(HSFDATA *arg0) {
+static void SetEnvelopMain(HSFDATA *model_hsf) {
     void *vertex_data;
     void *source_vertex_data;
     void *output_vertex_data;
@@ -195,10 +195,10 @@ static void SetEnvelopMain(HSFDATA *arg0) {
     s32 j;
     HSFCENV *envelope;
 
-    object = arg0->object;
-    for (Meshno = i = 0; i < arg0->objectNum; i++, object++) {
+    object = model_hsf->object;
+    for (Meshno = i = 0; i < model_hsf->objectNum; i++, object++) {
         if (object->type == 2) {
-            PSMTXInverse(MtxTop[&object[nMesh] - arg0->object], MtxTop[Meshno]);
+            PSMTXInverse(MtxTop[&object[nMesh] - model_hsf->object], MtxTop[Meshno]);
             vertex_buffer = object->mesh.vertex;
             normal_buffer = object->mesh.normal;
             if (object->mesh.writeNum != 0) {
@@ -229,9 +229,9 @@ static void SetEnvelopMain(HSFDATA *arg0) {
  * @details Positions and normals are transformed from bind space with matrices
  * precomputed for the current mesh. Unweighted trailing vertices are copied.
  *
- * @param arg0 Cluster-envelope record defining affected ranges and weights.
+ * @param envelope Cluster-envelope record defining affected ranges and weights.
  */
-static void SetEnvelop(HSFCENV *arg0) {
+static void SetEnvelop(HSFCENV *envelope) {
     Vec weighted_position_delta;
     Vec position_delta_sum;
     Vec weighted_normal_delta;
@@ -264,8 +264,8 @@ static void SetEnvelop(HSFCENV *arg0) {
     Mtx combined_matrix;
     Mtx alias_safe_matrix;
 
-    single_envelope = arg0->singleData;
-    for (i = 0; i < arg0->singleCount; i++, single_envelope++) {
+    single_envelope = envelope->singleData;
+    for (i = 0; i < envelope->singleCount; i++, single_envelope++) {
         normal_index = single_envelope->normal;
         position_index = single_envelope->pos;
         output_position = &vtxenv[position_index];
@@ -295,8 +295,8 @@ static void SetEnvelop(HSFCENV *arg0) {
             PSMTXROMultVecArray((ROMtxPtr) work_matrix_b, source_normal, output_normal, single_envelope->normalNum);
         }
     }
-    dual_envelope = arg0->dualData;
-    for (i = 0; i < arg0->dualCount; i++, dual_envelope++) {
+    dual_envelope = envelope->dualData;
+    for (i = 0; i < envelope->dualCount; i++, dual_envelope++) {
         first_target = dual_envelope->target1;
         second_target = dual_envelope->target2;
         PSMTXConcat(MtxTop[nMesh + first_target], MtxTop[nMesh + nObj + nObj * Meshno + first_target], work_matrix_a);
@@ -385,8 +385,8 @@ static void SetEnvelop(HSFCENV *arg0) {
             }
         }
     }
-    multi_envelope = arg0->multiData;
-    for (i = 0; i < arg0->multiCount; i++, multi_envelope++) {
+    multi_envelope = envelope->multiData;
+    for (i = 0; i < envelope->multiCount; i++, multi_envelope++) {
         multi_weight = multi_envelope->weight;
         normal_index = multi_envelope->normal;
         position_index = multi_envelope->pos;
@@ -419,10 +419,10 @@ static void SetEnvelop(HSFCENV *arg0) {
         output_normal->y = source_normal->y + normal_delta_sum.y;
         output_normal->z = source_normal->z + normal_delta_sum.z;
     }
-    position_index = arg0->vtxCount;
+    position_index = envelope->vtxCount;
     output_position = &vtxenv[position_index];
     source_position = &Vertextop[position_index];
-    for (i = 0; i < arg0->copyCount; i++, output_position++, source_position++) {
+    for (i = 0; i < envelope->copyCount; i++, output_position++, source_position++) {
         output_position->x = source_position->x;
         output_position->y = source_position->y;
         output_position->z = source_position->z;
@@ -432,10 +432,10 @@ static void SetEnvelop(HSFCENV *arg0) {
 /**
  * @brief Recursively constructs bind-pose world matrices for an object tree.
  *
- * @param arg0 Current object; a same-named skeleton record overrides its base transform.
- * @param arg1 Parent bind-pose world matrix.
+ * @param object Current object; a same-named skeleton record overrides its base transform.
+ * @param parent_matrix Parent bind-pose world matrix.
  */
-static void SetMtx(HSFOBJECT *arg0, Mtx arg1) {
+static void SetMtx(HSFOBJECT *object, Mtx parent_matrix) {
     HSFSKELETON *skeleton;
     Mtx world_matrix;
     Mtx scale_matrix;
@@ -443,32 +443,32 @@ static void SetMtx(HSFOBJECT *arg0, Mtx arg1) {
     s32 object_index;
     s32 i;
 
-    skeleton = SearchSklenton(arg0->name);
+    skeleton = SearchSklenton(object->name);
     if (skeleton) {
-        arg0->mesh.base.pos.x = skeleton->transform.pos.x;
-        arg0->mesh.base.pos.y = skeleton->transform.pos.y;
-        arg0->mesh.base.pos.z = skeleton->transform.pos.z;
-        arg0->mesh.base.rot.x = skeleton->transform.rot.x;
-        arg0->mesh.base.rot.y = skeleton->transform.rot.y;
-        arg0->mesh.base.rot.z = skeleton->transform.rot.z;
-        arg0->mesh.base.scale.x = skeleton->transform.scale.x;
-        arg0->mesh.base.scale.y = skeleton->transform.scale.y;
-        arg0->mesh.base.scale.z = skeleton->transform.scale.z;
+        object->mesh.base.pos.x = skeleton->transform.pos.x;
+        object->mesh.base.pos.y = skeleton->transform.pos.y;
+        object->mesh.base.pos.z = skeleton->transform.pos.z;
+        object->mesh.base.rot.x = skeleton->transform.rot.x;
+        object->mesh.base.rot.y = skeleton->transform.rot.y;
+        object->mesh.base.rot.z = skeleton->transform.rot.z;
+        object->mesh.base.scale.x = skeleton->transform.scale.x;
+        object->mesh.base.scale.y = skeleton->transform.scale.y;
+        object->mesh.base.scale.z = skeleton->transform.scale.z;
     }
-    PSMTXTrans(world_matrix, arg0->mesh.base.pos.x, arg0->mesh.base.pos.y, arg0->mesh.base.pos.z);
-    PSMTXScale(scale_matrix, arg0->mesh.base.scale.x, arg0->mesh.base.scale.y, arg0->mesh.base.scale.z);
-    PSMTXConcat(arg1, world_matrix, world_matrix);
-    PSMTXRotRad(rotation_matrix, 'z', MTXDegToRad(arg0->mesh.base.rot.z));
+    PSMTXTrans(world_matrix, object->mesh.base.pos.x, object->mesh.base.pos.y, object->mesh.base.pos.z);
+    PSMTXScale(scale_matrix, object->mesh.base.scale.x, object->mesh.base.scale.y, object->mesh.base.scale.z);
+    PSMTXConcat(parent_matrix, world_matrix, world_matrix);
+    PSMTXRotRad(rotation_matrix, 'z', MTXDegToRad(object->mesh.base.rot.z));
     PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
-    PSMTXRotRad(rotation_matrix, 'y', MTXDegToRad(arg0->mesh.base.rot.y));
+    PSMTXRotRad(rotation_matrix, 'y', MTXDegToRad(object->mesh.base.rot.y));
     PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
-    PSMTXRotRad(rotation_matrix, 'x', MTXDegToRad(arg0->mesh.base.rot.x));
+    PSMTXRotRad(rotation_matrix, 'x', MTXDegToRad(object->mesh.base.rot.x));
     PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
     PSMTXConcat(world_matrix, scale_matrix, world_matrix);
-    object_index = arg0 - objtop;
+    object_index = object - objtop;
     PSMTXCopy(world_matrix, MtxTop[nMesh + object_index]);
-    for (i = 0; i < arg0->mesh.childrenCount; i++) {
-        SetMtx(arg0->mesh.children[i], world_matrix);
+    for (i = 0; i < object->mesh.childrenCount; i++) {
+        SetMtx(object->mesh.children[i], world_matrix);
     }
 }
 
@@ -500,16 +500,16 @@ static void SetRevMtx(void) {
 /**
  * @brief Finds a skeleton entry by its exact object name.
  *
- * @param arg0 Null-terminated HSF object name to match.
+ * @param object_name Null-terminated HSF object name to match.
  * @return Matching skeleton record, or NULL when the model has no such name.
  */
-static HSFSKELETON *SearchSklenton(char *arg0) {
+static HSFSKELETON *SearchSklenton(char *object_name) {
     HSFSKELETON *skeleton;
     s32 i;
 
     skeleton = CurHsf->skeleton;
     for (i = 0; i < CurHsf->skeletonNum; i++, skeleton++) {
-        if (strcmp(arg0, skeleton->name) == 0) {
+        if (strcmp(object_name, skeleton->name) == 0) {
             return skeleton;
         }
     }

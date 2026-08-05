@@ -8,9 +8,9 @@
  * shapes interpolate between the two buffers surrounding the fractional
  * base-morph value.
  *
- * @param arg0 Mesh object whose vertex buffer is updated in place.
+ * @param object Mesh object whose vertex buffer is updated in place.
  */
-static void SetShapeMain(HSFOBJECT *arg0) {
+static void SetShapeMain(HSFOBJECT *object) {
     HSFBUFFER *next_shape;
     HSFBUFFER *shape;
     float total_weight;
@@ -20,20 +20,20 @@ static void SetShapeMain(HSFOBJECT *arg0) {
     s32 next_shape_index;
     s32 i;
 
-    if (arg0->mesh.shapeType == 2) {
+    if (object->mesh.shapeType == 2) {
         total_weight = 0.0f;
-        for (i = 0; i < arg0->mesh.shapeNum; i++) {
-            total_weight += arg0->mesh.mesh.morphWeight[i];
+        for (i = 0; i < object->mesh.shapeNum; i++) {
+            total_weight += object->mesh.mesh.morphWeight[i];
         }
-        shape = *arg0->mesh.shape;
+        shape = *object->mesh.shape;
         for (i = 0; i < shape->count; i++) {
             Vertextop[i].x = ((Vec*) shape->data)[i].x;
             Vertextop[i].y = ((Vec*) shape->data)[i].y;
             Vertextop[i].z = ((Vec*) shape->data)[i].z;
         }
-        for (i = 0; i < arg0->mesh.shapeNum; i++) {
-            shape = arg0->mesh.shape[i];
-            blend_weight = arg0->mesh.mesh.morphWeight[i];
+        for (i = 0; i < object->mesh.shapeNum; i++) {
+            shape = object->mesh.shape[i];
+            blend_weight = object->mesh.mesh.morphWeight[i];
             if (blend_weight < 0.0f) {
                 blend_weight = 0.0f;
             } else if (total_weight > 1.0f) {
@@ -46,14 +46,14 @@ static void SetShapeMain(HSFOBJECT *arg0) {
             }
         }
     } else {
-        shape_index = arg0->mesh.mesh.baseMorph;
+        shape_index = object->mesh.mesh.baseMorph;
         next_shape_index = shape_index + 1;
-        if (next_shape_index >= arg0->mesh.shapeNum) {
+        if (next_shape_index >= object->mesh.shapeNum) {
             next_shape_index = shape_index;
         }
-        blend_weight = arg0->mesh.mesh.baseMorph - shape_index;
-        shape = arg0->mesh.shape[shape_index];
-        next_shape = arg0->mesh.shape[next_shape_index];
+        blend_weight = object->mesh.mesh.baseMorph - shape_index;
+        shape = object->mesh.shape[shape_index];
+        next_shape = object->mesh.shape[next_shape_index];
         for (i = 0; i < shape->count; i++) {
             Vertextop[i].x = ((Vec*) shape->data)[i].x + blend_weight * (((Vec*) next_shape->data)[i].x - ((Vec*) shape->data)[i].x);
             Vertextop[i].y = ((Vec*) shape->data)[i].y + blend_weight * (((Vec*) next_shape->data)[i].y - ((Vec*) shape->data)[i].y);
@@ -65,14 +65,14 @@ static void SetShapeMain(HSFOBJECT *arg0) {
 /**
  * @brief Updates morphable meshes in an HSF model and flushes their vertices.
  *
- * @param arg0 HSF model data containing the object and shape buffers.
+ * @param model_hsf HSF model data containing the object and shape buffers.
  */
-void ShapeProc(HSFDATA *arg0) {
+void ShapeProc(HSFDATA *model_hsf) {
     HSFOBJECT *object;
     s32 i;
 
-    object = arg0->object;
-    for (i = 0; i < arg0->objectNum; i++, object++) {
+    object = model_hsf->object;
+    for (i = 0; i < model_hsf->objectNum; i++, object++) {
         if (object->type == 2 && object->mesh.shapeNum != 0) {
             Vertextop = object->mesh.vertex->data;
             SetShapeMain(object);

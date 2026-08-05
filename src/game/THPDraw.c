@@ -26,19 +26,19 @@ void THPGXRestore(void) {
 /**
  * @brief Configures GX to convert planar THP YUV textures to RGB.
  *
- * @param obj Active render-mode description.
- * @param arg1 Color applied by the final TEV stage, including output alpha.
- * @param arg2 Position matrix used to draw the video quad.
+ * @param render_mode Active render-mode description supplying framebuffer dimensions.
+ * @param output_color Color applied by the final TEV stage, including output alpha.
+ * @param position_matrix Position matrix used to draw the video quad.
  */
-void THPGXYuv2RgbSetup(GXRenderModeObj *obj, GXColor *arg1, Mtx arg2) {
-    s32 framebuffer_width = obj->fbWidth;
-    s32 embedded_framebuffer_height = obj->efbHeight;
+void THPGXYuv2RgbSetup(GXRenderModeObj *render_mode, GXColor *output_color, Mtx position_matrix) {
+    s32 framebuffer_width = render_mode->fbWidth;
+    s32 embedded_framebuffer_height = render_mode->efbHeight;
     GXColorS10 yuv_bias = { 0xFFA6, 0, 0xFF8E, 0x0087 };
     GXColor yuv_coefficient_0 = { 0, 0, 0xE2, 0x58 };
     GXColor yuv_coefficient_1 = { 0xB3, 0, 0, 0xB6 };
     GXColor yuv_coefficient_2 = { 0xFF, 0, 0xFF, 0x80 };
 
-    GXLoadPosMtxImm(arg2, GX_PNMTX0);
+    GXLoadPosMtxImm(position_matrix, GX_PNMTX0);
     GXSetCurrentMtx(GX_PNMTX0);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
     GXSetColorUpdate(GX_TRUE);
@@ -83,7 +83,7 @@ void THPGXYuv2RgbSetup(GXRenderModeObj *obj, GXColor *arg1, Mtx arg2) {
     GXSetTevAlphaOp(GX_TEVSTAGE3, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevSwapMode(GX_TEVSTAGE3, GX_TEV_SWAP0, GX_TEV_SWAP0);
     GXSetTevKColorSel(GX_TEVSTAGE3, GX_TEV_KCSEL_K2);
-    GXSetTevColor(GX_TEVREG1, *arg1);
+    GXSetTevColor(GX_TEVREG1, *output_color);
     GXSetTevOrder(GX_TEVSTAGE4, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR_NULL);
     GXSetTevColorIn(GX_TEVSTAGE4, GX_CC_ZERO, GX_CC_CPREV, GX_CC_C1, GX_CC_ZERO);
     GXSetTevColorOp(GX_TEVSTAGE4, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);

@@ -63,21 +63,21 @@ typedef struct {
     /* 0x19E */ s16 unk19E;
 } UnkThpStruct10; // Size 0x1A0
 
-s32 THPSimpleInit(s32 arg0);
+s32 THPSimpleInit(s32 audio_mode);
 void THPSimpleQuit(void);
-s32 THPSimpleOpen(char *arg0);
+s32 THPSimpleOpen(char *path);
 s32 THPSimpleClose(void);
 s32 THPSimpleCalcNeedMemory(void);
-s32 THPSimpleSetBuffer(void *arg0);
-s32 THPSimplePreLoad(s32 arg0);
+s32 THPSimpleSetBuffer(void *buffer);
+s32 THPSimplePreLoad(s32 loop);
 void THPSimpleAudioStart(void);
 void THPSimpleAudioStop(void);
 s32 THPSimpleLoadStop(void);
 s32 THPSimpleDecode(void);
-s32 THPSimpleDrawCurrentFrame(GXRenderModeObj *arg0, GXColor *arg1, Mtx arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6);
-s32 THPSimpleGetVideoInfo(UnkThpStruct04 *arg0);
+s32 THPSimpleDrawCurrentFrame(GXRenderModeObj *render_mode, GXColor *output_color, Mtx position_matrix, s32 x, s32 y, s32 width, s32 height);
+s32 THPSimpleGetVideoInfo(UnkThpStruct04 *video_info);
 s32 THPSimpleGetTotalFrame(void);
-s32 THPSimpleSetVolume(s32 left, s32 right);
+s32 THPSimpleSetVolume(s32 volume, s32 fade_duration);
 
 extern UnkThpStruct10 SimpleControl;
 

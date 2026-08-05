@@ -4,9 +4,9 @@
 #include "dolphin.h"
 
 void HuPerfInit(void);
-s32 HuPerfCreate(char *arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
+s32 HuPerfCreate(char *name, u8 red, u8 green, u8 blue, u8 alpha);
 void HuPerfZero(void);
-void HuPerfBegin(s32 arg0);
-void HuPerfEnd(s32 arg0);
+void HuPerfBegin(s32 timer_slot);
+void HuPerfEnd(s32 timer_slot);
 
 #endif

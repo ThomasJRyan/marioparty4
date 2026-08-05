@@ -4,8 +4,8 @@
 
 #define ALIGN32(val) (((val) + 0x1F) & ~0x1F)
 
-static void __THPSimpleDVDCallback(s32 result, DVDFileInfo *fileInfo);
-static s32 VideoDecode(void *arg0);
+static void __THPSimpleDVDCallback(s32 result, DVDFileInfo *file_info);
+static s32 VideoDecode(void *video_data);
 static void THPAudioMixCallback(void);
 
 UnkThpStruct10 SimpleControl;
@@ -23,11 +23,11 @@ static s32 Initialized;
 /**
  * @brief Initializes THP decoding and installs the audio DMA callback.
  *
- * @param arg0 Audio integration mode: zero drives DMA directly; one or two
+ * @param audio_mode Audio integration mode: zero drives DMA directly; one or two
  * chain the previous callback and select which DMA buffer address is mixed.
  * @return 1 on success, or 0 if THP initialization or callback integration fails.
  */
-s32 THPSimpleInit(s32 arg0) {
+s32 THPSimpleInit(s32 audio_mode) {
     s32 interrupt_state;
 
     memset(&SimpleControl, 0, sizeof(SimpleControl));
@@ -36,7 +36,7 @@ s32 THPSimpleInit(s32 arg0) {
         return 0;
     }
     interrupt_state = OSDisableInterrupts();
-    AudioSystem = arg0;
+    AudioSystem = audio_mode;
     SoundBufferIndex = 0;
     LastAudioBuffer = NULL;
     CurAudioBuffer = NULL;
@@ -75,11 +75,11 @@ void THPSimpleQuit(void) {
 /**
  * @brief Opens a THP file and reads its stream component metadata.
  *
- * @param arg0 Null-terminated DVD path to the THP file.
+ * @param path Null-terminated DVD path to the THP file opened by DVDOpen.
  * @return 1 when a version 1.0 THP with supported video/audio components is
  * ready, or 0 on invalid state, I/O failure, or unsupported metadata.
  */
-s32 THPSimpleOpen(char *arg0) {
+s32 THPSimpleOpen(char *path) {
     s32 component_info_offset;
     s32 i;
 
@@ -91,7 +91,7 @@ s32 THPSimpleOpen(char *arg0) {
     }
     memset(&SimpleControl.unk80, 0, sizeof(SimpleControl.unk80));
     memset(SimpleControl.unk88, 0, sizeof(SimpleControl.unk88));
-    if (DVDOpen(arg0, &SimpleControl.unk00) == 0) {
+    if (DVDOpen(path, &SimpleControl.unk00) == 0) {
         return 0;
     }
     if (DVDReadPrio(&SimpleControl.unk00, &WorkBuffer, 0x40, 0, 2) < 0) {
@@ -210,12 +210,12 @@ s32 THPSimpleCalcNeedMemory(void) {
 /**
  * @brief Partitions caller-owned memory into THP video, read, audio, and work buffers.
  *
- * @param arg0 Start of a writable region at least THPSimpleCalcNeedMemory bytes
+ * @param buffer Start of a writable region at least THPSimpleCalcNeedMemory bytes
  * long; ownership remains with the caller for the stream lifetime.
  * @return 0 only when audio playback is already active; otherwise 1. A call in
  * an unopened or already-loading state performs no partitioning but still returns 1.
  */
-s32 THPSimpleSetBuffer(void *arg0) {
+s32 THPSimpleSetBuffer(void *buffer) {
     u8 *buffer_cursor;
     u32 luma_buffer_size;
     u32 chroma_buffer_size;
@@ -227,7 +227,7 @@ s32 THPSimpleSetBuffer(void *arg0) {
         }
         luma_buffer_size = ALIGN32(SimpleControl.unk80.unk00 * SimpleControl.unk80.unk04);
         chroma_buffer_size = ALIGN32(SimpleControl.unk80.unk00 * SimpleControl.unk80.unk04 / 4);
-        buffer_cursor = arg0;
+        buffer_cursor = buffer;
         for (i = 0; i < 2; i++) {
             SimpleControl.unk144[i].unk00 = buffer_cursor;
             DCInvalidateRange(buffer_cursor, luma_buffer_size);
@@ -284,9 +284,9 @@ static inline void THPSimpleInlineFunc(void) {
  *
  * @param result DVD result: -1 records an error, -3 is ignored as cancellation,
  * and other values publish the filled frame slot.
- * @param fileInfo DVD file descriptor associated with the completed request.
+ * @param file_info DVD file descriptor associated with the completed request.
  */
-static void __THPSimpleDVDCallback(s32 result, DVDFileInfo *fileInfo) {
+static void __THPSimpleDVDCallback(s32 result, DVDFileInfo *file_info) {
     s32 next_read_index;
 
     if (result == -1) {
@@ -315,19 +315,19 @@ static void __THPSimpleDVDCallback(s32 result, DVDFileInfo *fileInfo) {
 /**
  * @brief Synchronously preloads the initial THP frames into the read ring.
  *
- * @param arg0 Nonzero enables looping and fills all ten read slots; zero loads
+ * @param loop Nonzero enables looping and fills all ten read slots; zero loads
  * at most the movie's frame count.
  * @return 1 when preloading starts playback state, or 0 on invalid state or a
  * DVD read error.
  */
-s32 THPSimplePreLoad(s32 arg0) {
+s32 THPSimplePreLoad(s32 loop) {
     u32 preload_count;
     s32 next_read_index;
     s32 i;
 
     if (SimpleControl.unk98 != 0 && SimpleControl.unk9C == 0) {
         preload_count = 10;
-        if (arg0 == 0 && SimpleControl.unk3C.mNumFrames < 10) {
+        if (loop == 0 && SimpleControl.unk3C.mNumFrames < 10) {
             preload_count = SimpleControl.unk3C.mNumFrames;
         }
         for (i = 0; i < preload_count; i++) {
@@ -352,7 +352,7 @@ s32 THPSimplePreLoad(s32 arg0) {
                 SimpleControl.unkB4 = SimpleControl.unk3C.mFirstFrameSize;
             }
         }
-        SimpleControl.unk9E = arg0;
+        SimpleControl.unk9E = loop;
         SimpleControl.unk9C = 1;
         return 1;
     }
@@ -483,14 +483,14 @@ s32 THPSimpleDecode(void) {
 /**
  * @brief Decodes one THP video component into the alternate YUV frame buffer.
  *
- * @param arg0 Compressed video component payload from the current frame.
+ * @param video_data Compressed video component payload from the current frame.
  * @return 1 when decoding succeeds and a frame number is published, otherwise 0.
  */
-static s32 VideoDecode(void *arg0) {
+static s32 VideoDecode(void *video_data) {
     s32 decode_result;
 
     bufIdx = (bufIdx + 1) & 1;
-    decode_result = THPVideoDecode(arg0, SimpleControl.unk144[bufIdx].unk00, SimpleControl.unk144[bufIdx].unk04, SimpleControl.unk144[bufIdx].unk08, SimpleControl.unk94);
+    decode_result = THPVideoDecode(video_data, SimpleControl.unk144[bufIdx].unk00, SimpleControl.unk144[bufIdx].unk04, SimpleControl.unk144[bufIdx].unk08, SimpleControl.unk94);
     if (decode_result == 0) {
         SimpleControl.unk144[0].unk0C = SimpleControl.unkCC[SimpleControl.unkAC].unk04;
         return 1;
@@ -501,19 +501,19 @@ static s32 VideoDecode(void *arg0) {
 /**
  * @brief Converts and draws the most recently decoded THP frame.
  *
- * @param arg0 Render-mode state used while configuring GX.
- * @param arg1 Final TEV color, including the video's output alpha.
- * @param arg2 Position matrix for the destination quad.
- * @param arg3 Destination left coordinate in screen space.
- * @param arg4 Destination top coordinate in screen space.
- * @param arg5 Destination quad width.
- * @param arg6 Destination quad height; negative values vertically flip the quad.
+ * @param render_mode Render-mode state used while configuring GX.
+ * @param output_color Final TEV color, including the video's output alpha.
+ * @param position_matrix Position matrix for the destination quad.
+ * @param x Destination left coordinate in screen space.
+ * @param y Destination top coordinate in screen space.
+ * @param width Destination quad width.
+ * @param height Destination quad height; negative values vertically flip the quad.
  * @return Zero-based decoded frame number, or -1 before any frame is available.
  */
-s32 THPSimpleDrawCurrentFrame(GXRenderModeObj *arg0, GXColor *arg1, Mtx arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6) {
+s32 THPSimpleDrawCurrentFrame(GXRenderModeObj *render_mode, GXColor *output_color, Mtx position_matrix, s32 x, s32 y, s32 width, s32 height) {
     if (SimpleControl.unk144[0].unk0C >= 0) {
-        THPGXYuv2RgbSetup(arg0, arg1, arg2);
-        THPGXYuv2RgbDraw(SimpleControl.unk144[bufIdx].unk00, SimpleControl.unk144[bufIdx].unk04, SimpleControl.unk144[bufIdx].unk08, arg3, arg4, SimpleControl.unk80.unk00, SimpleControl.unk80.unk04, arg5, arg6);
+        THPGXYuv2RgbSetup(render_mode, output_color, position_matrix);
+        THPGXYuv2RgbDraw(SimpleControl.unk144[bufIdx].unk00, SimpleControl.unk144[bufIdx].unk04, SimpleControl.unk144[bufIdx].unk08, x, y, SimpleControl.unk80.unk00, SimpleControl.unk80.unk04, width, height);
         THPGXRestore();
         return SimpleControl.unk144[0].unk0C;
     }
@@ -545,11 +545,11 @@ static u16 VolumeTable[] = {
  * @details When no movie samples are ready, the remaining destination is copied
  * from the source mix or cleared. Volume changes use the configured sample-count ramp.
  *
- * @param arg0 Destination interleaved signed 16-bit stereo buffer.
- * @param arg1 Optional existing interleaved stereo mix; NULL means silence.
- * @param arg2 Number of stereo sample frames to produce.
+ * @param destination Destination interleaved signed 16-bit stereo buffer.
+ * @param source Optional existing interleaved stereo mix; NULL means silence.
+ * @param sample_frames Number of stereo sample frames to produce.
  */
-static void MixAudio(void *arg0, void *arg1, u32 arg2) {
+static void MixAudio(void *destination, void *source, u32 sample_frames) {
     s32 mixed_sample;
     u32 samples_to_mix;
     u32 samples_remaining;
@@ -559,11 +559,11 @@ static void MixAudio(void *arg0, void *arg1, u32 arg2) {
     s16 *destination_samples;
     s16 *movie_samples;
 
-    if (arg1) {
+    if (source) {
         if (SimpleControl.unk98 != 0 && SimpleControl.unk9D == 1 && SimpleControl.unk9F != 0) {
-            samples_remaining = arg2;
-            destination_samples = arg0;
-            source_samples = arg1;
+            samples_remaining = sample_frames;
+            destination_samples = destination;
+            source_samples = source;
             while (1) {
                 if (SimpleControl.unk164[SimpleControl.unk198].unk08 == 0) {
                     break;
@@ -620,11 +620,11 @@ static void MixAudio(void *arg0, void *arg1, u32 arg2) {
             }
             memcpy(destination_samples, source_samples, samples_remaining * 4);
         } else {
-            memcpy(arg0, arg1, arg2 * 4);
+            memcpy(destination, source, sample_frames * 4);
         }
     } else if (SimpleControl.unk98 != 0 && SimpleControl.unk9D == 1 && SimpleControl.unk9F != 0) {
-        samples_remaining = arg2;
-        destination_samples = arg0;
+        samples_remaining = sample_frames;
+        destination_samples = destination;
         while (1) {
             if (SimpleControl.unk164[SimpleControl.unk198].unk08 == 0) {
                 break;
@@ -679,19 +679,19 @@ static void MixAudio(void *arg0, void *arg1, u32 arg2) {
         }
         memset(destination_samples, 0, samples_remaining * 4);
     } else {
-        memset(arg0, 0, arg2 * 4);
+        memset(destination, 0, sample_frames * 4);
     }
 }
 
 /**
  * @brief Copies the open movie's video dimensions.
  *
- * @param arg0 Receives width and height as two 32-bit values.
+ * @param video_info Receives width and height as two 32-bit values.
  * @return 1 when a stream is open and the fields were copied, otherwise 0.
  */
-s32 THPSimpleGetVideoInfo(UnkThpStruct04 *arg0) {
+s32 THPSimpleGetVideoInfo(UnkThpStruct04 *video_info) {
     if (SimpleControl.unk98 != 0) {
-        memcpy(arg0, &SimpleControl.unk80, 8);
+        memcpy(video_info, &SimpleControl.unk80, 8);
         return 1;
     }
     return 0;
@@ -748,32 +748,32 @@ static void THPAudioMixCallback(void) {
 /**
  * @brief Sets THP audio volume immediately or over a sample-count ramp.
  *
- * @param left Target volume index, clamped to the inclusive range 0..127.
- * @param right Ramp duration control, clamped to 0..60000 and multiplied by
+ * @param volume Target volume index, clamped to the inclusive range 0..127.
+ * @param fade_duration Ramp duration control, clamped to 0..60000 and multiplied by
  * 32 stereo sample frames; zero applies the target immediately.
  * @return 1 when an open stream contains audio and the setting is accepted,
  * otherwise 0.
  */
-s32 THPSimpleSetVolume(s32 left, s32 right) {
+s32 THPSimpleSetVolume(s32 volume, s32 fade_duration) {
     s32 interrupt_state;
 
     if (SimpleControl.unk98 != 0 && SimpleControl.unk9F != 0) {
-        if (left > 127) {
-            left = 127;
+        if (volume > 127) {
+            volume = 127;
         }
-        if (left < 0) {
-            left = 0;
+        if (volume < 0) {
+            volume = 0;
         }
-        if (right > 60000) {
-            right = 60000;
+        if (fade_duration > 60000) {
+            fade_duration = 60000;
         }
-        if (right < 0) {
-            right = 0;
+        if (fade_duration < 0) {
+            fade_duration = 0;
         }
         interrupt_state = OSDisableInterrupts();
-        SimpleControl.unkC0 = left;
-        if (right != 0) {
-            SimpleControl.unkC8 = (right << 5);
+        SimpleControl.unkC0 = volume;
+        if (fade_duration != 0) {
+            SimpleControl.unkC8 = (fade_duration << 5);
             SimpleControl.unkC4 = (SimpleControl.unkC0 - SimpleControl.unkBC) / SimpleControl.unkC8;
         } else {
             SimpleControl.unkC8 = 0;
