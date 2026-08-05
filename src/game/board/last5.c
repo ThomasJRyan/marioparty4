@@ -767,7 +767,7 @@ static void Last5Main(void)
  */
 static s32 CheckJump(s32 player)
 {
-	s32 unused = 0;
+	s32 unused_check_jump_result = 0;
 	if(GWPlayer[player].com) {
 		if(BoardRandMod(100) >= 90) {
 			return 1;

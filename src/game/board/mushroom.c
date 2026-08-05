@@ -255,7 +255,7 @@ static void ShowBox(ItemGiveWork2*, OMOBJ*);
  * @param box_object Object controlling one item box.
  */
 static void BoxMain(OMOBJ* box_object) {
-    s32 unused;
+    s32 unused_box_main_r0;
     ItemGiveWork2* box_work;
 
     box_work = omObjGetWork(box_object, ItemGiveWork2);

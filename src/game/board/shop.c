@@ -77,7 +77,7 @@ static void MoveItemGive(OMOBJ *item_object, ItemGiveWork *item_work);
 static void ShrinkItemGive(OMOBJ *item_object, ItemGiveWork *item_work);
 static void WaitItemGive(OMOBJ *item_object, ItemGiveWork *item_work);
 static void GetShopItems(s32 player);
-static void GetDefaultShopItems(s32 _unused);
+static void GetDefaultShopItems(s32 unused_player);
 static void SortShopItems(void);
 static void DecideComEnter(s32 player);
 static void DecideComBuy(s32 player);
@@ -916,9 +916,9 @@ static void GetShopItems(s32 player) {
 
 /**
  * @brief Chooses a default five-item stock table using board randomness.
- * @param _unused Unused compatibility parameter.
+ * @param unused_player Player index forwarded by stock selection; the default-table path does not read it.
  */
-static void GetDefaultShopItems(s32 _unused) {
+static void GetDefaultShopItems(s32 unused_player) {
     s32 rand;
     s32 slot;
     s32 table;
