@@ -1372,6 +1372,18 @@ char *charEyeBmpNameTbl[64] = { "s3c000m1_eyes", "s3c000m1_eyes", "s3c000m1_eyes
     "GC-eyes", "GC-eyes", "s3c007m1_Eye_L", "s3c007m1_Eye_R", "mat87", "mat89", "", "", "clswaluigi_eye_l1_AUTO1", "clswaluigi_eye_l1_AUTO2",
     "s3c007_m1_eye", "s3c007_m1_eye", "clswaluigi_eye_l1_AUTO9", "clswaluigi_eye_l1_AUTO10", "", "" };
 
+/**
+ * @brief Gets the eye-bitmap-name pair selected for a character model mask.
+ * @details Scans model-mask bits 0 through 2 from low to high and selects the
+ * pair for the first set bit. If none of those bits is set, selects pair 3.
+ * Callers compare both names with HSF bitmap attributes.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 selecting
+ * one eight-name row in `charEyeBmpNameTbl`.
+ * @param model Model mask whose first set bit from CHAR_MODEL0 through
+ * CHAR_MODEL2 selects pairs 0 through 2; zero or CHAR_MODEL3 selects pair 3.
+ * @return Borrowed pointer to the first of two internally owned bitmap-name
+ * entries in `charEyeBmpNameTbl`; the caller does not own the pair.
+ */
 char **CharModelEyeBmpGet(s16 charNo, s16 model)
 {
     s16 bit;
