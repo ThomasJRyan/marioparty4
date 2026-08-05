@@ -38,7 +38,7 @@ typedef struct {
     u8 transition_frames;
     s8 original_selection;
     u8 repeat_delay;
-    s16 rotation_delay;
+    s16 write_only_s16;
     u32 previous_input;
 } ConfigWork;
 
@@ -47,30 +47,30 @@ static void PauseExit(void);
 static void PauseProcess(void);
 static void CreatePauseScreen(void);
 static void DeletePauseScreen(void);
-static void SetBoxVisible(s32 arg0);
-static void PauseConfigObjFunc(OMOBJ *arg0);
-static void UpdatePauseText(s32 arg0);
-static void InitPauseQuit(OMOBJ *arg0, ConfigWork *arg1);
+static void SetBoxVisible(s32 visible);
+static void PauseConfigObjFunc(OMOBJ *object);
+static void UpdatePauseText(s32 option);
+static void InitPauseQuit(OMOBJ *object, ConfigWork *work);
 static void PauseQuitProcess(void);
 static void DeletePauseQuit(void);
-static s32 UpdatePadConfig(OMOBJ *arg0, ConfigWork *arg1);
-static void CreatePadConfig(OMOBJ *arg0, ConfigWork *arg1);
-static void ScrollInPadConfig(OMOBJ *arg0, ConfigWork *arg1);
-static void CursorMovePadConfig(OMOBJ *arg0, ConfigWork *arg1);
-static void ChangeDiffPadConfig(OMOBJ *arg0, ConfigWork *arg1);
-static void ScrollOutPadConfig(OMOBJ *arg0, ConfigWork *arg1);
-static s32 UpdatePauseBox(OMOBJ *arg0, ConfigWork *arg1, s32 arg2);
-static s32 UpdatePauseBoxExt(OMOBJ *arg0, ConfigWork *arg1, s32 arg2);
-static s32 ExecPauseConfig(OMOBJ *arg0, ConfigWork *arg1);
+static s32 UpdatePadConfig(OMOBJ *object, ConfigWork *work);
+static void CreatePadConfig(OMOBJ *object, ConfigWork *work);
+static void ScrollInPadConfig(OMOBJ *object, ConfigWork *work);
+static void CursorMovePadConfig(OMOBJ *object, ConfigWork *work);
+static void ChangeDiffPadConfig(OMOBJ *object, ConfigWork *work);
+static void ScrollOutPadConfig(OMOBJ *object, ConfigWork *work);
+static s32 UpdatePauseBox(OMOBJ *object, ConfigWork *work, s32 option);
+static s32 UpdatePauseBoxExt(OMOBJ *object, ConfigWork *work, s32 option);
+static s32 ExecPauseConfig(OMOBJ *object, ConfigWork *work);
 static void CreatePauseControlWin(void);
 static void DeletePauseControlWin(void);
 static s32 WaitPauseInput(void);
 static void ShowPauseConfig(void);
 static void CreatePadConfigSprite(void);
-static void ShowPadConfigSprite(s32 arg0);
-static void PauseCreateNumber(s32 arg0, s8 arg1);
-static s32 CheckPort(s32 arg0);
-static void RotateBox(float arg0, float arg1, Mtx arg2);
+static void ShowPadConfigSprite(s32 show);
+static void PauseCreateNumber(s32 number_type, s8 value);
+static s32 CheckPort(s32 port);
+static void RotateBox(float x_rotation, float y_rotation, Mtx matrix);
 
 static float boxRot[8];
 static Vec padBoxPos;
@@ -265,7 +265,7 @@ void CreatePauseScreen(void) {
     work->state = 0;
     work->option_active = 0;
     work->pad_config_closing = 0;
-    work->rotation_delay = 0;
+    work->write_only_s16 = 0;
     work->save_unavailable = (SLSaveFlagGet() != 0) ? 0 : 1;
     work->repeat_delay = 0;
     work->previous_input = 0;
@@ -487,30 +487,30 @@ static void DeletePauseScreen(void) {
 /**
  * @brief Sets the visibility of every pause option-box model.
  *
- * @param arg0 Nonzero to show the models; zero to hide them.
+ * @param visible Nonzero to show the models; zero to hide them.
  */
-static void SetBoxVisible(s32 arg0) {
+static void SetBoxVisible(s32 visible) {
     s32 i;
 
     for (i = 0; i < 8; i++) {
-        BoardModelVisibilitySet(boxModelID[i], arg0);
+        BoardModelVisibilitySet(boxModelID[i], visible);
     }
 }
 
 /**
  * @brief Updates the settings cursor and dispatches the selected option editor.
  *
- * @param arg0 Pause configuration object whose work tracks menu state.
+ * @param object Pause configuration object whose work tracks menu state.
  */
-static void PauseConfigObjFunc(OMOBJ *arg0) {
+static void PauseConfigObjFunc(OMOBJ *object) {
     ConfigWork *work;
     s16 previous_cursor_pos;
     s32 unused_config_value;
 
-    work = omObjGetWork(arg0, ConfigWork);
+    work = omObjGetWork(object, ConfigWork);
     if (work->destroy_requested != 0 || BoardIsKill()) {
         configObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     if (mainScreenF == 0) {
@@ -523,24 +523,24 @@ static void PauseConfigObjFunc(OMOBJ *arg0) {
         if (work->option_active != 0) {
             switch (cursorPos) {
                 case 0:
-                    if (UpdatePadConfig(arg0, work) != 0) {
+                    if (UpdatePadConfig(object, work) != 0) {
                         UpdatePauseText(cursorPos);
                     }
                     break;
                 case 1:
-                    if (UpdatePauseBox(arg0, work, 1) != 0) {
+                    if (UpdatePauseBox(object, work, 1) != 0) {
                         GWMGExplainSet(boxState[1]);
                     }
                     UpdatePauseText(cursorPos);
                     break;
                 case 2:
-                    if (UpdatePauseBox(arg0, work, 2) != 0) {
+                    if (UpdatePauseBox(object, work, 2) != 0) {
                         GWMGShowComSet(boxState[2]);
                     }
                     UpdatePauseText(cursorPos);
                     break;
                 case 3:
-                    if (UpdatePauseBoxExt(arg0, work, 3) != 0) {
+                    if (UpdatePauseBoxExt(object, work, 3) != 0) {
                         switch (boxState[3]) {
                             case 0:
                                 GWMGListSet(1);
@@ -556,13 +556,13 @@ static void PauseConfigObjFunc(OMOBJ *arg0) {
                     UpdatePauseText(cursorPos);
                     break;
                 case 4:
-                    if (UpdatePauseBox(arg0, work, 4) != 0) {
+                    if (UpdatePauseBox(object, work, 4) != 0) {
                         GWRumbleSet(boxState[4]);
                     }
                     UpdatePauseText(cursorPos);
                     break;
                 case 5:
-                    if (UpdatePauseBoxExt(arg0, work, 5) != 0) {
+                    if (UpdatePauseBoxExt(object, work, 5) != 0) {
                         switch (boxState[5]) {
                             case 0:
                                 GWMessSpeedSet(2);
@@ -582,7 +582,7 @@ static void PauseConfigObjFunc(OMOBJ *arg0) {
                         work->option_active = 0;
                         break;
                     }
-                    if (UpdatePauseBoxExt(arg0, work, 6) != 0) {
+                    if (UpdatePauseBoxExt(object, work, 6) != 0) {
                         switch (boxState[6]) {
                             case 0:
                                 GWSaveModeSet(1);
@@ -598,17 +598,17 @@ static void PauseConfigObjFunc(OMOBJ *arg0) {
                     UpdatePauseText(cursorPos);
                     break;
                 case 7:
-                    InitPauseQuit(arg0, work);
+                    InitPauseQuit(object, work);
                     break;
             }
         } else {
-            cursorPos = ExecPauseConfig(arg0, work);
+            cursorPos = ExecPauseConfig(object, work);
             if (previous_cursor_pos != cursorPos) {
-                arg0->trans.x = -40.0f + boxPosTbl[cursorPos][0];
-                arg0->trans.y = -32.0f + boxPosTbl[cursorPos][1];
+                object->trans.x = -40.0f + boxPosTbl[cursorPos][0];
+                object->trans.y = -32.0f + boxPosTbl[cursorPos][1];
             }
             UpdatePauseText(cursorPos);
-            HuSprPosSet(pauseCursorPos, 0, arg0->trans.x, arg0->trans.y);
+            HuSprPosSet(pauseCursorPos, 0, object->trans.x, object->trans.y);
         }
     }
 }
@@ -616,14 +616,14 @@ static void PauseConfigObjFunc(OMOBJ *arg0) {
 /**
  * @brief Updates the settings description for a pause-menu option.
  *
- * @param arg0 Option index in the two-row pause settings grid.
+ * @param option Option index in the two-row pause settings grid.
  */
-static void UpdatePauseText(s32 arg0) {
+static void UpdatePauseText(s32 option) {
     s32 player_type_message;
     s32 j;
     s32 i;
 
-    switch (arg0) {
+    switch (option) {
         case 0:
             HuWinMesSet(settingsWin, MAKE_MESSID(16, 28));
             for (i = 0; i < 4; i++) {
@@ -641,21 +641,21 @@ static void UpdatePauseText(s32 arg0) {
             }
             break;
         case 1:
-            if (boxState[arg0] != 0) {
+            if (boxState[option] != 0) {
                 HuWinMesSet(settingsWin, MAKE_MESSID(16, 33));
             } else {
                 HuWinMesSet(settingsWin, MAKE_MESSID(16, 34));
             }
             break;
         case 2:
-            if (boxState[arg0] != 0) {
+            if (boxState[option] != 0) {
                 HuWinMesSet(settingsWin, MAKE_MESSID(16, 35));
             } else {
                 HuWinMesSet(settingsWin, MAKE_MESSID(16, 36));
             }
             break;
         case 3:
-            switch (boxState[arg0]) {
+            switch (boxState[option]) {
                 case 0:
                     HuWinMesSet(settingsWin, MAKE_MESSID(16, 38));
                     break;
@@ -668,14 +668,14 @@ static void UpdatePauseText(s32 arg0) {
             }
             break;
         case 4:
-            if (boxState[arg0] != 0) {
+            if (boxState[option] != 0) {
                 HuWinMesSet(settingsWin, MAKE_MESSID(16, 40));
             } else {
                 HuWinMesSet(settingsWin, MAKE_MESSID(16, 41));
             }
             break;
         case 5:
-            switch (boxState[arg0]) {
+            switch (boxState[option]) {
                 case 0:
                     HuWinMesSet(settingsWin, MAKE_MESSID(16, 44));
                     break;
@@ -688,7 +688,7 @@ static void UpdatePauseText(s32 arg0) {
             }
             break;
         case 6:
-            switch (boxState[arg0]) {
+            switch (boxState[option]) {
                 case 0:
                     HuWinMesSet(settingsWin, MAKE_MESSID(16, 47));
                     break;
@@ -709,20 +709,20 @@ static void UpdatePauseText(s32 arg0) {
 /**
  * @brief Advances entry to and return from the quit-confirmation dialog.
  *
- * @param arg0 Configuration object retained while the dialog runs.
- * @param arg1 Work state for the active pause-menu option.
+ * @param object Configuration object retained while the dialog runs.
+ * @param work Work state for the active pause-menu option.
  */
-static void InitPauseQuit(OMOBJ *arg0, ConfigWork *arg1) {
+static void InitPauseQuit(OMOBJ *object, ConfigWork *work) {
     float model_scale;
 
-    switch (arg1->state) {
+    switch (work->state) {
         case 0:
             SetBoxVisible(0);
             quitProcess = HuPrcChildCreate(PauseQuitProcess, 0x2001, 0x3800, 0, boardMainProc);
             HuPrcSetStat(quitProcess, 0xC);
             HuPrcDestructorSet2(quitProcess, DeletePauseQuit);
-            arg1->state = 1;
-            arg1->input_delay = 10;
+            work->state = 1;
+            work->input_delay = 10;
             HuSprAttrSet(pauseCursorPos, 0, 4);
             HuSprAttrSet(pauseCursorPos, 1, 4);
             break;
@@ -735,19 +735,19 @@ static void InitPauseQuit(OMOBJ *arg0, ConfigWork *arg1) {
                 }
             }
             if (!quitProcess) {
-                arg1->state = 2;
+                work->state = 2;
                 if (pauseQuitF != 0) {
-                    arg1->destroy_requested = 1;
+                    work->destroy_requested = 1;
                     break;
                 }
             }
             break;
         case 2:
-            arg1->option_active = 0;
-            arg1->state = 0;
-            arg1->selection = 0;
-            arg1->pending_difficulty = 0;
-            arg1->input_delay = 0;
+            work->option_active = 0;
+            work->state = 0;
+            work->selection = 0;
+            work->pending_difficulty = 0;
+            work->input_delay = 0;
             SetBoxVisible(1);
             model_scale = 0.5f;
             BoardModelScaleSet(boxModelID[7], model_scale, model_scale, model_scale);
@@ -796,29 +796,29 @@ static void DeletePauseQuit(void) {
 /**
  * @brief Advances the controller-to-player configuration state machine.
  *
- * @param arg0 Configuration object used for transition positions.
- * @param arg1 Work state for the controller configuration screen.
+ * @param object Configuration object used for transition positions.
+ * @param work Work state for the controller configuration screen.
  * @return `1` after the controller editor closes; otherwise `0`.
  */
-static s32 UpdatePadConfig(OMOBJ *arg0, ConfigWork *arg1) {
-    switch (arg1->state) {
+static s32 UpdatePadConfig(OMOBJ *object, ConfigWork *work) {
+    switch (work->state) {
         case 0:
-            CreatePadConfig(arg0, arg1);
+            CreatePadConfig(object, work);
             break;
         case 1:
-            ScrollInPadConfig(arg0, arg1);
+            ScrollInPadConfig(object, work);
             break;
         case 2:
-            CursorMovePadConfig(arg0, arg1);
+            CursorMovePadConfig(object, work);
             break;
         case 3:
-            ChangeDiffPadConfig(arg0, arg1);
+            ChangeDiffPadConfig(object, work);
             break;
         case 4:
-            ScrollOutPadConfig(arg0, arg1);
+            ScrollOutPadConfig(object, work);
             break;
     }
-    if (arg1->option_active != 0) {
+    if (work->option_active != 0) {
         return 0;
     } else {
         return 1;
@@ -827,10 +827,10 @@ static s32 UpdatePadConfig(OMOBJ *arg0, ConfigWork *arg1) {
 
 /**
  * @brief Begins the transition from the option grid to controller assignment.
- * @param arg0 Object used to store per-frame panel movement deltas.
- * @param arg1 Work state receiving the transition timer and initial port.
+ * @param object Object used to store per-frame panel movement deltas.
+ * @param work Work state receiving the transition timer and initial port.
  */
-static void CreatePadConfig(OMOBJ *arg0, ConfigWork *arg1) {
+static void CreatePadConfig(OMOBJ *object, ConfigWork *work) {
     Vec target_pos;
     Vec movement_delta;
     s32 i;
@@ -841,16 +841,16 @@ static void CreatePadConfig(OMOBJ *arg0, ConfigWork *arg1) {
             BoardModelVisibilitySet(boxModelID[i], 0);
         }
     }
-    arg0->rot.x = 576.0f;
-    arg0->rot.y = 112.0f;
-    arg0->rot.z = (32.0f - arg0->rot.x) / 20.0f;
-    arg1->transition_frames = 20;
+    object->rot.x = 576.0f;
+    object->rot.y = 112.0f;
+    object->rot.z = (32.0f - object->rot.x) / 20.0f;
+    work->transition_frames = 20;
     ShowPadConfigSprite(1);
-    HuSprGrpPosSet(padConfigSprGrp, arg0->rot.x, arg0->rot.y);
-    arg1->selection = 0;
-    arg1->pending_difficulty = 0;
-    target_pos.x = padConfigPosTbl[arg1->selection][0];
-    target_pos.y = padConfigPosTbl[arg1->selection][1];
+    HuSprGrpPosSet(padConfigSprGrp, object->rot.x, object->rot.y);
+    work->selection = 0;
+    work->pending_difficulty = 0;
+    target_pos.x = padConfigPosTbl[work->selection][0];
+    target_pos.y = padConfigPosTbl[work->selection][1];
     HuSprPosSet(pauseCursorPos, 0, target_pos.x, target_pos.y);
     HuSprZRotSet(pauseCursorPos, 0, 0.0f);
     padBoxPos.x = boxPosTbl[0][0];
@@ -860,101 +860,101 @@ static void CreatePadConfig(OMOBJ *arg0, ConfigWork *arg1) {
     target_pos.y = 176.0f;
     target_pos.z = padBoxPos.z;
     VECSubtract(&target_pos, &padBoxPos, &movement_delta);
-    arg0->scale.x = movement_delta.x / 20.0f;
-    arg0->scale.y = movement_delta.y / 20.0f;
-    arg1->state = 1;
+    object->scale.x = movement_delta.x / 20.0f;
+    object->scale.y = movement_delta.y / 20.0f;
+    work->state = 1;
 }
 
 /**
  * @brief Advances the controller panel's 20-frame slide transition.
- * @param arg0 Object carrying the panel's position increments.
- * @param arg1 Work state carrying remaining frames and closing direction.
+ * @param object Object carrying the panel's position increments.
+ * @param work Work state carrying remaining frames and closing direction.
  */
-static void ScrollInPadConfig(OMOBJ *arg0, ConfigWork *arg1) {
+static void ScrollInPadConfig(OMOBJ *object, ConfigWork *work) {
     Vec world_pos;
     s32 i;
 
-    if (arg1->transition_frames == 0) {
+    if (work->transition_frames == 0) {
         HuSprAttrReset(pauseCursorPos, 0, HUSPR_ATTR_DISPOFF);
-        if (arg1->pad_config_closing != 0) {
+        if (work->pad_config_closing != 0) {
             for (i = 0; i < 8; i++) {
                 if (i != 0) {
                     BoardModelVisibilitySet(boxModelID[i], 1);
                 }
             }
-            arg1->option_active = 0;
-            arg1->pad_config_closing = 0;
-            arg1->selection = 0;
-            arg1->pending_difficulty = 0;
-            arg1->state = 0;
+            work->option_active = 0;
+            work->pad_config_closing = 0;
+            work->selection = 0;
+            work->pending_difficulty = 0;
+            work->state = 0;
         } else {
-            arg1->state = 2;
+            work->state = 2;
         }
         return;
     }
-    arg0->rot.x += arg0->rot.z;
-    HuSprGrpPosSet(padConfigSprGrp, arg0->rot.x, arg0->rot.y);
-    padBoxPos.x += arg0->scale.x;
-    padBoxPos.y += arg0->scale.y;
+    object->rot.x += object->rot.z;
+    HuSprGrpPosSet(padConfigSprGrp, object->rot.x, object->rot.y);
+    padBoxPos.x += object->scale.x;
+    padBoxPos.y += object->scale.y;
     Hu3D2Dto3D(&padBoxPos, 1, &world_pos);
     BoardModelPosSetV(boxModelID[0], &world_pos);
-    arg1->transition_frames--;
+    work->transition_frames--;
 }
 
 /**
  * @brief Moves among controller ports and opens difficulty selection.
- * @param arg0 Active configuration object; retained for the state machine.
- * @param arg1 Work state containing the selected controller port.
+ * @param object Active configuration object; retained for the state machine.
+ * @param work Work state containing the selected controller port.
  */
-static void CursorMovePadConfig(OMOBJ *arg0, ConfigWork *arg1) {
+static void CursorMovePadConfig(OMOBJ *object, ConfigWork *work) {
     float cursor_position[4];
     s32 player;
     u32 input;
 
     HuWinMesSet(settingsWin, MAKE_MESSID(16, 31));
     input = HuPadDStkRep[pausePad] | HuPadBtnDown[pausePad];
-    player = CheckPort(arg1->selection);
+    player = CheckPort(work->selection);
     if (input == 0x100) {
-        arg1->state = 3;
+        work->state = 3;
         if (GWPlayer[player].com) {
-            arg1->original_cpu_difficulty = GWPlayer[player].diff + 1;
-            arg1->pending_difficulty = GWPlayer[player].diff + 1;
+            work->original_cpu_difficulty = GWPlayer[player].diff + 1;
+            work->pending_difficulty = GWPlayer[player].diff + 1;
         } else {
-            arg1->original_cpu_difficulty = 0;
-            arg1->pending_difficulty = 0;
+            work->original_cpu_difficulty = 0;
+            work->pending_difficulty = 0;
         }
-        HuSprBankSet(padConfigSprGrp, arg1->selection + 8, 1);
+        HuSprBankSet(padConfigSprGrp, work->selection + 8, 1);
         HuAudFXPlay(2);
     } else if (input == 0x200) {
         HuAudFXPlay(3);
-        arg1->state = 4;
+        work->state = 4;
     } else {
         if (input == 1) {
-            arg1->selection--;
+            work->selection--;
         }
         if (input == 2) {
-            arg1->selection++;
+            work->selection++;
         }
-        if (arg1->selection < 0) {
-            arg1->selection = 0;
-        } else if (arg1->selection >= 4) {
-            arg1->selection = 3;
+        if (work->selection < 0) {
+            work->selection = 0;
+        } else if (work->selection >= 4) {
+            work->selection = 3;
         } else if (input == 1 || input == 2) {
             HuAudFXPlay(0);
-            arg1->input_delay = 4;
+            work->input_delay = 4;
         }
-        cursor_position[0] = padConfigPosTbl[arg1->selection][0];
-        cursor_position[1] = padConfigPosTbl[arg1->selection][1];
+        cursor_position[0] = padConfigPosTbl[work->selection][0];
+        cursor_position[1] = padConfigPosTbl[work->selection][1];
         HuSprPosSet(pauseCursorPos, 0, cursor_position[0], cursor_position[1]);
     }
 }
 
 /**
  * @brief Edits human/CPU status and CPU difficulty for a controller port.
- * @param arg0 Active configuration object; retained for the state machine.
- * @param arg1 Work state containing the port and pending difficulty choice.
+ * @param object Active configuration object; retained for the state machine.
+ * @param work Work state containing the port and pending difficulty choice.
  */
-static void ChangeDiffPadConfig(OMOBJ *arg0, ConfigWork *arg1) {
+static void ChangeDiffPadConfig(OMOBJ *object, ConfigWork *work) {
     s32 player;
     s32 selection_delta;
     s32 difficulty_sprite_bank;
@@ -967,7 +967,7 @@ static void ChangeDiffPadConfig(OMOBJ *arg0, ConfigWork *arg1) {
     } else if (HuPadStkX[pausePad] > 20) {
         direction_input |= 2;
     }
-    player = CheckPort(arg1->selection);
+    player = CheckPort(work->selection);
     if (GWGameStat.veryHardUnlock != 0) {
         max_difficulty = 4;
     } else {
@@ -975,20 +975,20 @@ static void ChangeDiffPadConfig(OMOBJ *arg0, ConfigWork *arg1) {
     }
     HuWinMesSet(settingsWin, MAKE_MESSID(16, 32));
     if (direction_input != 0) {
-        if (arg1->previous_input != 0 && arg1->previous_input == direction_input) {
-            if (arg1->repeat_delay++ < 10) {
+        if (work->previous_input != 0 && work->previous_input == direction_input) {
+            if (work->repeat_delay++ < 10) {
                 return;
             }
         } else {
-            if (arg1->repeat_delay++ < 2) {
+            if (work->repeat_delay++ < 2) {
                 return;
             }
-            arg1->previous_input = direction_input;
+            work->previous_input = direction_input;
         }
     } else {
-        arg1->previous_input = 0;
+        work->previous_input = 0;
     }
-    arg1->repeat_delay = 0;
+    work->repeat_delay = 0;
     selection_delta = 0;
     if (direction_input == 1) {
         selection_delta = -1;
@@ -998,65 +998,65 @@ static void ChangeDiffPadConfig(OMOBJ *arg0, ConfigWork *arg1) {
     }
     if (selection_delta != 0) {
         HuAudFXPlay(0);
-        arg1->input_delay = 4;
+        work->input_delay = 4;
     } else {
         if (HuPadBtnDown[pausePad] == 0x100) {
-            arg1->state = 2;
-            if (arg1->pending_difficulty != 0) {
+            work->state = 2;
+            if (work->pending_difficulty != 0) {
                 GWPlayer[player].com = 1;
                 GWPlayerCfg[player].iscom = 1;
-                GWPlayer[player].diff = arg1->pending_difficulty - 1;
-                GWPlayerCfg[player].diff = arg1->pending_difficulty - 1;
+                GWPlayer[player].diff = work->pending_difficulty - 1;
+                GWPlayerCfg[player].diff = work->pending_difficulty - 1;
             } else {
                 GWPlayer[player].com = 0;
                 GWPlayerCfg[player].iscom = 0;
             }
-            HuSprBankSet(padConfigSprGrp, arg1->selection + 8, 0);
+            HuSprBankSet(padConfigSprGrp, work->selection + 8, 0);
             HuAudFXPlay(2);
-            arg1->previous_input = 0x100;
+            work->previous_input = 0x100;
         }
         if (HuPadBtnDown[pausePad] == 0x200) {
-            arg1->state = 2;
-            arg1->pending_difficulty = arg1->original_cpu_difficulty;
-            HuSprBankSet(padConfigSprGrp, arg1->selection + 8, 0);
+            work->state = 2;
+            work->pending_difficulty = work->original_cpu_difficulty;
+            HuSprBankSet(padConfigSprGrp, work->selection + 8, 0);
             HuAudFXPlay(3);
-            arg1->previous_input = 0x200;
+            work->previous_input = 0x200;
         }
-        arg1->repeat_delay = 0;
+        work->repeat_delay = 0;
     }
-    arg1->pending_difficulty += selection_delta;
-    if (GWGameStat.veryHardUnlock == 0 && arg1->pending_difficulty == 4) {
-        arg1->pending_difficulty += selection_delta;
+    work->pending_difficulty += selection_delta;
+    if (GWGameStat.veryHardUnlock == 0 && work->pending_difficulty == 4) {
+        work->pending_difficulty += selection_delta;
     }
-    if (arg1->pending_difficulty > max_difficulty) {
-        arg1->pending_difficulty = 0;
-    } else if (arg1->pending_difficulty < 0) {
-        arg1->pending_difficulty = max_difficulty;
+    if (work->pending_difficulty > max_difficulty) {
+        work->pending_difficulty = 0;
+    } else if (work->pending_difficulty < 0) {
+        work->pending_difficulty = max_difficulty;
     }
-    if (arg1->pending_difficulty != 0) {
-        difficulty_sprite_bank = arg1->pending_difficulty + 3;
+    if (work->pending_difficulty != 0) {
+        difficulty_sprite_bank = work->pending_difficulty + 3;
     } else {
-        difficulty_sprite_bank = arg1->selection;
+        difficulty_sprite_bank = work->selection;
     }
-    HuSprBankSet(padConfigSprGrp, arg1->selection + 4, difficulty_sprite_bank);
+    HuSprBankSet(padConfigSprGrp, work->selection + 4, difficulty_sprite_bank);
 }
 
 /**
  * @brief Configures the controller panel's slide back to the option grid.
- * @param arg0 Object receiving the per-frame return movement.
- * @param arg1 Work state marked as closing for the shared slide updater.
+ * @param object Object receiving the per-frame return movement.
+ * @param work Work state marked as closing for the shared slide updater.
  */
-static void ScrollOutPadConfig(OMOBJ *arg0, ConfigWork *arg1) {
+static void ScrollOutPadConfig(OMOBJ *object, ConfigWork *work) {
     Vec target_pos;
     Vec movement_delta;
 
     HuSprAttrSet(pauseCursorPos, 0, 4);
-    arg0->rot.x = 32.0f;
-    arg0->rot.y = 112.0f;
-    arg0->rot.z = (608.0f - arg0->rot.x) / 20.0f;
-    arg1->transition_frames = 0x14;
+    object->rot.x = 32.0f;
+    object->rot.y = 112.0f;
+    object->rot.z = (608.0f - object->rot.x) / 20.0f;
+    work->transition_frames = 0x14;
     ShowPadConfigSprite(1);
-    HuSprGrpPosSet(padConfigSprGrp, arg0->rot.x, arg0->rot.y);
+    HuSprGrpPosSet(padConfigSprGrp, object->rot.x, object->rot.y);
     target_pos.x = -40.0f + boxPosTbl[0][0];
     target_pos.y = -32.0f + boxPosTbl[0][1];
     HuSprPosSet(pauseCursorPos, 0, target_pos.x, target_pos.y);
@@ -1065,20 +1065,20 @@ static void ScrollOutPadConfig(OMOBJ *arg0, ConfigWork *arg1) {
     target_pos.y = boxPosTbl[0][1];
     target_pos.z = 700.0f;
     VECSubtract(&target_pos, &padBoxPos, &movement_delta);
-    arg0->scale.x = movement_delta.x / 20.0f;
-    arg0->scale.y = movement_delta.y / 20.0f;
-    arg1->state = 1;
-    arg1->pad_config_closing = 1;
+    object->scale.x = movement_delta.x / 20.0f;
+    object->scale.y = movement_delta.y / 20.0f;
+    work->state = 1;
+    work->pad_config_closing = 1;
 }
 
 /**
  * @brief Edits a two-state pause option and animates its box rotation.
- * @param arg0 Configuration object storing rotation state.
- * @param arg1 Work state for the active option editor.
- * @param arg2 Option-box index to edit.
+ * @param object Configuration object storing rotation state.
+ * @param work Work state for the active option editor.
+ * @param option Option-box index to edit.
  * @return `1` once the editor has closed; otherwise `0`.
  */
-static s32 UpdatePauseBox(OMOBJ *arg0, ConfigWork *arg1, s32 arg2) {
+static s32 UpdatePauseBox(OMOBJ *object, ConfigWork *work, s32 option) {
     float model_scale;
     float target_rotation;
     float current_rotation;
@@ -1086,94 +1086,94 @@ static s32 UpdatePauseBox(OMOBJ *arg0, ConfigWork *arg1, s32 arg2) {
     u32 input;
     Mtx model_matrix;
 
-    switch (arg1->state) {
+    switch (work->state) {
         case 0:
-            arg1->original_selection = arg1->selection = boxState[arg2];
-            arg0->rot.x = boxRot[arg2];
-            arg0->rot.y = 0.0f;
-            arg1->state = 1;
+            work->original_selection = work->selection = boxState[option];
+            object->rot.x = boxRot[option];
+            object->rot.y = 0.0f;
+            work->state = 1;
             model_scale = 0.7f;
-            BoardModelScaleSet(boxModelID[arg2], model_scale, model_scale, model_scale);
+            BoardModelScaleSet(boxModelID[option], model_scale, model_scale, model_scale);
             return 0;
         case 1:
             input = HuPadDStk[pausePad] | HuPadBtnDown[pausePad];
-            previous_selection = arg1->selection;
+            previous_selection = work->selection;
             if (input == 1) {
-                arg1->selection++;
+                work->selection++;
             }
             if (input == 2) {
-                arg1->selection--;
+                work->selection--;
             }
-            if (arg1->selection < 0) {
-                arg1->selection = 0;
-            } else if (arg1->selection > 1) {
-                arg1->selection = 1;
+            if (work->selection < 0) {
+                work->selection = 0;
+            } else if (work->selection > 1) {
+                work->selection = 1;
             } else if (input == 1 || input == 2) {
                 HuAudFXPlay(0);
             }
             if (input == 0x100) {
-                arg1->state = 3;
+                work->state = 3;
                 HuAudFXPlay(2);
             } else if (input == 0x200) {
-                arg1->state = 4;
+                work->state = 4;
                 HuAudFXPlay(3);
-            } else if (previous_selection != arg1->selection) {
-                if (arg1->selection != 0) {
+            } else if (previous_selection != work->selection) {
+                if (work->selection != 0) {
                     target_rotation = 0.0f;
                 } else {
                     target_rotation = -90.0f;
                 }
-                current_rotation = arg0->rot.x;
-                arg0->rot.y = (target_rotation - current_rotation) / 30.0f;
-                arg1->transition_frames = 30;
-                arg1->state = 2;
+                current_rotation = object->rot.x;
+                object->rot.y = (target_rotation - current_rotation) / 30.0f;
+                work->transition_frames = 30;
+                work->state = 2;
             }
             break;
         case 2:
-            if (arg1->transition_frames != 0) {
-                arg0->rot.x += arg0->rot.y;
-                arg1->transition_frames--;
+            if (work->transition_frames != 0) {
+                object->rot.x += object->rot.y;
+                work->transition_frames--;
             } else {
-                arg1->state = 1;
+                work->state = 1;
             }
             break;
         case 3:
-            boxState[arg2] = arg1->selection;
-            boxRot[arg2] = arg0->rot.x;
-            arg1->original_selection = -1;
-            arg1->state = 5;
-            arg1->rotation_delay = 0;
+            boxState[option] = work->selection;
+            boxRot[option] = object->rot.x;
+            work->original_selection = -1;
+            work->state = 5;
+            work->write_only_s16 = 0;
             break;
         case 4:
-            boxState[arg2] = arg1->original_selection;
-            arg1->selection = boxState[arg2];
-            arg0->rot.x = boxRot[arg2];
-            arg1->state = 5;
-            arg1->rotation_delay = 0;
+            boxState[option] = work->original_selection;
+            work->selection = boxState[option];
+            object->rot.x = boxRot[option];
+            work->state = 5;
+            work->write_only_s16 = 0;
             break;
         case 5:
             model_scale = 0.5f;
-            BoardModelScaleSet(boxModelID[arg2], model_scale, model_scale, model_scale);
-            arg1->option_active = 0;
-            arg1->selection = 0;
-            arg1->pending_difficulty = 0;
-            arg1->state = 0;
+            BoardModelScaleSet(boxModelID[option], model_scale, model_scale, model_scale);
+            work->option_active = 0;
+            work->selection = 0;
+            work->pending_difficulty = 0;
+            work->state = 0;
             return 1;
     }
-    RotateBox(3.5f, arg0->rot.x, model_matrix);
-    BoardModelMtxSet(boxModelID[arg2], &model_matrix);
-    boxState[arg2] = arg1->selection;
+    RotateBox(3.5f, object->rot.x, model_matrix);
+    BoardModelMtxSet(boxModelID[option], &model_matrix);
+    boxState[option] = work->selection;
     return 0;
 }
 
 /**
  * @brief Edits a two- or three-state option and animates its box rotation.
- * @param arg0 Configuration object storing rotation state.
- * @param arg1 Work state for the active option editor.
- * @param arg2 Option-box index; index 3 has two states without custom packs.
+ * @param object Configuration object storing rotation state.
+ * @param work Work state for the active option editor.
+ * @param option Option-box index; index 3 has two states without custom packs.
  * @return `1` once the editor has closed; otherwise `0`.
  */
-static s32 UpdatePauseBoxExt(OMOBJ *arg0, ConfigWork *arg1, s32 arg2) {
+static s32 UpdatePauseBoxExt(OMOBJ *object, ConfigWork *work, s32 option) {
     float model_scale;
     float target_rotation;
     float current_rotation;
@@ -1182,44 +1182,44 @@ static s32 UpdatePauseBoxExt(OMOBJ *arg0, ConfigWork *arg1, s32 arg2) {
     u32 input;
     Mtx model_matrix;
 
-    if (arg2 == 3 && GWGameStat.customPackEnable == 0) {
+    if (option == 3 && GWGameStat.customPackEnable == 0) {
         max_selection = 1;
     } else {
         max_selection = 2;
     }
-    switch (arg1->state) {
+    switch (work->state) {
         case 0:
-            arg1->original_selection = arg1->selection = boxState[arg2];
-            arg0->rot.x = boxRot[arg2];
-            arg0->rot.y = 0.0f;
-            arg1->state = 1;
+            work->original_selection = work->selection = boxState[option];
+            object->rot.x = boxRot[option];
+            object->rot.y = 0.0f;
+            work->state = 1;
             model_scale = 0.7f;
-            BoardModelScaleSet(boxModelID[arg2], model_scale, model_scale, model_scale);
+            BoardModelScaleSet(boxModelID[option], model_scale, model_scale, model_scale);
             return 0;
         case 1:
             input = HuPadDStk[pausePad] | HuPadBtnDown[pausePad];
-            previous_selection = arg1->selection;
+            previous_selection = work->selection;
             if (input == 1) {
-                arg1->selection--;
+                work->selection--;
             }
             if (input == 2) {
-                arg1->selection++;
+                work->selection++;
             }
-            if (arg1->selection < 0) {
-                arg1->selection = 0;
-            } else if (arg1->selection > max_selection) {
-                arg1->selection = max_selection;
+            if (work->selection < 0) {
+                work->selection = 0;
+            } else if (work->selection > max_selection) {
+                work->selection = max_selection;
             } else if (input == 1 || input == 2) {
                 HuAudFXPlay(0);
             }
             if (input == 0x100) {
-                arg1->state = 3;
+                work->state = 3;
                 HuAudFXPlay(2);
             } else if (input == 0x200) {
-                arg1->state = 4;
+                work->state = 4;
                 HuAudFXPlay(3);
-            } else if (previous_selection != arg1->selection) {
-                switch (arg1->selection) {
+            } else if (previous_selection != work->selection) {
+                switch (work->selection) {
                     case 0:
                         target_rotation = 90.0f;
                         break;
@@ -1230,56 +1230,56 @@ static s32 UpdatePauseBoxExt(OMOBJ *arg0, ConfigWork *arg1, s32 arg2) {
                         target_rotation = -90.0f;
                         break;
                 }
-                current_rotation = arg0->rot.x;
-                arg0->rot.y = (target_rotation - current_rotation) / 30.0f;
-                arg1->transition_frames = 30;
-                arg1->state = 2;
+                current_rotation = object->rot.x;
+                object->rot.y = (target_rotation - current_rotation) / 30.0f;
+                work->transition_frames = 30;
+                work->state = 2;
             }
             break;
         case 2:
-            if (arg1->transition_frames != 0) {
-                arg0->rot.x += arg0->rot.y;
-                arg1->transition_frames--;
+            if (work->transition_frames != 0) {
+                object->rot.x += object->rot.y;
+                work->transition_frames--;
             } else {
-                arg1->state = 1;
+                work->state = 1;
             }
             break;
         case 3:
-            boxState[arg2] = arg1->selection;
-            boxRot[arg2] = arg0->rot.x;
-            arg1->state = 5;
-            arg1->rotation_delay = 0;
-            arg1->original_selection = -1;
+            boxState[option] = work->selection;
+            boxRot[option] = object->rot.x;
+            work->state = 5;
+            work->write_only_s16 = 0;
+            work->original_selection = -1;
             break;
         case 4:
-            boxState[arg2] = arg1->original_selection;
-            arg1->selection = boxState[arg2];
-            arg0->rot.x = boxRot[arg2];
-            arg1->state = 5;
-            arg1->rotation_delay = 0;
+            boxState[option] = work->original_selection;
+            work->selection = boxState[option];
+            object->rot.x = boxRot[option];
+            work->state = 5;
+            work->write_only_s16 = 0;
             break;
         case 5:
             model_scale = 0.5f;
-            BoardModelScaleSet(boxModelID[arg2], model_scale, model_scale, model_scale);
-            arg1->option_active = 0;
-            arg1->selection = 0;
-            arg1->pending_difficulty = 0;
-            arg1->state = 0;
+            BoardModelScaleSet(boxModelID[option], model_scale, model_scale, model_scale);
+            work->option_active = 0;
+            work->selection = 0;
+            work->pending_difficulty = 0;
+            work->state = 0;
             return 1;
     }
-    RotateBox(3.5f, arg0->rot.x, model_matrix);
-    BoardModelMtxSet(boxModelID[arg2], &model_matrix);
-    boxState[arg2] = arg1->selection;
+    RotateBox(3.5f, object->rot.x, model_matrix);
+    BoardModelMtxSet(boxModelID[option], &model_matrix);
+    boxState[option] = work->selection;
     return 0;
 }
 
 /**
  * @brief Handles navigation and selection in the two-row settings grid.
- * @param arg0 Configuration object whose cursor position is updated by caller.
- * @param arg1 Work state containing the grid coordinates and availability flags.
+ * @param object Configuration object whose cursor position is updated by caller.
+ * @param work Work state containing the grid coordinates and availability flags.
  * @return Selected option index in the range 0 through 7.
  */
-static s32 ExecPauseConfig(OMOBJ *arg0, ConfigWork *arg1) {
+static s32 ExecPauseConfig(OMOBJ *object, ConfigWork *work) {
     s32 selection_allowed;
     s32 selection_blocked;
     s32 column_delta;
@@ -1302,30 +1302,30 @@ static s32 ExecPauseConfig(OMOBJ *arg0, ConfigWork *arg1) {
     if (input == 2) {
         column_delta = 1;
     }
-    arg1->cursor_column += column_delta;
-    arg1->cursor_row += row_delta;
-    if (arg1->cursor_row < 0) {
-        arg1->cursor_row = 0;
-    } else if (arg1->cursor_row >= 2) {
-        arg1->cursor_row = 1;
+    work->cursor_column += column_delta;
+    work->cursor_row += row_delta;
+    if (work->cursor_row < 0) {
+        work->cursor_row = 0;
+    } else if (work->cursor_row >= 2) {
+        work->cursor_row = 1;
     } else if (row_delta != 0) {
         HuAudFXPlay(0);
-        arg1->input_delay = 4;
+        work->input_delay = 4;
     }
-    if (arg1->cursor_column < 0) {
-        arg1->cursor_column = 0;
-    } else if (arg1->cursor_column >= 4) {
-        arg1->cursor_column = 3;
+    if (work->cursor_column < 0) {
+        work->cursor_column = 0;
+    } else if (work->cursor_column >= 4) {
+        work->cursor_column = 3;
     } else if (column_delta != 0) {
         HuAudFXPlay(0);
-        arg1->input_delay = 4;
+        work->input_delay = 4;
     }
     if (input == 0x100) {
         selection_allowed = 1;
         selection_blocked = 0;
-        switch (arg1->cursor_column + arg1->cursor_row * 4) {
+        switch (work->cursor_column + work->cursor_row * 4) {
             case 6:
-                if (arg1->save_unavailable != 0) {
+                if (work->save_unavailable != 0) {
                     selection_allowed = 0;
                     selection_blocked = 1;
                 }
@@ -1341,14 +1341,14 @@ static s32 ExecPauseConfig(OMOBJ *arg0, ConfigWork *arg1) {
             HuAudFXPlay(4);
         } else if (selection_allowed != 0) {
             HuAudFXPlay(2);
-            arg1->option_active = 1;
+            work->option_active = 1;
         }
     }
     if (input == 0x200) {
         HuAudFXPlay(0x1C);
-        arg1->destroy_requested = 1;
+        work->destroy_requested = 1;
     }
-    return arg1->cursor_column + arg1->cursor_row * 4;
+    return work->cursor_column + work->cursor_row * 4;
 }
 
 /** @brief Creates the pause menu's control-hint and settings text windows. */
@@ -1525,15 +1525,15 @@ static void CreatePadConfigSprite(void) {
 
 /**
  * @brief Shows or hides all controller-assignment sprites.
- * @param arg0 Nonzero to show the sprites; zero to hide them.
+ * @param show Nonzero to show the sprites; zero to hide them.
  */
-static void ShowPadConfigSprite(s32 arg0) {
+static void ShowPadConfigSprite(s32 show) {
     s32 port;
     s32 i;
 
     for (i = 0; i < 4; i++) {
         port = GWPlayer[i].port;
-        if (arg0 != 0) {
+        if (show != 0) {
             HuSprAttrReset(padConfigSprGrp, port, HUSPR_ATTR_DISPOFF);
             HuSprAttrReset(padConfigSprGrp, port + 4, HUSPR_ATTR_DISPOFF);
             HuSprAttrReset(padConfigSprGrp, port + 8, HUSPR_ATTR_DISPOFF);
@@ -1543,7 +1543,7 @@ static void ShowPadConfigSprite(s32 arg0) {
             HuSprAttrSet(padConfigSprGrp, port + 8, HUSPR_ATTR_DISPOFF);
         }
     }
-    if (arg0 != 0) {
+    if (show != 0) {
         HuSprAttrReset(padConfigSprGrp, 12, HUSPR_ATTR_DISPOFF);
     } else {
         HuSprAttrSet(padConfigSprGrp, 12, HUSPR_ATTR_DISPOFF);
@@ -1552,17 +1552,17 @@ static void ShowPadConfigSprite(s32 arg0) {
 
 /**
  * @brief Sets the current-turn or maximum-turn digit sprites.
- * @param arg0 Zero selects current-turn digits; nonzero selects maximum-turn digits.
- * @param arg1 Turn value displayed as one or two decimal digits.
+ * @param number_type Zero selects current-turn digits; nonzero selects maximum-turn digits.
+ * @param value Turn value displayed as one or two decimal digits.
  */
-static void PauseCreateNumber(s32 arg0, s8 arg1) {
+static void PauseCreateNumber(s32 number_type, s8 value) {
     s32 tens_sprite;
     s32 tens_digit;
     s32 ones_digit;
 
-    ones_digit = arg1 % 10;
-    tens_digit = arg1 / 10;
-    if (arg0 == 0) {
+    ones_digit = value % 10;
+    tens_digit = value / 10;
+    if (number_type == 0) {
         tens_sprite = 3;
     } else {
         tens_sprite = 5;
@@ -1607,14 +1607,14 @@ BOOL BoardPauseReqCheck(void) {
 
 /**
  * @brief Maps a controller port to its player index.
- * @param arg0 Controller port number.
+ * @param port Controller port number.
  * @return Matching player index, or `4` when no player uses the port.
  */
-static s32 CheckPort(s32 arg0) {
+static s32 CheckPort(s32 port) {
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        if (arg0 == GWPlayer[i].port) {
+        if (port == GWPlayer[i].port) {
             break;
         }
     }
@@ -1623,11 +1623,11 @@ static s32 CheckPort(s32 arg0) {
 
 /**
  * @brief Builds a box transform relative to the current camera rotation.
- * @param arg0 Additional X-axis rotation in degrees.
- * @param arg1 Additional Y-axis rotation in degrees.
- * @param[out] arg2 Matrix receiving the combined camera and box rotations.
+ * @param x_rotation Additional X-axis rotation in degrees.
+ * @param y_rotation Additional Y-axis rotation in degrees.
+ * @param[out] matrix Matrix receiving the combined camera and box rotations.
  */
-static void RotateBox(float arg0, float arg1, Mtx arg2) {
+static void RotateBox(float x_rotation, float y_rotation, Mtx matrix) {
     Vec camera_rotation;
     Mtx camera_x_matrix;
     Mtx camera_y_matrix;
@@ -1637,9 +1637,9 @@ static void RotateBox(float arg0, float arg1, Mtx arg2) {
     BoardCameraRotGet(&camera_rotation);
     PSMTXRotRad(camera_x_matrix, 'x', MTXDegToRad(camera_rotation.x));
     PSMTXRotRad(camera_y_matrix, 'y', MTXDegToRad(camera_rotation.y));
-    PSMTXRotRad(box_x_matrix, 'x', MTXDegToRad(arg0));
-    PSMTXRotRad(box_y_matrix, 'y', MTXDegToRad(arg1));
+    PSMTXRotRad(box_x_matrix, 'x', MTXDegToRad(x_rotation));
+    PSMTXRotRad(box_y_matrix, 'y', MTXDegToRad(y_rotation));
     PSMTXConcat(camera_y_matrix, camera_x_matrix, camera_y_matrix);
     PSMTXConcat(box_x_matrix, box_y_matrix, box_y_matrix);
-    PSMTXConcat(camera_y_matrix, box_y_matrix, arg2);
+    PSMTXConcat(camera_y_matrix, box_y_matrix, matrix);
 }

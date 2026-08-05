@@ -36,7 +36,7 @@ static void CreateButtonWin(void);
 static void DestroyButtonWin(void);
 static void InitOverheadView(void);
 static void DestroyOverheadView(void);
-static void UpdateOverheadView(OMOBJ *arg0);
+static void UpdateOverheadView(OMOBJ *object);
 static void WaitOverheadView(void);
 
 static Vec focusPos;
@@ -104,9 +104,9 @@ static float overheadCamPosZ[] = {
  * @details Temporarily disables pausing, hides item status UI, and waits for
  * the overhead-view process and its display object to finish.
  *
- * @param arg0 Player index whose controller and board position are used.
+ * @param player Player index whose controller and board position are used.
  */
-void BoardViewOverheadExec(s32 arg0) {
+void BoardViewOverheadExec(s32 player) {
     if (BoardPauseDisableGet() == 0) {
         BoardPauseDisableSet(1);
         pauseDisableF = 1;
@@ -122,10 +122,10 @@ void BoardViewOverheadExec(s32 arg0) {
     viewProc = HuPrcChildCreate(ExecOverheadView, 0x200A, 0x3800, 0, boardMainProc);
     HuPrcDestructorSet2(viewProc, DestroyView);
     viewControls = 2;
-    viewPlayer = arg0;
+    viewPlayer = player;
     focusTimer = 1;
     viewMoveF = 0;
-    BoardPlayerPosGet(arg0, &focusPos);
+    BoardPlayerPosGet(player, &focusPos);
     BoardStatusItemSet(0);
     while (viewProc != NULL) {
         HuPrcVSleep();
@@ -139,44 +139,44 @@ void BoardViewOverheadExec(s32 arg0) {
 /**
  * @brief Gets the current position of the active view-focus model.
  *
- * @param[out] arg0 Destination vector, or `NULL` to do nothing.
+ * @param[out] position Destination vector, or `NULL` to do nothing.
  */
-void BoardViewFocusGetPos(Vec *arg0) {
-    if (arg0) {
-        BoardModelPosGet(focusMdl, arg0);
+void BoardViewFocusGetPos(Vec *position) {
+    if (position) {
+        BoardModelPosGet(focusMdl, position);
     }
 }
 
 /**
  * @brief Configures a scripted focus movement.
  *
- * @param[in] arg0 Optional starting focus position.
- * @param[in] arg1 Optional target focus position.
- * @param arg2 Movement duration in frames; zero is treated as one frame.
+ * @param[in] start_position Optional starting focus position.
+ * @param[in] target_position Optional target focus position.
+ * @param duration Movement duration in frames; zero is treated as one frame.
  */
-static inline void BoardViewInlineFunc00(Vec *arg0, Vec *arg1, u16 arg2) {
-    if (arg2 == 0) {
-        arg2 = 1;
+static inline void BoardViewInlineFunc00(Vec *start_position, Vec *target_position, u16 duration) {
+    if (duration == 0) {
+        duration = 1;
     }
     viewControls = 1;
     viewPlayer = -1;
-    focusTimer = arg2;
+    focusTimer = duration;
     viewMoveF = 1;
-    if (arg0) {
-        focusPos = *arg0;
+    if (start_position) {
+        focusPos = *start_position;
     }
-    if (arg1) {
-        focusPosTarget = *arg1;
+    if (target_position) {
+        focusPosTarget = *target_position;
     }
 }
 
 /**
  * @brief Sets a target for the currently active scripted view.
  *
- * @param[in] arg0 Target focus position.
- * @param arg1 Movement duration in frames.
+ * @param[in] target_position Target focus position.
+ * @param duration Movement duration in frames.
  */
-void BoardViewFocusSet(Vec *arg0, u16 arg1) {
+void BoardViewFocusSet(Vec *target_position, u16 duration) {
     u16 unused_duration;
 
     if (BoardPauseDisableGet() == 0) {
@@ -186,18 +186,18 @@ void BoardViewFocusSet(Vec *arg0, u16 arg1) {
         pauseDisableF = 0;
     }
     focusDestroyF = 1;
-    BoardViewInlineFunc00(NULL, arg0, arg1);
+    BoardViewInlineFunc00(NULL, target_position, duration);
     HuPrcSleep(2);
 }
 
 /**
  * @brief Starts a scripted camera-focus movement process.
  *
- * @param[in] arg0 Optional starting focus position.
- * @param[in] arg1 Optional target focus position.
- * @param arg2 Movement duration in frames.
+ * @param[in] start_position Optional starting focus position.
+ * @param[in] target_position Optional target focus position.
+ * @param duration Movement duration in frames.
  */
-void BoardViewMoveStart(Vec *arg0, Vec *arg1, u16 arg2) {
+void BoardViewMoveStart(Vec *start_position, Vec *target_position, u16 duration) {
     u16 unused_duration;
 
     if (BoardPauseDisableGet() == 0) {
@@ -209,7 +209,7 @@ void BoardViewMoveStart(Vec *arg0, Vec *arg1, u16 arg2) {
     viewProc = HuPrcChildCreate(ExecStarView, 0x200A, 0x3800, 0, boardMainProc);
     HuPrcDestructorSet2(viewProc, DestroyView);
     focusDestroyF = 0;
-    BoardViewInlineFunc00(arg0, arg1, arg2);
+    BoardViewInlineFunc00(start_position, target_position, duration);
     HuPrcSleep(2);
 }
 
@@ -238,9 +238,9 @@ void BoardViewWait(void) {
 /**
  * @brief Runs the player-controlled board map view.
  *
- * @param arg0 Player index whose position and controller are used.
+ * @param player Player index whose position and controller are used.
  */
-void BoardViewMapExec(s32 arg0) {
+void BoardViewMapExec(s32 player) {
     if (BoardPauseDisableGet() == 0) {
         BoardPauseDisableSet(1);
         pauseDisableF = 1;
@@ -250,10 +250,10 @@ void BoardViewMapExec(s32 arg0) {
     viewProc = HuPrcChildCreate(ExecMapView, 0x200A, 0x3800, 0, boardMainProc);
     HuPrcDestructorSet2(viewProc, DestroyView);
     viewControls = 0;
-    viewPlayer = arg0;
+    viewPlayer = player;
     focusTimer = 1;
     viewMoveF = 0;
-    BoardPlayerPosGet(arg0, &focusPos);
+    BoardPlayerPosGet(player, &focusPos);
     while (viewProc != NULL) {
         HuPrcVSleep();
     }
@@ -450,32 +450,32 @@ static void DestroyFocus(void) {
 /** @brief Creates the on-screen window describing the view controls. */
 static void CreateButtonWin(void) {
     float message_size[2];
-    float posX;
-    float posY;
+    float pos_x;
+    float pos_y;
     s32 message_id;
 
     if (viewControls != 2) {
         message_id = MAKE_MESSID(0x09, 0x05);
         #if VERSION_PAL
         HuWinMesMaxSizeGet(1, message_size, message_id);
-        posX = 288-((message_size[0]/2)-32);
+        pos_x = 288-((message_size[0]/2)-32);
         #endif
-        posY = 286.0f;
+        pos_y = 286.0f;
     } else {
         message_id = MAKE_MESSID(0x10, 0x4D);
         #if VERSION_PAL
-        posX = -10000.0f;
-        posY = 324.0f;
+        pos_x = -10000.0f;
+        pos_y = 324.0f;
         #else
-        posY = 328.0f;
+        pos_y = 328.0f;
         #endif
         
     }
     HuWinMesMaxSizeGet(1, message_size, message_id);
     #if VERSION_NTSC
-    posX = -10000.0f;
+    pos_x = -10000.0f;
     #endif
-    buttonWin = HuWinCreate(posX, posY, message_size[0], message_size[1], 0);
+    buttonWin = HuWinCreate(pos_x, pos_y, message_size[0], message_size[1], 0);
     HuWinBGTPLvlSet(buttonWin, 0.0f);
     HuWinMesSpeedSet(buttonWin, 0);
     HuWinMesSet(buttonWin, message_id);
@@ -569,9 +569,9 @@ static void DestroyOverheadView(void) {
 /**
  * @brief Updates overhead markers and their guide lines.
  *
- * @param arg0 Object that owns the overhead-view work data.
+ * @param object Object that owns the overhead-view work data.
  */
-static void UpdateOverheadView(OMOBJ *arg0) {
+static void UpdateOverheadView(OMOBJ *object) {
     Vec marker_screen_pos;
     Vec board_screen_pos;
     Vec guide_delta;
@@ -586,7 +586,7 @@ static void UpdateOverheadView(OMOBJ *arg0) {
     Mtx camera_x_rotation;
     Mtx camera_rotation;
 
-    work = omObjGetWork(arg0, OverheadWork);
+    work = omObjGetWork(object, OverheadWork);
     if (work->destroy_requested != 0 || BoardIsKill()) {
         if (work->sprite_group != -1) {
             HuSprGrpKill(work->sprite_group);
@@ -595,7 +595,7 @@ static void UpdateOverheadView(OMOBJ *arg0) {
             BoardModelKill(work->star_model);
         }
         overheadObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     buttons_down = HuPadBtnDown[GWPlayer[viewPlayer].port];
