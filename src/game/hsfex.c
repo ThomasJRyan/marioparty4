@@ -9,568 +9,656 @@
 #define DISP_HALF_H (HU_DISP_HEIGHT/2.0f)
 
 typedef struct {
-    /* 0x00 */ float unk00;
-    /* 0x04 */ float unk04;
-    /* 0x08 */ Vec unk08;
-    /* 0x14 */ Vec unk14;
-    /* 0x20 */ Vec unk20;
+    /* 0x00 */ float time;
+    /* 0x04 */ float distance;
+    /* 0x08 */ Vec position;
+    /* 0x14 */ Vec up;
+    /* 0x20 */ Vec target;
 } HsfexStruct02; // Size 0x2C
 
-static void SetObjCamMotion(s16 arg0, HSFTRACK *arg1, float arg2, HsfexStruct02 *arg3);
+static void SetObjCamMotion(s16 model_id, HSFTRACK *track, float value, HsfexStruct02 *sample);
 
-void CamMotionEx2(s16 arg0, s16 arg1, float arg2, s16 arg3) {
-    HU3DCAMERA *temp_r30;
+/**
+ * @brief Plays a model camera motion from the selected camera's current pose.
+ *
+ * @param model_id Model whose active motion contains the camera tracks.
+ * @param camera_mask Bit mask selecting the camera to update.
+ * @param duration Number of frames over which to play the camera motion.
+ * @param ease_mode Time remapping mode: 0 linear, 1 ease-out, or 2 ease-in.
+ */
+void CamMotionEx2(s16 model_id, s16 camera_mask, float duration, s16 ease_mode) {
+    HU3DCAMERA *camera;
     s16 i;
 
     for (i = 0; i < HU3D_CAM_MAX; i++) {
-        if (arg1 & (1 << i)) {
+        if (camera_mask & (1 << i)) {
             break;
         }
     }
-    temp_r30 = &Hu3DCamera[i];
-    CamMotionEx(arg0, arg1, &temp_r30->pos, &temp_r30->up, &temp_r30->target, arg2, arg3);
+    camera = &Hu3DCamera[i];
+    CamMotionEx(model_id, camera_mask, &camera->pos, &camera->up, &camera->target, duration, ease_mode);
 }
 
-void CamMotionEx(s16 arg0, s16 arg1, Vec *arg2, Vec *arg3, Vec *arg4, float arg5, s16 arg6) {
-    Vec sp3C;
-    float sp2C[4];
-    float sp1C[4];
-    float temp_f29;
-    float var_f27;
-    float var_f26;
-    float var_f30;
-    float var_f31;
-    s16 sp1A;
-    s16 var_r25;
-    s16 var_r29;
-    s16 var_r30;
-    HsfexStruct02 *var_r31;
-    HU3DCAMERA *temp_r27;
-    HU3DMODEL *temp_r23;
-    HSFDATA *temp_r22;
-    HU3DMOTION *temp_r19;
-    HSFDATA *temp_r18;
-    HSFOBJECT *temp_r24;
-    HSFTRACK *temp_r20;
-    HSFMOTION *temp_r26;
-    HsfexStruct02 *temp_r21;
-    HSFTRACK *var_r28;
+/**
+ * @brief Samples and plays the camera tracks in a model motion.
+ *
+ * @details Samples the source motion at six-frame intervals, redistributes the
+ * samples by travelled distance, and interpolates the camera pose each frame.
+ *
+ * @param model_id Model whose active motion contains the camera tracks.
+ * @param camera_mask Bit mask selecting the camera to update.
+ * @param start_position Camera position used before the first sampled key.
+ * @param start_up Camera up vector used before the first sampled key.
+ * @param start_target Camera target used before the first sampled key.
+ * @param duration Number of frames over which to play the camera motion.
+ * @param ease_mode Time remapping mode: 0 linear, 1 ease-out, or 2 ease-in;
+ * other values are not handled.
+ */
+void CamMotionEx(s16 model_id, s16 camera_mask, Vec *start_position, Vec *start_up, Vec *start_target, float duration, s16 ease_mode) {
+    Vec segment_delta;
+    float control_values[4];
+    float control_times[4];
+    float motion_max_time;
+    float accumulated_distance;
+    float total_distance;
+    float playback_time;
+    float frame;
+    s16 sample_capacity;
+    s16 camera_index;
+    s16 sample_count;
+    s16 sample_index;
+    HsfexStruct02 *sample;
+    HU3DCAMERA *camera;
+    HU3DMODEL *model;
+    HSFDATA *model_hsf;
+    HU3DMOTION *motion_data;
+    HSFDATA *motion_hsf;
+    HSFOBJECT *target_object;
+    HSFTRACK *track_end;
+    HSFMOTION *motion;
+    HsfexStruct02 *samples;
+    HSFTRACK *track;
 
-    temp_r23 = &Hu3DData[arg0];
-    temp_r19 = &Hu3DMotion[temp_r23->motId];
-    temp_r22 = temp_r23->hsf;
-    temp_r18 = temp_r19->hsf;
-    temp_r26 = temp_r18->motion;
-    for (var_r25 = 0; var_r25 < HU3D_CAM_MAX; var_r25++) {
-        if (arg1 & (1 << var_r25)) {
+    model = &Hu3DData[model_id];
+    motion_data = &Hu3DMotion[model->motId];
+    model_hsf = model->hsf;
+    motion_hsf = motion_data->hsf;
+    motion = motion_hsf->motion;
+    for (camera_index = 0; camera_index < HU3D_CAM_MAX; camera_index++) {
+        if (camera_mask & (1 << camera_index)) {
             break;
         }
     }
-    temp_r27 = &Hu3DCamera[var_r25];
-    temp_f29 = temp_r26->maxTime;
-    sp1A = 0.5f + (temp_f29 / 6.0f) + 1.0f;
-    var_r31 = temp_r21 = HuMemDirectMallocNum(HEAP_HEAP, (sp1A + 1) * sizeof(HsfexStruct02), HU_MEMNUM_OVL);
-    var_r31->unk00 = 0.0f;
-    var_r31->unk08 = *arg2;
-    var_r31->unk20 = *arg4;
-    var_r31->unk14 = *arg3;
-    var_r31++;
-    for (var_r29 = 1, var_f31 = 0.0f; var_f31 <= temp_f29; var_r31++, var_r29++) {
-        var_r31->unk00 = var_f31;
-        var_r28 = temp_r26->track;
-        temp_r20 = &var_r28[temp_r26->numTracks];
-        while (var_r28 < temp_r20) {
-            if (var_r28->type == 2) {
-                temp_r24 = &temp_r22->object[var_r28->target];
-                if (temp_r24->type == 7) {
-                    SetObjCamMotion(arg0, var_r28, GetCurve(var_r28, var_f31), var_r31);
+    camera = &Hu3DCamera[camera_index];
+    motion_max_time = motion->maxTime;
+    sample_capacity = 0.5f + (motion_max_time / 6.0f) + 1.0f;
+    sample = samples = HuMemDirectMallocNum(HEAP_HEAP, (sample_capacity + 1) * sizeof(HsfexStruct02), HU_MEMNUM_OVL);
+    sample->time = 0.0f;
+    sample->position = *start_position;
+    sample->target = *start_target;
+    sample->up = *start_up;
+    sample++;
+    for (sample_count = 1, frame = 0.0f; frame <= motion_max_time; sample++, sample_count++) {
+        sample->time = frame;
+        track = motion->track;
+        track_end = &track[motion->numTracks];
+        while (track < track_end) {
+            if (track->type == 2) {
+                target_object = &model_hsf->object[track->target];
+                if (target_object->type == 7) {
+                    SetObjCamMotion(model_id, track, GetCurve(track, frame), sample);
                 }
             }
-            var_r28++;
+            track++;
         }
-        var_f31 += 6.0f;
+        frame += 6.0f;
     }
-    if (var_f31 != temp_f29) {
-        var_r31->unk00 = temp_f29;
-        var_r28 = temp_r26->track;
-        temp_r20 = &var_r28[temp_r26->numTracks];
-        while (var_r28 < temp_r20) {
-            if (var_r28->type == 2) {
-                temp_r24 = &temp_r22->object[var_r28->target];
-                if (temp_r24->type == 7) {
-                    SetObjCamMotion(arg0, var_r28, GetCurve(var_r28, temp_f29), var_r31);
+    if (frame != motion_max_time) {
+        sample->time = motion_max_time;
+        track = motion->track;
+        track_end = &track[motion->numTracks];
+        while (track < track_end) {
+            if (track->type == 2) {
+                target_object = &model_hsf->object[track->target];
+                if (target_object->type == 7) {
+                    SetObjCamMotion(model_id, track, GetCurve(track, motion_max_time), sample);
                 }
             }
-            var_r28++;
+            track++;
         }
-        var_r29++;
+        sample_count++;
     }
-    var_r31 = temp_r21;
-    var_r31->unk04 = 0.0f;
-    var_f26 = 0.0f;
-    for (var_f31 = var_f26; var_f31 < var_r29 - 1; var_f31 += 1.0f, var_r31++) {
-        VECSubtract(&var_r31[1].unk08, &var_r31[0].unk08, &sp3C);
-        var_r31[1].unk04 = VECMag(&sp3C);
-        var_f26 += var_r31[1].unk04;
+    sample = samples;
+    sample->distance = 0.0f;
+    total_distance = 0.0f;
+    for (frame = total_distance; frame < sample_count - 1; frame += 1.0f, sample++) {
+        VECSubtract(&sample[1].position, &sample[0].position, &segment_delta);
+        sample[1].distance = VECMag(&segment_delta);
+        total_distance += sample[1].distance;
     }
-    var_r31 = temp_r21;
-    var_f27 = 0.0f;
-    var_f31 = var_f27;
-    while (var_f31 < var_r29) {
-        var_f27 += var_r31->unk04;
-        var_r31->unk00 = arg5 * (var_f27 / var_f26);
-        var_f31 += 1.0f;
-        var_r31++;
+    sample = samples;
+    accumulated_distance = 0.0f;
+    frame = accumulated_distance;
+    while (frame < sample_count) {
+        accumulated_distance += sample->distance;
+        sample->time = duration * (accumulated_distance / total_distance);
+        frame += 1.0f;
+        sample++;
     }
-    var_f31 = 0.0f;
-    while (var_f31 <= arg5) {
-        switch (arg6) {
+    frame = 0.0f;
+    while (frame <= duration) {
+        switch (ease_mode) {
             case 0:
-                var_f30 = var_f31;
+                playback_time = frame;
                 break;
             case 1:
-                var_f30 = arg5 * sind(90.0f * (var_f31 / arg5));
+                playback_time = duration * sind(90.0f * (frame / duration));
                 break;
             case 2:
-                var_f30 = arg5 * (1.0 - cosd(90.0f * (var_f31 / arg5)));
+                playback_time = duration * (1.0 - cosd(90.0f * (frame / duration)));
                 break;
             }
-        var_r31 = temp_r21;
-        for (var_r30 = 0; var_r30 < var_r29; var_r30++, var_r31++) {
-            if (var_r31->unk00 <= var_f30 && var_r31[1].unk00 > var_f30) {
+        sample = samples;
+        for (sample_index = 0; sample_index < sample_count; sample_index++, sample++) {
+            if (sample->time <= playback_time && sample[1].time > playback_time) {
                 break;
             }
         }
-        if (var_r30 != var_r29) {
-            if (var_r30 == 0) {
-                sp1C[0] = -1.0f;
+        if (sample_index != sample_count) {
+            if (sample_index == 0) {
+                control_times[0] = -1.0f;
             } else {
-                sp1C[0] = var_r31[-1].unk00;
+                control_times[0] = sample[-1].time;
             }
-            sp1C[1] = var_r31->unk00;
-            if (var_r30 >= var_r29 - 1) {
-                sp1C[2] = 1.0f + var_r31->unk00;
+            control_times[1] = sample->time;
+            if (sample_index >= sample_count - 1) {
+                control_times[2] = 1.0f + sample->time;
             }
-            sp1C[2] = var_r31[1].unk00;
-            if (var_r30 >= var_r29 - 2) {
-                sp1C[3] = 1.0f + sp1C[2];
+            control_times[2] = sample[1].time;
+            if (sample_index >= sample_count - 2) {
+                control_times[3] = 1.0f + control_times[2];
             } else {
-                sp1C[3] = var_r31[2].unk00;
+                control_times[3] = sample[2].time;
             }
-            if (var_r30 == 0) {
-                sp2C[0] = var_r31[0].unk08.x;
+            if (sample_index == 0) {
+                control_values[0] = sample[0].position.x;
             } else {
-                sp2C[0] = var_r31[-1].unk08.x;
+                control_values[0] = sample[-1].position.x;
             }
-            sp2C[1] = var_r31[0].unk08.x;
-            if (var_r30 >= var_r29 - 1) {
-                sp2C[2] = sp2C[1];
+            control_values[1] = sample[0].position.x;
+            if (sample_index >= sample_count - 1) {
+                control_values[2] = control_values[1];
             } else {
-                sp2C[2] = var_r31[1].unk08.x;
+                control_values[2] = sample[1].position.x;
             }
-            if (var_r30 >= var_r29 - 2) {
-                sp2C[3] = sp2C[2];
+            if (sample_index >= sample_count - 2) {
+                control_values[3] = control_values[2];
             } else {
-                sp2C[3] = var_r31[2].unk08.x;
+                control_values[3] = sample[2].position.x;
             }
-            temp_r27->pos.x = InterpolateBMLine(sp2C, sp1C, var_f30);
-            if (var_r30 == 0) {
-                sp2C[0] = var_r31[0].unk08.y;
+            camera->pos.x = InterpolateBMLine(control_values, control_times, playback_time);
+            if (sample_index == 0) {
+                control_values[0] = sample[0].position.y;
             } else {
-                sp2C[0] = var_r31[-1].unk08.y;
+                control_values[0] = sample[-1].position.y;
             }
-            sp2C[1] = var_r31[0].unk08.y;
-            if (var_r30 >= var_r29 - 1) {
-                sp2C[2] = sp2C[1];
+            control_values[1] = sample[0].position.y;
+            if (sample_index >= sample_count - 1) {
+                control_values[2] = control_values[1];
             } else {
-                sp2C[2] = var_r31[1].unk08.y;
+                control_values[2] = sample[1].position.y;
             }
-            if (var_r30 >= var_r29 - 2) {
-                sp2C[3] = sp2C[2];
+            if (sample_index >= sample_count - 2) {
+                control_values[3] = control_values[2];
             } else {
-                sp2C[3] = var_r31[2].unk08.y;
+                control_values[3] = sample[2].position.y;
             }
-            temp_r27->pos.y = InterpolateBMLine(sp2C, sp1C, var_f30);
-            if (var_r30 == 0) {
-                sp2C[0] = var_r31[0].unk08.z;
+            camera->pos.y = InterpolateBMLine(control_values, control_times, playback_time);
+            if (sample_index == 0) {
+                control_values[0] = sample[0].position.z;
             } else {
-                sp2C[0] = var_r31[-1].unk08.z;
+                control_values[0] = sample[-1].position.z;
             }
-            sp2C[1] = var_r31[0].unk08.z;
-            if (var_r30 >= var_r29 - 1) {
-                sp2C[2] = sp2C[1];
+            control_values[1] = sample[0].position.z;
+            if (sample_index >= sample_count - 1) {
+                control_values[2] = control_values[1];
             } else {
-                sp2C[2] = var_r31[1].unk08.z;
+                control_values[2] = sample[1].position.z;
             }
-            if (var_r30 >= var_r29 - 2) {
-                sp2C[3] = sp2C[2];
+            if (sample_index >= sample_count - 2) {
+                control_values[3] = control_values[2];
             } else {
-                sp2C[3] = var_r31[2].unk08.z;
+                control_values[3] = sample[2].position.z;
             }
-            temp_r27->pos.z = InterpolateBMLine(sp2C, sp1C, var_f30);
-            if (var_r30 == 0) {
-                sp2C[0] = var_r31[0].unk20.x;
+            camera->pos.z = InterpolateBMLine(control_values, control_times, playback_time);
+            if (sample_index == 0) {
+                control_values[0] = sample[0].target.x;
             } else {
-                sp2C[0] = var_r31[-1].unk20.x;
+                control_values[0] = sample[-1].target.x;
             }
-            sp2C[1] = var_r31[0].unk20.x;
-            if (var_r30 >= var_r29 - 1) {
-                sp2C[2] = sp2C[1];
+            control_values[1] = sample[0].target.x;
+            if (sample_index >= sample_count - 1) {
+                control_values[2] = control_values[1];
             } else {
-                sp2C[2] = var_r31[1].unk20.x;
+                control_values[2] = sample[1].target.x;
             }
-            if (var_r30 >= var_r29 - 2) {
-                sp2C[3] = sp2C[2];
+            if (sample_index >= sample_count - 2) {
+                control_values[3] = control_values[2];
             } else {
-                sp2C[3] = var_r31[2].unk20.x;
+                control_values[3] = sample[2].target.x;
             }
-            temp_r27->target.x = InterpolateBMLine(sp2C, sp1C, var_f30);
-            if (var_r30 == 0) {
-                sp2C[0] = var_r31->unk20.y;
+            camera->target.x = InterpolateBMLine(control_values, control_times, playback_time);
+            if (sample_index == 0) {
+                control_values[0] = sample->target.y;
             } else {
-                sp2C[0] = var_r31[-1].unk20.y;
+                control_values[0] = sample[-1].target.y;
             }
-            sp2C[1] = var_r31->unk20.y;
-            if (var_r30 >= var_r29 - 1) {
-                sp2C[2] = sp2C[1];
+            control_values[1] = sample->target.y;
+            if (sample_index >= sample_count - 1) {
+                control_values[2] = control_values[1];
             } else {
-                sp2C[2] = var_r31[1].unk20.y;
+                control_values[2] = sample[1].target.y;
             }
-            if (var_r30 >= var_r29 - 2) {
-                sp2C[3] = sp2C[2];
+            if (sample_index >= sample_count - 2) {
+                control_values[3] = control_values[2];
             } else {
-                sp2C[3] = var_r31[2].unk20.y;
+                control_values[3] = sample[2].target.y;
             }
-            temp_r27->target.y = InterpolateBMLine(sp2C, sp1C, var_f30);
-            if (var_r30 == 0) {
-                sp2C[0] = var_r31->unk20.z;
+            camera->target.y = InterpolateBMLine(control_values, control_times, playback_time);
+            if (sample_index == 0) {
+                control_values[0] = sample->target.z;
             } else {
-                sp2C[0] = var_r31[-1].unk20.z;
+                control_values[0] = sample[-1].target.z;
             }
-            sp2C[1] = var_r31->unk20.z;
-            if (var_r30 >= var_r29 - 1) {
-                sp2C[2] = sp2C[1];
+            control_values[1] = sample->target.z;
+            if (sample_index >= sample_count - 1) {
+                control_values[2] = control_values[1];
             } else {
-                sp2C[2] = var_r31[1].unk20.z;
+                control_values[2] = sample[1].target.z;
             }
-            if (var_r30 >= var_r29 - 2) {
-                sp2C[3] = sp2C[2];
+            if (sample_index >= sample_count - 2) {
+                control_values[3] = control_values[2];
             } else {
-                sp2C[3] = var_r31[2].unk20.z;
+                control_values[3] = sample[2].target.z;
             }
-            temp_r27->target.z = InterpolateBMLine(sp2C, sp1C, var_f30);
-            if (var_r30 == 0) {
-                sp2C[0] = var_r31->unk14.x;
+            camera->target.z = InterpolateBMLine(control_values, control_times, playback_time);
+            if (sample_index == 0) {
+                control_values[0] = sample->up.x;
             } else {
-                sp2C[0] = var_r31[-1].unk14.x;
+                control_values[0] = sample[-1].up.x;
             }
-            sp2C[1] = var_r31->unk14.x;
-            if (var_r30 >= var_r29 - 1) {
-                sp2C[2] = sp2C[1];
+            control_values[1] = sample->up.x;
+            if (sample_index >= sample_count - 1) {
+                control_values[2] = control_values[1];
             } else {
-                sp2C[2] = var_r31[1].unk14.x;
+                control_values[2] = sample[1].up.x;
             }
-            if (var_r30 >= var_r29 - 2) {
-                sp2C[3] = sp2C[2];
+            if (sample_index >= sample_count - 2) {
+                control_values[3] = control_values[2];
             } else {
-                sp2C[3] = var_r31[2].unk14.x;
+                control_values[3] = sample[2].up.x;
             }
-            temp_r27->up.x = InterpolateBMLine(sp2C, sp1C, var_f30);
-            if (var_r30 == 0) {
-                sp2C[0] = var_r31->unk14.y;
+            camera->up.x = InterpolateBMLine(control_values, control_times, playback_time);
+            if (sample_index == 0) {
+                control_values[0] = sample->up.y;
             } else {
-                sp2C[0] = var_r31[-1].unk14.y;
+                control_values[0] = sample[-1].up.y;
             }
-            sp2C[1] = var_r31->unk14.y;
-            if (var_r30 >= var_r29 - 1) {
-                sp2C[2] = sp2C[1];
+            control_values[1] = sample->up.y;
+            if (sample_index >= sample_count - 1) {
+                control_values[2] = control_values[1];
             } else {
-                sp2C[2] = var_r31[1].unk14.y;
+                control_values[2] = sample[1].up.y;
             }
-            if (var_r30 >= var_r29 - 2) {
-                sp2C[3] = sp2C[2];
+            if (sample_index >= sample_count - 2) {
+                control_values[3] = control_values[2];
             } else {
-                sp2C[3] = var_r31[2].unk14.y;
+                control_values[3] = sample[2].up.y;
             }
-            temp_r27->up.y = InterpolateBMLine(sp2C, sp1C, var_f30);
-            if (var_r30 == 0) {
-                sp2C[0] = var_r31->unk14.z;
+            camera->up.y = InterpolateBMLine(control_values, control_times, playback_time);
+            if (sample_index == 0) {
+                control_values[0] = sample->up.z;
             } else {
-                sp2C[0] = var_r31[-1].unk14.z;
+                control_values[0] = sample[-1].up.z;
             }
-            sp2C[1] = var_r31->unk14.z;
-            if (var_r30 >= var_r29 - 1) {
-                sp2C[2] = sp2C[1];
+            control_values[1] = sample->up.z;
+            if (sample_index >= sample_count - 1) {
+                control_values[2] = control_values[1];
             } else {
-                sp2C[2] = var_r31[1].unk14.z;
+                control_values[2] = sample[1].up.z;
             }
-            if (var_r30 >= var_r29 - 2) {
-                sp2C[3] = sp2C[2];
+            if (sample_index >= sample_count - 2) {
+                control_values[3] = control_values[2];
             } else {
-                sp2C[3] = var_r31[2].unk14.z;
+                control_values[3] = sample[2].up.z;
             }
-            temp_r27->up.z = InterpolateBMLine(sp2C, sp1C, var_f30);
+            camera->up.z = InterpolateBMLine(control_values, control_times, playback_time);
             HuPrcVSleep();
-            var_f31 += 1.0f;
+            frame += 1.0f;
         } else {
             break;
         }
     }
-    HuMemDirectFree(temp_r21);
+    HuMemDirectFree(samples);
 }
 
-static void SetObjCamMotion(s16 arg0, HSFTRACK *arg1, float arg2, HsfexStruct02 *arg3) {
-    HU3DMODEL *temp_r31 = &Hu3DData[arg0];
-    Vec sp18;
-    Vec spC;
+/**
+ * @brief Applies one evaluated camera track channel to a sampled camera pose.
+ *
+ * @param model_id Model that supplies the camera transform.
+ * @param track Camera motion track being evaluated.
+ * @param value Evaluated value of the track.
+ * @param sample Camera pose sample to update.
+ */
+static void SetObjCamMotion(s16 model_id, HSFTRACK *track, float value, HsfexStruct02 *sample) {
+    HU3DMODEL *model = &Hu3DData[model_id];
+    Vec rotated_up;
+    Vec view_direction;
 
-    switch (arg1->channel) {
+    switch (track->channel) {
         case 8:
-            arg3->unk08.x = temp_r31->scale.x * (arg2 + temp_r31->pos.x);
+            sample->position.x = model->scale.x * (value + model->pos.x);
             break;
         case 9:
-            arg3->unk08.y = temp_r31->scale.y * (arg2 + temp_r31->pos.y);
+            sample->position.y = model->scale.y * (value + model->pos.y);
             break;
         case 10:
-            arg3->unk08.z = temp_r31->scale.z * (arg2 + temp_r31->pos.z);
+            sample->position.z = model->scale.z * (value + model->pos.z);
             break;
         case 11:
-            arg3->unk20.x = temp_r31->scale.x * (arg2 + temp_r31->pos.x);
+            sample->target.x = model->scale.x * (value + model->pos.x);
             break;
         case 12:
-            arg3->unk20.y = temp_r31->scale.y * (arg2 + temp_r31->pos.y);
+            sample->target.y = model->scale.y * (value + model->pos.y);
             break;
         case 13:
-            arg3->unk20.z = temp_r31->scale.z * (arg2 + temp_r31->pos.z);
+            sample->target.z = model->scale.z * (value + model->pos.z);
             break;
         case 14:
-            VECSubtract(&arg3->unk08, &arg3->unk20, &spC);
-            VECNormalize(&spC, &spC);
-            sp18.x = spC.x * spC.y * (1.0 - cosd(arg2)) - spC.z * sind(arg2);
-            sp18.y = spC.y * spC.y + (1.0f - spC.y * spC.y) * cosd(arg2);
-            sp18.z = spC.y * spC.z * (1.0 - cosd(arg2)) + spC.x * sind(arg2);
-            VECNormalize(&sp18, &arg3->unk14);
+            VECSubtract(&sample->position, &sample->target, &view_direction);
+            VECNormalize(&view_direction, &view_direction);
+            rotated_up.x = view_direction.x * view_direction.y * (1.0 - cosd(value)) - view_direction.z * sind(value);
+            rotated_up.y = view_direction.y * view_direction.y + (1.0f - view_direction.y * view_direction.y) * cosd(value);
+            rotated_up.z = view_direction.y * view_direction.z * (1.0 - cosd(value)) + view_direction.x * sind(value);
+            VECNormalize(&rotated_up, &sample->up);
             break;
     }
 }
 
-float InterpolateBMLine(float *arg0, float *arg1, float arg2) {
-    float sp8[2];
-    float temp_f22;
-    float var_f21;
-    float temp_f20;
-    float temp_f29;
-    float temp_f31;
-    float var_f28;
-    float var_f27;
-    float var_f26;
-    float var_f25;
-    float var_f24;
-    float var_f23;
-    float var_f30;
-    s32 var_r30;
-    s32 var_r29;
+/**
+ * @brief Interpolates between the middle two of four time-value samples.
+ *
+ * @details Uses the neighboring secant slopes to construct two quadratic
+ * segments joined at the midpoint of the second and third sample times.
+ *
+ * @param values Four sample values surrounding the interval to evaluate.
+ * @param times Four corresponding sample times in ascending order.
+ * @param time Sample time between @p times[1] and @p times[2].
+ * @return Interpolated value at @p time.
+ */
+float InterpolateBMLine(float *values, float *times, float time) {
+    float endpoint_slopes[2];
+    float slope_intersection_time;
+    float segment_end_value;
+    float base_slope;
+    float midpoint_time;
+    float half_interval;
+    float midpoint_value;
+    float midpoint_slope;
+    float segment_start_value;
+    float segment_start_slope;
+    float segment_end_time;
+    float segment_end_slope;
+    float segment_start_time;
+    s32 has_slope_intersection;
+    s32 intersection_in_range;
     s32 i;
 
-    if (arg0[0] == arg0[1] && arg0[0] == arg0[2] && arg0[0] == arg0[3]) {
-        return arg0[0];
+    if (values[0] == values[1] && values[0] == values[2] && values[0] == values[3]) {
+        return values[0];
     }
     for (i = 1; i <= 2; i++) {
-        sp8[i - 1] = 0.5f * ((arg0[i] - arg0[i - 1]) / (arg1[i] - arg1[i - 1]) + (arg0[i + 1] - arg0[i]) / (arg1[i + 1] - arg1[i]));
+        endpoint_slopes[i - 1] = 0.5f * ((values[i] - values[i - 1]) / (times[i] - times[i - 1]) + (values[i + 1] - values[i]) / (times[i + 1] - times[i]));
     }
-    temp_f29 = 0.5f * (arg1[2] + arg1[1]);
-    var_r30 = 0;
-    if (sp8[1] - sp8[0] != 0.0f) {
-        temp_f22 = (sp8[1] * arg1[2] - sp8[0] * arg1[1] - (arg0[2] - arg0[1])) / (sp8[1] - sp8[0]);
-        var_r29 = 0;
-        if (arg1[1] <= temp_f22 && temp_f22 <= arg1[2]) {
-            var_r29 = 1;
+    midpoint_time = 0.5f * (times[2] + times[1]);
+    has_slope_intersection = 0;
+    if (endpoint_slopes[1] - endpoint_slopes[0] != 0.0f) {
+        slope_intersection_time = (endpoint_slopes[1] * times[2] - endpoint_slopes[0] * times[1] - (values[2] - values[1])) / (endpoint_slopes[1] - endpoint_slopes[0]);
+        intersection_in_range = 0;
+        if (times[1] <= slope_intersection_time && slope_intersection_time <= times[2]) {
+            intersection_in_range = 1;
         }
-        var_r30 = (var_r29 != 0) ? 1 : 0;
+        has_slope_intersection = (intersection_in_range != 0) ? 1 : 0;
     }
-    if (var_r30 == 1) {
-        temp_f31 = temp_f29 - arg1[1];
-        temp_f20 = (arg0[2] - arg0[1]) / (arg1[2] - arg1[1]) - (sp8[1] - sp8[0]) / 2;
-        var_f28 = temp_f20 * temp_f31 + ((sp8[1] - sp8[0]) / (2.0f * (arg1[2] - arg1[1]))) * temp_f31 * temp_f31 + arg0[1];
-        var_f27 = temp_f20 + temp_f31 * ((sp8[1] - sp8[0]) / (arg1[2] - arg1[1]));
+    if (has_slope_intersection == 1) {
+        half_interval = midpoint_time - times[1];
+        base_slope = (values[2] - values[1]) / (times[2] - times[1]) - (endpoint_slopes[1] - endpoint_slopes[0]) / 2;
+        midpoint_value = base_slope * half_interval + ((endpoint_slopes[1] - endpoint_slopes[0]) / (2.0f * (times[2] - times[1]))) * half_interval * half_interval + values[1];
+        midpoint_slope = base_slope + half_interval * ((endpoint_slopes[1] - endpoint_slopes[0]) / (times[2] - times[1]));
     } else {
-        temp_f31 = temp_f29 - arg1[1];
-        var_f28 = (arg0[2] + arg0[1]) * (temp_f31 / (arg1[2] - arg1[1]));
-        var_f27 = 2.0f * (arg0[2] - arg0[1]) / (arg1[2] - arg1[1]) - (sp8[1] + sp8[0]) * (temp_f31 / (arg1[2] - arg1[1]));
+        half_interval = midpoint_time - times[1];
+        midpoint_value = (values[2] + values[1]) * (half_interval / (times[2] - times[1]));
+        midpoint_slope = 2.0f * (values[2] - values[1]) / (times[2] - times[1]) - (endpoint_slopes[1] + endpoint_slopes[0]) * (half_interval / (times[2] - times[1]));
     }
-    if (arg2 < temp_f29) {
-        var_f30 = arg1[1];
-        var_f26 = arg0[1];
-        var_f25 = sp8[0];
-        var_f24 = temp_f29;
-        var_f21 = var_f28;
-        var_f23 = var_f27;
+    if (time < midpoint_time) {
+        segment_start_time = times[1];
+        segment_start_value = values[1];
+        segment_start_slope = endpoint_slopes[0];
+        segment_end_time = midpoint_time;
+        segment_end_value = midpoint_value;
+        segment_end_slope = midpoint_slope;
     } else {
-        var_f30 = temp_f29;
-        var_f26 = var_f28;
-        var_f25 = var_f27;
-        var_f24 = arg1[2];
-        var_f21 = arg0[2];
-        var_f23 = sp8[1];
+        segment_start_time = midpoint_time;
+        segment_start_value = midpoint_value;
+        segment_start_slope = midpoint_slope;
+        segment_end_time = times[2];
+        segment_end_value = values[2];
+        segment_end_slope = endpoint_slopes[1];
     }
-    return ((var_f23 - var_f25) / (2.0f * (var_f24 - var_f30))) * (arg2 - var_f30) * (arg2 - var_f30) + (arg2 - var_f30) * ((var_f21 - var_f26) / (var_f24 - var_f30) - (var_f23 - var_f25) / 2) + var_f26;
+    return ((segment_end_slope - segment_start_slope) / (2.0f * (segment_end_time - segment_start_time))) * (time - segment_start_time) * (time - segment_start_time) + (time - segment_start_time) * ((segment_end_value - segment_start_value) / (segment_end_time - segment_start_time) - (segment_end_slope - segment_start_slope) / 2) + segment_start_value;
 }
 
-void Hu3D2Dto3D(Vec *arg0, s16 arg1, Vec *arg2) {
-    HU3DCAMERA *temp_r31;
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    float temp_f28;
-    float temp_f27;
+/**
+ * @brief Unprojects a screen coordinate and view depth into world space.
+ *
+ * @param screen_position Screen x/y in pixels and positive view depth in z.
+ * @param camera_mask Bit mask selecting the camera whose view to invert.
+ * @param world_position Receives the corresponding world-space position.
+ */
+void Hu3D2Dto3D(Vec *screen_position, s16 camera_mask, Vec *world_position) {
+    HU3DCAMERA *camera;
+    float view_height;
+    float tan_half_fov;
+    float view_width;
+    float normalized_x;
+    float normalized_y;
     s16 i;
-    Mtx spC;
+    Mtx view_matrix;
 
     for (i = 0; i < HU3D_CAM_MAX; i++) {
-        if (arg1 & (1 << i)) {
+        if (camera_mask & (1 << i)) {
             break;
         }
     }
-    temp_r31 = &Hu3DCamera[i];
-    temp_f30 = sind(temp_r31->fov / 2) / cosd(temp_r31->fov / 2);
-    temp_f31 = temp_f30 * arg0->z * 2.0f;
-    temp_f29 = temp_f31 * HU_DISP_ASPECT;
-    temp_f28 = arg0->x / HU_DISP_WIDTH;
-    temp_f27 = arg0->y / HU_DISP_HEIGHT;
-    arg2->x = (temp_f28 - 0.5) * temp_f29;
-    arg2->y = -(temp_f27 - 0.5) * temp_f31;
-    arg2->z = -arg0->z;
-    C_MTXLookAt(spC, &temp_r31->pos, &temp_r31->up, &temp_r31->target);
-    PSMTXInverse(spC, spC);
-    PSMTXMultVec(spC, arg2, arg2);
+    camera = &Hu3DCamera[i];
+    tan_half_fov = sind(camera->fov / 2) / cosd(camera->fov / 2);
+    view_height = tan_half_fov * screen_position->z * 2.0f;
+    view_width = view_height * HU_DISP_ASPECT;
+    normalized_x = screen_position->x / HU_DISP_WIDTH;
+    normalized_y = screen_position->y / HU_DISP_HEIGHT;
+    world_position->x = (normalized_x - 0.5) * view_width;
+    world_position->y = -(normalized_y - 0.5) * view_height;
+    world_position->z = -screen_position->z;
+    C_MTXLookAt(view_matrix, &camera->pos, &camera->up, &camera->target);
+    PSMTXInverse(view_matrix, view_matrix);
+    PSMTXMultVec(view_matrix, world_position, world_position);
 }
 
-void Hu3D3Dto2D(Vec *arg0, s16 arg1, Vec *arg2) {
-    Vec sp10;
-    HU3DCAMERA *temp_r31;
-    float temp_f31;
-    float temp_f30;
+/**
+ * @brief Projects a world-space point onto the display.
+ *
+ * @param world_position World-space position to project.
+ * @param camera_mask Bit mask selecting the camera used for projection.
+ * @param screen_position Receives x/y display coordinates in pixels; z is set
+ * to zero.
+ */
+void Hu3D3Dto2D(Vec *world_position, s16 camera_mask, Vec *screen_position) {
+    Vec view_position;
+    HU3DCAMERA *camera;
+    float projected_half_width;
+    float projected_half_height;
     s16 i;
-    Mtx sp1C;
+    Mtx view_matrix;
 
     for (i = 0; i < HU3D_CAM_MAX; i++) {
-        if (arg1 & (1 << i)) {
+        if (camera_mask & (1 << i)) {
             break;
         }
     }
-    temp_r31 = &Hu3DCamera[i];
-    C_MTXLookAt(sp1C, &temp_r31->pos, &temp_r31->up, &temp_r31->target);
-    PSMTXMultVec(sp1C, arg0, &sp10);
-    temp_f31 = (sind(temp_r31->fov / 2) / cosd(temp_r31->fov / 2)) * sp10.z * HU_DISP_ASPECT;
-    temp_f30 = (sind(temp_r31->fov / 2) / cosd(temp_r31->fov / 2)) * sp10.z;
-    arg2->x = DISP_HALF_W + sp10.x * (DISP_HALF_W / -temp_f31);
-    arg2->y = DISP_HALF_H + sp10.y * (DISP_HALF_H / temp_f30);
-    arg2->z = 0.0f;
+    camera = &Hu3DCamera[i];
+    C_MTXLookAt(view_matrix, &camera->pos, &camera->up, &camera->target);
+    PSMTXMultVec(view_matrix, world_position, &view_position);
+    projected_half_width = (sind(camera->fov / 2) / cosd(camera->fov / 2)) * view_position.z * HU_DISP_ASPECT;
+    projected_half_height = (sind(camera->fov / 2) / cosd(camera->fov / 2)) * view_position.z;
+    screen_position->x = DISP_HALF_W + view_position.x * (DISP_HALF_W / -projected_half_width);
+    screen_position->y = DISP_HALF_H + view_position.y * (DISP_HALF_H / projected_half_height);
+    screen_position->z = 0.0f;
 }
 
-void Hu3DMtxTransGet(Mtx arg0, Vec *arg1) {
-    arg1->x = arg0[0][3];
-    arg1->y = arg0[1][3];
-    arg1->z = arg0[2][3];
+/**
+ * @brief Extracts the translation column from a 3x4 transform matrix.
+ *
+ * @param matrix Transform matrix to inspect.
+ * @param translation Receives the matrix translation in x, y, and z.
+ */
+void Hu3DMtxTransGet(Mtx matrix, Vec *translation) {
+    translation->x = matrix[0][3];
+    translation->y = matrix[1][3];
+    translation->z = matrix[2][3];
 }
 
-static inline float GetAngleXY(float arg0, float arg1) {
-    if (arg1 == 0.0f) {
-        if (arg0 >= 0.0f) {
+/**
+ * @brief Computes an angle while defining the zero-denominator limit.
+ *
+ * @param numerator Value corresponding to the sine-like axis component.
+ * @param denominator Value corresponding to the cosine-like axis component.
+ * @return Angle in radians in the range produced by atan2f.
+ */
+static inline float GetAngleXY(float numerator, float denominator) {
+    if (denominator == 0.0f) {
+        if (numerator >= 0.0f) {
             return M_PI / 2;
         } else {
             return -(M_PI / 2);
         }
     } else {
-        return atan2f(arg0, arg1);
+        return atan2f(numerator, denominator);
     }
 }
 
-void Hu3DMtxRotGet(Mtx arg0, Vec *arg1) {
-    float sp48;
-    float sp44;
-    float sp3C;
-    float sp34;
-    float temp_f28;
-    float temp_f27;
-    float temp_f26;
-    float var_f25;
-    float temp_f24;
+/**
+ * @brief Extracts Euler rotation from a scaled 3x4 transform matrix.
+ *
+ * @details Removes the column magnitudes before deriving angles. Degenerate
+ * matrices produce a zero rotation vector.
+ *
+ * @param matrix Transform matrix to inspect.
+ * @param rotation Receives x/y/z Euler angles in degrees.
+ */
+void Hu3DMtxRotGet(Mtx matrix, Vec *rotation) {
+    float cos_y;
+    float x_axis_scale;
+    float y_axis_scale;
+    float z_axis_scale;
+    float x_axis_length_squared;
+    float y_axis_length_squared;
+    float z_axis_length_squared;
+    float y_angle;
+    float sin_y;
 
-    temp_f28 = arg0[0][0] * arg0[0][0] + arg0[1][0] * arg0[1][0] + arg0[2][0] * arg0[2][0];
-    sp44 = sqrtf(temp_f28);
-    if (!(sp44 < 0.00000001f)) {
-        temp_f27 = arg0[0][1] * arg0[0][1] + arg0[1][1] * arg0[1][1] + arg0[2][1] * arg0[2][1];
-        sp3C = sqrtf(temp_f27);
-        if (!(sp3C < 0.00000001f)) {
-            temp_f26 = arg0[0][2] * arg0[0][2] + arg0[1][2] * arg0[1][2] + arg0[2][2] * arg0[2][2];
-            sp34 = sqrtf(temp_f26);
-            if (!(sp34 < 0.00000001f)) {
-                temp_f24 = -arg0[2][0] / sp44;
-                if (temp_f24 >= 1.0f) {
-                    var_f25 = M_PI / 2;
-                } else if (temp_f24 <= -1.0f) {
-                    var_f25 = -(M_PI / 2);
+    x_axis_length_squared = matrix[0][0] * matrix[0][0] + matrix[1][0] * matrix[1][0] + matrix[2][0] * matrix[2][0];
+    x_axis_scale = sqrtf(x_axis_length_squared);
+    if (!(x_axis_scale < 0.00000001f)) {
+        y_axis_length_squared = matrix[0][1] * matrix[0][1] + matrix[1][1] * matrix[1][1] + matrix[2][1] * matrix[2][1];
+        y_axis_scale = sqrtf(y_axis_length_squared);
+        if (!(y_axis_scale < 0.00000001f)) {
+            z_axis_length_squared = matrix[0][2] * matrix[0][2] + matrix[1][2] * matrix[1][2] + matrix[2][2] * matrix[2][2];
+            z_axis_scale = sqrtf(z_axis_length_squared);
+            if (!(z_axis_scale < 0.00000001f)) {
+                sin_y = -matrix[2][0] / x_axis_scale;
+                if (sin_y >= 1.0f) {
+                    y_angle = M_PI / 2;
+                } else if (sin_y <= -1.0f) {
+                    y_angle = -(M_PI / 2);
                 } else {
-                    var_f25 = asinf(temp_f24);
+                    y_angle = asinf(sin_y);
                 }
-                arg1->y = var_f25;
-                sp48 = cos(arg1->y);
-                if (sp48 >= 0.00000001f) {
-                    arg1->x = GetAngleXY(arg0[2][1] / sp3C, arg0[2][2] / sp34);
-                    arg1->z = GetAngleXY(arg0[1][0], arg0[0][0]);
+                rotation->y = y_angle;
+                cos_y = cos(rotation->y);
+                if (cos_y >= 0.00000001f) {
+                    rotation->x = GetAngleXY(matrix[2][1] / y_axis_scale, matrix[2][2] / z_axis_scale);
+                    rotation->z = GetAngleXY(matrix[1][0], matrix[0][0]);
                 } else {
-                    arg1->x = GetAngleXY(arg0[0][1], arg0[1][1]);
-                    arg1->z = 0.0f;
+                    rotation->x = GetAngleXY(matrix[0][1], matrix[1][1]);
+                    rotation->z = 0.0f;
                 }
-                arg1->x = MTXRadToDeg(arg1->x);
-                arg1->y = MTXRadToDeg(arg1->y);
-                arg1->z = MTXRadToDeg(arg1->z);
+                rotation->x = MTXRadToDeg(rotation->x);
+                rotation->y = MTXRadToDeg(rotation->y);
+                rotation->z = MTXRadToDeg(rotation->z);
                 return;
             }
         }
     }
-    arg1->x = 0.0f;
-    arg1->y = 0.0f;
-    arg1->z = 0.0f;
+    rotation->x = 0.0f;
+    rotation->y = 0.0f;
+    rotation->z = 0.0f;
 }
 
-void Hu3DMtxScaleGet(Mtx arg0, Vec *arg1) {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+/**
+ * @brief Extracts signed axis scales from a 3x4 transform matrix.
+ *
+ * @details Orthogonalizes the matrix columns before measuring them and negates
+ * all three scales when the resulting basis has negative handedness.
+ *
+ * @param matrix Transform matrix to inspect.
+ * @param scale Receives the signed x, y, and z scale factors.
+ */
+void Hu3DMtxScaleGet(Mtx matrix, Vec *scale) {
+    Vec shear;
+    Vec x_axis;
+    Vec y_axis;
+    Vec z_axis;
+    Vec projection;
 
-    sp2C.x = arg0[0][0];
-    sp2C.y = arg0[1][0];
-    sp2C.z = arg0[2][0];
-    arg1->x = VECMag(&sp2C);
-    VECNormalize(&sp2C, &sp2C);
-    sp20.x = arg0[0][1];
-    sp20.y = arg0[1][1];
-    sp20.z = arg0[2][1];
-    sp38.x = VECDotProduct(&sp2C, &sp20);
-    VECScale(&sp2C, &sp8, sp38.x);
-    VECSubtract(&sp20, &sp8, &sp20);
-    arg1->y = VECMag(&sp20);
-    VECNormalize(&sp20, &sp20);
-    sp38.x /= arg1->y;
-    sp14.x = arg0[0][2];
-    sp14.y = arg0[1][2];
-    sp14.z = arg0[2][2];
-    sp38.z = VECDotProduct(&sp20, &sp14);
-    VECScale(&sp20, &sp8, sp38.z);
-    VECSubtract(&sp14, &sp8, &sp14);
-    sp38.y = VECDotProduct(&sp2C, &sp14);
-    VECScale(&sp2C, &sp8, sp38.y);
-    VECSubtract(&sp14, &sp8, &sp14);
-    arg1->z = VECMag(&sp14);
-    VECNormalize(&sp14, &sp14);
-    VECCrossProduct(&sp20, &sp14, &sp8);
-    if (VECDotProduct(&sp2C, &sp8) < 0.0) {
-        arg1->x *= -1.0;
-        arg1->y *= -1.0;
-        arg1->z *= -1.0;
+    x_axis.x = matrix[0][0];
+    x_axis.y = matrix[1][0];
+    x_axis.z = matrix[2][0];
+    scale->x = VECMag(&x_axis);
+    VECNormalize(&x_axis, &x_axis);
+    y_axis.x = matrix[0][1];
+    y_axis.y = matrix[1][1];
+    y_axis.z = matrix[2][1];
+    shear.x = VECDotProduct(&x_axis, &y_axis);
+    VECScale(&x_axis, &projection, shear.x);
+    VECSubtract(&y_axis, &projection, &y_axis);
+    scale->y = VECMag(&y_axis);
+    VECNormalize(&y_axis, &y_axis);
+    shear.x /= scale->y;
+    z_axis.x = matrix[0][2];
+    z_axis.y = matrix[1][2];
+    z_axis.z = matrix[2][2];
+    shear.z = VECDotProduct(&y_axis, &z_axis);
+    VECScale(&y_axis, &projection, shear.z);
+    VECSubtract(&z_axis, &projection, &z_axis);
+    shear.y = VECDotProduct(&x_axis, &z_axis);
+    VECScale(&x_axis, &projection, shear.y);
+    VECSubtract(&z_axis, &projection, &z_axis);
+    scale->z = VECMag(&z_axis);
+    VECNormalize(&z_axis, &z_axis);
+    VECCrossProduct(&y_axis, &z_axis, &projection);
+    if (VECDotProduct(&x_axis, &projection) < 0.0) {
+        scale->x *= -1.0;
+        scale->y *= -1.0;
+        scale->z *= -1.0;
     }
 }

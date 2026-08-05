@@ -116,10 +116,17 @@ static s16 oneceF = TRUE;
 static GXColor firstTev = { 0xFF, 0xFF, 0x00, 0x00 };
 static GXColor secondTev = { 0x00, 0x00, 0xFF, 0xFF };
 
+/** @brief Clears the cached bitmap pointers used by the HSF draw pass. */
 void Hu3DDrawPreInit(void) {
     DrawObjIdx = 0;
 }
 
+/**
+ * @brief Traverses and queues an HSF model for rendering.
+ * @param modelP Model containing the HSF hierarchy and draw attributes.
+ * @param mtx Parent model-view transform for the hierarchy root.
+ * @param scale Parent scale applied while traversing objects.
+ */
 void Hu3DDraw(HU3DMODEL *modelP, Mtx mtx, HuVecF *scale) {
     HU3DDRAWOBJ *drawObj;
     HSFDATA *hsf;
@@ -164,6 +171,11 @@ void Hu3DDraw(HU3DMODEL *modelP, Mtx mtx, HuVecF *scale) {
     oneceF = 1;
 }
 
+/**
+ * @brief Dispatches one HSF object to its type-specific traversal routine.
+ * @param modelP Model whose transform and attributes are active.
+ * @param objPtr Object node to visit.
+ */
 static void objCall(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     modelObjNum++;
     switch (objPtr->type) {
@@ -195,6 +207,11 @@ static void objCall(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     }
 }
 
+/**
+ * @brief Transforms, culls, and queues one mesh object for deferred drawing.
+ * @param modelP Model owning the mesh and render state.
+ * @param objPtr Mesh object whose faces and constant data are queued.
+ */
 static void objMesh(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     HU3DDRAWOBJ *drawObj;
     HSFCONSTDATA *constData;
@@ -340,6 +357,14 @@ static void objMesh(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     }
 }
 
+/**
+ * @brief Tests whether an object's transformed bounding sphere is visible.
+ * @param hsf HSF data passed by callers; not read by this test.
+ * @param objPtr Object whose constant bounds are tested.
+ * @param mtx Object-to-view transform.
+ * @return TRUE when the sphere intersects the camera depth and x/y bounds;
+ * FALSE when it lies outside them.
+ */
 BOOL ObjCullCheck(HSFDATA *hsf, HSFOBJECT *objPtr, Mtx mtx) {
     HU3DCAMERA *cameraP;
     HuVecF *max;
@@ -404,6 +429,10 @@ BOOL ObjCullCheck(HSFDATA *hsf, HSFOBJECT *objPtr, Mtx mtx) {
     return 0;
 }
 
+/**
+ * @brief Configures GX blending from the current material draw flags.
+ * @param flags HSF draw flags selecting additive, inverse, or alpha blending.
+ */
 inline void SetBlendMode(u32 flags) {
     if (flags & (HSF_MATERIAL_ADDCOL|HSF_MATERIAL_INVCOL)) {
         if (flags & HSF_MATERIAL_ADDCOL) {
@@ -416,6 +445,14 @@ inline void SetBlendMode(u32 flags) {
     }
 }
 
+/**
+ * @brief Configures culling, depth, blending, and lighting before a face draw.
+ * @param material Face material providing render flags and pass mode.
+ * @param constData Precomputed object constants, including face winding state.
+ * @param modelData Model supplying global render attributes.
+ * @param flags Combined per-face draw flags.
+ * @param tevStage Number of configured TEV stages.
+ */
 inline void SetupGX(const HSFMATERIAL* material, const HSFCONSTDATA* constData, const HU3DMODEL* modelData, u32 flags, s16 tevStage) {
     if ((material->invAlpha != 0.0f || (material->pass & 0xF) || (constData->attr & HU3D_CONST_ALTBLEND)) && !((modelData->attr & HU3D_ATTR_ZWRITE_OFF) | (flags & (HSF_MATERIAL_DISABLE_ZWRITE|HSF_MATERIAL_NEAR)))) {
         GXSetZMode(tevStage, GX_LEQUAL, GX_FALSE);
@@ -438,6 +475,12 @@ inline void SetupGX(const HSFMATERIAL* material, const HSFCONSTDATA* constData, 
     }
 }
 
+/**
+ * @brief Configures material state and submits one HSF face buffer.
+ *
+ * @param hsfDrawObject Deferred draw record containing model, object, and matrix.
+ * @param hsfFace Face buffer containing material, vertex, normal, color, and UV indices.
+ */
 static void FaceDraw(HU3DDRAWOBJ *hsfDrawObject, HSFFACE *hsfFace) {
     GXColor tempColor;
     void *displayListPtr;
@@ -450,7 +493,7 @@ static void FaceDraw(HU3DDRAWOBJ *hsfDrawObject, HSFFACE *hsfFace) {
     HSFATTRIBUTE *currentAttribute;
     HU3DATTRANIM *currentDrawData;
     HSFCONSTDATA *constData;
-    s16 var_r24;
+    s16 projection_bit_or_index;
     s16 vtxMode;
     s16 textureIdx; // var_r21
     u32 flags;
@@ -544,8 +587,8 @@ static void FaceDraw(HU3DDRAWOBJ *hsfDrawObject, HSFFACE *hsfFace) {
             if (model->projBit != 0) {
                 projectionMapNo = 3;
                 hiliteMapNo = projectionMapNo + 1;
-                for (tevStage = 0, var_r24 = 1; tevStage < HU3D_PROJ_MAX; tevStage++, var_r24 <<= 1) {
-                    if (var_r24 & model->projBit) {
+                for (tevStage = 0, projection_bit_or_index = 1; tevStage < HU3D_PROJ_MAX; tevStage++, projection_bit_or_index <<= 1) {
+                    if (projection_bit_or_index & model->projBit) {
                         HuSprTexLoad(Hu3DProjection[tevStage].anim, 0, projectionMapNo + tevStage, GX_CLAMP, GX_CLAMP, GX_LINEAR);
                         BmpPtrBak[projectionMapNo + tevStage] = PTR_INVALID;
                         hiliteMapNo++;
@@ -628,8 +671,8 @@ static void FaceDraw(HU3DDRAWOBJ *hsfDrawObject, HSFFACE *hsfFace) {
                             textureIdx++;
                         }
                         if (currentBitmap->sizeX * currentBitmap->sizeY * currentBitmap->pixSize > 0x40000) {
-                            for (var_r24 = 0; var_r24 < 8; var_r24++) {
-                                BmpPtrBak[var_r24] = PTR_INVALID;
+                            for (projection_bit_or_index = 0; projection_bit_or_index < 8; projection_bit_or_index++) {
+                                BmpPtrBak[projection_bit_or_index] = PTR_INVALID;
                             }
                         } else {
                             BmpPtrBak[tevStage] = PTR_INVALID;
@@ -656,8 +699,8 @@ static void FaceDraw(HU3DDRAWOBJ *hsfDrawObject, HSFFACE *hsfFace) {
                             textureIdx++;
                         }
                         if (currentBitmap->sizeX * currentBitmap->sizeY * currentBitmap->pixSize > 0x40000) {
-                            for (var_r24 = 0; var_r24 < 8; var_r24++) {
-                                BmpPtrBak[var_r24] = PTR_INVALID;
+                            for (projection_bit_or_index = 0; projection_bit_or_index < 8; projection_bit_or_index++) {
+                                BmpPtrBak[projection_bit_or_index] = PTR_INVALID;
                             }
                         } else {
                             BmpPtrBak[tevStage] = currentAttribute;
@@ -696,8 +739,8 @@ static void FaceDraw(HU3DDRAWOBJ *hsfDrawObject, HSFFACE *hsfFace) {
                 projectionMapNo = toonMapNo;
             }
             if (model->projBit != 0) {
-                for (tevStage = 0, var_r24 = 1; tevStage < 4; tevStage++, var_r24 <<= 1) {
-                    if (var_r24 & model->projBit) {
+                for (tevStage = 0, projection_bit_or_index = 1; tevStage < 4; tevStage++, projection_bit_or_index <<= 1) {
+                    if (projection_bit_or_index & model->projBit) {
                         HuSprTexLoad(Hu3DProjection[tevStage].anim, 0, projectionMapNo + tevStage, GX_CLAMP, GX_CLAMP, GX_LINEAR);
                         BmpPtrBak[projectionMapNo + tevStage] = PTR_INVALID;
                         hiliteMapNo = projectionMapNo + tevStage + 1;
@@ -730,6 +773,11 @@ static void FaceDraw(HU3DDRAWOBJ *hsfDrawObject, HSFFACE *hsfFace) {
     drawCnt++;
 }
 
+/**
+ * @brief Configures TEV color and alpha stages for an untextured material.
+ * @param drawObj Deferred object supplying model lighting attributes.
+ * @param matP Material supplying vertex mode, colors, and transparency.
+ */
 static void SetTevStageNoTex(HU3DDRAWOBJ *drawObj, HSFMATERIAL *matP) {
     GXColor color;
     HU3DMODEL *modelP;
@@ -897,6 +945,12 @@ static Mtx refMtx = {
     {  0.0f,   0.0f, 0.25f, -0.5f }
 };
 
+/**
+ * @brief Loads material textures and configures all textured TEV stages.
+ * @param drawObj Deferred object supplying model and animated attribute state.
+ * @param matP Material whose attributes, reflection, projection, and toon stages
+ * are assembled.
+ */
 static void SetTevStageTex(HU3DDRAWOBJ *drawObj, HSFMATERIAL *matP) {
     GXColor color;
     GXTexMapID bumpTexMap;
@@ -1481,6 +1535,12 @@ static s32 kColorSelATbl[] = {
 	GX_TEV_KASEL_K3_A
 };
 
+/**
+ * @brief Packs one scalar into the next cached GX konst-color channel.
+ * @param tevStage TEV stage assigned to the selected konst channel.
+ * @param color Channel value from 0 to 255.
+ * @return GX selector for the assigned konst-color component.
+ */
 static GXTevKColorSel SetKColor(GXTevStageID tevStage, u8 color) {
     GXTevKColorSel kColorSel;
 
@@ -1507,6 +1567,12 @@ static GXTevKColorSel SetKColor(GXTevStageID tevStage, u8 color) {
     return kColorSel;
 }
 
+/**
+ * @brief Stores an RGB color in the next cached GX konst-color register.
+ * @param tevStage TEV stage assigned to that register's RGB value.
+ * @param color RGB channels to store; alpha is not used by the selector.
+ * @return GX selector for the assigned konst-color RGB register.
+ */
 static GXTevKColorSel SetKColorRGB(GXTevStageID tevStage, GXColor *color) {
     GXTevKColorSel kColorSel;
 
@@ -1523,6 +1589,7 @@ static GXTevKColorSel SetKColorRGB(GXTevStageID tevStage, GXColor *color) {
     return kColorSel;
 }
 
+/** @brief Uploads all konst-color registers accumulated for the current face. */
 static void FlushKColor(void) {
     kColor.a = 0xFF;
     if (kColorIdx % 3 != 0) {
@@ -1530,10 +1597,17 @@ static void FlushKColor(void) {
     }
 }
 
+/**
+ * @brief Configures an environment-reflection TEV stage and texture matrix.
+ * @param drawObj Deferred object supplying transform and nonuniform scale.
+ * @param tevStage GX TEV stage to configure.
+ * @param texCoord GX texture-coordinate slot for the reflection vector.
+ * @param color Reflection intensity stored in a konst-color channel.
+ */
 static void SetReflect(HU3DDRAWOBJ *drawObj, s16 tevStage, s16 texCoord, u8 color) {
     GXTevKColorSel kColorSel;
-    Mtx sp3C;
-    Mtx spC;
+    Mtx scale_matrix;
+    Mtx texture_matrix;
 
     switch (kColorIdx % 3) {
         case 0:
@@ -1561,14 +1635,23 @@ static void SetReflect(HU3DDRAWOBJ *drawObj, s16 tevStage, s16 texCoord, u8 colo
     GXSetTevColorOp(tevStage, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(tevStage, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_APREV);
     GXSetTevAlphaOp(tevStage, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    MTXScale(sp3C, 1.0f / drawObj->scale.x, 1.0f / drawObj->scale.y, 1.0f / drawObj->scale.z);
-    MTXConcat(drawObj->matrix, sp3C, spC);
-    spC[0][3] = spC[1][3] = spC[2][3] = 0.0f;
-    MTXConcat(spC, Hu3DCameraMtxXPose, sp3C);
-    MTXConcat(refMtx, sp3C, spC);
-    GXLoadTexMtxImm(spC, GX_TEXMTX8, GX_MTX2x4);
+    MTXScale(scale_matrix, 1.0f / drawObj->scale.x, 1.0f / drawObj->scale.y, 1.0f / drawObj->scale.z);
+    MTXConcat(drawObj->matrix, scale_matrix, texture_matrix);
+    texture_matrix[0][3] = texture_matrix[1][3] = texture_matrix[2][3] = 0.0f;
+    MTXConcat(texture_matrix, Hu3DCameraMtxXPose, scale_matrix);
+    MTXConcat(refMtx, scale_matrix, texture_matrix);
+    GXLoadTexMtxImm(texture_matrix, GX_TEXMTX8, GX_MTX2x4);
 }
 
+/**
+ * @brief Configures one projected-texture TEV stage.
+ * @param drawObj Deferred object; currently not read by this setup path.
+ * @param tevStage GX TEV stage to configure.
+ * @param projNo Hu3DProjection index providing the projection intensity.
+ * @param texCoord GX texture-coordinate slot.
+ * @param texMap GX texture-map slot containing the projection bitmap.
+ * @param texMtx GX texture matrix used to generate projected coordinates.
+ */
 static void SetProjection(HU3DDRAWOBJ *drawObj, s16 tevStage, s16 projNo, s16 texCoord, GXTexMapID texMap, u32 texMtx) {
     GXTevKColorSel kColorSel;
     u8 color;
@@ -1608,6 +1691,7 @@ static void SetProjection(HU3DDRAWOBJ *drawObj, s16 tevStage, s16 projNo, s16 te
     GXSetTevAlphaOp(tevStage, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
 }
 
+/** @brief Loads the global shadow bitmap into GX texture map 0. */
 static void SetShadowTex(void) {
     GXTexObj texObj;
 
@@ -1616,6 +1700,12 @@ static void SetShadowTex(void) {
     GXLoadTexObj(&texObj, shadowMapNo);
 }
 
+/**
+ * @brief Configures a shadow-map TEV stage using the current shadow matrix.
+ * @param drawObj Deferred object supplying the model matrix.
+ * @param tevStage GX TEV stage to configure.
+ * @param texCoord GX texture-coordinate slot for shadow projection.
+ */
 static void SetShadow(HU3DDRAWOBJ *drawObj, s16 tevStage, s16 texCoord) {
     GXSetTexCoordGen2(texCoord, GX_TG_MTX3x4, GX_TG_POS, GX_TEXMTX9, GX_FALSE, GX_PTIDENTITY);
     GXSetTevOrder(tevStage, texCoord, shadowMapNo, GX_COLOR0A0);
@@ -1625,6 +1715,11 @@ static void SetShadow(HU3DDRAWOBJ *drawObj, s16 tevStage, s16 texCoord) {
     GXSetTevAlphaOp(tevStage, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
 }
 
+/**
+ * @brief Draws one face into the shadow pass using position data only.
+ * @param drawObj Deferred object supplying the mesh and transform.
+ * @param face Face buffer whose vertex indices are submitted.
+ */
 static void FaceDrawShadow(HU3DDRAWOBJ *drawObj, HSFFACE *face) {
     HSFOBJECT *objPtr;
     HU3DMODEL *modelP;
@@ -1734,6 +1829,13 @@ static void FaceDrawShadow(HU3DDRAWOBJ *drawObj, HSFFACE *face) {
     drawCnt++;
 }
 
+/**
+ * @brief Builds and loads a GX texture object for one HSF bitmap.
+ * @param modelP Model selecting filtering and texture animation behavior.
+ * @param bmpPtr Bitmap pixels, palette, format, tint, and dimensions.
+ * @param attrP Material attribute supplying wrap and animation settings.
+ * @param texId GX texture-map slot and texture-color cache index.
+ */
 static void LoadTexture(HU3DMODEL *modelP, HSFBITMAP *bmpPtr, HSFATTRIBUTE *attrP, s16 texId) {
     GXTexObj texObj;
     GXTlutObj tlutObj;
@@ -1742,7 +1844,7 @@ static void LoadTexture(HU3DMODEL *modelP, HSFBITMAP *bmpPtr, HSFATTRIBUTE *attr
     s16 wrapX;
     s16 wrapT;
     s32 mipmap;
-    s16 var_r30;
+    s16 texture_index;
 
     if (bmpPtr == 0) {
         OSReport("Error: No Texture\n");
@@ -1786,35 +1888,35 @@ static void LoadTexture(HU3DMODEL *modelP, HSFBITMAP *bmpPtr, HSFATTRIBUTE *attr
             }
             break;
         case HSF_BMPFMT_I4:
-            var_r30 = (s16) texId;
-            texCol[var_r30].r = bmpPtr->tint.r;
-            texCol[var_r30].g = bmpPtr->tint.g;
-            texCol[var_r30].b = bmpPtr->tint.b;
-            texCol[var_r30].a = 1;
+            texture_index = (s16) texId;
+            texCol[texture_index].r = bmpPtr->tint.r;
+            texCol[texture_index].g = bmpPtr->tint.g;
+            texCol[texture_index].b = bmpPtr->tint.b;
+            texCol[texture_index].a = 1;
             GXInitTexObj(&texObj, bmpPtr->data, sizeX, sizeY, GX_TF_I4, wrapX, wrapT, mipmap);
             break;
         case HSF_BMPFMT_I8:
-            var_r30 = (s16) texId;
-            texCol[var_r30].r = bmpPtr->tint.r;
-            texCol[var_r30].g = bmpPtr->tint.g;
-            texCol[var_r30].b = bmpPtr->tint.b;
-            texCol[var_r30].a = 1;
+            texture_index = (s16) texId;
+            texCol[texture_index].r = bmpPtr->tint.r;
+            texCol[texture_index].g = bmpPtr->tint.g;
+            texCol[texture_index].b = bmpPtr->tint.b;
+            texCol[texture_index].a = 1;
             GXInitTexObj(&texObj, bmpPtr->data, sizeX, sizeY, GX_TF_I8, wrapX, wrapT, mipmap);
             break;
         case HSF_BMPFMT_IA4:
-            var_r30 = (s16) texId;
-            texCol[var_r30].r = bmpPtr->tint.r;
-            texCol[var_r30].g = bmpPtr->tint.g;
-            texCol[var_r30].b = bmpPtr->tint.b;
-            texCol[var_r30].a = 1;
+            texture_index = (s16) texId;
+            texCol[texture_index].r = bmpPtr->tint.r;
+            texCol[texture_index].g = bmpPtr->tint.g;
+            texCol[texture_index].b = bmpPtr->tint.b;
+            texCol[texture_index].a = 1;
             GXInitTexObj(&texObj, bmpPtr->data, sizeX, sizeY, GX_TF_IA4, wrapX, wrapT, mipmap);
             break;
         case HSF_BMPFMT_IA8:
-            var_r30 = (s16) texId;
-            texCol[var_r30].r = bmpPtr->tint.r;
-            texCol[var_r30].g = bmpPtr->tint.g;
-            texCol[var_r30].b = bmpPtr->tint.b;
-            texCol[var_r30].a = 1;
+            texture_index = (s16) texId;
+            texCol[texture_index].r = bmpPtr->tint.r;
+            texCol[texture_index].g = bmpPtr->tint.g;
+            texCol[texture_index].b = bmpPtr->tint.b;
+            texCol[texture_index].a = 1;
             GXInitTexObj(&texObj, bmpPtr->data, sizeX, sizeY, GX_TF_IA8, wrapX, wrapT, mipmap);
             break;
         case HSF_BMPFMT_CMPR:
@@ -1849,6 +1951,11 @@ static void LoadTexture(HU3DMODEL *modelP, HSFBITMAP *bmpPtr, HSFATTRIBUTE *attr
     GXLoadTexObj(&texObj, texId);
 }
 
+/**
+ * @brief Traverses a null object's children under its local transform.
+ * @param modelP Model owning the hierarchy.
+ * @param objPtr Null/grouping object to transform and traverse.
+ */
 static void objNull(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     HSFTRANSFORM *transformP;
     HuVecF *prevScale;
@@ -1888,6 +1995,11 @@ static void objNull(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     }
 }
 
+/**
+ * @brief Traverses a root object's children under its local transform.
+ * @param modelP Model owning the hierarchy.
+ * @param objPtr Root object to transform and traverse.
+ */
 static void objRoot(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     HSFTRANSFORM *transformP;
     HuVecF *prevScale;
@@ -1927,6 +2039,11 @@ static void objRoot(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     }
 }
 
+/**
+ * @brief Applies a joint transform, traverses children, and restores matrix state.
+ * @param modelP Model owning the skeleton hierarchy.
+ * @param objPtr Joint object and its child list.
+ */
 static void objJoint(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     HSFTRANSFORM *transformP;
     HuVecF *prevScale;
@@ -1966,6 +2083,11 @@ static void objJoint(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     }
 }
 
+/**
+ * @brief Traverses a map object while maintaining the current map transform.
+ * @param modelP Model owning the map hierarchy.
+ * @param objPtr Map object and its children.
+ */
 static void objMap(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     HSFTRANSFORM *transformP;
     HuVecF *prevScale;
@@ -2003,6 +2125,11 @@ static void objMap(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     }
 }
 
+/**
+ * @brief Draws an instance of another HSF object under a replica transform.
+ * @param modelP Model owning the hierarchy and referenced object.
+ * @param objPtr Replica object containing the referenced object index.
+ */
 static void objReplica(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     HSFTRANSFORM *transformP;
     Mtx mtx;
@@ -2028,6 +2155,12 @@ static void objReplica(HU3DMODEL *modelP, HSFOBJECT *objPtr) {
     MTXIdx--;
 }
 
+/**
+ * @brief Sorts and renders all objects queued by Hu3DDraw.
+ *
+ * @details Builds inverse camera and lighting matrices, resolves projection and
+ * highlight transforms, draws opaque then translucent records, and invokes hooks.
+ */
 void Hu3DDrawPost(void) {
     Vec axis;
     Vec cross;
@@ -2035,7 +2168,7 @@ void Hu3DDrawPost(void) {
     Vec dir;
     GXColor color;
     HU3DMODELHOOK hookFunc;
-    s16 spA;
+    s16 unused;
     s16 similar;
     HSFBUFFER *faceBuf;
     HU3DDRAWOBJ *drawObj;
@@ -2055,10 +2188,10 @@ void Hu3DDrawPost(void) {
     Mtx mtx;
     Mtx invCamera;
     Mtx mtx2;
-    Mtx sp90;
+    Mtx inverse_transpose;
     Mtx scale;
 
-    spA = 0;
+    unused = 0;
     if (DrawObjIdx != 0) {
         for (i = 0; i < DrawObjIdx; i++) {
             DrawObjNum[i] = i;
@@ -2165,7 +2298,7 @@ void Hu3DDrawPost(void) {
                         MTXScale(scale, 1.0f / drawObj->scale.x, 1.0f / drawObj->scale.y, 1.0f / drawObj->scale.z);
                         MTXConcat(drawObj->matrix, scale, mtx2);
                         mtx2[0][3] = mtx2[1][3] = mtx2[2][3] = 0.0f;
-                        PSMTXInvXpose(mtx2, sp90);
+                        PSMTXInvXpose(mtx2, inverse_transpose);
                         if (similar == 10000) {
                             PSMTXIdentity(mtx2);
                         } else {
@@ -2173,7 +2306,7 @@ void Hu3DDrawPost(void) {
                             cosDot = acosf(VECDotProduct(&axis, &halfAngle));
                             PSMTXRotAxisRad(mtx2, &cross, cosDot);
                         }
-                        PSMTXConcat(mtx2, sp90, scale);
+                        PSMTXConcat(mtx2, inverse_transpose, scale);
                         PSMTXTrans(mtx2, 0.5f, 0.5f, 0.0f);
                         PSMTXConcat(mtx2, scale, hiliteMtx);
                     }
@@ -2227,9 +2360,13 @@ void Hu3DDrawPost(void) {
     (void)invF; // required to match
 }
 
+/**
+ * @brief Draws one queued mesh using the current camera and light state.
+ * @param arg0 Deferred draw record containing model, object, scale, and matrix.
+ */
 static void ObjDraw(HU3DDRAWOBJ *arg0) {
     Vec axis;
-    Vec sp38;
+    Vec rotation_axis;
     Vec halfAngle;
     Vec dir;
     GXColor color;
@@ -2305,9 +2442,9 @@ static void ObjDraw(HU3DDRAWOBJ *arg0) {
             if (similar == 10000) {
                 PSMTXIdentity(mtx2);
             } else {
-                VECCrossProduct(&halfAngle, &axis, &sp38);
+                VECCrossProduct(&halfAngle, &axis, &rotation_axis);
                 cosDot = acosf(VECDotProduct(&axis, &halfAngle));
-                PSMTXRotAxisRad(mtx2, &sp38, cosDot);
+                PSMTXRotAxisRad(mtx2, &rotation_axis, cosDot);
             }
             PSMTXConcat(mtx2, invXPose, scale);
             PSMTXTrans(mtx2, 0.5f, 0.5f, 0.0f);
@@ -2360,6 +2497,11 @@ static void ObjDraw(HU3DDRAWOBJ *arg0) {
     }
 }
 
+/**
+ * @brief Builds cached GX display-list and constant data for a model hierarchy.
+ * @param modelId Model whose HSF objects are traversed.
+ * @param no Allocation tag used for generated constant data.
+ */
 void MakeDisplayList(HU3DMODELID modelId, u32 no) {
     HSFDATA *hsf;
     HU3DMODEL *modelP;
@@ -2376,6 +2518,11 @@ void MakeDisplayList(HU3DMODELID modelId, u32 no) {
     }
 }
 
+/**
+ * @brief Traverses an HSF object while generating mesh display lists.
+ * @param hsf HSF hierarchy being prepared.
+ * @param objPtr Object node to dispatch by type.
+ */
 static void MDObjCall(HSFDATA *hsf, HSFOBJECT *objPtr) {
     s16 i;
 
@@ -2397,6 +2544,11 @@ static void MDObjCall(HSFDATA *hsf, HSFOBJECT *objPtr) {
     }
 }
 
+/**
+ * @brief Allocates constants and emits display-list data for one mesh object.
+ * @param hsf HSF data containing the mesh buffers.
+ * @param objPtr Mesh object to prepare.
+ */
 static void MDObjMesh(HSFDATA *hsf, HSFOBJECT *objPtr) {
     HSFBUFFER *faceBuf;
     HSFFACE *facePtr;
@@ -2450,6 +2602,12 @@ static void MDObjMesh(HSFDATA *hsf, HSFOBJECT *objPtr) {
     }
 }
 
+/**
+ * @brief Allocates and initializes cached bounds and display-list metadata.
+ * @param object HSF object receiving the constant-data pointer.
+ * @param no Allocation tag passed to the model heap.
+ * @return Newly allocated constant-data record owned with the model.
+ */
 HSFCONSTDATA *ObjConstantMake(HSFOBJECT *object, u32 no) {
     HSFCONSTDATA *constDataP = HuMemDirectMallocNum(HEAP_MODEL, sizeof(HSFCONSTDATA), no);
     object->constData = constDataP;
@@ -2460,6 +2618,11 @@ HSFCONSTDATA *ObjConstantMake(HSFOBJECT *object, u32 no) {
 }
 
 #define VTX_COLOR(obj, idx) (&((GXColor *) obj->mesh.color->data)[idx])
+/**
+ * @brief Emits GX display-list commands and bounds for one mesh face buffer.
+ * @param objPtr Mesh object providing vertex, normal, color, and UV buffers.
+ * @param face Face buffer whose primitives and indices are encoded.
+ */
 static void MDFaceDraw(HSFOBJECT *objPtr, HSFFACE *face) {
     HSFMATERIAL *matP;
     s16 *stripPtr;
@@ -2726,6 +2889,14 @@ static void MDFaceDraw(HSFOBJECT *objPtr, HSFFACE *face) {
 
 #undef VTX_COLOR
 
+/**
+ * @brief Computes and emits normal, binormal, and tangent data for vertices.
+ * @param objPtr Mesh object containing source geometry and UV buffers.
+ * @param face Face buffer containing indexed triangle data.
+ * @param endVtx Exclusive vertex index at the end of the primitive span.
+ * @param startVtx First vertex index in the primitive span.
+ * @return Number of vertex records emitted.
+ */
 static s32 MakeCalcNBT(HSFOBJECT *objPtr, HSFFACE *face, s16 endVtx, s16 startVtx) {
     HuVecF NBT;
     HuVecF *normal;
@@ -2761,6 +2932,14 @@ static s32 MakeCalcNBT(HSFOBJECT *objPtr, HSFFACE *face, s16 endVtx, s16 startVt
     GXNormal3s16(NBTT.x * 256.0f, NBTT.y * 256.0f, NBTT.z * 256.0f);
 }
 
+/**
+ * @brief Emits precomputed normal, binormal, and tangent indices for vertices.
+ * @param objPtr Mesh object containing the NBT buffer.
+ * @param face Face buffer containing indexed primitive data.
+ * @param endVtx Exclusive vertex index at the end of the primitive span.
+ * @param startVtx First vertex index in the primitive span.
+ * @return Number of vertex records emitted.
+ */
 static s32 MakeNBT(HSFOBJECT *objPtr, HSFFACE *face, s16 endVtx, s16 startVtx) {
     Vec NBT;
     Vec *normal;
@@ -2787,6 +2966,11 @@ static s32 MakeNBT(HSFOBJECT *objPtr, HSFFACE *face, s16 endVtx, s16 startVtx) {
     GXNormal3s16(NBTT.x * 256.0f, NBTT.y * 256.0f, NBTT.z * 256.0f);
 }
 
+/**
+ * @brief Counts display-list bytes and updates bounds for one face buffer.
+ * @param objPtr Mesh object containing indexed geometry.
+ * @param face Face buffer whose primitives are measured.
+ */
 static void MDFaceCnt(HSFOBJECT *objPtr, HSFFACE *face) {
     HSFMATERIAL *matP;
     s16 i;
@@ -2846,6 +3030,13 @@ static void MDFaceCnt(HSFOBJECT *objPtr, HSFFACE *face) {
     }
 }
 
+/**
+ * @brief Adds translation directly to a 3x4 matrix's translation column.
+ * @param mtx Matrix updated in place.
+ * @param x Translation along x.
+ * @param y Translation along y.
+ * @param z Translation along z.
+ */
 void mtxTransCat(Mtx mtx, float x, float y, float z) {
     if (x != 0.0f || y != 0.0f || z != 0.0f) {
         mtx[0][3] += x;
@@ -2854,6 +3045,13 @@ void mtxTransCat(Mtx mtx, float x, float y, float z) {
     }
 }
 
+/**
+ * @brief Pre-concatenates X, then Y, then Z rotations onto a matrix.
+ * @param mtx Matrix updated in place.
+ * @param x Rotation about x in degrees.
+ * @param y Rotation about y in degrees.
+ * @param z Rotation about z in degrees.
+ */
 void mtxRotCat(Mtx mtx, float x, float y, float z) {
     Mtx temp;
 
@@ -2871,6 +3069,13 @@ void mtxRotCat(Mtx mtx, float x, float y, float z) {
     }
 }
 
+/**
+ * @brief Builds a matrix by applying X, then Y, then Z Euler rotations.
+ * @param mtx Receives the rotation matrix.
+ * @param x Rotation about x in degrees.
+ * @param y Rotation about y in degrees.
+ * @param z Rotation about z in degrees.
+ */
 void mtxRot(Mtx mtx, float x, float y, float z) {
     Mtx rotY;
     Mtx rotZ;
@@ -2890,6 +3095,13 @@ void mtxRot(Mtx mtx, float x, float y, float z) {
     }
 }
 
+/**
+ * @brief Post-concatenates nonuniform scale onto a 3x4 matrix.
+ * @param mtx Matrix updated in place.
+ * @param x Scale factor along x.
+ * @param y Scale factor along y.
+ * @param z Scale factor along z.
+ */
 void mtxScaleCat(Mtx mtx, float x, float y, float z) {
     mtx[0][0] *= x;
     mtx[1][0] *= x;
@@ -2902,6 +3114,12 @@ void mtxScaleCat(Mtx mtx, float x, float y, float z) {
     mtx[2][2] *= z;
 }
 
+/**
+ * @brief Inverts the upper-left 3x3 portion of a transform matrix.
+ * @param src Source matrix.
+ * @param dst Receives the inverse 3x3 values in a 3x4 matrix.
+ * @return 1 on success, or 0 when the determinant is zero.
+ */
 s16 HmfInverseMtxF3X3(Mtx src, Mtx dst) {
     float detA;
     float detB;
@@ -2929,6 +3147,19 @@ s16 HmfInverseMtxF3X3(Mtx src, Mtx dst) {
     return 1;
 }
 
+/**
+ * @brief Loads one default directional light and ambient/material channels.
+ * @param lightObj GX light object whose position and attenuation are configured.
+ * @param colorR Light red channel.
+ * @param colorG Light green channel.
+ * @param colorB Light blue channel.
+ * @param ambR Ambient red channel.
+ * @param ambG Ambient green channel.
+ * @param ambB Ambient blue channel.
+ * @param matR Material red channel.
+ * @param matG Material green channel.
+ * @param matB Material blue channel.
+ */
 static void SetDefLightInlineFunc(GXLightObj *lightObj, u8 colorR, u8 colorG, u8 colorB, u8 ambR, u8 ambG, u8 ambB, u8 matR, u8 matG, u8 matB) {
     GXColor color;
 
@@ -2948,6 +3179,20 @@ static void SetDefLightInlineFunc(GXLightObj *lightObj, u8 colorR, u8 colorG, u8
     GXSetChanMatColor(GX_COLOR0A0, color);
 }
 
+/**
+ * @brief Configures and loads the default GX light from a position and direction.
+ * @param pos Light position in view space.
+ * @param dir Direction passed to GXInitLightDir.
+ * @param colorR Light red channel.
+ * @param colorG Light green channel.
+ * @param colorB Light blue channel.
+ * @param ambR Ambient red channel.
+ * @param ambG Ambient green channel.
+ * @param ambB Ambient blue channel.
+ * @param matR Material red channel.
+ * @param matG Material green channel.
+ * @param matB Material blue channel.
+ */
 void SetDefLight(Vec *pos, Vec *dir, u8 colorR, u8 colorG, u8 colorB, u8 ambR, u8 ambG, u8 ambB, u8 matR, u8 matG, u8 matB) {
     GXLightObj lightObj;
 
@@ -2958,6 +3203,13 @@ void SetDefLight(Vec *pos, Vec *dir, u8 colorR, u8 colorG, u8 colorB, u8 ambR, u
     SetDefLightInlineFunc(&lightObj, colorR, colorG, colorB, ambR, ambG, ambB, matR, matG, matB);
 }
 
+/**
+ * @brief Gets the world-space origin of a named model object.
+ * @param modelId Model whose hierarchy is evaluated.
+ * @param objName Exact HSF object name.
+ * @param pos Receives the object's transformed origin, or (0, 0, 0) if the
+ * named object is not found.
+ */
 void Hu3DModelObjPosGet(HU3DMODELID modelId, char *objName, Vec *pos) {
     Mtx mtx;
 
@@ -2971,6 +3223,13 @@ void Hu3DModelObjPosGet(HU3DMODELID modelId, char *objName, Vec *pos) {
     }
 }
 
+/**
+ * @brief Gets the world transform of a named model object.
+ * @param modelId Model whose hierarchy is evaluated.
+ * @param objName Exact HSF object name.
+ * @param mtx Receives the traversal matrix at the named object. If the object is
+ * not found, an error is reported and the output should not be relied upon.
+ */
 void Hu3DModelObjMtxGet(HU3DMODELID modelId, char *objName, Mtx mtx) {
     HU3DMODEL *modelP;
     HSFDATA *hsf;
@@ -3005,6 +3264,11 @@ void Hu3DModelObjMtxGet(HU3DMODELID modelId, char *objName, Mtx mtx) {
     HuMemDirectFree(PGName);
 }
 
+/**
+ * @brief Traverses an HSF object to compute transformed geometry bounds.
+ * @param model Model owning the hierarchy and current transform state.
+ * @param object Object node dispatched by type.
+ */
 void PGObjCall(HU3DMODEL *model, HSFOBJECT *object) {
     switch (object->type) {
         case 0:
@@ -3022,6 +3286,11 @@ void PGObjCall(HU3DMODEL *model, HSFOBJECT *object) {
     }
 }
 
+/**
+ * @brief Expands global min/max bounds with one transformed mesh object's vertices.
+ * @param model Model supplying the active transform and envelope data.
+ * @param object Mesh object whose geometry is measured.
+ */
 void PGObjCalc(HU3DMODEL *model, HSFOBJECT *object) {
     Vec pos;
     s16 hookIdxOld;
@@ -3131,6 +3400,11 @@ void PGObjCalc(HU3DMODEL *model, HSFOBJECT *object) {
     }
 }
 
+/**
+ * @brief Computes bounds for an instanced object under its replica transform.
+ * @param model Model owning the referenced hierarchy.
+ * @param object Replica object containing transform and reference data.
+ */
 void PGObjReplica(HU3DMODEL *model, HSFOBJECT *object) {
     HSFTRANSFORM *transformP;
     Mtx mtx;
@@ -3155,6 +3429,12 @@ void PGObjReplica(HU3DMODEL *model, HSFOBJECT *object) {
     }
 }
 
+/**
+ * @brief Copies an HSF object array and remaps internal object references.
+ * @param hsf HSF model whose object array is duplicated.
+ * @param mallocNo Model-heap allocation tag for the copy.
+ * @return Newly allocated object array owned by the caller's model heap.
+ */
 HSFOBJECT *Hu3DObjDuplicate(HSFDATA *hsf, u32 mallocNo) {
     HSFOBJECT *objBuf;
     HSFOBJECT *srcObj;
@@ -3184,6 +3464,7 @@ HSFOBJECT *Hu3DObjDuplicate(HSFDATA *hsf, u32 mallocNo) {
     return objBuf;
 }
 
+/** @brief Resets state for drawing an isolated named model object. */
 void Hu3DModelObjDrawInit(void) {
     s16 i;
 
@@ -3199,6 +3480,12 @@ void Hu3DModelObjDrawInit(void) {
     attachMotionF = 0;
 }
 
+/**
+ * @brief Draws one named object from a model using a supplied parent transform.
+ * @param modelId Model containing the object.
+ * @param objName Exact HSF object name to draw.
+ * @param mtx Parent model-view transform applied before object traversal.
+ */
 void Hu3DModelObjDraw(HU3DMODELID modelId, char *objName, Mtx mtx) {
     HU3DDRAWOBJ drawObj;
     HSFCONSTDATA *constData;

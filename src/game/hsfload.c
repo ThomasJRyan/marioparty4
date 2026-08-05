@@ -61,6 +61,16 @@ static HSFBITMAP *SearchBitmapPtr(s32 id);
 static char *GetString(u32 *str_ofs);
 static char *GetMotionString(u16 *str_ofs);
 
+/**
+ * @brief Fixes up an in-memory HSF file into runtime model data.
+ *
+ * @details Converts section-relative offsets, string offsets, symbol indices,
+ * object links, motion tracks, and buffer references in place, then initializes
+ * envelope deformation state.
+ *
+ * @param data Writable HSF image; the loader mutates this storage in place.
+ * @return Runtime HSFDATA overlaid on @p data; it does not own a separate copy.
+ */
 HSFDATA *LoadHSF(void *data)
 {
     HSFDATA *hsf;
@@ -93,6 +103,11 @@ HSFDATA *LoadHSF(void *data)
     
 }
 
+/**
+ * @brief Resolves cluster target names from one HSF against another model's objects.
+ * @param model Model whose object array supplies resolved target indices.
+ * @param src_model Model containing clusters to adjust; NULL is ignored.
+ */
 void ClusterAdjustObject(HSFDATA *model, HSFDATA *src_model)
 {
     HSFCLUSTER *cluster;
@@ -114,6 +129,10 @@ void ClusterAdjustObject(HSFDATA *model, HSFDATA *src_model)
     }
 }
 
+/**
+ * @brief Initializes loader globals from an HSF header and section offsets.
+ * @param data Writable base address of the complete HSF file image.
+ */
 static void FileLoad(void *data)
 {
     fileptr = data;
@@ -126,6 +145,10 @@ static void FileLoad(void *data)
     MaterialTop = (HSFMATERIAL *)((u32)fileptr+head.material.ofs);
 }
 
+/**
+ * @brief Writes the fixed-up section pointers and counts into the file header area.
+ * @return Runtime HSFDATA at the original file base; no allocation is performed.
+ */
 static HSFDATA *SetHsfModel(void)
 {
     HSFDATA *data = fileptr;
@@ -171,18 +194,29 @@ static HSFDATA *SetHsfModel(void)
     return data;
 }
 
+/**
+ * @brief Resolves a 32-bit HSF string-table offset.
+ * @param str_ofs Pointer to the serialized byte offset.
+ * @return Pointer into the loaded file's string table.
+ */
 char *SetName(u32 *str_ofs)
 {
     char *ret = GetString(str_ofs);
     return ret;
 }
 
+/**
+ * @brief Resolves a 16-bit motion string-table offset.
+ * @param str_ofs Pointer to the serialized byte offset.
+ * @return Pointer into the active motion file's string table.
+ */
 static inline char *SetMotionName(u16 *str_ofs)
 {
     char *ret = GetMotionString(str_ofs);
     return ret;
 }
 
+/** @brief Fixes material names and symbol-table attribute arrays in place. */
 static void MaterialLoad(void)
 {
     s32 i;
@@ -232,6 +266,7 @@ static void MaterialLoad(void)
     }
 }
 
+/** @brief Fixes attribute names and bitmap indices into runtime pointers. */
 static void AttributeLoad(void)
 {
     HSFATTRIBUTE *file_attr;
@@ -254,6 +289,7 @@ static void AttributeLoad(void)
     }
 }
 
+/** @brief Registers the serialized scene and preserves its fog range. */
 static void SceneLoad(void)
 {
     HSFSCENE *file_scene;
@@ -268,6 +304,7 @@ static void SceneLoad(void)
     }
 }
 
+/** @brief Fixes named vertex-color buffer data offsets in place. */
 static void ColorLoad(void)
 {
     s32 i;
@@ -294,6 +331,7 @@ static void ColorLoad(void)
     }
 }
 
+/** @brief Fixes named vertex buffers and their packed Vec data offsets in place. */
 static void VertexLoad(void)
 {
     s32 i, j;
@@ -331,6 +369,7 @@ static void VertexLoad(void)
     }
 }
 
+/** @brief Fixes named normal buffers and records the packed normal-data base. */
 static void NormalLoad(void)
 {
     s32 i, j;
@@ -359,25 +398,26 @@ static void NormalLoad(void)
     }
 }
 
+/** @brief Fixes named texture-coordinate buffers and their HuVec2f data offsets. */
 static void STLoad(void)
 {
     s32 i, j;
     HSFBUFFER *file_st;
-    HSFBUFFER *temp_st;
+    HSFBUFFER *file_st_start;
     HSFBUFFER *new_st;
     void *data;
     HuVec2f *data_elem;
     void *temp_data;
     
     if(head.st.count) {
-        temp_st = file_st = (HSFBUFFER *)((u32)fileptr+head.st.ofs);
+        file_st_start = file_st = (HSFBUFFER *)((u32)fileptr+head.st.ofs);
         data = (void *)&file_st[head.st.count];
         for(i=0; i<head.st.count; i++, file_st++) {
             for(j=0; j<(u32)file_st->count; j++) {
                 data_elem = (HuVec2f *)(((u32)data)+((u32)file_st->data)+(j*sizeof(HuVec2f)));
             }
         }
-        new_st = temp_st;
+        new_st = file_st_start;
         Model.st = new_st;
         Model.stNum = head.st.count;
         file_st = (HSFBUFFER *)((u32)fileptr+head.st.ofs);
@@ -396,6 +436,9 @@ static void STLoad(void)
     }
 }
 
+/**
+ * @brief Fixes face buffers, face data, and triangle-strip index pointers in place.
+ */
 static void FaceLoad(void)
 {
     HSFBUFFER *file_face;
@@ -436,6 +479,11 @@ static void FaceLoad(void)
     }
 }
 
+/**
+ * @brief Recursively fixes an object's hierarchy and type-specific data references.
+ * @param parent Runtime parent object, or NULL for the hierarchy root.
+ * @param object Serialized object to convert in place.
+ */
 static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
 {
     u32 i;
@@ -651,6 +699,10 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
     }
 }
 
+/**
+ * @brief Converts serialized camera and light object type values to runtime enums.
+ * @param object Object whose type tag is normalized in place.
+ */
 static inline void FixupObject(HSFOBJECT *object)
 {
     HSFMESH *objdata_8;
@@ -678,6 +730,9 @@ static inline void FixupObject(HSFOBJECT *object)
     }
 }
 
+/**
+ * @brief Resolves object names, builds the parent-child hierarchy, and selects the root.
+ */
 static void ObjectLoad(void)
 {
     s32 i;
@@ -706,6 +761,9 @@ static void ObjectLoad(void)
     }
 }
 
+/**
+ * @brief Fixes envelope skinning records and their vertex, weight, and matrix arrays.
+ */
 static void CenvLoad(void)
 {
     HSFCENVMULTI *multi_file;
@@ -783,6 +841,7 @@ static void CenvLoad(void)
     }
 }
 
+/** @brief Fixes skeleton names and copies serialized base transforms in place. */
 static void SkeletonLoad(void)
 {
     HSFSKELETON *skeleton_file;
@@ -808,6 +867,7 @@ static void SkeletonLoad(void)
     }
 }
 
+/** @brief Fixes named cluster-part records and their packed vertex-index arrays. */
 static void PartLoad(void)
 {
     HSFPART *part_file;
@@ -832,6 +892,9 @@ static void PartLoad(void)
     }
 }
 
+/**
+ * @brief Fixes cluster names, part references, target names, and vertex-buffer arrays.
+ */
 static void ClusterLoad(void)
 {
     HSFCLUSTER *cluster_file;
@@ -863,6 +926,7 @@ static void ClusterLoad(void)
     }
 }
 
+/** @brief Fixes morph-shape names and symbol-indexed vertex-buffer arrays. */
 static void ShapeLoad(void)
 {
     s32 i, j;
@@ -890,6 +954,7 @@ static void ShapeLoad(void)
     }
 }
 
+/** @brief Fixes map-attribute pointers into the packed u16 data following the table. */
 static void MapAttrLoad(void)
 {
     s32 i;
@@ -910,6 +975,9 @@ static void MapAttrLoad(void)
     }
 }
 
+/**
+ * @brief Fixes bitmap names, pixel offsets, and palette references in place.
+ */
 static void BitmapLoad(void)
 {
     HSFBITMAP *bitmap_file;
@@ -944,6 +1012,7 @@ static void BitmapLoad(void)
     }
 }
 
+/** @brief Fixes palette names and pointers into the packed 16-bit color data. */
 static void PaletteLoad(void)
 {
     s32 i;
@@ -980,6 +1049,15 @@ static void PaletteLoad(void)
     }
 }
 
+/**
+ * @brief Extracts the comparable base portion of an HSF object name.
+ *
+ * @details Drops any prefix through the first '-' and truncates at an underscore
+ * followed by a non-letter. The result uses shared static storage.
+ *
+ * @param name NUL-terminated serialized object name.
+ * @return Pointer to an internal 768-byte buffer overwritten by the next call.
+ */
 char *MakeObjectName(char *name)
 {
     static char buf[768];
@@ -1011,12 +1089,23 @@ char *MakeObjectName(char *name)
     return buf;
 }
 
+/**
+ * @brief Compares two already-normalized HSF object names.
+ * @param name1 First NUL-terminated name.
+ * @param name2 Second NUL-terminated name.
+ * @return Negative, zero, or positive according to strcmp ordering.
+ */
 s32 CmpObjectName(char *name1, char *name2)
 {
     s32 temp = 0;
     return strcmp(name1, name2);
 }
 
+/**
+ * @brief Resolves a motion track target through its dictionary or string offset.
+ * @param track Track whose target field encodes the name reference.
+ * @return Pointer into DicStringTable when present, otherwise StringTable.
+ */
 static inline char *MotionGetName(HSFTRACK *track)
 {
     char *ret;
@@ -1028,6 +1117,11 @@ static inline char *MotionGetName(HSFTRACK *track)
     return ret;
 }
 
+/**
+ * @brief Finds an object index by exact runtime name.
+ * @param name NUL-terminated object name.
+ * @return Zero-based object index, or -1 when absent.
+ */
 static inline s32 FindObjectName(char *name)
 {
     s32 i;
@@ -1042,6 +1136,11 @@ static inline s32 FindObjectName(char *name)
     return -1;
 }
 
+/**
+ * @brief Finds a cluster in the HSF currently being loaded.
+ * @param name Primary cluster name to match exactly.
+ * @return Zero-based cluster index, or -1 when absent.
+ */
 static inline s32 FindClusterName(char *name)
 {
     s32 i;
@@ -1056,6 +1155,11 @@ static inline s32 FindClusterName(char *name)
     return -1;
 }
 
+/**
+ * @brief Finds a cluster in the model targeted by a motion-only load.
+ * @param name Primary cluster name to match exactly.
+ * @return Zero-based cluster index, or -1 when absent.
+ */
 static inline s32 FindMotionClusterName(char *name)
 {
     s32 i;
@@ -1070,6 +1174,11 @@ static inline s32 FindMotionClusterName(char *name)
     return -1;
 }
 
+/**
+ * @brief Finds a named material attribute in the HSF currently being loaded.
+ * @param name Attribute name to match exactly; unnamed attributes are skipped.
+ * @return Zero-based attribute index, or -1 when absent.
+ */
 static inline s32 FindAttributeName(char *name)
 {
     s32 i;
@@ -1087,6 +1196,11 @@ static inline s32 FindAttributeName(char *name)
     return -1;
 }
 
+/**
+ * @brief Finds a named attribute in the model targeted by a motion-only load.
+ * @param name Attribute name to match exactly; unnamed attributes are skipped.
+ * @return Zero-based attribute index, or -1 when absent.
+ */
 static inline s32 FindMotionAttributeName(char *name)
 {
     s32 i;
@@ -1104,6 +1218,11 @@ static inline s32 FindMotionAttributeName(char *name)
     return -1;
 }
 
+/**
+ * @brief Resolves a transform or morph track target and curve-data offset.
+ * @param track Serialized track mutated into runtime form.
+ * @param data Base address of the packed motion keyframe data.
+ */
 static inline void MotionLoadTransform(HSFTRACK *track, void *data)
 {
     float *step_data;
@@ -1145,6 +1264,11 @@ static inline void MotionLoadTransform(HSFTRACK *track, void *data)
     }
 }
 
+/**
+ * @brief Resolves a cluster track target name and curve-data offset.
+ * @param track Serialized cluster track mutated into runtime form.
+ * @param data Base address of the packed motion keyframe data.
+ */
 static inline void MotionLoadCluster(HSFTRACK *track, void *data)
 {
     s32 numKeyframes;
@@ -1190,6 +1314,11 @@ static inline void MotionLoadCluster(HSFTRACK *track, void *data)
     }
 }
 
+/**
+ * @brief Resolves a cluster-weight track target and curve-data offset.
+ * @param track Serialized cluster-weight track mutated into runtime form.
+ * @param data Base address of the packed motion keyframe data.
+ */
 static inline void MotionLoadClusterWeight(HSFTRACK *track, void *data)
 {
     s32 numKeyframes;
@@ -1235,6 +1364,11 @@ static inline void MotionLoadClusterWeight(HSFTRACK *track, void *data)
     }
 }
 
+/**
+ * @brief Converts a material track's curve-data offset into a runtime pointer.
+ * @param track Serialized material track mutated in place.
+ * @param data Base address of the packed motion keyframe data.
+ */
 static inline void MotionLoadMaterial(HSFTRACK *track, void *data)
 {
     float *step_data;
@@ -1271,6 +1405,11 @@ static inline void MotionLoadMaterial(HSFTRACK *track, void *data)
     }
 }
 
+/**
+ * @brief Resolves an attribute track target, curve data, and bitmap keys.
+ * @param track Serialized attribute track mutated into runtime form.
+ * @param data Base address of the packed motion keyframe data.
+ */
 static inline void MotionLoadAttribute(HSFTRACK *track, void *data)
 {
     HSFBITMAPKEY *file_frame;
@@ -1327,6 +1466,9 @@ static inline void MotionLoadAttribute(HSFTRACK *track, void *data)
     }
 }
 
+/**
+ * @brief Registers the HSF motion and fixes every track according to its type.
+ */
 static void MotionLoad(void)
 {
     HSFMOTION *file_motion;
@@ -1400,6 +1542,7 @@ static void MotionLoad(void)
     (void)i;
 }
 
+/** @brief Fixes the matrix section's pointer to its packed 3x4 matrix array. */
 static void MatrixLoad(void)
 {
     HSFMATRIX *matrix_file;
@@ -1412,6 +1555,12 @@ static void MatrixLoad(void)
     }
 }
 
+/**
+ * @brief Finds an object index by name in an arbitrary loaded HSF model.
+ * @param data Model whose object table is searched.
+ * @param name Exact object name.
+ * @return Zero-based object index, or -1 after reporting a missing name.
+ */
 static s32 SearchObjectSetName(HSFDATA *data, char *name)
 {
     HSFOBJECT *object = data->object;
@@ -1425,6 +1574,11 @@ static s32 SearchObjectSetName(HSFDATA *data, char *name)
     return -1;
 }
 
+/**
+ * @brief Resolves a vertex-buffer index in the active file.
+ * @param id Zero-based section index, or -1 for no buffer.
+ * @return Pointer into the in-place vertex table, or NULL for -1.
+ */
 static HSFBUFFER *SearchVertexPtr(s32 id)
 {
     HSFBUFFER *vertex; 
@@ -1436,6 +1590,11 @@ static HSFBUFFER *SearchVertexPtr(s32 id)
     return vertex;
 }
 
+/**
+ * @brief Resolves a normal-buffer index in the active file.
+ * @param id Zero-based section index, or -1 for no buffer.
+ * @return Pointer into the in-place normal table, or NULL for -1.
+ */
 static HSFBUFFER *SearchNormalPtr(s32 id)
 {
     HSFBUFFER *normal; 
@@ -1447,6 +1606,11 @@ static HSFBUFFER *SearchNormalPtr(s32 id)
     return normal;
 }
 
+/**
+ * @brief Resolves a texture-coordinate-buffer index in the active file.
+ * @param id Zero-based section index, or -1 for no buffer.
+ * @return Pointer into the in-place ST table, or NULL for -1.
+ */
 static HSFBUFFER *SearchStPtr(s32 id)
 {
     HSFBUFFER *st; 
@@ -1458,6 +1622,11 @@ static HSFBUFFER *SearchStPtr(s32 id)
     return st;
 }
 
+/**
+ * @brief Resolves a vertex-color-buffer index in the active file.
+ * @param id Zero-based section index, or -1 for no buffer.
+ * @return Pointer into the in-place color table, or NULL for -1.
+ */
 static HSFBUFFER *SearchColorPtr(s32 id)
 {
     HSFBUFFER *color; 
@@ -1469,6 +1638,11 @@ static HSFBUFFER *SearchColorPtr(s32 id)
     return color;
 }
 
+/**
+ * @brief Resolves a face-buffer index in the active file.
+ * @param id Zero-based section index, or -1 for no buffer.
+ * @return Pointer into the in-place face table, or NULL for -1.
+ */
 static HSFBUFFER *SearchFacePtr(s32 id)
 {
     HSFBUFFER *face; 
@@ -1480,6 +1654,11 @@ static HSFBUFFER *SearchFacePtr(s32 id)
     return face;
 }
 
+/**
+ * @brief Resolves an envelope-skinning index in the active file.
+ * @param id Zero-based section index, or -1 for no envelope.
+ * @return Pointer into the in-place cenv table, or NULL for -1.
+ */
 static HSFCENV *SearchCenvPtr(s32 id)
 {
     HSFCENV *cenv; 
@@ -1491,6 +1670,11 @@ static HSFCENV *SearchCenvPtr(s32 id)
     return cenv;
 }
 
+/**
+ * @brief Resolves a cluster-part index in the active file.
+ * @param id Zero-based section index, or -1 for no part.
+ * @return Pointer into the in-place part table, or NULL for -1.
+ */
 static HSFPART *SearchPartPtr(s32 id)
 {
     HSFPART *part; 
@@ -1502,6 +1686,11 @@ static HSFPART *SearchPartPtr(s32 id)
     return part;
 }
 
+/**
+ * @brief Resolves a palette index in the fixed-up model table.
+ * @param id Zero-based palette index, or -1 for no palette.
+ * @return Runtime palette pointer, or NULL for -1.
+ */
 static HSFPALETTE *SearchPalettePtr(s32 id)
 {
     HSFPALETTE *palette; 
@@ -1513,6 +1702,11 @@ static HSFPALETTE *SearchPalettePtr(s32 id)
     return palette;
 }
 
+/**
+ * @brief Resolves a bitmap index in the active file.
+ * @param id Zero-based section index, or -1 for no bitmap.
+ * @return Pointer into the in-place bitmap table, or NULL for -1.
+ */
 static HSFBITMAP *SearchBitmapPtr(s32 id)
 {
     HSFBITMAP *bitmap; 
@@ -1524,12 +1718,22 @@ static HSFBITMAP *SearchBitmapPtr(s32 id)
     return bitmap;
 }
 
+/**
+ * @brief Resolves a 32-bit byte offset into the active HSF string table.
+ * @param str_ofs Pointer to the serialized offset.
+ * @return Pointer into StringTable; ownership remains with the file image.
+ */
 static char *GetString(u32 *str_ofs)
 {
     char *ret = &StringTable[*str_ofs];
     return ret;
 }
 
+/**
+ * @brief Resolves a 16-bit motion-name offset into the active HSF string table.
+ * @param str_ofs Pointer to the serialized offset.
+ * @return Pointer into StringTable; ownership remains with the file image.
+ */
 static char *GetMotionString(u16 *str_ofs)
 {
     char *ret = &StringTable[*str_ofs];

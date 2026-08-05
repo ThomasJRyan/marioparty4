@@ -13,9 +13,9 @@
 #include "game/frand.h"
 #endif
 
-static void particleFunc(HU3DMODEL *arg0, Mtx arg1);
+static void particleFunc(HU3DMODEL *model, Mtx matrix);
 static void ParManFunc(void);
-static void ParManHook(HU3DMODEL *arg0, HU3DPARTICLE *arg1, Mtx mtx);
+static void ParManHook(HU3DMODEL *model, HU3DPARTICLE *matrix, Mtx mtx);
 
 extern u32 GlobalCounter;
 
@@ -23,6 +23,7 @@ HU3DTEXANIM Hu3DTexAnimData[HU3D_TEXANIM_MAX];
 HU3DTEXSCROLL Hu3DTexScrData[HU3D_TEXSCROLL_MAX];
 static HUPROCESS *parManProc[64];
 
+/** @brief Marks every texture-animation and texture-scroll slot unused. */
 void Hu3DAnimInit(void) {
     HU3DTEXANIM *texAnimP;
     HU3DTEXSCROLL *texScrP;
@@ -38,6 +39,13 @@ void Hu3DAnimInit(void) {
     }
 }
 
+/**
+ * @brief Binds sprite animation data to every matching model bitmap attribute.
+ * @param dataP Sprite animation resource, or NULL to create an empty binding.
+ * @param modelId Model whose material attributes are searched.
+ * @param bmpName Exact bitmap name to animate.
+ * @return Texture-animation ID, or HU3D_ANIMID_NONE if no slot or bitmap exists.
+ */
 HU3DANIMID Hu3DAnimCreate(void *dataP, HU3DMODELID modelId, char *bmpName) {
     HU3DTEXANIM *texAnimP;
     HSFATTRIBUTE *attrP;
@@ -93,6 +101,13 @@ HU3DANIMID Hu3DAnimCreate(void *dataP, HU3DMODELID modelId, char *bmpName) {
     return animId;
 }
 
+/**
+ * @brief Shares an existing sprite animation with another model bitmap.
+ * @param linkAnimId Existing texture animation whose ANIMDATA is retained.
+ * @param modelId Destination model searched for matching bitmap attributes.
+ * @param bmpName Exact destination bitmap name.
+ * @return New texture-animation ID, or HU3D_ANIMID_NONE on exhaustion or no match.
+ */
 s16 Hu3DAnimLink(HU3DANIMID linkAnimId, HU3DMODELID modelId, char *bmpName) {
     HU3DTEXANIM *linkTexAnimP = &Hu3DTexAnimData[linkAnimId];
     HU3DTEXANIM *texAnimP;
@@ -144,6 +159,11 @@ s16 Hu3DAnimLink(HU3DANIMID linkAnimId, HU3DMODELID modelId, char *bmpName) {
     return animId;
 }
 
+/**
+ * @brief Removes a texture-animation binding and releases its shared data.
+ * @param animId Texture-animation slot to detach; ANIMDATA is freed when its
+ * use count reaches zero.
+ */
 void Hu3DAnimKill(HU3DANIMID animId) {
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
     HSFDATA *hsf = Hu3DData[texAnimP->modelId].hsf;
@@ -172,6 +192,10 @@ void Hu3DAnimKill(HU3DANIMID animId) {
     }
 }
 
+/**
+ * @brief Removes all texture animations attached to one model.
+ * @param modelId Model whose animation bindings are destroyed.
+ */
 void Hu3DAnimModelKill(HU3DMODELID modelId) {
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[0];
     HU3DANIMID animId;
@@ -183,6 +207,7 @@ void Hu3DAnimModelKill(HU3DMODELID modelId) {
     }
 }
 
+/** @brief Removes every texture animation and texture-scroll binding. */
 void Hu3DAnimAllKill(void) {
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[0];
     HU3DANIMID animId;
@@ -195,24 +220,44 @@ void Hu3DAnimAllKill(void) {
     Hu3DTexScrollAllKill();
 }
 
+/**
+ * @brief Sets texture-animation control bits.
+ * @param animId Texture-animation slot.
+ * @param attr HU3D_ANIM_ATTR flags to enable.
+ */
 void Hu3DAnimAttrSet(HU3DANIMID animId, u16 attr) {
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
 
     texAnimP->attr |= attr;
 }
 
+/**
+ * @brief Clears texture-animation control bits.
+ * @param animId Texture-animation slot.
+ * @param attr HU3D_ANIM_ATTR flags to clear.
+ */
 void Hu3DAnimAttrReset(HU3DANIMID animId, s32 attr) {
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
 
     texAnimP->attr &= ~attr;
 }
 
+/**
+ * @brief Sets a texture animation's playback rate.
+ * @param animId Texture-animation slot.
+ * @param speed Animation frames advanced per normal video frame.
+ */
 void Hu3DAnimSpeedSet(HU3DANIMID animId, float speed) {
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
 
     texAnimP->speed = speed;
 }
 
+/**
+ * @brief Selects a sprite-animation bank and rewinds its frame and timer.
+ * @param animId Texture-animation slot.
+ * @param bank Zero-based ANIMDATA bank index.
+ */
 void Hu3DAnimBankSet(HU3DANIMID animId, s32 bank) {
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
 
@@ -220,6 +265,11 @@ void Hu3DAnimBankSet(HU3DANIMID animId, s32 bank) {
     texAnimP->anmNo = texAnimP->time = 0.0f;
 }
 
+/**
+ * @brief Selects a frame entry within the current texture-animation bank.
+ * @param animId Texture-animation slot.
+ * @param anmNo Zero-based bank frame index; the frame timer is reset.
+ */
 void Hu3DAnmNoSet(HU3DANIMID animId, u16 anmNo) {
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
 
@@ -227,6 +277,13 @@ void Hu3DAnmNoSet(HU3DANIMID animId, u16 anmNo) {
     texAnimP->time = 0.0f;
 }
 
+/**
+ * @brief Loads the current animated bitmap frame and updates its UV transform.
+ * @param modelP Model controlling nearest versus linear texture filtering.
+ * @param attrP Material attribute containing the animation binding and wrapping.
+ * @param texSlotNo GX texture-map slot receiving the current sprite bitmap.
+ * @return TRUE when a bitmap pattern was loaded; FALSE for a -1 pattern sentinel.
+ */
 s32 Hu3DAnimSet(HU3DMODEL *modelP, HSFATTRIBUTE *attrP, s16 texSlotNo) {
     HU3DATTRANIM *attrAnimP;
     HU3DTEXANIM *texAnimP;
@@ -259,6 +316,12 @@ s32 Hu3DAnimSet(HU3DMODEL *modelP, HSFATTRIBUTE *attrP, s16 texSlotNo) {
     return TRUE;
 }
 
+/**
+ * @brief Advances active texture animations and rebuilds scroll matrices.
+ *
+ * @details Honors global pause flags, wraps sprite frames and normalized scroll
+ * offsets, and scales per-frame advancement by minimumVcount.
+ */
 void Hu3DAnimExec(void) {
     HU3DTEXANIM *texAnimP;
     HU3DTEXSCROLL *texScrP;
@@ -341,6 +404,12 @@ void Hu3DAnimExec(void) {
     }
 }
 
+/**
+ * @brief Creates a UV-scroll matrix binding for matching model bitmaps.
+ * @param modelId Model whose material attributes are searched.
+ * @param bmpName Exact bitmap name to receive the scroll matrix.
+ * @return Scroll ID, or HU3D_TEXSCRID_NONE if no slot or bitmap is available.
+ */
 s16 Hu3DTexScrollCreate(HU3DMODELID modelId, char *bmpName) {
     HU3DTEXSCROLL *texScrP;
     HSFDATA *hsf;
@@ -390,6 +459,10 @@ s16 Hu3DTexScrollCreate(HU3DMODELID modelId, char *bmpName) {
     return texScrId;
 }
 
+/**
+ * @brief Detaches one texture-scroll matrix from its model attributes.
+ * @param texSrcId Texture-scroll slot to release.
+ */
 void Hu3DTexScrollKill(HU3DTEXSCRID texSrcId) {
     HU3DTEXSCROLL *texScrP = &Hu3DTexScrData[texSrcId];
     HSFDATA *hsf = Hu3DData[texScrP->modelId].hsf;
@@ -414,6 +487,7 @@ void Hu3DTexScrollKill(HU3DTEXSCRID texSrcId) {
     texScrP->modelId = HU3D_MODELID_NONE;
 }
 
+/** @brief Detaches every active texture-scroll matrix. */
 void Hu3DTexScrollAllKill(void) {
     HU3DTEXSCROLL *texScrP;
     HU3DTEXSCRID texScrId;
@@ -426,15 +500,29 @@ void Hu3DTexScrollAllKill(void) {
     }
 }
 
+/**
+ * @brief Sets a texture scroll's fixed translation and disables translation motion.
+ * @param texScrId Texture-scroll slot.
+ * @param posX Normalized s-axis offset.
+ * @param posY Normalized t-axis offset.
+ * @param posZ Texture-matrix z translation.
+ */
 void Hu3DTexScrollPosSet(HU3DTEXSCRID texScrId, float posX, float posY, float posZ) {
-    HU3DTEXSCROLL *temp_r31 = &Hu3DTexScrData[texScrId];
+    HU3DTEXSCROLL *tex_scr = &Hu3DTexScrData[texScrId];
 
-    temp_r31->attr &= ~1;
-    temp_r31->pos.x = posX;
-    temp_r31->pos.y = posY;
-    temp_r31->pos.z = posZ;
+    tex_scr->attr &= ~1;
+    tex_scr->pos.x = posX;
+    tex_scr->pos.y = posY;
+    tex_scr->pos.z = posZ;
 }
 
+/**
+ * @brief Enables continuous texture translation.
+ * @param texScrId Texture-scroll slot.
+ * @param posX Normalized s offset added per normal video frame.
+ * @param posY Normalized t offset added per normal video frame.
+ * @param posZ Texture z offset added per normal video frame.
+ */
 void Hu3DTexScrollPosMoveSet(HU3DTEXSCRID texScrId, float posX, float posY, float posZ) {
     HU3DTEXSCROLL *texScrP = &Hu3DTexScrData[texScrId];
 
@@ -444,6 +532,11 @@ void Hu3DTexScrollPosMoveSet(HU3DTEXSCRID texScrId, float posX, float posY, floa
     texScrP->posMove.z = posZ * minimumVcount;
 }
 
+/**
+ * @brief Sets a fixed texture rotation and disables rotation motion.
+ * @param texScrId Texture-scroll slot.
+ * @param rot Rotation about the texture z axis in degrees.
+ */
 void Hu3DTexScrollRotSet(HU3DTEXSCRID texScrId, float rot) {
     HU3DTEXSCROLL *texScrP = &Hu3DTexScrData[texScrId];
 
@@ -451,6 +544,11 @@ void Hu3DTexScrollRotSet(HU3DTEXSCRID texScrId, float rot) {
     texScrP->rot = rot;
 }
 
+/**
+ * @brief Enables continuous texture rotation.
+ * @param texScrId Texture-scroll slot.
+ * @param rot Degrees added per normal video frame.
+ */
 void Hu3DTexScrollRotMoveSet(HU3DTEXSCRID texScrId, float rot) {
     HU3DTEXSCROLL *texScrP = &Hu3DTexScrData[texScrId];
 
@@ -458,6 +556,11 @@ void Hu3DTexScrollRotMoveSet(HU3DTEXSCRID texScrId, float rot) {
     texScrP->rotMove = rot * minimumVcount;
 }
 
+/**
+ * @brief Chooses whether a texture scroll continues while Hu3D is paused.
+ * @param texScrId Texture-scroll slot.
+ * @param pauseDisableF TRUE to keep updating during pause; FALSE to freeze.
+ */
 void Hu3DTexScrollPauseDisableSet(HU3DTEXSCRID texScrId, BOOL pauseDisableF) {
     HU3DTEXSCROLL *texScrP = &Hu3DTexScrData[texScrId];
 
@@ -468,6 +571,13 @@ void Hu3DTexScrollPauseDisableSet(HU3DTEXSCRID texScrId, BOOL pauseDisableF) {
     }
 }
 
+/**
+ * @brief Creates a hook model backed by a billboard-particle pool.
+ *
+ * @param anim Sprite animation retained by the new particle model.
+ * @param maxCnt Maximum number of particle quads in the pool.
+ * @return Hu3D model ID whose hookData owns the particle pool.
+ */
 s16 Hu3DParticleCreate(ANIMDATA *anim, s16 maxCnt) {
     HU3DMODEL *modelP;
     HU3DPARTICLE *particleP;
@@ -532,6 +642,11 @@ s16 Hu3DParticleCreate(ANIMDATA *anim, s16 maxCnt) {
     return modelId;
 }
 
+/**
+ * @brief Sets the visible scale of every slot in a particle pool.
+ * @param modelId Particle hook-model ID.
+ * @param scale Quad scale; zero also marks a slot inactive.
+ */
 void Hu3DParticleScaleSet(HU3DMODELID modelId, float scale) {
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
@@ -544,6 +659,11 @@ void Hu3DParticleScaleSet(HU3DMODELID modelId, float scale) {
     }
 }
 
+/**
+ * @brief Sets the billboard rotation of every particle in a pool.
+ * @param modelId Particle hook-model ID.
+ * @param zRot Rotation in degrees about each billboard's z axis.
+ */
 void Hu3DParticleZRotSet(HU3DMODELID modelId, float zRot) {
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
@@ -556,6 +676,13 @@ void Hu3DParticleZRotSet(HU3DMODELID modelId, float zRot) {
     }
 }
 
+/**
+ * @brief Sets RGB color channels for every particle in a pool.
+ * @param modelId Particle hook-model ID.
+ * @param r Red channel from 0 to 255.
+ * @param g Green channel from 0 to 255.
+ * @param b Blue channel from 0 to 255.
+ */
 void Hu3DParticleColSet(HU3DMODELID modelId, u8 r, u8 g, u8 b) {
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
@@ -570,6 +697,11 @@ void Hu3DParticleColSet(HU3DMODELID modelId, u8 r, u8 g, u8 b) {
     }
 }
 
+/**
+ * @brief Sets alpha for every particle from a normalized transparency level.
+ * @param modelId Particle hook-model ID.
+ * @param tpLvl Alpha fraction multiplied by 255 before storage.
+ */
 void Hu3DParticleTPLvlSet(HU3DMODELID modelId, float tpLvl) {
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
@@ -584,6 +716,11 @@ void Hu3DParticleTPLvlSet(HU3DMODELID modelId, float tpLvl) {
     }
 }
 
+/**
+ * @brief Selects the GX blend configuration used by a particle pool.
+ * @param modelId Particle hook-model ID.
+ * @param blendMode HU3D particle blend-mode value.
+ */
 void Hu3DParticleBlendModeSet(HU3DMODELID modelId, u8 blendMode) {
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
@@ -591,6 +728,11 @@ void Hu3DParticleBlendModeSet(HU3DMODELID modelId, u8 blendMode) {
     particleP->blendMode = blendMode;
 }
 
+/**
+ * @brief Installs a per-frame particle simulation callback.
+ * @param modelId Particle hook-model ID.
+ * @param hook Callback invoked before particle geometry is drawn, or NULL.
+ */
 void Hu3DParticleHookSet(HU3DMODELID modelId, HU3DPARTICLEHOOK hook) {
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
@@ -598,6 +740,11 @@ void Hu3DParticleHookSet(HU3DMODELID modelId, HU3DPARTICLEHOOK hook) {
     particleP->hook = hook;
 }
 
+/**
+ * @brief Sets particle-pool behavior flags.
+ * @param modelId Particle hook-model ID.
+ * @param attr HU3D_PARTICLE_ATTR bits to enable.
+ */
 void Hu3DParticleAttrSet(HU3DMODELID modelId, u8 attr) {
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
@@ -605,6 +752,11 @@ void Hu3DParticleAttrSet(HU3DMODELID modelId, u8 attr) {
     particleP->attr |= attr;
 }
 
+/**
+ * @brief Clears particle-pool behavior flags.
+ * @param modelId Particle hook-model ID.
+ * @param attr HU3D_PARTICLE_ATTR bits to clear.
+ */
 void Hu3DParticleAttrReset(HU3DMODELID modelId, u8 attr) {
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
@@ -612,6 +764,11 @@ void Hu3DParticleAttrReset(HU3DMODELID modelId, u8 attr) {
     particleP->attr &= ~attr;
 }
 
+/**
+ * @brief Sets the particle callback's frame counter.
+ * @param modelId Particle hook-model ID.
+ * @param count Counter value exposed to the installed particle hook.
+ */
 void Hu3DParticleCntSet(HU3DMODELID modelId, s16 count) {
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
@@ -619,6 +776,11 @@ void Hu3DParticleCntSet(HU3DMODELID modelId, s16 count) {
     particleP->count = count;
 }
 
+/**
+ * @brief Enables sprite-frame animation for a particle pool.
+ * @param modelId Particle hook-model ID.
+ * @param animBank ANIMDATA bank index used for every particle quad.
+ */
 void Hu3DParticleAnimModeSet(HU3DMODELID modelId, s16 animBank) {
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
@@ -642,7 +804,16 @@ static float baseST[] = {
     1.0f, 1.0f, 0.0f, 1.0f
 };
 
-static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
+/**
+ * @brief Builds and draws camera-facing quads for one particle hook model.
+ *
+ * @details Runs the optional simulation callback, advances sprite frames once
+ * per global frame, culls particles by camera mask, and submits the display list.
+ *
+ * @param model Particle hook model being drawn.
+ * @param matrix Model-view matrix supplied by the Hu3D hook renderer.
+ */
+static void particleFunc(HU3DMODEL *model, Mtx matrix) {
     HuVecF *vtxBuf;
     float scale;
     float x;
@@ -666,15 +837,15 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
     HuVecF initVtx[4];
     ROMtx basePosMtx;
 
-    particleP = arg0->hookData;
+    particleP = model->hookData;
     anim = particleP->anim;
-    if (HmfInverseMtxF3X3(arg1, mtxInv) == 0) {
+    if (HmfInverseMtxF3X3(matrix, mtxInv) == 0) {
         MTXIdentity(mtxInv);
     }
     PSMTXReorder(mtxInv, basePosMtx);
-    if ((Hu3DPauseF == 0 || (arg0->attr & HU3D_ATTR_NOPAUSE)) && particleP->hook && particleP->prevCounter != GlobalCounter) {
+    if ((Hu3DPauseF == 0 || (model->attr & HU3D_ATTR_NOPAUSE)) && particleP->hook && particleP->prevCounter != GlobalCounter) {
         HU3DPARTICLEHOOK hook = particleP->hook;
-        hook(arg0, particleP, arg1);
+        hook(model, particleP, matrix);
     }
     particleDataP = particleP->data;
     vtxBuf = particleP->vtxBuf;
@@ -726,7 +897,7 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
     }
     if (dispF) {
         DCFlushRangeNoSync(particleP->vtxBuf, particleP->maxCnt * sizeof(Vec) * 4);
-        GXLoadPosMtxImm(arg1, 0);
+        GXLoadPosMtxImm(matrix, 0);
         GXSetNumTevStages(1);
         GXSetNumTexGens(1);
         GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
@@ -741,7 +912,7 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
             } else {
                 GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
             }
-            if (arg0->attr & HU3D_ATTR_ZWRITE_OFF) {
+            if (model->attr & HU3D_ATTR_ZWRITE_OFF) {
                 GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
             } else {
                 GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
@@ -757,7 +928,7 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
             animFrame = &animBank->frame[particleP->animNo];
             animPat = &anim->pat[animFrame->pat];
             HuSprTexLoad(particleP->anim, animPat->layer->bmpNo, 0, GX_CLAMP, GX_CLAMP, GX_LINEAR);
-            if (Hu3DPauseF == FALSE || (arg0->attr & HU3D_ATTR_NOPAUSE)) {
+            if (Hu3DPauseF == FALSE || (model->attr & HU3D_ATTR_NOPAUSE)) {
                 for (i = 0; i < (s32) particleP->animSpeed * minimumVcount; i++) {
                     particleP->animTime += 1.0f;
                     if (particleP->animTime >= animFrame->time) {
@@ -830,6 +1001,7 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
     }
 }
 
+/** @brief Clears all particle-manager process slots. */
 void Hu3DParManInit(void) {
     s16 i;
 
@@ -838,6 +1010,14 @@ void Hu3DParManInit(void) {
     }
 }
 
+/**
+ * @brief Creates a particle manager with its own particle model and emitter process.
+ * @param anim Sprite animation retained by the particle model.
+ * @param maxCnt Maximum simultaneous particles in the shared pool.
+ * @param param Emission, velocity, lifetime, scale, and color configuration;
+ * storage remains owned by the caller and must outlive the manager.
+ * @return Manager ID, or HU3D_PARMANID_NONE when all manager slots are occupied.
+ */
 s16 Hu3DParManCreate(ANIMDATA *anim, s16 maxCnt, HU3DPARMANPARAM *param) {
     HU3DMODEL *modelP;
     HU3DPARTICLE *particleP;
@@ -884,6 +1064,13 @@ s16 Hu3DParManCreate(ANIMDATA *anim, s16 maxCnt, HU3DPARMANPARAM *param) {
     return parManId;
 }
 
+/**
+ * @brief Creates another emitter process sharing an existing particle model.
+ * @param linkParManId Manager whose particle pool is shared.
+ * @param param Configuration retained by the new emitter; caller-owned storage
+ * must outlive the linked manager.
+ * @return New manager ID, or HU3D_PARMANID_NONE when no process slot is free.
+ */
 HU3DPARMANID Hu3DParManLink(HU3DPARMANID linkParManId, HU3DPARMANPARAM *param) {
     HU3DPARMAN *linkParManP;
     HU3DPARMAN *parManP;
@@ -918,8 +1105,16 @@ HU3DPARMANID Hu3DParManLink(HU3DPARMANID linkParManId, HU3DPARMANPARAM *param) {
     return parManId;
 }
 
+/**
+ * @brief Stops an emitter and hides all particles that belong to it.
+ *
+ * @details The shared particle model is destroyed only when no other manager
+ * references it.
+ *
+ * @param parManId Particle-manager slot to destroy.
+ */
 void Hu3DParManKill(HU3DPARMANID parManId) {
-    HU3DPARMAN *temp_r26;
+    HU3DPARMAN *linked_manager;
     HU3DPARMAN *parManP;
     HU3DPARTICLEDATA *particleDataP;
     HU3DMODEL *modelP;
@@ -938,8 +1133,8 @@ void Hu3DParManKill(HU3DPARMANID parManId) {
         }
         for (i = 0; i < HU3D_PARMAN_MAX; i++) {
             if (parManProc[i] && i != parManId) {
-                temp_r26 = parManProc[i]->user_data;
-                if (temp_r26->modelId == parManP->modelId) {
+                linked_manager = parManProc[i]->user_data;
+                if (linked_manager->modelId == parManP->modelId) {
                     break;
                 }
             }
@@ -953,6 +1148,7 @@ void Hu3DParManKill(HU3DPARMANID parManId) {
     }
 }
 
+/** @brief Destroys every active particle manager and its unshared model. */
 void Hu3DParManAllKill(void) {
     HU3DPARMANID parManId;
 
@@ -963,10 +1159,22 @@ void Hu3DParManAllKill(void) {
     }
 }
 
+/**
+ * @brief Gets mutable state for a particle manager.
+ * @param parManId Active particle-manager slot.
+ * @return Internal manager state owned by its process; invalid after kill.
+ */
 HU3DPARMAN *Hu3DParManPtrGet(HU3DPARMANID parManId) {
     return parManProc[parManId]->user_data;
 }
 
+/**
+ * @brief Sets a particle manager's emission origin.
+ * @param parManId Active particle-manager slot.
+ * @param posX World-space origin x coordinate.
+ * @param posY World-space origin y coordinate.
+ * @param posZ World-space origin z coordinate.
+ */
 void Hu3DParManPosSet(HU3DPARMANID parManId, float posX, float posY, float posZ) {
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
@@ -975,6 +1183,13 @@ void Hu3DParManPosSet(HU3DPARMANID parManId, float posX, float posY, float posZ)
     parManP->pos.z = posZ;
 }
 
+/**
+ * @brief Sets the manager's emission direction vector directly.
+ * @param parManId Active particle-manager slot.
+ * @param x Direction x component.
+ * @param y Direction y component.
+ * @param z Direction z component.
+ */
 void Hu3DParManVecSet(HU3DPARMANID parManId, float x, float y, float z) {
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
@@ -983,6 +1198,13 @@ void Hu3DParManVecSet(HU3DPARMANID parManId, float x, float y, float z) {
     parManP->vec.z = z;
 }
 
+/**
+ * @brief Derives the manager's emission direction from Euler rotation.
+ * @param parManId Active particle-manager slot.
+ * @param rotX Rotation about x in degrees.
+ * @param rotY Rotation about y in degrees.
+ * @param rotZ Rotation about z in degrees.
+ */
 void Hu3DParManRotSet(HU3DPARMANID parManId, float rotX, float rotY, float rotZ) {
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
     Mtx rotMtx;
@@ -993,30 +1215,58 @@ void Hu3DParManRotSet(HU3DPARMANID parManId, float rotX, float rotY, float rotZ)
     parManP->vec.z = rotMtx[2][2];
 }
 
+/**
+ * @brief Enables particle-manager behavior flags.
+ * @param parManId Active particle-manager slot.
+ * @param attr HU3D_PARMAN_ATTR bits to enable.
+ */
 void Hu3DParManAttrSet(HU3DPARMANID parManId, s32 attr) {
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
     parManP->attr |= attr;
 }
 
+/**
+ * @brief Clears particle-manager behavior flags.
+ * @param parManId Active particle-manager slot.
+ * @param attr HU3D_PARMAN_ATTR bits to clear.
+ */
 void Hu3DParManAttrReset(HU3DPARMANID parManId, s32 attr) {
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
     parManP->attr &= ~attr;
 }
 
+/**
+ * @brief Gets the particle hook model shared by a manager.
+ * @param parManId Active particle-manager slot.
+ * @return Hu3D model ID containing the manager's particle pool.
+ */
 s16 Hu3DParManModelIDGet(HU3DPARMANID parManId) {
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
     return parManP->modelId;
 }
 
+/**
+ * @brief Limits how long a particle manager emits new particles.
+ * @param parManId Active particle-manager slot.
+ * @param timeLimit Emission duration in process frames; zero leaves it unlimited.
+ */
 void Hu3DParManTimeLimitSet(HU3DPARMANID parManId, s32 timeLimit) {
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
     parManP->timeLimit = timeLimit;
 }
 
+/**
+ * @brief Enables attraction of existing particles toward a world-space point.
+ * @param parManId Active particle-manager slot.
+ * @param x Vacuum target x coordinate.
+ * @param y Vacuum target y coordinate.
+ * @param z Vacuum target z coordinate.
+ * @param speed Acceleration scale applied toward the target each update.
+ */
 void Hu3DParManVacumeSet(HU3DPARMANID parManId, float x, float y, float z, float speed) {
     HU3DPARMAN *parManP;
 
@@ -1028,6 +1278,11 @@ void Hu3DParManVacumeSet(HU3DPARMANID parManId, float x, float y, float z, float
     parManP->vacuumSpeed = speed;
 }
 
+/**
+ * @brief Forces newly emitted particles to use one configured color index.
+ * @param parManId Active particle-manager slot.
+ * @param color Index into the manager parameter's color table.
+ */
 void Hu3DParManColorSet(HU3DPARMANID parManId, s16 color) {
     HU3DPARMAN *parManP;
 
@@ -1036,6 +1291,12 @@ void Hu3DParManColorSet(HU3DPARMANID parManId, s16 color) {
     parManP->color = color;
 }
 
+/**
+ * @brief Emits particles for one manager according to its process-time settings.
+ *
+ * @details Chooses positions, directions, speeds, colors, and lifetimes from the
+ * manager parameters until its optional emission time limit expires.
+ */
 static void ParManFunc(void) {
     HUPROCESS *processP;
     HU3DPARMAN *parManP;
@@ -1198,6 +1459,12 @@ static float jitterTbl[] = {
     0.5f, 0.7f, 0.9f, 1.0f
 };
 
+/**
+ * @brief Integrates particle-manager velocity, decay, color, and vacuum motion.
+ * @param model Shared particle model whose pause attribute controls updates.
+ * @param particle Shared pool containing particles from one or more managers.
+ * @param mtx Current model matrix supplied by the particle renderer.
+ */
 static void ParManHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx mtx) {
     HU3DPARMANPARAM *param;
     HU3DPARMAN *parManP;
@@ -1206,7 +1473,7 @@ static void ParManHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx mtx) {
     GXColor *colorStart;
     Vec vacuumAccel;
     Vec vacuumDist;
-    float temp_f29;
+    float accel_distance_squared;
     float weight;
     s16 colorIdx;
     s16 time;
@@ -1237,8 +1504,8 @@ static void ParManHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx mtx) {
                         VECAdd(&vacuumAccel, &particleDataP->accel, &particleDataP->accel);
                         VECAdd(&particleDataP->vel, &particleDataP->accel, &vacuumAccel);
                         VECSubtract(&parManP->vacuum, &particleDataP->pos, &vacuumDist);
-                        temp_f29 = VECSquareMag(&vacuumAccel);
-                        if (VECSquareMag(&vacuumDist) <= temp_f29) {
+                        accel_distance_squared = VECSquareMag(&vacuumAccel);
+                        if (VECSquareMag(&vacuumDist) <= accel_distance_squared) {
                             particleDataP->scale = 0.0f;
                             continue;
                         }
