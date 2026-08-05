@@ -93,7 +93,8 @@ def find_documented_functions(content, function_matches):
 # with the letters "sp".
 UNLABELLED_IDENTIFIER = re.compile(
     r"(?<!\.)(?<!->)\b(?:arg[0-9A-Fa-f]+|var_[A-Za-z0-9_]+|temp_[A-Za-z0-9_]+|"
-    r"sp[0-9][A-Fa-f0-9]*|unk[A-Za-z0-9_]*|lbl_\d+_[A-Za-z0-9_]+)\b"
+    r"sp(?:[0-9][A-Fa-f0-9]*|[A-F][A-Fa-f0-9]*)|unk[A-Za-z0-9_]*|"
+    r"lbl_\d+_[A-Za-z0-9_]+)\b"
 )
 
 

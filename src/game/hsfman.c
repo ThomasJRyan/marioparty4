@@ -1855,8 +1855,8 @@ s16 Hu3DLLightCreateV(s16 model_id, Vec* position, Vec* direction, GXColor* colo
 /**
  * @brief Configure a Hu3D light for spot attenuation.
  * @param light Light structure to update.
- * @param cutoff Spot cutoff angle in degrees.
  * @param spot_function GX spot-function selector.
+ * @param cutoff Spot cutoff angle in degrees.
  */
 inline void Hu3DLightSpotSet(HU3DLIGHT *light, u16 spot_function, f32 cutoff) {
     light->type &= 0xFF00;
