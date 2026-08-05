@@ -212,8 +212,8 @@ s32 GWMessDelayGet(void)
 
 /**
  * @brief Stores a minigame record unless game-work writes are locked by system flag 1:12.
- * @param index Zero-based index in the fifteen-entry record table.
- * @param value Minigame-specific record value, commonly measured in frames or points.
+ * @param index Entry 0 through 14 in GWGameStat.mg_record.
+ * @param value Replacement mg_record[index] payload; interpretation is minigame-specific and includes frame counts and scores.
  */
 void GWMGRecordSet(s32 index, u32 value)
 {
@@ -224,7 +224,7 @@ void GWMGRecordSet(s32 index, u32 value)
 
 /**
  * @brief Reads a minigame record.
- * @param index Zero-based index in the fifteen-entry record table.
+ * @param index Entry 0 through 14 read from GWGameStat.mg_record.
  * @return Stored minigame-specific record value.
  */
 u32 GWMGRecordGet(s32 index)
@@ -246,8 +246,8 @@ void GWCharColorGet(s32 character, GXColor *color)
 
 /**
  * @brief Sets a board's play count, clamped to 99.
- * @param board Board-record index.
- * @param value New play count.
+ * @param board Entry 0 through 8 in GWGameStat.board_play_count.
+ * @param value Replacement play total stored in board_play_count[board], saturated at 99.
  */
 void GWBoardPlayCountSet(s32 board, u8 value)
 {
@@ -259,8 +259,8 @@ void GWBoardPlayCountSet(s32 board, u8 value)
 
 /**
  * @brief Adds to a board's play count, saturating at 99.
- * @param board Board-record index.
- * @param value Unsigned number of plays to add.
+ * @param board Entry 0 through 8 in GWGameStat.board_play_count.
+ * @param value Unsigned increment added to board_play_count[board] before saturation at 99.
  */
 void GWBoardPlayCountAdd(s32 board, u8 value)
 {
@@ -273,7 +273,7 @@ void GWBoardPlayCountAdd(s32 board, u8 value)
 
 /**
  * @brief Reads a board's accumulated play count.
- * @param board Board-record index.
+ * @param board Entry 0 through 8 read from GWGameStat.board_play_count.
  * @return Stored play count in the range 0 through 99.
  */
 u8 GWBoardPlayCountGet(s32 board)
@@ -283,8 +283,8 @@ u8 GWBoardPlayCountGet(s32 board)
 
 /**
  * @brief Stores the star record for a board.
- * @param board Board-record index.
- * @param value Star record to store; this routine does not clamp it.
+ * @param board Entry 0 through 8 in GWGameStat.board_max_stars.
+ * @param value Replacement high-star total stored without clamping.
  */
 void GWBoardMaxStarsSet(s32 board, s16 value)
 {
@@ -293,7 +293,7 @@ void GWBoardMaxStarsSet(s32 board, s16 value)
 
 /**
  * @brief Reads the star record for a board.
- * @param board Board-record index.
+ * @param board Entry 0 through 8 read from GWGameStat.board_max_stars.
  * @return Stored star record.
  */
 s32 GWBoardMaxStarsGet(s32 board)
@@ -303,8 +303,8 @@ s32 GWBoardMaxStarsGet(s32 board)
 
 /**
  * @brief Stores the coin record for a board.
- * @param board Board-record index.
- * @param value Coin record to store; this routine does not clamp it.
+ * @param board Entry 0 through 8 in GWGameStat.board_max_coins.
+ * @param value Replacement high-coin total stored without clamping.
  */
 void GWBoardMaxCoinsSet(s32 board, s32 value)
 {
@@ -313,7 +313,7 @@ void GWBoardMaxCoinsSet(s32 board, s32 value)
 
 /**
  * @brief Reads the coin record for a board.
- * @param board Board-record index.
+ * @param board Entry 0 through 8 read from GWGameStat.board_max_coins.
  * @return Stored coin record.
  */
 s32 GWBoardMaxCoinsGet(s32 board)
@@ -323,8 +323,8 @@ s32 GWBoardMaxCoinsGet(s32 board)
 
 /**
  * @brief Increments a character's win count on a board, saturating at 99.
- * @param character Character index within the board record.
- * @param board Board-record index.
+ * @param character Character column 0 through 7 in board_win_count[board].
+ * @param board Board row 0 through 8 in GWGameStat.board_win_count.
  * @return Updated win count in the range 0 through 99.
  */
 s32 GWBoardWinCountInc(s32 character, s32 board)
@@ -339,9 +339,9 @@ s32 GWBoardWinCountInc(s32 character, s32 board)
 
 /**
  * @brief Reads a character's win count on a board.
- * @param character Character index within the board record.
- * @param board Board-record index.
- * @return Stored win count.
+ * @param character Character column 0 through 7 read from board_win_count[board].
+ * @param board Board row 0 through 8 in GWGameStat.board_win_count.
+ * @return Value stored in GWGameStat.board_win_count[board][character].
  */
 s32 GWBoardWinCountGet(s32 character, s32 board)
 {
@@ -350,9 +350,9 @@ s32 GWBoardWinCountGet(s32 character, s32 board)
 
 /**
  * @brief Stores a character's win count on a board without clamping.
- * @param character Character index within the board record.
- * @param board Board-record index.
- * @param value Win count to store.
+ * @param character Character column 0 through 7 in board_win_count[board].
+ * @param board Board row 0 through 8 in GWGameStat.board_win_count.
+ * @param value Replacement win total stored without clamping.
  */
 void GWBoardWinCountSet(s32 character, s32 board, s32 value)
 {
@@ -443,8 +443,8 @@ void GWMGCustomReset(s32 id)
 
 /**
  * @brief Reads a player's current coin count.
- * @param player Player index from 0 through 3.
- * @return Current coin count.
+ * @param player GWPlayer slot 0 through 3 whose coins field is read.
+ * @return Value stored in GWPlayer[player].coins.
  */
 s16 GWCoinsGet(s32 player)
 {
@@ -454,8 +454,8 @@ s16 GWCoinsGet(s32 player)
 /**
  * @brief Sets a player's coins and updates their lifetime maximum.
  * @details Values are clamped to 0 through 999; writes are ignored while system flag 1:12 is set.
- * @param player Player index from 0 through 3.
- * @param value Desired coin count.
+ * @param player GWPlayer slot 0 through 3 whose coins and coins_max fields may be updated.
+ * @param value Replacement GWPlayer[player].coins total, clamped to 0 through 999 and reflected in coins_max when it establishes a new maximum.
  */
 void GWCoinsSet(s32 player, s16 value)
 {
@@ -475,7 +475,7 @@ void GWCoinsSet(s32 player, s16 value)
 
 /**
  * @brief Adds a signed amount to a player's coin count using normal clamping and write-lock rules.
- * @param player Player index from 0 through 3.
+ * @param player GWPlayer slot 0 through 3 whose coins field receives the signed delta through GWCoinsSet.
  * @param amount Signed coin delta.
  */
 void GWCoinsAdd(s32 player, s16 amount)
@@ -485,8 +485,8 @@ void GWCoinsAdd(s32 player, s16 amount)
 
 /**
  * @brief Sets a player's stars and updates their lifetime maximum.
- * @param player Player index from 0 through 3.
- * @param value Desired star count, clamped to 0 through 999.
+ * @param player GWPlayer slot 0 through 3 whose stars and stars_max fields are updated.
+ * @param value Replacement stars total, clamped to 0 through 999 before storage.
  */
 void GWStarsSet(s32 player, s16 value)
 {
@@ -504,7 +504,7 @@ void GWStarsSet(s32 player, s16 value)
 
 /**
  * @brief Adds a signed amount to a player's star count with 0-through-999 clamping.
- * @param player Player index from 0 through 3.
+ * @param player GWPlayer slot 0 through 3 whose stars field receives the signed delta through GWStarsSet.
  * @param amount Signed star delta.
  */
 void GWStarsAdd(s32 player, s16 amount)
@@ -514,8 +514,8 @@ void GWStarsAdd(s32 player, s16 amount)
 
 /**
  * @brief Reads a player's current star count.
- * @param player Player index from 0 through 3.
- * @return Current star count.
+ * @param player GWPlayer slot 0 through 3 whose stars field is read.
+ * @return Value stored in GWPlayer[player].stars.
  */
 s32 GWStarsGet(s32 player)
 {
@@ -524,7 +524,7 @@ s32 GWStarsGet(s32 player)
 
 /**
  * @brief Sets the persistent total-star count.
- * @param value Desired total, clamped to 0 through 10000.
+ * @param value Replacement GWGameStat.total_stars total, clamped to 0 through 10000.
  */
 void GWTotalStarsSet(s16 value)
 {

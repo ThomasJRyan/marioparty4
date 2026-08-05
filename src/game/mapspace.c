@@ -7,17 +7,17 @@
 extern void HuSetVecF(Vec*, double, double, double);
 #endif
 
-static BOOL PolygonRangeCheck(HSFMAPATTR *arg0, float arg1, float arg2, float *arg3, float arg4);
-static s32 DefIfnnerMapCircle(Vec *arg0, s16 *arg1, Vec *arg2, Vec *arg3);
-static s32 CalcPPLength(float *arg0, s16 *arg1, Vec *arg2);
-static float MapIflnnerCalc(float arg0, float arg1, float arg2, Vec *arg3, Vec *arg4, Vec *arg5);
-static float MapCalcPoint(float arg0, float arg1, float arg2, Vec *arg3, u16 *arg4);
-static BOOL AreaCheck(float arg0, float arg1, u16 *arg2, Vec *arg3);
-static s32 MapIflnnerTriangle(float arg0, float arg1, u16 *arg2, Vec *arg3);
-static s32 MapIflnnerQuadrangle(float arg0, float arg1, u16 *arg2, Vec *arg3);
-static BOOL GetPolygonCircleMtx(s16 *arg0, Vec *arg1, float *arg2, float *arg3);
-static s32 PrecalcPntToTriangle(Vec *arg0, Vec *arg1, Vec *arg2, Vec* arg3, Vec *arg4, Vec *arg5);
-static void DefSetHitFace(float arg0, float arg1, float arg2);
+static BOOL PolygonRangeCheck(HSFMAPATTR *map_attribute, float point_x, float point_z, float *surface_height, float max_world_y);
+static s32 DefIfnnerMapCircle(Vec *point, s16 *polygon_data, Vec *vertices, Vec *reference_direction);
+static s32 CalcPPLength(float *sphere, s16 *polygon_data, Vec *vertices);
+static float MapIflnnerCalc(float point_x, float point_y, float point_z, Vec *edge_start, Vec *edge_end, Vec *reference_direction);
+static float MapCalcPoint(float point_x, float point_y, float point_z, Vec *vertices, u16 *polygon_data);
+static BOOL AreaCheck(float point_x, float point_z, u16 *polygon_data, Vec *vertices);
+static s32 MapIflnnerTriangle(float point_x, float point_z, u16 *polygon_data, Vec *vertices);
+static s32 MapIflnnerQuadrangle(float point_x, float point_z, u16 *polygon_data, Vec *vertices);
+static BOOL GetPolygonCircleMtx(s16 *polygon_data, Vec *vertices, float *world_sphere, float *local_sphere);
+static s32 PrecalcPntToTriangle(Vec *triangle_origin, Vec *first_edge, Vec *second_edge, Vec* triangle_normal, Vec *point_offset, Vec *closest_offset);
+static void DefSetHitFace(float contact_x, float contact_y, float contact_z);
 
 OMOBJ *MapObject[16];
 Mtx MapMT;
@@ -42,15 +42,15 @@ s32 ColisionCount;
 /**
  * @brief Resolves a spherical wall probe against every registered map model.
  * @details The probe is transformed into each model's local space. Contact responses accumulate in AddX and AddZ.
- * @param arg0 Probe radius.
- * @param arg1 Probe center X coordinate in world space.
- * @param arg2 Probe center Y coordinate in world space.
- * @param arg3 Probe center Z coordinate in world space.
+ * @param radius Probe radius.
+ * @param world_x Probe center X coordinate in world space.
+ * @param world_y Probe center Y coordinate in world space.
+ * @param world_z Probe center Z coordinate in world space.
  */
-void MapWall(float arg0, float arg1, float arg2, float arg3) {
+void MapWall(float radius, float world_x, float world_y, float world_z) {
     float world_sphere[4];
     float local_sphere[4];
-    float radius;
+    float probe_radius;
     float local_x;
     float local_z;
     OMOBJ *map_object;
@@ -65,11 +65,11 @@ void MapWall(float arg0, float arg1, float arg2, float arg3) {
     for (i = 0; i < nMap; i++) {
         map_object = MapObject[i];
         model_id = MapObject[i]->mdlId[0];
-        local_sphere[0] = world_sphere[0] = arg1;
-        local_sphere[1] = world_sphere[1] = arg2;
-        local_sphere[2] = world_sphere[2] = arg3;
-        local_sphere[3] = world_sphere[3] = arg0;
-        radius = world_sphere[3];
+        local_sphere[0] = world_sphere[0] = world_x;
+        local_sphere[1] = world_sphere[1] = world_y;
+        local_sphere[2] = world_sphere[2] = world_z;
+        local_sphere[3] = world_sphere[3] = radius;
+        probe_radius = world_sphere[3];
         CharRotInv(MapMT, MapMTR, (Vec*) local_sphere, map_object);
         ColisionCount = 0;
         HitFaceCount = 0;
@@ -81,9 +81,9 @@ void MapWall(float arg0, float arg1, float arg2, float arg3) {
         for (j = 0; j < map_hsf->mapAttrNum; j++, map_attribute++) {
             local_x = local_sphere[0];
             local_z = local_sphere[2];
-            local_sphere[3] = arg0;
-            if (map_attribute->minX <= local_x + radius && map_attribute->maxX > local_x - radius
-                && map_attribute->minZ <= local_z + radius && map_attribute->maxZ > local_z - radius) {
+            local_sphere[3] = radius;
+            if (map_attribute->minX <= local_x + probe_radius && map_attribute->maxX > local_x - probe_radius
+                && map_attribute->minZ <= local_z + probe_radius && map_attribute->maxZ > local_z - probe_radius) {
                 MapWallCheck(world_sphere, local_sphere, map_attribute);
             }
         }
@@ -92,11 +92,11 @@ void MapWall(float arg0, float arg1, float arg2, float arg3) {
 
 /**
  * @brief Checks wall polygons from one map attribute against a sphere probe.
- * @param arg0 World-space sphere as X, Y, Z, and radius.
- * @param arg1 Model-local sphere as X, Y, Z, and radius.
- * @param arg2 Packed map attribute whose wall polygons are traversed.
+ * @param world_sphere World-space sphere as X, Y, Z, and radius.
+ * @param local_sphere Model-local sphere as X, Y, Z, and radius.
+ * @param map_attribute Packed map attribute whose wall polygons are traversed.
  */
-void MapWallCheck(float *arg0, float *arg1, HSFMAPATTR *arg2) {
+void MapWallCheck(float *world_sphere, float *local_sphere, HSFMAPATTR *map_attribute) {
     u32 data_offset;
     u16 polygon_header;
     u16 *polygon_data;
@@ -106,16 +106,16 @@ void MapWallCheck(float *arg0, float *arg1, HSFMAPATTR *arg2) {
     tested_polygons = 0;
     tested_polygons = 0;
     topvtx = AttrHsf->vertex->data;
-    polygon_data = arg2->data;
+    polygon_data = map_attribute->data;
     MTRAdd.x = AddX;
     MTRAdd.z = AddZ;
     MTRAdd.y = 0.0f;
     PSMTXInvXpose(MapMT, inverse_transpose);
     PSMTXMultVec(inverse_transpose, &MTRAdd, &MTRAdd);
-    for (data_offset = 0; data_offset < arg2->dataLen;) {
+    for (data_offset = 0; data_offset < map_attribute->dataLen;) {
         polygon_header = *polygon_data;
         if (polygon_header & 0x8000) {
-            GetPolygonCircleMtx((s16*) polygon_data, topvtx, arg0, arg1);
+            GetPolygonCircleMtx((s16*) polygon_data, topvtx, world_sphere, local_sphere);
             tested_polygons++;
         }
         data_offset += (polygon_header & 0xFF) + 1;
@@ -124,15 +124,15 @@ void MapWallCheck(float *arg0, float *arg1, HSFMAPATTR *arg2) {
 }
 
 /**
- * @brief Finds the closest eligible map surface at or below a world-space point.
- * @param arg0 World-space X coordinate.
- * @param arg1 World-space reference Y coordinate.
- * @param arg2 World-space Z coordinate.
- * @param arg3 Maximum upward search allowance added to the reference Y coordinate.
- * @param arg4 Destination for the selected surface normal; receives an upward normal when no surface is found.
- * @return Selected world-space surface height, or arg1 when no eligible polygon is found.
+ * @brief Finds the eligible map-surface height closest to a reference Y within a bounded upward search.
+ * @param world_x World-space X coordinate.
+ * @param reference_y World-space reference Y coordinate.
+ * @param world_z World-space Z coordinate.
+ * @param upward_allowance Maximum upward search allowance added to the reference Y coordinate.
+ * @param surface_normal Destination for the selected surface normal. On no hit, the legacy path writes X to 0, Y to 1, writes X to 0 again, and leaves Z unchanged.
+ * @return Selected world-space surface height, which may be above reference_y by at most upward_allowance; returns reference_y when no eligible polygon is found.
  */
-float MapPos(float arg0, float arg1, float arg2, float arg3, Vec *arg4) {
+float MapPos(float world_x, float reference_y, float world_z, float upward_allowance, Vec *surface_normal) {
     Vec local_position;
     float best_height;
     float local_x;
@@ -152,9 +152,9 @@ float MapPos(float arg0, float arg1, float arg2, float arg3, Vec *arg4) {
         map_object = MapObject[i];
         map_model = &Hu3DData[*map_object->mdlId];
         map_hsf = map_model->hsf;
-        local_position.x = arg0;
-        local_position.y = arg1;
-        local_position.z = arg2;
+        local_position.x = world_x;
+        local_position.y = reference_y;
+        local_position.z = world_z;
         CharRotInv(MapMT, MapMTR, &local_position, map_object);
         local_x = local_position.x;
         local_z = local_position.z;
@@ -163,45 +163,45 @@ float MapPos(float arg0, float arg1, float arg2, float arg3, Vec *arg4) {
         for (j = 0; j < map_hsf->mapAttrNum; j++, map_attribute++) {
             if (map_attribute->minX <= local_x && map_attribute->maxX >= local_x
                 && map_attribute->minZ <= local_z && map_attribute->maxZ >= local_z
-                && PolygonRangeCheck(map_attribute, local_x, local_z, &polygon_height, arg1 + arg3) == TRUE) {
+                && PolygonRangeCheck(map_attribute, local_x, local_z, &polygon_height, reference_y + upward_allowance) == TRUE) {
                 local_position.x = local_x;
                 local_position.y = polygon_height;
                 local_position.z = local_z;
                 PSMTXMultVec(MapMT, &local_position, &local_position);
                 polygon_height = local_position.y;
-                if (polygon_height > arg1 + arg3 || fabs(arg1 - polygon_height) > fabs(arg1 - best_height)) {
+                if (polygon_height > reference_y + upward_allowance || fabs(reference_y - polygon_height) > fabs(reference_y - best_height)) {
                     continue;
                 }
                 best_height = polygon_height;
-                arg4->x = FieldVec.x;
-                arg4->y = FieldVec.y;
-                arg4->z = FieldVec.z;
+                surface_normal->x = FieldVec.x;
+                surface_normal->y = FieldVec.y;
+                surface_normal->z = FieldVec.z;
                 PSMTXInvXpose(MapMT, inverse_transpose);
-                PSMTXMultVec(inverse_transpose, arg4, arg4);
+                PSMTXMultVec(inverse_transpose, surface_normal, surface_normal);
                 best_height = local_position.y;
             }
         }
     }
     if (best_height == -100000.0f) {
-        arg4->x = 0.0f;
-        arg4->y = 1.0f;
-        arg4->x = 0.0f;
-        return arg1;
+        surface_normal->x = 0.0f;
+        surface_normal->y = 1.0f;
+        surface_normal->x = 0.0f;
+        return reference_y;
     } else {
         return best_height;
     }
 }
 
 /**
- * @brief Searches an attribute's packed polygons for the nearest surface below a point.
- * @param arg0 Map attribute containing packed polygon records.
- * @param arg1 Model-local X coordinate.
- * @param arg2 Model-local Z coordinate.
- * @param arg3 Destination for the selected model-local surface height.
- * @param arg4 World-space upper height limit used to choose the closest polygon.
+ * @brief Searches packed polygons for the surface closest to a world-space upper-height bound.
+ * @param map_attribute Map attribute containing packed polygon records.
+ * @param point_x Model-local X coordinate.
+ * @param point_z Model-local Z coordinate.
+ * @param surface_height Destination for the selected model-local surface height.
+ * @param max_world_y World-space upper height limit used to choose the closest polygon.
  * @return TRUE when a qualifying triangle or quadrilateral is found; otherwise FALSE.
  */
-BOOL PolygonRangeCheck(HSFMAPATTR *arg0, float arg1, float arg2, float *arg3, float arg4) {
+BOOL PolygonRangeCheck(HSFMAPATTR *map_attribute, float point_x, float point_z, float *surface_height, float max_world_y) {
     Vec world_point;
     float local_height;
     float closest_distance;
@@ -215,8 +215,8 @@ BOOL PolygonRangeCheck(HSFMAPATTR *arg0, float arg1, float arg2, float *arg3, fl
     found_surface = 0;
     closest_distance = 100000.0f;
     topvtx = AttrHsf->vertex->data;
-    polygon_data = arg0->data;
-    for (i = 0; i < arg0->dataLen;) {
+    polygon_data = map_attribute->data;
+    for (i = 0; i < map_attribute->dataLen;) {
         polygon_header = *polygon_data;
         if (polygon_header & 0x8000) {
             i += (polygon_header & 0xFF) + 1;
@@ -232,17 +232,17 @@ BOOL PolygonRangeCheck(HSFMAPATTR *arg0, float arg1, float arg2, float *arg3, fl
                     polygon_data += 3;
                     break;
                 case 3:
-                    if (AreaCheck(arg1, arg2, polygon_data, topvtx) == TRUE) {
+                    if (AreaCheck(point_x, point_z, polygon_data, topvtx) == TRUE) {
                         bounded_polygon_count++;
-                        if (MapIflnnerTriangle(arg1, arg2, polygon_data, topvtx) == 1) {
-                            local_height = MapCalcPoint(arg1, 0.0f, arg2, topvtx, polygon_data);
-                            world_point.x = arg1;
+                        if (MapIflnnerTriangle(point_x, point_z, polygon_data, topvtx) == 1) {
+                            local_height = MapCalcPoint(point_x, 0.0f, point_z, topvtx, polygon_data);
+                            world_point.x = point_x;
                             world_point.y = local_height;
-                            world_point.z = arg2;
+                            world_point.z = point_z;
                             PSMTXMultVec(MapMT, &world_point, &world_point);
-                            if (arg4 > world_point.y && closest_distance > fabs(arg4 - world_point.y)) {
-                                closest_distance = fabs(arg4 - world_point.y);
-                                *arg3 = local_height;
+                            if (max_world_y > world_point.y && closest_distance > fabs(max_world_y - world_point.y)) {
+                                closest_distance = fabs(max_world_y - world_point.y);
+                                *surface_height = local_height;
                                 found_surface = 1;
                             }
                         }
@@ -251,18 +251,18 @@ BOOL PolygonRangeCheck(HSFMAPATTR *arg0, float arg1, float arg2, float *arg3, fl
                     polygon_data += 4;
                     break;
                 case 4:
-                    if (AreaCheck(arg1, arg2, polygon_data, topvtx) == TRUE) {
+                    if (AreaCheck(point_x, point_z, polygon_data, topvtx) == TRUE) {
                         bounded_polygon_count++;
-                        if (MapIflnnerQuadrangle(arg1, arg2, polygon_data, topvtx) == 1) {
-                            local_height = MapCalcPoint(arg1, 0.0f, arg2, topvtx, polygon_data);
-                            world_point.x = arg1;
+                        if (MapIflnnerQuadrangle(point_x, point_z, polygon_data, topvtx) == 1) {
+                            local_height = MapCalcPoint(point_x, 0.0f, point_z, topvtx, polygon_data);
+                            world_point.x = point_x;
                             world_point.y = local_height;
-                            world_point.z = arg2;
+                            world_point.z = point_z;
                             PSMTXMultVec(MapMT, &world_point, &world_point);
-                            if (arg4 > world_point.y) {
-                                if (closest_distance > fabs(arg4 - world_point.y)) {
-                                    closest_distance = fabs(arg4 - world_point.y);
-                                    *arg3 = local_height;
+                            if (max_world_y > world_point.y) {
+                                if (closest_distance > fabs(max_world_y - world_point.y)) {
+                                    closest_distance = fabs(max_world_y - world_point.y);
+                                    *surface_height = local_height;
                                     found_surface = 1;
                                 }
                             }
@@ -287,87 +287,87 @@ BOOL PolygonRangeCheck(HSFMAPATTR *arg0, float arg1, float arg2, float *arg3, fl
 
 /**
  * @brief Tests a point against the oriented edges of a packed triangle or quadrilateral.
- * @param arg0 Point to test in model space.
- * @param arg1 Packed polygon header followed by vertex indices.
- * @param arg2 Model vertex array.
- * @param arg3 Reference direction used to orient edge tests.
- * @return 1 when the point is inside a supported polygon; otherwise 0.
+ * @param point Point to test in model space.
+ * @param polygon_data Packed polygon header followed by vertex indices.
+ * @param vertices Model vertex array.
+ * @param reference_direction Reference direction used to orient edge tests.
+ * @return For triangles, 1 when all oriented edge tests agree and 0 otherwise. The current quadrilateral path always returns 0, including after all edge tests pass.
  */
-static s32 DefIfnnerMapCircle(Vec *arg0, s16 *arg1, Vec *arg2, Vec *arg3) {
+static s32 DefIfnnerMapCircle(Vec *point, s16 *polygon_data, Vec *vertices, Vec *reference_direction) {
     float point_x;
     float point_y;
     float point_z;
     float edge_side;
     s32 edge_index;
-    s32 vertex_count;
+    s32 vertex_count_or_test_flag;
     s32 next_index;
 
-    point_x = arg0->x;
-    point_y = arg0->y;
-    point_z = arg0->z;
-    vertex_count = *arg1 & 0xFF;
-    arg1++;
-    if (vertex_count == 3) {
-        edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[0]], &arg2[arg1[1]], arg3);
+    point_x = point->x;
+    point_y = point->y;
+    point_z = point->z;
+    vertex_count_or_test_flag = *polygon_data & 0xFF;
+    polygon_data++;
+    if (vertex_count_or_test_flag == 3) {
+        edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[0]], &vertices[polygon_data[1]], reference_direction);
         if (edge_side > 0.0f) {
-            for (edge_index = 1; edge_index < vertex_count; edge_index++) {
-                next_index = (edge_index + 1) % vertex_count;
-                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[edge_index]], &arg2[arg1[next_index]], arg3);
+            for (edge_index = 1; edge_index < vertex_count_or_test_flag; edge_index++) {
+                next_index = (edge_index + 1) % vertex_count_or_test_flag;
+                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[edge_index]], &vertices[polygon_data[next_index]], reference_direction);
                 if (edge_side < 0.0f) {
                     return 0;
                 }
             }
             return 1;
         } else {
-            for (edge_index = 1; edge_index < vertex_count; edge_index++) {
-                next_index = (edge_index + 1) % vertex_count;
-                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[edge_index]], &arg2[arg1[next_index]], arg3);
+            for (edge_index = 1; edge_index < vertex_count_or_test_flag; edge_index++) {
+                next_index = (edge_index + 1) % vertex_count_or_test_flag;
+                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[edge_index]], &vertices[polygon_data[next_index]], reference_direction);
                 if (edge_side > 0.0f) {
                     return 0;
                 }
             }
             return 1;
         }
-    } else if (vertex_count == 4) {
-        edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[0]], &arg2[arg1[2]], arg3);
+    } else if (vertex_count_or_test_flag == 4) {
+        edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[0]], &vertices[polygon_data[2]], reference_direction);
         if (edge_side > 0.0f) {
-            edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[2]], &arg2[arg1[3]], arg3);
+            edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[2]], &vertices[polygon_data[3]], reference_direction);
             if (edge_side < 0.0f) {
-                vertex_count = 1;
+                vertex_count_or_test_flag = 1;
             } else {
-                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[3]], &arg2[arg1[0]], arg3);
+                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[3]], &vertices[polygon_data[0]], reference_direction);
                 if (edge_side < 0.0f) {
-                    vertex_count = 1;
+                    vertex_count_or_test_flag = 1;
                 }
             }
         } else {
-            edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[2]], &arg2[arg1[3]], arg3);
+            edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[2]], &vertices[polygon_data[3]], reference_direction);
             if (edge_side > 0.0f) {
-                vertex_count = 1;
+                vertex_count_or_test_flag = 1;
             } else {
-                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[3]], &arg2[arg1[0]], arg3);
+                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[3]], &vertices[polygon_data[0]], reference_direction);
                 if (edge_side > 0.0f) {
-                    vertex_count = 1;
+                    vertex_count_or_test_flag = 1;
                 }
             }
         }
-        if (vertex_count != 0) {
-            edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[0]], &arg2[arg1[3]], arg3);
+        if (vertex_count_or_test_flag != 0) {
+            edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[0]], &vertices[polygon_data[3]], reference_direction);
             if (edge_side > 0.0f) {
-                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[3]], &arg2[arg1[1]], arg3);
+                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[3]], &vertices[polygon_data[1]], reference_direction);
                 if (edge_side < 0.0f) {
                     return 0;
                 }
-                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[1]], &arg2[arg1[0]], arg3);
+                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[1]], &vertices[polygon_data[0]], reference_direction);
                 if (edge_side < 0.0f) {
                     return 0;
                 }
             } else {
-                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[3]], &arg2[arg1[1]], arg3);
+                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[3]], &vertices[polygon_data[1]], reference_direction);
                 if (edge_side > 0.0f) {
                     return 0;
                 }
-                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &arg2[arg1[1]], &arg2[arg1[0]], arg3);
+                edge_side = MapIflnnerCalc(point_x, point_y, point_z, &vertices[polygon_data[1]], &vertices[polygon_data[0]], reference_direction);
                 if (edge_side > 0.0f) {
                     return 0;
                 }
@@ -430,12 +430,12 @@ static inline void compute_tri_normal(Vec *result, Vec *point1, Vec *point2, Vec
 
 /**
  * @brief Projects a sphere center onto a packed polygon plane when the sphere reaches that plane.
- * @param arg0 In/out sphere represented by center X, Y, Z, and radius.
- * @param arg1 Packed polygon header and vertex indices.
- * @param arg2 Model vertex array.
+ * @param sphere In/out sphere represented by center X, Y, Z, and radius.
+ * @param polygon_data Packed polygon header and vertex indices.
+ * @param vertices Model vertex array.
  * @return 0 when the record is not a wall or lies beyond the radius, 1 for the normal-facing side, or -1 for the opposite side.
  */
-static s32 CalcPPLength(float *arg0, s16 *arg1, Vec *arg2) {
+static s32 CalcPPLength(float *sphere, s16 *polygon_data, Vec *vertices) {
     Vec *plane_point;
     Vec normal;
     float projection_distance;
@@ -451,48 +451,48 @@ static s32 CalcPPLength(float *arg0, s16 *arg1, Vec *arg2) {
     s32 facing_side;
 
     facing_side = -1;
-    polygon_header = arg1[0];
+    polygon_header = polygon_data[0];
     if (!(polygon_header & 0x8000)) {
         return 0;
     }
     if ((polygon_header & 0xFF) == 4) {
-        compute_tri_normal(&normal, &arg2[arg1[1]], &arg2[arg1[4]], &arg2[arg1[3]]);
+        compute_tri_normal(&normal, &vertices[polygon_data[1]], &vertices[polygon_data[4]], &vertices[polygon_data[3]]);
     } else {
-        compute_tri_normal(&normal, &arg2[arg1[1]], &arg2[arg1[2]], &arg2[arg1[3]]);
+        compute_tri_normal(&normal, &vertices[polygon_data[1]], &vertices[polygon_data[2]], &vertices[polygon_data[3]]);
     }
-    plane_vertex_index = arg1[1];
-    plane_point = &arg2[plane_vertex_index];
+    plane_vertex_index = polygon_data[1];
+    plane_point = &vertices[plane_vertex_index];
     plane_x = plane_point->x;
     plane_y = plane_point->y;
     plane_z = plane_point->z;
-    delta_x = plane_x - arg0[0];
-    delta_y = plane_y - arg0[1];
-    delta_z = plane_z - arg0[2];
+    delta_x = plane_x - sphere[0];
+    delta_y = plane_y - sphere[1];
+    delta_z = plane_z - sphere[2];
     signed_distance = normal.x * delta_x + normal.y * delta_y + normal.z * delta_z;
     if (signed_distance >= 0.0f) {
         facing_side = 1;
     }
-    if (fabs(signed_distance) > arg0[3]) {
+    if (fabs(signed_distance) > sphere[3]) {
         return 0;
     }
     projection_distance = normal.x * delta_x + normal.y * delta_y + normal.z * delta_z;
-    arg0[0] += normal.x * projection_distance;
-    arg0[1] += normal.y * projection_distance;
-    arg0[2] += normal.z * projection_distance;
+    sphere[0] += normal.x * projection_distance;
+    sphere[1] += normal.y * projection_distance;
+    sphere[2] += normal.z * projection_distance;
     return facing_side;
 }
 
 /**
  * @brief Calculates the signed scalar triple product for an oriented polygon edge.
- * @param arg0 Test-point X coordinate.
- * @param arg1 Test-point Y coordinate.
- * @param arg2 Test-point Z coordinate.
- * @param arg3 First edge vertex.
- * @param arg4 Second edge vertex.
- * @param arg5 Reference direction that defines the polygon-facing side.
+ * @param point_x Test-point X coordinate.
+ * @param point_y Test-point Y coordinate.
+ * @param point_z Test-point Z coordinate.
+ * @param edge_start First edge vertex.
+ * @param edge_end Second edge vertex.
+ * @param reference_direction Reference direction that defines the polygon-facing side.
  * @return Signed edge-side value; its sign indicates which side contains the test point.
  */
-static float MapIflnnerCalc(float arg0, float arg1, float arg2, Vec *arg3, Vec *arg4, Vec *arg5) {
+static float MapIflnnerCalc(float point_x, float point_y, float point_z, Vec *edge_start, Vec *edge_end, Vec *reference_direction) {
     float edge1_x;
     float edge1_y;
     float edge1_z;
@@ -501,37 +501,37 @@ static float MapIflnnerCalc(float arg0, float arg1, float arg2, Vec *arg3, Vec *
     float edge2_z;
     float signed_side;
 
-    edge1_x = arg3->x - arg0;
-    edge1_y = arg3->y - arg1;
-    edge1_z = arg3->z - arg2;
-    edge2_x = arg4->x - arg0;
-    edge2_y = arg4->y - arg1;
-    edge2_z = arg4->z - arg2;
-    signed_side = arg5->x * (edge1_y * edge2_z - edge1_z * edge2_y)
-        + arg5->y * (edge1_z * edge2_x - edge1_x * edge2_z)
-        + arg5->z * (edge1_x * edge2_y - edge1_y * edge2_x);
+    edge1_x = edge_start->x - point_x;
+    edge1_y = edge_start->y - point_y;
+    edge1_z = edge_start->z - point_z;
+    edge2_x = edge_end->x - point_x;
+    edge2_y = edge_end->y - point_y;
+    edge2_z = edge_end->z - point_z;
+    signed_side = reference_direction->x * (edge1_y * edge2_z - edge1_z * edge2_y)
+        + reference_direction->y * (edge1_z * edge2_x - edge1_x * edge2_z)
+        + reference_direction->z * (edge1_x * edge2_y - edge1_y * edge2_x);
     return signed_side;
 }
 
 /**
  * @brief Solves the current collision triangle's plane equation for Y.
- * @param arg0 Model-local X coordinate.
- * @param arg1 Starting Y coordinate.
- * @param arg2 Model-local Z coordinate.
- * @param arg3 Model vertex array.
- * @param arg4 Packed polygon record; retained for calling compatibility.
+ * @param point_x Model-local X coordinate.
+ * @param point_y Starting Y coordinate.
+ * @param point_z Model-local Z coordinate.
+ * @param vertices Model vertex array.
+ * @param polygon_data Packed polygon record; retained for calling compatibility.
  * @return Model-local Y coordinate on the current collision triangle.
  */
-static float MapCalcPoint(float arg0, float arg1, float arg2, Vec *arg3, u16 *arg4) {
+static float MapCalcPoint(float point_x, float point_y, float point_z, Vec *vertices, u16 *polygon_data) {
     Vec triangle_normal;
     float plane_z;
     float plane_y;
     float plane_x;
-    float point_x;
-    float point_z;
+    float evaluation_x;
+    float evaluation_z;
     float step_scale;
     float height_delta;
-    float point_y;
+    float evaluation_y;
     float normal_x;
     float normal_y;
     float normal_z;
@@ -539,35 +539,35 @@ static float MapCalcPoint(float arg0, float arg1, float arg2, Vec *arg3, u16 *ar
     Vec *plane_point;
 
     collision_index = ColisionCount - 1;
-    plane_point = &arg3[ColisionIdx[collision_index][0]];
+    plane_point = &vertices[ColisionIdx[collision_index][0]];
     plane_x = plane_point->x;
     plane_y = plane_point->y;
     plane_z = plane_point->z;
-    point_x = arg0;
-    point_y = arg1;
-    point_z = arg2;
+    evaluation_x = point_x;
+    evaluation_y = point_y;
+    evaluation_z = point_z;
     step_scale = 1.0f;
-    compute_tri_normal(&triangle_normal, &arg3[ColisionIdx[collision_index][0]], &arg3[ColisionIdx[collision_index][1]], &arg3[ColisionIdx[collision_index][2]]);
+    compute_tri_normal(&triangle_normal, &vertices[ColisionIdx[collision_index][0]], &vertices[ColisionIdx[collision_index][1]], &vertices[ColisionIdx[collision_index][2]]);
     normal_x = triangle_normal.x;
     normal_y = triangle_normal.y;
     normal_z = triangle_normal.z;
     FieldVec.x = normal_x;
     FieldVec.y = normal_y;
     FieldVec.z = normal_z;
-    height_delta = normal_x * (plane_x - point_x) + normal_y * (plane_y - point_y) + normal_z * (plane_z - point_z);
+    height_delta = normal_x * (plane_x - evaluation_x) + normal_y * (plane_y - evaluation_y) + normal_z * (plane_z - evaluation_z);
     height_delta /= normal_y;
-    return point_y + step_scale * height_delta;
+    return evaluation_y + step_scale * height_delta;
 }
 
 /**
  * @brief Tests an XZ point against the axis-aligned bounds of a packed polygon.
- * @param arg0 X coordinate to test.
- * @param arg1 Z coordinate to test.
- * @param arg2 Packed polygon header and vertex indices.
- * @param arg3 Model vertex array.
+ * @param point_x X coordinate to test.
+ * @param point_z Z coordinate to test.
+ * @param polygon_data Packed polygon header and vertex indices.
+ * @param vertices Model vertex array.
  * @return TRUE when the point lies within the inclusive XZ bounds; otherwise FALSE.
  */
-static BOOL AreaCheck(float arg0, float arg1, u16 *arg2, Vec *arg3) {
+static BOOL AreaCheck(float point_x, float point_z, u16 *polygon_data, Vec *vertices) {
     float max_x;
     float max_z;
     float min_x;
@@ -578,25 +578,25 @@ static BOOL AreaCheck(float arg0, float arg1, u16 *arg2, Vec *arg3) {
 
     max_x = max_z = -100000.0f;
     min_x = min_z = 100000.0f;
-    vertex_count = *arg2 & 0xFF;
-    arg2++;
-    for (i = 0; i < vertex_count; i++, arg2++) {
-        vertex_index = *arg2;
-        if (min_x > arg3[vertex_index].x) {
-            min_x = arg3[vertex_index].x;
+    vertex_count = *polygon_data & 0xFF;
+    polygon_data++;
+    for (i = 0; i < vertex_count; i++, polygon_data++) {
+        vertex_index = *polygon_data;
+        if (min_x > vertices[vertex_index].x) {
+            min_x = vertices[vertex_index].x;
         }
-        if (max_x < arg3[vertex_index].x) {
-            max_x = arg3[vertex_index].x;
+        if (max_x < vertices[vertex_index].x) {
+            max_x = vertices[vertex_index].x;
         }
-        if (min_z > arg3[vertex_index].z) {
-            min_z = arg3[vertex_index].z;
+        if (min_z > vertices[vertex_index].z) {
+            min_z = vertices[vertex_index].z;
         }
-        if (max_z < arg3[vertex_index].z) {
-            max_z = arg3[vertex_index].z;
+        if (max_z < vertices[vertex_index].z) {
+            max_z = vertices[vertex_index].z;
         }
     }
-    if (min_x <= arg0 && max_x >= arg0
-        && min_z <= arg1 && max_z >= arg1) {
+    if (min_x <= point_x && max_x >= point_x
+        && min_z <= point_z && max_z >= point_z) {
         return TRUE;
     } else {
         return FALSE;
@@ -628,28 +628,28 @@ static inline float xz_scalar_cross_from_origin(float x_org, float z_org, Vec *v
 
 /**
  * @brief Tests whether an XZ point is inside a nonvertical triangle and records its vertices.
- * @param x_org Point X coordinate.
- * @param y_org Point Z coordinate.
- * @param arg2 Packed triangle header and vertex indices.
- * @param arg3 Model vertex array.
+ * @param point_x Point X coordinate.
+ * @param point_z Point Z coordinate.
+ * @param polygon_data Packed triangle header and vertex indices.
+ * @param vertices Model vertex array.
  * @return 1 when inside; otherwise 0.
  */
-static s32 MapIflnnerTriangle(float x_org, float y_org, u16 *arg2, Vec *arg3) {
+static s32 MapIflnnerTriangle(float point_x, float point_z, u16 *polygon_data, Vec *vertices) {
     Vec normal;
     float edge_side;
     s32 next_index;
     s32 i;
 
-    compute_tri_normal(&normal, &arg3[arg2[1]], &arg3[arg2[2]], &arg3[arg2[3]]);
+    compute_tri_normal(&normal, &vertices[polygon_data[1]], &vertices[polygon_data[2]], &vertices[polygon_data[3]]);
     if (normal.y == 0.0f) {
         return 0;
     }
-    arg2++;
-    edge_side = xz_scalar_cross_from_origin(x_org, y_org, &arg3[arg2[0]], &arg3[arg2[1]]);
+    polygon_data++;
+    edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[0]], &vertices[polygon_data[1]]);
     if (edge_side > 0.0f) {
         for (i = 1; i < 3; i++) {
             next_index = (i + 1) % 3;
-            edge_side = xz_scalar_cross_from_origin(x_org, y_org, &arg3[arg2[i]], &arg3[arg2[next_index]]);
+            edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[i]], &vertices[polygon_data[next_index]]);
             if (edge_side < 0.0f) {
                 return 0;
             }
@@ -657,90 +657,90 @@ static s32 MapIflnnerTriangle(float x_org, float y_org, u16 *arg2, Vec *arg3) {
     } else {
         for (i = 1; i < 3; i++) {
             next_index = (i + 1) % 3;
-            edge_side = xz_scalar_cross_from_origin(x_org, y_org, &arg3[arg2[i]], &arg3[arg2[next_index]]);
+            edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[i]], &vertices[polygon_data[next_index]]);
             if (edge_side > 0.0f) {
                 return 0;
             }
         }
     }
-    ColisionIdx[ColisionCount][0] = arg2[0];
-    ColisionIdx[ColisionCount][1] = arg2[1];
-    ColisionIdx[ColisionCount][2] = arg2[2];
+    ColisionIdx[ColisionCount][0] = polygon_data[0];
+    ColisionIdx[ColisionCount][1] = polygon_data[1];
+    ColisionIdx[ColisionCount][2] = polygon_data[2];
     ColisionCount++;
     return 1;
 }
 
 /**
  * @brief Tests whether an XZ point is inside a quadrilateral and records the containing triangle.
- * @param arg0 Point X coordinate.
- * @param arg1 Point Z coordinate.
- * @param arg2 Packed quadrilateral header and vertex indices.
- * @param arg3 Model vertex array.
+ * @param point_x Point X coordinate.
+ * @param point_z Point Z coordinate.
+ * @param polygon_data Packed quadrilateral header and vertex indices.
+ * @param vertices Model vertex array.
  * @return 1 when either component triangle contains the point; otherwise 0.
  */
-static s32 MapIflnnerQuadrangle(float arg0, float arg1, u16 *arg2, Vec *arg3) {
+static s32 MapIflnnerQuadrangle(float point_x, float point_z, u16 *polygon_data, Vec *vertices) {
     Vec normal;
     float edge_side;
     s32 use_second_triangle;
 
-    compute_tri_normal(&normal, &arg3[arg2[1]], &arg3[arg2[2]], &arg3[arg2[3]]);
+    compute_tri_normal(&normal, &vertices[polygon_data[1]], &vertices[polygon_data[2]], &vertices[polygon_data[3]]);
     if (normal.y == 0.0f) {
         return 0;
     }
     use_second_triangle = 0;
-    arg2++;
-    edge_side = xz_scalar_cross_from_origin(arg0, arg1, &arg3[arg2[0]], &arg3[arg2[3]]);
+    polygon_data++;
+    edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[0]], &vertices[polygon_data[3]]);
     if (edge_side > 0.0f) {
-        edge_side = xz_scalar_cross_from_origin(arg0, arg1, &arg3[arg2[3]], &arg3[arg2[2]]);
+        edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[3]], &vertices[polygon_data[2]]);
         if (edge_side < 0.0f) {
             use_second_triangle = 1;
         } else {
-            edge_side = xz_scalar_cross_from_origin(arg0, arg1, &arg3[arg2[2]], &arg3[arg2[0]]);
+            edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[2]], &vertices[polygon_data[0]]);
             if (edge_side < 0.0f) {
                 use_second_triangle = 1;
             }
         }
     } else {
-        edge_side = xz_scalar_cross_from_origin(arg0, arg1, &arg3[arg2[3]], &arg3[arg2[2]]);
+        edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[3]], &vertices[polygon_data[2]]);
         if (edge_side > 0.0f) {
             use_second_triangle = 1;
         } else {
-            edge_side = xz_scalar_cross_from_origin(arg0, arg1, &arg3[arg2[2]], &arg3[arg2[0]]);
+            edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[2]], &vertices[polygon_data[0]]);
             if (edge_side > 0.0f) {
                 use_second_triangle = 1;
             }
         }
     }
     if (use_second_triangle == 0) {
-        ColisionIdx[ColisionCount][0] = arg2[0];
-        ColisionIdx[ColisionCount][1] = arg2[3];
-        ColisionIdx[ColisionCount][2] = arg2[2];
+        ColisionIdx[ColisionCount][0] = polygon_data[0];
+        ColisionIdx[ColisionCount][1] = polygon_data[3];
+        ColisionIdx[ColisionCount][2] = polygon_data[2];
         ColisionCount++;
         return 1;
     }
-    edge_side = xz_scalar_cross_from_origin(arg0, arg1, &arg3[arg2[0]], &arg3[arg2[1]]);
+    edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[0]], &vertices[polygon_data[1]]);
     if (edge_side > 0.0f) {
-        edge_side = xz_scalar_cross_from_origin(arg0, arg1, &arg3[arg2[1]], &arg3[arg2[3]]);
+        edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[1]], &vertices[polygon_data[3]]);
         if (edge_side < 0.0f) {
             return 0;
         }
-        edge_side = xz_scalar_cross_from_origin(arg0, arg1, &arg3[arg2[3]], &arg3[arg2[0]]);
+        edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[3]], &vertices[polygon_data[0]]);
         if (edge_side < 0.0f) {
             return 0;
         }
     } else {
-        edge_side = xz_scalar_cross_from_origin(arg0, arg1, &arg3[arg2[1]], &arg3[arg2[3]]);
+        edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[1]], &vertices[polygon_data[3]]);
         if (edge_side > 0.0f) {
             return 0;
         }
-        edge_side = xz_scalar_cross_from_origin(arg0, arg1, &arg3[arg2[3]], &arg3[arg2[0]]);
+        edge_side = xz_scalar_cross_from_origin(point_x, point_z, &vertices[polygon_data[3]], &vertices[polygon_data[0]]);
         if (edge_side > 0.0f) {
             return 0;
         }
     }
-    ColisionIdx[ColisionCount][0] = arg2[0];
-    ColisionIdx[ColisionCount][1] = arg2[1];
-    ColisionIdx[ColisionCount][2] = arg2[3];
+    ColisionIdx[ColisionCount][0] = polygon_data[0];
+    ColisionIdx[ColisionCount][1] = polygon_data[1];
+    ColisionIdx[ColisionCount][2] = polygon_data[3];
     ColisionCount++;
     return 1;
 }
@@ -782,17 +782,17 @@ static inline s32 should_cull(float *camera, s16 *tri_indices, Vec *vec) {
 
 /**
  * @brief Tests one packed wall polygon against a moving sphere and accumulates its XZ response.
- * @param arg0 Packed polygon header and vertex indices.
- * @param arg1 Model vertex array.
- * @param arg2 World-space sphere center and radius before model transformation.
- * @param arg3 Model-local sphere center and radius.
+ * @param polygon_data Packed polygon header and vertex indices.
+ * @param vertices Model vertex array.
+ * @param world_sphere World-space sphere center and radius before model transformation.
+ * @param local_sphere Model-local sphere center and radius.
  * @return TRUE when the sphere intersects the polygon; otherwise FALSE.
  */
-static BOOL GetPolygonCircleMtx(s16 *arg0, Vec *arg1, float *arg2, float *arg3) {
+static BOOL GetPolygonCircleMtx(s16 *polygon_data, Vec *vertices, float *world_sphere, float *local_sphere) {
     Vec quad_vertices[4];
     Vec triangle_vertices[3];
     float projected_sphere[4];
-    float world_sphere[4];
+    float collision_sphere[4];
     float contact_delta_x;
     float contact_delta_z;
     float scale;
@@ -807,56 +807,56 @@ static BOOL GetPolygonCircleMtx(s16 *arg0, Vec *arg1, float *arg2, float *arg3) 
     Mtx inverse_transpose;
 
     unused_index = 0;
-    world_sphere[0] = projected_sphere[0] = arg3[0] + MTRAdd.x;
-    world_sphere[1] = projected_sphere[1] = arg3[1];
-    world_sphere[2] = projected_sphere[2] = arg3[2] + MTRAdd.z;
-    world_sphere[3] = projected_sphere[3] = arg3[3];
-    vertex_indices = arg0 + 1;
-    if ((plane_side = CalcPPLength(projected_sphere, arg0, arg1)) == 0) {
+    collision_sphere[0] = projected_sphere[0] = local_sphere[0] + MTRAdd.x;
+    collision_sphere[1] = projected_sphere[1] = local_sphere[1];
+    collision_sphere[2] = projected_sphere[2] = local_sphere[2] + MTRAdd.z;
+    collision_sphere[3] = projected_sphere[3] = local_sphere[3];
+    vertex_indices = polygon_data + 1;
+    if ((plane_side = CalcPPLength(projected_sphere, polygon_data, vertices)) == 0) {
         return 0;
     }
     closest_point.x = closest_point.y = closest_point.z = 0.0f;
-    if ((arg0[0] & 0xFF) == 4) {
-        quad_vertices[0].x = arg1[vertex_indices[0]].x;
-        quad_vertices[0].y = arg1[vertex_indices[0]].y;
-        quad_vertices[0].z = arg1[vertex_indices[0]].z;
-        quad_vertices[1].x = arg1[vertex_indices[1]].x;
-        quad_vertices[1].y = arg1[vertex_indices[1]].y;
-        quad_vertices[1].z = arg1[vertex_indices[1]].z;
-        quad_vertices[2].x = arg1[vertex_indices[2]].x;
-        quad_vertices[2].y = arg1[vertex_indices[2]].y;
-        quad_vertices[2].z = arg1[vertex_indices[2]].z;
-        quad_vertices[3].x = arg1[vertex_indices[3]].x;
-        quad_vertices[3].y = arg1[vertex_indices[3]].y;
-        quad_vertices[3].z = arg1[vertex_indices[3]].z;
-        intersects = Hitcheck_Quadrangle_with_Sphere(quad_vertices, (Vec*) world_sphere, projected_sphere[3], &closest_point);
+    if ((polygon_data[0] & 0xFF) == 4) {
+        quad_vertices[0].x = vertices[vertex_indices[0]].x;
+        quad_vertices[0].y = vertices[vertex_indices[0]].y;
+        quad_vertices[0].z = vertices[vertex_indices[0]].z;
+        quad_vertices[1].x = vertices[vertex_indices[1]].x;
+        quad_vertices[1].y = vertices[vertex_indices[1]].y;
+        quad_vertices[1].z = vertices[vertex_indices[1]].z;
+        quad_vertices[2].x = vertices[vertex_indices[2]].x;
+        quad_vertices[2].y = vertices[vertex_indices[2]].y;
+        quad_vertices[2].z = vertices[vertex_indices[2]].z;
+        quad_vertices[3].x = vertices[vertex_indices[3]].x;
+        quad_vertices[3].y = vertices[vertex_indices[3]].y;
+        quad_vertices[3].z = vertices[vertex_indices[3]].z;
+        intersects = Hitcheck_Quadrangle_with_Sphere(quad_vertices, (Vec*) collision_sphere, projected_sphere[3], &closest_point);
     } else {
-        triangle_vertices[0].x = arg1[vertex_indices[0]].x;
-        triangle_vertices[0].y = arg1[vertex_indices[0]].y;
-        triangle_vertices[0].z = arg1[vertex_indices[0]].z;
-        triangle_vertices[1].x = arg1[vertex_indices[1]].x;
-        triangle_vertices[1].y = arg1[vertex_indices[1]].y;
-        triangle_vertices[1].z = arg1[vertex_indices[1]].z;
-        triangle_vertices[2].x = arg1[vertex_indices[2]].x;
-        triangle_vertices[2].y = arg1[vertex_indices[2]].y;
-        triangle_vertices[2].z = arg1[vertex_indices[2]].z;
-        intersects = Hitcheck_Triangle_with_Sphere(triangle_vertices, (Vec*) world_sphere, projected_sphere[3], &closest_point);
+        triangle_vertices[0].x = vertices[vertex_indices[0]].x;
+        triangle_vertices[0].y = vertices[vertex_indices[0]].y;
+        triangle_vertices[0].z = vertices[vertex_indices[0]].z;
+        triangle_vertices[1].x = vertices[vertex_indices[1]].x;
+        triangle_vertices[1].y = vertices[vertex_indices[1]].y;
+        triangle_vertices[1].z = vertices[vertex_indices[1]].z;
+        triangle_vertices[2].x = vertices[vertex_indices[2]].x;
+        triangle_vertices[2].y = vertices[vertex_indices[2]].y;
+        triangle_vertices[2].z = vertices[vertex_indices[2]].z;
+        intersects = Hitcheck_Triangle_with_Sphere(triangle_vertices, (Vec*) collision_sphere, projected_sphere[3], &closest_point);
     }
     if (intersects == TRUE) {
-        world_sphere[0] = arg2[0] + AddX;
-        world_sphere[1] = arg2[1];
-        world_sphere[2] = arg2[2] + AddZ;
+        collision_sphere[0] = world_sphere[0] + AddX;
+        collision_sphere[1] = world_sphere[1];
+        collision_sphere[2] = world_sphere[2] + AddZ;
         PSMTXMultVec(MapMT, &closest_point, &closest_point);
         DefSetHitFace(closest_point.x, closest_point.y, closest_point.z);
         hit_normal = &HitFaceVec[HitFaceCount];
 #ifdef NON_MATCHING
-        compute_tri_normal(hit_normal, &arg1[arg0[0] & 0x7FFF], &arg1[arg0[1]], &arg1[arg0[2]]);
+        compute_tri_normal(hit_normal, &vertices[polygon_data[0] & 0x7FFF], &vertices[polygon_data[1]], &vertices[polygon_data[2]]);
 #else
-        compute_tri_normal(hit_normal, &arg1[arg0[0]], &arg1[arg0[1]], &arg1[arg0[2]]);
+        compute_tri_normal(hit_normal, &vertices[polygon_data[0]], &vertices[polygon_data[1]], &vertices[polygon_data[2]]);
 #endif
-        contact_delta_x = closest_point.x - world_sphere[0];
-        contact_delta_y = closest_point.y - world_sphere[1];
-        contact_delta_z = closest_point.z - world_sphere[2];
+        contact_delta_x = closest_point.x - collision_sphere[0];
+        contact_delta_y = closest_point.y - collision_sphere[1];
+        contact_delta_z = closest_point.z - collision_sphere[2];
         scale = projected_sphere[3] - sqrtf(contact_delta_x * contact_delta_x + contact_delta_z * contact_delta_z);
         HitFaceCount++;
         if (plane_side > 0) {
@@ -864,12 +864,12 @@ static BOOL GetPolygonCircleMtx(s16 *arg0, Vec *arg1, float *arg2, float *arg3) 
             projected_sphere[1] = OldXYZ.y;
             projected_sphere[2] = OldXYZ.z;
             PSMTXMultVec(MapMTR, (Vec*) &projected_sphere, (Vec*) &projected_sphere);
-            if (should_cull(projected_sphere, vertex_indices, arg1) < 0) {
-                travel_direction.x = projected_sphere[0] - world_sphere[0];
-                travel_direction.y = projected_sphere[1] - world_sphere[1];
-                travel_direction.z = projected_sphere[2] - world_sphere[2];
+            if (should_cull(projected_sphere, vertex_indices, vertices) < 0) {
+                travel_direction.x = projected_sphere[0] - collision_sphere[0];
+                travel_direction.y = projected_sphere[1] - collision_sphere[1];
+                travel_direction.z = projected_sphere[2] - collision_sphere[2];
                 normalize_vec(&travel_direction);
-                if (DefIfnnerMapCircle((Vec*) world_sphere, arg0 - 1, arg1, &travel_direction) == 1) {
+                if (DefIfnnerMapCircle((Vec*) collision_sphere, polygon_data - 1, vertices, &travel_direction) == 1) {
                     scale = projected_sphere[3] + sqrtf(contact_delta_x * contact_delta_x + contact_delta_z * contact_delta_z);
                 }
             } else {
@@ -890,15 +890,15 @@ static BOOL GetPolygonCircleMtx(s16 *arg0, Vec *arg1, float *arg2, float *arg3) 
 
 /**
  * @brief Calculates the closest point offset on a triangle expressed from a shared origin.
- * @param arg0 Triangle origin; retained for the final point reconstruction by callers.
- * @param arg1 First triangle edge from the origin.
- * @param arg2 Second triangle edge from the origin.
- * @param arg3 Triangle normal.
- * @param arg4 Point offset from the triangle origin.
- * @param arg5 Destination for the closest offset on the triangle or one of its edges.
+ * @param triangle_origin Triangle origin; retained for the final point reconstruction by callers.
+ * @param first_edge First triangle edge from the origin.
+ * @param second_edge Second triangle edge from the origin.
+ * @param triangle_normal Unit plane normal used to project the point onto the triangle.
+ * @param point_offset Point offset from the triangle origin.
+ * @param closest_offset Destination for the closest offset on the triangle or one of its edges.
  * @return 1 after writing the closest offset.
  */
-static s32 PrecalcPntToTriangle(Vec *arg0, Vec *arg1, Vec *arg2, Vec* arg3, Vec *arg4, Vec *arg5) {
+static s32 PrecalcPntToTriangle(Vec *triangle_origin, Vec *first_edge, Vec *second_edge, Vec* triangle_normal, Vec *point_offset, Vec *closest_offset) {
     Vec negated_normal;
     Vec edge_offset;
     float inverse_determinant;
@@ -906,48 +906,48 @@ static s32 PrecalcPntToTriangle(Vec *arg0, Vec *arg1, Vec *arg2, Vec* arg3, Vec 
     float edge2_weight;
     float edge_fraction;
 
-    HuSetVecF(&negated_normal, -arg4->x, -arg4->y, -arg4->z);
-    inverse_determinant = 1.0f / (-(arg1->z * arg2->y * arg3->x) + arg1->y * arg2->z * arg3->x + arg1->z * arg2->x * arg3->y - arg1->x * arg2->z * arg3->y - arg1->y * arg2->x * arg3->z + arg1->x * arg2->y * arg3->z);
-    edge1_weight = inverse_determinant * (arg2->z * (arg3->y * negated_normal.x - arg3->x * negated_normal.y) + arg2->y * (arg3->x * negated_normal.z - arg3->z * negated_normal.x) + arg2->x * (arg3->z * negated_normal.y - arg3->y * negated_normal.z));
-    edge2_weight = inverse_determinant * (arg1->z * (arg3->x * negated_normal.y - arg3->y * negated_normal.x) + arg1->y * (arg3->z * negated_normal.x - arg3->x * negated_normal.z) + arg1->x * (arg3->y * negated_normal.z - arg3->z * negated_normal.y));
+    HuSetVecF(&negated_normal, -point_offset->x, -point_offset->y, -point_offset->z);
+    inverse_determinant = 1.0f / (-(first_edge->z * second_edge->y * triangle_normal->x) + first_edge->y * second_edge->z * triangle_normal->x + first_edge->z * second_edge->x * triangle_normal->y - first_edge->x * second_edge->z * triangle_normal->y - first_edge->y * second_edge->x * triangle_normal->z + first_edge->x * second_edge->y * triangle_normal->z);
+    edge1_weight = inverse_determinant * (second_edge->z * (triangle_normal->y * negated_normal.x - triangle_normal->x * negated_normal.y) + second_edge->y * (triangle_normal->x * negated_normal.z - triangle_normal->z * negated_normal.x) + second_edge->x * (triangle_normal->z * negated_normal.y - triangle_normal->y * negated_normal.z));
+    edge2_weight = inverse_determinant * (first_edge->z * (triangle_normal->x * negated_normal.y - triangle_normal->y * negated_normal.x) + first_edge->y * (triangle_normal->z * negated_normal.x - triangle_normal->x * negated_normal.z) + first_edge->x * (triangle_normal->y * negated_normal.z - triangle_normal->z * negated_normal.y));
     if (edge1_weight > 0.0f && edge2_weight > 0.0f && edge1_weight + edge2_weight > 1.0f) {
-        VECSubtract(arg2, arg1, &negated_normal);
-        VECSubtract(arg4, arg1, &edge_offset);
+        VECSubtract(second_edge, first_edge, &negated_normal);
+        VECSubtract(point_offset, first_edge, &edge_offset);
         edge_fraction = VECDotProduct(&negated_normal, &edge_offset) / VECDotProduct(&negated_normal, &negated_normal);
         if (edge_fraction <= 0.0f) {
-            arg5 = arg1;
+            closest_offset = first_edge;
         } else {
             if (edge_fraction >= 1.0f) {
-                arg5 = arg2;
+                closest_offset = second_edge;
             } else {
                 VECScale(&negated_normal, &edge_offset, edge_fraction);
-                VECAdd(arg1, &edge_offset, arg5);
+                VECAdd(first_edge, &edge_offset, closest_offset);
             }
         }
     } else if (edge2_weight < 0.0f) {
-        edge_fraction = VECDotProduct(arg1, arg4) / VECDotProduct(arg1, arg1);
+        edge_fraction = VECDotProduct(first_edge, point_offset) / VECDotProduct(first_edge, first_edge);
         if (edge_fraction <= 0.0f) {
-            HuSetVecF(arg5, 0.0, 0.0, 0.0);
+            HuSetVecF(closest_offset, 0.0, 0.0, 0.0);
         } else {
             if (edge_fraction >= 1.0f) {
-                arg5 = arg1;
+                closest_offset = first_edge;
             } else {
-                VECScale(arg1, arg5, edge_fraction);
+                VECScale(first_edge, closest_offset, edge_fraction);
             }
         }
     } else if (edge1_weight < 0.0f) {
-        edge_fraction = VECDotProduct(arg2, arg4) / VECDotProduct(arg2, arg2);
+        edge_fraction = VECDotProduct(second_edge, point_offset) / VECDotProduct(second_edge, second_edge);
         if (edge_fraction <= 0.0f) {
-            HuSetVecF(arg5, 0.0, 0.0, 0.0);
+            HuSetVecF(closest_offset, 0.0, 0.0, 0.0);
         } else {
             if (edge_fraction >= 1.0f) {
-                arg5 = arg2;
+                closest_offset = second_edge;
             } else {
-                VECScale(arg2, arg5, edge_fraction);
+                VECScale(second_edge, closest_offset, edge_fraction);
             }
         }
     } else {
-        HuSetVecF(arg5, edge1_weight * arg1->x + edge2_weight * arg2->x, edge1_weight * arg1->y + edge2_weight * arg2->y, edge1_weight * arg1->z + edge2_weight * arg2->z);
+        HuSetVecF(closest_offset, edge1_weight * first_edge->x + edge2_weight * second_edge->x, edge1_weight * first_edge->y + edge2_weight * second_edge->y, edge1_weight * first_edge->z + edge2_weight * second_edge->z);
     }
     return 1;
 }
@@ -988,13 +988,13 @@ BOOL Hitcheck_Triangle_with_Sphere(Vec *triangle, Vec *sphere_origin, float sphe
 
 /**
  * @brief Tests a quadrilateral, split into two triangles, against a sphere.
- * @param arg0 Array of four quadrilateral vertices.
- * @param arg1 Sphere center in the same coordinate space.
- * @param arg2 Sphere radius in coordinate units.
- * @param arg3 Destination for the closer point from the two component triangles.
+ * @param quadrangle Array of four quadrilateral vertices.
+ * @param sphere_origin Sphere center in the same coordinate space.
+ * @param sphere_radius Sphere radius in coordinate units.
+ * @param closest_point Destination for the closer point from the two component triangles.
  * @return TRUE when the closest-point distance is no greater than the radius; otherwise FALSE.
  */
-BOOL Hitcheck_Quadrangle_with_Sphere(Vec *arg0, Vec *arg1, float arg2, Vec *arg3) {
+BOOL Hitcheck_Quadrangle_with_Sphere(Vec *quadrangle, Vec *sphere_origin, float sphere_radius, Vec *closest_point) {
     Vec quad_origin;
     Vec diagonal_edge;
     Vec third_edge;
@@ -1007,31 +1007,31 @@ BOOL Hitcheck_Quadrangle_with_Sphere(Vec *arg0, Vec *arg1, float arg2, Vec *arg3
     float second_distance;
     float closest_distance;
 
-    quad_origin.x = arg0->x;
-    quad_origin.y = arg0->y;
-    quad_origin.z = arg0->z;
-    VECSubtract(&arg0[2], &arg0[0], &diagonal_edge);
-    VECSubtract(&arg0[3], &arg0[0], &third_edge);
-    VECSubtract(&arg0[1], &arg0[0], &second_edge);
+    quad_origin.x = quadrangle->x;
+    quad_origin.y = quadrangle->y;
+    quad_origin.z = quadrangle->z;
+    VECSubtract(&quadrangle[2], &quadrangle[0], &diagonal_edge);
+    VECSubtract(&quadrangle[3], &quadrangle[0], &third_edge);
+    VECSubtract(&quadrangle[1], &quadrangle[0], &second_edge);
     VECCrossProduct(&diagonal_edge, &third_edge, &normal);
-    VECSubtract(arg1, &arg0[0], &sphere_offset);
+    VECSubtract(sphere_origin, &quadrangle[0], &sphere_offset);
     PrecalcPntToTriangle(&quad_origin, &diagonal_edge, &third_edge, &normal, &sphere_offset, &closest_offset);
     VECAdd(&closest_offset, &quad_origin, &first_closest_point);
     PrecalcPntToTriangle(&quad_origin, &third_edge, &second_edge, &normal, &sphere_offset, &closest_offset);
     VECAdd(&closest_offset, &quad_origin, &second_closest_point);
-    closest_distance = VECDistance(&first_closest_point, arg1);
-    second_distance = VECDistance(&second_closest_point, arg1);
+    closest_distance = VECDistance(&first_closest_point, sphere_origin);
+    second_distance = VECDistance(&second_closest_point, sphere_origin);
     if (second_distance > closest_distance) {
-        arg3->x = first_closest_point.x;
-        arg3->y = first_closest_point.y;
-        arg3->z = first_closest_point.z;
+        closest_point->x = first_closest_point.x;
+        closest_point->y = first_closest_point.y;
+        closest_point->z = first_closest_point.z;
     } else {
         closest_distance = second_distance;
-        arg3->x = second_closest_point.x;
-        arg3->y = second_closest_point.y;
-        arg3->z = second_closest_point.z;
+        closest_point->x = second_closest_point.x;
+        closest_point->y = second_closest_point.y;
+        closest_point->z = second_closest_point.z;
     }
-    if (closest_distance > arg2) {
+    if (closest_distance > sphere_radius) {
         return FALSE;
     } else {
         return TRUE;
@@ -1040,14 +1040,14 @@ BOOL Hitcheck_Quadrangle_with_Sphere(Vec *arg0, Vec *arg1, float arg2, Vec *arg3
 
 /**
  * @brief Stores the current collision contact point in the hit-face array.
- * @param arg0 Contact X coordinate.
- * @param arg1 Contact Y coordinate.
- * @param arg2 Contact Z coordinate.
+ * @param contact_x Contact X coordinate.
+ * @param contact_y Contact Y coordinate.
+ * @param contact_z Contact Z coordinate.
  */
-static void DefSetHitFace(float arg0, float arg1, float arg2) {
-    HitFace[HitFaceCount].x = arg0;
-    HitFace[HitFaceCount].y = arg1;
-    HitFace[HitFaceCount].z = arg2;
+static void DefSetHitFace(float contact_x, float contact_y, float contact_z) {
+    HitFace[HitFaceCount].x = contact_x;
+    HitFace[HitFaceCount].y = contact_y;
+    HitFace[HitFaceCount].z = contact_z;
 }
 
 // floats x_comp and z_comp are essentially a direction vector (x_comp, 0, z_comp)
@@ -1070,27 +1070,27 @@ void AppendAddXZ(float x_comp, float z_comp, float scale) {
 
 /**
  * @brief Builds an object's rotation/translation matrix and transforms a point into object space.
- * @param arg0 Destination for the object-to-world matrix.
- * @param arg1 Destination for its inverse matrix.
- * @param arg2 Point transformed in place from world space to object space.
- * @param arg3 Map object supplying translation and Euler rotation in degrees.
+ * @param object_matrix Destination for the object-to-world matrix.
+ * @param inverse_matrix Destination for its inverse matrix.
+ * @param point Point transformed in place from world space to object space.
+ * @param map_object Map object supplying translation and Euler rotation in degrees.
  */
-void CharRotInv(Mtx arg0, Mtx arg1, Vec *arg2, OMOBJ *arg3) {
+void CharRotInv(Mtx object_matrix, Mtx inverse_matrix, Vec *point, OMOBJ *map_object) {
     Mtx rotation_matrix;
 
-    PSMTXTrans(arg0, arg3->trans.x, arg3->trans.y, arg3->trans.z);
-    if (arg3->rot.z) {
-        PSMTXRotRad(rotation_matrix, 'z', MTXDegToRad(arg3->rot.z));
-        PSMTXConcat(arg0, rotation_matrix, arg0);
+    PSMTXTrans(object_matrix, map_object->trans.x, map_object->trans.y, map_object->trans.z);
+    if (map_object->rot.z) {
+        PSMTXRotRad(rotation_matrix, 'z', MTXDegToRad(map_object->rot.z));
+        PSMTXConcat(object_matrix, rotation_matrix, object_matrix);
     }
-    if (arg3->rot.y) {
-        PSMTXRotRad(rotation_matrix, 'y', MTXDegToRad(arg3->rot.y));
-        PSMTXConcat(arg0, rotation_matrix, arg0);
+    if (map_object->rot.y) {
+        PSMTXRotRad(rotation_matrix, 'y', MTXDegToRad(map_object->rot.y));
+        PSMTXConcat(object_matrix, rotation_matrix, object_matrix);
     }
-    if (arg3->rot.x) {
-        PSMTXRotRad(rotation_matrix, 'x', MTXDegToRad(arg3->rot.x));
-        PSMTXConcat(arg0, rotation_matrix, arg0);
+    if (map_object->rot.x) {
+        PSMTXRotRad(rotation_matrix, 'x', MTXDegToRad(map_object->rot.x));
+        PSMTXConcat(object_matrix, rotation_matrix, object_matrix);
     }
-    PSMTXInverse(arg0, arg1);
-    PSMTXMultVec(arg1, arg2, arg2);
+    PSMTXInverse(object_matrix, inverse_matrix);
+    PSMTXMultVec(inverse_matrix, point, point);
 }

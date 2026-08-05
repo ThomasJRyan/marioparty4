@@ -187,7 +187,7 @@ void MGSeqMain(void)
 
 /**
  * @brief Allocates and initializes one of the eight sequence slots from a sequence-table entry.
- * @param seq_no Index into the sequence definition table.
+ * @param seq_no Entry in seqInfoTbl selecting initializer, updater, default position, scale, and hold time.
  * @param params Type-specific arguments forwarded unchanged to the selected initializer.
  * @return Allocated sequence slot index, or -1 when all slots are occupied or type initialization fails.
  */
@@ -302,14 +302,14 @@ void MGSeqPosSet(s16 id, float x, float y)
 /**
  * @brief Queues two control parameters for a valid sequence update callback.
  * @param id Sequence slot index from 0 through 7; negative values select all slots where supported.
- * @param param1 Sequence control command consumed by the next update.
- * @param param2 Command-specific sequence value.
+ * @param command Sequence control opcode stored in param[0] and consumed by the next update.
+ * @param command_value For command 1, the new timer/hold value (-1 requests the sequence-specific stop path); for command 2 in the timer sequence, -1 pauses, 0 resumes the normal state, and 1 selects its alternate state. Other commands ignore it.
  */
-void MGSeqParamSet(s16 id, s16 param1, s16 param2)
+void MGSeqParamSet(s16 id, s16 command, s16 command_value)
 {
     if (id >= 0 && id < 8) {
-        seqWorkData[id].param[0] = param1;
-        seqWorkData[id].param[1] = param2;
+        seqWorkData[id].param[0] = command;
+        seqWorkData[id].param[1] = command_value;
     }
 }
 
@@ -377,7 +377,7 @@ void MGSeqSprKill(SeqWork *work)
 
 /**
  * @brief Copies one sequence asset from ARAM into model-heap memory.
- * @param file Packed sequence asset identifier in ARAM.
+ * @param file DATA_MAKE_NUM asset key copied from ARAM into a new HEAP_MODEL buffer.
  * @return New model-heap buffer containing the requested ARAM file.
  */
 static void *SeqReadFile(s32 file)

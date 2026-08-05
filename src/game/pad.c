@@ -241,9 +241,9 @@ static void PadReadVSync(u32 retraceCount)
 static void PadADConv(s16 pad, PADStatus *status)
 {
     s16 stickX, stickY;
-    s16 spA, sp8;
-    spA = 0;
-    sp8 = 0;
+    s16 unused_direction_x, unused_direction_y;
+    unused_direction_x = 0;
+    unused_direction_y = 0;
     stickX = abs(status->stickX);
     stickY = abs(status->stickY);
     _PadDStk[pad] = 0;

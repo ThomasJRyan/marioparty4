@@ -10,9 +10,9 @@
 #define THP_DECODE_STACK_SIZE 0x2000
 
 static void THPTestProc(void);
-static void THPViewFunc(HU3DMODEL *arg0, Mtx arg1);
-static void THPViewSprFunc(HUSPRITE *arg0);
-static void THPDecodeFunc(void *param);
+static void THPViewFunc(HU3DMODEL *model, Mtx model_view_matrix);
+static void THPViewSprFunc(HUSPRITE *sprite);
+static void THPDecodeFunc(void *unused_context);
 
 static char THPFileName[64];
 
@@ -273,29 +273,29 @@ static void THPTestProc(void)
 
 /**
  * @brief Draws the current THP frame through a 3D model hook and starts synchronized audio.
- * @param arg0 Model state associated with the hook; its fields are not read here.
- * @param arg1 Model-view matrix supplied to the 3D draw hook.
+ * @param model Model state associated with the hook; its fields are not read here.
+ * @param model_view_matrix Model-view matrix supplied to the 3D draw hook.
  */
-static void THPViewFunc(HU3DMODEL *arg0, Mtx arg1)
+static void THPViewFunc(HU3DMODEL *model, Mtx model_view_matrix)
 {
-    GXColor spC = { 0xFF, 0xFF, 0xFF, 0xFF };
+    GXColor frame_color = { 0xFF, 0xFF, 0xFF, 0xFF };
 
     if (THPStart != 0) {
         GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
         GXSetCullMode(GX_CULL_NONE);
         THPFrame
-            = THPSimpleDrawCurrentFrame(RenderMode, &spC, arg1, -audioTrack.unk00 / 2, audioTrack.unk04 / 2, audioTrack.unk00, -audioTrack.unk04);
+            = THPSimpleDrawCurrentFrame(RenderMode, &frame_color, model_view_matrix, -audioTrack.unk00 / 2, audioTrack.unk04 / 2, audioTrack.unk00, -audioTrack.unk04);
         THPSimpleAudioStart();
     }
 }
 
 /**
  * @brief Draws the current THP frame using a sprite transform and modulation color.
- * @param arg0 Sprite transform and RGBA modulation used to draw the movie frame.
+ * @param sprite Sprite transform and RGBA modulation used to draw the movie frame.
  */
-static void THPViewSprFunc(HUSPRITE *arg0)
+static void THPViewSprFunc(HUSPRITE *sprite)
 {
-    Vec spC = { 0.0f, 0.0f, 1.0f };
+    Vec z_axis = { 0.0f, 0.0f, 1.0f };
     GXColor sprite_color;
     s32 draw_x;
     s32 draw_y;
@@ -303,20 +303,20 @@ static void THPViewSprFunc(HUSPRITE *arg0)
     Mtx rotation_matrix;
 
     if (THPStart != 0) {
-        sprite_color.r = arg0->r;
-        sprite_color.g = arg0->g;
-        sprite_color.b = arg0->b;
-        sprite_color.a = arg0->a;
-        if (arg0->zRot != 0.0f) {
-            PSMTXRotAxisRad(rotation_matrix, &spC, MTXDegToRad(arg0->zRot));
-            PSMTXScale(draw_matrix, arg0->scale.x, arg0->scale.y, 1.0f);
+        sprite_color.r = sprite->r;
+        sprite_color.g = sprite->g;
+        sprite_color.b = sprite->b;
+        sprite_color.a = sprite->a;
+        if (sprite->zRot != 0.0f) {
+            PSMTXRotAxisRad(rotation_matrix, &z_axis, MTXDegToRad(sprite->zRot));
+            PSMTXScale(draw_matrix, sprite->scale.x, sprite->scale.y, 1.0f);
             PSMTXConcat(rotation_matrix, draw_matrix, draw_matrix);
         }
         else {
-            PSMTXScale(draw_matrix, arg0->scale.x, arg0->scale.y, 1.0f);
+            PSMTXScale(draw_matrix, sprite->scale.x, sprite->scale.y, 1.0f);
         }
-        mtxTransCat(draw_matrix, arg0->pos.x, arg0->pos.y, 0.0f);
-        PSMTXConcat(*arg0->groupMtx, draw_matrix, draw_matrix);
+        mtxTransCat(draw_matrix, sprite->pos.x, sprite->pos.y, 0.0f);
+        PSMTXConcat(*sprite->groupMtx, draw_matrix, draw_matrix);
         draw_x = -((s32)audioTrack.unk00 / 2);
         draw_y = -((s32)audioTrack.unk04 / 2);
         GXSetZMode(GX_FALSE, GX_ALWAYS, GX_FALSE);
@@ -326,9 +326,9 @@ static void THPViewSprFunc(HUSPRITE *arg0)
 
 /**
  * @brief Continuously decodes THP data until close is requested.
- * @param param Unused decode-thread argument.
+ * @param unused_context Unused thread-start context; decoding reads state from SimpleControl and THPStat instead.
  */
-static void THPDecodeFunc(void *param)
+static void THPDecodeFunc(void *unused_context)
 {
     while (1) {
         if (THPStat == 2) {

@@ -191,9 +191,9 @@ void HuSprDisp(HUSPRITE *sprite)
 
 /**
  * @brief Loads one animation bitmap into a GX texture unit and configures palette data when required.
- * @param anim Animation data referenced by the sprite.
- * @param bmp Bitmap index within the animation.
- * @param slot GX texture-map slot.
+ * @param anim Animation allocation whose bmp table and optional palette supply the GX texture.
+ * @param bmp Entry in anim->bmp selected for dimensions, format, pixels, and palette data.
+ * @param slot GX_TEXMAP slot receiving the initialized texture object.
  * @param wrap_s Horizontal GX texture wrap mode.
  * @param wrap_t Vertical GX texture wrap mode.
  * @param filter GX texture minification and magnification filter.
@@ -260,8 +260,8 @@ void HuSprTexLoad(ANIMDATA *anim, short bmp, short slot, GXTexWrapMode wrap_s, G
 
 /**
  * @brief Associates a sprite draw pass with one engine display-list layer.
- * @param draw_no Sprite draw-pass number.
- * @param layer Engine display-list layer.
+ * @param draw_no HuSprData.drawNo pass stored in HuSprLayerDrawNo[layer].
+ * @param layer Hu3D layer slot that receives HuSprLayerHook.
  */
 void HuSprExecLayerSet(short draw_no, short layer)
 {
@@ -271,7 +271,7 @@ void HuSprExecLayerSet(short draw_no, short layer)
 
 /**
  * @brief Executes the sprite draw pass registered for a display-list layer.
- * @param layer Engine display-list layer.
+ * @param layer Hu3D layer slot used to select the registered HuSprLayerDrawNo entry.
  */
 static void HuSprLayerHook(short layer)
 {

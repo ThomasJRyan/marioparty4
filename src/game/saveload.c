@@ -58,7 +58,7 @@ static s32 saveMessWin = -1;
 
 /**
  * @brief Mounts the selected card and opens an existing save file for the current box.
- * @param fileName Save filename to open or create on the selected card.
+ * @param fileName NUL-terminated filename passed to HuCardOpen in the globally selected curSlotNo.
  * @return CARD result code from mount, open, or validation.
  */
 s32 SLFileOpen(char *fileName)
@@ -115,10 +115,10 @@ s32 SLFileOpen(char *fileName)
 
 /**
  * @brief Creates a save file, writes its initial buffer, and configures comment, banner, and icon metadata.
- * @param fileName Save filename to open or create on the selected card.
- * @param size Requested save-file size in bytes.
- * @param addr Caller-owned transfer buffer.
- * @return CARD result code from create, write, metadata update, or close.
+ * @param fileName NUL-terminated filename passed to HuCardCreate in the globally selected curSlotNo.
+ * @param size File allocation size and number of initial bytes read from addr and written at offset zero.
+ * @param addr Caller-owned source buffer containing at least size bytes; read-only for the duration of HuCardWrite.
+ * @return CARD result code from mount, create, initial write, or metadata update.
  */
 s32 SLFileCreate(char *fileName, u32 size, void *addr)
 {
@@ -201,9 +201,9 @@ s32 SLFileCreate(char *fileName, u32 size, void *addr)
 }
 
 /**
- * @brief Writes bytes from the caller buffer at the current save-file offset.
- * @param length Number of bytes to transfer.
- * @param addr Caller-owned transfer buffer.
+ * @brief Writes bytes from the caller buffer at offset zero of the open save file.
+ * @param length Byte count read from addr and written at offset zero of curFileInfo.
+ * @param addr Caller-owned source buffer containing at least length readable bytes.
  * @return CARD result code; CARD_RESULT_READY indicates the write completed.
  */
 s32 SLFileWrite(s32 length, void *addr)
@@ -234,9 +234,9 @@ s32 SLFileWrite(s32 length, void *addr)
 }
 
 /**
- * @brief Reads bytes into the caller buffer from the current save-file offset.
- * @param length Number of bytes to transfer.
- * @param addr Caller-owned transfer buffer.
+ * @brief Reads bytes at offset zero of the open save file into the caller buffer.
+ * @param length Byte count read at offset zero of curFileInfo into addr.
+ * @param addr Caller-owned destination buffer with capacity for at least length writable bytes.
  * @return CARD result code; CARD_RESULT_READY indicates the read completed.
  */
 s32 SLFileRead(s32 length, void *addr)
@@ -273,7 +273,7 @@ s32 SLFileClose(void)
 
 /**
  * @brief Selects memory-card slot A or B for subsequent operations.
- * @param slotno Memory-card slot index.
+ * @param slotno CARD slot selector stored in curSlotNo for subsequent mount, open, read, write, and format calls.
  */
 void SLCurSlotNoSet(s16 slotno)
 {
@@ -282,7 +282,7 @@ void SLCurSlotNoSet(s16 slotno)
 
 /**
  * @brief Selects the save-box filename used by subsequent operations.
- * @param boxno Save-box index selecting a filename.
+ * @param boxno Entry 0 through 2 stored in curBoxNo to select SaveFileNameTbl[curBoxNo].
  */
 void SLCurBoxNoSet(s16 boxno)
 {
@@ -291,7 +291,7 @@ void SLCurBoxNoSet(s16 boxno)
 
 /**
  * @brief Sets the internal save-request flag.
- * @param flag New save-request flag value.
+ * @param flag Pending-save state stored in SaveEnableF; zero also clears party_continue and story_continue.
  */
 void SLSaveFlagSet(s32 flag)
 {
@@ -928,7 +928,7 @@ s32 SLFormat(s16 slotNo)
 
 /**
  * @brief Displays the localized save/load message, optionally obtains a yes/no choice, and returns that choice.
- * @param mess Save/load message selector from 0 through 12.
+ * @param mess Case 0 through 12 selecting the localized card-error or confirmation message and whether a choice is requested.
  * @return Selected choice index for confirmation messages, or -1 for informational messages.
  */
 s16 SLMessOut(s16 mess)
