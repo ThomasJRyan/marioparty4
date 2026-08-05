@@ -763,8 +763,8 @@ static void ExecItemPipe(void)
     Vec player_scale;
     Vec converted_target_a;
     Vec converted_target_b;
-    Vec unused_position_a;
-    Vec unused_position_b;
+    Vec unused_pipe_sp6c;
+    Vec unused_pipe_sp60;
     s32 player_spaces[2];
     float start_heights[2];
     float window_size[2];
@@ -776,10 +776,10 @@ static void ExecItemPipe(void)
     float donkey_scale;
     s16 target_player;
     s16 window;
-    s32 unused_value_a;
-    s32 unused_value_b;
-    s32 unused_value_c;
-    s32 unused_value_d;
+    s32 unused_pipe_r25;
+    s32 unused_pipe_r29;
+    s32 unused_pipe_r19;
+    s32 unused_pipe_r18;
     s16 scale_delay;
     s32 completed_axes;
     s32 index;
@@ -1353,7 +1353,7 @@ static void ExecItemWhistle(void)
     s16 boo_motion;
     s16 attack_motion;
     s16 loop_motion;
-    s32 unused_value;
+    s32 unused_whistle_r31;
     s16 star_host_model;
     s16 board;
     s32 wipe_started;

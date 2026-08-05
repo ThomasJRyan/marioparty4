@@ -20,7 +20,7 @@ typedef struct platform_work {
         u8 kill : 1;
 		u8 state : 2;
     };
-    s16 unidentified_02;
+    s16 initialization_only_field;
     s16 model;
 } PlatformWork;
 
@@ -229,7 +229,7 @@ static void CreateFortunePlatform(void)
 	fortunePlatformObj = omAddObjEx(boardObjMan, 257, 0, 0, -1, ExecFortunePlatform);
 	work = omObjGetWork(fortunePlatformObj, PlatformWork);
 	work->kill = 0;
-	work->unidentified_02 = 0;
+	work->initialization_only_field = 0;
 	work->model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 3), NULL, 0);
 	BoardSpacePosGet(0, GWPlayer[currPlayer].space_curr, &pos);
 	BoardSpaceRotGet(0, GWPlayer[currPlayer].space_curr, &rot);
