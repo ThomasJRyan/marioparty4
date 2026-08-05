@@ -33,17 +33,17 @@
 
 typedef struct {
     struct {
-        u8 is_board_visible : 1;
+        u8 sequence_complete : 1; ///< Set after the result display finishes so the manager deletes this player object.
         u8 state : 3;
         u8 index : 2;
-        u8 is_actionable : 1;
+        u8 landing_complete : 1; ///< Set when PlayerFall reaches the board and consumes its landing delay.
         u8 has_rolled : 1;
     };
     u8 delay;
     u8 time;
     s8 unidentified_03;  // Written to -1 during creation; purpose not identified.
     s8 digit;
-    s16 rotation_angle;
+    s16 roll_interval_or_rotation_angle; ///< DiceRoll update interval, then result-model rotation in degrees.
     s16 dice_model;
     s16 model;
     s16 dice_particle_manager_id;
@@ -335,16 +335,16 @@ static void CreatePlayerStart(void) {
         player_object = omAddObjEx(boardObjMan, 0x100, 0, 0, -1, ExecPlayerStart);
         playerStartObj[i] = player_object;
         player_data = omObjGetWork(player_object, PlayerStartWork);
-        player_data->is_board_visible = 0;
+        player_data->sequence_complete = 0;
         player_data->index = i;
         player_data->unidentified_03 = -1;
         player_data->model = -1;
         player_data->dice_particle_manager_id = -1;
         player_data->state = 1;
         player_data->delay = i * 30;
-        player_data->is_actionable = 0;
+        player_data->landing_complete = 0;
         player_data->has_rolled = 0;
-        player_data->rotation_angle = 2;
+        player_data->roll_interval_or_rotation_angle = 2;
         player_data->digit = 1;
         player_data->tutorial_jump_countdown = 0x3C;
         player_data->dice_model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x18), NULL, 0);
@@ -374,7 +374,7 @@ static void CreatePlayerStart(void) {
 static void ExecPlayerStart(OMOBJ *object) {
     PlayerStartWork *data = omObjGetWork(object, PlayerStartWork);
 
-    if (data->is_board_visible != 0 || BoardIsKill()) {
+    if (data->sequence_complete != 0 || BoardIsKill()) {
         if (hitFX[data->index] != -1) {
             HuAudFXStop(hitFX[data->index]);
             hitFX[data->index] = -1;
@@ -414,12 +414,12 @@ static void ExecPlayerStart(OMOBJ *object) {
 /**
  * @brief Animate a player falling into the opening lineup.
  * @param [in,out] object Per-player opening object whose Y translation tracks the falling player.
- * @param [in] data Per-player opening-sequence work record.
+ * @param [in,out] data Player record whose index selects the model, whose time and delay advance the fall, and whose landing_complete flag records touchdown.
  */
 static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
     float fall_duration;
 
-    if (data->is_actionable != 0) {
+    if (data->landing_complete != 0) {
         SetPlayerStartState(playerOrderOld[data->index], 0);
         BoardPlayerIdleSet(playerOrderOld[data->index]);
         if (_CheckFlag(FLAG_ID_MAKE(1, 11)) && data->index == 3) {
@@ -437,7 +437,7 @@ static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
         data->time = 0;
         BoardPlayerMotionShiftSet(playerOrderOld[data->index], 5, 0.0f, 4.0f, HU3D_MOTATTR_NONE);
         data->delay = 0xC;
-        data->is_actionable = 1;
+        data->landing_complete = 1;
     }
     data->time++;
     BoardPlayerPosSet(playerOrderOld[data->index], object->trans.x, object->trans.y, object->trans.z);
@@ -446,7 +446,7 @@ static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
 /**
  * @brief Play the waiting player's voice and advance to the dice-drop state.
  * @param [in] unused_object Unused object callback argument.
- * @param [in] data Per-player opening-sequence work record.
+ * @param [in,out] data Player record whose index selects the speaker and whose time gates the wait before advancing state.
  */
 static void PlayerWaitSpeak(OMOBJ *unused_object, PlayerStartWork *data) {
     float target_y_rotation;
@@ -466,7 +466,7 @@ static void PlayerWaitSpeak(OMOBJ *unused_object, PlayerStartWork *data) {
 /**
  * @brief Animate the opening-order Dice Block falling above a player.
  * @param [in,out] object Per-player opening object whose X rotation stores the Dice Block's per-frame fall step.
- * @param [in] data Per-player opening-sequence work record.
+ * @param [in,out] data Player record whose index and dice_model select the falling die and whose time advances the fall and state transition.
  */
 static void PlayerDiceFall(OMOBJ *object, PlayerStartWork *data) {
     Vec dice_position;
@@ -519,7 +519,7 @@ static s32 playerOrderMesTbl[3] = {
 /**
  * @brief Spin the Dice Block until the player or computer confirms a result.
  * @param [in,out] object Per-player opening object whose rotation fields later hold result-model scale factors.
- * @param [in] data Per-player opening-sequence work record.
+ * @param [in,out] data Player record whose time, roll interval, digit, model handles, particle manager, roll flag, and tutorial countdown drive the dice roll.
  */
 static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
     Vec dice_position;
@@ -529,7 +529,7 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
     s8 digit;
 
     jump_input = 0;
-    if (data->time > data->rotation_angle) {
+    if (data->time > data->roll_interval_or_rotation_angle) {
         data->time = 0;
         digit = data->digit;
         do {
@@ -559,7 +559,7 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
     } else {
         if (BoardPlayerDiceJumpCheck(playerOrderOld[data->index])) {
             SetPlayerStartState(playerOrderOld[data->index], 5);
-            data->rotation_angle = 360;
+            data->roll_interval_or_rotation_angle = 360;
             object->rot.x = object->rot.y = 1.0f;
             data->digit = BoardRandMod(9);
             HuAudFXPlay(0x303);
@@ -602,65 +602,65 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
 /**
  * @brief Display the player's opening roll and transition to result cleanup.
  * @param [in] unused_object Unused object callback argument.
- * @param [in] data Per-player opening-sequence work record.
+ * @param [in,out] data Player record whose result model and index are displayed while its rotation angle is reduced toward zero before advancing state.
  */
 static void PlayerDiceNumShow(OMOBJ *unused_object, PlayerStartWork *data) {
     float rotation_degrees;
 
-    data->rotation_angle -= 18;
-    if (data->rotation_angle < 0) {
-        data->rotation_angle = 0;
+    data->roll_interval_or_rotation_angle -= 18;
+    if (data->roll_interval_or_rotation_angle < 0) {
+        data->roll_interval_or_rotation_angle = 0;
         SetPlayerStartState(playerOrderOld[data->index], 0);
         if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
             BoardTutorialHookExec(2, 0);
         }
     }
-    OSs16tof32(&data->rotation_angle, &rotation_degrees);
+    OSs16tof32(&data->roll_interval_or_rotation_angle, &rotation_degrees);
     BoardModelRotYSet(data->model, rotation_degrees);
 }
 
 /**
  * @brief Hide the opening roll, lower the player, and mark that player complete.
  * @param [in,out] object Per-player opening object whose rotation fields supply the result model's animated X/Y scale.
- * @param [in] data Per-player opening-sequence work record.
+ * @param [in,out] data Player record whose time and rotation angle animate and hide the result model, then set sequence_complete.
  */
 static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
     float rotation_degrees;
 
     switch (data->time) {
         case 0:
-            data->rotation_angle += 18;
-            if (data->rotation_angle > 360) {
-                data->rotation_angle = 0;
+            data->roll_interval_or_rotation_angle += 18;
+            if (data->roll_interval_or_rotation_angle > 360) {
+                data->roll_interval_or_rotation_angle = 0;
                 data->time = 1;
                 object->rot.x = 1.0f;
                 object->rot.y = 1.0f;
             }
-            OSs16tof32(&data->rotation_angle, &rotation_degrees);
+            OSs16tof32(&data->roll_interval_or_rotation_angle, &rotation_degrees);
             BoardModelRotYSet(data->model, rotation_degrees);
             return;
         case 1:
-            data->rotation_angle += 9;
-            if (data->rotation_angle > 180) {
-                data->rotation_angle = 0;
+            data->roll_interval_or_rotation_angle += 9;
+            if (data->roll_interval_or_rotation_angle > 180) {
+                data->roll_interval_or_rotation_angle = 0;
                 data->time = 2;
             }
-            OSs16tof32(&data->rotation_angle, &rotation_degrees);
+            OSs16tof32(&data->roll_interval_or_rotation_angle, &rotation_degrees);
             object->rot.x = 1.0 + 1.3f * sind(rotation_degrees);
             break;
         case 2:
-            data->rotation_angle += 9;
-            if (data->rotation_angle > 180) {
-                data->rotation_angle = 179;
+            data->roll_interval_or_rotation_angle += 9;
+            if (data->roll_interval_or_rotation_angle > 180) {
+                data->roll_interval_or_rotation_angle = 179;
                 data->time = 3;
             }
-            OSs16tof32(&data->rotation_angle, &rotation_degrees);
+            OSs16tof32(&data->roll_interval_or_rotation_angle, &rotation_degrees);
             object->rot.x = cosd(0.5f * rotation_degrees);
             object->rot.y = 1.0 + 1.3f * sind(rotation_degrees);
             break;
         case 3:
             BoardModelVisibilitySet(data->model, 0);
-            data->is_board_visible = 1;
+            data->sequence_complete = 1;
             return;
     }
     BoardModelScaleSet(data->model, object->rot.x, object->rot.y, 1.0f);
@@ -687,7 +687,7 @@ static void SetPlayerStartState(s32 player, s32 state) {
         case 5:
             break;
         case 6:
-            data->rotation_angle = 0;
+            data->roll_interval_or_rotation_angle = 0;
             break;
     }
 }

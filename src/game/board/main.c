@@ -2050,11 +2050,11 @@ static void UpdateFilter(OMOBJ *object)
 /**
  * @brief Draw the full-screen colored filter quad with the current alpha.
  * @param [in] model Engine-model pointer supplied by the draw hook; unused by this callback.
- * @param [in] matrix Current view matrix supplied to the draw hook.
+ * @param [in] matrix Unused draw-hook view matrix; the callback loads its own orthographic projection and identity model-view matrix.
  */
 static void DrawFilter(HU3DMODEL *model, Mtx matrix)
 {
-    static GXColor colorN = { 0xFF, 0xFF, 0xFF, 0xFF };
+    static GXColor white_material_color = { 0xFF, 0xFF, 0xFF, 0xFF };
     Mtx44 proj;
     Mtx modelview;
 
@@ -2097,7 +2097,7 @@ static void DrawFilter(HU3DMODEL *model, Mtx matrix)
     GXPosition2u16(x2, y2);
     GXPosition2u16(x1, y2);
     GXEnd();
-    GXSetChanMatColor(GX_COLOR0A0, colorN);
+    GXSetChanMatColor(GX_COLOR0A0, white_material_color);
 
 }
 

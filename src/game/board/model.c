@@ -517,7 +517,7 @@ s32 BoardModelMotionCreate(s16 model, s32 data_num)
 /**
  * @brief Detach and release one motion slot.
  * @param [in] model Wrapper from which the selected additional motion is detached and released.
- * @param [in] motion Wrapper motion slot.
+ * @param [in] motion Additional motion slot from 1 through 31 to detach and release; other values are ignored.
  * @return 0 after clearing the slot, or -1 when model is invalid or motion is outside slots 1 through 31.
  */
 s32 BoardModelMotionKill(s16 model, s32 motion)
@@ -599,7 +599,7 @@ s32 BoardModelMotionUpdateSet(s16 model, s32 flag)
 /**
  * @brief Enable or disable character voice triggers for a motion.
  * @param [in] model Character-backed wrapper whose selected motion's voice triggers are changed.
- * @param [in] motion Wrapper motion slot.
+ * @param [in] motion Motion slot from 0 through 31 whose character-motion voice setting receives enable.
  * @param [in] flag Nonzero enables voice triggers; zero disables them.
  * @return -1 when model is invalid; otherwise 0, including for an out-of-range motion or non-character model.
  */
@@ -624,8 +624,8 @@ s32 BoardModelVoiceEnableSet(s16 model, s32 motion, s32 flag)
 /**
  * @brief Start a wrapper motion with engine motion attributes.
  * @param [in] model Wrapper whose selected motion becomes the current motion.
- * @param [in] motion Wrapper motion slot.
- * @param [in] attr Engine attribute bit mask.
+ * @param [in] motion Motion slot from 0 through 31 made current on the engine model or character model.
+ * @param [in] attr Model-motion attributes applied after loop and pause are cleared; endpoint bits also select the initial playback endpoint.
  * @return -1 when model is invalid; otherwise 0, including when motion is outside slots 0 through 31.
  */
 s32 BoardModelMotionStart(s16 model, s32 motion, u32 attr)
@@ -687,10 +687,10 @@ s32 BoardModelMotionShiftIDGet(s16 model)
 /**
  * @brief Blend from the current motion to another wrapper motion.
  * @param [in] model Wrapper blended from its current motion to the selected motion.
- * @param [in] motion Wrapper motion slot.
+ * @param [in] motion Motion slot from 0 through 31 blended into by the engine or character shift operation.
  * @param [in] time Motion start time in frames.
  * @param [in] shift_time Motion blend duration in frames.
- * @param [in] attr Engine attribute bit mask.
+ * @param [in] attr Motion-shift attributes passed to the selected engine-model or character-model shift operation.
  * @return 0 after starting the blend, or -1 when model is invalid or motion is outside slots 0 through 31.
  */
 s32 BoardModelMotionShiftSet(s16 model, s32 motion, float time, float shift_time, u32 attr)
@@ -725,7 +725,7 @@ s32 BoardModelMotionShiftSet(s16 model, s32 motion, float time, float shift_time
 /**
  * @brief Add engine model attribute bits.
  * @param [in] model Wrapper whose engine model receives the attribute bits.
- * @param [in] attr Engine attribute bit mask.
+ * @param [in] attr Model attribute bits passed to Hu3DModelAttrSet for the resolved engine model.
  * @return 0 after setting the attribute bits, or -1 when model is invalid.
  */
 s32 BoardModelAttrSet(s16 model, u32 attr)
@@ -743,7 +743,7 @@ s32 BoardModelAttrSet(s16 model, u32 attr)
 /**
  * @brief Remove engine model attribute bits.
  * @param [in] model Wrapper whose engine model has the attribute bits cleared.
- * @param [in] attr Engine attribute bit mask.
+ * @param [in] attr Model attribute bits passed to Hu3DModelAttrReset for the resolved engine model.
  * @return 0 after clearing the attribute bits, or -1 when model is invalid.
  */
 s32 BoardModelAttrReset(s16 model, u32 attr)
@@ -896,8 +896,8 @@ s32 BoardModelMotionEndCheck(s16 model)
 /**
  * @brief Attach and start a shape-motion resource on the model.
  * @param [in] model Data-backed wrapper that receives the selected shape motion.
- * @param [in] motion Wrapper motion slot.
- * @param [in] attr Engine attribute bit mask.
+ * @param [in] motion Wrapper motion slot below 32 whose motion ID is attached as the model's shape motion.
+ * @param [in] attr Shape-motion attributes applied to the engine model; reverse/end bits select the initial maximum-time endpoint.
  * @return 0 after attaching the shape motion, or -1 when model is invalid, character-backed, or motion is at least 32.
  */
 s32 BoardModelMotionShapeSet(s16 model, s32 motion, u32 attr)
@@ -1001,10 +1001,10 @@ s32 BoardModelMotionShapeSpeedSet(s16 model, float speed)
 /**
  * @brief Get the shape-motion playback multiplier; the second argument is unused.
  * @param [in] model Wrapper whose stored shape-motion playback multiplier is queried.
- * @param [in] unused_speed Unused; retained to match the original interface.
+ * @param [in] unused_shape_speed_argument Unread ABI argument exposed only by the kerent export thunk; no direct C caller exists in the source tree.
  * @return Stored shape-motion playback multiplier, or -1.0 when model is invalid.
  */
-float BoardModelMotionShapeSpeedGet(s16 model, float unused_speed)
+float BoardModelMotionShapeSpeedGet(s16 model, float unused_shape_speed_argument)
 {
     BoardModel *model_ptr = SearchBoardModel(model);
     if (!model_ptr) {

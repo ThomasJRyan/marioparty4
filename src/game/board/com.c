@@ -313,7 +313,7 @@ s8 BoardComPreferItemCheck(s32 player, s8 item1, s8 item2, s8 item3) {
 /**
  * @brief Convert a character's item-preference rank into a selection weight.
  * @param [in] player Player whose character-specific item rank is converted to a weight.
- * @param [in] item Board item ID.
+ * @param [in] item Candidate item whose character-preference rank is converted to a selection weight.
  * @return Preference weight; higher values represent earlier character preferences.
  */
 s32 BoardComItemWeightGet(s32 player, s32 item) {
@@ -359,7 +359,7 @@ s32 BoardComUseItemSlotGet(s32 player) {
 /**
  * @brief Force a computer player to select a particular owned item.
  * @param [in] player Computer-controlled player whose owned item is forced as the current selection.
- * @param [in] item Board item ID.
+ * @param [in] item Requested owned item to force-select, or -1 to clear the forced selection.
  * @return 1 if selection was cleared or the requested item is owned; 0 if it is not owned.
  */
 s32 BoardComUseItemSet(s32 player, s32 item) {
@@ -446,7 +446,7 @@ static s32 ChooseUseItem(s32 player) {
 /**
  * @brief Decide whether path length, difficulty, and character bias justify using a Mini Mushroom.
  * @param [in] player Computer-controlled player whose route length, coins, and difficulty govern Mini Mushroom use.
- * @param [in] item Board item ID.
+ * @param [in] item Owned Mini Mushroom whose turn-use heuristic is evaluated.
  * @return TRUE when a useful Mini shortcut is nearby and the difficulty-based roll permits use; otherwise FALSE.
  */
 static BOOL CheckMiniUse(s32 player, s32 item) {
@@ -513,7 +513,7 @@ static BOOL CheckMiniUse(s32 player, s32 item) {
 /**
  * @brief Decide whether nearby players and shortcuts permit using a Mega Mushroom safely.
  * @param [in] player Computer-controlled player whose nearby opponents and route shortcuts govern Mega Mushroom use.
- * @param [in] item Board item ID.
+ * @param [in] item Owned Mega Mushroom whose turn-use heuristic is evaluated.
  * @return TRUE when the Mega item is owned and no route or teammate restriction rejects it; otherwise FALSE.
  */
 static BOOL CheckMegaUse(s32 player, s32 item) {
@@ -572,7 +572,7 @@ static BOOL CheckMegaUse(s32 player, s32 item) {
 /**
  * @brief Decide whether an opponent is close enough behind to use a Sparky Sticker.
  * @param [in] player Computer-controlled player whose position is compared with opponents behind them.
- * @param [in] item Board item ID.
+ * @param [in] item Owned Sparky Sticker whose defensive-use heuristic is evaluated.
  * @return TRUE when an opponent is within 15 forward spaces and the difficulty roll permits use; otherwise FALSE.
  */
 static BOOL CheckSparkUse(s32 player, s32 item) {
@@ -619,7 +619,7 @@ static BOOL CheckSparkUse(s32 player, s32 item) {
 /**
  * @brief Decide whether changing board traversal would improve the computer player's route relative to opponents.
  * @param [in] player Computer-controlled player whose route and opponents are compared before changing board traversal.
- * @param [in] item Board item ID.
+ * @param [in] item Owned traversal-changing item whose route-improvement heuristic is evaluated.
  * @return TRUE when changing traversal improves the route and the difficulty roll permits use; otherwise FALSE.
  */
 static BOOL CheckBoardChangeUse(s32 player, s32 item) {
@@ -704,7 +704,7 @@ static BOOL CheckBoardChangeUse(s32 player, s32 item) {
 /**
  * @brief Decide whether opponents hold enough items to justify using a Swap Card.
  * @param [in] player Computer-controlled player whose inventory is compared with opponents' inventories before a swap.
- * @param [in] item Board item ID.
+ * @param [in] item Owned Swap Card whose opponent-inventory heuristic is evaluated.
  * @return TRUE when eligible opponents own items and the difficulty roll permits a swap; otherwise FALSE.
  */
 static BOOL CheckSwapUse(s32 player, s32 item) {
@@ -762,7 +762,7 @@ static BOOL CheckSwapUse(s32 player, s32 item) {
 /**
  * @brief Check that the player owns the item, has at least five coins, and has a valid Boo target.
  * @param [in] player Computer-controlled player whose item ownership, coins, and Boo targets are validated.
- * @param [in] item Board item ID.
+ * @param [in] item Owned Boo item whose affordability and target-selection checks are evaluated.
  * @return TRUE when the item is owned, the player has five coins, and Boo has a valid target; otherwise FALSE.
  */
 static BOOL CheckBooUse(s32 player, s32 item) {
@@ -781,7 +781,7 @@ static BOOL CheckBooUse(s32 player, s32 item) {
 /**
  * @brief Decide probabilistically whether an owned Magic Lamp should be used at the current difficulty.
  * @param [in] player Computer-controlled player whose item ownership and difficulty set the lamp-use probability.
- * @param [in] item Board item ID.
+ * @param [in] item Owned Magic Lamp whose difficulty-dependent use chance is evaluated.
  * @return TRUE when the lamp is owned and the difficulty-based random roll permits use; otherwise FALSE.
  */
 static BOOL CheckLampUse(s32 player, s32 item) {

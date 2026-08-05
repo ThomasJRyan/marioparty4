@@ -213,9 +213,9 @@ void BoardWinPause(void) {
 /**
  * @brief Queue a board message window with choice collection enabled.
  * @param [in] pos Window layout preset index from 0 through 6.
- * @param [in] mess Packed message ID.
+ * @param [in] mess Packed message ID stored for installation when the pending choice window becomes active.
  * @param [in] portrait Portrait ID, or -1 to create a portraitless window.
- * @param [in] choice Choice index.
+ * @param [in] choice Initial choice index retained in pending window state and selected after creation.
  */
 void BoardWinCreateChoice(s32 pos, u32 mess, s32 portrait, s32 choice) {
     s32 i;
@@ -252,7 +252,7 @@ void BoardWinCreateChoice(s32 pos, u32 mess, s32 portrait, s32 choice) {
 /**
  * @brief Queue a board message window without a selectable choice.
  * @param [in] pos Window layout preset index from 0 through 6.
- * @param [in] mess Packed message ID.
+ * @param [in] mess Packed message ID retained by the pending window and installed on its active engine window.
  * @param [in] portrait Portrait ID, or -1 to create a portraitless window.
  */
 void BoardWinCreate(s32 pos, u32 mess, s32 portrait) {
@@ -330,7 +330,7 @@ void BoardWinKill(void) {
 
 /**
  * @brief Add window attribute bits to the pending and active board window.
- * @param [in] attr Engine attribute bit mask.
+ * @param [in] attr Window attribute bits added to pending state and, when present, the active engine window.
  */
 void BoardWinAttrSet(s32 attr) {
     winAttr |= attr;
@@ -341,7 +341,7 @@ void BoardWinAttrSet(s32 attr) {
 
 /**
  * @brief Remove window attribute bits from the pending and active board window.
- * @param [in] attr Engine attribute bit mask.
+ * @param [in] attr Window attribute bits removed from pending state and, when present, the active engine window.
  */
 void BoardWinAttrReset(s32 attr) {
     winAttr &= ~attr;
@@ -352,7 +352,7 @@ void BoardWinAttrReset(s32 attr) {
 
 /**
  * @brief Disable a choice index in the pending board window.
- * @param [in] choice Choice index.
+ * @param [in] choice Choice index marked in the pending disable table and disabled on the active choice window.
  */
 void BoardWinChoiceDisable(s32 choice) {
     choiceDisableTbl[choice] = 1;
