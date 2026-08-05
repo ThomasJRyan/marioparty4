@@ -437,8 +437,8 @@ s32 BoardSpaceLinkTransformGet(s32 flag, Vec *pos, Vec *rot, Vec *scale)
 }
 
 /**
- * @brief Move the board host model to a space and orient it from the space rotation.
- * @param [in] space One-based board-space index.
+ * @brief Mark the star space as host-bearing and move the host model to its flagged host link.
+ * @param [in] space One-based star space marked as host type before its flagged host link positions the host model.
  */
 void BoardSpaceHostSet(s32 space)
 {
@@ -703,8 +703,8 @@ end:
 
 /**
  * @brief Run the board-specific pre-landing hook and the event for the landed space type.
- * @param [in] player Player index.
- * @param [in] space One-based board-space index.
+ * @param [in] player Player whose landing hook and landed-space event are executed.
+ * @param [in] space One-based landed space whose type selects the event callback.
  */
 void BoardSpaceLandExec(s32 player, s32 space)
 {
@@ -809,8 +809,8 @@ void BoardSpaceLandExec(s32 player, s32 space)
 
 /**
  * @brief Run the walk-over event selected by the traversed space's flags.
- * @param [in] player Player index.
- * @param [in] space One-based board-space index.
+ * @param [in] player Player traversing the space and passed to the selected walk-over event.
+ * @param [in] space One-based traversed space whose flags select the walk-over event.
  * @return 1 when a walk-over event was dispatched; otherwise 0.
  */
 s32 BoardSpaceWalkExec(s32 player, s32 space)
@@ -873,8 +873,8 @@ s32 BoardSpaceWalkExec(s32 player, s32 space)
 
 /**
  * @brief Run a tutorial block override or the standard hidden-block event.
- * @param [in] player Player index.
- * @param [in] space One-based board-space index.
+ * @param [in] player Player receiving the tutorial override or standard hidden-block event.
+ * @param [in] space One-based hidden-block event space passed to the block handler.
  * @return Always 0 after the tutorial override or standard hidden-block sequence completes.
  */
 s32 BoardSpaceBlockExec(s32 player, s32 space)
@@ -908,8 +908,8 @@ s32 BoardSpaceBlockExec(s32 player, s32 space)
 
 /**
  * @brief Run the pipe warp event unless the player is in Mega form.
- * @param [in] player Player index.
- * @param [in] space One-based board-space index.
+ * @param [in] player Player tested for Mega form and passed to the pipe event.
+ * @param [in] space One-based pipe space passed to the board-specific pipe callback.
  * @return Always 0, whether Mega form suppresses the pipe or the pipe warp completes.
  */
 static s32 ExecPipeSpace(s32 player, s32 space)
@@ -1019,8 +1019,8 @@ static inline void InitGXSpace()
 // Some stack allocation issues. code around BoardPlayerGetCurr is incorrect too
 /**
  * @brief Draw visible primary-layer space markers, highlights, and textures.
- * @param [in] model Board-model handle.
- * @param [in] matrix Current view matrix supplied to the draw hook.
+ * @param [in] model Engine-model pointer supplied by the draw hook; unused by this callback.
+ * @param [in] matrix View matrix supplied by the draw hook; unused because this routine rebuilds its camera look-at matrix.
  */
 static void DrawSpaces(HU3DMODEL *model, Mtx matrix)
 {

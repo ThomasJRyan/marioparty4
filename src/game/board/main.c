@@ -1089,7 +1089,7 @@ void BoardCameraOffsetSet(float x, float y, float z)
 
 /**
  * @brief Track a player's position as the camera target.
- * @param [in] player Player index.
+ * @param [in] player Player whose board model becomes the tracked camera target; an invalid player clears model tracking.
  */
 void BoardCameraTargetPlayerSet(s32 player)
 {
@@ -1104,7 +1104,7 @@ void BoardCameraTargetPlayerSet(s32 player)
 
 /**
  * @brief Track a board model as the camera target.
- * @param [in] model Board-model handle.
+ * @param [in] model Board-model wrapper to track as the camera target, or -1 to clear model tracking.
  */
 void BoardCameraTargetModelSet(s16 model)
 {
@@ -1119,7 +1119,7 @@ void BoardCameraTargetModelSet(s16 model)
 
 /**
  * @brief Track a board space as the camera target.
- * @param [in] space One-based board-space index.
+ * @param [in] space One-based board space whose position becomes the camera target, or -1 to clear space tracking.
  */
 void BoardCameraTargetSpaceSet(s32 space)
 {
@@ -1552,9 +1552,9 @@ static void CalcCameraTarget(BoardCameraData *camera)
  * @param out Vector lvalue receiving the interpolated components.
  */
 #define CAM_LERP_VEC(t, x1, x2, out) \
-CAM_LERP(t, (x1).x, (x2).x, (out).x); \
-CAM_LERP(t, (x1).y, (x2).y, (out).y); \
-CAM_LERP(t, (x1).z, (x2).z, (out).z);
+CAM_LERP(t, (x1).x, (x2).x, (out).x) \
+CAM_LERP(t, (x1).y, (x2).y, (out).y) \
+CAM_LERP(t, (x1).z, (x2).z, (out).z)
 
 /**
  * @brief Interpolate active focus values and end the camera motion after its final frame.
@@ -1577,10 +1577,10 @@ static void CalcCameraPos(BoardCameraData *camera)
     focus->time++;
     lerp_t2 = focus->max_time;
     lerp_t1 = 0;
-    CAM_LERP(time, focus->zoom_start, focus->zoom_end, camera->zoom);
-    CAM_LERP_VEC(time, focus->rot_start, focus->rot_end, camera->rot);
-    CAM_LERP(time, focus->fov_start, focus->fov_end, camera->fov);
-    CAM_LERP_VEC(time, focus->target_start, focus->target_end, camera->target);
+    CAM_LERP(time, focus->zoom_start, focus->zoom_end, camera->zoom)
+    CAM_LERP_VEC(time, focus->rot_start, focus->rot_end, camera->rot)
+    CAM_LERP(time, focus->fov_start, focus->fov_end, camera->fov)
+    CAM_LERP_VEC(time, focus->target_start, focus->target_end, camera->target)
 }
 
 /**
@@ -2049,7 +2049,7 @@ static void UpdateFilter(OMOBJ *object)
 
 /**
  * @brief Draw the full-screen colored filter quad with the current alpha.
- * @param [in] model Board-model handle.
+ * @param [in] model Engine-model pointer supplied by the draw hook; unused by this callback.
  * @param [in] matrix Current view matrix supplied to the draw hook.
  */
 static void DrawFilter(HU3DMODEL *model, Mtx matrix)
@@ -2281,10 +2281,10 @@ static void MoveConfetti(OMOBJ *object)
 {
     ConfettiWork *work = omObjGetWork(object, ConfettiWork);
     s32 i;
-    s32 existF;
+    s32 has_active_particle;
     ConfettiParticle *particle;
 
-    existF = 0;
+    has_active_particle = 0;
     particle = work->data;
 
     for(i=0; i<work->count; i++, particle++) {
@@ -2309,11 +2309,11 @@ static void MoveConfetti(OMOBJ *object)
                 particle->alpha = 0;
             }
         }
-        if(!existF) {
-            existF = 1;
+        if(!has_active_particle) {
+            has_active_particle = 1;
         }
     }
-    if(existF == 0 && work->paused) {
+    if(has_active_particle == 0 && work->paused) {
         work->kill = 1;
     }
 }
@@ -2329,7 +2329,7 @@ static Vec confettiLightTbl[6] = {
 
 /**
  * @brief Draw each active confetti particle with its transform, alpha, and color multiplier.
- * @param [in] model Board-model handle.
+ * @param [in] model Engine-model pointer supplied by the draw hook; unused by this callback.
  * @param [in] matrix Current view matrix supplied to the draw hook.
  */
 static void DrawConfetti(HU3DMODEL *model, Mtx matrix)
@@ -2413,7 +2413,7 @@ void BoardLast5GfxInit(void)
     Last5GfxWork *work;
     OMOBJ *object;
     s32 turn_remain;
-    s32 lastF;
+    s32 last_turn_layout;
     turn_remain = GWSystem.max_turn-GWSystem.turn;
     if(turn_remain > 4 || turn_remain < 0) {
         return;
@@ -2429,10 +2429,10 @@ void BoardLast5GfxInit(void)
         work->group = HuSprGrpCreate(3);
         if((s32)(GWSystem.max_turn-GWSystem.turn) == 0) {
             work->is_last = 1;
-            lastF = 1;
+            last_turn_layout = 1;
         } else {
             work->is_last = 0;
-            lastF = 0;
+            last_turn_layout = 0;
         }
         for(i=0; i<3; i++) {
             s32 prio;
@@ -2454,7 +2454,7 @@ void BoardLast5GfxInit(void)
 #endif
             HuSprGrpMemberSet(work->group, i, work->sprites[i]);
             HuSprAttrSet(work->group, i, HUSPR_ATTR_LINEAR);
-            HuSprPosSet(work->group, i, last5GfxPosTbl[lastF][i][0], last5GfxPosTbl[lastF][i][1]);
+            HuSprPosSet(work->group, i, last5GfxPosTbl[last_turn_layout][i][0], last5GfxPosTbl[last_turn_layout][i][1]);
         }
         if(!work->is_last) {
             HUSPRITE *sprite = &HuSprData[HuSprGrpData[work->group].members[1]];

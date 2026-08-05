@@ -44,7 +44,7 @@ static s16 childNodeCnt;
 
 /**
  * @brief Find the path node whose traced segment starts at a board space.
- * @param [in] space One-based board-space index.
+ * @param [in] space One-based segment origin used to locate an existing traced path node.
  * @return Matching node, or NULL when no node starts at the space.
  */
 static PathNode *SearchPathNodeSpace(s16 space) {
@@ -365,7 +365,7 @@ static inline void PopulateCandidates(s16 start, s16 len) {
 
 /**
  * @brief Find the shortest distance to a requested space type within 30 counted spaces.
- * @param [in] space One-based board-space index.
+ * @param [in] space One-based search origin from which shortcut destinations are traced.
  * @param [in] type Gameplay space type to locate.
  * @param [in] block_pipe Zero to stop at pipe spaces; nonzero to continue through them.
  * @return Shortest positive distance found; 0 when no destination is found, and 10000 if the bounded result table remains empty at the final scan.
@@ -453,7 +453,7 @@ done:
 
 /**
  * @brief Choose an outgoing link whose descendants contain the star.
- * @param [in] space One-based board-space index.
+ * @param [in] space One-based search origin whose outgoing paths are compared for the shortest route.
  * @return Outgoing linked-space index leading to a star, or -1 when no choice is needed or found.
  */
 s16 BoardComPathBestGet(s16 space) {
@@ -480,7 +480,7 @@ s16 BoardComPathBestGet(s16 space) {
 
 /**
  * @brief Measure a forward path distance between two spaces without traversing pipe links.
- * @param [in] space One-based board-space index.
+ * @param [in] space One-based search origin from which the requested path length is measured.
  * @param [in] space_other One-based destination space index.
  * @return Forward distance in counted spaces, or 0 when the destination is not found.
  */
@@ -572,7 +572,7 @@ static BOOL CheckPath(PathNode *node) {
 
 /**
  * @brief Choose an outgoing link whose descendants contain a requested destination flag.
- * @param [in] space One-based board-space index.
+ * @param [in] space One-based search origin whose paths are filtered by the requested destination flag.
  * @param [in] flag Destination-category mask; supported bits select shop, Boo, or lottery paths.
  * @param [in] len Maximum path lookahead in counted spaces.
  * @return Outgoing linked-space index leading to the requested category, or -1 when none is needed or found.

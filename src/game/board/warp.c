@@ -40,8 +40,8 @@ static void WarpKill(void);
 
 /**
  * @brief Run the warp process synchronously and set the acting player's minigame color to green.
- * @param [in] player Player index.
- * @param [in] space One-based board-space index.
+ * @param [in] player Acting player launched and relocated by the synchronous warp sequence.
+ * @param [in] space One-based triggering warp space passed by the walk event; unused because the roulette selects the destination independently.
  */
 void BoardWarpExec(s32 player, s32 space) {
     omVibrate(player, 12, 4, 2);
@@ -140,7 +140,7 @@ void WarpKill(void) {
 
 /**
  * @brief Create the spring, hook the player to it, and prepare the launch camera.
- * @param [in] player Player index.
+ * @param [in] player Acting player hooked to the spring model and targeted by the launch camera.
  */
 static void WarpInit(s32 player) {
     Vec pos;
@@ -162,7 +162,7 @@ static void WarpInit(s32 player) {
 
 /**
  * @brief Raise the warped player until the fade-out and relocation phase begins.
- * @param [in] player Player index.
+ * @param [in] player Warped player raised during the launch phase.
  */
 static void WarpLaunch(s32 player) {
 
@@ -183,7 +183,7 @@ static void WarpLaunch(s32 player) {
 
 /**
  * @brief Move the player above the target's space and prepare the impact effect and camera.
- * @param [in] player Player index.
+ * @param [in] player Warped player repositioned above the destination before impact.
  */
 static void WarpStartImpact(s32 player) {
     s32 i;
@@ -219,7 +219,7 @@ static void WarpStartImpact(s32 player) {
 
 /**
  * @brief Accelerate the warped player downward to the target space.
- * @param [in] player Player index.
+ * @param [in] player Warped player accelerated downward toward the destination space.
  */
 static void WarpFall(s32 player) {
     warpYVel += -2.0f;
@@ -235,7 +235,7 @@ static void WarpFall(s32 player) {
 
 /**
  * @brief Play the landing effect, animate players on the destination space, and finish the warp.
- * @param [in] player Player index.
+ * @param [in] player Warped player landed at the destination and detached from the spring.
  */
 static void WarpImpact(s32 player) {
     Vec pos;

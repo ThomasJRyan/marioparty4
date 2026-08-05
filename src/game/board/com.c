@@ -229,7 +229,7 @@ void BoardComKeySetDown(void) {
 
 /**
  * @brief Queue an optional directional press followed by confirmation for a computer player's controller port.
- * @param [in] player Player index.
+ * @param [in] player Computer-controlled player whose controller port receives the queued input.
  * @param [in] move One sends the selected directional press before confirmation; zero confirms without moving the cursor.
  * @param [in] vertical Zero selects vertical navigation with Down; nonzero selects horizontal navigation with Right.
  */
@@ -257,7 +257,7 @@ static void ExecComKey(s32 player, s32 move, s32 vertical) {
 
 /**
  * @brief Select the highest-ranked candidate item for the player's character.
- * @param [in] player Player index.
+ * @param [in] player Player whose character-specific preference table ranks the candidate items.
  * @param [in] items Array of candidate board item IDs.
  * @param [in] num_items Number of entries in items.
  * @return Index within items of the best candidate, or -1 when none qualifies.
@@ -293,7 +293,7 @@ s8 BoardComPreferItemGet(s32 player, s8 *items, s8 num_items) {
 
 /**
  * @brief Rank three candidate items for the player's character.
- * @param [in] player Player index.
+ * @param [in] player Player whose character preferences determine the ordering of the three items.
  * @param [in] item1 Candidate item ID returned as index 0 if preferred.
  * @param [in] item2 Candidate item ID returned as index 1 if preferred.
  * @param [in] item3 Candidate item ID returned as index 2 if preferred.
@@ -312,7 +312,7 @@ s8 BoardComPreferItemCheck(s32 player, s8 item1, s8 item2, s8 item3) {
 
 /**
  * @brief Convert a character's item-preference rank into a selection weight.
- * @param [in] player Player index.
+ * @param [in] player Player whose character-specific item rank is converted to a weight.
  * @param [in] item Board item ID.
  * @return Preference weight; higher values represent earlier character preferences.
  */
@@ -331,7 +331,7 @@ s32 BoardComItemWeightGet(s32 player, s32 item) {
 
 /**
  * @brief Get the inventory slot of the item selected for a computer player or tutorial.
- * @param [in] player Player index.
+ * @param [in] player Player whose three inventory slots are searched for the selected item.
  * @return Inventory slot 0 through 2, or -1 when no selected item is available.
  */
 s32 BoardComUseItemSlotGet(s32 player) {
@@ -358,7 +358,7 @@ s32 BoardComUseItemSlotGet(s32 player) {
 
 /**
  * @brief Force a computer player to select a particular owned item.
- * @param [in] player Player index.
+ * @param [in] player Computer-controlled player whose owned item is forced as the current selection.
  * @param [in] item Board item ID.
  * @return 1 if selection was cleared or the requested item is owned; 0 if it is not owned.
  */
@@ -376,7 +376,7 @@ s32 BoardComUseItemSet(s32 player, s32 item) {
 
 /**
  * @brief Determine whether a computer player has an item worth using this turn.
- * @param [in] player Player index.
+ * @param [in] player Computer-controlled player whose inventory is tested for a usable item.
  * @return TRUE when an owned item passes its use heuristic; otherwise FALSE.
  */
 BOOL BoardComUseItemCheck(s32 player) {
@@ -394,20 +394,20 @@ BOOL BoardComUseItemCheck(s32 player) {
 
 /**
  * @brief Evaluate owned items and retain the usable item with the character's best preference rank.
- * @param [in] player Player index.
+ * @param [in] player Computer-controlled player whose owned items are scored and selected.
  * @return Selected board item ID, or -1 when no item passes its heuristic.
  */
 static s32 ChooseUseItem(s32 player) {
     s32 i;
     s32 j;
-    s32 useItem;
+    s32 selected_item;
     s32 weight;
     s32 item;
     s32 character;
     UseCheckFunc func;
     s8 result;
 
-    useItem = -1;
+    selected_item = -1;
     character = GWPlayer[player].character;
     weight = 100;
     for (i = 0; i < 3; i++) {
@@ -434,18 +434,18 @@ static s32 ChooseUseItem(s32 player) {
     if (weight == 100) {
         return -1;
     }
-    useItem = comItemPreferTbl[character][weight];
-    if (useItem == -1) {
+    selected_item = comItemPreferTbl[character][weight];
+    if (selected_item == -1) {
         itemUse = -1;
-    } else if (BoardPlayerItemFind(player, useItem) != -1) {
-        itemUse = useItem;
+    } else if (BoardPlayerItemFind(player, selected_item) != -1) {
+        itemUse = selected_item;
     }
-    return useItem;
+    return selected_item;
 }
 
 /**
  * @brief Decide whether path length, difficulty, and character bias justify using a Mini Mushroom.
- * @param [in] player Player index.
+ * @param [in] player Computer-controlled player whose route length, coins, and difficulty govern Mini Mushroom use.
  * @param [in] item Board item ID.
  * @return TRUE when a useful Mini shortcut is nearby and the difficulty-based roll permits use; otherwise FALSE.
  */
@@ -512,7 +512,7 @@ static BOOL CheckMiniUse(s32 player, s32 item) {
 
 /**
  * @brief Decide whether nearby players and shortcuts permit using a Mega Mushroom safely.
- * @param [in] player Player index.
+ * @param [in] player Computer-controlled player whose nearby opponents and route shortcuts govern Mega Mushroom use.
  * @param [in] item Board item ID.
  * @return TRUE when the Mega item is owned and no route or teammate restriction rejects it; otherwise FALSE.
  */
@@ -571,7 +571,7 @@ static BOOL CheckMegaUse(s32 player, s32 item) {
 
 /**
  * @brief Decide whether an opponent is close enough behind to use a Sparky Sticker.
- * @param [in] player Player index.
+ * @param [in] player Computer-controlled player whose position is compared with opponents behind them.
  * @param [in] item Board item ID.
  * @return TRUE when an opponent is within 15 forward spaces and the difficulty roll permits use; otherwise FALSE.
  */
@@ -618,7 +618,7 @@ static BOOL CheckSparkUse(s32 player, s32 item) {
 
 /**
  * @brief Decide whether changing board traversal would improve the computer player's route relative to opponents.
- * @param [in] player Player index.
+ * @param [in] player Computer-controlled player whose route and opponents are compared before changing board traversal.
  * @param [in] item Board item ID.
  * @return TRUE when changing traversal improves the route and the difficulty roll permits use; otherwise FALSE.
  */
@@ -703,7 +703,7 @@ static BOOL CheckBoardChangeUse(s32 player, s32 item) {
 
 /**
  * @brief Decide whether opponents hold enough items to justify using a Swap Card.
- * @param [in] player Player index.
+ * @param [in] player Computer-controlled player whose inventory is compared with opponents' inventories before a swap.
  * @param [in] item Board item ID.
  * @return TRUE when eligible opponents own items and the difficulty roll permits a swap; otherwise FALSE.
  */
@@ -761,7 +761,7 @@ static BOOL CheckSwapUse(s32 player, s32 item) {
 
 /**
  * @brief Check that the player owns the item, has at least five coins, and has a valid Boo target.
- * @param [in] player Player index.
+ * @param [in] player Computer-controlled player whose item ownership, coins, and Boo targets are validated.
  * @param [in] item Board item ID.
  * @return TRUE when the item is owned, the player has five coins, and Boo has a valid target; otherwise FALSE.
  */
@@ -780,7 +780,7 @@ static BOOL CheckBooUse(s32 player, s32 item) {
 
 /**
  * @brief Decide probabilistically whether an owned Magic Lamp should be used at the current difficulty.
- * @param [in] player Player index.
+ * @param [in] player Computer-controlled player whose item ownership and difficulty set the lamp-use probability.
  * @param [in] item Board item ID.
  * @return TRUE when the lamp is owned and the difficulty-based random roll permits use; otherwise FALSE.
  */

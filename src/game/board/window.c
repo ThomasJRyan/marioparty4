@@ -437,7 +437,7 @@ s32 BoardWinPortraitGetStar(void) {
 
 /**
  * @brief Restrict window input to the requested human player's port, accounting for tutorial and CPU state.
- * @param [in] player Player index.
+ * @param [in] player Human player whose controller port remains enabled; -1 derives disabled ports from all CPU players.
  */
 void BoardWinPlayerSet(s32 player) {
     s32 i;

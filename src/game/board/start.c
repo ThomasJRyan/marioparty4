@@ -245,9 +245,9 @@ static void ExecStart(void) {
  */
 static void ShowLogo(void) {
     float scale;
-    float angleF;
-    s16 angleS;
-    s16 anglePosY;
+    float angle_degrees;
+    s16 angle_step;
+    s16 pulse_angle;
 
     logoSprGrp = HuSprGrpCreate(1);
     BoardSpriteCreate(logoSprTbl[GWBoardGet()], 1000, 0, &logoSpr);
@@ -256,25 +256,25 @@ static void ShowLogo(void) {
     HuSprAttrSet(logoSprGrp, 0, 8);
     HuSprScaleSet(logoSprGrp, 0, 0.01f, 0.01f);
     HuSprGrpPosSet(logoSprGrp, 288.0f, 240.0f);
-    for (angleS = 0; angleS < 90; angleS += 4) {
-        OSs16tof32(&angleS, &angleF);
-        scale = sind(angleF);
+    for (angle_step = 0; angle_step < 90; angle_step += 4) {
+        OSs16tof32(&angle_step, &angle_degrees);
+        scale = sind(angle_degrees);
         HuSprScaleSet(logoSprGrp, 0, scale, scale);
         HuPrcVSleep();
     }
     HuSprScaleSet(logoSprGrp, 0, 1.0f, 1.0f);
-    for (angleS = 0; angleS < 540; angleS += 4) {
-        anglePosY = angleS % 180;
-        OSs16tof32(&anglePosY, &angleF);
-        scale = 1.0 + 0.7f * sind(angleF);
+    for (angle_step = 0; angle_step < 540; angle_step += 4) {
+        pulse_angle = angle_step % 180;
+        OSs16tof32(&pulse_angle, &angle_degrees);
+        scale = 1.0 + 0.7f * sind(angle_degrees);
         HuSprScaleSet(logoSprGrp, 0, scale, scale);
         HuPrcVSleep();
     }
     HuSprScaleSet(logoSprGrp, 0, 1.0f, 1.0f);
     HuPrcSleep(0x78);
-    for (angleS = 0; angleS < 90; angleS += 4) {
-        OSs16tof32(&angleS, &angleF);
-        scale = cosd(angleF);
+    for (angle_step = 0; angle_step < 90; angle_step += 4) {
+        OSs16tof32(&angle_step, &angle_degrees);
+        scale = cosd(angle_degrees);
         HuSprScaleSet(logoSprGrp, 0, scale, scale);
         HuPrcVSleep();
     }
@@ -286,10 +286,10 @@ static void ShowLogo(void) {
  * @brief Move the camera from the establishing view to the waiting players.
  */
 static void FocusStart(void) {
-    Vec boardPos;
+    Vec focus_position;
     Vec offset;
     Vec offset2;
-    Vec camRot;
+    Vec camera_rotation;
     float zoom;
     u32 i;
 
@@ -298,66 +298,66 @@ static void FocusStart(void) {
         HuPrcVSleep();
     }
     BoardCameraZoomSet(2000.0f);
-    BoardModelPosGet(camFocus, &boardPos);
+    BoardModelPosGet(camFocus, &focus_position);
     offset.x = spacePos.x + 150.0f;
     offset.y = spacePos.y + 100.0f;
     offset.z = spacePos.z + 150.0f;
-    VECSubtract(&offset, &boardPos, &offset2);
+    VECSubtract(&offset, &focus_position, &offset2);
     offset2.x /= 120.0f;
     offset2.y /= 120.0f;
     offset2.z /= 120.0f;
     HuAudSStreamFadeOut(streamStatus, 0x1388);
     for (i = 0; i < 120; i++) {
-        VECAdd(&offset2, &boardPos, &boardPos);
-        BoardModelPosSetV(camFocus, &boardPos);
+        VECAdd(&offset2, &focus_position, &focus_position);
+        BoardModelPosSetV(camFocus, &focus_position);
         HuPrcVSleep();
     }
     BoardModelPosSetV(camFocus, &offset);
-    camRot.x = -22.0f;
-    camRot.y = 0.0f;
-    camRot.z = 0.0f;
-    BoardCameraMotionStartEx(camFocus, &camRot, NULL, 1500.0f, -1.0f, 21);
+    camera_rotation.x = -22.0f;
+    camera_rotation.y = 0.0f;
+    camera_rotation.z = 0.0f;
+    BoardCameraMotionStartEx(camFocus, &camera_rotation, NULL, 1500.0f, -1.0f, 21);
 }
 
 /**
  * @brief Create per-player objects and work records for the opening roll sequence.
  */
 static void CreatePlayerStart(void) {
-    Vec boardPos;
-    float offsetX;
-    OMOBJ *boardObj;
-    PlayerStartWork *boardData;
+    Vec focus_position;
+    float player_x_offset;
+    OMOBJ *player_object;
+    PlayerStartWork *player_data;
     s8 i;
 
-    BoardModelPosGet(camFocus, &boardPos);
+    BoardModelPosGet(camFocus, &focus_position);
     for (i = 0; i < 4; i++) {
         playerOrderOld[i] = i;
-        boardObj = omAddObjEx(boardObjMan, 0x100, 0, 0, -1, ExecPlayerStart);
-        playerStartObj[i] = boardObj;
-        boardData = omObjGetWork(boardObj, PlayerStartWork);
-        boardData->isBoardVisible = 0;
-        boardData->index = i;
-        boardData->_unused = -1;
-        boardData->model = -1;
-        boardData->diceParManId = -1;
-        boardData->state = 1;
-        boardData->delay = i * 30;
-        boardData->isActionable = 0;
-        boardData->hasRolled = 0;
-        boardData->yRot = 2;
-        boardData->digit = 1;
-        boardData->tutJumpCountdown = 0x3C;
-        boardData->diceMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x18), NULL, 0);
-        BoardModelVisibilitySet(boardData->diceMdl, 0);
-        BoardModelMotionSpeedSet(boardData->diceMdl, 0.0f);
-        OSs8tof32(&i, &offsetX);
-        offsetX = 135.0f * (offsetX - 2.0f + 0.5f);
-        BoardModelVisibilitySet(BoardPlayerModelGet(playerOrderOld[boardData->index]), 1);
-        boardObj->trans.x = boardPos.x + offsetX;
-        boardObj->trans.y = boardPos.y + 700.0f;
-        boardObj->trans.z = boardPos.z + 100.0f;
-        BoardPlayerPosSet(playerOrderOld[boardData->index], boardObj->trans.x, boardObj->trans.y, boardObj->trans.z);
-        BoardPlayerMotionShiftSet(playerOrderOld[boardData->index], 4, 10.0f, 1.0f, HU3D_MOTATTR_NONE);
+        player_object = omAddObjEx(boardObjMan, 0x100, 0, 0, -1, ExecPlayerStart);
+        playerStartObj[i] = player_object;
+        player_data = omObjGetWork(player_object, PlayerStartWork);
+        player_data->isBoardVisible = 0;
+        player_data->index = i;
+        player_data->_unused = -1;
+        player_data->model = -1;
+        player_data->diceParManId = -1;
+        player_data->state = 1;
+        player_data->delay = i * 30;
+        player_data->isActionable = 0;
+        player_data->hasRolled = 0;
+        player_data->yRot = 2;
+        player_data->digit = 1;
+        player_data->tutJumpCountdown = 0x3C;
+        player_data->diceMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x18), NULL, 0);
+        BoardModelVisibilitySet(player_data->diceMdl, 0);
+        BoardModelMotionSpeedSet(player_data->diceMdl, 0.0f);
+        OSs8tof32(&i, &player_x_offset);
+        player_x_offset = 135.0f * (player_x_offset - 2.0f + 0.5f);
+        BoardModelVisibilitySet(BoardPlayerModelGet(playerOrderOld[player_data->index]), 1);
+        player_object->trans.x = focus_position.x + player_x_offset;
+        player_object->trans.y = focus_position.y + 700.0f;
+        player_object->trans.z = focus_position.z + 100.0f;
+        BoardPlayerPosSet(playerOrderOld[player_data->index], player_object->trans.x, player_object->trans.y, player_object->trans.z);
+        BoardPlayerMotionShiftSet(playerOrderOld[player_data->index], 4, 10.0f, 1.0f, HU3D_MOTATTR_NONE);
     }
     if (!_CheckFlag(FLAG_ID_MAKE(1, 11))) {
         BoardMusStart(0, 0xC, 0x7F, 0);
@@ -449,11 +449,11 @@ static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
  * @param [in] data Per-player opening-sequence work record.
  */
 static void PlayerWaitSpeak(OMOBJ *unused_object, PlayerStartWork *data) {
-    float yRot;
+    float target_y_rotation;
 
     if (data->time == 0) {
-        yRot = 180.0f + BoardPlayerRotYGet(playerOrderOld[data->index]);
-        BoardPlayerMotBlendSet(playerOrderOld[data->index], yRot, 0xF);
+        target_y_rotation = 180.0f + BoardPlayerRotYGet(playerOrderOld[data->index]);
+        BoardPlayerMotBlendSet(playerOrderOld[data->index], target_y_rotation, 0xF);
         data->time = 1;
         return;
     }
@@ -469,19 +469,19 @@ static void PlayerWaitSpeak(OMOBJ *unused_object, PlayerStartWork *data) {
  * @param [in] data Per-player opening-sequence work record.
  */
 static void PlayerDiceFall(OMOBJ *object, PlayerStartWork *data) {
-    Vec boardPos;
+    Vec dice_position;
     float max;
     float min;
     s32 i;
 
     if (data->time == 0) {
         HuAudFXPlay(0x302);
-        BoardPlayerPosGet(playerOrderOld[data->index], &boardPos);
+        BoardPlayerPosGet(playerOrderOld[data->index], &dice_position);
         min = 250.0f;
         max = 700.0f;
         object->rot.x = (min - max) / 30.0f;
-        boardPos.y += max;
-        BoardModelPosSetV(data->diceMdl, &boardPos);
+        dice_position.y += max;
+        BoardModelPosSetV(data->diceMdl, &dice_position);
         BoardModelVisibilitySet(data->diceMdl, 1);
     } else {
         if (data->time > 30.0f) {
@@ -497,9 +497,9 @@ static void PlayerDiceFall(OMOBJ *object, PlayerStartWork *data) {
             SetPlayerStartState(playerOrderOld[data->index], 4);
             return;
         }
-        BoardModelPosGet(data->diceMdl, &boardPos);
-        boardPos.y += object->rot.x;
-        BoardModelPosSetV(data->diceMdl, &boardPos);
+        BoardModelPosGet(data->diceMdl, &dice_position);
+        dice_position.y += object->rot.x;
+        BoardModelPosSetV(data->diceMdl, &dice_position);
     }
     data->time++;
 }
@@ -522,13 +522,13 @@ static s32 playerOrderMesTbl[3] = {
  * @param [in] data Per-player opening-sequence work record.
  */
 static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
-    Vec boardPos;
+    Vec dice_position;
     float time;
-    u32 jumpCheck;
+    u32 jump_input;
     s8 player;
     s8 digit;
 
-    jumpCheck = 0;
+    jump_input = 0;
     if (data->time > data->yRot) {
         data->time = 0;
         digit = data->digit;
@@ -544,15 +544,15 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
                 if (data->tutJumpCountdown != 0) {
                     data->tutJumpCountdown--;
                 } else {
-                    jumpCheck = PAD_BUTTON_A;
+                    jump_input = PAD_BUTTON_A;
                 }
             } else if (BoardRandMod(100) < 5) {
-                jumpCheck = PAD_BUTTON_A;
+                jump_input = PAD_BUTTON_A;
             }
         } else {
-            jumpCheck = HuPadBtnDown[GWPlayer[playerOrderOld[data->index]].port];
+            jump_input = HuPadBtnDown[GWPlayer[playerOrderOld[data->index]].port];
         }
-        if (jumpCheck == PAD_BUTTON_A) {
+        if (jump_input == PAD_BUTTON_A) {
             BoardPlayerDiceJumpStart(playerOrderOld[data->index]);
             data->hasRolled = 1;
         }
@@ -581,16 +581,16 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
             }
             playerOrderNew[playerOrderOld[data->index]] = data->digit;
             data->model = BoardModelCreate(digitMdlTbl[data->digit], NULL, 0);
-            BoardModelPosGet(data->diceMdl, &boardPos);
-            boardPos.x += 50.0 * sin(0.0);
-            boardPos.z += 50.0 * cos(0.0);
-            BoardModelPosSetV(data->model, &boardPos);
+            BoardModelPosGet(data->diceMdl, &dice_position);
+            dice_position.x += 50.0 * sin(0.0);
+            dice_position.z += 50.0 * cos(0.0);
+            BoardModelPosSetV(data->model, &dice_position);
             BoardModelMotionStart(data->model, 0, 0);
             BoardModelMotionSpeedSet(data->model, 0.0f);
             BoardModelMotionTimeSet(data->model, 0.0f);
             BoardModelLayerSet(data->model, 2);
             data->diceParManId = BoardDiceEffectCreate();
-            Hu3DParManPosSet(data->diceParManId, boardPos.x, boardPos.y, boardPos.z);
+            Hu3DParManPosSet(data->diceParManId, dice_position.x, dice_position.y, dice_position.z);
             Hu3DParManTimeLimitSet(data->diceParManId, 0x96);
             BoardModelVisibilitySet(data->diceMdl, 0);
             return;
@@ -605,7 +605,7 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
  * @param [in] data Per-player opening-sequence work record.
  */
 static void PlayerDiceNumShow(OMOBJ *unused_object, PlayerStartWork *data) {
-    float yRot;
+    float rotation_degrees;
 
     data->yRot -= 18;
     if (data->yRot < 0) {
@@ -615,8 +615,8 @@ static void PlayerDiceNumShow(OMOBJ *unused_object, PlayerStartWork *data) {
             BoardTutorialHookExec(2, 0);
         }
     }
-    OSs16tof32(&data->yRot, &yRot);
-    BoardModelRotYSet(data->model, yRot);
+    OSs16tof32(&data->yRot, &rotation_degrees);
+    BoardModelRotYSet(data->model, rotation_degrees);
 }
 
 /**
@@ -625,7 +625,7 @@ static void PlayerDiceNumShow(OMOBJ *unused_object, PlayerStartWork *data) {
  * @param [in] data Per-player opening-sequence work record.
  */
 static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
-    float yRot;
+    float rotation_degrees;
 
     switch (data->time) {
         case 0:
@@ -636,8 +636,8 @@ static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
                 object->rot.x = 1.0f;
                 object->rot.y = 1.0f;
             }
-            OSs16tof32(&data->yRot, &yRot);
-            BoardModelRotYSet(data->model, yRot);
+            OSs16tof32(&data->yRot, &rotation_degrees);
+            BoardModelRotYSet(data->model, rotation_degrees);
             return;
         case 1:
             data->yRot += 9;
@@ -645,8 +645,8 @@ static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
                 data->yRot = 0;
                 data->time = 2;
             }
-            OSs16tof32(&data->yRot, &yRot);
-            object->rot.x = 1.0 + 1.3f * sind(yRot);
+            OSs16tof32(&data->yRot, &rotation_degrees);
+            object->rot.x = 1.0 + 1.3f * sind(rotation_degrees);
             break;
         case 2:
             data->yRot += 9;
@@ -654,9 +654,9 @@ static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
                 data->yRot = 179;
                 data->time = 3;
             }
-            OSs16tof32(&data->yRot, &yRot);
-            object->rot.x = cosd(0.5f * yRot);
-            object->rot.y = 1.0 + 1.3f * sind(yRot);
+            OSs16tof32(&data->yRot, &rotation_degrees);
+            object->rot.x = cosd(0.5f * rotation_degrees);
+            object->rot.y = 1.0 + 1.3f * sind(rotation_degrees);
             break;
         case 3:
             BoardModelVisibilitySet(data->model, 0);
@@ -668,7 +668,7 @@ static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
 
 /**
  * @brief Set one player's opening-roll state and reset its state timer.
- * @param [in] player Player index.
+ * @param [in] player Player whose opening-roll state is changed and whose state timer is reset.
  * @param [in] state Next PlayerStartWork state dispatched by ExecPlayerStart.
  */
 static void SetPlayerStartState(s32 player, s32 state) {
@@ -694,7 +694,7 @@ static void SetPlayerStartState(s32 player, s32 state) {
 
 /**
  * @brief Read one player's current opening-roll state.
- * @param [in] player Player index.
+ * @param [in] player Player whose current opening-roll state is read.
  * @return Current state from the player's opening-sequence work record.
  */
 static s32 GetPlayerStartState(s32 player) {
@@ -710,10 +710,10 @@ static s32 GetPlayerStartState(s32 player) {
  * @brief Run all four opening Dice Block rolls and wait for completion.
  */
 static void ExecStartRoll(void) {
-    s32 sp84[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    s32 unused_roll_index_table[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     s32 id;
     s32 time;
-    s32 coinCount;
+    s32 starting_coin_count;
     s32 j;
     s32 i;
 
@@ -793,13 +793,13 @@ static void ExecStartRoll(void) {
         BoardWinWait();
         HuPrcSleep(30);
         if (GWBoardGet() == BOARD_ID_EXTRA1 || GWBoardGet() == BOARD_ID_EXTRA2) {
-            coinCount = 100;
+            starting_coin_count = 100;
             time = 1;
         } else {
-            coinCount = 10;
+            starting_coin_count = 10;
             time = 6;
         }
-        for (i = 0; i < coinCount; i++) {
+        for (i = 0; i < starting_coin_count; i++) {
             for (j = 0; j < 4; j++) {
                 BoardPlayerCoinsAdd(j, 1);
             }
@@ -833,7 +833,7 @@ static void ExecStartRoll(void) {
  */
 static void InitCamera(void) {
     Vec offset;
-    Vec rotTarget;
+    Vec target_rotation;
 
     camStartFocusPos.x = 0.0f;
     camStartFocusPos.y = 100.0f;
@@ -872,22 +872,22 @@ static void InitCamera(void) {
         offset.y = spacePos.y + 100.0f;
         offset.z = spacePos.z + 150.0f;
         BoardModelPosSetV(camFocus, &offset);
-        rotTarget.x = -22.0f;
-        rotTarget.y = 0.0f;
-        rotTarget.z = 0.0f;
+        target_rotation.x = -22.0f;
+        target_rotation.y = 0.0f;
+        target_rotation.z = 0.0f;
         offset.x = offset.y = offset.z = 0.0f;
-        BoardCameraMotionStartEx(camFocus, &rotTarget, NULL, 1500.0f, -1.0f, 1);
+        BoardCameraMotionStartEx(camFocus, &target_rotation, NULL, 1500.0f, -1.0f, 1);
         BoardCameraMotionWait();
         BoardCameraMoveSet(1);
     } else {
         offset.x = 0.0f;
         offset.y = 0.0f;
         offset.z = 0.0f;
-        rotTarget.x = -70.0f;
-        rotTarget.y = 0.0f;
-        rotTarget.z = 0.0f;
+        target_rotation.x = -70.0f;
+        target_rotation.y = 0.0f;
+        target_rotation.z = 0.0f;
         BoardCameraMoveSet(0);
-        BoardCameraMotionStartEx(camFocus, &rotTarget, &offset, 14000.0f, -1.0f, 1);
+        BoardCameraMotionStartEx(camFocus, &target_rotation, &offset, 14000.0f, -1.0f, 1);
         BoardCameraMotionWait();
         BoardCameraMoveSet(1);
     }
@@ -897,14 +897,14 @@ static void InitCamera(void) {
  * @brief Create, position, and animate the board host for the opening presentation.
  */
 static void InitHost(void) {
-    Vec newPos;
+    Vec host_position;
 
     if (!_CheckFlag(FLAG_ID_MAKE(1, 11))) {
         hostMdl = BoardStarHostMdlGet();
-        newPos.x = spacePos.x + 150.0f;
-        newPos.y = spacePos.y;
-        newPos.z = spacePos.z - 50.0f;
-        BoardModelPosSetV(hostMdl, &newPos);
+        host_position.x = spacePos.x + 150.0f;
+        host_position.y = spacePos.y;
+        host_position.z = spacePos.z - 50.0f;
+        BoardModelPosSetV(hostMdl, &host_position);
         BoardModelVisibilitySet(hostMdl, 1);
         BoardModelMotionStart(hostMdl, 1, 0x40000001);
     }
@@ -936,37 +936,37 @@ static void CreateTapWin(void) {
  * @brief Sort opening roll results and assign each player a turn position.
  */
 static void OrderPlayers(void) {
-    s32 pOrderTemp;
-    PlayerConfig *playerCfg;
+    s32 player_order_temp;
+    PlayerConfig *player_config;
     PlayerState *state;
     s32 i;
     s32 j;
 
-    playerCfg = HuMemDirectMallocNum(HEAP_HEAP, sizeof(GWPlayerCfg), HU_MEMNUM_OVL);
+    player_config = HuMemDirectMallocNum(HEAP_HEAP, sizeof(GWPlayerCfg), HU_MEMNUM_OVL);
     state = HuMemDirectMallocNum(HEAP_HEAP, sizeof(GWPlayer), HU_MEMNUM_OVL);
     for (i = 0; i < 4; i++) {
         playerOrderOld[i] = i;
-        memcpy(playerCfg + i, &GWPlayerCfg[i], sizeof(PlayerConfig));
+        memcpy(player_config + i, &GWPlayerCfg[i], sizeof(PlayerConfig));
         memcpy(state + i, &GWPlayer[i], sizeof(PlayerState));
     }
     for (i = 0; i < 3; i++) {
         for (j = 3; j > i; j--) {
             if (playerOrderNew[j - 1] < playerOrderNew[j]) {
-                pOrderTemp = playerOrderNew[j];
+                player_order_temp = playerOrderNew[j];
                 playerOrderNew[j] = playerOrderNew[j - 1];
-                playerOrderNew[j - 1] = pOrderTemp;
-                pOrderTemp = playerOrderOld[j];
+                playerOrderNew[j - 1] = player_order_temp;
+                player_order_temp = playerOrderOld[j];
                 playerOrderOld[j] = playerOrderOld[j - 1];
-                playerOrderOld[j - 1] = pOrderTemp;
+                playerOrderOld[j - 1] = player_order_temp;
             }
         }
     }
     for (i = 0; i < 4; i++) {
-        memcpy(&GWPlayerCfg[i], playerCfg + playerOrderOld[i], sizeof(PlayerConfig));
+        memcpy(&GWPlayerCfg[i], player_config + playerOrderOld[i], sizeof(PlayerConfig));
         memcpy(&GWPlayer[i], state + playerOrderOld[i], sizeof(PlayerState));
         GWPlayer[i].port = GWPlayerCfg[i].pad_idx;
         GWPlayerCfg[i].pad_idx = GWPlayerCfg[i].pad_idx;
     }
-    HuMemDirectFree(playerCfg);
+    HuMemDirectFree(player_config);
     HuMemDirectFree(state);
 }

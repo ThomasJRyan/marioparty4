@@ -18,9 +18,9 @@ static s16 boardMusTbl[] = {
  * @brief Start the current board's music and, where defined, its looping ambient effect.
  */
 void BoardMusStartBoard(void) {
-    s16 musIdx = boardMusTbl[GWBoardGet()];
+    s16 music_id = boardMusTbl[GWBoardGet()];
 
-    BoardMusStart(0, musIdx, 0x7F, 0);
+    BoardMusStart(0, music_id, 0x7F, 0);
     BoardAudFXPlay();
 }
 
@@ -184,20 +184,20 @@ void BoardAudSeqFadeOutAll(void) {
  * @brief Start the looping ambient effect used by Koopa's Seaside Soiree or Bowser's Gnarly Party.
  */
 void BoardAudFXPlay(void) {
-    s32 seId;
+    s32 sound_effect_id;
 
     switch (GWBoardGet()) {
         case BOARD_ID_MAIN5:
-            seId = 0x48D;
+            sound_effect_id = 0x48D;
             break;
         case BOARD_ID_MAIN6:
-            seId = 0x4A2;
+            sound_effect_id = 0x4A2;
             break;
         default:
             return;
     }
     if (boardFX == -1) {
-        boardFX = HuAudFXPlay(seId);
+        boardFX = HuAudFXPlay(sound_effect_id);
     }
 }
 
