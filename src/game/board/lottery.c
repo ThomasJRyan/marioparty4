@@ -837,35 +837,36 @@ static void ShowTicket(void) {
 }
 
 /**
- * @brief Creates the scratch-ticket sprite and assigns its hidden prize layout.
- * @param arg0 Ticket layout index in the range 0 through 2.
+ * @brief Assigns a random nonduplicating lottery-ticket code to a player.
+ * @details The candidate is compared with ticket codes already assigned to the other players before it is stored and the player's draw-ticket flag is set.
+ * @param arg0 Board-player index receiving the lottery ticket.
  */
 static void SetupTicket(s32 arg0) {
-    u8 prize_order[4];
-    u8 swap_value;
-    s32 index_a;
-    s32 index_b;
-    s32 shuffle_index;
+    u8 existing_ticket_codes[4];
+    u8 candidate_code;
+    s32 candidate_attempt;
+    s32 existing_ticket_count;
+    s32 entry_index;
 
-    for (index_b = shuffle_index = 0; shuffle_index < 4; shuffle_index++) {
-        if (arg0 != shuffle_index && GWPlayer[shuffle_index].draw_ticket != 0) {
-            prize_order[index_b] = GWPlayer[shuffle_index].ticket_player;
-            index_b++;
+    for (existing_ticket_count = entry_index = 0; entry_index < 4; entry_index++) {
+        if (arg0 != entry_index && GWPlayer[entry_index].draw_ticket != 0) {
+            existing_ticket_codes[existing_ticket_count] = GWPlayer[entry_index].ticket_player;
+            existing_ticket_count++;
         }
     }
-    for (index_a = 0; index_a < 1000; index_a++) {
-        swap_value = BoardRandMod(64) & 0x3F;
-        for (shuffle_index = 0; index_b != 0 && shuffle_index < index_b; shuffle_index++) {
-            if (prize_order[shuffle_index] == swap_value) {
-                swap_value = 0x80;
+    for (candidate_attempt = 0; candidate_attempt < 1000; candidate_attempt++) {
+        candidate_code = BoardRandMod(64) & 0x3F;
+        for (entry_index = 0; existing_ticket_count != 0 && entry_index < existing_ticket_count; entry_index++) {
+            if (existing_ticket_codes[entry_index] == candidate_code) {
+                candidate_code = 0x80;
                 break;
             }
         }
-        if (swap_value != 0x80) {
+        if (candidate_code != 0x80) {
             break;
         }
     }
-    GWPlayer[arg0].ticket_player = swap_value;
+    GWPlayer[arg0].ticket_player = candidate_code;
     GWPlayer[arg0].draw_ticket = 1;
 }
 
@@ -1294,15 +1295,15 @@ static void ExecScratchTicket(s32 arg0) {
 static void ExecScratch(void) {
     TicketWork *ticket_work;
     float opacity;
-    s32 temp_curr;
+    s32 player;
     s32 selected_ticket;
 
     currPrize = -1;
     BoardFilterFadeInit(30, 0xA0);
     InitTicketPrizes();
     InitScratchSpr();
-    temp_curr = GWSystem.player_curr;
-    if (GWPlayer[temp_curr].com) {
+    player = GWSystem.player_curr;
+    if (GWPlayer[player].com) {
         comLotteryType = BoardRandMod(4);
         comLotteryWinType = BoardRandMod(3);
     }
@@ -1411,13 +1412,13 @@ static void InitScratchSpr(void) {
     Vec camera_rotation;
     OMOBJ *ticket_object;
     TicketWork *ticket_work;
-    s32 temp_curr;
+    s32 player;
     s16 sprite_group;
     s16 sprite;
     s16 i;
 
-    temp_curr = GWSystem.player_curr;
-    BoardPlayerRotGet(temp_curr, &player_rotation);
+    player = GWSystem.player_curr;
+    BoardPlayerRotGet(player, &player_rotation);
     memset(ticketObj, 0, sizeof(ticketObj));
     BoardCameraRotGet(&camera_rotation);
     sprite_group = HuSprGrpCreate(24);

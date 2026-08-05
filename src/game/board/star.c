@@ -40,7 +40,7 @@ typedef struct {
     s8 spin_speed;
     char padding[1];
     s16 delay;
-    s16 reserved;
+    s16 write_only_field;
     s16 shrink_angle;
     s16 arc_frame;
     s16 star_model;
@@ -672,7 +672,7 @@ void BoardStarGive(s32 arg0, Vec *arg1) {
     star_work->sound_played = 0;
     star_work->state = 4;
     star_work->player = arg0;
-    star_work->reserved = 0;
+    star_work->write_only_field = 0;
     star_work->spin_speed = 0;
     star_work->shrink_angle = 0;
     star_work->star_model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 11), NULL, 0);

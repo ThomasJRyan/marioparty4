@@ -968,8 +968,8 @@ static void SortShopItems(void) {
  */
 static void DecideComEnter(s32 player) {
     s32 space;
-    s32 path_1;
-    s32 path_2;
+    s32 star_distance_via_pipe;
+    s32 star_distance_without_pipe;
     s32 roll;
     u32 skip_chance;
 
@@ -998,12 +998,12 @@ static void DecideComEnter(s32 player) {
         }
     } else {
         space = GWPlayer[player].space_curr;
-        path_1 = BoardComPathShortcutLenGet(space, 8, 0);
-        path_2 = BoardComPathShortcutLenGet(space, 8, 1);
-        if ((path_1 != 0 || path_2 != 0)
-            && (BoardPlayerCoinsGet(player) >= 17 || (path_2 >= roll && path_1 >= roll))
+        star_distance_via_pipe = BoardComPathShortcutLenGet(space, 8, 0);
+        star_distance_without_pipe = BoardComPathShortcutLenGet(space, 8, 1);
+        if ((star_distance_via_pipe != 0 || star_distance_without_pipe != 0)
+            && (BoardPlayerCoinsGet(player) >= 17 || (star_distance_without_pipe >= roll && star_distance_via_pipe >= roll))
             && BoardPlayerCoinsGet(player) < 40
-            && ((path_1 < 20 && path_1 > 0) || (path_2 < 10 && path_2 > 0))
+            && ((star_distance_via_pipe < 20 && star_distance_via_pipe > 0) || (star_distance_without_pipe < 10 && star_distance_without_pipe > 0))
             && BoardRandMod(100) > skip_chance) {
             BoardComKeySetRight();
             return;
@@ -1109,11 +1109,11 @@ static void CreateShopItemChoice(s32 arg0, s32 arg1) {
     choice_work->sprite_group = HuSprGrpCreate(1);
     #if VERSION_PAL
     if (GWLanguageGet() != 0) {
-        s16 winId = BoardWinIDGet();
-        if(winId != -1) {
-            WindowData *winP = &winData[winId];
+        s16 window_id = BoardWinIDGet();
+        if(window_id != -1) {
+            WindowData *window = &winData[window_id];
             for(i=0; i<6; i++) {
-                cursorPosTbl[i][0] = winP->pos_x+96;
+                cursorPosTbl[i][0] = window->pos_x+96;
             }
         } else {
             for(i=0; i<6; i++) {

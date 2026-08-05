@@ -495,7 +495,6 @@ static void KillHost(void)
 static void Last5Main(void)
 {
 	float jump_frame;
-	s32 ranked_index;
 	s32 entry_index;
 	s32 player;
 	s32 frame;
@@ -543,20 +542,20 @@ static void Last5Main(void)
 	BoardModelMotionShiftSet(hostMdl, hostMot[5], 0.0f, 4.0f, HU3D_MOTATTR_NONE);
 	HuPrcVSleep(8);
 	BoardModelMotionShiftSet(hostMdl, hostMot[6], 0.0f, 8.0f, HU3D_MOTATTR_LOOP);
-	for(ranked_index=0; ranked_index<4; ranked_index++) {
-		player = players_by_rank[ranked_index];
-		rank = player_ranks[ranked_index];
+	for(entry_index=0; entry_index<4; entry_index++) {
+		player = players_by_rank[entry_index];
+		rank = player_ranks[entry_index];
 		character = GWPlayer[player].character;
-		status_positions[ranked_index].x = -122.0f;
-		status_positions[ranked_index].y = (ranked_index*74)+80;
-		status_positions[ranked_index].z = 0.0f;
-		BoardStatusPosSet(player, &status_positions[ranked_index]);
+		status_positions[entry_index].x = -122.0f;
+		status_positions[entry_index].y = (entry_index*74)+80;
+		status_positions[entry_index].z = 0.0f;
+		BoardStatusPosSet(player, &status_positions[entry_index]);
 		HuPrcVSleep();
 		BoardStatusShowSet(player, 1);
-		position_steps[ranked_index] = (122.0f-status_positions[ranked_index].x)/15.0f;
+		position_steps[entry_index] = (122.0f-status_positions[entry_index].x)/15.0f;
 		for(frame=0; frame<15; frame++) {
-			status_positions[ranked_index].x += position_steps[ranked_index];
-			BoardStatusPosSet(player, &status_positions[ranked_index]);
+			status_positions[entry_index].x += position_steps[entry_index];
+			BoardStatusPosSet(player, &status_positions[entry_index]);
 			HuPrcVSleep();
 		}
 		switch(rank) {
@@ -1300,7 +1299,7 @@ typedef struct ticket_work {
 		u8 ticket_index : 2;
 	};
 	s8 state;
-	u8 reserved;
+	u8 write_only_field;
 	s8 character[3];
 	u16 angle;
 	s16 group;
@@ -1313,7 +1312,7 @@ static void InitLotteryTicket(void)
 {
 	s32 i;
 	s32 j;
-	s32 playerSprTbl[] = {
+	s32 player_sprite_table[] = {
 		DATA_MAKE_NUM(DATADIR_BLAST5, 0),
 		DATA_MAKE_NUM(DATADIR_BLAST5, 1),
 		DATA_MAKE_NUM(DATADIR_BLAST5, 2),
@@ -1323,7 +1322,7 @@ static void InitLotteryTicket(void)
 		DATA_MAKE_NUM(DATADIR_BLAST5, 6),
 		DATA_MAKE_NUM(DATADIR_BLAST5, 7),
 	};
-	s32 ownerSprTbl[] = {
+	s32 owner_sprite_table[] = {
 		DATA_MAKE_NUM(DATADIR_BOARD, 46),
 		DATA_MAKE_NUM(DATADIR_BOARD, 47),
 		DATA_MAKE_NUM(DATADIR_BOARD, 48),
@@ -1352,7 +1351,7 @@ static void InitLotteryTicket(void)
 		ticket_work->player = i;
 		ticket_work->ticket_index = numTickets;
 		ticket_work->angle = 0;
-		ticket_work->reserved = 0;
+		ticket_work->write_only_field = 0;
 		ticket_work->done = 0;
 		ticket_work->group = HuSprGrpCreate(6);
 		ticket_object->trans.x = 680.0f;
@@ -1366,7 +1365,7 @@ static void InitLotteryTicket(void)
 		HuSprAttrSet(ticket_work->group, 0, HUSPR_ATTR_LINEAR);
 		HuSprScaleSet(ticket_work->group, 0, 2.5f, 2.5f);
 		character = GWPlayer[i].character;
-		BoardSpriteCreate(ownerSprTbl[character], 1200, NULL, &sprite);
+		BoardSpriteCreate(owner_sprite_table[character], 1200, NULL, &sprite);
 		HuSprGrpMemberSet(ticket_work->group, 5, sprite);
 		HuSprAttrSet(ticket_work->group, 5, HUSPR_ATTR_LINEAR);
 		HuSprScaleSet(ticket_work->group, 5, 2.5f, 2.5f);
@@ -1385,7 +1384,7 @@ static void InitLotteryTicket(void)
 			
 			j--;
 			ticket_work->character[j] = GWPlayer[ticket_player & 0x3].character;
-			player_spr = playerSprTbl[ticket_work->character[j]];
+			player_spr = player_sprite_table[ticket_work->character[j]];
 			member = j+1;
 			BoardSpriteCreate(player_spr, 1500, NULL, &sprite);
 			HuSprGrpMemberSet(ticket_work->group, member, sprite);
@@ -1465,7 +1464,7 @@ static void UpdateLotteryTicket(OMOBJ *object)
 
 /**
  * @brief Changes one displayed lottery ticket's animation state.
- * @param player Ticket display index, not the board player index.
+ * @param player Board-player index whose displayed ticket should change state.
  * @param state Requested ticket animation state.
  */
 static void SetLotteryTicketState(s32 player, s32 state)

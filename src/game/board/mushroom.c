@@ -82,10 +82,10 @@ static void WaitItemGive(void);
 static void MushroomMain(void) {
     Vec picker_positions[2];
     Vec box_position;
-    s32 unused;
-    s32 unused_2;
-    s32 unused_3;
-    s32 curPlayer;
+    s32 _unused;
+    s32 _unused_alt;
+    s32 _unused_aux;
+    s32 current_player;
     s8 cpu_choice;
     boxObjWork* box;
     s32 message;
@@ -93,17 +93,17 @@ static void MushroomMain(void) {
     s32 i;
 
     cpu_choice = -1;
-    curPlayer = GWSystem.player_curr;
+    current_player = GWSystem.player_curr;
     BoardCameraViewSet(3);
     HuAudFXPlay(0x34A);
-    BoardPlayerMotBlendSet(curPlayer, 0, 15);
+    BoardPlayerMotBlendSet(current_player, 0, 15);
     
-    while (BoardPlayerMotBlendCheck(curPlayer) == 0) {
+    while (BoardPlayerMotBlendCheck(current_player) == 0) {
         HuPrcVSleep();
     }
     
     BoardCameraMotionWait();
-    BoardPlayerIdleSet(curPlayer);
+    BoardPlayerIdleSet(current_player);
     
     if (_CheckFlag(FLAG_ID_MAKE(1, 11)) != 0) {
         BoardTutorialHookExec(13, 0);
@@ -114,13 +114,13 @@ static void MushroomMain(void) {
         BoardWinCreate(0, MAKE_MESSID(5, 3), -1);
         BoardWinWait();
         BoardWinKill();
-    } else if (BoardPlayerItemCount(curPlayer) == 3) {
+    } else if (BoardPlayerItemCount(current_player) == 3) {
         BoardWinCreate(0, MAKE_MESSID(5, 0), -1);
         BoardWinWait();
         BoardWinKill();
     } else {
         while (1) {
-            InitBox(curPlayer);
+            InitBox(current_player);
             
             while (CheckBox() == 0) {
                 HuPrcVSleep();
@@ -134,7 +134,7 @@ static void MushroomMain(void) {
                 picker_positions[i].z = 0.0f;
             }
             
-            if (GWPlayer[curPlayer].com != 0) {
+            if (GWPlayer[current_player].com != 0) {
                 BoardRand();
                 default_choice = 0; //inline?
                 cpu_choice = default_choice;
@@ -143,7 +143,7 @@ static void MushroomMain(void) {
                 }
             }
             
-            BoardPickerCreate(curPlayer, 2, &picker_positions[0], cpu_choice);
+            BoardPickerCreate(current_player, 2, &picker_positions[0], cpu_choice);
             BoardPickerBackFlagSet(0);
             
             while (BoardPickerDoneCheck() == 0) {
@@ -154,19 +154,19 @@ static void MushroomMain(void) {
             SetBoxShow(pickerChoice);
             SetBoxHide(pickerChoice ^ 1);
             WaitBoxCenter(pickerChoice);
-            BoardPlayerMotionStart(curPlayer, 11, 0);
+            BoardPlayerMotionStart(current_player, 11, 0);
             
-            while (BoardPlayerMotionTimeGet(curPlayer) < 27.0f) {
+            while (BoardPlayerMotionTimeGet(current_player) < 27.0f) {
                 HuPrcVSleep();
             }
             
             HuAudFXPlay(0x30C);
-            StartItemGive(curPlayer);
+            StartItemGive(current_player);
             WaitBoxOpen(pickerChoice);
             ShowItemMdl();
             SetBoxCenter(pickerChoice);
             
-            while (BoardPlayerMotionEndCheck(curPlayer) == 0) {
+            while (BoardPlayerMotionEndCheck(current_player) == 0) {
                 HuPrcVSleep();
             }
             
@@ -178,16 +178,16 @@ static void MushroomMain(void) {
                 message = MAKE_MESSID(5, 2);
             }
             
-            BoardPlayerMotionShiftSet(curPlayer, 0xC, 0.0f, 4.0f, HU3D_MOTATTR_NONE);
+            BoardPlayerMotionShiftSet(current_player, 0xC, 0.0f, 4.0f, HU3D_MOTATTR_NONE);
             HuPrcSleep(4);
             BoardWinCreate(0, message, -1);
             BoardWinWait();
             BoardWinKill();
             MarkKillBox();
-            BoardPlayerMotionEndWait(curPlayer);
-            BoardPlayerIdleSet(curPlayer);
+            BoardPlayerMotionEndWait(current_player);
+            BoardPlayerIdleSet(current_player);
             if (_CheckFlag(FLAG_ID_MAKE(1, 11)) != 0) {
-                BoardPlayerIdleSet(curPlayer);
+                BoardPlayerIdleSet(current_player);
                 BoardTutorialHookExec(14, 0);
                 if (++boardTutorialData[0] < 2) {
                     KillItemMdl();
@@ -219,13 +219,13 @@ typedef struct {
  * @brief Marks mushroom-event objects for destruction and releases the item model.
  */
 static void KillMushroom(void) {
-    ItemGiveWork2* temp_r31;
+    ItemGiveWork2* item_give_work;
 
     MarkKillBox();
     
     if (itemGiveObj) {
-        temp_r31 = omObjGetWork(itemGiveObj, ItemGiveWork2);
-        temp_r31->kill = 1;
+        item_give_work = omObjGetWork(itemGiveObj, ItemGiveWork2);
+        item_give_work->kill = 1;
     }
     
     KillItemMdl();
@@ -256,32 +256,32 @@ static void ShowBox(ItemGiveWork2*, OMOBJ*);
  */
 static void BoxMain(OMOBJ* arg0) {
     s32 unused;
-    ItemGiveWork2* temp_r30;
+    ItemGiveWork2* box_work;
 
-    temp_r30 = omObjGetWork(arg0, ItemGiveWork2);
+    box_work = omObjGetWork(arg0, ItemGiveWork2);
 
-    if ((temp_r30->kill) || (BoardIsKill() != 0)) {
-        BoardModelKill(temp_r30->box_model);
-        boxObj[temp_r30->box_index] = NULL;
+    if ((box_work->kill) || (BoardIsKill() != 0)) {
+        BoardModelKill(box_work->box_model);
+        boxObj[box_work->box_index] = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
         return;
     }
-    switch (temp_r30->state) {
+    switch (box_work->state) {
     case 0:
-        ShowBox(temp_r30, arg0);
+        ShowBox(box_work, arg0);
         break;
     case 2:
-        CenterBox(temp_r30, arg0);
+        CenterBox(box_work, arg0);
         break;
     case 3:
-        ExitBox(temp_r30, arg0);
+        ExitBox(box_work, arg0);
         break;
     case 4:
-        HideBox(temp_r30, arg0);
+        HideBox(box_work, arg0);
         break;
     }
-    BoardModelPosSet(temp_r30->box_model, arg0->trans.x, arg0->trans.y, arg0->trans.z);
-    BoardModelRotSet(temp_r30->box_model, arg0->rot.x, arg0->rot.y, arg0->rot.z);
+    BoardModelPosSet(box_work->box_model, arg0->trans.x, arg0->trans.y, arg0->trans.z);
+    BoardModelRotSet(box_work->box_model, arg0->rot.x, arg0->rot.y, arg0->rot.z);
 }
 
 /**
@@ -316,10 +316,10 @@ static void ShowBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
 static void ExitBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
     Vec player_position;
     s16 wrapped_rotation;
-    f32 temp;
+    f32 rotation_degrees;
 
     wrapped_rotation = (arg0->rotation % 360);
-    OSs16tof32(&wrapped_rotation, &temp);
+    OSs16tof32(&wrapped_rotation, &rotation_degrees);
     BoardPlayerPosGet(arg0->player, &player_position);
     player_position.y += 300.0f;
 
@@ -329,7 +329,7 @@ static void ExitBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
     }
 
     arg1->trans.y = player_position.y + (700.0f * cosd(arg0->arc_angle));
-    arg1->rot.y = sind(temp);
+    arg1->rot.y = sind(rotation_degrees);
     arg0->arc_angle -= 1.5f;
     arg0->rotation -= 30;
 }
@@ -389,31 +389,31 @@ static void InitBox(s32 arg0) {
     s32 item_result;
     s32 random_box;
     s32 i;
-    boxObjWork* temp_r31;
+    boxObjWork* box_work;
 
     BoardPlayerPosGet(arg0, &player_position);
 
     for (i = 0; i < 2; i++) {
         boxObj[i] = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, BoxMain);
-        temp_r31 = omObjGetWork(boxObj[i], boxObjWork);
-        temp_r31->kill = 0;
-        temp_r31->ready = 0;
-        temp_r31->player = arg0;
-        temp_r31->box_index = i;
-        temp_r31->state = 0;
-        temp_r31->rotation = 0;
-        temp_r31->arc_angle = 0.0f;
-        temp_r31->alpha = 0xFF;
+        box_work = omObjGetWork(boxObj[i], boxObjWork);
+        box_work->kill = 0;
+        box_work->ready = 0;
+        box_work->player = arg0;
+        box_work->box_index = i;
+        box_work->state = 0;
+        box_work->rotation = 0;
+        box_work->arc_angle = 0.0f;
+        box_work->alpha = 0xFF;
         boxObj[i]->trans.x = player_position.x + boxOfs[i];
         boxObj[i]->trans.y = 700.0f + player_position.y;
         boxObj[i]->trans.z = player_position.z;
         boxObj[i]->rot.x = 0.0f;
         boxObj[i]->rot.y = 180.0f;
         boxObj[i]->rot.z = 0.0f;
-        temp_r31->box_model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 5), NULL, 0);
-        BoardModelPosSet(temp_r31->box_model, boxObj[i]->trans.x, boxObj[i]->trans.y, boxObj[i]->trans.z);
-        BoardModelMotionSpeedSet(temp_r31->box_model, 0.0f);
-        BoardModelLayerSet(temp_r31->box_model, 2U);
+        box_work->box_model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 5), NULL, 0);
+        BoardModelPosSet(box_work->box_model, boxObj[i]->trans.x, boxObj[i]->trans.y, boxObj[i]->trans.z);
+        BoardModelMotionSpeedSet(box_work->box_model, 0.0f);
+        BoardModelLayerSet(box_work->box_model, 2U);
     }
     
     HuAudFXPlay(0x340);
@@ -438,8 +438,8 @@ static void InitBox(s32 arg0) {
     }
     itemMdl = BoardModelCreate(item_model_resources[itemResult], NULL, 0);
     BoardModelVisibilitySet(itemMdl, 0);
-    temp_r31 = omObjGetWork(boxObj[enlarged_box], boxObjWork);
-    BoardModelScaleSet(temp_r31->box_model, 1.5f, 1.5f, 1.5f);
+    box_work = omObjGetWork(boxObj[enlarged_box], boxObjWork);
+    BoardModelScaleSet(box_work->box_model, 1.5f, 1.5f, 1.5f);
 }
 
 /**
@@ -447,12 +447,12 @@ static void InitBox(s32 arg0) {
  */
 static void MarkKillBox(void) {
     s32 i;
-    boxObjWork* temp_r30;
+    boxObjWork* box_work;
 
     for (i = 0; i < 2; i++) {
         if (boxObj[i]) {
-            temp_r30 = omObjGetWork(boxObj[i], boxObjWork);
-            temp_r30->kill = 1;
+            box_work = omObjGetWork(boxObj[i], boxObjWork);
+            box_work->kill = 1;
         }
     }
 }
@@ -462,9 +462,9 @@ static void MarkKillBox(void) {
  * @param arg0 Index of the unselected box that should leave the scene.
  */
 static void SetBoxHide(s32 arg0) {
-    boxObjWork* temp_r31 = omObjGetWork(boxObj[arg0], boxObjWork);
+    boxObjWork* box_work = omObjGetWork(boxObj[arg0], boxObjWork);
 
-    temp_r31->state = 3;
+    box_work->state = 3;
 }
 
 /**
@@ -472,9 +472,9 @@ static void SetBoxHide(s32 arg0) {
  * @param arg0 Index of the opened box to fade out.
  */
 static void SetBoxCenter(s32 arg0) {
-    boxObjWork* temp_r31 = omObjGetWork(boxObj[arg0], boxObjWork);
+    boxObjWork* box_work = omObjGetWork(boxObj[arg0], boxObjWork);
     
-    temp_r31->state = 4;
+    box_work->state = 4;
     HuAudFXPlay(0x341);
 }
 
@@ -483,9 +483,9 @@ static void SetBoxCenter(s32 arg0) {
  * @param arg0 Index of the box to move toward the player.
  */
 static void SetBoxShow(s32 arg0) {
-    boxObjWork* temp_r31 = omObjGetWork(boxObj[arg0], boxObjWork);
+    boxObjWork* box_work = omObjGetWork(boxObj[arg0], boxObjWork);
 
-    temp_r31->state = 2;
+    box_work->state = 2;
 }
 
 /**
@@ -493,12 +493,12 @@ static void SetBoxShow(s32 arg0) {
  * @param arg0 Index of the box whose opening motion is awaited.
  */
 static void WaitBoxOpen(s32 arg0) {
-    boxObjWork* temp_r31 = omObjGetWork(boxObj[arg0], boxObjWork);
+    boxObjWork* box_work = omObjGetWork(boxObj[arg0], boxObjWork);
     
-    BoardModelMotionSpeedSet(temp_r31->box_model, 2.0f);
+    BoardModelMotionSpeedSet(box_work->box_model, 2.0f);
     do {
         HuPrcVSleep();
-    } while (BoardModelMotionEndCheck(temp_r31->box_model) == 0);
+    } while (BoardModelMotionEndCheck(box_work->box_model) == 0);
 }
 
 /**
@@ -506,9 +506,9 @@ static void WaitBoxOpen(s32 arg0) {
  * @param arg0 Index of the box whose movement is awaited.
  */
 static void WaitBoxCenter(s32 arg0) {
-    boxObjWork* temp_r31 = omObjGetWork(boxObj[arg0], boxObjWork);
+    boxObjWork* box_work = omObjGetWork(boxObj[arg0], boxObjWork);
 
-    while (temp_r31->state != 1) {
+    while (box_work->state != 1) {
         HuPrcVSleep();
     }
 }
@@ -539,11 +539,11 @@ static void DoItemGive(OMOBJ* arg0) {
     Vec item_rotation;
     Vec player_position;
     s32 item_ids[2] = {0, 1};
-    itemObjWork* temp_r31;
+    itemObjWork* item_work;
 
-    temp_r31 = omObjGetWork(arg0, itemObjWork);
+    item_work = omObjGetWork(arg0, itemObjWork);
     
-    if ((temp_r31->kill != 0) || (BoardIsKill() != 0)) {
+    if ((item_work->kill != 0) || (BoardIsKill() != 0)) {
         KillItemMdl();
         itemGiveObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
@@ -552,36 +552,36 @@ static void DoItemGive(OMOBJ* arg0) {
     
     BoardModelPosGet(itemMdl, &item_position);
     BoardModelRotGet(itemMdl, &item_rotation);
-    BoardPlayerPosGet(temp_r31->player, &player_position);
+    BoardPlayerPosGet(item_work->player, &player_position);
     player_position.y += 180.0f;
     
-    switch (temp_r31->state) {
+    switch (item_work->state) {
     case 2:
-        if (temp_r31->frame < 12) {
-            temp_r31->vertical_velocity += 1.47f;
-            item_position.y += temp_r31->vertical_velocity;
-        } else if (temp_r31->frame <= 24) {
-            BoardModelRotSet(itemMdl, 30.0f * temp_r31->frame, 0.0f, 0.0f);
-        } else if (temp_r31->frame > 36) {
-            temp_r31->state = 0;
+        if (item_work->frame < 12) {
+            item_work->vertical_velocity += 1.47f;
+            item_position.y += item_work->vertical_velocity;
+        } else if (item_work->frame <= 24) {
+            BoardModelRotSet(itemMdl, 30.0f * item_work->frame, 0.0f, 0.0f);
+        } else if (item_work->frame > 36) {
+            item_work->state = 0;
             return;
         }
-        temp_r31->frame++;
+        item_work->frame++;
         break;
     case 0:
-        temp_r31->vertical_velocity += -1.47f;
+        item_work->vertical_velocity += -1.47f;
         
-        if (temp_r31->scale > 0.001f) {
-            temp_r31->scale -= 0.005f;
+        if (item_work->scale > 0.001f) {
+            item_work->scale -= 0.005f;
         }
         
-        item_position.y += temp_r31->vertical_velocity;
+        item_position.y += item_work->vertical_velocity;
         
         if (player_position.y > item_position.y) {
             BoardModelVisibilitySet(itemMdl, 0);
             HuAudFXPlay(0x30D);
-            BoardPlayerItemAdd(temp_r31->player, item_ids[itemResult]);
-            temp_r31->state = 1;
+            BoardPlayerItemAdd(item_work->player, item_ids[itemResult]);
+            item_work->state = 1;
         }
         /* fallthrough */
         case 1:
@@ -590,27 +590,27 @@ static void DoItemGive(OMOBJ* arg0) {
     }
 
     BoardModelPosSetV(itemMdl, &item_position);
-    BoardModelScaleSet(itemMdl, temp_r31->scale, temp_r31->scale, temp_r31->scale);
+    BoardModelScaleSet(itemMdl, item_work->scale, item_work->scale, item_work->scale);
 }
 
 /**
- * @brief Creates the shop item-award object and hooks the purchased model to the host.
- * @param arg0 Player index receiving the selected item.
+ * @brief Creates the mushroom reward object at the chosen box.
+ * @param arg0 Player index stored as the reward owner and eventual item recipient.
  */
 static void StartItemGive(s32 arg0) {
     Vec box_position;
-    itemObjWork* temp_r31;
+    itemObjWork* item_work;
     boxObjWork* box;
 
     itemGiveObj = omAddObjEx(boardObjMan, 0x102, 0U, 0U, -1, DoItemGive);
-    temp_r31 = omObjGetWork(itemGiveObj, itemObjWork);
+    item_work = omObjGetWork(itemGiveObj, itemObjWork);
 
-    temp_r31->kill = 0;
-    temp_r31->player = arg0;
-    temp_r31->state = 1;
-    temp_r31->frame = 0;
-    temp_r31->vertical_velocity = 0.0f;
-    temp_r31->scale = 1.0f;
+    item_work->kill = 0;
+    item_work->player = arg0;
+    item_work->state = 1;
+    item_work->frame = 0;
+    item_work->vertical_velocity = 0.0f;
+    item_work->scale = 1.0f;
     box = omObjGetWork(boxObj[pickerChoice], boxObjWork);
     BoardModelPosGet(box->box_model, &box_position);
     BoardModelPosSetV(itemMdl, &box_position);
@@ -630,19 +630,19 @@ static void KillItemMdl(void) {
  * @brief Reveals the mushroom item model and starts its upward animation.
  */
 static void ShowItemMdl(void) {
-    itemObjWork* temp_r31 = omObjGetWork(itemGiveObj, itemObjWork);
-    temp_r31->state = 2;
+    itemObjWork* item_work = omObjGetWork(itemGiveObj, itemObjWork);
+    item_work->state = 2;
 
     BoardModelVisibilitySet(itemMdl, 1);
 }
 
 /**
- * @brief Waits briefly before hiding the completed item-award model.
+ * @brief Waits until the mushroom reward object reports delivery complete.
  */
 static void WaitItemGive(void) {
-    itemObjWork* temp_r31 = omObjGetWork(itemGiveObj, itemObjWork);
+    itemObjWork* item_work = omObjGetWork(itemGiveObj, itemObjWork);
 
-    while (temp_r31->state != 1) {
+    while (item_work->state != 1) {
         HuPrcVSleep();
     }
 }
