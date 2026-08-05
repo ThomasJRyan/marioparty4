@@ -35,7 +35,7 @@ static void GrowCharWheel(CharWheelWork *work);
 static void ShrinkCharWheel(CharWheelWork *work);
 static void KillCharWheelSpr(void);
 static void SetCharWheelChars(s32 include_current_player, s32 current_player, s8 *candidates);
-static s32 GetInput(CharWheelWork *work);
+static s32 GetInput(CharWheelWork *input_work);
 static s16 GetComDelay(s32 current_player, s32 include_current_player);
 static s32 GetComInput(CharWheelWork *work);
 
@@ -477,27 +477,27 @@ static void SetCharWheelChars(s32 include_current_player, s32 current_player, s8
     }
 }
 
-/** @brief Read human or CPU stop input for the wheel. @param work Wheel state used for player, timeout, angle, and velocity data. @return Button mask. */
-static s32 GetInput(CharWheelWork *work) {
-    CharWheelWork *work;
+/** @brief Read human or CPU stop input for the wheel. @param input_work Wheel state used for player and timeout data. @return Button mask. */
+static s32 GetInput(CharWheelWork *input_work) {
+    CharWheelWork *wheel_work;
     float angle;
     float velocity;
     float target_delta;
     float predicted_angle;
     s32 input;
 
-    if (wheelTimer >= work->input_timeout) {
+    if (wheelTimer >= input_work->input_timeout) {
         return 0x100;
     }
-    if (!GWPlayer[work->player].com) {
-        input = HuPadBtnDown[GWPlayer[work->player].port];
+    if (!GWPlayer[input_work->player].com) {
+        input = HuPadBtnDown[GWPlayer[input_work->player].port];
         return  input;
     }
-    input = GetComInput(work);
+    input = GetComInput(input_work);
     if (targetF != 0) {
-        work = omObjGetWork(charWheelObj, CharWheelWork);
-        OSs16tof32(&work->wheel_angle, &angle);
-        OSs16tof32(&work->wheel_velocity, &velocity);
+        wheel_work = omObjGetWork(charWheelObj, CharWheelWork);
+        OSs16tof32(&wheel_work->wheel_angle, &angle);
+        OSs16tof32(&wheel_work->wheel_velocity, &velocity);
         angle = angle * 0.0625f;
         velocity = velocity * 0.0625f;
         predicted_angle = angle + 46.0f * velocity;
