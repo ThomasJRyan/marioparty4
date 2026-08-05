@@ -23,23 +23,23 @@
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 1;
-        u8 unk00_field2 : 1;
-        u8 unk00_field3 : 3;
-        u8 unk00_field4 : 1;
+        u8 destroy_requested : 1;
+        u8 option_active : 1;
+        u8 pad_config_closing : 1;
+        u8 original_cpu_difficulty : 3;
+        u8 save_unavailable : 1;
     };
-    s8 unk01;
-    s8 unk02;
-    s8 unk03;
-    s8 unk04;
-    s8 unk05;
-    u8 unk06;
-    u8 unk07;
-    s8 unk08;
-    u8 unk09;
-    s16 unk0A;
-    u32 unk0C;
+    s8 state;
+    s8 cursor_column;
+    s8 cursor_row;
+    s8 selection;
+    s8 pending_difficulty;
+    u8 input_delay;
+    u8 transition_frames;
+    s8 original_selection;
+    u8 repeat_delay;
+    s16 rotation_delay;
+    u32 previous_input;
 } ConfigWork;
 
 
@@ -143,6 +143,7 @@ static s32 boxMdlTbl[] = {
     DATA_MAKE_NUM(DATADIR_BPAUSE, 15)
 };
 
+/** @brief Starts the board pause menu process and pauses board object updates. */
 void BoardPauseStart(void) {
     mainProcess = HuPrcChildCreate(PauseProcess, 0x2001, 0x3800, 0, boardMainProc);
     hostMdl = BoardStarHostMdlGet();
@@ -154,6 +155,12 @@ void BoardPauseStart(void) {
     HuPrcDestructorSet2(mainProcess, PauseExit);
 }
 
+/**
+ * @brief Restores board state and persists pause-menu settings on exit.
+ *
+ * @details When quitting the board, audio and confetti are stopped instead of
+ * restoring the roll and status displays.
+ */
 static void PauseExit(void) {
     if (pauseQuitF == 0) {
         BoardRollWinDispSet(1);
@@ -195,13 +202,14 @@ static void PauseExit(void) {
     mainProcess = NULL;
 }
 
+/** @brief Loads pause resources and runs the main pause-menu flow. */
 static void PauseProcess(void) {
-    s32 temp_r31;
+    s32 data_read_id;
 
     pauseQuitF = 0;
     mainScreenF = 1;
     BoardFilterFadeInit(30, 0xA0);
-    temp_r31 = BoardDataDirReadAsync(DATADIR_BPAUSE);
+    data_read_id = BoardDataDirReadAsync(DATADIR_BPAUSE);
     BoardRollWinDispSet(0);
     BoardRollDispSet(0);
     BoardStatusItemSet(0);
@@ -213,7 +221,7 @@ static void PauseProcess(void) {
     while (!BoardFilterFadePauseCheck()) {
         HuPrcVSleep();
     }
-    BoardDataAsyncWait(temp_r31);
+    BoardDataAsyncWait(data_read_id);
     CreatePauseScreen();
     CreatePauseControlWin();
     if (WaitPauseInput() == 1) {
@@ -232,62 +240,63 @@ static void PauseProcess(void) {
     HuPrcEnd();
 }
 
+/** @brief Creates the pause-menu sprites, option models, cursor, and host model. */
 void CreatePauseScreen(void) {
-    Mtx sp30;
-    Vec sp24;
-    Vec sp18;
-    float temp_f30;
-    float var_f31;
-    void *sp14;
-    OMOBJ *temp_r27;
-    ConfigWork *temp_r29;
-    s16 sp8;
-    s32 var_r28;
+    Mtx model_matrix;
+    Vec screen_pos;
+    Vec world_pos;
+    float model_scale;
+    float option_rotation;
+    void *object_manager_data;
+    OMOBJ *object;
+    ConfigWork *work;
+    s16 sprite;
+    s32 option_state;
     s32 i;
 
-    sp14 = boardObjMan->user_data;
-    temp_r27 = omAddObjEx(boardObjMan, 0x108, 0, 0, -1, PauseConfigObjFunc);
-    configObj = temp_r27;
-    temp_r29 = omObjGetWork(temp_r27, ConfigWork);
-    temp_r29->unk00_field0 = 0;
-    temp_r29->unk02 = 0;
-    temp_r29->unk03 = 0;
-    temp_r29->unk06 = 0;
-    temp_r29->unk01 = 0;
-    temp_r29->unk00_field1 = 0;
-    temp_r29->unk00_field2 = 0;
-    temp_r29->unk0A = 0;
-    temp_r29->unk00_field4 = (SLSaveFlagGet() != 0) ? 0 : 1;
-    temp_r29->unk09 = 0;
-    temp_r29->unk0C = 0;
-    cursorPos = temp_r29->unk02 + temp_r29->unk03 * 4;
-    temp_r27->trans.x = -40.0f + boxPosTbl[cursorPos][0];
-    temp_r27->trans.y = -32.0f + boxPosTbl[cursorPos][1];
+    object_manager_data = boardObjMan->user_data;
+    object = omAddObjEx(boardObjMan, 0x108, 0, 0, -1, PauseConfigObjFunc);
+    configObj = object;
+    work = omObjGetWork(object, ConfigWork);
+    work->destroy_requested = 0;
+    work->cursor_column = 0;
+    work->cursor_row = 0;
+    work->input_delay = 0;
+    work->state = 0;
+    work->option_active = 0;
+    work->pad_config_closing = 0;
+    work->rotation_delay = 0;
+    work->save_unavailable = (SLSaveFlagGet() != 0) ? 0 : 1;
+    work->repeat_delay = 0;
+    work->previous_input = 0;
+    cursorPos = work->cursor_column + work->cursor_row * 4;
+    object->trans.x = -40.0f + boxPosTbl[cursorPos][0];
+    object->trans.y = -32.0f + boxPosTbl[cursorPos][1];
     pauseCursorPos = HuSprGrpCreate(2);
     HuSprGrpPosSet(pauseCursorPos, 0.0f, 0.0f);
-    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BOARD, 85), 700, 0, &sp8);
-    HuSprGrpMemberSet(pauseCursorPos, 0, sp8);
+    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BOARD, 85), 700, 0, &sprite);
+    HuSprGrpMemberSet(pauseCursorPos, 0, sprite);
     HuSprZRotSet(pauseCursorPos, 0, 45.0f);
     HuSprAttrSet(pauseCursorPos, 0, 4);
     HuSprAttrSet(pauseCursorPos, 0, 8);
-    HuSprPosSet(pauseCursorPos, 0, temp_r27->trans.x, temp_r27->trans.y);
-    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 7), 750, 0, &sp8);
-    HuSprGrpMemberSet(pauseCursorPos, 1, sp8);
+    HuSprPosSet(pauseCursorPos, 0, object->trans.x, object->trans.y);
+    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 7), 750, 0, &sprite);
+    HuSprGrpMemberSet(pauseCursorPos, 1, sprite);
     HuSprAttrSet(pauseCursorPos, 1, 4);
     HuSprAttrSet(pauseCursorPos, 1, 8);
     pauseSprGrp = HuSprGrpCreate(7);
     HuSprGrpPosSet(pauseSprGrp, 0.0f, 0.0f);
-    BoardSpriteCreate(boardLogoTbl[GWBoardGet()], 900, 0, &sp8);
-    HuSprGrpMemberSet(pauseSprGrp, 0, sp8);
+    BoardSpriteCreate(boardLogoTbl[GWBoardGet()], 900, 0, &sprite);
+    HuSprGrpMemberSet(pauseSprGrp, 0, sprite);
     HuSprPosSet(pauseSprGrp, 0, 288.0f, 120.0f);
     HuSprAttrSet(pauseSprGrp, 0, 4);
     HuSprAttrSet(pauseSprGrp, 0, 8);
-    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 5), 900, 0, &sp8);
-    HuSprGrpMemberSet(pauseSprGrp, 1, sp8);
+    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 5), 900, 0, &sprite);
+    HuSprGrpMemberSet(pauseSprGrp, 1, sprite);
     HuSprPosSet(pauseSprGrp, 1, 288.0f, 302.0f);
     HuSprAttrSet(pauseSprGrp, 1, 8);
-    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 4), 800, 0, &sp8);
-    HuSprGrpMemberSet(pauseSprGrp, 2, sp8);
+    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 4), 800, 0, &sprite);
+    HuSprGrpMemberSet(pauseSprGrp, 2, sprite);
     HuSprZRotSet(pauseSprGrp, 2, -30.0f);
     HuSprPosSet(pauseSprGrp, 2, 87.0f, 245.0f);
     HuSprAttrSet(pauseSprGrp, 2, 8);
@@ -304,8 +313,8 @@ void CreatePauseScreen(void) {
         HuSprBankSet(pauseSprGrp, 2, 1);
     }
     for (i = 0; i < 4; i++) {
-        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 6), 800, 0, &sp8);
-        HuSprGrpMemberSet(pauseSprGrp, i + 3, sp8);
+        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 6), 800, 0, &sprite);
+        HuSprGrpMemberSet(pauseSprGrp, i + 3, sprite);
         HuSprPosSet(pauseSprGrp, i + 3, turnDigitPosTbl[i], 301.0f);
         HuSprAttrSet(pauseSprGrp, i + 3, 8);
         HuSprAttrSet(pauseSprGrp, i + 3, 1);
@@ -313,140 +322,141 @@ void CreatePauseScreen(void) {
     padConfigSprGrp = HuSprGrpCreate(13);
     HuSprGrpPosSet(padConfigSprGrp, 0.0f, 0.0f);
     for (i = 0; i < 4; i++) {
-        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 0), 910, 0, &sp8);
-        HuSprGrpMemberSet(padConfigSprGrp, i, sp8);
+        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 0), 910, 0, &sprite);
+        HuSprGrpMemberSet(padConfigSprGrp, i, sprite);
         HuSprAttrSet(padConfigSprGrp, i, 8);
         HuSprAttrSet(padConfigSprGrp, i, 1);
-        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 1), 700, 0, &sp8);
-        HuSprGrpMemberSet(padConfigSprGrp, i + 4, sp8);
+        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 1), 700, 0, &sprite);
+        HuSprGrpMemberSet(padConfigSprGrp, i + 4, sprite);
         HuSprAttrSet(padConfigSprGrp, i + 4, 8);
         HuSprAttrSet(padConfigSprGrp, i + 4, 1);
-        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 2), 800, 0, &sp8);
-        HuSprGrpMemberSet(padConfigSprGrp, i + 8, sp8);
+        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 2), 800, 0, &sprite);
+        HuSprGrpMemberSet(padConfigSprGrp, i + 8, sprite);
         HuSprAttrSet(padConfigSprGrp, i + 8, 8);
         HuSprAttrSet(padConfigSprGrp, i + 8, 1);
     }
-    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 3), 1000, 0, &sp8);
-    HuSprGrpMemberSet(padConfigSprGrp, 12, sp8);
+    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BPAUSE, 3), 1000, 0, &sprite);
+    HuSprGrpMemberSet(padConfigSprGrp, 12, sprite);
     HuSprAttrSet(padConfigSprGrp, 12, 4);
     HuSprDrawNoSet(padConfigSprGrp, 12, 0x40);
     CreatePadConfigSprite();
     ShowPadConfigSprite(0);
     hostOldLayer = BoardModelLayerGet(hostMdl);
     BoardModelLayerSet(hostMdl, 6);
-    sp24.x = 68.0f;
+    screen_pos.x = 68.0f;
     if (GWBoardGet() == 3) {
-        sp24.y = 464.0f;
+        screen_pos.y = 464.0f;
     } else {
-        sp24.y = 434.0f;
+        screen_pos.y = 434.0f;
     }
-    sp24.z = 1100.0f;
-    Hu3D2Dto3D(&sp24, 1, &sp18);
-    RotateBox(0.0f, 15.0f, sp30);
-    BoardModelMtxSet(hostMdl, &sp30);
-    BoardModelPosSetV(hostMdl, &sp18);
+    screen_pos.z = 1100.0f;
+    Hu3D2Dto3D(&screen_pos, 1, &world_pos);
+    RotateBox(0.0f, 15.0f, model_matrix);
+    BoardModelMtxSet(hostMdl, &model_matrix);
+    BoardModelPosSetV(hostMdl, &world_pos);
     BoardModelVisibilitySet(hostMdl, 0);
     BoardModelRotSet(hostMdl, 0.0f, 0.0f, 0.0f);
     for (i = 0; i < 8; i++) {
         boxModelID[i] = BoardModelCreate(boxMdlTbl[i], NULL, 0);
-        sp24.x = boxPosTbl[i][0];
-        sp24.y = boxPosTbl[i][1];
-        sp24.z = 700.0f;
-        Hu3D2Dto3D(&sp24, 1, &sp18);
-        temp_f30 = 0.5f;
-        BoardModelPosSetV(boxModelID[i], &sp18);
+        screen_pos.x = boxPosTbl[i][0];
+        screen_pos.y = boxPosTbl[i][1];
+        screen_pos.z = 700.0f;
+        Hu3D2Dto3D(&screen_pos, 1, &world_pos);
+        model_scale = 0.5f;
+        BoardModelPosSetV(boxModelID[i], &world_pos);
         BoardModelLayerSet(boxModelID[i], 6);
-        BoardModelScaleSet(boxModelID[i], temp_f30, temp_f30, temp_f30);
+        BoardModelScaleSet(boxModelID[i], model_scale, model_scale, model_scale);
         switch (i) {
             case 0:
             case 7:
-                var_r28 = 0;
-                var_f31 = 0.0f;
+                option_state = 0;
+                option_rotation = 0.0f;
                 break;
             case 1:
-                var_r28 = GWMGExplainGet();
-                var_f31 = (var_r28 != 0) ? 0.0f : -90.0f;
+                option_state = GWMGExplainGet();
+                option_rotation = (option_state != 0) ? 0.0f : -90.0f;
                 break;
             case 2:
-                var_r28 = GWMGShowComGet();
-                var_f31 = (var_r28 != 0) ? 0.0f : -90.0f;
+                option_state = GWMGShowComGet();
+                option_rotation = (option_state != 0) ? 0.0f : -90.0f;
                 break;
             case 3:
-                var_r28 = GWMGListGet();
-                switch (var_r28) {
+                option_state = GWMGListGet();
+                switch (option_state) {
                     case 1:
-                        var_r28 = 0;
-                        var_f31 = 90.0f;
+                        option_state = 0;
+                        option_rotation = 90.0f;
                         break;
                     case 0:
-                        var_r28 = 1;
-                        var_f31 = 0.0f;
+                        option_state = 1;
+                        option_rotation = 0.0f;
                         break;
                     case 2:
-                        var_r28 = 2;
-                        var_f31 = -90.0f;
+                        option_state = 2;
+                        option_rotation = -90.0f;
                         break;
                 }
                 break;
             case 4:
-                var_r28 = GWRumbleGet();
-                var_f31 = (var_r28 != 0) ? 0.0f : -90.0f;
+                option_state = GWRumbleGet();
+                option_rotation = (option_state != 0) ? 0.0f : -90.0f;
                 break;
             case 5:
-                var_r28 = GWMessSpeedGet();
-                switch (var_r28) {
+                option_state = GWMessSpeedGet();
+                switch (option_state) {
                     case 2:
-                        var_r28 = 0;
-                        var_f31 = 90.0f;
+                        option_state = 0;
+                        option_rotation = 90.0f;
                         break;
                     case 1:
-                        var_r28 = 1;
-                        var_f31 = 0.0f;
+                        option_state = 1;
+                        option_rotation = 0.0f;
                         break;
                     case 0:
-                        var_r28 = 2;
-                        var_f31 = -90.0f;
+                        option_state = 2;
+                        option_rotation = -90.0f;
                         break;
                 }
                 break;
             case 6:
-                if (temp_r29->unk00_field4 != 0) {
+                if (work->save_unavailable != 0) {
                     GWSystem.save_mode = 1;
                 }
-                var_r28 = GWSaveModeGet();
-                switch (var_r28) {
+                option_state = GWSaveModeGet();
+                switch (option_state) {
                     case 1:
-                        var_r28 = 0;
-                        var_f31 = 90.0f;
+                        option_state = 0;
+                        option_rotation = 90.0f;
                         break;
                     case 0:
-                        var_r28 = 1;
-                        var_f31 = 0.0f;
+                        option_state = 1;
+                        option_rotation = 0.0f;
                         break;
                     case 2:
-                        var_r28 = 2;
-                        var_f31 = -90.0f;
+                        option_state = 2;
+                        option_rotation = -90.0f;
                         break;
                 }
                 break;
         }
-        boxState[i] = var_r28;
-        boxRot[i] = var_f31;
-        RotateBox(3.5f, var_f31, sp30);
-        BoardModelMtxSet(boxModelID[i], &sp30);
+        boxState[i] = option_state;
+        boxRot[i] = option_rotation;
+        RotateBox(3.5f, option_rotation, model_matrix);
+        BoardModelMtxSet(boxModelID[i], &model_matrix);
         BoardModelRotSet(boxModelID[i], 0.0f, 0.0f, 0.0f);
     }
     SetBoxVisible(0);
 }
 
+/** @brief Destroys pause-screen objects and restores the host model. */
 static void DeletePauseScreen(void) {
-    ConfigWork *temp_r30;
-    Mtx sp8;
+    ConfigWork *work;
+    Mtx identity_matrix;
     s32 i;
 
     if (configObj) {
-        temp_r30 = omObjGetWork(configObj, ConfigWork);
-        temp_r30->unk00_field0 = 1;
+        work = omObjGetWork(configObj, ConfigWork);
+        work->destroy_requested = 1;
     }
     for (i = 0; i < 8; i++) {
         BoardModelKill(boxModelID[i]);
@@ -464,16 +474,21 @@ static void DeletePauseScreen(void) {
         HuSprGrpKill(pauseCursorPos);
         pauseCursorPos = -1;
     }
-    PSMTXIdentity(sp8);
+    PSMTXIdentity(identity_matrix);
     BoardModelLayerSet(hostMdl, hostOldLayer);
     BoardModelVisibilitySet(hostMdl, 1);
-    BoardModelMtxSet(hostMdl, &sp8);
+    BoardModelMtxSet(hostMdl, &identity_matrix);
     BoardStarHostSet(hostMdl);
     if (GWBoardGet() == 7 || GWBoardGet() == 8) {
         BoardModelVisibilitySet(hostMdl, 0);
     }
 }
 
+/**
+ * @brief Sets the visibility of every pause option-box model.
+ *
+ * @param arg0 Nonzero to show the models; zero to hide them.
+ */
 static void SetBoxVisible(s32 arg0) {
     s32 i;
 
@@ -482,45 +497,50 @@ static void SetBoxVisible(s32 arg0) {
     }
 }
 
+/**
+ * @brief Updates the settings cursor and dispatches the selected option editor.
+ *
+ * @param arg0 Pause configuration object whose work tracks menu state.
+ */
 static void PauseConfigObjFunc(OMOBJ *arg0) {
-    ConfigWork *temp_r31;
-    s16 temp_r28;
-    s32 var_r29;
+    ConfigWork *work;
+    s16 previous_cursor_pos;
+    s32 unused_config_value;
 
-    temp_r31 = omObjGetWork(arg0, ConfigWork);
-    if (temp_r31->unk00_field0 != 0 || BoardIsKill()) {
+    work = omObjGetWork(arg0, ConfigWork);
+    if (work->destroy_requested != 0 || BoardIsKill()) {
         configObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
         return;
     }
     if (mainScreenF == 0) {
-        if (temp_r31->unk06 != 0) {
-            temp_r31->unk06--;
+        if (work->input_delay != 0) {
+            work->input_delay--;
             return;
         }
-        cursorPos = temp_r31->unk02 + temp_r31->unk03 * 4;
-        temp_r28 = cursorPos;
-        if (temp_r31->unk00_field1 != 0) {
+        cursorPos = work->cursor_column + work->cursor_row * 4;
+        previous_cursor_pos = cursorPos;
+        if (work->option_active != 0) {
             switch (cursorPos) {
                 case 0:
-                    if (UpdatePadConfig(arg0, temp_r31) != 0) {
+                    if (UpdatePadConfig(arg0, work) != 0) {
                         UpdatePauseText(cursorPos);
                     }
                     break;
                 case 1:
-                    if (UpdatePauseBox(arg0, temp_r31, 1) != 0) {
+                    if (UpdatePauseBox(arg0, work, 1) != 0) {
                         GWMGExplainSet(boxState[1]);
                     }
                     UpdatePauseText(cursorPos);
                     break;
                 case 2:
-                    if (UpdatePauseBox(arg0, temp_r31, 2) != 0) {
+                    if (UpdatePauseBox(arg0, work, 2) != 0) {
                         GWMGShowComSet(boxState[2]);
                     }
                     UpdatePauseText(cursorPos);
                     break;
                 case 3:
-                    if (UpdatePauseBoxExt(arg0, temp_r31, 3) != 0) {
+                    if (UpdatePauseBoxExt(arg0, work, 3) != 0) {
                         switch (boxState[3]) {
                             case 0:
                                 GWMGListSet(1);
@@ -536,13 +556,13 @@ static void PauseConfigObjFunc(OMOBJ *arg0) {
                     UpdatePauseText(cursorPos);
                     break;
                 case 4:
-                    if (UpdatePauseBox(arg0, temp_r31, 4) != 0) {
+                    if (UpdatePauseBox(arg0, work, 4) != 0) {
                         GWRumbleSet(boxState[4]);
                     }
                     UpdatePauseText(cursorPos);
                     break;
                 case 5:
-                    if (UpdatePauseBoxExt(arg0, temp_r31, 5) != 0) {
+                    if (UpdatePauseBoxExt(arg0, work, 5) != 0) {
                         switch (boxState[5]) {
                             case 0:
                                 GWMessSpeedSet(2);
@@ -558,11 +578,11 @@ static void PauseConfigObjFunc(OMOBJ *arg0) {
                     UpdatePauseText(cursorPos);
                     break;
                 case 6:
-                    if (temp_r31->unk00_field4 != 0) {
-                        temp_r31->unk00_field1 = 0;
+                    if (work->save_unavailable != 0) {
+                        work->option_active = 0;
                         break;
                     }
-                    if (UpdatePauseBoxExt(arg0, temp_r31, 6) != 0) {
+                    if (UpdatePauseBoxExt(arg0, work, 6) != 0) {
                         switch (boxState[6]) {
                             case 0:
                                 GWSaveModeSet(1);
@@ -578,12 +598,12 @@ static void PauseConfigObjFunc(OMOBJ *arg0) {
                     UpdatePauseText(cursorPos);
                     break;
                 case 7:
-                    InitPauseQuit(arg0, temp_r31);
+                    InitPauseQuit(arg0, work);
                     break;
             }
         } else {
-            cursorPos = ExecPauseConfig(arg0, temp_r31);
-            if (temp_r28 != cursorPos) {
+            cursorPos = ExecPauseConfig(arg0, work);
+            if (previous_cursor_pos != cursorPos) {
                 arg0->trans.x = -40.0f + boxPosTbl[cursorPos][0];
                 arg0->trans.y = -32.0f + boxPosTbl[cursorPos][1];
             }
@@ -593,8 +613,13 @@ static void PauseConfigObjFunc(OMOBJ *arg0) {
     }
 }
 
+/**
+ * @brief Updates the settings description for a pause-menu option.
+ *
+ * @param arg0 Option index in the two-row pause settings grid.
+ */
 static void UpdatePauseText(s32 arg0) {
-    s32 var_r28;
+    s32 player_type_message;
     s32 j;
     s32 i;
 
@@ -605,11 +630,11 @@ static void UpdatePauseText(s32 arg0) {
                 for (j = 0; j < 4; j++) {
                     if (i == GWPlayer[j].port) {
                         if (GWPlayer[j].com) {
-                            var_r28 = MAKE_MESSID(16, 30);
+                            player_type_message = MAKE_MESSID(16, 30);
                         } else {
-                            var_r28 = MAKE_MESSID(16, 29);
+                            player_type_message = MAKE_MESSID(16, 29);
                         }
-                        HuWinInsertMesSet(settingsWin, var_r28, i);
+                        HuWinInsertMesSet(settingsWin, player_type_message, i);
                         break;
                     }
                 }
@@ -681,17 +706,23 @@ static void UpdatePauseText(s32 arg0) {
     }
 }
 
+/**
+ * @brief Advances entry to and return from the quit-confirmation dialog.
+ *
+ * @param arg0 Configuration object retained while the dialog runs.
+ * @param arg1 Work state for the active pause-menu option.
+ */
 static void InitPauseQuit(OMOBJ *arg0, ConfigWork *arg1) {
-    float var_f31;
+    float model_scale;
 
-    switch (arg1->unk01) {
+    switch (arg1->state) {
         case 0:
             SetBoxVisible(0);
             quitProcess = HuPrcChildCreate(PauseQuitProcess, 0x2001, 0x3800, 0, boardMainProc);
             HuPrcSetStat(quitProcess, 0xC);
             HuPrcDestructorSet2(quitProcess, DeletePauseQuit);
-            arg1->unk01 = 1;
-            arg1->unk06 = 10;
+            arg1->state = 1;
+            arg1->input_delay = 10;
             HuSprAttrSet(pauseCursorPos, 0, 4);
             HuSprAttrSet(pauseCursorPos, 1, 4);
             break;
@@ -704,22 +735,22 @@ static void InitPauseQuit(OMOBJ *arg0, ConfigWork *arg1) {
                 }
             }
             if (!quitProcess) {
-                arg1->unk01 = 2;
+                arg1->state = 2;
                 if (pauseQuitF != 0) {
-                    arg1->unk00_field0 = 1;
+                    arg1->destroy_requested = 1;
                     break;
                 }
             }
             break;
         case 2:
-            arg1->unk00_field1 = 0;
-            arg1->unk01 = 0;
-            arg1->unk04 = 0;
-            arg1->unk05 = 0;
-            arg1->unk06 = 0;
+            arg1->option_active = 0;
+            arg1->state = 0;
+            arg1->selection = 0;
+            arg1->pending_difficulty = 0;
+            arg1->input_delay = 0;
             SetBoxVisible(1);
-            var_f31 = 0.5f;
-            BoardModelScaleSet(boxModelID[7], var_f31, var_f31, var_f31);
+            model_scale = 0.5f;
+            BoardModelScaleSet(boxModelID[7], model_scale, model_scale, model_scale);
             HuSprAttrReset(pauseCursorPos, 0, HUSPR_ATTR_DISPOFF);
             if (GWPartyGet() == 0) {
                 HuSprAttrReset(pauseCursorPos, 1, HUSPR_ATTR_DISPOFF);
@@ -728,17 +759,18 @@ static void InitPauseQuit(OMOBJ *arg0, ConfigWork *arg1) {
     }
 }
 
+/** @brief Displays the board-quit confirmation and records an accepted quit. */
 static void PauseQuitProcess(void) {
-    WindowData *temp_r31;
-    float sp10[2];
-    float sp8[2];
+    WindowData *window_data;
+    float window_pos[2];
+    float message_size[2];
 
-    HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(16, 49));
-    sp10[0] = -10000.0f;
-    sp10[1] = 140.0f;
-    quitWin = HuWinExCreate(sp10[0], sp10[1], sp8[0], sp8[1], -1);
-    temp_r31 = &winData[quitWin];
-    temp_r31->active_pad = (1 << pausePad);
+    HuWinMesMaxSizeGet(1, message_size, MAKE_MESSID(16, 49));
+    window_pos[0] = -10000.0f;
+    window_pos[1] = 140.0f;
+    quitWin = HuWinExCreate(window_pos[0], window_pos[1], message_size[0], message_size[1], -1);
+    window_data = &winData[quitWin];
+    window_data->active_pad = (1 << pausePad);
     HuWinExAnimIn(quitWin);
     HuWinMesSpeedSet(quitWin, 0);
     HuWinMesSet(quitWin, MAKE_MESSID(16, 49));
@@ -751,6 +783,7 @@ static void PauseQuitProcess(void) {
     HuPrcEnd();
 }
 
+/** @brief Cleans up the quit dialog process and its window. */
 static void DeletePauseQuit(void) {
     if (quitWin != -1) {
         HuWinExCleanup(quitWin);
@@ -760,8 +793,15 @@ static void DeletePauseQuit(void) {
     quitProcess = NULL;
 }
 
+/**
+ * @brief Advances the controller-to-player configuration state machine.
+ *
+ * @param arg0 Configuration object used for transition positions.
+ * @param arg1 Work state for the controller configuration screen.
+ * @return `1` after the controller editor closes; otherwise `0`.
+ */
 static s32 UpdatePadConfig(OMOBJ *arg0, ConfigWork *arg1) {
-    switch (arg1->unk01) {
+    switch (arg1->state) {
         case 0:
             CreatePadConfig(arg0, arg1);
             break;
@@ -778,16 +818,21 @@ static s32 UpdatePadConfig(OMOBJ *arg0, ConfigWork *arg1) {
             ScrollOutPadConfig(arg0, arg1);
             break;
     }
-    if (arg1->unk00_field1 != 0) {
+    if (arg1->option_active != 0) {
         return 0;
     } else {
         return 1;
     }
 }
 
+/**
+ * @brief Begins the transition from the option grid to controller assignment.
+ * @param arg0 Object used to store per-frame panel movement deltas.
+ * @param arg1 Work state receiving the transition timer and initial port.
+ */
 static void CreatePadConfig(OMOBJ *arg0, ConfigWork *arg1) {
-    Vec sp14;
-    Vec sp8;
+    Vec target_pos;
+    Vec movement_delta;
     s32 i;
 
     HuSprAttrSet(pauseCursorPos, 0, 4);
@@ -799,46 +844,51 @@ static void CreatePadConfig(OMOBJ *arg0, ConfigWork *arg1) {
     arg0->rot.x = 576.0f;
     arg0->rot.y = 112.0f;
     arg0->rot.z = (32.0f - arg0->rot.x) / 20.0f;
-    arg1->unk07 = 20;
+    arg1->transition_frames = 20;
     ShowPadConfigSprite(1);
     HuSprGrpPosSet(padConfigSprGrp, arg0->rot.x, arg0->rot.y);
-    arg1->unk04 = 0;
-    arg1->unk05 = 0;
-    sp14.x = padConfigPosTbl[arg1->unk04][0];
-    sp14.y = padConfigPosTbl[arg1->unk04][1];
-    HuSprPosSet(pauseCursorPos, 0, sp14.x, sp14.y);
+    arg1->selection = 0;
+    arg1->pending_difficulty = 0;
+    target_pos.x = padConfigPosTbl[arg1->selection][0];
+    target_pos.y = padConfigPosTbl[arg1->selection][1];
+    HuSprPosSet(pauseCursorPos, 0, target_pos.x, target_pos.y);
     HuSprZRotSet(pauseCursorPos, 0, 0.0f);
     padBoxPos.x = boxPosTbl[0][0];
     padBoxPos.y = boxPosTbl[0][1];
     padBoxPos.z = 700.0f;
-    sp14.x = 96.0f;
-    sp14.y = 176.0f;
-    sp14.z = padBoxPos.z;
-    VECSubtract(&sp14, &padBoxPos, &sp8);
-    arg0->scale.x = sp8.x / 20.0f;
-    arg0->scale.y = sp8.y / 20.0f;
-    arg1->unk01 = 1;
+    target_pos.x = 96.0f;
+    target_pos.y = 176.0f;
+    target_pos.z = padBoxPos.z;
+    VECSubtract(&target_pos, &padBoxPos, &movement_delta);
+    arg0->scale.x = movement_delta.x / 20.0f;
+    arg0->scale.y = movement_delta.y / 20.0f;
+    arg1->state = 1;
 }
 
+/**
+ * @brief Advances the controller panel's 20-frame slide transition.
+ * @param arg0 Object carrying the panel's position increments.
+ * @param arg1 Work state carrying remaining frames and closing direction.
+ */
 static void ScrollInPadConfig(OMOBJ *arg0, ConfigWork *arg1) {
-    Vec sp8;
+    Vec world_pos;
     s32 i;
 
-    if (arg1->unk07 == 0) {
+    if (arg1->transition_frames == 0) {
         HuSprAttrReset(pauseCursorPos, 0, HUSPR_ATTR_DISPOFF);
-        if (arg1->unk00_field2 != 0) {
+        if (arg1->pad_config_closing != 0) {
             for (i = 0; i < 8; i++) {
                 if (i != 0) {
                     BoardModelVisibilitySet(boxModelID[i], 1);
                 }
             }
-            arg1->unk00_field1 = 0;
-            arg1->unk00_field2 = 0;
-            arg1->unk04 = 0;
-            arg1->unk05 = 0;
-            arg1->unk01 = 0;
+            arg1->option_active = 0;
+            arg1->pad_config_closing = 0;
+            arg1->selection = 0;
+            arg1->pending_difficulty = 0;
+            arg1->state = 0;
         } else {
-            arg1->unk01 = 2;
+            arg1->state = 2;
         }
         return;
     }
@@ -846,467 +896,504 @@ static void ScrollInPadConfig(OMOBJ *arg0, ConfigWork *arg1) {
     HuSprGrpPosSet(padConfigSprGrp, arg0->rot.x, arg0->rot.y);
     padBoxPos.x += arg0->scale.x;
     padBoxPos.y += arg0->scale.y;
-    Hu3D2Dto3D(&padBoxPos, 1, &sp8);
-    BoardModelPosSetV(boxModelID[0], &sp8);
-    arg1->unk07--;
+    Hu3D2Dto3D(&padBoxPos, 1, &world_pos);
+    BoardModelPosSetV(boxModelID[0], &world_pos);
+    arg1->transition_frames--;
 }
 
+/**
+ * @brief Moves among controller ports and opens difficulty selection.
+ * @param arg0 Active configuration object; retained for the state machine.
+ * @param arg1 Work state containing the selected controller port.
+ */
 static void CursorMovePadConfig(OMOBJ *arg0, ConfigWork *arg1) {
-    float sp8[4];
-    s32 temp_r29;
-    u32 temp_r30;
+    float cursor_position[4];
+    s32 player;
+    u32 input;
 
     HuWinMesSet(settingsWin, MAKE_MESSID(16, 31));
-    temp_r30 = HuPadDStkRep[pausePad] | HuPadBtnDown[pausePad];
-    temp_r29 = CheckPort(arg1->unk04);
-    if (temp_r30 == 0x100) {
-        arg1->unk01 = 3;
-        if (GWPlayer[temp_r29].com) {
-            arg1->unk00_field3 = GWPlayer[temp_r29].diff + 1;
-            arg1->unk05 = GWPlayer[temp_r29].diff + 1;
+    input = HuPadDStkRep[pausePad] | HuPadBtnDown[pausePad];
+    player = CheckPort(arg1->selection);
+    if (input == 0x100) {
+        arg1->state = 3;
+        if (GWPlayer[player].com) {
+            arg1->original_cpu_difficulty = GWPlayer[player].diff + 1;
+            arg1->pending_difficulty = GWPlayer[player].diff + 1;
         } else {
-            arg1->unk00_field3 = 0;
-            arg1->unk05 = 0;
+            arg1->original_cpu_difficulty = 0;
+            arg1->pending_difficulty = 0;
         }
-        HuSprBankSet(padConfigSprGrp, arg1->unk04 + 8, 1);
+        HuSprBankSet(padConfigSprGrp, arg1->selection + 8, 1);
         HuAudFXPlay(2);
-    } else if (temp_r30 == 0x200) {
+    } else if (input == 0x200) {
         HuAudFXPlay(3);
-        arg1->unk01 = 4;
+        arg1->state = 4;
     } else {
-        if (temp_r30 == 1) {
-            arg1->unk04--;
+        if (input == 1) {
+            arg1->selection--;
         }
-        if (temp_r30 == 2) {
-            arg1->unk04++;
+        if (input == 2) {
+            arg1->selection++;
         }
-        if (arg1->unk04 < 0) {
-            arg1->unk04 = 0;
-        } else if (arg1->unk04 >= 4) {
-            arg1->unk04 = 3;
-        } else if (temp_r30 == 1 || temp_r30 == 2) {
+        if (arg1->selection < 0) {
+            arg1->selection = 0;
+        } else if (arg1->selection >= 4) {
+            arg1->selection = 3;
+        } else if (input == 1 || input == 2) {
             HuAudFXPlay(0);
-            arg1->unk06 = 4;
+            arg1->input_delay = 4;
         }
-        sp8[0] = padConfigPosTbl[arg1->unk04][0];
-        sp8[1] = padConfigPosTbl[arg1->unk04][1];
-        HuSprPosSet(pauseCursorPos, 0, sp8[0], sp8[1]);
+        cursor_position[0] = padConfigPosTbl[arg1->selection][0];
+        cursor_position[1] = padConfigPosTbl[arg1->selection][1];
+        HuSprPosSet(pauseCursorPos, 0, cursor_position[0], cursor_position[1]);
     }
 }
 
+/**
+ * @brief Edits human/CPU status and CPU difficulty for a controller port.
+ * @param arg0 Active configuration object; retained for the state machine.
+ * @param arg1 Work state containing the port and pending difficulty choice.
+ */
 static void ChangeDiffPadConfig(OMOBJ *arg0, ConfigWork *arg1) {
-    s32 temp_r29;
-    s32 var_r28;
-    s32 var_r26;
-    s32 var_r27;
-    u32 var_r30;
+    s32 player;
+    s32 selection_delta;
+    s32 difficulty_sprite_bank;
+    s32 max_difficulty;
+    u32 direction_input;
 
-    var_r30 = 0;
+    direction_input = 0;
     if (HuPadStkX[pausePad] < -20) {
-        var_r30 |= 1;
+        direction_input |= 1;
     } else if (HuPadStkX[pausePad] > 20) {
-        var_r30 |= 2;
+        direction_input |= 2;
     }
-    temp_r29 = CheckPort(arg1->unk04);
+    player = CheckPort(arg1->selection);
     if (GWGameStat.veryHardUnlock != 0) {
-        var_r27 = 4;
+        max_difficulty = 4;
     } else {
-        var_r27 = 3;
+        max_difficulty = 3;
     }
     HuWinMesSet(settingsWin, MAKE_MESSID(16, 32));
-    if (var_r30 != 0) {
-        if (arg1->unk0C != 0 && arg1->unk0C == var_r30) {
-            if (arg1->unk09++ < 10) {
+    if (direction_input != 0) {
+        if (arg1->previous_input != 0 && arg1->previous_input == direction_input) {
+            if (arg1->repeat_delay++ < 10) {
                 return;
             }
         } else {
-            if (arg1->unk09++ < 2) {
+            if (arg1->repeat_delay++ < 2) {
                 return;
             }
-            arg1->unk0C = var_r30;
+            arg1->previous_input = direction_input;
         }
     } else {
-        arg1->unk0C = 0;
+        arg1->previous_input = 0;
     }
-    arg1->unk09 = 0;
-    var_r28 = 0;
-    if (var_r30 == 1) {
-        var_r28 = -1;
+    arg1->repeat_delay = 0;
+    selection_delta = 0;
+    if (direction_input == 1) {
+        selection_delta = -1;
     }
-    if (var_r30 == 2) {
-        var_r28 = 1;
+    if (direction_input == 2) {
+        selection_delta = 1;
     }
-    if (var_r28 != 0) {
+    if (selection_delta != 0) {
         HuAudFXPlay(0);
-        arg1->unk06 = 4;
+        arg1->input_delay = 4;
     } else {
         if (HuPadBtnDown[pausePad] == 0x100) {
-            arg1->unk01 = 2;
-            if (arg1->unk05 != 0) {
-                GWPlayer[temp_r29].com = 1;
-                GWPlayerCfg[temp_r29].iscom = 1;
-                GWPlayer[temp_r29].diff = arg1->unk05 - 1;
-                GWPlayerCfg[temp_r29].diff = arg1->unk05 - 1;
+            arg1->state = 2;
+            if (arg1->pending_difficulty != 0) {
+                GWPlayer[player].com = 1;
+                GWPlayerCfg[player].iscom = 1;
+                GWPlayer[player].diff = arg1->pending_difficulty - 1;
+                GWPlayerCfg[player].diff = arg1->pending_difficulty - 1;
             } else {
-                GWPlayer[temp_r29].com = 0;
-                GWPlayerCfg[temp_r29].iscom = 0;
+                GWPlayer[player].com = 0;
+                GWPlayerCfg[player].iscom = 0;
             }
-            HuSprBankSet(padConfigSprGrp, arg1->unk04 + 8, 0);
+            HuSprBankSet(padConfigSprGrp, arg1->selection + 8, 0);
             HuAudFXPlay(2);
-            arg1->unk0C = 0x100;
+            arg1->previous_input = 0x100;
         }
         if (HuPadBtnDown[pausePad] == 0x200) {
-            arg1->unk01 = 2;
-            arg1->unk05 = arg1->unk00_field3;
-            HuSprBankSet(padConfigSprGrp, arg1->unk04 + 8, 0);
+            arg1->state = 2;
+            arg1->pending_difficulty = arg1->original_cpu_difficulty;
+            HuSprBankSet(padConfigSprGrp, arg1->selection + 8, 0);
             HuAudFXPlay(3);
-            arg1->unk0C = 0x200;
+            arg1->previous_input = 0x200;
         }
-        arg1->unk09 = 0;
+        arg1->repeat_delay = 0;
     }
-    arg1->unk05 += var_r28;
-    if (GWGameStat.veryHardUnlock == 0 && arg1->unk05 == 4) {
-        arg1->unk05 += var_r28;
+    arg1->pending_difficulty += selection_delta;
+    if (GWGameStat.veryHardUnlock == 0 && arg1->pending_difficulty == 4) {
+        arg1->pending_difficulty += selection_delta;
     }
-    if (arg1->unk05 > var_r27) {
-        arg1->unk05 = 0;
-    } else if (arg1->unk05 < 0) {
-        arg1->unk05 = var_r27;
+    if (arg1->pending_difficulty > max_difficulty) {
+        arg1->pending_difficulty = 0;
+    } else if (arg1->pending_difficulty < 0) {
+        arg1->pending_difficulty = max_difficulty;
     }
-    if (arg1->unk05 != 0) {
-        var_r26 = arg1->unk05 + 3;
+    if (arg1->pending_difficulty != 0) {
+        difficulty_sprite_bank = arg1->pending_difficulty + 3;
     } else {
-        var_r26 = arg1->unk04;
+        difficulty_sprite_bank = arg1->selection;
     }
-    HuSprBankSet(padConfigSprGrp, arg1->unk04 + 4, var_r26);
+    HuSprBankSet(padConfigSprGrp, arg1->selection + 4, difficulty_sprite_bank);
 }
 
+/**
+ * @brief Configures the controller panel's slide back to the option grid.
+ * @param arg0 Object receiving the per-frame return movement.
+ * @param arg1 Work state marked as closing for the shared slide updater.
+ */
 static void ScrollOutPadConfig(OMOBJ *arg0, ConfigWork *arg1) {
-    Vec sp14;
-    Vec sp8;
+    Vec target_pos;
+    Vec movement_delta;
 
     HuSprAttrSet(pauseCursorPos, 0, 4);
     arg0->rot.x = 32.0f;
     arg0->rot.y = 112.0f;
     arg0->rot.z = (608.0f - arg0->rot.x) / 20.0f;
-    arg1->unk07 = 0x14;
+    arg1->transition_frames = 0x14;
     ShowPadConfigSprite(1);
     HuSprGrpPosSet(padConfigSprGrp, arg0->rot.x, arg0->rot.y);
-    sp14.x = -40.0f + boxPosTbl[0][0];
-    sp14.y = -32.0f + boxPosTbl[0][1];
-    HuSprPosSet(pauseCursorPos, 0, sp14.x, sp14.y);
+    target_pos.x = -40.0f + boxPosTbl[0][0];
+    target_pos.y = -32.0f + boxPosTbl[0][1];
+    HuSprPosSet(pauseCursorPos, 0, target_pos.x, target_pos.y);
     HuSprZRotSet(pauseCursorPos, 0, 45.0f);
-    sp14.x = boxPosTbl[0][0];
-    sp14.y = boxPosTbl[0][1];
-    sp14.z = 700.0f;
-    VECSubtract(&sp14, &padBoxPos, &sp8);
-    arg0->scale.x = sp8.x / 20.0f;
-    arg0->scale.y = sp8.y / 20.0f;
-    arg1->unk01 = 1;
-    arg1->unk00_field2 = 1;
+    target_pos.x = boxPosTbl[0][0];
+    target_pos.y = boxPosTbl[0][1];
+    target_pos.z = 700.0f;
+    VECSubtract(&target_pos, &padBoxPos, &movement_delta);
+    arg0->scale.x = movement_delta.x / 20.0f;
+    arg0->scale.y = movement_delta.y / 20.0f;
+    arg1->state = 1;
+    arg1->pad_config_closing = 1;
 }
 
+/**
+ * @brief Edits a two-state pause option and animates its box rotation.
+ * @param arg0 Configuration object storing rotation state.
+ * @param arg1 Work state for the active option editor.
+ * @param arg2 Option-box index to edit.
+ * @return `1` once the editor has closed; otherwise `0`.
+ */
 static s32 UpdatePauseBox(OMOBJ *arg0, ConfigWork *arg1, s32 arg2) {
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    s32 temp_r27;
-    u32 temp_r28;
-    Mtx sp8;
+    float model_scale;
+    float target_rotation;
+    float current_rotation;
+    s32 previous_selection;
+    u32 input;
+    Mtx model_matrix;
 
-    switch (arg1->unk01) {
+    switch (arg1->state) {
         case 0:
-            arg1->unk08 = arg1->unk04 = boxState[arg2];
+            arg1->original_selection = arg1->selection = boxState[arg2];
             arg0->rot.x = boxRot[arg2];
             arg0->rot.y = 0.0f;
-            arg1->unk01 = 1;
-            var_f31 = 0.7f;
-            BoardModelScaleSet(boxModelID[arg2], var_f31, var_f31, var_f31);
+            arg1->state = 1;
+            model_scale = 0.7f;
+            BoardModelScaleSet(boxModelID[arg2], model_scale, model_scale, model_scale);
             return 0;
         case 1:
-            temp_r28 = HuPadDStk[pausePad] | HuPadBtnDown[pausePad];
-            temp_r27 = arg1->unk04;
-            if (temp_r28 == 1) {
-                arg1->unk04++;
+            input = HuPadDStk[pausePad] | HuPadBtnDown[pausePad];
+            previous_selection = arg1->selection;
+            if (input == 1) {
+                arg1->selection++;
             }
-            if (temp_r28 == 2) {
-                arg1->unk04--;
+            if (input == 2) {
+                arg1->selection--;
             }
-            if (arg1->unk04 < 0) {
-                arg1->unk04 = 0;
-            } else if (arg1->unk04 > 1) {
-                arg1->unk04 = 1;
-            } else if (temp_r28 == 1 || temp_r28 == 2) {
+            if (arg1->selection < 0) {
+                arg1->selection = 0;
+            } else if (arg1->selection > 1) {
+                arg1->selection = 1;
+            } else if (input == 1 || input == 2) {
                 HuAudFXPlay(0);
             }
-            if (temp_r28 == 0x100) {
-                arg1->unk01 = 3;
+            if (input == 0x100) {
+                arg1->state = 3;
                 HuAudFXPlay(2);
-            } else if (temp_r28 == 0x200) {
-                arg1->unk01 = 4;
+            } else if (input == 0x200) {
+                arg1->state = 4;
                 HuAudFXPlay(3);
-            } else if (temp_r27 != arg1->unk04) {
-                if (arg1->unk04 != 0) {
-                    var_f30 = 0.0f;
+            } else if (previous_selection != arg1->selection) {
+                if (arg1->selection != 0) {
+                    target_rotation = 0.0f;
                 } else {
-                    var_f30 = -90.0f;
+                    target_rotation = -90.0f;
                 }
-                var_f29 = arg0->rot.x;
-                arg0->rot.y = (var_f30 - var_f29) / 30.0f;
-                arg1->unk07 = 30;
-                arg1->unk01 = 2;
+                current_rotation = arg0->rot.x;
+                arg0->rot.y = (target_rotation - current_rotation) / 30.0f;
+                arg1->transition_frames = 30;
+                arg1->state = 2;
             }
             break;
         case 2:
-            if (arg1->unk07 != 0) {
+            if (arg1->transition_frames != 0) {
                 arg0->rot.x += arg0->rot.y;
-                arg1->unk07--;
+                arg1->transition_frames--;
             } else {
-                arg1->unk01 = 1;
+                arg1->state = 1;
             }
             break;
         case 3:
-            boxState[arg2] = arg1->unk04;
+            boxState[arg2] = arg1->selection;
             boxRot[arg2] = arg0->rot.x;
-            arg1->unk08 = -1;
-            arg1->unk01 = 5;
-            arg1->unk0A = 0;
+            arg1->original_selection = -1;
+            arg1->state = 5;
+            arg1->rotation_delay = 0;
             break;
         case 4:
-            boxState[arg2] = arg1->unk08;
-            arg1->unk04 = boxState[arg2];
+            boxState[arg2] = arg1->original_selection;
+            arg1->selection = boxState[arg2];
             arg0->rot.x = boxRot[arg2];
-            arg1->unk01 = 5;
-            arg1->unk0A = 0;
+            arg1->state = 5;
+            arg1->rotation_delay = 0;
             break;
         case 5:
-            var_f31 = 0.5f;
-            BoardModelScaleSet(boxModelID[arg2], var_f31, var_f31, var_f31);
-            arg1->unk00_field1 = 0;
-            arg1->unk04 = 0;
-            arg1->unk05 = 0;
-            arg1->unk01 = 0;
+            model_scale = 0.5f;
+            BoardModelScaleSet(boxModelID[arg2], model_scale, model_scale, model_scale);
+            arg1->option_active = 0;
+            arg1->selection = 0;
+            arg1->pending_difficulty = 0;
+            arg1->state = 0;
             return 1;
     }
-    RotateBox(3.5f, arg0->rot.x, sp8);
-    BoardModelMtxSet(boxModelID[arg2], &sp8);
-    boxState[arg2] = arg1->unk04;
+    RotateBox(3.5f, arg0->rot.x, model_matrix);
+    BoardModelMtxSet(boxModelID[arg2], &model_matrix);
+    boxState[arg2] = arg1->selection;
     return 0;
 }
 
+/**
+ * @brief Edits a two- or three-state option and animates its box rotation.
+ * @param arg0 Configuration object storing rotation state.
+ * @param arg1 Work state for the active option editor.
+ * @param arg2 Option-box index; index 3 has two states without custom packs.
+ * @return `1` once the editor has closed; otherwise `0`.
+ */
 static s32 UpdatePauseBoxExt(OMOBJ *arg0, ConfigWork *arg1, s32 arg2) {
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    s32 temp_r26;
-    s32 var_r27;
-    u32 temp_r28;
-    Mtx sp8;
+    float model_scale;
+    float target_rotation;
+    float current_rotation;
+    s32 previous_selection;
+    s32 max_selection;
+    u32 input;
+    Mtx model_matrix;
 
     if (arg2 == 3 && GWGameStat.customPackEnable == 0) {
-        var_r27 = 1;
+        max_selection = 1;
     } else {
-        var_r27 = 2;
+        max_selection = 2;
     }
-    switch (arg1->unk01) {
+    switch (arg1->state) {
         case 0:
-            arg1->unk08 = arg1->unk04 = boxState[arg2];
+            arg1->original_selection = arg1->selection = boxState[arg2];
             arg0->rot.x = boxRot[arg2];
             arg0->rot.y = 0.0f;
-            arg1->unk01 = 1;
-            var_f31 = 0.7f;
-            BoardModelScaleSet(boxModelID[arg2], var_f31, var_f31, var_f31);
+            arg1->state = 1;
+            model_scale = 0.7f;
+            BoardModelScaleSet(boxModelID[arg2], model_scale, model_scale, model_scale);
             return 0;
         case 1:
-            temp_r28 = HuPadDStk[pausePad] | HuPadBtnDown[pausePad];
-            temp_r26 = arg1->unk04;
-            if (temp_r28 == 1) {
-                arg1->unk04--;
+            input = HuPadDStk[pausePad] | HuPadBtnDown[pausePad];
+            previous_selection = arg1->selection;
+            if (input == 1) {
+                arg1->selection--;
             }
-            if (temp_r28 == 2) {
-                arg1->unk04++;
+            if (input == 2) {
+                arg1->selection++;
             }
-            if (arg1->unk04 < 0) {
-                arg1->unk04 = 0;
-            } else if (arg1->unk04 > var_r27) {
-                arg1->unk04 = var_r27;
-            } else if (temp_r28 == 1 || temp_r28 == 2) {
+            if (arg1->selection < 0) {
+                arg1->selection = 0;
+            } else if (arg1->selection > max_selection) {
+                arg1->selection = max_selection;
+            } else if (input == 1 || input == 2) {
                 HuAudFXPlay(0);
             }
-            if (temp_r28 == 0x100) {
-                arg1->unk01 = 3;
+            if (input == 0x100) {
+                arg1->state = 3;
                 HuAudFXPlay(2);
-            } else if (temp_r28 == 0x200) {
-                arg1->unk01 = 4;
+            } else if (input == 0x200) {
+                arg1->state = 4;
                 HuAudFXPlay(3);
-            } else if (temp_r26 != arg1->unk04) {
-                switch (arg1->unk04) {
+            } else if (previous_selection != arg1->selection) {
+                switch (arg1->selection) {
                     case 0:
-                        var_f30 = 90.0f;
+                        target_rotation = 90.0f;
                         break;
                     case 1:
-                        var_f30 = 0.0f;
+                        target_rotation = 0.0f;
                         break;
                     case 2:
-                        var_f30 = -90.0f;
+                        target_rotation = -90.0f;
                         break;
                 }
-                var_f29 = arg0->rot.x;
-                arg0->rot.y = (var_f30 - var_f29) / 30.0f;
-                arg1->unk07 = 30;
-                arg1->unk01 = 2;
+                current_rotation = arg0->rot.x;
+                arg0->rot.y = (target_rotation - current_rotation) / 30.0f;
+                arg1->transition_frames = 30;
+                arg1->state = 2;
             }
             break;
         case 2:
-            if (arg1->unk07 != 0) {
+            if (arg1->transition_frames != 0) {
                 arg0->rot.x += arg0->rot.y;
-                arg1->unk07--;
+                arg1->transition_frames--;
             } else {
-                arg1->unk01 = 1;
+                arg1->state = 1;
             }
             break;
         case 3:
-            boxState[arg2] = arg1->unk04;
+            boxState[arg2] = arg1->selection;
             boxRot[arg2] = arg0->rot.x;
-            arg1->unk01 = 5;
-            arg1->unk0A = 0;
-            arg1->unk08 = -1;
+            arg1->state = 5;
+            arg1->rotation_delay = 0;
+            arg1->original_selection = -1;
             break;
         case 4:
-            boxState[arg2] = arg1->unk08;
-            arg1->unk04 = boxState[arg2];
+            boxState[arg2] = arg1->original_selection;
+            arg1->selection = boxState[arg2];
             arg0->rot.x = boxRot[arg2];
-            arg1->unk01 = 5;
-            arg1->unk0A = 0;
+            arg1->state = 5;
+            arg1->rotation_delay = 0;
             break;
         case 5:
-            var_f31 = 0.5f;
-            BoardModelScaleSet(boxModelID[arg2], var_f31, var_f31, var_f31);
-            arg1->unk00_field1 = 0;
-            arg1->unk04 = 0;
-            arg1->unk05 = 0;
-            arg1->unk01 = 0;
+            model_scale = 0.5f;
+            BoardModelScaleSet(boxModelID[arg2], model_scale, model_scale, model_scale);
+            arg1->option_active = 0;
+            arg1->selection = 0;
+            arg1->pending_difficulty = 0;
+            arg1->state = 0;
             return 1;
     }
-    RotateBox(3.5f, arg0->rot.x, sp8);
-    BoardModelMtxSet(boxModelID[arg2], &sp8);
-    boxState[arg2] = arg1->unk04;
+    RotateBox(3.5f, arg0->rot.x, model_matrix);
+    BoardModelMtxSet(boxModelID[arg2], &model_matrix);
+    boxState[arg2] = arg1->selection;
     return 0;
 }
 
+/**
+ * @brief Handles navigation and selection in the two-row settings grid.
+ * @param arg0 Configuration object whose cursor position is updated by caller.
+ * @param arg1 Work state containing the grid coordinates and availability flags.
+ * @return Selected option index in the range 0 through 7.
+ */
 static s32 ExecPauseConfig(OMOBJ *arg0, ConfigWork *arg1) {
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r29;
-    s32 var_r28;
-    u32 temp_r30;
+    s32 selection_allowed;
+    s32 selection_blocked;
+    s32 column_delta;
+    s32 row_delta;
+    u32 input;
 
-    temp_r30 = 0;
-    temp_r30 = HuPadBtnDown[pausePad];
-    temp_r30 |= HuPadDStkRep[pausePad];
-    var_r29 = var_r28 = 0;
-    if (temp_r30 == 8) {
-        var_r28 = -1;
+    input = 0;
+    input = HuPadBtnDown[pausePad];
+    input |= HuPadDStkRep[pausePad];
+    column_delta = row_delta = 0;
+    if (input == 8) {
+        row_delta = -1;
     }
-    if (temp_r30 == 4) {
-        var_r28 = 1;
+    if (input == 4) {
+        row_delta = 1;
     }
-    if (temp_r30 == 1) {
-        var_r29 = -1;
+    if (input == 1) {
+        column_delta = -1;
     }
-    if (temp_r30 == 2) {
-        var_r29 = 1;
+    if (input == 2) {
+        column_delta = 1;
     }
-    arg1->unk02 += var_r29;
-    arg1->unk03 += var_r28;
-    if (arg1->unk03 < 0) {
-        arg1->unk03 = 0;
-    } else if (arg1->unk03 >= 2) {
-        arg1->unk03 = 1;
-    } else if (var_r28 != 0) {
+    arg1->cursor_column += column_delta;
+    arg1->cursor_row += row_delta;
+    if (arg1->cursor_row < 0) {
+        arg1->cursor_row = 0;
+    } else if (arg1->cursor_row >= 2) {
+        arg1->cursor_row = 1;
+    } else if (row_delta != 0) {
         HuAudFXPlay(0);
-        arg1->unk06 = 4;
+        arg1->input_delay = 4;
     }
-    if (arg1->unk02 < 0) {
-        arg1->unk02 = 0;
-    } else if (arg1->unk02 >= 4) {
-        arg1->unk02 = 3;
-    } else if (var_r29 != 0) {
+    if (arg1->cursor_column < 0) {
+        arg1->cursor_column = 0;
+    } else if (arg1->cursor_column >= 4) {
+        arg1->cursor_column = 3;
+    } else if (column_delta != 0) {
         HuAudFXPlay(0);
-        arg1->unk06 = 4;
+        arg1->input_delay = 4;
     }
-    if (temp_r30 == 0x100) {
-        var_r27 = 1;
-        var_r26 = 0;
-        switch (arg1->unk02 + arg1->unk03 * 4) {
+    if (input == 0x100) {
+        selection_allowed = 1;
+        selection_blocked = 0;
+        switch (arg1->cursor_column + arg1->cursor_row * 4) {
             case 6:
-                if (arg1->unk00_field4 != 0) {
-                    var_r27 = 0;
-                    var_r26 = 1;
+                if (arg1->save_unavailable != 0) {
+                    selection_allowed = 0;
+                    selection_blocked = 1;
                 }
                 break;
             case 0:
                 if (GWPartyGet() == 0) {
-                    var_r27 = 0;
-                    var_r26 = 1;
+                    selection_allowed = 0;
+                    selection_blocked = 1;
                 }
                 break;
         }
-        if (var_r26 != 0) {
+        if (selection_blocked != 0) {
             HuAudFXPlay(4);
-        } else if (var_r27 != 0) {
+        } else if (selection_allowed != 0) {
             HuAudFXPlay(2);
-            arg1->unk00_field1 = 1;
+            arg1->option_active = 1;
         }
     }
-    if (temp_r30 == 0x200) {
+    if (input == 0x200) {
         HuAudFXPlay(0x1C);
-        arg1->unk00_field0 = 1;
+        arg1->destroy_requested = 1;
     }
-    return arg1->unk02 + arg1->unk03 * 4;
+    return arg1->cursor_column + arg1->cursor_row * 4;
 }
 
+/** @brief Creates the pause menu's control-hint and settings text windows. */
 static void CreatePauseControlWin(void) {
-    float sp8[2];
-    float var_f31;
-    float var_f30;
-    u32 var_r31;
+    float window_size[2];
+    float window_x;
+    float window_y;
+    u32 message_id;
 
-    var_r31 = MAKE_MESSID(16, 53);
-    HuWinMesMaxSizeGet(1, sp8, var_r31);
-    var_f31 = 152.0f;
-    var_f30 = 280.0f;
-    settingsControlWin = HuWinCreate(var_f31, var_f30, sp8[0], sp8[1], 0);
+    message_id = MAKE_MESSID(16, 53);
+    HuWinMesMaxSizeGet(1, window_size, message_id);
+    window_x = 152.0f;
+    window_y = 280.0f;
+    settingsControlWin = HuWinCreate(window_x, window_y, window_size[0], window_size[1], 0);
     HuWinBGTPLvlSet(settingsControlWin, 0.0f);
     HuWinMesSpeedSet(settingsControlWin, 0);
-    HuWinMesSet(settingsControlWin, var_r31);
+    HuWinMesSet(settingsControlWin, message_id);
     HuWinDispOff(settingsControlWin);
     if (GWBoardGet() == 7 || GWBoardGet() == 8) {
-        var_r31 = MAKE_MESSID(16, 73);
+        message_id = MAKE_MESSID(16, 73);
     } else {
-        var_r31 = MAKE_MESSID(16, 52);
+        message_id = MAKE_MESSID(16, 52);
     }
-    HuWinMesMaxSizeGet(1, sp8, var_r31);
-    var_f31 = -10000.0f;
-    var_f30 = 376.0f;
-    controlWin = HuWinCreate(var_f31, var_f30, sp8[0], sp8[1], 0);
+    HuWinMesMaxSizeGet(1, window_size, message_id);
+    window_x = -10000.0f;
+    window_y = 376.0f;
+    controlWin = HuWinCreate(window_x, window_y, window_size[0], window_size[1], 0);
     HuWinBGTPLvlSet(controlWin, 0.0f);
     HuWinMesSpeedSet(controlWin, 0);
-    HuWinMesSet(controlWin, var_r31);
+    HuWinMesSet(controlWin, message_id);
     HuWinDispOff(controlWin);
-    var_f31 = 128.0f;
-    var_f30 = 312.0f;
-    sp8[0] = 432.0f;
-    sp8[1] = 128.0f;
-    settingsWin = HuWinCreate(var_f31, var_f30, sp8[0], sp8[1], 0);
+    window_x = 128.0f;
+    window_y = 312.0f;
+    window_size[0] = 432.0f;
+    window_size[1] = 128.0f;
+    settingsWin = HuWinCreate(window_x, window_y, window_size[0], window_size[1], 0);
     HuWinDispOff(settingsWin);
     HuWinMesSpeedSet(settingsWin, 0);
-    var_f31 = 640.0f;
-    var_f30 = 112.0f;
-    sp8[0] = 504.0f;
-    sp8[1] = 128.0f;
+    window_x = 640.0f;
+    window_y = 112.0f;
+    window_size[0] = 504.0f;
+    window_size[1] = 128.0f;
 }
 
+/** @brief Destroys all pause-menu text windows that were created. */
 static void DeletePauseControlWin(void) {
     if (settingsControlWin != -1) {
         HuWinKill(settingsControlWin);
@@ -1322,16 +1409,20 @@ static void DeletePauseControlWin(void) {
     }
 }
 
+/**
+ * @brief Waits for resume, settings, or extra-board quit input.
+ * @return `0` to resume, `1` to open settings, or `2` to quit an extra board.
+ */
 static s32 WaitPauseInput(void) {
-    s32 var_r28;
-    s32 var_r31;
-    u32 temp_r30;
+    s32 is_extra_board;
+    s32 result;
+    u32 input;
 
     mainScreenF = 1;
     if (GWBoardGet() == 7 || GWBoardGet() == 8) {
-        var_r28 = 1;
+        is_extra_board = 1;
     } else {
-        var_r28 = 0;
+        is_extra_board = 0;
     }
     HuWinDispOn(controlWin);
     SetBoxVisible(0);
@@ -1340,22 +1431,22 @@ static s32 WaitPauseInput(void) {
     PauseCreateNumber(0, GWSystem.turn);
     PauseCreateNumber(1, GWSystem.max_turn);
     HuPrcSleep(4);
-    var_r31 = 0;
+    result = 0;
     while (1) {
-        temp_r30 = HuPadBtnDown[pausePad];
-        if (temp_r30 == 0x1000 || temp_r30 == 0x200) {
-            var_r31 = 0;
+        input = HuPadBtnDown[pausePad];
+        if (input == 0x1000 || input == 0x200) {
+            result = 0;
             HuAudFXPlay(0x1C);
             break;
-        } else if (var_r28 == 0) {
-            if (temp_r30 == 0x100) {
-                var_r31 = 1;
+        } else if (is_extra_board == 0) {
+            if (input == 0x100) {
+                result = 1;
                 HuAudFXPlay(1);
                 break;
             }
-        } else if (temp_r30 == 0x10) {
+        } else if (input == 0x10) {
             pauseQuitF = 1;
-            var_r31 = 2;
+            result = 2;
             mgQuitExtraF = 1;
             HuAudFXPlay(0x1C);
             break;
@@ -1368,12 +1459,13 @@ static s32 WaitPauseInput(void) {
         pauseSprGrp = -1;
     }
     HuPrcSleep(2);
-    return var_r31;
+    return result;
 }
 
+/** @brief Shows the settings grid and waits for its object to close. */
 static void ShowPauseConfig(void) {
-    float var_f31;
-    float var_f30;
+    float cursor_x;
+    float cursor_y;
 
     mainScreenF = 0;
     HuWinDispOn(settingsControlWin);
@@ -1382,9 +1474,9 @@ static void ShowPauseConfig(void) {
     HuSprAttrReset(pauseCursorPos, 0, HUSPR_ATTR_DISPOFF);
     BoardModelVisibilitySet(hostMdl, 1);
     if (GWPartyGet() == 0) {
-        var_f31 = boxPosTbl[0][0];
-        var_f30 = boxPosTbl[0][1];
-        HuSprPosSet(pauseCursorPos, 1, var_f31, var_f30);
+        cursor_x = boxPosTbl[0][0];
+        cursor_y = boxPosTbl[0][1];
+        HuSprPosSet(pauseCursorPos, 1, cursor_x, cursor_y);
         HuSprAttrReset(pauseCursorPos, 1, HUSPR_ATTR_DISPOFF);
     } else {
         HuSprAttrSet(pauseCursorPos, 1, HUSPR_ATTR_DISPOFF);
@@ -1394,13 +1486,14 @@ static void ShowPauseConfig(void) {
     }
 }
 
+/** @brief Assigns character and human/CPU banks to controller-panel sprites. */
 static void CreatePadConfigSprite(void) {
-    float temp_f31;
-    float temp_f30;
-    s32 var_r29;
-    s32 temp_r28;
-    s32 temp_r27;
-    s32 temp_r26;
+    float sprite_x;
+    float sprite_y;
+    s32 difficulty_bank;
+    s32 character;
+    s32 difficulty;
+    s32 is_cpu;
     s32 i;
     s32 j;
 
@@ -1410,40 +1503,44 @@ static void CreatePadConfigSprite(void) {
                 break;
             }
         }
-        temp_f31 = i * 96 + 178;
-        temp_f30 = 64.0f;
-        temp_r28 = GWPlayer[j].character;
-        temp_r27 = GWPlayer[j].diff;
-        temp_r26 = GWPlayer[j].com;
-        HuSprBankSet(padConfigSprGrp, i, temp_r28);
-        if (temp_r26 != 0) {
-            var_r29 = temp_r27 + 4;
+        sprite_x = i * 96 + 178;
+        sprite_y = 64.0f;
+        character = GWPlayer[j].character;
+        difficulty = GWPlayer[j].diff;
+        is_cpu = GWPlayer[j].com;
+        HuSprBankSet(padConfigSprGrp, i, character);
+        if (is_cpu != 0) {
+            difficulty_bank = difficulty + 4;
         } else {
-            var_r29 = i;
+            difficulty_bank = i;
         }
-        HuSprBankSet(padConfigSprGrp, i + 4, var_r29);
-        HuSprPosSet(padConfigSprGrp, i, temp_f31, temp_f30);
-        HuSprPosSet(padConfigSprGrp, i + 4, temp_f31, temp_f30);
-        HuSprPosSet(padConfigSprGrp, i + 8, temp_f31, temp_f30);
+        HuSprBankSet(padConfigSprGrp, i + 4, difficulty_bank);
+        HuSprPosSet(padConfigSprGrp, i, sprite_x, sprite_y);
+        HuSprPosSet(padConfigSprGrp, i + 4, sprite_x, sprite_y);
+        HuSprPosSet(padConfigSprGrp, i + 8, sprite_x, sprite_y);
     }
     HuSprPosSet(padConfigSprGrp, 12, 260.0f, 64.0f);
     HuSprGrpPosSet(padConfigSprGrp, 0.0f, 0.0f);
 }
 
+/**
+ * @brief Shows or hides all controller-assignment sprites.
+ * @param arg0 Nonzero to show the sprites; zero to hide them.
+ */
 static void ShowPadConfigSprite(s32 arg0) {
-    s32 temp_r31;
+    s32 port;
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        temp_r31 = GWPlayer[i].port;
+        port = GWPlayer[i].port;
         if (arg0 != 0) {
-            HuSprAttrReset(padConfigSprGrp, temp_r31, HUSPR_ATTR_DISPOFF);
-            HuSprAttrReset(padConfigSprGrp, temp_r31 + 4, HUSPR_ATTR_DISPOFF);
-            HuSprAttrReset(padConfigSprGrp, temp_r31 + 8, HUSPR_ATTR_DISPOFF);
+            HuSprAttrReset(padConfigSprGrp, port, HUSPR_ATTR_DISPOFF);
+            HuSprAttrReset(padConfigSprGrp, port + 4, HUSPR_ATTR_DISPOFF);
+            HuSprAttrReset(padConfigSprGrp, port + 8, HUSPR_ATTR_DISPOFF);
         } else {
-            HuSprAttrSet(padConfigSprGrp, temp_r31, HUSPR_ATTR_DISPOFF);
-            HuSprAttrSet(padConfigSprGrp, temp_r31 + 4, HUSPR_ATTR_DISPOFF);
-            HuSprAttrSet(padConfigSprGrp, temp_r31 + 8, HUSPR_ATTR_DISPOFF);
+            HuSprAttrSet(padConfigSprGrp, port, HUSPR_ATTR_DISPOFF);
+            HuSprAttrSet(padConfigSprGrp, port + 4, HUSPR_ATTR_DISPOFF);
+            HuSprAttrSet(padConfigSprGrp, port + 8, HUSPR_ATTR_DISPOFF);
         }
     }
     if (arg0 != 0) {
@@ -1453,32 +1550,42 @@ static void ShowPadConfigSprite(s32 arg0) {
     }
 }
 
+/**
+ * @brief Sets the current-turn or maximum-turn digit sprites.
+ * @param arg0 Zero selects current-turn digits; nonzero selects maximum-turn digits.
+ * @param arg1 Turn value displayed as one or two decimal digits.
+ */
 static void PauseCreateNumber(s32 arg0, s8 arg1) {
-    s32 var_r31;
-    s32 temp_r30;
-    s32 temp_r29;
+    s32 tens_sprite;
+    s32 tens_digit;
+    s32 ones_digit;
 
-    temp_r29 = arg1 % 10;
-    temp_r30 = arg1 / 10;
+    ones_digit = arg1 % 10;
+    tens_digit = arg1 / 10;
     if (arg0 == 0) {
-        var_r31 = 3;
+        tens_sprite = 3;
     } else {
-        var_r31 = 5;
+        tens_sprite = 5;
     }
-    if (temp_r30 != 0) {
-        HuSprBankSet(pauseSprGrp, var_r31, temp_r30);
+    if (tens_digit != 0) {
+        HuSprBankSet(pauseSprGrp, tens_sprite, tens_digit);
     } else {
-        HuSprAttrSet(pauseSprGrp, var_r31, 4);
+        HuSprAttrSet(pauseSprGrp, tens_sprite, 4);
     }
-    HuSprBankSet(pauseSprGrp, var_r31 + 1, temp_r29);
+    HuSprBankSet(pauseSprGrp, tens_sprite + 1, ones_digit);
 }
 
+/** @brief Checks whether the board pause process exists. @return `TRUE` while paused. */
 BOOL BoardPauseActiveCheck(void) {
     return (mainProcess != NULL) ? TRUE : FALSE;
 }
 
+/**
+ * @brief Checks connected eligible controllers for a pause-button request.
+ * @return `TRUE` after recording the requesting controller; otherwise `FALSE`.
+ */
 BOOL BoardPauseReqCheck(void) {
-    s32 temp_r30;
+    s32 port;
     s32 i;
 
     if (BoardPauseActiveCheck()) {
@@ -1489,15 +1596,20 @@ BOOL BoardPauseReqCheck(void) {
         return FALSE;
     }
     for (i = 0; i < 4; i++) {
-        temp_r30 = GWPlayer[i].port;
-        if (HuPadStatGet(temp_r30) == 0 && (GWPartyGet() != 0 || GWPlayer[i].com == 0) && (HuPadBtnDown[temp_r30] & 0x1000)) {
-            pausePad = temp_r30;
+        port = GWPlayer[i].port;
+        if (HuPadStatGet(port) == 0 && (GWPartyGet() != 0 || GWPlayer[i].com == 0) && (HuPadBtnDown[port] & 0x1000)) {
+            pausePad = port;
             return TRUE;
         }
     }
     return FALSE;
 }
 
+/**
+ * @brief Maps a controller port to its player index.
+ * @param arg0 Controller port number.
+ * @return Matching player index, or `4` when no player uses the port.
+ */
 static s32 CheckPort(s32 arg0) {
     s32 i;
 
@@ -1509,19 +1621,25 @@ static s32 CheckPort(s32 arg0) {
     return i;
 }
 
+/**
+ * @brief Builds a box transform relative to the current camera rotation.
+ * @param arg0 Additional X-axis rotation in degrees.
+ * @param arg1 Additional Y-axis rotation in degrees.
+ * @param[out] arg2 Matrix receiving the combined camera and box rotations.
+ */
 static void RotateBox(float arg0, float arg1, Mtx arg2) {
-    Vec sp14;
-    Mtx spB0;
-    Mtx sp80;
-    Mtx sp50;
-    Mtx sp20;
+    Vec camera_rotation;
+    Mtx camera_x_matrix;
+    Mtx camera_y_matrix;
+    Mtx box_x_matrix;
+    Mtx box_y_matrix;
 
-    BoardCameraRotGet(&sp14);
-    PSMTXRotRad(spB0, 'x', MTXDegToRad(sp14.x));
-    PSMTXRotRad(sp80, 'y', MTXDegToRad(sp14.y));
-    PSMTXRotRad(sp50, 'x', MTXDegToRad(arg0));
-    PSMTXRotRad(sp20, 'y', MTXDegToRad(arg1));
-    PSMTXConcat(sp80, spB0, sp80);
-    PSMTXConcat(sp50, sp20, sp20);
-    PSMTXConcat(sp80, sp20, arg2);
+    BoardCameraRotGet(&camera_rotation);
+    PSMTXRotRad(camera_x_matrix, 'x', MTXDegToRad(camera_rotation.x));
+    PSMTXRotRad(camera_y_matrix, 'y', MTXDegToRad(camera_rotation.y));
+    PSMTXRotRad(box_x_matrix, 'x', MTXDegToRad(arg0));
+    PSMTXRotRad(box_y_matrix, 'y', MTXDegToRad(arg1));
+    PSMTXConcat(camera_y_matrix, camera_x_matrix, camera_y_matrix);
+    PSMTXConcat(box_x_matrix, box_y_matrix, box_y_matrix);
+    PSMTXConcat(camera_y_matrix, box_y_matrix, arg2);
 }
