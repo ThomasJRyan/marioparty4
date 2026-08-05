@@ -10,6 +10,11 @@ typedef struct Decode_s
 
 static u8 textBuffer[1024];
 
+/**
+ * @brief Copy an uncompressed data stream to its destination.
+ *
+ * @param [in, out] decode Source/destination cursors and remaining output bytes.
+ */
 static void HuDecodeNone(DECODE *decode)
 {
     while(decode->size) {
@@ -18,6 +23,12 @@ static void HuDecodeNone(DECODE *decode)
     }
 }
 
+/**
+ * @brief Decode the game's LZ-compressed data format.
+ *
+ * @param [in, out] decode Source/destination cursors and remaining output bytes;
+ *                         decoding uses a cleared 1 KiB sliding window.
+ */
 static void HuDecodeLz(DECODE *decode)
 {
     u16 flag, pos;
@@ -51,6 +62,11 @@ static void HuDecodeLz(DECODE *decode)
     }
 }
 
+/**
+ * @brief Consume the four-byte header of a slide-compressed stream.
+ *
+ * @param [in, out] decode Decoder whose source cursor advances by four bytes.
+ */
 static inline void SlideReadHeader(DECODE *decode)
 {
     s32 size;
@@ -60,6 +76,12 @@ static inline void SlideReadHeader(DECODE *decode)
     size += *decode->src++;
 }
 
+/**
+ * @brief Decode slide-compressed data with zero-filled back references.
+ *
+ * @param [in, out] decode Source/destination cursors and remaining output bytes;
+ *                         back references before the output start produce zeroes.
+ */
 static void HuDecodeSlide(DECODE *decode)
 {
     u8 *dstPOrig;
@@ -109,6 +131,12 @@ static void HuDecodeSlide(DECODE *decode)
     }
 }
 
+/**
+ * @brief Decode fast slide-compressed data.
+ *
+ * @param [in, out] decode Source/destination cursors and remaining output bytes;
+ *                         all back references must address prior output.
+ */
 static void HuDecodeFslide(DECODE *decode)
 {
     u32 flagLen, flag;
@@ -152,6 +180,11 @@ static void HuDecodeFslide(DECODE *decode)
     }
 }
 
+/**
+ * @brief Decode the game's run-length encoded data format.
+ *
+ * @param [in, out] decode Source/destination cursors and remaining output bytes.
+ */
 static void HuDecodeRle(DECODE *decode)
 {
     s32 i;
@@ -172,6 +205,14 @@ static void HuDecodeRle(DECODE *decode)
     }
 }
 
+/**
+ * @brief Decode a data buffer using the requested compression format.
+ *
+ * @param [in] src Encoded input buffer.
+ * @param [out] dst Destination buffer with room for `size` decoded bytes.
+ * @param [in] size Expected decoded size in bytes; also flushed from cache.
+ * @param [in] decodeType One of the DATA_DECODE_* compression identifiers.
+ */
 void HuDecodeData(void *src, void *dst, u32 size, s32 decodeType)
 {
     struct Decode_s decode;

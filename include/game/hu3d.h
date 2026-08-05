@@ -613,7 +613,7 @@ void Hu3DMotionOverlayReset(s16 arg0);
 float Hu3DMotionOverlayTimeGet(s16 arg0);
 void Hu3DMotionOverlayTimeSet(s16 arg0, float arg1);
 void Hu3DMotionOverlaySpeedSet(s16 arg0, float arg1);
-void Hu3DMotionShiftSet(s16 arg0, s16 arg1, float arg2, float arg3, u32 arg4);
+void Hu3DMotionShiftSet(s16 model_id, s16 motion_id, float start_time, float blend_duration, u32 requested_attrs);
 void Hu3DMotionShapeSet(s16 arg0, s16 arg1);
 s16 Hu3DMotionShapeIDGet(s16 arg0);
 void Hu3DMotionShapeSpeedSet(s16 arg0, float arg1);

@@ -10,9 +10,9 @@
 #define THP_DECODE_STACK_SIZE 0x2000
 
 static void THPTestProc(void);
-static void THPViewFunc(HU3DMODEL *arg0, Mtx arg1);
-static void THPViewSprFunc(HUSPRITE *arg0);
-static void THPDecodeFunc(void *param);
+static void THPViewFunc(HU3DMODEL *model, Mtx model_view_matrix);
+static void THPViewSprFunc(HUSPRITE *sprite);
+static void THPDecodeFunc(void *unused_context);
 
 static char THPFileName[64];
 
@@ -26,9 +26,17 @@ static u32 THPFrame;
 static s16 THPStart;
 HUPROCESS *THPProc;
 
+/**
+ * @brief Creates sprite-based THP playback and its worker process at an explicit volume.
+ * @param path Path of the THP movie to open.
+ * @param loop Nonzero to restart the THP stream after its final frame.
+ * @param prio Lower numeric sprite draw priority.
+ * @param volume Initial THP audio volume.
+ * @return Sprite index used to display the movie, or -1 when playback cannot be created.
+ */
 s16 HuTHPSprCreateVol(char *path, s16 loop, s16 prio, float volume)
 {
-    s16 temp_r31;
+    s16 sprite_id;
 
     if (THPProc) {
         return -1;
@@ -38,29 +46,43 @@ s16 HuTHPSprCreateVol(char *path, s16 loop, s16 prio, float volume)
     if (THPProc == 0) {
         return -1;
     }
-    temp_r31 = HuSprFuncCreate(THPViewSprFunc, prio);
-    if (temp_r31 == -1) {
+    sprite_id = HuSprFuncCreate(THPViewSprFunc, prio);
+    if (sprite_id == -1) {
         return -1;
     }
     THPSimpleInit(2);
     SimpleControl.unk19C = 0;
-    SimpleControl.unk19E = temp_r31;
+    SimpleControl.unk19E = sprite_id;
     SimpleControl.unkBC = volume;
     strcpy(THPFileName, path);
     THPLoopF = loop;
     THPStat = 0;
     THPFrame = 0;
-    return temp_r31;
+    return sprite_id;
 }
 
+/**
+ * @brief Creates sprite-based THP playback at the default volume of 110.
+ * @param path Path of the THP movie to open.
+ * @param loop Nonzero to restart the THP stream after its final frame.
+ * @param prio Lower numeric sprite draw priority.
+ * @return Sprite index used to display the movie, or -1 when playback cannot be created.
+ */
 s16 HuTHPSprCreate(char *path, s16 loop, s16 prio)
 {
     return HuTHPSprCreateVol(path, loop, prio, 110.0f);
 }
 
+/**
+ * @brief Creates model-hook THP playback and its worker process at an explicit volume.
+ * @param path Path of the THP movie to open.
+ * @param loop Nonzero to restart the THP stream after its final frame.
+ * @param volume Initial THP audio volume.
+ * @return Model-hook index used to display the movie, or -1 when its process cannot be created.
+ */
 s16 HuTHP3DCreateVol(char *path, s16 loop, float volume)
 {
-    s16 temp_r31;
+    s16 model_id;
 
     if (THPProc) {
         return;
@@ -72,83 +94,118 @@ s16 HuTHP3DCreateVol(char *path, s16 loop, float volume)
     }
     THPSimpleInit(2);
     SimpleControl.unk19C = 1;
-    temp_r31 = Hu3DHookFuncCreate(&THPViewFunc);
-    SimpleControl.unk19E = temp_r31;
+    model_id = Hu3DHookFuncCreate(&THPViewFunc);
+    SimpleControl.unk19E = model_id;
     SimpleControl.unkBC = volume;
     strcpy(THPFileName, path);
     THPLoopF = loop;
     THPStat = 0;
     THPFrame = 0;
     Hu3DModelAttrSet(SimpleControl.unk19E, HU3D_ATTR_DISPOFF);
-    return temp_r31;
+    return model_id;
 }
 
+/**
+ * @brief Creates model-hook THP playback at the default volume of 110.
+ * @param path Path of the THP movie to open.
+ * @param loop Nonzero to restart the THP stream after its final frame.
+ * @return Model-hook index used to display the movie, or -1 when playback cannot be created.
+ */
 s16 HuTHP3DCreate(char *path, s16 loop)
 {
     return HuTHP3DCreateVol(path, loop, 110.0f);
 }
 
+/**
+ * @brief Requests that playback audio and loading stop without destroying the playback object.
+ */
 void HuTHPStop(void)
 {
     THPStat = 1;
 }
 
+/**
+ * @brief Requests complete playback shutdown and resource release.
+ */
 void HuTHPClose(void)
 {
     THPStat = 2;
 }
 
+/**
+ * @brief Requests that playback stop, preload again, and restart from the beginning.
+ */
 void HuTHPRestart(void)
 {
     THPStat = 3;
 }
 
+/**
+ * @brief Tests whether the displayed frame has reached the final decoded frame.
+ * @return TRUE after a valid stream reaches its last frame; otherwise FALSE.
+ */
 BOOL HuTHPEndCheck(void)
 {
-    s32 temp_r31;
+    s32 last_frame;
 
-    temp_r31 = THPSimpleGetTotalFrame() - 1;
-    if (temp_r31 <= 0) {
+    last_frame = THPSimpleGetTotalFrame() - 1;
+    if (last_frame <= 0) {
         return FALSE;
     }
-    return (temp_r31 <= THPFrame);
+    return (last_frame <= THPFrame);
 }
 
+/**
+ * @brief Reads the most recently drawn THP frame number.
+ * @return Most recently drawn zero-based frame number.
+ */
 s32 HuTHPFrameGet(void)
 {
     return THPFrame;
 }
 
+/**
+ * @brief Reads the total frame count reported by the open THP stream.
+ * @return Total number of frames reported by the THP stream.
+ */
 s32 HuTHPTotalFrameGet(void)
 {
     return THPSimpleGetTotalFrame();
 }
 
+/**
+ * @brief Sets the left and right THP audio-channel volumes.
+ * @param left Left-channel THP volume.
+ * @param right Right-channel THP volume.
+ */
 void HuTHPSetVolume(s32 left, s32 right)
 {
     THPSimpleSetVolume(left, right);
 }
 
+/**
+ * @brief Owns THP open, preload, playback-state transitions, and final resource cleanup.
+ */
 static void THPTestProc(void)
 {
-    s32 temp_r29;
-    u32 var_r28;
-    void *temp_r30;
+    s32 audio_buffer_size;
+    u32 restart_audio;
+    void *decoder_memory;
 
     while (THPSimpleOpen(THPFileName) == 0) {
         OSReport("THPSimpleOpen fail");
         HuPrcVSleep();
     }
     THPSimpleGetVideoInfo(&audioTrack);
-    temp_r29 = THPSimpleCalcNeedMemory();
-    OSReport("Size %x\n", temp_r29);
-    temp_r30 = HuMemDirectMalloc(HEAP_MODEL, temp_r29);
-    memset(temp_r30, 0, temp_r29);
-    DCFlushRange(temp_r30, temp_r29);
-    if (temp_r30 == 0) {
+    audio_buffer_size = THPSimpleCalcNeedMemory();
+    OSReport("Size %x\n", audio_buffer_size);
+    decoder_memory = HuMemDirectMalloc(HEAP_MODEL, audio_buffer_size);
+    memset(decoder_memory, 0, audio_buffer_size);
+    DCFlushRange(decoder_memory, audio_buffer_size);
+    if (decoder_memory == 0) {
         OSReport("Can't allocate the memory\n");
     }
-    THPSimpleSetBuffer(temp_r30);
+    THPSimpleSetBuffer(decoder_memory);
     while (THPSimplePreLoad(THPLoopF) == 0) {
         OSReport("THPSimplePreLoad fail");
         HuPrcVSleep();
@@ -170,7 +227,7 @@ static void THPTestProc(void)
         }
         switch (THPStat) {
             case 0:
-                var_r28 = 1;
+                restart_audio = 1;
                 THPStat = 4;
                 break;
             case 1:
@@ -185,12 +242,12 @@ static void THPTestProc(void)
                     HuPrcVSleep();
                 }
                 THPStat = 0;
-                var_r28 = 1;
+                restart_audio = 1;
                 break;
         }
-        if (var_r28 != 0) {
+        if (restart_audio != 0) {
             THPSimpleAudioStart();
-            var_r28 = 0;
+            restart_audio = 0;
         }
         HuPrcVSleep();
     }
@@ -205,7 +262,7 @@ static void THPTestProc(void)
     THPSimpleAudioStop();
     THPSimpleLoadStop();
     THPSimpleClose();
-    HuMemDirectFree(temp_r30);
+    HuMemDirectFree(decoder_memory);
     THPSimpleQuit();
     THPProc = NULL;
     HuPrcKill(HuPrcCurrentGet());
@@ -214,51 +271,64 @@ static void THPTestProc(void)
     }
 }
 
-static void THPViewFunc(HU3DMODEL *arg0, Mtx arg1)
+/**
+ * @brief Draws the current THP frame through a 3D model hook and starts synchronized audio.
+ * @param model Model state associated with the hook; its fields are not read here.
+ * @param model_view_matrix Model-view matrix supplied to the 3D draw hook.
+ */
+static void THPViewFunc(HU3DMODEL *model, Mtx model_view_matrix)
 {
-    GXColor spC = { 0xFF, 0xFF, 0xFF, 0xFF };
+    GXColor frame_color = { 0xFF, 0xFF, 0xFF, 0xFF };
 
     if (THPStart != 0) {
         GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
         GXSetCullMode(GX_CULL_NONE);
         THPFrame
-            = THPSimpleDrawCurrentFrame(RenderMode, &spC, arg1, -audioTrack.unk00 / 2, audioTrack.unk04 / 2, audioTrack.unk00, -audioTrack.unk04);
+            = THPSimpleDrawCurrentFrame(RenderMode, &frame_color, model_view_matrix, -audioTrack.unk00 / 2, audioTrack.unk04 / 2, audioTrack.unk00, -audioTrack.unk04);
         THPSimpleAudioStart();
     }
 }
 
-static void THPViewSprFunc(HUSPRITE *arg0)
+/**
+ * @brief Draws the current THP frame using a sprite transform and modulation color.
+ * @param sprite Sprite transform and RGBA modulation used to draw the movie frame.
+ */
+static void THPViewSprFunc(HUSPRITE *sprite)
 {
-    Vec spC = { 0.0f, 0.0f, 1.0f };
-    GXColor sp8;
-    s32 temp_r30;
-    s32 temp_r29;
-    Mtx sp48;
-    Mtx sp18;
+    Vec z_axis = { 0.0f, 0.0f, 1.0f };
+    GXColor sprite_color;
+    s32 draw_x;
+    s32 draw_y;
+    Mtx draw_matrix;
+    Mtx rotation_matrix;
 
     if (THPStart != 0) {
-        sp8.r = arg0->r;
-        sp8.g = arg0->g;
-        sp8.b = arg0->b;
-        sp8.a = arg0->a;
-        if (arg0->zRot != 0.0f) {
-            PSMTXRotAxisRad(sp18, &spC, MTXDegToRad(arg0->zRot));
-            PSMTXScale(sp48, arg0->scale.x, arg0->scale.y, 1.0f);
-            PSMTXConcat(sp18, sp48, sp48);
+        sprite_color.r = sprite->r;
+        sprite_color.g = sprite->g;
+        sprite_color.b = sprite->b;
+        sprite_color.a = sprite->a;
+        if (sprite->zRot != 0.0f) {
+            PSMTXRotAxisRad(rotation_matrix, &z_axis, MTXDegToRad(sprite->zRot));
+            PSMTXScale(draw_matrix, sprite->scale.x, sprite->scale.y, 1.0f);
+            PSMTXConcat(rotation_matrix, draw_matrix, draw_matrix);
         }
         else {
-            PSMTXScale(sp48, arg0->scale.x, arg0->scale.y, 1.0f);
+            PSMTXScale(draw_matrix, sprite->scale.x, sprite->scale.y, 1.0f);
         }
-        mtxTransCat(sp48, arg0->pos.x, arg0->pos.y, 0.0f);
-        PSMTXConcat(*arg0->groupMtx, sp48, sp48);
-        temp_r30 = -((s32)audioTrack.unk00 / 2);
-        temp_r29 = -((s32)audioTrack.unk04 / 2);
+        mtxTransCat(draw_matrix, sprite->pos.x, sprite->pos.y, 0.0f);
+        PSMTXConcat(*sprite->groupMtx, draw_matrix, draw_matrix);
+        draw_x = -((s32)audioTrack.unk00 / 2);
+        draw_y = -((s32)audioTrack.unk04 / 2);
         GXSetZMode(GX_FALSE, GX_ALWAYS, GX_FALSE);
-        THPFrame = THPSimpleDrawCurrentFrame(RenderMode, &sp8, sp48, temp_r30, temp_r29, audioTrack.unk00, audioTrack.unk04);
+        THPFrame = THPSimpleDrawCurrentFrame(RenderMode, &sprite_color, draw_matrix, draw_x, draw_y, audioTrack.unk00, audioTrack.unk04);
     }
 }
 
-static void THPDecodeFunc(void *param)
+/**
+ * @brief Continuously decodes THP data until close is requested.
+ * @param unused_context Unused thread-start context; decoding reads state from SimpleControl and THPStat instead.
+ */
+static void THPDecodeFunc(void *unused_context)
 {
     while (1) {
         if (THPStat == 2) {

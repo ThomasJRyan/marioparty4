@@ -56,6 +56,11 @@ static u8 sjisSpace[] = "　";
 
 static s32 saveMessWin = -1;
 
+/**
+ * @brief Mounts the selected card and opens an existing save file for the current box.
+ * @param fileName NUL-terminated filename passed to HuCardOpen in the globally selected curSlotNo.
+ * @return CARD result code from mount, open, or validation.
+ */
 s32 SLFileOpen(char *fileName)
 {
     s32 result;
@@ -108,6 +113,13 @@ s32 SLFileOpen(char *fileName)
     }
 }
 
+/**
+ * @brief Creates a save file, writes its initial buffer, and configures comment, banner, and icon metadata.
+ * @param fileName NUL-terminated filename passed to HuCardCreate in the globally selected curSlotNo.
+ * @param size File allocation size and number of initial bytes read from addr and written at offset zero.
+ * @param addr Caller-owned source buffer containing at least size bytes; read-only for the duration of HuCardWrite.
+ * @return CARD result code from mount, create, initial write, or metadata update.
+ */
 s32 SLFileCreate(char *fileName, u32 size, void *addr)
 {
     float winSize[2];
@@ -188,6 +200,12 @@ s32 SLFileCreate(char *fileName, u32 size, void *addr)
     return 0;
 }
 
+/**
+ * @brief Writes bytes from the caller buffer at offset zero of the open save file.
+ * @param length Byte count read from addr and written at offset zero of curFileInfo.
+ * @param addr Caller-owned source buffer containing at least length readable bytes.
+ * @return CARD result code; CARD_RESULT_READY indicates the write completed.
+ */
 s32 SLFileWrite(s32 length, void *addr)
 {
     float winSize[2];
@@ -215,6 +233,12 @@ s32 SLFileWrite(s32 length, void *addr)
     return result;
 }
 
+/**
+ * @brief Reads bytes at offset zero of the open save file into the caller buffer.
+ * @param length Byte count read at offset zero of curFileInfo into addr.
+ * @param addr Caller-owned destination buffer with capacity for at least length writable bytes.
+ * @return CARD result code; CARD_RESULT_READY indicates the read completed.
+ */
 s32 SLFileRead(s32 length, void *addr)
 {
     s32 result;
@@ -232,6 +256,10 @@ s32 SLFileRead(s32 length, void *addr)
     return result;
 }
 
+/**
+ * @brief Closes the current memory-card file and unmounts the selected card.
+ * @return CARD result code from close or unmount.
+ */
 s32 SLFileClose(void)
 {
     s32 result;
@@ -243,16 +271,28 @@ s32 SLFileClose(void)
     return result;
 }
 
+/**
+ * @brief Selects memory-card slot A or B for subsequent operations.
+ * @param slotno CARD slot selector stored in curSlotNo for subsequent mount, open, read, write, and format calls.
+ */
 void SLCurSlotNoSet(s16 slotno)
 {
     curSlotNo = slotno;
 }
 
+/**
+ * @brief Selects the save-box filename used by subsequent operations.
+ * @param boxno Entry 0 through 2 stored in curBoxNo to select SaveFileNameTbl[curBoxNo].
+ */
 void SLCurBoxNoSet(s16 boxno)
 {
     curBoxNo = boxno;
 }
 
+/**
+ * @brief Sets the internal save-request flag.
+ * @param flag Pending-save state stored in SaveEnableF; zero also clears party_continue and story_continue.
+ */
 void SLSaveFlagSet(s32 flag)
 {
     if (flag == 0) {
@@ -262,11 +302,20 @@ void SLSaveFlagSet(s32 flag)
     SaveEnableF = flag;
 }
 
+/**
+ * @brief Reads the internal save-request flag.
+ * @return Current internal save-request flag.
+ */
 s32 SLSaveFlagGet(void)
 {
     return SaveEnableF;
 }
 
+/**
+ * @brief Builds save metadata and optionally restores gameplay data from defaults before serialization.
+ * @param erase Nonzero to restore gameplay portions of the save buffer from defaults.
+ * @param time OS timestamp encoded into the localized file comment.
+ */
 void SLSaveDataMake(s32 erase, OSTime *time)
 {
     ANIMDATA *anim_data;
@@ -294,24 +343,28 @@ void SLSaveDataMake(s32 erase, OSTime *time)
     SLSaveDataInfoSet(time);
 }
 
+/**
+ * @brief Writes localized comments, timestamp text, banner, icon, palette, and status flags into the save buffer.
+ * @param time OS timestamp encoded into the localized file comment.
+ */
 void SLSaveDataInfoSet(OSTime *time)
 {
     s16 year;
     s16 digit;
-    OSCalendarTime sp8;
+    OSCalendarTime calendar_time;
 
-    OSTicksToCalendarTime(*time, &sp8);
+    OSTicksToCalendarTime(*time, &calendar_time);
 #if VERSION_ENG
     saveBuf.data.comment[37] = curBoxNo + '1';
-    digit = (sp8.mon + 1) / 10;
+    digit = (calendar_time.mon + 1) / 10;
     saveBuf.data.comment[40] = digit + '0';
-    digit = (sp8.mon + 1) % 10;
+    digit = (calendar_time.mon + 1) % 10;
     saveBuf.data.comment[41] = digit + '0';
-    digit = sp8.mday / 10;
+    digit = calendar_time.mday / 10;
     saveBuf.data.comment[43] = digit + '0';
-    digit = sp8.mday % 10;
+    digit = calendar_time.mday % 10;
     saveBuf.data.comment[44] = digit + '0';
-    year = sp8.year;
+    year = calendar_time.year;
     digit = year / 1000;
     saveBuf.data.comment[46] = digit + '0';
     year -= digit * 1000;
@@ -324,15 +377,15 @@ void SLSaveDataInfoSet(OSTime *time)
     saveBuf.data.comment[49] = year + '0';
 #elif VERSION_PAL
     saveBuf.data.comment[37] = curBoxNo + '1';
-    digit = sp8.mday / 10;
+    digit = calendar_time.mday / 10;
     saveBuf.data.comment[40] = digit + '0';
-    digit = sp8.mday % 10;
+    digit = calendar_time.mday % 10;
     saveBuf.data.comment[41] = digit + '0';
-    digit = (sp8.mon + 1) / 10;
+    digit = (calendar_time.mon + 1) / 10;
     saveBuf.data.comment[43] = digit + '0';
-    digit = (sp8.mon + 1) % 10;
+    digit = (calendar_time.mon + 1) % 10;
     saveBuf.data.comment[44] = digit + '0';
-    year = sp8.year;
+    year = calendar_time.year;
     digit = year / 1000;
     saveBuf.data.comment[46] = digit + '0';
     year -= digit * 1000;
@@ -346,7 +399,7 @@ void SLSaveDataInfoSet(OSTime *time)
 #else
     saveBuf.data.comment[52] = sjisNumTbl[(curBoxNo + 1) * 2];
     saveBuf.data.comment[53] = sjisNumTbl[(curBoxNo + 1) * 2 + 1];
-    digit = (sp8.mon + 1) / 10;
+    digit = (calendar_time.mon + 1) / 10;
     if (digit == 0) {
         saveBuf.data.comment[32] = sjisSpace[0];
         saveBuf.data.comment[33] = sjisSpace[1];
@@ -355,10 +408,10 @@ void SLSaveDataInfoSet(OSTime *time)
         saveBuf.data.comment[32] = sjisNumTbl[digit * 2];
         saveBuf.data.comment[33] = sjisNumTbl[digit * 2 + 1];
     }
-    digit = (sp8.mon + 1) % 10;
+    digit = (calendar_time.mon + 1) % 10;
     saveBuf.data.comment[34] = sjisNumTbl[digit * 2];
     saveBuf.data.comment[35] = sjisNumTbl[digit * 2 + 1];
-    digit = sp8.mday / 10;
+    digit = calendar_time.mday / 10;
     if (digit == 0) {
         saveBuf.data.comment[38] = sjisSpace[0];
         saveBuf.data.comment[39] = sjisSpace[1];
@@ -367,12 +420,15 @@ void SLSaveDataInfoSet(OSTime *time)
         saveBuf.data.comment[38] = sjisNumTbl[digit * 2];
         saveBuf.data.comment[39] = sjisNumTbl[digit * 2 + 1];
     }
-    digit = sp8.mday % 10;
+    digit = calendar_time.mday % 10;
     saveBuf.data.comment[40] = sjisNumTbl[digit * 2];
     saveBuf.data.comment[41] = sjisNumTbl[digit * 2 + 1];
 #endif
 }
 
+/**
+ * @brief Copies persistent game statistics and current language into the save buffer.
+ */
 void SLCommonSet(void)
 {
     OSTime create_time;
@@ -383,6 +439,9 @@ void SLCommonSet(void)
     SLSaveDataInfoSet(&create_time);
 }
 
+/**
+ * @brief Copies current party-mode system and player state into the save buffer.
+ */
 void SLSaveBoard(void)
 {
     s16 i;
@@ -393,6 +452,9 @@ void SLSaveBoard(void)
     }
 }
 
+/**
+ * @brief Copies current story-mode system and player state into the save buffer.
+ */
 void SLSaveBoardStory(void)
 {
     s16 i;
@@ -403,6 +465,10 @@ void SLSaveBoardStory(void)
     }
 }
 
+/**
+ * @brief Builds, checksums, and writes the complete save buffer to the selected card.
+ * @return 1 after a successful create or write followed by close and unmount; a nonzero SLFormat result when broken-card recovery formatting fails; otherwise 0 after cancellation or no-card handling ends the save loop.
+ */
 s32 SLSave(void)
 {
     s32 result;
@@ -505,6 +571,10 @@ s32 SLSave(void)
 #define SAVEWIN_MESS SlotNameTbl
 #endif
 
+/**
+ * @brief Creates and animates the small save-in-progress window.
+ * @return Index of the save-in-progress window.
+ */
 static s16 SLCreateSaveWin(void)
 {
     float size[2];
@@ -522,6 +592,9 @@ static s16 SLCreateSaveWin(void)
     return window;
 }
 
+/**
+ * @brief Animates out and destroys the save-in-progress window when present.
+ */
 static void SLKillSaveWin(void)
 {
     if (saveMessWin != -1) {
@@ -531,6 +604,11 @@ static void SLKillSaveWin(void)
     }
 }
 
+/**
+ * @brief Attempts to read the selected save file into the global save buffer, then unmounts the card.
+ * @details The current implementation calculates but does not act on the checksum comparison expression.
+ * @return Always 0 after the open/read attempt.
+ */
 s32 SLLoad(void)
 {
     s32 result;
@@ -551,11 +629,17 @@ s32 SLLoad(void)
     return 0;
 }
 
+/**
+ * @brief Copies persistent statistics and language from the loaded save buffer.
+ */
 void SLLoadGameStat(void)
 {
     memcpy(&GWGameStat, &saveBuf.data.stat, sizeof(GameStat));
 }
 
+/**
+ * @brief Restores party-mode system and player state from the loaded save buffer.
+ */
 void SLLoadBoard(void)
 {
     s16 i;
@@ -571,6 +655,9 @@ void SLLoadBoard(void)
     }
 }
 
+/**
+ * @brief Restores story-mode system and player state from the loaded save buffer.
+ */
 void SLLoadBoardStory(void)
 {
     s16 i;
@@ -586,11 +673,19 @@ void SLLoadBoardStory(void)
     }
 }
 
+/**
+ * @brief Reads the serial number of the currently selected memory card.
+ * @return CARD result code from CARDGetSerialNo.
+ */
 s32 SLSerialNoGet(void)
 {
     return CARDGetSerialNo(curSlotNo, &SLSerialNo);
 }
 
+/**
+ * @brief Rejects a successfully read card serial only when it differs from the retained nonzero serial.
+ * @return FALSE only for a successful read of a mismatching serial; zero retained serials and CARD read errors return TRUE.
+ */
 BOOL SLSerialNoCheck(void)
 {
     s32 result;
@@ -609,6 +704,10 @@ BOOL SLSerialNoCheck(void)
     return TRUE;
 }
 
+/**
+ * @brief Compares the stored save checksum with a checksum calculated over the data region.
+ * @return TRUE when the stored and calculated checksums match; otherwise FALSE.
+ */
 BOOL SLCheckSumCheck(void)
 {
     u16 *save_checksum = (u16 *)&saveBuf.buf[sizeof(SaveBufData)];
@@ -620,6 +719,10 @@ BOOL SLCheckSumCheck(void)
     return FALSE;
 }
 
+/**
+ * @brief Calculates the 16-bit additive checksum of the save buffer data region.
+ * @return 16-bit additive checksum of save bytes after the checksum field.
+ */
 u16 SLCheckSumGet(void)
 {
     u32 i;
@@ -632,6 +735,9 @@ u16 SLCheckSumGet(void)
     return (u16)checksum & 0xFFFF;
 }
 
+/**
+ * @brief Stores a freshly calculated checksum in the save buffer.
+ */
 void SLCheckSumSet(void)
 {
     u16 checksum = SLCheckSumGet();
@@ -640,6 +746,11 @@ void SLCheckSumSet(void)
     saveBuf.buf[sizeof(SaveBufData) + 1] = checksum;
 }
 
+/**
+ * @brief Configures comment, icon, banner, and animation metadata for the open card file.
+ * @param reportF Nonzero to show a card-status message for mapped errors.
+ * @return CARDSetStatus result, with missing-card and other error cases mapped after optional UI reporting.
+ */
 s32 SLStatSet(s32 reportF)
 {
     CARDStat stat;
@@ -690,6 +801,11 @@ s32 SLStatSet(s32 reportF)
     return result;
 }
 
+/**
+ * @brief Mounts a card slot, retrying transient busy results and reporting card errors when requested.
+ * @param slotNo Unused; the operation uses the globally selected curSlotNo.
+ * @return CARD result code from the final mount or card check.
+ */
 s32 SLCardMount(s16 slotNo)
 {
     s32 result;
@@ -742,6 +858,11 @@ s32 SLCardMount(s16 slotNo)
     return 0;
 }
 
+/**
+ * @brief Formats a memory card after confirmation and reports the CARD result.
+ * @param slotNo Unused; the operation uses the globally selected curSlotNo.
+ * @return 0 when the selected card's UnMountCnt bit is already set; otherwise the HuCardFormat result after error reporting or, on success, save-buffer reinitialization.
+ */
 s32 SLFormat(s16 slotNo)
 {
     float winSize[2];
@@ -805,9 +926,14 @@ s32 SLFormat(s16 slotNo)
     return result;
 }
 
+/**
+ * @brief Displays the localized save/load message, optionally obtains a yes/no choice, and returns that choice.
+ * @param mess Case 0 through 12 selecting the localized card-error or confirmation message and whether a choice is requested.
+ * @return Selected choice index for confirmation messages, or -1 for informational messages.
+ */
 s16 SLMessOut(s16 mess)
 {
-    WindowData *var_r26;
+    WindowData *window_data;
     float size[2];
     u32 slot_mess;
     s32 save_mess;
@@ -915,8 +1041,8 @@ s16 SLMessOut(s16 mess)
         HuWinMesMaxSizeGet(1, size, save_mess);
     }
     window = HuWinExCreateStyled(-10000.0f, 200.0f, size[0], size[1], -1, 2);
-    var_r26 = &winData[window];
-    var_r26->active_pad = 1;
+    window_data = &winData[window];
+    window_data->active_pad = 1;
     if (slot_mess != 0) {
         HuWinInsertMesSet(window, slot_mess, 0);
     }

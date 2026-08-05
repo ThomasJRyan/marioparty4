@@ -61,6 +61,16 @@ static HSFBITMAP *SearchBitmapPtr(s32 id);
 static char *GetString(u32 *str_ofs);
 static char *GetMotionString(u16 *str_ofs);
 
+/**
+ * @brief Fixes up an in-memory HSF file into runtime model data.
+ *
+ * @details Converts section-relative offsets, string offsets, symbol indices,
+ * object links, motion tracks, and buffer references in place, then initializes
+ * envelope deformation state.
+ *
+ * @param data Writable HSF image; the loader mutates this storage in place.
+ * @return Runtime HSFDATA overlaid on @p data; it does not own a separate copy.
+ */
 HSFDATA *LoadHSF(void *data)
 {
     HSFDATA *hsf;
@@ -93,6 +103,11 @@ HSFDATA *LoadHSF(void *data)
     
 }
 
+/**
+ * @brief Resolves cluster target names from one HSF against another model's objects.
+ * @param model Model whose object array supplies resolved target indices.
+ * @param src_model Model containing clusters to adjust; NULL is ignored.
+ */
 void ClusterAdjustObject(HSFDATA *model, HSFDATA *src_model)
 {
     HSFCLUSTER *cluster;
@@ -114,6 +129,10 @@ void ClusterAdjustObject(HSFDATA *model, HSFDATA *src_model)
     }
 }
 
+/**
+ * @brief Initializes loader globals from an HSF header and section offsets.
+ * @param data Writable base address of the complete HSF file image.
+ */
 static void FileLoad(void *data)
 {
     fileptr = data;
@@ -126,6 +145,10 @@ static void FileLoad(void *data)
     MaterialTop = (HSFMATERIAL *)((u32)fileptr+head.material.ofs);
 }
 
+/**
+ * @brief Writes the fixed-up section pointers and counts into the file header area.
+ * @return Runtime HSFDATA at the original file base; no allocation is performed.
+ */
 static HSFDATA *SetHsfModel(void)
 {
     HSFDATA *data = fileptr;
@@ -171,18 +194,29 @@ static HSFDATA *SetHsfModel(void)
     return data;
 }
 
+/**
+ * @brief Resolves a 32-bit HSF string-table offset.
+ * @param str_ofs Pointer to the serialized byte offset.
+ * @return Pointer into the loaded file's string table.
+ */
 char *SetName(u32 *str_ofs)
 {
-    char *ret = GetString(str_ofs);
-    return ret;
+    char *name = GetString(str_ofs);
+    return name;
 }
 
+/**
+ * @brief Resolves a 16-bit motion string-table offset.
+ * @param str_ofs Pointer to the serialized byte offset.
+ * @return Pointer into the active motion file's string table.
+ */
 static inline char *SetMotionName(u16 *str_ofs)
 {
-    char *ret = GetMotionString(str_ofs);
-    return ret;
+    char *name = GetMotionString(str_ofs);
+    return name;
 }
 
+/** @brief Fixes material names and symbol-table attribute arrays in place. */
 static void MaterialLoad(void)
 {
     s32 i;
@@ -232,15 +266,16 @@ static void MaterialLoad(void)
     }
 }
 
+/** @brief Fixes attribute names and bitmap indices into runtime pointers. */
 static void AttributeLoad(void)
 {
     HSFATTRIBUTE *file_attr;
     HSFATTRIBUTE *new_attr;
-    HSFATTRIBUTE *temp_attr;
+    HSFATTRIBUTE *attribute_start;
     s32 i;
     if(head.attribute.count) {
-        temp_attr = file_attr = (HSFATTRIBUTE *)((u32)fileptr+head.attribute.ofs);
-        new_attr = temp_attr;
+        attribute_start = file_attr = (HSFATTRIBUTE *)((u32)fileptr+head.attribute.ofs);
+        new_attr = attribute_start;
         Model.attribute = new_attr;
         Model.attributeNum = head.attribute.count;
         for(i=0; i<head.attribute.count; i++, new_attr++) {
@@ -254,6 +289,7 @@ static void AttributeLoad(void)
     }
 }
 
+/** @brief Registers the serialized scene and preserves its fog range. */
 static void SceneLoad(void)
 {
     HSFSCENE *file_scene;
@@ -268,6 +304,7 @@ static void SceneLoad(void)
     }
 }
 
+/** @brief Fixes named vertex-color buffer data offsets in place. */
 static void ColorLoad(void)
 {
     s32 i;
@@ -275,13 +312,13 @@ static void ColorLoad(void)
     HSFBUFFER *new_color;
     void *data;
     void *color_data;
-    HSFBUFFER *temp_color;
+    HSFBUFFER *color_start;
     
     if(head.color.count) {
-        temp_color = file_color = (HSFBUFFER *)((u32)fileptr+head.color.ofs);
+        color_start = file_color = (HSFBUFFER *)((u32)fileptr+head.color.ofs);
         data = &file_color[head.color.count];
         for(i=0; i<head.color.count; i++, file_color++);
-        new_color = temp_color;
+        new_color = color_start;
         Model.color = new_color;
         Model.colorNum = head.color.count;
         file_color = (HSFBUFFER *)((u32)fileptr+head.color.ofs);
@@ -294,6 +331,7 @@ static void ColorLoad(void)
     }
 }
 
+/** @brief Fixes named vertex buffers and their packed Vec data offsets in place. */
 static void VertexLoad(void)
 {
     s32 i, j;
@@ -301,7 +339,7 @@ static void VertexLoad(void)
     HSFBUFFER *new_vertex;
     void *data;
     HuVecF *data_elem;
-    void *temp_data;
+    void *data_offset;
     
     if(head.vertex.count) {
         vtxtop = file_vertex = (HSFBUFFER *)((u32)fileptr+head.vertex.ofs);
@@ -317,12 +355,12 @@ static void VertexLoad(void)
         file_vertex = (HSFBUFFER *)((u32)fileptr+head.vertex.ofs);
         VertexDataTop = data = (void *)&file_vertex[head.vertex.count];
         for(i=0; i<head.vertex.count; i++, new_vertex++, file_vertex++) {
-            temp_data = file_vertex->data;
+            data_offset = file_vertex->data;
             new_vertex->count = file_vertex->count;
             new_vertex->name = SetName((u32 *)&file_vertex->name);
-            new_vertex->data = (void *)((u32)data+(u32)temp_data);
+            new_vertex->data = (void *)((u32)data+(u32)data_offset);
             for(j=0; j<new_vertex->count; j++) {
-                data_elem = (HuVecF *)(((u32)data)+((u32)temp_data)+(j*sizeof(HuVecF)));
+                data_elem = (HuVecF *)(((u32)data)+((u32)data_offset)+(j*sizeof(HuVecF)));
                 ((HuVecF *)new_vertex->data)[j].x = data_elem->x;
                 ((HuVecF *)new_vertex->data)[j].y = data_elem->y;
                 ((HuVecF *)new_vertex->data)[j].z = data_elem->z;
@@ -331,64 +369,66 @@ static void VertexLoad(void)
     }
 }
 
+/** @brief Fixes named normal buffers and records the packed normal-data base. */
 static void NormalLoad(void)
 {
     s32 i, j;
-    void *temp_data;
+    void *data_offset;
     HSFBUFFER *file_normal;
     HSFBUFFER *new_normal;
-    HSFBUFFER *temp_normal;
+    HSFBUFFER *normal_start;
     void *data;
     
     
     if(head.normal.count) {
         s32 cenv_count = head.cenv.count;
-        temp_normal = file_normal = (HSFBUFFER *)((u32)fileptr+head.normal.ofs);
+        normal_start = file_normal = (HSFBUFFER *)((u32)fileptr+head.normal.ofs);
         data = (void *)&file_normal[head.normal.count];
-        new_normal = temp_normal;
+        new_normal = normal_start;
         Model.normal = new_normal;
         Model.normalNum = head.normal.count;
         file_normal = (HSFBUFFER *)((u32)fileptr+head.normal.ofs);
         NormalDataTop = data = (void *)&file_normal[head.normal.count];
         for(i=0; i<head.normal.count; i++, new_normal++, file_normal++) {
-            temp_data = file_normal->data;
+            data_offset = file_normal->data;
             new_normal->count = file_normal->count;
             new_normal->name = SetName((u32 *)&file_normal->name);
-            new_normal->data = (void *)((u32)data+(u32)temp_data);
+            new_normal->data = (void *)((u32)data+(u32)data_offset);
         }
     }
 }
 
+/** @brief Fixes named texture-coordinate buffers and their HuVec2f data offsets. */
 static void STLoad(void)
 {
     s32 i, j;
     HSFBUFFER *file_st;
-    HSFBUFFER *temp_st;
+    HSFBUFFER *file_st_start;
     HSFBUFFER *new_st;
     void *data;
     HuVec2f *data_elem;
-    void *temp_data;
+    void *data_offset;
     
     if(head.st.count) {
-        temp_st = file_st = (HSFBUFFER *)((u32)fileptr+head.st.ofs);
+        file_st_start = file_st = (HSFBUFFER *)((u32)fileptr+head.st.ofs);
         data = (void *)&file_st[head.st.count];
         for(i=0; i<head.st.count; i++, file_st++) {
             for(j=0; j<(u32)file_st->count; j++) {
                 data_elem = (HuVec2f *)(((u32)data)+((u32)file_st->data)+(j*sizeof(HuVec2f)));
             }
         }
-        new_st = temp_st;
+        new_st = file_st_start;
         Model.st = new_st;
         Model.stNum = head.st.count;
         file_st = (HSFBUFFER *)((u32)fileptr+head.st.ofs);
         data = (void *)&file_st[head.st.count];
         for(i=0; i<head.st.count; i++, new_st++, file_st++) {
-            temp_data = file_st->data;
+            data_offset = file_st->data;
             new_st->count = file_st->count;
             new_st->name = SetName((u32 *)&file_st->name);
-            new_st->data = (void *)((u32)data+(u32)temp_data);
+            new_st->data = (void *)((u32)data+(u32)data_offset);
             for(j=0; j<new_st->count; j++) {
-                data_elem = (HuVec2f *)(((u32)data)+((u32)temp_data)+(j*sizeof(HuVec2f)));
+                data_elem = (HuVec2f *)(((u32)data)+((u32)data_offset)+(j*sizeof(HuVec2f)));
                 ((HuVec2f *)new_st->data)[j].x = data_elem->x;
                 ((HuVec2f *)new_st->data)[j].y = data_elem->y;
             }
@@ -396,12 +436,15 @@ static void STLoad(void)
     }
 }
 
+/**
+ * @brief Fixes face buffers, face data, and triangle-strip index pointers in place.
+ */
 static void FaceLoad(void)
 {
     HSFBUFFER *file_face;
     HSFBUFFER *new_face;
-    HSFBUFFER *temp_face;
-    HSFFACE *temp_data;
+    HSFBUFFER *face_start;
+    HSFFACE *face_data_offset;
     HSFFACE *data;
     HSFFACE *file_face_strip;
     HSFFACE *new_face_strip;
@@ -410,21 +453,21 @@ static void FaceLoad(void)
     s32 j;
     
     if(head.face.count) {
-        temp_face = file_face = (HSFBUFFER *)((u32)fileptr+head.face.ofs);
+        face_start = file_face = (HSFBUFFER *)((u32)fileptr+head.face.ofs);
         data = (HSFFACE *)&file_face[head.face.count];
-        new_face = temp_face;
+        new_face = face_start;
         Model.face = new_face;
         Model.faceNum = head.face.count;
         file_face = (HSFBUFFER *)((u32)fileptr+head.face.ofs);
         data = (HSFFACE *)&file_face[head.face.count];
         for(i=0; i<head.face.count; i++, new_face++, file_face++) {
-            temp_data = file_face->data;
+            face_data_offset = file_face->data;
             new_face->name = SetName((u32 *)&file_face->name);
             new_face->count = file_face->count;
-            new_face->data = (void *)((u32)data+(u32)temp_data);
+            new_face->data = (void *)((u32)data+(u32)face_data_offset);
             strip = (u8 *)(&((HSFFACE *)new_face->data)[new_face->count]);
         }
-        new_face = temp_face;
+        new_face = face_start;
         for(i=0; i<head.face.count; i++, new_face++) {
             file_face_strip = new_face_strip = new_face->data;
             for(j=0; j<new_face->count; j++, new_face_strip++, file_face_strip++) {
@@ -436,18 +479,23 @@ static void FaceLoad(void)
     }
 }
 
+/**
+ * @brief Recursively fixes an object's hierarchy and type-specific data references.
+ * @param parent Runtime parent object, or NULL for the hierarchy root.
+ * @param object Serialized object to convert in place.
+ */
 static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
 {
     u32 i;
     HSFOBJECT *child_obj;
-    HSFOBJECT *temp_object;
+    HSFOBJECT *root_object;
     struct {
         HSFOBJECT *parent;
         HSFBUFFER *shape;
         HSFCLUSTER *cluster;
-    } temp;
+    } resolved_reference;
     
-    temp.parent = parent;
+    resolved_reference.parent = parent;
     object->type = object->type;
     switch(object->type) {
         case HSF_OBJ_MESH:
@@ -456,7 +504,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFOBJECT *new_object;
             
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
             for(i=0; i<new_object->mesh.childrenCount; i++) {
@@ -465,7 +513,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             }
             new_object->mesh.parent = parent;
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             new_object->type = HSF_OBJ_MESH;
             new_object->mesh.vertex = SearchVertexPtr((s32)data->vertex);
@@ -475,13 +523,13 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             new_object->mesh.face = SearchFacePtr((s32)data->face);
             new_object->mesh.shape = (HSFBUFFER **)&NSymIndex[(u32)data->shape];
             for(i=0; i<new_object->mesh.shapeNum; i++) {
-                temp.shape = &vtxtop[(u32)new_object->mesh.shape[i]];
-                new_object->mesh.shape[i] = temp.shape;
+                resolved_reference.shape = &vtxtop[(u32)new_object->mesh.shape[i]];
+                new_object->mesh.shape[i] = resolved_reference.shape;
             }
             new_object->mesh.cluster = (HSFCLUSTER **)&NSymIndex[(u32)data->cluster];
             for(i=0; i<new_object->mesh.clusterNum; i++) {
-                temp.cluster = &ClusterTop[(u32)new_object->mesh.cluster[i]];
-                new_object->mesh.cluster[i] = temp.cluster;
+                resolved_reference.cluster = &ClusterTop[(u32)new_object->mesh.cluster[i]];
+                new_object->mesh.cluster[i] = resolved_reference.cluster;
             }
             new_object->mesh.cenv = SearchCenvPtr((s32)data->cenv);
             new_object->mesh.material = Model.material;
@@ -518,7 +566,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -527,7 +575,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             for(i=0; i<data->childrenCount; i++) {
                 DispObject(new_object, new_object->mesh.children[i]);
@@ -540,7 +588,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -549,7 +597,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             new_object->mesh.replica = &objtop[(u32)new_object->mesh.replica];
             for(i=0; i<data->childrenCount; i++) {
@@ -563,7 +611,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -572,7 +620,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             for(i=0; i<data->childrenCount; i++) {
                 DispObject(new_object, new_object->mesh.children[i]);
@@ -585,7 +633,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -594,7 +642,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             for(i=0; i<data->childrenCount; i++) {
                 DispObject(new_object, new_object->mesh.children[i]);
@@ -607,7 +655,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -616,7 +664,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             for(i=0; i<data->childrenCount; i++) {
                 DispObject(new_object, new_object->mesh.children[i]);
@@ -629,7 +677,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -638,7 +686,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             for(i=0; i<data->childrenCount; i++) {
                 DispObject(new_object, new_object->mesh.children[i]);
@@ -651,6 +699,10 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
     }
 }
 
+/**
+ * @brief Converts serialized camera and light object type values to runtime enums.
+ * @param object Object whose type tag is normalized in place.
+ */
 static inline void FixupObject(HSFOBJECT *object)
 {
     HSFMESH *objdata_8;
@@ -678,6 +730,9 @@ static inline void FixupObject(HSFOBJECT *object)
     }
 }
 
+/**
+ * @brief Resolves object names, builds the parent-child hierarchy, and selects the root.
+ */
 static void ObjectLoad(void)
 {
     s32 i;
@@ -706,6 +761,9 @@ static void ObjectLoad(void)
     }
 }
 
+/**
+ * @brief Fixes envelope skinning records and their vertex, weight, and matrix arrays.
+ */
 static void CenvLoad(void)
 {
     HSFCENVMULTI *multi_file;
@@ -783,6 +841,7 @@ static void CenvLoad(void)
     }
 }
 
+/** @brief Fixes skeleton names and copies serialized base transforms in place. */
 static void SkeletonLoad(void)
 {
     HSFSKELETON *skeleton_file;
@@ -808,6 +867,7 @@ static void SkeletonLoad(void)
     }
 }
 
+/** @brief Fixes named cluster-part records and their packed vertex-index arrays. */
 static void PartLoad(void)
 {
     HSFPART *part_file;
@@ -832,6 +892,9 @@ static void PartLoad(void)
     }
 }
 
+/**
+ * @brief Fixes cluster names, part references, target names, and vertex-buffer arrays.
+ */
 static void ClusterLoad(void)
 {
     HSFCLUSTER *cluster_file;
@@ -863,6 +926,7 @@ static void ClusterLoad(void)
     }
 }
 
+/** @brief Fixes morph-shape names and symbol-indexed vertex-buffer arrays. */
 static void ShapeLoad(void)
 {
     s32 i, j;
@@ -890,6 +954,7 @@ static void ShapeLoad(void)
     }
 }
 
+/** @brief Fixes map-attribute pointers into the packed u16 data following the table. */
 static void MapAttrLoad(void)
 {
     s32 i;
@@ -910,20 +975,23 @@ static void MapAttrLoad(void)
     }
 }
 
+/**
+ * @brief Fixes bitmap names, pixel offsets, and palette references in place.
+ */
 static void BitmapLoad(void)
 {
     HSFBITMAP *bitmap_file;
-    HSFBITMAP *bitmap_temp;
+    HSFBITMAP *bitmap_start;
     HSFBITMAP *bitmap_new;
     HSFPALETTE *palette;
     void *data;
     s32 i;
     
     if(head.bitmap.count) {
-        bitmap_temp = bitmap_file = (HSFBITMAP *)((u32)fileptr+head.bitmap.ofs);
+        bitmap_start = bitmap_file = (HSFBITMAP *)((u32)fileptr+head.bitmap.ofs);
         data = &bitmap_file[head.bitmap.count];
         for(i=0; i<head.bitmap.count; i++, bitmap_file++);
-        bitmap_new = bitmap_temp;
+        bitmap_new = bitmap_start;
         Model.bitmap = bitmap_file;
         Model.bitmapNum = head.bitmap.count;
         bitmap_file = (HSFBITMAP *)((u32)fileptr+head.bitmap.ofs);
@@ -944,32 +1012,33 @@ static void BitmapLoad(void)
     }
 }
 
+/** @brief Fixes palette names and pointers into the packed 16-bit color data. */
 static void PaletteLoad(void)
 {
     s32 i;
     s32 j;
     HSFPALETTE *palette_file;
-    HSFPALETTE *palette_temp;
+    HSFPALETTE *palette_start;
     HSFPALETTE *palette_new;
     
     void *data_base;
-    u16 *temp_data;
+    u16 *palette_data;
     u16 *data;
     
     if(head.palette.count) {
-        palette_temp = palette_file = (HSFPALETTE *)((u32)fileptr+head.palette.ofs);
+        palette_start = palette_file = (HSFPALETTE *)((u32)fileptr+head.palette.ofs);
         data_base = (u16 *)&palette_file[head.palette.count];
         for(i=0; i<head.palette.count; i++, palette_file++) {
-            temp_data = (u16 *)((u32)data_base+(u32)palette_file->data);
+            palette_data = (u16 *)((u32)data_base+(u32)palette_file->data);
         }
-        Model.palette = palette_temp;
+        Model.palette = palette_start;
         Model.paletteNum = head.palette.count;
-        palette_new = palette_temp;
+        palette_new = palette_start;
         palette_file = (HSFPALETTE *)((u32)fileptr+head.palette.ofs);
         data_base = (u16 *)&palette_file[head.palette.count];
         for(i=0; i<head.palette.count; i++, palette_file++, palette_new++) {
-            temp_data = (u16 *)((u32)data_base+(u32)palette_file->data);
-            data = temp_data;
+            palette_data = (u16 *)((u32)data_base+(u32)palette_file->data);
+            data = palette_data;
             palette_new->name = SetName((u32 *)&palette_file->name);
             palette_new->data = data;
             palette_new->palSize = palette_file->palSize;
@@ -980,20 +1049,29 @@ static void PaletteLoad(void)
     }
 }
 
+/**
+ * @brief Extracts the comparable base portion of an HSF object name.
+ *
+ * @details Drops any prefix through the first '-' and truncates at an underscore
+ * followed by a non-letter. The result uses shared static storage.
+ *
+ * @param name NUL-terminated serialized object name.
+ * @return Pointer to an internal 768-byte buffer overwritten by the next call.
+ */
 char *MakeObjectName(char *name)
 {
     static char buf[768];
     s32 index, num_minus;
-    char *temp_name;
+    char *name_cursor;
     num_minus = 0;
     index = 0;
-    temp_name = name;
-    while(*temp_name) {
-        if(*temp_name == '-') {
-            name = temp_name+1;
+    name_cursor = name;
+    while(*name_cursor) {
+        if(*name_cursor == '-') {
+            name = name_cursor+1;
             break;
         }
-        temp_name++;
+        name_cursor++;
     }
     while(*name) {
         if(num_minus != 0) {
@@ -1011,23 +1089,39 @@ char *MakeObjectName(char *name)
     return buf;
 }
 
+/**
+ * @brief Compares two already-normalized HSF object names.
+ * @param name1 First NUL-terminated name.
+ * @param name2 Second NUL-terminated name.
+ * @return Negative, zero, or positive according to strcmp ordering.
+ */
 s32 CmpObjectName(char *name1, char *name2)
 {
-    s32 temp = 0;
+    s32 unused = 0;
     return strcmp(name1, name2);
 }
 
+/**
+ * @brief Resolves a motion track target through its dictionary or string offset.
+ * @param track Track whose target field encodes the name reference.
+ * @return Pointer into DicStringTable when present, otherwise StringTable.
+ */
 static inline char *MotionGetName(HSFTRACK *track)
 {
-    char *ret;
+    char *name;
     if(DicStringTable) {
-        ret = &DicStringTable[track->target];
+        name = &DicStringTable[track->target];
     } else {
-        ret = GetMotionString(&track->target);
+        name = GetMotionString(&track->target);
     }
-    return ret;
+    return name;
 }
 
+/**
+ * @brief Finds an object index by exact runtime name.
+ * @param name NUL-terminated object name.
+ * @return Zero-based object index, or -1 when absent.
+ */
 static inline s32 FindObjectName(char *name)
 {
     s32 i;
@@ -1042,6 +1136,11 @@ static inline s32 FindObjectName(char *name)
     return -1;
 }
 
+/**
+ * @brief Finds a cluster in the HSF currently being loaded.
+ * @param name Primary cluster name to match exactly.
+ * @return Zero-based cluster index, or -1 when absent.
+ */
 static inline s32 FindClusterName(char *name)
 {
     s32 i;
@@ -1056,6 +1155,11 @@ static inline s32 FindClusterName(char *name)
     return -1;
 }
 
+/**
+ * @brief Finds a cluster in the model targeted by a motion-only load.
+ * @param name Primary cluster name to match exactly.
+ * @return Zero-based cluster index, or -1 when absent.
+ */
 static inline s32 FindMotionClusterName(char *name)
 {
     s32 i;
@@ -1070,6 +1174,11 @@ static inline s32 FindMotionClusterName(char *name)
     return -1;
 }
 
+/**
+ * @brief Finds a named material attribute in the HSF currently being loaded.
+ * @param name Attribute name to match exactly; unnamed attributes are skipped.
+ * @return Zero-based attribute index, or -1 when absent.
+ */
 static inline s32 FindAttributeName(char *name)
 {
     s32 i;
@@ -1087,6 +1196,11 @@ static inline s32 FindAttributeName(char *name)
     return -1;
 }
 
+/**
+ * @brief Finds a named attribute in the model targeted by a motion-only load.
+ * @param name Attribute name to match exactly; unnamed attributes are skipped.
+ * @return Zero-based attribute index, or -1 when absent.
+ */
 static inline s32 FindMotionAttributeName(char *name)
 {
     s32 i;
@@ -1104,6 +1218,11 @@ static inline s32 FindMotionAttributeName(char *name)
     return -1;
 }
 
+/**
+ * @brief Resolves a transform or morph track target and curve-data offset.
+ * @param track Serialized track mutated into runtime form.
+ * @param data Base address of the packed motion keyframe data.
+ */
 static inline void MotionLoadTransform(HSFTRACK *track, void *data)
 {
     float *step_data;
@@ -1145,6 +1264,11 @@ static inline void MotionLoadTransform(HSFTRACK *track, void *data)
     }
 }
 
+/**
+ * @brief Resolves a cluster track target name and curve-data offset.
+ * @param track Serialized cluster track mutated into runtime form.
+ * @param data Base address of the packed motion keyframe data.
+ */
 static inline void MotionLoadCluster(HSFTRACK *track, void *data)
 {
     s32 numKeyframes;
@@ -1190,6 +1314,11 @@ static inline void MotionLoadCluster(HSFTRACK *track, void *data)
     }
 }
 
+/**
+ * @brief Resolves a cluster-weight track target and curve-data offset.
+ * @param track Serialized cluster-weight track mutated into runtime form.
+ * @param data Base address of the packed motion keyframe data.
+ */
 static inline void MotionLoadClusterWeight(HSFTRACK *track, void *data)
 {
     s32 numKeyframes;
@@ -1235,6 +1364,11 @@ static inline void MotionLoadClusterWeight(HSFTRACK *track, void *data)
     }
 }
 
+/**
+ * @brief Converts a material track's curve-data offset into a runtime pointer.
+ * @param track Serialized material track mutated in place.
+ * @param data Base address of the packed motion keyframe data.
+ */
 static inline void MotionLoadMaterial(HSFTRACK *track, void *data)
 {
     float *step_data;
@@ -1271,6 +1405,11 @@ static inline void MotionLoadMaterial(HSFTRACK *track, void *data)
     }
 }
 
+/**
+ * @brief Resolves an attribute track target, curve data, and bitmap keys.
+ * @param track Serialized attribute track mutated into runtime form.
+ * @param data Base address of the packed motion keyframe data.
+ */
 static inline void MotionLoadAttribute(HSFTRACK *track, void *data)
 {
     HSFBITMAPKEY *file_frame;
@@ -1327,10 +1466,13 @@ static inline void MotionLoadAttribute(HSFTRACK *track, void *data)
     }
 }
 
+/**
+ * @brief Registers the HSF motion and fixes every track according to its type.
+ */
 static void MotionLoad(void)
 {
     HSFMOTION *file_motion;
-    HSFMOTION *temp_motion;
+    HSFMOTION *motion_start;
     HSFMOTION *new_motion;
     HSFTRACK *track_base;
     void *track_data;
@@ -1339,8 +1481,8 @@ static void MotionLoad(void)
     MotionOnly = FALSE;
     MotionModel = NULL;
     if(head.motion.count) {
-        temp_motion = file_motion = (HSFMOTION *)((u32)fileptr+head.motion.ofs);
-        new_motion = temp_motion;
+        motion_start = file_motion = (HSFMOTION *)((u32)fileptr+head.motion.ofs);
+        new_motion = motion_start;
         Model.motion = new_motion;
         Model.motionNum = file_motion->numTracks;
         track_base = (HSFTRACK *)&file_motion[head.motion.count];
@@ -1400,6 +1542,7 @@ static void MotionLoad(void)
     (void)i;
 }
 
+/** @brief Fixes the matrix section's pointer to its packed 3x4 matrix array. */
 static void MatrixLoad(void)
 {
     HSFMATRIX *matrix_file;
@@ -1412,6 +1555,12 @@ static void MatrixLoad(void)
     }
 }
 
+/**
+ * @brief Finds an object index by name in an arbitrary loaded HSF model.
+ * @param data Model whose object table is searched.
+ * @param name Exact object name.
+ * @return Zero-based object index, or -1 after reporting a missing name.
+ */
 static s32 SearchObjectSetName(HSFDATA *data, char *name)
 {
     HSFOBJECT *object = data->object;
@@ -1425,6 +1574,11 @@ static s32 SearchObjectSetName(HSFDATA *data, char *name)
     return -1;
 }
 
+/**
+ * @brief Resolves a vertex-buffer index in the active file.
+ * @param id Zero-based section index, or -1 for no buffer.
+ * @return Pointer into the in-place vertex table, or NULL for -1.
+ */
 static HSFBUFFER *SearchVertexPtr(s32 id)
 {
     HSFBUFFER *vertex; 
@@ -1436,6 +1590,11 @@ static HSFBUFFER *SearchVertexPtr(s32 id)
     return vertex;
 }
 
+/**
+ * @brief Resolves a normal-buffer index in the active file.
+ * @param id Zero-based section index, or -1 for no buffer.
+ * @return Pointer into the in-place normal table, or NULL for -1.
+ */
 static HSFBUFFER *SearchNormalPtr(s32 id)
 {
     HSFBUFFER *normal; 
@@ -1447,6 +1606,11 @@ static HSFBUFFER *SearchNormalPtr(s32 id)
     return normal;
 }
 
+/**
+ * @brief Resolves a texture-coordinate-buffer index in the active file.
+ * @param id Zero-based section index, or -1 for no buffer.
+ * @return Pointer into the in-place ST table, or NULL for -1.
+ */
 static HSFBUFFER *SearchStPtr(s32 id)
 {
     HSFBUFFER *st; 
@@ -1458,6 +1622,11 @@ static HSFBUFFER *SearchStPtr(s32 id)
     return st;
 }
 
+/**
+ * @brief Resolves a vertex-color-buffer index in the active file.
+ * @param id Zero-based section index, or -1 for no buffer.
+ * @return Pointer into the in-place color table, or NULL for -1.
+ */
 static HSFBUFFER *SearchColorPtr(s32 id)
 {
     HSFBUFFER *color; 
@@ -1469,6 +1638,11 @@ static HSFBUFFER *SearchColorPtr(s32 id)
     return color;
 }
 
+/**
+ * @brief Resolves a face-buffer index in the active file.
+ * @param id Zero-based section index, or -1 for no buffer.
+ * @return Pointer into the in-place face table, or NULL for -1.
+ */
 static HSFBUFFER *SearchFacePtr(s32 id)
 {
     HSFBUFFER *face; 
@@ -1480,6 +1654,11 @@ static HSFBUFFER *SearchFacePtr(s32 id)
     return face;
 }
 
+/**
+ * @brief Resolves an envelope-skinning index in the active file.
+ * @param id Zero-based section index, or -1 for no envelope.
+ * @return Pointer into the in-place cenv table, or NULL for -1.
+ */
 static HSFCENV *SearchCenvPtr(s32 id)
 {
     HSFCENV *cenv; 
@@ -1491,6 +1670,11 @@ static HSFCENV *SearchCenvPtr(s32 id)
     return cenv;
 }
 
+/**
+ * @brief Resolves a cluster-part index in the active file.
+ * @param id Zero-based section index, or -1 for no part.
+ * @return Pointer into the in-place part table, or NULL for -1.
+ */
 static HSFPART *SearchPartPtr(s32 id)
 {
     HSFPART *part; 
@@ -1502,6 +1686,11 @@ static HSFPART *SearchPartPtr(s32 id)
     return part;
 }
 
+/**
+ * @brief Resolves a palette index in the fixed-up model table.
+ * @param id Zero-based palette index, or -1 for no palette.
+ * @return Runtime palette pointer, or NULL for -1.
+ */
 static HSFPALETTE *SearchPalettePtr(s32 id)
 {
     HSFPALETTE *palette; 
@@ -1513,6 +1702,11 @@ static HSFPALETTE *SearchPalettePtr(s32 id)
     return palette;
 }
 
+/**
+ * @brief Resolves a bitmap index in the active file.
+ * @param id Zero-based section index, or -1 for no bitmap.
+ * @return Pointer into the in-place bitmap table, or NULL for -1.
+ */
 static HSFBITMAP *SearchBitmapPtr(s32 id)
 {
     HSFBITMAP *bitmap; 
@@ -1524,14 +1718,24 @@ static HSFBITMAP *SearchBitmapPtr(s32 id)
     return bitmap;
 }
 
+/**
+ * @brief Resolves a 32-bit byte offset into the active HSF string table.
+ * @param str_ofs Pointer to the serialized offset.
+ * @return Pointer into StringTable; ownership remains with the file image.
+ */
 static char *GetString(u32 *str_ofs)
 {
-    char *ret = &StringTable[*str_ofs];
-    return ret;
+    char *string = &StringTable[*str_ofs];
+    return string;
 }
 
+/**
+ * @brief Resolves a 16-bit motion-name offset into the active HSF string table.
+ * @param str_ofs Pointer to the serialized offset.
+ * @return Pointer into StringTable; ownership remains with the file image.
+ */
 static char *GetMotionString(u16 *str_ofs)
 {
-    char *ret = &StringTable[*str_ofs];
-    return ret;
+    char *string = &StringTable[*str_ofs];
+    return string;
 }

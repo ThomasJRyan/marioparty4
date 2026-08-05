@@ -1,5 +1,8 @@
 #include "game/THPDraw.h"
 
+/**
+ * @brief Restores the basic GX state expected after drawing a THP frame.
+ */
 void THPGXRestore(void) {
     GXSetZMode(GX_TRUE, GX_ALWAYS, GX_FALSE);
     GXSetBlendMode(GX_BM_NONE, GX_BL_ONE, GX_BL_ZERO, GX_LO_SET);
@@ -20,11 +23,17 @@ void THPGXRestore(void) {
     GXSetTevKAlphaSel(GX_TEVSTAGE1, GX_TEV_KASEL_1);
 }
 
-void THPGXYuv2RgbSetup(GXRenderModeObj *obj, GXColor *arg1, Mtx arg2) {
-    s32 sp2C = obj->fbWidth;
-    s32 sp28 = obj->efbHeight;
-
-    GXLoadPosMtxImm(arg2, GX_PNMTX0);
+/**
+ * @brief Configures GX to convert planar THP YUV textures to RGB.
+ *
+ * @param render_mode Active render-mode description supplying framebuffer dimensions.
+ * @param output_color Color applied by the final TEV stage, including output alpha.
+ * @param position_matrix Position matrix used to draw the video quad.
+ */
+void THPGXYuv2RgbSetup(GXRenderModeObj *render_mode, GXColor *output_color, Mtx position_matrix) {
+    s32 framebuffer_width = render_mode->fbWidth;
+    s32 embedded_framebuffer_height = render_mode->efbHeight;
+    GXLoadPosMtxImm(position_matrix, GX_PNMTX0);
     GXSetCurrentMtx(GX_PNMTX0);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
     GXSetColorUpdate(GX_TRUE);
@@ -69,7 +78,7 @@ void THPGXYuv2RgbSetup(GXRenderModeObj *obj, GXColor *arg1, Mtx arg2) {
     GXSetTevAlphaOp(GX_TEVSTAGE3, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevSwapMode(GX_TEVSTAGE3, GX_TEV_SWAP0, GX_TEV_SWAP0);
     GXSetTevKColorSel(GX_TEVSTAGE3, GX_TEV_KCSEL_K2);
-    GXSetTevColor(GX_TEVREG1, *arg1);
+    GXSetTevColor(GX_TEVREG1, *output_color);
     GXSetTevOrder(GX_TEVSTAGE4, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR_NULL);
     GXSetTevColorIn(GX_TEVSTAGE4, GX_CC_ZERO, GX_CC_CPREV, GX_CC_C1, GX_CC_ZERO);
     GXSetTevColorOp(GX_TEVSTAGE4, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
@@ -82,20 +91,33 @@ void THPGXYuv2RgbSetup(GXRenderModeObj *obj, GXColor *arg1, Mtx arg2) {
     GXSetTevSwapModeTable(GX_TEV_SWAP0, GX_CH_RED, GX_CH_GREEN, GX_CH_BLUE, GX_CH_ALPHA);
 }
 
+/**
+ * @brief Draws a planar YUV420 THP frame as a textured screen-space quad.
+ *
+ * @param yImage Luma image data.
+ * @param uImage First half-resolution chroma plane.
+ * @param vImage Second half-resolution chroma plane.
+ * @param x Left edge of the destination quad.
+ * @param y Top edge of the destination quad.
+ * @param texWidth Source frame width.
+ * @param texHeight Source frame height.
+ * @param polyWidth Destination width.
+ * @param polyHeight Destination height.
+ */
 void THPGXYuv2RgbDraw(u32 *yImage, u32 *uImage, u32 *vImage, s16 x, s16 y, s16 texWidth, s16 texHeight, s16 polyWidth, s16 polyHeight) {
-    GXTexObj sp54;
-    GXTexObj sp34;
-    GXTexObj sp14;
+    GXTexObj y_texture;
+    GXTexObj u_texture;
+    GXTexObj v_texture;
 
-    GXInitTexObj(&sp54, yImage, texWidth, texHeight, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXInitTexObjLOD(&sp54, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
-    GXLoadTexObj(&sp54, GX_TEXMAP0);
-    GXInitTexObj(&sp34, uImage, texWidth >> 1, texHeight >> 1, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXInitTexObjLOD(&sp34, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
-    GXLoadTexObj(&sp34, GX_TEXMAP1);
-    GXInitTexObj(&sp14, vImage, texWidth >> 1, texHeight >> 1, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXInitTexObjLOD(&sp14, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
-    GXLoadTexObj(&sp14, GX_TEXMAP2);
+    GXInitTexObj(&y_texture, yImage, texWidth, texHeight, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GXInitTexObjLOD(&y_texture, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
+    GXLoadTexObj(&y_texture, GX_TEXMAP0);
+    GXInitTexObj(&u_texture, uImage, texWidth >> 1, texHeight >> 1, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GXInitTexObjLOD(&u_texture, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
+    GXLoadTexObj(&u_texture, GX_TEXMAP1);
+    GXInitTexObj(&v_texture, vImage, texWidth >> 1, texHeight >> 1, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GXInitTexObjLOD(&v_texture, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
+    GXLoadTexObj(&v_texture, GX_TEXMAP2);
     GXBegin(GX_QUADS, GX_VTXFMT7, 4);
     GXPosition3s16(x, y, 0);
     GXTexCoord2s16(0, 0);

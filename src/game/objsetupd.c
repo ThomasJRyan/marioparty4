@@ -67,6 +67,12 @@ s16* stepFrameTable[] = {
     stepFrames0
 };
 
+/**
+ * @brief Create models and motions from a terminated setup table.
+ *
+ * @param [in] setupList Entries terminated by `dataNum == -1` for loads and
+ *                       `dataNum == 0` for links/motion assignment.
+ */
 void fn_8003FF68(ModelSetupEntry* setupList) {
     HU3DMODEL* modelData;
     s16 modelId;
@@ -131,6 +137,11 @@ typedef struct SpriteSetupEntry {
     u8 alpha;
 } SpriteSetupEntry;
 
+/**
+ * @brief Create extended sprites from a terminated setup table.
+ *
+ * @param [in] setupList Sprite entries terminated by `dataNum == 0`.
+ */
 void fn_800401D0(SpriteSetupEntry* setupList) {
     s16 spriteId;
     s16 j;
@@ -154,6 +165,9 @@ void fn_800401D0(SpriteSetupEntry* setupList) {
     }
 }
 
+/**
+ * @brief Destroy all sprites recorded in the setup table.
+ */
 void fn_800402FC(void) {
     s16 i;
 
@@ -164,6 +178,16 @@ void fn_800402FC(void) {
     }
 }
 
+/**
+ * @brief Start a child process that plays timed footstep sounds.
+ *
+ * @param [in] tableIdx Row in `stepFrameTable` selecting one character or
+ *                      movement style's footstep-frame pairs.
+ * @param [in] animIdx Pair index within that row; `animIdx * 2` and the next
+ *                     element are the two trigger frames.
+ * @param [in] modelIdx Hu3D model identifier whose active motion is monitored.
+ * @param [in] motionId Motion identifier to monitor.
+ */
 void fn_80040374(s16 tableIdx, s16 animIdx, s16 modelIdx, s16 motionId) {
     HUPROCESS* process;
     FootstepWork* work;
@@ -177,6 +201,10 @@ void fn_80040374(s16 tableIdx, s16 animIdx, s16 modelIdx, s16 motionId) {
     work->motionId = motionId;
 }
 
+/**
+ * @brief Play sound effect zero whenever the monitored motion hits either
+ *        configured footstep frame.
+ */
 void fn_8004040C(void) {
     HU3DMODEL* modelData;
     s16* frames;

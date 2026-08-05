@@ -13,11 +13,19 @@ omDllData *omDLLinfoTbl[OM_DLL_MAX];
 
 static FileListEntry *omDLLFileList;
 
+/**
+ * @brief Emit overlay module diagnostics when enabled.
+ */
 void omDLLDBGOut(void)
 {
 	OSReport("DLL DBG OUT\n");
 }
 
+/**
+ * @brief Initialize the overlay module subsystem.
+ *
+ * @param [in] ovl_list Overlay-indexed REL file table retained by the loader.
+ */
 void omDLLInit(FileListEntry *ovl_list)
 {
 	s32 i;
@@ -28,6 +36,16 @@ void omDLLInit(FileListEntry *ovl_list)
 	omDLLFileList = ovl_list;
 }
 
+/**
+ * @brief Start an overlay module, linking it if necessary.
+ *
+ * @param [in] overlay Index into the retained REL file table selecting the
+ *                     module to reuse or load.
+ * @param [in] flag Nonzero forces a newly linked copy; zero reuses an existing
+ *                  module after clearing BSS and rerunning its prolog.
+ *
+ * @return Slot in `omDLLinfoTbl`, or `-1` when all module slots are occupied.
+ */
 s32 omDLLStart(s16 overlay, s16 flag)
 {
 	s32 dllno;
@@ -58,6 +76,12 @@ s32 omDLLStart(s16 overlay, s16 flag)
 	}
 }
 
+/**
+ * @brief End the loaded module associated with an overlay identifier.
+ *
+ * @param [in] overlay REL file-table index whose matching loaded module is ended.
+ * @param [in] flag `1` unlinks the module; other values only run its epilog.
+ */
 void omDLLNumEnd(s16 overlay, s16 flag)
 {
 	s16 dllno;
@@ -74,6 +98,13 @@ void omDLLNumEnd(s16 overlay, s16 flag)
 	omDLLEnd(dllno, flag);
 }
 
+/**
+ * @brief End a module by loader-table slot.
+ *
+ * @param [in] dllno Slot in `omDLLinfoTbl` whose module is ended or unlinked.
+ * @param [in] flag `1` runs the epilog and unlinks the REL; other values leave
+ *                  it linked after running the epilog.
+ */
 void omDLLEnd(s16 dllno, s16 flag)
 {
 	OSReport("objdll>omDLLEnd %d %d\n", dllno, flag);
@@ -91,6 +122,16 @@ void omDLLEnd(s16 dllno, s16 flag)
 	OSReport("objdll>End DLL finish\n");
 }
 
+/**
+ * @brief Load, link, and optionally start an overlay REL module.
+ *
+ * @param [out] dll_ptr Receives the heap-owned loader record.
+ * @param [in] overlay Index into `omDLLFileList` selecting the REL path to load.
+ * @param [in] flag `1` invokes the module prolog after linking.
+ *
+ * @return Newly allocated loader record; load/link failures are reported by
+ *         lower layers rather than represented by a documented sentinel.
+ */
 omDllData *omDLLLink(omDllData **dll_ptr, s16 overlay, s16 flag)
 {
 	omDllData *dll;
@@ -115,6 +156,12 @@ omDllData *omDLLLink(omDllData **dll_ptr, s16 overlay, s16 flag)
 	return dll;
 }
 
+/**
+ * @brief Optionally run a module epilog, unlink the REL, and free its storage.
+ *
+ * @param [in] dll_ptr Loader record created by omDLLLink(); invalid afterwards.
+ * @param [in] flag `1` invokes the epilog before unlinking.
+ */
 void omDLLUnlink(omDllData *dll_ptr, s16 flag)
 {
 	OSReport("odjdll>Unlink DLL:%s\n", dll_ptr->name);
@@ -131,6 +178,14 @@ void omDLLUnlink(omDllData *dll_ptr, s16 flag)
 	HuMemDirectFree(dll_ptr);
 }
 
+/**
+ * @brief Find the loaded module whose file name matches an overlay.
+ *
+ * @param [in] overlay Index into `omDLLFileList`; its path is matched against
+ *                     loaded records in `omDLLinfoTbl`.
+ *
+ * @return Loader-table slot, or `-1` when that overlay is not loaded.
+ */
 s32 omDLLSearch(s16 overlay)
 {
 	s32 i;
@@ -146,6 +201,11 @@ s32 omDLLSearch(s16 overlay)
 	return -1;
 }
 
+/**
+ * @brief Print diagnostic information for a linked module.
+ *
+ * @param [in] module Linked REL module information to report.
+ */
 void omDLLInfoDump(OSModuleInfo *module)
 {
 	OSReport("===== DLL Module Info dump ====\n");
@@ -160,6 +220,11 @@ void omDLLInfoDump(OSModuleInfo *module)
 	OSReport("===============================\n");
 }
 
+/**
+ * @brief Print a module header for diagnostics.
+ *
+ * @param [in] module Linked REL module header to report.
+ */
 void omDLLHeaderDump(OSModuleHeader *module)
 {
 	OSReport("==== DLL Module Header dump ====\n");

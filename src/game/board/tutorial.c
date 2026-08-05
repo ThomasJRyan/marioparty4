@@ -25,6 +25,9 @@ static void *playerCopy;
 static void *systemCopy;
 static void *gameStatCopy;
 
+/**
+ * @brief Invoke the tutorial frame hook after board initialization on every frame.
+ */
 static void TutorialProcFunc(void) {
     while (1) {
         if (_CheckFlag(FLAG_ID_MAKE(1, 16))) {
@@ -34,6 +37,9 @@ static void TutorialProcFunc(void) {
     }
 }
 
+/**
+ * @brief Reset tutorial controls and start the tutorial hook process in tutorial mode.
+ */
 void BoardTutorialInit(void) {
     boardTutorialDirInputTime = -1;
     boardTutorialBlockF = 0;
@@ -46,6 +52,9 @@ void BoardTutorialInit(void) {
     }
 }
 
+/**
+ * @brief Stop the tutorial hook process and clear its active flag.
+ */
 void BoardTutorialKill(void) {
     if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
         if (tutorialProcess) {
@@ -55,16 +64,28 @@ void BoardTutorialKill(void) {
     }
 }
 
-void BoardTutorialHookSet(void *arg0) {
-    tutorialHook = arg0;
+/**
+ * @brief Install or clear the board-specific tutorial event hook.
+ * @param [in] hook Tutorial callback taking an event code and event-specific integer argument; NULL clears it.
+ */
+void BoardTutorialHookSet(void *hook) {
+    tutorialHook = hook;
 }
 
-void BoardTutorialHookExec(s16 arg0, s32 arg1) {
+/**
+ * @brief Invoke the installed tutorial hook with an event code and event argument.
+ * @param [in] event Tutorial event code forwarded to the installed board hook.
+ * @param [in] event_arg Event-specific integer forwarded unchanged to the tutorial hook.
+ */
+void BoardTutorialHookExec(s16 event, s32 event_arg) {
     if (tutorialHook) {
-        tutorialHook(arg0, arg1);
+        tutorialHook(event, event_arg);
     }
 }
 
+/**
+ * @brief Mark all players as computer-controlled and select the tutorial board.
+ */
 void BoardTutorialPlayerInit(void) {
     s32 i;
 
@@ -75,6 +96,9 @@ void BoardTutorialPlayerInit(void) {
     GWSystem.board = BOARD_ID_TUTORIAL;
 }
 
+/**
+ * @brief Allocate snapshots of global game, board, player, and player-configuration state.
+ */
 void BoardTutorialWorkSave(void) {
     OSReport("-O-O-O-O-O-O-O  Tutorial Save Work\n");
     if (gameStatCopy) {
@@ -99,6 +123,9 @@ void BoardTutorialWorkSave(void) {
     memcpy(playerCfgCopy, GWPlayerCfg, sizeof(GWPlayerCfg));
 }
 
+/**
+ * @brief Restore and free the global-state snapshots created for tutorial mode.
+ */
 void BoardTutorialWorkRestore(void) {
     OSReport("-O-O-O-O-O-O-O  Tutorial Load Work\n");
     memcpy(&GWGameStat, gameStatCopy, sizeof(GWGameStat));
@@ -115,27 +142,50 @@ void BoardTutorialWorkRestore(void) {
     playerCfgCopy = NULL;
 }
 
-void BoardTutorialDirInputSet(s8 arg0, s8 arg1, s16 arg2) {
-    boardTutorialDirInputX = arg0;
-    boardTutorialDirInputY = arg1;
-    boardTutorialDirInputTime = arg2;
+/**
+ * @brief Set the synthetic tutorial stick direction and its duration.
+ * @param [in] input_x Synthetic horizontal stick input.
+ * @param [in] input_y Synthetic vertical stick input.
+ * @param [in] duration Number of frames for which the synthetic direction remains active.
+ */
+void BoardTutorialDirInputSet(s8 input_x, s8 input_y, s16 duration) {
+    boardTutorialDirInputX = input_x;
+    boardTutorialDirInputY = input_y;
+    boardTutorialDirInputTime = duration;
 }
 
-void BoardTutorialBlockSetPos(s32 arg0, s8 arg1) {
+/**
+ * @brief Configure the tutorial block's board position and contained item, then reposition it.
+ * @param [in] space Board-space index at which to place the tutorial block.
+ * @param [in] item Item identifier stored in the tutorial block.
+ */
+void BoardTutorialBlockSetPos(s32 space, s8 item) {
     boardTutorialBlockF = 1;
-    boardTutorialBlockPos = arg0;
-    boardTutorialBlockItem = arg1;
+    boardTutorialBlockPos = space;
+    boardTutorialBlockItem = item;
     BoardSpaceBlockPosSet();
 }
 
-void BoardTutorialItemSet(s8 arg0) {
-    boardTutorialUseItem = arg0;
+/**
+ * @brief Select the item that the tutorial computer player must use next.
+ * @param [in] item Item identifier the tutorial should force the CPU to use, or -1 for none.
+ */
+void BoardTutorialItemSet(s8 item) {
+    boardTutorialUseItem = item;
 }
 
-void BoardTutorialHostSet(s16 arg0) {
-    hostMdl = arg0;
+/**
+ * @brief Store the board-model handle used as the tutorial host.
+ * @param [in] model Board-model handle for the tutorial host.
+ */
+void BoardTutorialHostSet(s16 model) {
+    hostMdl = model;
 }
 
-void BoardTutorialHostHide(s8 arg0) {
-    BoardModelVisibilitySet(hostMdl, arg0);
+/**
+ * @brief Set the tutorial host model's visibility state.
+ * @param [in] visible Nonzero to show the tutorial host; zero to hide it.
+ */
+void BoardTutorialHostHide(s8 visible) {
+    BoardModelVisibilitySet(hostMdl, visible);
 }

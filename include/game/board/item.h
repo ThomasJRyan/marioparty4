@@ -3,11 +3,11 @@
 
 #include "dolphin/types.h"
 
-void BoardItemStart(s32 arg0, s32 arg1);
+void BoardItemStart(s32 player, s32 item);
 BOOL BoardItemDoneCheck(void);
-void BoardItemBagItemSet(s16 *arg0);
+void BoardItemBagItemSet(s16 *items);
 #ifndef __MWERKS__
-void BoardItemPlayerRestore(s32 arg0, s32 arg1);
+void BoardItemPlayerRestore(s32 player, s32 item);
 #endif
 
 #endif

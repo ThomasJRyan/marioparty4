@@ -21,49 +21,49 @@
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 1;
-        u8 unk00_field2 : 3;
-        u8 unk00_field3 : 2;
+        u8 kill_requested : 1;
+        u8 face_change_disabled : 1;
+        u8 state : 3;
+        u8 dice_index : 2;
     };
-    s8 unk01;
-    s8 unk02;
-    char unk03[1];
-    s16 unk04;
-    s16 unk06;
+    s8 face_change_delay;
+    s8 face_change_timer;
+    char padding[1];
+    s16 animation_timer;
+    s16 rotation_angle;
 } DiceWork;
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 1;
-        u8 unk00_field2 : 1;
-        u8 unk00_field3 : 2;
+        u8 kill_requested : 1;
+        u8 move_to_player : 1;
+        u8 state : 1;
+        u8 dice_index : 2;
     };
-    s8 unk01;
-    s16 unk02;
-    s16 unk04[2];
-    float unk08;
+    s8 value;
+    s16 rotation_angle;
+    s16 model_ids[2];
+    float move_fraction;
 } DiceDigitWork;
 
 static void RollMain(void);
-static void DiceCreate(s32 arg0);
-static void DoInput(s32 arg0);
-static void DiceWaitFull(s32 arg0);
-static void DiceSetHit(s32 arg0);
+static void DiceCreate(s32 dice_index);
+static void DoInput(s32 dice_index);
+static void DiceWaitFull(s32 dice_index);
+static void DiceSetHit(s32 dice_index);
 static void RollDestroy(void);
-static void DiceMain(OMOBJ *arg0);
-static void DicePause(s32 arg0);
+static void DiceMain(OMOBJ *object);
+static void DicePause(s32 dice_index);
 static void DicePauseAll(void);
-static void DiceHideEffect(s32 arg0, s32 arg1);
-static void DiceDigitMain(OMOBJ *arg0);
-static void DiceDigitKill(DiceDigitWork *arg0);
+static void DiceHideEffect(s32 dice_index, s32 visible);
+static void DiceDigitMain(OMOBJ *object);
+static void DiceDigitKill(DiceDigitWork *work);
 static void DiceKill(void);
-static void DiceDigitMove(DiceDigitWork *arg0, s32 arg1);
-static void DiceDigitRotate(DiceDigitWork *arg0, s32 arg1);
+static void DiceDigitMove(DiceDigitWork *work, s32 move_to_player);
+static void DiceDigitRotate(DiceDigitWork *work, s32 move_to_player);
 static void SameRollExec(void);
-static s32 GetBtnRoll(s32 arg0);
-static s32 GetComBtnRoll(s32 arg0);
+static s32 GetBtnRoll(s32 player);
+static s32 GetComBtnRoll(s32 player);
 
 static s32 tutorialRoll[3];
 
@@ -96,9 +96,20 @@ static s32 diceDigitMdlTbl[10] = { DATA_MAKE_NUM(DATADIR_BOARD, 0x0C), DATA_MAKE
     DATA_MAKE_NUM(DATADIR_BOARD, 0x0F), DATA_MAKE_NUM(DATADIR_BOARD, 0x10), DATA_MAKE_NUM(DATADIR_BOARD, 0x11), DATA_MAKE_NUM(DATADIR_BOARD, 0x12),
     DATA_MAKE_NUM(DATADIR_BOARD, 0x13), DATA_MAKE_NUM(DATADIR_BOARD, 0x14), DATA_MAKE_NUM(DATADIR_BOARD, 0x15) };
 
-s32 BoardRollExec(s32 arg0)
+/**
+ * @brief Runs one player's dice-roll interaction.
+ *
+ * @details Chooses the dice count and size from the active item and player
+ * state, launches the roll process, and waits for both the process and dice
+ * objects to finish.
+ *
+ * @param player Zero-based player index taking the turn.
+ * @return A positive movement distance, or a negative action code selected by
+ * input: -2 for item selection, -3 for the map, or -4 for the overhead view.
+ */
+s32 BoardRollExec(s32 player)
 {
-    rollPlayer = arg0;
+    rollPlayer = player;
     inputTimer = 0;
     numDice = 1;
     diceSize = 0;
@@ -117,11 +128,11 @@ s32 BoardRollExec(s32 arg0)
             numDice = 3;
             break;
     }
-    if (BoardPlayerSizeGet(arg0) == 1) {
+    if (BoardPlayerSizeGet(player) == 1) {
         diceSize = 1;
         maxRoll = 5;
     }
-    else if (BoardPlayerSizeGet(arg0) == 2) {
+    else if (BoardPlayerSizeGet(player) == 2) {
         diceSize = 2;
         maxRoll = 10;
         if (BoardMegaDoubleDiceCheck() != 0) {
@@ -131,7 +142,7 @@ s32 BoardRollExec(s32 arg0)
     if (GWPlayer[rollPlayer].bowser_suit != 0) {
         diceSize = 3;
     }
-    GWPlayer[arg0].num_dice = numDice;
+    GWPlayer[player].num_dice = numDice;
     rollProc = HuPrcChildCreate(RollMain, 0x2005, 0x6000, 0, boardMainProc);
     HuPrcDestructorSet2(rollProc, RollDestroy);
     while (rollProc != NULL) {
@@ -143,71 +154,82 @@ s32 BoardRollExec(s32 arg0)
     return destMode;
 }
 
-static void RollWinCreate(s32 playerNo)
+/**
+ * @brief Creates the roll prompt window when tutorial mode is inactive.
+ *
+ * @details Selects a prompt based on item availability and prior input, then
+ * positions it according to the current language's layout.
+ *
+ * @param player Zero-based player index whose usable items affect the prompt.
+ */
+static void RollWinCreate(s32 player)
 {
-    float sp8[2];
-    float posX;
-    float posY;
-    s32 var_r29;
-    s32 var_r27;
-    s32 temp_r25;
+    float message_size[2];
+    float window_x;
+    float window_y;
+    s32 message_id;
+    s32 item_count;
+    s32 teammate;
     
     if (!_CheckFlag(FLAG_ID_MAKE(1, 11))) {
-        var_r27 = BoardPlayerItemCount(playerNo);
+        item_count = BoardPlayerItemCount(player);
         if (GWTeamGet()) {
-            temp_r25 = BoardPlayerSameTeamFind(playerNo);
-            var_r27 += BoardPlayerItemCount(temp_r25);
+            teammate = BoardPlayerSameTeamFind(player);
+            item_count += BoardPlayerItemCount(teammate);
         }
-        if (BoardItemPrevGet() != -1 || var_r27 == 0 || _CheckFlag(FLAG_ID_MAKE(1, 9)) || BoardMegaDoubleDiceCheck()) {
-            var_r29 = MAKE_MESSID(0x09, 0x04);
+        if (BoardItemPrevGet() != -1 || item_count == 0 || _CheckFlag(FLAG_ID_MAKE(1, 9)) || BoardMegaDoubleDiceCheck()) {
+            message_id = MAKE_MESSID(0x09, 0x04);
         }
         else {
-            var_r29 = MAKE_MESSID(0x09, 0x02);
+            message_id = MAKE_MESSID(0x09, 0x02);
         }
         if (inputTimer != 0) {
-            var_r29 = MAKE_MESSID(0x30, 0x25);
+            message_id = MAKE_MESSID(0x30, 0x25);
         }
-        HuWinMesMaxSizeGet(1, sp8, var_r29);
+        HuWinMesMaxSizeGet(1, message_size, message_id);
         #if VERSION_PAL
-        posY = HU_DISP_HEIGHT - 176; 
+        window_y = HU_DISP_HEIGHT - 176;
         switch (GWGameStat.language) {
             case 0:
             case 4:
-                posX = -10000.0f;
+                window_x = -10000.0f;
                 break;
             
             case 3:
-                posX = HU_DISP_CENTERX - (sp8[0] / 2 - 32.0f);
+                window_x = HU_DISP_CENTERX - (message_size[0] / 2 - 32.0f);
                 break;
             
             case 5:
-                posX = HU_DISP_CENTERX - (sp8[0] / 2 - 16.0f);
-                posY = 258; 
+                window_x = HU_DISP_CENTERX - (message_size[0] / 2 - 16.0f);
+                window_y = 258;
                 break;
             
             default:
-                posX = HU_DISP_CENTERX - (sp8[0] / 2 - 16.0f);
+                window_x = HU_DISP_CENTERX - (message_size[0] / 2 - 16.0f);
                 break;
         }
         #else
         switch (GWGameStat.language) {
             case 0:
-                posX = -10000.0f;
+                window_x = -10000.0f;
                 break;
             case 1:
-                posX = HU_DISP_CENTERX - (sp8[0] / 2 - 16.0f);
+                window_x = HU_DISP_CENTERX - (message_size[0] / 2 - 16.0f);
                 break;
         }
-        posY = HU_DISP_HEIGHT - 176; 
+        window_y = HU_DISP_HEIGHT - 176;
         #endif
         
-        rollWin = HuWinCreate(posX, posY, sp8[0], sp8[1], 0);
+        rollWin = HuWinCreate(window_x, window_y, message_size[0], message_size[1], 0);
         HuWinBGTPLvlSet(rollWin, 0.0f);
         HuWinMesSpeedSet(rollWin, 0);
-        HuWinMesSet(rollWin, var_r29);
+        HuWinMesSet(rollWin, message_id);
     }
 }
 
+/**
+ * @brief Stops the active roll process and requests destruction of its dice.
+ */
 void BoardRollKill(void)
 {
     if (rollProc) {
@@ -217,26 +239,38 @@ void BoardRollKill(void)
     DiceKill();
 }
 
-void BoardRollUPauseSet(s32 arg0)
+/**
+ * @brief Changes roll UI visibility while the board pause screen is active.
+ *
+ * @param visible Nonzero to show the prompt, value digits, and particle
+ * effects; zero to hide them. The request is ignored when no roll is active.
+ */
+void BoardRollUPauseSet(s32 visible)
 {
     if (!rollProc) {
         return;
     }
-    BoardRollWinDispSet(arg0);
-    BoardDiceVisibleSet(0, arg0);
-    BoardDiceVisibleSet(1, arg0);
-    BoardDiceVisibleSet(2, arg0);
-    DiceHideEffect(0, arg0);
-    DiceHideEffect(1, arg0);
-    DiceHideEffect(2, arg0);
+    BoardRollWinDispSet(visible);
+    BoardDiceVisibleSet(0, visible);
+    BoardDiceVisibleSet(1, visible);
+    BoardDiceVisibleSet(2, visible);
+    DiceHideEffect(0, visible);
+    DiceHideEffect(1, visible);
+    DiceHideEffect(2, visible);
 }
 
-void BoardRollWinDispSet(s32 arg0)
+/**
+ * @brief Shows or hides the current roll prompt window.
+ *
+ * @param visible Nonzero to show the window or zero to hide it. No action is
+ * taken when the window has not been created.
+ */
+void BoardRollWinDispSet(s32 visible)
 {
     if (rollWin == -1) {
         return;
     }
-    if (arg0 != 0) {
+    if (visible != 0) {
         HuWinDispOn(rollWin);
     }
     else {
@@ -244,12 +278,19 @@ void BoardRollWinDispSet(s32 arg0)
     }
 }
 
+/**
+ * @brief Drives dice creation, input, hits, and roll-total presentation.
+ *
+ * @details Processes each die in sequence, awards a same-roll coin bonus when
+ * applicable, moves the resulting digits into the HUD, stores the final roll
+ * on the player, and invokes the tutorial hook.
+ */
 static void RollMain(void)
 {
     
-    s32 var_r28;
+    s32 same_roll;
     
-    s32 var_r30;
+    s32 roll_total;
     
     s32 i;
 
@@ -280,23 +321,23 @@ static void RollMain(void)
             HuPrcVSleep();
         }
     }
-    for (var_r30 = i = 0; i < numDice; i++) {
-        var_r30 += diceValue[i];
+    for (roll_total = i = 0; i < numDice; i++) {
+        roll_total += diceValue[i];
     }
-    var_r28 = 0;
+    same_roll = 0;
     switch (numDice) {
         case 2:
             if (diceValue[0] == diceValue[1]) {
-                var_r28 = 1;
+                same_roll = 1;
             }
             break;
         case 3:
             if (diceValue[0] == diceValue[1] && diceValue[0] == diceValue[2]) {
-                var_r28 = 1;
+                same_roll = 1;
             }
             break;
     }
-    if (var_r28 != 0) {
+    if (same_roll != 0) {
         SameRollExec();
     }
     BoardDicePauseAll();
@@ -306,8 +347,8 @@ static void RollMain(void)
     for (i = 0; i < numDice; i++) {
         BoardDiceStop(i);
     }
-    destMode = var_r30;
-    GWPlayer[rollPlayer].roll = var_r30;
+    destMode = roll_total;
+    GWPlayer[rollPlayer].roll = roll_total;
     BoardRollCreate(rollPlayer, 1);
     if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
         BoardTutorialHookExec(6, 0);
@@ -318,94 +359,108 @@ static void RollMain(void)
     HuPrcEnd();
 }
 
-static void DiceCreate(s32 arg0)
+/**
+ * @brief Creates and positions one animated dice block.
+ *
+ * @param dice_index Zero-based index within the current roll's one to three dice.
+ */
+static void DiceCreate(s32 dice_index)
 {
-    Vec sp1C;
-    float temp_f30;
-    float var_f31;
-    OMOBJ *temp_r31;
-    DiceWork *temp_r30;
-    s32 sp8;
-    s32 spC[4] = { DATA_MAKE_NUM(DATADIR_BOARD, 0x18), DATA_MAKE_NUM(DATADIR_BOARD, 0x19), DATA_MAKE_NUM(DATADIR_BOARD, 0x1A),
+    Vec position;
+    float initial_face;
+    float height_offset;
+    OMOBJ *object;
+    DiceWork *work;
+    s32 unused_value;
+    s32 dice_model_resources[4] = { DATA_MAKE_NUM(DATADIR_BOARD, 0x18), DATA_MAKE_NUM(DATADIR_BOARD, 0x19), DATA_MAKE_NUM(DATADIR_BOARD, 0x1A),
         DATA_MAKE_NUM(DATADIR_BOARD, 0x1B) };
 
-    sp8 = 0;
-    diceMdl[arg0] = BoardModelCreate(spC[diceSize], NULL, 0);
-    temp_f30 = BoardRandMod(maxRoll) + 0.5f;
-    BoardPlayerPosGet(rollPlayer, &sp1C);
+    unused_value = 0;
+    diceMdl[dice_index] = BoardModelCreate(dice_model_resources[diceSize], NULL, 0);
+    initial_face = BoardRandMod(maxRoll) + 0.5f;
+    BoardPlayerPosGet(rollPlayer, &position);
     HuAudFXPlay(0x302);
-    BoardModelMotionStart(diceMdl[arg0], 0, 0);
-    BoardModelMotionSpeedSet(diceMdl[arg0], 0.0f);
-    BoardModelMotionTimeSet(diceMdl[arg0], temp_f30);
-    BoardModelScaleSet(diceMdl[arg0], 0.001f, 0.001f, 0.001f);
-    temp_r31 = omAddObjEx(boardObjMan, 0x102, 0, 0, -1, DiceMain);
-    temp_r30 = omObjGetWork(temp_r31, DiceWork);
-    temp_r30->unk00_field0 = 0;
-    temp_r30->unk00_field1 = 0;
-    temp_r30->unk00_field2 = 0;
-    temp_r30->unk00_field3 = arg0;
-    temp_r30->unk04 = 0;
-    temp_r30->unk01 = 4;
-    temp_r30->unk02 = 0;
-    diceObj[arg0] = temp_r31;
-    var_f31 = 250.0f;
+    BoardModelMotionStart(diceMdl[dice_index], 0, 0);
+    BoardModelMotionSpeedSet(diceMdl[dice_index], 0.0f);
+    BoardModelMotionTimeSet(diceMdl[dice_index], initial_face);
+    BoardModelScaleSet(diceMdl[dice_index], 0.001f, 0.001f, 0.001f);
+    object = omAddObjEx(boardObjMan, 0x102, 0, 0, -1, DiceMain);
+    work = omObjGetWork(object, DiceWork);
+    work->kill_requested = 0;
+    work->face_change_disabled = 0;
+    work->state = 0;
+    work->dice_index = dice_index;
+    work->animation_timer = 0;
+    work->face_change_delay = 4;
+    work->face_change_timer = 0;
+    diceObj[dice_index] = object;
+    height_offset = 250.0f;
     if (diceSize == 2) {
-        var_f31 = 625.0f;
+        height_offset = 625.0f;
     }
     else if (GWPlayer[rollPlayer].bowser_suit != 0) {
-        var_f31 = 575.0f;
+        height_offset = 575.0f;
     }
-    sp1C.y += var_f31;
-    temp_r31->trans.x = sp1C.x;
-    temp_r31->trans.y = sp1C.y;
-    temp_r31->trans.z = sp1C.z;
-    temp_r31->scale.x = 0.1f;
-    temp_r31->scale.y = 0.1f;
-    temp_r31->scale.z = 0.1f;
-    sp1C.z += 70.0f;
+    position.y += height_offset;
+    object->trans.x = position.x;
+    object->trans.y = position.y;
+    object->trans.z = position.z;
+    object->scale.x = 0.1f;
+    object->scale.y = 0.1f;
+    object->scale.z = 0.1f;
+    position.z += 70.0f;
 }
 
-static void DoInput(s32 arg0)
+/**
+ * @brief Waits for the player or CPU to choose a roll action.
+ *
+ * @details A roll press advances the dice hit sequence. Before the first die,
+ * item selection and the two board-view actions set negative destination codes.
+ *
+ * @param dice_index Index of the die awaiting input; retained for the original
+ * call interface but not read by this routine.
+ */
+static void DoInput(s32 dice_index)
 {
-    s32 var_r31;
-    s32 var_r30;
-    u16 sp8[1];
+    s32 item_count;
+    s32 teammate;
+    u16 buttons[1];
 
     destMode = 0;
     lbl_801D4098 = 0;
     while (1) {
         HuPrcVSleep();
-        *sp8 = GetBtnRoll(rollPlayer);
+        *buttons = GetBtnRoll(rollPlayer);
         if (BoardPauseActiveCheck()) {
-            *sp8 = 0;
+            *buttons = 0;
             continue;
         }
-        if (*sp8 == 0x100) {
+        if (*buttons == 0x100) {
             inputTimer++;
             break;
         }
         if (inputTimer == 0) {
-            if (*sp8 == 0x10) {
+            if (*buttons == 0x10) {
                 destMode = -3;
                 HuAudFXPlay(1);
                 break;
             }
-            if (*sp8 == 0x20) {
+            if (*buttons == 0x20) {
                 destMode = -4;
                 HuAudFXPlay(1);
                 break;
             }
-            var_r31 = BoardPlayerItemCount(rollPlayer);
+            item_count = BoardPlayerItemCount(rollPlayer);
             if (GWTeamGet()) {
-                var_r30 = BoardPlayerSameTeamFind(rollPlayer);
-                var_r31 += BoardPlayerItemCount(var_r30);
+                teammate = BoardPlayerSameTeamFind(rollPlayer);
+                item_count += BoardPlayerItemCount(teammate);
             }
-            if (var_r31 == 0 || BoardItemPrevGet() != -1 || BoardMegaDoubleDiceCheck() || _CheckFlag(FLAG_ID_MAKE(1, 9))) {
-                if (_CheckFlag(FLAG_ID_MAKE(1, 9)) && GWBoardGet() == BOARD_ID_MAIN6 && *sp8 == 0x200 && var_r31 != 0) {
+            if (item_count == 0 || BoardItemPrevGet() != -1 || BoardMegaDoubleDiceCheck() || _CheckFlag(FLAG_ID_MAKE(1, 9))) {
+                if (_CheckFlag(FLAG_ID_MAKE(1, 9)) && GWBoardGet() == BOARD_ID_MAIN6 && *buttons == 0x200 && item_count != 0) {
                     HuAudFXPlay(4);
                 }
             }
-            else if (*sp8 == 0x200) {
+            else if (*buttons == 0x200) {
                 destMode = -2;
                 HuAudFXPlay(3);
                 BoardPauseDisableSet(1);
@@ -415,29 +470,45 @@ static void DoInput(s32 arg0)
     }
 }
 
-static void DiceWaitFull(s32 arg0)
+/**
+ * @brief Waits until one dice block finishes its entrance animation.
+ *
+ * @param dice_index Zero-based index of the dice object to wait for.
+ */
+static void DiceWaitFull(s32 dice_index)
 {
-    DiceWork *temp_r31 = omObjGetWork(diceObj[arg0], DiceWork);
+    DiceWork *work = omObjGetWork(diceObj[dice_index], DiceWork);
 
-    while (temp_r31->unk00_field2 != 1) {
+    while (work->state != 1) {
         HuPrcVSleep();
     }
 }
 
-static void DiceSetHit(s32 arg0)
+/**
+ * @brief Starts a dice block's hit animation and captures its face value.
+ *
+ * @details The visible motion frame becomes a value from 1 through maxRoll,
+ * unless a nonnegative tutorial value overrides it.
+ *
+ * @param dice_index Zero-based index of the struck die.
+ */
+static void DiceSetHit(s32 dice_index)
 {
-    DiceWork *temp_r30 = omObjGetWork(diceObj[arg0], DiceWork);
+    DiceWork *work = omObjGetWork(diceObj[dice_index], DiceWork);
 
-    temp_r30->unk00_field2 = 2;
-    temp_r30->unk04 = 0;
-    BoardModelMotionSpeedSet(diceMdl[arg0], 0.0f);
-    diceValue[arg0] = (s32)BoardModelMotionTimeGet(diceMdl[arg0]) + 1;
-    if (tutorialRollF != 0 && tutorialRoll[arg0] != -1) {
-        BoardModelMotionTimeSet(diceMdl[arg0], tutorialRoll[arg0] - 1);
-        diceValue[arg0] = tutorialRoll[arg0];
+    work->state = 2;
+    work->animation_timer = 0;
+    BoardModelMotionSpeedSet(diceMdl[dice_index], 0.0f);
+    diceValue[dice_index] = (s32)BoardModelMotionTimeGet(diceMdl[dice_index]) + 1;
+    if (tutorialRollF != 0 && tutorialRoll[dice_index] != -1) {
+        BoardModelMotionTimeSet(diceMdl[dice_index], tutorialRoll[dice_index] - 1);
+        diceValue[dice_index] = tutorialRoll[dice_index];
     }
 }
 
+/**
+ * @brief Releases windows, dice, confetti, and process state for a roll.
+ */
 static void RollDestroy(void)
 {
     if (rollWin != -1) {
@@ -453,139 +524,152 @@ static void RollDestroy(void)
     rollProc = NULL;
 }
 
-static void DiceMain(OMOBJ *arg0)
+/**
+ * @brief Updates a dice block's entrance, idle spin, hit, and cleanup states.
+ *
+ * @param object Dice object whose transform and DiceWork state are updated.
+ */
+static void DiceMain(OMOBJ *object)
 {
-    DiceWork *temp_r29 = omObjGetWork(arg0, DiceWork);
-    float temp_f29;
-    float var_f28;
-    float var_f27;
-    s16 temp_r26;
-    s16 temp_r27;
+    DiceWork *work = omObjGetWork(object, DiceWork);
+    float angle;
+    float scale_amplitude;
+    float scale_base;
+    s16 current_face;
+    s16 next_face;
 
-    if (temp_r29->unk00_field0 != 0 || BoardIsKill()) {
-        if (diceSndStatus[temp_r29->unk00_field3] != -1) {
-            HuAudFXStop(diceSndStatus[temp_r29->unk00_field3]);
-            diceSndStatus[temp_r29->unk00_field3] = -1;
+    if (work->kill_requested != 0 || BoardIsKill()) {
+        if (diceSndStatus[work->dice_index] != -1) {
+            HuAudFXStop(diceSndStatus[work->dice_index]);
+            diceSndStatus[work->dice_index] = -1;
         }
-        if (diceMdl[temp_r29->unk00_field3] != -1) {
-            BoardModelKill(diceMdl[temp_r29->unk00_field3]);
-            diceMdl[temp_r29->unk00_field3] = -1;
+        if (diceMdl[work->dice_index] != -1) {
+            BoardModelKill(diceMdl[work->dice_index]);
+            diceMdl[work->dice_index] = -1;
         }
-        if (diceEff[temp_r29->unk00_field3] != -1) {
-            Hu3DParManKill(diceEff[temp_r29->unk00_field3]);
-            diceEff[temp_r29->unk00_field3] = -1;
+        if (diceEff[work->dice_index] != -1) {
+            Hu3DParManKill(diceEff[work->dice_index]);
+            diceEff[work->dice_index] = -1;
         }
-        DicePause(temp_r29->unk00_field3);
-        diceObj[temp_r29->unk00_field3] = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        DicePause(work->dice_index);
+        diceObj[work->dice_index] = NULL;
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
-    switch (temp_r29->unk00_field2) {
+    switch (work->state) {
         case 0:
-            if (temp_r29->unk06 >= 0x438) {
-                temp_r29->unk00_field2 = 1;
-                arg0->scale.x = arg0->scale.y = arg0->scale.z = 1.0f;
-                arg0->rot.y = temp_r29->unk04 = 0;
+            if (work->rotation_angle >= 0x438) {
+                work->state = 1;
+                object->scale.x = object->scale.y = object->scale.z = 1.0f;
+                object->rot.y = work->animation_timer = 0;
             }
             else {
-                if (temp_r29->unk04 == 0 && diceSndStatus[temp_r29->unk00_field3] == -1) {
-                    diceSndStatus[temp_r29->unk00_field3] = HuAudFXPlay(0x300);
+                if (work->animation_timer == 0 && diceSndStatus[work->dice_index] == -1) {
+                    diceSndStatus[work->dice_index] = HuAudFXPlay(0x300);
                 }
-                arg0->rot.y = temp_r29->unk06 % 360;
-                temp_r29->unk06 += 0x19;
-                if (temp_r29->unk04 < 0xB4) {
-                    var_f27 = 0.0f;
-                    var_f28 = 1.0f;
+                object->rot.y = work->rotation_angle % 360;
+                work->rotation_angle += 0x19;
+                if (work->animation_timer < 0xB4) {
+                    scale_base = 0.0f;
+                    scale_amplitude = 1.0f;
                 }
                 else {
-                    var_f27 = 1.0f;
-                    var_f28 = 0.5f;
+                    scale_base = 1.0f;
+                    scale_amplitude = 0.5f;
                 }
-                arg0->scale.x = var_f27 + var_f28 * sind((float)(temp_r29->unk04 % 180));
-                arg0->scale.y = arg0->scale.x;
-                arg0->scale.z = arg0->scale.x;
-                if (temp_r29->unk04 <= 360) {
-                    if (temp_r29->unk04 < 0xB4) {
-                        temp_r29->unk04 += 6;
+                object->scale.x = scale_base + scale_amplitude * sind((float)(work->animation_timer % 180));
+                object->scale.y = object->scale.x;
+                object->scale.z = object->scale.x;
+                if (work->animation_timer <= 360) {
+                    if (work->animation_timer < 0xB4) {
+                        work->animation_timer += 6;
                     }
                     else {
-                        temp_r29->unk04 += 0x12;
+                        work->animation_timer += 0x12;
                     }
-                    if (temp_r29->unk04 > 360) {
-                        temp_r29->unk04 = 360;
+                    if (work->animation_timer > 360) {
+                        work->animation_timer = 360;
                     }
                 }
             }
             break;
         case 1:
-            temp_r29->unk04 += 4;
-            if (temp_r29->unk04 > 360) {
-                temp_r29->unk04 -= 360;
+            work->animation_timer += 4;
+            if (work->animation_timer > 360) {
+                work->animation_timer -= 360;
             }
-            OSs16tof32(&temp_r29->unk04, &temp_f29);
-            arg0->trans.y += 0.2f * sind(temp_f29);
+            OSs16tof32(&work->animation_timer, &angle);
+            object->trans.y += 0.2f * sind(angle);
             break;
         case 2:
-            temp_r29->unk04++;
-            if (temp_r29->unk04 >= 8) {
-                if (diceSndStatus[temp_r29->unk00_field3] != -1) {
-                    HuAudFXStop(diceSndStatus[temp_r29->unk00_field3]);
-                    diceSndStatus[temp_r29->unk00_field3] = -1;
+            work->animation_timer++;
+            if (work->animation_timer >= 8) {
+                if (diceSndStatus[work->dice_index] != -1) {
+                    HuAudFXStop(diceSndStatus[work->dice_index]);
+                    diceSndStatus[work->dice_index] = -1;
                 }
                 HuAudFXPlay(0x303);
                 HuAudFXPlay(0x30C);
-                temp_r29->unk00_field2 = 3;
-                temp_r29->unk04 = 0;
-                BoardDiceValueSet(temp_r29->unk00_field3, diceValue[temp_r29->unk00_field3]);
-                diceEff[temp_r29->unk00_field3] = BoardDiceEffectCreate();
-                Hu3DParManPosSet(diceEff[temp_r29->unk00_field3], arg0->trans.x, arg0->trans.y, arg0->trans.z);
-                BoardModelVisibilitySet(diceMdl[temp_r29->unk00_field3], 0);
+                work->state = 3;
+                work->animation_timer = 0;
+                BoardDiceValueSet(work->dice_index, diceValue[work->dice_index]);
+                diceEff[work->dice_index] = BoardDiceEffectCreate();
+                Hu3DParManPosSet(diceEff[work->dice_index], object->trans.x, object->trans.y, object->trans.z);
+                BoardModelVisibilitySet(diceMdl[work->dice_index], 0);
             }
             else {
-                OSs16tof32(&temp_r29->unk04, &temp_f29);
-                if (temp_r29->unk04 < 4) {
-                    arg0->trans.y += 10.0f + (0.5f * temp_f29);
-                    arg0->scale.x += 0.1f * sind(4.0f * temp_f29);
-                    arg0->scale.y = arg0->scale.x;
-                    arg0->scale.z = arg0->scale.x;
+                OSs16tof32(&work->animation_timer, &angle);
+                if (work->animation_timer < 4) {
+                    object->trans.y += 10.0f + (0.5f * angle);
+                    object->scale.x += 0.1f * sind(4.0f * angle);
+                    object->scale.y = object->scale.x;
+                    object->scale.z = object->scale.x;
                 }
                 else {
-                    BoardModelAlphaSet(diceMdl[temp_r29->unk00_field3], 0xFF - (temp_r29->unk04 << 5));
+                    BoardModelAlphaSet(diceMdl[work->dice_index], 0xFF - (work->animation_timer << 5));
                 }
-                arg0->trans.y += -0.49f * temp_f29 * temp_f29;
+                object->trans.y += -0.49f * angle * angle;
             }
             break;
         case 3:
             break;
     }
-    if (diceEff[temp_r29->unk00_field3] != -1 && ++temp_r29->unk04 >= 150) {
-        temp_r29->unk00_field0 = 1;
-        DiceHideEffect(temp_r29->unk00_field3, 0);
+    if (diceEff[work->dice_index] != -1 && ++work->animation_timer >= 150) {
+        work->kill_requested = 1;
+        DiceHideEffect(work->dice_index, 0);
     }
-    if (temp_r29->unk00_field1 == 0 || temp_r29->unk00_field2 != 3) {
-        if (temp_r29->unk02++ > temp_r29->unk01) {
-            temp_r29->unk02 = 0;
-            temp_r26 = BoardModelMotionTimeGet(diceMdl[temp_r29->unk00_field3]);
+    if (work->face_change_disabled == 0 || work->state != 3) {
+        if (work->face_change_timer++ > work->face_change_delay) {
+            work->face_change_timer = 0;
+            current_face = BoardModelMotionTimeGet(diceMdl[work->dice_index]);
             do {
-                temp_r27 = BoardRandMod(maxRoll);
-            } while (temp_r27 == temp_r26);
-            BoardModelMotionTimeSet(diceMdl[temp_r29->unk00_field3], temp_r27 + 0.5f);
+                next_face = BoardRandMod(maxRoll);
+            } while (next_face == current_face);
+            BoardModelMotionTimeSet(diceMdl[work->dice_index], next_face + 0.5f);
         }
     }
-    BoardModelPosSet(diceMdl[temp_r29->unk00_field3], arg0->trans.x, arg0->trans.y, arg0->trans.z);
-    BoardModelRotSet(diceMdl[temp_r29->unk00_field3], arg0->rot.x, arg0->rot.y, arg0->rot.z);
-    BoardModelScaleSet(diceMdl[temp_r29->unk00_field3], arg0->scale.x, arg0->scale.y, arg0->scale.z);
+    BoardModelPosSet(diceMdl[work->dice_index], object->trans.x, object->trans.y, object->trans.z);
+    BoardModelRotSet(diceMdl[work->dice_index], object->rot.x, object->rot.y, object->rot.z);
+    BoardModelScaleSet(diceMdl[work->dice_index], object->scale.x, object->scale.y, object->scale.z);
 }
 
-static void DicePause(s32 arg0)
+/**
+ * @brief Requests cleanup of one dice block object.
+ *
+ * @param dice_index Zero-based dice slot; empty slots are ignored.
+ */
+static void DicePause(s32 dice_index)
 {
-    OMOBJ *temp_r31 = diceObj[arg0];
+    OMOBJ *object = diceObj[dice_index];
 
-    if (temp_r31) {
-        omObjGetWork(temp_r31, DiceWork)->unk00_field0 = 1;
+    if (object) {
+        omObjGetWork(object, DiceWork)->kill_requested = 1;
     }
 }
 
+/**
+ * @brief Requests cleanup of all three possible dice block objects.
+ */
 static void DicePauseAll(void)
 {
     DicePause(0);
@@ -593,66 +677,88 @@ static void DicePauseAll(void)
     DicePause(2);
 }
 
+/**
+ * @brief Creates the particle burst displayed when a die is struck.
+ *
+ * @return Particle-manager ID for subsequent positioning, visibility, or cleanup.
+ */
 s16 BoardDiceEffectCreate(void)
 {
-    s16 temp_r31;
-    s16 temp_r30;
-    ANIMDATA *temp_r29;
-    void *temp_r28;
+    s16 particle_manager;
+    s16 model_id;
+    ANIMDATA *animation;
+    void *animation_data;
 
-    temp_r28 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_BOARD, 0x6B), HU_MEMNUM_OVL, HEAP_MODEL);
-    temp_r29 = HuSprAnimRead(temp_r28);
-    temp_r31 = Hu3DParManCreate(temp_r29, 0x64, &diceEffParam);
-    Hu3DParManAttrSet(temp_r31, 0x108);
-    Hu3DParManRotSet(temp_r31, 0.0f, 0.0f, 0.0f);
-    Hu3DParManVecSet(temp_r31, 0.0f, 0.4f, 0.2f);
-    Hu3DParManTimeLimitSet(temp_r31, 0x96);
-    temp_r30 = Hu3DParManModelIDGet(temp_r31);
-    Hu3DModelLayerSet(temp_r30, 1);
-    Hu3DParticleBlendModeSet(temp_r30, 0);
-    return temp_r31;
+    animation_data = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_BOARD, 0x6B), HU_MEMNUM_OVL, HEAP_MODEL);
+    animation = HuSprAnimRead(animation_data);
+    particle_manager = Hu3DParManCreate(animation, 0x64, &diceEffParam);
+    Hu3DParManAttrSet(particle_manager, 0x108);
+    Hu3DParManRotSet(particle_manager, 0.0f, 0.0f, 0.0f);
+    Hu3DParManVecSet(particle_manager, 0.0f, 0.4f, 0.2f);
+    Hu3DParManTimeLimitSet(particle_manager, 0x96);
+    model_id = Hu3DParManModelIDGet(particle_manager);
+    Hu3DModelLayerSet(model_id, 1);
+    Hu3DParticleBlendModeSet(model_id, 0);
+    return particle_manager;
 }
 
-static void DiceHideEffect(s32 arg0, s32 arg1)
+/**
+ * @brief Shows or hides one die's particle effect model.
+ *
+ * @param dice_index Zero-based dice slot containing the particle manager ID.
+ * @param visible Nonzero to show the effect or zero to hide it.
+ */
+static void DiceHideEffect(s32 dice_index, s32 visible)
 {
-    s16 temp_r31;
+    s16 model_id;
 
-    if (diceEff[arg0] == -1) {
+    if (diceEff[dice_index] == -1) {
         return;
     }
-    temp_r31 = Hu3DParManModelIDGet(diceEff[arg0]);
-    if (arg1 != 0) {
-        Hu3DModelAttrReset(temp_r31, HU3D_ATTR_DISPOFF);
+    model_id = Hu3DParManModelIDGet(diceEff[dice_index]);
+    if (visible != 0) {
+        Hu3DModelAttrReset(model_id, HU3D_ATTR_DISPOFF);
     }
     else {
-        Hu3DModelAttrSet(temp_r31, HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(model_id, HU3D_ATTR_DISPOFF);
     }
 }
 
+/**
+ * @brief Moves all active roll-value digits toward the player display target.
+ *
+ * @details Also resets their Y rotation so BoardDiceDoneCheck() can report
+ * completion after the movement interpolation settles.
+ */
 void BoardDicePauseAll(void)
 {
-    DiceDigitWork *temp_r30;
+    DiceDigitWork *work;
     s32 i;
 
     for (i = 0; i < numDice; i++) {
         if (diceDigitObj[i]) {
-            temp_r30 = omObjGetWork(diceDigitObj[i], DiceDigitWork);
-            temp_r30->unk00_field1 = 1;
-            temp_r30->unk00_field2 = 1;
-            temp_r30->unk02 = 0;
+            work = omObjGetWork(diceDigitObj[i], DiceDigitWork);
+            work->move_to_player = 1;
+            work->state = 1;
+            work->rotation_angle = 0;
         }
     }
 }
 
+/**
+ * @brief Checks whether every active roll-value digit has reached its target.
+ *
+ * @return TRUE when no active digit object is still moving; otherwise FALSE.
+ */
 BOOL BoardDiceDoneCheck(void)
 {
-    DiceDigitWork *temp_r30;
+    DiceDigitWork *work;
     s32 i;
 
     for (i = 0; i < numDice; i++) {
         if (diceDigitObj[i]) {
-            temp_r30 = omObjGetWork(diceDigitObj[i], DiceDigitWork);
-            if (temp_r30->unk00_field2 != 0) {
+            work = omObjGetWork(diceDigitObj[i], DiceDigitWork);
+            if (work->state != 0) {
                 return FALSE;
             }
         }
@@ -660,257 +766,313 @@ BOOL BoardDiceDoneCheck(void)
     return TRUE;
 }
 
-void BoardDiceStop(s32 arg0)
+/**
+ * @brief Requests destruction of one roll-value digit object.
+ *
+ * @param dice_index Zero-based digit-object slot; empty slots are ignored.
+ */
+void BoardDiceStop(s32 dice_index)
 {
-    DiceDigitWork *temp_r31;
+    DiceDigitWork *work;
 
-    if (!diceDigitObj[arg0]) {
+    if (!diceDigitObj[dice_index]) {
         return;
     }
-    temp_r31 = omObjGetWork(diceDigitObj[arg0], DiceDigitWork);
-    temp_r31->unk00_field0 = 1;
+    work = omObjGetWork(diceDigitObj[dice_index], DiceDigitWork);
+    work->kill_requested = 1;
 }
 
-void BoardDiceVisibleSet(s32 arg0, s32 arg1)
+/**
+ * @brief Sets visibility of one roll result's digit models.
+ *
+ * @param dice_index Zero-based digit-object slot.
+ * @param visible Visibility value passed to BoardModelVisibilitySet(). The tens
+ * digit remains hidden for values below 10.
+ */
+void BoardDiceVisibleSet(s32 dice_index, s32 visible)
 {
-    DiceDigitWork *temp_r31;
+    DiceDigitWork *work;
 
-    if (!diceDigitObj[arg0]) {
+    if (!diceDigitObj[dice_index]) {
         return;
     }
-    temp_r31 = omObjGetWork(diceDigitObj[arg0], DiceDigitWork);
-    if ((temp_r31->unk01 / 10) == 0) {
-        BoardModelVisibilitySet(temp_r31->unk04[1], 0);
+    work = omObjGetWork(diceDigitObj[dice_index], DiceDigitWork);
+    if ((work->value / 10) == 0) {
+        BoardModelVisibilitySet(work->model_ids[1], 0);
     }
     else {
-        BoardModelVisibilitySet(temp_r31->unk04[1], arg1);
+        BoardModelVisibilitySet(work->model_ids[1], visible);
     }
-    BoardModelVisibilitySet(temp_r31->unk04[0], arg1);
+    BoardModelVisibilitySet(work->model_ids[0], visible);
 }
 
-void BoardDiceValueSet(s32 arg0, s32 arg1)
+/**
+ * @brief Creates the one- or two-digit model for a rolled value.
+ *
+ * @details Values above 99 are clamped to 99. The models begin above the
+ * current player and are later moved into their HUD positions.
+ *
+ * @param dice_index Zero-based slot associated with the source die.
+ * @param value Rolled value to display; expected to be nonnegative and capped
+ * to two decimal digits by this routine.
+ */
+void BoardDiceValueSet(s32 dice_index, s32 value)
 {
-    OMOBJ *temp_r27;
-    DiceDigitWork *temp_r31;
-    Vec spC;
-    s16 sp8[2];
-    s16 temp_r30;
+    OMOBJ *object;
+    DiceDigitWork *work;
+    Vec position;
+    s16 digits[2];
+    s16 model_id;
     s16 i;
 
-    if (arg1 > 0x63) {
-        arg1 = 0x63;
+    if (value > 0x63) {
+        value = 0x63;
     }
-    sp8[0] = (arg1 % 10);
-    sp8[1] = (arg1 / 10);
-    BoardPlayerPosGet(GWSystem.player_curr, &spC);
-    spC.y += 300.0f;
-    temp_r27 = omAddObjEx(boardObjMan, 0x102, 0, 0, -1, DiceDigitMain);
-    temp_r31 = omObjGetWork(temp_r27, DiceDigitWork);
-    temp_r31->unk00_field0 = 0;
-    temp_r31->unk00_field1 = 0;
-    temp_r31->unk00_field2 = 0;
-    temp_r31->unk00_field3 = arg0;
-    temp_r31->unk08 = 0.3f;
-    temp_r31->unk01 = arg1;
-    temp_r31->unk02 = 360;
+    digits[0] = (value % 10);
+    digits[1] = (value / 10);
+    BoardPlayerPosGet(GWSystem.player_curr, &position);
+    position.y += 300.0f;
+    object = omAddObjEx(boardObjMan, 0x102, 0, 0, -1, DiceDigitMain);
+    work = omObjGetWork(object, DiceDigitWork);
+    work->kill_requested = 0;
+    work->move_to_player = 0;
+    work->state = 0;
+    work->dice_index = dice_index;
+    work->move_fraction = 0.3f;
+    work->value = value;
+    work->rotation_angle = 360;
     for (i = 0; i < 2; i++) {
-        temp_r30 = BoardModelCreate(diceDigitMdlTbl[sp8[i]], NULL, 0);
-        BoardModelPosSetV(temp_r30, &spC);
-        BoardModelMotionStart(temp_r30, 0, 0);
-        BoardModelMotionSpeedSet(temp_r30, 0.0f);
-        BoardModelMotionTimeSet(temp_r30, 0.0f);
-        BoardModelScaleSet(temp_r30, 0.143f, 0.143f, 0.143f);
-        temp_r31->unk04[i] = temp_r30;
+        model_id = BoardModelCreate(diceDigitMdlTbl[digits[i]], NULL, 0);
+        BoardModelPosSetV(model_id, &position);
+        BoardModelMotionStart(model_id, 0, 0);
+        BoardModelMotionSpeedSet(model_id, 0.0f);
+        BoardModelMotionTimeSet(model_id, 0.0f);
+        BoardModelScaleSet(model_id, 0.143f, 0.143f, 0.143f);
+        work->model_ids[i] = model_id;
     }
-    if (sp8[1] == 0) {
-        BoardModelVisibilitySet(temp_r31->unk04[1], 0);
+    if (digits[1] == 0) {
+        BoardModelVisibilitySet(work->model_ids[1], 0);
     }
-    diceDigitObj[arg0] = temp_r27;
+    diceDigitObj[dice_index] = object;
 }
 
-static void DiceDigitMain(OMOBJ *arg0)
+/**
+ * @brief Updates movement and rotation for one roll-value digit object.
+ *
+ * @param object Digit object whose DiceDigitWork state is updated.
+ */
+static void DiceDigitMain(OMOBJ *object)
 {
-    DiceDigitWork *temp_r31 = omObjGetWork(arg0, DiceDigitWork);
+    DiceDigitWork *work = omObjGetWork(object, DiceDigitWork);
 
-    if (temp_r31->unk00_field0 != 0 || BoardIsKill()) {
-        DiceDigitKill(temp_r31);
-        diceDigitObj[temp_r31->unk00_field3] = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+    if (work->kill_requested != 0 || BoardIsKill()) {
+        DiceDigitKill(work);
+        diceDigitObj[work->dice_index] = NULL;
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
-    DiceDigitMove(temp_r31, temp_r31->unk00_field1);
-    DiceDigitRotate(temp_r31, temp_r31->unk00_field1);
+    DiceDigitMove(work, work->move_to_player);
+    DiceDigitRotate(work, work->move_to_player);
 }
 
-static void DiceDigitKill(DiceDigitWork *arg0)
+/**
+ * @brief Destroys both model slots owned by a roll-value digit object.
+ *
+ * @param work Digit state containing the model IDs to destroy.
+ */
+static void DiceDigitKill(DiceDigitWork *work)
 {
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        if (arg0->unk04[i] != -1) {
-            BoardModelKill(arg0->unk04[i]);
+        if (work->model_ids[i] != -1) {
+            BoardModelKill(work->model_ids[i]);
         }
     }
 }
 
+/**
+ * @brief Immediately destroys models for all active roll-value digit objects.
+ */
 static void DiceKill(void)
 {
-    DiceDigitWork *temp_r29;
+    DiceDigitWork *work;
     s32 i;
 
     for (i = 0; i < 3; i++) {
         if (diceDigitObj[i]) {
-            temp_r29 = omObjGetWork(diceDigitObj[i], DiceDigitWork);
-            DiceDigitKill(temp_r29);
+            work = omObjGetWork(diceDigitObj[i], DiceDigitWork);
+            DiceDigitKill(work);
         }
     }
 }
 
-static void DiceDigitMove(DiceDigitWork *arg0, s32 arg1)
+/**
+ * @brief Interpolates roll-value digit models toward a screen-layout target.
+ *
+ * @param work Digit state containing value, dice index, models, and movement status.
+ * @param move_to_player Nonzero to use the shared player-display target; zero
+ * to use the one-, two-, or three-dice result layout.
+ */
+static void DiceDigitMove(DiceDigitWork *work, s32 move_to_player)
 {
-    s32 sp8 = 0;
-    Vec sp30;
-    Vec sp24;
-    Vec sp54[2];
-    Vec sp18 = { (HU_DISP_WIDTH / 2), (HU_DISP_HEIGHT * 155) / 480, 240.0f };
-    Vec sp3C[2]
+    s32 unused_value = 0;
+    Vec current_pos;
+    Vec offset;
+    Vec target_positions[2];
+    Vec single_dice_pos = { (HU_DISP_WIDTH / 2), (HU_DISP_HEIGHT * 155) / 480, 240.0f };
+    Vec two_dice_positions[2]
         = { { (HU_DISP_WIDTH * 1) / 4, (HU_DISP_HEIGHT * 155) / 480, 240.0f }, { (HU_DISP_WIDTH * 3) / 4, (HU_DISP_HEIGHT * 155) / 480, 240.0f } };
-    Vec sp6C[3] = { { (HU_DISP_WIDTH * 1) / 4, (HU_DISP_HEIGHT * 155) / 480, 240.0f },
+    Vec three_dice_positions[3] = { { (HU_DISP_WIDTH * 1) / 4, (HU_DISP_HEIGHT * 155) / 480, 240.0f },
         { (HU_DISP_WIDTH * 3) / 4, (HU_DISP_HEIGHT * 155) / 480, 240.0f }, { (HU_DISP_WIDTH / 2), (HU_DISP_HEIGHT * 155) / 480, 240.0f } };
-    Vec spC = { (HU_DISP_WIDTH / 2), (HU_DISP_HEIGHT * 176) / 480, 240.0f };
-    Vec *var_r29;
-    float var_f31;
-    s16 var_r27;
+    Vec player_target_pos = { (HU_DISP_WIDTH / 2), (HU_DISP_HEIGHT * 176) / 480, 240.0f };
+    Vec *base_target;
+    float depth_offset;
+    s16 tens_digit;
     s16 i;
 
-    var_r27 = (arg0->unk01 / 10);
-    if (arg1 != 0) {
-        var_r29 = &spC;
-        var_f31 = -20.0f * arg0->unk00_field3;
+    tens_digit = (work->value / 10);
+    if (move_to_player != 0) {
+        base_target = &player_target_pos;
+        depth_offset = -20.0f * work->dice_index;
     }
     else {
         switch (numDice) {
             case 1:
-                var_r29 = &sp18;
+                base_target = &single_dice_pos;
                 break;
             case 2:
-                var_r29 = &sp3C[arg0->unk00_field3];
+                base_target = &two_dice_positions[work->dice_index];
                 break;
             case 3:
-                var_r29 = &sp6C[arg0->unk00_field3];
+                base_target = &three_dice_positions[work->dice_index];
                 break;
         }
-        var_f31 = 0.0f;
+        depth_offset = 0.0f;
     }
     for (i = 0; i < 2; i++) {
-        if (var_r27 == 0) {
-            sp54[i].x = var_r29->x;
+        if (tens_digit == 0) {
+            target_positions[i].x = base_target->x;
         }
         else if (i != 0) {
-            sp54[i].x = var_r29->x - 30.0f;
+            target_positions[i].x = base_target->x - 30.0f;
         }
         else {
-            sp54[i].x = var_r29->x + 30.0f;
+            target_positions[i].x = base_target->x + 30.0f;
         }
-        sp54[i].y = var_r29->y;
-        sp54[i].z = var_r29->z + var_f31;
+        target_positions[i].y = base_target->y;
+        target_positions[i].z = base_target->z + depth_offset;
     }
     for (i = 0; i < 2; i++) {
-        BoardModelPosGet(arg0->unk04[i], &sp30);
-        Hu3D2Dto3D(&sp54[i], 1, &sp54[i]);
-        VECSubtract(&sp54[i], &sp30, &sp24);
-        if (VECMag(&sp24) < 0.01f) {
-            arg0->unk00_field2 = 0;
-            if (arg1 != 0 && arg0->unk00_field3 != 0) {
-                BoardModelVisibilitySet(arg0->unk04[i], 0);
+        BoardModelPosGet(work->model_ids[i], &current_pos);
+        Hu3D2Dto3D(&target_positions[i], 1, &target_positions[i]);
+        VECSubtract(&target_positions[i], &current_pos, &offset);
+        if (VECMag(&offset) < 0.01f) {
+            work->state = 0;
+            if (move_to_player != 0 && work->dice_index != 0) {
+                BoardModelVisibilitySet(work->model_ids[i], 0);
             }
         }
         else {
-            arg0->unk00_field2 = 1;
+            work->state = 1;
         }
-        VECScale(&sp24, &sp24, arg0->unk08);
-        VECAdd(&sp30, &sp24, &sp30);
-        BoardModelPosSetV(arg0->unk04[i], &sp30);
+        VECScale(&offset, &offset, work->move_fraction);
+        VECAdd(&current_pos, &offset, &current_pos);
+        BoardModelPosSetV(work->model_ids[i], &current_pos);
     }
 }
 
-static void DiceDigitRotate(DiceDigitWork *arg0, s32 arg1)
+/**
+ * @brief Rotates roll-value digits toward their target orientation.
+ *
+ * @param work Digit state containing the current Y-axis rotation angle in
+ * degrees and the two digit model IDs.
+ * @param move_to_player Nonzero to rotate toward 360 degrees; zero to rotate
+ * back toward 0 degrees.
+ */
+static void DiceDigitRotate(DiceDigitWork *work, s32 move_to_player)
 {
-    float var_f30;
+    float rotation;
     s32 i;
 
-    if (arg1 != 0) {
-        arg0->unk02 += 0x12;
-        if (arg0->unk02 >= 360) {
-            arg0->unk02 = 360;
+    if (move_to_player != 0) {
+        work->rotation_angle += 0x12;
+        if (work->rotation_angle >= 360) {
+            work->rotation_angle = 360;
         }
     }
     else {
-        arg0->unk02 -= 0x12;
-        if (arg0->unk02 <= 0) {
-            arg0->unk02 = 0;
+        work->rotation_angle -= 0x12;
+        if (work->rotation_angle <= 0) {
+            work->rotation_angle = 0;
         }
     }
-    OSs16tof32(&arg0->unk02, &var_f30);
+    OSs16tof32(&work->rotation_angle, &rotation);
     for (i = 0; i < 2; i++) {
-        if (arg0->unk04[i] != -1) {
-            BoardModelRotSet(arg0->unk04[i], 0.0f, var_f30, 0.0f);
+        if (work->model_ids[i] != -1) {
+            BoardModelRotSet(work->model_ids[i], 0.0f, rotation, 0.0f);
         }
     }
 }
 
+/**
+ * @brief Awards the coin bonus for matching values on multiple dice.
+ *
+ * @details Presents confetti and a message, then awards 10, 30, or 50 coins
+ * according to dice count, parity, and the special all-sevens result.
+ */
 static void SameRollExec(void)
 {
-    Vec sp8;
-    float var_f31;
-    s32 var_r28;
-    s32 temp_r27;
-    s32 var_r31;
+    Vec confetti_pos;
+    float confetti_radius;
+    s32 confetti_count;
+    s32 stream_id;
+    s32 coin_reward;
     s32 i;
-    s32 var_r29;
+    s32 coin_delay;
 
-    temp_r27 = -1;
+    stream_id = -1;
     BoardPauseDisableSet(1);
-    var_r28 = 0x50;
+    confetti_count = 0x50;
     switch (numDice) {
         case 2:
             if (diceValue[0] == 7) {
-                var_r31 = 0x1E;
+                coin_reward = 0x1E;
             }
             else {
-                var_r31 = 0xA;
+                coin_reward = 0xA;
             }
             break;
         case 3:
             if (diceValue[0] == 7) {
-                var_r31 = 0x32;
-                var_r28 = 0x118;
+                coin_reward = 0x32;
+                confetti_count = 0x118;
             }
             else if (diceValue[0] & 1) {
-                var_r31 = 0x1E;
+                coin_reward = 0x1E;
             }
             else {
-                var_r31 = 0xA;
+                coin_reward = 0xA;
             }
             break;
         default:
             return;
     }
-    sprintf(sameRollCoinStr, "%d", var_r31);
-    BoardPlayerPosGet(rollPlayer, &sp8);
+    sprintf(sameRollCoinStr, "%d", coin_reward);
+    BoardPlayerPosGet(rollPlayer, &confetti_pos);
     if (BoardPlayerSizeGet(rollPlayer) == 2 || GWPlayer[rollPlayer].bowser_suit != 0) {
-        sp8.y += 700.0f;
-        var_f31 = 450.0f;
+        confetti_pos.y += 700.0f;
+        confetti_radius = 450.0f;
     }
     else {
-        sp8.y += 600.0f;
-        var_f31 = 300.0f;
+        confetti_pos.y += 600.0f;
+        confetti_radius = 300.0f;
     }
-    BoardConfettiCreate(&sp8, var_r28, var_f31);
+    BoardConfettiCreate(&confetti_pos, confetti_count, confetti_radius);
     BoardAudSeqPause(0, 1, 0x3E8);
     HuPrcSleep(0xA);
-    temp_r27 = HuAudSStreamPlay(9);
-    while (HuAudSStreamStatGet(temp_r27) != 0) {
+    stream_id = HuAudSStreamPlay(9);
+    while (HuAudSStreamStatGet(stream_id) != 0) {
         HuPrcVSleep();
     }
     BoardAudSeqPause(0, 0, 0x3E8);
@@ -918,67 +1080,86 @@ static void SameRollExec(void)
     BoardWinInsertMesSet(MAKE_MESSID_PTR(sameRollCoinStr), 0);
     BoardWinWait();
     BoardWinKill();
-    if (var_r31 >= 0x32) {
-        var_r29 = 1;
+    if (coin_reward >= 0x32) {
+        coin_delay = 1;
     }
-    else if (var_r31 >= 0x14) {
-        var_r29 = 3;
+    else if (coin_reward >= 0x14) {
+        coin_delay = 3;
     }
     else {
-        var_r29 = 6;
+        coin_delay = 6;
     }
-    for (i = 0; i < var_r31; i++) {
+    for (i = 0; i < coin_reward; i++) {
         BoardPlayerCoinsAdd(rollPlayer, 1);
         HuAudFXPlay(7);
-        HuPrcSleep(var_r29);
+        HuPrcSleep(coin_delay);
     }
     HuAudFXPlay(0xF);
     BoardConfettiStop();
     BoardPauseDisableSet(0);
 }
 
-static s32 GetBtnRoll(s32 arg0)
+/**
+ * @brief Gets the next roll-related button action for a human, CPU, or tutorial.
+ *
+ * @param player Zero-based player index whose controller or CPU policy is read.
+ * @return A button mask: 0x100 rolls, 0x200 selects an item, and human input
+ * may also return the board-view masks handled by DoInput().
+ */
+static s32 GetBtnRoll(s32 player)
 {
-    s32 var_r31 = 0;
-    s32 var_r29;
+    s32 buttons = 0;
+    s32 port;
 
     if (boardTutorialUseItem >= 0 && boardTutorialUseItem <= 0xD) {
-        var_r31 = 0x200;
-        return var_r31;
+        buttons = 0x200;
+        return buttons;
     }
     if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
-        var_r31 = 0x100;
-        return var_r31;
+        buttons = 0x100;
+        return buttons;
     }
-    if (!GWPlayer[arg0].com) {
-        var_r29 = GWPlayer[arg0].port;
-        var_r31 = HuPadBtnDown[var_r29];
-        return var_r31;
+    if (!GWPlayer[player].com) {
+        port = GWPlayer[player].port;
+        buttons = HuPadBtnDown[port];
+        return buttons;
     }
     if (_CheckFlag(FLAG_ID_MAKE(1, 9)) || BoardItemPrevGet() != -1) {
         return 0x100;
     }
-    var_r31 = GetComBtnRoll(arg0);
-    return var_r31;
+    buttons = GetComBtnRoll(player);
+    return buttons;
 }
 
-static s32 GetComBtnRoll(s32 arg0)
+/**
+ * @brief Chooses whether a CPU player rolls or opens item selection.
+ *
+ * @param player Zero-based CPU player index.
+ * @return 0x200 when CPU item logic chooses an item; otherwise 0x100 to roll.
+ */
+static s32 GetComBtnRoll(s32 player)
 {
-    if (BoardItemPrevGet() != -1 || BoardPlayerItemCount(arg0) == 0 || BoardMegaDoubleDiceCheck() || _CheckFlag(FLAG_ID_MAKE(1, 9))) {
+    if (BoardItemPrevGet() != -1 || BoardPlayerItemCount(player) == 0 || BoardMegaDoubleDiceCheck() || _CheckFlag(FLAG_ID_MAKE(1, 9))) {
         return 0x100;
     }
-    if (BoardComUseItemCheck(arg0)) {
+    if (BoardComUseItemCheck(player)) {
         return 0x200;
     }
     return 0x100;
 }
 
-void BoardRollTutorialSet(s16 *arg0)
+/**
+ * @brief Configures fixed results for the next tutorial roll.
+ *
+ * @param roll_values Array of three desired die values. A value of -1 leaves
+ * the corresponding die's naturally selected face unchanged.
+ */
+void BoardRollTutorialSet(s16 *roll_values)
 {
     s32 i;
 
     for (i = 0; i < 3; i++) {
-        tutorialRoll[i] = arg0[i];
+        tutorialRoll[i] = roll_values[i];
     }
     tutorialRollF = 1;
 }

@@ -104,6 +104,14 @@ static void KillBowserFire(void);
 
 static s32 ExecMiniBowserEvent(void);
 
+/**
+ * @brief Resolve a Bowser Space event for the landing player.
+ *
+ * @details The tutorial path only plays hook 12. Normal play runs the Bowser or Koopa Kid process and marks the landing player red.
+ * @param player Index of the player who landed on the space.
+ * @param space Index of the Bowser Space, used to identify other players caught by Bowser's landing.
+ * @return No explicit value is returned; callers use this as a blocking event procedure.
+ */
 s32 BoardBowserExec(s32 player, s32 space)
 {
     if(_CheckFlag(FLAG_ID_MAKE(1, 11))) {
@@ -152,6 +160,11 @@ typedef struct bowser_event_work {
     s16 timer;
 } BowserEventWork;
 
+/**
+ * @brief Load Bowser assets and coordinate the normal or post-minigame event path.
+ *
+ * @details Normal visits choose Bowser with 20 percent probability and Koopa Kid otherwise; flag 1:3 selects the minigame-return continuation.
+ */
 static void ExecBowser(void)
 {
     #define BOWSER_EVENT 0
@@ -213,6 +226,11 @@ static void ExecBowser(void)
     HuPrcEnd();
 }
 
+/**
+ * @brief Stage the visitor reaction, Koopa Kid reveal, and selected Bowser outcome.
+ *
+ * @details A Koopa Kid event normally ends here, but its five-percent follow-up result continues into the full Bowser event.
+ */
 static void ExecBowserMain(void)
 {
     s32 result = 0;
@@ -262,6 +280,11 @@ static void ExecBowserMain(void)
     BoardFilterFadeOut(30);
 }
 
+/**
+ * @brief Restore the board and apply the result of a Bowser minigame.
+ *
+ * @details Repositions players from playerPosTemp, recreates Bowser, applies the configured loss to the minigame winner, and resumes board music.
+ */
 static void ExecMGReturn(void)
 {
     s32 i;
@@ -313,6 +336,9 @@ static void ExecMGReturn(void)
     BoardMusStartBoard();
 }
 
+/**
+ * @brief Release player motions and the Bowser data directory, then clear the process handle.
+ */
 static void DestroyBowser(void)
 {
     KillPlayerMot();
@@ -320,6 +346,11 @@ static void DestroyBowser(void)
     bowserProc = NULL;
 }
 
+/**
+ * @brief Freeze and lower every player sharing Bowser's event space.
+ *
+ * @details Also hides the landing player's next-space marker and holds the shared-space reaction motion at frame 50.
+ */
 static void SquishPlayers(void)
 {
     Vec pos;
@@ -346,6 +377,11 @@ static void SquishPlayers(void)
     }
 }
 
+/**
+ * @brief Present and dispatch the configured Bowser outcome.
+ *
+ * @details After the event-name overlay appears, GWSystem.bowser_event selects minigame, shuffle, coin revolution, or Bowser Suit.
+ */
 static void ExecBowserSpecial(void)
 {
     s32 i;
@@ -401,15 +437,20 @@ static void ExecBowserSpecial(void)
     }
 }
 
+/**
+ * @brief Launch one of the three Bowser minigames.
+ *
+ * @details Saves player positions, plays the fire transition, selects minigame IDs 435 through 437, sets return flags, and switches to instdll.
+ */
 static void ExecBowserGame(void)
 {
     s32 i;
-    s16 mgTbl[3] = {
+    s16 minigame_ids[3] = {
         435,
         436,
         437
     };
-    s32 messLoss[3] = {
+    s32 loss_message_ids[3] = {
         MAKE_MESSID(3, 9),
         MAKE_MESSID(3, 12),
         MAKE_MESSID(3, 14)
@@ -422,7 +463,7 @@ static void ExecBowserGame(void)
     }
     BoardWinCreate(2, MAKE_MESSID(3, 8), 5);
     BoardWinWait();
-    mess = messLoss[GWSystem.bowser_loss];
+    mess = loss_message_ids[GWSystem.bowser_loss];
     BoardWinCreate(2, mess, 5);
     BoardWinWait();
     BoardWinKill();
@@ -451,7 +492,7 @@ static void ExecBowserGame(void)
     KillBowserFire();
     HuPrcSleep(60);
     BoardModelMotionStart(bowserMdl, 1, 0);
-    mg = (s16)mgTbl[BoardRandMod(3)];
+    mg = (s16)minigame_ids[BoardRandMod(3)];
     GWMGAvailSet(mg);
     GWSystem.mg_next = mg-401;
     _SetFlag(0x10003);
@@ -460,9 +501,14 @@ static void ExecBowserGame(void)
     HuPrcEnd();
 }
 
+/**
+ * @brief Apply the configured Bowser-minigame penalty to its winner.
+ *
+ * @details Loss type 2 removes every item; type 1 removes half the winner's coins; type 0 removes all of them.
+ */
 static void DoMGReturnEffect(void)
 {
-    s32 messTbl[3] = {
+    s32 loss_message_ids[3] = {
         MAKE_MESSID(3, 10),
         MAKE_MESSID(3, 13),
         MAKE_MESSID(3, 15)
@@ -479,7 +525,7 @@ static void DoMGReturnEffect(void)
             break;
         }
     }
-    mess = messTbl[GWSystem.bowser_loss];
+    mess = loss_message_ids[GWSystem.bowser_loss];
     mess_char = BoardPlayerGetCharMess(player);
     BoardStatusShowSetForce(player);
     BoardStatusShowSet(player, 1);
@@ -522,6 +568,11 @@ static void DoMGReturnEffect(void)
     }
 }
 
+/**
+ * @brief Randomly permute all four players' board spaces.
+ *
+ * @details After a white wipe, updates each space, restarts squished motions when needed, and preserves the existing camera transform if someone remains on the Bowser Space.
+ */
 static void ExecBowserShuffle(void)
 {
     Vec pos;
@@ -589,6 +640,11 @@ static void ExecBowserShuffle(void)
     }
 }
 
+/**
+ * @brief Redistribute all players' coins to the integer average.
+ *
+ * @details Computes the total divided by four, applies that balance to every player during a white wipe, and restores Bowser's idle motion.
+ */
 static void ExecBowserRevo(void)
 {
     s32 i;
@@ -624,6 +680,11 @@ static void ExecBowserRevo(void)
     }
 }
 
+/**
+ * @brief Award a Bowser Suit through the screen-space item animation.
+ *
+ * @details Waits for SuitGiveMain to add item 10 to the landing player before completing Bowser's motion.
+ */
 static void ExecBowserSuit(void)
 {
     BoardModelMotionShiftSet(bowserMdl, 1, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
@@ -651,6 +712,10 @@ typedef struct suit_give_work {
     s16 model;
 } SuitGiveWork;
 
+/**
+ * @brief Test whether the Bowser Suit delivery object has deleted itself.
+ * @return One when suitGiveObj is NULL; otherwise zero.
+ */
 static s32 CheckSuitGive(void)
 {
     if(!suitGiveObj) {
@@ -660,6 +725,11 @@ static s32 CheckSuitGive(void)
     }
 }
 
+/**
+ * @brief Create a Bowser Suit icon that travels from above the screen to the player status panel.
+ *
+ * @details The model is projected from 2D screen coordinates at a fixed depth of 300.
+ */
 static void StartSuitGive(void)
 {
     OMOBJ *object;
@@ -689,6 +759,12 @@ static void StartSuitGive(void)
     BoardModelPosSetV(work->model, &pos);
 }
 
+/**
+ * @brief Animate the Bowser Suit icon and add the item to the landing player.
+ *
+ * @details The state machine pauses above center screen, moves to the status panel, emits smoke, adds item 10, and deletes itself.
+ * @param object Delivery object containing screen coordinates, per-frame velocity, and SuitGiveWork.
+ */
 static void SuitGiveMain(OMOBJ *object)
 {
     SuitGiveWork *work = omObjGetWork(object, SuitGiveWork);
@@ -761,6 +837,11 @@ static const s32 bowserMotTbl[] = {
     DATA_NUM_LISTEND
 };
 
+/**
+ * @brief Create Bowser's board model and initialize its animation state.
+ *
+ * @details Normal events begin with the falling state and create the suit prop; minigame returns create Bowser already visible at the player's current space.
+ */
 static void CreateBowserObj(void)
 {
     BowserWork *work;
@@ -809,6 +890,12 @@ static void ExecBowserPowerUp(BowserWork *work, OMOBJ *object);
 static void ExecBowserFire(BowserWork *work, OMOBJ *object);
 static void ExecBowserJump(BowserWork *work, OMOBJ *object);
 
+/**
+ * @brief Dispatch Bowser's model state and synchronize the suit prop.
+ *
+ * @details Cleanup destroys both Bowser and suit models when requested.
+ * @param object Bowser object whose transform and BowserWork are updated.
+ */
 static void ExecBowserObj(OMOBJ *object)
 {
     BowserWork *work = omObjGetWork(bowserObj, BowserWork);
@@ -869,6 +956,11 @@ static void ExecBowserObj(OMOBJ *object)
     BoardModelPosSetV(suitItemMdl, &pos);
 }
 
+/**
+ * @brief Play Bowser's landing and squish players on the event space.
+ * @param work Bowser state containing landing progress and the one-shot impact flag.
+ * @param object Bowser object whose y position is snapped to the player at impact.
+ */
 static void ExecBowserFall(BowserWork *work, OMOBJ *object)
 {
     Vec pos;
@@ -920,6 +1012,11 @@ static void ExecBowserFall(BowserWork *work, OMOBJ *object)
 
 }
 
+/**
+ * @brief Start Bowser's laugh motion and return the object to idle state.
+ * @param work Bowser state whose motion-active flag is set until the laugh finishes.
+ * @param object Unused Bowser object retained by the state-handler interface.
+ */
 static void ExecBowserLaugh(BowserWork *work, OMOBJ *object)
 {
     BoardModelMotionStart(bowserMdl, 3, 0);
@@ -927,12 +1024,22 @@ static void ExecBowserLaugh(BowserWork *work, OMOBJ *object)
     work->state = 0;
 }
 
+/**
+ * @brief Start Bowser's fire-breath motion and return the object to idle state.
+ * @param work Bowser state returned to idle after starting motion 5.
+ * @param object Unused Bowser object retained by the state-handler interface.
+ */
 static void ExecBowserFire(BowserWork *work, OMOBJ *object)
 {
     BoardModelMotionStart(bowserMdl, 5, 0);
     work->state = 0;
 }
 
+/**
+ * @brief Play Bowser's departure jump and delete him after frame 100.
+ * @param work Bowser state tracking motion-shift completion, impact feedback, and deletion.
+ * @param object Unused Bowser object retained by the state-handler interface.
+ */
 static void ExecBowserJump(BowserWork *work, OMOBJ *object)
 {
     switch(work->jump_state) {
@@ -971,6 +1078,11 @@ static void ExecBowserJump(BowserWork *work, OMOBJ *object)
     }
 }
 
+/**
+ * @brief Display the Bowser Suit prop for one hundred frames.
+ * @param work Bowser state using jump_state as the elapsed-frame counter.
+ * @param object Bowser object used to position the prop in front of Bowser.
+ */
 static void ExecBowserPowerUp(BowserWork *work, OMOBJ *object)
 {
     Vec pos;
@@ -991,6 +1103,10 @@ static void ExecBowserPowerUp(BowserWork *work, OMOBJ *object)
     work->jump_state++;
 }
 
+/**
+ * @brief Enter a Bowser model state and reset its substate counter.
+ * @param state State dispatched by ExecBowserObj: 0 idle, 1 fall, 2 laugh, 3 suit prop, 4 hide prop, 5 fire, or 6 jump.
+ */
 static void SetBowserState(s32 state)
 {
     BowserWork *work = omObjGetWork(bowserObj, BowserWork);
@@ -998,6 +1114,10 @@ static void SetBowserState(s32 state)
     work->jump_state = 0;
 }
 
+/**
+ * @brief Test whether Bowser has no active state or idle delay.
+ * @return One when the object is absent or both state and idle_timer are zero; otherwise zero.
+ */
 static s32 CheckBowserIdle(void)
 {
     BowserWork *work;
@@ -1012,6 +1132,11 @@ static s32 CheckBowserIdle(void)
     }
 }
 
+/**
+ * @brief Create the flashing Koopa Kid reveal sprite.
+ *
+ * @details The sprite begins at four-times scale in the center of the screen.
+ */
 static void CreateMiniBowser(void)
 {
     OMOBJ *object;
@@ -1029,6 +1154,10 @@ static void CreateMiniBowser(void)
     HuSprGrpScaleSet(work->group, 4.0f, 4.0f);
 }
 
+/**
+ * @brief Test whether the Koopa Kid reveal sprite has finished.
+ * @return One after miniBowserObj deletes itself; otherwise zero.
+ */
 static s32 CheckMiniBowser(void)
 {
     if(miniBowserObj) {
@@ -1038,6 +1167,12 @@ static s32 CheckMiniBowser(void)
     }
 }
 
+/**
+ * @brief Pulse and eventually destroy the Koopa Kid reveal sprite.
+ *
+ * @details Plays feedback at fixed phase angles and requests deletion after 540 degrees.
+ * @param object Reveal object containing its sprite group and phase angle.
+ */
 static void ExecMiniBowser(OMOBJ *object)
 {
     MiniBowserWork *work = omObjGetWork(object, MiniBowserWork);
@@ -1063,11 +1198,16 @@ static void ExecMiniBowser(OMOBJ *object)
     }
 }
 
+/**
+ * @brief Create the selected Bowser-outcome title overlay.
+ *
+ * @details Uses three delayed copies of the outcome sprite plus a screen-centered background model.
+ */
 static void CreateBowserEvent(void)
 {
     Vec pos_2d;
     Vec pos_3d;
-    s32 eventSpr[] = {
+    s32 event_sprite_resources[] = {
         DATA_MAKE_NUM(DATADIR_BKOOPA, 1),
         DATA_MAKE_NUM(DATADIR_BKOOPA, 2),
         DATA_MAKE_NUM(DATADIR_BKOOPA, 3),
@@ -1087,7 +1227,7 @@ static void CreateBowserEvent(void)
     memset(&bowserEvent, 0, sizeof(BowserEventData));
     data = &bowserEvent;
     data->group = HuSprGrpCreate(3);
-    sprite = eventSpr[GWSystem.bowser_event];
+    sprite = event_sprite_resources[GWSystem.bowser_event];
     for(i=0; i<3; i++) {
         BoardSpriteCreate(sprite, 100, NULL, &data->sprite[i]);
         HuSprGrpMemberSet(data->group, i, data->sprite[i]);
@@ -1106,6 +1246,10 @@ static void CreateBowserEvent(void)
     BoardModelLayerSet(data->model, 2);
 }
 
+/**
+ * @brief Test whether the Bowser-outcome title has finished appearing.
+ * @return One in display state 2; otherwise zero.
+ */
 static s32 CheckBowserEvent(void)
 {
     BowserEventWork *work = omObjGetWork(bowserEventObj, BowserEventWork);
@@ -1117,6 +1261,9 @@ static s32 CheckBowserEvent(void)
     }
 }
 
+/**
+ * @brief Start fading out the Bowser-outcome title overlay.
+ */
 static void StopBowserEvent(void)
 {
     BowserEventWork *work = omObjGetWork(bowserEventObj, BowserEventWork);
@@ -1126,6 +1273,12 @@ static void StopBowserEvent(void)
 static void ShowBowserEvent(BowserEventWork *work, OMOBJ *object);
 static void HideBowserEvent(BowserEventWork *work, OMOBJ *object);
 
+/**
+ * @brief Dispatch appearance or disappearance of the Bowser-outcome title.
+ *
+ * @details Cleanup destroys the sprite group and background model.
+ * @param object Overlay object containing BowserEventWork.
+ */
 static void ExecBowserEvent(OMOBJ *object)
 {
     BowserEventWork *work = omObjGetWork(object, BowserEventWork);
@@ -1155,6 +1308,11 @@ static void ExecBowserEvent(OMOBJ *object)
     }
 }
 
+/**
+ * @brief Fade and scale in three staggered copies of the outcome title.
+ * @param work Overlay state changed to display state 2 after all copies finish.
+ * @param object Unused overlay object retained by the state-handler interface.
+ */
 static void ShowBowserEvent(BowserEventWork *work, OMOBJ *object)
 {
     BowserEventData *data;
@@ -1190,6 +1348,11 @@ static void ShowBowserEvent(BowserEventWork *work, OMOBJ *object)
     }
 }
 
+/**
+ * @brief Fade out the primary outcome title and request overlay deletion.
+ * @param work Overlay state whose kill flag is set after the angle falls below zero.
+ * @param object Unused overlay object retained by the state-handler interface.
+ */
 static void HideBowserEvent(BowserEventWork *work, OMOBJ *object)
 {
     BowserEventData *data = &bowserEvent;
@@ -1207,6 +1370,11 @@ static void HideBowserEvent(BowserEventWork *work, OMOBJ *object)
 }
 
 
+/**
+ * @brief Randomly choose an outcome that is valid for the current board state.
+ *
+ * @details Probabilities are 70 percent minigame, 15 percent shuffle, 10 percent coin revolution, and 5 percent Bowser Suit; invalid suit or minigame outcomes are rerolled.
+ */
 static void ConfigBowserEvent(void)
 {
     s32 i;
@@ -1249,9 +1417,12 @@ static void ConfigBowserEvent(void)
     }
 }
 
+/**
+ * @brief Create the character-specific jump, scare, and squish motions used by the event.
+ */
 static void CreatePlayerMot(void)
 {
-    s32 scareMotTbl[] = {
+    s32 scare_motion_resources[] = {
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 27),
         DATA_MAKE_NUM(DATADIR_LUIGIMOT, 27),
         DATA_MAKE_NUM(DATADIR_PEACHMOT, 27),
@@ -1261,7 +1432,7 @@ static void CreatePlayerMot(void)
         DATA_MAKE_NUM(DATADIR_DAISYMOT, 27),
         DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 27),
     };
-    s32 jumpMotTbl[] = {
+    s32 jump_motion_resources[] = {
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 26),
         DATA_MAKE_NUM(DATADIR_LUIGIMOT, 26),
         DATA_MAKE_NUM(DATADIR_PEACHMOT, 26),
@@ -1271,7 +1442,7 @@ static void CreatePlayerMot(void)
         DATA_MAKE_NUM(DATADIR_DAISYMOT, 26),
         DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 26),
     };
-    s32 playerMotTbl[] = {
+    s32 squish_motion_resources[] = {
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 31),
         DATA_MAKE_NUM(DATADIR_LUIGIMOT, 31),
         DATA_MAKE_NUM(DATADIR_PEACHMOT, 31),
@@ -1284,14 +1455,19 @@ static void CreatePlayerMot(void)
     s32 i;
     s32 character;
     character = GWPlayer[eventPlayer].character;
-    scareMot = BoardPlayerMotionCreate(eventPlayer, scareMotTbl[character]);
-    jumpMot = BoardPlayerMotionCreate(eventPlayer, jumpMotTbl[character]);
+    scareMot = BoardPlayerMotionCreate(eventPlayer, scare_motion_resources[character]);
+    jumpMot = BoardPlayerMotionCreate(eventPlayer, jump_motion_resources[character]);
     for(i=0; i<4; i++) {
         character = GWPlayer[i].character;
-        playerMot[i] = BoardPlayerMotionCreate(i, playerMotTbl[character]);
+        playerMot[i] = BoardPlayerMotionCreate(i, squish_motion_resources[character]);
     }
 }
 
+/**
+ * @brief Destroy every character motion created for the Bowser event.
+ *
+ * @details Motion handles are reset to -1 after removal.
+ */
 static void KillPlayerMot(void)
 {
     s32 i;
@@ -1313,9 +1489,14 @@ static void KillPlayerMot(void)
 
 static void BowserFireHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 
-static void SpawnBowserFire(HU3DPARTICLEDATA *arg0);
-static s32 CheckBowserFire(HU3DPARTICLEDATA *arg0);
+static void SpawnBowserFire(HU3DPARTICLEDATA *particle_data);
+static s32 CheckBowserFire(HU3DPARTICLEDATA *particle_data);
 
+/**
+ * @brief Create the thirty-particle fire effect used for the minigame transition.
+ *
+ * @details Installs BowserFireHook, additive blending, layer 2, and the board fire animation.
+ */
 static void InitBowserFire(void)
 {
     fireAnim = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_BOARD, 106));
@@ -1327,78 +1508,100 @@ static void InitBowserFire(void)
     Hu3DModelLayerSet(fireParMan, 2);
 }
 
+/**
+ * @brief Spawn and update fire particles from Bowser's hand hook.
+ *
+ * @details Initializes every slot once, emits into a free slot every four hook calls, and retires fully faded particles.
+ * @param model Unused particle-manager model parameter supplied by the render hook.
+ * @param particle Particle manager whose slots and active count are updated.
+ * @param matrix Unused model matrix supplied by the render hook.
+ */
 static void BowserFireHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    HU3DPARTICLEDATA* var_r30;
+    HU3DPARTICLEDATA* particle_data;
     s32 i;
-    s32 var_r28;
+    s32 particle_index;
     Vec pos;
     Hu3DModelObjPosGet(BoardModelIDGet(bowserMdl), "itemhook_M_1", &pos);
     if (particle->count == 0) {
-        var_r30 = particle->data;
-        for (i = 0; i < particle->maxCnt; i++, var_r30++) {
-            var_r30->scale = 0.0f;
+        particle_data = particle->data;
+        for (i = 0; i < particle->maxCnt; i++, particle_data++) {
+            particle_data->scale = 0.0f;
         }
         particle->count = 1;
         particle->dataCnt = 0;
     }
     if((particle->count & 0x3) == 0) {
-        var_r30 = particle->data;
-        for(var_r28=0; var_r28<particle->maxCnt; var_r28++, var_r30++) {
-             if(var_r30->scale == 0.0f) {
+        particle_data = particle->data;
+        for(particle_index=0; particle_index<particle->maxCnt; particle_index++, particle_data++) {
+             if(particle_data->scale == 0.0f) {
                 break; 
              }
         }
-        if(var_r28 != particle->maxCnt) {
-            var_r30->pos = pos;
+        if(particle_index != particle->maxCnt) {
+            particle_data->pos = pos;
             particle->dataCnt++;
-            SpawnBowserFire(var_r30);
+            SpawnBowserFire(particle_data);
         }
     }
-    var_r30 = particle->data;
-    for (i = 0; i < particle->maxCnt; i++, var_r30++) {
-        if(var_r30->scale != 0.0f && CheckBowserFire(var_r30)) {
+    particle_data = particle->data;
+    for (i = 0; i < particle->maxCnt; i++, particle_data++) {
+        if(particle_data->scale != 0.0f && CheckBowserFire(particle_data)) {
             particle->dataCnt--;
         }
     }
 }
 
-static void SpawnBowserFire(HU3DPARTICLEDATA *arg0)
+/**
+ * @brief Initialize one fire particle to expand away from the camera.
+ *
+ * @details Sets zero velocity, randomized acceleration opposite the camera direction, alpha 254, and scale 100.
+ * @param particle_data Free particle slot whose position was set to Bowser's hand.
+ */
+static void SpawnBowserFire(HU3DPARTICLEDATA *particle_data)
 {
     Vec dir;
     BoardCameraDirGet(&dir);
-    arg0->vel.x = 0.0f;
-    arg0->vel.y = 0.0f;
-    arg0->vel.z = 0.0f;
-    arg0->accel.x = -dir.x*((0.5f*BoardRandFloat())+0.5f);
-    arg0->accel.y = -dir.y*((0.5f*BoardRandFloat())+0.5f);
-    arg0->accel.z = -dir.z*((0.5f*BoardRandFloat())+0.5f);
-    arg0->colorIdx = 1.025f;
-    arg0->color.a = 254;
-    arg0->color.r = 255;
-    arg0->color.g = 255;
-    arg0->color.b = 255;
-    arg0->scale = 100.0f;
+    particle_data->vel.x = 0.0f;
+    particle_data->vel.y = 0.0f;
+    particle_data->vel.z = 0.0f;
+    particle_data->accel.x = -dir.x*((0.5f*BoardRandFloat())+0.5f);
+    particle_data->accel.y = -dir.y*((0.5f*BoardRandFloat())+0.5f);
+    particle_data->accel.z = -dir.z*((0.5f*BoardRandFloat())+0.5f);
+    particle_data->colorIdx = 1.025f;
+    particle_data->color.a = 254;
+    particle_data->color.r = 255;
+    particle_data->color.g = 255;
+    particle_data->color.b = 255;
+    particle_data->scale = 100.0f;
 }
 
-static s32 CheckBowserFire(HU3DPARTICLEDATA *arg0)
+/**
+ * @brief Integrate and fade one active fire particle.
+ * @param particle_data Active particle whose position, velocity, alpha, and scale are updated.
+ * @return One when alpha reaches zero and the slot is released; otherwise zero.
+ */
+static s32 CheckBowserFire(HU3DPARTICLEDATA *particle_data)
 {
-    arg0->pos.x += arg0->vel.x;
-    arg0->pos.y += arg0->vel.y;
-    arg0->pos.z += arg0->vel.z;
-    arg0->vel.x += arg0->accel.x;
-    arg0->vel.y += arg0->accel.y;
-    arg0->vel.z += arg0->accel.z;
-    arg0->color.a -= 8;
-    arg0->scale *= arg0->colorIdx;
-    if(arg0->color.a == 0.0f) {
-        arg0->color.a = 0;
-        arg0->scale = 0.0f;
+    particle_data->pos.x += particle_data->vel.x;
+    particle_data->pos.y += particle_data->vel.y;
+    particle_data->pos.z += particle_data->vel.z;
+    particle_data->vel.x += particle_data->accel.x;
+    particle_data->vel.y += particle_data->accel.y;
+    particle_data->vel.z += particle_data->accel.z;
+    particle_data->color.a -= 8;
+    particle_data->scale *= particle_data->colorIdx;
+    if(particle_data->color.a == 0.0f) {
+        particle_data->color.a = 0;
+        particle_data->scale = 0.0f;
         return 1;
     }
     return 0;
 }
 
+/**
+ * @brief Destroy the fire particle manager and clear its animation pointer.
+ */
 static void KillBowserFire(void)
 {
     if(fireParMan != -1) {
@@ -1435,9 +1638,15 @@ static void SetMiniBowserMotion(s32 mot, u8 end, s32 pause);
 static void SetMiniBowserMotionPause(s32 flag);
 static void WaitMiniBowserMotion(void);
 
+/**
+ * @brief Resolve Koopa Kid's coin effect and balloon departure.
+ *
+ * @details Chooses a single-player coin effect 70 percent of the time and an all-player effect otherwise.
+ * @return One when the five-percent Bowser follow-up should continue; zero when the event ends with Koopa Kid.
+ */
 static s32 ExecMiniBowserEvent(void)
 {
-    s32 doneF = 0;
+    s32 bowser_follow_up = 0;
     CreateMiniBowserBalloon();
     SetMiniBowserBalloonState(0);
     while(GetMiniBowserBalloonState() != 2) {
@@ -1458,9 +1667,9 @@ static s32 ExecMiniBowserEvent(void)
     }
     //5% chance bowser will appear after baby bowser
     if(BoardRandMod(100) < 5) {
-        doneF = 1;
+        bowser_follow_up = 1;
     }
-    if(doneF) {
+    if(bowser_follow_up) {
         HuPrcSleep(60);
         BoardWinCreate(2, MAKE_MESSID(3, 6), 6);
         BoardWinWait();
@@ -1482,12 +1691,17 @@ static s32 ExecMiniBowserEvent(void)
         HuPrcVSleep();
     }
     MiniBowserBalloonStop();
-    return doneF;
+    return bowser_follow_up;
 }
 
+/**
+ * @brief Remove rank- and turn-scaled coins from the visitor, or grant ten when they have none.
+ *
+ * @details The nominal amount ranges from 10 to 30 and stops early when the player reaches zero coins.
+ */
 static void MiniBowserTake(void)
 {
-    u8 coinSteal[][3] = {
+    u8 coin_steal_by_rank[][3] = {
         20, 20, 30,
         20, 20, 30,
         10, 15, 20,
@@ -1507,7 +1721,7 @@ static void MiniBowserTake(void)
     if(game_part >= 3) {
         game_part = 2;
     }
-    steal = (u8)coinSteal[GWPlayer[eventPlayer].rank][game_part];
+    steal = (u8)coin_steal_by_rank[GWPlayer[eventPlayer].rank][game_part];
     sprintf(coinStealStrAll, "%d", steal);
     SetMiniBowserMotion(2, 10, 0);
     if(steal >= 20) {
@@ -1560,9 +1774,14 @@ static void MiniBowserTake(void)
     SetMiniBowserMotion(1, 10, 1);
 }
 
+/**
+ * @brief Remove turn-scaled coins from every player, or grant ten when nobody has coins.
+ *
+ * @details Applies the same per-frame increment to all four players and stops removal once the combined balance reaches zero.
+ */
 static void MiniBowserTakeAll(void)
 {
-    u8 coinSteal[] = {
+    u8 coin_steal_by_phase[] = {
         10, 20, 30,
     };
     s32 i;
@@ -1581,7 +1800,7 @@ static void MiniBowserTakeAll(void)
     if(game_part >= 3) {
         game_part = 2;
     }
-    steal = (u8)coinSteal[game_part];
+    steal = (u8)coin_steal_by_phase[game_part];
     sprintf(coinStealStr, "%d", steal);
     SetMiniBowserMotion(2, 10, 0);
     for(coin_total=j=0; j<4; j++) {
@@ -1659,6 +1878,9 @@ static const s32 miniBowserMotTbl[] = {
     DATA_NUM_LISTEND
 };
 
+/**
+ * @brief Request deletion of the Koopa Kid balloon object.
+ */
 static void MiniBowserBalloonStop(void)
 {
     if(miniBowserBalloonObj) {
@@ -1666,16 +1888,29 @@ static void MiniBowserBalloonStop(void)
     }
 }
 
+/**
+ * @brief Read the Koopa Kid balloon movement state.
+ * @return The current state: 0 falling, 1 rising, or 2 hovering.
+ */
 static s32 GetMiniBowserBalloonState(void)
 {
     return omObjGetWork(miniBowserBalloonObj, MiniBowserBalloonWork)->state;
 }
 
+/**
+ * @brief Select the Koopa Kid balloon movement state.
+ * @param state State to dispatch: 0 falling, 1 rising, or 2 hovering.
+ */
 static void SetMiniBowserBalloonState(s32 state)
 {
     omObjGetWork(miniBowserBalloonObj, MiniBowserBalloonWork)->state = state;
 }
 
+/**
+ * @brief Create Koopa Kid and balloon models above the visiting player.
+ *
+ * @details Hooks Koopa Kid to the balloon, places them 800 world units above the player, and starts the idle motion.
+ */
 static void CreateMiniBowserBalloon(void)
 {
     MiniBowserBalloonWork *work;
@@ -1703,6 +1938,12 @@ static void CreateMiniBowserBalloon(void)
     SetMiniBowserMotion(1, 0, 1);
 }
 
+/**
+ * @brief Dispatch balloon falling, rising, or hovering and update its models.
+ *
+ * @details Cleanup destroys both models and frees the allocated model-handle array.
+ * @param object Balloon object containing position and MiniBowserBalloonWork.
+ */
 static void ExecMiniBowserBalloon(OMOBJ *object)
 {
     MiniBowserBalloonWork *work;
@@ -1737,6 +1978,11 @@ static void ExecMiniBowserBalloon(OMOBJ *object)
     BoardModelPosSet(models[1], object->trans.x, object->trans.y+work->offset, object->trans.z);
 }
 
+/**
+ * @brief Apply a ten-unit sinusoidal hover offset.
+ * @param work Balloon state containing the degree angle and resulting offset.
+ * @param object Unused balloon object retained by the state-handler interface.
+ */
 static void MiniBowserBalloonHover(MiniBowserBalloonWork *work, OMOBJ *object)
 {
     float angle;
@@ -1748,6 +1994,11 @@ static void MiniBowserBalloonHover(MiniBowserBalloonWork *work, OMOBJ *object)
     work->offset = 10.0*sind(angle);
 }
 
+/**
+ * @brief Lower the balloon to 250 world units above the visiting player.
+ * @param work Balloon state changed to hovering on arrival.
+ * @param object Balloon object moved downward by 10 world units per frame.
+ */
 static void MiniBowserBalloonFall(MiniBowserBalloonWork *work, OMOBJ *object)
 {
     Vec pos;
@@ -1761,6 +2012,11 @@ static void MiniBowserBalloonFall(MiniBowserBalloonWork *work, OMOBJ *object)
     }
 }
 
+/**
+ * @brief Raise the balloon toward 800 world units above the visiting player.
+ * @param work Balloon state changed to hovering after passing the destination.
+ * @param object Balloon object moved upward by 10 world units per frame.
+ */
 static void MiniBowserBalloonRaise(MiniBowserBalloonWork *work, OMOBJ *object)
 {
     Vec pos;
@@ -1773,6 +2029,12 @@ static void MiniBowserBalloonRaise(MiniBowserBalloonWork *work, OMOBJ *object)
     }
 }
 
+/**
+ * @brief Start or blend to a Koopa Kid model motion.
+ * @param mot Motion index in miniBowserMotTbl.
+ * @param end Blend duration in frames; zero starts the motion directly.
+ * @param pause Nonzero to apply HU3D_MOTATTR_LOOP, zero for a one-shot motion.
+ */
 static void SetMiniBowserMotion(s32 mot, u8 end, s32 pause)
 {
     s16 *models;
@@ -1794,6 +2056,10 @@ static void SetMiniBowserMotion(s32 mot, u8 end, s32 pause)
     }
 }
 
+/**
+ * @brief Set or clear model attribute 0x40000001 on Koopa Kid.
+ * @param flag Nonzero to set the attribute; zero to clear it.
+ */
 static void SetMiniBowserMotionPause(s32 flag)
 {
     s16 *models;
@@ -1807,6 +2073,9 @@ static void SetMiniBowserMotionPause(s32 flag)
     }
 }
 
+/**
+ * @brief Clear Koopa Kid's motion attribute and wait for the current motion to end.
+ */
 static void WaitMiniBowserMotion(void)
 {
     s16 *models;

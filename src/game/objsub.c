@@ -1179,6 +1179,15 @@ s16 mgTicTacToeGrid[3][3];
 u8 mgIndexList[256];
 GameStat mgGameStatBackup;
 
+/**
+ * @brief Convert a minigame overlay identifier to its table index.
+ *
+ * @param [in] overlay Active overlay ID compared with each `mgInfoTbl[].ovl`
+ *                     entry until the `DLL_NONE` sentinel.
+ *
+ * @return Zero-based index in `mgInfoTbl`, or `-1` when the overlay is not a
+ *         registered minigame.
+ */
 s32 omMgIndexGet(s16 overlay)
 {
     s32 i;
@@ -1196,6 +1205,12 @@ s32 omMgIndexGet(s16 overlay)
     return -1;
 }
 
+/**
+ * @brief Create the common game-system objects for an object manager.
+ *
+ * @param [in, out] objman Object manager that receives pause and optional
+ *                         practice-exit controller objects.
+ */
 void omGameSysInit(HUPROCESS *objman)
 {
     s32 i;
@@ -1216,6 +1231,15 @@ void omGameSysInit(HUPROCESS *objman)
     }
 }
 
+/**
+ * @brief Start a timed rumble pattern for a player controller.
+ *
+ * @param [in] player Player slot `0` through `GW_PLAYER_MAX - 1`; its config
+ *                    selects the controller and suppresses rumble for CPU players.
+ * @param [in] duration Total rumble duration in controller update ticks.
+ * @param [in] off Number of ticks in each motor-off interval.
+ * @param [in] on Number of ticks in each motor-on interval.
+ */
 void omVibrate(s16 player, s16 duration, s16 off, s16 on)
 {
 

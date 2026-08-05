@@ -38,6 +38,9 @@ static char *lbl_8012E9AC[] = {
     ""
 };
 
+/**
+ * @brief Initialize the audio subsystem.
+ */
 void HuAudInit(void)
 {
     MSM_INIT msmInit;
@@ -77,39 +80,80 @@ void HuAudInit(void)
     musicOffF = 0;
 }
 
+/**
+ * @brief Return the placeholder result for the unimplemented AI stream loader.
+ *
+ * @param [in] name Stream name; currently ignored.
+ * @param [in] flag Stream option flag; currently ignored.
+ *
+ * @return Always `0`; this wrapper does not currently start a stream.
+ */
 s32 HuAudStreamPlay(char *name, BOOL flag) {
     return 0;
 }
 
+/**
+ * @brief Set both AI stream channels to the same volume.
+ *
+ * @param [in] vol AI left/right volume value, also retained in Hu3DAudVol.
+ */
 void HuAudStreamVolSet(s16 vol) {
     AISetStreamVolLeft(vol);
     AISetStreamVolRight(vol);
     Hu3DAudVol = vol;
 }
 
+/**
+ * @brief Pause audio stream playback.
+ */
 void HuAudStreamPauseOn(void) {
     AISetStreamPlayState(0);
 }
 
+/**
+ * @brief Resume audio stream playback.
+ */
 void HuAudStreamPauseOff(void) {
     AISetStreamPlayState(1);
 }
 
-void HuAudStreamFadeOut(s32 arg0) {
+/**
+ * @brief Placeholder for fading the low-level AI stream.
+ *
+ * @param [in] fade_duration Intended fade duration; currently ignored.
+ */
+void HuAudStreamFadeOut(s32 fade_duration) {
 }
 
+/**
+ * @brief Immediately stop all music, sound effects, and MSM streams.
+ */
 void HuAudAllStop(void) {
     HuAudSeqAllStop();
     HuAudFXAllStop();
     HuAudSStreamAllStop();
 }
 
+/**
+ * @brief Stop sound effects and fade all music and MSM streams.
+ *
+ * @param [in] speed Fade duration passed to the MSM music and stream APIs.
+ */
 void HuAudFadeOut(s32 speed) {
     HuAudFXAllStop();
     HuAudSeqAllFadeOut(speed);
     HuAudSStreamAllFadeOut(speed);
 }
 
+/**
+ * @brief Play a centered sound effect at maximum volume when audio is active.
+ *
+ * @param [in] seId MSM sound-effect asset ID submitted at maximum volume and
+ *                  centered pan.
+ *
+ * @return MSM sound-effect handle or negative error; returns `0` while exiting
+ *         an overlay or after an outgoing wipe has passed halfway.
+ */
 int HuAudFXPlay(int seId)
 {
     WipeState *wipe = &wipeData;
@@ -120,6 +164,14 @@ int HuAudFXPlay(int seId)
     return HuAudFXPlayVolPan(seId, MSM_VOL_MAX, MSM_PAN_CENTER);
 }
 
+/**
+ * @brief Play a centered sound effect at a specified volume.
+ *
+ * @param [in] seId MSM sound-effect asset ID submitted with `vol`.
+ * @param [in] vol Playback volume.
+ *
+ * @return MSM sound-effect handle or negative error; returns `0` during overlay exit.
+ */
 int HuAudFXPlayVol(int seId, s16 vol) {
     if (omSysExitReq != 0) {
         return 0;
@@ -127,6 +179,15 @@ int HuAudFXPlayVol(int seId, s16 vol) {
     return HuAudFXPlayVolPan(seId, vol, MSM_PAN_CENTER);
 }
 
+/**
+ * @brief Play a sound effect with explicit volume and stereo pan.
+ *
+ * @param [in] seId MSM sound-effect asset ID submitted with explicit mixer parameters.
+ * @param [in] vol Playback volume.
+ * @param [in] pan MSM stereo-pan setting forwarded unchanged to the mixer.
+ *
+ * @return MSM sound-effect handle or negative error; returns `0` during overlay exit.
+ */
 int HuAudFXPlayVolPan(int seId, s16 vol, s16 pan)
 {
     MSM_SEPARAM seParam;
@@ -140,18 +201,38 @@ int HuAudFXPlayVolPan(int seId, s16 vol, s16 pan)
     return HuSePlay(seId, &seParam);
 }
 
+/**
+ * @brief Immediately stop a sound-effect playback handle.
+ *
+ * @param [in] seNo Sound-effect playback handle.
+ */
 void HuAudFXStop(int seNo) {
     msmSeStop(seNo, 0);
 }
 
+/**
+ * @brief Immediately stop all sound-effect playback handles.
+ */
 void HuAudFXAllStop(void) {
     msmSeStopAll(0, 0);
 }
 
+/**
+ * @brief Stop a sound effect using an MSM fade duration.
+ *
+ * @param [in] seNo Sound-effect playback handle.
+ * @param [in] speed Fade duration passed to msmSeStop().
+ */
 void HuAudFXFadeOut(int seNo, s32 speed) {
     msmSeStop(seNo, speed);
 }
 
+/**
+ * @brief Change the stereo pan of a playing sound effect.
+ *
+ * @param [in] seNo Sound-effect playback handle.
+ * @param [in] pan MSM pan value, typically centered at `MSM_PAN_CENTER`.
+ */
 void HuAudFXPanning(int seNo, s16 pan) {
     MSM_SEPARAM param;
 
@@ -162,6 +243,14 @@ void HuAudFXPanning(int seNo, s16 pan) {
     }
 }
 
+/**
+ * @brief Configure the 3D sound listener using global distance offsets.
+ *
+ * @param [in] pos Listener world position.
+ * @param [in] heading Listener forward vector.
+ * @param [in] sndDist Base audible distance before global offsets.
+ * @param [in] sndSpeed Base propagation-speed setting before global offsets.
+ */
 void HuAudFXListnerSet(Vec *pos, Vec *heading, float sndDist, float sndSpeed)
 {
     if(omSysExitReq) {
@@ -175,6 +264,17 @@ void HuAudFXListnerSet(Vec *pos, Vec *heading, float sndDist, float sndSpeed)
         Snd3DBackSurDisOffset + (0.25 * sndDist + Snd3DStartDisOffset));
 }
 
+/**
+ * @brief Configure all MSM 3D listener distances explicitly.
+ *
+ * @param [in] pos Listener world position.
+ * @param [in] heading Listener forward vector.
+ * @param [in] sndDist Audible distance.
+ * @param [in] sndSpeed Sound propagation speed.
+ * @param [in] startDis Attenuation-start distance before its global offset.
+ * @param [in] frontSurDis Front-surround distance before its global offset.
+ * @param [in] backSurDis Rear-surround distance before its global offset.
+ */
 void HuAudFXListnerSetEX(Vec *pos, Vec *heading, float sndDist, float sndSpeed, float startDis, float frontSurDis, float backSurDis)
 {
     MSM_SELISTENER listener;
@@ -195,6 +295,12 @@ void HuAudFXListnerSetEX(Vec *pos, Vec *heading, float sndDist, float sndSpeed, 
     OSReport("//////////////////////////////////\n");
 }
 
+/**
+ * @brief Update the active 3D listener's position and heading.
+ *
+ * @param [in] pos New listener world position.
+ * @param [in] heading New listener forward vector.
+ */
 void HuAudFXListnerUpdate(Vec *pos, Vec *heading)
 {
     if (omSysExitReq) {
@@ -203,6 +309,14 @@ void HuAudFXListnerUpdate(Vec *pos, Vec *heading)
     msmSeUpdataListener(pos, heading);
 }
 
+/**
+ * @brief Play a sound effect from a world-space emitter position.
+ *
+ * @param [in] seId MSM sound-effect asset ID used to create the positioned emitter.
+ * @param [in] pos Initial emitter world position.
+ *
+ * @return MSM sound-effect handle or negative error; returns `0` during overlay exit.
+ */
 int HuAudFXEmiterPlay(int seId, Vec *pos)
 {
     MSM_SEPARAM seParam;
@@ -216,6 +330,12 @@ int HuAudFXEmiterPlay(int seId, Vec *pos)
     return HuSePlay(seId, &seParam);
 }
 
+/**
+ * @brief Move a playing 3D sound emitter.
+ *
+ * @param [in] seNo Sound-effect playback handle.
+ * @param [in] pos New emitter world position.
+ */
 void HuAudFXEmiterUpDate(int seNo, Vec *pos)
 {
     MSM_SEPARAM param;
@@ -229,18 +349,41 @@ void HuAudFXEmiterUpDate(int seNo, Vec *pos)
     msmSeSetParam(seNo, &param);
 }
 
+/**
+ * @brief Remove the active MSM 3D sound listener.
+ */
 void HuAudFXListnerKill(void) {
     msmSeDelListener();
 }
 
+/**
+ * @brief Set the pause state for all audio fx instances.
+ *
+ * @param [in] pauseF Whether playback should be paused.
+ */
 void HuAudFXPauseAll(BOOL pauseF) {
     msmSePauseAll(pauseF, 100);
 }
 
+/**
+ * @brief Get the MSM playback status of a sound-effect handle.
+ *
+ * @param [in] seNo Sound-effect playback handle.
+ *
+ * @return MSM_SE_* status returned by msmSeGetStatus().
+ */
 s32 HuAudFXStatusGet(int seNo) {
     return msmSeGetStatus(seNo);
 }
 
+/**
+ * @brief Change the pitch of a playing sound effect.
+ *
+ * @param [in] seNo Sound-effect playback handle.
+ * @param [in] pitch MSM pitch setting forwarded unchanged to the mixer.
+ *
+ * @return msmSeSetParam() result, or `0` when overlay exit suppresses updates.
+ */
 s32 HuAudFXPitchSet(int seNo, s16 pitch)
 {
     MSM_SEPARAM param;
@@ -252,6 +395,14 @@ s32 HuAudFXPitchSet(int seNo, s16 pitch)
     return msmSeSetParam(seNo, &param);
 }
 
+/**
+ * @brief Change the volume of a playing sound effect.
+ *
+ * @param [in] seNo Sound-effect playback handle.
+ * @param [in] vol Playback volume.
+ *
+ * @return msmSeSetParam() result, or `0` when overlay exit suppresses updates.
+ */
 s32 HuAudFXVolSet(int seNo, s16 vol)
 {
     MSM_SEPARAM param;
@@ -264,6 +415,14 @@ s32 HuAudFXVolSet(int seNo, s16 vol)
     return msmSeSetParam(seNo, &param);
 }
 
+/**
+ * @brief Start a music sequence when music playback is enabled.
+ *
+ * @param [in] musId MSM sequence asset ID passed to msmMusPlay().
+ *
+ * @return MSM music channel returned by msmMusPlay(), or `0` when music is
+ *         disabled or the overlay is exiting.
+ */
 s32 HuAudSeqPlay(s16 musId) {
     s32 channel;
 
@@ -274,6 +433,11 @@ s32 HuAudSeqPlay(s16 musId) {
     return channel;
 }
 
+/**
+ * @brief Immediately stop a music sequence channel.
+ *
+ * @param [in] musNo Music sequence handle.
+ */
 void HuAudSeqStop(s32 musNo) {
     if (musicOffF || omSysExitReq) {
         return;
@@ -281,6 +445,12 @@ void HuAudSeqStop(s32 musNo) {
     msmMusStop(musNo, 0);
 }
 
+/**
+ * @brief Stop a music sequence channel using an MSM fade duration.
+ *
+ * @param [in] musNo Music sequence handle.
+ * @param [in] speed Fade duration passed to msmMusStop().
+ */
 void HuAudSeqFadeOut(s32 musNo, s32 speed) {
     if (musicOffF) {
         return;
@@ -288,6 +458,11 @@ void HuAudSeqFadeOut(s32 musNo, s32 speed) {
     msmMusStop(musNo, speed);
 }
 
+/**
+ * @brief Fade out every currently playing MSM music channel.
+ *
+ * @param [in] speed Fade duration applied to each playing MSM music channel.
+ */
 void HuAudSeqAllFadeOut(s32 speed) {
     s16 i;
 
@@ -298,14 +473,29 @@ void HuAudSeqAllFadeOut(s32 speed) {
     }
 }
 
+/**
+ * @brief Immediately stop all MSM music channels.
+ */
 void HuAudSeqAllStop(void) {
     msmMusStopAll(FALSE, 0);
 }
 
+/**
+ * @brief Pause or resume all MSM music channels.
+ *
+ * @param [in] pause Nonzero pauses all music; zero resumes it.
+ */
 void HuAudSeqPauseAll(BOOL pause) {
     msmMusPauseAll(pause, 100);
 }
 
+/**
+ * @brief Pause or resume one music sequence channel with a transition.
+ *
+ * @param [in] musNo Music sequence handle.
+ * @param [in] pause Nonzero pauses the channel; zero resumes it.
+ * @param [in] speed Transition duration passed to msmMusPause().
+ */
 void HuAudSeqPause(s32 musNo, s32 pause, s32 speed) {
     if (musicOffF || omSysExitReq) {
         return;
@@ -313,6 +503,16 @@ void HuAudSeqPause(s32 musNo, s32 pause, s32 speed) {
     msmMusPause(musNo, pause, speed);
 }
 
+/**
+ * @brief Read a MIDI controller value from a music sequence channel.
+ *
+ * @param [in] musNo Music sequence handle.
+ * @param [in] channel MIDI channel in the standard `0` through `15` domain.
+ * @param [in] ctrl MIDI controller number in the standard `0` through `127`
+ *                  domain, passed to msmMusGetMidiCtrl().
+ *
+ * @return Controller value from MSM, or `0` when music is disabled or exiting.
+ */
 s32 HuAudSeqMidiCtrlGet(s32 musNo, s8 channel, s8 ctrl) {
     if (musicOffF || omSysExitReq) {
         return 0;
@@ -320,6 +520,13 @@ s32 HuAudSeqMidiCtrlGet(s32 musNo, s8 channel, s8 ctrl) {
     return msmMusGetMidiCtrl(musNo, channel, ctrl);
 }
 
+/**
+ * @brief Start an MSM sound stream when music playback is enabled.
+ *
+ * @param [in] streamId MSM stream asset ID passed to msmStreamPlay().
+ *
+ * @return MSM stream handle, or `0` when music is disabled or exiting.
+ */
 s32 HuAudSStreamPlay(s16 streamId) {
     MSM_STREAMPARAM param;
     s32 result;
@@ -332,6 +539,11 @@ s32 HuAudSStreamPlay(s16 streamId) {
     return result;
 }
 
+/**
+ * @brief Immediately stop an MSM sound stream.
+ *
+ * @param [in] seNo MSM stream handle.
+ */
 void HuAudSStreamStop(s32 seNo) {
     if (musicOffF) {
         return;
@@ -339,6 +551,12 @@ void HuAudSStreamStop(s32 seNo) {
     msmStreamStop(seNo, 0);
 }
 
+/**
+ * @brief Stop an MSM sound stream using a fade duration.
+ *
+ * @param [in] seNo MSM stream handle.
+ * @param [in] speed Fade duration passed to msmStreamStop().
+ */
 void HuAudSStreamFadeOut(s32 seNo, s32 speed) {
     if (musicOffF) {
         return;
@@ -346,14 +564,29 @@ void HuAudSStreamFadeOut(s32 seNo, s32 speed) {
     msmStreamStop(seNo, speed);
 }
 
+/**
+ * @brief Fade out all MSM sound streams.
+ *
+ * @param [in] speed Fade duration passed to msmStreamStopAll().
+ */
 void HuAudSStreamAllFadeOut(s32 speed) {
     msmStreamStopAll(speed);
 }
 
+/**
+ * @brief Immediately stop all MSM sound streams.
+ */
 void HuAudSStreamAllStop(void) {
     msmStreamStopAll(0);
 }
 
+/**
+ * @brief Get the MSM playback status of a sound stream.
+ *
+ * @param [in] seNo MSM stream handle.
+ *
+ * @return MSM stream status returned by msmStreamGetStatus().
+ */
 s32 HuAudSStreamStatGet(s32 seNo) {
     return msmStreamGetStatus(seNo);
 }
@@ -452,6 +685,12 @@ SNDGRPTBL sndGrpTable[] = {
     { DLL_NONE, MSM_GRPSET_NONE, MSM_AUXA_DEFAULT, MSM_AUXB_DEFAULT, 0, 0 }
 };
 
+/**
+ * @brief Load the overlay's sound group and configure its AUX routing.
+ *
+ * @param [in] ovl Overlay table key used to select a sound group, AUX effects,
+ *                 and AUX send volumes from `sndGrpTable`.
+ */
 void HuAudDllSndGrpSet(u16 ovl) {
     SNDGRPTBL *sndGrpP;
     s16 grpSet;
@@ -488,7 +727,17 @@ void HuAudDllSndGrpSet(u16 ovl) {
 #define SNDGRP_WAIT(tickStart) \
     while((msmMusGetNumPlay(TRUE) != 0 || msmSeGetNumPlay(TRUE) != 0) && OSTicksToMilliseconds(OSGetTick()-(tickStart)) < SNDGRP_TIMEOUT)
 
-
+/**
+ * @brief Replace the currently cached MSM sound group set when its ID changes.
+ *
+ * @details A changed ID stops all music and sound effects, waits up to 500 ms
+ * for playback counts to drain, deletes all loaded groups, allocates a temporary
+ * sample buffer, loads the requested group set, frees the buffer, and caches the
+ * new ID. Passing the already cached ID performs no work.
+ *
+ * @param [in] grpSet MSM group-set ID selected by overlay, boot, and option
+ *                    audio setup callers and passed to msmSysLoadGroupSet().
+ */
 void HuAudSndGrpSetSet(s16 grpSet) {
     void *buf;
     OSTick tickStart;
@@ -515,6 +764,12 @@ void HuAudSndGrpSetSet(s16 grpSet) {
     }
 }
 
+/**
+ * @brief Load one supplemental MSM sound group through a temporary buffer.
+ *
+ * @param [in] grpId MSM supplemental group whose sample size is allocated and
+ *                   whose data is loaded by msmSysLoadGroup().
+ */
 void HuAudSndGrpSet(s16 grpId) {
     void *buf;
 
@@ -523,6 +778,12 @@ void HuAudSndGrpSet(s16 grpId) {
     HuMemDirectFree(buf);
 }
 
+/**
+ * @brief Replace the common base sound group after stopping active audio.
+ *
+ * @param [in] grp MSM group identifier to load as the base group.
+ * @param [in] delGrpF Nonzero deletes the current base group before loading.
+ */
 void HuAudSndCommonGrpSet(s16 grp, BOOL delGrpF) {
     OSTick tickStart;
     s16 result;
@@ -549,6 +810,12 @@ void HuAudSndCommonGrpSet(s16 grp, BOOL delGrpF) {
     sndGroupBak = MSM_GRPSET_NONE;
 }
 
+/**
+ * @brief Select the MSM AUX A and AUX B effects.
+ *
+ * @param [in] auxA AUX A effect, with `MSM_AUX_NONE` selecting its default.
+ * @param [in] auxB AUX B effect, with `MSM_AUX_NONE` selecting its default.
+ */
 void HuAudAUXSet(s32 auxA, s32 auxB) {
     if (auxA == MSM_AUX_NONE) {
         auxA = MSM_AUXA_DEFAULT;
@@ -559,11 +826,23 @@ void HuAudAUXSet(s32 auxA, s32 auxB) {
     msmSysSetAux(auxA, auxB);
 }
 
+/**
+ * @brief Set AUX send volumes used for subsequent character voices.
+ *
+ * @param [in] volA AUX A send volume, or `-1` to omit that parameter.
+ * @param [in] volB AUX B send volume, or `-1` to omit that parameter.
+ */
 void HuAudAUXVolSet(s8 volA, s8 volB) {
     HuAuxAVol = volA;
     HuAuxBVol = volB;
 }
 
+/**
+ * @brief Load voice groups needed by the currently configured characters.
+ *
+ * @param [in] ovl Active overlay key used to skip character-group replacement
+ *                 when `sndGrpTable` assigns it no overlay sound group.
+ */
 void HuAudSndCharGrpSet(s16 ovl) {
     SNDGRPTBL *sndGrpP;
     OSTick tickStart;
@@ -625,24 +904,59 @@ void HuAudSndCharGrpSet(s16 ovl) {
     }
 }
 
+/**
+ * @brief Play a character voice sound for a configured player.
+ *
+ * @param [in] player Player slot `0` through `GW_PLAYER_MAX - 1`, used to read
+ *                    the configured character from `GWPlayerCfg`.
+ * @param [in] seId Base cue within that character's 64-entry voice bank.
+ *
+ * @return MSM sound-effect handle/error from CharFXPlay(), or `0` while exiting.
+ */
 s32 PlayerFXPlay(s16 player, s16 seId) {
     s16 charNo = GWPlayerCfg[player].character;
 
     return CharFXPlay(charNo, seId);
 }
 
+/**
+ * @brief Play a configured player's character voice at a world position.
+ *
+ * @param [in] player Player slot `0` through `GW_PLAYER_MAX - 1`, used to read
+ *                    the configured character from `GWPlayerCfg`.
+ * @param [in] seId Base cue within that character's 64-entry voice bank.
+ * @param [in] pos Emitter world position.
+ *
+ * @return MSM sound-effect handle/error from CharFXPlayPos(), or `0` while exiting.
+ */
 s32 PlayerFXPlayPos(s16 player, s16 seId, Vec *pos) {
     s16 charNo = GWPlayerCfg[player].character;
 
     return CharFXPlayPos(charNo, seId, pos);
 }
 
+/**
+ * @brief Stop every matching character voice for a configured player.
+ *
+ * @param [in] player Player slot `0` through `GW_PLAYER_MAX - 1`, used to read
+ *                    the configured character from `GWPlayerCfg`.
+ * @param [in] seId Base cue used to find and stop all matching MSM voice entries.
+ */
 void PlayerFXStop(s16 player, s16 seId) {
     s16 charNo = GWPlayerCfg[player].character;
 
     CharFXStop(charNo, seId);
 }
 
+/**
+ * @brief Play a character-relative voice sound with configured AUX sends.
+ *
+ * @param [in] charNo Character-table index `0` through `CHARNO_MAX - 1`; it
+ *                    selects a 64-cue MSM voice bank.
+ * @param [in] seId Base cue within the selected character voice bank.
+ *
+ * @return MSM sound-effect handle or negative error; returns `0` during overlay exit.
+ */
 s32 CharFXPlay(s16 charNo, s16 seId)
 {
     MSM_SEPARAM param;
@@ -663,6 +977,16 @@ s32 CharFXPlay(s16 charNo, s16 seId)
     return HuSePlay(seId, &param);
 }
 
+/**
+ * @brief Play a character-relative voice sound at a world position.
+ *
+ * @param [in] charNo Character-table index `0` through `CHARNO_MAX - 1`; it
+ *                    selects a 64-cue MSM voice bank.
+ * @param [in] seId Base cue within the selected character voice bank.
+ * @param [in] pos Emitter world position.
+ *
+ * @return MSM sound-effect handle or negative error; returns `0` during overlay exit.
+ */
 s32 CharFXPlayPos(s16 charNo, s16 seId, Vec *pos) {
     MSM_SEPARAM param;
 
@@ -685,6 +1009,13 @@ s32 CharFXPlayPos(s16 charNo, s16 seId, Vec *pos) {
     return HuSePlay(seId, &param);
 }
 
+/**
+ * @brief Stop all active entries for a character-relative sound identifier.
+ *
+ * @param [in] charNo Character-table index `0` through `CHARNO_MAX - 1`; it
+ *                    selects a 64-cue MSM voice bank.
+ * @param [in] seId Base cue used to query matching active MSM entries.
+ */
 void CharFXStop(s16 charNo, s16 seId) {
     int entrySeNo[MSM_ENTRY_SENO_MAX];
     u16 entryNum;
@@ -696,6 +1027,14 @@ void CharFXStop(s16 charNo, s16 seId) {
     }
 }
 
+/**
+ * @brief Submit a sound effect to MSM and report negative errors.
+ *
+ * @param [in] seId Fully resolved MSM sound-effect asset ID passed to msmSePlay().
+ * @param [in] param Optional MSM sound-effect parameter block.
+ *
+ * @return MSM playback handle on success, or its negative error code.
+ */
 static int HuSePlay(int seId, MSM_SEPARAM *param)
 {
     s32 result;

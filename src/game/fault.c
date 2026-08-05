@@ -27,45 +27,58 @@ static XFB_COLOR XFB_Colors[5] = {
 
 static XFB_GEOMETRY XFB_Geometry;
 
-static s32 (*XFB_putc)(u8 c, s32 x, s32 y);
+static s32 (*XFB_putc)(u8 character, s32 cursor_x, s32 cursor_y);
 
 static XFB_COLOR Draw_Color;
 
 static s32 x_start;
 static s32 y_start;
 
-static s32 XFB_putcProgressive(u8 arg0, s32 arg1, s32 arg2);
-static s32 XFB_putcInterlace(u8 arg0, s32 arg1, s32 arg2);
-static s32 XFB_puts(s8* arg0, s32 arg1, s32 arg2);
-static s32 XFB_putcS(u8 arg0, s32 arg1, s32 arg2);
+static s32 XFB_putcProgressive(u8 character, s32 cursor_x, s32 cursor_y);
+static s32 XFB_putcInterlace(u8 character, s32 cursor_x, s32 cursor_y);
+static s32 XFB_puts(s8* message, s32 cursor_x, s32 cursor_y);
+static s32 XFB_putcS(u8 character, s32 cursor_x, s32 cursor_y);
 static void XFB_WriteBackCache(void);
-static void XFB_CR(s32 value, s32* arg1, s32* arg2);
+static void XFB_CR(s32 line_advance, s32* cursor_x, s32* cursor_y);
 
+/**
+ * @brief Display a fatal error directly in the framebuffers and halt the CPU.
+ *
+ * @param [in] file Source file reporting the panic.
+ * @param [in] line Source line reporting the panic.
+ * @param [in] msg Formatted panic message.
+ */
 void OSPanic(const char* file, int line, const char* msg, ...) {
     static char* titleMes = "OSPanic encounterd:";
     
-    va_list sp78;
-    s32 sp74;
-    s32 sp70;
-    char sp84[1024];
+    va_list format_args;
+    s32 cursor_x;
+    s32 cursor_y;
+    char message_buf[1024];
     s32 puts;
 
-    sp74 = x_start = 0x10;
-    sp70 = y_start = 0x20;
-    puts = XFB_puts((s8*)titleMes, sp74, sp70);
-    XFB_CR(puts + 1, &sp74, &sp70);
-    sprintf(sp84, "%s:%d", file, line);
-    puts = XFB_puts((s8*)sp84, sp74, sp70);
-    XFB_CR(puts, &sp74, &sp70);
-    va_start(sp78, msg);
-    vsnprintf(sp84, 0x400U, msg, &sp78[0]);
-    puts = XFB_puts((s8*)sp84, sp74, sp70);
-    XFB_CR(puts, &sp74, &sp70);
+    cursor_x = x_start = 0x10;
+    cursor_y = y_start = 0x20;
+    puts = XFB_puts((s8*)titleMes, cursor_x, cursor_y);
+    XFB_CR(puts + 1, &cursor_x, &cursor_y);
+    sprintf(message_buf, "%s:%d", file, line);
+    puts = XFB_puts((s8*)message_buf, cursor_x, cursor_y);
+    XFB_CR(puts, &cursor_x, &cursor_y);
+    va_start(format_args, msg);
+    vsnprintf(message_buf, 0x400U, msg, &format_args[0]);
+    puts = XFB_puts((s8*)message_buf, cursor_x, cursor_y);
+    XFB_CR(puts, &cursor_x, &cursor_y);
     XFB_WriteBackCache();
     PPCHalt();
-    va_end(sp78);
+    va_end(format_args);
 }
 
+/**
+ * @brief Initialize direct framebuffer drawing for fatal errors.
+ *
+ * @param [in] mode Render mode supplying framebuffer dimensions and XFB mode;
+ *                  `NULL` leaves geometry zeroed and selects progressive draw.
+ */
 void HuFaultInitXfbDirectDraw(GXRenderModeObj *mode) {
     s32 i;
     
@@ -93,12 +106,21 @@ void HuFaultInitXfbDirectDraw(GXRenderModeObj *mode) {
     }
 }
 
+/**
+ * @brief Register a framebuffer for fatal-error drawing.
+ *
+ * @param [in] id Framebuffer slot in the inclusive range `0` through `3`.
+ * @param [in] addr External framebuffer base address, or `NULL` to clear it.
+ */
 void HuFaultSetXfbAddress(s16 id, void* addr) {
     if (id >= 0 && id < 4) {
         XFB_Geometry.fb[id] = addr;
     }
 }
 
+/**
+ * @brief Write modified framebuffer ranges back to memory.
+ */
 static void XFB_WriteBackCache(void) {
     s32 i;
     void* fb;
@@ -117,29 +139,47 @@ static void XFB_WriteBackCache(void) {
     }
 }
 
-static void XFB_CR(s32 value, s32* x_ptr, s32* y_ptr) {
+/**
+ * @brief Advance a framebuffer text cursor to the next requested line.
+ *
+ * @param [in] line_advance Encoded line count; its low three bits add extra
+ *                   18-pixel line steps after the mandatory step.
+ * @param [in, out] cursor_x Cursor X coordinate, reset to the configured margin.
+ * @param [in, out] cursor_y Cursor Y coordinate, advanced in 18-pixel rows.
+ */
+static void XFB_CR(s32 line_advance, s32* cursor_x, s32* cursor_y) {
     s32 numLines;
     s32 y;
     s32 x;
 
-    x = *x_ptr;
-    y = *y_ptr;
+    x = *cursor_x;
+    y = *cursor_y;
 
     x = x_start;
     y += 0x12;
 
-    numLines = value & 7;
+    numLines = line_advance & 7;
     if (numLines != 0) {
         y += numLines * 0x12;
     }
 
-    *x_ptr = x;
-    *y_ptr = y;
+    *cursor_x = x;
+    *cursor_y = y;
 }
 
-static s32 XFB_puts(s8* message, s32 x, s32 y) {
+/**
+ * @brief Draw a null-terminated string into the configured framebuffers.
+ *
+ * @param [in] message Null-terminated text to draw.
+ * @param [in] cursor_x Initial horizontal framebuffer coordinate.
+ * @param [in] cursor_y Initial vertical framebuffer coordinate.
+ *
+ * @return Number of newline and automatic-wrap advances encountered before
+ *         the terminating null character.
+ */
+static s32 XFB_puts(s8* message, s32 cursor_x, s32 cursor_y) {
     s32 i;
-    s32 temp_r31;
+    s32 wrap_count;
     s8 current_char;
     
     i = 0;
@@ -148,21 +188,21 @@ static s32 XFB_puts(s8* message, s32 x, s32 y) {
         current_char = *message++;
         
         if (current_char == '\n') {
-            XFB_CR(0, &x, &y);
+            XFB_CR(0, &cursor_x, &cursor_y);
             
             i += 1;
         } else {
-            temp_r31 = XFB_putcS(current_char, x, y);
+            wrap_count = XFB_putcS(current_char, cursor_x, cursor_y);
             
-            if (temp_r31 >= 0) {
-                if (temp_r31 != 0) {
-                    temp_r31 -= 1;
+            if (wrap_count >= 0) {
+                if (wrap_count != 0) {
+                    wrap_count -= 1;
 
-                    XFB_CR(temp_r31, &x, &y);
+                    XFB_CR(wrap_count, &cursor_x, &cursor_y);
                     
-                    i += temp_r31 + 1;
+                    i += wrap_count + 1;
                 }
-                x += 0x10;
+                cursor_x += 0x10;
             } else {
                 break;
             }
@@ -172,31 +212,51 @@ static s32 XFB_puts(s8* message, s32 x, s32 y) {
     return i;
 }
 
-static s32 XFB_putcS(u8 c, s32 x, s32 y) {
+/**
+ * @brief Draw an outlined character with automatic line wrapping.
+ *
+ * @param [in] character Character code from the direct-draw font table.
+ * @param [in] cursor_x Horizontal framebuffer coordinate, wrapped if needed.
+ * @param [in] cursor_y Vertical framebuffer coordinate, advanced on wrapping.
+ *
+ * @return `0` when drawn without wrapping, `1` when the cursor first wrapped,
+ *         or `-1` when `character` is the terminating null character.
+ */
+static s32 XFB_putcS(u8 character, s32 cursor_x, s32 cursor_y) {
     XFB_COLOR colorOld;
     s32 crNum;
 
     crNum = 0;
     colorOld = Draw_Color;
 
-    if (x + 0x11 >= XFB_Geometry.width) {
-        XFB_CR(0, &x, &y);
+    if (cursor_x + 0x11 >= XFB_Geometry.width) {
+        XFB_CR(0, &cursor_x, &cursor_y);
         crNum++;
     }
 
     Draw_Color = XFB_Colors[0];
-    XFB_putc(c, x, y - 2);
-    XFB_putc(c, x, y + 2);
-    XFB_putc(c, x - 1, y);
-    XFB_putc(c, x + 1, y);
+    XFB_putc(character, cursor_x, cursor_y - 2);
+    XFB_putc(character, cursor_x, cursor_y + 2);
+    XFB_putc(character, cursor_x - 1, cursor_y);
+    XFB_putc(character, cursor_x + 1, cursor_y);
 
     Draw_Color = colorOld;
-    XFB_putc(c, x, y);
+    XFB_putc(character, cursor_x, cursor_y);
 
     return crNum;
 }
 
-static s32 XFB_putcProgressive(u8 c, s32 x, s32 y) {
+/**
+ * @brief Draw one character into progressive-scan framebuffers.
+ *
+ * @param [in] character Character code indexing the 8-by-8 font table.
+ * @param [in] cursor_x Horizontal framebuffer coordinate.
+ * @param [in] cursor_y Vertical framebuffer coordinate.
+ *
+ * @return `0` after drawing a glyph, `1` after horizontal wrapping, or `-1`
+ *         when `character` is zero or the glyph exceeds framebuffer height.
+ */
+static s32 XFB_putcProgressive(u8 character, s32 cursor_x, s32 cursor_y) {
     s32 result;
     s32 pitch;
     u8 colorY;
@@ -215,17 +275,17 @@ static s32 XFB_putcProgressive(u8 c, s32 x, s32 y) {
 
     result = 0;
 
-    if (c == 0) {
+    if (character == 0) {
         return -1;
     }
 
-    if (x + 0x10 >= XFB_Geometry.width) {
-        y += 0x12;
-        x = x_start;
+    if (cursor_x + 0x10 >= XFB_Geometry.width) {
+        cursor_y += 0x12;
+        cursor_x = x_start;
         result = 1;
     }
 
-    if (y + 0x10 >= XFB_Geometry.height) {
+    if (cursor_y + 0x10 >= XFB_Geometry.height) {
         return -1;
     }
 
@@ -234,8 +294,8 @@ static s32 XFB_putcProgressive(u8 c, s32 x, s32 y) {
     colorCr = Draw_Color.cr;
 
     pitch = XFB_Geometry.width * 2;
-    xfbOfs = (x & 0xFFFE) * 2 + y * pitch;
-    src = Ascii8x8_1bpp + (c * 8);
+    xfbOfs = (cursor_x & 0xFFFE) * 2 + cursor_y * pitch;
+    src = Ascii8x8_1bpp + (character * 8);
 
     i = 8;
 
@@ -260,7 +320,7 @@ static s32 XFB_putcProgressive(u8 c, s32 x, s32 y) {
                         bits >>= 1;
                     }
                     width = 8;
-                    if ((s32) (x & 1) != 0) {
+                    if ((s32) (cursor_x & 1) != 0) {
                         writeMask *= 2;
                         width = 0xA;
                     }
@@ -294,7 +354,17 @@ static s32 XFB_putcProgressive(u8 c, s32 x, s32 y) {
     return result;
 }
 
-static s32 XFB_putcInterlace(u8 c, s32 x, s32 y) {
+/**
+ * @brief Draw one character into interlaced framebuffers.
+ *
+ * @param [in] character Character code indexing the 8-by-8 font table.
+ * @param [in] cursor_x Horizontal framebuffer coordinate.
+ * @param [in] cursor_y Vertical framebuffer coordinate and field selector.
+ *
+ * @return `0` after drawing a glyph, or `-1` when `character` is zero or the
+ *         glyph lies outside framebuffer bounds.
+ */
+static s32 XFB_putcInterlace(u8 character, s32 cursor_x, s32 cursor_y) {
     u8 colorY;
     u8 colorCr;
     u8 colorCb;
@@ -307,11 +377,11 @@ static s32 XFB_putcInterlace(u8 c, s32 x, s32 y) {
     s32 width;
     u8* fb;
 
-    if (c == 0) {
+    if (character == 0) {
         return -1;
     }
 
-    if (x + 8 >= XFB_Geometry.width || y + 8 >= XFB_Geometry.height) {
+    if (cursor_x + 8 >= XFB_Geometry.width || cursor_y + 8 >= XFB_Geometry.height) {
         return -1;
     }
 
@@ -320,8 +390,8 @@ static s32 XFB_putcInterlace(u8 c, s32 x, s32 y) {
     colorCr = Draw_Color.cr;
 
     pitch = XFB_Geometry.width * 2;
-    xfbOfs = ((x & 0xFFFE) * 2) + ((y >> 1) * pitch);
-    src = Ascii8x8_1bpp + c * 8;
+    xfbOfs = ((cursor_x & 0xFFFE) * 2) + ((cursor_y >> 1) * pitch);
+    src = Ascii8x8_1bpp + character * 8;
 
     i = 8;
 
@@ -329,7 +399,7 @@ static s32 XFB_putcInterlace(u8 c, s32 x, s32 y) {
         for (j = 0; j < 4; j += 2) {
             width = j;
 
-            if ((s32) (y & 1) != 0) {
+            if ((s32) (cursor_y & 1) != 0) {
                 width += 1;
             }
 
@@ -340,7 +410,7 @@ static s32 XFB_putcInterlace(u8 c, s32 x, s32 y) {
                 bits = *src;
                 width = 4;
 
-                if (x & 1) {
+                if (cursor_x & 1) {
                     bits = (s16)bits * 2;
                     width = 5;
                 }
@@ -366,7 +436,7 @@ static s32 XFB_putcInterlace(u8 c, s32 x, s32 y) {
         }
 
         i -= 1;
-        y += 1;
+        cursor_y += 1;
         src += 1;
         xfbOfs += pitch;
     }

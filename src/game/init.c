@@ -46,6 +46,12 @@ static void LoadMemInfo();
 
 #define ASSERT_LINE(ntsc, pal) ((VERSION_NTSC) ? (ntsc) : (pal))
 
+/**
+ * @brief Initialize the core hardware and game runtime subsystems.
+ *
+ * @param [in] mode Optional caller-supplied render mode; `NULL` selects the
+ *                   mode derived from the console TV format.
+ */
 void HuSysInit(GXRenderModeObj *mode)
 {
     u32 rnd_temp;
@@ -84,6 +90,12 @@ void HuSysInit(GXRenderModeObj *mode)
     HuCardInit();
 }
 
+/**
+ * @brief Select and adjust the active video render mode.
+ *
+ * @param [in] mode Optional render-mode override; `NULL` uses a TV-format
+ *                   specific default.
+ */
 static void InitRenderMode(GXRenderModeObj *mode)
 {
     if(mode != NULL) {
@@ -111,6 +123,9 @@ static void InitRenderMode(GXRenderModeObj *mode)
     RenderMode = &rmodeobj;
 }
 
+/**
+ * @brief Initialize the GX graphics state.
+ */
 static void InitGX()
 {
     GXSetViewport(0, 0, RenderMode->fbWidth, RenderMode->xfbHeight, 0, 1);
@@ -133,6 +148,9 @@ static void InitGX()
     GXSetDispCopyGamma(GX_GM_1_0);
 }
 
+/**
+ * @brief Initialize the game memory heaps.
+ */
 static void InitMem()
 {
     void *arena_lo = OSGetArenaLo();
@@ -170,6 +188,9 @@ static void InitMem()
     }
 }
 
+/**
+ * @brief Initialize video output and framebuffers.
+ */
 static void InitVI()
 {
     u32 interlace;
@@ -183,6 +204,9 @@ static void InitVI()
     }
 }
 
+/**
+ * @brief Prepare GX state before rendering a frame.
+ */
 void HuSysBeforeRender()
 {
     if(RenderMode->field_rendering) {
@@ -194,6 +218,11 @@ void HuSysBeforeRender()
     GXInvalidateTexAll();
 }
 
+/**
+ * @brief Finish rendering and synchronize framebuffer presentation.
+ *
+ * @param [in] retrace_count Retrace count used to pace buffer presentation.
+ */
 void HuSysDoneRender(s32 retrace_count)
 {
     s32 retrace_dist;
@@ -220,6 +249,9 @@ void HuSysDoneRender(s32 retrace_count)
     SwapBuffers();
 }
 
+/**
+ * @brief Queue the next external framebuffer for display.
+ */
 static void SwapBuffers()
 {
     VISetNextFrameBuffer(DemoCurrentBuffer);
@@ -236,6 +268,9 @@ static void SwapBuffers()
     }
 }
 
+/**
+ * @brief Report the current memory layout for diagnostics.
+ */
 static void LoadMemInfo()
 {
     u32 size;

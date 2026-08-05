@@ -30,41 +30,41 @@
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 1;
-        u8 unk00_field2 : 1;
-        u8 unk00_field3 : 2;
-        u8 unk00_field4 : 1;
+        u8 kill : 1;
+        u8 spin : 1;
+        u8 motion_looped : 1;
+        u8 player : 2;
+        u8 sound_played : 1;
     };
-    s8 unk01;
-    s8 unk02;
-    char unk03[1];
-    s16 unk04;
-    s16 unk06;
-    s16 unk08;
-    s16 unk0A;
-    s16 unk0C;
+    s8 state;
+    s8 spin_speed;
+    char padding[1];
+    s16 delay;
+    s16 unidentified_s16_at_0x06;
+    s16 shrink_angle;
+    s16 arc_frame;
+    s16 star_model;
 } GiveStarWork;
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
+        u8 kill : 1;
     };
-    s8 unk01;
+    s8 state;
 } ShowNextWork;
 
 static void ExecStar(void);
 static void DestroyStar(void);
-static void GiveStarMain(OMOBJ *arg0);
-static void UpdateStarAngle(GiveStarWork *arg0, OMOBJ *arg1);
-static void InitGiveStar(GiveStarWork *arg0, OMOBJ *arg1);
-static void MoveGiveStar(GiveStarWork *arg0, OMOBJ *arg1);
-static void ShrinkGiveStar(GiveStarWork *arg0, OMOBJ *arg1);
+static void GiveStarMain(OMOBJ *star_object);
+static void UpdateStarAngle(GiveStarWork *star_work, OMOBJ *star_object);
+static void InitGiveStar(GiveStarWork *star_work, OMOBJ *star_object);
+static void MoveGiveStar(GiveStarWork *star_work, OMOBJ *star_object);
+static void ShrinkGiveStar(GiveStarWork *star_work, OMOBJ *star_object);
 static void StopGiveStar(void);
 static void InitGiveStarEffect(void);
 static void KillGiveStarEffect(void);
-static void ShowNextUpdate(OMOBJ *arg0);
-static void HideNextHost(s32 arg0);
+static void ShowNextUpdate(OMOBJ *show_next_object);
+static void HideNextHost(s32 state);
 
 static Vec starCharPos;
 
@@ -148,8 +148,12 @@ static HU3DPARMANPARAM starEffParam = {
     }
 };
 
-void BoardStarHostSet(s16 arg0) {
-    hostMdl = arg0;
+/**
+ * @brief Sets the star-host model and associates it with the current star space.
+ * @param host_model Board-model handle for the star host.
+ */
+void BoardStarHostSet(s16 host_model) {
+    hostMdl = host_model;
     if (GWBoardGet() == BOARD_ID_EXTRA1 || GWBoardGet() == BOARD_ID_EXTRA2) {
         return;
     }
@@ -158,15 +162,24 @@ void BoardStarHostSet(s16 arg0) {
     }
 }
 
+/**
+ * @brief Gets the star-host board model handle.
+ * @return Star-host board-model handle, or -1 when unset.
+ */
 s16 BoardStarHostMdlGet(void) {
     return hostMdl;
 }
 
-void BoardStarExec(s32 arg0, s32 arg1) {
+/**
+ * @brief Runs and waits for the current player's star-purchase interaction.
+ * @param player Player index arriving at the star.
+ * @param space Board-space argument retained by the event interface but not read.
+ */
+void BoardStarExec(s32 player, s32 space) {
     if (GWBoardGet() == BOARD_ID_EXTRA1 || GWBoardGet() == BOARD_ID_EXTRA2) {
         return;
     }
-    if (BoardPlayerSizeGet(arg0) != 2) {
+    if (BoardPlayerSizeGet(player) != 2) {
         BoardRollDispSet(0);
         starProc = HuPrcChildCreate(ExecStar, 0x2003, 0x3800, 0, boardMainProc);
         HuPrcDestructorSet2(starProc, DestroyStar);
@@ -177,89 +190,92 @@ void BoardStarExec(s32 arg0, s32 arg1) {
     }
 }
 
+/**
+ * @brief Handles star eligibility, purchase choice, payment, award, and host reset.
+ */
 static void ExecStar(void) {
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    float temp_f27;
-    float temp_f29;
-    float temp_f30;
-    float var_f28;
-    float var_f31;
-    s16 temp_r30;
-    u32 sp8;
-    s32 temp_r24;
-    s32 temp_r29;
-    s32 var_r26;
-    s32 var_r25;
+    Vec player_position;
+    Vec linked_space_position;
+    Vec host_direction;
+    float host_angle;
+    float player_angle;
+    float target_angle;
+    float angle_distance;
+    float host_angle_step;
+    s16 host_model;
+    u32 space_variant;
+    s32 current_space;
+    s32 message;
+    s32 rotate_host;
+    s32 turn_frames;
     s32 i;
-    s32 temp_r27;
-    s32 temp_r31;
-    s32 var_r22;
-    BoardSpace *var_r23;
+    s32 board;
+    s32 player;
+    s32 linked_space;
+    BoardSpace *current_space_data;
 
-    temp_r31 = GWSystem.player_curr;
-    temp_r27 = GWBoardGet();
-    temp_r30 = BoardStarHostMdlGet();
+    player = GWSystem.player_curr;
+    board = GWBoardGet();
+    host_model = BoardStarHostMdlGet();
     HuAudFXPlay(0x33A);
     for (i = 0; i < 2; i++) {
-        hostMot[i] = BoardModelMotionCreate(temp_r30, hostMotTbl[temp_r27][i]);
+        hostMot[i] = BoardModelMotionCreate(host_model, hostMotTbl[board][i]);
     }
-    BoardPlayerPosGet(temp_r31, &sp24);
-    temp_r24 = GWPlayer[temp_r31].space_curr;
-    var_r23 = BoardSpaceGet(0, temp_r24);
-    sp8 = (var_r23->flag & 0x70000) >> 16;
+    BoardPlayerPosGet(player, &player_position);
+    current_space = GWPlayer[player].space_curr;
+    current_space_data = BoardSpaceGet(0, current_space);
+    space_variant = (current_space_data->flag & 0x70000) >> 16;
     starDoneF = 0;
-    var_r22 = BoardSpaceLinkFlagSearch(0, temp_r24, 0x04000000);
-    BoardSpacePosGet(0, var_r22, &sp18);
-    VECSubtract(&sp18, &sp24, &spC);
-    temp_f30 = 90.0 - atan2d(spC.z, spC.x);
-    temp_f30 = 90.0f * ((temp_f30 + 3.0f) / 90.0f);
-    temp_f29 = BoardPlayerRotYGet(temp_r31);
-    BoardPlayerIdleSet(temp_r31);
-    if (BoardDAngleCalc(temp_f30 - temp_f29) < 0.0f) {
-        var_f28 = -BoardDAngleCalc(temp_f30 - temp_f29);
+    linked_space = BoardSpaceLinkFlagSearch(0, current_space, 0x04000000);
+    BoardSpacePosGet(0, linked_space, &linked_space_position);
+    VECSubtract(&linked_space_position, &player_position, &host_direction);
+    target_angle = 90.0 - atan2d(host_direction.z, host_direction.x);
+    target_angle = 90.0f * ((target_angle + 3.0f) / 90.0f);
+    player_angle = BoardPlayerRotYGet(player);
+    BoardPlayerIdleSet(player);
+    if (BoardDAngleCalc(target_angle - player_angle) < 0.0f) {
+        angle_distance = -BoardDAngleCalc(target_angle - player_angle);
     } else {
-        var_f28 = BoardDAngleCalc(temp_f30 - temp_f29);
+        angle_distance = BoardDAngleCalc(target_angle - player_angle);
     }
-    if (var_f28 > 90.0f) {
-        var_r25 = 30;
+    if (angle_distance > 90.0f) {
+        turn_frames = 30;
     } else {
-        var_r25 = 15;
+        turn_frames = 15;
     }
-    BoardPlayerMotBlendSet(temp_r31, temp_f30, var_r25);
-    temp_f27 = BoardModelRotYGet(temp_r30);
-    var_f31 = BoardDAngleCalc(temp_f30 + 180.0f) - temp_f27;
-    if ((var_f31 <= 4.0f && var_f31 >= 0.0f)
-        || (var_f31 <= 360.0f && var_f31 >= 355.0f)
-        || (var_f31 <= 0.0f && var_f31 >= -4.0f)) {
-        var_r26 = 0;
+    BoardPlayerMotBlendSet(player, target_angle, turn_frames);
+    host_angle = BoardModelRotYGet(host_model);
+    host_angle_step = BoardDAngleCalc(target_angle + 180.0f) - host_angle;
+    if ((host_angle_step <= 4.0f && host_angle_step >= 0.0f)
+        || (host_angle_step <= 360.0f && host_angle_step >= 355.0f)
+        || (host_angle_step <= 0.0f && host_angle_step >= -4.0f)) {
+        rotate_host = 0;
     } else {
-        var_r26 = 1;
+        rotate_host = 1;
     }
-    if (var_r26 != 0) {
-        var_f31 /= var_r25;
-        BoardModelMotionShiftSet(temp_r30, hostMot[1], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-        BoardModelMotionSpeedSet(temp_r30, 2.0f);
+    if (rotate_host != 0) {
+        host_angle_step /= turn_frames;
+        BoardModelMotionShiftSet(host_model, hostMot[1], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+        BoardModelMotionSpeedSet(host_model, 2.0f);
     }
-    while (!BoardPlayerMotBlendCheck(temp_r31)) {
-        if (var_r26 != 0) {
-            temp_f30 = var_f31 + BoardModelRotYGet(temp_r30);
-            BoardModelRotYSet(temp_r30, temp_f30);
+    while (!BoardPlayerMotBlendCheck(player)) {
+        if (rotate_host != 0) {
+            target_angle = host_angle_step + BoardModelRotYGet(host_model);
+            BoardModelRotYSet(host_model, target_angle);
         }
         HuPrcVSleep();
     }
-    BoardModelMotionShiftSet(temp_r30, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+    BoardModelMotionShiftSet(host_model, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
     BoardCameraViewSet(3);
     BoardCameraMotionWait();
-    if (GWStarsGet(temp_r31) >= 999) {
-        temp_r29 = starMesTbl1[temp_r27] + 5;
-        BoardWinCreate(0, temp_r29, BoardWinPortraitGetStar());
+    if (GWStarsGet(player) >= 999) {
+        message = starMesTbl1[board] + 5;
+        BoardWinCreate(0, message, BoardWinPortraitGetStar());
         BoardWinWait();
         BoardWinKill();
-    } else if (BoardPlayerCoinsGet(temp_r31) < 20 && GWSystem.last5_effect != 4) {
-        temp_r29 = starMesTbl1[temp_r27] + 2;
-        BoardWinCreate(2, temp_r29, BoardWinPortraitGetStar());
+    } else if (BoardPlayerCoinsGet(player) < 20 && GWSystem.last5_effect != 4) {
+        message = starMesTbl1[board] + 2;
+        BoardWinCreate(2, message, BoardWinPortraitGetStar());
         BoardWinWait();
         BoardWinKill();
     } else {
@@ -267,28 +283,28 @@ static void ExecStar(void) {
         while (!BoardStatusStopCheck(0) || !BoardStatusStopCheck(1) || !BoardStatusStopCheck(2) || !BoardStatusStopCheck(3)) {
             HuPrcVSleep();
         }
-        temp_r29 = starMesTbl1[temp_r27];
-        BoardWinCreate(2, temp_r29, BoardWinPortraitGetStar());
-        BoardWinInsertMesSet(BoardPlayerGetCharMess(temp_r31), 0);
+        message = starMesTbl1[board];
+        BoardWinCreate(2, message, BoardWinPortraitGetStar());
+        BoardWinInsertMesSet(BoardPlayerGetCharMess(player), 0);
         BoardWinWait();
         BoardWinKill();
         while (1) {
-            BoardStatusShowSetForce(temp_r31);
-            BoardStatusShowSet(temp_r31, 1);
-            while (!BoardStatusStopCheck(temp_r31)) {
+            BoardStatusShowSetForce(player);
+            BoardStatusShowSet(player, 1);
+            while (!BoardStatusStopCheck(player)) {
                 HuPrcVSleep();
             }
             if (GWSystem.last5_effect == 4) {
-                temp_r29 = starMesTbl1[temp_r27] + 8;
-                BoardWinCreate(2, temp_r29, BoardWinPortraitGetStar());
+                message = starMesTbl1[board] + 8;
+                BoardWinCreate(2, message, BoardWinPortraitGetStar());
                 BoardWinWait();
                 break;
             }
-            temp_r29 = starMesTbl1[temp_r27] + 1;
-            BoardWinCreateChoice(1, temp_r29, BoardWinPortraitGetStar(), 0);
+            message = starMesTbl1[board] + 1;
+            BoardWinCreateChoice(1, message, BoardWinPortraitGetStar(), 0);
             BoardWinAttrSet(0x10);
-            if (GWPlayer[temp_r31].com) {
-                if (BoardPlayerCoinsGet(temp_r31) >= 20) {
+            if (GWPlayer[player].com) {
+                if (BoardPlayerCoinsGet(player) >= 20) {
                     BoardComKeySetUp();
                 } else {
                     BoardComKeySetDown();
@@ -297,12 +313,12 @@ static void ExecStar(void) {
             BoardWinWait();
             switch (BoardWinChoiceGet()) {
                 case 0:
-                    if (BoardPlayerCoinsGet(temp_r31) < 20) {
-                        temp_r29 = starMesTbl1[temp_r27] + 2;
-                        BoardWinCreate(2, temp_r29, BoardWinPortraitGetStar());
+                    if (BoardPlayerCoinsGet(player) < 20) {
+                        message = starMesTbl1[board] + 2;
+                        BoardWinCreate(2, message, BoardWinPortraitGetStar());
                         BoardWinWait();
-                        BoardStatusShowSet(temp_r31, 0);
-                        while (!BoardStatusStopCheck(temp_r31)) {
+                        BoardStatusShowSet(player, 0);
+                        while (!BoardStatusStopCheck(player)) {
                             HuPrcVSleep();
                         }
                         BoardStatusShowSetAll(1);
@@ -310,81 +326,84 @@ static void ExecStar(void) {
                     }
                     goto block_A;
                 case 1:
-                    temp_r29 = starMesTbl1[temp_r27] + 4;
-                    BoardWinCreate(2, temp_r29, BoardWinPortraitGetStar());
+                    message = starMesTbl1[board] + 4;
+                    BoardWinCreate(2, message, BoardWinPortraitGetStar());
                     BoardWinWait();
-                    BoardStatusShowSet(temp_r31, 0);
-                    while (!BoardStatusStopCheck(temp_r31)) {
+                    BoardStatusShowSet(player, 0);
+                    while (!BoardStatusStopCheck(player)) {
                         HuPrcVSleep();
                     }
                     BoardStatusShowSetAll(1);
                     goto block_B;
                 default:
-                    BoardStatusShowSet(temp_r31, 0);
-                    while (!BoardStatusStopCheck(temp_r31)) {
+                    BoardStatusShowSet(player, 0);
+                    while (!BoardStatusStopCheck(player)) {
                         HuPrcVSleep();
                     }
                     BoardWinKill();
-                    BoardViewMapExec(temp_r31);
+                    BoardViewMapExec(player);
                     break;
             }
         }
 block_A:
-        temp_r29 = starMesTbl1[temp_r27] + 3;
-        BoardWinCreate(2, temp_r29, BoardWinPortraitGetStar());
+        message = starMesTbl1[board] + 3;
+        BoardWinCreate(2, message, BoardWinPortraitGetStar());
         BoardWinWait();
         BoardWinKill();
         if (GWSystem.last5_effect != 4) {
             for (i = 0; i < 20; i++) {
-                BoardPlayerCoinsAdd(temp_r31, -1);
+                BoardPlayerCoinsAdd(player, -1);
                 HuAudFXPlay(0xE);
                 HuPrcSleep(3);
             }
             HuAudFXPlay(0xF);
         }
         _SetFlag(0x10017);
-        BoardModelMotionShiftSet(temp_r30, hostMot[0], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+        BoardModelMotionShiftSet(host_model, hostMot[0], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
         HuPrcSleep(30);
         starDoneF = 1;
         BoardAudSeqFadeOut(0, 1000);
-        BoardModelPosGet(temp_r30, &sp24);
-        sp24.y += 130.0f;
-        BoardStarGive(temp_r31, &sp24);
-        BoardStatusShowSet(temp_r31, 0);
-        while (!BoardStatusStopCheck(temp_r31)) {
+        BoardModelPosGet(host_model, &player_position);
+        player_position.y += 130.0f;
+        BoardStarGive(player, &player_position);
+        BoardStatusShowSet(player, 0);
+        while (!BoardStatusStopCheck(player)) {
             HuPrcVSleep();
         }
-        BoardModelMotionShiftSet(temp_r30, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-        BoardStarShowNext(temp_r31);
+        BoardModelMotionShiftSet(host_model, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+        BoardStarShowNext(player);
         BoardMusStartBoard();
-        BoardModelRotYSet(temp_r30, 0.0f);
+        BoardModelRotYSet(host_model, 0.0f);
     }
 block_B:
     BoardWinKill();
-    var_f31 = -BoardModelRotYGet(temp_r30);
-    if (var_r26 != 0) {
-        var_f31 /= var_r25;
-        BoardModelMotionShiftSet(temp_r30, hostMot[1], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-        BoardModelMotionSpeedSet(temp_r30, 3.0f);
+    host_angle_step = -BoardModelRotYGet(host_model);
+    if (rotate_host != 0) {
+        host_angle_step /= turn_frames;
+        BoardModelMotionShiftSet(host_model, hostMot[1], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+        BoardModelMotionSpeedSet(host_model, 3.0f);
     }
-    BoardPlayerMotBlendSet(temp_r31, 0, var_r25);
-    while (!BoardPlayerMotBlendCheck(temp_r31)) {
-        if (var_r26 != 0) {
-            temp_f30 = var_f31 + BoardModelRotYGet(temp_r30);
-            BoardModelRotYSet(temp_r30, temp_f30);
+    BoardPlayerMotBlendSet(player, 0, turn_frames);
+    while (!BoardPlayerMotBlendCheck(player)) {
+        if (rotate_host != 0) {
+            target_angle = host_angle_step + BoardModelRotYGet(host_model);
+            BoardModelRotYSet(host_model, target_angle);
         }
         HuPrcVSleep();
     }
-    BoardModelRotYSet(temp_r30, 0.0f);
-    BoardModelMotionShiftSet(temp_r30, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+    BoardModelRotYSet(host_model, 0.0f);
+    BoardModelMotionShiftSet(host_model, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
     if (!_CheckFlag(FLAG_ID_MAKE(1, 22))) {
         BoardCameraViewSet(1);
-        BoardCameraTargetPlayerSet(temp_r31);
+        BoardCameraTargetPlayerSet(player);
         BoardCameraMotionWait();
     }
     HuPrcEnd();
 }
 
+/**
+ * @brief Releases star-host motions and stops star-award effects.
+ */
 static void DestroyStar(void) {
     s32 i;
 
@@ -398,165 +417,198 @@ static void DestroyStar(void) {
     starProc = NULL;
 }
 
-static void GiveStarMain(OMOBJ *arg0) {
-    GiveStarWork *temp_r30;
+/**
+ * @brief Updates or destroys the animated star-award object.
+ * @param star_object Object controlling the awarded star model and animation state.
+ */
+static void GiveStarMain(OMOBJ *star_object) {
+    GiveStarWork *star_work;
 
-    temp_r30 = omObjGetWork(arg0, GiveStarWork);
-    if (temp_r30->unk00_field0 != 0 || BoardIsKill()) {
+    star_work = omObjGetWork(star_object, GiveStarWork);
+    if (star_work->kill != 0 || BoardIsKill()) {
         KillGiveStarEffect();
-        BoardModelKill(temp_r30->unk0C);
+        BoardModelKill(star_work->star_model);
         giveStarObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), star_object);
         return;
     }
-    if (temp_r30->unk04 != 0) {
-        temp_r30->unk04--;
+    if (star_work->delay != 0) {
+        star_work->delay--;
     } else {
-        switch (temp_r30->unk01) {
+        switch (star_work->state) {
             case 4:
                 break;
             case 0:
-                InitGiveStar(temp_r30, arg0);
+                InitGiveStar(star_work, star_object);
                 break;
             case 1:
-                MoveGiveStar(temp_r30, arg0);
+                MoveGiveStar(star_work, star_object);
                 break;
             case 2:
-                ShrinkGiveStar(temp_r30, arg0);
+                ShrinkGiveStar(star_work, star_object);
                 break;
         }
-        UpdateStarAngle(temp_r30, arg0);
+        UpdateStarAngle(star_work, star_object);
     }
-    BoardModelPosSet(temp_r30->unk0C, arg0->trans.x, arg0->trans.y, arg0->trans.z);
-    BoardModelRotSet(temp_r30->unk0C, 0.0f, arg0->rot.y, 0.0f);
-    BoardModelScaleSet(temp_r30->unk0C, arg0->scale.x, arg0->scale.y, arg0->scale.z);
+    BoardModelPosSet(star_work->star_model, star_object->trans.x, star_object->trans.y, star_object->trans.z);
+    BoardModelRotSet(star_work->star_model, 0.0f, star_object->rot.y, 0.0f);
+    BoardModelScaleSet(star_work->star_model, star_object->scale.x, star_object->scale.y, star_object->scale.z);
     if (starParman != -1) {
-        Hu3DParManPosSet(starParman, arg0->trans.x, -70.0f + arg0->trans.y, arg0->trans.z);
+        Hu3DParManPosSet(starParman, star_object->trans.x, -70.0f + star_object->trans.y, star_object->trans.z);
     }
 }
 
-static void UpdateStarAngle(GiveStarWork *arg0, OMOBJ *arg1) {
-    float var_f31;
+/**
+ * @brief Accelerates the awarded star's rotation when spinning is enabled.
+ * @param star_work Mutable star-award state.
+ * @param star_object Star object whose Y rotation is updated.
+ */
+static void UpdateStarAngle(GiveStarWork *star_work, OMOBJ *star_object) {
+    float spin_speed;
 
-    if (arg0->unk00_field1 != 0) {
-        if (arg0->unk02 < 16.0f) {
-            arg0->unk02 += 2.0f;
-            if (arg0->unk02 > 16.0f) {
-                arg0->unk02 = 16;
+    if (star_work->spin != 0) {
+        if (star_work->spin_speed < 16.0f) {
+            star_work->spin_speed += 2.0f;
+            if (star_work->spin_speed > 16.0f) {
+                star_work->spin_speed = 16;
             }
         }
-        OSs8tof32(&arg0->unk02, &var_f31);
-        arg1->rot.y = BoardDAngleCalc(arg1->rot.y + var_f31);
+        OSs8tof32(&star_work->spin_speed, &spin_speed);
+        star_object->rot.y = BoardDAngleCalc(star_object->rot.y + spin_speed);
     }
 }
 
-static void InitGiveStar(GiveStarWork *arg0, OMOBJ *arg1) {
-    Vec sp8;
+/**
+ * @brief Reveals the star and initializes its path from the host toward the player.
+ * @param star_work Mutable star-award state.
+ * @param star_object Star object initialized at the source position.
+ */
+static void InitGiveStar(GiveStarWork *star_work, OMOBJ *star_object) {
+    Vec player_position;
 
-    BoardPlayerPosGet(arg0->unk00_field3, &sp8);
-    BoardModelVisibilitySet(arg0->unk0C, 1);
-    BoardModelMotionStart(arg0->unk0C, 0, 0x40000001);
-    BoardModelMotionTimeSet(arg0->unk0C, 2.0f);
-    arg0->unk01 = 1;
-    arg0->unk0A = 0;
-    arg1->trans.x = starCharPos.x;
-    arg1->trans.y = starCharPos.y;
-    arg1->trans.z = starCharPos.z;
-    arg1->rot.x = (sp8.x - starCharPos.x) / 10.0f;
-    arg1->rot.z = (sp8.z - starCharPos.z) / 10.0f;
-    arg1->rot.y = 0.0f;
-    arg1->scale.x = arg1->scale.y = arg1->scale.z = 1.0f;
+    BoardPlayerPosGet(star_work->player, &player_position);
+    BoardModelVisibilitySet(star_work->star_model, 1);
+    BoardModelMotionStart(star_work->star_model, 0, 0x40000001);
+    BoardModelMotionTimeSet(star_work->star_model, 2.0f);
+    star_work->state = 1;
+    star_work->arc_frame = 0;
+    star_object->trans.x = starCharPos.x;
+    star_object->trans.y = starCharPos.y;
+    star_object->trans.z = starCharPos.z;
+    star_object->rot.x = (player_position.x - starCharPos.x) / 10.0f;
+    star_object->rot.z = (player_position.z - starCharPos.z) / 10.0f;
+    star_object->rot.y = 0.0f;
+    star_object->scale.x = star_object->scale.y = star_object->scale.z = 1.0f;
     InitGiveStarEffect();
 }
 
-static void MoveGiveStar(GiveStarWork *arg0, OMOBJ *arg1) {
-    Vec sp8;
-    float temp_f31;
+/**
+ * @brief Moves the awarded star along its initial arc toward the player.
+ * @param star_work Mutable star-award state.
+ * @param star_object Star object moved toward the player.
+ */
+static void MoveGiveStar(GiveStarWork *star_work, OMOBJ *star_object) {
+    Vec player_position;
+    float arc_frame;
 
-    BoardPlayerPosGet(arg0->unk00_field3, &sp8);
-    if (arg0->unk00_field2 == 0) {
-        if (BoardModelMotionTimeGet(arg0->unk0C) >= 50.0f) {
-            BoardModelMotionStartEndSet(arg0->unk0C, 50, 150);
-            arg0->unk00_field2 = 1;
+    BoardPlayerPosGet(star_work->player, &player_position);
+    if (star_work->motion_looped == 0) {
+        if (BoardModelMotionTimeGet(star_work->star_model) >= 50.0f) {
+            BoardModelMotionStartEndSet(star_work->star_model, 50, 150);
+            star_work->motion_looped = 1;
         }
     }
-    if (arg0->unk0A < 10) {
-        OSs16tof32(&arg0->unk0A, &temp_f31);
-        arg1->trans.x += arg1->rot.x;
-        arg1->trans.z += arg1->rot.z;
-        arg1->trans.y += -0.08166667f * temp_f31 * temp_f31 * 0.97f + 50.0f;
-        arg0->unk0A++;
+    if (star_work->arc_frame < 10) {
+        OSs16tof32(&star_work->arc_frame, &arc_frame);
+        star_object->trans.x += star_object->rot.x;
+        star_object->trans.z += star_object->rot.z;
+        star_object->trans.y += -0.08166667f * arc_frame * arc_frame * 0.97f + 50.0f;
+        star_work->arc_frame++;
     } else {
-        arg1->trans.y += -4.0f;
-        if (arg1->trans.y <= sp8.y + 300.0f) {
-            arg1->trans.y = sp8.y + 300.0f;
-            arg0->unk01 = 4;
+        star_object->trans.y += -4.0f;
+        if (star_object->trans.y <= player_position.y + 300.0f) {
+            star_object->trans.y = player_position.y + 300.0f;
+            star_work->state = 4;
         }
     }
 }
 
-static void ShrinkGiveStar(GiveStarWork *arg0, OMOBJ *arg1) {
-    Vec sp8;
-    float var_f30;
+/**
+ * @brief Lowers and shrinks the awarded star into the player.
+ * @param star_work Mutable star-award state.
+ * @param star_object Star object lowered and scaled into the player.
+ */
+static void ShrinkGiveStar(GiveStarWork *star_work, OMOBJ *star_object) {
+    Vec player_position;
+    float shrink_angle;
 
-    if (arg0->unk00_field4 == 0) {
+    if (star_work->sound_played == 0) {
         HuAudFXPlay(0x339);
-        arg0->unk00_field4 = 1;
+        star_work->sound_played = 1;
     }
-    BoardPlayerPosGet(arg0->unk00_field3, &sp8);
-    arg1->trans.y += -4.0f;
-    if (arg1->trans.y > sp8.y + 80.0f) {
-        if (arg0->unk08 < 90) {
-            if (BoardPlayerSizeGet(arg0->unk00_field3) != 1) {
-                arg0->unk08 += 2;
+    BoardPlayerPosGet(star_work->player, &player_position);
+    star_object->trans.y += -4.0f;
+    if (star_object->trans.y > player_position.y + 80.0f) {
+        if (star_work->shrink_angle < 90) {
+            if (BoardPlayerSizeGet(star_work->player) != 1) {
+                star_work->shrink_angle += 2;
             } else {
-                arg0->unk08 += 1.4f;
+                star_work->shrink_angle += 1.4f;
             }
-            if (arg0->unk08 > 90) {
-                arg0->unk08 = 90;
+            if (star_work->shrink_angle > 90) {
+                star_work->shrink_angle = 90;
             }
         }
-        OSs16tof32(&arg0->unk08, &var_f30);
-        arg1->scale.x = sind(var_f30 + 90.0f);
-        if (arg1->scale.x <= 0.0f) {
-            arg1->scale.x = 0.001f;
+        OSs16tof32(&star_work->shrink_angle, &shrink_angle);
+        star_object->scale.x = sind(shrink_angle + 90.0f);
+        if (star_object->scale.x <= 0.0f) {
+            star_object->scale.x = 0.001f;
         }
-        arg1->scale.y = arg1->scale.x;
-        arg1->scale.z = arg1->scale.x;
+        star_object->scale.y = star_object->scale.x;
+        star_object->scale.z = star_object->scale.x;
     } else {
-        omVibrate(arg0->unk00_field3, 12, 0xC, 0);
-        arg0->unk00_field0 = 1;
-        arg0->unk01 = 4;
-        arg1->scale.x = arg1->scale.y = arg1->scale.z = 0.001f;
+        omVibrate(star_work->player, 12, 0xC, 0);
+        star_work->kill = 1;
+        star_work->state = 4;
+        star_object->scale.x = star_object->scale.y = star_object->scale.z = 0.001f;
         KillGiveStarEffect();
-        BoardModelVisibilitySet(arg0->unk0C, 0);
+        BoardModelVisibilitySet(star_work->star_model, 0);
     }
 }
 
+/**
+ * @brief Marks the active star-award object for destruction.
+ */
 static void StopGiveStar(void) {
-    GiveStarWork *temp_r31;
+    GiveStarWork *star_work;
 
     if (giveStarObj) {
-        temp_r31 = omObjGetWork(giveStarObj, GiveStarWork);
-        temp_r31->unk00_field0 = 1;
+        star_work = omObjGetWork(giveStarObj, GiveStarWork);
+        star_work->kill = 1;
     }
 }
 
+/**
+ * @brief Creates the particle trail used by the star-award animation.
+ */
 static void InitGiveStarEffect(void) {
-    s16 temp_r3;
-    void *var_r30;
+    s16 particle_model;
+    void *effect_data;
 
-    var_r30 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 1), HU_MEMNUM_OVL, HEAP_MODEL);
-    starEffAnim = HuSprAnimRead(var_r30);
+    effect_data = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 1), HU_MEMNUM_OVL, HEAP_MODEL);
+    starEffAnim = HuSprAnimRead(effect_data);
     starParman = Hu3DParManCreate(starEffAnim, 0x64, &starEffParam);
     Hu3DParManAttrSet(starParman, 0x64);
     Hu3DParManRotSet(starParman, 90.0f, 0.0f, 0.0f);
-    temp_r3 = Hu3DParManModelIDGet(starParman);
-    Hu3DParticleBlendModeSet(temp_r3, 1);
-    Hu3DModelLayerSet(temp_r3, 2);
+    particle_model = Hu3DParManModelIDGet(starParman);
+    Hu3DParticleBlendModeSet(particle_model, 1);
+    Hu3DModelLayerSet(particle_model, 2);
     HuDataDirClose(DATADIR_EFFECT);
 }
 
+/**
+ * @brief Destroys the star-award particle trail if it exists.
+ */
 static void KillGiveStarEffect(void) {
     if (starParman != -1) {
         Hu3DParManKill(starParman);
@@ -565,55 +617,69 @@ static void KillGiveStarEffect(void) {
     }
 }
 
+/**
+ * @brief Starts the star-award object's initial movement state.
+ */
 static inline void StarInlineFunc00(void) {
-    GiveStarWork *temp_r28 = omObjGetWork(giveStarObj, GiveStarWork);
+    GiveStarWork *star_work = omObjGetWork(giveStarObj, GiveStarWork);
 
-    temp_r28->unk01 = 0;
+    star_work->state = 0;
 }
 
+/**
+ * @brief Waits for the active star-award movement state to finish.
+ */
 static inline void StarInlineFunc01(void) {
-    GiveStarWork *temp_r27 = omObjGetWork(giveStarObj, GiveStarWork);
+    GiveStarWork *star_work = omObjGetWork(giveStarObj, GiveStarWork);
 
-    while (temp_r27->unk01 != 4) {
+    while (star_work->state != 4) {
         HuPrcVSleep();
     }
 }
 
+/**
+ * @brief Starts the spinning shrink phase of the star-award animation.
+ */
 static inline void StarInlineFunc02(void) {
-    GiveStarWork *temp_r29 = omObjGetWork(giveStarObj, GiveStarWork);
+    GiveStarWork *star_work = omObjGetWork(giveStarObj, GiveStarWork);
 
-    temp_r29->unk00_field1 = 1;
-    temp_r29->unk04 = 45;
-    temp_r29->unk08 = 0;
-    temp_r29->unk01 = 2;
+    star_work->spin = 1;
+    star_work->delay = 45;
+    star_work->shrink_angle = 0;
+    star_work->state = 2;
 }
 
-void BoardStarGive(s32 arg0, Vec *arg1) {
-    Vec sp8;
-    s32 temp_r25;
-    GiveStarWork *temp_r31;
+/**
+ * @brief Animates a star from a source position and credits it to a player.
+ * @param player Player index receiving the star.
+ * @param start_position World-space position from which the star animation begins.
+ */
+void BoardStarGive(s32 player, Vec *start_position) {
+    Vec camera_rotation;
+    s32 stream;
+    GiveStarWork *star_work;
 
     if (GWBoardGet() == BOARD_ID_EXTRA1 || GWBoardGet() == BOARD_ID_EXTRA2) {
         return;
     }
-    starCharPos = *arg1;
+    starCharPos = *start_position;
     giveStarObj = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, GiveStarMain);
-    BoardCameraRotGet(&sp8);
-    temp_r31 = omObjGetWork(giveStarObj, GiveStarWork);
-    temp_r31->unk00_field0 = 0;
-    temp_r31->unk00_field1 = 0;
-    temp_r31->unk00_field2 = 0;
-    temp_r31->unk00_field4 = 0;
-    temp_r31->unk01 = 4;
-    temp_r31->unk00_field3 = arg0;
-    temp_r31->unk06 = 0;
-    temp_r31->unk02 = 0;
-    temp_r31->unk08 = 0;
-    temp_r31->unk0C = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 11), NULL, 0);
-    BoardModelVisibilitySet(temp_r31->unk0C, 0);
-    BoardModelPassSet(temp_r31->unk0C, 0);
-    BoardModelMotionSpeedSet(temp_r31->unk0C, 0.0f);
-    BoardModelLayerSet(temp_r31->unk0C, 2);
+    BoardCameraRotGet(&camera_rotation);
+    star_work = omObjGetWork(giveStarObj, GiveStarWork);
+    star_work->kill = 0;
+    star_work->spin = 0;
+    star_work->motion_looped = 0;
+    star_work->sound_played = 0;
+    star_work->state = 4;
+    star_work->player = player;
+    star_work->unidentified_s16_at_0x06 = 0;
+    star_work->spin_speed = 0;
+    star_work->shrink_angle = 0;
+    star_work->star_model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 11), NULL, 0);
+    BoardModelVisibilitySet(star_work->star_model, 0);
+    BoardModelPassSet(star_work->star_model, 0);
+    BoardModelMotionSpeedSet(star_work->star_model, 0.0f);
+    BoardModelLayerSet(star_work->star_model, 2);
     StarInlineFunc00();
     HuAudFXPlay(0x338);
     HuAudFXPlay(0x353);
@@ -621,53 +687,57 @@ void BoardStarGive(s32 arg0, Vec *arg1) {
     if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
         BoardTutorialHookExec(0x15, 0);
     }
-    BoardPlayerMotBlendSet(arg0, 0, 0xF);
-    while (!BoardPlayerMotBlendCheck(arg0)) {
+    BoardPlayerMotBlendSet(player, 0, 0xF);
+    while (!BoardPlayerMotBlendCheck(player)) {
         HuPrcVSleep();
     }
     StarInlineFunc02();
     StarInlineFunc01();
-    BoardPlayerVoiceEnableSet(arg0, 7, 0);
-    BoardPlayerMotionShiftSet(arg0, 7, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
-    HuAudFXPlay(boardStarSndTbl[GWPlayer[arg0].character]);
-    BoardPlayerStarsAdd(arg0, 1);
+    BoardPlayerVoiceEnableSet(player, 7, 0);
+    BoardPlayerMotionShiftSet(player, 7, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
+    HuAudFXPlay(boardStarSndTbl[GWPlayer[player].character]);
+    BoardPlayerStarsAdd(player, 1);
     HuAudFXPlay(8);
     HuPrcSleep(10);
     if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
-        BoardPlayerMotionEndWait(arg0);
+        BoardPlayerMotionEndWait(player);
     } else {
-        temp_r25 = HuAudSStreamPlay(6);
-        BoardPlayerMotionEndWait(arg0);
-        while (msmStreamGetStatus(temp_r25) != 0) {
+        stream = HuAudSStreamPlay(6);
+        BoardPlayerMotionEndWait(player);
+        while (msmStreamGetStatus(stream) != 0) {
             HuPrcVSleep();
         }
     }
-    BoardPlayerVoiceEnableSet(arg0, 7, 1);
+    BoardPlayerVoiceEnableSet(player, 7, 1);
 }
 
-void BoardStarShowNext(s32 arg0) {
-    Mtx spBC;
-    Mtx sp8C;
-    Mtx sp5C;
-    Vec sp50;
-    Vec sp44;
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    float temp_f31;
-    WipeState *var_r26;
-    s32 var_r28;
-    s32 var_r30;
-    s16 var_r27;
-    s16 var_r29;
+/**
+ * @brief Moves the star, presents its new location, and restores the board view.
+ * @param player Player index used as the restored camera target; -1 selects a non-turn presentation path.
+ */
+void BoardStarShowNext(s32 player) {
+    Mtx host_transform;
+    Mtx camera_pitch_transform;
+    Mtx host_yaw_transform;
+    Vec host_position;
+    Vec overlay_position;
+    Vec player_position;
+    Vec camera_rotation;
+    Vec view_offset;
+    float view_distance;
+    WipeState *wipe;
+    s32 initial_display;
+    s32 message;
+    s16 view_frames;
+    s16 player_index;
 
-    var_r28 = 0;
+    initial_display = 0;
     if (GWBoardGet() == BOARD_ID_EXTRA1 || GWBoardGet() == BOARD_ID_EXTRA2) {
         return;
     }
     _SetFlag(0x1001C);
-    var_r26 = &wipeData;
-    if (var_r26->mode == 0) {
+    wipe = &wipeData;
+    if (wipe->mode == 0) {
         WipeColorSet(0, 0, 0);
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 21);
         while (WipeStatGet() != 0) {
@@ -681,51 +751,51 @@ void BoardStarShowNext(s32 arg0) {
         boardStarGiveHook();
     }
     BoardSpaceStarMove();
-    if (arg0 == -1) {
-        var_r28 = 1;
-        arg0 = 0;
-        for (var_r29 = 0; var_r29 < 4; var_r29++) {
-            BoardPlayerCornerPosSet(var_r29);
+    if (player == -1) {
+        initial_display = 1;
+        player = 0;
+        for (player_index = 0; player_index < 4; player_index++) {
+            BoardPlayerCornerPosSet(player_index);
         }
-        BoardSpacePosGet(0, GWPlayer[arg0].space_curr, &sp38);
-        BoardPlayerPosSetV(arg0, &sp38);
+        BoardSpacePosGet(0, GWPlayer[player].space_curr, &player_position);
+        BoardPlayerPosSetV(player, &player_position);
     }
     if (!_CheckFlag(FLAG_ID_MAKE(1, 23))) {
         BoardAudSeqFadeOut(0, 1000);
     }
     showNextObj = omAddObjEx(boardObjMan, 0x7E03, 0, 0, -1, ShowNextUpdate);
-    BoardPlayerIdleSet(arg0);
+    BoardPlayerIdleSet(player);
     BoardModelMotionStart(BoardStarHostMdlGet(), 1, 0x40000001);
-    BoardModelPosGet(BoardStarHostMdlGet(), &sp50);
-    showNextObj->scale.x = sp50.x;
-    showNextObj->scale.y = sp50.y;
-    showNextObj->scale.z = sp50.z;
-    BoardPlayerPosGet(arg0, &sp38);
-    sp50.y = sp38.y;
-    VECSubtract(&sp50, &sp38, &sp20);
-    sp20.y = 0.0f;
-    temp_f31 = VECMag(&sp20);
-    if (temp_f31 > 3000.0f) {
-        var_r27 = 0xF0;
-    } else if (temp_f31 > 1500.0f) {
-        var_r27 = 0x78;
+    BoardModelPosGet(BoardStarHostMdlGet(), &host_position);
+    showNextObj->scale.x = host_position.x;
+    showNextObj->scale.y = host_position.y;
+    showNextObj->scale.z = host_position.z;
+    BoardPlayerPosGet(player, &player_position);
+    host_position.y = player_position.y;
+    VECSubtract(&host_position, &player_position, &view_offset);
+    view_offset.y = 0.0f;
+    view_distance = VECMag(&view_offset);
+    if (view_distance > 3000.0f) {
+        view_frames = 0xF0;
+    } else if (view_distance > 1500.0f) {
+        view_frames = 0x78;
     } else {
-        var_r27 = 0x78;
+        view_frames = 0x78;
     }
-    BoardViewMoveStart(&sp38, &sp50, var_r27);
+    BoardViewMoveStart(&player_position, &host_position, view_frames);
     showNextObj->trans.x = 68.0f;
     showNextObj->trans.y = HU_DISP_HEIGHT-50;
     showNextObj->trans.z = 100.0f;
-    sp44.x = showNextObj->trans.x;
-    sp44.y = showNextObj->trans.y;
-    sp44.z = showNextObj->trans.z;
-    Hu3D2Dto3D(&sp44, 1, &sp44);
-    BoardModelPosSetV(BoardStarHostMdlGet(), &sp44);
-    BoardCameraRotGet(&sp2C);
-    PSMTXRotRad(sp5C, 'y', MTXDegToRad(10.0f));
-    PSMTXRotRad(sp8C, 'x', MTXDegToRad(sp2C.x));
-    PSMTXConcat(sp8C, sp5C, spBC);
-    BoardModelMtxSet(BoardStarHostMdlGet(), &spBC);
+    overlay_position.x = showNextObj->trans.x;
+    overlay_position.y = showNextObj->trans.y;
+    overlay_position.z = showNextObj->trans.z;
+    Hu3D2Dto3D(&overlay_position, 1, &overlay_position);
+    BoardModelPosSetV(BoardStarHostMdlGet(), &overlay_position);
+    BoardCameraRotGet(&camera_rotation);
+    PSMTXRotRad(host_yaw_transform, 'y', MTXDegToRad(10.0f));
+    PSMTXRotRad(camera_pitch_transform, 'x', MTXDegToRad(camera_rotation.x));
+    PSMTXConcat(camera_pitch_transform, host_yaw_transform, host_transform);
+    BoardModelMtxSet(BoardStarHostMdlGet(), &host_transform);
     BoardModelRotSet(BoardStarHostMdlGet(), 0.0f, 0.0f, 0.0f);
     BoardModelScaleSet(BoardStarHostMdlGet(), 0.09f, 0.09f, 0.09f);
     BoardMusStart(1, 7, 0x7F, 0);
@@ -737,12 +807,12 @@ void BoardStarShowNext(s32 arg0) {
     while (WipeStatGet() != 0) {
         HuPrcVSleep();
     }
-    if (var_r28 == 0) {
-        var_r30 = starMesTbl1[GWBoardGet()] + 6;
+    if (initial_display == 0) {
+        message = starMesTbl1[GWBoardGet()] + 6;
     } else {
-        var_r30 = starMesTbl2[GWBoardGet()][0];
+        message = starMesTbl2[GWBoardGet()][0];
     }
-    BoardWinCreate(3, var_r30, -1);
+    BoardWinCreate(3, message, -1);
     BoardWinPause();
     BoardViewMoveEnd();
     while (!BoardViewMoveCheck()) {
@@ -751,12 +821,12 @@ void BoardStarShowNext(s32 arg0) {
     HuPrcSleep(30);
     BoardWinKill();
     HuPrcSleep(3);
-    if (var_r28 == 0) {
-        var_r30 = starMesTbl1[GWBoardGet()] + 7;
+    if (initial_display == 0) {
+        message = starMesTbl1[GWBoardGet()] + 7;
     } else {
-        var_r30 = starMesTbl2[GWBoardGet()][1];
+        message = starMesTbl2[GWBoardGet()][1];
     }
-    BoardWinCreate(3, var_r30, -1);
+    BoardWinCreate(3, message, -1);
     BoardWinWait();
     BoardWinKill();
     if (GWBoardGet() == BOARD_ID_MAIN6 && BoardItemPrevGet() != 9 && boardStarShowNextHook) {
@@ -769,14 +839,14 @@ void BoardStarShowNext(s32 arg0) {
         HuPrcVSleep();
     }
     BoardViewWait();
-    PSMTXIdentity(spBC);
-    BoardModelMtxSet(BoardStarHostMdlGet(), &spBC);
+    PSMTXIdentity(host_transform);
+    BoardModelMtxSet(BoardStarHostMdlGet(), &host_transform);
     HideNextHost(1);
     while (showNextObj) {
         HuPrcVSleep();
     }
     BoardCameraMoveSet(0);
-    BoardCameraTargetPlayerSet(arg0);
+    BoardCameraTargetPlayerSet(player);
     BoardCameraMotionWait();
     BoardCameraMoveSet(1);
     BoardStatusItemSet(1);
@@ -790,37 +860,45 @@ void BoardStarShowNext(s32 arg0) {
     _ClearFlag(FLAG_ID_MAKE(1, 28));
 }
 
-static void ShowNextUpdate(OMOBJ *arg0) {
-    ShowNextWork *temp_r30 = omObjGetWork(arg0, ShowNextWork);
-    Vec sp8;
+/**
+ * @brief Moves the star host between its overlay and board-world positions.
+ * @param show_next_object Object controlling the star host's temporary presentation position.
+ */
+static void ShowNextUpdate(OMOBJ *show_next_object) {
+    ShowNextWork *show_next_work = omObjGetWork(show_next_object, ShowNextWork);
+    Vec host_position;
 
-    if (temp_r30->unk00_field0 != 0 || BoardIsKill()) {
+    if (show_next_work->kill != 0 || BoardIsKill()) {
         showNextObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), show_next_object);
         return;
     }
-    switch (temp_r30->unk01) {
+    switch (show_next_work->state) {
         case 0:
-            sp8.x = arg0->trans.x;
-            sp8.y = arg0->trans.y;
-            sp8.z = arg0->trans.z;
-            Hu3D2Dto3D(&sp8, 1, &sp8);
+            host_position.x = show_next_object->trans.x;
+            host_position.y = show_next_object->trans.y;
+            host_position.z = show_next_object->trans.z;
+            Hu3D2Dto3D(&host_position, 1, &host_position);
             break;
         case 1:
-            sp8.x = arg0->scale.x;
-            sp8.y = arg0->scale.y;
-            sp8.z = arg0->scale.z;
+            host_position.x = show_next_object->scale.x;
+            host_position.y = show_next_object->scale.y;
+            host_position.z = show_next_object->scale.z;
             BoardModelLayerSet(BoardStarHostMdlGet(), 0);
             BoardModelRotSet(BoardStarHostMdlGet(), 0.0f, 0.0f, 0.0f);
             BoardModelScaleSet(BoardStarHostMdlGet(), 1.0f, 1.0f, 1.0f);
-            temp_r30->unk00_field0 = 1;
+            show_next_work->kill = 1;
             break;
     }
-    BoardModelPosSetV(BoardStarHostMdlGet(), &sp8);
+    BoardModelPosSetV(BoardStarHostMdlGet(), &host_position);
 }
 
-static void HideNextHost(s32 arg0) {
-    ShowNextWork *temp_r31 = omObjGetWork(showNextObj, ShowNextWork);
+/**
+ * @brief Requests restoration of the star host to its board-world position.
+ * @param state Host display state; 1 restores the saved board-world transform.
+ */
+static void HideNextHost(s32 state) {
+    ShowNextWork *show_next_work = omObjGetWork(showNextObj, ShowNextWork);
 
-    temp_r31->unk01 = arg0;
+    show_next_work->state = state;
 }

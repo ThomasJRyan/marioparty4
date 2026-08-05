@@ -14,18 +14,28 @@ static s16 boardMusTbl[] = {
     0x0028, 0x0029, 0x002A
 };
 
+/**
+ * @brief Start the current board's music and, where defined, its looping ambient effect.
+ */
 void BoardMusStartBoard(void) {
-    s16 musIdx = boardMusTbl[GWBoardGet()];
+    s16 music_id = boardMusTbl[GWBoardGet()];
 
-    BoardMusStart(0, musIdx, 0x7F, 0);
+    BoardMusStart(0, music_id, 0x7F, 0);
     BoardAudFXPlay();
 }
 
-void BoardMusStart(s32 boardNo, s32 musId, s8 vol, u16 speed) {
-    s16 *board = boardSeq[boardNo];
+/**
+ * @brief Start a music sequence on one of the two board music channels.
+ * @param [in] board_no Board music channel normally selected for playback and tracking; when replacing an active entry, the baseline body instead passes its stored sequence handle to BoardAudSeqFadeOutFast as the channel argument.
+ * @param [in] music_id Requested sequence ID to play and store; a match with the tracked ID returns without changing the tracked selection.
+ * @param [in] vol Value written to MSM_MUSPARAM.vol; negative input is replaced by 127 and enables MSM_MUSPARAM_VOL, while nonnegative input does not add that flag and msmMusPlay uses its base volume 127 path.
+ * @param [in] speed Music fade-in duration; zero starts immediately.
+ */
+void BoardMusStart(s32 board_no, s32 music_id, s8 vol, u16 speed) {
+    s16 *board = boardSeq[board_no];
     MSM_MUSPARAM param;
 
-    if (musId == board[1]) {
+    if (music_id == board[1]) {
         return;
     }
     if (board[0] != -1) {
@@ -41,17 +51,26 @@ void BoardMusStart(s32 boardNo, s32 musId, s8 vol, u16 speed) {
     }
     param.fadeSpeed = speed;
     param.vol = vol;
-    param.chan = boardNo;
-    board[0] = msmMusPlay(musId, &param);
-    board[1] = musId;
+    param.chan = board_no;
+    board[0] = msmMusPlay(music_id, &param);
+    board[1] = music_id;
 }
 
-void BoardAudSeqFadeOutFast(s32 boardNo) {
-    BoardAudSeqFadeOut(boardNo, 0x64);
+/**
+ * @brief Forward a board music channel to BoardAudSeqFadeOut with the literal duration argument 0x64.
+ * @param [in] board_no Board music channel forwarded unchanged to BoardAudSeqFadeOut.
+ */
+void BoardAudSeqFadeOutFast(s32 board_no) {
+    BoardAudSeqFadeOut(board_no, 0x64);
 }
 
-void BoardAudSeqFadeOut(s32 boardNo, u16 speed) {
-    s16 *board = boardSeq[boardNo];
+/**
+ * @brief Fade out the active sequence on a board music channel and clear its tracked handles.
+ * @param [in] board_no Board music channel whose active sequence is faded and tracking state is cleared.
+ * @param [in] speed Fade-duration argument forwarded to HuAudSeqFadeOut.
+ */
+void BoardAudSeqFadeOut(s32 board_no, u16 speed) {
+    s16 *board = boardSeq[board_no];
 
     if (board[0] == -1) {
         return;
@@ -60,16 +79,27 @@ void BoardAudSeqFadeOut(s32 boardNo, u16 speed) {
     board[1] = board[0] = -1;
 }
 
-void BoardMusLoudSet(s32 boardNo, s32 isQuieter) {
-    if (isQuieter != 0) {
-        BoardMusVolPanSet(boardNo, 0x60, 0x1F4);
+/**
+ * @brief Request volume 96 or 127 for a board music channel.
+ * @param [in] board_no Board music channel passed to BoardMusVolPanSet for the volume request.
+ * @param [in] is_quieter Nonzero requests volume 96; zero requests volume 127.
+ */
+void BoardMusLoudSet(s32 board_no, s32 is_quieter) {
+    if (is_quieter != 0) {
+        BoardMusVolPanSet(board_no, 0x60, 0x1F4);
     } else {
-        BoardMusVolPanSet(boardNo, 0x7F, 0x1F4);
+        BoardMusVolPanSet(board_no, 0x7F, 0x1F4);
     }
 }
 
-void BoardMusVolPanSet(s32 boardNo, s8 vol, u16 fadeSpeed) {
-    s16 *board = boardSeq[boardNo];
+/**
+ * @brief Submit a volume parameter for the active sequence stored in one board music channel.
+ * @param [in] board_no Used only to select the boardSeq entry containing the active sequence handle; the body enables MSM_MUSPARAM_CHAN but does not initialize MSM_MUSPARAM.chan.
+ * @param [in] vol Target volume; a negative value selects full volume (127).
+ * @param [in] fade_speed Value written to MSM_MUSPARAM.fadeSpeed and consumed by msmMusSetParam's VOL branch as pauseOffMaxTime = fadeSpeed / 15 to interpolate volume when nonzero; this setter path does not require or add MSM_MUSPARAM_FADESPEED.
+ */
+void BoardMusVolPanSet(s32 board_no, s8 vol, u16 fade_speed) {
+    s16 *board = boardSeq[board_no];
     MSM_MUSPARAM param;
 
     if (board[0] == -1) {
@@ -80,29 +110,40 @@ void BoardMusVolPanSet(s32 boardNo, s8 vol, u16 fadeSpeed) {
     if (vol < 0) {
         vol = 0x7F;
     }
-    param.fadeSpeed = fadeSpeed;
+    param.fadeSpeed = fade_speed;
     param.vol = vol;
     msmMusSetParam(board[0], &param);
 }
 
-void BoardAudSeqPause(s32 boardNo, s32 pause, u16 speed) {
-    s16 *board = boardSeq[boardNo];
+/**
+ * @brief Pause or resume the active sequence when its current status permits the transition.
+ * @param [in] board_no Board music channel whose active sequence and paused state are updated.
+ * @param [in] pause Nonzero to pause and zero to resume.
+ * @param [in] speed Pause or resume transition argument forwarded to HuAudSeqPause.
+ */
+void BoardAudSeqPause(s32 board_no, s32 pause, u16 speed) {
+    s16 *board = boardSeq[board_no];
 
     if (board[0] == -1) {
         return;
     }
     if (pause != 0) {
-        if (BoardMusStatusGet(boardNo) == 3) {
+        if (BoardMusStatusGet(board_no) == 3) {
             return;
         }
-    } else if (BoardMusStatusGet(boardNo) != 3) {
+    } else if (BoardMusStatusGet(board_no) != 3) {
         return;
     }
     HuAudSeqPause(board[0], pause, speed);
 }
 
-s32 BoardMusStatusGet(s32 boardNo) {
-    s16 *board = boardSeq[boardNo];
+/**
+ * @brief Query the audio-engine status of a board music channel.
+ * @param [in] board_no Board music channel whose active sequence status is queried.
+ * @return Audio-engine sequence status, or 0 when the channel has no active sequence.
+ */
+s32 BoardMusStatusGet(s32 board_no) {
+    s16 *board = boardSeq[board_no];
 
     if (board[0] == -1) {
         return 0;
@@ -110,6 +151,9 @@ s32 BoardMusStatusGet(s32 boardNo) {
     return msmMusGetStatus(board[0]);
 }
 
+/**
+ * @brief Mark both board music channels and the ambient effect as inactive without stopping audio.
+ */
 void BoardAudSeqClear(void) {
     s32 i;
 
@@ -119,38 +163,47 @@ void BoardAudSeqClear(void) {
     boardFX = -1;
 }
 
+/**
+ * @brief Fade out both tracked music channels and stop the tracked ambient effect.
+ */
 void BoardAudSeqFadeOutAll(void) {
-    s16 *temp_r31;
+    s16 *sequence_state;
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        temp_r31 = boardSeq[i];
-        if (temp_r31[0] != -1) {
-            HuAudSeqFadeOut(temp_r31[0], 0x64);
-            temp_r31[1] = temp_r31[0] = -1;
+        sequence_state = boardSeq[i];
+        if (sequence_state[0] != -1) {
+            HuAudSeqFadeOut(sequence_state[0], 0x64);
+            sequence_state[1] = sequence_state[0] = -1;
         }
     }
     BoardAudFXStop();
 }
 
+/**
+ * @brief Start the looping ambient effect used by Koopa's Seaside Soiree or Bowser's Gnarly Party.
+ */
 void BoardAudFXPlay(void) {
-    s32 seId;
+    s32 sound_effect_id;
 
     switch (GWBoardGet()) {
         case BOARD_ID_MAIN5:
-            seId = 0x48D;
+            sound_effect_id = 0x48D;
             break;
         case BOARD_ID_MAIN6:
-            seId = 0x4A2;
+            sound_effect_id = 0x4A2;
             break;
         default:
             return;
     }
     if (boardFX == -1) {
-        boardFX = HuAudFXPlay(seId);
+        boardFX = HuAudFXPlay(sound_effect_id);
     }
 }
 
+/**
+ * @brief Stop and clear the tracked board ambient sound-effect handle.
+ */
 void BoardAudFXStop(void) {
     if (boardFX != -1) {
         HuAudFXStop(boardFX);

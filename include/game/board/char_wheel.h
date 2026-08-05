@@ -3,11 +3,11 @@
 
 #include "dolphin/types.h"
 
-s32 BoardCharWheelInit(s32 arg0, s32 arg1);
+s32 BoardCharWheelInit(s32 player, s32 mode);
 BOOL BoardCharWheelCheck(void);
 void BoardCharWheelWait(void);
 s32 BoardCharWheelResultGet(void);
-void BoardCharWheelSpeedSet(float arg0);
-void BoardCharWheelTargetSet(s16 arg0);
+void BoardCharWheelSpeedSet(float speed);
+void BoardCharWheelTargetSet(s16 player);
 
 #endif

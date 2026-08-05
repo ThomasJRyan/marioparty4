@@ -19,11 +19,11 @@
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
+        u8 destroy_requested : 1;
     };
-    u8 unk01;
-    s16 unk02;
-    s16 unk04;
+    u8 markers_visible;
+    s16 sprite_group;
+    s16 star_model;
 } OverheadWork;
 
 static void ExecMapView(void);
@@ -36,7 +36,7 @@ static void CreateButtonWin(void);
 static void DestroyButtonWin(void);
 static void InitOverheadView(void);
 static void DestroyOverheadView(void);
-static void UpdateOverheadView(OMOBJ *arg0);
+static void UpdateOverheadView(OMOBJ *object);
 static void WaitOverheadView(void);
 
 static Vec focusPos;
@@ -98,7 +98,15 @@ static float overheadCamPosZ[] = {
     0.0f, -160.0f, 0.0f
 };
 
-void BoardViewOverheadExec(s32 arg0) {
+/**
+ * @brief Runs the interactive overhead-board view for a player.
+ *
+ * @details Temporarily disables pausing, hides item status UI, and waits for
+ * the overhead-view process and its display object to finish.
+ *
+ * @param player Player index whose controller and board position are used.
+ */
+void BoardViewOverheadExec(s32 player) {
     if (BoardPauseDisableGet() == 0) {
         BoardPauseDisableSet(1);
         pauseDisableF = 1;
@@ -114,10 +122,10 @@ void BoardViewOverheadExec(s32 arg0) {
     viewProc = HuPrcChildCreate(ExecOverheadView, 0x200A, 0x3800, 0, boardMainProc);
     HuPrcDestructorSet2(viewProc, DestroyView);
     viewControls = 2;
-    viewPlayer = arg0;
+    viewPlayer = player;
     focusTimer = 1;
     viewMoveF = 0;
-    BoardPlayerPosGet(arg0, &focusPos);
+    BoardPlayerPosGet(player, &focusPos);
     BoardStatusItemSet(0);
     while (viewProc != NULL) {
         HuPrcVSleep();
@@ -128,30 +136,48 @@ void BoardViewOverheadExec(s32 arg0) {
     _ClearFlag(0x1001C);
 }
 
-void BoardViewFocusGetPos(Vec *arg0) {
-    if (arg0) {
-        BoardModelPosGet(focusMdl, arg0);
+/**
+ * @brief Gets the current position of the active view-focus model.
+ *
+ * @param[out] position Destination vector, or `NULL` to do nothing.
+ */
+void BoardViewFocusGetPos(Vec *position) {
+    if (position) {
+        BoardModelPosGet(focusMdl, position);
     }
 }
 
-static inline void BoardViewInlineFunc00(Vec *arg0, Vec *arg1, u16 arg2) {
-    if (arg2 == 0) {
-        arg2 = 1;
+/**
+ * @brief Configures a scripted focus movement.
+ *
+ * @param[in] start_position Optional starting focus position.
+ * @param[in] target_position Optional target focus position.
+ * @param duration Movement duration in frames; zero is treated as one frame.
+ */
+static inline void BoardViewInlineFunc00(Vec *start_position, Vec *target_position, u16 duration) {
+    if (duration == 0) {
+        duration = 1;
     }
     viewControls = 1;
     viewPlayer = -1;
-    focusTimer = arg2;
+    focusTimer = duration;
     viewMoveF = 1;
-    if (arg0) {
-        focusPos = *arg0;
+    if (start_position) {
+        focusPos = *start_position;
     }
-    if (arg1) {
-        focusPosTarget = *arg1;
+    if (target_position) {
+        focusPosTarget = *target_position;
     }
 }
 
-void BoardViewFocusSet(Vec *arg0, u16 arg1) {
-    u16 var_r31;
+/**
+ * @brief Sets a target for the currently active scripted view.
+ *
+ * @param[in] target_position Target focus position.
+ * @param duration Movement duration in frames.
+ */
+void BoardViewFocusSet(Vec *target_position, u16 duration) {
+    u16 unused_duration;
 
     if (BoardPauseDisableGet() == 0) {
         BoardPauseDisableSet(1);
@@ -160,12 +186,19 @@ void BoardViewFocusSet(Vec *arg0, u16 arg1) {
         pauseDisableF = 0;
     }
     focusDestroyF = 1;
-    BoardViewInlineFunc00(NULL, arg0, arg1);
+    BoardViewInlineFunc00(NULL, target_position, duration);
     HuPrcSleep(2);
 }
 
-void BoardViewMoveStart(Vec *arg0, Vec *arg1, u16 arg2) {
-    u16 var_r31;
+/**
+ * @brief Starts a scripted camera-focus movement process.
+ *
+ * @param[in] start_position Optional starting focus position.
+ * @param[in] target_position Optional target focus position.
+ * @param duration Movement duration in frames.
+ */
+void BoardViewMoveStart(Vec *start_position, Vec *target_position, u16 duration) {
+    u16 unused_duration;
 
     if (BoardPauseDisableGet() == 0) {
         BoardPauseDisableSet(1);
@@ -176,18 +209,25 @@ void BoardViewMoveStart(Vec *arg0, Vec *arg1, u16 arg2) {
     viewProc = HuPrcChildCreate(ExecStarView, 0x200A, 0x3800, 0, boardMainProc);
     HuPrcDestructorSet2(viewProc, DestroyView);
     focusDestroyF = 0;
-    BoardViewInlineFunc00(arg0, arg1, arg2);
+    BoardViewInlineFunc00(start_position, target_position, duration);
     HuPrcSleep(2);
 }
 
+/**
+ * @brief Checks whether the scripted view is waiting for a movement signal.
+ *
+ * @return `TRUE` when the movement flag is set, otherwise `FALSE`.
+ */
 BOOL BoardViewMoveCheck(void) {
     return (viewMoveF != 0) ? TRUE : FALSE;
 }
 
+/** @brief Clears the scripted view movement flag. */
 void BoardViewMoveEnd(void) {
     viewMoveF = 0;
 }
 
+/** @brief Ends the current movement phase and waits for the view process. */
 void BoardViewWait(void) {
     viewMoveF = 0;
     while (viewProc != NULL) {
@@ -195,7 +235,12 @@ void BoardViewWait(void) {
     }
 }
 
-void BoardViewMapExec(s32 arg0) {
+/**
+ * @brief Runs the player-controlled board map view.
+ *
+ * @param player Player index whose position and controller are used.
+ */
+void BoardViewMapExec(s32 player) {
     if (BoardPauseDisableGet() == 0) {
         BoardPauseDisableSet(1);
         pauseDisableF = 1;
@@ -205,66 +250,67 @@ void BoardViewMapExec(s32 arg0) {
     viewProc = HuPrcChildCreate(ExecMapView, 0x200A, 0x3800, 0, boardMainProc);
     HuPrcDestructorSet2(viewProc, DestroyView);
     viewControls = 0;
-    viewPlayer = arg0;
+    viewPlayer = player;
     focusTimer = 1;
     viewMoveF = 0;
-    BoardPlayerPosGet(arg0, &focusPos);
+    BoardPlayerPosGet(player, &focusPos);
     while (viewProc != NULL) {
         HuPrcVSleep();
     }
 }
 
+/** @brief Processes camera panning input for the board map view. */
 static void ExecMapView(void) {
-    Vec spC;
-    float var_f29;
-    float temp_f28;
-    float temp_f27;
-    float temp_f26;
-    float temp_f25;
-    float temp_f24;
-    u32 var_r28;
-    s8 sp9;
-    s8 sp8;
+    Vec movement;
+    float move_speed;
+    float movement_angle;
+    float max_x;
+    float min_x;
+    float max_z;
+    float min_z;
+    u32 buttons_down;
+    s8 stick_x;
+    s8 stick_y;
 
     SetTargetView();
     CreateButtonWin();
-    temp_f25 = mapViewMaxZ[GWBoardGet()];
-    temp_f24 = mapViewMinZ[GWBoardGet()];
-    temp_f27 = mapViewMaxX[GWBoardGet()];
-    temp_f26 = mapViewMinX[GWBoardGet()];
+    max_z = mapViewMaxZ[GWBoardGet()];
+    min_z = mapViewMinZ[GWBoardGet()];
+    max_x = mapViewMaxX[GWBoardGet()];
+    min_x = mapViewMinX[GWBoardGet()];
     while (1) {
-        var_r28 = HuPadBtnDown[GWPlayer[viewPlayer].port];
-        if (var_r28 == 0x200) {
+        buttons_down = HuPadBtnDown[GWPlayer[viewPlayer].port];
+        if (buttons_down == 0x200) {
             HuAudFXPlay(3);
             break;
         }
         if (HuPadBtn[GWPlayer[viewPlayer].port] & 0x100) {
-            var_f29 = 40.0f;
+            move_speed = 40.0f;
         } else {
-            var_f29 = 20.0f;
+            move_speed = 20.0f;
         }
-        spC.x = spC.y = spC.z = 0.0f;
-        sp9 = HuPadStkX[GWPlayer[viewPlayer].port];
-        sp8 = HuPadStkY[GWPlayer[viewPlayer].port];
-        if (sp9 != 0 || sp8 != 0) {
-            OSs8tof32(&sp9, &spC.x);
-            OSs8tof32(&sp8, &spC.z);
-            temp_f28 = atan2d(spC.x, -spC.z);
-            spC.x = var_f29 * sind(temp_f28);
-            spC.z = var_f29 * cosd(temp_f28);
+        movement.x = movement.y = movement.z = 0.0f;
+        stick_x = HuPadStkX[GWPlayer[viewPlayer].port];
+        stick_y = HuPadStkY[GWPlayer[viewPlayer].port];
+        if (stick_x != 0 || stick_y != 0) {
+            OSs8tof32(&stick_x, &movement.x);
+            OSs8tof32(&stick_y, &movement.z);
+            movement_angle = atan2d(movement.x, -movement.z);
+            movement.x = move_speed * sind(movement_angle);
+            movement.z = move_speed * cosd(movement_angle);
         }
-        VECAdd(&spC, &focusPos, &focusPos);
-        if (focusPos.x < temp_f26) {
-            focusPos.x = temp_f26;
+        VECAdd(&movement, &focusPos, &focusPos);
+        if (focusPos.x < min_x) {
+            focusPos.x = min_x;
         }
-        if (focusPos.x > temp_f27) {
-            focusPos.x = temp_f27;
+        if (focusPos.x > max_x) {
+            focusPos.x = max_x;
         }
-        if (focusPos.z < temp_f24) {
-            focusPos.z = temp_f24;
+        if (focusPos.z < min_z) {
+            focusPos.z = min_z;
         }
-        if (focusPos.z > temp_f25) {
-            focusPos.z = temp_f25;
+        if (focusPos.z > max_z) {
+            focusPos.z = max_z;
         }
         BoardModelPosSetV(focusMdl, &focusPos);
         HuPrcVSleep();
@@ -274,24 +320,25 @@ static void ExecMapView(void) {
     HuPrcEnd();
 }
 
+/** @brief Moves the focus model between scripted positions. */
 static void ExecStarView(void) {
-    Vec sp8;
-    float temp_f30;
+    Vec frame_step;
+    float duration;
 
     SetTargetView();
     do {
-        OSu16tof32(&focusTimer, &temp_f30);
-        VECSubtract(&focusPosTarget, &focusPos, &sp8);
-        sp8.x /= temp_f30;
-        sp8.y /= temp_f30;
-        sp8.z /= temp_f30;
+        OSu16tof32(&focusTimer, &duration);
+        VECSubtract(&focusPosTarget, &focusPos, &frame_step);
+        frame_step.x /= duration;
+        frame_step.y /= duration;
+        frame_step.z /= duration;
         viewMoveF = 1;
         while (viewMoveF != 0) {
             HuPrcVSleep();
         }
         focusDestroyF = 0;
         while (focusTimer != 0) {
-            VECAdd(&sp8, &focusPos, &focusPos);
+            VECAdd(&frame_step, &focusPos, &focusPos);
             BoardModelPosSetV(focusMdl, &focusPos);
             HuPrcVSleep();
             focusTimer--;
@@ -307,8 +354,9 @@ static void ExecStarView(void) {
     HuPrcEnd();
 }
 
+/** @brief Runs the overhead view until the player presses the exit button. */
 static void ExecOverheadView(void) {
-    u32 var_r31;
+    u32 buttons_down;
 
     if ((GWBoardGet() == BOARD_ID_MAIN3 || GWBoardGet() == BOARD_ID_MAIN6) && boardLightResetHook) {
         boardLightResetHook();
@@ -323,8 +371,8 @@ static void ExecOverheadView(void) {
         HuPrcVSleep();
     }
     while (1) {
-        var_r31 = HuPadBtnDown[GWPlayer[viewPlayer].port];
-        if (var_r31 == 0x200) {
+        buttons_down = HuPadBtnDown[GWPlayer[viewPlayer].port];
+        if (buttons_down == 0x200) {
             HuAudFXPlay(3);
             break;
         }
@@ -338,6 +386,7 @@ static void ExecOverheadView(void) {
     HuPrcEnd();
 }
 
+/** @brief Restores camera and pause state when a view process is destroyed. */
 static void DestroyView(void) {
     if (focusMdl != -1) {
         BoardModelKill(focusMdl);
@@ -355,9 +404,10 @@ static void DestroyView(void) {
     viewProc = NULL;
 }
 
+/** @brief Creates the focus model and points the board camera at it. */
 static void SetTargetView(void) {
-    Vec sp14;
-    Vec sp8;
+    Vec target_offset;
+    Vec camera_rotation;
 
     BoardCameraBackup();
     focusMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x0A), 0, 0);
@@ -365,27 +415,28 @@ static void SetTargetView(void) {
     BoardModelPosSetV(focusMdl, &focusPos);
     BoardCameraNearFarSet(10.0f, 30000.0f);
     if (viewControls != 2) {
-        sp8.x = -45.0f;
-        sp8.y = 0.0f;
-        sp8.z = 0.0f;
-        BoardCameraMotionStartEx(focusMdl, &sp8, NULL, 3000.0f, -1.0f, 21);
+        camera_rotation.x = -45.0f;
+        camera_rotation.y = 0.0f;
+        camera_rotation.z = 0.0f;
+        BoardCameraMotionStartEx(focusMdl, &camera_rotation, NULL, 3000.0f, -1.0f, 21);
         BoardCameraMotionWait();
     } else {
         BoardModelPosSet(focusMdl, 0.0f, 0.0f, 0.0f);
-        sp14.x = 0.0f;
-        sp14.y = 0.0f;
-        sp14.z = 0.0f;
-        sp8.x = -78.0f;
-        sp8.y = 0.0f;
-        sp8.z = 0.0f;
-        sp14.z = overheadCamPosZ[GWBoardGet()];
+        target_offset.x = 0.0f;
+        target_offset.y = 0.0f;
+        target_offset.z = 0.0f;
+        camera_rotation.x = -78.0f;
+        camera_rotation.y = 0.0f;
+        camera_rotation.z = 0.0f;
+        target_offset.z = overheadCamPosZ[GWBoardGet()];
         BoardCameraMoveSet(0);
-        BoardCameraMotionStartEx(focusMdl, &sp8, &sp14, overheadCamZoom[GWBoardGet()], -1.0f, 1);
+        BoardCameraMotionStartEx(focusMdl, &camera_rotation, &target_offset, overheadCamZoom[GWBoardGet()], -1.0f, 1);
         BoardCameraMotionWait();
         BoardCameraMoveSet(1);
     }
 }
 
+/** @brief Removes the focus model and restores the previous camera state. */
 static void DestroyFocus(void) {
     if (focusMdl != -1) {
         BoardModelKill(focusMdl);
@@ -396,39 +447,41 @@ static void DestroyFocus(void) {
     BoardCameraMoveSet(1);
 }
 
+/** @brief Creates the on-screen window describing the view controls. */
 static void CreateButtonWin(void) {
-    float sp8[2];
-    float posX;
-    float posY;
-    s32 var_r31;
+    float message_size[2];
+    float pos_x;
+    float pos_y;
+    s32 message_id;
 
     if (viewControls != 2) {
-        var_r31 = MAKE_MESSID(0x09, 0x05);
+        message_id = MAKE_MESSID(0x09, 0x05);
         #if VERSION_PAL
-        HuWinMesMaxSizeGet(1, sp8, var_r31);
-        posX = 288-((sp8[0]/2)-32);
+        HuWinMesMaxSizeGet(1, message_size, message_id);
+        pos_x = 288-((message_size[0]/2)-32);
         #endif
-        posY = 286.0f;
+        pos_y = 286.0f;
     } else {
-        var_r31 = MAKE_MESSID(0x10, 0x4D);
+        message_id = MAKE_MESSID(0x10, 0x4D);
         #if VERSION_PAL
-        posX = -10000.0f;
-        posY = 324.0f;
+        pos_x = -10000.0f;
+        pos_y = 324.0f;
         #else
-        posY = 328.0f;
+        pos_y = 328.0f;
         #endif
         
     }
-    HuWinMesMaxSizeGet(1, sp8, var_r31);
+    HuWinMesMaxSizeGet(1, message_size, message_id);
     #if VERSION_NTSC
-    posX = -10000.0f;
+    pos_x = -10000.0f;
     #endif
-    buttonWin = HuWinCreate(posX, posY, sp8[0], sp8[1], 0);
+    buttonWin = HuWinCreate(pos_x, pos_y, message_size[0], message_size[1], 0);
     HuWinBGTPLvlSet(buttonWin, 0.0f);
     HuWinMesSpeedSet(buttonWin, 0);
-    HuWinMesSet(buttonWin, var_r31);
+    HuWinMesSet(buttonWin, message_id);
 }
 
+/** @brief Destroys the view-control window if it exists. */
 static void DestroyButtonWin(void) {
     if (buttonWin != -1) {
         HuWinKill(buttonWin);
@@ -436,15 +489,16 @@ static void DestroyButtonWin(void) {
     }
 }
 
+/** @brief Creates the player markers, guide lines, and star marker. */
 static void InitOverheadView(void) {
-    Vec sp10;
-    GXColor spA;
-    s16 sp8;
-    OMOBJ *temp_r26;
-    OverheadWork *temp_r31;
-    float *temp_r30;
+    Vec star_screen_pos;
+    GXColor marker_color;
+    s16 sprite;
+    OMOBJ *object;
+    OverheadWork *work;
+    float *screen_pos;
     s32 i;
-    s32 sp1C[8] = {
+    s32 character_sprite_files[8] = {
         DATA_MAKE_NUM(DATADIR_BOARD, 0x2E),
         DATA_MAKE_NUM(DATADIR_BOARD, 0x2F),
         DATA_MAKE_NUM(DATADIR_BOARD, 0x30),
@@ -455,154 +509,161 @@ static void InitOverheadView(void) {
         DATA_MAKE_NUM(DATADIR_BOARD, 0x35)
     };
 
-    temp_r26 = omAddObjEx(boardObjMan, 0x1000, 0, 0, -1, UpdateOverheadView);
-    overheadObj = temp_r26;
-    temp_r31 = omObjGetWork(temp_r26, OverheadWork);
-    temp_r31->unk00_field0 = 0;
-    temp_r31->unk01 = 1;
-    temp_r31->unk02 = HuSprGrpCreate(9);
+    object = omAddObjEx(boardObjMan, 0x1000, 0, 0, -1, UpdateOverheadView);
+    overheadObj = object;
+    work = omObjGetWork(object, OverheadWork);
+    work->destroy_requested = 0;
+    work->markers_visible = 1;
+    work->sprite_group = HuSprGrpCreate(9);
     for (i = 0; i < 4; i++) {
-        temp_r30 = overhead2DPos[i];
-        BoardSpriteCreate(sp1C[GWPlayer[i].character], 0x1388, 0, &sp8);
-        HuSprGrpMemberSet(temp_r31->unk02, i, sp8);
-        HuSprAttrSet(temp_r31->unk02, i, 1);
-        HuSprAttrSet(temp_r31->unk02, i, 8);
-        HuSprPosSet(temp_r31->unk02, i, temp_r30[0], temp_r30[1]);
+        screen_pos = overhead2DPos[i];
+        BoardSpriteCreate(character_sprite_files[GWPlayer[i].character], 0x1388, 0, &sprite);
+        HuSprGrpMemberSet(work->sprite_group, i, sprite);
+        HuSprAttrSet(work->sprite_group, i, 1);
+        HuSprAttrSet(work->sprite_group, i, 8);
+        HuSprPosSet(work->sprite_group, i, screen_pos[0], screen_pos[1]);
         if (GWPlayer[i].character == 7) {
-            spA.r = 0x50;
-            spA.g = 0x50;
-            spA.b = 0x50;
+            marker_color.r = 0x50;
+            marker_color.g = 0x50;
+            marker_color.b = 0x50;
         } else {
-            GWCharColorGet(GWPlayer[i].character, &spA);
+            GWCharColorGet(GWPlayer[i].character, &marker_color);
         }
-        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x6C), 0x1770, 0, &sp8);
-        HuSprGrpMemberSet(temp_r31->unk02, i + 4, sp8);
-        HuSprPosSet(temp_r31->unk02, i + 4, temp_r30[0], temp_r30[1]);
-        HuSprColorSet(temp_r31->unk02, i + 4, spA.r, spA.g, spA.b);
+        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x6C), 0x1770, 0, &sprite);
+        HuSprGrpMemberSet(work->sprite_group, i + 4, sprite);
+        HuSprPosSet(work->sprite_group, i + 4, screen_pos[0], screen_pos[1]);
+        HuSprColorSet(work->sprite_group, i + 4, marker_color.r, marker_color.g, marker_color.b);
     }
-    temp_r30 = overhead2DPos[4];
-    temp_r31->unk04 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x08), NULL, 0);
-    BoardModelMotionSpeedSet(temp_r31->unk04, 0.0f);
-    BoardModelLayerSet(temp_r31->unk04, 6);
-    BoardModelScaleSet(temp_r31->unk04, 0.4f, 0.4f, 0.4f);
-    BoardModelPassSet(temp_r31->unk04, 1);
-    sp10.x = temp_r30[0];
-    sp10.y = temp_r30[1];
-    sp10.z = 1000.0f;
-    spA.r = 0xF8;
-    spA.g = 0xF0;
-    spA.b = 0x80;
-    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x6C), 0x1770, 0, &sp8);
-    HuSprGrpMemberSet(temp_r31->unk02, 8, sp8);
-    HuSprPosSet(temp_r31->unk02, 8, temp_r30[0], temp_r30[1]);
-    HuSprColorSet(temp_r31->unk02, 8, spA.r, spA.g, spA.b);
-    Hu3D2Dto3D(&sp10, 1, &sp10);
-    BoardModelPosSetV(temp_r31->unk04, &sp10);
-    HuSprGrpDrawNoSet(temp_r31->unk02, 0x40);
+    screen_pos = overhead2DPos[4];
+    work->star_model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x08), NULL, 0);
+    BoardModelMotionSpeedSet(work->star_model, 0.0f);
+    BoardModelLayerSet(work->star_model, 6);
+    BoardModelScaleSet(work->star_model, 0.4f, 0.4f, 0.4f);
+    BoardModelPassSet(work->star_model, 1);
+    star_screen_pos.x = screen_pos[0];
+    star_screen_pos.y = screen_pos[1];
+    star_screen_pos.z = 1000.0f;
+    marker_color.r = 0xF8;
+    marker_color.g = 0xF0;
+    marker_color.b = 0x80;
+    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x6C), 0x1770, 0, &sprite);
+    HuSprGrpMemberSet(work->sprite_group, 8, sprite);
+    HuSprPosSet(work->sprite_group, 8, screen_pos[0], screen_pos[1]);
+    HuSprColorSet(work->sprite_group, 8, marker_color.r, marker_color.g, marker_color.b);
+    Hu3D2Dto3D(&star_screen_pos, 1, &star_screen_pos);
+    BoardModelPosSetV(work->star_model, &star_screen_pos);
+    HuSprGrpDrawNoSet(work->sprite_group, 0x40);
     if (GWBoardGet() == BOARD_ID_EXTRA1 || GWBoardGet() == BOARD_ID_EXTRA2) {
-        BoardModelVisibilitySet(temp_r31->unk04, 0);
-        HuSprTPLvlSet(temp_r31->unk02, 8, 0.0f);
+        BoardModelVisibilitySet(work->star_model, 0);
+        HuSprTPLvlSet(work->sprite_group, 8, 0.0f);
     }
 }
 
+/** @brief Requests destruction of the overhead-view display object. */
 static void DestroyOverheadView(void) {
     if (overheadObj) {
-        omObjGetWork(overheadObj, OverheadWork)->unk00_field0 = 1;
+        omObjGetWork(overheadObj, OverheadWork)->destroy_requested = 1;
     }
 }
 
-static void UpdateOverheadView(OMOBJ *arg0) {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float temp_f31;
-    float temp_f30;
-    float *var_r29;
-    s32 var_r28;
-    s32 var_r27;
+/**
+ * @brief Updates overhead markers and their guide lines.
+ *
+ * @param object Object that owns the overhead-view work data.
+ */
+static void UpdateOverheadView(OMOBJ *object) {
+    Vec marker_screen_pos;
+    Vec board_screen_pos;
+    Vec guide_delta;
+    float guide_length_scale;
+    float guide_angle;
+    float *marker_pos;
+    s32 guide_sprite;
+    s32 hide_star_marker;
     s32 i;
-    u32 var_r26;
-    OverheadWork *temp_r31;
-    Mtx sp5C;
-    Mtx sp2C;
+    u32 buttons_down;
+    OverheadWork *work;
+    Mtx camera_x_rotation;
+    Mtx camera_rotation;
 
-    temp_r31 = omObjGetWork(arg0, OverheadWork);
-    if (temp_r31->unk00_field0 != 0 || BoardIsKill()) {
-        if (temp_r31->unk02 != -1) {
-            HuSprGrpKill(temp_r31->unk02);
+    work = omObjGetWork(object, OverheadWork);
+    if (work->destroy_requested != 0 || BoardIsKill()) {
+        if (work->sprite_group != -1) {
+            HuSprGrpKill(work->sprite_group);
         }
-        if (temp_r31->unk04 != -1) {
-            BoardModelKill(temp_r31->unk04);
+        if (work->star_model != -1) {
+            BoardModelKill(work->star_model);
         }
         overheadObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
-    var_r26 = HuPadBtnDown[GWPlayer[viewPlayer].port];
-    if (var_r26 == 0x20) {
-        temp_r31->unk01 ^= 1;
+    buttons_down = HuPadBtnDown[GWPlayer[viewPlayer].port];
+    if (buttons_down == 0x20) {
+        work->markers_visible ^= 1;
         HuAudFXPlay(0x1C);
     }
     if (GWBoardGet() == BOARD_ID_EXTRA1 || GWBoardGet() == BOARD_ID_EXTRA2) {
-        var_r27 = 1;
+        hide_star_marker = 1;
     } else {
-        var_r27 = 0;
+        hide_star_marker = 0;
     }
     for (i = 0; i < 5; i++) {
-        var_r29 = overhead2DPos[i];
-        sp20.x = var_r29[0] - HU_DISP_CENTERX;
-        sp20.y = var_r29[1] - 240.0f;
-        sp20.z = 1000.0f;
+        marker_pos = overhead2DPos[i];
+        marker_screen_pos.x = marker_pos[0] - HU_DISP_CENTERX;
+        marker_screen_pos.y = marker_pos[1] - 240.0f;
+        marker_screen_pos.z = 1000.0f;
         if (i != 4) {
-            BoardSpacePosGet(0, GWPlayer[i].space_curr, &sp14);
-        } else if (var_r27 != 0) {
-            sp14.x = sp14.y = sp14.z = 0.0f;
+            BoardSpacePosGet(0, GWPlayer[i].space_curr, &board_screen_pos);
+        } else if (hide_star_marker != 0) {
+            board_screen_pos.x = board_screen_pos.y = board_screen_pos.z = 0.0f;
         } else {
-            BoardSpacePosGet(0, BoardSpaceStarGetCurr(), &sp14);
+            BoardSpacePosGet(0, BoardSpaceStarGetCurr(), &board_screen_pos);
         }
-        Hu3D3Dto2D(&sp14, 1, &sp14);
-        sp14.x -= HU_DISP_CENTERX;
-        sp14.y -= 240.0f;
-        VECSubtract(&sp20, &sp14, &sp8);
-        sp8.z = 0.0f;
-        temp_f30 = BoardDAngleCalc(atan2d(sp8.y, sp8.x) - 90.0);
-        temp_f31 = VECMag(&sp8) / 32;
+        Hu3D3Dto2D(&board_screen_pos, 1, &board_screen_pos);
+        board_screen_pos.x -= HU_DISP_CENTERX;
+        board_screen_pos.y -= 240.0f;
+        VECSubtract(&marker_screen_pos, &board_screen_pos, &guide_delta);
+        guide_delta.z = 0.0f;
+        guide_angle = BoardDAngleCalc(atan2d(guide_delta.y, guide_delta.x) - 90.0);
+        guide_length_scale = VECMag(&guide_delta) / 32;
         if (i != 4) {
-            var_r28 = i + 4;
+            guide_sprite = i + 4;
         } else {
-            var_r28 = 8;
+            guide_sprite = 8;
         }
-        HuSprZRotSet(temp_r31->unk02, var_r28, temp_f30);
-        HuSprScaleSet(temp_r31->unk02, var_r28, 0.5f, temp_f31);
-        HuSprPosSet(temp_r31->unk02, var_r28, var_r29[0], var_r29[1]);
+        HuSprZRotSet(work->sprite_group, guide_sprite, guide_angle);
+        HuSprScaleSet(work->sprite_group, guide_sprite, 0.5f, guide_length_scale);
+        HuSprPosSet(work->sprite_group, guide_sprite, marker_pos[0], marker_pos[1]);
         if (i == 4 && (GWBoardGet() == BOARD_ID_EXTRA1 || GWBoardGet() == BOARD_ID_EXTRA2)) {
-            BoardModelVisibilitySet(temp_r31->unk04, 0);
-        } else if (temp_r31->unk01 != 0) {
+            BoardModelVisibilitySet(work->star_model, 0);
+        } else if (work->markers_visible != 0) {
             if (i != 4) {
-                HuSprAttrReset(temp_r31->unk02, i, HUSPR_ATTR_DISPOFF);
+                HuSprAttrReset(work->sprite_group, i, HUSPR_ATTR_DISPOFF);
             }
-            HuSprAttrReset(temp_r31->unk02, var_r28, HUSPR_ATTR_DISPOFF);
-            BoardModelVisibilitySet(temp_r31->unk04, 1);
+            HuSprAttrReset(work->sprite_group, guide_sprite, HUSPR_ATTR_DISPOFF);
+            BoardModelVisibilitySet(work->star_model, 1);
         } else {
             if (i != 4) {
-                HuSprAttrSet(temp_r31->unk02, i, HUSPR_ATTR_DISPOFF);
+                HuSprAttrSet(work->sprite_group, i, HUSPR_ATTR_DISPOFF);
             }
-            HuSprAttrSet(temp_r31->unk02, var_r28, HUSPR_ATTR_DISPOFF);
-            BoardModelVisibilitySet(temp_r31->unk04, 0);
+            HuSprAttrSet(work->sprite_group, guide_sprite, HUSPR_ATTR_DISPOFF);
+            BoardModelVisibilitySet(work->star_model, 0);
         }
     }
-    sp20.x = var_r29[0];
-    sp20.y = var_r29[1];
-    sp20.z = 1000.0f;
-    BoardCameraRotGet(&sp8);
-    PSMTXRotRad(sp5C, 'x', MTXDegToRad(sp8.x));
-    PSMTXRotRad(sp2C, 'y', MTXDegToRad(sp8.y));
-    PSMTXConcat(sp2C, sp5C, sp2C);
-    BoardModelMtxSet(temp_r31->unk04, &sp2C);
-    Hu3D2Dto3D(&sp20, 1, &sp20);
-    BoardModelPosSetV(temp_r31->unk04, &sp20);
+    marker_screen_pos.x = marker_pos[0];
+    marker_screen_pos.y = marker_pos[1];
+    marker_screen_pos.z = 1000.0f;
+    BoardCameraRotGet(&guide_delta);
+    PSMTXRotRad(camera_x_rotation, 'x', MTXDegToRad(guide_delta.x));
+    PSMTXRotRad(camera_rotation, 'y', MTXDegToRad(guide_delta.y));
+    PSMTXConcat(camera_rotation, camera_x_rotation, camera_rotation);
+    BoardModelMtxSet(work->star_model, &camera_rotation);
+    Hu3D2Dto3D(&marker_screen_pos, 1, &marker_screen_pos);
+    BoardModelPosSetV(work->star_model, &marker_screen_pos);
 }
 
+/** @brief Waits until the overhead-view display object has been destroyed. */
 static void WaitOverheadView(void) {
     while (overheadObj) {
         HuPrcVSleep();

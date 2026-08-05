@@ -17,19 +17,20 @@
 #include <string.h>
 
 // structs
-typedef struct structActiveMG {
-    s16 unk_00;
-    s8  unk_02;
-    s8  unk_03;
-    s32 unk_04;
-} structActiveMG;
+typedef struct MinigameCandidate {
+    s16 window_id;
+    s8  minigame_index;
+    s8  is_available;
+    s32 name_mess;
+} MinigameCandidate;
 
-typedef struct unkSubstructR31 {
-    s16 unk_00[13];
-    Vec unk_1C[2][13];
-} unkSubstructR31;
+typedef struct MGSetupSprites {
+    s16 group_id;
+    s16 sprite_ids[13];
+    Vec positions[2][13];
+} MGSetupSprites;
 
-typedef struct bitcopy {
+typedef struct MGSetupWork {
     struct {
         u8 field00_bit0 : 1;
         u8 field00_bit1 : 3;
@@ -40,17 +41,17 @@ typedef struct bitcopy {
     struct {
         u8 field01_bit0 : 4;
     };
-    u8 unk_02;
-    s8 unk_03;
-    s16 unk_04;
-    u8 unk_06;
-    u8 unk_07;
-    f32 unk_08;
-    unkSubstructR31* unk_0C;
-} bitcopy;
+    u8 phase;
+    s8 timer;
+    s16 angle;
+    u8 delay;
+    u8 spin_delay;
+    f32 spin_speed;
+    MGSetupSprites* sprites;
+} MGSetupWork;
 
 // bss
-static structActiveMG activeMG[4];
+static MinigameCandidate activeMG[4];
 static s16 mgListAll[0x20];
 static s16 mgPlay4P[8];
 
@@ -111,23 +112,29 @@ static s8 cursorPos = 0xFF;
 // determined functions
 static void DestroyMGSetup(void);
 static void ExecMGSetup(void);
-static void DetermineMGList(bitcopy*);
+static void DetermineMGList(MGSetupWork*);
 static void SetupStatusLayout(void);
 static s32 GetMGType(void);
 static s32 GetMGTypeTeam(void);
 static void CreateMGSetup(void);
 static void UpdateMGSetup(OMOBJ*);
-static void CenterStatus(bitcopy*, OMOBJ*);
-static void SeparateStatus(bitcopy*, OMOBJ*);
-static void PopupVS(bitcopy*, OMOBJ*);
-static void FallMGType(bitcopy*, OMOBJ*);
-static void LuckyMGFall(bitcopy*, OMOBJ*);
+static void CenterStatus(MGSetupWork*, OMOBJ*);
+static void SeparateStatus(MGSetupWork*, OMOBJ*);
+static void PopupVS(MGSetupWork*, OMOBJ*);
+static void FallMGType(MGSetupWork*, OMOBJ*);
+static void LuckyMGFall(MGSetupWork*, OMOBJ*);
 static void HideLuckyValue(void);
-static void UpdateLuckyValue(bitcopy*, OMOBJ*);
-static void UpdateMGList(bitcopy*, OMOBJ*);
+static void UpdateLuckyValue(MGSetupWork*, OMOBJ*);
+static void UpdateMGList(MGSetupWork*, OMOBJ*);
 
 // FUNCTIONS //
 
+/**
+ * @brief Runs the end-of-turn minigame selection sequence.
+ *
+ * @details Creates a child process for the selection presentation and waits
+ * until its destructor clears the process handle.
+ */
 void BoardMGSetupExec(void) {
     mgSetupProc = HuPrcChildCreate(&ExecMGSetup, 0x2006, 0x3800, 0, boardMainProc);
     HuPrcDestructorSet2(mgSetupProc, &DestroyMGSetup);
@@ -136,49 +143,68 @@ void BoardMGSetupExec(void) {
     }
 }
 
+/**
+ * @brief Finalizes the minigame selection process state.
+ *
+ * @details Restores the current-player index and clears the process handle
+ * used by BoardMGSetupExec() as its completion signal.
+ */
 static void DestroyMGSetup(void) {
     GWSystem.player_curr = 0;
     mgSetupProc = NULL;
 }
 
+/**
+ * @brief Reads the current minigame setup presentation state.
+ *
+ * @return The setup object's state value; state 7 is the idle/completed state
+ * awaited by the controlling process.
+ */
 static inline s32 setupObjGet(void) {
-    bitcopy* work = (bitcopy*) mgSetupObj->work;
+    MGSetupWork* work = (MGSetupWork*) mgSetupObj->work;
     return work->field00_bit1;
 }
 
+/**
+ * @brief Selects and loads the next board minigame.
+ *
+ * @details Drives the camera and UI state machine, optionally presents a
+ * Lucky Minigame value presentation, starts the selected minigame's data load, records
+ * it in the recent-play history, and switches to the minigame overlay.
+ */
 static void ExecMGSetup(void) {
-    s32 sp60[9] = {
+    s32 board_data_dirs[9] = {
         DATADIR_W01, DATADIR_W02, DATADIR_W03,
         DATADIR_W04, DATADIR_W05, DATADIR_W06,
         DATADIR_W10, DATADIR_W20, DATADIR_W21
     };
-    Vec sp54;
-    u16 var_r24;
-    s32 var_r22;
-    s32 var_r23;
-    s32 var_r31;
-    u32 var_r30;
-    bitcopy* temp_r29;
-    bitcopy* temp_r28;
-    bitcopy* temp_r27;
-    bitcopy* temp_r26;
-    bitcopy* temp_r25;
+    Vec camera_offset;
+    u16 minigame_id;
+    s32 async_load_id;
+    s32 data_dir;
+    s32 player;
+    u32 message_id;
+    MGSetupWork* lucky_drop_work;
+    MGSetupWork* separate_work;
+    MGSetupWork* lucky_value_work;
+    MGSetupWork* normal_setup_work;
+    MGSetupWork* list_work;
 
     luckyF = 0;
     mgNext = 0;
     GWSystem.player_curr = -1;
 	GWLuckyValueSet(1);
-    for (var_r31 = 0; var_r31 < ARRAY_COUNT(activeMG); var_r31++) {
-        activeMG[var_r31].unk_00 = -1;
-        activeMG[var_r31].unk_04 = 0;
+    for (player = 0; player < ARRAY_COUNT(activeMG); player++) {
+        activeMG[player].window_id = -1;
+        activeMG[player].name_mess = 0;
     }
     BoardPlayerMoveAwayStartCurr(GWPlayer[GWSystem.player_curr].space_curr, 1);
     BoardCameraMoveSet(0);
     BoardCameraTargetSpaceSet(BoardSpaceStarGetCurr());
-    sp54.x = 0.0f;
-    sp54.y = 150.0f;
-    sp54.z = 0.0f;
-    BoardCameraMotionStartEx(-1, NULL, &sp54, 1300.0f, -1.0f, 21);
+    camera_offset.x = 0.0f;
+    camera_offset.y = 150.0f;
+    camera_offset.z = 0.0f;
+    BoardCameraMotionStartEx(-1, NULL, &camera_offset, 1300.0f, -1.0f, 21);
     BoardCameraMotionWait();
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 21);
     
@@ -193,81 +219,81 @@ static void ExecMGSetup(void) {
     if (BoardRandMod(0x64U) < 5U) {
         HuPrcSleep(0x1E);
         luckyF = 1;
-        temp_r29 = (bitcopy*) mgSetupObj->work;
-        temp_r29->field00_bit1 = 4;
-        temp_r29->unk_02 = 0;
-        temp_r29->unk_03 = 0;
-        temp_r29->unk_04 = 0;
+        lucky_drop_work = (MGSetupWork*) mgSetupObj->work;
+        lucky_drop_work->field00_bit1 = 4;
+        lucky_drop_work->phase = 0;
+        lucky_drop_work->timer = 0;
+        lucky_drop_work->angle = 0;
         HuAudFXPlay(0x35C);
         while (setupObjGet() != 7) {
             HuPrcVSleep();
         }
-        temp_r28 = (bitcopy*) mgSetupObj->work;
-        temp_r28->field00_bit1 = 1;
-        temp_r28->unk_02 = 0;
-        temp_r28->unk_03 = 0;
-        temp_r28->unk_04 = 0;
+        separate_work = (MGSetupWork*) mgSetupObj->work;
+        separate_work->field00_bit1 = 1;
+        separate_work->phase = 0;
+        separate_work->timer = 0;
+        separate_work->angle = 0;
         while (setupObjGet() != 7) {
             HuPrcVSleep();
         }
-        var_r30 = luckyMessTbl[GWBoardGet()];
-        BoardWinCreate(2, var_r30, BoardWinPortraitGetStar());
+        message_id = luckyMessTbl[GWBoardGet()];
+        BoardWinCreate(2, message_id, BoardWinPortraitGetStar());
         BoardWinWait();
         BoardWinKill();
-        temp_r27 = (bitcopy*) mgSetupObj->work;
-        temp_r27->field00_bit1 = 5;
-        temp_r27->unk_02 = 0;
-        temp_r27->unk_03 = 0;
-        temp_r27->unk_04 = 0;
+        lucky_value_work = (MGSetupWork*) mgSetupObj->work;
+        lucky_value_work->field00_bit1 = 5;
+        lucky_value_work->phase = 0;
+        lucky_value_work->timer = 0;
+        lucky_value_work->angle = 0;
         while (setupObjGet() != 7) {
             HuPrcVSleep();
         }
         switch (GWLuckyValueGet()) {
             case 1:
-                var_r30 = luckyMessTbl[GWBoardGet()] + 1;
+                message_id = luckyMessTbl[GWBoardGet()] + 1;
                 break;
             case 2:
-                var_r30 = luckyMessTbl[GWBoardGet()] + 2;
+                message_id = luckyMessTbl[GWBoardGet()] + 2;
                 break;
             case 3:
-                var_r30 = luckyMessTbl[GWBoardGet()] + 3;
+                message_id = luckyMessTbl[GWBoardGet()] + 3;
                 break;
         }
-        BoardWinCreate(2, var_r30, BoardWinPortraitGetStar());
+        BoardWinCreate(2, message_id, BoardWinPortraitGetStar());
         BoardWinWait();
-        var_r30 = luckyMessTbl[GWBoardGet()] + 4;
-        BoardWinCreate(2, var_r30, BoardWinPortraitGetStar());
+        message_id = luckyMessTbl[GWBoardGet()] + 4;
+        BoardWinCreate(2, message_id, BoardWinPortraitGetStar());
         BoardWinWait();
         BoardWinKill();
         HideLuckyValue();
     } else {
-        temp_r26 = (bitcopy*) mgSetupObj->work;
-        temp_r26->field00_bit1 = 1;
-        temp_r26->unk_02 = 0;
-        temp_r26->unk_03 = 0;
-        temp_r26->unk_04 = 0;
+        normal_setup_work = (MGSetupWork*) mgSetupObj->work;
+        normal_setup_work->field00_bit1 = 1;
+        normal_setup_work->phase = 0;
+        normal_setup_work->timer = 0;
+        normal_setup_work->angle = 0;
         while (setupObjGet() != 7) {
             HuPrcVSleep();
         }
     }
-    temp_r25 = (bitcopy*) mgSetupObj->work;
-    temp_r25->field00_bit1 = 6;
-    temp_r25->unk_02 = 0;
-    temp_r25->unk_03 = 0;
-    temp_r25->unk_04 = 0;
+    list_work = (MGSetupWork*) mgSetupObj->work;
+    list_work->field00_bit1 = 6;
+    list_work->phase = 0;
+    list_work->timer = 0;
+    list_work->angle = 0;
     while (setupObjGet() != 7) {
         HuPrcVSleep();
     }
     HuDataDirClose(DATADIR_BOARD);
     HuDataDirClose(DATADIR_BGUEST);
-    HuDataDirClose(sp60[GWBoardGet()]);
+    HuDataDirClose(board_data_dirs[GWBoardGet()]);
     HuPrcSleep(2);
     if (_CheckFlag(FLAG_ID_MAKE(0, 11)) != 0) {
-        var_r23 = 0x140000;
+        data_dir = 0x140000;
     } else {
-        var_r23 = mgInfoTbl[mgNext].data_dir;
+        data_dir = mgInfoTbl[mgNext].data_dir;
     }
-    var_r22 = BoardDataDirReadAsync(var_r23);
+    async_load_id = BoardDataDirReadAsync(data_dir);
     BoardAudSeqFadeOut(0, 1000);
     _SetFlag(FLAG_ID_MAKE(1, 14));
     WipeColorSet(255, 255, 255);
@@ -278,16 +304,16 @@ static void ExecMGSetup(void) {
     HuAudFXAllStop();
     _SetFlag(FLAG_ID_MAKE(1, 28));
     
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        BoardStatusItemHideSet(var_r31, 1);
+    for (player = 0; player < 4; player++) {
+        BoardStatusItemHideSet(player, 1);
     }
-    ((bitcopy*) (mgSetupObj->work))->field00_bit0 = 1;
-    BoardDataAsyncWait(var_r22);
-    var_r24 = mgNext + 0x191;
-    BoardMGSetupPlayPush(mgType, var_r24);
+    ((MGSetupWork*) (mgSetupObj->work))->field00_bit0 = 1;
+    BoardDataAsyncWait(async_load_id);
+    minigame_id = mgNext + 0x191;
+    BoardMGSetupPlayPush(mgType, minigame_id);
     GWMGTypeSet(-1);
-    GWMGAvailSet(var_r24);
-    GWSystem.mg_next = var_r24 - 0x191;
+    GWMGAvailSet(minigame_id);
+    GWSystem.mg_next = minigame_id - 0x191;
     _SetFlag(0x10002U);
     if (GWSystem.turn == GWSystem.max_turn) {
         _SetFlag(0xAU);
@@ -296,246 +322,277 @@ static void ExecMGSetup(void) {
     HuPrcEnd();
 }
 
-static void DetermineMGList(bitcopy* arg0) {
-    MgInfo* var_r31;
-    s32 temp_r23;
-    s32 var_r30;
-    s16* var_r28;
-    s32 var_r22;
-    s32 var_r21;
-    s32 var_r24;
-    s32 var_r27;
-    u32 temp_r20;
-    s32 var_r29;
-    u32 var_r19;
-    s32 temp_r18;
-    u32* temp_r26;
-    s16* temp_r25;
+/**
+ * @brief Builds the randomized candidate list for the current minigame type.
+ *
+ * @details Applies the configured minigame-list mode, custom availability,
+ * recent-play exclusion, and duplicate-name rejection. Locked candidates are
+ * retained but marked so the UI can conceal their names.
+ *
+ * @param work Setup state whose candidate-count field determines how many
+ * entries are selected and whose result is written to activeMG.
+ */
+static void DetermineMGList(MGSetupWork* work) {
+    MgInfo* minigame_info;
+    s32 candidate_index;
+    s32 selection_index;
+    s16* list_entry;
+    s32 duplicate_found;
+    s32 excluded;
+    s32 all_count;
+    s32 info_count;
+    u32 candidate_name_mess;
+    s32 candidate_slot;
+    u32 candidate_count;
+    s32 candidate_id;
+    u32* name_messages;
+    s16* minigame_indices;
 
-    var_r24 = 0;
-    var_r31 = mgInfoTbl;
+    all_count = 0;
+    minigame_info = mgInfoTbl;
     
-    for (var_r27 = 0; var_r31->ovl != 0xFFFF; var_r31++, var_r27++) {
-        if ((var_r31->flag & 1) == 0) {
-            mgListAll[var_r24] = (var_r31 - mgInfoTbl) + 0x191;
-            var_r24++;
+    for (info_count = 0; minigame_info->ovl != 0xFFFF; minigame_info++, info_count++) {
+        if ((minigame_info->flag & 1) == 0) {
+            mgListAll[all_count] = (minigame_info - mgInfoTbl) + 0x191;
+            all_count++;
         }
     }
-    mgListAll[var_r24] = -1;
-    temp_r26 = HuMemDirectMallocNum(HEAP_HEAP, var_r27 * 4, HU_MEMNUM_OVL);
-    temp_r25 = HuMemDirectMallocNum(HEAP_HEAP, var_r27 * 2, HU_MEMNUM_OVL);
-    var_r31 = mgInfoTbl;
+    mgListAll[all_count] = -1;
+    name_messages = HuMemDirectMallocNum(HEAP_HEAP, info_count * 4, HU_MEMNUM_OVL);
+    minigame_indices = HuMemDirectMallocNum(HEAP_HEAP, info_count * 2, HU_MEMNUM_OVL);
+    minigame_info = mgInfoTbl;
     
-    for (var_r29 = var_r30 = 0; var_r30 < var_r27; var_r30++, var_r31++) {
-        if ((mgType == var_r31->type) && (var_r31->ovl != 0x29)) {
-            if ((GWMGListGet() != 2) || (GWMGCustomGet(var_r30 + 0x191) != 0)) {
+    for (candidate_slot = selection_index = 0; selection_index < info_count; selection_index++, minigame_info++) {
+        if ((mgType == minigame_info->type) && (minigame_info->ovl != 0x29)) {
+            if ((GWMGListGet() != 2) || (GWMGCustomGet(selection_index + 0x191) != 0)) {
                 if (GWMGListGet() == 1) {
-                    var_r21 = 0;
-                    var_r28 = &mgListAll[0];
-                    while (*var_r28 != -1) {
-                        if (var_r30 + 0x191 == *var_r28) {
-                            var_r21 = 1;
+                    excluded = 0;
+                    list_entry = &mgListAll[0];
+                    while (*list_entry != -1) {
+                        if (selection_index + 0x191 == *list_entry) {
+                            excluded = 1;
                             break;
                         }
-                        var_r28++;
+                        list_entry++;
                     }
-                    if (var_r21 != 0) continue;
+                    if (excluded != 0) continue;
                 }
-                temp_r26[var_r29] = var_r31->name_mess;
-                temp_r25[var_r29] = var_r30;
-                var_r29++;
+                name_messages[candidate_slot] = minigame_info->name_mess;
+                minigame_indices[candidate_slot] = selection_index;
+                candidate_slot++;
             }
         }
     }
 
-    var_r19 = var_r29;
-    var_r30 = 0;
-    while (var_r30 < arg0->field01_bit0) {
-        var_r29 = BoardRandMod(var_r19);
-        temp_r20 = temp_r26[var_r29];
-        temp_r23 = temp_r25[var_r29];
-        temp_r18 = temp_r23 + 0x191;
+    candidate_count = candidate_slot;
+    selection_index = 0;
+    while (selection_index < work->field01_bit0) {
+        candidate_slot = BoardRandMod(candidate_count);
+        candidate_name_mess = name_messages[candidate_slot];
+        candidate_index = minigame_indices[candidate_slot];
+        candidate_id = candidate_index + 0x191;
 
-        if (GWMGListGet() == 2 || BoardMGSetupPlaySearch(mgType, temp_r18) == 0) {
-            var_r22 = 0;
-            for (var_r29 = 0; var_r29 < var_r30; var_r29++) {
-                if (temp_r20 == activeMG[var_r29].unk_04) {
-                    var_r22 = 1;
+        if (GWMGListGet() == 2 || BoardMGSetupPlaySearch(mgType, candidate_id) == 0) {
+            duplicate_found = 0;
+            for (candidate_slot = 0; candidate_slot < selection_index; candidate_slot++) {
+                if (candidate_name_mess == activeMG[candidate_slot].name_mess) {
+                    duplicate_found = 1;
                     break;
                 }
             }
-            if (var_r22 == 0) {
-                if (GWMGAvailGet(temp_r23 + 0x191) == 0) {
-                    activeMG[var_r30].unk_03 = 0;
+            if (duplicate_found == 0) {
+                if (GWMGAvailGet(candidate_index + 0x191) == 0) {
+                    activeMG[selection_index].is_available = 0;
                 } else {
-                    activeMG[var_r30].unk_03 = 1;
+                    activeMG[selection_index].is_available = 1;
                 }
-                activeMG[var_r30].unk_04 = temp_r20;
-                activeMG[var_r30].unk_02 = temp_r23;
-                var_r30++;
+                activeMG[selection_index].name_mess = candidate_name_mess;
+                activeMG[selection_index].minigame_index = candidate_index;
+                selection_index++;
             }
         }
     }
-    HuMemDirectFree(temp_r26);
-    HuMemDirectFree(temp_r25);
+    HuMemDirectFree(name_messages);
+    HuMemDirectFree(minigame_indices);
 }
 
+/**
+ * @brief Assigns player groups and status-panel targets for team minigames.
+ *
+ * @details For 1-vs-3 and 2-vs-2 types, derives groups from player colors,
+ * preserves each player's prior team, and positions status panels in the
+ * corresponding layout. Four-player minigames require no rearrangement here.
+ */
 static void SetupStatusLayout(void) {
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r28;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r31;
+    s32 solo_player;
+    s32 other_player;
+    s32 red_count;
+    s32 right_slot;
+    s32 left_slot;
+    s32 player;
 
     if (mgType != 0) {
         if (mgType == 1) {
-            for (var_r28 = var_r31 = 0; var_r31 < 4; var_r31++) {
-                if (GWPlayer[var_r31].color == 2) {
-                    var_r27 = var_r31;
-                    GWPlayer[var_r31].team_backup = GWPlayerTeamGet(var_r31);
-                    GWPlayerCfg[var_r31].group = 0;
-                    var_r28++;
+            for (red_count = player = 0; player < 4; player++) {
+                if (GWPlayer[player].color == 2) {
+                    solo_player = player;
+                    GWPlayer[player].team_backup = GWPlayerTeamGet(player);
+                    GWPlayerCfg[player].group = 0;
+                    red_count++;
                 } else {
-                    GWPlayer[var_r31].team_backup = GWPlayerTeamGet(var_r31);
-                    GWPlayerCfg[var_r31].group = 1;
-                    var_r26 = var_r31;
+                    GWPlayer[player].team_backup = GWPlayerTeamGet(player);
+                    GWPlayerCfg[player].group = 1;
+                    other_player = player;
                 }
             }
-            if (var_r28 == 1) {
-                BoardStatusTargetPosSet(var_r27, statusLayout1Vs3);
-                var_r30 = 1;
+            if (red_count == 1) {
+                BoardStatusTargetPosSet(solo_player, statusLayout1Vs3);
+                right_slot = 1;
                 
-                for (var_r31 = 0; var_r31 < 4; var_r31++) {
-                    if (var_r31 != var_r27) {
-                        BoardStatusTargetPosSet(var_r31, &statusLayout1Vs3[var_r30++]);
+                for (player = 0; player < 4; player++) {
+                    if (player != solo_player) {
+                        BoardStatusTargetPosSet(player, &statusLayout1Vs3[right_slot++]);
                     }
                 }
                 return;
             }
-            BoardStatusTargetPosSet(var_r26, statusLayout1Vs3);
-            var_r29 = 1;
+            BoardStatusTargetPosSet(other_player, statusLayout1Vs3);
+            left_slot = 1;
             
-            for (var_r31 = 0; var_r31 < 4; var_r31++) {
-                if (var_r31 == var_r26) {
-                    GWPlayer[var_r31].team_backup = GWPlayerTeamGet(var_r31);
-                    GWPlayerCfg[var_r31].group = 0;
+            for (player = 0; player < 4; player++) {
+                if (player == other_player) {
+                    GWPlayer[player].team_backup = GWPlayerTeamGet(player);
+                    GWPlayerCfg[player].group = 0;
                 } else {
-                    BoardStatusTargetPosSet(var_r31, &statusLayout1Vs3[var_r29++]);
-                    GWPlayer[var_r31].team_backup = GWPlayerTeamGet(var_r31);
-                    GWPlayerCfg[var_r31].group = 1;
+                    BoardStatusTargetPosSet(player, &statusLayout1Vs3[left_slot++]);
+                    GWPlayer[player].team_backup = GWPlayerTeamGet(player);
+                    GWPlayerCfg[player].group = 1;
                 }
             }
             return;
         }
-        var_r30 = 2;
-        for (var_r29 = var_r31 = 0; var_r31 < 4; var_r31++) {
-            if (GWPlayer[var_r31].color == 2) {
-                BoardStatusTargetPosSet(var_r31, &statusLayout2Vs2[var_r29++]);
-                GWPlayer[var_r31].team_backup = GWPlayerTeamGet(var_r31);
-                GWPlayerCfg[var_r31].group = 0;
+        right_slot = 2;
+        for (left_slot = player = 0; player < 4; player++) {
+            if (GWPlayer[player].color == 2) {
+                BoardStatusTargetPosSet(player, &statusLayout2Vs2[left_slot++]);
+                GWPlayer[player].team_backup = GWPlayerTeamGet(player);
+                GWPlayerCfg[player].group = 0;
             } else {
-                BoardStatusTargetPosSet(var_r31, &statusLayout2Vs2[var_r30++]);
-                GWPlayer[var_r31].team_backup = GWPlayerTeamGet(var_r31);
-                GWPlayerCfg[var_r31].group = 1;
+                BoardStatusTargetPosSet(player, &statusLayout2Vs2[right_slot++]);
+                GWPlayer[player].team_backup = GWPlayerTeamGet(player);
+                GWPlayerCfg[player].group = 1;
             }
         }
     }
 }
 
+/**
+ * @brief Resolves a non-team game's minigame type from player colors.
+ *
+ * @details Converts neutral or unresolved colors to blue/red, using weighted
+ * random choices where needed, then counts the resulting split.
+ *
+ * @return 0 for four-player, 1 for one-versus-three, or 2 for two-versus-two.
+ */
 static s32 GetMGType(void) {
-    s32 var_r27;
-    s32 var_r28;
-    s32 var_r30;
-    s32 var_r31;
-    s32 var_r25;
-    s32 var_r26;
-    s8 var_r29;
+    s32 neutral_count;
+    s32 blue_count;
+    s32 red_count;
+    s32 player;
+    s32 alternate_color;
+    s32 preferred_color;
+    s8 assigned_color;
 
-    for (var_r28 = var_r30 = var_r27 = var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (GWPlayer[var_r31].color == 2) {
-            var_r30++;
-        } else if (GWPlayer[var_r31].color == 1) {
-            var_r28++;
+    for (blue_count = red_count = neutral_count = player = 0; player < 4; player++) {
+        if (GWPlayer[player].color == 2) {
+            red_count++;
+        } else if (GWPlayer[player].color == 1) {
+            blue_count++;
         } else {
-            var_r27++;
+            neutral_count++;
         }
     }
-    if ((var_r30 != 2) || (var_r28 != 2)) {
-        if (var_r27 == 4) {
-            var_r31 = BoardRandMod(4);
-            GWPlayer[var_r31].color = 1;
-            var_r27 = 3;
-            var_r28 = 1;
-            var_r30 = 0;
+    if ((red_count != 2) || (blue_count != 2)) {
+        if (neutral_count == 4) {
+            player = BoardRandMod(4);
+            GWPlayer[player].color = 1;
+            neutral_count = 3;
+            blue_count = 1;
+            red_count = 0;
         }
-        var_r26 = var_r25 = -1;
-        if (var_r30 == 3) {
-            var_r26 = 2;
-            var_r25 = 1;
-        } else if (var_r28 == 3) {
-            var_r26 = 1;
-            var_r25 = 2;
+        preferred_color = alternate_color = -1;
+        if (red_count == 3) {
+            preferred_color = 2;
+            alternate_color = 1;
+        } else if (blue_count == 3) {
+            preferred_color = 1;
+            alternate_color = 2;
         }
-        if (((var_r27 >= 3) || ((var_r27 == 2) && (var_r28 == 1) && (var_r30 == 1))) && (BoardRandMod(0x64U) > 0x28U)) {
-            if (var_r30 == 1) {
-                var_r29 = 2;
+        if (((neutral_count >= 3) || ((neutral_count == 2) && (blue_count == 1) && (red_count == 1))) && (BoardRandMod(0x64U) > 0x28U)) {
+            if (red_count == 1) {
+                assigned_color = 2;
             } else {
-                var_r29 = 1;
+                assigned_color = 1;
             }
             do {
-                var_r31 = BoardRandMod(4);
-            } while (GWPlayer[var_r31].color != 3);
-            GWPlayer[var_r31].color = var_r29;
-            if (var_r29 == 1) {
-                var_r29 = 2;
+                player = BoardRandMod(4);
+            } while (GWPlayer[player].color != 3);
+            GWPlayer[player].color = assigned_color;
+            if (assigned_color == 1) {
+                assigned_color = 2;
             } else {
-                var_r29 = 1;
+                assigned_color = 1;
             }
-            for (var_r31 = 0; var_r31 < 4; var_r31++) {
-                if (GWPlayer[var_r31].color == 3) {
-                    GWPlayer[var_r31].color = var_r29;
+            for (player = 0; player < 4; player++) {
+                if (GWPlayer[player].color == 3) {
+                    GWPlayer[player].color = assigned_color;
                 }
             }
         } else {
             
-            for (var_r31 = 0; var_r31 < 4; var_r31++) {
-                if ((GWPlayer[var_r31].color == 3) || (GWPlayer[var_r31].color == 0)) {
-                    if (var_r26 == -1) {
+            for (player = 0; player < 4; player++) {
+                if ((GWPlayer[player].color == 3) || (GWPlayer[player].color == 0)) {
+                    if (preferred_color == -1) {
                         if (BoardRandMod(0x64) < 0x32) {
-                            var_r29 = 2;
+                            assigned_color = 2;
                         } else {
-                            var_r29 = 1;
+                            assigned_color = 1;
                         }
                     } else if (BoardRandMod(0x64) < 0x5A) {
-                        var_r29 = var_r26;
+                        assigned_color = preferred_color;
                     } else {
-                        var_r29 = var_r25;
+                        assigned_color = alternate_color;
                     }
-                    GWPlayer[var_r31].color = var_r29;
+                    GWPlayer[player].color = assigned_color;
                 }
             }
         }
     }
     
     
-    for (var_r30 = var_r28 = var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (GWPlayer[var_r31].color == 2) {
-            var_r30++;
-        } else if (GWPlayer[var_r31].color == 1) {
-            var_r28++;
+    for (red_count = blue_count = player = 0; player < 4; player++) {
+        if (GWPlayer[player].color == 2) {
+            red_count++;
+        } else if (GWPlayer[player].color == 1) {
+            blue_count++;
         }
     }
 
-    if (var_r30 == 1 || var_r30 == 3) {
+    if (red_count == 1 || red_count == 3) {
         return 1;
-    } else if (var_r30 == 2) {
+    } else if (red_count == 2) {
         return 2;
     } else {
         return 0;
     }
 }
 
+/**
+ * @brief Evaluates and discards three board-layout constants.
+ *
+ * @details This unreferenced function has no observed runtime effect in this
+ * file. The original purpose of evaluating these constants is unknown.
+ */
 static void UnusedFloat(void)
 {
 	(void)288.0f;
@@ -543,150 +600,171 @@ static void UnusedFloat(void)
 	(void)674.0f;
 }
 
+/**
+ * @brief Resolves the minigame type while respecting permanent teams.
+ *
+ * @details Assigns unresolved player colors, then adjusts teammates' colors so
+ * the result is either a four-player or two-versus-two minigame compatible
+ * with the configured teams.
+ *
+ * @return 0 for four-player or 2 for two-versus-two.
+ */
 static s32 GetMGTypeTeam(void) {
-    s8 sp12[4];
-    s8 spE[4];
-    s8 spA[4];
-    s8 sp8[2] = { 2, 1 };
-    s32 var_r30;
-    s32 var_r31;
-    s32 temp_r25;
-    s8 var_r27;
-    s8 var_r26;
-    s8 var_r28;
-    s8* var_r29; 
+    s8 red_players[4];
+    s8 blue_players[4];
+    s8 neutral_players[4];
+    s8 team_colors[2] = { 2, 1 };
+    s32 teammate;
+    s32 player;
+    s32 swap_color;
+    s8 neutral_count;
+    s8 blue_count;
+    s8 red_count;
+    s8* solo_players;
 
-    spA[0] = spA[1] = spA[2] = spA[3] = -1;
-    spE[0] = spE[1] = spE[2] = spE[3] = -1;
-    sp12[0] = sp12[1] = sp12[2] = sp12[3] = -1;
+    neutral_players[0] = neutral_players[1] = neutral_players[2] = neutral_players[3] = -1;
+    blue_players[0] = blue_players[1] = blue_players[2] = blue_players[3] = -1;
+    red_players[0] = red_players[1] = red_players[2] = red_players[3] = -1;
     
-    for (var_r28 = var_r27 = var_r26 = var_r31 = 0; var_r31 < 4; var_r31++) {
-        switch (GWPlayer[var_r31].color) {
+    for (red_count = neutral_count = blue_count = player = 0; player < 4; player++) {
+        switch (GWPlayer[player].color) {
         case 2:
-            sp12[var_r28] = var_r31;
-            var_r28++;
+            red_players[red_count] = player;
+            red_count++;
             break;
         case 1:
-            spE[var_r26] = var_r31;
-            var_r26++;
+            blue_players[blue_count] = player;
+            blue_count++;
             break;
         default:
-            spA[var_r27] = var_r31;
-            var_r27++;
+            neutral_players[neutral_count] = player;
+            neutral_count++;
             break;
         }
     }
-    if (var_r27 != 0) {
+    if (neutral_count != 0) {
         
-        for (var_r31 = 0; var_r31 < var_r27; var_r31++) {
-            GWPlayer[spA[var_r31]].color = sp8[BoardRandMod(2)];
+        for (player = 0; player < neutral_count; player++) {
+            GWPlayer[neutral_players[player]].color = team_colors[BoardRandMod(2)];
         }
         return GetMGTypeTeam();
     }
-    if ((var_r28 == 4) || (var_r26 == 4)) {
+    if ((red_count == 4) || (blue_count == 4)) {
         return 0;
     }
-    if ((var_r28 == 1) || (var_r26 == 1)) {
-        if (var_r28 == 1) {
-            var_r29 = sp12;
+    if ((red_count == 1) || (blue_count == 1)) {
+        if (red_count == 1) {
+            solo_players = red_players;
         } else {
-            var_r29 = spE;
+            solo_players = blue_players;
         }
         if (BoardRandMod(0x64U) < 0x46U) {
-            var_r30 = BoardPlayerSameTeamFind(*var_r29);
-            GWPlayer[*var_r29].color = GWPlayer[var_r30].color;
+            teammate = BoardPlayerSameTeamFind(*solo_players);
+            GWPlayer[*solo_players].color = GWPlayer[teammate].color;
             return 0;
         }
-        var_r30 = BoardPlayerSameTeamFind(*var_r29);
-        GWPlayer[var_r30].color = GWPlayer[*var_r29].color;
+        teammate = BoardPlayerSameTeamFind(*solo_players);
+        GWPlayer[teammate].color = GWPlayer[*solo_players].color;
         return 2;
     }
-    var_r30 = BoardPlayerSameTeamFind(sp12[0]);
-    if (GWPlayer[sp12[0]].color != GWPlayer[var_r30].color) {
-        temp_r25 = GWPlayer[var_r30].color;
-        GWPlayer[var_r30].color = GWPlayer[sp12[0]].color;
+    teammate = BoardPlayerSameTeamFind(red_players[0]);
+    if (GWPlayer[red_players[0]].color != GWPlayer[teammate].color) {
+        swap_color = GWPlayer[teammate].color;
+        GWPlayer[teammate].color = GWPlayer[red_players[0]].color;
 
         
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            if ((var_r31 != sp12[0]) && (var_r31 != var_r30)) {
+        for (player = 0; player < 4; player++) {
+            if ((player != red_players[0]) && (player != teammate)) {
                 break;
             }
         }
-        GWPlayer[var_r31].color = temp_r25;
-        var_r30 = BoardPlayerSameTeamFind(var_r31);
-        GWPlayer[var_r30].color = temp_r25;
+        GWPlayer[player].color = swap_color;
+        teammate = BoardPlayerSameTeamFind(player);
+        GWPlayer[teammate].color = swap_color;
     }
     return 2;
 }
 
+/**
+ * @brief Creates the object and sprite group used by minigame setup.
+ *
+ * @details Allocates per-object sprite state, creates a 13-member sprite group,
+ * zeroes the current and target position offsets, and places the group at
+ * screen coordinates (288, 240).
+ */
 static void CreateMGSetup(void) {
-    s32 var_r30;
-    unkSubstructR31* temp_r31;
-    bitcopy* temp_r28;
-    bitcopy* temp_r29;
+    s32 sprite;
+    MGSetupSprites* sprites;
+    MGSetupWork* work;
+    MGSetupWork* state_work;
 
     mgSetupObj = omAddObjEx(boardObjMan, 0x200, 0U, 0U, -1, UpdateMGSetup);
-    temp_r28 = (bitcopy*) mgSetupObj->work;
-    temp_r28->field00_bit0 = 0;
-    temp_r29 = (bitcopy*) mgSetupObj->work;
-    temp_r29->field00_bit1 = 0;
-    temp_r29->unk_02 = 0;
-    temp_r29->unk_03 = 0;
-    temp_r29->unk_04 = 0;
-    temp_r28->unk_0C = HuMemDirectMallocNum(HEAP_HEAP, sizeof(unkSubstructR31), HU_MEMNUM_OVL);
-    temp_r31 = temp_r28->unk_0C;
-    temp_r31->unk_00[0] = HuSprGrpCreate(0xD);
+    work = (MGSetupWork*) mgSetupObj->work;
+    work->field00_bit0 = 0;
+    state_work = (MGSetupWork*) mgSetupObj->work;
+    state_work->field00_bit1 = 0;
+    state_work->phase = 0;
+    state_work->timer = 0;
+    state_work->angle = 0;
+    work->sprites = HuMemDirectMallocNum(HEAP_HEAP, sizeof(MGSetupSprites), HU_MEMNUM_OVL);
+    sprites = work->sprites;
+    sprites->group_id = HuSprGrpCreate(0xD);
     
-    for (var_r30 = 0; var_r30 < 13; var_r30++) {
-        BoardSpriteCreate(mgSetupSprTbl[var_r30], 0x5DC, NULL, &temp_r31->unk_00[var_r30] + 1);
-        HuSprGrpMemberSet(*temp_r31->unk_00, var_r30, *(&temp_r31->unk_00[var_r30] + 1));
-        HuSprAttrSet(temp_r31->unk_00[0], var_r30, 4);
-        temp_r31->unk_1C[0][var_r30].x = temp_r31->unk_1C[0][var_r30].y = temp_r31->unk_1C[0][var_r30].z = 0.0f;
-        temp_r31->unk_1C[1][var_r30].x = temp_r31->unk_1C[1][var_r30].y = temp_r31->unk_1C[1][var_r30].z = 0.0f;
+    for (sprite = 0; sprite < 13; sprite++) {
+        BoardSpriteCreate(mgSetupSprTbl[sprite], 0x5DC, NULL, &sprites->sprite_ids[sprite]);
+        HuSprGrpMemberSet(sprites->group_id, sprite, sprites->sprite_ids[sprite]);
+        HuSprAttrSet(sprites->group_id, sprite, 4);
+        sprites->positions[0][sprite].x = sprites->positions[0][sprite].y = sprites->positions[0][sprite].z = 0.0f;
+        sprites->positions[1][sprite].x = sprites->positions[1][sprite].y = sprites->positions[1][sprite].z = 0.0f;
     }
-    HuSprGrpPosSet(temp_r31->unk_00[0], 288.0f, 240.0f);
+    HuSprGrpPosSet(sprites->group_id, 288.0f, 240.0f);
 }
 
-static void UpdateMGSetup(OMOBJ* arg0) {
-    bitcopy* var_r31;
-    s32 var_r29;
+/**
+ * @brief Updates or destroys the minigame setup presentation object.
+ *
+ * @param object Object whose work structure stores the presentation state.
+ */
+static void UpdateMGSetup(OMOBJ* object) {
+    MGSetupWork* work;
+    s32 slot;
 
-    var_r31 = (bitcopy*) arg0->work;
-    if (var_r31->field00_bit0 != 0 || BoardIsKill() != 0) {
-        for (var_r29 = 0; var_r29 < ARRAY_COUNT(activeMG); var_r29++) {
-            if (activeMG[var_r29].unk_00 != -1) {
-                HuWinKill(activeMG[var_r29].unk_00);
-                activeMG[var_r29].unk_00 = -1;
+    work = (MGSetupWork*) object->work;
+    if (work->field00_bit0 != 0 || BoardIsKill() != 0) {
+        for (slot = 0; slot < ARRAY_COUNT(activeMG); slot++) {
+            if (activeMG[slot].window_id != -1) {
+                HuWinKill(activeMG[slot].window_id);
+                activeMG[slot].window_id = -1;
             }
         }
-        HuSprGrpKill(var_r31->unk_0C->unk_00[0]);
-        HuMemDirectFree(var_r31->unk_0C);
+        HuSprGrpKill(work->sprites->group_id);
+        HuMemDirectFree(work->sprites);
         mgSetupObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
-    } else if (var_r31->unk_06 != 0) {
-        var_r31->unk_06--;
+        omDelObjEx(HuPrcCurrentGet(), object);
+    } else if (work->delay != 0) {
+        work->delay--;
     } else {
-        switch (var_r31->field00_bit1) {
+        switch (work->field00_bit1) {
             case 0:
-                CenterStatus(var_r31, arg0);
+                CenterStatus(work, object);
                 break;
             case 1:
-                SeparateStatus(var_r31, arg0);
+                SeparateStatus(work, object);
                 break;
             case 2:
-                PopupVS(var_r31, arg0);
+                PopupVS(work, object);
                 break;
             case 3:
-                FallMGType(var_r31, arg0);
+                FallMGType(work, object);
                 break;
             case 4:
-                LuckyMGFall(var_r31, arg0);
+                LuckyMGFall(work, object);
                 break;
             case 5:
-                UpdateLuckyValue(var_r31, arg0);
+                UpdateLuckyValue(work, object);
                 break;
             case 6:
-                UpdateMGList(var_r31, arg0);
+                UpdateMGList(work, object);
                 break;
 				
 			case 7:
@@ -695,22 +773,31 @@ static void UpdateMGSetup(OMOBJ* arg0) {
     }
 }
 
-static void CenterStatus(bitcopy* arg0, OMOBJ* arg1) {
-    s32 var_r31;
-    bitcopy* temp_r30;
+/**
+ * @brief Centers player status panels and prepares candidate selection.
+ *
+ * @details Waits for all panels to stop, resolves the minigame type, builds
+ * the candidate list, and advances the presentation to the VS popup.
+ *
+ * @param work Mutable setup state for this presentation.
+ * @param object Owning object; not directly accessed by this state handler.
+ */
+static void CenterStatus(MGSetupWork* work, OMOBJ* object) {
+    s32 player;
+    MGSetupWork* state_work;
 
-    if (arg0->unk_02 == 0) {
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            BoardStatusItemHideSet(var_r31, 0);
-            BoardStatusTargetPosSet(var_r31, &statusLayout4P[var_r31]);
+    if (work->phase == 0) {
+        for (player = 0; player < 4; player++) {
+            BoardStatusItemHideSet(player, 0);
+            BoardStatusTargetPosSet(player, &statusLayout4P[player]);
         }
-        arg0->unk_02 = 1;
+        work->phase = 1;
         HuAudFXPlay(0x354);
         return;
     }
     
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (!BoardStatusStopCheck(var_r31)) {
+    for (player = 0; player < 4; player++) {
+        if (!BoardStatusStopCheck(player)) {
             return;
         }
     }
@@ -720,298 +807,342 @@ static void CenterStatus(bitcopy* arg0, OMOBJ* arg1) {
         mgType = GetMGType();
     }
     if (mgType == 0) {
-        arg0->field01_bit0 = 4;
+        work->field01_bit0 = 4;
     } else {
-        arg0->field01_bit0 = 3;
+        work->field01_bit0 = 3;
     }
     SetupStatusLayout();
-    DetermineMGList(arg0);
+    DetermineMGList(work);
     if (_CheckFlag(FLAG_ID_MAKE(1, 11)) != 0) {
         BoardTutorialHookExec(0x1A, 0);
     }
-    temp_r30 = (bitcopy*) mgSetupObj->work;
-    temp_r30->field00_bit1 = 2;
-    temp_r30->unk_02 = 0;
-    temp_r30->unk_03 = 0;
-    temp_r30->unk_04 = 0;
+    state_work = (MGSetupWork*) mgSetupObj->work;
+    state_work->field00_bit1 = 2;
+    state_work->phase = 0;
+    state_work->timer = 0;
+    state_work->angle = 0;
 }
 
-static void SeparateStatus(bitcopy* arg0, OMOBJ* arg1) {
-    Vec sp8;
-    f32 temp_f30;
-    f32 temp_f29;
-    s32 var_r28;
-    bitcopy* temp_r29;
-    unkSubstructR31* temp_r27;
+/**
+ * @brief Moves status panels offscreen and dismisses the VS sprite.
+ *
+ * @param work Mutable setup state and animation counters.
+ * @param object Owning object; not directly accessed by this state handler.
+ */
+static void SeparateStatus(MGSetupWork* work, OMOBJ* object) {
+    Vec status_pos;
+    f32 scale;
+    f32 angle;
+    s32 player;
+    MGSetupWork* state_work;
+    MGSetupSprites* sprites;
 
-    temp_r27 = arg0->unk_0C;
-    switch (arg0->unk_02) {
+    sprites = work->sprites;
+    switch (work->phase) {
         case 0:
-            for (var_r28 = 0; var_r28 < 4; var_r28++) {
-                BoardStatusPosGet(var_r28, &sp8);
-                if (sp8.x < 288.0f) {
-                    sp8.x = -98.0f;
+            for (player = 0; player < 4; player++) {
+                BoardStatusPosGet(player, &status_pos);
+                if (status_pos.x < 288.0f) {
+                    status_pos.x = -98.0f;
                 } else {
-                    sp8.x = 674.0f;
+                    status_pos.x = 674.0f;
                 }
-                BoardStatusTargetPosSet(var_r28, &sp8);
+                BoardStatusTargetPosSet(player, &status_pos);
             }
-            arg0->unk_02 = 1;
-            arg0->unk_03 = 0;
+            work->phase = 1;
+            work->timer = 0;
             return;
     case 1:
-        if ((s8) arg0->unk_03 >= 0x5A) {
-            arg0->unk_03 = 0;
-            temp_r29 = (bitcopy*) mgSetupObj->work;
-            temp_r29->field00_bit1 = 7;
-            temp_r29->unk_02 = 0;
-            temp_r29->unk_03 = 0;
-            temp_r29->unk_04 = 0;
+        if ((s8) work->timer >= 0x5A) {
+            work->timer = 0;
+            state_work = (MGSetupWork*) mgSetupObj->work;
+            state_work->field00_bit1 = 7;
+            state_work->phase = 0;
+            state_work->timer = 0;
+            state_work->angle = 0;
             return;
         }
-        OSu8tof32((u8*)&arg0->unk_03, &temp_f29);
-        temp_f30 = sind(temp_f29) * 4.0 + 1.0;
-        arg0->unk_03 += 6;
-        if (arg0->unk_03 > 0x5A) {
-            arg0->unk_03 = 0x5A;
+        OSu8tof32((u8*)&work->timer, &angle);
+        scale = sind(angle) * 4.0 + 1.0;
+        work->timer += 6;
+        if (work->timer > 0x5A) {
+            work->timer = 0x5A;
         }
-        HuSprScaleSet(temp_r27->unk_00[0], 0, temp_f30, temp_f30);
-        if (arg0->unk_03 > 0x3C) {
-            HuSprTPLvlSet(temp_r27->unk_00[0], 0, (90.0f - arg0->unk_03) / 30.0f);
+        HuSprScaleSet(sprites->group_id, 0, scale, scale);
+        if (work->timer > 0x3C) {
+            HuSprTPLvlSet(sprites->group_id, 0, (90.0f - work->timer) / 30.0f);
         }
     }
 }
 
-static void PopupVS(bitcopy* arg0, OMOBJ* arg1) {
-    f32 var_f30;
-    f32 temp_f31;
-    bitcopy* temp_r28;
-    unkSubstructR31* temp_r29;
+/**
+ * @brief Animates the VS sprite into view.
+ *
+ * @details Scales the sprite through a sine-based overshoot, pauses before the
+ * next state, and invokes the corresponding tutorial hook when enabled.
+ *
+ * @param work Mutable setup state and animation angle.
+ * @param object Owning object; not directly accessed by this state handler.
+ */
+static void PopupVS(MGSetupWork* work, OMOBJ* object) {
+    f32 scale;
+    f32 angle;
+    MGSetupWork* state_work;
+    MGSetupSprites* sprites;
 
-    temp_r29 = arg0->unk_0C;
-    if (arg0->unk_02 == 0) {
-        HuSprAttrReset(temp_r29->unk_00[0], 0, HUSPR_ATTR_DISPOFF);
-        HuSprAttrSet(temp_r29->unk_00[0], 0, 8);
-        HuSprScaleSet(temp_r29->unk_00[0], 0, 0.001f, 0.001f);
-        HuSprPosSet(temp_r29->unk_00[0], 0, 0.0f, 64.0f);
-        arg0->unk_02 = 1;
+    sprites = work->sprites;
+    if (work->phase == 0) {
+        HuSprAttrReset(sprites->group_id, 0, HUSPR_ATTR_DISPOFF);
+        HuSprAttrSet(sprites->group_id, 0, 8);
+        HuSprScaleSet(sprites->group_id, 0, 0.001f, 0.001f);
+        HuSprPosSet(sprites->group_id, 0, 0.0f, 64.0f);
+        work->phase = 1;
         HuAudFXPlay(0x355);
         return;
     }
-    OSs16tof32(&arg0->unk_04, &temp_f31);
-    if (arg0->unk_04 < 0x5A) {
-        var_f30 = 2.0 * sind(temp_f31);
+    OSs16tof32(&work->angle, &angle);
+    if (work->angle < 0x5A) {
+        scale = 2.0 * sind(angle);
     } else {
-        var_f30 = 1.0 + sind(temp_f31);
-        if (arg0->unk_04 >= 0xB4) {
-            var_f30 = 1.0f;
-            temp_r28 = (bitcopy*) mgSetupObj->work;
-            temp_r28->field00_bit1 = 3;
-            temp_r28->unk_02 = 0;
-            temp_r28->unk_03 = 0;
-            temp_r28->unk_04 = 0;
-            arg0->unk_06 = 0x3C;
+        scale = 1.0 + sind(angle);
+        if (work->angle >= 0xB4) {
+            scale = 1.0f;
+            state_work = (MGSetupWork*) mgSetupObj->work;
+            state_work->field00_bit1 = 3;
+            state_work->phase = 0;
+            state_work->timer = 0;
+            state_work->angle = 0;
+            work->delay = 0x3C;
         }
     }
-    HuSprScaleSet(temp_r29->unk_00[0], 0, var_f30, var_f30);
-    arg0->unk_04 += 9;
-    if ((_CheckFlag(FLAG_ID_MAKE(1, 11)) != 0) && arg0->field00_bit1 == 3) {
+    HuSprScaleSet(sprites->group_id, 0, scale, scale);
+    work->angle += 9;
+    if ((_CheckFlag(FLAG_ID_MAKE(1, 11)) != 0) && work->field00_bit1 == 3) {
         BoardTutorialHookExec(0x1B, 0);
         if (*boardTutorialData == 1) {
-            arg0->field00_bit1 = 0;
+            work->field00_bit1 = 0;
         }
     }
 }
 
-static void FallMGType(bitcopy* arg0, OMOBJ* arg1) {
-    Vec sp10;
-    s16 sp8[3] = { 3, 1, 2 };
-    Vec* temp_r4;
-    Vec* temp_r5;
-    s16 temp_r30;
-    bitcopy* temp_r29;
-    unkSubstructR31* temp_r31;
+/**
+ * @brief Drops the resolved minigame-type sprite to its target position.
+ *
+ * @param work Mutable setup state and sprite-position storage.
+ * @param object Owning object; not directly accessed by this state handler.
+ */
+static void FallMGType(MGSetupWork* work, OMOBJ* object) {
+    Vec offset;
+    s16 type_sprite_ids[3] = { 3, 1, 2 };
+    Vec* unused_pos_a;
+    Vec* unused_pos_b;
+    s16 sprite;
+    MGSetupWork* state_work;
+    MGSetupSprites* sprites;
 
-    temp_r31 = arg0->unk_0C;
-    temp_r30 = sp8[mgType];
-    if (arg0->unk_02 == 0) {
-        HuSprAttrReset(temp_r31->unk_00[0], temp_r30, HUSPR_ATTR_DISPOFF);
-        temp_r31->unk_1C[0][temp_r30].y = -284.0f;
-        temp_r31->unk_1C[1][temp_r30].y = -128.0f;
-        arg0->unk_02 = 1;
+    sprites = work->sprites;
+    sprite = type_sprite_ids[mgType];
+    if (work->phase == 0) {
+        HuSprAttrReset(sprites->group_id, sprite, HUSPR_ATTR_DISPOFF);
+        sprites->positions[0][sprite].y = -284.0f;
+        sprites->positions[1][sprite].y = -128.0f;
+        work->phase = 1;
     }
-    VECSubtract(&temp_r31->unk_1C[1][temp_r30], &temp_r31->unk_1C[0][temp_r30], &sp10);
-    if (VECMag(&sp10) <= 1.0f) {
-        temp_r31->unk_1C[0][temp_r30] = temp_r31->unk_1C[1][temp_r30];
-        temp_r29 = (bitcopy*) mgSetupObj->work;
-        temp_r29->field00_bit1 = 7;
-        temp_r29->unk_02 = 0;
-        temp_r29->unk_03 = 0;
-        temp_r29->unk_04 = 0;
+    VECSubtract(&sprites->positions[1][sprite], &sprites->positions[0][sprite], &offset);
+    if (VECMag(&offset) <= 1.0f) {
+        sprites->positions[0][sprite] = sprites->positions[1][sprite];
+        state_work = (MGSetupWork*) mgSetupObj->work;
+        state_work->field00_bit1 = 7;
+        state_work->phase = 0;
+        state_work->timer = 0;
+        state_work->angle = 0;
     } else {
-        VECScale(&sp10, &sp10, 0.1f);
-        VECAdd(&sp10, &temp_r31->unk_1C[0][temp_r30], &temp_r31->unk_1C[0][temp_r30]);
+        VECScale(&offset, &offset, 0.1f);
+        VECAdd(&offset, &sprites->positions[0][sprite], &sprites->positions[0][sprite]);
     }
-    HuSprPosSet(temp_r31->unk_00[0], temp_r30, temp_r31->unk_1C[0][temp_r30].x, temp_r31->unk_1C[0][temp_r30].y);
+    HuSprPosSet(sprites->group_id, sprite, sprites->positions[0][sprite].x, sprites->positions[0][sprite].y);
 }
 
-static void LuckyMGFall(bitcopy* arg0, OMOBJ* arg1) {
-    u16 spC;
-    u16 spA;
-    s16 sp8[3] = { 3, 1, 2 };
-    Vec* temp_r25;
-    Vec* temp_r27;
-    Vec* temp_r28;
-    s16 temp_r24;
-    bitcopy* temp_r26;
-    u8 temp_r0;
-    unkSubstructR31* temp_r29;
-    f32 var_f30;
+/**
+ * @brief Animates the Lucky Minigame banner replacing the type sprite.
+ *
+ * @details Drops the Lucky sprite, moves the original type sprite downward,
+ * and applies a short rotation before returning the state machine to idle.
+ *
+ * @param work Mutable setup state and sprite-position storage.
+ * @param object Owning object; not directly accessed by this state handler.
+ */
+static void LuckyMGFall(MGSetupWork* work, OMOBJ* object) {
+    u16 unused_angle_a;
+    u16 unused_angle_b;
+    s16 type_sprite_ids[3] = { 3, 1, 2 };
+    Vec* lucky_target;
+    Vec* type_pos;
+    Vec* lucky_pos;
+    s16 type_sprite;
+    MGSetupWork* state_work;
+    u8 unused_value;
+    MGSetupSprites* sprites;
+    f32 rotation;
     
-    temp_r29 = arg0->unk_0C;
-    temp_r24 = sp8[mgType];
-    temp_r28 = &temp_r29->unk_1C[0][4];
-    temp_r25 = &temp_r29->unk_1C[1][4];
-    temp_r27 = &temp_r29->unk_1C[0][temp_r24];
-    switch (arg0->unk_02) {
+    sprites = work->sprites;
+    type_sprite = type_sprite_ids[mgType];
+    lucky_pos = &sprites->positions[0][4];
+    lucky_target = &sprites->positions[1][4];
+    type_pos = &sprites->positions[0][type_sprite];
+    switch (work->phase) {
         case 0:
-            HuSprAttrReset(temp_r29->unk_00[0], 4, HUSPR_ATTR_DISPOFF);
-            temp_r28->y = -284.0f;
-            temp_r25->y = -128.0f;
-            arg0->unk_02 = 1;
+            HuSprAttrReset(sprites->group_id, 4, HUSPR_ATTR_DISPOFF);
+            lucky_pos->y = -284.0f;
+            lucky_target->y = -128.0f;
+            work->phase = 1;
             break;
         case 1:
-            temp_r28->y += 10.0f;
-            if (temp_r25->y < temp_r28->y) {
-                arg0->unk_02 = 2;
-                arg0->unk_03 = 0;
-                temp_r28->y = temp_r25->y;
+            lucky_pos->y += 10.0f;
+            if (lucky_target->y < lucky_pos->y) {
+                work->phase = 2;
+                work->timer = 0;
+                lucky_pos->y = lucky_target->y;
                 HuAudFXPlay(0x35D);
             }
             break;
         case 2:
-            temp_r27->y += 10.0f;
-            if (328.0f < temp_r27->y) {
-                HuSprAttrReset(temp_r29->unk_00[0], temp_r24, HUSPR_ATTR_DISPOFF);
-                temp_r26 = (bitcopy*) mgSetupObj->work;
-                temp_r26->field00_bit1 = 7;
-                temp_r26->unk_02 = 0;
-                temp_r26->unk_03 = 0;
-                temp_r26->unk_04 = 0;
-            } else if (arg0->unk_03 < 0x1E) {
-                OSs8tof32(&arg0->unk_03, &var_f30);
-                HuSprZRotSet(temp_r29->unk_00[0], temp_r24, var_f30);
-                arg0->unk_03++;
+            type_pos->y += 10.0f;
+            if (328.0f < type_pos->y) {
+                HuSprAttrReset(sprites->group_id, type_sprite, HUSPR_ATTR_DISPOFF);
+                state_work = (MGSetupWork*) mgSetupObj->work;
+                state_work->field00_bit1 = 7;
+                state_work->phase = 0;
+                state_work->timer = 0;
+                state_work->angle = 0;
+            } else if (work->timer < 0x1E) {
+                OSs8tof32(&work->timer, &rotation);
+                HuSprZRotSet(sprites->group_id, type_sprite, rotation);
+                work->timer++;
             }
             break;
     }
-    HuSprPosSet(temp_r29->unk_00[0], 4, temp_r28->x, temp_r28->y);
-    HuSprPosSet(temp_r29->unk_00[0], temp_r24, temp_r27->x, temp_r27->y);
+    HuSprPosSet(sprites->group_id, 4, lucky_pos->x, lucky_pos->y);
+    HuSprPosSet(sprites->group_id, type_sprite, type_pos->x, type_pos->y);
 }
 
+/**
+ * @brief Fades out and hides the Lucky Minigame value sprites.
+ */
 static void HideLuckyValue(void) {
-    f32 var_f31;
-    bitcopy* temp;
-    unkSubstructR31* temp_r31;
+    f32 alpha;
+    MGSetupWork* work;
+    MGSetupSprites* sprites;
 
-    temp = (bitcopy*) mgSetupObj->work;
-    temp_r31 = temp->unk_0C;
+    work = (MGSetupWork*) mgSetupObj->work;
+    sprites = work->sprites;
     
-    for (var_f31 = 1.0f; var_f31 > 0.1f; var_f31 -= 0.1f) {
-        HuSprTPLvlSet(temp_r31->unk_00[0], 8, var_f31);
-        HuSprTPLvlSet(temp_r31->unk_00[0], 9, var_f31);
+    for (alpha = 1.0f; alpha > 0.1f; alpha -= 0.1f) {
+        HuSprTPLvlSet(sprites->group_id, 8, alpha);
+        HuSprTPLvlSet(sprites->group_id, 9, alpha);
         HuPrcVSleep();
     }
-    HuSprAttrSet(temp_r31->unk_00[0], 8, 4);
-    HuSprAttrSet(temp_r31->unk_00[0], 9, 4);
+    HuSprAttrSet(sprites->group_id, 8, 4);
+    HuSprAttrSet(sprites->group_id, 9, 4);
 }
 
-static void UpdateLuckyValue(bitcopy* arg0, OMOBJ* arg1) {
-    s32 var_r23;
-    f32 temp_f29;
-    s32 temp_r3;
-    bitcopy* temp_r26;
-    unkSubstructR31* temp_r27;
-    f32 temp_f28;
-    u8 spC;
+/**
+ * @brief Chooses and animates the Lucky Minigame value.
+ *
+ * @details Randomly leaves the configured value at 1 or changes it to 2 or 3,
+ * heavily weighting 2, then spins the displayed choice until it reaches that
+ * value and pulses the result.
+ * The displayed bank is zero-based while GWLuckyValueGet() is one-based.
+ *
+ * @param work Mutable setup state, timers, and highlight speed.
+ * @param object Owning object; not directly accessed by this state handler.
+ */
+static void UpdateLuckyValue(MGSetupWork* work, OMOBJ* object) {
+    s32 unused_index;
+    f32 scale;
+    s32 random_value;
+    MGSetupWork* state_work;
+    MGSetupSprites* sprites;
+    f32 angle;
+    u8 highlight_index;
 
-    temp_r27 = arg0->unk_0C;
-    switch (arg0->unk_02) {
+    sprites = work->sprites;
+    switch (work->phase) {
         case 0:
-            HuSprAttrReset(temp_r27->unk_00[0], 8, HUSPR_ATTR_DISPOFF);
-            HuSprAttrReset(temp_r27->unk_00[0], 9, HUSPR_ATTR_DISPOFF);
-            HuSprAttrSet(temp_r27->unk_00[0], 8, 8);
-            HuSprAttrSet(temp_r27->unk_00[0], 9, 8);
-            HuSprPosSet(temp_r27->unk_00[0], 8, 0.0f, 0.0f);
-            HuSprPosSet(temp_r27->unk_00[0], 9, 0.0f, 0.0f);
-            HuSprScaleSet(temp_r27->unk_00[0], 8, 0.001f, 0.001f);
-            HuSprScaleSet(temp_r27->unk_00[0], 9, 0.001f, 0.001f);
-            HuSprBankSet(temp_r27->unk_00[0], 9, 1);
-            arg0->unk_04 = 0;
-            arg0->unk_02 = 1;
-            arg0->unk_03 = 0;
-            temp_r3 = BoardRandMod(0x64U);
-            if (temp_r3 < 0x55) {
+            HuSprAttrReset(sprites->group_id, 8, HUSPR_ATTR_DISPOFF);
+            HuSprAttrReset(sprites->group_id, 9, HUSPR_ATTR_DISPOFF);
+            HuSprAttrSet(sprites->group_id, 8, 8);
+            HuSprAttrSet(sprites->group_id, 9, 8);
+            HuSprPosSet(sprites->group_id, 8, 0.0f, 0.0f);
+            HuSprPosSet(sprites->group_id, 9, 0.0f, 0.0f);
+            HuSprScaleSet(sprites->group_id, 8, 0.001f, 0.001f);
+            HuSprScaleSet(sprites->group_id, 9, 0.001f, 0.001f);
+            HuSprBankSet(sprites->group_id, 9, 1);
+            work->angle = 0;
+            work->phase = 1;
+            work->timer = 0;
+            random_value = BoardRandMod(0x64U);
+            if (random_value < 0x55) {
 				GWLuckyValueSet(2);
                 return;
             }
-            if (temp_r3 >= 0x5F) return;
+            if (random_value >= 0x5F) return;
 			GWLuckyValueSet(3);
             return;
         case 1:
-            if (arg0->unk_03 < 0x5A) {
-                OSu8tof32((u8*) &arg0->unk_03, &temp_f28);
-                temp_f29 = sind(temp_f28);
-                HuSprScaleSet(temp_r27->unk_00[0], 8, temp_f29, temp_f29);
-                HuSprScaleSet(temp_r27->unk_00[0], 9, temp_f29, temp_f29);
-                arg0->unk_03 += 2;
+            if (work->timer < 0x5A) {
+                OSu8tof32((u8*) &work->timer, &angle);
+                scale = sind(angle);
+                HuSprScaleSet(sprites->group_id, 8, scale, scale);
+                HuSprScaleSet(sprites->group_id, 9, scale, scale);
+                work->timer += 2;
                 return;
             }
-            arg0->unk_02 = 2;
-            arg0->unk_06 = BoardRandMod(0xCU) + 0x12;
-            arg0->unk_03 = 0;
-            arg0->unk_08 = 0.8f;
+            work->phase = 2;
+            work->delay = BoardRandMod(0xCU) + 0x12;
+            work->timer = 0;
+            work->spin_speed = 0.8f;
             return;
         case 2:
-            arg0->unk_08 *= 0.97f;
-            hilitePos += arg0->unk_08;
+            work->spin_speed *= 0.97f;
+            hilitePos += work->spin_speed;
             if (hilitePos >= 3.0f) {
                 hilitePos = 0.0f;
             }
-            OSf32tos8(&hilitePos, (s8*)&spC);
-            if (spC != luckyValue) {
+            OSf32tos8(&hilitePos, (s8*)&highlight_index);
+            if (highlight_index != luckyValue) {
                 HuAudFXPlay(0x304);
-                luckyValue = spC;
+                luckyValue = highlight_index;
             }
-            HuSprBankSet(temp_r27->unk_00[0], 9, luckyValue);
-            if (arg0->unk_08 < 0.05f) {
+            HuSprBankSet(sprites->group_id, 9, luckyValue);
+            if (work->spin_speed < 0.05f) {
                 if (luckyValue != GWLuckyValueGet() - 1) {
-                    arg0->unk_08 *= 1.0309278f;
+                    work->spin_speed *= 1.0309278f;
                     return;
                 }
                 HuAudFXPlay(0x305);
                 HuAudFXPlay(0x357);
                 HuAudFXPlay(0x358);
-                arg0->unk_02 = 3;
-                arg0->unk_03 = 0;
-                arg0->unk_04 = 0;
+                work->phase = 3;
+                work->timer = 0;
+                work->angle = 0;
                 return;
             }
             break;
         case 3:
-            arg0->unk_04 += 8;
-            if (arg0->unk_04 >= 0x438) {
-                temp_r26 = (bitcopy*) mgSetupObj->work;
-                temp_r26->field00_bit1 = 7;
-                temp_r26->unk_02 = 0;
-                temp_r26->unk_03 = 0;
-                temp_r26->unk_04 = 0;
+            work->angle += 8;
+            if (work->angle >= 0x438) {
+                state_work = (MGSetupWork*) mgSetupObj->work;
+                state_work->field00_bit1 = 7;
+                state_work->phase = 0;
+                state_work->timer = 0;
+                state_work->angle = 0;
                 return;
             }
-            temp_f28 = (arg0->unk_04 % 360);
-            temp_f29 = (1.0 + (0.5 * sind(temp_f28)));
-            HuSprScaleSet(temp_r27->unk_00[0], 8, temp_f29, temp_f29);
-            HuSprScaleSet(temp_r27->unk_00[0], 9, temp_f29, temp_f29);
+            angle = (work->angle % 360);
+            scale = (1.0 + (0.5 * sind(angle)));
+            HuSprScaleSet(sprites->group_id, 8, scale, scale);
+            HuSprScaleSet(sprites->group_id, 9, scale, scale);
             break;
     }
 }
@@ -1028,130 +1159,140 @@ static GXColor hiliteColTbl[3] = {
     { 0xF8, 0xF2, 0x13, 0x00 }
 };
 
-static void UpdateMGList(bitcopy* arg0, OMOBJ* arg1) {
-    f32 sp18[2];
-    s32 sp14;
-    f32 var_f26;
-    f32 var_f25;
-    f32 var_f24;
-    f32 temp_f27;
-    s32 temp_r22;
-    s16 temp_r3;
-    s8 var_r17;
-    GXColor* temp_r18;
-    s32 var_r23;
-    bitcopy* temp_r21;
-    unkSubstructR31* temp_r24;
+/**
+ * @brief Presents the roulette of candidate minigames and selects one.
+ *
+ * @details Creates candidate-name windows, spins and decelerates the cursor,
+ * reveals the selected name, blinks its highlight, and dismisses the list.
+ * The selected table index is stored in mgNext.
+ *
+ * @param work Mutable setup state, timers, candidate count, and spin speed.
+ * @param object Owning object; not directly accessed by this state handler.
+ */
+static void UpdateMGList(MGSetupWork* work, OMOBJ* object) {
+    f32 message_size[2];
+    s32 message_id;
+    f32 angle;
+    f32 window_x;
+    f32 window_y;
+    f32 scale;
+    s32 type_sprite;
+    s16 window_id;
+    s8 highlight_index;
+    GXColor* highlight_color;
+    s32 slot;
+    MGSetupWork* state_work;
+    MGSetupSprites* sprites;
     
-    temp_r24 = arg0->unk_0C;
-    temp_r22 = mgType + 5;
-    switch (arg0->unk_02) {
+    sprites = work->sprites;
+    type_sprite = mgType + 5;
+    switch (work->phase) {
         case 0:
-            HuSprAttrSet(temp_r24->unk_00[0], temp_r22, 8);
-            HuSprAttrReset(temp_r24->unk_00[0], temp_r22, HUSPR_ATTR_DISPOFF);
-            HuSprPosSet(temp_r24->unk_00[0], temp_r22, 0.0f, 32.0f);
-            HuSprScaleSet(temp_r24->unk_00[0], temp_r22, 0.001f, 0.001f);
-            arg0->unk_04 = 0;
-            arg0->unk_02 = 1;
-            arg0->unk_03 = 0;
+            HuSprAttrSet(sprites->group_id, type_sprite, 8);
+            HuSprAttrReset(sprites->group_id, type_sprite, HUSPR_ATTR_DISPOFF);
+            HuSprPosSet(sprites->group_id, type_sprite, 0.0f, 32.0f);
+            HuSprScaleSet(sprites->group_id, type_sprite, 0.001f, 0.001f);
+            work->angle = 0;
+            work->phase = 1;
+            work->timer = 0;
             hilitePos = 0.0f;
             
-            for (var_r23 = 0; var_r23 < arg0->field01_bit0; var_r23++) {
+            for (slot = 0; slot < work->field01_bit0; slot++) {
                 HuWinMesSizeCancelCRSet(1);
-                HuWinMesMaxSizeGet(1, &sp18[0], activeMG[var_r23].unk_04);
-                var_f25 = 152.0f;
-                var_f24 = 280.0f + (var_r23 * 0x18);
-                temp_r3 = HuWinCreate(var_f25, var_f24, sp18[0], sp18[1], 0);
-                HuWinBGTPLvlSet(temp_r3, 0.0f);
-                HuWinMesSpeedSet(temp_r3, 0);
-                HuWinDispOff(temp_r3);
-                HuWinAttrSet(temp_r3, 0x100);
-                if (activeMG[var_r23].unk_03 != 0) {
-                    sp14 = activeMG[var_r23].unk_04;
+                HuWinMesMaxSizeGet(1, &message_size[0], activeMG[slot].name_mess);
+                window_x = 152.0f;
+                window_y = 280.0f + (slot * 0x18);
+                window_id = HuWinCreate(window_x, window_y, message_size[0], message_size[1], 0);
+                HuWinBGTPLvlSet(window_id, 0.0f);
+                HuWinMesSpeedSet(window_id, 0);
+                HuWinDispOff(window_id);
+                HuWinAttrSet(window_id, 0x100);
+                if (activeMG[slot].is_available != 0) {
+                    message_id = activeMG[slot].name_mess;
                 } else {
-                    sp14 = MAKE_MESSID(9, 1);
+                    message_id = MAKE_MESSID(9, 1);
                 }
-                HuWinMesSet(temp_r3, sp14);
-                activeMG[var_r23].unk_00 = temp_r3;
+                HuWinMesSet(window_id, message_id);
+                activeMG[slot].window_id = window_id;
             }
             return;
         case 1:
-            if (arg0->unk_03 < 0x5A) {
-                OSu8tof32((u8*) &arg0->unk_03, &var_f26);
-                temp_f27 = sind(var_f26);
-                arg0->unk_03 += 3;
-                HuSprScaleSet(temp_r24->unk_00[0], temp_r22, temp_f27, temp_f27);
+            if (work->timer < 0x5A) {
+                OSu8tof32((u8*) &work->timer, &angle);
+                scale = sind(angle);
+                work->timer += 3;
+                HuSprScaleSet(sprites->group_id, type_sprite, scale, scale);
                 return;
             }
             
-            for (var_r23 = 0; var_r23 < arg0->field01_bit0; var_r23++) {
-                HuWinDispOn(activeMG[var_r23].unk_00);
+            for (slot = 0; slot < work->field01_bit0; slot++) {
+                HuWinDispOn(activeMG[slot].window_id);
             }
-            HuSprAttrReset(temp_r24->unk_00[0], 0xA, HUSPR_ATTR_DISPOFF);
-            HuSprAttrSet(temp_r24->unk_00[0], 0xA, 8);
-            HuSprPosSet(temp_r24->unk_00[0], 0xA, -148.0f, cursorYTbl[0]);
-            temp_r18 = &hiliteColTbl[mgType];
-            HuSprAttrReset(temp_r24->unk_00[0], 0xC, HUSPR_ATTR_DISPOFF);
-            HuSprPosSet(temp_r24->unk_00[0], 0xC, 0.0f, hiliteYTbl[0]);
-            HuSprTPLvlSet(temp_r24->unk_00[0], 0xC, 0.7f);
-            HuSprScaleSet(temp_r24->unk_00[0], 0xC, 32.0f, 3.5f);
-            HuSprColorSet(temp_r24->unk_00[0], 0xC, temp_r18->r, temp_r18->g, temp_r18->b);
-            arg0->unk_02 = 2;
-            arg0->unk_03 = 0;
-            arg0->unk_08 = 0.7f;
-            arg0->unk_07 = 0x23 - BoardRandMod(0x1EU);
+            HuSprAttrReset(sprites->group_id, 0xA, HUSPR_ATTR_DISPOFF);
+            HuSprAttrSet(sprites->group_id, 0xA, 8);
+            HuSprPosSet(sprites->group_id, 0xA, -148.0f, cursorYTbl[0]);
+            highlight_color = &hiliteColTbl[mgType];
+            HuSprAttrReset(sprites->group_id, 0xC, HUSPR_ATTR_DISPOFF);
+            HuSprPosSet(sprites->group_id, 0xC, 0.0f, hiliteYTbl[0]);
+            HuSprTPLvlSet(sprites->group_id, 0xC, 0.7f);
+            HuSprScaleSet(sprites->group_id, 0xC, 32.0f, 3.5f);
+            HuSprColorSet(sprites->group_id, 0xC, highlight_color->r, highlight_color->g, highlight_color->b);
+            work->phase = 2;
+            work->timer = 0;
+            work->spin_speed = 0.7f;
+            work->spin_delay = 0x23 - BoardRandMod(0x1EU);
             return;
         case 2:
-            hilitePos += arg0->unk_08;
-            if (hilitePos >= arg0->field01_bit0) {
+            hilitePos += work->spin_speed;
+            if (hilitePos >= work->field01_bit0) {
                 hilitePos = 0.0f;
             }
-            OSf32tos8(&hilitePos, &var_r17);
-            if (var_r17 != cursorPos) {
+            OSf32tos8(&hilitePos, &highlight_index);
+            if (highlight_index != cursorPos) {
                 HuAudFXPlay(0x304);
-                cursorPos = var_r17;
+                cursorPos = highlight_index;
             }
-            HuSprPosSet(temp_r24->unk_00[0], 0xA, -148.0f, cursorYTbl[cursorPos]);
-            HuSprPosSet(temp_r24->unk_00[0], 0xC, 0.0f, hiliteYTbl[cursorPos]);
-            if (arg0->unk_07 != 0) {
-                arg0->unk_07--;
+            HuSprPosSet(sprites->group_id, 0xA, -148.0f, cursorYTbl[cursorPos]);
+            HuSprPosSet(sprites->group_id, 0xC, 0.0f, hiliteYTbl[cursorPos]);
+            if (work->spin_delay != 0) {
+                work->spin_delay--;
                 return;
             }
-            arg0->unk_02 = 3;
+            work->phase = 3;
             return;
         case 3:
-            arg0->unk_08 *= 0.97f;
-            hilitePos += arg0->unk_08;
-            if (hilitePos >= arg0->field01_bit0) {
+            work->spin_speed *= 0.97f;
+            hilitePos += work->spin_speed;
+            if (hilitePos >= work->field01_bit0) {
                 hilitePos = 0.0f;
             }
-            OSf32tos8(&hilitePos, &var_r17);
-            if (var_r17 != cursorPos) {
+            OSf32tos8(&hilitePos, &highlight_index);
+            if (highlight_index != cursorPos) {
                 HuAudFXPlay(0x304);
-                cursorPos = var_r17;
+                cursorPos = highlight_index;
             }
-            HuSprPosSet(temp_r24->unk_00[0], 0xA, -148.0f, cursorYTbl[cursorPos]);
-            HuSprPosSet(temp_r24->unk_00[0], 0xC, 0.0f, hiliteYTbl[cursorPos]);
-            if (!(arg0->unk_08 < (0.02f + (0.02f * BoardRandFloat())))) return; // weird hacky garbage
+            HuSprPosSet(sprites->group_id, 0xA, -148.0f, cursorYTbl[cursorPos]);
+            HuSprPosSet(sprites->group_id, 0xC, 0.0f, hiliteYTbl[cursorPos]);
+            if (!(work->spin_speed < (0.02f + (0.02f * BoardRandFloat())))) return; // weird hacky garbage
             HuAudFXPlay(0x305);
-            arg0->unk_02 = 4;
-            arg0->unk_03 = 0;
+            work->phase = 4;
+            work->timer = 0;
             hiliteTimer = 0;
             hiliteShowF = 1;
             hiliteBlinkLen = 5;
-            mgNext = activeMG[cursorPos].unk_02;
-            HuWinMesSet(activeMG[cursorPos].unk_00, activeMG[cursorPos].unk_04);
+            mgNext = activeMG[cursorPos].minigame_index;
+            HuWinMesSet(activeMG[cursorPos].window_id, activeMG[cursorPos].name_mess);
             return;
         case 4:
-            if (arg0->unk_03++ > 0x78U) {
-                HuSprAttrSet(temp_r24->unk_00[0], 0xA, 4);
-                HuSprAttrSet(temp_r24->unk_00[0], 0xC, 4);
+            if (work->timer++ > 0x78U) {
+                HuSprAttrSet(sprites->group_id, 0xA, 4);
+                HuSprAttrSet(sprites->group_id, 0xC, 4);
                 
-                for (var_r23 = 0; var_r23 < arg0->field01_bit0; var_r23++) {
-                    HuWinDispOff(activeMG[var_r23].unk_00);
+                for (slot = 0; slot < work->field01_bit0; slot++) {
+                    HuWinDispOff(activeMG[slot].window_id);
                 }
-                arg0->unk_02 = 5;
-                arg0->unk_03 = 0;
+                work->phase = 5;
+                work->timer = 0;
                 return;
             }
             if (hiliteTimer < hiliteBlinkLen) {
@@ -1161,42 +1302,45 @@ static void UpdateMGList(bitcopy* arg0, OMOBJ* arg1) {
                 hiliteTimer = 0;
             }
             if (hiliteShowF != 0) {
-                HuSprAttrReset(temp_r24->unk_00[0], 0xC, HUSPR_ATTR_DISPOFF);
+                HuSprAttrReset(sprites->group_id, 0xC, HUSPR_ATTR_DISPOFF);
                 return;
             }
-            HuSprAttrSet(temp_r24->unk_00[0], 0xC, HUSPR_ATTR_DISPOFF);
+            HuSprAttrSet(sprites->group_id, 0xC, HUSPR_ATTR_DISPOFF);
             return;
         case 5:
-            if (arg0->unk_03 < 0x5A) {
-                OSu8tof32((u8*) &arg0->unk_03, &var_f26);
-                temp_f27 = (1.0 + (2.0 * sind(var_f26)));
-                arg0->unk_03 += 4;
-                if (arg0->unk_03 > 0x5A) {
-                    arg0->unk_03 = 0x5A;
+            if (work->timer < 0x5A) {
+                OSu8tof32((u8*) &work->timer, &angle);
+                scale = (1.0 + (2.0 * sind(angle)));
+                work->timer += 4;
+                if (work->timer > 0x5A) {
+                    work->timer = 0x5A;
                 }
-                HuSprScaleSet(temp_r24->unk_00[0], temp_r22, temp_f27, temp_f27);
-                if (arg0->unk_03 > 0x3C) {
-                    HuSprTPLvlSet(temp_r24->unk_00[0], temp_r22, (90.0f - arg0->unk_03) / 30.0f);
+                HuSprScaleSet(sprites->group_id, type_sprite, scale, scale);
+                if (work->timer > 0x3C) {
+                    HuSprTPLvlSet(sprites->group_id, type_sprite, (90.0f - work->timer) / 30.0f);
                     return;
                 }
             } else {
-                HuSprAttrSet(temp_r24->unk_00[0], temp_r22, 4);
+                HuSprAttrSet(sprites->group_id, type_sprite, 4);
                 
-                for (var_r23 = 0; var_r23 < arg0->field01_bit0; var_r23++) {
-                    HuWinDispOff(activeMG[var_r23].unk_00);
+                for (slot = 0; slot < work->field01_bit0; slot++) {
+                    HuWinDispOff(activeMG[slot].window_id);
                 }
-                arg0->unk_03 = 0;
-                arg0->unk_02 = 6;
-                temp_r21 = (bitcopy*) mgSetupObj->work;
-                temp_r21->field00_bit1 = 7;
-                temp_r21->unk_02 = 0;
-                temp_r21->unk_03 = 0;
-                temp_r21->unk_04 = 0;
+                work->timer = 0;
+                work->phase = 6;
+                state_work = (MGSetupWork*) mgSetupObj->work;
+                state_work->field00_bit1 = 7;
+                state_work->phase = 0;
+                state_work->timer = 0;
+                state_work->angle = 0;
             }
             break;
     }
 }
 
+/**
+ * @brief Clears all recent-minigame history rings.
+ */
 void BoardMGSetupPlayClear(void) {
     mgPlay4PLen = mgPlay1Vs3Len = mgPlay2Vs2Len = mgPlayBattleLen = 0;
     memset(mgPlay4P, 0, sizeof(mgPlay4P));
@@ -1205,124 +1349,147 @@ void BoardMGSetupPlayClear(void) {
     memset(mgPlayBattle, 0, sizeof(mgPlayBattle));
 }
 
-s32 BoardMGSetupPlaySearch(s32 arg0, s16 arg1) {
-    s16* var_r31;
-    s16 var_r30;
-    s16 var_r29;
+/**
+ * @brief Checks whether a minigame appears in its type's recent-play history.
+ *
+ * @param minigame_type Minigame category: 0 for four-player, 1 for
+ * one-versus-three, 2 for two-versus-two, or 4 for Battle.
+ * @param minigame_id Global minigame ID to find.
+ *
+ * @return 1 if the ID is present, otherwise 0. Unsupported types also return 0.
+ */
+s32 BoardMGSetupPlaySearch(s32 minigame_type, s16 minigame_id) {
+    s16* history;
+    s16 slot;
+    s16 history_length;
 
-    switch (arg0) {
+    switch (minigame_type) {
         case 0:
-            var_r29 = ARRAY_COUNT(mgPlay4P);
-            var_r31 = mgPlay4P;
+            history_length = ARRAY_COUNT(mgPlay4P);
+            history = mgPlay4P;
             break;
         case 1:
-            var_r29 = ARRAY_COUNT(mgPlay1Vs3);
-            var_r31 = mgPlay1Vs3;
+            history_length = ARRAY_COUNT(mgPlay1Vs3);
+            history = mgPlay1Vs3;
             break;
         case 2:
-            var_r29 = ARRAY_COUNT(mgPlay2Vs2);
-            var_r31 = mgPlay2Vs2;
+            history_length = ARRAY_COUNT(mgPlay2Vs2);
+            history = mgPlay2Vs2;
             break;
         case 4:
-            var_r29 = ARRAY_COUNT(mgPlayBattle);;
-            var_r31 = mgPlayBattle;
+            history_length = ARRAY_COUNT(mgPlayBattle);;
+            history = mgPlayBattle;
             break;
         default:
             return 0;
     }
     
-    var_r30 = 0;
-    while (var_r30 < var_r29) {
-        if (arg1 == var_r31[var_r30]) {
+    slot = 0;
+    while (slot < history_length) {
+        if (minigame_id == history[slot]) {
             return 1;
         }
-        var_r30++;
+        slot++;
     }
     return 0;
 }
 
-void BoardMGSetupPlayPush(s32 arg0, s16 arg1) {
-    s16 var_r29;
-    s16 temp_r28;
-    u8* var_r31;
-    s16* var_r30;
+/**
+ * @brief Adds a minigame to its type's circular recent-play history.
+ *
+ * @param minigame_type Minigame category: 0 for four-player, 1 for
+ * one-versus-three, 2 for two-versus-two, or 4 for Battle. Other values are ignored.
+ * @param minigame_id Global minigame ID to record.
+ */
+void BoardMGSetupPlayPush(s32 minigame_type, s16 minigame_id) {
+    s16 history_capacity;
+    s16 write_index;
+    u8* history_length;
+    s16* history;
 
-    switch (arg0) {
+    switch (minigame_type) {
     case 0:
-        var_r31 = &mgPlay4PLen;
-        var_r29 = ARRAY_COUNT(mgPlay4P);
-        var_r30 = mgPlay4P;
+        history_length = &mgPlay4PLen;
+        history_capacity = ARRAY_COUNT(mgPlay4P);
+        history = mgPlay4P;
         break;
     case 1:
-        var_r31 = &mgPlay1Vs3Len;
-        var_r29 = ARRAY_COUNT(mgPlay1Vs3);
-        var_r30 = mgPlay1Vs3;
+        history_length = &mgPlay1Vs3Len;
+        history_capacity = ARRAY_COUNT(mgPlay1Vs3);
+        history = mgPlay1Vs3;
         break;
     case 2:
-        var_r31 = &mgPlay2Vs2Len;
-        var_r29 = ARRAY_COUNT(mgPlay2Vs2);
-        var_r30 = mgPlay2Vs2;
+        history_length = &mgPlay2Vs2Len;
+        history_capacity = ARRAY_COUNT(mgPlay2Vs2);
+        history = mgPlay2Vs2;
         break;
     case 4:
-        var_r31 = &mgPlayBattleLen;
-        var_r29 = ARRAY_COUNT(mgPlayBattle);
-        var_r30 = mgPlayBattle;
+        history_length = &mgPlayBattleLen;
+        history_capacity = ARRAY_COUNT(mgPlayBattle);
+        history = mgPlayBattle;
         break;
     default:
         return;
     }
-    temp_r28 = *var_r31;
-    var_r30[temp_r28] = arg1;
-    *var_r31 = temp_r28 + 1;
-    if (*var_r31 >= var_r29) {
-        *var_r31 = 0;
+    write_index = *history_length;
+    history[write_index] = minigame_id;
+    *history_length = write_index + 1;
+    if (*history_length >= history_capacity) {
+        *history_length = 0;
     }
     return;
 }
 
+/**
+ * @brief Runs the tutorial version of the minigame setup presentation.
+ *
+ * @details Creates the same status and roulette UI used by normal selection,
+ * waits for each requested animation state, then destroys the object and fades
+ * the board filter. It does not load or launch a minigame overlay.
+ */
 void BoardMGSetupTutorialExec(void) {
-    s32 spC;
-    s32 sp8;
-    s16 var_r30;
-    s16* temp_r31;
-    s32 temp_r0;
-    s32 var_r26;
-    bitcopy* temp_r24;
-    bitcopy* temp_r25;
-    bitcopy* temp_r27;
-    bitcopy* temp_r29;
-    bitcopy* temp_r28;
+    s32 unused_value_a;
+    s32 unused_value_b;
+    s16 unused_id;
+    s16* unused_history;
+    s32 unused_result;
+    s32 slot;
+    MGSetupWork* destroy_work;
+    MGSetupWork* unused_work_a;
+    MGSetupWork* unused_work_b;
+    MGSetupWork* separate_work;
+    MGSetupWork* list_work;
 
     *boardTutorialData = 1;
     BoardFilterFadeInit(30, 0xA0);
     
-    for (var_r26 = 0; var_r26 < ARRAY_COUNT(activeMG); var_r26++) {
-        activeMG[var_r26].unk_00 = -1;
-        activeMG[var_r26].unk_04 = 0;
+    for (slot = 0; slot < ARRAY_COUNT(activeMG); slot++) {
+        activeMG[slot].window_id = -1;
+        activeMG[slot].name_mess = 0;
     }
     
     CreateMGSetup();
     while (setupObjGet() != 7) {
         HuPrcVSleep();
     }
-    temp_r29 = (bitcopy*) mgSetupObj->work;
-    temp_r29->field00_bit1 = 1;
-    temp_r29->unk_02 = 0;
-    temp_r29->unk_03 = 0;
-    temp_r29->unk_04 = 0;
+    separate_work = (MGSetupWork*) mgSetupObj->work;
+    separate_work->field00_bit1 = 1;
+    separate_work->phase = 0;
+    separate_work->timer = 0;
+    separate_work->angle = 0;
     while (setupObjGet() != 7) {
         HuPrcVSleep();
     }
-    temp_r28 = (bitcopy*) mgSetupObj->work;
-    temp_r28->field00_bit1 = 6;
-    temp_r28->unk_02 = 0;
-    temp_r28->unk_03 = 0;
-    temp_r28->unk_04 = 0;
+    list_work = (MGSetupWork*) mgSetupObj->work;
+    list_work->field00_bit1 = 6;
+    list_work->phase = 0;
+    list_work->timer = 0;
+    list_work->angle = 0;
     while (setupObjGet() != 7) {
         HuPrcVSleep();
     }
-    temp_r24 = (bitcopy*) mgSetupObj->work;
-    temp_r24->field00_bit0 = 1;
+    destroy_work = (MGSetupWork*) mgSetupObj->work;
+    destroy_work->field00_bit0 = 1;
     BoardFilterFadeOut(30);
     HuPrcSleep(30);
 }

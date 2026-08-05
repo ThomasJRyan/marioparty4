@@ -20,10 +20,10 @@ typedef struct {
     struct {
         u8 kill : 1;
         u8 state : 3;
-        u8 unk00_field2 : 1;
+        u8 returning_to_rest : 1;
         u8 contains_star : 1;
         u8 opened : 1;
-        u8 unk00_field5 : 1;
+        u8 hide_contents : 1;
     };
 
     s16 hit_y_velocity;
@@ -42,19 +42,19 @@ typedef struct {
 
 static void BlockProc(void);
 static void DestroyBlock(void);
-static void ExecBlockObj(OMOBJ *arg0);
-static void CreateBlockObj(s32 arg0);
+static void ExecBlockObj(OMOBJ *object);
+static void CreateBlockObj(s32 player);
 static void DestroyBlockObj(BlockWork *unused0, OMOBJ *unused1);
-static void SpawnBlock(BlockWork *arg0, OMOBJ *arg1);
-static void HitBlock(BlockWork *arg0, OMOBJ *arg1);
-static void OpenBlock(BlockWork *arg0, OMOBJ *arg1);
+static void SpawnBlock(BlockWork *work, OMOBJ *object);
+static void HitBlock(BlockWork *work, OMOBJ *object);
+static void OpenBlock(BlockWork *work, OMOBJ *object);
 static void SetBlockOpen(void);
 static void SetBlockStop(void);
 static void WaitBlockHit(void);
 static void CreateCoinMdl(void);
 static void KillCoinMdl(void);
 static void PopupCoin(void);
-static void PopupCoinExec(OMOBJ *arg0);
+static void PopupCoinExec(OMOBJ *obj);
 
 extern s8 boardTutorialBlockF;
 extern s8 boardTutorialBlockItem;
@@ -72,9 +72,16 @@ static HUPROCESS *blockProc;
 static s16 coinMdl[10] = { -1, -1, -1, -1 };
 static s32 coinF[10];
 
-s32 BoardBlockExec(s32 arg0)
+/**
+ * @brief Resolve a hidden-block event for a normal-sized player.
+ *
+ * @details Other eligible players wait for a child process that awards either a star or twenty coins.
+ * @param player Index of the player who triggered the block.
+ * @return Always 0; Mega players return immediately without creating a block.
+ */
+s32 BoardBlockExec(s32 player)
 {
-    if (BoardPlayerSizeGet(arg0) == 2) {
+    if (BoardPlayerSizeGet(player) == 2) {
         return 0;
     }
 
@@ -88,23 +95,28 @@ s32 BoardBlockExec(s32 arg0)
     return 0;
 }
 
+/**
+ * @brief Drive the hidden block from its entrance through reward delivery.
+ *
+ * @details Creates the block above the current player and awards either one star or twenty individually animated coins before restoring the camera.
+ */
 static void BlockProc(void)
 {
-    s32 sp14[8] = { DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x60), DATA_MAKE_NUM(DATADIR_LUIGIMOT, 0x60), DATA_MAKE_NUM(DATADIR_PEACHMOT, 0x60),
+    s32 jump_motion_data[8] = { DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x60), DATA_MAKE_NUM(DATADIR_LUIGIMOT, 0x60), DATA_MAKE_NUM(DATADIR_PEACHMOT, 0x60),
         DATA_MAKE_NUM(DATADIR_YOSHIMOT, 0x60), DATA_MAKE_NUM(DATADIR_WARIOMOT, 0x60), DATA_MAKE_NUM(DATADIR_DONKEYMOT, 0x60),
         DATA_MAKE_NUM(DATADIR_DAISYMOT, 0x60), DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 0x60) };
-    Vec sp8;
-    s32 var_r28;
+    Vec star_pos;
+    s32 block_proc_unused_var_r28;
     s32 i;
     s32 player;
     BlockWork *work;
-    s32 *temp_r4;
+    s32 *block_proc_unused_temp_r4;
     s32 player_character;
 
     player = GWSystem.player_curr;
 
     player_character = GWPlayer[player].character;
-    jumpMot = BoardPlayerMotionCreate(player, sp14[player_character]);
+    jumpMot = BoardPlayerMotionCreate(player, jump_motion_data[player_character]);
     BoardPlayerIdleSet(player);
     BoardPlayerMotBlendSet(player, 0, 0xF);
     omVibrate(player, 12, 12, 0);
@@ -134,11 +146,11 @@ static void BlockProc(void)
 
     if (work->contains_star != 0) {
         SetBlockStop();
-        BoardModelPosGet(starMdl, &sp8);
+        BoardModelPosGet(starMdl, &star_pos);
         if (_CheckFlag(FLAG_ID_MAKE(1, 11)) == 0) {
             BoardAudSeqPause(0, 1, 1000);
         }
-        BoardStarGive(player, &sp8);
+        BoardStarGive(player, &star_pos);
         if (_CheckFlag(FLAG_ID_MAKE(1, 11)) == 0) {
             BoardAudSeqPause(0, 0, 1000);
         }
@@ -183,6 +195,9 @@ static void BlockProc(void)
     HuPrcEnd();
 }
 
+/**
+ * @brief Release the jump motion and pooled coin models owned by the block process.
+ */
 static void DestroyBlock(void)
 {
     if (jumpMot != -1) {
@@ -193,13 +208,19 @@ static void DestroyBlock(void)
     blockProc = 0;
 }
 
-static void CreateBlockObj(s32 arg0)
+/**
+ * @brief Create and position a hidden block above a player.
+ *
+ * @details Randomly chooses a star or coin reward unless the tutorial override supplies the reward type.
+ * @param player Index of the player beneath the block.
+ */
+static void CreateBlockObj(s32 player)
 {
     Vec player_pos;
     BlockWork *work;
     s8 contains_star;
 
-    BoardPlayerPosGet(arg0, &player_pos);
+    BoardPlayerPosGet(player, &player_pos);
     starMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 4), NULL, 0);
     BoardModelVisibilitySet(starMdl, 0);
     BoardModelMotionSpeedSet(starMdl, 0);
@@ -209,9 +230,9 @@ static void CreateBlockObj(s32 arg0)
 
     work = omObjGetWork(blockObj, BlockWork);
     work->kill = 0;
-    work->unk00_field2 = 0;
+    work->returning_to_rest = 0;
     work->opened = 0;
-    work->unk00_field5 = 0;
+    work->hide_contents = 0;
     work->state = BLOCK_SPAWN;
 
     blockObj->trans.x = player_pos.x;
@@ -248,40 +269,49 @@ static void CreateBlockObj(s32 arg0)
     }
 }
 
-static void ExecBlockObj(OMOBJ *arg0)
+/**
+ * @brief Update the hidden block state and synchronize its reward model.
+ * @param object Block object whose spawn, bob, or opening animation is processed.
+ */
+static void ExecBlockObj(OMOBJ *object)
 {
     BlockWork *work;
 
-    work = omObjGetWork(arg0, BlockWork);
+    work = omObjGetWork(object, BlockWork);
 
     if (work->kill != 0 || BoardIsKill() != 0) {
-        DestroyBlockObj(work, arg0);
+        DestroyBlockObj(work, object);
         blockObj = 0;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
 
     switch (work->state) {
         case BLOCK_SPAWN:
-            SpawnBlock(work, arg0);
+            SpawnBlock(work, object);
             break;
         case BLOCK_HIT:
-            HitBlock(work, arg0);
+            HitBlock(work, object);
             break;
         case BLOCK_OPEN:
-            OpenBlock(work, arg0);
+            OpenBlock(work, object);
             break;
     }
 
-    if (work->unk00_field5 != 0) {
+    if (work->hide_contents != 0) {
         BoardModelVisibilitySet(starMdl, 0);
     }
 
-    BoardModelPosSet(starMdl, arg0->trans.x, arg0->trans.y, arg0->trans.z);
-    BoardModelRotSet(starMdl, arg0->rot.x, arg0->rot.y, arg0->rot.z);
-    BoardModelScaleSet(starMdl, arg0->scale.x, arg0->scale.y, arg0->scale.z);
+    BoardModelPosSet(starMdl, object->trans.x, object->trans.y, object->trans.z);
+    BoardModelRotSet(starMdl, object->rot.x, object->rot.y, object->rot.z);
+    BoardModelScaleSet(starMdl, object->scale.x, object->scale.y, object->scale.z);
 }
 
+/**
+ * @brief Destroy the star model owned by the hidden block.
+ * @param unused0 Unused BlockWork pointer required by the state-handler signature.
+ * @param unused1 Unused block object pointer required by the state-handler signature.
+ */
 static void DestroyBlockObj(BlockWork *unused0, OMOBJ *unused1)
 {
     if (starMdl != -1) {
@@ -290,7 +320,12 @@ static void DestroyBlockObj(BlockWork *unused0, OMOBJ *unused1)
     }
 }
 
-static void SpawnBlock(BlockWork *arg0, OMOBJ *arg1)
+/**
+ * @brief Scale and spin the hidden block into view.
+ * @param work Block work changed to the hittable state once the entrance settles.
+ * @param object Block object whose rotation and scale are animated.
+ */
+static void SpawnBlock(BlockWork *work, OMOBJ *object)
 {
     if (scaleAngle < 90.0f) {
         scaleAngle += 3.75f;
@@ -303,8 +338,8 @@ static void SpawnBlock(BlockWork *arg0, OMOBJ *arg1)
         if (rotMax < 0.8f) {
             rotY = 0.0f;
             rotMax = 0.0f;
-            arg0->hit_y_velocity = 0;
-            arg0->state = BLOCK_HIT;
+            work->hit_y_velocity = 0;
+            work->state = BLOCK_HIT;
         }
     }
 
@@ -315,50 +350,65 @@ static void SpawnBlock(BlockWork *arg0, OMOBJ *arg1)
         }
     }
 
-    arg1->rot.y = rotY;
-    arg1->scale.x = arg1->scale.y = arg1->scale.z = sind(scaleAngle);
+    object->rot.y = rotY;
+    object->scale.x = object->scale.y = object->scale.z = sind(scaleAngle);
 }
 
-static void HitBlock(BlockWork *arg0, OMOBJ *arg1)
+/**
+ * @brief Apply the block's continuous vertical bob.
+ * @param work Block work containing the wrapped bobbing angle.
+ * @param object Block object whose y position is offset each frame.
+ */
+static void HitBlock(BlockWork *work, OMOBJ *object)
 {
-    float var_f30;
+    float angle;
 
-    arg0->hit_y_velocity += 3;
-    if (arg0->hit_y_velocity > 0x168) {
-        arg0->hit_y_velocity -= 0x168;
+    work->hit_y_velocity += 3;
+    if (work->hit_y_velocity > 0x168) {
+        work->hit_y_velocity -= 0x168;
     }
 
-    OSs16tof32(&arg0->hit_y_velocity, &var_f30);
-    arg1->trans.y += 0.2f * sind(var_f30);
+    OSs16tof32(&work->hit_y_velocity, &angle);
+    object->trans.y += 0.2f * sind(angle);
 }
 
-static void OpenBlock(BlockWork *arg0, OMOBJ *arg1)
+/**
+ * @brief Bounce the block upward once, then return it to its saved height.
+ *
+ * @details The first update starts the reward-model motion.
+ * @param work Block work containing the resting height and opening flags.
+ * @param object Block object whose y position is animated.
+ */
+static void OpenBlock(BlockWork *work, OMOBJ *object)
 {
     f32 target_y_pos;
 
-    if (arg0->opened == 0) {
-        arg0->opened = 1;
+    if (work->opened == 0) {
+        work->opened = 1;
         HuAudFXPlay(0x33B);
         BoardModelMotionStart(starMdl, 0, 0);
     }
 
-    if (arg0->unk00_field2 == 0) {
-        OSf32tos16(&arg1->trans.y, &arg0->target_y_pos);
+    if (work->returning_to_rest == 0) {
+        OSf32tos16(&object->trans.y, &work->target_y_pos);
 
-        arg1->trans.y += 80.0f;
-        arg0->unk00_field2 = 1;
+        object->trans.y += 80.0f;
+        work->returning_to_rest = 1;
     }
     else {
-        OSs16tof32(&arg0->target_y_pos, &target_y_pos);
-        arg1->trans.y += -8.0f;
+        OSs16tof32(&work->target_y_pos, &target_y_pos);
+        object->trans.y += -8.0f;
 
-        if (arg1->trans.y < target_y_pos) {
-            arg1->trans.y = target_y_pos;
-            arg0->state = BLOCK_HIT;
+        if (object->trans.y < target_y_pos) {
+            object->trans.y = target_y_pos;
+            work->state = BLOCK_HIT;
         }
     }
 }
 
+/**
+ * @brief Put the active block into its opening state.
+ */
 static void SetBlockOpen(void)
 {
     BlockWork *work;
@@ -367,14 +417,20 @@ static void SetBlockOpen(void)
     work->state = BLOCK_OPEN;
 }
 
+/**
+ * @brief Hide the active block's reward model after payout.
+ */
 static void SetBlockStop(void)
 {
     BlockWork *work;
 
     work = omObjGetWork(blockObj, BlockWork);
-    work->unk00_field5 = 1;
+    work->hide_contents = 1;
 }
 
+/**
+ * @brief Wait until the active block returns to its hittable state.
+ */
 static void WaitBlockHit(void)
 {
     BlockWork *work;
@@ -386,6 +442,9 @@ static void WaitBlockHit(void)
     }
 }
 
+/**
+ * @brief Create the ten-model pool used for popup coins.
+ */
 static void CreateCoinMdl(void)
 {
     s32 i;
@@ -397,6 +456,9 @@ static void CreateCoinMdl(void)
     }
 }
 
+/**
+ * @brief Destroy every pooled coin model and mark every slot free.
+ */
 static void KillCoinMdl(void)
 {
     s32 i;
@@ -410,6 +472,11 @@ static void KillCoinMdl(void)
     }
 }
 
+/**
+ * @brief Find the first free popup-coin pool slot.
+ * @param out_model Receives the model handle stored in the free slot.
+ * @return The free slot index, or -1 when all ten slots are occupied.
+ */
 static inline s32 FindCoinModel(s16 *out_model)
 {
     s32 i;
@@ -424,10 +491,15 @@ static inline s32 FindCoinModel(s16 *out_model)
     return -1;
 }
 
+/**
+ * @brief Launch a ten-frame coin popup from the block.
+ *
+ * @details Waits for a free pooled model and makes it visible at the reward-model position.
+ */
 static void PopupCoin(void)
 {
     Vec star_pos;
-    OMOBJ *coinObj;
+    OMOBJ *coin_object;
     s32 model_index;
     s16 model;
     CoinWork *work;
@@ -437,22 +509,28 @@ static void PopupCoin(void)
         model_index = FindCoinModel(&model);
     } while (model_index == -1);
 
-    coinObj = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, PopupCoinExec);
-    work = omObjGetWork(coinObj, CoinWork);
+    coin_object = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, PopupCoinExec);
+    work = omObjGetWork(coin_object, CoinWork);
 
     work->kill = 0;
     work->lifetime = 10;
     work->model = model;
     work->model_index = model_index;
 
-    coinObj->trans.x = 15.0f;
-    coinObj->trans.y = 40.0f;
+    coin_object->trans.x = 15.0f;
+    coin_object->trans.y = 40.0f;
 
     BoardModelPosGet(starMdl, &star_pos);
     BoardModelPosSetV(work->model, &star_pos);
     BoardModelVisibilitySet(work->model, 1);
 }
 
+/**
+ * @brief Move and spin one popup coin until its lifetime expires.
+ *
+ * @details Cleanup hides the model and releases its pool slot.
+ * @param obj Popup object containing the pooled model handle, pool index, and remaining lifetime.
+ */
 static void PopupCoinExec(OMOBJ *obj)
 {
     Vec coin_pos;

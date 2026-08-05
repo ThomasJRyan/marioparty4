@@ -4,170 +4,202 @@
 
 #include "game/sprite.h"
 
-float GetClusterCurve(HSFTRACK *arg0, float arg1) {
-    float *var_r30;
+/**
+ * @brief Evaluates an HSF cluster index animation track.
+ *
+ * @param track Track containing linear, Bezier, or constant curve data.
+ * @param sample_time Motion time at which to sample the curve.
+ * @return Sampled cluster index value, or 0.0 for an unsupported curve type.
+ */
+float GetClusterCurve(HSFTRACK *track, float sample_time) {
+    float *constant_value;
 
-    switch (arg0->curveType) {
+    switch (track->curveType) {
         case 1:
-            return GetLinear(arg0->numKeyframes, arg0->data, arg1);
+            return GetLinear(track->numKeyframes, track->data, sample_time);
         case 2:
-            return GetBezier(arg0->numKeyframes, arg0, arg1);
+            return GetBezier(track->numKeyframes, track, sample_time);
         case 4:
-            var_r30 = &arg0->value;
-            return *var_r30;
+            constant_value = &track->value;
+            return *constant_value;
     }
     return 0.0f;
 }
 
-float GetClusterWeightCurve(HSFTRACK *arg0, float arg1) {
-    float *var_r30;
+/**
+ * @brief Evaluates an HSF cluster-weight animation track.
+ *
+ * @param track Track containing linear, Bezier, or constant curve data.
+ * @param sample_time Motion time at which to sample the curve.
+ * @return Sampled morph weight, or 0.0 for an unsupported curve type.
+ */
+float GetClusterWeightCurve(HSFTRACK *track, float sample_time) {
+    float *constant_value;
 
-    switch (arg0->curveType) {
+    switch (track->curveType) {
         case 1:
-            return GetLinear(arg0->numKeyframes, arg0->data, arg1);
+            return GetLinear(track->numKeyframes, track->data, sample_time);
         case 2:
-            return GetBezier(arg0->numKeyframes, arg0, arg1);
+            return GetBezier(track->numKeyframes, track, sample_time);
         case 4:
-            var_r30 = &arg0->value;
-            return *var_r30;
+            constant_value = &track->value;
+            return *constant_value;
     }
     return 0.0f;
 }
 
-void SetClusterMain(HSFCLUSTER *arg0) {
-    float var_f30;
-    float var_f31;
-    s32 temp_r24;
-    s32 temp_r29;
-    u16 *var_r28;
-    s32 var_r23;
+/**
+ * @brief Applies one cluster's current blend state to its target vertices.
+ *
+ * @details Type 2 clusters blend all supplied buffers by weight. Other types
+ * interpolate between buffers surrounding the cluster's fractional index.
+ *
+ * @param cluster Cluster whose part indices and vertex sources drive the update.
+ */
+void SetClusterMain(HSFCLUSTER *cluster) {
+    float total_weight;
+    float blend_weight;
+    s32 vertex_index;
+    s32 target_vertex_index;
+    u16 *part_vertex;
+    s32 next_vertex_index;
     s32 i;
     s32 j;
-    HSFBUFFER *temp_r25;
-    HSFPART *temp_r27;
-    HSFBUFFER *temp_r30;
+    HSFBUFFER *next_vertex_buffer;
+    HSFPART *part;
+    HSFBUFFER *vertex_buffer;
 
-    temp_r27 = arg0->part;
-    if (arg0->vertexNum != 0) {
-        if (arg0->type == 2) {
-            var_r28 = temp_r27->vertex;
-            temp_r30 = *arg0->vertex;
-            var_f30 = 0.0f;
-            for (i = 0; i < arg0->vertexNum; i++) {
-                var_f30 += arg0->weight[i];
+    part = cluster->part;
+    if (cluster->vertexNum != 0) {
+        if (cluster->type == 2) {
+            part_vertex = part->vertex;
+            vertex_buffer = *cluster->vertex;
+            total_weight = 0.0f;
+            for (i = 0; i < cluster->vertexNum; i++) {
+                total_weight += cluster->weight[i];
             }
-            for (i = 0; i < temp_r27->num; i++, var_r28++) {
-                temp_r29 = *var_r28;
-                Vertextop[temp_r29].x = ((Vec*) temp_r30->data)[i].x;
-                Vertextop[temp_r29].y = ((Vec*) temp_r30->data)[i].y;
-                Vertextop[temp_r29].z = ((Vec*) temp_r30->data)[i].z;
+            for (i = 0; i < part->num; i++, part_vertex++) {
+                target_vertex_index = *part_vertex;
+                Vertextop[target_vertex_index].x = ((Vec*) vertex_buffer->data)[i].x;
+                Vertextop[target_vertex_index].y = ((Vec*) vertex_buffer->data)[i].y;
+                Vertextop[target_vertex_index].z = ((Vec*) vertex_buffer->data)[i].z;
             }
-            for (i = 1; i < arg0->vertexNum; i++) {
-                temp_r30 = arg0->vertex[i];
-                var_r28 = temp_r27->vertex;
-                var_f31 = arg0->weight[i];
-                if (var_f31 < 0.0f) {
-                    var_f31 = 0.0f;
-                } else if (var_f30 > 1.0f) {
-                    var_f31 /= var_f30;
+            for (i = 1; i < cluster->vertexNum; i++) {
+                vertex_buffer = cluster->vertex[i];
+                part_vertex = part->vertex;
+                blend_weight = cluster->weight[i];
+                if (blend_weight < 0.0f) {
+                    blend_weight = 0.0f;
+                } else if (total_weight > 1.0f) {
+                    blend_weight /= total_weight;
                 }
-                for (j = 0; j < temp_r27->num; j++, var_r28++) {
-                    temp_r29 = *var_r28;
-                    Vertextop[temp_r29].x += var_f31 * (((Vec*) temp_r30->data)[j].x - Vertextop[temp_r29].x);
-                    Vertextop[temp_r29].y += var_f31 * (((Vec*) temp_r30->data)[j].y - Vertextop[temp_r29].y);
-                    Vertextop[temp_r29].z += var_f31 * (((Vec*) temp_r30->data)[j].z - Vertextop[temp_r29].z);
+                for (j = 0; j < part->num; j++, part_vertex++) {
+                    target_vertex_index = *part_vertex;
+                    Vertextop[target_vertex_index].x += blend_weight * (((Vec*) vertex_buffer->data)[j].x - Vertextop[target_vertex_index].x);
+                    Vertextop[target_vertex_index].y += blend_weight * (((Vec*) vertex_buffer->data)[j].y - Vertextop[target_vertex_index].y);
+                    Vertextop[target_vertex_index].z += blend_weight * (((Vec*) vertex_buffer->data)[j].z - Vertextop[target_vertex_index].z);
                 }
             }
             return;
         }
-        temp_r24 = arg0->index;
-        var_r23 = temp_r24 + 1;
-        if (var_r23 >= arg0->vertexNum) {
-            var_r23 = temp_r24;
+        vertex_index = cluster->index;
+        next_vertex_index = vertex_index + 1;
+        if (next_vertex_index >= cluster->vertexNum) {
+            next_vertex_index = vertex_index;
         }
-        var_f31 = arg0->index - temp_r24;
-        temp_r30 = arg0->vertex[temp_r24];
-        temp_r25 = arg0->vertex[var_r23];
-        var_r28 = temp_r27->vertex;
-        for (i = 0; i < temp_r27->num; i++, var_r28++) {
-            temp_r29 = *var_r28;
-            Vertextop[temp_r29].x = ((Vec*) temp_r30->data)[i].x + var_f31 * (((Vec*) temp_r25->data)[i].x - ((Vec*) temp_r30->data)[i].x);
-            Vertextop[temp_r29].y = ((Vec*) temp_r30->data)[i].y + var_f31 * (((Vec*) temp_r25->data)[i].y - ((Vec*) temp_r30->data)[i].y);
-            Vertextop[temp_r29].z = ((Vec*) temp_r30->data)[i].z + var_f31 * (((Vec*) temp_r25->data)[i].z - ((Vec*) temp_r30->data)[i].z);
+        blend_weight = cluster->index - vertex_index;
+        vertex_buffer = cluster->vertex[vertex_index];
+        next_vertex_buffer = cluster->vertex[next_vertex_index];
+        part_vertex = part->vertex;
+        for (i = 0; i < part->num; i++, part_vertex++) {
+            target_vertex_index = *part_vertex;
+            Vertextop[target_vertex_index].x = ((Vec*) vertex_buffer->data)[i].x + blend_weight * (((Vec*) next_vertex_buffer->data)[i].x - ((Vec*) vertex_buffer->data)[i].x);
+            Vertextop[target_vertex_index].y = ((Vec*) vertex_buffer->data)[i].y + blend_weight * (((Vec*) next_vertex_buffer->data)[i].y - ((Vec*) vertex_buffer->data)[i].y);
+            Vertextop[target_vertex_index].z = ((Vec*) vertex_buffer->data)[i].z + blend_weight * (((Vec*) next_vertex_buffer->data)[i].z - ((Vec*) vertex_buffer->data)[i].z);
         }
     }
 }
 
-void ClusterProc(HU3DMODEL *arg0) {
-    s32 temp_r24;
+/**
+ * @brief Applies all active cluster motions to a rendered model's meshes.
+ *
+ * @param model Runtime model whose four cluster-motion slots are processed.
+ */
+void ClusterProc(HU3DMODEL *model) {
+    s32 motion_id;
     s32 i;
     s32 j;
     s32 k;
-    HSFDATA *temp_r27;
-    HSFDATA *temp_r23;
-    HU3DMOTION *temp_r22;
-    HSFCLUSTER *var_r29;
-    HSFOBJECT *temp_r31;
+    HSFDATA *motion_hsf;
+    HSFDATA *model_hsf;
+    HU3DMOTION *motion;
+    HSFCLUSTER *cluster;
+    HSFOBJECT *target_object;
 
     for (i = 0; i < 4; i++) {
-        temp_r24 = arg0->motIdCluster[i];
-        if (temp_r24 != -1) {
-            temp_r22 = &Hu3DMotion[temp_r24];
-            temp_r27 = temp_r22->hsf;
-            temp_r23 = arg0->hsf;
-            var_r29 = temp_r27->cluster;
-            for (j = 0; j < temp_r27->clusterNum; j++, var_r29++) {
-                if (var_r29->target != -1) {
-                    temp_r31 = temp_r23->object;
-                    temp_r31 += var_r29->target;
-                    Vertextop = temp_r31->mesh.vertex->data;
-                    if (temp_r31->mesh.cenvNum) {
-                        for (k = 0; k < temp_r31->mesh.vertex->count; k++) {
-                            Vertextop[k].x = ((Vec*) temp_r31->mesh.file[0])[k].x;
-                            Vertextop[k].y = ((Vec*) temp_r31->mesh.file[0])[k].y;
-                            Vertextop[k].z = ((Vec*) temp_r31->mesh.file[0])[k].z;
+        motion_id = model->motIdCluster[i];
+        if (motion_id != -1) {
+            motion = &Hu3DMotion[motion_id];
+            motion_hsf = motion->hsf;
+            model_hsf = model->hsf;
+            cluster = motion_hsf->cluster;
+            for (j = 0; j < motion_hsf->clusterNum; j++, cluster++) {
+                if (cluster->target != -1) {
+                    target_object = model_hsf->object;
+                    target_object += cluster->target;
+                    Vertextop = target_object->mesh.vertex->data;
+                    if (target_object->mesh.cenvNum) {
+                        for (k = 0; k < target_object->mesh.vertex->count; k++) {
+                            Vertextop[k].x = ((Vec*) target_object->mesh.file[0])[k].x;
+                            Vertextop[k].y = ((Vec*) target_object->mesh.file[0])[k].y;
+                            Vertextop[k].z = ((Vec*) target_object->mesh.file[0])[k].z;
                         }
                     }
-                    SetClusterMain(var_r29);
-                    DCStoreRangeNoSync(Vertextop, temp_r31->mesh.vertex->count * sizeof(Vec));
-                    temp_r31->mesh.writeNum++;
+                    SetClusterMain(cluster);
+                    DCStoreRangeNoSync(Vertextop, target_object->mesh.vertex->count * sizeof(Vec));
+                    target_object->mesh.writeNum++;
                 }
             }
         }
     }
 }
 
-void ClusterMotionExec(HU3DMODEL *arg0) {
-    float temp_f31;
+/**
+ * @brief Samples active cluster motion tracks into cluster indices and weights.
+ *
+ * @param model Runtime model providing motion IDs and per-slot sample times.
+ */
+void ClusterMotionExec(HU3DMODEL *model) {
+    float motion_time;
     s32 i;
     s32 j;
-    s16 var_r20;
-    HSFCLUSTER *temp_r26;
-    HSFDATA *temp_r28;
-    HSFMOTION *temp_r27; // ! - uninitialized
-    HSFTRACK *var_r31;
-    HSFTRACK *var_r30;
-    HU3DMOTION *var_r23;
+    s16 motion_id;
+    HSFCLUSTER *cluster;
+    HSFDATA *motion_hsf;
+    HSFMOTION *motion_data; // ! - uninitialized
+    HSFTRACK *track;
+    HSFTRACK *weight_track;
+    HU3DMOTION *motion;
 
-    var_r31 = temp_r27->track;
+    track = motion_data->track;
     for (i = 0; i < 4; i++) {
-        if (arg0->motIdCluster[i] != -1) {
-            var_r20 = arg0->motIdCluster[i];
-            var_r23 = &Hu3DMotion[var_r20];
-            temp_r28 = var_r23->hsf;
-            temp_r27 = temp_r28->motion;
-            var_r31 = temp_r27->track;
-            temp_f31 = arg0->clusterTime[i];
-            for (j = 0; j < temp_r27->numTracks; j++, var_r31++) {
-                switch (var_r31->type) {
+        if (model->motIdCluster[i] != -1) {
+            motion_id = model->motIdCluster[i];
+            motion = &Hu3DMotion[motion_id];
+            motion_hsf = motion->hsf;
+            motion_data = motion_hsf->motion;
+            track = motion_data->track;
+            motion_time = model->clusterTime[i];
+            for (j = 0; j < motion_data->numTracks; j++, track++) {
+                switch (track->type) {
                     case 5:
-                        temp_r26 = &temp_r28->cluster[var_r31->cluster];
-                        temp_r26->index = GetClusterCurve(var_r31, temp_f31);
+                        cluster = &motion_hsf->cluster[track->cluster];
+                        cluster->index = GetClusterCurve(track, motion_time);
                         break;
                     case 6:
-                        var_r30 = var_r31;
-                        temp_r26 = &temp_r28->cluster[var_r30->cluster];
-                        temp_r26->weight[var_r30->clusterWeight] = GetClusterCurve(var_r30, temp_f31);
+                        weight_track = track;
+                        cluster = &motion_hsf->cluster[weight_track->cluster];
+                        cluster->weight[weight_track->clusterWeight] = GetClusterCurve(weight_track, motion_time);
                         break;
                 }
             }

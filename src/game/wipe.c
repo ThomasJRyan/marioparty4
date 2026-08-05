@@ -23,6 +23,10 @@ static s32 WipeDummyFade(void);
 static fadeFunc fadeInFunc[3] = { WipeNormalFade, WipeCrossFade, WipeDummyFade };
 static fadeFunc fadeOutFunc[3] = { WipeNormalFade, WipeCrossFade, WipeDummyFade };
 
+/**
+ * @brief Initializes transition state and records the embedded-framebuffer dimensions.
+ * @param rmode Render-mode descriptor providing framebuffer width and embedded-framebuffer height.
+ */
 void WipeInit(GXRenderModeObj *rmode)
 {
 	WipeState *wipe;
@@ -45,6 +49,9 @@ void WipeInit(GXRenderModeObj *rmode)
 	wipe->y = 0;
 }
 
+/**
+ * @brief Advances and draws the active fade, releasing captured-frame buffers when a fade-in completes.
+ */
 void WipeExecAlways(void)
 {
 	s32 i;
@@ -108,6 +115,12 @@ void WipeExecAlways(void)
 	}
 }
 
+/**
+ * @brief Starts a fade-in or fade-out when no transition is already active.
+ * @param mode WIPE_MODE_IN or WIPE_MODE_OUT transition direction.
+ * @param type Fade implementation index, or WIPE_TYPE_PREV to retain the prior type.
+ * @param duration Fade duration in retraces; nonpositive values select 30 retraces.
+ */
 void WipeCreate(s16 mode, s16 type, s16 duration)
 {
 	WipeState *wipe;
@@ -140,6 +153,12 @@ void WipeCreate(s16 mode, s16 type, s16 duration)
 	}
 }
 
+/**
+ * @brief Sets the RGB fade color while preserving its current alpha component.
+ * @param r Red channel from 0 through 255.
+ * @param g Green channel from 0 through 255.
+ * @param b Blue channel from 0 through 255.
+ */
 void WipeColorSet(u8 r, u8 g, u8 b)
 {
 	#if VERSION_PAL
@@ -152,16 +171,28 @@ void WipeColorSet(u8 r, u8 g, u8 b)
 	wipeData.color.b = b;
 }
 
+/**
+ * @brief Reads whether the current transition still has work remaining.
+ * @return Nonzero while the transition remains active; zero when complete.
+ */
 u8 WipeStatGet(void)
 {
 	return wipeData.stat;
 }
 
+/**
+ * @brief Completes a transition without drawing or capturing a frame.
+ * @return Always 0, marking the dummy fade complete.
+ */
 static s32 WipeDummyFade(void)
 {
 	return 0;
 }
 
+/**
+ * @brief Draws a time-interpolated solid-color fade for the current direction.
+ * @return 1 while the duration has not elapsed; otherwise 0.
+ */
 static s32 WipeNormalFade(void)
 {
 	u8 alpha;
@@ -190,6 +221,10 @@ static s32 WipeNormalFade(void)
 	}
 }
 
+/**
+ * @brief Draws a viewport-sized untextured quad in the supplied RGBA color.
+ * @param color RGBA modulation or fill color.
+ */
 static void WipeColorFill(GXColor color)
 {
 	static GXColor colorN = { 0xFF, 0xFF, 0xFF, 0xFF };
@@ -233,6 +268,10 @@ static void WipeColorFill(GXColor color)
 	GXSetChanMatColor(GX_COLOR0A0, colorN);
 }
 
+/**
+ * @brief Captures the current framebuffer once and draws it with time-interpolated alpha.
+ * @return 1 while the duration has not elapsed; otherwise 0.
+ */
 static s32 WipeCrossFade(void)
 {
 	u32 size;
@@ -270,6 +309,10 @@ static s32 WipeCrossFade(void)
 	}
 }
 
+/**
+ * @brief Draws the captured RGB565 framebuffer texture with the supplied modulation color.
+ * @param color RGBA modulation or fill color.
+ */
 static void WipeFrameStill(GXColor color)
 {
 	GXTexObj tex;

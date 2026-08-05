@@ -1,19 +1,19 @@
 #include "game/perf.h"
 
 typedef struct {
-    /* 0x00 */ u8 unk00;
-    /* 0x01 */ u8 unk01;
-    /* 0x02 */ u8 unk02;
-    /* 0x03 */ u8 unk03;
-    /* 0x04 */ char unk04[4];
-    /* 0x08 */ s64 unk08;
-    /* 0x10 */ s64 unk10;
-    /* 0x18 */ OSStopwatch unk18;
-    /* 0x50 */ s16 unk50;
-    /* 0x52 */ char unk52[6];
+    /* 0x00 */ u8 red;
+    /* 0x01 */ u8 green;
+    /* 0x02 */ u8 blue;
+    /* 0x03 */ u8 alpha;
+    /* 0x04 */ char padding04[4];
+    /* 0x08 */ s64 elapsed_ticks;
+    /* 0x10 */ s64 start_ticks;
+    /* 0x18 */ OSStopwatch stopwatch;
+    /* 0x50 */ s16 active;
+    /* 0x52 */ char padding52[6];
 } UnknownPerfStruct; // Size 0x58
 
-static void DSCallbackFunc(u16 arg0);
+static void DSCallbackFunc(u16 draw_sync_token);
 
 static OSStopwatch Ssw;
 static UnknownPerfStruct perf[10];
@@ -42,11 +42,14 @@ static u32 total_copy_clks;
 static s16 tokenEndF;
 static u8 metf;
 
+/**
+ * @brief Initializes the performance timers and GPU draw-sync measurement.
+ */
 void HuPerfInit(void) {
     s32 i;
 
     for (i = 0; i < 10; i++) {
-        perf[i].unk50 = 0;
+        perf[i].active = 0;
     }
     HuPerfCreate("CPU", 0, 0xFF, 0, 0xFF);
     HuPerfCreate("DRAW", 0xFF, 0, 0, 0xFF);
@@ -54,62 +57,93 @@ void HuPerfInit(void) {
     total_copy_clks = 0;
 }
 
-s32 HuPerfCreate(char *arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4) {
-    UnknownPerfStruct *temp_r3;
+/**
+ * @brief Creates a named performance timer with an associated display color.
+ *
+ * @param name Null-terminated timer label passed to OSInitStopwatch.
+ * @param red Red display-color component in the inclusive range 0..255.
+ * @param green Green display-color component in the inclusive range 0..255.
+ * @param blue Blue display-color component in the inclusive range 0..255.
+ * @param alpha Alpha display-color component in the inclusive range 0..255.
+ * @return The timer slot index, or -1 if all slots are occupied.
+ */
+s32 HuPerfCreate(char *name, u8 red, u8 green, u8 blue, u8 alpha) {
+    UnknownPerfStruct *perf_entry;
     s32 i;
 
     for (i = 0; i < 10; i++) {
-        if (perf[i].unk50 == 0) {
+        if (perf[i].active == 0) {
             break;
         }
     }
     if (i == 10) {
         return -1;
     }
-    OSInitStopwatch(&perf[i].unk18, arg0);
-    perf[i].unk08 = 0;
-    perf[i].unk50 = 1;
-    perf[i].unk00 = arg1;
-    perf[i].unk01 = arg2;
-    perf[i].unk02 = arg3;
-    perf[i].unk03 = arg4;
+    OSInitStopwatch(&perf[i].stopwatch, name);
+    perf[i].elapsed_ticks = 0;
+    perf[i].active = 1;
+    perf[i].red = red;
+    perf[i].green = green;
+    perf[i].blue = blue;
+    perf[i].alpha = alpha;
     return i;
 }
 
+/**
+ * @brief Resets and starts the shared reference stopwatch.
+ */
 void HuPerfZero(void) {
     OSStopStopwatch(&Ssw);
     OSResetStopwatch(&Ssw);
     OSStartStopwatch(&Ssw);
 }
 
-void HuPerfBegin(s32 arg0) {
-    UnknownPerfStruct *temp_r5;
+/**
+ * @brief Starts a performance timer.
+ *
+ * @details Slot 1 is measured through GX draw-sync tokens so it brackets GPU
+ * work rather than the calling CPU interval.
+ *
+ * @param timer_slot Index returned by HuPerfCreate; slot 1 emits the DRAW start token.
+ */
+void HuPerfBegin(s32 timer_slot) {
+    UnknownPerfStruct *perf_entry;
 
-    if (arg0 == 1) {
+    if (timer_slot == 1) {
         GXSetDrawSync(0xFF00);
         return;
     }
-    OSStartStopwatch(&perf[arg0].unk18);
-    perf[arg0].unk10 = OSCheckStopwatch(&Ssw);
+    OSStartStopwatch(&perf[timer_slot].stopwatch);
+    perf[timer_slot].start_ticks = OSCheckStopwatch(&Ssw);
 }
 
-void HuPerfEnd(s32 arg0) {
-    UnknownPerfStruct *temp_r5;
+/**
+ * @brief Stops a performance timer and records its elapsed tick count.
+ *
+ * @param timer_slot Index returned by HuPerfCreate; slot 1 emits the DRAW end token.
+ */
+void HuPerfEnd(s32 timer_slot) {
+    UnknownPerfStruct *perf_entry;
 
-    if (arg0 == 1) {
+    if (timer_slot == 1) {
         GXSetDrawSync(0xFF01);
         return;
     }
-    perf[arg0].unk08 = OSCheckStopwatch(&perf[arg0].unk18);
-    OSStopStopwatch(&perf[arg0].unk18);
-    OSResetStopwatch(&perf[arg0].unk18);
+    perf[timer_slot].elapsed_ticks = OSCheckStopwatch(&perf[timer_slot].stopwatch);
+    OSStopStopwatch(&perf[timer_slot].stopwatch);
+    OSResetStopwatch(&perf[timer_slot].stopwatch);
 }
 
-static void DSCallbackFunc(u16 arg0) {
-    switch (arg0) {
+/**
+ * @brief Starts or ends the DRAW stopwatch when its GX token reaches the FIFO.
+ *
+ * @param draw_sync_token GX token: 0xFF00 starts DRAW timing and 0xFF01 stops it.
+ */
+static void DSCallbackFunc(u16 draw_sync_token) {
+    switch (draw_sync_token) {
         case 0xFF00:
-            OSStartStopwatch(&perf[1].unk18);
-            perf[1].unk10 = OSCheckStopwatch(&Ssw);
+            OSStartStopwatch(&perf[1].stopwatch);
+            perf[1].start_ticks = OSCheckStopwatch(&Ssw);
             tokenEndF = 0;
             if (metf == 1) {
                 GXClearGPMetric();
@@ -121,9 +155,9 @@ static void DSCallbackFunc(u16 arg0) {
         case 0xFF01:
             if (tokenEndF == 0) {
                 tokenEndF = 1;
-                perf[1].unk08 = OSCheckStopwatch(&perf[1].unk18);
-                OSStopStopwatch(&perf[1].unk18);
-                OSResetStopwatch(&perf[1].unk18);
+                perf[1].elapsed_ticks = OSCheckStopwatch(&perf[1].stopwatch);
+                OSStopStopwatch(&perf[1].stopwatch);
+                OSResetStopwatch(&perf[1].stopwatch);
                 if (metf == 1) {
                     GXReadGPMetric(&met0, &met1);
                     GXReadVCacheMetric(&vcheck, &vmiss, &vstall);

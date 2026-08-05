@@ -32,6 +32,9 @@ static AMEM_PTR ARBase;
 static volatile s32 arqCnt;
 static s16 arqIdx;
 
+/**
+ * @brief Initializes the auxiliary RAM allocator and transfer queue state.
+ */
 void HuARInit(void) {
     s32 size;
     s16 i;
@@ -58,6 +61,12 @@ void HuARInit(void) {
     arqCnt = 0;
 }
 
+/**
+ * @brief Allocates a 32-byte-aligned block of ARAM.
+ *
+ * @param size Requested size in bytes.
+ * @return ARAM address, or zero if no suitable block or descriptor is free.
+ */
 AMEM_PTR HuARMalloc(u32 size) {
     ARMEM_BLOCK *prev;
     ARMEM_BLOCK *next;
@@ -103,6 +112,11 @@ AMEM_PTR HuARMalloc(u32 size) {
     return curr->aMemP;
 }
 
+/**
+ * @brief Frees an ARAM block and coalesces adjacent free blocks.
+ *
+ * @param aMemP ARAM address returned by HuARMalloc.
+ */
 void HuARFree(AMEM_PTR aMemP) {
     ARMEM_BLOCK *prev;
     ARMEM_BLOCK *next;
@@ -143,6 +157,12 @@ void HuARFree(AMEM_PTR aMemP) {
     }
 }
 
+/**
+ * @brief Looks up the size of an allocated ARAM block.
+ *
+ * @param aMemP ARAM block address.
+ * @return Block size in bytes, or zero if the address is unknown.
+ */
 static u32 HuARSizeGet(AMEM_PTR aMemP) {
     ARMEM_BLOCK *curr;
     ARMEM_BLOCK *prev;
@@ -163,6 +183,12 @@ static u32 HuARSizeGet(AMEM_PTR aMemP) {
     }
 }
 
+/**
+ * @brief Finds the allocator descriptor for an ARAM address.
+ *
+ * @param aMemP ARAM block address.
+ * @return Matching block descriptor, or NULL if none exists.
+ */
 static ARMEM_BLOCK *HuARInfoGet(u32 aMemP) {
     ARMEM_BLOCK *curr;
     ARMEM_BLOCK *prev;
@@ -183,6 +209,9 @@ static ARMEM_BLOCK *HuARInfoGet(u32 aMemP) {
     }
 }
 
+/**
+ * @brief Reports the current ARAM allocation map.
+ */
 void HuAMemDump(void) {
     ARMEM_BLOCK *curr;
 
@@ -195,6 +224,12 @@ void HuAMemDump(void) {
     OSReport("================================\n");
 }
 
+/**
+ * @brief Loads a data directory from DVD and transfers it to ARAM.
+ *
+ * @param dir Packed data-directory identifier.
+ * @return ARAM address containing the directory, or zero on allocation failure.
+ */
 u32 HuAR_DVDtoARAM(u32 dir) {
     HUDATASTAT *stat;
     ARMEM_BLOCK *block;
@@ -220,15 +255,32 @@ u32 HuAR_DVDtoARAM(u32 dir) {
     return aMemP;
 }
 
+/**
+ * @brief Decrements the outstanding count after a main-RAM-to-ARAM transfer.
+ *
+ * @param pointerToARQRequest Completed ARQ request address.
+ */
 static void ArqCallBack(u32 pointerToARQRequest) {
     arqCnt--;
     (void)pointerToARQRequest; // required to match (return?)
 }
 
+/**
+ * @brief Transfers a loaded data directory from main RAM to ARAM.
+ *
+ * @param dir Data-directory identifier.
+ * @return Destination ARAM address, or zero on failure.
+ */
 AMEM_PTR HuAR_MRAMtoARAM(s32 dir) {
     return HuAR_MRAMtoARAM2(HuDataGetDirPtr(dir));
 }
 
+/**
+ * @brief Transfers a loaded directory buffer from main RAM to ARAM.
+ *
+ * @param dirPtr Loaded directory buffer.
+ * @return Destination ARAM address, or zero on failure.
+ */
 AMEM_PTR HuAR_MRAMtoARAM2(void *dirPtr) {
     ARMEM_BLOCK *block;
     HUDATASTAT *status;
@@ -253,10 +305,24 @@ AMEM_PTR HuAR_MRAMtoARAM2(void *dirPtr) {
     return aMemP;
 }
 
+/**
+ * @brief Starts copying an ARAM directory back to the DVD heap.
+ *
+ * @param aMemP Source ARAM address.
+ */
 void HuAR_ARAMtoMRAM(AMEM_PTR aMemP) {
     HuAR_ARAMtoMRAMNum(aMemP, 0);
 }
 
+/**
+ * @brief Starts copying an ARAM directory to a tagged DVD-heap allocation.
+ *
+ * @param aMemP Source ARAM address.
+ * @param num Allocation tag for the destination buffer.
+ * @return Destination main-memory pointer when a transfer is queued, or NULL
+ * on allocation failure. The already-loaded-directory branch returns without
+ * a defined pointer and must not be used as a pointer-producing path.
+ */
 void *HuAR_ARAMtoMRAMNum(AMEM_PTR aMemP, s32 num) {
     ARMEM_BLOCK *block;
     s32 size;
@@ -282,6 +348,11 @@ void *HuAR_ARAMtoMRAMNum(AMEM_PTR aMemP, s32 num) {
     return dst;
 }
 
+/**
+ * @brief Registers a completed ARAM-to-main-memory directory transfer.
+ *
+ * @param pointerToARQRequest Completed queued request and directory metadata.
+ */
 static void ArqCallBackAM(u32 pointerToARQRequest) {
     ARQUEREQ *req_ptr = (ARQUEREQ*) pointerToARQRequest;
 
@@ -289,10 +360,21 @@ static void ArqCallBackAM(u32 pointerToARQRequest) {
     HuDataDirSet(req_ptr->dst, req_ptr->dir);
 }
 
+/**
+ * @brief Returns the number of outstanding ARAM transfers.
+ *
+ * @return Outstanding transfer count.
+ */
 s32 HuARDMACheck(void) {
     return arqCnt;
 }
 
+/**
+ * @brief Checks whether a data directory is resident in ARAM.
+ *
+ * @param dir Packed data-directory identifier.
+ * @return Resident directory's ARAM address, or zero if it is absent.
+ */
 u32 HuARDirCheck(u32 dir) {
     ARMEM_BLOCK *curr;
 
@@ -308,6 +390,11 @@ u32 HuARDirCheck(u32 dir) {
     return 0;
 }
 
+/**
+ * @brief Frees an ARAM-resident data directory.
+ *
+ * @param dir Packed data-directory identifier.
+ */
 void HuARDirFree(u32 dir) {
     ARMEM_BLOCK *curr;
 
@@ -322,6 +409,17 @@ void HuARDirFree(u32 dir) {
     }
 }
 
+/**
+ * @brief Reads and decodes one file from an ARAM-resident directory.
+ *
+ * @details The directory table and compressed file payload are transferred in
+ * separate synchronous waits around the asynchronous ARQ interface.
+ *
+ * @param dir Packed directory and file identifier.
+ * @param num Allocation tag for the decoded file.
+ * @param heap Heap receiving the decoded file.
+ * @return Decoded file pointer, or NULL on lookup or allocation failure.
+ */
 void *HuAR_ARAMtoMRAMFileRead(u32 dir, u32 num, HeapID heap) {
     s32 *dirBuf;
     void *dst;
@@ -372,6 +470,11 @@ void *HuAR_ARAMtoMRAMFileRead(u32 dir, u32 num, HeapID heap) {
     return dst;
 }
 
+/**
+ * @brief Marks an ARAM file-read transfer as complete.
+ *
+ * @param pointerToARQRequest Completed ARQ request address.
+ */
 static void ArqCallBackAMFileRead(u32 pointerToARQRequest) {
     arqCnt--;
     (void)pointerToARQRequest; // required to match (return?)

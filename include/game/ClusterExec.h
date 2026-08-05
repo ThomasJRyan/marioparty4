@@ -4,10 +4,10 @@
 #include "game/hsfformat.h"
 #include "game/hu3d.h"
 
-float GetClusterCurve(HSFTRACK *arg0, float arg1);
-float GetClusterWeightCurve(HSFTRACK *arg0, float arg1);
-void SetClusterMain(HSFCLUSTER *arg0);
-void ClusterProc(HU3DMODEL *arg0);
-void ClusterMotionExec(HU3DMODEL *arg0);
+float GetClusterCurve(HSFTRACK *track, float sample_time);
+float GetClusterWeightCurve(HSFTRACK *track, float sample_time);
+void SetClusterMain(HSFCLUSTER *cluster);
+void ClusterProc(HU3DMODEL *model);
+void ClusterMotionExec(HU3DMODEL *model);
 
 #endif

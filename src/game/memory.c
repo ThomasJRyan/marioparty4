@@ -18,6 +18,13 @@ struct memory_block {
 
 static void *HuMemMemoryAlloc2(void *heap_ptr, s32 size, u32 num, u32 retaddr);
 
+/**
+ * @brief Initializes an intrusive block allocator over a memory region.
+ *
+ * @param ptr Start of the memory region.
+ * @param size Region size in bytes.
+ * @return The heap root pointer.
+ */
 void *HuMemHeapInit(void *ptr, s32 size)
 {
     struct memory_block *block = ptr;
@@ -31,16 +38,42 @@ void *HuMemHeapInit(void *ptr, s32 size)
     return block;
 }
 
+/**
+ * @brief Allocates memory from a heap with a caller-supplied tag.
+ *
+ * @param heap_ptr Heap root.
+ * @param size Requested data size in bytes.
+ * @param num Allocation tag.
+ * @param retaddr Call-site address retained for diagnostics.
+ * @return Allocated data pointer, or NULL on failure.
+ */
 void *HuMemMemoryAllocNum(void *heap_ptr, s32 size, u32 num, u32 retaddr)
 {
     return HuMemMemoryAlloc2(heap_ptr, size, num, retaddr);
 }
 
+/**
+ * @brief Allocates untagged memory from a heap.
+ *
+ * @param heap_ptr Heap root.
+ * @param size Requested data size in bytes.
+ * @param retaddr Call-site address retained for diagnostics.
+ * @return Allocated data pointer, or NULL on failure.
+ */
 void *HuMemMemoryAlloc(void *heap_ptr, s32 size, u32 retaddr)
 {
     return HuMemMemoryAlloc2(heap_ptr, size, -256, retaddr);
 }
 
+/**
+ * @brief Finds, splits, and marks a free allocator block.
+ *
+ * @param heap_ptr Heap root.
+ * @param size Requested data size in bytes.
+ * @param num Allocation tag.
+ * @param retaddr Call-site address retained for diagnostics.
+ * @return Allocated data pointer, or NULL if no block is large enough.
+ */
 static void *HuMemMemoryAlloc2(void *heap_ptr, s32 size, u32 num, u32 retaddr)
 {
     s32 alloc_size = MEM_ALLOC_SIZE(size);
@@ -72,6 +105,13 @@ static void *HuMemMemoryAlloc2(void *heap_ptr, s32 size, u32 num, u32 retaddr)
     return NULL;
 }
 
+/**
+ * @brief Frees all allocated blocks carrying a given tag.
+ *
+ * @param heap_ptr Heap root whose circular block list is scanned.
+ * @param num Exact allocation tag to release.
+ * @param retaddr Call-site address recorded in each block after it is freed.
+ */
 void HuMemMemoryFreeNum(void *heap_ptr, u32 num, u32 retaddr)
 {
     struct memory_block *block = heap_ptr;
@@ -85,11 +125,20 @@ void HuMemMemoryFreeNum(void *heap_ptr, u32 num, u32 retaddr)
     
 }
 
+/**
+ * @brief Retains the original tail-allocation error string in this unit.
+ */
 static void HuMemTailMemoryAlloc2() //Required for string literal
 {
     OSReport("memory allocation(tail) error.\n");
 }
 
+/**
+ * @brief Frees an allocation and coalesces adjacent free blocks.
+ *
+ * @param ptr Allocation to free; NULL is accepted.
+ * @param retaddr Call-site address retained for diagnostics.
+ */
 void HuMemMemoryFree(void *ptr, u32 retaddr)
 {
     struct memory_block *block;
@@ -119,6 +168,12 @@ void HuMemMemoryFree(void *ptr, u32 retaddr)
     block->retaddr = retaddr;
 }
 
+/**
+ * @brief Totals the sizes of allocated blocks in a heap.
+ *
+ * @param heap_ptr Heap root.
+ * @return Allocated bytes, including block headers and alignment.
+ */
 s32 HuMemUsedMemorySizeGet(void *heap_ptr)
 {
     struct memory_block *block = heap_ptr;
@@ -132,6 +187,12 @@ s32 HuMemUsedMemorySizeGet(void *heap_ptr)
     return size;
 }
 
+/**
+ * @brief Counts allocated blocks in a heap.
+ *
+ * @param heap_ptr Heap root.
+ * @return Number of allocated blocks.
+ */
 s32 HuMemUsedMemoryBlockGet(void *heap_ptr)
 {
     struct memory_block *block = heap_ptr;
@@ -145,11 +206,24 @@ s32 HuMemUsedMemoryBlockGet(void *heap_ptr)
     return num_blocks;
 }
 
+/**
+ * @brief Calculates the allocator block size for a requested data size.
+ *
+ * @param size Requested data size in bytes.
+ * @return Size including the header and required alignment.
+ */
 s32 HuMemMemoryAllocSizeGet(s32 size)
 {
     return MEM_ALLOC_SIZE(size);
 }
 
+/**
+ * @brief Reports allocator blocks and aggregate usage for a heap.
+ *
+ * @param heap_ptr Heap root.
+ * @param status Negative to show all blocks, zero for free blocks, or positive
+ * for allocated blocks.
+ */
 void HuMemHeapDump(void *heap_ptr, s16 status)
 {
     struct memory_block *block = heap_ptr;
@@ -188,6 +262,12 @@ void HuMemHeapDump(void *heap_ptr, s16 status)
     OSReport("======== HuMem heap dump %08x end =====\n", heap_ptr);
 }
 
+/**
+ * @brief Returns the usable size of a valid allocation.
+ *
+ * @param ptr Allocation to inspect.
+ * @return Usable byte count, or zero for NULL or an invalid block.
+ */
 s32 HuMemMemorySizeGet(void *ptr)
 {
     struct memory_block *block;

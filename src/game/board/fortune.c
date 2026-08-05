@@ -20,7 +20,7 @@ typedef struct platform_work {
         u8 kill : 1;
 		u8 state : 2;
     };
-    s16 unk02;
+    s16 unidentified_02;
     s16 model;
 } PlatformWork;
 
@@ -61,6 +61,18 @@ static void ComFortuneAddCoin(s32 player1, s32 player2, s32 max_coins);
 static void ComFortuneSwapCoin(s32 player1, s32 player2);
 static void ComFortuneSwapStar(s32 player1, s32 player2);
 
+/**
+ * @brief Run the Fortune Space event for the player who landed there.
+ *
+ * @details Tutorial mode shows its Fortune Space explanation without starting
+ * the minigame. Mini players cannot activate the event. Otherwise this blocks
+ * until the Fortune process either launches Reversal of Fortune or simulates
+ * its result for a hidden CPU minigame.
+ *
+ * @param player Player who landed on the Fortune Space.
+ * @param space Landed space index; the current implementation uses the
+ *     player's stored current space instead.
+ */
 void BoardFortuneExec(s32 player, s32 space)
 {
 	if(_CheckFlag(FLAG_ID_MAKE(1, 11))) {
@@ -87,6 +99,7 @@ void BoardFortuneExec(s32 player, s32 space)
 	GWPlayer[player].color = 3;
 }
 
+/** @brief Dispatch the Fortune sequence before or after Reversal of Fortune. */
 static void FortuneExec(void)
 {
 	BoardAudSeqFadeOut(0, 1000);
@@ -99,15 +112,22 @@ static void FortuneExec(void)
 	HuPrcEnd();
 }
 
+/** @brief Clear the process handle when the Fortune child process exits. */
 static void DestroyFortune(void)
 {
 	fortuneProc = NULL;
 }
 
+/**
+ * @brief Stage the Fortune platform and transition to Reversal of Fortune.
+ *
+ * @details For a CPU turn with CPU minigames hidden, the award is simulated
+ * locally and announced. Other turns set the minigame state and load m444dll.
+ */
 static void FortuneMain(void)
 {
 	s32 i;
-	s32 sp8 = -1;
+	s32 unused_model = -1;
 	s32 dir_table[] = {
 		DATADIR_W01,
 		DATADIR_W02,
@@ -178,6 +198,7 @@ static void FortuneMain(void)
 	}
 }
 
+/** @brief Restore the board player, camera, status UI, and wipe after the Fortune minigame. */
 static void FortunePostMG(void)
 {
 	s16 space;
@@ -199,6 +220,7 @@ static void FortunePostMG(void)
 	HuPrcSleep(12);
 }
 
+/** @brief Create the animated platform that carries the current player off the board. */
 static void CreateFortunePlatform(void)
 {
 	PlayerState *player;
@@ -207,7 +229,7 @@ static void CreateFortunePlatform(void)
 	fortunePlatformObj = omAddObjEx(boardObjMan, 257, 0, 0, -1, ExecFortunePlatform);
 	work = omObjGetWork(fortunePlatformObj, PlatformWork);
 	work->kill = 0;
-	work->unk02 = 0;
+	work->unidentified_02 = 0;
 	work->model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 3), NULL, 0);
 	BoardSpacePosGet(0, GWPlayer[currPlayer].space_curr, &pos);
 	BoardSpaceRotGet(0, GWPlayer[currPlayer].space_curr, &rot);
@@ -220,6 +242,7 @@ static void CreateFortunePlatform(void)
 	HuAudFXPlay(834);
 }
 
+/** @brief Supply the saved Fortune camera position and animated platform target. @param camera Camera state updated each frame. */
 static void CameraCalcFortune(BoardCameraData *camera)
 {
 	camera->pos = camPosFortune;
@@ -229,6 +252,10 @@ static void CameraCalcFortune(BoardCameraData *camera)
 	camera->target = camTargetFortune;
 }
 
+/**
+ * @brief Update the Fortune platform and its camera target.
+ * @param object Platform object whose work owns the model and lifecycle flags.
+ */
 static void ExecFortunePlatform(OMOBJ *object)
 {
 	PlatformWork *work = omObjGetWork(object, PlatformWork);
@@ -271,6 +298,7 @@ static void ExecFortunePlatform(OMOBJ *object)
 	}
 }
 
+/** @brief Show the message describing the locally simulated CPU Fortune award. */
 static void ExecComFortuneWin(void)
 {
 	s32 player_curr = GWSystem.player_curr;
@@ -311,11 +339,12 @@ static void ExecComFortuneWin(void)
 	GWSystem.player_curr = player_curr;
 }
 
+/** @brief Randomly choose two players and apply a simulated CPU Fortune award. */
 static void ConfigComFortune(void)
 {
 	s32 type;
 	s32 random;
-	s8 prizeTbl[] = { 5, 3, 0, 1, 4 };
+	s8 prize_type_table[] = { 5, 3, 0, 1, 4 };
 	random = BoardRandMod(100);
 	if(random > 95) {
 		type = 0;
@@ -326,11 +355,11 @@ static void ConfigComFortune(void)
 	}
 	switch(type) {
 		case 0:
-			comPrize = prizeTbl[BoardRandMod(2)];
+			comPrize = prize_type_table[BoardRandMod(2)];
 			break;
 			
 		case 1:
-			comPrize = prizeTbl[BoardRandMod(3)+2];
+			comPrize = prize_type_table[BoardRandMod(3)+2];
 			break;
 			
 		case 2:
@@ -373,6 +402,7 @@ static void ConfigComFortune(void)
 	}
 }
 
+/** @brief Transfer up to a capped number of stars between Fortune players. @param player1 Player losing stars. @param player2 Player receiving stars. @param max_stars Maximum stars transferred. */
 static void ComFortuneAddStar(s32 player1, s32 player2, s32 max_stars)
 {
 	s32 stars = GWStarsGet(player1);
@@ -384,29 +414,32 @@ static void ComFortuneAddStar(s32 player1, s32 player2, s32 max_stars)
 	BoardPlayerStarsAdd(player2, stars);
 }
 
-static void ComFortuneAddCoin(s32 player1, s32 player2, s32 max_stars)
+/** @brief Transfer up to a capped number of coins between Fortune players. @param player1 Player losing coins. @param player2 Player receiving coins. @param max_coins Maximum coins transferred. */
+static void ComFortuneAddCoin(s32 player1, s32 player2, s32 max_coins)
 {
-	s32 stars = BoardPlayerCoinsGet(player1);
-	comCoin = stars;
-	if(stars > max_stars) {
-		stars = max_stars;
+    s32 stars = BoardPlayerCoinsGet(player1);
+    comCoin = stars;
+    if(stars > max_coins) {
+        stars = max_coins;
 	}
 	BoardPlayerCoinsAdd(player1, -stars);
 	BoardPlayerCoinsAdd(player2, stars);
 }
 
+/** @brief Exchange the complete coin totals of two players. @param player1 Player whose coin total is saved for @p player2, then replaced with @p player2's total. @param player2 Player whose coin total is copied to @p player1 before receiving @p player1's saved total. */
 static void ComFortuneSwapCoin(s32 player1, s32 player2)
 {
-	s32 temp;
-	temp = BoardPlayerCoinsGet(player1);
+	s32 player1_coin_total;
+	player1_coin_total = BoardPlayerCoinsGet(player1);
 	BoardPlayerCoinsSet(player1, BoardPlayerCoinsGet(player2));
-	BoardPlayerCoinsSet(player2, temp);
+	BoardPlayerCoinsSet(player2, player1_coin_total);
 }
 
+/** @brief Exchange the complete star totals of two players. @param player1 Player whose star total is saved for @p player2, then replaced with @p player2's total. @param player2 Player whose star total is copied to @p player1 before receiving @p player1's saved total. */
 static void ComFortuneSwapStar(s32 player1, s32 player2)
 {
-	s32 temp;
-	temp = GWStarsGet(player1);
+	s32 player1_star_total;
+	player1_star_total = GWStarsGet(player1);
 	GWStarsSet(player1, GWStarsGet(player2));
-	GWStarsSet(player2, temp);
+	GWStarsSet(player2, player1_star_total);
 }
