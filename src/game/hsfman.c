@@ -2535,9 +2535,9 @@ void Hu3DShadowCreate(f32 fov, f32 near, f32 far) {
  * @param camera_target Shadow-camera target point.
  */
 void Hu3DShadowPosSet(Vec* camera_position, Vec* camera_up, Vec* camera_target) {
-    Hu3DShadowData.camera_position = *camera_position;
-    Hu3DShadowData.camera_target = *camera_target;
-    Hu3DShadowData.camera_up = *camera_up;
+    Hu3DShadowData.camPos = *camera_position;
+    Hu3DShadowData.camTarget = *camera_target;
+    Hu3DShadowData.camUp = *camera_up;
 }
 
 /**
