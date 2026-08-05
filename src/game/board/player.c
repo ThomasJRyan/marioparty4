@@ -212,38 +212,38 @@ s32 BoardItemPrevGet(void)
 /**
  * @brief Stores the item used before the current board movement.
  *
- * @param type Item ID to store.
+ * @param item Item ID remembered for restoration after movement; -1 clears the remembered item.
  */
-void BoardItemPrevSet(s32 type)
+void BoardItemPrevSet(s32 item)
 {
-    itemPrev = type;
+    itemPrev = item;
 }
 
 /**
  * @brief Gets the character message-table index for a player.
  *
- * @param player Player index.
+ * @param player Player whose character selects the message-table entry.
  *
  * @return The character message-table index.
  */
 s32 BoardPlayerGetCharMess(s32 player)
 {
-    s32 charMess[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    s32 character_messages[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-    return charMess[GWPlayer[player].character];
+    return character_messages[GWPlayer[player].character];
 }
 
 /**
  * @brief Gets the display name for a player character.
  *
- * @param player Player index.
+ * @param player Player whose character selects the returned static name string.
  *
  * @return A pointer to the static character name string.
  */
 char *BoardPlayerGetCharName(s32 player)
 {
-    char *charNames[8] = { "Mario", "Luigi", "Peach", "Yoshi", "Wario", "Donky", "Daisy", "Waluigi" };
-    return charNames[GWPlayer[player].character];
+    char *character_names[8] = { "Mario", "Luigi", "Peach", "Yoshi", "Wario", "Donky", "Daisy", "Waluigi" };
+    return character_names[GWPlayer[player].character];
 }
 
 /**
@@ -398,25 +398,25 @@ void BoardPlayerModelKill(void)
 /**
  * @brief Sets a player model render layer.
  *
- * @param arg0 Player index.
+ * @param player Player whose board model is assigned to a render layer.
  *
- * @param arg1 Render layer.
+ * @param layer Board-model render layer passed to `BoardModelLayerSet`.
  */
-void BoardPlayerLayerSet(s32 arg0, s32 arg1)
+void BoardPlayerLayerSet(s32 player, s32 layer)
 {
-    BoardModelLayerSet(BoardPlayerModelGet(arg0), arg1);
+    BoardModelLayerSet(BoardPlayerModelGet(player), layer);
 }
 
 /**
  * @brief Sets the camera mask for a player model.
  *
- * @param arg0 Player index.
+ * @param player Player whose board model camera visibility is changed.
  *
- * @param arg1 Camera mask.
+ * @param camera_mask Camera visibility mask applied to the player model.
  */
-void BoardPlayerCameraSet(s32 arg0, u16 arg1)
+void BoardPlayerCameraSet(s32 player, u16 camera_mask)
 {
-    BoardModelCameraSet(BoardPlayerModelGet(arg0), arg1);
+    BoardModelCameraSet(BoardPlayerModelGet(player), camera_mask);
 }
 
 /**
@@ -425,13 +425,13 @@ void BoardPlayerCameraSet(s32 arg0, u16 arg1)
  * @details The model layer normalizes every negative value to -1. The effect
  * of `BoardModel.unk_D4` is not yet identified.
  *
- * @param arg0 Player whose board model is updated.
+ * @param player Player whose board-model `unk_D4` field is updated.
  *
- * @param arg8 Property value; its exact semantics are not yet identified.
+ * @param value Value stored in `BoardModel.unk_D4`; negative inputs are normalized to -1.
  */
-void fn_80062A40(s32 arg0, f32 arg8)
+void fn_80062A40(s32 player, f32 value)
 {
-    fn_8006DDE8(BoardPlayerModelGet(arg0), arg8);
+    fn_8006DDE8(BoardPlayerModelGet(player), value);
 }
 
 /**
@@ -440,42 +440,42 @@ void fn_80062A40(s32 arg0, f32 arg8)
  * @details The current model-layer implementation only verifies that the model
  * handle resolves; it does not inspect the forwarded flag.
  *
- * @param arg0 Player whose board model is checked.
+ * @param player Player whose board-model handle is validated.
  *
- * @param arg1 Flag forwarded to `BoardModelExistCheck`; currently unused there.
+ * @param check_flag Flag forwarded as 0 or 1 to `BoardModelExistCheck`; that function currently does not inspect it.
  */
-void BoardPlayerExistCheck(s32 arg0, s32 arg1)
+void BoardPlayerExistCheck(s32 player, s32 check_flag)
 {
-    if (arg1 == 0) {
-        BoardModelExistCheck(BoardPlayerModelGet(arg0), 0);
+    if (check_flag == 0) {
+        BoardModelExistCheck(BoardPlayerModelGet(player), 0);
     }
     else {
-        BoardModelExistCheck(BoardPlayerModelGet(arg0), 1);
+        BoardModelExistCheck(BoardPlayerModelGet(player), 1);
     }
 }
 
 /**
  * @brief Adds an item to the first free player inventory slot.
  *
- * @param arg0 Player index.
+ * @param player Player whose inventory receives the item.
  *
- * @param arg1 Item ID to add.
+ * @param item Board item ID placed in the first `BOARD_ITEM_NONE` slot.
  *
  * @return The inventory slot used, or -1 if the inventory is full.
  */
-s32 BoardPlayerItemAdd(s32 arg0, s32 arg1)
+s32 BoardPlayerItemAdd(s32 player, s32 item)
 {
     PlayerState *player_state;
     s32 added_slot;
     s32 item_slot;
 
     added_slot = -1;
-    player_state = BoardPlayerGet(arg0);
-    for (item_slot = 0; item_slot < ARRAY_COUNT(GWPlayer[arg0].items); item_slot++) {
-        if (GWPlayer[arg0].items[item_slot] == BOARD_ITEM_NONE) {
+    player_state = BoardPlayerGet(player);
+    for (item_slot = 0; item_slot < ARRAY_COUNT(GWPlayer[player].items); item_slot++) {
+        if (GWPlayer[player].items[item_slot] == BOARD_ITEM_NONE) {
             HuAudFXPlay(0x360);
-            player_state->items[item_slot] = arg1;
-            BoardItemStatusKill(arg0);
+            player_state->items[item_slot] = item;
+            BoardItemStatusKill(player);
             added_slot = item_slot;
             break;
         }
@@ -486,49 +486,49 @@ s32 BoardPlayerItemAdd(s32 arg0, s32 arg1)
 /**
  * @brief Removes and returns an item from a player inventory slot.
  *
- * @param arg0 Player index.
+ * @param player Player whose inventory slot is removed and compacted.
  *
- * @param arg1 Inventory slot to remove.
+ * @param item_slot Zero-based inventory slot to remove.
  *
  * @return The removed item ID, or BOARD_ITEM_NONE for an empty slot.
  */
-s32 BoardPlayerItemRemove(s32 arg0, s32 arg1)
+s32 BoardPlayerItemRemove(s32 player, s32 item_slot)
 {
     s32 removed_item;
     PlayerState *player_state;
 
-    player_state = BoardPlayerGet(arg0);
-    removed_item = player_state->items[arg1];
-    if (player_state->items[arg1] == BOARD_ITEM_NONE) {
+    player_state = BoardPlayerGet(player);
+    removed_item = player_state->items[item_slot];
+    if (player_state->items[item_slot] == BOARD_ITEM_NONE) {
         return removed_item;
     }
-    if (arg1 == 0) {
+    if (item_slot == 0) {
         player_state->items[0] = player_state->items[1];
     }
-    if ((arg1 == 1) || (arg1 == 0)) {
+    if ((item_slot == 1) || (item_slot == 0)) {
         player_state->items[1] = player_state->items[2];
     }
     player_state->items[2] = BOARD_ITEM_NONE;
     HuAudFXPlay(0x363);
-    BoardItemStatusKill(arg0);
+    BoardItemStatusKill(player);
     return removed_item;
 }
 
 /**
  * @brief Finds an item in a player inventory.
  *
- * @param playerNo Player index.
+ * @param player Player whose three inventory slots are searched.
  *
- * @param item Item ID to find.
+ * @param item Board item ID to locate.
  *
  * @return The matching inventory slot, or -1 if not found.
  */
-s32 BoardPlayerItemFind(s32 playerNo, s32 item)
+s32 BoardPlayerItemFind(s32 player, s32 item)
 {
     s32 inv_slot;
 
-    for (inv_slot = 0; inv_slot < ARRAY_COUNT(GWPlayer[playerNo].items); inv_slot++) {
-        if (item == GWPlayer[playerNo].items[inv_slot]) {
+    for (inv_slot = 0; inv_slot < ARRAY_COUNT(GWPlayer[player].items); inv_slot++) {
+        if (item == GWPlayer[player].items[inv_slot]) {
             return inv_slot;
         }
     }
@@ -539,229 +539,229 @@ s32 BoardPlayerItemFind(s32 playerNo, s32 item)
 /**
  * @brief Counts the items in a player inventory.
  *
- * @param playerNo Player index.
+ * @param player Player whose occupied inventory slots are counted.
  *
  * @return The number of occupied inventory slots.
  */
-s32 BoardPlayerItemCount(s32 playerNo)
+s32 BoardPlayerItemCount(s32 player)
 {
-    s32 itemCount;
+    s32 item_count;
     s32 i;
 
-    for (i = 0, itemCount = i; i < ARRAY_COUNT(GWPlayer[playerNo].items); i++) {
-        if (GWPlayer[playerNo].items[i] != BOARD_ITEM_NONE) {
-            itemCount++;
+    for (i = 0, item_count = i; i < ARRAY_COUNT(GWPlayer[player].items); i++) {
+        if (GWPlayer[player].items[i] != BOARD_ITEM_NONE) {
+            item_count++;
         }
     }
 
-    return itemCount;
+    return item_count;
 }
 
 /**
  * @brief Moves a player to their assigned corner of the current space.
  *
- * @param arg0 Player index.
+ * @param player Player moved to the corner assigned for their current shared space.
  */
-void BoardPlayerCornerPosSet(s32 arg0)
+void BoardPlayerCornerPosSet(s32 player)
 {
     Vec corner_pos;
 
-    BoardPlayerCornerPosGet(arg0, &corner_pos);
-    BoardPlayerPosSetV(arg0, &corner_pos);
+    BoardPlayerCornerPosGet(player, &corner_pos);
+    BoardPlayerPosSetV(player, &corner_pos);
 }
 
 /**
  * @brief Gets a player corner position on the current space.
  *
- * @param arg0 Player index.
+ * @param player Player whose shared-space ordering determines the corner index.
  *
- * @param arg1 Output corner position.
+ * @param position Receives the corner assigned by current-turn ordering among players sharing the space; ignored when NULL.
  */
-void BoardPlayerCornerPosGet(s32 arg0, Vec *arg1)
+void BoardPlayerCornerPosGet(s32 player, Vec *position)
 {
     s32 ordered_player;
     s32 players_checked;
     s32 corner_index;
     s32 space;
 
-    if (arg1 != 0) {
-        space = GWPlayer[arg0].space_curr;
+    if (position != 0) {
+        space = GWPlayer[player].space_curr;
         ordered_player = GWSystem.player_curr;
         if (ordered_player == -1) {
             ordered_player = 0;
         }
         for (players_checked = 0, corner_index = players_checked; players_checked < 4; ordered_player = (ordered_player + 1) & 3, players_checked++) {
-            if (ordered_player == arg0)
+            if (ordered_player == player)
                 break;
             if (space == GWPlayer[ordered_player].space_curr) {
                 corner_index += 1;
             }
         }
-        BoardSpaceCornerPosGet(space, corner_index, arg1);
+        BoardSpaceCornerPosGet(space, corner_index, position);
     }
 }
 
 /**
  * @brief Sets the ambient color of a player model.
  *
- * @param arg0 Player index.
+ * @param player Player whose model ambient color is changed.
  *
- * @param arg8 Red ambient component.
+ * @param red Red ambient-color component forwarded to the model layer.
  *
- * @param arg9 Green ambient component.
+ * @param green Green ambient-color component forwarded to the model layer.
  *
- * @param argA Blue ambient component.
+ * @param blue Blue ambient-color component forwarded to the model layer.
  */
-void BoardPlayerAmbSet(s32 arg0, f32 arg8, f32 arg9, f32 argA)
+void BoardPlayerAmbSet(s32 player, f32 red, f32 green, f32 blue)
 {
-    BoardModelAmbSet(BoardPlayerModelGet(arg0), arg8, arg9, argA);
+    BoardModelAmbSet(BoardPlayerModelGet(player), red, green, blue);
 }
 
 /**
  * @brief Sets the transform matrix of a player model.
  *
- * @param arg0 Player index.
+ * @param player Player whose model transform is replaced.
  *
- * @param arg1 Transform matrix.
+ * @param matrix Transform matrix copied to the player model.
  */
-void BoardPlayerMtxSet(s32 arg0, Mtx *arg1)
+void BoardPlayerMtxSet(s32 player, Mtx *matrix)
 {
-    BoardModelMtxSet(BoardPlayerModelGet(arg0), arg1);
+    BoardModelMtxSet(BoardPlayerModelGet(player), matrix);
 }
 
 /**
  * @brief Sets a player position from a vector.
  *
- * @param arg0 Player index.
+ * @param player Player whose model position is updated; the active Bowser suit follows it.
  *
- * @param arg1 Position vector.
+ * @param position World-space position copied to the player and active suit models.
  */
-void BoardPlayerPosSetV(s32 arg0, Vec *arg1)
+void BoardPlayerPosSetV(s32 player, Vec *position)
 {
-    BoardModelPosSetV(BoardPlayerModelGet(arg0), arg1);
+    BoardModelPosSetV(BoardPlayerModelGet(player), position);
 
-    if (GWPlayer[arg0].bowser_suit != 0) {
-        BoardModelPosSetV(suitMdl, arg1);
+    if (GWPlayer[player].bowser_suit != 0) {
+        BoardModelPosSetV(suitMdl, position);
     }
 }
 
 /**
  * @brief Sets a player position from individual coordinates.
  *
- * @param arg0 Player index.
+ * @param player Player whose model position is updated; the active Bowser suit follows it.
  *
- * @param arg8 X coordinate.
+ * @param x World-space X coordinate.
  *
- * @param arg9 Y coordinate.
+ * @param y World-space Y coordinate.
  *
- * @param argA Z coordinate.
+ * @param z World-space Z coordinate.
  */
-void BoardPlayerPosSet(s32 arg0, f32 arg8, f32 arg9, f32 argA)
+void BoardPlayerPosSet(s32 player, f32 x, f32 y, f32 z)
 {
-    BoardModelPosSet(BoardPlayerModelGet(arg0), arg8, arg9, argA);
+    BoardModelPosSet(BoardPlayerModelGet(player), x, y, z);
 
-    if (GWPlayer[arg0].bowser_suit != 0) {
-        BoardModelPosSet(suitMdl, arg8, arg9, argA);
+    if (GWPlayer[player].bowser_suit != 0) {
+        BoardModelPosSet(suitMdl, x, y, z);
     }
 }
 
 /**
  * @brief Gets a player position.
  *
- * @param arg0 Player index.
+ * @param player Player whose board-model position is queried.
  *
- * @param arg1 Output position.
+ * @param position Receives the player model world-space position.
  */
-void BoardPlayerPosGet(s32 arg0, Vec *arg1)
+void BoardPlayerPosGet(s32 player, Vec *position)
 {
-    BoardModelPosGet(BoardPlayerModelGet(arg0), arg1);
+    BoardModelPosGet(BoardPlayerModelGet(player), position);
 }
 
 /**
  * @brief Sets a player rotation from a vector.
  *
- * @param arg0 Player index.
+ * @param player Player whose model rotation is updated; the active Bowser suit follows it.
  *
- * @param arg1 Rotation vector.
+ * @param rotation Euler rotation vector in degrees.
  */
-void BoardPlayerRotSetV(s32 arg0, Vec *arg1)
+void BoardPlayerRotSetV(s32 player, Vec *rotation)
 {
-    BoardModelRotSetV(BoardPlayerModelGet(arg0), arg1);
+    BoardModelRotSetV(BoardPlayerModelGet(player), rotation);
 
-    if (GWPlayer[arg0].bowser_suit != 0) {
-        BoardModelRotSetV(suitMdl, arg1);
+    if (GWPlayer[player].bowser_suit != 0) {
+        BoardModelRotSetV(suitMdl, rotation);
     }
 }
 
 /**
  * @brief Sets a player rotation from individual angles.
  *
- * @param arg0 Player index.
+ * @param player Player whose model rotation is updated; the active Bowser suit follows it.
  *
- * @param arg8 X rotation.
+ * @param x X-axis rotation in degrees.
  *
- * @param arg9 Y rotation.
+ * @param y Y-axis rotation in degrees.
  *
- * @param argA Z rotation.
+ * @param z Z-axis rotation in degrees.
  */
-void BoardPlayerRotSet(s32 arg0, f32 arg8, f32 arg9, f32 argA)
+void BoardPlayerRotSet(s32 player, f32 x, f32 y, f32 z)
 {
-    BoardModelRotSet(BoardPlayerModelGet(arg0), arg8, arg9, argA);
+    BoardModelRotSet(BoardPlayerModelGet(player), x, y, z);
 
-    if (GWPlayer[arg0].bowser_suit != 0) {
-        BoardModelRotSet(suitMdl, arg8, arg9, argA);
+    if (GWPlayer[player].bowser_suit != 0) {
+        BoardModelRotSet(suitMdl, x, y, z);
     }
 }
 
 /**
  * @brief Gets a player rotation.
  *
- * @param arg0 Player index.
+ * @param player Player whose board-model rotation is queried.
  *
- * @param arg1 Output rotation.
+ * @param rotation Receives the player model Euler rotation in degrees.
  */
-void BoardPlayerRotGet(s32 arg0, Vec *arg1)
+void BoardPlayerRotGet(s32 player, Vec *rotation)
 {
-    BoardModelRotGet(BoardPlayerModelGet(arg0), arg1);
+    BoardModelRotGet(BoardPlayerModelGet(player), rotation);
 }
 
 /**
  * @brief Sets and normalizes a player yaw angle.
  *
- * @param arg0 Player index.
+ * @param player Player whose yaw is updated; the active Bowser suit follows it.
  *
- * @param arg8 Yaw angle in degrees.
+ * @param yaw Yaw in degrees, normalized by one revolution when outside 0 through 360.
  */
-void BoardPlayerRotYSet(s32 arg0, f32 arg8)
+void BoardPlayerRotYSet(s32 player, f32 yaw)
 {
-    if (arg8 < 0.0f) {
-        arg8 += 360.0f;
+    if (yaw < 0.0f) {
+        yaw += 360.0f;
     }
-    if (arg8 > 360.0f) {
-        arg8 -= 360.0f;
+    if (yaw > 360.0f) {
+        yaw -= 360.0f;
     }
-    BoardModelRotYSet(BoardPlayerModelGet(arg0), arg8);
-    if (GWPlayer[arg0].bowser_suit != 0) {
-        BoardModelRotYSet(suitMdl, arg8);
+    BoardModelRotYSet(BoardPlayerModelGet(player), yaw);
+    if (GWPlayer[player].bowser_suit != 0) {
+        BoardModelRotYSet(suitMdl, yaw);
     }
 }
 
 /**
  * @brief Gets a player yaw angle.
  *
- * @param arg0 Player index.
+ * @param player Player whose yaw is read from the suit model when suited, otherwise from the character model.
  *
  * @return The player model yaw in degrees.
  */
-f32 BoardPlayerRotYGet(s32 arg0)
+f32 BoardPlayerRotYGet(s32 player)
 {
     f32 rotation_y;
 
-    if (GWPlayer[arg0].bowser_suit != 0) {
+    if (GWPlayer[player].bowser_suit != 0) {
         rotation_y = BoardModelRotYGet(suitMdl);
     }
     else {
-        rotation_y = BoardModelRotYGet(BoardPlayerModelGet(arg0));
+        rotation_y = BoardModelRotYGet(BoardPlayerModelGet(player));
     }
     return rotation_y;
 }
@@ -769,119 +769,121 @@ f32 BoardPlayerRotYGet(s32 arg0)
 /**
  * @brief Sets a player model scale from a vector.
  *
- * @param arg0 Player index.
+ * @param player Player whose character-model scale is changed.
  *
- * @param arg1 Scale vector.
+ * @param scale Per-axis model scale multipliers.
  */
-void BoardPlayerScaleSetV(s32 arg0, Vec *arg1)
+void BoardPlayerScaleSetV(s32 player, Vec *scale)
 {
-    BoardModelScaleSetV(BoardPlayerModelGet(arg0), arg1);
+    BoardModelScaleSetV(BoardPlayerModelGet(player), scale);
 }
 
 /**
  * @brief Sets a player model scale from individual components.
  *
- * @param arg0 Player index.
+ * @param player Player whose character-model scale is changed.
  *
- * @param arg8 X scale.
+ * @param x X-axis scale multiplier.
  *
- * @param arg9 Y scale.
+ * @param y Y-axis scale multiplier.
  *
- * @param argA Z scale.
+ * @param z Z-axis scale multiplier.
  */
-void BoardPlayerScaleSet(s32 arg0, f32 arg8, f32 arg9, f32 argA)
+void BoardPlayerScaleSet(s32 player, f32 x, f32 y, f32 z)
 {
-    BoardModelScaleSet(BoardPlayerModelGet(arg0), arg8, arg9, argA);
+    BoardModelScaleSet(BoardPlayerModelGet(player), x, y, z);
 }
 
 /**
  * @brief Gets a player model scale.
  *
- * @param arg0 Player index.
+ * @param player Player whose character-model scale is queried.
  *
- * @param arg1 Output scale.
+ * @param scale Receives the per-axis scale multipliers.
  */
-void BoardPlayerScaleGet(s32 arg0, Vec *arg1)
+void BoardPlayerScaleGet(s32 player, Vec *scale)
 {
-    BoardModelScaleGet(BoardPlayerModelGet(arg0), arg1);
+    BoardModelScaleGet(BoardPlayerModelGet(player), scale);
 }
 
 /**
  * @brief Gets the tracked current motion for a player.
  *
- * @param arg0 Player index.
+ * @param player Player whose tracked board-motion slot is returned.
  *
  * @return The tracked player motion index.
  */
-s16 BoardPlayerCurrMotionGet(s32 arg0)
+s16 BoardPlayerCurrMotionGet(s32 player)
 {
-    PlayerState *player = BoardPlayerGet(arg0);
+    PlayerState *player_state = BoardPlayerGet(player);
 
-    return playerMot[player->player_idx];
+    return playerMot[player_state->player_idx];
 }
 
 /**
  * @brief Enables or disables a player model voice channel.
  *
- * @param arg0 Player index.
+ * @param player Player whose character-model voice setting is changed.
  *
- * @param arg1 Motion slot whose associated voice is toggled.
+ * @param motion Motion slot whose associated voice playback is toggled.
  *
- * @param arg2 Nonzero to enable the channel.
+ * @param enabled Zero disables voice playback for the motion; nonzero enables it.
  */
-void BoardPlayerVoiceEnableSet(s32 arg0, s32 arg1, s32 arg2)
+void BoardPlayerVoiceEnableSet(s32 player, s32 motion, s32 enabled)
 {
-    BoardModelVoiceEnableSet(BoardPlayerModelGet(arg0), arg1, arg2);
+    BoardModelVoiceEnableSet(BoardPlayerModelGet(player), motion, enabled);
 }
 
 /**
  * @brief Creates a motion for a player model.
  *
- * @param arg0 Player index.
+ * @param player Player model that receives the loaded motion.
  *
- * @param arg1 Motion data ID.
+ * @param data_num Motion data resource number to load into a free model slot.
  *
- * @return The created motion handle.
+ * @return Motion slot index on success, or -1 when the player model is
+ * invalid, no slot is free, or motion data cannot be loaded.
  */
-s32 BoardPlayerMotionCreate(s32 arg0, s32 arg1)
+s32 BoardPlayerMotionCreate(s32 player, s32 data_num)
 {
-    return BoardModelMotionCreate(BoardPlayerModelGet(arg0), arg1);
+    return BoardModelMotionCreate(BoardPlayerModelGet(player), data_num);
 }
 
 /**
  * @brief Destroys a player model motion.
  *
- * @param arg0 Player index.
+ * @param player Player model that owns the motion slot.
  *
- * @param arg1 Motion handle.
+ * @param motion Motion slot index to clear.
  *
- * @return The underlying model motion removal result.
+ * @return 0 after a valid motion slot is cleared, or -1 when the player model
+ * or motion slot is invalid.
  */
-s32 BoardPlayerMotionKill(s32 arg0, s32 arg1)
+s32 BoardPlayerMotionKill(s32 player, s32 motion)
 {
-    return BoardModelMotionKill(BoardPlayerModelGet(arg0), arg1);
+    return BoardModelMotionKill(BoardPlayerModelGet(player), motion);
 }
 
 /**
  * @brief Checks whether a player motion has ended.
  *
- * @param arg0 Player index.
+ * @param player Player whose current model motion is tested for completion.
  *
  * @return Nonzero if the motion has ended, otherwise zero.
  */
-s32 BoardPlayerMotionEndCheck(s32 arg0)
+s32 BoardPlayerMotionEndCheck(s32 player)
 {
-    return BoardModelMotionEndCheck(BoardPlayerModelGet(arg0));
+    return BoardModelMotionEndCheck(BoardPlayerModelGet(player));
 }
 
 /**
  * @brief Waits until a player motion has ended.
  *
- * @param arg0 Player index.
+ * @param player Player whose current model motion is polled until completion.
  */
-void BoardPlayerMotionEndWait(s32 arg0)
+void BoardPlayerMotionEndWait(s32 player)
 {
-    while (BoardModelMotionEndCheck(BoardPlayerModelGet(arg0)) == 0) {
+    while (BoardModelMotionEndCheck(BoardPlayerModelGet(player)) == 0) {
         HuPrcVSleep();
     }
 }
@@ -889,23 +891,23 @@ void BoardPlayerMotionEndWait(s32 arg0)
 /**
  * @brief Starts a player motion when it differs from the tracked motion.
  *
- * @param arg0 Player index.
+ * @param player Player whose tracked motion changes when startup succeeds.
  *
- * @param arg1 Motion index.
+ * @param motion Previously created motion slot to start.
  *
- * @param arg2 Motion attributes.
+ * @param attributes Motion playback attribute mask, such as loop or no-loop flags.
  */
-void BoardPlayerMotionStart(s32 arg0, s32 arg1, s32 arg2)
+void BoardPlayerMotionStart(s32 player, s32 motion, s32 attributes)
 {
-    PlayerState *player;
+    PlayerState *player_state;
     s32 start_result;
 
-    player = BoardPlayerGet(arg0);
-    if (arg1 == 0) { }
-    if (arg1 != playerMot[player->player_idx]) {
-        start_result = BoardModelMotionStart(BoardPlayerModelGet(arg0), arg1, arg2);
+    player_state = BoardPlayerGet(player);
+    if (motion == 0) { }
+    if (motion != playerMot[player_state->player_idx]) {
+        start_result = BoardModelMotionStart(BoardPlayerModelGet(player), motion, attributes);
         if (start_result == 0) {
-            playerMot[player->player_idx] = arg1;
+            playerMot[player_state->player_idx] = motion;
         }
     }
 }
@@ -913,27 +915,27 @@ void BoardPlayerMotionStart(s32 arg0, s32 arg1, s32 arg2)
 /**
  * @brief Blends a player model to a different motion.
  *
- * @param arg0 Player index.
+ * @param player Player whose tracked motion changes when the blend starts.
  *
- * @param arg1 Motion index.
+ * @param motion Previously created motion slot to blend toward.
  *
- * @param arg8 Starting motion time.
+ * @param start_time Starting frame on the target motion timeline.
  *
- * @param arg9 Blend duration.
+ * @param blend_time Number of frames used to blend into the target motion.
  *
- * @param arg2 Motion attributes.
+ * @param attributes Motion playback attribute mask applied to the target motion.
  */
-void BoardPlayerMotionShiftSet(s32 arg0, s32 arg1, f32 arg8, f32 arg9, u32 arg2)
+void BoardPlayerMotionShiftSet(s32 player, s32 motion, f32 start_time, f32 blend_time, u32 attributes)
 {
     s32 shift_result;
-    PlayerState *player;
+    PlayerState *player_state;
 
-    player = BoardPlayerGet(arg0);
-    if (arg1 == 0) { }
-    if (arg1 != playerMot[player->player_idx]) {
-        shift_result = BoardModelMotionShiftSet(BoardPlayerModelGet(arg0), arg1, arg8, arg9, arg2);
+    player_state = BoardPlayerGet(player);
+    if (motion == 0) { }
+    if (motion != playerMot[player_state->player_idx]) {
+        shift_result = BoardModelMotionShiftSet(BoardPlayerModelGet(player), motion, start_time, blend_time, attributes);
         if (shift_result == 0) {
-            playerMot[player->player_idx] = arg1;
+            playerMot[player_state->player_idx] = motion;
         }
     }
 }
@@ -941,209 +943,209 @@ void BoardPlayerMotionShiftSet(s32 arg0, s32 arg1, f32 arg8, f32 arg9, u32 arg2)
 /**
  * @brief Sets a player motion playback speed.
  *
- * @param arg0 Player index.
+ * @param player Player whose current motion playback rate is changed.
  *
- * @param arg8 Playback speed.
+ * @param speed Motion playback multiplier; zero pauses the motion.
  */
-void BoardPlayerMotionSpeedSet(s32 arg0, f32 arg8)
+void BoardPlayerMotionSpeedSet(s32 player, f32 speed)
 {
-    BoardModelMotionSpeedSet(BoardPlayerModelGet(arg0), arg8);
+    BoardModelMotionSpeedSet(BoardPlayerModelGet(player), speed);
 }
 
 /**
  * @brief Sets a player motion playback time.
  *
- * @param arg0 Player index.
+ * @param player Player whose current motion timeline is repositioned.
  *
- * @param arg8 Playback time.
+ * @param time Target motion frame.
  */
-void BoardPlayerMotionTimeSet(s32 arg0, f32 arg8)
+void BoardPlayerMotionTimeSet(s32 player, f32 time)
 {
-    BoardModelMotionTimeSet(BoardPlayerModelGet(arg0), arg8);
+    BoardModelMotionTimeSet(BoardPlayerModelGet(player), time);
 }
 
 /**
  * @brief Gets a player motion playback time.
  *
- * @param arg0 Player index.
+ * @param player Player whose current motion frame is returned.
  *
  * @return The current motion time.
  */
-f32 BoardPlayerMotionTimeGet(s32 arg0)
+f32 BoardPlayerMotionTimeGet(s32 player)
 {
-    return BoardModelMotionTimeGet(BoardPlayerModelGet(arg0));
+    return BoardModelMotionTimeGet(BoardPlayerModelGet(player));
 }
 
 /**
  * @brief Gets the maximum time of a player motion.
  *
- * @param arg0 Player index.
+ * @param player Player whose current motion duration is returned.
  *
  * @return The maximum motion time.
  */
-f32 BoardPlayerMotionMaxTimeGet(s32 arg0)
+f32 BoardPlayerMotionMaxTimeGet(s32 player)
 {
-    return BoardModelMotionMaxTimeGet(BoardPlayerModelGet(arg0));
+    return BoardModelMotionMaxTimeGet(BoardPlayerModelGet(player));
 }
 
 /**
  * @brief Sets the playback range of a player motion.
  *
- * @param arg0 Player index.
+ * @param player Player whose current motion playback range is limited.
  *
- * @param arg8 Start time.
+ * @param start_time First motion frame in the playback range.
  *
- * @param arg9 End time.
+ * @param end_time Last motion frame in the playback range.
  */
-void BoardPlayerMotionStartEndSet(s32 arg0, f32 arg8, f32 arg9)
+void BoardPlayerMotionStartEndSet(s32 player, f32 start_time, f32 end_time)
 {
-    BoardModelMotionStartEndSet(BoardPlayerModelGet(arg0), arg8, arg9);
+    BoardModelMotionStartEndSet(BoardPlayerModelGet(player), start_time, end_time);
 }
 
 /**
  * @brief Sets attributes on a player model.
  *
- * @param arg0 Player index.
+ * @param player Player whose character-model flags are enabled.
  *
- * @param arg1 Attribute mask.
+ * @param attributes Model attribute bitmask to set.
  */
-void BoardPlayerModelAttrSet(s32 arg0, s32 arg1)
+void BoardPlayerModelAttrSet(s32 player, s32 attributes)
 {
-    BoardModelAttrSet(BoardPlayerModelGet(arg0), arg1);
+    BoardModelAttrSet(BoardPlayerModelGet(player), attributes);
 }
 
 /**
  * @brief Clears attributes on a player model.
  *
- * @param arg0 Player index.
+ * @param player Player whose character-model flags are disabled.
  *
- * @param arg1 Attribute mask.
+ * @param attributes Model attribute bitmask to clear.
  */
-void BoardPlayerModelAttrReset(s32 arg0, s32 arg1)
+void BoardPlayerModelAttrReset(s32 player, s32 attributes)
 {
-    BoardModelAttrReset(BoardPlayerModelGet(arg0), arg1);
+    BoardModelAttrReset(BoardPlayerModelGet(player), attributes);
 }
 
 /**
  * @brief Sets a player coin count.
  *
- * @param arg0 Player index.
+ * @param player Player whose current coin count is replaced.
  *
- * @param arg1 Coin count.
+ * @param coins New current coin count passed to game-work storage.
  */
-void BoardPlayerCoinsSet(s32 arg0, s32 arg1)
+void BoardPlayerCoinsSet(s32 player, s32 coins)
 {
-    GWCoinsSet(arg0, arg1);
+    GWCoinsSet(player, coins);
 }
 
 /**
  * @brief Gets a player coin count.
  *
- * @param arg0 Player index.
+ * @param player Player whose current coin count is read.
  *
  * @return The current coin count.
  */
-s32 BoardPlayerCoinsGet(s32 arg0)
+s32 BoardPlayerCoinsGet(s32 player)
 {
-    return GWCoinsGet(arg0);
+    return GWCoinsGet(player);
 }
 
 /**
  * @brief Adds to a player coin count and lifetime total.
  *
- * @param arg0 Player index.
+ * @param player Player whose current coin count changes and whose lifetime total records positive gains.
  *
- * @param arg1 Signed coin delta.
+ * @param delta Signed coin change; positive gains also increase `coins_total`, capped at 999.
  */
-void BoardPlayerCoinsAdd(s32 arg0, s32 arg1)
+void BoardPlayerCoinsAdd(s32 player, s32 delta)
 {
-    PlayerState *player;
+    PlayerState *player_state;
     s16 coins;
 
-    player = BoardPlayerGet(arg0);
-    if ((arg1 > 0) && (player->coins_total < 0x3E7)) {
-        player->coins_total += arg1;
-        if (player->coins_total > 0x3E7) {
-            player->coins_total = 0x3E7;
+    player_state = BoardPlayerGet(player);
+    if ((delta > 0) && (player_state->coins_total < 0x3E7)) {
+        player_state->coins_total += delta;
+        if (player_state->coins_total > 0x3E7) {
+            player_state->coins_total = 0x3E7;
         }
     }
-    BoardPlayerCoinsSet(arg0, arg1 + BoardPlayerCoinsGet(arg0));
+    BoardPlayerCoinsSet(player, delta + BoardPlayerCoinsGet(player));
 }
 
 /**
  * @brief Adds to a player star count.
  *
- * @param arg0 Player index.
+ * @param player Player whose current star count is changed.
  *
- * @param arg1 Signed star delta.
+ * @param delta Signed star-count change.
  */
-void BoardPlayerStarsAdd(s32 arg0, s32 arg1)
+void BoardPlayerStarsAdd(s32 player, s32 delta)
 {
-    GWStarsSet(arg0, (arg1 + GWStarsGet(arg0)));
+    GWStarsSet(player, (delta + GWStarsGet(player)));
 }
 
 /**
  * @brief Sets a player size state and model scale.
  *
- * @param arg0 Player index.
+ * @param player Player whose size state, scale, and footstep effect are updated.
  *
- * @param arg1 Size state.
+ * @param size Size state: 0 normal, 1 Mini, or 2 Mega.
  */
-void BoardPlayerSizeSet(s32 arg0, s32 arg1)
+void BoardPlayerSizeSet(s32 player, s32 size)
 {
     PlayerState *player_state;
     Vec size_scales[3] = { { 1, 1, 1 }, { 0.3, 0.3, 0.3 }, { 2.5, 2.5, 2.5 } };
 
-    player_state = BoardPlayerGet(arg0);
-    player_state->size = arg1;
-    if (arg1 == 2) {
-        CharModelStepFxSet(GWPlayer[arg0].character, 4);
+    player_state = BoardPlayerGet(player);
+    player_state->size = size;
+    if (size == 2) {
+        CharModelStepFxSet(GWPlayer[player].character, 4);
     }
-    else if (arg1 == 1) {
-        CharModelStepFxSet(GWPlayer[arg0].character, 5);
+    else if (size == 1) {
+        CharModelStepFxSet(GWPlayer[player].character, 5);
     }
     else {
-        CharModelStepFxSet(GWPlayer[arg0].character, 0);
+        CharModelStepFxSet(GWPlayer[player].character, 0);
     }
-    BoardPlayerScaleSetV(arg0, &size_scales[arg1]);
+    BoardPlayerScaleSetV(player, &size_scales[size]);
 }
 
 /**
  * @brief Gets a player size state.
  *
- * @param idx Player index.
+ * @param player Player whose stored size state is read.
  *
  * @return The size state, or no defined value if the player state is unavailable.
  */
-s32 BoardPlayerSizeGet(s32 idx)
+s32 BoardPlayerSizeGet(s32 player)
 {
-    PlayerState *player;
+    PlayerState *player_state;
 
-    player = BoardPlayerGet(idx);
-    if (!player) {
+    player_state = BoardPlayerGet(player);
+    if (!player_state) {
         return;
     }
-    return player->size;
+    return player_state->size;
 }
 
 /**
  * @brief Finds another player on the same team.
  *
- * @param arg0 Player index.
+ * @param player Player whose team is matched against the other three players.
  *
  * @return The matching player index, or 4 if none is found.
  */
-s32 BoardPlayerSameTeamFind(s32 arg0)
+s32 BoardPlayerSameTeamFind(s32 player)
 {
     s32 other_player;
     s32 team2;
     s32 team;
 
     for (other_player = 0; other_player < 4; other_player++) {
-        if (other_player == arg0)
+        if (other_player == player)
             continue;
         team2 = GWPlayer[other_player].team;
-        team = GWPlayer[arg0].team;
+        team = GWPlayer[player].team;
         if (team == team2)
             break;
     }
@@ -1153,21 +1155,21 @@ s32 BoardPlayerSameTeamFind(s32 arg0)
 /**
  * @brief Finds another player on a different team.
  *
- * @param arg0 Player index.
+ * @param player Player whose team is compared to find a player on a different team.
  *
  * @return The matching player index, or 4 if none is found.
  */
-s32 BoardPlayerTeamFind(s32 arg0)
+s32 BoardPlayerTeamFind(s32 player)
 {
     s32 other_player;
     s32 team2;
     s32 team;
 
     for (other_player = 0; other_player < 4; other_player++) {
-        if (other_player == arg0)
+        if (other_player == player)
             continue;
         team2 = GWPlayer[other_player].team;
-        team = GWPlayer[arg0].team;
+        team = GWPlayer[player].team;
         if (team != team2)
             break;
     }
@@ -1177,7 +1179,7 @@ s32 BoardPlayerTeamFind(s32 arg0)
 /**
  * @brief Calculates a player rank from stars and coins.
  *
- * @param player Player index.
+ * @param player Player whose stars-and-coins score is ranked against all players.
  *
  * @return A zero-based rank, where zero is first place.
  */
@@ -1203,89 +1205,89 @@ s32 BoardPlayerRankCalc(s32 player)
 /**
  * @brief Sets a player pre-turn callback.
  *
- * @param arg0 Player index.
+ * @param player Player whose pre-roll callback slot is replaced.
  *
- * @param arg1 Callback invoked before the player rolls.
+ * @param hook Callback run before rolling; a nonzero return clears the slot after invocation.
  */
-void BoardPlayerPreTurnHookSet(s32 arg0, s32 (*arg1)())
+void BoardPlayerPreTurnHookSet(s32 player, s32 (*hook)())
 {
-    preTurnHook[arg0] = arg1;
+    preTurnHook[player] = hook;
 }
 
 /**
  * @brief Sets a player post-turn callback.
  *
- * @param arg0 Player index.
+ * @param player Player whose post-turn callback slot is replaced.
  *
- * @param arg1 Callback invoked after the turn.
+ * @param hook Callback run by `BoardPlayerPostTurnHookExec`; a nonzero return clears the slot.
  */
-void BoardPlayerPostTurnHookSet(s32 arg0, s32 (*arg1)())
+void BoardPlayerPostTurnHookSet(s32 player, s32 (*hook)())
 {
-    postTurnHook[arg0] = arg1;
+    postTurnHook[player] = hook;
 }
 
 /**
  * @brief Runs the main board-turn sequence for a player.
  *
- * @param arg0 Player index.
+ * @param player Player whose complete board-turn sequence is run.
  */
-void BoardPlayerTurnExec(s32 arg0)
+void BoardPlayerTurnExec(s32 player)
 {
     BoardPauseDisableSet(1);
-    BoardComUseItemSet(arg0, -1);
+    BoardComUseItemSet(player, -1);
     GWSystem.bowser_event = 0xF;
     _ClearFlag(FLAG_ID_MAKE(1, 22));
     _ClearFlag(FLAG_ID_MAKE(1, 14));
     BoardCameraMoveSet(1);
     if (_CheckFlag(FLAG_ID_MAKE(1, 6)) == 0) {
         BoardCameraViewSet(2);
-        omVibrate((s16)arg0, 0xC, 4, 2);
+        omVibrate((s16)player, 0xC, 4, 2);
         BoardItemPrevSet(-1);
-        BoardYourTurnExec(arg0);
+        BoardYourTurnExec(player);
         megaDoubleDiceF = 0;
-        SetPlayerSizeAuto(arg0);
-        if (preTurnHook[arg0] != 0U) {
-            if (preTurnHook[arg0]() != 0) {
-                preTurnHook[arg0] = 0;
+        SetPlayerSizeAuto(player);
+        if (preTurnHook[player] != 0U) {
+            if (preTurnHook[player]() != 0) {
+                preTurnHook[player] = 0;
             }
         }
         if (_CheckFlag(FLAG_ID_MAKE(1, 11)) != 0) {
             BoardTutorialHookExec(5, 0);
         }
-        BoardPlayerTurnRollExec(arg0);
+        BoardPlayerTurnRollExec(player);
     }
     else {
         BoardCameraViewSet(1);
         BoardCameraMotionWait();
     }
-    BoardPlayerTurnMoveExec(arg0);
+    BoardPlayerTurnMoveExec(player);
 }
 
 /**
  * @brief Runs the dice and item-selection portion of a turn.
  *
- * @param arg0 Player index.
+ * @param player Player who rolls dice, opens item or map actions, and receives the resulting roll count.
  */
-void BoardPlayerTurnRollExec(s32 arg0)
+void BoardPlayerTurnRollExec(s32 player)
 {
     s32 unused_roll_value;
     s32 roll_result;
 
-    GWPlayer[arg0].roll = 0;
-    GWPlayer[arg0].num_dice = 1;
+    GWPlayer[player].roll = 0;
+    GWPlayer[player].num_dice = 1;
     BoardPauseDisableSet(0);
     do {
-        roll_result = BoardRollExec(arg0);
+        roll_result = BoardRollExec(player);
         switch (roll_result) {
             case -2:
                 BoardPauseDisableSet(1);
                 BoardRollKill();
-                BoardCameraTargetPlayerSet(arg0);
+                BoardCameraTargetPlayerSet(player);
                 BoardCameraMotionWait();
-                BoardItemPrevSet(BoardItemUseExec(arg0));
+                BoardItemPrevSet(BoardItemUseExec(player));
                 if (BoardItemPrevGet() == 0xC) {
                     _SetFlag(0x10016);
-                    BoardSpaceLandExec(arg0, GWPlayer[arg0].space_curr);
+                    BoardSpaceLandExec(player, GWPlayer[player].space_curr);
                     BoardCameraMoveSet(1);
                     BoardCameraViewSet(2);
                     _ClearFlag(0x10016);
@@ -1294,11 +1296,11 @@ void BoardPlayerTurnRollExec(s32 arg0)
                 break;
             case -3:
                 BoardRollKill();
-                BoardViewMapExec(arg0);
+                BoardViewMapExec(player);
                 break;
             case -4:
                 BoardRollKill();
-                BoardViewOverheadExec(arg0);
+                BoardViewOverheadExec(player);
                 break;
         }
     } while (roll_result <= 0);
@@ -1309,9 +1311,9 @@ void BoardPlayerTurnRollExec(s32 arg0)
  *
  * @details Repeatedly selects links, moves between spaces, processes pass events and traps, then restores temporary item and size effects before running the landing event.
  *
- * @param arg0 Player index.
+ * @param player Player advanced through junctions and pass events before their landing event is resolved.
  */
-void BoardPlayerTurnMoveExec(s32 arg0)
+void BoardPlayerTurnMoveExec(s32 player)
 {
     s16 next_space;
     u32 space_flags;
@@ -1329,8 +1331,8 @@ void BoardPlayerTurnMoveExec(s32 arg0)
         BoardCameraViewSet(1);
         BoardCameraMotionWait();
         next_space = -1;
-        GWPlayer[arg0].space_next = -1;
-        if (GWPlayer[arg0].bowser_suit != 0) {
+        GWPlayer[player].space_next = -1;
+        if (GWPlayer[player].bowser_suit != 0) {
             BoardCameraTargetModelSet(suitMdl);
             BoardCameraOffsetSet(0.0f, 100.0f, 0.0f);
         }
@@ -1340,39 +1342,39 @@ void BoardPlayerTurnMoveExec(s32 arg0)
         resume_move = 1;
         _ClearFlag(FLAG_ID_MAKE(1, 6));
         _ClearFlag(FLAG_ID_MAKE(1, 7));
-        next_space = GWPlayer[arg0].space_next;
+        next_space = GWPlayer[player].space_next;
         goto block_14;
     }
     do {
         BoardPauseDisableSet(1);
-        GWPlayer[arg0].space_prev = GWPlayer[arg0].space_curr;
+        GWPlayer[player].space_prev = GWPlayer[player].space_curr;
         if (_CheckFlag(FLAG_ID_MAKE(2, 1)) == 0) {
-            if (ExecJunction(arg0, &next_space) != 0) {
+            if (ExecJunction(player, &next_space) != 0) {
                 break;
             }
         }
-        else if (DoDebugMove(arg0, &next_space) != 0) {
+        else if (DoDebugMove(player, &next_space) != 0) {
             break;
         }
 
-        GWPlayer[arg0].space_next = next_space;
+        GWPlayer[player].space_next = next_space;
         StopJunctionPlayer(0);
-        if (MegaPlayerPassFunc(arg0, next_space) == 0) {
+        if (MegaPlayerPassFunc(player, next_space) == 0) {
             BoardPauseDisableSet(0);
-            BoardPlayerMoveTo(arg0, next_space);
+            BoardPlayerMoveTo(player, next_space);
             BoardPauseDisableSet(1);
         }
-        GWPlayer[arg0].space_prev = GWPlayer[arg0].space_curr;
-        GWPlayer[arg0].space_curr = next_space;
+        GWPlayer[player].space_prev = GWPlayer[player].space_curr;
+        GWPlayer[player].space_curr = next_space;
         if (move_others != 0) {
-            BoardPlayerMoveAwayStartCurr(GWPlayer[arg0].space_prev, 0);
+            BoardPlayerMoveAwayStartCurr(GWPlayer[player].space_prev, 0);
             move_others = 0;
         }
-        DoSparkSpace(arg0, 0);
+        DoSparkSpace(player, 0);
         if (BoardSpaceWalkEventExec() != 0) {
             continue;
         }
-        if (BoardSpaceWalkExec(arg0, next_space) != 0) {
+        if (BoardSpaceWalkExec(player, next_space) != 0) {
             continue;
         }
     block_14:
@@ -1384,32 +1386,32 @@ void BoardPlayerTurnMoveExec(s32 arg0)
         }
         HuAudFXPlay(0x301);
 
-        if (--GWPlayer[arg0].roll == 0)
+        if (--GWPlayer[player].roll == 0)
             break;
     } while (1);
     BoardPauseDisableSet(1);
-    BoardRollUpdateSet(arg0);
-    BoardPlayerIdleSet(arg0);
-    if (GWPlayer[arg0].bowser_suit != 0) {
-        BoardCameraTargetPlayerSet(arg0);
+    BoardRollUpdateSet(player);
+    BoardPlayerIdleSet(player);
+    if (GWPlayer[player].bowser_suit != 0) {
+        BoardCameraTargetPlayerSet(player);
     }
     if (_CheckFlag(FLAG_ID_MAKE(1, 11)) != 0) {
         BoardTutorialHookExec(7, 0);
     }
     if (BoardItemPrevGet() != -1) {
-        BoardItemPlayerRestore(arg0, BoardItemPrevGet());
+        BoardItemPlayerRestore(player, BoardItemPrevGet());
         while (BoardItemDoneCheck() == 0) {
             HuPrcVSleep();
         }
         BoardItemPrevSet(-1);
     }
-    BoardPlayerSizeRestore(arg0);
+    BoardPlayerSizeRestore(player);
     megaDoubleDiceF = 0;
     if (_CheckFlag(FLAG_ID_MAKE(1, 11)) != 0) {
         BoardTutorialHookExec(8, 0);
     }
-    BoardSpaceBlockExec(arg0, next_space);
-    BoardSpaceLandExec(arg0, next_space);
+    BoardSpaceBlockExec(player, next_space);
+    BoardSpaceLandExec(player, next_space);
     _SetFlag(FLAG_ID_MAKE(1, 14));
     if (GWSystem.bowser_event != 1) {
         BoardCameraViewSet(2);
@@ -1418,20 +1420,20 @@ void BoardPlayerTurnMoveExec(s32 arg0)
     else {
         GWSystem.bowser_event = 0xF;
     }
-    BoardPlayerZoomRestore(arg0);
+    BoardPlayerZoomRestore(player);
     return;
 }
 
 /**
  * @brief Runs a player post-turn callback.
  *
- * @param arg0 Player index.
+ * @param player Player whose registered post-turn callback is invoked.
  */
-void BoardPlayerPostTurnHookExec(s32 arg0)
+void BoardPlayerPostTurnHookExec(s32 player)
 {
-    if (postTurnHook[arg0] != 0U) {
-        if (postTurnHook[arg0]() != 0) {
-            postTurnHook[arg0] = 0;
+    if (postTurnHook[player] != 0U) {
+        if (postTurnHook[player]() != 0) {
+            postTurnHook[player] = 0;
         }
     }
 }
@@ -1439,19 +1441,19 @@ void BoardPlayerPostTurnHookExec(s32 arg0)
 /**
  * @brief Restores a player to normal size.
  *
- * @param arg0 Player index.
+ * @param player Player returned to normal size when a temporary Mini or Mega state is active.
  */
-void BoardPlayerSizeRestore(s32 arg0)
+void BoardPlayerSizeRestore(s32 player)
 {
-    if (BoardPlayerSizeGet(arg0) != 0) {
-        if (BoardPlayerSizeGet(arg0) == 1) {
+    if (BoardPlayerSizeGet(player) != 0) {
+        if (BoardPlayerSizeGet(player) == 1) {
             HuAudFXPlay(0x313);
         }
         else {
             HuAudFXPlay(0x311);
         }
-        BoardPlayerResizeAnimExec(arg0, 0);
-        BoardPlayerSizeSet(arg0, 0);
+        BoardPlayerResizeAnimExec(player, 0);
+        BoardPlayerSizeSet(player, 0);
 
         while (BoardItemDoneCheck() == 0) {
             HuPrcVSleep();
@@ -1462,9 +1464,9 @@ void BoardPlayerSizeRestore(s32 arg0)
 /**
  * @brief Turns a player to yaw zero and restores their idle motion.
  *
- * @param arg0 Player index.
+ * @param player Player turned to yaw zero and returned to idle after movement.
  */
-void BoardPlayerZoomRestore(s32 arg0)
+void BoardPlayerZoomRestore(s32 player)
 {
     PlayerState *player_state;
     s32 ordered_player;
@@ -1474,15 +1476,15 @@ void BoardPlayerZoomRestore(s32 arg0)
     Vec corner_pos;
     Vec player_pos;
 
-    player_state = BoardPlayerGet(arg0);
-    BoardPlayerPosGet(arg0, &player_pos);
-    space = GWPlayer[arg0].space_curr;
+    player_state = BoardPlayerGet(player);
+    BoardPlayerPosGet(player, &player_pos);
+    space = GWPlayer[player].space_curr;
     ordered_player = GWSystem.player_curr;
     if (ordered_player == -1) {
         ordered_player = 0;
     }
     for (corner_index = players_checked = 0; players_checked < 4; players_checked++) {
-        if (ordered_player == arg0)
+        if (ordered_player == player)
             break;
         if (space == GWPlayer[ordered_player].space_curr) {
             corner_index++;
@@ -1490,32 +1492,32 @@ void BoardPlayerZoomRestore(s32 arg0)
         ordered_player = (ordered_player + 1) & 3;
     }
     BoardSpaceCornerPosGet(space, corner_index, &corner_pos);
-    BoardPlayerMotBlendSet(arg0, 0, 0xF);
+    BoardPlayerMotBlendSet(player, 0, 0xF);
 
-    while (BoardPlayerMotBlendCheck(arg0) == 0) {
+    while (BoardPlayerMotBlendCheck(player) == 0) {
         HuPrcVSleep();
     }
-    BoardPlayerIdleSet(arg0);
+    BoardPlayerIdleSet(player);
 }
 
 /**
  * @brief Adds flags to the junction exclusion mask.
  *
- * @param arg0 Flags to add.
+ * @param flags Board-space flag bits added to the outgoing-link exclusion mask.
  */
-void BoardJunctionMaskSet(s32 arg0)
+void BoardJunctionMaskSet(s32 flags)
 {
-    junctionMask |= arg0;
+    junctionMask |= flags;
 }
 
 /**
  * @brief Removes flags from the junction exclusion mask.
  *
- * @param arg0 Flags to remove.
+ * @param flags Board-space flag bits removed from the outgoing-link exclusion mask.
  */
-void BoardJunctionMaskReset(s32 arg0)
+void BoardJunctionMaskReset(s32 flags)
 {
-    junctionMask &= ~arg0;
+    junctionMask &= ~flags;
 }
 
 /**
@@ -1539,50 +1541,50 @@ static inline u32 BoardJunctionMaskGet(void)
 /**
  * @brief Counts usable outgoing links from a board space.
  *
- * @param playerIdx Player index used for size checks.
+ * @param player Player whose Mini state determines whether Mega-only link flags are allowed.
  *
- * @param boardIdx Board space index.
+ * @param space Source board-space index whose outgoing links are counted.
  *
  * @return The number of usable links, or zero when the space is not a junction.
  */
-static inline s32 GetLinkCount(s32 playerIdx, s32 boardIdx)
+static inline s32 GetLinkCount(s32 player, s32 space)
 {
     s32 i;
-    s32 linkCount;
-    BoardSpace *boardSpaceLink;
-    BoardSpace *boardSpaceFlag;
-    PlayerState *player;
-    s32 color;
-    s32 temp;
+    s32 link_count;
+    BoardSpace *source_space;
+    BoardSpace *linked_space;
+    PlayerState *unidentified_player_state;
+    s32 unidentified_color;
+    s32 unidentified_value;
 
-    linkCount = 0;
-    boardSpaceLink = BoardSpaceGet(0, boardIdx);
+    link_count = 0;
+    source_space = BoardSpaceGet(0, space);
 
-    if (boardSpaceLink->link_cnt <= 1) {
+    if (source_space->link_cnt <= 1) {
         return 0;
     }
-    linkCount = boardSpaceLink->link_cnt;
-    for (i = 0; i < boardSpaceLink->link_cnt; i++) {
-        boardSpaceFlag = BoardSpaceGet(0, boardSpaceLink->link[i]);
-        if (((boardSpaceFlag->flag & 0x20000000) != 0 && (BoardPlayerSizeGet(playerIdx) != 1)) || ((boardSpaceFlag->flag & 0x02000000) != 0)
-            || ((boardSpaceFlag->flag & 0x04000000) != 0) || ((boardSpaceFlag->flag & BoardJunctionMaskGet()) != 0)) {
+    link_count = source_space->link_cnt;
+    for (i = 0; i < source_space->link_cnt; i++) {
+        linked_space = BoardSpaceGet(0, source_space->link[i]);
+        if (((linked_space->flag & 0x20000000) != 0 && (BoardPlayerSizeGet(player) != 1)) || ((linked_space->flag & 0x02000000) != 0)
+            || ((linked_space->flag & 0x04000000) != 0) || ((linked_space->flag & BoardJunctionMaskGet()) != 0)) {
 
-            linkCount--;
+            link_count--;
         }
     }
-    return linkCount;
+    return link_count;
 }
 
 /**
  * @brief Creates direction arrows for a junction when needed.
  *
- * @param arg0 Player index.
+ * @param player Player choosing an outgoing link; their size and suit affect available arrows.
  *
- * @param arg1 Junction space index.
+ * @param space Junction space whose usable outgoing links receive arrows.
  *
- * @param arg8 Initial direction, or -1 to leave the default selection.
+ * @param initial_direction Direction in degrees used to restore arrow selection, or -1 to keep the initial arrow.
  */
-static void InitJunction(s32 arg0, s32 arg1, f32 arg8)
+static void InitJunction(s32 player, s32 space, f32 initial_direction)
 {
     Vec junction_pos;
     Vec arrow_pos;
@@ -1598,25 +1600,25 @@ static void InitJunction(s32 arg0, s32 arg1, f32 arg8)
     f32 window_y;
     f32 arrow_z_offset;
     OMOBJ *object;
-    s32 player;
+    s32 player_index;
     JunctionWork *work;
     s32 arrow_count;
     s32 link_index;
     f32 angle;
 
     if (!junctionObj) {
-        for (player = 0; player < 4; player++) {
-            junctionArrowRot[player] = -1;
+        for (player_index = 0; player_index < 4; player_index++) {
+            junctionArrowRot[player_index] = -1;
         }
 
-        link_count = GetLinkCount(arg0, arg1);
+        link_count = GetLinkCount(player, space);
         if (link_count > 1) {
             object = omAddObjEx(boardObjMan, 0x100, 0, 0, -1, UpdateJunctionGfx);
             junctionObj = object;
             work = omObjGetWork(object, JunctionWork);
             work->kill = 0;
             work->remove_requested = 0;
-            work->player = arg0;
+            work->player = player;
             work->pulse_angle = 0;
             work->selected_arrow = 0;
             work->selection_delay = 0;
@@ -1631,9 +1633,9 @@ static void InitJunction(s32 arg0, s32 arg1, f32 arg8)
             if (_CheckFlag(FLAG_ID_MAKE(1, 11)) != 0) {
                 HuWinDispOff(work->window);
             }
-            junction_space = BoardSpaceGet(0, arg1);
-            BoardSpacePosGet(0, arg1, &junction_pos);
-            player_size = BoardPlayerSizeGet(arg0);
+            junction_space = BoardSpaceGet(0, space);
+            BoardSpacePosGet(0, space, &junction_pos);
+            player_size = BoardPlayerSizeGet(player);
 
             for (arrow_count = 0, link_index = arrow_count; link_index < junction_space->link_cnt; link_index++) {
                 if (junction_space->link[link_index] != 0) {
@@ -1661,7 +1663,7 @@ static void InitJunction(s32 arg0, s32 arg1, f32 arg8)
                             if (arrow_rotation == 0) {
                                 arrow_z_offset = 100.0f;
                             }
-                            else if ((arrow_rotation == 0xB4) && ((player_size == 2) || (GWPlayer[arg0].bowser_suit != 0))) {
+                            else if ((arrow_rotation == 0xB4) && ((player_size == 2) || (GWPlayer[player].bowser_suit != 0))) {
                                 arrow_z_offset = -100.0f;
                             }
                             work->arrow_models[arrow_count] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0), NULL, 1);
@@ -1678,8 +1680,8 @@ static void InitJunction(s32 arg0, s32 arg1, f32 arg8)
                 }
             }
             work->arrow_count = arrow_count;
-            if (-1.0f != arg8) {
-                RestoreJunction(arg8, 0);
+            if (-1.0f != initial_direction) {
+                RestoreJunction(initial_direction, 0);
             }
         }
     }
@@ -1689,21 +1691,21 @@ static void InitJunction(s32 arg0, s32 arg1, f32 arg8)
 /**
  * @brief Updates and destroys the junction direction display.
  *
- * @param arg0 Object being updated.
+ * @param object Junction-display object whose arrow pulse, delayed removal, and cleanup are updated.
  */
-static void UpdateJunctionGfx(OMOBJ *arg0)
+static void UpdateJunctionGfx(OMOBJ *object)
 {
     s32 arrow_index;
     JunctionWork *work;
 
-    work = omObjGetWork(arg0, JunctionWork);
+    work = omObjGetWork(object, JunctionWork);
     if ((work->kill != 0) || (BoardIsKill() != 0)) {
         for (arrow_index = 0; arrow_index < work->arrow_count; arrow_index++) {
             BoardModelKill(work->arrow_models[arrow_index]);
         }
         HuWinKill(work->window);
         junctionObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     if (work->selection_delay != 0) {
@@ -1716,19 +1718,19 @@ static void UpdateJunctionGfx(OMOBJ *arg0)
     if (work->pulse_angle > 0xB4) {
         work->pulse_angle -= 0xB4;
     }
-    OSs16tof32(&work->pulse_angle, &arg0->scale.x);
-    arg0->scale.x = 3.0 + sind(arg0->scale.x);
-    arg0->scale.y = arg0->scale.x;
-    arg0->scale.z = arg0->scale.x;
-    BoardModelScaleSet(work->arrow_models[work->selected_arrow], arg0->scale.x, arg0->scale.y, arg0->scale.z);
+    OSs16tof32(&work->pulse_angle, &object->scale.x);
+    object->scale.x = 3.0 + sind(object->scale.x);
+    object->scale.y = object->scale.x;
+    object->scale.z = object->scale.x;
+    BoardModelScaleSet(work->arrow_models[work->selected_arrow], object->scale.x, object->scale.y, object->scale.z);
 }
 
 /**
  * @brief Schedules the junction display for removal.
  *
- * @param arg0 Nonzero to play the confirmation sound.
+ * @param play_sound Nonzero plays the junction confirmation sound before the display is removed.
  */
-static void StopJunctionPlayer(s32 arg0)
+static void StopJunctionPlayer(s32 play_sound)
 {
     JunctionWork *work;
 
@@ -1736,7 +1738,7 @@ static void StopJunctionPlayer(s32 arg0)
         work = omObjGetWork(junctionObj, JunctionWork);
         work->remove_requested = 1;
         work->selection_delay = 0;
-        if (arg0 != 0) {
+        if (play_sound != 0) {
             HuAudFXPlay(2);
         }
         HuPrcSleep(0xA);
@@ -1746,11 +1748,11 @@ static void StopJunctionPlayer(s32 arg0)
 /**
  * @brief Selects the junction arrow nearest a direction.
  *
- * @param arg8 Direction angle in degrees.
+ * @param direction Input direction in degrees used to choose the nearest arrow.
  *
- * @param arg0 Nonzero to play the selection sound.
+ * @param play_sound Nonzero plays the arrow-change sound when selection changes.
  */
-static void RestoreJunction(f32 arg8, s32 arg0)
+static void RestoreJunction(f32 direction, s32 play_sound)
 {
     Vec arrow_rot;
     f32 arrow_directions[4];
@@ -1761,7 +1763,7 @@ static void RestoreJunction(f32 arg8, s32 arg0)
     if (junctionObj != 0) {
         work = omObjGetWork(junctionObj, JunctionWork);
         if (work->selection_delay == 0) {
-            arg8 = 90.0f * (((90.0f + arg8) - 1.0f) / 90.0f);
+            direction = 90.0f * (((90.0f + direction) - 1.0f) / 90.0f);
 
             for (arrow_index = 0; arrow_index < work->arrow_count; arrow_index++) {
                 BoardModelRotGet(work->arrow_models[arrow_index], &arrow_rot);
@@ -1772,10 +1774,10 @@ static void RestoreJunction(f32 arg8, s32 arg0)
                 arrow_directions[arrow_index] = -999.0f;
             }
 
-            selected_arrow = GetDefaultDirection(arg8, arrow_directions, work->arrow_count);
+            selected_arrow = GetDefaultDirection(direction, arrow_directions, work->arrow_count);
             if ((selected_arrow != -1) && (work->selected_arrow != selected_arrow)) {
                 work->selected_arrow = selected_arrow;
-                if (arg0 != 0) {
+                if (play_sound != 0) {
                     HuAudFXPlay(0);
                 }
                 work->selection_delay = 0x14;
@@ -1787,29 +1789,29 @@ static void RestoreJunction(f32 arg8, s32 arg0)
 /**
  * @brief Finds the candidate direction closest to an angle.
  *
- * @param arg0 Target angle in degrees.
+ * @param target_angle Direction in degrees to match after board-angle normalization.
  *
- * @param arg1 Candidate angle array.
+ * @param candidate_angles Array of candidate directions in degrees.
  *
- * @param arg2 Number of candidates.
+ * @param candidate_count Number of entries available in `candidate_angles`.
  *
  * @return The index of the closest candidate direction.
  */
-static s32 GetDefaultDirection(f32 arg0, f32 *arg1, s32 arg2)
+static s32 GetDefaultDirection(f32 target_angle, f32 *candidate_angles, s32 candidate_count)
 {
     f32 angle_delta;
     f32 smallest_delta;
     f32 candidate_angle;
-    f32 target_angle;
+    f32 normalized_target_angle;
     s32 closest_index;
     s32 direction_index;
 
-    target_angle = BoardDAngleCalc(arg0);
+    normalized_target_angle = BoardDAngleCalc(target_angle);
     smallest_delta = 999.0f;
 
-    for (direction_index = 0, closest_index = direction_index; direction_index < arg2; direction_index++) {
-        candidate_angle = BoardDAngleCalc(arg1[direction_index]);
-        angle_delta = BOARD_FABS(BoardDAngleCalc(candidate_angle - target_angle));
+    for (direction_index = 0, closest_index = direction_index; direction_index < candidate_count; direction_index++) {
+        candidate_angle = BoardDAngleCalc(candidate_angles[direction_index]);
+        angle_delta = BOARD_FABS(BoardDAngleCalc(candidate_angle - normalized_target_angle));
 
         if (angle_delta < smallest_delta) {
             smallest_delta = angle_delta;
@@ -1822,7 +1824,7 @@ static s32 GetDefaultDirection(f32 arg0, f32 *arg1, s32 arg2)
 /**
  * @brief Gets the tracked player motion.
  *
- * @param player Player index.
+ * @param player Player whose tracked board-motion slot is returned.
  *
  * @return The tracked motion index.
  */
@@ -1835,13 +1837,13 @@ static inline s32 BoardPlayerMotGet(s32 player)
 /**
  * @brief Selects the next space using debug movement controls.
  *
- * @param arg0 Player index.
+ * @param player Player whose controller and current-space links drive debug movement.
  *
- * @param arg1 Output next-space index.
+ * @param next_space Receives the selected linked-space index; unchanged when movement is cancelled.
  *
  * @return Zero when a link is selected, or 1 when debug movement is cancelled.
  */
-static s32 DoDebugMove(s32 arg0, s16 *arg1)
+static s32 DoDebugMove(s32 player, s16 *next_space)
 {
     s16 link_angles[10];
     s16 link_spaces[10];
@@ -1861,24 +1863,24 @@ static s32 DoDebugMove(s32 arg0, s16 *arg1)
     s32 link_count;
     s32 camera_relative_angle;
     s32 port;
-    s32 result;
+    s32 move_status;
     JunctionWork *junction_work;
 
-    result = -1;
+    move_status = -1;
 
     memset(link_angles, 0, 0x14);
     memset(link_spaces, 0, 0x14);
     while (1) {
     loop_1:
-        player_state = BoardPlayerGet(arg0);
+        player_state = BoardPlayerGet(player);
         current_space_data = BoardSpaceGet(0, player_state->space_curr);
         space_count = BoardSpaceCountGet(0);
-        BoardPlayerPosGet(arg0, &player_pos);
-        port = GWPlayer[arg0].port;
+        BoardPlayerPosGet(player, &player_pos);
+        port = GWPlayer[player].port;
 
         for (link_count = 0, link_index = link_count; link_index < current_space_data->link_cnt; link_index++) {
             if ((BoardSpaceFlagGet(0, current_space_data->link[link_index]) & 0x06000000) == 0) {
-                if ((BoardSpaceFlagGet(0, current_space_data->link[link_index]) & 0x20000000) == 0 || (BoardPlayerSizeGet(arg0) == 1)) {
+                if ((BoardSpaceFlagGet(0, current_space_data->link[link_index]) & 0x20000000) == 0 || (BoardPlayerSizeGet(player) == 1)) {
                     link_spaces[link_count++] = current_space_data->link[link_index];
                 }
             }
@@ -1904,12 +1906,12 @@ static s32 DoDebugMove(s32 arg0, s16 *arg1)
                 link_angles[link_index] = link_angle = link_angle = (((link_angle + 0x16) / 45) * 0x2D);
             }
         }
-        current_space = GWPlayer[arg0].space_curr;
-        InitJunction(arg0, player_state->space_curr, -1.0f);
+        current_space = GWPlayer[player].space_curr;
+        InitJunction(player, player_state->space_curr, -1.0f);
         do {
         loop_21:
-            if (current_space != GWPlayer[arg0].space_curr) {
-                current_space = GWPlayer[arg0].space_curr;
+            if (current_space != GWPlayer[player].space_curr) {
+                current_space = GWPlayer[player].space_curr;
                 goto loop_1;
             }
             stick_input.x = HuPadStkX[port];
@@ -1917,16 +1919,16 @@ static s32 DoDebugMove(s32 arg0, s16 *arg1)
             stick_input.z = HuPadStkY[port];
             if (HuPadBtnDown[port] == 0x400) {
                 StopJunctionPlayer(0);
-                result = 1;
+                move_status = 1;
                 goto end;
             }
             else {
                 if (HuPadBtnDown[port] == 0x10) {
                     BoardRollDispSet(0);
-                    BoardPlayerIdleSet(arg0);
+                    BoardPlayerIdleSet(player);
                     StopJunctionPlayer(0);
-                    BoardViewMapExec(arg0);
-                    InitJunction(arg0, player_state->space_curr, -1.0f);
+                    BoardViewMapExec(player);
+                    InitJunction(player, player_state->space_curr, -1.0f);
                     BoardRollDispSet(1);
                     goto loop_21;
                 }
@@ -1952,23 +1954,23 @@ static s32 DoDebugMove(s32 arg0, s16 *arg1)
 
                     for (link_index = 0; link_index < link_count; link_index++) {
                         if ((link_angles[link_index] + 0x2D > camera_relative_angle) && (link_angles[link_index] - 0x2D < camera_relative_angle)) {
-                            *arg1 = link_spaces[link_index];
-                            result = 0;
+                            *next_space = link_spaces[link_index];
+                            move_status = 0;
                             goto end;
                         }
                         else if ((camera_relative_angle <= 0x168) && (camera_relative_angle >= 0x13B) && ((s32)((&link_angles[0])[link_index] + 0x195) > camera_relative_angle)
                             && ((s32)((&link_angles[0])[link_index] + 0x13B) < camera_relative_angle)) {
-                            *arg1 = link_spaces[link_index];
-                            result = 0;
+                            *next_space = link_spaces[link_index];
+                            move_status = 0;
                             goto end;
                         }
                     }
                 }
                 else {
-                    if (BoardPlayerMotGet(arg0) != 1) {
-                        BoardPlayerIdleSet(arg0);
+                    if (BoardPlayerMotGet(player) != 1) {
+                        BoardPlayerIdleSet(player);
                     }
-                    if (GWPlayer[arg0].bowser_suit != 0) {
+                    if (GWPlayer[player].bowser_suit != 0) {
                         BoardBowserSuitMotionSetWait();
                         BoardBowserSuitPlayerModelKill();
                     }
@@ -1979,7 +1981,7 @@ static s32 DoDebugMove(s32 arg0, s16 *arg1)
         } while (1);
     }
 end:
-    return result;
+    return move_status;
 }
 
 /**
@@ -1989,27 +1991,27 @@ end:
  */
 static inline f32 JunctionArrowRotGetCurr(void)
 {
-    JunctionWork *juncObj;
-    f32 ret;
+    JunctionWork *work;
+    f32 rotation;
 
     if (!junctionObj) {
         return 0.0f;
     }
     else {
-        juncObj = omObjGetWork(junctionObj, JunctionWork);
-        OSs16tof32(&(junctionArrowRot[juncObj->selected_arrow]), &ret);
-        return ret;
+        work = omObjGetWork(junctionObj, JunctionWork);
+        OSs16tof32(&(junctionArrowRot[work->selected_arrow]), &rotation);
+        return rotation;
     }
 }
 
 /**
  * @brief Checks whether an angle is near an available junction arrow.
  *
- * @param value Angle in degrees.
+ * @param direction Direction in degrees tested against all displayed junction arrows.
  *
  * @return 1 if an available arrow is within the accepted range, otherwise 0.
  */
-static inline s32 CheckArrowRot(float value)
+static inline s32 CheckArrowRot(float direction)
 {
     s32 arrow_index;
     JunctionWork *work;
@@ -2019,7 +2021,7 @@ static inline s32 CheckArrowRot(float value)
     }
     else {
         work = omObjGetWork(junctionObj, JunctionWork);
-        OSf32tos16(&value, &rotation);
+        OSf32tos16(&direction, &rotation);
         if (rotation > 0x15E) {
             rotation = 0;
         }
@@ -2038,21 +2040,21 @@ static inline s32 CheckArrowRot(float value)
  * @details Builds the usable-link list, accepts tutorial, CPU, or controller
  * direction input, and temporarily opens the map or overhead view on request.
  *
- * @param arg0 Player index.
+ * @param player Player or CPU choosing among usable outgoing links.
  *
- * @param arg1 Output next-space index.
+ * @param next_space Receives the confirmed outgoing space index.
  *
  * @return Zero after a direction is confirmed. The function initializes its
  * result to -1, but its loop does not currently expose a cancellation exit.
  */
-static s32 ExecJunction(s32 arg0, s16 *arg1)
+static s32 ExecJunction(s32 player, s16 *next_space)
 {
     f32 link_angles[10];
     s16 link_spaces[10];
     Vec stick_input;
     Vec link_delta;
     Vec player_pos;
-    s32 result;
+    s32 junction_status;
     BoardSpace *linked_space;
     s32 space_count;
     PlayerState *player_state;
@@ -2065,28 +2067,28 @@ static s32 ExecJunction(s32 arg0, s16 *arg1)
     f32 input_angle;
     f32 last_angle;
 
-    result = -1;
+    junction_status = -1;
     memset(link_angles, 0, 40);
     memset(link_spaces, 0, 20);
-    player_state = BoardPlayerGet(arg0);
+    player_state = BoardPlayerGet(player);
     current_space = BoardSpaceGet(0, player_state->space_curr);
     space_count = BoardSpaceCountGet(0);
-    BoardPlayerPosGet(arg0, &player_pos);
-    port = GWPlayer[arg0].port;
+    BoardPlayerPosGet(player, &player_pos);
+    port = GWPlayer[player].port;
 
     for (link_index = link_count = 0; link_index < current_space->link_cnt; link_index++) {
         if ((BoardSpaceFlagGet(0, current_space->link[link_index]) & 0x06000000) == 0) {
-            if ((BoardSpaceFlagGet(0, current_space->link[link_index]) & 0x20000000) == 0 || (BoardPlayerSizeGet(arg0) == 1)) {
+            if ((BoardSpaceFlagGet(0, current_space->link[link_index]) & 0x20000000) == 0 || (BoardPlayerSizeGet(player) == 1)) {
                 link_spaces[link_count++] = current_space->link[link_index];
             }
         }
     }
     if (link_count == 1) {
-        *arg1 = link_spaces[0];
+        *next_space = link_spaces[0];
         return 0;
     }
     if (link_count <= 0) {
-        *arg1 = current_space->link[0];
+        *next_space = current_space->link[0];
         return 0;
     }
 
@@ -2109,8 +2111,8 @@ static s32 ExecJunction(s32 arg0, s16 *arg1)
     }
     last_angle = -1.0f;
     com_input_frames = 0;
-    InitJunction(arg0, player_state->space_curr, last_angle);
-    BoardPlayerIdleSet(arg0);
+    InitJunction(player, player_state->space_curr, last_angle);
+    BoardPlayerIdleSet(player);
     HuPrcSleep(10);
     while (1) {
 
@@ -2124,9 +2126,9 @@ static s32 ExecJunction(s32 arg0, s16 *arg1)
             }
             boardTutorialDirInputTime -= 1;
         }
-        else if (GWPlayer[arg0].com != 0) {
+        else if (GWPlayer[player].com != 0) {
             if (com_input_frames == 0) {
-                BoardComJunctionInputGet(arg0, &stick_input, link_count, &link_angles[0]);
+                BoardComJunctionInputGet(player, &stick_input, link_count, &link_angles[0]);
                 buttons = 0;
             }
             else if (com_input_frames > 6U) {
@@ -2152,23 +2154,23 @@ static s32 ExecJunction(s32 arg0, s16 *arg1)
         if (buttons == 0x100) {
             input_angle = JunctionArrowRotGetCurr();
             link_index = GetDefaultDirection(input_angle, link_angles, link_count);
-            *arg1 = link_spaces[link_index];
+            *next_space = link_spaces[link_index];
             StopJunctionPlayer(1);
-            result = 0;
+            junction_status = 0;
             break;
         }
         else if (buttons == 0x20 || buttons == 0x10) {
             HuAudFXPlay(1);
             BoardRollDispSet(0);
-            BoardPlayerIdleSet(arg0);
+            BoardPlayerIdleSet(player);
             StopJunctionPlayer(0);
             if (buttons == 0x10) {
-                BoardViewMapExec(arg0);
+                BoardViewMapExec(player);
             }
             else if (buttons == 0x20) {
-                BoardViewOverheadExec(arg0);
+                BoardViewOverheadExec(player);
             }
-            InitJunction(arg0, player_state->space_curr, last_angle);
+            InitJunction(player, player_state->space_curr, last_angle);
             BoardRollDispSet(1);
         }
         else {
@@ -2187,20 +2189,20 @@ static s32 ExecJunction(s32 arg0, s16 *arg1)
 
                 for (link_index = 0; link_index < link_count; link_index++) {
                     if (((45.0f + link_angles[link_index]) > input_angle) && ((link_angles[link_index] - 45.0f) < input_angle)) {
-                        *arg1 = (&link_spaces[0])[link_index];
+                        *next_space = (&link_spaces[0])[link_index];
                     }
                     if (input_angle <= 360.0f) {
                         if ((input_angle >= 315.0f) && ((45.0f + (360.0f + link_angles[link_index])) > input_angle) && (((360.0f + link_angles[link_index]) - 45.0f) < input_angle)) {
-                            *arg1 = link_spaces[link_index];
+                            *next_space = link_spaces[link_index];
                         }
                     }
                 }
             }
             else {
-                if (BoardPlayerMotGet(arg0) != 1) {
-                    BoardPlayerIdleSet(arg0);
+                if (BoardPlayerMotGet(player) != 1) {
+                    BoardPlayerIdleSet(player);
                 }
-                if (GWPlayer[arg0].bowser_suit != 0) {
+                if (GWPlayer[player].bowser_suit != 0) {
                     BoardBowserSuitMotionSetWait();
                     BoardBowserSuitPlayerModelKill();
                 }
@@ -2208,26 +2210,26 @@ static s32 ExecJunction(s32 arg0, s16 *arg1)
             HuPrcVSleep();
         }
     }
-    return result;
+    return junction_status;
 }
 
 /**
  * @brief Moves a player to a board space and waits for completion.
  *
- * @param arg0 Player index.
+ * @param player Player moved from their current model position.
  *
- * @param arg1 Destination space index.
+ * @param target_space Board-space index whose position is the movement destination.
  */
-void BoardPlayerMoveTo(s32 arg0, s32 arg1)
+void BoardPlayerMoveTo(s32 player, s32 target_space)
 {
     Vec start_pos;
     Vec target_pos;
-    PlayerState *player;
+    PlayerState *unused_player_state;
 
-    BoardModelPosGet(BoardPlayerModelGet(arg0), &start_pos);
-    BoardSpacePosGet(0, arg1, &target_pos);
-    BoardPlayerPosLerpStart(arg0, &start_pos, &target_pos, 0x19);
-    while (GWPlayer[arg0].moving != 0) {
+    BoardModelPosGet(BoardPlayerModelGet(player), &start_pos);
+    BoardSpacePosGet(0, target_space, &target_pos);
+    BoardPlayerPosLerpStart(player, &start_pos, &target_pos, 0x19);
+    while (GWPlayer[player].moving != 0) {
         HuPrcVSleep();
     }
 }
@@ -2235,23 +2237,23 @@ void BoardPlayerMoveTo(s32 arg0, s32 arg1)
 /**
  * @brief Moves a player between two board spaces and waits.
  *
- * @param arg0 Player index.
+ * @param player Player animated between the two supplied board-space positions.
  *
- * @param arg1 Starting space index.
+ * @param start_space Board-space index supplying the starting position.
  *
- * @param arg2 Destination space index.
+ * @param target_space Board-space index supplying the destination position.
  */
-void BoardPlayerMoveBetween(s32 arg0, s32 arg1, s32 arg2)
+void BoardPlayerMoveBetween(s32 player, s32 start_space, s32 target_space)
 {
     Vec start_pos;
     Vec target_pos;
     s32 unused_start_space;
     s32 unused_target_space;
 
-    BoardSpacePosGet(0, arg1, &start_pos);
-    BoardSpacePosGet(0, arg2, &target_pos);
-    BoardPlayerPosLerpStart(arg0, &start_pos, &target_pos, 0x19);
-    while (GWPlayer[arg0].moving != 0) {
+    BoardSpacePosGet(0, start_space, &start_pos);
+    BoardSpacePosGet(0, target_space, &target_pos);
+    BoardPlayerPosLerpStart(player, &start_pos, &target_pos, 0x19);
+    while (GWPlayer[player].moving != 0) {
         HuPrcVSleep();
     }
 }
@@ -2259,71 +2261,71 @@ void BoardPlayerMoveBetween(s32 arg0, s32 arg1, s32 arg2)
 /**
  * @brief Starts moving a player to a board space.
  *
- * @param arg0 Player index.
+ * @param player Player whose asynchronous movement is started.
  *
- * @param arg1 Destination space index.
+ * @param target_space Board-space index supplying the destination position.
  */
-void BoardPlayerMoveToAsync(s32 arg0, s32 arg1)
+void BoardPlayerMoveToAsync(s32 player, s32 target_space)
 {
     Vec start_pos;
     Vec target_pos;
     s32 unused_space;
 
-    BoardModelPosGet(BoardPlayerModelGet(arg0), &start_pos);
-    BoardSpacePosGet(0, arg1, &target_pos);
-    BoardPlayerPosLerpStart(arg0, &start_pos, &target_pos, 0x19);
+    BoardModelPosGet(BoardPlayerModelGet(player), &start_pos);
+    BoardSpacePosGet(0, target_space, &target_pos);
+    BoardPlayerPosLerpStart(player, &start_pos, &target_pos, 0x19);
 }
 
 /**
  * @brief Starts an object-driven linear player movement.
  *
- * @param arg0 Player index.
+ * @param player Player whose model and optional Bowser suit are moved.
  *
- * @param arg1 Starting position.
+ * @param start_pos World-space movement start position.
  *
- * @param arg2 Destination position.
+ * @param target_pos World-space movement destination.
  *
- * @param arg3 Movement duration in frames.
+ * @param duration Movement duration in frames; zero produces a one-step update.
  */
-void BoardPlayerPosLerpStart(s32 arg0, Vec *arg1, Vec *arg2, s16 arg3)
+void BoardPlayerPosLerpStart(s32 player, Vec *start_pos, Vec *target_pos, s16 duration)
 {
     Vec move_direction;
     f32 distance;
     f32 motion_speed;
     f32 facing_angle;
-    f32 duration;
+    f32 duration_float;
     f32 normalized_angle;
     OMOBJ *move_object;
     s32 motion_result;
     PlayerState *player_state;
 
-    if ((arg1->x != arg2->x) || (arg1->y != arg2->y) || (arg1->z != arg2->z)) {
-        distance = BoardVecDistXZCalc(arg2, arg1);
-        if (arg3 != 0) {
-            if (GWPlayer[arg0].bowser_suit != 0) {
-                arg3 *= 2;
+    if ((start_pos->x != target_pos->x) || (start_pos->y != target_pos->y) || (start_pos->z != target_pos->z)) {
+        distance = BoardVecDistXZCalc(target_pos, start_pos);
+        if (duration != 0) {
+            if (GWPlayer[player].bowser_suit != 0) {
+                duration *= 2;
             }
 
-            OSs16tof32(&arg3, &duration);
-            motion_speed = distance / duration;
+            OSs16tof32(&duration, &duration_float);
+            motion_speed = distance / duration_float;
         }
         else {
             motion_speed = distance;
-            duration = 1.0f;
+            duration_float = 1.0f;
         }
-        player_state = BoardPlayerGet(arg0);
+        player_state = BoardPlayerGet(player);
 
         if (playerMot[player_state->player_idx] != 3) {
-            motion_result = BoardModelMotionShiftSet(BoardPlayerModelGet(arg0), 3, 0.0f, 4.0f, HU3D_MOTATTR_LOOP);
+            motion_result = BoardModelMotionShiftSet(BoardPlayerModelGet(player), 3, 0.0f, 4.0f, HU3D_MOTATTR_LOOP);
             if (motion_result == 0) {
                 playerMot[player_state->player_idx] = 3;
             }
         }
-        if (GWPlayer[arg0].bowser_suit != 0) {
+        if (GWPlayer[player].bowser_suit != 0) {
             BoardBowserSuitMotionSetWalk();
             BoardModelMotionSpeedSet(suitMdl, 1.5f);
         }
-        VECSubtract(arg2, arg1, &move_direction);
+        VECSubtract(target_pos, start_pos, &move_direction);
         VECNormalize(&move_direction, &move_direction);
         facing_angle = 90.0 - atan2d(move_direction.z, move_direction.x);
         normalized_angle = facing_angle;
@@ -2333,38 +2335,38 @@ void BoardPlayerPosLerpStart(s32 arg0, Vec *arg1, Vec *arg2, s16 arg3)
         if (normalized_angle > 360.0f) {
             normalized_angle -= 360.0f;
         }
-        BoardModelRotYSet(BoardPlayerModelGet(arg0), normalized_angle);
-        if (GWPlayer[arg0].bowser_suit != 0) {
+        BoardModelRotYSet(BoardPlayerModelGet(player), normalized_angle);
+        if (GWPlayer[player].bowser_suit != 0) {
             BoardModelRotYSet(suitMdl, normalized_angle);
         }
         move_object = omAddObjEx(boardObjMan, 0x100, 0U, 0U, -1, &PlayerPosLerpFunc);
-        move_object->trans.x = arg1->x;
-        move_object->trans.y = arg1->y;
-        move_object->trans.z = arg1->z;
-        move_object->rot.x = arg2->x;
-        move_object->rot.y = arg2->y;
-        move_object->rot.z = arg2->z;
-        move_object->scale.x = (arg2->x - arg1->x) / duration;
-        move_object->scale.y = (arg2->y - arg1->y) / duration;
-        move_object->scale.z = (arg2->z - arg1->z) / duration;
-        BoardModelPosSetV(BoardPlayerModelGet(arg0), arg1);
-        if (GWPlayer[arg0].bowser_suit != 0) {
-            BoardModelPosSetV(suitMdl, arg1);
+        move_object->trans.x = start_pos->x;
+        move_object->trans.y = start_pos->y;
+        move_object->trans.z = start_pos->z;
+        move_object->rot.x = target_pos->x;
+        move_object->rot.y = target_pos->y;
+        move_object->rot.z = target_pos->z;
+        move_object->scale.x = (target_pos->x - start_pos->x) / duration_float;
+        move_object->scale.y = (target_pos->y - start_pos->y) / duration_float;
+        move_object->scale.z = (target_pos->z - start_pos->z) / duration_float;
+        BoardModelPosSetV(BoardPlayerModelGet(player), start_pos);
+        if (GWPlayer[player].bowser_suit != 0) {
+            BoardModelPosSetV(suitMdl, start_pos);
         }
         // TODO: Make work struct for this
-        move_object->work[0] = arg0;
+        move_object->work[0] = player;
         *(f32 *)(&move_object->work[1]) = motion_speed;
-        move_object->work[2] = arg3;
-        GWPlayer[arg0].moving = 1;
+        move_object->work[2] = duration;
+        GWPlayer[player].moving = 1;
     }
 }
 
 /**
  * @brief Updates an active linear player movement.
  *
- * @param arg0 Object being updated.
+ * @param object Movement object carrying the current position, destination, per-frame step, player index, and remaining duration.
  */
-static void PlayerPosLerpFunc(OMOBJ *arg0)
+static void PlayerPosLerpFunc(OMOBJ *object)
 {
     f32 target_x;
     f32 target_y;
@@ -2374,37 +2376,39 @@ static void PlayerPosLerpFunc(OMOBJ *arg0)
     f32 current_z;
     s32 player;
 
-    player = arg0->work[0];
-    arg0->trans.x += arg0->scale.x;
-    arg0->trans.y += arg0->scale.y;
-    arg0->trans.z += arg0->scale.z;
-    if (arg0->work[2] != 0U) {
-        arg0->work[2] -= 1;
+    player = object->work[0];
+    object->trans.x += object->scale.x;
+    object->trans.y += object->scale.y;
+    object->trans.z += object->scale.z;
+    if (object->work[2] != 0U) {
+        object->work[2] -= 1;
     }
     else {
         GWPlayer[player].moving = 0;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
-        target_z = arg0->rot.z;
-        target_y = arg0->rot.y;
-        target_x = arg0->rot.x;
+        omDelObjEx(HuPrcCurrentGet(), object);
+        target_z = object->rot.z;
+        target_y = object->rot.y;
+        target_x = object->rot.x;
         BoardPlayerPosSet(player, target_x, target_y, target_z);
         return;
     }
-    current_z = arg0->trans.z;
-    current_y = arg0->trans.y;
-    current_x = arg0->trans.x;
+    current_z = object->trans.z;
+    current_y = object->trans.y;
+    current_x = object->trans.x;
     BoardPlayerPosSet(player, current_x, current_y, current_z);
 }
 
+/* Fields named unidentified_* are not read in this translation unit; their
+ * semantics are unknown, but their widths and offsets are retained. */
 typedef struct dice_jump_work {
     struct {
         u8 kill : 1;
         u8 player : 2;
         u8 vibration_played : 1;
-        u8 reserved_bits : 4;
+        u8 unidentified_bits : 4;
     };
-    s8 reserved_01;
-    s16 reserved_02;
+    s8 unidentified_01;
+    s16 unidentified_02;
     s32 hit_window;
     f32 jump_frame;
     f32 base_y;
@@ -2413,12 +2417,12 @@ typedef struct dice_jump_work {
 typedef struct motion_blend_work {
     struct {
         u8 kill : 1;
-        u8 reserved_bits : 7;
+        u8 unidentified_bits : 7;
     };
     s8 player;
     s16 frames_remaining;
     s16 motion;
-    s16 reserved_06;
+    s16 unidentified_06;
     union {
         f32 target_yaw;
         struct {
@@ -2432,50 +2436,50 @@ typedef struct motion_blend_work {
 /**
  * @brief Starts the player dice-hit jump animation.
  *
- * @param arg0 Player index.
+ * @param player Player whose dice-hit jump motion and update object are started.
  */
-void BoardPlayerDiceJumpStart(s32 arg0)
+void BoardPlayerDiceJumpStart(s32 player)
 {
     Vec player_pos;
     PlayerState *player_state;
     DiceJumpWork *work;
     s32 motion_result;
 
-    if (GWPlayer[arg0].bowser_suit != 0) {
+    if (GWPlayer[player].bowser_suit != 0) {
         BoardBowserSuitMotionSetJump();
     }
-    player_state = BoardPlayerGet(arg0);
+    player_state = BoardPlayerGet(player);
     if (playerMot[player_state->player_idx] != 11) {
-        motion_result = BoardModelMotionStart(BoardPlayerModelGet(arg0), 11, 0);
+        motion_result = BoardModelMotionStart(BoardPlayerModelGet(player), 11, 0);
         if (motion_result == 0) {
             playerMot[player_state->player_idx] = 0xB;
         }
     }
-    diceJumpObj[arg0] = omAddObjEx(boardObjMan, 0x100, 0, 0, -1, DiceJumpFunc);
-    BoardModelPosGet(BoardPlayerModelGet(arg0), &player_pos);
-    work = omObjGetWork(diceJumpObj[arg0], DiceJumpWork);
+    diceJumpObj[player] = omAddObjEx(boardObjMan, 0x100, 0, 0, -1, DiceJumpFunc);
+    BoardModelPosGet(BoardPlayerModelGet(player), &player_pos);
+    work = omObjGetWork(diceJumpObj[player], DiceJumpWork);
     work->kill = 0;
-    work->player = arg0;
+    work->player = player;
     work->hit_window = 0;
     work->vibration_played = 0;
     work->jump_frame = 0.0f;
     work->base_y = player_pos.y;
-    GWPlayer[arg0].jump = 1;
+    GWPlayer[player].jump = 1;
 }
 
 /**
  * @brief Checks whether a dice jump is in its active hit window.
  *
- * @param arg0 Player index.
+ * @param player Player whose jump is tested for the motion-frame 30 through 35 hit window.
  *
  * @return 1 during the active dice-hit window, otherwise 0.
  */
-s32 BoardPlayerDiceJumpCheck(s32 arg0)
+s32 BoardPlayerDiceJumpCheck(s32 player)
 {
-    if (!diceJumpObj[arg0]) {
+    if (!diceJumpObj[player]) {
         return 0;
     }
-    if (omObjGetWork(diceJumpObj[arg0], DiceJumpWork)->hit_window == 0) {
+    if (omObjGetWork(diceJumpObj[player], DiceJumpWork)->hit_window == 0) {
         return 0;
     }
     return 1;
@@ -2484,9 +2488,9 @@ s32 BoardPlayerDiceJumpCheck(s32 arg0)
 /**
  * @brief Updates and cleans up a player dice-hit jump.
  *
- * @param arg0 Object being updated.
+ * @param object Dice-jump object that updates Mini-player height, hit timing, vibration, and cleanup.
  */
-static void DiceJumpFunc(OMOBJ *arg0)
+static void DiceJumpFunc(OMOBJ *object)
 {
     Vec player_pos;
     f32 motion_time;
@@ -2496,12 +2500,12 @@ static void DiceJumpFunc(OMOBJ *arg0)
     s32 unused_motion_value;
     s32 unused_state_value;
 
-    work = omObjGetWork(arg0, DiceJumpWork);
+    work = omObjGetWork(object, DiceJumpWork);
     if ((work->kill != 0) || (BoardIsKill() != 0)) {
         GWPlayer[work->player].jump = 0;
         BoardPlayerIdleSet(work->player);
         diceJumpObj[work->player] = 0;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
 
@@ -2543,29 +2547,29 @@ static void DiceJumpFunc(OMOBJ *arg0)
 /**
  * @brief Returns a player to the looping idle motion.
  *
- * @param arg0 Player index.
+ * @param player Player returned to motion slot 1, including Bowser-suit idle handling when active.
  */
-void BoardPlayerIdleSet(s32 arg0)
+void BoardPlayerIdleSet(s32 player)
 {
-    if (GWPlayer[arg0].bowser_suit) {
+    if (GWPlayer[player].bowser_suit) {
         BoardBowserSuitMotionSetWait();
         BoardBowserSuitPlayerModelKill();
     }
-    BoardPlayerMotionShiftSet(arg0, 1, 0.0f, 8.0f, HU3D_MOTATTR_LOOP);
+    BoardPlayerMotionShiftSet(player, 1, 0.0f, 8.0f, HU3D_MOTATTR_LOOP);
 }
 
-static void ExecMotBlend(OMOBJ *arg0);
+static void ExecMotBlend(OMOBJ *player);
 
 /**
  * @brief Starts a timed player turn toward a yaw angle.
  *
- * @param arg0 Player index.
+ * @param player Player turned from their current yaw toward the target.
  *
- * @param arg1 Target yaw angle.
+ * @param target_yaw Target yaw in degrees.
  *
- * @param arg2 Turn duration in frames.
+ * @param duration Turn duration in frames; nonpositive values do not create a blend object.
  */
-void BoardPlayerMotBlendSet(s32 arg0, s16 arg1, s16 arg2)
+void BoardPlayerMotBlendSet(s32 player, s16 target_yaw, s16 duration)
 {
     s16 angle_delta;
     f32 turn_angle;
@@ -2583,28 +2587,28 @@ void BoardPlayerMotBlendSet(s32 arg0, s16 arg1, s16 arg2)
     MotionBlendWork *work;
 
     motion_data = 0;
-    if (motDoneF[arg0] != 0) {
-        blend_object = motDoneF[arg0];
+    if (motDoneF[player] != 0) {
+        blend_object = motDoneF[player];
         work = omObjGetWork(blend_object, MotionBlendWork);
         work->kill = 1;
 
         for (wait_frame = 0; wait_frame < 180U; wait_frame++) {
-            if (BoardPlayerMotBlendCheck(arg0) != 0)
+            if (BoardPlayerMotBlendCheck(player) != 0)
                 break;
             HuPrcVSleep();
         }
     }
-    if (arg2 > 0) {
-        character = GWPlayer[arg0].character;
+    if (duration > 0) {
+        character = GWPlayer[player].character;
         blend_object = omAddObjEx(boardObjMan, 0x100, 0, 0, -1, ExecMotBlend);
         work = omObjGetWork(blend_object, MotionBlendWork);
         work->kill = 0;
-        work->frames_remaining = arg2;
-        work->player = arg0;
+        work->frames_remaining = duration;
+        work->player = player;
         work->motion = 0;
-        OSs16tof32(&arg1, &work->target_yaw);
+        OSs16tof32(&target_yaw, &work->target_yaw);
         work->target_yaw = BoardDAngleCalc(work->target_yaw);
-        current_angle = BoardDAngleCalc(BoardPlayerRotYGet(arg0));
+        current_angle = BoardDAngleCalc(BoardPlayerRotYGet(player));
         turn_angle = BoardDAngleCalc(work->target_yaw - current_angle);
         OSf32tos16(&turn_angle, &angle_delta);
         if (angle_delta > 0) {
@@ -2628,8 +2632,8 @@ void BoardPlayerMotBlendSet(s32 arg0, s16 arg1, s16 arg2)
             work->kill = 1;
             return;
         }
-        work->motion = BoardPlayerMotionCreate(arg0, motion_data);
-        OSs16tof32(&arg2, &motion_speed);
+        work->motion = BoardPlayerMotionCreate(player, motion_data);
+        OSs16tof32(&duration, &motion_speed);
         turn_rate = motion_speed / 59.0f;
         if (turn_rate != 0.0f) {
             motion_speed = 1.0f / turn_rate;
@@ -2637,40 +2641,40 @@ void BoardPlayerMotBlendSet(s32 arg0, s16 arg1, s16 arg2)
         else {
             motion_speed = 1.0f;
         }
-        if (GWPlayer[arg0].bowser_suit != 0) {
+        if (GWPlayer[player].bowser_suit != 0) {
             BoardBowserSuitMotionSetWalk();
             BoardModelMotionSpeedSet(BoardBowserSuitModelGet(), motion_speed / 2);
         }
         else if (blend_time = 8.0f * turn_rate, abs(angle_delta) > 45) {
             turn_motion = work->motion;
-            BoardPlayerMotionShiftSet(arg0, turn_motion, motion_start_time, blend_time, HU3D_MOTATTR_NONE);
-            BoardPlayerMotionSpeedSet(arg0, motion_speed);
+            BoardPlayerMotionShiftSet(player, turn_motion, motion_start_time, blend_time, HU3D_MOTATTR_NONE);
+            BoardPlayerMotionSpeedSet(player, motion_speed);
         }
-        OSs16tof32(&arg2, &motion_speed);
+        OSs16tof32(&duration, &motion_speed);
         work->yaw_step = turn_angle / motion_speed;
-        motDoneF[arg0] = blend_object;
+        motDoneF[player] = blend_object;
     }
 }
 
 /**
  * @brief Updates and completes a timed player turn.
  *
- * @param arg0 Object being updated.
+ * @param object Turn object that applies one yaw step per frame and restores idle motion on completion.
  */
-static void ExecMotBlend(OMOBJ *arg0)
+static void ExecMotBlend(OMOBJ *object)
 {
     f32 unused_angle;
     f32 rotation_y;
     MotionBlendWork *work;
 
-    work = omObjGetWork(arg0, MotionBlendWork);
+    work = omObjGetWork(object, MotionBlendWork);
     if ((work->kill != 0) || (BoardIsKill() != 0)) {
         if (work->motion > 0) {
             BoardPlayerMotionKill(work->player, work->motion);
         }
         BoardPlayerRotYSet(work->player, work->target_yaw);
         motDoneF[work->player] = 0;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     if (work->frames_remaining-- <= 0) {
@@ -2694,23 +2698,25 @@ static void ExecMotBlend(OMOBJ *arg0)
 /**
  * @brief Checks whether a timed player turn is complete.
  *
- * @param arg0 Player index.
+ * @param player Player whose per-frame turn object is checked for removal.
  *
  * @return 1 when no turn object remains, otherwise 0.
  */
-s32 BoardPlayerMotBlendCheck(s32 arg0)
+s32 BoardPlayerMotBlendCheck(s32 player)
 {
-    if (motDoneF[arg0] != 0) {
+    if (motDoneF[player] != 0) {
         return 0;
     }
     return 1;
 }
 
+/* Unidentified bitfields below are not observed in their respective update
+ * paths. Their semantics are unknown; each view retains the original byte. */
 typedef struct roll_work {
     struct {
         u8 kill : 1;
         u8 visible : 1;
-        u8 reserved_bits : 6;
+        u8 unidentified_bits : 6;
     };
     s8 reveal_angle;
     s8 player;
@@ -2722,14 +2728,14 @@ typedef struct roll_work {
 typedef struct move_away_work {
     struct {
         u8 kill : 1;
-        u8 reserved_bits : 7;
+        u8 unidentified_bits : 7;
     };
 } MoveAwayWork;
 
 typedef struct bowser_suit_work {
     struct {
         u8 kill : 1;
-        u8 reserved_bits : 7;
+        u8 unidentified_bits : 7;
     };
     s8 player;
     s8 footstep_played;
@@ -2738,12 +2744,11 @@ typedef struct bowser_suit_work {
 /**
  * @brief Creates the two-digit remaining-roll display for a player.
  *
- * @param arg0 Player whose `roll` value supplies the displayed digits.
+ * @param player Player whose remaining `roll` count supplies the two displayed digits.
  *
- * @param arg1 Nonzero to start the display's internal reveal phase; zero to
- * create it with that phase already complete.
+ * @param animate_reveal Nonzero starts the reveal-angle phase; zero creates the display with that phase complete.
  */
-void BoardRollCreate(s32 arg0, s32 arg1)
+void BoardRollCreate(s32 player, s32 animate_reveal)
 {
     OMOBJ *roll_object;
     s32 digit;
@@ -2754,8 +2759,8 @@ void BoardRollCreate(s32 arg0, s32 arg1)
     work->kill = 0;
     work->visible = 1;
     work->reveal_angle = 0;
-    work->player = arg0;
-    if (arg1 != 0) {
+    work->player = player;
+    if (animate_reveal != 0) {
         work->reveal_complete = 0;
     }
     else {
@@ -2775,9 +2780,9 @@ void BoardRollCreate(s32 arg0, s32 arg1)
 /**
  * @brief Marks the global remaining-roll display for removal.
  *
- * @param arg0 Unused player argument retained by the public interface.
+ * @param unused_player Unused compatibility parameter; removal always targets the single global roll display.
  */
-void BoardRollUpdateSet(s32 arg0)
+void BoardRollUpdateSet(s32 unused_player)
 {
     RollWork *work;
 
@@ -2790,9 +2795,9 @@ void BoardRollUpdateSet(s32 arg0)
 /**
  * @brief Shows or hides the remaining-roll display.
  *
- * @param arg0 Nonzero to show the display, zero to hide it.
+ * @param visible Nonzero displays applicable roll digits; zero hides both sprites.
  */
-void BoardRollDispSet(s32 arg0)
+void BoardRollDispSet(s32 visible)
 {
     s32 digit;
     RollWork *work;
@@ -2801,7 +2806,7 @@ void BoardRollDispSet(s32 arg0)
         work = omObjGetWork(rollObj, RollWork);
 
         for (digit = 0; digit < 2; digit++) {
-            if (arg0 != 0) {
+            if (visible != 0) {
                 work->visible = 1;
                 if ((digit == 1) && (GWPlayer[work->player].roll / 10 == 0)) {
                     HuSprAttrSet(work->sprite_group, digit, HUSPR_ATTR_DISPOFF);
@@ -2822,9 +2827,9 @@ void BoardRollDispSet(s32 arg0)
 /**
  * @brief Updates digits in the remaining-roll display.
  *
- * @param arg0 Object being updated.
+ * @param object Roll-display object whose player roll is split into ones and tens sprite banks.
  */
-static void UpdateRollSprite(OMOBJ *arg0)
+static void UpdateRollSprite(OMOBJ *object)
 {
     Vec digit_pos;
     s32 digits[2];
@@ -2833,7 +2838,7 @@ static void UpdateRollSprite(OMOBJ *arg0)
     s32 roll;
     RollWork *work;
 
-    work = omObjGetWork(arg0, RollWork);
+    work = omObjGetWork(object, RollWork);
     roll = GWPlayer[work->player].roll;
     if (roll != 0) {
         digits[0] = roll % 10;
@@ -2865,9 +2870,9 @@ static void UpdateRollSprite(OMOBJ *arg0)
 /**
  * @brief Updates and destroys the remaining-roll display object.
  *
- * @param arg0 Object being updated.
+ * @param object Roll-display object whose reveal phase and destruction state are advanced.
  */
-static void UpdateRoll(OMOBJ *arg0)
+static void UpdateRoll(OMOBJ *object)
 {
     f32 display_angle;
     RollWork *work;
@@ -2879,7 +2884,7 @@ static void UpdateRoll(OMOBJ *arg0)
             work->sprite_group = -1;
         }
         rollObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     if (work->reveal_complete == 0) {
@@ -2894,25 +2899,25 @@ static void UpdateRoll(OMOBJ *arg0)
             display_angle -= 90.0f;
         }
     }
-    UpdateRollSprite(arg0);
+    UpdateRollSprite(object);
 }
 
 /**
  * @brief Waits for a player to press any requested button.
  *
- * @param arg0 Player index.
+ * @param player Player whose configured controller port is polled.
  *
- * @param arg1 Button mask to wait for.
+ * @param button_mask Controller-button bits; the wait ends when any requested bit is pressed.
  */
-void BoardPlayerBtnDownWait(s32 arg0, u32 arg1)
+void BoardPlayerBtnDownWait(s32 player, u32 button_mask)
 {
     s32 unused_button_state;
     s32 unused_port_state;
     s32 port;
 
-    port = GWPlayer[arg0].port;
+    port = GWPlayer[player].port;
     while (1) {
-        if ((HuPadBtnDown[port] & arg1) != 0)
+        if ((HuPadBtnDown[port] & button_mask) != 0)
             return;
         HuPrcVSleep();
     }
@@ -2921,20 +2926,20 @@ void BoardPlayerBtnDownWait(s32 arg0, u32 arg1)
 /**
  * @brief Sets the queued automatic size change for a player.
  *
- * @param player Player index.
+ * @param player Player whose queued automatic size effect and hammer indicator are updated.
  *
- * @param value Queued size state.
+ * @param size Queued size state: zero clears it, 1 queues Mini, and 2 queues Mega.
  */
-void BoardPlayerAutoSizeSet(s32 player, s32 value)
+void BoardPlayerAutoSizeSet(s32 player, s32 size)
 {
     PlayerState *player_state;
 
     player_state = BoardPlayerGet(player);
-    if ((player_state->auto_size != 0) || (value == 0)) {
+    if ((player_state->auto_size != 0) || (size == 0)) {
         BoardStatusHammerKill(player);
     }
-    player_state->auto_size = value;
-    if (value != 0) {
+    player_state->auto_size = size;
+    if (size != 0) {
         BoardStatusHammerCreate(player);
     }
 }
@@ -2942,19 +2947,19 @@ void BoardPlayerAutoSizeSet(s32 player, s32 value)
 /**
  * @brief Gets the queued automatic size change for a player.
  *
- * @param arg0 Player index.
+ * @param player Player whose queued automatic size state is read.
  *
- * @return The queued size state, or no defined value if player state is unavailable.
+ * @return The queued size state, or no defined size if player state is unavailable.
  */
-s32 BoardPlayerAutoSizeGet(s32 arg0)
+s32 BoardPlayerAutoSizeGet(s32 player)
 {
-    PlayerState *player;
+    PlayerState *player_state;
 
-    player = BoardPlayerGet(arg0);
-    if (!player) {
+    player_state = BoardPlayerGet(player);
+    if (!player_state) {
         return;
     }
-    return player->auto_size;
+    return player_state->auto_size;
 }
 
 /**
@@ -2973,26 +2978,26 @@ u32 BoardPlayerMoveAwayIsDone(void)
 /**
  * @brief Moves other occupants toward corners of a board space.
  *
- * @param arg0 Player index.
+ * @param ordering_player Player after whom cyclic occupant ordering begins.
  *
- * @param arg1 Occupied space index.
+ * @param space Occupied board space whose players are assigned corner positions.
  *
- * @param arg2 Nonzero to reposition immediately.
+ * @param immediate Nonzero teleports occupants to corners; zero starts interpolated movement and a completion object.
  */
-void BoardPlayerMoveAwayStart(s32 arg0, s32 arg1, s32 arg2)
+void BoardPlayerMoveAwayStart(s32 ordering_player, s32 space, s32 immediate)
 {
     MoveAwayWork *work;
     Vec space_rot;
     Vec corner_pos;
     Vec player_pos;
-    s32 player;
+    s32 displaced_player;
     s32 ordered_player;
     s32 player_index;
     s32 move_count;
     s32 players_checked;
 
     moveAwayPlayer[0] = moveAwayPlayer[1] = moveAwayPlayer[2] = moveAwayPlayer[3] = -1;
-    ordered_player = arg0 + 1;
+    ordered_player = ordering_player + 1;
 
     players_checked = 0;
     // hack
@@ -3000,26 +3005,26 @@ void BoardPlayerMoveAwayStart(s32 arg0, s32 arg1, s32 arg2)
         ordered_player &= 3;
 
         for (player_index = 0; player_index < 4; player_index++) {
-            if ((player_index == ordered_player) && (arg1 == GWPlayer[player_index].space_curr)) {
+            if ((player_index == ordered_player) && (space == GWPlayer[player_index].space_curr)) {
                 moveAwayPlayer[move_count++] = player_index;
             }
         }
     }
-    BoardSpaceRotGet(0, arg1, &space_rot);
+    BoardSpaceRotGet(0, space, &space_rot);
 
     for (player_index = 0; player_index < move_count; player_index++) {
-        BoardSpaceCornerPosGet(arg1, player_index, &corner_pos);
-        player = moveAwayPlayer[player_index];
-        if (arg2 != 0) {
-            BoardPlayerPosSetV(player, &corner_pos);
+        BoardSpaceCornerPosGet(space, player_index, &corner_pos);
+        displaced_player = moveAwayPlayer[player_index];
+        if (immediate != 0) {
+            BoardPlayerPosSetV(displaced_player, &corner_pos);
             moveAwayPlayer[player_index] = -1;
         }
         else {
-            BoardPlayerPosGet(player, &player_pos);
-            BoardPlayerPosLerpStart(player, &player_pos, &corner_pos, 0x19);
+            BoardPlayerPosGet(displaced_player, &player_pos);
+            BoardPlayerPosLerpStart(displaced_player, &player_pos, &corner_pos, 0x19);
         }
     }
-    if (arg2 == 0) {
+    if (immediate == 0) {
         moveAwayObj = omAddObjEx(boardObjMan, 0x100, 0U, 0U, -1, &MoveAwayObjFunc);
         work = omObjGetWork(moveAwayObj, MoveAwayWork);
         work->kill = 0;
@@ -3029,29 +3034,29 @@ void BoardPlayerMoveAwayStart(s32 arg0, s32 arg1, s32 arg2)
 /**
  * @brief Moves occupants of a space away from the current player.
  *
- * @param arg0 Occupied space index.
+ * @param space Occupied board space whose players are moved away from the current player.
  *
- * @param arg1 Nonzero to reposition immediately.
+ * @param immediate Nonzero teleports occupants; zero animates them and tracks completion.
  */
-void BoardPlayerMoveAwayStartCurr(s32 arg0, s32 arg1)
+void BoardPlayerMoveAwayStartCurr(s32 space, s32 immediate)
 {
-    BoardPlayerMoveAwayStart(GWSystem.player_curr, arg0, arg1);
+    BoardPlayerMoveAwayStart(GWSystem.player_curr, space, immediate);
 }
 
 /**
  * @brief Waits for displaced players to finish moving.
  *
- * @param arg0 Object being updated.
+ * @param object Completion object that waits for displaced players, turns each to yaw zero, and then removes itself.
  */
-static void MoveAwayObjFunc(OMOBJ *arg0)
+static void MoveAwayObjFunc(OMOBJ *object)
 {
     s32 move_index;
     MoveAwayWork *work;
 
-    work = omObjGetWork(arg0, MoveAwayWork);
+    work = omObjGetWork(object, MoveAwayWork);
     if ((work->kill != 0) || (BoardIsKill() != 0)) {
         moveAwayObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
 
@@ -3069,49 +3074,49 @@ static void MoveAwayObjFunc(OMOBJ *arg0)
 /**
  * @brief Creates and enables the Bowser suit for a player.
  *
- * @param arg0 Player index.
+ * @param player Player who receives the global suit models, suit state, and disabled suit-motion voices.
  */
-void BoardBowserSuitInit(s32 arg0)
+void BoardBowserSuitInit(s32 player)
 {
     OMOBJ *suit_object;
     s32 character;
     s32 unused_player;
-    s32 temp;
+    s32 data_read_status;
     BowserSuitWork *work;
 
     for (unused_player = 0; unused_player < 4; unused_player++) { }
-    character = GWPlayer[arg0].character;
-    temp = BoardDataDirReadAsync(0x40000);
-    BoardDataAsyncWait(temp);
+    character = GWPlayer[player].character;
+    data_read_status = BoardDataDirReadAsync(0x40000);
+    BoardDataAsyncWait(data_read_status);
     suitMdl = BoardModelCreate(0x40018, NULL, 0);
     BoardModelScaleSet(suitMdl, 1.2f, 1.2f, 1.2f);
     suitPlayerMdl = BoardModelCreate(bowserSuitCharMdlTbl[character], NULL, 0);
-    GWPlayer[arg0].bowser_suit = 1;
+    GWPlayer[player].bowser_suit = 1;
     suit_object = omAddObjEx(boardObjMan, 0x100, 0U, 0U, -1, &UpdateBowserSuit);
     bowserSuitObj = suit_object;
     work = omObjGetWork(suit_object, BowserSuitWork);
     work->kill = 0;
-    work->player = arg0;
+    work->player = player;
     work->footstep_played = 0;
-    BoardPlayerVoiceEnableSet(arg0, 3, 0);
-    BoardPlayerVoiceEnableSet(arg0, 4, 0);
+    BoardPlayerVoiceEnableSet(player, 3, 0);
+    BoardPlayerVoiceEnableSet(player, 4, 0);
 }
 
 /**
  * @brief Removes the Bowser suit from a player.
  *
- * @param arg0 Player index.
+ * @param player Player whose suit flag and motion voices are restored while global suit models are destroyed.
  */
-void BoardBowserSuitKill(s32 arg0)
+void BoardBowserSuitKill(s32 player)
 {
-    BowserSuitWork *temp;
+    BowserSuitWork *unused_work;
 
     if (bowserSuitObj != 0) {
         omObjGetWork(bowserSuitObj, BowserSuitWork)->kill = 1;
     }
-    GWPlayer[arg0].bowser_suit = 0;
-    BoardModelVoiceEnableSet(BoardPlayerModelGet(arg0), 3, 1);
-    BoardModelVoiceEnableSet(BoardPlayerModelGet(arg0), 4, 1);
+    GWPlayer[player].bowser_suit = 0;
+    BoardModelVoiceEnableSet(BoardPlayerModelGet(player), 3, 1);
+    BoardModelVoiceEnableSet(BoardPlayerModelGet(player), 4, 1);
     if (suitMdl != -1) {
         BoardModelKill(suitMdl);
         suitMdl = -1;
@@ -3210,17 +3215,17 @@ void BoardBowserSuitPlayerModelKill(void)
 /**
  * @brief Updates Bowser suit footstep sounds and object lifetime.
  *
- * @param arg0 Object being updated.
+ * @param object Bowser-suit object that emits walk footsteps and handles requested cleanup.
  */
-static void UpdateBowserSuit(OMOBJ *arg0)
+static void UpdateBowserSuit(OMOBJ *object)
 {
     s16 motion_time;
     BowserSuitWork *work;
 
-    work = omObjGetWork(arg0, BowserSuitWork);
+    work = omObjGetWork(object, BowserSuitWork);
     if ((work->kill != 0) || (BoardIsKill() != 0)) {
         bowserSuitObj = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     if ((suitMdl != -1) && (suitCurrMot == 1)) {
@@ -3238,14 +3243,14 @@ static void UpdateBowserSuit(OMOBJ *arg0)
 /**
  * @brief Marks the current space as containing a player Sparky trap.
  *
- * @param arg0 Player index.
+ * @param player Player who owns the Sparky trap placed on their current space.
  */
-void BoardPlayerSparkSet(s32 arg0)
+void BoardPlayerSparkSet(s32 player)
 {
-    s16 currSpace = GWPlayer[arg0].space_curr;
+    s16 current_space = GWPlayer[player].space_curr;
 
-    GWPlayer[arg0].spark = 1;
-    GWPlayer[arg0].space_shock = currSpace;
+    GWPlayer[player].spark = 1;
+    GWPlayer[player].space_shock = current_space;
 }
 
 /**
@@ -3253,9 +3258,9 @@ void BoardPlayerSparkSet(s32 arg0)
  *
  * @details If the current space has a Sparky trap, this function plays the shock sequence, removes up to ten coins from each occupant, clears the trap, and restores turn presentation.
  *
- * @param player Player entering the space.
+ * @param player Player entering the space checked for an active Sparky trap.
  *
- * @param pause_cam Nonzero to restore the paused camera mode afterward.
+ * @param pause_cam Nonzero restores paused-camera mode after the trap sequence; zero restores normal movement mode.
  *
  * @return 1 if a Sparky trap was executed, otherwise 0.
  */
@@ -3424,7 +3429,7 @@ static s32 DoSparkSpace(s32 player, s32 pause_cam)
 /**
  * @brief Notifies the owner and removes their Sparky trap.
  *
- * @param player Player who owns the trap.
+ * @param player Trap owner whose notification is shown and whose Sparky state is cleared.
  */
 static void RemoveSparkSpace(s32 player)
 {
@@ -3440,7 +3445,7 @@ static void RemoveSparkSpace(s32 player)
 /**
  * @brief Applies a queued automatic player size change.
  *
- * @param player Player index.
+ * @param player Player whose queued Mini or Mega effect is consumed at turn start.
  */
 static void SetPlayerSizeAuto(s32 player)
 {
@@ -3478,15 +3483,15 @@ s32 BoardMegaDoubleDiceCheck(void)
 /**
  * @brief Animates a player model between normal, Mini, and Mega sizes.
  *
- * @param player Player index.
+ * @param player Player whose character model is resized and motion is temporarily paused.
  *
- * @param size Target size state: 0 for normal, 1 for Mini, or 2 for Mega.
+ * @param size Target size state: 0 normal, 1 Mini, or 2 Mega.
  */
 void BoardPlayerResizeAnimExec(s32 player, s32 size)
 {
     s32 j;
     s32 i;
-    s16 modelid;
+    s16 model_id;
     s32 frame;
     s16 model;
     float mdl_size;
@@ -3509,8 +3514,8 @@ void BoardPlayerResizeAnimExec(s32 player, s32 size)
     frame_data[7] = steps[2];
     frame_data[8] = steps[3];
     model = BoardPlayerModelGet(player);
-    modelid = BoardModelIDGet(model);
-    Hu3DModelAttrSet(modelid, HU3D_MOTATTR_PAUSE);
+    model_id = BoardModelIDGet(model);
+    Hu3DModelAttrSet(model_id, HU3D_MOTATTR_PAUSE);
     frame = 0;
     for (j = 0; j < 9; j++) {
         float size_vel;
@@ -3521,7 +3526,7 @@ void BoardPlayerResizeAnimExec(s32 player, s32 size)
             HuPrcVSleep();
         }
     }
-    Hu3DModelAttrReset(modelid, HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrReset(model_id, HU3D_MOTATTR_PAUSE);
     BoardPlayerSizeSet(player, size);
 }
 
@@ -3544,7 +3549,7 @@ typedef struct mega_squish_work {
 /**
  * @brief Updates a player being squashed by a giant player.
  *
- * @param object Squish controller object.
+ * @param object Squish object controlling victim motion, coin transfer timing, reappearance, and cleanup.
  */
 static void MegaSquishFunc(OMOBJ *object)
 {
@@ -3648,9 +3653,9 @@ static void MegaSquishFunc(OMOBJ *object)
  *
  * @details Only giant players use this path. Occupants of the destination space are squashed and can transfer up to ten coins each to the moving player.
  *
- * @param player Moving player index.
+ * @param player Mega player moving through the destination space and receiving stolen coins.
  *
- * @param space Destination space index.
+ * @param space Destination board-space index checked for players to squash.
  *
  * @return Zero when no special pass action is needed; the completed-action return value is not explicitly set.
  */
@@ -3771,9 +3776,9 @@ static s32 MegaPlayerPassFunc(s32 player, s32 space)
  *
  * @details This Bowser-suit path squashes occupants of the destination space and can transfer up to thirty coins from each affected player.
  *
- * @param player Moving player index.
+ * @param player Bowser-suited player jumping onto the destination and receiving stolen coins.
  *
- * @param space Destination space index.
+ * @param space Destination board-space index checked for players to squash.
  *
  * @return Zero when no occupants are affected; the completed-action return value is not explicitly set.
  */
@@ -3893,11 +3898,11 @@ static s32 MegaExecJump(s32 player, s32 space)
  *
  * @details When enabled, material attributes are checked against character-specific eye bitmap names so only non-eye materials are blackened. Passing zero restores the saved material array.
  *
- * @param arg0 Player index.
+ * @param player Player whose live material array is blackened or restored.
  *
- * @param arg1 Nonzero to blacken non-eye materials, zero to restore them.
+ * @param blacken Nonzero blacks out materials not using either character eye bitmap; zero restores the saved material copy.
  */
-void BoardPlayerCopyEyeMat(s32 arg0, s32 arg1)
+void BoardPlayerCopyEyeMat(s32 player, s32 blacken)
 {
     HSFMATERIAL *saved_material;
     s32 is_not_eye_material;
@@ -3905,28 +3910,28 @@ void BoardPlayerCopyEyeMat(s32 arg0, s32 arg1)
     u32 attribute_index;
     HSFATTRIBUTE *attribute;
     char **eye_material_names;
-    HSFDATA *hsfData;
+    HSFDATA *model_data;
     HSFMATERIAL *material;
     HU3DMODEL *model;
-    s16 modelId = BoardModelIDGet(BoardPlayerModelGet(arg0));
-    model = &Hu3DData[modelId];
-    hsfData = model->hsf;
-    material = hsfData->material;
-    saved_material = playerMatCopy[arg0];
-    if (arg1 != 0) {
-        eye_material_names = &eyeMatTbl[GWPlayer[arg0].character][0];
+    s16 model_id = BoardModelIDGet(BoardPlayerModelGet(player));
+    model = &Hu3DData[model_id];
+    model_data = model->hsf;
+    material = model_data->material;
+    saved_material = playerMatCopy[player];
+    if (blacken != 0) {
+        eye_material_names = &eyeMatTbl[GWPlayer[player].character][0];
         (void)eye_material_names;
-        for (material_index = 0; material_index < hsfData->materialNum; material_index++, material++, saved_material++) {
+        for (material_index = 0; material_index < model_data->materialNum; material_index++, material++, saved_material++) {
             is_not_eye_material = 1;
 
             for (attribute_index = 0; attribute_index < material->attrNum; attribute_index++) {
-                attribute = &hsfData->attribute[(s32)material->attr[attribute_index]];
+                attribute = &model_data->attribute[(s32)material->attr[attribute_index]];
                 if ((strcmp(eye_material_names[0], attribute->bitmap->name) == 0) || (strcmp(eye_material_names[1], attribute->bitmap->name) == 0)) {
                     is_not_eye_material = 0;
                 }
             }
             if (is_not_eye_material) {
-                if (arg1 != 0) {
+                if (blacken != 0) {
                     material->color[0] *= 0.0f;
                     material->color[1] *= 0.0f;
                     material->color[2] *= 0.0f;
@@ -3940,9 +3945,9 @@ void BoardPlayerCopyEyeMat(s32 arg0, s32 arg1)
         }
     }
     else {
-        memcpy(hsfData->material, saved_material, hsfData->materialNum * 0x3C);
+        memcpy(model_data->material, saved_material, model_data->materialNum * 0x3C);
     }
-    DCStoreRange(hsfData->material, hsfData->materialNum * 0x3C);
+    DCStoreRange(model_data->material, model_data->materialNum * 0x3C);
 }
 
 /**
@@ -3951,19 +3956,19 @@ void BoardPlayerCopyEyeMat(s32 arg0, s32 arg1)
  * @details Allocates a full material-array copy from the overlay heap. The copy
  * is stored per player and released by `BoardPlayerModelKill`.
  *
- * @param arg0 Player index.
+ * @param player Player whose complete material array is copied into overlay-heap storage for later restoration.
  */
-void BoardPlayerCopyMat(s32 arg0)
+void BoardPlayerCopyMat(s32 player)
 {
-    s16 modelID;
+    s16 model_id;
     HU3DMODEL *model;
     void *material_copy;
     HSFDATA *model_data;
 
-    modelID = BoardModelIDGet(BoardPlayerModelGet(arg0));
-    model = &Hu3DData[modelID];
+    model_id = BoardModelIDGet(BoardPlayerModelGet(player));
+    model = &Hu3DData[model_id];
     model_data = model->hsf;
     material_copy = HuMemDirectMallocNum(HEAP_HEAP, model_data->materialNum * sizeof(HSFMATERIAL), HU_MEMNUM_OVL);
     memcpy(material_copy, model_data->material, model_data->materialNum * sizeof(HSFMATERIAL));
-    playerMatCopy[arg0] = material_copy;
+    playerMatCopy[player] = material_copy;
 }
