@@ -4,7 +4,7 @@
 #include "dolphin.h"
 #include "game/object.h"
 
-s16 BoardBooCreate(s32 owner_player, Vec *position);
+s16 BoardBooCreate(s32 owner_player, Vec *input_position);
 void BoardBooKill(void);
 s32 BoardBooStealTypeSet(s32 theft_type);
 s32 BoardBooStealMain(void);

@@ -207,17 +207,17 @@ static s32 ballMdlTbl[] = {
  *
  * @details Resets theft state and creates the object that owns both ball model handles.
  * @param owner_player Player index treated as the event owner.
- * @param position Optional world position for the ball; NULL places it at the origin.
+ * @param input_position Optional world position for the ball; NULL places it at the origin.
  * @return The primary ball model handle.
  */
-s16 BoardBooCreate(s32 owner_player, Vec *position) {
+s16 BoardBooCreate(s32 owner_player, Vec *input_position) {
     BooEventWork *work;
-    Vec position;
+    Vec ball_position;
 
-    if (position) {
-        position = *position;
+    if (input_position) {
+        ball_position = *input_position;
     } else {
-        position.x = position.y = position.z = 0.0f;
+        ball_position.x = ball_position.y = ball_position.z = 0.0f;
     }
     booEventObj = omAddObjEx(boardObjMan, 0x1000, 0, 0, -1, ExecBoo);
     work = omObjGetWork(booEventObj, BooEventWork);
@@ -230,10 +230,10 @@ s16 BoardBooCreate(s32 owner_player, Vec *position) {
     punchCount = 0;
     stealValue = 0;
     stealSuccess = 0;
-    booEventObj->trans.x = position.x;
-    booEventObj->trans.y = position.y;
-    booEventObj->trans.z = position.z;
-    CreateBallMdl(work->ball_models, &position);
+    booEventObj->trans.x = ball_position.x;
+    booEventObj->trans.y = ball_position.y;
+    booEventObj->trans.z = ball_position.z;
+    CreateBallMdl(work->ball_models, &ball_position);
     return work->ball_models[0];
 }
 
