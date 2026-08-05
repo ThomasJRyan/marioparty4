@@ -33,7 +33,7 @@ static void objRoot(HU3DMODEL *modelP, HSFOBJECT *objPtr);
 static void objJoint(HU3DMODEL *modelP, HSFOBJECT *objPtr);
 static void objMap(HU3DMODEL *modelP, HSFOBJECT *objPtr);
 static void objReplica(HU3DMODEL *modelP, HSFOBJECT *objPtr);
-static void ObjDraw(HU3DDRAWOBJ *arg0);
+static void ObjDraw(HU3DDRAWOBJ *draw_object);
 static void MDObjCall(HSFDATA *hsf, HSFOBJECT *objPtr);
 static void MDObjMesh(HSFDATA *hsf, HSFOBJECT *objPtr);
 static void MDFaceDraw(HSFOBJECT *objPtr, HSFFACE *face);
@@ -482,7 +482,7 @@ inline void SetupGX(const HSFMATERIAL* material, const HSFCONSTDATA* constData, 
  * @param hsfFace Face buffer containing material, vertex, normal, color, and UV indices.
  */
 static void FaceDraw(HU3DDRAWOBJ *hsfDrawObject, HSFFACE *hsfFace) {
-    GXColor tempColor;
+    GXColor channel_color;
     void *displayListPtr;
     HU3DTEXANIM *texAnimData;
     s16 tevStage;
@@ -495,7 +495,7 @@ static void FaceDraw(HU3DDRAWOBJ *hsfDrawObject, HSFFACE *hsfFace) {
     HSFCONSTDATA *constData;
     s16 projection_bit_or_index;
     s16 vtxMode;
-    s16 textureIdx; // var_r21
+    s16 textureIdx;
     u32 flags;
     s16 hiliteAnimIdx;
     s16 reflectAnimIdx;
@@ -511,16 +511,16 @@ static void FaceDraw(HU3DDRAWOBJ *hsfDrawObject, HSFFACE *hsfFace) {
     if (faceMaterial != materialBak) {
         totalMatCnt++;
         materialBak = faceMaterial;
-        tempColor.r = faceMaterial->litColor[0] * model->ambR;
-        tempColor.g = faceMaterial->litColor[1] * model->ambG;
-        tempColor.b = faceMaterial->litColor[2] * model->ambB;
-        tempColor.a = 0xFF;
-        GXSetChanAmbColor(GX_COLOR0A0, tempColor);
-        tempColor.r = faceMaterial->color[0];
-        tempColor.g = faceMaterial->color[1];
-        tempColor.b = faceMaterial->color[2];
-        tempColor.a = 0xFF;
-        GXSetChanMatColor(GX_COLOR0A0, tempColor);
+        channel_color.r = faceMaterial->litColor[0] * model->ambR;
+        channel_color.g = faceMaterial->litColor[1] * model->ambG;
+        channel_color.b = faceMaterial->litColor[2] * model->ambB;
+        channel_color.a = 0xFF;
+        GXSetChanAmbColor(GX_COLOR0A0, channel_color);
+        channel_color.r = faceMaterial->color[0];
+        channel_color.g = faceMaterial->color[1];
+        channel_color.b = faceMaterial->color[2];
+        channel_color.a = 0xFF;
+        GXSetChanMatColor(GX_COLOR0A0, channel_color);
 
         if (model->attr & HU3D_ATTR_ZCMP_OFF) {
             tevStage = GX_FALSE;
@@ -2173,7 +2173,7 @@ void Hu3DDrawPost(void) {
     HSFBUFFER *faceBuf;
     HU3DDRAWOBJ *drawObj;
     s16 projBit;
-    s16 temp;
+    s16 draw_number;
     s16 invF;
     s16 drawObjNo;
     s16 drawObjNextNo;
@@ -2203,7 +2203,7 @@ void Hu3DDrawPost(void) {
             }
             while ((drawObjNextNo /= 3) >= 1) {
                 for (i = drawObjNextNo; i < DrawObjIdx; i++) {
-                    temp = DrawObjNum[i];
+                    draw_number = DrawObjNum[i];
                     z = DrawObjData[DrawObjNum[i]].z;
                     j = i - drawObjNextNo;
                     while (j >= 0) {
@@ -2214,7 +2214,7 @@ void Hu3DDrawPost(void) {
                             break;
                         }
                     }
-                    DrawObjNum[j + drawObjNextNo] = temp;
+                    DrawObjNum[j + drawObjNextNo] = draw_number;
                 }
             }
             for (i = 0; i < DrawObjIdx - 1; i++) {
@@ -2223,9 +2223,9 @@ void Hu3DDrawPost(void) {
                         break;
                     }
                     if (DrawObjNum[j] < DrawObjNum[i]) {
-                        temp = DrawObjNum[i];
+                        draw_number = DrawObjNum[i];
                         DrawObjNum[i] = DrawObjNum[j];
-                        DrawObjNum[j] = temp;
+                        DrawObjNum[j] = draw_number;
                     }
                 }
             }
@@ -2362,9 +2362,11 @@ void Hu3DDrawPost(void) {
 
 /**
  * @brief Draws one queued mesh using the current camera and light state.
- * @param arg0 Deferred draw record containing model, object, scale, and matrix.
+ * @param draw_object Queued mesh record whose object supplies the face buffer,
+ * whose model supplies projection and highlight state, and whose matrix and
+ * scale produce the GX position, normal, shadow, and texture matrices.
  */
-static void ObjDraw(HU3DDRAWOBJ *arg0) {
+static void ObjDraw(HU3DDRAWOBJ *draw_object) {
     Vec axis;
     Vec rotation_axis;
     Vec halfAngle;
@@ -2387,16 +2389,16 @@ static void ObjDraw(HU3DDRAWOBJ *arg0) {
     Mtx invXPose;
     Mtx scale;
 
-    Hu3DObjInfoP = arg0->object->constData;
+    Hu3DObjInfoP = draw_object->object->constData;
     DLBufStartP = Hu3DObjInfoP->dlBuf;
     DrawData = Hu3DObjInfoP->drawData;
-    GXLoadPosMtxImm(arg0->matrix, GX_PNMTX0);
-    MTXInvXpose(arg0->matrix, mtx);
+    GXLoadPosMtxImm(draw_object->matrix, GX_PNMTX0);
+    MTXInvXpose(draw_object->matrix, mtx);
     GXLoadNrmMtxImm(mtx, 0);
     GXInvalidateVtxCache();
     if (Hu3DShadowF != FALSE && Hu3DShadowCamBit != 0 && (Hu3DObjInfoP->attr & HU3D_CONST_SHADOW_MAP)) {
         MTXInverse(Hu3DCameraMtx, invCamera);
-        MTXConcat(invCamera, arg0->matrix, mtx);
+        MTXConcat(invCamera, draw_object->matrix, mtx);
         MTXConcat(Hu3DShadowData.projMtx, Hu3DShadowData.lookAtMtx, shadowCam);
         MTXConcat(shadowCam, mtx, mtx);
         GXLoadTexMtxImm(mtx, GX_TEXMTX9, GX_MTX3x4);
@@ -2404,23 +2406,23 @@ static void ObjDraw(HU3DDRAWOBJ *arg0) {
     } else {
         invF = FALSE;
     }
-    if (arg0->model->projBit != 0) {
+    if (draw_object->model->projBit != 0) {
         if (invF == FALSE) {
             MTXInverse(Hu3DCameraMtx, invCamera);
         }
         for (i = 0, projBit = 1; i < HU3D_PROJ_MAX; i++, projBit <<= 1) {
-            if (projBit & arg0->model->projBit) {
-                MTXConcat(invCamera, arg0->matrix, mtx);
+            if (projBit & draw_object->model->projBit) {
+                MTXConcat(invCamera, draw_object->matrix, mtx);
                 MTXConcat(Hu3DProjection[i].projMtx, Hu3DProjection[i].lookAtMtx, shadowCam);
                 MTXConcat(shadowCam, mtx, mtx);
                 GXLoadTexMtxImm(mtx, texMtxTbl[i + 3], GX_MTX3x4);
             }
         }
     }
-    if ((arg0->model->attr & HU3D_ATTR_HILITE) || (Hu3DObjInfoP->attr & HU3D_CONST_HILITE)) {
+    if ((draw_object->model->attr & HU3D_ATTR_HILITE) || (Hu3DObjInfoP->attr & HU3D_CONST_HILITE)) {
         // TODO SetHiliteTexMtx
         axis = lbl_8011DD20;
-        lightP = &Hu3DGlobalLight[arg0->model->hiliteIdx];
+        lightP = &Hu3DGlobalLight[draw_object->model->hiliteIdx];
         dir = lightP->dir;
         if (lightP->type & 0x8000) {
             MTXMultVecSR(Hu3DCameraMtx, &dir, &dir);
@@ -2435,8 +2437,8 @@ static void ObjDraw(HU3DDRAWOBJ *arg0) {
             halfAngle.x = -halfAngle.x;
             halfAngle.y = -halfAngle.y;
             halfAngle.z = -halfAngle.z;
-            MTXScale(scale, 1.0f / arg0->scale.x, 1.0f / arg0->scale.y, 1.0f / arg0->scale.z);
-            MTXConcat(arg0->matrix, scale, mtx2);
+            MTXScale(scale, 1.0f / draw_object->scale.x, 1.0f / draw_object->scale.y, 1.0f / draw_object->scale.z);
+            MTXConcat(draw_object->matrix, scale, mtx2);
             mtx2[0][3] = mtx2[1][3] = mtx2[2][3] = 0.0f;
             PSMTXInvXpose(mtx2, invXPose);
             if (similar == 10000) {
@@ -2451,7 +2453,7 @@ static void ObjDraw(HU3DDRAWOBJ *arg0) {
             PSMTXConcat(mtx2, scale, hiliteMtx);
         }
     }
-    faceBuf = arg0->object->mesh.face;
+    faceBuf = draw_object->object->mesh.face;
     facePtr = faceBuf->data;
     drawCnt = 0;
     shadingBak = -1;
@@ -2459,7 +2461,7 @@ static void ObjDraw(HU3DDRAWOBJ *arg0) {
     materialBak = PTR_INVALID;
     if (shadowModelDrawF == 0) {
         for (i = 0; i < faceBuf->count;) {
-            FaceDraw(arg0, facePtr);
+            FaceDraw(draw_object, facePtr);
             if (facePtr->type == 4) {
                 totalPolyCnt += DrawData[drawCnt - 1].polyCnt;
                 i++;
@@ -2479,7 +2481,7 @@ static void ObjDraw(HU3DDRAWOBJ *arg0) {
         GXSetTevColor(GX_TEVREG1, color);
         GXSetNumChans(1);
         for (i = 0; i < faceBuf->count;) {
-            FaceDrawShadow(arg0, facePtr);
+            FaceDrawShadow(draw_object, facePtr);
             if (facePtr->type == 4) {
                 i++;
                 facePtr++;
@@ -2976,7 +2978,7 @@ static void MDFaceCnt(HSFOBJECT *objPtr, HSFFACE *face) {
     s16 i;
 
     matP = &objPtr->mesh.material[face->mat & 0xFFF];
-    // Bug? Likely to be polyTypeBak != (arg1->unk00 & 7)
+    // Bug? Likely to be polyTypeBak != (face->type & 7)
     if (matP != materialBak || ((polyTypeBak != face->type) & 7) || (face->type & 7) == 4) {
         polySize = 4;
         polyTypeBak = face->type & 7;
@@ -3053,19 +3055,19 @@ void mtxTransCat(Mtx mtx, float x, float y, float z) {
  * @param z Rotation about z in degrees.
  */
 void mtxRotCat(Mtx mtx, float x, float y, float z) {
-    Mtx temp;
+    Mtx rotation_matrix;
 
     if (x != 0.0f) {
-        MTXRotRad(temp, 'X', MTXDegToRad(x));
-        MTXConcat(temp, mtx, mtx);
+        MTXRotRad(rotation_matrix, 'X', MTXDegToRad(x));
+        MTXConcat(rotation_matrix, mtx, mtx);
     }
     if (y != 0.0f) {
-        MTXRotRad(temp, 'Y', MTXDegToRad(y));
-        MTXConcat(temp, mtx, mtx);
+        MTXRotRad(rotation_matrix, 'Y', MTXDegToRad(y));
+        MTXConcat(rotation_matrix, mtx, mtx);
     }
     if (z != 0.0f) {
-        MTXRotRad(temp, 'Z', MTXDegToRad(z));
-        MTXConcat(temp, mtx, mtx);
+        MTXRotRad(rotation_matrix, 'Z', MTXDegToRad(z));
+        MTXConcat(rotation_matrix, mtx, mtx);
     }
 }
 

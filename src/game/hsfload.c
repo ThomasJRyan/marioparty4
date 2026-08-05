@@ -201,8 +201,8 @@ static HSFDATA *SetHsfModel(void)
  */
 char *SetName(u32 *str_ofs)
 {
-    char *ret = GetString(str_ofs);
-    return ret;
+    char *name = GetString(str_ofs);
+    return name;
 }
 
 /**
@@ -212,8 +212,8 @@ char *SetName(u32 *str_ofs)
  */
 static inline char *SetMotionName(u16 *str_ofs)
 {
-    char *ret = GetMotionString(str_ofs);
-    return ret;
+    char *name = GetMotionString(str_ofs);
+    return name;
 }
 
 /** @brief Fixes material names and symbol-table attribute arrays in place. */
@@ -271,11 +271,11 @@ static void AttributeLoad(void)
 {
     HSFATTRIBUTE *file_attr;
     HSFATTRIBUTE *new_attr;
-    HSFATTRIBUTE *temp_attr;
+    HSFATTRIBUTE *attribute_start;
     s32 i;
     if(head.attribute.count) {
-        temp_attr = file_attr = (HSFATTRIBUTE *)((u32)fileptr+head.attribute.ofs);
-        new_attr = temp_attr;
+        attribute_start = file_attr = (HSFATTRIBUTE *)((u32)fileptr+head.attribute.ofs);
+        new_attr = attribute_start;
         Model.attribute = new_attr;
         Model.attributeNum = head.attribute.count;
         for(i=0; i<head.attribute.count; i++, new_attr++) {
@@ -312,13 +312,13 @@ static void ColorLoad(void)
     HSFBUFFER *new_color;
     void *data;
     void *color_data;
-    HSFBUFFER *temp_color;
+    HSFBUFFER *color_start;
     
     if(head.color.count) {
-        temp_color = file_color = (HSFBUFFER *)((u32)fileptr+head.color.ofs);
+        color_start = file_color = (HSFBUFFER *)((u32)fileptr+head.color.ofs);
         data = &file_color[head.color.count];
         for(i=0; i<head.color.count; i++, file_color++);
-        new_color = temp_color;
+        new_color = color_start;
         Model.color = new_color;
         Model.colorNum = head.color.count;
         file_color = (HSFBUFFER *)((u32)fileptr+head.color.ofs);
@@ -339,7 +339,7 @@ static void VertexLoad(void)
     HSFBUFFER *new_vertex;
     void *data;
     HuVecF *data_elem;
-    void *temp_data;
+    void *data_offset;
     
     if(head.vertex.count) {
         vtxtop = file_vertex = (HSFBUFFER *)((u32)fileptr+head.vertex.ofs);
@@ -355,12 +355,12 @@ static void VertexLoad(void)
         file_vertex = (HSFBUFFER *)((u32)fileptr+head.vertex.ofs);
         VertexDataTop = data = (void *)&file_vertex[head.vertex.count];
         for(i=0; i<head.vertex.count; i++, new_vertex++, file_vertex++) {
-            temp_data = file_vertex->data;
+            data_offset = file_vertex->data;
             new_vertex->count = file_vertex->count;
             new_vertex->name = SetName((u32 *)&file_vertex->name);
-            new_vertex->data = (void *)((u32)data+(u32)temp_data);
+            new_vertex->data = (void *)((u32)data+(u32)data_offset);
             for(j=0; j<new_vertex->count; j++) {
-                data_elem = (HuVecF *)(((u32)data)+((u32)temp_data)+(j*sizeof(HuVecF)));
+                data_elem = (HuVecF *)(((u32)data)+((u32)data_offset)+(j*sizeof(HuVecF)));
                 ((HuVecF *)new_vertex->data)[j].x = data_elem->x;
                 ((HuVecF *)new_vertex->data)[j].y = data_elem->y;
                 ((HuVecF *)new_vertex->data)[j].z = data_elem->z;
@@ -373,27 +373,27 @@ static void VertexLoad(void)
 static void NormalLoad(void)
 {
     s32 i, j;
-    void *temp_data;
+    void *data_offset;
     HSFBUFFER *file_normal;
     HSFBUFFER *new_normal;
-    HSFBUFFER *temp_normal;
+    HSFBUFFER *normal_start;
     void *data;
     
     
     if(head.normal.count) {
         s32 cenv_count = head.cenv.count;
-        temp_normal = file_normal = (HSFBUFFER *)((u32)fileptr+head.normal.ofs);
+        normal_start = file_normal = (HSFBUFFER *)((u32)fileptr+head.normal.ofs);
         data = (void *)&file_normal[head.normal.count];
-        new_normal = temp_normal;
+        new_normal = normal_start;
         Model.normal = new_normal;
         Model.normalNum = head.normal.count;
         file_normal = (HSFBUFFER *)((u32)fileptr+head.normal.ofs);
         NormalDataTop = data = (void *)&file_normal[head.normal.count];
         for(i=0; i<head.normal.count; i++, new_normal++, file_normal++) {
-            temp_data = file_normal->data;
+            data_offset = file_normal->data;
             new_normal->count = file_normal->count;
             new_normal->name = SetName((u32 *)&file_normal->name);
-            new_normal->data = (void *)((u32)data+(u32)temp_data);
+            new_normal->data = (void *)((u32)data+(u32)data_offset);
         }
     }
 }
@@ -407,7 +407,7 @@ static void STLoad(void)
     HSFBUFFER *new_st;
     void *data;
     HuVec2f *data_elem;
-    void *temp_data;
+    void *data_offset;
     
     if(head.st.count) {
         file_st_start = file_st = (HSFBUFFER *)((u32)fileptr+head.st.ofs);
@@ -423,12 +423,12 @@ static void STLoad(void)
         file_st = (HSFBUFFER *)((u32)fileptr+head.st.ofs);
         data = (void *)&file_st[head.st.count];
         for(i=0; i<head.st.count; i++, new_st++, file_st++) {
-            temp_data = file_st->data;
+            data_offset = file_st->data;
             new_st->count = file_st->count;
             new_st->name = SetName((u32 *)&file_st->name);
-            new_st->data = (void *)((u32)data+(u32)temp_data);
+            new_st->data = (void *)((u32)data+(u32)data_offset);
             for(j=0; j<new_st->count; j++) {
-                data_elem = (HuVec2f *)(((u32)data)+((u32)temp_data)+(j*sizeof(HuVec2f)));
+                data_elem = (HuVec2f *)(((u32)data)+((u32)data_offset)+(j*sizeof(HuVec2f)));
                 ((HuVec2f *)new_st->data)[j].x = data_elem->x;
                 ((HuVec2f *)new_st->data)[j].y = data_elem->y;
             }
@@ -443,8 +443,8 @@ static void FaceLoad(void)
 {
     HSFBUFFER *file_face;
     HSFBUFFER *new_face;
-    HSFBUFFER *temp_face;
-    HSFFACE *temp_data;
+    HSFBUFFER *face_start;
+    HSFFACE *face_data_offset;
     HSFFACE *data;
     HSFFACE *file_face_strip;
     HSFFACE *new_face_strip;
@@ -453,21 +453,21 @@ static void FaceLoad(void)
     s32 j;
     
     if(head.face.count) {
-        temp_face = file_face = (HSFBUFFER *)((u32)fileptr+head.face.ofs);
+        face_start = file_face = (HSFBUFFER *)((u32)fileptr+head.face.ofs);
         data = (HSFFACE *)&file_face[head.face.count];
-        new_face = temp_face;
+        new_face = face_start;
         Model.face = new_face;
         Model.faceNum = head.face.count;
         file_face = (HSFBUFFER *)((u32)fileptr+head.face.ofs);
         data = (HSFFACE *)&file_face[head.face.count];
         for(i=0; i<head.face.count; i++, new_face++, file_face++) {
-            temp_data = file_face->data;
+            face_data_offset = file_face->data;
             new_face->name = SetName((u32 *)&file_face->name);
             new_face->count = file_face->count;
-            new_face->data = (void *)((u32)data+(u32)temp_data);
+            new_face->data = (void *)((u32)data+(u32)face_data_offset);
             strip = (u8 *)(&((HSFFACE *)new_face->data)[new_face->count]);
         }
-        new_face = temp_face;
+        new_face = face_start;
         for(i=0; i<head.face.count; i++, new_face++) {
             file_face_strip = new_face_strip = new_face->data;
             for(j=0; j<new_face->count; j++, new_face_strip++, file_face_strip++) {
@@ -488,14 +488,14 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
 {
     u32 i;
     HSFOBJECT *child_obj;
-    HSFOBJECT *temp_object;
+    HSFOBJECT *root_object;
     struct {
         HSFOBJECT *parent;
         HSFBUFFER *shape;
         HSFCLUSTER *cluster;
-    } temp;
+    } resolved_reference;
     
-    temp.parent = parent;
+    resolved_reference.parent = parent;
     object->type = object->type;
     switch(object->type) {
         case HSF_OBJ_MESH:
@@ -504,7 +504,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFOBJECT *new_object;
             
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
             for(i=0; i<new_object->mesh.childrenCount; i++) {
@@ -513,7 +513,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             }
             new_object->mesh.parent = parent;
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             new_object->type = HSF_OBJ_MESH;
             new_object->mesh.vertex = SearchVertexPtr((s32)data->vertex);
@@ -523,13 +523,13 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             new_object->mesh.face = SearchFacePtr((s32)data->face);
             new_object->mesh.shape = (HSFBUFFER **)&NSymIndex[(u32)data->shape];
             for(i=0; i<new_object->mesh.shapeNum; i++) {
-                temp.shape = &vtxtop[(u32)new_object->mesh.shape[i]];
-                new_object->mesh.shape[i] = temp.shape;
+                resolved_reference.shape = &vtxtop[(u32)new_object->mesh.shape[i]];
+                new_object->mesh.shape[i] = resolved_reference.shape;
             }
             new_object->mesh.cluster = (HSFCLUSTER **)&NSymIndex[(u32)data->cluster];
             for(i=0; i<new_object->mesh.clusterNum; i++) {
-                temp.cluster = &ClusterTop[(u32)new_object->mesh.cluster[i]];
-                new_object->mesh.cluster[i] = temp.cluster;
+                resolved_reference.cluster = &ClusterTop[(u32)new_object->mesh.cluster[i]];
+                new_object->mesh.cluster[i] = resolved_reference.cluster;
             }
             new_object->mesh.cenv = SearchCenvPtr((s32)data->cenv);
             new_object->mesh.material = Model.material;
@@ -566,7 +566,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -575,7 +575,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             for(i=0; i<data->childrenCount; i++) {
                 DispObject(new_object, new_object->mesh.children[i]);
@@ -588,7 +588,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -597,7 +597,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             new_object->mesh.replica = &objtop[(u32)new_object->mesh.replica];
             for(i=0; i<data->childrenCount; i++) {
@@ -611,7 +611,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -620,7 +620,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             for(i=0; i<data->childrenCount; i++) {
                 DispObject(new_object, new_object->mesh.children[i]);
@@ -633,7 +633,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -642,7 +642,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             for(i=0; i<data->childrenCount; i++) {
                 DispObject(new_object, new_object->mesh.children[i]);
@@ -655,7 +655,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -664,7 +664,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             for(i=0; i<data->childrenCount; i++) {
                 DispObject(new_object, new_object->mesh.children[i]);
@@ -677,7 +677,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
             HSFMESH *data;
             HSFOBJECT *new_object;
             data = &object->mesh;
-            new_object = temp_object = object;
+            new_object = root_object = object;
             new_object->mesh.parent = parent;
             new_object->mesh.childrenCount = data->childrenCount;
             new_object->mesh.children = (HSFOBJECT **)&NSymIndex[(u32)data->children];
@@ -686,7 +686,7 @@ static void DispObject(HSFOBJECT *parent, HSFOBJECT *object)
                 new_object->mesh.children[i] = child_obj;
             }
             if(Model.root == NULL) {
-                Model.root = temp_object;
+                Model.root = root_object;
             }
             for(i=0; i<data->childrenCount; i++) {
                 DispObject(new_object, new_object->mesh.children[i]);
@@ -981,17 +981,17 @@ static void MapAttrLoad(void)
 static void BitmapLoad(void)
 {
     HSFBITMAP *bitmap_file;
-    HSFBITMAP *bitmap_temp;
+    HSFBITMAP *bitmap_start;
     HSFBITMAP *bitmap_new;
     HSFPALETTE *palette;
     void *data;
     s32 i;
     
     if(head.bitmap.count) {
-        bitmap_temp = bitmap_file = (HSFBITMAP *)((u32)fileptr+head.bitmap.ofs);
+        bitmap_start = bitmap_file = (HSFBITMAP *)((u32)fileptr+head.bitmap.ofs);
         data = &bitmap_file[head.bitmap.count];
         for(i=0; i<head.bitmap.count; i++, bitmap_file++);
-        bitmap_new = bitmap_temp;
+        bitmap_new = bitmap_start;
         Model.bitmap = bitmap_file;
         Model.bitmapNum = head.bitmap.count;
         bitmap_file = (HSFBITMAP *)((u32)fileptr+head.bitmap.ofs);
@@ -1018,27 +1018,27 @@ static void PaletteLoad(void)
     s32 i;
     s32 j;
     HSFPALETTE *palette_file;
-    HSFPALETTE *palette_temp;
+    HSFPALETTE *palette_start;
     HSFPALETTE *palette_new;
     
     void *data_base;
-    u16 *temp_data;
+    u16 *palette_data;
     u16 *data;
     
     if(head.palette.count) {
-        palette_temp = palette_file = (HSFPALETTE *)((u32)fileptr+head.palette.ofs);
+        palette_start = palette_file = (HSFPALETTE *)((u32)fileptr+head.palette.ofs);
         data_base = (u16 *)&palette_file[head.palette.count];
         for(i=0; i<head.palette.count; i++, palette_file++) {
-            temp_data = (u16 *)((u32)data_base+(u32)palette_file->data);
+            palette_data = (u16 *)((u32)data_base+(u32)palette_file->data);
         }
-        Model.palette = palette_temp;
+        Model.palette = palette_start;
         Model.paletteNum = head.palette.count;
-        palette_new = palette_temp;
+        palette_new = palette_start;
         palette_file = (HSFPALETTE *)((u32)fileptr+head.palette.ofs);
         data_base = (u16 *)&palette_file[head.palette.count];
         for(i=0; i<head.palette.count; i++, palette_file++, palette_new++) {
-            temp_data = (u16 *)((u32)data_base+(u32)palette_file->data);
-            data = temp_data;
+            palette_data = (u16 *)((u32)data_base+(u32)palette_file->data);
+            data = palette_data;
             palette_new->name = SetName((u32 *)&palette_file->name);
             palette_new->data = data;
             palette_new->palSize = palette_file->palSize;
@@ -1062,16 +1062,16 @@ char *MakeObjectName(char *name)
 {
     static char buf[768];
     s32 index, num_minus;
-    char *temp_name;
+    char *name_cursor;
     num_minus = 0;
     index = 0;
-    temp_name = name;
-    while(*temp_name) {
-        if(*temp_name == '-') {
-            name = temp_name+1;
+    name_cursor = name;
+    while(*name_cursor) {
+        if(*name_cursor == '-') {
+            name = name_cursor+1;
             break;
         }
-        temp_name++;
+        name_cursor++;
     }
     while(*name) {
         if(num_minus != 0) {
@@ -1097,7 +1097,7 @@ char *MakeObjectName(char *name)
  */
 s32 CmpObjectName(char *name1, char *name2)
 {
-    s32 temp = 0;
+    s32 unused = 0;
     return strcmp(name1, name2);
 }
 
@@ -1108,13 +1108,13 @@ s32 CmpObjectName(char *name1, char *name2)
  */
 static inline char *MotionGetName(HSFTRACK *track)
 {
-    char *ret;
+    char *name;
     if(DicStringTable) {
-        ret = &DicStringTable[track->target];
+        name = &DicStringTable[track->target];
     } else {
-        ret = GetMotionString(&track->target);
+        name = GetMotionString(&track->target);
     }
-    return ret;
+    return name;
 }
 
 /**
@@ -1472,7 +1472,7 @@ static inline void MotionLoadAttribute(HSFTRACK *track, void *data)
 static void MotionLoad(void)
 {
     HSFMOTION *file_motion;
-    HSFMOTION *temp_motion;
+    HSFMOTION *motion_start;
     HSFMOTION *new_motion;
     HSFTRACK *track_base;
     void *track_data;
@@ -1481,8 +1481,8 @@ static void MotionLoad(void)
     MotionOnly = FALSE;
     MotionModel = NULL;
     if(head.motion.count) {
-        temp_motion = file_motion = (HSFMOTION *)((u32)fileptr+head.motion.ofs);
-        new_motion = temp_motion;
+        motion_start = file_motion = (HSFMOTION *)((u32)fileptr+head.motion.ofs);
+        new_motion = motion_start;
         Model.motion = new_motion;
         Model.motionNum = file_motion->numTracks;
         track_base = (HSFTRACK *)&file_motion[head.motion.count];
@@ -1725,8 +1725,8 @@ static HSFBITMAP *SearchBitmapPtr(s32 id)
  */
 static char *GetString(u32 *str_ofs)
 {
-    char *ret = &StringTable[*str_ofs];
-    return ret;
+    char *string = &StringTable[*str_ofs];
+    return string;
 }
 
 /**
@@ -1736,6 +1736,6 @@ static char *GetString(u32 *str_ofs)
  */
 static char *GetMotionString(u16 *str_ofs)
 {
-    char *ret = &StringTable[*str_ofs];
-    return ret;
+    char *string = &StringTable[*str_ofs];
+    return string;
 }

@@ -171,7 +171,8 @@ void CharInit(void)
 
 /**
  * @brief Gets a character's motion archive address in ARAM.
- * @param charNo Character index.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 selecting
+ * the `charWork` entry that stores the motion archive's ARAM address.
  * @return ARAM address, or zero when the motion archive is not loaded.
  */
 AMEM_PTR CharMotionAMemPGet(s16 charNo)
@@ -718,7 +719,8 @@ static void UpdateCharAnim(s16 charNo, HU3DMODELID modelId, s16 motNo, u8 voiceF
 /**
  * @brief Plays a character sound unless the motion's voice-disable bit is set.
  * @param charNo Character index used for voice selection and optional panning.
- * @param seNo Character sound-effect number.
+ * @param seNo Character-relative cue ID passed unchanged to CharFXPlay or
+ * CharFXPlayPos; those functions add the character bank offset `charNo << 6`.
  * @param voiceFlag Bit 0 suppresses playback when set.
  * @return Audio handle when playback occurs; no defined value when suppressed.
  */
@@ -1412,7 +1414,8 @@ char *CharModelItemHookGet(s16 charNo, s16 model, s16 hookNo)
 
 /**
  * @brief Sets a character model's active motion time.
- * @param charNo Character index.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 whose
+ * `charWork.modelId` selects the model passed to Hu3DMotionTimeSet.
  * @param time Motion time in frames.
  */
 void CharMotionTimeSet(s16 charNo, float time)
@@ -1424,7 +1427,8 @@ void CharMotionTimeSet(s16 charNo, float time)
 
 /**
  * @brief Gets a character model's active motion time.
- * @param charNo Character index.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 whose
+ * active model supplies the motion time returned by Hu3DMotionTimeGet.
  * @return Current motion time in frames.
  */
 float CharMotionTimeGet(s16 charNo)
@@ -1436,7 +1440,8 @@ float CharMotionTimeGet(s16 charNo)
 
 /**
  * @brief Gets the duration of a character model's active motion.
- * @param charNo Character index.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 whose
+ * active model supplies the duration returned by Hu3DMotionMaxTimeGet.
  * @return Motion duration in frames.
  */
 float CharMotionMaxTimeGet(s16 charNo)
@@ -1448,7 +1453,8 @@ float CharMotionMaxTimeGet(s16 charNo)
 
 /**
  * @brief Checks whether a character model's active motion has ended.
- * @param charNo Character index.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 whose
+ * active model is passed to Hu3DMotionEndCheck.
  * @return Nonzero when the motion is at its end; zero otherwise.
  */
 s32 CharMotionEndCheck(s16 charNo)
@@ -1460,7 +1466,8 @@ s32 CharMotionEndCheck(s16 charNo)
 
 /**
  * @brief Gets the blend-target motion ID for a character model.
- * @param charNo Character index.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 whose
+ * active model supplies the blend-target ID from Hu3DMotionShiftIDGet.
  * @return Shift motion ID, or HU3D_MOTID_NONE when no shift is active.
  */
 s16 CharMotionShiftIDGet(s16 charNo)
@@ -1472,7 +1479,8 @@ s16 CharMotionShiftIDGet(s16 charNo)
 
 /**
  * @brief Blends a character model to another motion.
- * @param charNo Character index.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 whose
+ * `charWork.modelId` receives the destination motion blend.
  * @param motId Destination motion ID.
  * @param start Starting frame in the destination motion.
  * @param end Blend duration in frames.
@@ -1488,7 +1496,8 @@ void CharMotionShiftSet(s16 charNo, HU3DMOTID motId, float start, float end, u32
 
 /**
  * @brief Gets the current time of a character's shift motion.
- * @param charNo Character index.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 whose
+ * active model supplies the shift-motion time from Hu3DMotionShiftTimeGet.
  * @return Shift-motion time in frames.
  */
 float CharMotionShiftTimeGet(s16 charNo)
@@ -1500,7 +1509,8 @@ float CharMotionShiftTimeGet(s16 charNo)
 
 /**
  * @brief Sets a character model's motion playback rate.
- * @param charNo Character index.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 whose
+ * active model receives the new Hu3D motion speed.
  * @param speed Motion frames advanced per update relative to normal playback.
  */
 void CharMotionSpeedSet(s16 charNo, float speed)
@@ -1512,7 +1522,8 @@ void CharMotionSpeedSet(s16 charNo, float speed)
 
 /**
  * @brief Assigns every live shared character effect model to a render layer.
- * @param layerNo Hu3D render-layer index.
+ * @param layerNo Render layer from 0 through HU3D_LAYER_MAX - 1 assigned to
+ * each live model in the eight-entry shared character-effect pool.
  */
 void CharEffectLayerSet(s16 layerNo)
 {
@@ -1568,7 +1579,7 @@ void CharModelHookDustCreate(s16 charNo, char *objName)
     HOOKDUSTWORK *hookDustWork;
     s16 hookMdlId;
     Mtx hookMtx;
-    HuVecF temp;
+    HuVecF transform_values;
 
     Hu3DModelObjMtxGet(workP->modelId, objName, hookMtx);
     constData = objPtr->constData;
@@ -1582,12 +1593,12 @@ void CharModelHookDustCreate(s16 charNo, char *objName)
         }
         process->user_data = hookDustWork = HuMemDirectMallocNum(HEAP_HEAP, sizeof(HOOKDUSTWORK), HU_MEMNUM_OVL);
         modelP = &Hu3DData[hookMdlId];
-        Hu3DMtxTransGet(hookMtx, &temp);
-        Hu3DModelPosSetV(hookMdlId, &temp);
-        Hu3DMtxRotGet(hookMtx, &temp);
-        mtxRot(modelP->mtx, temp.x, temp.y, temp.z);
-        Hu3DMtxScaleGet(hookMtx, &temp);
-        Hu3DModelScaleSetV(hookMdlId, &temp);
+        Hu3DMtxTransGet(hookMtx, &transform_values);
+        Hu3DModelPosSetV(hookMdlId, &transform_values);
+        Hu3DMtxRotGet(hookMtx, &transform_values);
+        mtxRot(modelP->mtx, transform_values.x, transform_values.y, transform_values.z);
+        Hu3DMtxScaleGet(hookMtx, &transform_values);
+        Hu3DModelScaleSetV(hookMdlId, &transform_values);
         hookDustWork->modelId = hookMdlId;
         hookDustWork->cameraBit = modelP->cameraBit;
     }
@@ -1928,7 +1939,8 @@ void CharEffectShoeHitCreate(s16 cameraBit, HuVecF *pos, HuVecF *rot)
 
 /**
  * @brief Assigns all shared character effect models to a render layer.
- * @param layerNo Hu3D render-layer index.
+ * @param layerNo Render layer from 0 through HU3D_LAYER_MAX - 1 forwarded to
+ * CharEffectLayerSet for all live shared character-effect models.
  */
 void CharModelLayerSetAll2(s16 layerNo)
 {
@@ -1966,7 +1978,8 @@ void CharMotionVoiceOnSet(s16 charNo, s16 motion, BOOL voiceOn)
 
 /**
  * @brief Selects positional or non-positional character sound playback.
- * @param charNo Character index.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 whose
+ * `charWork.attr` selects positional or non-positional audio playback.
  * @param voicePanAuto TRUE to pan sounds from the model position; FALSE to use
  * ordinary character sound playback.
  */
@@ -2047,10 +2060,10 @@ s32 CharNpcDustSet(HU3DMODELID modelId, HU3DMOTID motId, s16 type, s16 npcNo)
  */
 s32 CharNpcDustVoiceOffSet(HU3DMODELID modelId, HU3DMOTID motId, s16 type)
 {
-    s32 ret; // ! - uninitialized
+    s32 undefined_result; // ! - uninitialized
 
     CharNpcDustSet(modelId, motId, type, CHAR_NPC_NONE);
-    return ret;
+    return undefined_result;
 }
 
 static s8 npcSeTimeTbl[] = { 0x07, 0x20, 0x10, 0x28, 0x01, 0x1E, 0xE7, 0xE7, 0x01, 0x1E, 0x01, 0x1A, 0x01, 0x14, 0x13, 0x20, 0x02, 0x13 };
@@ -2241,7 +2254,8 @@ static void UpdateNpcDust(void)
 
 /**
  * @brief Selects the footstep sound offset for a character.
- * @param charNo Character index.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 whose
+ * `charWork.stepFx` stores the footstep cue variant.
  * @param stepFx Footstep variant; values 4 and 5 map to dedicated sound IDs.
  */
 void CharModelStepFxSet(s16 charNo, s32 stepFx)
@@ -2253,8 +2267,11 @@ void CharModelStepFxSet(s16 charNo, s32 stepFx)
 
 /**
  * @brief Applies the character's footstep variant and plays the resulting cue.
- * @param charNo Character index used for variant selection and optional panning.
- * @param seId Base footstep sound-effect number.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 selecting
+ * the stored footstep variant, model position, and positional-audio attribute.
+ * @param seId Character-relative base footstep cue. The stored `stepFx` value is
+ * added to it except that 4 and 5 replace it with 0x109 and 0x10B respectively;
+ * CharFXPlay or CharFXPlayPos then adds the `charNo << 6` bank offset.
  * @param voiceFlag Bit 0 suppresses playback when set.
  * @return Audio handle when playback occurs; no defined value when suppressed.
  */

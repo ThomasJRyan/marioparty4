@@ -1330,7 +1330,7 @@ static void ParManFunc(void) {
         particleP = modelP->hookData;
         particleDataP = particleP->data;
         if (parManP->attr & HU3D_PARMAN_ATTR_RANDTIME90) {
-            // Bug? Likely to be (u32) (temp_r30->unk04 * 0.1 * 1000.0)
+            // Bug? Likely to cast the full (param->accelRange * 0.1 * 1000.0) expression.
             accelVel = param->accelRange * 0.9 + (s32) frandmod((u32) param->accelRange * 0.1 * 1000.0) / 1000.0f;
         } else if (parManP->attr & HU3D_PARMAN_ATTR_RANDTIME70) {
             accelVel = param->accelRange * 0.7 + (s32) frandmod((u32) param->accelRange * 0.3 * 1000.0) / 1000.0f;
