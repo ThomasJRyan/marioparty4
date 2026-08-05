@@ -499,7 +499,7 @@ static inline s32 FindCoinModel(s16 *out_model)
 static void PopupCoin(void)
 {
     Vec star_pos;
-    OMOBJ *coinObj;
+    OMOBJ *coin_object;
     s32 model_index;
     s16 model;
     CoinWork *work;
@@ -509,16 +509,16 @@ static void PopupCoin(void)
         model_index = FindCoinModel(&model);
     } while (model_index == -1);
 
-    coinObj = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, PopupCoinExec);
-    work = omObjGetWork(coinObj, CoinWork);
+    coin_object = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, PopupCoinExec);
+    work = omObjGetWork(coin_object, CoinWork);
 
     work->kill = 0;
     work->lifetime = 10;
     work->model = model;
     work->model_index = model_index;
 
-    coinObj->trans.x = 15.0f;
-    coinObj->trans.y = 40.0f;
+    coin_object->trans.x = 15.0f;
+    coin_object->trans.y = 40.0f;
 
     BoardModelPosGet(starMdl, &star_pos);
     BoardModelPosSetV(work->model, &star_pos);

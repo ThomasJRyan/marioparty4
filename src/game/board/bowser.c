@@ -1646,7 +1646,7 @@ static void WaitMiniBowserMotion(void);
  */
 static s32 ExecMiniBowserEvent(void)
 {
-    s32 doneF = 0;
+    s32 bowser_follow_up = 0;
     CreateMiniBowserBalloon();
     SetMiniBowserBalloonState(0);
     while(GetMiniBowserBalloonState() != 2) {
@@ -1667,9 +1667,9 @@ static s32 ExecMiniBowserEvent(void)
     }
     //5% chance bowser will appear after baby bowser
     if(BoardRandMod(100) < 5) {
-        doneF = 1;
+        bowser_follow_up = 1;
     }
-    if(doneF) {
+    if(bowser_follow_up) {
         HuPrcSleep(60);
         BoardWinCreate(2, MAKE_MESSID(3, 6), 6);
         BoardWinWait();
@@ -1691,7 +1691,7 @@ static s32 ExecMiniBowserEvent(void)
         HuPrcVSleep();
     }
     MiniBowserBalloonStop();
-    return doneF;
+    return bowser_follow_up;
 }
 
 /**
