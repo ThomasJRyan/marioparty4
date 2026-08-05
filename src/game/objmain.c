@@ -27,7 +27,7 @@ typedef struct om_obj_man {
     s16 next_idx;
     s16 obj_last;
     s16 obj_first;
-    s16 reserved_0a;
+    s16 unused_0a;
     OMOBJ *obj;
     omObjGroup *group;
 } omObjMan;
