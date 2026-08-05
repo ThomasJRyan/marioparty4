@@ -4,11 +4,11 @@
 #include "dolphin.h"
 #include "game/object.h"
 
-s16 BoardBooCreate(s32 arg0, Vec *arg1);
+s16 BoardBooCreate(s32 owner_player, Vec *position);
 void BoardBooKill(void);
-s32 BoardBooStealTypeSet(s32 arg0);
+s32 BoardBooStealTypeSet(s32 theft_type);
 s32 BoardBooStealMain(void);
-s32 BoardBooStealValueGet(s16 *arg0, s16 *arg1);
+s32 BoardBooStealValueGet(s16 *stolen_coins, s16 *punch_reduction);
 BOOL BoardBooStealLightCheck(void);
 
 #endif
