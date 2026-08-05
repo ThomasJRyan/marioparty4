@@ -31,28 +31,28 @@
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        s8 unk00_field1 : 1;
-        u8 unk00_field2 : 4;
+        u8 kill : 1;
+        s8 at_target : 1;
+        u8 sprite_index : 4;
     };
-    u8 unk01;
-    s16 unk02;
-    s16 unk04;
-    char unk06[2];
-    ANIMDATA *unk08;
+    u8 delay;
+    s16 prize_sprite;
+    s16 cover_sprite;
+    char padding[2];
+    ANIMDATA *cover_anim;
 } TicketWork;
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
+        u8 kill : 1;
     };
-    s8 unk01;
-    s8 unk02;
-    s8 unk03;
-    u8 unk04;
-    char unk05[1];
-    s16 unk06;
-    s16 unk08;
+    s8 character;
+    s8 column;
+    s8 row;
+    u8 input_delay;
+    char padding[1];
+    s16 sprite;
+    s16 sprite_group;
 } LotteryTicketPickWork;
 
 static void CreateModel(void);
@@ -203,14 +203,25 @@ static s8 comInputBall[][2] = {
     { 0xBB, 0xFD }, { 0xB8, 0x00 }, { 0x7F, 0x7F }
 };
 
+/**
+ * @brief Sets the board model used as the lottery host.
+ * @param arg0 Board-model handle for the lottery host.
+ */
 void BoardLotteryHostSet(s16 arg0) {
     hostMdl = arg0;
 }
 
+/**
+ * @brief Gets the board model used as the lottery host.
+ * @return Lottery host board-model handle, or -1 when unset.
+ */
 s16 BoardLotteryHostGet(void) {
     return hostMdl;
 }
 
+/**
+ * @brief Runs and waits for the lottery event process.
+ */
 void BoardLotteryExec(void) {
     if (BoardPlayerSizeGet(GWSystem.player_curr) == 2) {
         return;
@@ -224,9 +235,12 @@ void BoardLotteryExec(void) {
     BoardRollDispSet(1);
 }
 
+/**
+ * @brief Creates lottery models, motions, and initial placement for the current board.
+ */
 void BoardLotteryInit(void) {
-    Vec sp14;
-    Vec sp8;
+    Vec lottery_position;
+    Vec host_position;
     s32 i;
 
     for (i = 0; i < 5; i++) {
@@ -242,29 +256,32 @@ void BoardLotteryInit(void) {
     loseMot = -1;
     if (GWBoardGet() != BOARD_ID_EXTRA2) {
         BoardModelVisibilitySet(BoardLotteryHostGet(), 0);
-        BoardSpaceLinkTransformGet(0x10000000, &sp14, &sp8, NULL);
+        BoardSpaceLinkTransformGet(0x10000000, &lottery_position, &host_position, NULL);
         lotteryMdl[0] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BKUJIYA, 0), NULL, 0);
         BoardModelMotionStart(lotteryMdl[0], 0, 0);
         BoardModelMotionSpeedSet(lotteryMdl[0], 0.0f);
-        BoardModelPosSetV(lotteryMdl[0], &sp14);
-        BoardModelRotSetV(lotteryMdl[0], &sp8);
+        BoardModelPosSetV(lotteryMdl[0], &lottery_position);
+        BoardModelRotSetV(lotteryMdl[0], &host_position);
         HuDataDirClose(DATA_MAKE_NUM(DATADIR_BKUJIYA, 0));
     }
 }
 
+/**
+ * @brief Creates and configures the lottery scene's models, motions, and sprites.
+ */
 static void CreateModel(void) {
     s32 i;
-    s32 sp10[4] = {
+    s32 lottery_resources[4] = {
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 5),
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 6),
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 7),
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 8)
     };
-    s32 sp8[2] = {
+    s32 grip_resources[2] = {
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 3),
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 4)
     };
-    s32 sp20[9][4] = {
+    s32 model_resources[9][4] = {
         {
             DATA_MAKE_NUM(DATADIR_BGUEST, 1),
             DATA_MAKE_NUM(DATADIR_BGUEST, 2),
@@ -330,12 +347,12 @@ static void CreateModel(void) {
     BoardModelMotionStart(lotteryMdl[2], 0, 0);
     BoardModelMotionSpeedSet(lotteryMdl[2], 0.0f);
     for (i = 0; i < 4; i++) {
-        ballMdl[i] = BoardModelCreate(sp10[i], NULL, 0);
+        ballMdl[i] = BoardModelCreate(lottery_resources[i], NULL, 0);
         BoardModelVisibilitySet(ballMdl[i], 0);
         fn_8006DDE8(ballMdl[i], -1.0f);
     }
     for (i = 0; i < 2; i++) {
-        gripMdl[i] = BoardModelCreate(sp8[i], NULL, 0);
+        gripMdl[i] = BoardModelCreate(grip_resources[i], NULL, 0);
         BoardModelVisibilitySet(gripMdl[i], 0);
         fn_8006DDE8(gripMdl[i], -1.0f);
         BoardModelMotionSpeedSet(gripMdl[i], 0.0f);
@@ -346,7 +363,7 @@ static void CreateModel(void) {
     BoardModelPosSet(BoardLotteryHostGet(), 0.0f, 0.0f, 0.0f);
     BoardModelVisibilitySet(BoardLotteryHostGet(), 1);
     for (i = 0; i < 4; i++) {
-        lotteryMot[i] = BoardModelMotionCreate(BoardLotteryHostGet(), sp20[GWBoardGet()][i]);
+        lotteryMot[i] = BoardModelMotionCreate(BoardLotteryHostGet(), model_resources[GWBoardGet()][i]);
     }
     BoardModelMotionStart(BoardLotteryHostGet(), lotteryMot[0], 0x40000001);
     BoardModelHookSet(lotteryMdl[0], "toto_heyhoo", BoardLotteryHostGet());
@@ -357,6 +374,9 @@ static void CreateModel(void) {
     BoardModelHookSet(lotteryMdl[1], "toto_grip1", gripMdl[1]);
 }
 
+/**
+ * @brief Releases the lottery scene's models, motions, and sprites.
+ */
 static void KillModel(void) {
     s32 i;
 
@@ -395,6 +415,9 @@ static void KillModel(void) {
     BoardModelVisibilitySet(BoardLotteryHostGet(), 0);
 }
 
+/**
+ * @brief Stops the lottery process and releases its scene resources.
+ */
 void BoardLotteryKill(void) {
     if (lotteryProc) {
         HuPrcKill(lotteryProc);
@@ -405,6 +428,9 @@ void BoardLotteryKill(void) {
     }
 }
 
+/**
+ * @brief Restores the player and host state when the lottery process ends.
+ */
 static void DestroyLottery(void) {
     s32 i;
 
@@ -426,19 +452,22 @@ static void DestroyLottery(void) {
     lotteryProc = NULL;
 }
 
+/**
+ * @brief Runs admission, game selection, play, prize, and exit for the lottery event.
+ */
 static void ExecLottery(void) {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    s16 temp_r26;
-    s16 temp_r28;
-    u32 var_r25;
-    s32 var_r27;
-    s32 temp_r31;
+    Vec player_position;
+    Vec lottery_position;
+    Vec entrance_position;
+    Vec camera_rotation;
+    Vec camera_offset;
+    s16 player_motion;
+    s16 host_motion;
+    u32 input;
+    s32 game_type;
+    s32 player;
     s32 i;
-    s32 temp_r29;
+    s32 message;
 
     switch (GWBoardGet()) {
         case BOARD_ID_MAIN1:
@@ -469,13 +498,13 @@ static void ExecLottery(void) {
             lotteryMessBase = MAKE_MESSID(6, 82);
             break;
     }
-    temp_r29 = BoardDataDirReadAsync(DATADIR_BKUJIYA);
-    temp_r31 = GWSystem.player_curr;
-    temp_r28 = GWPlayer[temp_r31].space_curr;
-    BoardPlayerIdleSet(temp_r31);
+    message = BoardDataDirReadAsync(DATADIR_BKUJIYA);
+    player = GWSystem.player_curr;
+    host_motion = GWPlayer[player].space_curr;
+    BoardPlayerIdleSet(player);
     BoardWinCreateChoice(0, MAKE_MESSID(6, 0), -1, 0);
-    if (GWPlayer[temp_r31].com) {
-        if (BoardPlayerCoinsGet(temp_r31) >= 5) {
+    if (GWPlayer[player].com) {
+        if (BoardPlayerCoinsGet(player) >= 5) {
             BoardComKeySetLeft();
         } else {
             BoardComKeySetRight();
@@ -483,55 +512,55 @@ static void ExecLottery(void) {
     }
     BoardWinWait();
     if (BoardWinChoiceGet() != 0) {
-        if (temp_r29 != -1) {
-            BoardDataAsyncWait(temp_r29);
+        if (message != -1) {
+            BoardDataAsyncWait(message);
         }
         HuPrcEnd();
     }
-    if (BoardPlayerCoinsGet(temp_r31) < 5) {
+    if (BoardPlayerCoinsGet(player) < 5) {
         BoardWinCreate(0, MAKE_MESSID(6, 1), -1);
         BoardWinWait();
         BoardWinKill();
-        if (temp_r29 != -1) {
-            BoardDataAsyncWait(temp_r29);
+        if (message != -1) {
+            BoardDataAsyncWait(message);
         }
         HuPrcEnd();
     }
     BoardWinKill();
-    if (temp_r29 != -1) {
-        BoardDataAsyncWait(temp_r29);
+    if (message != -1) {
+        BoardDataAsyncWait(message);
     }
     BoardModelMotionStart(BoardLotteryHostGet(), 1, 0x40000001);
     BoardAudSeqPause(0, 1, 1000);
     CreateModel();
     BoardStatusShowSetAll(0);
-    lotterySpace = BoardSpaceLinkFlagSearch(0, temp_r28, 0x02000000);
-    BoardSpacePosGet(0, temp_r28, &sp38);
-    BoardSpacePosGet(0, lotterySpace, &sp2C);
-    VECSubtract(&sp2C, &sp38, &sp20);
+    lotterySpace = BoardSpaceLinkFlagSearch(0, host_motion, 0x02000000);
+    BoardSpacePosGet(0, host_motion, &player_position);
+    BoardSpacePosGet(0, lotterySpace, &lottery_position);
+    VECSubtract(&lottery_position, &player_position, &entrance_position);
     if (GWBoardGet() == BOARD_ID_MAIN3 || GWBoardGet() == BOARD_ID_MAIN4) {
-        VECScale(&sp20, &sp20, 0.95f);
-        VECAdd(&sp20, &sp38, &sp2C);
+        VECScale(&entrance_position, &entrance_position, 0.95f);
+        VECAdd(&entrance_position, &player_position, &lottery_position);
     }
-    temp_r26 = atan2d(-sp20.x, -sp20.z);
-    if (BoardPlayerSizeGet(temp_r31) == 1) {
+    player_motion = atan2d(-entrance_position.x, -entrance_position.z);
+    if (BoardPlayerSizeGet(player) == 1) {
         BoardModelVisibilitySet(gripMdl[0], 0);
         BoardModelVisibilitySet(gripMdl[1], 1);
     } else {
         BoardModelVisibilitySet(gripMdl[0], 1);
         BoardModelVisibilitySet(gripMdl[1], 0);
     }
-    sp14.x = -3.0f;
-    sp14.y = temp_r26;
-    sp14.z = 0.0f;
-    sp8.x = 0.0f;
-    sp8.y = 200.0f;
-    sp8.z = 0.0f;
-    BoardCameraMotionStartEx(lotteryMdl[0], &sp14, &sp8, 1300.0f, -1.0f, 27);
-    if (BoardPlayerSizeGet(temp_r31) == 1) {
+    camera_rotation.x = -3.0f;
+    camera_rotation.y = player_motion;
+    camera_rotation.z = 0.0f;
+    camera_offset.x = 0.0f;
+    camera_offset.y = 200.0f;
+    camera_offset.z = 0.0f;
+    BoardCameraMotionStartEx(lotteryMdl[0], &camera_rotation, &camera_offset, 1300.0f, -1.0f, 27);
+    if (BoardPlayerSizeGet(player) == 1) {
         BoardModelVisibilitySet(lotteryMdl[3], 1);
     }
-    omVibrate(temp_r31, 12, 6, 6);
+    omVibrate(player, 12, 6, 6);
     HuAudFXPlay(0x331);
     HuAudFXPlay(0x344);
     BoardModelMotionStart(lotteryMdl[0], 0, 0);
@@ -539,60 +568,60 @@ static void ExecLottery(void) {
         HuPrcVSleep();
     }
     BoardModelMotionShiftSet(BoardLotteryHostGet(), lotteryMot[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-    BoardPlayerRotSet(temp_r31, 0.0f, temp_r26, 0.0f);
-    BoardPlayerPosLerpStart(temp_r31, &sp38, &sp2C, 0x14);
-    while (GWPlayer[temp_r31].moving) {
+    BoardPlayerRotSet(player, 0.0f, player_motion, 0.0f);
+    BoardPlayerPosLerpStart(player, &player_position, &lottery_position, 0x14);
+    while (GWPlayer[player].moving) {
         HuPrcVSleep();
     }
-    if (BoardPlayerSizeGet(temp_r31) == 1) {
-        DoMiniJumpUp(temp_r31);
+    if (BoardPlayerSizeGet(player) == 1) {
+        DoMiniJumpUp(player);
     }
-    BoardPlayerPosGet(temp_r31, &sp2C);
+    BoardPlayerPosGet(player, &lottery_position);
     for (i = 0; i < 4; i++) {
-        if (i != temp_r31) {
-            BoardPlayerPosGet(i, &sp38);
-            VECSubtract(&sp2C, &sp38, &sp20);
-            VECNormalize(&sp20, &sp20);
-            BoardPlayerMotBlendSet(i, atan2d(sp20.x, sp20.z), 7);
+        if (i != player) {
+            BoardPlayerPosGet(i, &player_position);
+            VECSubtract(&lottery_position, &player_position, &entrance_position);
+            VECNormalize(&entrance_position, &entrance_position);
+            BoardPlayerMotBlendSet(i, atan2d(entrance_position.x, entrance_position.z), 7);
         }
     }
     BoardMusStart(1, 2, 0x7F, 0);
-    BoardPlayerIdleSet(temp_r31);
-    while (!BoardStatusStopCheck(temp_r31)) {
+    BoardPlayerIdleSet(player);
+    while (!BoardStatusStopCheck(player)) {
         HuPrcVSleep();
     }
     BoardModelMotionShiftSet(BoardLotteryHostGet(), lotteryMot[0], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-    if (GWPlayer[temp_r31].draw_ticket == 0 && GWSystem.max_turn - GWSystem.turn >= 5) {
-        SetupTicket(temp_r31);
+    if (GWPlayer[player].draw_ticket == 0 && GWSystem.max_turn - GWSystem.turn >= 5) {
+        SetupTicket(player);
         ShowTicket();
-        var_r27 = 1;
+        game_type = 1;
     } else {
-        var_r27 = 0;
+        game_type = 0;
     }
     if (GWBoardGet() == BOARD_ID_EXTRA1 || GWBoardGet() == BOARD_ID_EXTRA2) {
-        var_r27 = 0;
+        game_type = 0;
     }
-    PayEnterFee(var_r27);
-    var_r25 = BoardRandMod(100) & 0xFF;
-    if (var_r25 < 50) {
+    PayEnterFee(game_type);
+    input = BoardRandMod(100) & 0xFF;
+    if (input < 50) {
         ExecBallGame();
     } else {
         ExecScratch();
     }
     ExecPrize();
-    if (BoardPlayerSizeGet(temp_r31) == 1) {
-        DoMiniJumpDown(temp_r31);
+    if (BoardPlayerSizeGet(player) == 1) {
+        DoMiniJumpDown(player);
     }
-    BoardPlayerMoveBetween(temp_r31, lotterySpace, temp_r28);
-    while (GWPlayer[temp_r31].moving) {
+    BoardPlayerMoveBetween(player, lotterySpace, host_motion);
+    while (GWPlayer[player].moving) {
         HuPrcVSleep();
     }
-    BoardPlayerIdleSet(temp_r31);
+    BoardPlayerIdleSet(player);
     BoardModelVisibilitySet(ballMdl[currPrize & 3], 0);
     BoardAudSeqFadeOut(1, 1000);
-    BoardCameraTargetPlayerSet(temp_r31);
+    BoardCameraTargetPlayerSet(player);
     BoardCameraViewSet(1);
-    BoardStatusShowSet(temp_r31, 0);
+    BoardStatusShowSet(player, 0);
     BoardModelMotionStart(lotteryMdl[0], 0, 0x40000004);
     while (!BoardModelMotionEndCheck(lotteryMdl[0])) {
         HuPrcVSleep();
@@ -606,126 +635,141 @@ static void ExecLottery(void) {
     HuPrcEnd();
 }
 
+/**
+ * @brief Animates a player jumping upward at the lottery entrance.
+ * @param arg0 Player index to move upward.
+ */
 static void DoMiniJumpUp(s32 arg0) {
-    Mtx sp34;
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
-    float temp_f29;
-    float temp_f30;
-    float var_f27;
-    s16 var_r27;
-    s16 temp_r26;
+    Mtx player_transform;
+    Vec player_position;
+    Vec player_scale;
+    Vec jump_offset;
+    float jump_angle;
+    float base_scale;
+    float jump_height;
+    s16 frame;
+    s16 player_model;
     s16 i;
 
-    var_r27 = BoardModelIDGet(lotteryMdl[0]);
-    Hu3DModelObjMtxGet(var_r27, "toto_chibidai", sp34);
-    Hu3DMtxTransGet(sp34, &sp28);
+    frame = BoardModelIDGet(lotteryMdl[0]);
+    Hu3DModelObjMtxGet(frame, "toto_chibidai", player_transform);
+    Hu3DMtxTransGet(player_transform, &player_position);
     BoardPlayerMotionStart(arg0, 4, 0);
-    temp_f29 = BoardPlayerMotionMaxTimeGet(arg0);
-    BoardPlayerPosGet(arg0, &sp1C);
-    sp28.y += 52.5308f;
-    VECSubtract(&sp28, &sp1C, &sp10);
-    sp10.x /= temp_f29;
-    sp10.z /= temp_f29;
-    sp10.y /= temp_f29;
-    OSf32tos16(&temp_f29, &temp_r26);
-    for (i = 0; i < temp_r26; i++) {
-        OSs16tof32(&i, &temp_f30);
+    jump_angle = BoardPlayerMotionMaxTimeGet(arg0);
+    BoardPlayerPosGet(arg0, &player_scale);
+    player_position.y += 52.5308f;
+    VECSubtract(&player_position, &player_scale, &jump_offset);
+    jump_offset.x /= jump_angle;
+    jump_offset.z /= jump_angle;
+    jump_offset.y /= jump_angle;
+    OSf32tos16(&jump_angle, &player_model);
+    for (i = 0; i < player_model; i++) {
+        OSs16tof32(&i, &base_scale);
         if (i < 4) {
-            var_f27 = 5.0f;
+            jump_height = 5.0f;
         } else {
-            var_f27 = 0.0f;
+            jump_height = 0.0f;
         }
-        sp1C.x += sp10.x;
-        sp1C.y += sp10.y + var_f27 - 0.016666668f * temp_f30 * temp_f30;
-        sp1C.z += sp10.z;
-        BoardPlayerPosSetV(arg0, &sp1C);
+        player_scale.x += jump_offset.x;
+        player_scale.y += jump_offset.y + jump_height - 0.016666668f * base_scale * base_scale;
+        player_scale.z += jump_offset.z;
+        BoardPlayerPosSetV(arg0, &player_scale);
         HuPrcVSleep();
     }
-    sp1C.y = sp28.y;
-    BoardPlayerPosSetV(arg0, &sp1C);
+    player_scale.y = player_position.y;
+    BoardPlayerPosSetV(arg0, &player_scale);
     BoardPlayerIdleSet(arg0);
 }
 
+/**
+ * @brief Animates a player descending from the lottery entrance jump.
+ * @param arg0 Player index to move downward.
+ */
 static void DoMiniJumpDown(s32 arg0) {
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    float temp_f31;
-    float var_f29;
+    Vec player_position;
+    Vec landing_position;
+    Vec jump_offset;
+    float jump_angle;
+    float base_height;
     s16 i;
 
-    BoardPlayerPosGet(arg0, &sp18);
-    BoardSpacePosGet(0, lotterySpace, &sp24);
-    VECSubtract(&sp24, &sp18, &spC);
+    BoardPlayerPosGet(arg0, &landing_position);
+    BoardSpacePosGet(0, lotterySpace, &player_position);
+    VECSubtract(&player_position, &landing_position, &jump_offset);
     BoardPlayerMotionStart(arg0, 4, 0);
-    spC.x /= 30.0f;
-    spC.z /= 30.0f;
+    jump_offset.x /= 30.0f;
+    jump_offset.z /= 30.0f;
     for (i = 0; i < 30; i++) {
-        OSs16tof32(&i, &temp_f31);
+        OSs16tof32(&i, &jump_angle);
         if (i < 3) {
-            var_f29 = 10.0f;
+            base_height = 10.0f;
         } else {
-            var_f29 = 0.0f;
+            base_height = 0.0f;
         }
-        sp18.x += spC.x;
-        sp18.y += var_f29 + -0.016666668f * temp_f31 * temp_f31 * 0.75f;
-        sp18.z += spC.z;
-        if (sp24.y > sp18.y) {
-            sp18.y = sp24.y;
+        landing_position.x += jump_offset.x;
+        landing_position.y += base_height + -0.016666668f * jump_angle * jump_angle * 0.75f;
+        landing_position.z += jump_offset.z;
+        if (player_position.y > landing_position.y) {
+            landing_position.y = player_position.y;
             break;
         }
-        BoardPlayerPosSetV(arg0, &sp18);
+        BoardPlayerPosSetV(arg0, &landing_position);
         HuPrcVSleep();
     }
     BoardPlayerMotionStart(arg0, 5, 0);
-    BoardPlayerPosSetV(arg0, &sp24);
+    BoardPlayerPosSetV(arg0, &player_position);
     while (!BoardPlayerMotionEndCheck(arg0)) {
         HuPrcVSleep();
     }
 }
 
+/**
+ * @brief Deducts the lottery admission fee from a player one coin at a time.
+ * @param arg0 Player index charged five coins.
+ */
 static void PayEnterFee(s32 arg0) {
-    s32 var_r29;
-    s32 temp_r31;
+    s32 message;
+    s32 player;
     s32 i;
 
-    temp_r31 = GWSystem.player_curr;
-    BoardStatusShowSetForce(temp_r31);
-    BoardStatusShowSet(temp_r31, 1);
+    player = GWSystem.player_curr;
+    BoardStatusShowSetForce(player);
+    BoardStatusShowSet(player, 1);
     if (arg0 != 0) {
-        var_r29 = lotteryMessBase + 12;
+        message = lotteryMessBase + 12;
     } else {
-        var_r29 = lotteryMessBase;
+        message = lotteryMessBase;
     }
-    BoardWinCreate(2, var_r29, BoardWinPortraitGet());
+    BoardWinCreate(2, message, BoardWinPortraitGet());
     BoardWinWait();
     BoardWinKill();
-    while (!BoardStatusStopCheck(temp_r31)) {
+    while (!BoardStatusStopCheck(player)) {
         HuPrcVSleep();
     }
     for (i = 0; i < 5; i++) {
-        BoardPlayerCoinsAdd(temp_r31, -1);
+        BoardPlayerCoinsAdd(player, -1);
         HuAudFXPlay(0xE);
         HuPrcSleep(6);
     }
     HuAudFXPlay(0xF);
-    BoardStatusShowSet(temp_r31, 0);
+    BoardStatusShowSet(player, 0);
 }
 
+/**
+ * @brief Animates the current player's lottery ticket into view.
+ */
 static void ShowTicket(void) {
-    s16 sp10;
-    s16 spE;
-    s16 spC;
-    s16 spA;
-    s8 sp8;
-    float var_f31;
-    s16 temp_r31;
-    s32 var_r29;
+    s16 ticket_model;
+    s16 ticket_motion;
+    s16 ticket_sprite;
+    s16 ticket_group;
+    s8 ticket_index;
+    float scale;
+    s16 player_model;
+    s32 player;
     s32 i;
-    u8 *var_r28;
-    s32 sp14[] = {
+    u8 *ticket_data;
+    s32 ticket_resources[] = {
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 21),
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 22),
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 23),
@@ -739,114 +783,123 @@ static void ShowTicket(void) {
     if (GWBoardGet() == BOARD_ID_EXTRA1 || GWBoardGet() == BOARD_ID_EXTRA2) {
         return;
     }
-    sp8 = GWPlayer[GWSystem.player_curr].ticket_player;
-    var_r28 = (u8*) &sp8;
-    temp_r31 = HuSprGrpCreate(4);
-    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BKUJIYA, 20), 30001, 0, &spA);
-    HuSprGrpMemberSet(temp_r31, 0, spA);
-    HuSprAttrSet(temp_r31, 0, 9);
-    HuSprPosSet(temp_r31, 0, 288.0f, 240.0f);
-    HuSprTPLvlSet(temp_r31, 0, 0.0f);
-    var_r29 = GWPlayer[(*var_r28 >> 4) & 3].character;
-    BoardSpriteCreate(sp14[var_r29], 30000, 0, &spC);
-    HuSprGrpMemberSet(temp_r31, 1, spC);
-    HuSprAttrSet(temp_r31, 1, 9);
-    HuSprPosSet(temp_r31, 1, 200.0f, 237.0f);
-    HuSprTPLvlSet(temp_r31, 1, 0.0f);
-    var_r29 = GWPlayer[(*var_r28 >> 2) & 3].character;
-    BoardSpriteCreate(sp14[var_r29], 30000, 0, &spE);
-    HuSprGrpMemberSet(temp_r31, 2, spE);
-    HuSprAttrSet(temp_r31, 2, 9);
-    HuSprPosSet(temp_r31, 2, 294.0f, 237.0f);
-    HuSprTPLvlSet(temp_r31, 2, 0.0f);
-    var_r29 = GWPlayer[*var_r28 & 3].character;
-    BoardSpriteCreate(sp14[var_r29], 30000, 0, &sp10);
-    HuSprGrpMemberSet(temp_r31, 3, sp10);
-    HuSprAttrSet(temp_r31, 3, 9);
-    HuSprPosSet(temp_r31, 3, 388.0f, 237.0f);
-    HuSprTPLvlSet(temp_r31, 3, 0.0f);
+    ticket_index = GWPlayer[GWSystem.player_curr].ticket_player;
+    ticket_data = (u8*) &ticket_index;
+    player_model = HuSprGrpCreate(4);
+    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BKUJIYA, 20), 30001, 0, &ticket_group);
+    HuSprGrpMemberSet(player_model, 0, ticket_group);
+    HuSprAttrSet(player_model, 0, 9);
+    HuSprPosSet(player_model, 0, 288.0f, 240.0f);
+    HuSprTPLvlSet(player_model, 0, 0.0f);
+    player = GWPlayer[(*ticket_data >> 4) & 3].character;
+    BoardSpriteCreate(ticket_resources[player], 30000, 0, &ticket_sprite);
+    HuSprGrpMemberSet(player_model, 1, ticket_sprite);
+    HuSprAttrSet(player_model, 1, 9);
+    HuSprPosSet(player_model, 1, 200.0f, 237.0f);
+    HuSprTPLvlSet(player_model, 1, 0.0f);
+    player = GWPlayer[(*ticket_data >> 2) & 3].character;
+    BoardSpriteCreate(ticket_resources[player], 30000, 0, &ticket_motion);
+    HuSprGrpMemberSet(player_model, 2, ticket_motion);
+    HuSprAttrSet(player_model, 2, 9);
+    HuSprPosSet(player_model, 2, 294.0f, 237.0f);
+    HuSprTPLvlSet(player_model, 2, 0.0f);
+    player = GWPlayer[*ticket_data & 3].character;
+    BoardSpriteCreate(ticket_resources[player], 30000, 0, &ticket_model);
+    HuSprGrpMemberSet(player_model, 3, ticket_model);
+    HuSprAttrSet(player_model, 3, 9);
+    HuSprPosSet(player_model, 3, 388.0f, 237.0f);
+    HuSprTPLvlSet(player_model, 3, 0.0f);
     BoardWinCreate(2, lotteryMessBase + 10, BoardWinPortraitGet());
     BoardWinWait();
-    for (var_f31 = 0.0f; var_f31 <= 1.0f; var_f31 += 0.15f) {
-        if (var_f31 >= 1.0f) {
-            var_f31 = 1.0f;
+    for (scale = 0.0f; scale <= 1.0f; scale += 0.15f) {
+        if (scale >= 1.0f) {
+            scale = 1.0f;
         }
         for (i = 0; i < 4; i++) {
-            HuSprTPLvlSet(temp_r31, i, var_f31);
+            HuSprTPLvlSet(player_model, i, scale);
         }
         HuPrcVSleep();
     }
     BoardWinCreate(2, lotteryMessBase + 11, BoardWinPortraitGet());
     BoardWinWait();
     BoardWinKill();
-    for (var_f31 = 1.0f; var_f31 > 0.0f; var_f31 -= 0.15f) {
-        if (var_f31 < 0.0f) {
-            var_f31 = 0.0f;
+    for (scale = 1.0f; scale > 0.0f; scale -= 0.15f) {
+        if (scale < 0.0f) {
+            scale = 0.0f;
         }
         for (i = 0; i < 4; i++) {
-            HuSprTPLvlSet(temp_r31, i, var_f31);
+            HuSprTPLvlSet(player_model, i, scale);
         }
         HuPrcVSleep();
     }
-    HuSprGrpKill(temp_r31);
-    (void) var_r29; // Required to match
+    HuSprGrpKill(player_model);
+    (void) player; // Required to match
 }
 
+/**
+ * @brief Creates the scratch-ticket sprite and assigns its hidden prize layout.
+ * @param arg0 Ticket layout index in the range 0 through 2.
+ */
 static void SetupTicket(s32 arg0) {
-    u8 sp8[4];
-    u8 var_r29;
-    s32 var_r28;
-    s32 var_r30;
-    s32 var_r31;
+    u8 prize_order[4];
+    u8 swap_value;
+    s32 index_a;
+    s32 index_b;
+    s32 shuffle_index;
 
-    for (var_r30 = var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (arg0 != var_r31 && GWPlayer[var_r31].draw_ticket != 0) {
-            sp8[var_r30] = GWPlayer[var_r31].ticket_player;
-            var_r30++;
+    for (index_b = shuffle_index = 0; shuffle_index < 4; shuffle_index++) {
+        if (arg0 != shuffle_index && GWPlayer[shuffle_index].draw_ticket != 0) {
+            prize_order[index_b] = GWPlayer[shuffle_index].ticket_player;
+            index_b++;
         }
     }
-    for (var_r28 = 0; var_r28 < 1000; var_r28++) {
-        var_r29 = BoardRandMod(64) & 0x3F;
-        for (var_r31 = 0; var_r30 != 0 && var_r31 < var_r30; var_r31++) {
-            if (sp8[var_r31] == var_r29) {
-                var_r29 = 0x80;
+    for (index_a = 0; index_a < 1000; index_a++) {
+        swap_value = BoardRandMod(64) & 0x3F;
+        for (shuffle_index = 0; index_b != 0 && shuffle_index < index_b; shuffle_index++) {
+            if (prize_order[shuffle_index] == swap_value) {
+                swap_value = 0x80;
                 break;
             }
         }
-        if (var_r29 != 0x80) {
+        if (swap_value != 0x80) {
             break;
         }
     }
-    GWPlayer[arg0].ticket_player = var_r29;
+    GWPlayer[arg0].ticket_player = swap_value;
     GWPlayer[arg0].draw_ticket = 1;
 }
 
+/**
+ * @brief Places a sprite group at one of the two scratch-ticket screen anchors.
+ * @param arg0 Sprite-group handle to reposition.
+ * @param arg1 Anchor index selecting the normal or focused ticket position.
+ */
 static void LotteryInlineFunc00(s32 arg0, s32 arg1) {
-    s32 sp20[2] = {
+    s32 anchor_resources[2] = {
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 18),
         DATA_MAKE_NUM(DATADIR_BKUJIYA, 19)
     };
-    s16 sp10[2] = { 152, 120 };
-    s16 sp14[2] = { 120, 120 };
-    Vec sp34;
-    float temp_f30;
-    s16 var_r30;
+    s16 anchor_x[2] = { 152, 120 };
+    s16 anchor_y[2] = { 120, 120 };
+    Vec screen_position;
+    float interpolation;
+    s16 anchor_index;
 
-    sp34.x = (sp14[arg0] / 2) + 32;
+    screen_position.x = (anchor_y[arg0] / 2) + 32;
     if (arg1 == 0) {
-        sp34.y = -sp10[arg0] / 2;
-        temp_f30 = 4.0f;
+        screen_position.y = -anchor_x[arg0] / 2;
+        interpolation = 4.0f;
         if (lotterySpr == -1) {
-            lotterySpr = espEntry(sp20[arg0], 30001, 0);
+            lotterySpr = espEntry(anchor_resources[arg0], 30001, 0);
             espAttrSet(lotterySpr, HUSPR_ATTR_NOANIM);
         }
     } else {
-        sp34.y = (sp10[arg0] / 2) + 40;
-        temp_f30 = -4.0f;
+        screen_position.y = (anchor_x[arg0] / 2) + 40;
+        interpolation = -4.0f;
     }
-    for (var_r30 = sp10[arg0] + 40; var_r30 > 0; var_r30 -= 4) {
-        sp34.y += temp_f30;
-        espPosSet(lotterySpr, sp34.x, sp34.y);
+    for (anchor_index = anchor_x[arg0] + 40; anchor_index > 0; anchor_index -= 4) {
+        screen_position.y += interpolation;
+        espPosSet(lotterySpr, screen_position.x, screen_position.y);
         HuPrcVSleep();
     }
     if (arg1 != 0 && lotterySpr >= 0) {
@@ -855,28 +908,31 @@ static void LotteryInlineFunc00(s32 arg0, s32 arg1) {
     }
 }
 
+/**
+ * @brief Runs the crank-controlled lottery ball drawing sequence.
+ */
 static void ExecBallGame(void) {
-    Vec sp4C;
-    float temp_f24;
-    float var_f23;
-    float var_f25;
-    float var_f26;
-    float var_f27;
-    float var_f19;
-    float var_f28;
-    s32 var_r22;
-    s32 var_r21;
-    s32 var_r20 = 0;
-    s32 temp_r25;
-    s32 var_r24;
-    s32 temp_r27;
-    u8 var_r26;
-    s8 var_r17;
-    s8 spB;
-    s8 spA;
-    s8 sp9;
-    s8 *temp_r23;
-    s32 sp58[] = {
+    Vec crank_position;
+    float crank_angle;
+    float angle_step;
+    float ball_angle;
+    float ball_speed;
+    float handle_angle;
+    float handle_speed;
+    float player_angle;
+    s32 frame;
+    s32 ball_index;
+    s32 turn_count = 0;
+    s32 player_model;
+    s32 controller_port;
+    s32 player;
+    u8 input_index;
+    s8 stick_x;
+    s8 stick_y;
+    s8 previous_stick_x;
+    s8 previous_stick_y;
+    s8 *cpu_input;
+    s32 ball_resources[] = {
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 29),
         DATA_MAKE_NUM(DATADIR_LUIGIMOT, 29),
         DATA_MAKE_NUM(DATADIR_PEACHMOT, 29),
@@ -887,12 +943,12 @@ static void ExecBallGame(void) {
         DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 29)
     };
 
-    temp_r27 = GWSystem.player_curr;
+    player = GWSystem.player_curr;
     currPrize = -1;
-    sp4C.x = 0.0f;
-    sp4C.y = 210.0f;
-    sp4C.z = 0.0f;
-    BoardCameraMotionStartEx(lotteryMdl[0], NULL, &sp4C, 980.0f, -1.0f, 21);
+    crank_position.x = 0.0f;
+    crank_position.y = 210.0f;
+    crank_position.z = 0.0f;
+    BoardCameraMotionStartEx(lotteryMdl[0], NULL, &crank_position, 980.0f, -1.0f, 21);
     LotteryInlineFunc00(0, 0);
     BoardCameraMotionWait();
     BoardWinCreate(2, lotteryMessBase + 1, BoardWinPortraitGet());
@@ -900,118 +956,121 @@ static void ExecBallGame(void) {
     BoardWinKill();
     HuPrcSleep(0x12);
     CreateLotteryWin(0);
-    turnMot = BoardPlayerMotionCreate(temp_r27, sp58[GWPlayer[temp_r27].character]);
-    BoardPlayerMotionSpeedSet(temp_r27, 0.0f);
+    turnMot = BoardPlayerMotionCreate(player, ball_resources[GWPlayer[player].character]);
+    BoardPlayerMotionSpeedSet(player, 0.0f);
     BoardModelAttrSet(lotteryMdl[1], 0x40000001);
     BoardModelMotionSpeedSet(lotteryMdl[1], 0.0f);
     BoardModelMotionTimeSet(lotteryMdl[1], 0.0f);
     BoardModelAttrSet(gripMdl[0], 0x40000001);
     BoardModelAttrSet(gripMdl[1], 0x40000001);
-    BoardPlayerMotionShiftSet(temp_r27, turnMot, 0.0f, 8.0f, HU3D_MOTATTR_LOOP);
-    BoardPlayerMotionSpeedSet(temp_r27, 0.0f);
-    temp_f24 = BoardModelMotionMaxTimeGet(lotteryMdl[1]);
-    temp_f24 -= 4.0f;
+    BoardPlayerMotionShiftSet(player, turnMot, 0.0f, 8.0f, HU3D_MOTATTR_LOOP);
+    BoardPlayerMotionSpeedSet(player, 0.0f);
+    crank_angle = BoardModelMotionMaxTimeGet(lotteryMdl[1]);
+    crank_angle -= 4.0f;
     comInputPos = 0;
-    var_r20 = 0;
-    spB = spA = sp9 = var_r17 = 0;
-    var_r26 = var_f28 = var_f27 = var_f25 = var_f23 = var_r21 = 0;
+    turn_count = 0;
+    stick_y = previous_stick_x = previous_stick_y = stick_x = 0;
+    input_index = player_angle = handle_angle = ball_angle = angle_step = ball_index = 0;
     HuPrcSleep(24);
-    var_r24 = var_r22 = 0;
+    controller_port = frame = 0;
     while (1) {
         HuPrcVSleep();
-        BoardModelMotionSpeedSet(lotteryMdl[1], var_f28);
-        BoardModelMotionSpeedSet(gripMdl[0], var_f28);
-        BoardModelMotionSpeedSet(gripMdl[1], var_f28);
-        BoardPlayerMotionSpeedSet(temp_r27, var_f28);
-        if (var_r22 != 0 && var_f28 <= 0.1f) {
+        BoardModelMotionSpeedSet(lotteryMdl[1], player_angle);
+        BoardModelMotionSpeedSet(gripMdl[0], player_angle);
+        BoardModelMotionSpeedSet(gripMdl[1], player_angle);
+        BoardPlayerMotionSpeedSet(player, player_angle);
+        if (frame != 0 && player_angle <= 0.1f) {
             BoardModelMotionSpeedSet(lotteryMdl[1], 0.0f);
             BoardModelMotionSpeedSet(gripMdl[0], 0.0f);
             BoardModelMotionSpeedSet(gripMdl[1], 0.0f);
-            BoardPlayerMotionSpeedSet(temp_r27, 0.0f);
+            BoardPlayerMotionSpeedSet(player, 0.0f);
             break;
         }
-        if (var_r24 == 0) {
-            if (BoardModelMotionTimeGet(lotteryMdl[1]) >= temp_f24) {
-                var_r21++;
-                if ((var_r26++) != 0 || var_r21 >= 1 || var_r20 != 0) {
-                    var_r22 = 1;
+        if (controller_port == 0) {
+            if (BoardModelMotionTimeGet(lotteryMdl[1]) >= crank_angle) {
+                ball_index++;
+                if ((input_index++) != 0 || ball_index >= 1 || turn_count != 0) {
+                    frame = 1;
                     if (currPrize == -1) {
-                        var_f27 *= 128.0f;
-                        OSf32tos8(&var_f27, &lbl_801D401B);
+                        handle_angle *= 128.0f;
+                        OSf32tos8(&handle_angle, &lbl_801D401B);
                         SetBallPrize();
                     }
                 }
-                var_r24 = 1;
+                controller_port = 1;
             }
         }
-        if (var_r24 != 0 && BoardModelMotionTimeGet(lotteryMdl[1]) < 2.0f) {
-            var_r24 = 0;
+        if (controller_port != 0 && BoardModelMotionTimeGet(lotteryMdl[1]) < 2.0f) {
+            controller_port = 0;
         }
-        if (var_r22 == 0) {
-            var_r17 = spB;
-            sp9 = spA;
-            if (!GWPlayer[temp_r27].com) {
-                temp_r25 = GWPlayer[temp_r27].port;
-                spB = HuPadStkX[temp_r25];
-                spA = HuPadStkY[temp_r25];
+        if (frame == 0) {
+            stick_x = stick_y;
+            previous_stick_y = previous_stick_x;
+            if (!GWPlayer[player].com) {
+                player_model = GWPlayer[player].port;
+                stick_y = HuPadStkX[player_model];
+                previous_stick_x = HuPadStkY[player_model];
             } else {
-                temp_r23 = comInputBall[comInputPos++];
-                spB = temp_r23[0];
-                spA = temp_r23[1];
+                cpu_input = comInputBall[comInputPos++];
+                stick_y = cpu_input[0];
+                previous_stick_x = cpu_input[1];
             }
         } else {
-            spB = spA = 0;
+            stick_y = previous_stick_x = 0;
         }
-        if (spB == 0x7F || spA == 0x7F) {
-            var_r20 = 1;
+        if (stick_y == 0x7F || previous_stick_x == 0x7F) {
+            turn_count = 1;
         } else {
-            if ((abs(spB) < 57.600002f && abs(spA) < 57.600002f) || (var_r17 == spB && sp9 == spA) || (spB == 0 && spA == 0)) {
-                var_f28 *= 0.93f;
-                var_f27 *= 0.8f;
-                if (var_f27 < 0.01f && var_r26 != 0) {
-                    var_r26--;
+            if ((abs(stick_y) < 57.600002f && abs(previous_stick_x) < 57.600002f) || (stick_x == stick_y && previous_stick_y == previous_stick_x) || (stick_y == 0 && previous_stick_x == 0)) {
+                player_angle *= 0.93f;
+                handle_angle *= 0.8f;
+                if (handle_angle < 0.01f && input_index != 0) {
+                    input_index--;
                 }
             } else {
-                OSs8tof32(&spB, &var_f26);
-                OSs8tof32(&spA, &var_f19);
-                var_f25 = atan2d(var_f26, var_f19);
-                if (var_f25 < 0.0f) {
-                    var_f25 += 360.0f;
+                OSs8tof32(&stick_y, &ball_speed);
+                OSs8tof32(&previous_stick_x, &handle_speed);
+                ball_angle = atan2d(ball_speed, handle_speed);
+                if (ball_angle < 0.0f) {
+                    ball_angle += 360.0f;
                 }
-                if (var_f25 < 20.0f) {
+                if (ball_angle < 20.0f) {
                     HuAudFXPlay(0x333);
                 }
-                var_f26 = var_f25 - var_f23;
-                if (!(var_f26 < 0.0f)) {
-                    if (ABS(var_f26) > 30.0f) {
-                        var_f26 = 10.0f;
+                ball_speed = ball_angle - angle_step;
+                if (!(ball_speed < 0.0f)) {
+                    if (ABS(ball_speed) > 30.0f) {
+                        ball_speed = 10.0f;
                     }
-                    var_f27 += 0.01f * var_f26;
-                    if (var_f28 + var_f27 < 2.0f) {
-                        var_f28 += var_f27;
+                    handle_angle += 0.01f * ball_speed;
+                    if (player_angle + handle_angle < 2.0f) {
+                        player_angle += handle_angle;
                     } else {
-                        var_f28 = 2.0f;
+                        player_angle = 2.0f;
                     }
                 }
             }
         }
-        var_f23 = var_f25;
+        angle_step = ball_angle;
     }
     KillLotteryWin();
     LotteryInlineFunc00(0, 1);
 }
 
+/**
+ * @brief Randomly chooses and stores the ball-game prize tier.
+ */
 static void SetBallPrize(void) {
-    HUPROCESS *sp8;
-    s32 temp_r31;
+    HUPROCESS *prize_process;
+    s32 prize_roll;
 
     while (1) {
-        temp_r31 = BoardRandMod(100);
-        if (temp_r31 > 97) {
+        prize_roll = BoardRandMod(100);
+        if (prize_roll > 97) {
             currPrize = 0;
-        } else if (temp_r31 > 87) {
+        } else if (prize_roll > 87) {
             currPrize = 1;
-        } else if (temp_r31 > 67) {
+        } else if (prize_roll > 67) {
             currPrize = 2;
         } else {
             currPrize = 3;
@@ -1020,72 +1079,75 @@ static void SetBallPrize(void) {
             break;
         }
     }
-    sp8 = HuPrcChildCreate(ExecBallPrize, 0x2004, 0x3800, 0, lotteryProc);
+    prize_process = HuPrcChildCreate(ExecBallPrize, 0x2004, 0x3800, 0, lotteryProc);
 }
 
+/**
+ * @brief Animates the selected lottery ball and announces its prize.
+ */
 static void ExecBallPrize(void) {
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    float var_f25;
-    float temp_f28;
-    float temp_f27;
-    float temp_f26;
-    float var_f29;
-    float var_f30;
-    s32 var_r28;
-    s16 temp_r29;
-    s16 var_r27;
-    s16 sp8;
-    HSFOBJECT *temp_r3;
-    Mtx sp6C;
-    Mtx sp3C;
+    Vec ball_position;
+    Vec host_position;
+    Vec camera_rotation;
+    Vec camera_offset;
+    float height;
+    float fall_speed;
+    float bounce_speed;
+    float rotation_speed;
+    float angle;
+    float bounce_height;
+    s32 frame;
+    s16 ball_model;
+    s16 ball_motion;
+    s16 bounce_count;
+    HSFOBJECT *model_data;
+    Mtx ball_transform;
+    Mtx camera_transform;
 
-    var_r28 = 0;
+    frame = 0;
     HuAudFXPlay(0x34C);
-    temp_r29 = ballMdl[currPrize & 3];
-    BoardModelPosGet(lotteryMdl[0], &sp30);
-    BoardModelRotGet(lotteryMdl[0], &sp18);
-    PSMTXRotRad(sp6C, 'Y', MTXDegToRad(sp18.y));
-    var_r27 = BoardModelIDGet(lotteryMdl[0]);
-    temp_r3 = Hu3DModelObjPtrGet(var_r27, "toto_gara");
-    temp_f28 = sp30.y + temp_r3->mesh.curr.pos.y + 100.0f;
-    PSMTXTrans(sp3C, temp_r3->mesh.curr.pos.x, temp_r3->mesh.curr.pos.y + 210.0f, temp_r3->mesh.curr.pos.z + -40.0f);
-    PSMTXConcat(sp6C, sp3C, sp3C);
-    Hu3DMtxTransGet(sp3C, &spC);
-    VECAdd(&spC, &sp30, &sp30);
-    BoardModelVisibilitySet(temp_r29, 1);
-    sp24.x = 10.5f;
-    sp24.y = -3.0f;
-    sp24.z = 0.0f;
-    PSMTXMultVec(sp6C, &sp24, &sp24);
-    var_f29 = 0.0f;
-    var_f30 = 1.8f;
-    temp_f27 = 0.016666668f;
-    sp8 = 0;
+    ball_model = ballMdl[currPrize & 3];
+    BoardModelPosGet(lotteryMdl[0], &ball_position);
+    BoardModelRotGet(lotteryMdl[0], &camera_rotation);
+    PSMTXRotRad(ball_transform, 'Y', MTXDegToRad(camera_rotation.y));
+    ball_motion = BoardModelIDGet(lotteryMdl[0]);
+    model_data = Hu3DModelObjPtrGet(ball_motion, "toto_gara");
+    fall_speed = ball_position.y + model_data->mesh.curr.pos.y + 100.0f;
+    PSMTXTrans(camera_transform, model_data->mesh.curr.pos.x, model_data->mesh.curr.pos.y + 210.0f, model_data->mesh.curr.pos.z + -40.0f);
+    PSMTXConcat(ball_transform, camera_transform, camera_transform);
+    Hu3DMtxTransGet(camera_transform, &camera_offset);
+    VECAdd(&camera_offset, &ball_position, &ball_position);
+    BoardModelVisibilitySet(ball_model, 1);
+    host_position.x = 10.5f;
+    host_position.y = -3.0f;
+    host_position.z = 0.0f;
+    PSMTXMultVec(ball_transform, &host_position, &host_position);
+    angle = 0.0f;
+    bounce_height = 1.8f;
+    bounce_speed = 0.016666668f;
+    bounce_count = 0;
     while (1) {
-        OSs16tof32(&sp8, &var_f25);
-        temp_f26 = 4.9f * (2.0f * var_f25 - temp_f27) * temp_f27;
-        sp24.y -= temp_f26;
-        sp24.x *= 0.92f;
-        sp24.z *= 0.92f;
-        VECAdd(&sp24, &sp30, &sp30);
-        var_f29 += sp24.z;
-        if (sp30.y - 25.0f < temp_f28) {
-            if (var_r28 == 0) {
+        OSs16tof32(&bounce_count, &height);
+        rotation_speed = 4.9f * (2.0f * height - bounce_speed) * bounce_speed;
+        host_position.y -= rotation_speed;
+        host_position.x *= 0.92f;
+        host_position.z *= 0.92f;
+        VECAdd(&host_position, &ball_position, &ball_position);
+        angle += host_position.z;
+        if (ball_position.y - 25.0f < fall_speed) {
+            if (frame == 0) {
                 HuAudFXPlay(0x334);
-                var_r28 = 1;
+                frame = 1;
             }
-            sp30.y = 25.0f + temp_f28 + temp_f26 * var_f30;
-            if (var_f30 > 0.0f) {
-                var_f30 -= 0.1f;
+            ball_position.y = 25.0f + fall_speed + rotation_speed * bounce_height;
+            if (bounce_height > 0.0f) {
+                bounce_height -= 0.1f;
             }
         }
-        BoardModelPosSetV(temp_r29, &sp30);
-        BoardModelRotSet(temp_r29, 0.0f, var_f29, 0.0f);
+        BoardModelPosSetV(ball_model, &ball_position);
+        BoardModelRotSet(ball_model, 0.0f, angle, 0.0f);
         HuPrcVSleep();
-        sp8++;
+        bounce_count++;
     }
 }
 
@@ -1144,41 +1206,45 @@ static s32 loseMotTbl[] = {
     DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 51)
 };
 
+/**
+ * @brief Runs scratch-ticket setup, play, result evaluation, and cleanup.
+ * @param arg0 Scratch-ticket grid index in the range 0 through 11.
+ */
 static void ExecScratchTicket(s32 arg0) {
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    u16 var_r29;
-    u16 var_r28;
-    s16 *temp_r25;
-    s32 var_r24;
-    s32 temp_r27;
-    u16 var_r23;
-    OMOBJ *var_r22;
-    TicketWork *temp_r30;
-    ANIMBMP *temp_r31;
+    Vec cursor_position;
+    Vec hand_position;
+    Vec camera_direction;
+    u16 pixel_x;
+    u16 pixel_y;
+    s16 *pixel_data;
+    s32 character;
+    s32 sound;
+    u16 pixel_offset;
+    OMOBJ *ticket_object;
+    TicketWork *ticket_work;
+    ANIMBMP *ticket_bitmap;
 
-    var_r24 = GWPlayer[GWSystem.player_curr].character;
-    var_r22 = ticketObj[arg0];
-    temp_r30 = omObjGetWork(var_r22, TicketWork);
-    lotteryMdl[4] = BoardModelCreate(handMdl[var_r24], NULL, 0);
+    character = GWPlayer[GWSystem.player_curr].character;
+    ticket_object = ticketObj[arg0];
+    ticket_work = omObjGetWork(ticket_object, TicketWork);
+    lotteryMdl[4] = BoardModelCreate(handMdl[character], NULL, 0);
     BoardModelLayerSet(lotteryMdl[4], 6);
     BoardModelPassSet(lotteryMdl[4], 0);
-    BoardCameraDirGet(&spC);
-    BoardModelRotYSet(lotteryMdl[4], atan2d(-spC.x, -spC.z));
+    BoardCameraDirGet(&camera_direction);
+    BoardModelRotYSet(lotteryMdl[4], atan2d(-camera_direction.x, -camera_direction.z));
     BoardModelScaleSet(lotteryMdl[4], 3.0f, 3.0f, 3.0f);
-    sp24.x = 320.0f;
-    sp24.y = 480.0f;
-    sp24.z = 500.0f;
+    cursor_position.x = 320.0f;
+    cursor_position.y = 480.0f;
+    cursor_position.z = 500.0f;
     CreateLotteryWin(1);
     while (1) {
         HuPrcVSleep();
-        if (sp24.y <= 240.0f) {
+        if (cursor_position.y <= 240.0f) {
             break;
         }
-        sp24.y -= 4.0f;
-        Hu3D2Dto3D(&sp24, 1, &sp18);
-        BoardModelPosSetV(lotteryMdl[4], &sp18);
+        cursor_position.y -= 4.0f;
+        Hu3D2Dto3D(&cursor_position, 1, &hand_position);
+        BoardModelPosSetV(lotteryMdl[4], &hand_position);
     }
     comInputPos = 0;
     if (BoardRandMod(100) < 50) {
@@ -1186,34 +1252,34 @@ static void ExecScratchTicket(s32 arg0) {
     } else {
         comInputDrawP = comInputDraw2;
     }
-    temp_r27 = HuAudFXPlay(0x335);
-    HuAudFXVolSet(temp_r27, 0);
+    sound = HuAudFXPlay(0x335);
+    HuAudFXVolSet(sound, 0);
     while (1) {
         HuPrcVSleep();
-        if (TicketUpdate(temp_r30->unk08->bmp, &sp24, temp_r27) != 0) {
+        if (TicketUpdate(ticket_work->cover_anim->bmp, &cursor_position, sound) != 0) {
             break;
         }
-        if (ScratchTicketCheckDone(temp_r30->unk08->bmp)) {
+        if (ScratchTicketCheckDone(ticket_work->cover_anim->bmp)) {
             break;
         }
     }
-    HuAudFXStop(temp_r27);
+    HuAudFXStop(sound);
     while (1) {
         HuPrcVSleep();
-        if (sp24.y >= 480.0f) {
+        if (cursor_position.y >= 480.0f) {
             break;
         }
-        sp24.y += 4.0f;
-        Hu3D2Dto3D(&sp24, 1, &sp18);
-        BoardModelPosSetV(lotteryMdl[4], &sp18);
+        cursor_position.y += 4.0f;
+        Hu3D2Dto3D(&cursor_position, 1, &hand_position);
+        BoardModelPosSetV(lotteryMdl[4], &hand_position);
     }
     BoardModelVisibilitySet(lotteryMdl[4], 0);
-    temp_r31 = temp_r30->unk08->bmp;
-    temp_r25 = temp_r31->data;
-    for (var_r28 = 0; var_r28 < temp_r31->sizeY; var_r28++) {
-        for (var_r29 = 0; var_r29 < temp_r31->sizeX; var_r29++) {
-            var_r23 = TicketGetPixel(temp_r31->sizeX, var_r29, var_r28);
-            temp_r25[var_r23] = 0;
+    ticket_bitmap = ticket_work->cover_anim->bmp;
+    pixel_data = ticket_bitmap->data;
+    for (pixel_y = 0; pixel_y < ticket_bitmap->sizeY; pixel_y++) {
+        for (pixel_x = 0; pixel_x < ticket_bitmap->sizeX; pixel_x++) {
+            pixel_offset = TicketGetPixel(ticket_bitmap->sizeX, pixel_x, pixel_y);
+            pixel_data[pixel_offset] = 0;
         }
         HuPrcVSleep();
     }
@@ -1222,11 +1288,14 @@ static void ExecScratchTicket(s32 arg0) {
     lotteryMdl[4] = -1;
 }
 
+/**
+ * @brief Processes scratching until enough ticket area is uncovered or play is aborted.
+ */
 static void ExecScratch(void) {
-    TicketWork *temp_r28;
-    float var_f31;
+    TicketWork *ticket_work;
+    float opacity;
     s32 temp_curr;
-    s32 temp_r31;
+    s32 selected_ticket;
 
     currPrize = -1;
     BoardFilterFadeInit(30, 0xA0);
@@ -1245,347 +1314,398 @@ static void ExecScratch(void) {
     while (currPrize == -1) {
         HuPrcVSleep();
     }
-    temp_r31 = currPrize;
-    currPrize = ticketPrize[temp_r31];
-    ExecTicketFocus(temp_r31);
+    selected_ticket = currPrize;
+    currPrize = ticketPrize[selected_ticket];
+    ExecTicketFocus(selected_ticket);
     KillLotteryWin();
     LotteryInlineFunc00(1, 0);
-    ExecScratchTicket(temp_r31);
+    ExecScratchTicket(selected_ticket);
     LotteryInlineFunc00(1, 1);
-    temp_r28 = omObjGetWork(ticketObj[temp_r31], TicketWork);
-    for (var_f31 = 1.0f; var_f31 > 0.0f; var_f31 -= 0.078125f) {
-        if (var_f31 < 0.0f) {
-            var_f31 = 0.0f;
+    ticket_work = omObjGetWork(ticketObj[selected_ticket], TicketWork);
+    for (opacity = 1.0f; opacity > 0.0f; opacity -= 0.078125f) {
+        if (opacity < 0.0f) {
+            opacity = 0.0f;
         }
-        HuSprTPLvlSet(ticketSprGrp, temp_r28->unk00_field2, var_f31);
+        HuSprTPLvlSet(ticketSprGrp, ticket_work->sprite_index, opacity);
         HuPrcVSleep();
     }
     HideScratchSpr();
     BoardFilterFadeOut(30);
 }
 
+/**
+ * @brief Marks the scratch cursor and ticket objects for destruction.
+ */
 static void KillScratch(void) {
     if (ticketSprGrp != -1) {
         HuSprGrpKill(ticketSprGrp);
         ticketSprGrp = -1;
     }
     if (lotteryTicketPickObj) {
-        omObjGetWork(lotteryTicketPickObj, LotteryTicketPickWork)->unk00_field0 = 1;
+        omObjGetWork(lotteryTicketPickObj, LotteryTicketPickWork)->kill = 1;
     }
     memset(ticketObj, 0, sizeof(ticketObj));
 }
 
+/**
+ * @brief Updates the scratch cursor position and erases ticket pixels beneath it.
+ * @param arg0 Object controlling the visible scratch cursor.
+ */
 static void ExecScratchSpr(OMOBJ *arg0) {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    s32 temp_r29;
-    TicketWork *temp_r30;
+    Vec target_position;
+    Vec current_position;
+    Vec position_delta;
+    s32 sprite_index;
+    TicketWork *ticket_work;
 
-    temp_r30 = omObjGetWork(arg0, TicketWork);
-    if (temp_r30->unk00_field0 != 0 || BoardIsKill()) {
-        temp_r29 = temp_r30->unk00_field2;
-        HuSprAttrSet(ticketSprGrp, temp_r29, 4);
-        HuSprAttrSet(ticketSprGrp, temp_r29 + 12, 4);
-        ticketObj[temp_r29] = NULL;
+    ticket_work = omObjGetWork(arg0, TicketWork);
+    if (ticket_work->kill != 0 || BoardIsKill()) {
+        sprite_index = ticket_work->sprite_index;
+        HuSprAttrSet(ticketSprGrp, sprite_index, 4);
+        HuSprAttrSet(ticketSprGrp, sprite_index + 12, 4);
+        ticketObj[sprite_index] = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
         return;
     }
-    if (temp_r30->unk01 != 0) {
-        temp_r30->unk01--;
+    if (ticket_work->delay != 0) {
+        ticket_work->delay--;
         return;
     }
-    sp14.x = arg0->trans.x;
-    sp14.y = arg0->trans.y;
-    sp20.x = arg0->rot.x;
-    sp20.y = arg0->rot.y;
-    VECSubtract(&sp14, &sp20, &sp8);
-    if (ABS(sp8.x) < 1.0f && ABS(sp8.y) < 1.0f) {
-        sp8 = sp14;
-        temp_r30->unk00_field1 = 1;
+    current_position.x = arg0->trans.x;
+    current_position.y = arg0->trans.y;
+    target_position.x = arg0->rot.x;
+    target_position.y = arg0->rot.y;
+    VECSubtract(&current_position, &target_position, &position_delta);
+    if (ABS(position_delta.x) < 1.0f && ABS(position_delta.y) < 1.0f) {
+        position_delta = current_position;
+        ticket_work->at_target = 1;
     } else {
-        VECScale(&sp8, &sp8, 0.2f);
-        VECAdd(&sp20, &sp8, &sp8);
-        temp_r30->unk00_field1 = 0;
+        VECScale(&position_delta, &position_delta, 0.2f);
+        VECAdd(&target_position, &position_delta, &position_delta);
+        ticket_work->at_target = 0;
     }
-    HuSprPosSet(ticketSprGrp, temp_r30->unk00_field2, sp8.x, sp8.y);
-    HuSprPosSet(ticketSprGrp, temp_r30->unk00_field2 + 12, sp8.x, sp8.y);
-    arg0->rot.x = sp8.x;
-    arg0->rot.y = sp8.y;
+    HuSprPosSet(ticketSprGrp, ticket_work->sprite_index, position_delta.x, position_delta.y);
+    HuSprPosSet(ticketSprGrp, ticket_work->sprite_index + 12, position_delta.x, position_delta.y);
+    arg0->rot.x = position_delta.x;
+    arg0->rot.y = position_delta.y;
 }
 
+/**
+ * @brief Hides the scratch cursor sprite.
+ */
 static void HideScratchSpr(void) {
     s32 i;
 
     for (i = 0; i < 12; i++) {
         if (ticketObj[i]) {
-            omObjGetWork(ticketObj[i], TicketWork)->unk00_field0 = 1;
+            omObjGetWork(ticketObj[i], TicketWork)->kill = 1;
         }
     }
 }
 
+/**
+ * @brief Creates and positions the scratch cursor sprite object.
+ */
 static void InitScratchSpr(void) {
-    Vec sp18;
-    Vec spC;
-    OMOBJ *temp_r31;
-    TicketWork *temp_r29;
+    Vec player_rotation;
+    Vec camera_rotation;
+    OMOBJ *ticket_object;
+    TicketWork *ticket_work;
     s32 temp_curr;
-    s16 temp_r28;
-    s16 sp8;
+    s16 sprite_group;
+    s16 sprite;
     s16 i;
 
     temp_curr = GWSystem.player_curr;
-    BoardPlayerRotGet(temp_curr, &sp18);
+    BoardPlayerRotGet(temp_curr, &player_rotation);
     memset(ticketObj, 0, sizeof(ticketObj));
-    BoardCameraRotGet(&spC);
-    temp_r28 = HuSprGrpCreate(24);
-    ticketSprGrp = temp_r28;
+    BoardCameraRotGet(&camera_rotation);
+    sprite_group = HuSprGrpCreate(24);
+    ticketSprGrp = sprite_group;
     for (i = 0; i < 12; i++) {
-        temp_r31 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, ExecScratchSpr);
-        ticketObj[i] = temp_r31;
-        temp_r29 = omObjGetWork(temp_r31, TicketWork);
-        temp_r29->unk00_field0 = 0;
-        temp_r29->unk00_field2 = i;
-        temp_r29->unk01 = (i / 4) * 2;
-        temp_r29->unk02 = temp_r29->unk04 = -1;
-        temp_r31->trans.x = 107.0f + 110.0f * (i % 4);
-        temp_r31->trans.y = 98.0f + 110.0f * (i / 4);
-        temp_r31->rot.x = -56.0f;
-        temp_r31->rot.y = temp_r31->trans.y;
-        BoardSpriteCreate(ticketSpr[ticketPrize[i]], 5500, NULL, &sp8);
-        HuSprGrpMemberSet(temp_r28, i, sp8);
-        HuSprPosSet(temp_r28, i, temp_r31->rot.x, temp_r31->rot.y);
-        HuSprAttrSet(temp_r28, i, 8);
-        temp_r29->unk02 = sp8;
-        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BKUJIYA, 33), 5000, &temp_r29->unk08, &sp8);
-        HuSprGrpMemberSet(temp_r28, i + 12, sp8);
-        HuSprPosSet(temp_r28, i + 12, temp_r31->rot.x, temp_r31->rot.y);
-        HuSprAttrSet(temp_r28, i + 12, 8);
-        temp_r29->unk04 = sp8;
+        ticket_object = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, ExecScratchSpr);
+        ticketObj[i] = ticket_object;
+        ticket_work = omObjGetWork(ticket_object, TicketWork);
+        ticket_work->kill = 0;
+        ticket_work->sprite_index = i;
+        ticket_work->delay = (i / 4) * 2;
+        ticket_work->prize_sprite = ticket_work->cover_sprite = -1;
+        ticket_object->trans.x = 107.0f + 110.0f * (i % 4);
+        ticket_object->trans.y = 98.0f + 110.0f * (i / 4);
+        ticket_object->rot.x = -56.0f;
+        ticket_object->rot.y = ticket_object->trans.y;
+        BoardSpriteCreate(ticketSpr[ticketPrize[i]], 5500, NULL, &sprite);
+        HuSprGrpMemberSet(sprite_group, i, sprite);
+        HuSprPosSet(sprite_group, i, ticket_object->rot.x, ticket_object->rot.y);
+        HuSprAttrSet(sprite_group, i, 8);
+        ticket_work->prize_sprite = sprite;
+        BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BKUJIYA, 33), 5000, &ticket_work->cover_anim, &sprite);
+        HuSprGrpMemberSet(sprite_group, i + 12, sprite);
+        HuSprPosSet(sprite_group, i + 12, ticket_object->rot.x, ticket_object->rot.y);
+        HuSprAttrSet(sprite_group, i + 12, 8);
+        ticket_work->cover_sprite = sprite;
     }
-    HuSprGrpDrawNoSet(temp_r28, 0x40);
+    HuSprGrpDrawNoSet(sprite_group, 0x40);
 }
 
-static inline u32 ExecStratchPickInlineFunc(LotteryTicketPickWork *temp_r29) {
-    s32 var_r21;
-    s32 temp_r23;
-    u32 var_r26;
+/**
+ * @brief Builds the direction-button mask for scratch-ticket selection input.
+ * @param picker_work Scratch-picker state containing the current grid position.
+ * @return Bit mask of directional buttons to apply this frame.
+ */
+static inline u32 ExecStratchPickInlineFunc(LotteryTicketPickWork *picker_work) {
+    s32 player;
+    s32 controller_port;
+    u32 input;
 
-    var_r21 = GWSystem.player_curr;
-    var_r26 = 0;
-    if (!GWPlayer[var_r21].com) {
-        temp_r23 = GWPlayer[GWSystem.player_curr].port;
-        var_r26 = HuPadDStkRep[temp_r23] | HuPadBtnDown[temp_r23];
-    } else if (comLotteryType != temp_r29->unk02) {
-        var_r26 = 2;
-    } else if (comLotteryWinType != temp_r29->unk03) {
-        var_r26 = 4;
-    } else if (comLotteryType == temp_r29->unk02 && comLotteryWinType == temp_r29->unk03) {
-        var_r26 = 0x100;
+    player = GWSystem.player_curr;
+    input = 0;
+    if (!GWPlayer[player].com) {
+        controller_port = GWPlayer[GWSystem.player_curr].port;
+        input = HuPadDStkRep[controller_port] | HuPadBtnDown[controller_port];
+    } else if (comLotteryType != picker_work->column) {
+        input = 2;
+    } else if (comLotteryWinType != picker_work->row) {
+        input = 4;
+    } else if (comLotteryType == picker_work->column && comLotteryWinType == picker_work->row) {
+        input = 0x100;
     }
-    return var_r26;
+    return input;
 }
 
+/**
+ * @brief Moves the scratch-ticket selector and accepts a ticket choice.
+ * @param arg0 Object controlling the scratch-ticket selection cursor.
+ */
 static void ExecScratchPick(OMOBJ *arg0) {
-    float var_f29;
-    float var_f28;
-    s8 var_r28;
-    s8 var_r25;
-    s8 var_r24;
-    u32 var_r26;
-    LotteryTicketPickWork *temp_r29;
+    float cursor_x;
+    float cursor_y;
+    s8 horizontal_step;
+    s8 vertical_step;
+    s8 row_step;
+    u32 input;
+    LotteryTicketPickWork *picker_work;
 
-    temp_r29 = omObjGetWork(arg0, LotteryTicketPickWork);
-    if (temp_r29->unk00_field0 || BoardIsKill()) {
-        HuSprGrpKill(temp_r29->unk08);
+    picker_work = omObjGetWork(arg0, LotteryTicketPickWork);
+    if (picker_work->kill || BoardIsKill()) {
+        HuSprGrpKill(picker_work->sprite_group);
         lotteryTicketPickObj = 0;
         omDelObjEx(HuPrcCurrentGet(), arg0);
         return;
     }
-    if (temp_r29->unk04 != 0) {
-        temp_r29->unk04--;
+    if (picker_work->input_delay != 0) {
+        picker_work->input_delay--;
         return;
     }
-    var_r25 = var_r24 = 0;
-    var_r26 = ExecStratchPickInlineFunc(temp_r29);
-    if (var_r26 == 0x100) {
-        currPrize = (temp_r29->unk02 + (temp_r29->unk03 * 4));
-        temp_r29->unk00_field0 = 1;
+    vertical_step = row_step = 0;
+    input = ExecStratchPickInlineFunc(picker_work);
+    if (input == 0x100) {
+        currPrize = (picker_work->column + (picker_work->row * 4));
+        picker_work->kill = 1;
         HuAudFXPlay(2);
         return;
     }
-    var_r28 = 0;
-    if (var_r26 == 8) {
-        var_r24 = -1;
-        var_r28 = 1;
+    horizontal_step = 0;
+    if (input == 8) {
+        row_step = -1;
+        horizontal_step = 1;
     }
-    if (var_r26 == 4) {
-        var_r24 = 1;
-        var_r28 = 1;
+    if (input == 4) {
+        row_step = 1;
+        horizontal_step = 1;
     }
-    if (var_r26 == 1) {
-        var_r25 = -1;
-        var_r28 = 1;
+    if (input == 1) {
+        vertical_step = -1;
+        horizontal_step = 1;
     }
-    if (var_r26 == 2) {
-        var_r25 = 1;
-        var_r28 = 1;
+    if (input == 2) {
+        vertical_step = 1;
+        horizontal_step = 1;
     }
-    if ((var_r25 != 0 || var_r24 != 0) && GWPlayer[GWSystem.player_curr].com) {
-        temp_r29->unk04 = 0x14;
+    if ((vertical_step != 0 || row_step != 0) && GWPlayer[GWSystem.player_curr].com) {
+        picker_work->input_delay = 0x14;
     }
-    temp_r29->unk02 += var_r25;
-    temp_r29->unk03 += var_r24;
-    if (temp_r29->unk02 < 0) {
-        temp_r29->unk02 = 0;
-        var_r28 = 0;
-    } else if (temp_r29->unk03 < 0) {
-        temp_r29->unk03 = 0;
-        var_r28 = 0;
+    picker_work->column += vertical_step;
+    picker_work->row += row_step;
+    if (picker_work->column < 0) {
+        picker_work->column = 0;
+        horizontal_step = 0;
+    } else if (picker_work->row < 0) {
+        picker_work->row = 0;
+        horizontal_step = 0;
     }
-    if (temp_r29->unk02 >= 4) {
-        temp_r29->unk02 = 3;
-        var_r28 = 0;
-    } else if (temp_r29->unk03 >= 3) {
-        temp_r29->unk03 = 2;
-        var_r28 = 0;
+    if (picker_work->column >= 4) {
+        picker_work->column = 3;
+        horizontal_step = 0;
+    } else if (picker_work->row >= 3) {
+        picker_work->row = 2;
+        horizontal_step = 0;
     }
-    if (var_r28 != 0) {
+    if (horizontal_step != 0) {
         HuAudFXPlay(0);
     }
-    OSs8tof32(&temp_r29->unk02, &var_f29);
-    OSs8tof32(&temp_r29->unk03, &var_f28);
-    var_f29 = 107.0f + 110.0f * var_f29 - 32.0f + 16.0f;
-    var_f28 = 98.0f + 110.0f * var_f28 + 32.0f - 24.0f;
-    HuSprPosSet(temp_r29->unk08, 0, var_f29, var_f28);
+    OSs8tof32(&picker_work->column, &cursor_x);
+    OSs8tof32(&picker_work->row, &cursor_y);
+    cursor_x = 107.0f + 110.0f * cursor_x - 32.0f + 16.0f;
+    cursor_y = 98.0f + 110.0f * cursor_y + 32.0f - 24.0f;
+    HuSprPosSet(picker_work->sprite_group, 0, cursor_x, cursor_y);
 }
 
+/**
+ * @brief Creates the scratch-ticket selection cursor object.
+ */
 static void InitScratchPick(void) {
-    float temp_f31 = 91.0f;
-    float temp_f30 = 106.0f;
-    OMOBJ *temp_r30;
-    LotteryTicketPickWork *var_r31;
+    float cursor_x = 91.0f;
+    float cursor_y = 106.0f;
+    OMOBJ *picker_object;
+    LotteryTicketPickWork *picker_work;
 
-    temp_r30 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, ExecScratchPick);
-    lotteryTicketPickObj = temp_r30;
-    var_r31 = omObjGetWork(temp_r30, LotteryTicketPickWork);
-    var_r31->unk02 = var_r31->unk03 = 0;
-    var_r31->unk04 = 6;
-    var_r31->unk00_field0 = 0;
-    var_r31->unk01 = GWPlayer[GWSystem.player_curr].character;
-    var_r31->unk08 = HuSprGrpCreate(1);
-    BoardSpriteCreate(pickSpr[var_r31->unk01], 5000, 0, &var_r31->unk06);
-    HuSprGrpMemberSet(var_r31->unk08, 0, var_r31->unk06);
-    HuSprAttrSet(var_r31->unk08, 0, 8);
-    HuSprPosSet(var_r31->unk08, 0, temp_f31, temp_f30);
-    HuSprGrpDrawNoSet(var_r31->unk08, 0x40);
+    picker_object = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, ExecScratchPick);
+    lotteryTicketPickObj = picker_object;
+    picker_work = omObjGetWork(picker_object, LotteryTicketPickWork);
+    picker_work->column = picker_work->row = 0;
+    picker_work->input_delay = 6;
+    picker_work->kill = 0;
+    picker_work->character = GWPlayer[GWSystem.player_curr].character;
+    picker_work->sprite_group = HuSprGrpCreate(1);
+    BoardSpriteCreate(pickSpr[picker_work->character], 5000, 0, &picker_work->sprite);
+    HuSprGrpMemberSet(picker_work->sprite_group, 0, picker_work->sprite);
+    HuSprAttrSet(picker_work->sprite_group, 0, 8);
+    HuSprPosSet(picker_work->sprite_group, 0, cursor_x, cursor_y);
+    HuSprGrpDrawNoSet(picker_work->sprite_group, 0x40);
 }
 
+/**
+ * @brief Shuffles the three scratch-ticket prize assignments.
+ */
 static void InitTicketPrizes(void) {
-    s32 temp_r31;
+    s32 swap_value;
     s32 i;
 
     memset(ticketPrize, 3, sizeof(ticketPrize));
     for (i = 0; i < 3; i++) {
         do {
-            temp_r31 = BoardRandMod(12);
-        } while (ticketPrize[temp_r31] != 3);
-        ticketPrize[temp_r31] = i;
+            swap_value = BoardRandMod(12);
+        } while (ticketPrize[swap_value] != 3);
+        ticketPrize[swap_value] = i;
         if (GWSystem.max_turn - GWSystem.turn == 0 && i == 2) {
-            ticketPrize[temp_r31] = 3;
+            ticketPrize[swap_value] = 3;
         }
     }
 }
 
+/**
+ * @brief Moves the selected scratch ticket to or from the focused position.
+ * @param arg0 Selected scratch-ticket index in the range 0 through 11.
+ */
 static void ExecTicketFocus(s32 arg0) {
-    float var_f31;
-    float temp_f30;
-    OMOBJ *var_r30;
-    TicketWork *temp_r29;
+    float phase_angle;
+    float ticket_scale;
+    OMOBJ *ticket_object;
+    TicketWork *ticket_work;
     s32 i;
 
-    var_r30 = ticketObj[arg0];
-    var_r30->trans.x = 288.0f;
-    var_r30->trans.y = 240.0f;
+    ticket_object = ticketObj[arg0];
+    ticket_object->trans.x = 288.0f;
+    ticket_object->trans.y = 240.0f;
     for (i = 0; i < 12; i++) {
         if (i != arg0) {
-            omObjGetWork(ticketObj[i], TicketWork)->unk00_field0 = 1;
+            omObjGetWork(ticketObj[i], TicketWork)->kill = 1;
         }
     }
-    temp_r29 = omObjGetWork(ticketObj[arg0], TicketWork);
-    for (var_f31 = 0.0f; var_f31 < 90.0f; var_f31 += 2.0f) {
-        temp_f30 = 1.0 + 1.3f * sind(var_f31);
-        HuSprScaleSet(ticketSprGrp, temp_r29->unk00_field2, temp_f30, temp_f30);
-        HuSprScaleSet(ticketSprGrp, temp_r29->unk00_field2 + 12, temp_f30, temp_f30);
+    ticket_work = omObjGetWork(ticketObj[arg0], TicketWork);
+    for (phase_angle = 0.0f; phase_angle < 90.0f; phase_angle += 2.0f) {
+        ticket_scale = 1.0 + 1.3f * sind(phase_angle);
+        HuSprScaleSet(ticketSprGrp, ticket_work->sprite_index, ticket_scale, ticket_scale);
+        HuSprScaleSet(ticketSprGrp, ticket_work->sprite_index + 12, ticket_scale, ticket_scale);
         HuPrcVSleep();
     }
 }
 
+/**
+ * @brief Checks whether the required fraction of scratchable pixels is uncovered.
+ * @param arg0 Bitmap whose scratchable pixels are counted.
+ * @return Nonzero once the uncovered pixel threshold is reached; otherwise zero.
+ */
 static BOOL ScratchTicketCheckDone(ANIMBMP *arg0) {
-    s32 var_r29;
-    s32 var_r31;
-    s32 var_r30;
-    u16 *var_r28;
+    s32 erased_count;
+    s32 column;
+    s32 row;
+    u16 *pixel_data;
 
-    var_r28 = arg0->data;
-    for (var_r29 = var_r30 = 0; var_r30 < arg0->sizeY; var_r30++) {
-        for (var_r31 = 0; var_r31 < arg0->sizeX; var_r31++) {
-            if (var_r28[var_r31 + var_r30 * arg0->sizeX] == 0) {
-                var_r29++;
+    pixel_data = arg0->data;
+    for (erased_count = row = 0; row < arg0->sizeY; row++) {
+        for (column = 0; column < arg0->sizeX; column++) {
+            if (pixel_data[column + row * arg0->sizeX] == 0) {
+                erased_count++;
             }
         }
     }
-    if (var_r29 >= arg0->sizeX * arg0->sizeY - 300) {
+    if (erased_count >= arg0->sizeX * arg0->sizeY - 300) {
         return TRUE;
     } else {
         return FALSE;
     }
 }
 
+/**
+ * @brief Calculates the swizzled texture-data index for a ticket pixel.
+ * @param arg0 Texture width in pixels.
+ * @param arg1 Pixel X coordinate.
+ * @param arg2 Pixel Y coordinate.
+ * @return Element index for the requested pixel in the tiled texture data.
+ */
 static u16 TicketGetPixel(u16 arg0, u16 arg1, u16 arg2) {
-    u16 var_r31;
-    u16 var_r30;
-    u16 var_r29;
-    u16 var_r28;
+    u16 tile_x;
+    u16 tile_y;
+    u16 local_x;
+    u16 local_y;
 
-    var_r29 = (arg1 & 3);
-    var_r28 = (arg2 & 3);
-    var_r31 = (arg1 >> 2);
-    var_r30 = (arg2 >> 2);
-    return var_r29 + (var_r28 << 2) + ((var_r31 + var_r30 * (arg0 >> 2)) << 4);
+    local_x = (arg1 & 3);
+    local_y = (arg2 & 3);
+    tile_x = (arg1 >> 2);
+    tile_y = (arg2 >> 2);
+    return local_x + (local_y << 2) + ((tile_x + tile_y * (arg0 >> 2)) << 4);
 }
 
+/**
+ * @brief Erases scratch-ticket pixels covered by the cursor and updates the texture.
+ * @param arg0 Mutable ticket bitmap to erase.
+ * @param arg1 Scratch cursor position in ticket coordinates.
+ * @param arg2 Sound-effect handle whose volume follows scratch input strength.
+ * @return -1 when scripted CPU input is exhausted; otherwise zero.
+ */
 static s32 TicketUpdate(ANIMBMP *arg0, Vec *arg1, s32 arg2) {
-    Vec sp48;
-    Vec sp3C;
-    float temp_f25;
-    float temp_f20;
-    s32 var_r18;
-    s16 var_r17;
-    s32 var_r21;
-    s32 var_r20;
-    s8 *temp_r19;
-    s16 *sp38;
-    s32 sp34;
-    s16 sp26;
-    s16 sp24;
-    s16 sp22;
-    s8 spD;
+    Vec input_direction;
+    Vec next_cursor;
+    float input_strength;
+    float angle;
+    s32 cursor_clamped;
+    s16 scratch_x;
+    s32 brush_x;
+    s32 brush_y;
+    s8 *cpu_input;
+    s16 *texture_data;
+    s32 controller_port;
+    s16 scratch_y;
+    s16 texture_width;
+    s16 texture_index;
+    s8 sound_volume;
 
     if (GWPlayer[GWSystem.player_curr].com) {
-        temp_r19 = comInputDrawP[comInputPos++];
-        if (temp_r19[0] == 0x7F && temp_r19[1] == 0x7F) {
+        cpu_input = comInputDrawP[comInputPos++];
+        if (cpu_input[0] == 0x7F && cpu_input[1] == 0x7F) {
             return -1;
         }
-        OSs8tof32(&temp_r19[0], &sp48.x);
-        OSs8tof32(&temp_r19[1], &sp48.y);
+        OSs8tof32(&cpu_input[0], &input_direction.x);
+        OSs8tof32(&cpu_input[1], &input_direction.y);
     } else {
-        sp34 = GWPlayer[GWSystem.player_curr].port;
-        sp48.x = HuPadStkX[sp34];
-        sp48.y = HuPadStkY[sp34];
+        controller_port = GWPlayer[GWSystem.player_curr].port;
+        input_direction.x = HuPadStkX[controller_port];
+        input_direction.y = HuPadStkY[controller_port];
     }
-    sp48.z = 0.0f;
-    if (sp48.x == 0.0f && sp48.y == 0.0f) {
+    input_direction.z = 0.0f;
+    if (input_direction.x == 0.0f && input_direction.y == 0.0f) {
         handLastPos = *arg1;
         handUpdateF = 0;
         HuAudFXVolSet(arg2, 0);
@@ -1594,56 +1714,56 @@ static s32 TicketUpdate(ANIMBMP *arg0, Vec *arg1, s32 arg2) {
     if (handUpdateF == 0) {
         handUpdateF = 1;
     }
-    VECNormalize(&sp48, &sp48);
-    temp_f20 = atan2f(sp48.x, -sp48.y);
-    sp48.x = sin(temp_f20);
-    sp48.y = cos(temp_f20);
-    temp_f25 = 127.0f * VECMag(&sp48);
-    OSf32tos8(&temp_f25, &spD);
-    HuAudFXVolSet(arg2, spD);
-    sp48.x *= 8.0f;
-    sp48.y *= 8.0f;
-    VECAdd(&sp48, arg1, &sp3C);
-    var_r18 = 0;
-    if (sp3C.x < 192.0f) {
-        sp3C.x = 192.0f;
-        var_r18 = 1;
+    VECNormalize(&input_direction, &input_direction);
+    angle = atan2f(input_direction.x, -input_direction.y);
+    input_direction.x = sin(angle);
+    input_direction.y = cos(angle);
+    input_strength = 127.0f * VECMag(&input_direction);
+    OSf32tos8(&input_strength, &sound_volume);
+    HuAudFXVolSet(arg2, sound_volume);
+    input_direction.x *= 8.0f;
+    input_direction.y *= 8.0f;
+    VECAdd(&input_direction, arg1, &next_cursor);
+    cursor_clamped = 0;
+    if (next_cursor.x < 192.0f) {
+        next_cursor.x = 192.0f;
+        cursor_clamped = 1;
     }
-    if (sp3C.y < 192.0f) {
-        sp3C.y = 192.0f;
-        var_r18 = 1;
+    if (next_cursor.y < 192.0f) {
+        next_cursor.y = 192.0f;
+        cursor_clamped = 1;
     }
-    if (sp3C.x >= 384.0f) {
-        sp3C.x = 384.0f;
-        var_r18 = 1;
+    if (next_cursor.x >= 384.0f) {
+        next_cursor.x = 384.0f;
+        cursor_clamped = 1;
     }
-    if (sp3C.y >= 288.0f) {
-        sp3C.y = 288.0f;
-        var_r18 = 1;
+    if (next_cursor.y >= 288.0f) {
+        next_cursor.y = 288.0f;
+        cursor_clamped = 1;
     }
-    if (var_r18 != 0) {
+    if (cursor_clamped != 0) {
         HuAudFXVolSet(arg2, 0);
     }
-    *arg1 = sp3C;
-    Hu3D2Dto3D(&sp3C, 1, &sp3C);
-    BoardModelPosSetV(lotteryMdl[4], &sp3C);
-    sp3C = *arg1;
-    sp3C.x -= 192.0f;
-    sp3C.y -= 192.0f;
-    sp3C.x *= arg0->sizeX / 192.0f;
-    sp3C.y *= arg0->sizeY / 96.0f;
-    sp24 = arg0->sizeX;
-    sp38 = arg0->data;
-    for (var_r20 = -8; var_r20 < 9; var_r20++) {
-        for (var_r21 = -8; var_r21 < 9; var_r21++) {
-            OSf32tos16(&sp3C.x, &var_r17);
-            OSf32tos16(&sp3C.y, &sp26);
-            if (var_r17 + var_r21 < arg0->sizeX && sp26 + var_r20 < arg0->sizeY && var_r17 + var_r21 >= 0 && sp26 + var_r20 >= 0) {
-                var_r17 += var_r21;
-                sp26 += var_r20;
-                sp22 = TicketGetPixel(sp24, var_r17, sp26);
-                if (sp22 < arg0->sizeX * arg0->sizeY) {
-                    sp38[sp22] = 0;
+    *arg1 = next_cursor;
+    Hu3D2Dto3D(&next_cursor, 1, &next_cursor);
+    BoardModelPosSetV(lotteryMdl[4], &next_cursor);
+    next_cursor = *arg1;
+    next_cursor.x -= 192.0f;
+    next_cursor.y -= 192.0f;
+    next_cursor.x *= arg0->sizeX / 192.0f;
+    next_cursor.y *= arg0->sizeY / 96.0f;
+    texture_width = arg0->sizeX;
+    texture_data = arg0->data;
+    for (brush_y = -8; brush_y < 9; brush_y++) {
+        for (brush_x = -8; brush_x < 9; brush_x++) {
+            OSf32tos16(&next_cursor.x, &scratch_x);
+            OSf32tos16(&next_cursor.y, &scratch_y);
+            if (scratch_x + brush_x < arg0->sizeX && scratch_y + brush_y < arg0->sizeY && scratch_x + brush_x >= 0 && scratch_y + brush_y >= 0) {
+                scratch_x += brush_x;
+                scratch_y += brush_y;
+                texture_index = TicketGetPixel(texture_width, scratch_x, scratch_y);
+                if (texture_index < arg0->sizeX * arg0->sizeY) {
+                    texture_data[texture_index] = 0;
                 }
             }
         }
@@ -1653,6 +1773,10 @@ static s32 TicketUpdate(ANIMBMP *arg0, Vec *arg1, s32 arg2) {
     return 0;
 }
 
+/**
+ * @brief Calculates the coin award for the current lottery prize tier.
+ * @return Coin count associated with the current prize tier.
+ */
 static s32 ExecCoinPrizeInlineFunc(void) {
     s32 i;
 
@@ -1664,30 +1788,33 @@ static s32 ExecCoinPrizeInlineFunc(void) {
     return -1;
 }
 
+/**
+ * @brief Animates lottery coins and credits them to the current player.
+ */
 static void ExecCoinPrize(void) {
-    Vec sp64[10];
-    Vec sp8;
-    float sp3C[10];
-    float sp14[10];
-    float var_f31;
-    s32 var_r26;
-    s32 var_r28;
-    s32 temp_r27;
-    s32 var_r30;
+    Vec coin_positions[10];
+    Vec coin_position;
+    float coin_velocities[10];
+    float coin_heights[10];
+    float landing_height;
+    s32 coins_active;
+    s32 coins_remaining;
+    s32 player;
+    s32 free_coin_slot;
     s32 i;
 
-    temp_r27 = GWSystem.player_curr;
+    player = GWSystem.player_curr;
     if (currPrize == 0) {
-        var_r28 = 100;
+        coins_remaining = 100;
     } else {
-        var_r28 = 30;
+        coins_remaining = 30;
     }
     memset(coinMdl, 0, sizeof(coinMdl));
     memset(coinF, 0, 10);
-    BoardPlayerPosGet(temp_r27, &sp8);
-    var_f31 = 150.0f + sp8.y;
-    if (BoardPlayerSizeGet(temp_r27) == 1) {
-        var_f31 = 52.5308f + 0.3f * var_f31 + 110.0f;
+    BoardPlayerPosGet(player, &coin_position);
+    landing_height = 150.0f + coin_position.y;
+    if (BoardPlayerSizeGet(player) == 1) {
+        landing_height = 52.5308f + 0.3f * landing_height + 110.0f;
     }
     for (i = 0; i < 10; i++) {
         coinMdl[i] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 10), NULL, 0);
@@ -1695,121 +1822,127 @@ static void ExecCoinPrize(void) {
     }
     while (1) {
         HuPrcVSleep();
-        if (var_r28 > 0) {
-            var_r30 = ExecCoinPrizeInlineFunc();
-            if (var_r30 != -1) {
-                coinF[var_r30] = 1;
-                sp64[var_r30].x = sp8.x + 100.0f * (BoardRandFloat() - 0.5f);
-                sp64[var_r30].y = sp8.y + 700.0f;
-                sp64[var_r30].z = sp8.z + 100.0f * (BoardRandFloat() - 0.5f);
-                sp14[var_r30] = -20.0f + -10.0f * BoardRandFloat();
-                sp3C[var_r30] = BoardRandMod(360);
-                BoardModelVisibilitySet(coinMdl[var_r30], 1);
-                BoardModelScaleSet(coinMdl[var_r30], 0.5f, 0.5f, 0.5f);
-                var_r28--;
+        if (coins_remaining > 0) {
+            free_coin_slot = ExecCoinPrizeInlineFunc();
+            if (free_coin_slot != -1) {
+                coinF[free_coin_slot] = 1;
+                coin_positions[free_coin_slot].x = coin_position.x + 100.0f * (BoardRandFloat() - 0.5f);
+                coin_positions[free_coin_slot].y = coin_position.y + 700.0f;
+                coin_positions[free_coin_slot].z = coin_position.z + 100.0f * (BoardRandFloat() - 0.5f);
+                coin_heights[free_coin_slot] = -20.0f + -10.0f * BoardRandFloat();
+                coin_velocities[free_coin_slot] = BoardRandMod(360);
+                BoardModelVisibilitySet(coinMdl[free_coin_slot], 1);
+                BoardModelScaleSet(coinMdl[free_coin_slot], 0.5f, 0.5f, 0.5f);
+                coins_remaining--;
             }
         } else {
-            var_r26 = 0;
+            coins_active = 0;
             for (i = 0; i < 10; i++) {
                 if (coinF[i] != 0) {
-                    var_r26 = 1;
+                    coins_active = 1;
                 }
             }
-            if (var_r26 == 0) {
+            if (coins_active == 0) {
                 return;
             }
         }
         for (i = 0; i < 10; i++) {
             if (coinF[i] != 0) {
-                if (sp64[i].y < var_f31) {
-                    sp64[i].y = var_f31;
+                if (coin_positions[i].y < landing_height) {
+                    coin_positions[i].y = landing_height;
                     CharEffectLayerSet(2);
-                    CharEffectCoinGlowCreate(1, &sp64[i]);
+                    CharEffectCoinGlowCreate(1, &coin_positions[i]);
                     BoardModelVisibilitySet(coinMdl[i], 0);
                     coinF[i] = 0;
-                    BoardPlayerCoinsAdd(temp_r27, 1);
+                    BoardPlayerCoinsAdd(player, 1);
                     HuAudFXPlay(7);
-                    omVibrate(temp_r27, 12, 6, 6);
+                    omVibrate(player, 12, 6, 6);
                 } else {
-                    BoardModelPosSetV(coinMdl[i], &sp64[i]);
-                    BoardModelRotSet(coinMdl[i], 0.0f, sp3C[i], 0.0f);
-                    sp3C[i] = BoardDAngleCalc(45.0f + sp3C[i]);
-                    sp64[i].y += sp14[i];
+                    BoardModelPosSetV(coinMdl[i], &coin_positions[i]);
+                    BoardModelRotSet(coinMdl[i], 0.0f, coin_velocities[i], 0.0f);
+                    coin_velocities[i] = BoardDAngleCalc(45.0f + coin_velocities[i]);
+                    coin_positions[i].y += coin_heights[i];
                 }
             }
         }
     }
 }
 
+/**
+ * @brief Animates the lottery item prize and adds it to the current player.
+ */
 static void ExecItemPrize(void) {
-    Vec sp20;
-    Vec sp14;
-    float temp_f29;
-    float var_f28;
-    float var_f30;
-    float var_f31;
-    s32 temp_r26;
-    s32 var_r28;
-    s32 temp_r29;
-    s16 *var_r31;
+    Vec item_position;
+    Vec player_position;
+    float vertical_step;
+    float shrink_phase;
+    float item_angle;
+    float item_scale;
+    s32 sound;
+    s32 prize_type;
+    s32 player;
+    s16 *prize_model;
     s16 i;
-    s32 spC[2] = {
+    s32 item_resources[2] = {
         DATA_MAKE_NUM(DATADIR_BOARD, 111),
         DATA_MAKE_NUM(DATADIR_BOARD, 112)
     };
-    s8 sp8[2] = { 2, 3 };
+    s8 item_ids[2] = { 2, 3 };
 
-    temp_r29 = GWSystem.player_curr;
-    var_r28 = (BoardRandFloat() < 0.5f) ? 1 : 0;
+    player = GWSystem.player_curr;
+    prize_type = (BoardRandFloat() < 0.5f) ? 1 : 0;
     memset(coinMdl, 0, sizeof(coinMdl));
-    var_r31 = &coinMdl[0];
-    *var_r31 = BoardModelCreate(spC[var_r28], NULL, 0);
-    var_f30 = BoardPlayerRotYGet(temp_r29);
-    BoardModelRotYSet(*var_r31, var_f30);
-    BoardModelScaleSet(*var_r31, 1.0f, 1.0f, 1.0f);
-    BoardSpacePosGet(0, GWPlayer[temp_r29].space_curr, &sp20);
-    BoardPlayerPosGet(temp_r29, &sp14);
-    sp14.y = sp20.y;
-    sp20 = sp14;
-    sp14.y += 700.0f;
-    sp20.y += 280.0f;
-    temp_f29 = (sp20.y - sp14.y) / 60.0f;
-    temp_r26 = HuAudFXPlay(0x35F);
+    prize_model = &coinMdl[0];
+    *prize_model = BoardModelCreate(item_resources[prize_type], NULL, 0);
+    item_angle = BoardPlayerRotYGet(player);
+    BoardModelRotYSet(*prize_model, item_angle);
+    BoardModelScaleSet(*prize_model, 1.0f, 1.0f, 1.0f);
+    BoardSpacePosGet(0, GWPlayer[player].space_curr, &item_position);
+    BoardPlayerPosGet(player, &player_position);
+    player_position.y = item_position.y;
+    item_position = player_position;
+    player_position.y += 700.0f;
+    item_position.y += 280.0f;
+    vertical_step = (item_position.y - player_position.y) / 60.0f;
+    sound = HuAudFXPlay(0x35F);
     for (i = 0; i < 60; i++) {
-        sp14.y += temp_f29;
-        BoardModelPosSetV(*var_r31, &sp14);
+        player_position.y += vertical_step;
+        BoardModelPosSetV(*prize_model, &player_position);
         HuPrcVSleep();
     }
     HuPrcSleep(30);
-    BoardPlayerPosGet(temp_r29, &sp20);
-    if (BoardPlayerSizeGet(temp_r29) == 0) {
-        sp20.y += 100.0f;
+    BoardPlayerPosGet(player, &item_position);
+    if (BoardPlayerSizeGet(player) == 0) {
+        item_position.y += 100.0f;
     } else {
-        sp20.y += 30.000002f;
+        item_position.y += 30.000002f;
     }
-    temp_f29 = (sp20.y - sp14.y) / 30.0f;
-    var_f28 = 0.0f;
+    vertical_step = (item_position.y - player_position.y) / 30.0f;
+    shrink_phase = 0.0f;
     HuAudFXPlay(0x30D);
     for (i = 0; i < 30; i++) {
-        sp14.y += temp_f29;
-        var_f30 = BoardDAngleCalc(15.0f + var_f30);
-        var_f31 = cosd(var_f28);
-        if (var_f31 <= 0.0f) {
-            var_f31 = 0.01f;
+        player_position.y += vertical_step;
+        item_angle = BoardDAngleCalc(15.0f + item_angle);
+        item_scale = cosd(shrink_phase);
+        if (item_scale <= 0.0f) {
+            item_scale = 0.01f;
         }
-        var_f28 += 3.3333333f;
-        BoardModelPosSetV(*var_r31, &sp14);
-        BoardModelRotYSet(*var_r31, var_f30);
-        BoardModelScaleSet(*var_r31, var_f31, var_f31, var_f31);
+        shrink_phase += 3.3333333f;
+        BoardModelPosSetV(*prize_model, &player_position);
+        BoardModelRotYSet(*prize_model, item_angle);
+        BoardModelScaleSet(*prize_model, item_scale, item_scale, item_scale);
         HuPrcVSleep();
     }
-    HuAudFXStop(temp_r26);
-    BoardModelKill(*var_r31);
-    *var_r31 = -1;
-    BoardPlayerItemAdd(GWSystem.player_curr, sp8[var_r28]);
+    HuAudFXStop(sound);
+    BoardModelKill(*prize_model);
+    *prize_model = -1;
+    BoardPlayerItemAdd(GWSystem.player_curr, item_ids[prize_type]);
     omVibrate(GWSystem.player_curr, 12, 6, 6);
 }
 
+/**
+ * @brief Hides all temporary lottery coin models.
+ */
 static void KillCoin(void) {
     s32 i;
 
@@ -1819,160 +1952,167 @@ static void KillCoin(void) {
     }
 }
 
+/**
+ * @brief Dispatches the current lottery result to its coin or item award sequence.
+ */
 static void ExecPrize(void) {
-    Vec sp14;
-    Vec sp8;
-    s16 var_r29;
-    s16 var_r23;
-    s32 var_r26;
-    s32 var_r28;
-    s32 var_r27;
-    s32 temp_r30;
-    s32 var_r31;
+    Vec prize_position;
+    Vec camera_offset;
+    s16 host_motion;
+    s16 prize_motion;
+    s32 stream;
+    s32 message;
+    s32 sound;
+    s32 player;
+    s32 player_motion;
     s32 i;
-    s32 var_r24;
+    s32 frame;
 
-    var_r28 = -1;
-    var_r29 = 0;
-    var_r27 = -1;
-    sp14.x = 0.0f;
-    sp14.y = 200.0f;
-    sp14.z = 0.0f;
-    BoardCameraMotionStartEx(lotteryMdl[0], NULL, &sp14, 1300.0f, -1.0f, 21);
-    temp_r30 = GWSystem.player_curr;
-    BoardStatusShowSetForce(temp_r30);
-    BoardStatusShowSet(temp_r30, 1);
-    for (var_r24 = i = 0; i < ARRAY_COUNT(GWPlayer->items); i++) {
+    message = -1;
+    host_motion = 0;
+    sound = -1;
+    prize_position.x = 0.0f;
+    prize_position.y = 200.0f;
+    prize_position.z = 0.0f;
+    BoardCameraMotionStartEx(lotteryMdl[0], NULL, &prize_position, 1300.0f, -1.0f, 21);
+    player = GWSystem.player_curr;
+    BoardStatusShowSetForce(player);
+    BoardStatusShowSet(player, 1);
+    for (frame = i = 0; i < ARRAY_COUNT(GWPlayer->items); i++) {
         if (GWPlayer[GWSystem.player_curr].items[i] != -1) {
-            var_r24++;
+            frame++;
         }
     }
-    var_r31 = currPrize;
-    if (var_r31 == 0) {
+    player_motion = currPrize;
+    if (player_motion == 0) {
         BoardModelVisibilitySet(lotteryMdl[2], 1);
         BoardModelMotionStart(lotteryMdl[2], 0, 0x40000001);
         BoardModelMotionSpeedSet(lotteryMdl[2], 2.0f);
     }
-    var_r26 = 0;
-    switch (var_r31) {
+    stream = 0;
+    switch (player_motion) {
         case 0:
-            var_r28 = lotteryMessBase + 2;
-            var_r29 = 7;
-            var_r26 = 100;
+            message = lotteryMessBase + 2;
+            host_motion = 7;
+            stream = 100;
             break;
         case 1:
-            var_r28 = lotteryMessBase + 4;
-            var_r29 = 7;
-            var_r26 = 80;
+            message = lotteryMessBase + 4;
+            host_motion = 7;
+            stream = 80;
             break;
         case 2:
-            var_r28 = lotteryMessBase + 5;
-            if (var_r24 < 3) {
-                var_r29 = 7;
-                var_r26 = 80;
+            message = lotteryMessBase + 5;
+            if (frame < 3) {
+                host_motion = 7;
+                stream = 80;
             } else {
-                var_r29 = 8;
+                host_motion = 8;
             }
             break;
         case 3:
-            var_r28 = lotteryMessBase + 7;
-            var_r29 = 8;
+            message = lotteryMessBase + 7;
+            host_motion = 8;
             break;
     }
-    if (var_r31 != 3) {
+    if (player_motion != 3) {
         HuAudFXPlay(0x332);
     }
-    if (var_r29 == 7) {
+    if (host_motion == 7) {
         BoardModelMotionShiftSet(BoardLotteryHostGet(), lotteryMot[1], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
     }
-    if (var_r26 != 0) {
-        BoardPlayerPosGet(temp_r30, &sp8);
-        sp8.y = 700.0f;
-        BoardConfettiCreate(&sp8, var_r26, 150.0f);
+    if (stream != 0) {
+        BoardPlayerPosGet(player, &camera_offset);
+        camera_offset.y = 700.0f;
+        BoardConfettiCreate(&camera_offset, stream, 150.0f);
     }
-    if (var_r31 == 0 || var_r31 == 1) {
+    if (player_motion == 0 || player_motion == 1) {
         BoardAudSeqPause(1, 1, 0x1F4);
         HuPrcSleep(0x14);
-        if (var_r31 == 0) {
-            var_r27 = HuAudSStreamPlay(0xA);
+        if (player_motion == 0) {
+            sound = HuAudSStreamPlay(0xA);
         } else {
-            var_r27 = HuAudSStreamPlay(9);
+            sound = HuAudSStreamPlay(9);
         }
     }
-    var_r23 = (s32) BoardPlayerRotYGet(temp_r30) + 180;
-    BoardPlayerMotBlendSet(temp_r30, var_r23, 0xF);
-    while (!BoardPlayerMotBlendCheck(temp_r30)) {
+    prize_motion = (s32) BoardPlayerRotYGet(player) + 180;
+    BoardPlayerMotBlendSet(player, prize_motion, 0xF);
+    while (!BoardPlayerMotBlendCheck(player)) {
         HuPrcVSleep();
     }
-    if (var_r31 == 0 || var_r31 == 1) {
-        while (HuAudSStreamStatGet(var_r27) != 0) {
+    if (player_motion == 0 || player_motion == 1) {
+        while (HuAudSStreamStatGet(sound) != 0) {
             HuPrcVSleep();
         }
-        var_r27 = -1;
+        sound = -1;
         BoardAudSeqPause(1, 0, 1000);
     }
-    BoardWinCreate(2, var_r28, BoardWinPortraitGet());
+    BoardWinCreate(2, message, BoardWinPortraitGet());
     BoardWinWait();
-    if (var_r31 == 2) {
-        if (var_r24 == 3) {
+    if (player_motion == 2) {
+        if (frame == 3) {
             BoardWinCreate(2, lotteryMessBase + 6, BoardWinPortraitGet());
             BoardWinWait();
         } else {
             BoardAudSeqPause(1, 1, 1000);
             HuPrcSleep(0x30);
-            var_r27 = HuAudSStreamPlay(2);
+            sound = HuAudSStreamPlay(2);
         }
     }
-    if (var_r29 == 8) {
-        HuAudFXPlay(loseSoundTbl[GWPlayer[temp_r30].character]);
-        BoardPlayerVoiceEnableSet(temp_r30, var_r29, 0);
+    if (host_motion == 8) {
+        HuAudFXPlay(loseSoundTbl[GWPlayer[player].character]);
+        BoardPlayerVoiceEnableSet(player, host_motion, 0);
     }
-    BoardPlayerMotionShiftSet(temp_r30, var_r29, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
-    switch (var_r31) {
+    BoardPlayerMotionShiftSet(player, host_motion, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
+    switch (player_motion) {
         case 0:
         case 1:
             ExecCoinPrize();
             break;
         case 2:
-            if (var_r24 < 3) {
+            if (frame < 3) {
                 ExecItemPrize();
             } else {
-                var_r31 = 3;
+                player_motion = 3;
             }
             break;
     }
-    if (var_r27 != -1) {
-        while (HuAudSStreamStatGet(var_r27) != 0) {
+    if (sound != -1) {
+        while (HuAudSStreamStatGet(sound) != 0) {
             HuPrcVSleep();
         }
-        var_r27 = -1;
+        sound = -1;
         BoardAudSeqPause(1, 0, 1000);
     }
-    while (!BoardPlayerMotionEndCheck(temp_r30)) {
+    while (!BoardPlayerMotionEndCheck(player)) {
         HuPrcVSleep();
     }
-    if (var_r31 != 3) {
-        var_r28 = lotteryMessBase + 3;
+    if (player_motion != 3) {
+        message = lotteryMessBase + 3;
     } else {
-        var_r28 = lotteryMessBase + 8;
+        message = lotteryMessBase + 8;
     }
     BoardModelMotionShiftSet(BoardLotteryHostGet(), lotteryMot[2], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-    BoardWinCreate(2, var_r28, BoardWinPortraitGet());
+    BoardWinCreate(2, message, BoardWinPortraitGet());
     BoardWinWait();
     BoardWinKill();
-    if (var_r26 != 0) {
+    if (stream != 0) {
         BoardConfettiStop();
     }
-    if (var_r31 == 3) {
-        ExecLose(temp_r30);
+    if (player_motion == 3) {
+        ExecLose(player);
     }
 }
 
+/**
+ * @brief Plays the losing lottery reaction for a player.
+ * @param arg0 Player index that performs the losing reaction.
+ */
 static void ExecLose(s32 arg0) {
-    s32 temp_r30;
+    s32 player_motion;
 
-    temp_r30 = GWPlayer[arg0].character;
-    loseMot = BoardPlayerMotionCreate(arg0, loseMotTbl[temp_r30]);
+    player_motion = GWPlayer[arg0].character;
+    loseMot = BoardPlayerMotionCreate(arg0, loseMotTbl[player_motion]);
     BoardPlayerMotionShiftSet(arg0, loseMot, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
     HuPrcSleep(10);
     while (!BoardPlayerMotionEndCheck(arg0)) {
@@ -1980,30 +2120,37 @@ static void ExecLose(s32 arg0) {
     }
 }
 
+/**
+ * @brief Creates the lottery result message window for a prize tier.
+ * @param arg0 Prize tier used to select the result message.
+ */
 static void CreateLotteryWin(s32 arg0) {
-    float sp8[2];
-    float temp_f30;
-    float var_f31;
-    s32 var_r31;
+    float window_size[2];
+    float width;
+    float height;
+    s32 message;
 
-    temp_f30 = -10000.0f;
+    width = -10000.0f;
     if (arg0 == 0) {
-        var_r31 = MAKE_MESSID(6, 80);
-        var_f31 = 352.0f;
+        message = MAKE_MESSID(6, 80);
+        height = 352.0f;
     } else if (arg0 == 1) {
-        var_f31 = 352.0f;
-        var_r31 = MAKE_MESSID(6, 81);
+        height = 352.0f;
+        message = MAKE_MESSID(6, 81);
     } else {
-        var_f31 = 364.0f;
-        var_r31 = MAKE_MESSID(32, 22);
+        height = 364.0f;
+        message = MAKE_MESSID(32, 22);
     }
-    HuWinMesMaxSizeGet(1, sp8, var_r31);
-    lotteryInstWin = HuWinCreate(temp_f30, var_f31, sp8[0], sp8[1], 0);
+    HuWinMesMaxSizeGet(1, window_size, message);
+    lotteryInstWin = HuWinCreate(width, height, window_size[0], window_size[1], 0);
     HuWinBGTPLvlSet(lotteryInstWin, 0.0f);
     HuWinMesSpeedSet(lotteryInstWin, 0);
-    HuWinMesSet(lotteryInstWin, var_r31);
+    HuWinMesSet(lotteryInstWin, message);
 }
 
+/**
+ * @brief Closes the lottery result message window if it exists.
+ */
 static void KillLotteryWin(void) {
     if (lotteryInstWin != -1) {
         HuWinKill(lotteryInstWin);
@@ -2011,37 +2158,40 @@ static void KillLotteryWin(void) {
     }
 }
 
+/**
+ * @brief Runs the scripted lottery demonstration used by board tutorial mode.
+ */
 void BoardLotteryTutorialExec(void) {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r31;
-    s32 temp_r30;
+    Vec player_position;
+    Vec lottery_position;
+    Vec entrance_position;
+    Vec camera_rotation;
+    Vec camera_offset;
+    s16 player_motion;
+    s16 host_motion;
+    s16 entrance_space;
+    s32 player;
 
-    temp_r30 = BoardDataDirReadAsync(DATADIR_BKUJIYA);
-    temp_r31 = BoardSpaceFlagSearch(0, 0x10000000);
-    if (temp_r30 != -1) {
-        BoardDataAsyncWait(temp_r30);
+    player = BoardDataDirReadAsync(DATADIR_BKUJIYA);
+    entrance_space = BoardSpaceFlagSearch(0, 0x10000000);
+    if (player != -1) {
+        BoardDataAsyncWait(player);
     }
     BoardModelMotionStart(BoardLotteryHostGet(), 1, 0x40000001);
     CreateModel();
-    temp_r29 = BoardSpaceLinkFlagSearch(0, temp_r31, 0x02000000);
-    BoardSpacePosGet(0, temp_r31, &sp38);
-    BoardSpacePosGet(0, temp_r29, &sp2C);
-    VECSubtract(&sp2C, &sp38, &sp20);
-    VECNormalize(&sp20, &sp20);
-    temp_r28 = atan2d(-sp20.x, -sp20.z);
-    sp14.x = -3.0f;
-    sp14.y = temp_r28;
-    sp14.z = 0.0f;
-    sp8.x = 0.0f;
-    sp8.y = 200.0f;
-    sp8.z = 0.0f;
-    BoardCameraMotionStartEx(lotteryMdl[0], &sp14, &sp8, 1300.0f, -1.0f, 21);
+    player_motion = BoardSpaceLinkFlagSearch(0, entrance_space, 0x02000000);
+    BoardSpacePosGet(0, entrance_space, &player_position);
+    BoardSpacePosGet(0, player_motion, &lottery_position);
+    VECSubtract(&lottery_position, &player_position, &entrance_position);
+    VECNormalize(&entrance_position, &entrance_position);
+    host_motion = atan2d(-entrance_position.x, -entrance_position.z);
+    camera_rotation.x = -3.0f;
+    camera_rotation.y = host_motion;
+    camera_rotation.z = 0.0f;
+    camera_offset.x = 0.0f;
+    camera_offset.y = 200.0f;
+    camera_offset.z = 0.0f;
+    BoardCameraMotionStartEx(lotteryMdl[0], &camera_rotation, &camera_offset, 1300.0f, -1.0f, 21);
     HuAudFXPlay(0x331);
     HuAudFXPlay(0x344);
     BoardModelMotionStart(lotteryMdl[0], 0, 0);

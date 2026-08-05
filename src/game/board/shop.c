@@ -29,38 +29,38 @@
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 4;
+        u8 kill : 1;
+        u8 item : 4;
     };
-    u8 unk01;
-    s8 unk02;
-    s8 unk03;
-    s8 unk04;
-    char unk05[1];
-    s16 unk06;
+    u8 delay;
+    s8 slot;
+    s8 previous_slot;
+    s8 scale_angle;
+    char padding[1];
+    s16 window;
 } ShopWinWork;
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 3;
+        u8 kill : 1;
+        u8 state : 3;
     };
-    char unk01[1];
-    s16 unk02;
-    u16 unk04;
+    char padding[1];
+    s16 frame;
+    u16 delay;
 } ItemGiveWork;
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 2;
+        u8 kill : 1;
+        u8 player : 2;
     };
-    u8 unk01;
-    s8 unk02;
-    s8 unk03;
-    u8 unk04;
-    u8 unk05;
-    s16 unk06;
+    u8 input_delay;
+    s8 slot;
+    s8 target_slot;
+    u8 moving;
+    u8 close_delay;
+    s16 sprite_group;
 } ItemChoiceWork;
 
 static void ExecShop(void);
@@ -149,36 +149,50 @@ static s32 shopMotTbl[9][3] = {
     { DATA_MAKE_NUM(DATADIR_BGUEST, 0x2A), DATA_MAKE_NUM(DATADIR_BGUEST, 0x2C), DATA_MAKE_NUM(DATADIR_BGUEST, 0x2D) }
 };
 
+/**
+ * @brief Sets the board model used as the shop host.
+ * @param arg0 Board-model handle for the shop host.
+ */
 void BoardShopHostSet(s16 arg0) {
     hostMdl = arg0;
 }
 
+/**
+ * @brief Gets the board model used as the shop host.
+ * @return Shop host board-model handle, or -1 when unset.
+ */
 s16 BoardShopHostGet(void) {
     return hostMdl;
 }
 
+/**
+ * @brief Creates shop host motions and places the host at the board's shop space.
+ */
 void BoardShopInit(void) {
-    BoardModelParam *var_r29;
-    Vec sp1C;
-    Vec sp10;
+    BoardModelParam *model_params;
+    Vec shop_position;
+    Vec host_position;
     s32 j;
     s32 i;
-    s32 sp8[2] = {
+    s32 shop_space_flags[2] = {
         0x00080000,
         0x00100000
     };
 
     for (i = 0; i < 2; i++) {
-        BoardSpaceLinkTransformGet(sp8[i], &sp1C, &sp10, 0);
-        sp1C.y -= 5.0f;
+        BoardSpaceLinkTransformGet(shop_space_flags[i], &shop_position, &host_position, 0);
+        shop_position.y -= 5.0f;
         for (j = 0; j < 1; j++) {
-            var_r29 = &shopMdlParam[j];
-            shopMdlIdx[i][j] = BoardModelCreateParam(var_r29, &sp1C, &sp10);
+            model_params = &shopMdlParam[j];
+            shopMdlIdx[i][j] = BoardModelCreateParam(model_params, &shop_position, &host_position);
         }
     }
     BoardModelVisibilitySet(hostMdl, 0);
 }
 
+/**
+ * @brief Stops the shop process and releases shop host motions.
+ */
 void BoardShopKill(void) {
     s32 i;
     s32 j;
@@ -193,6 +207,11 @@ void BoardShopKill(void) {
     }
 }
 
+/**
+ * @brief Runs and waits for one player's shop interaction.
+ * @param player Player index entering the shop.
+ * @param space Board-space index containing the shop.
+ */
 void BoardShopExec(s32 player, s32 space) {
     if (BoardPlayerSizeGet(GWSystem.player_curr) == 2) {
         return;
@@ -207,47 +226,50 @@ void BoardShopExec(s32 player, s32 space) {
     BoardRollDispSet(1);
 }
 
+/**
+ * @brief Handles shop admission, stock display, purchasing, and player exit.
+ */
 static void ExecShop(void) {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float var_f30;
-    float temp_f31;
-    s16 temp_r25;
-    s16 temp_r28;
-    u32 var_r30;
-    s32 var_r29;
-    s32 temp_r27;
-    s32 temp_r26;
-    s32 temp_r24;
-    s32 var_r23;
+    Vec shop_position;
+    Vec entrance_position;
+    Vec entrance_direction;
+    Vec camera_rotation;
+    Vec camera_offset;
+    float return_angle;
+    float entrance_angle;
+    s16 entrance_space;
+    s16 shop_space;
+    u32 message;
+    s32 choice;
+    s32 board;
+    s32 portrait;
+    s32 item_price;
+    s32 coin_delay;
     s32 i;
 
     itemCurChoice = -1;
-    temp_r27 = GWBoardGet();
-    temp_r26 = BoardWinPortraitGet();
+    board = GWBoardGet();
+    portrait = BoardWinPortraitGet();
     comF = 0;
-    temp_r28 = GWPlayer[shopPlayer].space_curr;
-    if (BoardSpaceFlagGet(0, temp_r28) & 0x80000) {
+    shop_space = GWPlayer[shopPlayer].space_curr;
+    if (BoardSpaceFlagGet(0, shop_space) & 0x80000) {
         shopMdlPtr = shopMdlIdx[0];
     } else {
         shopMdlPtr = shopMdlIdx[1];
     }
     BoardPlayerIdleSet(shopPlayer);
-    var_r30 = 0;
+    message = 0;
     if (BoardPlayerCoinsGet(shopPlayer) < 5) {
-        var_r30 = MAKE_MESSID(15, 3);
+        message = MAKE_MESSID(15, 3);
     }
     if (BoardPlayerItemCount(shopPlayer) == 3) {
-        var_r30 = MAKE_MESSID(15, 2);
+        message = MAKE_MESSID(15, 2);
     }
     if (GWSystem.turn == GWSystem.max_turn) {
-        var_r30 = MAKE_MESSID(15, 1);
+        message = MAKE_MESSID(15, 1);
     }
-    if (var_r30 != 0) {
-        BoardWinCreate(0, var_r30, -1);
+    if (message != 0) {
+        BoardWinCreate(0, message, -1);
         BoardWinWait();
         BoardWinKill();
         HuPrcEnd();
@@ -261,26 +283,26 @@ static void ExecShop(void) {
     BoardWinKill();
     BoardAudSeqPause(0, 1, 1000);
     BoardStatusShowSetAll(0);
-    temp_r25 = BoardSpaceLinkFlagSearch(0, temp_r28, 0x02000000);
-    BoardSpacePosGet(0, temp_r28, &sp38);
-    BoardSpacePosGet(0, temp_r25, &sp2C);
-    VECSubtract(&sp2C, &sp38, &sp20);
-    VECNormalize(&sp20, &sp20);
-    temp_f31 = atan2d(-sp20.x, -sp20.z);
-    sp14.x = -10.0f;
-    sp14.y = temp_f31;
-    sp14.z = 0.0f;
-    sp8.x = 0.0f;
-    sp8.y = 170.0f;
-    sp8.z = 0.0f;
-    BoardCameraMotionStartEx(shopMdlPtr[0], &sp14, &sp8, 1360.0f, -1.0f, 27);
+    entrance_space = BoardSpaceLinkFlagSearch(0, shop_space, 0x02000000);
+    BoardSpacePosGet(0, shop_space, &shop_position);
+    BoardSpacePosGet(0, entrance_space, &entrance_position);
+    VECSubtract(&entrance_position, &shop_position, &entrance_direction);
+    VECNormalize(&entrance_direction, &entrance_direction);
+    entrance_angle = atan2d(-entrance_direction.x, -entrance_direction.z);
+    camera_rotation.x = -10.0f;
+    camera_rotation.y = entrance_angle;
+    camera_rotation.z = 0.0f;
+    camera_offset.x = 0.0f;
+    camera_offset.y = 170.0f;
+    camera_offset.z = 0.0f;
+    BoardCameraMotionStartEx(shopMdlPtr[0], &camera_rotation, &camera_offset, 1360.0f, -1.0f, 27);
     HuAudFXPlay(0x330);
     HuAudFXPlay(0x32D);
     PopupShop();
     BoardModelMotionShiftSet(BoardShopHostGet(), shopMot[2], 0.0f, 4.0f, HU3D_MOTATTR_NONE);
     HuPrcSleep(4);
-    BoardPlayerRotSet(shopPlayer, 0.0f, temp_f31, 0.0f);
-    BoardPlayerMoveBetween(shopPlayer, temp_r28, temp_r25);
+    BoardPlayerRotSet(shopPlayer, 0.0f, entrance_angle, 0.0f);
+    BoardPlayerMoveBetween(shopPlayer, shop_space, entrance_space);
     BoardPlayerIdleSet(shopPlayer);
     BoardMusStart(1, 3, 0x7F, 0);
     while (!BoardModelMotionEndCheck(BoardShopHostGet())) {
@@ -292,30 +314,30 @@ static void ExecShop(void) {
     GetShopItems(shopPlayer);
     SortShopItems();
     while (1) {
-        BoardWinCreateChoice(1, hostMessTbl[temp_r27], temp_r26, 0);
+        BoardWinCreateChoice(1, hostMessTbl[board], portrait, 0);
         BoardWinAttrSet(0x10);
         DecideComBuy(shopPlayer);
         BoardWinWait();
-        var_r29 = BoardWinChoiceGet();
-        if (var_r29 == 1) {
-            BoardWinCreate(2, hostMessTbl[temp_r27] + 1, temp_r26);
+        choice = BoardWinChoiceGet();
+        if (choice == 1) {
+            BoardWinCreate(2, hostMessTbl[board] + 1, portrait);
             BoardWinWait();
             BoardWinKill();
             break;
         }
-        if (var_r29 != 0) {
+        if (choice != 0) {
             BoardViewMapExec(shopPlayer);
             continue;
         }
         CreateShopWin();
-        BoardWinCreate(1, hostMessTbl[temp_r27] + 2, temp_r26);
+        BoardWinCreate(1, hostMessTbl[board] + 2, portrait);
         BoardWinPriSet(1000);
         for (i = 0; i < 5; i++) {
-            var_r30 = MAKE_MESSID(15, activeItemTbl[i]);
-            var_r30 += 0x16;
-            BoardWinInsertMesSet(var_r30, i);
-            var_r29 = itemPriceTbl[activeItemTbl[i]];
-            if (var_r29 > BoardPlayerCoinsGet(shopPlayer)) {
+            message = MAKE_MESSID(15, activeItemTbl[i]);
+            message += 0x16;
+            BoardWinInsertMesSet(message, i);
+            choice = itemPriceTbl[activeItemTbl[i]];
+            if (choice > BoardPlayerCoinsGet(shopPlayer)) {
                 BoardWinChoiceDisable(i);
                 choiceEnableTbl[i] = 0;
             } else {
@@ -327,8 +349,8 @@ static void ExecShop(void) {
         BoardWinPause();
         BoardWinAttrSet(0x10);
         HuPrcSleep(0xF);
-        var_r29 = GetComItemChoice(shopPlayer);
-        CreateShopItemChoice(shopPlayer, var_r29);
+        choice = GetComItemChoice(shopPlayer);
+        CreateShopItemChoice(shopPlayer, choice);
         WaitItemChoice();
         itemCurChoice = GetShopItemChoice();
         BoardWinKill();
@@ -341,23 +363,23 @@ static void ExecShop(void) {
                 HuPrcVSleep();
             }
             if (itemCurChoice == 5) {
-                BoardWinCreate(2, hostMessTbl[temp_r27] + 1, temp_r26);
+                BoardWinCreate(2, hostMessTbl[board] + 1, portrait);
                 BoardWinWait();
                 BoardWinKill();
                 break;
             }
-            temp_r24 = itemPriceTbl[activeItemTbl[itemCurChoice]];
-            if (temp_r24 >= 20) {
-                var_r23 = 3;
+            item_price = itemPriceTbl[activeItemTbl[itemCurChoice]];
+            if (item_price >= 20) {
+                coin_delay = 3;
             } else {
-                var_r23 = 6;
+                coin_delay = 6;
             }
-            var_f30 = BoardDAngleCalc(180.0f + BoardPlayerRotYGet(shopPlayer));
-            BoardPlayerMotBlendSet(shopPlayer, var_f30, 0xF);
-            for (i = 0; i < temp_r24; i++) {
+            return_angle = BoardDAngleCalc(180.0f + BoardPlayerRotYGet(shopPlayer));
+            BoardPlayerMotBlendSet(shopPlayer, return_angle, 0xF);
+            for (i = 0; i < item_price; i++) {
                 BoardPlayerCoinsAdd(shopPlayer, -1);
                 HuAudFXPlay(0xE);
-                HuPrcSleep(var_r23);
+                HuPrcSleep(coin_delay);
             }
             HuAudFXPlay(0xF);
             StartItemGive();
@@ -384,8 +406,8 @@ static void ExecShop(void) {
     BoardCameraTargetPlayerSet(shopPlayer);
     BoardCameraMotionWait();
     BoardCameraViewSet(1);
-    BoardPlayerRotSet(shopPlayer, 0.0f, temp_f31, 0.0f);
-    BoardPlayerMoveBetween(shopPlayer, temp_r25, temp_r28);
+    BoardPlayerRotSet(shopPlayer, 0.0f, entrance_angle, 0.0f);
+    BoardPlayerMoveBetween(shopPlayer, entrance_space, shop_space);
     BoardPlayerIdleSet(shopPlayer);
     BoardStatusShowSetAll(1);
     BoardCameraMotionWait();
@@ -394,17 +416,20 @@ static void ExecShop(void) {
     HuPrcEnd();
 }
 
+/**
+ * @brief Restores the player and host and marks shop UI objects for destruction.
+ */
 static void DestroyShop(void) {
-    s16 temp_r30;
+    s16 host_model;
     s32 i;
 
     for (i = 0; i < 2; i++) {
         BoardModelHookReset(shopMdlIdx[0][i]);
     }
-    temp_r30 = BoardShopHostGet();
+    host_model = BoardShopHostGet();
     for (i = 0; i < 3; i++) {
         if (shopMot[i] != -1) {
-            BoardModelMotionKill(temp_r30, shopMot[i]);
+            BoardModelMotionKill(host_model, shopMot[i]);
             shopMot[i] = -1;
         }
     }
@@ -416,6 +441,9 @@ static void DestroyShop(void) {
     shopProc = NULL;
 }
 
+/**
+ * @brief Animates the shop host and item models upward into view.
+ */
 static void PopupShop(void) {
     s32 i;
 
@@ -446,6 +474,9 @@ static void PopupShop(void) {
     }
 }
 
+/**
+ * @brief Animates the shop host and item models downward out of view.
+ */
 static void CloseShop(void) {
     BoardModelMotionStart(shopMdlPtr[0], 0, 0x40000004);
     while (BoardModelMotionTimeGet(shopMdlPtr[0]) > 28.0f) {
@@ -461,289 +492,326 @@ static void CloseShop(void) {
     BoardModelVisibilitySet(BoardShopHostGet(), 0);
 }
 
+/**
+ * @brief Creates the item name-and-price window used by the shop selector.
+ */
 static void CreateShopWin(void) {
-    Vec sp8;
-    OMOBJ *var_r31;
-    ShopWinWork *var_r30;
+    Vec window_position;
+    OMOBJ *window_object;
+    ShopWinWork *window_work;
 
-    var_r31 = omAddObjEx(boardObjMan, 0x109, 0, 0, -1, UpdateShopWin);
-    var_r30 = omObjGetWork(var_r31, ShopWinWork);
-    var_r30->unk00_field0 = 0;
-    var_r30->unk06 = -1;
-    var_r30->unk00_field1 = 0xFF;
-    var_r30->unk02 = -1;
-    var_r30->unk03 = -1;
-    var_r30->unk01 = 0xC;
-    var_r30->unk04 = 0;
-    shopWinObj = var_r31;
-    var_r30->unk06 = HuWinCreate(36.0f, HU_DISP_HEIGHT-136, 0x1F8, 0x60, 0);
-    HuWinMesSpeedSet(var_r30->unk06, 0);
-    HuWinDrawNoSet(var_r30->unk06, 0x40);
-    HuWinExAnimIn(var_r30->unk06);
-    sp8.x = 84.0f;
-    sp8.y = HU_DISP_HEIGHT-88;
-    sp8.z = 400.0f;
-    var_r31->scale.x = var_r31->scale.y = var_r31->scale.z = 0.25f;
-    Hu3D2Dto3D(&sp8, 1, &sp8);
-    var_r31->trans.x = sp8.x;
-    var_r31->trans.y = sp8.y;
-    var_r31->trans.z = sp8.z;
-    var_r31->scale.x = var_r31->scale.y = var_r31->scale.z = 1.0f;
+    window_object = omAddObjEx(boardObjMan, 0x109, 0, 0, -1, UpdateShopWin);
+    window_work = omObjGetWork(window_object, ShopWinWork);
+    window_work->kill = 0;
+    window_work->window = -1;
+    window_work->item = 0xFF;
+    window_work->slot = -1;
+    window_work->previous_slot = -1;
+    window_work->delay = 0xC;
+    window_work->scale_angle = 0;
+    shopWinObj = window_object;
+    window_work->window = HuWinCreate(36.0f, HU_DISP_HEIGHT-136, 0x1F8, 0x60, 0);
+    HuWinMesSpeedSet(window_work->window, 0);
+    HuWinDrawNoSet(window_work->window, 0x40);
+    HuWinExAnimIn(window_work->window);
+    window_position.x = 84.0f;
+    window_position.y = HU_DISP_HEIGHT-88;
+    window_position.z = 400.0f;
+    window_object->scale.x = window_object->scale.y = window_object->scale.z = 0.25f;
+    Hu3D2Dto3D(&window_position, 1, &window_position);
+    window_object->trans.x = window_position.x;
+    window_object->trans.y = window_position.y;
+    window_object->trans.z = window_position.z;
+    window_object->scale.x = window_object->scale.y = window_object->scale.z = 1.0f;
 }
 
+/**
+ * @brief Updates or destroys the shop item information window.
+ * @param arg0 Object controlling the item name-and-price window.
+ */
 static void UpdateShopWin(OMOBJ *arg0) {
-    Vec spC;
-    float var_f29;
-    float var_f28;
-    ShopWinWork *temp_r28;
-    Mtx sp48;
-    Mtx sp18;
+    Vec camera_rotation;
+    float height_offset;
+    float scale_angle;
+    ShopWinWork *window_work;
+    Mtx item_transform;
+    Mtx camera_transform;
 
-    temp_r28 = omObjGetWork(arg0, ShopWinWork);
-    if (temp_r28->unk00_field0 != 0 || BoardIsKill()) {
-        if (temp_r28->unk06 != -1) {
-            HuWinKill(temp_r28->unk06);
+    window_work = omObjGetWork(arg0, ShopWinWork);
+    if (window_work->kill != 0 || BoardIsKill()) {
+        if (window_work->window != -1) {
+            HuWinKill(window_work->window);
         }
         shopWinObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
         return;
     }
-    if (temp_r28->unk01 != 0) {
-        temp_r28->unk01--;
+    if (window_work->delay != 0) {
+        window_work->delay--;
         return;
     }
-    temp_r28->unk02 = GetShopItemWinChoice();
-    if (temp_r28->unk02 != -1) {
-        if (temp_r28->unk04 == 90 && temp_r28->unk03 != temp_r28->unk02) {
-            if (temp_r28->unk02 == 5) {
-                HuWinDispOff(temp_r28->unk06);
-                if (temp_r28->unk00_field0 == 0) {
+    window_work->slot = GetShopItemWinChoice();
+    if (window_work->slot != -1) {
+        if (window_work->scale_angle == 90 && window_work->previous_slot != window_work->slot) {
+            if (window_work->slot == 5) {
+                HuWinDispOff(window_work->window);
+                if (window_work->kill == 0) {
                     BoardModelVisibilitySet(itemMdl, 0);
                 }
             } else {
-                HuWinDispOn(temp_r28->unk06);
-                SetShopWinItem(temp_r28, arg0);
+                HuWinDispOn(window_work->window);
+                SetShopWinItem(window_work, arg0);
                 BoardModelVisibilitySet(itemMdl, 1);
-                temp_r28->unk04 = 0;
+                window_work->scale_angle = 0;
             }
-            temp_r28->unk03 = temp_r28->unk02;
+            window_work->previous_slot = window_work->slot;
         }
         if (itemChoice == 0x7F) {
             BoardModelVisibilitySet(itemMdl, 0);
-            HuWinDispOff(temp_r28->unk06);
+            HuWinDispOff(window_work->window);
         }
-        var_f29 = 0.0f;
-        if (temp_r28->unk04 < 90) {
-            temp_r28->unk04 += 15;
-            if (temp_r28->unk04 > 90) {
-                temp_r28->unk04 = 90;
+        height_offset = 0.0f;
+        if (window_work->scale_angle < 90) {
+            window_work->scale_angle += 15;
+            if (window_work->scale_angle > 90) {
+                window_work->scale_angle = 90;
             }
-            OSs8tof32(&temp_r28->unk04, &var_f28);
-            arg0->scale.x = arg0->scale.y = arg0->scale.z = 0.25 * sind(var_f28);
+            OSs8tof32(&window_work->scale_angle, &scale_angle);
+            arg0->scale.x = arg0->scale.y = arg0->scale.z = 0.25 * sind(scale_angle);
         }
-        if (temp_r28->unk00_field1 == 5) {
-            var_f29 = -12.5f;
+        if (window_work->item == 5) {
+            height_offset = -12.5f;
         }
         arg0->rot.y = BoardDAngleCalc(arg0->rot.y + 2.0f);
-        BoardCameraRotGet(&spC);
-        PSMTXRotRad(sp48, 'y', MTXDegToRad(arg0->rot.y));
-        PSMTXRotRad(sp18, 'x', MTXDegToRad(spC.x + 10.0f));
-        PSMTXConcat(sp18, sp48, sp48);
-        BoardModelMtxSet(itemMdl, &sp48);
+        BoardCameraRotGet(&camera_rotation);
+        PSMTXRotRad(item_transform, 'y', MTXDegToRad(arg0->rot.y));
+        PSMTXRotRad(camera_transform, 'x', MTXDegToRad(camera_rotation.x + 10.0f));
+        PSMTXConcat(camera_transform, item_transform, item_transform);
+        BoardModelMtxSet(itemMdl, &item_transform);
         BoardModelRotSet(itemMdl, 0.0f, 0.0f, 0.0f);
-        BoardModelPosSet(itemMdl, arg0->trans.x, arg0->trans.y + var_f29, arg0->trans.z);
+        BoardModelPosSet(itemMdl, arg0->trans.x, arg0->trans.y + height_offset, arg0->trans.z);
         BoardModelScaleSet(itemMdl, arg0->scale.x, arg0->scale.y, arg0->scale.z);
         OSf32tos16(&arg0->rot.y, &angleVal);
     }
 }
 
+/**
+ * @brief Updates the shop window for the currently highlighted item.
+ * @param arg0 Mutable shop-window state.
+ * @param arg1 Item selector whose current slot is displayed.
+ */
 static void SetShopWinItem(ShopWinWork *arg0, OMOBJ *arg1) {
-    Vec spC;
-    s32 var_r26;
-    s8 temp_r28;
+    Vec camera_direction;
+    s32 item_resource;
+    s8 message;
 
-    temp_r28 = activeItemTbl[arg0->unk02];
-    if (arg0->unk00_field1 != temp_r28) {
+    message = activeItemTbl[arg0->slot];
+    if (arg0->item != message) {
         if (itemMdl != -1) {
             BoardModelKill(itemMdl);
             itemMdl = -1;
         }
-        var_r26 = BoardItemModelGet(temp_r28);
-        itemMdl = BoardModelCreate(var_r26, NULL, 0);
+        item_resource = BoardItemModelGet(message);
+        itemMdl = BoardModelCreate(item_resource, NULL, 0);
         BoardModelLayerSet(itemMdl, 6);
-        HuWinMesSet(arg0->unk06, BoardItemNameGet(temp_r28));
-        arg0->unk04 = 0;
-        arg0->unk00_field1 = temp_r28;
-        if (temp_r28 == 4) {
+        HuWinMesSet(arg0->window, BoardItemNameGet(message));
+        arg0->scale_angle = 0;
+        arg0->item = message;
+        if (message == 4) {
             BoardModelMotionStart(itemMdl, 0, 0x40000001);
             BoardModelMotionSpeedSet(itemMdl, 0.033333335f);
         }
-        BoardCameraDirGet(&spC);
-        arg1->rot.y = BoardDAngleCalc(atan2d(-spC.x, -spC.z));
+        BoardCameraDirGet(&camera_direction);
+        arg1->rot.y = BoardDAngleCalc(atan2d(-camera_direction.x, -camera_direction.z));
         OSf32tos16(&arg1->rot.y, &angleVal);
     }
 }
 
+/**
+ * @brief Marks the shop item information window for destruction.
+ */
 static void PauseShopWin(void) {
     if (shopWinObj) {
-        omObjGetWork(shopWinObj, ShopWinWork)->unk00_field0 = 1;
+        omObjGetWork(shopWinObj, ShopWinWork)->kill = 1;
         shopWinObj = NULL;
     }
 }
 
+/**
+ * @brief Creates the shop item-award object and hooks the purchased model to the host.
+ */
 void StartItemGive(void) {
-    Vec sp14;
-    Vec sp8;
-    OMOBJ *temp_r30;
-    ItemGiveWork *temp_r29;
-    Mtx sp20;
+    Vec item_position;
+    Vec player_position;
+    OMOBJ *item_object;
+    ItemGiveWork *item_work;
+    Mtx identity_transform;
 
-    temp_r30 = omAddObjEx(boardObjMan, 0x109, 0, 0, -1, ExecItemGive);
-    itemGiveObj = temp_r30;
-    temp_r29 = omObjGetWork(temp_r30, ItemGiveWork);
-    temp_r29->unk00_field0 = 0;
-    temp_r29->unk00_field1 = 0;
-    temp_r29->unk04 = 0;
-    temp_r29->unk02 = 0;
+    item_object = omAddObjEx(boardObjMan, 0x109, 0, 0, -1, ExecItemGive);
+    itemGiveObj = item_object;
+    item_work = omObjGetWork(item_object, ItemGiveWork);
+    item_work->kill = 0;
+    item_work->state = 0;
+    item_work->delay = 0;
+    item_work->frame = 0;
     BoardModelMotionStart(itemMdl, 0, 0);
     BoardModelMotionSpeedSet(itemMdl, 0.0f);
-    BoardModelPosGet(itemMdl, &sp14);
-    PSMTXIdentity(sp20);
-    BoardModelMtxSet(itemMdl, &sp20);
-    OSs16tof32(&angleVal, &temp_r30->scale.z);
-    temp_r30->scale.z = -temp_r30->scale.z / 40.0f;
-    temp_r30->scale.x = 0.25f;
-    temp_r30->scale.y = 0.015f;
-    BoardPlayerPosGet(shopPlayer, &sp8);
-    temp_r30->trans.x = sp14.x;
-    temp_r30->trans.y = sp14.y;
-    temp_r30->trans.z = sp14.z;
-    temp_r30->rot.y = sp8.y + 250.0f;
-    temp_r30->rot.x = (sp8.x - sp14.x) / 50.0f;
-    temp_r30->rot.z = (sp8.z - sp14.z) / 50.0f;
-    itemGiveObj = temp_r30;
+    BoardModelPosGet(itemMdl, &item_position);
+    PSMTXIdentity(identity_transform);
+    BoardModelMtxSet(itemMdl, &identity_transform);
+    OSs16tof32(&angleVal, &item_object->scale.z);
+    item_object->scale.z = -item_object->scale.z / 40.0f;
+    item_object->scale.x = 0.25f;
+    item_object->scale.y = 0.015f;
+    BoardPlayerPosGet(shopPlayer, &player_position);
+    item_object->trans.x = item_position.x;
+    item_object->trans.y = item_position.y;
+    item_object->trans.z = item_position.z;
+    item_object->rot.y = player_position.y + 250.0f;
+    item_object->rot.x = (player_position.x - item_position.x) / 50.0f;
+    item_object->rot.z = (player_position.z - item_position.z) / 50.0f;
+    itemGiveObj = item_object;
 }
 
+/**
+ * @brief Advances or destroys the shop item-award animation.
+ * @param arg0 Object controlling the purchased-item animation.
+ */
 static void ExecItemGive(OMOBJ *arg0) {
-    ItemGiveWork *temp_r29;
-    float var_f30;
+    ItemGiveWork *item_work;
+    float item_angle;
 
-    temp_r29 = omObjGetWork(arg0, ItemGiveWork);
-    if (temp_r29->unk00_field0 != 0 || BoardIsKill()) {
+    item_work = omObjGetWork(arg0, ItemGiveWork);
+    if (item_work->kill != 0 || BoardIsKill()) {
         itemGiveObj = NULL;
         BoardModelVisibilitySet(itemMdl, 0);
         omDelObjEx(HuPrcCurrentGet(), arg0);
         return;
     }
-    if (temp_r29->unk04 != 0) {
-        temp_r29->unk04--;
+    if (item_work->delay != 0) {
+        item_work->delay--;
         return;
     }
-    switch (temp_r29->unk00_field1) {
+    switch (item_work->state) {
         case 0:
-            MoveItemGive(arg0, temp_r29);
+            MoveItemGive(arg0, item_work);
             break;
         case 1:
-            ShrinkItemGive(arg0, temp_r29);
+            ShrinkItemGive(arg0, item_work);
             break;
         case 2:
-            WaitItemGive(arg0, temp_r29);
+            WaitItemGive(arg0, item_work);
             break;
     }
-    OSs16tof32(&angleVal, &var_f30);
+    OSs16tof32(&angleVal, &item_angle);
     BoardModelPosSet(itemMdl, arg0->trans.x, arg0->trans.y, arg0->trans.z);
     BoardModelScaleSet(itemMdl, arg0->scale.x, arg0->scale.x, arg0->scale.x);
-    BoardModelRotYSet(itemMdl, var_f30);
+    BoardModelRotYSet(itemMdl, item_angle);
 }
 
+/**
+ * @brief Moves the purchased item from the host toward the player.
+ * @param arg0 Object carrying the item's current transform.
+ * @param arg1 Mutable item-award state.
+ */
 static void MoveItemGive(OMOBJ *arg0, ItemGiveWork *arg1) {
-    Vec sp1C;
-    Vec sp10;
-    float temp_f27;
-    float var_f26;
+    Vec player_position;
+    Vec camera_direction;
+    float frame;
+    float item_angle;
 
-    if (arg1->unk02 >= 50.0f) {
-        arg1->unk02 = 0;
+    if (arg1->frame >= 50.0f) {
+        arg1->frame = 0;
         if (activeItemTbl[itemCurChoice] == 0xD) {
-            arg1->unk00_field1 = 2;
+            arg1->state = 2;
             BoardMakeRandomItem();
             BoardItemStart(GWSystem.player_curr, 0xD);
         } else {
-            arg1->unk00_field1 = 1;
-            arg1->unk04 = 0xF;
-            BoardPlayerPosGet(shopPlayer, &sp1C);
+            arg1->state = 1;
+            arg1->delay = 0xF;
+            BoardPlayerPosGet(shopPlayer, &player_position);
             if (BoardPlayerSizeGet(shopPlayer) == 1) {
-                arg0->rot.x = (sp1C.y + 30.0f - arg0->trans.y) / 22.5f;
+                arg0->rot.x = (player_position.y + 30.0f - arg0->trans.y) / 22.5f;
             } else {
-                arg0->rot.x = (sp1C.y + 70.0f - arg0->trans.y) / 22.5f;
+                arg0->rot.x = (player_position.y + 70.0f - arg0->trans.y) / 22.5f;
             }
             arg0->trans.y = arg0->rot.y;
             arg0->scale.x = 1.0f;
         }
         return;
     }
-    OSs16tof32(&arg1->unk02, &temp_f27);
+    OSs16tof32(&arg1->frame, &frame);
     arg0->trans.y += 12.0f;
-    if (arg1->unk02 >= 40.0f) {
-        BoardPlayerPosGet(shopPlayer, &sp1C);
+    if (arg1->frame >= 40.0f) {
+        BoardPlayerPosGet(shopPlayer, &player_position);
         arg0->scale.x = 1.0f;
-        arg0->trans.x = sp1C.x;
-        arg0->trans.z = sp1C.z;
-        temp_f27 = 40.0f - (50.0f - temp_f27);
-        temp_f27 = -0.08166667f * temp_f27 * temp_f27;
-        arg0->trans.y += temp_f27;
-        BoardCameraDirGet(&sp10);
-        var_f26 = BoardDAngleCalc(atan2d(-sp10.x, -sp10.z));
-        OSf32tos16(&var_f26, &angleVal);
+        arg0->trans.x = player_position.x;
+        arg0->trans.z = player_position.z;
+        frame = 40.0f - (50.0f - frame);
+        frame = -0.08166667f * frame * frame;
+        arg0->trans.y += frame;
+        BoardCameraDirGet(&camera_direction);
+        item_angle = BoardDAngleCalc(atan2d(-camera_direction.x, -camera_direction.z));
+        OSf32tos16(&item_angle, &angleVal);
     } else {
         arg0->scale.x += arg0->scale.y;
         arg0->trans.x += arg0->rot.x;
         arg0->trans.z += arg0->rot.z;
-        OSs16tof32(&angleVal, &var_f26);
-        var_f26 += arg0->scale.z;
-        OSf32tos16(&var_f26, &angleVal);
+        OSs16tof32(&angleVal, &item_angle);
+        item_angle += arg0->scale.z;
+        OSf32tos16(&item_angle, &angleVal);
     }
     if (arg0->trans.y < arg0->rot.y) {
         arg0->trans.y = arg0->rot.y;
     }
-    arg1->unk02++;
+    arg1->frame++;
 }
 
+/**
+ * @brief Shrinks and lowers the purchased item into the player.
+ * @param arg0 Object carrying the item's current transform.
+ * @param arg1 Mutable item-award state.
+ */
 static void ShrinkItemGive(OMOBJ *arg0, ItemGiveWork *arg1) {
-    float var_f30;
+    float scale_angle;
 
-    if (arg1->unk02 == 0) {
+    if (arg1->frame == 0) {
         HuAudFXPlay(0x30D);
     }
-    if (arg1->unk02 >= 90) {
-        arg1->unk00_field0 = 1;
+    if (arg1->frame >= 90) {
+        arg1->kill = 1;
         BoardModelVisibilitySet(itemMdl, 0);
         return;
     }
-    OSs16tof32(&arg1->unk02, &var_f30);
+    OSs16tof32(&arg1->frame, &scale_angle);
     if (BoardPlayerSizeGet(shopPlayer) != 1) {
-        var_f30 *= 1.5f;
+        scale_angle *= 1.5f;
     }
-    if (var_f30 > 90.0f) {
-        var_f30 = 90.0f;
+    if (scale_angle > 90.0f) {
+        scale_angle = 90.0f;
     }
-    arg0->scale.x = cosd(var_f30);
+    arg0->scale.x = cosd(scale_angle);
     arg0->trans.y += arg0->rot.x;
     angleVal += 8;
     if (angleVal > 360) {
         angleVal -= 360;
     }
-    arg1->unk02 += 4;
+    arg1->frame += 4;
 }
 
+/**
+ * @brief Waits briefly before hiding the completed item-award model.
+ * @param arg0 Object carrying the item's current transform.
+ * @param arg1 Mutable item-award state.
+ */
 static void WaitItemGive(OMOBJ *arg0, ItemGiveWork *arg1) {
-    if (arg1->unk02 > 20) {
+    if (arg1->frame > 20) {
         BoardModelVisibilitySet(itemMdl, 0);
     } else {
-        arg1->unk02++;
+        arg1->frame++;
     }
     if (BoardItemDoneCheck()) {
-        arg1->unk00_field0 = 1;
+        arg1->kill = 1;
     }
 }
 
@@ -784,64 +852,72 @@ static float cursorPosTbl[6][2] = {
     { 190.0f, 312.0f }
 };
 
+/**
+ * @brief Builds shop stock from board hooks or the default item table.
+ * @param arg0 Player index used by board-specific stock selection hooks.
+ */
 static void GetShopItems(s32 arg0) {
-    s32 temp_r25;
-    s32 temp_r20;
-    s32 temp_r19;
-    s32 temp_r18;
-    s32 var_r24;
-    s32 var_r23;
-    s32 temp_r22;
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r28;
-    s32 var_r29;
-    s32 var_r30;
+    s32 item_weight;
+    s32 player_coins;
+    s32 rank_group;
+    s32 random_roll;
+    s32 duplicate;
+    s32 affordable_item_found;
+    s32 turn_group;
+    s32 coin_group;
+    s32 cumulative_weight;
+    s32 existing_slot;
+    s32 stock_slot;
+    s32 item_id;
 
-    temp_r22 = 3.0f * ((float) GWSystem.turn / GWSystem.max_turn);
+    turn_group = 3.0f * ((float) GWSystem.turn / GWSystem.max_turn);
     if (BoardPlayerCoinsGet(arg0) < 30) {
-        var_r27 = 0;
+        coin_group = 0;
     } else {
-        var_r27 = 1;
+        coin_group = 1;
     }
-    temp_r19 = rankItemGroupTbl[var_r27][GWPlayer[arg0].rank][temp_r22];
+    rank_group = rankItemGroupTbl[coin_group][GWPlayer[arg0].rank][turn_group];
     activeItemTbl[0] = activeItemTbl[1] = activeItemTbl[2] = activeItemTbl[3] = activeItemTbl[4] = -1;
-    temp_r20 = BoardPlayerCoinsGet(shopPlayer);
+    player_coins = BoardPlayerCoinsGet(shopPlayer);
     if (GWBoardGet() == BOARD_ID_EXTRA1 || GWBoardGet() == BOARD_ID_EXTRA2) {
         GetDefaultShopItems(arg0);
         return;
     }
-    var_r23 = 0;
-    var_r29 = 0;
-    while (var_r29 < 5) {
-        temp_r18 = BoardRandMod(100);
-        var_r26 = 0;
-        for (var_r30 = 13; var_r30 >= 0; var_r30--) {
-            temp_r25 = itemPrioTbl[var_r27][temp_r19][var_r30];
-            if (temp_r25 != 0) {
-                var_r26 += temp_r25;
-                if (temp_r18 <= var_r26) {
-                    var_r24 = 0;
-                    for (var_r28 = 0; var_r28 < var_r29; var_r28++) {
-                        if (var_r30 == activeItemTbl[var_r28]) {
-                            var_r24 = 1;
+    affordable_item_found = 0;
+    stock_slot = 0;
+    while (stock_slot < 5) {
+        random_roll = BoardRandMod(100);
+        cumulative_weight = 0;
+        for (item_id = 13; item_id >= 0; item_id--) {
+            item_weight = itemPrioTbl[coin_group][rank_group][item_id];
+            if (item_weight != 0) {
+                cumulative_weight += item_weight;
+                if (random_roll <= cumulative_weight) {
+                    duplicate = 0;
+                    for (existing_slot = 0; existing_slot < stock_slot; existing_slot++) {
+                        if (item_id == activeItemTbl[existing_slot]) {
+                            duplicate = 1;
                             break;
                         }
                     }
-                    if (var_r24 == 0 && (temp_r20 >= itemPriceTbl[var_r30] || var_r23 != 0)) {
-                        var_r23 = 1;
-                        activeItemTbl[var_r29] = var_r30;
+                    if (duplicate == 0 && (player_coins >= itemPriceTbl[item_id] || affordable_item_found != 0)) {
+                        affordable_item_found = 1;
+                        activeItemTbl[stock_slot] = item_id;
                         break;
                     }
                 }
             }
         }
-        if (activeItemTbl[var_r29] != -1) {
-            var_r29++;
+        if (activeItemTbl[stock_slot] != -1) {
+            stock_slot++;
         }
     }
 }
 
+/**
+ * @brief Chooses a default five-item stock table using board randomness.
+ * @param _unused Unused compatibility parameter.
+ */
 static void GetDefaultShopItems(s32 _unused) {
     s32 rand;
     s32 slot;
@@ -860,29 +936,36 @@ static void GetDefaultShopItems(s32 _unused) {
     }
 }
 
+/**
+ * @brief Sorts active shop items by item identifier.
+ */
 static void SortShopItems(void) {
-    s32 sp8[5];
-    s32 var_r29;
+    s32 sorted_items[5];
+    s32 item;
     s32 i;
     s32 j;
 
     for (i = 0; i < 5; i++) {
-        sp8[i] = itemPriceTbl[activeItemTbl[i]];
+        sorted_items[i] = itemPriceTbl[activeItemTbl[i]];
     }
     for (i = 0; i < 4; i++) {
         for (j = 4; j >= i + 1; j--) {
-            if (sp8[j] < sp8[j - 1]) {
-                var_r29 = activeItemTbl[j];
+            if (sorted_items[j] < sorted_items[j - 1]) {
+                item = activeItemTbl[j];
                 activeItemTbl[j] = activeItemTbl[j - 1];
-                activeItemTbl[j - 1] = var_r29;
-                var_r29 = sp8[j];
-                sp8[j] = sp8[j - 1];
-                sp8[j - 1] = var_r29;
+                activeItemTbl[j - 1] = item;
+                item = sorted_items[j];
+                sorted_items[j] = sorted_items[j - 1];
+                sorted_items[j - 1] = item;
             }
         }
     }
 }
 
+/**
+ * @brief Chooses whether a CPU player should enter the shop.
+ * @param player Player index whose CPU shop-entry decision is prepared.
+ */
 static void DecideComEnter(s32 player) {
     s32 space;
     s32 path_1;
@@ -929,6 +1012,10 @@ static void DecideComEnter(s32 player) {
     BoardComKeySetLeft();
 }
 
+/**
+ * @brief Chooses whether a CPU player should buy an affordable shop item.
+ * @param arg0 Player index whose CPU purchase decision is prepared.
+ */
 static void DecideComBuy(s32 arg0) {
     if (!GWPlayer[arg0].com) {
         return;
@@ -943,6 +1030,11 @@ static void DecideComBuy(s32 arg0) {
 // Return the index of the computer player's most desired item in the shop.
 // If called for a non-computer player, returns 0
 // If all items cannot be purchased (either because they cannot afford it, or because they already own it) then returns 5.
+/**
+ * @brief Chooses an enabled shop item for a CPU player.
+ * @param player Player index used to test item affordability.
+ * @return Affordable desired slot, 5 when none is desired, or 0 for a human player.
+ */
 static s32 GetComItemChoice(s32 player) {
     s16 _space;
     s32 num_coins;
@@ -980,33 +1072,41 @@ static s32 GetComItemChoice(s32 player) {
     return choice;
 }
 
+/**
+ * @brief Waits for the item-choice object to report a selection.
+ */
 static void WaitItemChoice(void) {
     while (itemChoiceObj) {
         HuPrcVSleep();
     }
 }
 
+/**
+ * @brief Creates the rotating shop item selector for a player.
+ * @param arg0 Player index controlling the selector.
+ * @param arg1 Initial carousel slot index.
+ */
 static void CreateShopItemChoice(s32 arg0, s32 arg1) {
-    OMOBJ *temp_r30;
-    ItemChoiceWork *var_r31;
-    s16 spC;
+    OMOBJ *choice_object;
+    ItemChoiceWork *choice_work;
+    s16 cursor_sprite;
     s16 i;
     #if VERSION_PAL
     for(i=0; i<6; i++) {
         cursorPosTbl[i][0] = 190;
     }
     #endif
-    temp_r30 = omAddObjEx(boardObjMan, 0x7E01, 0, 0, -1, UpdateShopItemChoice);
-    itemChoiceObj = temp_r30;
+    choice_object = omAddObjEx(boardObjMan, 0x7E01, 0, 0, -1, UpdateShopItemChoice);
+    itemChoiceObj = choice_object;
     itemChoice = -1;
-    var_r31 = omObjGetWork(temp_r30, ItemChoiceWork);
-    var_r31->unk00_field0 = 0;
-    var_r31->unk00_field1 = arg0;
-    var_r31->unk01 = 0xA;
-    var_r31->unk05 = 0;
-    var_r31->unk02 = 0;
-    var_r31->unk03 = arg1;
-    var_r31->unk06 = HuSprGrpCreate(1);
+    choice_work = omObjGetWork(choice_object, ItemChoiceWork);
+    choice_work->kill = 0;
+    choice_work->player = arg0;
+    choice_work->input_delay = 0xA;
+    choice_work->close_delay = 0;
+    choice_work->slot = 0;
+    choice_work->target_slot = arg1;
+    choice_work->sprite_group = HuSprGrpCreate(1);
     #if VERSION_PAL
     if (GWLanguageGet() != 0) {
         s16 winId = BoardWinIDGet();
@@ -1021,162 +1121,189 @@ static void CreateShopItemChoice(s32 arg0, s32 arg1) {
             }
         }
     }
-    temp_r30->trans.x = cursorPosTbl[0][0];
-    temp_r30->trans.y = cursorPosTbl[0][1];
+    choice_object->trans.x = cursorPosTbl[0][0];
+    choice_object->trans.y = cursorPosTbl[0][1];
     #else
-    temp_r30->trans.x = cursorPosTbl[0][0];
-    temp_r30->trans.y = cursorPosTbl[0][1];
+    choice_object->trans.x = cursorPosTbl[0][0];
+    choice_object->trans.y = cursorPosTbl[0][1];
     if (GWLanguageGet() != 0) {
-        temp_r30->trans.x -= 24.0f;
+        choice_object->trans.x -= 24.0f;
     }
     #endif
     if (GWPlayer[arg0].com) {
-        var_r31->unk01 = GWMessDelayGet();
+        choice_work->input_delay = GWMessDelayGet();
     }
-    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x55), 0x3DE, NULL, &spC);
-    HuSprGrpMemberSet(var_r31->unk06, 0, spC);
-    HuSprAttrSet(var_r31->unk06, 0, 8);
-    HuSprPosSet(var_r31->unk06, 0, temp_r30->trans.x, temp_r30->trans.y);
+    BoardSpriteCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x55), 0x3DE, NULL, &cursor_sprite);
+    HuSprGrpMemberSet(choice_work->sprite_group, 0, cursor_sprite);
+    HuSprAttrSet(choice_work->sprite_group, 0, 8);
+    HuSprPosSet(choice_work->sprite_group, 0, choice_object->trans.x, choice_object->trans.y);
 }
 
+/**
+ * @brief Gets the selected carousel slot from the shop selector.
+ * @return Selected slot index, -1 before selection, or 0x7F after cancellation.
+ */
 static s32 GetShopItemChoice(void) {
     return itemChoice;
 }
 
+/**
+ * @brief Gets the selected selector slot, including the cancel slot.
+ * @return Selected carousel slot index, including the cancel slot.
+ */
 static s32 GetShopItemWinChoice(void) {
-    ItemChoiceWork *var_r31;
+    ItemChoiceWork *choice_work;
 
     if (!itemChoiceObj) {
         return -1;
     }
-    var_r31 = omObjGetWork(itemChoiceObj, ItemChoiceWork);
-    return var_r31->unk02;
+    choice_work = omObjGetWork(itemChoiceObj, ItemChoiceWork);
+    return choice_work->slot;
 }
 
+/**
+ * @brief Rotates the shop item carousel toward the selected slot.
+ * @param arg0 Selector object whose angle is updated.
+ * @param arg1 Mutable selector state and target angle.
+ */
 static void MoveShopItemChoice(OMOBJ *arg0, ItemChoiceWork *arg1) {
-    u32 sp8;
-    s32 temp_r28;
-    s32 temp_r29;
+    u32 input;
+    s32 previous_slot;
+    s32 controller_port;
 
-    temp_r28 = arg1->unk02;
-    arg0->trans.x = cursorPosTbl[arg1->unk02][0];
-    arg0->trans.y = cursorPosTbl[arg1->unk02][1];
+    previous_slot = arg1->slot;
+    arg0->trans.x = cursorPosTbl[arg1->slot][0];
+    arg0->trans.y = cursorPosTbl[arg1->slot][1];
     #if VERSION_NTSC
     if (GWLanguageGet() != 0) {
         arg0->trans.x -= 24.0f;
     }
     #endif
-    if (GWPlayer[arg1->unk00_field1].com) {
-        GetShopItemChoiceInput(arg1, arg0, &sp8);
+    if (GWPlayer[arg1->player].com) {
+        GetShopItemChoiceInput(arg1, arg0, &input);
     } else {
-        temp_r29 = GWPlayer[arg1->unk00_field1].port;
-        sp8 = HuPadDStkRep[temp_r29] | HuPadBtnDown[temp_r29];
+        controller_port = GWPlayer[arg1->player].port;
+        input = HuPadDStkRep[controller_port] | HuPadBtnDown[controller_port];
     }
-    if (sp8 == 0x100) {
-        if (choiceEnableTbl[arg1->unk02] == 0) {
+    if (input == 0x100) {
+        if (choiceEnableTbl[arg1->slot] == 0) {
             HuAudFXPlay(4);
             return;
         }
-        if (arg1->unk02 != 5) {
-            itemChoice = arg1->unk02;
+        if (arg1->slot != 5) {
+            itemChoice = arg1->slot;
         }
         HuAudFXPlay(2);
-        if (GWPlayer[arg1->unk00_field1].com) {
-            arg1->unk05 = 0x32;
+        if (GWPlayer[arg1->player].com) {
+            arg1->close_delay = 0x32;
         } else {
-            arg1->unk05 = 5;
+            arg1->close_delay = 5;
         }
         return;
     }
-    if (sp8 == 0x200) {
+    if (input == 0x200) {
         itemChoice = 0x7F;
-        arg1->unk05 = 5;
+        arg1->close_delay = 5;
         HuAudFXPlay(3);
     }
-    if (sp8 == 4) {
-        arg1->unk02++;
+    if (input == 4) {
+        arg1->slot++;
     }
-    if (sp8 == 8) {
-        arg1->unk02--;
+    if (input == 8) {
+        arg1->slot--;
     }
-    if (arg1->unk02 < 0) {
-        arg1->unk02 = 0;
+    if (arg1->slot < 0) {
+        arg1->slot = 0;
     }
-    if (arg1->unk02 >= 6) {
-        arg1->unk02 = 5;
+    if (arg1->slot >= 6) {
+        arg1->slot = 5;
     }
-    if (arg1->unk02 != temp_r28) {
+    if (arg1->slot != previous_slot) {
         HuAudFXPlay(0);
-        arg1->unk04 = 4;
+        arg1->moving = 4;
     }
 }
 
+/**
+ * @brief Processes shop selector movement and controller or CPU input.
+ * @param arg0 Object controlling the shop item carousel.
+ */
 static void UpdateShopItemChoice(OMOBJ *arg0) {
-    ItemChoiceWork *temp_r31;
+    ItemChoiceWork *choice_work;
 
-    temp_r31 = omObjGetWork(arg0, ItemChoiceWork);
-    if (temp_r31->unk00_field0 != 0 || BoardIsKill()) {
-        HuSprGrpKill(temp_r31->unk06);
+    choice_work = omObjGetWork(arg0, ItemChoiceWork);
+    if (choice_work->kill != 0 || BoardIsKill()) {
+        HuSprGrpKill(choice_work->sprite_group);
         itemChoiceObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
         return;
     }
-    if (temp_r31->unk05 != 0) {
-        temp_r31->unk05--;
-        if (temp_r31->unk05 == 0) {
-            temp_r31->unk00_field0 = 1;
+    if (choice_work->close_delay != 0) {
+        choice_work->close_delay--;
+        if (choice_work->close_delay == 0) {
+            choice_work->kill = 1;
         }
-    } else if (temp_r31->unk01 != 0) {
-        temp_r31->unk01--;
-    } else if (temp_r31->unk04 != 0) {
-        temp_r31->unk04--;
+    } else if (choice_work->input_delay != 0) {
+        choice_work->input_delay--;
+    } else if (choice_work->moving != 0) {
+        choice_work->moving--;
     } else {
-        MoveShopItemChoice(arg0, temp_r31);
+        MoveShopItemChoice(arg0, choice_work);
     }
-    HuSprPosSet(temp_r31->unk06, 0, arg0->trans.x, arg0->trans.y);
+    HuSprPosSet(choice_work->sprite_group, 0, arg0->trans.x, arg0->trans.y);
 }
 
+/**
+ * @brief Converts shop selection input into a target carousel angle.
+ * @param arg0 Mutable selector state containing the player and current slot.
+ * @param arg1 Selector object receiving the target angle.
+ * @param arg2 Controller button-down mask; currently unused by this helper.
+ */
 static void GetShopItemChoiceInput(ItemChoiceWork *arg0, OMOBJ *arg1, u32 *arg2) {
-    if (arg0->unk02 == arg0->unk03) {
+    if (arg0->slot == arg0->target_slot) {
         *arg2 = 0x100;
     } else {
         *arg2 = 4;
     }
 }
 
+/**
+ * @brief Runs a scripted shop interaction for board tutorial mode.
+ * @param arg0 Player index used by the scripted tutorial purchase.
+ */
 void BoardShopTutorialExec(s32 arg0) {
-    Vec sp48;
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    s32 sp14;
-    s32 sp10;
-    s16 sp8;
-    float temp_f31;
-    s16 temp_r27;
+    Vec shop_position;
+    Vec entrance_position;
+    Vec entrance_direction;
+    Vec camera_rotation;
+    Vec camera_offset;
+    s32 board;
+    s32 portrait;
+    s16 host_model;
+    float entrance_angle;
+    s16 entrance_space;
     s32 i;
 
-    sp14 = GWBoardGet();
-    sp10 = BoardWinPortraitGet();
+    board = GWBoardGet();
+    portrait = BoardWinPortraitGet();
     if (BoardSpaceFlagGet(0, arg0) & 0x80000) {
         shopMdlPtr = shopMdlIdx[0];
     } else {
         shopMdlPtr = shopMdlIdx[1];
     }
-    temp_r27 = BoardSpaceLinkFlagSearch(0, arg0, 0x02000000);
-    BoardSpacePosGet(0, arg0, &sp48);
-    BoardSpacePosGet(0, temp_r27, &sp3C);
-    VECSubtract(&sp3C, &sp48, &sp30);
-    VECNormalize(&sp30, &sp30);
-    temp_f31 = atan2d(-sp30.x, -sp30.z);
-    sp24.x = -10.0f;
-    sp24.y = temp_f31;
-    sp24.z = 0.0f;
-    sp18.x = 0.0f;
-    sp18.y = 170.0f;
-    sp18.z = 0.0f;
-    BoardCameraMotionStartEx(shopMdlPtr[0], &sp24, &sp18, 1360.0f, -1.0f, 21);
+    entrance_space = BoardSpaceLinkFlagSearch(0, arg0, 0x02000000);
+    BoardSpacePosGet(0, arg0, &shop_position);
+    BoardSpacePosGet(0, entrance_space, &entrance_position);
+    VECSubtract(&entrance_position, &shop_position, &entrance_direction);
+    VECNormalize(&entrance_direction, &entrance_direction);
+    entrance_angle = atan2d(-entrance_direction.x, -entrance_direction.z);
+    camera_rotation.x = -10.0f;
+    camera_rotation.y = entrance_angle;
+    camera_rotation.z = 0.0f;
+    camera_offset.x = 0.0f;
+    camera_offset.y = 170.0f;
+    camera_offset.z = 0.0f;
+    BoardCameraMotionStartEx(shopMdlPtr[0], &camera_rotation, &camera_offset, 1360.0f, -1.0f, 21);
     HuAudFXPlay(0x330);
     HuAudFXPlay(0x32D);
     PopupShop();
@@ -1193,10 +1320,10 @@ void BoardShopTutorialExec(s32 arg0) {
     for (i = 0; i < 2; i++) {
         BoardModelHookReset(shopMdlIdx[0][i]);
     }
-    sp8 = BoardShopHostGet();
+    host_model = BoardShopHostGet();
     for (i = 0; i < 3; i++) {
         if (shopMot[i] != -1) {
-            BoardModelMotionKill(sp8, shopMot[i]);
+            BoardModelMotionKill(host_model, shopMot[i]);
             shopMot[i] = -1;
         }
     }
