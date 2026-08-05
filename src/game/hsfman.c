@@ -1182,9 +1182,9 @@ void Hu3DModelHookSet(s16 parent_model_id, char *object_name, s16 child_model_id
 
     for (i = 0; i < hsf->objectNum; i++, object++) {
         object_entry = object;
-        if (object_entry->constant_data != 0) {
+        if (object_entry->constData != 0) {
             if (strcmp(&name, object_entry->name) == 0) {
-                constant_data = object_entry->constant_data;
+                constant_data = object_entry->constData;
                 constant_data->hookMdlId = child_model_id;
                 child_model = &Hu3DData[child_model_id];
                 child_model->attr |= HU3D_ATTR_HOOK;

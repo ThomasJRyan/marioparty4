@@ -202,32 +202,32 @@ void Hu3DMotionOverlaySpeedSet(s16 model_id, float playback_speed) {
  * @param motion_id Motion ID to blend toward.
  * @param start_time Initial time for the incoming motion, in HSF timeline units.
  * @param blend_duration Blend duration in frame-timing units.
- * @param motion_attrs Playback attributes for the current and incoming motions.
+ * @param requested_attrs Playback attributes requested for the incoming motion.
  */
-void Hu3DMotionShiftSet(s16 model_id, s16 motion_id, float start_time, float blend_duration, u32 motion_attrs) {
+void Hu3DMotionShiftSet(s16 model_id, s16 motion_id, float start_time, float blend_duration, u32 requested_attrs) {
     HU3DMODEL *model = &Hu3DData[model_id];
     HU3DMOTION *shift_motion = &Hu3DMotion[motion_id];
-    s32 motion_attrs;
+    s32 translated_attrs;
 
-    motion_attrs &= ~HU3D_MOTATTR;
-    motion_attrs = 0;
+    requested_attrs &= ~HU3D_MOTATTR;
+    translated_attrs = 0;
     if (model->motIdShift != -1) {
         model->motId = model->motIdShift;
         model->motWork.time = model->motShiftWork.time;
         model->motWork.speed = model->motShiftWork.speed;
         model->motWork.start = model->motShiftWork.start;
         model->motWork.end = model->motShiftWork.end;
-        if (motion_attrs & HU3D_MOTATTR_SHIFT_LOOP) {
-            motion_attrs |= HU3D_MOTATTR_LOOP;
+        if (requested_attrs & HU3D_MOTATTR_SHIFT_LOOP) {
+            translated_attrs |= HU3D_MOTATTR_LOOP;
         }
-        if (motion_attrs & HU3D_MOTATTR_SHIFT_PAUSE) {
-            motion_attrs |= HU3D_MOTATTR_PAUSE;
+        if (requested_attrs & HU3D_MOTATTR_SHIFT_PAUSE) {
+            translated_attrs |= HU3D_MOTATTR_PAUSE;
         }
-        if (motion_attrs & HU3D_MOTATTR_SHIFT_REV) {
-            motion_attrs |= HU3D_MOTATTR_REV;
+        if (requested_attrs & HU3D_MOTATTR_SHIFT_REV) {
+            translated_attrs |= HU3D_MOTATTR_REV;
         }
         model->motAttr &= ~HU3D_MOTATTR_ALL;
-        model->motAttr |= motion_attrs;
+        model->motAttr |= translated_attrs;
         model->motAttr &= ~HU3D_MOTATTR;
     } else {
         model->motAttr &= ~HU3D_MOTATTR_SHIFT_ALL;
@@ -239,17 +239,17 @@ void Hu3DMotionShiftSet(s16 model_id, s16 motion_id, float start_time, float ble
     model->motOvlWork.end = blend_duration;
     model->motShiftWork.start = 0.0f;
     model->motShiftWork.end = Hu3DMotionShiftMaxTimeGet(model_id);
-    if (motion_attrs & HU3D_MOTATTR_LOOP) {
-        motion_attrs |= HU3D_MOTATTR_SHIFT_LOOP;
+    if (requested_attrs & HU3D_MOTATTR_LOOP) {
+        translated_attrs |= HU3D_MOTATTR_SHIFT_LOOP;
     }
-    if (motion_attrs & HU3D_MOTATTR_PAUSE) {
-        motion_attrs |= HU3D_MOTATTR_SHIFT_PAUSE;
+    if (requested_attrs & HU3D_MOTATTR_PAUSE) {
+        translated_attrs |= HU3D_MOTATTR_SHIFT_PAUSE;
     }
-    if (motion_attrs & HU3D_MOTATTR_REV) {
-        motion_attrs |= HU3D_MOTATTR_SHIFT_REV;
+    if (requested_attrs & HU3D_MOTATTR_REV) {
+        translated_attrs |= HU3D_MOTATTR_SHIFT_REV;
     }
-    motion_attrs &= ~HU3D_MOTATTR_NOSHIFT_ALL;
-    model->motAttr |= motion_attrs | motion_attrs;
+    requested_attrs &= ~HU3D_MOTATTR_NOSHIFT_ALL;
+    model->motAttr |= translated_attrs | requested_attrs;
     model->motAttr &= ~HU3D_MOTATTR;
 }
 
