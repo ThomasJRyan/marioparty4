@@ -1908,9 +1908,9 @@ s32 BoardDAngleCalcRange(float *value, float min, float range)
  */
 s32 BoardVecMinDistCheck(Vec *vec1, Vec *vec2, float min_dist)
 {
-    Vec temp;
-    VECSubtract(vec1, vec2, &temp);
-    if(VECSquareMag(&temp) >= (min_dist*min_dist)) {
+    Vec position_delta;
+    VECSubtract(vec1, vec2, &position_delta);
+    if(VECSquareMag(&position_delta) >= (min_dist*min_dist)) {
         return 0;
     } else {
         return 1;
@@ -2346,19 +2346,19 @@ static void DrawConfetti(HU3DMODEL *model, Mtx matrix)
         }
         particle = work->data;
         for(i=0; i<work->count; i++, particle++) {
-            Mtx result, temp;
+            Mtx particle_transform, axis_transform;
             float r, g, b, a;
             if(particle->time == -1) {
                 continue;
             }
-            MTXRotDeg(temp, 'z', particle->rot.z);
-            MTXRotDeg(result, 'x', particle->rot.x);
-            MTXConcat(temp, result, result);
-            MTXRotDeg(temp, 'y', particle->rot.y);
-            MTXConcat(temp, result, result);
-            MTXTrans(temp, particle->pos.x, particle->pos.y, particle->pos.z);
-            MTXConcat(temp, result, result);
-            MTXConcat(matrix, result, result);
+            MTXRotDeg(axis_transform, 'z', particle->rot.z);
+            MTXRotDeg(particle_transform, 'x', particle->rot.x);
+            MTXConcat(axis_transform, particle_transform, particle_transform);
+            MTXRotDeg(axis_transform, 'y', particle->rot.y);
+            MTXConcat(axis_transform, particle_transform, particle_transform);
+            MTXTrans(axis_transform, particle->pos.x, particle->pos.y, particle->pos.z);
+            MTXConcat(axis_transform, particle_transform, particle_transform);
+            MTXConcat(matrix, particle_transform, particle_transform);
             r = confettiLightTbl[particle->light_col].x;
             g = confettiLightTbl[particle->light_col].y;
             b = confettiLightTbl[particle->light_col].z;
@@ -2366,7 +2366,7 @@ static void DrawConfetti(HU3DMODEL *model, Mtx matrix)
             a = a*(1.0f/255.0f);
             Hu3DModelTPLvlSet(BoardModelIDGet(work->gfx_mdl), a);
             Hu3DModelAmbSet(BoardModelIDGet(work->gfx_mdl), r, g, b);
-            Hu3DModelObjDraw(BoardModelIDGet(work->gfx_mdl), "grid2", result);
+            Hu3DModelObjDraw(BoardModelIDGet(work->gfx_mdl), "grid2", particle_transform);
         }
     }
 }

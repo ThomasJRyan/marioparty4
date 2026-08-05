@@ -422,8 +422,8 @@ s16 BoardWinChoiceNowGet2(void) {
  * @return Portrait ID for normal host dialogue on the current board.
  */
 s32 BoardWinPortraitGet(void) {
-    s32 temp = GWSystem.board;
-    return PortraitTbl[temp];
+    s32 board_index = GWSystem.board;
+    return PortraitTbl[board_index];
 }
 
 /**
@@ -431,8 +431,8 @@ s32 BoardWinPortraitGet(void) {
  * @return Portrait ID for star dialogue on the current board.
  */
 s32 BoardWinPortraitGetStar(void) {
-    s32 temp = GWSystem.board;
-    return StarPortraitTbl[temp];
+    s32 board_index = GWSystem.board;
+    return StarPortraitTbl[board_index];
 }
 
 /**

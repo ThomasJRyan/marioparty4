@@ -26,16 +26,16 @@ void BoardMusStartBoard(void) {
 
 /**
  * @brief Start a music sequence on one of the two board music channels.
- * @param [in] boardNo Board audio channel index (0 or 1).
- * @param [in] musId Music sequence ID.
+ * @param [in] board_no Board audio channel index (0 or 1).
+ * @param [in] music_id Music sequence ID.
  * @param [in] vol Target volume; a negative value selects full volume (127).
  * @param [in] speed Music fade-in duration; zero starts immediately.
  */
-void BoardMusStart(s32 boardNo, s32 musId, s8 vol, u16 speed) {
-    s16 *board = boardSeq[boardNo];
+void BoardMusStart(s32 board_no, s32 music_id, s8 vol, u16 speed) {
+    s16 *board = boardSeq[board_no];
     MSM_MUSPARAM param;
 
-    if (musId == board[1]) {
+    if (music_id == board[1]) {
         return;
     }
     if (board[0] != -1) {
@@ -51,26 +51,26 @@ void BoardMusStart(s32 boardNo, s32 musId, s8 vol, u16 speed) {
     }
     param.fadeSpeed = speed;
     param.vol = vol;
-    param.chan = boardNo;
-    board[0] = msmMusPlay(musId, &param);
-    board[1] = musId;
+    param.chan = board_no;
+    board[0] = msmMusPlay(music_id, &param);
+    board[1] = music_id;
 }
 
 /**
  * @brief Fade a board music channel out over 100 audio ticks.
- * @param [in] boardNo Board audio channel index (0 or 1).
+ * @param [in] board_no Board audio channel index (0 or 1).
  */
-void BoardAudSeqFadeOutFast(s32 boardNo) {
-    BoardAudSeqFadeOut(boardNo, 0x64);
+void BoardAudSeqFadeOutFast(s32 board_no) {
+    BoardAudSeqFadeOut(board_no, 0x64);
 }
 
 /**
  * @brief Fade out the active sequence on a board music channel and clear its tracked handles.
- * @param [in] boardNo Board audio channel index (0 or 1).
+ * @param [in] board_no Board audio channel index (0 or 1).
  * @param [in] speed Sequence fade-out duration in audio ticks.
  */
-void BoardAudSeqFadeOut(s32 boardNo, u16 speed) {
-    s16 *board = boardSeq[boardNo];
+void BoardAudSeqFadeOut(s32 board_no, u16 speed) {
+    s16 *board = boardSeq[board_no];
 
     if (board[0] == -1) {
         return;
@@ -81,25 +81,25 @@ void BoardAudSeqFadeOut(s32 boardNo, u16 speed) {
 
 /**
  * @brief Fade a board music channel between the normal volume and the quieter event volume.
- * @param [in] boardNo Board audio channel index (0 or 1).
- * @param [in] isQuieter Nonzero to fade to volume 96; zero to fade to full volume 127.
+ * @param [in] board_no Board audio channel index (0 or 1).
+ * @param [in] is_quieter Nonzero to fade to volume 96; zero to fade to full volume 127.
  */
-void BoardMusLoudSet(s32 boardNo, s32 isQuieter) {
-    if (isQuieter != 0) {
-        BoardMusVolPanSet(boardNo, 0x60, 0x1F4);
+void BoardMusLoudSet(s32 board_no, s32 is_quieter) {
+    if (is_quieter != 0) {
+        BoardMusVolPanSet(board_no, 0x60, 0x1F4);
     } else {
-        BoardMusVolPanSet(boardNo, 0x7F, 0x1F4);
+        BoardMusVolPanSet(board_no, 0x7F, 0x1F4);
     }
 }
 
 /**
  * @brief Fade the active sequence on a board music channel to a new volume.
- * @param [in] boardNo Board audio channel index (0 or 1).
+ * @param [in] board_no Board audio channel index (0 or 1).
  * @param [in] vol Target volume; a negative value selects full volume (127).
- * @param [in] fadeSpeed Audio fade duration.
+ * @param [in] fade_speed Audio fade duration.
  */
-void BoardMusVolPanSet(s32 boardNo, s8 vol, u16 fadeSpeed) {
-    s16 *board = boardSeq[boardNo];
+void BoardMusVolPanSet(s32 board_no, s8 vol, u16 fade_speed) {
+    s16 *board = boardSeq[board_no];
     MSM_MUSPARAM param;
 
     if (board[0] == -1) {
@@ -110,28 +110,28 @@ void BoardMusVolPanSet(s32 boardNo, s8 vol, u16 fadeSpeed) {
     if (vol < 0) {
         vol = 0x7F;
     }
-    param.fadeSpeed = fadeSpeed;
+    param.fadeSpeed = fade_speed;
     param.vol = vol;
     msmMusSetParam(board[0], &param);
 }
 
 /**
  * @brief Pause or resume the active sequence when its current status permits the transition.
- * @param [in] boardNo Board audio channel index (0 or 1).
+ * @param [in] board_no Board audio channel index (0 or 1).
  * @param [in] pause Nonzero to pause and zero to resume.
  * @param [in] speed Pause or resume transition duration in audio ticks.
  */
-void BoardAudSeqPause(s32 boardNo, s32 pause, u16 speed) {
-    s16 *board = boardSeq[boardNo];
+void BoardAudSeqPause(s32 board_no, s32 pause, u16 speed) {
+    s16 *board = boardSeq[board_no];
 
     if (board[0] == -1) {
         return;
     }
     if (pause != 0) {
-        if (BoardMusStatusGet(boardNo) == 3) {
+        if (BoardMusStatusGet(board_no) == 3) {
             return;
         }
-    } else if (BoardMusStatusGet(boardNo) != 3) {
+    } else if (BoardMusStatusGet(board_no) != 3) {
         return;
     }
     HuAudSeqPause(board[0], pause, speed);
@@ -139,11 +139,11 @@ void BoardAudSeqPause(s32 boardNo, s32 pause, u16 speed) {
 
 /**
  * @brief Query the audio-engine status of a board music channel.
- * @param [in] boardNo Board audio channel index (0 or 1).
+ * @param [in] board_no Board audio channel index (0 or 1).
  * @return Audio-engine sequence status, or 0 when the channel has no active sequence.
  */
-s32 BoardMusStatusGet(s32 boardNo) {
-    s16 *board = boardSeq[boardNo];
+s32 BoardMusStatusGet(s32 board_no) {
+    s16 *board = boardSeq[board_no];
 
     if (board[0] == -1) {
         return 0;

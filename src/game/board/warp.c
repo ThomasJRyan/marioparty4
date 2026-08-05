@@ -240,7 +240,7 @@ static void WarpFall(s32 player) {
 static void WarpImpact(s32 player) {
     Vec pos;
     Vec pos_player;
-    s16 temp;
+    s16 initial_angle_s16;
     f32 speed;
     f32 scale_offset;
     f32 angle;
@@ -265,7 +265,7 @@ static void WarpImpact(s32 player) {
     BoardPlayerPosSetV(player, &pos_player);
     speed = 4.0f;
     
-    for (angle = 0.0f, temp = angle; angle < 180.0f; angle += speed) {
+    for (angle = 0.0f, initial_angle_s16 = angle; angle < 180.0f; angle += speed) {
         scale_offset = sind(angle);
         BoardModelScaleSet(warpImpactMdl, 0.5f + scale_offset, 0.5f + scale_offset, 0.5f + scale_offset);
         HuPrcVSleep();

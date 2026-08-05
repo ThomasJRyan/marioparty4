@@ -33,21 +33,21 @@
 
 typedef struct {
     struct {
-        u8 isBoardVisible : 1;
+        u8 is_board_visible : 1;
         u8 state : 3;
         u8 index : 2;
-        u8 isActionable : 1;
-        u8 hasRolled : 1;
+        u8 is_actionable : 1;
+        u8 has_rolled : 1;
     };
     u8 delay;
     u8 time;
-    s8 _unused;  // Seems to be totally unused. Maybe padding?
+    s8 unidentified_03;  // Written to -1 during creation; purpose not identified.
     s8 digit;
-    s16 yRot;
-    s16 diceMdl;
+    s16 rotation_angle;
+    s16 dice_model;
     s16 model;
-    s16 diceParManId;
-    s8 tutJumpCountdown;
+    s16 dice_particle_manager_id;
+    s8 tutorial_jump_countdown;
 } PlayerStartWork;
 
 static void DestroyStart(void);
@@ -335,21 +335,21 @@ static void CreatePlayerStart(void) {
         player_object = omAddObjEx(boardObjMan, 0x100, 0, 0, -1, ExecPlayerStart);
         playerStartObj[i] = player_object;
         player_data = omObjGetWork(player_object, PlayerStartWork);
-        player_data->isBoardVisible = 0;
+        player_data->is_board_visible = 0;
         player_data->index = i;
-        player_data->_unused = -1;
+        player_data->unidentified_03 = -1;
         player_data->model = -1;
-        player_data->diceParManId = -1;
+        player_data->dice_particle_manager_id = -1;
         player_data->state = 1;
         player_data->delay = i * 30;
-        player_data->isActionable = 0;
-        player_data->hasRolled = 0;
-        player_data->yRot = 2;
+        player_data->is_actionable = 0;
+        player_data->has_rolled = 0;
+        player_data->rotation_angle = 2;
         player_data->digit = 1;
-        player_data->tutJumpCountdown = 0x3C;
-        player_data->diceMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x18), NULL, 0);
-        BoardModelVisibilitySet(player_data->diceMdl, 0);
-        BoardModelMotionSpeedSet(player_data->diceMdl, 0.0f);
+        player_data->tutorial_jump_countdown = 0x3C;
+        player_data->dice_model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x18), NULL, 0);
+        BoardModelVisibilitySet(player_data->dice_model, 0);
+        BoardModelMotionSpeedSet(player_data->dice_model, 0.0f);
         OSs8tof32(&i, &player_x_offset);
         player_x_offset = 135.0f * (player_x_offset - 2.0f + 0.5f);
         BoardModelVisibilitySet(BoardPlayerModelGet(playerOrderOld[player_data->index]), 1);
@@ -374,7 +374,7 @@ static void CreatePlayerStart(void) {
 static void ExecPlayerStart(OMOBJ *object) {
     PlayerStartWork *data = omObjGetWork(object, PlayerStartWork);
 
-    if (data->isBoardVisible != 0 || BoardIsKill()) {
+    if (data->is_board_visible != 0 || BoardIsKill()) {
         if (hitFX[data->index] != -1) {
             HuAudFXStop(hitFX[data->index]);
             hitFX[data->index] = -1;
@@ -419,7 +419,7 @@ static void ExecPlayerStart(OMOBJ *object) {
 static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
     float fall_duration;
 
-    if (data->isActionable != 0) {
+    if (data->is_actionable != 0) {
         SetPlayerStartState(playerOrderOld[data->index], 0);
         BoardPlayerIdleSet(playerOrderOld[data->index]);
         if (_CheckFlag(FLAG_ID_MAKE(1, 11)) && data->index == 3) {
@@ -437,7 +437,7 @@ static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
         data->time = 0;
         BoardPlayerMotionShiftSet(playerOrderOld[data->index], 5, 0.0f, 4.0f, HU3D_MOTATTR_NONE);
         data->delay = 0xC;
-        data->isActionable = 1;
+        data->is_actionable = 1;
     }
     data->time++;
     BoardPlayerPosSet(playerOrderOld[data->index], object->trans.x, object->trans.y, object->trans.z);
@@ -481,8 +481,8 @@ static void PlayerDiceFall(OMOBJ *object, PlayerStartWork *data) {
         max = 700.0f;
         object->rot.x = (min - max) / 30.0f;
         dice_position.y += max;
-        BoardModelPosSetV(data->diceMdl, &dice_position);
-        BoardModelVisibilitySet(data->diceMdl, 1);
+        BoardModelPosSetV(data->dice_model, &dice_position);
+        BoardModelVisibilitySet(data->dice_model, 1);
     } else {
         if (data->time > 30.0f) {
             if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
@@ -497,9 +497,9 @@ static void PlayerDiceFall(OMOBJ *object, PlayerStartWork *data) {
             SetPlayerStartState(playerOrderOld[data->index], 4);
             return;
         }
-        BoardModelPosGet(data->diceMdl, &dice_position);
+        BoardModelPosGet(data->dice_model, &dice_position);
         dice_position.y += object->rot.x;
-        BoardModelPosSetV(data->diceMdl, &dice_position);
+        BoardModelPosSetV(data->dice_model, &dice_position);
     }
     data->time++;
 }
@@ -529,20 +529,20 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
     s8 digit;
 
     jump_input = 0;
-    if (data->time > data->yRot) {
+    if (data->time > data->rotation_angle) {
         data->time = 0;
         digit = data->digit;
         do {
             data->digit = BoardRandMod(9);
         } while (data->digit == digit);
         OSs8tof32(&data->digit, &time);
-        BoardModelMotionTimeSet(data->diceMdl, time + 0.5f);
+        BoardModelMotionTimeSet(data->dice_model, time + 0.5f);
     }
-    if (data->hasRolled == 0) {
+    if (data->has_rolled == 0) {
         if (GWPlayer[playerOrderOld[data->index]].com) {
             if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
-                if (data->tutJumpCountdown != 0) {
-                    data->tutJumpCountdown--;
+                if (data->tutorial_jump_countdown != 0) {
+                    data->tutorial_jump_countdown--;
                 } else {
                     jump_input = PAD_BUTTON_A;
                 }
@@ -554,12 +554,12 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
         }
         if (jump_input == PAD_BUTTON_A) {
             BoardPlayerDiceJumpStart(playerOrderOld[data->index]);
-            data->hasRolled = 1;
+            data->has_rolled = 1;
         }
     } else {
         if (BoardPlayerDiceJumpCheck(playerOrderOld[data->index])) {
             SetPlayerStartState(playerOrderOld[data->index], 5);
-            data->yRot = 360;
+            data->rotation_angle = 360;
             object->rot.x = object->rot.y = 1.0f;
             data->digit = BoardRandMod(9);
             HuAudFXPlay(0x303);
@@ -581,7 +581,7 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
             }
             playerOrderNew[playerOrderOld[data->index]] = data->digit;
             data->model = BoardModelCreate(digitMdlTbl[data->digit], NULL, 0);
-            BoardModelPosGet(data->diceMdl, &dice_position);
+            BoardModelPosGet(data->dice_model, &dice_position);
             dice_position.x += 50.0 * sin(0.0);
             dice_position.z += 50.0 * cos(0.0);
             BoardModelPosSetV(data->model, &dice_position);
@@ -589,10 +589,10 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
             BoardModelMotionSpeedSet(data->model, 0.0f);
             BoardModelMotionTimeSet(data->model, 0.0f);
             BoardModelLayerSet(data->model, 2);
-            data->diceParManId = BoardDiceEffectCreate();
-            Hu3DParManPosSet(data->diceParManId, dice_position.x, dice_position.y, dice_position.z);
-            Hu3DParManTimeLimitSet(data->diceParManId, 0x96);
-            BoardModelVisibilitySet(data->diceMdl, 0);
+            data->dice_particle_manager_id = BoardDiceEffectCreate();
+            Hu3DParManPosSet(data->dice_particle_manager_id, dice_position.x, dice_position.y, dice_position.z);
+            Hu3DParManTimeLimitSet(data->dice_particle_manager_id, 0x96);
+            BoardModelVisibilitySet(data->dice_model, 0);
             return;
         }
     }
@@ -607,15 +607,15 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
 static void PlayerDiceNumShow(OMOBJ *unused_object, PlayerStartWork *data) {
     float rotation_degrees;
 
-    data->yRot -= 18;
-    if (data->yRot < 0) {
-        data->yRot = 0;
+    data->rotation_angle -= 18;
+    if (data->rotation_angle < 0) {
+        data->rotation_angle = 0;
         SetPlayerStartState(playerOrderOld[data->index], 0);
         if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
             BoardTutorialHookExec(2, 0);
         }
     }
-    OSs16tof32(&data->yRot, &rotation_degrees);
+    OSs16tof32(&data->rotation_angle, &rotation_degrees);
     BoardModelRotYSet(data->model, rotation_degrees);
 }
 
@@ -629,38 +629,38 @@ static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
 
     switch (data->time) {
         case 0:
-            data->yRot += 18;
-            if (data->yRot > 360) {
-                data->yRot = 0;
+            data->rotation_angle += 18;
+            if (data->rotation_angle > 360) {
+                data->rotation_angle = 0;
                 data->time = 1;
                 object->rot.x = 1.0f;
                 object->rot.y = 1.0f;
             }
-            OSs16tof32(&data->yRot, &rotation_degrees);
+            OSs16tof32(&data->rotation_angle, &rotation_degrees);
             BoardModelRotYSet(data->model, rotation_degrees);
             return;
         case 1:
-            data->yRot += 9;
-            if (data->yRot > 180) {
-                data->yRot = 0;
+            data->rotation_angle += 9;
+            if (data->rotation_angle > 180) {
+                data->rotation_angle = 0;
                 data->time = 2;
             }
-            OSs16tof32(&data->yRot, &rotation_degrees);
+            OSs16tof32(&data->rotation_angle, &rotation_degrees);
             object->rot.x = 1.0 + 1.3f * sind(rotation_degrees);
             break;
         case 2:
-            data->yRot += 9;
-            if (data->yRot > 180) {
-                data->yRot = 179;
+            data->rotation_angle += 9;
+            if (data->rotation_angle > 180) {
+                data->rotation_angle = 179;
                 data->time = 3;
             }
-            OSs16tof32(&data->yRot, &rotation_degrees);
+            OSs16tof32(&data->rotation_angle, &rotation_degrees);
             object->rot.x = cosd(0.5f * rotation_degrees);
             object->rot.y = 1.0 + 1.3f * sind(rotation_degrees);
             break;
         case 3:
             BoardModelVisibilitySet(data->model, 0);
-            data->isBoardVisible = 1;
+            data->is_board_visible = 1;
             return;
     }
     BoardModelScaleSet(data->model, object->rot.x, object->rot.y, 1.0f);
@@ -687,7 +687,7 @@ static void SetPlayerStartState(s32 player, s32 state) {
         case 5:
             break;
         case 6:
-            data->yRot = 0;
+            data->rotation_angle = 0;
             break;
     }
 }

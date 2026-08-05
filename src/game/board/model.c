@@ -29,7 +29,7 @@ typedef struct board_model {
     s16 curr_mot;
     HSFDATA *data;
     HSFDATA *mot_data[BOARD_MOT_MAX];
-    float unk_D4;
+    float unidentified_value_D4;
     s32 data_num;
     float mot_start;
     float mot_end;
@@ -126,9 +126,9 @@ void BoardModelVisibilityUpdate(void)
 {
     s32 i;
     BoardModel *model;
-    u32 temp[2];
+    u32 unused_zero_pair[2];
     Vec pos, target;
-    temp[1] = temp[0] = 0;
+    unused_zero_pair[1] = unused_zero_pair[0] = 0;
     BoardCameraPosGet(&pos);
     BoardCameraTargetGet(&target);
     for (i = 0, model = modelDataList; i < BOARD_MODEL_MAX; i++, model++) {
@@ -217,10 +217,10 @@ void BoardModelCameraSetAll(u16 camera)
  * @param [in] data_num Packed model-data ID used to create or link the engine model.
  * @param [in] mot_list Array of motion data identifiers terminated by -1; NULL creates only the base motion.
  * @param [in] link Nonzero to reuse an already loaded model as an engine link.
- * @param [in] unused Unused; retained to match the original interface.
+ * @param [in] creation_call_zero Literal zero supplied by both public model-creation entry points; unused by this helper.
  * @return Board-model handle, or -1 if allocation, model creation, or motion loading fails.
  */
-static s16 CreateInstance(s32 character, s32 data_num, s32 *mot_list, s32 link, s32 unused)
+static s16 CreateInstance(s32 character, s32 data_num, s32 *mot_list, s32 link, s32 creation_call_zero)
 {
     BoardModel *model;
     s32 i;
@@ -256,7 +256,7 @@ static s16 CreateInstance(s32 character, s32 data_num, s32 *mot_list, s32 link, 
             model->visible_old = model->visible;
             model->field00_bit2 = 0;
             model->field00_bit4 = 0;
-            model->unk_D4 = 100.0f;
+            model->unidentified_value_D4 = 100.0f;
             model->scale.x = model->scale.y = model->scale.z = 1.0f;
             model->curr_mot = 0;
             Hu3DModelCameraSet(model->id, 1);
@@ -308,7 +308,7 @@ s16 BoardModelCreateCharacter(s32 character, s32 data_num, s32 *mot_list, s32 li
  */
 s16 BoardModelCreateParam(BoardModelParam *param, Vec *pos, Vec *rot)
 {
-    float unk_param;
+    float converted_param_field_6;
     s16 model = BoardModelCreate(param->data_num, NULL, param->unk4.link);
     if (model == -1) {
         return -1;
@@ -325,8 +325,8 @@ s16 BoardModelCreateParam(BoardModelParam *param, Vec *pos, Vec *rot)
     if (rot) {
         BoardModelRotSetV(model, rot);
     }
-    OSs16tof32(&param->unk6, &unk_param);
-    fn_8006DDE8(model, unk_param);
+    OSs16tof32(&param->unk6, &converted_param_field_6);
+    fn_8006DDE8(model, converted_param_field_6);
     return model;
 }
 
@@ -422,10 +422,10 @@ s32 BoardModelAmbSet(s16 model, float r, float g, float b)
 /**
  * @brief Check whether a board-model handle resolves to a live wrapper; the second argument is unused.
  * @param [in] model Wrapper handle tested for a live slot and active board-model table.
- * @param [in] unused Unused; retained to match the original interface.
+ * @param [in] player_check_flag Value forwarded as 0 or 1 by player-model check callers; unused here and its intended meaning is unidentified.
  * @return 0 when model resolves to a live wrapper, or -1 when it does not.
  */
-s32 BoardModelExistCheck(s16 model, s32 unused)
+s32 BoardModelExistCheck(s16 model, s32 player_check_flag)
 {
     BoardModel *model_ptr = SearchBoardModel(model);
     if (!model_ptr) {
@@ -439,10 +439,10 @@ s32 BoardModelExistCheck(s16 model, s32 unused)
 /**
  * @brief Check whether a board-model handle resolves to a live wrapper; the second argument is unused.
  * @param [in] model Wrapper handle tested for a live slot and active board-model table.
- * @param [in] unused Unused; retained to match the original interface.
+ * @param [in] model_config_flag Value supplied from model-creation or map-object configuration as 0 or 1; unused here and its intended meaning is unidentified.
  * @return 0 when model resolves to a live wrapper, or -1 when it does not.
  */
-s32 BoardModelExistDupe(s16 model, s32 unused)
+s32 BoardModelExistDupe(s16 model, s32 model_config_flag)
 {
     BoardModel *model_ptr = SearchBoardModel(model);
     if (!model_ptr) {
@@ -454,9 +454,9 @@ s32 BoardModelExistDupe(s16 model, s32 unused)
 }
 
 /**
- * @brief Store a value in the unidentified unk_D4 field, replacing negative input with -1.0f.
- * @param [in] model Wrapper whose unidentified unk_D4 field receives the normalized value.
- * @param [in] value Value stored in unk_D4; negative inputs are replaced with -1.0f.
+ * @brief Store a value in the offset-bearing unidentified_value_D4 field, replacing negative input with -1.0f.
+ * @param [in] model Wrapper whose unidentified_value_D4 field receives the normalized value.
+ * @param [in] value Value stored in unidentified_value_D4; negative inputs are replaced with -1.0f.
  * @return 0 after storing the wrapper field, or -1 for an invalid board-model handle.
  */
 s32 fn_8006DDE8(s16 model, float value)
@@ -469,7 +469,7 @@ s32 fn_8006DDE8(s16 model, float value)
         if (value < 0) {
             value = -1;
         }
-        model_ptr->unk_D4 = value;
+        model_ptr->unidentified_value_D4 = value;
         return 0;
     }
 }

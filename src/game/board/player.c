@@ -420,14 +420,14 @@ void BoardPlayerCameraSet(s32 player, u16 camera_mask)
 }
 
 /**
- * @brief Sets the player model's unidentified `unk_D4` value.
+ * @brief Store a value in the player model's offset-bearing unidentified_value_D4 field.
  *
- * @details The model layer normalizes every negative value to -1. The effect
- * of `BoardModel.unk_D4` is not yet identified.
+ * @details The model layer replaces every negative value with -1.0f. No
+ * higher-level meaning or units are established for BoardModel.unidentified_value_D4.
  *
- * @param player Player whose board-model `unk_D4` field is updated.
+ * @param player Player whose board-model unidentified_value_D4 field is updated.
  *
- * @param value Value stored in `BoardModel.unk_D4`; negative inputs are normalized to -1.
+ * @param value Value forwarded to the model layer for normalization and storage.
  */
 void fn_80062A40(s32 player, f32 value)
 {
