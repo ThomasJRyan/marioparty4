@@ -467,7 +467,7 @@ void SLSaveBoardStory(void)
 
 /**
  * @brief Builds, checksums, and writes the complete save buffer to the selected card.
- * @return Save/load status code mapped from the CARD operation.
+ * @return 1 after a successful create or write followed by close and unmount; a nonzero SLFormat result when broken-card recovery formatting fails; otherwise 0 after cancellation or no-card handling ends the save loop.
  */
 s32 SLSave(void)
 {
@@ -861,7 +861,7 @@ s32 SLCardMount(s16 slotNo)
 /**
  * @brief Formats a memory card after confirmation and reports the CARD result.
  * @param slotNo Unused; the operation uses the globally selected curSlotNo.
- * @return CARD result code from format or unmount.
+ * @return 0 when the selected card's UnMountCnt bit is already set; otherwise the HuCardFormat result after error reporting or, on success, save-buffer reinitialization.
  */
 s32 SLFormat(s16 slotNo)
 {
