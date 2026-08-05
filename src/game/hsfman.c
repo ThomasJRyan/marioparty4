@@ -374,7 +374,7 @@ void Hu3DNoSyncSet(BOOL no_sync) {
  * @return The allocated model ID, or -1 when all model slots are occupied.
  */
 s16 Hu3DModelCreate(void *hsf_data) {
-    HSFDATA* unused_hsf;
+    HSFDATA* unused_model_create_r0;
     HU3DMODEL* model;
     s16 i;
     s16 model_id;
@@ -537,7 +537,7 @@ s16 Hu3DModelLink(s16 source_model_id) {
  * @return The allocated model ID, or -1 when all model slots are occupied.
  */
 s16 Hu3DHookFuncCreate(HU3DMODELHOOK hook) {
-    HSFDATA* unused_hsf;
+    HSFDATA* unused_hook_create_stack_8;
     HU3DMODEL* model;
     s16 model_id;
     s16 i;
@@ -1298,7 +1298,7 @@ void Hu3DModelHiliteTypeSet(s16 model_id, s16 highlight_type) {
     HU3DMODEL* model;
     HU3DMODEL* hsf_model;
     s16 i;
-    s32 unused_value;
+    s32 unused_hilite_type_trailing_local;
 
     hsf_model = &Hu3DData[model_id];
     hsf = hsf_model->hsf;
@@ -1568,8 +1568,8 @@ void Hu3DCameraSet(s32 camera_index, Mtx view_mtx) {
  */
 BOOL Hu3DModelCameraInfoSet(s16 model_id, u16 camera_index) {
     HU3DCAMERA* cam;
-    HU3DCAMERA* unused_camera_a;
-    HU3DCAMERA* unused_camera_b;
+    HU3DCAMERA* unused_camera_info_r30;
+    HU3DCAMERA* unused_camera_info_r29;
     HSFOBJECT* obj_copy;
     HU3DMODEL* camera_model;
     HU3DMODEL* model;
@@ -1579,10 +1579,10 @@ BOOL Hu3DModelCameraInfoSet(s16 model_id, u16 camera_index) {
     Point3d view_direction;
     f32 up_rotation;
     s16 i;
-    s16 unused_index_a;
-    s16 unused_index_b;
-    s16 unused_mask_a;
-    s16 unused_mask_b;
+    s16 unused_camera_info_r25;
+    s16 unused_camera_info_r26;
+    s16 unused_camera_info_r21;
+    s16 unused_camera_info_r20;
 
     model = &Hu3DData[model_id];
     hsf = model->hsf;

@@ -100,9 +100,77 @@ UNLABELLED_IDENTIFIER = re.compile(
 
 def find_unlabelled_identifiers(content):
     """Find decompiler-style identifiers outside comments and literals."""
-    code = re.sub(r"/\*.*?\*/|//[^\n]*", " ", content, flags=re.DOTALL)
-    code = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'', " ", code)
+    code = strip_comments_and_literals(content)
     return sorted(set(UNLABELLED_IDENTIFIER.findall(code)))
+
+
+def strip_comments_and_literals(content):
+    """Blank C comments and quoted literals without confusing their delimiters."""
+    result = []
+    state = "code"
+    i = 0
+
+    while i < len(content):
+        char = content[i]
+        next_char = content[i + 1] if i + 1 < len(content) else ""
+
+        if state == "code":
+            if char == "/" and next_char == "/":
+                result.extend((" ", " "))
+                state = "line_comment"
+                i += 2
+                continue
+            if char == "/" and next_char == "*":
+                result.extend((" ", " "))
+                state = "block_comment"
+                i += 2
+                continue
+            if char == '"':
+                result.append(" ")
+                state = "string"
+                i += 1
+                continue
+            if char == "'":
+                result.append(" ")
+                state = "character"
+                i += 1
+                continue
+            result.append(char)
+            i += 1
+            continue
+
+        if state == "line_comment":
+            if char == "\n":
+                result.append("\n")
+                state = "code"
+            else:
+                result.append(" ")
+            i += 1
+            continue
+
+        if state == "block_comment":
+            if char == "*" and next_char == "/":
+                result.extend((" ", " "))
+                state = "code"
+                i += 2
+                continue
+            result.append("\n" if char == "\n" else " ")
+            i += 1
+            continue
+
+        if char == "\\" and next_char:
+            result.append(" ")
+            result.append("\n" if next_char == "\n" else " ")
+            i += 2
+            continue
+
+        closing_quote = '"' if state == "string" else "'"
+        result.append("\n" if char == "\n" else " ")
+        if char == closing_quote:
+            state = "code"
+        i += 1
+
+    return "".join(result)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Scan for undocumented functions in C files")
