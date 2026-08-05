@@ -133,32 +133,48 @@ static void ApplyBooLight(void);
 static void SetBooBallPos(void);
 
 // FUNCTIONS //
+/**
+ * @brief Register the board-specific Boo House host model.
+ * @param arg0 Model handle supplied by the active board overlay.
+ */
 void BoardBooHouseHostSet(s16 arg0)
 {
     hostMdl = arg0;
 }
 
+/**
+ * @brief Get the registered Boo House host model.
+ * @return The current host model handle, or -1 when no host is registered.
+ */
 s16 BoardBooHouseHostGet(void)
 {
     return hostMdl;
 }
 
+/**
+ * @brief Create the stationary Boo House shell at its flagged board link.
+ *
+ * @details Extra boards omit the house; main boards also hide the separately supplied host model.
+ */
 void BoardBooHouseCreate(void)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec house_pos;
+    Vec house_rot;
 
     if ((GWBoardGet() == BOARD_ID_EXTRA1) || (GWBoardGet() == BOARD_ID_EXTRA2)) {
         return;
     }
-    BoardSpaceLinkTransformGet(0x08000000, &sp14, &sp8, 0);
-    houseMdl[0] = BoardModelCreateParam(&houseMdlTbl[0], &sp14, &sp8);
+    BoardSpaceLinkTransformGet(0x08000000, &house_pos, &house_rot, 0);
+    houseMdl[0] = BoardModelCreateParam(&houseMdlTbl[0], &house_pos, &house_rot);
     if (hostMdl != -1) {
         BoardModelVisibilitySet(hostMdl, 0);
     }
     HuDataDirClose(DATADIR_BYOKODORI);
 }
 
+/**
+ * @brief Destroy the stationary Boo House shell model.
+ */
 void BoardBooHouseKill(void)
 {
     if (houseMdl[0] != -1) {
@@ -167,6 +183,12 @@ void BoardBooHouseKill(void)
     }
 }
 
+/**
+ * @brief Resolve a player's visit to the Boo House.
+ *
+ * @details Mini players can enter; Mega players skip the event. The routine hides the roll display while its child process runs.
+ * @param arg0 Index of the visiting player.
+ */
 void BoardBooHouseExec(s32 arg0)
 {
     currPlayer = arg0;
@@ -181,30 +203,35 @@ void BoardBooHouseExec(s32 arg0)
     }
 }
 
+/**
+ * @brief Drive payment, theft selection, Boo animation, and departure from the house.
+ *
+ * @details Rejects players with fewer than five coins, charges five or fifty coins according to theft type, and restores the player, camera, status UI, and board audio before exiting.
+ */
 static void ExecBooHouse(void)
 {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float temp_f31;
-    s16 temp_r29;
-    s32 var_r31;
-    s16 var_r30;
-    s32 var_r28;
-    s32 var_r27;
-    s32 var_r26;
+    Vec current_space_pos;
+    Vec linked_space_pos;
+    Vec travel_direction;
+    Vec camera_rot;
+    Vec camera_offset;
+    float facing_angle;
+    s16 linked_space;
+    s32 player_index;
+    s16 original_space;
+    s32 data_read_id;
+    s32 opponent_coins;
+    s32 opponent_stars;
 
     _SetFlag(0x10018);
-    var_r28 = BoardDataDirReadAsync(DATADIR_BYOKODORI);
-    var_r30 = GWPlayer[currPlayer].space_curr;
+    data_read_id = BoardDataDirReadAsync(DATADIR_BYOKODORI);
+    original_space = GWPlayer[currPlayer].space_curr;
     BoardPlayerIdleSet(currPlayer);
     if (BoardPlayerCoinsGet(currPlayer) < 5) {
         BoardWinCreate(0, MAKE_MESSID(7, 1), -1);
         BoardWinWait();
         BoardWinKill();
-        BoardDataAsyncWait(var_r28);
+        BoardDataAsyncWait(data_read_id);
         HuPrcEnd();
     }
     BoardWinCreateChoice(0, MAKE_MESSID(7, 0), -1, 0);
@@ -218,42 +245,42 @@ static void ExecBooHouse(void)
     }
     BoardWinWait();
     if (BoardWinChoiceGet() != 0) {
-        BoardDataAsyncWait(var_r28);
+        BoardDataAsyncWait(data_read_id);
         HuPrcEnd();
     }
 
-    for (var_r26 = var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (currPlayer != var_r31) {
-            var_r26 += GWStarsGet(var_r31);
+    for (opponent_stars = player_index = 0; player_index < 4; player_index++) {
+        if (currPlayer != player_index) {
+            opponent_stars += GWStarsGet(player_index);
         }
     }
 
-    for (var_r27 = var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (currPlayer != var_r31) {
-            var_r27 += BoardPlayerCoinsGet(var_r31);
+    for (opponent_coins = player_index = 0; player_index < 4; player_index++) {
+        if (currPlayer != player_index) {
+            opponent_coins += BoardPlayerCoinsGet(player_index);
         }
     }
     BoardWinKill();
     BoardRollDispSet(0);
     BoardAudSeqPause(0, 1, 0x3E8);
-    BoardDataAsyncWait(var_r28);
-    temp_r29 = BoardSpaceLinkFlagSearch(0, var_r30, 0x02000000);
-    BoardSpacePosGet(0, var_r30, &sp38);
-    BoardSpacePosGet(0, temp_r29, &sp2C);
-    VECSubtract(&sp2C, &sp38, &sp20);
-    VECNormalize(&sp20, &sp20);
-    temp_f31 = atan2d(-sp20.x, -sp20.z);
-    sp14.x = -15.0f;
-    sp14.y = temp_f31;
-    sp14.z = 0.0f;
-    sp8.x = 0.0f;
-    sp8.y = 150.0f;
-    sp8.z = 0.0f;
-    BoardCameraMotionStartEx(houseMdl[0], &sp14, &sp8, 1370.0f, -1.0f, 0x1B);
+    BoardDataAsyncWait(data_read_id);
+    linked_space = BoardSpaceLinkFlagSearch(0, original_space, 0x02000000);
+    BoardSpacePosGet(0, original_space, &current_space_pos);
+    BoardSpacePosGet(0, linked_space, &linked_space_pos);
+    VECSubtract(&linked_space_pos, &current_space_pos, &travel_direction);
+    VECNormalize(&travel_direction, &travel_direction);
+    facing_angle = atan2d(-travel_direction.x, -travel_direction.z);
+    camera_rot.x = -15.0f;
+    camera_rot.y = facing_angle;
+    camera_rot.z = 0.0f;
+    camera_offset.x = 0.0f;
+    camera_offset.y = 150.0f;
+    camera_offset.z = 0.0f;
+    BoardCameraMotionStartEx(houseMdl[0], &camera_rot, &camera_offset, 1370.0f, -1.0f, 0x1B);
     CreateBooHouseModel();
     OpenBooHouse();
-    BoardPlayerRotSet(currPlayer, 0.0f, temp_f31, 0.0f);
-    BoardPlayerMoveBetween(currPlayer, var_r30, temp_r29);
+    BoardPlayerRotSet(currPlayer, 0.0f, facing_angle, 0.0f);
+    BoardPlayerMoveBetween(currPlayer, original_space, linked_space);
     BoardPlayerIdleSet(currPlayer);
     BoardMusStart(1, 1, 0x7F, 0);
     BoardModelMotionShiftSet(BoardBooHouseHostGet(), hostMot[0], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
@@ -263,10 +290,10 @@ static void ExecBooHouse(void)
 repeatWindowView:
     HuAudFXPlay(0x4C);
     BoardWinCreateChoice(1, hostMesTbl[GWBoardGet()][1], BoardWinPortraitGet(), 0);
-    if (var_r27 == 0) {
+    if (opponent_coins == 0) {
         BoardWinChoiceDisable(0);
     }
-    if ((BoardPlayerCoinsGet(currPlayer) < 0x32) || (var_r26 == 0)) {
+    if ((BoardPlayerCoinsGet(currPlayer) < 0x32) || (opponent_stars == 0)) {
         BoardWinChoiceDisable(1);
     }
     BoardWinAttrSet(0x10);
@@ -304,22 +331,27 @@ repeatWindowView:
     BoardCameraRotSet(0.0f, 0.0f);
     BoardCameraTargetPlayerSet(currPlayer);
     BoardAudSeqPause(0, 0, 0x3E8);
-    BoardPlayerRotSet(currPlayer, 0.0f, temp_f31, 0.0f);
-    BoardPlayerMoveBetween(currPlayer, temp_r29, var_r30);
+    BoardPlayerRotSet(currPlayer, 0.0f, facing_angle, 0.0f);
+    BoardPlayerMoveBetween(currPlayer, linked_space, original_space);
     KillBooHouseModel();
     BoardStatusShowSetAll(1);
     BoardPlayerIdleSet(currPlayer);
     HuPrcEnd();
 }
 
+/**
+ * @brief Release motions, temporary models, windows, data, and flags owned by a house visit.
+ *
+ * @details Also clears houseProc so BoardBooHouseExec can resume.
+ */
 static void DestroyBooHouse(void)
 {
-    s32 var_r31;
+    s32 motion_index;
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        if (hostMot[var_r31] != -1) {
-            BoardModelMotionKill(BoardBooHouseHostGet(), hostMot[var_r31]);
-            hostMot[var_r31] = -1;
+    for (motion_index = 0; motion_index < 3; motion_index++) {
+        if (hostMot[motion_index] != -1) {
+            BoardModelMotionKill(BoardBooHouseHostGet(), hostMot[motion_index]);
+            hostMot[motion_index] = -1;
         }
     }
     if (houseShowMot != -1) {
@@ -337,23 +369,29 @@ static void DestroyBooHouse(void)
     houseProc = 0;
 }
 
+/**
+ * @brief Choose coin or star theft input for a computer visitor.
+ *
+ * @details Prefers a star when the player can afford fifty coins and an eligible opponent owns one; otherwise selects coins.
+ * @param arg0 Index of the computer player visiting the house.
+ */
 static void PickComStealType(s32 arg0)
 {
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r28;
+    s32 player_index;
+    s32 opponent_coins;
+    s32 opponent_stars;
 
-    var_r30 = var_r28 = 0;
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (var_r31 != arg0) {
-            var_r30 += BoardPlayerCoinsGet(var_r31);
-            var_r28 += GWStarsGet(var_r31);
+    opponent_coins = opponent_stars = 0;
+    for (player_index = 0; player_index < 4; player_index++) {
+        if (player_index != arg0) {
+            opponent_coins += BoardPlayerCoinsGet(player_index);
+            opponent_stars += GWStarsGet(player_index);
         }
     }
     if (BoardPlayerCoinsGet(arg0) >= 0x32) {
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            if ((var_r31 != arg0) && (GWStarsGet(var_r31) != 0) && (((s32)GWSystem.team == 0) || (var_r31 != BoardPlayerSameTeamFind(arg0)))) {
-                if (var_r30 != 0) {
+        for (player_index = 0; player_index < 4; player_index++) {
+            if ((player_index != arg0) && (GWStarsGet(player_index) != 0) && (((s32)GWSystem.team == 0) || (player_index != BoardPlayerSameTeamFind(arg0)))) {
+                if (opponent_coins != 0) {
                     BoardComKeySetDown();
                 }
                 else {
@@ -366,21 +404,26 @@ static void PickComStealType(s32 arg0)
     BoardComKeySetUp();
 }
 
+/**
+ * @brief Animate the house opening and reveal its host, Boo ball, Boo, and smoke models.
+ *
+ * @details Creates host motions, hooks temporary models to the house, and detaches the Boo ball after the opening motion.
+ */
 static void OpenBooHouse(void)
 {
-    s16 temp_r31;
-    s32 temp_r5;
-    s32 var_r30;
+    s16 host_model;
+    s32 unused_value;
+    s32 motion_index;
 
     ballMdl = BoardBooCreate(currPlayer, 0);
-    temp_r31 = BoardBooHouseHostGet();
-    BoardModelMotionStart(temp_r31, 1, 0x40000001);
+    host_model = BoardBooHouseHostGet();
+    BoardModelMotionStart(host_model, 1, 0x40000001);
 
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        hostMot[var_r30] = BoardModelMotionCreate(temp_r31, hostMotTbl[GWBoardGet()][var_r30]);
+    for (motion_index = 0; motion_index < 3; motion_index++) {
+        hostMot[motion_index] = BoardModelMotionCreate(host_model, hostMotTbl[GWBoardGet()][motion_index]);
     }
-    BoardModelMotionStart(temp_r31, hostMot[0], 0x40000001);
-    BoardModelVisibilitySet(temp_r31, 1);
+    BoardModelMotionStart(host_model, hostMot[0], 0x40000001);
+    BoardModelVisibilitySet(host_model, 1);
     HuAudFXPlay(0x337);
     HuAudFXPlay(0x344);
     BoardModelMotionStart(houseMdl[0], 0, 0);
@@ -391,12 +434,12 @@ static void OpenBooHouse(void)
     BoardModelHookSet(houseMdl[0], "yoko04", houseMdl[3]);
     BoardModelHookSet(houseMdl[0], "yoko05", houseMdl[4]);
     BoardModelHookSet(houseMdl[0], "yoko9", houseMdl[5]);
-    BoardModelHookSet(houseMdl[0], "yoko06", temp_r31);
+    BoardModelHookSet(houseMdl[0], "yoko06", host_model);
     if (GWBoardGet() == BOARD_ID_MAIN6) {
-        BoardModelPosSet(temp_r31, 0.0f, 0.0f, -25.0f);
+        BoardModelPosSet(host_model, 0.0f, 0.0f, -25.0f);
     }
     else {
-        BoardModelPosSet(temp_r31, 0.0f, 0.0f, 0.0f);
+        BoardModelPosSet(host_model, 0.0f, 0.0f, 0.0f);
     }
     BoardModelMotionStart(houseMdl[3], 0, 0x40000001);
     BoardModelMotionStart(houseMdl[4], 0, 0x40000001);
@@ -419,6 +462,11 @@ static void OpenBooHouse(void)
     BoardModelMotionShiftSet(BoardBooHouseHostGet(), hostMot[2], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
 }
 
+/**
+ * @brief Animate the house closing and destroy the Boo ball controller.
+ *
+ * @details Rehooks the ball for the closing motion, waits for the shell animation, then resets model hooks.
+ */
 static void CloseBooHouse(void)
 {
     BoardModelPosSet(ballMdl, 0.0f, 0.0f, 0.0f);
@@ -444,28 +492,38 @@ static void CloseBooHouse(void)
     ballMdl = -1;
 }
 
+/**
+ * @brief Create the five temporary house components and two shell motions.
+ *
+ * @details The persistent shell in houseMdl[0] is reused.
+ */
 static void CreateBooHouseModel(void)
 {
-    s32 var_r31;
+    s32 model_index;
 
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        if (var_r31 != 0) {
-            houseMdl[var_r31] = BoardModelCreateParam(&houseMdlTbl[var_r31], 0, 0);
+    for (model_index = 0; model_index < 6; model_index++) {
+        if (model_index != 0) {
+            houseMdl[model_index] = BoardModelCreateParam(&houseMdlTbl[model_index], 0, 0);
         }
     }
     houseShowMot = BoardModelMotionCreate(houseMdl[0], DATA_MAKE_NUM(DATADIR_BYOKODORI, 0x09));
     houseHideMot = BoardModelMotionCreate(houseMdl[1], DATA_MAKE_NUM(DATADIR_BYOKODORI, 0x0A));
 }
 
+/**
+ * @brief Destroy temporary house, Boo, and smoke models and hide the host.
+ *
+ * @details Leaves the persistent house shell in houseMdl[0] intact.
+ */
 static void KillBooHouseModel(void)
 {
-    s32 temp_r4;
-    s32 var_r31;
+    s32 unused_value;
+    s32 model_index;
 
-    for (var_r31 = 1; var_r31 < 6; var_r31++) {
-        if (houseMdl[var_r31] != -1) {
-            BoardModelKill(houseMdl[var_r31]);
-            houseMdl[var_r31] = -1;
+    for (model_index = 1; model_index < 6; model_index++) {
+        if (houseMdl[model_index] != -1) {
+            BoardModelKill(houseMdl[model_index]);
+            houseMdl[model_index] = -1;
         }
     }
     if (booMdl != -1) {
@@ -479,6 +537,9 @@ static void KillBooHouseModel(void)
     BoardModelVisibilitySet(BoardBooHouseHostGet(), 0);
 }
 
+/**
+ * @brief Display the host message for leaving without a theft.
+ */
 static void ExecNullSteal(void)
 {
     HuAudFXPlay(0x4C);
@@ -487,15 +548,20 @@ static void ExecNullSteal(void)
     BoardWinKill();
 }
 
+/**
+ * @brief Charge fifty coins, choose a star target, and play Boo's departure and return.
+ *
+ * @details The return animation changes when a repellent light prevents the theft.
+ */
 static void ExecStarSteal(void)
 {
-    Vec sp14;
-    Vec sp8;
-    s32 temp_r29;
-    s32 var_r30;
-    s32 var_r31;
+    Vec smoke_pos;
+    Vec camera_offset;
+    s32 steal_result;
+    s32 coin_index;
+    s32 alpha;
 
-    for (var_r30 = 0; var_r30 < 0x32; var_r30++) {
+    for (coin_index = 0; coin_index < 0x32; coin_index++) {
         BoardPlayerCoinsAdd(currPlayer, -1);
         HuAudFXPlay(0xE);
         HuPrcSleep(1);
@@ -511,18 +577,18 @@ static void ExecStarSteal(void)
         HuPrcVSleep();
     }
     HuAudFXPlay(0x4C);
-    Hu3DModelObjPosGet(BoardModelIDGet(houseMdl[0]), "yoko8", &sp14);
-    sp14.y += 20.0f;
+    Hu3DModelObjPosGet(BoardModelIDGet(houseMdl[0]), "yoko8", &smoke_pos);
+    smoke_pos.y += 20.0f;
     BoardModelMotionStart(smokeMdl, 0, 0);
     BoardModelVisibilitySet(smokeMdl, 1);
-    BoardModelPosSetV(smokeMdl, &sp14);
+    BoardModelPosSetV(smokeMdl, &smoke_pos);
     HuPrcSleep(5);
 
-    for (var_r31 = 0xFF; var_r31 > 0; var_r31 -= 0x33) {
-        if (var_r31 < 0) {
-            var_r31 = 0;
+    for (alpha = 0xFF; alpha > 0; alpha -= 0x33) {
+        if (alpha < 0) {
+            alpha = 0;
         }
-        BoardModelAlphaSet(booMdl, var_r31);
+        BoardModelAlphaSet(booMdl, alpha);
         HuPrcVSleep();
     }
     BoardModelVisibilitySet(booMdl, 0);
@@ -532,13 +598,13 @@ static void ExecStarSteal(void)
     }
     BoardModelVisibilitySet(smokeMdl, 0);
     BoardCameraMotionStartEx(ballMdl, NULL, NULL, 325.0f, -1.0f, 0x15);
-    temp_r29 = BoardBooStealMain();
-    sp8.x = 0.0f;
-    sp8.y = 150.0f;
-    sp8.z = 0.0f;
-    BoardCameraMotionStartEx(houseMdl[0], NULL, &sp8, 1370.0f, -1.0f, 0x15);
+    steal_result = BoardBooStealMain();
+    camera_offset.x = 0.0f;
+    camera_offset.y = 150.0f;
+    camera_offset.z = 0.0f;
+    BoardCameraMotionStartEx(houseMdl[0], NULL, &camera_offset, 1370.0f, -1.0f, 0x15);
     BoardCameraMotionWait();
-    if (temp_r29 == 0) {
+    if (steal_result == 0) {
         BoardModelMotionStart(booMdl, 2, 0x40000001);
     }
     BoardModelMotionStart(smokeMdl, 0, 0);
@@ -546,11 +612,11 @@ static void ExecStarSteal(void)
     HuPrcSleep(0xB);
     BoardModelVisibilitySet(booMdl, 1);
 
-    for (var_r31 = 0; var_r31 < 0xFF; var_r31 += 0x33) {
-        if (var_r31 > 0xFF) {
-            var_r31 = 0xFF;
+    for (alpha = 0; alpha < 0xFF; alpha += 0x33) {
+        if (alpha > 0xFF) {
+            alpha = 0xFF;
         }
-        BoardModelAlphaSet(booMdl, var_r31);
+        BoardModelAlphaSet(booMdl, alpha);
         HuPrcVSleep();
     }
     BoardModelAlphaSet(booMdl, -1);
@@ -561,15 +627,20 @@ static void ExecStarSteal(void)
     BoardModelVisibilitySet(smokeMdl, 0);
 }
 
+/**
+ * @brief Charge five coins, choose a coin target, and play Boo's departure and return.
+ *
+ * @details The return animation changes when a repellent light prevents the theft.
+ */
 static void ExecCoinSteal(void)
 {
-    Vec sp14;
-    Vec sp8;
-    s32 temp_r29;
-    s32 var_r30;
-    s32 var_r31;
+    Vec smoke_pos;
+    Vec camera_offset;
+    s32 steal_result;
+    s32 coin_index;
+    s32 alpha;
 
-    for (var_r30 = 0; var_r30 < 5; var_r30++) {
+    for (coin_index = 0; coin_index < 5; coin_index++) {
         BoardPlayerCoinsAdd(currPlayer, -1);
         HuAudFXPlay(0xE);
         HuPrcSleep(6);
@@ -585,18 +656,18 @@ static void ExecCoinSteal(void)
         HuPrcVSleep();
     }
     HuAudFXPlay(0x4C);
-    Hu3DModelObjPosGet(BoardModelIDGet(houseMdl[0]), "yoko8", &sp14);
-    sp14.y += 20.0f;
+    Hu3DModelObjPosGet(BoardModelIDGet(houseMdl[0]), "yoko8", &smoke_pos);
+    smoke_pos.y += 20.0f;
     BoardModelMotionStart(smokeMdl, 0, 0);
     BoardModelVisibilitySet(smokeMdl, 1);
-    BoardModelPosSetV(smokeMdl, &sp14);
+    BoardModelPosSetV(smokeMdl, &smoke_pos);
     HuPrcSleep(5);
 
-    for (var_r31 = 0xFF; var_r31 > 0; var_r31 -= 0x33) {
-        if (var_r31 < 0) {
-            var_r31 = 0;
+    for (alpha = 0xFF; alpha > 0; alpha -= 0x33) {
+        if (alpha < 0) {
+            alpha = 0;
         }
-        BoardModelAlphaSet(booMdl, var_r31);
+        BoardModelAlphaSet(booMdl, alpha);
         HuPrcVSleep();
     }
     BoardModelVisibilitySet(booMdl, 0);
@@ -606,13 +677,13 @@ static void ExecCoinSteal(void)
     }
     BoardModelVisibilitySet(smokeMdl, 0);
     BoardCameraMotionStartEx(ballMdl, NULL, NULL, 325.0f, -1.0f, 0x15);
-    temp_r29 = BoardBooStealMain();
-    sp8.x = 0.0f;
-    sp8.y = 150.0f;
-    sp8.z = 0.0f;
-    BoardCameraMotionStartEx(houseMdl[0], NULL, &sp8, 1370.0f, -1.0f, 0x15);
+    steal_result = BoardBooStealMain();
+    camera_offset.x = 0.0f;
+    camera_offset.y = 150.0f;
+    camera_offset.z = 0.0f;
+    BoardCameraMotionStartEx(houseMdl[0], NULL, &camera_offset, 1370.0f, -1.0f, 0x15);
     BoardCameraMotionWait();
-    if (temp_r29 == 0) {
+    if (steal_result == 0) {
         BoardModelMotionStart(booMdl, 2, 0x40000001);
     }
     BoardModelMotionStart(smokeMdl, 0, 0);
@@ -620,11 +691,11 @@ static void ExecCoinSteal(void)
     HuPrcSleep(0xB);
     BoardModelVisibilitySet(booMdl, 1);
 
-    for (var_r31 = 0; var_r31 < 0xFF; var_r31 += 0x33) {
-        if (var_r31 > 0xFF) {
-            var_r31 = 0xFF;
+    for (alpha = 0; alpha < 0xFF; alpha += 0x33) {
+        if (alpha > 0xFF) {
+            alpha = 0xFF;
         }
-        BoardModelAlphaSet(booMdl, var_r31);
+        BoardModelAlphaSet(booMdl, alpha);
         HuPrcVSleep();
     }
     BoardModelAlphaSet(booMdl, -1);
@@ -635,14 +706,19 @@ static void ExecCoinSteal(void)
     BoardModelVisibilitySet(smokeMdl, 0);
 }
 
+/**
+ * @brief Apply the completed Boo encounter to the visiting player.
+ *
+ * @details Turns the visitor toward the house, queries the theft result, then awards coins, a star, or the repelled-light response.
+ */
 void ApplySteal(void)
 {
-    s16 spA;
-    s16 sp8;
-    s32 temp_r30;
-    s32 temp_r6;
-    s32 var_r31;
-    float var_f31;
+    s16 stolen_value;
+    s16 punch_reduction;
+    s32 unused_value0;
+    s32 unused_value1;
+    s32 steal_succeeded;
+    float facing_angle;
 
     BoardModelHookSet(houseMdl[0], "yoko8", booMdl);
     BoardModelVisibilitySet(booMdl, 1);
@@ -650,19 +726,19 @@ void ApplySteal(void)
     BoardModelRotSet(booMdl, 0.0f, 0.0f, 0.0f);
     BoardModelScaleSet(booMdl, 1.0f, 1.0f, 1.0f);
     BoardModelAlphaSet(booMdl, 0xFF);
-    var_f31 = BoardDAngleCalc(180.0f + BoardPlayerRotYGet(currPlayer));
-    BoardPlayerMotBlendSet(currPlayer, var_f31, 0xF);
+    facing_angle = BoardDAngleCalc(180.0f + BoardPlayerRotYGet(currPlayer));
+    BoardPlayerMotBlendSet(currPlayer, facing_angle, 0xF);
 
     while (BoardPlayerMotBlendCheck(currPlayer) == 0) {
         HuPrcVSleep();
     }
     BoardPlayerIdleSet(currPlayer);
-    var_r31 = BoardBooStealValueGet(&spA, &sp8);
-    if (var_r31 == 0) {
+    steal_succeeded = BoardBooStealValueGet(&stolen_value, &punch_reduction);
+    if (steal_succeeded == 0) {
         ApplyBooLight();
     }
     else if (stealTarget == 0) {
-        ApplyCoinSteal(spA, sp8);
+        ApplyCoinSteal(stolen_value, punch_reduction);
     }
     else {
         ApplyStarSteal();
@@ -672,29 +748,36 @@ void ApplySteal(void)
     BoardWinKill();
 }
 
+/**
+ * @brief Show the coin-theft result and add the stolen coins to the visitor.
+ *
+ * @details Coins are added one at a time while the visitor's status panel is forced visible.
+ * @param arg0 Number of coins successfully stolen.
+ * @param arg1 Punch-reduction tier used to choose the result message.
+ */
 void ApplyCoinSteal(s16 arg0, s16 arg1)
 {
-    u32 var_r31;
-    s32 var_r30;
+    u32 message_id;
+    s32 coin_index;
 
     if ((s16)arg1 == 0) {
-        var_r31 = MAKE_MESSID(7, 9);
+        message_id = MAKE_MESSID(7, 9);
     }
     else if ((s16)arg1 < 3) {
-        var_r31 = MAKE_MESSID(7, 8);
+        message_id = MAKE_MESSID(7, 8);
     }
     else if ((s16)arg1 < 6) {
-        var_r31 = MAKE_MESSID(7, 7);
+        message_id = MAKE_MESSID(7, 7);
     }
     else if ((s16)arg1 < 8) {
-        var_r31 = MAKE_MESSID(7, 6);
+        message_id = MAKE_MESSID(7, 6);
     }
     else {
-        var_r31 = MAKE_MESSID(7, 5);
+        message_id = MAKE_MESSID(7, 5);
     }
     sprintf(stealAmountStr, "%d", arg0);
     HuAudFXPlay(0x4B);
-    BoardWinCreate(2, var_r31, 3);
+    BoardWinCreate(2, message_id, 3);
     BoardWinInsertMesSet(MAKE_MESSID_PTR(stealAmountStr), 0);
     BoardWinWait();
     BoardWinKill();
@@ -702,7 +785,7 @@ void ApplyCoinSteal(s16 arg0, s16 arg1)
     BoardStatusShowSet(currPlayer, 1);
     BoardPlayerMotionShiftSet(currPlayer, 7, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
 
-    for (var_r30 = 0; var_r30 < arg0; var_r30++) {
+    for (coin_index = 0; coin_index < arg0; coin_index++) {
         BoardPlayerCoinsAdd(currPlayer, 1);
         HuAudFXPlay(0xE);
         HuPrcSleep(6);
@@ -711,9 +794,14 @@ void ApplyCoinSteal(s16 arg0, s16 arg1)
     BoardPlayerMotionEndWait(currPlayer);
 }
 
+/**
+ * @brief Show the star-theft result and award one star to the visitor.
+ *
+ * @details Temporarily pauses the theft music, plays the character star voice and stream, and restores voice playback.
+ */
 void ApplyStarSteal(void)
 {
-    s32 temp_r31;
+    s32 stream_handle;
 
     HuAudFXPlay(0x4C);
     BoardWinCreate(2, MAKE_MESSID(7, 10), 3);
@@ -729,10 +817,10 @@ void ApplyStarSteal(void)
     BoardPlayerStarsAdd(currPlayer, 1);
     HuAudFXPlay(8);
     HuPrcSleep(0xA);
-    temp_r31 = HuAudSStreamPlay(6);
+    stream_handle = HuAudSStreamPlay(6);
     BoardPlayerMotionEndWait(currPlayer);
 
-    while (msmStreamGetStatus(temp_r31) != 0) {
+    while (msmStreamGetStatus(stream_handle) != 0) {
         HuPrcVSleep();
     }
     BoardAudSeqPause(1, 0, 0x3E8);
@@ -740,6 +828,11 @@ void ApplyStarSteal(void)
     BoardPlayerVoiceEnableSet(currPlayer, 7, 1);
 }
 
+/**
+ * @brief Show the failed-theft message and play the visitor's reaction.
+ *
+ * @details Used when the target's Boo-repellent light was consumed.
+ */
 void ApplyBooLight(void)
 {
     BoardWinCreate(2, MAKE_MESSID(7, 11), 3);
@@ -751,61 +844,73 @@ void ApplyBooLight(void)
     }
 }
 
+/**
+ * @brief Place the detached Boo ball at the house's yoko02 hook position.
+ *
+ * @details Reads the hook matrix from the persistent shell and converts its translation to a world position.
+ */
 void SetBooBallPos(void)
 {
-    Mtx sp14;
-    Vec sp8;
-    s16 var_r31;
+    Mtx hook_mtx;
+    Vec ball_pos;
+    s16 house_model_id;
 
-    var_r31 = BoardModelIDGet(houseMdl[0]);
-    Hu3DModelObjMtxGet(var_r31, "yoko02", sp14);
-    Hu3DMtxTransGet(sp14, &sp8);
-    BoardModelPosSetV(ballMdl, &sp8);
+    house_model_id = BoardModelIDGet(houseMdl[0]);
+    Hu3DModelObjMtxGet(house_model_id, "yoko02", hook_mtx);
+    Hu3DMtxTransGet(hook_mtx, &ball_pos);
+    BoardModelPosSetV(ballMdl, &ball_pos);
 }
 
+/**
+ * @brief Find whether a computer player has a viable Boo House target.
+ *
+ * @details Ignores teammates and may avoid opponents carrying a repellent light according to the acting player's difficulty.
+ * @param arg0 Index of the computer player considering the house.
+ * @return One when an eligible opponent with coins or stars is found; zero otherwise.
+ */
 s32 BoardBooComUseCheck(s32 arg0)
 {
-    s32 var_r31;
-    u32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r24;
+    s32 player_index;
+    u32 light_ignore_chance;
+    s32 target_coins;
+    s32 target_stars;
+    s32 max_target_coins;
+    s32 max_target_stars;
+    s32 player_coins;
 
-    var_r24 = BoardPlayerCoinsGet(arg0);
+    player_coins = BoardPlayerCoinsGet(arg0);
     comStarStealTarget = comCoinStealTarget = -1;
-    var_r26 = var_r27 = -1;
+    max_target_stars = max_target_coins = -1;
     switch (GWPlayer[arg0].diff) {
         case 0:
-            var_r30 = 0x5F;
+            light_ignore_chance = 0x5F;
             break;
         case 1:
-            var_r30 = 0x32;
+            light_ignore_chance = 0x32;
             break;
         case 2:
-            var_r30 = 5;
+            light_ignore_chance = 5;
             break;
         case 3:
-            var_r30 = 0;
+            light_ignore_chance = 0;
             break;
     }
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (var_r31 != arg0) {
-            if ((s32)GWSystem.team == 0 || var_r31 != BoardPlayerSameTeamFind(arg0)) {
-                if (BoardPlayerItemFind(var_r31, 8) == -1 || BoardRandMod(0x64) < var_r30) {
-                    var_r29 = BoardPlayerCoinsGet(var_r31);
-                    var_r28 = GWStarsGet(var_r31);
-                    if (var_r28 != 0 || var_r29 != 0) {
-                        if (var_r28 != 0 || var_r29 >= 5 || var_r24 <= 10 || BoardRandMod(0x64) <= 0x32) {
-                            if (var_r27 < var_r29) {
-                                var_r27 = var_r29;
-                                comCoinStealTarget = var_r31;
+    for (player_index = 0; player_index < 4; player_index++) {
+        if (player_index != arg0) {
+            if ((s32)GWSystem.team == 0 || player_index != BoardPlayerSameTeamFind(arg0)) {
+                if (BoardPlayerItemFind(player_index, 8) == -1 || BoardRandMod(0x64) < light_ignore_chance) {
+                    target_coins = BoardPlayerCoinsGet(player_index);
+                    target_stars = GWStarsGet(player_index);
+                    if (target_stars != 0 || target_coins != 0) {
+                        if (target_stars != 0 || target_coins >= 5 || player_coins <= 10 || BoardRandMod(0x64) <= 0x32) {
+                            if (max_target_coins < target_coins) {
+                                max_target_coins = target_coins;
+                                comCoinStealTarget = player_index;
                             }
-                            if (var_r26 < var_r28) {
-                                var_r26 = var_r28;
-                                comStarStealTarget = (s8)var_r31;
+                            if (max_target_stars < target_stars) {
+                                max_target_stars = target_stars;
+                                comStarStealTarget = (s8)player_index;
                             }
                         }
                     }
@@ -813,47 +918,52 @@ s32 BoardBooComUseCheck(s32 arg0)
             }
         }
     }
-    if ((var_r26 <= 0) && (var_r27 <= 0)) {
+    if ((max_target_stars <= 0) && (max_target_coins <= 0)) {
         return 0;
     }
     return 1;
 }
 
+/**
+ * @brief Play the scripted Boo House opening and closing tutorial.
+ *
+ * @details Loads the house assets, frames the linked house spaces, runs tutorial hook 0x1C, and performs the same model cleanup as a normal visit.
+ */
 void BoardBooHouseTutorialExec(void)
 {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float temp_f31;
-    s16 temp_r28;
-    s16 temp_r29;
-    s32 temp_r27;
-    s32 temp_r4;
-    s32 var_r31;
-    s32 var_r30;
+    Vec house_space_pos;
+    Vec linked_space_pos;
+    Vec travel_direction;
+    Vec camera_rot;
+    Vec camera_offset;
+    float facing_angle;
+    s16 linked_space;
+    s16 house_space;
+    s32 data_read_id;
+    s32 unused_value;
+    s32 model_index;
+    s32 cleanup_model_index;
 
-    temp_r27 = BoardDataDirReadAsync(DATADIR_BYOKODORI);
-    temp_r29 = BoardSpaceFlagSearch(0, 0x08000000);
-    BoardDataAsyncWait(temp_r27);
-    temp_r28 = BoardSpaceLinkFlagSearch(0, temp_r29, 0x02000000);
-    BoardSpacePosGet(0, temp_r29, &sp38);
-    BoardSpacePosGet(0, temp_r28, &sp2C);
-    VECSubtract(&sp2C, &sp38, &sp20);
-    VECNormalize(&sp20, &sp20);
-    temp_f31 = atan2d(-sp20.x, -sp20.z);
-    sp14.x = -15.0f;
-    sp14.y = temp_f31;
-    sp14.z = 0.0f;
-    sp8.x = 0.0f;
-    sp8.y = 150.0f;
-    sp8.z = 0.0f;
-    BoardCameraMotionStartEx(houseMdl[0], &sp14, &sp8, 1370.0f, -1.0f, 0x15);
+    data_read_id = BoardDataDirReadAsync(DATADIR_BYOKODORI);
+    house_space = BoardSpaceFlagSearch(0, 0x08000000);
+    BoardDataAsyncWait(data_read_id);
+    linked_space = BoardSpaceLinkFlagSearch(0, house_space, 0x02000000);
+    BoardSpacePosGet(0, house_space, &house_space_pos);
+    BoardSpacePosGet(0, linked_space, &linked_space_pos);
+    VECSubtract(&linked_space_pos, &house_space_pos, &travel_direction);
+    VECNormalize(&travel_direction, &travel_direction);
+    facing_angle = atan2d(-travel_direction.x, -travel_direction.z);
+    camera_rot.x = -15.0f;
+    camera_rot.y = facing_angle;
+    camera_rot.z = 0.0f;
+    camera_offset.x = 0.0f;
+    camera_offset.y = 150.0f;
+    camera_offset.z = 0.0f;
+    BoardCameraMotionStartEx(houseMdl[0], &camera_rot, &camera_offset, 1370.0f, -1.0f, 0x15);
 
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        if (var_r31 != 0) {
-            houseMdl[var_r31] = BoardModelCreateParam(&houseMdlTbl[var_r31], NULL, NULL);
+    for (model_index = 0; model_index < 6; model_index++) {
+        if (model_index != 0) {
+            houseMdl[model_index] = BoardModelCreateParam(&houseMdlTbl[model_index], NULL, NULL);
         }
     }
     houseShowMot = BoardModelMotionCreate(houseMdl[0], DATA_MAKE_NUM(DATADIR_BYOKODORI, 0x09));
@@ -886,10 +996,10 @@ void BoardBooHouseTutorialExec(void)
     BoardBooKill();
     ballMdl = -1;
 
-    for (var_r30 = 1; var_r30 < 6; var_r30++) {
-        if (houseMdl[var_r30] != -1) {
-            BoardModelKill(houseMdl[var_r30]);
-            houseMdl[var_r30] = -1;
+    for (cleanup_model_index = 1; cleanup_model_index < 6; cleanup_model_index++) {
+        if (houseMdl[cleanup_model_index] != -1) {
+            BoardModelKill(houseMdl[cleanup_model_index]);
+            houseMdl[cleanup_model_index] = -1;
         }
     }
     if (booMdl != -1) {

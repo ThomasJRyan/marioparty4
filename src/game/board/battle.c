@@ -23,27 +23,27 @@
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 2;
+        u8 kill : 1;
+        u8 state : 2;
     };
-    s8 unk01;
-    s16 unk02;
-    s16 unk04[4];
+    s8 delay;
+    s16 bomb_model;
+    s16 burst_models[4];
 } ExplodeWork;
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 4;
-        u8 unk00_field2 : 1;
-        u8 unk00_field3 : 1;
+        u8 kill : 1;
+        u8 state : 4;
+        u8 coin_display_initialized : 1;
+        u8 coin_selection_slowing : 1;
     };
-    u8 unk01;
-    s8 unk02;
-    s8 unk03;
-    s8 unk04;
-    char unk05[3];
-    s16 unk08;
+    u8 timer;
+    s8 step_delay;
+    s8 step_timer;
+    s8 slowdown_level;
+    char padding[3];
+    s16 sprite_group;
 } BattleWork;
 
 extern s32 BoardMGSetupPlaySearch(s32, s16);
@@ -112,6 +112,13 @@ static s16 battleSprPrioTbl[] = {
      970, 970,  970
 };
 
+/**
+ * @brief Resolve the Battle Space event for the landing player.
+ *
+ * @details Normal play selects two candidate minigames, chooses and collects a coin stake, then launches the selected minigame. The tutorial path only plays its tutorial sequence.
+ * @param player Index of the player who landed on the space.
+ * @param space Index of the Battle Space, used to find all players caught in its opening blast.
+ */
 void BoardBattleExec(s32 player, s32 space) {
     if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
         HuAudFXPlay(0x34A);
@@ -135,24 +142,32 @@ void BoardBattleExec(s32 player, s32 space) {
     GWPlayer[player].color = 3;
 }
 
+/**
+ * @brief Close Battle Space data and signal that its child process has ended.
+ */
 static void DestroyBattle(void) {
     HuDataDirClose(DATADIR_BBATTLE);
     battleProc = NULL;
 }
 
+/**
+ * @brief Select battle minigames, collect the stake, and transition to the chosen minigame.
+ *
+ * @details If nobody has at least ten coins, the event displays a message and returns to board play without collecting a stake.
+ */
 static void ExecBattle(void) {
-    s16 temp_r28;
-    s16 var_r26;
-    s32 temp_r22;
-    s32 var_r21;
-    s32 var_r30;
-    s32 var_r31;
-    s32 var_r25;
-    s32 var_r24;
-    s32 var_r23;
-    MgInfo *var_r29;
-    s32 var_r27 = 0;
-    s32 sp8[] = {
+    s16 minigame_id;
+    s16 has_eligible_player;
+    s32 battle_data_read_id;
+    s32 minigame_data_read_id;
+    s32 selection_index;
+    s32 index;
+    s32 default_choice;
+    s32 minigame_data_dir;
+    s32 random_choice;
+    MgInfo *minigame_info;
+    s32 no_minigame_available = 0;
+    s32 board_data_dirs[] = {
         DATADIR_W01,
         DATADIR_W02,
         DATADIR_W03,
@@ -164,38 +179,38 @@ static void ExecBattle(void) {
         DATADIR_W21
     };
 
-    var_r29 = mgInfoTbl;
-    for (var_r31 = var_r30 = 0; var_r29->ovl != (u16) DLL_NONE; var_r29++, var_r31++) {
-        if (var_r29->type == 4) {
-            battleMGList[var_r30] = var_r31 + 401;
-            var_r30++;
+    minigame_info = mgInfoTbl;
+    for (index = selection_index = 0; minigame_info->ovl != (u16) DLL_NONE; minigame_info++, index++) {
+        if (minigame_info->type == 4) {
+            battleMGList[selection_index] = index + 401;
+            selection_index++;
         }
     }
-    for (var_r30 = 0; var_r30 < 2; var_r30++) {
+    for (selection_index = 0; selection_index < 2; selection_index++) {
         while (1) {
-            var_r31 = BoardRandMod(6);
-            temp_r28 = battleMGList[var_r31];
+            index = BoardRandMod(6);
+            minigame_id = battleMGList[index];
             if (GWMGListGet() == 2) {
-                if (GWMGCustomGet(temp_r28) == 0) {
+                if (GWMGCustomGet(minigame_id) == 0) {
                     continue;
                 }
             } else {
                 if (GWMGListGet() == 1) {
-                    var_r29 = &mgInfoTbl[temp_r28 - 401];
-                    if (!(var_r29->flag & 1)) {
+                    minigame_info = &mgInfoTbl[minigame_id - 401];
+                    if (!(minigame_info->flag & 1)) {
                         continue;
                     }
-                } else if (BoardMGSetupPlaySearch(4, temp_r28) != 0) {
+                } else if (BoardMGSetupPlaySearch(4, minigame_id) != 0) {
                     continue;
                 }
             }
-            if (var_r30 == 1 && var_r31 == battleMGIdx[var_r30 - 1]) {
+            if (selection_index == 1 && index == battleMGIdx[selection_index - 1]) {
                 continue;
             }
             break;
         }
-        battleMGIdx[var_r30] = var_r31;
-        BoardMGSetupPlayPush(4, temp_r28);
+        battleMGIdx[selection_index] = index;
+        BoardMGSetupPlayPush(4, minigame_id);
     }
     if (_CheckFlag(FLAG_ID_MAKE(1, 4))) {
         BoardStatusItemSet(1);
@@ -210,14 +225,14 @@ static void ExecBattle(void) {
     HuAudFXPlay(0x34A);
     omVibrate(GWSystem.player_curr, 12, 6, 6);
     BoardAudSeqPause(0, 1, 500);
-    temp_r22 = BoardDataDirReadAsync(DATADIR_BBATTLE);
+    battle_data_read_id = BoardDataDirReadAsync(DATADIR_BBATTLE);
     BoardCameraViewSet(3);
     BoardCameraMotionWait();
     BoardPlayerMotBlendSet(currPlayer, 0, 0xF);
     while (!BoardPlayerMotBlendCheck(currPlayer)) {
         HuPrcVSleep();
     }
-    BoardDataAsyncWait(temp_r22);
+    BoardDataAsyncWait(battle_data_read_id);
     SetBattleCoinValue();
     BoardMusStart(1, 4, 0x7F, 0);
     omVibrate(GWSystem.player_curr, 12, 6, 6);
@@ -230,18 +245,18 @@ static void ExecBattle(void) {
     while (GetBattleBombState() != 8) {
         HuPrcVSleep();
     }
-    var_r26 = 0;
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (BoardPlayerCoinsGet(var_r31) >= 10) {
-            var_r26 = 1;
+    has_eligible_player = 0;
+    for (index = 0; index < 4; index++) {
+        if (BoardPlayerCoinsGet(index) >= 10) {
+            has_eligible_player = 1;
             break;
         }
     }
-    if (var_r26 == 0) {
+    if (has_eligible_player == 0) {
         BoardWinCreate(2, MAKE_MESSID(2, 1), 1);
         BoardWinWait();
         BoardWinKill();
-        var_r27 = 1;
+        no_minigame_available = 1;
     } else {
         HuAudFXPlay(0x4F);
         BoardWinCreate(2, MAKE_MESSID(2, 0), 1);
@@ -258,17 +273,17 @@ static void ExecBattle(void) {
         TakeCoins();
         if (GWPlayer[currPlayer].com) {
             if (BoardRandFloat() < 0.5f) {
-                var_r23 = 0;
+                random_choice = 0;
             } else {
-                var_r23 = 1;
+                random_choice = 1;
             }
-            var_r25 = var_r23;
+            default_choice = random_choice;
             HuPrcSleep(60);
         } else {
-            var_r25 = -1;
+            default_choice = -1;
         }
         SetBattleBombState(5);
-        BoardPickerCreate(currPlayer, 2, battleCursorPosTbl, var_r25);
+        BoardPickerCreate(currPlayer, 2, battleCursorPosTbl, default_choice);
         BoardPickerBackFlagSet(0);
         while (!BoardPickerDoneCheck()) {
             HuPrcVSleep();
@@ -281,20 +296,20 @@ static void ExecBattle(void) {
         BoardAudSeqFadeOut(1, 1000);
         BoardMusVolPanSet(0, 0, 1);
         BoardAudSeqPause(0, 0, 1);
-        if (var_r27 == 0) {
+        if (no_minigame_available == 0) {
             HuDataDirClose(DATADIR_BOARD);
             HuDataDirClose(DATADIR_BGUEST);
-            HuDataDirClose(sp8[GWBoardGet()]);
+            HuDataDirClose(board_data_dirs[GWBoardGet()]);
             HuPrcSleep(2);
-            temp_r28 = battleMGList[battleMGIdx[mgChoice]];
-            GWMGAvailSet(temp_r28);
-            GWSystem.mg_next = temp_r28 - 401;
+            minigame_id = battleMGList[battleMGIdx[mgChoice]];
+            GWMGAvailSet(minigame_id);
+            GWSystem.mg_next = minigame_id - 401;
             if (_CheckFlag(FLAG_ID_MAKE(0, 11))) {
-                var_r24 = DATADIR_INST;
+                minigame_data_dir = DATADIR_INST;
             } else {
-                var_r24 = mgInfoTbl[temp_r28 - 401].data_dir;
+                minigame_data_dir = mgInfoTbl[minigame_id - 401].data_dir;
             }
-            var_r21 = BoardDataDirReadAsync(var_r24);
+            minigame_data_read_id = BoardDataDirReadAsync(minigame_data_dir);
         }
         _SetFlag(FLAG_ID_MAKE(1, 14));
         WipeColorSet(0xFF, 0xFF, 0xFF);
@@ -305,11 +320,11 @@ static void ExecBattle(void) {
         HuAudFXAllStop();
         _SetFlag(FLAG_ID_MAKE(1, 28));
         HideBattleSpr();
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            BoardPlayerMotionStart(var_r31, 1, 0x40000001);
+        for (index = 0; index < 4; index++) {
+            BoardPlayerMotionStart(index, 1, 0x40000001);
         }
-        BoardDataAsyncWait(var_r21);
-        if (var_r27 == 0) {
+        BoardDataAsyncWait(minigame_data_read_id);
+        if (no_minigame_available == 0) {
             _SetFlag(FLAG_ID_MAKE(1, 4));
             BoardNextOvlSet(DLL_instdll);
             BoardFilterFadeOut(30);
@@ -323,184 +338,205 @@ static void ExecBattle(void) {
         HuPrcVSleep();
     }
     StopBattleBomb();
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        BoardPlayerIdleSet(var_r31);
-        BoardPlayerVoiceEnableSet(var_r31, 6, 1);
+    for (index = 0; index < 4; index++) {
+        BoardPlayerIdleSet(index);
+        BoardPlayerVoiceEnableSet(index, 6, 1);
     }
     BoardAudSeqPause(0, 0, 1000);
     HuPrcEnd();
 }
 
+/**
+ * @brief Collect each player's available share of the selected battle stake.
+ *
+ * @details Each contribution is capped by the player's current coins and saved in GWPlayer.coins_battle; the displayed pot is the sum actually collected.
+ */
 static void TakeCoins(void) {
-    u16 var_r30;
-    s32 temp_r26;
-    s32 var_r25;
-    s32 var_r24;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
+    u16 total_coins;
+    s32 player_coins;
+    s32 coins_to_take;
+    s32 message_id;
+    s32 coin_round;
+    s32 remaining_coins;
+    s32 coin_delay;
     s32 i;
 
-    for (var_r30 = i = 0; i < 4; i++) {
-        temp_r26 = BoardPlayerCoinsGet(i);
-        if (temp_r26 >= coinTakeMax) {
-            var_r30 += coinTakeMax;
+    for (total_coins = i = 0; i < 4; i++) {
+        player_coins = BoardPlayerCoinsGet(i);
+        if (player_coins >= coinTakeMax) {
+            total_coins += coinTakeMax;
         } else {
-            var_r30 += temp_r26;
+            total_coins += player_coins;
         }
     }
     if (coinTakeMax >= 50) {
-        var_r27 = 1;
+        coin_delay = 1;
     } else if (coinTakeMax >= 20) {
-        var_r27 = 3;
+        coin_delay = 3;
     } else {
-        var_r27 = 6;
+        coin_delay = 6;
     }
     for (i = 0; i < 4; i++) {
         if (BoardPlayerCoinsGet(i) < coinTakeMax) {
-            var_r25 = BoardPlayerCoinsGet(i);
+            coins_to_take = BoardPlayerCoinsGet(i);
         } else {
-            var_r25 = coinTakeMax;
+            coins_to_take = coinTakeMax;
         }
-        GWPlayer[i].coins_battle = var_r25;
+        GWPlayer[i].coins_battle = coins_to_take;
     }
-    for (var_r29 = 0; var_r29 < coinTakeMax; var_r29++) {
-        for (var_r28 = i = 0; i < 4; i++) {
+    for (coin_round = 0; coin_round < coinTakeMax; coin_round++) {
+        for (remaining_coins = i = 0; i < 4; i++) {
             BoardPlayerCoinsAdd(i, -1);
-            var_r28 += BoardPlayerCoinsGet(i);
+            remaining_coins += BoardPlayerCoinsGet(i);
         }
-        if (var_r28 <= 0) {
+        if (remaining_coins <= 0) {
             break;
         }
         HuAudFXPlay(0xE);
-        HuPrcSleep(var_r27);
+        HuPrcSleep(coin_delay);
     }
     HuAudFXPlay(0xF);
-    sprintf(totalCoinStr, "%d", var_r30);
-    if (var_r30 != coinTakeMax * 4) {
-        var_r24 = MAKE_MESSID(2, 3);
+    sprintf(totalCoinStr, "%d", total_coins);
+    if (total_coins != coinTakeMax * 4) {
+        message_id = MAKE_MESSID(2, 3);
     } else {
-        var_r24 = MAKE_MESSID(2, 2);
+        message_id = MAKE_MESSID(2, 2);
     }
-    BoardWinCreate(2, var_r24, 1);
+    BoardWinCreate(2, message_id, 1);
     BoardWinInsertMesSet(MAKE_MESSID_PTR(totalCoinStr), 0);
     BoardWinWait();
     BoardWinKill();
 }
 
+/**
+ * @brief Create the bomb and four burst models for the Battle Space opening.
+ */
 static void InitExplode(void) {
-    Vec sp14;
-    Vec sp8;
+    Vec player_pos;
+    Vec burst_pos;
     s32 i;
-    ExplodeWork *temp_r31;
-    float sp20[4][2] = {
+    ExplodeWork *work;
+    float burst_offsets[4][2] = {
         { -50.0f, -50.0f },
         {  50.0f, -50.0f },
         { -50.0f,  50.0f },
         {  50.0f,  50.0f }
     };
 
-    BoardPlayerPosGet(currPlayer, &sp14);
+    BoardPlayerPosGet(currPlayer, &player_pos);
     explodeObj = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, UpdateExplode);
-    temp_r31 = omObjGetWork(explodeObj, ExplodeWork);
-    temp_r31->unk00_field0 = 0;
-    temp_r31->unk00_field1 = 0;
-    temp_r31->unk01 = 0x10;
-    temp_r31->unk02 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BGUEST, 38), NULL, 0);
-    BoardModelLayerSet(temp_r31->unk02, 2);
-    explodeObj->trans.x = sp14.x;
-    explodeObj->trans.y = sp14.y - 100.0f;
-    explodeObj->trans.z = sp14.z;
-    BoardModelPosSet(temp_r31->unk02, explodeObj->trans.x, explodeObj->trans.y, explodeObj->trans.z);
-    BoardModelMotionStart(temp_r31->unk02, 0, 0x40000001);
+    work = omObjGetWork(explodeObj, ExplodeWork);
+    work->kill = 0;
+    work->state = 0;
+    work->delay = 0x10;
+    work->bomb_model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BGUEST, 38), NULL, 0);
+    BoardModelLayerSet(work->bomb_model, 2);
+    explodeObj->trans.x = player_pos.x;
+    explodeObj->trans.y = player_pos.y - 100.0f;
+    explodeObj->trans.z = player_pos.z;
+    BoardModelPosSet(work->bomb_model, explodeObj->trans.x, explodeObj->trans.y, explodeObj->trans.z);
+    BoardModelMotionStart(work->bomb_model, 0, 0x40000001);
     for (i = 0; i < 4; i++) {
-        temp_r31->unk04[i] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 102), NULL, 0);
-        sp8.x = sp14.x + sp20[i][0];
-        sp8.y = sp14.y;
-        sp8.z = sp14.z + sp20[i][1];
-        BoardModelPosSetV(temp_r31->unk04[i], &sp8);
-        BoardModelLayerSet(temp_r31->unk04[i], 2);
+        work->burst_models[i] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 102), NULL, 0);
+        burst_pos.x = player_pos.x + burst_offsets[i][0];
+        burst_pos.y = player_pos.y;
+        burst_pos.z = player_pos.z + burst_offsets[i][1];
+        BoardModelPosSetV(work->burst_models[i], &burst_pos);
+        BoardModelLayerSet(work->burst_models[i], 2);
     }
     HuAudFXPlay(0x33C);
 }
 
+/**
+ * @brief Read the bomb opening-animation state.
+ * @return The current explosion state; zero during the initial delay and rise, and nonzero once it reaches its screen-space presentation.
+ */
 static s32 CheckExplode(void) {
-    ExplodeWork *temp_r31 = omObjGetWork(explodeObj, ExplodeWork);
+    ExplodeWork *work = omObjGetWork(explodeObj, ExplodeWork);
 
-    return temp_r31->unk00_field1;
+    return work->state;
 }
 
+/**
+ * @brief Advance or destroy the Battle Space bomb animation.
+ *
+ * @details Triggers reactions for players on the Battle Space, raises the bomb, then keeps it aligned to a screen-space point.
+ * @param arg0 Bomb object carrying the transform and ExplodeWork state.
+ */
 static void UpdateExplode(OMOBJ *arg0) {
-    Vec sp14;
-    Vec sp8;
-    float temp_f31;
-    ExplodeWork *temp_r30;
-    Mtx sp20;
+    Vec screen_pos;
+    Vec camera_rot;
+    float motion_time;
+    ExplodeWork *work;
+    Mtx model_mtx;
     s32 i;
 
     (void) 1000.0f; // TODO: 1000.0f needs to appear right before 20.0f in sdata2 to match.
-    temp_r30 = omObjGetWork(arg0, ExplodeWork);
-    if (temp_r30->unk00_field0 != 0 || BoardIsKill()) {
-        BoardModelKill(temp_r30->unk02);
+    work = omObjGetWork(arg0, ExplodeWork);
+    if (work->kill != 0 || BoardIsKill()) {
+        BoardModelKill(work->bomb_model);
         for (i = 0; i < 4; i++) {
-            BoardModelKill(temp_r30->unk04[i]);
+            BoardModelKill(work->burst_models[i]);
         }
         explodeObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
         return;
     }
-    switch (temp_r30->unk00_field1) {
+    switch (work->state) {
         case 0:
-            if (temp_r30->unk01 == 0) {
+            if (work->delay == 0) {
                 for (i = 0; i < 4; i++) {
                     if (currSpace == GWPlayer[i].space_curr) {
-                        temp_f31 = 20.0f * BoardRandFloat();
+                        motion_time = 20.0f * BoardRandFloat();
                         HuAudFXPlay(bombFXTbl[GWPlayer[i].character]);
-                        BoardPlayerMotionShiftSet(i, 6, temp_f31, 8.0f, HU3D_MOTATTR_LOOP);
+                        BoardPlayerMotionShiftSet(i, 6, motion_time, 8.0f, HU3D_MOTATTR_LOOP);
                     }
                 }
                 CharEffectLayerSet(2);
             }
-            if (temp_r30->unk01-- <= 0) {
+            if (work->delay-- <= 0) {
                 arg0->trans.y += 50.0f;
                 if (arg0->trans.y >= 800.0f) {
                     arg0->scale.x = 288.0f;
                     arg0->scale.y = -128.0f;
                     arg0->scale.z = 1000.0f;
                     for (i = 0; i < 4; i++) {
-                        BoardModelVisibilitySet(temp_r30->unk04[i], 0);
+                        BoardModelVisibilitySet(work->burst_models[i], 0);
                     }
-                    temp_r30->unk00_field1 = 2;
+                    work->state = 2;
                 }
             }
             break;
         case 3:
-            BoardModelVisibilitySet(temp_r30->unk02, 0);
-            temp_r30->unk00_field0 = 1;
+            BoardModelVisibilitySet(work->bomb_model, 0);
+            work->kill = 1;
             break;
         case 2:
-            BoardCameraRotGet(&sp8);
-            PSMTXRotRad(sp20, 'x', MTXDegToRad(sp8.x + 10.0f));
-            BoardModelMtxSet(temp_r30->unk02, &sp20);
-            BoardModelRotSet(temp_r30->unk02, 0.0f, 0.0f, 0.0f);
-            sp14.x = arg0->scale.x;
-            sp14.y = arg0->scale.y;
-            sp14.z = arg0->scale.z;
-            Hu3D2Dto3D(&sp14, 1, &sp14);
-            arg0->trans.x = sp14.x;
-            arg0->trans.y = sp14.y;
-            arg0->trans.z = sp14.z;
+            BoardCameraRotGet(&camera_rot);
+            PSMTXRotRad(model_mtx, 'x', MTXDegToRad(camera_rot.x + 10.0f));
+            BoardModelMtxSet(work->bomb_model, &model_mtx);
+            BoardModelRotSet(work->bomb_model, 0.0f, 0.0f, 0.0f);
+            screen_pos.x = arg0->scale.x;
+            screen_pos.y = arg0->scale.y;
+            screen_pos.z = arg0->scale.z;
+            Hu3D2Dto3D(&screen_pos, 1, &screen_pos);
+            arg0->trans.x = screen_pos.x;
+            arg0->trans.y = screen_pos.y;
+            arg0->trans.z = screen_pos.z;
             break;
     }
-    BoardModelPosSet(temp_r30->unk02, arg0->trans.x, arg0->trans.y, arg0->trans.z);
+    BoardModelPosSet(work->bomb_model, arg0->trans.x, arg0->trans.y, arg0->trans.z);
 }
 
+/**
+ * @brief Create the eleven-sprite Battle Space overlay and initialize its state machine.
+ */
 static void CreateBattleMain(void) {
-    s16 sp8;
-    s32 var_r29;
+    s16 sprite;
+    s32 resource;
     s32 i;
-    BattleWork *temp_r31;
-    s32 spC[] = {
+    BattleWork *work;
+    s32 sprite_resources[] = {
         DATA_MAKE_NUM(DATADIR_BBATTLE, 0),
         DATA_MAKE_NUM(DATADIR_BBATTLE, 1),
         DATA_MAKE_NUM(DATADIR_BBATTLE, 2),
@@ -515,164 +551,197 @@ static void CreateBattleMain(void) {
     };
 
     battleObj = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, UpdateBattleMain);
-    temp_r31 = omObjGetWork(battleObj, BattleWork);
-    temp_r31->unk00_field0 = 0;
-    temp_r31->unk00_field2 = 0;
-    temp_r31->unk01 = 0;
-    temp_r31->unk02 = 2;
-    temp_r31->unk03 = 2;
-    temp_r31->unk04 = 0;
-    temp_r31->unk00_field3 = 0;
-    temp_r31->unk00_field1 = 0;
+    work = omObjGetWork(battleObj, BattleWork);
+    work->kill = 0;
+    work->coin_display_initialized = 0;
+    work->timer = 0;
+    work->step_delay = 2;
+    work->step_timer = 2;
+    work->slowdown_level = 0;
+    work->coin_selection_slowing = 0;
+    work->state = 0;
     battleCoinSpeed = 1.0f;
     battleCoinPosF = 5.0f * BoardRandFloat();
     coinTakeMax = 0;
-    temp_r31->unk08 = HuSprGrpCreate(11);
+    work->sprite_group = HuSprGrpCreate(11);
     for (i = 0; i < 11; i++) {
-        var_r29 = spC[i];
-        BoardSpriteCreate(var_r29, battleSprPrioTbl[i], 0, &sp8);
-        HuSprGrpMemberSet(temp_r31->unk08, i, sp8);
-        HuSprAttrSet(temp_r31->unk08, i, 9);
-        HuSprAttrSet(temp_r31->unk08, i, 4);
+        resource = sprite_resources[i];
+        BoardSpriteCreate(resource, battleSprPrioTbl[i], 0, &sprite);
+        HuSprGrpMemberSet(work->sprite_group, i, sprite);
+        HuSprAttrSet(work->sprite_group, i, 9);
+        HuSprAttrSet(work->sprite_group, i, 4);
     }
-    HuSprGrpPosSet(temp_r31->unk08, 288.0f, 240.0f);
+    HuSprGrpPosSet(work->sprite_group, 288.0f, 240.0f);
     battleObj->trans.x = -308.0f;
     BoardFilterFadeInit(30, 0xA0);
 }
 
+/**
+ * @brief Dispatch one frame of the Battle Space overlay state machine.
+ *
+ * @details Also aligns the bomb presentation with the moving overlay.
+ * @param arg0 Overlay object whose transform and BattleWork state are updated.
+ */
 static void UpdateBattleMain(OMOBJ *arg0) {
-    BattleWork *temp_r30;
-    ExplodeWork *temp_r29;
-    float var_f31;
+    BattleWork *work;
+    ExplodeWork *explode_work;
+    float bomb_screen_y;
 
-    temp_r30 = omObjGetWork(arg0, BattleWork);
-    if (temp_r30->unk00_field0 != 0 || BoardIsKill()) {
-        HuSprGrpKill(temp_r30->unk08);
+    work = omObjGetWork(arg0, BattleWork);
+    if (work->kill != 0 || BoardIsKill()) {
+        HuSprGrpKill(work->sprite_group);
         battleObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
         return;
     }
-    switch (temp_r30->unk00_field1) {
+    switch (work->state) {
         case 0:
-            DescendBattleBomb(temp_r30, arg0);
+            DescendBattleBomb(work, arg0);
             break;
         case 1:
-            EndBattle(temp_r30, arg0);
+            EndBattle(work, arg0);
             break;
         case 2:
-            ShowBattleGame(temp_r30, arg0);
+            ShowBattleGame(work, arg0);
             break;
         case 3:
-            RaiseBattleGame(temp_r30, arg0);
+            RaiseBattleGame(work, arg0);
             break;
         case 4:
-            UpdateBattleCoin(temp_r30, arg0);
+            UpdateBattleCoin(work, arg0);
             break;
         case 5:
-            InitBattleGameSpr(temp_r30, arg0);
+            InitBattleGameSpr(work, arg0);
             break;
         case 6:
-            VibratePad(temp_r30, arg0);
+            VibratePad(work, arg0);
             break;
         case 7:
-            ShowBattleCoin(temp_r30, arg0);
+            ShowBattleCoin(work, arg0);
             break;
         case 8:
             break;
     }
-    var_f31 = arg0->trans.x + 240.0f;
-    temp_r29 = omObjGetWork(explodeObj, ExplodeWork);
-    if (temp_r29->unk00_field1 == 2) {
+    bomb_screen_y = arg0->trans.x + 240.0f;
+    explode_work = omObjGetWork(explodeObj, ExplodeWork);
+    if (explode_work->state == 2) {
         explodeObj->scale.x = 288.0f;
-        explodeObj->scale.y = var_f31;
+        explodeObj->scale.y = bomb_screen_y;
         explodeObj->scale.z = 1000.0f;
     }
-    HuSprPosSet(temp_r30->unk08, 0, 0.0f, arg0->trans.y);
-    HuSprScaleSet(temp_r30->unk08, 0, arg0->trans.z, arg0->trans.z);
+    HuSprPosSet(work->sprite_group, 0, 0.0f, arg0->trans.y);
+    HuSprScaleSet(work->sprite_group, 0, arg0->trans.z, arg0->trans.z);
 }
 
+/**
+ * @brief Ease the overlay from off-screen to its opening position.
+ * @param arg0 Overlay work state, changed to title reveal when the destination is reached.
+ * @param arg1 Overlay object whose x position approaches -132.
+ */
 static void DescendBattleBomb(BattleWork *arg0, OMOBJ *arg1) {
-    float temp_f31 = -132.0f - arg1->trans.x;
+    float distance = -132.0f - arg1->trans.x;
 
-    if (temp_f31 < 0.1f) {
+    if (distance < 0.1f) {
         arg1->trans.x = -132.0f;
-        arg0->unk00_field1 = 2;
+        arg0->state = 2;
     } else {
-        arg1->trans.x += 0.3f * temp_f31;
+        arg1->trans.x += 0.3f * distance;
     }
 }
 
+/**
+ * @brief Move the overlay off-screen and finish its fade.
+ * @param arg0 Overlay work state, changed to idle after the exit completes.
+ * @param arg1 Overlay object whose x position approaches 548.
+ */
 static void EndBattle(BattleWork *arg0, OMOBJ *arg1) {
-    float temp_f31 = 548.0f - arg1->trans.x;
+    float distance = 548.0f - arg1->trans.x;
 
-    if (temp_f31 < 0.1f) {
+    if (distance < 0.1f) {
         BoardFilterFadeOut(30);
-        arg0->unk00_field1 = 8;
+        arg0->state = 8;
     } else {
-        arg1->trans.x += 0.3f * temp_f31;
+        arg1->trans.x += 0.3f * distance;
     }
 }
 
+/**
+ * @brief Reveal the Battle Game title with a sine-scaled entrance.
+ * @param arg0 Overlay work containing the reveal timer and sprite group.
+ * @param arg1 Overlay object supplying the title scale and position.
+ */
 static void ShowBattleGame(BattleWork *arg0, OMOBJ *arg1) {
-    float var_r29;
+    float angle;
 
-    if (arg0->unk01 == 0) {
+    if (arg0->timer == 0) {
         if (BoardFilterFadePauseCheck()) {
-            arg0->unk01 = 1;
+            arg0->timer = 1;
             arg1->trans.z = 0.01f;
             arg1->trans.y = 0.0f;
-            HuSprAttrReset(arg0->unk08, 0, HUSPR_ATTR_DISPOFF);
-            HuSprPosSet(arg0->unk08, 0, 0.0f, 0.0f);
+            HuSprAttrReset(arg0->sprite_group, 0, HUSPR_ATTR_DISPOFF);
+            HuSprPosSet(arg0->sprite_group, 0, 0.0f, 0.0f);
         } else {
             return;
         }
     }
-    if (arg0->unk01 >= 90) {
-        arg0->unk00_field1 = 8;
-        arg0->unk01 = 90;
+    if (arg0->timer >= 90) {
+        arg0->state = 8;
+        arg0->timer = 90;
     }
-    OSs8tof32((s8*) &arg0->unk01, &var_r29);
-    arg1->trans.z = sind(var_r29);
-    arg0->unk01 += 4;
+    OSs8tof32((s8*) &arg0->timer, &angle);
+    arg1->trans.z = sind(angle);
+    arg0->timer += 4;
 }
 
+/**
+ * @brief Raise the Battle Game title to its selection position.
+ * @param arg0 Overlay work, changed to idle when the title reaches y = -60.
+ * @param arg1 Overlay object whose y position is eased upward.
+ */
 static void RaiseBattleGame(BattleWork *arg0, OMOBJ *arg1) {
-    float temp_f31 = -60.0f - arg1->trans.y;
+    float distance = -60.0f - arg1->trans.y;
 
-    if (ABS(temp_f31) < 0.1f) {
+    if (ABS(distance) < 0.1f) {
         arg1->trans.y = -60.0f;
-        arg0->unk00_field1 = 8;
+        arg0->state = 8;
     } else {
-        arg1->trans.y += 0.2f * temp_f31;
+        arg1->trans.y += 0.2f * distance;
     }
 }
 
+/**
+ * @brief Animate and progressively slow the coin-stake roulette.
+ *
+ * @details The roulette stops only on the stake index chosen by SetBattleCoinValue.
+ * @param arg0 Overlay work containing the roulette timers, slowdown state, and sprite group.
+ * @param arg1 Overlay object used when initializing the selector.
+ */
 static void UpdateBattleCoin(BattleWork *arg0, OMOBJ *arg1) {
-    s8 temp_r28;
+    s8 coin_index;
 
-    if (arg0->unk00_field2 != 0) {
-        if (arg0->unk03++ < arg0->unk02) {
-            arg0->unk04++;
-            if (arg0->unk04 > 20) {
-                arg0->unk04 = 20;
+    if (arg0->coin_display_initialized != 0) {
+        if (arg0->step_timer++ < arg0->step_delay) {
+            arg0->slowdown_level++;
+            if (arg0->slowdown_level > 20) {
+                arg0->slowdown_level = 20;
             }
             return;
         }
-        if (arg0->unk00_field3 == 0 && arg0->unk04 >= 20 && BoardRandMod(100) > 50) {
-            arg0->unk00_field3 = 1;
+        if (arg0->coin_selection_slowing == 0 && arg0->slowdown_level >= 20 && BoardRandMod(100) > 50) {
+            arg0->coin_selection_slowing = 1;
         }
-        arg0->unk03 = 0;
-        if (arg0->unk00_field3 != 0) {
-            arg0->unk02 += 4;
-            if (arg0->unk02 > 30) {
-                arg0->unk02 = 30;
+        arg0->step_timer = 0;
+        if (arg0->coin_selection_slowing != 0) {
+            arg0->step_delay += 4;
+            if (arg0->step_delay > 30) {
+                arg0->step_delay = 30;
             }
         }
-        OSf32tos8(&battleCoinPosF, &temp_r28);
-        if (arg0->unk02 >= 30 && temp_r28 == battleCoinIdx) {
-            arg0->unk00_field1 = 7;
-            arg0->unk01 = 0;
-            coinTakeMax = battleCoinTbl[temp_r28];
+        OSf32tos8(&battleCoinPosF, &coin_index);
+        if (arg0->step_delay >= 30 && coin_index == battleCoinIdx) {
+            arg0->state = 7;
+            arg0->timer = 0;
+            coinTakeMax = battleCoinTbl[coin_index];
             HuAudFXPlay(0x305);
         } else {
             battleCoinPosF += 1.0f;
@@ -681,98 +750,127 @@ static void UpdateBattleCoin(BattleWork *arg0, OMOBJ *arg1) {
                 battleCoinPosF = 0.0f;
             }
         }
-        HuSprBankSet(arg0->unk08, 1, temp_r28);
+        HuSprBankSet(arg0->sprite_group, 1, coin_index);
         return;
     }
-    HuSprAttrReset(arg0->unk08, 2, HUSPR_ATTR_DISPOFF);
-    HuSprAttrReset(arg0->unk08, 1, HUSPR_ATTR_NOANIM | HUSPR_ATTR_DISPOFF);
-    HuSprPosSet(arg0->unk08, 2, 0.0f, 40.0f);
-    HuSprPosSet(arg0->unk08, 1, 34.0f, 40.0f);
-    HuSprScaleSet(arg0->unk08, 1, 0.9f, 0.9f);
-    arg0->unk00_field2 = 1;
-    arg0->unk01 = 0;
+    HuSprAttrReset(arg0->sprite_group, 2, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(arg0->sprite_group, 1, HUSPR_ATTR_NOANIM | HUSPR_ATTR_DISPOFF);
+    HuSprPosSet(arg0->sprite_group, 2, 0.0f, 40.0f);
+    HuSprPosSet(arg0->sprite_group, 1, 34.0f, 40.0f);
+    HuSprScaleSet(arg0->sprite_group, 1, 0.9f, 0.9f);
+    arg0->coin_display_initialized = 1;
+    arg0->timer = 0;
     arg1->rot.x = 50.0f;
 }
 
+/**
+ * @brief Pulse the selected stake sprite for ninety frames.
+ * @param arg0 Overlay work containing the display timer and sprite group.
+ * @param arg1 Unused overlay object retained by the state-handler interface.
+ */
 static void ShowBattleCoin(BattleWork *arg0, OMOBJ *arg1) {
-    float temp_f29;
-    float var_f30;
+    float coin_scale;
+    float angle;
 
-    if (arg0->unk01 >= 90) {
-        arg0->unk01 = 0;
-        arg0->unk00_field1 = 8;
-        var_f30 = 90.0f;
+    if (arg0->timer >= 90) {
+        arg0->timer = 0;
+        arg0->state = 8;
+        angle = 90.0f;
     } else {
-        arg0->unk01++;
-        OSu8tof32(&arg0->unk01, &var_f30);
+        arg0->timer++;
+        OSu8tof32(&arg0->timer, &angle);
     }
     if (coinTakeMax != 50) {
-        var_f30 *= 6.0f;
+        angle *= 6.0f;
     } else {
-        var_f30 *= 10.0f;
+        angle *= 10.0f;
     }
-    while (var_f30 > 180.0f) {
-        var_f30 -= 180.0f;
+    while (angle > 180.0f) {
+        angle -= 180.0f;
     }
-    temp_f29 = 0.9f + sind(var_f30);
-    HuSprScaleSet(arg0->unk08, 1, temp_f29, temp_f29);
+    coin_scale = 0.9f + sind(angle);
+    HuSprScaleSet(arg0->sprite_group, 1, coin_scale, coin_scale);
 }
 
+/**
+ * @brief Reveal and position the two minigame choices and their cursors.
+ * @param arg0 Overlay work containing the candidate sprite indices and group.
+ * @param arg1 Unused overlay object retained by the state-handler interface.
+ */
 static void InitBattleGameSpr(BattleWork *arg0, OMOBJ *arg1) {
-    s8 temp_r30;
-    s8 temp_r29;
-    float sp8[2][2] = {
+    s8 left_minigame;
+    s8 right_minigame;
+    float cursor_positions[2][2] = {
         { -130.0f, 30.0f },
         {  130.0f, 30.0f }
     };
 
-    temp_r30 = battleMGIdx[0];
-    temp_r29 = battleMGIdx[1];
-    HuSprAttrReset(arg0->unk08, 3, HUSPR_ATTR_DISPOFF);
-    HuSprAttrReset(arg0->unk08, 4, HUSPR_ATTR_DISPOFF);
-    HuSprAttrReset(arg0->unk08, temp_r30 + 5, HUSPR_ATTR_DISPOFF);
-    HuSprAttrReset(arg0->unk08, temp_r29 + 5, HUSPR_ATTR_DISPOFF);
-    HuSprPosSet(arg0->unk08, 3, sp8[0][0], sp8[0][1]);
-    HuSprPosSet(arg0->unk08, 4, sp8[1][0], sp8[1][1]);
-    HuSprPosSet(arg0->unk08, temp_r30 + 5, sp8[0][0], sp8[0][1]);
-    HuSprPosSet(arg0->unk08, temp_r29 + 5, sp8[1][0], sp8[1][1]);
-    arg0->unk00_field1 = 8;
+    left_minigame = battleMGIdx[0];
+    right_minigame = battleMGIdx[1];
+    HuSprAttrReset(arg0->sprite_group, 3, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(arg0->sprite_group, 4, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(arg0->sprite_group, left_minigame + 5, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(arg0->sprite_group, right_minigame + 5, HUSPR_ATTR_DISPOFF);
+    HuSprPosSet(arg0->sprite_group, 3, cursor_positions[0][0], cursor_positions[0][1]);
+    HuSprPosSet(arg0->sprite_group, 4, cursor_positions[1][0], cursor_positions[1][1]);
+    HuSprPosSet(arg0->sprite_group, left_minigame + 5, cursor_positions[0][0], cursor_positions[0][1]);
+    HuSprPosSet(arg0->sprite_group, right_minigame + 5, cursor_positions[1][0], cursor_positions[1][1]);
+    arg0->state = 8;
 }
 
+/**
+ * @brief Hide all eleven sprites in the Battle Space overlay.
+ */
 static void HideBattleSpr(void) {
-    BattleWork *temp_r30 = omObjGetWork(battleObj, BattleWork);
+    BattleWork *work = omObjGetWork(battleObj, BattleWork);
     s32 i;
 
     for (i = 0; i < 11; i++) {
-        HuSprAttrSet(temp_r30->unk08, i, 4);
+        HuSprAttrSet(work->sprite_group, i, 4);
     }
 }
 
 
+/**
+ * @brief Start the battle-reveal vibration on all four controller ports.
+ * @param arg0 Overlay work returned to idle after vibration starts.
+ * @param arg1 Unused overlay object retained by the state-handler interface.
+ */
 static void VibratePad(BattleWork *arg0, OMOBJ *arg1) {
     s32 i;
 
     for (i = 0; i < 4; i++) {
         omVibrate(i, 12, 0xC, 0);
     }
-    arg0->unk00_field1 = 8;
+    arg0->state = 8;
 }
 
+/**
+ * @brief Request deletion of the Battle Space overlay object.
+ */
 static void StopBattleBomb(void) {
     if (battleObj) {
-        omObjGetWork(battleObj, BattleWork)->unk00_field0 = 1;
+        omObjGetWork(battleObj, BattleWork)->kill = 1;
     }
 }
 
+/**
+ * @brief Read the current Battle Space overlay state.
+ * @return The state number; state 8 is idle and is used by the controlling process as a completion signal.
+ */
 static s32 GetBattleBombState(void) {
-    return omObjGetWork(battleObj, BattleWork)->unk00_field1;
+    return omObjGetWork(battleObj, BattleWork)->state;
 }
 
+/**
+ * @brief Enter a Battle Space overlay state and reset its frame timer.
+ * @param arg0 State number from 0 through 8; 0-7 select animation handlers and 8 is idle.
+ */
 static void SetBattleBombState(s32 arg0) {
-    BattleWork *var_r31 = omObjGetWork(battleObj, BattleWork);
+    BattleWork *work = omObjGetWork(battleObj, BattleWork);
 
-    var_r31->unk00_field1 = arg0;
-    var_r31->unk01 = 0;
+    work->state = arg0;
+    work->timer = 0;
 }
 
 static s8 battleChanceTbl[][3][5] = {
@@ -798,39 +896,44 @@ static s8 battleChanceTbl[][3][5] = {
     }
 };
 
+/**
+ * @brief Choose the hidden stake index on which the roulette will stop.
+ *
+ * @details Uses the richest player's balance, the current third of the game, and battleChanceTbl to select an index into battleCoinTbl.
+ */
 static void SetBattleCoinValue(void) {
-    s32 temp_r26;
-    s32 temp_r25;
-    s32 var_r28;
-    s32 var_r29;
-    s32 var_r30;
-    s32 var_r27;
+    s32 random_roll;
+    s32 turn_phase;
+    s32 cumulative_chance;
+    s32 coin_band;
+    s32 max_coins;
+    s32 selected_coin_index;
     s32 i;
 
-    var_r30 = -1;
+    max_coins = -1;
     for (i = 0; i < 4; i++) {
-        if (BoardPlayerCoinsGet(i) > var_r30) {
-            var_r30 = BoardPlayerCoinsGet(i);
+        if (BoardPlayerCoinsGet(i) > max_coins) {
+            max_coins = BoardPlayerCoinsGet(i);
         }
     }
-    if (var_r30 >= 50) {
-        var_r29 = 3;
-    } else if (var_r30 >= 30) {
-        var_r29 = 2;
-    } else if (var_r30 >= 20) {
-        var_r29 = 1;
+    if (max_coins >= 50) {
+        coin_band = 3;
+    } else if (max_coins >= 30) {
+        coin_band = 2;
+    } else if (max_coins >= 20) {
+        coin_band = 1;
     } else {
-        var_r29 = 0;
+        coin_band = 0;
     }
-    temp_r25 = 3.0f * ((float) GWSystem.turn / GWSystem.max_turn);
-    temp_r26 = BoardRandMod(100);
-    var_r27 = var_r28 = 0;
+    turn_phase = 3.0f * ((float) GWSystem.turn / GWSystem.max_turn);
+    random_roll = BoardRandMod(100);
+    selected_coin_index = cumulative_chance = 0;
     for (i = 4; i >= 0; i--) {
-        var_r28 += battleChanceTbl[var_r29][temp_r25][i];
-        if (temp_r26 < var_r28) {
-            var_r27 = i;
+        cumulative_chance += battleChanceTbl[coin_band][turn_phase][i];
+        if (random_roll < cumulative_chance) {
+            selected_coin_index = i;
             break;
         }
     }
-    battleCoinIdx = var_r27;
+    battleCoinIdx = selected_coin_index;
 }
