@@ -38,7 +38,7 @@ typedef struct {
     u8 transition_frames;
     s8 original_selection;
     u8 repeat_delay;
-    s16 write_only_field;
+    s16 unidentified_0a; // Observed only being written as zero.
     u32 previous_input;
 } ConfigWork;
 
@@ -265,7 +265,7 @@ void CreatePauseScreen(void) {
     work->state = 0;
     work->option_active = 0;
     work->pad_config_closing = 0;
-    work->write_only_field = 0;
+    work->unidentified_0a = 0;
     work->save_unavailable = (SLSaveFlagGet() != 0) ? 0 : 1;
     work->repeat_delay = 0;
     work->previous_input = 0;
@@ -1142,14 +1142,14 @@ static s32 UpdatePauseBox(OMOBJ *object, ConfigWork *work, s32 option) {
             boxRot[option] = object->rot.x;
             work->original_selection = -1;
             work->state = 5;
-            work->write_only_field = 0;
+            work->unidentified_0a = 0;
             break;
         case 4:
             boxState[option] = work->original_selection;
             work->selection = boxState[option];
             object->rot.x = boxRot[option];
             work->state = 5;
-            work->write_only_field = 0;
+            work->unidentified_0a = 0;
             break;
         case 5:
             model_scale = 0.5f;
@@ -1248,7 +1248,7 @@ static s32 UpdatePauseBoxExt(OMOBJ *object, ConfigWork *work, s32 option) {
             boxState[option] = work->selection;
             boxRot[option] = object->rot.x;
             work->state = 5;
-            work->write_only_field = 0;
+            work->unidentified_0a = 0;
             work->original_selection = -1;
             break;
         case 4:
@@ -1256,7 +1256,7 @@ static s32 UpdatePauseBoxExt(OMOBJ *object, ConfigWork *work, s32 option) {
             work->selection = boxState[option];
             object->rot.x = boxRot[option];
             work->state = 5;
-            work->write_only_field = 0;
+            work->unidentified_0a = 0;
             break;
         case 5:
             model_scale = 0.5f;
