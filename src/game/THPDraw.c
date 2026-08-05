@@ -33,11 +33,6 @@ void THPGXRestore(void) {
 void THPGXYuv2RgbSetup(GXRenderModeObj *render_mode, GXColor *output_color, Mtx position_matrix) {
     s32 framebuffer_width = render_mode->fbWidth;
     s32 embedded_framebuffer_height = render_mode->efbHeight;
-    GXColorS10 yuv_bias = { 0xFFA6, 0, 0xFF8E, 0x0087 };
-    GXColor yuv_coefficient_0 = { 0, 0, 0xE2, 0x58 };
-    GXColor yuv_coefficient_1 = { 0xB3, 0, 0, 0xB6 };
-    GXColor yuv_coefficient_2 = { 0xFF, 0, 0xFF, 0x80 };
-
     GXLoadPosMtxImm(position_matrix, GX_PNMTX0);
     GXSetCurrentMtx(GX_PNMTX0);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
@@ -89,10 +84,10 @@ void THPGXYuv2RgbSetup(GXRenderModeObj *render_mode, GXColor *output_color, Mtx 
     GXSetTevColorOp(GX_TEVSTAGE4, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE4, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A1);
     GXSetTevAlphaOp(GX_TEVSTAGE4, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXSetTevColorS10(GX_TEVREG0, yuv_bias);
-    GXSetTevKColor(GX_KCOLOR0, yuv_coefficient_0);
-    GXSetTevKColor(GX_KCOLOR1, yuv_coefficient_1);
-    GXSetTevKColor(GX_KCOLOR2, yuv_coefficient_2);
+    GXSetTevColorS10(GX_TEVREG0, (GXColorS10) { 0xFFA6, 0, 0xFF8E, 0x0087 });
+    GXSetTevKColor(GX_KCOLOR0, (GXColor) { 0, 0, 0xE2, 0x58 });
+    GXSetTevKColor(GX_KCOLOR1, (GXColor) { 0xB3, 0, 0, 0xB6 });
+    GXSetTevKColor(GX_KCOLOR2, (GXColor) { 0xFF, 0, 0xFF, 0x80 });
     GXSetTevSwapModeTable(GX_TEV_SWAP0, GX_CH_RED, GX_CH_GREEN, GX_CH_BLUE, GX_CH_ALPHA);
 }
 
