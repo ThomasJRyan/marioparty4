@@ -60,23 +60,48 @@ SKIP_FILES = [
     Path("src/game/ovllist.c"),
 ]
 
-# Regex to match function definitions (simple heuristic, may need further tuning)
+# Match complete single-line C function signatures, including the callback
+# parameters and weak declarations used by the decompilation sources. Keeping
+# the return type separate prevents a nested callback signature from being
+# mistaken for the enclosing function name.
 FUNC_DEF = re.compile(
-    r"^[ \t]*(?:[a-zA-Z_][\w\s\*\(\),]*\*?\s+)?\*?\s*([a-zA-Z_]\w*)\s*\([^;{]*\)\s*\{",
+    r"^[ \t]*"
+    r"(?:(?:static|inline)\s+|__declspec\([^)]*\)\s+)*"
+    r"(?:[a-zA-Z_]\w*(?:\s+|\s*\*+\s*))+"
+    r"([a-zA-Z_]\w*)\s*"
+    r"\((?:[^()]|\([^()]*\))*\)\s*\{",
     re.MULTILINE,
 )
 
-# Regex to match Doxygen-style comment immediately before function definition
-DOXYGEN_COMMENT = re.compile(
-    r"/\*\*.*?\*/\s*(?:[a-zA-Z_][\w\s\*\(\),]*\*?\s+)?\*?([a-zA-Z_]\w*)\s*\([^;{]*\)\s*\{",
-    re.DOTALL,
+
+def find_documented_functions(content, function_matches):
+    """Return functions with an immediately preceding Doxygen comment."""
+    documented = set()
+    for match in function_matches:
+        prefix = content[:match.start()]
+        comment_end = prefix.rfind("*/")
+        if comment_end == -1 or prefix[comment_end + 2:].strip():
+            continue
+        comment_start = prefix.rfind("/*", 0, comment_end)
+        if comment_start != -1 and prefix.startswith("/**", comment_start):
+            documented.add(match.group(1))
+    return documented
+
+# Decompiler-style identifiers are audited token-wise rather than through a
+# declaration-shape regex. This catches pointer declarations, parameters, and
+# prototypes while excluding ordinary names such as `speed` that merely begin
+# with the letters "sp".
+UNLABELLED_IDENTIFIER = re.compile(
+    r"(?<!\.)(?<!->)\b(?:arg[0-9A-Fa-f]+|var_[A-Za-z0-9_]+|temp_[A-Za-z0-9_]+|"
+    r"sp[0-9][A-Fa-f0-9]*|unk[A-Za-z0-9_]*|lbl_\d+_[A-Za-z0-9_]+)\b"
 )
 
-# Unlabelled variables
-UNLABELLED_VARIABLE = re.compile(
-    r"^\s+(/\*.*\*/\s*)?(?!return)[a-zA-Z0-9]+\s+\*?\*?((var_|temp_|sp|unk|lbl_\d+_\S+_\d+)\S?\d*(_field\d*\s*:\s*)?\S?\[?\d*\]?)(\s*=\s*\S*)?;",
-    re.MULTILINE,
-)
+
+def find_unlabelled_identifiers(content):
+    """Find decompiler-style identifiers outside comments and literals."""
+    code = re.sub(r"/\*.*?\*/|//[^\n]*", " ", content, flags=re.DOTALL)
+    code = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'', " ", code)
+    return sorted(set(UNLABELLED_IDENTIFIER.findall(code)))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Scan for undocumented functions in C files")
@@ -132,15 +157,16 @@ if __name__ == "__main__":
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
             # Find all function definitions
-            all_funcs = set(match.group(1) for match in FUNC_DEF.finditer(content))
-            # Find all documented functions
-            documented_funcs = set(
-                match.group(1) for match in DOXYGEN_COMMENT.finditer(content)
-            )
+            function_matches = list(FUNC_DEF.finditer(content))
+            all_funcs = set(match.group(1) for match in function_matches)
+            # Check documentation against the same parsed definitions used for
+            # the denominator so callback and weak signatures cannot skew it.
+            documented_funcs = find_documented_functions(content, function_matches)
             # Filter out C keywords
             all_funcs = {func for func in all_funcs if func not in C_KEYWORDS}
-            # Find all unlabeled variables
-            all_vars = UNLABELLED_VARIABLE.findall(content)
+            # Find all unlabelled decompiler-style identifiers, including
+            # parameters and pointer-form declarations.
+            all_vars = find_unlabelled_identifiers(content)
             # Undocumented = all - documented
             undocumented = all_funcs - documented_funcs
             percent = (len(documented_funcs) / len(all_funcs)) * 100 if all_funcs else 0
@@ -162,9 +188,7 @@ if __name__ == "__main__":
                 # List unlabelled variables if requested
                 if list_vars and all_vars:
                     print(f"  Unlabelled variables ({len(all_vars)}):")
-                    for var in all_vars:
-                        # var is a tuple from findall, extract the variable name (index 1)
-                        var_name = var[1]
+                    for var_name in all_vars:
                         print(f"    - {var_name}")
             
             total_funcs += len(all_funcs)
