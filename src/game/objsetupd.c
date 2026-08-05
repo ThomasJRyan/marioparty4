@@ -181,8 +181,10 @@ void fn_800402FC(void) {
 /**
  * @brief Start a child process that plays timed footstep sounds.
  *
- * @param [in] tableIdx Footstep frame-table index.
- * @param [in] animIdx Animation variant index.
+ * @param [in] tableIdx Row in `stepFrameTable` selecting one character or
+ *                      movement style's footstep-frame pairs.
+ * @param [in] animIdx Pair index within that row; `animIdx * 2` and the next
+ *                     element are the two trigger frames.
  * @param [in] modelIdx Hu3D model identifier whose active motion is monitored.
  * @param [in] motionId Motion identifier to monitor.
  */

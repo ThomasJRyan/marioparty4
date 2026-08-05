@@ -133,7 +133,8 @@ void *HuDataGetDirPtr(s32 dirNum)
 /**
  * @brief Ensure a packed data identifier's directory archive is loaded.
  *
- * @param [in] dataNum Packed directory/file identifier; only its directory is loaded.
+ * @param [in] dataNum Packed identifier whose high 16 bits select the archive
+ *                     to load; the low 16-bit file index is ignored.
  *
  * @return Persistent directory status record, or `NULL` for an invalid
  *         directory or exhausted status table.
@@ -176,7 +177,8 @@ HUDATASTAT *HuDataDirRead(s32 dataNum)
 /**
  * @brief Load a directory archive and associate it with an allocation tag.
  *
- * @param [in] dataNum Packed directory/file identifier.
+ * @param [in] dataNum Packed identifier whose high 16 bits select the directory;
+ *                     the low 16-bit file index is not consumed here.
  * @param [in] num Allocation tag recorded for later HuDataDirCloseNum().
  *
  * @return Persistent directory status record, or `NULL` for an invalid
@@ -228,7 +230,8 @@ static HUDATASTAT *HuDataDirReadNum(s32 dataNum, s32 num)
  *
  * @param [in] dirP Existing directory archive buffer whose ownership is
  *                  transferred to the data system.
- * @param [in] dataNum Packed identifier supplying the directory number.
+ * @param [in] dataNum Packed identifier whose high 16 bits become the registered
+ *                     directory ID; the low 16 bits are ignored.
  *
  * @return Newly assigned status record, or `NULL` when no record is free.
  */
@@ -277,7 +280,8 @@ void HuDataDirReadAsyncCallBack(s32 result, DVDFileInfo* fileInfo)
 /**
  * @brief Start loading a data directory asynchronously when it is not cached.
  *
- * @param [in] dataNum Packed directory/file identifier.
+ * @param [in] dataNum Packed identifier whose high 16 bits select the directory
+ *                     to queue; the low 16-bit file index is ignored.
  *
  * @return Status-record index for a queued DVD read, `STAT_ID_ARAM` for an
  *         ARAM transfer, or `-1` if invalid, already loaded, or no slot is free.
@@ -318,7 +322,8 @@ s32 HuDataDirReadAsync(s32 dataNum)
 /**
  * @brief Start an asynchronous tagged load of a data directory.
  *
- * @param [in] dataNum Packed directory/file identifier.
+ * @param [in] dataNum Packed identifier whose high 16 bits select the directory
+ *                     to queue; the low 16-bit file index is ignored.
  * @param [in] num Allocation tag saved for HuDataDirCloseNum().
  *
  * @return Status-record index for a queued read, or `-1` if invalid, already
@@ -389,7 +394,8 @@ static void GetFileInfo(HUDATASTAT *readStat, s32 fileNum)
 /**
  * @brief Load and decode one packed data file into the main heap.
  *
- * @param [in] dataNum Packed directory and file identifier.
+ * @param [in] dataNum Packed identifier: high 16 bits select the archive and
+ *                     low 16 bits select the file entry decoded from it.
  *
  * @return Caller-owned decoded buffer, or `NULL` if the directory or allocation
  *         is unavailable; release with HuDataClose().
@@ -418,7 +424,8 @@ void *HuDataRead(s32 dataNum)
 /**
  * @brief Load and decode one packed data file into a tagged main-heap allocation.
  *
- * @param [in] dataNum Packed directory and file identifier.
+ * @param [in] dataNum Packed identifier: high 16 bits select the archive and
+ *                     low 16 bits select the file entry decoded from it.
  * @param [in] num Allocation tag applied to the decoded buffer and directory.
  *
  * @return Caller-owned tagged decoded buffer, or `NULL` on load/allocation failure.
@@ -446,8 +453,9 @@ void *HuDataReadNum(s32 dataNum, s32 num)
 /**
  * @brief Load and decode one packed data file into a selected heap.
  *
- * @param [in] dataNum Packed directory and file identifier.
- * @param [in] heap Destination heap.
+ * @param [in] dataNum Packed identifier: high 16 bits select the archive and
+ *                     low 16 bits select the file entry decoded into `heap`.
+ * @param [in] heap HEAP_* selector controlling which allocator owns the decoded buffer.
  *
  * @return Caller-owned decoded buffer from `heap`, or `NULL` on failure.
  */
@@ -490,9 +498,10 @@ void *HuDataSelHeapRead(s32 dataNum, HeapID heap)
 /**
  * @brief Load and decode one packed data file into a selected tagged heap.
  *
- * @param [in] dataNum Packed directory and file identifier.
+ * @param [in] dataNum Packed identifier: high 16 bits select the archive and
+ *                     low 16 bits select the tagged file entry decoded into `heap`.
  * @param [in] num Allocation tag used where the selected heap supports tags.
- * @param [in] heap Destination heap.
+ * @param [in] heap HEAP_* selector controlling allocation ownership and tag handling.
  *
  * @return Caller-owned decoded buffer from `heap`, or `NULL` on failure.
  */
@@ -612,7 +621,8 @@ void **HuDataReadMultiSub(s32 *dataNum, BOOL use_num, s32 num)
 /**
  * @brief Get the allocator-aligned decoded size of a loaded data file.
  *
- * @param [in] dataNum Packed directory and file identifier.
+ * @param [in] dataNum Packed identifier: high 16 bits locate the loaded archive
+ *                     and low 16 bits select the file header whose size is read.
  *
  * @return Even-byte-aligned decoded size, or `-1` if its directory is not loaded.
  */
@@ -662,7 +672,8 @@ void HuDataCloseMulti(void **ptrs)
 /**
  * @brief Close a loaded data directory and free its archive buffer.
  *
- * @param [in] dataNum Packed identifier selecting the directory to close.
+ * @param [in] dataNum Packed identifier whose high 16 bits select the loaded
+ *                     archive to close; the low 16 bits are ignored.
  */
 void HuDataDirClose(s32 dataNum)
 {
@@ -706,7 +717,8 @@ void HuDataDirCloseNum(s32 num)
 /**
  * @brief Open the directory archive containing a packed data identifier.
  *
- * @param [in] dataNum Packed directory/file identifier.
+ * @param [in] dataNum Packed identifier whose high 16 bits select the directory
+ *                     entry opened with DVDFastOpen(); low 16 bits are ignored.
  * @param [out] fileInfo Receives the open DVD archive file.
  *
  * @return `1` when the directory index is valid; `0` when out of range.
@@ -756,7 +768,7 @@ static s32 HuDataDVDdirDirectRead(DVDFileInfo *fileInfo, void *dest, s32 len, s3
  * @param [in] bufP Archive slice containing an eight-byte file header and data.
  * @param [in] bufOfs Byte offset of the file header within `bufP`.
  * @param [in] num Allocation tag for the decoded output.
- * @param [in] heap Destination heap.
+ * @param [in] heap HEAP_* selector used to allocate the decoded output.
  *
  * @return Caller-owned decoded buffer from `heap`, or `NULL` on allocation failure.
  */
@@ -812,9 +824,10 @@ static void *HuDataDecodeIt(void *bufP, s32 bufOfs, s32 num, HeapID heap)
 /**
  * @brief Direct-read and decode one archive member without caching its directory.
  *
- * @param [in] dataNum Packed directory and file identifier.
+ * @param [in] dataNum Packed identifier: high 16 bits select the archive opened
+ *                     directly and low 16 bits select the member slice decoded.
  * @param [in] num Allocation tag for the decoded result.
- * @param [in] heap Destination heap.
+ * @param [in] heap HEAP_* selector used to allocate the final decoded member.
  *
  * @return Caller-owned decoded buffer from `heap`, or `NULL` for invalid file
  *         indices or allocation/read setup failure.

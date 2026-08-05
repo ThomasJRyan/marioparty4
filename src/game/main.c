@@ -126,7 +126,8 @@ void main(void)
 /**
  * @brief Set the number of retraces between game updates.
  *
- * @param [in] vcount Retrace wait count.
+ * @param [in] vcount Vertical-retrace count stored in `minimumVcount` and its
+ *                    floating-point companion, then returned by HuSysVWaitGet().
  */
 void HuSysVWaitSet(s16 vcount)
 {
@@ -149,9 +150,9 @@ s16 HuSysVWaitGet(s16 param)
 s32 rnd_seed = 0x0000D9ED;
 
 /**
- * @brief Generate an eight-bit pseudo-random value.
+ * @brief Advance `rnd_seed` and return bits 16 through 23 of `rnd_seed + 1`.
  *
- * @return The generated pseudo-random value.
+ * @return Unsigned eight-bit sample in the range `0` through `255`, widened to s32.
  */
 s32 rand8(void)
 {

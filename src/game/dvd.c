@@ -126,7 +126,7 @@ void **HuDvdDataReadMulti(char **paths)
  * @brief Read an entire DVD file by path into a selected heap.
  *
  * @param [in] path Null-terminated absolute DVD path.
- * @param [in] heap Destination heap.
+ * @param [in] heap Heap that owns the full-file buffer returned to the caller.
  *
  * @return Heap-owned file buffer; a missing file triggers OSPanic().
  */
@@ -146,7 +146,8 @@ void *HuDvdDataReadDirect(char *path, HeapID heap)
 /**
  * @brief Read an entire DVD file by file-system entry into the DVD heap.
  *
- * @param [in] entrynum DVD file-system entry number.
+ * @param [in] entrynum DVD file-system entry returned by path conversion and
+ *                      synchronously opened with DVDFastOpen().
  *
  * @return Heap-owned file buffer; an invalid entry triggers OSPanic().
  */
@@ -166,7 +167,8 @@ void *HuDvdDataFastRead(s32 entrynum)
 /**
  * @brief Read a DVD entry into a tagged DVD-heap allocation.
  *
- * @param [in] entrynum DVD file-system entry number.
+ * @param [in] entrynum DVD file-system entry opened synchronously before its
+ *                      contents receive allocation tag `num`.
  * @param [in] num Allocation tag used to release related buffers as a group.
  *
  * @return Tagged, heap-owned file buffer; an invalid entry triggers OSPanic().
@@ -188,7 +190,7 @@ void *HuDvdDataFastReadNum(s32 entrynum, s32 num)
 /**
  * @brief Start an asynchronous read of a DVD entry into the DVD heap.
  *
- * @param [in] entrynum DVD file-system entry number.
+ * @param [in] entrynum DVD file-system entry opened and queued for asynchronous read.
  * @param [in, out] stat Read record that retains the open DVDFileInfo until
  *                       HuDataDirReadAsyncCallBack() closes it.
  *

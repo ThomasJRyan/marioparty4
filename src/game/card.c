@@ -49,7 +49,7 @@ s32 HuCardCheck(void)
 /**
  * @brief Probe one memory card slot until the probe is no longer busy.
  *
- * @param [in] slot Memory card slot.
+ * @param [in] slot CARD channel `0` (slot A) or `1` (slot B) to probe.
  *
  * @return The card sector size in bytes, or a negative CARD_RESULT_* error.
  */
@@ -70,7 +70,7 @@ s32 HuCardSlotCheck(s16 slot)
 /**
  * @brief Mount and validate the memory card in a slot.
  *
- * @param [in] slot Memory card slot.
+ * @param [in] slot CARD channel `0` (slot A) or `1` (slot B) to mount.
  *
  * @return `CARD_RESULT_READY` on success, otherwise a CARD_RESULT_* error;
  *         fatal I/O and encoding errors are normalized to fatal or broken.
@@ -109,7 +109,7 @@ s32 HuCardMount(s16 slot)
 /**
  * @brief Unmount the memory card in a slot.
  *
- * @param [in] slot Memory card slot.
+ * @param [in] slot CARD channel `0` (slot A) or `1` (slot B) to unmount.
  */
 void HuCardUnMount(s16 slot)
 {
@@ -119,7 +119,7 @@ void HuCardUnMount(s16 slot)
 /**
  * @brief Format the memory card in a slot.
  *
- * @param [in] slot Memory card slot.
+ * @param [in] slot CARD channel `0` (slot A) or `1` (slot B) to format.
  *
  * @return The CARDFormat result, with fatal I/O errors normalized to
  *         `CARD_RESULT_FATAL_ERROR`.
@@ -151,8 +151,8 @@ static void MountCallBack(s32 chan, s32 result)
 /**
  * @brief Open a named file on a memory card.
  *
- * @param [in] slot Memory card slot.
- * @param [in] fileName Memory card file name.
+ * @param [in] slot CARD channel `0` (slot A) or `1` (slot B) containing the file.
+ * @param [in] fileName NUL-terminated card file name passed to CARDOpen().
  * @param [out] fileInfo Receives the opened file handle on success.
  *
  * @return A CARD_RESULT_* status, with fatal I/O and encoding errors
@@ -193,8 +193,8 @@ s32 HuCardRead(CARDFileInfo *fileInfo, void *addr, s32 length, s32 offset)
 /**
  * @brief Create a sector-aligned file when the card has enough free space.
  *
- * @param [in] slot Memory card slot.
- * @param [in] fileName Memory card file name.
+ * @param [in] slot CARD channel `0` (slot A) or `1` (slot B) receiving the file.
+ * @param [in] fileName NUL-terminated name assigned to the new card file.
  * @param [in] size Requested file size in bytes; rounded to a sector boundary.
  * @param [out] fileInfo Receives the created file handle on success.
  *
@@ -256,8 +256,8 @@ s32 HuCardWrite(CARDFileInfo *fileInfo, const void *addr, s32 length, s32 offset
 /**
  * @brief Delete a named file from a memory card.
  *
- * @param [in] slot Memory card slot.
- * @param [in] fileName Memory card file name.
+ * @param [in] slot CARD channel `0` (slot A) or `1` (slot B) containing the file.
+ * @param [in] fileName NUL-terminated name of the card file passed to CARDDelete().
  *
  * @return The CARD_RESULT_* value returned by CARDDelete().
  */
@@ -270,7 +270,7 @@ s32 HuCardDelete(s16 slot, const char *fileName)
 /**
  * @brief Get the sector size of the card in a slot.
  *
- * @param [in] slot Memory card slot.
+ * @param [in] slot CARD channel `0` (slot A) or `1` (slot B) queried for sector size.
  *
  * @return The sector size in bytes, or a negative CARD_RESULT_* error.
  */
@@ -288,7 +288,7 @@ s32 HuCardSectorSizeGet(s16 slot)
 /**
  * @brief Query free bytes and directory entries on a memory card.
  *
- * @param [in] slot Memory card slot.
+ * @param [in] slot CARD channel `0` (slot A) or `1` (slot B) queried for capacity.
  * @param [out] byteNotUsed Receives the number of free bytes.
  * @param [out] filesNotUsed Receives the number of available file entries.
  *

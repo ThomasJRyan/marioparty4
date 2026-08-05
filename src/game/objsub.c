@@ -1182,7 +1182,8 @@ GameStat mgGameStatBackup;
 /**
  * @brief Convert a minigame overlay identifier to its table index.
  *
- * @param [in] overlay Overlay identifier.
+ * @param [in] overlay Active overlay ID compared with each `mgInfoTbl[].ovl`
+ *                     entry until the `DLL_NONE` sentinel.
  *
  * @return Zero-based index in `mgInfoTbl`, or `-1` when the overlay is not a
  *         registered minigame.
@@ -1233,7 +1234,8 @@ void omGameSysInit(HUPROCESS *objman)
 /**
  * @brief Start a timed rumble pattern for a player controller.
  *
- * @param [in] player Player index.
+ * @param [in] player Player slot `0` through `GW_PLAYER_MAX - 1`; its config
+ *                    selects the controller and suppresses rumble for CPU players.
  * @param [in] duration Total rumble duration in controller update ticks.
  * @param [in] off Number of ticks in each motor-off interval.
  * @param [in] on Number of ticks in each motor-on interval.

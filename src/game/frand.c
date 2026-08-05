@@ -29,7 +29,7 @@ static inline u32 frandom(u32 param)
 }
 
 /**
- * @brief Generate a pseudo-random 32-bit value.
+ * @brief Advance the global LCG state and return the new 32-bit state.
  *
  * @return A pseudo-random 32-bit value from the shared generator state.
  */
@@ -53,13 +53,14 @@ f32 frandf(void) {
 /**
  * @brief Generate a pseudo-random value below a modulus.
  *
- * @param [in] arg0 Exclusive upper bound; must be nonzero.
+ * @param [in] exclusive_upper_bound Exclusive modulus upper bound; must be nonzero.
  *
- * @return A pseudo-random integer in the range `[0, arg0)`.
+ * @return A pseudo-random integer in the range
+ *         `[0, exclusive_upper_bound)`.
  */
-u32 frandmod(u32 arg0) {
+u32 frandmod(u32 exclusive_upper_bound) {
     u32 ret;
     frand_seed = frandom(frand_seed);
-    ret = (frand_seed & 0x7FFFFFFF)%arg0;
+    ret = (frand_seed & 0x7FFFFFFF)%exclusive_upper_bound;
     return ret;
 }

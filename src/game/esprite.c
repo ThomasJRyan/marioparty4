@@ -38,8 +38,8 @@ void espInit(void) {
  * @brief Load or reuse sprite animation data and create an extended sprite.
  *
  * @param [in] dataNum Packed data-file identifier for the sprite animation.
- * @param [in] prio Initial sprite draw priority.
- * @param [in] bank Initial animation bank index.
+ * @param [in] prio Initial HuSpr priority assigned when the underlying sprite is created.
+ * @param [in] bank Initial bank selected in the ANIMDATA used by HuSprCreate().
  *
  * @return An extended-sprite slot index, or `-1` if no slot, animation slot,
  *         data buffer, or underlying sprite could be allocated.
@@ -102,7 +102,8 @@ s16 espEntry(unsigned int dataNum, s16 prio, s16 bank) {
 /**
  * @brief Remove an extended sprite and release its animation reference.
  *
- * @param [in] espId Extended-sprite identifier.
+ * @param [in] espId Slot returned by espEntry(); its sprite-group member is
+ *                   killed and its shared animation reference count decremented.
  */
 void espKill(s16 espId) {
     HuSprGrpMemberKill(gid, esprite[espId].memberNo);
@@ -122,7 +123,8 @@ s16 espGrpIDGet(void) {
 /**
  * @brief Make an extended sprite visible.
  *
- * @param [in] espId Extended-sprite identifier.
+ * @param [in] espId Slot returned by espEntry(); attribute bit 4 is cleared on
+ *                   its underlying sprite-group member.
  */
 void espDispOn(s16 espId) {
     HuSprAttrReset(gid, esprite[espId].memberNo, 4);
@@ -131,7 +133,8 @@ void espDispOn(s16 espId) {
 /**
  * @brief Hide an extended sprite.
  *
- * @param [in] espId Extended-sprite identifier.
+ * @param [in] espId Slot returned by espEntry(); attribute bit 4 is set on its
+ *                   underlying sprite-group member.
  */
 void espDispOff(s16 espId) {
     HuSprAttrSet(gid, esprite[espId].memberNo, 4);
@@ -140,7 +143,7 @@ void espDispOff(s16 espId) {
 /**
  * @brief Set attribute bits on an extended sprite.
  *
- * @param [in] espId Extended-sprite identifier.
+ * @param [in] espId Slot returned by espEntry() whose underlying member receives `attr`.
  * @param [in] attr HuSpr attribute mask to enable.
  */
 void espAttrSet(s16 espId, u16 attr) {
@@ -150,7 +153,7 @@ void espAttrSet(s16 espId, u16 attr) {
 /**
  * @brief Clear attribute bits on an extended sprite.
  *
- * @param [in] espId Extended-sprite identifier.
+ * @param [in] espId Slot returned by espEntry() whose underlying member clears `attr`.
  * @param [in] attr HuSpr attribute mask to clear.
  */
 void espAttrReset(s16 espId, u16 attr) {
@@ -160,9 +163,9 @@ void espAttrReset(s16 espId, u16 attr) {
 /**
  * @brief Set an extended sprite's screen position.
  *
- * @param [in] espId Extended-sprite identifier.
- * @param [in] posX Horizontal screen coordinate.
- * @param [in] posY Vertical screen coordinate.
+ * @param [in] espId Slot returned by espEntry() whose underlying member is repositioned.
+ * @param [in] posX Horizontal coordinate assigned to the underlying group member.
+ * @param [in] posY Vertical coordinate assigned to the underlying group member.
  */
 void espPosSet(s16 espId, float posX, float posY) {
     HuSprPosSet(gid, esprite[espId].memberNo, posX, posY);
@@ -171,9 +174,9 @@ void espPosSet(s16 espId, float posX, float posY) {
 /**
  * @brief Set an extended sprite's horizontal and vertical scale.
  *
- * @param [in] espId Extended-sprite identifier.
- * @param [in] scaleX Horizontal scale.
- * @param [in] scaleY Vertical scale.
+ * @param [in] espId Slot returned by espEntry() whose underlying member is rescaled.
+ * @param [in] scaleX Horizontal multiplier assigned to the underlying group member.
+ * @param [in] scaleY Vertical multiplier assigned to the underlying group member.
  */
 void espScaleSet(s16 espId, float scaleX, float scaleY) {
     HuSprScaleSet(gid, esprite[espId].memberNo, scaleX, scaleY);
@@ -182,7 +185,7 @@ void espScaleSet(s16 espId, float scaleX, float scaleY) {
 /**
  * @brief Set an extended sprite's screen-plane rotation.
  *
- * @param [in] espId Extended-sprite identifier.
+ * @param [in] espId Slot returned by espEntry() whose underlying member is rotated.
  * @param [in] zRot Rotation about the screen Z axis.
  */
 void espZRotSet(s16 espId, float zRot) {
@@ -192,7 +195,8 @@ void espZRotSet(s16 espId, float zRot) {
 /**
  * @brief Set an extended sprite's transparency level.
  *
- * @param [in] espId Extended-sprite identifier.
+ * @param [in] espId Slot returned by espEntry() whose underlying member receives
+ *                   the transparency multiplier.
  * @param [in] tpLvl Transparency multiplier passed to HuSprTPLvlSet().
  */
 void espTPLvlSet(s16 espId, float tpLvl) {
@@ -202,7 +206,8 @@ void espTPLvlSet(s16 espId, float tpLvl) {
 /**
  * @brief Set an extended sprite's RGB modulation color.
  *
- * @param [in] espId Extended-sprite identifier.
+ * @param [in] espId Slot returned by espEntry() whose underlying member receives
+ *                   the RGB modulation values.
  * @param [in] r Red color component.
  * @param [in] g Green color component.
  * @param [in] b Blue color component.
@@ -214,7 +219,7 @@ void espColorSet(s16 espId, u8 r, u8 g, u8 b) {
 /**
  * @brief Set an extended sprite's animation playback speed.
  *
- * @param [in] espId Extended-sprite identifier.
+ * @param [in] espId Slot returned by espEntry() whose underlying animation speed changes.
  * @param [in] speed Animation frames advanced per update.
  */
 void espSpeedSet(s16 espId, float speed) {
@@ -224,8 +229,8 @@ void espSpeedSet(s16 espId, float speed) {
 /**
  * @brief Select an extended sprite's animation bank.
  *
- * @param [in] espId Extended-sprite identifier.
- * @param [in] bank Animation bank index.
+ * @param [in] espId Slot returned by espEntry() whose underlying animation bank changes.
+ * @param [in] bank Bank selected from that sprite's ANIMDATA.
  */
 void espBankSet(s16 espId, s16 bank) {
     HuSprBankSet(gid, esprite[espId].memberNo, bank);
@@ -234,8 +239,8 @@ void espBankSet(s16 espId, s16 bank) {
 /**
  * @brief Assign an extended sprite to an underlying draw pass.
  *
- * @param [in] espId Extended-sprite identifier.
- * @param [in] drawNo HuSpr draw-pass number.
+ * @param [in] espId Slot returned by espEntry() whose underlying draw pass changes.
+ * @param [in] drawNo HuSpr draw-pass selector assigned to the sprite-group member.
  */
 void espDrawNoSet(s16 espId, s16 drawNo) {
     HuSprDrawNoSet(gid, esprite[espId].memberNo, drawNo);
@@ -244,8 +249,8 @@ void espDrawNoSet(s16 espId, s16 drawNo) {
 /**
  * @brief Set an extended sprite's draw priority.
  *
- * @param [in] espId Extended-sprite identifier.
- * @param [in] pri Sprite priority.
+ * @param [in] espId Slot returned by espEntry() whose underlying draw priority changes.
+ * @param [in] pri HuSpr priority assigned to the underlying group member.
  */
 void espPriSet(s16 espId, s16 pri) {
     HuSprPriSet(gid, esprite[espId].memberNo, pri);

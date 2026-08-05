@@ -120,9 +120,9 @@ void HuAudStreamPauseOff(void) {
 /**
  * @brief Placeholder for fading the low-level AI stream.
  *
- * @param [in] arg0 Intended fade duration; currently ignored.
+ * @param [in] fade_duration Intended fade duration; currently ignored.
  */
-void HuAudStreamFadeOut(s32 arg0) {
+void HuAudStreamFadeOut(s32 fade_duration) {
 }
 
 /**
@@ -148,7 +148,8 @@ void HuAudFadeOut(s32 speed) {
 /**
  * @brief Play a centered sound effect at maximum volume when audio is active.
  *
- * @param [in] seId Sound-effect identifier.
+ * @param [in] seId MSM sound-effect asset ID submitted at maximum volume and
+ *                  centered pan.
  *
  * @return MSM sound-effect handle or negative error; returns `0` while exiting
  *         an overlay or after an outgoing wipe has passed halfway.
@@ -166,7 +167,7 @@ int HuAudFXPlay(int seId)
 /**
  * @brief Play a centered sound effect at a specified volume.
  *
- * @param [in] seId Sound-effect identifier.
+ * @param [in] seId MSM sound-effect asset ID submitted with `vol`.
  * @param [in] vol Playback volume.
  *
  * @return MSM sound-effect handle or negative error; returns `0` during overlay exit.
@@ -181,7 +182,7 @@ int HuAudFXPlayVol(int seId, s16 vol) {
 /**
  * @brief Play a sound effect with explicit volume and stereo pan.
  *
- * @param [in] seId Sound-effect identifier.
+ * @param [in] seId MSM sound-effect asset ID submitted with explicit mixer parameters.
  * @param [in] vol Playback volume.
  * @param [in] pan MSM stereo-pan setting forwarded unchanged to the mixer.
  *
@@ -311,7 +312,7 @@ void HuAudFXListnerUpdate(Vec *pos, Vec *heading)
 /**
  * @brief Play a sound effect from a world-space emitter position.
  *
- * @param [in] seId Sound-effect identifier.
+ * @param [in] seId MSM sound-effect asset ID used to create the positioned emitter.
  * @param [in] pos Initial emitter world position.
  *
  * @return MSM sound-effect handle or negative error; returns `0` during overlay exit.
@@ -417,7 +418,7 @@ s32 HuAudFXVolSet(int seNo, s16 vol)
 /**
  * @brief Start a music sequence when music playback is enabled.
  *
- * @param [in] musId Music sequence identifier.
+ * @param [in] musId MSM sequence asset ID passed to msmMusPlay().
  *
  * @return MSM music channel returned by msmMusPlay(), or `0` when music is
  *         disabled or the overlay is exiting.
@@ -506,8 +507,9 @@ void HuAudSeqPause(s32 musNo, s32 pause, s32 speed) {
  * @brief Read a MIDI controller value from a music sequence channel.
  *
  * @param [in] musNo Music sequence handle.
- * @param [in] channel MIDI channel index.
- * @param [in] ctrl MIDI controller number.
+ * @param [in] channel MIDI channel in the standard `0` through `15` domain.
+ * @param [in] ctrl MIDI controller number in the standard `0` through `127`
+ *                  domain, passed to msmMusGetMidiCtrl().
  *
  * @return Controller value from MSM, or `0` when music is disabled or exiting.
  */
@@ -521,7 +523,7 @@ s32 HuAudSeqMidiCtrlGet(s32 musNo, s8 channel, s8 ctrl) {
 /**
  * @brief Start an MSM sound stream when music playback is enabled.
  *
- * @param [in] streamId Stream identifier.
+ * @param [in] streamId MSM stream asset ID passed to msmStreamPlay().
  *
  * @return MSM stream handle, or `0` when music is disabled or exiting.
  */
@@ -686,7 +688,8 @@ SNDGRPTBL sndGrpTable[] = {
 /**
  * @brief Load the overlay's sound group and configure its AUX routing.
  *
- * @param [in] ovl Overlay identifier.
+ * @param [in] ovl Overlay table key used to select a sound group, AUX effects,
+ *                 and AUX send volumes from `sndGrpTable`.
  */
 void HuAudDllSndGrpSet(u16 ovl) {
     SNDGRPTBL *sndGrpP;
@@ -754,7 +757,8 @@ void HuAudSndGrpSetSet(s16 grpSet) {
 /**
  * @brief Load one supplemental MSM sound group through a temporary buffer.
  *
- * @param [in] grpId MSM sound-group identifier.
+ * @param [in] grpId MSM supplemental group whose sample size is allocated and
+ *                   whose data is loaded by msmSysLoadGroup().
  */
 void HuAudSndGrpSet(s16 grpId) {
     void *buf;
@@ -826,7 +830,8 @@ void HuAudAUXVolSet(s8 volA, s8 volB) {
 /**
  * @brief Load voice groups needed by the currently configured characters.
  *
- * @param [in] ovl Overlay identifier.
+ * @param [in] ovl Active overlay key used to skip character-group replacement
+ *                 when `sndGrpTable` assigns it no overlay sound group.
  */
 void HuAudSndCharGrpSet(s16 ovl) {
     SNDGRPTBL *sndGrpP;
@@ -892,8 +897,9 @@ void HuAudSndCharGrpSet(s16 ovl) {
 /**
  * @brief Play a character voice sound for a configured player.
  *
- * @param [in] player Player index.
- * @param [in] seId Sound-effect identifier.
+ * @param [in] player Player slot `0` through `GW_PLAYER_MAX - 1`, used to read
+ *                    the configured character from `GWPlayerCfg`.
+ * @param [in] seId Base cue within that character's 64-entry voice bank.
  *
  * @return MSM sound-effect handle/error from CharFXPlay(), or `0` while exiting.
  */
@@ -906,8 +912,9 @@ s32 PlayerFXPlay(s16 player, s16 seId) {
 /**
  * @brief Play a configured player's character voice at a world position.
  *
- * @param [in] player Player index.
- * @param [in] seId Sound-effect identifier.
+ * @param [in] player Player slot `0` through `GW_PLAYER_MAX - 1`, used to read
+ *                    the configured character from `GWPlayerCfg`.
+ * @param [in] seId Base cue within that character's 64-entry voice bank.
  * @param [in] pos Emitter world position.
  *
  * @return MSM sound-effect handle/error from CharFXPlayPos(), or `0` while exiting.
@@ -921,8 +928,9 @@ s32 PlayerFXPlayPos(s16 player, s16 seId, Vec *pos) {
 /**
  * @brief Stop every matching character voice for a configured player.
  *
- * @param [in] player Player index.
- * @param [in] seId Sound-effect identifier.
+ * @param [in] player Player slot `0` through `GW_PLAYER_MAX - 1`, used to read
+ *                    the configured character from `GWPlayerCfg`.
+ * @param [in] seId Base cue used to find and stop all matching MSM voice entries.
  */
 void PlayerFXStop(s16 player, s16 seId) {
     s16 charNo = GWPlayerCfg[player].character;
@@ -933,8 +941,9 @@ void PlayerFXStop(s16 player, s16 seId) {
 /**
  * @brief Play a character-relative voice sound with configured AUX sends.
  *
- * @param [in] charNo Character index.
- * @param [in] seId Sound-effect identifier.
+ * @param [in] charNo Character-table index `0` through `CHARNO_MAX - 1`; it
+ *                    selects a 64-cue MSM voice bank.
+ * @param [in] seId Base cue within the selected character voice bank.
  *
  * @return MSM sound-effect handle or negative error; returns `0` during overlay exit.
  */
@@ -961,8 +970,9 @@ s32 CharFXPlay(s16 charNo, s16 seId)
 /**
  * @brief Play a character-relative voice sound at a world position.
  *
- * @param [in] charNo Character index.
- * @param [in] seId Sound-effect identifier.
+ * @param [in] charNo Character-table index `0` through `CHARNO_MAX - 1`; it
+ *                    selects a 64-cue MSM voice bank.
+ * @param [in] seId Base cue within the selected character voice bank.
  * @param [in] pos Emitter world position.
  *
  * @return MSM sound-effect handle or negative error; returns `0` during overlay exit.
@@ -992,8 +1002,9 @@ s32 CharFXPlayPos(s16 charNo, s16 seId, Vec *pos) {
 /**
  * @brief Stop all active entries for a character-relative sound identifier.
  *
- * @param [in] charNo Character index.
- * @param [in] seId Sound-effect identifier.
+ * @param [in] charNo Character-table index `0` through `CHARNO_MAX - 1`; it
+ *                    selects a 64-cue MSM voice bank.
+ * @param [in] seId Base cue used to query matching active MSM entries.
  */
 void CharFXStop(s16 charNo, s16 seId) {
     int entrySeNo[MSM_ENTRY_SENO_MAX];
@@ -1009,7 +1020,7 @@ void CharFXStop(s16 charNo, s16 seId) {
 /**
  * @brief Submit a sound effect to MSM and report negative errors.
  *
- * @param [in] seId Sound-effect identifier.
+ * @param [in] seId Fully resolved MSM sound-effect asset ID passed to msmSePlay().
  * @param [in] param Optional MSM sound-effect parameter block.
  *
  * @return MSM playback handle on success, or its negative error code.

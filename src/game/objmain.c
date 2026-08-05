@@ -122,14 +122,15 @@ static void omWatchOverlayProc(void)
 /**
  * @brief Push an overlay request onto history and queue it for execution.
  *
- * @param [in] overlay Overlay identifier.
- * @param [in] arg2 Teardown flag passed to the outgoing overlay.
+ * @param [in] overlay REL-table and history identifier for the overlay being pushed.
+ * @param [in] teardown_flag End mode passed to the outgoing overlay; `1`
+ *                           unloads its REL rather than retaining it.
  * @param [in] event Event number exposed to the incoming overlay.
  * @param [in] stat Status word exposed to the incoming overlay.
  */
-void omOvlCallEx(OMOVL overlay, s16 arg2, s32 event, s32 stat)
+void omOvlCallEx(OMOVL overlay, s16 teardown_flag, s32 event, s32 stat)
 {
-    OSReport("objman>Call New Ovl %d(%d)\n", overlay, arg2);
+    OSReport("objman>Call New Ovl %d(%d)\n", overlay, teardown_flag);
     if(omovlhisidx >= OM_OVL_HIS_MAX) {
         OSReport("objman>OVL Call over error\n");
         return;
@@ -137,22 +138,23 @@ void omOvlCallEx(OMOVL overlay, s16 arg2, s32 event, s32 stat)
     omovlhis[++omovlhisidx].ovl = overlay;
     omovlhis[omovlhisidx].evtno = event;
     omovlhis[omovlhisidx].stat = stat;
-    omOvlGotoEx(overlay, arg2, event, stat);
+    omOvlGotoEx(overlay, teardown_flag, event, stat);
 }
 
 /**
  * @brief Replace the active overlay with a queued overlay request.
  *
- * @param [in] overlay Overlay identifier.
- * @param [in] arg2 Teardown flag passed to omOvlKill() for the active overlay.
+ * @param [in] overlay REL-table identifier queued as the next active overlay.
+ * @param [in] teardown_flag End mode passed to omOvlKill(); `1` unloads the
+ *                           active REL rather than retaining it.
  * @param [in] event Event number stored for the incoming overlay.
  * @param [in] stat Status word stored for the incoming overlay.
  */
-void omOvlGotoEx(OMOVL overlay, s16 arg2, s32 event, s32 stat)
+void omOvlGotoEx(OMOVL overlay, s16 teardown_flag, s32 event, s32 stat)
 {
     omprevovl = omcurovl;
     if(omcurovl >= 0) {
-        omOvlKill(arg2);
+        omOvlKill(teardown_flag);
     }
     omnextovl = overlay;
     omnextovlevtno = event;
@@ -163,17 +165,18 @@ void omOvlGotoEx(OMOVL overlay, s16 arg2, s32 event, s32 stat)
  * @brief Pop overlay history entries and return to the selected request.
  *
  * @param [in] level Number of history levels to pop; underflow clamps to zero.
- * @param [in] arg2 Teardown flag passed to the outgoing overlay.
+ * @param [in] teardown_flag End mode passed to the outgoing overlay; `1`
+ *                           unloads its REL rather than retaining it.
  */
-void omOvlReturnEx(s16 level, s16 arg2)
+void omOvlReturnEx(s16 level, s16 teardown_flag)
 {
     omovlhisidx -= level;
-    OSReport("objman>Ovl Return %d=%d(%d)\n", level, omovlhisidx, arg2);
+    OSReport("objman>Ovl Return %d=%d(%d)\n", level, omovlhisidx, teardown_flag);
     if(omovlhisidx < 0) {
         OSReport("objman>OVL under error\n");
         omovlhisidx = 0;
     }
-    omOvlGotoEx(omovlhis[omovlhisidx].ovl, arg2, omovlhis[omovlhisidx].evtno, omovlhis[omovlhisidx].stat);
+    omOvlGotoEx(omovlhis[omovlhisidx].ovl, teardown_flag, omovlhis[omovlhisidx].evtno, omovlhis[omovlhisidx].stat);
 }
 
 /**
@@ -206,8 +209,9 @@ void omOvlKill(s16 arg)
  * @brief Replace an entry in the overlay history stack.
  *
  * @param [in] level Depth relative to the current history entry.
- * @param [in] overlay Overlay identifier.
- * @param [in] event Overlay event number.
+ * @param [in] overlay Replacement REL-table identifier stored in the selected
+ *                     history entry.
+ * @param [in] event Replacement event value exposed when that history entry runs.
  * @param [in] stat Replacement overlay status word.
  */
 void omOvlHisChg(s32 level, OMOVL overlay, s32 event, s32 stat)
@@ -313,11 +317,12 @@ void omDestroyObjMan(void)
 /**
  * @brief Allocate and initialize an object in an object manager.
  *
- * @param [in, out] objman_process Object-manager process.
+ * @param [in, out] objman_process Manager whose free-object pool supplies the slot.
  * @param [in] prio Object update priority used for sorted insertion.
  * @param [in] mdlcnt Number of model slots to allocate.
  * @param [in] mtncnt Number of motion slots to allocate.
- * @param [in] group Group index, or a negative value for no group.
+ * @param [in] group Group `0` through `OM_MAX_GROUPS - 1`, or a negative value
+ *                   to leave the object ungrouped.
  * @param [in] func Per-frame object callback, or `NULL`.
  *
  * @return Initialized object slot, or `NULL` when the pool is full.
@@ -375,7 +380,7 @@ OMOBJ *omAddObjEx(HUPROCESS *objman_process, s16 prio, u16 mdlcnt, u16 mtncnt, s
 /**
  * @brief Insert an object into the manager's priority-sorted list.
  *
- * @param [in, out] objman_process Object-manager process.
+ * @param [in, out] objman_process Manager whose priority list receives `object`.
  * @param [in, out] object Newly allocated object to insert by priority.
  */
 static void omInsertObj(HUPROCESS *objman_process, OMOBJ *object)
@@ -422,8 +427,8 @@ static void omInsertObj(HUPROCESS *objman_process, OMOBJ *object)
 /**
  * @brief Add an object to the next free slot in an object group.
  *
- * @param [in, out] objman_process Object-manager process.
- * @param [in] group Object group index.
+ * @param [in, out] objman_process Manager containing the target group and object.
+ * @param [in] group Object-manager group whose free-member chain receives the object.
  * @param [in, out] object Object whose group and member indices are updated.
  */
 void omAddMember(HUPROCESS *objman_process, u16 group, OMOBJ *object)
@@ -442,7 +447,7 @@ void omAddMember(HUPROCESS *objman_process, u16 group, OMOBJ *object)
 /**
  * @brief Remove an object and free its object-owned allocations.
  *
- * @param [in, out] objman_process Object-manager process.
+ * @param [in, out] objman_process Manager whose pool and priority list lose `object`.
  * @param [in, out] object Active object to unlink and return to the free list.
  */
 void omDelObjEx(HUPROCESS *objman_process, OMOBJ *object)
@@ -493,7 +498,7 @@ void omDelObjEx(HUPROCESS *objman_process, OMOBJ *object)
 /**
  * @brief Remove an object from its current object group.
  *
- * @param [in, out] objman_process Object-manager process.
+ * @param [in, out] objman_process Manager containing the object's current group.
  * @param [in, out] object Object whose group slot is released.
  */
 void omDelMember(HUPROCESS *objman_process, OMOBJ *object)
@@ -513,8 +518,8 @@ void omDelMember(HUPROCESS *objman_process, OMOBJ *object)
 /**
  * @brief Allocate or replace the member arrays for an object group.
  *
- * @param [in, out] objman_process Object-manager process.
- * @param [in] group Object group index.
+ * @param [in, out] objman_process Manager containing the group to allocate.
+ * @param [in] group Object-manager group whose member arrays are allocated or replaced.
  * @param [in] max_objs Maximum simultaneous members in the group.
  */
 void omMakeGroupEx(HUPROCESS *objman_process, u16 group, u16 max_objs)
@@ -675,7 +680,7 @@ void omMain(void)
 /**
  * @brief Print diagnostic information for every object slot.
  *
- * @param [in, out] objman_process Object-manager process.
+ * @param [in] objman_process Manager whose object slots are printed.
  */
 static void omDumpObj(HUPROCESS *objman_process)
 {

@@ -39,7 +39,8 @@ void omDLLInit(FileListEntry *ovl_list)
 /**
  * @brief Start an overlay module, linking it if necessary.
  *
- * @param [in] overlay Overlay identifier.
+ * @param [in] overlay Index into the retained REL file table selecting the
+ *                     module to reuse or load.
  * @param [in] flag Nonzero forces a newly linked copy; zero reuses an existing
  *                  module after clearing BSS and rerunning its prolog.
  *
@@ -78,7 +79,7 @@ s32 omDLLStart(s16 overlay, s16 flag)
 /**
  * @brief End the loaded module associated with an overlay identifier.
  *
- * @param [in] overlay Overlay identifier.
+ * @param [in] overlay REL file-table index whose matching loaded module is ended.
  * @param [in] flag `1` unlinks the module; other values only run its epilog.
  */
 void omDLLNumEnd(s16 overlay, s16 flag)
@@ -100,7 +101,7 @@ void omDLLNumEnd(s16 overlay, s16 flag)
 /**
  * @brief End a module by loader-table slot.
  *
- * @param [in] dllno Linked-module index.
+ * @param [in] dllno Slot in `omDLLinfoTbl` whose module is ended or unlinked.
  * @param [in] flag `1` runs the epilog and unlinks the REL; other values leave
  *                  it linked after running the epilog.
  */
@@ -125,7 +126,7 @@ void omDLLEnd(s16 dllno, s16 flag)
  * @brief Load, link, and optionally start an overlay REL module.
  *
  * @param [out] dll_ptr Receives the heap-owned loader record.
- * @param [in] overlay Overlay identifier.
+ * @param [in] overlay Index into `omDLLFileList` selecting the REL path to load.
  * @param [in] flag `1` invokes the module prolog after linking.
  *
  * @return Newly allocated loader record; load/link failures are reported by
@@ -180,7 +181,8 @@ void omDLLUnlink(omDllData *dll_ptr, s16 flag)
 /**
  * @brief Find the loaded module whose file name matches an overlay.
  *
- * @param [in] overlay Overlay identifier.
+ * @param [in] overlay Index into `omDLLFileList`; its path is matched against
+ *                     loaded records in `omDLLinfoTbl`.
  *
  * @return Loader-table slot, or `-1` when that overlay is not loaded.
  */
