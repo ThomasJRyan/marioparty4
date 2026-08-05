@@ -1949,7 +1949,9 @@ void CharModelLayerSetAll2(s16 layerNo)
 
 /**
  * @brief Enables or suppresses voice cues for one loaded character motion.
- * @param charNo Character index owning the motion.
+ * @param charNo Character-table index from 0 through CHARNO_MAX - 1 whose
+ * `charWork.motId` slots are searched for `motion` and whose matching
+ * `voiceFlag` bit is updated.
  * @param motion Motion ID whose per-slot voice-disable bit is changed.
  * @param voiceOn TRUE to permit voice playback; FALSE to suppress it.
  */
