@@ -17,15 +17,16 @@
 #include <string.h>
 
 // structs
-typedef struct ActiveMinigame {
+typedef struct MinigameCandidate {
     s16 window_id;
     s8  minigame_index;
     s8  is_available;
     s32 name_mess;
-} ActiveMinigame;
+} MinigameCandidate;
 
 typedef struct MGSetupSprites {
-    s16 handles[13];
+    s16 group_id;
+    s16 sprite_ids[13];
     Vec positions[2][13];
 } MGSetupSprites;
 
@@ -50,7 +51,7 @@ typedef struct MGSetupWork {
 } MGSetupWork;
 
 // bss
-static ActiveMinigame activeMG[4];
+static MinigameCandidate activeMG[4];
 static s16 mgListAll[0x20];
 static s16 mgPlay4P[8];
 
@@ -168,7 +169,7 @@ static inline s32 setupObjGet(void) {
  * @brief Selects and loads the next board minigame.
  *
  * @details Drives the camera and UI state machine, optionally presents a
- * Lucky Minigame multiplier, starts the selected minigame's data load, records
+ * Lucky Minigame value presentation, starts the selected minigame's data load, records
  * it in the recent-play history, and switches to the minigame overlay.
  */
 static void ExecMGSetup(void) {
@@ -587,10 +588,10 @@ static s32 GetMGType(void) {
 }
 
 /**
- * @brief Preserves three otherwise-unused floating-point constants.
+ * @brief Evaluates and discards three board-layout constants.
  *
- * @details This function has no observable runtime effect and appears to exist
- * solely to retain constants associated with the original object code.
+ * @details This unreferenced function has no observed runtime effect in this
+ * file. The original purpose of evaluating these constants is unknown.
  */
 static void UnusedFloat(void)
 {
@@ -687,8 +688,9 @@ static s32 GetMGTypeTeam(void) {
 /**
  * @brief Creates the object and sprite group used by minigame setup.
  *
- * @details Allocates per-object sprite state, loads all 13 setup sprites, and
- * initializes both current and target position tables at the screen center.
+ * @details Allocates per-object sprite state, creates a 13-member sprite group,
+ * zeroes the current and target position offsets, and places the group at
+ * screen coordinates (288, 240).
  */
 static void CreateMGSetup(void) {
     s32 sprite;
@@ -706,16 +708,16 @@ static void CreateMGSetup(void) {
     state_work->angle = 0;
     work->sprites = HuMemDirectMallocNum(HEAP_HEAP, sizeof(MGSetupSprites), HU_MEMNUM_OVL);
     sprites = work->sprites;
-    sprites->handles[0] = HuSprGrpCreate(0xD);
+    sprites->group_id = HuSprGrpCreate(0xD);
     
     for (sprite = 0; sprite < 13; sprite++) {
-        BoardSpriteCreate(mgSetupSprTbl[sprite], 0x5DC, NULL, &sprites->handles[sprite] + 1);
-        HuSprGrpMemberSet(sprites->handles[0], sprite, *(&sprites->handles[sprite] + 1));
-        HuSprAttrSet(sprites->handles[0], sprite, 4);
+        BoardSpriteCreate(mgSetupSprTbl[sprite], 0x5DC, NULL, &sprites->sprite_ids[sprite]);
+        HuSprGrpMemberSet(sprites->group_id, sprite, sprites->sprite_ids[sprite]);
+        HuSprAttrSet(sprites->group_id, sprite, 4);
         sprites->positions[0][sprite].x = sprites->positions[0][sprite].y = sprites->positions[0][sprite].z = 0.0f;
         sprites->positions[1][sprite].x = sprites->positions[1][sprite].y = sprites->positions[1][sprite].z = 0.0f;
     }
-    HuSprGrpPosSet(sprites->handles[0], 288.0f, 240.0f);
+    HuSprGrpPosSet(sprites->group_id, 288.0f, 240.0f);
 }
 
 /**
@@ -735,7 +737,7 @@ static void UpdateMGSetup(OMOBJ* object) {
                 activeMG[slot].window_id = -1;
             }
         }
-        HuSprGrpKill(work->sprites->handles[0]);
+        HuSprGrpKill(work->sprites->group_id);
         HuMemDirectFree(work->sprites);
         mgSetupObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), object);
@@ -866,9 +868,9 @@ static void SeparateStatus(MGSetupWork* work, OMOBJ* object) {
         if (work->timer > 0x5A) {
             work->timer = 0x5A;
         }
-        HuSprScaleSet(sprites->handles[0], 0, scale, scale);
+        HuSprScaleSet(sprites->group_id, 0, scale, scale);
         if (work->timer > 0x3C) {
-            HuSprTPLvlSet(sprites->handles[0], 0, (90.0f - work->timer) / 30.0f);
+            HuSprTPLvlSet(sprites->group_id, 0, (90.0f - work->timer) / 30.0f);
         }
     }
 }
@@ -890,10 +892,10 @@ static void PopupVS(MGSetupWork* work, OMOBJ* object) {
 
     sprites = work->sprites;
     if (work->phase == 0) {
-        HuSprAttrReset(sprites->handles[0], 0, HUSPR_ATTR_DISPOFF);
-        HuSprAttrSet(sprites->handles[0], 0, 8);
-        HuSprScaleSet(sprites->handles[0], 0, 0.001f, 0.001f);
-        HuSprPosSet(sprites->handles[0], 0, 0.0f, 64.0f);
+        HuSprAttrReset(sprites->group_id, 0, HUSPR_ATTR_DISPOFF);
+        HuSprAttrSet(sprites->group_id, 0, 8);
+        HuSprScaleSet(sprites->group_id, 0, 0.001f, 0.001f);
+        HuSprPosSet(sprites->group_id, 0, 0.0f, 64.0f);
         work->phase = 1;
         HuAudFXPlay(0x355);
         return;
@@ -913,7 +915,7 @@ static void PopupVS(MGSetupWork* work, OMOBJ* object) {
             work->delay = 0x3C;
         }
     }
-    HuSprScaleSet(sprites->handles[0], 0, scale, scale);
+    HuSprScaleSet(sprites->group_id, 0, scale, scale);
     work->angle += 9;
     if ((_CheckFlag(FLAG_ID_MAKE(1, 11)) != 0) && work->field00_bit1 == 3) {
         BoardTutorialHookExec(0x1B, 0);
@@ -941,7 +943,7 @@ static void FallMGType(MGSetupWork* work, OMOBJ* object) {
     sprites = work->sprites;
     sprite = type_sprite_ids[mgType];
     if (work->phase == 0) {
-        HuSprAttrReset(sprites->handles[0], sprite, HUSPR_ATTR_DISPOFF);
+        HuSprAttrReset(sprites->group_id, sprite, HUSPR_ATTR_DISPOFF);
         sprites->positions[0][sprite].y = -284.0f;
         sprites->positions[1][sprite].y = -128.0f;
         work->phase = 1;
@@ -958,7 +960,7 @@ static void FallMGType(MGSetupWork* work, OMOBJ* object) {
         VECScale(&offset, &offset, 0.1f);
         VECAdd(&offset, &sprites->positions[0][sprite], &sprites->positions[0][sprite]);
     }
-    HuSprPosSet(sprites->handles[0], sprite, sprites->positions[0][sprite].x, sprites->positions[0][sprite].y);
+    HuSprPosSet(sprites->group_id, sprite, sprites->positions[0][sprite].x, sprites->positions[0][sprite].y);
 }
 
 /**
@@ -990,7 +992,7 @@ static void LuckyMGFall(MGSetupWork* work, OMOBJ* object) {
     type_pos = &sprites->positions[0][type_sprite];
     switch (work->phase) {
         case 0:
-            HuSprAttrReset(sprites->handles[0], 4, HUSPR_ATTR_DISPOFF);
+            HuSprAttrReset(sprites->group_id, 4, HUSPR_ATTR_DISPOFF);
             lucky_pos->y = -284.0f;
             lucky_target->y = -128.0f;
             work->phase = 1;
@@ -1007,7 +1009,7 @@ static void LuckyMGFall(MGSetupWork* work, OMOBJ* object) {
         case 2:
             type_pos->y += 10.0f;
             if (328.0f < type_pos->y) {
-                HuSprAttrReset(sprites->handles[0], type_sprite, HUSPR_ATTR_DISPOFF);
+                HuSprAttrReset(sprites->group_id, type_sprite, HUSPR_ATTR_DISPOFF);
                 state_work = (MGSetupWork*) mgSetupObj->work;
                 state_work->field00_bit1 = 7;
                 state_work->phase = 0;
@@ -1015,17 +1017,17 @@ static void LuckyMGFall(MGSetupWork* work, OMOBJ* object) {
                 state_work->angle = 0;
             } else if (work->timer < 0x1E) {
                 OSs8tof32(&work->timer, &rotation);
-                HuSprZRotSet(sprites->handles[0], type_sprite, rotation);
+                HuSprZRotSet(sprites->group_id, type_sprite, rotation);
                 work->timer++;
             }
             break;
     }
-    HuSprPosSet(sprites->handles[0], 4, lucky_pos->x, lucky_pos->y);
-    HuSprPosSet(sprites->handles[0], type_sprite, type_pos->x, type_pos->y);
+    HuSprPosSet(sprites->group_id, 4, lucky_pos->x, lucky_pos->y);
+    HuSprPosSet(sprites->group_id, type_sprite, type_pos->x, type_pos->y);
 }
 
 /**
- * @brief Fades out and hides the Lucky Minigame multiplier sprites.
+ * @brief Fades out and hides the Lucky Minigame value sprites.
  */
 static void HideLuckyValue(void) {
     f32 alpha;
@@ -1036,16 +1038,16 @@ static void HideLuckyValue(void) {
     sprites = work->sprites;
     
     for (alpha = 1.0f; alpha > 0.1f; alpha -= 0.1f) {
-        HuSprTPLvlSet(sprites->handles[0], 8, alpha);
-        HuSprTPLvlSet(sprites->handles[0], 9, alpha);
+        HuSprTPLvlSet(sprites->group_id, 8, alpha);
+        HuSprTPLvlSet(sprites->group_id, 9, alpha);
         HuPrcVSleep();
     }
-    HuSprAttrSet(sprites->handles[0], 8, 4);
-    HuSprAttrSet(sprites->handles[0], 9, 4);
+    HuSprAttrSet(sprites->group_id, 8, 4);
+    HuSprAttrSet(sprites->group_id, 9, 4);
 }
 
 /**
- * @brief Chooses and animates the Lucky Minigame multiplier.
+ * @brief Chooses and animates the Lucky Minigame value.
  *
  * @details Randomly leaves the configured value at 1 or changes it to 2 or 3,
  * heavily weighting 2, then spins the displayed choice until it reaches that
@@ -1067,15 +1069,15 @@ static void UpdateLuckyValue(MGSetupWork* work, OMOBJ* object) {
     sprites = work->sprites;
     switch (work->phase) {
         case 0:
-            HuSprAttrReset(sprites->handles[0], 8, HUSPR_ATTR_DISPOFF);
-            HuSprAttrReset(sprites->handles[0], 9, HUSPR_ATTR_DISPOFF);
-            HuSprAttrSet(sprites->handles[0], 8, 8);
-            HuSprAttrSet(sprites->handles[0], 9, 8);
-            HuSprPosSet(sprites->handles[0], 8, 0.0f, 0.0f);
-            HuSprPosSet(sprites->handles[0], 9, 0.0f, 0.0f);
-            HuSprScaleSet(sprites->handles[0], 8, 0.001f, 0.001f);
-            HuSprScaleSet(sprites->handles[0], 9, 0.001f, 0.001f);
-            HuSprBankSet(sprites->handles[0], 9, 1);
+            HuSprAttrReset(sprites->group_id, 8, HUSPR_ATTR_DISPOFF);
+            HuSprAttrReset(sprites->group_id, 9, HUSPR_ATTR_DISPOFF);
+            HuSprAttrSet(sprites->group_id, 8, 8);
+            HuSprAttrSet(sprites->group_id, 9, 8);
+            HuSprPosSet(sprites->group_id, 8, 0.0f, 0.0f);
+            HuSprPosSet(sprites->group_id, 9, 0.0f, 0.0f);
+            HuSprScaleSet(sprites->group_id, 8, 0.001f, 0.001f);
+            HuSprScaleSet(sprites->group_id, 9, 0.001f, 0.001f);
+            HuSprBankSet(sprites->group_id, 9, 1);
             work->angle = 0;
             work->phase = 1;
             work->timer = 0;
@@ -1091,8 +1093,8 @@ static void UpdateLuckyValue(MGSetupWork* work, OMOBJ* object) {
             if (work->timer < 0x5A) {
                 OSu8tof32((u8*) &work->timer, &angle);
                 scale = sind(angle);
-                HuSprScaleSet(sprites->handles[0], 8, scale, scale);
-                HuSprScaleSet(sprites->handles[0], 9, scale, scale);
+                HuSprScaleSet(sprites->group_id, 8, scale, scale);
+                HuSprScaleSet(sprites->group_id, 9, scale, scale);
                 work->timer += 2;
                 return;
             }
@@ -1112,7 +1114,7 @@ static void UpdateLuckyValue(MGSetupWork* work, OMOBJ* object) {
                 HuAudFXPlay(0x304);
                 luckyValue = highlight_index;
             }
-            HuSprBankSet(sprites->handles[0], 9, luckyValue);
+            HuSprBankSet(sprites->group_id, 9, luckyValue);
             if (work->spin_speed < 0.05f) {
                 if (luckyValue != GWLuckyValueGet() - 1) {
                     work->spin_speed *= 1.0309278f;
@@ -1139,8 +1141,8 @@ static void UpdateLuckyValue(MGSetupWork* work, OMOBJ* object) {
             }
             angle = (work->angle % 360);
             scale = (1.0 + (0.5 * sind(angle)));
-            HuSprScaleSet(sprites->handles[0], 8, scale, scale);
-            HuSprScaleSet(sprites->handles[0], 9, scale, scale);
+            HuSprScaleSet(sprites->group_id, 8, scale, scale);
+            HuSprScaleSet(sprites->group_id, 9, scale, scale);
             break;
     }
 }
@@ -1186,10 +1188,10 @@ static void UpdateMGList(MGSetupWork* work, OMOBJ* object) {
     type_sprite = mgType + 5;
     switch (work->phase) {
         case 0:
-            HuSprAttrSet(sprites->handles[0], type_sprite, 8);
-            HuSprAttrReset(sprites->handles[0], type_sprite, HUSPR_ATTR_DISPOFF);
-            HuSprPosSet(sprites->handles[0], type_sprite, 0.0f, 32.0f);
-            HuSprScaleSet(sprites->handles[0], type_sprite, 0.001f, 0.001f);
+            HuSprAttrSet(sprites->group_id, type_sprite, 8);
+            HuSprAttrReset(sprites->group_id, type_sprite, HUSPR_ATTR_DISPOFF);
+            HuSprPosSet(sprites->group_id, type_sprite, 0.0f, 32.0f);
+            HuSprScaleSet(sprites->group_id, type_sprite, 0.001f, 0.001f);
             work->angle = 0;
             work->phase = 1;
             work->timer = 0;
@@ -1219,22 +1221,22 @@ static void UpdateMGList(MGSetupWork* work, OMOBJ* object) {
                 OSu8tof32((u8*) &work->timer, &angle);
                 scale = sind(angle);
                 work->timer += 3;
-                HuSprScaleSet(sprites->handles[0], type_sprite, scale, scale);
+                HuSprScaleSet(sprites->group_id, type_sprite, scale, scale);
                 return;
             }
             
             for (slot = 0; slot < work->field01_bit0; slot++) {
                 HuWinDispOn(activeMG[slot].window_id);
             }
-            HuSprAttrReset(sprites->handles[0], 0xA, HUSPR_ATTR_DISPOFF);
-            HuSprAttrSet(sprites->handles[0], 0xA, 8);
-            HuSprPosSet(sprites->handles[0], 0xA, -148.0f, cursorYTbl[0]);
+            HuSprAttrReset(sprites->group_id, 0xA, HUSPR_ATTR_DISPOFF);
+            HuSprAttrSet(sprites->group_id, 0xA, 8);
+            HuSprPosSet(sprites->group_id, 0xA, -148.0f, cursorYTbl[0]);
             highlight_color = &hiliteColTbl[mgType];
-            HuSprAttrReset(sprites->handles[0], 0xC, HUSPR_ATTR_DISPOFF);
-            HuSprPosSet(sprites->handles[0], 0xC, 0.0f, hiliteYTbl[0]);
-            HuSprTPLvlSet(sprites->handles[0], 0xC, 0.7f);
-            HuSprScaleSet(sprites->handles[0], 0xC, 32.0f, 3.5f);
-            HuSprColorSet(sprites->handles[0], 0xC, highlight_color->r, highlight_color->g, highlight_color->b);
+            HuSprAttrReset(sprites->group_id, 0xC, HUSPR_ATTR_DISPOFF);
+            HuSprPosSet(sprites->group_id, 0xC, 0.0f, hiliteYTbl[0]);
+            HuSprTPLvlSet(sprites->group_id, 0xC, 0.7f);
+            HuSprScaleSet(sprites->group_id, 0xC, 32.0f, 3.5f);
+            HuSprColorSet(sprites->group_id, 0xC, highlight_color->r, highlight_color->g, highlight_color->b);
             work->phase = 2;
             work->timer = 0;
             work->spin_speed = 0.7f;
@@ -1250,8 +1252,8 @@ static void UpdateMGList(MGSetupWork* work, OMOBJ* object) {
                 HuAudFXPlay(0x304);
                 cursorPos = highlight_index;
             }
-            HuSprPosSet(sprites->handles[0], 0xA, -148.0f, cursorYTbl[cursorPos]);
-            HuSprPosSet(sprites->handles[0], 0xC, 0.0f, hiliteYTbl[cursorPos]);
+            HuSprPosSet(sprites->group_id, 0xA, -148.0f, cursorYTbl[cursorPos]);
+            HuSprPosSet(sprites->group_id, 0xC, 0.0f, hiliteYTbl[cursorPos]);
             if (work->spin_delay != 0) {
                 work->spin_delay--;
                 return;
@@ -1269,8 +1271,8 @@ static void UpdateMGList(MGSetupWork* work, OMOBJ* object) {
                 HuAudFXPlay(0x304);
                 cursorPos = highlight_index;
             }
-            HuSprPosSet(sprites->handles[0], 0xA, -148.0f, cursorYTbl[cursorPos]);
-            HuSprPosSet(sprites->handles[0], 0xC, 0.0f, hiliteYTbl[cursorPos]);
+            HuSprPosSet(sprites->group_id, 0xA, -148.0f, cursorYTbl[cursorPos]);
+            HuSprPosSet(sprites->group_id, 0xC, 0.0f, hiliteYTbl[cursorPos]);
             if (!(work->spin_speed < (0.02f + (0.02f * BoardRandFloat())))) return; // weird hacky garbage
             HuAudFXPlay(0x305);
             work->phase = 4;
@@ -1283,8 +1285,8 @@ static void UpdateMGList(MGSetupWork* work, OMOBJ* object) {
             return;
         case 4:
             if (work->timer++ > 0x78U) {
-                HuSprAttrSet(sprites->handles[0], 0xA, 4);
-                HuSprAttrSet(sprites->handles[0], 0xC, 4);
+                HuSprAttrSet(sprites->group_id, 0xA, 4);
+                HuSprAttrSet(sprites->group_id, 0xC, 4);
                 
                 for (slot = 0; slot < work->field01_bit0; slot++) {
                     HuWinDispOff(activeMG[slot].window_id);
@@ -1300,10 +1302,10 @@ static void UpdateMGList(MGSetupWork* work, OMOBJ* object) {
                 hiliteTimer = 0;
             }
             if (hiliteShowF != 0) {
-                HuSprAttrReset(sprites->handles[0], 0xC, HUSPR_ATTR_DISPOFF);
+                HuSprAttrReset(sprites->group_id, 0xC, HUSPR_ATTR_DISPOFF);
                 return;
             }
-            HuSprAttrSet(sprites->handles[0], 0xC, HUSPR_ATTR_DISPOFF);
+            HuSprAttrSet(sprites->group_id, 0xC, HUSPR_ATTR_DISPOFF);
             return;
         case 5:
             if (work->timer < 0x5A) {
@@ -1313,13 +1315,13 @@ static void UpdateMGList(MGSetupWork* work, OMOBJ* object) {
                 if (work->timer > 0x5A) {
                     work->timer = 0x5A;
                 }
-                HuSprScaleSet(sprites->handles[0], type_sprite, scale, scale);
+                HuSprScaleSet(sprites->group_id, type_sprite, scale, scale);
                 if (work->timer > 0x3C) {
-                    HuSprTPLvlSet(sprites->handles[0], type_sprite, (90.0f - work->timer) / 30.0f);
+                    HuSprTPLvlSet(sprites->group_id, type_sprite, (90.0f - work->timer) / 30.0f);
                     return;
                 }
             } else {
-                HuSprAttrSet(sprites->handles[0], type_sprite, 4);
+                HuSprAttrSet(sprites->group_id, type_sprite, 4);
                 
                 for (slot = 0; slot < work->field01_bit0; slot++) {
                     HuWinDispOff(activeMG[slot].window_id);

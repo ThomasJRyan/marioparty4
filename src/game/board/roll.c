@@ -41,7 +41,7 @@ typedef struct {
         u8 dice_index : 2;
     };
     s8 value;
-    s16 timer;
+    s16 rotation_angle;
     s16 model_ids[2];
     float move_fraction;
 } DiceDigitWork;
@@ -740,7 +740,7 @@ void BoardDicePauseAll(void)
             work = omObjGetWork(diceDigitObj[i], DiceDigitWork);
             work->move_to_player = 1;
             work->state = 1;
-            work->timer = 0;
+            work->rotation_angle = 0;
         }
     }
 }
@@ -840,7 +840,7 @@ void BoardDiceValueSet(s32 dice_index, s32 value)
     work->dice_index = dice_index;
     work->move_fraction = 0.3f;
     work->value = value;
-    work->timer = 360;
+    work->rotation_angle = 360;
     for (i = 0; i < 2; i++) {
         model_id = BoardModelCreate(diceDigitMdlTbl[digits[i]], NULL, 0);
         BoardModelPosSetV(model_id, &position);
@@ -985,7 +985,8 @@ static void DiceDigitMove(DiceDigitWork *work, s32 move_to_player)
 /**
  * @brief Rotates roll-value digits toward their target orientation.
  *
- * @param work Digit state containing the current degree angle and model IDs.
+ * @param work Digit state containing the current Y-axis rotation angle in
+ * degrees and the two digit model IDs.
  * @param move_to_player Nonzero to rotate toward 360 degrees; zero to rotate
  * back toward 0 degrees.
  */
@@ -995,18 +996,18 @@ static void DiceDigitRotate(DiceDigitWork *work, s32 move_to_player)
     s32 i;
 
     if (move_to_player != 0) {
-        work->timer += 0x12;
-        if (work->timer >= 360) {
-            work->timer = 360;
+        work->rotation_angle += 0x12;
+        if (work->rotation_angle >= 360) {
+            work->rotation_angle = 360;
         }
     }
     else {
-        work->timer -= 0x12;
-        if (work->timer <= 0) {
-            work->timer = 0;
+        work->rotation_angle -= 0x12;
+        if (work->rotation_angle <= 0) {
+            work->rotation_angle = 0;
         }
     }
-    OSs16tof32(&work->timer, &rotation);
+    OSs16tof32(&work->rotation_angle, &rotation);
     for (i = 0; i < 2; i++) {
         if (work->model_ids[i] != -1) {
             BoardModelRotSet(work->model_ids[i], 0.0f, rotation, 0.0f);
