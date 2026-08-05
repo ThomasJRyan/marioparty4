@@ -599,7 +599,7 @@ s32 BoardModelMotionUpdateSet(s16 model, s32 flag)
 /**
  * @brief Enable or disable character voice triggers for a motion.
  * @param [in] model Character-backed wrapper whose selected motion's voice triggers are changed.
- * @param [in] motion Motion slot from 0 through 31 whose character-motion voice setting receives enable.
+ * @param [in] motion Motion slot from 0 through 31 whose character-motion voice-enable setting is assigned from flag.
  * @param [in] flag Value assigned as the selected character motion's voice enable/disable setting; nonzero enables and zero disables.
  * @return -1 when model is invalid; otherwise 0, including for an out-of-range motion or non-character model.
  */

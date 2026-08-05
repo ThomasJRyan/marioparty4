@@ -28,7 +28,7 @@ void BoardMusStartBoard(void) {
  * @brief Start a music sequence on one of the two board music channels.
  * @param [in] board_no Board music channel normally selected for playback and tracking; when replacing an active entry, the baseline body instead passes its stored sequence handle to BoardAudSeqFadeOutFast as the channel argument.
  * @param [in] music_id Requested sequence ID to play and store; a match with the tracked ID returns without changing the tracked selection.
- * @param [in] vol Target volume; a negative value selects full volume (127).
+ * @param [in] vol Value written to MSM_MUSPARAM.vol; negative input is replaced by 127 and enables MSM_MUSPARAM_VOL, while nonnegative input does not add that flag and msmMusPlay uses its base volume 127 path.
  * @param [in] speed Music fade-in duration; zero starts immediately.
  */
 void BoardMusStart(s32 board_no, s32 music_id, s8 vol, u16 speed) {
@@ -93,10 +93,10 @@ void BoardMusLoudSet(s32 board_no, s32 is_quieter) {
 }
 
 /**
- * @brief Submit channel and volume parameters for an active board music sequence.
- * @param [in] board_no Board music channel used for sequence lookup and written to MSM_MUSPARAM.chan.
+ * @brief Submit a volume parameter for the active sequence stored in one board music channel.
+ * @param [in] board_no Used only to select the boardSeq entry containing the active sequence handle; the body enables MSM_MUSPARAM_CHAN but does not initialize MSM_MUSPARAM.chan.
  * @param [in] vol Target volume; a negative value selects full volume (127).
- * @param [in] fade_speed Value written to MSM_MUSPARAM.fadeSpeed, although the enabled MSM_MUSPARAM_CHAN and MSM_MUSPARAM_VOL flags do not include MSM_MUSPARAM_FADESPEED.
+ * @param [in] fade_speed Value written to MSM_MUSPARAM.fadeSpeed and consumed by msmMusSetParam's VOL branch as pauseOffMaxTime = fadeSpeed / 15 to interpolate volume when nonzero; this setter path does not require or add MSM_MUSPARAM_FADESPEED.
  */
 void BoardMusVolPanSet(s32 board_no, s8 vol, u16 fade_speed) {
     s16 *board = boardSeq[board_no];
