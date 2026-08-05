@@ -37,10 +37,17 @@ static s32 StarPortraitTbl[] = {
 static s16 windowID = -1;
 static const s8 winSpeedTbl[4] = {0, 1, 4, 0};
 
+/**
+ * @brief Initialize one engine window layer for board messages.
+ */
 void BoardWinInit(void) {
     HuWinInit(1);
 }
 
+/**
+ * @brief Copy two caller values into the preserved board-window array, or clear it for NULL.
+ * @param [in] arg0 Two-float source array, or NULL to clear both preserved values.
+ */
 void BoardWinUnusedArraySet(f32* arg0) {
     if (arg0 != 0) {
         lbl_801D3F70[0] = arg0[0];
@@ -50,11 +57,17 @@ void BoardWinUnusedArraySet(f32* arg0) {
     lbl_801D3F70[0] = lbl_801D3F70[1] = 0.0f;
 }
 
+/**
+ * @brief Terminate the active board window process and destroy all engine windows.
+ */
 void BoardWinKillAll(void) {
     BoardWinKill();
     HuWinAllKill();
 }
 
+/**
+ * @brief Clean up the active extended window and reset board-window state.
+ */
 void BoardWinDestroy(void) {
     if (windowID >= 0) {
         if (winPortrait == -1) {
@@ -69,6 +82,9 @@ void BoardWinDestroy(void) {
     winProc = 0;
 }
 
+/**
+ * @brief Create, configure, display, collect input for, and animate out the pending board message.
+ */
 static void ExecBoardWindow(void) {
     f32 size[2];
     f32 pos[2];
@@ -179,14 +195,28 @@ static void ExecBoardWindow(void) {
     HuPrcEnd();
 }
 
+/**
+ * @brief Return the choice recorded after the active message completed.
+ * @return Choice index recorded after message completion.
+ */
 s32 BoardWinChoiceGet(void) {
     return winChoice;
 }
 
+/**
+ * @brief Keep the active board-window process asleep after its message completes.
+ */
 void BoardWinPause(void) {
     winPause = 1;
 }
 
+/**
+ * @brief Queue a board message window with choice collection enabled.
+ * @param [in] pos Window layout preset index from 0 through 6.
+ * @param [in] mess Packed message ID.
+ * @param [in] portrait Portrait ID, or -1 to create a portraitless window.
+ * @param [in] choice Choice index.
+ */
 void BoardWinCreateChoice(s32 pos, u32 mess, s32 portrait, s32 choice) {
     s32 i;
 
@@ -219,6 +249,12 @@ void BoardWinCreateChoice(s32 pos, u32 mess, s32 portrait, s32 choice) {
     BoardWinPlayerSet(GWSystem.player_curr);
 }
 
+/**
+ * @brief Queue a board message window without a selectable choice.
+ * @param [in] pos Window layout preset index from 0 through 6.
+ * @param [in] mess Packed message ID.
+ * @param [in] portrait Portrait ID, or -1 to create a portraitless window.
+ */
 void BoardWinCreate(s32 pos, u32 mess, s32 portrait) {
     s32 i;
 
@@ -252,10 +288,19 @@ void BoardWinCreate(s32 pos, u32 mess, s32 portrait) {
     autoPickF = 0;
 }
 
+/**
+ * @brief Set one message-substitution entry for the pending board window.
+ * @param [in] value Value applied by the operation.
+ * @param [in] index One-based entry index unless the function documents a table index.
+ */
 void BoardWinInsertMesSet(u32 value, s32 index) {
     winInsertMesTbl[index] = value;
 }
 
+/**
+ * @brief Check whether the board-window process has terminated.
+ * @return TRUE when no board-window process exists; otherwise FALSE.
+ */
 static inline BOOL BoardWinDone(void) {
     if(winProc != NULL) {
         return 0;
@@ -264,12 +309,18 @@ static inline BOOL BoardWinDone(void) {
     }
 }
 
+/**
+ * @brief Yield until the active board-window process terminates.
+ */
 void BoardWinWait(void) {
     while(!BoardWinDone()) {
         HuPrcVSleep();
     }
 }
 
+/**
+ * @brief Terminate the active board-window process if one exists.
+ */
 void BoardWinKill(void) {
     if (winProc != 0) {
         HuPrcKill(winProc);
@@ -277,6 +328,10 @@ void BoardWinKill(void) {
     }
 }
 
+/**
+ * @brief Add window attribute bits to the pending and active board window.
+ * @param [in] attr Engine attribute bit mask.
+ */
 void BoardWinAttrSet(s32 attr) {
     winAttr |= attr;
     if (windowID >= 0) {
@@ -284,6 +339,10 @@ void BoardWinAttrSet(s32 attr) {
     }
 }
 
+/**
+ * @brief Remove window attribute bits from the pending and active board window.
+ * @param [in] attr Engine attribute bit mask.
+ */
 void BoardWinAttrReset(s32 attr) {
     winAttr &= ~attr;
     if (windowID >= 0) {
@@ -291,18 +350,33 @@ void BoardWinAttrReset(s32 attr) {
     }
 }
 
+/**
+ * @brief Disable a choice index in the pending board window.
+ * @param [in] choice Choice index.
+ */
 void BoardWinChoiceDisable(s32 choice) {
     choiceDisableTbl[choice] = 1;
 }
 
+/**
+ * @brief Require an additional key press after the pending message finishes printing.
+ */
 void BoardWinKeyWait(void) {
     winWait = 1;
 }
 
+/**
+ * @brief Map the configured message-speed setting to an engine text delay.
+ * @return Engine text delay mapped from the current global message-speed setting.
+ */
 s32 BoardWinSpeedGet(void) {
     return winSpeedTbl[GWMessSpeedGet()];
 }
 
+/**
+ * @brief Apply a configured message-speed setting to pending and active text.
+ * @param [in] value Value applied by the operation.
+ */
 void BoardWinSpeedSet(s32 value) {
     messSpeed = winSpeedTbl[value];
     if (windowID != -1) {
@@ -310,6 +384,10 @@ void BoardWinSpeedSet(s32 value) {
     }
 }
 
+/**
+ * @brief Read the currently highlighted choice from the active board window.
+ * @return Highlighted choice index, or -1 when no window exists.
+ */
 s16 BoardWinChoiceNowGet(void) {
     if (windowID == -1) {
         return -1;
@@ -317,6 +395,10 @@ s16 BoardWinChoiceNowGet(void) {
     return HuWinChoiceNowGet(windowID);
 }
 
+/**
+ * @brief Set the pending and active board window's draw priority.
+ * @param [in] prio Window draw priority.
+ */
 void BoardWinPriSet(s16 prio) {
     winPrio = prio;
     if (windowID != -1) {
@@ -324,6 +406,10 @@ void BoardWinPriSet(s16 prio) {
     }
 }
 
+/**
+ * @brief Read the currently highlighted choice from the active board window.
+ * @return Highlighted choice index, or -1 when no window exists.
+ */
 s16 BoardWinChoiceNowGet2(void) {
     if (windowID == -1) {
         return -1;
@@ -331,16 +417,28 @@ s16 BoardWinChoiceNowGet2(void) {
     return HuWinChoiceNowGet(windowID);
 }
 
+/**
+ * @brief Get the normal host portrait configured for the current board.
+ * @return Portrait ID for normal host dialogue on the current board.
+ */
 s32 BoardWinPortraitGet(void) {
     s32 temp = GWSystem.board;
     return PortraitTbl[temp];
 }
 
+/**
+ * @brief Get the star-dialogue portrait configured for the current board.
+ * @return Portrait ID for star dialogue on the current board.
+ */
 s32 BoardWinPortraitGetStar(void) {
     s32 temp = GWSystem.board;
     return StarPortraitTbl[temp];
 }
 
+/**
+ * @brief Restrict window input to the requested human player's port, accounting for tutorial and CPU state.
+ * @param [in] player Player index.
+ */
 void BoardWinPlayerSet(s32 player) {
     s32 i;
     #if VERSION_NTSC
@@ -382,6 +480,9 @@ void BoardWinPlayerSet(s32 player) {
     }
 }
 
+/**
+ * @brief Queue automatic confirmation presses for computer-controlled message input.
+ */
 void BoardWinStartComKeySet(void) {
     s32 comkey[4];
     s32 delay;
@@ -423,10 +524,18 @@ void BoardWinStartComKeySet(void) {
     }
 }
 
+/**
+ * @brief Install or clear the callback that supplies automatic choice input.
+ * @param [in] func Callback to install, or NULL to clear it.
+ */
 void BoardWinComKeyFuncSet(BoardWinComKeyFunc func) {
     comKeyFunc = func;
 }
 
+/**
+ * @brief Get the active engine window ID.
+ * @return Active engine window ID, or -1 when no window exists.
+ */
 s16 BoardWinIDGet(void)
 {
     return windowID;

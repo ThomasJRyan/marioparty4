@@ -115,6 +115,9 @@ static s32 logoSprTbl[] = {
     DATA_MAKE_NUM(DATADIR_BOARD, 0x57), DATA_MAKE_NUM(DATADIR_BOARD, 0x5D), DATA_MAKE_NUM(DATADIR_BOARD, 0x5E)
 };
 
+/**
+ * @brief Run the board-opening presentation and determine player order.
+ */
 void BoardStartExec(void) {
     startProc = HuPrcChildCreate(ExecStart, 0x2007, 0x3800, 0, boardMainProc);
     HuPrcDestructorSet2(startProc, DestroyStart);
@@ -123,6 +126,9 @@ void BoardStartExec(void) {
     }
 }
 
+/**
+ * @brief Release opening-sequence models, windows, sprites, and process state.
+ */
 static void DestroyStart(void) {
     if (tapWin != -1) {
         HuWinKill(tapWin);
@@ -140,6 +146,9 @@ static void DestroyStart(void) {
     startProc = NULL;
 }
 
+/**
+ * @brief Run the logo, host introduction, dice rolls, ordering, and transition into play.
+ */
 static void ExecStart(void) {
     Vec pos;
     s32 i;
@@ -231,6 +240,9 @@ static void ExecStart(void) {
     HuPrcEnd();
 }
 
+/**
+ * @brief Display and animate the board-start logo.
+ */
 static void ShowLogo(void) {
     float scale;
     float angleF;
@@ -270,6 +282,9 @@ static void ShowLogo(void) {
     logoSprGrp = -1;
 }
 
+/**
+ * @brief Move the camera from the establishing view to the waiting players.
+ */
 static void FocusStart(void) {
     Vec boardPos;
     Vec offset;
@@ -304,6 +319,9 @@ static void FocusStart(void) {
     BoardCameraMotionStartEx(camFocus, &camRot, NULL, 1500.0f, -1.0f, 21);
 }
 
+/**
+ * @brief Create per-player objects and work records for the opening roll sequence.
+ */
 static void CreatePlayerStart(void) {
     Vec boardPos;
     float offsetX;
@@ -349,6 +367,10 @@ static void CreatePlayerStart(void) {
     }
 }
 
+/**
+ * @brief Dispatch one player's opening-roll state machine.
+ * @param [in] object Object-manager object whose work is updated.
+ */
 static void ExecPlayerStart(OMOBJ *object) {
     PlayerStartWork *data = omObjGetWork(object, PlayerStartWork);
 
@@ -389,6 +411,11 @@ static void ExecPlayerStart(OMOBJ *object) {
     }
 }
 
+/**
+ * @brief Animate a player falling into the opening lineup.
+ * @param [in] object Object-manager object whose work is updated.
+ * @param [in] data Per-player opening-sequence work record.
+ */
 static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
     float fall_duration;
 
@@ -416,6 +443,11 @@ static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
     BoardPlayerPosSet(playerOrderOld[data->index], object->trans.x, object->trans.y, object->trans.z);
 }
 
+/**
+ * @brief Play the waiting player's voice and advance to the dice-drop state.
+ * @param [in] object Object-manager object whose work is updated.
+ * @param [in] data Per-player opening-sequence work record.
+ */
 static void PlayerWaitSpeak(OMOBJ *object, PlayerStartWork *data) {
     float yRot;
 
@@ -431,6 +463,11 @@ static void PlayerWaitSpeak(OMOBJ *object, PlayerStartWork *data) {
     }
 }
 
+/**
+ * @brief Animate the opening-order Dice Block falling above a player.
+ * @param [in] object Object-manager object whose work is updated.
+ * @param [in] data Per-player opening-sequence work record.
+ */
 static void PlayerDiceFall(OMOBJ *object, PlayerStartWork *data) {
     Vec boardPos;
     float max;
@@ -479,6 +516,11 @@ static s32 playerOrderMesTbl[3] = {
     MAKE_MESSID(0x15, 0x15)
 };
 
+/**
+ * @brief Spin the Dice Block until the player or computer confirms a result.
+ * @param [in] object Object-manager object whose work is updated.
+ * @param [in] data Per-player opening-sequence work record.
+ */
 static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
     Vec boardPos;
     float time;
@@ -557,6 +599,11 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
     data->time++;
 }
 
+/**
+ * @brief Display the player's opening roll and transition to result cleanup.
+ * @param [in] object Object-manager object whose work is updated.
+ * @param [in] data Per-player opening-sequence work record.
+ */
 static void PlayerDiceNumShow(OMOBJ *object, PlayerStartWork *data) {
     float yRot;
 
@@ -572,6 +619,11 @@ static void PlayerDiceNumShow(OMOBJ *object, PlayerStartWork *data) {
     BoardModelRotYSet(data->model, yRot);
 }
 
+/**
+ * @brief Hide the opening roll, lower the player, and mark that player complete.
+ * @param [in] object Object-manager object whose work is updated.
+ * @param [in] data Per-player opening-sequence work record.
+ */
 static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
     float yRot;
 
@@ -614,6 +666,11 @@ static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
     BoardModelScaleSet(data->model, object->rot.x, object->rot.y, 1.0f);
 }
 
+/**
+ * @brief Set one player's opening-roll state and reset its state timer.
+ * @param [in] player Player index.
+ * @param [in] state Next PlayerStartWork state dispatched by ExecPlayerStart.
+ */
 static void SetPlayerStartState(s32 player, s32 state) {
     PlayerStartWork *data;
     OMOBJ *object;
@@ -635,6 +692,11 @@ static void SetPlayerStartState(s32 player, s32 state) {
     }
 }
 
+/**
+ * @brief Read one player's current opening-roll state.
+ * @param [in] player Player index.
+ * @return Current state from the player's opening-sequence work record.
+ */
 static s32 GetPlayerStartState(s32 player) {
     PlayerStartWork *data;
     OMOBJ *object;
@@ -644,6 +706,9 @@ static s32 GetPlayerStartState(s32 player) {
     return data->state;
 }
 
+/**
+ * @brief Run all four opening Dice Block rolls and wait for completion.
+ */
 static void ExecStartRoll(void) {
     s32 sp84[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     s32 id;
@@ -763,6 +828,9 @@ static void ExecStartRoll(void) {
     }
 }
 
+/**
+ * @brief Configure the camera used by the opening board presentation.
+ */
 static void InitCamera(void) {
     Vec offset;
     Vec rotTarget;
@@ -825,6 +893,9 @@ static void InitCamera(void) {
     }
 }
 
+/**
+ * @brief Create, position, and animate the board host for the opening presentation.
+ */
 static void InitHost(void) {
     Vec newPos;
 
@@ -839,6 +910,9 @@ static void InitHost(void) {
     }
 }
 
+/**
+ * @brief Create the prompt window used to advance the opening sequence.
+ */
 static void CreateTapWin(void) {
     float dimensions[2];
     float x;
@@ -858,6 +932,9 @@ static void CreateTapWin(void) {
     }
 }
 
+/**
+ * @brief Sort opening roll results and assign each player a turn position.
+ */
 static void OrderPlayers(void) {
     s32 pOrderTemp;
     PlayerConfig *playerCfg;

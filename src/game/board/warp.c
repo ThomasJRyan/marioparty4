@@ -38,6 +38,11 @@ static s8 warpImpactPlayer[4] = {-1, -1, -1, -1};
 static void WarpProcess(void);
 static void WarpKill(void);
 
+/**
+ * @brief Run the warp process synchronously and set the acting player's minigame color to green.
+ * @param [in] player Player index.
+ * @param [in] space One-based board-space index.
+ */
 void BoardWarpExec(s32 player, s32 space) {
     omVibrate(player, 12, 4, 2);
     warpProcess = HuPrcChildCreate(WarpProcess, 8195, 14336, 0, boardMainProc);
@@ -49,6 +54,9 @@ void BoardWarpExec(s32 player, s32 space) {
     GWPlayer[player].color = 3;
 }
 
+/**
+ * @brief Select a roulette target and advance the launch, relocation, fall, and impact phases.
+ */
 void WarpProcess(void) {
     s32 curr_player;
     s32 warp_sound[8] = {291, 355, 419, 483, 547, 611, 675, 739};
@@ -115,6 +123,9 @@ void WarpProcess(void) {
     }
 }
 
+/**
+ * @brief Destroy warp effect models and clear the active process handle.
+ */
 void WarpKill(void) {
     if (warpSpringMdl != -1) {
         BoardModelKill(warpSpringMdl);
@@ -127,6 +138,10 @@ void WarpKill(void) {
     warpProcess = NULL;
 }
 
+/**
+ * @brief Create the spring, hook the player to it, and prepare the launch camera.
+ * @param [in] player Player index.
+ */
 static void WarpInit(s32 player) {
     Vec pos;
     s16 player_mdl = BoardPlayerModelGet(player);
@@ -145,6 +160,10 @@ static void WarpInit(s32 player) {
     BoardPlayerIdleSet(player);
 }
 
+/**
+ * @brief Raise the warped player until the fade-out and relocation phase begins.
+ * @param [in] player Player index.
+ */
 static void WarpLaunch(s32 player) {
 
     warpPos.y += 20.0f;
@@ -162,6 +181,10 @@ static void WarpLaunch(s32 player) {
     }
 }
 
+/**
+ * @brief Move the player above the target's space and prepare the impact effect and camera.
+ * @param [in] player Player index.
+ */
 static void WarpStartImpact(s32 player) {
     s32 i;
 
@@ -194,6 +217,10 @@ static void WarpStartImpact(s32 player) {
     warpState = 4;
 }
 
+/**
+ * @brief Accelerate the warped player downward to the target space.
+ * @param [in] player Player index.
+ */
 static void WarpFall(s32 player) {
     warpYVel += -2.0f;
     warpPos.y += warpYVel;
@@ -206,6 +233,10 @@ static void WarpFall(s32 player) {
     BoardPlayerPosSetV(player, &warpPos);
 }
 
+/**
+ * @brief Play the landing effect, animate players on the destination space, and finish the warp.
+ * @param [in] player Player index.
+ */
 static void WarpImpact(s32 player) {
     Vec pos;
     Vec pos_player;
