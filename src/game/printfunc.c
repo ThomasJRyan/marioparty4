@@ -50,6 +50,9 @@ static GXColor ATTRIBUTE_ALIGN(32) fcoltbl[16] = {
     { 255, 255, 255, 255 }
 };
 
+/**
+ * @brief Initialize the debug font renderer.
+ */
 void pfInit(void)
 {
     int i;
@@ -62,6 +65,9 @@ void pfInit(void)
     pfClsScr();
 }
 
+/**
+ * @brief Clear queued debug text and window primitives.
+ */
 void pfClsScr(void)
 {
     int i;
@@ -76,6 +82,16 @@ void pfClsScr(void)
     }
 }
 
+/**
+ * @brief Queue formatted debug text for rendering.
+ *
+ * @param [in] x Horizontal framebuffer coordinate.
+ * @param [in] y Vertical framebuffer coordinate.
+ * @param [in] scale Text scale.
+ * @param [in] str printf-style format string followed by its arguments.
+ *
+ * @return Queue slot index, or `-1` when all 256 entries are occupied.
+ */
 s16 print8(s16 x, s16 y, float scale, char *str, ...)
 {
     struct strline_data *strline_curr;
@@ -106,6 +122,17 @@ s16 print8(s16 x, s16 y, float scale, char *str, ...)
     return ret;
 }
 
+/**
+ * @brief Queue a colored debug window for rendering.
+ *
+ * @param [in] x Horizontal framebuffer coordinate.
+ * @param [in] y Vertical framebuffer coordinate.
+ * @param [in] w Window width.
+ * @param [in] h Window height.
+ * @param [in] color RGBA fill color copied into the queued window entry.
+ *
+ * @return Queue slot index, or `-1` when all 256 entries are occupied.
+ */
 s16 printWin(s16 x, s16 y, s16 w, s16 h, GXColor *color)
 {
     struct strline_data *strline_curr;
@@ -130,6 +157,9 @@ s16 printWin(s16 x, s16 y, s16 w, s16 h, GXColor *color)
     return ret;
 }
 
+/**
+ * @brief Render queued debug text and windows.
+ */
 void pfDrawFonts(void)
 {
     GXTexObj font_tex;
@@ -306,6 +336,9 @@ void pfDrawFonts(void)
 #define SAFETY_W 16
 #define SAFETY_H 40
 
+/**
+ * @brief Draw the queued debug wireframe primitives.
+ */
 static void WireDraw(void)
 {
     Mtx44 proj;

@@ -41,31 +41,44 @@ static s32 XFB_putcS(u8 arg0, s32 arg1, s32 arg2);
 static void XFB_WriteBackCache(void);
 static void XFB_CR(s32 value, s32* arg1, s32* arg2);
 
+/**
+ * @brief Display a fatal error directly in the framebuffers and halt the CPU.
+ *
+ * @param [in] file Source file reporting the panic.
+ * @param [in] line Source line reporting the panic.
+ * @param [in] msg Formatted panic message.
+ */
 void OSPanic(const char* file, int line, const char* msg, ...) {
     static char* titleMes = "OSPanic encounterd:";
     
     va_list sp78;
-    s32 sp74;
-    s32 sp70;
-    char sp84[1024];
+    s32 cursor_x;
+    s32 cursor_y;
+    char message_buf[1024];
     s32 puts;
 
-    sp74 = x_start = 0x10;
-    sp70 = y_start = 0x20;
-    puts = XFB_puts((s8*)titleMes, sp74, sp70);
-    XFB_CR(puts + 1, &sp74, &sp70);
-    sprintf(sp84, "%s:%d", file, line);
-    puts = XFB_puts((s8*)sp84, sp74, sp70);
-    XFB_CR(puts, &sp74, &sp70);
+    cursor_x = x_start = 0x10;
+    cursor_y = y_start = 0x20;
+    puts = XFB_puts((s8*)titleMes, cursor_x, cursor_y);
+    XFB_CR(puts + 1, &cursor_x, &cursor_y);
+    sprintf(message_buf, "%s:%d", file, line);
+    puts = XFB_puts((s8*)message_buf, cursor_x, cursor_y);
+    XFB_CR(puts, &cursor_x, &cursor_y);
     va_start(sp78, msg);
-    vsnprintf(sp84, 0x400U, msg, &sp78[0]);
-    puts = XFB_puts((s8*)sp84, sp74, sp70);
-    XFB_CR(puts, &sp74, &sp70);
+    vsnprintf(message_buf, 0x400U, msg, &sp78[0]);
+    puts = XFB_puts((s8*)message_buf, cursor_x, cursor_y);
+    XFB_CR(puts, &cursor_x, &cursor_y);
     XFB_WriteBackCache();
     PPCHalt();
     va_end(sp78);
 }
 
+/**
+ * @brief Initialize direct framebuffer drawing for fatal errors.
+ *
+ * @param [in] mode Render mode supplying framebuffer dimensions and XFB mode;
+ *                  `NULL` leaves geometry zeroed and selects progressive draw.
+ */
 void HuFaultInitXfbDirectDraw(GXRenderModeObj *mode) {
     s32 i;
     
@@ -93,12 +106,21 @@ void HuFaultInitXfbDirectDraw(GXRenderModeObj *mode) {
     }
 }
 
+/**
+ * @brief Register a framebuffer for fatal-error drawing.
+ *
+ * @param [in] id Framebuffer slot in the inclusive range `0` through `3`.
+ * @param [in] addr External framebuffer base address, or `NULL` to clear it.
+ */
 void HuFaultSetXfbAddress(s16 id, void* addr) {
     if (id >= 0 && id < 4) {
         XFB_Geometry.fb[id] = addr;
     }
 }
 
+/**
+ * @brief Write modified framebuffer ranges back to memory.
+ */
 static void XFB_WriteBackCache(void) {
     s32 i;
     void* fb;
@@ -117,6 +139,14 @@ static void XFB_WriteBackCache(void) {
     }
 }
 
+/**
+ * @brief Advance a framebuffer text cursor to the next requested line.
+ *
+ * @param [in] value Encoded line-advance count; its low three bits add extra
+ *                   18-pixel line steps after the mandatory step.
+ * @param [in, out] x_ptr Cursor X coordinate, reset to the configured margin.
+ * @param [in, out] y_ptr Cursor Y coordinate, advanced in 18-pixel rows.
+ */
 static void XFB_CR(s32 value, s32* x_ptr, s32* y_ptr) {
     s32 numLines;
     s32 y;
@@ -137,9 +167,19 @@ static void XFB_CR(s32 value, s32* x_ptr, s32* y_ptr) {
     *y_ptr = y;
 }
 
+/**
+ * @brief Draw a null-terminated string into the configured framebuffers.
+ *
+ * @param [in] message Null-terminated text to draw.
+ * @param [in] x Horizontal framebuffer coordinate.
+ * @param [in] y Vertical framebuffer coordinate.
+ *
+ * @return Number of newline and automatic-wrap advances encountered before
+ *         the terminating null character.
+ */
 static s32 XFB_puts(s8* message, s32 x, s32 y) {
     s32 i;
-    s32 temp_r31;
+    s32 wrap_count;
     s8 current_char;
     
     i = 0;
@@ -152,15 +192,15 @@ static s32 XFB_puts(s8* message, s32 x, s32 y) {
             
             i += 1;
         } else {
-            temp_r31 = XFB_putcS(current_char, x, y);
+            wrap_count = XFB_putcS(current_char, x, y);
             
-            if (temp_r31 >= 0) {
-                if (temp_r31 != 0) {
-                    temp_r31 -= 1;
+            if (wrap_count >= 0) {
+                if (wrap_count != 0) {
+                    wrap_count -= 1;
 
-                    XFB_CR(temp_r31, &x, &y);
+                    XFB_CR(wrap_count, &x, &y);
                     
-                    i += temp_r31 + 1;
+                    i += wrap_count + 1;
                 }
                 x += 0x10;
             } else {
@@ -172,6 +212,16 @@ static s32 XFB_puts(s8* message, s32 x, s32 y) {
     return i;
 }
 
+/**
+ * @brief Draw an outlined character with automatic line wrapping.
+ *
+ * @param [in] c Character code.
+ * @param [in] x Horizontal framebuffer coordinate.
+ * @param [in] y Vertical framebuffer coordinate.
+ *
+ * @return `0` when drawn without wrapping, `1` when the cursor first wrapped,
+ *         or `-1` when `c` is the terminating null character.
+ */
 static s32 XFB_putcS(u8 c, s32 x, s32 y) {
     XFB_COLOR colorOld;
     s32 crNum;
@@ -196,6 +246,16 @@ static s32 XFB_putcS(u8 c, s32 x, s32 y) {
     return crNum;
 }
 
+/**
+ * @brief Draw one character into progressive-scan framebuffers.
+ *
+ * @param [in] c Character code.
+ * @param [in] x Horizontal framebuffer coordinate.
+ * @param [in] y Vertical framebuffer coordinate.
+ *
+ * @return `0` after drawing a glyph, or `-1` when `c` is zero or no
+ *         framebuffer has been registered.
+ */
 static s32 XFB_putcProgressive(u8 c, s32 x, s32 y) {
     s32 result;
     s32 pitch;
@@ -294,6 +354,16 @@ static s32 XFB_putcProgressive(u8 c, s32 x, s32 y) {
     return result;
 }
 
+/**
+ * @brief Draw one character into interlaced framebuffers.
+ *
+ * @param [in] c Character code.
+ * @param [in] x Horizontal framebuffer coordinate.
+ * @param [in] y Vertical framebuffer coordinate.
+ *
+ * @return `0` after drawing a glyph, or `-1` when `c` is zero or no
+ *         framebuffer has been registered.
+ */
 static s32 XFB_putcInterlace(u8 c, s32 x, s32 y) {
     u8 colorY;
     u8 colorCr;

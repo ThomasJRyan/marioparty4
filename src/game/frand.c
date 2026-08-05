@@ -4,6 +4,13 @@ static u32 frand_seed;
 
 extern s32 rand8(void);
 
+/**
+ * @brief Advance the pseudo-random number generator state.
+ *
+ * @param [in] param Previous generator state mixed into the next state.
+ *
+ * @return The next 32-bit generator state.
+ */
 static inline u32 frandom(u32 param)
 {
     s32 rand2, rand3;
@@ -21,10 +28,20 @@ static inline u32 frandom(u32 param)
     return param;
 }
 
+/**
+ * @brief Generate a pseudo-random 32-bit value.
+ *
+ * @return A pseudo-random 32-bit value from the shared generator state.
+ */
 u32 frand(void) {
     return frand_seed = frandom(frand_seed);
 }
 
+/**
+ * @brief Generate a pseudo-random floating-point value in the unit interval.
+ *
+ * @return A pseudo-random floating-point value in the range `[0.0, 1.0)`.
+ */
 f32 frandf(void) {
     u32 value = frand();
     f32 ret;
@@ -33,6 +50,13 @@ f32 frandf(void) {
     return ret;
 }
 
+/**
+ * @brief Generate a pseudo-random value below a modulus.
+ *
+ * @param [in] arg0 Exclusive upper bound; must be nonzero.
+ *
+ * @return A pseudo-random integer in the range `[0, arg0)`.
+ */
 u32 frandmod(u32 arg0) {
     u32 ret;
     frand_seed = frandom(frand_seed);

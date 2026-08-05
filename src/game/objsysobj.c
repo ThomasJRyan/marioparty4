@@ -21,6 +21,11 @@ float CZoomM[16];
 
 s16 omDBGMenuButton;
 
+/**
+ * @brief Update camera 1 from the global orbit-camera rotation and zoom.
+ *
+ * @param [in] object Camera driver object; its fields are unused.
+ */
 void omOutView(OMOBJ *object)
 {
 	Vec pos, target, up;
@@ -39,6 +44,11 @@ void omOutView(OMOBJ *object)
 	Hu3DCameraPosSet(1, pos.x, pos.y, pos.z, up.x, up.y, up.z, target.x, target.y, target.z);
 }
 
+/**
+ * @brief Update multiple cameras from their global orbit-camera settings.
+ *
+ * @param [in] object Camera driver whose `work[0]` gives the camera count.
+ */
 void omOutViewMulti(OMOBJ *object)
 {
 	u8 i;
@@ -61,6 +71,11 @@ void omOutViewMulti(OMOBJ *object)
 }
 
 
+/**
+ * @brief Create the object that handles system pause input.
+ *
+ * @param [in, out] objman Object manager that owns the pause-input object.
+ */
 void omSystemKeyCheckSetup(HUPROCESS *objman)
 {
 	OMOBJ *object;
@@ -72,6 +87,12 @@ void omSystemKeyCheckSetup(HUPROCESS *objman)
 	object->work[2] = 0;
 }
 
+/**
+ * @brief Update pause state from controller input.
+ *
+ * @param [in, out] object Pause controller; work fields retain pause state and
+ *                         the controller that initiated it.
+ */
 void omSystemKeyCheck(OMOBJ *object)
 {
 	if(!omSysPauseEnableFlag) {
@@ -133,11 +154,21 @@ void omSystemKeyCheck(OMOBJ *object)
 }
 
 
+/**
+ * @brief Enable or disable Start-button pause handling.
+ *
+ * @param [in] flag Nonzero enables pause-input processing; zero ignores it.
+ */
 void omSysPauseEnable(u8 flag)
 {
 	omSysPauseEnableFlag = flag;
 }
 
+/**
+ * @brief Request a synthetic pause or unpause transition.
+ *
+ * @param [in] flag Nonzero queues a pause request; zero queues an unpause.
+ */
 void omSysPauseCtrl(s16 flag)
 {
 	if(!omDBGSysKeyObj) {

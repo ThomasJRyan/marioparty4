@@ -27,7 +27,7 @@ typedef struct om_obj_man {
     s16 next_idx;
     s16 obj_last;
     s16 obj_first;
-    s16 unkA;
+    s16 reserved_0a;
     OMOBJ *obj;
     omObjGroup *group;
 } omObjMan;
@@ -54,6 +54,14 @@ OMOVL omprevovl = DLL_NONE;
 static void omWatchOverlayProc(void);
 static void omInsertObj(HUPROCESS *objman_process, OMOBJ *object);
 
+/**
+ * @brief Initialize overlay loading and start the overlay-watch process.
+ *
+ * @param [in] prio Scheduler priority for the overlay-watch process.
+ * @param [in] ovl_list Overlay-indexed REL file table retained by omDLLInit().
+ * @param [in] ovl_count Unused overlay-count compatibility parameter.
+ * @param [in] start_ovl First overlay queued in the history stack.
+ */
 void omMasterInit(s32 prio, FileListEntry *ovl_list, s32 ovl_count, OMOVL start_ovl)
 {
     omDLLInit(ovl_list);
@@ -66,6 +74,9 @@ void omMasterInit(s32 prio, FileListEntry *ovl_list, s32 ovl_count, OMOVL start_
     omSysPauseEnable(TRUE);
 }
 
+/**
+ * @brief Manage overlay shutdown and startup requests.
+ */
 static void omWatchOverlayProc(void)
 {
     while(1) {
@@ -108,6 +119,14 @@ static void omWatchOverlayProc(void)
     }
 }
 
+/**
+ * @brief Push an overlay request onto history and queue it for execution.
+ *
+ * @param [in] overlay Overlay identifier.
+ * @param [in] arg2 Teardown flag passed to the outgoing overlay.
+ * @param [in] event Event number exposed to the incoming overlay.
+ * @param [in] stat Status word exposed to the incoming overlay.
+ */
 void omOvlCallEx(OMOVL overlay, s16 arg2, s32 event, s32 stat)
 {
     OSReport("objman>Call New Ovl %d(%d)\n", overlay, arg2);
@@ -121,6 +140,14 @@ void omOvlCallEx(OMOVL overlay, s16 arg2, s32 event, s32 stat)
     omOvlGotoEx(overlay, arg2, event, stat);
 }
 
+/**
+ * @brief Replace the active overlay with a queued overlay request.
+ *
+ * @param [in] overlay Overlay identifier.
+ * @param [in] arg2 Teardown flag passed to omOvlKill() for the active overlay.
+ * @param [in] event Event number stored for the incoming overlay.
+ * @param [in] stat Status word stored for the incoming overlay.
+ */
 void omOvlGotoEx(OMOVL overlay, s16 arg2, s32 event, s32 stat)
 {
     omprevovl = omcurovl;
@@ -132,6 +159,12 @@ void omOvlGotoEx(OMOVL overlay, s16 arg2, s32 event, s32 stat)
     omnextovlstat = stat;
 }
 
+/**
+ * @brief Pop overlay history entries and return to the selected request.
+ *
+ * @param [in] level Number of history levels to pop; underflow clamps to zero.
+ * @param [in] arg2 Teardown flag passed to the outgoing overlay.
+ */
 void omOvlReturnEx(s16 level, s16 arg2)
 {
     omovlhisidx -= level;
@@ -143,6 +176,11 @@ void omOvlReturnEx(s16 level, s16 arg2)
     omOvlGotoEx(omovlhis[omovlhisidx].ovl, arg2, omovlhis[omovlhisidx].evtno, omovlhis[omovlhisidx].stat);
 }
 
+/**
+ * @brief Tear down the active overlay and its overlay-owned resources.
+ *
+ * @param [in] arg End mode forwarded to omDLLNumEnd(); `1` unloads the REL.
+ */
 void omOvlKill(s16 arg)
 {
     CharModelKill(-1);
@@ -164,6 +202,14 @@ void omOvlKill(s16 arg)
     omDBGSysKeyObj = NULL;
 }
 
+/**
+ * @brief Replace an entry in the overlay history stack.
+ *
+ * @param [in] level Depth relative to the current history entry.
+ * @param [in] overlay Overlay identifier.
+ * @param [in] event Overlay event number.
+ * @param [in] stat Replacement overlay status word.
+ */
 void omOvlHisChg(s32 level, OMOVL overlay, s32 event, s32 stat)
 {
     OMOVLHIS *history;
@@ -177,6 +223,14 @@ void omOvlHisChg(s32 level, OMOVL overlay, s32 event, s32 stat)
     history->stat = stat;
 }
 
+/**
+ * @brief Get an entry from the overlay history stack.
+ *
+ * @param [in] level Overlay history depth.
+ *
+ * @return Pointer to the requested retained history entry, or `NULL` when the
+ *         relative level lies outside the 16-entry stack.
+ */
 OMOVLHIS *omOvlHisGet(s32 level)
 {
     if(omovlhisidx-level < 0 || omovlhisidx-level >= OM_OVL_HIS_MAX) {
@@ -186,6 +240,14 @@ OMOVLHIS *omOvlHisGet(s32 level)
     return &omovlhis[omovlhisidx-level];
 }
 
+/**
+ * @brief Create an object-manager process and initialize its object pool.
+ *
+ * @param [in] max_objs Requested usable object slots; two internal slots are added.
+ * @param [in] prio Scheduler priority of the object-manager process.
+ *
+ * @return New object-manager process owned by the overlay-watch process.
+ */
 HUPROCESS *omInitObjMan(s16 max_objs, s32 prio)
 {
     omObjGroup *group_all;
@@ -237,6 +299,9 @@ HUPROCESS *omInitObjMan(s16 max_objs, s32 prio)
     return process;
 }
 
+/**
+ * @brief Mark the current object manager as having no final object.
+ */
 void omDestroyObjMan(void)
 {
     HUPROCESS *process = HuPrcCurrentGet();
@@ -245,6 +310,18 @@ void omDestroyObjMan(void)
     OSReport("objman>Destory ObjMan\n");
 }
 
+/**
+ * @brief Allocate and initialize an object in an object manager.
+ *
+ * @param [in, out] objman_process Object-manager process.
+ * @param [in] prio Object update priority used for sorted insertion.
+ * @param [in] mdlcnt Number of model slots to allocate.
+ * @param [in] mtncnt Number of motion slots to allocate.
+ * @param [in] group Group index, or a negative value for no group.
+ * @param [in] func Per-frame object callback, or `NULL`.
+ *
+ * @return Initialized object slot, or `NULL` when the pool is full.
+ */
 OMOBJ *omAddObjEx(HUPROCESS *objman_process, s16 prio, u16 mdlcnt, u16 mtncnt, s16 group, OMOBJFUNC func)
 {
     s32 i;
@@ -295,6 +372,12 @@ OMOBJ *omAddObjEx(HUPROCESS *objman_process, s16 prio, u16 mdlcnt, u16 mtncnt, s
     return object;
 }
 
+/**
+ * @brief Insert an object into the manager's priority-sorted list.
+ *
+ * @param [in, out] objman_process Object-manager process.
+ * @param [in, out] object Newly allocated object to insert by priority.
+ */
 static void omInsertObj(HUPROCESS *objman_process, OMOBJ *object)
 {
     OMOBJ *obj_new;
@@ -336,6 +419,13 @@ static void omInsertObj(HUPROCESS *objman_process, OMOBJ *object)
     }
 }
 
+/**
+ * @brief Add an object to the next free slot in an object group.
+ *
+ * @param [in, out] objman_process Object-manager process.
+ * @param [in] group Object group index.
+ * @param [in, out] object Object whose group and member indices are updated.
+ */
 void omAddMember(HUPROCESS *objman_process, u16 group, OMOBJ *object)
 {
     omObjMan *objman = objman_process->user_data;
@@ -349,6 +439,12 @@ void omAddMember(HUPROCESS *objman_process, u16 group, OMOBJ *object)
     }
 }
 
+/**
+ * @brief Remove an object and free its object-owned allocations.
+ *
+ * @param [in, out] objman_process Object-manager process.
+ * @param [in, out] object Active object to unlink and return to the free list.
+ */
 void omDelObjEx(HUPROCESS *objman_process, OMOBJ *object)
 {
     omObjMan *objman = objman_process->user_data;
@@ -394,6 +490,12 @@ void omDelObjEx(HUPROCESS *objman_process, OMOBJ *object)
     objman->next_idx = next_idx_alloc;
 }
 
+/**
+ * @brief Remove an object from its current object group.
+ *
+ * @param [in, out] objman_process Object-manager process.
+ * @param [in, out] object Object whose group slot is released.
+ */
 void omDelMember(HUPROCESS *objman_process, OMOBJ *object)
 {
     if(object->grpNo != -1) {
@@ -408,6 +510,13 @@ void omDelMember(HUPROCESS *objman_process, OMOBJ *object)
     }
 }
 
+/**
+ * @brief Allocate or replace the member arrays for an object group.
+ *
+ * @param [in, out] objman_process Object-manager process.
+ * @param [in] group Object group index.
+ * @param [in] max_objs Maximum simultaneous members in the group.
+ */
 void omMakeGroupEx(HUPROCESS *objman_process, u16 group, u16 max_objs)
 {
     s32 i;
@@ -436,16 +545,36 @@ OMOBJ **omGetGroupMemberListEx(HUPROCESS *objman_process, s16 group)
     return objman->group[group].obj;
 }
 
+/**
+ * @brief Enable status bits on an object.
+ *
+ * @param [in, out] obj Object whose status bits are enabled.
+ * @param [in] stat Bit mask to OR into `obj->stat`.
+ */
 void omSetStatBit(OMOBJ *obj, u16 stat)
 {
     obj->stat |= stat;
 }
 
+/**
+ * @brief Clear status bits on an object.
+ *
+ * @param [in, out] obj Object whose status bits are cleared.
+ * @param [in] stat Bit mask to clear from `obj->stat`.
+ */
 void omResetStatBit(OMOBJ *obj, u16 stat)
 {
     obj->stat &= ~stat;
 }
 
+/**
+ * @brief Set an object's world translation.
+ *
+ * @param [in, out] obj Object whose `trans` vector is replaced.
+ * @param [in] x World X coordinate.
+ * @param [in] y World Y coordinate.
+ * @param [in] z World Z coordinate.
+ */
 void omSetTra(OMOBJ *obj, float x, float y, float z)
 {
     obj->trans.x = x;
@@ -453,6 +582,14 @@ void omSetTra(OMOBJ *obj, float x, float y, float z)
     obj->trans.z = z;
 }
 
+/**
+ * @brief Set an object's Euler rotation.
+ *
+ * @param [in, out] obj Object whose `rot` vector is replaced.
+ * @param [in] x Rotation about X in degrees.
+ * @param [in] y Rotation about Y in degrees.
+ * @param [in] z Rotation about Z in degrees.
+ */
 void omSetRot(OMOBJ *obj, float x, float y, float z)
 {
     obj->rot.x = x;
@@ -460,6 +597,14 @@ void omSetRot(OMOBJ *obj, float x, float y, float z)
     obj->rot.z = z;
 }
 
+/**
+ * @brief Set an object's per-axis model scale.
+ *
+ * @param [in, out] obj Object whose `scale` vector is replaced.
+ * @param [in] x X-axis scale multiplier.
+ * @param [in] y Y-axis scale multiplier.
+ * @param [in] z Z-axis scale multiplier.
+ */
 void omSetSca(OMOBJ *obj, float x, float y, float z)
 {
     obj->scale.x = x;
@@ -467,6 +612,9 @@ void omSetSca(OMOBJ *obj, float x, float y, float z)
     obj->scale.z = z;
 }
 
+/**
+ * @brief Update active objects managed by the current process.
+ */
 void omMain(void)
 {
     HUPROCESS *process = HuPrcCurrentGet();
@@ -524,6 +672,11 @@ void omMain(void)
 }
 
 //Dummy function to force string literals in binary
+/**
+ * @brief Print diagnostic information for every object slot.
+ *
+ * @param [in, out] objman_process Object-manager process.
+ */
 static void omDumpObj(HUPROCESS *objman_process)
 {
     omObjMan *objman = objman_process->user_data;
@@ -543,6 +696,11 @@ static void omDumpObj(HUPROCESS *objman_process)
     OSReport("================================================================\n");
 }
 
+/**
+ * @brief Pause or resume all pause-eligible objects in the current manager.
+ *
+ * @param [in] pause Whether to pause the objects.
+ */
 void omAllPause(BOOL pause)
 {
     HUPROCESS *objman_process = HuPrcCurrentGet();
@@ -563,6 +721,11 @@ void omAllPause(BOOL pause)
     }
 }
 
+/**
+ * @brief Check whether the object-system pause control is active.
+ *
+ * @return Bit 0 of the pause-controller state, or `0` before it is created.
+ */
 char omPauseChk(void)
 {
     if(omDBGSysKeyObj == NULL) {
@@ -572,6 +735,11 @@ char omPauseChk(void)
     }
 }
 
+/**
+ * @brief Get the currently running overlay.
+ *
+ * @return Current overlay identifier, or `DLL_NONE` while none is active.
+ */
 OMOVL omCurrentOvlGet(void)
 {
     return omcurovl;

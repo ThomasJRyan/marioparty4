@@ -8,12 +8,20 @@ u8 UnMountCnt;
 
 static void MountCallBack(s32 chan, s32 result);
 
+/**
+ * @brief Initialize the memory card subsystem.
+ */
 void HuCardInit(void)
 {
 	CARDInit();
 	cardWork = HuMemDirectMalloc(HEAP_HEAP, CARD_WORKAREA_SIZE);
 }
 
+/**
+ * @brief Probe both memory card slots and mount cards that are ready.
+ *
+ * @return Bit 0 set when slot A is ready and bit 1 set when slot B is ready.
+ */
 s32 HuCardCheck(void)
 {
 	s32 ret = 0;
@@ -38,6 +46,13 @@ s32 HuCardCheck(void)
 	return ret;
 }
 
+/**
+ * @brief Probe one memory card slot until the probe is no longer busy.
+ *
+ * @param [in] slot Memory card slot.
+ *
+ * @return The card sector size in bytes, or a negative CARD_RESULT_* error.
+ */
 s32 HuCardSlotCheck(s16 slot)
 {
 	s32 memSize, sectorSize;
@@ -52,6 +67,14 @@ s32 HuCardSlotCheck(s16 slot)
 	}
 }
 
+/**
+ * @brief Mount and validate the memory card in a slot.
+ *
+ * @param [in] slot Memory card slot.
+ *
+ * @return `CARD_RESULT_READY` on success, otherwise a CARD_RESULT_* error;
+ *         fatal I/O and encoding errors are normalized to fatal or broken.
+ */
 s32 HuCardMount(s16 slot)
 {
 	s32 memSize, sectorSize;
@@ -83,11 +106,24 @@ s32 HuCardMount(s16 slot)
 	}
 }
 
+/**
+ * @brief Unmount the memory card in a slot.
+ *
+ * @param [in] slot Memory card slot.
+ */
 void HuCardUnMount(s16 slot)
 {
 	CARDUnmount(slot);
 }
 
+/**
+ * @brief Format the memory card in a slot.
+ *
+ * @param [in] slot Memory card slot.
+ *
+ * @return The CARDFormat result, with fatal I/O errors normalized to
+ *         `CARD_RESULT_FATAL_ERROR`.
+ */
 s32 HuCardFormat(s16 slot)
 {
 	s32 result = CARDFormat(slot);
@@ -97,6 +133,12 @@ s32 HuCardFormat(s16 slot)
 	return result;
 }
 
+/**
+ * @brief Record that a mounted memory card channel was removed.
+ *
+ * @param [in] chan Card channel whose mount callback ran (`0` or `1`).
+ * @param [in] result Mount result supplied by the CARD library; not inspected.
+ */
 static void MountCallBack(s32 chan, s32 result)
 {
 	#if VERSION_ENG
@@ -106,6 +148,16 @@ static void MountCallBack(s32 chan, s32 result)
 	#endif
 }
 
+/**
+ * @brief Open a named file on a memory card.
+ *
+ * @param [in] slot Memory card slot.
+ * @param [in] fileName Memory card file name.
+ * @param [out] fileInfo Receives the opened file handle on success.
+ *
+ * @return A CARD_RESULT_* status, with fatal I/O and encoding errors
+ *         normalized to fatal or broken results.
+ */
 s32 HuCardOpen(s16 slot, const char *fileName, CARDFileInfo *fileInfo)
 {
 	s32 result = CARDOpen(slot, fileName, fileInfo);
@@ -118,6 +170,17 @@ s32 HuCardOpen(s16 slot, const char *fileName, CARDFileInfo *fileInfo)
 	return result;
 }
 
+/**
+ * @brief Read bytes from an open memory card file.
+ *
+ * @param [in] fileInfo Open file handle returned by HuCardOpen().
+ * @param [out] addr Destination buffer for `length` bytes.
+ * @param [in] length Number of bytes to transfer.
+ * @param [in] offset Byte offset in the file.
+ *
+ * @return A CARD_RESULT_* status, with fatal I/O errors normalized to
+ *         `CARD_RESULT_FATAL_ERROR`.
+ */
 s32 HuCardRead(CARDFileInfo *fileInfo, void *addr, s32 length, s32 offset)
 {
 	s32 result = CARDRead(fileInfo, addr, length, offset);
@@ -127,6 +190,17 @@ s32 HuCardRead(CARDFileInfo *fileInfo, void *addr, s32 length, s32 offset)
 	return result;
 }
 
+/**
+ * @brief Create a sector-aligned file when the card has enough free space.
+ *
+ * @param [in] slot Memory card slot.
+ * @param [in] fileName Memory card file name.
+ * @param [in] size Requested file size in bytes; rounded to a sector boundary.
+ * @param [out] fileInfo Receives the created file handle on success.
+ *
+ * @return The CARDCreate result, `CARD_RESULT_INSSPACE` when bytes or directory
+ *         entries are insufficient, or an earlier CARD_RESULT_* error.
+ */
 s32 HuCardCreate(s16 slot, const char *fileName, s32 size, CARDFileInfo *fileInfo)
 {
 	s32 sectorSize;
@@ -150,24 +224,56 @@ s32 HuCardCreate(s16 slot, const char *fileName, s32 size, CARDFileInfo *fileInf
 	return result;
 }
 
+/**
+ * @brief Close an open memory card file.
+ *
+ * @param [in, out] fileInfo Open file handle to close.
+ *
+ * @return The CARD_RESULT_* value returned by CARDClose().
+ */
 s32 HuCardClose(CARDFileInfo *fileInfo)
 {
 	s32 result = CARDClose(fileInfo);
 	return result;
 }
 
+/**
+ * @brief Write bytes to an open memory card file.
+ *
+ * @param [in, out] fileInfo Open file handle to write.
+ * @param [in] addr Source buffer containing `length` bytes.
+ * @param [in] length Number of bytes to transfer.
+ * @param [in] offset Byte offset in the file.
+ *
+ * @return The CARD_RESULT_* value returned by CARDWrite().
+ */
 s32 HuCardWrite(CARDFileInfo *fileInfo, const void *addr, s32 length, s32 offset)
 {
 	s32 result = CARDWrite(fileInfo, addr, length, offset);
 	return result;
 }
 
+/**
+ * @brief Delete a named file from a memory card.
+ *
+ * @param [in] slot Memory card slot.
+ * @param [in] fileName Memory card file name.
+ *
+ * @return The CARD_RESULT_* value returned by CARDDelete().
+ */
 s32 HuCardDelete(s16 slot, const char *fileName)
 {
 	s32 result = CARDDelete(slot, fileName);
 	return result;
 }
 
+/**
+ * @brief Get the sector size of the card in a slot.
+ *
+ * @param [in] slot Memory card slot.
+ *
+ * @return The sector size in bytes, or a negative CARD_RESULT_* error.
+ */
 s32 HuCardSectorSizeGet(s16 slot)
 {
 	u32 sectorSize;
@@ -179,6 +285,15 @@ s32 HuCardSectorSizeGet(s16 slot)
 	}
 }
 
+/**
+ * @brief Query free bytes and directory entries on a memory card.
+ *
+ * @param [in] slot Memory card slot.
+ * @param [out] byteNotUsed Receives the number of free bytes.
+ * @param [out] filesNotUsed Receives the number of available file entries.
+ *
+ * @return The CARD_RESULT_* value returned by CARDFreeBlocks().
+ */
 s32 HuCardFreeSpaceGet(s16 slot, u32 *byteNotUsed, u32 *filesNotUsed)
 {
 	s32 result = CARDFreeBlocks(slot, (s32 *)byteNotUsed, (s32 *)filesNotUsed);

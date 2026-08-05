@@ -41,6 +41,9 @@ static u32 fi_req;
 s32 HuDvdErrWait;
 s32 SystemInitF;
 
+/**
+ * @brief Initialize the runtime and start the first game overlay.
+ */
 void main(void)
 {
     u32 met0;
@@ -120,12 +123,24 @@ void main(void)
     }
 }
 
+/**
+ * @brief Set the number of retraces between game updates.
+ *
+ * @param [in] vcount Retrace wait count.
+ */
 void HuSysVWaitSet(s16 vcount)
 {
     minimumVcount = vcount;
     minimumVcountf = vcount;
 }
 
+/**
+ * @brief Get the configured retrace wait count.
+ *
+ * @param [in] param Unused compatibility parameter.
+ *
+ * @return The retrace wait count previously set by HuSysVWaitSet().
+ */
 s16 HuSysVWaitGet(s16 param)
 {
     return (s16) minimumVcount;
@@ -133,6 +148,11 @@ s16 HuSysVWaitGet(s16 param)
 
 s32 rnd_seed = 0x0000D9ED;
 
+/**
+ * @brief Generate an eight-bit pseudo-random value.
+ *
+ * @return The generated pseudo-random value.
+ */
 s32 rand8(void)
 {
     rnd_seed = (rnd_seed * 0x41C64E6D) + 0x3039;

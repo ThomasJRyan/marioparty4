@@ -102,6 +102,12 @@ s32 HuSoftResetCheck(void);
 s32 HuSoftResetCountCheck(void);
 static void HuSoftResetPostProc(void);
 
+/**
+ * @brief Check soft-reset button state.
+ *
+ * @return `1` when a reset is pending (after invoking HuRestartSystem()),
+ *         otherwise `0`.
+ */
 s32 HuSoftResetButtonCheck(void)
 {
 	if(SR_ExecReset) {
@@ -112,11 +118,19 @@ s32 HuSoftResetButtonCheck(void)
 
 static OSMessageQueue ToeMessageQueue;
 
+/**
+ * @brief Wake the DVD/reset monitor thread before each retrace.
+ *
+ * @param [in] retraceCount Retrace count supplied by VI; not otherwise used.
+ */
 void HuDvdErrDispIntFunc(u32 retraceCount)
 {
 	OSWakeupThread(&ToeMessageQueue.queueSend);
 }
 
+/**
+ * @brief Prepare audio and graphics state before a system reset.
+ */
 static void HuPreRstChk(void)
 {
 	static PADStatus padStat[4];
@@ -142,6 +156,13 @@ static u8 ToeThreadStack[4096];
 static void *ToeThreadFunc(void *param);
 static void ToeDispCheck(void);
 
+/**
+ * @brief Initialize reset monitoring and direct DVD-error display support.
+ *
+ * @param [in] rmode Active render mode used for XFB geometry.
+ * @param [in, out] xfb1 First framebuffer overwritten by DVD error messages.
+ * @param [in, out] xfb2 Second framebuffer overwritten by DVD error messages.
+ */
 void HuDvdErrDispInit(GXRenderModeObj *rmode, void *xfb1, void *xfb2)
 {
 	BOOL intrOld;
@@ -186,6 +207,13 @@ void HuDvdErrDispInit(GXRenderModeObj *rmode, void *xfb1, void *xfb2)
 	OSRestoreInterrupts(intrOld);
 }
 
+/**
+ * @brief Monitor the reset button and DVD state on a worker thread.
+ *
+ * @param [in] param Unused thread argument; the thread is created with `NULL`.
+ *
+ * @return Never returns; the monitor loop runs for the lifetime of the system.
+ */
 static void *ToeThreadFunc(void *param)
 {
 	while(1) {
@@ -230,6 +258,9 @@ static void *ToeThreadFunc(void *param)
 
 static void _HuDvdErrDispXFB(s32 error);
 
+/**
+ * @brief Update the reset and DVD error display state.
+ */
 static void ToeDispCheck(void)
 {
 	s32 status;
@@ -299,6 +330,11 @@ static void ToeDispCheck(void)
 
 #endif
 
+/**
+ * @brief Draw the current DVD error message to the framebuffers.
+ *
+ * @param [in] error DVD error code to display.
+ */
 static void _HuDvdErrDispXFB(s32 error)
 {
 	#if VERSION_ENG
@@ -446,6 +482,9 @@ static void _HuDvdErrDispXFB(s32 error)
 	}
 }
 
+/**
+ * @brief Execute the pending low-level system restart once.
+ */
 void HuRestartSystem(void)
 {
 	u32 retrace[2];
@@ -475,6 +514,12 @@ void HuRestartSystem(void)
 	OSResetSystem(0, 0, 0);
 }
 
+/**
+ * @brief Detect a completed or newly requested controller soft reset.
+ *
+ * @return `1` when reset execution is pending, a tracked reset chord was
+ *         released, or a new long-press qualified; otherwise `0`.
+ */
 s32 HuSoftResetCheck(void)
 {
 	int i;
@@ -503,6 +548,12 @@ s32 HuSoftResetCheck(void)
 	}
 }
 
+/**
+ * @brief Count held soft-reset chords until one reaches the reset threshold.
+ *
+ * @return `1` after a controller holds the reset chord with Start for at least
+ *         31 checks; otherwise `0`.
+ */
 s32 HuSoftResetCountCheck(void)
 {
 	int i;
@@ -525,6 +576,9 @@ s32 HuSoftResetCountCheck(void)
 	return 0;
 }
 
+/**
+ * @brief Run the delayed post-reset cleanup process.
+ */
 static void HuSoftResetPostProc(void)
 {
 	if(!SR_ExecReset) {
