@@ -29,7 +29,7 @@ typedef struct board_model {
     s16 curr_mot;
     HSFDATA *data;
     HSFDATA *mot_data[BOARD_MOT_MAX];
-    float parameter_value;
+    float unidentified_value_D4;
     s32 data_num;
     float mot_start;
     float mot_end;
@@ -100,7 +100,7 @@ void BoardModelKillAll(void)
 
 /**
  * @brief Synchronize model visibility each frame and remove the manager during board shutdown.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] object Model-manager object deleted after its kill flag or board shutdown is observed.
  */
 static void ModelMgrFunc(OMOBJ *object)
 {
@@ -152,7 +152,7 @@ void BoardModelVisibilityUpdate(void)
 
 /**
  * @brief Temporarily hide all board models or restore their saved visibility states.
- * @param [in] flag Board-space or state flag mask.
+ * @param [in] flag Nonzero saves each live model's visibility and hides it; zero restores the saved state.
  */
 void BoardModelHideSetAll(s32 flag)
 {
@@ -214,13 +214,13 @@ void BoardModelCameraSetAll(u16 camera)
 /**
  * @brief Allocate a wrapper, create its model and motions, and initialize transform and display state.
  * @param [in] character Character index.
- * @param [in] data_num Packed data-file or directory identifier loaded by the function.
+ * @param [in] data_num Packed model-data ID used to create or link the engine model.
  * @param [in] mot_list Array of motion data identifiers terminated by -1; NULL creates only the base motion.
  * @param [in] link Nonzero to reuse an already loaded model as an engine link.
- * @param [in] arg4 Unused creation argument retained to match the original interface.
+ * @param [in] unused Unused; retained to match the original interface.
  * @return Board-model handle, or -1 if allocation, model creation, or motion loading fails.
  */
-static s16 CreateInstance(s32 character, s32 data_num, s32 *mot_list, s32 link, s32 arg4)
+static s16 CreateInstance(s32 character, s32 data_num, s32 *mot_list, s32 link, s32 unused)
 {
     BoardModel *model;
     s32 i;
@@ -256,7 +256,7 @@ static s16 CreateInstance(s32 character, s32 data_num, s32 *mot_list, s32 link, 
             model->visible_old = model->visible;
             model->field00_bit2 = 0;
             model->field00_bit4 = 0;
-            model->parameter_value = 100.0f;
+            model->unidentified_value_D4 = 100.0f;
             model->scale.x = model->scale.y = model->scale.z = 1.0f;
             model->curr_mot = 0;
             Hu3DModelCameraSet(model->id, 1);
@@ -276,7 +276,7 @@ static s16 CreateInstance(s32 character, s32 data_num, s32 *mot_list, s32 link, 
 
 /**
  * @brief Create a board model from a data resource and optional motion list.
- * @param [in] data_num Packed data-file or directory identifier loaded by the function.
+ * @param [in] data_num Packed model-data ID used to create or link the engine model.
  * @param [in] mot_list Array of motion data identifiers terminated by -1; NULL creates only the base motion.
  * @param [in] link Nonzero to reuse an already loaded model as an engine link.
  * @return Board-model handle, or -1 if allocation, model creation, or motion loading fails.
@@ -289,7 +289,7 @@ s16 BoardModelCreate(s32 data_num, s32 *mot_list, s32 link)
 /**
  * @brief Create a character-backed board model with optional motions.
  * @param [in] character Character index.
- * @param [in] data_num Packed data-file or directory identifier loaded by the function.
+ * @param [in] data_num Packed character model-data ID passed through model creation.
  * @param [in] mot_list Array of motion data identifiers terminated by -1; NULL creates only the base motion.
  * @param [in] link Nonzero to reuse an already loaded model as an engine link.
  * @return Board-model handle, or -1 if allocation, model creation, or motion loading fails.
@@ -359,28 +359,28 @@ s16 BoardModelIDGet(s16 model)
 }
 
 /**
- * @brief Apply or clear engine model attribute 0x40000000; the higher-level meaning is not established.
+ * @brief Store a value in an unidentified one-bit board-model wrapper field.
  * @param [in] model Board-model handle.
- * @param [in] arg1 Zero to clear engine attribute 0x40000000; nonzero to set it.
- * @return 0 after updating attribute 0x40000000, or -1 for an invalid board-model handle.
+ * @param [in] value Value assigned to the one-bit field; its higher-level meaning is not established.
+ * @return 0 after storing the field, or -1 when model is invalid.
  */
-s32 fn_8006DC1C(s16 model, s32 arg1)
+s32 fn_8006DC1C(s16 model, s32 value)
 {
     BoardModel *model_ptr = SearchBoardModel(model);
     if (!model_ptr) {
         return -1;
     }
     else {
-        model_ptr->field00_bit3 = arg1;
+        model_ptr->field00_bit3 = value;
         return 0;
     }
 }
 
 /**
- * @brief Assign an engine render pass to a board model.
+ * @brief Enable or disable Z-buffer writes for a board model.
  * @param [in] model Board-model handle.
- * @param [in] pass Engine render-pass index.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] pass Nonzero sets HU3D_ATTR_ZWRITE_OFF; zero clears it.
+ * @return 0 after toggling the Z-write-disable attribute, or -1 when model is not a live board-model handle.
  */
 s32 BoardModelPassSet(s16 model, s32 pass)
 {
@@ -405,7 +405,7 @@ s32 BoardModelPassSet(s16 model, s32 pass)
  * @param [in] r Red ambient-light multiplier.
  * @param [in] g Green ambient-light multiplier.
  * @param [in] b Blue ambient-light multiplier.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after applying the RGB multipliers, or -1 when model is not a live board-model handle.
  */
 s32 BoardModelAmbSet(s16 model, float r, float g, float b)
 {
@@ -422,10 +422,10 @@ s32 BoardModelAmbSet(s16 model, float r, float g, float b)
 /**
  * @brief Check whether a board-model handle resolves to a live wrapper; the second argument is unused.
  * @param [in] model Board-model handle.
- * @param [in] arg1 Unused value retained to match the original interface.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] unused Unused; retained to match the original interface.
+ * @return 0 when model resolves to a live wrapper, or -1 when it does not.
  */
-s32 BoardModelExistCheck(s16 model, s32 arg1)
+s32 BoardModelExistCheck(s16 model, s32 unused)
 {
     BoardModel *model_ptr = SearchBoardModel(model);
     if (!model_ptr) {
@@ -439,10 +439,10 @@ s32 BoardModelExistCheck(s16 model, s32 arg1)
 /**
  * @brief Check whether a board-model handle resolves to a live wrapper; the second argument is unused.
  * @param [in] model Board-model handle.
- * @param [in] arg1 Unused value retained to match the original interface.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] unused Unused; retained to match the original interface.
+ * @return 0 when model resolves to a live wrapper, or -1 when it does not.
  */
-s32 BoardModelExistDupe(s16 model, s32 arg1)
+s32 BoardModelExistDupe(s16 model, s32 unused)
 {
     BoardModel *model_ptr = SearchBoardModel(model);
     if (!model_ptr) {
@@ -454,22 +454,22 @@ s32 BoardModelExistDupe(s16 model, s32 arg1)
 }
 
 /**
- * @brief Store a nonnegative wrapper field initialized to 100; no reader in this file establishes its purpose.
+ * @brief Store a value in the unidentified offset-D4 field, replacing negative input with -1.0f.
  * @param [in] model Board-model handle.
- * @param [in] arg1 Value stored after negative inputs are converted to -1; its units and consumer are not established.
+ * @param [in] value Value stored in the unidentified offset-D4 field; negative inputs are replaced with -1.0f.
  * @return 0 after storing the wrapper field, or -1 for an invalid board-model handle.
  */
-s32 fn_8006DDE8(s16 model, float arg1)
+s32 fn_8006DDE8(s16 model, float value)
 {
     BoardModel *model_ptr = SearchBoardModel(model);
     if (!model_ptr) {
         return -1;
     }
     else {
-        if (arg1 < 0) {
-            arg1 = -1;
+        if (value < 0) {
+            value = -1;
         }
-        model_ptr->parameter_value = arg1;
+        model_ptr->unidentified_value_D4 = value;
         return 0;
     }
 }
@@ -477,8 +477,8 @@ s32 fn_8006DDE8(s16 model, float arg1)
 /**
  * @brief Load one additional motion and return its wrapper slot.
  * @param [in] model Board-model handle.
- * @param [in] data_num Packed data-file or directory identifier loaded by the function.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] data_num Packed motion-data ID loaded and attached to the model.
+ * @return Motion slot index from 1 through 31, or -1 for an invalid model, a full motion table, or motion-data load failure.
  */
 s32 BoardModelMotionCreate(s16 model, s32 data_num)
 {
@@ -518,7 +518,7 @@ s32 BoardModelMotionCreate(s16 model, s32 data_num)
  * @brief Detach and release one motion slot.
  * @param [in] model Board-model handle.
  * @param [in] motion Wrapper motion slot.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after clearing the slot, or -1 when model is invalid or motion is outside slots 1 through 31.
  */
 s32 BoardModelMotionKill(s16 model, s32 motion)
 {
@@ -551,9 +551,9 @@ s32 BoardModelMotionKill(s16 model, s32 motion)
 /**
  * @brief Set the playback start and end times for the current motion.
  * @param [in] model Board-model handle.
- * @param [in] start Starting space or playback frame.
- * @param [in] end Ending playback frame.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] start Starting motion frame; a negative value leaves the stored start unchanged.
+ * @param [in] end Ending motion frame; a negative value leaves the stored end unchanged.
+ * @return 0 after applying the stored playback interval, or -1 when model is invalid.
  */
 s32 BoardModelMotionStartEndSet(s16 model, s16 start, s16 end)
 {
@@ -574,10 +574,10 @@ s32 BoardModelMotionStartEndSet(s16 model, s16 start, s16 end)
 }
 
 /**
- * @brief Enable or disable engine motion updating.
+ * @brief Enable or disable looping for the current motion.
  * @param [in] model Board-model handle.
- * @param [in] flag Board-space or state flag mask.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] flag Nonzero sets HU3D_MOTATTR_LOOP; zero clears it.
+ * @return 0 after updating the loop attribute, or -1 when model is invalid.
  */
 s32 BoardModelMotionUpdateSet(s16 model, s32 flag)
 {
@@ -600,8 +600,8 @@ s32 BoardModelMotionUpdateSet(s16 model, s32 flag)
  * @brief Enable or disable character voice triggers for a motion.
  * @param [in] model Board-model handle.
  * @param [in] motion Wrapper motion slot.
- * @param [in] flag Board-space or state flag mask.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] flag Nonzero enables voice triggers; zero disables them.
+ * @return -1 when model is invalid; otherwise 0, including for an out-of-range motion or non-character model.
  */
 s32 BoardModelVoiceEnableSet(s16 model, s32 motion, s32 flag)
 {
@@ -626,7 +626,7 @@ s32 BoardModelVoiceEnableSet(s16 model, s32 motion, s32 flag)
  * @param [in] model Board-model handle.
  * @param [in] motion Wrapper motion slot.
  * @param [in] attr Engine attribute bit mask.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return -1 when model is invalid; otherwise 0, including when motion is outside slots 0 through 31.
  */
 s32 BoardModelMotionStart(s16 model, s32 motion, u32 attr)
 {
@@ -671,7 +671,7 @@ s32 BoardModelMotionStart(s16 model, s32 motion, u32 attr)
 /**
  * @brief Get the engine's current motion-shift ID.
  * @param [in] model Board-model handle.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return Current engine motion-shift ID, or -1 when model is invalid.
  */
 s32 BoardModelMotionShiftIDGet(s16 model)
 {
@@ -691,7 +691,7 @@ s32 BoardModelMotionShiftIDGet(s16 model)
  * @param [in] time Motion start time in frames.
  * @param [in] shift_time Motion blend duration in frames.
  * @param [in] attr Engine attribute bit mask.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after starting the blend, or -1 when model is invalid or motion is outside slots 0 through 31.
  */
 s32 BoardModelMotionShiftSet(s16 model, s32 motion, float time, float shift_time, u32 attr)
 {
@@ -726,7 +726,7 @@ s32 BoardModelMotionShiftSet(s16 model, s32 motion, float time, float shift_time
  * @brief Add engine model attribute bits.
  * @param [in] model Board-model handle.
  * @param [in] attr Engine attribute bit mask.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after setting the attribute bits, or -1 when model is invalid.
  */
 s32 BoardModelAttrSet(s16 model, u32 attr)
 {
@@ -744,7 +744,7 @@ s32 BoardModelAttrSet(s16 model, u32 attr)
  * @brief Remove engine model attribute bits.
  * @param [in] model Board-model handle.
  * @param [in] attr Engine attribute bit mask.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after clearing the attribute bits, or -1 when model is invalid.
  */
 s32 BoardModelAttrReset(s16 model, u32 attr)
 {
@@ -762,7 +762,7 @@ s32 BoardModelAttrReset(s16 model, u32 attr)
  * @brief Set the current motion playback time in frames.
  * @param [in] model Board-model handle.
  * @param [in] time Motion playback time in frames.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after setting playback time, or -1 when model is invalid.
  */
 s32 BoardModelMotionTimeSet(s16 model, float time)
 {
@@ -807,7 +807,7 @@ float BoardModelMotionTimeGet(s16 model)
 /**
  * @brief Get the current motion's maximum playback time in frames.
  * @param [in] model Board-model handle.
- * @return Current motion's maximum time in frames, or -1.0 when model or motion data is unavailable.
+ * @return Current motion's maximum time in frames, or -1.0 when model is invalid.
  */
 float BoardModelMotionMaxTimeGet(s16 model)
 {
@@ -848,7 +848,7 @@ float BoardModelMotionSpeedGet(s16 model)
  * @brief Set the current motion playback multiplier.
  * @param [in] model Board-model handle.
  * @param [in] speed Motion playback multiplier; 1.0 is normal speed.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after setting normal and shift playback speeds, or -1 when model is invalid.
  */
 s32 BoardModelMotionSpeedSet(s16 model, float speed)
 {
@@ -873,7 +873,7 @@ s32 BoardModelMotionSpeedSet(s16 model, float speed)
 /**
  * @brief Check whether the current motion reached its configured end.
  * @param [in] model Board-model handle.
- * @return 1 when playback has ended or required model data is unavailable; otherwise 0.
+ * @return 1 when model is invalid; otherwise the engine or character motion-end result.
  */
 s32 BoardModelMotionEndCheck(s16 model)
 {
@@ -898,7 +898,7 @@ s32 BoardModelMotionEndCheck(s16 model)
  * @param [in] model Board-model handle.
  * @param [in] motion Wrapper motion slot.
  * @param [in] attr Engine attribute bit mask.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after attaching the shape motion, or -1 when model is invalid, character-backed, or motion is at least 32.
  */
 s32 BoardModelMotionShapeSet(s16 model, s32 motion, u32 attr)
 {
@@ -929,7 +929,7 @@ s32 BoardModelMotionShapeSet(s16 model, s32 motion, u32 attr)
 /**
  * @brief Get shape-motion playback time in frames.
  * @param [in] model Board-model handle.
- * @return Current shape-motion time in frames, or -1.0 when no shape motion is active.
+ * @return Current shape-motion time in frames, or -1.0 when model is invalid or character-backed.
  */
 float BoardModelMotionShapeTimeGet(s16 model)
 {
@@ -950,7 +950,7 @@ float BoardModelMotionShapeTimeGet(s16 model)
 /**
  * @brief Get the attached shape motion's maximum time in frames.
  * @param [in] model Board-model handle.
- * @return Shape motion's maximum time in frames; 0.0 when none is attached, or -1.0 for an invalid model.
+ * @return Shape motion's maximum time in frames; 0.0 when none is attached, or -1.0 when model is invalid or character-backed.
  */
 float BoardModelMotionShapeMaxTimeGet(s16 model)
 {
@@ -979,7 +979,7 @@ float BoardModelMotionShapeMaxTimeGet(s16 model)
  * @brief Set the shape-motion playback multiplier.
  * @param [in] model Board-model handle.
  * @param [in] speed Shape-motion playback multiplier; 1.0 is normal speed.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after setting shape-motion speed, or -1 when model is invalid or character-backed.
  */
 s32 BoardModelMotionShapeSpeedSet(s16 model, float speed)
 {
@@ -999,12 +999,12 @@ s32 BoardModelMotionShapeSpeedSet(s16 model, float speed)
 }
 
 /**
- * @brief Get the shape-motion playback multiplier; the speed argument is unused.
+ * @brief Get the shape-motion playback multiplier; the second argument is unused.
  * @param [in] model Board-model handle.
- * @param [in] speed Unused value retained to match the original interface.
- * @return Shape-motion playback multiplier, or -1.0 for an invalid model.
+ * @param [in] unused_speed Unused; retained to match the original interface.
+ * @return Stored shape-motion playback multiplier, or -1.0 when model is invalid.
  */
-float BoardModelMotionShapeSpeedGet(s16 model, float speed)
+float BoardModelMotionShapeSpeedGet(s16 model, float unused_speed)
 {
     BoardModel *model_ptr = SearchBoardModel(model);
     if (!model_ptr) {
@@ -1020,7 +1020,7 @@ float BoardModelMotionShapeSpeedGet(s16 model, float speed)
 /**
  * @brief Check whether shape-motion playback reached an endpoint.
  * @param [in] model Board-model handle.
- * @return 1 when playback has ended or required model data is unavailable; otherwise 0.
+ * @return 1 when model is invalid or character-backed; otherwise 1 at the direction-dependent endpoint and 0 before it.
  */
 s32 BoardModelMotionShapeEndCheck(s16 model)
 {
@@ -1044,9 +1044,9 @@ s32 BoardModelMotionShapeEndCheck(s16 model)
 /**
  * @brief Set the shape-motion playback start and end times.
  * @param [in] model Board-model handle.
- * @param [in] start Starting space or playback frame.
- * @param [in] end Ending playback frame.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] start Starting motion frame; a negative value leaves the stored start unchanged.
+ * @param [in] end Ending shape-motion frame; a negative value leaves the stored end unchanged.
+ * @return 0 after applying the shape-motion interval, or -1 when model is invalid or character-backed.
  */
 s32 BoardModelMotionShapeStartEndSet(s16 model, s16 start, s16 end)
 {
@@ -1073,7 +1073,7 @@ s32 BoardModelMotionShapeStartEndSet(s16 model, s16 start, s16 end)
  * @brief Set model translucency from 0 (transparent) to 255 (opaque).
  * @param [in] model Board-model handle.
  * @param [in] alpha Opacity from 0 (transparent) to 255 (opaque).
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after applying alpha, or -1 when model is invalid.
  */
 s32 BoardModelAlphaSet(s16 model, u8 alpha)
 {
@@ -1092,10 +1092,10 @@ s32 BoardModelAlphaSet(s16 model, u8 alpha)
 }
 
 /**
- * @brief Copy a transform matrix into the engine model and wrapper transform fields.
+ * @brief Copy a transform matrix into the engine model.
  * @param [in] model Board-model handle.
  * @param [in] src Caller-owned source matrix.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after copying src, or -1 when model or src is invalid.
  */
 s32 BoardModelMtxSet(s16 model, Mtx *src)
 {
@@ -1117,8 +1117,8 @@ s32 BoardModelMtxSet(s16 model, Mtx *src)
 /**
  * @brief Copy the engine model transform matrix to caller storage.
  * @param [in] model Board-model handle.
- * @param [out] dst Caller-owned storage that receives the result.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [out] dst Caller-owned matrix receiving the engine model transform.
+ * @return 0 after copying the matrix, or -1 when model or dst is invalid.
  */
 s32 BoardModelMtxGet(s16 model, Mtx *dst)
 {
@@ -1140,8 +1140,8 @@ s32 BoardModelMtxGet(s16 model, Mtx *dst)
 /**
  * @brief Set the model's normalized Y rotation in degrees.
  * @param [in] model Board-model handle.
- * @param [in] rot Euler rotation in degrees.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] rot Y-axis Euler angle in degrees; values are normalized before storage.
+ * @return BoardModelRotSet's status: 0 for a valid model, or -1 when model is invalid.
  */
 s32 BoardModelRotYSet(s16 model, float rot)
 {
@@ -1153,7 +1153,7 @@ s32 BoardModelRotYSet(s16 model, float rot)
 /**
  * @brief Get the model's Y rotation in degrees.
  * @param [in] model Board-model handle.
- * @return Y rotation in degrees, or -1.0 for an invalid model.
+ * @return Stored Y rotation in degrees for a valid model; indeterminate for an invalid handle because the local vector remains uninitialized.
  */
 float BoardModelRotYGet(s16 model)
 {
@@ -1166,7 +1166,7 @@ float BoardModelRotYGet(s16 model)
  * @brief Set model position from a vector.
  * @param [in] model Board-model handle.
  * @param [in] pos World-position vector copied immediately; ownership remains with the caller.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return BoardModelPosSet's status, or -1 when pos is NULL.
  */
 s32 BoardModelPosSetV(s16 model, Vec *pos)
 {
@@ -1181,10 +1181,10 @@ s32 BoardModelPosSetV(s16 model, Vec *pos)
 /**
  * @brief Set model position in world units.
  * @param [in] model Board-model handle.
- * @param [in] x X coordinate or angle component.
- * @param [in] y Y coordinate or angle component.
- * @param [in] z Z coordinate or angle component.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] x World-space X coordinate.
+ * @param [in] y World-space Y coordinate.
+ * @param [in] z World-space Z coordinate.
+ * @return 0 after updating the stored and engine positions, or -1 when model is invalid.
  */
 s32 BoardModelPosSet(s16 model, float x, float y, float z)
 {
@@ -1204,26 +1204,26 @@ s32 BoardModelPosSet(s16 model, float x, float y, float z)
 /**
  * @brief Set model Euler rotation from a vector.
  * @param [in] model Board-model handle.
- * @param [in] pos Euler rotation in degrees copied immediately; ownership remains with the caller.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] rotation Euler rotation in degrees copied immediately; ownership remains with the caller.
+ * @return BoardModelRotSet's status, or -1 when rotation is NULL.
  */
-s32 BoardModelRotSetV(s16 model, Vec *pos)
+s32 BoardModelRotSetV(s16 model, Vec *rotation)
 {
-    if (!pos) {
+    if (!rotation) {
         return -1;
     }
     else {
-        return BoardModelRotSet(model, pos->x, pos->y, pos->z);
+        return BoardModelRotSet(model, rotation->x, rotation->y, rotation->z);
     }
 }
 
 /**
  * @brief Set normalized model Euler rotation in degrees.
  * @param [in] model Board-model handle.
- * @param [in] x X coordinate or angle component.
- * @param [in] y Y coordinate or angle component.
- * @param [in] z Z coordinate or angle component.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] x X-axis Euler rotation in degrees.
+ * @param [in] y Y-axis Euler rotation in degrees.
+ * @param [in] z Z-axis Euler rotation in degrees.
+ * @return 0 after updating the stored and engine rotations, or -1 when model is invalid.
  */
 s32 BoardModelRotSet(s16 model, float x, float y, float z)
 {
@@ -1243,26 +1243,26 @@ s32 BoardModelRotSet(s16 model, float x, float y, float z)
 /**
  * @brief Set model scale from a vector.
  * @param [in] model Board-model handle.
- * @param [in] pos Per-axis scale factors copied immediately; ownership remains with the caller.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] scale Per-axis scale factors copied immediately; ownership remains with the caller.
+ * @return BoardModelScaleSet's status, or -1 when scale is NULL.
  */
-s32 BoardModelScaleSetV(s16 model, Vec *pos)
+s32 BoardModelScaleSetV(s16 model, Vec *scale)
 {
-    if (!pos) {
+    if (!scale) {
         return -1;
     }
     else {
-        return BoardModelScaleSet(model, pos->x, pos->y, pos->z);
+        return BoardModelScaleSet(model, scale->x, scale->y, scale->z);
     }
 }
 
 /**
  * @brief Set model scale factors.
  * @param [in] model Board-model handle.
- * @param [in] x X coordinate or angle component.
- * @param [in] y Y coordinate or angle component.
- * @param [in] z Z coordinate or angle component.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] x X-axis scale factor.
+ * @param [in] y Y-axis scale factor.
+ * @param [in] z Z-axis scale factor.
+ * @return 0 after updating the stored and engine scales, or -1 when model is invalid.
  */
 s32 BoardModelScaleSet(s16 model, float x, float y, float z)
 {
@@ -1282,8 +1282,8 @@ s32 BoardModelScaleSet(s16 model, float x, float y, float z)
 /**
  * @brief Copy model position to caller storage.
  * @param [in] model Board-model handle.
- * @param [out] dst Caller-owned storage that receives the result.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [out] dst Caller-owned vector receiving the stored world position.
+ * @return 0 after copying the position, or -1 when model or dst is invalid.
  */
 s32 BoardModelPosGet(s16 model, Vec *dst)
 {
@@ -1300,8 +1300,8 @@ s32 BoardModelPosGet(s16 model, Vec *dst)
 /**
  * @brief Copy model Euler rotation to caller storage.
  * @param [in] model Board-model handle.
- * @param [out] dst Caller-owned storage that receives the result.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [out] dst Caller-owned vector receiving the stored Euler rotation in degrees.
+ * @return 0 after copying the rotation, or -1 when model or dst is invalid.
  */
 s32 BoardModelRotGet(s16 model, Vec *dst)
 {
@@ -1318,8 +1318,8 @@ s32 BoardModelRotGet(s16 model, Vec *dst)
 /**
  * @brief Copy model scale to caller storage.
  * @param [in] model Board-model handle.
- * @param [out] dst Caller-owned storage that receives the result.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [out] dst Caller-owned vector receiving the stored per-axis scale factors.
+ * @return 0 after copying the scale, or -1 when model or dst is invalid.
  */
 s32 BoardModelScaleGet(s16 model, Vec *dst)
 {
@@ -1336,8 +1336,8 @@ s32 BoardModelScaleGet(s16 model, Vec *dst)
 /**
  * @brief Set the wrapper visibility state applied on the next model-manager update.
  * @param [in] model Board-model handle.
- * @param [in] visible Nonzero for visible and zero for hidden.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] visible Value stored in the wrapper's one-bit visibility field; callers use 1 for visible and 0 for hidden.
+ * @return 0 after updating requested visibility, or -1 when model is invalid.
  */
 s32 BoardModelVisibilitySet(s16 model, s32 visible)
 {
@@ -1354,7 +1354,7 @@ s32 BoardModelVisibilitySet(s16 model, s32 visible)
 /**
  * @brief Get the wrapper's requested visibility state.
  * @param [in] model Board-model handle.
- * @return 1 when the wrapper requests visibility, 0 when hidden, or -1 for an invalid model.
+ * @return Stored visibility value, or 0 when model is invalid.
  */
 s32 BoardModelVisibilityGet(s16 model)
 {
@@ -1371,7 +1371,7 @@ s32 BoardModelVisibilityGet(s16 model)
  * @brief Assign a model to an engine camera mask.
  * @param [in] model Board-model handle.
  * @param [in] camera Engine camera visibility mask.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after storing and applying the camera mask, or -1 when model is invalid.
  */
 s32 BoardModelCameraSet(s16 model, u16 camera)
 {
@@ -1389,8 +1389,8 @@ s32 BoardModelCameraSet(s16 model, u16 camera)
 /**
  * @brief Assign a model to a render layer.
  * @param [in] model Board-model handle.
- * @param [in] layer Space-data layer index.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @param [in] layer Engine model render-layer index.
+ * @return 0 after storing and applying the render layer, or -1 when model is invalid.
  */
 s32 BoardModelLayerSet(s16 model, u8 layer)
 {
@@ -1423,7 +1423,7 @@ s32 BoardModelLayerGet(s16 model)
 
 /**
  * @brief Assign all live board models to a render layer.
- * @param [in] layer Space-data layer index.
+ * @param [in] layer Engine model render-layer index applied to every live non-character model.
  */
 void BoardModelLayerSetAll(s32 layer)
 {
@@ -1441,7 +1441,7 @@ void BoardModelLayerSetAll(s32 layer)
  * @param [in] model Board-model handle.
  * @param [in] name Name of the model object used as a hook point.
  * @param [in] hook Child board-model handle.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after attaching hook, or -1 when the parent model, child model, or name is invalid.
  */
 s32 BoardModelHookSet(s16 model, char *name, s16 hook)
 {
@@ -1464,7 +1464,7 @@ s32 BoardModelHookSet(s16 model, char *name, s16 hook)
 /**
  * @brief Detach the model currently hooked to a board model.
  * @param [in] model Board-model handle.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after detaching the hook, or -1 when model is invalid.
  */
 s32 BoardModelHookReset(s16 model)
 {
@@ -1482,7 +1482,7 @@ s32 BoardModelHookReset(s16 model)
  * @brief Reset a named hook object on a board model.
  * @param [in] model Board-model handle.
  * @param [in] name Name of the model object used as a hook point.
- * @return 0 on success, or -1 when the board-model handle or required engine data is invalid.
+ * @return 0 after forwarding name to the engine reset routine, or -1 when model is invalid.
  */
 s32 BoardModelHookObjReset(s16 model, char *name)
 {
@@ -1563,7 +1563,7 @@ static void KillBoardModel(BoardModel *model)
 
 /**
  * @brief Find an existing wrapper that uses a given model data resource.
- * @param [in] data_num Packed data-file or directory identifier loaded by the function.
+ * @param [in] data_num Packed model-data ID matched against live wrappers.
  * @return First wrapper using data_num, or NULL when none exists.
  */
 static BoardModel *FindLinkModel(s32 data_num)
@@ -1580,9 +1580,9 @@ static BoardModel *FindLinkModel(s32 data_num)
 /**
  * @brief Create or link the engine model for a wrapper.
  * @param [in] model Board-model handle.
- * @param [in] data_num Packed data-file or directory identifier loaded by the function.
+ * @param [in] data_num Packed model-data ID loaded directly or used to find a link source.
  * @param [in] link Nonzero to reuse an already loaded model as an engine link.
- * @return 0 on success, or -1 when model creation or resource loading fails.
+ * @return 0 after linking or creating the engine model; -1 when model data cannot load or engine model creation fails.
  */
 static s32 CreateBoardModel(BoardModel *model, s32 data_num, s32 link)
 {
@@ -1627,9 +1627,9 @@ static s32 CreateBoardModel(BoardModel *model, s32 data_num, s32 link)
 /**
  * @brief Attach a list of data-backed or character motions to a wrapper.
  * @param [in] model Board-model handle.
- * @param [in] count Number of particles, motions, or entries processed.
- * @param [in] data_num Packed data-file or directory identifier loaded by the function.
- * @return 0 on success, or -1 when model creation or resource loading fails.
+ * @param [in] count Number of packed motion-data IDs in data_num.
+ * @param [in] data_num Array of packed motion-data IDs loaded and attached in order.
+ * @return 0 after attaching all motions; -1 when motion data cannot load or an engine or character motion cannot be created.
  */
 static s32 CreateBoardModelMotion(BoardModel *model, s32 count, s32 *data_num)
 {

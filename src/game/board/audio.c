@@ -167,14 +167,14 @@ void BoardAudSeqClear(void) {
  * @brief Fade out both tracked music channels and stop the tracked ambient effect.
  */
 void BoardAudSeqFadeOutAll(void) {
-    s16 *sequence;
+    s16 *sequence_state;
     s32 i;
 
     for (i = 0; i < 2; i++) {
-        sequence = boardSeq[i];
-        if (sequence[0] != -1) {
-            HuAudSeqFadeOut(sequence[0], 0x64);
-            sequence[1] = sequence[0] = -1;
+        sequence_state = boardSeq[i];
+        if (sequence_state[0] != -1) {
+            HuAudSeqFadeOut(sequence_state[0], 0x64);
+            sequence_state[1] = sequence_state[0] = -1;
         }
     }
     BoardAudFXStop();

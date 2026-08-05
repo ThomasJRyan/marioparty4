@@ -23,16 +23,16 @@ typedef struct {
     /* 0x46 */ s16 links[BOARD_SPACE_LINKMAX+1];
 } PathNode; // Size 0x50
 
-static PathNode *SearchPathNodeSpace(s16 arg0);
-static s16 InitPathNode(PathNode *arg0);
-static PathNode *FindChildNode(s16 arg0, PathNode *arg1);
-static s32 GetNumValidLinks(BoardSpace *arg0, PathNode *arg1);
-static void AddValidLinks(BoardSpace *arg0, PathNode *arg1);
-static BOOL CheckPathSpace(BoardSpace *arg0);
-static s16 FindValidLink(BoardSpace *arg0);
-static BOOL CheckEndSpace(BoardSpace *arg0, PathNode *arg1);
-static BOOL CheckPath(PathNode *arg0);
-static BOOL CheckPathFlag(PathNode *arg0, u32 arg1);
+static PathNode *SearchPathNodeSpace(s16 space);
+static s16 InitPathNode(PathNode *node);
+static PathNode *FindChildNode(s16 space, PathNode *excluded_node);
+static s32 GetNumValidLinks(BoardSpace *space, PathNode *unused_node);
+static void AddValidLinks(BoardSpace *space, PathNode *node);
+static BOOL CheckPathSpace(BoardSpace *space);
+static s16 FindValidLink(BoardSpace *space);
+static BOOL CheckEndSpace(BoardSpace *space, PathNode *node);
+static BOOL CheckPath(PathNode *node);
+static BOOL CheckPathFlag(PathNode *node, u32 flag);
 
 static PathNode pathNodeData[16];
 static PathNode *candidateNodes[16];
@@ -121,25 +121,25 @@ static s16 InitPathNode(PathNode *node) {
 
 /**
  * @brief Find an existing path node whose traced children contain a space.
- * @param [in] arg0 One-based space index to locate among traced children.
- * @param [in] arg1 Node excluded from the search to avoid matching itself.
+ * @param [in] space One-based space index to locate among traced children.
+ * @param [in] excluded_node Node excluded from the search to avoid matching itself.
  * @return Matching node, or NULL when the space has not been traced by another node.
  */
-static PathNode *FindChildNode(s16 arg0, PathNode *arg1) {
+static PathNode *FindChildNode(s16 space, PathNode *excluded_node) {
     PathNode *node;
     s32 node_idx;
     s32 i;
     s32 j;
 
-    node_idx = NODE_INDEX(arg1);
+    node_idx = NODE_INDEX(excluded_node);
     if (node_idx == -1) {
         return NULL;
     }
     for (i = 0; i < childNodeCnt; i++) {
         node = &pathNodeData[i];
-        if (node != arg1) {
+        if (node != excluded_node) {
             for (j = 0; j < node->num_children; j++) {
-                if (arg0 == node->children[j]) {
+                if (space == node->children[j]) {
                     return node;
                 }
             }
@@ -150,11 +150,11 @@ static PathNode *FindChildNode(s16 arg0, PathNode *arg1) {
 
 /**
  * @brief Count outgoing links that are not blocked by excluded path flags.
- * @param [in] space One-based board-space index.
- * @param [in] node Current path node, used to interpret excluded traversal flags.
+ * @param [in] space Pointer to the current board-space record whose flags and outgoing links are examined.
+ * @param [in] unused_node Unused path-node pointer retained by the original interface.
  * @return Number of traversable outgoing links.
  */
-static s32 GetNumValidLinks(BoardSpace *space, PathNode *node) {
+static s32 GetNumValidLinks(BoardSpace *space, PathNode *unused_node) {
     BoardSpace *link_space;
     s16 i;
     s16 invalid_links;
@@ -173,7 +173,7 @@ static s32 GetNumValidLinks(BoardSpace *space, PathNode *node) {
 
 /**
  * @brief Copy traversable outgoing space links into a path node and clear unused entries.
- * @param [in] space One-based board-space index.
+ * @param [in] space Pointer to the current board-space record whose flags and outgoing links are examined.
  * @param [in,out] node Path node that receives traversable outgoing links.
  */
 static void AddValidLinks(BoardSpace *space, PathNode *node) {
@@ -195,7 +195,7 @@ static void AddValidLinks(BoardSpace *space, PathNode *node) {
 
 /**
  * @brief Check whether a space is allowed in computer-player path searches.
- * @param [in] space One-based board-space index.
+ * @param [in] space Pointer to the current board-space record whose flags are examined.
  * @return TRUE when neither excluded flag is set; otherwise FALSE.
  */
 static BOOL CheckPathSpace(BoardSpace *space) {
@@ -208,7 +208,7 @@ static BOOL CheckPathSpace(BoardSpace *space) {
 
 /**
  * @brief Return the first traversable outgoing link from a space.
- * @param [in] space One-based board-space index.
+ * @param [in] space Pointer to the current board-space record whose outgoing links are examined.
  * @return First traversable linked space index.
  */
 static s16 FindValidLink(BoardSpace *space) {
@@ -293,7 +293,7 @@ static inline PathNode *PopCandidate(void) {
 
 /**
  * @brief Allocate a path-node slot with a starting space and lookahead limit.
- * @param [in] start Starting space or playback frame.
+ * @param [in] start One-based starting board-space index.
  * @param [in] len Maximum number of counted spaces to trace from this node.
  * @return Allocated node, or NULL when all 16 slots are in use.
  */
@@ -320,7 +320,7 @@ static inline PathNode *CreateNode(s16 start, s16 len) {
 
 /**
  * @brief Build a bounded graph of path segments reachable from a starting space.
- * @param [in] start Starting space or playback frame.
+ * @param [in] start One-based starting board-space index.
  * @param [in] len Maximum path lookahead in counted spaces.
  */
 static inline void PopulateCandidates(s16 start, s16 len) {
@@ -488,7 +488,7 @@ s16 BoardComPathLenGet(s16 space, s16 space_other) {
     PathNode *node;
     s16 link_node_idx;
     s16 len;
-    s16 search_complete;
+    s16 unidentified_termination_guard;
     s16 node_idx;
     s16 node_start_idx;
     s16 i;
@@ -503,14 +503,14 @@ s16 BoardComPathLenGet(s16 space, s16 space_other) {
     node_start_idx = NODE_INDEX(node);
     PushCandidate(node);
     len = 0;
-    search_complete = 0;
+    unidentified_termination_guard = 0;
     startPathSpace[node_start_idx] = len;
     search_child = 0;
     while (1) {
         node = PopCandidate();
         node_idx = NODE_INDEX(node);
         if (node_idx == -1) {
-            if (search_complete != 0) {
+            if (unidentified_termination_guard != 0) {
                 break;
             }
         } else {
@@ -573,7 +573,7 @@ static BOOL CheckPath(PathNode *node) {
 /**
  * @brief Choose an outgoing link whose descendants contain a requested destination flag.
  * @param [in] space One-based board-space index.
- * @param [in] flag Board-space or state flag mask.
+ * @param [in] flag Destination-category mask; supported bits select shop, Boo, or lottery paths.
  * @param [in] len Maximum path lookahead in counted spaces.
  * @return Outgoing linked-space index leading to the requested category, or -1 when none is needed or found.
  */
@@ -612,7 +612,7 @@ s16 BoardComPathBestGetFlag(s16 space, u32 flag, s16 len) {
 /**
  * @brief Recursively check whether a path node or its descendants contain a requested destination category.
  * @param [in] node Root path node whose descendants are searched for the requested category.
- * @param [in] flag Board-space or state flag mask.
+ * @param [in] flag Destination-category mask; supported bits select shop, Boo, or lottery paths.
  * @return TRUE when the requested destination category exists on this node or a descendant; otherwise FALSE.
  */
 static BOOL CheckPathFlag(PathNode *node, u32 flag) {

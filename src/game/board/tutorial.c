@@ -66,20 +66,20 @@ void BoardTutorialKill(void) {
 
 /**
  * @brief Install or clear the board-specific tutorial event hook.
- * @param [in] arg0 Tutorial callback taking an event code and event-specific integer argument; NULL clears it.
+ * @param [in] hook Tutorial callback taking an event code and event-specific integer argument; NULL clears it.
  */
-void BoardTutorialHookSet(void *arg0) {
-    tutorialHook = arg0;
+void BoardTutorialHookSet(void *hook) {
+    tutorialHook = hook;
 }
 
 /**
  * @brief Invoke the installed tutorial hook with an event code and event argument.
- * @param [in] arg0 Tutorial event code forwarded to the installed board hook.
- * @param [in] arg1 Event-specific integer forwarded unchanged to the tutorial hook.
+ * @param [in] event Tutorial event code forwarded to the installed board hook.
+ * @param [in] event_arg Event-specific integer forwarded unchanged to the tutorial hook.
  */
-void BoardTutorialHookExec(s16 arg0, s32 arg1) {
+void BoardTutorialHookExec(s16 event, s32 event_arg) {
     if (tutorialHook) {
-        tutorialHook(arg0, arg1);
+        tutorialHook(event, event_arg);
     }
 }
 
@@ -144,48 +144,48 @@ void BoardTutorialWorkRestore(void) {
 
 /**
  * @brief Set the synthetic tutorial stick direction and its duration.
- * @param [in] arg0 Synthetic horizontal stick input.
- * @param [in] arg1 Synthetic vertical stick input.
- * @param [in] arg2 Number of frames for which the synthetic direction remains active.
+ * @param [in] input_x Synthetic horizontal stick input.
+ * @param [in] input_y Synthetic vertical stick input.
+ * @param [in] duration Number of frames for which the synthetic direction remains active.
  */
-void BoardTutorialDirInputSet(s8 arg0, s8 arg1, s16 arg2) {
-    boardTutorialDirInputX = arg0;
-    boardTutorialDirInputY = arg1;
-    boardTutorialDirInputTime = arg2;
+void BoardTutorialDirInputSet(s8 input_x, s8 input_y, s16 duration) {
+    boardTutorialDirInputX = input_x;
+    boardTutorialDirInputY = input_y;
+    boardTutorialDirInputTime = duration;
 }
 
 /**
  * @brief Configure the tutorial block's board position and contained item, then reposition it.
- * @param [in] arg0 Board-space index at which to place the tutorial block.
- * @param [in] arg1 Item identifier stored in the tutorial block.
+ * @param [in] space Board-space index at which to place the tutorial block.
+ * @param [in] item Item identifier stored in the tutorial block.
  */
-void BoardTutorialBlockSetPos(s32 arg0, s8 arg1) {
+void BoardTutorialBlockSetPos(s32 space, s8 item) {
     boardTutorialBlockF = 1;
-    boardTutorialBlockPos = arg0;
-    boardTutorialBlockItem = arg1;
+    boardTutorialBlockPos = space;
+    boardTutorialBlockItem = item;
     BoardSpaceBlockPosSet();
 }
 
 /**
  * @brief Select the item that the tutorial computer player must use next.
- * @param [in] arg0 Item identifier the tutorial should force the CPU to use, or -1 for none.
+ * @param [in] item Item identifier the tutorial should force the CPU to use, or -1 for none.
  */
-void BoardTutorialItemSet(s8 arg0) {
-    boardTutorialUseItem = arg0;
+void BoardTutorialItemSet(s8 item) {
+    boardTutorialUseItem = item;
 }
 
 /**
  * @brief Store the board-model handle used as the tutorial host.
- * @param [in] arg0 Board-model handle for the tutorial host.
+ * @param [in] model Board-model handle for the tutorial host.
  */
-void BoardTutorialHostSet(s16 arg0) {
-    hostMdl = arg0;
+void BoardTutorialHostSet(s16 model) {
+    hostMdl = model;
 }
 
 /**
  * @brief Set the tutorial host model's visibility state.
- * @param [in] arg0 Visibility value passed to BoardModelVisibilitySet.
+ * @param [in] visible Nonzero to show the tutorial host; zero to hide it.
  */
-void BoardTutorialHostHide(s8 arg0) {
-    BoardModelVisibilitySet(hostMdl, arg0);
+void BoardTutorialHostHide(s8 visible) {
+    BoardModelVisibilitySet(hostMdl, visible);
 }

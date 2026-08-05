@@ -230,7 +230,7 @@ void BoardComKeySetDown(void) {
 /**
  * @brief Queue an optional directional press followed by confirmation for a computer player's controller port.
  * @param [in] player Player index.
- * @param [in] move Nonzero to enable camera target tracking; zero freezes it.
+ * @param [in] move One sends the selected directional press before confirmation; zero confirms without moving the cursor.
  * @param [in] vertical Zero selects vertical navigation with Down; nonzero selects horizontal navigation with Right.
  */
 static void ExecComKey(s32 player, s32 move, s32 vertical) {

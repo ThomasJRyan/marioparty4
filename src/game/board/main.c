@@ -79,7 +79,7 @@ extern void BoardMGSetupPlayClear(void);
 
 static void InitBoardFunc(OMOBJ *object);
 static void ExecBoardFunc(OMOBJ *object);
-static void KillBoardFunc(OMOBJ *object);
+static void KillBoardFunc(OMOBJ *unused_object);
 static void UpdateCamera(OMOBJ *object);
 
 static void CalcCameraTarget(BoardCameraData *camera);
@@ -180,7 +180,7 @@ void BoardObjectSetup(BoardFunc create, BoardFunc destroy)
 
 /**
  * @brief Start the main board process and switch the manager object to its runtime callback.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in,out] object Board-manager object whose callback is changed to ExecBoardFunc after process creation.
  */
 static void InitBoardFunc(OMOBJ *object)
 {
@@ -191,7 +191,7 @@ static void InitBoardFunc(OMOBJ *object)
 
 /**
  * @brief Process pause and board-exit requests after board initialization completes.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in,out] object Board-manager object switched to KillBoardFunc after shutdown begins.
  */
 static void ExecBoardFunc(OMOBJ *object)
 {
@@ -218,9 +218,9 @@ static void ExecBoardFunc(OMOBJ *object)
 
 /**
  * @brief Return from or transfer away from the board overlay once processes, wipes, and ARAM DMA finish.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] unused_object Unused board-manager callback argument.
  */
-static void KillBoardFunc(OMOBJ *object)
+static void KillBoardFunc(OMOBJ *unused_object)
 {
     if(boardMainProc) {
         return;
@@ -285,7 +285,7 @@ s32 BoardIsKill(void)
 
 /**
  * @brief Set or clear the board flag that suppresses pausing.
- * @param [in] value Value applied by the operation.
+ * @param [in] value Nonzero disables board pausing; zero permits it outside tutorial mode.
  */
 void BoardPauseDisableSet(s32 value)
 {
@@ -879,8 +879,8 @@ void BoardCameraRestore(void)
 
 /**
  * @brief Set the board camera's viewport and scissor rectangle in pixels.
- * @param [in] x X coordinate or angle component.
- * @param [in] y Y coordinate or angle component.
+ * @param [in] x Left scissor coordinate in pixels.
+ * @param [in] y Top scissor coordinate in pixels.
  * @param [in] w Scissor width in pixels.
  * @param [in] h Scissor height in pixels.
  */
@@ -938,7 +938,7 @@ void BoardCameraViewSet(s32 type)
 
 /**
  * @brief Copy the current calculated camera position.
- * @param [out] dst Caller-owned storage that receives the result.
+ * @param [out] dst Caller-owned vector receiving the current camera position in world coordinates.
  * @return 0 after copying the position, or -1 if dst is NULL.
  */
 s32 BoardCameraPosGet(Vec *dst)
@@ -954,7 +954,7 @@ s32 BoardCameraPosGet(Vec *dst)
 
 /**
  * @brief Copy the current camera target position.
- * @param [out] dst Caller-owned storage that receives the result.
+ * @param [out] dst Caller-owned vector receiving the current camera target in world coordinates.
  * @return 0 after copying the target, or -1 if dst is NULL.
  */
 s32 BoardCameraTargetGet(Vec *dst)
@@ -970,7 +970,7 @@ s32 BoardCameraTargetGet(Vec *dst)
 
 /**
  * @brief Copy the current camera Euler rotation.
- * @param [out] dst Caller-owned storage that receives the result.
+ * @param [out] dst Caller-owned vector receiving the current Euler rotation in degrees.
  * @return 0 after copying the rotation, or -1 if dst is NULL.
  */
 s32 BoardCameraRotGet(Vec *dst)
@@ -996,9 +996,9 @@ float BoardCameraZoomGet()
 }
 
 /**
- * @brief Calculate a normalized XZ direction from the camera position to its target.
- * @param [out] dst Caller-owned storage that receives the result.
- * @return 0 after writing a normalized XZ direction, or -1 for NULL output or a zero-length direction.
+ * @brief Calculate a normalized 3D direction from the camera position to its target.
+ * @param [out] dst Caller-owned vector receiving the normalized camera-to-target direction, or the zero vector when both positions coincide.
+ * @return -1 when dst is NULL; otherwise 0 after writing the normalized or zero direction.
  */
 s32 BoardCameraDirGet(Vec *dst)
 {
@@ -1018,10 +1018,10 @@ s32 BoardCameraDirGet(Vec *dst)
 }
 
 /**
- * @brief Calculate a normalized XZ direction from the camera position to a world point.
+ * @brief Calculate a normalized 3D direction from the camera position to a world point.
  * @param [in] point World-space point.
- * @param [out] dst Caller-owned storage that receives the result.
- * @return 0 after writing a normalized XZ direction from the camera to point, or -1 for NULL output or zero length.
+ * @param [out] dst Caller-owned vector receiving the normalized camera-to-point direction, or the zero vector when the positions coincide.
+ * @return -1 when point or dst is NULL; otherwise 0 after writing the normalized or zero direction.
  */
 s32 BoardCameraPointDirGet(Vec *point, Vec *dst)
 {
@@ -1042,7 +1042,7 @@ s32 BoardCameraPointDirGet(Vec *point, Vec *dst)
 
 /**
  * @brief Set the camera visibility mask used by the board camera.
- * @param [in] mask Engine camera or space-flag bit mask.
+ * @param [in] mask Engine camera visibility mask used for board rendering.
  */
 void BoardCameraMaskSet(u16 mask)
 {
@@ -1072,9 +1072,9 @@ void BoardCameraMoveSet(s32 move)
 
 /**
  * @brief Set the camera target offset in world units.
- * @param [in] x X coordinate or angle component.
- * @param [in] y Y coordinate or angle component.
- * @param [in] z Z coordinate or angle component.
+ * @param [in] x World-space X offset from the tracked target.
+ * @param [in] y World-space Y offset from the tracked target.
+ * @param [in] z World-space Z offset from the tracked target.
  */
 void BoardCameraOffsetSet(float x, float y, float z)
 {
@@ -1174,9 +1174,9 @@ void BoardCameraQuakeReset()
 
 /**
  * @brief Set an explicit camera target position.
- * @param [in] x X coordinate or angle component.
- * @param [in] y Y coordinate or angle component.
- * @param [in] z Z coordinate or angle component.
+ * @param [in] x Target world-space X coordinate.
+ * @param [in] y Target world-space Y coordinate.
+ * @param [in] z Target world-space Z coordinate.
  */
 void BoardCameraTargetSet(float x, float y, float z)
 {
@@ -1188,9 +1188,9 @@ void BoardCameraTargetSet(float x, float y, float z)
 
 /**
  * @brief Set an explicit camera eye position.
- * @param [in] x X coordinate or angle component.
- * @param [in] y Y coordinate or angle component.
- * @param [in] z Z coordinate or angle component.
+ * @param [in] x Camera-eye world-space X coordinate.
+ * @param [in] y Camera-eye world-space Y coordinate.
+ * @param [in] z Camera-eye world-space Z coordinate.
  */
 void BoardCameraPosSet(float x, float y, float z)
 {
@@ -1224,8 +1224,8 @@ void BoardCameraZoomSet(float zoom)
 
 /**
  * @brief Set camera X and Y rotation in degrees.
- * @param [in] x X coordinate or angle component.
- * @param [in] y Y coordinate or angle component.
+ * @param [in] x X-axis Euler rotation in degrees.
+ * @param [in] y Y-axis Euler rotation in degrees.
  */
 void BoardCameraRotSet(float x, float y)
 {
@@ -1445,7 +1445,7 @@ static inline void CalcCameraView(void)
 
 /**
  * @brief Update camera motion, target tracking, quake offsets, and the engine camera.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] object Camera-manager object deleted when board shutdown begins.
  */
 static void UpdateCamera(OMOBJ *object)
 {
@@ -1516,6 +1516,14 @@ static void CalcCameraTarget(BoardCameraData *camera)
     VECAdd(&offset, &camera->target, &camera->target);
 }
 
+/**
+ * @def CAM_LERP
+ * @brief Linearly interpolate one scalar camera property over the active focus interval.
+ * @param t Current interpolation frame.
+ * @param x1 Property value at the start of the interval.
+ * @param x2 Property value at the end of the interval.
+ * @param out Lvalue receiving the interpolated property.
+ */
 #define CAM_LERP(t, x1, x2, out) \
 { \
     float result; \
@@ -1535,11 +1543,23 @@ static void CalcCameraTarget(BoardCameraData *camera)
     out = result; \
 }
 
+/**
+ * @def CAM_LERP_VEC
+ * @brief Apply CAM_LERP independently to the X, Y, and Z components of a camera vector.
+ * @param t Current interpolation frame.
+ * @param x1 Vector value at the start of the interval.
+ * @param x2 Vector value at the end of the interval.
+ * @param out Vector lvalue receiving the interpolated components.
+ */
 #define CAM_LERP_VEC(t, x1, x2, out) \
-CAM_LERP(t, (x1).x, (x2).x, (out).x) \
-CAM_LERP(t, (x1).y, (x2).y, (out).y) \
-CAM_LERP(t, (x1).z, (x2).z, (out).z)
+CAM_LERP(t, (x1).x, (x2).x, (out).x); \
+CAM_LERP(t, (x1).y, (x2).y, (out).y); \
+CAM_LERP(t, (x1).z, (x2).z, (out).z);
 
+/**
+ * @brief Interpolate active focus values and end the camera motion after its final frame.
+ * @param [in,out] camera Camera state whose focus timer, zoom, rotation, field of view, and target are updated.
+ */
 static void CalcCameraPos(BoardCameraData *camera)
 {
     //These variables must be volatile to match
@@ -1557,19 +1577,16 @@ static void CalcCameraPos(BoardCameraData *camera)
     focus->time++;
     lerp_t2 = focus->max_time;
     lerp_t1 = 0;
-    /**
-     * @brief Interpolate scalar or vector camera properties over the active focus interval.
-     * @param [in] t Current interpolation frame.
-     * @param [in] x1 Property value at the start of the interval.
-     * @param [in] x2 Property value at the end of the interval.
-     * @param [out] out Lvalue that receives the interpolated property.
-     */
-    CAM_LERP(time, focus->zoom_start, focus->zoom_end, camera->zoom)
-    CAM_LERP_VEC(time, focus->rot_start, focus->rot_end, camera->rot)
-    CAM_LERP(time, focus->fov_start, focus->fov_end, camera->fov)
-    CAM_LERP_VEC(time, focus->target_start, focus->target_end, camera->target)
+    CAM_LERP(time, focus->zoom_start, focus->zoom_end, camera->zoom);
+    CAM_LERP_VEC(time, focus->rot_start, focus->rot_end, camera->rot);
+    CAM_LERP(time, focus->fov_start, focus->fov_end, camera->fov);
+    CAM_LERP_VEC(time, focus->target_start, focus->target_end, camera->target);
 }
 
+/**
+ * @brief Set or clear the in-board minigame completion flag.
+ * @param [in] flag Nonzero marks the minigame complete; zero clears the completion state.
+ */
 void BoardMGDoneFlagSet(s32 flag)
 {
     if(flag) {
@@ -1603,7 +1620,7 @@ void BoardMGExit(void)
 
 /**
  * @brief Clear the tracked board-minigame object during destruction.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] object In-board minigame manager object deleted after completion is cleared.
  */
 static void KillBoardMG(OMOBJ *object)
 {
@@ -1615,7 +1632,7 @@ static void KillBoardMG(OMOBJ *object)
 
 /**
  * @brief Wait for the board-minigame completion flag, then delete its manager object.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in,out] object In-board minigame manager object switched to its cleanup callback after player movement and camera motion finish.
  */
 static void ExecBoardMG(OMOBJ *object)
 {
@@ -1633,13 +1650,13 @@ static void ExecBoardMG(OMOBJ *object)
 
 /**
  * @brief Create the object that tracks completion of an in-board minigame.
- * @param [in] arg0 Unused value retained for interface compatibility.
+ * @param [in] minigame_param Value retained in GWSystem.unk_38 while the in-board minigame runs; its higher-level meaning is not established here.
  */
-void BoardMGCreate(s32 arg0)
+void BoardMGCreate(s32 minigame_param)
 {
     _SetFlag(FLAG_ID_MAKE(1, 19));
     _ClearFlag(FLAG_ID_MAKE(1, 20));
-    GWSystem.unk_38 = arg0;
+    GWSystem.unk_38 = minigame_param;
     omAddObjEx(boardObjMan, 0x201, 0, 0, -1, ExecBoardMG);
     BoardEventFlagSet();
     BoardSpaceWalkMiniEventExec();
@@ -1702,9 +1719,9 @@ void BoardMTXCalcLookAt(Mtx dest, Vec *eye, Vec *up, Vec *target)
 }
 
 /**
- * @brief Approximate arcsine in radians for an input clamped to the supported range.
- * @param [in] value Value applied by the operation.
- * @return Approximate arcsine in radians; 0 for inputs outside [-1, 1].
+ * @brief Approximate the magnitude of arcsine in radians for an input in [-1, 1].
+ * @param [in] value Input ratio; the routine evaluates its absolute value.
+ * @return Nonnegative arcsine magnitude in radians, or 0 for inputs outside [-1, 1].
  */
 float BoardArcSin(float value)
 {
@@ -1731,9 +1748,9 @@ float BoardArcSin(float value)
 }
 
 /**
- * @brief Approximate arccosine in radians from the board arcsine routine.
- * @param [in] value Value applied by the operation.
- * @return Approximate arccosine in radians; 0 for inputs outside [-1, 1].
+ * @brief Compute pi/2 minus BoardArcSin's nonnegative angle magnitude.
+ * @param [in] value Cosine ratio expected in [-1, 1].
+ * @return pi/2 minus BoardArcSin(value), or 0 for inputs outside [-1, 1].
  */
 float BoardArcCos(float value)
 {
@@ -1763,7 +1780,7 @@ u32 BoardRand(void)
 
 /**
  * @brief Return the nonnegative board random state modulo a bound.
- * @param [in] value Value applied by the operation.
+ * @param [in] value Nonzero upper bound for the modulo result.
  * @return Random integer in [0, value); value must be nonzero.
  */
 u32 BoardRandMod(u32 value)
@@ -1784,8 +1801,8 @@ float BoardRandFloat(void)
 
 /**
  * @brief Calculate Euclidean distance between two positions in the XZ plane.
- * @param [in] vec1 First position vector.
- * @param [in] vec2 Second position vector.
+ * @param [in] vec1 First world position; only X and Z are read.
+ * @param [in] vec2 Second world position; only X and Z are read.
  * @return XZ-plane distance in world units.
  */
 float BoardVecDistXZCalc(Vec *vec1, Vec *vec2)
@@ -1796,11 +1813,11 @@ float BoardVecDistXZCalc(Vec *vec1, Vec *vec2)
 }
 
 /**
- * @brief Check whether the XZ-plane distance between two positions exceeds a maximum.
- * @param [in] vec1 First position vector.
- * @param [in] vec2 Second position vector.
+ * @brief Check whether the XZ-plane distance between two positions is within a maximum.
+ * @param [in] vec1 First world position; only X and Z are read.
+ * @param [in] vec2 Second world position; only X and Z are read.
  * @param [in] max_dist Maximum XZ distance in world units.
- * @return 1 when distance is greater than max_dist; otherwise 0.
+ * @return 1 when distance is less than or equal to max_dist; otherwise 0.
  */
 s32 BoardVecMaxDistXZCheck(Vec *vec1, Vec *vec2, float max_dist)
 {
@@ -1816,7 +1833,7 @@ s32 BoardVecMaxDistXZCheck(Vec *vec1, Vec *vec2, float max_dist)
 
 /**
  * @brief Normalize each component of an Euler-angle vector to [-180, 180].
- * @param [in] vec1 First position vector.
+ * @param [in,out] vec1 Euler-angle vector normalized in place, component by component.
  */
 void BoardDAngleCalcVec(Vec *vec1)
 {
@@ -1835,7 +1852,7 @@ void BoardDAngleCalcVec(Vec *vec1)
 
 /**
  * @brief Normalize an angle in degrees to [-180, 180].
- * @param [in] value Value applied by the operation.
+ * @param [in] value Angle in degrees to normalize.
  * @return Equivalent angle in degrees within [-180, 180].
  */
 float BoardDAngleCalc(float value)
@@ -1850,11 +1867,11 @@ float BoardDAngleCalc(float value)
 }
 
 /**
- * @brief Wrap a value into a half-open interval beginning at a minimum.
- * @param [in] value Value applied by the operation.
- * @param [in] min Inclusive lower bound.
- * @param [in] range Emitter radius in world units.
- * @return 1 when value was wrapped and updated; otherwise 0.
+ * @brief Step an angle toward a target through the shortest signed direction.
+ * @param [in,out] value Angle in degrees advanced in place and normalized to [-180, 180].
+ * @param [in] min Target angle in degrees, adjusted by one revolution to select the shortest direction.
+ * @param [in] range Positive angular step in degrees.
+ * @return 1 when the target is reached on this step; otherwise 0.
  */
 s32 BoardDAngleCalcRange(float *value, float min, float range)
 {
@@ -1884,8 +1901,8 @@ s32 BoardDAngleCalcRange(float *value, float min, float range)
 
 /**
  * @brief Check whether the 3D distance between two positions is below a minimum.
- * @param [in] vec1 First position vector.
- * @param [in] vec2 Second position vector.
+ * @param [in] vec1 First world position.
+ * @param [in] vec2 Second world position.
  * @param [in] min_dist Minimum 3D distance in world units.
  * @return 1 when distance is less than min_dist; otherwise 0.
  */
@@ -1998,7 +2015,7 @@ s32 BoardFilterFadeCheck(void)
 
 /**
  * @brief Advance the filter alpha or destroy the filter when its work completes.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] object Filter object that owns FilterWork and is deleted when fading completes or shutdown begins.
  */
 static void UpdateFilter(OMOBJ *object)
 {
@@ -2117,7 +2134,7 @@ static void DrawConfetti(HU3DMODEL *model, Mtx matrix);
 /**
  * @brief Create a confetti emitter centered at a world position.
  * @param [in] pos Center of the confetti emitter in world coordinates.
- * @param [in] count Number of particles, motions, or entries processed.
+ * @param [in] count Number of ConfettiParticle records allocated and simulated.
  * @param [in] range Emitter radius in world units.
  */
 void BoardConfettiCreate(Vec *pos, s16 count, float range)
@@ -2190,7 +2207,7 @@ void BoardConfettiStop(void)
 
 /**
  * @brief Spawn and move confetti particles, or release the emitter's resources on shutdown.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] object Confetti emitter object that owns particle work and is deleted during shutdown.
  */
 static void UpdateConfetti(OMOBJ *object)
 {
@@ -2209,7 +2226,7 @@ static void UpdateConfetti(OMOBJ *object)
 
 /**
  * @brief Activate free confetti particles around the emitter with randomized motion and color.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] object Confetti emitter whose position and radius define each spawned particle's initial position.
  */
 static void SpawnConfetti(OMOBJ *object)
 {
@@ -2258,7 +2275,7 @@ static void SpawnConfetti(OMOBJ *object)
 
 /**
  * @brief Integrate active confetti particles, fade them near expiry, and stop an empty paused emitter.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] object Confetti emitter that owns the particle array being integrated.
  */
 static void MoveConfetti(OMOBJ *object)
 {
@@ -2457,7 +2474,7 @@ void BoardLast5GfxInit(void)
 
 /**
  * @brief Fade, pulse, hold, and remove the final-turn-count banner.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in,out] object Final-turn banner object whose X translation stores the current group translucency.
  */
 static void UpdateLast5Gfx(OMOBJ *object)
 {
@@ -2588,7 +2605,7 @@ void BoardTauntKill(void)
 
 /**
  * @brief Start and modulate non-current human players' character taunts from controller input.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] object Taunt manager object that owns the kill flag and per-frame controller-processing work.
  */
 static void TauntUpdate(OMOBJ *object)
 {
@@ -2651,7 +2668,7 @@ static void TauntUpdate(OMOBJ *object)
 
 /**
  * @brief Begin an asynchronous read of a board data directory.
- * @param [in] data_num Packed data-file or directory identifier loaded by the function.
+ * @param [in] data_num Packed data-directory or file ID passed directly to HuDataDirReadAsync.
  * @return Asynchronous request handle, or -1 when the request could not start.
  */
 s32 BoardDataDirReadAsync(s32 data_num)

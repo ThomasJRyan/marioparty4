@@ -123,7 +123,7 @@ s32 BoardSpaceCountGet(s32 layer)
 /**
  * @brief Get a one-based space entry from a layer.
  * @param [in] layer Space-data layer index.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] index One-based board-space index within layer.
  * @return Pointer to the space entry, or NULL when index is outside the layer's one-based range.
  */
 BoardSpace *BoardSpaceGet(s32 layer, s32 index)
@@ -139,7 +139,7 @@ BoardSpace *BoardSpaceGet(s32 layer, s32 index)
 /**
  * @brief Add attribute bits to a board-space layer.
  * @param [in] layer Space-data layer index.
- * @param [in] attr Engine attribute bit mask.
+ * @param [in] attr Layer-specific board-space attribute bits to add.
  */
 void BoardSpaceAttrSet(s32 layer, u32 attr)
 {
@@ -149,7 +149,7 @@ void BoardSpaceAttrSet(s32 layer, u32 attr)
 /**
  * @brief Remove attribute bits from a board-space layer.
  * @param [in] layer Space-data layer index.
- * @param [in] attr Engine attribute bit mask.
+ * @param [in] attr Layer-specific board-space attribute bits to remove.
  */
 void BoardSpaceAttrReset(s32 layer, u32 attr)
 {
@@ -159,7 +159,7 @@ void BoardSpaceAttrReset(s32 layer, u32 attr)
 /**
  * @brief Get a space's encoded flag mask.
  * @param [in] layer Space-data layer index.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] index One-based board-space index within layer.
  * @return Space flag mask, or 0 for an invalid index.
  */
 u32 BoardSpaceFlagGet(s32 layer, s32 index)
@@ -175,7 +175,7 @@ u32 BoardSpaceFlagGet(s32 layer, s32 index)
 /**
  * @brief Get a space's gameplay type.
  * @param [in] layer Space-data layer index.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] index One-based board-space index within layer.
  * @return Gameplay space type, or 0 for an invalid index.
  */
 s32 BoardSpaceTypeGet(s32 layer, s32 index)
@@ -191,7 +191,7 @@ s32 BoardSpaceTypeGet(s32 layer, s32 index)
 /**
  * @brief Change a space's gameplay type.
  * @param [in] layer Space-data layer index.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] index One-based board-space index within layer.
  * @param [in] type New gameplay type stored in the selected space.
  */
 void BoardSpaceTypeSet(s32 layer, s32 index, s32 type)
@@ -207,9 +207,9 @@ void BoardSpaceTypeSet(s32 layer, s32 index, s32 type)
 /**
  * @brief Copy a space's world position to caller storage.
  * @param [in] layer Space-data layer index.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] index One-based board-space index within layer.
  * @param [out] pos Caller-owned vector receiving the space's world position.
- * @return 0 after copying the transform, or -1 for an invalid space index.
+ * @return 0 after copying the position, or -1 for an invalid space index.
  */
 s32 BoardSpacePosGet(s32 layer, s32 index, Vec *pos)
 {
@@ -225,7 +225,7 @@ s32 BoardSpacePosGet(s32 layer, s32 index, Vec *pos)
 
 /**
  * @brief Calculate one rotated corner of a board space in world coordinates.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] index One-based primary-layer board-space index.
  * @param [in] corner Corner index from 0 through 3.
  * @param [out] pos Caller-owned vector receiving the selected corner position in world coordinates.
  */
@@ -251,9 +251,9 @@ void BoardSpaceCornerPosGet(s32 index, s32 corner, Vec *pos)
 /**
  * @brief Copy a space's Euler rotation to caller storage.
  * @param [in] layer Space-data layer index.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] index One-based board-space index within layer.
  * @param [out] rot Euler rotation in degrees.
- * @return 0 after copying the transform, or -1 for an invalid space index.
+ * @return 0 after copying the rotation, or -1 for an invalid space index.
  */
 s32 BoardSpaceRotGet(s32 layer, s32 index, Vec *rot)
 {
@@ -270,7 +270,7 @@ s32 BoardSpaceRotGet(s32 layer, s32 index, Vec *rot)
 /**
  * @brief Find the first space whose flags include a requested mask.
  * @param [in] layer Space-data layer index.
- * @param [in] flag Board-space or state flag mask.
+ * @param [in] flag Required space-flag bits; a space matches only when it contains the full mask.
  * @return Matching one-based space index, or -1 when no match exists.
  */
 s32 BoardSpaceFlagSearch(s32 layer, u32 flag)
@@ -288,7 +288,7 @@ s32 BoardSpaceFlagSearch(s32 layer, u32 flag)
 /**
  * @brief Find a flagged space and copy its world position.
  * @param [in] layer Space-data layer index.
- * @param [in] flag Board-space or state flag mask.
+ * @param [in] flag Required space-flag bits; a space matches only when it contains the full mask.
  * @param [out] pos Caller-owned vector receiving the matching space's world position.
  * @return Matching one-based space index after copying its position, or -1 when absent.
  */
@@ -307,8 +307,8 @@ s32 BoardSpaceFlagPosGet(s32 layer, u32 flag, Vec *pos)
 /**
  * @brief Find an outgoing link whose target includes a requested flag mask.
  * @param [in] layer Space-data layer index.
- * @param [in] index One-based entry index unless the function documents a table index.
- * @param [in] flag Board-space or state flag mask.
+ * @param [in] index One-based source board-space index within layer.
+ * @param [in] flag Target-space flag bits; any overlap is accepted.
  * @return Matching one-based space index, or -1 when no match exists.
  */
 s32 BoardSpaceLinkFlagSearch(s32 layer, s32 index, u32 flag)
@@ -331,10 +331,10 @@ s32 BoardSpaceLinkFlagSearch(s32 layer, s32 index, u32 flag)
 /**
  * @brief Collect outgoing links whose target has a requested space type.
  * @param [in] layer Space-data layer index.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] index One-based source board-space index within layer.
  * @param [in] type Gameplay type required on linked target spaces.
  * @param [out] list Caller array receiving matching one-based space indices.
- * @return Number of indices written to list; -1 indicates an invalid source space where applicable.
+ * @return Number of linked target indices written, from 0 through BOARD_SPACE_LINKMAX, or -1 when index is invalid.
  */
 s32 BoardSpaceLinkTypeListGet(s32 layer, s32 index, s32 type, s16 *list)
 {
@@ -359,7 +359,7 @@ s32 BoardSpaceLinkTypeListGet(s32 layer, s32 index, s32 type, s16 *list)
  * @param [in] layer Space-data layer index.
  * @param [in] target One-based target space index that incoming links must reference.
  * @param [out] list Caller array receiving matching one-based space indices.
- * @return Number of indices written to list; -1 indicates an invalid source space where applicable.
+ * @return Number of source-space indices written to list, from 0 through BOARD_SPACE_LINKMAX.
  */
 s32 BoardSpaceLinkTargetListGet(s32 layer, s32 target, s16 *list)
 {
@@ -403,7 +403,7 @@ s32 BoardSpaceLinkTypeSearch(s32 layer, s32 target, u16 type)
 
 /**
  * @brief Find a flagged space and copy any requested transform components.
- * @param [in] flag Board-space or state flag mask.
+ * @param [in] flag Required primary-layer space-flag bits; the first full-mask match supplies the transform.
  * @param [out] pos Optional caller-owned vector receiving world position; may be NULL.
  * @param [out] rot Euler rotation in degrees.
  * @param [out] scale Per-axis model scale factors.
@@ -462,7 +462,7 @@ static inline s16 StarPlatGetMdl(void)
 
 /**
  * @brief Get the gameplay type of a star-table entry's space.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] index Star-location table index from 0 through 7.
  * @return Gameplay type of the star-table entry's space.
  */
 static inline s32 BoardStarSpaceTypeGet(s16 index)
@@ -472,7 +472,7 @@ static inline s32 BoardStarSpaceTypeGet(s16 index)
 
 /**
  * @brief Set the current star-table index, clear its type, and move the star platform.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] index Star-location table index; only the low three bits are stored.
  */
 void BoardSpaceStarSetIndex(s32 index)
 {
@@ -659,7 +659,7 @@ void BoardSpaceStarMove(void)
 
 /**
  * @brief Translate a star-table index to a board-space index.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] index Star-location table index; only the low three bits select an entry.
  * @return One-based board-space index stored in the star table.
  */
 s32 BoardSpaceStarGet(s32 index)
@@ -678,8 +678,8 @@ s32 BoardSpaceStarGetCurr(void)
 
 /**
  * @brief Check whether a star-table entry is enabled by board-specific flags.
- * @param [in] index One-based entry index unless the function documents a table index.
- * @return 1 when the indexed star location is enabled by its controlling flag, or 0 when disabled.
+ * @param [in] index One-based board-space index to test as a star location.
+ * @return 1 when the board space is eligible as a star location under board-specific flags; otherwise 0.
  */
 s32 BoardSpaceStarCheck(s32 index)
 {
@@ -875,7 +875,7 @@ s32 BoardSpaceWalkExec(s32 player, s32 space)
  * @brief Run a tutorial block override or the standard hidden-block event.
  * @param [in] player Player index.
  * @param [in] space One-based board-space index.
- * @return 0 after the event or load routine completes.
+ * @return Always 0 after the tutorial override or standard hidden-block sequence completes.
  */
 s32 BoardSpaceBlockExec(s32 player, s32 space)
 {
@@ -910,7 +910,7 @@ s32 BoardSpaceBlockExec(s32 player, s32 space)
  * @brief Run the pipe warp event unless the player is in Mega form.
  * @param [in] player Player index.
  * @param [in] space One-based board-space index.
- * @return 0 after the event or load routine completes.
+ * @return Always 0, whether Mega form suppresses the pipe or the pipe warp completes.
  */
 static s32 ExecPipeSpace(s32 player, s32 space)
 {
@@ -975,7 +975,7 @@ void BoardSpaceTypeForce(u16 from, u16 to)
 
 /**
  * @brief Enable or disable drawing of board-space markers.
- * @param [in] value Value applied by the operation.
+ * @param [in] value Nonzero hides the space-marker model; zero shows it.
  */
 void BoardSpaceHide(s32 value)
 {
@@ -1153,8 +1153,8 @@ static void DrawSpaces(HU3DMODEL *model, Mtx matrix)
 /**
  * @brief Decode positions, flags, transforms, types, and links from a board-space data resource.
  * @param [in] layer Space-data layer index.
- * @param [in] data_num Packed data-file or directory identifier loaded by the function.
- * @return 0 after the event or load routine completes.
+ * @param [in] data_num Packed board-space data ID read synchronously with HuDataReadNum.
+ * @return 0 after decoding the resource into the selected layer.
  */
 s32 BoardSpaceRead(s32 layer, s32 data_num)
 {
@@ -1198,7 +1198,7 @@ s32 BoardSpaceRead(s32 layer, s32 data_num)
 
 /**
  * @brief Assign the board-space marker draw model to a camera mask.
- * @param [in] mask Engine camera or space-flag bit mask.
+ * @param [in] mask Engine camera visibility mask for the space-marker draw model.
  */
 void BoardSpaceCameraSet(u16 mask)
 {
@@ -1230,7 +1230,7 @@ begin:
 
 /**
  * @brief Load space textures and data, create marker models, and initialize star and block positions.
- * @param [in] data_num Packed data-file or directory identifier loaded by the function.
+ * @param [in] data_num Packed board-space data ID passed to BoardSpaceRead for primary-layer initialization.
  */
 void BoardSpaceInit(s32 data_num)
 {

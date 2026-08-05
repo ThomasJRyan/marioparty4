@@ -46,12 +46,12 @@ void BoardWinInit(void) {
 
 /**
  * @brief Copy two caller values into the preserved board-window array, or clear it for NULL.
- * @param [in] arg0 Two-float source array, or NULL to clear both preserved values.
+ * @param [in] values Two-float source array copied immediately, or NULL to clear both preserved values.
  */
-void BoardWinUnusedArraySet(f32* arg0) {
-    if (arg0 != 0) {
-        lbl_801D3F70[0] = arg0[0];
-        lbl_801D3F70[1] = arg0[1];
+void BoardWinUnusedArraySet(f32* values) {
+    if (values != 0) {
+        lbl_801D3F70[0] = values[0];
+        lbl_801D3F70[1] = values[1];
         return;
     }
     lbl_801D3F70[0] = lbl_801D3F70[1] = 0.0f;
@@ -290,8 +290,8 @@ void BoardWinCreate(s32 pos, u32 mess, s32 portrait) {
 
 /**
  * @brief Set one message-substitution entry for the pending board window.
- * @param [in] value Value applied by the operation.
- * @param [in] index One-based entry index unless the function documents a table index.
+ * @param [in] value Raw message-substitution value forwarded to HuWinInsertMesSet when the window is displayed.
+ * @param [in] index Zero-based substitution slot from 0 through 7.
  */
 void BoardWinInsertMesSet(u32 value, s32 index) {
     winInsertMesTbl[index] = value;
@@ -375,7 +375,7 @@ s32 BoardWinSpeedGet(void) {
 
 /**
  * @brief Apply a configured message-speed setting to pending and active text.
- * @param [in] value Value applied by the operation.
+ * @param [in] value Message-speed setting index from 0 through 3, mapped through winSpeedTbl.
  */
 void BoardWinSpeedSet(s32 value) {
     messSpeed = winSpeedTbl[value];

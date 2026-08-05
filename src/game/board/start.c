@@ -1,10 +1,10 @@
 /**
  * @file start.c
- * @brief Handles the start of the game board.
+ * @brief Implements board-opening setup, turn-order dice rolls, player ordering, camera and host setup, and tutorial variants.
  * 
- * @details This file contains everything needed to start the game board,
- * including the creation of the player start objects, the execution of the
- * start roll, and the initialization of the camera and host. 
+ * @details Creates the opening host and player objects, animates each
+ * turn-order Dice Block, sorts players by their results, and supports the
+ * shortened tutorial opening.
  */
 #include "game/board/start.h"
 #include "game/audio.h"
@@ -55,15 +55,15 @@ static void ExecStart(void);
 static void ShowLogo(void);
 static void FocusStart(void);
 static void CreatePlayerStart(void);
-static void ExecPlayerStart(OMOBJ *arg0);
-static void PlayerFall(OMOBJ *arg0, PlayerStartWork *arg1);
-static void PlayerWaitSpeak(OMOBJ *arg0, PlayerStartWork *arg1);
-static void PlayerDiceFall(OMOBJ *arg0, PlayerStartWork *arg1);
-static void PlayerDiceRoll(OMOBJ *arg0, PlayerStartWork *arg1);
-static void PlayerDiceNumShow(OMOBJ *arg0, PlayerStartWork *arg1);
-static void PlayerDiceNumHide(OMOBJ *arg0, PlayerStartWork *arg1);
-static void SetPlayerStartState(s32 arg0, s32 arg1);
-static s32 GetPlayerStartState(s32 arg0);
+static void ExecPlayerStart(OMOBJ *object);
+static void PlayerFall(OMOBJ *object, PlayerStartWork *data);
+static void PlayerWaitSpeak(OMOBJ *unused_object, PlayerStartWork *data);
+static void PlayerDiceFall(OMOBJ *object, PlayerStartWork *data);
+static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data);
+static void PlayerDiceNumShow(OMOBJ *unused_object, PlayerStartWork *data);
+static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data);
+static void SetPlayerStartState(s32 player, s32 state);
+static s32 GetPlayerStartState(s32 player);
 static void ExecStartRoll(void);
 static void InitCamera(void);
 static void InitHost(void);
@@ -369,7 +369,7 @@ static void CreatePlayerStart(void) {
 
 /**
  * @brief Dispatch one player's opening-roll state machine.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] object Per-player opening object that owns the dispatched PlayerStartWork record.
  */
 static void ExecPlayerStart(OMOBJ *object) {
     PlayerStartWork *data = omObjGetWork(object, PlayerStartWork);
@@ -413,7 +413,7 @@ static void ExecPlayerStart(OMOBJ *object) {
 
 /**
  * @brief Animate a player falling into the opening lineup.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in,out] object Per-player opening object whose Y translation tracks the falling player.
  * @param [in] data Per-player opening-sequence work record.
  */
 static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
@@ -445,10 +445,10 @@ static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
 
 /**
  * @brief Play the waiting player's voice and advance to the dice-drop state.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] unused_object Unused object callback argument.
  * @param [in] data Per-player opening-sequence work record.
  */
-static void PlayerWaitSpeak(OMOBJ *object, PlayerStartWork *data) {
+static void PlayerWaitSpeak(OMOBJ *unused_object, PlayerStartWork *data) {
     float yRot;
 
     if (data->time == 0) {
@@ -465,7 +465,7 @@ static void PlayerWaitSpeak(OMOBJ *object, PlayerStartWork *data) {
 
 /**
  * @brief Animate the opening-order Dice Block falling above a player.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in,out] object Per-player opening object whose X rotation stores the Dice Block's per-frame fall step.
  * @param [in] data Per-player opening-sequence work record.
  */
 static void PlayerDiceFall(OMOBJ *object, PlayerStartWork *data) {
@@ -518,7 +518,7 @@ static s32 playerOrderMesTbl[3] = {
 
 /**
  * @brief Spin the Dice Block until the player or computer confirms a result.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in,out] object Per-player opening object whose rotation fields later hold result-model scale factors.
  * @param [in] data Per-player opening-sequence work record.
  */
 static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
@@ -601,10 +601,10 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
 
 /**
  * @brief Display the player's opening roll and transition to result cleanup.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in] unused_object Unused object callback argument.
  * @param [in] data Per-player opening-sequence work record.
  */
-static void PlayerDiceNumShow(OMOBJ *object, PlayerStartWork *data) {
+static void PlayerDiceNumShow(OMOBJ *unused_object, PlayerStartWork *data) {
     float yRot;
 
     data->yRot -= 18;
@@ -621,7 +621,7 @@ static void PlayerDiceNumShow(OMOBJ *object, PlayerStartWork *data) {
 
 /**
  * @brief Hide the opening roll, lower the player, and mark that player complete.
- * @param [in] object Object-manager object whose work is updated.
+ * @param [in,out] object Per-player opening object whose rotation fields supply the result model's animated X/Y scale.
  * @param [in] data Per-player opening-sequence work record.
  */
 static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
