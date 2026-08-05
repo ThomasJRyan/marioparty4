@@ -22,441 +22,495 @@ static Vec *normtop;
 static s32 Meshcnt;
 static s32 Meshno;
 
+/**
+ * @brief Initializes bind transforms and envelope matrices for an HSF model.
+ *
+ * @details Mesh transforms are synchronized with same-named skeleton entries,
+ * then world and inverse bind matrices are built for later skinning passes.
+ * Models without cluster-envelope records are left unchanged.
+ *
+ * @param arg0 HSF model whose mesh and matrix data are initialized.
+ */
 void InitEnvelope(HSFDATA *arg0) {
-    HSFBUFFER *spC;
-    HSFBUFFER *sp8;
-    HSFMATRIX *temp_r28;
-    HSFOBJECT *var_r31;
-    HSFSKELETON *var_r30;
-    Mtx sp10;
+    HSFBUFFER *vertex_buffer;
+    HSFBUFFER *normal_buffer;
+    HSFMATRIX *matrix_buffer;
+    HSFOBJECT *object;
+    HSFSKELETON *skeleton;
+    Mtx identity_matrix;
     s32 i;
     s32 j;
 
     if (arg0->cenvNum != 0) {
-        var_r31 = arg0->object;
-        for (Meshcnt = i = 0; i < arg0->objectNum; i++, var_r31++) {
-            if (var_r31->type == 2) {
-                if (var_r31->mesh.file[0]) {
-                    spC = var_r31->mesh.vertex;
-                    sp8 = var_r31->mesh.normal;
+        object = arg0->object;
+        for (Meshcnt = i = 0; i < arg0->objectNum; i++, object++) {
+            if (object->type == 2) {
+                if (object->mesh.file[0]) {
+                    vertex_buffer = object->mesh.vertex;
+                    normal_buffer = object->mesh.normal;
                     Meshcnt++;
                 } else {
                     continue;
                 }
             }
-            var_r30 = arg0->skeleton;
-            for (j = 0; j < arg0->skeletonNum; j++, var_r30++) {
-                if (strcmp(var_r31->name, var_r30->name) == 0) {
-                    var_r31->mesh.base.pos.x = var_r30->transform.pos.x;
-                    var_r31->mesh.base.pos.y = var_r30->transform.pos.y;
-                    var_r31->mesh.base.pos.z = var_r30->transform.pos.z;
-                    var_r31->mesh.base.rot.x = var_r30->transform.rot.x;
-                    var_r31->mesh.base.rot.y = var_r30->transform.rot.y;
-                    var_r31->mesh.base.rot.z = var_r30->transform.rot.z;
-                    var_r31->mesh.base.scale.x = var_r30->transform.scale.x;
-                    var_r31->mesh.base.scale.y = var_r30->transform.scale.y;
-                    var_r31->mesh.base.scale.z = var_r30->transform.scale.z;
+            skeleton = arg0->skeleton;
+            for (j = 0; j < arg0->skeletonNum; j++, skeleton++) {
+                if (strcmp(object->name, skeleton->name) == 0) {
+                    object->mesh.base.pos.x = skeleton->transform.pos.x;
+                    object->mesh.base.pos.y = skeleton->transform.pos.y;
+                    object->mesh.base.pos.z = skeleton->transform.pos.z;
+                    object->mesh.base.rot.x = skeleton->transform.rot.x;
+                    object->mesh.base.rot.y = skeleton->transform.rot.y;
+                    object->mesh.base.rot.z = skeleton->transform.rot.z;
+                    object->mesh.base.scale.x = skeleton->transform.scale.x;
+                    object->mesh.base.scale.y = skeleton->transform.scale.y;
+                    object->mesh.base.scale.z = skeleton->transform.scale.z;
                 }
             }
-            var_r31->mesh.curr.pos.x = var_r31->mesh.base.pos.x;
-            var_r31->mesh.curr.pos.y = var_r31->mesh.base.pos.y;
-            var_r31->mesh.curr.pos.z = var_r31->mesh.base.pos.z;
-            var_r31->mesh.curr.rot.x = var_r31->mesh.base.rot.x;
-            var_r31->mesh.curr.rot.y = var_r31->mesh.base.rot.y;
-            var_r31->mesh.curr.rot.z = var_r31->mesh.base.rot.z;
-            var_r31->mesh.curr.scale.x = var_r31->mesh.base.scale.x;
-            var_r31->mesh.curr.scale.y = var_r31->mesh.base.scale.y;
-            var_r31->mesh.curr.scale.z = var_r31->mesh.base.scale.z;
+            object->mesh.curr.pos.x = object->mesh.base.pos.x;
+            object->mesh.curr.pos.y = object->mesh.base.pos.y;
+            object->mesh.curr.pos.z = object->mesh.base.pos.z;
+            object->mesh.curr.rot.x = object->mesh.base.rot.x;
+            object->mesh.curr.rot.y = object->mesh.base.rot.y;
+            object->mesh.curr.rot.z = object->mesh.base.rot.z;
+            object->mesh.curr.scale.x = object->mesh.base.scale.x;
+            object->mesh.curr.scale.y = object->mesh.base.scale.y;
+            object->mesh.curr.scale.z = object->mesh.base.scale.z;
         }
         CurHsf = arg0;
         objtop = arg0->object;
-        temp_r28 = CurHsf->matrix;
-        if (temp_r28) {
-            MtxTop = temp_r28->data;
-            nObj = temp_r28->count;
-            nMesh = temp_r28->base_idx;
+        matrix_buffer = CurHsf->matrix;
+        if (matrix_buffer) {
+            MtxTop = matrix_buffer->data;
+            nObj = matrix_buffer->count;
+            nMesh = matrix_buffer->base_idx;
         }
-        PSMTXIdentity(sp10);
-        SetMtx(arg0->root, sp10);
+        PSMTXIdentity(identity_matrix);
+        SetMtx(arg0->root, identity_matrix);
         SetRevMtx();
     }
 }
 
+/**
+ * @brief Recursively builds current world matrices for an object hierarchy.
+ *
+ * @param arg0 Base of the contiguous object array, used to derive matrix slots.
+ * @param arg1 Current hierarchy object whose transform is evaluated.
+ * @param arg2 Parent object's world matrix.
+ */
 static void SetEnvelopMtx(HSFOBJECT *arg0, HSFOBJECT *arg1, Mtx arg2) {
-    Mtx sp6C;
-    Mtx sp3C;
-    Mtx spC;
-    s32 var_r29;
+    Mtx rotation_matrix;
+    Mtx world_matrix;
+    Mtx translation_matrix;
+    s32 object_index;
     s32 i;
 
-    PSMTXTrans(spC, arg1->mesh.curr.pos.x, arg1->mesh.curr.pos.y, arg1->mesh.curr.pos.z);
-    PSMTXConcat(arg2, spC, sp3C);
+    PSMTXTrans(translation_matrix, arg1->mesh.curr.pos.x, arg1->mesh.curr.pos.y, arg1->mesh.curr.pos.z);
+    PSMTXConcat(arg2, translation_matrix, world_matrix);
     if (arg1->mesh.curr.rot.z) {
-        PSMTXRotRad(sp6C, 'z', MTXDegToRad(arg1->mesh.curr.rot.z));
-        PSMTXConcat(sp3C, sp6C, sp3C);
+        PSMTXRotRad(rotation_matrix, 'z', MTXDegToRad(arg1->mesh.curr.rot.z));
+        PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
     }
     if (arg1->mesh.curr.rot.y) {
-        PSMTXRotRad(sp6C, 'y', MTXDegToRad(arg1->mesh.curr.rot.y));
-        PSMTXConcat(sp3C, sp6C, sp3C);
+        PSMTXRotRad(rotation_matrix, 'y', MTXDegToRad(arg1->mesh.curr.rot.y));
+        PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
     }
     if (arg1->mesh.curr.rot.x) {
-        PSMTXRotRad(sp6C, 'x', MTXDegToRad(arg1->mesh.curr.rot.x));
-        PSMTXConcat(sp3C, sp6C, sp3C);
+        PSMTXRotRad(rotation_matrix, 'x', MTXDegToRad(arg1->mesh.curr.rot.x));
+        PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
     }
     if (arg1->mesh.curr.scale.x != 1.0f) {
-        sp3C[0][0] *= arg1->mesh.curr.scale.x;
-        sp3C[1][0] *= arg1->mesh.curr.scale.x;
-        sp3C[2][0] *= arg1->mesh.curr.scale.x;
+        world_matrix[0][0] *= arg1->mesh.curr.scale.x;
+        world_matrix[1][0] *= arg1->mesh.curr.scale.x;
+        world_matrix[2][0] *= arg1->mesh.curr.scale.x;
     }
     if (arg1->mesh.curr.scale.y != 1.0f) {
-        sp3C[0][1] *= arg1->mesh.curr.scale.y;
-        sp3C[1][1] *= arg1->mesh.curr.scale.y;
-        sp3C[2][1] *= arg1->mesh.curr.scale.y;
+        world_matrix[0][1] *= arg1->mesh.curr.scale.y;
+        world_matrix[1][1] *= arg1->mesh.curr.scale.y;
+        world_matrix[2][1] *= arg1->mesh.curr.scale.y;
     }
     if (arg1->mesh.curr.scale.z != 1.0f) {
-        sp3C[0][2] *= arg1->mesh.curr.scale.z;
-        sp3C[1][2] *= arg1->mesh.curr.scale.z;
-        sp3C[2][2] *= arg1->mesh.curr.scale.z;
+        world_matrix[0][2] *= arg1->mesh.curr.scale.z;
+        world_matrix[1][2] *= arg1->mesh.curr.scale.z;
+        world_matrix[2][2] *= arg1->mesh.curr.scale.z;
     }
-    var_r29 = arg1 - arg0;
-    PSMTXCopy(sp3C, MtxTop[nMesh + var_r29]);
+    object_index = arg1 - arg0;
+    PSMTXCopy(world_matrix, MtxTop[nMesh + object_index]);
     for (i = 0; i < arg1->mesh.childrenCount; i++) {
-        SetEnvelopMtx(arg0, arg1->mesh.children[i], sp3C);
+        SetEnvelopMtx(arg0, arg1->mesh.children[i], world_matrix);
     }
 }
 
+/**
+ * @brief Rebuilds current hierarchy matrices and skins all enveloped meshes.
+ *
+ * @param arg0 HSF model containing the hierarchy, matrices, and envelope data.
+ */
 void EnvelopeProc(HSFDATA *arg0) {
-    HSFMATRIX *temp_r31;
-    HSFOBJECT *temp_r29;
-    Mtx sp8;
+    HSFMATRIX *matrix_buffer;
+    HSFOBJECT *root_object;
+    Mtx identity_matrix;
 
     CurHsf = arg0;
-    temp_r31 = CurHsf->matrix;
-    MtxTop = temp_r31->data;
-    nObj = temp_r31->count;
-    nMesh = temp_r31->base_idx;
-    temp_r29 = arg0->root;
-    PSMTXIdentity(sp8);
-    SetEnvelopMtx(arg0->object, temp_r29, sp8);
+    matrix_buffer = CurHsf->matrix;
+    MtxTop = matrix_buffer->data;
+    nObj = matrix_buffer->count;
+    nMesh = matrix_buffer->base_idx;
+    root_object = arg0->root;
+    PSMTXIdentity(identity_matrix);
+    SetEnvelopMtx(arg0->object, root_object, identity_matrix);
     SetEnvelopMain(arg0);
 }
 
+/**
+ * @brief Clears the per-frame vertex-write counters for all HSF mesh objects.
+ *
+ * @param arg0 HSF model whose mesh objects are reset.
+ */
 void InitVtxParm(HSFDATA *arg0) {
-    HSFOBJECT *var_r31;
+    HSFOBJECT *object;
     s32 i;
 
-    var_r31 = arg0->object;
-    for (i = 0; i < arg0->objectNum; i++, var_r31++) {
-        if (var_r31->type == 2) {
-            var_r31->mesh.writeNum = 0;
+    object = arg0->object;
+    for (i = 0; i < arg0->objectNum; i++, object++) {
+        if (object->type == 2) {
+            object->mesh.writeNum = 0;
         }
     }
 }
 
+/**
+ * @brief Skins each mesh with its cluster-envelope records and flushes results.
+ *
+ * @param arg0 HSF model whose mesh vertex and normal buffers are updated.
+ */
 static void SetEnvelopMain(HSFDATA *arg0) {
-    void *sp10;
-    void *spC;
-    void *sp8;
-    HSFBUFFER *temp_r28;
-    HSFBUFFER *temp_r30;
-    HSFOBJECT *var_r31;
+    void *vertex_data;
+    void *source_vertex_data;
+    void *output_vertex_data;
+    HSFBUFFER *normal_buffer;
+    HSFBUFFER *vertex_buffer;
+    HSFOBJECT *object;
     s32 i;
     s32 j;
-    HSFCENV *var_r25;
+    HSFCENV *envelope;
 
-    var_r31 = arg0->object;
-    for (Meshno = i = 0; i < arg0->objectNum; i++, var_r31++) {
-        if (var_r31->type == 2) {
-            PSMTXInverse(MtxTop[&var_r31[nMesh] - arg0->object], MtxTop[Meshno]);
-            temp_r30 = var_r31->mesh.vertex;
-            temp_r28 = var_r31->mesh.normal;
-            if (var_r31->mesh.writeNum != 0) {
-                Vertextop = temp_r30->data;
+    object = arg0->object;
+    for (Meshno = i = 0; i < arg0->objectNum; i++, object++) {
+        if (object->type == 2) {
+            PSMTXInverse(MtxTop[&object[nMesh] - arg0->object], MtxTop[Meshno]);
+            vertex_buffer = object->mesh.vertex;
+            normal_buffer = object->mesh.normal;
+            if (object->mesh.writeNum != 0) {
+                Vertextop = vertex_buffer->data;
             } else {
-                Vertextop = var_r31->mesh.file[0];
+                Vertextop = object->mesh.file[0];
             }
-            vtxenv = temp_r30->data;
-            normtop = var_r31->mesh.file[1];
-            normenv = temp_r28->data;
-            var_r25 = var_r31->mesh.cenv;
-            for (j = 0; j < var_r31->mesh.cenvNum; j++, var_r25++) {
-                SetEnvelop(var_r25);
+            vtxenv = vertex_buffer->data;
+            normtop = object->mesh.file[1];
+            normenv = normal_buffer->data;
+            envelope = object->mesh.cenv;
+            for (j = 0; j < object->mesh.cenvNum; j++, envelope++) {
+                SetEnvelop(envelope);
             }
-            sp10 = temp_r30->data;
-            spC = var_r31->mesh.file[0];
-            sp8 = temp_r30->data;
-            DCStoreRangeNoSync(normenv, temp_r28->count * sizeof(Vec));
-            DCStoreRangeNoSync(vtxenv, temp_r30->count * sizeof(Vec));
+            vertex_data = vertex_buffer->data;
+            source_vertex_data = object->mesh.file[0];
+            output_vertex_data = vertex_buffer->data;
+            DCStoreRangeNoSync(normenv, normal_buffer->count * sizeof(Vec));
+            DCStoreRangeNoSync(vtxenv, vertex_buffer->count * sizeof(Vec));
             Meshno++;
         }
     }
 }
 
+/**
+ * @brief Applies single-, dual-, and multi-bone skinning records to a mesh.
+ *
+ * @details Positions and normals are transformed from bind space with matrices
+ * precomputed for the current mesh. Unweighted trailing vertices are copied.
+ *
+ * @param arg0 Cluster-envelope record defining affected ranges and weights.
+ */
 static void SetEnvelop(HSFCENV *arg0) {
-    Vec sp44;
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    s32 sp10;
-    u32 spC;
-    u32 sp8;
-    HSFCENVDUAL *var_r20;
-    HSFCENVDUALWEIGHT *var_r30;
-    HSFCENVMULTI *var_r19;
-    HSFCENVMULTIWEIGHT *var_r25;
-    HSFCENVSINGLE *var_r27;
-    Vec *temp_r22;
-    Vec *temp_r26;
-    Vec *temp_r28;
-    Vec *temp_r31;
-    float temp_f31;
-    MtxPtr var_r29;
-    s32 temp_r18;
-    s32 temp_r21;
+    Vec weighted_position_delta;
+    Vec position_delta_sum;
+    Vec weighted_normal_delta;
+    Vec normal_delta_sum;
+    Vec matrix_scale;
+    s32 processed_weight_count;
+    u32 first_target;
+    u32 second_target;
+    HSFCENVDUAL *dual_envelope;
+    HSFCENVDUALWEIGHT *dual_weight;
+    HSFCENVMULTI *multi_envelope;
+    HSFCENVMULTIWEIGHT *multi_weight;
+    HSFCENVSINGLE *single_envelope;
+    Vec *output_normal;
+    Vec *source_normal;
+    Vec *output_position;
+    Vec *source_position;
+    float weight;
+    MtxPtr blended_matrix;
+    s32 normal_index;
+    s32 position_index;
     s32 i;
     s32 j;
-    Mtx sp1A0;
-    Mtx sp170;
-    Mtx sp140;
-    Mtx sp110;
-    Mtx spE0;
-    Mtx spB0;
-    Mtx sp80;
-    Mtx sp50;
+    Mtx position_matrix;
+    Mtx normal_matrix;
+    Mtx work_matrix_a;
+    Mtx work_matrix_b;
+    Mtx inverse_scale_matrix;
+    Mtx second_position_matrix;
+    Mtx combined_matrix;
+    Mtx alias_safe_matrix;
 
-    var_r27 = arg0->singleData;
-    for (i = 0; i < arg0->singleCount; i++, var_r27++) {
-        temp_r18 = var_r27->normal;
-        temp_r21 = var_r27->pos;
-        temp_r28 = &vtxenv[temp_r21];
-        temp_r31 = &Vertextop[temp_r21];
-        temp_r22 = &normenv[temp_r18];
-        temp_r26 = &normtop[temp_r18];
-        PSMTXConcat(MtxTop[nMesh + var_r27->target], MtxTop[nMesh + nObj + nObj * Meshno + var_r27->target], sp140);
-        PSMTXConcat(MtxTop[Meshno], sp140, sp1A0);
-        Hu3DMtxScaleGet(&sp1A0[0], &sp14);
-        if (sp14.x != 1.0f || sp14.y != 1.0f || sp14.z != 1.0f) {
-            PSMTXScale(spE0, 1.0 / sp14.x, 1.0 / sp14.y, 1.0 / sp14.z);
-            PSMTXConcat(spE0, sp1A0, sp170);
-            PSMTXInvXpose(sp170, sp170);
+    single_envelope = arg0->singleData;
+    for (i = 0; i < arg0->singleCount; i++, single_envelope++) {
+        normal_index = single_envelope->normal;
+        position_index = single_envelope->pos;
+        output_position = &vtxenv[position_index];
+        source_position = &Vertextop[position_index];
+        output_normal = &normenv[normal_index];
+        source_normal = &normtop[normal_index];
+        PSMTXConcat(MtxTop[nMesh + single_envelope->target], MtxTop[nMesh + nObj + nObj * Meshno + single_envelope->target], work_matrix_a);
+        PSMTXConcat(MtxTop[Meshno], work_matrix_a, position_matrix);
+        Hu3DMtxScaleGet(&position_matrix[0], &matrix_scale);
+        if (matrix_scale.x != 1.0f || matrix_scale.y != 1.0f || matrix_scale.z != 1.0f) {
+            PSMTXScale(inverse_scale_matrix, 1.0 / matrix_scale.x, 1.0 / matrix_scale.y, 1.0 / matrix_scale.z);
+            PSMTXConcat(inverse_scale_matrix, position_matrix, normal_matrix);
+            PSMTXInvXpose(normal_matrix, normal_matrix);
         } else {
-            PSMTXInvXpose(sp1A0, sp170);
+            PSMTXInvXpose(position_matrix, normal_matrix);
         }
-        if (var_r27->posNum == 1) {
-            PSMTXMultVec(sp1A0, temp_r31, temp_r28);
-            PSMTXMultVec(sp170, temp_r26, temp_r22);
-        } else if (var_r27->posNum <= 6) {
-            PSMTXMultVecArray(sp1A0, temp_r31, temp_r28, var_r27->posNum);
-            PSMTXMultVecArray(sp170, temp_r26, temp_r22, var_r27->normalNum);
+        if (single_envelope->posNum == 1) {
+            PSMTXMultVec(position_matrix, source_position, output_position);
+            PSMTXMultVec(normal_matrix, source_normal, output_normal);
+        } else if (single_envelope->posNum <= 6) {
+            PSMTXMultVecArray(position_matrix, source_position, output_position, single_envelope->posNum);
+            PSMTXMultVecArray(normal_matrix, source_normal, output_normal, single_envelope->normalNum);
         } else {
-            PSMTXReorder(sp1A0, (ROMtxPtr) sp140);
-            PSMTXReorder(sp170, (ROMtxPtr) sp110);
-            PSMTXROMultVecArray((ROMtxPtr) sp140, temp_r31, temp_r28, var_r27->posNum);
-            PSMTXROMultVecArray((ROMtxPtr) sp110, temp_r26, temp_r22, var_r27->normalNum);
+            PSMTXReorder(position_matrix, (ROMtxPtr) work_matrix_a);
+            PSMTXReorder(normal_matrix, (ROMtxPtr) work_matrix_b);
+            PSMTXROMultVecArray((ROMtxPtr) work_matrix_a, source_position, output_position, single_envelope->posNum);
+            PSMTXROMultVecArray((ROMtxPtr) work_matrix_b, source_normal, output_normal, single_envelope->normalNum);
         }
     }
-    var_r20 = arg0->dualData;
-    for (i = 0; i < arg0->dualCount; i++, var_r20++) {
-        spC = var_r20->target1;
-        sp8 = var_r20->target2;
-        PSMTXConcat(MtxTop[nMesh + spC], MtxTop[nMesh + nObj + nObj * Meshno + spC], sp140);
-        PSMTXConcat(MtxTop[Meshno], sp140, sp1A0);
-        PSMTXConcat(MtxTop[nMesh + sp8], MtxTop[nMesh + nObj + nObj * Meshno + sp8], sp140);
-        PSMTXConcat(MtxTop[Meshno], sp140, (float (*)[4]) &spB0[0]);
-        var_r30 = var_r20->weight;
-        for (j = 0; j < var_r20->weightNum; j++, var_r30++) {
-            temp_r18 = var_r30->normal;
-            temp_r21 = var_r30->pos;
-            temp_r28 = &vtxenv[temp_r21];
-            temp_r31 = &Vertextop[temp_r21];
-            temp_r22 = &normenv[temp_r18];
-            temp_r26 = &normtop[temp_r18];
-            temp_f31 = var_r30->weight;
-            sp140[0][0] = sp1A0[0][0] * temp_f31;
-            sp140[1][0] = sp1A0[1][0] * temp_f31;
-            sp140[2][0] = sp1A0[2][0] * temp_f31;
-            sp140[0][1] = sp1A0[0][1] * temp_f31;
-            sp140[1][1] = sp1A0[1][1] * temp_f31;
-            sp140[2][1] = sp1A0[2][1] * temp_f31;
-            sp140[0][2] = sp1A0[0][2] * temp_f31;
-            sp140[1][2] = sp1A0[1][2] * temp_f31;
-            sp140[2][2] = sp1A0[2][2] * temp_f31;
-            sp140[0][3] = sp1A0[0][3] * temp_f31;
-            sp140[1][3] = sp1A0[1][3] * temp_f31;
-            sp140[2][3] = sp1A0[2][3] * temp_f31;
-            temp_f31 = 1.0f - var_r30->weight;
-            sp110[0][0] = spB0[0][0] * temp_f31;
-            sp110[1][0] = spB0[1][0] * temp_f31;
-            sp110[2][0] = spB0[2][0] * temp_f31;
-            sp110[0][1] = spB0[0][1] * temp_f31;
-            sp110[1][1] = spB0[1][1] * temp_f31;
-            sp110[2][1] = spB0[2][1] * temp_f31;
-            sp110[0][2] = spB0[0][2] * temp_f31;
-            sp110[1][2] = spB0[1][2] * temp_f31;
-            sp110[2][2] = spB0[2][2] * temp_f31;
-            sp110[0][3] = spB0[0][3] * temp_f31;
-            sp110[1][3] = spB0[1][3] * temp_f31;
-            sp110[2][3] = spB0[2][3] * temp_f31;
-            if (sp80 == sp110 || sp80 == sp140) {
-                var_r29 = sp50;
+    dual_envelope = arg0->dualData;
+    for (i = 0; i < arg0->dualCount; i++, dual_envelope++) {
+        first_target = dual_envelope->target1;
+        second_target = dual_envelope->target2;
+        PSMTXConcat(MtxTop[nMesh + first_target], MtxTop[nMesh + nObj + nObj * Meshno + first_target], work_matrix_a);
+        PSMTXConcat(MtxTop[Meshno], work_matrix_a, position_matrix);
+        PSMTXConcat(MtxTop[nMesh + second_target], MtxTop[nMesh + nObj + nObj * Meshno + second_target], work_matrix_a);
+        PSMTXConcat(MtxTop[Meshno], work_matrix_a, (float (*)[4]) &second_position_matrix[0]);
+        dual_weight = dual_envelope->weight;
+        for (j = 0; j < dual_envelope->weightNum; j++, dual_weight++) {
+            normal_index = dual_weight->normal;
+            position_index = dual_weight->pos;
+            output_position = &vtxenv[position_index];
+            source_position = &Vertextop[position_index];
+            output_normal = &normenv[normal_index];
+            source_normal = &normtop[normal_index];
+            weight = dual_weight->weight;
+            work_matrix_a[0][0] = position_matrix[0][0] * weight;
+            work_matrix_a[1][0] = position_matrix[1][0] * weight;
+            work_matrix_a[2][0] = position_matrix[2][0] * weight;
+            work_matrix_a[0][1] = position_matrix[0][1] * weight;
+            work_matrix_a[1][1] = position_matrix[1][1] * weight;
+            work_matrix_a[2][1] = position_matrix[2][1] * weight;
+            work_matrix_a[0][2] = position_matrix[0][2] * weight;
+            work_matrix_a[1][2] = position_matrix[1][2] * weight;
+            work_matrix_a[2][2] = position_matrix[2][2] * weight;
+            work_matrix_a[0][3] = position_matrix[0][3] * weight;
+            work_matrix_a[1][3] = position_matrix[1][3] * weight;
+            work_matrix_a[2][3] = position_matrix[2][3] * weight;
+            weight = 1.0f - dual_weight->weight;
+            work_matrix_b[0][0] = second_position_matrix[0][0] * weight;
+            work_matrix_b[1][0] = second_position_matrix[1][0] * weight;
+            work_matrix_b[2][0] = second_position_matrix[2][0] * weight;
+            work_matrix_b[0][1] = second_position_matrix[0][1] * weight;
+            work_matrix_b[1][1] = second_position_matrix[1][1] * weight;
+            work_matrix_b[2][1] = second_position_matrix[2][1] * weight;
+            work_matrix_b[0][2] = second_position_matrix[0][2] * weight;
+            work_matrix_b[1][2] = second_position_matrix[1][2] * weight;
+            work_matrix_b[2][2] = second_position_matrix[2][2] * weight;
+            work_matrix_b[0][3] = second_position_matrix[0][3] * weight;
+            work_matrix_b[1][3] = second_position_matrix[1][3] * weight;
+            work_matrix_b[2][3] = second_position_matrix[2][3] * weight;
+            if (combined_matrix == work_matrix_b || combined_matrix == work_matrix_a) {
+                blended_matrix = alias_safe_matrix;
             } else {
-                var_r29 = sp80;
+                blended_matrix = combined_matrix;
             }
-            var_r29[0][0] = sp110[0][0] + sp140[0][0];
-            var_r29[0][1] = sp110[0][1] + sp140[0][1];
-            var_r29[0][2] = sp110[0][2] + sp140[0][2];
-            var_r29[0][3] = sp110[0][3] + sp140[0][3];
-            var_r29[1][0] = sp110[1][0] + sp140[1][0];
-            var_r29[1][1] = sp110[1][1] + sp140[1][1];
-            var_r29[1][2] = sp110[1][2] + sp140[1][2];
-            var_r29[1][3] = sp110[1][3] + sp140[1][3];
-            var_r29[2][0] = sp110[2][0] + sp140[2][0];
-            var_r29[2][1] = sp110[2][1] + sp140[2][1];
-            var_r29[2][2] = sp110[2][2] + sp140[2][2];
-            var_r29[2][3] = sp110[2][3] + sp140[2][3];
-            if (var_r29 == sp50) {
-                PSMTXCopy(sp50, sp80);
+            blended_matrix[0][0] = work_matrix_b[0][0] + work_matrix_a[0][0];
+            blended_matrix[0][1] = work_matrix_b[0][1] + work_matrix_a[0][1];
+            blended_matrix[0][2] = work_matrix_b[0][2] + work_matrix_a[0][2];
+            blended_matrix[0][3] = work_matrix_b[0][3] + work_matrix_a[0][3];
+            blended_matrix[1][0] = work_matrix_b[1][0] + work_matrix_a[1][0];
+            blended_matrix[1][1] = work_matrix_b[1][1] + work_matrix_a[1][1];
+            blended_matrix[1][2] = work_matrix_b[1][2] + work_matrix_a[1][2];
+            blended_matrix[1][3] = work_matrix_b[1][3] + work_matrix_a[1][3];
+            blended_matrix[2][0] = work_matrix_b[2][0] + work_matrix_a[2][0];
+            blended_matrix[2][1] = work_matrix_b[2][1] + work_matrix_a[2][1];
+            blended_matrix[2][2] = work_matrix_b[2][2] + work_matrix_a[2][2];
+            blended_matrix[2][3] = work_matrix_b[2][3] + work_matrix_a[2][3];
+            if (blended_matrix == alias_safe_matrix) {
+                PSMTXCopy(alias_safe_matrix, combined_matrix);
             }
-            Hu3DMtxScaleGet(&sp80[0], &sp14);
-            if (sp14.x != 1.0f || sp14.y != 1.0f || sp14.z != 1.0f) {
-                PSMTXScale(spE0, 1.0 / sp14.x, 1.0 / sp14.y, 1.0 / sp14.z);
-                PSMTXConcat(spE0, sp80, sp110);
-                PSMTXInvXpose(sp110, sp110);
+            Hu3DMtxScaleGet(&combined_matrix[0], &matrix_scale);
+            if (matrix_scale.x != 1.0f || matrix_scale.y != 1.0f || matrix_scale.z != 1.0f) {
+                PSMTXScale(inverse_scale_matrix, 1.0 / matrix_scale.x, 1.0 / matrix_scale.y, 1.0 / matrix_scale.z);
+                PSMTXConcat(inverse_scale_matrix, combined_matrix, work_matrix_b);
+                PSMTXInvXpose(work_matrix_b, work_matrix_b);
             } else {
-                PSMTXInvXpose(sp80, sp110);
+                PSMTXInvXpose(combined_matrix, work_matrix_b);
             }
-            if (var_r30->posNum == 1) {
-                PSMTXMultVec(sp80, temp_r31, temp_r28);
-            } else if (var_r30->posNum <= 6) {
-                PSMTXMultVecArray(sp80, temp_r31, temp_r28, var_r30->posNum);
+            if (dual_weight->posNum == 1) {
+                PSMTXMultVec(combined_matrix, source_position, output_position);
+            } else if (dual_weight->posNum <= 6) {
+                PSMTXMultVecArray(combined_matrix, source_position, output_position, dual_weight->posNum);
             } else {
-                PSMTXReorder(sp80, (ROMtxPtr) sp140);
-                PSMTXROMultVecArray((ROMtxPtr) sp140, temp_r31, temp_r28, var_r30->posNum);
+                PSMTXReorder(combined_matrix, (ROMtxPtr) work_matrix_a);
+                PSMTXROMultVecArray((ROMtxPtr) work_matrix_a, source_position, output_position, dual_weight->posNum);
             }
-            if (var_r30->normalNum != 0) {
-                if (var_r30->normalNum == 1) {
-                    PSMTXMultVec(sp110, temp_r26, temp_r22);
-                } else if (var_r30->normalNum <= 6) {
-                    PSMTXMultVecArray(sp110, temp_r26, temp_r22, var_r30->normalNum);
+            if (dual_weight->normalNum != 0) {
+                if (dual_weight->normalNum == 1) {
+                    PSMTXMultVec(work_matrix_b, source_normal, output_normal);
+                } else if (dual_weight->normalNum <= 6) {
+                    PSMTXMultVecArray(work_matrix_b, source_normal, output_normal, dual_weight->normalNum);
                 } else {
-                    PSMTXReorder(sp110, (ROMtxPtr) sp140);
-                    PSMTXROMultVecArray((ROMtxPtr) sp140, temp_r26, temp_r22, var_r30->normalNum);
+                    PSMTXReorder(work_matrix_b, (ROMtxPtr) work_matrix_a);
+                    PSMTXROMultVecArray((ROMtxPtr) work_matrix_a, source_normal, output_normal, dual_weight->normalNum);
                 }
             }
         }
     }
-    var_r19 = arg0->multiData;
-    for (i = 0; i < arg0->multiCount; i++, var_r19++) {
-        var_r25 = var_r19->weight;
-        temp_r18 = var_r19->normal;
-        temp_r21 = var_r19->pos;
-        temp_r28 = &vtxenv[temp_r21];
-        temp_r31 = &Vertextop[temp_r21];
-        temp_r22 = &normenv[temp_r18];
-        temp_r26 = &normtop[temp_r18];
-        sp38.x = sp38.y = sp38.z = 0.0f;
-        sp20.x = sp20.y = sp20.z = 0.0f;
-        sp10 = 0;
-        for (j = 0; j < var_r19->weightNum; j++, var_r25++) {
-            PSMTXConcat(MtxTop[nMesh + var_r25->target], MtxTop[nMesh + nObj + nObj * Meshno + var_r25->target], sp1A0);
-            PSMTXConcat(MtxTop[Meshno], sp1A0, sp1A0);
-            PSMTXInvXpose(sp1A0, sp170);
-            PSMTXMultVec(sp1A0, temp_r31, &sp44);
-            PSMTXMultVec(sp170, temp_r26, &sp2C);
-            sp44.x = var_r25->value * (sp44.x - temp_r31->x);
-            sp44.y = var_r25->value * (sp44.y - temp_r31->y);
-            sp44.z = var_r25->value * (sp44.z - temp_r31->z);
-            VECAdd(&sp38, &sp44, &sp38);
-            sp2C.x = var_r25->value * (sp2C.x - temp_r26->x);
-            sp2C.y = var_r25->value * (sp2C.y - temp_r26->y);
-            sp2C.z = var_r25->value * (sp2C.z - temp_r26->z);
-            VECAdd(&sp20, &sp2C, &sp20);
+    multi_envelope = arg0->multiData;
+    for (i = 0; i < arg0->multiCount; i++, multi_envelope++) {
+        multi_weight = multi_envelope->weight;
+        normal_index = multi_envelope->normal;
+        position_index = multi_envelope->pos;
+        output_position = &vtxenv[position_index];
+        source_position = &Vertextop[position_index];
+        output_normal = &normenv[normal_index];
+        source_normal = &normtop[normal_index];
+        position_delta_sum.x = position_delta_sum.y = position_delta_sum.z = 0.0f;
+        normal_delta_sum.x = normal_delta_sum.y = normal_delta_sum.z = 0.0f;
+        processed_weight_count = 0;
+        for (j = 0; j < multi_envelope->weightNum; j++, multi_weight++) {
+            PSMTXConcat(MtxTop[nMesh + multi_weight->target], MtxTop[nMesh + nObj + nObj * Meshno + multi_weight->target], position_matrix);
+            PSMTXConcat(MtxTop[Meshno], position_matrix, position_matrix);
+            PSMTXInvXpose(position_matrix, normal_matrix);
+            PSMTXMultVec(position_matrix, source_position, &weighted_position_delta);
+            PSMTXMultVec(normal_matrix, source_normal, &weighted_normal_delta);
+            weighted_position_delta.x = multi_weight->value * (weighted_position_delta.x - source_position->x);
+            weighted_position_delta.y = multi_weight->value * (weighted_position_delta.y - source_position->y);
+            weighted_position_delta.z = multi_weight->value * (weighted_position_delta.z - source_position->z);
+            VECAdd(&position_delta_sum, &weighted_position_delta, &position_delta_sum);
+            weighted_normal_delta.x = multi_weight->value * (weighted_normal_delta.x - source_normal->x);
+            weighted_normal_delta.y = multi_weight->value * (weighted_normal_delta.y - source_normal->y);
+            weighted_normal_delta.z = multi_weight->value * (weighted_normal_delta.z - source_normal->z);
+            VECAdd(&normal_delta_sum, &weighted_normal_delta, &normal_delta_sum);
         }
-        temp_r28->x = temp_r31->x + sp38.x;
-        temp_r28->y = temp_r31->y + sp38.y;
-        temp_r28->z = temp_r31->z + sp38.z;
-        temp_r22->x = temp_r26->x + sp20.x;
-        temp_r22->y = temp_r26->y + sp20.y;
-        temp_r22->z = temp_r26->z + sp20.z;
+        output_position->x = source_position->x + position_delta_sum.x;
+        output_position->y = source_position->y + position_delta_sum.y;
+        output_position->z = source_position->z + position_delta_sum.z;
+        output_normal->x = source_normal->x + normal_delta_sum.x;
+        output_normal->y = source_normal->y + normal_delta_sum.y;
+        output_normal->z = source_normal->z + normal_delta_sum.z;
     }
-    temp_r21 = arg0->vtxCount;
-    temp_r28 = &vtxenv[temp_r21];
-    temp_r31 = &Vertextop[temp_r21];
-    for (i = 0; i < arg0->copyCount; i++, temp_r28++, temp_r31++) {
-        temp_r28->x = temp_r31->x;
-        temp_r28->y = temp_r31->y;
-        temp_r28->z = temp_r31->z;
+    position_index = arg0->vtxCount;
+    output_position = &vtxenv[position_index];
+    source_position = &Vertextop[position_index];
+    for (i = 0; i < arg0->copyCount; i++, output_position++, source_position++) {
+        output_position->x = source_position->x;
+        output_position->y = source_position->y;
+        output_position->z = source_position->z;
     }
 }
 
+/**
+ * @brief Recursively constructs bind-pose world matrices for an object tree.
+ *
+ * @param arg0 Current object; a same-named skeleton record overrides its base transform.
+ * @param arg1 Parent bind-pose world matrix.
+ */
 static void SetMtx(HSFOBJECT *arg0, Mtx arg1) {
-    HSFSKELETON *temp_r3;
-    Mtx spFC;
-    Mtx spCC;
-    Mtx sp9C;
-    s32 temp_r25;
+    HSFSKELETON *skeleton;
+    Mtx world_matrix;
+    Mtx scale_matrix;
+    Mtx rotation_matrix;
+    s32 object_index;
     s32 i;
 
-    temp_r3 = SearchSklenton(arg0->name);
-    if (temp_r3) {
-        arg0->mesh.base.pos.x = temp_r3->transform.pos.x;
-        arg0->mesh.base.pos.y = temp_r3->transform.pos.y;
-        arg0->mesh.base.pos.z = temp_r3->transform.pos.z;
-        arg0->mesh.base.rot.x = temp_r3->transform.rot.x;
-        arg0->mesh.base.rot.y = temp_r3->transform.rot.y;
-        arg0->mesh.base.rot.z = temp_r3->transform.rot.z;
-        arg0->mesh.base.scale.x = temp_r3->transform.scale.x;
-        arg0->mesh.base.scale.y = temp_r3->transform.scale.y;
-        arg0->mesh.base.scale.z = temp_r3->transform.scale.z;
+    skeleton = SearchSklenton(arg0->name);
+    if (skeleton) {
+        arg0->mesh.base.pos.x = skeleton->transform.pos.x;
+        arg0->mesh.base.pos.y = skeleton->transform.pos.y;
+        arg0->mesh.base.pos.z = skeleton->transform.pos.z;
+        arg0->mesh.base.rot.x = skeleton->transform.rot.x;
+        arg0->mesh.base.rot.y = skeleton->transform.rot.y;
+        arg0->mesh.base.rot.z = skeleton->transform.rot.z;
+        arg0->mesh.base.scale.x = skeleton->transform.scale.x;
+        arg0->mesh.base.scale.y = skeleton->transform.scale.y;
+        arg0->mesh.base.scale.z = skeleton->transform.scale.z;
     }
-    PSMTXTrans(spFC, arg0->mesh.base.pos.x, arg0->mesh.base.pos.y, arg0->mesh.base.pos.z);
-    PSMTXScale(spCC, arg0->mesh.base.scale.x, arg0->mesh.base.scale.y, arg0->mesh.base.scale.z);
-    PSMTXConcat(arg1, spFC, spFC);
-    PSMTXRotRad(sp9C, 'z', MTXDegToRad(arg0->mesh.base.rot.z));
-    PSMTXConcat(spFC, sp9C, spFC);
-    PSMTXRotRad(sp9C, 'y', MTXDegToRad(arg0->mesh.base.rot.y));
-    PSMTXConcat(spFC, sp9C, spFC);
-    PSMTXRotRad(sp9C, 'x', MTXDegToRad(arg0->mesh.base.rot.x));
-    PSMTXConcat(spFC, sp9C, spFC);
-    PSMTXConcat(spFC, spCC, spFC);
-    temp_r25 = arg0 - objtop;
-    PSMTXCopy(spFC, MtxTop[nMesh + temp_r25]);
+    PSMTXTrans(world_matrix, arg0->mesh.base.pos.x, arg0->mesh.base.pos.y, arg0->mesh.base.pos.z);
+    PSMTXScale(scale_matrix, arg0->mesh.base.scale.x, arg0->mesh.base.scale.y, arg0->mesh.base.scale.z);
+    PSMTXConcat(arg1, world_matrix, world_matrix);
+    PSMTXRotRad(rotation_matrix, 'z', MTXDegToRad(arg0->mesh.base.rot.z));
+    PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
+    PSMTXRotRad(rotation_matrix, 'y', MTXDegToRad(arg0->mesh.base.rot.y));
+    PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
+    PSMTXRotRad(rotation_matrix, 'x', MTXDegToRad(arg0->mesh.base.rot.x));
+    PSMTXConcat(world_matrix, rotation_matrix, world_matrix);
+    PSMTXConcat(world_matrix, scale_matrix, world_matrix);
+    object_index = arg0 - objtop;
+    PSMTXCopy(world_matrix, MtxTop[nMesh + object_index]);
     for (i = 0; i < arg0->mesh.childrenCount; i++) {
-        SetMtx(arg0->mesh.children[i], spFC);
+        SetMtx(arg0->mesh.children[i], world_matrix);
     }
 }
 
+/**
+ * @brief Builds inverse bind matrices for every mesh and model object pair.
+ */
 static void SetRevMtx(void) {
-    HSFOBJECT *var_r29;
-    s32 var_r28;
+    HSFOBJECT *object;
+    s32 mesh_index;
     s32 i;
-    s32 var_r30;
-    Mtx sp38;
-    Mtx sp8;
+    s32 object_index;
+    Mtx inverse_object_matrix;
+    Mtx mesh_matrix;
 
-    var_r29 = CurHsf->object;
-    for (var_r28 = i = 0; i < CurHsf->objectNum; i++, var_r29++) {
-        if (var_r29->type == 2) {
-            PSMTXCopy(MtxTop[nMesh + i], sp8);
-            for (var_r30 = 0; var_r30 < CurHsf->objectNum; var_r30++) {
-                PSMTXInverse(MtxTop[nMesh + var_r30], sp38);
-                PSMTXConcat(sp38, sp8, MtxTop[nMesh + nObj + nObj * var_r28 + var_r30]);
+    object = CurHsf->object;
+    for (mesh_index = i = 0; i < CurHsf->objectNum; i++, object++) {
+        if (object->type == 2) {
+            PSMTXCopy(MtxTop[nMesh + i], mesh_matrix);
+            for (object_index = 0; object_index < CurHsf->objectNum; object_index++) {
+                PSMTXInverse(MtxTop[nMesh + object_index], inverse_object_matrix);
+                PSMTXConcat(inverse_object_matrix, mesh_matrix, MtxTop[nMesh + nObj + nObj * mesh_index + object_index]);
             }
-            PSMTXInverse(MtxTop[nMesh + i], sp8);
-            var_r28++;
+            PSMTXInverse(MtxTop[nMesh + i], mesh_matrix);
+            mesh_index++;
         }
     }
 }
 
+/**
+ * @brief Finds a skeleton entry by its exact object name.
+ *
+ * @param arg0 Null-terminated HSF object name to match.
+ * @return Matching skeleton record, or NULL when the model has no such name.
+ */
 static HSFSKELETON *SearchSklenton(char *arg0) {
-    HSFSKELETON *var_r31;
+    HSFSKELETON *skeleton;
     s32 i;
 
-    var_r31 = CurHsf->skeleton;
-    for (i = 0; i < CurHsf->skeletonNum; i++, var_r31++) {
-        if (strcmp(arg0, var_r31->name) == 0) {
-            return var_r31;
+    skeleton = CurHsf->skeleton;
+    for (i = 0; i < CurHsf->skeletonNum; i++, skeleton++) {
+        if (strcmp(arg0, skeleton->name) == 0) {
+            return skeleton;
         }
     }
     return NULL;

@@ -1,5 +1,11 @@
 #include "game/jmp.h"
 
+/**
+ * @brief Saves the current PowerPC execution context for a later jump.
+ *
+ * @param jump Buffer that receives the nonvolatile register state.
+ * @return Zero when the context is initially saved.
+ */
 s32 gcsetjmp(register jmp_buf *jump) {
     // clang-format off
     asm {
@@ -36,6 +42,14 @@ s32 gcsetjmp(register jmp_buf *jump) {
 }
 
 // clang-format off
+/**
+ * @brief Restores a context previously captured by gcsetjmp.
+ *
+ * @param jump Buffer containing the saved execution context.
+ * @param status Value made visible as the resumed gcsetjmp result; zero is
+ * converted to one.
+ * @return Does not return normally; control resumes at the saved context.
+ */
 asm s32 gclongjmp(register jmp_buf *jump, register s32 status) {
     nofralloc
     lwz r5, jump->lr

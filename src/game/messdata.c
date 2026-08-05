@@ -1,5 +1,12 @@
 #include "dolphin.h"
 
+/**
+ * @brief Locates the message bank selected by a packed message identifier.
+ *
+ * @param messdata Message-data archive base.
+ * @param id Packed bank and message identifier.
+ * @return Pointer to the selected bank, or NULL if the bank is absent.
+ */
 static void *MessData_MesDataGet(void *messdata, u32 id)
 {
     s32 i;
@@ -25,6 +32,13 @@ static void *MessData_MesDataGet(void *messdata, u32 id)
     }
 }
 
+/**
+ * @brief Resolves a message within one message bank.
+ *
+ * @param messbank Message-bank base.
+ * @param id Packed identifier whose low 16 bits select the message.
+ * @return Pointer to the message data, or NULL if the index is out of range.
+ */
 static void *_MessData_MesPtrGet(void *messbank, u32 id)
 {
     u16 index;
@@ -43,6 +57,13 @@ static void *_MessData_MesPtrGet(void *messbank, u32 id)
     }
 }
 
+/**
+ * @brief Resolves a packed message identifier from a message-data archive.
+ *
+ * @param messdata Message-data archive base.
+ * @param id Packed bank and message identifier.
+ * @return Pointer to the message data, or NULL if its bank or index is absent.
+ */
 void *MessData_MesPtrGet(void *messdata, u32 id)
 {
     void *bank = MessData_MesDataGet(messdata, id);

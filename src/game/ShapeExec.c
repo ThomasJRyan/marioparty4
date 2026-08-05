@@ -1,69 +1,83 @@
 #include "game/ShapeExec.h"
 #include "game/EnvelopeExec.h"
 
+/**
+ * @brief Applies an HSF mesh's current morph-shape state to its vertices.
+ *
+ * @details Weighted shapes are blended toward their source buffers. Indexed
+ * shapes interpolate between the two buffers surrounding the fractional
+ * base-morph value.
+ *
+ * @param arg0 Mesh object whose vertex buffer is updated in place.
+ */
 static void SetShapeMain(HSFOBJECT *arg0) {
-    HSFBUFFER *temp_r28;
-    HSFBUFFER *temp_r30;
-    float var_f30;
-    float var_f31;
-    s32 temp_r27;
-    s32 var_r29;
-    s32 var_r26;
+    HSFBUFFER *next_shape;
+    HSFBUFFER *shape;
+    float total_weight;
+    float blend_weight;
+    s32 shape_index;
+    s32 vertex_index;
+    s32 next_shape_index;
     s32 i;
 
     if (arg0->mesh.shapeType == 2) {
-        var_f30 = 0.0f;
+        total_weight = 0.0f;
         for (i = 0; i < arg0->mesh.shapeNum; i++) {
-            var_f30 += arg0->mesh.mesh.morphWeight[i];
+            total_weight += arg0->mesh.mesh.morphWeight[i];
         }
-        temp_r30 = *arg0->mesh.shape;
-        for (i = 0; i < temp_r30->count; i++) {
-            Vertextop[i].x = ((Vec*) temp_r30->data)[i].x;
-            Vertextop[i].y = ((Vec*) temp_r30->data)[i].y;
-            Vertextop[i].z = ((Vec*) temp_r30->data)[i].z;
+        shape = *arg0->mesh.shape;
+        for (i = 0; i < shape->count; i++) {
+            Vertextop[i].x = ((Vec*) shape->data)[i].x;
+            Vertextop[i].y = ((Vec*) shape->data)[i].y;
+            Vertextop[i].z = ((Vec*) shape->data)[i].z;
         }
         for (i = 0; i < arg0->mesh.shapeNum; i++) {
-            temp_r30 = arg0->mesh.shape[i];
-            var_f31 = arg0->mesh.mesh.morphWeight[i];
-            if (var_f31 < 0.0f) {
-                var_f31 = 0.0f;
-            } else if (var_f30 > 1.0f) {
-                var_f31 /= var_f30;
+            shape = arg0->mesh.shape[i];
+            blend_weight = arg0->mesh.mesh.morphWeight[i];
+            if (blend_weight < 0.0f) {
+                blend_weight = 0.0f;
+            } else if (total_weight > 1.0f) {
+                blend_weight /= total_weight;
             }
-            for (var_r29 = 0; var_r29 < temp_r30->count; var_r29++) {
-                Vertextop[var_r29].x += var_f31 * (((Vec*) temp_r30->data)[var_r29].x - Vertextop[var_r29].x);
-                Vertextop[var_r29].y += var_f31 * (((Vec*) temp_r30->data)[var_r29].y - Vertextop[var_r29].y);
-                Vertextop[var_r29].z += var_f31 * (((Vec*) temp_r30->data)[var_r29].z - Vertextop[var_r29].z);
+            for (vertex_index = 0; vertex_index < shape->count; vertex_index++) {
+                Vertextop[vertex_index].x += blend_weight * (((Vec*) shape->data)[vertex_index].x - Vertextop[vertex_index].x);
+                Vertextop[vertex_index].y += blend_weight * (((Vec*) shape->data)[vertex_index].y - Vertextop[vertex_index].y);
+                Vertextop[vertex_index].z += blend_weight * (((Vec*) shape->data)[vertex_index].z - Vertextop[vertex_index].z);
             }
         }
     } else {
-        temp_r27 = arg0->mesh.mesh.baseMorph;
-        var_r26 = temp_r27 + 1;
-        if (var_r26 >= arg0->mesh.shapeNum) {
-            var_r26 = temp_r27;
+        shape_index = arg0->mesh.mesh.baseMorph;
+        next_shape_index = shape_index + 1;
+        if (next_shape_index >= arg0->mesh.shapeNum) {
+            next_shape_index = shape_index;
         }
-        var_f31 = arg0->mesh.mesh.baseMorph - temp_r27;
-        temp_r30 = arg0->mesh.shape[temp_r27];
-        temp_r28 = arg0->mesh.shape[var_r26];
-        for (i = 0; i < temp_r30->count; i++) {
-            Vertextop[i].x = ((Vec*) temp_r30->data)[i].x + var_f31 * (((Vec*) temp_r28->data)[i].x - ((Vec*) temp_r30->data)[i].x);
-            Vertextop[i].y = ((Vec*) temp_r30->data)[i].y + var_f31 * (((Vec*) temp_r28->data)[i].y - ((Vec*) temp_r30->data)[i].y);
-            Vertextop[i].z = ((Vec*) temp_r30->data)[i].z + var_f31 * (((Vec*) temp_r28->data)[i].z - ((Vec*) temp_r30->data)[i].z);
+        blend_weight = arg0->mesh.mesh.baseMorph - shape_index;
+        shape = arg0->mesh.shape[shape_index];
+        next_shape = arg0->mesh.shape[next_shape_index];
+        for (i = 0; i < shape->count; i++) {
+            Vertextop[i].x = ((Vec*) shape->data)[i].x + blend_weight * (((Vec*) next_shape->data)[i].x - ((Vec*) shape->data)[i].x);
+            Vertextop[i].y = ((Vec*) shape->data)[i].y + blend_weight * (((Vec*) next_shape->data)[i].y - ((Vec*) shape->data)[i].y);
+            Vertextop[i].z = ((Vec*) shape->data)[i].z + blend_weight * (((Vec*) next_shape->data)[i].z - ((Vec*) shape->data)[i].z);
         }
     }
 }
 
+/**
+ * @brief Updates morphable meshes in an HSF model and flushes their vertices.
+ *
+ * @param arg0 HSF model data containing the object and shape buffers.
+ */
 void ShapeProc(HSFDATA *arg0) {
-    HSFOBJECT *var_r31;
+    HSFOBJECT *object;
     s32 i;
 
-    var_r31 = arg0->object;
-    for (i = 0; i < arg0->objectNum; i++, var_r31++) {
-        if (var_r31->type == 2 && var_r31->mesh.shapeNum != 0) {
-            Vertextop = var_r31->mesh.vertex->data;
-            SetShapeMain(var_r31);
-            DCStoreRange(Vertextop, var_r31->mesh.vertex->count * sizeof(Vec));
-            var_r31->mesh.writeNum++;
+    object = arg0->object;
+    for (i = 0; i < arg0->objectNum; i++, object++) {
+        if (object->type == 2 && object->mesh.shapeNum != 0) {
+            Vertextop = object->mesh.vertex->data;
+            SetShapeMain(object);
+            DCStoreRange(Vertextop, object->mesh.vertex->count * sizeof(Vec));
+            object->mesh.writeNum++;
         }
     }
 }
