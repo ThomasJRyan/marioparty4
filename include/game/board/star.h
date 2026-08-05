@@ -5,11 +5,11 @@
 
 #include "dolphin.h"
 
-void BoardStarHostSet(s16 arg0);
+void BoardStarHostSet(s16 host_model);
 s16 BoardStarHostMdlGet(void);
-void BoardStarExec(s32 arg0, s32 arg1);
-void BoardStarGive(s32 arg0, Vec *arg1);
-void BoardStarShowNext(s32 arg0);
+void BoardStarExec(s32 player, s32 space);
+void BoardStarGive(s32 player, Vec *start_position);
+void BoardStarShowNext(s32 player);
 
 extern s32 boardStarSndTbl[];
 

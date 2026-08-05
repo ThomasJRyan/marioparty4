@@ -3,11 +3,11 @@
 
 #include "dolphin/types.h"
 
-void BoardShopHostSet(s16 arg0);
+void BoardShopHostSet(s16 host_model);
 s16 BoardShopHostGet(void);
 void BoardShopInit(void);
 void BoardShopKill(void);
 void BoardShopExec(s32 player, s32 space);
-void BoardShopTutorialExec(s32 arg0);
+void BoardShopTutorialExec(s32 shop_space);
 
 #endif
