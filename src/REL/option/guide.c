@@ -18,11 +18,11 @@ typedef struct {
     /* 0x3C */ float angle;
     /* 0x40 */ float angleEnd;
     /* 0x44 */ float camDist;
-    /* 0x48 */ char unk48[0xC];
+    /* 0x48 */ char unreferencedGuideVector[0xC];
     /* 0x54 */ float time;
     /* 0x58 */ float speed;
-    /* 0x5C */ s32 unk_5C;
-    /* 0x60 */ s32 unk_60;
+    /* 0x5C */ s32 movementDustEffectId;
+    /* 0x60 */ s32 idleDustEffectId;
 } GuideWork; // Size 0x64
 
 #define MODE_DISABLED 0
@@ -32,7 +32,7 @@ static void SetExecMode(OMOBJ *object, s32 mode);
 static s32 GetExecMode(OMOBJ *object);
 static void ExecGuide(OMOBJ *object);
 static void UpdateGuide(OMOBJ *object);
-static float LerpAngle(float arg0, float arg1, float arg2);
+static float LerpAngle(float start, float end, float time);
 
 OMOBJ *optionGuide;
 
@@ -69,8 +69,8 @@ OMOBJ *OptionGuideCreate(void)
     for (i = 0; i < 3; i++) {
         object->mtnId[i] = Hu3DJointMotionFile(object->mdlId[0], guideMotTbl[i]);
     }
-    work->unk_5C = CharNpcDustSet(object->mdlId[0], object->mtnId[2], 1, 0xC);
-    work->unk_60 = CharNpcDustSet(object->mdlId[0], object->mtnId[1], 0, 0xC);
+    work->movementDustEffectId = CharNpcDustSet(object->mdlId[0], object->mtnId[2], 1, 0xC);
+    work->idleDustEffectId = CharNpcDustSet(object->mdlId[0], object->mtnId[1], 0, 0xC);
     CharEffectLayerSet(1);
     Hu3DModelShadowSet(object->mdlId[0]);
     Hu3DMotionShiftSet(object->mdlId[0], object->mtnId[0], 0.0f, 8.0f, HU3D_MOTATTR_LOOP);

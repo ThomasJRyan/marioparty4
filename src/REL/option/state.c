@@ -16,25 +16,25 @@ typedef struct {
     /* 0x00 */ Vec pos;
     /* 0x0C */ Vec dest;
     /* 0x18 */ GXColor color;
-} UnkLightDataStruct; /* size = 0x1C */ // TODO same as m446Dll::unkStruct10 and present::UnkPresentStruct3
+} LightPositionData; /* size = 0x1C */
 
-typedef struct UnkShadowDataStruct {
+typedef struct ShadowCameraData {
     /* 0x00 */ Vec camPos;
     /* 0x0C */ Vec camUp;
     /* 0x18 */ Vec camTarget;
-} UnkShadowDataStruct; /* size = 0x24 */
+} ShadowCameraData; /* size = 0x24 */
 
 static void ExecState(OMOBJ *object);
 
 OMOBJ *optionState;
 
-static UnkLightDataStruct lightTbl = {
+static LightPositionData lightTbl = {
     { 0.0f, 300.0f, 0.0f },
     { 0.0f, -300.0f, -600.0f },
     { 0xFF, 0xFF, 0xFF, 0xFF },
 };
 
-static UnkShadowDataStruct shadowPosTbl = {
+static ShadowCameraData shadowPosTbl = {
     { 0.0f, 3000.0f, 1.0f },
     { 0.0f, 1.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f },

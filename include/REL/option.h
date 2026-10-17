@@ -21,8 +21,8 @@ void OptionFadeSprite(s16 sprite, BOOL inF, s32 duration);
 void OptionFadeModel(s16 model, BOOL inF, s32 duration);
 
 BOOL OptionPadCheck(u16 btn);
-BOOL OptionPadDStkRepCheck(u16 arg0);
-BOOL OptionPadDStkCheck(u16 arg0);
+BOOL OptionPadDStkRepCheck(u16 direction);
+BOOL OptionPadDStkCheck(u16 direction);
 
 OMOBJ *OptionCameraCreate(void);
 void OptionCameraKill(OMOBJ *object);
@@ -76,8 +76,7 @@ void OptionWinPosSet(OptionWindow *work, float x, float y);
 void OptionWinDispOn(OptionWindow *work);
 void OptionWinDispOff(OptionWindow *work);
 void OptionWinChoiceSet(OptionWindow *work, s32 choice);
-void fn_1_A860(OptionWindow *work);
-void fn_1_A880(OptionWindow *work, s32 choice);
+void OptionWinMesWait(OptionWindow *work);
 
 extern HUPROCESS *optionObjMan;
 extern OMOBJ *optionCamera;

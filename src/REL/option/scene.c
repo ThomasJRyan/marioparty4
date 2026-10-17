@@ -22,9 +22,9 @@ typedef struct {
 } FaderWork; // Size 0xC
 
 static void FadeSprite(void);
-static void fn_1_354(s16 arg0, s32 arg1, s32 arg2);
+void OptionFadeModel(s16 model, BOOL inF, s32 duration);
 static void FadeModel(void);
-static void SceneMain(OMOBJ *arg0);
+static void SceneMain(OMOBJ *object);
 static void KillScene(void);
 
 HUPROCESS *optionObjMan;
@@ -138,23 +138,23 @@ static void FadeModel(void)
 
 BOOL OptionPadCheck(u16 btn)
 {
-    u32 temp_r31 = HuPadBtnDown[0] & btn;
+    u32 pressedButtons = HuPadBtnDown[0] & btn;
 
-    return (temp_r31 != 0);
+    return (pressedButtons != 0);
 }
 
 BOOL OptionPadDStkRepCheck(u16 dir)
 {
-    u32 temp_r31 = HuPadDStkRep[0] & dir;
+    u32 repeatedDirections = HuPadDStkRep[0] & dir;
 
-    return (temp_r31 != 0);
+    return (repeatedDirections != 0);
 }
 
 BOOL OptionPadDStkCheck(u16 dir)
 {
-    u32 temp_r31 = HuPadDStk[0] & dir;
+    u32 heldDirections = HuPadDStk[0] & dir;
 
-    return (temp_r31 != 0);
+    return (heldDirections != 0);
 }
 
 static void SceneMain(OMOBJ *object)

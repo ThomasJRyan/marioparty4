@@ -14,8 +14,8 @@ typedef struct {
     /* 0x14 */ OptionWindow *btnLegendWindow;
     /* 0x18 */ s32 optionIdx;
     /* 0x1C */ s32 execMode;
-    /* 0x20 */ s16 unk20;
-    /* 0x22 */ char unk22[6];
+    /* 0x20 */ s16 unreferencedRoomState;
+    /* 0x22 */ char unreferencedRoomPadding[6];
     /* 0x28 */ BOOL cameraDoneF;
 } RoomWork; // Size 0x2C
 
@@ -43,7 +43,7 @@ OMOBJ *OptionRoomCreate(void)
     work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(RoomWork), HU_MEMNUM_OVL);
     object->data = work;
     work->optionIdx = 0;
-    work->unk20 = -1;
+    work->unreferencedRoomState = -1;
     work->cameraDoneF = 0;
     OptionCameraViewSet(optionCamera, 600.0f, 60.0f, 120.0f, 1);
     OptionCameraTargetSet(optionCamera, 0.0f, 120.0f, 0.0f, 1);

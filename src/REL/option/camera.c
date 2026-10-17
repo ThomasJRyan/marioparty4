@@ -16,12 +16,12 @@ typedef struct {
     /* 0x28 */ float rot;
     /* 0x2C */ Vec posPrev;
     /* 0x38 */ Vec targetPrev;
-    /* 0x44 */ char unk44[0xC];
+    /* 0x44 */ char unreferencedCameraVector44[0xC];
     /* 0x50 */ float zoomPrev;
     /* 0x54 */ float rotPrev;
     /* 0x58 */ Vec posTarget;
     /* 0x64 */ Vec posFocus;
-    /* 0x70 */ char unk70[0xC];
+    /* 0x70 */ char unreferencedCameraVector70[0xC];
     /* 0x7C */ float zoomTarget;
     /* 0x80 */ float rotTarget;
     /* 0x84 */ float timeEye;
@@ -37,9 +37,9 @@ static void ExecCamera(OMOBJ *object);
 
 OMOBJ *optionCamera;
 
-static float pad_04_00000000_data[] = { 0.0f, 500.0f, 0.0f, 0.0f, -1.0f, 0.0f };
+static float unreferencedCameraVectorData[] = { 0.0f, 500.0f, 0.0f, 0.0f, -1.0f, 0.0f };
 
-static s32 pad_04_00000018_data = -1;
+static s32 unreferencedCameraSentinel = -1;
 
 OMOBJ *OptionCameraCreate(void)
 {
@@ -127,11 +127,11 @@ float OptionCameraRotGet(OMOBJ *object)
 
 void OptionCameraPosGet(OMOBJ *object, float *x, float *y, float *z)
 {
-    CameraWork *temp_r31 = object->data;
+    CameraWork *cameraWork = object->data;
 
-    *x = temp_r31->pos.x;
-    *y = temp_r31->pos.y;
-    *z = temp_r31->pos.z;
+    *x = cameraWork->pos.x;
+    *y = cameraWork->pos.y;
+    *z = cameraWork->pos.z;
 }
 
 void OptionCameraTargetGet(OMOBJ *object, float *x, float *y, float *z)
@@ -146,16 +146,16 @@ void OptionCameraTargetGet(OMOBJ *object, float *x, float *y, float *z)
 s32 OptionCameraDoneCheck(OMOBJ *object)
 {
     CameraWork *work = object->data;
-    s32 var_r30 = 1;
-    s32 var_r29 = 1;
+    s32 cameraMotionInProgress = 1;
+    s32 targetAndRotationPending = 1;
 
     if (!(work->timeTarget < 1.0f) && !(work->timeRot < 1.0f)) {
-        var_r29 = 0;
+        targetAndRotationPending = 0;
     }
-    if (var_r29 == 0 && !(work->timeEye < 1.0f)) {
-        var_r30 = 0;
+    if (targetAndRotationPending == 0 && !(work->timeEye < 1.0f)) {
+        cameraMotionInProgress = 0;
     }
-    return var_r30;
+    return cameraMotionInProgress;
 }
 
 static void ExecCameraObj(OMOBJ *object)

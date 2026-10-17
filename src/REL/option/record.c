@@ -45,7 +45,7 @@ typedef struct {
     /* 0x008 */ OptionWindow *window[10];
     /* 0x030 */ s32 execMode;
     /* 0x034 */ s16 sprList[153];
-    /* 0x166 */ s16 unk166[3];
+    /* 0x166 */ s16 unreferencedSpritePadding[3];
     /* 0x16C */ s32 recordType;
     /* 0x170 */ s32 board;
     /* 0x174 */ s32 mgPage;
@@ -837,13 +837,13 @@ static const s32 mgSprHideTbl[65] = { 7, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98,
 
 static void HideMG(OMOBJ *object)
 {
-    RecordWork *temp_r30 = object->data;
+    RecordWork *recordWork = object->data;
     s32 i;
 
     for (i = 0; i < MG_SPR_HIDE_COUNT; i++) {
-        espDispOff(temp_r30->sprList[mgSprHideTbl[i]]);
+        espDispOff(recordWork->sprList[mgSprHideTbl[i]]);
     }
     for (i = 0; i < 8; i++) {
-        OptionWinDispOff(temp_r30->window[i + 2]);
+        OptionWinDispOff(recordWork->window[i + 2]);
     }
 }
