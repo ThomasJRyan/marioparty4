@@ -11,35 +11,35 @@
 #include <string.h>
 
 
-typedef struct bss_2468_data {
-    Vec unk0;
-    u16 unkC;
-} Bss2468Data;
+typedef struct WaterRippleEffect {
+    Vec position;
+    u16 remainingFrames;
+} WaterRippleEffect;
 
-typedef struct bss_450_data {
-    void *unk0;
-    u32 unk4;
-} Bss450Data;
+typedef struct DisplayListBuffer {
+    void *displayListBuffer;
+    u32 displayListSize;
+} DisplayListBuffer;
 
-typedef struct bss_3F0_data {
-    void *unk0;
-    u16 unk4;
-    u16 unk6;
-    u16 unk8;
-    u16 unkA;
-    u32 unkC;
-    s32 unk10;
-} Bss3F0Data;
+typedef struct EnvironmentTexture {
+    void *textureBuffer;
+    u16 sourceWidth;
+    u16 sourceHeight;
+    u16 textureWidth;
+    u16 textureHeight;
+    u32 textureBufferSize;
+    s32 copyMode;
+} EnvironmentTexture;
 
-typedef struct struct_data100 {
-    u16 unk0;
-    u16 unk2;
-    u16 unk4;
-    u16 unk6;
-    u16 unk8;
-} StructData100;
+typedef struct EnvironmentTextureConfig {
+    u16 sourceWidth;
+    u16 sourceHeight;
+    u16 textureWidth;
+    u16 textureHeight;
+    u16 copyMode;
+} EnvironmentTextureConfig;
 
-StructData100 lbl_1_data_100[5] = {
+EnvironmentTextureConfig environmentTextureConfigs[5] = {
     { 200, 200, 200, 200, 0 },
     { 320, 240, 160, 120, 1 },
     { 640, 480, 320, 240, 1 },
@@ -47,59 +47,59 @@ StructData100 lbl_1_data_100[5] = {
     { 0, 0, 0, 0, 0 },
 };
 
-OMOBJ *lbl_1_bss_5868;
-Vec lbl_1_bss_2868[1024];
-Bss2468Data lbl_1_bss_2468[64];
-s32 lbl_1_bss_2464;
-HuVec2f lbl_1_bss_464[1024];
-ANIMDATA *lbl_1_bss_460;
-ANIMDATA *lbl_1_bss_45C;
-ANIMDATA *lbl_1_bss_458;
-Bss450Data lbl_1_bss_450;
-Bss450Data lbl_1_bss_448;
-Bss450Data lbl_1_bss_440;
-Bss3F0Data lbl_1_bss_3F0[4];
-Vec lbl_1_bss_3D8[2];
+OMOBJ *environmentObject;
+Vec oceanGridVertices[1024];
+WaterRippleEffect waterRippleEffects[64];
+s32 waterRippleEffectCount;
+HuVec2f oceanWaveParameters[1024];
+ANIMDATA *waterTextureAnimation;
+ANIMDATA *oceanTextureAnimation;
+ANIMDATA *environmentTextureAnimation;
+DisplayListBuffer oceanSurfaceDisplayList;
+DisplayListBuffer environmentDisplayList;
+DisplayListBuffer waterRippleDisplayList;
+EnvironmentTexture environmentTextures[4];
+Vec waterSurfacePositions[2];
 
-void fn_1_1E64(OMOBJ *object);
+void InitializeEnvironmentObject(OMOBJ *object);
 
-void fn_1_1DB0(HUPROCESS *objman)
+void CreateEnvironmentObject(HUPROCESS *objman)
 {
     "\0"; // Force lbl_1_data_132 to 0
-    lbl_1_bss_5868 = omAddObjEx(objman, 10, 16, 0, -1, fn_1_1E64);
+    environmentObject = omAddObjEx(objman, 10, 16, 0, -1, InitializeEnvironmentObject);
     CenterM[1].y = -CenterM[2].y + -15.000001f;
     CRotM[1].x = -CRotM[2].x;
 }
 
-void fn_1_28F0(void);
+void FreeEnvironmentTextures(void);
 
-void fn_1_1E44(void)
+void ShutdownEnvironment(void)
 {
-    fn_1_28F0();
+    FreeEnvironmentTextures();
 }
 
-void fn_1_26A4(OMOBJ *object);
+void UpdateEnvironmentObject(OMOBJ *object);
 
-void fn_1_2978(HU3DMODEL *model, Mtx mtx);
-void fn_1_3004(void);
-void fn_1_3128(void);
+void DrawOceanSurface(HU3DMODEL *model, Mtx mtx);
+void CreateOceanSurfaceDisplayList(void);
+void CreateWaveDisplayList(void);
 
-void fn_1_33A4(HU3DMODEL *model, Mtx mtx);
-void fn_1_349C(HU3DMODEL *model, Mtx mtx);
-void fn_1_3594(HU3DMODEL *model, Mtx mtx);
-void fn_1_3CC8(HU3DMODEL *model, Mtx mtx);
+void DrawEnvironmentTextureLayer(HU3DMODEL *model, Mtx mtx);
+void DrawEnvironmentTextureOverlay(HU3DMODEL *model, Mtx mtx);
+void DrawEnvironmentTextureDetail(HU3DMODEL *model, Mtx mtx);
+void DrawEnvironmentSurface(HU3DMODEL *model, Mtx mtx);
 
-void fn_1_443C(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void UpdateEnvironmentParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 
-void fn_1_1E64(OMOBJ *object)
+void InitializeEnvironmentObject(OMOBJ *object)
 {
-    s32 temp_r30;
-    Vec *temp_r29;
-    HuVec2f *temp_r28;
-    s32 temp_r27;
-    ANIMDATA *temp_r26;
+    s32 gridRow;
+    Vec *gridPosition;
+    HuVec2f *waveParameters;
+    s32 gridColumn;
+    ANIMDATA *particleAnimation;
 
-    object->mdlId[9] = Hu3DHookFuncCreate(fn_1_3CC8);
+    object->mdlId[9] = Hu3DHookFuncCreate(DrawEnvironmentSurface);
     Hu3DModelLayerSet(object->mdlId[9], 1);
     Hu3DModelCameraSet(object->mdlId[9], 1);
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M434, 0x02));
@@ -119,179 +119,179 @@ void fn_1_1E64(OMOBJ *object)
     Hu3DModelClusterAttrSet(object->mdlId[4], 0, 0xC0000001);
     Hu3DModelLayerSet(object->mdlId[4], 2);
     Hu3DModelCameraSet(object->mdlId[4], 8);
-    object->mdlId[2] = Hu3DHookFuncCreate(fn_1_2978);
+    object->mdlId[2] = Hu3DHookFuncCreate(DrawOceanSurface);
     Hu3DModelLayerSet(object->mdlId[2], 3);
     Hu3DModelCameraSet(object->mdlId[2], 8);
-    temp_r29 = lbl_1_bss_2868;
-    for (temp_r30 = 0; temp_r30 < 32; temp_r30++) {
-        for (temp_r27 = 0; temp_r27 < 32; temp_r29++, temp_r27++) {
-            temp_r29->x = -700.0f + ((1400.0f * temp_r27) / 31.0f);
-            temp_r29->y = -15.000001f;
-            temp_r29->z = -600.0f + ((1200.0f * temp_r30) / 31.0f);
-            if (temp_r30 & 0x1) {
-                temp_r29->x += 700.0f / 31.0f;
+    gridPosition = oceanGridVertices;
+    for (gridRow = 0; gridRow < 32; gridRow++) {
+        for (gridColumn = 0; gridColumn < 32; gridPosition++, gridColumn++) {
+            gridPosition->x = -700.0f + ((1400.0f * gridColumn) / 31.0f);
+            gridPosition->y = -15.000001f;
+            gridPosition->z = -600.0f + ((1200.0f * gridRow) / 31.0f);
+            if (gridRow & 0x1) {
+                gridPosition->x += 700.0f / 31.0f;
             }
         }
     }
-    DCFlushRangeNoSync(lbl_1_bss_2868, sizeof(lbl_1_bss_2868));
-    temp_r28 = lbl_1_bss_464;
-    for (temp_r30 = 0; temp_r30 < 1024; temp_r30++, temp_r28++) {
-        temp_r28->x = 360.0f * ((1.0f / 256.0f) * frand8());
-        temp_r28->y = 2.0f * ((1.0f / 256.0f) * frand8()) + 0.5f;
+    DCFlushRangeNoSync(oceanGridVertices, sizeof(oceanGridVertices));
+    waveParameters = oceanWaveParameters;
+    for (gridRow = 0; gridRow < 1024; gridRow++, waveParameters++) {
+        waveParameters->x = 360.0f * ((1.0f / 256.0f) * frand8());
+        waveParameters->y = 2.0f * ((1.0f / 256.0f) * frand8()) + 0.5f;
     }
-    memset(lbl_1_bss_2468, 0, sizeof(lbl_1_bss_2468));
-    lbl_1_bss_2464 = 0;
-    lbl_1_bss_450.unk4 = 16384;
-    lbl_1_bss_450.unk0 = HuMemDirectMallocNum(HEAP_HEAP, lbl_1_bss_450.unk4, HU_MEMNUM_OVL);
-    DCInvalidateRange(lbl_1_bss_450.unk0, lbl_1_bss_450.unk4);
-    fn_1_3004();
-    lbl_1_bss_440.unk4 = 16384;
-    lbl_1_bss_440.unk0 = HuMemDirectMallocNum(HEAP_HEAP, lbl_1_bss_440.unk4, HU_MEMNUM_OVL);
-    fn_1_3128();
-    lbl_1_bss_45C = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M430, 0x19));
-    lbl_1_bss_458 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M434, 0x0A));
+    memset(waterRippleEffects, 0, sizeof(waterRippleEffects));
+    waterRippleEffectCount = 0;
+    oceanSurfaceDisplayList.displayListSize = 16384;
+    oceanSurfaceDisplayList.displayListBuffer = HuMemDirectMallocNum(HEAP_HEAP, oceanSurfaceDisplayList.displayListSize, HU_MEMNUM_OVL);
+    DCInvalidateRange(oceanSurfaceDisplayList.displayListBuffer, oceanSurfaceDisplayList.displayListSize);
+    CreateOceanSurfaceDisplayList();
+    waterRippleDisplayList.displayListSize = 16384;
+    waterRippleDisplayList.displayListBuffer = HuMemDirectMallocNum(HEAP_HEAP, waterRippleDisplayList.displayListSize, HU_MEMNUM_OVL);
+    CreateWaveDisplayList();
+    oceanTextureAnimation = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M430, 0x19));
+    environmentTextureAnimation = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M434, 0x0A));
     HuDataDirClose(DATADIR_M430);
-    for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-        lbl_1_bss_3F0[temp_r30].unk4 = lbl_1_data_100[temp_r30].unk0;
-        lbl_1_bss_3F0[temp_r30].unk6 = lbl_1_data_100[temp_r30].unk2;
-        lbl_1_bss_3F0[temp_r30].unk8 = lbl_1_data_100[temp_r30].unk4;
-        lbl_1_bss_3F0[temp_r30].unkA = lbl_1_data_100[temp_r30].unk6;
-        lbl_1_bss_3F0[temp_r30].unk10 = lbl_1_data_100[temp_r30].unk8;
-        lbl_1_bss_3F0[temp_r30].unkC = GXGetTexBufferSize(lbl_1_bss_3F0[temp_r30].unk8, lbl_1_bss_3F0[temp_r30].unkA, GX_TF_RGB565, GX_FALSE, 0);
-        lbl_1_bss_3F0[temp_r30].unk0 = HuMemDirectMallocNum(HEAP_HEAP, lbl_1_bss_3F0[temp_r30].unkC, HU_MEMNUM_OVL);
-        memset(lbl_1_bss_3F0[temp_r30].unk0, 0, lbl_1_bss_3F0[temp_r30].unkC);
+    for (gridRow = 0; gridRow < 4; gridRow++) {
+        environmentTextures[gridRow].sourceWidth = environmentTextureConfigs[gridRow].sourceWidth;
+        environmentTextures[gridRow].sourceHeight = environmentTextureConfigs[gridRow].sourceHeight;
+        environmentTextures[gridRow].textureWidth = environmentTextureConfigs[gridRow].textureWidth;
+        environmentTextures[gridRow].textureHeight = environmentTextureConfigs[gridRow].textureHeight;
+        environmentTextures[gridRow].copyMode = environmentTextureConfigs[gridRow].copyMode;
+        environmentTextures[gridRow].textureBufferSize = GXGetTexBufferSize(environmentTextures[gridRow].textureWidth, environmentTextures[gridRow].textureHeight, GX_TF_RGB565, GX_FALSE, 0);
+        environmentTextures[gridRow].textureBuffer = HuMemDirectMallocNum(HEAP_HEAP, environmentTextures[gridRow].textureBufferSize, HU_MEMNUM_OVL);
+        memset(environmentTextures[gridRow].textureBuffer, 0, environmentTextures[gridRow].textureBufferSize);
     }
-    object->mdlId[5] = Hu3DHookFuncCreate(fn_1_33A4);
+    object->mdlId[5] = Hu3DHookFuncCreate(DrawEnvironmentTextureLayer);
     Hu3DModelLayerSet(object->mdlId[5], 3);
     Hu3DModelCameraSet(object->mdlId[5], 2);
-    object->mdlId[6] = Hu3DHookFuncCreate(fn_1_349C);
+    object->mdlId[6] = Hu3DHookFuncCreate(DrawEnvironmentTextureOverlay);
     Hu3DModelLayerSet(object->mdlId[6], 3);
     Hu3DModelCameraSet(object->mdlId[6], 4);
-    object->mdlId[7] = Hu3DHookFuncCreate(fn_1_3594);
+    object->mdlId[7] = Hu3DHookFuncCreate(DrawEnvironmentTextureDetail);
     Hu3DModelLayerSet(object->mdlId[7], 5);
     Hu3DModelCameraSet(object->mdlId[7], 4);
-    temp_r26 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M434, 0x0B));
-    object->mdlId[10] = Hu3DParticleCreate(temp_r26, 100);
-    Hu3DParticleHookSet(object->mdlId[10], fn_1_443C);
+    particleAnimation = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M434, 0x0B));
+    object->mdlId[10] = Hu3DParticleCreate(particleAnimation, 100);
+    Hu3DParticleHookSet(object->mdlId[10], UpdateEnvironmentParticle);
     Hu3DModelAttrSet(object->mdlId[10], HU3D_ATTR_DISPOFF);
     Hu3DModelLayerSet(object->mdlId[10], 4);
     Hu3DModelCameraSet(object->mdlId[10], 8);
-    object->objFunc = fn_1_26A4;
+    object->objFunc = UpdateEnvironmentObject;
 }
 
-HSFATTRIBUTE *fn_1_2608(s16 model, char *name)
+HSFATTRIBUTE *GetModelAttributeByName(s16 model, char *name)
 {
-    HSFDATA *temp_r31;
-    HSFATTRIBUTE *temp_r30;
-    s32 temp_r29;
-    HU3DMODEL *temp_r28;
-    HSFBITMAP *temp_r27;
-    temp_r28 = &Hu3DData[model];
-    temp_r31 = temp_r28->hsf;
-    temp_r30 = temp_r31->attribute;
-    for (temp_r29 = 0; temp_r29 < temp_r31->attributeNum; temp_r29++, temp_r30++) {
-        temp_r27 = temp_r30->bitmap;
-        if (strcmp(name, temp_r27->name) == 0) {
+    HSFDATA *modelData;
+    HSFATTRIBUTE *attribute;
+    s32 attributeIndex;
+    HU3DMODEL *model;
+    HSFBITMAP *bitmap;
+    model = &Hu3DData[model];
+    modelData = model->hsf;
+    attribute = modelData->attribute;
+    for (attributeIndex = 0; attributeIndex < modelData->attributeNum; attributeIndex++, attribute++) {
+        bitmap = attribute->bitmap;
+        if (strcmp(name, bitmap->name) == 0) {
             break;
         }
     }
-    if (temp_r29 >= temp_r31->attributeNum) {
+    if (attributeIndex >= modelData->attributeNum) {
         return NULL;
     }
-    return temp_r30;
+    return attribute;
 }
 
-void fn_1_26A4(OMOBJ *object)
+void UpdateEnvironmentObject(OMOBJ *object)
 {
-    s32 temp_r31;
-    Bss2468Data *temp_r30;
-    HuVec2f *temp_r29;
-    HSFATTRIBUTE *temp_r27;
-    Vec *temp_r25;
-    s32 temp_r23;
-    s32 temp_r22;
-    Bss2468Data *sp8[64];
+    s32 effectIndex;
+    WaterRippleEffect *effect;
+    HuVec2f *waveParameters;
+    HSFATTRIBUTE *skyAttribute;
+    Vec *gridPosition;
+    s32 gridRow;
+    s32 activeEffectCount;
+    WaterRippleEffect *activeEffects[64];
 
-    temp_r27 = fn_1_2608(object->mdlId[1], "sora");
-    if (temp_r27 != NULL) {
-        temp_r27->trans.x += 0.0001f;
-        temp_r27->trans.y -= 0.00005f;
+    skyAttribute = GetModelAttributeByName(object->mdlId[1], "sora");
+    if (skyAttribute != NULL) {
+        skyAttribute->trans.x += 0.0001f;
+        skyAttribute->trans.y -= 0.00005f;
     }
-    temp_r30 = lbl_1_bss_2468;
-    temp_r22 = 0;
-    for (temp_r31 = 0; temp_r31 < 64; temp_r31++, temp_r30++) {
-        if (temp_r30->unkC) {
-            sp8[temp_r22++] = temp_r30;
+    effect = waterRippleEffects;
+    activeEffectCount = 0;
+    for (effectIndex = 0; effectIndex < 64; effectIndex++, effect++) {
+        if (effect->remainingFrames) {
+            activeEffects[activeEffectCount++] = effect;
         }
     }
-    temp_r25 = lbl_1_bss_2868;
-    temp_r29 = lbl_1_bss_464;
-    for (temp_r31 = 0; temp_r31 < 32; temp_r31++) {
-        for (temp_r23 = 0; temp_r23 < 32; temp_r23++, temp_r25++, temp_r29++) {
-            temp_r25->y = -15.000001f + (2.0f * sind(temp_r29->x));
-            temp_r29->x += temp_r29->y;
+    gridPosition = oceanGridVertices;
+    waveParameters = oceanWaveParameters;
+    for (effectIndex = 0; effectIndex < 32; effectIndex++) {
+        for (gridRow = 0; gridRow < 32; gridRow++, gridPosition++, waveParameters++) {
+            gridPosition->y = -15.000001f + (2.0f * sind(waveParameters->x));
+            waveParameters->x += waveParameters->y;
         }
     }
-    DCFlushRangeNoSync(lbl_1_bss_2868, sizeof(lbl_1_bss_2868));
-    for (temp_r31 = 0; temp_r31 < temp_r22; temp_r31++) {
-        temp_r30 = sp8[temp_r31];
-        temp_r30->unkC--;
+    DCFlushRangeNoSync(oceanGridVertices, sizeof(oceanGridVertices));
+    for (effectIndex = 0; effectIndex < activeEffectCount; effectIndex++) {
+        effect = activeEffects[effectIndex];
+        effect->remainingFrames--;
     }
     CenterM[1].y = -15.000001f + (-CenterM[2].y);
     CRotM[1].x = -CRotM[2].x;
 }
 
-void fn_1_28F0(void)
+void FreeEnvironmentTextures(void)
 {
-    s32 temp_r31;
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        if (lbl_1_bss_3F0[temp_r31].unk0 != NULL) {
-            HuMemDirectFree(lbl_1_bss_3F0[temp_r31].unk0);
-            lbl_1_bss_3F0[temp_r31].unk0 = NULL;
+    s32 textureIndex;
+    for (textureIndex = 0; textureIndex < 4; textureIndex++) {
+        if (environmentTextures[textureIndex].textureBuffer != NULL) {
+            HuMemDirectFree(environmentTextures[textureIndex].textureBuffer);
+            environmentTextures[textureIndex].textureBuffer = NULL;
         }
     }
 }
 
-GXColor lbl_1_data_139 = { 255, 255, 255, 64 };
+GXColor oceanSurfaceTint = { 255, 255, 255, 64 };
 
-float lbl_1_data_140[2][3] = { 0.012f, 0, 0, 0, 0.012f, 0 };
+float oceanWaveIndirectionMatrix[2][3] = { 0.012f, 0, 0, 0, 0.012f, 0 };
 
-float lbl_1_data_158[2][3] = { 0, 0, 0.5f, 0, 0.5f, 0 };
+float oceanDetailIndirectionMatrix[2][3] = { 0, 0, 0.5f, 0, 0.5f, 0 };
 
-void fn_1_2978(HU3DMODEL *model, Mtx mtx)
+void DrawOceanSurface(HU3DMODEL *model, Mtx mtx)
 {
-    float temp_f31;
+    float textureScale;
 
-    Mtx sp1AC;
-    Mtx sp17C;
-    Mtx sp14C;
-    Mtx sp11C;
-    Mtx spEC;
-    Mtx spBC;
-    Mtx sp8C;
-    Mtx sp5C;
-    Mtx sp2C;
-    GXTexObj spC;
+    Mtx projectionMatrix;
+    Mtx textureMatrix;
+    Mtx scaleMatrix;
+    Mtx rotationMatrix;
+    Mtx textureTranslationMatrix;
+    Mtx viewModelMatrix;
+    Mtx projectedViewModelMatrix;
+    Mtx secondViewModelMatrix;
+    Mtx secondProjectedViewModelMatrix;
+    GXTexObj textureObject;
     GXLoadPosMtxImm(mtx, GX_PNMTX0);
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetNumTexGens(4);
-    GXInitTexObj(&spC, lbl_1_bss_3F0[2].unk0, lbl_1_bss_3F0[2].unk8, lbl_1_bss_3F0[2].unkA, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXLoadTexObj(&spC, GX_TEXMAP0);
-    GXInitTexObj(&spC, lbl_1_bss_3F0[1].unk0, lbl_1_bss_3F0[1].unk8, lbl_1_bss_3F0[1].unkA, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXLoadTexObj(&spC, GX_TEXMAP1);
-    MTXLightPerspective(sp1AC, 30.0f, 1.2f, 0.5f, -0.5f, 0.5f, 0.5f);
-    MTXInverse(Hu3DCameraMtx, spBC);
-    MTXConcat(spBC, mtx, spBC);
-    MTXConcat(sp1AC, Hu3DCameraMtx, sp8C);
-    MTXConcat(sp8C, spBC, spBC);
-    GXLoadTexMtxImm(spBC, GX_TEXMTX0, GX_MTX3x4);
+    GXInitTexObj(&textureObject, environmentTextures[2].textureBuffer, environmentTextures[2].textureWidth, environmentTextures[2].textureHeight, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GXLoadTexObj(&textureObject, GX_TEXMAP0);
+    GXInitTexObj(&textureObject, environmentTextures[1].textureBuffer, environmentTextures[1].textureWidth, environmentTextures[1].textureHeight, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GXLoadTexObj(&textureObject, GX_TEXMAP1);
+    MTXLightPerspective(projectionMatrix, 30.0f, 1.2f, 0.5f, -0.5f, 0.5f, 0.5f);
+    MTXInverse(Hu3DCameraMtx, viewModelMatrix);
+    MTXConcat(viewModelMatrix, mtx, viewModelMatrix);
+    MTXConcat(projectionMatrix, Hu3DCameraMtx, projectedViewModelMatrix);
+    MTXConcat(projectedViewModelMatrix, viewModelMatrix, viewModelMatrix);
+    GXLoadTexMtxImm(viewModelMatrix, GX_TEXMTX0, GX_MTX3x4);
     GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX3x4, GX_TG_POS, GX_TEXMTX0);
-    MTXLightPerspective(sp1AC, 30.0f, 1.2f, 0.5f, 0.5f, 0.5f, 0.5f);
-    MTXInverse(Hu3DCameraMtx, sp5C);
-    MTXConcat(sp5C, mtx, sp5C);
-    MTXConcat(sp1AC, Hu3DCameraMtx, sp2C);
-    MTXConcat(sp2C, sp5C, sp5C);
-    GXLoadTexMtxImm(sp5C, GX_TEXMTX1, GX_MTX3x4);
+    MTXLightPerspective(projectionMatrix, 30.0f, 1.2f, 0.5f, 0.5f, 0.5f, 0.5f);
+    MTXInverse(Hu3DCameraMtx, secondViewModelMatrix);
+    MTXConcat(secondViewModelMatrix, mtx, secondViewModelMatrix);
+    MTXConcat(projectionMatrix, Hu3DCameraMtx, secondProjectedViewModelMatrix);
+    MTXConcat(secondProjectedViewModelMatrix, secondViewModelMatrix, secondViewModelMatrix);
+    GXLoadTexMtxImm(secondViewModelMatrix, GX_TEXMTX1, GX_MTX3x4);
     GXSetTexCoordGen(GX_TEXCOORD1, GX_TG_MTX3x4, GX_TG_POS, GX_TEXMTX1);
     GXSetNumTevStages(2);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
@@ -304,76 +304,76 @@ void fn_1_2978(HU3DMODEL *model, Mtx mtx)
     GXSetTevColorOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE1, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_KONST);
     GXSetTevAlphaOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXSetTevColor(GX_TEVSTAGE1, lbl_1_data_139);
+    GXSetTevColor(GX_TEVSTAGE1, oceanSurfaceTint);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_CLAMP, GX_AF_NONE);
-    HuSprTexLoad(lbl_1_bss_45C, 0, GX_TEXMAP2, GX_REPEAT, GX_REPEAT, GX_LINEAR);
-    GXInitTexObj(&spC, lbl_1_bss_3F0[0].unk0, lbl_1_bss_3F0[0].unk8, lbl_1_bss_3F0[0].unkA, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXLoadTexObj(&spC, GX_TEXMAP3);
+    HuSprTexLoad(oceanTextureAnimation, 0, GX_TEXMAP2, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    GXInitTexObj(&textureObject, environmentTextures[0].textureBuffer, environmentTextures[0].textureWidth, environmentTextures[0].textureHeight, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GXLoadTexObj(&textureObject, GX_TEXMAP3);
     GXSetNumIndStages(2);
-    MTXRotDeg(sp11C, 'X', -90.0f);
-    temp_f31 = 1.0f / 600.0f;
-    MTXScale(sp14C, temp_f31, temp_f31, temp_f31);
-    MTXConcat(sp14C, sp11C, sp17C);
-    sp17C[0][1] = -0.03f;
-    GXLoadTexMtxImm(sp17C, GX_TEXMTX2, GX_MTX2x4);
+    MTXRotDeg(rotationMatrix, 'X', -90.0f);
+    textureScale = 1.0f / 600.0f;
+    MTXScale(scaleMatrix, textureScale, textureScale, textureScale);
+    MTXConcat(scaleMatrix, rotationMatrix, textureMatrix);
+    textureMatrix[0][1] = -0.03f;
+    GXLoadTexMtxImm(textureMatrix, GX_TEXMTX2, GX_MTX2x4);
     GXSetTexCoordGen(GX_TEXCOORD2, GX_TG_MTX2x4, GX_TG_POS, GX_TEXMTX2);
     GXSetIndTexOrder(GX_INDTEXSTAGE0, GX_TEXCOORD2, GX_TEXMAP2);
     GXSetIndTexCoordScale(GX_INDTEXSTAGE0, GX_ITS_1, GX_ITS_1);
-    GXSetIndTexMtx(GX_ITM_0, lbl_1_data_140, 0);
+    GXSetIndTexMtx(GX_ITM_0, oceanWaveIndirectionMatrix, 0);
     GXSetTevIndWarp(GX_TEVSTAGE0, GX_INDTEXSTAGE0, GX_TRUE, GX_FALSE, GX_ITM_0);
-    MTXRotDeg(sp11C, 'X', -90.0f);
-    temp_f31 = 1.0f / 1200.0f;
-    MTXScale(sp14C, temp_f31, temp_f31, temp_f31);
-    MTXConcat(sp14C, sp11C, sp17C);
-    MTXTrans(spEC, 0.5f, 0.5f, 0.0f);
-    MTXConcat(spEC, sp17C, sp17C);
-    GXLoadTexMtxImm(sp17C, GX_TEXMTX3, GX_MTX2x4);
+    MTXRotDeg(rotationMatrix, 'X', -90.0f);
+    textureScale = 1.0f / 1200.0f;
+    MTXScale(scaleMatrix, textureScale, textureScale, textureScale);
+    MTXConcat(scaleMatrix, rotationMatrix, textureMatrix);
+    MTXTrans(textureTranslationMatrix, 0.5f, 0.5f, 0.0f);
+    MTXConcat(textureTranslationMatrix, textureMatrix, textureMatrix);
+    GXLoadTexMtxImm(textureMatrix, GX_TEXMTX3, GX_MTX2x4);
     GXSetTexCoordGen(GX_TEXCOORD3, GX_TG_MTX2x4, GX_TG_POS, GX_TEXMTX3);
     GXSetIndTexOrder(GX_INDTEXSTAGE1, GX_TEXCOORD3, GX_TEXMAP3);
     GXSetIndTexCoordScale(GX_INDTEXSTAGE1, GX_ITS_1, GX_ITS_1);
-    GXSetIndTexMtx(GX_ITM_1, lbl_1_data_158, 0);
+    GXSetIndTexMtx(GX_ITM_1, oceanDetailIndirectionMatrix, 0);
     GXSetTevIndWarp(GX_TEVSTAGE1, GX_INDTEXSTAGE1, GX_TRUE, GX_FALSE, GX_ITM_1);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetArray(GX_VA_POS, lbl_1_bss_2868, sizeof(Vec));
+    GXSetArray(GX_VA_POS, oceanGridVertices, sizeof(Vec));
     GXSetCullMode(GX_CULL_BACK);
-    GXCallDisplayList(lbl_1_bss_450.unk0, lbl_1_bss_450.unk4);
+    GXCallDisplayList(oceanSurfaceDisplayList.displayListBuffer, oceanSurfaceDisplayList.displayListSize);
     GXSetNumIndStages(0);
     GXSetTevDirect(GX_TEVSTAGE0);
     GXSetTevDirect(GX_TEVSTAGE1);
 }
 
-void fn_1_3004(void)
+void CreateOceanSurfaceDisplayList(void)
 {
-    s32 temp_r31;
-    s32 temp_r30;
-    s32 temp_r29;
-    GXBeginDisplayList(lbl_1_bss_450.unk0, lbl_1_bss_450.unk4);
-    for (temp_r30 = 0; temp_r30 < 31; temp_r30++) {
-        temp_r29 = temp_r30 * 32;
+    s32 vertexIndex;
+    s32 gridRow;
+    s32 firstVertexIndex;
+    GXBeginDisplayList(oceanSurfaceDisplayList.displayListBuffer, oceanSurfaceDisplayList.displayListSize);
+    for (gridRow = 0; gridRow < 31; gridRow++) {
+        firstVertexIndex = gridRow * 32;
         GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, 64);
-        if (temp_r30 & 0x1) {
-            for (temp_r31 = 0; temp_r31 < 32; temp_r31++) {
-                GXPosition1x16(temp_r29 + temp_r31 + 32);
-                GXPosition1x16(temp_r29 + temp_r31);
+        if (gridRow & 0x1) {
+            for (vertexIndex = 0; vertexIndex < 32; vertexIndex++) {
+                GXPosition1x16(firstVertexIndex + vertexIndex + 32);
+                GXPosition1x16(firstVertexIndex + vertexIndex);
             }
         }
         else {
-            for (temp_r31 = 31; temp_r31 >= 0; temp_r31--) {
-                GXPosition1x16(temp_r29 + temp_r31);
-                GXPosition1x16(temp_r29 + temp_r31 + 32);
+            for (vertexIndex = 31; vertexIndex >= 0; vertexIndex--) {
+                GXPosition1x16(firstVertexIndex + vertexIndex);
+                GXPosition1x16(firstVertexIndex + vertexIndex + 32);
             }
         }
     }
-    lbl_1_bss_450.unk4 = GXEndDisplayList();
-    DCFlushRangeNoSync(lbl_1_bss_450.unk0, lbl_1_bss_450.unk4);
+    oceanSurfaceDisplayList.displayListSize = GXEndDisplayList();
+    DCFlushRangeNoSync(oceanSurfaceDisplayList.displayListBuffer, oceanSurfaceDisplayList.displayListSize);
 }
 
-void fn_1_3128(void)
+void CreateWaveDisplayList(void)
 {
-    GXBeginDisplayList(lbl_1_bss_440.unk0, lbl_1_bss_440.unk4);
+    GXBeginDisplayList(waterRippleDisplayList.displayListBuffer, waterRippleDisplayList.displayListSize);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     GXPosition2f32(-0.5f, -0.5f);
     GXTexCoord2f32(0, 0);
@@ -384,46 +384,46 @@ void fn_1_3128(void)
     GXPosition2f32(-0.5f, 0.5f);
     GXTexCoord2f32(0, 1);
     GXEnd();
-    lbl_1_bss_440.unk4 = GXEndDisplayList();
-    DCFlushRangeNoSync(lbl_1_bss_440.unk0, lbl_1_bss_440.unk4);
+    waterRippleDisplayList.displayListSize = GXEndDisplayList();
+    DCFlushRangeNoSync(waterRippleDisplayList.displayListBuffer, waterRippleDisplayList.displayListSize);
 }
 
-void fn_1_32DC(Bss3F0Data *arg0, GXBool arg1)
+void DrawEnvironmentTexture(EnvironmentTexture *texture, GXBool copyToTexture)
 {
     GXSetZMode(GX_FALSE, GX_LEQUAL, GX_TRUE);
-    GXSetTexCopySrc(0, 0, arg0->unk4, arg0->unk6);
-    GXSetTexCopyDst(arg0->unk8, arg0->unkA, GX_TF_RGB565, arg0->unk10);
+    GXSetTexCopySrc(0, 0, texture->sourceWidth, texture->sourceHeight);
+    GXSetTexCopyDst(texture->textureWidth, texture->textureHeight, GX_TF_RGB565, texture->copyMode);
     GXSetCopyClear(BGColor, 0xFFFFFF);
-    GXCopyTex(arg0->unk0, arg1);
+    GXCopyTex(texture->textureBuffer, copyToTexture);
     GXPixModeSync();
-    DCFlushRange(arg0->unk0, arg0->unkC);
+    DCFlushRange(texture->textureBuffer, texture->textureBufferSize);
 }
 
-void fn_1_33A4(HU3DMODEL *model, Mtx mtx)
+void DrawEnvironmentTextureLayer(HU3DMODEL *model, Mtx mtx)
 {
-    fn_1_32DC(&lbl_1_bss_3F0[1], GX_TRUE);
+    DrawEnvironmentTexture(&environmentTextures[1], GX_TRUE);
 }
 
-void fn_1_349C(HU3DMODEL *model, Mtx mtx)
+void DrawEnvironmentTextureOverlay(HU3DMODEL *model, Mtx mtx)
 {
-    fn_1_32DC(&lbl_1_bss_3F0[2], GX_TRUE);
+    DrawEnvironmentTexture(&environmentTextures[2], GX_TRUE);
 }
 
-void fn_1_3594(HU3DMODEL *model, Mtx mtx)
+void DrawEnvironmentTextureDetail(HU3DMODEL *model, Mtx mtx)
 {
-    Mtx sp90;
-    Mtx sp60;
-    Mtx sp30;
-    GXTexObj sp10;
+    Mtx projectionMatrix;
+    Mtx viewModelMatrix;
+    Mtx projectedViewModelMatrix;
+    GXTexObj textureObject;
 
-    fn_1_32DC(&lbl_1_bss_3F0[3], GX_FALSE);
+    DrawEnvironmentTexture(&environmentTextures[3], GX_FALSE);
     GXLoadPosMtxImm(mtx, GX_PNMTX0);
-    MTXLightPerspective(sp90, 30.0f, 1.2f, 0.5f, -0.5f, 0.5f, 0.5f);
-    MTXInverse(Hu3DCameraMtx, sp60);
-    MTXConcat(sp60, mtx, sp60);
-    MTXConcat(sp90, Hu3DCameraMtx, sp30);
-    MTXConcat(sp30, sp60, sp60);
-    GXLoadTexMtxImm(sp60, GX_TEXMTX0, GX_MTX3x4);
+    MTXLightPerspective(projectionMatrix, 30.0f, 1.2f, 0.5f, -0.5f, 0.5f, 0.5f);
+    MTXInverse(Hu3DCameraMtx, viewModelMatrix);
+    MTXConcat(viewModelMatrix, mtx, viewModelMatrix);
+    MTXConcat(projectionMatrix, Hu3DCameraMtx, projectedViewModelMatrix);
+    MTXConcat(projectedViewModelMatrix, viewModelMatrix, viewModelMatrix);
+    GXLoadTexMtxImm(viewModelMatrix, GX_TEXMTX0, GX_MTX3x4);
     GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX3x4, GX_TG_POS, GX_TEXMTX0);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_CLAMP, GX_AF_NONE);
@@ -435,8 +435,8 @@ void fn_1_3594(HU3DMODEL *model, Mtx mtx)
     GXSetNumTevStages(1);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
     GXSetTevOp(GX_TEVSTAGE0, GX_REPLACE);
-    GXInitTexObj(&sp10, lbl_1_bss_3F0[2].unk0, lbl_1_bss_3F0[2].unk8, lbl_1_bss_3F0[2].unkA, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXLoadTexObj(&sp10, GX_TEXMAP0);
+    GXInitTexObj(&textureObject, environmentTextures[2].textureBuffer, environmentTextures[2].textureWidth, environmentTextures[2].textureHeight, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GXLoadTexObj(&textureObject, GX_TEXMAP0);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
@@ -453,9 +453,9 @@ void fn_1_3594(HU3DMODEL *model, Mtx mtx)
     GXPosition3f32(1000.0f, -70.0f, 1000.0f);
     GXPosition3f32(-1000.0f, -70.0f, 1000.0f);
     GXEnd();
-    fn_1_32DC(&lbl_1_bss_3F0[2], GX_FALSE);
-    GXInitTexObj(&sp10, lbl_1_bss_3F0[3].unk0, lbl_1_bss_3F0[3].unk8, lbl_1_bss_3F0[3].unkA, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXLoadTexObj(&sp10, GX_TEXMAP0);
+    DrawEnvironmentTexture(&environmentTextures[2], GX_FALSE);
+    GXInitTexObj(&textureObject, environmentTextures[3].textureBuffer, environmentTextures[3].textureWidth, environmentTextures[3].textureHeight, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GXLoadTexObj(&textureObject, GX_TEXMAP0);
     GXSetZMode(GX_TRUE, GX_GREATER, GX_FALSE);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     GXPosition3f32(-1000.0f, -5.000001f, -1000.0f);
@@ -465,33 +465,33 @@ void fn_1_3594(HU3DMODEL *model, Mtx mtx)
     GXEnd();
 }
 
-GXColor lbl_1_data_170 = { 255, 0, 0, 255 };
-GXColor lbl_1_data_174 = { 255, 255, 255, 32 };
-GXColor lbl_1_data_178 = { 0, 126, 126, 255 };
+GXColor splashParticleColor = { 255, 0, 0, 255 };
+GXColor splashParticleAlpha = { 255, 255, 255, 32 };
+GXColor waterRippleColor = { 0, 126, 126, 255 };
 
-void fn_1_3CC8(HU3DMODEL *model, Mtx mtx)
+void DrawEnvironmentSurface(HU3DMODEL *model, Mtx mtx)
 {
 
-    float temp_f31;
+    float effectScale;
 #ifdef NON_MATCHING
-    Mtx44 sp44;
+    Mtx44 projectionMatrix;
 #else
-    Mtx sp44;
+    Mtx projectionMatrix;
 #endif
-    Mtx sp14;
-    Bss2468Data *temp_r31;
-    s32 temp_r30;
-    s32 temp_r29;
+    Mtx modelMatrix;
+    WaterRippleEffect *effect;
+    s32 effectIndex;
+    s32 effectSlot;
 
-    MTXOrtho(sp44, 0, 480, 0, 640, 0, 100);
-    GXSetProjection(sp44, GX_ORTHOGRAPHIC);
-    MTXIdentity(sp14);
-    GXLoadPosMtxImm(sp14, GX_PNMTX0);
+    MTXOrtho(projectionMatrix, 0, 480, 0, 640, 0, 100);
+    GXSetProjection(projectionMatrix, GX_ORTHOGRAPHIC);
+    MTXIdentity(modelMatrix);
+    GXLoadPosMtxImm(modelMatrix, GX_PNMTX0);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_CLAMP, GX_AF_NONE);
-    GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_178);
+    GXSetChanMatColor(GX_COLOR0A0, waterRippleColor);
     GXSetNumTexGens(0);
-    HuSprTexLoad(lbl_1_bss_458, 0, GX_TEXMAP0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    HuSprTexLoad(environmentTextureAnimation, 0, GX_TEXMAP0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
     GXSetZMode(GX_FALSE, GX_LEQUAL, GX_FALSE);
 
@@ -499,15 +499,15 @@ void fn_1_3CC8(HU3DMODEL *model, Mtx mtx)
     GXSetNumTevStages(1);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
     GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-    GXSetScissor(0, 0, lbl_1_bss_3F0[0].unk8, lbl_1_bss_3F0[0].unkA);
+    GXSetScissor(0, 0, environmentTextures[0].textureWidth, environmentTextures[0].textureHeight);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XY, GX_U16, 0);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     GXPosition2u16(0, 0);
-    GXPosition2u16(lbl_1_bss_3F0[0].unk8, 0);
-    GXPosition2u16(lbl_1_bss_3F0[0].unk8, lbl_1_bss_3F0[0].unkA);
-    GXPosition2u16(0, lbl_1_bss_3F0[0].unkA);
+    GXPosition2u16(environmentTextures[0].textureWidth, 0);
+    GXPosition2u16(environmentTextures[0].textureWidth, environmentTextures[0].textureHeight);
+    GXPosition2u16(0, environmentTextures[0].textureHeight);
     GXEnd();
     GXSetNumTexGens(1);
     GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
@@ -525,82 +525,82 @@ void fn_1_3CC8(HU3DMODEL *model, Mtx mtx)
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
     GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
-    temp_r29 = lbl_1_bss_2464;
-    for (temp_r30 = 0; temp_r30 < 64; temp_r29 = (temp_r29 + 1) % 64, temp_r30++) {
-        temp_r31 = &lbl_1_bss_2468[temp_r29];
-        if (temp_r31->unkC == 0) {
+    effectSlot = waterRippleEffectCount;
+    for (effectIndex = 0; effectIndex < 64; effectSlot = (effectSlot + 1) % 64, effectIndex++) {
+        effect = &waterRippleEffects[effectSlot];
+        if (effect->remainingFrames == 0) {
             continue;
         }
-        temp_f31 = (0.2f + cosd((90.0f * temp_r31->unkC) / REFRESH_RATE)) * 128.0f;
-        lbl_1_data_174.a = 255.0f * sind((90.0f * temp_r31->unkC) / REFRESH_RATE);
-        GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_174);
-        MTXScale(sp14, 0.5f * temp_f31, 0.5f * temp_f31, 1.0f);
-        mtxTransCat(sp14, (200.0f * (600.0f + temp_r31->unk0.x)) / 1200.0f, (200.0f * (600.0f + temp_r31->unk0.z)) / 1200.0f, 0);
-        GXLoadPosMtxImm(sp14, GX_PNMTX0);
-        GXCallDisplayList(lbl_1_bss_440.unk0, lbl_1_bss_440.unk4);
+        effectScale = (0.2f + cosd((90.0f * effect->remainingFrames) / REFRESH_RATE)) * 128.0f;
+        splashParticleAlpha.a = 255.0f * sind((90.0f * effect->remainingFrames) / REFRESH_RATE);
+        GXSetChanMatColor(GX_COLOR0A0, splashParticleAlpha);
+        MTXScale(modelMatrix, 0.5f * effectScale, 0.5f * effectScale, 1.0f);
+        mtxTransCat(modelMatrix, (200.0f * (600.0f + effect->position.x)) / 1200.0f, (200.0f * (600.0f + effect->position.z)) / 1200.0f, 0);
+        GXLoadPosMtxImm(modelMatrix, GX_PNMTX0);
+        GXCallDisplayList(waterRippleDisplayList.displayListBuffer, waterRippleDisplayList.displayListSize);
     }
-    fn_1_32DC(&lbl_1_bss_3F0[0], GX_TRUE);
+    DrawEnvironmentTexture(&environmentTextures[0], GX_TRUE);
 }
 
-void fn_1_43AC(Vec *arg0)
+void CreateWaterImpactRipple(Vec *position)
 {
-    Bss2468Data *temp_r31;
-    temp_r31 = &lbl_1_bss_2468[lbl_1_bss_2464];
-    if (temp_r31->unkC == 0) {
-        temp_r31->unk0.x = arg0->x;
-        temp_r31->unk0.y = arg0->y;
-        temp_r31->unk0.z = arg0->z;
-        temp_r31->unkC = REFRESH_RATE;
-        lbl_1_bss_2464 = (lbl_1_bss_2464 + 1) % 64;
+    WaterRippleEffect *effectSlot;
+    effectSlot = &waterRippleEffects[waterRippleEffectCount];
+    if (effectSlot->remainingFrames == 0) {
+        effectSlot->position.x = position->x;
+        effectSlot->position.y = position->y;
+        effectSlot->position.z = position->z;
+        effectSlot->remainingFrames = REFRESH_RATE;
+        waterRippleEffectCount = (waterRippleEffectCount + 1) % 64;
         return;
     }
 }
 
-void fn_1_443C(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateEnvironmentParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    float temp_f31;
-    float temp_f30;
-    HU3DPARTICLEDATA *temp_r31;
-    s32 temp_r29;
-    s32 temp_r28;
+    float emissionAngle;
+    float particleSpeed;
+    HU3DPARTICLEDATA *particleData;
+    s32 particleIndex;
+    s32 expiredParticleCount;
     if (particle->dataCnt == 0) {
         particle->dataCnt = 1;
-        temp_r31 = particle->data;
-        for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r31++, temp_r29++) {
-            temp_r31->scale = 10;
-            temp_f31 = ((1.0f / 256.0f) * frand8()) * 360.0f;
-            temp_r31->pos.x = (0.2f * sind(temp_f31)) * 100.0f;
-            temp_r31->pos.y = 0;
-            temp_r31->pos.z = (0.2f * cosd(temp_f31)) * 100.0f;
-            temp_f30 = (100.0f * (0.025f * ((1.0f / 256.0f) * frand8()))) + 2.5f;
-            temp_r31->vel.x = temp_f30 * sind(temp_f31);
-            temp_r31->vel.y = (100.0f * (0.025f * (((1.0f / 256.0f) * (s32)(frand() & 0x1FF)) - 1.0f))) + 7.5000005f;
-            temp_r31->vel.z = temp_f30 * cosd(temp_f31);
-            temp_r31->color.r = temp_r31->color.g = temp_r31->color.b = 255;
-            temp_r31->color.a = (frand() & 0x1F) + 16;
+        particleData = particle->data;
+        for (particleIndex = 0; particleIndex < particle->maxCnt; particleData++, particleIndex++) {
+            particleData->scale = 10;
+            emissionAngle = ((1.0f / 256.0f) * frand8()) * 360.0f;
+            particleData->pos.x = (0.2f * sind(emissionAngle)) * 100.0f;
+            particleData->pos.y = 0;
+            particleData->pos.z = (0.2f * cosd(emissionAngle)) * 100.0f;
+            particleSpeed = (100.0f * (0.025f * ((1.0f / 256.0f) * frand8()))) + 2.5f;
+            particleData->vel.x = particleSpeed * sind(emissionAngle);
+            particleData->vel.y = (100.0f * (0.025f * (((1.0f / 256.0f) * (s32)(frand() & 0x1FF)) - 1.0f))) + 7.5000005f;
+            particleData->vel.z = particleSpeed * cosd(emissionAngle);
+            particleData->color.r = particleData->color.g = particleData->color.b = 255;
+            particleData->color.a = (frand() & 0x1F) + 16;
         }
     }
-    temp_r28 = 0;
-    temp_r31 = particle->data;
-    for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r31++) {
-        if (temp_r31->color.a == 0) {
-            temp_r28++;
+    expiredParticleCount = 0;
+    particleData = particle->data;
+    for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+        if (particleData->color.a == 0) {
+            expiredParticleCount++;
             continue;
         }
-        temp_r31->pos.x += temp_r31->vel.x;
-        temp_r31->pos.y += temp_r31->vel.y;
-        temp_r31->pos.z += temp_r31->vel.z;
-        temp_r31->vel.y += -0.5f;
-        temp_r31->color.a--;
+        particleData->pos.x += particleData->vel.x;
+        particleData->pos.y += particleData->vel.y;
+        particleData->pos.z += particleData->vel.z;
+        particleData->vel.y += -0.5f;
+        particleData->color.a--;
     }
-    if (temp_r28 == particle->maxCnt) {
+    if (expiredParticleCount == particle->maxCnt) {
         model->attr |= 0x1;
     }
     DCStoreRangeNoSync(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-void fn_1_47EC(Vec *arg0)
+void CreateWaterSplash(Vec *position)
 {
-    Hu3DModelPosSet(lbl_1_bss_5868->mdlId[10], arg0->x, arg0->y, arg0->z);
-    Hu3DModelAttrReset(lbl_1_bss_5868->mdlId[10], HU3D_ATTR_DISPOFF);
+    Hu3DModelPosSet(environmentObject->mdlId[10], position->x, position->y, position->z);
+    Hu3DModelAttrReset(environmentObject->mdlId[10], HU3D_ATTR_DISPOFF);
 }

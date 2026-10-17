@@ -17,49 +17,49 @@
 #include <string.h>
 #endif
 
-typedef struct camera_view {
+typedef struct CameraView {
     float zoom;
     Vec pos;
     Vec rot;
 } CameraView;
 
-Vec lbl_1_data_0 = { -700, 2500, -700 };
-Vec lbl_1_data_C = { 0.3, -0.8, 0.3 };
-Vec lbl_1_data_18 = { 34.75, -24.75, 3500 };
-GXColor lbl_1_data_24 = { 255, 255, 255, 255 };
-Vec lbl_1_data_28 = { -700, 2500, 700 };
-Vec lbl_1_data_34 = { 0, 1, 0 };
-Vec lbl_1_data_40 = { 0, 0, 0 };
+Vec keyLightPosition = { -700, 2500, -700 };
+Vec keyLightDirection = { 0.3, -0.8, 0.3 };
+Vec cameraFocusPosition = { 34.75, -24.75, 3500 };
+GXColor keyLightColor = { 255, 255, 255, 255 };
+Vec fillLightPosition = { -700, 2500, 700 };
+Vec fillLightDirection = { 0, 1, 0 };
+Vec originPosition = { 0, 0, 0 };
 
-OMOBJ *lbl_1_bss_3D4;
-OMOBJ *lbl_1_bss_3D0;
-OMOBJ *lbl_1_bss_3CC;
-OMOBJ *lbl_1_bss_3C8;
-OMOBJ *lbl_1_bss_3C4;
-s16 lbl_1_bss_3C2;
-s16 lbl_1_bss_3C0;
-s32 lbl_1_bss_3BC;
-s32 lbl_1_bss_3B8;
-s16 lbl_1_bss_3B2[3];
-s16 lbl_1_bss_3B0;
-s16 lbl_1_bss_3AC[2];
-s16 lbl_1_bss_3AA;
-s16 lbl_1_bss_3A8;
-s16 lbl_1_bss_3A0[4];
-s32 lbl_1_bss_39C;
-CameraView lbl_1_bss_1C[32];
-s32 lbl_1_bss_18;
-s32 lbl_1_bss_10[2];
-s32 lbl_1_bss_8[2];
-s32 lbl_1_bss_4;
-float lbl_1_bss_0;
+OMOBJ *mainControllerObject;
+OMOBJ *roundControllerObject;
+OMOBJ *outOfViewObject;
+OMOBJ *backgroundFishObject;
+OMOBJ *teamScoreObject;
+s16 roundTimerSeconds;
+s16 roundTimerFrameCounter;
+s32 minigameSequenceId;
+s32 roundTimerSequenceId;
+s16 teamWinnerCharacters[3];
+s16 keyLightId;
+s16 winningTeamCharacters[2];
+s16 winningTeam;
+s16 roundFinished;
+s16 playerTeamAssignments[4];
+s32 cameraStackDepth;
+CameraView cameraStack[32];
+s32 cameraTransitionMode;
+s32 roundStateTimers[2];
+s32 backgroundFishState[2];
+s32 backgroundFishFrame;
+float backgroundFishTransitionProgress;
 
-void fn_1_4FC(OMOBJ *object);
-void fn_1_CC8(OMOBJ *object);
-s32 fn_1_10F4(void);
-void fn_1_1104(HUPROCESS *objman);
-void fn_1_1684(void);
-void fn_1_16B4(void);
+void InitializeRoundState(OMOBJ *object);
+void InitializeBackgroundFish(OMOBJ *object);
+s32 GetBackgroundFishState(void);
+void CreateTeamScoreDisplay(HUPROCESS *objman);
+void FreeTeamScoreDisplay(void);
+void InitializeCameraStack(void);
 
 void ObjectSetup(void)
 {
@@ -80,128 +80,128 @@ void ObjectSetup(void)
         CenterM[i] = Center;
         CRotM[i] = CRot;
     }
-    fn_1_16B4();
+    InitializeCameraStack();
     Hu3DCameraCreate(15);
     Hu3DCameraPerspectiveSet(2, 30, 20, 25000, 1.2f);
     Hu3DCameraViewportSet(2, 0, 0, 320, 240, 0, 1);
     Hu3DCameraPerspectiveSet(13, 30, 20, 25000, 1.2f);
     Hu3DCameraViewportSet(13, 0, 0, 640, 480, 0, 1);
-    lbl_1_bss_3CC = omAddObjEx(objman, 32730, 0, 0, -1, omOutViewMulti);
-    lbl_1_bss_3CC->work[0] = 4;
+    outOfViewObject = omAddObjEx(objman, 32730, 0, 0, -1, omOutViewMulti);
+    outOfViewObject->work[0] = 4;
     HuAudSndGrpSet(59);
-    lbl_1_data_C.x = -lbl_1_data_0.x;
-    lbl_1_data_C.y = -lbl_1_data_0.y;
-    lbl_1_data_C.z = -lbl_1_data_0.z;
-    VECNormalize(&lbl_1_data_C, &lbl_1_data_C);
-    lbl_1_bss_3B0 = Hu3DGLightCreateV(&lbl_1_data_0, &lbl_1_data_C, &lbl_1_data_24);
-    Hu3DGLightInfinitytSet(lbl_1_bss_3B0);
-    Hu3DGLightStaticSet(lbl_1_bss_3B0, 1);
+    keyLightDirection.x = -keyLightPosition.x;
+    keyLightDirection.y = -keyLightPosition.y;
+    keyLightDirection.z = -keyLightPosition.z;
+    VECNormalize(&keyLightDirection, &keyLightDirection);
+    keyLightId = Hu3DGLightCreateV(&keyLightPosition, &keyLightDirection, &keyLightColor);
+    Hu3DGLightInfinitytSet(keyLightId);
+    Hu3DGLightStaticSet(keyLightId, 1);
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_3A0[i] = GWPlayerCfg[i].group;
+        playerTeamAssignments[i] = GWPlayerCfg[i].group;
     }
-    lbl_1_bss_3D4 = omAddObjEx(objman, 0, 0, 0, -1, fn_1_4FC);
-    lbl_1_bss_3D0 = omAddObjEx(objman, 0, 1, 0, -1, fn_1_CC8);
-    fn_1_1DB0(objman);
-    fn_1_4854(objman);
-    fn_1_6860(objman);
-    fn_1_1104(objman);
+    mainControllerObject = omAddObjEx(objman, 0, 0, 0, -1, InitializeRoundState);
+    roundControllerObject = omAddObjEx(objman, 0, 1, 0, -1, InitializeBackgroundFish);
+    CreateEnvironmentObject(objman);
+    CreatePlayerObjects(objman);
+    InitializeFishManager(objman);
+    CreateTeamScoreDisplay(objman);
 }
 
-void fn_1_558(OMOBJ *object);
+void UpdateRoundFlow(OMOBJ *object);
 
-void fn_1_4FC(OMOBJ *object)
+void InitializeRoundState(OMOBJ *object)
 {
-    fn_1_1D64(0);
-    lbl_1_bss_3AA = 0;
-    lbl_1_bss_3A8 = 0;
-    object->objFunc = fn_1_558;
+    SetRoundState(0);
+    winningTeam = 0;
+    roundFinished = 0;
+    object->objFunc = UpdateRoundFlow;
 }
 
-s32 lbl_1_data_70 = -1;
+s32 backgroundMusicSequenceId = -1;
 
-void fn_1_C64(OMOBJ *object);
-void fn_1_1638(s32 arg0);
+void ExitMinigame(OMOBJ *object);
+void ShowTeamScores(s32 unusedDisplayMode);
 
-void fn_1_558(OMOBJ *object)
+void UpdateRoundFlow(OMOBJ *object)
 {
-    s32 temp_r31;
-    s32 temp_r29;
-    s32 sp10[2][4];
-    s32 sp8[2];
+    s32 playerIndex;
+    s32 teamIndex;
+    s32 teamPlayerIndices[2][4];
+    s32 teamPlayerCounts[2];
 
-    switch (fn_1_1D54()) {
+    switch (GetRoundState()) {
         case 0:
-            lbl_1_bss_3C2 = 60;
-            lbl_1_bss_3C0 = REFRESH_RATE;
-            fn_1_1D64(1);
-            lbl_1_bss_10[1] = REFRESH_RATE;
+            roundTimerSeconds = 60;
+            roundTimerFrameCounter = REFRESH_RATE;
+            SetRoundState(1);
+            roundStateTimers[1] = REFRESH_RATE;
             WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
             HuAudFXPlay(1736);
             break;
 
         case 1:
-            if (fn_1_10F4() == 2) {
-                if (lbl_1_bss_10[1] != 0) {
-                    if (--lbl_1_bss_10[1] == 0) {
-                        lbl_1_bss_3BC = MGSeqStartCreate();
+            if (GetBackgroundFishState() == 2) {
+                if (roundStateTimers[1] != 0) {
+                    if (--roundStateTimers[1] == 0) {
+                        minigameSequenceId = MGSeqStartCreate();
                         HuAudStreamPlay("sound/mu_047a.adp", 1);
                     }
                 }
                 else {
-                    if (MGSeqStatGet(lbl_1_bss_3BC) == 0) {
-                        fn_1_1D64(2);
+                    if (MGSeqStatGet(minigameSequenceId) == 0) {
+                        SetRoundState(2);
                         HuAudFXPlay(1738);
-                        lbl_1_bss_3B8 = MGSeqTimerCreate(60);
-                        fn_1_1638(1);
+                        roundTimerSequenceId = MGSeqTimerCreate(60);
+                        ShowTeamScores(1);
                     }
-                    if (lbl_1_data_70 < 0 && (MGSeqStatGet(lbl_1_bss_3BC) & 0x10)) {
-                        lbl_1_data_70 = HuAudSeqPlay(67);
+                    if (backgroundMusicSequenceId < 0 && (MGSeqStatGet(minigameSequenceId) & 0x10)) {
+                        backgroundMusicSequenceId = HuAudSeqPlay(67);
                     }
                 }
             }
             break;
 
         case 2:
-            if (--lbl_1_bss_3C0 == 0) {
-                lbl_1_bss_3C2--;
-                MGSeqParamSet(lbl_1_bss_3B8, 1, lbl_1_bss_3C2);
-                lbl_1_bss_3C0 = REFRESH_RATE;
+            if (--roundTimerFrameCounter == 0) {
+                roundTimerSeconds--;
+                MGSeqParamSet(roundTimerSequenceId, 1, roundTimerSeconds);
+                roundTimerFrameCounter = REFRESH_RATE;
             }
-            if (!lbl_1_bss_3C2 || lbl_1_bss_3A8 == 1) {
-                fn_1_1D64(3);
-                lbl_1_bss_10[1] = 60;
-                lbl_1_bss_3BC = MGSeqFinishCreate();
+            if (!roundTimerSeconds || roundFinished == 1) {
+                SetRoundState(3);
+                roundStateTimers[1] = 60;
+                minigameSequenceId = MGSeqFinishCreate();
                 HuAudStreamFadeOut(30);
-                HuAudSeqFadeOut(lbl_1_data_70, 100);
+                HuAudSeqFadeOut(backgroundMusicSequenceId, 100);
             }
             break;
 
         case 3:
-            if (lbl_1_bss_3B8 >= 0) {
-                MGSeqParamSet(lbl_1_bss_3B8, 2, -1);
-                lbl_1_bss_3B8 = -1;
+            if (roundTimerSequenceId >= 0) {
+                MGSeqParamSet(roundTimerSequenceId, 2, -1);
+                roundTimerSequenceId = -1;
             }
-            if (MGSeqStatGet(lbl_1_bss_3BC) == 0) {
-                fn_1_1D64(4);
-                lbl_1_bss_10[1] = REFRESH_RATE;
+            if (MGSeqStatGet(minigameSequenceId) == 0) {
+                SetRoundState(4);
+                roundStateTimers[1] = REFRESH_RATE;
             }
             break;
 
         case 4:
-            if (--lbl_1_bss_10[1] == 0) {
-                sp8[0] = sp8[1] = 0;
-                for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                    temp_r29 = fn_1_1D74(temp_r31);
-                    sp10[temp_r29][sp8[temp_r29]++] = temp_r31;
+            if (--roundStateTimers[1] == 0) {
+                teamPlayerCounts[0] = teamPlayerCounts[1] = 0;
+                for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                    teamIndex = GetPlayerTeam(playerIndex);
+                    teamPlayerIndices[teamIndex][teamPlayerCounts[teamIndex]++] = playerIndex;
                 }
-                lbl_1_bss_3AA = fn_1_1CB8();
-                switch (lbl_1_bss_3AA) {
+                winningTeam = GetWinningTeam();
+                switch (winningTeam) {
                     case -1:
-                        lbl_1_bss_3AC[0] = GWPlayerCfg[sp10[0][0]].character;
-                        lbl_1_bss_3AC[1] = GWPlayerCfg[sp10[0][1]].character;
-                        MGSeqWinCreate(lbl_1_bss_3AC[0], lbl_1_bss_3AC[1], -1, -1);
-                        GWPlayerCoinWinSet(sp10[0][0], 10);
-                        GWPlayerCoinWinSet(sp10[0][1], 10);
+                        winningTeamCharacters[0] = GWPlayerCfg[teamPlayerIndices[0][0]].character;
+                        winningTeamCharacters[1] = GWPlayerCfg[teamPlayerIndices[0][1]].character;
+                        MGSeqWinCreate(winningTeamCharacters[0], winningTeamCharacters[1], -1, -1);
+                        GWPlayerCoinWinSet(teamPlayerIndices[0][0], 10);
+                        GWPlayerCoinWinSet(teamPlayerIndices[0][1], 10);
                         HuAudSStreamPlay(1);
                         break;
 
@@ -211,67 +211,67 @@ void fn_1_558(OMOBJ *object)
                         break;
 
                     case 1:
-                        lbl_1_bss_3AC[0] = GWPlayerCfg[sp10[1][0]].character;
-                        lbl_1_bss_3AC[1] = GWPlayerCfg[sp10[1][1]].character;
-                        MGSeqWinCreate(lbl_1_bss_3AC[0], lbl_1_bss_3AC[1], -1, -1);
-                        GWPlayerCoinWinSet(sp10[1][0], 10);
-                        GWPlayerCoinWinSet(sp10[1][1], 10);
+                        winningTeamCharacters[0] = GWPlayerCfg[teamPlayerIndices[1][0]].character;
+                        winningTeamCharacters[1] = GWPlayerCfg[teamPlayerIndices[1][1]].character;
+                        MGSeqWinCreate(winningTeamCharacters[0], winningTeamCharacters[1], -1, -1);
+                        GWPlayerCoinWinSet(teamPlayerIndices[1][0], 10);
+                        GWPlayerCoinWinSet(teamPlayerIndices[1][1], 10);
                         HuAudSStreamPlay(1);
                         break;
                 }
-                fn_1_1D64(5);
-                lbl_1_bss_10[1] = 3.5 * REFRESH_RATE;
+                SetRoundState(5);
+                roundStateTimers[1] = 3.5 * REFRESH_RATE;
             }
             break;
 
         case 5:
-            if (--lbl_1_bss_10[1] == 0) {
+            if (--roundStateTimers[1] == 0) {
                 WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-                object->objFunc = fn_1_C64;
+                object->objFunc = ExitMinigame;
             }
 
             break;
     }
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        CZoomM[temp_r31] = CZoom;
-        CRotM[temp_r31] = CRot;
-        CenterM[temp_r31] = Center;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        CZoomM[playerIndex] = CZoom;
+        CRotM[playerIndex] = CRot;
+        CenterM[playerIndex] = Center;
     }
     if (omSysExitReq && !WipeStatGet()) {
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-        object->objFunc = fn_1_C64;
+        object->objFunc = ExitMinigame;
     }
 }
 
-void fn_1_C64(OMOBJ *object)
+void ExitMinigame(OMOBJ *object)
 {
     if (WipeStatGet()) {
         return;
     }
-    fn_1_1E44();
-    fn_1_4964();
-    fn_1_6A84();
-    fn_1_1684();
+    ResetEnvironmentTextures();
+    FreePlayerCharacterModels();
+    FreeFishModels();
+    FreeTeamScoreDisplay();
     MGSeqKillAll();
     HuAudFadeOut(1);
     omOvlReturnEx(1, 1);
     OSReport("******* M434Exit *********\n");
 }
 
-void fn_1_E44(OMOBJ *object);
-void fn_1_16D8(void);
-void fn_1_1950(float arg0, float arg1, float arg2, float arg3, float arg4, float arg5, float arg6);
-void fn_1_1A00(s32 arg0);
-void fn_1_1A10(float arg0);
+void UpdateBackgroundFish(OMOBJ *object);
+void PushCameraSettings(void);
+void SetCameraViewFromValues(float zoom, float positionX, float positionY, float positionZ, float rotationX, float rotationY, float rotationZ);
+void SetCameraTransitionMode(s32 transitionMode);
+void InterpolateCameraView(float transitionProgress);
 
-void fn_1_CC8(OMOBJ *object)
+void InitializeBackgroundFish(OMOBJ *object)
 {
-    lbl_1_bss_8[0] = 0;
-    lbl_1_bss_8[1] = 140;
-    fn_1_16D8();
-    fn_1_1950(302, 0, 125, -188, -24, 28, 0);
-    fn_1_1A00(1);
-    object->objFunc = fn_1_E44;
+    backgroundFishState[0] = 0;
+    backgroundFishState[1] = 140;
+    PushCameraSettings();
+    SetCameraViewFromValues(302, 0, 125, -188, -24, 28, 0);
+    SetCameraTransitionMode(1);
+    object->objFunc = UpdateBackgroundFish;
     omSetStatBit(object, 0x100);
     object->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M434, 0x07));
     Hu3DModelCameraSet(object->mdlId[0], 4);
@@ -281,267 +281,267 @@ void fn_1_CC8(OMOBJ *object)
     Hu3DModelRotSet(object->mdlId[0], 0, 70, 0);
 }
 
-s32 lbl_1_data_A4[] = { 74, 98 };
-float lbl_1_data_AC[] = { -120, -267.9 };
+s32 backgroundFishSplashFrames[] = { 74, 98 };
+float backgroundFishSplashOffsets[] = { -120, -267.9 };
 
-void fn_1_10BC(OMOBJ *object);
+void FinishBackgroundFishAnimation(OMOBJ *object);
 
-void fn_1_E44(OMOBJ *object)
+void UpdateBackgroundFish(OMOBJ *object)
 {
-    HU3DMODEL *temp_r31;
-    s32 temp_r30;
-    Vec sp8;
-    switch (lbl_1_bss_8[0]) {
+    HU3DMODEL *modelData;
+    s32 effectIndex;
+    Vec effectPosition;
+    switch (backgroundFishState[0]) {
         case 0:
-            if (--lbl_1_bss_8[1] == 0) {
+            if (--backgroundFishState[1] == 0) {
                 Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
-                lbl_1_bss_8[0] = 1;
+                backgroundFishState[0] = 1;
             }
-            for (temp_r30 = 0; temp_r30 < 2u; temp_r30++) {
-                if (lbl_1_bss_4 == lbl_1_data_A4[temp_r30]) {
-                    temp_r31 = &Hu3DData[object->mdlId[0]];
-                    sp8.x = temp_r31->pos.x + (lbl_1_data_AC[temp_r30] * cosd(temp_r31->rot.y));
-                    sp8.y = -15.000001f;
-                    sp8.z = temp_r31->pos.z - (lbl_1_data_AC[temp_r30] * sind(temp_r31->rot.y));
-                    if (temp_r30 == 0) {
-                        fn_1_47EC(&sp8);
+            for (effectIndex = 0; effectIndex < 2u; effectIndex++) {
+                if (backgroundFishFrame == backgroundFishSplashFrames[effectIndex]) {
+                    modelData = &Hu3DData[object->mdlId[0]];
+                    effectPosition.x = modelData->pos.x + (backgroundFishSplashOffsets[effectIndex] * cosd(modelData->rot.y));
+                    effectPosition.y = -15.000001f;
+                    effectPosition.z = modelData->pos.z - (backgroundFishSplashOffsets[effectIndex] * sind(modelData->rot.y));
+                    if (effectIndex == 0) {
+                        CreateWaterSplash(&effectPosition);
                         HuAudFXPlay(1731);
                     }
                     else {
-                        fn_1_43AC(&sp8);
+                        ClampPositionToWaterline(&effectPosition);
                         HuAudFXPlay(1739);
                     }
                 }
             }
-            lbl_1_bss_4++;
+            backgroundFishFrame++;
             break;
 
         case 1:
-            lbl_1_bss_0 += 0.02f;
-            if (lbl_1_bss_0 >= 1.0f) {
-                lbl_1_bss_8[0] = 2;
-                lbl_1_bss_0 = 1.0f;
-                object->objFunc = fn_1_10BC;
+            backgroundFishTransitionProgress += 0.02f;
+            if (backgroundFishTransitionProgress >= 1.0f) {
+                backgroundFishState[0] = 2;
+                backgroundFishTransitionProgress = 1.0f;
+                object->objFunc = FinishBackgroundFishAnimation;
             }
-            fn_1_1A10(lbl_1_bss_0);
+            InterpolateCameraView(backgroundFishTransitionProgress);
             break;
     }
 }
 
-void fn_1_1788(void);
+void PopCameraSettings(void);
 
-void fn_1_10BC(OMOBJ *object)
+void FinishBackgroundFishAnimation(OMOBJ *object)
 {
-    fn_1_1788();
-    fn_1_1788();
+    PopCameraSettings();
+    PopCameraSettings();
     object->objFunc = NULL;
 }
 
-s32 fn_1_10F4(void)
+s32 GetBackgroundFishState(void)
 {
-    return lbl_1_bss_8[0];
+    return backgroundFishState[0];
 }
 
-void fn_1_1150(OMOBJ *object);
+void InitializeTeamScoreDisplay(OMOBJ *object);
 
-u16 lbl_1_data_B4[6] = { 0, 1, 2, 3, 4, 4 };
+u16 scoreSpriteTypes[6] = { 0, 1, 2, 3, 4, 4 };
 
-float lbl_1_data_C0[6][2] = { 0, 0, 0, 0, -33, -2, -9, -2, 11, -2, 31, -2 };
+float scoreSpriteOffsets[6][2] = { 0, 0, 0, 0, -33, -2, -9, -2, 11, -2, 31, -2 };
 
-float lbl_1_data_F0[2][2] = { 104, 56, 472, 56 };
+float teamScoreOrigins[2][2] = { 104, 56, 472, 56 };
 
-typedef struct work_1150 {
-    s32 unk0;
-    s16 unk4;
-    s16 unk6[6];
-    u16 unk12;
-} Work1150;
+typedef struct TeamScoreDisplayWork {
+    s32 displayState;
+    s16 score;
+    s16 digitSprites[6];
+    u16 scorePulseFrames;
+} TeamScoreDisplay;
 
-void fn_1_1104(HUPROCESS *objman)
+void CreateTeamScoreDisplay(HUPROCESS *objman)
 {
-    lbl_1_bss_3C4 = omAddObjEx(objman, 0, 0, 0, -1, fn_1_1150);
+    teamScoreObject = omAddObjEx(objman, 0, 0, 0, -1, InitializeTeamScoreDisplay);
 }
 
-void fn_1_1470(OMOBJ *object);
+void UpdateTeamScoreDisplay(OMOBJ *object);
 
-void fn_1_1150(OMOBJ *object)
+void InitializeTeamScoreDisplay(OMOBJ *object)
 {
-    Work1150 *temp_r31;
-    u32 temp_r30;
-    s32 temp_r29;
-    temp_r31 = HuMemDirectMallocNum(HEAP_HEAP, 2 * sizeof(Work1150), HU_MEMNUM_OVL);
-    object->data = temp_r31;
-    memset(object->data, 0, 2 * sizeof(Work1150));
-    for (temp_r29 = 0; temp_r29 < 2; temp_r31++, temp_r29++) {
-        for (temp_r30 = 0; temp_r30 < 6; temp_r30++) {
-            switch (lbl_1_data_B4[temp_r30]) {
+    TeamScoreDisplay *teamDisplay;
+    u32 spriteIndex;
+    s32 teamIndex;
+    teamDisplay = HuMemDirectMallocNum(HEAP_HEAP, 2 * sizeof(TeamScoreDisplay), HU_MEMNUM_OVL);
+    object->data = teamDisplay;
+    memset(object->data, 0, 2 * sizeof(TeamScoreDisplay));
+    for (teamIndex = 0; teamIndex < 2; teamDisplay++, teamIndex++) {
+        for (spriteIndex = 0; spriteIndex < 6; spriteIndex++) {
+            switch (scoreSpriteTypes[spriteIndex]) {
                 case 0:
-                    temp_r31->unk6[temp_r30] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x1D), 1, 0);
-                    espPriSet(temp_r31->unk6[temp_r30], 256);
-                    espColorSet(temp_r31->unk6[temp_r30], 0, 0, 0);
-                    espTPLvlSet(temp_r31->unk6[temp_r30], 0.5);
+                    teamDisplay->digitSprites[spriteIndex] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x1D), 1, 0);
+                    espPriSet(teamDisplay->digitSprites[spriteIndex], 256);
+                    espColorSet(teamDisplay->digitSprites[spriteIndex], 0, 0, 0);
+                    espTPLvlSet(teamDisplay->digitSprites[spriteIndex], 0.5);
                     break;
 
                 case 1:
-                    temp_r31->unk6[temp_r30]
-                        = espEntry((temp_r29 == 0) ? DATA_MAKE_NUM(DATADIR_MGCONST, 0x1B) : DATA_MAKE_NUM(DATADIR_MGCONST, 0x1C), 1, 0);
-                    espPriSet(temp_r31->unk6[temp_r30], 256);
+                    teamDisplay->digitSprites[spriteIndex]
+                        = espEntry((teamIndex == 0) ? DATA_MAKE_NUM(DATADIR_MGCONST, 0x1B) : DATA_MAKE_NUM(DATADIR_MGCONST, 0x1C), 1, 0);
+                    espPriSet(teamDisplay->digitSprites[spriteIndex], 256);
                     break;
 
                 case 2:
-                    temp_r31->unk6[temp_r30] = espEntry(DATA_MAKE_NUM(DATADIR_M434, 0x0C), 1, 0);
-                    espPriSet(temp_r31->unk6[temp_r30], 256);
-                    espScaleSet(temp_r31->unk6[temp_r30], 0.75, 0.75);
+                    teamDisplay->digitSprites[spriteIndex] = espEntry(DATA_MAKE_NUM(DATADIR_M434, 0x0C), 1, 0);
+                    espPriSet(teamDisplay->digitSprites[spriteIndex], 256);
+                    espScaleSet(teamDisplay->digitSprites[spriteIndex], 0.75, 0.75);
                     break;
 
                 case 3:
-                    temp_r31->unk6[temp_r30] = espEntry(DATA_MAKE_NUM(DATADIR_M434, 0x0D), 1, 0);
-                    espPriSet(temp_r31->unk6[temp_r30], 256);
+                    teamDisplay->digitSprites[spriteIndex] = espEntry(DATA_MAKE_NUM(DATADIR_M434, 0x0D), 1, 0);
+                    espPriSet(teamDisplay->digitSprites[spriteIndex], 256);
                     break;
 
                 case 4:
-                    temp_r31->unk6[temp_r30] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x33), 1, 0);
-                    espPriSet(temp_r31->unk6[temp_r30], 255);
+                    teamDisplay->digitSprites[spriteIndex] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x33), 1, 0);
+                    espPriSet(teamDisplay->digitSprites[spriteIndex], 255);
                     break;
             }
-            espDispOff(temp_r31->unk6[temp_r30]);
-            espDrawNoSet(temp_r31->unk6[temp_r30], 0);
-            espAttrSet(temp_r31->unk6[temp_r30], HUSPR_ATTR_NOANIM);
-            espPosSet(temp_r31->unk6[temp_r30], lbl_1_data_F0[temp_r29][0] + lbl_1_data_C0[temp_r30][0],
-                lbl_1_data_F0[temp_r29][1] + lbl_1_data_C0[temp_r30][1]);
+            espDispOff(teamDisplay->digitSprites[spriteIndex]);
+            espDrawNoSet(teamDisplay->digitSprites[spriteIndex], 0);
+            espAttrSet(teamDisplay->digitSprites[spriteIndex], HUSPR_ATTR_NOANIM);
+            espPosSet(teamDisplay->digitSprites[spriteIndex], teamScoreOrigins[teamIndex][0] + scoreSpriteOffsets[spriteIndex][0],
+                teamScoreOrigins[teamIndex][1] + scoreSpriteOffsets[spriteIndex][1]);
         }
-        temp_r31->unk0 = -1;
+        teamDisplay->displayState = -1;
     }
     HuDataDirClose(DATADIR_MGCONST);
-    object->objFunc = fn_1_1470;
+    object->objFunc = UpdateTeamScoreDisplay;
 }
 
-void fn_1_1470(OMOBJ *object)
+void UpdateTeamScoreDisplay(OMOBJ *object)
 {
-    float temp_f31;
-    Work1150 *temp_r31;
-    s32 temp_r30;
-    s32 temp_r29;
-    temp_r31 = object->data;
-    for (temp_r29 = 0; temp_r29 < 2; temp_r29++, temp_r31++) {
-        if (temp_r31->unk0 >= 0) {
-            if (temp_r31->unk0 == 0) {
-                for (temp_r30 = 0; temp_r30 < 6; temp_r30++) {
-                    espDispOn(temp_r31->unk6[temp_r30]);
+    float pulseScale;
+    TeamScoreDisplay *teamDisplay;
+    s32 teamIndex;
+    s32 spriteIndex;
+    teamDisplay = object->data;
+    for (spriteIndex = 0; spriteIndex < 2; spriteIndex++, teamDisplay++) {
+        if (teamDisplay->displayState >= 0) {
+            if (teamDisplay->displayState == 0) {
+                for (teamIndex = 0; teamIndex < 6; teamIndex++) {
+                    espDispOn(teamDisplay->digitSprites[teamIndex]);
                 }
-                temp_r31->unk0++;
+                teamDisplay->displayState++;
             }
-            if (temp_r31->unk12) {
-                temp_r31->unk12--;
-                temp_f31 = (0.5 * sind((180.0f * temp_r31->unk12) / 16.0f)) + 1.0;
-                espScaleSet(temp_r31->unk6[4], temp_f31, temp_f31);
-                espScaleSet(temp_r31->unk6[5], temp_f31, temp_f31);
+            if (teamDisplay->scorePulseFrames) {
+                teamDisplay->scorePulseFrames--;
+                pulseScale = (0.5 * sind((180.0f * teamDisplay->scorePulseFrames) / 16.0f)) + 1.0;
+                espScaleSet(teamDisplay->digitSprites[4], pulseScale, pulseScale);
+                espScaleSet(teamDisplay->digitSprites[5], pulseScale, pulseScale);
             }
-            espBankSet(temp_r31->unk6[4], temp_r31->unk4 / 10);
-            espBankSet(temp_r31->unk6[5], temp_r31->unk4 % 10);
+            espBankSet(teamDisplay->digitSprites[4], teamDisplay->score / 10);
+            espBankSet(teamDisplay->digitSprites[5], teamDisplay->score % 10);
         }
     }
 }
 
-void fn_1_1638(s32 arg0)
+void ShowTeamScores(s32 unusedDisplayMode)
 {
-    Work1150 *temp_r31;
-    s32 temp_r30;
-    temp_r31 = lbl_1_bss_3C4->data;
-    for (temp_r30 = 0; temp_r30 < 2; temp_r30++, temp_r31++) {
-        temp_r31->unk0 = 0;
+    TeamScoreDisplay *teamDisplay;
+    s32 teamIndex;
+    teamDisplay = teamScoreObject->data;
+    for (teamIndex = 0; teamIndex < 2; teamIndex++, teamDisplay++) {
+        teamDisplay->displayState = 0;
     }
 }
 
-void fn_1_1684(void)
+void FreeTeamScoreDisplay(void)
 {
-    HuMemDirectFree(lbl_1_bss_3C4->data);
+    HuMemDirectFree(teamScoreObject->data);
 }
 
-void fn_1_16B4(void)
+void InitializeCameraStack(void)
 {
-    lbl_1_bss_39C = 0;
-    lbl_1_bss_18 = 0;
+    cameraStackDepth = 0;
+    cameraTransitionMode = 0;
 }
 
-void fn_1_16D8(void)
+void PushCameraSettings(void)
 {
-    CameraView *temp_r31 = &lbl_1_bss_1C[lbl_1_bss_39C++];
-    temp_r31->zoom = CZoom;
-    temp_r31->pos.x = Center.x;
-    temp_r31->pos.y = Center.y;
-    temp_r31->pos.z = Center.z;
-    temp_r31->rot.x = CRot.x;
-    temp_r31->rot.y = CRot.y;
-    temp_r31->rot.z = CRot.z;
+    CameraView *cameraView = &cameraStack[cameraStackDepth++];
+    cameraView->zoom = CZoom;
+    cameraView->pos.x = Center.x;
+    cameraView->pos.y = Center.y;
+    cameraView->pos.z = Center.z;
+    cameraView->rot.x = CRot.x;
+    cameraView->rot.y = CRot.y;
+    cameraView->rot.z = CRot.z;
 }
 
-void fn_1_1788(void)
+void PopCameraSettings(void)
 {
-    CameraView *temp_r31 = &lbl_1_bss_1C[--lbl_1_bss_39C];
-    CZoom = temp_r31->zoom;
-    Center.x = temp_r31->pos.x;
-    Center.y = temp_r31->pos.y;
-    Center.z = temp_r31->pos.z;
-    CRot.x = temp_r31->rot.x;
-    CRot.y = temp_r31->rot.y;
-    CRot.z = temp_r31->rot.z;
+    CameraView *cameraView = &cameraStack[--cameraStackDepth];
+    CZoom = cameraView->zoom;
+    Center.x = cameraView->pos.x;
+    Center.y = cameraView->pos.y;
+    Center.z = cameraView->pos.z;
+    CRot.x = cameraView->rot.x;
+    CRot.y = cameraView->rot.y;
+    CRot.z = cameraView->rot.z;
 }
 
-void fn_1_1838(CameraView *arg0)
+void SetCameraView(CameraView *cameraView)
 {
-    CameraView *temp_r30;
-    CameraView sp8;
-    sp8 = lbl_1_bss_1C[lbl_1_bss_39C++];
-    temp_r30 = &sp8;
-    memcpy(temp_r30, arg0, sizeof(CameraView));
-    CZoom = arg0->zoom;
-    Center.x = arg0->pos.x;
-    Center.y = arg0->pos.y;
-    Center.z = arg0->pos.z;
-    CRot.x = arg0->rot.x;
-    CRot.y = arg0->rot.y;
-    CRot.z = arg0->rot.z;
+    CameraView *savedCameraView;
+    CameraView cameraViewCopy;
+    cameraViewCopy = cameraStack[cameraStackDepth++];
+    savedCameraView = &cameraViewCopy;
+    memcpy(savedCameraView, cameraView, sizeof(CameraView));
+    CZoom = cameraView->zoom;
+    Center.x = cameraView->pos.x;
+    Center.y = cameraView->pos.y;
+    Center.z = cameraView->pos.z;
+    CRot.x = cameraView->rot.x;
+    CRot.y = cameraView->rot.y;
+    CRot.z = cameraView->rot.z;
 }
 
-void fn_1_1950(float arg0, float arg1, float arg2, float arg3, float arg4, float arg5, float arg6)
+void SetCameraViewFromValues(float zoom, float positionX, float positionY, float positionZ, float rotationX, float rotationY, float rotationZ)
 {
-    CameraView *temp_r31 = &lbl_1_bss_1C[lbl_1_bss_39C++];
-    temp_r31->zoom = CZoom = arg0;
-    temp_r31->pos.x = Center.x = arg1;
-    temp_r31->pos.y = Center.y = arg2;
-    temp_r31->pos.z = Center.z = arg3;
-    temp_r31->rot.x = CRot.x = arg4;
-    temp_r31->rot.y = CRot.y = arg5;
-    temp_r31->rot.z = CRot.z = arg6;
+    CameraView *cameraView = &cameraStack[cameraStackDepth++];
+    cameraView->zoom = CZoom = zoom;
+    cameraView->pos.x = Center.x = positionX;
+    cameraView->pos.y = Center.y = positionY;
+    cameraView->pos.z = Center.z = positionZ;
+    cameraView->rot.x = CRot.x = rotationX;
+    cameraView->rot.y = CRot.y = rotationY;
+    cameraView->rot.z = CRot.z = rotationZ;
 }
 
-void fn_1_1A00(s32 arg0)
+void SetCameraTransitionMode(s32 transitionMode)
 {
-    lbl_1_bss_18 = arg0;
+    cameraTransitionMode = transitionMode;
 }
 
 #define LERP_PARAM(view1, view2, field, weight) ((view1)->field +)
 
-void fn_1_1A10(float arg0)
+void InterpolateCameraView(float transitionProgress)
 {
     float weight;
-    CameraView *view1 = &lbl_1_bss_1C[lbl_1_bss_39C - 1];
+    CameraView *view1 = &cameraStack[cameraStackDepth - 1];
     CameraView *view2 = view1 - 1;
-    if (lbl_1_bss_39C < 2) {
+    if (cameraStackDepth < 2) {
         return;
     }
-    switch (lbl_1_bss_18) {
+    switch (cameraTransitionMode) {
         case 0:
-            weight = arg0;
+            weight = transitionProgress;
             break;
 
         case 1:
-            weight = sind(90.0f * arg0);
+            weight = sind(90.0f * transitionProgress);
             break;
 
         case 2:
-            weight = sind(90.0f * arg0);
+            weight = sind(90.0f * transitionProgress);
             weight *= weight;
             break;
     }
@@ -555,27 +555,27 @@ void fn_1_1A10(float arg0)
     CRot.z = view1->rot.z + (weight * (view2->rot.z - view1->rot.z));
 }
 
-void fn_1_1C44(s32 arg0, s32 arg1)
+void AddTeamScore(s32 teamIndex, s32 pointsToAdd)
 {
-    Work1150 *temp_r31 = &((Work1150 *)lbl_1_bss_3C4->data)[arg0];
-    temp_r31->unk4 += arg1;
-    temp_r31->unk12 = 16;
+    TeamScoreDisplay *teamDisplay = &((TeamScoreDisplay *)teamScoreObject->data)[teamIndex];
+    teamDisplay->score += pointsToAdd;
+    teamDisplay->scorePulseFrames = 16;
 }
 
-s32 fn_1_1C88(s32 arg0)
+s32 GetTeamScore(s32 teamIndex)
 {
-    Work1150 *temp_r31 = &((Work1150 *)lbl_1_bss_3C4->data)[arg0];
-    return temp_r31->unk4;
+    TeamScoreDisplay *firstTeamScore = &((TeamScoreDisplay *)teamScoreObject->data)[teamIndex];
+    return firstTeamScore->score;
 }
 
-s32 fn_1_1CB8(void)
+s32 GetWinningTeam(void)
 {
-    s32 temp_r31 = fn_1_1C88(0);
-    s32 temp_r30 = fn_1_1C88(1);
-    if (temp_r31 == temp_r30) {
+    s32 firstTeamScore = GetTeamScore(0);
+    s32 secondTeamScore = GetTeamScore(1);
+    if (firstTeamScore == secondTeamScore) {
         return 0;
     }
-    if (temp_r31 > temp_r30) {
+    if (firstTeamScore > secondTeamScore) {
         return -1;
     }
     else {
@@ -583,32 +583,32 @@ s32 fn_1_1CB8(void)
     }
 }
 
-s16 fn_1_1D44(void)
+s16 GetRoundTimer(void)
 {
-    return lbl_1_bss_3C2;
+    return roundTimerSeconds;
 }
 
-s32 fn_1_1D54(void)
+s32 GetRoundState(void)
 {
-    return lbl_1_bss_10[0];
+    return roundStateTimers[0];
 }
 
-void fn_1_1D64(s32 arg0)
+void SetRoundState(s32 roundState)
 {
-    lbl_1_bss_10[0] = arg0;
+    roundStateTimers[0] = roundState;
 }
 
-s32 fn_1_1D74(s32 arg0)
+s32 GetPlayerTeam(s32 playerIndex)
 {
-    return lbl_1_bss_3A0[arg0];
+    return playerTeamAssignments[playerIndex];
 }
 
-s32 fn_1_1D8C(void)
+s32 GetRoundWinner(void)
 {
-    return lbl_1_bss_3AA;
+    return winningTeam;
 }
 
-void fn_1_1D9C(void)
+void SetRoundFinished(void)
 {
-    lbl_1_bss_3A8 = 1;
+    roundFinished = 1;
 }
