@@ -6,106 +6,106 @@
 #endif
 #include "ext_math.h"
 
-typedef struct {
+typedef struct GenDiceWork {
     union {
         /* 0x00 */ struct {
-            u8 unk7 : 1;
-            u8 unk6 : 1;
-            u8 unk3 : 3;
-            u8 unk1 : 2;
-            u8 unk0 : 1;
+            u8 cancelRequested : 1;
+            u8 soundStarted : 1;
+            u8 animationState : 3;
+            u8 dieIndex : 2;
+            u8 reservedFlag : 1;
         };
-        u8 unk00;
+        u8 controlFlags;
     };
-    /* 0x01 */ u8 unk01;
-    /* 0x02 */ u8 unk02;
-    /* 0x03 */ u8 unk03;
-    /* 0x04 */ s16 unk04;
-    /* 0x06 */ s16 unk06;
-} WorkGenDice;
+    /* 0x01 */ u8 stateTimer;
+    /* 0x02 */ u8 bounceCount;
+    /* 0x03 */ u8 reserved03;
+    /* 0x04 */ s16 rotationAngle;
+    /* 0x06 */ s16 rotationFrame;
+} GenDiceWork;
 
 /* EXTERN FUNCTIONS */
-void fn_1_13D0(void);
-void fn_1_1574(m02GenDice *arg0);
-void fn_1_1794(m02GenDice *arg0);
-void fn_1_1850(OMOBJ *object);
-void fn_1_1F94(m02GenDice *arg0, s32 arg1);
-void fn_1_2030(m02GenDice *arg0);
-void fn_1_2100(m02GenDice *arg0, s32 arg1);
-void fn_1_2220(m02GenDice *arg0);
-s32 fn_1_233C(m02GenDice *arg0);
-void fn_1_23FC(m02GenDice *arg0, s32 arg1);
-void fn_1_23B4(m02GenDice *arg0, s32 arg1);
-void fn_1_272C(m02GenDice *arg0);
+void GenDiceRollProcess(void);
+void GenDiceSpawnDie(W02GenDice *diceWork);
+void GenDiceWaitForDieAnimation(W02GenDice *diceWork);
+void GenDiceDieUpdate(OMOBJ *object);
+void GenDiceDieDestroy(W02GenDice *diceWork, s32 dieIndex);
+void GenDiceDieFinish(W02GenDice *diceWork);
+void GenDiceNumberCreate(W02GenDice *diceWork, s32 dieIndex);
+void GenDiceDieResultSet(W02GenDice *diceWork);
+s32 GenDiceNumbersAtTargetCheck(W02GenDice *diceWork);
+void GenDiceNumberDisplay(W02GenDice *diceWork, s32 rollResult);
+void GenDiceNumberDestroy(W02GenDice *diceWork, s32 dieIndex);
+void GenDiceNumbersDestroy(W02GenDice *diceWork);
 
 /* LOCAL FUNCTIONS */
-void fn_1_1254(m02GenDice *arg0)
+void GenDiceCreate(W02GenDice *diceWork)
 {
-    Vec sp8;
+    Vec screenPosition;
     s32 i;
 
-    OSReport("m02GenDiceCreate\n");
-    arg0->unk2C = HuPrcChildCreate(fn_1_13D0, 0x2005, 0x2000, 0, boardMainProc);
-    arg0->unk2C->user_data = arg0;
-    arg0->unk94 = 0;
-    arg0->unk9C = 0;
-    arg0->unk28 = 0;
-    Hu3D3Dto2D(&arg0->unk0C, 1, &sp8);
+    OSReport("W02GenDiceCreate\n");
+    diceWork->rollProcess = HuPrcChildCreate(GenDiceRollProcess, 0x2005, 0x2000, 0, boardMainProc);
+    diceWork->rollProcess->user_data = diceWork;
+    diceWork->totalRollResult = 0;
+    diceWork->dieAnimationComplete = 0;
+    diceWork->rollComplete = 0;
+    Hu3D3Dto2D(&diceWork->spawnPosition, 1, &screenPosition);
 
     /* Initialize Matrix */
-    arg0->unk64[0] = arg0->unk64[1] = arg0->unk7C = sp8;
-    arg0->unk7C.y = arg0->unk64[1].y = arg0->unk64[0].y = 155;
-    arg0->unk7C.z = arg0->unk64[1].z = arg0->unk64[0].z = 1400;
-    arg0->unk96 = -1;
+    diceWork->resultScreenPositions[0] = diceWork->resultScreenPositions[1] = diceWork->singleDieResultPosition = screenPosition;
+    diceWork->singleDieResultPosition.y = diceWork->resultScreenPositions[1].y = diceWork->resultScreenPositions[0].y = 155;
+    diceWork->singleDieResultPosition.z = diceWork->resultScreenPositions[1].z = diceWork->resultScreenPositions[0].z = 1400;
+    diceWork->activeDieIndex = -1;
 
     for (i = 0; i < 3; i++) {
-        arg0->unk3C[i] = 0;
-        arg0->unk50[i] = 0;
-        arg0->unk30[i] = -1;
-        arg0->unk48[i] = -1;
-        arg0->unk88[i] = -1;
+        diceWork->dieObjects[i] = 0;
+        diceWork->resultNumberObjects[i] = 0;
+        diceWork->dieModelIds[i] = -1;
+        diceWork->dieParticleIds[i] = -1;
+        diceWork->dieSoundIds[i] = -1;
     }
 }
 
-void fn_1_13D0(void)
+void GenDiceRollProcess(void)
 {
-    s32 var_r29;
+    s32 totalRoll;
     s32 i;
-    s32 var_r30_2;
-    m02GenDice *temp_r31;
+    s32 dieIndex;
+    W02GenDice *dice;
 
-    temp_r31 = HuPrcCurrentGet()->user_data;
-    temp_r31->unk36[0] = temp_r31->unk36[1] = temp_r31->unk36[2] = 0;
-    var_r29 = 0;
-    temp_r31->unk96 = 0;
-    while (temp_r31->unk96 < temp_r31->unk00) {
-        fn_1_1574(temp_r31);
-        fn_1_1794(temp_r31);
-        while (temp_r31->unk9C == 0) {
+    dice = HuPrcCurrentGet()->user_data;
+    dice->dieFaceResults[0] = dice->dieFaceResults[1] = dice->dieFaceResults[2] = 0;
+    totalRoll = 0;
+    dice->activeDieIndex = 0;
+    while (dice->activeDieIndex < dice->dieCount) {
+        GenDiceSpawnDie(dice);
+        GenDiceWaitForDieAnimation(dice);
+        while (dice->dieAnimationComplete == 0) {
             HuPrcVSleep();
         }
-        fn_1_2220(temp_r31);
-        while (temp_r31->unk9C != 0) {
+        GenDiceDieResultSet(dice);
+        while (dice->dieAnimationComplete != 0) {
             HuPrcVSleep();
         }
-        temp_r31->unk96 += 1;
+        dice->activeDieIndex += 1;
     }
 
-    for (i = 0; i < temp_r31->unk00; i++) {
-        var_r29 += temp_r31->unk36[i];
+    for (i = 0; i < dice->dieCount; i++) {
+        totalRoll += dice->dieFaceResults[i];
     }
-    OSReport("Dice res: %d\n", var_r29);
+    OSReport("Dice res: %d\n", totalRoll);
 
-    while (fn_1_233C(temp_r31) == 0) {
+    while (GenDiceNumbersAtTargetCheck(dice) == 0) {
         HuPrcVSleep();
     }
-    temp_r31->unk94 = (s16)var_r29;
-    temp_r31->unk28 = 1;
-    if (temp_r31->unk22 != 0) {
-        for (i = 0; i < temp_r31->unk00; i++) {
-            fn_1_23B4(temp_r31, i);
+    dice->totalRollResult = (s16)totalRoll;
+    dice->rollComplete = 1;
+    if (dice->displayRollTotal != 0) {
+        for (i = 0; i < dice->dieCount; i++) {
+            GenDiceNumberDestroy(dice, i);
         }
-        temp_r31->unk2C = NULL;
+        dice->rollProcess = NULL;
         HuPrcEnd();
     }
     while (TRUE) {
@@ -113,490 +113,491 @@ void fn_1_13D0(void)
     }
 }
 
-void fn_1_1518(m02GenDice *arg0)
+void GenDiceDestroy(W02GenDice *diceWork)
 {
-    OSReport("m02GenDiceKill\n");
-    if (arg0->unk2C) {
-        HuPrcKill(arg0->unk2C);
+    OSReport("W02GenDiceKill\n");
+    if (diceWork->rollProcess) {
+        HuPrcKill(diceWork->rollProcess);
     }
-    fn_1_2030(arg0);
-    fn_1_272C(arg0);
+    GenDiceDieFinish(diceWork);
+    GenDiceNumbersDestroy(diceWork);
 }
 
-void fn_1_1574(m02GenDice *arg0)
+void GenDiceSpawnDie(W02GenDice *diceWork)
 {
-    Vec sp8;
-    f32 temp_f0;
-    OMOBJ *temp_r3;
-    s32 temp_r28;
-    WorkGenDice *temp_r29;
+    Vec diePosition;
+    f32 motionFrame;
+    OMOBJ *dieObject;
+    s32 dieIndex;
+    GenDiceWork *dieWork;
 
-    temp_r28 = arg0->unk96;
-    arg0->unk30[temp_r28] = BoardModelCreate(arg0->unk04, NULL, 0);
-    arg0->unk98 = 0.5f + BoardRandMod(arg0->unk1A);
-    BoardModelMotionStart(arg0->unk30[temp_r28], 0, 0x40000001U);
-    BoardModelMotionSpeedSet(arg0->unk30[temp_r28], 0);
-    BoardModelMotionTimeSet(arg0->unk30[temp_r28], arg0->unk98);
-    temp_r3 = omAddObjEx(boardObjMan, 0x102, 0U, 0U, -1, fn_1_1850);
-    temp_r29 = (WorkGenDice *)temp_r3->work;
+    dieIndex = diceWork->activeDieIndex;
+    diceWork->dieModelIds[dieIndex] = BoardModelCreate(diceWork->dieModelData, NULL, 0);
+    diceWork->dieMotionStartFrame = 0.5f + BoardRandMod(diceWork->maximumRoll);
+    BoardModelMotionStart(diceWork->dieModelIds[dieIndex], 0, 0x40000001U);
+    BoardModelMotionSpeedSet(diceWork->dieModelIds[dieIndex], 0);
+    BoardModelMotionTimeSet(diceWork->dieModelIds[dieIndex], diceWork->dieMotionStartFrame);
+    dieObject = omAddObjEx(boardObjMan, 0x102, 0U, 0U, -1, GenDiceDieUpdate);
+    dieWork = (GenDiceWork *)dieObject->work;
 
-    temp_r29->unk7 = 0;
-    temp_r29->unk6 = 0;
-    temp_r29->unk3 = 0;
-    temp_r29->unk1 = temp_r28;
+    dieWork->cancelRequested = 0;
+    dieWork->soundStarted = 0;
+    dieWork->animationState = 0;
+    dieWork->dieIndex = dieIndex;
 
-    temp_r29->unk04 = 0;
-    temp_r29->unk01 = 3;
-    temp_r29->unk02 = 0;
-    temp_r3->mode = (u32)arg0;
-    arg0->unk3C[temp_r28] = temp_r3;
-    sp8 = arg0->unk0C;
-    sp8.y += (250.0f * arg0->unk24);
-    temp_r3->trans.x = sp8.x;
-    temp_r3->trans.y = sp8.y;
-    temp_r3->trans.z = sp8.z;
-    temp_r3->scale.x = 0;
-    temp_r3->scale.y = 0;
-    temp_r3->scale.z = 0;
-    sp8.z += 70.0f;
+    dieWork->rotationAngle = 0;
+    dieWork->stateTimer = 3;
+    dieWork->bounceCount = 0;
+    dieObject->mode = (u32)diceWork;
+    diceWork->dieObjects[dieIndex] = dieObject;
+    diePosition = diceWork->spawnPosition;
+    diePosition.y += (250.0f * diceWork->dieVerticalSpacing);
+    dieObject->trans.x = diePosition.x;
+    dieObject->trans.y = diePosition.y;
+    dieObject->trans.z = diePosition.z;
+    dieObject->scale.x = 0;
+    dieObject->scale.y = 0;
+    dieObject->scale.z = 0;
+    diePosition.z += 70.0f;
     HuAudFXPlay(0x302);
 }
 
-void fn_1_1794(m02GenDice *arg0)
+void GenDiceWaitForDieAnimation(W02GenDice *diceWork)
 {
-    WorkGenDice *temp_r30;
+    GenDiceWork *dieWork;
 
-    temp_r30 = omObjGetWork(arg0->unk3C[arg0->unk96], WorkGenDice);
-    while (temp_r30->unk3 != 1) {
+    dieWork = omObjGetWork(diceWork->dieObjects[diceWork->activeDieIndex], GenDiceWork);
+    while (dieWork->animationState != 1) {
         HuPrcVSleep();
     }
 }
 
-s32 fn_1_17F4(m02GenDice *arg0)
+s32 GenDiceAnimationCheck(W02GenDice *diceWork)
 {
-    WorkGenDice *temp;
-    if (arg0->unk96 < 0) {
+    GenDiceWork *dieWork;
+    if (diceWork->activeDieIndex < 0) {
         return 0;
     }
-    temp = omObjGetWork(arg0->unk3C[arg0->unk96], WorkGenDice);
-    if (temp->unk3 != 1) {
+    dieWork = omObjGetWork(diceWork->dieObjects[diceWork->activeDieIndex], GenDiceWork);
+    if (dieWork->animationState != 1) {
         return 0;
     }
     return 1;
 }
 
-void fn_1_1850(OMOBJ *object)
+void GenDiceDieUpdate(OMOBJ *object)
 {
-    WorkGenDice *temp_r29;
-    m02GenDice *temp_r27;
-    s16 temp_r26;
-    s16 temp_r25;
-    float temp_f29;
-    float temp_f28;
-    float temp_f27;
-    temp_r27 = (m02GenDice *)object->mode;
-    temp_r29 = omObjGetWork(object, WorkGenDice);
-    if (temp_r29->unk7 || BoardIsKill()) {
-        fn_1_1F94(temp_r27, temp_r29->unk1);
-        temp_r27->unk3C[temp_r29->unk1] = NULL;
+    GenDiceWork *dieWork;
+    W02GenDice *dice;
+    s16 randomFrame;
+    s16 previousMotionFrame;
+    float angleRadians;
+    float scaleFactor;
+    float scaleOffset;
+    dice = (W02GenDice *)object->mode;
+    dieWork = omObjGetWork(object, GenDiceWork);
+    if (dieWork->cancelRequested || BoardIsKill()) {
+        GenDiceDieDestroy(dice, dieWork->dieIndex);
+        dice->dieObjects[dieWork->dieIndex] = NULL;
         omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     if (BoardPauseActiveCheck()) {
         return;
     }
-    switch (temp_r29->unk3) {
+    switch (dieWork->animationState) {
         case 0:
-            if (temp_r29->unk06 >= 1080) {
-                temp_r29->unk3 = 1;
+            if (dieWork->rotationFrame >= 1080) {
+                dieWork->animationState = 1;
                 object->scale.x = object->scale.y = object->scale.z = 1;
 
-                object->rot.y = temp_r29->unk04 = 0;
+                object->rot.y = dieWork->rotationAngle = 0;
             }
             else {
-                if (!temp_r29->unk04 && temp_r27->unk88[temp_r29->unk1] == -1) {
-                    temp_r27->unk88[temp_r29->unk1] = HuAudFXPlay(768);
+                if (!dieWork->rotationAngle && dice->dieSoundIds[dieWork->dieIndex] == -1) {
+                    dice->dieSoundIds[dieWork->dieIndex] = HuAudFXPlay(768);
                 }
-                object->rot.y = temp_r29->unk06 % 360;
-                temp_r29->unk06 += 25;
-                if (temp_r29->unk04 < 180) {
-                    temp_f27 = 0;
-                    temp_f28 = 1;
+                object->rot.y = dieWork->rotationFrame % 360;
+                dieWork->rotationFrame += 25;
+                if (dieWork->rotationAngle < 180) {
+                    scaleOffset = 0;
+                    scaleFactor = 1;
                 }
                 else {
-                    temp_f27 = 1;
-                    temp_f28 = 0.5f;
+                    scaleOffset = 1;
+                    scaleFactor = 0.5f;
                 }
-                object->scale.x = (temp_f28 * sind((float)(temp_r29->unk04 % 180))) + temp_f27;
+                object->scale.x = (scaleFactor * sind((float)(dieWork->rotationAngle % 180))) + scaleOffset;
                 object->scale.y = object->scale.x;
                 object->scale.z = object->scale.x;
-                if (temp_r29->unk04 <= 360) {
-                    if (temp_r29->unk04 < 180) {
-                        temp_r29->unk04 += 6;
+                if (dieWork->rotationAngle <= 360) {
+                    if (dieWork->rotationAngle < 180) {
+                        dieWork->rotationAngle += 6;
                     }
                     else {
-                        temp_r29->unk04 += 18;
+                        dieWork->rotationAngle += 18;
                     }
-                    if (temp_r29->unk04 > 360) {
-                        temp_r29->unk04 = 360;
+                    if (dieWork->rotationAngle > 360) {
+                        dieWork->rotationAngle = 360;
                     }
                 }
             }
             break;
 
         case 1:
-            temp_r29->unk04 += 4;
-            if (temp_r29->unk04 > 360) {
-                temp_r29->unk04 -= 360;
+            dieWork->rotationAngle += 4;
+            if (dieWork->rotationAngle > 360) {
+                dieWork->rotationAngle -= 360;
             }
-            OSs16tof32(&temp_r29->unk04, &temp_f29);
-            object->trans.y += sind(temp_f29) * 0.2f;
+            OSs16tof32(&dieWork->rotationAngle, &angleRadians);
+            object->trans.y += sind(angleRadians) * 0.2f;
             break;
 
         case 2:
-            temp_r29->unk04++;
-            if (temp_r29->unk04 >= 8) {
-                if (temp_r27->unk88[temp_r29->unk1] != -1) {
-                    HuAudFXStop(temp_r27->unk88[temp_r29->unk1]);
-                    temp_r27->unk88[temp_r29->unk1] = -1;
+            dieWork->rotationAngle++;
+            if (dieWork->rotationAngle >= 8) {
+                if (dice->dieSoundIds[dieWork->dieIndex] != -1) {
+                    HuAudFXStop(dice->dieSoundIds[dieWork->dieIndex]);
+                    dice->dieSoundIds[dieWork->dieIndex] = -1;
                 }
                 HuAudFXPlay(771);
                 HuAudFXPlay(780);
-                temp_r29->unk3 = 3;
-                temp_r29->unk04 = 0;
-                fn_1_23FC(temp_r27, temp_r27->unk36[temp_r29->unk1]);
-                fn_1_2100(temp_r27, temp_r29->unk1);
-                Hu3DParManPosSet(temp_r27->unk48[temp_r29->unk1], object->trans.x, object->trans.y, object->trans.z);
-                BoardModelVisibilitySet(temp_r27->unk30[temp_r29->unk1], 0);
+                dieWork->animationState = 3;
+                dieWork->rotationAngle = 0;
+                GenDiceNumberDisplay(dice, dice->dieFaceResults[dieWork->dieIndex]);
+                GenDiceNumberCreate(dice, dieWork->dieIndex);
+                Hu3DParManPosSet(dice->dieParticleIds[dieWork->dieIndex], object->trans.x, object->trans.y, object->trans.z);
+                BoardModelVisibilitySet(dice->dieModelIds[dieWork->dieIndex], 0);
             }
             else {
-                OSs16tof32(&temp_r29->unk04, &temp_f29);
-                if (temp_r29->unk04 < 4) {
-                    object->trans.y += (0.5f * temp_f29) + 10.0f;
-                    object->scale.x += (0.1f * sind(4.0f * temp_f29));
+                OSs16tof32(&dieWork->rotationAngle, &angleRadians);
+                if (dieWork->rotationAngle < 4) {
+                    object->trans.y += (0.5f * angleRadians) + 10.0f;
+                    object->scale.x += (0.1f * sind(4.0f * angleRadians));
                     object->scale.y = object->scale.x;
                     object->scale.z = object->scale.x;
                 }
                 else {
-                    BoardModelAlphaSet(temp_r27->unk30[temp_r29->unk1], 255 - (temp_r29->unk04 * 32));
+                    BoardModelAlphaSet(dice->dieModelIds[dieWork->dieIndex], 255 - (dieWork->rotationAngle * 32));
                 }
-                object->trans.y += -0.49f * temp_f29 * temp_f29;
+                object->trans.y += -0.49f * angleRadians * angleRadians;
             }
             break;
 
         case 3:
-            if (++temp_r29->unk04 >= 150) {
-                temp_r29->unk7 = 1;
+            if (++dieWork->rotationAngle >= 150) {
+                dieWork->cancelRequested = 1;
             }
             break;
     }
-    if (!temp_r29->unk6 || temp_r29->unk3 != 3) {
-        if (temp_r29->unk02++ > temp_r29->unk01) {
-            temp_r29->unk02 = 0;
-            temp_r25 = BoardModelMotionTimeGet(temp_r27->unk30[temp_r29->unk1]);
+    if (!dieWork->soundStarted || dieWork->animationState != 3) {
+        if (dieWork->bounceCount++ > dieWork->stateTimer) {
+            dieWork->bounceCount = 0;
+            previousMotionFrame = BoardModelMotionTimeGet(dice->dieModelIds[dieWork->dieIndex]);
             do {
-                temp_r26 = BoardRandMod(temp_r27->unk1A);
-            } while (temp_r26 == temp_r25);
-            BoardModelMotionTimeSet(temp_r27->unk30[temp_r29->unk1], temp_r26 + 0.5f);
+                randomFrame = BoardRandMod(dice->maximumRoll);
+            } while (randomFrame == previousMotionFrame);
+            BoardModelMotionTimeSet(dice->dieModelIds[dieWork->dieIndex], randomFrame + 0.5f);
         }
     }
-    BoardModelPosSet(temp_r27->unk30[temp_r29->unk1], object->trans.x, object->trans.y, object->trans.z);
-    BoardModelRotSet(temp_r27->unk30[temp_r29->unk1], object->rot.x, object->rot.y, object->rot.z);
-    BoardModelScaleSet(temp_r27->unk30[temp_r29->unk1], object->scale.x, object->scale.y, object->scale.z);
+    BoardModelPosSet(dice->dieModelIds[dieWork->dieIndex], object->trans.x, object->trans.y, object->trans.z);
+    BoardModelRotSet(dice->dieModelIds[dieWork->dieIndex], object->rot.x, object->rot.y, object->rot.z);
+    BoardModelScaleSet(dice->dieModelIds[dieWork->dieIndex], object->scale.x, object->scale.y, object->scale.z);
 }
 
-void fn_1_1F94(m02GenDice *arg0, s32 arg1)
+void GenDiceDieDestroy(W02GenDice *diceWork, s32 dieIndex)
 {
-    if (arg0->unk30[arg1] != -1) {
-        BoardModelKill(arg0->unk30[arg1]);
-        arg0->unk30[arg1] = -1;
+    if (diceWork->dieModelIds[dieIndex] != -1) {
+        BoardModelKill(diceWork->dieModelIds[dieIndex]);
+        diceWork->dieModelIds[dieIndex] = -1;
     }
 
-    if (arg0->unk48[arg1] != -1) {
-        Hu3DParManKill(arg0->unk48[arg1]);
-        arg0->unk48[arg1] = -1;
+    if (diceWork->dieParticleIds[dieIndex] != -1) {
+        Hu3DParManKill(diceWork->dieParticleIds[dieIndex]);
+        diceWork->dieParticleIds[dieIndex] = -1;
     }
 }
 
-void fn_1_2030(m02GenDice *arg0)
+void GenDiceDieFinish(W02GenDice *diceWork)
 {
-    fn_1_1F94(arg0, 0);
-    fn_1_1F94(arg0, 1);
-    fn_1_1F94(arg0, 2);
+    GenDiceDieDestroy(diceWork, 0);
+    GenDiceDieDestroy(diceWork, 1);
+    GenDiceDieDestroy(diceWork, 2);
 }
 
-HU3DPARMANPARAM lbl_1_data_2D8 = { 150, { 0x00, 0x00 }, // padding?
+HU3DPARMANPARAM genDiceParticleParams = { 150, { 0x00, 0x00 }, // padding?
     50, 0, 65.0f, { 0.0f, -0.195f, 0.0f }, 100.0f, 0.99f, 40.0f, 0.999f, 0x0004,
     { 0xFF, 0xFF, 0x20, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
     { 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00 } };
 
-void fn_1_2100(m02GenDice *arg0, s32 arg1)
+void GenDiceNumberCreate(W02GenDice *diceWork, s32 dieIndex)
 {
-    s16 temp_r29;
-    ANIMDATA *temp_r28;
-    void *temp_r27;
-    temp_r27 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 0x01), HU_MEMNUM_OVL, HEAP_MODEL);
-    temp_r28 = HuSprAnimRead(temp_r27);
-    arg0->unk48[arg1] = Hu3DParManCreate(temp_r28, 100, &lbl_1_data_2D8);
-    Hu3DParManAttrSet(arg0->unk48[arg1], 0x108);
-    Hu3DParManRotSet(arg0->unk48[arg1], 0, 0, 0);
-    Hu3DParManVecSet(arg0->unk48[arg1], 0, 0.4f, 0.2f);
-    temp_r29 = Hu3DParManModelIDGet(arg0->unk48[arg1]);
-    Hu3DModelLayerSet(temp_r29, 2);
-    Hu3DParticleBlendModeSet(temp_r29, 0);
+    s16 particleModelId;
+    ANIMDATA *particleAnimation;
+    void *particleData;
+    particleData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 0x01), HU_MEMNUM_OVL, HEAP_MODEL);
+    particleAnimation = HuSprAnimRead(particleData);
+    diceWork->dieParticleIds[dieIndex] = Hu3DParManCreate(particleAnimation, 100, &genDiceParticleParams);
+    Hu3DParManAttrSet(diceWork->dieParticleIds[dieIndex], 0x108);
+    Hu3DParManRotSet(diceWork->dieParticleIds[dieIndex], 0, 0, 0);
+    Hu3DParManVecSet(diceWork->dieParticleIds[dieIndex], 0, 0.4f, 0.2f);
+    particleModelId = Hu3DParManModelIDGet(diceWork->dieParticleIds[dieIndex]);
+    Hu3DModelLayerSet(particleModelId, 2);
+    Hu3DParticleBlendModeSet(particleModelId, 0);
 }
 
-void fn_1_2220(m02GenDice *arg0)
+void GenDiceDieResultSet(W02GenDice *diceWork)
 {
-    s32 temp_r30;
-    WorkGenDice *temp_r29;
-    temp_r30 = arg0->unk96;
-    temp_r29 = omObjGetWork(arg0->unk3C[temp_r30], WorkGenDice);
-    temp_r29->unk3 = 2;
-    temp_r29->unk04 = 0;
-    BoardModelMotionSpeedSet(arg0->unk30[temp_r30], 0);
+    s32 dieIndex;
+    GenDiceWork *dieWork;
+    dieIndex = diceWork->activeDieIndex;
+    dieWork = omObjGetWork(diceWork->dieObjects[dieIndex], GenDiceWork);
+    dieWork->animationState = 2;
+    dieWork->rotationAngle = 0;
+    BoardModelMotionSpeedSet(diceWork->dieModelIds[dieIndex], 0);
 
-    arg0->unk36[temp_r30] = arg0->unk1C[temp_r30];
+    diceWork->dieFaceResults[dieIndex] = diceWork->dieResults[dieIndex];
 }
 
-typedef struct {
-    u8 field0_bit0 : 1;
-    u8 field0_bit1 : 1;
-    u8 field0_bit2 : 1;
-    u8 field0_bit3 : 2;
-    s8 unk01;
-    s16 unk02;
-    s16 unk04[2];
-    float unk08;
-} WorkGenDiceNum;
+typedef struct GenDiceNumberWork {
+    u8 cancelRequested : 1;
+    u8 settled : 1;
+    u8 moveComplete : 1;
+    u8 dieIndex : 2;
+    u8 reservedFlags : 3;
+    s8 stateTimer;
+    s16 bounceCount;
+    s16 digitModelIds[2];
+    float movementStep;
+} GenDiceNumberWork;
 
-void fn_1_22BC(m02GenDice *arg0)
+void GenDiceNumberStop(W02GenDice *diceWork)
 {
-    s32 temp_r31;
-    WorkGenDiceNum *temp_r30;
-    for (temp_r31 = 0; temp_r31 < arg0->unk00; temp_r31++) {
-        if (arg0->unk50[temp_r31]) {
-            temp_r30 = omObjGetWork(arg0->unk50[temp_r31], WorkGenDiceNum);
-            temp_r30->field0_bit1 = 1;
-            temp_r30->field0_bit2 = 1;
-            temp_r30->unk02 = 0;
+    s32 dieIndex;
+    GenDiceNumberWork *numberWork;
+    for (dieIndex = 0; dieIndex < diceWork->dieCount; dieIndex++) {
+        if (diceWork->resultNumberObjects[dieIndex]) {
+            numberWork = omObjGetWork(diceWork->resultNumberObjects[dieIndex], GenDiceNumberWork);
+            numberWork->settled = 1;
+            numberWork->moveComplete = 1;
+            numberWork->bounceCount = 0;
         }
     }
 }
 
-s32 fn_1_233C(m02GenDice *arg0)
+s32 GenDiceNumbersAtTargetCheck(W02GenDice *diceWork)
 {
-    s32 temp_r31;
-    WorkGenDiceNum *temp_r30;
-    for (temp_r31 = 0; temp_r31 < arg0->unk00; temp_r31++) {
-        if (!arg0->unk50[temp_r31]) {
+    s32 dieIndex;
+    GenDiceNumberWork *numberWork;
+    for (dieIndex = 0; dieIndex < diceWork->dieCount; dieIndex++) {
+        if (!diceWork->resultNumberObjects[dieIndex]) {
             continue;
         }
-        temp_r30 = omObjGetWork(arg0->unk50[temp_r31], WorkGenDiceNum);
-        if (temp_r30->field0_bit2) {
+        numberWork = omObjGetWork(diceWork->resultNumberObjects[dieIndex], GenDiceNumberWork);
+        if (numberWork->moveComplete) {
             return 0;
         }
     }
     return 1;
 }
 
-void fn_1_23B4(m02GenDice *arg0, s32 arg1)
+void GenDiceNumberDestroy(W02GenDice *diceWork, s32 dieIndex)
 {
-    WorkGenDiceNum *work;
-    if (!arg0->unk50[arg1]) {
+    GenDiceNumberWork *numberWork;
+    if (!diceWork->resultNumberObjects[dieIndex]) {
         return;
     }
-    work = omObjGetWork(arg0->unk50[arg1], WorkGenDiceNum);
-    work->field0_bit0 = 1;
+    numberWork = omObjGetWork(diceWork->resultNumberObjects[dieIndex], GenDiceNumberWork);
+    numberWork->cancelRequested = 1;
 }
 
-void fn_1_25D0(OMOBJ *object);
+void GenDiceNumberUpdate(OMOBJ *object);
 
-void fn_1_23FC(m02GenDice *arg0, s32 arg1)
+void GenDiceNumberDisplay(W02GenDice *diceWork, s32 rollResult)
 {
-    Vec spC;
-    s16 sp8[2];
-    WorkGenDiceNum *temp_r31;
-    s16 temp_r29;
-    OMOBJ *temp_r28;
-    s32 temp_r26;
-    s16 temp_r25;
-    temp_r26 = arg0->unk96;
-    if (arg1 > 99) {
-        arg1 = 99;
+    Vec numberPosition;
+    s16 digits[2];
+    GenDiceNumberWork *numberWork;
+    s16 digitIndex;
+    OMOBJ *numberObject;
+    s32 dieIndex;
+    s16 digitModelId;
+    dieIndex = diceWork->activeDieIndex;
+    if (rollResult > 99) {
+        rollResult = 99;
     }
-    sp8[0] = arg1 % 10;
-    sp8[1] = arg1 / 10;
-    spC = arg0->unk0C;
-    spC.y += 300.0f;
-    temp_r28 = omAddObjEx(boardObjMan, 258, 0, 0, -1, fn_1_25D0);
-    temp_r28->mode = (u32)arg0;
-    temp_r31 = omObjGetWork(temp_r28, WorkGenDiceNum);
-    temp_r31->field0_bit0 = 0;
-    temp_r31->field0_bit1 = 0;
-    temp_r31->field0_bit2 = 0;
-    temp_r31->field0_bit3 = temp_r26;
-    temp_r31->unk08 = 0.3f;
-    temp_r31->unk01 = arg1;
-    temp_r31->unk02 = 360;
-    for (temp_r29 = 0; temp_r29 < 2; temp_r29++) {
-        temp_r25 = BoardModelCreate(arg0->unk08[sp8[temp_r29]], NULL, 0);
-        BoardModelPosSetV(temp_r25, &spC);
-        temp_r31->unk04[temp_r29] = temp_r25;
+    digits[0] = rollResult % 10;
+    digits[1] = rollResult / 10;
+    numberPosition = diceWork->spawnPosition;
+    numberPosition.y += 300.0f;
+    numberObject = omAddObjEx(boardObjMan, 258, 0, 0, -1, GenDiceNumberUpdate);
+    numberObject->mode = (u32)diceWork;
+    numberWork = omObjGetWork(numberObject, GenDiceNumberWork);
+    numberWork->cancelRequested = 0;
+    numberWork->settled = 0;
+    numberWork->moveComplete = 0;
+    numberWork->dieIndex = dieIndex;
+    numberWork->movementStep = 0.3f;
+    numberWork->stateTimer = rollResult;
+    numberWork->bounceCount = 360;
+    for (digitIndex = 0; digitIndex < 2; digitIndex++) {
+        digitModelId = BoardModelCreate(diceWork->dieFaceData[digits[digitIndex]], NULL, 0);
+        BoardModelPosSetV(digitModelId, &numberPosition);
+        numberWork->digitModelIds[digitIndex] = digitModelId;
     }
-    if (sp8[1] == 0) {
-        BoardModelVisibilitySet(temp_r31->unk04[1], 0);
+    if (digits[1] == 0) {
+        BoardModelVisibilitySet(numberWork->digitModelIds[1], 0);
     }
-    arg0->unk50[temp_r26] = temp_r28;
+    diceWork->resultNumberObjects[dieIndex] = numberObject;
 }
 
-void fn_1_2694(WorkGenDiceNum *arg0);
-void fn_1_2830(m02GenDice *arg0, WorkGenDiceNum *arg1, s32 arg2);
-void fn_1_2BE4(m02GenDice *arg0, WorkGenDiceNum *arg1, s32 arg2);
+void GenDiceNumberModelsDestroy(GenDiceNumberWork *numberWork);
+void GenDiceNumberMove(W02GenDice *diceWork, GenDiceNumberWork *numberWork, s32 displayFinalTotal);
+void GenDiceNumberRotate(W02GenDice *diceWork, GenDiceNumberWork *numberWork, s32 displayFinalTotal);
 
-void fn_1_25D0(OMOBJ *object)
+void GenDiceNumberUpdate(OMOBJ *object)
 {
-    WorkGenDiceNum *temp_r31;
-    m02GenDice *temp_r30;
-    temp_r30 = (m02GenDice *)object->mode;
-    temp_r31 = omObjGetWork(object, WorkGenDiceNum);
-    if (temp_r31->field0_bit0 || BoardIsKill()) {
-        fn_1_2694(temp_r31);
-        temp_r30->unk50[temp_r31->field0_bit3] = NULL;
+    GenDiceNumberWork *numberWork;
+    W02GenDice *dice;
+    dice = (W02GenDice *)object->mode;
+    numberWork = omObjGetWork(object, GenDiceNumberWork);
+    if (numberWork->cancelRequested || BoardIsKill()) {
+        GenDiceNumberModelsDestroy(numberWork);
+        dice->resultNumberObjects[numberWork->dieIndex] = NULL;
         omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
     if (BoardPauseActiveCheck()) {
         return;
     }
-    fn_1_2830(temp_r30, temp_r31, temp_r31->field0_bit1);
-    fn_1_2BE4(temp_r30, temp_r31, temp_r31->field0_bit1);
+    GenDiceNumberMove(dice, numberWork, numberWork->settled);
+    GenDiceNumberRotate(dice, numberWork, numberWork->settled);
 }
 
-void fn_1_2694(WorkGenDiceNum *arg0)
+void GenDiceNumberModelsDestroy(GenDiceNumberWork *numberWork)
 {
     s32 i;
     for (i = 0; i < 2; i++) {
-        if (arg0->unk04[i] == -1) {
+        if (numberWork->digitModelIds[i] == -1) {
             continue;
         }
-        OSReport("%d:GenDiceNumExitOM Kill %d\n", i, arg0->unk04[i]);
-        BoardModelKill(arg0->unk04[i]);
-        arg0->unk04[i] = -1;
+        OSReport("%d:GenDiceNumExitOM Kill %d\n", i, numberWork->digitModelIds[i]);
+        BoardModelKill(numberWork->digitModelIds[i]);
+        numberWork->digitModelIds[i] = -1;
         (void)i;
     }
 }
 
-void fn_1_272C(m02GenDice *arg0)
+void GenDiceNumbersDestroy(W02GenDice *diceWork)
 {
     s32 i;
-    WorkGenDiceNum *work;
+    GenDiceNumberWork *numberWork;
     s32 j;
     for (i = 0; i < 3; i++) {
-        if (!arg0->unk50[i]) {
+        if (!diceWork->resultNumberObjects[i]) {
             continue;
         }
-        work = omObjGetWork(arg0->unk50[i], WorkGenDiceNum);
+        numberWork = omObjGetWork(diceWork->resultNumberObjects[i], GenDiceNumberWork);
         for (j = 0; j < 2; j++) {
-            if (work->unk04[j] == -1) {
+            if (numberWork->digitModelIds[j] == -1) {
                 continue;
             }
-            OSReport("%d:GenDiceNumOMKillAll %d\n", j, work->unk04[j]);
-            BoardModelKill(work->unk04[j]);
-            work->unk04[j] = -1;
+            OSReport("%d:GenDiceNumOMKillAll %d\n", j, numberWork->digitModelIds[j]);
+            BoardModelKill(numberWork->digitModelIds[j]);
+            numberWork->digitModelIds[j] = -1;
             (void)j;
         }
-        fn_1_23B4(arg0, i);
+        GenDiceNumberDestroy(diceWork, i);
     }
 }
 
-void fn_1_2830(m02GenDice *arg0, WorkGenDiceNum *arg1, s32 arg2)
+void GenDiceNumberMove(W02GenDice *diceWork, GenDiceNumberWork *numberWork, s32 displayFinalTotal)
 {
-    float temp_f31;
-    s16 temp_r31;
-    Vec *temp_r29;
-    s16 temp_r27;
-    s32 sp8 = 0;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18 = { 288, 155, 1400 };
-    Vec sp54[2];
-    Vec sp3C[2] = { { 144, 155, 1400 }, { 432, 155, 1400 } };
-    Vec sp6C[3] = { { 144, 155, 1400 }, { 432, 155, 1400 }, { 288, 155, 1400 } };
-    Vec spC = { 288, 176, 1400 };
-    temp_r27 = arg1->unk01 / 10;
-    if (arg2) {
-        temp_r29 = &spC;
-        temp_f31 = -20.0f * arg1->field0_bit3;
+    float depthOffset;
+    s16 digitIndex;
+    Vec *targetPosition;
+    s16 rotationFrame;
+    s32 isShifting = 0;
+    Vec modelPosition;
+    Vec positionDelta;
+    Vec numberDisplayCenter = { 288, 155, 1400 };
+    Vec digitPositions[2];
+    Vec singleDigitPositions[2] = { { 144, 155, 1400 }, { 432, 155, 1400 } };
+    Vec doubleDigitPositions[3] = { { 144, 155, 1400 }, { 432, 155, 1400 }, { 288, 155, 1400 } };
+    Vec centerPosition = { 288, 176, 1400 };
+    rotationFrame = numberWork->stateTimer / 10;
+    if (displayFinalTotal) {
+        targetPosition = &centerPosition;
+        depthOffset = -20.0f * numberWork->dieIndex;
     }
     else {
-        switch (arg0->unk00) {
+        switch (diceWork->dieCount) {
             case 1:
-                temp_r29 = &arg0->unk7C;
+                targetPosition = &diceWork->singleDieResultPosition;
                 break;
 
             case 2:
             case 3:
-                temp_r29 = &arg0->unk64[arg1->field0_bit3];
+                targetPosition = &diceWork->resultScreenPositions[numberWork->dieIndex];
                 break;
         }
-        temp_f31 = 0;
+        depthOffset = 0;
     }
-    for (temp_r31 = 0; temp_r31 < 2; temp_r31++) {
-        if (temp_r27 == 0) {
-            sp54[temp_r31].x = temp_r29->x;
+    for (digitIndex = 0; digitIndex < 2; digitIndex++) {
+        if (rotationFrame == 0) {
+            digitPositions[digitIndex].x = targetPosition->x;
         }
         else {
-            if (temp_r31) {
-                sp54[temp_r31].x = temp_r29->x - 30;
+            if (digitIndex) {
+                digitPositions[digitIndex].x = targetPosition->x - 30;
             }
             else {
-                sp54[temp_r31].x = temp_r29->x + 30;
+                digitPositions[digitIndex].x = targetPosition->x + 30;
             }
         }
-        sp54[temp_r31].y = temp_r29->y;
-        sp54[temp_r31].z = temp_r29->z + temp_f31;
+        digitPositions[digitIndex].y = targetPosition->y;
+        digitPositions[digitIndex].z = targetPosition->z + depthOffset;
     }
-    for (temp_r31 = 0; temp_r31 < 2; temp_r31++) {
-        BoardModelPosGet(arg1->unk04[temp_r31], &sp30);
-        Hu3D2Dto3D(&sp54[temp_r31], 1, &sp54[temp_r31]);
-        VECSubtract(&sp54[temp_r31], &sp30, &sp24);
-        if (VECMag(&sp24) < 0.01f) {
-            arg1->field0_bit2 = 0;
-            if (arg2 && arg1->field0_bit3) {
-                BoardModelVisibilitySet(arg1->unk04[temp_r31], 0);
+    for (digitIndex = 0; digitIndex < 2; digitIndex++) {
+        BoardModelPosGet(numberWork->digitModelIds[digitIndex], &modelPosition);
+        Hu3D2Dto3D(&digitPositions[digitIndex], 1, &digitPositions[digitIndex]);
+        VECSubtract(&digitPositions[digitIndex], &modelPosition, &positionDelta);
+        if (VECMag(&positionDelta) < 0.01f) {
+            numberWork->moveComplete = 0;
+            if (displayFinalTotal && numberWork->dieIndex) {
+                BoardModelVisibilitySet(numberWork->digitModelIds[digitIndex], 0);
             }
         }
         else {
-            arg1->field0_bit2 = 1;
+            numberWork->moveComplete = 1;
         }
-        VECScale(&sp24, &sp24, arg1->unk08);
-        VECAdd(&sp30, &sp24, &sp30);
-        BoardModelPosSetV(arg1->unk04[temp_r31], &sp30);
+        VECScale(&positionDelta, &positionDelta, numberWork->movementStep);
+        VECAdd(&modelPosition, &positionDelta, &modelPosition);
+        BoardModelPosSetV(numberWork->digitModelIds[digitIndex], &modelPosition);
     }
 }
 
-void fn_1_2BE4(m02GenDice *arg0, WorkGenDiceNum *arg1, s32 arg2)
+void GenDiceNumberRotate(W02GenDice *diceWork, GenDiceNumberWork *numberWork, s32 displayFinalTotal)
 {
-    s32 temp_r29;
-    float temp_f30;
-    if (arg2) {
-        arg1->unk02 += 18;
-        if (arg1->unk02 >= 360) {
-            arg1->unk02 = 360;
+    s32 digitIndex;
+    float rotationAngle;
+    if (displayFinalTotal) {
+        numberWork->bounceCount += 18;
+        if (numberWork->bounceCount >= 360) {
+            numberWork->bounceCount = 360;
         }
     }
     else {
-        arg1->unk02 -= 18;
-        if (arg1->unk02 <= 0) {
-            arg1->unk02 = 0;
+        numberWork->bounceCount -= 18;
+        if (numberWork->bounceCount <= 0) {
+            numberWork->bounceCount = 0;
         }
     }
-    OSs16tof32(&arg1->unk02, &temp_f30);
-    for (temp_r29 = 0; temp_r29 < 2; temp_r29++) {
-        if (arg1->unk04[temp_r29] == -1) {
+    OSs16tof32(&numberWork->bounceCount, &rotationAngle);
+    for (digitIndex = 0; digitIndex < 2; digitIndex++) {
+        if (numberWork->digitModelIds[digitIndex] == -1) {
             continue;
         }
-        BoardModelRotSet(arg1->unk04[temp_r29], 0, temp_f30, 0);
+        BoardModelRotSet(numberWork->digitModelIds[digitIndex], 0, rotationAngle, 0);
     }
 }

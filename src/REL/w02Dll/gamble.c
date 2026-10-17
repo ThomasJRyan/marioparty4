@@ -8,8 +8,8 @@
 
 #include "game/board/basic_space.h"
 
-s32 lbl_1_bss_54;
-HUPROCESS* lbl_1_bss_50;
+s32 gambleSpaceIndex;
+HUPROCESS* gambleEventProcess;
 
 /**
  * @brief Starts the gamble minigame sequence
@@ -27,12 +27,12 @@ HUPROCESS* lbl_1_bss_50;
  */
 void GambleExec(void)
 {
-	float temp_f31;
-	float temp_f30;
-	float temp_f29;
+	float bounceFrame;
+	float verticalDelta;
+	float bounceVelocity;
 	
-	m02GenDice goombaDie;
-	m02GenDice playerDie;
+	W02GenDice goombaDie;
+	W02GenDice playerDie;
 	s32 diceOptions[10] = {
 		DATA_MAKE_NUM(DATADIR_W02, 0x1C),
 		DATA_MAKE_NUM(DATADIR_W02, 0x1D),
@@ -45,13 +45,13 @@ void GambleExec(void)
 		DATA_MAKE_NUM(DATADIR_W02, 0x24),
 		DATA_MAKE_NUM(DATADIR_W02, 0x25)
 	};
-	Vec sp18;
-	Vec spC;
+	Vec goombaPosition;
+	Vec playerPosition;
 	BoardSpace *playerBoardSpace;	// Seemingly goes unused?
 	s32 currPlayer;
-	s16 temp_r30; // ? Is this the Goomba model hook? Not sure what to name it
-	s32 tmpValue; // Used for various temporary storage, sleep times, for loops, etc
-	s16 temp_r28;
+	s16 goombaModelId; // ? Is this the Goomba model hook? Not sure what to name it
+	s32 eventScratchValue; // Used for various temporary storage, sleep times, for loops, etc
+	s16 rewardModelId;
 	s32 goombaDieResult;
 	s32 playerBoardSpaceID;
 	s32 randomNumber;
@@ -60,21 +60,21 @@ void GambleExec(void)
 	OSReport("gamble start %d\n", currPlayer);
 	playerBoardSpace = BoardSpaceGet(0, GWPlayer[currPlayer].space_curr);
 	BoardRollDispSet(0);
-	temp_r28 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W02, 0x0F), NULL, 0);
-	BoardModelVisibilitySet(temp_r28, 0);
+	rewardModelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W02, 0x0F), NULL, 0);
+	BoardModelVisibilitySet(rewardModelId, 0);
 
 	// Determine which gamble space model to use
-	switch(lbl_1_bss_54) {
+	switch(gambleSpaceIndex) {
 		case 0:
-			temp_r30 = lbl_1_bss_30[0];
+			goombaModelId = boardModelIds[0];
 			break;
 			
 		case 1:
-			temp_r30 = lbl_1_bss_30[1];
+			goombaModelId = boardModelIds[1];
 			break;
 			
 		case 2:
-			temp_r30 = lbl_1_bss_30[2];
+			goombaModelId = boardModelIds[2];
 			break;
 	}
 	
@@ -85,28 +85,28 @@ void GambleExec(void)
 	}
 	BoardCameraViewSet(3);
 	BoardCameraMotionWait();
-	BoardModelMotionStart(lbl_1_data_286, 1, 0x40000001);
-	BoardModelHookSet(temp_r30, "kuri", lbl_1_data_286);
-	BoardModelVisibilitySet(lbl_1_data_286, 1);
-	BoardModelMotionTimeSet(temp_r30, 0);
-	BoardModelAttrReset(temp_r30, 0x40000002);
+	BoardModelMotionStart(goombaHostModelId, 1, 0x40000001);
+	BoardModelHookSet(goombaModelId, "kuri", goombaHostModelId);
+	BoardModelVisibilitySet(goombaHostModelId, 1);
+	BoardModelMotionTimeSet(goombaModelId, 0);
+	BoardModelAttrReset(goombaModelId, 0x40000002);
 	HuAudFXPlay(813);
-	while(BoardModelMotionTimeGet(temp_r30) < 30.0f) {
+	while(BoardModelMotionTimeGet(goombaModelId) < 30.0f) {
 		HuPrcVSleep();
 	}
-	BoardModelAttrSet(temp_r30, 0x40000002);
-	BoardModelHookReset(temp_r30);
-	BoardModelPosGet(temp_r30, &sp18);
-	BoardModelPosSetV(lbl_1_data_286, &sp18);
+	BoardModelAttrSet(goombaModelId, 0x40000002);
+	BoardModelHookReset(goombaModelId);
+	BoardModelPosGet(goombaModelId, &goombaPosition);
+	BoardModelPosSetV(goombaHostModelId, &goombaPosition);
 	W02MesExec(MAKE_MESSID(0x13, 0x0A));
-	goombaDie.unk00 = 1;
-	goombaDie.unk04 = DATA_MAKE_NUM(DATADIR_W02, 0x1B);
-	goombaDie.unk08 = diceOptions;
-	goombaDie.unk0C = sp18;
-	goombaDie.unk18 = 1;
-	goombaDie.unk1A = 10;
-	goombaDie.unk22 = 0;
-	goombaDie.unk24 = 1;
+	goombaDie.dieCount = 1;
+	goombaDie.dieModelData = DATA_MAKE_NUM(DATADIR_W02, 0x1B);
+	goombaDie.dieFaceData = diceOptions;
+	goombaDie.spawnPosition = goombaPosition;
+	goombaDie.minimumRoll = 1;
+	goombaDie.maximumRoll = 10;
+	goombaDie.displayRollTotal = 0;
+	goombaDie.dieVerticalSpacing = 1;
 
 	// Generate dice roll with weighted probabilities for the Goomba
 	// 60% chance for 4-7
@@ -114,62 +114,62 @@ void GambleExec(void)
 	// 10% chance for 1,10
 	randomNumber = frandmod(100);
 	if(randomNumber <= 59) {
-		goombaDie.unk1C[0] = frandmod(4)+4;
+		goombaDie.dieResults[0] = frandmod(4)+4;
 	} 
 	else if(randomNumber <= 89) {
 		if(randomNumber & 0x1) {
-			goombaDie.unk1C[0] = 2;
+			goombaDie.dieResults[0] = 2;
 		} 
 		else {
-			goombaDie.unk1C[0] = 8;
+			goombaDie.dieResults[0] = 8;
 		}
-		goombaDie.unk1C[0] += frand() & 0x1;
+		goombaDie.dieResults[0] += frand() & 0x1;
 	} 
 	else {
 		if(randomNumber & 0x1) {
-			goombaDie.unk1C[0] = 1;
+			goombaDie.dieResults[0] = 1;
 		} else {
-			goombaDie.unk1C[0] = 10;
+			goombaDie.dieResults[0] = 10;
 		}
 	}
 
 	// Start dice roll
-	fn_1_1254(&goombaDie);
-	while(!fn_1_17F4(&goombaDie)) {
+	GenDiceCreate(&goombaDie);
+	while(!GenDiceAnimationCheck(&goombaDie)) {
 		HuPrcVSleep();
 	}
 
 	// Add delay before dice is hit, then move the Goomba model
-	tmpValue = frandmod(45)+45;
-	HuPrcSleep(tmpValue);
-	BoardModelPosGet(lbl_1_data_286, &spC);
-	BoardModelMotionStart(lbl_1_data_286, 4, 0);
-	temp_f29 = 15;
-	temp_f31 = 0;
+	eventScratchValue = frandmod(45)+45;
+	HuPrcSleep(eventScratchValue);
+	BoardModelPosGet(goombaHostModelId, &playerPosition);
+	BoardModelMotionStart(goombaHostModelId, 4, 0);
+	bounceVelocity = 15;
+	bounceFrame = 0;
 	while(1) {
-		temp_f30 = temp_f29-(0.08166667f*(0.25f*(temp_f31*temp_f31)));
-		temp_f31++;
-		spC.y += temp_f30;
-		if(spC.y >= (250.0f+sp18.y)-130.0f) {
-			spC.y = (250.0f+sp18.y)-130.0f;
-			temp_f29 = -10;
-			temp_f31 = 0;
-			goombaDie.unk9C = 1;
+		verticalDelta = bounceVelocity-(0.08166667f*(0.25f*(bounceFrame*bounceFrame)));
+		bounceFrame++;
+		playerPosition.y += verticalDelta;
+		if(playerPosition.y >= (250.0f+goombaPosition.y)-130.0f) {
+			playerPosition.y = (250.0f+goombaPosition.y)-130.0f;
+			bounceVelocity = -10;
+			bounceFrame = 0;
+			goombaDie.dieAnimationComplete = 1;
 		}
-		if(spC.y <= sp18.y) {
-			spC.y = sp18.y;
-			goombaDie.unk9C = 0;
+		if(playerPosition.y <= goombaPosition.y) {
+			playerPosition.y = goombaPosition.y;
+			goombaDie.dieAnimationComplete = 0;
 			break;
 		}
-		BoardModelPosSetV(lbl_1_data_286, &spC);
+		BoardModelPosSetV(goombaHostModelId, &playerPosition);
 		HuPrcVSleep();
 	}
-	BoardModelPosSetV(lbl_1_data_286, &sp18);
-	BoardModelMotionStart(lbl_1_data_286, 1, 0x40000001);
-	while(goombaDie.unk28 == 0) {
+	BoardModelPosSetV(goombaHostModelId, &goombaPosition);
+	BoardModelMotionStart(goombaHostModelId, 1, 0x40000001);
+	while(goombaDie.rollComplete == 0) {
 		HuPrcVSleep();
 	}
-	goombaDieResult = goombaDie.unk94;
+	goombaDieResult = goombaDie.totalRollResult;
 
 	// Announce Goomba's roll, if 10 then play player's disappointment sound
 	if(goombaDieResult == 10) {
@@ -186,21 +186,21 @@ void GambleExec(void)
 	BoardCameraTargetModelSet(-1);
 	if(goombaDieResult != 10) {
 		playerDie = goombaDie; // Save on resources, just use Goomba's die
-		BoardPlayerPosGet(currPlayer, &playerDie.unk0C);
-		playerDie.unk24 = 1;
+		BoardPlayerPosGet(currPlayer, &playerDie.spawnPosition);
+		playerDie.dieVerticalSpacing = 1;
 
 		// Generate player's die roll, ensuring it is not the same as Goomba's
-		playerDie.unk1C[0] = frandmod(10)+1;
-		if(playerDie.unk1C[0] == goombaDieResult) {
-			if(playerDie.unk1C[0] == 9) {
-				playerDie.unk1C[0]--; // Player loses if both roll 9
+		playerDie.dieResults[0] = frandmod(10)+1;
+		if(playerDie.dieResults[0] == goombaDieResult) {
+			if(playerDie.dieResults[0] == 9) {
+				playerDie.dieResults[0]--; // Player loses if both roll 9
 			} else {
-				playerDie.unk1C[0]++; // Player wins if both roll 1-8
+				playerDie.dieResults[0]++; // Player wins if both roll 1-8
 			}
 		}
 		
-		fn_1_1254(&playerDie);
-		while(!fn_1_17F4(&playerDie)) {
+		GenDiceCreate(&playerDie);
+		while(!GenDiceAnimationCheck(&playerDie)) {
 			HuPrcVSleep();
 		}
 		
@@ -211,8 +211,8 @@ void GambleExec(void)
 
 			// If CPU player, simulate button press after short delay
 			if(GWPlayer[currPlayer].com) {
-				tmpValue = frandmod(45)+20;
-				HuPrcSleep(tmpValue);
+				eventScratchValue = frandmod(45)+20;
+				HuPrcSleep(eventScratchValue);
 				buttonState = PAD_BUTTON_A;
 			} 
 			// Wait for player to press A button
@@ -228,40 +228,40 @@ void GambleExec(void)
 			HuPrcVSleep();
 		}
 
-		playerDie.unk9C = 1;
+		playerDie.dieAnimationComplete = 1;
 		while(GWPlayer[currPlayer].jump) {
 			HuPrcVSleep();
 		}
-		playerDie.unk9C = 0;
-		while(playerDie.unk28 == 0) {
+		playerDie.dieAnimationComplete = 0;
+		while(playerDie.rollComplete == 0) {
 			HuPrcVSleep();
 		}
 
 		// Announce player's roll and outcome, extra voice line if player loses
-		if(playerDie.unk94 > goombaDieResult) {
+		if(playerDie.totalRollResult > goombaDieResult) {
 			W02MesExec(MAKE_MESSID(0x13, 0x0D));
 		} else {
 			PlayerFXPlay(currPlayer, 302);
 			W02MesExec(MAKE_MESSID(0x13, 0x0F));
 		}
 	} else {
-		playerDie.unk94 = 0;
+		playerDie.totalRollResult = 0;
 	}
-	fn_1_1518(&goombaDie);
+	GenDiceDestroy(&goombaDie);
 	if(goombaDieResult != 10) {
-		fn_1_1518(&playerDie);
+		GenDiceDestroy(&playerDie);
 	}
-	BoardPlayerPosGet(currPlayer, &spC);
+	BoardPlayerPosGet(currPlayer, &playerPosition);
 
 	// If the player wins, award 10 coins
-	if(playerDie.unk94 > goombaDieResult) {
-		spC.y += 250.0f;
+	if(playerDie.totalRollResult > goombaDieResult) {
+		playerPosition.y += 250.0f;
 		HuAudFXPlay(839);
-		tmpValue = BoardCoinChgCreate(&spC, 10);
-		while(!BoardCoinChgKillCheck(tmpValue)) {
+		eventScratchValue = BoardCoinChgCreate(&playerPosition, 10);
+		while(!BoardCoinChgKillCheck(eventScratchValue)) {
 			HuPrcVSleep();
 		}
-		for(tmpValue=0; tmpValue<10; tmpValue++) {
+		for(eventScratchValue=0; eventScratchValue<10; eventScratchValue++) {
 			BoardPlayerCoinsAdd(currPlayer, 1);
 			HuAudFXPlay(7);
 			HuPrcSleep(6);
@@ -275,19 +275,19 @@ void GambleExec(void)
 		BoardPlayerMotionShiftSet(currPlayer, 6, 0, 5, HU3D_MOTATTR_LOOP);
 		HuPrcSleep(60);
 		HuPrcSleep(30);
-		BoardModelPosSetV(temp_r28, &spC);
-		BoardModelMotionTimeSet(temp_r28, 0);
-		BoardModelVisibilitySet(temp_r28, 1);
+		BoardModelPosSetV(rewardModelId, &playerPosition);
+		BoardModelMotionTimeSet(rewardModelId, 0);
+		BoardModelVisibilitySet(rewardModelId, 1);
 		HuAudFXPlay(1058);
-		while(BoardModelMotionTimeGet(temp_r28) < BoardModelMotionMaxTimeGet(temp_r28)) {
+		while(BoardModelMotionTimeGet(rewardModelId) < BoardModelMotionMaxTimeGet(rewardModelId)) {
 			HuPrcVSleep();
 		}
 		omVibrate(currPlayer, 12, 4, 2);
-		temp_f30 = -4;
-		for(tmpValue=0; tmpValue<30; tmpValue++) {
-			spC.y += temp_f30;
-			temp_f30 *= 1.08f;
-			BoardPlayerPosSetV(currPlayer, &spC);
+		verticalDelta = -4;
+		for(eventScratchValue=0; eventScratchValue<30; eventScratchValue++) {
+			playerPosition.y += verticalDelta;
+			verticalDelta *= 1.08f;
+			BoardPlayerPosSetV(currPlayer, &playerPosition);
 			HuPrcVSleep();
 		}
 		playerBoardSpaceID = BoardSpaceFlagSearch(0, 0x80000000);
@@ -295,63 +295,63 @@ void GambleExec(void)
 		BoardCameraTargetSpaceSet(playerBoardSpaceID);
 		HuPrcVSleep();
 		BoardCameraMoveSet(1);
-		BoardSpacePosGet(0, playerBoardSpaceID, &sp18);
-		spC = sp18;
-		spC.y -= 180.0f;
-		BoardPlayerPosSetV(currPlayer, &spC);
+		BoardSpacePosGet(0, playerBoardSpaceID, &goombaPosition);
+		playerPosition = goombaPosition;
+		playerPosition.y -= 180.0f;
+		BoardPlayerPosSetV(currPlayer, &playerPosition);
 		GWPlayer[currPlayer].space_curr = playerBoardSpaceID;
 		HuPrcSleep(15);
-		BoardModelPosSetV(temp_r28, &sp18);
-		BoardModelMotionTimeSet(temp_r28, 0);
+		BoardModelPosSetV(rewardModelId, &goombaPosition);
+		BoardModelMotionTimeSet(rewardModelId, 0);
 		HuAudFXPlay(1058);
-		while(BoardModelMotionTimeGet(temp_r28) < BoardModelMotionMaxTimeGet(temp_r28)) {
+		while(BoardModelMotionTimeGet(rewardModelId) < BoardModelMotionMaxTimeGet(rewardModelId)) {
 			HuPrcVSleep();
 		}
 		HuPrcSleep(15);
-		temp_f29 = 22;
-		temp_f31 = 1;
+		bounceVelocity = 22;
+		bounceFrame = 1;
 		while(1) {
-			temp_f30 = temp_f29-((90.0f/1200.0f)*(0.25f*(temp_f31*temp_f31)));
-			temp_f31++;
-			spC.y += temp_f30;
-			if(spC.y >= sp18.y) {
-				BoardModelAttrSet(temp_r28, 0x40000004);
+			verticalDelta = bounceVelocity-((90.0f/1200.0f)*(0.25f*(bounceFrame*bounceFrame)));
+			bounceFrame++;
+			playerPosition.y += verticalDelta;
+			if(playerPosition.y >= goombaPosition.y) {
+				BoardModelAttrSet(rewardModelId, 0x40000004);
 			}
-			if(temp_f30 < 0 && spC.y <= sp18.y) {
+			if(verticalDelta < 0 && playerPosition.y <= goombaPosition.y) {
 				omVibrate(currPlayer, 12, 4, 2);
-				temp_f29 = -temp_f30*0.31f;
-				temp_f31 = 1;
+				bounceVelocity = -verticalDelta*0.31f;
+				bounceFrame = 1;
 				HuAudFXPlay(1068);
-				if(fabs(temp_f29) <= 5.0) {
+				if(fabs(bounceVelocity) <= 5.0) {
 					break;
 				}
-				spC.y = sp18.y;
+				playerPosition.y = goombaPosition.y;
 			}
 			
-			BoardPlayerPosSetV(currPlayer, &spC);
+			BoardPlayerPosSetV(currPlayer, &playerPosition);
 			HuPrcVSleep();
 		}
-		BoardPlayerPosSetV(currPlayer, &sp18);
+		BoardPlayerPosSetV(currPlayer, &goombaPosition);
 		HuPrcSleep(90);
 		BoardPlayerIdleSet(currPlayer);
 		HuPrcSleep(9);
 		BoardCameraTargetPlayerSet(currPlayer);
 	}
-	BoardModelHookSet(temp_r30, "kuri", lbl_1_data_286);
-	BoardModelAttrReset(temp_r30, 0x40000002);
-	if(playerDie.unk94 > goombaDieResult) {
+	BoardModelHookSet(goombaModelId, "kuri", goombaHostModelId);
+	BoardModelAttrReset(goombaModelId, 0x40000002);
+	if(playerDie.totalRollResult > goombaDieResult) {
 		HuPrcSleep(10);
 		HuAudFXPlay(815);
 	}
-	while(BoardModelMotionTimeGet(temp_r30) < BoardModelMotionMaxTimeGet(temp_r30)) {
+	while(BoardModelMotionTimeGet(goombaModelId) < BoardModelMotionMaxTimeGet(goombaModelId)) {
 		HuPrcVSleep();
 	}
-	BoardModelHookReset(temp_r30);
+	BoardModelHookReset(goombaModelId);
 	BoardCameraViewSet(1);
 	BoardCameraMotionWait();
 	BoardRollDispSet(1);
-	BoardModelVisibilitySet(lbl_1_data_286, 0);
-	BoardModelKill(temp_r28);
+	BoardModelVisibilitySet(goombaHostModelId, 0);
+	BoardModelKill(rewardModelId);
 	HuPrcKill(NULL);
 	while(1) {
 		HuPrcVSleep();
@@ -362,7 +362,7 @@ void GambleExec(void)
  * @brief Removes the child process reference for the gamble minigame.
  */
 void GambleDestroy(void) {
-    lbl_1_bss_50 = NULL;
+    gambleEventProcess = NULL;
 }
 
 /**
@@ -379,10 +379,10 @@ void GambleMain(s32 actorIndex) {
     s32 currPlayer;
     currPlayer = GWSystem.player_curr; // Unused?
 
-    lbl_1_bss_54 = actorIndex;
-    lbl_1_bss_50 = HuPrcChildCreate(GambleExec, 0x2003U, 0x2000U, 0, boardMainProc);
-    HuPrcDestructorSet2(lbl_1_bss_50, GambleDestroy);
-    while (lbl_1_bss_50) {
+    gambleSpaceIndex = actorIndex;
+    gambleEventProcess = HuPrcChildCreate(GambleExec, 0x2003U, 0x2000U, 0, boardMainProc);
+    HuPrcDestructorSet2(gambleEventProcess, GambleDestroy);
+    while (gambleEventProcess) {
         HuPrcVSleep();
     }
 }

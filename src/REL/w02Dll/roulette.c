@@ -20,70 +20,70 @@
 #endif
 
 /* DATA */
-s32 lbl_1_data_4D0[] = { -1, 2, 2, 2, -1, 1, 1, 1, -1, 0, 0, 0, -1, 3, 3, 3 };
+s32 rouletteSectorSpaceFlags[] = { -1, 2, 2, 2, -1, 1, 1, 1, -1, 0, 0, 0, -1, 3, 3, 3 };
 
-HUPROCESS *lbl_1_bss_38C;
-s16 lbl_1_bss_388;
-s32 lbl_1_bss_384;
-float lbl_1_bss_380;
+HUPROCESS *rouletteProcess;
+s16 roulettePlayerIndex;
+s32 rouletteSoundId;
+float rouletteWheelAngle;
 
 // Local Functions
-void fn_1_D3AC(void);
-s32 fn_1_D8C4(void);
-void fn_1_DF48(void);
+void RouletteBribePayout(void);
+s32 RouletteComputerChoice(void);
+void RouletteModelsAnimate(void);
 
-s32 fn_1_E2AC(void);
-void fn_1_E310(f32);
+s32 RouletteStarRegionGet(void);
+void RouletteWheelRotate(f32);
 
 // Unknown Structures
-typedef struct UnkPoint {
-    f32 unk00;
+typedef struct RouletteWeightedPoint {
+    f32 spaceWeight;
     Vec point;
-} UnkPoint;
+} RouletteWeightedPoint;
 
 /* FUNCTIONS */
-void fn_1_BC1C(void)
+void RouletteModelsInitialize(void)
 {
-    Vec sp8;
+    Vec modelTransform;
 
-    BoardModelPosGet(lbl_1_bss_30[15], &sp8);
-    sp8.z -= 90.0f;
-    sp8.y += 50.0f;
-    BoardModelPosSetV(lbl_1_bss_30[6], &sp8);
-    BoardModelAttrSet(lbl_1_bss_30[5], 0x40000002);
-    BoardModelMotionTimeSet(lbl_1_bss_30[5], 0.0f);
-    BoardModelRotGet(lbl_1_bss_30[15], &sp8);
-    sp8.y = 0.0f;
-    BoardModelRotSetV(lbl_1_bss_30[15], &sp8);
+    BoardModelPosGet(boardModelIds[15], &modelTransform);
+    modelTransform.z -= 90.0f;
+    modelTransform.y += 50.0f;
+    BoardModelPosSetV(boardModelIds[6], &modelTransform);
+    BoardModelAttrSet(boardModelIds[5], 0x40000002);
+    BoardModelMotionTimeSet(boardModelIds[5], 0.0f);
+    BoardModelRotGet(boardModelIds[15], &modelTransform);
+    modelTransform.y = 0.0f;
+    BoardModelRotSetV(boardModelIds[15], &modelTransform);
 }
 
-void fn_1_BCFC(void)
+void RouletteEventProcess(void)
 {
     s32 spaceLinkFlags;
-    s32 temp_r30;
-    s32 temp_r29;
+    s32 winningSector;
+    s32 bribeProbability;
 
     BoardRollDispSet(0);
-    spaceLinkFlags = BoardSpaceLinkFlagSearch(0, (s32)GWPlayer[lbl_1_bss_388].space_curr, 2U);
-    BoardPlayerMoveToAsync(lbl_1_bss_388, spaceLinkFlags);
-    while (GWPlayer[lbl_1_bss_388].moving) {
+    spaceLinkFlags = BoardSpaceLinkFlagSearch(0, (s32)GWPlayer[roulettePlayerIndex].space_curr, 2U);
+    BoardPlayerMoveToAsync(roulettePlayerIndex, spaceLinkFlags);
+    while (GWPlayer[roulettePlayerIndex].moving) {
         HuPrcVSleep();
     }
-    BoardPlayerIdleSet(lbl_1_bss_388);
+    BoardPlayerIdleSet(roulettePlayerIndex);
     BoardCameraViewSet(2);
     BoardCameraMotionWait();
-    BoardPlayerMotBlendSet((s32)lbl_1_bss_388, 0x5A, 0xF);
-    while (BoardPlayerMotBlendCheck((s32)lbl_1_bss_388) == 0) {
+    BoardPlayerMotBlendSet((s32)roulettePlayerIndex, 0x5A, 0xF);
+    while (BoardPlayerMotBlendCheck((s32)roulettePlayerIndex) == 0) {
         HuPrcVSleep();
     }
-    BoardModelRotYSet(lbl_1_bss_30[15], -90.0f);
+    BoardModelRotYSet(boardModelIds[15], -90.0f);
     W02MesExec(MAKE_MESSID(0x13, 0x00));
     HuAudFXPlay(0x44);
-    temp_r29 = fn_1_BE88();
+    bribeProbability = RouletteBribeChoice();
     BoardStatusShowSetAll(0);
     W02MesExec(MAKE_MESSID(0x13, 0x01));
-    temp_r30 = fn_1_C108(temp_r29);
-    fn_1_CD04(temp_r30);
+    winningSector = RouletteSpin(bribeProbability);
+    RoulettePlayerMove(winningSector);
     BoardCameraViewSet(1);
     BoardStatusShowSetAll(1);
     BoardCameraMotionWait();
@@ -94,32 +94,32 @@ void fn_1_BCFC(void)
     }
 }
 
-s32 fn_1_BE74(void)
+s32 RouletteEventCleanup(void)
 {
-    lbl_1_bss_38C = 0;
+    rouletteProcess = 0;
 }
 
-s32 fn_1_BE88(void)
+s32 RouletteBribeChoice(void)
 {
     s32 coinAmount;
-    s32 var_r30;
+    s32 bribeProbability;
     s16 playerCoinRegion;
     s32 bribeChoice;
     s32 i;
     s32 rouletteChoice;
     s32 mesg;
 
-    var_r30 = -1;
-    coinAmount = BoardPlayerCoinsGet((s32)lbl_1_bss_388);
+    bribeProbability = -1;
+    coinAmount = BoardPlayerCoinsGet((s32)roulettePlayerIndex);
     if (coinAmount < 5) {
-        return var_r30;
+        return bribeProbability;
     }
     W02MesExec(MAKE_MESSID(0x13, 0x02));
 
     do {
         BoardWinCreateChoice(2, MAKE_MESSID(19, 29), 4, 0);
         /* COM has 50% to bribe goomba */
-        if (GWPlayer[lbl_1_bss_388].com) {
+        if (GWPlayer[roulettePlayerIndex].com) {
             if (frandBool()) {
                 BoardComKeySetRight();
             }
@@ -144,7 +144,7 @@ s32 fn_1_BE88(void)
             }
             /* COM always bribes max unless it has 20 or
                more coins. Then 50% max, 50% 10 coin bribe. */
-            if (GWPlayer[lbl_1_bss_388].com) {
+            if (GWPlayer[roulettePlayerIndex].com) {
                 if (playerCoinRegion < 2) {
                     BoardComKeySetUp();
                 }
@@ -167,23 +167,23 @@ s32 fn_1_BE88(void)
                 case 0:
                     mesg = MAKE_MESSID(0x13, 0x04);
                     coinAmount = 0x14;
-                    var_r30 = 0x5A; // 90%
+                    bribeProbability = 0x5A; // 90%
                     break;
                 case 1:
                     mesg = MAKE_MESSID(0x13, 0x05);
                     coinAmount = 0xA;
-                    var_r30 = 0x3C; // 60%
+                    bribeProbability = 0x3C; // 60%
                     break;
                 case 2:
                     mesg = MAKE_MESSID(0x13, 0x06);
                     coinAmount = 5;
-                    var_r30 = 0x1E; // 30%
+                    bribeProbability = 0x1E; // 30%
                     break;
             }
             W02MesExec(mesg);
 
             for (i = 0; i < coinAmount; i++) {
-                BoardPlayerCoinsAdd(lbl_1_bss_388, -1);
+                BoardPlayerCoinsAdd(roulettePlayerIndex, -1);
                 HuAudFXPlay(0xE);
                 HuPrcSleep(6);
             }
@@ -191,594 +191,594 @@ s32 fn_1_BE88(void)
             // If chose to view map
         }
         else if (rouletteChoice == 2) {
-            BoardViewMapExec(lbl_1_bss_388);
+            BoardViewMapExec(roulettePlayerIndex);
         }
     } while (rouletteChoice == 2); // While viewing map
-    if (var_r30 == -1) {
+    if (bribeProbability == -1) {
         W02MesExec(MAKE_MESSID(0x13, 0x07));
     }
-    return var_r30;
+    return bribeProbability;
 }
 
-s32 fn_1_C108(s32 arg0)
+s32 RouletteSpin(s32 bribeProbability)
 {
-    Vec sp34;
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
+    Vec rouletteRotation;
+    Vec ballPosition;
+    Vec ballVelocity;
+    Vec rouletteCenter;
 
-    f32 var_f27;
-    f32 var_f26;
-    f32 var_f25;
-    f32 var_f28;
-    f32 var_f29;
-    f64 var_f30;
-    f32 var_f31;
+    f32 ballLaunchSpeed;
+    f32 unusedDistance;
+    f32 ballDistance;
+    f32 bounceSpeed;
+    f32 rouletteRotationStep;
+    f64 unusedScale;
+    f32 ballAngle;
 
-    s32 var_r26;
-    s32 var_r27;
-    s16 var_r28;
-    s32 var_r30;
-    s32 var_r29;
+    s32 targetSpaceIndex;
+    s32 bounceCount;
+    s16 audioPitch;
+    s32 winningSector;
+    s32 sectorRoll;
     s32 i;
 
-    if ((s32)frandmod(0x64U) < arg0) {
-        s32 temp_r25 = fn_1_E2AC();
-        var_r27 = 4;
-        var_r29 = frandmod(3U);
+    if ((s32)frandmod(0x64U) < bribeProbability) {
+        s32 starRegion = RouletteStarRegionGet();
+        bounceCount = 4;
+        sectorRoll = frandmod(3U);
         if ((s32)frandmod(0x64U) < 0x14) {
-            var_r29 += 1;
+            sectorRoll += 1;
         }
-        var_r29 = var_r29 + (3 - temp_r25) * 4;
+        sectorRoll = sectorRoll + (3 - starRegion) * 4;
     }
     else {
-        var_r29 = frandmod(0x10U);
-        var_r27 = frandmod(4U);
+        sectorRoll = frandmod(0x10U);
+        bounceCount = frandmod(4U);
     }
-    BoardModelPosGet(lbl_1_bss_30[4], &sp10);
+    BoardModelPosGet(boardModelIds[4], &rouletteCenter);
     BoardCameraViewSet(1);
     BoardCameraMotionWait();
-    var_r26 = BoardSpaceFlagSearch(0, 0x800U);
-    BoardCameraTargetSpaceSet(var_r26);
-    BoardPlayerMotBlendSet(lbl_1_bss_388, 0xB4, 0xF);
-    BoardModelRotGet(lbl_1_bss_30[15], &sp34);
+    targetSpaceIndex = BoardSpaceFlagSearch(0, 0x800U);
+    BoardCameraTargetSpaceSet(targetSpaceIndex);
+    BoardPlayerMotBlendSet(roulettePlayerIndex, 0xB4, 0xF);
+    BoardModelRotGet(boardModelIds[15], &rouletteRotation);
 
     for (i = 0; i < 0xF; i++) {
-        sp34.y -= 6.0f;
-        BoardModelRotSetV(lbl_1_bss_30[15], &sp34);
+        rouletteRotation.y -= 6.0f;
+        BoardModelRotSetV(boardModelIds[15], &rouletteRotation);
         HuPrcVSleep();
     }
 
-    sp34.y = 180.0f;
-    BoardModelRotSetV(lbl_1_bss_30[15], &sp34);
+    rouletteRotation.y = 180.0f;
+    BoardModelRotSetV(boardModelIds[15], &rouletteRotation);
     BoardCameraMotionWait();
-    lbl_1_bss_384 = HuAudFXPlay(0x41D);
-    var_r28 = -0x1FFF;
-    var_f29 = 0.0f;
+    rouletteSoundId = HuAudFXPlay(0x41D);
+    audioPitch = -0x1FFF;
+    rouletteRotationStep = 0.0f;
     for (i = 0; i < 0x3C; i++) {
-        var_f29 -= 0.375f;
-        fn_1_E310(var_f29);
-        var_r28 += 136.51666f;
-        HuAudFXPitchSet(lbl_1_bss_384, var_r28);
+        rouletteRotationStep -= 0.375f;
+        RouletteWheelRotate(rouletteRotationStep);
+        audioPitch += 136.51666f;
+        HuAudFXPitchSet(rouletteSoundId, audioPitch);
         HuPrcVSleep();
     }
 
-    var_f29 = -22.5f;
-    HuAudFXPitchSet(lbl_1_bss_384, 0);
-    BoardModelMotionStart(lbl_1_bss_30[15], 2, 0x40000001);
-    BoardModelPosGet(lbl_1_bss_30[15], &sp34);
+    rouletteRotationStep = -22.5f;
+    HuAudFXPitchSet(rouletteSoundId, 0);
+    BoardModelMotionStart(boardModelIds[15], 2, 0x40000001);
+    BoardModelPosGet(boardModelIds[15], &rouletteRotation);
 
     for (i = 0; i < 0x1E; i++) {
-        sp34.z += 2.1f;
-        BoardModelPosSetV(lbl_1_bss_30[15], &sp34);
-        fn_1_E310(var_f29);
+        rouletteRotation.z += 2.1f;
+        BoardModelPosSetV(boardModelIds[15], &rouletteRotation);
+        RouletteWheelRotate(rouletteRotationStep);
         HuPrcVSleep();
     }
-    BoardModelMotionStart(lbl_1_bss_30[15], 1, 0x40000001);
-    while (var_r29) {
-        fn_1_E310(var_f29);
+    BoardModelMotionStart(boardModelIds[15], 1, 0x40000001);
+    while (sectorRoll) {
+        RouletteWheelRotate(rouletteRotationStep);
         HuPrcVSleep();
-        var_r29 -= 1;
+        sectorRoll -= 1;
     }
-    BoardModelMotionStart(lbl_1_bss_30[15], 3, 0x40000001);
-    BoardModelMotionSpeedSet(lbl_1_bss_30[15], 4.0f);
+    BoardModelMotionStart(boardModelIds[15], 3, 0x40000001);
+    BoardModelMotionSpeedSet(boardModelIds[15], 4.0f);
 
     for (i = 0; i < 0xA; i++) {
-        sp34.z -= 6.2999997f;
-        BoardModelPosSetV(lbl_1_bss_30[15], &sp34);
-        fn_1_E310(var_f29);
+        rouletteRotation.z -= 6.2999997f;
+        BoardModelPosSetV(boardModelIds[15], &rouletteRotation);
+        RouletteWheelRotate(rouletteRotationStep);
         HuPrcVSleep();
     }
-    BoardModelMotionStart(lbl_1_bss_30[15], 1, 0x40000001);
-    BoardModelMotionSpeedSet(lbl_1_bss_30[15], 1.0f);
+    BoardModelMotionStart(boardModelIds[15], 1, 0x40000001);
+    BoardModelMotionSpeedSet(boardModelIds[15], 1.0f);
     HuAudFXPlay(0x41F);
     HuAudFXPlay(0x42D);
-    omVibrate(lbl_1_bss_388, 0xC, 6, 6);
-    var_f31 = 0.0f;
-    var_f27 = 16.0f;
-    sp1C.x = 0.0f;
-    sp1C.z = -50.0f;
+    omVibrate(roulettePlayerIndex, 0xC, 6, 6);
+    ballAngle = 0.0f;
+    ballLaunchSpeed = 16.0f;
+    ballVelocity.x = 0.0f;
+    ballVelocity.z = -50.0f;
 
     // Roulette motion and ball ?
     while (TRUE) {
-        sp1C.y = var_f27 - (0.55833334f * (0.25f * (var_f31 * var_f31)));
-        var_f31 += 1.0f;
-        BoardModelPosGet(lbl_1_bss_30[6], &sp28);
-        VECAdd(&sp28, &sp1C, &sp28);
-        var_f25 = VECDistanceXZ(&sp28, &sp10);
-        if (var_f25 >= 430.0f) {
-            if (sp28.y <= (55.0f + sp10.y)) {
-                VECSubtract(&sp28, &sp10, (Vec *)&sp1C);
-                VECNormalize((Vec *)&sp1C, (Vec *)&sp1C);
-                sp1C.y = 0.0f;
-                VECScale((Vec *)&sp1C, (Vec *)&sp1C, 429.0f);
-                VECAdd((Vec *)&sp1C, &sp10, (Vec *)&sp1C);
-                sp28.x = sp1C.x;
-                sp28.z = sp1C.z;
-                sp1C.x = -5.0f;
-                sp1C.z = 10.0f;
+        ballVelocity.y = ballLaunchSpeed - (0.55833334f * (0.25f * (ballAngle * ballAngle)));
+        ballAngle += 1.0f;
+        BoardModelPosGet(boardModelIds[6], &ballPosition);
+        VECAdd(&ballPosition, &ballVelocity, &ballPosition);
+        ballDistance = VECDistanceXZ(&ballPosition, &rouletteCenter);
+        if (ballDistance >= 430.0f) {
+            if (ballPosition.y <= (55.0f + rouletteCenter.y)) {
+                VECSubtract(&ballPosition, &rouletteCenter, (Vec *)&ballVelocity);
+                VECNormalize((Vec *)&ballVelocity, (Vec *)&ballVelocity);
+                ballVelocity.y = 0.0f;
+                VECScale((Vec *)&ballVelocity, (Vec *)&ballVelocity, 429.0f);
+                VECAdd((Vec *)&ballVelocity, &rouletteCenter, (Vec *)&ballVelocity);
+                ballPosition.x = ballVelocity.x;
+                ballPosition.z = ballVelocity.z;
+                ballVelocity.x = -5.0f;
+                ballVelocity.z = 10.0f;
             }
         }
 
-        if (sp28.y < sp10.y) {
-            sp28.y = sp10.y;
-            if (var_r27 >= 3) {
+        if (ballPosition.y < rouletteCenter.y) {
+            ballPosition.y = rouletteCenter.y;
+            if (bounceCount >= 3) {
                 break;
             }
-            // var_f31 = ((1.0f/255.0f) * (6.0f * frand8()));
-            var_f27 = 6.0f + ((1.0f / 255.0f) * (6.0f * frand8()));
-            var_f31 = 1.0f;
-            var_r27 += 1;
-            // var_f31 = ((1.0f/255.0f) * (5.0f * frand8()));
-            sp1C.x = 15.0f + ((1.0f / 255.0f) * (5.0f * frand8()));
-            sp1C.z = 15.0f + ((1.0f / 255.0f) * (5.0f * frand8()));
+            // ballAngle = ((1.0f/255.0f) * (6.0f * frand8()));
+            ballLaunchSpeed = 6.0f + ((1.0f / 255.0f) * (6.0f * frand8()));
+            ballAngle = 1.0f;
+            bounceCount += 1;
+            // ballAngle = ((1.0f/255.0f) * (5.0f * frand8()));
+            ballVelocity.x = 15.0f + ((1.0f / 255.0f) * (5.0f * frand8()));
+            ballVelocity.z = 15.0f + ((1.0f / 255.0f) * (5.0f * frand8()));
             HuAudFXPlay(0x41E);
         }
 
-        BoardModelPosSetV(lbl_1_bss_30[6], (Vec *)&sp28);
-        fn_1_E310(var_f29);
+        BoardModelPosSetV(boardModelIds[6], (Vec *)&ballPosition);
+        RouletteWheelRotate(rouletteRotationStep);
         HuPrcVSleep();
     }
 
     HuAudFXPlay(0x41E);
-    VECSubtract(&sp28, &sp10, (Vec *)&sp1C);
-    VECNormalize((Vec *)&sp1C, (Vec *)&sp1C);
-    var_f31 = atan2d(-sp1C.z, sp1C.x);
-    BoardModelRotGet(lbl_1_bss_30[4], &sp34);
-    var_f31 = var_f31 - sp34.y;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    VECSubtract(&ballPosition, &rouletteCenter, (Vec *)&ballVelocity);
+    VECNormalize((Vec *)&ballVelocity, (Vec *)&ballVelocity);
+    ballAngle = atan2d(-ballVelocity.z, ballVelocity.x);
+    BoardModelRotGet(boardModelIds[4], &rouletteRotation);
+    ballAngle = ballAngle - rouletteRotation.y;
+    if (ballAngle < 0.0f) {
+        ballAngle += 360.0f;
     }
-    var_r30 = (s32)(var_f31 / 22.5f);
-    if (fmod(var_f31, 22.5) > 11.25) {
-        var_r30 += 1;
+    winningSector = (s32)(ballAngle / 22.5f);
+    if (fmod(ballAngle, 22.5) > 11.25) {
+        winningSector += 1;
     }
-    if (var_r30 >= 0x10) {
-        var_r30 -= 0x10;
+    if (winningSector >= 0x10) {
+        winningSector -= 0x10;
     }
-    sp1C.y = 0.0f;
+    ballVelocity.y = 0.0f;
 
     while (TRUE) {
-        fn_1_E310(var_f29);
-        BoardModelRotGet(lbl_1_bss_30[4], &sp34);
-        var_f31 = (22.5f * var_r30) + sp34.y; // TODO: Update rodata for asm change
-        sp1C.x = cosd(var_f31);
-        sp1C.z = -sind(var_f31);
-        VECScale(&sp1C, &sp1C, 429.0f);
-        VECAdd(&sp1C, &sp10, &sp1C);
-        sp28.x = sp1C.x;
-        sp28.z = sp1C.z;
-        BoardModelPosSetV(lbl_1_bss_30[6], &sp28);
-        if (sp34.y >= 292.5f && sp34.y < 315.0f) {
+        RouletteWheelRotate(rouletteRotationStep);
+        BoardModelRotGet(boardModelIds[4], &rouletteRotation);
+        ballAngle = (22.5f * winningSector) + rouletteRotation.y; // TODO: Update rodata for asm change
+        ballVelocity.x = cosd(ballAngle);
+        ballVelocity.z = -sind(ballAngle);
+        VECScale(&ballVelocity, &ballVelocity, 429.0f);
+        VECAdd(&ballVelocity, &rouletteCenter, &ballVelocity);
+        ballPosition.x = ballVelocity.x;
+        ballPosition.z = ballVelocity.z;
+        BoardModelPosSetV(boardModelIds[6], &ballPosition);
+        if (rouletteRotation.y >= 292.5f && rouletteRotation.y < 315.0f) {
             break;
         }
         HuPrcVSleep();
     }
 
     for (i = 0; i < 0x3C; i++) {
-        var_f29 += 0.375f;
-        fn_1_E310(var_f29);
-        BoardModelRotGet(lbl_1_bss_30[4], &sp34);
-        var_f31 = (22.5f * (f32)var_r30) + sp34.y;
-        sp1C.x = cosd(var_f31);
-        sp1C.z = -sind(var_f31);
-        VECScale(&sp1C, &sp1C, 429.0f);
-        VECAdd((Vec *)&sp1C, &sp10, (Vec *)&sp1C);
-        sp28.x = sp1C.x;
-        sp28.z = sp1C.z;
-        BoardModelPosSetV(lbl_1_bss_30[6], (Vec *)&sp28);
-        var_r28 += -136.51666f;
-        HuAudFXPitchSet(lbl_1_bss_384, var_r28);
+        rouletteRotationStep += 0.375f;
+        RouletteWheelRotate(rouletteRotationStep);
+        BoardModelRotGet(boardModelIds[4], &rouletteRotation);
+        ballAngle = (22.5f * (f32)winningSector) + rouletteRotation.y;
+        ballVelocity.x = cosd(ballAngle);
+        ballVelocity.z = -sind(ballAngle);
+        VECScale(&ballVelocity, &ballVelocity, 429.0f);
+        VECAdd((Vec *)&ballVelocity, &rouletteCenter, (Vec *)&ballVelocity);
+        ballPosition.x = ballVelocity.x;
+        ballPosition.z = ballVelocity.z;
+        BoardModelPosSetV(boardModelIds[6], (Vec *)&ballPosition);
+        audioPitch += -136.51666f;
+        HuAudFXPitchSet(rouletteSoundId, audioPitch);
         HuPrcVSleep();
     }
-    BoardModelRotYSet(lbl_1_bss_30[4], 0.0f);
-    HuAudFXStop(lbl_1_bss_384);
-    return lbl_1_data_4D0[var_r30];
+    BoardModelRotYSet(boardModelIds[4], 0.0f);
+    HuAudFXStop(rouletteSoundId);
+    return rouletteSectorSpaceFlags[winningSector];
 }
 
 // Place player on space post roulette?
-void fn_1_CD04(s32 arg0)
+void RoulettePlayerMove(s32 targetSector)
 {
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
+    Vec targetSpacePosition;
+    Vec modelPosition;
+    Vec playerScale;
 
-    f32 temp_f30;
-    f32 temp_f29;
-    f32 var_f31;
+    f32 rotationStep;
+    f32 unusedRotation;
+    f32 scaleValue;
 
-    s16 var_r25;
-    u32 var_r26;
-    s32 var_r27;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r30;
-    BoardSpace *temp_r31;
+    s16 unusedPlayerIndex;
+    u32 spaceFlags;
+    s32 unusedState;
+    s32 targetSpaceIndex;
+    s32 linkIndex;
+    s32 nextSpaceIndex;
+    BoardSpace *currentSpace;
 
-    if (arg0 < 0) {
-        fn_1_D3AC();
-        arg0 = fn_1_D8C4();
+    if (targetSector < 0) {
+        RouletteBribePayout();
+        targetSector = RouletteComputerChoice();
     }
-    temp_r31 = BoardSpaceGet(0, BoardSpaceFlagSearch(0, 0x800));
+    currentSpace = BoardSpaceGet(0, BoardSpaceFlagSearch(0, 0x800));
 
-    for (var_r28 = 0; var_r28 < temp_r31->link_cnt; var_r28++) {
-        var_r29 = temp_r31->link[var_r28];
-        var_r26 = ((BoardSpaceFlagGet(0, var_r29) & 0xE) >> 1U);
-        if (var_r26 == (arg0 + 2)) {
+    for (linkIndex = 0; linkIndex < currentSpace->link_cnt; linkIndex++) {
+        targetSpaceIndex = currentSpace->link[linkIndex];
+        spaceFlags = ((BoardSpaceFlagGet(0, targetSpaceIndex) & 0xE) >> 1U);
+        if (spaceFlags == (targetSector + 2)) {
             break;
         }
     }
-    BoardSpacePosGet(0, var_r29, &sp24);
-    BoardModelAttrReset(lbl_1_bss_30[5], 0x40000002);
+    BoardSpacePosGet(0, targetSpaceIndex, &targetSpacePosition);
+    BoardModelAttrReset(boardModelIds[5], 0x40000002);
     HuAudFXPlay(0x420);
-    if (BoardPlayerSizeGet(lbl_1_bss_388) == 2) {
-        while (BoardModelMotionTimeGet(lbl_1_bss_30[5]) < 25.0f) {
+    if (BoardPlayerSizeGet(roulettePlayerIndex) == 2) {
+        while (BoardModelMotionTimeGet(boardModelIds[5]) < 25.0f) {
             HuPrcVSleep();
         }
-        BoardPlayerScaleGet(lbl_1_bss_388, &spC);
+        BoardPlayerScaleGet(roulettePlayerIndex, &playerScale);
 
-        while (BoardModelMotionTimeGet(lbl_1_bss_30[5]) < 30.0f) {
-            spC.x -= 0.25f;
-            spC.y -= 0.25f;
-            // temp_f1 = spC.z;
-            spC.z = spC.z - 0.25f;
-            BoardPlayerScaleSetV(lbl_1_bss_388, &spC);
+        while (BoardModelMotionTimeGet(boardModelIds[5]) < 30.0f) {
+            playerScale.x -= 0.25f;
+            playerScale.y -= 0.25f;
+            // temp_f1 = playerScale.z;
+            playerScale.z = playerScale.z - 0.25f;
+            BoardPlayerScaleSetV(roulettePlayerIndex, &playerScale);
             HuPrcVSleep();
         }
 
-        spC.x = spC.y = spC.z = 1.25f;
-        BoardPlayerScaleSetV(lbl_1_bss_388, &spC);
+        playerScale.x = playerScale.y = playerScale.z = 1.25f;
+        BoardPlayerScaleSetV(roulettePlayerIndex, &playerScale);
     }
 
-    while (BoardModelMotionTimeGet(lbl_1_bss_30[5]) < 30.0f) {
+    while (BoardModelMotionTimeGet(boardModelIds[5]) < 30.0f) {
         HuPrcVSleep();
     }
-    if (GWPlayer[lbl_1_bss_388].bowser_suit) {
+    if (GWPlayer[roulettePlayerIndex].bowser_suit) {
         BoardModelVisibilitySet(BoardBowserSuitModelGet(), 0);
         BoardModelVisibilitySet(BoardBowserSuitPlayerModelGet(), 0);
     }
     else {
-        BoardModelVisibilitySet(BoardPlayerModelGet(lbl_1_bss_388), 0);
+        BoardModelVisibilitySet(BoardPlayerModelGet(roulettePlayerIndex), 0);
     }
     HuAudFXPlay(0x421);
-    omVibrate(lbl_1_bss_388, 0xC, 4, 2);
+    omVibrate(roulettePlayerIndex, 0xC, 4, 2);
 
-    while (BoardModelMotionTimeGet(lbl_1_bss_30[5]) < 60.0f) {
+    while (BoardModelMotionTimeGet(boardModelIds[5]) < 60.0f) {
         HuPrcVSleep();
     }
 
-    BoardModelPosGet(lbl_1_bss_30[5], &sp18);
-    temp_f30 = atan2d(sp24.x - sp18.x, sp24.z - sp18.z) / 30;
+    BoardModelPosGet(boardModelIds[5], &modelPosition);
+    rotationStep = atan2d(targetSpacePosition.x - modelPosition.x, targetSpacePosition.z - modelPosition.z) / 30;
 
-    while (BoardModelMotionTimeGet(lbl_1_bss_30[5]) < 90.0f) {
-        BoardModelRotYSet(lbl_1_bss_30[5], temp_f30 + BoardModelRotYGet(lbl_1_bss_30[5]));
+    while (BoardModelMotionTimeGet(boardModelIds[5]) < 90.0f) {
+        BoardModelRotYSet(boardModelIds[5], rotationStep + BoardModelRotYGet(boardModelIds[5]));
         HuPrcVSleep();
     }
-    BoardModelRotYSet(lbl_1_bss_30[5], atan2d(sp24.x - sp18.x, sp24.z - sp18.z));
-    omVibrate(lbl_1_bss_388, 0xC, 4, 2);
-    if (GWPlayer[lbl_1_bss_388].bowser_suit) {
+    BoardModelRotYSet(boardModelIds[5], atan2d(targetSpacePosition.x - modelPosition.x, targetSpacePosition.z - modelPosition.z));
+    omVibrate(roulettePlayerIndex, 0xC, 4, 2);
+    if (GWPlayer[roulettePlayerIndex].bowser_suit) {
 
         BoardModelVisibilitySet(BoardBowserSuitModelGet(), 1);
         BoardModelVisibilitySet(BoardBowserSuitPlayerModelGet(), 1);
     }
     else {
-        BoardModelVisibilitySet(BoardPlayerModelGet(lbl_1_bss_388), 1);
+        BoardModelVisibilitySet(BoardPlayerModelGet(roulettePlayerIndex), 1);
     }
-    GWPlayer[lbl_1_bss_388].space_curr = (s16)var_r29;
-    BoardPlayerPosSetV(lbl_1_bss_388, &sp24);
-    temp_r31 = BoardSpaceGet(0, var_r29);
+    GWPlayer[roulettePlayerIndex].space_curr = (s16)targetSpaceIndex;
+    BoardPlayerPosSetV(roulettePlayerIndex, &targetSpacePosition);
+    currentSpace = BoardSpaceGet(0, targetSpaceIndex);
 
-    for (var_r30 = 0; var_r30 < (s32)temp_r31->link_cnt; var_r30++) {
-        if (BoardSpaceTypeGet(0, temp_r31->link[var_r30])) {
+    for (nextSpaceIndex = 0; nextSpaceIndex < (s32)currentSpace->link_cnt; nextSpaceIndex++) {
+        if (BoardSpaceTypeGet(0, currentSpace->link[nextSpaceIndex])) {
             break;
         }
     }
 
-    if (var_r30 != (s32)temp_r31->link_cnt) {
-        BoardSpacePosGet(0, temp_r31->link[var_r30], &sp18);
-        BoardPlayerRotYSet(lbl_1_bss_388, atan2d(sp18.x - sp24.x, sp18.z - sp24.z));
+    if (nextSpaceIndex != (s32)currentSpace->link_cnt) {
+        BoardSpacePosGet(0, currentSpace->link[nextSpaceIndex], &modelPosition);
+        BoardPlayerRotYSet(roulettePlayerIndex, atan2d(modelPosition.x - targetSpacePosition.x, modelPosition.z - targetSpacePosition.z));
     }
-    if (BoardPlayerSizeGet(lbl_1_bss_388) == 2) {
-        var_f31 = spC.x;
+    if (BoardPlayerSizeGet(roulettePlayerIndex) == 2) {
+        scaleValue = playerScale.x;
 
-        while (var_f31 < 2.5f) {
-            var_f31 += 0.104166664f;
-            if (var_f31 > 2.5f) {
-                var_f31 = 2.5f;
+        while (scaleValue < 2.5f) {
+            scaleValue += 0.104166664f;
+            if (scaleValue > 2.5f) {
+                scaleValue = 2.5f;
             }
-            spC.z = var_f31;
-            spC.y = var_f31;
-            spC.x = var_f31;
-            BoardPlayerScaleSetV(lbl_1_bss_388, &spC);
+            playerScale.z = scaleValue;
+            playerScale.y = scaleValue;
+            playerScale.x = scaleValue;
+            BoardPlayerScaleSetV(roulettePlayerIndex, &playerScale);
             HuPrcVSleep();
         }
     }
     HuAudFXPlay(0x42A);
-    while (BoardModelMotionTimeGet(lbl_1_bss_30[5]) < BoardModelMotionMaxTimeGet(lbl_1_bss_30[5])) {
+    while (BoardModelMotionTimeGet(boardModelIds[5]) < BoardModelMotionMaxTimeGet(boardModelIds[5])) {
         HuPrcVSleep();
     }
-    HuPrcCreate(fn_1_DF48, 0x2004, 0x1000, 0);
+    HuPrcCreate(RouletteModelsAnimate, 0x2004, 0x1000, 0);
 }
 
-void fn_1_D3AC(void)
+void RouletteBribePayout(void)
 {
-    float temp_f31;
-    float temp_f30;
-    s32 temp_r31;
-    s32 temp_r30;
-    s16 sp38[20];
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    float sp8[3] = { 1.0f, 0.3f, 2.5f };
+    float coinFallSpeed;
+    float coinHeightScale;
+    s32 coinIndex;
+    s32 collectedCoinCount;
+    s16 coinModelIds[20];
+    Vec coinPosition;
+    Vec coinRotation;
+    Vec playerPosition;
+    float playerSizeScales[3] = { 1.0f, 0.3f, 2.5f };
     W02MesExec(MAKE_MESSID(0x13, 0x08));
     BoardStatusShowSetAll(1);
-    BoardPlayerMotBlendSet(lbl_1_bss_388, 0, 15);
-    BoardPlayerPosGet(lbl_1_bss_388, &sp14);
-    for (temp_r31 = 0; temp_r31 < 20; temp_r31++) {
-        sp38[temp_r31] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x0A), NULL, 1);
-        sp2C.x = (sp14.x - 25.0f) + ((1.0f / 255.0f) * (frand8() * 50.0f));
-        sp2C.y = (sp14.y + 1200.0f) + (temp_r31 * 130.0f) + ((1.0f / 255.0f) * (frand8() * 60.0f));
-        sp2C.z = (sp14.z - 25.0f) + ((1.0f / 255.0f) * (frand8() * 50.0f));
-        BoardModelPosSetV(sp38[temp_r31], &sp2C);
-        sp20.x = sp20.z = 0;
-        sp20.y = (1.0f / 255.0f) * (frand8() * 360.0f);
-        BoardModelRotSetV(sp38[temp_r31], &sp20);
+    BoardPlayerMotBlendSet(roulettePlayerIndex, 0, 15);
+    BoardPlayerPosGet(roulettePlayerIndex, &playerPosition);
+    for (coinIndex = 0; coinIndex < 20; coinIndex++) {
+        coinModelIds[coinIndex] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x0A), NULL, 1);
+        coinPosition.x = (playerPosition.x - 25.0f) + ((1.0f / 255.0f) * (frand8() * 50.0f));
+        coinPosition.y = (playerPosition.y + 1200.0f) + (coinIndex * 130.0f) + ((1.0f / 255.0f) * (frand8() * 60.0f));
+        coinPosition.z = (playerPosition.z - 25.0f) + ((1.0f / 255.0f) * (frand8() * 50.0f));
+        BoardModelPosSetV(coinModelIds[coinIndex], &coinPosition);
+        coinRotation.x = coinRotation.z = 0;
+        coinRotation.y = (1.0f / 255.0f) * (frand8() * 360.0f);
+        BoardModelRotSetV(coinModelIds[coinIndex], &coinRotation);
     }
-    temp_f31 = -4;
-    temp_r30 = 0;
-    temp_f30 = sp8[BoardPlayerSizeGet(lbl_1_bss_388)];
+    coinFallSpeed = -4;
+    collectedCoinCount = 0;
+    coinHeightScale = playerSizeScales[BoardPlayerSizeGet(roulettePlayerIndex)];
     while (1) {
-        for (temp_r31 = 0; temp_r31 < 20; temp_r31++) {
-            if (temp_r31 < temp_r30) {
+        for (coinIndex = 0; coinIndex < 20; coinIndex++) {
+            if (coinIndex < collectedCoinCount) {
                 continue;
             }
-            BoardModelPosGet(sp38[temp_r31], &sp2C);
-            BoardModelRotGet(sp38[temp_r31], &sp20);
-            sp2C.y += temp_f31;
-            sp20.y += 45.0f;
-            BoardModelPosSetV(sp38[temp_r31], &sp2C);
-            BoardModelRotSetV(sp38[temp_r31], &sp20);
-            if (sp2C.y <= sp14.y + (180.0f * temp_f30)) {
-                CharEffectCoinGlowCreate(1, &sp2C);
-                BoardModelVisibilitySet(sp38[temp_r31], 0);
-                temp_r30++;
-                BoardPlayerCoinsAdd(lbl_1_bss_388, 1);
+            BoardModelPosGet(coinModelIds[coinIndex], &coinPosition);
+            BoardModelRotGet(coinModelIds[coinIndex], &coinRotation);
+            coinPosition.y += coinFallSpeed;
+            coinRotation.y += 45.0f;
+            BoardModelPosSetV(coinModelIds[coinIndex], &coinPosition);
+            BoardModelRotSetV(coinModelIds[coinIndex], &coinRotation);
+            if (coinPosition.y <= playerPosition.y + (180.0f * coinHeightScale)) {
+                CharEffectCoinGlowCreate(1, &coinPosition);
+                BoardModelVisibilitySet(coinModelIds[coinIndex], 0);
+                collectedCoinCount++;
+                BoardPlayerCoinsAdd(roulettePlayerIndex, 1);
                 HuAudFXPlay(7);
-                omVibrate(lbl_1_bss_388, 12, 6, 6);
+                omVibrate(roulettePlayerIndex, 12, 6, 6);
             }
         }
-        temp_f31 *= 1.05f;
-        if (temp_f31 < -40.0f) {
-            temp_f31 = -40.0f;
+        coinFallSpeed *= 1.05f;
+        if (coinFallSpeed < -40.0f) {
+            coinFallSpeed = -40.0f;
         }
-        if (temp_r30 == 20) {
-            BoardPlayerMotionShiftSet(lbl_1_bss_388, 7, 0, 10, HU3D_MOTATTR_NONE);
+        if (collectedCoinCount == 20) {
+            BoardPlayerMotionShiftSet(roulettePlayerIndex, 7, 0, 10, HU3D_MOTATTR_NONE);
             break;
         }
         HuPrcVSleep();
     }
-    while (!BoardPlayerMotionEndCheck(lbl_1_bss_388)) {
+    while (!BoardPlayerMotionEndCheck(roulettePlayerIndex)) {
         HuPrcVSleep();
     }
-    for (temp_r31 = 0; temp_r31 < 20; temp_r31++) {
-        BoardModelKill(sp38[temp_r31]);
+    for (coinIndex = 0; coinIndex < 20; coinIndex++) {
+        BoardModelKill(coinModelIds[coinIndex]);
     }
     HuPrcSleep(60);
-    BoardPlayerMotBlendSet(lbl_1_bss_388, 180, 15);
+    BoardPlayerMotBlendSet(roulettePlayerIndex, 180, 15);
     BoardStatusShowSetAll(0);
-    while (!BoardPlayerMotBlendCheck(lbl_1_bss_388)) {
+    while (!BoardPlayerMotBlendCheck(roulettePlayerIndex)) {
         HuPrcVSleep();
     }
 }
 
-s32 fn_1_D8C4(void)
+s32 RouletteComputerChoice(void)
 {
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
-    Vec sp1C;
-    s16 sp14[4];
-    float spC[2];
-    s32 sp8;
+    Vec rouletteCenter;
+    Vec spaceDirection;
+    Vec linkedSpacePosition;
+    Vec modelScale;
+    s16 quadrantModelIds[4];
+    float windowDimensions[2];
+    s32 linkIndex;
 
-    float temp_f31;
-    float temp_f30;
+    float stickAngle;
+    float selectionPulseAngle;
 
-    s32 temp_r31;
-    s16 temp_r30;
-    BoardSpace *temp_r29;
-    s32 temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s32 temp_r25;
-    s16 temp_r24;
-    s16 temp_r23;
-    s16 temp_r22;
+    s32 quadrantIndex;
+    s16 windowId;
+    BoardSpace *targetSpace;
+    s32 linkIndex;
+    s16 selectedQuadrant;
+    s16 stickY;
+    s32 starQuadrant;
+    s16 buttonFlags;
+    s16 controllerPort;
+    s16 cpuInputDelay;
 
-    u32 temp_r21;
+    u32 linkFlags;
     W02MesExec(MAKE_MESSID(0x13, 0x09));
-    temp_r29 = BoardSpaceGet(0, BoardSpaceFlagSearch(0, 0x800));
-    BoardModelPosGet(lbl_1_bss_30[3], &sp40);
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        sp14[temp_r31] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x00), NULL, 1);
-        BoardModelLayerSet(sp14[temp_r31], 2);
-        for (temp_r28 = 0; temp_r28 < temp_r29->link_cnt; temp_r28++) {
-            temp_r21 = (BoardSpaceFlagGet(0, temp_r29->link[temp_r28]) & 0xE) >> 1;
-            if (temp_r21 == temp_r31 + 2) {
+    targetSpace = BoardSpaceGet(0, BoardSpaceFlagSearch(0, 0x800));
+    BoardModelPosGet(boardModelIds[3], &rouletteCenter);
+    for (quadrantIndex = 0; quadrantIndex < 4; quadrantIndex++) {
+        quadrantModelIds[quadrantIndex] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x00), NULL, 1);
+        BoardModelLayerSet(quadrantModelIds[quadrantIndex], 2);
+        for (linkIndex = 0; linkIndex < targetSpace->link_cnt; linkIndex++) {
+            linkFlags = (BoardSpaceFlagGet(0, targetSpace->link[linkIndex]) & 0xE) >> 1;
+            if (linkFlags == quadrantIndex + 2) {
                 break;
             }
         }
-        sp8 = BoardSpacePosGet(0, temp_r29->link[temp_r28], &sp28);
-        VECSubtract(&sp28, &sp40, &sp34);
-        BoardModelRotYSet(sp14[temp_r31], atan2d(sp34.x, sp34.z));
-        VECNormalize(&sp34, &sp34);
-        VECScale(&sp34, &sp34, 400);
-        VECAdd(&sp34, &sp40, &sp34);
-        sp34.y += 300.0f;
-        BoardModelPosSetV(sp14[temp_r31], &sp34);
-        sp1C.x = sp1C.y = sp1C.z = 3;
-        BoardModelScaleSetV(sp14[temp_r31], &sp1C);
+        linkIndex = BoardSpacePosGet(0, targetSpace->link[linkIndex], &linkedSpacePosition);
+        VECSubtract(&linkedSpacePosition, &rouletteCenter, &spaceDirection);
+        BoardModelRotYSet(quadrantModelIds[quadrantIndex], atan2d(spaceDirection.x, spaceDirection.z));
+        VECNormalize(&spaceDirection, &spaceDirection);
+        VECScale(&spaceDirection, &spaceDirection, 400);
+        VECAdd(&spaceDirection, &rouletteCenter, &spaceDirection);
+        spaceDirection.y += 300.0f;
+        BoardModelPosSetV(quadrantModelIds[quadrantIndex], &spaceDirection);
+        modelScale.x = modelScale.y = modelScale.z = 3;
+        BoardModelScaleSetV(quadrantModelIds[quadrantIndex], &modelScale);
     }
-    temp_r25 = fn_1_E2AC();
-    HuWinMesMaxSizeGet(1, spC, MAKE_MESSID(0x13, 0x1E));
-    temp_r30 = HuWinCreate(-10000, 356, spC[0], spC[1], 0);
-    HuWinMesSet(temp_r30, MAKE_MESSID(0x13, 0x1E));
-    HuWinBGTPLvlSet(temp_r30, 0);
-    HuWinMesSpeedSet(temp_r30, 0);
-    temp_r23 = GWPlayer[lbl_1_bss_388].port;
-    temp_f30 = 0;
-    temp_r22 = frandmod(20) + 20;
+    starQuadrant = RouletteStarRegionGet();
+    HuWinMesMaxSizeGet(1, windowDimensions, MAKE_MESSID(0x13, 0x1E));
+    windowId = HuWinCreate(-10000, 356, windowDimensions[0], windowDimensions[1], 0);
+    HuWinMesSet(windowId, MAKE_MESSID(0x13, 0x1E));
+    HuWinBGTPLvlSet(windowId, 0);
+    HuWinMesSpeedSet(windowId, 0);
+    controllerPort = GWPlayer[roulettePlayerIndex].port;
+    selectionPulseAngle = 0;
+    cpuInputDelay = frandmod(20) + 20;
 restart:
     while (1) {
-        if (GWPlayer[lbl_1_bss_388].com) {
-            temp_r27 = 0;
-            temp_r26 = 0;
-            if (temp_r22) {
-                temp_r22--;
-                temp_r24 = 0;
+        if (GWPlayer[roulettePlayerIndex].com) {
+            selectedQuadrant = 0;
+            stickY = 0;
+            if (cpuInputDelay) {
+                cpuInputDelay--;
+                buttonFlags = 0;
             }
             else {
-                temp_r24 = PAD_BUTTON_A;
+                buttonFlags = PAD_BUTTON_A;
             }
             break;
         }
-        temp_r24 = HuPadBtnDown[temp_r23];
-        temp_r27 = HuPadStkX[temp_r23];
-        temp_r26 = HuPadStkY[temp_r23];
-        if (!(temp_r24 & PAD_TRIGGER_Z)) {
+        buttonFlags = HuPadBtnDown[controllerPort];
+        selectedQuadrant = HuPadStkX[controllerPort];
+        stickY = HuPadStkY[controllerPort];
+        if (!(buttonFlags & PAD_TRIGGER_Z)) {
             break;
         }
         HuAudFXPlay(1);
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            BoardModelVisibilitySet(sp14[temp_r31], 0);
+        for (quadrantIndex = 0; quadrantIndex < 4; quadrantIndex++) {
+            BoardModelVisibilitySet(quadrantModelIds[quadrantIndex], 0);
         }
-        HuWinDispOff(temp_r30);
-        BoardViewMapExec(lbl_1_bss_388);
-        HuWinDispOn(temp_r30);
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            BoardModelVisibilitySet(sp14[temp_r31], 1);
+        HuWinDispOff(windowId);
+        BoardViewMapExec(roulettePlayerIndex);
+        HuWinDispOn(windowId);
+        for (quadrantIndex = 0; quadrantIndex < 4; quadrantIndex++) {
+            BoardModelVisibilitySet(quadrantModelIds[quadrantIndex], 1);
         }
     }
-    if (!(temp_r24 & PAD_BUTTON_A)) {
-        if (abs(temp_r27) < 10) {
-            temp_r27 = 0;
+    if (!(buttonFlags & PAD_BUTTON_A)) {
+        if (abs(selectedQuadrant) < 10) {
+            selectedQuadrant = 0;
         }
-        if (abs(temp_r26) < 10) {
-            temp_r26 = 0;
+        if (abs(stickY) < 10) {
+            stickY = 0;
         }
-        if (temp_r27 != 0 || temp_r26 != 0) {
-            temp_f31 = atan2d(-temp_r27, -temp_r26);
-            if (temp_f31 < 0.0f) {
-                temp_f31 += 360.0f;
+        if (selectedQuadrant != 0 || stickY != 0) {
+            stickAngle = atan2d(-selectedQuadrant, -stickY);
+            if (stickAngle < 0.0f) {
+                stickAngle += 360.0f;
             }
-            temp_r31 = temp_f31 / 90.0f;
-            temp_f31 = fmod(temp_f31, 90.0);
-            if (temp_r31 != temp_r25 && temp_f31 >= 20.0f && temp_f31 <= 70.0f) {
-                temp_f30 = 0;
-                temp_r25 = temp_r31;
+            quadrantIndex = stickAngle / 90.0f;
+            stickAngle = fmod(stickAngle, 90.0);
+            if (quadrantIndex != starQuadrant && stickAngle >= 20.0f && stickAngle <= 70.0f) {
+                selectionPulseAngle = 0;
+                starQuadrant = quadrantIndex;
                 HuAudFXPlay(0);
             }
         }
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            if (temp_r31 == temp_r25) {
-                sp1C.x = sp1C.y = sp1C.z = sind(temp_f30) + 3.0;
-                temp_f30 += 8.0f;
-                if (temp_f30 > 180.0f) {
-                    temp_f30 -= 180.0f;
+        for (quadrantIndex = 0; quadrantIndex < 4; quadrantIndex++) {
+            if (quadrantIndex == starQuadrant) {
+                modelScale.x = modelScale.y = modelScale.z = sind(selectionPulseAngle) + 3.0;
+                selectionPulseAngle += 8.0f;
+                if (selectionPulseAngle > 180.0f) {
+                    selectionPulseAngle -= 180.0f;
                 }
             }
             else {
-                sp1C.x = sp1C.y = sp1C.z = 3.0f;
+                modelScale.x = modelScale.y = modelScale.z = 3.0f;
             }
 
-            BoardModelScaleSetV(sp14[temp_r31], &sp1C);
+            BoardModelScaleSetV(quadrantModelIds[quadrantIndex], &modelScale);
         }
         HuPrcVSleep();
         goto restart;
     }
     else {
         HuAudFXPlay(2);
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            BoardModelKill(sp14[temp_r31]);
+        for (quadrantIndex = 0; quadrantIndex < 4; quadrantIndex++) {
+            BoardModelKill(quadrantModelIds[quadrantIndex]);
         }
-        HuWinKill(temp_r30);
-        return temp_r25;
+        HuWinKill(windowId);
+        return starQuadrant;
     }
 }
 
-void fn_1_DF48(void)
+void RouletteModelsAnimate(void)
 {
-    Vec sp14;
-    Vec sp8;
-    s32 temp_r31;
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    float temp_f28;
-    BoardModelMotionTimeSet(lbl_1_bss_30[5], 0);
-    BoardModelAttrSet(lbl_1_bss_30[5], 0x40000002);
-    temp_f31 = BoardModelRotYGet(lbl_1_bss_30[5]);
-    temp_f29 = -temp_f31 / 20.0f;
-    temp_f30 = BoardModelRotYGet(lbl_1_bss_30[15]);
-    temp_f28 = -temp_f30 / 20.0f;
-    BoardModelScaleGet(lbl_1_bss_30[6], &sp14);
-    for (temp_r31 = 0; temp_r31 < 10; temp_r31++) {
-        sp14.x = sp14.y = sp14.z = 1.0f - (temp_r31 * 0.1f);
-        if (sp14.x < 0.0f) {
-            sp14.x = sp14.y = sp14.z = 0.0f;
+    Vec modelScale;
+    Vec roulettePosition;
+    s32 animationFrame;
+    float wheelRotation;
+    float rouletteRotation;
+    float wheelRotationStep;
+    float rouletteRotationStep;
+    BoardModelMotionTimeSet(boardModelIds[5], 0);
+    BoardModelAttrSet(boardModelIds[5], 0x40000002);
+    wheelRotation = BoardModelRotYGet(boardModelIds[5]);
+    wheelRotationStep = -wheelRotation / 20.0f;
+    rouletteRotation = BoardModelRotYGet(boardModelIds[15]);
+    rouletteRotationStep = -rouletteRotation / 20.0f;
+    BoardModelScaleGet(boardModelIds[6], &modelScale);
+    for (animationFrame = 0; animationFrame < 10; animationFrame++) {
+        modelScale.x = modelScale.y = modelScale.z = 1.0f - (animationFrame * 0.1f);
+        if (modelScale.x < 0.0f) {
+            modelScale.x = modelScale.y = modelScale.z = 0.0f;
         }
-        BoardModelScaleSetV(lbl_1_bss_30[6], &sp14);
-        temp_f31 += temp_f29;
-        BoardModelRotYSet(lbl_1_bss_30[5], temp_f31);
-        temp_f30 += temp_f28;
-        BoardModelRotYSet(lbl_1_bss_30[15], temp_f30);
+        BoardModelScaleSetV(boardModelIds[6], &modelScale);
+        wheelRotation += wheelRotationStep;
+        BoardModelRotYSet(boardModelIds[5], wheelRotation);
+        rouletteRotation += rouletteRotationStep;
+        BoardModelRotYSet(boardModelIds[15], rouletteRotation);
         HuPrcVSleep();
     }
-    BoardModelPosGet(lbl_1_bss_30[15], &sp8);
-    sp8.z -= 90.0f;
-    sp8.y += 50.0f;
-    BoardModelPosSetV(lbl_1_bss_30[6], &sp8);
-    for (temp_r31 = 0; temp_r31 < 10; temp_r31++) {
-        sp14.x = sp14.y = sp14.z = temp_r31 * 0.1f;
-        if (sp14.x > 1.0f) {
-            sp14.x = sp14.y = sp14.z = 1.0f;
+    BoardModelPosGet(boardModelIds[15], &roulettePosition);
+    roulettePosition.z -= 90.0f;
+    roulettePosition.y += 50.0f;
+    BoardModelPosSetV(boardModelIds[6], &roulettePosition);
+    for (animationFrame = 0; animationFrame < 10; animationFrame++) {
+        modelScale.x = modelScale.y = modelScale.z = animationFrame * 0.1f;
+        if (modelScale.x > 1.0f) {
+            modelScale.x = modelScale.y = modelScale.z = 1.0f;
         }
-        BoardModelScaleSetV(lbl_1_bss_30[6], &sp14);
-        temp_f31 += temp_f29;
-        BoardModelRotYSet(lbl_1_bss_30[5], temp_f31);
-        temp_f30 += temp_f28;
-        BoardModelRotYSet(lbl_1_bss_30[15], temp_f30);
+        BoardModelScaleSetV(boardModelIds[6], &modelScale);
+        wheelRotation += wheelRotationStep;
+        BoardModelRotYSet(boardModelIds[5], wheelRotation);
+        rouletteRotation += rouletteRotationStep;
+        BoardModelRotYSet(boardModelIds[15], rouletteRotation);
         HuPrcVSleep();
     }
-    sp14.x = sp14.y = sp14.z = 1.0f;
-    BoardModelScaleSetV(lbl_1_bss_30[6], &sp14);
-    BoardModelRotYSet(lbl_1_bss_30[5], 0);
-    BoardModelRotYSet(lbl_1_bss_30[15], 0);
+    modelScale.x = modelScale.y = modelScale.z = 1.0f;
+    BoardModelScaleSetV(boardModelIds[6], &modelScale);
+    BoardModelRotYSet(boardModelIds[5], 0);
+    BoardModelRotYSet(boardModelIds[15], 0);
     HuPrcEnd();
 }
 
-s32 fn_1_E2AC(void)
+s32 RouletteStarRegionGet(void)
 {
     switch (GWSystem.star_pos) {
         case 0:
@@ -803,28 +803,28 @@ s32 fn_1_E2AC(void)
 }
 
 /* Rotate (yaw) of model 4 */
-void fn_1_E310(f32 degrees)
+void RouletteWheelRotate(f32 degrees)
 {
-    Vec spC;
-    lbl_1_bss_380 += degrees;
-    if (lbl_1_bss_380 >= 360.0f) {
-        lbl_1_bss_380 -= 360.0f;
+    Vec modelRotation;
+    rouletteWheelAngle += degrees;
+    if (rouletteWheelAngle >= 360.0f) {
+        rouletteWheelAngle -= 360.0f;
     }
-    if (lbl_1_bss_380 < 0.0f) {
-        lbl_1_bss_380 += 360.0f;
+    if (rouletteWheelAngle < 0.0f) {
+        rouletteWheelAngle += 360.0f;
     }
-    BoardModelRotGet(lbl_1_bss_30[4], &spC);
-    spC.y = lbl_1_bss_380;
-    BoardModelRotSetV(lbl_1_bss_30[4], &spC);
+    BoardModelRotGet(boardModelIds[4], &modelRotation);
+    modelRotation.y = rouletteWheelAngle;
+    BoardModelRotSetV(boardModelIds[4], &modelRotation);
 }
 
-void fn_1_E41C(void)
+void RouletteEventStart(void)
 {
-    lbl_1_bss_388 = GWSystem.player_curr;
-    OSReport("Roulette Player %d\n", lbl_1_bss_388);
-    lbl_1_bss_38C = HuPrcChildCreate(fn_1_BCFC, 8195, 8192, 0, boardMainProc);
-    HuPrcDestructorSet2(lbl_1_bss_38C, (void *)fn_1_BE74); // fn_1_BE74 requires implicit return
-    while (lbl_1_bss_38C) {
+    roulettePlayerIndex = GWSystem.player_curr;
+    OSReport("Roulette Player %d\n", roulettePlayerIndex);
+    rouletteProcess = HuPrcChildCreate(RouletteEventProcess, 8195, 8192, 0, boardMainProc);
+    HuPrcDestructorSet2(rouletteProcess, (void *)RouletteEventCleanup); // RouletteEventCleanup requires implicit return
+    while (rouletteProcess) {
         HuPrcVSleep();
     }
 }

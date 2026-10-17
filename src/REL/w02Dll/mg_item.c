@@ -17,7 +17,7 @@
 #define MDL_ID_SHIFT 1
 #endif
 
-s32 lbl_1_data_428[14] = {
+s32 itemModelData[14] = {
     DATA_MAKE_NUM(DATADIR_BOARD, 0x6C + MDL_ID_SHIFT),
     DATA_MAKE_NUM(DATADIR_BOARD, 0x6D + MDL_ID_SHIFT),
     DATA_MAKE_NUM(DATADIR_BOARD, 0x6E + MDL_ID_SHIFT),
@@ -34,973 +34,973 @@ s32 lbl_1_data_428[14] = {
     DATA_MAKE_NUM(DATADIR_BOARD, 0x7A + MDL_ID_SHIFT),
 };
 
-char *lbl_1_data_474[3] = { "item", "item1", "item2" };
+char *itemModelHooks[3] = { "item", "item1", "item2" };
 
-s32 lbl_1_data_480[] = { DATA_MAKE_NUM(DATADIR_W02, 0x18), DATA_MAKE_NUM(DATADIR_W02, 0x19), DATA_MAKE_NUM(DATADIR_W02, 0x1A), -1 };
+s32 itemMotionData[] = { DATA_MAKE_NUM(DATADIR_W02, 0x18), DATA_MAKE_NUM(DATADIR_W02, 0x19), DATA_MAKE_NUM(DATADIR_W02, 0x1A), -1 };
 
-u16 lbl_1_bss_198;
-s16 lbl_1_bss_196;
-s16 lbl_1_bss_190[3];
-s16 lbl_1_bss_18A[3];
-s16 lbl_1_bss_184[3];
-Vec lbl_1_bss_160[3];
-Vec lbl_1_bss_13C[3];
-Vec lbl_1_bss_118[3];
-float lbl_1_bss_114;
-float lbl_1_bss_110;
-OMOBJ *lbl_1_bss_10C;
-OMOBJ *lbl_1_bss_108;
-OMOBJ *lbl_1_bss_104;
-HUPROCESS *lbl_1_bss_100;
-Vec lbl_1_bss_DC[3];
-s32 lbl_1_bss_D8;
-s32 lbl_1_bss_CC[3];
-ANIMDATA *lbl_1_bss_C8;
+u16 minigameDone;
+s16 itemPlayerIndex;
+s16 itemPlayerModelIds[3];
+s16 itemModelIds[3];
+s16 itemEffectModelIds[3];
+Vec itemPositions[3];
+Vec itemDirections[3];
+Vec itemScales[3];
+float itemRotationSpeed;
+float itemMovementSpeed;
+OMOBJ *itemTimerObject;
+OMOBJ *itemPlayerObject;
+OMOBJ *itemMovementObject;
+HUPROCESS *itemAnimationProcess;
+Vec itemStartPositions[3];
+s32 itemSelectedIndex;
+s32 itemParticleIds[3];
+ANIMDATA *itemParticleAnimationData;
 
-void fn_1_5CF8(void)
+void ItemMinigameModelsInitialize(void)
 {
-    BoardModelVisibilitySet(lbl_1_bss_30[10], 1);
+    BoardModelVisibilitySet(boardModelIds[10], 1);
 }
 
-typedef struct work_mgitem {
-    s16 unk0;
-    s16 unk2;
-    s16 unk4;
-    s16 unk6;
-    s16 unk8;
-    s16 unkA;
-    s16 unkC;
+typedef struct ItemMinigameWork {
+    s16 remainingSeconds;
+    s16 timerFrameCounter;
+    s16 timerSequenceId;
+    s16 instructionsWindowId;
+    s16 playerPositionStep;
+    s16 directionChangeDelay;
+    s16 moveState;
 } WorkMGItem;
 
-typedef struct work_mgitem_player {
-    Vec unk0[3];
-    s16 unk24[3];
-    s16 unk2A[3];
-    float unk30[2];
-    float unk38[2];
-    s16 unk40[2];
-    Vec unk44[3];
-    s16 unk68;
+typedef struct ItemMinigamePlayerWork {
+    Vec itemDirectionVectors[3];
+    s16 itemIconModelIds[3];
+    s16 itemModelIds[3];
+    float itemAngles[2];
+    float itemAngularVelocities[2];
+    s16 itemRotationModes[2];
+    Vec itemPositions[3];
+    s16 selectedItemIndex;
 } WorkMGItemPlayer;
 
-void fn_1_8570(void);
+void ItemMinigameWaitForAnimation(void);
 
-void fn_1_5F08(OMOBJ *object);
-void fn_1_606C(OMOBJ *object);
+void ItemMinigamePlayerUpdate(OMOBJ *object);
+void ItemMinigameTimerUpdate(OMOBJ *object);
 
-void fn_1_5D28(void)
+void ItemMinigameStart(void)
 {
-    Vec spC;
-    WorkMGItem *sp8;
-    lbl_1_bss_196 = GWSystem.player_curr;
-    BoardPlayerPosGet(lbl_1_bss_196, &spC);
-    BoardPlayerPosLerpStart(lbl_1_bss_196, &spC, &lbl_1_bss_DC[1], 20);
-    while (GWPlayer[lbl_1_bss_196].moving) {
+    Vec playerPosition;
+    WorkMGItem *modelPosition;
+    itemPlayerIndex = GWSystem.player_curr;
+    BoardPlayerPosGet(itemPlayerIndex, &playerPosition);
+    BoardPlayerPosLerpStart(itemPlayerIndex, &playerPosition, &itemStartPositions[1], 20);
+    while (GWPlayer[itemPlayerIndex].moving) {
         HuPrcVSleep();
     }
-    BoardPlayerIdleSet(lbl_1_bss_196);
+    BoardPlayerIdleSet(itemPlayerIndex);
     HuPrcSleep(REFRESH_RATE*2);
     BoardAudSeqPause(0, 1, 1000);
     HuAudFXPlay(781);
-    fn_1_8570();
+    ItemMinigameWaitForAnimation();
     HuPrcSleep(REFRESH_RATE);
-    lbl_1_bss_104 = omAddObjEx(boardObjMan, 257, 0, 0, -1, fn_1_5F08);
-    lbl_1_bss_108 = omAddObjEx(boardObjMan, 257, 0, 0, -1, fn_1_606C);
-    lbl_1_bss_10C = omAddObjEx(boardObjMan, 257, 0, 0, -1, NULL);
-    lbl_1_bss_108->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WorkMGItemPlayer), HU_MEMNUM_OVL);
-    lbl_1_bss_10C->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WorkMGItem), HU_MEMNUM_OVL);
-    sp8 = lbl_1_bss_10C->data;
-    lbl_1_bss_198 = 0;
+    itemMovementObject = omAddObjEx(boardObjMan, 257, 0, 0, -1, ItemMinigamePlayerUpdate);
+    itemPlayerObject = omAddObjEx(boardObjMan, 257, 0, 0, -1, ItemMinigameTimerUpdate);
+    itemTimerObject = omAddObjEx(boardObjMan, 257, 0, 0, -1, NULL);
+    itemPlayerObject->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WorkMGItemPlayer), HU_MEMNUM_OVL);
+    itemTimerObject->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WorkMGItem), HU_MEMNUM_OVL);
+    modelPosition = itemTimerObject->data;
+    minigameDone = 0;
 }
 
-void fn_1_602C(void);
+void ItemMinigameTimerStart(void);
 
-void fn_1_5F08(OMOBJ *object)
+void ItemMinigamePlayerUpdate(OMOBJ *object)
 {
-    if (lbl_1_bss_198 && BoardMGDoneFlagGet() == 1) {
-        fn_1_602C();
+    if (minigameDone && BoardMGDoneFlagGet() == 1) {
+        ItemMinigameTimerStart();
         omDelObjEx(boardObjMan, object);
     }
 }
 
-void fn_1_5F60(void)
+void ItemMinigamePlayerCleanup(void)
 {
-    lbl_1_bss_198 = 1;
+    minigameDone = 1;
     BoardMGExit();
 }
 
-void fn_1_5F90(void)
+void ItemMinigamePlayerDestroy(void)
 {
     s32 i;
     for (i = 0; i < 3; i++) {
-        BoardModelKill(lbl_1_bss_184[i]);
-        BoardModelKill(lbl_1_bss_18A[i]);
+        BoardModelKill(itemEffectModelIds[i]);
+        BoardModelKill(itemModelIds[i]);
     }
-    if (lbl_1_bss_C8) {
-        HuSprAnimKill(lbl_1_bss_C8);
-        lbl_1_bss_C8 = NULL;
+    if (itemParticleAnimationData) {
+        HuSprAnimKill(itemParticleAnimationData);
+        itemParticleAnimationData = NULL;
     }
 }
 
-void fn_1_602C(void)
+void ItemMinigameTimerStart(void)
 {
-    omDelObjEx(boardObjMan, lbl_1_bss_10C);
+    omDelObjEx(boardObjMan, itemTimerObject);
     BoardMGDoneFlagSet(0);
 }
 
-void fn_1_6248(OMOBJ *object);
+void ItemMinigamePlayerAnimate(OMOBJ *object);
 
-void fn_1_606C(OMOBJ *object)
+void ItemMinigameTimerUpdate(OMOBJ *object)
 {
-    WorkMGItemPlayer *temp_r31 = object->data;
-    temp_r31->unk24[0] = lbl_1_bss_18A[0];
-    temp_r31->unk24[1] = lbl_1_bss_18A[1];
-    temp_r31->unk24[2] = lbl_1_bss_18A[2];
-    BoardModelPosGet(lbl_1_bss_18A[1], &temp_r31->unk44[0]);
-    temp_r31->unk44[0].x -= lbl_1_bss_110;
-    BoardModelPosGet(lbl_1_bss_18A[1], &temp_r31->unk44[1]);
-    temp_r31->unk44[1].x += lbl_1_bss_110;
-    BoardModelPosGet(lbl_1_bss_18A[1], &temp_r31->unk44[2]);
+    WorkMGItemPlayer *itemWork = object->data;
+    itemWork->itemIconModelIds[0] = itemModelIds[0];
+    itemWork->itemIconModelIds[1] = itemModelIds[1];
+    itemWork->itemIconModelIds[2] = itemModelIds[2];
+    BoardModelPosGet(itemModelIds[1], &itemWork->itemPositions[0]);
+    itemWork->itemPositions[0].x -= itemMovementSpeed;
+    BoardModelPosGet(itemModelIds[1], &itemWork->itemPositions[1]);
+    itemWork->itemPositions[1].x += itemMovementSpeed;
+    BoardModelPosGet(itemModelIds[1], &itemWork->itemPositions[2]);
     BoardMusStart(1, 19, 127, 0);
     object->work[0] = REFRESH_RATE*5;
     object->work[1] = 0;
-    object->objFunc = fn_1_6248;
+    object->objFunc = ItemMinigamePlayerAnimate;
 }
 
-void fn_1_616C(s16 arg0, s16 arg1)
+void ItemMinigameItemMotionSet(s16 firstItemIndex, s16 secondItemIndex)
 {
-    s32 temp;
-    temp = lbl_1_bss_190[arg0];
-    lbl_1_bss_190[arg0] = lbl_1_bss_190[arg1];
-    lbl_1_bss_190[arg1] = temp;
-    temp = lbl_1_bss_184[arg0];
-    lbl_1_bss_184[arg0] = lbl_1_bss_184[arg1];
-    lbl_1_bss_184[arg1] = temp;
+    s32 swappedModelId;
+    swappedModelId = itemPlayerModelIds[firstItemIndex];
+    itemPlayerModelIds[firstItemIndex] = itemPlayerModelIds[secondItemIndex];
+    itemPlayerModelIds[secondItemIndex] = swappedModelId;
+    swappedModelId = itemEffectModelIds[firstItemIndex];
+    itemEffectModelIds[firstItemIndex] = itemEffectModelIds[secondItemIndex];
+    itemEffectModelIds[secondItemIndex] = swappedModelId;
 }
 
-void fn_1_6AB0(OMOBJ *object);
+void ItemMinigamePlayerFinish(OMOBJ *object);
 
-void fn_1_6248(OMOBJ *object)
+void ItemMinigamePlayerAnimate(OMOBJ *object)
 {
-    float temp_f31;
-    float temp_f30;
-    Vec sp34;
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
-    u8 sp8[8] = { 0, 1, 1, 2, 0, 1, 0, 2 };
-    WorkMGItemPlayer *temp_r31 = object->data;
-    s32 temp_r30;
-    s32 temp_r28;
+    float distance;
+    float duration;
+    Vec itemPosition;
+    Vec itemTargetPosition;
+    Vec modelRotation;
+    Vec modelScale;
+    u8 modelPosition[8] = { 0, 1, 1, 2, 0, 1, 0, 2 };
+    WorkMGItemPlayer *itemWork = object->data;
+    s32 playerIndex;
+    s32 itemModelId;
     if (object->work[0]) {
         object->work[0]--;
     }
     if (object->work[1] == 0) {
         if (object->work[0] == 0) {
-            object->objFunc = fn_1_6AB0;
+            object->objFunc = ItemMinigamePlayerFinish;
         }
-        temp_r28 = sp8[frand() & 0x7];
-        switch (temp_r28) {
+        itemModelId = modelPosition[frand() & 0x7];
+        switch (itemModelId) {
             case 0:
-                temp_r31->unk2A[0] = temp_r31->unk24[0];
-                temp_r31->unk2A[1] = temp_r31->unk24[1];
-                sp28 = lbl_1_bss_160[0];
-                sp34 = lbl_1_bss_160[1];
-                temp_f31 = ((REFRESH_RATE+3)/4);
+                itemWork->itemModelIds[0] = itemWork->itemIconModelIds[0];
+                itemWork->itemModelIds[1] = itemWork->itemIconModelIds[1];
+                itemTargetPosition = itemPositions[0];
+                itemPosition = itemPositions[1];
+                distance = ((REFRESH_RATE+3)/4);
                 break;
 
             case 1:
-                temp_r31->unk2A[0] = temp_r31->unk24[1];
-                temp_r31->unk2A[1] = temp_r31->unk24[2];
-                sp28 = lbl_1_bss_160[1];
-                sp34 = lbl_1_bss_160[2];
-                temp_f31 = ((REFRESH_RATE+3)/4);
+                itemWork->itemModelIds[0] = itemWork->itemIconModelIds[1];
+                itemWork->itemModelIds[1] = itemWork->itemIconModelIds[2];
+                itemTargetPosition = itemPositions[1];
+                itemPosition = itemPositions[2];
+                distance = ((REFRESH_RATE+3)/4);
                 break;
 
             case 2:
-                temp_r31->unk2A[0] = temp_r31->unk24[0];
-                temp_r31->unk2A[1] = temp_r31->unk24[2];
-                temp_f31 = ((REFRESH_RATE+3)/4)*1.5f;
+                itemWork->itemModelIds[0] = itemWork->itemIconModelIds[0];
+                itemWork->itemModelIds[1] = itemWork->itemIconModelIds[2];
+                distance = ((REFRESH_RATE+3)/4)*1.5f;
                 break;
         }
-        temp_r31->unk68 = temp_r28;
-        temp_r31->unk30[0] = 180;
-        temp_r31->unk30[1] = 0;
-        if (temp_r28 != 2) {
-            temp_r31->unk40[0] = frandmod(3);
-            temp_r31->unk40[1] = frandmod(3);
-            while (temp_r31->unk40[1] == temp_r31->unk40[0]) {
-                temp_r31->unk40[1] = frandmod(3);
+        itemWork->selectedItemIndex = itemModelId;
+        itemWork->itemAngles[0] = 180;
+        itemWork->itemAngles[1] = 0;
+        if (itemModelId != 2) {
+            itemWork->itemRotationModes[0] = frandmod(3);
+            itemWork->itemRotationModes[1] = frandmod(3);
+            while (itemWork->itemRotationModes[1] == itemWork->itemRotationModes[0]) {
+                itemWork->itemRotationModes[1] = frandmod(3);
             }
-            VECSubtract(&sp34, &sp28, &temp_r31->unk0[0]);
-            VECScale(&temp_r31->unk0[0], &temp_r31->unk0[0], 1.0f / temp_f31);
-            VECSubtract(&sp28, &sp34, &temp_r31->unk0[1]);
-            VECScale(&temp_r31->unk0[1], &temp_r31->unk0[1], 1.0f / temp_f31);
+            VECSubtract(&itemPosition, &itemTargetPosition, &itemWork->remainingSeconds[0]);
+            VECScale(&itemWork->remainingSeconds[0], &itemWork->remainingSeconds[0], 1.0f / distance);
+            VECSubtract(&itemTargetPosition, &itemPosition, &itemWork->remainingSeconds[1]);
+            VECScale(&itemWork->remainingSeconds[1], &itemWork->remainingSeconds[1], 1.0f / distance);
         }
         else {
-            temp_r31->unk40[0] = frandmod(2);
-            temp_r31->unk40[1] = temp_r31->unk40[0] ^ 1;
+            itemWork->itemRotationModes[0] = frandmod(2);
+            itemWork->itemRotationModes[1] = itemWork->itemRotationModes[0] ^ 1;
         }
-        for (temp_r30 = 0; temp_r30 < 2; temp_r30++) {
-            if (temp_r31->unk40[temp_r30] == 0) {
-                temp_r31->unk38[temp_r30] = 180.0f / temp_f31;
+        for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+            if (itemWork->itemRotationModes[playerIndex] == 0) {
+                itemWork->itemAngularVelocities[playerIndex] = 180.0f / distance;
             }
             else {
-                temp_r31->unk38[temp_r30] = -180.0f / temp_f31;
+                itemWork->itemAngularVelocities[playerIndex] = -180.0f / distance;
             }
-            if (temp_r30 == 1) {
-                temp_r31->unk38[temp_r30] = -temp_r31->unk38[temp_r30];
+            if (playerIndex == 1) {
+                itemWork->itemAngularVelocities[playerIndex] = -itemWork->itemAngularVelocities[playerIndex];
             }
         }
-        object->work[2] = temp_f31;
+        object->work[2] = distance;
         object->work[1] = 1;
-        BoardModelMotionStart(temp_r31->unk2A[temp_r30], 2, 0x40000001);
-        BoardModelMotionSpeedSet(temp_r31->unk2A[temp_r30], 3.0f);
+        BoardModelMotionStart(itemWork->itemModelIds[playerIndex], 2, 0x40000001);
+        BoardModelMotionSpeedSet(itemWork->itemModelIds[playerIndex], 3.0f);
     }
     else {
-        for (temp_r30 = 0; temp_r30 < 2; temp_r30++) {
-            BoardModelPosGet(temp_r31->unk2A[temp_r30], &sp1C);
-            sp10 = sp1C;
-            if (temp_r31->unk68 != 2) {
-                temp_f30 = lbl_1_bss_110;
+        for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+            BoardModelPosGet(itemWork->itemModelIds[playerIndex], &modelRotation);
+            modelScale = modelRotation;
+            if (itemWork->selectedItemIndex != 2) {
+                duration = itemMovementSpeed;
             }
             else {
-                temp_f30 = 2.0f * lbl_1_bss_110;
+                duration = 2.0f * itemMovementSpeed;
             }
-            if (temp_r31->unk40[temp_r30] != 2) {
-                sp1C.x = temp_r31->unk44[temp_r31->unk68].x + (temp_f30 * cosd(temp_r31->unk30[temp_r30]));
-                sp1C.z = temp_r31->unk44[temp_r31->unk68].z + (temp_f30 * sind(temp_r31->unk30[temp_r30]));
-                temp_r31->unk30[temp_r30] += temp_r31->unk38[temp_r30];
+            if (itemWork->itemRotationModes[playerIndex] != 2) {
+                modelRotation.x = itemWork->itemPositions[itemWork->selectedItemIndex].x + (duration * cosd(itemWork->itemAngles[playerIndex]));
+                modelRotation.z = itemWork->itemPositions[itemWork->selectedItemIndex].z + (duration * sind(itemWork->itemAngles[playerIndex]));
+                itemWork->itemAngles[playerIndex] += itemWork->itemAngularVelocities[playerIndex];
             }
             else {
-                VECAdd(&sp1C, &temp_r31->unk0[temp_r30], &sp1C);
+                VECAdd(&modelRotation, &itemWork->remainingSeconds[playerIndex], &modelRotation);
             }
-            BoardModelPosSetV(temp_r31->unk2A[temp_r30], &sp1C);
-            VECSubtract(&sp1C, &sp10, &sp10);
-            BoardModelRotGet(temp_r31->unk2A[temp_r30], &sp1C);
-            sp1C.y = atan2d(sp10.x, sp10.z);
-            BoardModelRotSetV(temp_r31->unk2A[temp_r30], &sp1C);
+            BoardModelPosSetV(itemWork->itemModelIds[playerIndex], &modelRotation);
+            VECSubtract(&modelRotation, &modelScale, &modelScale);
+            BoardModelRotGet(itemWork->itemModelIds[playerIndex], &modelRotation);
+            modelRotation.y = atan2d(modelScale.x, modelScale.z);
+            BoardModelRotSetV(itemWork->itemModelIds[playerIndex], &modelRotation);
         }
         if (--object->work[2] == 0) {
             object->work[1] = 0;
-            BoardModelMotionStart(temp_r31->unk2A[temp_r30], 1, 0x40000001);
-            BoardModelMotionSpeedSet(temp_r31->unk2A[temp_r30], 1.0f);
-            for (temp_r30 = 0; temp_r30 < 2; temp_r30++) {
-                if (temp_r31->unk40[temp_r30] == 0) {
-                    BoardModelRotGet(temp_r31->unk2A[temp_r30], &sp1C);
-                    sp1C.y = 0;
-                    BoardModelRotSetV(temp_r31->unk2A[temp_r30], &sp1C);
+            BoardModelMotionStart(itemWork->itemModelIds[playerIndex], 1, 0x40000001);
+            BoardModelMotionSpeedSet(itemWork->itemModelIds[playerIndex], 1.0f);
+            for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+                if (itemWork->itemRotationModes[playerIndex] == 0) {
+                    BoardModelRotGet(itemWork->itemModelIds[playerIndex], &modelRotation);
+                    modelRotation.y = 0;
+                    BoardModelRotSetV(itemWork->itemModelIds[playerIndex], &modelRotation);
                 }
-                else if (temp_r31->unk40[temp_r30] == 1) {
-                    BoardModelRotGet(temp_r31->unk2A[temp_r30], &sp1C);
-                    sp1C.y = 180;
-                    BoardModelRotSetV(temp_r31->unk2A[temp_r30], &sp1C);
+                else if (itemWork->itemRotationModes[playerIndex] == 1) {
+                    BoardModelRotGet(itemWork->itemModelIds[playerIndex], &modelRotation);
+                    modelRotation.y = 180;
+                    BoardModelRotSetV(itemWork->itemModelIds[playerIndex], &modelRotation);
                 }
             }
-            switch (temp_r31->unk68) {
+            switch (itemWork->selectedItemIndex) {
                 case 0:
-                    temp_r31->unk24[0] = temp_r31->unk2A[1];
-                    temp_r31->unk24[1] = temp_r31->unk2A[0];
-                    fn_1_616C(0, 1);
+                    itemWork->itemIconModelIds[0] = itemWork->itemModelIds[1];
+                    itemWork->itemIconModelIds[1] = itemWork->itemModelIds[0];
+                    ItemMinigameItemMotionSet(0, 1);
                     break;
 
                 case 1:
-                    temp_r31->unk24[1] = temp_r31->unk2A[1];
-                    temp_r31->unk24[2] = temp_r31->unk2A[0];
-                    fn_1_616C(1, 2);
+                    itemWork->itemIconModelIds[1] = itemWork->itemModelIds[1];
+                    itemWork->itemIconModelIds[2] = itemWork->itemModelIds[0];
+                    ItemMinigameItemMotionSet(1, 2);
                     break;
 
                 case 2:
-                    temp_r31->unk24[0] = temp_r31->unk2A[1];
-                    temp_r31->unk24[2] = temp_r31->unk2A[0];
-                    fn_1_616C(0, 2);
+                    itemWork->itemIconModelIds[0] = itemWork->itemModelIds[1];
+                    itemWork->itemIconModelIds[2] = itemWork->itemModelIds[0];
+                    ItemMinigameItemMotionSet(0, 2);
                     break;
             }
-            for (temp_r30 = 0; temp_r30 < 3; temp_r30++) {
-                BoardModelPosSetV(temp_r31->unk24[temp_r30], &lbl_1_bss_160[temp_r30]);
+            for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+                BoardModelPosSetV(itemWork->itemIconModelIds[playerIndex], &itemPositions[playerIndex]);
             }
         }
     }
 }
 
-void fn_1_6CA4(OMOBJ *object);
+void ItemMinigameItemAnimate(OMOBJ *object);
 
-void fn_1_6AB0(OMOBJ *object)
+void ItemMinigamePlayerFinish(OMOBJ *object)
 {
-    Vec sp8;
-    s32 temp_r31;
-    s32 temp_r30;
-    temp_r30 = 0;
-    for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-        BoardModelRotGet(lbl_1_bss_18A[temp_r31], &sp8);
-        if (sp8.y < 0.0f) {
-            sp8.y += 360.0f;
+    Vec modelPosition;
+    s32 itemWork;
+    s32 playerIndex;
+    playerIndex = 0;
+    for (itemWork = 0; itemWork < 3; itemWork++) {
+        BoardModelRotGet(itemModelIds[itemWork], &modelPosition);
+        if (modelPosition.y < 0.0f) {
+            modelPosition.y += 360.0f;
         }
-        if (0.0f == sp8.y) {
-            temp_r30++;
+        if (0.0f == modelPosition.y) {
+            playerIndex++;
             continue;
         }
-        if (sp8.y < 180.0f) {
-            if (sp8.y < -10.0f) {
-                sp8.y = 0;
+        if (modelPosition.y < 180.0f) {
+            if (modelPosition.y < -10.0f) {
+                modelPosition.y = 0;
             }
             else {
-                sp8.y -= 10.0f;
+                modelPosition.y -= 10.0f;
             }
         }
         else {
-            if (360.0f - sp8.y < 10.0f) {
-                sp8.y = 0;
+            if (360.0f - modelPosition.y < 10.0f) {
+                modelPosition.y = 0;
             }
             else {
-                sp8.y += 10.0f;
+                modelPosition.y += 10.0f;
             }
         }
-        BoardModelRotSetV(lbl_1_bss_18A[temp_r31], &sp8);
+        BoardModelRotSetV(itemModelIds[itemWork], &modelPosition);
     }
-    if (temp_r30 == 3) {
-        for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-            BoardModelPosSetV(lbl_1_bss_18A[temp_r31], &lbl_1_bss_160[temp_r31]);
+    if (playerIndex == 3) {
+        for (itemWork = 0; itemWork < 3; itemWork++) {
+            BoardModelPosSetV(itemModelIds[itemWork], &itemPositions[itemWork]);
         }
         object->work[0] = MGSeqStartCreate();
-        object->objFunc = fn_1_6CA4;
+        object->objFunc = ItemMinigameItemAnimate;
     }
 }
 
-void fn_1_73C8(OMOBJ *object);
+void ItemMinigameItemSelect(OMOBJ *object);
 
-void fn_1_6CA4(OMOBJ *object)
+void ItemMinigameItemAnimate(OMOBJ *object)
 {
     if (!MGSeqStatGet(object->work[0])) {
-        lbl_1_bss_10C->objFunc = fn_1_73C8;
+        itemTimerObject->objFunc = ItemMinigameItemSelect;
         object->objFunc = NULL;
     }
 }
 
-void fn_1_6E34(OMOBJ *object);
-void fn_1_85FC(void);
-void fn_1_8DAC(void);
+void ItemMinigameItemMotionUpdate(OMOBJ *object);
+void ItemMinigameItemsCollect(void);
+void ItemMinigameItemsCleanup(void);
 
-void fn_1_6D04(OMOBJ *object)
+void ItemMinigameItemMotionStart(OMOBJ *object)
 {
-    Vec sp8;
-    BoardModelRotGet(lbl_1_bss_18A[object->work[0]], &sp8);
-    sp8.y += 8.0f;
-    if (sp8.y >= 360.0f) {
-        sp8.y = 0.0f;
+    Vec modelPosition;
+    BoardModelRotGet(itemModelIds[object->work[0]], &modelPosition);
+    modelPosition.y += 8.0f;
+    if (modelPosition.y >= 360.0f) {
+        modelPosition.y = 0.0f;
         HuAudFXPlay(784);
-        lbl_1_bss_100 = HuPrcCreate(fn_1_85FC, 8196, 8192, 0);
-        HuPrcDestructorSet2(lbl_1_bss_100, fn_1_8DAC);
-        *((u32 *)&lbl_1_bss_100->user_data) = (1 << object->work[0]) | 0x10000000;
-        lbl_1_bss_D8 = HuAudFXPlay(863);
-        object->objFunc = fn_1_6E34;
+        itemAnimationProcess = HuPrcCreate(ItemMinigameItemsCollect, 8196, 8192, 0);
+        HuPrcDestructorSet2(itemAnimationProcess, ItemMinigameItemsCleanup);
+        *((u32 *)&itemAnimationProcess->user_data) = (1 << object->work[0]) | 0x10000000;
+        itemSelectedIndex = HuAudFXPlay(863);
+        object->objFunc = ItemMinigameItemMotionUpdate;
     }
-    BoardModelRotSetV(lbl_1_bss_18A[object->work[0]], &sp8);
+    BoardModelRotSetV(itemModelIds[object->work[0]], &modelPosition);
 }
 
-void fn_1_6EA8(void);
+void ItemMinigameTimerFinish(void);
 
-void fn_1_6E34(OMOBJ *object)
+void ItemMinigameItemMotionUpdate(OMOBJ *object)
 {
-    HUPROCESS *temp_r31;
-    if ((u32)lbl_1_bss_100->user_data & 0x40000000) {
-        temp_r31 = HuPrcCreate(fn_1_6EA8, 8196, 6144, 0);
-        temp_r31->user_data = object;
+    HUPROCESS *itemWork;
+    if ((u32)itemAnimationProcess->user_data & 0x40000000) {
+        itemWork = HuPrcCreate(ItemMinigameTimerFinish, 8196, 6144, 0);
+        itemWork->user_data = object;
         object->objFunc = NULL;
     }
 }
 
-void fn_1_72E4(OMOBJ *object);
+void ItemMinigameEffectUpdate(OMOBJ *object);
 
-void fn_1_6EA8(void)
+void ItemMinigameTimerFinish(void)
 {
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    s32 temp_r31;
-    s32 temp_r30;
-    s32 temp_r29;
-    s32 temp_r28;
+    Vec itemDirection;
+    Vec positionDelta;
+    Vec position;
+    Vec modelPosition;
+    float distance;
+    float duration;
+    float angle;
+    s32 itemWork;
+    s32 playerIndex;
+    s32 itemIndex;
+    s32 itemModelId;
 
-    temp_r31 = lbl_1_bss_108->work[0];
+    itemWork = itemPlayerObject->work[0];
     BoardWinCreate(2, MAKE_MESSID(19, 24), 4);
-    BoardWinInsertMesSet(MAKE_MESSID(8, lbl_1_bss_190[temp_r31]), 1);
+    BoardWinInsertMesSet(MAKE_MESSID(8, itemPlayerModelIds[itemWork]), 1);
     BoardWinWait();
     BoardWinKill();
-    BoardPlayerPosGet(lbl_1_bss_196, &sp20);
-    BoardModelPosGet(lbl_1_bss_184[temp_r31], &sp2C);
-    sp20.y = sp2C.y = 0;
-    VECSubtract(&sp20, &sp2C, &sp14);
-    temp_f30 = VECMag(&sp14);
-    VECScale(&sp14, &sp14, 1.0f / REFRESH_RATE);
-    for (temp_r30 = 0; temp_r30 < REFRESH_RATE; temp_r30++) {
-        BoardModelPosGet(lbl_1_bss_184[temp_r31], &sp2C);
-        VECAdd(&sp2C, &sp14, &sp2C);
-        BoardModelPosSetV(lbl_1_bss_184[temp_r31], &sp2C);
+    BoardPlayerPosGet(itemPlayerIndex, &positionDelta);
+    BoardModelPosGet(itemEffectModelIds[itemWork], &itemDirection);
+    positionDelta.y = itemDirection.y = 0;
+    VECSubtract(&positionDelta, &itemDirection, &position);
+    duration = VECMag(&position);
+    VECScale(&position, &position, 1.0f / REFRESH_RATE);
+    for (playerIndex = 0; playerIndex < REFRESH_RATE; playerIndex++) {
+        BoardModelPosGet(itemEffectModelIds[itemWork], &itemDirection);
+        VECAdd(&itemDirection, &position, &itemDirection);
+        BoardModelPosSetV(itemEffectModelIds[itemWork], &itemDirection);
         HuPrcVSleep();
     }
-    BoardModelPosGet(lbl_1_bss_184[temp_r31], &sp2C);
-    sp2C.x = sp20.x;
-    sp2C.z = sp20.z;
-    BoardModelPosSetV(lbl_1_bss_184[temp_r31], &sp2C);
-    BoardPlayerMotBlendSet(lbl_1_bss_196, 0, 15);
-    while (!BoardPlayerMotBlendCheck(lbl_1_bss_196)) {
+    BoardModelPosGet(itemEffectModelIds[itemWork], &itemDirection);
+    itemDirection.x = positionDelta.x;
+    itemDirection.z = positionDelta.z;
+    BoardModelPosSetV(itemEffectModelIds[itemWork], &itemDirection);
+    BoardPlayerMotBlendSet(itemPlayerIndex, 0, 15);
+    while (!BoardPlayerMotBlendCheck(itemPlayerIndex)) {
         HuPrcVSleep();
     }
-    HuPrcKill(lbl_1_bss_100);
-    lbl_1_bss_100 = NULL;
+    HuPrcKill(itemAnimationProcess);
+    itemAnimationProcess = NULL;
     HuPrcVSleep();
     HuAudFXPlay(781);
-    BoardModelPosGet(lbl_1_bss_184[temp_r31], &sp2C);
-    BoardModelScaleGet(lbl_1_bss_184[temp_r31], &sp8);
-    temp_f31 = sp8.x;
-    temp_f29 = -0.04f;
-    temp_f30 = (sp20.y - sp2C.y) / (REFRESH_RATE/2);
-    temp_r29 = 0;
-    HuAudFXFadeOut(lbl_1_bss_D8, (((REFRESH_RATE*500)+30)/60)-1);
-    while (!temp_r29) {
-        sp2C.y += temp_f30;
-        temp_f31 += temp_f29;
-        if (temp_f31 < 0.0f) {
-            temp_f31 = 0.0f;
-            temp_r29 = 1;
+    BoardModelPosGet(itemEffectModelIds[itemWork], &itemDirection);
+    BoardModelScaleGet(itemEffectModelIds[itemWork], &modelPosition);
+    distance = modelPosition.x;
+    angle = -0.04f;
+    duration = (positionDelta.y - itemDirection.y) / (REFRESH_RATE/2);
+    itemIndex = 0;
+    HuAudFXFadeOut(itemSelectedIndex, (((REFRESH_RATE*500)+30)/60)-1);
+    while (!itemIndex) {
+        itemDirection.y += duration;
+        distance += angle;
+        if (distance < 0.0f) {
+            distance = 0.0f;
+            itemIndex = 1;
         }
-        sp8.x = sp8.y = sp8.z = temp_f31;
-        BoardModelPosSetV(lbl_1_bss_184[temp_r31], &sp2C);
-        BoardModelScaleSetV(lbl_1_bss_184[temp_r31], &sp8);
+        modelPosition.x = modelPosition.y = modelPosition.z = distance;
+        BoardModelPosSetV(itemEffectModelIds[itemWork], &itemDirection);
+        BoardModelScaleSetV(itemEffectModelIds[itemWork], &modelPosition);
         HuPrcVSleep();
     }
-    HuAudFXStop(lbl_1_bss_D8);
-    BoardModelVisibilitySet(lbl_1_bss_184[temp_r31], 0);
-    BoardPlayerItemAdd(lbl_1_bss_196, lbl_1_bss_190[temp_r31]);
-    omVibrate(lbl_1_bss_196, 12, 6, 6);
-    temp_r28 = HuAudSStreamPlay(2);
-    BoardPlayerMotionShiftSet(lbl_1_bss_196, 7, 0, 5, HU3D_MOTATTR_NONE);
-    while (!BoardPlayerMotionEndCheck(lbl_1_bss_196)) {
+    HuAudFXStop(itemSelectedIndex);
+    BoardModelVisibilitySet(itemEffectModelIds[itemWork], 0);
+    BoardPlayerItemAdd(itemPlayerIndex, itemPlayerModelIds[itemWork]);
+    omVibrate(itemPlayerIndex, 12, 6, 6);
+    itemModelId = HuAudSStreamPlay(2);
+    BoardPlayerMotionShiftSet(itemPlayerIndex, 7, 0, 5, HU3D_MOTATTR_NONE);
+    while (!BoardPlayerMotionEndCheck(itemPlayerIndex)) {
         HuPrcVSleep();
     }
     HuPrcSleep(REFRESH_RATE/2);
-    while (HuAudSStreamStatGet(temp_r28)) {
+    while (HuAudSStreamStatGet(itemModelId)) {
         HuPrcVSleep();
     }
     BoardAudSeqPause(0, 0, 1000);
     HuAudFXPlay(68);
     W02MesExec(MAKE_MESSID(0x13, 0x19));
-    lbl_1_bss_108->objFunc = fn_1_72E4;
+    itemPlayerObject->objFunc = ItemMinigameEffectUpdate;
     HuPrcKill(NULL);
     while (1) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_72E4(OMOBJ *object)
+void ItemMinigameEffectUpdate(OMOBJ *object)
 {
-    fn_1_5F60();
+    ItemMinigamePlayerCleanup();
     omDelObjEx(boardObjMan, object);
 }
 
-void fn_1_732C(s32 arg0)
+void ItemMinigameItemReset(s32 itemIndex)
 {
-    lbl_1_bss_108->work[0] = arg0;
-    lbl_1_bss_108->objFunc = fn_1_6D04;
+    itemPlayerObject->work[0] = itemIndex;
+    itemPlayerObject->objFunc = ItemMinigameItemMotionStart;
 }
 
-void fn_1_7358(WorkMGItem *arg0)
+void ItemMinigamePlayerReset(WorkMGItem *timerWork)
 {
-    if (--arg0->unk2 == 0) {
-        arg0->unk2 = REFRESH_RATE;
-        if (--arg0->unk0 >= 0) {
-            MGSeqParamSet(arg0->unk4, 1, arg0->unk0);
+    if (--timerWork->timerFrameCounter == 0) {
+        timerWork->timerFrameCounter = REFRESH_RATE;
+        if (--timerWork->remainingSeconds >= 0) {
+            MGSeqParamSet(timerWork->timerSequenceId, 1, timerWork->remainingSeconds);
         }
     }
 }
 
-void fn_1_74E4(OMOBJ *object);
+void ItemMinigameItemsAnimate(OMOBJ *object);
 
-void fn_1_73C8(OMOBJ *object)
+void ItemMinigameItemSelect(OMOBJ *object)
 {
-    float sp8[2];
-    WorkMGItem *temp_r31;
-    temp_r31 = object->data;
-    temp_r31->unk0 = 5;
-    temp_r31->unk2 = REFRESH_RATE;
-    temp_r31->unk4 = MGSeqTimerCreateXY(temp_r31->unk0, 288, 64);
-    HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x13, 0x1B));
-    temp_r31->unk6 = HuWinCreate(-10000, 368, sp8[0], sp8[1], 0);
-    HuWinMesSet(temp_r31->unk6, MAKE_MESSID(0x13, 0x1B));
-    HuWinBGTPLvlSet(temp_r31->unk6, 0);
-    HuWinMesSpeedSet(temp_r31->unk6, 0);
-    temp_r31->unk8 = 1;
-    temp_r31->unkA = frandmod(30) + 15;
-    temp_r31->unkC = 0;
-    object->objFunc = fn_1_74E4;
+    float modelPosition[2];
+    WorkMGItem *itemWork;
+    itemWork = object->data;
+    itemWork->remainingSeconds = 5;
+    itemWork->timerFrameCounter = REFRESH_RATE;
+    itemWork->timerSequenceId = MGSeqTimerCreateXY(itemWork->remainingSeconds, 288, 64);
+    HuWinMesMaxSizeGet(1, modelPosition, MAKE_MESSID(0x13, 0x1B));
+    itemWork->instructionsWindowId = HuWinCreate(-10000, 368, modelPosition[0], modelPosition[1], 0);
+    HuWinMesSet(itemWork->instructionsWindowId, MAKE_MESSID(0x13, 0x1B));
+    HuWinBGTPLvlSet(itemWork->instructionsWindowId, 0);
+    HuWinMesSpeedSet(itemWork->instructionsWindowId, 0);
+    itemWork->playerPositionStep = 1;
+    itemWork->directionChangeDelay = frandmod(30) + 15;
+    itemWork->moveState = 0;
+    object->objFunc = ItemMinigameItemsAnimate;
 }
 
-void fn_1_7898(OMOBJ *arg0, s32 *arg1, s32 *arg2);
+void ItemMinigameItemEffectsUpdate(OMOBJ *timerObject, s32 *directionButtons, s32 *actionButtons);
 
-void fn_1_7750(OMOBJ *object);
-void fn_1_7818(OMOBJ *object);
+void ItemMinigameItemsCleanup(OMOBJ *object);
+void ItemMinigameItemsDestroy(OMOBJ *object);
 
-void fn_1_74E4(OMOBJ *object)
+void ItemMinigameItemsAnimate(OMOBJ *object)
 {
-    s32 spC;
-    s32 sp8;
-    WorkMGItem *temp_r31;
-    s32 temp_r29;
-    temp_r31 = object->data;
-    fn_1_7358(temp_r31);
-    temp_r29 = GWPlayer[lbl_1_bss_196].port;
-    if (GWPlayer[lbl_1_bss_196].com) {
-        fn_1_7898(object, &spC, &sp8);
+    s32 playerPosition;
+    s32 modelPosition;
+    WorkMGItem *itemWork;
+    s32 itemIndex;
+    itemWork = object->data;
+    ItemMinigamePlayerReset(itemWork);
+    itemIndex = GWPlayer[itemPlayerIndex].port;
+    if (GWPlayer[itemPlayerIndex].com) {
+        ItemMinigameItemEffectsUpdate(object, &playerPosition, &modelPosition);
     }
     else {
-        spC = HuPadDStkRep[temp_r29];
-        sp8 = HuPadBtnDown[temp_r29];
+        playerPosition = HuPadDStkRep[itemIndex];
+        modelPosition = HuPadBtnDown[itemIndex];
     }
-    if ((sp8 & PAD_BUTTON_A) || temp_r31->unk0 < 0) {
-        MGSeqParamSet(temp_r31->unk4, 2, -1);
-        HuWinKill(temp_r31->unk6);
-        BoardPlayerMotBlendSet(lbl_1_bss_196, 180, 10);
+    if ((modelPosition & PAD_BUTTON_A) || itemWork->remainingSeconds < 0) {
+        MGSeqParamSet(itemWork->timerSequenceId, 2, -1);
+        HuWinKill(itemWork->instructionsWindowId);
+        BoardPlayerMotBlendSet(itemPlayerIndex, 180, 10);
         BoardAudSeqFadeOut(1, 1000);
-        object->objFunc = fn_1_7818;
+        object->objFunc = ItemMinigameItemsDestroy;
     }
-    else if (spC & PAD_BUTTON_LEFT) {
-        if (temp_r31->unk8 != 0) {
-            temp_r31->unk8--;
-            BoardPlayerPosLerpStart(lbl_1_bss_196, &lbl_1_bss_DC[temp_r31->unk8 + 1], &lbl_1_bss_DC[temp_r31->unk8], REFRESH_RATE/5);
-            object->objFunc = fn_1_7750;
+    else if (playerPosition & PAD_BUTTON_LEFT) {
+        if (itemWork->playerPositionStep != 0) {
+            itemWork->playerPositionStep--;
+            BoardPlayerPosLerpStart(itemPlayerIndex, &itemStartPositions[itemWork->playerPositionStep + 1], &itemStartPositions[itemWork->playerPositionStep], REFRESH_RATE/5);
+            object->objFunc = ItemMinigameItemsCleanup;
         }
     }
-    else if (spC & PAD_BUTTON_RIGHT) {
-        if (temp_r31->unk8 != 2) {
-            temp_r31->unk8++;
-            BoardPlayerPosLerpStart(lbl_1_bss_196, &lbl_1_bss_DC[temp_r31->unk8 - 1], &lbl_1_bss_DC[temp_r31->unk8], REFRESH_RATE/5);
-            object->objFunc = fn_1_7750;
+    else if (playerPosition & PAD_BUTTON_RIGHT) {
+        if (itemWork->playerPositionStep != 2) {
+            itemWork->playerPositionStep++;
+            BoardPlayerPosLerpStart(itemPlayerIndex, &itemStartPositions[itemWork->playerPositionStep - 1], &itemStartPositions[itemWork->playerPositionStep], REFRESH_RATE/5);
+            object->objFunc = ItemMinigameItemsCleanup;
         }
     }
 }
 
-void fn_1_7750(OMOBJ *object)
+void ItemMinigameItemsCleanup(OMOBJ *object)
 {
-    WorkMGItem *temp_r31 = object->data;
-    fn_1_7358(temp_r31);
-    if (!GWPlayer[lbl_1_bss_196].moving) {
-        BoardPlayerIdleSet(lbl_1_bss_196);
-        object->objFunc = fn_1_74E4;
+    WorkMGItem *itemWork = object->data;
+    ItemMinigamePlayerReset(itemWork);
+    if (!GWPlayer[itemPlayerIndex].moving) {
+        BoardPlayerIdleSet(itemPlayerIndex);
+        object->objFunc = ItemMinigameItemsAnimate;
     }
 }
 
-void fn_1_7818(OMOBJ *object)
+void ItemMinigameItemsDestroy(OMOBJ *object)
 {
-    if (BoardPlayerMotBlendCheck(lbl_1_bss_196)) {
-        fn_1_732C(((WorkMGItem *)object->data)->unk8);
+    if (BoardPlayerMotBlendCheck(itemPlayerIndex)) {
+        ItemMinigameItemReset(((WorkMGItem *)object->data)->playerPositionStep);
         object->objFunc = NULL;
     }
 }
 
-void fn_1_7898(OMOBJ *arg0, s32 *arg1, s32 *arg2)
+void ItemMinigameItemEffectsUpdate(OMOBJ *timerObject, s32 *directionButtons, s32 *actionButtons)
 {
-    WorkMGItem *temp_r31;
-    s32 temp_r28;
-    temp_r31 = arg0->data;
-    *arg1 = *arg2 = 0;
-    if (temp_r31->unkA) {
-        temp_r31->unkA--;
+    WorkMGItem *itemWork;
+    s32 itemModelId;
+    itemWork = timerObject->data;
+    *directionButtons = *actionButtons = 0;
+    if (itemWork->directionChangeDelay) {
+        itemWork->directionChangeDelay--;
     }
     else {
-        temp_r31->unkA = frandmod(30) + 15;
-        if (temp_r31->unkC == 4) {
-            *arg2 |= PAD_BUTTON_A;
+        itemWork->directionChangeDelay = frandmod(30) + 15;
+        if (itemWork->moveState == 4) {
+            *actionButtons |= PAD_BUTTON_A;
         }
         else if ((s32)frandmod(10) < 4) {
-            *arg2 |= PAD_BUTTON_A;
+            *actionButtons |= PAD_BUTTON_A;
         }
         else {
-            temp_r28 = frandBool();
-            if ((temp_r28 == 0 && temp_r31->unk8 != 2) || temp_r31->unk8 == 0) {
-                *arg1 |= PAD_BUTTON_RIGHT;
+            itemModelId = frandBool();
+            if ((itemModelId == 0 && itemWork->playerPositionStep != 2) || itemWork->playerPositionStep == 0) {
+                *directionButtons |= PAD_BUTTON_RIGHT;
             }
-            else if ((temp_r28 == 1 && temp_r31->unk8 != 0) || temp_r31->unk8 == 2) {
-                *arg1 |= PAD_BUTTON_LEFT;
+            else if ((itemModelId == 1 && itemWork->playerPositionStep != 0) || itemWork->playerPositionStep == 2) {
+                *directionButtons |= PAD_BUTTON_LEFT;
             }
-            temp_r31->unkC++;
+            itemWork->moveState++;
         }
     }
 }
 
 static inline void WriteTrans(s32 index, float value)
 {
-    Hu3DData[BoardModelIDGet(lbl_1_bss_184[index])].mtx[1][3] = value;
+    Hu3DData[BoardModelIDGet(itemEffectModelIds[index])].mtx[1][3] = value;
 }
 
-void fn_1_79BC(s16 *arg0)
+void ItemMinigameItemsRandomize(s16 *itemChoices)
 {
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    float temp_f25;
-    Vec sp8;
-    s32 temp_r31;
-    s32 temp_r29;
-    for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-        lbl_1_bss_190[temp_r31] = arg0[temp_r31];
-        lbl_1_bss_184[temp_r31] = BoardModelCreate(lbl_1_data_428[lbl_1_bss_190[temp_r31]], NULL, 0);
-        if (lbl_1_bss_190[temp_r31] == 5) {
-            WriteTrans(temp_r31, -50.0f);
+    float distance;
+    float duration;
+    float angle;
+    float scale;
+    Vec modelPosition;
+    s32 itemWork;
+    s32 itemIndex;
+    for (itemWork = 0; itemWork < 3; itemWork++) {
+        itemPlayerModelIds[itemWork] = itemChoices[itemWork];
+        itemEffectModelIds[itemWork] = BoardModelCreate(itemModelData[itemPlayerModelIds[itemWork]], NULL, 0);
+        if (itemPlayerModelIds[itemWork] == 5) {
+            WriteTrans(itemWork, -50.0f);
         }
-        if (arg0[temp_r31] == 4) {
-            BoardModelMotionSpeedSet(lbl_1_bss_184[temp_r31], 0);
+        if (itemChoices[itemWork] == 4) {
+            BoardModelMotionSpeedSet(itemEffectModelIds[itemWork], 0);
         }
-        BoardModelVisibilitySet(lbl_1_bss_184[temp_r31], 0);
-        if (arg0[temp_r31] == 11) {
-            BoardModelAttrSet(lbl_1_bss_184[temp_r31], 0x40000001);
+        BoardModelVisibilitySet(itemEffectModelIds[itemWork], 0);
+        if (itemChoices[itemWork] == 11) {
+            BoardModelAttrSet(itemEffectModelIds[itemWork], 0x40000001);
         }
     }
-    if (lbl_1_bss_C8 == NULL) {
-        lbl_1_bss_C8 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 0x00));
-        HuSprAnimLock(lbl_1_bss_C8);
+    if (itemParticleAnimationData == NULL) {
+        itemParticleAnimationData = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 0x00));
+        HuSprAnimLock(itemParticleAnimationData);
     }
-    for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-        lbl_1_bss_18A[temp_r31] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W02, 0x17), lbl_1_data_480, 0);
-        lbl_1_bss_118[temp_r31].x = lbl_1_bss_118[temp_r31].z = 0.1f;
-        lbl_1_bss_118[temp_r31].y = 0.1f;
-        lbl_1_bss_13C[temp_r31].x = 0;
-        lbl_1_bss_13C[temp_r31].y = lbl_1_bss_13C[temp_r31].z = 0;
-        Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_30[10]), lbl_1_data_474[temp_r31], &lbl_1_bss_160[temp_r31]);
-        BoardModelPosSetV(lbl_1_bss_18A[temp_r31], &lbl_1_bss_160[temp_r31]);
-        BoardModelRotSetV(lbl_1_bss_18A[temp_r31], &lbl_1_bss_13C[temp_r31]);
-        BoardModelScaleSetV(lbl_1_bss_18A[temp_r31], &lbl_1_bss_118[temp_r31]);
+    for (itemWork = 0; itemWork < 3; itemWork++) {
+        itemModelIds[itemWork] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W02, 0x17), itemMotionData, 0);
+        itemScales[itemWork].x = itemScales[itemWork].z = 0.1f;
+        itemScales[itemWork].y = 0.1f;
+        itemDirections[itemWork].x = 0;
+        itemDirections[itemWork].y = itemDirections[itemWork].z = 0;
+        Hu3DModelObjPosGet(BoardModelIDGet(boardModelIds[10]), itemModelHooks[itemWork], &itemPositions[itemWork]);
+        BoardModelPosSetV(itemModelIds[itemWork], &itemPositions[itemWork]);
+        BoardModelRotSetV(itemModelIds[itemWork], &itemDirections[itemWork]);
+        BoardModelScaleSetV(itemModelIds[itemWork], &itemScales[itemWork]);
     }
-    lbl_1_bss_114 = lbl_1_bss_160[0].y;
-    for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-        BoardModelPosGet(lbl_1_bss_30[10], &lbl_1_bss_DC[temp_r31]);
-        lbl_1_bss_DC[temp_r31].x = lbl_1_bss_160[temp_r31].x;
-        lbl_1_bss_DC[temp_r31].z = lbl_1_bss_160[temp_r31].z + 200.0f;
-        BoardModelMotionStart(lbl_1_bss_18A[temp_r31], 3, 0);
+    itemRotationSpeed = itemPositions[0].y;
+    for (itemWork = 0; itemWork < 3; itemWork++) {
+        BoardModelPosGet(boardModelIds[10], &itemStartPositions[itemWork]);
+        itemStartPositions[itemWork].x = itemPositions[itemWork].x;
+        itemStartPositions[itemWork].z = itemPositions[itemWork].z + 200.0f;
+        BoardModelMotionStart(itemModelIds[itemWork], 3, 0);
     }
-    lbl_1_bss_110 = fabs(lbl_1_bss_160[0].x - lbl_1_bss_160[1].x) / 2;
-    temp_f31 = 0;
-    temp_f29 = 20;
-    sp8.x = 0.04f;
-    sp8.y = 0.04f;
-    sp8.z = 0.04f;
-    for (temp_r29 = 0; temp_r29 < 3;) {
-        temp_f30 = temp_f29 - ((7.0f / 60.0f) * (0.25f * (temp_f31 * temp_f31)));
-        temp_f31++;
-        temp_r29 = 0;
-        for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-            lbl_1_bss_160[temp_r31].y += temp_f30;
-            if (lbl_1_bss_160[temp_r31].y < lbl_1_bss_114) {
-                lbl_1_bss_160[temp_r31].y = lbl_1_bss_114;
-                temp_r29++;
+    itemMovementSpeed = fabs(itemPositions[0].x - itemPositions[1].x) / 2;
+    distance = 0;
+    angle = 20;
+    modelPosition.x = 0.04f;
+    modelPosition.y = 0.04f;
+    modelPosition.z = 0.04f;
+    for (itemIndex = 0; itemIndex < 3;) {
+        duration = angle - ((7.0f / 60.0f) * (0.25f * (distance * distance)));
+        distance++;
+        itemIndex = 0;
+        for (itemWork = 0; itemWork < 3; itemWork++) {
+            itemPositions[itemWork].y += duration;
+            if (itemPositions[itemWork].y < itemRotationSpeed) {
+                itemPositions[itemWork].y = itemRotationSpeed;
+                itemIndex++;
             }
-            BoardModelPosSetV(lbl_1_bss_18A[temp_r31], &lbl_1_bss_160[temp_r31]);
-            VECAdd(&lbl_1_bss_118[temp_r31], &sp8, &lbl_1_bss_118[temp_r31]);
-            if (lbl_1_bss_118[temp_r31].x > 0.7f) {
-                lbl_1_bss_118[temp_r31].x = 0.7f;
+            BoardModelPosSetV(itemModelIds[itemWork], &itemPositions[itemWork]);
+            VECAdd(&itemScales[itemWork], &modelPosition, &itemScales[itemWork]);
+            if (itemScales[itemWork].x > 0.7f) {
+                itemScales[itemWork].x = 0.7f;
             }
-            if (lbl_1_bss_118[temp_r31].y > 0.7f) {
-                lbl_1_bss_118[temp_r31].y = 0.7f;
+            if (itemScales[itemWork].y > 0.7f) {
+                itemScales[itemWork].y = 0.7f;
             }
-            if (lbl_1_bss_118[temp_r31].z > 0.7f) {
-                lbl_1_bss_118[temp_r31].z = 0.7f;
+            if (itemScales[itemWork].z > 0.7f) {
+                itemScales[itemWork].z = 0.7f;
             }
-            BoardModelScaleSetV(lbl_1_bss_18A[temp_r31], &lbl_1_bss_118[temp_r31]);
+            BoardModelScaleSetV(itemModelIds[itemWork], &itemScales[itemWork]);
         }
         HuPrcVSleep();
     }
-    for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-        lbl_1_bss_118[temp_r31].x = lbl_1_bss_118[temp_r31].y = lbl_1_bss_118[temp_r31].z = 0.7f;
-        BoardModelScaleSetV(lbl_1_bss_18A[temp_r31], &lbl_1_bss_118[temp_r31]);
-        BoardModelMotionStart(lbl_1_bss_18A[temp_r31], 1, 0x40000001);
+    for (itemWork = 0; itemWork < 3; itemWork++) {
+        itemScales[itemWork].x = itemScales[itemWork].y = itemScales[itemWork].z = 0.7f;
+        BoardModelScaleSetV(itemModelIds[itemWork], &itemScales[itemWork]);
+        BoardModelMotionStart(itemModelIds[itemWork], 1, 0x40000001);
     }
-    lbl_1_bss_100 = HuPrcCreate(fn_1_85FC, 8196, 8192, 0);
-    HuPrcDestructorSet2(lbl_1_bss_100, fn_1_8DAC);
-    *((u32 *)&lbl_1_bss_100->user_data) = 7;
+    itemAnimationProcess = HuPrcCreate(ItemMinigameItemsCollect, 8196, 8192, 0);
+    HuPrcDestructorSet2(itemAnimationProcess, ItemMinigameItemsCleanup);
+    *((u32 *)&itemAnimationProcess->user_data) = 7;
     HuAudFXPlay(866);
-    while (((u32)lbl_1_bss_100->user_data & 0x40000000) == 0) {
+    while (((u32)itemAnimationProcess->user_data & 0x40000000) == 0) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_8244(u16 arg0)
+void ItemMinigameItemsDrop(u16 waitForAnimation)
 {
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    Vec spC;
+    float distance;
+    float duration;
+    float angle;
+    Vec playerPosition;
 
-    s32 temp_r31;
-    s32 temp_r30;
-    if (arg0) {
-        fn_1_8570();
+    s32 itemWork;
+    s32 playerIndex;
+    if (waitForAnimation) {
+        ItemMinigameWaitForAnimation();
     }
-    for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-        BoardModelMotionStart(lbl_1_bss_18A[temp_r31], 3, 0);
+    for (itemWork = 0; itemWork < 3; itemWork++) {
+        BoardModelMotionStart(itemModelIds[itemWork], 3, 0);
     }
-    temp_f31 = 0;
-    temp_f29 = 20;
-    spC.x = -0.02f;
-    spC.y = -0.02f;
-    spC.z = -0.02f;
-    for (temp_r30 = 0; temp_r30 < 3;) {
-        temp_f30 = temp_f29 - ((7.0f / 60.0f) * (0.25f * (temp_f31 * temp_f31)));
-        temp_f31++;
-        temp_r30 = 0;
-        for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-            lbl_1_bss_160[temp_r31].y += temp_f30;
-            BoardModelPosSetV(lbl_1_bss_18A[temp_r31], &lbl_1_bss_160[temp_r31]);
-            if (temp_f30 < 0.0f) {
-                VECAdd(&lbl_1_bss_118[temp_r31], &spC, &lbl_1_bss_118[temp_r31]);
-                if (lbl_1_bss_118[temp_r31].x < 0.0f) {
-                    lbl_1_bss_118[temp_r31].x = 0.0f;
+    distance = 0;
+    angle = 20;
+    playerPosition.x = -0.02f;
+    playerPosition.y = -0.02f;
+    playerPosition.z = -0.02f;
+    for (playerIndex = 0; playerIndex < 3;) {
+        duration = angle - ((7.0f / 60.0f) * (0.25f * (distance * distance)));
+        distance++;
+        playerIndex = 0;
+        for (itemWork = 0; itemWork < 3; itemWork++) {
+            itemPositions[itemWork].y += duration;
+            BoardModelPosSetV(itemModelIds[itemWork], &itemPositions[itemWork]);
+            if (duration < 0.0f) {
+                VECAdd(&itemScales[itemWork], &playerPosition, &itemScales[itemWork]);
+                if (itemScales[itemWork].x < 0.0f) {
+                    itemScales[itemWork].x = 0.0f;
                 }
-                if (lbl_1_bss_118[temp_r31].y < 0.0f) {
-                    lbl_1_bss_118[temp_r31].y = 0.0f;
+                if (itemScales[itemWork].y < 0.0f) {
+                    itemScales[itemWork].y = 0.0f;
                 }
-                if (lbl_1_bss_118[temp_r31].z < 0.0f) {
-                    lbl_1_bss_118[temp_r31].z = 0.0f;
+                if (itemScales[itemWork].z < 0.0f) {
+                    itemScales[itemWork].z = 0.0f;
                 }
-                BoardModelScaleSetV(lbl_1_bss_18A[temp_r31], &lbl_1_bss_118[temp_r31]);
-                if (lbl_1_bss_118[temp_r31].x == 0.0f) {
-                    temp_r30++;
+                BoardModelScaleSetV(itemModelIds[itemWork], &itemScales[itemWork]);
+                if (itemScales[itemWork].x == 0.0f) {
+                    playerIndex++;
                 }
             }
         }
         HuPrcVSleep();
     }
-    for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-        BoardModelVisibilitySet(lbl_1_bss_18A[temp_r31], 0);
+    for (itemWork = 0; itemWork < 3; itemWork++) {
+        BoardModelVisibilitySet(itemModelIds[itemWork], 0);
     }
 }
 
-void fn_1_8570(void)
+void ItemMinigameWaitForAnimation(void)
 {
-    u32 temp_r31;
-    temp_r31 = (u32)lbl_1_bss_100->user_data;
-    temp_r31 |= 0x20000000;
-    *(u32 *)&lbl_1_bss_100->user_data = temp_r31;
-    while (((u32)lbl_1_bss_100->user_data & 0x80000000) == 0) {
+    u32 itemWork;
+    itemWork = (u32)itemAnimationProcess->user_data;
+    itemWork |= 0x20000000;
+    *(u32 *)&itemAnimationProcess->user_data = itemWork;
+    while (((u32)itemAnimationProcess->user_data & 0x80000000) == 0) {
         HuPrcVSleep();
     }
-    HuPrcKill(lbl_1_bss_100);
-    lbl_1_bss_100 = NULL;
+    HuPrcKill(itemAnimationProcess);
+    itemAnimationProcess = NULL;
 }
 
-void fn_1_8E38(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void ItemMinigameParticleHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 
-void fn_1_85FC(void)
+void ItemMinigameItemsCollect(void)
 {
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    float temp_f28;
+    float distance;
+    float duration;
+    float angle;
+    float effectRiseHeight;
 
-    Vec sp20[3];
-    Vec sp14;
-    float sp8[3];
-    s32 temp_r31;
-    u32 temp_r30;
-    u32 temp_r29;
-    s32 temp_r28;
-    HU3DPARTICLE *temp_r27;
-    temp_r30 = (u32)HuPrcCurrentGet()->user_data;
-    for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-        temp_r29 = 1 << temp_r31;
-        if (temp_r30 & temp_r29) {
-            BoardModelPosGet(lbl_1_bss_18A[temp_r31], &sp20[temp_r31]);
-            sp20[temp_r31].y += 50.0f;
-            sp8[temp_r31] = 0.0f;
-            BoardModelPosSetV(lbl_1_bss_184[temp_r31], &sp20[temp_r31]);
-            sp14.x = sp14.y = sp14.z = sp8[temp_r31];
-            BoardModelScaleSetV(lbl_1_bss_184[temp_r31], &sp14);
-            BoardModelVisibilitySet(lbl_1_bss_184[temp_r31], 1);
-            temp_f28 = 130.0f + sp20[temp_r31].y;
-            if (temp_r30 & 0x10000000) {
-                lbl_1_bss_CC[temp_r31] = Hu3DParticleCreate(lbl_1_bss_C8, 100);
-                temp_r27 = Hu3DData[lbl_1_bss_CC[temp_r31]].hookData;
-                temp_r27->emitCnt = lbl_1_bss_184[temp_r31];
-                Hu3DParticleHookSet(lbl_1_bss_CC[temp_r31], fn_1_8E38);
-                Hu3DParticleColSet(lbl_1_bss_CC[temp_r31], 255, 255, 0);
-                Hu3DModelPosSet(lbl_1_bss_CC[temp_r31], 0, 0, 0);
-                Hu3DParticleBlendModeSet(lbl_1_bss_CC[temp_r31], 1);
-                Hu3DModelLayerSet(lbl_1_bss_CC[temp_r31], 2);
+    Vec positionDelta[3];
+    Vec position;
+    float modelPosition[3];
+    s32 itemWork;
+    u32 playerIndex;
+    u32 itemIndex;
+    s32 itemModelId;
+    HU3DPARTICLE *selection;
+    playerIndex = (u32)HuPrcCurrentGet()->user_data;
+    for (itemWork = 0; itemWork < 3; itemWork++) {
+        itemIndex = 1 << itemWork;
+        if (playerIndex & itemIndex) {
+            BoardModelPosGet(itemModelIds[itemWork], &positionDelta[itemWork]);
+            positionDelta[itemWork].y += 50.0f;
+            modelPosition[itemWork] = 0.0f;
+            BoardModelPosSetV(itemEffectModelIds[itemWork], &positionDelta[itemWork]);
+            position.x = position.y = position.z = modelPosition[itemWork];
+            BoardModelScaleSetV(itemEffectModelIds[itemWork], &position);
+            BoardModelVisibilitySet(itemEffectModelIds[itemWork], 1);
+            effectRiseHeight = 130.0f + positionDelta[itemWork].y;
+            if (playerIndex & 0x10000000) {
+                itemParticleIds[itemWork] = Hu3DParticleCreate(itemParticleAnimationData, 100);
+                selection = Hu3DData[itemParticleIds[itemWork]].hookData;
+                selection->emitCnt = itemEffectModelIds[itemWork];
+                Hu3DParticleHookSet(itemParticleIds[itemWork], ItemMinigameParticleHook);
+                Hu3DParticleColSet(itemParticleIds[itemWork], 255, 255, 0);
+                Hu3DModelPosSet(itemParticleIds[itemWork], 0, 0, 0);
+                Hu3DParticleBlendModeSet(itemParticleIds[itemWork], 1);
+                Hu3DModelLayerSet(itemParticleIds[itemWork], 2);
             }
         }
     }
-    temp_f31 = 12;
-    temp_f29 = 0.05f;
+    distance = 12;
+    angle = 0.05f;
     while (1) {
-        temp_r28 = 0;
-        for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-            temp_r29 = 1 << temp_r31;
-            if (temp_r30 & temp_r29) {
-                temp_r28++;
-                BoardModelPosGet(lbl_1_bss_184[temp_r31], &sp20[temp_r31]);
-                sp20[temp_r31].y += temp_f31;
-                if (sp20[temp_r31].y >= temp_f28) {
-                    sp20[temp_r31].y = temp_f28;
-                    temp_r28--;
+        itemModelId = 0;
+        for (itemWork = 0; itemWork < 3; itemWork++) {
+            itemIndex = 1 << itemWork;
+            if (playerIndex & itemIndex) {
+                itemModelId++;
+                BoardModelPosGet(itemEffectModelIds[itemWork], &positionDelta[itemWork]);
+                positionDelta[itemWork].y += distance;
+                if (positionDelta[itemWork].y >= effectRiseHeight) {
+                    positionDelta[itemWork].y = effectRiseHeight;
+                    itemModelId--;
                 }
-                BoardModelPosSetV(lbl_1_bss_184[temp_r31], &sp20[temp_r31]);
-                sp8[temp_r31] += temp_f29;
-                if (sp8[temp_r31] > 1.0f) {
-                    sp8[temp_r31] = 1.0f;
+                BoardModelPosSetV(itemEffectModelIds[itemWork], &positionDelta[itemWork]);
+                modelPosition[itemWork] += angle;
+                if (modelPosition[itemWork] > 1.0f) {
+                    modelPosition[itemWork] = 1.0f;
                 }
-                sp14.x = sp14.y = sp14.z = sp8[temp_r31];
-                BoardModelScaleSetV(lbl_1_bss_184[temp_r31], &sp14);
+                position.x = position.y = position.z = modelPosition[itemWork];
+                BoardModelScaleSetV(itemEffectModelIds[itemWork], &position);
             }
         }
-        temp_f31 *= 0.92f;
-        if (temp_r28 == 0) {
+        distance *= 0.92f;
+        if (itemModelId == 0) {
             break;
         }
         HuPrcVSleep();
     }
-    for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-        temp_r29 = 1 << temp_r31;
-        if (temp_r30 & temp_r29) {
-            sp8[temp_r31] = 1.0f;
-            sp14.x = sp14.y = sp14.z = sp8[temp_r31];
-            BoardModelScaleSetV(lbl_1_bss_184[temp_r31], &sp14);
+    for (itemWork = 0; itemWork < 3; itemWork++) {
+        itemIndex = 1 << itemWork;
+        if (playerIndex & itemIndex) {
+            modelPosition[itemWork] = 1.0f;
+            position.x = position.y = position.z = modelPosition[itemWork];
+            BoardModelScaleSetV(itemEffectModelIds[itemWork], &position);
         }
     }
-    temp_r30 |= 0x40000000;
-    *((u32 *)&HuPrcCurrentGet()->user_data) = temp_r30;
-    temp_f30 = 0;
+    playerIndex |= 0x40000000;
+    *((u32 *)&HuPrcCurrentGet()->user_data) = playerIndex;
+    duration = 0;
     while (1) {
 
-        temp_r30 = (u32)HuPrcCurrentGet()->user_data;
-        if (temp_r30 & 0x20000000) {
+        playerIndex = (u32)HuPrcCurrentGet()->user_data;
+        if (playerIndex & 0x20000000) {
             break;
         }
-        for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-            temp_r29 = 1 << temp_r31;
-            if (temp_r30 & temp_r29) {
-                BoardModelPosGet(lbl_1_bss_184[temp_r31], &sp20[temp_r31]);
-                sp20[temp_r31].y += sind(temp_f30) * 0.25f;
-                BoardModelPosSetV(lbl_1_bss_184[temp_r31], &sp20[temp_r31]);
+        for (itemWork = 0; itemWork < 3; itemWork++) {
+            itemIndex = 1 << itemWork;
+            if (playerIndex & itemIndex) {
+                BoardModelPosGet(itemEffectModelIds[itemWork], &positionDelta[itemWork]);
+                positionDelta[itemWork].y += sind(duration) * 0.25f;
+                BoardModelPosSetV(itemEffectModelIds[itemWork], &positionDelta[itemWork]);
             }
         }
-        temp_f30 += 5.0f;
-        if (temp_f30 >= 360.0f) {
-            temp_f30 -= 360.0f;
+        duration += 5.0f;
+        if (duration >= 360.0f) {
+            duration -= 360.0f;
         }
 
         HuPrcVSleep();
     }
-    temp_f31 = -12;
-    temp_f29 = -0.05f;
+    distance = -12;
+    angle = -0.05f;
     while (1) {
-        temp_r28 = 0;
-        for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-            temp_r29 = 1 << temp_r31;
-            if (temp_r30 & temp_r29) {
-                temp_r28++;
-                BoardModelPosGet(lbl_1_bss_184[temp_r31], &sp20[temp_r31]);
-                sp20[temp_r31].y += temp_f31;
-                BoardModelPosSetV(lbl_1_bss_184[temp_r31], &sp20[temp_r31]);
-                sp8[temp_r31] += temp_f29;
-                if (sp8[temp_r31] < 0.0f) {
-                    sp8[temp_r31] = 0.0f;
+        itemModelId = 0;
+        for (itemWork = 0; itemWork < 3; itemWork++) {
+            itemIndex = 1 << itemWork;
+            if (playerIndex & itemIndex) {
+                itemModelId++;
+                BoardModelPosGet(itemEffectModelIds[itemWork], &positionDelta[itemWork]);
+                positionDelta[itemWork].y += distance;
+                BoardModelPosSetV(itemEffectModelIds[itemWork], &positionDelta[itemWork]);
+                modelPosition[itemWork] += angle;
+                if (modelPosition[itemWork] < 0.0f) {
+                    modelPosition[itemWork] = 0.0f;
                 }
-                if (sp8[temp_r31] == 0.0f) {
-                    temp_r28--;
+                if (modelPosition[itemWork] == 0.0f) {
+                    itemModelId--;
                 }
-                sp14.x = sp14.y = sp14.z = sp8[temp_r31];
-                BoardModelScaleSetV(lbl_1_bss_184[temp_r31], &sp14);
+                position.x = position.y = position.z = modelPosition[itemWork];
+                BoardModelScaleSetV(itemEffectModelIds[itemWork], &position);
             }
         }
-        temp_f31 *= 0.92f;
-        if (temp_r28 == 0) {
+        distance *= 0.92f;
+        if (itemModelId == 0) {
             break;
         }
         HuPrcVSleep();
     }
-    for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-        temp_r29 = 1 << temp_r31;
-        if (temp_r30 & temp_r29) {
-            sp14.x = sp14.y = sp14.z = 1.0f;
-            BoardModelScaleSetV(lbl_1_bss_184[temp_r31], &sp14);
-            BoardModelVisibilitySet(lbl_1_bss_184[temp_r31], 0);
+    for (itemWork = 0; itemWork < 3; itemWork++) {
+        itemIndex = 1 << itemWork;
+        if (playerIndex & itemIndex) {
+            position.x = position.y = position.z = 1.0f;
+            BoardModelScaleSetV(itemEffectModelIds[itemWork], &position);
+            BoardModelVisibilitySet(itemEffectModelIds[itemWork], 0);
         }
     }
-    temp_r30 |= 0x80000000;
-    *((u32 *)&HuPrcCurrentGet()->user_data) = temp_r30;
+    playerIndex |= 0x80000000;
+    *((u32 *)&HuPrcCurrentGet()->user_data) = playerIndex;
     while (1) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_8DAC(void)
+void ItemMinigameItemsCleanup(void)
 {
-    s32 temp_r31;
-    u32 temp_r30 = (u32)HuPrcCurrentGet()->user_data;
-    u32 temp_r29;
-    if (temp_r30 & 0x10000000) {
-        for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-            temp_r29 = 1 << temp_r31;
-            if (temp_r30 & temp_r29) {
-                Hu3DModelKill(lbl_1_bss_CC[temp_r31]);
+    s32 itemWork;
+    u32 playerIndex = (u32)HuPrcCurrentGet()->user_data;
+    u32 itemIndex;
+    if (playerIndex & 0x10000000) {
+        for (itemWork = 0; itemWork < 3; itemWork++) {
+            itemIndex = 1 << itemWork;
+            if (playerIndex & itemIndex) {
+                Hu3DModelKill(itemParticleIds[itemWork]);
             }
         }
     }
 }
 
-void fn_1_8E38(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void ItemMinigameParticleHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    Vec sp8;
-    f32 temp_f30;
-    f32 temp_f29;
-    f32 temp_f31;
-    HU3DPARTICLEDATA *var_r31;
+    Vec modelPosition;
+    f32 duration;
+    f32 angle;
+    f32 distance;
+    HU3DPARTICLEDATA *playerIndex;
     s32 i, j;
 
     if (particle->count == 0) {
-        var_r31 = particle->data;
-        for (i = 0; i < particle->maxCnt; i++, var_r31++) {
-            var_r31->color.a = 0;
-            var_r31->scale = 0.0f;
+        playerIndex = particle->data;
+        for (i = 0; i < particle->maxCnt; i++, playerIndex++) {
+            playerIndex->color.a = 0;
+            playerIndex->scale = 0.0f;
         }
         particle->dataCnt = 0;
     }
 
-    BoardModelScaleGet(particle->emitCnt, &sp8);
-    temp_f31 = sp8.x;
-    BoardModelPosGet(particle->emitCnt, &sp8);
+    BoardModelScaleGet(particle->emitCnt, &modelPosition);
+    distance = modelPosition.x;
+    BoardModelPosGet(particle->emitCnt, &modelPosition);
 
     for (i = 0; i < 22; i++) {
-        var_r31 = particle->data;
-        for (j = 0; j < particle->maxCnt; j++, var_r31++) {
-            if (0.0f == var_r31->scale) {
+        playerIndex = particle->data;
+        for (j = 0; j < particle->maxCnt; j++, playerIndex++) {
+            if (0.0f == playerIndex->scale) {
                 break;
             }
         }
         if (j != particle->maxCnt) {
-            temp_f30 = 360.0f * ((1.0f / 255.0f) * frand8());
-            temp_f29 = temp_f31 * (20.0f + (60.0f * ((1.0f / 255.0f) * frand8())));
-            var_r31->pos.x = (sp8.x + (temp_f29 * sind(temp_f30)));
-            var_r31->pos.z = (sp8.z + (temp_f29 * cosd(temp_f30)));
-            var_r31->pos.y = (sp8.y + (temp_f31 * (-30.0f + (40.0f * ((1.0f / 255.0f) * frand8())))));
-            var_r31->vel.x = (0.5f + (3.0f * ((1.0f / 255.0f) * frand8())));
-            var_r31->vel.y = (0.3f + (2.0f * ((1.0f / 255.0f) * frand8())));
-            var_r31->color.a = 180;
-            var_r31->scale = (15.0f * temp_f31);
+            duration = 360.0f * ((1.0f / 255.0f) * frand8());
+            angle = distance * (20.0f + (60.0f * ((1.0f / 255.0f) * frand8())));
+            playerIndex->pos.x = (modelPosition.x + (angle * sind(duration)));
+            playerIndex->pos.z = (modelPosition.z + (angle * cosd(duration)));
+            playerIndex->pos.y = (modelPosition.y + (distance * (-30.0f + (40.0f * ((1.0f / 255.0f) * frand8())))));
+            playerIndex->vel.x = (0.5f + (3.0f * ((1.0f / 255.0f) * frand8())));
+            playerIndex->vel.y = (0.3f + (2.0f * ((1.0f / 255.0f) * frand8())));
+            playerIndex->color.a = 180;
+            playerIndex->scale = (15.0f * distance);
         }
     }
 
-    var_r31 = particle->data;
+    playerIndex = particle->data;
 
-    for (i = 0; i < particle->maxCnt; i++, var_r31++) {
-        if (0.0f != var_r31->scale) {
-            var_r31->pos.y = (var_r31->pos.y - var_r31->vel.x);
-            var_r31->scale = (var_r31->scale - var_r31->vel.y);
-            if (var_r31->scale <= 0.0f) {
-                var_r31->scale = 0.0f;
+    for (i = 0; i < particle->maxCnt; i++, playerIndex++) {
+        if (0.0f != playerIndex->scale) {
+            playerIndex->pos.y = (playerIndex->pos.y - playerIndex->vel.x);
+            playerIndex->scale = (playerIndex->scale - playerIndex->vel.y);
+            if (playerIndex->scale <= 0.0f) {
+                playerIndex->scale = 0.0f;
             }
         }
     }
