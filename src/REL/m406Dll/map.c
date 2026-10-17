@@ -12,227 +12,227 @@
 #include <string.h>
 #endif
 
-typedef struct UnkM406Struct {
-    /* 0x00 */ u8 unk_00;
-    /* 0x01 */ u8 unk_01;
-    /* 0x02 */ char unk02[2];
-    /* 0x04 */ float unk_04;
-    /* 0x08 */ float unk_08;
-    /* 0x0C */ float unk_0C;
-    /* 0x10 */ Vec unk_10;
-    /* 0x1C */ Vec unk_1C;
-    /* 0x28 */ float unk_28;
-    /* 0x2C */ float unk_2C;
-} UnkM406Struct; /* size = 0x30 */
+typedef struct SurfaceParticleData {
+    /* 0x00 */ u8 isActive;
+    /* 0x01 */ u8 isFirstRow;
+    /* 0x02 */ char reservedBytes[2];
+    /* 0x04 */ Float edgeFade;
+    /* 0x08 */ Float edgeFadeScale;
+    /* 0x0C */ Float verticalOffset;
+    /* 0x10 */ Vec basePosition;
+    /* 0x1C */ Vec positionVelocity;
+    /* 0x28 */ Float textureCoordinateU;
+    /* 0x2C */ Float textureCoordinateV;
+} SurfaceParticleData; /* size = 0x30 */
 
-typedef struct UnkM406Struct3 {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ float unk_04;
-    /* 0x08 */ s32 unk_08;
-    /* 0x0C */ s32 unk_0C;
-    /* 0x10 */ float unk_10;
-    /* 0x14 */ float unk_14;
-    /* 0x18 */ Vec unk_18;
-    /* 0x24 */ struct UnkM406Struct5 *unk_24;
-} UnkM406Struct3; /* size = 0x28 */
+typedef struct PathParticleSample {
+    /* 0x00 */ s32 pathSampleIndex;
+    /* 0x04 */ Float pathSampleFraction;
+    /* 0x08 */ s32 effectSpawnCountdown;
+    /* 0x0C */ s32 effectType;
+    /* 0x10 */ Float verticalVelocity;
+    /* 0x14 */ Float particleScale;
+    /* 0x18 */ Vec particlePosition;
+    /* 0x24 */ struct MapParticleEffect *particleObject;
+} PathParticleSample; /* size = 0x28 */
 
-typedef struct UnkM406Struct4 {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ s32 unk_08;
-    /* 0x0C */ s32 unk_0C;
-    /* 0x10 */ float unk_10;
-    /* 0x14 */ float unk_14;
-    /* 0x18 */ float unk_18;
-    /* 0x1C */ float unk_1C;
-    /* 0x20 */ float unk_20;
-    /* 0x24 */ float unk_24;
-    /* 0x28 */ float unk_28;
-    /* 0x2C */ float unk_2C;
-    /* 0x30 */ Vec unk_30;
-    /* 0x3C */ Vec unk_3C;
-} UnkM406Struct4; /* size = 0x48 */
+typedef struct SurfaceParticleModel {
+    /* 0x00 */ s32 modelId;
+    /* 0x04 */ s32 effectState;
+    /* 0x08 */ s32 effectFrame;
+    /* 0x0C */ s32 frameDelay;
+    /* 0x10 */ Float scaleFactor;
+    /* 0x14 */ Float rotationAngle;
+    /* 0x18 */ Float rotationVelocity;
+    /* 0x1C */ Float opacity;
+    /* 0x20 */ Float rotationX;
+    /* 0x24 */ Float rotationY;
+    /* 0x28 */ Float effectWidth;
+    /* 0x2C */ Float effectHeight;
+    /* 0x30 */ Vec modelPosition;
+    /* 0x3C */ Vec modelVelocity;
+} SurfaceParticleModel; /* size = 0x48 */
 
-typedef struct UnkM406Unk120Struct {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ s32 unk_08;
-    /* 0x0C */ float unk_0C;
-    /* 0x10 */ float unk_10;
-    /* 0x14 */ float unk_14;
-    /* 0x18 */ float unk_18;
-    /* 0x1C */ float unk_1C;
-    /* 0x20 */ s32 unk_20;
-    /* 0x24 */ s32 unk_24;
-    /* 0x28 */ s32 unk_28;
-    /* 0x2C */ UnkM406Struct3 *unk_2C;
-    /* 0x30 */ UnkM406Struct4 *unk_30;
-    /* 0x34 */ Vec unk_34;
-    /* 0x40 */ Vec unk_40;
-    /* 0x4C */ Mtx unk_4C;
-    /* 0x7C */ s32 unk_7C;
-    /* 0x80 */ s32 unk_80;
-    /* 0x84 */ Vec *unk_84;
-    /* 0x88 */ Vec *unk_88;
-    /* 0x8C */ Vec2f *unk_8C;
-    /* 0x90 */ GXColor *unk_90;
-    /* 0x94 */ UnkM406Struct *unk_94;
-    /* 0x98 */ s32 unk_98;
-    /* 0x9C */ s16 (*unk_9C)[4];
-    /* 0xA0 */ u32 unk_A0;
-    /* 0xA4 */ void *unk_A4;
-    /* 0xA8 */ u8 *unk_A8;
-    /* 0xAC */ s32 unk_AC;
-    /* 0xB0 */ s32 unk_B0;
-    /* 0xB4 */ float unk_B4;
-    /* 0xB8 */ float unk_B8;
-    /* 0xBC */ u8 *unk_BC;
-    /* 0xC0 */ s32 unk_C0;
-    /* 0xC4 */ s32 unk_C4;
-    /* 0xC8 */ float unk_C8;
-    /* 0xCC */ float unk_CC;
-} UnkM406Unk120Struct; /* size = 0xD0 */
+typedef struct MapSurfaceRenderer {
+    /* 0x00 */ s32 rendererUpdateCount;
+    /* 0x04 */ s32 cameraHookModelId;
+    /* 0x08 */ s32 useDefaultDrawHook;
+    /* 0x0C */ Float currentPathDistance;
+    /* 0x10 */ Float pathDistanceSpeed;
+    /* 0x14 */ Float pathSampleSpacing;
+    /* 0x18 */ Float totalPathLength;
+    /* 0x1C */ Float pathDistanceOverflow;
+    /* 0x20 */ s32 audioEmitterId;
+    /* 0x24 */ s32 audioStartDelay;
+    /* 0x28 */ s32 displayListMode;
+    /* 0x2C */ PathParticleSample *particlePathSamples;
+    /* 0x30 */ SurfaceParticleModel *particleModels;
+    /* 0x34 */ Vec startPathPoint;
+    /* 0x40 */ Vec endPathPoint;
+    /* 0x4C */ Mtx pathRotationMatrix;
+    /* 0x7C */ s32 currentPathSegment;
+    /* 0x80 */ s32 particleVertexCount;
+    /* 0x84 */ Vec *particlePositions;
+    /* 0x88 */ Vec *particleNormals;
+    /* 0x8C */ Vec2f *particleTextureCoordinates;
+    /* 0x90 */ GXColor *particleColors;
+    /* 0x94 */ SurfaceParticleData *particleSurfaceData;
+    /* 0x98 */ s32 displayListIndexCount;
+    /* 0x9C */ s16 (*particleTriangleIndices)[4];
+    /* 0xA0 */ u32 displayListSize;
+    /* 0xA4 */ void *displayListData;
+    /* 0xA8 */ u8 *particleTextureData;
+    /* 0xAC */ s32 primaryColorRed;
+    /* 0xB0 */ s32 primaryColorGreen;
+    /* 0xB4 */ Float primaryTextureScrollX;
+    /* 0xB8 */ Float primaryTextureScrollY;
+    /* 0xBC */ u8 *secondaryTextureData;
+    /* 0xC0 */ s32 secondaryColorRed;
+    /* 0xC4 */ s32 secondaryColorGreen;
+    /* 0xC8 */ Float secondaryTextureScrollX;
+    /* 0xCC */ Float secondaryTextureScrollY;
+} MapSurfaceRenderer; /* size = 0xD0 */
 
-typedef struct UnkM406Struct5 {
-    /* 0x00 */ s16 unk_00;
-    /* 0x02 */ s16 unk_02;
-    /* 0x04 */ Vec unk_04;
-    /* 0x10 */ float unk_10;
-    /* 0x14 */ float unk_14;
-    /* 0x18 */ float unk_18;
-    /* 0x1C */ char unk1C[0xC];
-    /* 0x28 */ float unk_28;
-    /* 0x2C */ float unk_2C;
-    /* 0x30 */ Vec unk_30;
-    /* 0x3C */ GXColor unk_3C;
-    /* 0x40 */ s32 unk_40;
-} UnkM406Struct5; /* size = 0x44 */ // most likely UnkM426Struct8
+typedef struct MapParticleEffect {
+    /* 0x00 */ s16 frameCount;
+    /* 0x02 */ s16 frameLimit;
+    /* 0x04 */ Vec velocity;
+    /* 0x10 */ Float scaleFactor;
+    /* 0x14 */ Float verticalMotionParameter;
+    /* 0x18 */ Float rotationSpeed;
+    /* 0x1C */ char reservedParticleData[0xC];
+    /* 0x28 */ Float effectSize;
+    /* 0x2C */ Float rotationAngle;
+    /* 0x30 */ Vec position;
+    /* 0x3C */ GXColor color;
+    /* 0x40 */ s32 textureFrameIndex;
+} MapParticleEffect; /* size = 0x44 */
 
-typedef struct UnkM406Struct9 {
-    /* 0x00 */ s16 unk00;
-    /* 0x02 */ s16 unk_02;
-    /* 0x04 */ s16 unk_04;
-    /* 0x06 */ char unk06[2];
-} UnkM406Struct9; /* size = 0x08 */
+typedef struct ParticleEffectSettings {
+    /* 0x00 */ s16 reservedState;
+    /* 0x02 */ s16 effectVariant;
+    /* 0x04 */ s16 animationStep;
+    /* 0x06 */ char reservedBytes[2];
+} ParticleEffectSettings; /* size = 0x08 */
 
-typedef void (*UnkM406Unk120Struct2Hook)(struct Hu3DModel_s *, struct UnkM406Unk120Struct2 *, Mtx);
+typedef void (*ParticleEffectDrawHook)(struct Hu3DModel_s *, struct ParticleEffectHookData *, Mtx);
 
-typedef struct UnkM406Unk120Struct2 {
-    /* 0x00 */ s16 unk_00;
-    /* 0x02 */ s16 unk_02;
-    /* 0x04 */ char unk04[0x18];
-    /* 0x1C */ UnkM406Struct9 *unk_1C;
-    /* 0x20 */ u8 unk_20;
-    /* 0x21 */ u8 unk_21;
-    /* 0x22 */ u8 unk_22;
-    /* 0x23 */ char unk23;
-    /* 0x24 */ s16 unk_24;
-    /* 0x26 */ s16 unk_26;
-    /* 0x28 */ s32 unk_28;
-    /* 0x2C */ s32 unk_2C;
-    /* 0x30 */ u32 unk_30;
-    /* 0x34 */ u32 unk_34;
-    /* 0x38 */ ANIMDATA *unk_38;
-    /* 0x3C */ UnkM406Struct5 *unk_3C;
-    /* 0x40 */ Vec *unk_40;
-    /* 0x44 */ Vec2f *unk_44;
-    /* 0x48 */ void *unk_48;
-    /* 0x4C */ UnkM406Unk120Struct2Hook unk_4C;
-    /* 0x50 */ HU3DMODEL *unk_50;
-} UnkM406Unk120Struct2; /* size = 0x54 */ // strongly assumed to be a copy of UnkModelDataUnk120Struct
+typedef struct ParticleEffectHookData {
+    /* 0x00 */ s16 reservedHeaderWord00;
+    /* 0x02 */ s16 reservedHeaderWord02;
+    /* 0x04 */ char reservedHeaderData[0x18];
+    /* 0x1C */ ParticleEffectSettings *effectSettings;
+    /* 0x20 */ u8 hookMode;
+    /* 0x21 */ u8 reservedHookByte;
+    /* 0x22 */ u8 effectFlags;
+    /* 0x23 */ char reservedHookFlag;
+    /* 0x24 */ s16 reservedHeaderWord24;
+    /* 0x26 */ s16 particleCount;
+    /* 0x28 */ s32 effectActive;
+    /* 0x2C */ s32 lastUpdateFrame;
+    /* 0x30 */ u32 activeParticleLimit;
+    /* 0x34 */ u32 displayListByteCount;
+    /* 0x38 */ ANIMDATA *animationData;
+    /* 0x3C */ MapParticleEffect *particles;
+    /* 0x40 */ Vec *particlePositions;
+    /* 0x44 */ Vec2f *particleTextureCoordinates;
+    /* 0x48 */ void *displayListBuffer;
+    /* 0x4C */ ParticleEffectDrawHook DrawHook;
+    /* 0x50 */ HU3DMODEL *relatedModel;
+} ParticleEffectHookData; /* size = 0x54 */
 
-typedef struct UnkM406Struct6 {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ s32 unk_04;
-} UnkM406Struct6; /* size = 0x08 */ // probably the same as UnkM426Struct13
+typedef struct ParticlePool {
+    /* 0x00 */ s32 modelId;
+    /* 0x04 */ s32 activeEffectCount;
+} ParticlePool; /* size = 0x08 */
 
-typedef struct UnkM406Struct7 {
-    /* 0x00 */ u8 unk_00;
-    /* 0x01 */ u8 unk_01;
-    /* 0x02 */ char unk02[2];
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ s32 unk_08;
-    /* 0x0C */ float unk_0C;
-    /* 0x10 */ float unk_10;
-    /* 0x14 */ float unk_14;
-    /* 0x18 */ float unk_18;
-    /* 0x1C */ Mtx unk_1C;
-} UnkM406Struct7; /* size = 0x4C */
+typedef struct CameraTransitionEffect {
+    /* 0x00 */ u8 isActive;
+    /* 0x01 */ u8 reservedFlag;
+    /* 0x02 */ char reservedBytes[2];
+    /* 0x04 */ s32 modelId;
+    /* 0x08 */ s32 frameCount;
+    /* 0x0C */ Float elapsedTime;
+    /* 0x10 */ Float timeStep;
+    /* 0x14 */ Float transitionDuration;
+    /* 0x18 */ Float fadeCurveAmplitude;
+    /* 0x1C */ Mtx transformMatrix;
+} CameraTransitionEffect; /* size = 0x4C */
 
-typedef struct UnkM406Struct8 {
-    /* 0x00 */ ANIMDATA *unk_00;
-    /* 0x04 */ ANIMDATA *unk_04;
-    /* 0x08 */ ANIMDATA *unk_08;
-    /* 0x0C */ ANIMDATA *unk_0C;
-    /* 0x10 */ s32 unk_10;
-    /* 0x14 */ s32 unk_14;
-    /* 0x18 */ s32 unk_18;
-    /* 0x1C */ s32 unk_1C;
-    /* 0x20 */ s32 unk_20;
-    /* 0x24 */ float unk_24;
-    /* 0x28 */ float unk_28;
-} UnkM406Struct8; /* size = 0x2C */
+typedef struct SceneAnimationGroup {
+    /* 0x00 */ ANIMDATA *animation0;
+    /* 0x04 */ ANIMDATA *animation1;
+    /* 0x08 */ ANIMDATA *animation2;
+    /* 0x0C */ ANIMDATA *animation3;
+    /* 0x10 */ s32 modelId0;
+    /* 0x14 */ s32 modelId1;
+    /* 0x18 */ s32 modelId2;
+    /* 0x1C */ s32 modelId3;
+    /* 0x20 */ s32 updateHookId;
+    /* 0x24 */ Float modelGroupEnabled;
+    /* 0x28 */ Float overlayAlpha;
+} SceneAnimationGroup; /* size = 0x2C */
 
-typedef struct UnkM406Struct10 {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ ANIMDATA *unk_08;
-} UnkM406Struct10; /* size = 0x0C */
+typedef struct SparkleEffectGroup {
+    /* 0x00 */ s32 modelId;
+    /* 0x04 */ s32 activeEffectCount;
+    /* 0x08 */ ANIMDATA *animationData;
+} SparkleEffectGroup; /* size = 0x0C */
 
-void fn_1_292C(OMOBJ *object);
-void fn_1_2C24(OMOBJ *object);
-void fn_1_3158(void);
-void fn_1_4568(void);
-void fn_1_45BC(HU3DMODEL *arg0, Mtx arg1);
-void fn_1_6304(HU3DMODEL *arg0, Mtx arg1);
+void UpdateMapShadow(OMOBJ *object);
+void UpdateMapModels(OMOBJ *object);
+void InitializeMapRenderer(void);
+void DestroyMapRenderer(void);
+void DrawMapSurface(HU3DMODEL *source, Mtx destination);
+void DrawMapScene(HU3DMODEL *source, Mtx destination);
 #ifdef NON_MATCHING
-void fn_1_64F8(UnkM406Struct2 *arg0, float var_f31);
+void CalculatePathSegmentGeometry(MapPathSegment *source, Float cameraPitch);
 #else
-void fn_1_64F8(UnkM406Struct2 *arg0);
+void CalculatePathSegmentGeometry(MapPathSegment *source);
 #endif
-s32 fn_1_66F4(float arg8, float *arg0);
-void fn_1_67CC(HU3DMODEL *arg0);
-void fn_1_6F24(void);
-void fn_1_6FFC(void);
-void fn_1_717C(void);
-s32 fn_1_71C4(Vec arg0, Vec arg1, float arg8, float arg9, GXColor arg2);
-void fn_1_7718(void);
-void fn_1_77F0(void);
-void fn_1_79B0(void);
-s32 fn_1_79F8(Vec arg0, Vec arg1, float arg8, float arg9, GXColor arg2);
-UnkM406Struct5 *fn_1_7B2C(s32 arg0);
-void fn_1_7B9C(void);
-void fn_1_7C4C(void);
-void fn_1_7DAC(void);
-s32 fn_1_7DB0(Vec arg0, Vec arg1, float arg8, GXColor arg2);
-void fn_1_7ED0(void);
-void fn_1_7F80(void);
-void fn_1_8100(void);
-s32 fn_1_8104(Vec arg0, Vec arg1, float arg8, GXColor arg2);
-void fn_1_8244(s32 arg0, s32 arg1, float arg8, float arg9);
-void fn_1_8F98(void);
-void fn_1_91E0(void);
-void fn_1_94BC(void);
-void fn_1_9F78(void);
-void fn_1_A278(void);
-void fn_1_A2C8(HU3DMODEL *arg0, UnkM406Unk120Struct2 *arg1, Mtx arg2);
-void fn_1_ADB4(HU3DMODEL *arg0, Mtx arg1);
-void fn_1_B1E0(float arg8);
-s16 fn_1_B474(ANIMDATA *arg0, s16 arg1);
-void fn_1_BC18(HU3DMODEL *arg0, Mtx arg1);
-s16 fn_1_C4F4(s16 arg0);
-void fn_1_C86C(HU3DMODEL *arg0, Mtx arg1);
-void fn_1_CDD8(s32 arg0, float arg8, float arg9, float argA, float argB);
-void fn_1_CF24(s32 arg0, u8 arg1, u8 arg2, u8 arg3);
-s16 fn_1_D06C(HU3DMODEL *arg0, Mtx arg1, Mtx arg2, float arg8);
-void fn_1_D13C(HU3DLIGHT *arg0, s16 arg1, Mtx arg2, Mtx arg3, float arg8);
-void fn_1_D488(float arg8, Vec *arg0, Vec *arg1, Vec *arg2);
-void fn_1_D518(Mtx arg0, Vec *arg1);
-float fn_1_D5CC(Vec *arg0, Vec *arg1, float arg8, float arg9);
+s32 GetPathSegmentAtDistance(Float scale, Float *source);
+void UpdateSurfaceParticleModels(HU3DMODEL *source);
+void CreateSparkleEffect(void);
+void UpdateSparkleEffects(void);
+void DestroySparkleEffects(void);
+s32 CreateParticleEffect(Vec source, Vec destination, Float scale, Float rotationSpeed, GXColor effectColor);
+void CreateSparkleGroup(void);
+void UpdateParticleEffects(void);
+void DestroyParticleEffects(void);
+s32 CreateParticleEffectVariant(Vec source, Vec destination, Float scale, Float rotationSpeed, GXColor effectColor);
+MapParticleEffect *AcquireParticleSlot(s32 source);
+void CreateParticlePool(void);
+void UpdateParticlePool(void);
+void DestroyParticlePool(void);
+s32 CreateParticleEffectSmall(Vec source, Vec destination, Float scale, GXColor effectColor);
+void CreateParticleModelPool(void);
+void UpdateParticleModelPool(void);
+void DestroyParticleModelPool(void);
+s32 CreateParticleEffectColored(Vec source, Vec destination, Float scale, GXColor effectColor);
+void ConfigureParticleLifetime(s32 source, s32 destination, Float scale, Float rotationSpeed);
+void CreateCameraTransitionEffects(void);
+void UpdateCameraTransitionEffects(void);
+void DestroyCameraTransitionEffects(void);
+void CreateSceneAnimationGroup(void);
+void DestroySceneAnimationGroup(void);
+void DrawSceneAnimationGroup(HU3DMODEL *source, ParticleEffectHookData *destination, Mtx effectColor);
+void SetOrthographicProjection(HU3DMODEL *source, Mtx destination);
+void SetAnimationGroupEnabled(Float scale);
+s16 CreateModelAnimation(ANIMDATA *source, s16 destination);
+void DrawModelHook(HU3DMODEL *source, Mtx destination);
+s16 UpdateTextureCoordinates(s16 source);
+void DrawModelNormals(HU3DMODEL *source, Mtx destination);
+void SetModelMaterialColors(s32 source, Float scale, Float rotationSpeed, Float secondScale, Float thirdScale);
+void SetModelMaterialColor(s32 source, u8 destination, u8 effectColor, u8 channelValue);
+s16 GetModelLightChannels(HU3DMODEL *source, Mtx destination, Mtx effectColor, Float scale);
+void TransformLightDirection(HU3DLIGHT *source, s16 destination, Mtx effectColor, Mtx channelValue, Float scale);
+void InterpolateVector(Float scale, Vec *source, Vec *destination, Vec *effectColor);
+void TransformVector(Mtx source, Vec *destination);
+Float ProjectVectorOntoAxis(Vec *source, Vec *destination, Float scale, Float rotationSpeed);
 
 extern u32 GlobalCounter;
 
-Vec lbl_1_data_F0[0x46] = {
+Vec leftSurfacePath[0x46] = {
     { -495.876f, 50.005f, -0.0f },
     { -500.023f, -2841.226f, -5007.74f },
     { -502.015f, -7170.411f, -12506.11f },
@@ -305,7 +305,7 @@ Vec lbl_1_data_F0[0x46] = {
     { -509.591f, -45195.266f, -61377.84f },
 };
 
-Vec lbl_1_data_438[0x46] = {
+Vec rightSurfacePath[0x46] = {
     { 497.979f, 49.997f, 0.0f },
     { 501.235f, -2841.251f, -5007.79f },
     { 497.983f, -7170.06f, -12505.5f },
@@ -378,15 +378,15 @@ Vec lbl_1_data_438[0x46] = {
     { 499.75f, -45193.69f, -61374.92f },
 };
 
-Vec lbl_1_data_780[3] = {
+Vec shadowModelPositions[3] = {
     { 725.7116f, -20607.168f, -35686.844f },
     { -3135.352f, -23367.234f, -40490.824f },
     { -282.94498f, -26285.674f, -45528.754f },
 };
 
-s16 lbl_1_data_7A4 = -1;
+s16 surfaceHookModelId = -1;
 
-s32 lbl_1_data_7A8[7] = {
+s32 mapModelAssets[7] = {
     DATA_MAKE_NUM(DATADIR_M406, 35),
     DATA_MAKE_NUM(DATADIR_M406, 36),
     DATA_MAKE_NUM(DATADIR_M406, 37),
@@ -396,7 +396,7 @@ s32 lbl_1_data_7A8[7] = {
     DATA_MAKE_NUM(DATADIR_M406, 41),
 };
 
-s32 lbl_1_data_7C4[7] = {
+s32 mapOverlayAssets[7] = {
     DATA_MAKE_NUM(DATADIR_M406, 48),
     DATA_MAKE_NUM(DATADIR_M406, 49),
     DATA_MAKE_NUM(DATADIR_M406, 50),
@@ -406,7 +406,7 @@ s32 lbl_1_data_7C4[7] = {
     0,
 };
 
-s32 lbl_1_data_7E0[6] = {
+s32 particleModelAssets[6] = {
     DATA_MAKE_NUM(DATADIR_M406, 42),
     DATA_MAKE_NUM(DATADIR_M406, 43),
     DATA_MAKE_NUM(DATADIR_M406, 44),
@@ -415,27 +415,27 @@ s32 lbl_1_data_7E0[6] = {
     DATA_MAKE_NUM(DATADIR_M406, 47),
 };
 
-Vec lbl_1_data_7F8 = { 0.0f, 0.0f, 0.0f };
+Vec mapLightPosition = { 0.0f, 0.0f, 0.0f };
 
-Vec lbl_1_data_804 = { -1.0f, -2.0f, -1.0f };
+Vec mapLightDirection = { -1.0f, -2.0f, -1.0f };
 
 #if VERSION_NTSC
-GXColor lbl_1_data_810 = { 255, 255, 255, 255 };
+GXColor mapLightColor = { 255, 255, 255, 255 };
 #else
-GXColor lbl_1_data_810 = { 186, 186, 186, 255 };
+GXColor mapLightColor = { 186, 186, 186, 255 };
 #endif
 
-Vec lbl_1_data_814 = { 0.0f, 2500.0f, -500.0f };
+Vec mapShadowPosition = { 0.0f, 2500.0f, -500.0f };
 
-Vec lbl_1_data_820 = { 0.0f, 1.0f, 0.0f };
+Vec mapShadowUp = { 0.0f, 1.0f, 0.0f };
 
-Vec lbl_1_data_82C = { 0.0f, 0.0f, 0.0f };
+Vec mapShadowTarget = { 0.0f, 0.0f, 0.0f };
 
-Vec lbl_1_data_838 = { 0.0f, 0.0f, 0.0f };
+Vec mapEffectOrigin = { 0.0f, 0.0f, 0.0f };
 
-Vec lbl_1_data_844 = { 0.0f, 1.0f, -1.0f };
+Vec mapEffectDirection = { 0.0f, 1.0f, -1.0f };
 
-GXColor lbl_1_data_850[8] = {
+GXColor mapParticleColors[8] = {
     { 0xFF, 0xFF, 0xFF, 0xFF },
     { 0xC4, 0x2F, 0, 0 },
     { 0x45, 0x1C, 0x40, 0 },
@@ -446,665 +446,665 @@ GXColor lbl_1_data_850[8] = {
     { 0x80, 0x80, 0x80, 0xFF },
 };
 
-HUPROCESS *lbl_1_bss_D4;
-OMOBJ *lbl_1_bss_D0;
-OMOBJ *lbl_1_bss_CC;
-OMOBJ *lbl_1_bss_C8;
-OMOBJ *lbl_1_bss_C4;
-s32 lbl_1_bss_C0;
-s32 lbl_1_bss_BC;
-UnkM406Struct2 *lbl_1_bss_B8;
-s32 lbl_1_bss_B4;
-UnkM406Struct10 *lbl_1_bss_B0;
-UnkM406Struct10 *lbl_1_bss_AC;
-UnkM406Struct6 *lbl_1_bss_A8;
-UnkM406Struct6 *lbl_1_bss_A4;
-UnkM406Struct7 *lbl_1_bss_A0;
-UnkM406Struct8 *lbl_1_bss_9C;
-s32 lbl_1_bss_98;
-char lbl_1_bss_8C[0xC];
-UnkM406Struct5 lbl_1_bss_48;
-Vec lbl_1_bss_3C;
-s32 lbl_1_bss_30[3];
+HUPROCESS *mapProcess;
+OMOBJ *shadowObject;
+OMOBJ *mapModelObject;
+OMOBJ *surfaceObject;
+OMOBJ *effectObject;
+s32 mapState;
+s32 mapRendererEnabled;
+MapPathSegment *pathSegments;
+s32 pathSegmentCount;
+SparkleEffectGroup *sparkleEffectGroup;
+SparkleEffectGroup *particleEffectGroup;
+ParticlePool *particleModelPool;
+ParticlePool *particleInstancePool;
+CameraTransitionEffect *cameraTransitionEffects;
+SceneAnimationGroup *sceneAnimationGroup;
+s32 mapLightId;
+char mapRendererPadding[0xC];
+MapParticleEffect sharedParticleEffect;
+Vec interpolatedVector;
+s32 sceneLightIds[3];
 
 extern HU3DLIGHT Hu3DLocalLight[0x20];
 
-OMOBJ *fn_1_2308(HUPROCESS *arg0)
+OMOBJ *CreateMapScene(HUPROCESS *source)
 {
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r28;
+    s32 modelIndex;
+    s32 modelId;
+    s32 lightId;
 
-    lbl_1_bss_D4 = arg0;
-    lbl_1_bss_C0 = 0;
-    lbl_1_bss_BC = 1;
-    lbl_1_bss_98 = -1;
-    omMakeGroupEx(arg0, 1, 1);
-    omMakeGroupEx(arg0, 2, 1);
-    omMakeGroupEx(arg0, 3, 1);
-    lbl_1_bss_D0 = omAddObjEx(arg0, 127, 0, 0, -1, fn_1_292C);
-    var_r28 = Hu3DGLightCreateV(&lbl_1_data_7F8, &lbl_1_data_804, &lbl_1_data_810);
-    Hu3DGLightStaticSet(var_r28, 1);
-    Hu3DGLightInfinitytSet(var_r28);
-    lbl_1_bss_CC = omAddObjEx(arg0, 0x7E, 0x15, 0, 1, fn_1_2C24);
-    for (var_r31 = 0; var_r31 < 7; var_r31++) {
-        var_r30 = lbl_1_bss_CC->mdlId[var_r31] = Hu3DModelCreateFile(lbl_1_data_7A8[var_r31]);
-        Hu3DModelShadowMapSet(var_r30);
-        Hu3DModelAttrSet(var_r30, HU3D_ATTR_DISPOFF);
-        if (var_r31 < 6) {
-            fn_1_CDD8(var_r30, 1.25f, 1.05f, 1.0f, 1.0f);
+    mapProcess = source;
+    mapState = 0;
+    mapRendererEnabled = 1;
+    mapLightId = -1;
+    omMakeGroupEx(source, 1, 1);
+    omMakeGroupEx(source, 2, 1);
+    omMakeGroupEx(source, 3, 1);
+    shadowObject = omAddObjEx(source, 127, 0, 0, -1, UpdateMapShadow);
+    lightId = Hu3DGLightCreateV(&mapLightPosition, &mapLightDirection, &mapLightColor);
+    Hu3DGLightStaticSet(lightId, 1);
+    Hu3DGLightInfinitytSet(lightId);
+    mapModelObject = omAddObjEx(source, 0x7E, 0x15, 0, 1, UpdateMapModels);
+    for (modelIndex = 0; modelIndex < 7; modelIndex++) {
+        modelId = mapModelObject->mdlId[modelIndex] = Hu3DModelCreateFile(mapModelAssets[modelIndex]);
+        Hu3DModelShadowMapSet(modelId);
+        Hu3DModelAttrSet(modelId, HU3D_ATTR_DISPOFF);
+        if (modelIndex < 6) {
+            SetModelMaterialColors(modelId, 1.25f, 1.05f, 1.0f, 1.0f);
         }
-        if (var_r31 < 6) {
-            var_r30 = Hu3DModelCreateFile(lbl_1_data_7C4[var_r31]);
-            lbl_1_bss_CC->mdlId[var_r31 + 7] = var_r30;
-        }
-        else {
-            var_r30 = -1;
-            lbl_1_bss_CC->mdlId[var_r31 + 7] = var_r30;
-        }
-        if (var_r30 != -1) {
-            Hu3DModelAttrSet(var_r30, HU3D_ATTR_DISPOFF);
-            Hu3DModelLayerSet(var_r30, 5);
-        }
-    }
-    var_r30 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 54));
-    lbl_1_bss_CC->mdlId[14] = var_r30;
-    Hu3DModelPosSet(var_r30, 0.0f, 10.0f, 0.0f);
-    Hu3DModelAttrSet(var_r30, HU3D_ATTR_DISPOFF);
-    Hu3DModelLayerSet(var_r30, 5);
-    lbl_1_bss_C8 = omAddObjEx(arg0, 0x7D, 6, 0, 2, NULL);
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        lbl_1_bss_C8->mdlId[var_r31] = Hu3DModelCreateFile(lbl_1_data_7E0[var_r31]);
-        Hu3DModelAttrSet(lbl_1_bss_C8->mdlId[var_r31], HU3D_ATTR_DISPOFF);
-    }
-    lbl_1_bss_C4 = omAddObjEx(arg0, 0x7D, 3, 0, 3, NULL);
-    lbl_1_bss_C4->trans.x = lbl_1_data_780->x;
-    lbl_1_bss_C4->trans.y = lbl_1_data_780->y;
-    lbl_1_bss_C4->trans.z = lbl_1_data_780->z;
-    lbl_1_bss_C4->scale.x = lbl_1_bss_C4->scale.y = lbl_1_bss_C4->scale.z = 3.0f;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        if (var_r31 == 0) {
-            lbl_1_bss_C4->mdlId[var_r31] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 34));
+        if (modelIndex < 6) {
+            modelId = Hu3DModelCreateFile(mapOverlayAssets[modelIndex]);
+            mapModelObject->mdlId[modelIndex + 7] = modelId;
         }
         else {
-            lbl_1_bss_C4->mdlId[var_r31] = Hu3DModelLink(*lbl_1_bss_C4->mdlId);
+            modelId = -1;
+            mapModelObject->mdlId[modelIndex + 7] = modelId;
         }
-        Hu3DModelShadowSet(lbl_1_bss_C4->mdlId[var_r31]);
-        Hu3DModelScaleSet(lbl_1_bss_C4->mdlId[var_r31], lbl_1_bss_C4->scale.x, lbl_1_bss_C4->scale.y, lbl_1_bss_C4->scale.z);
-        Hu3DModelPosSet(lbl_1_bss_C4->mdlId[var_r31], lbl_1_data_780[var_r31].x, lbl_1_data_780[var_r31].y, lbl_1_data_780[var_r31].z);
+        if (modelId != -1) {
+            Hu3DModelAttrSet(modelId, HU3D_ATTR_DISPOFF);
+            Hu3DModelLayerSet(modelId, 5);
+        }
     }
-    fn_1_3158();
-    fn_1_6F24();
-    fn_1_7718();
-    fn_1_7B9C();
-    fn_1_7ED0();
-    fn_1_8F98();
-    lbl_1_bss_30[0] = 1;
-    fn_1_9F78();
-    fn_1_B104(0.0f);
-    fn_1_B1E0(0.0f);
+    modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 54));
+    mapModelObject->mdlId[14] = modelId;
+    Hu3DModelPosSet(modelId, 0.0f, 10.0f, 0.0f);
+    Hu3DModelAttrSet(modelId, HU3D_ATTR_DISPOFF);
+    Hu3DModelLayerSet(modelId, 5);
+    surfaceObject = omAddObjEx(source, 0x7D, 6, 0, 2, NULL);
+    for (modelIndex = 0; modelIndex < 6; modelIndex++) {
+        surfaceObject->mdlId[modelIndex] = Hu3DModelCreateFile(particleModelAssets[modelIndex]);
+        Hu3DModelAttrSet(surfaceObject->mdlId[modelIndex], HU3D_ATTR_DISPOFF);
+    }
+    effectObject = omAddObjEx(source, 0x7D, 3, 0, 3, NULL);
+    effectObject->trans.x = shadowModelPositions->x;
+    effectObject->trans.y = shadowModelPositions->y;
+    effectObject->trans.z = shadowModelPositions->z;
+    effectObject->scale.x = effectObject->scale.y = effectObject->scale.z = 3.0f;
+    for (modelIndex = 0; modelIndex < 3; modelIndex++) {
+        if (modelIndex == 0) {
+            effectObject->mdlId[modelIndex] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 34));
+        }
+        else {
+            effectObject->mdlId[modelIndex] = Hu3DModelLink(*effectObject->mdlId);
+        }
+        Hu3DModelShadowSet(effectObject->mdlId[modelIndex]);
+        Hu3DModelScaleSet(effectObject->mdlId[modelIndex], effectObject->scale.x, effectObject->scale.y, effectObject->scale.z);
+        Hu3DModelPosSet(effectObject->mdlId[modelIndex], shadowModelPositions[modelIndex].x, shadowModelPositions[modelIndex].y, shadowModelPositions[modelIndex].z);
+    }
+    InitializeMapRenderer();
+    CreateSparkleEffect();
+    CreateSparkleGroup();
+    CreateParticlePool();
+    CreateParticleModelPool();
+    CreateCameraTransitionEffects();
+    sceneLightIds[0] = 1;
+    CreateSceneAnimationGroup();
+    SetAnimationGroupAlpha(0.0f);
+    SetAnimationGroupEnabled(0.0f);
     Hu3DShadowCreate(45.0f, 1000.0f, 250000.0f);
     Hu3DShadowTPLvlSet(0.3f);
-    Hu3DShadowPosSet(&lbl_1_data_814, &lbl_1_data_820, &lbl_1_data_82C);
-    return lbl_1_bss_D0;
+    Hu3DShadowPosSet(&mapShadowPosition, &mapShadowUp, &mapShadowTarget);
+    return shadowObject;
 }
 
-void fn_1_292C(OMOBJ *object)
+void UpdateMapShadow(OMOBJ *object)
 {
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    float sp8;
+    Vec shadowUpDirection;
+    Vec shadowPosition;
+    Vec cameraTarget;
+    Float shadowDistance;
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    Float cameraPitch;
+    Float cameraYaw;
+    Float cameraDistance;
 
-    var_f29 = 1000.0f + CZoom;
-    var_f31 = -65.0f;
-    var_f30 = 110.0f;
-    sp8 = 0.0f;
-    spC.x = Center.x;
-    spC.y = Center.y;
-    spC.z = Center.z;
+    cameraDistance = 1000.0f + CZoom;
+    cameraPitch = -65.0f;
+    cameraYaw = 110.0f;
+    shadowDistance = 0.0f;
+    cameraTarget.x = Center.x;
+    cameraTarget.y = Center.y;
+    cameraTarget.z = Center.z;
 
-    sp18.x = spC.x + (var_f29 * (sind(var_f30) * cosd(var_f31)));
-    sp18.y = spC.y + (var_f29 * -sind(var_f31));
-    sp18.z = spC.z + (var_f29 * (cosd(var_f30) * cosd(var_f31)));
-    sp24.x = sind(var_f30) * sind(var_f31);
-    sp24.y = cosd(var_f31);
-    sp24.z = cosd(var_f30) * sind(var_f31);
-    Hu3DShadowPosSet(&sp18, &sp24, &spC);
+    shadowPosition.x = cameraTarget.x + (cameraDistance * (sind(cameraYaw) * cosd(cameraPitch)));
+    shadowPosition.y = cameraTarget.y + (cameraDistance * -sind(cameraPitch));
+    shadowPosition.z = cameraTarget.z + (cameraDistance * (cosd(cameraYaw) * cosd(cameraPitch)));
+    shadowUpDirection.x = sind(cameraYaw) * sind(cameraPitch);
+    shadowUpDirection.y = cosd(cameraPitch);
+    shadowUpDirection.z = cosd(cameraYaw) * sind(cameraPitch);
+    Hu3DShadowPosSet(&shadowPosition, &shadowUpDirection, &cameraTarget);
 }
 
-void fn_1_2BEC(void)
+void InitializeMapEffects(void)
 {
-    fn_1_4568();
-    fn_1_717C();
-    fn_1_79B0();
-    fn_1_7DAC();
-    fn_1_8100();
-    fn_1_94BC();
-    fn_1_A278();
+    DestroyMapRenderer();
+    DestroySparkleEffects();
+    DestroyParticleEffects();
+    DestroyParticlePool();
+    DestroyParticleModelPool();
+    DestroyCameraTransitionEffects();
+    DestroySceneAnimationGroup();
 }
 
-void fn_1_2C24(OMOBJ *object)
+void UpdateMapModels(OMOBJ *object)
 {
-    float var_f31;
+    Float modelDepth;
 
-    s32 var_r30;
-    s32 var_r29;
+    s32 modelIndex;
+    s32 pairedModelIndex;
 
-    if (!lbl_1_bss_C0) {
-        for (var_r30 = 0; var_r30 < 6; var_r30++) {
-            var_f31 = -(5000.0f + (10000.0f * var_r30));
-            if (fabs(Center.z - var_f31) > 10000.0 || !lbl_1_bss_BC) {
-                if (object->mdlId[var_r30] != -1) {
-                    Hu3DModelAttrSet(object->mdlId[var_r30], HU3D_ATTR_DISPOFF);
+    if (!mapState) {
+        for (modelIndex = 0; modelIndex < 6; modelIndex++) {
+            modelDepth = -(5000.0f + (10000.0f * modelIndex));
+            if (fabs(Center.z - modelDepth) > 10000.0 || !mapRendererEnabled) {
+                if (object->mdlId[modelIndex] != -1) {
+                    Hu3DModelAttrSet(object->mdlId[modelIndex], HU3D_ATTR_DISPOFF);
                 }
-                var_r29 = var_r30 + 7;
-                if (object->mdlId[var_r29] != -1) {
-                    Hu3DModelAttrSet(object->mdlId[var_r29], HU3D_ATTR_DISPOFF);
+                pairedModelIndex = modelIndex + 7;
+                if (object->mdlId[pairedModelIndex] != -1) {
+                    Hu3DModelAttrSet(object->mdlId[pairedModelIndex], HU3D_ATTR_DISPOFF);
                 }
             }
             else {
-                if (object->mdlId[var_r30] != -1) {
-                    Hu3DModelAttrReset(object->mdlId[var_r30], HU3D_ATTR_DISPOFF);
+                if (object->mdlId[modelIndex] != -1) {
+                    Hu3DModelAttrReset(object->mdlId[modelIndex], HU3D_ATTR_DISPOFF);
                 }
-                var_r29 = var_r30 + 7;
-                if (object->mdlId[var_r29] != -1) {
-                    Hu3DModelAttrReset(object->mdlId[var_r29], HU3D_ATTR_DISPOFF);
+                pairedModelIndex = modelIndex + 7;
+                if (object->mdlId[pairedModelIndex] != -1) {
+                    Hu3DModelAttrReset(object->mdlId[pairedModelIndex], HU3D_ATTR_DISPOFF);
                 }
             }
         }
-        var_r29 = 14;
-        if (object->mdlId[var_r29] != -1) {
-            var_f31 = 25000.0f;
-            if (fabs(Center.z - var_f31) < 15000.0) {
-                Hu3DModelAttrSet(object->mdlId[var_r29], HU3D_ATTR_DISPOFF);
+        pairedModelIndex = 14;
+        if (object->mdlId[pairedModelIndex] != -1) {
+            modelDepth = 25000.0f;
+            if (fabs(Center.z - modelDepth) < 15000.0) {
+                Hu3DModelAttrSet(object->mdlId[pairedModelIndex], HU3D_ATTR_DISPOFF);
             }
             else {
-                Hu3DModelAttrReset(object->mdlId[var_r29], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrReset(object->mdlId[pairedModelIndex], HU3D_ATTR_DISPOFF);
             }
         }
-        var_r29 = 6;
-        if (object->mdlId[var_r29] != -1) {
-            Hu3DModelAttrSet(object->mdlId[var_r29], HU3D_ATTR_DISPOFF);
+        pairedModelIndex = 6;
+        if (object->mdlId[pairedModelIndex] != -1) {
+            Hu3DModelAttrSet(object->mdlId[pairedModelIndex], HU3D_ATTR_DISPOFF);
         }
-        for (var_r30 = 0; var_r30 < 3; var_r30++) {
-            if (fabs(Center.z - lbl_1_data_780[var_r30].z) > 10000.0) {
-                Hu3DModelAttrSet(lbl_1_bss_C4->mdlId[var_r30], HU3D_ATTR_DISPOFF);
+        for (modelIndex = 0; modelIndex < 3; modelIndex++) {
+            if (fabs(Center.z - shadowModelPositions[modelIndex].z) > 10000.0) {
+                Hu3DModelAttrSet(effectObject->mdlId[modelIndex], HU3D_ATTR_DISPOFF);
             }
             else {
-                Hu3DModelAttrReset(lbl_1_bss_C4->mdlId[var_r30], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrReset(effectObject->mdlId[modelIndex], HU3D_ATTR_DISPOFF);
             }
         }
         return;
     }
-    for (var_r30 = 0; var_r30 < 6; var_r30++) {
-        if (object->mdlId[var_r30] != -1) {
-            Hu3DModelAttrSet(object->mdlId[var_r30], HU3D_ATTR_DISPOFF);
+    for (modelIndex = 0; modelIndex < 6; modelIndex++) {
+        if (object->mdlId[modelIndex] != -1) {
+            Hu3DModelAttrSet(object->mdlId[modelIndex], HU3D_ATTR_DISPOFF);
         }
-        var_r29 = var_r30 + 7;
-        if (object->mdlId[var_r29] != -1) {
-            Hu3DModelAttrSet(object->mdlId[var_r29], HU3D_ATTR_DISPOFF);
+        pairedModelIndex = modelIndex + 7;
+        if (object->mdlId[pairedModelIndex] != -1) {
+            Hu3DModelAttrSet(object->mdlId[pairedModelIndex], HU3D_ATTR_DISPOFF);
         }
     }
-    var_r29 = 6;
-    if (object->mdlId[var_r29] != -1) {
-        Hu3DModelAttrReset(object->mdlId[var_r29], HU3D_ATTR_DISPOFF);
+    pairedModelIndex = 6;
+    if (object->mdlId[pairedModelIndex] != -1) {
+        Hu3DModelAttrReset(object->mdlId[pairedModelIndex], HU3D_ATTR_DISPOFF);
     }
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        Hu3DModelAttrSet(lbl_1_bss_C4->mdlId[var_r30], HU3D_ATTR_DISPOFF);
+    for (modelIndex = 0; modelIndex < 3; modelIndex++) {
+        Hu3DModelAttrSet(effectObject->mdlId[modelIndex], HU3D_ATTR_DISPOFF);
     }
 }
 
-void fn_1_3064(s32 arg0)
+void SetMapState(s32 source)
 {
-    s32 var_r31;
+    s32 modelIndex;
 
-    if (lbl_1_bss_C0 = arg0) {
-        for (var_r31 = 0; var_r31 < 6; var_r31++) {
-            if (lbl_1_bss_CC->mdlId[var_r31] != -1) {
-                Hu3DModelKill(lbl_1_bss_CC->mdlId[var_r31]);
+    if (mapState = source) {
+        for (modelIndex = 0; modelIndex < 6; modelIndex++) {
+            if (mapModelObject->mdlId[modelIndex] != -1) {
+                Hu3DModelKill(mapModelObject->mdlId[modelIndex]);
             }
-            lbl_1_bss_CC->mdlId[var_r31] = -1;
+            mapModelObject->mdlId[modelIndex] = -1;
         }
-        if (lbl_1_bss_CC->mdlId[6] == -1) {
-            lbl_1_bss_CC->mdlId[6] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 41));
+        if (mapModelObject->mdlId[6] == -1) {
+            mapModelObject->mdlId[6] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 41));
         }
     }
 }
 
-void fn_1_3158(void)
+void InitializeMapRenderer(void)
 {
-    UnkM406Struct2 *sp10[2]; // TODO sp10 should probably be a void*
-    s32 sp8[2];
+    MapPathSegment *displayListAddresses[2]; // TODO display_list_addresses should probably be a void*
+    s32 lightModelIds[2];
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
+    Float edgeFadeFactor;
+    Float gridX;
+    Float gridZ;
+    Float gridY;
 
-    UnkM406Unk120Struct *var_r31;
-    UnkM406Struct *var_r30;
-    s32 var_r29;
-    UnkM406Struct4 *var_r28;
-    UnkM406Struct3 *var_r27;
-    HU3DMODEL *var_r26;
-    s32 var_r25;
-    Vec *var_r24;
-    GXColor *var_r23;
-    s16(*var_r22)[4];
-    Vec *var_r21;
-    Vec2f *var_r20;
-    s32 var_r19;
-    void *var_r18;
-    HU3DMODEL *var_r17;
+    MapSurfaceRenderer *surfaceRenderer;
+    SurfaceParticleData *surfaceVertex;
+    s32 elementIndex;
+    SurfaceParticleModel *particleModel;
+    PathParticleSample *pathSample;
+    HU3DMODEL *hookModel;
+    s32 columnIndex;
+    Vec *positionVertex;
+    GXColor *colorVertex;
+    s16(*triangleIndices)[4];
+    Vec *normalVertex;
+    Vec2f *textureVertex;
+    s32 hookModelId;
+    void *displayListBuffer;
+    HU3DMODEL *lightModel;
 
 #ifdef NON_MATCHING
-    var_f31 = 0.0f;
+    edgeFadeFactor = 0.0f;
 #endif
 
-    var_r19 = lbl_1_data_7A4 = Hu3DHookFuncCreate(fn_1_45BC);
-    var_r26 = &Hu3DData[var_r19];
-    var_r31 = HuMemDirectMallocNum(HEAP_MODEL, sizeof(UnkM406Unk120Struct), var_r26->mallocNo);
-    var_r26->hookData = var_r31;
-    memset(var_r31, 0, sizeof(UnkM406Unk120Struct));
+    hookModelId = surfaceHookModelId = Hu3DHookFuncCreate(DrawMapSurface);
+    hookModel = &Hu3DData[hookModelId];
+    surfaceRenderer = HuMemDirectMallocNum(HEAP_MODEL, sizeof(MapSurfaceRenderer), hookModel->mallocNo);
+    hookModel->hookData = surfaceRenderer;
+    memset(surfaceRenderer, 0, sizeof(MapSurfaceRenderer));
 
-    sp8[0] = Hu3DHookFuncCreate(fn_1_6304);
-    Hu3DModelLayerSet(sp8[0], 7);
-    var_r17 = &Hu3DData[sp8[0]];
-    var_r17->hookData = var_r31;
+    lightModelIds[0] = Hu3DHookFuncCreate(DrawMapScene);
+    Hu3DModelLayerSet(lightModelIds[0], 7);
+    lightModel = &Hu3DData[lightModelIds[0]];
+    lightModel->hookData = surfaceRenderer;
 
-    sp8[1] = Hu3DLLightCreateV(var_r19, &lbl_1_data_838, &lbl_1_data_844, lbl_1_data_850);
-    Hu3DLLightStaticSet(var_r19, sp8[1], 1);
-    Hu3DLLightInfinitytSet(var_r19, sp8[1]);
+    lightModelIds[1] = Hu3DLLightCreateV(hookModelId, &mapEffectOrigin, &mapEffectDirection, mapParticleColors);
+    Hu3DLLightStaticSet(hookModelId, lightModelIds[1], 1);
+    Hu3DLLightInfinitytSet(hookModelId, lightModelIds[1]);
 
-    var_r31->unk_00 = 0;
-    var_r31->unk_04 = var_r19;
-    var_r31->unk_08 = 0;
-    var_r31->unk_0C = 0.0f;
-    var_r31->unk_10 = 0.0f;
-    var_r31->unk_14 = 2000.0f;
-    var_r31->unk_28 = 0;
-    var_r31->unk_A8 = HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 61), HU_MEMNUM_OVL);
-    var_r31->unk_AC = 0x80;
-    var_r31->unk_B0 = 0x80;
-    var_r31->unk_B4 = 0.0f;
-    var_r31->unk_B8 = 0.0f;
-    var_r31->unk_BC = HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 62), HU_MEMNUM_OVL);
-    var_r31->unk_C0 = 0x80;
-    var_r31->unk_C4 = 0x80;
-    var_r31->unk_C8 = 0.0f;
-    var_r31->unk_CC = 0.0f;
-    var_r31->unk_2C = HuMemDirectMallocNum(HEAP_MODEL, 105 * sizeof(UnkM406Struct3), var_r26->mallocNo);
-    memset(var_r31->unk_2C, 0, 105 * sizeof(UnkM406Struct3));
-    var_r27 = var_r31->unk_2C;
+    surfaceRenderer->rendererUpdateCount = 0;
+    surfaceRenderer->cameraHookModelId = hookModelId;
+    surfaceRenderer->useDefaultDrawHook = 0;
+    surfaceRenderer->currentPathDistance = 0.0f;
+    surfaceRenderer->pathDistanceSpeed = 0.0f;
+    surfaceRenderer->pathSampleSpacing = 2000.0f;
+    surfaceRenderer->displayListMode = 0;
+    surfaceRenderer->particleTextureData = HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 61), HU_MEMNUM_OVL);
+    surfaceRenderer->primaryColorRed = 0x80;
+    surfaceRenderer->primaryColorGreen = 0x80;
+    surfaceRenderer->primaryTextureScrollX = 0.0f;
+    surfaceRenderer->primaryTextureScrollY = 0.0f;
+    surfaceRenderer->secondaryTextureData = HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 62), HU_MEMNUM_OVL);
+    surfaceRenderer->secondaryColorRed = 0x80;
+    surfaceRenderer->secondaryColorGreen = 0x80;
+    surfaceRenderer->secondaryTextureScrollX = 0.0f;
+    surfaceRenderer->secondaryTextureScrollY = 0.0f;
+    surfaceRenderer->particlePathSamples = HuMemDirectMallocNum(HEAP_MODEL, 105 * sizeof(PathParticleSample), hookModel->mallocNo);
+    memset(surfaceRenderer->particlePathSamples, 0, 105 * sizeof(PathParticleSample));
+    pathSample = surfaceRenderer->particlePathSamples;
 
-    for (var_r29 = 0; var_r29 < 105; var_r29++, var_r27++) {
-        var_r27->unk_00 = var_r29 / 3;
-        var_r27->unk_04 = 0.33333334f * (var_r29 % 3);
-        switch (var_r29 % 4) {
+    for (elementIndex = 0; elementIndex < 105; elementIndex++, pathSample++) {
+        pathSample->pathSampleIndex = elementIndex / 3;
+        pathSample->pathSampleFraction = 0.33333334f * (elementIndex % 3);
+        switch (elementIndex % 4) {
             case 0:
-                var_r25 = var_r27->unk_08 = frand() & 0x1F;
+                columnIndex = pathSample->effectSpawnCountdown = frand() & 0x1F;
                 break;
             case 1:
-                var_r27->unk_08 = var_r25 + 10;
+                pathSample->effectSpawnCountdown = columnIndex + 10;
                 break;
             default:
-                var_r27->unk_08 = var_r25 + 20;
+                pathSample->effectSpawnCountdown = columnIndex + 20;
                 break;
         }
-        var_r27->unk_0C = -1;
-        var_r27->unk_10 = 0.0f;
-        if (var_r29 == 0 || var_r29 == 104) {
-            var_r27->unk_14 = 0.3f;
+        pathSample->effectType = -1;
+        pathSample->verticalVelocity = 0.0f;
+        if (elementIndex == 0 || elementIndex == 104) {
+            pathSample->particleScale = 0.3f;
         }
-        if (var_r29 == 1 || var_r29 == 103) {
-            var_r27->unk_14 = 0.6f;
+        if (elementIndex == 1 || elementIndex == 103) {
+            pathSample->particleScale = 0.6f;
         }
         else {
-            var_r27->unk_14 = 1.0f;
+            pathSample->particleScale = 1.0f;
         }
-        var_r27->unk_18.x = var_r27->unk_18.y = var_r27->unk_18.z = 0.0f;
-        var_r27->unk_24 = 0;
+        pathSample->particlePosition.x = pathSample->particlePosition.y = pathSample->particlePosition.z = 0.0f;
+        pathSample->particleObject = 0;
     }
-    var_r31->unk_30 = HuMemDirectMallocNum(HEAP_MODEL, 12 * sizeof(UnkM406Struct4), var_r26->mallocNo);
-    memset(var_r31->unk_30, 0, 12 * sizeof(UnkM406Struct4));
-    var_r28 = var_r31->unk_30;
+    surfaceRenderer->particleModels = HuMemDirectMallocNum(HEAP_MODEL, 12 * sizeof(SurfaceParticleModel), hookModel->mallocNo);
+    memset(surfaceRenderer->particleModels, 0, 12 * sizeof(SurfaceParticleModel));
+    particleModel = surfaceRenderer->particleModels;
 
-    for (var_r29 = 0; var_r29 < 12; var_r29++, var_r28++) {
-        switch (var_r29) {
+    for (elementIndex = 0; elementIndex < 12; elementIndex++, particleModel++) {
+        switch (elementIndex) {
             case 0:
-                var_r28->unk_00 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 56));
+                particleModel->modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 56));
                 break;
             case 1:
-                var_r28->unk_00 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 57));
+                particleModel->modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 57));
                 break;
             case 2:
-                var_r28->unk_00 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 58));
+                particleModel->modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 58));
                 break;
             default:
-                var_r28->unk_00 = Hu3DModelLink(var_r31->unk_30[var_r29 % 3].unk_00);
+                particleModel->modelId = Hu3DModelLink(surfaceRenderer->particleModels[elementIndex % 3].particleModelAssetId);
                 break;
         }
-        if (var_r29 < 3) {
-            fn_1_CF24(var_r28->unk_00, 184, 207, 214);
+        if (elementIndex < 3) {
+            SetModelMaterialColor(particleModel->modelId, 184, 207, 214);
         }
-        var_r28->unk_04 = frand() & 1;
-        var_r28->unk_08 = 0;
-        var_r28->unk_0C = frand() % 60;
-        var_r28->unk_10 = 0.2f + (0.6f * (0.007874016f * (frand() & 0x7F)));
-        var_r28->unk_14 = var_r28->unk_18 = 0.0f;
-        var_r28->unk_1C = 0.0f;
-        var_r28->unk_20 = var_r28->unk_24 = 0.0f;
-        var_r28->unk_28 = 0.0f;
-        var_r28->unk_2C = 0.0f;
-        var_r28->unk_3C.x = var_r28->unk_3C.y = var_r28->unk_3C.z = 0.0f;
+        particleModel->effectState = frand() & 1;
+        particleModel->effectFrame = 0;
+        particleModel->frameDelay = frand() % 60;
+        particleModel->scaleFactor = 0.2f + (0.6f * (0.007874016f * (frand() & 0x7F)));
+        particleModel->rotationAngle = particleModel->rotationVelocity = 0.0f;
+        particleModel->opacity = 0.0f;
+        particleModel->rotationX = particleModel->rotationY = 0.0f;
+        particleModel->effectWidth = 0.0f;
+        particleModel->effectHeight = 0.0f;
+        particleModel->modelVelocity.x = particleModel->modelVelocity.y = particleModel->modelVelocity.z = 0.0f;
     }
 
-    var_r31->unk_34.x = var_r31->unk_34.y = var_r31->unk_34.z = 0.0f;
-    var_r31->unk_40.x = var_r31->unk_40.y = var_r31->unk_40.z = 0.0f;
-    var_r31->unk_7C = 0;
+    surfaceRenderer->startPathPoint.x = surfaceRenderer->startPathPoint.y = surfaceRenderer->startPathPoint.z = 0.0f;
+    surfaceRenderer->endPathPoint.x = surfaceRenderer->endPathPoint.y = surfaceRenderer->endPathPoint.z = 0.0f;
+    surfaceRenderer->currentPathSegment = 0;
 
-    var_r31->unk_80 = 1050;
-    var_r31->unk_84 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_80 * sizeof(Vec), var_r26->mallocNo);
-    memset(var_r31->unk_84, 0, var_r31->unk_80 * sizeof(Vec));
+    surfaceRenderer->particleVertexCount = 1050;
+    surfaceRenderer->particlePositions = HuMemDirectMallocNum(HEAP_MODEL, surfaceRenderer->particleVertexCount * sizeof(Vec), hookModel->mallocNo);
+    memset(surfaceRenderer->particlePositions, 0, surfaceRenderer->particleVertexCount * sizeof(Vec));
 
-    var_r31->unk_88 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_80 * sizeof(Vec), var_r26->mallocNo);
-    memset(var_r31->unk_88, 0, var_r31->unk_80 * sizeof(Vec));
+    surfaceRenderer->particleNormals = HuMemDirectMallocNum(HEAP_MODEL, surfaceRenderer->particleVertexCount * sizeof(Vec), hookModel->mallocNo);
+    memset(surfaceRenderer->particleNormals, 0, surfaceRenderer->particleVertexCount * sizeof(Vec));
 
-    var_r31->unk_8C = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_80 * sizeof(Vec2f), var_r26->mallocNo);
-    memset(var_r31->unk_8C, 0, var_r31->unk_80 * sizeof(Vec2f));
+    surfaceRenderer->particleTextureCoordinates = HuMemDirectMallocNum(HEAP_MODEL, surfaceRenderer->particleVertexCount * sizeof(Vec2f), hookModel->mallocNo);
+    memset(surfaceRenderer->particleTextureCoordinates, 0, surfaceRenderer->particleVertexCount * sizeof(Vec2f));
 
-    var_r31->unk_90 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_80 * sizeof(GXColor), var_r26->mallocNo);
-    memset(var_r31->unk_90, 0, var_r31->unk_80 * sizeof(GXColor));
+    surfaceRenderer->particleColors = HuMemDirectMallocNum(HEAP_MODEL, surfaceRenderer->particleVertexCount * sizeof(GXColor), hookModel->mallocNo);
+    memset(surfaceRenderer->particleColors, 0, surfaceRenderer->particleVertexCount * sizeof(GXColor));
 
-    var_r31->unk_94 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_80 * sizeof(UnkM406Struct), var_r26->mallocNo);
-    memset(var_r31->unk_94, 0, var_r31->unk_80 * sizeof(UnkM406Struct));
+    surfaceRenderer->particleSurfaceData = HuMemDirectMallocNum(HEAP_MODEL, surfaceRenderer->particleVertexCount * sizeof(SurfaceParticleData), hookModel->mallocNo);
+    memset(surfaceRenderer->particleSurfaceData, 0, surfaceRenderer->particleVertexCount * sizeof(SurfaceParticleData));
 
-    var_r31->unk_98 = 986;
-    var_r31->unk_9C = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_98 * 8, var_r26->mallocNo);
-    memset(var_r31->unk_9C, 0, var_r31->unk_98 * 8);
+    surfaceRenderer->displayListIndexCount = 986;
+    surfaceRenderer->particleTriangleIndices = HuMemDirectMallocNum(HEAP_MODEL, surfaceRenderer->displayListIndexCount * 8, hookModel->mallocNo);
+    memset(surfaceRenderer->particleTriangleIndices, 0, surfaceRenderer->displayListIndexCount * 8);
 
-    var_r24 = var_r31->unk_84;
-    var_r21 = var_r31->unk_88;
-    var_r20 = var_r31->unk_8C;
-    var_r23 = var_r31->unk_90;
-    var_r30 = var_r31->unk_94;
-    var_f30 = -500.0f;
-    var_f29 = -1000.0f;
-    var_f28 = 0.0f;
-    for (var_r29 = 0; var_r29 < 30; var_r29++) {
-        for (var_r25 = 0; var_r25 < 35; var_r25++) {
-            var_r24->x = var_f30;
-            var_r24->y = var_f28;
-            var_r24->z = var_f29;
+    positionVertex = surfaceRenderer->particlePositions;
+    normalVertex = surfaceRenderer->particleNormals;
+    textureVertex = surfaceRenderer->particleTextureCoordinates;
+    colorVertex = surfaceRenderer->particleColors;
+    surfaceVertex = surfaceRenderer->particleSurfaceData;
+    gridX = -500.0f;
+    gridZ = -1000.0f;
+    gridY = 0.0f;
+    for (elementIndex = 0; elementIndex < 30; elementIndex++) {
+        for (columnIndex = 0; columnIndex < 35; columnIndex++) {
+            positionVertex->x = gridX;
+            positionVertex->y = gridY;
+            positionVertex->z = gridZ;
 
-            var_f30 += 29.411764f;
-            var_f28 = 0.0f;
+            gridX += 29.411764f;
+            gridY = 0.0f;
 
-            var_r21->x = 0.0f;
-            var_r21->z = 0.0f;
-            var_r21->y = 1.0f;
+            normalVertex->x = 0.0f;
+            normalVertex->z = 0.0f;
+            normalVertex->y = 1.0f;
 
-            var_r20->x = 0.0f;
-            var_r20->y = 0.0f;
+            textureVertex->x = 0.0f;
+            textureVertex->y = 0.0f;
 
-            var_r23->r = var_r23->g = var_r23->b = var_r23->a = 0xFF;
-            if (var_r29 == 0) {
-                var_r30->unk_01 = 1;
-                if (var_r29 < 6) {
-                    var_r30->unk_08 = (6 - var_r29) / 6.0f;
+            colorVertex->r = colorVertex->g = colorVertex->b = colorVertex->a = 0xFF;
+            if (elementIndex == 0) {
+                surfaceVertex->isFirstRow = 1;
+                if (elementIndex < 6) {
+                    surfaceVertex->edgeFadeScale = (6 - elementIndex) / 6.0f;
                 }
                 else {
-                    var_r30->unk_08 = 1.0f;
+                    surfaceVertex->edgeFadeScale = 1.0f;
                 }
             }
             else {
-                var_r30->unk_01 = 0;
-                var_r30->unk_08 = 0.0f;
+                surfaceVertex->isFirstRow = 0;
+                surfaceVertex->edgeFadeScale = 0.0f;
             }
-            if (!var_r25 || var_r25 == 34 || !var_r29) {
-                var_r30->unk_00 = 0;
-                var_r30->unk_04 = 0.0f;
+            if (!columnIndex || columnIndex == 34 || !elementIndex) {
+                surfaceVertex->isActive = 0;
+                surfaceVertex->edgeFade = 0.0f;
             }
             else {
-                var_r30->unk_00 = 1;
-                if (var_r29 < 3) {
-                    var_r30->unk_04 = 0.5f + (0.5f * (var_r29 / 3.0f));
-                    var_r30->unk_04 = sind(90.0f * var_r30->unk_04);
+                surfaceVertex->isActive = 1;
+                if (elementIndex < 3) {
+                    surfaceVertex->edgeFade = 0.5f + (0.5f * (elementIndex / 3.0f));
+                    surfaceVertex->edgeFade = sind(90.0f * surfaceVertex->edgeFade);
                 }
                 else {
-                    var_r30->unk_04 = 1.0f;
+                    surfaceVertex->edgeFade = 1.0f;
                 }
             }
-            var_r30->unk_10.x = var_r24->x;
-            var_r30->unk_10.y = var_r24->y;
-            var_r30->unk_10.z = var_r24->z;
-            var_r30->unk_1C.x = var_r30->unk_1C.y = var_r30->unk_1C.z = 0.0f;
-            var_r30->unk_0C = 200.0 * sind(90.0f * (var_r29 / 29.0f));
-            if (var_r25 < 6) {
-                var_f31 = var_r25 / 6.0f;
-                var_r30->unk_04 = var_r30->unk_04 * sind(90.0f * var_f31);
-                var_r30->unk_0C = var_r30->unk_0C * sind(90.0f * var_f31);
+            surfaceVertex->basePosition.x = positionVertex->x;
+            surfaceVertex->basePosition.y = positionVertex->y;
+            surfaceVertex->basePosition.z = positionVertex->z;
+            surfaceVertex->positionVelocity.x = surfaceVertex->positionVelocity.y = surfaceVertex->positionVelocity.z = 0.0f;
+            surfaceVertex->verticalOffset = 200.0 * sind(90.0f * (elementIndex / 29.0f));
+            if (columnIndex < 6) {
+                edgeFadeFactor = columnIndex / 6.0f;
+                surfaceVertex->edgeFade = surfaceVertex->edgeFade * sind(90.0f * edgeFadeFactor);
+                surfaceVertex->verticalOffset = surfaceVertex->verticalOffset * sind(90.0f * edgeFadeFactor);
             }
-            else if (var_r25 > 28) {
-                var_f31 = (var_r25 - 28) / 6.0f;
-                var_r30->unk_04 = var_r30->unk_04 * cosd(90.0f * var_f31);
-                var_r30->unk_0C = var_r30->unk_0C * cosd(90.0f * var_f31);
+            else if (columnIndex > 28) {
+                edgeFadeFactor = (columnIndex - 28) / 6.0f;
+                surfaceVertex->edgeFade = surfaceVertex->edgeFade * cosd(90.0f * edgeFadeFactor);
+                surfaceVertex->verticalOffset = surfaceVertex->verticalOffset * cosd(90.0f * edgeFadeFactor);
             }
-            var_r30->unk_28 = var_r25 / 34.0f;
-            var_r30->unk_2C = (var_r29 * 2) / 29.0f;
-            if (var_r30->unk_28 > 1.0f) {
-                var_r30->unk_28 = fmod(var_r30->unk_28, 1.0);
+            surfaceVertex->textureCoordinateU = columnIndex / 34.0f;
+            surfaceVertex->textureCoordinateV = (elementIndex * 2) / 29.0f;
+            if (surfaceVertex->textureCoordinateU > 1.0f) {
+                surfaceVertex->textureCoordinateU = fmod(surfaceVertex->textureCoordinateU, 1.0);
             }
-            if (var_r30->unk_2C > 1.0f) {
-                var_r30->unk_2C = fmod(var_r30->unk_2C, 1.0);
+            if (surfaceVertex->textureCoordinateV > 1.0f) {
+                surfaceVertex->textureCoordinateV = fmod(surfaceVertex->textureCoordinateV, 1.0);
             }
-            var_r24++;
-            var_r21++;
-            var_r20++;
-            var_r23++;
-            var_r30++;
+            positionVertex++;
+            normalVertex++;
+            textureVertex++;
+            colorVertex++;
+            surfaceVertex++;
         }
-        var_f30 = -500.0f;
-        var_f29 += 68.965515f;
+        gridX = -500.0f;
+        gridZ += 68.965515f;
     }
-    var_r22 = var_r31->unk_9C;
-    for (var_r29 = 0; var_r29 < 29; var_r29++) {
-        for (var_r25 = 0; var_r25 < 34; var_r22++, var_r25++) {
-            (*var_r22)[0] = var_r25 + (var_r29 * 35);
-            (*var_r22)[1] = var_r25 + 1 + (var_r29 * 35);
-            (*var_r22)[2] = var_r25 + 1 + ((var_r29 + 1) * 35);
-            (*var_r22)[3] = var_r25 + ((var_r29 + 1) * 35);
+    triangleIndices = surfaceRenderer->particleTriangleIndices;
+    for (elementIndex = 0; elementIndex < 29; elementIndex++) {
+        for (columnIndex = 0; columnIndex < 34; triangleIndices++, columnIndex++) {
+            (*triangleIndices)[0] = columnIndex + (elementIndex * 35);
+            (*triangleIndices)[1] = columnIndex + 1 + (elementIndex * 35);
+            (*triangleIndices)[2] = columnIndex + 1 + ((elementIndex + 1) * 35);
+            (*triangleIndices)[3] = columnIndex + ((elementIndex + 1) * 35);
         }
     }
-    var_r18 = HuMemDirectMallocNum(HEAP_MODEL, 0x10000, var_r26->mallocNo);
-    sp10[0] = var_r18;
-    DCFlushRange(var_r18, 0x10000);
-    GXBeginDisplayList(sp10[0], 0x10000);
+    displayListBuffer = HuMemDirectMallocNum(HEAP_MODEL, 0x10000, hookModel->mallocNo);
+    displayListAddresses[0] = displayListBuffer;
+    DCFlushRange(displayListBuffer, 0x10000);
+    GXBeginDisplayList(displayListAddresses[0], 0x10000);
     GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, 70);
-    for (var_r29 = 0; var_r29 < 35; var_r29++) {
-        GXPosition1x16(var_r29 + 35);
-        GXNormal1x16(var_r29 + 35);
-        GXColor1x16(var_r29 + 35);
-        GXPosition1x16(var_r29);
-        GXNormal1x16(var_r29);
-        GXColor1x16(var_r29);
+    for (elementIndex = 0; elementIndex < 35; elementIndex++) {
+        GXPosition1x16(elementIndex + 35);
+        GXNormal1x16(elementIndex + 35);
+        GXColor1x16(elementIndex + 35);
+        GXPosition1x16(elementIndex);
+        GXNormal1x16(elementIndex);
+        GXColor1x16(elementIndex);
     }
-    var_r31->unk_A0 = GXEndDisplayList();
-    if (var_r31->unk_A0 >= 0x10000) {
+    surfaceRenderer->displayListSize = GXEndDisplayList();
+    if (surfaceRenderer->displayListSize >= 0x10000) {
         OSReport("ERROR! GList test size over! \n");
     }
-    var_r31->unk_A4 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_A0, var_r26->mallocNo);
-    memcpy(var_r31->unk_A4, var_r18, var_r31->unk_A0);
-    DCFlushRange(var_r31->unk_A4, var_r31->unk_A0);
-    HuMemDirectFree(var_r18);
-    lbl_1_bss_B4 = 70;
-    lbl_1_bss_B8 = HuMemDirectMallocNum(HEAP_MODEL, lbl_1_bss_B4 * 32, var_r26->mallocNo);
-    memset(lbl_1_bss_B8, 0, lbl_1_bss_B4 * 32);
+    surfaceRenderer->displayListData = HuMemDirectMallocNum(HEAP_MODEL, surfaceRenderer->displayListSize, hookModel->mallocNo);
+    memcpy(surfaceRenderer->displayListData, displayListBuffer, surfaceRenderer->displayListSize);
+    DCFlushRange(surfaceRenderer->displayListData, surfaceRenderer->displayListSize);
+    HuMemDirectFree(displayListBuffer);
+    pathSegmentCount = 70;
+    pathSegments = HuMemDirectMallocNum(HEAP_MODEL, pathSegmentCount * 32, hookModel->mallocNo);
+    memset(pathSegments, 0, pathSegmentCount * 32);
 #ifdef NON_MATCHING
-    fn_1_64F8(lbl_1_bss_B8, var_f31);
+    CalculatePathSegmentGeometry(pathSegments, edgeFadeFactor);
 #else
-    fn_1_64F8(lbl_1_bss_B8);
+    CalculatePathSegmentGeometry(pathSegments);
 #endif
-    sp10[1] = &lbl_1_bss_B8[lbl_1_bss_B4 - 1];
-    var_r31->unk_18 = sp10[1]->unk_04;
-    var_r31->unk_1C = 0.0f;
-    var_r31->unk_20 = -1;
-    var_r31->unk_24 = 0;
+    displayListAddresses[1] = &pathSegments[pathSegmentCount - 1];
+    surfaceRenderer->totalPathLength = displayListAddresses[1]->segmentStartDistance;
+    surfaceRenderer->pathDistanceOverflow = 0.0f;
+    surfaceRenderer->audioEmitterId = -1;
+    surfaceRenderer->audioStartDelay = 0;
 }
 
-GXColor lbl_1_data_88F = { 0xFF, 0xFF, 0xFF, 0xFF };
-GXColor lbl_1_data_893 = { 0xB3, 0xBB, 0xC2, 0xFF };
-GXColor lbl_1_data_897 = { 0xFF, 0xFF, 0xFF, 0xFF };
-GXColor lbl_1_data_89B = { 0xFF, 0xFF, 0xFF, 0x40 };
-GXColor lbl_1_data_89F = { 0xFF, 0xFF, 0xFF, 0xFF };
+GXColor particleWhite = { 0xFF, 0xFF, 0xFF, 0xFF };
+GXColor particleGray = { 0xB3, 0xBB, 0xC2, 0xFF };
+GXColor particleOpaqueWhite = { 0xFF, 0xFF, 0xFF, 0xFF };
+GXColor particleTranslucentWhite = { 0xFF, 0xFF, 0xFF, 0x40 };
+GXColor particleFadeWhite = { 0xFF, 0xFF, 0xFF, 0xFF };
 
-float lbl_1_data_8A4[4] = { 1000.0f, 200.0f, 600.0f, 1200.0f };
+Float particleLifetimeValues[4] = { 1000.0f, 200.0f, 600.0f, 1200.0f };
 
-float lbl_1_data_8B4[4] = { 1.0f, 0.6f, 0.3f, 0.425f };
+Float particleSizeValues[4] = { 1.0f, 0.6f, 0.3f, 0.425f };
 
-Vec lbl_1_data_8C4 = { 0.0f, -34700.0f, -62094.0f };
+Vec particleOrigin = { 0.0f, -34700.0f, -62094.0f };
 
-Vec lbl_1_data_8D0 = { 0.0f, 1.0f, 0.0f };
+Vec particleUpDirection = { 0.0f, 1.0f, 0.0f };
 
-GXColor lbl_1_data_8DC = { 0xFF, 0xFF, 0xFF, 0xFF };
+GXColor particleDefaultColor = { 0xFF, 0xFF, 0xFF, 0xFF };
 
-Vec lbl_1_data_8E0[4] = {
+Vec particleSpawnPositions[4] = {
     { -0.5f, 0.5f, 0.0f },
     { 0.5f, 0.5f, 0.0f },
     { 0.5f, -0.5f, 0.0f },
     { -0.5f, -0.5f, 0.0f },
 };
 
-Vec2f lbl_1_data_910[4] = { { 0.0f, 0.0f }, { 0.25f, 0.0f }, { 0.25f, 0.25f }, { 0.0f, 0.25f } };
+Vec2f particleTextureCoordinates[4] = { { 0.0f, 0.0f }, { 0.25f, 0.0f }, { 0.25f, 0.25f }, { 0.0f, 0.25f } };
 
-Vec lbl_1_data_930[4] = {
+Vec particleModelPositions[4] = {
     { 0.0f, 0.5f, 0.0f },
     { 0.5f, 0.0f, 0.0f },
     { 0.0f, -0.5f, 0.0f },
     { -0.5f, 0.0f, 0.0f },
 };
 
-void fn_1_4084(void)
+void UpdateMapAmbience(void)
 {
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
-    void *spC;
-    float sp8;
+    Vec audioPosition;
+    Vec pathStart;
+    Vec pathEnd;
+    void *pathSamples;
+    Float pathSampleFraction;
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
+    Float crossSectionFraction;
+    Float pathDistance;
+    Float pathYaw;
+    Float vertexSpacing;
 
-    UnkM406Unk120Struct *var_r31;
-    s32 var_r30;
-    UnkM406Struct *var_r29;
-    Vec *var_r28;
-    s32 var_r27;
-    s32 var_r26;
-    HU3DMODEL *var_r25;
+    MapSurfaceRenderer *surfaceRenderer;
+    s32 pathSegmentIndex;
+    SurfaceParticleData *surfaceVertex;
+    Vec *positionVertex;
+    s32 rowIndex;
+    s32 columnIndex;
+    HU3DMODEL *hookModel;
 
-    spC = lbl_1_bss_B8;
-    var_r25 = &Hu3DData[lbl_1_data_7A4];
-    var_r31 = var_r25->hookData;
-    if (!var_r31->unk_28) {
-        if (++var_r31->unk_24 >= 1 && var_r31->unk_20 == -1) {
-            sp28.x = 0.5f * (var_r31->unk_34.x + var_r31->unk_40.x);
-            sp28.y = 0.5f * (var_r31->unk_34.y + var_r31->unk_40.y);
-            sp28.z = 0.5f * (var_r31->unk_34.z + var_r31->unk_40.z);
-            var_r31->unk_20 = HuAudFXEmiterPlay(1337, &sp28);
+    pathSamples = pathSegments;
+    hookModel = &Hu3DData[surfaceHookModelId];
+    surfaceRenderer = hookModel->hookData;
+    if (!surfaceRenderer->displayListMode) {
+        if (++surfaceRenderer->audioStartDelay >= 1 && surfaceRenderer->audioEmitterId == -1) {
+            audioPosition.x = 0.5f * (surfaceRenderer->startPathPoint.x + surfaceRenderer->endPathPoint.x);
+            audioPosition.y = 0.5f * (surfaceRenderer->startPathPoint.y + surfaceRenderer->endPathPoint.y);
+            audioPosition.z = 0.5f * (surfaceRenderer->startPathPoint.z + surfaceRenderer->endPathPoint.z);
+            surfaceRenderer->audioEmitterId = HuAudFXEmiterPlay(1337, &audioPosition);
         }
-        else if (var_r31->unk_20 != -1) {
-            sp28.x = 0.5f * (var_r31->unk_34.x + var_r31->unk_40.x);
-            sp28.y = 0.5f * (var_r31->unk_34.y + var_r31->unk_40.y);
-            sp28.z = 0.5f * (var_r31->unk_34.z + var_r31->unk_40.z);
-            HuAudFXEmiterUpDate(var_r31->unk_20, &sp28);
+        else if (surfaceRenderer->audioEmitterId != -1) {
+            audioPosition.x = 0.5f * (surfaceRenderer->startPathPoint.x + surfaceRenderer->endPathPoint.x);
+            audioPosition.y = 0.5f * (surfaceRenderer->startPathPoint.y + surfaceRenderer->endPathPoint.y);
+            audioPosition.z = 0.5f * (surfaceRenderer->startPathPoint.z + surfaceRenderer->endPathPoint.z);
+            HuAudFXEmiterUpDate(surfaceRenderer->audioEmitterId, &audioPosition);
         }
     }
-    else if (var_r31->unk_20 != -1) {
-        HuAudFXStop(var_r31->unk_20);
-        var_r31->unk_20 = -1;
+    else if (surfaceRenderer->audioEmitterId != -1) {
+        HuAudFXStop(surfaceRenderer->audioEmitterId);
+        surfaceRenderer->audioEmitterId = -1;
     }
-    var_r31->unk_0C = var_r31->unk_0C + var_r31->unk_10;
-    if (var_r31->unk_0C > var_r31->unk_18) {
-        var_r31->unk_1C = var_r31->unk_0C - var_r31->unk_18;
-        var_r31->unk_0C = var_r31->unk_18;
+    surfaceRenderer->currentPathDistance = surfaceRenderer->currentPathDistance + surfaceRenderer->pathDistanceSpeed;
+    if (surfaceRenderer->currentPathDistance > surfaceRenderer->totalPathLength) {
+        surfaceRenderer->pathDistanceOverflow = surfaceRenderer->currentPathDistance - surfaceRenderer->totalPathLength;
+        surfaceRenderer->currentPathDistance = surfaceRenderer->totalPathLength;
     }
     else {
-        var_r31->unk_1C = 0.0f;
+        surfaceRenderer->pathDistanceOverflow = 0.0f;
     }
-    var_r28 = var_r31->unk_84;
-    var_r29 = var_r31->unk_94;
-    var_f30 = 0.0f;
-    var_f28 = var_r31->unk_14 / 29.0f;
+    positionVertex = surfaceRenderer->particlePositions;
+    surfaceVertex = surfaceRenderer->particleSurfaceData;
+    pathDistance = 0.0f;
+    vertexSpacing = surfaceRenderer->pathSampleSpacing / 29.0f;
 
-    for (var_r27 = 0; var_r27 < 30; var_r27++) {
-        var_r30 = fn_1_66F4(var_r31->unk_0C - var_f30, &sp8);
-        var_f30 += var_f28;
-        if (var_r30 < 0) {
-            var_r30 = 0;
-            sp1C = lbl_1_data_F0[var_r30];
-            sp10 = lbl_1_data_438[var_r30];
+    for (rowIndex = 0; rowIndex < 30; rowIndex++) {
+        pathSegmentIndex = GetPathSegmentAtDistance(surfaceRenderer->currentPathDistance - pathDistance, &pathSampleFraction);
+        pathDistance += vertexSpacing;
+        if (pathSegmentIndex < 0) {
+            pathSegmentIndex = 0;
+            pathStart = leftSurfacePath[pathSegmentIndex];
+            pathEnd = rightSurfacePath[pathSegmentIndex];
         }
-        else if (var_r30 < (lbl_1_bss_B4 - 1)) {
-            fn_1_D488(sp8, &lbl_1_data_F0[var_r30], &lbl_1_data_F0[var_r30 + 1], &sp1C);
-            fn_1_D488(sp8, &lbl_1_data_438[var_r30], &lbl_1_data_438[var_r30 + 1], &sp10);
+        else if (pathSegmentIndex < (pathSegmentCount - 1)) {
+            InterpolateVector(pathSampleFraction, &leftSurfacePath[pathSegmentIndex], &leftSurfacePath[pathSegmentIndex + 1], &pathStart);
+            InterpolateVector(pathSampleFraction, &rightSurfacePath[pathSegmentIndex], &rightSurfacePath[pathSegmentIndex + 1], &pathEnd);
         }
         else {
-            var_r30 = lbl_1_bss_B4 - 1;
-            sp1C = lbl_1_data_F0[var_r30];
-            sp10 = lbl_1_data_438[var_r30];
+            pathSegmentIndex = pathSegmentCount - 1;
+            pathStart = leftSurfacePath[pathSegmentIndex];
+            pathEnd = rightSurfacePath[pathSegmentIndex];
         }
-        if (var_r27 == 0) {
-            var_r31->unk_34 = sp1C;
-            var_r31->unk_40 = sp10;
-            var_r31->unk_7C = var_r30;
-            var_f29 = atan2d(var_r31->unk_40.x - var_r31->unk_34.x, var_r31->unk_40.z - var_r31->unk_34.z);
-            mtxRot(var_r31->unk_4C, 0.0f, var_f29, 0.0f);
+        if (rowIndex == 0) {
+            surfaceRenderer->startPathPoint = pathStart;
+            surfaceRenderer->endPathPoint = pathEnd;
+            surfaceRenderer->currentPathSegment = pathSegmentIndex;
+            pathYaw = atan2d(surfaceRenderer->endPathPoint.x - surfaceRenderer->startPathPoint.x, surfaceRenderer->endPathPoint.z - surfaceRenderer->startPathPoint.z);
+            mtxRot(surfaceRenderer->pathRotationMatrix, 0.0f, pathYaw, 0.0f);
         }
-        for (var_r26 = 0, var_f31 = 0.0f; var_r26 < 35; var_r28++, var_r29++, var_r26++) {
-            fn_1_D488(var_f31, &sp1C, &sp10, var_r28);
-            var_r29->unk_10 = *var_r28;
-            var_f31 += 0.029411765f;
-            var_r29->unk_1C = lbl_1_bss_B8[var_r30].unk_08;
+        for (columnIndex = 0, crossSectionFraction = 0.0f; columnIndex < 35; positionVertex++, surfaceVertex++, columnIndex++) {
+            InterpolateVector(crossSectionFraction, &pathStart, &pathEnd, positionVertex);
+            surfaceVertex->basePosition = *positionVertex;
+            crossSectionFraction += 0.029411765f;
+            surfaceVertex->positionVelocity = pathSegments[pathSegmentIndex].segmentDirection;
         }
     }
 }
 
-void fn_1_4568(void)
+void DestroyMapRenderer(void)
 {
-    UnkM406Unk120Struct *var_r31;
-    HU3DMODEL *var_r30;
+    MapSurfaceRenderer *surfaceRenderer;
+    HU3DMODEL *hookModel;
 
-    var_r30 = &Hu3DData[lbl_1_data_7A4];
-    var_r31 = var_r30->hookData;
-    HuMemDirectFree(var_r31->unk_A8);
+    hookModel = &Hu3DData[surfaceHookModelId];
+    surfaceRenderer = hookModel->hookData;
+    HuMemDirectFree(surfaceRenderer->particleTextureData);
 }
 
-void fn_1_45BC(HU3DMODEL *arg0, Mtx arg1)
+void DrawMapSurface(HU3DMODEL *source, Mtx destination)
 {
-    Mtx sp10;
+    Mtx normalMatrix;
 
-    UnkM406Unk120Struct *var_r31;
-    s16 var_r30;
-    s16 var_r29;
-    s16 var_r26;
+    MapSurfaceRenderer *surfaceRenderer;
+    s16 rowIndex;
+    s16 vertexStartIndex;
+    s16 channelControlFlags;
 
-    var_r31 = arg0->hookData;
-    if (!var_r31->unk_08) {
-        fn_1_6304(arg0, arg1);
+    surfaceRenderer = source->hookData;
+    if (!surfaceRenderer->useDefaultDrawHook) {
+        DrawMapScene(source, destination);
     }
-    if (!var_r31->unk_28) {
-        GXLoadPosMtxImm(arg1, 0);
-        MTXInvXpose(arg1, sp10);
-        GXLoadNrmMtxImm(sp10, 0);
-        var_r26 = fn_1_D06C(arg0, Hu3DCameraMtx, Hu3DCameraMtxXPose, 2.0f);
+    if (!surfaceRenderer->displayListMode) {
+        GXLoadPosMtxImm(destination, 0);
+        MTXInvXpose(destination, normalMatrix);
+        GXLoadNrmMtxImm(normalMatrix, 0);
+        channelControlFlags = GetModelLightChannels(source, Hu3DCameraMtx, Hu3DCameraMtxXPose, 2.0f);
         GXSetNumTevStages(1);
         GXSetNumTexGens(0);
         GXSetNumChans(1);
@@ -1115,1546 +1115,1546 @@ void fn_1_45BC(HU3DMODEL *arg0, Mtx arg1)
         GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
         GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_RASA, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
         GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-        GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_REG, var_r26, GX_DF_CLAMP, GX_AF_SPEC);
+        GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_REG, channelControlFlags, GX_DF_CLAMP, GX_AF_SPEC);
         GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
         GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
         GXSetZCompLoc(GX_TRUE);
         GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
-        GXSetChanAmbColor(GX_COLOR0A0, lbl_1_data_893);
-        GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_88F);
-        DCFlushRangeNoSync(var_r31->unk_84, var_r31->unk_80 * sizeof(Vec));
-        DCFlushRangeNoSync(var_r31->unk_88, var_r31->unk_80 * sizeof(Vec));
-        DCFlushRangeNoSync(var_r31->unk_8C, var_r31->unk_80 * sizeof(Vec2f));
-        DCFlushRangeNoSync(var_r31->unk_90, var_r31->unk_80 * sizeof(GXColor));
+        GXSetChanAmbColor(GX_COLOR0A0, particleGray);
+        GXSetChanMatColor(GX_COLOR0A0, particleWhite);
+        DCFlushRangeNoSync(surfaceRenderer->particlePositions, surfaceRenderer->particleVertexCount * sizeof(Vec));
+        DCFlushRangeNoSync(surfaceRenderer->particleNormals, surfaceRenderer->particleVertexCount * sizeof(Vec));
+        DCFlushRangeNoSync(surfaceRenderer->particleTextureCoordinates, surfaceRenderer->particleVertexCount * sizeof(Vec2f));
+        DCFlushRangeNoSync(surfaceRenderer->particleColors, surfaceRenderer->particleVertexCount * sizeof(GXColor));
         PPCSync();
         GXClearVtxDesc();
         GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-        GXSetArray(GX_VA_POS, var_r31->unk_84, sizeof(Vec));
+        GXSetArray(GX_VA_POS, surfaceRenderer->particlePositions, sizeof(Vec));
         GXSetVtxDesc(GX_VA_NRM, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_NRM, GX_NRM_XYZ, GX_F32, 0);
-        GXSetArray(GX_VA_NRM, var_r31->unk_88, sizeof(Vec));
+        GXSetArray(GX_VA_NRM, surfaceRenderer->particleNormals, sizeof(Vec));
         GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-        GXSetArray(GX_VA_CLR0, var_r31->unk_90, 4);
-        GXCallDisplayList(var_r31->unk_A4, var_r31->unk_A0);
-        for (var_r30 = 1; var_r30 < 29; var_r30++) {
-            var_r29 = var_r30 * 35;
-            GXSetArray(GX_VA_POS, &var_r31->unk_84[var_r29], sizeof(Vec));
-            GXSetArray(GX_VA_NRM, &var_r31->unk_88[var_r29], sizeof(Vec));
-            GXSetArray(GX_VA_CLR0, &var_r31->unk_90[var_r29], sizeof(GXColor));
-            GXCallDisplayList(var_r31->unk_A4, var_r31->unk_A0);
+        GXSetArray(GX_VA_CLR0, surfaceRenderer->particleColors, 4);
+        GXCallDisplayList(surfaceRenderer->displayListData, surfaceRenderer->displayListSize);
+        for (rowIndex = 1; rowIndex < 29; rowIndex++) {
+            vertexStartIndex = rowIndex * 35;
+            GXSetArray(GX_VA_POS, &surfaceRenderer->particlePositions[vertexStartIndex], sizeof(Vec));
+            GXSetArray(GX_VA_NRM, &surfaceRenderer->particleNormals[vertexStartIndex], sizeof(Vec));
+            GXSetArray(GX_VA_CLR0, &surfaceRenderer->particleColors[vertexStartIndex], sizeof(GXColor));
+            GXCallDisplayList(surfaceRenderer->displayListData, surfaceRenderer->displayListSize);
         }
     }
 }
 
-void fn_1_4964(HU3DMODEL *arg0)
+void UpdateSurfaceParticles(HU3DMODEL *source)
 {
-    UnkM406Struct5 spD0;
-    Vec spC4;
-    Vec spB8;
-    Vec spAC;
-    Vec spA0;
-    Vec2f sp50;
-    Vec2f sp48;
-    GXColor sp3C;
-    float sp38;
+    MapParticleEffect unusedParticleRecord;
+    Vec spawnPosition;
+    Vec pathStart;
+    Vec pathEnd;
+    Vec spawnVelocity;
+    Vec2f primaryTextureScale;
+    Vec2f secondaryTextureScale;
+    GXColor particleColor;
+    Float pathSampleFraction;
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    Float effectAngle;
+    Float effectSpeed;
+    Float effectScale;
 
-    UnkM406Struct4 *var_r31;
-    UnkM406Unk120Struct *var_r30;
-    UnkM406Struct3 *var_r29;
-    UnkM406Struct *var_r28;
-    s32 var_r27;
-    s32 var_r26;
-    Vec *var_r25;
-    s32 var_r24;
-    s32 var_r23;
-    s32 var_r22;
-    Vec *var_r21;
-    Vec2f *var_r20;
-    GXColor *var_r19;
+    SurfaceParticleModel *particleModel;
+    MapSurfaceRenderer *surfaceRenderer;
+    PathParticleSample *pathSample;
+    SurfaceParticleData *surfaceVertex;
+    s32 elementIndex;
+    s32 randomValue;
+    Vec *positionVertex;
+    s32 pathSegmentIndex;
+    s32 textureX;
+    s32 textureY;
+    Vec *normalVertex;
+    Vec2f *textureVertex;
+    GXColor *colorVertex;
 
-    var_r30 = arg0->hookData;
+    surfaceRenderer = source->hookData;
 
-    if (var_r30->unk_28) {
+    if (surfaceRenderer->displayListMode) {
         if (!omPauseChk()) {
-            fn_1_67CC(arg0);
+            UpdateSurfaceParticleModels(source);
         }
         return;
     }
     if (!omPauseChk()) {
-        var_r30->unk_B4 += 0.005f;
-        var_r30->unk_B8 += (0.007499999832361937 + (0.001 * var_r30->unk_1C));
-        if (fabs(var_r30->unk_B4) > 1.0) { // 1.0 or 1.0f?
-            var_r30->unk_B4 = fmod(var_r30->unk_B4, 1.0);
+        surfaceRenderer->primaryTextureScrollX += 0.005f;
+        surfaceRenderer->primaryTextureScrollY += (0.007499999832361937 + (0.001 * surfaceRenderer->pathDistanceOverflow));
+        if (fabs(surfaceRenderer->primaryTextureScrollX) > 1.0) { // 1.0 or 1.0f?
+            surfaceRenderer->primaryTextureScrollX = fmod(surfaceRenderer->primaryTextureScrollX, 1.0);
         }
-        if (var_r30->unk_B4 < 0.0f) {
-            var_r30->unk_B4 += 1.0f;
+        if (surfaceRenderer->primaryTextureScrollX < 0.0f) {
+            surfaceRenderer->primaryTextureScrollX += 1.0f;
         }
-        if (fabs(var_r30->unk_B8) > 1.0) {
-            var_r30->unk_B8 = fmod(var_r30->unk_B8, 1.0);
+        if (fabs(surfaceRenderer->primaryTextureScrollY) > 1.0) {
+            surfaceRenderer->primaryTextureScrollY = fmod(surfaceRenderer->primaryTextureScrollY, 1.0);
         }
-        if (var_r30->unk_B8 < 0.0f) {
-            var_r30->unk_B8 += 1.0f;
+        if (surfaceRenderer->primaryTextureScrollY < 0.0f) {
+            surfaceRenderer->primaryTextureScrollY += 1.0f;
         }
-        var_r30->unk_C8 += -0.005f;
-        var_r30->unk_CC += (-0.007499999832361937 + (0.001 * var_r30->unk_1C));
-        if (fabs(var_r30->unk_C8) > 1.0) {
-            var_r30->unk_C8 = fmod(var_r30->unk_C8, 1.0);
+        surfaceRenderer->secondaryTextureScrollX += -0.005f;
+        surfaceRenderer->secondaryTextureScrollY += (-0.007499999832361937 + (0.001 * surfaceRenderer->pathDistanceOverflow));
+        if (fabs(surfaceRenderer->secondaryTextureScrollX) > 1.0) {
+            surfaceRenderer->secondaryTextureScrollX = fmod(surfaceRenderer->secondaryTextureScrollX, 1.0);
         }
-        if (var_r30->unk_C8 < 0.0f) {
-            var_r30->unk_C8 += 1.0f;
+        if (surfaceRenderer->secondaryTextureScrollX < 0.0f) {
+            surfaceRenderer->secondaryTextureScrollX += 1.0f;
         }
-        if (fabs(var_r30->unk_CC) > 1.0) {
-            var_r30->unk_CC = fmod(var_r30->unk_CC, 1.0);
+        if (fabs(surfaceRenderer->secondaryTextureScrollY) > 1.0) {
+            surfaceRenderer->secondaryTextureScrollY = fmod(surfaceRenderer->secondaryTextureScrollY, 1.0);
         }
-        if (var_r30->unk_CC < 0.0f) {
-            var_r30->unk_CC += 1.0f;
+        if (surfaceRenderer->secondaryTextureScrollY < 0.0f) {
+            surfaceRenderer->secondaryTextureScrollY += 1.0f;
         }
     }
-    var_r25 = var_r30->unk_84;
-    var_r21 = var_r30->unk_88;
-    var_r20 = var_r30->unk_8C;
-    var_r19 = var_r30->unk_90;
-    var_r28 = var_r30->unk_94;
-    sp50.x = var_r30->unk_AC - 1;
-    sp50.y = var_r30->unk_B0 - 1;
-    sp48.x = var_r30->unk_C0 - 1;
-    sp48.y = var_r30->unk_C4 - 1;
-    for (var_r27 = 0; var_r27 < var_r30->unk_80; var_r27++) {
-        *var_r25 = var_r28->unk_10;
-        if (var_r28->unk_00 || var_r28->unk_01) {
-            var_r23 = (s32)(sp50.x * (var_r28->unk_28 + var_r30->unk_B4)) & 0x7F;
-            var_r22 = (s32)(sp50.y * (var_r28->unk_2C + var_r30->unk_B8)) & 0x7F;
-            var_f31 = var_r30->unk_A8[(var_r22 * var_r30->unk_AC) + var_r23];
-            var_r23 = (s32)(sp48.x * (var_r28->unk_28 + var_r30->unk_C8)) & 0x7F;
-            var_r22 = (s32)(sp48.y * (var_r28->unk_2C + var_r30->unk_CC)) & 0x7F;
-            var_f31 += var_r30->unk_BC[(var_r22 * var_r30->unk_C0) + var_r23];
-            if (var_r28->unk_00) {
-                var_r25->y = var_r28->unk_10.y + var_r28->unk_0C + (100.0f * (0.003921569f * (var_r28->unk_04 * var_f31)));
+    positionVertex = surfaceRenderer->particlePositions;
+    normalVertex = surfaceRenderer->particleNormals;
+    textureVertex = surfaceRenderer->particleTextureCoordinates;
+    colorVertex = surfaceRenderer->particleColors;
+    surfaceVertex = surfaceRenderer->particleSurfaceData;
+    primaryTextureScale.x = surfaceRenderer->primaryColorRed - 1;
+    primaryTextureScale.y = surfaceRenderer->primaryColorGreen - 1;
+    secondaryTextureScale.x = surfaceRenderer->secondaryColorRed - 1;
+    secondaryTextureScale.y = surfaceRenderer->secondaryColorGreen - 1;
+    for (elementIndex = 0; elementIndex < surfaceRenderer->particleVertexCount; elementIndex++) {
+        *positionVertex = surfaceVertex->basePosition;
+        if (surfaceVertex->isActive || surfaceVertex->isFirstRow) {
+            textureX = (s32)(primaryTextureScale.x * (surfaceVertex->textureCoordinateU + surfaceRenderer->primaryTextureScrollX)) & 0x7F;
+            textureY = (s32)(primaryTextureScale.y * (surfaceVertex->textureCoordinateV + surfaceRenderer->primaryTextureScrollY)) & 0x7F;
+            effectAngle = surfaceRenderer->particleTextureData[(textureY * surfaceRenderer->primaryColorRed) + textureX];
+            textureX = (s32)(secondaryTextureScale.x * (surfaceVertex->textureCoordinateU + surfaceRenderer->secondaryTextureScrollX)) & 0x7F;
+            textureY = (s32)(secondaryTextureScale.y * (surfaceVertex->textureCoordinateV + surfaceRenderer->secondaryTextureScrollY)) & 0x7F;
+            effectAngle += surfaceRenderer->secondaryTextureData[(textureY * surfaceRenderer->secondaryColorRed) + textureX];
+            if (surfaceVertex->isActive) {
+                positionVertex->y = surfaceVertex->basePosition.y + surfaceVertex->verticalOffset + (100.0f * (0.003921569f * (surfaceVertex->edgeFade * effectAngle)));
             }
-            if (var_r28->unk_01) {
-                var_r25->z = var_r28->unk_10.z - (50.0f * (0.003921569f * (var_r28->unk_08 * var_f31)));
+            if (surfaceVertex->isFirstRow) {
+                positionVertex->z = surfaceVertex->basePosition.z - (50.0f * (0.003921569f * (surfaceVertex->edgeFadeScale * effectAngle)));
             }
-            (void)var_f31;
-            (void)var_f31;
-            (void)var_f31;
-            (void)var_f31;
+            (void)effectAngle;
+            (void)effectAngle;
+            (void)effectAngle;
+            (void)effectAngle;
         }
-        var_r25++;
-        var_r21++;
-        var_r20++;
-        var_r19++;
-        var_r28++;
+        positionVertex++;
+        normalVertex++;
+        textureVertex++;
+        colorVertex++;
+        surfaceVertex++;
     }
     if (omPauseChk()) {
         return;
     }
-    for (var_r27 = 0; var_r27 < 5; var_r27++) {
-        var_r26 = (u32)frand() % 34;
-        fn_1_D488(0.007874016f * (frand() & 0x7F), &var_r30->unk_84[var_r26], &var_r30->unk_84[var_r26 + 1], &spC4);
-        spC4.x += 10.0f * var_r30->unk_94->unk_1C.x;
-        spC4.z += 10.0f * var_r30->unk_94->unk_1C.z;
-        spA0.y = 5.0f + (5.0f * (0.007874016f * (frand() & 0x7F)));
-        spA0.x = spA0.z = 0.0f;
-        var_r26 = (frand() & 0x1F) + 0xE0;
-        sp3C.r = 0.96f * var_r26;
-        sp3C.g = 0.98f * var_r26;
-        sp3C.b = (float)var_r26;
-        sp3C.a = 0xC8;
-        fn_1_71C4(spC4, spA0, 100.0f + (50.0f * (0.007874016f * (frand() & 0x7F))), -0.1f, sp3C);
+    for (elementIndex = 0; elementIndex < 5; elementIndex++) {
+        randomValue = (u32)frand() % 34;
+        InterpolateVector(0.007874016f * (frand() & 0x7F), &surfaceRenderer->particlePositions[randomValue], &surfaceRenderer->particlePositions[randomValue + 1], &spawnPosition);
+        spawnPosition.x += 10.0f * surfaceRenderer->particleSurfaceData->positionVelocity.x;
+        spawnPosition.z += 10.0f * surfaceRenderer->particleSurfaceData->positionVelocity.z;
+        spawnVelocity.y = 5.0f + (5.0f * (0.007874016f * (frand() & 0x7F)));
+        spawnVelocity.x = spawnVelocity.z = 0.0f;
+        randomValue = (frand() & 0x1F) + 0xE0;
+        particleColor.r = 0.96f * randomValue;
+        particleColor.g = 0.98f * randomValue;
+        particleColor.b = (Float)randomValue;
+        particleColor.a = 0xC8;
+        CreateParticleEffect(spawnPosition, spawnVelocity, 100.0f + (50.0f * (0.007874016f * (frand() & 0x7F))), -0.1f, particleColor);
     }
-    var_r29 = var_r30->unk_2C;
+    pathSample = surfaceRenderer->particlePathSamples;
 #if defined(NON_MATCHING)
-    memset(&lbl_1_bss_48, 0, sizeof(UnkM406Struct5));
+    memset(&sharedParticleEffect, 0, sizeof(MapParticleEffect));
 #else
-    memset(lbl_1_bss_48, 0, sizeof(UnkM406Struct5));
+    memset(sharedParticleEffect, 0, sizeof(MapParticleEffect));
 #endif
-    for (var_r27 = 0; var_r27 < 105; var_r27++, var_r29++) {
-        fn_1_D488(var_r29->unk_04, &var_r30->unk_84[var_r29->unk_00], &var_r30->unk_84[var_r29->unk_00 + 1], &var_r29->unk_18);
-        if (var_r29->unk_08 >= 0) {
-            var_r29->unk_08--;
+    for (elementIndex = 0; elementIndex < 105; elementIndex++, pathSample++) {
+        InterpolateVector(pathSample->pathSampleFraction, &surfaceRenderer->particlePositions[pathSample->pathSampleIndex], &surfaceRenderer->particlePositions[pathSample->pathSampleIndex + 1], &pathSample->particlePosition);
+        if (pathSample->effectSpawnCountdown >= 0) {
+            pathSample->effectSpawnCountdown--;
         }
         else {
-            var_r29->unk_24 = fn_1_7B2C(var_r29->unk_0C);
-            if (var_r29->unk_24 == NULL) {
-                var_r29->unk_24 = &lbl_1_bss_48;
+            pathSample->particleObject = AcquireParticleSlot(pathSample->effectType);
+            if (pathSample->particleObject == NULL) {
+                pathSample->particleObject = &sharedParticleEffect;
             }
-            if (var_r29->unk_24->unk_28 <= 0.0f) {
-                spC4 = var_r29->unk_18;
-                spA0.x = spA0.y = spA0.z = 0.0f;
-                var_r26 = (frand() & 0x1F) + 0xE0;
-                sp3C.r = 0.96f * var_r26;
-                sp3C.g = 0.98f * var_r26;
-                sp3C.b = 1.0f * var_r26;
-                sp3C.a = 0xFF;
+            if (pathSample->particleObject->effectSize <= 0.0f) {
+                spawnPosition = pathSample->particlePosition;
+                spawnVelocity.x = spawnVelocity.y = spawnVelocity.z = 0.0f;
+                randomValue = (frand() & 0x1F) + 0xE0;
+                particleColor.r = 0.96f * randomValue;
+                particleColor.g = 0.98f * randomValue;
+                particleColor.b = 1.0f * randomValue;
+                particleColor.a = 0xFF;
                 if (frand() & 1) {
-                    var_f31 = 0.05f;
+                    effectAngle = 0.05f;
                 }
                 else {
-                    var_f31 = -0.05f;
+                    effectAngle = -0.05f;
                 }
-                var_r29->unk_10 = 0.01f * (100.0f * (0.007874016f * (frand() & 0x7F)));
-                var_r29->unk_0C = fn_1_79F8(spC4, spA0, 75.0f + (var_r29->unk_14 * (75.0f * (0.007874016f * (frand() & 0x7F)))), var_f31, sp3C);
+                pathSample->verticalVelocity = 0.01f * (100.0f * (0.007874016f * (frand() & 0x7F)));
+                pathSample->effectType = CreateParticleEffectVariant(spawnPosition, spawnVelocity, 75.0f + (pathSample->particleScale * (75.0f * (0.007874016f * (frand() & 0x7F)))), effectAngle, particleColor);
             }
             else {
-                var_r29->unk_18.y += var_r29->unk_10;
-                var_r29->unk_24->unk_30 = var_r29->unk_18;
+                pathSample->particlePosition.y += pathSample->verticalVelocity;
+                pathSample->particleObject->position = pathSample->particlePosition;
             }
         }
     }
-    sp3C.r = sp3C.g = sp3C.b = sp3C.a = 0xFF;
-    fn_1_D488(0.007874016f * (frand() & 0x7F), &var_r30->unk_84[0], &var_r30->unk_84[34], &spC4);
+    particleColor.r = particleColor.g = particleColor.b = particleColor.a = 0xFF;
+    InterpolateVector(0.007874016f * (frand() & 0x7F), &surfaceRenderer->particlePositions[0], &surfaceRenderer->particlePositions[34], &spawnPosition);
     if ((frand() & 3) == 0) {
-        var_f31 = 45.0f + (30.0f * (0.007874016f * (frand() & 0x7F)));
-        var_f29 = 0.75f + (0.75f * (0.007874016f * (frand() & 0x7F)));
+        effectAngle = 45.0f + (30.0f * (0.007874016f * (frand() & 0x7F)));
+        effectScale = 0.75f + (0.75f * (0.007874016f * (frand() & 0x7F)));
     }
     else {
-        var_f31 = -(15.0f * (0.007874016f * (frand() & 0x7F)));
-        var_f29 = 1.75f + (0.75f * (0.007874016f * (frand() & 0x7F)));
+        effectAngle = -(15.0f * (0.007874016f * (frand() & 0x7F)));
+        effectScale = 1.75f + (0.75f * (0.007874016f * (frand() & 0x7F)));
     }
-    if (var_r30->unk_10 != 0.0f) {
-        var_f30 = 15.000001f / var_r30->unk_10;
+    if (surfaceRenderer->pathDistanceSpeed != 0.0f) {
+        effectSpeed = 15.000001f / surfaceRenderer->pathDistanceSpeed;
     }
     else {
-        var_f30 = 1.0f;
+        effectSpeed = 1.0f;
     }
-    spA0.y = var_f30 * ((7.5000005f * var_f29) * sind(var_f31));
-    var_f30 = (0.75f * var_r30->unk_10) + (7.5000005f * var_f29) * cosd(var_f31);
-    var_f30 = var_f30;
-    spA0.x = var_r30->unk_94->unk_1C.x * var_f30;
-    spA0.z = var_r30->unk_94->unk_1C.z * var_f30;
+    spawnVelocity.y = effectSpeed * ((7.5000005f * effectScale) * sind(effectAngle));
+    effectSpeed = (0.75f * surfaceRenderer->pathDistanceSpeed) + (7.5000005f * effectScale) * cosd(effectAngle);
+    effectSpeed = effectSpeed;
+    spawnVelocity.x = surfaceRenderer->particleSurfaceData->positionVelocity.x * effectSpeed;
+    spawnVelocity.z = surfaceRenderer->particleSurfaceData->positionVelocity.z * effectSpeed;
 
-    fn_1_7DB0(spC4, spA0, 7.5f, sp3C);
-    var_r31 = var_r30->unk_30;
-    for (var_r27 = 0; var_r27 < 12; var_r27++, var_r31++) {
-        if (var_r31->unk_08 == 0) {
-            if (var_r31->unk_0C <= 0) {
-                var_f30 = 0.5f + (0.75f * (0.007874016f * (frand() & 0x7F)));
-                Hu3DModelScaleSet(var_r31->unk_00, var_f30, var_f30, var_f30);
-                var_r31->unk_04 = frand() & 1;
-                switch (var_r31->unk_04) {
+    CreateParticleEffectSmall(spawnPosition, spawnVelocity, 7.5f, particleColor);
+    particleModel = surfaceRenderer->particleModels;
+    for (elementIndex = 0; elementIndex < 12; elementIndex++, particleModel++) {
+        if (particleModel->effectFrame == 0) {
+            if (particleModel->frameDelay <= 0) {
+                effectSpeed = 0.5f + (0.75f * (0.007874016f * (frand() & 0x7F)));
+                Hu3DModelScaleSet(particleModel->modelId, effectSpeed, effectSpeed, effectSpeed);
+                particleModel->effectState = frand() & 1;
+                switch (particleModel->effectState) {
                     case 0:
-                        var_r31->unk_10 = 0.1f + (0.8f * (0.007874016f * (frand() & 0x7F)));
-                        var_r31->unk_14 = var_r31->unk_18 = 0.0f;
-                        var_r31->unk_20 = var_r31->unk_24 = 0.0f;
-                        var_r31->unk_08 = 0;
-                        var_r31->unk_0C = 0;
-                        var_r31->unk_1C = 100.0f * (0.5f + (0.75f * (0.007874016f * (frand() & 0x7F))));
-                        var_r31->unk_28 = 0.0f;
-                        var_r31->unk_2C = 15.0f + (15.0f * (0.007874016f * (frand() & 0x7F)));
+                        particleModel->scaleFactor = 0.1f + (0.8f * (0.007874016f * (frand() & 0x7F)));
+                        particleModel->rotationAngle = particleModel->rotationVelocity = 0.0f;
+                        particleModel->rotationX = particleModel->rotationY = 0.0f;
+                        particleModel->effectFrame = 0;
+                        particleModel->frameDelay = 0;
+                        particleModel->opacity = 100.0f * (0.5f + (0.75f * (0.007874016f * (frand() & 0x7F))));
+                        particleModel->effectWidth = 0.0f;
+                        particleModel->effectHeight = 15.0f + (15.0f * (0.007874016f * (frand() & 0x7F)));
                         break;
                     case 1:
-                        var_r31->unk_10 = 0.1f + (0.8f * (0.007874016f * (frand() & 0x7F)));
-                        var_r31->unk_14 = var_r31->unk_18 = 0.0f;
-                        var_r31->unk_20 = var_r31->unk_24 = 0.0f;
-                        var_r31->unk_08 = 0;
-                        var_r31->unk_0C = 0;
-                        var_r31->unk_1C = 100.0f * (0.5f + (0.007874016f * (frand() & 0x7F)));
-                        var_r31->unk_28 = 100.0f * (0.07f + (0.03f * (0.007874016f * (frand() & 0x7F))));
-                        var_r31->unk_2C = 15.0f + (15.0f * (0.007874016f * (frand() & 0x7F)));
+                        particleModel->scaleFactor = 0.1f + (0.8f * (0.007874016f * (frand() & 0x7F)));
+                        particleModel->rotationAngle = particleModel->rotationVelocity = 0.0f;
+                        particleModel->rotationX = particleModel->rotationY = 0.0f;
+                        particleModel->effectFrame = 0;
+                        particleModel->frameDelay = 0;
+                        particleModel->opacity = 100.0f * (0.5f + (0.007874016f * (frand() & 0x7F)));
+                        particleModel->effectWidth = 100.0f * (0.07f + (0.03f * (0.007874016f * (frand() & 0x7F))));
+                        particleModel->effectHeight = 15.0f + (15.0f * (0.007874016f * (frand() & 0x7F)));
                         break;
                     default:
                         break;
                 }
             }
             else {
-                Hu3DModelAttrSet(var_r31->unk_00, HU3D_ATTR_DISPOFF);
-                var_r31->unk_08 = -1;
-                var_r31->unk_0C--;
+                Hu3DModelAttrSet(particleModel->modelId, HU3D_ATTR_DISPOFF);
+                particleModel->effectFrame = -1;
+                particleModel->frameDelay--;
             }
         }
-        else if (var_r31->unk_08 >= 0) {
-            var_r24 = fn_1_66F4(var_r30->unk_0C + var_r31->unk_18, &sp38);
-            if (var_r24 >= 0 && var_r24 < (lbl_1_bss_B4 - 1)) {
-                fn_1_D488(sp38, &lbl_1_data_F0[var_r24], &lbl_1_data_F0[var_r24 + 1], &spB8);
-                fn_1_D488(sp38, &lbl_1_data_438[var_r24], &lbl_1_data_438[var_r24 + 1], &spAC);
-                fn_1_D488(var_r31->unk_10, &spB8, &spAC, &var_r31->unk_3C);
-                Hu3DModelAttrReset(var_r31->unk_00, HU3D_ATTR_DISPOFF);
+        else if (particleModel->effectFrame >= 0) {
+            pathSegmentIndex = GetPathSegmentAtDistance(surfaceRenderer->currentPathDistance + particleModel->rotationVelocity, &pathSampleFraction);
+            if (pathSegmentIndex >= 0 && pathSegmentIndex < (pathSegmentCount - 1)) {
+                InterpolateVector(pathSampleFraction, &leftSurfacePath[pathSegmentIndex], &leftSurfacePath[pathSegmentIndex + 1], &pathStart);
+                InterpolateVector(pathSampleFraction, &rightSurfacePath[pathSegmentIndex], &rightSurfacePath[pathSegmentIndex + 1], &pathEnd);
+                InterpolateVector(particleModel->scaleFactor, &pathStart, &pathEnd, &particleModel->modelVelocity);
+                Hu3DModelAttrReset(particleModel->modelId, HU3D_ATTR_DISPOFF);
             }
             else {
-                Hu3DModelAttrSet(var_r31->unk_00, HU3D_ATTR_DISPOFF);
-                var_r31->unk_08 = -1;
+                Hu3DModelAttrSet(particleModel->modelId, HU3D_ATTR_DISPOFF);
+                particleModel->effectFrame = -1;
                 continue;
             }
 
-            switch (var_r31->unk_04) {
+            switch (particleModel->effectState) {
                 case 0:
-                    var_r31->unk_18 = var_r31->unk_1C * sind(5.0f * var_r31->unk_08);
-                    var_r31->unk_20 = var_r31->unk_20 - var_r31->unk_2C;
-                    Hu3DModelPosSet(var_r31->unk_00, var_r31->unk_3C.x, var_r31->unk_3C.y, var_r31->unk_3C.z);
-                    Hu3DModelRotSet(var_r31->unk_00, var_r31->unk_20, var_r31->unk_24, 0.0f);
+                    particleModel->rotationVelocity = particleModel->opacity * sind(5.0f * particleModel->effectFrame);
+                    particleModel->rotationX = particleModel->rotationX - particleModel->effectHeight;
+                    Hu3DModelPosSet(particleModel->modelId, particleModel->modelVelocity.x, particleModel->modelVelocity.y, particleModel->modelVelocity.z);
+                    Hu3DModelRotSet(particleModel->modelId, particleModel->rotationX, particleModel->rotationY, 0.0f);
                     break;
                 case 1:
-                    var_r31->unk_18 = var_r31->unk_1C * sind((float)var_r31->unk_08);
-                    var_r31->unk_20 = var_r31->unk_20 - var_r31->unk_2C;
-                    var_r31->unk_14 = var_r31->unk_14 + var_r31->unk_28;
-                    if (var_r31->unk_14 < 0.0f) {
-                        var_f30 = 0.65 + (0.15 * (0.007874016f * (frand() & 0x7F)));
-                        var_f30 = var_f30;
-                        var_r31->unk_14 = 0.0f;
-                        var_r31->unk_28 = var_r31->unk_28 * -var_f30;
+                    particleModel->rotationVelocity = particleModel->opacity * sind((Float)particleModel->effectFrame);
+                    particleModel->rotationX = particleModel->rotationX - particleModel->effectHeight;
+                    particleModel->rotationAngle = particleModel->rotationAngle + particleModel->effectWidth;
+                    if (particleModel->rotationAngle < 0.0f) {
+                        effectSpeed = 0.65 + (0.15 * (0.007874016f * (frand() & 0x7F)));
+                        effectSpeed = effectSpeed;
+                        particleModel->rotationAngle = 0.0f;
+                        particleModel->effectWidth = particleModel->effectWidth * -effectSpeed;
                     }
-                    var_r31->unk_28 = var_r31->unk_28 - 0.32666668f;
-                    var_r31->unk_3C.y += var_r31->unk_14;
-                    Hu3DModelPosSet(var_r31->unk_00, var_r31->unk_3C.x, var_r31->unk_3C.y, var_r31->unk_3C.z);
-                    Hu3DModelRotSet(var_r31->unk_00, var_r31->unk_20, var_r31->unk_24, 0.0f);
+                    particleModel->effectWidth = particleModel->effectWidth - 0.32666668f;
+                    particleModel->modelVelocity.y += particleModel->rotationAngle;
+                    Hu3DModelPosSet(particleModel->modelId, particleModel->modelVelocity.x, particleModel->modelVelocity.y, particleModel->modelVelocity.z);
+                    Hu3DModelRotSet(particleModel->modelId, particleModel->rotationX, particleModel->rotationY, 0.0f);
                     break;
                 default:
                     break;
             }
         }
-        if (var_r31->unk_18 < (-0.1f * var_r31->unk_1C)) {
-            var_r31->unk_08 = -1;
-            var_r31->unk_0C = frand() & 0x1F;
+        if (particleModel->rotationVelocity < (-0.1f * particleModel->opacity)) {
+            particleModel->effectFrame = -1;
+            particleModel->frameDelay = frand() & 0x1F;
         }
-        var_r31->unk_08++;
+        particleModel->effectFrame++;
     }
-    var_r30->unk_00++;
+    surfaceRenderer->rendererUpdateCount++;
 }
 
-void fn_1_6174(HU3DMODEL *arg0)
+void UpdateSurfaceGeometry(HU3DMODEL *source)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+    Vec faceNormal;
+    Vec edgeVectorA;
+    Vec edgeVectorB;
 
-    UnkM406Unk120Struct *var_r31;
-    s16(*var_r30)[4];
-    s32 var_r29;
-    Vec *var_r28;
+    MapSurfaceRenderer *surfaceRenderer;
+    s16(*triangleIndices)[4];
+    s32 vertexIndex;
+    Vec *normalVertex;
 
-    var_r31 = arg0->hookData;
-    memset(var_r31->unk_88, 0, var_r31->unk_80 * sizeof(Vec));
-    for (var_r29 = 0, var_r30 = var_r31->unk_9C; var_r29 < var_r31->unk_98; var_r29++, var_r30++) {
-        VECSubtract(&var_r31->unk_84[(*var_r30)[1]], &var_r31->unk_84[(*var_r30)[0]], &sp14);
-        VECSubtract(&var_r31->unk_84[(*var_r30)[2]], &var_r31->unk_84[(*var_r30)[1]], &sp8);
-        VECCrossProduct(&sp14, &sp8, &sp20);
+    surfaceRenderer = source->hookData;
+    memset(surfaceRenderer->particleNormals, 0, surfaceRenderer->particleVertexCount * sizeof(Vec));
+    for (vertexIndex = 0, triangleIndices = surfaceRenderer->particleTriangleIndices; vertexIndex < surfaceRenderer->displayListIndexCount; vertexIndex++, triangleIndices++) {
+        VECSubtract(&surfaceRenderer->particlePositions[(*triangleIndices)[1]], &surfaceRenderer->particlePositions[(*triangleIndices)[0]], &edgeVectorA);
+        VECSubtract(&surfaceRenderer->particlePositions[(*triangleIndices)[2]], &surfaceRenderer->particlePositions[(*triangleIndices)[1]], &edgeVectorB);
+        VECCrossProduct(&edgeVectorA, &edgeVectorB, &faceNormal);
 
-        VECAdd(&var_r31->unk_88[(*var_r30)[0]], &sp20, &var_r31->unk_88[(*var_r30)[0]]);
-        VECAdd(&var_r31->unk_88[(*var_r30)[1]], &sp20, &var_r31->unk_88[(*var_r30)[1]]);
-        VECAdd(&var_r31->unk_88[(*var_r30)[2]], &sp20, &var_r31->unk_88[(*var_r30)[2]]);
-        VECAdd(&var_r31->unk_88[(*var_r30)[3]], &sp20, &var_r31->unk_88[(*var_r30)[3]]);
+        VECAdd(&surfaceRenderer->particleNormals[(*triangleIndices)[0]], &faceNormal, &surfaceRenderer->particleNormals[(*triangleIndices)[0]]);
+        VECAdd(&surfaceRenderer->particleNormals[(*triangleIndices)[1]], &faceNormal, &surfaceRenderer->particleNormals[(*triangleIndices)[1]]);
+        VECAdd(&surfaceRenderer->particleNormals[(*triangleIndices)[2]], &faceNormal, &surfaceRenderer->particleNormals[(*triangleIndices)[2]]);
+        VECAdd(&surfaceRenderer->particleNormals[(*triangleIndices)[3]], &faceNormal, &surfaceRenderer->particleNormals[(*triangleIndices)[3]]);
     }
-    for (var_r29 = 0, var_r28 = var_r31->unk_88; var_r29 < var_r31->unk_80; var_r29++) {
-        VECNormalize(var_r28, var_r28);
+    for (vertexIndex = 0, normalVertex = surfaceRenderer->particleNormals; vertexIndex < surfaceRenderer->particleVertexCount; vertexIndex++) {
+        VECNormalize(normalVertex, normalVertex);
     }
 }
 
-void fn_1_6304(HU3DMODEL *arg0, Mtx arg1)
+void DrawMapScene(HU3DMODEL *source, Mtx destination)
 {
-    UnkM406Unk120Struct *var_r28;
-    HU3DMODEL *var_r27;
+    MapSurfaceRenderer *surfaceRenderer;
+    HU3DMODEL *cameraModel;
 
-    var_r28 = arg0->hookData;
-    var_r27 = &Hu3DData[var_r28->unk_04];
-    if (!omPauseChk() && lbl_1_bss_30[0]) {
-        fn_1_4084();
-        fn_1_6FFC();
-        fn_1_77F0();
-        fn_1_7C4C();
-        fn_1_7F80();
-        fn_1_91E0();
+    surfaceRenderer = source->hookData;
+    cameraModel = &Hu3DData[surfaceRenderer->cameraHookModelId];
+    if (!omPauseChk() && sceneLightIds[0]) {
+        UpdateMapAmbience();
+        UpdateSparkleEffects();
+        UpdateParticleEffects();
+        UpdateParticlePool();
+        UpdateParticleModelPool();
+        UpdateCameraTransitionEffects();
     }
-    fn_1_4964(var_r27);
-    fn_1_6174(var_r27);
-    var_r28->unk_08 = 1;
+    UpdateSurfaceParticles(cameraModel);
+    UpdateSurfaceGeometry(cameraModel);
+    surfaceRenderer->useDefaultDrawHook = 1;
 }
 
 #ifdef NON_MATCHING
-void fn_1_64F8(UnkM406Struct2 *arg0, float var_f31)
+void CalculatePathSegmentGeometry(MapPathSegment *source, Float cameraPitchScale)
 {
 #else
-void fn_1_64F8(UnkM406Struct2 *arg0)
+void CalculatePathSegmentGeometry(MapPathSegment *source)
 {
-    float var_f31; // ! - uninitialized
+    Float pathDistance; // ! - uninitialized
 #endif
 
-    UnkM406Struct2 *var_r31;
-    s32 var_r30;
-    UnkM406Struct2 *var_r28;
+    MapPathSegment *pathSegment;
+    s32 segmentIndex;
+    MapPathSegment *nextSegment;
 
-    for (var_r30 = 0, var_r31 = arg0; var_r30 < lbl_1_bss_B4; var_r30++, var_r31++) {
-        var_r31->unk_14.x = 0.5f * (lbl_1_data_F0[var_r30].x + lbl_1_data_438[var_r30].x);
-        var_r31->unk_14.y = 0.5f * (lbl_1_data_F0[var_r30].y + lbl_1_data_438[var_r30].y);
-        var_r31->unk_14.z = 0.5f * (lbl_1_data_F0[var_r30].z + lbl_1_data_438[var_r30].z);
+    for (segmentIndex = 0, pathSegment = source; segmentIndex < pathSegmentCount; segmentIndex++, pathSegment++) {
+        pathSegment->segmentMidpoint.x = 0.5f * (leftSurfacePath[segmentIndex].x + rightSurfacePath[segmentIndex].x);
+        pathSegment->segmentMidpoint.y = 0.5f * (leftSurfacePath[segmentIndex].y + rightSurfacePath[segmentIndex].y);
+        pathSegment->segmentMidpoint.z = 0.5f * (leftSurfacePath[segmentIndex].z + rightSurfacePath[segmentIndex].z);
     }
-    for (var_r30 = 0, var_r31 = arg0; var_r30 < lbl_1_bss_B4; var_r30++, var_r31++) {
-        if (var_r30 < lbl_1_bss_B4 - 1) {
-            var_r28 = &arg0[var_r30 + 1];
-            VECSubtract(&var_r28->unk_14, &var_r31->unk_14, &var_r31->unk_08);
-            var_r31->unk_00 = VECMag(&var_r31->unk_08);
-            VECNormalize(&var_r31->unk_08, &var_r31->unk_08);
+    for (segmentIndex = 0, pathSegment = source; segmentIndex < pathSegmentCount; segmentIndex++, pathSegment++) {
+        if (segmentIndex < pathSegmentCount - 1) {
+            nextSegment = &source[segmentIndex + 1];
+            VECSubtract(&nextSegment->segmentMidpoint, &pathSegment->segmentMidpoint, &pathSegment->segmentDirection);
+            pathSegment->segmentLength = VECMag(&pathSegment->segmentDirection);
+            VECNormalize(&pathSegment->segmentDirection, &pathSegment->segmentDirection);
         }
         else {
-            var_r31->unk_00 = 100000.0f;
-            var_r31->unk_08.x = 0.0f;
-            var_r31->unk_08.y = 0.0f;
-            var_r31->unk_08.z = -1.0f;
+            pathSegment->segmentLength = 100000.0f;
+            pathSegment->segmentDirection.x = 0.0f;
+            pathSegment->segmentDirection.y = 0.0f;
+            pathSegment->segmentDirection.z = -1.0f;
         }
-        var_r31->unk_04 = var_f31;
-        var_f31 += var_r31->unk_00;
+        pathSegment->segmentStartDistance = pathDistance;
+        pathDistance += pathSegment->segmentLength;
     }
 }
 
-s32 fn_1_66F4(float arg8, float *arg0)
+s32 GetPathSegmentAtDistance(Float scale, Float *source)
 {
-    UnkM406Struct2 *var_r31;
-    s32 var_r30;
+    MapPathSegment *pathSegment;
+    s32 segmentIndex;
 
-    for (var_r30 = 0, var_r31 = lbl_1_bss_B8; var_r30 < lbl_1_bss_B4; var_r30++, var_r31++) {
-        if (arg8 < (var_r31->unk_04 + var_r31->unk_00)) {
-            *arg0 = (arg8 - var_r31->unk_04) / var_r31->unk_00;
-            if (*arg0 < 0.0f) {
-                *arg0 = 0.0f;
+    for (segmentIndex = 0, pathSegment = pathSegments; segmentIndex < pathSegmentCount; segmentIndex++, pathSegment++) {
+        if (scale < (pathSegment->segmentStartDistance + pathSegment->segmentLength)) {
+            *source = (scale - pathSegment->segmentStartDistance) / pathSegment->segmentLength;
+            if (*source < 0.0f) {
+                *source = 0.0f;
             }
             break;
         }
     }
-    if (var_r30 >= lbl_1_bss_B4) {
-        if (arg0) {
-            *arg0 = 0.0f;
+    if (segmentIndex >= pathSegmentCount) {
+        if (source) {
+            *source = 0.0f;
         }
         return -1;
     }
-    return var_r30;
+    return segmentIndex;
 }
 
-void fn_1_67CC(HU3DMODEL *arg0)
+void UpdateSurfaceParticleModels(HU3DMODEL *source)
 {
-    UnkM406Struct4 *var_r31;
-    s32 var_r30;
-    UnkM406Unk120Struct *var_r29;
+    SurfaceParticleModel *particleModel;
+    s32 modelIndex;
+    MapSurfaceRenderer *surfaceRenderer;
 
-    var_r29 = arg0->hookData;
-    var_r31 = var_r29->unk_30;
-    for (var_r30 = 0; var_r30 < 12; var_r30++, var_r31++) {
-        if (var_r31->unk_04 != 3 || var_r31->unk_0C > 0) {
-            Hu3DModelAttrSet(var_r31->unk_00, HU3D_ATTR_DISPOFF);
-            var_r31->unk_0C--;
+    surfaceRenderer = source->hookData;
+    particleModel = surfaceRenderer->particleModels;
+    for (modelIndex = 0; modelIndex < 12; modelIndex++, particleModel++) {
+        if (particleModel->effectState != 3 || particleModel->frameDelay > 0) {
+            Hu3DModelAttrSet(particleModel->modelId, HU3D_ATTR_DISPOFF);
+            particleModel->frameDelay--;
         }
         else {
-            var_r31->unk_20 = var_r31->unk_20 - var_r31->unk_2C;
-            var_r31->unk_3C.x += var_r31->unk_30.x;
-            var_r31->unk_3C.y += var_r31->unk_30.y;
-            var_r31->unk_3C.z += var_r31->unk_30.z;
-            var_r31->unk_30.y -= 0.49f;
-            Hu3DModelPosSet(var_r31->unk_00, var_r31->unk_3C.x, var_r31->unk_3C.y, var_r31->unk_3C.z);
-            Hu3DModelRotSet(var_r31->unk_00, var_r31->unk_20, var_r31->unk_24, 0.0f);
-            Hu3DModelAttrReset(var_r31->unk_00, HU3D_ATTR_DISPOFF);
-            if (++var_r31->unk_08 >= (REFRESH_RATE*10.0f)) {
-                Hu3DModelAttrSet(var_r31->unk_00, HU3D_ATTR_DISPOFF);
-                var_r31->unk_04 = 0;
-                var_r31->unk_08 = 0;
+            particleModel->rotationX = particleModel->rotationX - particleModel->effectHeight;
+            particleModel->modelVelocity.x += particleModel->modelPosition.x;
+            particleModel->modelVelocity.y += particleModel->modelPosition.y;
+            particleModel->modelVelocity.z += particleModel->modelPosition.z;
+            particleModel->modelPosition.y -= 0.49f;
+            Hu3DModelPosSet(particleModel->modelId, particleModel->modelVelocity.x, particleModel->modelVelocity.y, particleModel->modelVelocity.z);
+            Hu3DModelRotSet(particleModel->modelId, particleModel->rotationX, particleModel->rotationY, 0.0f);
+            Hu3DModelAttrReset(particleModel->modelId, HU3D_ATTR_DISPOFF);
+            if (++particleModel->effectFrame >= (REFRESH_RATE*10.0f)) {
+                Hu3DModelAttrSet(particleModel->modelId, HU3D_ATTR_DISPOFF);
+                particleModel->effectState = 0;
+                particleModel->effectFrame = 0;
             }
         }
     }
 }
 
-void fn_1_696C(float arg8)
+void SetMapPathSpeed(Float scale)
 {
-    UnkM406Unk120Struct *var_r31;
-    HU3DMODEL *var_r30;
+    MapSurfaceRenderer *surfaceRenderer;
+    HU3DMODEL *hookModel;
 
-    if (lbl_1_data_7A4 >= 0) {
-        var_r30 = &Hu3DData[lbl_1_data_7A4];
-        var_r31 = var_r30->hookData;
-        var_r31->unk_10 = arg8;
+    if (surfaceHookModelId >= 0) {
+        hookModel = &Hu3DData[surfaceHookModelId];
+        surfaceRenderer = hookModel->hookData;
+        surfaceRenderer->scaleFactor = scale;
     }
 }
 
-void fn_1_69C0(Vec *arg0)
+void GetMapPathOrigin(Vec *source)
 {
-    UnkM406Unk120Struct *var_r31;
-    HU3DMODEL *var_r30;
+    MapSurfaceRenderer *surfaceRenderer;
+    HU3DMODEL *hookModel;
 
-    arg0->x = arg0->y = arg0->z = 0.0f;
-    if (lbl_1_data_7A4 >= 0) {
-        var_r30 = &Hu3DData[lbl_1_data_7A4];
-        var_r31 = var_r30->hookData;
-        *arg0 = var_r31->unk_94[17].unk_10;
+    source->x = source->y = source->z = 0.0f;
+    if (surfaceHookModelId >= 0) {
+        hookModel = &Hu3DData[surfaceHookModelId];
+        surfaceRenderer = hookModel->hookData;
+        *source = surfaceRenderer->particleSurfaceData[17].basePosition;
     }
 }
 
-s32 fn_1_6A44(Vec arg0)
+s32 GetPathLateralOffset(Vec source)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+    Vec startOffset;
+    Vec endOffset;
+    Vec pathMidpoint;
 
-    float var_f31;
+    Float signedDistance;
 
-    UnkM406Unk120Struct *var_r31;
-    HU3DMODEL *var_r29;
+    MapSurfaceRenderer *surfaceRenderer;
+    HU3DMODEL *hookModel;
 
-    if (lbl_1_data_7A4 < 0) {
+    if (surfaceHookModelId < 0) {
         return 0;
     }
-    var_r29 = &Hu3DData[lbl_1_data_7A4];
-    var_r31 = var_r29->hookData;
-    VECAdd(&var_r31->unk_34, &var_r31->unk_40, &sp8);
-    VECScale(&sp8, &sp8, 0.5f);
-    VECSubtract(&var_r31->unk_34, &sp8, &sp20);
-    VECSubtract(&var_r31->unk_40, &sp8, &sp14);
-    var_f31 = fn_1_D5CC(&sp20, &sp14, arg0.x - sp8.x, arg0.z - sp8.z);
-    if (var_f31 <= 0.0f) {
+    hookModel = &Hu3DData[surfaceHookModelId];
+    surfaceRenderer = hookModel->hookData;
+    VECAdd(&surfaceRenderer->startPathPoint, &surfaceRenderer->endPathPoint, &pathMidpoint);
+    VECScale(&pathMidpoint, &pathMidpoint, 0.5f);
+    VECSubtract(&surfaceRenderer->startPathPoint, &pathMidpoint, &startOffset);
+    VECSubtract(&surfaceRenderer->endPathPoint, &pathMidpoint, &endOffset);
+    signedDistance = ProjectVectorOntoAxis(&startOffset, &endOffset, source.x - pathMidpoint.x, source.z - pathMidpoint.z);
+    if (signedDistance <= 0.0f) {
         return 0;
     }
     return 1;
 }
 
-void fn_1_6B5C(void)
+void StopMapPathAudio(void)
 {
-    UnkM406Unk120Struct *var_r31;
-    HU3DMODEL *var_r30;
+    MapSurfaceRenderer *surfaceRenderer;
+    HU3DMODEL *hookModel;
 
-    if (lbl_1_data_7A4 >= 0) {
-        var_r30 = &Hu3DData[lbl_1_data_7A4];
-        var_r31 = var_r30->hookData;
-        var_r31->unk_28 = 1;
+    if (surfaceHookModelId >= 0) {
+        hookModel = &Hu3DData[surfaceHookModelId];
+        surfaceRenderer = hookModel->hookData;
+        surfaceRenderer->effectWidth = 1;
     }
 }
 
-void fn_1_6BB4(Vec *arg0)
+void SpawnPathParticles(Vec *source)
 {
-    Vec sp30;
-    Vec sp24;
+    Vec particlePosition;
+    Vec particleVelocity;
 
-    float var_f31;
+    Float particleScale;
 
-    s32 var_r30;
-    s32 var_r29;
+    s32 particleIndex;
+    s32 particleId;
 
-    for (var_r30 = 0; var_r30 < 32; var_r30++) {
-        sp30.x = arg0->x + (100.0f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
-        sp30.y = arg0->y;
-        sp30.z = arg0->z - 100.0f;
-        sp24.x = 2.0f * (0.5f - (0.007874016f * (frand() & 0x7F)));
-        sp24.z = -2.0f * (1.0f + (1.2f * (0.007874016f * (frand() & 0x7F))));
-        sp24.y = 7.5000005f * (1.0f + (0.7f * (0.007874016f * (frand() & 0x7F))));
-        var_f31 = 5.5f + (5.5f * (0.007874016f * (frand() & 0x7F)));
+    for (particleIndex = 0; particleIndex < 32; particleIndex++) {
+        particlePosition.x = source->x + (100.0f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
+        particlePosition.y = source->y;
+        particlePosition.z = source->z - 100.0f;
+        particleVelocity.x = 2.0f * (0.5f - (0.007874016f * (frand() & 0x7F)));
+        particleVelocity.z = -2.0f * (1.0f + (1.2f * (0.007874016f * (frand() & 0x7F))));
+        particleVelocity.y = 7.5000005f * (1.0f + (0.7f * (0.007874016f * (frand() & 0x7F))));
+        particleScale = 5.5f + (5.5f * (0.007874016f * (frand() & 0x7F)));
 
-        var_r29 = fn_1_8104(sp30, sp24, var_f31, lbl_1_data_897);
-        fn_1_8244(var_r29, (s32)(60.0f * (0.007874016f * (frand() & 0x7F))) + 60, 0.32666668f, 0.99f);
+        particleId = CreateParticleEffectColored(particlePosition, particleVelocity, particleScale, particleOpaqueWhite);
+        ConfigureParticleLifetime(particleId, (s32)(60.0f * (0.007874016f * (frand() & 0x7F))) + 60, 0.32666668f, 0.99f);
     }
 }
 
-void fn_1_6F24(void)
+void CreateSparkleEffect(void)
 {
-    s32 sp8;
+    s32 spriteModelId;
 
-    UnkM406Struct10 *var_r31;
-    UnkM406Unk120Struct2 *var_r30;
-    HU3DMODEL *var_r29;
-    ANIMDATA *var_r28;
+    SparkleEffectGroup *spriteEffect;
+    ParticleEffectHookData *effectHookData;
+    HU3DMODEL *effectModel;
+    ANIMDATA *effectAnimation;
 
-    var_r31 = lbl_1_bss_B0 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM406Struct10), HU_MEMNUM_OVL);
-    memset(var_r31, 0, sizeof(UnkM406Struct10));
-    var_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 63), HU_MEMNUM_OVL));
-    var_r31->unk_08 = var_r28;
-    var_r31->unk_00 = sp8 = fn_1_B474(var_r28, 0x800);
-    Hu3DModelLayerSet(var_r31->unk_00, 2);
-    var_r31->unk_04 = 0;
-    var_r29 = &Hu3DData[var_r31->unk_00];
-    var_r30 = var_r29->hookData;
-    var_r30->unk_20 = 0;
+    spriteEffect = sparkleEffectGroup = HuMemDirectMallocNum(HEAP_HEAP, sizeof(SparkleEffectGroup), HU_MEMNUM_OVL);
+    memset(spriteEffect, 0, sizeof(SparkleEffectGroup));
+    effectAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 63), HU_MEMNUM_OVL));
+    spriteEffect->animationData = effectAnimation;
+    spriteEffect->modelId = spriteModelId = CreateModelAnimation(effectAnimation, 0x800);
+    Hu3DModelLayerSet(spriteEffect->modelId, 2);
+    spriteEffect->activeEffectCount = 0;
+    effectModel = &Hu3DData[spriteEffect->modelId];
+    effectHookData = effectModel->hookData;
+    effectHookData->hookMode = 0;
 }
 
-void fn_1_6FFC(void)
+void UpdateSparkleEffects(void)
 {
-    UnkM406Struct5 *var_r31;
-    UnkM406Struct10 *var_r30;
-    UnkM406Unk120Struct2 *var_r29;
-    s32 var_r28;
-    HU3DMODEL *var_r27;
+    MapParticleEffect *particleEffect;
+    SparkleEffectGroup *effectManager;
+    ParticleEffectHookData *effectHookData;
+    s32 particleIndex;
+    HU3DMODEL *effectModel;
 
-    var_r30 = lbl_1_bss_B0;
-    if (var_r30->unk_04 <= 0) {
-        Hu3DModelAttrSet(var_r30->unk_00, HU3D_ATTR_DISPOFF);
+    effectManager = sparkleEffectGroup;
+    if (effectManager->activeEffectCount <= 0) {
+        Hu3DModelAttrSet(effectManager->modelId, HU3D_ATTR_DISPOFF);
         return;
     }
-    Hu3DModelAttrReset(var_r30->unk_00, HU3D_ATTR_DISPOFF);
-    var_r27 = &Hu3DData[var_r30->unk_00];
-    var_r29 = var_r27->hookData;
-    var_r31 = var_r29->unk_3C;
-    for (var_r28 = 0; var_r28 < var_r29->unk_26; var_r28++, var_r31++) {
-        if (var_r31->unk_28 <= 0.0f) {
+    Hu3DModelAttrReset(effectManager->modelId, HU3D_ATTR_DISPOFF);
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    particleEffect = effectHookData->particles;
+    for (particleIndex = 0; particleIndex < effectHookData->particleCount; particleIndex++, particleEffect++) {
+        if (particleEffect->effectSize <= 0.0f) {
             continue;
         }
-        var_r31->unk_30.x += var_r31->unk_04.x;
-        var_r31->unk_30.y += var_r31->unk_04.y;
-        var_r31->unk_30.z += var_r31->unk_04.z;
-        var_r31->unk_2C += var_r31->unk_18;
-        if (var_r31->unk_2C >= 360.0f) {
-            var_r31->unk_2C -= 360.0f;
+        particleEffect->position.x += particleEffect->velocity.x;
+        particleEffect->position.y += particleEffect->velocity.y;
+        particleEffect->position.z += particleEffect->velocity.z;
+        particleEffect->rotationAngle += particleEffect->rotationSpeed;
+        if (particleEffect->rotationAngle >= 360.0f) {
+            particleEffect->rotationAngle -= 360.0f;
         }
-        var_r31->unk_40 = var_r31->unk_00 >> 1;
-        var_r31->unk_00++;
-        if (var_r31->unk_40 >= 16) {
-            var_r31->unk_40 = 0;
-            var_r31->unk_00 = 0;
-            var_r31->unk_28 = 0.0f;
-            var_r30->unk_04--;
+        particleEffect->textureFrameIndex = particleEffect->frameCount >> 1;
+        particleEffect->frameCount++;
+        if (particleEffect->textureFrameIndex >= 16) {
+            particleEffect->textureFrameIndex = 0;
+            particleEffect->frameCount = 0;
+            particleEffect->effectSize = 0.0f;
+            effectManager->activeEffectCount--;
         }
     }
 }
 
-void fn_1_717C(void)
+void DestroySparkleEffects(void)
 {
-    UnkM406Struct10 *var_r31;
+    SparkleEffectGroup *spriteEffect;
 
-    var_r31 = lbl_1_bss_B0;
-    Hu3DModelAttrSet(var_r31->unk_00, HU3D_ATTR_DISPOFF);
-    HuSprAnimKill(var_r31->unk_08);
+    spriteEffect = sparkleEffectGroup;
+    Hu3DModelAttrSet(spriteEffect->modelId, HU3D_ATTR_DISPOFF);
+    HuSprAnimKill(spriteEffect->animationData);
 }
 
-s32 fn_1_71C4(Vec arg0, Vec arg1, float arg8, float arg9, GXColor arg2)
+s32 CreateParticleEffect(Vec source, Vec destination, Float scale, Float rotationSpeed, GXColor effectColor)
 {
-    UnkM406Struct5 *var_r31;
-    UnkM406Unk120Struct2 *var_r30;
-    s32 var_r29;
-    UnkM406Struct10 *var_r28;
-    HU3DMODEL *var_r27;
+    MapParticleEffect *particleEffect;
+    ParticleEffectHookData *effectHookData;
+    s32 particleIndex;
+    SparkleEffectGroup *effectManager;
+    HU3DMODEL *effectModel;
 
-    var_r28 = lbl_1_bss_B0;
-    var_r27 = &Hu3DData[var_r28->unk_00];
-    var_r30 = var_r27->hookData;
-    var_r31 = var_r30->unk_3C;
-    for (var_r29 = 0; var_r29 < var_r30->unk_26; var_r29++, var_r31++) {
-        if (var_r31->unk_28 <= 0.0f) {
+    effectManager = sparkleEffectGroup;
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    particleEffect = effectHookData->particles;
+    for (particleIndex = 0; particleIndex < effectHookData->particleCount; particleIndex++, particleEffect++) {
+        if (particleEffect->effectSize <= 0.0f) {
             break;
         }
     }
-    if (var_r29 >= var_r30->unk_26) {
+    if (particleIndex >= effectHookData->particleCount) {
         return -1;
     }
-    var_r31->unk_00 = var_r31->unk_02 = 0;
+    particleEffect->frameCount = particleEffect->frameLimit = 0;
 
-    var_r31->unk_30.x = arg0.x;
-    var_r31->unk_30.y = arg0.y;
-    var_r31->unk_30.z = arg0.z;
+    particleEffect->position.x = source.x;
+    particleEffect->position.y = source.y;
+    particleEffect->position.z = source.z;
 
-    var_r31->unk_04.x = arg1.x;
-    var_r31->unk_04.y = arg1.y;
-    var_r31->unk_04.z = arg1.z;
+    particleEffect->velocity.x = destination.x;
+    particleEffect->velocity.y = destination.y;
+    particleEffect->velocity.z = destination.z;
 
-    var_r31->unk_18 = arg9;
-    var_r31->unk_28 = arg8;
+    particleEffect->rotationSpeed = rotationSpeed;
+    particleEffect->effectSize = scale;
 
-    var_r31->unk_3C.r = arg2.r;
-    var_r31->unk_3C.g = arg2.g;
-    var_r31->unk_3C.b = arg2.b;
-    var_r31->unk_3C.a = arg2.a;
+    particleEffect->color.r = effectColor.r;
+    particleEffect->color.g = effectColor.g;
+    particleEffect->color.b = effectColor.b;
+    particleEffect->color.a = effectColor.a;
 
-    var_r31->unk_2C = 0.0f;
-    var_r31->unk_40 = 0;
-    var_r31->unk_00 = 0;
-    var_r28->unk_04++;
+    particleEffect->rotationAngle = 0.0f;
+    particleEffect->textureFrameIndex = 0;
+    particleEffect->frameCount = 0;
+    effectManager->activeEffectCount++;
 
-    return var_r29;
+    return particleIndex;
 }
 
 // TODO maybe pass struct by value
-s32 fn_1_72F8(Vec *arg0, Vec *arg1, GXColor *arg2, float arg8, float arg9, float argA)
+s32 CreateSplashParticles(Vec *source, Vec *destination, GXColor *effectColor, Float scale, Float rotationSpeed, Float secondScale)
 {
-    Vec sp54;
-    Vec sp48;
-    s32 sp14;
-    s32 sp10;
+    Vec particlePosition;
+    Vec sidewaysVelocity;
+    s32 firstParticleId;
+    s32 secondParticleId;
 
-    float var_f31;
+    Float halfWidth;
 
-    sp48.x = arg1->z;
-    sp48.z = arg1->x;
-    sp48.y = 0.0f;
+    sidewaysVelocity.x = destination->z;
+    sidewaysVelocity.z = destination->x;
+    sidewaysVelocity.y = 0.0f;
 
-    var_f31 = 0.5f * argA;
+    halfWidth = 0.5f * secondScale;
 
-    sp54.x = arg0->x + (sp48.x * var_f31);
-    sp54.y = arg0->y + (sp48.y * var_f31);
-    sp54.z = arg0->z + (sp48.z * var_f31);
-    sp14 = fn_1_71C4(sp54, *arg1, arg8, arg9, *arg2);
+    particlePosition.x = source->x + (sidewaysVelocity.x * halfWidth);
+    particlePosition.y = source->y + (sidewaysVelocity.y * halfWidth);
+    particlePosition.z = source->z + (sidewaysVelocity.z * halfWidth);
+    firstParticleId = CreateParticleEffect(particlePosition, *destination, scale, rotationSpeed, *effectColor);
 
-    sp54.x = arg0->x - (sp48.x * var_f31);
-    sp54.y = arg0->y - (sp48.y * var_f31);
-    sp54.z = arg0->z - (sp48.z * var_f31);
+    particlePosition.x = source->x - (sidewaysVelocity.x * halfWidth);
+    particlePosition.y = source->y - (sidewaysVelocity.y * halfWidth);
+    particlePosition.z = source->z - (sidewaysVelocity.z * halfWidth);
 
-    sp10 = fn_1_71C4(sp54, *arg1, arg8, -arg9, *arg2);
-    return (sp14 << 16) | sp10;
+    secondParticleId = CreateParticleEffect(particlePosition, *destination, scale, -rotationSpeed, *effectColor);
+    return (firstParticleId << 16) | secondParticleId;
 }
 
-UnkM406Struct5 *fn_1_76A8(s32 arg0)
+MapParticleEffect *UpdateSurfaceParticlesSecondary(s32 source)
 {
-    UnkM406Unk120Struct2 *var_r31;
-    UnkM406Struct10 *var_r30;
-    HU3DMODEL *var_r29;
+    ParticleEffectHookData *effectHookData;
+    SparkleEffectGroup *effectManager;
+    HU3DMODEL *effectModel;
 
-    var_r30 = lbl_1_bss_B0;
-    var_r29 = &Hu3DData[var_r30->unk_00];
-    var_r31 = var_r29->hookData;
-    if (arg0 < 0 || arg0 >= var_r31->unk_26) {
+    effectManager = sparkleEffectGroup;
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    if (source < 0 || source >= effectHookData->particleCount) {
         return 0;
     }
-    return &var_r31->unk_3C[arg0];
+    return &effectHookData->particles[source];
 }
 
-void fn_1_7718(void)
+void CreateSparkleGroup(void)
 {
-    s32 sp8;
+    s32 spriteModelId;
 
-    UnkM406Struct10 *var_r31;
-    UnkM406Unk120Struct2 *var_r30;
-    HU3DMODEL *var_r29;
-    ANIMDATA *var_r28;
+    SparkleEffectGroup *spriteEffect;
+    ParticleEffectHookData *effectHookData;
+    HU3DMODEL *effectModel;
+    ANIMDATA *effectAnimation;
 
-    var_r31 = lbl_1_bss_AC = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM406Struct10), HU_MEMNUM_OVL);
-    memset(var_r31, 0, sizeof(UnkM406Struct10));
-    var_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 63), HU_MEMNUM_OVL));
-    var_r31->unk_08 = var_r28;
-    var_r31->unk_00 = sp8 = fn_1_B474(var_r28, 105);
-    Hu3DModelLayerSet(var_r31->unk_00, 2);
-    var_r31->unk_04 = 0;
-    var_r29 = &Hu3DData[var_r31->unk_00];
-    var_r30 = var_r29->hookData;
-    var_r30->unk_20 = 0;
+    spriteEffect = particleEffectGroup = HuMemDirectMallocNum(HEAP_HEAP, sizeof(SparkleEffectGroup), HU_MEMNUM_OVL);
+    memset(spriteEffect, 0, sizeof(SparkleEffectGroup));
+    effectAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 63), HU_MEMNUM_OVL));
+    spriteEffect->animationData = effectAnimation;
+    spriteEffect->modelId = spriteModelId = CreateModelAnimation(effectAnimation, 105);
+    Hu3DModelLayerSet(spriteEffect->modelId, 2);
+    spriteEffect->activeEffectCount = 0;
+    effectModel = &Hu3DData[spriteEffect->modelId];
+    effectHookData = effectModel->hookData;
+    effectHookData->hookMode = 0;
 }
 
-void fn_1_77F0(void)
+void UpdateParticleEffects(void)
 {
-    UnkM406Struct5 *var_r31;
-    UnkM406Struct10 *var_r30;
-    UnkM406Unk120Struct2 *var_r29;
-    s32 var_r28;
-    HU3DMODEL *var_r27;
+    MapParticleEffect *particleEffect;
+    SparkleEffectGroup *effectManager;
+    ParticleEffectHookData *effectHookData;
+    s32 particleIndex;
+    HU3DMODEL *effectModel;
 
-    var_r30 = lbl_1_bss_AC;
-    if (var_r30->unk_04 <= 0) {
-        Hu3DModelAttrSet(var_r30->unk_00, HU3D_ATTR_DISPOFF);
+    effectManager = particleEffectGroup;
+    if (effectManager->activeEffectCount <= 0) {
+        Hu3DModelAttrSet(effectManager->modelId, HU3D_ATTR_DISPOFF);
         return;
     }
-    Hu3DModelAttrReset(var_r30->unk_00, HU3D_ATTR_DISPOFF);
-    var_r27 = &Hu3DData[var_r30->unk_00];
-    var_r29 = var_r27->hookData;
-    var_r31 = var_r29->unk_3C;
-    if (fn_1_122C() < 3) {
-        var_r29->unk_22 |= 1;
+    Hu3DModelAttrReset(effectManager->modelId, HU3D_ATTR_DISPOFF);
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    particleEffect = effectHookData->particles;
+    if (getSceneState() < 3) {
+        effectHookData->effectFlags |= 1;
     }
     else {
-        var_r29->unk_22 &= 0xFFFFFFFE;
+        effectHookData->effectFlags &= 0xFFFFFFFE;
     }
-    for (var_r28 = 0; var_r28 < var_r29->unk_26; var_r28++, var_r31++) {
-        if (var_r31->unk_28 <= 0.0f) {
+    for (particleIndex = 0; particleIndex < effectHookData->particleCount; particleIndex++, particleEffect++) {
+        if (particleEffect->effectSize <= 0.0f) {
             continue;
         }
-        var_r31->unk_30.x += var_r31->unk_04.x;
-        var_r31->unk_30.y += var_r31->unk_04.y;
-        var_r31->unk_30.z += var_r31->unk_04.z;
-        var_r31->unk_2C += var_r31->unk_18;
-        if (var_r31->unk_2C >= 360.0f) {
-            var_r31->unk_2C = var_r31->unk_2C - 360.0f;
+        particleEffect->position.x += particleEffect->velocity.x;
+        particleEffect->position.y += particleEffect->velocity.y;
+        particleEffect->position.z += particleEffect->velocity.z;
+        particleEffect->rotationAngle += particleEffect->rotationSpeed;
+        if (particleEffect->rotationAngle >= 360.0f) {
+            particleEffect->rotationAngle = particleEffect->rotationAngle - 360.0f;
         }
-        var_r31->unk_40 = var_r31->unk_00 / 2;
-        var_r31->unk_00++;
-        if (var_r31->unk_40 >= 0x10) {
-            var_r31->unk_40 = 0;
-            var_r31->unk_00 = 0;
-            var_r31->unk_02 = 0;
-            var_r31->unk_28 = 0.0f;
-            var_r30->unk_04--;
+        particleEffect->textureFrameIndex = particleEffect->frameCount / 2;
+        particleEffect->frameCount++;
+        if (particleEffect->textureFrameIndex >= 0x10) {
+            particleEffect->textureFrameIndex = 0;
+            particleEffect->frameCount = 0;
+            particleEffect->frameLimit = 0;
+            particleEffect->effectSize = 0.0f;
+            effectManager->activeEffectCount--;
         }
     }
 }
 
-void fn_1_79B0(void)
+void DestroyParticleEffects(void)
 {
-    UnkM406Struct10 *var_r31;
+    SparkleEffectGroup *effectManager;
 
-    var_r31 = lbl_1_bss_AC;
-    Hu3DModelAttrSet(var_r31->unk_00, HU3D_ATTR_DISPOFF);
-    HuSprAnimKill(var_r31->unk_08);
+    effectManager = particleEffectGroup;
+    Hu3DModelAttrSet(effectManager->modelId, HU3D_ATTR_DISPOFF);
+    HuSprAnimKill(effectManager->animationData);
 }
 
-s32 fn_1_79F8(Vec arg0, Vec arg1, float arg8, float arg9, GXColor arg2)
+s32 CreateParticleEffectVariant(Vec source, Vec destination, Float scale, Float rotationSpeed, GXColor effectColor)
 {
-    UnkM406Struct5 *var_r31;
-    UnkM406Unk120Struct2 *var_r30;
-    s32 var_r29;
-    UnkM406Struct10 *var_r28;
-    HU3DMODEL *var_r27;
+    MapParticleEffect *particleEffect;
+    ParticleEffectHookData *effectHookData;
+    s32 particleIndex;
+    SparkleEffectGroup *effectManager;
+    HU3DMODEL *effectModel;
 
-    var_r28 = lbl_1_bss_AC;
-    var_r27 = &Hu3DData[var_r28->unk_00];
-    var_r30 = var_r27->hookData;
-    var_r31 = var_r30->unk_3C;
-    for (var_r29 = 0; var_r29 < var_r30->unk_26; var_r29++, var_r31++) {
-        if (var_r31->unk_28 <= 0.0f) {
+    effectManager = particleEffectGroup;
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    particleEffect = effectHookData->particles;
+    for (particleIndex = 0; particleIndex < effectHookData->particleCount; particleIndex++, particleEffect++) {
+        if (particleEffect->effectSize <= 0.0f) {
             break;
         }
     }
-    if (var_r29 >= var_r30->unk_26) {
+    if (particleIndex >= effectHookData->particleCount) {
         return -1;
     }
-    var_r31->unk_00 = var_r31->unk_02 = 0;
+    particleEffect->frameCount = particleEffect->frameLimit = 0;
 
-    var_r31->unk_30.x = arg0.x;
-    var_r31->unk_30.y = arg0.y;
-    var_r31->unk_30.z = arg0.z;
+    particleEffect->position.x = source.x;
+    particleEffect->position.y = source.y;
+    particleEffect->position.z = source.z;
 
-    var_r31->unk_04.x = arg1.x;
-    var_r31->unk_04.y = arg1.y;
-    var_r31->unk_04.z = arg1.z;
+    particleEffect->velocity.x = destination.x;
+    particleEffect->velocity.y = destination.y;
+    particleEffect->velocity.z = destination.z;
 
-    var_r31->unk_18 = arg9;
-    var_r31->unk_28 = arg8;
+    particleEffect->rotationSpeed = rotationSpeed;
+    particleEffect->effectSize = scale;
 
-    var_r31->unk_3C.r = arg2.r;
-    var_r31->unk_3C.g = arg2.g;
-    var_r31->unk_3C.b = arg2.b;
-    var_r31->unk_3C.a = arg2.a;
+    particleEffect->color.r = effectColor.r;
+    particleEffect->color.g = effectColor.g;
+    particleEffect->color.b = effectColor.b;
+    particleEffect->color.a = effectColor.a;
 
-    var_r31->unk_2C = 0.0f;
-    var_r31->unk_40 = 0;
-    var_r31->unk_00 = 0;
-    var_r28->unk_04++;
+    particleEffect->rotationAngle = 0.0f;
+    particleEffect->textureFrameIndex = 0;
+    particleEffect->frameCount = 0;
+    effectManager->activeEffectCount++;
 
-    return var_r29;
+    return particleIndex;
 }
 
-UnkM406Struct5 *fn_1_7B2C(s32 arg0)
+MapParticleEffect *AcquireParticleSlot(s32 source)
 {
-    UnkM406Unk120Struct2 *var_r31;
-    UnkM406Struct10 *var_r30;
-    HU3DMODEL *var_r29;
+    ParticleEffectHookData *effectHookData;
+    SparkleEffectGroup *effectManager;
+    HU3DMODEL *effectModel;
 
-    var_r30 = lbl_1_bss_AC;
-    var_r29 = &Hu3DData[var_r30->unk_00];
-    var_r31 = var_r29->hookData;
-    if (arg0 < 0 || arg0 >= var_r31->unk_26) {
+    effectManager = particleEffectGroup;
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    if (source < 0 || source >= effectHookData->particleCount) {
         return NULL;
     }
-    return &var_r31->unk_3C[arg0];
+    return &effectHookData->particles[source];
 }
 
-void fn_1_7B9C(void)
+void CreateParticlePool(void)
 {
-    s32 sp8;
+    s32 hookModelId;
 
-    UnkM406Struct6 *var_r31;
-    UnkM406Unk120Struct2 *var_r30;
-    HU3DMODEL *var_r29;
+    ParticlePool *effectManager;
+    ParticleEffectHookData *effectHookData;
+    HU3DMODEL *effectModel;
 
-    var_r31 = lbl_1_bss_A8 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM406Struct6), HU_MEMNUM_OVL);
-    memset(var_r31, 0, sizeof(UnkM406Struct6));
-    var_r31->unk_00 = sp8 = fn_1_C4F4(512);
-    Hu3DModelLayerSet(var_r31->unk_00, 3);
-    var_r31->unk_04 = 0;
-    var_r29 = &Hu3DData[var_r31->unk_00];
-    var_r30 = var_r29->hookData;
-    var_r30->unk_20 = 0;
+    effectManager = particleModelPool = HuMemDirectMallocNum(HEAP_HEAP, sizeof(ParticlePool), HU_MEMNUM_OVL);
+    memset(effectManager, 0, sizeof(ParticlePool));
+    effectManager->modelId = hookModelId = UpdateTextureCoordinates(512);
+    Hu3DModelLayerSet(effectManager->modelId, 3);
+    effectManager->activeEffectCount = 0;
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    effectHookData->hookMode = 0;
 }
 
-void fn_1_7C4C(void)
+void UpdateParticlePool(void)
 {
-    UnkM406Struct5 *var_r31;
-    UnkM406Struct6 *var_r30;
-    UnkM406Unk120Struct2 *var_r29;
-    s32 var_r28;
-    HU3DMODEL *var_r27;
+    MapParticleEffect *particleEffect;
+    ParticlePool *effectManager;
+    ParticleEffectHookData *effectHookData;
+    s32 particleIndex;
+    HU3DMODEL *effectModel;
 
-    var_r30 = lbl_1_bss_A8;
-    if (var_r30->unk_04 <= 0) {
-        Hu3DModelAttrSet(var_r30->unk_00, HU3D_ATTR_DISPOFF);
+    effectManager = particleModelPool;
+    if (effectManager->activeEffectCount <= 0) {
+        Hu3DModelAttrSet(effectManager->modelId, HU3D_ATTR_DISPOFF);
         return;
     }
-    Hu3DModelAttrReset(var_r30->unk_00, HU3D_ATTR_DISPOFF);
-    var_r27 = &Hu3DData[var_r30->unk_00];
-    var_r29 = var_r27->hookData;
-    var_r31 = var_r29->unk_3C;
-    for (var_r28 = 0; var_r28 < var_r29->unk_26; var_r28++, var_r31++) {
-        if (var_r31->unk_28 <= 0.0f) {
+    Hu3DModelAttrReset(effectManager->modelId, HU3D_ATTR_DISPOFF);
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    particleEffect = effectHookData->particles;
+    for (particleIndex = 0; particleIndex < effectHookData->particleCount; particleIndex++, particleEffect++) {
+        if (particleEffect->effectSize <= 0.0f) {
             continue;
         }
-        var_r31->unk_30.x += var_r31->unk_04.x;
-        var_r31->unk_30.y += var_r31->unk_04.y;
-        var_r31->unk_30.z += var_r31->unk_04.z;
-        var_r31->unk_04.y -= 0.32666668f;
-        if (++var_r31->unk_00 > 60 || var_r31->unk_30.y < var_r31->unk_14 - 200.0f) {
-            var_r31->unk_00 = 0;
-            var_r31->unk_28 = 0.0f;
-            var_r30->unk_04--;
+        particleEffect->position.x += particleEffect->velocity.x;
+        particleEffect->position.y += particleEffect->velocity.y;
+        particleEffect->position.z += particleEffect->velocity.z;
+        particleEffect->velocity.y -= 0.32666668f;
+        if (++particleEffect->frameCount > 60 || particleEffect->position.y < particleEffect->verticalMotionParameter - 200.0f) {
+            particleEffect->frameCount = 0;
+            particleEffect->effectSize = 0.0f;
+            effectManager->activeEffectCount--;
         }
     }
 }
 
-void fn_1_7DAC(void) { }
+void DestroyParticlePool(void) { }
 
-s32 fn_1_7DB0(Vec arg0, Vec arg1, float arg8, GXColor arg2)
+s32 CreateParticleEffectSmall(Vec source, Vec destination, Float scale, GXColor effectColor)
 {
-    UnkM406Struct5 *var_r31;
-    UnkM406Unk120Struct2 *var_r30;
-    s32 var_r29;
-    UnkM406Struct6 *var_r28;
-    HU3DMODEL *var_r27;
+    MapParticleEffect *particleEffect;
+    ParticleEffectHookData *effectHookData;
+    s32 particleIndex;
+    ParticlePool *effectManager;
+    HU3DMODEL *effectModel;
 
-    var_r28 = lbl_1_bss_A8;
-    var_r27 = &Hu3DData[var_r28->unk_00];
-    var_r30 = var_r27->hookData;
-    var_r31 = var_r30->unk_3C;
-    for (var_r29 = 0; var_r29 < var_r30->unk_26; var_r29++, var_r31++) {
-        if (var_r31->unk_28 <= 0.0f) {
+    effectManager = particleModelPool;
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    particleEffect = effectHookData->particles;
+    for (particleIndex = 0; particleIndex < effectHookData->particleCount; particleIndex++, particleEffect++) {
+        if (particleEffect->effectSize <= 0.0f) {
             break;
         }
     }
-    if (var_r29 >= var_r30->unk_26) {
+    if (particleIndex >= effectHookData->particleCount) {
         return -1;
     }
-    var_r31->unk_00 = var_r31->unk_02 = 0;
+    particleEffect->modelId = particleEffect->frameLimit = 0;
 
-    var_r31->unk_30.x = arg0.x;
-    var_r31->unk_30.y = arg0.y;
-    var_r31->unk_30.z = arg0.z;
+    particleEffect->position.x = source.x;
+    particleEffect->position.y = source.y;
+    particleEffect->position.z = source.z;
 
-    var_r31->unk_04.x = arg1.x;
-    var_r31->unk_04.y = arg1.y;
-    var_r31->unk_04.z = arg1.z;
+    particleEffect->activeEffectCount.x = destination.x;
+    particleEffect->activeEffectCount.y = destination.y;
+    particleEffect->activeEffectCount.z = destination.z;
 
-    var_r31->unk_14 = arg0.y;
-    var_r31->unk_28 = arg8;
-    var_r31->unk_3C = arg2;
-    var_r31->unk_00 = 0;
-    var_r28->unk_04++;
+    particleEffect->verticalMotionParameter = source.y;
+    particleEffect->effectSize = scale;
+    particleEffect->particles = effectColor;
+    particleEffect->modelId = 0;
+    effectManager->activeEffectCount++;
 
-    return var_r29;
+    return particleIndex;
 }
 
-void fn_1_7ED0(void)
+void CreateParticleModelPool(void)
 {
-    s32 sp8;
+    s32 hookModelId;
 
-    UnkM406Struct6 *var_r31;
-    UnkM406Unk120Struct2 *var_r30;
-    HU3DMODEL *var_r29;
+    ParticlePool *effectManager;
+    ParticleEffectHookData *effectHookData;
+    HU3DMODEL *effectModel;
 
-    var_r31 = lbl_1_bss_A4 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM406Struct6), HU_MEMNUM_OVL);
-    memset(var_r31, 0, sizeof(UnkM406Struct6));
-    var_r31->unk_00 = sp8 = fn_1_C4F4(512);
-    Hu3DModelLayerSet(var_r31->unk_00, 3);
-    var_r31->unk_04 = 0;
-    var_r29 = &Hu3DData[var_r31->unk_00];
-    var_r30 = var_r29->hookData;
-    var_r30->unk_20 = 0;
+    effectManager = particleInstancePool = HuMemDirectMallocNum(HEAP_HEAP, sizeof(ParticlePool), HU_MEMNUM_OVL);
+    memset(effectManager, 0, sizeof(ParticlePool));
+    effectManager->modelId = hookModelId = UpdateTextureCoordinates(512);
+    Hu3DModelLayerSet(effectManager->modelId, 3);
+    effectManager->activeEffectCount = 0;
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    effectHookData->hookMode = 0;
 }
 
-void fn_1_7F80(void)
+void UpdateParticleModelPool(void)
 {
-    UnkM406Struct5 *var_r31;
-    UnkM406Struct6 *var_r30;
-    UnkM406Unk120Struct2 *var_r29;
-    s32 var_r28;
-    HU3DMODEL *var_r27;
+    MapParticleEffect *particleEffect;
+    ParticlePool *effectManager;
+    ParticleEffectHookData *effectHookData;
+    s32 particleIndex;
+    HU3DMODEL *effectModel;
 
-    var_r30 = lbl_1_bss_A4;
-    if (var_r30->unk_04 <= 0) {
-        Hu3DModelAttrSet(var_r30->unk_00, HU3D_ATTR_DISPOFF);
+    effectManager = particleInstancePool;
+    if (effectManager->activeEffectCount <= 0) {
+        Hu3DModelAttrSet(effectManager->modelId, HU3D_ATTR_DISPOFF);
         return;
     }
-    Hu3DModelAttrReset(var_r30->unk_00, HU3D_ATTR_DISPOFF);
-    var_r27 = &Hu3DData[var_r30->unk_00];
-    var_r29 = var_r27->hookData;
-    var_r31 = var_r29->unk_3C;
-    for (var_r28 = 0; var_r28 < var_r29->unk_26; var_r28++, var_r31++) {
-        if (var_r31->unk_28 <= 0.0f) {
+    Hu3DModelAttrReset(effectManager->modelId, HU3D_ATTR_DISPOFF);
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    particleEffect = effectHookData->particles;
+    for (particleIndex = 0; particleIndex < effectHookData->particleCount; particleIndex++, particleEffect++) {
+        if (particleEffect->effectSize <= 0.0f) {
             continue;
         }
-        var_r31->unk_30.x += var_r31->unk_04.x;
-        var_r31->unk_30.y += var_r31->unk_04.y;
-        var_r31->unk_30.z += var_r31->unk_04.z;
-        var_r31->unk_04.y -= var_r31->unk_14;
-        if (var_r31->unk_10 != 0.0f) {
-            var_r31->unk_28 *= var_r31->unk_10;
+        particleEffect->position.x += particleEffect->velocity.x;
+        particleEffect->position.y += particleEffect->velocity.y;
+        particleEffect->position.z += particleEffect->velocity.z;
+        particleEffect->velocity.y -= particleEffect->verticalMotionParameter;
+        if (particleEffect->scaleFactor != 0.0f) {
+            particleEffect->effectSize *= particleEffect->scaleFactor;
         }
-        if (++var_r31->unk_00 > var_r31->unk_02 || var_r31->unk_04.y <= 0.0f) {
-            var_r31->unk_00 = 0;
-            var_r31->unk_28 = 0.0f;
-            var_r30->unk_04 = var_r30->unk_04 - 1;
+        if (++particleEffect->frameCount > particleEffect->frameLimit || particleEffect->velocity.y <= 0.0f) {
+            particleEffect->frameCount = 0;
+            particleEffect->effectSize = 0.0f;
+            effectManager->activeEffectCount = effectManager->activeEffectCount - 1;
         }
     }
 }
 
-void fn_1_8100(void) { }
+void DestroyParticleModelPool(void) { }
 
-s32 fn_1_8104(Vec arg0, Vec arg1, float arg8, GXColor arg2)
+s32 CreateParticleEffectColored(Vec source, Vec destination, Float scale, GXColor effectColor)
 {
-    UnkM406Struct5 *var_r31;
-    UnkM406Unk120Struct2 *var_r30;
-    UnkM406Struct6 *var_r28;
-    s32 var_r29;
+    MapParticleEffect *particleEffect;
+    ParticleEffectHookData *effectHookData;
+    ParticlePool *effectManager;
+    s32 particleIndex;
 
-    HU3DMODEL *var_r27;
+    HU3DMODEL *effectModel;
 
-    var_r28 = lbl_1_bss_A4;
+    effectManager = particleInstancePool;
 
-    var_r27 = &Hu3DData[var_r28->unk_00];
-    var_r30 = var_r27->hookData;
-    var_r31 = var_r30->unk_3C;
-    for (var_r29 = 0; var_r29 < var_r30->unk_26; var_r29++, var_r31++) {
-        if (var_r31->unk_28 <= 0.0f) {
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    particleEffect = effectHookData->particles;
+    for (particleIndex = 0; particleIndex < effectHookData->particleCount; particleIndex++, particleEffect++) {
+        if (particleEffect->effectSize <= 0.0f) {
 
             break;
         }
     }
 
-    if (var_r29 >= var_r30->unk_26) {
+    if (particleIndex >= effectHookData->particleCount) {
         return -1;
     }
-    var_r31->unk_00 = var_r31->unk_02 = 0;
+    particleEffect->modelId = particleEffect->frameLimit = 0;
 
-    var_r31->unk_30.x = arg0.x;
-    var_r31->unk_30.y = arg0.y;
-    var_r31->unk_30.z = arg0.z;
+    particleEffect->position.x = source.x;
+    particleEffect->position.y = source.y;
+    particleEffect->position.z = source.z;
 
-    var_r31->unk_04.x = arg1.x;
-    var_r31->unk_04.y = arg1.y;
-    var_r31->unk_04.z = arg1.z;
+    particleEffect->activeEffectCount.x = destination.x;
+    particleEffect->activeEffectCount.y = destination.y;
+    particleEffect->activeEffectCount.z = destination.z;
 
-    var_r31->unk_14 = 0.49f;
-    var_r31->unk_10 = 0.0f;
-    var_r31->unk_02 = 30;
+    particleEffect->verticalMotionParameter = 0.49f;
+    particleEffect->elapsedTime = 0.0f;
+    particleEffect->frameLimit = 30;
 
-    var_r31->unk_28 = arg8;
+    particleEffect->effectSize = scale;
 
-    var_r31->unk_3C.r = arg2.r;
-    var_r31->unk_3C.g = arg2.g;
-    var_r31->unk_3C.b = arg2.b;
-    var_r31->unk_3C.a = arg2.a;
+    particleEffect->particles.r = effectColor.r;
+    particleEffect->particles.g = effectColor.g;
+    particleEffect->particles.b = effectColor.b;
+    particleEffect->particles.a = effectColor.a;
 
-    var_r31->unk_00 = 0;
-    var_r28->unk_04++;
-    return var_r29;
+    particleEffect->modelId = 0;
+    effectManager->activeEffectCount++;
+    return particleIndex;
 }
 
-void fn_1_8244(s32 arg0, s32 arg1, float arg8, float arg9)
+void ConfigureParticleLifetime(s32 source, s32 destination, Float scale, Float rotationSpeed)
 {
-    UnkM406Struct5 *var_r31;
-    UnkM406Unk120Struct2 *var_r30;
-    UnkM406Struct6 *var_r29;
-    HU3DMODEL *var_r28;
+    MapParticleEffect *particleEffect;
+    ParticleEffectHookData *effectHookData;
+    ParticlePool *effectManager;
+    HU3DMODEL *effectModel;
 
-    var_r29 = lbl_1_bss_A4;
-    var_r28 = &Hu3DData[var_r29->unk_00];
-    var_r30 = var_r28->hookData;
-    if (arg0 < 0 || arg0 >= var_r30->unk_26) {
+    effectManager = particleInstancePool;
+    effectModel = &Hu3DData[effectManager->modelId];
+    effectHookData = effectModel->hookData;
+    if (source < 0 || source >= effectHookData->particleCount) {
         return;
     }
-    var_r31 = &var_r30->unk_3C[arg0];
-    var_r31->unk_10 = arg9;
-    var_r31->unk_14 = arg8;
-    var_r31->unk_02 = arg1;
+    particleEffect = &effectHookData->particles[source];
+    particleEffect->scaleFactor = rotationSpeed;
+    particleEffect->verticalMotionParameter = scale;
+    particleEffect->frameLimit = destination;
 }
 
-void fn_1_82C8(Mtx arg0, s32 arg1, float arg8)
+void SetModelEmissionTransform(Mtx source, s32 destination, Float scale)
 {
-    Mtx sp8C;
-    Vec sp80;
-    Vec sp74;
-    Vec sp68;
-    Vec sp5C;
-    Vec sp50;
-    Vec sp44;
+    Mtx emissionRotation;
+    Vec modelOrigin;
+    Vec modelYaw;
+    Vec firstEmissionEdge;
+    Vec secondEmissionEdge;
+    Vec particlePosition;
+    Vec particleVelocity;
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    Float particleSize;
+    Float emissionForwardX;
+    Float emissionForwardZ;
 
-    s32 var_r28;
+    s32 particleIndex;
 
-    sp80.x = arg0[0][3];
-    sp80.y = arg0[1][3];
-    sp80.z = arg0[2][3];
-    sp74.x = sp74.z = 0.0f;
-    sp74.y = atan2d(arg0[0][0], arg0[2][0]);
-    MTXCopy(arg0, sp8C);
-    sp8C[0][3] = sp8C[1][3] = sp8C[2][3] = sp8C[3][3] = 0.0f;
-    sp68.x = -25.0f;
-    sp68.z = -50.0f;
-    sp68.y = 0.0f;
-    fn_1_D518(sp8C, &sp68);
-    sp68.x += sp80.x;
-    sp68.y += sp80.y;
-    sp68.z += sp80.z;
+    modelOrigin.x = source[0][3];
+    modelOrigin.y = source[1][3];
+    modelOrigin.z = source[2][3];
+    modelYaw.x = modelYaw.z = 0.0f;
+    modelYaw.y = atan2d(source[0][0], source[2][0]);
+    MTXCopy(source, emissionRotation);
+    emissionRotation[0][3] = emissionRotation[1][3] = emissionRotation[2][3] = emissionRotation[3][3] = 0.0f;
+    firstEmissionEdge.x = -25.0f;
+    firstEmissionEdge.z = -50.0f;
+    firstEmissionEdge.y = 0.0f;
+    TransformVector(emissionRotation, &firstEmissionEdge);
+    firstEmissionEdge.x += modelOrigin.x;
+    firstEmissionEdge.y += modelOrigin.y;
+    firstEmissionEdge.z += modelOrigin.z;
 
-    sp5C.x = -25.0f;
-    sp5C.z = 50.0f;
-    sp5C.y = 0.0f;
-    fn_1_D518(sp8C, &sp5C);
-    sp5C.x += sp80.x;
-    sp5C.y += sp80.y;
-    sp5C.z += sp80.z;
-    mtxRotCat(sp8C, 0.0f, 180.0f + (90.0f - (45.0f * (0.007874016f * (frand() & 0x7F)))), 0.0f);
-    lbl_1_data_89B.a = arg8;
-    var_f30 = sp8C[0][2];
-    var_f29 = sp8C[2][2];
-    for (var_r28 = 0; var_r28 < (arg1 >> 1); var_r28++) {
-        fn_1_D488(0.007874016f * (frand() & 0x7F), &sp68, &sp5C, &sp50);
-        sp50.x += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
-        sp50.y += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
-        sp50.z += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
+    secondEmissionEdge.x = -25.0f;
+    secondEmissionEdge.z = 50.0f;
+    secondEmissionEdge.y = 0.0f;
+    TransformVector(emissionRotation, &secondEmissionEdge);
+    secondEmissionEdge.x += modelOrigin.x;
+    secondEmissionEdge.y += modelOrigin.y;
+    secondEmissionEdge.z += modelOrigin.z;
+    mtxRotCat(emissionRotation, 0.0f, 180.0f + (90.0f - (45.0f * (0.007874016f * (frand() & 0x7F)))), 0.0f);
+    particleTranslucentWhite.a = scale;
+    emissionForwardX = emissionRotation[0][2];
+    emissionForwardZ = emissionRotation[2][2];
+    for (particleIndex = 0; particleIndex < (destination >> 1); particleIndex++) {
+        InterpolateVector(0.007874016f * (frand() & 0x7F), &firstEmissionEdge, &secondEmissionEdge, &particlePosition);
+        particlePosition.x += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
+        particlePosition.y += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
+        particlePosition.z += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
 
-        sp44.x = 2.0f * var_f30 * (1.0f + (0.007874016f * (frand() & 0x7F)));
-        sp44.z = 2.0f * var_f29 * (1.0f + (0.007874016f * (frand() & 0x7F)));
-        sp44.y = 5.0f * (1.0f + (0.7f * (0.007874016f * (frand() & 0x7F))));
-        var_f31 = 5.0f + (15.0f * (0.007874016f * (frand() & 0x7F)));
+        particleVelocity.x = 2.0f * emissionForwardX * (1.0f + (0.007874016f * (frand() & 0x7F)));
+        particleVelocity.z = 2.0f * emissionForwardZ * (1.0f + (0.007874016f * (frand() & 0x7F)));
+        particleVelocity.y = 5.0f * (1.0f + (0.7f * (0.007874016f * (frand() & 0x7F))));
+        particleSize = 5.0f + (15.0f * (0.007874016f * (frand() & 0x7F)));
 
-        fn_1_8104(sp50, sp44, var_f31, lbl_1_data_89B);
+        CreateParticleEffectColored(particlePosition, particleVelocity, particleSize, particleTranslucentWhite);
     }
-    sp68.x = -25.0f;
-    sp68.z = -50.0f;
-    sp68.y = 0.0f;
-    fn_1_D518(sp8C, &sp68);
-    sp68.x += sp80.x;
-    sp68.y += sp80.y;
-    sp68.z = sp68.z + sp80.z;
-    sp5C.x = -25.0f;
-    sp5C.z = 50.0f;
-    sp5C.y = 0.0f;
-    fn_1_D518(sp8C, &sp5C);
-    sp5C.x += sp80.x;
-    sp5C.y += sp80.y;
-    sp5C.z += sp80.z;
-    for (var_r28 = 0; var_r28 < (arg1 >> 1); var_r28++) {
-        fn_1_D488(0.007874016f * (frand() & 0x7F), &sp68, &sp5C, &sp50);
-        sp50.x += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
-        sp50.y += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
-        sp50.z += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
+    firstEmissionEdge.x = -25.0f;
+    firstEmissionEdge.z = -50.0f;
+    firstEmissionEdge.y = 0.0f;
+    TransformVector(emissionRotation, &firstEmissionEdge);
+    firstEmissionEdge.x += modelOrigin.x;
+    firstEmissionEdge.y += modelOrigin.y;
+    firstEmissionEdge.z = firstEmissionEdge.z + modelOrigin.z;
+    secondEmissionEdge.x = -25.0f;
+    secondEmissionEdge.z = 50.0f;
+    secondEmissionEdge.y = 0.0f;
+    TransformVector(emissionRotation, &secondEmissionEdge);
+    secondEmissionEdge.x += modelOrigin.x;
+    secondEmissionEdge.y += modelOrigin.y;
+    secondEmissionEdge.z += modelOrigin.z;
+    for (particleIndex = 0; particleIndex < (destination >> 1); particleIndex++) {
+        InterpolateVector(0.007874016f * (frand() & 0x7F), &firstEmissionEdge, &secondEmissionEdge, &particlePosition);
+        particlePosition.x += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
+        particlePosition.y += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
+        particlePosition.z += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
 
-        sp44.x = 2.0f * var_f30 * (1.0f + (0.007874016f * (frand() & 0x7F)));
-        sp44.z = 2.0f * var_f29 * (1.0f + (0.007874016f * (frand() & 0x7F)));
-        sp44.y = 5.0f * (1.0f + (0.7f * (0.007874016f * (frand() & 0x7F))));
-        var_f31 = 5.0f + (15.0f * (0.007874016f * (frand() & 0x7F)));
+        particleVelocity.x = 2.0f * emissionForwardX * (1.0f + (0.007874016f * (frand() & 0x7F)));
+        particleVelocity.z = 2.0f * emissionForwardZ * (1.0f + (0.007874016f * (frand() & 0x7F)));
+        particleVelocity.y = 5.0f * (1.0f + (0.7f * (0.007874016f * (frand() & 0x7F))));
+        particleSize = 5.0f + (15.0f * (0.007874016f * (frand() & 0x7F)));
 
-        fn_1_8104(sp50, sp44, var_f31, lbl_1_data_89B);
+        CreateParticleEffectColored(particlePosition, particleVelocity, particleSize, particleTranslucentWhite);
     }
 }
 
-void fn_1_8F98(void)
+void CreateCameraTransitionEffects(void)
 {
-    UnkM406Struct7 *var_r31;
-    s32 var_r30;
+    CameraTransitionEffect *transitionSlot;
+    s32 slotIndex;
 
-    var_r31 = lbl_1_bss_A0 = HuMemDirectMallocNum(HEAP_HEAP, 128 * sizeof(UnkM406Struct7), HU_MEMNUM_OVL);
-    memset(lbl_1_bss_A0, 0, 128 * sizeof(UnkM406Struct7));
-    for (var_r30 = 0, var_r31 = lbl_1_bss_A0; var_r30 < 64; var_r30++, var_r31++) {
-        var_r31->unk_00 = 0;
-        var_r31->unk_01 = 0;
-        var_r31->unk_08 = 0;
-        var_r31->unk_0C = 0.0f;
-        var_r31->unk_10 = 0.0f;
-        var_r31->unk_14 = 6.0f;
-        var_r31->unk_18 = 1.0f;
-        MTXIdentity(var_r31->unk_1C);
-        if (var_r30 == 0) {
-            var_r31->unk_04 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 59));
+    transitionSlot = cameraTransitionEffects = HuMemDirectMallocNum(HEAP_HEAP, 128 * sizeof(CameraTransitionEffect), HU_MEMNUM_OVL);
+    memset(cameraTransitionEffects, 0, 128 * sizeof(CameraTransitionEffect));
+    for (slotIndex = 0, transitionSlot = cameraTransitionEffects; slotIndex < 64; slotIndex++, transitionSlot++) {
+        transitionSlot->isActive = 0;
+        transitionSlot->reservedFlag = 0;
+        transitionSlot->frameCount = 0;
+        transitionSlot->elapsedTime = 0.0f;
+        transitionSlot->timeStep = 0.0f;
+        transitionSlot->transitionDuration = 6.0f;
+        transitionSlot->fadeCurveAmplitude = 1.0f;
+        MTXIdentity(transitionSlot->transformMatrix);
+        if (slotIndex == 0) {
+            transitionSlot->modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 59));
         }
         else {
-            var_r31->unk_04 = Hu3DModelLink(lbl_1_bss_A0->unk_04);
+            transitionSlot->modelId = Hu3DModelLink(cameraTransitionEffects->modelId);
         }
-        Hu3DModelLayerSet(var_r31->unk_04, 3);
-        Hu3DModelAttrSet(var_r31->unk_04, HU3D_ATTR_DISPOFF);
+        Hu3DModelLayerSet(transitionSlot->modelId, 3);
+        Hu3DModelAttrSet(transitionSlot->modelId, HU3D_ATTR_DISPOFF);
     }
 
-    for (var_r30 = 0, var_r31 = &lbl_1_bss_A0[64]; var_r30 < 64; var_r30++, var_r31++) {
-        var_r31->unk_00 = 0;
-        var_r31->unk_01 = 0;
-        var_r31->unk_08 = 0;
-        var_r31->unk_0C = 0.0f;
-        var_r31->unk_10 = 0.0f;
-        var_r31->unk_14 = 6.0f;
-        var_r31->unk_18 = 1.0f;
-        MTXIdentity(var_r31->unk_1C);
-        if (var_r30 == 0) {
-            var_r31->unk_04 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 60));
+    for (slotIndex = 0, transitionSlot = &cameraTransitionEffects[64]; slotIndex < 64; slotIndex++, transitionSlot++) {
+        transitionSlot->isActive = 0;
+        transitionSlot->reservedFlag = 0;
+        transitionSlot->frameCount = 0;
+        transitionSlot->elapsedTime = 0.0f;
+        transitionSlot->timeStep = 0.0f;
+        transitionSlot->transitionDuration = 6.0f;
+        transitionSlot->fadeCurveAmplitude = 1.0f;
+        MTXIdentity(transitionSlot->transformMatrix);
+        if (slotIndex == 0) {
+            transitionSlot->modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 60));
         }
         else {
-            var_r31->unk_04 = Hu3DModelLink(lbl_1_bss_A0[64].unk_04);
+            transitionSlot->modelId = Hu3DModelLink(cameraTransitionEffects[64].modelId);
         }
-        Hu3DModelLayerSet(var_r31->unk_04, 3);
-        Hu3DModelAttrSet(var_r31->unk_04, HU3D_ATTR_DISPOFF);
+        Hu3DModelLayerSet(transitionSlot->modelId, 3);
+        Hu3DModelAttrSet(transitionSlot->modelId, HU3D_ATTR_DISPOFF);
     }
 }
 
-void fn_1_91E0(void)
+void UpdateCameraTransitionEffects(void)
 {
-    Mtx sp8;
+    Mtx scaleMatrix;
 
-    float var_f31;
-    float var_f30;
+    Float fadeScale;
+    Float transitionProgress;
 
-    UnkM406Struct7 *var_r31;
-    HU3DMODEL *var_r30;
-    s32 var_r29;
+    CameraTransitionEffect *transitionSlot;
+    HU3DMODEL *effectModel;
+    s32 slotIndex;
 
-    var_r31 = lbl_1_bss_A0;
-    for (var_r29 = 0, var_r31 = lbl_1_bss_A0; var_r29 < 64; var_r29++, var_r31++) {
-        if (!var_r31->unk_00) {
+    transitionSlot = cameraTransitionEffects;
+    for (slotIndex = 0, transitionSlot = cameraTransitionEffects; slotIndex < 64; slotIndex++, transitionSlot++) {
+        if (!transitionSlot->isActive) {
             continue;
         }
-        var_f30 = var_r31->unk_0C / var_r31->unk_14;
-        var_f31 = var_r31->unk_18 * cosd((90.0f * var_f30));
-        var_f31 = var_f31;
-        var_r30 = &Hu3DData[var_r31->unk_04];
-        MTXScale(sp8, var_f31, var_f31, var_f31);
-        MTXConcat(var_r31->unk_1C, sp8, var_r30->mtx);
-        var_r30->mtx[0][3] = var_r31->unk_1C[0][3];
-        var_r30->mtx[1][3] = var_r31->unk_1C[1][3];
-        var_r30->mtx[2][3] = var_r31->unk_1C[2][3];
-        Hu3DModelTPLvlSet(var_r31->unk_04, 1.0f - var_f30);
-        if ((var_r31->unk_0C += var_r31->unk_10) >= var_r31->unk_14) {
-            Hu3DModelAttrSet(var_r31->unk_04, HU3D_ATTR_DISPOFF);
-            var_r31->unk_00 = 0;
-            var_r31->unk_0C = 0.0f;
+        transitionProgress = transitionSlot->elapsedTime / transitionSlot->transitionDuration;
+        fadeScale = transitionSlot->fadeCurveAmplitude * cosd((90.0f * transitionProgress));
+        fadeScale = fadeScale;
+        effectModel = &Hu3DData[transitionSlot->modelId];
+        MTXScale(scaleMatrix, fadeScale, fadeScale, fadeScale);
+        MTXConcat(transitionSlot->transformMatrix, scaleMatrix, effectModel->mtx);
+        effectModel->mtx[0][3] = transitionSlot->transformMatrix[0][3];
+        effectModel->mtx[1][3] = transitionSlot->transformMatrix[1][3];
+        effectModel->mtx[2][3] = transitionSlot->transformMatrix[2][3];
+        Hu3DModelTPLvlSet(transitionSlot->modelId, 1.0f - transitionProgress);
+        if ((transitionSlot->elapsedTime += transitionSlot->timeStep) >= transitionSlot->transitionDuration) {
+            Hu3DModelAttrSet(transitionSlot->modelId, HU3D_ATTR_DISPOFF);
+            transitionSlot->isActive = 0;
+            transitionSlot->elapsedTime = 0.0f;
         }
-        var_r31->unk_08++;
+        transitionSlot->frameCount++;
     }
-    for (var_r29 = 0, var_r31 = &lbl_1_bss_A0[64]; var_r29 < 64; var_r29++, var_r31++) {
-        if (!var_r31->unk_00) {
+    for (slotIndex = 0, transitionSlot = &cameraTransitionEffects[64]; slotIndex < 64; slotIndex++, transitionSlot++) {
+        if (!transitionSlot->isActive) {
             continue;
         }
-        var_f30 = var_r31->unk_0C / var_r31->unk_14;
-        var_f31 = var_r31->unk_18 * cosd((90.0f * var_f30));
-        var_f31 = var_f31;
-        var_r30 = &Hu3DData[var_r31->unk_04];
-        MTXScale(sp8, var_f31, var_f31, var_f31);
-        MTXConcat(var_r31->unk_1C, sp8, var_r30->mtx);
-        var_r30->mtx[0][3] = var_r31->unk_1C[0][3];
-        var_r30->mtx[1][3] = var_r31->unk_1C[1][3];
-        var_r30->mtx[2][3] = var_r31->unk_1C[2][3];
-        Hu3DModelTPLvlSet(var_r31->unk_04, 1.0f - var_f30);
-        if ((var_r31->unk_0C += var_r31->unk_10) >= var_r31->unk_14) {
-            Hu3DModelAttrSet(var_r31->unk_04, HU3D_ATTR_DISPOFF);
-            var_r31->unk_00 = 0;
-            var_r31->unk_0C = 0.0f;
+        transitionProgress = transitionSlot->elapsedTime / transitionSlot->transitionDuration;
+        fadeScale = transitionSlot->fadeCurveAmplitude * cosd((90.0f * transitionProgress));
+        fadeScale = fadeScale;
+        effectModel = &Hu3DData[transitionSlot->modelId];
+        MTXScale(scaleMatrix, fadeScale, fadeScale, fadeScale);
+        MTXConcat(transitionSlot->transformMatrix, scaleMatrix, effectModel->mtx);
+        effectModel->mtx[0][3] = transitionSlot->transformMatrix[0][3];
+        effectModel->mtx[1][3] = transitionSlot->transformMatrix[1][3];
+        effectModel->mtx[2][3] = transitionSlot->transformMatrix[2][3];
+        Hu3DModelTPLvlSet(transitionSlot->modelId, 1.0f - transitionProgress);
+        if ((transitionSlot->elapsedTime += transitionSlot->timeStep) >= transitionSlot->transitionDuration) {
+            Hu3DModelAttrSet(transitionSlot->modelId, HU3D_ATTR_DISPOFF);
+            transitionSlot->isActive = 0;
+            transitionSlot->elapsedTime = 0.0f;
         }
-        var_r31->unk_08++;
+        transitionSlot->frameCount++;
     }
 }
 
-void fn_1_94BC(void) { }
+void DestroyCameraTransitionEffects(void) { }
 
-s32 fn_1_94C0(Mtx arg0, s32 arg1, s32 arg2)
+s32 SetEffectTransform(Mtx source, s32 destination, s32 effectColor)
 {
-    Mtx spA0;
-    Mtx sp70;
-    Vec sp64;
-    Vec sp58;
-    Vec sp4C;
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
+    Mtx emissionRotation;
+    Mtx particleScaleMatrix;
+    Vec modelPosition;
+    Vec modelYaw;
+    Vec firstEdgePosition;
+    Vec secondEdgePosition;
+    Vec particlePosition;
+    Vec particleVelocity;
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    Float particleScale;
+    Float emissionForwardX;
+    Float emissionForwardZ;
 
-    UnkM406Struct7 *var_r31;
-    s32 var_r28;
-    HU3DMODEL *var_r27;
+    CameraTransitionEffect *transitionSlot;
+    s32 particleIndex;
+    HU3DMODEL *particleModel;
 
-    sp64.x = arg0[0][3];
-    sp64.y = arg0[1][3];
-    sp64.z = arg0[2][3];
-    sp58.x = sp58.z = 0.0f;
-    sp58.y = atan2d(arg0[0][0], arg0[2][0]);
-    MTXCopy(arg0, spA0);
+    modelPosition.x = source[0][3];
+    modelPosition.y = source[1][3];
+    modelPosition.z = source[2][3];
+    modelYaw.x = modelYaw.z = 0.0f;
+    modelYaw.y = atan2d(source[0][0], source[2][0]);
+    MTXCopy(source, emissionRotation);
 #ifdef NON_MATCHING
-    spA0[0][3] = spA0[1][3] = spA0[2][3] = 0.0f;
+    emissionRotation[0][3] = emissionRotation[1][3] = emissionRotation[2][3] = 0.0f;
 #else
-    spA0[0][3] = spA0[1][3] = spA0[2][3] = spA0[3][3] = 0.0f;
+    emissionRotation[0][3] = emissionRotation[1][3] = emissionRotation[2][3] = emissionRotation[3][3] = 0.0f;
 #endif
 
-    if (!arg2) {
-        sp4C.x = 25.0f;
-        sp4C.z = -50.0f;
-        sp4C.y = 0.0f;
-        fn_1_D518(spA0, &sp4C);
-        sp4C.x += sp64.x;
-        sp4C.y += sp64.y;
-        sp4C.z += sp64.z;
-        sp40.x = 25.0f;
-        sp40.z = 50.0f;
-        sp40.y = 0.0f;
-        fn_1_D518(spA0, &sp40);
-        sp40.x += sp64.x;
-        sp40.y += sp64.y;
-        sp40.z += sp64.z;
-        mtxRotCat(spA0, 0.0f, 180.0f + (45.0f * (0.007874016f * (frand() & 0x7F))), 0.0f);
+    if (!effectColor) {
+        firstEdgePosition.x = 25.0f;
+        firstEdgePosition.z = -50.0f;
+        firstEdgePosition.y = 0.0f;
+        TransformVector(emissionRotation, &firstEdgePosition);
+        firstEdgePosition.x += modelPosition.x;
+        firstEdgePosition.y += modelPosition.y;
+        firstEdgePosition.z += modelPosition.z;
+        secondEdgePosition.x = 25.0f;
+        secondEdgePosition.z = 50.0f;
+        secondEdgePosition.y = 0.0f;
+        TransformVector(emissionRotation, &secondEdgePosition);
+        secondEdgePosition.x += modelPosition.x;
+        secondEdgePosition.y += modelPosition.y;
+        secondEdgePosition.z += modelPosition.z;
+        mtxRotCat(emissionRotation, 0.0f, 180.0f + (45.0f * (0.007874016f * (frand() & 0x7F))), 0.0f);
     }
     else {
-        sp4C = sp64;
-        sp4C.x = -25.0f;
-        sp4C.z = -50.0f;
-        sp4C.y = 0.0f;
-        fn_1_D518(spA0, &sp4C);
-        sp4C.x += sp64.x;
-        sp4C.y += sp64.y;
-        sp4C.z += sp64.z;
-        sp40 = sp64;
-        sp40.x = -25.0f;
-        sp40.z = 50.0f;
-        sp40.y = 0.0f;
-        fn_1_D518(spA0, &sp40);
-        sp40.x += sp64.x;
-        sp40.y += sp64.y;
-        sp40.z += sp64.z;
-        mtxRotCat(spA0, 0.0f, 180.0f - (45.0f * (0.007874016f * (frand() & 0x7F))), 0.0f);
+        firstEdgePosition = modelPosition;
+        firstEdgePosition.x = -25.0f;
+        firstEdgePosition.z = -50.0f;
+        firstEdgePosition.y = 0.0f;
+        TransformVector(emissionRotation, &firstEdgePosition);
+        firstEdgePosition.x += modelPosition.x;
+        firstEdgePosition.y += modelPosition.y;
+        firstEdgePosition.z += modelPosition.z;
+        secondEdgePosition = modelPosition;
+        secondEdgePosition.x = -25.0f;
+        secondEdgePosition.z = 50.0f;
+        secondEdgePosition.y = 0.0f;
+        TransformVector(emissionRotation, &secondEdgePosition);
+        secondEdgePosition.x += modelPosition.x;
+        secondEdgePosition.y += modelPosition.y;
+        secondEdgePosition.z += modelPosition.z;
+        mtxRotCat(emissionRotation, 0.0f, 180.0f - (45.0f * (0.007874016f * (frand() & 0x7F))), 0.0f);
     }
-    var_f30 = spA0[0][2];
-    var_f29 = spA0[2][2];
-    for (var_r28 = 0; var_r28 < arg1; var_r28++) {
-        fn_1_D488(0.007874016f * (frand() & 0x7F), &sp4C, &sp40, &sp34);
-        sp34.x += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
-        sp34.y += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
-        sp34.z += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
-        sp28.x = 2.0f * var_f30 * (1.0f + (0.007874016f * (frand() & 0x7F)));
-        sp28.z = 2.0f * var_f29 * (1.0f + (0.007874016f * (frand() & 0x7F)));
-        sp28.y = 5.0f * (1.0f + (0.7f * (0.007874016f * (frand() & 0x7F))));
+    emissionForwardX = emissionRotation[0][2];
+    emissionForwardZ = emissionRotation[2][2];
+    for (particleIndex = 0; particleIndex < destination; particleIndex++) {
+        InterpolateVector(0.007874016f * (frand() & 0x7F), &firstEdgePosition, &secondEdgePosition, &particlePosition);
+        particlePosition.x += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
+        particlePosition.y += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
+        particlePosition.z += 100.0f * (0.1f * ((0.007874016f * (frand() & 0x7F)) - 0.5f));
+        particleVelocity.x = 2.0f * emissionForwardX * (1.0f + (0.007874016f * (frand() & 0x7F)));
+        particleVelocity.z = 2.0f * emissionForwardZ * (1.0f + (0.007874016f * (frand() & 0x7F)));
+        particleVelocity.y = 5.0f * (1.0f + (0.7f * (0.007874016f * (frand() & 0x7F))));
 
-        fn_1_8104(sp34, sp28, 7.5f, lbl_1_data_89F);
+        CreateParticleEffectColored(particlePosition, particleVelocity, 7.5f, particleFadeWhite);
     }
-    var_r31 = lbl_1_bss_A0;
-    if (!arg2) {
-        for (var_r28 = 0, var_r31 = lbl_1_bss_A0; var_r28 < 64; var_r28++, var_r31++) {
-            if (!var_r31->unk_00) {
+    transitionSlot = cameraTransitionEffects;
+    if (!effectColor) {
+        for (particleIndex = 0, transitionSlot = cameraTransitionEffects; particleIndex < 64; particleIndex++, transitionSlot++) {
+            if (!transitionSlot->isActive) {
                 break;
             }
         }
-        if (var_r28 >= 64) {
+        if (particleIndex >= 64) {
             return -1;
         }
     }
     else {
-        for (var_r28 = 0, var_r31 = &lbl_1_bss_A0[64]; var_r28 < 64; var_r28++, var_r31++) {
-            if (!var_r31->unk_00) {
+        for (particleIndex = 0, transitionSlot = &cameraTransitionEffects[64]; particleIndex < 64; particleIndex++, transitionSlot++) {
+            if (!transitionSlot->isActive) {
                 break;
             }
         }
-        if (var_r28 >= 64) {
+        if (particleIndex >= 64) {
             return -1;
         }
     }
-    var_f31 = 1.2f * (2.0f + (0.007874016f * (frand() & 0x7F)));
-    var_r31->unk_00 = 1;
-    var_r31->unk_08 = 0;
-    var_r31->unk_0C = 0.0f;
-    var_r31->unk_10 = 1.0f;
-    var_r31->unk_14 = 6.0f;
-    var_r31->unk_18 = var_f31;
-    MTXCopy(arg0, var_r31->unk_1C);
-    Hu3DMotionTimeSet(var_r31->unk_04, 0.0f);
-    Hu3DMotionSpeedSet(var_r31->unk_04, 0.0f);
-    var_r27 = &Hu3DData[var_r31->unk_04];
-    MTXScale(sp70, var_f31, var_f31, var_f31);
-    MTXConcat(arg0, sp70, var_r27->mtx);
-    var_r27->mtx[0][3] = arg0[0][3];
-    var_r27->mtx[1][3] = arg0[1][3];
-    var_r27->mtx[2][3] = arg0[2][3];
-    Hu3DModelPosSet(var_r31->unk_04, 0.0f, 0.0f, 0.0f);
-    Hu3DModelRotSet(var_r31->unk_04, 0.0f, 0.0f, 0.0f);
-    Hu3DModelScaleSet(var_r31->unk_04, 1.0f, 1.0f, 1.0f);
-    Hu3DModelAttrReset(var_r31->unk_04, HU3D_ATTR_DISPOFF);
-    (void)var_r31;
-    return var_r28;
+    particleScale = 1.2f * (2.0f + (0.007874016f * (frand() & 0x7F)));
+    transitionSlot->isActive = 1;
+    transitionSlot->frameCount = 0;
+    transitionSlot->elapsedTime = 0.0f;
+    transitionSlot->timeStep = 1.0f;
+    transitionSlot->transitionDuration = 6.0f;
+    transitionSlot->fadeCurveAmplitude = particleScale;
+    MTXCopy(source, transitionSlot->transformMatrix);
+    Hu3DMotionTimeSet(transitionSlot->modelId, 0.0f);
+    Hu3DMotionSpeedSet(transitionSlot->modelId, 0.0f);
+    particleModel = &Hu3DData[transitionSlot->modelId];
+    MTXScale(particleScaleMatrix, particleScale, particleScale, particleScale);
+    MTXConcat(source, particleScaleMatrix, particleModel->mtx);
+    particleModel->mtx[0][3] = source[0][3];
+    particleModel->mtx[1][3] = source[1][3];
+    particleModel->mtx[2][3] = source[2][3];
+    Hu3DModelPosSet(transitionSlot->modelId, 0.0f, 0.0f, 0.0f);
+    Hu3DModelRotSet(transitionSlot->modelId, 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(transitionSlot->modelId, 1.0f, 1.0f, 1.0f);
+    Hu3DModelAttrReset(transitionSlot->modelId, HU3D_ATTR_DISPOFF);
+    (void)transitionSlot;
+    return particleIndex;
 }
 
-void fn_1_9F78(void)
+void CreateSceneAnimationGroup(void)
 {
-    UnkM406Unk120Struct2 *var_r31;
-    UnkM406Struct8 *var_r30;
-    HU3DMODEL *var_r29;
-    UnkM406Struct9 *var_r28;
-    s32 var_r27;
+    ParticleEffectHookData *modelHookData;
+    SceneAnimationGroup *animationManager;
+    HU3DMODEL *effectModel;
+    ParticleEffectSettings *effectSettings;
+    s32 effectModelId;
 
-    var_r30 = lbl_1_bss_9C = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM406Struct8), HU_MEMNUM_OVL);
-    memset(var_r30, 0, sizeof(UnkM406Struct8));
-    var_r30->unk_00 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 0x40), HU_MEMNUM_OVL));
-    var_r30->unk_04 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 0x41), HU_MEMNUM_OVL));
-    var_r30->unk_08 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 0x42), HU_MEMNUM_OVL));
-    var_r30->unk_0C = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 0x43), HU_MEMNUM_OVL));
-    var_r30->unk_24 = 0.0f;
-    var_r30->unk_28 = 0.0f;
-    var_r27 = fn_1_B474(var_r30->unk_00, 1);
-    var_r30->unk_10 = var_r27;
-    Hu3DModelLayerSet(var_r27, 6);
-    var_r29 = &Hu3DData[var_r27];
-    var_r31 = var_r29->hookData;
-    var_r31->unk_20 = 1;
-    var_r31->unk_22 = 2;
-    var_r31->unk_4C = fn_1_A2C8;
-    var_r28 = var_r31->unk_1C = HuMemDirectMallocNum(HEAP_MODEL, sizeof(UnkM406Struct9), var_r29->mallocNo);
-    memset(var_r28, 0, 8);
-    var_r28->unk_02 = 0;
-    var_r27 = fn_1_B474(var_r30->unk_0C, 0xA);
-    var_r30->unk_14 = var_r27;
-    Hu3DModelLayerSet(var_r27, 6);
-    var_r29 = &Hu3DData[var_r27];
-    var_r31 = var_r29->hookData;
-    var_r31->unk_20 = 1;
-    var_r31->unk_22 = 3;
-    var_r31->unk_4C = fn_1_A2C8;
-    var_r28 = var_r31->unk_1C = HuMemDirectMallocNum(HEAP_MODEL, sizeof(UnkM406Struct9), var_r29->mallocNo);
-    memset(var_r28, 0, 8);
-    var_r28->unk_02 = 1;
-    var_r27 = fn_1_B474(var_r30->unk_08, 4);
-    var_r30->unk_18 = var_r27;
-    Hu3DModelLayerSet(var_r27, 6);
-    var_r29 = &Hu3DData[var_r27];
-    var_r31 = var_r29->hookData;
-    var_r31->unk_20 = 1;
-    var_r31->unk_22 = 3;
-    var_r31->unk_4C = fn_1_A2C8;
-    var_r28 = var_r31->unk_1C = HuMemDirectMallocNum(HEAP_MODEL, sizeof(UnkM406Struct9), var_r29->mallocNo);
-    memset(var_r28, 0, 8);
-    var_r28->unk_02 = 2;
-    var_r27 = fn_1_B474(var_r30->unk_04, 6);
-    var_r30->unk_1C = var_r27;
-    Hu3DModelLayerSet(var_r27, 6);
-    var_r29 = &Hu3DData[var_r27];
-    var_r31 = var_r29->hookData;
-    var_r31->unk_20 = 1;
-    var_r31->unk_22 = 3;
-    var_r31->unk_4C = fn_1_A2C8;
-    var_r28 = var_r31->unk_1C = HuMemDirectMallocNum(HEAP_MODEL, sizeof(UnkM406Struct9), var_r29->mallocNo);
-    memset(var_r28, 0, 8);
-    var_r28->unk_02 = 3;
-    var_r30->unk_20 = Hu3DHookFuncCreate(fn_1_ADB4);
-    Hu3DModelLayerSet(var_r30->unk_20, 7);
+    animationManager = sceneAnimationGroup = HuMemDirectMallocNum(HEAP_HEAP, sizeof(SceneAnimationGroup), HU_MEMNUM_OVL);
+    memset(animationManager, 0, sizeof(SceneAnimationGroup));
+    animationManager->animation0 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 0x40), HU_MEMNUM_OVL));
+    animationManager->animation1 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 0x41), HU_MEMNUM_OVL));
+    animationManager->animation2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 0x42), HU_MEMNUM_OVL));
+    animationManager->animation3 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M406, 0x43), HU_MEMNUM_OVL));
+    animationManager->modelGroupEnabled = 0.0f;
+    animationManager->overlayAlpha = 0.0f;
+    effectModelId = CreateModelAnimation(animationManager->animation0, 1);
+    animationManager->modelId0 = effectModelId;
+    Hu3DModelLayerSet(effectModelId, 6);
+    effectModel = &Hu3DData[effectModelId];
+    modelHookData = effectModel->hookData;
+    modelHookData->hookMode = 1;
+    modelHookData->effectFlags = 2;
+    modelHookData->DrawHook = DrawSceneAnimationGroup;
+    effectSettings = modelHookData->effectSettings = HuMemDirectMallocNum(HEAP_MODEL, sizeof(ParticleEffectSettings), effectModel->mallocNo);
+    memset(effectSettings, 0, 8);
+    effectSettings->effectVariant = 0;
+    effectModelId = CreateModelAnimation(animationManager->animation3, 0xA);
+    animationManager->modelId1 = effectModelId;
+    Hu3DModelLayerSet(effectModelId, 6);
+    effectModel = &Hu3DData[effectModelId];
+    modelHookData = effectModel->hookData;
+    modelHookData->hookMode = 1;
+    modelHookData->effectFlags = 3;
+    modelHookData->DrawHook = DrawSceneAnimationGroup;
+    effectSettings = modelHookData->effectSettings = HuMemDirectMallocNum(HEAP_MODEL, sizeof(ParticleEffectSettings), effectModel->mallocNo);
+    memset(effectSettings, 0, 8);
+    effectSettings->effectVariant = 1;
+    effectModelId = CreateModelAnimation(animationManager->animation2, 4);
+    animationManager->modelId2 = effectModelId;
+    Hu3DModelLayerSet(effectModelId, 6);
+    effectModel = &Hu3DData[effectModelId];
+    modelHookData = effectModel->hookData;
+    modelHookData->hookMode = 1;
+    modelHookData->effectFlags = 3;
+    modelHookData->DrawHook = DrawSceneAnimationGroup;
+    effectSettings = modelHookData->effectSettings = HuMemDirectMallocNum(HEAP_MODEL, sizeof(ParticleEffectSettings), effectModel->mallocNo);
+    memset(effectSettings, 0, 8);
+    effectSettings->effectVariant = 2;
+    effectModelId = CreateModelAnimation(animationManager->animation1, 6);
+    animationManager->modelId3 = effectModelId;
+    Hu3DModelLayerSet(effectModelId, 6);
+    effectModel = &Hu3DData[effectModelId];
+    modelHookData = effectModel->hookData;
+    modelHookData->hookMode = 1;
+    modelHookData->effectFlags = 3;
+    modelHookData->DrawHook = DrawSceneAnimationGroup;
+    effectSettings = modelHookData->effectSettings = HuMemDirectMallocNum(HEAP_MODEL, sizeof(ParticleEffectSettings), effectModel->mallocNo);
+    memset(effectSettings, 0, 8);
+    effectSettings->effectVariant = 3;
+    animationManager->updateHookId = Hu3DHookFuncCreate(SetOrthographicProjection);
+    Hu3DModelLayerSet(animationManager->updateHookId, 7);
 }
 
-void fn_1_A278(void)
+void DestroySceneAnimationGroup(void)
 {
-    UnkM406Struct8 *var_r31;
+    SceneAnimationGroup *animationManager;
 
-    var_r31 = lbl_1_bss_9C;
-    HuSprAnimKill(var_r31->unk_00);
-    HuSprAnimKill(var_r31->unk_04);
-    HuSprAnimKill(var_r31->unk_08);
-    HuSprAnimKill(var_r31->unk_0C);
+    animationManager = sceneAnimationGroup;
+    HuSprAnimKill(animationManager->animation0);
+    HuSprAnimKill(animationManager->animation1);
+    HuSprAnimKill(animationManager->animation2);
+    HuSprAnimKill(animationManager->animation3);
 }
 
-void fn_1_A2C8(HU3DMODEL *arg0, UnkM406Unk120Struct2 *arg1, Mtx arg2)
+void DrawSceneAnimationGroup(HU3DMODEL *source, ParticleEffectHookData *destination, Mtx effectColor)
 {
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    void *sp14;
-    s16 sp8;
+    Vec cameraDirection;
+    Vec cameraRelativeDirection;
+    Vec reflectedDirection;
+    Vec initialParticleDirection;
+    void *animationManagerData;
+    s16 callbackState;
 
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
-    float var_f25;
-    float var_f24;
+    Float vectorScale;
+    Float initialDirectionLengthSquared;
+    Float cameraDirectionLengthSquared;
+    Float particleDistance;
+    Float normalizedParticleDistance;
+    Float particleSpacing;
 
-    UnkM406Struct5 *var_r31;
-    UnkM406Struct9 *var_r29;
-    s32 var_r28;
+    MapParticleEffect *particleEffect;
+    ParticleEffectSettings *effectSettings;
+    s32 particleIndex;
 
-    sp8 = 0;
-    sp14 = lbl_1_bss_9C;
-    var_r29 = arg1->unk_1C;
-    switch (var_r29->unk_04) {
+    callbackState = 0;
+    animationManagerData = sceneAnimationGroup;
+    effectSettings = destination->effectSettings;
+    switch (effectSettings->animationStep) {
         case 0:
-            var_r31 = arg1->unk_3C;
-            if (var_r29->unk_02) {
-                sp18.x = 10000.0f;
-                sp18.y = -20000.0f;
-                sp18.z = -20000.0f;
-                var_f28 = (sp18.z * sp18.z) + ((sp18.x * sp18.x) + (sp18.y * sp18.y));
-                var_f29 = 1.0f / sqrtf(var_f28);
-                sp18.x *= var_f29;
-                sp18.y *= var_f29;
-                sp18.z *= var_f29;
-                var_f24 = 6500.0f / arg1->unk_26;
-                for (var_r28 = 0; var_r28 < arg1->unk_26; var_r28++, var_r31++) {
-                    var_f26 = 500.0 + ((var_f24 * var_r28) + ((0.25f * var_f24) * (1.52587890625e-05 * (float)(frand() & 0xFFFF))));
-                    var_f25 = var_f26 / 6500.0f;
-                    var_r31->unk_10 = var_f26;
-                    var_r31->unk_30.x = var_f26 * sp18.x;
-                    var_r31->unk_30.y = -27000.0f + (var_f26 * sp18.y);
-                    var_r31->unk_30.z = -63000.0f + (var_f26 * sp18.z);
-                    var_r31->unk_28 = (0.3f + (0.7f * (var_f25 * var_f25)))
-                        * (lbl_1_data_8A4[var_r29->unk_02]
-                            * (0.699999988079071 + (0.30000001192092896 * (1.52587890625e-05 * (float)(frand() & 0xFFFF)))));
-                    var_r31->unk_3C.r = (s32)(160.0 * (1.52587890625e-05 * (float)(frand() & 0xFFFF))) + 0x20;
-                    var_r31->unk_3C.g = (s32)(96.0 * (1.52587890625e-05 * (float)(frand() & 0xFFFF))) + 0x20;
-                    var_r31->unk_3C.b = (s32)(128.0 * (1.52587890625e-05 * (float)(frand() & 0xFFFF))) + 0x20;
-                    var_r31->unk_3C.a = ((1.0 - (0.4 * var_f25)) * (255.0f * lbl_1_data_8B4[var_r29->unk_02]))
-                        - (int)(16.0 * (1.52587890625e-05 * (float)(frand() & 0xFFFF)));
+            particleEffect = destination->particles;
+            if (effectSettings->effectVariant) {
+                initialParticleDirection.x = 10000.0f;
+                initialParticleDirection.y = -20000.0f;
+                initialParticleDirection.z = -20000.0f;
+                initialDirectionLengthSquared = (initialParticleDirection.z * initialParticleDirection.z) + ((initialParticleDirection.x * initialParticleDirection.x) + (initialParticleDirection.y * initialParticleDirection.y));
+                vectorScale = 1.0f / sqrtf(initialDirectionLengthSquared);
+                initialParticleDirection.x *= vectorScale;
+                initialParticleDirection.y *= vectorScale;
+                initialParticleDirection.z *= vectorScale;
+                particleSpacing = 6500.0f / destination->particleCount;
+                for (particleIndex = 0; particleIndex < destination->particleCount; particleIndex++, particleEffect++) {
+                    particleDistance = 500.0 + ((particleSpacing * particleIndex) + ((0.25f * particleSpacing) * (1.52587890625e-05 * (Float)(frand() & 0xFFFF))));
+                    normalizedParticleDistance = particleDistance / 6500.0f;
+                    particleEffect->scaleFactor = particleDistance;
+                    particleEffect->position.x = particleDistance * initialParticleDirection.x;
+                    particleEffect->position.y = -27000.0f + (particleDistance * initialParticleDirection.y);
+                    particleEffect->position.z = -63000.0f + (particleDistance * initialParticleDirection.z);
+                    particleEffect->effectSize = (0.3f + (0.7f * (normalizedParticleDistance * normalizedParticleDistance)))
+                        * (particleLifetimeValues[effectSettings->effectVariant]
+                            * (0.699999988079071 + (0.30000001192092896 * (1.52587890625e-05 * (Float)(frand() & 0xFFFF)))));
+                    particleEffect->color.r = (s32)(160.0 * (1.52587890625e-05 * (Float)(frand() & 0xFFFF))) + 0x20;
+                    particleEffect->color.g = (s32)(96.0 * (1.52587890625e-05 * (Float)(frand() & 0xFFFF))) + 0x20;
+                    particleEffect->color.b = (s32)(128.0 * (1.52587890625e-05 * (Float)(frand() & 0xFFFF))) + 0x20;
+                    particleEffect->color.a = ((1.0 - (0.4 * normalizedParticleDistance)) * (255.0f * particleSizeValues[effectSettings->effectVariant]))
+                        - (int)(16.0 * (1.52587890625e-05 * (Float)(frand() & 0xFFFF)));
                 }
-                var_r29->unk_04++;
+                effectSettings->animationStep++;
             }
             else {
-                var_r31->unk_30.x = 0.0f;
-                var_r31->unk_30.y = -27000.0f;
-                var_r31->unk_30.z = -63000.0f;
-                var_r31->unk_28 = 1000.0f;
+                particleEffect->position.x = 0.0f;
+                particleEffect->position.y = -27000.0f;
+                particleEffect->position.z = -63000.0f;
+                particleEffect->effectSize = 1000.0f;
             }
             break;
         case 1:
-            sp3C.x = sind(CRot.y) * cosd(CRot.x);
-            sp3C.y = -sind(CRot.x);
-            sp3C.z = cosd(CRot.y) * cosd(CRot.x);
-            sp30.x = -(Center.x + (1.25f * (sp3C.x * CZoom)));
-            sp30.y = -27000.0f - (Center.y + (sp3C.y * CZoom));
-            sp30.z = -63000.0f - (Center.z + (1.25f * (sp3C.z * CZoom)));
-            var_f27 = (sp30.z * sp30.z) + ((sp30.x * sp30.x) + (sp30.y * sp30.y));
-            var_f29 = 1.0f / sqrtf(var_f27);
-            sp30.x *= var_f29;
-            sp30.y *= var_f29;
-            sp30.z *= var_f29;
-            var_f29 = -((-sp30.z * -sp3C.z) + ((-sp30.x * -sp3C.x) + (-sp30.y * -sp3C.y)));
-            sp24.x = -sp3C.x + (-2.0f * sp30.x * var_f29);
-            sp24.y = -sp3C.y + (-2.0f * sp30.y * var_f29);
-            sp24.z = -sp3C.z + (-2.0f * sp30.z * var_f29);
-            var_r31 = arg1->unk_3C;
-            for (var_r28 = 0; var_r28 < arg1->unk_26; var_r28++, var_r31++) {
-                var_r31->unk_30.x = sp24.x * var_r31->unk_10;
-                var_r31->unk_30.y = -27000.0f + (sp24.y * var_r31->unk_10);
-                var_r31->unk_30.z = -63000.0f + (sp24.z * var_r31->unk_10);
+            cameraDirection.x = sind(CRot.y) * cosd(CRot.x);
+            cameraDirection.y = -sind(CRot.x);
+            cameraDirection.z = cosd(CRot.y) * cosd(CRot.x);
+            cameraRelativeDirection.x = -(Center.x + (1.25f * (cameraDirection.x * CZoom)));
+            cameraRelativeDirection.y = -27000.0f - (Center.y + (cameraDirection.y * CZoom));
+            cameraRelativeDirection.z = -63000.0f - (Center.z + (1.25f * (cameraDirection.z * CZoom)));
+            cameraDirectionLengthSquared = (cameraRelativeDirection.z * cameraRelativeDirection.z) + ((cameraRelativeDirection.x * cameraRelativeDirection.x) + (cameraRelativeDirection.y * cameraRelativeDirection.y));
+            vectorScale = 1.0f / sqrtf(cameraDirectionLengthSquared);
+            cameraRelativeDirection.x *= vectorScale;
+            cameraRelativeDirection.y *= vectorScale;
+            cameraRelativeDirection.z *= vectorScale;
+            vectorScale = -((-cameraRelativeDirection.z * -cameraDirection.z) + ((-cameraRelativeDirection.x * -cameraDirection.x) + (-cameraRelativeDirection.y * -cameraDirection.y)));
+            reflectedDirection.x = -cameraDirection.x + (-2.0f * cameraRelativeDirection.x * vectorScale);
+            reflectedDirection.y = -cameraDirection.y + (-2.0f * cameraRelativeDirection.y * vectorScale);
+            reflectedDirection.z = -cameraDirection.z + (-2.0f * cameraRelativeDirection.z * vectorScale);
+            particleEffect = destination->particles;
+            for (particleIndex = 0; particleIndex < destination->particleCount; particleIndex++, particleEffect++) {
+                particleEffect->position.x = reflectedDirection.x * particleEffect->scaleFactor;
+                particleEffect->position.y = -27000.0f + (reflectedDirection.y * particleEffect->scaleFactor);
+                particleEffect->position.z = -63000.0f + (reflectedDirection.z * particleEffect->scaleFactor);
             }
             break;
         default:
             break;
     }
-    DCFlushRange(arg1->unk_3C, arg1->unk_26 * sizeof(UnkM406Struct5));
+    DCFlushRange(destination->particles, destination->particleCount * sizeof(MapParticleEffect));
     PPCSync();
 }
 
-void fn_1_ADB4(HU3DMODEL *arg0, float (*arg1)[4])
+void SetOrthographicProjection(HU3DMODEL *source, Float (*destination)[4])
 {
-    Mtx sp50;
-    Mtx44 sp10;
+    Mtx identityModelMatrix;
+    Mtx44 orthographicProjection;
 
-    HU3DCAMERA *var_r31;
-    UnkM406Struct8 *var_r30;
+    HU3DCAMERA *camera;
+    SceneAnimationGroup *animationManager;
 
     GXColor spC = { 0xFF, 0xFF, 0xFF, 0xFF };
-    var_r31 = &Hu3DCamera[0];
-    var_r30 = lbl_1_bss_9C;
-    if (var_r30->unk_28 <= 0.0f) {
-        Hu3DModelAttrSet(var_r30->unk_20, HU3D_ATTR_DISPOFF);
+    camera = &Hu3DCamera[0];
+    animationManager = sceneAnimationGroup;
+    if (animationManager->overlayAlpha <= 0.0f) {
+        Hu3DModelAttrSet(animationManager->updateHookId, HU3D_ATTR_DISPOFF);
         return;
     }
-    GXSetScissor(var_r31->scissorX, var_r31->scissorY, var_r31->scissorW, var_r31->scissorH);
+    GXSetScissor(camera->scissorX, camera->scissorY, camera->scissorW, camera->scissorH);
     GXSetViewport(0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
-    C_MTXOrtho(sp10, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-    GXSetProjection(sp10, GX_ORTHOGRAPHIC);
-    spC.a = 255.0f * var_r30->unk_28;
+    C_MTXOrtho(orthographicProjection, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+    GXSetProjection(orthographicProjection, GX_ORTHOGRAPHIC);
+    spC.a = 255.0f * animationManager->overlayAlpha;
     GXSetTevColor(GX_TEVREG0, spC);
     GXSetNumTexGens(0);
     GXSetNumTevStages(1);
@@ -2663,8 +2663,8 @@ void fn_1_ADB4(HU3DMODEL *arg0, float (*arg1)[4])
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    MTXIdentity(sp50);
-    GXLoadPosMtxImm(sp50, 0);
+    MTXIdentity(identityModelMatrix);
+    GXLoadPosMtxImm(identityModelMatrix, 0);
     GXSetZMode(GX_FALSE, GX_ALWAYS, GX_TRUE);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_CLAMP, GX_AF_NONE);
@@ -2678,258 +2678,258 @@ void fn_1_ADB4(HU3DMODEL *arg0, float (*arg1)[4])
     GXPosition3u8(0, 1, 0);
 }
 
-void fn_1_B104(float arg8)
+void SetAnimationGroupAlpha(Float scale)
 {
 
-    UnkM406Struct8 *var_r31;
+    SceneAnimationGroup *animationManager;
 
-    var_r31 = lbl_1_bss_9C;
-    var_r31->unk_24 = arg8;
-    if (var_r31->unk_24 <= 0.0f) {
-        Hu3DModelAttrSet(var_r31->unk_10, HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(var_r31->unk_14, HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(var_r31->unk_18, HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(var_r31->unk_1C, HU3D_ATTR_DISPOFF);
+    animationManager = sceneAnimationGroup;
+    animationManager->modelGroupEnabled = scale;
+    if (animationManager->modelGroupEnabled <= 0.0f) {
+        Hu3DModelAttrSet(animationManager->modelId0, HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(animationManager->modelId1, HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(animationManager->modelId2, HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(animationManager->modelId3, HU3D_ATTR_DISPOFF);
         return;
     }
-    Hu3DModelAttrReset(var_r31->unk_10, HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(var_r31->unk_14, HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(var_r31->unk_18, HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(var_r31->unk_1C, HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(animationManager->modelId0, HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(animationManager->modelId1, HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(animationManager->modelId2, HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(animationManager->modelId3, HU3D_ATTR_DISPOFF);
 }
 
-void fn_1_B1E0(float arg8)
+void SetAnimationGroupEnabled(Float scale)
 {
-    UnkM406Struct8 *var_r31;
+    SceneAnimationGroup *animationManager;
 
-    var_r31 = lbl_1_bss_9C;
-    var_r31->unk_28 = arg8;
-    if (var_r31->unk_28 <= 0.0f) {
-        Hu3DModelAttrSet(var_r31->unk_20, HU3D_ATTR_DISPOFF);
+    animationManager = sceneAnimationGroup;
+    animationManager->overlayAlpha = scale;
+    if (animationManager->overlayAlpha <= 0.0f) {
+        Hu3DModelAttrSet(animationManager->updateHookId, HU3D_ATTR_DISPOFF);
         return;
     }
-    Hu3DModelAttrReset(var_r31->unk_20, HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(animationManager->updateHookId, HU3D_ATTR_DISPOFF);
 }
 
-void fn_1_B25C(void)
+void CreateSceneLight(void)
 {
-    s32 var_r31;
-    s32 var_r30;
+    s32 lightId;
+    s32 modelId;
 
-    if (lbl_1_bss_98 == -1) {
-        lbl_1_bss_98 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 68));
-        Hu3DModelLayerSet(lbl_1_bss_98, 0);
-        Hu3DModelPosSet(lbl_1_bss_98, 0.0f, -26500.0f, -63000.0f);
-        Hu3DModelRotSet(lbl_1_bss_98, 0.0f, 0.0f, 0.0f);
-        Hu3DModelScaleSet(lbl_1_bss_98, 2.75f, 2.75f, 2.75f);
-        var_r30 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 55));
-        Hu3DModelLayerSet(var_r30, 0);
-        var_r31 = Hu3DGLightCreateV(&lbl_1_data_8C4, &lbl_1_data_8D0, &lbl_1_data_8DC);
-        Hu3DGLightStaticSet(var_r31, 1);
-        Hu3DGLightPointSet(var_r31, 100.0f, 1.0f, 3);
-        lbl_1_bss_BC = 0;
-        fn_1_2C24(lbl_1_bss_CC);
+    if (mapLightId == -1) {
+        mapLightId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 68));
+        Hu3DModelLayerSet(mapLightId, 0);
+        Hu3DModelPosSet(mapLightId, 0.0f, -26500.0f, -63000.0f);
+        Hu3DModelRotSet(mapLightId, 0.0f, 0.0f, 0.0f);
+        Hu3DModelScaleSet(mapLightId, 2.75f, 2.75f, 2.75f);
+        modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M406, 55));
+        Hu3DModelLayerSet(modelId, 0);
+        lightId = Hu3DGLightCreateV(&particleOrigin, &particleUpDirection, &particleDefaultColor);
+        Hu3DGLightStaticSet(lightId, 1);
+        Hu3DGLightPointSet(lightId, 100.0f, 1.0f, 3);
+        mapRendererEnabled = 0;
+        UpdateMapModels(mapModelObject);
     }
 }
 
-void fn_1_B41C(void)
+void DestroySceneLight(void)
 {
-    if (lbl_1_bss_98 != -1) {
-        Hu3DModelKill(lbl_1_bss_98);
+    if (mapLightId != -1) {
+        Hu3DModelKill(mapLightId);
     }
-    lbl_1_bss_98 = -1;
+    mapLightId = -1;
 }
 
-void fn_1_B470(void) { }
+void ResetSceneLighting(void) { }
 
-s16 fn_1_B474(ANIMDATA *arg0, s16 arg1)
+s16 CreateModelAnimation(ANIMDATA *source, s16 destination)
 {
-    UnkM406Unk120Struct2 *var_r31;
-    s16 var_r30;
-    Vec2f *var_r29;
-    UnkM406Struct5 *var_r28;
-    HU3DMODEL *var_r27;
-    Vec *var_r25;
-    void *var_r24;
-    s16 var_r23;
-    void *var_r22;
+    ParticleEffectHookData *effectHookData;
+    s16 vertexIndex;
+    Vec2f *textureCoordinate;
+    MapParticleEffect *particleEffect;
+    HU3DMODEL *hookModel;
+    Vec *positionVertex;
+    void *displayListBuffer;
+    s16 hookModelId;
+    void *displayListBase;
 
-    var_r23 = Hu3DHookFuncCreate(fn_1_BC18);
-    var_r27 = &Hu3DData[var_r23];
-    var_r31 = HuMemDirectMallocNum(HEAP_MODEL, sizeof(UnkM406Unk120Struct2), var_r27->mallocNo);
-    var_r27->hookData = var_r31;
-    var_r31->unk_38 = arg0;
-    var_r31->unk_26 = arg1;
-    var_r31->unk_20 = 0;
-    var_r31->unk_22 = 0;
-    var_r31->unk_4C = 0;
-    var_r31->unk_50 = 0;
-    var_r31->unk_28 = 0;
-    var_r31->unk_21 = 0;
-    var_r31->unk_30 = 0;
+    hookModelId = Hu3DHookFuncCreate(DrawModelHook);
+    hookModel = &Hu3DData[hookModelId];
+    effectHookData = HuMemDirectMallocNum(HEAP_MODEL, sizeof(ParticleEffectHookData), hookModel->mallocNo);
+    hookModel->hookData = effectHookData;
+    effectHookData->animationData = source;
+    effectHookData->particleCount = destination;
+    effectHookData->hookMode = 0;
+    effectHookData->effectFlags = 0;
+    effectHookData->DrawHook = 0;
+    effectHookData->relatedModel = 0;
+    effectHookData->effectActive = 0;
+    effectHookData->reservedHookByte = 0;
+    effectHookData->activeParticleLimit = 0;
 
-    var_r31->unk_00 = var_r31->unk_02 = 0;
-    var_r28 = HuMemDirectMallocNum(HEAP_MODEL, arg1 * sizeof(UnkM406Struct5), var_r27->mallocNo);
-    var_r31->unk_3C = var_r28;
-    memset(var_r28, 0, arg1 * sizeof(UnkM406Struct5));
-    for (var_r30 = 0; var_r30 < arg1; var_r30++, var_r28++) {
-        var_r28->unk_28 = 0.0f;
-        var_r28->unk_2C = 0.0f;
-        var_r28->unk_30.x = ((frand() & 0x7F) - 0x40) * 0x14;
-        var_r28->unk_30.y = ((frand() & 0x7F) - 0x40) * 0x1E;
-        var_r28->unk_30.z = ((frand() & 0x7F) - 0x40) * 0x14;
-        var_r28->unk_3C.r = var_r28->unk_3C.g = var_r28->unk_3C.b = var_r28->unk_3C.a = 0xFF;
-        var_r28->unk_40 = 0;
+    effectHookData->reservedHeaderWord00 = effectHookData->reservedHeaderWord02 = 0;
+    particleEffect = HuMemDirectMallocNum(HEAP_MODEL, destination * sizeof(MapParticleEffect), hookModel->mallocNo);
+    effectHookData->particles = particleEffect;
+    memset(particleEffect, 0, destination * sizeof(MapParticleEffect));
+    for (vertexIndex = 0; vertexIndex < destination; vertexIndex++, particleEffect++) {
+        particleEffect->effectActive = 0.0f;
+        particleEffect->rotationAngle = 0.0f;
+        particleEffect->activeParticleLimit.x = ((frand() & 0x7F) - 0x40) * 0x14;
+        particleEffect->activeParticleLimit.y = ((frand() & 0x7F) - 0x40) * 0x1E;
+        particleEffect->activeParticleLimit.z = ((frand() & 0x7F) - 0x40) * 0x14;
+        particleEffect->particles.r = particleEffect->particles.g = particleEffect->particles.b = particleEffect->particles.a = 0xFF;
+        particleEffect->particlePositions = 0;
     }
-    var_r25 = HuMemDirectMallocNum(HEAP_MODEL, arg1 * sizeof(Vec) * 4, var_r27->mallocNo);
-    var_r31->unk_40 = var_r25;
-    for (var_r30 = 0; var_r30 < (arg1 * 4); var_r30++, var_r25++) {
-        var_r25->x = var_r25->y = var_r25->z = 0.0f;
+    positionVertex = HuMemDirectMallocNum(HEAP_MODEL, destination * sizeof(Vec) * 4, hookModel->mallocNo);
+    effectHookData->particlePositions = positionVertex;
+    for (vertexIndex = 0; vertexIndex < (destination * 4); vertexIndex++, positionVertex++) {
+        positionVertex->x = positionVertex->y = positionVertex->z = 0.0f;
     }
-    var_r29 = HuMemDirectMallocNum(HEAP_MODEL, arg1 * sizeof(Vec2f) * 4, var_r27->mallocNo);
-    var_r31->unk_44 = var_r29;
-    for (var_r30 = 0; var_r30 < arg1; var_r30++) {
-        var_r29->x = 0.0f;
-        var_r29->y = 0.0f;
-        var_r29++;
-        var_r29->x = 1.0f;
-        var_r29->y = 0.0f;
-        var_r29++;
-        var_r29->x = 1.0f;
-        var_r29->y = 1.0f;
-        var_r29++;
-        var_r29->x = 0.0f;
-        var_r29->y = 1.0f;
-        var_r29++;
+    textureCoordinate = HuMemDirectMallocNum(HEAP_MODEL, destination * sizeof(Vec2f) * 4, hookModel->mallocNo);
+    effectHookData->particleTextureCoordinates = textureCoordinate;
+    for (vertexIndex = 0; vertexIndex < destination; vertexIndex++) {
+        textureCoordinate->x = 0.0f;
+        textureCoordinate->y = 0.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 1.0f;
+        textureCoordinate->y = 0.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 1.0f;
+        textureCoordinate->y = 1.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 0.0f;
+        textureCoordinate->y = 1.0f;
+        textureCoordinate++;
     }
-    var_r24 = HuMemDirectMallocNum(HEAP_MODEL, 0x10000, var_r27->mallocNo);
-    var_r22 = var_r24;
-    DCFlushRange(var_r24, 0x10000);
-    GXBeginDisplayList(var_r22, 0x10000);
-    GXBegin(GX_QUADS, GX_VTXFMT0, arg1 * 4);
-    for (var_r30 = 0; var_r30 < arg1; var_r30++) {
-        GXPosition1x16(var_r30 * 4);
-        GXColor1x16(var_r30);
-        GXTexCoord1x16(var_r30 * 4);
+    displayListBuffer = HuMemDirectMallocNum(HEAP_MODEL, 0x10000, hookModel->mallocNo);
+    displayListBase = displayListBuffer;
+    DCFlushRange(displayListBuffer, 0x10000);
+    GXBeginDisplayList(displayListBase, 0x10000);
+    GXBegin(GX_QUADS, GX_VTXFMT0, destination * 4);
+    for (vertexIndex = 0; vertexIndex < destination; vertexIndex++) {
+        GXPosition1x16(vertexIndex * 4);
+        GXColor1x16(vertexIndex);
+        GXTexCoord1x16(vertexIndex * 4);
 
-        GXPosition1x16(var_r30 * 4 + 1);
-        GXColor1x16(var_r30);
-        GXTexCoord1x16(var_r30 * 4 + 1);
+        GXPosition1x16(vertexIndex * 4 + 1);
+        GXColor1x16(vertexIndex);
+        GXTexCoord1x16(vertexIndex * 4 + 1);
 
-        GXPosition1x16(var_r30 * 4 + 2);
-        GXColor1x16(var_r30);
-        GXTexCoord1x16(var_r30 * 4 + 2);
+        GXPosition1x16(vertexIndex * 4 + 2);
+        GXColor1x16(vertexIndex);
+        GXTexCoord1x16(vertexIndex * 4 + 2);
 
-        GXPosition1x16(var_r30 * 4 + 3);
-        GXColor1x16(var_r30);
-        GXTexCoord1x16(var_r30 * 4 + 3);
+        GXPosition1x16(vertexIndex * 4 + 3);
+        GXColor1x16(vertexIndex);
+        GXTexCoord1x16(vertexIndex * 4 + 3);
     }
-    var_r31->unk_34 = GXEndDisplayList();
-    var_r31->unk_48 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_34, var_r27->mallocNo);
-    memcpy(var_r31->unk_48, var_r24, var_r31->unk_34);
-    DCFlushRange(var_r31->unk_48, var_r31->unk_34);
-    HuMemDirectFree(var_r24);
-    (void)arg1;
-    return var_r23;
+    effectHookData->displayListByteCount = GXEndDisplayList();
+    effectHookData->displayListBuffer = HuMemDirectMallocNum(HEAP_MODEL, effectHookData->displayListByteCount, hookModel->mallocNo);
+    memcpy(effectHookData->displayListBuffer, displayListBuffer, effectHookData->displayListByteCount);
+    DCFlushRange(effectHookData->displayListBuffer, effectHookData->displayListByteCount);
+    HuMemDirectFree(displayListBuffer);
+    (void)destination;
+    return hookModelId;
 }
 
-s16 fn_1_B8FC(s16 arg0)
+s16 CloneModelHookData(s16 source)
 {
-    UnkM406Unk120Struct2 *var_r31;
-    Vec2f *var_r30;
-    UnkM406Struct5 *var_r29;
-    HU3DMODEL *var_r27;
-    s16 var_r28;
-    UnkM406Unk120Struct2 *var_r26;
-    Vec *var_r25;
-    s32 var_r24;
-    HU3DMODEL *var_r23;
-    s16 var_r22;
+    ParticleEffectHookData *clonedHookData;
+    Vec2f *textureCoordinate;
+    MapParticleEffect *particleEffect;
+    HU3DMODEL *clonedModel;
+    s16 particleIndex;
+    ParticleEffectHookData *sourceHookData;
+    Vec *positionVertex;
+    s32 particleCount;
+    HU3DMODEL *sourceModel;
+    s16 clonedHookModelId;
 
-    var_r23 = &Hu3DData[arg0];
-    var_r26 = var_r23->hookData;
-    var_r22 = Hu3DHookFuncCreate(var_r23->hookFunc);
-    var_r27 = &Hu3DData[var_r22];
-    var_r31 = HuMemDirectMallocNum(HEAP_MODEL, sizeof(UnkM406Unk120Struct2), var_r27->mallocNo);
-    var_r27->hookData = var_r31;
-    var_r31->unk_38 = var_r26->unk_38;
-    var_r31->unk_26 = var_r26->unk_26;
-    var_r24 = var_r31->unk_26;
-    var_r31->unk_20 = 0;
-    var_r31->unk_22 = var_r26->unk_22;
-    var_r31->unk_4C = 0;
-    var_r31->unk_50 = 0;
-    var_r31->unk_28 = 0;
-    var_r31->unk_21 = 0;
-    var_r31->unk_30 = 0;
+    sourceModel = &Hu3DData[source];
+    sourceHookData = sourceModel->hookData;
+    clonedHookModelId = Hu3DHookFuncCreate(sourceModel->hookFunc);
+    clonedModel = &Hu3DData[clonedHookModelId];
+    clonedHookData = HuMemDirectMallocNum(HEAP_MODEL, sizeof(ParticleEffectHookData), clonedModel->mallocNo);
+    clonedModel->hookData = clonedHookData;
+    clonedHookData->animationData = sourceHookData->animationData;
+    clonedHookData->particleCount = sourceHookData->particleCount;
+    particleCount = clonedHookData->particleCount;
+    clonedHookData->hookMode = 0;
+    clonedHookData->effectFlags = sourceHookData->effectFlags;
+    clonedHookData->DrawHook = 0;
+    clonedHookData->relatedModel = 0;
+    clonedHookData->effectActive = 0;
+    clonedHookData->reservedHookByte = 0;
+    clonedHookData->activeParticleLimit = 0;
 
-    var_r31->unk_00 = var_r31->unk_02 = 0;
-    var_r29 = HuMemDirectMallocNum(HEAP_MODEL, var_r24 * sizeof(UnkM406Struct5), var_r27->mallocNo);
-    var_r31->unk_3C = var_r29;
-    for (var_r28 = 0; var_r28 < var_r24; var_r28++, var_r29++) {
-        var_r29->unk_28 = 0.0f;
-        var_r29->unk_2C = 0.0f;
-        var_r29->unk_30.x = ((frand() & 0x7F) - 0x40) * 0x14;
-        var_r29->unk_30.y = ((frand() & 0x7F) - 0x40) * 0x1E;
-        var_r29->unk_30.z = ((frand() & 0x7F) - 0x40) * 0x14;
-        var_r29->unk_3C.r = var_r29->unk_3C.g = var_r29->unk_3C.b = var_r29->unk_3C.a = 0xFF;
-        var_r29->unk_40 = 0;
+    clonedHookData->reservedHeaderWord00 = clonedHookData->reservedHeaderWord02 = 0;
+    particleEffect = HuMemDirectMallocNum(HEAP_MODEL, particleCount * sizeof(MapParticleEffect), clonedModel->mallocNo);
+    clonedHookData->particles = particleEffect;
+    for (particleIndex = 0; particleIndex < particleCount; particleIndex++, particleEffect++) {
+        particleEffect->effectSize = 0.0f;
+        particleEffect->rotationAngle = 0.0f;
+        particleEffect->position.x = ((frand() & 0x7F) - 0x40) * 0x14;
+        particleEffect->position.y = ((frand() & 0x7F) - 0x40) * 0x1E;
+        particleEffect->position.z = ((frand() & 0x7F) - 0x40) * 0x14;
+        particleEffect->color.r = particleEffect->color.g = particleEffect->color.b = particleEffect->color.a = 0xFF;
+        particleEffect->textureFrameIndex = 0;
     }
-    var_r25 = HuMemDirectMallocNum(HEAP_MODEL, var_r24 * sizeof(Vec) * 4, var_r27->mallocNo);
-    var_r31->unk_40 = var_r25;
-    for (var_r28 = 0; var_r28 < (var_r24 * 4); var_r28++, var_r25++) {
-        var_r25->x = var_r25->y = var_r25->z = 0.0f;
+    positionVertex = HuMemDirectMallocNum(HEAP_MODEL, particleCount * sizeof(Vec) * 4, clonedModel->mallocNo);
+    clonedHookData->particlePositions = positionVertex;
+    for (particleIndex = 0; particleIndex < (particleCount * 4); particleIndex++, positionVertex++) {
+        positionVertex->x = positionVertex->y = positionVertex->z = 0.0f;
     }
-    var_r30 = HuMemDirectMallocNum(HEAP_MODEL, var_r24 * sizeof(Vec2f) * 4, var_r27->mallocNo);
-    var_r31->unk_44 = var_r30;
-    for (var_r28 = 0; var_r28 < var_r24; var_r28++) {
-        var_r30->x = 0.0f;
-        var_r30->y = 0.0f;
-        var_r30++;
-        var_r30->x = 1.0f;
-        var_r30->y = 0.0f;
-        var_r30++;
-        var_r30->x = 1.0f;
-        var_r30->y = 1.0f;
-        var_r30++;
-        var_r30->x = 0.0f;
-        var_r30->y = 1.0f;
-        var_r30++;
+    textureCoordinate = HuMemDirectMallocNum(HEAP_MODEL, particleCount * sizeof(Vec2f) * 4, clonedModel->mallocNo);
+    clonedHookData->particleTextureCoordinates = textureCoordinate;
+    for (particleIndex = 0; particleIndex < particleCount; particleIndex++) {
+        textureCoordinate->x = 0.0f;
+        textureCoordinate->y = 0.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 1.0f;
+        textureCoordinate->y = 0.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 1.0f;
+        textureCoordinate->y = 1.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 0.0f;
+        textureCoordinate->y = 1.0f;
+        textureCoordinate++;
     }
-    var_r31->unk_34 = var_r26->unk_34;
-    var_r31->unk_48 = var_r26->unk_48;
-    return var_r22;
+    clonedHookData->displayListByteCount = sourceHookData->displayListByteCount;
+    clonedHookData->displayListBuffer = sourceHookData->displayListBuffer;
+    return clonedHookModelId;
 }
 
-void fn_1_BC18(HU3DMODEL *arg0, float (*arg1)[4])
+void DrawModelHook(HU3DMODEL *source, Float (*destination)[4])
 {
-    Mtx sp128;
-    Mtx spF8;
-    Mtx spC8;
-    Vec sp98[4];
-    Vec sp68[4];
-    Vec sp38[4];
-    ROMtx sp8;
+    Mtx normalTransform;
+    Mtx rotatedQuadTransform;
+    Mtx particleRotation;
+    Vec scaledQuadCorners[4];
+    Vec rotatedQuadCorners[4];
+    Vec cameraAlignedCorners[4];
+    ROMtx reorderedNormalTransform;
 
-    UnkM406Unk120Struct2 *var_r31;
-    Vec *var_r30;
-    UnkM406Struct5 *var_r29;
-    Vec2f *var_r28;
-    Vec *var_r27;
-    s16 var_r26;
-    s16 var_r25;
-    Vec *var_r24;
-    s16 var_r21;
-    s16 var_r20;
-    s16 var_r19;
-    UnkM406Unk120Struct2Hook var_r18;
+    ParticleEffectHookData *hookData;
+    Vec *positionVertex;
+    MapParticleEffect *particleEffect;
+    Vec2f *textureCoordinate;
+    Vec *quadCorner;
+    s16 particleIndex;
+    s16 quadVertexIndex;
+    Vec *rotatedCorner;
+    s16 textureFormat;
+    s16 textureFrameU;
+    s16 textureFrameV;
+    ParticleEffectDrawHook DrawHook;
 
-    var_r31 = arg0->hookData;
-    if (var_r31->unk_2C != GlobalCounter || shadowModelDrawF) {
-        if (var_r31->unk_50 && var_r31->unk_50 != arg0) {
-            fn_1_BC18(var_r31->unk_50, arg1);
+    hookData = source->hookData;
+    if (hookData->lastUpdateFrame != GlobalCounter || shadowModelDrawF) {
+        if (hookData->relatedModel && hookData->relatedModel != source) {
+            DrawModelHook(hookData->relatedModel, destination);
         }
-        GXLoadPosMtxImm(arg1, 0);
+        GXLoadPosMtxImm(destination, 0);
         GXSetNumTevStages(1);
         GXSetNumTexGens(1);
         GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, 0x3C, GX_FALSE, 0x7D);
@@ -2939,17 +2939,17 @@ void fn_1_BC18(HU3DMODEL *arg0, float (*arg1)[4])
             GXSetZMode(GX_FALSE, GX_LEQUAL, GX_FALSE);
         }
         else {
-            var_r21 = var_r31->unk_38->bmp->dataFmt & 0xF;
-            if (var_r21 == 7 || var_r21 == 8) {
+            textureFormat = hookData->animationData->bmp->dataFmt & 0xF;
+            if (textureFormat == 7 || textureFormat == 8) {
                 GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ONE, GX_CC_RASC, GX_CC_ZERO);
             }
             else {
                 GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
             }
-            if (var_r31->unk_22 & 1) {
+            if (hookData->effectFlags & 1) {
                 GXSetZMode(GX_FALSE, GX_LEQUAL, GX_FALSE);
             }
-            else if (arg0->attr & 2) {
+            else if (source->attr & 2) {
                 GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
             }
             else {
@@ -2961,10 +2961,10 @@ void fn_1_BC18(HU3DMODEL *arg0, float (*arg1)[4])
         GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
         GXSetNumChans(1);
         GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_VTX, 0, GX_DF_CLAMP, GX_AF_NONE);
-        HuSprTexLoad(var_r31->unk_38, 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+        HuSprTexLoad(hookData->animationData, 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
         GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
         GXSetZCompLoc(GX_FALSE);
-        switch (var_r31->unk_20) {
+        switch (hookData->hookMode) {
             case 0:
                 GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
                 break;
@@ -2978,196 +2978,196 @@ void fn_1_BC18(HU3DMODEL *arg0, float (*arg1)[4])
         GXClearVtxDesc();
         GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-        GXSetArray(GX_VA_POS, var_r31->unk_40, 0xC);
+        GXSetArray(GX_VA_POS, hookData->particlePositions, 0xC);
         GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-        GXSetArray(GX_VA_CLR0, &var_r31->unk_3C->unk_3C, 0x44);
+        GXSetArray(GX_VA_CLR0, &hookData->particles->color, 0x44);
         GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-        GXSetArray(GX_VA_TEX0, var_r31->unk_44, 8);
-        if (HmfInverseMtxF3X3(arg1, sp128) == 0) {
-            MTXIdentity(sp128);
+        GXSetArray(GX_VA_TEX0, hookData->particleTextureCoordinates, 8);
+        if (HmfInverseMtxF3X3(destination, normalTransform) == 0) {
+            MTXIdentity(normalTransform);
         }
-        PSMTXReorder(sp128, sp8);
-        if (var_r31->unk_4C) {
-            var_r18 = var_r31->unk_4C;
-            var_r18(arg0, var_r31, arg1);
+        PSMTXReorder(normalTransform, reorderedNormalTransform);
+        if (hookData->DrawHook) {
+            DrawHook = hookData->DrawHook;
+            DrawHook(source, hookData, destination);
         }
-        var_r29 = var_r31->unk_3C;
-        var_r30 = var_r31->unk_40;
-        var_r28 = var_r31->unk_44;
-        PSMTXROMultVecArray(sp8, lbl_1_data_8E0, &sp38[0], 4);
-        for (var_r26 = 0; var_r26 < var_r31->unk_26; var_r26++, var_r29++) {
-            if (!var_r29->unk_28) {
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
+        particleEffect = hookData->particles;
+        positionVertex = hookData->particlePositions;
+        textureCoordinate = hookData->particleTextureCoordinates;
+        PSMTXROMultVecArray(reorderedNormalTransform, particleSpawnPositions, &cameraAlignedCorners[0], 4);
+        for (particleIndex = 0; particleIndex < hookData->particleCount; particleIndex++, particleEffect++) {
+            if (!particleEffect->effectSize) {
+                positionVertex->x = positionVertex->y = positionVertex->z = 0.0f;
+                positionVertex++;
+                positionVertex->x = positionVertex->y = positionVertex->z = 0.0f;
+                positionVertex++;
+                positionVertex->x = positionVertex->y = positionVertex->z = 0.0f;
+                positionVertex++;
+                positionVertex->x = positionVertex->y = positionVertex->z = 0.0f;
+                positionVertex++;
             }
-            else if (!var_r29->unk_2C) {
-                var_r27 = &sp98[0];
-                var_r24 = &sp38[0];
-                VECScale(var_r24++, var_r27, var_r29->unk_28);
-                VECAdd(var_r27++, &var_r29->unk_30, var_r30++);
-                VECScale(var_r24++, var_r27, var_r29->unk_28);
-                VECAdd(var_r27++, &var_r29->unk_30, var_r30++);
-                VECScale(var_r24++, var_r27, var_r29->unk_28);
-                VECAdd(var_r27++, &var_r29->unk_30, var_r30++);
-                VECScale(var_r24++, var_r27, var_r29->unk_28);
-                VECAdd(var_r27++, &var_r29->unk_30, var_r30++);
+            else if (!particleEffect->rotationAngle) {
+                quadCorner = &scaledQuadCorners[0];
+                rotatedCorner = &cameraAlignedCorners[0];
+                VECScale(rotatedCorner++, quadCorner, particleEffect->effectSize);
+                VECAdd(quadCorner++, &particleEffect->position, positionVertex++);
+                VECScale(rotatedCorner++, quadCorner, particleEffect->effectSize);
+                VECAdd(quadCorner++, &particleEffect->position, positionVertex++);
+                VECScale(rotatedCorner++, quadCorner, particleEffect->effectSize);
+                VECAdd(quadCorner++, &particleEffect->position, positionVertex++);
+                VECScale(rotatedCorner++, quadCorner, particleEffect->effectSize);
+                VECAdd(quadCorner++, &particleEffect->position, positionVertex++);
             }
             else {
-                VECScale(lbl_1_data_8E0, &sp98[0], var_r29->unk_28);
-                VECScale(&lbl_1_data_8E0[1], &sp98[1], var_r29->unk_28);
-                VECScale(&lbl_1_data_8E0[2], &sp98[2], var_r29->unk_28);
-                VECScale(&lbl_1_data_8E0[3], &sp98[3], var_r29->unk_28);
-                MTXRotRad(spC8, 90, var_r29->unk_2C);
-                MTXConcat(sp128, spC8, spF8);
-                MTXMultVecArray(spF8, &sp98[0], &sp68[0], 4);
-                VECAdd(&sp68[0], &var_r29->unk_30, var_r30++);
-                VECAdd(&sp68[1], &var_r29->unk_30, var_r30++);
-                VECAdd(&sp68[2], &var_r29->unk_30, var_r30++);
-                VECAdd(&sp68[3], &var_r29->unk_30, var_r30++);
+                VECScale(particleSpawnPositions, &scaledQuadCorners[0], particleEffect->effectSize);
+                VECScale(&particleSpawnPositions[1], &scaledQuadCorners[1], particleEffect->effectSize);
+                VECScale(&particleSpawnPositions[2], &scaledQuadCorners[2], particleEffect->effectSize);
+                VECScale(&particleSpawnPositions[3], &scaledQuadCorners[3], particleEffect->effectSize);
+                MTXRotRad(particleRotation, 90, particleEffect->rotationAngle);
+                MTXConcat(normalTransform, particleRotation, rotatedQuadTransform);
+                MTXMultVecArray(rotatedQuadTransform, &scaledQuadCorners[0], &rotatedQuadCorners[0], 4);
+                VECAdd(&rotatedQuadCorners[0], &particleEffect->position, positionVertex++);
+                VECAdd(&rotatedQuadCorners[1], &particleEffect->position, positionVertex++);
+                VECAdd(&rotatedQuadCorners[2], &particleEffect->position, positionVertex++);
+                VECAdd(&rotatedQuadCorners[3], &particleEffect->position, positionVertex++);
             }
         }
-        var_r29 = var_r31->unk_3C;
-        var_r28 = var_r31->unk_44;
-        if ((var_r31->unk_22 & 2) == 0) {
-            for (var_r26 = 0; var_r26 < var_r31->unk_26; var_r26++, var_r29++) {
-                var_r20 = var_r29->unk_40 & 3;
-                var_r19 = (var_r29->unk_40 >> 2) & 3;
-                for (var_r25 = 0; var_r25 < 4; var_r25++, var_r28++) {
-                    var_r28->x = (0.25f * var_r20) + lbl_1_data_910[var_r25].x;
-                    var_r28->y = (0.25f * var_r19) + lbl_1_data_910[var_r25].y;
+        particleEffect = hookData->particles;
+        textureCoordinate = hookData->particleTextureCoordinates;
+        if ((hookData->effectFlags & 2) == 0) {
+            for (particleIndex = 0; particleIndex < hookData->particleCount; particleIndex++, particleEffect++) {
+                textureFrameU = particleEffect->textureFrameIndex & 3;
+                textureFrameV = (particleEffect->textureFrameIndex >> 2) & 3;
+                for (quadVertexIndex = 0; quadVertexIndex < 4; quadVertexIndex++, textureCoordinate++) {
+                    textureCoordinate->x = (0.25f * textureFrameU) + particleTextureCoordinates[quadVertexIndex].x;
+                    textureCoordinate->y = (0.25f * textureFrameV) + particleTextureCoordinates[quadVertexIndex].y;
                 }
             }
         }
         else {
-            for (var_r26 = 0; var_r26 < var_r31->unk_26; var_r26++, var_r29++) {
-                for (var_r25 = 0; var_r25 < 4; var_r25++, var_r28++) {
-                    var_r28->x = 4.0f * lbl_1_data_910[var_r25].x;
-                    var_r28->y = 4.0f * lbl_1_data_910[var_r25].y;
+            for (particleIndex = 0; particleIndex < hookData->particleCount; particleIndex++, particleEffect++) {
+                for (quadVertexIndex = 0; quadVertexIndex < 4; quadVertexIndex++, textureCoordinate++) {
+                    textureCoordinate->x = 4.0f * particleTextureCoordinates[quadVertexIndex].x;
+                    textureCoordinate->y = 4.0f * particleTextureCoordinates[quadVertexIndex].y;
                 }
             }
         }
-        DCFlushRangeNoSync(var_r31->unk_40, var_r31->unk_26 * 0xC * 4);
-        DCFlushRangeNoSync(var_r31->unk_44, var_r31->unk_26 * 8 * 4);
-        DCFlushRangeNoSync(var_r31->unk_3C, var_r31->unk_26 * 0x44);
+        DCFlushRangeNoSync(hookData->particlePositions, hookData->particleCount * 0xC * 4);
+        DCFlushRangeNoSync(hookData->particleTextureCoordinates, hookData->particleCount * 8 * 4);
+        DCFlushRangeNoSync(hookData->particles, hookData->particleCount * 0x44);
         PPCSync();
-        GXCallDisplayList(var_r31->unk_48, var_r31->unk_34);
+        GXCallDisplayList(hookData->displayListBuffer, hookData->displayListByteCount);
         if (!shadowModelDrawF) {
-            if ((var_r31->unk_21 & 2) == 0) {
-                var_r31->unk_28++;
+            if ((hookData->reservedHookByte & 2) == 0) {
+                hookData->effectActive++;
             }
-            if ((var_r31->unk_30 != 0) && (var_r31->unk_30 <= var_r31->unk_28)) {
-                if (var_r31->unk_21 & 1) {
-                    var_r31->unk_28 = 0;
+            if ((hookData->activeParticleLimit != 0) && (hookData->activeParticleLimit <= hookData->effectActive)) {
+                if (hookData->reservedHookByte & 1) {
+                    hookData->effectActive = 0;
                 }
-                var_r31->unk_28 = var_r31->unk_30;
+                hookData->effectActive = hookData->activeParticleLimit;
             }
-            var_r31->unk_2C = GlobalCounter;
+            hookData->lastUpdateFrame = GlobalCounter;
         }
     }
 }
 
-s16 fn_1_C4F4(s16 arg0)
+s16 UpdateTextureCoordinates(s16 source)
 {
-    Vec2f *sp8;
+    Vec2f *textureCoordinate;
 
-    UnkM406Unk120Struct2 *var_r31;
-    UnkM406Struct5 *var_r30;
-    s16 var_r29;
-    HU3DMODEL *var_r28;
-    Vec *var_r27;
-    void *var_r25;
-    s16 var_r24;
-    void *var_r23;
+    ParticleEffectHookData *hookData;
+    MapParticleEffect *particleEffect;
+    s16 particleIndex;
+    HU3DMODEL *hookModel;
+    Vec *positionVertex;
+    void *displayListBuffer;
+    s16 hookModelId;
+    void *displayListBase;
 
-    var_r24 = Hu3DHookFuncCreate(fn_1_C86C);
-    var_r28 = &Hu3DData[var_r24];
-    var_r31 = HuMemDirectMallocNum(HEAP_MODEL, sizeof(UnkM406Unk120Struct2), var_r28->mallocNo);
-    var_r28->hookData = var_r31;
-    var_r31->unk_38 = 0;
-    var_r31->unk_26 = arg0;
-    var_r31->unk_20 = 0;
-    var_r31->unk_22 = 0;
-    var_r31->unk_4C = 0;
-    var_r31->unk_50 = 0;
-    var_r31->unk_28 = 0;
-    var_r31->unk_21 = 0;
-    var_r31->unk_30 = 0;
+    hookModelId = Hu3DHookFuncCreate(DrawModelNormals);
+    hookModel = &Hu3DData[hookModelId];
+    hookData = HuMemDirectMallocNum(HEAP_MODEL, sizeof(ParticleEffectHookData), hookModel->mallocNo);
+    hookModel->hookData = hookData;
+    hookData->animationData = 0;
+    hookData->particleCount = source;
+    hookData->hookMode = 0;
+    hookData->effectFlags = 0;
+    hookData->DrawHook = 0;
+    hookData->relatedModel = 0;
+    hookData->effectActive = 0;
+    hookData->reservedHookByte = 0;
+    hookData->activeParticleLimit = 0;
 
-    var_r31->unk_00 = var_r31->unk_02 = 0;
-    var_r30 = HuMemDirectMallocNum(HEAP_MODEL, arg0 * sizeof(UnkM406Struct5), var_r28->mallocNo);
-    var_r31->unk_3C = var_r30;
-    memset(var_r30, 0, arg0 * sizeof(UnkM406Struct5));
-    for (var_r29 = 0; var_r29 < arg0; var_r29++, var_r30++) {
-        var_r30->unk_28 = 0.0f;
-        var_r30->unk_2C = 0.0f;
-        var_r30->unk_30.x = ((frand() & 0x7F) - 0x40) * 0x14;
-        var_r30->unk_30.y = ((frand() & 0x7F) - 0x40) * 0x1E;
-        var_r30->unk_30.z = ((frand() & 0x7F) - 0x40) * 0x14;
-        var_r30->unk_3C.r = var_r30->unk_3C.g = var_r30->unk_3C.b = var_r30->unk_3C.a = 0xFF;
-        var_r30->unk_40 = 0;
+    hookData->reservedHeaderWord00 = hookData->reservedHeaderWord02 = 0;
+    particleEffect = HuMemDirectMallocNum(HEAP_MODEL, source * sizeof(MapParticleEffect), hookModel->mallocNo);
+    hookData->particles = particleEffect;
+    memset(particleEffect, 0, source * sizeof(MapParticleEffect));
+    for (particleIndex = 0; particleIndex < source; particleIndex++, particleEffect++) {
+        particleEffect->effectSize = 0.0f;
+        particleEffect->rotationAngle = 0.0f;
+        particleEffect->position.x = ((frand() & 0x7F) - 0x40) * 0x14;
+        particleEffect->position.y = ((frand() & 0x7F) - 0x40) * 0x1E;
+        particleEffect->position.z = ((frand() & 0x7F) - 0x40) * 0x14;
+        particleEffect->color.r = particleEffect->color.g = particleEffect->color.b = particleEffect->color.a = 0xFF;
+        particleEffect->textureFrameIndex = 0;
     }
-    var_r27 = HuMemDirectMallocNum(HEAP_MODEL, arg0 * sizeof(Vec) * 4, var_r28->mallocNo);
-    var_r31->unk_40 = var_r27;
-    for (var_r29 = 0; var_r29 < (arg0 * 4); var_r29++, var_r27++) {
-        var_r27->x = var_r27->y = var_r27->z = 0.0f;
+    positionVertex = HuMemDirectMallocNum(HEAP_MODEL, source * sizeof(Vec) * 4, hookModel->mallocNo);
+    hookData->particlePositions = positionVertex;
+    for (particleIndex = 0; particleIndex < (source * 4); particleIndex++, positionVertex++) {
+        positionVertex->x = positionVertex->y = positionVertex->z = 0.0f;
     }
-    var_r31->unk_44 = sp8 = NULL;
-    var_r25 = HuMemDirectMallocNum(HEAP_MODEL, 0x10000, var_r28->mallocNo);
-    var_r23 = var_r25;
-    DCFlushRange(var_r25, 0x10000);
-    GXBeginDisplayList(var_r23, 0x10000);
-    GXBegin(GX_QUADS, GX_VTXFMT0, arg0 * 4);
-    for (var_r29 = 0; var_r29 < arg0; var_r29++) {
-        GXPosition1x16(var_r29 * 4);
-        GXColor1x16(var_r29);
+    hookData->particleTextureCoordinates = textureCoordinate = NULL;
+    displayListBuffer = HuMemDirectMallocNum(HEAP_MODEL, 0x10000, hookModel->mallocNo);
+    displayListBase = displayListBuffer;
+    DCFlushRange(displayListBuffer, 0x10000);
+    GXBeginDisplayList(displayListBase, 0x10000);
+    GXBegin(GX_QUADS, GX_VTXFMT0, source * 4);
+    for (particleIndex = 0; particleIndex < source; particleIndex++) {
+        GXPosition1x16(particleIndex * 4);
+        GXColor1x16(particleIndex);
 
-        GXPosition1x16(var_r29 * 4 + 1);
-        GXColor1x16(var_r29);
+        GXPosition1x16(particleIndex * 4 + 1);
+        GXColor1x16(particleIndex);
 
-        GXPosition1x16(var_r29 * 4 + 2);
-        GXColor1x16(var_r29);
+        GXPosition1x16(particleIndex * 4 + 2);
+        GXColor1x16(particleIndex);
 
-        GXPosition1x16(var_r29 * 4 + 3);
-        GXColor1x16(var_r29);
+        GXPosition1x16(particleIndex * 4 + 3);
+        GXColor1x16(particleIndex);
     }
-    var_r31->unk_34 = GXEndDisplayList();
-    var_r31->unk_48 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_34, var_r28->mallocNo);
-    memcpy(var_r31->unk_48, var_r25, var_r31->unk_34);
-    DCFlushRange(var_r31->unk_48, var_r31->unk_34);
-    HuMemDirectFree(var_r25);
-    return var_r24;
+    hookData->displayListByteCount = GXEndDisplayList();
+    hookData->displayListBuffer = HuMemDirectMallocNum(HEAP_MODEL, hookData->displayListByteCount, hookModel->mallocNo);
+    memcpy(hookData->displayListBuffer, displayListBuffer, hookData->displayListByteCount);
+    DCFlushRange(hookData->displayListBuffer, hookData->displayListByteCount);
+    HuMemDirectFree(displayListBuffer);
+    return hookModelId;
 }
 
-void fn_1_C86C(HU3DMODEL *arg0, Mtx arg1)
+void DrawModelNormals(HU3DMODEL *source, Mtx destination)
 {
-    Mtx sp9C;
-    ROMtx sp6C;
-    ROMtx sp3C;
-    ROMtx spC;
-    Vec2f *sp8;
+    Mtx normalTransform;
+    ROMtx reorderedNormalTransform;
+    ROMtx cameraAlignedCorners;
+    ROMtx positionTransform;
+    Vec2f *textureCoordinate;
 
-    UnkM406Unk120Struct2 *var_r31;
-    Vec *var_r30;
-    UnkM406Struct5 *var_r29;
-    Vec *var_r28;
-    Vec *var_r27;
-    s16 var_r25;
-    UnkM406Unk120Struct2Hook var_r23;
+    ParticleEffectHookData *hookData;
+    Vec *positionVertex;
+    MapParticleEffect *particleEffect;
+    Vec *quadCorner;
+    Vec *transformedCorner;
+    s16 particleIndex;
+    ParticleEffectDrawHook DrawHook;
 
-    var_r31 = arg0->hookData;
-    if (var_r31->unk_2C != GlobalCounter || shadowModelDrawF) {
-        if (var_r31->unk_50 && var_r31->unk_50 != arg0) {
-            fn_1_C86C(var_r31->unk_50, arg1);
+    hookData = source->hookData;
+    if (hookData->lastUpdateFrame != GlobalCounter || shadowModelDrawF) {
+        if (hookData->relatedModel && hookData->relatedModel != source) {
+            DrawModelNormals(hookData->relatedModel, destination);
         }
-        GXLoadPosMtxImm(arg1, 0);
+        GXLoadPosMtxImm(destination, 0);
         GXSetNumTevStages(1);
         GXSetNumTexGens(0);
         GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, 0x3C, GX_FALSE, 0x7D);
@@ -3177,13 +3177,13 @@ void fn_1_C86C(HU3DMODEL *arg0, Mtx arg1)
         GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_VTX, 0, GX_DF_CLAMP, GX_AF_NONE);
         GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
         GXSetZCompLoc(GX_FALSE);
-        if (arg0->attr & 2) {
+        if (source->attr & 2) {
             GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
         }
         else {
             GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
         }
-        switch (var_r31->unk_20) {
+        switch (hookData->hookMode) {
             case 0:
                 GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
                 break;
@@ -3197,256 +3197,256 @@ void fn_1_C86C(HU3DMODEL *arg0, Mtx arg1)
         GXClearVtxDesc();
         GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-        GXSetArray(GX_VA_POS, var_r31->unk_40, sizeof(Vec));
+        GXSetArray(GX_VA_POS, hookData->particlePositions, sizeof(Vec));
         GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-        GXSetArray(GX_VA_CLR0, &var_r31->unk_3C->unk_3C, 0x44);
-        if (HmfInverseMtxF3X3(arg1, sp9C) == 0) {
-            MTXIdentity(sp9C);
+        GXSetArray(GX_VA_CLR0, &hookData->particles->color, 0x44);
+        if (HmfInverseMtxF3X3(destination, normalTransform) == 0) {
+            MTXIdentity(normalTransform);
         }
-        PSMTXReorder(sp9C, spC);
-        if (var_r31->unk_4C) {
-            var_r23 = var_r31->unk_4C;
-            var_r23(arg0, var_r31, arg1);
+        PSMTXReorder(normalTransform, positionTransform);
+        if (hookData->DrawHook) {
+            DrawHook = hookData->DrawHook;
+            DrawHook(source, hookData, destination);
         }
-        var_r29 = var_r31->unk_3C;
-        var_r30 = var_r31->unk_40;
-        sp8 = var_r31->unk_44;
-        PSMTXROMultVecArray(spC, lbl_1_data_930, (Vec *)sp3C, 4);
-        for (var_r25 = 0; var_r25 < var_r31->unk_26; var_r25++, var_r29++) {
-            if (!var_r29->unk_28) {
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
+        particleEffect = hookData->particles;
+        positionVertex = hookData->particlePositions;
+        textureCoordinate = hookData->particleTextureCoordinates;
+        PSMTXROMultVecArray(positionTransform, particleModelPositions, (Vec *)cameraAlignedCorners, 4);
+        for (particleIndex = 0; particleIndex < hookData->particleCount; particleIndex++, particleEffect++) {
+            if (!particleEffect->effectSize) {
+                positionVertex->x = positionVertex->y = positionVertex->z = 0.0f;
+                positionVertex++;
+                positionVertex->x = positionVertex->y = positionVertex->z = 0.0f;
+                positionVertex++;
+                positionVertex->x = positionVertex->y = positionVertex->z = 0.0f;
+                positionVertex++;
+                positionVertex->x = positionVertex->y = positionVertex->z = 0.0f;
+                positionVertex++;
             }
             else {
-                var_r28 = (Vec *)&sp6C;
-                var_r27 = (Vec *)&sp3C;
-                VECScale(var_r27++, var_r28, var_r29->unk_28);
-                VECAdd(var_r28++, &var_r29->unk_30, var_r30++);
-                VECScale(var_r27++, var_r28, var_r29->unk_28);
-                VECAdd(var_r28++, &var_r29->unk_30, var_r30++);
-                VECScale(var_r27++, var_r28, var_r29->unk_28);
-                VECAdd(var_r28++, &var_r29->unk_30, var_r30++);
-                VECScale(var_r27++, var_r28, var_r29->unk_28);
-                VECAdd(var_r28++, &var_r29->unk_30, var_r30++);
+                quadCorner = (Vec *)&reorderedNormalTransform;
+                transformedCorner = (Vec *)&cameraAlignedCorners;
+                VECScale(transformedCorner++, quadCorner, particleEffect->effectSize);
+                VECAdd(quadCorner++, &particleEffect->position, positionVertex++);
+                VECScale(transformedCorner++, quadCorner, particleEffect->effectSize);
+                VECAdd(quadCorner++, &particleEffect->position, positionVertex++);
+                VECScale(transformedCorner++, quadCorner, particleEffect->effectSize);
+                VECAdd(quadCorner++, &particleEffect->position, positionVertex++);
+                VECScale(transformedCorner++, quadCorner, particleEffect->effectSize);
+                VECAdd(quadCorner++, &particleEffect->position, positionVertex++);
             }
         }
-        DCFlushRangeNoSync(var_r31->unk_40, var_r31->unk_26 * 0xC * 4);
-        DCFlushRangeNoSync(var_r31->unk_3C, var_r31->unk_26 * 0x44);
+        DCFlushRangeNoSync(hookData->particlePositions, hookData->particleCount * 0xC * 4);
+        DCFlushRangeNoSync(hookData->particles, hookData->particleCount * 0x44);
         PPCSync();
-        GXCallDisplayList(var_r31->unk_48, var_r31->unk_34);
+        GXCallDisplayList(hookData->displayListBuffer, hookData->displayListByteCount);
         if (!shadowModelDrawF) {
-            if ((var_r31->unk_21 & 2) == 0) {
-                var_r31->unk_28++;
+            if ((hookData->reservedHookByte & 2) == 0) {
+                hookData->effectActive++;
             }
-            if ((var_r31->unk_30 != 0) && (var_r31->unk_30 <= var_r31->unk_28)) {
-                if (var_r31->unk_21 & 1) {
-                    var_r31->unk_28 = 0;
+            if ((hookData->activeParticleLimit != 0) && (hookData->activeParticleLimit <= hookData->effectActive)) {
+                if (hookData->reservedHookByte & 1) {
+                    hookData->effectActive = 0;
                 }
-                var_r31->unk_28 = var_r31->unk_30;
+                hookData->effectActive = hookData->activeParticleLimit;
             }
-            var_r31->unk_2C = GlobalCounter;
+            hookData->lastUpdateFrame = GlobalCounter;
         }
     }
 }
 
-s32 fn_1_CD34(s32 arg0, s32 arg1, s32 arg2)
+s32 CopyModelMaterials(s32 source, s32 destination, s32 effectColor)
 {
-    HU3DMODEL *var_r29;
-    HU3DMODEL *var_r30;
-    s32 var_r31;
+    HU3DMODEL *sourceModel;
+    HU3DMODEL *targetModel;
+    s32 lightSlot;
 
-    var_r29 = &Hu3DData[arg0];
-    var_r30 = &Hu3DData[arg2];
-    for (var_r31 = 0; var_r31 < 8; var_r31++) {
-        if (var_r30->lLightId[var_r31] == -1) {
+    sourceModel = &Hu3DData[source];
+    targetModel = &Hu3DData[effectColor];
+    for (lightSlot = 0; lightSlot < 8; lightSlot++) {
+        if (targetModel->lLightId[lightSlot] == -1) {
             break;
         }
     }
-    if (var_r31 == 8) {
+    if (lightSlot == 8) {
         return -1;
     }
-    var_r30->lLightId[var_r31] = var_r29->lLightId[arg1];
-    var_r30->attr |= 0x1000;
-    return var_r31;
+    targetModel->lLightId[lightSlot] = sourceModel->lLightId[destination];
+    targetModel->attr |= 0x1000;
+    return lightSlot;
 }
 
-void fn_1_CDD8(s32 arg0, float arg8, float arg9, float argA, float argB)
+void SetModelMaterialColors(s32 source, Float scale, Float rotationSpeed, Float secondScale, Float thirdScale)
 {
-    HSFMATERIAL *var_r31;
-    s32 var_r30;
-    HSFDATA *var_r29;
-    s32 var_r28;
-    HU3DMODEL *var_r27;
-    s32 var_r26;
+    HSFMATERIAL *material;
+    s32 channelValue;
+    HSFDATA *modelData;
+    s32 materialIndex;
+    HU3DMODEL *model;
+    s32 materialCount;
 
-    var_r27 = &Hu3DData[arg0];
-    var_r29 = var_r27->hsf;
-    var_r31 = var_r29->material;
-    var_r26 = var_r29->materialNum;
-    for (var_r28 = 0; var_r28 < var_r26; var_r28++, var_r31++) {
-        var_r31->vtxMode = 1;
-        var_r30 = arg9 * (var_r31->litColor[0] * arg8);
-        if (var_r30 > 0xFF) {
-            var_r30 = 0xFF;
+    model = &Hu3DData[source];
+    modelData = model->hsf;
+    material = modelData->material;
+    materialCount = modelData->materialNum;
+    for (materialIndex = 0; materialIndex < materialCount; materialIndex++, material++) {
+        material->vtxMode = 1;
+        channelValue = rotationSpeed * (material->litColor[0] * scale);
+        if (channelValue > 0xFF) {
+            channelValue = 0xFF;
         }
-        var_r31->litColor[0] = var_r30;
-        var_r30 = argA * (var_r31->litColor[1] * arg8);
-        if (var_r30 > 0xFF) {
-            var_r30 = 0xFF;
+        material->litColor[0] = channelValue;
+        channelValue = secondScale * (material->litColor[1] * scale);
+        if (channelValue > 0xFF) {
+            channelValue = 0xFF;
         }
-        var_r31->litColor[1] = var_r30;
-        var_r30 = argB * (var_r31->litColor[2] * arg8);
-        if (var_r30 > 0xFF) {
-            var_r30 = 0xFF;
+        material->litColor[1] = channelValue;
+        channelValue = thirdScale * (material->litColor[2] * scale);
+        if (channelValue > 0xFF) {
+            channelValue = 0xFF;
         }
-        var_r31->litColor[2] = var_r30;
+        material->litColor[2] = channelValue;
     }
 }
 
-void fn_1_CF24(s32 arg0, u8 arg1, u8 arg2, u8 arg3)
+void SetModelMaterialColor(s32 source, u8 destination, u8 effectColor, u8 channelValue)
 {
-    HSFMATERIAL *var_r31;
-    HSFDATA *var_r30;
-    s32 var_r29;
-    HU3DMODEL *var_r28;
-    s32 var_r27;
+    HSFMATERIAL *material;
+    HSFDATA *modelData;
+    s32 materialIndex;
+    HU3DMODEL *model;
+    s32 materialCount;
 
-    var_r28 = &Hu3DData[arg0];
-    var_r30 = var_r28->hsf;
-    var_r31 = var_r30->material;
-    var_r27 = var_r30->materialNum;
-    for (var_r29 = 0; var_r29 < var_r27; var_r29++, var_r31++) {
-        var_r31->vtxMode = 1;
-        var_r31->litColor[0] = arg1;
-        var_r31->litColor[1] = arg2;
-        var_r31->litColor[2] = arg3;
+    model = &Hu3DData[source];
+    modelData = model->hsf;
+    material = modelData->material;
+    materialCount = modelData->materialNum;
+    for (materialIndex = 0; materialIndex < materialCount; materialIndex++, material++) {
+        material->vtxMode = 1;
+        material->litColor[0] = destination;
+        material->litColor[1] = effectColor;
+        material->litColor[2] = channelValue;
     }
 }
 
-void fn_1_CF98(s32 arg0, s32 arg1)
+void SetModelMaterialAlpha(s32 source, s32 destination)
 {
-    s32 var_r31;
-    HSFDATA *var_r30;
-    HSFDATA *var_r29;
-    HU3DMODEL *var_r28;
-    HU3DMODEL *var_r27;
+    s32 dataIndex;
+    HSFDATA *targetModelData;
+    HSFDATA *sourceModelData;
+    HU3DMODEL *sourceModel;
+    HU3DMODEL *targetModel;
 
-    var_r28 = &Hu3DData[arg0];
-    var_r27 = &Hu3DData[arg1];
-    var_r29 = var_r28->hsf;
-    var_r30 = var_r27->hsf;
-    for (var_r31 = 0; var_r31 < var_r30->bitmapNum; var_r31++) {
-        memcpy(&var_r30->bitmap[var_r31], &var_r29->bitmap[var_r31], 0x20);
+    sourceModel = &Hu3DData[source];
+    targetModel = &Hu3DData[destination];
+    sourceModelData = sourceModel->hsf;
+    targetModelData = targetModel->hsf;
+    for (dataIndex = 0; dataIndex < targetModelData->bitmapNum; dataIndex++) {
+        memcpy(&targetModelData->bitmap[dataIndex], &sourceModelData->bitmap[dataIndex], 0x20);
     }
-    for (var_r31 = 0; var_r31 < var_r30->attributeNum; var_r31++) {
-        memcpy(&var_r30->attribute[var_r31], &var_r29->attribute[var_r31], 0x84);
+    for (dataIndex = 0; dataIndex < targetModelData->attributeNum; dataIndex++) {
+        memcpy(&targetModelData->attribute[dataIndex], &sourceModelData->attribute[dataIndex], 0x84);
     }
 }
 
-s16 fn_1_D06C(HU3DMODEL *arg0, Mtx arg1, Mtx arg2, float arg8)
+s16 GetModelLightChannels(HU3DMODEL *source, Mtx destination, Mtx effectColor, Float scale)
 {
-    s16 var_r31;
-    s16 var_r29;
-    s16 var_r28;
-    HU3DLIGHT *var_r27;
+    s16 lightIndex;
+    s16 lightChannelMask;
+    s16 enabledChannels;
+    HU3DLIGHT *localLight;
 
-    var_r28 = 0;
-    var_r29 = 1;
-    if (arg0->attr & 0x1000) {
-        for (var_r31 = 0; var_r31 < 8; var_r31++) {
-            if (arg0->lLightId[var_r31] != -1) {
-                var_r27 = &Hu3DLocalLight[arg0->lLightId[var_r31]];
-                fn_1_D13C(var_r27, var_r29, arg2, arg1, arg8);
-                var_r28 |= var_r29;
-                var_r29 <<= 1;
+    enabledChannels = 0;
+    lightChannelMask = 1;
+    if (source->attr & 0x1000) {
+        for (lightIndex = 0; lightIndex < 8; lightIndex++) {
+            if (source->lLightId[lightIndex] != -1) {
+                localLight = &Hu3DLocalLight[source->lLightId[lightIndex]];
+                TransformLightDirection(localLight, lightChannelMask, effectColor, destination, scale);
+                enabledChannels |= lightChannelMask;
+                lightChannelMask <<= 1;
             }
         }
     }
-    return var_r28;
+    return enabledChannels;
 }
 
-void fn_1_D13C(HU3DLIGHT *arg0, s16 arg1, Mtx arg2, Mtx arg3, float arg8)
+void TransformLightDirection(HU3DLIGHT *source, s16 destination, Mtx effectColor, Mtx channelValue, Float scale)
 {
-    GXLightObj sp30;
-    Vec sp24;
-    Vec sp18;
+    GXLightObj lightObject;
+    Vec transformedDirection;
+    Vec transformedPosition;
 
-    switch ((u8)arg0->type) {
+    switch ((u8)source->type) {
         case 0:
-            GXInitLightAttn(&sp30, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-            GXInitLightSpot(&sp30, arg0->cutoff, arg0->func);
+            GXInitLightAttn(&lightObject, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+            GXInitLightSpot(&lightObject, source->cutoff, source->func);
             break;
         case 1:
-            GXInitLightAttn(&sp30, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-            GXInitLightSpot(&sp30, 20.0f, GX_SP_COS);
-            GXInitLightAttnK(&sp30, 1.0f, 0.0f, 0.0f);
-            VECScale(&arg0->dir, &arg0->pos, -1000000.0f);
+            GXInitLightAttn(&lightObject, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+            GXInitLightSpot(&lightObject, 20.0f, GX_SP_COS);
+            GXInitLightAttnK(&lightObject, 1.0f, 0.0f, 0.0f);
+            VECScale(&source->dir, &source->pos, -1000000.0f);
             break;
         case 2:
-            GXInitLightAttn(&sp30, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-            GXInitLightDistAttn(&sp30, arg0->cutoff, arg0->brightness, arg0->func);
+            GXInitLightAttn(&lightObject, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+            GXInitLightDistAttn(&lightObject, source->cutoff, source->brightness, source->func);
             break;
         default:
             break;
     }
-    if (arg0->type & 0x8000) {
-        MTXMultVec(arg2, &arg0->dir, &sp24);
-        MTXMultVec(arg3, &arg0->pos, &sp18);
-        GXInitLightPos(&sp30, sp18.x, sp18.y, sp18.z);
+    if (source->type & 0x8000) {
+        MTXMultVec(effectColor, &source->dir, &transformedDirection);
+        MTXMultVec(channelValue, &source->pos, &transformedPosition);
+        GXInitLightPos(&lightObject, transformedPosition.x, transformedPosition.y, transformedPosition.z);
     }
     else {
-        GXInitLightPos(&sp30, arg0->pos.x, arg0->pos.y, arg0->pos.z);
-        sp24 = arg0->dir;
+        GXInitLightPos(&lightObject, source->pos.x, source->pos.y, source->pos.z);
+        transformedDirection = source->dir;
     }
-    if (arg8 == 0.0f) {
-        GXInitLightDir(&sp30, sp24.x, sp24.y, sp24.z);
+    if (scale == 0.0f) {
+        GXInitLightDir(&lightObject, transformedDirection.x, transformedDirection.y, transformedDirection.z);
     }
     else {
-        GXInitSpecularDir(&sp30, sp24.x, sp24.y, sp24.z);
-        GXInitLightAttn(&sp30, 0.0f, 0.0f, 1.0f, arg8 / 2, 0.0f, 1.0f - (arg8 / 2));
+        GXInitSpecularDir(&lightObject, transformedDirection.x, transformedDirection.y, transformedDirection.z);
+        GXInitLightAttn(&lightObject, 0.0f, 0.0f, 1.0f, scale / 2, 0.0f, 1.0f - (scale / 2));
     }
-    GXInitLightColor(&sp30, arg0->color);
-    GXLoadLightObjImm(&sp30, arg1);
+    GXInitLightColor(&lightObject, source->color);
+    GXLoadLightObjImm(&lightObject, destination);
 }
 
-void fn_1_D488(float arg8, Vec *arg0, Vec *arg1, Vec *arg2)
+void InterpolateVector(Float scale, Vec *source, Vec *destination, Vec *effectColor)
 {
-    lbl_1_bss_3C.x = arg0->x + (arg8 * (arg1->x - arg0->x));
-    lbl_1_bss_3C.y = arg0->y + (arg8 * (arg1->y - arg0->y));
-    lbl_1_bss_3C.z = arg0->z + (arg8 * (arg1->z - arg0->z));
-    *arg2 = lbl_1_bss_3C;
+    interpolatedVector.x = source->x + (scale * (destination->x - source->x));
+    interpolatedVector.y = source->y + (scale * (destination->y - source->y));
+    interpolatedVector.z = source->z + (scale * (destination->z - source->z));
+    *effectColor = interpolatedVector;
 }
 
-void fn_1_D518(Mtx arg0, Vec *arg1)
+void TransformVector(Mtx source, Vec *destination)
 {
-    Vec sp8;
+    Vec transformedVector;
 
-    sp8.x = (arg0[0][2] * arg1->z) + ((arg0[0][0] * arg1->x) + (arg0[0][1] * arg1->y));
-    sp8.y = (arg0[1][2] * arg1->z) + ((arg0[1][0] * arg1->x) + (arg0[1][1] * arg1->y));
-    sp8.z = (arg0[2][2] * arg1->z) + ((arg0[2][0] * arg1->x) + (arg0[2][1] * arg1->y));
-    *arg1 = sp8;
+    transformedVector.x = (source[0][2] * destination->z) + ((source[0][0] * destination->x) + (source[0][1] * destination->y));
+    transformedVector.y = (source[1][2] * destination->z) + ((source[1][0] * destination->x) + (source[1][1] * destination->y));
+    transformedVector.z = (source[2][2] * destination->z) + ((source[2][0] * destination->x) + (source[2][1] * destination->y));
+    *destination = transformedVector;
 }
 
-float fn_1_D5CC(Vec *arg0, Vec *arg1, float arg8, float arg9)
+Float ProjectVectorOntoAxis(Vec *source, Vec *destination, Float scale, Float rotationSpeed)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
+    Float firstXDelta;
+    Float firstZDelta;
+    Float secondXDelta;
+    Float secondZDelta;
+    Float signedCrossProduct;
 
-    var_f31 = arg0->x - arg8;
-    var_f30 = arg0->z - arg9;
-    var_f29 = arg1->x - arg8;
-    var_f28 = arg1->z - arg9;
+    firstXDelta = source->x - scale;
+    firstZDelta = source->z - rotationSpeed;
+    secondXDelta = destination->x - scale;
+    secondZDelta = destination->z - rotationSpeed;
 
-    var_f27 = -((var_f30 * var_f29) - (var_f31 * var_f28));
-    return var_f27;
+    signedCrossProduct = -((firstZDelta * secondXDelta) - (firstXDelta * secondZDelta));
+    return signedCrossProduct;
 }

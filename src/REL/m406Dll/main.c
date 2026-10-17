@@ -10,55 +10,55 @@
 
 #include "REL/m406Dll.h"
 
-typedef struct UnkM417Data0Struct {
-    float unk_00;
-    float unk_04;
-    float unk_08;
-    float unk0C;
-    float unk10;
-    float unk14;
-    float unk18;
-    float unk_1C;
-    float unk_20;
-    float unk_24;
-    float unk_28;
-    float unk_2C;
-    float unk_30;
-    float unk_34;
-    float unk_38; // it's the same structure twice, rot, center etc.
-    float unk_3C;
-    float unk_40;
-    float unk_44;
-    float unk_48;
-    float unk_4C;
-    float unk_50;
-    float unk_54;
-    float unk_58;
-    float unk_5C;
-    float unk_60;
-    float unk_64;
-    float unk_68;
-    float unk_6C;
-    float unk_70;
-    float unk_74;
-    float unk_78;
-    float unk_7C;
-    float unk_80;
-    float unk_84;
-    float unk_88;
-} UnkM417Data0Struct; /* size = unknown */
+typedef struct M406CameraParameters {
+    Float initialRotationX;
+    Float initialRotationY;
+    Float initialRotationZ;
+    Float unusedCameraValue0C;
+    Float unusedCameraValue10;
+    Float unusedCameraValue14;
+    Float unusedCameraValue18;
+    Float transitionRotationStartX;
+    Float transitionRotationStartY;
+    Float transitionRotationStartZ;
+    Float transitionCenterStartX;
+    Float transitionCenterStartY;
+    Float transitionCenterStartZ;
+    Float transitionZoomStart;
+    Float initialViewRotationX;
+    Float initialViewRotationY;
+    Float initialViewRotationZ;
+    Float initialViewCenterX;
+    Float initialViewCenterY;
+    Float initialViewCenterZ;
+    Float initialViewZoom;
+    Float endingViewRotationX;
+    Float endingViewRotationY;
+    Float endingViewRotationZ;
+    Float endingViewCenterX;
+    Float endingViewCenterY;
+    Float endingViewCenterZ;
+    Float endingViewZoom;
+    Float transitionRotationEndX;
+    Float transitionRotationEndY;
+    Float transitionRotationEndZ;
+    Float transitionCenterEndX;
+    Float transitionCenterEndY;
+    Float transitionCenterEndZ;
+    Float transitionZoomEnd;
+} M406CameraParameters; /* size = unknown */
 
-void fn_1_110C(OMOBJ *object);
-void fn_1_1168(OMOBJ *object);
-void fn_1_1340(void);
-void fn_1_151C(OMOBJ *object);
-void fn_1_15D0(float arg8);
-void fn_1_183C(float arg8);
-float fn_1_1F10(float arg9, float argA, float argB);
-void fn_1_3B8(OMOBJ *object);
-void fn_1_40C(OMOBJ *object);
+void StartSceneTransition(OMOBJ *object);
+void UpdateSceneExit(OMOBJ *object);
+void InitializeSceneCamera(void);
+void InitializeSceneView(OMOBJ *object);
+void UpdateIntroCamera(Float scale);
+void UpdateTransitionCamera(Float scale);
+Float InterpolateAngle(Float rotationSpeed, Float secondScale, Float thirdScale);
+void InitializeSceneObjects(OMOBJ *object);
+void UpdateSceneState(OMOBJ *object);
 
-UnkM417Data0Struct lbl_1_data_0 = {
+M406CameraParameters cameraParameters = {
     330.0f,
     105.0f,
     0.0f,
@@ -96,121 +96,121 @@ UnkM417Data0Struct lbl_1_data_0 = {
     1226.0f,
 };
 
-HUPROCESS *lbl_1_bss_2C;
-OMOBJ *lbl_1_bss_28;
-s32 lbl_1_bss_24;
-s32 lbl_1_bss_20;
-s32 lbl_1_bss_1C;
-s32 lbl_1_bss_18;
-s32 lbl_1_bss_14;
-s32 lbl_1_bss_10;
-s32 lbl_1_bss_C;
-s32 lbl_1_bss_8;
-OMOBJ *lbl_1_bss_4;
-s32 lbl_1_bss_0;
+HUPROCESS *objectProcess;
+OMOBJ *mainObject;
+s32 minigameSequenceId;
+s32 resultsSequenceId;
+s32 sceneState;
+s32 sceneStateFrames;
+s32 cameraTransitionFrames;
+s32 selectedPlayer;
+s32 audioSequenceId;
+s32 sceneTransitionActive;
+OMOBJ *cameraObject;
+s32 sceneCompleted;
 
 void ObjectSetup(void)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec cameraPosition;
+    Vec cameraDirection;
 
-    HUPROCESS *var_r31;
+    HUPROCESS *objectManager;
 
     OSReport("******* M426ObjectSetup *********\n");
-    var_r31 = omInitObjMan(50, 8192);
-    lbl_1_bss_2C = var_r31;
-    omGameSysInit(var_r31);
-    fn_1_1340();
+    objectManager = omInitObjMan(50, 8192);
+    objectProcess = objectManager;
+    omGameSysInit(objectManager);
+    InitializeSceneCamera();
     HuAudSndGrpSet(0x1F);
-    sp14.x = Center.x + (CZoom * (sind(CRot.y) * cosd(CRot.x)));
-    sp14.y = Center.y + (CZoom * -sind(CRot.x));
-    sp14.z = Center.z + (CZoom * (cosd(CRot.y) * cosd(CRot.x)));
-    VECSubtract(&Center, &sp14, &sp8);
-    VECNormalize(&sp8, &sp8);
-    HuAudFXListnerSetEX(&sp14, &sp8, 100000.0f, (34000.0f/REFRESH_RATE)+3600, 0.0f, 300.0f, 300.0f);
+    cameraPosition.x = Center.x + (CZoom * (sind(CRot.y) * cosd(CRot.x)));
+    cameraPosition.y = Center.y + (CZoom * -sind(CRot.x));
+    cameraPosition.z = Center.z + (CZoom * (cosd(CRot.y) * cosd(CRot.x)));
+    VECSubtract(&Center, &cameraPosition, &cameraDirection);
+    VECNormalize(&cameraDirection, &cameraDirection);
+    HuAudFXListnerSetEX(&cameraPosition, &cameraDirection, 100000.0f, (34000.0f/REFRESH_RATE)+3600, 0.0f, 300.0f, 300.0f);
     Hu3DLightAllKill();
     Hu3DLighInit();
-    lbl_1_bss_28 = omAddObjEx(var_r31, 255, 2, 0, -1, fn_1_3B8);
-    lbl_1_bss_24 = lbl_1_bss_20 = -1;
-    lbl_1_bss_1C = 0;
-    lbl_1_bss_18 = 0;
-    lbl_1_bss_10 = -1;
-    lbl_1_bss_C = -1;
-    lbl_1_bss_8 = 0;
+    mainObject = omAddObjEx(objectManager, 255, 2, 0, -1, InitializeSceneObjects);
+    minigameSequenceId = resultsSequenceId = -1;
+    sceneState = 0;
+    sceneStateFrames = 0;
+    selectedPlayer = -1;
+    audioSequenceId = -1;
+    sceneTransitionActive = 0;
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
-    lbl_1_bss_8 = 0;
+    sceneTransitionActive = 0;
 }
 
-void fn_1_3B8(OMOBJ *object)
+void InitializeSceneObjects(OMOBJ *object)
 {
-    fn_1_2308(lbl_1_bss_2C);
-    fn_1_D65C(lbl_1_bss_2C);
-    object->objFunc = fn_1_40C;
+    CreateMapScene(objectProcess);
+    InitializePlayerSystem(objectProcess);
+    object->objFunc = UpdateSceneState;
 }
 
-void fn_1_40C(OMOBJ *object)
+void UpdateSceneState(OMOBJ *object)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec cameraPosition;
+    Vec cameraDirection;
 
-    float var_f31;
+    Float transitionProgress;
 
-    u8 var_r31;
+    u8 sequenceStatus;
 
-    switch (lbl_1_bss_1C) {
+    switch (sceneState) {
         case 0:
             if (!WipeStatGet()) {
-                lbl_1_bss_1C = 1;
-                lbl_1_bss_18 = 0;
+                sceneState = 1;
+                sceneStateFrames = 0;
             }
             break;
         case 1:
-            lbl_1_bss_18++;
-            if (lbl_1_bss_18 >= (REFRESH_RATE*0.8f)) {
-                fn_1_696C((1800.0001f/REFRESH_RATE));
+            sceneStateFrames++;
+            if (sceneStateFrames >= (REFRESH_RATE*0.8f)) {
+                SetMapPathSpeed((1800.0001f/REFRESH_RATE));
             }
             break;
         case 2:
-            lbl_1_bss_18++;
-            var_f31 = lbl_1_bss_18 / (REFRESH_RATE*0.75f);
-            fn_1_15D0(var_f31);
-            if (lbl_1_bss_18 >= (REFRESH_RATE*0.75f)) {
-                lbl_1_bss_24 = MGSeqCreate(3, 0);
-                lbl_1_bss_1C = 3;
-                lbl_1_bss_18 = 0;
+            sceneStateFrames++;
+            transitionProgress = sceneStateFrames / (REFRESH_RATE*0.75f);
+            UpdateIntroCamera(transitionProgress);
+            if (sceneStateFrames >= (REFRESH_RATE*0.75f)) {
+                minigameSequenceId = MGSeqCreate(3, 0);
+                sceneState = 3;
+                sceneStateFrames = 0;
             }
             break;
         case 3:
-            if (lbl_1_bss_24 != -1) {
-                var_r31 = MGSeqStatGet(lbl_1_bss_24);
-                if (var_r31 & 16 && lbl_1_bss_C == -1) {
-                    lbl_1_bss_C = HuAudSeqPlay(74);
+            if (minigameSequenceId != -1) {
+                sequenceStatus = MGSeqStatGet(minigameSequenceId);
+                if (sequenceStatus & 16 && audioSequenceId == -1) {
+                    audioSequenceId = HuAudSeqPlay(74);
                 }
             }
             else {
-                var_r31 = 0;
+                sequenceStatus = 0;
             }
-            if (lbl_1_bss_24 == -1 || !var_r31) {
-                lbl_1_bss_24 = -1;
-                lbl_1_bss_1C = 4;
-                lbl_1_bss_18 = 0;
+            if (minigameSequenceId == -1 || !sequenceStatus) {
+                minigameSequenceId = -1;
+                sceneState = 4;
+                sceneStateFrames = 0;
             }
             break;
         case 4:
-            if (lbl_1_bss_10 != -1) {
-                lbl_1_bss_24 = MGSeqCreate(3, 1);
+            if (selectedPlayer != -1) {
+                minigameSequenceId = MGSeqCreate(3, 1);
                 HuAudFXAllStop();
-                if (lbl_1_bss_C != -1) {
-                    HuAudSeqFadeOut(lbl_1_bss_C, 100);
+                if (audioSequenceId != -1) {
+                    HuAudSeqFadeOut(audioSequenceId, 100);
                 }
-                if (lbl_1_bss_10 != 99) {
-                    fn_1_B25C();
-                    fn_1_B104(1.0f);
-                    fn_1_6B5C();
-                    fn_1_183C(0.0f);
+                if (selectedPlayer != 99) {
+                    CreateSceneLight();
+                    SetAnimationGroupAlpha(1.0f);
+                    StopMapPathAudio();
+                    UpdateTransitionCamera(0.0f);
                     Hu3DBGColorSet(0x40, 0x40, 0xFF);
-                    lbl_1_bss_1C = 5;
-                    lbl_1_bss_18 = 0;
+                    sceneState = 5;
+                    sceneStateFrames = 0;
                 }
                 else {
                     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, REFRESH_RATE/2);
@@ -219,155 +219,155 @@ void fn_1_40C(OMOBJ *object)
                     #else
                     WipeColorSet(160, 160, 160);
                     #endif
-                    lbl_1_bss_8 = 1;
-                    lbl_1_bss_1C = 9;
-                    lbl_1_bss_18 = 0;
-                    lbl_1_bss_14 = 0;
+                    sceneTransitionActive = 1;
+                    sceneState = 9;
+                    sceneStateFrames = 0;
+                    cameraTransitionFrames = 0;
                 }
             }
             break;
         case 5:
-            lbl_1_bss_14++;
-            var_f31 = lbl_1_bss_14 / (REFRESH_RATE*1.5f);
-            if (var_f31 > 1.0f) {
-                var_f31 = 1.0f;
+            cameraTransitionFrames++;
+            transitionProgress = cameraTransitionFrames / (REFRESH_RATE*1.5f);
+            if (transitionProgress > 1.0f) {
+                transitionProgress = 1.0f;
             }
-            fn_1_183C(var_f31);
+            UpdateTransitionCamera(transitionProgress);
             Hu3DBGColorSet(0x40, 0x40, 0xFF);
             break;
         case 6:
-            lbl_1_bss_14++;
-            var_f31 = lbl_1_bss_14 / (REFRESH_RATE*1.5f);
-            if (var_f31 > 1.0f) {
-                var_f31 = 1.0f;
+            cameraTransitionFrames++;
+            transitionProgress = cameraTransitionFrames / (REFRESH_RATE*1.5f);
+            if (transitionProgress > 1.0f) {
+                transitionProgress = 1.0f;
             }
-            fn_1_183C(var_f31);
+            UpdateTransitionCamera(transitionProgress);
             WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, REFRESH_RATE/2);
             #if VERSION_NTSC
             WipeColorSet(255, 255, 255);
             #else
             WipeColorSet(160, 160, 160);
             #endif
-            lbl_1_bss_8 = 1;
-            lbl_1_bss_1C = 7;
-            lbl_1_bss_18 = 0;
+            sceneTransitionActive = 1;
+            sceneState = 7;
+            sceneStateFrames = 0;
             break;
         case 7:
-            lbl_1_bss_14++;
-            var_f31 = lbl_1_bss_14 / (REFRESH_RATE*1.5f);
-            if (var_f31 > 1.0f) {
-                var_f31 = 1.0f;
+            cameraTransitionFrames++;
+            transitionProgress = cameraTransitionFrames / (REFRESH_RATE*1.5f);
+            if (transitionProgress > 1.0f) {
+                transitionProgress = 1.0f;
             }
-            fn_1_183C(var_f31);
-            if (!WipeStatGet() && (lbl_1_bss_24 == -1 || !MGSeqStatGet(lbl_1_bss_24))) {
-                lbl_1_bss_24 = -1;
+            UpdateTransitionCamera(transitionProgress);
+            if (!WipeStatGet() && (minigameSequenceId == -1 || !MGSeqStatGet(minigameSequenceId))) {
+                minigameSequenceId = -1;
                 WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, REFRESH_RATE/2);
                 #if VERSION_NTSC
                 WipeColorSet(255, 255, 255);
                 #else
                 WipeColorSet(160, 160, 160);
                 #endif
-                lbl_1_bss_8 = 0;
-                CRot.x = lbl_1_data_0.unk_54;
-                CRot.y = lbl_1_data_0.unk_58;
-                CRot.z = lbl_1_data_0.unk_5C;
-                Center.x = lbl_1_data_0.unk_60;
-                Center.y = lbl_1_data_0.unk_64;
-                Center.z = lbl_1_data_0.unk_68;
-                CZoom = lbl_1_data_0.unk_6C;
-                fn_1_3064(1);
-                lbl_1_bss_1C = 8;
-                lbl_1_bss_18 = 0;
+                sceneTransitionActive = 0;
+                CRot.x = cameraParameters.endingViewRotationX;
+                CRot.y = cameraParameters.endingViewRotationY;
+                CRot.z = cameraParameters.endingViewRotationZ;
+                Center.x = cameraParameters.endingViewCenterX;
+                Center.y = cameraParameters.endingViewCenterY;
+                Center.z = cameraParameters.endingViewCenterZ;
+                CZoom = cameraParameters.endingViewZoom;
+                SetMapState(1);
+                sceneState = 8;
+                sceneStateFrames = 0;
             }
             break;
         case 8:
             if (!WipeStatGet()) {
-                lbl_1_bss_1C = 11;
-                lbl_1_bss_18 = 0;
+                sceneState = 11;
+                sceneStateFrames = 0;
             }
             break;
         case 9:
-            if (!WipeStatGet() && (lbl_1_bss_24 == -1 || !MGSeqStatGet(lbl_1_bss_24))) {
-                lbl_1_bss_24 = -1;
+            if (!WipeStatGet() && (minigameSequenceId == -1 || !MGSeqStatGet(minigameSequenceId))) {
+                minigameSequenceId = -1;
                 WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, REFRESH_RATE/2);
                 #if VERSION_NTSC
                 WipeColorSet(255, 255, 255);
                 #else
                 WipeColorSet(160, 160, 160);
                 #endif
-                lbl_1_bss_8 = 0;
-                CRot.x = lbl_1_data_0.unk_54;
-                CRot.y = lbl_1_data_0.unk_58;
-                CRot.z = lbl_1_data_0.unk_5C;
-                Center.x = lbl_1_data_0.unk_60;
-                Center.y = lbl_1_data_0.unk_64;
-                Center.z = lbl_1_data_0.unk_68;
-                CZoom = lbl_1_data_0.unk_6C;
-                sp14.x = Center.x + (CZoom * (sind(CRot.y) * cosd(CRot.x)));
-                sp14.y = Center.y + (CZoom * -sind(CRot.x));
-                sp14.z = Center.z + (CZoom * (cosd(CRot.y) * cosd(CRot.x)));
-                VECSubtract(&Center, &sp14, &sp8);
-                VECNormalize(&sp8, &sp8);
-                HuAudFXListnerUpdate(&sp14, &sp8);
-                fn_1_6B5C();
-                fn_1_3064(1);
-                lbl_1_bss_1C = 10;
-                lbl_1_bss_18 = 0;
+                sceneTransitionActive = 0;
+                CRot.x = cameraParameters.endingViewRotationX;
+                CRot.y = cameraParameters.endingViewRotationY;
+                CRot.z = cameraParameters.endingViewRotationZ;
+                Center.x = cameraParameters.endingViewCenterX;
+                Center.y = cameraParameters.endingViewCenterY;
+                Center.z = cameraParameters.endingViewCenterZ;
+                CZoom = cameraParameters.endingViewZoom;
+                cameraPosition.x = Center.x + (CZoom * (sind(CRot.y) * cosd(CRot.x)));
+                cameraPosition.y = Center.y + (CZoom * -sind(CRot.x));
+                cameraPosition.z = Center.z + (CZoom * (cosd(CRot.y) * cosd(CRot.x)));
+                VECSubtract(&Center, &cameraPosition, &cameraDirection);
+                VECNormalize(&cameraDirection, &cameraDirection);
+                HuAudFXListnerUpdate(&cameraPosition, &cameraDirection);
+                StopMapPathAudio();
+                SetMapState(1);
+                sceneState = 10;
+                sceneStateFrames = 0;
             }
             break;
         case 10:
             if (!WipeStatGet()) {
-                lbl_1_bss_1C = 11;
-                lbl_1_bss_18 = 0;
+                sceneState = 11;
+                sceneStateFrames = 0;
             }
             break;
         case 11:
             break;
         case 12:
-            if (lbl_1_bss_10 != 99) {
-                lbl_1_bss_24 = MGSeqCreate(5, 3, GWPlayerCfg[lbl_1_bss_10].character, -1, -1, -1);
+            if (selectedPlayer != 99) {
+                minigameSequenceId = MGSeqCreate(5, 3, GWPlayerCfg[selectedPlayer].character, -1, -1, -1);
                 HuAudSStreamPlay(1);
-                GWPlayerCoinWinAdd(lbl_1_bss_10, 10);
-                lbl_1_bss_1C = 13;
-                lbl_1_bss_18 = 0;
+                GWPlayerCoinWinAdd(selectedPlayer, 10);
+                sceneState = 13;
+                sceneStateFrames = 0;
             }
             else {
-                lbl_1_bss_24 = MGSeqCreate(3, 2);
+                minigameSequenceId = MGSeqCreate(3, 2);
                 HuAudSStreamPlay(4);
-                lbl_1_bss_1C = 13;
-                lbl_1_bss_18 = 0;
+                sceneState = 13;
+                sceneStateFrames = 0;
             }
             break;
         case 13:
-            if (++lbl_1_bss_18 >= (REFRESH_RATE*3.5f)) {
-                lbl_1_bss_24 = -1;
+            if (++sceneStateFrames >= (REFRESH_RATE*3.5f)) {
+                minigameSequenceId = -1;
                 WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-                lbl_1_bss_8 = 1;
-                lbl_1_bss_1C = 14;
-                lbl_1_bss_18 = 0;
+                sceneTransitionActive = 1;
+                sceneState = 14;
+                sceneStateFrames = 0;
             }
             break;
         case 14:
             if (!WipeStatGet()) {
                 Hu3DBGColorSet(0, 0, 0);
-                lbl_1_bss_1C = 15;
-                lbl_1_bss_18 = 0;
+                sceneState = 15;
+                sceneStateFrames = 0;
             }
             break;
         case 15:
         default:
-            object->objFunc = fn_1_110C;
+            object->objFunc = StartSceneTransition;
             break;
     }
-    fn_1_1168(object);
+    UpdateSceneExit(object);
 }
 
-void fn_1_110C(OMOBJ *object)
+void StartSceneTransition(OMOBJ *object)
 {
     if (!WipeStatGet()) {
-        fn_1_D8B0();
-        fn_1_2BEC();
-        fn_1_B41C();
+        CreatePlayerObjects();
+        InitializeMapEffects();
+        DestroySceneLight();
         HuAudFXListnerKill();
         HuDataDirClose(DATA_MAKE_NUM(DATADIR_M406, 0));
         MGSeqKillAll();
@@ -376,220 +376,220 @@ void fn_1_110C(OMOBJ *object)
     }
 }
 
-void fn_1_1168(OMOBJ *object)
+void UpdateSceneExit(OMOBJ *object)
 {
-    s32 var_r30;
+    s32 exitRequested;
 
-    var_r30 = 0;
-    if (WipeStatGet() || object->objFunc == fn_1_110C) {
+    exitRequested = 0;
+    if (WipeStatGet() || object->objFunc == StartSceneTransition) {
         return;
     }
     if (omSysExitReq) {
-        var_r30 = 1;
+        exitRequested = 1;
     }
-    if (var_r30) {
-        if (!lbl_1_bss_8) {
+    if (exitRequested) {
+        if (!sceneTransitionActive) {
             WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
         }
-        lbl_1_bss_8 = 1;
+        sceneTransitionActive = 1;
         HuAudStreamFadeOut(30);
-        object->objFunc = fn_1_110C;
+        object->objFunc = StartSceneTransition;
     }
 }
 
-s32 fn_1_122C(void)
+s32 GetSceneState(void)
 {
-    return lbl_1_bss_1C;
+    return sceneState;
 }
 
-void fn_1_123C(void)
+void BeginCameraTransition(void)
 {
-    if (lbl_1_bss_1C <= 1) {
-        lbl_1_bss_1C = 2;
-        lbl_1_bss_18 = 0;
+    if (sceneState <= 1) {
+        sceneState = 2;
+        sceneStateFrames = 0;
     }
 }
 
-void fn_1_1274(s32 arg0)
+void SetSelectedPlayer(s32 source)
 {
-    lbl_1_bss_10 = arg0;
+    selectedPlayer = source;
 }
 
-void fn_1_1284(void)
+void AdvanceCameraTransition(void)
 {
-    if (lbl_1_bss_1C == 5) {
-        lbl_1_bss_1C = 6;
-        lbl_1_bss_18 = 0;
+    if (sceneState == 5) {
+        sceneState = 6;
+        sceneStateFrames = 0;
     }
 }
 
-void fn_1_12BC(void)
+void CompleteSceneTransition(void)
 {
-    if (lbl_1_bss_10 != 99) {
-        if (lbl_1_bss_1C == 11) {
-            lbl_1_bss_1C = 12;
-            lbl_1_bss_18 = 0;
+    if (selectedPlayer != 99) {
+        if (sceneState == 11) {
+            sceneState = 12;
+            sceneStateFrames = 0;
         }
     }
-    else if (lbl_1_bss_1C == 11) {
-        lbl_1_bss_1C = 12;
-        lbl_1_bss_18 = 0;
+    else if (sceneState == 11) {
+        sceneState = 12;
+        sceneStateFrames = 0;
     }
 }
 
-void fn_1_1340(void)
+void InitializeSceneCamera(void)
 {
-    OMOBJ *sp8;
+    OMOBJ *cameraObject;
 
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 45.0f, 100.0f, 50000.0f, 1.2f);
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraScissorSet(1, 0, 0, 640, 480);
-    sp8 = lbl_1_bss_4 = omAddObjEx(lbl_1_bss_2C, 0x7FDA, 0, 0, -1, omOutView);
-    CRot.x = lbl_1_data_0.unk_38;
-    CRot.y = lbl_1_data_0.unk_3C;
-    CRot.z = lbl_1_data_0.unk_40;
-    Center.x = lbl_1_data_0.unk_44;
-    Center.y = lbl_1_data_0.unk_48;
-    Center.z = lbl_1_data_0.unk_4C;
-    CZoom = lbl_1_data_0.unk_50;
-    lbl_1_bss_0 = 0;
-    omAddObjEx(lbl_1_bss_2C, 0xFF, 0, 0, -1, fn_1_151C);
+    cameraObject = cameraObject = omAddObjEx(objectProcess, 0x7FDA, 0, 0, -1, omOutView);
+    CRot.x = cameraParameters.initialViewRotationX;
+    CRot.y = cameraParameters.initialViewRotationY;
+    CRot.z = cameraParameters.initialViewRotationZ;
+    Center.x = cameraParameters.initialViewCenterX;
+    Center.y = cameraParameters.initialViewCenterY;
+    Center.z = cameraParameters.initialViewCenterZ;
+    CZoom = cameraParameters.initialViewZoom;
+    sceneCompleted = 0;
+    omAddObjEx(objectProcess, 0xFF, 0, 0, -1, InitializeSceneView);
 }
 
-void fn_1_151C(OMOBJ *object) { }
+void InitializeSceneView(OMOBJ *object) { }
 
-void fn_1_1520(void) { }
+void EmptySceneCallback(void) { }
 
-void fn_1_1524(void)
+void RestoreInitialSceneView(void)
 {
-    CRot.x = lbl_1_data_0.unk_38;
-    CRot.y = lbl_1_data_0.unk_3C;
-    CRot.z = lbl_1_data_0.unk_40;
-    Center.x = lbl_1_data_0.unk_44;
-    Center.y = lbl_1_data_0.unk_48;
-    Center.z = lbl_1_data_0.unk_4C;
-    CZoom = lbl_1_data_0.unk_50;
+    CRot.x = cameraParameters.initialViewRotationX;
+    CRot.y = cameraParameters.initialViewRotationY;
+    CRot.z = cameraParameters.initialViewRotationZ;
+    Center.x = cameraParameters.initialViewCenterX;
+    Center.y = cameraParameters.initialViewCenterY;
+    Center.z = cameraParameters.initialViewCenterZ;
+    CZoom = cameraParameters.initialViewZoom;
 }
 
-void fn_1_15D0(float arg8)
+void UpdateIntroCamera(Float scale)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec cameraPosition;
+    Vec cameraDirection;
 
-    CRot.x = fn_1_1F10(arg8, lbl_1_data_0.unk_38, lbl_1_data_0.unk_00);
-    CRot.y = fn_1_1F10(arg8, lbl_1_data_0.unk_3C, lbl_1_data_0.unk_04);
-    CRot.z = fn_1_1F10(arg8, lbl_1_data_0.unk_40, lbl_1_data_0.unk_08);
-    sp14.x = Center.x + (CZoom * (sind(CRot.y) * cosd(CRot.x)));
-    sp14.y = Center.y + (CZoom * -sind(CRot.x));
-    sp14.z = Center.z + (CZoom * (cosd(CRot.y) * cosd(CRot.x)));
-    VECSubtract(&Center, &sp14, &sp8);
-    VECNormalize(&sp8, &sp8);
-    HuAudFXListnerUpdate(&sp14, &sp8);
+    CRot.x = InterpolateAngle(scale, cameraParameters.initialViewRotationX, cameraParameters.initialRotationX);
+    CRot.y = InterpolateAngle(scale, cameraParameters.initialViewRotationY, cameraParameters.initialRotationY);
+    CRot.z = InterpolateAngle(scale, cameraParameters.initialViewRotationZ, cameraParameters.initialRotationZ);
+    cameraPosition.x = Center.x + (CZoom * (sind(CRot.y) * cosd(CRot.x)));
+    cameraPosition.y = Center.y + (CZoom * -sind(CRot.x));
+    cameraPosition.z = Center.z + (CZoom * (cosd(CRot.y) * cosd(CRot.x)));
+    VECSubtract(&Center, &cameraPosition, &cameraDirection);
+    VECNormalize(&cameraDirection, &cameraDirection);
+    HuAudFXListnerUpdate(&cameraPosition, &cameraDirection);
 }
 
-void fn_1_183C(float arg8)
+void UpdateTransitionCamera(Float scale)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec cameraPosition;
+    Vec cameraDirection;
 
-    CRot.x = fn_1_1F10(arg8, lbl_1_data_0.unk_1C, lbl_1_data_0.unk_70);
-    CRot.y = fn_1_1F10(arg8, lbl_1_data_0.unk_20, lbl_1_data_0.unk_74);
-    CRot.z = fn_1_1F10(arg8, lbl_1_data_0.unk_24, lbl_1_data_0.unk_78);
-    Center.x = lbl_1_data_0.unk_28 + (arg8 * (lbl_1_data_0.unk_7C - lbl_1_data_0.unk_28));
-    Center.y = lbl_1_data_0.unk_2C + (arg8 * (lbl_1_data_0.unk_80 - lbl_1_data_0.unk_2C));
-    Center.z = lbl_1_data_0.unk_30 + (arg8 * (lbl_1_data_0.unk_84 - lbl_1_data_0.unk_30));
-    CZoom = lbl_1_data_0.unk_34 + (arg8 * (lbl_1_data_0.unk_88 - lbl_1_data_0.unk_34));
-    sp14.x = Center.x + (CZoom * (sind(CRot.y) * cosd(CRot.x)));
-    sp14.y = Center.y + (CZoom * -sind(CRot.x));
-    sp14.z = Center.z + (CZoom * (cosd(CRot.y) * cosd(CRot.x)));
-    VECSubtract(&Center, &sp14, &sp8);
-    VECNormalize(&sp8, &sp8);
-    HuAudFXListnerUpdate(&sp14, &sp8);
+    CRot.x = InterpolateAngle(scale, cameraParameters.transitionRotationStartX, cameraParameters.transitionRotationEndX);
+    CRot.y = InterpolateAngle(scale, cameraParameters.transitionRotationStartY, cameraParameters.transitionRotationEndY);
+    CRot.z = InterpolateAngle(scale, cameraParameters.transitionRotationStartZ, cameraParameters.transitionRotationEndZ);
+    Center.x = cameraParameters.transitionCenterStartX + (scale * (cameraParameters.transitionCenterEndX - cameraParameters.transitionCenterStartX));
+    Center.y = cameraParameters.transitionCenterStartY + (scale * (cameraParameters.transitionCenterEndY - cameraParameters.transitionCenterStartY));
+    Center.z = cameraParameters.transitionCenterStartZ + (scale * (cameraParameters.transitionCenterEndZ - cameraParameters.transitionCenterStartZ));
+    CZoom = cameraParameters.transitionZoomStart + (scale * (cameraParameters.transitionZoomEnd - cameraParameters.transitionZoomStart));
+    cameraPosition.x = Center.x + (CZoom * (sind(CRot.y) * cosd(CRot.x)));
+    cameraPosition.y = Center.y + (CZoom * -sind(CRot.x));
+    cameraPosition.z = Center.z + (CZoom * (cosd(CRot.y) * cosd(CRot.x)));
+    VECSubtract(&Center, &cameraPosition, &cameraDirection);
+    VECNormalize(&cameraDirection, &cameraDirection);
+    HuAudFXListnerUpdate(&cameraPosition, &cameraDirection);
 }
 
-s32 fn_1_1B98(void)
+s32 IsSceneComplete(void)
 {
-    return lbl_1_bss_0;
+    return sceneCompleted;
 }
 
-float fn_1_1BA8(float arg8, float arg9)
+Float ApproachAngleValue(Float scale, Float rotationSpeed)
 {
-    float var_f31;
+    Float angleDifference;
 
-    if (arg8 >= 360.0f) {
-        arg8 -= 360.0f;
+    if (scale >= 360.0f) {
+        scale -= 360.0f;
     }
-    else if (arg8 < 0.0f) {
-        arg8 += 360.0f;
+    else if (scale < 0.0f) {
+        scale += 360.0f;
     }
-    if (arg9 >= 360.0f) {
-        arg9 -= 360.0f;
+    if (rotationSpeed >= 360.0f) {
+        rotationSpeed -= 360.0f;
     }
-    else if (arg9 < 0.0f) {
-        arg9 += 360.0f;
+    else if (rotationSpeed < 0.0f) {
+        rotationSpeed += 360.0f;
     }
-    var_f31 = arg8 - arg9;
-    if (var_f31 <= -180.0f) {
-        var_f31 += 360.0f;
+    angleDifference = scale - rotationSpeed;
+    if (angleDifference <= -180.0f) {
+        angleDifference += 360.0f;
     }
-    else if (var_f31 >= 180.0f) {
-        var_f31 -= 360.0f;
+    else if (angleDifference >= 180.0f) {
+        angleDifference -= 360.0f;
     }
-    return var_f31;
+    return angleDifference;
 }
 
-float fn_1_1CC0(float arg8, float arg9, float argA)
+Float NormalizeAngleDifference(Float scale, Float rotationSpeed, Float secondScale)
 {
-    float var_f31;
-    float var_f30;
+    Float adjustedAngle;
+    Float angleDifference;
 
-    if (arg8 >= 360.0) {
-        arg8 -= 360.0;
+    if (scale >= 360.0) {
+        scale -= 360.0;
     }
-    else if (arg8 < 0.0) {
-        arg8 += 360.0;
+    else if (scale < 0.0) {
+        scale += 360.0;
     }
-    if (arg9 >= 360.0) {
-        arg9 -= 360.0;
+    if (rotationSpeed >= 360.0) {
+        rotationSpeed -= 360.0;
     }
-    else if (arg9 < 0.0) {
-        arg9 += 360.0;
+    else if (rotationSpeed < 0.0) {
+        rotationSpeed += 360.0;
     }
-    var_f30 = 360.0 + (arg8 - arg9);
-    if (fabs(var_f30) >= 360.0) {
-        var_f30 = fmod(var_f30, 360.0);
+    angleDifference = 360.0 + (scale - rotationSpeed);
+    if (fabs(angleDifference) >= 360.0) {
+        angleDifference = fmod(angleDifference, 360.0);
     }
-    if (var_f30 < 180.0) {
-        if (var_f30 <= argA) {
-            var_f31 = var_f30;
+    if (angleDifference < 180.0) {
+        if (angleDifference <= secondScale) {
+            adjustedAngle = angleDifference;
         }
         else {
-            var_f31 = argA;
+            adjustedAngle = secondScale;
         }
     }
-    else if (360.0 - var_f30 <= argA) {
-        var_f31 = -(360.0 - var_f30);
+    else if (360.0 - angleDifference <= secondScale) {
+        adjustedAngle = -(360.0 - angleDifference);
     }
     else {
-        var_f31 = -argA;
+        adjustedAngle = -secondScale;
     }
-    var_f31 += arg9;
-    if (var_f31 >= 360.0) {
-        var_f31 -= 360.0;
+    adjustedAngle += rotationSpeed;
+    if (adjustedAngle >= 360.0) {
+        adjustedAngle -= 360.0;
     }
-    else if (var_f31 < 0.0) {
-        var_f31 += 360.0;
+    else if (adjustedAngle < 0.0) {
+        adjustedAngle += 360.0;
     }
-    return var_f31;
+    return adjustedAngle;
 }
 
-float fn_1_1F10(float arg8, float arg9, float argA)
+Float InterpolateAngle(Float scale, Float rotationSpeed, Float secondScale)
 {
-    float var_f24;
-    float var_f23;
+    Float maximumAngleStep;
+    Float angleDifference;
 
-    var_f23 = fn_1_1BA8(argA, arg9);
-    var_f24 = fabs(var_f23 * arg8);
-    return fn_1_1CC0(argA, arg9, var_f24);
+    angleDifference = ApproachAngleValue(secondScale, rotationSpeed);
+    maximumAngleStep = fabs(angleDifference * scale);
+    return NormalizeAngleDifference(secondScale, rotationSpeed, maximumAngleStep);
 }
