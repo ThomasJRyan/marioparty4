@@ -8,58 +8,58 @@
 // For future reference: m436 has many functions and structs in common with m437.
 
 typedef struct {
-    /* 0x00 */ void (*unk00)(void);
-    /* 0x04 */ s32 (*unk04)(void);
-    /* 0x08 */ s32 unk08;
-} StructData1E8; // Size 0xC
+    /* 0x00 */ void (*startCallback)(void);
+    /* 0x04 */ s32 (*completionCallback)(void);
+    /* 0x08 */ s32 durationFrames;
+} SequenceEntry; // Size 0xC
 
 typedef struct {
-    /* 0x00 */ s32 unk00;
-    /* 0x04 */ StructData1E8* unk04;
-    /* 0x08 */ s32 unk08;
-    /* 0x0C */ s32 unk0C;
-    /* 0x10 */ void (*unk10)(void);
-    /* 0x14 */ s32 (*unk14)(void);
-} StructBssC0; // Size 0x18
+    /* 0x00 */ s32 entryIndex;
+    /* 0x04 */ SequenceEntry* entries;
+    /* 0x08 */ s32 elapsedFrames;
+    /* 0x0C */ s32 durationFrames;
+    /* 0x10 */ void (*entryCallback)(void);
+    /* 0x14 */ s32 (*completionCallback)(void);
+} SequencePlayer; // Size 0x18
 
 typedef struct {
-    /* 0x00 */ void (*unk00)(void);
-    /* 0x04 */ float unk04;
-    /* 0x08 */ float unk08;
-    /* 0x0C */ float unk0C;
-    /* 0x10 */ float unk10;
-    /* 0x14 */ float unk14;
-    /* 0x18 */ float unk18;
-    /* 0x1C */ float unk1C;
-    /* 0x20 */ float unk20;
-    /* 0x24 */ float unk24;
-    /* 0x28 */ float unk28;
-    /* 0x2C */ float unk2C;
-    /* 0x30 */ float unk30;
-    /* 0x34 */ float unk34;
-    /* 0x38 */ float unk38;
-    /* 0x3C */ float unk3C;
-    /* 0x40 */ s32 unk40[7];
-    /* 0x5C */ float unk5C[7];
-} StructBss32C; // Size 0x78
+    /* 0x00 */ void (*updateCallback)(void);
+    /* 0x04 */ float centerX;
+    /* 0x08 */ float centerY;
+    /* 0x0C */ float centerZ;
+    /* 0x10 */ float targetCenterX;
+    /* 0x14 */ float targetCenterY;
+    /* 0x18 */ float targetCenterZ;
+    /* 0x1C */ float rotationX;
+    /* 0x20 */ float rotationY;
+    /* 0x24 */ float rotationZ;
+    /* 0x28 */ float targetRotationX;
+    /* 0x2C */ float targetRotationY;
+    /* 0x30 */ float targetRotationZ;
+    /* 0x34 */ float zoom;
+    /* 0x38 */ float targetZoom;
+    /* 0x3C */ float interpolationTimer;
+    /* 0x40 */ s32 interpolationFrames[7];
+    /* 0x5C */ float interpolationDeltas[7];
+} CameraState; // Size 0x78
 
-float fn_1_110FC(float arg0, float arg1, float arg2);
-float fn_1_1113C(float arg0, float arg1, float arg2, float arg3);
-float fn_1_11164(float arg0, float arg1, float arg2, float arg3);
-float fn_1_1122C(float arg0, float arg1, float arg2, float arg3);
-float fn_1_112F4(float arg0, float arg1, float arg2, float arg3);
-void fn_1_113CC(OMOBJ* arg0, s32 arg1, OMOBJ* arg2, s32 arg3);
-s32 fn_1_11708(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void fn_1_11818(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void fn_1_11990(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void fn_1_11B18(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void fn_1_11D18(StructBssC0* arg0, StructData1E8* arg1);
-s32 fn_1_11D74(StructBssC0* arg0);
-s32 fn_1_11E70(StructBssC0* arg0, s32 arg1);
-s32 fn_1_11F04(StructBssC0* arg0, s32 arg1);
-void fn_1_12294(StructBss32C* arg0);
-void fn_1_125F4(StructBss32C* arg0, float arg1);
-void fn_1_13C48(StructBss32C* arg0, StructBss32C* arg1, float arg2, float arg3, float arg4);
-void fn_1_14D24(StructBss32C* arg0, StructBss32C* arg1, float arg2, float arg3, float arg4);
+float WeightedAverageStep(float previousValue, float currentValue, float elapsedFrames);
+float LinearInterpolate(float startValue, float endValue, float elapsedFrames, float durationFrames);
+float SineEaseInterpolate(float startValue, float endValue, float elapsedFrames, float durationFrames);
+float FullSineInterpolate(float startValue, float endValue, float elapsedFrames, float durationFrames);
+float CosineEaseInterpolate(float startValue, float endValue, float elapsedFrames, float durationFrames);
+void TurnModelTowardTarget(OMOBJ* sourceObject, s32 sourceModelSlot, OMOBJ* targetObject, s32 targetModelSlot);
+s32 IsMotionAtTime(OMOBJ* characterObject, s32 modelSlot, s32 motionSlot, s32 frameThreshold, s32 checkForward);
+void SetCharacterMotion(OMOBJ* characterObject, s32 modelSlot, s32 motionSlot, s32 blendFrames, s32 motionMode);
+void SetCharacterMotionCached(OMOBJ* characterObject, s32 modelSlot, s32 motionSlot, s32 blendFrames, s32 motionMode);
+void UpdateCharacterMotionIfChanged(OMOBJ* characterObject, s32 modelSlot, s32 motionSlot, s32 blendFrames, s32 motionMode);
+void InitializeSequence(SequencePlayer* sequenceState, SequenceEntry* entries);
+s32 AdvanceSequence(SequencePlayer* sequenceState);
+s32 SetSequenceEntry(SequencePlayer* sequenceState, s32 entryIndex);
+s32 UpdateSequenceTimer(SequencePlayer* sequenceState, s32 frameIncrement);
+void CopyCameraCurrentToTarget(CameraState* cameraState);
+void InterpolateCameraStateInPlace(CameraState* cameraState, float interpolationFactor);
+void SineInterpolateCameraStateWithSmoothing(CameraState* currentState, CameraState* targetState, float elapsedFrames, float durationFrames, float smoothingFactor);
+void CosineInterpolateCameraStateWithSmoothing(CameraState* currentState, CameraState* targetState, float elapsedFrames, float durationFrames, float smoothingFactor);
 
 #endif

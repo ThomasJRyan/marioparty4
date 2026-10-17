@@ -3,305 +3,305 @@
 
 #include "ext_math.h"
 
-float fn_1_110FC(float arg0, float arg1, float arg2) {
-    if (arg2 <= 1.0f) {
-        return arg1;
+float WeightedAverageStep(float previousValue, float currentValue, float elapsedFrames) {
+    if (elapsedFrames <= 1.0f) {
+        return currentValue;
     }
-    return (arg1 + arg0 * (arg2 - 1.0f)) / arg2;
+    return (currentValue + previousValue * (elapsedFrames - 1.0f)) / elapsedFrames;
 }
 
-float fn_1_1113C(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+float LinearInterpolate(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return endValue;
     }
-    return arg0 + (arg2 / arg3) * (arg1 - arg0);
+    return startValue + (elapsedFrames / durationFrames) * (endValue - startValue);
 }
 
-float fn_1_11164(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+float SineEaseInterpolate(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return endValue;
     }
-    return arg0 + (arg1 - arg0) * sind((90.0f / arg3) * arg2);
+    return startValue + (endValue - startValue) * sind((90.0f / durationFrames) * elapsedFrames);
 }
 
-float fn_1_1122C(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+float FullSineInterpolate(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return endValue;
     }
-    return arg0 + (arg1 - arg0) * sind((360.0f / arg3) * arg2);
+    return startValue + (endValue - startValue) * sind((360.0f / durationFrames) * elapsedFrames);
 }
 
-float fn_1_112F4(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+float CosineEaseInterpolate(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return endValue;
     }
-    return arg0 + (arg1 - arg0) * (1.0 - cosd((90.0f / arg3) * arg2));
+    return startValue + (endValue - startValue) * (1.0 - cosd((90.0f / durationFrames) * elapsedFrames));
 }
 
-void fn_1_113CC(OMOBJ* arg0, s32 arg1, OMOBJ* arg2, s32 arg3) {
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+void TurnModelTowardTarget(OMOBJ* sourceObject, s32 sourceModelSlot, OMOBJ* targetObject, s32 targetModelSlot) {
+    Vec sourcePosition;
+    Vec targetPosition;
+    Vec rotationValues;
+    Vec positionDifference;
 
-    sp20.x = Hu3DData[arg0->mdlId[arg1]].pos.x;
-    sp20.z = Hu3DData[arg0->mdlId[arg1]].pos.z;
-    sp2C.x = Hu3DData[arg2->mdlId[arg3]].pos.x;
-    sp2C.z = Hu3DData[arg2->mdlId[arg3]].pos.z;
-    sp14.y = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    sp8.x = sp2C.x - sp20.x;
-    sp8.z = sp2C.z - sp20.z;
-    sp14.x = -(atan2d(sp8.z, sp8.x) - 90.0);
-    if (sp14.x >= 360.0f) {
-        sp14.x -= 360.0f;
+    targetPosition.x = Hu3DData[sourceObject->mdlId[sourceModelSlot]].pos.x;
+    targetPosition.z = Hu3DData[sourceObject->mdlId[sourceModelSlot]].pos.z;
+    sourcePosition.x = Hu3DData[targetObject->mdlId[targetModelSlot]].pos.x;
+    sourcePosition.z = Hu3DData[targetObject->mdlId[targetModelSlot]].pos.z;
+    rotationValues.y = Hu3DData[sourceObject->mdlId[sourceModelSlot]].rot.y;
+    positionDifference.x = sourcePosition.x - targetPosition.x;
+    positionDifference.z = sourcePosition.z - targetPosition.z;
+    rotationValues.x = -(atan2d(positionDifference.z, positionDifference.x) - 90.0);
+    if (rotationValues.x >= 360.0f) {
+        rotationValues.x -= 360.0f;
     }
-    if (sp14.x < 0.0f) {
-        sp14.x += 360.0f;
+    if (rotationValues.x < 0.0f) {
+        rotationValues.x += 360.0f;
     }
-    if (sp14.x >= 180.0f) {
-        if (sp14.y - sp14.x >= 180.0f) {
-            sp14.y -= 360.0f;
+    if (rotationValues.x >= 180.0f) {
+        if (rotationValues.y - rotationValues.x >= 180.0f) {
+            rotationValues.y -= 360.0f;
         }
-        if (sp14.y - sp14.x < -180.0f) {
-            sp14.y += 360.0f;
+        if (rotationValues.y - rotationValues.x < -180.0f) {
+            rotationValues.y += 360.0f;
         }
     } else {
-        if (sp14.y - sp14.x > 180.0f) {
-            sp14.y -= 360.0f;
+        if (rotationValues.y - rotationValues.x > 180.0f) {
+            rotationValues.y -= 360.0f;
         }
-        if (sp14.y - sp14.x <= -180.0f) {
-            sp14.y += 360.0f;
+        if (rotationValues.y - rotationValues.x <= -180.0f) {
+            rotationValues.y += 360.0f;
         }
     }
-    sp14.y = (9.0f * sp14.y + sp14.x) / 10.0f;
-    if (arg1 == 0) {
-        arg0->rot.y = sp14.y;
+    rotationValues.y = (9.0f * rotationValues.y + rotationValues.x) / 10.0f;
+    if (sourceModelSlot == 0) {
+        sourceObject->rot.y = rotationValues.y;
     } else {
-        Hu3DData[arg0->mdlId[arg1]].rot.y = sp14.y;
+        Hu3DData[sourceObject->mdlId[sourceModelSlot]].rot.y = rotationValues.y;
     }
 }
 
-s32 fn_1_11708(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    if (arg0->mtnId[arg2] == Hu3DMotionIDGet(arg0->mdlId[0])) {
-        if (arg4 != 0) {
-            if (Hu3DMotionTimeGet(arg0->mdlId[arg1]) >= arg3) {
+s32 IsMotionAtTime(OMOBJ* characterObject, s32 modelSlot, s32 motionSlot, s32 frameThreshold, s32 checkForward) {
+    if (characterObject->mtnId[motionSlot] == Hu3DMotionIDGet(characterObject->mdlId[0])) {
+        if (checkForward != 0) {
+            if (Hu3DMotionTimeGet(characterObject->mdlId[modelSlot]) >= frameThreshold) {
                 return 1;
             }
-        } else if (Hu3DMotionTimeGet(arg0->mdlId[arg1]) <= arg3) {
+        } else if (Hu3DMotionTimeGet(characterObject->mdlId[modelSlot]) <= frameThreshold) {
             return 1;
         }
     }
     return 0;
 }
 
-void fn_1_11818(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    switch (arg4) {
+void SetCharacterMotion(OMOBJ* characterObject, s32 modelSlot, s32 motionSlot, s32 blendFrames, s32 motionMode) {
+    switch (motionMode) {
         case 0:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_NONE);
+            Hu3DMotionShiftSet(characterObject->mdlId[modelSlot], characterObject->mtnId[motionSlot], 0.0f, blendFrames, HU3D_MOTATTR_NONE);
             break;
         case 1:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_LOOP);
+            Hu3DMotionShiftSet(characterObject->mdlId[modelSlot], characterObject->mtnId[motionSlot], 0.0f, blendFrames, HU3D_MOTATTR_LOOP);
             break;
         case 2:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_PAUSE);
+            Hu3DMotionShiftSet(characterObject->mdlId[modelSlot], characterObject->mtnId[motionSlot], 0.0f, blendFrames, HU3D_MOTATTR_PAUSE);
             break;
     }
 }
 
-void fn_1_11990(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    arg0->work[3] = arg0->mtnId[arg2];
-    fn_1_11818(arg0, arg1, arg2, arg3, arg4);
+void SetCharacterMotionCached(OMOBJ* characterObject, s32 modelSlot, s32 motionSlot, s32 blendFrames, s32 motionMode) {
+    characterObject->work[3] = characterObject->mtnId[motionSlot];
+    SetCharacterMotion(characterObject, modelSlot, motionSlot, blendFrames, motionMode);
 }
 
-void fn_1_11B18(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    if (arg0->work[3] != arg0->mtnId[arg2]) {
-        arg0->work[3] = arg0->mtnId[arg2];
-        fn_1_11990(arg0, arg1, arg2, arg3, arg4);
+void UpdateCharacterMotionIfChanged(OMOBJ* characterObject, s32 modelSlot, s32 motionSlot, s32 blendFrames, s32 motionMode) {
+    if (characterObject->work[3] != characterObject->mtnId[motionSlot]) {
+        characterObject->work[3] = characterObject->mtnId[motionSlot];
+        SetCharacterMotionCached(characterObject, modelSlot, motionSlot, blendFrames, motionMode);
     }
 }
 
-void fn_1_11CC8(StructBssC0* arg0) {
-    arg0->unk08 = 0;
-    arg0->unk0C = arg0->unk04[arg0->unk00].unk08;
-    arg0->unk10 = arg0->unk04[arg0->unk00].unk00;
-    arg0->unk14 = arg0->unk04[arg0->unk00].unk04;
+void LoadSequenceEntry(SequencePlayer* sequenceState) {
+    sequenceState->elapsedFrames = 0;
+    sequenceState->durationFrames = sequenceState->entries[sequenceState->entryIndex].durationFrames;
+    sequenceState->entryCallback = sequenceState->entries[sequenceState->entryIndex].startCallback;
+    sequenceState->completionCallback = sequenceState->entries[sequenceState->entryIndex].completionCallback;
 }
 
-void fn_1_11D18(StructBssC0* arg0, StructData1E8* arg1) {
-    arg0->unk00 = 0;
-    arg0->unk04 = arg1;
-    fn_1_11CC8(arg0);
+void InitializeSequence(SequencePlayer* sequenceState, SequenceEntry* entries) {
+    sequenceState->entryIndex = 0;
+    sequenceState->entries = entries;
+    LoadSequenceEntry(sequenceState);
 }
 
-s32 fn_1_11D74(StructBssC0* arg0) {
-    arg0->unk00++;
-    fn_1_11CC8(arg0);
-    if (arg0->unk10 == NULL && arg0->unk14 == NULL) {
+s32 AdvanceSequence(SequencePlayer* sequenceState) {
+    sequenceState->entryIndex++;
+    LoadSequenceEntry(sequenceState);
+    if (sequenceState->entryCallback == NULL && sequenceState->completionCallback == NULL) {
         return 1;
     }
     return 0;
 }
 
-s32 fn_1_11DFC(StructBssC0* arg0) {
-    arg0->unk00--;
-    if (arg0->unk00 < 0) {
+s32 RewindSequence(SequencePlayer* sequenceState) {
+    sequenceState->entryIndex--;
+    if (sequenceState->entryIndex < 0) {
         return 1;
     }
-    fn_1_11CC8(arg0);
+    LoadSequenceEntry(sequenceState);
     return 0;
 }
 
-s32 fn_1_11E70(StructBssC0* arg0, s32 arg1) {
-    arg0->unk00 = arg1;
-    if (arg0->unk00 < 0) {
+s32 SetSequenceEntry(SequencePlayer* sequenceState, s32 entryIndex) {
+    sequenceState->entryIndex = entryIndex;
+    if (sequenceState->entryIndex < 0) {
         return 1;
     }
-    fn_1_11CC8(arg0);
-    if (arg0->unk10 == NULL && arg0->unk14 == NULL) {
-        return 1;
-    }
-    return 0;
-}
-
-s32 fn_1_11F04(StructBssC0* arg0, s32 arg1) {
-    if (arg1 == 0) {
-        return arg0->unk08;
-    }
-    arg0->unk08 += arg1;
-    if (arg0->unk08 >= arg0->unk0C) {
+    LoadSequenceEntry(sequenceState);
+    if (sequenceState->entryCallback == NULL && sequenceState->completionCallback == NULL) {
         return 1;
     }
     return 0;
 }
 
-void fn_1_11F40(StructBss32C* arg0, float* arg1, float* arg2) {
-    float temp_f31;
-    float temp_f29;
-    float temp_f30;
-    float temp_f27;
-
-    temp_f31 = arg1[0] - arg2[0];
-    temp_f29 = arg1[1] - arg2[1];
-    temp_f30 = arg1[2] - arg2[2];
-    arg0->unk10 = arg2[0];
-    arg0->unk14 = arg2[1];
-    arg0->unk18 = arg2[2];
-    arg0->unk38 = sqrtf(temp_f31 * temp_f31 + temp_f29 * temp_f29 + temp_f30 * temp_f30);
-    temp_f27 = atan2d(temp_f30, temp_f31);
-    arg0->unk28 = -(atan2d(temp_f29, temp_f31 * cosd(-temp_f27) + temp_f30 * -sind(-temp_f27)));
-    arg0->unk2C = -(temp_f27 - 90.0f);
-    arg0->unk30 = 0.0f;
+s32 UpdateSequenceTimer(SequencePlayer* sequenceState, s32 frameIncrement) {
+    if (frameIncrement == 0) {
+        return sequenceState->elapsedFrames;
+    }
+    sequenceState->elapsedFrames += frameIncrement;
+    if (sequenceState->elapsedFrames >= sequenceState->durationFrames) {
+        return 1;
+    }
+    return 0;
 }
 
-void fn_1_12258(StructBss32C* arg0) {
-    arg0->unk04 = arg0->unk10;
-    arg0->unk08 = arg0->unk14;
-    arg0->unk0C = arg0->unk18;
-    arg0->unk1C = arg0->unk28;
-    arg0->unk20 = arg0->unk2C;
-    arg0->unk24 = arg0->unk30;
-    arg0->unk34 = arg0->unk38;
+void SetCameraTargetFromPositions(CameraState* cameraState, float* sourcePosition, float* targetPosition) {
+    float deltaX;
+    float deltaY;
+    float deltaZ;
+    float horizontalAngle;
+
+    deltaX = sourcePosition[0] - targetPosition[0];
+    deltaY = sourcePosition[1] - targetPosition[1];
+    deltaZ = sourcePosition[2] - targetPosition[2];
+    cameraState->targetCenterX = targetPosition[0];
+    cameraState->targetCenterY = targetPosition[1];
+    cameraState->targetCenterZ = targetPosition[2];
+    cameraState->targetZoom = sqrtf(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+    horizontalAngle = atan2d(deltaZ, deltaX);
+    cameraState->targetRotationX = -(atan2d(deltaY, deltaX * cosd(-horizontalAngle) + deltaZ * -sind(-horizontalAngle)));
+    cameraState->targetRotationY = -(horizontalAngle - 90.0f);
+    cameraState->targetRotationZ = 0.0f;
 }
 
-void fn_1_12294(StructBss32C* arg0) {
-    arg0->unk3C = 0.0f;
-    arg0->unk10 = arg0->unk04;
-    arg0->unk14 = arg0->unk08;
-    arg0->unk18 = arg0->unk0C;
-    arg0->unk28 = arg0->unk1C;
-    arg0->unk2C = arg0->unk20;
-    arg0->unk30 = arg0->unk24;
-    arg0->unk38 = arg0->unk34;
+void CopyCameraTargetToCurrent(CameraState* cameraState) {
+    cameraState->centerX = cameraState->targetCenterX;
+    cameraState->centerY = cameraState->targetCenterY;
+    cameraState->centerZ = cameraState->targetCenterZ;
+    cameraState->rotationX = cameraState->targetRotationX;
+    cameraState->rotationY = cameraState->targetRotationY;
+    cameraState->rotationZ = cameraState->targetRotationZ;
+    cameraState->zoom = cameraState->targetZoom;
 }
 
-void fn_1_122E0(StructBss32C* arg0, StructBss32C* arg1, float arg2) {
-    arg0->unk04 = fn_1_110FC(arg0->unk04, arg1->unk10, arg2);
-    arg0->unk08 = fn_1_110FC(arg0->unk08, arg1->unk14, arg2);
-    arg0->unk0C = fn_1_110FC(arg0->unk0C, arg1->unk18, arg2);
-    arg0->unk1C = fn_1_110FC(arg0->unk1C, arg1->unk28, arg2);
-    arg0->unk20 = fn_1_110FC(arg0->unk24, arg1->unk2C, arg2);
-    arg0->unk24 = fn_1_110FC(arg0->unk20, arg1->unk30, arg2);
-    arg0->unk34 = fn_1_110FC(arg0->unk34, arg1->unk38, arg2);
+void CopyCameraCurrentToTarget(CameraState* cameraState) {
+    cameraState->interpolationTimer = 0.0f;
+    cameraState->targetCenterX = cameraState->centerX;
+    cameraState->targetCenterY = cameraState->centerY;
+    cameraState->targetCenterZ = cameraState->centerZ;
+    cameraState->targetRotationX = cameraState->rotationX;
+    cameraState->targetRotationY = cameraState->rotationY;
+    cameraState->targetRotationZ = cameraState->rotationZ;
+    cameraState->targetZoom = cameraState->zoom;
 }
 
-void fn_1_125F4(StructBss32C* arg0, float arg1) {
-    fn_1_122E0(arg0, arg0, arg1);
+void InterpolateCameraState(CameraState* currentState, CameraState* targetState, float interpolationFactor) {
+    currentState->centerX = WeightedAverageStep(currentState->centerX, targetState->targetCenterX, interpolationFactor);
+    currentState->centerY = WeightedAverageStep(currentState->centerY, targetState->targetCenterY, interpolationFactor);
+    currentState->centerZ = WeightedAverageStep(currentState->centerZ, targetState->targetCenterZ, interpolationFactor);
+    currentState->rotationX = WeightedAverageStep(currentState->rotationX, targetState->targetRotationX, interpolationFactor);
+    currentState->rotationY = WeightedAverageStep(currentState->rotationZ, targetState->targetRotationY, interpolationFactor);
+    currentState->rotationZ = WeightedAverageStep(currentState->rotationY, targetState->targetRotationZ, interpolationFactor);
+    currentState->zoom = WeightedAverageStep(currentState->zoom, targetState->targetZoom, interpolationFactor);
 }
 
-void fn_1_12908(StructBss32C* arg0, StructBss32C* arg1, float arg2, float arg3) {
-    arg1->unk10 = fn_1_1113C(arg0->unk10, arg1->unk04, arg2, arg3);
-    arg1->unk14 = fn_1_1113C(arg0->unk14, arg1->unk08, arg2, arg3);
-    arg1->unk18 = fn_1_1113C(arg0->unk18, arg1->unk0C, arg2, arg3);
-    arg1->unk28 = fn_1_1113C(arg0->unk28, arg1->unk1C, arg2, arg3);
-    arg1->unk2C = fn_1_1113C(arg0->unk30, arg1->unk20, arg2, arg3);
-    arg1->unk30 = fn_1_1113C(arg0->unk2C, arg1->unk24, arg2, arg3);
-    arg1->unk38 = fn_1_1113C(arg0->unk38, arg1->unk34, arg2, arg3);
+void InterpolateCameraStateInPlace(CameraState* cameraState, float interpolationFactor) {
+    InterpolateCameraState(cameraState, cameraState, interpolationFactor);
 }
 
-void fn_1_12B84(StructBss32C* arg0, StructBss32C* arg1, float arg2, float arg3) {
-    fn_1_12908(arg0, arg1, arg2, arg3);
-    arg0->unk04 = arg1->unk10;
-    arg0->unk08 = arg1->unk14;
-    arg0->unk0C = arg1->unk18;
-    arg0->unk1C = arg1->unk28;
-    arg0->unk20 = arg1->unk2C;
-    arg0->unk24 = arg1->unk30;
-    arg0->unk34 = arg1->unk38;
+void InterpolateCameraStateOverTime(CameraState* startState, CameraState* endState, float elapsedFrames, float durationFrames) {
+    endState->targetCenterX = LinearInterpolate(startState->targetCenterX, endState->centerX, elapsedFrames, durationFrames);
+    endState->targetCenterY = LinearInterpolate(startState->targetCenterY, endState->centerY, elapsedFrames, durationFrames);
+    endState->targetCenterZ = LinearInterpolate(startState->targetCenterZ, endState->centerZ, elapsedFrames, durationFrames);
+    endState->targetRotationX = LinearInterpolate(startState->targetRotationX, endState->rotationX, elapsedFrames, durationFrames);
+    endState->targetRotationY = LinearInterpolate(startState->targetRotationZ, endState->rotationY, elapsedFrames, durationFrames);
+    endState->targetRotationZ = LinearInterpolate(startState->targetRotationY, endState->rotationZ, elapsedFrames, durationFrames);
+    endState->targetZoom = LinearInterpolate(startState->targetZoom, endState->zoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_12E38(StructBss32C* arg0, StructBss32C* arg1, float arg2, float arg3, float arg4) {
-    fn_1_12908(arg0, arg1, arg2, arg3);
-    fn_1_122E0(arg0, arg1, arg4);
+void InterpolateAndCommitCameraState(CameraState* cameraState, CameraState* targetState, float elapsedFrames, float durationFrames) {
+    InterpolateCameraStateOverTime(cameraState, targetState, elapsedFrames, durationFrames);
+    cameraState->centerX = targetState->targetCenterX;
+    cameraState->centerY = targetState->targetCenterY;
+    cameraState->centerZ = targetState->targetCenterZ;
+    cameraState->rotationX = targetState->targetRotationX;
+    cameraState->rotationY = targetState->targetRotationY;
+    cameraState->rotationZ = targetState->targetRotationZ;
+    cameraState->zoom = targetState->targetZoom;
 }
 
-void fn_1_13368(StructBss32C* arg0, StructBss32C* arg1, float arg2, float arg3) {
-    arg1->unk10 = fn_1_11164(arg0->unk10, arg1->unk04, arg2, arg3);
-    arg1->unk14 = fn_1_11164(arg0->unk14, arg1->unk08, arg2, arg3);
-    arg1->unk18 = fn_1_11164(arg0->unk18, arg1->unk0C, arg2, arg3);
-    arg1->unk28 = fn_1_11164(arg0->unk28, arg1->unk1C, arg2, arg3);
-    arg1->unk2C = fn_1_11164(arg0->unk30, arg1->unk20, arg2, arg3);
-    arg1->unk30 = fn_1_11164(arg0->unk2C, arg1->unk24, arg2, arg3);
-    arg1->unk38 = fn_1_11164(arg0->unk38, arg1->unk34, arg2, arg3);
+void InterpolateCameraStateWithSmoothing(CameraState* currentState, CameraState* targetState, float elapsedFrames, float durationFrames, float smoothingFactor) {
+    InterpolateCameraStateOverTime(currentState, targetState, elapsedFrames, durationFrames);
+    InterpolateCameraState(currentState, targetState, smoothingFactor);
 }
 
-void fn_1_137BC(StructBss32C* arg0, StructBss32C* arg1, float arg2, float arg3) {
-    fn_1_13368(arg0, arg1, arg2, arg3);
-    arg0->unk04 = arg1->unk10;
-    arg0->unk08 = arg1->unk14;
-    arg0->unk0C = arg1->unk18;
-    arg0->unk1C = arg1->unk28;
-    arg0->unk20 = arg1->unk2C;
-    arg0->unk24 = arg1->unk30;
-    arg0->unk34 = arg1->unk38;
+void SineInterpolateCameraState(CameraState* startState, CameraState* endState, float elapsedFrames, float durationFrames) {
+    endState->targetCenterX = SineEaseInterpolate(startState->targetCenterX, endState->centerX, elapsedFrames, durationFrames);
+    endState->targetCenterY = SineEaseInterpolate(startState->targetCenterY, endState->centerY, elapsedFrames, durationFrames);
+    endState->targetCenterZ = SineEaseInterpolate(startState->targetCenterZ, endState->centerZ, elapsedFrames, durationFrames);
+    endState->targetRotationX = SineEaseInterpolate(startState->targetRotationX, endState->rotationX, elapsedFrames, durationFrames);
+    endState->targetRotationY = SineEaseInterpolate(startState->targetRotationZ, endState->rotationY, elapsedFrames, durationFrames);
+    endState->targetRotationZ = SineEaseInterpolate(startState->targetRotationY, endState->rotationZ, elapsedFrames, durationFrames);
+    endState->targetZoom = SineEaseInterpolate(startState->targetZoom, endState->zoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_13C48(StructBss32C* arg0, StructBss32C* arg1, float arg2, float arg3, float arg4) {
-    fn_1_13368(arg0, arg1, arg2, arg3);
-    fn_1_122E0(arg0, arg1, arg4);
+void SineInterpolateAndCommitCameraState(CameraState* cameraState, CameraState* targetState, float elapsedFrames, float durationFrames) {
+    SineInterpolateCameraState(cameraState, targetState, elapsedFrames, durationFrames);
+    cameraState->centerX = targetState->targetCenterX;
+    cameraState->centerY = targetState->targetCenterY;
+    cameraState->centerZ = targetState->targetCenterZ;
+    cameraState->rotationX = targetState->targetRotationX;
+    cameraState->rotationY = targetState->targetRotationY;
+    cameraState->rotationZ = targetState->targetRotationZ;
+    cameraState->zoom = targetState->targetZoom;
 }
 
-void fn_1_14364(StructBss32C* arg0, StructBss32C* arg1, float arg2, float arg3) {
-    arg1->unk10 = fn_1_112F4(arg0->unk10, arg1->unk04, arg2, arg3);
-    arg1->unk14 = fn_1_112F4(arg0->unk14, arg1->unk08, arg2, arg3);
-    arg1->unk18 = fn_1_112F4(arg0->unk18, arg1->unk0C, arg2, arg3);
-    arg1->unk28 = fn_1_112F4(arg0->unk28, arg1->unk1C, arg2, arg3);
-    arg1->unk2C = fn_1_112F4(arg0->unk30, arg1->unk20, arg2, arg3);
-    arg1->unk30 = fn_1_112F4(arg0->unk2C, arg1->unk24, arg2, arg3);
-    arg1->unk38 = fn_1_112F4(arg0->unk38, arg1->unk34, arg2, arg3);
+void SineInterpolateCameraStateWithSmoothing(CameraState* currentState, CameraState* targetState, float elapsedFrames, float durationFrames, float smoothingFactor) {
+    SineInterpolateCameraState(currentState, targetState, elapsedFrames, durationFrames);
+    InterpolateCameraState(currentState, targetState, smoothingFactor);
 }
 
-void fn_1_14828(StructBss32C* arg0, StructBss32C* arg1, float arg2, float arg3) {
-    fn_1_14364(arg0, arg1, arg2, arg3);
-    arg0->unk04 = arg1->unk10;
-    arg0->unk08 = arg1->unk14;
-    arg0->unk0C = arg1->unk18;
-    arg0->unk1C = arg1->unk28;
-    arg0->unk20 = arg1->unk2C;
-    arg0->unk24 = arg1->unk30;
-    arg0->unk34 = arg1->unk38;
+void CosineInterpolateCameraState(CameraState* startState, CameraState* endState, float elapsedFrames, float durationFrames) {
+    endState->targetCenterX = CosineEaseInterpolate(startState->targetCenterX, endState->centerX, elapsedFrames, durationFrames);
+    endState->targetCenterY = CosineEaseInterpolate(startState->targetCenterY, endState->centerY, elapsedFrames, durationFrames);
+    endState->targetCenterZ = CosineEaseInterpolate(startState->targetCenterZ, endState->centerZ, elapsedFrames, durationFrames);
+    endState->targetRotationX = CosineEaseInterpolate(startState->targetRotationX, endState->rotationX, elapsedFrames, durationFrames);
+    endState->targetRotationY = CosineEaseInterpolate(startState->targetRotationZ, endState->rotationY, elapsedFrames, durationFrames);
+    endState->targetRotationZ = CosineEaseInterpolate(startState->targetRotationY, endState->rotationZ, elapsedFrames, durationFrames);
+    endState->targetZoom = CosineEaseInterpolate(startState->targetZoom, endState->zoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_14D24(StructBss32C* arg0, StructBss32C* arg1, float arg2, float arg3, float arg4) {
-    fn_1_14364(arg0, arg1, arg2, arg3);
-    fn_1_122E0(arg0, arg1, arg4);
+void CosineInterpolateAndCommitCameraState(CameraState* cameraState, CameraState* targetState, float elapsedFrames, float durationFrames) {
+    CosineInterpolateCameraState(cameraState, targetState, elapsedFrames, durationFrames);
+    cameraState->centerX = targetState->targetCenterX;
+    cameraState->centerY = targetState->targetCenterY;
+    cameraState->centerZ = targetState->targetCenterZ;
+    cameraState->rotationX = targetState->targetRotationX;
+    cameraState->rotationY = targetState->targetRotationY;
+    cameraState->rotationZ = targetState->targetRotationZ;
+    cameraState->zoom = targetState->targetZoom;
+}
+
+void CosineInterpolateCameraStateWithSmoothing(CameraState* currentState, CameraState* targetState, float elapsedFrames, float durationFrames, float smoothingFactor) {
+    CosineInterpolateCameraState(currentState, targetState, elapsedFrames, durationFrames);
+    InterpolateCameraState(currentState, targetState, smoothingFactor);
 }
