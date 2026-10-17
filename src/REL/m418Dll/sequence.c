@@ -1,252 +1,252 @@
 #include "REL/m418Dll.h"
 
-f32 fn_1_A920(f32 arg0, f32 arg1, f32 arg2) {
-    return (arg1 + (arg0 * (arg2 - 1.0f))) / arg2;
+f32 InterpolateWeightedAverage(f32 startValue, f32 targetValue, f32 elapsedFrames) {
+    return (targetValue + (startValue * (elapsedFrames - 1.0f))) / elapsedFrames;
 }
 
-f32 fn_1_A940(f32 arg0, f32 arg1, f32 arg2, f32 arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+f32 InterpolateLinear(f32 startValue, f32 targetValue, f32 elapsedFrames, f32 totalFrames) {
+    if (elapsedFrames >= totalFrames) {
+        return targetValue;
     }
-    return arg0 + ((arg2 / arg3) * (arg1 - arg0));
+    return startValue + ((elapsedFrames / totalFrames) * (targetValue - startValue));
 }
 
-f32 fn_1_A968(f32 arg8, f32 arg9, f32 argA, f32 argB) {
-    if (argA >= argB) {
-        return arg9;
+f32 InterpolateSineEaseOut(f32 startValue, f32 targetValue, f32 elapsedFrames, f32 totalFrames) {
+    if (elapsedFrames >= totalFrames) {
+        return targetValue;
     }
-    return arg8 + (arg9 - arg8) * sind(((90.0f / argB) * argA));
+    return startValue + (targetValue - startValue) * sind(((90.0f / totalFrames) * elapsedFrames));
 }
 
-f32 fn_1_AA30(f32 arg0, f32 arg1, f32 arg2, f32 arg3) {
-    if (arg2 >= arg3) {
-        return arg0;
+f32 InterpolateSineEaseInOut(f32 startValue, f32 targetValue, f32 elapsedFrames, f32 totalFrames) {
+    if (elapsedFrames >= totalFrames) {
+        return startValue;
     }
-    return arg0 + (arg1 - arg0) * sind((180.0f / arg3) * arg2);
+    return startValue + (targetValue - startValue) * sind((180.0f / totalFrames) * elapsedFrames);
 }
 
-f32 fn_1_AAEC(f32 arg8, f32 arg9, f32 argA, f32 argB) {
-    if (argA >= argB) {
-        return arg9;
+f32 InterpolateCosineEaseOut(f32 startValue, f32 targetValue, f32 elapsedFrames, f32 totalFrames) {
+    if (elapsedFrames >= totalFrames) {
+        return targetValue;
     }
-    return (arg8 + (arg9 - arg8) * (1.0 - cosd((90.0f / argB) * argA)));
+    return (startValue + (targetValue - startValue) * (1.0 - cosd((90.0f / totalFrames) * elapsedFrames)));
 }
 
-void fn_1_ABC4(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    if (arg4 == 1) {
-        Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000001);
+void SetModelMotion(OMOBJ* object, s32 modelIndex, s32 motionIndex, s32 blendFrames, s32 shiftMode) {
+    if (shiftMode == 1) {
+        Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, blendFrames, 0x40000001);
         return;
     }
-    if (arg4 == 2) {
-        Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000002);
+    if (shiftMode == 2) {
+        Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, blendFrames, 0x40000002);
         return;
     }
-    Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0);
+    Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, blendFrames, 0);
 }
 
-void fn_1_AD14(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    if (arg0->work[3] != arg0->mtnId[arg2]) {
-        arg0->work[3] = arg0->mtnId[arg2];
-        if (arg4 == 1) {
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000001);
+void SetModelMotionIfChanged(OMOBJ* object, s32 modelIndex, s32 motionIndex, s32 blendFrames, s32 shiftMode) {
+    if (object->work[3] != object->mtnId[motionIndex]) {
+        object->work[3] = object->mtnId[motionIndex];
+        if (shiftMode == 1) {
+            Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, blendFrames, 0x40000001);
             return;
         }
-        if (arg4 == 2) {
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000002);
+        if (shiftMode == 2) {
+            Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, blendFrames, 0x40000002);
             return;
         }
-        Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0);
+        Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, blendFrames, 0);
     }
 }
 
-void fn_1_AE8C(M418DllUnkStruct7* arg0) {
-    arg0->unk8 = 0;
-    arg0->unkC = arg0->unk4[arg0->unk0].unk8;
-    arg0->unk10 = (M418DllFunc)arg0->unk4[arg0->unk0].unk0;
-    arg0->unk14 = (M418DllRetFunc)arg0->unk4[arg0->unk0].unk4;
+void LoadCurrentSequenceEntry(M418DllSequenceState* sequenceState) {
+    sequenceState->elapsedFrames = 0;
+    sequenceState->entryDuration = sequenceState->entries[sequenceState->entryIndex].duration;
+    sequenceState->activeCallback = (M418DllFunc)sequenceState->entries[sequenceState->entryIndex].inputCallback;
+    sequenceState->activeResultCallback = (M418DllRetFunc)sequenceState->entries[sequenceState->entryIndex].resultCallback;
 }
 
-void fn_1_AEDC(M418DllUnkStruct7* arg0, M418DllUnkStruct8* arg1) {
-    arg0->unk0 = 0;
-    arg0->unk4 = arg1;
-    fn_1_AE8C(arg0);
+void InitializeSequence(M418DllSequenceState* sequenceState, M418DllSequenceEntry* sequenceEntries) {
+    sequenceState->entryIndex = 0;
+    sequenceState->entries = sequenceEntries;
+    LoadCurrentSequenceEntry(sequenceState);
 }
 
-s32 fn_1_AF38(M418DllUnkStruct7* arg0) {
-    arg0->unk0++;
-    fn_1_AE8C(arg0);
-    if ((arg0->unk10 == NULL) && (arg0->unk14 == NULL)) {
+s32 AdvanceSequence(M418DllSequenceState* sequenceState) {
+    sequenceState->entryIndex++;
+    LoadCurrentSequenceEntry(sequenceState);
+    if ((sequenceState->activeCallback == NULL) && (sequenceState->activeResultCallback == NULL)) {
         return 1;
     }
     return 0;
 }
 
-s32 fn_1_AFC0(M418DllUnkStruct7* arg0) {
-    arg0->unk0--;
-    if (arg0->unk0 < 0) {
+s32 RewindSequence(M418DllSequenceState* sequenceState) {
+    sequenceState->entryIndex--;
+    if (sequenceState->entryIndex < 0) {
         return 1;
     }
-    fn_1_AE8C(arg0);
+    LoadCurrentSequenceEntry(sequenceState);
     return 0;
 }
 
-s32 fn_1_B034(M418DllUnkStruct7* arg0, s32 arg1) {
-    arg0->unk0 = arg1;
-    if (arg0->unk0 < 0) {
+s32 SetSequenceIndex(M418DllSequenceState* sequenceState, s32 entryIndex) {
+    sequenceState->entryIndex = entryIndex;
+    if (sequenceState->entryIndex < 0) {
         return 1;
     }
-    fn_1_AE8C(arg0);
-    if ((arg0->unk10 == NULL) && (arg0->unk14 == NULL)) {
-        return 1;
-    }
-    return 0;
-}
-
-s32 fn_1_B0C8(M418DllUnkStruct7* arg0, s32 arg1) {
-    if (arg1 == 0) {
-        return arg0->unk8;
-    }
-    arg0->unk8 += arg1;
-    if (arg0->unk8 >= arg0->unkC) {
+    LoadCurrentSequenceEntry(sequenceState);
+    if ((sequenceState->activeCallback == NULL) && (sequenceState->activeResultCallback == NULL)) {
         return 1;
     }
     return 0;
 }
 
-void fn_1_B104(M418DllUnkStruct* arg0, Vec arg1, Vec arg2) {
-    f32 temp_f31;
-    f32 temp_f30;
-    f32 temp_f29;
-    f32 temp_f27;
-
-    temp_f31 = arg1.x - arg2.x;
-    temp_f29 = arg1.y - arg2.y;
-    temp_f30 = arg1.z - arg2.z;
-    arg0->unk10.x = arg2.x;
-    arg0->unk10.y = arg2.y;
-    arg0->unk10.z = arg2.z;
-    arg0->unk38 = sqrtf((temp_f30 * temp_f30) + ((temp_f31 * temp_f31) + (temp_f29 * temp_f29)));
-    temp_f27 = atan2d(temp_f30, temp_f31);
-    arg0->unk28.x = -atan2d(temp_f29, (temp_f31 * cosd(-temp_f27)) + (temp_f30 * -sind(-temp_f27)));
-    arg0->unk28.y = -(temp_f27 - 90.0f);
-    arg0->unk28.z = 0.0f;
+s32 AdvanceSequenceTimer(M418DllSequenceState* sequenceState, s32 frameIncrement) {
+    if (frameIncrement == 0) {
+        return sequenceState->elapsedFrames;
+    }
+    sequenceState->elapsedFrames += frameIncrement;
+    if (sequenceState->elapsedFrames >= sequenceState->entryDuration) {
+        return 1;
+    }
+    return 0;
 }
 
-void fn_1_B41C(M418DllUnkStruct* arg0) {
-    arg0->center.x = arg0->unk10.x;
-    arg0->center.y = arg0->unk10.y;
-    arg0->center.z = arg0->unk10.z;
-    arg0->rot.x = arg0->unk28.x;
-    arg0->rot.y = arg0->unk28.y;
-    arg0->rot.z = arg0->unk28.z;
-    arg0->zoom = arg0->unk38;
+void SetCameraTargetFromPositions(M418DllCameraState* cameraState, Vec cameraPosition, Vec focusPosition) {
+    f32 deltaX;
+    f32 deltaZ;
+    f32 deltaY;
+    f32 horizontalAngle;
+
+    deltaX = cameraPosition.x - focusPosition.x;
+    deltaY = cameraPosition.y - focusPosition.y;
+    deltaZ = cameraPosition.z - focusPosition.z;
+    cameraState->targetCenter.x = focusPosition.x;
+    cameraState->targetCenter.y = focusPosition.y;
+    cameraState->targetCenter.z = focusPosition.z;
+    cameraState->targetZoom = sqrtf((deltaZ * deltaZ) + ((deltaX * deltaX) + (deltaY * deltaY)));
+    horizontalAngle = atan2d(deltaZ, deltaX);
+    cameraState->targetRotation.x = -atan2d(deltaY, (deltaX * cosd(-horizontalAngle)) + (deltaZ * -sind(-horizontalAngle)));
+    cameraState->targetRotation.y = -(horizontalAngle - 90.0f);
+    cameraState->targetRotation.z = 0.0f;
 }
 
-void fn_1_B458(M418DllUnkStruct* arg0) {
-    arg0->unk48 = 0.0f;
-    arg0->unk10.x = arg0->center.x;
-    arg0->unk10.y = arg0->center.y;
-    arg0->unk10.z = arg0->center.z;
-    arg0->unk28.x = arg0->rot.x;
-    arg0->unk28.y = arg0->rot.y;
-    arg0->unk28.z = arg0->rot.z;
-    arg0->unk38 = arg0->zoom;
+void ApplyCameraTarget(M418DllCameraState* cameraState) {
+    cameraState->center.x = cameraState->targetCenter.x;
+    cameraState->center.y = cameraState->targetCenter.y;
+    cameraState->center.z = cameraState->targetCenter.z;
+    cameraState->rot.x = cameraState->targetRotation.x;
+    cameraState->rot.y = cameraState->targetRotation.y;
+    cameraState->rot.z = cameraState->targetRotation.z;
+    cameraState->zoom = cameraState->targetZoom;
 }
 
-void fn_1_B4A4(M418DllUnkStruct* arg0, M418DllUnkStruct* arg1, f32 arg8) {
-    arg0->center.x = fn_1_A920(arg0->center.x, arg1->unk10.x, arg8);
-    arg0->center.y = fn_1_A920(arg0->center.y, arg1->unk10.y, arg8);
-    arg0->center.z = fn_1_A920(arg0->center.z, arg1->unk10.z, arg8);
-    arg0->rot.x = fn_1_A920(arg0->rot.x, arg1->unk28.x, arg8);
-    arg0->rot.y = fn_1_A920(arg0->rot.y, arg1->unk28.y, arg8);
-    arg0->rot.z = fn_1_A920(arg0->rot.z, arg1->unk28.z, arg8);
-    arg0->zoom = fn_1_A920(arg0->zoom, arg1->unk38, arg8);
+void ResetCameraTarget(M418DllCameraState* cameraState) {
+    cameraState->interpolationFactor = 0.0f;
+    cameraState->targetCenter.x = cameraState->center.x;
+    cameraState->targetCenter.y = cameraState->center.y;
+    cameraState->targetCenter.z = cameraState->center.z;
+    cameraState->targetRotation.x = cameraState->rot.x;
+    cameraState->targetRotation.y = cameraState->rot.y;
+    cameraState->targetRotation.z = cameraState->rot.z;
+    cameraState->targetZoom = cameraState->zoom;
 }
 
-void fn_1_B710(M418DllUnkStruct* arg0, f32 arg1) {
-    arg0->center.x = fn_1_A920(arg0->center.x, arg0->unk10.x, arg1);
-    arg0->center.y = fn_1_A920(arg0->center.y, arg0->unk10.y, arg1);
-    arg0->center.z = fn_1_A920(arg0->center.z, arg0->unk10.z, arg1);
-    arg0->rot.x = fn_1_A920(arg0->rot.x, arg0->unk28.x, arg1);
-    arg0->rot.y = fn_1_A920(arg0->rot.y, arg0->unk28.y, arg1);
-    arg0->rot.z = fn_1_A920(arg0->rot.z, arg0->unk28.z, arg1);
-    arg0->zoom = fn_1_A920(arg0->zoom, arg0->unk38, arg1);
+void InterpolateCameraTarget(M418DllCameraState* startValue, M418DllCameraState* targetValue, f32 elapsedFrames) {
+    startValue->center.x = InterpolateWeightedAverage(startValue->center.x, targetValue->targetCenter.x, elapsedFrames);
+    startValue->center.y = InterpolateWeightedAverage(startValue->center.y, targetValue->targetCenter.y, elapsedFrames);
+    startValue->center.z = InterpolateWeightedAverage(startValue->center.z, targetValue->targetCenter.z, elapsedFrames);
+    startValue->rot.x = InterpolateWeightedAverage(startValue->rot.x, targetValue->targetRotation.x, elapsedFrames);
+    startValue->rot.y = InterpolateWeightedAverage(startValue->rot.y, targetValue->targetRotation.y, elapsedFrames);
+    startValue->rot.z = InterpolateWeightedAverage(startValue->rot.z, targetValue->targetRotation.z, elapsedFrames);
+    startValue->zoom = InterpolateWeightedAverage(startValue->zoom, targetValue->targetZoom, elapsedFrames);
 }
 
-void fn_1_B97C(M418DllUnkStruct* arg0, M418DllUnkStruct* arg1, f32 arg8, f32 arg9) {
-    arg1->unk10.x = fn_1_A940(arg0->unk10.x, arg1->center.x, arg8, arg9);
-    arg1->unk10.y = fn_1_A940(arg0->unk10.y, arg1->center.y, arg8, arg9);
-    arg1->unk10.z = fn_1_A940(arg0->unk10.z, arg1->center.z, arg8, arg9);
-    arg1->unk28.x = fn_1_A940(arg0->unk28.x, arg1->rot.x, arg8, arg9);
-    arg1->unk28.y = fn_1_A940(arg0->unk28.y, arg1->rot.y, arg8, arg9);
-    arg1->unk28.z = fn_1_A940(arg0->unk28.z, arg1->rot.z, arg8, arg9);
-    arg1->unk38 = fn_1_A940(arg0->unk38, arg1->zoom, arg8, arg9);
+void ApproachCameraTarget(M418DllCameraState* cameraState, f32 smoothingFactor) {
+    cameraState->center.x = InterpolateWeightedAverage(cameraState->center.x, cameraState->targetCenter.x, smoothingFactor);
+    cameraState->center.y = InterpolateWeightedAverage(cameraState->center.y, cameraState->targetCenter.y, smoothingFactor);
+    cameraState->center.z = InterpolateWeightedAverage(cameraState->center.z, cameraState->targetCenter.z, smoothingFactor);
+    cameraState->rot.x = InterpolateWeightedAverage(cameraState->rot.x, cameraState->targetRotation.x, smoothingFactor);
+    cameraState->rot.y = InterpolateWeightedAverage(cameraState->rot.y, cameraState->targetRotation.y, smoothingFactor);
+    cameraState->rot.z = InterpolateWeightedAverage(cameraState->rot.z, cameraState->targetRotation.z, smoothingFactor);
+    cameraState->zoom = InterpolateWeightedAverage(cameraState->zoom, cameraState->targetZoom, smoothingFactor);
 }
 
-void fn_1_BBF8(M418DllUnkStruct* arg0, M418DllUnkStruct* arg1, f32 arg8, f32 arg9) {
-    fn_1_B97C(arg0, arg1, arg8, arg9);
-    arg0->center.x = arg1->unk10.x;
-    arg0->center.y = arg1->unk10.y;
-    arg0->center.z = arg1->unk10.z;
-    arg0->rot.x = arg1->unk28.x;
-    arg0->rot.y = arg1->unk28.y;
-    arg0->rot.z = arg1->unk28.z;
-    arg0->zoom = arg1->unk38;
+void InterpolateCameraStateEaseOut(M418DllCameraState* startValue, M418DllCameraState* targetValue, f32 elapsedFrames, f32 totalFrames) {
+    targetValue->targetCenter.x = InterpolateLinear(startValue->targetCenter.x, targetValue->center.x, elapsedFrames, totalFrames);
+    targetValue->targetCenter.y = InterpolateLinear(startValue->targetCenter.y, targetValue->center.y, elapsedFrames, totalFrames);
+    targetValue->targetCenter.z = InterpolateLinear(startValue->targetCenter.z, targetValue->center.z, elapsedFrames, totalFrames);
+    targetValue->targetRotation.x = InterpolateLinear(startValue->targetRotation.x, targetValue->rot.x, elapsedFrames, totalFrames);
+    targetValue->targetRotation.y = InterpolateLinear(startValue->targetRotation.y, targetValue->rot.y, elapsedFrames, totalFrames);
+    targetValue->targetRotation.z = InterpolateLinear(startValue->targetRotation.z, targetValue->rot.z, elapsedFrames, totalFrames);
+    targetValue->targetZoom = InterpolateLinear(startValue->targetZoom, targetValue->zoom, elapsedFrames, totalFrames);
 }
 
-void fn_1_BEAC(M418DllUnkStruct* arg0, M418DllUnkStruct* arg1, f32 arg2, f32 arg3, f32 arg4) {
-    fn_1_B97C(arg0, arg1, arg2, arg3);
-    fn_1_B4A4(arg0, arg1, arg4);
+void ApplyInterpolatedCameraStateEaseOut(M418DllCameraState* sourceCamera, M418DllCameraState* targetCamera, f32 elapsedFrames, f32 totalFrames) {
+    InterpolateCameraStateEaseOut(sourceCamera, targetCamera, elapsedFrames, totalFrames);
+    sourceCamera->center.x = targetCamera->targetCenter.x;
+    sourceCamera->center.y = targetCamera->targetCenter.y;
+    sourceCamera->center.z = targetCamera->targetCenter.z;
+    sourceCamera->rot.x = targetCamera->targetRotation.x;
+    sourceCamera->rot.y = targetCamera->targetRotation.y;
+    sourceCamera->rot.z = targetCamera->targetRotation.z;
+    sourceCamera->zoom = targetCamera->targetZoom;
 }
 
-void fn_1_C318(M418DllUnkStruct* arg0, M418DllUnkStruct* arg1, f32 arg8, f32 arg9) {
-    arg1->unk10.x = fn_1_A968(arg0->unk10.x, arg1->center.x, arg8, arg9);
-    arg1->unk10.y = fn_1_A968(arg0->unk10.y, arg1->center.y, arg8, arg9);
-    arg1->unk10.z = fn_1_A968(arg0->unk10.z, arg1->center.z, arg8, arg9);
-    arg1->unk28.x = fn_1_A968(arg0->unk28.x, arg1->rot.x, arg8, arg9);
-    arg1->unk28.y = fn_1_A968(arg0->unk28.y, arg1->rot.y, arg8, arg9);
-    arg1->unk28.z = fn_1_A968(arg0->unk28.z, arg1->rot.z, arg8, arg9);
-    arg1->unk38 = fn_1_A968(arg0->unk38, arg1->zoom, arg8, arg9);
+void TransitionCameraStateEaseOut(M418DllCameraState* sourceCamera, M418DllCameraState* targetCamera, f32 elapsedFrames, f32 totalFrames, f32 smoothingFactor) {
+    InterpolateCameraStateEaseOut(sourceCamera, targetCamera, elapsedFrames, totalFrames);
+    InterpolateCameraTarget(sourceCamera, targetCamera, smoothingFactor);
 }
 
-void fn_1_C76C(M418DllUnkStruct* arg0, M418DllUnkStruct* arg1, f32 arg8, f32 arg9) {
-    fn_1_C318(arg0, arg1, arg8, arg9);
-    arg0->center.x = arg1->unk10.x;
-    arg0->center.y = arg1->unk10.y;
-    arg0->center.z = arg1->unk10.z;
-    arg0->rot.x = arg1->unk28.x;
-    arg0->rot.y = arg1->unk28.y;
-    arg0->rot.z = arg1->unk28.z;
-    arg0->zoom = arg1->unk38;
+void InterpolateCameraStateSine(M418DllCameraState* startValue, M418DllCameraState* targetValue, f32 elapsedFrames, f32 totalFrames) {
+    targetValue->targetCenter.x = InterpolateSineEaseOut(startValue->targetCenter.x, targetValue->center.x, elapsedFrames, totalFrames);
+    targetValue->targetCenter.y = InterpolateSineEaseOut(startValue->targetCenter.y, targetValue->center.y, elapsedFrames, totalFrames);
+    targetValue->targetCenter.z = InterpolateSineEaseOut(startValue->targetCenter.z, targetValue->center.z, elapsedFrames, totalFrames);
+    targetValue->targetRotation.x = InterpolateSineEaseOut(startValue->targetRotation.x, targetValue->rot.x, elapsedFrames, totalFrames);
+    targetValue->targetRotation.y = InterpolateSineEaseOut(startValue->targetRotation.y, targetValue->rot.y, elapsedFrames, totalFrames);
+    targetValue->targetRotation.z = InterpolateSineEaseOut(startValue->targetRotation.z, targetValue->rot.z, elapsedFrames, totalFrames);
+    targetValue->targetZoom = InterpolateSineEaseOut(startValue->targetZoom, targetValue->zoom, elapsedFrames, totalFrames);
 }
 
-void fn_1_CBF8(M418DllUnkStruct* arg0, M418DllUnkStruct* arg1, f32 arg2, f32 arg3, f32 arg4) {
-    fn_1_C318(arg0, arg1, arg2, arg3);
-    fn_1_B4A4(arg0, arg1, arg4);
+void ApplyInterpolatedCameraStateSine(M418DllCameraState* sourceCamera, M418DllCameraState* targetCamera, f32 elapsedFrames, f32 totalFrames) {
+    InterpolateCameraStateSine(sourceCamera, targetCamera, elapsedFrames, totalFrames);
+    sourceCamera->center.x = targetCamera->targetCenter.x;
+    sourceCamera->center.y = targetCamera->targetCenter.y;
+    sourceCamera->center.z = targetCamera->targetCenter.z;
+    sourceCamera->rot.x = targetCamera->targetRotation.x;
+    sourceCamera->rot.y = targetCamera->targetRotation.y;
+    sourceCamera->rot.z = targetCamera->targetRotation.z;
+    sourceCamera->zoom = targetCamera->targetZoom;
 }
 
-void fn_1_D250(M418DllUnkStruct* arg0, M418DllUnkStruct* arg1, f32 arg8, f32 arg9) {
-    arg1->unk10.x = fn_1_AAEC(arg0->unk10.x, arg1->center.x, arg8, arg9);
-    arg1->unk10.y = fn_1_AAEC(arg0->unk10.y, arg1->center.y, arg8, arg9);
-    arg1->unk10.z = fn_1_AAEC(arg0->unk10.z, arg1->center.z, arg8, arg9);
-    arg1->unk28.x = fn_1_AAEC(arg0->unk28.x, arg1->rot.x, arg8, arg9);
-    arg1->unk28.y = fn_1_AAEC(arg0->unk28.y, arg1->rot.y, arg8, arg9);
-    arg1->unk28.z = fn_1_AAEC(arg0->unk28.z, arg1->rot.z, arg8, arg9);
-    arg1->unk38 = fn_1_AAEC(arg0->unk38, arg1->zoom, arg8, arg9);
+void TransitionCameraStateSine(M418DllCameraState* sourceCamera, M418DllCameraState* targetCamera, f32 elapsedFrames, f32 totalFrames, f32 smoothingFactor) {
+    InterpolateCameraStateSine(sourceCamera, targetCamera, elapsedFrames, totalFrames);
+    InterpolateCameraTarget(sourceCamera, targetCamera, smoothingFactor);
 }
 
-void fn_1_D714(M418DllUnkStruct* arg0, M418DllUnkStruct* arg1, f32 arg8, f32 arg9) {
-    fn_1_D250(arg0, arg1, arg8, arg9);
-    arg0->center.x = arg1->unk10.x;
-    arg0->center.y = arg1->unk10.y;
-    arg0->center.z = arg1->unk10.z;
-    arg0->rot.x = arg1->unk28.x;
-    arg0->rot.y = arg1->unk28.y;
-    arg0->rot.z = arg1->unk28.z;
-    arg0->zoom = arg1->unk38;
+void InterpolateCameraStateCosine(M418DllCameraState* startValue, M418DllCameraState* targetValue, f32 elapsedFrames, f32 totalFrames) {
+    targetValue->targetCenter.x = InterpolateCosineEaseOut(startValue->targetCenter.x, targetValue->center.x, elapsedFrames, totalFrames);
+    targetValue->targetCenter.y = InterpolateCosineEaseOut(startValue->targetCenter.y, targetValue->center.y, elapsedFrames, totalFrames);
+    targetValue->targetCenter.z = InterpolateCosineEaseOut(startValue->targetCenter.z, targetValue->center.z, elapsedFrames, totalFrames);
+    targetValue->targetRotation.x = InterpolateCosineEaseOut(startValue->targetRotation.x, targetValue->rot.x, elapsedFrames, totalFrames);
+    targetValue->targetRotation.y = InterpolateCosineEaseOut(startValue->targetRotation.y, targetValue->rot.y, elapsedFrames, totalFrames);
+    targetValue->targetRotation.z = InterpolateCosineEaseOut(startValue->targetRotation.z, targetValue->rot.z, elapsedFrames, totalFrames);
+    targetValue->targetZoom = InterpolateCosineEaseOut(startValue->targetZoom, targetValue->zoom, elapsedFrames, totalFrames);
 }
 
-void fn_1_DC10(M418DllUnkStruct* arg0, M418DllUnkStruct* arg1, f32 arg2, f32 arg3, f32 arg4) {
-    fn_1_D250(arg0, arg1, arg2, arg3);
-    fn_1_B4A4(arg0, arg1, arg4);
+void ApplyInterpolatedCameraStateCosine(M418DllCameraState* sourceCamera, M418DllCameraState* targetCamera, f32 elapsedFrames, f32 totalFrames) {
+    InterpolateCameraStateCosine(sourceCamera, targetCamera, elapsedFrames, totalFrames);
+    sourceCamera->center.x = targetCamera->targetCenter.x;
+    sourceCamera->center.y = targetCamera->targetCenter.y;
+    sourceCamera->center.z = targetCamera->targetCenter.z;
+    sourceCamera->rot.x = targetCamera->targetRotation.x;
+    sourceCamera->rot.y = targetCamera->targetRotation.y;
+    sourceCamera->rot.z = targetCamera->targetRotation.z;
+    sourceCamera->zoom = targetCamera->targetZoom;
+}
+
+void TransitionCameraStateCosine(M418DllCameraState* sourceCamera, M418DllCameraState* targetCamera, f32 elapsedFrames, f32 totalFrames, f32 smoothingFactor) {
+    InterpolateCameraStateCosine(sourceCamera, targetCamera, elapsedFrames, totalFrames);
+    InterpolateCameraTarget(sourceCamera, targetCamera, smoothingFactor);
 }
