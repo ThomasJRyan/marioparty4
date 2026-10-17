@@ -24,116 +24,116 @@
 #include "game/frand.h"
 #endif
 
-typedef struct M433DllMapWork2 {
-    u8 unk_00;
-    Vec unk_04;
-    Vec unk_10;
-    Vec unk_1C;
-    Vec unk_28;
-    Vec unk_34;
-    Vec unk_40;
-    Vec unk_4C;
-    Vec unk_58;
-    Vec unk_64[3];
-    Vec unk_88[3];
-    Vec unk_AC[3];
-    Vec unk_D0[3];
-    float unk_F4[3];
-    float unk_100[3];
-    float unk_10C[3];
-    float unk_118[3];
-    float unk_124[3];
-    float unk_130;
-    float unk_134;
-    float unk_138;
-    float unk_13C;
-    float unk_140;
-    float unk_144;
-    float unk_148;
-    float unk_14C[3];
-    float unk_158[3];
-    float unk_164[3];
-    float unk_170[3];
-    float unk_17C[3];
-    u16 unk_188[3];
-} M433DllMapWork2; /* size = 0x190 */
+typedef struct M428DllCameraWork {
+    u8 cameraTransitionActive;
+    Vec cameraCenter;
+    Vec cameraRotation;
+    Vec startCameraCenter;
+    Vec startCameraRotation;
+    Vec targetCameraCenter;
+    Vec targetCameraRotation;
+    Vec centerControlPoint;
+    Vec rotationControlPoint;
+    Vec centerBezierPoints[3];
+    Vec rotationBezierPoints[3];
+    Vec rotationControlPoints[3];
+    Vec rotationBezierControls[3];
+    Float centerBezierSlopes[3];
+    Float rotationBezierSlopes[3];
+    Float zoomControlPoints[3];
+    Float zoomBezierSlopes[3];
+    Float zoomCumulativeDistances[3];
+    Float cameraZoom;
+    Float startCameraZoom;
+    Float targetCameraZoom;
+    Float zoomControlPoint;
+    Float transitionSpeed;
+    Float transitionDuration;
+    Float transitionFramesRemaining;
+    Float shakeAmplitude[3];
+    Float shakeDecay[3];
+    Float shakePhase[3];
+    Float shakeAngularSpeed[3];
+    Float cameraShakeOffset[3];
+    u16 shakeFramesRemaining[3];
+} M428DllCameraWork; /* size = 0x190 */
 
-typedef struct M433DllUnkStruct {
-    s16 unk_00;
-    s16 unk_02;
-    s16 unk_04;
-    s16 unk_06;
-    float unk_08;
-    float unk_0C;
-    float unk_10;
-    float unk_14;
-    float unk_18;
-    float unk_1C;
-    char unk20[0x28];
-} M433DllUnkStruct; /* size = 0x48 */
+typedef struct M428DllParticleBounds {
+    s16 particleStatePadding;
+    s16 particleFlagPadding;
+    s16 emissionState;
+    s16 emissionCooldown;
+    Float maxX;
+    Float minX;
+    Float maxY;
+    Float minY;
+    Float maxZ;
+    Float minZ;
+    char particleBoundsPadding[0x28];
+} M428DllParticleBounds; /* size = 0x48 */
 
-typedef struct M433DllUnkStruct4 {
-    Vec unk_00;
-    s32 unk_0C[3];
-    s8 unk_18[4];
-    s8 unk_1C;
-    float unk_20;
-    float unk_24;
-    float unk_28;
-    float unk_2C;
-    float unk_30;
-} M433DllUnkStruct4; /* size = 0x34 */
+typedef struct M428DllCollisionFace {
+    Vec faceCenter;
+    s32 vertexIndices[3];
+    s8 faceMaterialAttributes[4];
+    s8 vertexCount;
+    Float boundingRadius;
+    Float planeNormalX;
+    Float planeNormalY;
+    Float planeNormalZ;
+    Float planeOffset;
+} M428DllCollisionFace; /* size = 0x34 */
 
-typedef struct M433DllUnkStruct2 {
-    Vec *unk_00;
-    s32 unk_04;
-    s32 unk_08;
-    M433DllUnkStruct4 *unk_0C;
-} M433DllUnkStruct2; /* size 0x10 */
+typedef struct M428DllCollisionMesh {
+    Vec *vertices;
+    s32 vertexCount;
+    s32 faceCount;
+    M428DllCollisionFace *faces;
+} M428DllCollisionMesh; /* size 0x10 */
 
-typedef struct M433DllUnkStruct3 {
-    s32 unk_00;
-    M433DllUnkStruct2 *unk_04;
-} M433DllUnkStruct3; /* size = 0x08 */
+typedef struct M428DllCollisionData {
+    s32 faceCount;
+    M428DllCollisionMesh *faces;
+} M428DllCollisionData; /* size = 0x08 */
 
-void fn_1_4650(OMOBJ *object);
-void fn_1_475C(OMOBJ *object);
-void fn_1_4F04(OMOBJ *object);
-void fn_1_51E0(OMOBJ *object);
-u8 fn_1_5370(M433DllUnkStruct2 *arg0, Vec *arg1);
-void fn_1_5558(s32 arg0, M433DllUnkStruct3 *arg1);
-void fn_1_5CCC(HSFDATA *arg0, HSFOBJECT *arg1);
-void fn_1_6280(HU3DMODEL *arg1, HU3DPARTICLE *particle, Mtx matrix);
-s16 fn_1_71AC(s32 arg0, s16 arg1, HU3DPARTICLEHOOK arg2);
-void fn_1_7294(void);
-void *fn_1_72D4(s32 arg0);
-void fn_1_739C(M433DllUnkStruct2 *arg0);
-void fn_1_7430(void);
-s32 fn_1_7500(void);
-void fn_1_8F90(float *arg0, float *arg1, float *arg2, s32 arg3);
-float fn_1_9248(float arg8, float *arg0, float *arg1, float *arg2, s32 arg3);
-void fn_1_939C(float *arg0, float (*arg1)[3], float (*arg2)[3], s32 arg3);
-void fn_1_977C(float arg8, float *arg0, float *arg1, float (*arg2)[3], float (*arg3)[3], s32 arg4);
+void InitializeCameraObject(OMOBJ *object);
+void UpdateCameraObject(OMOBJ *object);
+void InitializeMapObject(OMOBJ *object);
+void UpdateMapObject(OMOBJ *object);
+u8 FindMeshFaceAtPosition(M428DllCollisionMesh *collisionMesh, Vec *position);
+void LoadMapCollisionMesh(s32 modelId, M428DllCollisionData *collisionData);
+void ExtractCollisionMeshFromObject(HSFDATA *modelData, HSFOBJECT *object);
+void UpdateMapParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+s16 CreateMapParticleHook(s32 animationDataId, s16 particleCount, HU3DPARTICLEHOOK particleHook);
+void InitializeMapHeap(void);
+void *AllocateMapHeap(s32 allocationSize);
+void FreeCollisionMeshFaces(M428DllCollisionMesh *allocation);
+void DestroyMapHeap(void);
+s32 GetMapRandomValue(void);
+void CalculateBezierPathDistances(Float *pathDistances, Float *controlValues, Float *secondDerivatives, s32 pointCount);
+Float EvaluateBezierPath(Float pathProgress, Float *pathDistances, Float *controlValues, Float *secondDerivatives, s32 pointCount);
+void calculateBezierPathSlopes(Float *pathDistances, Float (*controlPoints)[3], Float (*secondDerivatives)[3], s32 pointCount);
+void interpolateBezierPath(Float pathProgress, Float *outputValues, Float *pathDistances, Float (*controlPoints)[3], Float (*secondDerivatives)[3], s32 pointCount);
 
-M433DllUnkStruct3 *lbl_1_bss_12C;
-M433DllUnkStruct2 *lbl_1_bss_128;
-void *lbl_1_bss_A8[0x20];
-OMOBJ *lbl_1_bss_A4;
-OMOBJ *lbl_1_bss_A0;
-OMOBJ *lbl_1_bss_98[2];
-M433DllUnkStruct3 lbl_1_bss_90;
+M428DllCollisionData *mapMeshWork;
+M428DllCollisionMesh *currentMeshWork;
+void *heapAllocations[0x20];
+OMOBJ *multiviewObject;
+OMOBJ *mapObject;
+OMOBJ *cameraObjects[2];
+M428DllCollisionData mapCollisionData;
 
-void fn_1_43C8(HUPROCESS *arg0)
+void InitializeMapAndCameras(HUPROCESS *processManager)
 {
-    s32 var_r31;
-    OMOBJ *var_r30;
-    s32 var_r28;
+    s32 cameraIndex;
+    OMOBJ *cameraObject;
+    s32 randomWarmupCount;
 
-    var_r28 = frand() & 0x1F;
-    for (var_r31 = 0; var_r31 < var_r28; var_r31++) {
-        fn_1_7500();
+    randomWarmupCount = frand() & 0x1F;
+    for (cameraIndex = 0; cameraIndex < randomWarmupCount; cameraIndex++) {
+        GetMapRandomValue();
     }
-    fn_1_7294();
+    InitializeMapHeap();
     Hu3DCameraCreate(3);
     Hu3DCameraPerspectiveSet(1, 45.0f, 100.0f, 7500.0f, 0.6f);
     Hu3DCameraPerspectiveSet(2, 45.0f, 100.0f, 7500.0f, 0.6f);
@@ -141,286 +141,286 @@ void fn_1_43C8(HUPROCESS *arg0)
     Hu3DCameraViewportSet(2, 320.0f, 0.0f, 320.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraScissorSet(1, 0, 0, 0x140, 0x1E0);
     Hu3DCameraScissorSet(2, 0x140, 0, 0x140, 0x1E0);
-    lbl_1_bss_A4 = omAddObjEx(arg0, 0x7FDA, 0, 0, -1, omOutViewMulti);
-    lbl_1_bss_A4->work[0] = 2;
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        var_r30 = omAddObjEx(arg0, 0xFE, 1, 0, -1, fn_1_4650);
-        lbl_1_bss_98[var_r31] = var_r30;
-        var_r30->work[0] = var_r31;
+    multiviewObject = omAddObjEx(processManager, 0x7FDA, 0, 0, -1, omOutViewMulti);
+    multiviewObject->work[0] = 2;
+    for (cameraIndex = 0; cameraIndex < 2; cameraIndex++) {
+        cameraObject = omAddObjEx(processManager, 0xFE, 1, 0, -1, InitializeCameraObject);
+        cameraObjects[cameraIndex] = cameraObject;
+        cameraObject->work[0] = cameraIndex;
     }
-    lbl_1_bss_A0 = omAddObjEx(arg0, 0x7F, 9, 0, -1, fn_1_4F04);
+    mapObject = omAddObjEx(processManager, 0x7F, 9, 0, -1, InitializeMapObject);
 }
 
-void fn_1_4630(void)
+void DestroyMapAndCameras(void)
 {
-    fn_1_7430();
+    DestroyMapHeap();
 }
 
-void fn_1_4650(OMOBJ *object)
+void InitializeCameraObject(OMOBJ *object)
 {
-    M433DllMapWork2 *work;
+    M428DllCameraWork *cameraWork;
 
-    work = fn_1_72D4(sizeof(M433DllMapWork2));
-    object->data = work;
-    work->unk_148 = work->unk_144 = 0.0f;
-    work->unk_140 = 1.0f;
-    work->unk_10.x = work->unk_28.x = 0.0f;
-    work->unk_10.y = work->unk_28.y = 0.0f;
-    work->unk_10.z = work->unk_28.z = 0.0f;
-    work->unk_04.x = work->unk_1C.x = 0.0f;
-    work->unk_04.y = work->unk_1C.y = 80.0f;
-    work->unk_04.z = work->unk_1C.z = 0.0f;
-    work->unk_130 = work->unk_134 = 600.0f;
-    work->unk_188[0] = work->unk_188[1] = work->unk_188[2] = 0;
-    object->objFunc = fn_1_475C;
+    cameraWork = AllocateMapHeap(sizeof(M428DllCameraWork));
+    object->data = cameraWork;
+    cameraWork->transitionFramesRemaining = cameraWork->transitionDuration = 0.0f;
+    cameraWork->transitionSpeed = 1.0f;
+    cameraWork->cameraRotation.x = cameraWork->startCameraRotation.x = 0.0f;
+    cameraWork->cameraRotation.y = cameraWork->startCameraRotation.y = 0.0f;
+    cameraWork->cameraRotation.z = cameraWork->startCameraRotation.z = 0.0f;
+    cameraWork->cameraCenter.x = cameraWork->startCameraCenter.x = 0.0f;
+    cameraWork->cameraCenter.y = cameraWork->startCameraCenter.y = 80.0f;
+    cameraWork->cameraCenter.z = cameraWork->startCameraCenter.z = 0.0f;
+    cameraWork->cameraZoom = cameraWork->startCameraZoom = 600.0f;
+    cameraWork->shakeFramesRemaining[0] = cameraWork->shakeFramesRemaining[1] = cameraWork->shakeFramesRemaining[2] = 0;
+    object->objFunc = UpdateCameraObject;
 }
 
-void fn_1_475C(OMOBJ *object)
+void UpdateCameraObject(OMOBJ *object)
 {
-    float var_f31;
-    M433DllMapWork2 *work;
-    s32 var_r29;
+    Float transitionProgress;
+    M428DllCameraWork *cameraWork;
+    s32 shakeAxis;
 
-    work = object->data;
-    if (work->unk_148 > 0.0f) {
-        work->unk_148 = work->unk_148 - work->unk_140;
-        var_f31 = (work->unk_144 - work->unk_148) / work->unk_144;
-        var_f31 = sind((90.0f * var_f31));
-        if (work->unk_00 == 0) {
-            work->unk_04.x = work->unk_1C.x + (var_f31 * (work->unk_34.x - work->unk_1C.x));
-            work->unk_04.y = work->unk_1C.y + (var_f31 * (work->unk_34.y - work->unk_1C.y));
-            work->unk_04.z = work->unk_1C.z + (var_f31 * (work->unk_34.z - work->unk_1C.z));
-            work->unk_10.x = work->unk_28.x + (var_f31 * (work->unk_40.x - work->unk_28.x));
-            work->unk_10.y = work->unk_28.y + (var_f31 * (work->unk_40.y - work->unk_28.y));
-            work->unk_10.z = work->unk_28.z + (var_f31 * (work->unk_40.z - work->unk_28.z));
-            work->unk_130 = work->unk_134 + (var_f31 * (work->unk_138 - work->unk_134));
+    cameraWork = object->data;
+    if (cameraWork->transitionFramesRemaining > 0.0f) {
+        cameraWork->transitionFramesRemaining = cameraWork->transitionFramesRemaining - cameraWork->transitionSpeed;
+        transitionProgress = (cameraWork->transitionDuration - cameraWork->transitionFramesRemaining) / cameraWork->transitionDuration;
+        transitionProgress = sind((90.0f * transitionProgress));
+        if (cameraWork->cameraTransitionActive == 0) {
+            cameraWork->cameraCenter.x = cameraWork->startCameraCenter.x + (transitionProgress * (cameraWork->targetCameraCenter.x - cameraWork->startCameraCenter.x));
+            cameraWork->cameraCenter.y = cameraWork->startCameraCenter.y + (transitionProgress * (cameraWork->targetCameraCenter.y - cameraWork->startCameraCenter.y));
+            cameraWork->cameraCenter.z = cameraWork->startCameraCenter.z + (transitionProgress * (cameraWork->targetCameraCenter.z - cameraWork->startCameraCenter.z));
+            cameraWork->cameraRotation.x = cameraWork->startCameraRotation.x + (transitionProgress * (cameraWork->targetCameraRotation.x - cameraWork->startCameraRotation.x));
+            cameraWork->cameraRotation.y = cameraWork->startCameraRotation.y + (transitionProgress * (cameraWork->targetCameraRotation.y - cameraWork->startCameraRotation.y));
+            cameraWork->cameraRotation.z = cameraWork->startCameraRotation.z + (transitionProgress * (cameraWork->targetCameraRotation.z - cameraWork->startCameraRotation.z));
+            cameraWork->cameraZoom = cameraWork->startCameraZoom + (transitionProgress * (cameraWork->targetCameraZoom - cameraWork->startCameraZoom));
         }
         else {
-            fn_1_977C(2.0f * var_f31, (float *)&work->unk_04, work->unk_F4, (float(*)[3])work->unk_64, (float(*)[3])work->unk_88, 3);
-            fn_1_977C(2.0f * var_f31, (float *)&work->unk_10, work->unk_100, (float(*)[3])work->unk_AC, (float(*)[3])work->unk_D0, 3);
-            work->unk_130 = fn_1_9248(2.0f * var_f31, work->unk_124, work->unk_10C, work->unk_118, 3);
+            interpolateBezierPath(2.0f * transitionProgress, (Float *)&cameraWork->cameraCenter, cameraWork->centerBezierSlopes, (Float(*)[3])cameraWork->centerBezierPoints, (Float(*)[3])cameraWork->rotationBezierPoints, 3);
+            interpolateBezierPath(2.0f * transitionProgress, (Float *)&cameraWork->cameraRotation, cameraWork->rotationBezierSlopes, (Float(*)[3])cameraWork->rotationControlPoints, (Float(*)[3])cameraWork->rotationBezierControls, 3);
+            cameraWork->cameraZoom = EvaluateBezierPath(2.0f * transitionProgress, cameraWork->zoomCumulativeDistances, cameraWork->zoomControlPoints, cameraWork->zoomBezierSlopes, 3);
         }
     }
-    CRotM[object->work[0]].x = work->unk_10.x;
-    CRotM[object->work[0]].y = work->unk_10.y;
-    CRotM[object->work[0]].z = work->unk_10.z;
-    CenterM[object->work[0]].x = work->unk_04.x;
-    CenterM[object->work[0]].y = work->unk_04.y;
-    CenterM[object->work[0]].z = work->unk_04.z;
-    CZoomM[object->work[0]] = work->unk_130;
-    for (var_r29 = 0; var_r29 < 3; var_r29++) {
-        work->unk_17C[var_r29] = 0.0f;
-        if (work->unk_188[var_r29] != 0) {
-            work->unk_17C[var_r29] = work->unk_14C[var_r29] * sind(work->unk_164[var_r29]);
-            work->unk_164[var_r29] += work->unk_170[var_r29];
-            work->unk_14C[var_r29] *= work->unk_158[var_r29];
-            work->unk_188[var_r29] -= 1;
+    CRotM[object->cameraWork[0]].x = cameraWork->cameraRotation.x;
+    CRotM[object->cameraWork[0]].y = cameraWork->cameraRotation.y;
+    CRotM[object->cameraWork[0]].z = cameraWork->cameraRotation.z;
+    CenterM[object->cameraWork[0]].x = cameraWork->cameraCenter.x;
+    CenterM[object->cameraWork[0]].y = cameraWork->cameraCenter.y;
+    CenterM[object->cameraWork[0]].z = cameraWork->cameraCenter.z;
+    CZoomM[object->cameraWork[0]] = cameraWork->cameraZoom;
+    for (shakeAxis = 0; shakeAxis < 3; shakeAxis++) {
+        cameraWork->cameraShakeOffset[shakeAxis] = 0.0f;
+        if (cameraWork->shakeFramesRemaining[shakeAxis] != 0) {
+            cameraWork->cameraShakeOffset[shakeAxis] = cameraWork->shakeAmplitude[shakeAxis] * sind(cameraWork->shakePhase[shakeAxis]);
+            cameraWork->shakePhase[shakeAxis] += cameraWork->shakeAngularSpeed[shakeAxis];
+            cameraWork->shakeAmplitude[shakeAxis] *= cameraWork->shakeDecay[shakeAxis];
+            cameraWork->shakeFramesRemaining[shakeAxis] -= 1;
         }
     }
-    CenterM[object->work[0]].x += work->unk_17C[0];
-    CenterM[object->work[0]].y += work->unk_17C[1];
-    CenterM[object->work[0]].z += work->unk_17C[2];
+    CenterM[object->cameraWork[0]].x += cameraWork->cameraShakeOffset[0];
+    CenterM[object->cameraWork[0]].y += cameraWork->cameraShakeOffset[1];
+    CenterM[object->cameraWork[0]].z += cameraWork->cameraShakeOffset[2];
 }
 
-void fn_1_4B7C(u8 arg0, float arg1, Vec *arg2, Vec *arg3, float arg8, Vec *arg4, Vec *arg5, float arg9)
+void StartCameraTransition(u8 cameraIndex, Float transitionFrames, Vec *targetCenter, Vec *targetRotation, Float targetZoom, Vec *centerControlPoint, Vec *rotationControlPoint, Float zoomControlPoint)
 {
-    float var_f31;
-    float var_f30;
-    M433DllMapWork2 *var_r31;
+    Float firstZoomDistance;
+    Float secondZoomDistance;
+    M428DllCameraWork *cameraWork;
 
-    var_r31 = lbl_1_bss_98[arg0]->data;
-    var_r31->unk_00 = 1;
-    var_r31->unk_148 = var_r31->unk_144 = arg1;
-    var_r31->unk_1C = var_r31->unk_04;
-    var_r31->unk_34.x = arg2->x;
-    var_r31->unk_34.y = arg2->y;
-    var_r31->unk_34.z = arg2->z;
-    var_r31->unk_4C.x = arg4->x;
-    var_r31->unk_4C.y = arg4->y;
-    var_r31->unk_4C.z = arg4->z;
-    var_r31->unk_28 = var_r31->unk_10;
-    var_r31->unk_40.x = arg3->x;
-    var_r31->unk_40.y = arg3->y;
-    var_r31->unk_40.z = arg3->z;
-    var_r31->unk_58.x = arg5->x;
-    var_r31->unk_58.y = arg5->y;
-    var_r31->unk_58.z = arg5->z;
-    var_r31->unk_134 = var_r31->unk_130;
-    var_r31->unk_138 = arg8;
-    var_r31->unk_13C = arg9;
-    var_r31->unk_64[0] = var_r31->unk_1C;
-    var_r31->unk_64[1] = var_r31->unk_4C;
-    var_r31->unk_64[2] = var_r31->unk_34;
-    var_r31->unk_AC[0] = var_r31->unk_28;
-    var_r31->unk_AC[1] = var_r31->unk_58;
-    var_r31->unk_AC[2] = var_r31->unk_40;
-    var_r31->unk_10C[0] = var_r31->unk_134;
-    var_r31->unk_10C[1] = var_r31->unk_13C;
-    var_r31->unk_10C[2] = var_r31->unk_138;
-    var_r31->unk_124[0] = 0.0f;
-    if ((var_r31->unk_10C[1] - var_r31->unk_10C[0]) < 0.0f) {
-        var_f31 = -(var_r31->unk_10C[1] - var_r31->unk_10C[0]);
+    cameraWork = cameraObjects[cameraIndex]->data;
+    cameraWork->cameraTransitionActive = 1;
+    cameraWork->transitionFramesRemaining = cameraWork->transitionDuration = transitionFrames;
+    cameraWork->startCameraCenter = cameraWork->cameraCenter;
+    cameraWork->targetCameraCenter.x = targetCenter->x;
+    cameraWork->targetCameraCenter.y = targetCenter->y;
+    cameraWork->targetCameraCenter.z = targetCenter->z;
+    cameraWork->centerControlPoint.x = centerControlPoint->x;
+    cameraWork->centerControlPoint.y = centerControlPoint->y;
+    cameraWork->centerControlPoint.z = centerControlPoint->z;
+    cameraWork->startCameraRotation = cameraWork->cameraRotation;
+    cameraWork->targetCameraRotation.x = targetRotation->x;
+    cameraWork->targetCameraRotation.y = targetRotation->y;
+    cameraWork->targetCameraRotation.z = targetRotation->z;
+    cameraWork->rotationControlPoint.x = rotationControlPoint->x;
+    cameraWork->rotationControlPoint.y = rotationControlPoint->y;
+    cameraWork->rotationControlPoint.z = rotationControlPoint->z;
+    cameraWork->startCameraZoom = cameraWork->cameraZoom;
+    cameraWork->targetCameraZoom = targetZoom;
+    cameraWork->zoomControlPoint = zoomControlPoint;
+    cameraWork->centerBezierPoints[0] = cameraWork->startCameraCenter;
+    cameraWork->centerBezierPoints[1] = cameraWork->centerControlPoint;
+    cameraWork->centerBezierPoints[2] = cameraWork->targetCameraCenter;
+    cameraWork->rotationControlPoints[0] = cameraWork->startCameraRotation;
+    cameraWork->rotationControlPoints[1] = cameraWork->rotationControlPoint;
+    cameraWork->rotationControlPoints[2] = cameraWork->targetCameraRotation;
+    cameraWork->zoomControlPoints[0] = cameraWork->startCameraZoom;
+    cameraWork->zoomControlPoints[1] = cameraWork->zoomControlPoint;
+    cameraWork->zoomControlPoints[2] = cameraWork->targetCameraZoom;
+    cameraWork->zoomCumulativeDistances[0] = 0.0f;
+    if ((cameraWork->zoomControlPoints[1] - cameraWork->zoomControlPoints[0]) < 0.0f) {
+        firstZoomDistance = -(cameraWork->zoomControlPoints[1] - cameraWork->zoomControlPoints[0]);
     }
     else {
-        var_f31 = var_r31->unk_10C[1] - var_r31->unk_10C[0];
+        firstZoomDistance = cameraWork->zoomControlPoints[1] - cameraWork->zoomControlPoints[0];
     }
-    var_r31->unk_124[1] = var_f31;
-    if ((var_r31->unk_10C[2] - var_r31->unk_10C[1]) < 0.0f) {
-        var_f30 = -(var_r31->unk_10C[2] - var_r31->unk_10C[1]);
+    cameraWork->zoomCumulativeDistances[1] = firstZoomDistance;
+    if ((cameraWork->zoomControlPoints[2] - cameraWork->zoomControlPoints[1]) < 0.0f) {
+        secondZoomDistance = -(cameraWork->zoomControlPoints[2] - cameraWork->zoomControlPoints[1]);
     }
     else {
-        var_f30 = var_r31->unk_10C[2] - var_r31->unk_10C[1];
+        secondZoomDistance = cameraWork->zoomControlPoints[2] - cameraWork->zoomControlPoints[1];
     }
-    var_r31->unk_124[2] = var_r31->unk_124[1] + var_f30;
-    fn_1_939C(var_r31->unk_F4, (float(*)[3])var_r31->unk_64, (float(*)[3])var_r31->unk_88, 3);
-    fn_1_939C(var_r31->unk_100, (float(*)[3])var_r31->unk_AC, (float(*)[3])var_r31->unk_D0, 3);
-    fn_1_8F90(var_r31->unk_124, var_r31->unk_10C, var_r31->unk_118, 3);
+    cameraWork->zoomCumulativeDistances[2] = cameraWork->zoomCumulativeDistances[1] + secondZoomDistance;
+    calculateBezierPathSlopes(cameraWork->centerBezierSlopes, (Float(*)[3])cameraWork->centerBezierPoints, (Float(*)[3])cameraWork->rotationBezierPoints, 3);
+    calculateBezierPathSlopes(cameraWork->rotationBezierSlopes, (Float(*)[3])cameraWork->rotationControlPoints, (Float(*)[3])cameraWork->rotationBezierControls, 3);
+    CalculateBezierPathDistances(cameraWork->zoomCumulativeDistances, cameraWork->zoomControlPoints, cameraWork->zoomBezierSlopes, 3);
 }
 
-void fn_1_4E44(u8 arg0, float arg8)
+void SetCameraTransitionSpeed(u8 cameraIndex, Float transitionSpeed)
 {
-    M433DllMapWork2 *work = lbl_1_bss_98[arg0]->data;
-    work->unk_140 = arg8;
+    M428DllCameraWork *cameraWork = cameraObjects[cameraIndex]->data;
+    cameraWork->transitionSpeed = transitionSpeed;
 }
 
-void fn_1_4E78(u8 arg0, u8 arg1, u16 arg2, float arg8, float arg9, float argA)
+void StartCameraShake(u8 cameraIndex, u8 shakeAxis, u16 shakeFrames, Float shakeAmplitude, Float shakeDecay, Float shakeAngularSpeed)
 {
-    M433DllMapWork2 *var_r31 = lbl_1_bss_98[arg0]->data;
-    var_r31->unk_188[arg1] = arg2;
-    var_r31->unk_14C[arg1] = arg8;
-    var_r31->unk_158[arg1] = arg9;
-    var_r31->unk_170[arg1] = argA;
-    var_r31->unk_164[arg1] = 90.0f;
+    M428DllCameraWork *cameraWork = cameraObjects[cameraIndex]->data;
+    cameraWork->shakeFramesRemaining[shakeAxis] = shakeFrames;
+    cameraWork->shakeAmplitude[shakeAxis] = shakeAmplitude;
+    cameraWork->shakeDecay[shakeAxis] = shakeDecay;
+    cameraWork->shakeAngularSpeed[shakeAxis] = shakeAngularSpeed;
+    cameraWork->shakePhase[shakeAxis] = 90.0f;
 }
 
-static char lbl_1_data_130[20] = "goal"; // explicitly declared because of padding
+static char goalShadowModelName[20] = "goal"; // explicitly declared because of padding
 
-void fn_1_4F04(OMOBJ *object)
+void InitializeMapObject(OMOBJ *object)
 {
-    s32 var_r31;
-    M433DllUnkStruct *var_r29;
-    s32 var_r28;
+    s32 modelId;
+    M428DllParticleBounds *particleBounds;
+    s32 cameraIndex;
 
-    var_r31 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 0));
-    object->mdlId[0] = var_r31;
-    Hu3DModelShadowMapSet(var_r31);
-    Hu3DModelLayerSet(var_r31, 2);
-    var_r31 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 1));
-    object->mdlId[1] = var_r31;
-    Hu3DModelAttrSet(var_r31, HU3D_ATTR_DISPOFF);
-    fn_1_5558(var_r31, &lbl_1_bss_90);
-    var_r31 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 2));
-    object->mdlId[2] = var_r31;
-    Hu3DModelLayerSet(var_r31, 2);
-    var_r31 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 3));
-    object->mdlId[3] = var_r31;
-    Hu3DModelAttrSet(var_r31, HU3D_ATTR_DISPOFF);
-    Hu3DModelShadowMapObjSet(var_r31, lbl_1_data_130);
-    Hu3DModelLayerSet(var_r31, 2);
-    var_r31 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 4));
-    object->mdlId[4] = var_r31;
-    Hu3DModelAttrSet(var_r31, HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(var_r31, HU3D_MOTATTR_SHAPE_LOOP);
-    Hu3DModelLayerSet(var_r31, 2);
-    Hu3DModelCameraSet(var_r31, 1);
-    fn_1_4170(var_r31, 1);
-    var_r31 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 5));
-    object->mdlId[5] = var_r31;
-    Hu3DModelAttrSet(var_r31, HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(var_r31, HU3D_MOTATTR_SHAPE_LOOP);
-    Hu3DModelLayerSet(var_r31, 2);
-    Hu3DModelCameraSet(var_r31, 2);
-    fn_1_4170(var_r31, 2);
-    for (var_r28 = 0; var_r28 < 2; var_r28++) {
-        var_r31 = fn_1_71AC(DATA_MAKE_NUM(DATADIR_M428, 6), 0x3E8, fn_1_6280);
-        object->mdlId[var_r28 + 6] = var_r31;
-        Hu3DModelLayerSet(var_r31, 4);
-        Hu3DModelCameraSet(var_r31, 1 << var_r28);
-        var_r29 = ((HU3DPARTICLE *)Hu3DData[var_r31].hookData)->work;
-        var_r29->unk_08 = 400.0f;
-        var_r29->unk_0C = -400.0f;
-        var_r29->unk_10 = 1300.0f;
-        var_r29->unk_14 = -800.0f;
-        var_r29->unk_18 = 700.0f;
-        var_r29->unk_1C = 150.0f;
+    modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 0));
+    object->mdlId[0] = modelId;
+    Hu3DModelShadowMapSet(modelId);
+    Hu3DModelLayerSet(modelId, 2);
+    modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 1));
+    object->mdlId[1] = modelId;
+    Hu3DModelAttrSet(modelId, HU3D_ATTR_DISPOFF);
+    LoadMapCollisionMesh(modelId, &mapCollisionData);
+    modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 2));
+    object->mdlId[2] = modelId;
+    Hu3DModelLayerSet(modelId, 2);
+    modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 3));
+    object->mdlId[3] = modelId;
+    Hu3DModelAttrSet(modelId, HU3D_ATTR_DISPOFF);
+    Hu3DModelShadowMapObjSet(modelId, goalShadowModelName);
+    Hu3DModelLayerSet(modelId, 2);
+    modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 4));
+    object->mdlId[4] = modelId;
+    Hu3DModelAttrSet(modelId, HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(modelId, HU3D_MOTATTR_SHAPE_LOOP);
+    Hu3DModelLayerSet(modelId, 2);
+    Hu3DModelCameraSet(modelId, 1);
+    AddModelToCameraShadows(modelId, 1);
+    modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M428, 5));
+    object->mdlId[5] = modelId;
+    Hu3DModelAttrSet(modelId, HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(modelId, HU3D_MOTATTR_SHAPE_LOOP);
+    Hu3DModelLayerSet(modelId, 2);
+    Hu3DModelCameraSet(modelId, 2);
+    AddModelToCameraShadows(modelId, 2);
+    for (cameraIndex = 0; cameraIndex < 2; cameraIndex++) {
+        modelId = CreateMapParticleHook(DATA_MAKE_NUM(DATADIR_M428, 6), 0x3E8, UpdateMapParticle);
+        object->mdlId[cameraIndex + 6] = modelId;
+        Hu3DModelLayerSet(modelId, 4);
+        Hu3DModelCameraSet(modelId, 1 << cameraIndex);
+        particleBounds = ((HU3DPARTICLE *)Hu3DData[modelId].hookData)->work;
+        particleBounds->maxX = 400.0f;
+        particleBounds->minX = -400.0f;
+        particleBounds->maxY = 1300.0f;
+        particleBounds->minY = -800.0f;
+        particleBounds->maxZ = 700.0f;
+        particleBounds->minZ = 150.0f;
     }
-    object->objFunc = fn_1_51E0;
+    object->objFunc = UpdateMapObject;
 }
 
-void fn_1_51E0(OMOBJ *object)
+void UpdateMapObject(OMOBJ *object)
 {
-    M433DllUnkStruct *var_r31;
-    s32 var_r30;
+    M428DllParticleBounds *particleBounds;
+    s32 cameraIndex;
 
-    for (var_r30 = 0; var_r30 < 2; var_r30++) {
-        var_r31 = ((HU3DPARTICLE *)Hu3DData[object->mdlId[var_r30 + 6]].hookData)->work;
-        var_r31->unk_08 = 500.0f + CenterM[var_r30].x;
-        var_r31->unk_0C = -500.0f + CenterM[var_r30].x;
-        var_r31->unk_10 = 900.0f + CenterM[var_r30].y;
-        var_r31->unk_14 = -1200.0f + CenterM[var_r30].y;
+    for (cameraIndex = 0; cameraIndex < 2; cameraIndex++) {
+        particleBounds = ((HU3DPARTICLE *)Hu3DData[object->mdlId[cameraIndex + 6]].hookData)->work;
+        particleBounds->maxX = 500.0f + CenterM[cameraIndex].x;
+        particleBounds->minX = -500.0f + CenterM[cameraIndex].x;
+        particleBounds->maxY = 900.0f + CenterM[cameraIndex].y;
+        particleBounds->minY = -1200.0f + CenterM[cameraIndex].y;
     }
 }
 
-void fn_1_52D8(OMOBJ *object) { }
+void EmptyMapCallback(OMOBJ *object) { }
 
-u8 fn_1_52DC(M433DllUnkStruct3 *arg0, Vec *arg1)
+u8 FindGroundFaceAtPosition(M428DllCollisionData *collisionData, Vec *position)
 {
-    u32 var_r30;
-    M433DllUnkStruct2 *var_r29;
-    s32 var_r28;
+    u32 faceIndex;
+    M428DllCollisionMesh *faceData;
+    s32 containsPoint;
 
-    var_r28 = 0;
-    for (var_r29 = arg0->unk_04, var_r30 = 0; var_r30 < arg0->unk_00; var_r30++, var_r29++) {
-        if (fn_1_5370(var_r29, arg1) != 0) {
+    containsPoint = 0;
+    for (faceData = collisionData->faces, faceIndex = 0; faceIndex < collisionData->faceCount; faceIndex++, faceData++) {
+        if (FindMeshFaceAtPosition(faceData, position) != 0) {
             break;
         }
     }
-    if (var_r30 < arg0->unk_00) {
-        var_r28 = 1;
+    if (faceIndex < collisionData->faceCount) {
+        containsPoint = 1;
     }
-    return var_r28;
+    return containsPoint;
 }
 
-u8 fn_1_5370(M433DllUnkStruct2 *arg0, Vec *arg1)
+u8 FindMeshFaceAtPosition(M428DllCollisionMesh *collisionMesh, Vec *position)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
-    M433DllUnkStruct4 *var_r31;
-    s32 var_r28;
-    u32 var_r27;
-    s32 var_r26;
-    Vec *var_r25;
-    s32 var_r24;
-    Vec *var_r23;
+    Vec pointToFaceCenter;
+    Vec edgeToPoint;
+    Vec pointOnGround;
+    Float edgeCrossProduct;
+    Float distanceToFace;
+    M428DllCollisionFace *face;
+    s32 edgeIndex;
+    u32 faceIndex;
+    s32 nextEdgeIndex;
+    Vec *currentVertex;
+    s32 insideFace;
+    Vec *nextVertex;
 
-    var_r31 = arg0->unk_0C;
-    for (var_r27 = 0; var_r27 < arg0->unk_08; var_r27++, var_r31++) {
-        sp8 = *arg1;
-        sp8.y = 0.0f;
-        VECSubtract(&sp8, &var_r31->unk_00, &sp20);
-        var_f30 = VECMag(&sp20);
-        if (!(var_f30 > (400.0f + var_r31->unk_20)) && (var_r31->unk_2C != 0.0f)) {
-            var_r24 = 0;
-            for (var_r28 = 0; var_r28 < 3; var_r28++) {
-                var_r26 = var_r28 + 1;
-                if (var_r26 == 3) {
-                    var_r26 = 0;
+    face = collisionMesh->faces;
+    for (faceIndex = 0; faceIndex < collisionMesh->faceCount; faceIndex++, face++) {
+        pointOnGround = *position;
+        pointOnGround.y = 0.0f;
+        VECSubtract(&pointOnGround, &face->faceCenter, &pointToFaceCenter);
+        distanceToFace = VECMag(&pointToFaceCenter);
+        if (!(distanceToFace > (400.0f + face->boundingRadius)) && (face->planeNormalZ != 0.0f)) {
+            insideFace = 0;
+            for (edgeIndex = 0; edgeIndex < 3; edgeIndex++) {
+                nextEdgeIndex = edgeIndex + 1;
+                if (nextEdgeIndex == 3) {
+                    nextEdgeIndex = 0;
                 }
-                var_r23 = &arg0->unk_00[var_r31->unk_0C[var_r28]];
-                var_r25 = &arg0->unk_00[var_r31->unk_0C[var_r26]];
-                VECSubtract(var_r25, var_r23, &sp20);
-                VECSubtract(arg1, var_r25, &sp14);
-                var_f31 = (sp20.x * sp14.y) - (sp20.y * sp14.x);
-                if ((var_f31 * var_r31->unk_2C) < 0.0) {
-                    var_r24 = 1;
+                nextVertex = &collisionMesh->vertices[face->vertexIndices[edgeIndex]];
+                currentVertex = &collisionMesh->vertices[face->vertexIndices[nextEdgeIndex]];
+                VECSubtract(currentVertex, nextVertex, &pointToFaceCenter);
+                VECSubtract(position, currentVertex, &edgeToPoint);
+                edgeCrossProduct = (pointToFaceCenter.x * edgeToPoint.y) - (pointToFaceCenter.y * edgeToPoint.x);
+                if ((edgeCrossProduct * face->planeNormalZ) < 0.0) {
+                    insideFace = 1;
                     break;
                 }
             }
-            if (var_r24 == 0) {
-                arg1->z = ((var_r31->unk_30 - (var_r31->unk_24 * arg1->x)) - (var_r31->unk_28 * arg1->y)) / var_r31->unk_2C;
+            if (insideFace == 0) {
+                position->z = ((face->planeOffset - (face->planeNormalX * position->x)) - (face->planeNormalY * position->y)) / face->planeNormalZ;
                 return 1;
             }
         }
@@ -428,120 +428,120 @@ u8 fn_1_5370(M433DllUnkStruct2 *arg0, Vec *arg1)
     return 0;
 }
 
-void fn_1_5558(s32 arg0, M433DllUnkStruct3 *arg1)
+void LoadMapCollisionMesh(s32 modelId, M428DllCollisionData *collisionData)
 {
-    HSFDATA *var_r31;
-    u32 var_r30;
+    HSFDATA *modelData;
+    u32 meshDataSize;
 
-    var_r31 = Hu3DData[arg0].hsf;
-    lbl_1_bss_12C = arg1;
-    lbl_1_bss_12C->unk_00 = 0;
-    lbl_1_bss_12C->unk_04 = fn_1_72D4(256 * sizeof(M433DllUnkStruct2));
-    lbl_1_bss_128 = lbl_1_bss_12C->unk_04;
-    fn_1_5CCC(var_r31, var_r31->root);
-    var_r30 = lbl_1_bss_12C->unk_00 * sizeof(M433DllUnkStruct2);
-    lbl_1_bss_128 = lbl_1_bss_12C->unk_04;
-    lbl_1_bss_12C->unk_04 = fn_1_72D4(var_r30);
-    memcpy(lbl_1_bss_12C->unk_04, lbl_1_bss_128, var_r30);
-    fn_1_739C(lbl_1_bss_128);
+    modelData = Hu3DData[modelId].hsf;
+    mapMeshWork = collisionData;
+    mapMeshWork->faceCount = 0;
+    mapMeshWork->faces = AllocateMapHeap(256 * sizeof(M428DllCollisionMesh));
+    currentMeshWork = mapMeshWork->faces;
+    ExtractCollisionMeshFromObject(modelData, modelData->root);
+    meshDataSize = mapMeshWork->faceCount * sizeof(M428DllCollisionMesh);
+    currentMeshWork = mapMeshWork->faces;
+    mapMeshWork->faces = AllocateMapHeap(meshDataSize);
+    memcpy(mapMeshWork->faces, currentMeshWork, meshDataSize);
+    FreeCollisionMeshFaces(currentMeshWork);
 }
 
-void fn_1_5684(HSFDATA *arg0, HSFOBJECT *arg1)
+void ExtractCollisionFacesFromModel(HSFDATA *modelData, HSFOBJECT *meshObject)
 {
-    Vec sp18;
-    Vec spC;
-    float var_f31;
-    M433DllUnkStruct4 *var_r31;
-    HSFFACE *var_r30;
-    HSFBUFFER *var_r29;
-    s32 var_r28;
-    s32 var_r27;
-    HSFBUFFER *var_r25;
+    Vec vertexOffset;
+    Vec nextVertexOffset;
+    Float vertexDistance;
+    M428DllCollisionFace *faceData;
+    HSFFACE *face;
+    HSFBUFFER *vertexBuffer;
+    s32 vertexIndex;
+    s32 faceIndex;
+    HSFBUFFER *faceBuffer;
 
-    var_r29 = arg1->mesh.vertex;
-    var_r25 = arg1->mesh.face;
-    lbl_1_bss_128->unk_08 = var_r25->count;
-    lbl_1_bss_128->unk_04 = var_r29->count;
-    lbl_1_bss_128->unk_00 = var_r29->data;
-    lbl_1_bss_128->unk_0C = fn_1_72D4(lbl_1_bss_128->unk_08 * sizeof(M433DllUnkStruct4));
-    var_r30 = var_r25->data;
-    var_r31 = lbl_1_bss_128->unk_0C;
-    for (var_r27 = 0; var_r27 < var_r25->count; var_r27++, var_r30++, var_r31++) {
-        switch (var_r30->type & 7) {
+    vertexBuffer = meshObject->mesh.vertex;
+    faceBuffer = meshObject->mesh.face;
+    currentMeshWork->faceCount = faceBuffer->count;
+    currentMeshWork->vertexCount = vertexBuffer->count;
+    currentMeshWork->vertices = vertexBuffer->data;
+    currentMeshWork->faces = AllocateMapHeap(currentMeshWork->faceCount * sizeof(M428DllCollisionFace));
+    face = faceBuffer->data;
+    faceData = currentMeshWork->faces;
+    for (faceIndex = 0; faceIndex < faceBuffer->count; faceIndex++, face++, faceData++) {
+        switch (face->type & 7) {
             case 2:
-                var_r31->unk_1C = 3;
-                var_r31->unk_00.x = var_r31->unk_00.y = var_r31->unk_00.z = 0.0f;
-                for (var_r28 = 0; var_r28 < 3; var_r28++) {
-                    var_r31->unk_0C[var_r28] = var_r30->indices[var_r28][0];
-                    var_r31->unk_00.x += ((Vec *)var_r29->data)[var_r30->indices[var_r28][0]].x;
-                    var_r31->unk_00.y += ((Vec *)var_r29->data)[var_r30->indices[var_r28][0]].y;
-                    var_r31->unk_00.z += ((Vec *)var_r29->data)[var_r30->indices[var_r28][0]].z;
+                faceData->vertexCount = 3;
+                faceData->faceCenter.x = faceData->faceCenter.y = faceData->faceCenter.z = 0.0f;
+                for (vertexIndex = 0; vertexIndex < 3; vertexIndex++) {
+                    faceData->vertexIndices[vertexIndex] = face->indices[vertexIndex][0];
+                    faceData->faceCenter.x += ((Vec *)vertexBuffer->data)[face->indices[vertexIndex][0]].x;
+                    faceData->faceCenter.y += ((Vec *)vertexBuffer->data)[face->indices[vertexIndex][0]].y;
+                    faceData->faceCenter.z += ((Vec *)vertexBuffer->data)[face->indices[vertexIndex][0]].z;
                 }
-                var_r31->unk_00.x /= 3.0f;
-                var_r31->unk_00.y /= 3.0f;
-                var_r31->unk_00.z /= 3.0f;
-                var_r31->unk_20 = 0.0f;
-                for (var_r28 = 0; var_r28 < 3; var_r28++) {
-                    VECSubtract(&((Vec *)var_r29->data)[var_r30->indices[var_r28][0]], &var_r31->unk_00, &sp18);
-                    var_f31 = VECMag(&sp18);
-                    if (var_f31 > var_r31->unk_20) {
-                        var_r31->unk_20 = var_f31;
+                faceData->faceCenter.x /= 3.0f;
+                faceData->faceCenter.y /= 3.0f;
+                faceData->faceCenter.z /= 3.0f;
+                faceData->boundingRadius = 0.0f;
+                for (vertexIndex = 0; vertexIndex < 3; vertexIndex++) {
+                    VECSubtract(&((Vec *)vertexBuffer->data)[face->indices[vertexIndex][0]], &faceData->faceCenter, &vertexOffset);
+                    vertexDistance = VECMag(&vertexOffset);
+                    if (vertexDistance > faceData->boundingRadius) {
+                        faceData->boundingRadius = vertexDistance;
                     }
                 }
-                var_r31->unk_00.y = 0.0f;
-                VECSubtract(&((Vec *)var_r29->data)[var_r30->strip.indices[1][0]], &((Vec *)var_r29->data)[var_r30->strip.indices[0][0]], &sp18);
-                VECSubtract(&((Vec *)var_r29->data)[var_r30->strip.indices[2][0]], &((Vec *)var_r29->data)[var_r30->strip.indices[0][0]], &spC);
-                var_r31->unk_24 = (sp18.y * spC.z) - (sp18.z * spC.y);
-                var_r31->unk_28 = (sp18.z * spC.x) - (sp18.x * spC.z);
-                var_r31->unk_2C = (sp18.x * spC.y) - (sp18.y * spC.x);
-                var_r31->unk_30 = (var_r31->unk_2C * ((Vec *)var_r29->data)[var_r30->strip.indices[0][0]].z)
-                    + ((var_r31->unk_24 * ((Vec *)var_r29->data)[var_r30->strip.indices[0][0]].x)
-                        + (var_r31->unk_28 * ((Vec *)var_r29->data)[var_r30->strip.indices[0][0]].y));
+                faceData->faceCenter.y = 0.0f;
+                VECSubtract(&((Vec *)vertexBuffer->data)[face->strip.indices[1][0]], &((Vec *)vertexBuffer->data)[face->strip.indices[0][0]], &vertexOffset);
+                VECSubtract(&((Vec *)vertexBuffer->data)[face->strip.indices[2][0]], &((Vec *)vertexBuffer->data)[face->strip.indices[0][0]], &nextVertexOffset);
+                faceData->planeNormalX = (vertexOffset.y * nextVertexOffset.z) - (vertexOffset.z * nextVertexOffset.y);
+                faceData->planeNormalY = (vertexOffset.z * nextVertexOffset.x) - (vertexOffset.x * nextVertexOffset.z);
+                faceData->planeNormalZ = (vertexOffset.x * nextVertexOffset.y) - (vertexOffset.y * nextVertexOffset.x);
+                faceData->planeOffset = (faceData->planeNormalZ * ((Vec *)vertexBuffer->data)[face->strip.indices[0][0]].z)
+                    + ((faceData->planeNormalX * ((Vec *)vertexBuffer->data)[face->strip.indices[0][0]].x)
+                        + (faceData->planeNormalY * ((Vec *)vertexBuffer->data)[face->strip.indices[0][0]].y));
                 break;
             case 3:
-                var_r31->unk_1C = 4;
-                var_r31->unk_00.x = var_r31->unk_00.y = var_r31->unk_00.z = 0.0f;
-                for (var_r28 = 0; var_r28 < 4; var_r28++) {
-                    var_r31->unk_0C[var_r28] = var_r30->indices[var_r28][0];
-                    var_r31->unk_00.x += ((Vec *)var_r29->data)[var_r30->indices[var_r28][0]].x;
-                    var_r31->unk_00.y += ((Vec *)var_r29->data)[var_r30->indices[var_r28][0]].y;
-                    var_r31->unk_00.z += ((Vec *)var_r29->data)[var_r30->indices[var_r28][0]].z;
+                faceData->vertexCount = 4;
+                faceData->faceCenter.x = faceData->faceCenter.y = faceData->faceCenter.z = 0.0f;
+                for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+                    faceData->vertexIndices[vertexIndex] = face->indices[vertexIndex][0];
+                    faceData->faceCenter.x += ((Vec *)vertexBuffer->data)[face->indices[vertexIndex][0]].x;
+                    faceData->faceCenter.y += ((Vec *)vertexBuffer->data)[face->indices[vertexIndex][0]].y;
+                    faceData->faceCenter.z += ((Vec *)vertexBuffer->data)[face->indices[vertexIndex][0]].z;
                 }
-                var_r31->unk_00.x *= 0.25f;
-                var_r31->unk_00.y *= 0.25f;
-                var_r31->unk_00.z *= 0.25f;
-                var_r31->unk_20 = 0.0f;
-                for (var_r28 = 0; var_r28 < 4; var_r28++) {
-                    VECSubtract(&((Vec *)var_r29->data)[var_r30->indices[var_r28][0]], &var_r31->unk_00, &sp18);
-                    var_f31 = VECMag(&sp18);
-                    if (var_f31 > var_r31->unk_20) {
-                        var_r31->unk_20 = var_f31;
+                faceData->faceCenter.x *= 0.25f;
+                faceData->faceCenter.y *= 0.25f;
+                faceData->faceCenter.z *= 0.25f;
+                faceData->boundingRadius = 0.0f;
+                for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+                    VECSubtract(&((Vec *)vertexBuffer->data)[face->indices[vertexIndex][0]], &faceData->faceCenter, &vertexOffset);
+                    vertexDistance = VECMag(&vertexOffset);
+                    if (vertexDistance > faceData->boundingRadius) {
+                        faceData->boundingRadius = vertexDistance;
                     }
                 }
-                VECSubtract(&((Vec *)var_r29->data)[var_r30->strip.indices[1][0]], &((Vec *)var_r29->data)[var_r30->strip.indices[0][0]], &sp18);
-                VECSubtract(&((Vec *)var_r29->data)[var_r30->strip.indices[2][0]], &((Vec *)var_r29->data)[var_r30->strip.indices[1][0]], &spC);
-                var_r31->unk_24 = (sp18.y * spC.z) - (sp18.z * spC.y);
-                var_r31->unk_28 = (sp18.z * spC.x) - (sp18.x * spC.z);
-                var_r31->unk_2C = (sp18.x * spC.y) - (sp18.y * spC.x);
-                var_r31->unk_30 = (var_r31->unk_24 * ((Vec *)var_r29->data)[var_r30->strip.indices[0][0]].x)
-                    + ((var_r31->unk_28 * ((Vec *)var_r29->data)[var_r30->strip.indices[0][0]].y))
-                    + (var_r31->unk_2C * ((Vec *)var_r29->data)[var_r30->strip.indices[0][0]].z);
+                VECSubtract(&((Vec *)vertexBuffer->data)[face->strip.indices[1][0]], &((Vec *)vertexBuffer->data)[face->strip.indices[0][0]], &vertexOffset);
+                VECSubtract(&((Vec *)vertexBuffer->data)[face->strip.indices[2][0]], &((Vec *)vertexBuffer->data)[face->strip.indices[1][0]], &nextVertexOffset);
+                faceData->planeNormalX = (vertexOffset.y * nextVertexOffset.z) - (vertexOffset.z * nextVertexOffset.y);
+                faceData->planeNormalY = (vertexOffset.z * nextVertexOffset.x) - (vertexOffset.x * nextVertexOffset.z);
+                faceData->planeNormalZ = (vertexOffset.x * nextVertexOffset.y) - (vertexOffset.y * nextVertexOffset.x);
+                faceData->planeOffset = (faceData->planeNormalX * ((Vec *)vertexBuffer->data)[face->strip.indices[0][0]].x)
+                    + ((faceData->planeNormalY * ((Vec *)vertexBuffer->data)[face->strip.indices[0][0]].y))
+                    + (faceData->planeNormalZ * ((Vec *)vertexBuffer->data)[face->strip.indices[0][0]].z);
                 break;
             default:
                 OSReport("Error\n");
                 break;
         }
     }
-    for (var_r27 = 0; var_r27 < arg1->mesh.childrenCount; var_r27++) {
-        fn_1_5CCC(arg0, arg1->mesh.children[var_r27]);
+    for (faceIndex = 0; faceIndex < meshObject->mesh.childrenCount; faceIndex++) {
+        ExtractCollisionMeshFromObject(modelData, meshObject->mesh.children[faceIndex]);
     }
 }
 
-void fn_1_5CCC(HSFDATA *var_r31, HSFOBJECT *var_r23)
+void ExtractCollisionMeshFromObject(HSFDATA *modelData, HSFOBJECT *object)
 {
-    s16 var_r22;
+    s16 childIndex;
 
-    switch (var_r23->type) {
+    switch (object->type) {
         case 0:
         case 1:
         case 3:
@@ -549,725 +549,725 @@ void fn_1_5CCC(HSFDATA *var_r31, HSFOBJECT *var_r23)
         case 5:
         case 6:
         case 9:
-            for (var_r22 = 0; var_r22 < var_r23->mesh.childrenCount; var_r22++) {
-                fn_1_5CCC(var_r31, var_r23->mesh.children[var_r22]);
+            for (childIndex = 0; childIndex < object->mesh.childrenCount; childIndex++) {
+                ExtractCollisionMeshFromObject(modelData, object->mesh.children[childIndex]);
             }
             break;
         case 2:
-            fn_1_5684(var_r31, var_r23);
-            lbl_1_bss_12C->unk_00++;
-            lbl_1_bss_128++;
+            ExtractCollisionFacesFromModel(modelData, object);
+            mapMeshWork->faceCount++;
+            currentMeshWork++;
             break;
     }
 }
 
-void fn_1_6280(HU3DMODEL *arg1, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateMapParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    s32 sp3C;
-    s32 sp38;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
-    float var_f25;
-    HU3DPARTICLEDATA *var_r31;
-    M433DllUnkStruct *var_r30;
-    s32 var_r28;
-    s32 var_r27;
+    s32 particleCallbackScratch3C;
+    s32 particleCallbackScratch38;
+    Vec particlePositionOffset;
+    Float particleVelocityDelta;
+    Float particleBoundsYRange;
+    Float particleBoundsXRange;
+    Float particleBoundsZRange;
+    Float absoluteParticleOffset;
+    Float absoluteParticleVelocity;
+    Float absoluteVelocityDelta;
+    HU3DPARTICLEDATA *particleData;
+    M428DllParticleBounds *particleBounds;
+    s32 particleIndex;
+    s32 activeParticleCount;
 
-    var_r30 = particle->work;
-    var_f29 = var_r30->unk_08 - var_r30->unk_0C;
-    var_f30 = var_r30->unk_10 - var_r30->unk_14;
-    var_f28 = var_r30->unk_18 - var_r30->unk_1C;
-    switch (var_r30->unk_04) {
+    particleBounds = particle->work;
+    particleBoundsXRange = particleBounds->maxX - particleBounds->minX;
+    particleBoundsYRange = particleBounds->maxY - particleBounds->minY;
+    particleBoundsZRange = particleBounds->maxZ - particleBounds->minZ;
+    switch (particleBounds->emissionState) {
         case 2:
             break;
         case 0:
-            for (var_r31 = particle->data, var_r28 = 0; var_r28 < (0.3f * particle->maxCnt); var_r28++, var_r31++) {
-                var_r31->time = 1;
-                var_r31->pos.x = var_r30->unk_0C + (var_f29 * (fn_1_7500() / 65536.0f));
-                var_r31->pos.y = (var_r30->unk_14 + ((200.0f + var_f30) * (fn_1_7500() / 65536.0f))) - 100.0f;
-                var_r31->pos.z = var_r30->unk_1C + (var_f28 * (fn_1_7500() / 65536.0f));
-                var_r31->color.r = var_r31->color.g = var_r31->color.b = var_r31->color.a = 0xFF;
-                var_r31->scale = 26.0f + (10.0f * (fn_1_7500() / 65536.0f));
-                var_r31->vel.x = 0.0f;
-                var_r31->vel.y = (-98.0f / REFRESH_RATE_F) * (fn_1_7500() / 65536.0f);
-                var_r31->vel.z = 0.0f;
-                var_r31->accel.x = var_r31->accel.y = var_r31->accel.z = 0.0f;
-                var_r31->zRot = 360.0f * (fn_1_7500() / 65536.0f);
-                var_r31->parManId = 0;
+            for (particleData = particle->data, particleIndex = 0; particleIndex < (0.3f * particle->maxCnt); particleIndex++, particleData++) {
+                particleData->time = 1;
+                particleData->pos.x = particleBounds->minX + (particleBoundsXRange * (GetMapRandomValue() / 65536.0f));
+                particleData->pos.y = (particleBounds->minY + ((200.0f + particleBoundsYRange) * (GetMapRandomValue() / 65536.0f))) - 100.0f;
+                particleData->pos.z = particleBounds->minZ + (particleBoundsZRange * (GetMapRandomValue() / 65536.0f));
+                particleData->color.r = particleData->color.g = particleData->color.b = particleData->color.a = 0xFF;
+                particleData->scale = 26.0f + (10.0f * (GetMapRandomValue() / 65536.0f));
+                particleData->vel.x = 0.0f;
+                particleData->vel.y = (-98.0f / REFRESH_RATE_F) * (GetMapRandomValue() / 65536.0f);
+                particleData->vel.z = 0.0f;
+                particleData->accel.x = particleData->accel.y = particleData->accel.z = 0.0f;
+                particleData->zRot = 360.0f * (GetMapRandomValue() / 65536.0f);
+                particleData->parManId = 0;
             }
-            for (; var_r28 < particle->maxCnt; var_r28++, var_r31++) {
-                var_r31->time = 0;
-                var_r31->color.a = 0;
-                var_r31->vel.x = 0.0f;
-                var_r31->vel.y = (-98.0f / REFRESH_RATE_F) * (fn_1_7500() / 65536.0f);
-                var_r31->vel.z = 0.0f;
-                var_r31->accel.x = var_r31->accel.y = var_r31->accel.z = 0.0f;
+            for (; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->time = 0;
+                particleData->color.a = 0;
+                particleData->vel.x = 0.0f;
+                particleData->vel.y = (-98.0f / REFRESH_RATE_F) * (GetMapRandomValue() / 65536.0f);
+                particleData->vel.z = 0.0f;
+                particleData->accel.x = particleData->accel.y = particleData->accel.z = 0.0f;
             }
             particle->pos.x = particle->pos.y = particle->pos.z = 0.0f;
-            var_r30->unk_04++;
+            particleBounds->emissionState++;
             break;
         case 1:
             particle->pos.x = particle->pos.y = particle->pos.z = 0.0f;
-            var_r30->unk_06 = 0;
+            particleBounds->emissionCooldown = 0;
             break;
         case 3:
             particle->pos.x *= 0.95f;
             if (particle->pos.x < 0.0f) {
-                var_f27 = -particle->pos.x;
+                absoluteParticleOffset = -particle->pos.x;
             }
             else {
-                var_f27 = particle->pos.x;
+                absoluteParticleOffset = particle->pos.x;
             }
-            if (var_f27 < 0.01f) {
-                var_r30->unk_04 = 1;
+            if (absoluteParticleOffset < 0.01f) {
+                particleBounds->emissionState = 1;
             }
             break;
     }
-    for (var_r31 = particle->data, var_r27 = 0, var_r28 = 0; var_r28 < particle->maxCnt; var_r28++, var_r31++) {
-        switch (var_r31->time) {
+    for (particleData = particle->data, activeParticleCount = 0, particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+        switch (particleData->time) {
             case 0:
-                if (((var_r28 > (0.4f * particle->maxCnt)) && (particle->pos.x == 0.0f)) || (var_r27 >= (10.0f + (0.75f * particle->pos.x)))) {
-                    var_r31->scale = 0.01f;
+                if (((particleIndex > (0.4f * particle->maxCnt)) && (particle->pos.x == 0.0f)) || (activeParticleCount >= (10.0f + (0.75f * particle->pos.x)))) {
+                    particleData->scale = 0.01f;
                 }
                 else {
-                    if (((fn_1_7500() & 3) == 0) || (particle->pos.x == 0.0f)) {
-                        var_r31->pos.x = var_r30->unk_0C + (var_f29 * (fn_1_7500() / 65536.0f));
-                        var_r31->pos.y = var_r30->unk_10 + (100.0f * (fn_1_7500() / 65536.0f));
-                        var_r31->color.a = 7;
+                    if (((GetMapRandomValue() & 3) == 0) || (particle->pos.x == 0.0f)) {
+                        particleData->pos.x = particleBounds->minX + (particleBoundsXRange * (GetMapRandomValue() / 65536.0f));
+                        particleData->pos.y = particleBounds->maxY + (100.0f * (GetMapRandomValue() / 65536.0f));
+                        particleData->color.a = 7;
                     }
                     else {
                         if (particle->pos.x > 0.0f) {
-                            var_r31->pos.x = var_r30->unk_0C - (100.0f * (fn_1_7500() / 65536.0f));
+                            particleData->pos.x = particleBounds->minX - (100.0f * (GetMapRandomValue() / 65536.0f));
                         }
                         else {
-                            var_r31->pos.x = var_r30->unk_08 + (100.0f * (fn_1_7500() / 65536.0f));
+                            particleData->pos.x = particleBounds->maxX + (100.0f * (GetMapRandomValue() / 65536.0f));
                         }
-                        var_r31->pos.y = var_r30->unk_10 - (var_f30 * (fn_1_7500() / 65536.0f));
-                        var_r31->color.a = 0xFF;
+                        particleData->pos.y = particleBounds->maxY - (particleBoundsYRange * (GetMapRandomValue() / 65536.0f));
+                        particleData->color.a = 0xFF;
                     }
-                    var_r31->pos.z = var_r30->unk_1C + (var_f28 * (fn_1_7500() / 65536.0f));
-                    var_r31->scale = 28.0f + (10.0f * (fn_1_7500() / 65536.0f));
-                    var_r31->vel.x = 0.0f;
-                    var_r31->vel.y = (-98.0f / REFRESH_RATE_F) * (fn_1_7500() / 65536.0f);
-                    var_r31->vel.z = 0.0f;
-                    var_r31->vel.x = 0.25f * var_r31->vel.y * ((fn_1_7500() - 0x8000) / 32768.0f);
-                    var_r31->accel.x = var_r31->accel.y = var_r31->accel.z = 0.0f;
-                    var_r31->color.r = var_r31->color.g = var_r31->color.b = 0xFF;
-                    var_r31->parManId = 0;
-                    var_r27++;
-                    var_r31->time++;
+                    particleData->pos.z = particleBounds->minZ + (particleBoundsZRange * (GetMapRandomValue() / 65536.0f));
+                    particleData->scale = 28.0f + (10.0f * (GetMapRandomValue() / 65536.0f));
+                    particleData->vel.x = 0.0f;
+                    particleData->vel.y = (-98.0f / REFRESH_RATE_F) * (GetMapRandomValue() / 65536.0f);
+                    particleData->vel.z = 0.0f;
+                    particleData->vel.x = 0.25f * particleData->vel.y * ((GetMapRandomValue() - 0x8000) / 32768.0f);
+                    particleData->accel.x = particleData->accel.y = particleData->accel.z = 0.0f;
+                    particleData->color.r = particleData->color.g = particleData->color.b = 0xFF;
+                    particleData->parManId = 0;
+                    activeParticleCount++;
+                    particleData->time++;
                 }
                 break;
             case 1:
-                var_r31->vel.y += (-98.0f / REFRESH_RATE_F);
-                var_r31->vel.y += 0.19998f * ((98.0f / REFRESH_RATE_F) * (4.81f + (0.005f * var_r31->scale)));
-                if (var_r31->parManId != 0) {
-                    var_r31->parManId--;
-                    var_r31->vel.y *= 0.8f;
-                    var_r31->vel.y += 0.0025f * ((-98.0f / REFRESH_RATE_F) * var_r31->scale);
+                particleData->vel.y += (-98.0f / REFRESH_RATE_F);
+                particleData->vel.y += 0.19998f * ((98.0f / REFRESH_RATE_F) * (4.81f + (0.005f * particleData->scale)));
+                if (particleData->parManId != 0) {
+                    particleData->parManId--;
+                    particleData->vel.y *= 0.8f;
+                    particleData->vel.y += 0.0025f * ((-98.0f / REFRESH_RATE_F) * particleData->scale);
                 }
-                else if ((fn_1_7500() & 0x7F) == 0) {
-                    var_r31->parManId = (s32)(30.0f * (fn_1_7500() / 65536.0f));
+                else if ((GetMapRandomValue() & 0x7F) == 0) {
+                    particleData->parManId = (s32)(30.0f * (GetMapRandomValue() / 65536.0f));
                 }
-                if (var_r31->vel.x < 0.0f) {
-                    var_f26 = -var_r31->vel.x;
-                }
-                else {
-                    var_f26 = var_r31->vel.x;
-                }
-                if (var_f26 < 0.02f) {
-                    var_r31->accel.x = 0.025f * (var_r31->scale * ((-98.0f / REFRESH_RATE_F) * ((fn_1_7500() - 0x8000) / 32768.0f)));
-                    if (var_r31->accel.x > 0.0f) {
-                        var_r31->vel.x = 0.02f + (0.04f * var_r31->accel.x);
-                    }
-                    else {
-                        var_r31->vel.x = (0.04f * var_r31->accel.x) - 0.02f;
-                    }
+                if (particleData->vel.x < 0.0f) {
+                    absoluteParticleVelocity = -particleData->vel.x;
                 }
                 else {
-                    var_f31 = var_r31->vel.x - var_r31->accel.x;
-                    var_r31->vel.x = var_r31->accel.x + (0.98f * var_f31);
-                    if (var_f31 < 0.0f) {
-                        var_f25 = -var_f31;
+                    absoluteParticleVelocity = particleData->vel.x;
+                }
+                if (absoluteParticleVelocity < 0.02f) {
+                    particleData->accel.x = 0.025f * (particleData->scale * ((-98.0f / REFRESH_RATE_F) * ((GetMapRandomValue() - 0x8000) / 32768.0f)));
+                    if (particleData->accel.x > 0.0f) {
+                        particleData->vel.x = 0.02f + (0.04f * particleData->accel.x);
                     }
                     else {
-                        var_f25 = var_f31;
-                    }
-                    if (var_f25 < 0.02f) {
-                        var_r31->accel.x = 0.0f;
+                        particleData->vel.x = (0.04f * particleData->accel.x) - 0.02f;
                     }
                 }
-                if ((var_r31->pos.y < (var_r30->unk_14 - 100.0f)) || (var_r31->pos.x > (100.0f + var_r30->unk_08))
-                    || (var_r31->pos.x < (var_r30->unk_0C - 100.0f))) {
-                    var_r31->time = 0;
+                else {
+                    particleVelocityDelta = particleData->vel.x - particleData->accel.x;
+                    particleData->vel.x = particleData->accel.x + (0.98f * particleVelocityDelta);
+                    if (particleVelocityDelta < 0.0f) {
+                        absoluteVelocityDelta = -particleVelocityDelta;
+                    }
+                    else {
+                        absoluteVelocityDelta = particleVelocityDelta;
+                    }
+                    if (absoluteVelocityDelta < 0.02f) {
+                        particleData->accel.x = 0.0f;
+                    }
                 }
-                if (var_r31->pos.y > (100.0f + var_r30->unk_10)) {
-                    var_r31->pos.y = var_r30->unk_14 - (100.0f * (fn_1_7500() / 65536.0f));
+                if ((particleData->pos.y < (particleBounds->minY - 100.0f)) || (particleData->pos.x > (100.0f + particleBounds->maxX))
+                    || (particleData->pos.x < (particleBounds->minX - 100.0f))) {
+                    particleData->time = 0;
                 }
-                if (var_r31->pos.y < var_r30->unk_14) {
-                    var_r31->color.a *= 0.9f;
+                if (particleData->pos.y > (100.0f + particleBounds->maxY)) {
+                    particleData->pos.y = particleBounds->minY - (100.0f * (GetMapRandomValue() / 65536.0f));
                 }
-                else if (var_r31->color.a < 0xFF) {
-                    var_r31->color.a += 8;
+                if (particleData->pos.y < particleBounds->minY) {
+                    particleData->color.a *= 0.9f;
+                }
+                else if (particleData->color.a < 0xFF) {
+                    particleData->color.a += 8;
                 }
                 break;
         }
-        VECAdd(&var_r31->pos, &var_r31->vel, &var_r31->pos);
+        VECAdd(&particleData->pos, &particleData->vel, &particleData->pos);
         if (particle->pos.x != 0.0f) {
-            sp8 = particle->pos;
-            sp8.x *= var_r31->scale / 28.0f;
-            sp8.y = (((u8)var_r31->scale & 1) != 0 ? 1.0f : -1.0f) * (sp8.x * (0.05f + (s32)(0.2f * (fn_1_7500() / 65536.0f))));
-            VECAdd(&var_r31->pos, &sp8, &var_r31->pos);
+            particlePositionOffset = particle->pos;
+            particlePositionOffset.x *= particleData->scale / 28.0f;
+            particlePositionOffset.y = (((u8)particleData->scale & 1) != 0 ? 1.0f : -1.0f) * (particlePositionOffset.x * (0.05f + (s32)(0.2f * (GetMapRandomValue() / 65536.0f))));
+            VECAdd(&particleData->pos, &particlePositionOffset, &particleData->pos);
         }
     }
     DCFlushRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-s16 fn_1_71AC(s32 arg0, s16 arg1, HU3DPARTICLEHOOK hook)
+s16 CreateMapParticleHook(s32 animationDataId, s16 particleCount, HU3DPARTICLEHOOK hook)
 {
-    HU3DPARTICLEDATA *var_r31;
-    HU3DPARTICLE *var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    M433DllUnkStruct *var_r27;
-    ANIMDATA *var_r25;
+    HU3DPARTICLEDATA *particleData;
+    HU3DPARTICLE *particle;
+    s32 particleIndex;
+    s32 particleModelId;
+    M428DllParticleBounds *particleBounds;
+    ANIMDATA *animationData;
 
-    var_r25 = HuSprAnimRead(HuDataReadNum(arg0, HU_MEMNUM_OVL));
-    var_r28 = Hu3DParticleCreate(var_r25, arg1);
-    Hu3DParticleHookSet(var_r28, hook);
-    var_r30 = Hu3DData[var_r28].hookData;
-    var_r27 = fn_1_72D4(sizeof(M433DllUnkStruct));
-    var_r30->work = var_r27;
-    var_r27->unk_04 = 0;
-    var_r31 = var_r30->data;
-    memset(var_r31, 0, arg1 * 0x44);
-    for (var_r29 = 0; var_r29 < arg1; var_r29++, var_r31++) {
-        var_r31->cameraBit = -1;
-        var_r31->color.r = var_r31->color.g = var_r31->color.b = var_r31->color.a = 0xFF;
+    animationData = HuSprAnimRead(HuDataReadNum(animationDataId, HU_MEMNUM_OVL));
+    particleModelId = Hu3DParticleCreate(animationData, particleCount);
+    Hu3DParticleHookSet(particleModelId, hook);
+    particle = Hu3DData[particleModelId].hookData;
+    particleBounds = AllocateMapHeap(sizeof(M428DllParticleBounds));
+    particle->work = particleBounds;
+    particleBounds->emissionState = 0;
+    particleData = particle->data;
+    memset(particleData, 0, particleCount * 0x44);
+    for (particleIndex = 0; particleIndex < particleCount; particleIndex++, particleData++) {
+        particleData->cameraBit = -1;
+        particleData->color.r = particleData->color.g = particleData->color.b = particleData->color.a = 0xFF;
     }
-    return var_r28;
+    return particleModelId;
 }
 
-void fn_1_7294(void)
+void InitializeMapHeap(void)
 {
-    s32 var_r31;
+    s32 allocationIndex;
 
-    for (var_r31 = 0; var_r31 < 0x20; var_r31++) {
-        lbl_1_bss_A8[var_r31] = NULL;
+    for (allocationIndex = 0; allocationIndex < 0x20; allocationIndex++) {
+        heapAllocations[allocationIndex] = NULL;
     }
 }
 
-void *fn_1_72D4(s32 arg0)
+void *AllocateMapHeap(s32 allocationSize)
 {
     s32 i;
 
     for (i = 0; i < 0x20; i++) {
-        if (!lbl_1_bss_A8[i]) {
+        if (!heapAllocations[i]) {
             break;
         }
     }
     if (i == 0x20) {
         return NULL;
     }
-    lbl_1_bss_A8[i] = HuMemDirectMallocNum(HEAP_HEAP, arg0, HU_MEMNUM_OVL);
-    memset(lbl_1_bss_A8[i], 0, arg0);
-    return lbl_1_bss_A8[i];
+    heapAllocations[i] = HuMemDirectMallocNum(HEAP_HEAP, allocationSize, HU_MEMNUM_OVL);
+    memset(heapAllocations[i], 0, allocationSize);
+    return heapAllocations[i];
 }
 
-void fn_1_739C(M433DllUnkStruct2 *arg0)
+void FreeCollisionMeshFaces(M428DllCollisionMesh *allocation)
 {
-    s32 var_r31;
-    for (var_r31 = 0; var_r31 < 0x20; var_r31++) {
-        if (lbl_1_bss_A8[var_r31] == arg0) {
+    s32 allocationIndex;
+    for (allocationIndex = 0; allocationIndex < 0x20; allocationIndex++) {
+        if (heapAllocations[allocationIndex] == allocation) {
             break;
         }
     }
-    if (var_r31 != 0x20) {
-        HuMemDirectFree(lbl_1_bss_A8[var_r31]);
-        lbl_1_bss_A8[var_r31] = NULL;
+    if (allocationIndex != 0x20) {
+        HuMemDirectFree(heapAllocations[allocationIndex]);
+        heapAllocations[allocationIndex] = NULL;
     }
 }
 
-void fn_1_7430(void)
+void DestroyMapHeap(void)
 {
-    s32 var_r31;
+    s32 allocationIndex;
 
-    for (var_r31 = 0; var_r31 < 0x20; var_r31++) {
-        if (lbl_1_bss_A8[var_r31]) {
-            HuMemDirectFree(lbl_1_bss_A8[var_r31]);
-            lbl_1_bss_A8[var_r31] = NULL;
+    for (allocationIndex = 0; allocationIndex < 0x20; allocationIndex++) {
+        if (heapAllocations[allocationIndex]) {
+            HuMemDirectFree(heapAllocations[allocationIndex]);
+            heapAllocations[allocationIndex] = NULL;
         }
     }
 }
 
-void fn_1_74B4(s16 arg0, Mtx arg1)
+void SetCameraMatrixFromAngles(s16 modelId, Mtx rotationMatrix)
 {
-    HU3DMODEL *var_r31 = &Hu3DData[arg0];
-    MTXCopy(arg1, var_r31->mtx);
+    HU3DMODEL *camera = &Hu3DData[modelId];
+    MTXCopy(rotationMatrix, camera->mtx);
 }
 
-u32 lbl_1_data_14C = 0x41C64E6D;
+u32 randomSeed = 0x41C64E6D;
 
-s32 fn_1_7500(void)
+s32 GetMapRandomValue(void)
 {
-    lbl_1_data_14C *= 0x41C64E6D;
-    lbl_1_data_14C += 0x3039;
-    return lbl_1_data_14C >> 0x10;
+    randomSeed *= 0x41C64E6D;
+    randomSeed += 0x3039;
+    return randomSeed >> 0x10;
 }
 
-void fn_1_7554(s32 arg0, s32 *arg1)
+void CalculateCumulativeDistances(s32 itemCount, s32 *shuffledIndices)
 {
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
+    s32 shuffleIndex;
+    s32 swapIndex;
+    s32 randomValue;
+    s32 randomIndex;
+    s32 randomSample;
 
-    for (var_r31 = 0; var_r31 < arg0; var_r31++) {
-        arg1[var_r31] = var_r31;
+    for (shuffleIndex = 0; shuffleIndex < itemCount; shuffleIndex++) {
+        shuffledIndices[shuffleIndex] = shuffleIndex;
     }
-    for (var_r31 = 0; var_r31 < (arg0 - 1); var_r31++) {
-        lbl_1_data_14C *= 0x41C64E6D;
-        lbl_1_data_14C += 0x3039;
-        var_r28 = lbl_1_data_14C >> 0x10;
-        var_r27 = var_r28;
-        var_r30 = arg0 * (var_r27 / 65536.0f);
-        var_r29 = arg1[var_r31];
-        arg1[var_r31] = arg1[var_r30];
-        arg1[var_r30] = var_r29;
+    for (shuffleIndex = 0; shuffleIndex < (itemCount - 1); shuffleIndex++) {
+        randomSeed *= 0x41C64E6D;
+        randomSeed += 0x3039;
+        randomIndex = randomSeed >> 0x10;
+        randomSample = randomIndex;
+        swapIndex = itemCount * (randomSample / 65536.0f);
+        randomValue = shuffledIndices[shuffleIndex];
+        shuffledIndices[shuffleIndex] = shuffledIndices[swapIndex];
+        shuffledIndices[swapIndex] = randomValue;
     }
 }
 
-float fn_1_7690(float arg8, float arg9, float argA)
+Float CalculateBezierSegmentLength(Float startAngle, Float endAngle, Float progress)
 {
-    float var_f31;
+    Float angleDifference;
 
-    if (arg8 > 180.0f) {
-        arg8 -= 360.0f;
+    if (startAngle > 180.0f) {
+        startAngle -= 360.0f;
     }
-    else if (arg8 <= -180.0f) {
-        arg8 += 360.0f;
+    else if (startAngle <= -180.0f) {
+        startAngle += 360.0f;
     }
-    if (arg9 > 180.0f) {
-        arg9 -= 360.0f;
+    if (endAngle > 180.0f) {
+        endAngle -= 360.0f;
     }
-    else if (arg9 <= -180.0f) {
-        arg9 += 360.0f;
+    else if (endAngle <= -180.0f) {
+        endAngle += 360.0f;
     }
-    var_f31 = arg8 - arg9;
-    if (var_f31 > 180.0f) {
-        var_f31 -= 360.0f;
+    angleDifference = startAngle - endAngle;
+    if (angleDifference > 180.0f) {
+        angleDifference -= 360.0f;
     }
-    else if (var_f31 <= -180.0f) {
-        var_f31 += 360.0f;
+    else if (angleDifference <= -180.0f) {
+        angleDifference += 360.0f;
     }
-    arg8 = arg9 + (var_f31 * argA);
-    if (arg8 > 180.0f) {
-        return arg8 - 360.0f;
+    startAngle = endAngle + (angleDifference * progress);
+    if (startAngle > 180.0f) {
+        return startAngle - 360.0f;
     }
-    if (arg8 <= -180.0f) {
-        arg8 += 360.0f;
+    if (startAngle <= -180.0f) {
+        startAngle += 360.0f;
     }
-    return arg8;
+    return startAngle;
 }
 
-void fn_1_77F8(Mtx arg0, float arg8, float arg9, float argA)
+void RotateMatrixByAngles(Mtx rotationMatrix, Float xRotation, Float yRotation, Float zRotation)
 {
-    Mtx sp38;
-    Mtx sp8;
+    Mtx xRotationMatrix;
+    Mtx yRotationMatrix;
 
-    if (argA != 0.0f) {
-        MTXRotRad(arg0, 0x5A, MTXDegToRad(argA));
+    if (zRotation != 0.0f) {
+        MTXRotRad(rotationMatrix, 0x5A, MTXDegToRad(zRotation));
     }
     else {
-        MTXIdentity(arg0);
+        MTXIdentity(rotationMatrix);
     }
-    if (arg8 != 0.0f) {
-        MTXRotRad(sp38, 0x58, MTXDegToRad(arg8));
-        MTXConcat(sp38, arg0, arg0);
+    if (xRotation != 0.0f) {
+        MTXRotRad(xRotationMatrix, 0x58, MTXDegToRad(xRotation));
+        MTXConcat(xRotationMatrix, rotationMatrix, rotationMatrix);
     }
-    if (arg9 != 0.0f) {
-        MTXRotRad(sp8, 0x59, MTXDegToRad(arg9));
-        MTXConcat(sp8, arg0, arg0);
-    }
-}
-
-void fn_1_7918(Mtx arg0, Vec *arg1)
-{
-    float var_f29;
-    float var_f28;
-
-    arg1->x = atan2d(arg0[1][2], arg0[2][2]);
-    if (arg1->x < 0.0f) {
-        arg1->x += 360.0f;
-    }
-    arg1->z = atan2d(arg0[0][1], arg0[0][0]);
-    if (arg1->z < 0.0f) {
-        arg1->z += 360.0f;
-    }
-    var_f29 = -arg0[0][2];
-    var_f28 = sqrtf((1.0 - (var_f29 * var_f29)) < 0.0 ? (-(1.0 - (var_f29 * var_f29))) : (1.0 - (var_f29 * var_f29)));
-    if ((arg1->x > 90.0f) && (arg1->x < 270.0f) && (arg1->z > 90.0f) && (arg1->z < 270.0f)) {
-        arg1->x = fmod(180.0f + arg1->x, 360.0);
-        arg1->z = fmod(180.0f + arg1->z, 360.0);
-        var_f28 = -var_f28;
-    }
-    arg1->y = atan2d(var_f29, var_f28);
-    if (arg1->y < 0.0f) {
-        arg1->y += 360.0f;
+    if (yRotation != 0.0f) {
+        MTXRotRad(yRotationMatrix, 0x59, MTXDegToRad(yRotation));
+        MTXConcat(yRotationMatrix, rotationMatrix, rotationMatrix);
     }
 }
 
-void fn_1_7CB4(Mtx arg0, Vec *arg1)
+void SetMatrixForwardVector(Mtx rotationMatrix, Vec *eulerAngles)
 {
-    float var_f29;
-    float var_f27;
+    Float sinePitch;
+    Float cosinePitch;
 
-    arg1->z = atan2d(arg0[0][1], arg0[1][1]);
-    if (arg1->z < 0.0f) {
-        arg1->z += 360.0f;
+    eulerAngles->x = atan2d(rotationMatrix[1][2], rotationMatrix[2][2]);
+    if (eulerAngles->x < 0.0f) {
+        eulerAngles->x += 360.0f;
     }
-    arg1->y = atan2d(arg0[0][2], arg0[2][2]);
-    if (arg1->y < 0.0f) {
-        arg1->y += 360.0f;
+    eulerAngles->z = atan2d(rotationMatrix[0][1], rotationMatrix[0][0]);
+    if (eulerAngles->z < 0.0f) {
+        eulerAngles->z += 360.0f;
     }
-    var_f29 = -arg0[2][1];
-    var_f27 = sqrtf((1.0 - (var_f29 * var_f29)) < 0.0 ? (-(1.0 - (var_f29 * var_f29))) : (1.0 - (var_f29 * var_f29)));
-    arg1->x = atan2d(var_f29, var_f27);
-    if (arg1->x < 0.0f) {
-        arg1->x += 360.0f;
+    sinePitch = -rotationMatrix[0][2];
+    cosinePitch = sqrtf((1.0 - (sinePitch * sinePitch)) < 0.0 ? (-(1.0 - (sinePitch * sinePitch))) : (1.0 - (sinePitch * sinePitch)));
+    if ((eulerAngles->x > 90.0f) && (eulerAngles->x < 270.0f) && (eulerAngles->z > 90.0f) && (eulerAngles->z < 270.0f)) {
+        eulerAngles->x = fmod(180.0f + eulerAngles->x, 360.0);
+        eulerAngles->z = fmod(180.0f + eulerAngles->z, 360.0);
+        cosinePitch = -cosinePitch;
+    }
+    eulerAngles->y = atan2d(sinePitch, cosinePitch);
+    if (eulerAngles->y < 0.0f) {
+        eulerAngles->y += 360.0f;
     }
 }
 
-float fn_1_7F94(Vec *arg0)
+void SetMatrixTranslation(Mtx rotationMatrix, Vec *eulerAngles)
 {
-    float var_f30 = (arg0->z * arg0->z) + ((arg0->x * arg0->x) + (arg0->y * arg0->y));
-    var_f30 = sqrtf(var_f30);
-    if (var_f30 != 0.0f) {
-        float var_f29 = 1.0f / var_f30;
-        arg0->x = arg0->x * var_f29;
-        arg0->y = arg0->y * var_f29;
-        arg0->z = arg0->z * var_f29;
+    Float sineRoll;
+    Float cosineRoll;
+
+    eulerAngles->z = atan2d(rotationMatrix[0][1], rotationMatrix[1][1]);
+    if (eulerAngles->z < 0.0f) {
+        eulerAngles->z += 360.0f;
+    }
+    eulerAngles->y = atan2d(rotationMatrix[0][2], rotationMatrix[2][2]);
+    if (eulerAngles->y < 0.0f) {
+        eulerAngles->y += 360.0f;
+    }
+    sineRoll = -rotationMatrix[2][1];
+    cosineRoll = sqrtf((1.0 - (sineRoll * sineRoll)) < 0.0 ? (-(1.0 - (sineRoll * sineRoll))) : (1.0 - (sineRoll * sineRoll)));
+    eulerAngles->x = atan2d(sineRoll, cosineRoll);
+    if (eulerAngles->x < 0.0f) {
+        eulerAngles->x += 360.0f;
+    }
+}
+
+Float GetVectorLength(Vec *vector)
+{
+    Float vectorLength = (vector->z * vector->z) + ((vector->x * vector->x) + (vector->y * vector->y));
+    vectorLength = sqrtf(vectorLength);
+    if (vectorLength != 0.0f) {
+        Float inverseVectorLength = 1.0f / vectorLength;
+        vector->x = vector->x * inverseVectorLength;
+        vector->y = vector->y * inverseVectorLength;
+        vector->z = vector->z * inverseVectorLength;
     }
     else {
-        arg0->x = arg0->y = arg0->z = 0.0f;
+        vector->x = vector->y = vector->z = 0.0f;
     }
-    return var_f30;
+    return vectorLength;
 }
 
-void fn_1_812C(Vec arg0, Vec arg1, Vec *arg2, float arg8)
+void ProjectPointToLine(Vec lineStart, Vec lineVector, Vec *projectedPoint, Float lineProgress)
 {
-    if (arg8 <= 0.0f) {
-        arg2->x = arg0.x;
-        arg2->y = arg0.y;
-        arg2->z = arg0.z;
-        arg8 = 0.0f;
+    if (lineProgress <= 0.0f) {
+        projectedPoint->x = lineStart.x;
+        projectedPoint->y = lineStart.y;
+        projectedPoint->z = lineStart.z;
+        lineProgress = 0.0f;
     }
-    else if (arg8 >= 1.0f) {
-        arg2->x = arg0.x + arg1.x;
-        arg2->y = arg0.y + arg1.y;
-        arg2->z = arg0.z + arg1.z;
-        arg8 = 1.0f;
+    else if (lineProgress >= 1.0f) {
+        projectedPoint->x = lineStart.x + lineVector.x;
+        projectedPoint->y = lineStart.y + lineVector.y;
+        projectedPoint->z = lineStart.z + lineVector.z;
+        lineProgress = 1.0f;
     }
     else {
-        arg2->x = arg0.x + (arg8 * arg1.x);
-        arg2->y = arg0.y + (arg8 * arg1.y);
-        arg2->z = arg0.z + (arg8 * arg1.z);
+        projectedPoint->x = lineStart.x + (lineProgress * lineVector.x);
+        projectedPoint->y = lineStart.y + (lineProgress * lineVector.y);
+        projectedPoint->z = lineStart.z + (lineProgress * lineVector.z);
     }
 }
 
-float fn_1_8204(Vec arg0, Vec arg1, Vec arg2)
+Float DistanceBetweenPoints(Vec lineStart, Vec point, Vec lineDirection)
 {
-    float var_f31;
-    float temp_f30;
+    Float projectionDistance;
+    Float negativeDirectionLengthSquared;
 
-    var_f31 = arg2.x * (arg1.x - arg0.x) + arg2.y * (arg1.y - arg0.y) + arg2.z * (arg1.z - arg0.z);
-    temp_f30 = -(arg2.x * arg2.x + arg2.y * arg2.y + arg2.z * arg2.z);
-    if (temp_f30 != 0.0f) {
-        var_f31 /= temp_f30;
+    projectionDistance = lineDirection.x * (point.x - lineStart.x) + lineDirection.y * (point.y - lineStart.y) + lineDirection.z * (point.z - lineStart.z);
+    negativeDirectionLengthSquared = -(lineDirection.x * lineDirection.x + lineDirection.y * lineDirection.y + lineDirection.z * lineDirection.z);
+    if (negativeDirectionLengthSquared != 0.0f) {
+        projectionDistance /= negativeDirectionLengthSquared;
     }
-    return var_f31;
+    return projectionDistance;
 }
 
-float fn_1_82C0(Vec *arg0, Vec *arg1, Vec *arg2)
+Float DistancePointToSegment(Vec *point, Vec *segmentStart, Vec *segmentVector)
 {
-    Vec sp44;
-    float var_f31;
+    Vec closestPoint;
+    Float segmentProgress;
 
-    if (arg2->x * arg2->x + arg2->y * arg2->y + arg2->z * arg2->z == 0.0f) {
-        return (arg0->x - arg1->x) * (arg0->x - arg1->x) + (arg0->y - arg1->y) * (arg0->y - arg1->y) + (arg0->z - arg1->z) * (arg0->z - arg1->z);
+    if (segmentVector->x * segmentVector->x + segmentVector->y * segmentVector->y + segmentVector->z * segmentVector->z == 0.0f) {
+        return (point->x - segmentStart->x) * (point->x - segmentStart->x) + (point->y - segmentStart->y) * (point->y - segmentStart->y) + (point->z - segmentStart->z) * (point->z - segmentStart->z);
     }
-    var_f31 = fn_1_8204(*arg0, *arg1, *arg2);
-    fn_1_812C(*arg1, *arg2, &sp44, var_f31);
-    return (arg0->x - sp44.x) * (arg0->x - sp44.x) + (arg0->y - sp44.y) * (arg0->y - sp44.y) + (arg0->z - sp44.z) * (arg0->z - sp44.z);
+    segmentProgress = DistanceBetweenPoints(*point, *segmentStart, *segmentVector);
+    ProjectPointToLine(*segmentStart, *segmentVector, &closestPoint, segmentProgress);
+    return (point->x - closestPoint.x) * (point->x - closestPoint.x) + (point->y - closestPoint.y) * (point->y - closestPoint.y) + (point->z - closestPoint.z) * (point->z - closestPoint.z);
 }
 
-float fn_1_85FC(Vec *arg0, Vec *arg1, Vec *arg2, Vec *arg3, Vec *arg4)
+Float DistanceBetweenSegments(Vec *point, Vec *segmentStart, Vec *segmentVector, Vec *closestPoint, Vec *separationVector)
 {
-    float var_f30;
+    Float segmentDistance;
 
-    if (((arg2->z * arg2->z) + ((arg2->x * arg2->x) + (arg2->y * arg2->y))) == 0.0f) {
-        return ((arg0->z - arg1->z) * (arg0->z - arg1->z))
-            + (((arg0->x - arg1->x) * (arg0->x - arg1->x)) + ((arg0->y - arg1->y) * (arg0->y - arg1->y)));
+    if (((segmentVector->z * segmentVector->z) + ((segmentVector->x * segmentVector->x) + (segmentVector->y * segmentVector->y))) == 0.0f) {
+        return ((point->z - segmentStart->z) * (point->z - segmentStart->z))
+            + (((point->x - segmentStart->x) * (point->x - segmentStart->x)) + ((point->y - segmentStart->y) * (point->y - segmentStart->y)));
     }
-    var_f30 = fn_1_8204(*arg0, *arg1, *arg2);
-    fn_1_812C(*arg1, *arg2, arg3, var_f30);
+    segmentDistance = DistanceBetweenPoints(*point, *segmentStart, *segmentVector);
+    ProjectPointToLine(*segmentStart, *segmentVector, closestPoint, segmentDistance);
 
-    arg4->x = arg0->x - arg3->x;
-    arg4->y = arg0->y - arg3->y;
-    arg4->z = arg0->z - arg3->z;
-    return fn_1_7F94(arg4);
+    separationVector->x = point->x - closestPoint->x;
+    separationVector->y = point->y - closestPoint->y;
+    separationVector->z = point->z - closestPoint->z;
+    return GetVectorLength(separationVector);
 }
 
-float fn_1_8AAC(float arg8, float arg9, float argA, float argB)
+Float EvaluateCubicBezier(Float progress, Float startValue, Float controlValue, Float endValue)
 {
-    float var_f31 = 1.0 - arg8;
-    float var_f30 = (argB * (arg8 * arg8)) + ((arg9 * (var_f31 * var_f31)) + (2.0 * (argA * (var_f31 * arg8))));
-    return var_f30;
+    Float inverseProgress = 1.0 - progress;
+    Float interpolatedValue = (endValue * (progress * progress)) + ((startValue * (inverseProgress * inverseProgress)) + (2.0 * (controlValue * (inverseProgress * progress))));
+    return interpolatedValue;
 }
 
-void fn_1_8B24(float *arg0, float *arg1, float *arg2, float *arg3, float arg8)
+void CalculateCubicBezierSlopes(Float *startValues, Float *controlValues, Float *endValues, Float *slopes, Float progress)
 {
-    s32 var_r31;
+    s32 coordinateIndex;
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        *arg3++ = fn_1_8AAC(arg8, *arg0++, *arg1++, *arg2++);
+    for (coordinateIndex = 0; coordinateIndex < 3; coordinateIndex++) {
+        *slopes++ = EvaluateCubicBezier(progress, *startValues++, *controlValues++, *endValues++);
     }
 }
 
-float fn_1_8C40(float arg8, float arg9, float argA, float argB)
+Float EvaluateQuadraticBezier(Float progress, Float startValue, Float controlValue, Float endValue)
 {
-    float var_f31 = 2.0 * ((arg8 * argB) + (((arg8 - 1.0) * arg9) + ((1.0 - (2.0 * arg8)) * argA)));
-    return var_f31;
+    Float splineDerivative = 2.0 * ((progress * endValue) + (((progress - 1.0) * startValue) + ((1.0 - (2.0 * progress)) * controlValue)));
+    return splineDerivative;
 }
 
-void fn_1_8CB8(float *arg0, float *arg1, float *arg2, float *arg3, float arg8)
+void CalculateQuadraticBezierSlopes(Float *startValues, Float *controlValues, Float *endValues, Float *slopes, Float progress)
 {
-    float spC[3];
-    float var_f29;
-    s32 var_r31;
+    Float splineDerivative[3];
+    Float derivativeMagnitude;
+    s32 axisIndex;
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        spC[var_r31] = fn_1_8C40(arg8, *arg0++, *arg1++, *arg2++);
+    for (axisIndex = 0; axisIndex < 3; axisIndex++) {
+        splineDerivative[axisIndex] = EvaluateQuadraticBezier(progress, *startValues++, *controlValues++, *endValues++);
     }
-    var_f29 = sqrtf((spC[2] * spC[2]) + ((spC[0] * spC[0]) + (spC[1] * spC[1])));
-    if (var_f29) {
-        var_f29 = 1.0 / var_f29;
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            *arg3++ = var_f29 * spC[var_r31];
+    derivativeMagnitude = sqrtf((splineDerivative[2] * splineDerivative[2]) + ((splineDerivative[0] * splineDerivative[0]) + (splineDerivative[1] * splineDerivative[1])));
+    if (derivativeMagnitude) {
+        derivativeMagnitude = 1.0 / derivativeMagnitude;
+        for (axisIndex = 0; axisIndex < 3; axisIndex++) {
+            *slopes++ = derivativeMagnitude * splineDerivative[axisIndex];
         }
         return;
     }
-    *arg3++ = 0.0f;
-    *arg3++ = 0.0f;
-    *arg3++ = 1.0f;
+    *slopes++ = 0.0f;
+    *slopes++ = 0.0f;
+    *slopes++ = 1.0f;
 }
 
-void fn_1_8F90(float *arg0, float *arg1, float *arg2, s32 arg3)
+void CalculateBezierPathDistances(Float *distanceValues, Float *controlValues, Float *secondDerivatives, s32 pointCount)
 {
-    float sp48[16];
-    float sp8[16];
-    double var_f31;
-    s32 var_r31;
+    Float intervalWidths[16];
+    Float secantSlopes[16];
+    double splineFactor;
+    s32 pointIndex;
 
-    arg2[0] = 0.0f;
-    arg2[arg3 - 1] = 0.0f;
-    for (var_r31 = 0; var_r31 < (arg3 - 1); var_r31++) {
-        sp48[var_r31] = arg0[var_r31 + 1] - arg0[var_r31];
-        if (sp48[var_r31] == 0.0f) {
-            sp8[var_r31 + 1] = 0.0f;
+    secondDerivatives[0] = 0.0f;
+    secondDerivatives[pointCount - 1] = 0.0f;
+    for (pointIndex = 0; pointIndex < (pointCount - 1); pointIndex++) {
+        intervalWidths[pointIndex] = distanceValues[pointIndex + 1] - distanceValues[pointIndex];
+        if (intervalWidths[pointIndex] == 0.0f) {
+            secantSlopes[pointIndex + 1] = 0.0f;
         }
         else {
-            sp8[var_r31 + 1] = (arg1[var_r31 + 1] - arg1[var_r31]) / sp48[var_r31];
+            secantSlopes[pointIndex + 1] = (controlValues[pointIndex + 1] - controlValues[pointIndex]) / intervalWidths[pointIndex];
         }
     }
-    arg2[1] = sp8[2] - sp8[1];
-    sp8[1] = 2.0f * (arg0[2] - arg0[0]);
-    for (var_r31 = 1; var_r31 < (arg3 - 2); var_r31++) {
-        var_f31 = sp48[var_r31] / sp8[var_r31];
-        arg2[var_r31 + 1] = (sp8[var_r31 + 2] - sp8[var_r31 + 1]) - (var_f31 * arg2[var_r31]);
-        sp8[var_r31 + 1] = (2.0f * (arg0[var_r31 + 2] - arg0[var_r31])) - (var_f31 * sp48[var_r31]);
+    secondDerivatives[1] = secantSlopes[2] - secantSlopes[1];
+    secantSlopes[1] = 2.0f * (distanceValues[2] - distanceValues[0]);
+    for (pointIndex = 1; pointIndex < (pointCount - 2); pointIndex++) {
+        splineFactor = intervalWidths[pointIndex] / secantSlopes[pointIndex];
+        secondDerivatives[pointIndex + 1] = (secantSlopes[pointIndex + 2] - secantSlopes[pointIndex + 1]) - (splineFactor * secondDerivatives[pointIndex]);
+        secantSlopes[pointIndex + 1] = (2.0f * (distanceValues[pointIndex + 2] - distanceValues[pointIndex])) - (splineFactor * intervalWidths[pointIndex]);
     }
-    arg2[arg3 - 2] -= sp48[arg3 - 2] * arg2[arg3 - 1];
-    for (var_r31 = arg3 - 2; var_r31 > 0; var_r31--) {
-        if (sp8[var_r31] == 0.0f) {
-            arg2[var_r31] = 0.0f;
+    secondDerivatives[pointCount - 2] -= intervalWidths[pointCount - 2] * secondDerivatives[pointCount - 1];
+    for (pointIndex = pointCount - 2; pointIndex > 0; pointIndex--) {
+        if (secantSlopes[pointIndex] == 0.0f) {
+            secondDerivatives[pointIndex] = 0.0f;
         }
         else {
-            arg2[var_r31] = (arg2[var_r31] - (sp48[var_r31] * arg2[var_r31 + 1])) / sp8[var_r31];
+            secondDerivatives[pointIndex] = (secondDerivatives[pointIndex] - (intervalWidths[pointIndex] * secondDerivatives[pointIndex + 1])) / secantSlopes[pointIndex];
         }
     }
 }
 
-float fn_1_9248(float arg8, float *arg0, float *arg1, float *arg2, s32 arg3)
+Float EvaluateBezierPath(Float pathProgress, Float *distanceValues, Float *controlValues, Float *secondDerivatives, s32 pointCount)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    Float intervalWidth;
+    Float scaledProgress;
+    Float interpolatedValue;
 
-    s32 var_r31 = arg8;
-    arg8 = arg8 - var_r31;
-    var_f31 = arg0[var_r31 + 1] - arg0[var_r31];
-    var_f30 = var_f31 * arg8;
-    var_f29 = arg1[var_r31]
-        + (var_f30
-            * ((var_f30 * ((3.0f * arg2[var_r31]) + ((var_f30 * (arg2[var_r31 + 1] - arg2[var_r31])) / var_f31)))
-                + (((arg1[var_r31 + 1] - arg1[var_r31]) / var_f31) - (var_f31 * ((2.0f * arg2[var_r31]) + arg2[var_r31 + 1])))));
-    if (var_f31 == 0.0f) {
-        var_f29 = arg1[var_r31];
+    s32 intervalIndex = pathProgress;
+    pathProgress = pathProgress - intervalIndex;
+    intervalWidth = distanceValues[intervalIndex + 1] - distanceValues[intervalIndex];
+    scaledProgress = intervalWidth * pathProgress;
+    interpolatedValue = controlValues[intervalIndex]
+        + (scaledProgress
+            * ((scaledProgress * ((3.0f * secondDerivatives[intervalIndex]) + ((scaledProgress * (secondDerivatives[intervalIndex + 1] - secondDerivatives[intervalIndex])) / intervalWidth)))
+                + (((controlValues[intervalIndex + 1] - controlValues[intervalIndex]) / intervalWidth) - (intervalWidth * ((2.0f * secondDerivatives[intervalIndex]) + secondDerivatives[intervalIndex + 1])))));
+    if (intervalWidth == 0.0f) {
+        interpolatedValue = controlValues[intervalIndex];
     }
-    return var_f29;
+    return interpolatedValue;
 }
 
-void fn_1_939C(float *arg0, float (*arg1)[3], float (*arg2)[3], s32 var_r28)
+void calculateBezierPathSlopes(Float *distances, Float (*controlPoints)[3], Float (*secondDerivatives)[3], s32 pointCount)
 {
-    float spD4[16];
-    float sp94[16];
-    Vec sp8;
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r27;
+    Float coordinateSamples[16];
+    Float splineSecondDerivatives[16];
+    Vec segmentDelta;
+    s32 axisIndex;
+    s32 sampleIndex;
+    s32 coordinateIndex;
 
-    arg0[0] = 0.0f;
-    for (var_r30 = 1; var_r30 < var_r28; var_r30++) {
-        VECSubtract((Vec *)&arg1[var_r30], (Vec *)&arg1[var_r30 - 1], &sp8);
-        arg0[var_r30] = arg0[var_r30 - 1] + VECMag(&sp8);
+    distances[0] = 0.0f;
+    for (sampleIndex = 1; sampleIndex < pointCount; sampleIndex++) {
+        VECSubtract((Vec *)&controlPoints[sampleIndex], (Vec *)&controlPoints[sampleIndex - 1], &segmentDelta);
+        distances[sampleIndex] = distances[sampleIndex - 1] + VECMag(&segmentDelta);
     }
-    for (var_r27 = 0; var_r27 < 3; var_r27++) {
-        for (var_r30 = 0; var_r30 < var_r28; var_r30++) {
-            spD4[var_r30] = arg1[var_r30][var_r27];
+    for (coordinateIndex = 0; coordinateIndex < 3; coordinateIndex++) {
+        for (sampleIndex = 0; sampleIndex < pointCount; sampleIndex++) {
+            coordinateSamples[sampleIndex] = controlPoints[sampleIndex][coordinateIndex];
         }
-        fn_1_8F90(arg0, spD4, sp94, var_r28);
-        for (var_r30 = 0; var_r30 < var_r28; var_r30++) {
-            arg2[var_r30][var_r27] = sp94[var_r30];
+        CalculateBezierPathDistances(distances, coordinateSamples, splineSecondDerivatives, pointCount);
+        for (sampleIndex = 0; sampleIndex < pointCount; sampleIndex++) {
+            secondDerivatives[sampleIndex][coordinateIndex] = splineSecondDerivatives[sampleIndex];
         }
-    }
-}
-
-void fn_1_977C(float arg8, float *arg0, float *arg1, float (*arg2)[3], float (*arg3)[3], s32 arg4)
-{
-    float sp48[16];
-    float sp8[16];
-    s32 var_r30;
-    s32 var_r29;
-
-    for (var_r29 = 0; var_r29 < 3; var_r29++) {
-        for (var_r30 = 0; var_r30 < arg4; var_r30++) {
-            sp48[var_r30] = arg2[var_r30][var_r29];
-            sp8[var_r30] = arg3[var_r30][var_r29];
-        }
-        arg0[var_r29] = fn_1_9248(arg8, arg1, sp48, sp8, 3);
     }
 }
 
-u8 fn_1_9990(Vec *sp8)
+void interpolateBezierPath(Float pathProgress, Float *outputValues, Float *distanceValues, Float (*controlPoints)[3], Float (*secondDerivatives)[3], s32 pointCount)
 {
-    u32 var_r31;
-    M433DllUnkStruct2 *var_r30;
-    s32 var_r29;
+    Float controlPoints[16];
+    Float secondDerivatives[16];
+    s32 sampleIndex;
+    s32 axisIndex;
 
-    var_r29 = 0;
-    var_r30 = lbl_1_bss_90.unk_04;
-    for (var_r31 = 0; var_r31 < lbl_1_bss_90.unk_00; var_r31++, var_r30++) {
-        if (fn_1_5370(var_r30, sp8) != 0) {
+    for (axisIndex = 0; axisIndex < 3; axisIndex++) {
+        for (sampleIndex = 0; sampleIndex < pointCount; sampleIndex++) {
+            controlPoints[sampleIndex] = controlPoints[sampleIndex][axisIndex];
+            secondDerivatives[sampleIndex] = secondDerivatives[sampleIndex][axisIndex];
+        }
+        outputValues[axisIndex] = EvaluateBezierPath(pathProgress, distanceValues, controlPoints, secondDerivatives, 3);
+    }
+}
+
+u8 IsPositionInCameraBounds(Vec *position)
+{
+    u32 faceIndex;
+    M428DllCollisionMesh *face;
+    s32 collisionFound;
+
+    collisionFound = 0;
+    face = mapCollisionData.faces;
+    for (faceIndex = 0; faceIndex < mapCollisionData.faceCount; faceIndex++, face++) {
+        if (FindMeshFaceAtPosition(face, position) != 0) {
             break;
         }
     }
-    if (var_r31 < lbl_1_bss_90.unk_00) {
-        var_r29 = 1;
+    if (faceIndex < mapCollisionData.faceCount) {
+        collisionFound = 1;
     }
-    return var_r29;
+    return collisionFound;
 }
 
-void fn_1_9A30(u8 arg0, float arg8, Vec *arg1, Vec *arg2, float arg9)
+void ConfigureCameraTransition(u8 cameraIndex, Float transitionFrames, Vec *targetCenter, Vec *targetRotation, Float targetZoom)
 {
-    M433DllMapWork2 *var_r31;
+    M428DllCameraWork *cameraWork;
 
-    var_r31 = lbl_1_bss_98[arg0]->data;
-    var_r31->unk_00 = 0;
-    var_r31->unk_144 = arg8;
-    var_r31->unk_148 = arg8;
-    var_r31->unk_1C = var_r31->unk_04;
-    var_r31->unk_34.x = arg1->x;
-    var_r31->unk_34.y = arg1->y;
-    var_r31->unk_34.z = arg1->z;
-    var_r31->unk_28 = var_r31->unk_10;
-    var_r31->unk_40.x = arg2->x;
-    var_r31->unk_40.y = arg2->y;
-    var_r31->unk_40.z = arg2->z;
-    var_r31->unk_134 = var_r31->unk_130;
-    var_r31->unk_138 = arg9;
+    cameraWork = cameraObjects[cameraIndex]->data;
+    cameraWork->cameraTransitionActive = 0;
+    cameraWork->transitionDuration = transitionFrames;
+    cameraWork->transitionFramesRemaining = transitionFrames;
+    cameraWork->startCameraCenter = cameraWork->cameraCenter;
+    cameraWork->targetCameraCenter.x = targetCenter->x;
+    cameraWork->targetCameraCenter.y = targetCenter->y;
+    cameraWork->targetCameraCenter.z = targetCenter->z;
+    cameraWork->startCameraRotation = cameraWork->cameraRotation;
+    cameraWork->targetCameraRotation.x = targetRotation->x;
+    cameraWork->targetCameraRotation.y = targetRotation->y;
+    cameraWork->targetCameraRotation.z = targetRotation->z;
+    cameraWork->startCameraZoom = cameraWork->cameraZoom;
+    cameraWork->targetCameraZoom = targetZoom;
 }
 
-void fn_1_9ADC(u8 arg0)
+void SetCameraMode(u8 cameraIndex)
 {
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
-    M433DllMapWork2 *work;
-    OMOBJ *var_r30;
+    Vec targetCameraCenter;
+    Vec targetCameraRotation;
+    Float targetCameraZoom;
+    M428DllCameraWork *cameraWork;
+    OMOBJ *mapObject;
 
-    sp14.x = 0.0f;
-    sp14.y = 80.0f;
-    sp14.z = 0.0f;
-    sp8.x = 0.0f;
-    sp8.y = 0.0f;
-    sp8.z = 0.0f;
-    var_f31 = 600.0f;
-    work = lbl_1_bss_98[arg0]->data;
-    work->unk_00 = 0;
-    work->unk_148 = work->unk_144 = 1.0f;
-    work->unk_1C = work->unk_04;
-    work->unk_34.x = sp14.x;
-    work->unk_34.y = sp14.y;
-    work->unk_34.z = sp14.z;
-    work->unk_28 = work->unk_10;
-    work->unk_40.x = sp8.x;
-    work->unk_40.y = sp8.y;
-    work->unk_40.z = sp8.z;
-    work->unk_134 = work->unk_130;
-    work->unk_138 = var_f31;
-    Hu3DCameraPerspectiveSet(1 << arg0, 45.0f, 100.0f, 5000.0f, 1.2f);
-    Hu3DCameraViewportSet(1 << arg0, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
-    Hu3DCameraViewportSet(2 >> arg0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-    Hu3DCameraScissorSet(1 << arg0, 0, 0, 0x280, 0x1E0);
-    Hu3DCameraScissorSet(2 >> arg0, 0, 0, 0, 0);
-    var_r30 = lbl_1_bss_A0;
-    Hu3DModelAttrSet(var_r30->mdlId[0], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(var_r30->mdlId[2], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(var_r30->mdlId[6], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(var_r30->mdlId[7], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(var_r30->mdlId[3], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(var_r30->mdlId[arg0 + 4], HU3D_ATTR_DISPOFF);
-    var_r30->objFunc = fn_1_52D8;
+    targetCameraCenter.x = 0.0f;
+    targetCameraCenter.y = 80.0f;
+    targetCameraCenter.z = 0.0f;
+    targetCameraRotation.x = 0.0f;
+    targetCameraRotation.y = 0.0f;
+    targetCameraRotation.z = 0.0f;
+    targetCameraZoom = 600.0f;
+    cameraWork = cameraObjects[cameraIndex]->data;
+    cameraWork->cameraTransitionActive = 0;
+    cameraWork->transitionFramesRemaining = cameraWork->transitionDuration = 1.0f;
+    cameraWork->startCameraCenter = cameraWork->cameraCenter;
+    cameraWork->targetCameraCenter.x = targetCameraCenter.x;
+    cameraWork->targetCameraCenter.y = targetCameraCenter.y;
+    cameraWork->targetCameraCenter.z = targetCameraCenter.z;
+    cameraWork->startCameraRotation = cameraWork->cameraRotation;
+    cameraWork->targetCameraRotation.x = targetCameraRotation.x;
+    cameraWork->targetCameraRotation.y = targetCameraRotation.y;
+    cameraWork->targetCameraRotation.z = targetCameraRotation.z;
+    cameraWork->startCameraZoom = cameraWork->cameraZoom;
+    cameraWork->targetCameraZoom = targetCameraZoom;
+    Hu3DCameraPerspectiveSet(1 << cameraIndex, 45.0f, 100.0f, 5000.0f, 1.2f);
+    Hu3DCameraViewportSet(1 << cameraIndex, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
+    Hu3DCameraViewportSet(2 >> cameraIndex, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+    Hu3DCameraScissorSet(1 << cameraIndex, 0, 0, 0x280, 0x1E0);
+    Hu3DCameraScissorSet(2 >> cameraIndex, 0, 0, 0, 0);
+    mapObject = mapObject;
+    Hu3DModelAttrSet(mapObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapObject->mdlId[2], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapObject->mdlId[6], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapObject->mdlId[7], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(mapObject->mdlId[3], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(mapObject->mdlId[cameraIndex + 4], HU3D_ATTR_DISPOFF);
+    mapObject->objFunc = EmptyMapCallback;
 }
 
-void fn_1_9DE8(u8 arg0, float arg8, s8 arg1)
+void SetCameraShake(u8 cameraIndex, Float shakeOffset, s8 shakeDirection)
 {
-    HU3DPARTICLE *var_r31;
-    M433DllUnkStruct *var_r30;
+    HU3DPARTICLE *particle;
+    M428DllParticleBounds *particleBounds;
 
-    var_r31 = Hu3DData[lbl_1_bss_A0->mdlId[arg0 + 6]].hookData;
-    var_r30 = ((HU3DPARTICLE *)Hu3DData[lbl_1_bss_A0->mdlId[arg0 + 6]].hookData)->work;
-    var_r30->unk_04 = 2;
-    var_r31->pos.x = arg8 * arg1;
+    particle = Hu3DData[mapObject->mdlId[cameraIndex + 6]].hookData;
+    particleBounds = ((HU3DPARTICLE *)Hu3DData[mapObject->mdlId[cameraIndex + 6]].hookData)->work;
+    particleBounds->emissionState = 2;
+    particle->pos.x = shakeOffset * shakeDirection;
 }
 
-void fn_1_9EA8(u8 arg0)
+void ClearCameraShake(u8 cameraIndex)
 {
-    M433DllUnkStruct *var_r31 = ((HU3DPARTICLE *)Hu3DData[lbl_1_bss_A0->mdlId[arg0 + 6]].hookData)->work;
-    if (var_r31->unk_04 == 2) {
-        var_r31->unk_04 = 3;
+    M428DllParticleBounds *particleBounds = ((HU3DPARTICLE *)Hu3DData[mapObject->mdlId[cameraIndex + 6]].hookData)->work;
+    if (particleBounds->emissionState == 2) {
+        particleBounds->emissionState = 3;
     }
 }
 
-u8 fn_1_9F08(u8 arg0)
+u8 GetCameraMode(u8 cameraIndex)
 {
-    M433DllUnkStruct *var_r31 = ((HU3DPARTICLE *)Hu3DData[lbl_1_bss_A0->mdlId[arg0 + 6]].hookData)->work;
-    return var_r31->unk_04;
+    M428DllParticleBounds *particleBounds = ((HU3DPARTICLE *)Hu3DData[mapObject->mdlId[cameraIndex + 6]].hookData)->work;
+    return particleBounds->emissionState;
 }
