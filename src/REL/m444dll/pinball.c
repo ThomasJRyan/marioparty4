@@ -20,36 +20,36 @@
 #include "game/frand.h"
 #endif
 
-s16 lbl_1_bss_198F0[5][2];
-Vec lbl_1_bss_D8F0[4096];
-Vec lbl_1_bss_18F0[4096];
-Vec lbl_1_bss_18B4[5];
-s32 lbl_1_bss_18A0[5];
-Vec lbl_1_bss_1894;
-Vec lbl_1_bss_1888;
-u16 lbl_1_bss_1884;
-u8 lbl_1_bss_884[4096];
-Vec lbl_1_bss_860[3];
-Vec lbl_1_bss_824[5];
-Mtx lbl_1_bss_794[3];
-float lbl_1_bss_788[3];
-Vec lbl_1_bss_77C;
-Vec lbl_1_bss_770;
-float lbl_1_bss_370[256];
-Vec lbl_1_bss_34C[3];
-Vec lbl_1_bss_328[3];
-s16 lbl_1_bss_320[4];
-Vec lbl_1_bss_314;
-s16 lbl_1_bss_312;
-u8 lbl_1_bss_310;
+s16 playerBallState[5][2];
+Vec upperBallTrailPositions[4096];
+Vec lowerBallTrailPositions[4096];
+Vec playerPositions[5];
+s32 playerActiveFlags[5];
+Vec ballPosition;
+Vec ballVelocity;
+u16 ballTrailCount;
+u8 ballTrailFlags[4096];
+Vec ballModelPositions[3];
+Vec playerShadowPositions[5];
+Mtx playerBallRotations[3];
+float playerBallAngles[3];
+Vec collisionPosition;
+Vec collisionNormal;
+float ballTrailDistances[256];
+Vec awardOrbPositions[3];
+Vec awardOrbScales[3];
+s16 playerOrder[4];
+Vec collisionVelocity;
+s16 collisionCooldown;
+u8 ballTrailHead;
 
-float lbl_1_data_258[3] = { 90, 250, 420 };
+float playerBallStartTimes[3] = { 90, 250, 420 };
 
-Vec lbl_1_data_264[5] = { { -75, -300, 0 }, { 25, -300, 0 }, { -75, -300, 0 }, { 25, -300, 0 }, { -25, -400, 0 } };
+Vec playerStartPositions[5] = { { -75, -300, 0 }, { 25, -300, 0 }, { -75, -300, 0 }, { 25, -300, 0 }, { -25, -400, 0 } };
 
-float lbl_1_data_2A0[5 * 2] = { -100, -60, 10, 50, -100, -60, 10, 50, -50, 0 };
+float playerHorizontalBounds[5 * 2] = { -100, -60, 10, 50, -100, -60, 10, 50, -50, 0 };
 
-s16 lbl_1_data_2C8[5] = {
+s16 playerBallSlots[5] = {
     1,
     1,
     2,
@@ -57,958 +57,958 @@ s16 lbl_1_data_2C8[5] = {
     2,
 };
 
-void fn_1_8424(void)
+void PinballStateInit(void)
 {
     s16 i;
     for (i = 0; i < 5; i++) {
-        lbl_1_bss_18B4[i] = lbl_1_data_264[i];
-        lbl_1_bss_824[i].x = lbl_1_bss_18B4[i].x;
-        lbl_1_bss_824[i].y = 215;
-        lbl_1_bss_824[i].z = lbl_1_bss_18B4[i].y;
-        lbl_1_bss_198F0[i][0] = 10;
-        lbl_1_bss_198F0[i][1] = 0;
+        playerPositions[i] = playerStartPositions[i];
+        playerShadowPositions[i].x = playerPositions[i].x;
+        playerShadowPositions[i].y = 215;
+        playerShadowPositions[i].z = playerPositions[i].y;
+        playerBallState[i][0] = 10;
+        playerBallState[i][1] = 0;
     }
     for (i = 0; i < 3; i++) {
-        lbl_1_bss_860[i].x = 128;
-        lbl_1_bss_860[i].y = 230;
-        lbl_1_bss_860[i].z = -100;
-        MTXIdentity(lbl_1_bss_794[i]);
-        lbl_1_bss_788[i] = 0;
+        ballModelPositions[i].x = 128;
+        ballModelPositions[i].y = 230;
+        ballModelPositions[i].z = -100;
+        MTXIdentity(playerBallRotations[i]);
+        playerBallAngles[i] = 0;
     }
 }
 
-void fn_1_861C(s16 arg0)
+void PinballRoundStart(s16 playerIndex)
 {
-    s16 temp_r31;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    lbl_1_bss_312 = 0;
-    for (temp_r31 = 0; temp_r31 < 256; temp_r31++) {
-        lbl_1_bss_370[temp_r31] = 1000000.0f;
+    s16 shuffleIndex;
+    s16 firstSwapIndex;
+    s16 secondSwapIndex;
+    s16 modelId;
+    collisionCooldown = 0;
+    for (shuffleIndex = 0; shuffleIndex < 256; shuffleIndex++) {
+        ballTrailDistances[shuffleIndex] = 1000000.0f;
     }
-    lbl_1_bss_1894.x = 128;
-    lbl_1_bss_1894.y = -100;
-    lbl_1_bss_1894.z = 0;
-    lbl_1_bss_1888.x = lbl_1_bss_1888.z = 0;
-    lbl_1_bss_1888.y = -30;
-    lbl_1_bss_860[arg0].x = lbl_1_bss_1894.x;
-    lbl_1_bss_860[arg0].y = 230;
-    lbl_1_bss_860[arg0].z = lbl_1_bss_1894.y;
-    fn_1_D1E0(lbl_1_bss_199C2[(arg0 * 2) + 4]);
-    if (arg0 == 0) {
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            lbl_1_bss_320[temp_r31] = temp_r31;
+    ballPosition.x = 128;
+    ballPosition.y = -100;
+    ballPosition.z = 0;
+    ballVelocity.x = ballVelocity.z = 0;
+    ballVelocity.y = -30;
+    ballModelPositions[playerIndex].x = ballPosition.x;
+    ballModelPositions[playerIndex].y = 230;
+    ballModelPositions[playerIndex].z = ballPosition.y;
+    PinballEffectStart(loadedModelIds[(playerIndex * 2) + 4]);
+    if (playerIndex == 0) {
+        for (shuffleIndex = 0; shuffleIndex < 4; shuffleIndex++) {
+            playerOrder[shuffleIndex] = shuffleIndex;
         }
-        for (temp_r31 = 0; temp_r31 < 20; temp_r31++) {
-            temp_r29 = frandmod(4);
-            temp_r28 = frandmod(4);
-            temp_r27 = lbl_1_bss_320[temp_r29];
-            lbl_1_bss_320[temp_r29] = lbl_1_bss_320[temp_r28];
-            lbl_1_bss_320[temp_r28] = temp_r27;
+        for (shuffleIndex = 0; shuffleIndex < 20; shuffleIndex++) {
+            firstSwapIndex = frandmod(4);
+            secondSwapIndex = frandmod(4);
+            modelId = playerOrder[firstSwapIndex];
+            playerOrder[firstSwapIndex] = playerOrder[secondSwapIndex];
+            playerOrder[secondSwapIndex] = modelId;
         }
-        Hu3DModelHookSet(lbl_1_bss_199C2[3], "d1_itemhook1", lbl_1_bss_199C2[lbl_1_bss_320[0] + 47]);
-        Hu3DModelHookSet(lbl_1_bss_199C2[3], "d1_itemhook2", lbl_1_bss_199C2[lbl_1_bss_320[1] + 47]);
-        Hu3DModelHookSet(lbl_1_bss_199C2[3], "d1_itemhook3", lbl_1_bss_199C2[lbl_1_bss_320[2] + 47]);
-        Hu3DModelHookSet(lbl_1_bss_199C2[3], "d1_itemhook4", lbl_1_bss_199C2[lbl_1_bss_320[3] + 47]);
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            Hu3DModelAttrSet(lbl_1_bss_199C2[temp_r31 + 51], HU3D_ATTR_DISPOFF);
+        Hu3DModelHookSet(loadedModelIds[3], "d1_itemhook1", loadedModelIds[playerOrder[0] + 47]);
+        Hu3DModelHookSet(loadedModelIds[3], "d1_itemhook2", loadedModelIds[playerOrder[1] + 47]);
+        Hu3DModelHookSet(loadedModelIds[3], "d1_itemhook3", loadedModelIds[playerOrder[2] + 47]);
+        Hu3DModelHookSet(loadedModelIds[3], "d1_itemhook4", loadedModelIds[playerOrder[3] + 47]);
+        for (shuffleIndex = 0; shuffleIndex < 4; shuffleIndex++) {
+            Hu3DModelAttrSet(loadedModelIds[shuffleIndex + 51], HU3D_ATTR_DISPOFF);
         }
     }
-    else if (arg0 == 1) {
-        for (temp_r31 = temp_r29 = 0; temp_r31 < 4; temp_r31++) {
-            if (temp_r31 != lbl_1_bss_2D6) {
-                lbl_1_bss_320[temp_r29] = temp_r31;
-                temp_r29++;
+    else if (playerIndex == 1) {
+        for (shuffleIndex = firstSwapIndex = 0; shuffleIndex < 4; shuffleIndex++) {
+            if (shuffleIndex != firstAwardPlayer) {
+                playerOrder[firstSwapIndex] = shuffleIndex;
+                firstSwapIndex++;
             }
         }
-        for (temp_r31 = 0; temp_r31 < 20; temp_r31++) {
-            temp_r29 = frandmod(3);
-            temp_r28 = frandmod(3);
-            temp_r27 = lbl_1_bss_320[temp_r29];
-            lbl_1_bss_320[temp_r29] = lbl_1_bss_320[temp_r28];
-            lbl_1_bss_320[temp_r28] = temp_r27;
+        for (shuffleIndex = 0; shuffleIndex < 20; shuffleIndex++) {
+            firstSwapIndex = frandmod(3);
+            secondSwapIndex = frandmod(3);
+            modelId = playerOrder[firstSwapIndex];
+            playerOrder[firstSwapIndex] = playerOrder[secondSwapIndex];
+            playerOrder[secondSwapIndex] = modelId;
         }
-        Hu3DModelAttrReset(lbl_1_bss_199C2[lbl_1_bss_320[0] + 51], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrReset(lbl_1_bss_199C2[lbl_1_bss_320[1] + 51], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrReset(lbl_1_bss_199C2[lbl_1_bss_320[2] + 51], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(lbl_1_bss_199C2[lbl_1_bss_2D6 + 51], HU3D_ATTR_DISPOFF);
-        Hu3DModelHookSet(lbl_1_bss_199C2[5], "d2_itemhook1", lbl_1_bss_199C2[lbl_1_bss_320[0] + 51]);
-        Hu3DModelHookSet(lbl_1_bss_199C2[5], "d2_itemhook2", lbl_1_bss_199C2[lbl_1_bss_320[1] + 51]);
-        Hu3DModelHookSet(lbl_1_bss_199C2[5], "d2_itemhook3", lbl_1_bss_199C2[lbl_1_bss_320[2] + 51]);
+        Hu3DModelAttrReset(loadedModelIds[playerOrder[0] + 51], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(loadedModelIds[playerOrder[1] + 51], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(loadedModelIds[playerOrder[2] + 51], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(loadedModelIds[firstAwardPlayer + 51], HU3D_ATTR_DISPOFF);
+        Hu3DModelHookSet(loadedModelIds[5], "d2_itemhook1", loadedModelIds[playerOrder[0] + 51]);
+        Hu3DModelHookSet(loadedModelIds[5], "d2_itemhook2", loadedModelIds[playerOrder[1] + 51]);
+        Hu3DModelHookSet(loadedModelIds[5], "d2_itemhook3", loadedModelIds[playerOrder[2] + 51]);
     }
-    Hu3DModelAttrSet(lbl_1_bss_199C2[arg0 + 65], HU3D_MOTATTR_PAUSE);
-    Hu3DMotionTimeSet(lbl_1_bss_199C2[arg0 + 65], 0);
-    Hu3DModelAttrSet(lbl_1_bss_199C2[arg0 + 55], HU3D_MOTATTR_PAUSE);
-    Hu3DMotionTimeSet(lbl_1_bss_199C2[arg0 + 55], 0);
-    Hu3DMotionSpeedSet(lbl_1_bss_199C2[arg0 + 55], 2);
-    Hu3DMotionSet(lbl_1_bss_199C2[arg0 + 58], lbl_1_bss_1990E[61]);
-    Hu3DModelAttrSet(lbl_1_bss_199C2[arg0 + 58], HU3D_MOTATTR_LOOP);
-    for (temp_r31 = 0; temp_r31 < 5; temp_r31++) {
-        if (arg0 == lbl_1_data_2C8[temp_r31]) {
-            lbl_1_bss_18A0[temp_r31] = 1;
+    Hu3DModelAttrSet(loadedModelIds[playerIndex + 65], HU3D_MOTATTR_PAUSE);
+    Hu3DMotionTimeSet(loadedModelIds[playerIndex + 65], 0);
+    Hu3DModelAttrSet(loadedModelIds[playerIndex + 55], HU3D_MOTATTR_PAUSE);
+    Hu3DMotionTimeSet(loadedModelIds[playerIndex + 55], 0);
+    Hu3DMotionSpeedSet(loadedModelIds[playerIndex + 55], 2);
+    Hu3DMotionSet(loadedModelIds[playerIndex + 58], loadedMotionIds[61]);
+    Hu3DModelAttrSet(loadedModelIds[playerIndex + 58], HU3D_MOTATTR_LOOP);
+    for (shuffleIndex = 0; shuffleIndex < 5; shuffleIndex++) {
+        if (playerIndex == playerBallSlots[shuffleIndex]) {
+            playerActiveFlags[shuffleIndex] = 1;
         }
         else {
-            lbl_1_bss_18A0[temp_r31] = 0;
+            playerActiveFlags[shuffleIndex] = 0;
         }
-        lbl_1_bss_198F0[temp_r31][0] = 10;
-        lbl_1_bss_198F0[temp_r31][1] = 0;
+        playerBallState[shuffleIndex][0] = 10;
+        playerBallState[shuffleIndex][1] = 0;
     }
 }
 
-void fn_1_ABD0(s16 arg0, s16 arg1);
-s16 fn_1_B1E8(Vec *arg0, Vec *arg1, s16 arg2);
+void PinballBallLaunch(s16 playerIndex, s16 ballIndex);
+s16 PinballSegmentIntersect(Vec *ballPosition, Vec *ballVelocity, s16 ballIndex);
 
-s16 fn_1_8DD0(s16 arg0)
+s16 PinballBallUpdate(s16 ballIndex)
 {
-    s16 temp_r30;
-    s16 temp_r29;
-    s32 temp_r28;
-    s16 temp_r27;
-    Mtx sp24;
-    Vec sp18;
-    Vec spC;
-    float sp8 = 0;
-    Hu3DMotionTimeSet(lbl_1_bss_199C2[9], lbl_1_data_258[arg0]);
-    Hu3DModelAttrSet(lbl_1_bss_199C2[9], HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrReset(lbl_1_bss_199C2[arg0 + 65], HU3D_MOTATTR_PAUSE);
-    Hu3DMotionSpeedSet(lbl_1_bss_199C2[arg0 + 65], 0.1 * (-lbl_1_bss_1888.y - 14.0f) + 1.0);
-    temp_r28 = 0;
-    spC.z = spC.y = spC.x = 0;
-    fn_1_8180(1);
+    s16 characterIndex;
+    s16 characterCount;
+    s32 hasLaunchedBall;
+    s16 landingCharacterIndex;
+    Mtx rotationMatrix;
+    Vec spinAxis;
+    Vec zeroVector;
+    float unusedScalar = 0;
+    Hu3DMotionTimeSet(loadedModelIds[9], playerBallStartTimes[ballIndex]);
+    Hu3DModelAttrSet(loadedModelIds[9], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrReset(loadedModelIds[ballIndex + 65], HU3D_MOTATTR_PAUSE);
+    Hu3DMotionSpeedSet(loadedModelIds[ballIndex + 65], 0.1 * (-ballVelocity.y - 14.0f) + 1.0);
+    hasLaunchedBall = 0;
+    zeroVector.z = zeroVector.y = zeroVector.x = 0;
+    CameraViewTransition(1);
     while (1) {
-        temp_r27 = fn_1_B1E8(&lbl_1_bss_1894, &lbl_1_bss_1888, arg0);
-        lbl_1_bss_860[arg0].x = lbl_1_bss_1894.x;
-        lbl_1_bss_860[arg0].y = 230;
-        lbl_1_bss_860[arg0].z = lbl_1_bss_1894.y;
-        if (VECMag(&lbl_1_bss_1888)) {
-            sp18.x = 0;
-            sp18.y = 0;
-            sp18.z = 1;
-            VECCrossProduct(&sp18, &lbl_1_bss_1888, &sp18);
-            sp18.z = sp18.y;
-            sp18.y = 0;
-            MTXRotAxisDeg(sp24, &sp18, 360.0 * (VECMag(&lbl_1_bss_1888) / 81.68140899333463));
-            MTXConcat(lbl_1_bss_794[arg0], sp24, lbl_1_bss_794[arg0]);
+        landingCharacterIndex = PinballSegmentIntersect(&ballPosition, &ballVelocity, ballIndex);
+        ballModelPositions[ballIndex].x = ballPosition.x;
+        ballModelPositions[ballIndex].y = 230;
+        ballModelPositions[ballIndex].z = ballPosition.y;
+        if (VECMag(&ballVelocity)) {
+            spinAxis.x = 0;
+            spinAxis.y = 0;
+            spinAxis.z = 1;
+            VECCrossProduct(&spinAxis, &ballVelocity, &spinAxis);
+            spinAxis.z = spinAxis.y;
+            spinAxis.y = 0;
+            MTXRotAxisDeg(rotationMatrix, &spinAxis, 360.0 * (VECMag(&ballVelocity) / 81.68140899333463));
+            MTXConcat(playerBallRotations[ballIndex], rotationMatrix, playerBallRotations[ballIndex]);
         }
-        lbl_1_bss_2E4.z = lbl_1_bss_860[arg0].z;
-        for (temp_r30 = temp_r29 = 0; temp_r30 < 5; temp_r30++) {
-            if (arg0 == lbl_1_data_2C8[temp_r30]) {
-                fn_1_ABD0(temp_r30, arg0);
-                if (lbl_1_bss_198F0[temp_r30][1] & 0x2) {
-                    temp_r29++;
+        cameraTargetPosition.z = ballModelPositions[ballIndex].z;
+        for (characterIndex = characterCount = 0; characterIndex < 5; characterIndex++) {
+            if (ballIndex == playerBallSlots[characterIndex]) {
+                PinballBallLaunch(characterIndex, ballIndex);
+                if (playerBallState[characterIndex][1] & 0x2) {
+                    characterCount++;
                 }
             }
         }
-        if (temp_r29) {
-            if (Hu3DMotionIDGet(lbl_1_bss_199C2[arg0 + 58]) != lbl_1_bss_1990E[62]) {
-                Hu3DMotionSet(lbl_1_bss_199C2[arg0 + 58], lbl_1_bss_1990E[62]);
+        if (characterCount) {
+            if (Hu3DMotionIDGet(loadedModelIds[ballIndex + 58]) != loadedMotionIds[62]) {
+                Hu3DMotionSet(loadedModelIds[ballIndex + 58], loadedMotionIds[62]);
             }
         }
         else {
-            if (Hu3DMotionIDGet(lbl_1_bss_199C2[arg0 + 58]) != lbl_1_bss_1990E[61]) {
-                Hu3DMotionSet(lbl_1_bss_199C2[arg0 + 58], lbl_1_bss_1990E[61]);
+            if (Hu3DMotionIDGet(loadedModelIds[ballIndex + 58]) != loadedMotionIds[61]) {
+                Hu3DMotionSet(loadedModelIds[ballIndex + 58], loadedMotionIds[61]);
             }
         }
-        if (temp_r27 != -1) {
+        if (landingCharacterIndex != -1) {
             break;
         }
-        if (lbl_1_bss_1894.x < 85.0f && temp_r28 == 0) {
-            lbl_1_bss_D8F0[lbl_1_bss_1884].x = 100;
-            lbl_1_bss_D8F0[lbl_1_bss_1884].y = 100;
-            lbl_1_bss_D8F0[lbl_1_bss_1884].z = 0;
-            lbl_1_bss_18F0[lbl_1_bss_1884].x = 100;
-            lbl_1_bss_18F0[lbl_1_bss_1884].y = -500;
-            lbl_1_bss_18F0[lbl_1_bss_1884].z = 0;
-            lbl_1_bss_1884++;
-            Hu3DModelAttrReset(lbl_1_bss_199C2[arg0 + 55], HU3D_MOTATTR_PAUSE);
-            Hu3DMotionTimeSet(lbl_1_bss_199C2[arg0 + 55], 0);
-            temp_r28 = 1;
+        if (ballPosition.x < 85.0f && hasLaunchedBall == 0) {
+            upperBallTrailPositions[ballTrailCount].x = 100;
+            upperBallTrailPositions[ballTrailCount].y = 100;
+            upperBallTrailPositions[ballTrailCount].z = 0;
+            lowerBallTrailPositions[ballTrailCount].x = 100;
+            lowerBallTrailPositions[ballTrailCount].y = -500;
+            lowerBallTrailPositions[ballTrailCount].z = 0;
+            ballTrailCount++;
+            Hu3DModelAttrReset(loadedModelIds[ballIndex + 55], HU3D_MOTATTR_PAUSE);
+            Hu3DMotionTimeSet(loadedModelIds[ballIndex + 55], 0);
+            hasLaunchedBall = 1;
         }
         HuPrcVSleep();
     }
-    for (temp_r30 = 0; temp_r30 < 5; temp_r30++) {
-        if (arg0 == lbl_1_data_2C8[temp_r30]) {
-            lbl_1_bss_198F0[temp_r30][1] = 4;
-            fn_1_ABD0(temp_r30, arg0);
+    for (characterIndex = 0; characterIndex < 5; characterIndex++) {
+        if (ballIndex == playerBallSlots[characterIndex]) {
+            playerBallState[characterIndex][1] = 4;
+            PinballBallLaunch(characterIndex, ballIndex);
         }
     }
     HuAudFXPlay(1851);
-    return temp_r27;
+    return landingCharacterIndex;
 }
 
-void fn_1_9418(s16 arg0)
+void PinballPlayerUpdate(s16 playerIndex)
 {
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    float temp_f28;
+    float powerAngle;
+    float motionDelta;
+    float motionTime;
+    float motionEndTime;
 
-    s16 temp_r31;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s16 temp_r25;
-    s16 temp_r24;
-    s16 temp_r23;
-    float sp8[2];
-    temp_f31 = 0;
-    fn_1_8180(0);
-    Hu3DModelPosSet(lbl_1_bss_2D0, 124, 0, 70);
-    Hu3DModelRotSet(lbl_1_bss_2D0, 0, 180, 0);
-    CharMotionShiftSet(lbl_1_bss_2DA, lbl_1_bss_2C0[3], 0, 4, HU3D_MOTATTR_SHIFT_REV);
+    s16 characterIndex;
+    s16 windowId;
+    s16 decelerationFrame;
+    s16 computerWaitFrames;
+    s16 pressedButtons;
+    s16 stickY;
+    s16 launchPower;
+    s16 heldButtons;
+    float windowSize[2];
+    powerAngle = 0;
+    CameraViewTransition(0);
+    Hu3DModelPosSet(activeCharacterModel, 124, 0, 70);
+    Hu3DModelRotSet(activeCharacterModel, 0, 180, 0);
+    CharMotionShiftSet(activeCharacterId, characterMotions[3], 0, 4, HU3D_MOTATTR_SHIFT_REV);
     HuPrcSleep(12);
-    HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x1C, 0x0F));
-    temp_r29 = HuWinCreate(-10000, 340, sp8[0], sp8[1], 1);
-    HuWinMesSpeedSet(temp_r29, 0);
-    HuWinBGTPLvlSet(temp_r29, 0);
-    HuWinMesSet(temp_r29, MAKE_MESSID(0x1C, 0x0F));
-    CharMotionSet(lbl_1_bss_2DA, lbl_1_bss_2C0[2]);
-    Hu3DModelAttrSet(lbl_1_bss_2D0, HU3D_MOTATTR_PAUSE);
-    temp_f29 = Hu3DMotionTimeGet(lbl_1_bss_2D0);
-    temp_f28 = Hu3DMotionMaxTimeGet(lbl_1_bss_2D0);
-    if (GWPlayerCfg[lbl_1_bss_2DC].iscom) {
-        temp_r27 = frandmod(100) + 20;
+    HuWinMesMaxSizeGet(1, windowSize, MAKE_MESSID(0x1C, 0x0F));
+    windowId = HuWinCreate(-10000, 340, windowSize[0], windowSize[1], 1);
+    HuWinMesSpeedSet(windowId, 0);
+    HuWinBGTPLvlSet(windowId, 0);
+    HuWinMesSet(windowId, MAKE_MESSID(0x1C, 0x0F));
+    CharMotionSet(activeCharacterId, characterMotions[2]);
+    Hu3DModelAttrSet(activeCharacterModel, HU3D_MOTATTR_PAUSE);
+    motionTime = Hu3DMotionTimeGet(activeCharacterModel);
+    motionEndTime = Hu3DMotionMaxTimeGet(activeCharacterModel);
+    if (GWPlayerCfg[activePlayerConfigIndex].iscom) {
+        computerWaitFrames = frandmod(100) + 20;
     }
     while (1) {
-        temp_r26 = HuPadBtnDown[lbl_1_bss_2D8];
-        temp_r23 = HuPadBtn[lbl_1_bss_2D8];
-        temp_r25 = HuPadStkY[lbl_1_bss_2D8];
-        if (GWPlayerCfg[lbl_1_bss_2DC].iscom) {
-            temp_r23 = 0;
-            if (temp_r27 != 0) {
-                temp_r27--;
-                temp_r25 = -72;
+        pressedButtons = HuPadBtnDown[activeControllerId];
+        heldButtons = HuPadBtn[activeControllerId];
+        stickY = HuPadStkY[activeControllerId];
+        if (GWPlayerCfg[activePlayerConfigIndex].iscom) {
+            heldButtons = 0;
+            if (computerWaitFrames != 0) {
+                computerWaitFrames--;
+                stickY = -72;
             }
             else {
-                temp_r26 = PAD_BUTTON_A;
+                pressedButtons = PAD_BUTTON_A;
             }
         }
-        if ((temp_r26 & PAD_BUTTON_A) && lbl_1_bss_788[arg0] > 0) {
+        if ((pressedButtons & PAD_BUTTON_A) && playerBallAngles[playerIndex] > 0) {
             break;
         }
-        if (HuPadTrigR[lbl_1_bss_2D8] > 10) {
-            if (temp_f31 < 90.0f) {
-                temp_f31 += 5.0f;
+        if (HuPadTrigR[activeControllerId] > 10) {
+            if (powerAngle < 90.0f) {
+                powerAngle += 5.0f;
             }
-            fn_1_8180(arg0 + 2);
+            CameraViewTransition(playerIndex + 2);
         }
         else {
-            fn_1_8180(0);
-            if (temp_f31 > 0.0f) {
-                temp_f31 -= 5.0f;
+            CameraViewTransition(0);
+            if (powerAngle > 0.0f) {
+                powerAngle -= 5.0f;
             }
         }
-        for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-            lbl_1_bss_34C[temp_r31].y = 80.0 - (150.0 * sind(temp_f31));
+        for (characterIndex = 0; characterIndex < 3; characterIndex++) {
+            awardOrbPositions[characterIndex].y = 80.0 - (150.0 * sind(powerAngle));
         }
-        temp_f30 = -(temp_r25 >> 3);
-        temp_f30 /= 20.0f;
-        if (temp_f30) {
-            if (temp_f30 + lbl_1_bss_788[arg0] < 0.0f) {
-                temp_f30 = -lbl_1_bss_788[arg0];
+        motionDelta = -(stickY >> 3);
+        motionDelta /= 20.0f;
+        if (motionDelta) {
+            if (motionDelta + playerBallAngles[playerIndex] < 0.0f) {
+                motionDelta = -playerBallAngles[playerIndex];
             }
             else {
-                if (temp_f30 + lbl_1_bss_788[arg0] > 50.0f) {
-                    temp_f30 = 50.0f - lbl_1_bss_788[arg0];
+                if (motionDelta + playerBallAngles[playerIndex] > 50.0f) {
+                    motionDelta = 50.0f - playerBallAngles[playerIndex];
                 }
             }
-            temp_f29 += temp_f30;
-            if (temp_f29 >= temp_f28) {
-                temp_f29 -= temp_f28;
+            motionTime += motionDelta;
+            if (motionTime >= motionEndTime) {
+                motionTime -= motionEndTime;
             }
         }
         else {
-            temp_f30 = -0.3f;
-            if (temp_f30 + lbl_1_bss_788[arg0] < 0.0f) {
-                temp_f30 = -lbl_1_bss_788[arg0];
+            motionDelta = -0.3f;
+            if (motionDelta + playerBallAngles[playerIndex] < 0.0f) {
+                motionDelta = -playerBallAngles[playerIndex];
             }
         }
-        Hu3DMotionTimeSet(lbl_1_bss_2D0, temp_f29);
-        lbl_1_bss_788[arg0] += temp_f30;
-        Hu3DModelPosSet(lbl_1_bss_2D0, 124, 0, 70 + lbl_1_bss_788[arg0]);
-        for (temp_r31 = 0; temp_r31 < 5; temp_r31++) {
-            if (arg0 == lbl_1_data_2C8[temp_r31]) {
-                fn_1_ABD0(temp_r31, arg0);
+        Hu3DMotionTimeSet(activeCharacterModel, motionTime);
+        playerBallAngles[playerIndex] += motionDelta;
+        Hu3DModelPosSet(activeCharacterModel, 124, 0, 70 + playerBallAngles[playerIndex]);
+        for (characterIndex = 0; characterIndex < 5; characterIndex++) {
+            if (playerIndex == playerBallSlots[characterIndex]) {
+                PinballBallLaunch(characterIndex, playerIndex);
             }
         }
         HuPrcVSleep();
     }
-    if (temp_f31 > 0) {
-        fn_1_8180(0);
-        for (temp_r28 = 0; temp_r28 < 10; temp_r28++) {
-            temp_f31 -= 10.0f;
-            if (temp_f31 < 0.0f) {
-                temp_f31 = 0.0f;
+    if (powerAngle > 0) {
+        CameraViewTransition(0);
+        for (decelerationFrame = 0; decelerationFrame < 10; decelerationFrame++) {
+            powerAngle -= 10.0f;
+            if (powerAngle < 0.0f) {
+                powerAngle = 0.0f;
             }
-            for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-                lbl_1_bss_34C[temp_r31].y = 80.0 - (150.0 * sind(temp_f31));
+            for (characterIndex = 0; characterIndex < 3; characterIndex++) {
+                awardOrbPositions[characterIndex].y = 80.0 - (150.0 * sind(powerAngle));
             }
-            if (temp_f31 == 0.0f) {
+            if (powerAngle == 0.0f) {
                 break;
             }
             HuPrcVSleep();
         }
     }
-    CharMotionShiftSet(lbl_1_bss_2DA, lbl_1_bss_2C0[3], 0, 8, HU3D_MOTATTR_NONE);
+    CharMotionShiftSet(activeCharacterId, characterMotions[3], 0, 8, HU3D_MOTATTR_NONE);
     HuPrcSleep(4);
-    temp_r24 = lbl_1_bss_788[arg0] / 4;
-    lbl_1_bss_1888.y = (-15 - temp_r24) + (0.1 * (float)frandmod(10));
-    lbl_1_bss_788[arg0] = 0;
-    HuWinExCleanup(temp_r29);
+    launchPower = playerBallAngles[playerIndex] / 4;
+    ballVelocity.y = (-15 - launchPower) + (0.1 * (float)frandmod(10));
+    playerBallAngles[playerIndex] = 0;
+    HuWinExCleanup(windowId);
     HuAudFXPlay(1852);
 }
 
-void fn_1_9CAC(s16 arg0, s16 arg1)
+void PinballTargetHit(s16 playerIndex, s16 targetIndex)
 {
-    Mtx sp38;
-    Mtx sp8;
-    HU3DMODEL *temp_r29;
+    Mtx objectMatrix;
+    Mtx translationMatrix;
+    HU3DMODEL *modelData;
 
-    Hu3DMotionSet(lbl_1_bss_199C2[arg0 + 58], lbl_1_bss_1990E[63]);
-    Hu3DModelAttrSet(lbl_1_bss_199C2[arg0 + 58], HU3D_MOTATTR_LOOP);
-    Hu3DModelAttrReset(lbl_1_bss_199C2[64], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_199C2[64], HU3D_MOTATTR_LOOP);
-    Hu3DMotionTimeSet(lbl_1_bss_199C2[64], 0);
-    MTXTrans(sp8, 0, -150, 0);
-    if (arg0 == 0) {
-        switch (arg1) {
+    Hu3DMotionSet(loadedModelIds[playerIndex + 58], loadedMotionIds[63]);
+    Hu3DModelAttrSet(loadedModelIds[playerIndex + 58], HU3D_MOTATTR_LOOP);
+    Hu3DModelAttrReset(loadedModelIds[64], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(loadedModelIds[64], HU3D_MOTATTR_LOOP);
+    Hu3DMotionTimeSet(loadedModelIds[64], 0);
+    MTXTrans(translationMatrix, 0, -150, 0);
+    if (playerIndex == 0) {
+        switch (targetIndex) {
             case 0:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[3], "d1_itemhook1", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[3], "d1_itemhook1", objectMatrix);
                 break;
 
             case 1:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[3], "d1_itemhook2", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[3], "d1_itemhook2", objectMatrix);
                 break;
 
             case 2:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[3], "d1_itemhook3", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[3], "d1_itemhook3", objectMatrix);
                 break;
 
             case 3:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[3], "d1_itemhook4", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[3], "d1_itemhook4", objectMatrix);
                 break;
         }
     }
-    else if (arg0 == 1) {
-        switch (arg1) {
+    else if (playerIndex == 1) {
+        switch (targetIndex) {
             case 0:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[5], "d2_itemhook1", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[5], "d2_itemhook1", objectMatrix);
                 break;
 
             case 1:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[5], "d2_itemhook2", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[5], "d2_itemhook2", objectMatrix);
                 break;
 
             case 2:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[5], "d2_itemhook3", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[5], "d2_itemhook3", objectMatrix);
                 break;
         }
     }
     else {
-        switch (arg1) {
+        switch (targetIndex) {
             case 0:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[7], "d3_itemhook1", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[7], "d3_itemhook1", objectMatrix);
                 break;
 
             case 1:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[7], "d3_itemhook4", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[7], "d3_itemhook4", objectMatrix);
                 break;
 
             case 2:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[7], "d3_itemhook2", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[7], "d3_itemhook2", objectMatrix);
                 break;
 
             case 3:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[7], "d3_itemhook7", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[7], "d3_itemhook7", objectMatrix);
                 break;
 
             case 4:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[7], "d3_itemhook6", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[7], "d3_itemhook6", objectMatrix);
                 break;
 
             case 5:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[7], "d3_itemhook3", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[7], "d3_itemhook3", objectMatrix);
                 break;
 
             case 6:
-                Hu3DModelObjMtxGet(lbl_1_bss_199C2[7], "d3_itemhook5", sp38);
+                Hu3DModelObjMtxGet(loadedModelIds[7], "d3_itemhook5", objectMatrix);
                 break;
         }
-        mtxScaleCat(sp8, 0.8, 1, 0.8);
+        mtxScaleCat(translationMatrix, 0.8, 1, 0.8);
     }
-    temp_r29 = &Hu3DData[lbl_1_bss_199C2[64]];
-    MTXConcat(sp38, sp8, sp38);
-    MTXCopy(sp38, temp_r29->mtx);
+    modelData = &Hu3DData[loadedModelIds[64]];
+    MTXConcat(objectMatrix, translationMatrix, objectMatrix);
+    MTXCopy(objectMatrix, modelData->mtx);
 }
 
-void fn_1_A060(void)
+void PinballPlayerProcess(void)
 {
-    s16 temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    Vec sp20;
-    Vec sp14;
-    float sp8[3] = { 0, 40, 60 };
-    for (temp_r30 = 0; temp_r30 < 3; temp_r30++) {
-        lbl_1_bss_34C[temp_r30].y = -100;
-        lbl_1_bss_34C[temp_r30].z = 200;
-        lbl_1_bss_328[temp_r30].x = lbl_1_bss_328[temp_r30].y = lbl_1_bss_328[temp_r30].z = 0.3f;
-        Hu3DModelAttrReset(lbl_1_bss_199C2[temp_r30 + 71], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(lbl_1_bss_199C2[temp_r30 + 71], HU3D_MOTATTR_LOOP);
+    s16 modelIndex;
+    s16 orbIndex;
+    s16 randomCharacterIndex;
+    s16 selectedCharacterModel;
+    s16 animationFrame;
+    Vec worldPosition;
+    Vec screenPosition;
+    float orbAngles[3] = { 0, 40, 60 };
+    for (orbIndex = 0; orbIndex < 3; orbIndex++) {
+        awardOrbPositions[orbIndex].y = -100;
+        awardOrbPositions[orbIndex].z = 200;
+        awardOrbScales[orbIndex].x = awardOrbScales[orbIndex].y = awardOrbScales[orbIndex].z = 0.3f;
+        Hu3DModelAttrReset(loadedModelIds[orbIndex + 71], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(loadedModelIds[orbIndex + 71], HU3D_MOTATTR_LOOP);
     }
-    lbl_1_bss_34C[0].x = 188;
-    lbl_1_bss_34C[1].x = 388;
-    lbl_1_bss_34C[2].x = 288;
-    temp_r29 = temp_r27 = 0;
+    awardOrbPositions[0].x = 188;
+    awardOrbPositions[1].x = 388;
+    awardOrbPositions[2].x = 288;
+    randomCharacterIndex = animationFrame = 0;
     while (1) {
-        for (temp_r30 = 0; temp_r30 < 3; temp_r30++) {
-            sp14 = lbl_1_bss_34C[temp_r30];
-            sp14.y += 5.0 * sind(sp8[temp_r30]);
-            Hu3D2Dto3D(&sp14, 1, &sp20);
-            Hu3DModelPosSet(lbl_1_bss_199C2[temp_r30 + 71], sp20.x, sp20.y, sp20.z);
-            Hu3DModelRotSet(lbl_1_bss_199C2[temp_r30 + 71], lbl_1_bss_2A8[0].x, lbl_1_bss_2A8[0].y, lbl_1_bss_2A8[0].z);
+        for (orbIndex = 0; orbIndex < 3; orbIndex++) {
+            screenPosition = awardOrbPositions[orbIndex];
+            screenPosition.y += 5.0 * sind(orbAngles[orbIndex]);
+            Hu3D2Dto3D(&screenPosition, 1, &worldPosition);
+            Hu3DModelPosSet(loadedModelIds[orbIndex + 71], worldPosition.x, worldPosition.y, worldPosition.z);
+            Hu3DModelRotSet(loadedModelIds[orbIndex + 71], cameraRotation[0].x, cameraRotation[0].y, cameraRotation[0].z);
             Hu3DModelScaleSet(
-                lbl_1_bss_199C2[temp_r30 + 71], lbl_1_bss_328[temp_r30].x / 2.0, lbl_1_bss_328[temp_r30].y / 2.0, lbl_1_bss_328[temp_r30].z / 2.0);
-            switch (temp_r30) {
+                loadedModelIds[orbIndex + 71], awardOrbScales[orbIndex].x / 2.0, awardOrbScales[orbIndex].y / 2.0, awardOrbScales[orbIndex].z / 2.0);
+            switch (orbIndex) {
                 case 0:
-                    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                        Hu3DModelScaleSet(lbl_1_bss_199C2[temp_r31 + 74], lbl_1_bss_328[temp_r30].x * 1.2, lbl_1_bss_328[temp_r30].y * 1.2,
-                            lbl_1_bss_328[temp_r30].z * 1.2);
+                    for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+                        Hu3DModelScaleSet(loadedModelIds[modelIndex + 74], awardOrbScales[orbIndex].x * 1.2, awardOrbScales[orbIndex].y * 1.2,
+                            awardOrbScales[orbIndex].z * 1.2);
                     }
-                    if (lbl_1_bss_2D6 != -2) {
-                        if (lbl_1_bss_2D6 == -1) {
-                            if ((temp_r27 & 0x7) == 0 && (++temp_r29) >= 4) {
-                                temp_r29 = 0;
+                    if (firstAwardPlayer != -2) {
+                        if (firstAwardPlayer == -1) {
+                            if ((animationFrame & 0x7) == 0 && (++randomCharacterIndex) >= 4) {
+                                randomCharacterIndex = 0;
                             }
-                            temp_r27++;
-                            temp_r28 = lbl_1_bss_199C2[temp_r29 + 74];
-                            for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                                Hu3DModelAttrSet(lbl_1_bss_199C2[temp_r31 + 74], HU3D_ATTR_DISPOFF);
+                            animationFrame++;
+                            selectedCharacterModel = loadedModelIds[randomCharacterIndex + 74];
+                            for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+                                Hu3DModelAttrSet(loadedModelIds[modelIndex + 74], HU3D_ATTR_DISPOFF);
                             }
-                            Hu3DModelAttrReset(temp_r28, HU3D_ATTR_DISPOFF);
+                            Hu3DModelAttrReset(selectedCharacterModel, HU3D_ATTR_DISPOFF);
                         }
                         else {
-                            temp_r28 = lbl_1_bss_199C2[lbl_1_bss_2D6 + 74];
-                            for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                                Hu3DModelAttrSet(lbl_1_bss_199C2[temp_r31 + 74], HU3D_ATTR_DISPOFF);
+                            selectedCharacterModel = loadedModelIds[firstAwardPlayer + 74];
+                            for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+                                Hu3DModelAttrSet(loadedModelIds[modelIndex + 74], HU3D_ATTR_DISPOFF);
                             }
-                            Hu3DModelAttrReset(temp_r28, HU3D_ATTR_DISPOFF);
+                            Hu3DModelAttrReset(selectedCharacterModel, HU3D_ATTR_DISPOFF);
                         }
-                        Hu3DModelPosSet(temp_r28, sp20.x, sp20.y, sp20.z);
-                        Hu3DModelRotSet(temp_r28, 90.0f + lbl_1_bss_2A8[0].x, lbl_1_bss_2A8[0].y, lbl_1_bss_2A8[0].z);
+                        Hu3DModelPosSet(selectedCharacterModel, worldPosition.x, worldPosition.y, worldPosition.z);
+                        Hu3DModelRotSet(selectedCharacterModel, 90.0f + cameraRotation[0].x, cameraRotation[0].y, cameraRotation[0].z);
                     }
                     break;
 
                 case 1:
-                    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                        if (temp_r31 == lbl_1_bss_2D6) {
+                    for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+                        if (modelIndex == firstAwardPlayer) {
                             continue;
                         }
-                        Hu3DModelScaleSet(lbl_1_bss_199C2[temp_r31 + 74], lbl_1_bss_328[temp_r30].x * 1.2, lbl_1_bss_328[temp_r30].y * 1.2,
-                            lbl_1_bss_328[temp_r30].z * 1.2);
+                        Hu3DModelScaleSet(loadedModelIds[modelIndex + 74], awardOrbScales[orbIndex].x * 1.2, awardOrbScales[orbIndex].y * 1.2,
+                            awardOrbScales[orbIndex].z * 1.2);
                     }
-                    if (lbl_1_bss_2D4 != -2) {
-                        if (lbl_1_bss_2D4 == -1) {
-                            if ((temp_r27 & 0x7) == 0) {
-                                temp_r29++;
-                                if (temp_r29 == lbl_1_bss_2D6) {
-                                    temp_r29++;
+                    if (secondAwardPlayer != -2) {
+                        if (secondAwardPlayer == -1) {
+                            if ((animationFrame & 0x7) == 0) {
+                                randomCharacterIndex++;
+                                if (randomCharacterIndex == firstAwardPlayer) {
+                                    randomCharacterIndex++;
                                 }
-                                if (temp_r29 >= 4) {
-                                    temp_r29 = 0;
-                                    if (lbl_1_bss_2D6 == 0) {
-                                        temp_r29++;
+                                if (randomCharacterIndex >= 4) {
+                                    randomCharacterIndex = 0;
+                                    if (firstAwardPlayer == 0) {
+                                        randomCharacterIndex++;
                                     }
                                 }
                             }
                             else {
-                                if (temp_r29 == lbl_1_bss_2D6) {
-                                    temp_r29++;
-                                    if (temp_r29 >= 4) {
-                                        temp_r29 = 0;
+                                if (randomCharacterIndex == firstAwardPlayer) {
+                                    randomCharacterIndex++;
+                                    if (randomCharacterIndex >= 4) {
+                                        randomCharacterIndex = 0;
                                     }
                                 }
                             }
-                            temp_r27++;
-                            temp_r28 = lbl_1_bss_199C2[temp_r29 + 74];
-                            for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                                if (temp_r31 != lbl_1_bss_2D6) {
-                                    Hu3DModelAttrSet(lbl_1_bss_199C2[temp_r31 + 74], HU3D_ATTR_DISPOFF);
+                            animationFrame++;
+                            selectedCharacterModel = loadedModelIds[randomCharacterIndex + 74];
+                            for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+                                if (modelIndex != firstAwardPlayer) {
+                                    Hu3DModelAttrSet(loadedModelIds[modelIndex + 74], HU3D_ATTR_DISPOFF);
                                 }
                             }
-                            Hu3DModelAttrReset(temp_r28, HU3D_ATTR_DISPOFF);
+                            Hu3DModelAttrReset(selectedCharacterModel, HU3D_ATTR_DISPOFF);
                         }
                         else {
-                            temp_r28 = lbl_1_bss_199C2[lbl_1_bss_2D4 + 74];
-                            for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                                if (temp_r31 != lbl_1_bss_2D6) {
-                                    Hu3DModelAttrSet(lbl_1_bss_199C2[temp_r31 + 74], HU3D_ATTR_DISPOFF);
+                            selectedCharacterModel = loadedModelIds[secondAwardPlayer + 74];
+                            for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+                                if (modelIndex != firstAwardPlayer) {
+                                    Hu3DModelAttrSet(loadedModelIds[modelIndex + 74], HU3D_ATTR_DISPOFF);
                                 }
                             }
-                            Hu3DModelAttrReset(temp_r28, HU3D_ATTR_DISPOFF);
+                            Hu3DModelAttrReset(selectedCharacterModel, HU3D_ATTR_DISPOFF);
                         }
-                        Hu3DModelPosSet(temp_r28, sp20.x, sp20.y, sp20.z);
-                        Hu3DModelRotSet(temp_r28, 90.0f + lbl_1_bss_2A8[0].x, lbl_1_bss_2A8[0].y, lbl_1_bss_2A8[0].z);
+                        Hu3DModelPosSet(selectedCharacterModel, worldPosition.x, worldPosition.y, worldPosition.z);
+                        Hu3DModelRotSet(selectedCharacterModel, 90.0f + cameraRotation[0].x, cameraRotation[0].y, cameraRotation[0].z);
                     }
                     break;
 
                 case 2:
-                    for (temp_r31 = 0; temp_r31 < 7; temp_r31++) {
-                        Hu3DModelScaleSet(lbl_1_bss_199C2[temp_r31 + 78], lbl_1_bss_328[temp_r30].x * 1.2, lbl_1_bss_328[temp_r30].y * 1.2,
-                            lbl_1_bss_328[temp_r30].z * 1.2);
+                    for (modelIndex = 0; modelIndex < 7; modelIndex++) {
+                        Hu3DModelScaleSet(loadedModelIds[modelIndex + 78], awardOrbScales[orbIndex].x * 1.2, awardOrbScales[orbIndex].y * 1.2,
+                            awardOrbScales[orbIndex].z * 1.2);
                     }
-                    if (lbl_1_bss_2D2 != -2) {
-                        if (lbl_1_bss_2D2 == -1) {
-                            if ((temp_r27 & 0x7) == 0 && (++temp_r29) >= 7) {
-                                temp_r29 = 0;
+                    if (thirdAwardPlayer != -2) {
+                        if (thirdAwardPlayer == -1) {
+                            if ((animationFrame & 0x7) == 0 && (++randomCharacterIndex) >= 7) {
+                                randomCharacterIndex = 0;
                             }
-                            temp_r27++;
-                            temp_r28 = lbl_1_bss_199C2[temp_r29 + 78];
-                            for (temp_r31 = 0; temp_r31 < 7; temp_r31++) {
-                                Hu3DModelAttrSet(lbl_1_bss_199C2[temp_r31 + 78], HU3D_ATTR_DISPOFF);
+                            animationFrame++;
+                            selectedCharacterModel = loadedModelIds[randomCharacterIndex + 78];
+                            for (modelIndex = 0; modelIndex < 7; modelIndex++) {
+                                Hu3DModelAttrSet(loadedModelIds[modelIndex + 78], HU3D_ATTR_DISPOFF);
                             }
-                            Hu3DModelAttrReset(temp_r28, HU3D_ATTR_DISPOFF);
+                            Hu3DModelAttrReset(selectedCharacterModel, HU3D_ATTR_DISPOFF);
                         }
                         else {
-                            temp_r28 = lbl_1_bss_199C2[lbl_1_bss_2D2 + 78];
-                            for (temp_r31 = 0; temp_r31 < 7; temp_r31++) {
-                                Hu3DModelAttrSet(lbl_1_bss_199C2[temp_r31 + 78], HU3D_ATTR_DISPOFF);
+                            selectedCharacterModel = loadedModelIds[thirdAwardPlayer + 78];
+                            for (modelIndex = 0; modelIndex < 7; modelIndex++) {
+                                Hu3DModelAttrSet(loadedModelIds[modelIndex + 78], HU3D_ATTR_DISPOFF);
                             }
-                            Hu3DModelAttrReset(temp_r28, HU3D_ATTR_DISPOFF);
+                            Hu3DModelAttrReset(selectedCharacterModel, HU3D_ATTR_DISPOFF);
                         }
-                        Hu3DModelPosSet(temp_r28, sp20.x, sp20.y, sp20.z);
-                        Hu3DModelRotSet(temp_r28, 90.0f + lbl_1_bss_2A8[0].x, lbl_1_bss_2A8[0].y, lbl_1_bss_2A8[0].z);
+                        Hu3DModelPosSet(selectedCharacterModel, worldPosition.x, worldPosition.y, worldPosition.z);
+                        Hu3DModelRotSet(selectedCharacterModel, 90.0f + cameraRotation[0].x, cameraRotation[0].y, cameraRotation[0].z);
                     }
                     break;
             }
-            sp8[temp_r30] += 4.0 * (1.0 + (temp_r30 * 0.05));
-            if (sp8[temp_r30] > 360.0f) {
-                sp8[temp_r30] -= 360.0f;
+            orbAngles[orbIndex] += 4.0 * (1.0 + (orbIndex * 0.05));
+            if (orbAngles[orbIndex] > 360.0f) {
+                orbAngles[orbIndex] -= 360.0f;
             }
         }
         HuPrcVSleep();
     }
 }
 
-void fn_1_ABD0(s16 arg0, s16 arg1)
+void PinballBallLaunch(s16 playerIndex, s16 ballIndex)
 {
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    s16 *temp_r31;
-    s16 temp_r29;
-    s16 temp_r28;
-    Vec sp14;
-    Vec sp8;
-    temp_r31 = &lbl_1_bss_198F0[arg0][0];
-    temp_r29 = lbl_1_bss_199C2[arg0 + 38];
-    if (temp_r31[1] & 0x2) {
-        if (temp_r31[0] == 85) {
-            if (Hu3DMotionIDGet(temp_r29) != lbl_1_bss_1990E[45] && Hu3DMotionShiftIDGet(temp_r29) != lbl_1_bss_1990E[45]) {
-                Hu3DMotionShiftSet(temp_r29, lbl_1_bss_1990E[45], 0, 8, HU3D_MOTATTR_NONE);
+    float moveDirection;
+    float turnAngle;
+    float unusedFloat;
+    s16 *characterState;
+    s16 characterModel;
+    s16 otherCharacterIndex;
+    Vec separationVector;
+    Vec candidatePosition;
+    characterState = &playerBallState[playerIndex][0];
+    characterModel = loadedModelIds[playerIndex + 38];
+    if (characterState[1] & 0x2) {
+        if (characterState[0] == 85) {
+            if (Hu3DMotionIDGet(characterModel) != loadedMotionIds[45] && Hu3DMotionShiftIDGet(characterModel) != loadedMotionIds[45]) {
+                Hu3DMotionShiftSet(characterModel, loadedMotionIds[45], 0, 8, HU3D_MOTATTR_NONE);
             }
         }
         else {
-            if (Hu3DMotionIDGet(temp_r29) != lbl_1_bss_1990E[46] && Hu3DMotionShiftIDGet(temp_r29) != lbl_1_bss_1990E[46]) {
-                Hu3DMotionShiftSet(temp_r29, lbl_1_bss_1990E[46], 0, 8, HU3D_MOTATTR_LOOP);
+            if (Hu3DMotionIDGet(characterModel) != loadedMotionIds[46] && Hu3DMotionShiftIDGet(characterModel) != loadedMotionIds[46]) {
+                Hu3DMotionShiftSet(characterModel, loadedMotionIds[46], 0, 8, HU3D_MOTATTR_LOOP);
             }
         }
-        temp_r31[0]--;
-        if (temp_r31[0] <= 0) {
-            temp_r31[1] &= ~0x2;
-            temp_r31[1] |= 0x4;
-            temp_r31[0] = 20;
+        characterState[0]--;
+        if (characterState[0] <= 0) {
+            characterState[1] &= ~0x2;
+            characterState[1] |= 0x4;
+            characterState[0] = 20;
         }
     }
     else {
-        if (temp_r31[1] & 0x4) {
-            if (Hu3DMotionIDGet(temp_r29) != lbl_1_bss_1990E[43] && Hu3DMotionShiftIDGet(temp_r29) != lbl_1_bss_1990E[43]) {
-                Hu3DMotionShiftSet(temp_r29, lbl_1_bss_1990E[43], 0, 16, HU3D_MOTATTR_LOOP);
+        if (characterState[1] & 0x4) {
+            if (Hu3DMotionIDGet(characterModel) != loadedMotionIds[43] && Hu3DMotionShiftIDGet(characterModel) != loadedMotionIds[43]) {
+                Hu3DMotionShiftSet(characterModel, loadedMotionIds[43], 0, 16, HU3D_MOTATTR_LOOP);
             }
-            temp_r31[0]--;
-            if (temp_r31[0] <= 0) {
-                temp_r31[1] &= ~0x4;
-                temp_r31[0] = frandmod(30) + 30;
+            characterState[0]--;
+            if (characterState[0] <= 0) {
+                characterState[1] &= ~0x4;
+                characterState[0] = frandmod(30) + 30;
             }
         }
         else {
-            temp_r31[0]--;
-            if (temp_r31[0] <= 0) {
-                temp_r31[1] |= 4;
-                temp_r31[0] = 60;
+            characterState[0]--;
+            if (characterState[0] <= 0) {
+                characterState[1] |= 4;
+                characterState[0] = 60;
             }
             else {
-                if (Hu3DMotionIDGet(temp_r29) != lbl_1_bss_1990E[44]) {
-                    Hu3DMotionSet(temp_r29, lbl_1_bss_1990E[44]);
+                if (Hu3DMotionIDGet(characterModel) != loadedMotionIds[44]) {
+                    Hu3DMotionSet(characterModel, loadedMotionIds[44]);
                 }
-                if (temp_r31[1] & 0x1) {
-                    temp_f31 = -1;
-                    temp_f30 = -90;
+                if (characterState[1] & 0x1) {
+                    moveDirection = -1;
+                    turnAngle = -90;
                 }
                 else {
-                    temp_f31 = 1;
-                    temp_f30 = 90;
+                    moveDirection = 1;
+                    turnAngle = 90;
                 }
-                sp8 = lbl_1_bss_18B4[arg0];
-                sp8.x += temp_f31;
-                for (temp_r28 = 0; temp_r28 < 5; temp_r28++) {
-                    if (temp_r28 == arg0 || lbl_1_bss_18A0[temp_r28] == 0) {
+                candidatePosition = playerPositions[playerIndex];
+                candidatePosition.x += moveDirection;
+                for (otherCharacterIndex = 0; otherCharacterIndex < 5; otherCharacterIndex++) {
+                    if (otherCharacterIndex == playerIndex || playerActiveFlags[otherCharacterIndex] == 0) {
                         continue;
                     }
-                    VECSubtract(&sp8, &lbl_1_bss_18B4[temp_r28], &sp14);
-                    if (VECMag(&sp14) < 55.0f) {
+                    VECSubtract(&candidatePosition, &playerPositions[otherCharacterIndex], &separationVector);
+                    if (VECMag(&separationVector) < 55.0f) {
                         break;
                     }
                 }
-                if (temp_r28 == 5) {
-                    lbl_1_bss_18B4[arg0].x += temp_f31;
-                    if (lbl_1_bss_18B4[arg0].x < lbl_1_data_2A0[(arg0 * 2)]) {
-                        lbl_1_bss_18B4[arg0].x = lbl_1_data_2A0[(arg0 * 2)];
-                        temp_r31[1] ^= 0x1;
-                        temp_r31[1] |= 0x4;
-                        temp_r31[0] = 60;
+                if (otherCharacterIndex == 5) {
+                    playerPositions[playerIndex].x += moveDirection;
+                    if (playerPositions[playerIndex].x < playerHorizontalBounds[(playerIndex * 2)]) {
+                        playerPositions[playerIndex].x = playerHorizontalBounds[(playerIndex * 2)];
+                        characterState[1] ^= 0x1;
+                        characterState[1] |= 0x4;
+                        characterState[0] = 60;
                     }
-                    if (lbl_1_bss_18B4[arg0].x > lbl_1_data_2A0[(arg0 * 2) + 1]) {
-                        lbl_1_bss_18B4[arg0].x = lbl_1_data_2A0[(arg0 * 2) + 1];
-                        temp_r31[1] ^= 0x1;
-                        temp_r31[1] |= 0x4;
-                        temp_r31[0] = 60;
+                    if (playerPositions[playerIndex].x > playerHorizontalBounds[(playerIndex * 2) + 1]) {
+                        playerPositions[playerIndex].x = playerHorizontalBounds[(playerIndex * 2) + 1];
+                        characterState[1] ^= 0x1;
+                        characterState[1] |= 0x4;
+                        characterState[0] = 60;
                     }
                 }
                 else {
-                    temp_r31[1] ^= 0x1;
-                    temp_r31[1] |= 0x4;
-                    temp_r31[0] = 60;
+                    characterState[1] ^= 0x1;
+                    characterState[1] |= 0x4;
+                    characterState[0] = 60;
                 }
             }
         }
     }
-    lbl_1_bss_824[arg0].x = lbl_1_bss_18B4[arg0].x;
-    lbl_1_bss_824[arg0].y = 215;
-    lbl_1_bss_824[arg0].z = lbl_1_bss_18B4[arg0].y;
+    playerShadowPositions[playerIndex].x = playerPositions[playerIndex].x;
+    playerShadowPositions[playerIndex].y = 215;
+    playerShadowPositions[playerIndex].z = playerPositions[playerIndex].y;
 }
 
-s16 lbl_1_data_3A4[] = { 4, 3, 7 };
+s16 awardOrbCounts[] = { 4, 3, 7 };
 
-Vec lbl_1_data_3AC[] = { { -118.75, -70, 0 }, { -56.25, -70, 0 }, { 6.25, -70, 0 }, { 68.75, -70, 0 } };
+Vec singleAwardOrbPositions[] = { { -118.75, -70, 0 }, { -56.25, -70, 0 }, { 6.25, -70, 0 }, { 68.75, -70, 0 } };
 
-Vec lbl_1_data_3DC[] = {
+Vec multiAwardOrbPositions[] = {
     { -108.35, -70, 0 },
     { -25.05, -70, 0 },
     { 58.25, -70, 0 },
 };
 
-Vec lbl_1_data_400[] = { { -125, -70, 0 }, { -75, -70, 0 }, { -25, -70, 0 }, { 25, -70, 0 }, { 75, -70, 0 }, { -85, -190, 0 }, { 35, -190, 0 } };
+Vec bonusAwardOrbPositions[] = { { -125, -70, 0 }, { -75, -70, 0 }, { -25, -70, 0 }, { 25, -70, 0 }, { 75, -70, 0 }, { -85, -190, 0 }, { 35, -190, 0 } };
 
-Vec *lbl_1_data_454[] = { lbl_1_data_3AC, lbl_1_data_3DC, lbl_1_data_400 };
+Vec *awardOrbPositionSets[] = { singleAwardOrbPositions, multiAwardOrbPositions, bonusAwardOrbPositions };
 
-Vec *fn_1_CA30(Vec *arg0, Vec *arg1, Vec *arg2);
+Vec *PinballCollisionSurfaceGet(Vec *point, Vec *lineOrigin, Vec *lineDirection);
 
-float fn_1_CB70(Vec *arg0, Vec *arg1, Vec *arg2);
+float VectorDistance(Vec *point, Vec *lineOrigin, Vec *lineDirection);
 
-s16 fn_1_B1E8(Vec *arg0, Vec *arg1, s16 arg2)
+s16 PinballSegmentIntersect(Vec *ballPosition, Vec *ballVelocity, s16 ballIndex)
 {
-    Vec sp4C;
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
-    s32 spC;
+    Vec nextBallPosition;
+    Vec obstacleDirection;
+    Vec collisionVector;
+    Vec reflectionVector;
+    Vec ballVelocity;
+    Vec previousBallPosition;
+    s32 unusedCollisionFlag;
 
-    float temp_f31;
-    float temp_f30;
-    float temp_f28;
-    float temp_f27;
+    float stepDistance;
+    float distance;
+    float remainingDistance;
+    float projection;
 
-    s16 temp_r30;
-    Vec *temp_r28;
-    s32 temp_r27;
-    Vec *temp_r25;
-    u8 temp_r24;
+    s16 obstacleIndex;
+    Vec *targetPosition;
+    s32 collisionOccurred;
+    Vec *collisionSurface;
+    u8 trailHistoryIndex;
 
-    s16 temp_r23 = -1;
-    spC = 1;
-    temp_f28 = VECMag(arg1);
-    sp1C = *arg1;
-    temp_r27 = 0;
-    sp10 = *arg0;
-    temp_r24 = lbl_1_bss_310 - 120;
-    for (temp_r30 = temp_f30 = 0; temp_r30 < 120; temp_r30++, temp_r24++) {
-        temp_f30 += lbl_1_bss_370[temp_r24];
+    s16 pocketIndex = -1;
+    unusedCollisionFlag = 1;
+    remainingDistance = VECMag(ballVelocity);
+    ballVelocity = *ballVelocity;
+    collisionOccurred = 0;
+    previousBallPosition = *ballPosition;
+    trailHistoryIndex = ballTrailHead - 120;
+    for (obstacleIndex = distance = 0; obstacleIndex < 120; obstacleIndex++, trailHistoryIndex++) {
+        distance += ballTrailDistances[trailHistoryIndex];
     }
-    if (temp_f30 < 120.0f * sqrtf(6.0f)) {
-        lbl_1_bss_312 = 10;
+    if (distance < 120.0f * sqrtf(6.0f)) {
+        collisionCooldown = 10;
     }
-    while (temp_f28 > 0.0f) {
-        if (temp_f28 > 3.0f) {
-            temp_f28 -= 3.0f;
-            temp_f31 = 3.0f;
+    while (remainingDistance > 0.0f) {
+        if (remainingDistance > 3.0f) {
+            remainingDistance -= 3.0f;
+            stepDistance = 3.0f;
         }
         else {
-            temp_f31 = temp_f28;
-            temp_f28 = 0;
+            stepDistance = remainingDistance;
+            remainingDistance = 0;
         }
-        VECNormalize(&sp1C, &sp1C);
-        VECScale(&sp1C, &sp1C, temp_f31);
-        VECAdd(arg0, &sp1C, &sp4C);
-        temp_f31 = VECMag(&sp1C);
-        if (lbl_1_bss_312 == 0) {
-            for (temp_r30 = 0; temp_r30 < 5; temp_r30++) {
-                if (lbl_1_bss_18A0[temp_r30] == 0) {
+        VECNormalize(&ballVelocity, &ballVelocity);
+        VECScale(&ballVelocity, &ballVelocity, stepDistance);
+        VECAdd(ballPosition, &ballVelocity, &nextBallPosition);
+        stepDistance = VECMag(&ballVelocity);
+        if (collisionCooldown == 0) {
+            for (obstacleIndex = 0; obstacleIndex < 5; obstacleIndex++) {
+                if (playerActiveFlags[obstacleIndex] == 0) {
                     continue;
                 }
-                VECSubtract(&sp4C, &lbl_1_bss_18B4[temp_r30], &sp34);
-                temp_f30 = VECMag(&sp34);
-                if (temp_f30 < 33.0) {
-                    VECNormalize(&sp34, &sp34);
-                    VECScale(&sp34, &sp28, 33.0f);
-                    VECAdd(&lbl_1_bss_18B4[temp_r30], &sp28, &sp4C);
-                    VECScale(&sp1C, &sp28, -1.0f);
-                    temp_f27 = (sp28.x * sp34.x) + (sp28.y * sp34.y);
-                    sp34.x = (2.0 * sp34.x * temp_f27) - sp28.x;
-                    sp34.y = (2.0 * sp34.y * temp_f27) - sp28.y;
-                    sp34.z = 0;
-                    VECNormalize(&sp34, &sp34);
-                    VECScale(&sp34, &sp1C, temp_f31);
-                    VECAdd(&sp4C, &sp1C, &sp34);
-                    temp_f30 = VECSquareDistance(&sp34, &lbl_1_bss_18B4[temp_r30]);
-                    if (temp_f30 < 1089.0) {
-                        VECScale(&sp1C, &sp1C, -1.0f);
+                VECSubtract(&nextBallPosition, &playerPositions[obstacleIndex], &collisionVector);
+                distance = VECMag(&collisionVector);
+                if (distance < 33.0) {
+                    VECNormalize(&collisionVector, &collisionVector);
+                    VECScale(&collisionVector, &reflectionVector, 33.0f);
+                    VECAdd(&playerPositions[obstacleIndex], &reflectionVector, &nextBallPosition);
+                    VECScale(&ballVelocity, &reflectionVector, -1.0f);
+                    projection = (reflectionVector.x * collisionVector.x) + (reflectionVector.y * collisionVector.y);
+                    collisionVector.x = (2.0 * collisionVector.x * projection) - reflectionVector.x;
+                    collisionVector.y = (2.0 * collisionVector.y * projection) - reflectionVector.y;
+                    collisionVector.z = 0;
+                    VECNormalize(&collisionVector, &collisionVector);
+                    VECScale(&collisionVector, &ballVelocity, stepDistance);
+                    VECAdd(&nextBallPosition, &ballVelocity, &collisionVector);
+                    distance = VECSquareDistance(&collisionVector, &playerPositions[obstacleIndex]);
+                    if (distance < 1089.0) {
+                        VECScale(&ballVelocity, &ballVelocity, -1.0f);
                     }
-                    lbl_1_bss_198F0[temp_r30][1] = 2;
-                    lbl_1_bss_198F0[temp_r30][0] = 100;
-                    temp_r27 = 1;
+                    playerBallState[obstacleIndex][1] = 2;
+                    playerBallState[obstacleIndex][0] = 100;
+                    collisionOccurred = 1;
                 }
             }
         }
         else {
-            lbl_1_bss_312--;
+            collisionCooldown--;
         }
-        for (temp_r30 = 0; temp_r30 < lbl_1_bss_1884; temp_r30++) {
-            if (VECSquareDistance(&lbl_1_bss_D8F0[temp_r30], &sp4C) <= 169.0f) {
-                VECSubtract(&sp4C, &lbl_1_bss_D8F0[temp_r30], &sp34);
-                VECNormalize(&sp34, &sp34);
-                VECScale(&sp34, &sp34, 13.05f);
-                VECAdd(&lbl_1_bss_D8F0[temp_r30], &sp34, &sp4C);
-                VECScale(arg1, arg1, 0.96f);
-                temp_r27 = 1;
+        for (obstacleIndex = 0; obstacleIndex < ballTrailCount; obstacleIndex++) {
+            if (VECSquareDistance(&upperBallTrailPositions[obstacleIndex], &nextBallPosition) <= 169.0f) {
+                VECSubtract(&nextBallPosition, &upperBallTrailPositions[obstacleIndex], &collisionVector);
+                VECNormalize(&collisionVector, &collisionVector);
+                VECScale(&collisionVector, &collisionVector, 13.05f);
+                VECAdd(&upperBallTrailPositions[obstacleIndex], &collisionVector, &nextBallPosition);
+                VECScale(ballVelocity, ballVelocity, 0.96f);
+                collisionOccurred = 1;
             }
             else {
-                if (VECSquareDistance(&lbl_1_bss_18F0[temp_r30], &sp4C) <= 169.0f) {
-                    VECSubtract(&sp4C, &lbl_1_bss_18F0[temp_r30], &sp34);
-                    VECNormalize(&sp34, &sp34);
-                    VECScale(&sp34, &sp34, 13.05f);
-                    VECAdd(&lbl_1_bss_18F0[temp_r30], &sp34, &sp4C);
-                    VECScale(arg1, arg1, 0.96f);
-                    temp_r27 = 1;
+                if (VECSquareDistance(&lowerBallTrailPositions[obstacleIndex], &nextBallPosition) <= 169.0f) {
+                    VECSubtract(&nextBallPosition, &lowerBallTrailPositions[obstacleIndex], &collisionVector);
+                    VECNormalize(&collisionVector, &collisionVector);
+                    VECScale(&collisionVector, &collisionVector, 13.05f);
+                    VECAdd(&lowerBallTrailPositions[obstacleIndex], &collisionVector, &nextBallPosition);
+                    VECScale(ballVelocity, ballVelocity, 0.96f);
+                    collisionOccurred = 1;
                 }
                 else {
                     continue;
                 }
             }
-            *arg0 = sp4C;
+            *ballPosition = nextBallPosition;
             break;
         }
-        if (temp_f31 == 0.0) {
+        if (stepDistance == 0.0) {
             continue;
         }
-        for (temp_r30 = 0; temp_r30 < lbl_1_bss_1884; temp_r30++) {
-            VECSubtract(&lbl_1_bss_18F0[temp_r30], &lbl_1_bss_D8F0[temp_r30], &sp40);
-            temp_f30 = fn_1_CB70(&sp4C, &lbl_1_bss_D8F0[temp_r30], &sp40);
-            if (temp_f30 < 13.0f) {
-                temp_r25 = fn_1_CA30(&sp4C, &lbl_1_bss_D8F0[temp_r30], &sp40);
-                if (VECSquareDistance(&lbl_1_bss_D8F0[temp_r30], &sp4C) >= 169.0f && VECSquareDistance(&lbl_1_bss_18F0[temp_r30], &sp4C) >= 169.0f) {
-                    VECSubtract(temp_r25, &lbl_1_bss_D8F0[temp_r30], &sp34);
-                    if (VECMag2Point(&sp34) > VECMag2Point(&sp40)) {
+        for (obstacleIndex = 0; obstacleIndex < ballTrailCount; obstacleIndex++) {
+            VECSubtract(&lowerBallTrailPositions[obstacleIndex], &upperBallTrailPositions[obstacleIndex], &obstacleDirection);
+            distance = VectorDistance(&nextBallPosition, &upperBallTrailPositions[obstacleIndex], &obstacleDirection);
+            if (distance < 13.0f) {
+                collisionSurface = PinballCollisionSurfaceGet(&nextBallPosition, &upperBallTrailPositions[obstacleIndex], &obstacleDirection);
+                if (VECSquareDistance(&upperBallTrailPositions[obstacleIndex], &nextBallPosition) >= 169.0f && VECSquareDistance(&lowerBallTrailPositions[obstacleIndex], &nextBallPosition) >= 169.0f) {
+                    VECSubtract(collisionSurface, &upperBallTrailPositions[obstacleIndex], &collisionVector);
+                    if (VECMag2Point(&collisionVector) > VECMag2Point(&obstacleDirection)) {
                         continue;
                     }
-                    VECSubtract(temp_r25, &lbl_1_bss_18F0[temp_r30], &sp34);
-                    if (VECMag2Point(&sp34) > VECMag2Point(&sp40)) {
+                    VECSubtract(collisionSurface, &lowerBallTrailPositions[obstacleIndex], &collisionVector);
+                    if (VECMag2Point(&collisionVector) > VECMag2Point(&obstacleDirection)) {
                         continue;
                     }
                 }
-                VECSubtract(&sp4C, temp_r25, &sp34);
-                VECNormalize(&sp34, &sp34);
-                VECScale(&sp34, &sp34, 13.0f);
-                VECAdd(temp_r25, &sp34, &sp4C);
-                VECSubtract(arg0, &sp4C, &sp34);
-                *arg0 = sp4C;
-                temp_f31 -= VECMag(&sp34);
-                if (temp_f31 < 0.0f) {
-                    temp_f28 -= temp_f31;
-                    temp_f31 = ABS(temp_f31);
+                VECSubtract(&nextBallPosition, collisionSurface, &collisionVector);
+                VECNormalize(&collisionVector, &collisionVector);
+                VECScale(&collisionVector, &collisionVector, 13.0f);
+                VECAdd(collisionSurface, &collisionVector, &nextBallPosition);
+                VECSubtract(ballPosition, &nextBallPosition, &collisionVector);
+                *ballPosition = nextBallPosition;
+                stepDistance -= VECMag(&collisionVector);
+                if (stepDistance < 0.0f) {
+                    remainingDistance -= stepDistance;
+                    stepDistance = ABS(stepDistance);
 #if VERSION_REV2
-                    if (temp_f31 == 0.0) {
-                        sp1C.x = sp1C.y = sp1C.z = 0.0f;
+                    if (stepDistance == 0.0) {
+                        ballVelocity.x = ballVelocity.y = ballVelocity.z = 0.0f;
                         break;
                     }
 #endif
                 }
-                sp34 = sp40;
-                sp34.z = 1;
-                VECCrossProduct(&sp34, &sp40, &sp34);
-                VECNormalize(&sp34, &sp34);
-                VECScale(&sp1C, &sp28, -1.0f);
-                temp_f27 = (sp28.x * sp34.x) + (sp28.y * sp34.y);
-                sp34.x = (1.5 * sp34.x * temp_f27) - sp28.x;
-                sp34.y = (1.5 * sp34.y * temp_f27) - sp28.y;
-                sp34.z = 0;
-                VECNormalize(&sp34, &sp34);
-                VECScale(&sp34, &sp1C, temp_f31);
-                lbl_1_bss_884[temp_r30] = 10;
-                VECScale(arg1, arg1, 0.96f);
-                VECNormalize(&sp1C, &sp34);
-                VECNormalize(arg1, &sp28);
-                if (VECDotProduct(&sp34, &sp28) < 0.5) {
-                    temp_r27 = 1;
+                collisionVector = obstacleDirection;
+                collisionVector.z = 1;
+                VECCrossProduct(&collisionVector, &obstacleDirection, &collisionVector);
+                VECNormalize(&collisionVector, &collisionVector);
+                VECScale(&ballVelocity, &reflectionVector, -1.0f);
+                projection = (reflectionVector.x * collisionVector.x) + (reflectionVector.y * collisionVector.y);
+                collisionVector.x = (1.5 * collisionVector.x * projection) - reflectionVector.x;
+                collisionVector.y = (1.5 * collisionVector.y * projection) - reflectionVector.y;
+                collisionVector.z = 0;
+                VECNormalize(&collisionVector, &collisionVector);
+                VECScale(&collisionVector, &ballVelocity, stepDistance);
+                ballTrailFlags[obstacleIndex] = 10;
+                VECScale(ballVelocity, ballVelocity, 0.96f);
+                VECNormalize(&ballVelocity, &collisionVector);
+                VECNormalize(ballVelocity, &reflectionVector);
+                if (VECDotProduct(&collisionVector, &reflectionVector) < 0.5) {
+                    collisionOccurred = 1;
                 }
             }
         }
-        VECAdd(arg0, &sp1C, arg0);
-        if (arg0->x >= lbl_1_bss_77C.x - 13.0f) {
-            arg0->x = lbl_1_bss_77C.x - 13.0f - 1.0f;
+        VECAdd(ballPosition, &ballVelocity, ballPosition);
+        if (ballPosition->x >= collisionPosition.x - 13.0f) {
+            ballPosition->x = collisionPosition.x - 13.0f - 1.0f;
         }
-        if (arg0->y >= lbl_1_bss_77C.y - 13.0f) {
-            arg0->y = lbl_1_bss_77C.y - 13.0f - 1.0f;
+        if (ballPosition->y >= collisionPosition.y - 13.0f) {
+            ballPosition->y = collisionPosition.y - 13.0f - 1.0f;
         }
-        if (arg0->x <= lbl_1_bss_770.x + 13.0f) {
-            arg0->x = lbl_1_bss_770.x + 13.0f + 1.0f;
+        if (ballPosition->x <= collisionNormal.x + 13.0f) {
+            ballPosition->x = collisionNormal.x + 13.0f + 1.0f;
         }
-        if (arg0->y <= lbl_1_bss_770.y + 13.0f) {
-            arg0->y = lbl_1_bss_770.y + 13.0f + 1.0f;
+        if (ballPosition->y <= collisionNormal.y + 13.0f) {
+            ballPosition->y = collisionNormal.y + 13.0f + 1.0f;
         }
     }
-    temp_f31 = VECMag(arg1);
+    stepDistance = VECMag(ballVelocity);
 #if VERSION_REV2
-    if (VECMag(&sp1C) == 0.0) {
-        sp1C.x = 0.0f;
-        sp1C.y = 1.0f;
-        sp1C.z = 0.0f;
+    if (VECMag(&ballVelocity) == 0.0) {
+        ballVelocity.x = 0.0f;
+        ballVelocity.y = 1.0f;
+        ballVelocity.z = 0.0f;
     }
 #endif
-    VECNormalize(&sp1C, &sp1C);
-    VECScale(&sp1C, arg1, temp_f31);
-    if (temp_r27 != 0) {
+    VECNormalize(&ballVelocity, &ballVelocity);
+    VECScale(&ballVelocity, ballVelocity, stepDistance);
+    if (collisionOccurred != 0) {
         HuAudFXPlay(1853);
     }
-    if (arg2 < 0 || arg2 >= 3) {
-        arg2 = 0;
+    if (ballIndex < 0 || ballIndex >= 3) {
+        ballIndex = 0;
     }
-    temp_r28 = lbl_1_data_454[arg2];
-    for (temp_r30 = 0; temp_r30 < lbl_1_data_3A4[arg2]; temp_r30++, temp_r28++) {
-        VECSubtract(temp_r28, arg0, &sp34);
-        temp_f30 = VECMag(&sp34);
-        if (temp_f30 < 3.0f && VECMag(arg1) < 1.0f) {
-            arg1->x = arg1->y = arg1->z = 0.0f;
-            *arg0 = *temp_r28;
-            temp_r23 = temp_r30;
+    targetPosition = awardOrbPositionSets[ballIndex];
+    for (obstacleIndex = 0; obstacleIndex < awardOrbCounts[ballIndex]; obstacleIndex++, targetPosition++) {
+        VECSubtract(targetPosition, ballPosition, &collisionVector);
+        distance = VECMag(&collisionVector);
+        if (distance < 3.0f && VECMag(ballVelocity) < 1.0f) {
+            ballVelocity->x = ballVelocity->y = ballVelocity->z = 0.0f;
+            *ballPosition = *targetPosition;
+            pocketIndex = obstacleIndex;
             break;
         }
-        if (temp_f30 < 20.0f
+        if (distance < 20.0f
 #if VERSION_REV2
-            && !(temp_f30 < 0.000001)
+            && !(distance < 0.000001)
 #endif
         ) {
-            VECScale(arg1, arg1, 0.9f);
-            VECNormalize(&sp34, &sp34);
-            VECScale(&sp34, &sp34, 0.1 * (20.0f - temp_f30));
-            VECAdd(arg1, &sp34, arg1);
+            VECScale(ballVelocity, ballVelocity, 0.9f);
+            VECNormalize(&collisionVector, &collisionVector);
+            VECScale(&collisionVector, &collisionVector, 0.1 * (20.0f - distance));
+            VECAdd(ballVelocity, &collisionVector, ballVelocity);
             break;
         }
     }
-    if (temp_r30 == lbl_1_data_3A4[arg2]) {
-        arg1->y += 0.3;
+    if (obstacleIndex == awardOrbCounts[ballIndex]) {
+        ballVelocity->y += 0.3;
 #if VERSION_REV2
-        if (VECMag((Vec *)&arg1) < 0.000001) {
-            arg1->y += 0.3;
+        if (VECMag((Vec *)&ballVelocity) < 0.000001) {
+            ballVelocity->y += 0.3;
         }
 #endif
     }
-    if (arg0->x >= lbl_1_bss_77C.x - 13.0f) {
-        arg0->x = lbl_1_bss_77C.x - 13.0f - 1.0f;
+    if (ballPosition->x >= collisionPosition.x - 13.0f) {
+        ballPosition->x = collisionPosition.x - 13.0f - 1.0f;
     }
-    if (arg0->y >= lbl_1_bss_77C.y - 13.0f) {
-        arg0->y = lbl_1_bss_77C.y - 13.0f - 1.0f;
+    if (ballPosition->y >= collisionPosition.y - 13.0f) {
+        ballPosition->y = collisionPosition.y - 13.0f - 1.0f;
     }
-    if (arg0->x <= lbl_1_bss_770.x + 13.0f) {
-        arg0->x = lbl_1_bss_770.x + 13.0f + 1.0f;
+    if (ballPosition->x <= collisionNormal.x + 13.0f) {
+        ballPosition->x = collisionNormal.x + 13.0f + 1.0f;
     }
-    if (arg0->y <= lbl_1_bss_770.y + 13.0f) {
-        arg0->y = lbl_1_bss_770.y + 13.0f + 1.0f;
+    if (ballPosition->y <= collisionNormal.y + 13.0f) {
+        ballPosition->y = collisionNormal.y + 13.0f + 1.0f;
     }
-    VECSubtract(arg0, &sp10, &sp34);
-    lbl_1_bss_370[lbl_1_bss_310++] = VECMag(&sp34);
-    return temp_r23;
+    VECSubtract(ballPosition, &previousBallPosition, &collisionVector);
+    ballTrailDistances[ballTrailHead++] = VECMag(&collisionVector);
+    return pocketIndex;
 }
 
-void fn_1_C214(void)
+void PinballCollisionProcess(void)
 {
-    Mtx sp98;
-    Mtx sp68;
-    Mtx sp38;
-    Mtx sp8;
-    HU3DMODEL *temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    MTXRotDeg(sp8, 'z', 120);
+    Mtx modelMatrix;
+    Mtx translationMatrix;
+    Mtx boardMatrix;
+    Mtx rotationMatrix;
+    HU3DMODEL *modelData;
+    s16 ballIndex;
+    s16 characterIndex;
+    MTXRotDeg(rotationMatrix, 'z', 120);
     while (1) {
-        temp_r31 = &Hu3DData[lbl_1_bss_199C2[9]];
-        Hu3DMotionExec(lbl_1_bss_199C2[9], temp_r31->motId, temp_r31->motWork.time, 0);
-        Hu3DModelObjMtxGet(lbl_1_bss_199C2[9], "kaitendai-r_dai", sp38);
-        for (temp_r30 = 0; temp_r30 < 3; temp_r30++) {
-            temp_r31 = &Hu3DData[lbl_1_bss_199C2[temp_r30]];
-            MTXTrans(sp68, lbl_1_bss_860[temp_r30].x, lbl_1_bss_860[temp_r30].y, lbl_1_bss_860[temp_r30].z);
-            MTXConcat(sp68, lbl_1_bss_794[temp_r30], sp68);
-            MTXConcat(sp38, sp68, sp98);
-            MTXCopy(sp98, temp_r31->mtx);
-            temp_r31 = &Hu3DData[lbl_1_bss_199C2[temp_r30 + 55]];
-            MTXTrans(sp68, 0, 150, 0);
-            MTXConcat(sp38, sp68, sp98);
-            MTXCopy(sp98, temp_r31->mtx);
-            temp_r31 = &Hu3DData[lbl_1_bss_199C2[temp_r30 + 58]];
-            MTXTrans(sp68, 0, 150, 0);
-            MTXConcat(sp38, sp68, sp98);
-            MTXCopy(sp98, temp_r31->mtx);
-            temp_r31 = &Hu3DData[lbl_1_bss_199C2[temp_r30 + 65]];
-            MTXTrans(sp68, 0, 150, 0);
-            MTXConcat(sp38, sp68, sp98);
-            MTXCopy(sp98, temp_r31->mtx);
-            temp_r31 = &Hu3DData[lbl_1_bss_199C2[temp_r30 + 68]];
-            MTXTrans(sp68, 0, 150, lbl_1_bss_788[temp_r30] - 5.0f);
-            MTXConcat(sp38, sp68, sp98);
-            MTXCopy(sp98, temp_r31->mtx);
-            for (temp_r29 = 0; temp_r29 < 5; temp_r29++) {
-                if (temp_r30 != lbl_1_data_2C8[temp_r29]) {
+        modelData = &Hu3DData[loadedModelIds[9]];
+        Hu3DMotionExec(loadedModelIds[9], modelData->motId, modelData->motWork.time, 0);
+        Hu3DModelObjMtxGet(loadedModelIds[9], "kaitendai-r_dai", boardMatrix);
+        for (ballIndex = 0; ballIndex < 3; ballIndex++) {
+            modelData = &Hu3DData[loadedModelIds[ballIndex]];
+            MTXTrans(translationMatrix, ballModelPositions[ballIndex].x, ballModelPositions[ballIndex].y, ballModelPositions[ballIndex].z);
+            MTXConcat(translationMatrix, playerBallRotations[ballIndex], translationMatrix);
+            MTXConcat(boardMatrix, translationMatrix, modelMatrix);
+            MTXCopy(modelMatrix, modelData->mtx);
+            modelData = &Hu3DData[loadedModelIds[ballIndex + 55]];
+            MTXTrans(translationMatrix, 0, 150, 0);
+            MTXConcat(boardMatrix, translationMatrix, modelMatrix);
+            MTXCopy(modelMatrix, modelData->mtx);
+            modelData = &Hu3DData[loadedModelIds[ballIndex + 58]];
+            MTXTrans(translationMatrix, 0, 150, 0);
+            MTXConcat(boardMatrix, translationMatrix, modelMatrix);
+            MTXCopy(modelMatrix, modelData->mtx);
+            modelData = &Hu3DData[loadedModelIds[ballIndex + 65]];
+            MTXTrans(translationMatrix, 0, 150, 0);
+            MTXConcat(boardMatrix, translationMatrix, modelMatrix);
+            MTXCopy(modelMatrix, modelData->mtx);
+            modelData = &Hu3DData[loadedModelIds[ballIndex + 68]];
+            MTXTrans(translationMatrix, 0, 150, playerBallAngles[ballIndex] - 5.0f);
+            MTXConcat(boardMatrix, translationMatrix, modelMatrix);
+            MTXCopy(modelMatrix, modelData->mtx);
+            for (characterIndex = 0; characterIndex < 5; characterIndex++) {
+                if (ballIndex != playerBallSlots[characterIndex]) {
                     continue;
                 }
-                temp_r31 = &Hu3DData[lbl_1_bss_199C2[temp_r29 + 38]];
-                MTXTrans(sp68, lbl_1_bss_824[temp_r29].x, lbl_1_bss_824[temp_r29].y, lbl_1_bss_824[temp_r29].z);
-                mtxScaleCat(sp68, 0.35f, 0.35f, 0.35f);
-                MTXConcat(sp38, sp68, sp98);
-                MTXCopy(sp98, temp_r31->mtx);
-                temp_r31 = &Hu3DData[lbl_1_bss_199C2[temp_r29 + 85]];
-                MTXTrans(sp68, lbl_1_bss_824[temp_r29].x, lbl_1_bss_824[temp_r29].y + 1.0f, lbl_1_bss_824[temp_r29].z);
-                mtxScaleCat(sp68, 0.5f, 0.5f, 0.5f);
-                MTXConcat(sp38, sp68, sp98);
-                MTXCopy(sp98, temp_r31->mtx);
+                modelData = &Hu3DData[loadedModelIds[characterIndex + 38]];
+                MTXTrans(translationMatrix, playerShadowPositions[characterIndex].x, playerShadowPositions[characterIndex].y, playerShadowPositions[characterIndex].z);
+                mtxScaleCat(translationMatrix, 0.35f, 0.35f, 0.35f);
+                MTXConcat(boardMatrix, translationMatrix, modelMatrix);
+                MTXCopy(modelMatrix, modelData->mtx);
+                modelData = &Hu3DData[loadedModelIds[characterIndex + 85]];
+                MTXTrans(translationMatrix, playerShadowPositions[characterIndex].x, playerShadowPositions[characterIndex].y + 1.0f, playerShadowPositions[characterIndex].z);
+                mtxScaleCat(translationMatrix, 0.5f, 0.5f, 0.5f);
+                MTXConcat(boardMatrix, translationMatrix, modelMatrix);
+                MTXCopy(modelMatrix, modelData->mtx);
             }
-            MTXConcat(sp38, sp8, sp38);
+            MTXConcat(boardMatrix, rotationMatrix, boardMatrix);
         }
         HuPrcVSleep();
     }
 }
 
-void fn_1_C73C(HU3DMODEL *model, Mtx matrix)
+void PinballModelMatrixUpdate(HU3DMODEL *model, Mtx matrix)
 {
-    s16 temp_r31;
-    u8 temp_r30;
-    u8 temp_r29;
-    u8 temp_r28;
+    s16 trailIndex;
+    u8 red;
+    u8 green;
+    u8 blue;
 
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
@@ -1025,187 +1025,187 @@ void fn_1_C73C(HU3DMODEL *model, Mtx matrix)
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_VTX, 0, GX_DF_CLAMP, GX_AF_NONE);
     GXLoadPosMtxImm(matrix, GX_PNMTX0);
-    temp_r30 = temp_r29 = temp_r28 = 255;
-    for (temp_r31 = 0; temp_r31 < lbl_1_bss_1884; temp_r31++) {
-        if (lbl_1_bss_884[temp_r31]) {
-            temp_r30 = 255;
-            temp_r29 = temp_r28 = 0;
+    red = green = blue = 255;
+    for (trailIndex = 0; trailIndex < ballTrailCount; trailIndex++) {
+        if (ballTrailFlags[trailIndex]) {
+            red = 255;
+            green = blue = 0;
         }
         else {
-            temp_r30 = temp_r29 = temp_r28 = 255;
+            red = green = blue = 255;
         }
         GXBegin(GX_LINES, GX_VTXFMT0, 2);
-        GXPosition3f32(lbl_1_bss_D8F0[temp_r31].x, 150, lbl_1_bss_D8F0[temp_r31].y);
-        GXColor3u8(temp_r30, temp_r29, temp_r28);
-        GXPosition3f32(lbl_1_bss_18F0[temp_r31].x, 150, lbl_1_bss_18F0[temp_r31].y);
-        GXColor3u8(temp_r30, temp_r29, temp_r28);
+        GXPosition3f32(upperBallTrailPositions[trailIndex].x, 150, upperBallTrailPositions[trailIndex].y);
+        GXColor3u8(red, green, blue);
+        GXPosition3f32(lowerBallTrailPositions[trailIndex].x, 150, lowerBallTrailPositions[trailIndex].y);
+        GXColor3u8(red, green, blue);
     }
 }
 
 #define VECDistance2XYZ3(a, b, c)                                                                                                                    \
     ((((a)->x * (b)->x) - ((a)->x * (c)->x)) + (((a)->y * (b)->y) - ((a)->y * (c)->y)) + (((a)->z * (b)->z) - ((a)->z * (c)->z)))
 
-Vec *fn_1_CA30(Vec *arg0, Vec *arg1, Vec *arg2)
+Vec *PinballCollisionSurfaceGet(Vec *ballPosition, Vec *obstaclePosition, Vec *obstacleDirection)
 {
-    float temp_f31;
-    Vec spC;
-    VECNormalize(arg2, &spC);
-    temp_f31 = -VECDistance2XYZ3(&spC, arg1, arg0);
-    temp_f31 /= VECMag2Point(&spC);
-    lbl_1_bss_314.x = (arg1->x + (spC.x * temp_f31));
-    lbl_1_bss_314.y = (arg1->y + (spC.y * temp_f31));
-    lbl_1_bss_314.z = (arg1->z + (spC.z * temp_f31));
-    return &lbl_1_bss_314;
+    float projectionDistance;
+    Vec normalizedDirection;
+    VECNormalize(obstacleDirection, &normalizedDirection);
+    projectionDistance = -VECDistance2XYZ3(&normalizedDirection, obstaclePosition, ballPosition);
+    projectionDistance /= VECMag2Point(&normalizedDirection);
+    collisionVelocity.x = (obstaclePosition->x + (normalizedDirection.x * projectionDistance));
+    collisionVelocity.y = (obstaclePosition->y + (normalizedDirection.y * projectionDistance));
+    collisionVelocity.z = (obstaclePosition->z + (normalizedDirection.z * projectionDistance));
+    return &collisionVelocity;
 }
 
-float fn_1_CB70(Vec *arg0, Vec *arg1, Vec *arg2)
+float VectorDistance(Vec *point, Vec *lineOrigin, Vec *lineDirection)
 {
-    Vec *temp_r31 = fn_1_CA30(arg0, arg1, arg2);
-    temp_r31->x -= arg0->x;
-    temp_r31->y -= arg0->y;
-    temp_r31->z -= arg0->z;
-    return sqrtf(VECMag2Point(temp_r31));
+    Vec *trailIndex = PinballCollisionSurfaceGet(startPosition, endPosition, closestPoint);
+    trailIndex->x -= startPosition->x;
+    trailIndex->y -= startPosition->y;
+    trailIndex->z -= startPosition->z;
+    return sqrtf(VECMag2Point(trailIndex));
 }
 
-s32 fn_1_CE08(Vec *arg0, Vec *arg1, Vec *arg2, Vec *arg3, Vec *arg4)
+s32 SegmentSphereIntersect(Vec *segmentStart, Vec *segmentDirection, Vec *sphereCenter, Vec *sphereDirection, Vec *intersectionPoint)
 {
-    float temp_f31;
-    float temp_f30;
-    s32 sp8 = 1;
-    temp_f31 = (arg1->x * (arg2->y - arg0->y)) - (arg1->y * (arg2->x - arg0->x));
-    if (0.0f != (arg3->x * arg1->y) - (arg3->y * arg1->x)) {
-        temp_f31 /= (arg3->x * arg1->y) - (arg3->y * arg1->x);
+    float intersectionDistance;
+    float lineParameter;
+    s32 unusedFlag = 1;
+    intersectionDistance = (segmentDirection->x * (sphereCenter->y - segmentStart->y)) - (segmentDirection->y * (sphereCenter->x - segmentStart->x));
+    if (0.0f != (sphereDirection->x * segmentDirection->y) - (sphereDirection->y * segmentDirection->x)) {
+        intersectionDistance /= (sphereDirection->x * segmentDirection->y) - (sphereDirection->y * segmentDirection->x);
     }
     else {
         return 0;
     }
-    if (arg1->x != 0.0) {
-        temp_f30 = (((temp_f31 * arg3->x) + arg2->x) - arg0->x) / arg1->x;
+    if (segmentDirection->x != 0.0) {
+        lineParameter = (((intersectionDistance * sphereDirection->x) + sphereCenter->x) - segmentStart->x) / segmentDirection->x;
     }
-    else if (arg1->y != 0.0) {
-        temp_f30 = (((temp_f31 * arg3->y) + arg2->y) - arg0->y) / arg1->y;
+    else if (segmentDirection->y != 0.0) {
+        lineParameter = (((intersectionDistance * sphereDirection->y) + sphereCenter->y) - segmentStart->y) / segmentDirection->y;
     }
     else {
-        temp_f30 = (((temp_f31 * arg3->z) + arg2->z) - arg0->z) / arg1->z;
+        lineParameter = (((intersectionDistance * sphereDirection->z) + sphereCenter->z) - segmentStart->z) / segmentDirection->z;
     }
-    arg4->x = (temp_f30 * arg1->x) + arg0->x;
-    arg4->y = (temp_f30 * arg1->y) + arg0->y;
-    arg4->z = (temp_f30 * arg1->z) + arg0->z;
+    intersectionPoint->x = (lineParameter * segmentDirection->x) + segmentStart->x;
+    intersectionPoint->y = (lineParameter * segmentDirection->y) + segmentStart->y;
+    intersectionPoint->z = (lineParameter * segmentDirection->z) + segmentStart->z;
     return 1;
 }
 
-s32 fn_1_CF9C(Vec *arg0, Vec *arg1, Vec *arg2, Vec *arg3, Vec *arg4)
+s32 SegmentCapsuleIntersect(Vec *segmentStart, Vec *segmentEnd, Vec *capsuleStart, Vec *capsuleEnd, Vec *intersectionPoint)
 {
-    float temp_f31;
-    float temp_f30;
-    Vec sp14;
-    Vec sp8;
-    sp14.x = arg1->x - arg0->x;
-    sp14.y = arg1->y - arg0->y;
-    sp14.z = arg1->z - arg0->z;
-    sp8.x = arg3->x - arg2->x;
-    sp8.y = arg3->y - arg2->y;
-    sp8.z = arg3->z - arg2->z;
-    temp_f31 = (sp14.x * (arg2->y - arg0->y)) - (sp14.y * (arg2->x - arg0->x));
-    if (0.0f != (sp8.x * sp14.y) - (sp8.y * sp14.x)) {
-        temp_f31 /= (sp8.x * sp14.y) - (sp8.y * sp14.x);
+    float intersectionDistance;
+    float lineParameter;
+    Vec firstLineDirection;
+    Vec secondLineDirection;
+    firstLineDirection.x = segmentEnd->x - segmentStart->x;
+    firstLineDirection.y = segmentEnd->y - segmentStart->y;
+    firstLineDirection.z = segmentEnd->z - segmentStart->z;
+    secondLineDirection.x = capsuleEnd->x - capsuleStart->x;
+    secondLineDirection.y = capsuleEnd->y - capsuleStart->y;
+    secondLineDirection.z = capsuleEnd->z - capsuleStart->z;
+    intersectionDistance = (firstLineDirection.x * (capsuleStart->y - segmentStart->y)) - (firstLineDirection.y * (capsuleStart->x - segmentStart->x));
+    if (0.0f != (secondLineDirection.x * firstLineDirection.y) - (secondLineDirection.y * firstLineDirection.x)) {
+        intersectionDistance /= (secondLineDirection.x * firstLineDirection.y) - (secondLineDirection.y * firstLineDirection.x);
     }
     else {
         return 0;
     }
-    if (sp14.x != 0.0) {
-        temp_f30 = (((temp_f31 * sp8.x) + arg2->x) - arg0->x) / sp14.x;
+    if (firstLineDirection.x != 0.0) {
+        lineParameter = (((intersectionDistance * secondLineDirection.x) + capsuleStart->x) - segmentStart->x) / firstLineDirection.x;
     }
-    else if (sp14.y != 0.0) {
-        temp_f30 = (((temp_f31 * sp8.y) + arg2->y) - arg0->y) / sp14.y;
+    else if (firstLineDirection.y != 0.0) {
+        lineParameter = (((intersectionDistance * secondLineDirection.y) + capsuleStart->y) - segmentStart->y) / firstLineDirection.y;
     }
     else {
-        temp_f30 = (((temp_f31 * sp8.z) + arg2->z) - arg0->z) / sp14.z;
+        lineParameter = (((intersectionDistance * secondLineDirection.z) + capsuleStart->z) - segmentStart->z) / firstLineDirection.z;
     }
-    if (temp_f30 < 0.0f || temp_f30 > 1.0f || temp_f31 < 0.0f || temp_f31 > 1.0f) {
+    if (lineParameter < 0.0f || lineParameter > 1.0f || intersectionDistance < 0.0f || intersectionDistance > 1.0f) {
         return 0;
     }
-    arg4->x = (temp_f30 * sp14.x) + arg0->x;
-    arg4->y = (temp_f30 * sp14.y) + arg0->y;
-    arg4->z = (temp_f30 * sp14.z) + arg0->z;
+    intersectionPoint->x = (lineParameter * firstLineDirection.x) + segmentStart->x;
+    intersectionPoint->y = (lineParameter * firstLineDirection.y) + segmentStart->y;
+    intersectionPoint->z = (lineParameter * firstLineDirection.z) + segmentStart->z;
     return 1;
 }
 
-void fn_1_D1E0(s16 model)
+void PinballEffectStart(s16 model)
 {
-    Vec sp14[4];
-    Vec sp8;
-    s32 temp_r31;
-    s32 temp_r30;
-    HSFDATA *temp_r29;
-    HSFBUFFER *temp_r28;
-    HSFFACE *temp_r27;
-    s32 temp_r26;
-    s32 temp_r25;
-    s32 temp_r24;
-    s32 temp_r23;
-    HSFBUFFER *temp_r22;
-    temp_r29 = Hu3DData[model].hsf;
-    lbl_1_bss_77C.x = lbl_1_bss_77C.y = -100000;
-    lbl_1_bss_770.x = lbl_1_bss_770.y = 100000;
-    temp_r28 = temp_r29->face;
-    for (temp_r24 = temp_r31 = 0; temp_r24 < temp_r29->faceNum; temp_r24++, temp_r28++) {
-        temp_r27 = temp_r28->data;
-        for (temp_r23 = 0; temp_r23 < temp_r28->count; temp_r23++, temp_r27++) {
-            switch (temp_r27->type & 0x7) {
+    Vec faceVertices[4];
+    Vec vertexPosition;
+    s32 outlineVertexCount;
+    s32 uniqueVertexIndex;
+    HSFDATA *modelData;
+    HSFBUFFER *faceBuffer;
+    HSFFACE *face;
+    s32 cornerIndex;
+    s32 uniqueVertexCount;
+    s32 faceIndex;
+    s32 faceVertexIndex;
+    HSFBUFFER *vertexBuffer;
+    modelData = Hu3DData[model].hsf;
+    collisionPosition.x = collisionPosition.y = -100000;
+    collisionNormal.x = collisionNormal.y = 100000;
+    faceBuffer = modelData->face;
+    for (faceIndex = outlineVertexCount = 0; faceIndex < modelData->faceNum; faceIndex++, faceBuffer++) {
+        face = faceBuffer->data;
+        for (faceVertexIndex = 0; faceVertexIndex < faceBuffer->count; faceVertexIndex++, face++) {
+            switch (face->type & 0x7) {
                 case 0:
                 case 1:
                 case 2:
                     break;
 
                 case 3:
-                    temp_r22 = temp_r29->vertex;
-                    for (temp_r26 = temp_r25 = 0; temp_r26 < 4; temp_r26++) {
-                        sp8 = ((Vec *)temp_r22->data)[temp_r27->indices[temp_r26][0]];
-                        for (temp_r30 = 0; temp_r30 < temp_r25; temp_r30++) {
-                            if (sp8.y != sp14[temp_r30].y) {
+                    vertexBuffer = modelData->vertex;
+                    for (cornerIndex = uniqueVertexCount = 0; cornerIndex < 4; cornerIndex++) {
+                        vertexPosition = ((Vec *)vertexBuffer->data)[face->indices[cornerIndex][0]];
+                        for (uniqueVertexIndex = 0; uniqueVertexIndex < uniqueVertexCount; uniqueVertexIndex++) {
+                            if (vertexPosition.y != faceVertices[uniqueVertexIndex].y) {
                                 break;
                             }
                         }
-                        if (temp_r30 == temp_r25) {
-                            sp14[temp_r30].x = sp8.x;
-                            sp14[temp_r30].y = sp8.y;
-                            sp14[temp_r30].z = sp8.z;
-                            temp_r25++;
+                        if (uniqueVertexIndex == uniqueVertexCount) {
+                            faceVertices[uniqueVertexIndex].x = vertexPosition.x;
+                            faceVertices[uniqueVertexIndex].y = vertexPosition.y;
+                            faceVertices[uniqueVertexIndex].z = vertexPosition.z;
+                            uniqueVertexCount++;
                         }
                     }
-                    lbl_1_bss_D8F0[temp_r31].x = sp14[0].x;
-                    lbl_1_bss_D8F0[temp_r31].y = sp14[0].z;
-                    lbl_1_bss_D8F0[temp_r31].z = 0;
-                    if (sp14[0].x > lbl_1_bss_77C.x) {
-                        lbl_1_bss_77C.x = sp14[0].x;
+                    upperBallTrailPositions[outlineVertexCount].x = faceVertices[0].x;
+                    upperBallTrailPositions[outlineVertexCount].y = faceVertices[0].z;
+                    upperBallTrailPositions[outlineVertexCount].z = 0;
+                    if (faceVertices[0].x > collisionPosition.x) {
+                        collisionPosition.x = faceVertices[0].x;
                     }
-                    if (sp14[0].z > lbl_1_bss_77C.y) {
-                        lbl_1_bss_77C.y = sp14[0].z;
+                    if (faceVertices[0].z > collisionPosition.y) {
+                        collisionPosition.y = faceVertices[0].z;
                     }
-                    if (sp14[0].x < lbl_1_bss_770.x) {
-                        lbl_1_bss_770.x = sp14[0].x;
+                    if (faceVertices[0].x < collisionNormal.x) {
+                        collisionNormal.x = faceVertices[0].x;
                     }
-                    if (sp14[0].z < lbl_1_bss_770.y) {
-                        lbl_1_bss_770.y = sp14[0].z;
+                    if (faceVertices[0].z < collisionNormal.y) {
+                        collisionNormal.y = faceVertices[0].z;
                     }
-                    lbl_1_bss_18F0[temp_r31].x = sp14[1].x;
-                    lbl_1_bss_18F0[temp_r31].y = sp14[1].z;
-                    lbl_1_bss_18F0[temp_r31].z = 0;
+                    lowerBallTrailPositions[outlineVertexCount].x = faceVertices[1].x;
+                    lowerBallTrailPositions[outlineVertexCount].y = faceVertices[1].z;
+                    lowerBallTrailPositions[outlineVertexCount].z = 0;
 
-                    if (sp14[1].x > lbl_1_bss_77C.x) {
-                        lbl_1_bss_77C.x = sp14[1].x;
+                    if (faceVertices[1].x > collisionPosition.x) {
+                        collisionPosition.x = faceVertices[1].x;
                     }
-                    if (sp14[1].z > lbl_1_bss_77C.y) {
-                        lbl_1_bss_77C.y = sp14[1].z;
+                    if (faceVertices[1].z > collisionPosition.y) {
+                        collisionPosition.y = faceVertices[1].z;
                     }
-                    if (sp14[1].x < lbl_1_bss_770.x) {
-                        lbl_1_bss_770.x = sp14[1].x;
+                    if (faceVertices[1].x < collisionNormal.x) {
+                        collisionNormal.x = faceVertices[1].x;
                     }
-                    if (sp14[1].z < lbl_1_bss_770.y) {
-                        lbl_1_bss_770.y = sp14[1].z;
+                    if (faceVertices[1].z < collisionNormal.y) {
+                        collisionNormal.y = faceVertices[1].z;
                     }
-                    temp_r31++;
+                    outlineVertexCount++;
                     break;
 
                 case 4:
@@ -1216,5 +1216,5 @@ void fn_1_D1E0(s16 model)
             }
         }
     }
-    lbl_1_bss_1884 = temp_r31;
+    ballTrailCount = outlineVertexCount;
 }

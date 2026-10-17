@@ -4,12 +4,12 @@
 #include "game/esprite.h"
 #endif
 
-s16 lbl_1_bss_199C2[90];
-s16 lbl_1_bss_1990E[90];
-s16 lbl_1_bss_1990A[2];
-s16 lbl_1_bss_19908;
+s16 loadedModelIds[90];
+s16 loadedMotionIds[90];
+s16 loadedSpriteIds[2];
+s16 activeSpriteCount;
 
-DataListModel lbl_1_data_470[] = {
+DataListModel pinballModelData[] = {
 	{ 0x4B0000, 0, 0, -1, -1, { 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 } },
 	{ 0x4B0000, 0, 0, 0, -1, { 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 } },
 	{ 0x4B0000, 0, 0, 0, -1, { 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 } },
@@ -103,68 +103,68 @@ DataListModel lbl_1_data_470[] = {
 	{ -1, 0, 0, -1, -1, { 0, 0, 0 }, { 0, 0, 0 }, { 1.0f, 1.0f, 1.0f } },
 };
 
-void fn_1_D588(DataListModel *model_list)
+void ModelDataListLoad(DataListModel *modelDataList)
 {
 	DataListModel *list;
 	s16 i;
 	s16 model;
-	s16 clear_i;
-	HU3DMODEL *model_ptr;
+	s16 clearI;
+	HU3DMODEL *modelPtr;
 	void *data;
-	list = model_list;
-	for(clear_i=0; clear_i<90; clear_i++) {
-		lbl_1_bss_199C2[clear_i] = lbl_1_bss_1990E[clear_i] = -1;
+	list = modelDataList;
+	for(clearI=0; clearI<90; clearI++) {
+		loadedModelIds[clearI] = loadedMotionIds[clearI] = -1;
 	}
 	for(i=0; list->datanum != DATA_NUM_LISTEND; list++, i++) {
 		if(list->type == 0) {
 			data = HuDataSelHeapReadNum(list->datanum, HU_MEMNUM_OVL, HEAP_MODEL);
 			model = Hu3DModelCreate(data);
-			lbl_1_bss_199C2[i] = model;
+			loadedModelIds[i] = model;
 			Hu3DModelAttrSet(model, list->attr);
 			Hu3DModelPosSetV(model, &list->pos);
 			Hu3DModelRotSetV(model, &list->rot);
 			Hu3DModelScaleSetV(model, &list->scale);
-			model_ptr = &Hu3DData[model];
-			if(model_ptr->motId != -1) {
-				lbl_1_bss_1990E[i] = model_ptr->motId;
+			modelPtr = &Hu3DData[model];
+			if(modelPtr->motId != -1) {
+				loadedMotionIds[i] = modelPtr->motId;
 			}
 		} else if(list->type == 1) {
 			data = HuDataSelHeapReadNum(list->datanum, HU_MEMNUM_OVL, HEAP_MODEL);
-			lbl_1_bss_1990E[i] = Hu3DJointMotion(lbl_1_bss_199C2[list->mot_link], data);
+			loadedMotionIds[i] = Hu3DJointMotion(loadedModelIds[list->mot_link], data);
 			
 		}
 		(void)i;
 	}
-	list = model_list;
+	list = modelDataList;
 	for(i=0; list->datanum != DATA_NUM_LISTEND; list++, i++) {
 		if(list->type == 2) {
-			model = Hu3DModelLink(lbl_1_bss_199C2[list->link]);
-			lbl_1_bss_199C2[i] = model;
+			model = Hu3DModelLink(loadedModelIds[list->link]);
+			loadedModelIds[i] = model;
 			Hu3DModelAttrSet(model, list->attr);
 			Hu3DModelPosSetV(model, &list->pos);
 			Hu3DModelRotSetV(model, &list->rot);
 			Hu3DModelScaleSetV(model, &list->scale);
 		}
 		if(list->type == 0 && list->mot_link != -1) {
-			Hu3DMotionSet(lbl_1_bss_199C2[i], lbl_1_bss_1990E[list->mot_link]);
+			Hu3DMotionSet(loadedModelIds[i], loadedMotionIds[list->mot_link]);
 		}
 		(void)i;
 	}
 }
 
-void fn_1_D818(DataListSprite *sprite_list)
+void SpriteDataListLoad(DataListSprite *spriteDataList)
 {
 	DataListSprite *list;
 	s16 sprite;
-	s16 clear_i;
+	s16 clearI;
 	s16 i;
-	list = sprite_list;
-	for(clear_i=0; clear_i<1; clear_i++) {
-		lbl_1_bss_1990A[clear_i] = -1;
+	list = spriteDataList;
+	for(clearI=0; clearI<1; clearI++) {
+		loadedSpriteIds[clearI] = -1;
 	}
 	for(i=0; list->datanum; i++, list++) {
 		sprite = espEntry(list->datanum, 100, 0);
-		lbl_1_bss_1990A[i] = sprite;
+		loadedSpriteIds[i] = sprite;
 		espPosSet(sprite, list->x, list->y);
 		espColorSet(sprite, list->color.r, list->color.g, list->color.b);
 		espTPLvlSet(sprite, list->color.a/255.0f);
@@ -173,12 +173,12 @@ void fn_1_D818(DataListSprite *sprite_list)
 	}
 }
 
-void fn_1_D950(void)
+void SpriteDataListUnload(void)
 {
 	s16 i;
 	for(i=0; i<1; i++) {
-		if(lbl_1_bss_1990A[i] != -1) {
-			espKill(lbl_1_bss_1990A[i]);
+		if(loadedSpriteIds[i] != -1) {
+			espKill(loadedSpriteIds[i]);
 		}
 	}
 }
