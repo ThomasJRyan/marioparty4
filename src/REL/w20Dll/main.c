@@ -12,18 +12,18 @@
 
 #include "REL/w20Dll.h"
 
-s16 lbl_1_bss_C;
-s32 lbl_1_bss_8;
-s32 lbl_1_bss_4;
-UnkW20BoardData *lbl_1_bss_0;
+s16 boardRuntimeState;
+s32 boardEventTimer;
+s32 boardStateTimer;
+W20BoardData *boardData;
 
-s16 lbl_1_data_0 = 0xFFFF;
-s16 lbl_1_data_2 = 0xFFFF;
-s16 lbl_1_data_4 = 0xFFFF;
-s16 lbl_1_data_6 = 0xFFFF;
-s16 lbl_1_data_8 = 0xFFFF;
-s16 lbl_1_data_A = 0xFFFF;
-s32 lbl_1_data_C[] = {
+s16 backgroundModelId = 0xFFFF;
+s16 secondaryBackgroundModelId = 0xFFFF;
+s16 unreferencedModelIdA = 0xFFFF;
+s16 shopAndStarHostModelId = 0xFFFF;
+s16 lotteryHostModelId = 0xFFFF;
+s16 unreferencedModelIdB = 0xFFFF;
+s32 playerMotionData[] = {
 	DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00),
 	DATA_MAKE_NUM(DATADIR_LUIGIMOT, 0x00),
 	DATA_MAKE_NUM(DATADIR_PEACHMOT, 0x00),
@@ -34,128 +34,127 @@ s32 lbl_1_data_C[] = {
 	DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 0x00),
 };
 
-s32 unkMotTbl[] = { DATA_MAKE_NUM(DATADIR_BGUEST, 42), -1 };
+s32 hostMotionTable[] = { DATA_MAKE_NUM(DATADIR_BGUEST, 42), -1 };
 
-void fn_1_44C(void);
-void fn_1_490(void);
-void fn_1_494(void);
-s32 fn_1_498(void);
-void fn_1_4A0(void);
-void fn_1_4A4(void);
-void fn_1_4A8(void);
-s32 fn_1_4AC(s16 arg0, float arg8, float arg9);
+void BoardLightSetHook(void);
+void BoardLightResetHook(void);
+void BoardLandEvent(void);
+s32 BoardWalkEvent(void);
+void BoardUnusedCallbackA(void);
+void BoardUnusedCallbackB(void);
+void BoardWalkMiniEvent(void);
+s32 RotateModelTowardAngle(s16 modelId, float targetRotationY, float rotationStep);
 
 void BoardCreate(void)
 {
-    s32 sp8;
-    s32 var_r31;
+    s32 boardId;
 
-    var_r31 = GWSystem.board;
-    sp8 = var_r31;
-    lbl_1_bss_0 = (UnkW20BoardData *)GWSystem.board_data;
-    lbl_1_bss_0->unk_00 = 0;
-    lbl_1_bss_0->unk_04 = 0;
-    lbl_1_bss_0->unk_06 = 0;
+    boardId = GWSystem.board;
+    boardData = (W20BoardData *)GWSystem.board_data;
+    boardData->boardState = 0;
+    boardData->boardSubstate = 0;
+    boardData->boardEventState = 0;
     BoardSpaceInit(DATA_MAKE_NUM(DATADIR_W20, 0));
-    lbl_1_data_0 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W20, 0x01), NULL, 0);
-    fn_8006DDE8(lbl_1_data_0, -1.0f);
-    BoardModelPosSet(lbl_1_data_0, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_0, 0, 0x40000001);
-    BoardModelMotionSpeedSet(lbl_1_data_0, 1.0f);
-    lbl_1_data_2 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W20, 0x02), NULL, 0);
-    fn_8006DDE8(lbl_1_data_2, -1.0f);
-    BoardModelPosSet(lbl_1_data_2, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_2, 0, 0x40000001);
-    lbl_1_data_6 = BoardModelCreate(0x20029, unkMotTbl, 0);
-    BoardModelMotionStart(lbl_1_data_6, 1, 0x40000001);
-    lbl_1_data_8 = BoardModelCreate(0x20029, unkMotTbl, 0);
-    BoardModelMotionStart(lbl_1_data_8, 1, 0x40000001);
-    BoardLightHookSet(fn_1_44C, fn_1_490);
-    BoardSpaceWalkEventFuncSet(fn_1_498);
-    BoardSpaceWalkMiniEventFuncSet(fn_1_4A8);
-    BoardSpaceLandEventFuncSet(fn_1_494);
-    BoardShopHostSet(lbl_1_data_6);
-    BoardLotteryHostSet(lbl_1_data_8);
-    BoardStarHostSet(lbl_1_data_6);
+    (void)boardId;
+    backgroundModelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W20, 0x01), NULL, 0);
+    fn_8006DDE8(backgroundModelId, -1.0f);
+    BoardModelPosSet(backgroundModelId, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(backgroundModelId, 0, 0x40000001);
+    BoardModelMotionSpeedSet(backgroundModelId, 1.0f);
+    secondaryBackgroundModelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W20, 0x02), NULL, 0);
+    fn_8006DDE8(secondaryBackgroundModelId, -1.0f);
+    BoardModelPosSet(secondaryBackgroundModelId, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(secondaryBackgroundModelId, 0, 0x40000001);
+    shopAndStarHostModelId = BoardModelCreate(0x20029, hostMotionTable, 0);
+    BoardModelMotionStart(shopAndStarHostModelId, 1, 0x40000001);
+    lotteryHostModelId = BoardModelCreate(0x20029, hostMotionTable, 0);
+    BoardModelMotionStart(lotteryHostModelId, 1, 0x40000001);
+    BoardLightHookSet(BoardLightSetHook, BoardLightResetHook);
+    BoardSpaceWalkEventFuncSet(BoardWalkEvent);
+    BoardSpaceWalkMiniEventFuncSet(BoardWalkMiniEvent);
+    BoardSpaceLandEventFuncSet(BoardLandEvent);
+    BoardShopHostSet(shopAndStarHostModelId);
+    BoardLotteryHostSet(lotteryHostModelId);
+    BoardStarHostSet(shopAndStarHostModelId);
 }
 
 void BoardDestroy(void)
 {
-    if (lbl_1_data_6 != -1) {
-        BoardModelKill(lbl_1_data_6);
-        lbl_1_data_6 = -1;
+    if (shopAndStarHostModelId != -1) {
+        BoardModelKill(shopAndStarHostModelId);
+        shopAndStarHostModelId = -1;
     }
-    if (lbl_1_data_0 != -1) {
-        BoardModelKill(lbl_1_data_0);
-        lbl_1_data_0 = -1;
+    if (backgroundModelId != -1) {
+        BoardModelKill(backgroundModelId);
+        backgroundModelId = -1;
     }
-    if (lbl_1_data_2 != -1) {
-        BoardModelKill(lbl_1_data_2);
-        lbl_1_data_2 = -1;
+    if (secondaryBackgroundModelId != -1) {
+        BoardModelKill(secondaryBackgroundModelId);
+        secondaryBackgroundModelId = -1;
     }
     BoardSpaceDestroy();
 }
 
-void fn_1_44C(void)
+void BoardLightSetHook(void)
 {
-    s16 var_r31;
+    s16 lightModelId;
 
-    var_r31 = BoardModelIDGet(lbl_1_data_0);
-    Hu3DModelLightInfoSet(var_r31, 1);
+    lightModelId = BoardModelIDGet(backgroundModelId);
+    Hu3DModelLightInfoSet(lightModelId, 1);
 }
 
-void fn_1_490(void) { }
+void BoardLightResetHook(void) { }
 
-void fn_1_494(void) { }
+void BoardLandEvent(void) { }
 
-s32 fn_1_498(void) { return 0; }
+s32 BoardWalkEvent(void) { return 0; }
 
-void fn_1_4A0(void) { }
+void BoardUnusedCallbackA(void) { }
 
-void fn_1_4A4(void) { }
+void BoardUnusedCallbackB(void) { }
 
-void fn_1_4A8(void) { }
+void BoardWalkMiniEvent(void) { }
 
-s32 fn_1_4AC(s16 arg0, float arg8, float arg9)
+s32 RotateModelTowardAngle(s16 modelId, float targetRotationY, float rotationStep)
 {
-    float var_f29;
-    float var_f31;
-    s32 var_r31;
+    float rotationDifference;
+    float currentRotationY;
+    s32 rotationComplete;
 
-    var_r31 = 0;
-    var_f31 = BoardModelRotYGet(arg0);
-    arg8 = fmod(arg8, 360.0f);
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    rotationComplete = 0;
+    currentRotationY = BoardModelRotYGet(modelId);
+    targetRotationY = fmod(targetRotationY, 360.0f);
+    if (currentRotationY < 0.0f) {
+        currentRotationY += 360.0f;
     }
-    if (arg8 < 0.0f) {
-        arg8 += 360.0f;
+    if (targetRotationY < 0.0f) {
+        targetRotationY += 360.0f;
     }
-    if (var_f31 != arg8) {
-        var_f29 = arg8 - var_f31;
-        if (var_f29 < 0.0f) {
-            var_f29 += 360.0f;
+    if (currentRotationY != targetRotationY) {
+        rotationDifference = targetRotationY - currentRotationY;
+        if (rotationDifference < 0.0f) {
+            rotationDifference += 360.0f;
         }
-        if (var_f29 < 180.0f) {
-            if (var_f29 > arg9) {
-                var_f31 += arg9;
+        if (rotationDifference < 180.0f) {
+            if (rotationDifference > rotationStep) {
+                currentRotationY += rotationStep;
             } else {
-                var_f31 = arg8;
+                currentRotationY = targetRotationY;
             }
-        } else if ((360.0f - var_f29) > arg9) {
-            var_f31 -= arg9;
+        } else if ((360.0f - rotationDifference) > rotationStep) {
+            currentRotationY -= rotationStep;
         } else {
-            var_f31 = arg8;
+            currentRotationY = targetRotationY;
         }
-        if (var_f31 < 0.0f) {
-            var_f31 += 360.0f;
+        if (currentRotationY < 0.0f) {
+            currentRotationY += 360.0f;
         }
-        if (var_f31 >= 360.0f) {
-            var_f31 -= 360.0f;
+        if (currentRotationY >= 360.0f) {
+            currentRotationY -= 360.0f;
         }
-        BoardModelRotYSet(arg0, var_f31);
+        BoardModelRotYSet(modelId, currentRotationY);
     } else {
-        var_r31 = 1;
+        rotationComplete = 1;
     }
-    return var_r31;
+    return rotationComplete;
 }
