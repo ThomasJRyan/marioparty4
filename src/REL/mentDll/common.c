@@ -12,11 +12,11 @@
 #include "game/wipe.h"
 #include "math.h"
 
-HUPROCESS *lbl_1_bss_0;
+HUPROCESS *objectManagerProcess;
 // TODO: unknown type
-extern s32 lbl_1_bss_A8[];
+extern s32 menuLaunchParameters[];
 
-s32 lbl_1_data_0[][4] = {
+s32 menuSoundEffectIds[][4] = {
     { 0x00000037, 0x00000038, 0x00000036, 0x00000039 },
     { 0x00000043, 0x00000045, 0x00000044, 0x00000043 },
     { 0x00000040, 0x00000042, 0x00000041, 0x00000040 },
@@ -26,33 +26,33 @@ s32 lbl_1_data_0[][4] = {
     { 0x0000003A, 0x0000003B, 0x0000003C, 0xFFFFFFFF },
 };
 
-s32 lbl_1_data_70 = -1;
+s32 persistentMessageWindow = -1;
 
-// char lbl_1_data_74[] = ">>>>>>>>>> CAMERA DATA <<<<<<<<<<";
-// char lbl_1_data_96[] = "CENTER : %.2f, %.2f, %.2f";
-// char lbl_1_data_B0[] = "ROT    : %.2f, %.2f, %.2f";
-// char lbl_1_data_CA[] = "ZOOM   : %.2f";
+// char cameraDebugHeader[] = ">>>>>>>>>> CAMERA DATA <<<<<<<<<<";
+// char cameraCenterFormat[] = "CENTER : %.2f, %.2f, %.2f";
+// char cameraRotationFormat[] = "ROT    : %.2f, %.2f, %.2f";
+// char cameraZoomFormat[] = "ZOOM   : %.2f";
 
 extern s32 _prolog();
 extern void _epilog();
-void fn_1_144(void);
-void fn_1_2318(s32);
+void MentInitializeOverlay(void);
+void MentClosePersistentMessageWindow(s32);
 typedef void (*VoidFunc)(void);
 extern const VoidFunc _ctors[];
 extern const VoidFunc _dtors[];
 
-void fn_1_0(OMOBJ *arg0)
+void MentFinishOverlayTransition(OMOBJ *object)
 {
     if (WipeStatGet() == 0) {
-        arg0->objFunc = NULL;
+        object->objFunc = NULL;
         omOvlReturnEx(1, 1);
     }
 }
 
-void fn_1_4C(OMOBJ *object)
+void MentHandleOverlayExitRequest(OMOBJ *object)
 {
     if (omSysExitReq != 0) {
-        object->objFunc = fn_1_0;
+        object->objFunc = MentFinishOverlayTransition;
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
     }
 }
@@ -64,7 +64,7 @@ s32 _prolog(void)
         (**ctors)();
         ctors++;
     }
-    fn_1_144();
+    MentInitializeOverlay();
     return 0;
 }
 
@@ -77,103 +77,99 @@ void _epilog(void)
     }
 }
 
-void fn_1_144(void)
+void MentInitializeOverlay(void)
 {
     _ClearFlag(0x1000BU);
     boardTutorialF = 0;
-    lbl_1_bss_0 = omInitObjMan(0x3E, 0x2000);
-    omGameSysInit(lbl_1_bss_0);
-    lbl_1_bss_A8[0] = omovlevtno;
-    lbl_1_bss_A8[1] = omovlstat;
-    fn_1_658C(lbl_1_bss_0);
-    omAddObjEx(lbl_1_bss_0, 0x2000, 0U, 0U, -1, fn_1_4C);
+    objectManagerProcess = omInitObjMan(0x3E, 0x2000);
+    omGameSysInit(objectManagerProcess);
+    menuLaunchParameters[0] = omovlevtno;
+    menuLaunchParameters[1] = omovlstat;
+    MentInitializeModeScene(objectManagerProcess);
+    omAddObjEx(objectManagerProcess, 0x2000, 0U, 0U, -1, MentHandleOverlayExitRequest);
 }
 
-f32 fn_1_20C(f32 arg8, f32 arg9, f32 argA, f32 argB)
+f32 MentInterpolateLinear(f32 startValue, f32 endValue, f32 elapsedFrames, f32 durationFrames)
 {
-    if (argB <= argA) {
-        return arg9;
+    if (durationFrames <= elapsedFrames) {
+        return endValue;
     }
-    return arg8 + ((argA / argB) * (arg9 - arg8));
+    return startValue + ((elapsedFrames / durationFrames) * (endValue - startValue));
 }
 
-f32 fn_1_234(f32 arg8, f32 arg9, f32 argA)
+f32 MentApproachValue(f32 currentValue, f32 targetValue, f32 smoothingDivisor)
 {
-    return (arg9 + (arg8 * (argA - 1.0f))) / argA;
+    return (targetValue + (currentValue * (smoothingDivisor - 1.0f))) / smoothingDivisor;
 }
-
-// fn_1_254
-f32 fn_1_254(f32 arg8, f32 arg9, f32 argA, f32 argB)
+f32 MentInterpolateCosineEaseOut(f32 startValue, f32 endValue, f32 elapsedFrames, f32 durationFrames)
 {
-    if (argA >= argB) {
-        return arg9;
+    if (elapsedFrames >= durationFrames) {
+        return endValue;
     }
-    return (arg8 + ((arg9 - arg8) * (1.0 - cosd((90.0f / argB) * argA))));
+    return (startValue + ((endValue - startValue) * (1.0 - cosd((90.0f / durationFrames) * elapsedFrames))));
 }
-
-// fn_1_32C
-f32 fn_1_32C(f32 arg8, f32 arg9, f32 argA, f32 argB)
+f32 MentInterpolateSineEaseIn(f32 startValue, f32 endValue, f32 elapsedFrames, f32 durationFrames)
 {
-    if (argA >= argB) {
-        return arg9;
+    if (elapsedFrames >= durationFrames) {
+        return endValue;
     }
-    return arg8 + (arg9 - arg8) * sind((90.0f / argB) * argA);
+    return startValue + (endValue - startValue) * sind((90.0f / durationFrames) * elapsedFrames);
 }
 
-f32 fn_1_3F4(f32 arg8, f32 arg9, f32 argA, f32 argB)
+f32 MentInterpolateSineWave(f32 centerValue, f32 amplitudeTarget, f32 elapsedFrames, f32 durationFrames)
 {
-    if (argA >= argB) {
-        return arg8;
+    if (elapsedFrames >= durationFrames) {
+        return centerValue;
     }
-    return (arg8 + ((arg9 - arg8) * sind((360.0f / argB) * argA)));
+    return (centerValue + ((amplitudeTarget - centerValue) * sind((360.0f / durationFrames) * elapsedFrames)));
 }
 
-void fn_1_4B0(s32 arg0)
+void MentSleepTicks(s32 tickCount)
 {
-    HuPrcSleep(arg0);
+    HuPrcSleep(tickCount);
 }
 
-void fn_1_4D8(void)
+void MentSleepFrame(void)
 {
     HuPrcVSleep();
 }
 
-void fn_1_4F8(void)
+void MentResetWindowSystem(void)
 {
     while (1) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_50C(void)
+void MentCreateDirectionalLight(void)
 {
-    s32 temp_r3 = 0;
+    s32 createDirectionalLightLightId = 0;
 
-    temp_r3 = Hu3DGLightCreate(0.0f, 700.0f, 1200.0f, 0.0f, -1.0f, 0.0f, 255, 255, 255);
-    Hu3DGLightPosAimSet(temp_r3, 0.0f, 700.0f, 1200.0f, 0.0f, 0.0f, 640.0f);
-    Hu3DGLightInfinitytSet(temp_r3);
+    createDirectionalLightLightId = Hu3DGLightCreate(0.0f, 700.0f, 1200.0f, 0.0f, -1.0f, 0.0f, 255, 255, 255);
+    Hu3DGLightPosAimSet(createDirectionalLightLightId, 0.0f, 700.0f, 1200.0f, 0.0f, 0.0f, 640.0f);
+    Hu3DGLightInfinitytSet(createDirectionalLightLightId);
 }
 
-void fn_1_5E8(s32 arg0)
+void MentCreateMenuShadow(s32 gameMode)
 {
-    Vec sp24 = { 0.0f, 3000.0f, 800.0f };
-    Vec sp18 = { 0.0f, 0.0f, 640.0f };
-    Vec spC = { 0.0f, 1.0f, 0.0f };
+    Vec createMenuShadowTargetPosition = { 0.0f, 3000.0f, 800.0f };
+    Vec createMenuShadowTargetPosition2 = { 0.0f, 0.0f, 640.0f };
+    Vec createMenuShadowTargetPosition3 = { 0.0f, 1.0f, 0.0f };
 
-    if (arg0 == 3) {
-        sp24.x = sp18.x = 1200.0f;
+    if (gameMode == 3) {
+        createMenuShadowTargetPosition.x = createMenuShadowTargetPosition2.x = 1200.0f;
     }
     Hu3DShadowCreate(45.0f, 2000.0f, 25000.0f);
     Hu3DShadowTPLvlSet(0.8f);
-    Hu3DShadowPosSet(&sp24, &spC, &sp18);
+    Hu3DShadowPosSet(&createMenuShadowTargetPosition, &createMenuShadowTargetPosition3, &createMenuShadowTargetPosition2);
 }
 
-void fn_1_6D0(void)
+void MentInitializeWindowSystem(void)
 {
     HuWinInit(1);
 }
 
-void fn_1_6F4(s32 window, f32 centerX, f32 centerY, s32 toSmallF)
+void MentAnimateWindowScale(s32 window, f32 centerX, f32 centerY, s32 toSmallF)
 {
     WindowData *winPtr;
     f32 smallPosX;
@@ -281,741 +277,741 @@ void fn_1_6F4(s32 window, f32 centerX, f32 centerY, s32 toSmallF)
     HuPrcVSleep();
 }
 
-s32 fn_1_113C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, f32 arg8, f32 arg9, s32 arg6, s32 arg4, s32 arg5)
+s32 MentCreateMessageWindow(s32 x, s32 y, s32 width, s32 height, f32 centerX, f32 centerY, s32 windowStyle, s32 windowFlags, s32 messageId)
 {
-    f32 sp14[2];
-    s32 temp_r30;
+    f32 createMessageWindowCoordinateValue[2];
+    s32 createMessageWindowStateValue2;
 
-    if (arg6 % 2 == 0) {
-        arg2 = (arg2 * 0x15) + 0x10;
-        arg3 = (arg3 * 0x1A) + 0x10;
-        arg1 = (445.0f - arg3);
-        switch (arg0) {
+    if (windowStyle % 2 == 0) {
+        width = (width * 0x15) + 0x10;
+        height = (height * 0x1A) + 0x10;
+        y = (445.0f - height);
+        switch (x) {
             case -1:
-                arg0 = 0x10;
+                x = 0x10;
                 break;
             case 0:
-                arg0 = (1.0f + ((576.0f - arg2) / 2));
+                x = (1.0f + ((576.0f - width) / 2));
                 break;
             case 1:
-                arg0 = (556.0f - arg2);
+                x = (556.0f - width);
                 break;
         }
     }
     else {
-        HuWinMesMaxSizeGet(1, sp14, arg5);
-        arg2 = sp14[0];
-        arg3 = sp14[1];
-        arg0 = (556.0f - arg2);
-        arg1 = (445.0f - arg3);
+        HuWinMesMaxSizeGet(1, createMessageWindowCoordinateValue, messageId);
+        width = createMessageWindowCoordinateValue[0];
+        height = createMessageWindowCoordinateValue[1];
+        x = (556.0f - width);
+        y = (445.0f - height);
     }
-    temp_r30 = HuWinExCreateStyled(arg0, arg1, arg2, arg3, -1, 1);
-    if (arg6 == 1) {
-        HuWinAttrSet(temp_r30, 0x10U);
+    createMessageWindowStateValue2 = HuWinExCreateStyled(x, y, width, height, -1, 1);
+    if (windowStyle == 1) {
+        HuWinAttrSet(createMessageWindowStateValue2, 0x10U);
     }
-    HuWinMesPalSet(temp_r30, 7U, 0U, 0U, 0U);
-    winData[temp_r30].active_pad = 1;
-    fn_1_6F4(temp_r30, arg8, arg9, 1);
-    return temp_r30;
+    HuWinMesPalSet(createMessageWindowStateValue2, 7U, 0U, 0U, 0U);
+    winData[createMessageWindowStateValue2].active_pad = 1;
+    MentAnimateWindowScale(createMessageWindowStateValue2, centerX, centerY, 1);
+    return createMessageWindowStateValue2;
 }
 
-s32 fn_1_1434(s32 arg0, s32 arg1, s32 arg2)
+s32 MentCreateStandardMessageWindow(s32 alignment, s32 messageId, s32 windowStyle)
 {
-    return fn_1_113C(arg0, 0, 0x15, 2, 0.5f, 0.5f, 2, 0, 0);
+    return MentCreateMessageWindow(x, 0, 0x15, 2, 0.5f, 0.5f, 2, 0, 0);
 }
 
-void fn_1_164C(s32 arg0, f32 arg8, f32 arg9)
+void MentCloseMessageWindowAtPoint(s32 windowId, f32 centerX, f32 centerY)
 {
-    HuWinMesSet(arg0, 0x250004);
+    HuWinMesSet(windowId, 0x250004);
     HuPrcVSleep();
-    fn_1_6F4(arg0, arg8, arg9, 0);
-    HuWinExCleanup(arg0);
+    MentAnimateWindowScale(windowId, centerX, centerY, 0);
+    HuWinExCleanup(windowId);
 }
 
-void fn_1_16AC(s32 arg0)
+void MentCloseMessageWindow(s32 windowId)
 {
-    HuWinMesSet(arg0, 0x250004);
+    HuWinMesSet(windowId, 0x250004);
     HuPrcVSleep();
-    fn_1_6F4(arg0, 0.5f, 0.5f, 0);
-    HuWinExCleanup(arg0);
+    MentAnimateWindowScale(windowId, 0.5f, 0.5f, 0);
+    HuWinExCleanup(windowId);
 }
 
-void fn_1_1714(s32 arg0, s32 arg1)
+void MentWaitForMessageWindow(s32 windowId, s32 waitFrames)
 {
-    if ((arg1 == -999) || (arg1 == 0)) {
+    if ((waitFrames == -999) || (waitFrames == 0)) {
         return;
     }
-    if (arg1 == -1000) {
+    if (waitFrames == -1000) {
         do {
             HuPrcVSleep();
-        } while (HuWinStatGet(arg0) == 1);
+        } while (HuWinStatGet(windowId) == 1);
         return;
     }
-    if (arg1 > 0) {
-        HuPrcSleep(arg1);
+    if (waitFrames > 0) {
+        HuPrcSleep(waitFrames);
         return;
     }
     HuWinComKeyReset();
-    HuWinMesWait(arg0);
+    HuWinMesWait(windowId);
     HuWinComKeyReset();
 }
 
-void fn_1_17A4(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void MentWaitForMessageWindowAdvance(s32 windowId, s32 messageId, s32 highlightIndex, s32 waitFrames)
 {
     s32 i;
-    s32 temp_r28 = 0;
-    s32 var_r30 = 0;
+    s32 waitForMessageWindowAdvanceStateValue = 0;
+    s32 waitForMessageWindowAdvanceStateValue2 = 0;
 
-    (void)arg0;
+    (void)windowId;
 
-    temp_r28 = HuWinKeyWaitNumGet(arg1);
-    if ((arg2 == -1) || (arg2 >= (s32)(temp_r28 - 1))) {
-        arg2 = temp_r28 - 1;
+    waitForMessageWindowAdvanceStateValue = HuWinKeyWaitNumGet(messageId);
+    if ((highlightIndex == -1) || (highlightIndex >= (s32)(waitForMessageWindowAdvanceStateValue - 1))) {
+        highlightIndex = waitForMessageWindowAdvanceStateValue - 1;
     }
     HuWinComKeyReset();
-    for (i = 0; i < temp_r28; i++) {
-        var_r30 = 0;
+    for (i = 0; i < waitForMessageWindowAdvanceStateValue; i++) {
+        waitForMessageWindowAdvanceStateValue2 = 0;
         do {
             HuPrcVSleep();
-        } while (HuWinStatGet(arg0) != 1);
+        } while (HuWinStatGet(windowId) != 1);
 
-        if (i == arg2) {
-            HuWinAttrSet(arg0, 0x400);
-            var_r30 = 1;
+        if (i == highlightIndex) {
+            HuWinAttrSet(windowId, 0x400);
+            waitForMessageWindowAdvanceStateValue2 = 1;
         }
 
         while (1) {
             HuPrcVSleep();
-            if (var_r30 != 0) {
-                if (var_r30 == 1 && HuWinStatGet(arg0) != 1) {
-                    var_r30 = 2;
+            if (waitForMessageWindowAdvanceStateValue2 != 0) {
+                if (waitForMessageWindowAdvanceStateValue2 == 1 && HuWinStatGet(windowId) != 1) {
+                    waitForMessageWindowAdvanceStateValue2 = 2;
                 }
-                else if (var_r30 == 2) {
-                    HuPrcSleep(arg3);
-                    HuWinAttrReset(arg0, 0x400);
-                    HuWinKeyWaitEntry(arg0);
+                else if (waitForMessageWindowAdvanceStateValue2 == 2) {
+                    HuPrcSleep(waitFrames);
+                    HuWinAttrReset(windowId, 0x400);
+                    HuWinKeyWaitEntry(windowId);
                     break;
                 }
             }
-            else if (HuWinStatGet(arg0) != 1) {
+            else if (HuWinStatGet(windowId) != 1) {
                 break;
             }
         }
     }
     HuWinComKeyReset();
-    HuWinMesWait(arg0);
+    HuWinMesWait(windowId);
     HuWinComKeyReset();
     HuWinComKeyReset();
 }
 
-s32 fn_1_18D8(s32 arg0, s32 arg1)
+s32 MentGetWindowChoice(s32 windowId, s32 choiceCount)
 {
-    s32 temp_r31;
+    s32 getWindowChoiceChoice;
 
     HuWinComKeyReset();
-    temp_r31 = HuWinChoiceGet(arg0, arg1);
+    getWindowChoiceChoice = HuWinChoiceGet(windowId, choiceCount);
     HuWinComKeyReset();
-    return temp_r31;
+    return getWindowChoiceChoice;
 }
 
-void fn_1_1928(s32 arg0, s32 arg1, s32 arg2)
+void MentSetWindowMessageAndWait(s32 windowId, s32 messageId, s32 waitFrames)
 {
-    HuWinInsertMesSet(arg0, arg1, arg2);
+    HuWinInsertMesSet(windowId, messageId, waitFrames);
 }
 
-void fn_1_1968(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void MentSetWindowMessage(s32 windowId, s32 messageId, s32 waitFrames, s32 style)
 {
-    if (arg3 == -999) {
-        HuWinMesSpeedSet(arg0, 0);
+    if (style == -999) {
+        HuWinMesSpeedSet(windowId, 0);
     }
     else {
-        HuWinMesSpeedSet(arg0, 1);
+        HuWinMesSpeedSet(windowId, 1);
     }
-    HuWinMesSet(arg0, arg1);
-    if (arg2 == -1) {
-        if ((arg3 != -999) && (arg3 != 0)) {
-            if (arg3 == -1000) {
+    HuWinMesSet(windowId, messageId);
+    if (waitFrames == -1) {
+        if ((style != -999) && (style != 0)) {
+            if (style == -1000) {
                 do {
                     HuPrcVSleep();
-                } while (HuWinStatGet(arg0) == 1);
+                } while (HuWinStatGet(windowId) == 1);
                 return;
             }
-            if (arg3 > 0) {
-                HuPrcSleep(arg3);
+            if (style > 0) {
+                HuPrcSleep(style);
                 return;
             }
             HuWinComKeyReset();
-            HuWinMesWait(arg0);
+            HuWinMesWait(windowId);
             HuWinComKeyReset();
         }
     }
     else {
-        fn_1_17A4(arg0, arg1, arg2, arg3);
+        MentWaitForMessageWindowAdvance(windowId, messageId, highlightIndex, waitFrames);
     }
 }
 
-s32 fn_1_1A5C(s32 arg0, s32 arg1, s32 arg2)
+s32 MentShowYesNoPrompt(s32 messageId, s32 promptStyle, s32 defaultChoice)
 {
-    s32 var_r28;
-    s32 var_r25 = 0;
+    s32 showYesNoPromptStateValue;
+    s32 showYesNoPromptStateValue2 = 0;
 
-    var_r28 = fn_1_113C(0, 0, 0, 0, 0.5f, 0.5f, arg1, 0, arg0);
-    HuWinMesSet(var_r28, arg0);
-    var_r25 = fn_1_18D8(var_r28, 0);
-    fn_1_164C(var_r28, 0.5f, 0.5f);
-    return var_r25;
+    showYesNoPromptStateValue = MentCreateMessageWindow(0, 0, 0, 0, 0.5f, 0.5f, y, 0, x);
+    HuWinMesSet(showYesNoPromptStateValue, messageId);
+    showYesNoPromptStateValue2 = MentGetWindowChoice(showYesNoPromptStateValue, 0);
+    MentCloseMessageWindowAtPoint(showYesNoPromptStateValue, 0.5f, 0.5f);
+    return showYesNoPromptStateValue2;
 }
 
-s32 fn_1_1DD8(s32 arg0, s32 arg1, s32 arg2)
+s32 MentShowAlternateYesNoPrompt(s32 messageId, s32 promptStyle, s32 defaultChoice)
 {
-    s32 var_r28;
-    s32 var_r25 = 0;
+    s32 showAlternateYesNoPromptStateValue;
+    s32 showAlternateYesNoPromptStateValue2 = 0;
 
-    var_r28 = fn_1_113C(0, 0, 0, 0, 0.5f, 0.5f, arg1, 0, arg0);
-    HuWinMesSet(var_r28, arg0);
-    var_r25 = fn_1_18D8(var_r28, 1);
-    fn_1_164C(var_r28, 0.5f, 0.5f);
-    return var_r25;
+    showAlternateYesNoPromptStateValue = MentCreateMessageWindow(0, 0, 0, 0, 0.5f, 0.5f, y, 0, x);
+    HuWinMesSet(showAlternateYesNoPromptStateValue, messageId);
+    showAlternateYesNoPromptStateValue2 = MentGetWindowChoice(showAlternateYesNoPromptStateValue, 1);
+    MentCloseMessageWindowAtPoint(showAlternateYesNoPromptStateValue, 0.5f, 0.5f);
+    return showAlternateYesNoPromptStateValue2;
 }
 
-s32 fn_1_2154(s32 arg0)
+s32 MentShowMessageWindow(s32 messageId)
 {
-    f32 sp8[2];
-    f32 temp_f29;
-    f32 temp_f28;
+    f32 showMessageWindowCoordinateValue[2];
+    f32 showMessageWindowInterpolationValue;
+    f32 showMessageWindowInterpolationValue2;
     s32 ret;
     f32 sizeX;
     f32 sizeY;
 
-    HuWinMesMaxSizeGet(1, sp8, arg0);
-    sizeX = sp8[0];
-    sizeY = sp8[1];
-    temp_f29 = (576.0f - sizeX) / 2;
-    temp_f28 = 385.0f - sizeY;
-    if (lbl_1_data_70 == -1) {
-        lbl_1_data_70 = ret = HuWinExCreateStyled(temp_f29, temp_f28, sizeX, sizeY, -1, 1);
+    HuWinMesMaxSizeGet(1, showMessageWindowCoordinateValue, messageId);
+    sizeX = showMessageWindowCoordinateValue[0];
+    sizeY = showMessageWindowCoordinateValue[1];
+    showMessageWindowInterpolationValue = (576.0f - sizeX) / 2;
+    showMessageWindowInterpolationValue2 = 385.0f - sizeY;
+    if (persistentMessageWindow == -1) {
+        persistentMessageWindow = ret = HuWinExCreateStyled(showMessageWindowInterpolationValue, showMessageWindowInterpolationValue2, sizeX, sizeY, -1, 1);
     }
     else {
-        fn_1_2318(0);
-        lbl_1_data_70 = ret = HuWinExCreateStyled(temp_f29, temp_f28, sizeX, sizeY, -1, 1);
+        MentClosePersistentMessageWindow(0);
+        persistentMessageWindow = ret = HuWinExCreateStyled(showMessageWindowInterpolationValue, showMessageWindowInterpolationValue2, sizeX, sizeY, -1, 1);
     }
-    HuWinBGTPLvlSet(lbl_1_data_70, 0.0f);
-    HuWinMesSet(lbl_1_data_70, arg0);
-    HuWinMesSpeedSet(lbl_1_data_70, 0);
-    HuWinDispOn(lbl_1_data_70);
-    return lbl_1_data_70;
+    HuWinBGTPLvlSet(persistentMessageWindow, 0.0f);
+    HuWinMesSet(persistentMessageWindow, messageId);
+    HuWinMesSpeedSet(persistentMessageWindow, 0);
+    HuWinDispOn(persistentMessageWindow);
+    return persistentMessageWindow;
 }
 
-void fn_1_2318(s32 arg0)
+void MentClosePersistentMessageWindow(s32 unused)
 {
-    if (lbl_1_data_70 != -1) {
-        HuWinExCleanup(lbl_1_data_70);
-        lbl_1_data_70 = -1;
+    if (persistentMessageWindow != -1) {
+        HuWinExCleanup(persistentMessageWindow);
+        persistentMessageWindow = -1;
     }
 }
 
-void fn_1_236C(f32 arg9)
+void MentUpdateDebugCameraControls(f32 unused)
 {
-    MentDllUnkBss64Struct *temp = &lbl_1_bss_64;
+    MentDllCameraWork *cameraWork = &menuCameraWork;
 
     if ((HuPadBtn[0] & 0x200)) {
         if ((HuPadBtn[0] & 0x20)) {
-            temp->center.z = temp->center.z - (HuPadStkY[0] / 10.0f);
+            cameraWork->center.z = cameraWork->center.z - (HuPadStkY[0] / 10.0f);
         }
         else {
-            temp->center.x += HuPadStkX[0] / 10.0f;
-            temp->center.y = temp->center.y + (HuPadStkY[0] / 10.0f);
+            cameraWork->center.x += HuPadStkX[0] / 10.0f;
+            cameraWork->center.y = cameraWork->center.y + (HuPadStkY[0] / 10.0f);
         }
     }
     if ((HuPadBtn[0] & 0x800)) {
-        temp->rot.x -= HuPadStkY[0] / 100.0f;
-        temp->rot.y = temp->rot.y + (HuPadStkX[0] / 100.0f);
-        if (temp->rot.x < 0.0f) {
-            temp->rot.x += 360.0f;
+        cameraWork->rot.x -= HuPadStkY[0] / 100.0f;
+        cameraWork->rot.y = cameraWork->rot.y + (HuPadStkX[0] / 100.0f);
+        if (cameraWork->rot.x < 0.0f) {
+            cameraWork->rot.x += 360.0f;
         }
 
-        if (temp->rot.x >= 360.0f) {
-            temp->rot.x -= 360.0f;
+        if (cameraWork->rot.x >= 360.0f) {
+            cameraWork->rot.x -= 360.0f;
         }
-        if (temp->rot.y < 0.0f) {
-            temp->rot.y += 360.0f;
+        if (cameraWork->rot.y < 0.0f) {
+            cameraWork->rot.y += 360.0f;
         }
-        if (temp->rot.y >= 360.0f) {
-            temp->rot.y -= 360.0f;
+        if (cameraWork->rot.y >= 360.0f) {
+            cameraWork->rot.y -= 360.0f;
         }
     }
     if ((HuPadBtn[0] & 0x400)) {
-        temp->zoom = temp->zoom - (HuPadStkY[0] / 10.0f);
+        cameraWork->zoom = cameraWork->zoom - (HuPadStkY[0] / 10.0f);
     }
     print8(0x18, 0x28, 1.0f, ">>>>>>>>>> CAMERA DATA <<<<<<<<<<");
-    print8(0x18, 0x32, 1.0f, "CENTER : %.2f, %.2f, %.2f", temp->center.x, temp->center.y, temp->center.z);
-    print8(0x18, 0x3C, 1.0f, "ROT    : %.2f, %.2f, %.2f", temp->rot.x, temp->rot.y, temp->rot.z);
-    print8(0x18, 0x46, 1.0f, "ZOOM   : %.2f", temp->zoom);
+    print8(0x18, 0x32, 1.0f, "CENTER : %.2f, %.2f, %.2f", cameraWork->center.x, cameraWork->center.y, cameraWork->center.z);
+    print8(0x18, 0x3C, 1.0f, "ROT    : %.2f, %.2f, %.2f", cameraWork->rot.x, cameraWork->rot.y, cameraWork->rot.z);
+    print8(0x18, 0x46, 1.0f, "ZOOM   : %.2f", cameraWork->zoom);
 }
 
-void fn_1_2750(OMOBJ *obj)
+void MentApplyMenuCamera(OMOBJ *object)
 {
-    MentDllUnkBss64Struct *temp = &lbl_1_bss_64;
-    if (temp->func != NULL) {
-        temp->func();
+    MentDllCameraWork *cameraWork = &menuCameraWork;
+    if (cameraWork->cameraUpdateCallback != NULL) {
+        cameraWork->cameraUpdateCallback();
     }
-    Center.x = temp->center.x;
-    Center.y = temp->center.y;
-    Center.z = temp->center.z;
-    CRot.x = temp->rot.x;
-    CRot.y = temp->rot.y;
-    CRot.z = temp->rot.z;
-    CZoom = temp->zoom;
+    Center.x = cameraWork->center.x;
+    Center.y = cameraWork->center.y;
+    Center.z = cameraWork->center.z;
+    CRot.x = cameraWork->rot.x;
+    CRot.y = cameraWork->rot.y;
+    CRot.z = cameraWork->rot.z;
+    CZoom = cameraWork->zoom;
 }
 
-void fn_1_2808(void (*arg0)(void))
+void MentSetMenuCameraCallback(void (*cameraUpdateCallback)(void))
 {
-    fn_1_29A0(&lbl_1_bss_64);
-    lbl_1_bss_64.func = arg0;
+    MentSetCameraState(&menuCameraWork);
+    menuCameraWork.cameraUpdateCallback = cameraUpdateCallback;
 }
 
-void fn_1_2844(HUPROCESS *arg0, void (*arg1)(void))
+void MentCreateMenuCamera(HUPROCESS *objectManagerProcess, void (*cameraUpdateCallback)(void))
 {
     Hu3DCameraCreate(1);
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 42.0f, 20.0f, 5000.0f, 1.2f);
-    lbl_1_bss_64.func = arg1;
-    lbl_1_bss_64.func2 = &fn_1_236C;
-    omAddObjEx(arg0, 0x7FDA, 0U, 0U, -1, omOutView);
-    omAddObjEx(arg0, 0x7FD9, 0U, 0U, -1, fn_1_2750);
+    menuCameraWork.cameraUpdateCallback = cameraUpdateCallback;
+    menuCameraWork.debugControlCallback = &MentUpdateDebugCameraControls;
+    omAddObjEx(objectManagerProcess, 0x7FDA, 0U, 0U, -1, omOutView);
+    omAddObjEx(objectManagerProcess, 0x7FD9, 0U, 0U, -1, MentApplyMenuCamera);
 }
 
-void fn_1_2964(MentDllUnkBss64Struct *arg0)
+void MentRestorePreviousCamera(MentDllCameraWork *camera)
 {
-    arg0->center.x = arg0->prevCenter.x;
-    arg0->center.y = arg0->prevCenter.y;
-    arg0->center.z = arg0->prevCenter.z;
-    arg0->rot.x = arg0->prevRot.x;
-    arg0->rot.y = arg0->prevRot.y;
-    arg0->rot.z = arg0->prevRot.z;
-    arg0->zoom = arg0->prevZoom;
+    camera->center.x = camera->prevCenter.x;
+    camera->center.y = camera->prevCenter.y;
+    camera->center.z = camera->prevCenter.z;
+    camera->rot.x = camera->prevRot.x;
+    camera->rot.y = camera->prevRot.y;
+    camera->rot.z = camera->prevRot.z;
+    camera->zoom = camera->prevZoom;
 }
 
-void fn_1_29A0(MentDllUnkBss64Struct *arg0)
+void MentSetCameraState(MentDllCameraWork *camera)
 {
-    arg0->unk_40 = 0.0f;
-    arg0->prevCenter.x = arg0->center.x;
-    arg0->prevCenter.y = arg0->center.y;
-    arg0->prevCenter.z = arg0->center.z;
-    arg0->prevRot.x = arg0->rot.x;
-    arg0->prevRot.y = arg0->rot.y;
-    arg0->prevRot.z = arg0->rot.z;
-    arg0->prevZoom = arg0->zoom;
+    camera->transitionFrame = 0.0f;
+    camera->prevCenter.x = camera->center.x;
+    camera->prevCenter.y = camera->center.y;
+    camera->prevCenter.z = camera->center.z;
+    camera->prevRot.x = camera->rot.x;
+    camera->prevRot.y = camera->rot.y;
+    camera->prevRot.z = camera->rot.z;
+    camera->prevZoom = camera->zoom;
 }
 
-static inline f32 SmoothInterpolate(f32 arg0, f32 arg1, f32 arg2)
+static inline f32 SmoothInterpolate(f32 currentValue, f32 targetValue, f32 smoothingDivisor)
 {
-    return (arg1 + arg0 * (arg2 - 1.0f)) / arg2;
+    return (targetValue + currentValue * (smoothingDivisor - 1.0f)) / smoothingDivisor;
 }
 
-void fn_1_29E4(MentDllUnkBss64Struct *arg0, MentDllUnkBss64Struct *arg1, f32 arg8)
+void MentInterpolateCameraState(MentDllCameraWork *sourceCamera, MentDllCameraWork *targetCamera, f32 blendAmount)
 {
-    arg0->center.x = SmoothInterpolate(arg0->center.x, arg1->prevCenter.x, arg8);
-    arg0->center.y = SmoothInterpolate(arg0->center.y, arg1->prevCenter.y, arg8);
-    arg0->center.z = SmoothInterpolate(arg0->center.z, arg1->prevCenter.z, arg8);
-    arg0->rot.x = SmoothInterpolate(arg0->rot.x, arg1->prevRot.x, arg8);
-    arg0->rot.y = SmoothInterpolate(arg0->rot.y, arg1->prevRot.y, arg8);
-    arg0->rot.z = SmoothInterpolate(arg0->rot.z, arg1->prevRot.z, arg8);
-    arg0->zoom = SmoothInterpolate(arg0->zoom, arg1->prevZoom, arg8);
+    sourceCamera->center.x = SmoothInterpolate(sourceCamera->center.x, targetCamera->prevCenter.x, blendAmount);
+    sourceCamera->center.y = SmoothInterpolate(sourceCamera->center.y, targetCamera->prevCenter.y, blendAmount);
+    sourceCamera->center.z = SmoothInterpolate(sourceCamera->center.z, targetCamera->prevCenter.z, blendAmount);
+    sourceCamera->rot.x = SmoothInterpolate(sourceCamera->rot.x, targetCamera->prevRot.x, blendAmount);
+    sourceCamera->rot.y = SmoothInterpolate(sourceCamera->rot.y, targetCamera->prevRot.y, blendAmount);
+    sourceCamera->rot.z = SmoothInterpolate(sourceCamera->rot.z, targetCamera->prevRot.z, blendAmount);
+    sourceCamera->zoom = SmoothInterpolate(sourceCamera->zoom, targetCamera->prevZoom, blendAmount);
 }
 
-void fn_1_2C50(MentDllUnkBss64Struct *arg0, f32 arg8)
+void MentCopyCameraState(MentDllCameraWork *camera, f32 blendAmount)
 {
-    arg0->center.x = SmoothInterpolate(arg0->center.x, arg0->prevCenter.x, arg8);
-    arg0->center.y = SmoothInterpolate(arg0->center.y, arg0->prevCenter.y, arg8);
-    arg0->center.z = SmoothInterpolate(arg0->center.z, arg0->prevCenter.z, arg8);
-    arg0->rot.x = SmoothInterpolate(arg0->rot.x, arg0->prevRot.x, arg8);
-    arg0->rot.y = SmoothInterpolate(arg0->rot.y, arg0->prevRot.y, arg8);
-    arg0->rot.z = SmoothInterpolate(arg0->rot.z, arg0->prevRot.z, arg8);
-    arg0->zoom = SmoothInterpolate(arg0->zoom, arg0->prevZoom, arg8);
+    camera->center.x = SmoothInterpolate(camera->center.x, camera->prevCenter.x, blendAmount);
+    camera->center.y = SmoothInterpolate(camera->center.y, camera->prevCenter.y, blendAmount);
+    camera->center.z = SmoothInterpolate(camera->center.z, camera->prevCenter.z, blendAmount);
+    camera->rot.x = SmoothInterpolate(camera->rot.x, camera->prevRot.x, blendAmount);
+    camera->rot.y = SmoothInterpolate(camera->rot.y, camera->prevRot.y, blendAmount);
+    camera->rot.z = SmoothInterpolate(camera->rot.z, camera->prevRot.z, blendAmount);
+    camera->zoom = SmoothInterpolate(camera->zoom, camera->prevZoom, blendAmount);
 }
 
-inline f32 LinearInterpolation(f32 arg0, f32 arg1, f32 arg8, f32 arg9)
+inline f32 LinearInterpolation(f32 startValue, f32 endValue, f32 elapsedFrames, f32 durationFrames)
 {
-    if (arg9 <= arg8) {
-        return arg1;
+    if (durationFrames <= elapsedFrames) {
+        return endValue;
     }
     else {
-        return arg0 + ((arg8 / arg9) * (arg1 - arg0));
+        return startValue + ((elapsedFrames / durationFrames) * (endValue - startValue));
     }
 }
 
-void fn_1_2EBC(MentDllUnkBss64Struct *arg0, MentDllUnkBss64Struct *arg1, f32 arg8, f32 arg9)
+void MentInterpolateCameraCenter(MentDllCameraWork *sourceCamera, MentDllCameraWork *targetCamera, f32 elapsedFrames, f32 durationFrames)
 {
-    arg1->prevCenter.x = LinearInterpolation(arg0->prevCenter.x, arg1->center.x, arg8, arg9);
-    arg1->prevCenter.y = LinearInterpolation(arg0->prevCenter.y, arg1->center.y, arg8, arg9);
-    arg1->prevCenter.z = LinearInterpolation(arg0->prevCenter.z, arg1->center.z, arg8, arg9);
+    targetCamera->prevCenter.x = LinearInterpolation(sourceCamera->prevCenter.x, targetCamera->center.x, elapsedFrames, durationFrames);
+    targetCamera->prevCenter.y = LinearInterpolation(sourceCamera->prevCenter.y, targetCamera->center.y, elapsedFrames, durationFrames);
+    targetCamera->prevCenter.z = LinearInterpolation(sourceCamera->prevCenter.z, targetCamera->center.z, elapsedFrames, durationFrames);
 
-    arg1->prevRot.x = LinearInterpolation(arg0->prevRot.x, arg1->rot.x, arg8, arg9);
-    arg1->prevRot.y = LinearInterpolation(arg0->prevRot.y, arg1->rot.y, arg8, arg9);
-    arg1->prevRot.z = LinearInterpolation(arg0->prevRot.z, arg1->rot.z, arg8, arg9);
+    targetCamera->prevRot.x = LinearInterpolation(sourceCamera->prevRot.x, targetCamera->rot.x, elapsedFrames, durationFrames);
+    targetCamera->prevRot.y = LinearInterpolation(sourceCamera->prevRot.y, targetCamera->rot.y, elapsedFrames, durationFrames);
+    targetCamera->prevRot.z = LinearInterpolation(sourceCamera->prevRot.z, targetCamera->rot.z, elapsedFrames, durationFrames);
 
-    arg1->prevZoom = LinearInterpolation(arg0->prevZoom, arg1->zoom, arg8, arg9);
+    targetCamera->prevZoom = LinearInterpolation(sourceCamera->prevZoom, targetCamera->zoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_3138(MentDllUnkBss64Struct *arg0, MentDllUnkBss64Struct *arg1, f32 arg8, f32 arg9)
+void MentInterpolateCameraRotation(MentDllCameraWork *sourceCamera, MentDllCameraWork *targetCamera, f32 elapsedFrames, f32 durationFrames)
 {
-    arg1->prevCenter.x = LinearInterpolation(arg0->prevCenter.x, arg1->center.x, arg8, arg9);
-    arg1->prevCenter.y = LinearInterpolation(arg0->prevCenter.y, arg1->center.y, arg8, arg9);
-    arg1->prevCenter.z = LinearInterpolation(arg0->prevCenter.z, arg1->center.z, arg8, arg9);
+    targetCamera->prevCenter.x = LinearInterpolation(sourceCamera->prevCenter.x, targetCamera->center.x, elapsedFrames, durationFrames);
+    targetCamera->prevCenter.y = LinearInterpolation(sourceCamera->prevCenter.y, targetCamera->center.y, elapsedFrames, durationFrames);
+    targetCamera->prevCenter.z = LinearInterpolation(sourceCamera->prevCenter.z, targetCamera->center.z, elapsedFrames, durationFrames);
 
-    arg1->prevRot.x = LinearInterpolation(arg0->prevRot.x, arg1->rot.x, arg8, arg9);
-    arg1->prevRot.y = LinearInterpolation(arg0->prevRot.y, arg1->rot.y, arg8, arg9);
-    arg1->prevRot.z = LinearInterpolation(arg0->prevRot.z, arg1->rot.z, arg8, arg9);
+    targetCamera->prevRot.x = LinearInterpolation(sourceCamera->prevRot.x, targetCamera->rot.x, elapsedFrames, durationFrames);
+    targetCamera->prevRot.y = LinearInterpolation(sourceCamera->prevRot.y, targetCamera->rot.y, elapsedFrames, durationFrames);
+    targetCamera->prevRot.z = LinearInterpolation(sourceCamera->prevRot.z, targetCamera->rot.z, elapsedFrames, durationFrames);
 
-    arg1->prevZoom = LinearInterpolation(arg0->prevZoom, arg1->zoom, arg8, arg9);
+    targetCamera->prevZoom = LinearInterpolation(sourceCamera->prevZoom, targetCamera->zoom, elapsedFrames, durationFrames);
 
-    arg0->center.x = arg1->prevCenter.x;
-    arg0->center.y = arg1->prevCenter.y;
-    arg0->center.z = arg1->prevCenter.z;
-    arg0->rot.x = arg1->prevRot.x;
-    arg0->rot.y = arg1->prevRot.y;
-    arg0->rot.z = arg1->prevRot.z;
-    arg0->zoom = arg1->prevZoom;
+    sourceCamera->center.x = targetCamera->prevCenter.x;
+    sourceCamera->center.y = targetCamera->prevCenter.y;
+    sourceCamera->center.z = targetCamera->prevCenter.z;
+    sourceCamera->rot.x = targetCamera->prevRot.x;
+    sourceCamera->rot.y = targetCamera->prevRot.y;
+    sourceCamera->rot.z = targetCamera->prevRot.z;
+    sourceCamera->zoom = targetCamera->prevZoom;
 }
 
-void fn_1_33EC(MentDllUnkBss64Struct *arg0, MentDllUnkBss64Struct *arg1, f32 arg8, f32 arg9, f32 argA)
+void MentInterpolateCameraZoom(MentDllCameraWork *sourceCamera, MentDllCameraWork *targetCamera, f32 elapsedFrames, f32 durationFrames, f32 smoothingDivisor)
 {
-    arg1->prevCenter.x = LinearInterpolation(arg0->prevCenter.x, arg1->center.x, arg8, arg9);
-    arg1->prevCenter.y = LinearInterpolation(arg0->prevCenter.y, arg1->center.y, arg8, arg9);
-    arg1->prevCenter.z = LinearInterpolation(arg0->prevCenter.z, arg1->center.z, arg8, arg9);
+    targetCamera->prevCenter.x = LinearInterpolation(sourceCamera->prevCenter.x, targetCamera->center.x, elapsedFrames, durationFrames);
+    targetCamera->prevCenter.y = LinearInterpolation(sourceCamera->prevCenter.y, targetCamera->center.y, elapsedFrames, durationFrames);
+    targetCamera->prevCenter.z = LinearInterpolation(sourceCamera->prevCenter.z, targetCamera->center.z, elapsedFrames, durationFrames);
 
-    arg1->prevRot.x = LinearInterpolation(arg0->prevRot.x, arg1->rot.x, arg8, arg9);
-    arg1->prevRot.y = LinearInterpolation(arg0->prevRot.y, arg1->rot.y, arg8, arg9);
-    arg1->prevRot.z = LinearInterpolation(arg0->prevRot.z, arg1->rot.z, arg8, arg9);
+    targetCamera->prevRot.x = LinearInterpolation(sourceCamera->prevRot.x, targetCamera->rot.x, elapsedFrames, durationFrames);
+    targetCamera->prevRot.y = LinearInterpolation(sourceCamera->prevRot.y, targetCamera->rot.y, elapsedFrames, durationFrames);
+    targetCamera->prevRot.z = LinearInterpolation(sourceCamera->prevRot.z, targetCamera->rot.z, elapsedFrames, durationFrames);
 
-    arg1->prevZoom = LinearInterpolation(arg0->prevZoom, arg1->zoom, arg8, arg9);
+    targetCamera->prevZoom = LinearInterpolation(sourceCamera->prevZoom, targetCamera->zoom, elapsedFrames, durationFrames);
 
-    arg0->center.x = SmoothInterpolate(arg0->center.x, arg1->prevCenter.x, argA);
-    arg0->center.y = SmoothInterpolate(arg0->center.y, arg1->prevCenter.y, argA);
-    arg0->center.z = SmoothInterpolate(arg0->center.z, arg1->prevCenter.z, argA);
+    sourceCamera->center.x = SmoothInterpolate(sourceCamera->center.x, targetCamera->prevCenter.x, smoothingDivisor);
+    sourceCamera->center.y = SmoothInterpolate(sourceCamera->center.y, targetCamera->prevCenter.y, smoothingDivisor);
+    sourceCamera->center.z = SmoothInterpolate(sourceCamera->center.z, targetCamera->prevCenter.z, smoothingDivisor);
 
-    arg0->rot.x = SmoothInterpolate(arg0->rot.x, arg1->prevRot.x, argA);
-    arg0->rot.y = SmoothInterpolate(arg0->rot.y, arg1->prevRot.y, argA);
-    arg0->rot.z = SmoothInterpolate(arg0->rot.z, arg1->prevRot.z, argA);
+    sourceCamera->rot.x = SmoothInterpolate(sourceCamera->rot.x, targetCamera->prevRot.x, smoothingDivisor);
+    sourceCamera->rot.y = SmoothInterpolate(sourceCamera->rot.y, targetCamera->prevRot.y, smoothingDivisor);
+    sourceCamera->rot.z = SmoothInterpolate(sourceCamera->rot.z, targetCamera->prevRot.z, smoothingDivisor);
 
-    arg0->zoom = SmoothInterpolate(arg0->zoom, arg1->prevZoom, argA);
+    sourceCamera->zoom = SmoothInterpolate(sourceCamera->zoom, targetCamera->prevZoom, smoothingDivisor);
 }
 
-void fn_1_3858(MentDllUnkBss64Struct *arg0, MentDllUnkBss64Struct *arg1, f32 arg8, f32 arg9)
+void MentMoveCameraCenter(MentDllCameraWork *sourceCamera, MentDllCameraWork *targetCamera, f32 elapsedFrames, f32 durationFrames)
 {
-    arg1->prevCenter.x = fn_1_32C(arg0->prevCenter.x, arg1->center.x, arg8, arg9);
-    arg1->prevCenter.y = fn_1_32C(arg0->prevCenter.y, arg1->center.y, arg8, arg9);
-    arg1->prevCenter.z = fn_1_32C(arg0->prevCenter.z, arg1->center.z, arg8, arg9);
+    targetCamera->prevCenter.x = MentInterpolateSineEaseIn(sourceCamera->prevCenter.x, targetCamera->center.x, startValue, endValue);
+    targetCamera->prevCenter.y = MentInterpolateSineEaseIn(sourceCamera->prevCenter.y, targetCamera->center.y, startValue, endValue);
+    targetCamera->prevCenter.z = MentInterpolateSineEaseIn(sourceCamera->prevCenter.z, targetCamera->center.z, startValue, endValue);
 
-    arg1->prevRot.x = fn_1_32C(arg0->prevRot.x, arg1->rot.x, arg8, arg9);
-    arg1->prevRot.y = fn_1_32C(arg0->prevRot.y, arg1->rot.y, arg8, arg9);
-    arg1->prevRot.z = fn_1_32C(arg0->prevRot.z, arg1->rot.z, arg8, arg9);
+    targetCamera->prevRot.x = MentInterpolateSineEaseIn(sourceCamera->prevRot.x, targetCamera->rot.x, startValue, endValue);
+    targetCamera->prevRot.y = MentInterpolateSineEaseIn(sourceCamera->prevRot.y, targetCamera->rot.y, startValue, endValue);
+    targetCamera->prevRot.z = MentInterpolateSineEaseIn(sourceCamera->prevRot.z, targetCamera->rot.z, startValue, endValue);
 
-    arg1->prevZoom = fn_1_32C(arg0->prevZoom, arg1->zoom, arg8, arg9);
+    targetCamera->prevZoom = MentInterpolateSineEaseIn(sourceCamera->prevZoom, targetCamera->zoom, startValue, endValue);
 }
 
-void fn_1_3CAC(MentDllUnkBss64Struct *arg0, MentDllUnkBss64Struct *arg1, f32 arg8, f32 arg9)
+void MentRotateCamera(MentDllCameraWork *sourceCamera, MentDllCameraWork *targetCamera, f32 elapsedFrames, f32 durationFrames)
 {
-    arg1->prevCenter.x = fn_1_32C(arg0->prevCenter.x, arg1->center.x, arg8, arg9);
-    arg1->prevCenter.y = fn_1_32C(arg0->prevCenter.y, arg1->center.y, arg8, arg9);
-    arg1->prevCenter.z = fn_1_32C(arg0->prevCenter.z, arg1->center.z, arg8, arg9);
+    targetCamera->prevCenter.x = MentInterpolateSineEaseIn(sourceCamera->prevCenter.x, targetCamera->center.x, startValue, endValue);
+    targetCamera->prevCenter.y = MentInterpolateSineEaseIn(sourceCamera->prevCenter.y, targetCamera->center.y, startValue, endValue);
+    targetCamera->prevCenter.z = MentInterpolateSineEaseIn(sourceCamera->prevCenter.z, targetCamera->center.z, startValue, endValue);
 
-    arg1->prevRot.x = fn_1_32C(arg0->prevRot.x, arg1->rot.x, arg8, arg9);
-    arg1->prevRot.y = fn_1_32C(arg0->prevRot.y, arg1->rot.y, arg8, arg9);
-    arg1->prevRot.z = fn_1_32C(arg0->prevRot.z, arg1->rot.z, arg8, arg9);
+    targetCamera->prevRot.x = MentInterpolateSineEaseIn(sourceCamera->prevRot.x, targetCamera->rot.x, startValue, endValue);
+    targetCamera->prevRot.y = MentInterpolateSineEaseIn(sourceCamera->prevRot.y, targetCamera->rot.y, startValue, endValue);
+    targetCamera->prevRot.z = MentInterpolateSineEaseIn(sourceCamera->prevRot.z, targetCamera->rot.z, startValue, endValue);
 
-    arg1->prevZoom = fn_1_32C(arg0->prevZoom, arg1->zoom, arg8, arg9);
+    targetCamera->prevZoom = MentInterpolateSineEaseIn(sourceCamera->prevZoom, targetCamera->zoom, startValue, endValue);
 
-    arg0->center.x = arg1->prevCenter.x;
-    arg0->center.y = arg1->prevCenter.y;
-    arg0->center.z = arg1->prevCenter.z;
+    sourceCamera->center.x = targetCamera->prevCenter.x;
+    sourceCamera->center.y = targetCamera->prevCenter.y;
+    sourceCamera->center.z = targetCamera->prevCenter.z;
 
-    arg0->rot.x = arg1->prevRot.x;
-    arg0->rot.y = arg1->prevRot.y;
-    arg0->rot.z = arg1->prevRot.z;
+    sourceCamera->rot.x = targetCamera->prevRot.x;
+    sourceCamera->rot.y = targetCamera->prevRot.y;
+    sourceCamera->rot.z = targetCamera->prevRot.z;
 
-    arg0->zoom = arg1->prevZoom;
+    sourceCamera->zoom = targetCamera->prevZoom;
 }
 
-void fn_1_4138(MentDllUnkBss64Struct *arg0, MentDllUnkBss64Struct *arg1, f32 arg8, f32 arg9, f32 argA)
+void MentAnimateCameraState(MentDllCameraWork *sourceCamera, MentDllCameraWork *targetCamera, f32 elapsedFrames, f32 durationFrames, f32 smoothingDivisor)
 {
-    arg1->prevCenter.x = fn_1_32C(arg0->prevCenter.x, arg1->center.x, arg8, arg9);
-    arg1->prevCenter.y = fn_1_32C(arg0->prevCenter.y, arg1->center.y, arg8, arg9);
-    arg1->prevCenter.z = fn_1_32C(arg0->prevCenter.z, arg1->center.z, arg8, arg9);
+    targetCamera->prevCenter.x = MentInterpolateSineEaseIn(sourceCamera->prevCenter.x, targetCamera->center.x, startValue, endValue);
+    targetCamera->prevCenter.y = MentInterpolateSineEaseIn(sourceCamera->prevCenter.y, targetCamera->center.y, startValue, endValue);
+    targetCamera->prevCenter.z = MentInterpolateSineEaseIn(sourceCamera->prevCenter.z, targetCamera->center.z, startValue, endValue);
 
-    arg1->prevRot.x = fn_1_32C(arg0->prevRot.x, arg1->rot.x, arg8, arg9);
-    arg1->prevRot.y = fn_1_32C(arg0->prevRot.y, arg1->rot.y, arg8, arg9);
-    arg1->prevRot.z = fn_1_32C(arg0->prevRot.z, arg1->rot.z, arg8, arg9);
+    targetCamera->prevRot.x = MentInterpolateSineEaseIn(sourceCamera->prevRot.x, targetCamera->rot.x, startValue, endValue);
+    targetCamera->prevRot.y = MentInterpolateSineEaseIn(sourceCamera->prevRot.y, targetCamera->rot.y, startValue, endValue);
+    targetCamera->prevRot.z = MentInterpolateSineEaseIn(sourceCamera->prevRot.z, targetCamera->rot.z, startValue, endValue);
 
-    arg1->prevZoom = fn_1_32C(arg0->prevZoom, arg1->zoom, arg8, arg9);
+    targetCamera->prevZoom = MentInterpolateSineEaseIn(sourceCamera->prevZoom, targetCamera->zoom, startValue, endValue);
 
-    arg0->center.x = SmoothInterpolate(arg0->center.x, arg1->prevCenter.x, argA);
-    arg0->center.y = SmoothInterpolate(arg0->center.y, arg1->prevCenter.y, argA);
-    arg0->center.z = SmoothInterpolate(arg0->center.z, arg1->prevCenter.z, argA);
+    sourceCamera->center.x = SmoothInterpolate(sourceCamera->center.x, targetCamera->prevCenter.x, smoothingDivisor);
+    sourceCamera->center.y = SmoothInterpolate(sourceCamera->center.y, targetCamera->prevCenter.y, smoothingDivisor);
+    sourceCamera->center.z = SmoothInterpolate(sourceCamera->center.z, targetCamera->prevCenter.z, smoothingDivisor);
 
-    arg0->rot.x = SmoothInterpolate(arg0->rot.x, arg1->prevRot.x, argA);
-    arg0->rot.y = SmoothInterpolate(arg0->rot.y, arg1->prevRot.y, argA);
-    arg0->rot.z = SmoothInterpolate(arg0->rot.z, arg1->prevRot.z, argA);
+    sourceCamera->rot.x = SmoothInterpolate(sourceCamera->rot.x, targetCamera->prevRot.x, smoothingDivisor);
+    sourceCamera->rot.y = SmoothInterpolate(sourceCamera->rot.y, targetCamera->prevRot.y, smoothingDivisor);
+    sourceCamera->rot.z = SmoothInterpolate(sourceCamera->rot.z, targetCamera->prevRot.z, smoothingDivisor);
 
-    arg0->zoom = SmoothInterpolate(arg0->zoom, arg1->prevZoom, argA);
+    sourceCamera->zoom = SmoothInterpolate(sourceCamera->zoom, targetCamera->prevZoom, smoothingDivisor);
 }
 
-void fn_1_4790(MentDllUnkBss64Struct *arg0, MentDllUnkBss64Struct *arg1, f32 arg8, f32 arg9)
+void MentAnimateCameraCenter(MentDllCameraWork *sourceCamera, MentDllCameraWork *targetCamera, f32 elapsedFrames, f32 durationFrames)
 {
-    arg1->prevCenter.x = fn_1_254(arg0->prevCenter.x, arg1->center.x, arg8, arg9);
-    arg1->prevCenter.y = fn_1_254(arg0->prevCenter.y, arg1->center.y, arg8, arg9);
-    arg1->prevCenter.z = fn_1_254(arg0->prevCenter.z, arg1->center.z, arg8, arg9);
+    targetCamera->prevCenter.x = MentInterpolateCosineEaseOut(sourceCamera->prevCenter.x, targetCamera->center.x, startValue, endValue);
+    targetCamera->prevCenter.y = MentInterpolateCosineEaseOut(sourceCamera->prevCenter.y, targetCamera->center.y, startValue, endValue);
+    targetCamera->prevCenter.z = MentInterpolateCosineEaseOut(sourceCamera->prevCenter.z, targetCamera->center.z, startValue, endValue);
 
-    arg1->prevRot.x = fn_1_254(arg0->prevRot.x, arg1->rot.x, arg8, arg9);
-    arg1->prevRot.y = fn_1_254(arg0->prevRot.y, arg1->rot.y, arg8, arg9);
-    arg1->prevRot.z = fn_1_254(arg0->prevRot.z, arg1->rot.z, arg8, arg9);
+    targetCamera->prevRot.x = MentInterpolateCosineEaseOut(sourceCamera->prevRot.x, targetCamera->rot.x, startValue, endValue);
+    targetCamera->prevRot.y = MentInterpolateCosineEaseOut(sourceCamera->prevRot.y, targetCamera->rot.y, startValue, endValue);
+    targetCamera->prevRot.z = MentInterpolateCosineEaseOut(sourceCamera->prevRot.z, targetCamera->rot.z, startValue, endValue);
 
-    arg1->prevZoom = fn_1_254(arg0->prevZoom, arg1->zoom, arg8, arg9);
+    targetCamera->prevZoom = MentInterpolateCosineEaseOut(sourceCamera->prevZoom, targetCamera->zoom, startValue, endValue);
 }
 
-void fn_1_4C54(MentDllUnkBss64Struct *arg0, MentDllUnkBss64Struct *arg1, f32 arg8, f32 arg9)
+void MentAnimateCameraRotation(MentDllCameraWork *sourceCamera, MentDllCameraWork *targetCamera, f32 elapsedFrames, f32 durationFrames)
 {
-    arg1->prevCenter.x = fn_1_254(arg0->prevCenter.x, arg1->center.x, arg8, arg9);
-    arg1->prevCenter.y = fn_1_254(arg0->prevCenter.y, arg1->center.y, arg8, arg9);
-    arg1->prevCenter.z = fn_1_254(arg0->prevCenter.z, arg1->center.z, arg8, arg9);
+    targetCamera->prevCenter.x = MentInterpolateCosineEaseOut(sourceCamera->prevCenter.x, targetCamera->center.x, startValue, endValue);
+    targetCamera->prevCenter.y = MentInterpolateCosineEaseOut(sourceCamera->prevCenter.y, targetCamera->center.y, startValue, endValue);
+    targetCamera->prevCenter.z = MentInterpolateCosineEaseOut(sourceCamera->prevCenter.z, targetCamera->center.z, startValue, endValue);
 
-    arg1->prevRot.x = fn_1_254(arg0->prevRot.x, arg1->rot.x, arg8, arg9);
-    arg1->prevRot.y = fn_1_254(arg0->prevRot.y, arg1->rot.y, arg8, arg9);
-    arg1->prevRot.z = fn_1_254(arg0->prevRot.z, arg1->rot.z, arg8, arg9);
+    targetCamera->prevRot.x = MentInterpolateCosineEaseOut(sourceCamera->prevRot.x, targetCamera->rot.x, startValue, endValue);
+    targetCamera->prevRot.y = MentInterpolateCosineEaseOut(sourceCamera->prevRot.y, targetCamera->rot.y, startValue, endValue);
+    targetCamera->prevRot.z = MentInterpolateCosineEaseOut(sourceCamera->prevRot.z, targetCamera->rot.z, startValue, endValue);
 
-    arg1->prevZoom = fn_1_254(arg0->prevZoom, arg1->zoom, arg8, arg9);
+    targetCamera->prevZoom = MentInterpolateCosineEaseOut(sourceCamera->prevZoom, targetCamera->zoom, startValue, endValue);
 
-    arg0->center.x = arg1->prevCenter.x;
-    arg0->center.y = arg1->prevCenter.y;
-    arg0->center.z = arg1->prevCenter.z;
+    sourceCamera->center.x = targetCamera->prevCenter.x;
+    sourceCamera->center.y = targetCamera->prevCenter.y;
+    sourceCamera->center.z = targetCamera->prevCenter.z;
 
-    arg0->rot.x = arg1->prevRot.x;
-    arg0->rot.y = arg1->prevRot.y;
-    arg0->rot.z = arg1->prevRot.z;
+    sourceCamera->rot.x = targetCamera->prevRot.x;
+    sourceCamera->rot.y = targetCamera->prevRot.y;
+    sourceCamera->rot.z = targetCamera->prevRot.z;
 
-    arg0->zoom = arg1->prevZoom;
+    sourceCamera->zoom = targetCamera->prevZoom;
 }
 
-void fn_1_5150(MentDllUnkBss64Struct *arg0, MentDllUnkBss64Struct *arg1, f32 arg8, f32 arg9, f32 argA)
+void MentAnimateCameraZoom(MentDllCameraWork *sourceCamera, MentDllCameraWork *targetCamera, f32 elapsedFrames, f32 durationFrames, f32 smoothingDivisor)
 {
-    arg1->prevCenter.x = fn_1_254(arg0->prevCenter.x, arg1->center.x, arg8, arg9);
-    arg1->prevCenter.y = fn_1_254(arg0->prevCenter.y, arg1->center.y, arg8, arg9);
-    arg1->prevCenter.z = fn_1_254(arg0->prevCenter.z, arg1->center.z, arg8, arg9);
+    targetCamera->prevCenter.x = MentInterpolateCosineEaseOut(sourceCamera->prevCenter.x, targetCamera->center.x, startValue, endValue);
+    targetCamera->prevCenter.y = MentInterpolateCosineEaseOut(sourceCamera->prevCenter.y, targetCamera->center.y, startValue, endValue);
+    targetCamera->prevCenter.z = MentInterpolateCosineEaseOut(sourceCamera->prevCenter.z, targetCamera->center.z, startValue, endValue);
 
-    arg1->prevRot.x = fn_1_254(arg0->prevRot.x, arg1->rot.x, arg8, arg9);
-    arg1->prevRot.y = fn_1_254(arg0->prevRot.y, arg1->rot.y, arg8, arg9);
-    arg1->prevRot.z = fn_1_254(arg0->prevRot.z, arg1->rot.z, arg8, arg9);
+    targetCamera->prevRot.x = MentInterpolateCosineEaseOut(sourceCamera->prevRot.x, targetCamera->rot.x, startValue, endValue);
+    targetCamera->prevRot.y = MentInterpolateCosineEaseOut(sourceCamera->prevRot.y, targetCamera->rot.y, startValue, endValue);
+    targetCamera->prevRot.z = MentInterpolateCosineEaseOut(sourceCamera->prevRot.z, targetCamera->rot.z, startValue, endValue);
 
-    arg1->prevZoom = fn_1_254(arg0->prevZoom, arg1->zoom, arg8, arg9);
+    targetCamera->prevZoom = MentInterpolateCosineEaseOut(sourceCamera->prevZoom, targetCamera->zoom, startValue, endValue);
 
-    arg0->center.x = SmoothInterpolate(arg0->center.x, arg1->prevCenter.x, argA);
-    arg0->center.y = SmoothInterpolate(arg0->center.y, arg1->prevCenter.y, argA);
-    arg0->center.z = SmoothInterpolate(arg0->center.z, arg1->prevCenter.z, argA);
+    sourceCamera->center.x = SmoothInterpolate(sourceCamera->center.x, targetCamera->prevCenter.x, smoothingDivisor);
+    sourceCamera->center.y = SmoothInterpolate(sourceCamera->center.y, targetCamera->prevCenter.y, smoothingDivisor);
+    sourceCamera->center.z = SmoothInterpolate(sourceCamera->center.z, targetCamera->prevCenter.z, smoothingDivisor);
 
-    arg0->rot.x = SmoothInterpolate(arg0->rot.x, arg1->prevRot.x, argA);
-    arg0->rot.y = SmoothInterpolate(arg0->rot.y, arg1->prevRot.y, argA);
-    arg0->rot.z = SmoothInterpolate(arg0->rot.z, arg1->prevRot.z, argA);
+    sourceCamera->rot.x = SmoothInterpolate(sourceCamera->rot.x, targetCamera->prevRot.x, smoothingDivisor);
+    sourceCamera->rot.y = SmoothInterpolate(sourceCamera->rot.y, targetCamera->prevRot.y, smoothingDivisor);
+    sourceCamera->rot.z = SmoothInterpolate(sourceCamera->rot.z, targetCamera->prevRot.z, smoothingDivisor);
 
-    arg0->zoom = SmoothInterpolate(arg0->zoom, arg1->prevZoom, argA);
+    sourceCamera->zoom = SmoothInterpolate(sourceCamera->zoom, targetCamera->prevZoom, smoothingDivisor);
 }
 
-void fn_1_5818(OMOBJ *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void MentSetModelMotion(OMOBJ *object, s32 modelIndex, s32 motionIndex, s32 transitionFrames, s32 motionMode)
 {
-    switch (arg4) {
+    switch (motionMode) {
         case 0:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0);
+            Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0);
             break;
         case 1:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000001);
+            Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0x40000001);
             break;
         case 2:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000002);
+            Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0x40000002);
             break;
     }
-    arg0->work[0] = arg0->work[1] = arg0->work[2] = 0;
+    object->work[0] = object->work[1] = object->work[2] = 0;
 }
 
-void fn_1_59A0(OMOBJ *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void MentSetModelMotionIfChanged(OMOBJ *object, s32 modelIndex, s32 motionIndex, s32 transitionFrames, s32 motionMode)
 {
-    if (arg0->work[3] != arg0->mtnId[arg2]) {
-        arg0->work[3] = arg0->mtnId[arg2];
-        switch (arg4) {
+    if (object->work[3] != object->mtnId[motionIndex]) {
+        object->work[3] = object->mtnId[motionIndex];
+        switch (motionMode) {
             case 0:
-                Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0);
+                Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0);
                 break;
             case 1:
-                Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000001);
+                Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0x40000001);
                 break;
             case 2:
-                Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000002);
+                Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0x40000002);
                 break;
         }
-        arg0->work[0] = arg0->work[1] = arg0->work[2] = 0;
+        object->work[0] = object->work[1] = object->work[2] = 0;
     }
 }
 
-void fn_1_5B50(OMOBJ *arg0, s32 arg1, s32 arg2, s32 arg3)
+void MentStartModelMotionTimer(OMOBJ *object, s32 motionIndex, s32 nextMotionIndex, s32 timerFrames)
 {
-    (void)arg1;
-    Hu3DMotionShiftSet(arg0->mdlId[1], arg0->mtnId[arg1], 0.0f, arg3, 0);
-    arg0->work[0] = arg0->work[1] = arg0->work[2] = 0;
-    arg0->work[0] = 1;
-    arg0->work[1] = arg2;
-    arg0->work[2] = arg3 + 1;
+    (void)motionIndex;
+    Hu3DMotionShiftSet(object->mdlId[1], object->mtnId[motionIndex], 0.0f, timerFrames, 0);
+    object->work[0] = object->work[1] = object->work[2] = 0;
+    object->work[0] = 1;
+    object->work[1] = nextMotionIndex;
+    object->work[2] = timerFrames + 1;
 }
 
-void fn_1_5C08(OMOBJ *arg0)
+void MentUpdateModelMotionTimer(OMOBJ *object)
 {
-    s32 temp;
+    s32 cameraWork;
 
-    if (arg0->work[0] != 0) {
-        if (arg0->work[2] != 0) {
-            arg0->work[2] -= 1;
+    if (object->work[0] != 0) {
+        if (object->work[2] != 0) {
+            object->work[2] -= 1;
             return;
         }
-        if ((arg0->work[2] == 0) && (Hu3DMotionEndCheck(arg0->mdlId[1]) != 0)) {
-            temp = arg0->work[1];
-            Hu3DMotionShiftSet(arg0->mdlId[1], arg0->mtnId[temp], 0.0f, 15.0f, 0x40000001);
-            arg0->work[0] = arg0->work[1] = arg0->work[2] = 0;
-            arg0->work[0] = arg0->work[1] = arg0->work[2] = 0;
+        if ((object->work[2] == 0) && (Hu3DMotionEndCheck(object->mdlId[1]) != 0)) {
+            cameraWork = object->work[1];
+            Hu3DMotionShiftSet(object->mdlId[1], object->mtnId[cameraWork], 0.0f, 15.0f, 0x40000001);
+            object->work[0] = object->work[1] = object->work[2] = 0;
+            object->work[0] = object->work[1] = object->work[2] = 0;
         }
     }
 }
 
-void fn_1_5CDC(OMOBJ *arg0, s32 arg1, s32 arg2)
+void MentWaitForModelMotion(OMOBJ *object, s32 modelIndex, s32 waitFrames)
 {
-    HuPrcSleep(arg2 + 1);
+    HuPrcSleep(waitFrames + 1);
     do {
         HuPrcVSleep();
-    } while (Hu3DMotionEndCheck(arg0->mdlId[arg1]) == 0);
+    } while (Hu3DMotionEndCheck(object->mdlId[modelIndex]) == 0);
 }
 
-void fn_1_5D38(OMOBJ *arg0, s32 arg1, Vec arg2, float arg8, float arg9, float argA, s32 arg3, s32 arg4)
+void MentMoveAndTurnModelToTarget(OMOBJ *object, s32 modelIndex, Vec targetPosition, float targetYaw, float moveSpeed, float rotationFrames, s32 moveEnabled, s32 turnEnabled)
 {
-    s32 temp_r29 = 0;
-    s32 temp_r28 = 0;
+    s32 moveAndTurnModelToTargetStateValue = 0;
+    s32 moveAndTurnModelToTargetStateValue2 = 0;
 
-    Vec sp4C;
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
-    sp40.x = Hu3DData[arg0->mdlId[arg1]].pos.x;
-    sp40.y = Hu3DData[arg0->mdlId[arg1]].pos.y;
-    sp40.z = Hu3DData[arg0->mdlId[arg1]].pos.z;
-    sp34.x = arg2.x;
-    sp34.y = arg2.y;
-    sp34.z = arg2.z;
-    sp1C.x = Hu3DData[arg0->mdlId[arg1]].rot.x;
-    sp1C.y = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    sp1C.z = Hu3DData[arg0->mdlId[arg1]].rot.z;
-    sp10.x = 0;
-    sp10.y = arg8;
-    sp10.z = 0;
-    if (sp34.x - sp40.x >= 0.0f) {
-        temp_r29 = 1;
+    Vec moveAndTurnModelToTargetTargetPosition;
+    Vec moveAndTurnModelToTargetTargetPosition2;
+    Vec moveAndTurnModelToTargetTargetPosition3;
+    Vec moveAndTurnModelToTargetTargetPosition4;
+    Vec moveAndTurnModelToTargetTargetPosition5;
+    Vec moveAndTurnModelToTargetTargetPosition6;
+    moveAndTurnModelToTargetTargetPosition2.x = Hu3DData[object->mdlId[modelIndex]].pos.x;
+    moveAndTurnModelToTargetTargetPosition2.y = Hu3DData[object->mdlId[modelIndex]].pos.y;
+    moveAndTurnModelToTargetTargetPosition2.z = Hu3DData[object->mdlId[modelIndex]].pos.z;
+    moveAndTurnModelToTargetTargetPosition3.x = targetPosition.x;
+    moveAndTurnModelToTargetTargetPosition3.y = targetPosition.y;
+    moveAndTurnModelToTargetTargetPosition3.z = targetPosition.z;
+    moveAndTurnModelToTargetTargetPosition5.x = Hu3DData[object->mdlId[modelIndex]].rot.x;
+    moveAndTurnModelToTargetTargetPosition5.y = Hu3DData[object->mdlId[modelIndex]].rot.y;
+    moveAndTurnModelToTargetTargetPosition5.z = Hu3DData[object->mdlId[modelIndex]].rot.z;
+    moveAndTurnModelToTargetTargetPosition6.x = 0;
+    moveAndTurnModelToTargetTargetPosition6.y = targetYaw;
+    moveAndTurnModelToTargetTargetPosition6.z = 0;
+    if (moveAndTurnModelToTargetTargetPosition3.x - moveAndTurnModelToTargetTargetPosition2.x >= 0.0f) {
+        moveAndTurnModelToTargetStateValue = 1;
     }
     else {
-        temp_r29 = 0;
+        moveAndTurnModelToTargetStateValue = 0;
     }
-    if (sp34.z - sp40.z >= 0.0f) {
-        temp_r28 = 1;
+    if (moveAndTurnModelToTargetTargetPosition3.z - moveAndTurnModelToTargetTargetPosition2.z >= 0.0f) {
+        moveAndTurnModelToTargetStateValue2 = 1;
     }
     else {
-        temp_r28 = 0;
+        moveAndTurnModelToTargetStateValue2 = 0;
     }
-    while (arg3) {
-        fn_1_4D8();
-        sp28.y = -(atan2d(sp34.z - sp40.z, sp34.x - sp40.x) - 90);
-        if (sp28.y < 0.0f) {
-            sp28.y += 360.0f;
+    while (moveEnabled) {
+        MentSleepFrame();
+        moveAndTurnModelToTargetTargetPosition4.y = -(atan2d(moveAndTurnModelToTargetTargetPosition3.z - moveAndTurnModelToTargetTargetPosition2.z, moveAndTurnModelToTargetTargetPosition3.x - moveAndTurnModelToTargetTargetPosition2.x) - 90);
+        if (moveAndTurnModelToTargetTargetPosition4.y < 0.0f) {
+            moveAndTurnModelToTargetTargetPosition4.y += 360.0f;
         }
-        else if (sp28.y >= 360.0f) {
-            sp28.y -= 360.0f;
+        else if (moveAndTurnModelToTargetTargetPosition4.y >= 360.0f) {
+            moveAndTurnModelToTargetTargetPosition4.y -= 360.0f;
         }
-        if (arg4) {
-            if (sp28.y >= 180.0f) {
-                if (sp1C.y - sp28.y >= 180.0f) {
-                    sp1C.y -= 360.0f;
+        if (turnEnabled) {
+            if (moveAndTurnModelToTargetTargetPosition4.y >= 180.0f) {
+                if (moveAndTurnModelToTargetTargetPosition5.y - moveAndTurnModelToTargetTargetPosition4.y >= 180.0f) {
+                    moveAndTurnModelToTargetTargetPosition5.y -= 360.0f;
                 }
-                if (sp1C.y - sp28.y < -180.0f) {
-                    sp1C.y += 360.0f;
+                if (moveAndTurnModelToTargetTargetPosition5.y - moveAndTurnModelToTargetTargetPosition4.y < -180.0f) {
+                    moveAndTurnModelToTargetTargetPosition5.y += 360.0f;
                 }
             }
             else {
-                if (sp1C.y - sp28.y > 180.0f) {
-                    sp1C.y -= 360.0f;
+                if (moveAndTurnModelToTargetTargetPosition5.y - moveAndTurnModelToTargetTargetPosition4.y > 180.0f) {
+                    moveAndTurnModelToTargetTargetPosition5.y -= 360.0f;
                 }
-                if (sp1C.y - sp28.y <= -180.0f) {
-                    sp1C.y += 360.0f;
+                if (moveAndTurnModelToTargetTargetPosition5.y - moveAndTurnModelToTargetTargetPosition4.y <= -180.0f) {
+                    moveAndTurnModelToTargetTargetPosition5.y += 360.0f;
                 }
             }
         }
-        sp4C.x = sp40.x = sp40.x + (arg9 * sind(sp28.y));
-        sp4C.z = sp40.z = sp40.z + (arg9 * cosd(sp28.y));
-        if (temp_r29 == 1) {
-            if (sp40.x >= sp34.x) {
-                sp4C.x = sp40.x = sp34.x;
-                temp_r29 = 2;
+        moveAndTurnModelToTargetTargetPosition.x = moveAndTurnModelToTargetTargetPosition2.x = moveAndTurnModelToTargetTargetPosition2.x + (moveSpeed * sind(moveAndTurnModelToTargetTargetPosition4.y));
+        moveAndTurnModelToTargetTargetPosition.z = moveAndTurnModelToTargetTargetPosition2.z = moveAndTurnModelToTargetTargetPosition2.z + (moveSpeed * cosd(moveAndTurnModelToTargetTargetPosition4.y));
+        if (moveAndTurnModelToTargetStateValue == 1) {
+            if (moveAndTurnModelToTargetTargetPosition2.x >= moveAndTurnModelToTargetTargetPosition3.x) {
+                moveAndTurnModelToTargetTargetPosition.x = moveAndTurnModelToTargetTargetPosition2.x = moveAndTurnModelToTargetTargetPosition3.x;
+                moveAndTurnModelToTargetStateValue = 2;
             }
         }
-        else if (temp_r29 == 0) {
-            if (sp40.x <= sp34.x) {
-                sp4C.x = sp40.x = sp34.x;
-                temp_r29 = 2;
+        else if (moveAndTurnModelToTargetStateValue == 0) {
+            if (moveAndTurnModelToTargetTargetPosition2.x <= moveAndTurnModelToTargetTargetPosition3.x) {
+                moveAndTurnModelToTargetTargetPosition.x = moveAndTurnModelToTargetTargetPosition2.x = moveAndTurnModelToTargetTargetPosition3.x;
+                moveAndTurnModelToTargetStateValue = 2;
             }
         }
-        if (temp_r28 == 1) {
-            if (sp40.z >= sp34.z) {
-                sp4C.z = sp40.z = sp34.z;
-                temp_r28 = 2;
+        if (moveAndTurnModelToTargetStateValue2 == 1) {
+            if (moveAndTurnModelToTargetTargetPosition2.z >= moveAndTurnModelToTargetTargetPosition3.z) {
+                moveAndTurnModelToTargetTargetPosition.z = moveAndTurnModelToTargetTargetPosition2.z = moveAndTurnModelToTargetTargetPosition3.z;
+                moveAndTurnModelToTargetStateValue2 = 2;
             }
         }
-        else if (temp_r28 == 0) {
-            if (sp40.z <= sp34.z) {
-                sp4C.z = sp40.z = sp34.z;
-                temp_r28 = 2;
+        else if (moveAndTurnModelToTargetStateValue2 == 0) {
+            if (moveAndTurnModelToTargetTargetPosition2.z <= moveAndTurnModelToTargetTargetPosition3.z) {
+                moveAndTurnModelToTargetTargetPosition.z = moveAndTurnModelToTargetTargetPosition2.z = moveAndTurnModelToTargetTargetPosition3.z;
+                moveAndTurnModelToTargetStateValue2 = 2;
             }
         }
-        if (arg4) {
-            sp1C.y = fn_1_234(sp1C.y, sp28.y, argA);
+        if (turnEnabled) {
+            moveAndTurnModelToTargetTargetPosition5.y = MentApproachValue(moveAndTurnModelToTargetTargetPosition5.y, moveAndTurnModelToTargetTargetPosition4.y, smoothingDivisor);
         }
-        Hu3DModelPosSet(arg0->mdlId[arg1], sp4C.x, sp40.y, sp4C.z);
-        Hu3DModelRotSet(arg0->mdlId[arg1], sp1C.x, sp1C.y, sp1C.z);
-        if (temp_r29 == 2 && temp_r28 == 2) {
+        Hu3DModelPosSet(object->mdlId[modelIndex], moveAndTurnModelToTargetTargetPosition.x, moveAndTurnModelToTargetTargetPosition2.y, moveAndTurnModelToTargetTargetPosition.z);
+        Hu3DModelRotSet(object->mdlId[modelIndex], moveAndTurnModelToTargetTargetPosition5.x, moveAndTurnModelToTargetTargetPosition5.y, moveAndTurnModelToTargetTargetPosition5.z);
+        if (moveAndTurnModelToTargetStateValue == 2 && moveAndTurnModelToTargetStateValue2 == 2) {
             break;
         }
     }
-    sp1C.y = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    if (arg4) {
-        s32 temp_r27;
-        for (temp_r27 = 0; temp_r27 <= argA; temp_r27++) {
-            fn_1_4D8();
-            if (sp10.y >= 180.0f) {
-                if (sp1C.y - sp10.y >= 180.0f) {
-                    sp1C.y -= 360.0f;
+    moveAndTurnModelToTargetTargetPosition5.y = Hu3DData[object->mdlId[modelIndex]].rot.y;
+    if (turnEnabled) {
+        s32 moveAndTurnModelToTargetIndex;
+        for (moveAndTurnModelToTargetIndex = 0; moveAndTurnModelToTargetIndex <= rotationFrames; moveAndTurnModelToTargetIndex++) {
+            MentSleepFrame();
+            if (moveAndTurnModelToTargetTargetPosition6.y >= 180.0f) {
+                if (moveAndTurnModelToTargetTargetPosition5.y - moveAndTurnModelToTargetTargetPosition6.y >= 180.0f) {
+                    moveAndTurnModelToTargetTargetPosition5.y -= 360.0f;
                 }
-                if (sp1C.y - sp10.y < -180.0f) {
-                    sp1C.y += 360.0f;
+                if (moveAndTurnModelToTargetTargetPosition5.y - moveAndTurnModelToTargetTargetPosition6.y < -180.0f) {
+                    moveAndTurnModelToTargetTargetPosition5.y += 360.0f;
                 }
             }
             else {
-                if (sp1C.y - sp10.y > 180.0f) {
-                    sp1C.y -= 360.0f;
+                if (moveAndTurnModelToTargetTargetPosition5.y - moveAndTurnModelToTargetTargetPosition6.y > 180.0f) {
+                    moveAndTurnModelToTargetTargetPosition5.y -= 360.0f;
                 }
-                if (sp1C.y - sp10.y <= -180.0f) {
-                    sp1C.y += 360.0f;
+                if (moveAndTurnModelToTargetTargetPosition5.y - moveAndTurnModelToTargetTargetPosition6.y <= -180.0f) {
+                    moveAndTurnModelToTargetTargetPosition5.y += 360.0f;
                 }
             }
-            sp10.z = fn_1_20C(sp1C.y, sp10.y, temp_r27, argA);
-            Hu3DModelRotSet(arg0->mdlId[arg1], sp1C.x, sp10.z, sp1C.z);
+            moveAndTurnModelToTargetTargetPosition6.z = MentInterpolateLinear(moveAndTurnModelToTargetTargetPosition5.y, moveAndTurnModelToTargetTargetPosition6.y, moveAndTurnModelToTargetIndex, elapsedFrames);
+            Hu3DModelRotSet(object->mdlId[modelIndex], moveAndTurnModelToTargetTargetPosition5.x, moveAndTurnModelToTargetTargetPosition6.z, moveAndTurnModelToTargetTargetPosition5.z);
         }
     }
 }
 
-void fn_1_6534(s32 grpId, s32 memberNo, float posX, float posY)
+void MentSetSpritePosition(s32 spriteGroup, s32 spriteIndex, float positionX, float positionY)
 {
-    HuSprPosSet(grpId, memberNo, posX, posY + 0.5f);
+    HuSprPosSet(spriteGroup, spriteIndex, positionX, positionY + 0.5f);
 }
