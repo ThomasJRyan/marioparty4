@@ -13,172 +13,172 @@
 #include "game/frand.h"
 #endif
 
-HUPROCESS *lbl_1_bss_B8;
-OMOBJ *lbl_1_bss_B4;
-OMOBJ *lbl_1_bss_B0;
-OMOBJ *lbl_1_bss_AC;
-OMOBJ *lbl_1_bss_A8;
-OMOBJ *lbl_1_bss_A4;
-OMOBJ *lbl_1_bss_A0;
-Vec lbl_1_bss_94;
+HUPROCESS *stageObjectManager;
+OMOBJ *mainStageObject;
+OMOBJ *fishObject;
+OMOBJ *waterEffectObject;
+OMOBJ *sprinkleObject;
+OMOBJ *whaleObject;
+OMOBJ *fishSchoolObject;
+Vec stageCameraPosition;
 
-typedef struct struct_bss90 {
-    ANIMDATA *unk0[4];
-    s32 unk10[4];
-    Vec unk20;
-} StructBss90;
+typedef struct StageParticleWork {
+    ANIMDATA *spriteAnimations[4];
+    s32 particleModelIds[4];
+    Vec fadeParameters;
+} StageParticleWork;
 
-StructBss90 *lbl_1_bss_90;
+StageParticleWork *stageParticleWork;
 
-Vec lbl_1_data_2E8[4] = {
+Vec fishStartPositions[4] = {
     { -460, 0, 150 },
     { 460, 0, 150 },
     { -460, 0, -150 },
     { 460, 0, -150 },
 };
 
-GXColor lbl_1_data_318 = { 255, 255, 255, 255 };
+GXColor fishParticleColor = { 255, 255, 255, 255 };
 
-typedef struct struct_data31C {
-    s32 unk0;
-    s32 unk4;
-    s32 unk8;
-    s32 unkC;
-    BOOL unk10;
-} StructData31C;
+typedef struct FramebufferConfig {
+    s32 sourceWidth;
+    s32 sourceHeight;
+    s32 textureWidth;
+    s32 textureHeight;
+    BOOL useScreenCapture;
+} FramebufferConfig;
 
-StructData31C lbl_1_data_31C[4] = {
+FramebufferConfig framebufferConfigs[4] = {
     { 400, 400, 400, 400, FALSE },
     { 640, 480, 320, 240, TRUE },
     { 640, 480, 640, 480, FALSE },
     { 640, 480, 320, 240, TRUE },
 };
 
-void fn_1_89AC(void);
+void InitializeStageParticles(void);
 
-void fn_1_6444(OMOBJ *object);
-void fn_1_6DB0(OMOBJ *object);
-void fn_1_70F0(OMOBJ *object);
-void fn_1_7778(OMOBJ *object);
-void fn_1_841C(OMOBJ *object);
+void InitializeFishObject(OMOBJ *object);
+void InitializeWaterEffect(OMOBJ *object);
+void InitializeSprinkleObject(OMOBJ *object);
+void InitializeWhaleObject(OMOBJ *object);
+void InitializeFishSchool(OMOBJ *object);
 
-OMOBJ *fn_1_2FAC(void);
+OMOBJ *CreateStageObject(void);
 
-void fn_1_2DF4(HUPROCESS *objman)
+void InitializeStageObjects(HUPROCESS *objman)
 {
-    lbl_1_bss_B8 = objman;
-    fn_1_89AC();
-    lbl_1_bss_B0 = omAddObjEx(lbl_1_bss_B8, 50, 0, 0, -1, fn_1_6444);
-    lbl_1_bss_AC = omAddObjEx(lbl_1_bss_B8, 50, 8, 0, -1, fn_1_6DB0);
-    lbl_1_bss_A8 = omAddObjEx(lbl_1_bss_B8, 50, 1, 0, -1, fn_1_70F0);
-    lbl_1_bss_A4 = omAddObjEx(lbl_1_bss_B8, 50, 0, 0, -1, fn_1_7778);
-    lbl_1_bss_A0 = omAddObjEx(lbl_1_bss_B8, 50, 0, 0, -1, fn_1_841C);
-    lbl_1_bss_B4 = fn_1_2FAC();
+    stageObjectManager = objman;
+    InitializeStageParticles();
+    fishObject = omAddObjEx(stageObjectManager, 50, 0, 0, -1, InitializeFishObject);
+    waterEffectObject = omAddObjEx(stageObjectManager, 50, 8, 0, -1, InitializeWaterEffect);
+    sprinkleObject = omAddObjEx(stageObjectManager, 50, 1, 0, -1, InitializeSprinkleObject);
+    whaleObject = omAddObjEx(stageObjectManager, 50, 0, 0, -1, InitializeWhaleObject);
+    fishSchoolObject = omAddObjEx(stageObjectManager, 50, 0, 0, -1, InitializeFishSchool);
+    mainStageObject = CreateStageObject();
 }
 
-void fn_1_3C34(OMOBJ *object);
+void DestroyStageObject(OMOBJ *object);
 
-void fn_1_6790(OMOBJ *object);
-void fn_1_6F60(OMOBJ *object);
-void fn_1_74A4(OMOBJ *object);
-void fn_1_7F74(OMOBJ *object);
+void DestroyFishObject(OMOBJ *object);
+void DestroyWaterEffect(OMOBJ *object);
+void DestroySprinkleObject(OMOBJ *object);
+void DestroyWhaleObject(OMOBJ *object);
 
-void fn_1_8C68(void);
+void DestroyStageParticles(void);
 
-void fn_1_2F3C(void)
+void DestroyStageObjects(void)
 {
-    fn_1_3C34(lbl_1_bss_B4);
-    fn_1_8C68();
-    fn_1_6790(lbl_1_bss_B0);
-    fn_1_6F60(lbl_1_bss_AC);
-    fn_1_74A4(lbl_1_bss_A8);
-    fn_1_7F74(lbl_1_bss_A4);
+    DestroyStageObject(mainStageObject);
+    DestroyStageParticles();
+    DestroyFishObject(fishObject);
+    DestroyWaterEffect(waterEffectObject);
+    DestroySprinkleObject(sprinkleObject);
+    DestroyWhaleObject(whaleObject);
 }
 
-typedef struct work_2FAC_unk4 {
-    void *unk0;
-    u32 unk4;
-    BOOL unk8;
-    s32 unkC;
-    s32 unk10;
-    s32 unk14;
-    s32 unk18;
-} Work2FACUnk4;
+typedef struct FramebufferWork {
+    void *textureBuffer;
+    u32 textureBufferSize;
+    BOOL useScreenCapture;
+    s32 sourceWidth;
+    s32 sourceHeight;
+    s32 textureWidth;
+    s32 textureHeight;
+} FramebufferWork;
 
-typedef struct work_2FAC_unk74 {
-    Vec unk0;
-    Vec unkC;
-    float unk18;
-    u16 unk1C;
-    u16 unk1E;
-} Work2FACUnk74;
+typedef struct SprinkleEffectWork {
+    Vec position;
+    Vec effectParameters;
+    float frameDuration;
+    u16 lifespan;
+    u16 remainingFrames;
+} SprinkleEffectWork;
 
-typedef struct work_2FAC {
-    s32 unk0;
-    Work2FACUnk4 unk4[4];
-    Work2FACUnk74 unk74[64];
-    float unk874[26][2];
-    float unk944[26][2];
-    void *unkA14;
-    u32 unkA18;
-    ANIMDATA *unkA1C[9];
-    float unkA40;
-    float unkA44;
-    u32 unkA48;
-    u32 unkA4C;
-    u32 unkA50;
-    float unkA54;
-    float unkA58;
-} Work2FAC;
+typedef struct M456StageWork {
+    s32 effectState;
+    FramebufferWork framebuffers[4];
+    SprinkleEffectWork sprinkles[64];
+    float waterTextureCoordinates[26][2];
+    float waterTextureDrift[26][2];
+    void *displayList;
+    u32 displayListSize;
+    ANIMDATA *spriteAnimations[9];
+    float verticalBobOffset;
+    float stageHeight;
+    u32 animationFrame;
+    u32 rippleFrame;
+    u32 rippleAngle;
+    float waterTextureOffsetX;
+    float waterTextureOffsetY;
+} M456StageWork;
 
-void fn_1_390C(OMOBJ *object);
+void UpdateStageObject(OMOBJ *object);
 
-void fn_1_3CB0(HU3DMODEL *model, Mtx matrix);
-void fn_1_44DC(HU3DMODEL *model, Mtx matrix);
-void fn_1_4994(HU3DMODEL *model, Mtx matrix);
+void DrawWaterSurface(HU3DMODEL *model, Mtx matrix);
+void DrawStageBackdrop(HU3DMODEL *model, Mtx matrix);
+void DrawStage(HU3DMODEL *model, Mtx matrix);
 
-OMOBJ *fn_1_2FAC(void)
+OMOBJ *CreateStageObject(void)
 {
-    OMOBJ *object = omAddObjEx(lbl_1_bss_B8, 127, 15, 0, -1, fn_1_390C);
-    Work2FAC *work = object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(Work2FAC), HU_MEMNUM_OVL);
-    Work2FAC *work2 = work;
-    Work2FACUnk74 *workUnk74 = &work->unk74[0];
-    Work2FACUnk4 *workUnk4;
+    OMOBJ *object = omAddObjEx(stageObjectManager, 127, 15, 0, -1, UpdateStageObject);
+    M456StageWork *work = object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M456StageWork), HU_MEMNUM_OVL);
+    M456StageWork *work2 = work;
+    SprinkleEffectWork *sprinkleWork = &work->sprinkles[0];
+    FramebufferWork *framebufferWork;
     s32 id;
     HU3DMODEL *modelP;
     s32 i;
 
-    work->unkA40 = 0;
-    work->unkA44 = 0;
-    work->unkA48 = 0;
-    work->unkA4C = 0;
-    work->unkA50 = 0;
-    work->unkA54 = 0;
-    work->unkA58 = 0;
+    work->verticalBobOffset = 0;
+    work->stageHeight = 0;
+    work->animationFrame = 0;
+    work->rippleFrame = 0;
+    work->rippleAngle = 0;
+    work->waterTextureOffsetX = 0;
+    work->waterTextureOffsetY = 0;
 
-    object->mdlId[0] = id = Hu3DHookFuncCreate(fn_1_4994);
+    object->mdlId[0] = id = Hu3DHookFuncCreate(DrawStage);
     Hu3DModelCameraSet(id, HU3D_CAM0);
     Hu3DModelLayerSet(id, 5);
     modelP = &Hu3DData[id];
     modelP->hookData = work;
-    work->unkA1C[4] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 21), HU_MEMNUM_OVL));
-    work->unkA1C[5] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 22), HU_MEMNUM_OVL));
-    work->unkA1C[6] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 23), HU_MEMNUM_OVL));
-    work->unkA1C[7] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 24), HU_MEMNUM_OVL));
-    work->unkA1C[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 17), HU_MEMNUM_OVL));
-    work->unkA1C[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 18), HU_MEMNUM_OVL));
-    work->unkA1C[2] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 19), HU_MEMNUM_OVL));
-    work->unkA1C[3] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 20), HU_MEMNUM_OVL));
-    work->unkA1C[8] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 25), HU_MEMNUM_OVL));
-    object->mdlId[1] = id = Hu3DHookFuncCreate(fn_1_3CB0);
+    work->spriteAnimations[4] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 21), HU_MEMNUM_OVL));
+    work->spriteAnimations[5] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 22), HU_MEMNUM_OVL));
+    work->spriteAnimations[6] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 23), HU_MEMNUM_OVL));
+    work->spriteAnimations[7] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 24), HU_MEMNUM_OVL));
+    work->spriteAnimations[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 17), HU_MEMNUM_OVL));
+    work->spriteAnimations[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 18), HU_MEMNUM_OVL));
+    work->spriteAnimations[2] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 19), HU_MEMNUM_OVL));
+    work->spriteAnimations[3] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 20), HU_MEMNUM_OVL));
+    work->spriteAnimations[8] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 25), HU_MEMNUM_OVL));
+    object->mdlId[1] = id = Hu3DHookFuncCreate(DrawWaterSurface);
     Hu3DModelCameraSet(id, HU3D_CAM0);
     Hu3DModelLayerSet(id, 0);
     modelP = &Hu3DData[id];
     modelP->hookData = work;
-    work2->unkA18 = 16384;
-    work2->unkA14 = HuMemDirectMallocNum(HEAP_HEAP, work2->unkA18, HU_MEMNUM_OVL);
-    DCFlushRange(work2->unkA14, 16384);
-    GXBeginDisplayList(work2->unkA14, work2->unkA18);
+    work2->displayListSize = 16384;
+    work2->displayList = HuMemDirectMallocNum(HEAP_HEAP, work2->displayListSize, HU_MEMNUM_OVL);
+    DCFlushRange(work2->displayList, 16384);
+    GXBeginDisplayList(work2->displayList, work2->displayListSize);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     GXPosition2f32(-0.5f, -0.5f);
     GXTexCoord2f32(0, 0);
@@ -188,12 +188,12 @@ OMOBJ *fn_1_2FAC(void)
     GXTexCoord2f32(1, 1);
     GXPosition2f32(-0.5f, 0.5f);
     GXTexCoord2f32(0, 1);
-    work2->unkA18 = GXEndDisplayList();
+    work2->displayListSize = GXEndDisplayList();
     for (i = 0; i < 26; i++) {
-        work2->unk874[i][0] = 0;
-        work2->unk874[i][1] = 0;
-        work2->unk944[i][0] = 0;
-        work2->unk944[i][1] = 0;
+        work2->waterTextureCoordinates[i][0] = 0;
+        work2->waterTextureCoordinates[i][1] = 0;
+        work2->waterTextureDrift[i][0] = 0;
+        work2->waterTextureDrift[i][1] = 0;
     }
 
     object->mdlId[3] = id = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M456, 5));
@@ -212,7 +212,7 @@ OMOBJ *fn_1_2FAC(void)
     Hu3DModelCameraSet(id, HU3D_CAM0);
     Hu3DModelLayerSet(id, 1);
 
-    object->mdlId[8] = id = Hu3DHookFuncCreate(fn_1_44DC);
+    object->mdlId[8] = id = Hu3DHookFuncCreate(DrawStageBackdrop);
     Hu3DModelCameraSet(id, HU3D_CAM0);
     Hu3DModelLayerSet(id, 2);
     modelP = &Hu3DData[id];
@@ -228,107 +228,107 @@ OMOBJ *fn_1_2FAC(void)
         object->mdlId[i + 11] = id = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M456, 1));
         Hu3DModelCameraSet(object->mdlId[i + 11], HU3D_CAM0);
         Hu3DModelLayerSet(object->mdlId[i + 11], 3);
-        Hu3DModelPosSet(object->mdlId[i + 11], lbl_1_data_2E8[i].x, lbl_1_data_2E8[i].y, lbl_1_data_2E8[i].z);
+        Hu3DModelPosSet(object->mdlId[i + 11], fishStartPositions[i].x, fishStartPositions[i].y, fishStartPositions[i].z);
         Hu3DModelAttrSet(object->mdlId[i + 11], HU3D_MOTATTR_SHAPE_LOOP);
         Hu3DMotionShapeTimeSet(object->mdlId[i + 11], (0.25 * i) * Hu3DMotionShapeMaxTimeGet(object->mdlId[i + 11]));
     }
     modelP = &Hu3DData[object->mdlId[0]];
-    workUnk4 = &work2->unk4[0];
-    for (i = 0; i < 4; i++, workUnk4++) {
-        workUnk4->unkC = lbl_1_data_31C[i].unk0;
-        workUnk4->unk10 = lbl_1_data_31C[i].unk4;
-        workUnk4->unk14 = lbl_1_data_31C[i].unk8;
-        workUnk4->unk18 = lbl_1_data_31C[i].unkC;
-        workUnk4->unk8 = lbl_1_data_31C[i].unk10;
-        workUnk4->unk4 = GXGetTexBufferSize(workUnk4->unk14, workUnk4->unk18, GX_TF_RGB565, GX_FALSE, GX_FALSE);
-        workUnk4->unk0 = HuMemDirectMallocNum(HEAP_MODEL, workUnk4->unk4, modelP->mallocNo);
-        memset(workUnk4->unk0, 0, workUnk4->unk4);
-        DCFlushRange(workUnk4->unk0, workUnk4->unk4);
+    framebufferWork = &work2->framebuffers[0];
+    for (i = 0; i < 4; i++, framebufferWork++) {
+        framebufferWork->sourceWidth = framebufferConfigs[i].sourceWidth;
+        framebufferWork->sourceHeight = framebufferConfigs[i].sourceHeight;
+        framebufferWork->textureWidth = framebufferConfigs[i].textureWidth;
+        framebufferWork->textureHeight = framebufferConfigs[i].textureHeight;
+        framebufferWork->useScreenCapture = framebufferConfigs[i].useScreenCapture;
+        framebufferWork->textureBufferSize = GXGetTexBufferSize(framebufferWork->textureWidth, framebufferWork->textureHeight, GX_TF_RGB565, GX_FALSE, GX_FALSE);
+        framebufferWork->textureBuffer = HuMemDirectMallocNum(HEAP_MODEL, framebufferWork->textureBufferSize, modelP->mallocNo);
+        memset(framebufferWork->textureBuffer, 0, framebufferWork->textureBufferSize);
+        DCFlushRange(framebufferWork->textureBuffer, framebufferWork->textureBufferSize);
     }
-    for (i = 0; i < 64; i++, workUnk74++) {
-        workUnk74->unk0.x = workUnk74->unk0.y = workUnk74->unk0.z = 0;
-        workUnk74->unkC.x = 0;
-        workUnk74->unkC.y = 0;
-        workUnk74->unkC.z = 1;
-        workUnk74->unk18 = 1.0f / REFRESH_RATE;
-        workUnk74->unk1C = REFRESH_RATE;
-        workUnk74->unk1E = 0;
+    for (i = 0; i < 64; i++, sprinkleWork++) {
+        sprinkleWork->position.x = sprinkleWork->position.y = sprinkleWork->position.z = 0;
+        sprinkleWork->effectParameters.x = 0;
+        sprinkleWork->effectParameters.y = 0;
+        sprinkleWork->effectParameters.z = 1;
+        sprinkleWork->frameDuration = 1.0f / REFRESH_RATE;
+        sprinkleWork->lifespan = REFRESH_RATE;
+        sprinkleWork->remainingFrames = 0;
     }
     return object;
 }
 
-void fn_1_97FC(float arg0);
+void SetStageParticleFade(float alpha);
 
-void fn_1_390C(OMOBJ *object)
+void UpdateStageObject(OMOBJ *object)
 {
-    Work2FAC *work = object->data;
-    Work2FAC *work2 = work;
+    M456StageWork *work = object->data;
+    M456StageWork *work2 = work;
     s32 i;
-    if ((work->unkA50 = work->unkA50 + (0.007874016f * ((s32)frand() & 0x7F) * 3.0f)) > 360) {
-        work->unkA50 -= 360;
+    if ((work->rippleAngle = work->rippleAngle + (0.007874016f * ((s32)frand() & 0x7F) * 3.0f)) > 360) {
+        work->rippleAngle -= 360;
     }
-    work->unkA44 = (25 + work->unkA40) + (5.0 * sind(work->unkA50));
-    Hu3DModelPosSet(object->mdlId[10], 0, work->unkA44, 0);
+    work->stageHeight = (25 + work->verticalBobOffset) + (5.0 * sind(work->rippleAngle));
+    Hu3DModelPosSet(object->mdlId[10], 0, work->stageHeight, 0);
     for (i = 0; i < 4; i++) {
-        Hu3DModelPosSet(object->mdlId[i + 11], lbl_1_data_2E8[i].x, work->unkA44 + lbl_1_data_2E8[i].y, lbl_1_data_2E8[i].z);
+        Hu3DModelPosSet(object->mdlId[i + 11], fishStartPositions[i].x, work->stageHeight + fishStartPositions[i].y, fishStartPositions[i].z);
     }
-    work->unkA54 += 0.3f*(0.2f/REFRESH_RATE); // 0.06f / REFRESH_RATE
-    work->unkA58 += 0.3f*(0.2f/REFRESH_RATE);
-    work->unkA48++;
-    work->unkA4C++;
-    if (work->unkA4C >= (float)REFRESH_RATE && work->unkA4C <= (REFRESH_RATE*1.35f)) {
-        float time = 1 - ((work->unkA4C - (float)REFRESH_RATE) / (REFRESH_RATE*0.35f));
+    work->waterTextureOffsetX += 0.3f*(0.2f/REFRESH_RATE); // 0.06f / REFRESH_RATE
+    work->waterTextureOffsetY += 0.3f*(0.2f/REFRESH_RATE);
+    work->animationFrame++;
+    work->rippleFrame++;
+    if (work->rippleFrame >= (float)REFRESH_RATE && work->rippleFrame <= (REFRESH_RATE*1.35f)) {
+        float time = 1 - ((work->rippleFrame - (float)REFRESH_RATE) / (REFRESH_RATE*0.35f));
         if (time < 0.0f) {
             time = 0.0f;
         }
-        fn_1_97FC(time);
+        SetStageParticleFade(time);
     }
 }
 
-void fn_1_3C34(OMOBJ *object)
+void DestroyStageObject(OMOBJ *object)
 {
-    Work2FAC *work = object->data;
-    HuSprAnimKill(work->unkA1C[0]);
-    HuSprAnimKill(work->unkA1C[1]);
-    HuSprAnimKill(work->unkA1C[2]);
-    HuSprAnimKill(work->unkA1C[3]);
-    HuSprAnimKill(work->unkA1C[6]);
-    HuSprAnimKill(work->unkA1C[7]);
-    HuSprAnimKill(work->unkA1C[4]);
-    HuSprAnimKill(work->unkA1C[5]);
-    HuSprAnimKill(work->unkA1C[8]);
+    M456StageWork *work = object->data;
+    HuSprAnimKill(work->spriteAnimations[0]);
+    HuSprAnimKill(work->spriteAnimations[1]);
+    HuSprAnimKill(work->spriteAnimations[2]);
+    HuSprAnimKill(work->spriteAnimations[3]);
+    HuSprAnimKill(work->spriteAnimations[6]);
+    HuSprAnimKill(work->spriteAnimations[7]);
+    HuSprAnimKill(work->spriteAnimations[4]);
+    HuSprAnimKill(work->spriteAnimations[5]);
+    HuSprAnimKill(work->spriteAnimations[8]);
 }
 
-GXColor lbl_1_data_37A = { 255, 255, 255, 32 };
-GXColor lbl_1_data_37E = { 255, 255, 255, 10 };
-GXColor lbl_1_data_382 = { 0, 126, 126, 255 };
-Vec lbl_1_data_388[4] = { -1000, 50, 1000, -1000, 50, -1000, 1000, 50, -1000, 1000, 50, 1000 };
+GXColor sprinkleColor = { 255, 255, 255, 32 };
+GXColor faintSprinkleColor = { 255, 255, 255, 10 };
+GXColor waterEffectColor = { 0, 126, 126, 255 };
+Vec waterSurfaceCorners[4] = { -1000, 50, 1000, -1000, 50, -1000, 1000, 50, -1000, 1000, 50, 1000 };
 
-Vec lbl_1_data_3B8[26] = { -1500, 0, 1000, -1400, 0, 1000, 0, 0, 1000, 1400, 0, 1000, 1500, 0, 1000, -1500, 0, -500, -1400, 0, -500, 0, 0, -500, 1400,
+Vec waterTextureCoordinates[26] = { -1500, 0, 1000, -1400, 0, 1000, 0, 0, 1000, 1400, 0, 1000, 1500, 0, 1000, -1500, 0, -500, -1400, 0, -500, 0, 0, -500, 1400,
     0, -500, 1500, 0, -500, -1500, 0, -2000, -1400, 0, -2000, 0, 0, -2000, 1400, 0, -2000, 1500, 0, -2000, -1500, 0, -5000, -1400, 0, -5000, 0, 0,
     -5000, 1400, 0, -5000, 1500, 0, -5000, -2000, 0, -500, -2500, 0, -2000, -3000, 0, -5000, 2000, 0, -500, 2500, 0, -2000, 3000, 0, -5000 };
 
-GXColor lbl_1_data_4F0[26] = { { 96, 128, 255, 255 }, { 128, 160, 255, 32 }, { 128, 160, 255, 32 }, { 128, 160, 255, 32 }, { 96, 128, 255, 255 },
+GXColor waterVertexColors[26] = { { 96, 128, 255, 255 }, { 128, 160, 255, 32 }, { 128, 160, 255, 32 }, { 128, 160, 255, 32 }, { 96, 128, 255, 255 },
     { 24, 48, 255, 255 }, { 96, 128, 255, 32 }, { 128, 160, 255, 32 }, { 96, 128, 255, 32 }, { 24, 48, 255, 255 }, { 24, 48, 255, 255 },
     { 24, 48, 255, 255 }, { 96, 128, 255, 255 }, { 24, 48, 255, 255 }, { 24, 48, 255, 255 }, { 8, 24, 143, 255 }, { 8, 24, 143, 255 },
     { 8, 24, 143, 255 }, { 8, 24, 143, 255 }, { 8, 24, 143, 255 }, { 24, 48, 255, 255 }, { 24, 48, 255, 255 }, { 24, 48, 255, 255 },
     { 24, 48, 255, 255 }, { 24, 48, 255, 255 }, { 24, 48, 255, 255 } };
 
-float lbl_1_data_558[26][2]
+float waterTextureScale[26][2]
     = { 0, 1, 0.033333335, 1, 0.5, 1, 0.96666664, 1, 1, 1, 0, 0.5, 0.033333335, 0.5, 0.5, 0.5, 0.96666664, 0.5, 1, 0.5, 0, 0, 0.033333335, 0, 0.5, 0,
           0.96666664, 0, 1, 0, 0, 0, 0.033333335, 0, 0.5, 0, 0.96666664, 0, 1, 0, -0.15, 0.5, -0.33, 0, -0.49, 0, 1.15, 0.5, 1.33, 0, 1.49, 0 };
 
-float lbl_1_data_628[26][2] = { 0, 30, 0.5, 30, 7.5, 30, 14.5, 30, 15, 30, 0, 15, 0.5, 15, 7.5, 15, 14.5, 15, 15, 15, 0, 7.5, 0.5, 7.5, 7.5, 7.5,
+float waterTextureTileCoordinates[26][2] = { 0, 30, 0.5, 30, 7.5, 30, 14.5, 30, 15, 30, 0, 15, 0.5, 15, 7.5, 15, 14.5, 15, 15, 15, 0, 7.5, 0.5, 7.5, 7.5, 7.5,
     14.5, 7.5, 15, 7.5, 0, 0, 0.5, 0, 7.5, 0, 14.5, 0, 15, 0, -2.25, 15, -4.9500003, 7.5, -7.3500004, 0, 17.25, 15, 19.95, 7.5, 22.35, 0 };
 
-float lbl_1_data_6F8[2][3] = { 0, 0, 0.5, 0, 0.5, 0 };
+float rippleAnimationData[2][3] = { 0, 0, 0.5, 0, 0.5, 0 };
 
-GXColor lbl_1_data_710 = { 80, 80, 80, 80 };
+GXColor fishShadowColor = { 80, 80, 80, 80 };
 
-Vec lbl_1_data_714[9]
+Vec fishSchoolPositions[9]
     = { -1500, 0, -5000, 0, 0, -5000, 1500, 0, -5000, -1500, 0, -3000, 0, 0, -3000, 1500, 0, -3000, -1500, 0, 1000, 0, 0, 1000, 1500, 0, 1000 };
 
-GXColor lbl_1_data_780[9] = {
+GXColor fishSchoolColors[9] = {
     { 255, 255, 255, 0 },
     { 255, 255, 255, 0 },
     { 255, 255, 255, 0 },
@@ -340,18 +340,18 @@ GXColor lbl_1_data_780[9] = {
     { 255, 255, 255, 0 },
 };
 
-GXColor lbl_1_data_7A4 = { 255, 165, 89, 178 };
-GXColor lbl_1_data_7A8 = { 153, 114, 89, 178 };
-GXColor lbl_1_data_7AC = { 0, 0, 0, 255 };
+GXColor stageWaterColor = { 255, 165, 89, 178 };
+GXColor stageWaterShadowColor = { 153, 114, 89, 178 };
+GXColor framebufferClearColor = { 0, 0, 0, 255 };
 
-void fn_1_5BB8(Work2FACUnk4 *arg0, s32 arg1);
+void CaptureFramebufferTexture(FramebufferWork *framebufferWork, s32 clearAfterCopy);
 
-void fn_1_3CB0(HU3DMODEL *model, Mtx matrix)
+void DrawWaterSurface(HU3DMODEL *model, Mtx matrix)
 {
-    Work2FAC *work = model->hookData;
-    Work2FAC *work2 = work;
-    Work2FACUnk74 *workUnk74 = &work2->unk74[0];
-    Work2FACUnk4 *workUnk4 = &work2->unk4[0];
+    M456StageWork *work = model->hookData;
+    M456StageWork *work2 = work;
+    SprinkleEffectWork *sprinkleWork = &work2->sprinkles[0];
+    FramebufferWork *framebufferWork = &work2->framebuffers[0];
     s32 i;
 #ifdef NON_MATCHING
     Mtx44 proj;
@@ -365,8 +365,8 @@ void fn_1_3CB0(HU3DMODEL *model, Mtx matrix)
     GXLoadPosMtxImm(modelview, GX_PNMTX0);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_CLAMP, GX_AF_NONE);
-    GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_382);
-    GXSetTevColor(GX_TEVREG0, lbl_1_data_37E);
+    GXSetChanMatColor(GX_COLOR0A0, waterEffectColor);
+    GXSetTevColor(GX_TEVREG0, faintSprinkleColor);
     GXSetNumTexGens(1);
     GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
@@ -380,7 +380,7 @@ void fn_1_3CB0(HU3DMODEL *model, Mtx matrix)
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_KONST);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetScissor(0, 0, 400, 400);
-    HuSprTexLoad(work->unkA1C[4], 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    HuSprTexLoad(work->spriteAnimations[4], 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XY, GX_U16, 0);
@@ -388,13 +388,13 @@ void fn_1_3CB0(HU3DMODEL *model, Mtx matrix)
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     GXPosition2u16(0, 0);
-    GXTexCoord2f32(work->unkA54, work->unkA58);
+    GXTexCoord2f32(work->waterTextureOffsetX, work->waterTextureOffsetY);
     GXPosition2u16(400, 0);
-    GXTexCoord2f32(work->unkA54 + 7, work->unkA58);
+    GXTexCoord2f32(work->waterTextureOffsetX + 7, work->waterTextureOffsetY);
     GXPosition2u16(400, 400);
-    GXTexCoord2f32(work->unkA54 + 7, work->unkA58 + 7);
+    GXTexCoord2f32(work->waterTextureOffsetX + 7, work->waterTextureOffsetY + 7);
     GXPosition2u16(0, 400);
-    GXTexCoord2f32(work->unkA54, work->unkA58 + 7);
+    GXTexCoord2f32(work->waterTextureOffsetX, work->waterTextureOffsetY + 7);
     GXEnd();
     GXSetNumTexGens(1);
     GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
@@ -406,75 +406,75 @@ void fn_1_3CB0(HU3DMODEL *model, Mtx matrix)
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_TEXA, GX_CA_RASA, GX_CA_ZERO);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
-    HuSprTexLoad(work->unkA1C[8], 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    HuSprTexLoad(work->spriteAnimations[8], 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
     GXClearVtxDesc();
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XY, GX_F32, 0);
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
     GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
-    workUnk74 = &work2->unk74[0];
-    for (i = 0; i < 64; i++, workUnk74++) {
+    sprinkleWork = &work2->sprinkles[0];
+    for (i = 0; i < 64; i++, sprinkleWork++) {
         float scale;
         float accel;
-        if (workUnk74->unk1E == 0) {
+        if (sprinkleWork->remainingFrames == 0) {
             continue;
         }
-        scale = 128 * (workUnk74->unkC.x * (0.2f + cosd(workUnk74->unk1E * workUnk74->unk18 * 90.0f)));
-        accel = workUnk74->unk1E * workUnk74->unk18;
-        lbl_1_data_37A.a = workUnk74->unkC.z * sind((accel * accel) * 90.0f) * 255.0;
-        GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_37A);
+        scale = 128 * (sprinkleWork->effectParameters.x * (0.2f + cosd(sprinkleWork->remainingFrames * sprinkleWork->frameDuration * 90.0f)));
+        accel = sprinkleWork->remainingFrames * sprinkleWork->frameDuration;
+        sprinkleColor.a = sprinkleWork->effectParameters.z * sind((accel * accel) * 90.0f) * 255.0;
+        GXSetChanMatColor(GX_COLOR0A0, sprinkleColor);
         MTXScale(modelview, 0.5f * scale, 0.5f * scale, 1.0f);
-        mtxRotCat(modelview, 0, 0, workUnk74->unkC.y);
-        mtxTransCat(modelview, 400 * (workUnk74->unk0.x + 1500) / 3000, 400 * (workUnk74->unk0.z - -2000) / 3000, 0);
+        mtxRotCat(modelview, 0, 0, sprinkleWork->effectParameters.y);
+        mtxTransCat(modelview, 400 * (sprinkleWork->position.x + 1500) / 3000, 400 * (sprinkleWork->position.z - -2000) / 3000, 0);
         GXLoadPosMtxImm(modelview, GX_PNMTX0);
-        GXCallDisplayList(work2->unkA14, work2->unkA18);
+        GXCallDisplayList(work2->displayList, work2->displayListSize);
         if (!omPauseChk()) {
-            workUnk74->unk1E--;
+            sprinkleWork->remainingFrames--;
         }
     }
-    workUnk4 = &work2->unk4[0];
-    fn_1_5BB8(workUnk4, 1);
+    framebufferWork = &work2->framebuffers[0];
+    CaptureFramebufferTexture(framebufferWork, 1);
 }
 
-void fn_1_54D0(HU3DMODEL *model, Mtx matrix);
+void TransformStageModel(HU3DMODEL *model, Mtx matrix);
 
-void fn_1_44DC(HU3DMODEL *model, Mtx matrix)
+void DrawStageBackdrop(HU3DMODEL *model, Mtx matrix)
 {
-    Work2FAC *work;
-    Work2FAC *work2;
-    Work2FACUnk4 *workUnk4;
-    fn_1_54D0(model, matrix);
+    M456StageWork *work;
+    M456StageWork *work2;
+    FramebufferWork *framebufferWork;
+    TransformStageModel(model, matrix);
     work = model->hookData;
     work2 = work;
-    workUnk4 = &work2->unk4[1];
-    fn_1_5BB8(workUnk4, 0);
+    framebufferWork = &work2->framebuffers[1];
+    CaptureFramebufferTexture(framebufferWork, 0);
 }
 
-void fn_1_5C74(Work2FACUnk4 *arg0, float arg1, float arg2, float arg3);
+void DrawFramebufferTexture(FramebufferWork *framebufferWork, float xOffset, float yOffset, float scale);
 
-void fn_1_4544(HU3DMODEL *model, Mtx matrix)
+void DrawStageModel(HU3DMODEL *model, Mtx matrix)
 {
-    Work2FAC *work = model->hookData;
-    Work2FAC *work2 = work;
-    Work2FACUnk4 *workUnk4 = &work2->unk4[0];
+    M456StageWork *work = model->hookData;
+    M456StageWork *work2 = work;
+    FramebufferWork *framebufferWork = &work2->framebuffers[0];
 
-    fn_1_5C74(workUnk4, 200, 0, 0.5f);
-    workUnk4 = &work2->unk4[1];
-    fn_1_5C74(workUnk4, 0, 0, 0.5f);
-    workUnk4 = &work2->unk4[2];
-    fn_1_5C74(workUnk4, 0, 150, 0.25f);
-    workUnk4 = &work2->unk4[3];
-    fn_1_5C74(workUnk4, 0, 300, 0.5f);
+    DrawFramebufferTexture(framebufferWork, 200, 0, 0.5f);
+    framebufferWork = &work2->framebuffers[1];
+    DrawFramebufferTexture(framebufferWork, 0, 0, 0.5f);
+    framebufferWork = &work2->framebuffers[2];
+    DrawFramebufferTexture(framebufferWork, 0, 150, 0.25f);
+    framebufferWork = &work2->framebuffers[3];
+    DrawFramebufferTexture(framebufferWork, 0, 300, 0.5f);
 }
 
-void fn_1_60C4(s16 arg0, Work2FACUnk4 *arg1, GXTexWrapMode arg2, s32 arg3, BOOL arg4);
+void LoadFramebufferTexture(s16 textureMapId, FramebufferWork *framebufferWork, GXTexWrapMode wrapMode, s32 unusedFlags, BOOL useLinearFiltering);
 
-void fn_1_464C(HU3DMODEL *model, Mtx matrix)
+void DrawWaterEffect(HU3DMODEL *model, Mtx matrix)
 {
     HU3DCAMERA *cameraP = &Hu3DCamera[Hu3DCameraNo];
-    Work2FAC *work = model->hookData;
-    Work2FAC *work2 = work;
-    Work2FACUnk4 *workUnk4 = &work2->unk4[2];
+    M456StageWork *work = model->hookData;
+    M456StageWork *work2 = work;
+    FramebufferWork *framebufferWork = &work2->framebuffers[2];
     float fov;
     Mtx proj;
     Mtx texMtx;
@@ -482,7 +482,7 @@ void fn_1_464C(HU3DMODEL *model, Mtx matrix)
     s16 lightMask;
     s16 i;
 
-    fn_1_5BB8(workUnk4, 0);
+    CaptureFramebufferTexture(framebufferWork, 0);
     GXLoadPosMtxImm(matrix, GX_PNMTX0);
     fov = cameraP->fov;
     if (fov <= 0.0f) {
@@ -502,25 +502,25 @@ void fn_1_464C(HU3DMODEL *model, Mtx matrix)
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
     GXSetTevOp(GX_TEVSTAGE0, GX_REPLACE);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_CLAMP, GX_AF_NONE);
-    GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_318);
+    GXSetChanMatColor(GX_COLOR0A0, fishParticleColor);
     GXSetZMode(GX_TRUE, GX_GREATER, GX_FALSE);
     GXSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_AND, GX_ALWAYS, 0);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
-    workUnk4 = &work2->unk4[1];
-    fn_1_60C4(0, workUnk4, 0, 0, 0);
+    framebufferWork = &work2->framebuffers[1];
+    LoadFramebufferTexture(0, framebufferWork, 0, 0, 0);
     GXClearVtxDesc();
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
     GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
-    GXSetArray(GX_VA_POS, lbl_1_data_388, sizeof(Vec));
+    GXSetArray(GX_VA_POS, waterSurfaceCorners, sizeof(Vec));
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     for (i = 0; i < 4; i++) {
         GXPosition1x16(i);
     }
     GXEnd();
-    workUnk4 = &work2->unk4[3];
-    fn_1_5BB8(workUnk4, 0);
-    workUnk4 = &work2->unk4[2];
-    fn_1_60C4(0, workUnk4, 0, 0, 0);
+    framebufferWork = &work2->framebuffers[3];
+    CaptureFramebufferTexture(framebufferWork, 0);
+    framebufferWork = &work2->framebuffers[2];
+    LoadFramebufferTexture(0, framebufferWork, 0, 0, 0);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     for (i = 0; i < 4; i++) {
         GXPosition1x16(i);
@@ -528,23 +528,23 @@ void fn_1_464C(HU3DMODEL *model, Mtx matrix)
     GXEnd();
 }
 
-void fn_1_4994(HU3DMODEL *model, Mtx matrix)
+void DrawStage(HU3DMODEL *model, Mtx matrix)
 {
     HU3DCAMERA *cameraP = &Hu3DCamera[Hu3DCameraNo];
-    Work2FAC *work = model->hookData;
-    Work2FAC *work2 = work;
-    Work2FACUnk4 *workUnk4 = &work2->unk4[2];
+    M456StageWork *work = model->hookData;
+    M456StageWork *work2 = work;
+    FramebufferWork *framebufferWork = &work2->framebuffers[2];
     Mtx invXPose;
     Mtx proj;
     Mtx texMtx;
     Mtx projCamera;
-    float sp14;
-    float sp10;
+    float lightProjectionScale;
+    float lightProjectionOffset;
     float fov;
     s16 i;
-    fn_1_464C(model, matrix);
-    sp14 = 1.5f;
-    sp10 = 0;
+    DrawWaterEffect(model, matrix);
+    lightProjectionScale = 1.5f;
+    lightProjectionOffset = 0;
     GXLoadPosMtxImm(matrix, GX_PNMTX0);
     MTXInvXpose(matrix, invXPose);
     GXLoadNrmMtxImm(invXPose, GX_PNMTX0);
@@ -570,48 +570,48 @@ void fn_1_4994(HU3DMODEL *model, Mtx matrix)
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_KONST, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXSetTevColor(GX_TEVREG0, lbl_1_data_710);
+    GXSetTevColor(GX_TEVREG0, fishShadowColor);
     GXSetTevColorIn(GX_TEVSTAGE1, GX_CC_ZERO, GX_CC_C0, GX_CC_TEXA, GX_CC_CPREV);
     GXSetTevColorOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE1, GX_CA_KONST, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
     GXSetTevAlphaOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_CLAMP, GX_AF_NONE);
-    GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_318);
+    GXSetChanMatColor(GX_COLOR0A0, fishParticleColor);
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_AND, GX_ALWAYS, 0);
     GXSetBlendMode(GX_BM_NONE, GX_BL_ONE, GX_BL_ZERO, GX_LO_NOOP);
-    workUnk4 = &work2->unk4[3];
-    fn_1_60C4(0, workUnk4, 0, 0, 0);
-    HuSprTexLoad(work->unkA1C[3], 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
-    workUnk4 = &work2->unk4[0];
-    fn_1_60C4(2, workUnk4, 0, 0, 1);
+    framebufferWork = &work2->framebuffers[3];
+    LoadFramebufferTexture(0, framebufferWork, 0, 0, 0);
+    HuSprTexLoad(work->spriteAnimations[3], 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    framebufferWork = &work2->framebuffers[0];
+    LoadFramebufferTexture(2, framebufferWork, 0, 0, 1);
     GXSetTexCoordGen(GX_TEXCOORD2, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
     GXSetNumIndStages(1);
     GXSetIndTexOrder(GX_INDTEXSTAGE0, GX_TEXCOORD2, GX_TEXMAP2);
     GXSetIndTexCoordScale(GX_INDTEXSTAGE0, GX_ITS_1, GX_ITS_1);
     GXSetTevIndWarp(GX_TEVSTAGE0, GX_INDTEXSTAGE0, GX_TRUE, GX_FALSE, GX_ITM_1);
-    GXSetIndTexMtx(GX_ITM_1, lbl_1_data_6F8, -1);
+    GXSetIndTexMtx(GX_ITM_1, rippleAnimationData, -1);
     for (i = 0; i < 26; i++) {
-        work2->unk944[i][0] -= 0.007874016f * ((s32)frand() & 0x7F) * 0.005f;
-        work2->unk944[i][1] += 0.007874016f * ((s32)frand() & 0x7F) * 0.005f;
-        work2->unk874[i][0] = work2->unk944[i][0] + lbl_1_data_628[i][0];
-        work2->unk874[i][1] = work2->unk944[i][1] + lbl_1_data_628[i][1];
+        work2->waterTextureDrift[i][0] -= 0.007874016f * ((s32)frand() & 0x7F) * 0.005f;
+        work2->waterTextureDrift[i][1] += 0.007874016f * ((s32)frand() & 0x7F) * 0.005f;
+        work2->waterTextureCoordinates[i][0] = work2->waterTextureDrift[i][0] + waterTextureTileCoordinates[i][0];
+        work2->waterTextureCoordinates[i][1] = work2->waterTextureDrift[i][1] + waterTextureTileCoordinates[i][1];
     }
-    DCFlushRange(&work2->unk874[0][0], sizeof(work2->unk874));
+    DCFlushRange(&work2->waterTextureCoordinates[0][0], sizeof(work2->waterTextureCoordinates));
     GXClearVtxDesc();
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
     GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
 
-    GXSetArray(GX_VA_POS, lbl_1_data_3B8, sizeof(Vec));
+    GXSetArray(GX_VA_POS, waterTextureCoordinates, sizeof(Vec));
     GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetArray(GX_VA_CLR0, lbl_1_data_4F0, sizeof(GXColor));
+    GXSetArray(GX_VA_CLR0, waterVertexColors, sizeof(GXColor));
     GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetArray(GX_VA_TEX0, lbl_1_data_558, sizeof(float) * 2);
+    GXSetArray(GX_VA_TEX0, waterTextureScale, sizeof(float) * 2);
     GXSetVtxDesc(GX_VA_TEX1, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX1, GX_TEX_ST, GX_F32, 0);
-    GXSetArray(GX_VA_TEX1, &work2->unk874[0][0], sizeof(float) * 2);
+    GXSetArray(GX_VA_TEX1, &work2->waterTextureCoordinates[0][0], sizeof(float) * 2);
     GXBegin(GX_QUADS, GX_VTXFMT0, 48);
     for (i = 0; i < 12; i++) {
         s16 index;
@@ -715,40 +715,40 @@ void fn_1_4994(HU3DMODEL *model, Mtx matrix)
     GXSetTevDirect(GX_TEVSTAGE1);
 }
 
-void fn_1_54D0(HU3DMODEL *model, Mtx matrix)
+void TransformStageModel(HU3DMODEL *model, Mtx matrix)
 {
-    s32 sp10 = 0;
-    Work2FAC *work = model->hookData;
+    s32 vertexIndex = 0;
+    M456StageWork *work = model->hookData;
     float scale = 1.5f;
     float x = 0;
-    Mtx temp;
+    Mtx transformMatrix;
     Mtx final;
     MTXTrans(final, x, -300, 0);
-    GXSetTevColor(GX_TEVREG0, lbl_1_data_7A4);
-    MTXScale(temp, scale, 1, 1);
-    MTXConcat(final, temp, final);
+    GXSetTevColor(GX_TEVREG0, stageWaterColor);
+    MTXScale(transformMatrix, scale, 1, 1);
+    MTXConcat(final, transformMatrix, final);
     MTXConcat(Hu3DCameraMtx, final, final);
     GXLoadPosMtxImm(final, GX_PNMTX0);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_VTX, 0, GX_DF_CLAMP, GX_AF_NONE);
-    GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_318);
-    HuSprTexLoad(work->unkA1C[0], 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
-    HuSprTexLoad(work->unkA1C[1], 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    GXSetChanMatColor(GX_COLOR0A0, fishParticleColor);
+    HuSprTexLoad(work->spriteAnimations[0], 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    HuSprTexLoad(work->spriteAnimations[1], 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
     GXSetNumTexGens(2);
     MTXRotDeg(final, 'X', 90.0f);
     x = 0.004f * scale;
-    MTXScale(temp, x, -0.004f, 0.004f);
-    MTXConcat(final, temp, final);
-    MTXTrans(temp, (work->unkA48 % 1024) / (512.0f * x), 0, 1.2499999f * (work->unkA48 % 400));
-    MTXConcat(final, temp, final);
+    MTXScale(transformMatrix, x, -0.004f, 0.004f);
+    MTXConcat(final, transformMatrix, final);
+    MTXTrans(transformMatrix, (work->animationFrame % 1024) / (512.0f * x), 0, 1.2499999f * (work->animationFrame % 400));
+    MTXConcat(final, transformMatrix, final);
     GXLoadTexMtxImm(final, GX_TEXMTX0, GX_MTX2x4);
     GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_POS, GX_TEXMTX0);
     MTXRotDeg(final, 'X', 90.0f);
     x = 0.004f * scale;
-    MTXScale(temp, x, -0.004f, 0.004f);
-    MTXConcat(final, temp, final);
-    MTXTrans(temp, (work->unkA48 % 300) / (150.0f * x), 0, 0);
-    MTXConcat(final, temp, final);
+    MTXScale(transformMatrix, x, -0.004f, 0.004f);
+    MTXConcat(final, transformMatrix, final);
+    MTXTrans(transformMatrix, (work->animationFrame % 300) / (150.0f * x), 0, 0);
+    MTXConcat(final, transformMatrix, final);
     GXLoadTexMtxImm(final, GX_TEXMTX1, GX_MTX2x4);
     GXSetTexCoordGen(GX_TEXCOORD1, GX_TG_MTX2x4, GX_TG_POS, GX_TEXMTX1);
     GXSetNumTevStages(2);
@@ -769,8 +769,8 @@ void fn_1_54D0(HU3DMODEL *model, Mtx matrix)
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
     GXSetVtxDesc(GX_VA_CLR0, GX_INDEX8);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetArray(GX_VA_POS, lbl_1_data_714, sizeof(Vec));
-    GXSetArray(GX_VA_CLR0, lbl_1_data_780, sizeof(GXColor));
+    GXSetArray(GX_VA_POS, fishSchoolPositions, sizeof(Vec));
+    GXSetArray(GX_VA_CLR0, fishSchoolColors, sizeof(GXColor));
     GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, 6);
     GXPosition1x8(0);
     GXColor1x8(0);
@@ -801,23 +801,23 @@ void fn_1_54D0(HU3DMODEL *model, Mtx matrix)
     GXEnd();
 }
 
-void fn_1_5BB8(Work2FACUnk4 *arg0, s32 arg1)
+void CaptureFramebufferTexture(FramebufferWork *framebufferWork, s32 clearAfterCopy)
 {
-    GXSetTexCopySrc(0, 0, arg0->unkC, arg0->unk10);
-    GXSetTexCopyDst(arg0->unk14, arg0->unk18, GX_TF_RGB565, arg0->unk8);
-    GXSetCopyClear(lbl_1_data_7AC, GX_MAX_Z24);
-    GXCopyTex(arg0->unk0, arg1);
+    GXSetTexCopySrc(0, 0, framebufferWork->sourceWidth, framebufferWork->sourceHeight);
+    GXSetTexCopyDst(framebufferWork->textureWidth, framebufferWork->textureHeight, GX_TF_RGB565, framebufferWork->useScreenCapture);
+    GXSetCopyClear(framebufferClearColor, GX_MAX_Z24);
+    GXCopyTex(framebufferWork->textureBuffer, clearAfterCopy);
 }
 
-void fn_1_5C74(Work2FACUnk4 *fbWork, float x1, float y1, float scale)
+void DrawFramebufferTexture(FramebufferWork *fbWork, float x1, float y1, float scale)
 {
-    float x2 = x1 + (fbWork->unk14 * scale);
-    float y2 = y1 + (fbWork->unk18 * scale);
+    float x2 = x1 + (fbWork->textureWidth * scale);
+    float y2 = y1 + (fbWork->textureHeight * scale);
     Mtx44 proj;
     Mtx modelview;
     GXTexObj texObj;
     GXColor color;
-    GXInitTexObj(&texObj, fbWork->unk0, fbWork->unk14, fbWork->unk18, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GXInitTexObj(&texObj, fbWork->textureBuffer, fbWork->textureWidth, fbWork->textureHeight, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
     GXInitTexObjLOD(&texObj, GX_NEAR, GX_NEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
     GXLoadTexObj(&texObj, GX_TEXMAP0);
     MTXOrtho(proj, 0, 480, 0, 640, 0, 10);
@@ -852,134 +852,134 @@ void fn_1_5C74(Work2FACUnk4 *fbWork, float x1, float y1, float scale)
     GXEnd();
 }
 
-void fn_1_60C4(s16 arg0, Work2FACUnk4 *arg1, GXTexWrapMode arg2, s32 arg3, BOOL arg4)
+void LoadFramebufferTexture(s16 textureMapId, FramebufferWork *framebufferWork, GXTexWrapMode wrapMode, s32 unusedFlags, BOOL useLinearFiltering)
 {
     GXTexObj texObj;
-    GXInitTexObj(&texObj, arg1->unk0, arg1->unk14, arg1->unk18, GX_TF_RGB565, arg2, arg2, FALSE);
-    if (arg4) {
+    GXInitTexObj(&texObj, framebufferWork->textureBuffer, framebufferWork->textureWidth, framebufferWork->textureHeight, GX_TF_RGB565, wrapMode, wrapMode, FALSE);
+    if (useLinearFiltering) {
         GXInitTexObjLOD(&texObj, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
     }
     else {
         GXInitTexObjLOD(&texObj, GX_NEAR, GX_NEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
     }
-    GXLoadTexObj(&texObj, arg0);
+    GXLoadTexObj(&texObj, textureMapId);
 }
 
-s32 fn_1_61C8(Vec *arg0, float arg1, float arg2, s32 arg3)
+s32 CreateSprinkleEffect(Vec *position, float scale, float opacity, s32 lifespan)
 {
-    Work2FAC *work;
-    Work2FAC *work2;
-    Work2FACUnk74 *workUnk74;
+    M456StageWork *work;
+    M456StageWork *work2;
+    SprinkleEffectWork *sprinkleWork;
     s32 i;
-    if (!lbl_1_bss_B4) {
+    if (!mainStageObject) {
         return -1;
     }
-    work = lbl_1_bss_B4->data;
+    work = mainStageObject->data;
     work2 = work;
-    workUnk74 = &work->unk74[0];
-    for (i = 0; i < 64; i++, workUnk74++) {
-        if (workUnk74->unk1E == 0) {
+    sprinkleWork = &work->sprinkles[0];
+    for (i = 0; i < 64; i++, sprinkleWork++) {
+        if (sprinkleWork->remainingFrames == 0) {
             break;
         }
     }
     if (i >= 64) {
         return -1;
     }
-    workUnk74->unk0 = *arg0;
-    if (arg1 < 0.0f) {
-        workUnk74->unkC.x = 1;
+    sprinkleWork->position = *position;
+    if (scale < 0.0f) {
+        sprinkleWork->effectParameters.x = 1;
     }
     else {
-        workUnk74->unkC.x = arg1;
+        sprinkleWork->effectParameters.x = scale;
     }
-    if (arg2 < 0.0f) {
-        workUnk74->unkC.z = 1;
-    }
-    else {
-        workUnk74->unkC.z = arg2;
-    }
-    if (arg3 < 0) {
-        workUnk74->unk1C = REFRESH_RATE;
+    if (opacity < 0.0f) {
+        sprinkleWork->effectParameters.z = 1;
     }
     else {
-        workUnk74->unk1C = arg3;
+        sprinkleWork->effectParameters.z = opacity;
     }
-    workUnk74->unkC.y = (s32)frand() % 360;
-    workUnk74->unk1E = workUnk74->unk1C;
-    workUnk74->unk18 = 1.0f / workUnk74->unk1C;
+    if (lifespan < 0) {
+        sprinkleWork->lifespan = REFRESH_RATE;
+    }
+    else {
+        sprinkleWork->lifespan = lifespan;
+    }
+    sprinkleWork->effectParameters.y = (s32)frand() % 360;
+    sprinkleWork->remainingFrames = sprinkleWork->lifespan;
+    sprinkleWork->frameDuration = 1.0f / sprinkleWork->lifespan;
     return i;
 }
 
-float fn_1_63AC(void)
+float GetStageHeight(void)
 {
-    if (!lbl_1_bss_B4) {
+    if (!mainStageObject) {
         return 0;
     }
     else {
-        Work2FAC *work = lbl_1_bss_B4->data;
-        return work->unkA44;
+        M456StageWork *work = mainStageObject->data;
+        return work->stageHeight;
     }
 }
 
-float fn_1_63F8(void)
+float GetStageWaveOffset(void)
 {
-    if (!lbl_1_bss_B4) {
+    if (!mainStageObject) {
         return 0;
     }
     else {
-        Work2FAC *work = lbl_1_bss_B4->data;
-        return work->unkA40;
+        M456StageWork *work = mainStageObject->data;
+        return work->verticalBobOffset;
     }
 }
 
-typedef struct work6914 {
-    s32 unk0;
-    s32 unk4;
-    s32 unk8;
-    s32 unkC;
-    ANIMDATA *unk10;
-    Vec unk14;
-    Vec unk20;
-    Vec unk2C;
-} Work6914;
+typedef struct FishParticleWork {
+    s32 particleIndex;
+    s32 particleModelId;
+    s32 isActive;
+    s32 elapsedFrames;
+    ANIMDATA *particleAnimation;
+    Vec position;
+    Vec rotation;
+    Vec scale;
+} FishParticleWork;
 
-void fn_1_659C(OMOBJ *object);
+void UpdateFishObject(OMOBJ *object);
 
-void fn_1_6444(OMOBJ *object)
+void InitializeFishObject(OMOBJ *object)
 {
-    Work6914 *work;
+    FishParticleWork *work;
     s32 i;
     ANIMDATA *anim;
-    work = object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(Work6914) * 8, HU_MEMNUM_OVL);
-    memset(work, 0, sizeof(Work6914) * 8);
+    work = object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(FishParticleWork) * 8, HU_MEMNUM_OVL);
+    memset(work, 0, sizeof(FishParticleWork) * 8);
     anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 26), HU_MEMNUM_OVL));
     for (i = 0; i < 8; i++, work++) {
-        work->unk10 = anim;
-        work->unk0 = i;
-        work->unk4 = Hu3DParticleCreate(work->unk10, 32);
-        Hu3DModelCameraSet(work->unk4, HU3D_CAM0);
-        Hu3DModelLayerSet(work->unk4, 6);
-        Hu3DModelAttrSet(work->unk4, HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrReset(work->unk4, HU3D_ATTR_PARTICLE_KILL);
-        work->unk8 = 0;
-        work->unkC = 0;
-        work->unk14.x = work->unk14.y = work->unk14.z = 0;
-        work->unk20.x = work->unk20.y = work->unk20.z = 0;
-        work->unk2C.x = work->unk2C.y = work->unk2C.z = 1;
+        work->particleAnimation = anim;
+        work->particleIndex = i;
+        work->particleModelId = Hu3DParticleCreate(work->particleAnimation, 32);
+        Hu3DModelCameraSet(work->particleModelId, HU3D_CAM0);
+        Hu3DModelLayerSet(work->particleModelId, 6);
+        Hu3DModelAttrSet(work->particleModelId, HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(work->particleModelId, HU3D_ATTR_PARTICLE_KILL);
+        work->isActive = 0;
+        work->elapsedFrames = 0;
+        work->position.x = work->position.y = work->position.z = 0;
+        work->rotation.x = work->rotation.y = work->rotation.z = 0;
+        work->scale.x = work->scale.y = work->scale.z = 1;
     }
-    object->objFunc = fn_1_659C;
+    object->objFunc = UpdateFishObject;
 }
 
-void fn_1_659C(OMOBJ *object)
+void UpdateFishObject(OMOBJ *object)
 {
-    Work6914 *work = object->data;
+    FishParticleWork *work = object->data;
     s32 i;
     for (i = 0; i < 8; i++, work++) {
-        if (work->unk8 == 0) {
+        if (work->isActive == 0) {
             continue;
         }
-        if (work->unkC > 1) {
-            HU3DMODEL *modelP = &Hu3DData[work->unk4];
+        if (work->elapsedFrames > 1) {
+            HU3DMODEL *modelP = &Hu3DData[work->particleModelId];
             HU3DPARTICLE *particleP = modelP->hookData;
             HU3DPARTICLEDATA *data = particleP->data;
             s32 j;
@@ -1000,86 +1000,86 @@ void fn_1_659C(OMOBJ *object)
                 data->vel.y -= 0.3103333379576603;
             }
         }
-        if (++work->unkC > (1.5f * REFRESH_RATE)) {
-            Hu3DModelAttrSet(work->unk4, HU3D_ATTR_DISPOFF);
-            work->unk8 = 0;
+        if (++work->elapsedFrames > (1.5f * REFRESH_RATE)) {
+            Hu3DModelAttrSet(work->particleModelId, HU3D_ATTR_DISPOFF);
+            work->isActive = 0;
         }
         else {
-            Hu3DModelPosSet(work->unk4, work->unk14.x, work->unk14.y, work->unk14.z);
-            Hu3DModelRotSet(work->unk4, work->unk20.x, work->unk20.y, work->unk20.z);
-            Hu3DModelScaleSet(work->unk4, work->unk2C.x, work->unk2C.y, work->unk2C.z);
+            Hu3DModelPosSet(work->particleModelId, work->position.x, work->position.y, work->position.z);
+            Hu3DModelRotSet(work->particleModelId, work->rotation.x, work->rotation.y, work->rotation.z);
+            Hu3DModelScaleSet(work->particleModelId, work->scale.x, work->scale.y, work->scale.z);
         }
     }
 }
 
-void fn_1_6790(OMOBJ *object)
+void DestroyFishObject(OMOBJ *object)
 {
-    Work6914 *work = object->data;
-    ANIMDATA *anim = work->unk10;
+    FishParticleWork *work = object->data;
+    ANIMDATA *anim = work->particleAnimation;
     anim->useNum = 0;
     HuSprAnimKill(anim);
 }
 
-s32 fn_1_67E0(Vec *arg0, float arg1)
+s32 CreateWaterEffect(Vec *position, float scale)
 {
-    Work6914 *work = lbl_1_bss_B0->data;
+    FishParticleWork *work = fishObject->data;
     s32 i;
-    HU3DMODEL *temp_r27;
-    HU3DPARTICLE *temp_r28;
-    HU3DPARTICLEDATA *temp_r30;
+    HU3DMODEL *particleModel;
+    HU3DPARTICLE *particleSystem;
+    HU3DPARTICLEDATA *particleData;
 
     for (i = 0; i < 8; i++, work++) {
-        if (work->unk8 == 0) {
+        if (work->isActive == 0) {
             break;
         }
     }
     if (i >= 8) {
         return -1;
     }
-    Hu3DModelAttrReset(work->unk4, HU3D_ATTR_DISPOFF);
-    work->unk8 = 1;
-    work->unkC = 0;
-    temp_r27 = &Hu3DData[work->unk4];
-    temp_r28 = temp_r27->hookData;
-    temp_r28->blendMode = 1;
-    temp_r30 = temp_r28->data;
-    for (i = 0; i < temp_r28->maxCnt; i++, temp_r30++) {
-        float temp_f30 = ((s32)frand() % 20) + 90;
-        float temp_f29 = (s32)frand() % 360;
-        float temp_f26 = sind(temp_f30);
-        float temp_f28 = cosd(temp_f30);
-        float temp_f25 = 0.75f + 0.15f * (0.007874016f * ((s32)frand() & 0x7F));
-        float temp_f31 = 0.15f;
-        temp_r30->vel.x = temp_f31 * (0.65f * (50.0 * (temp_f28 * sind(temp_f29))));
-        temp_r30->vel.z = temp_f31 * (0.65f * (50.0 * (temp_f28 * cosd(temp_f29))));
-        temp_r30->vel.y = temp_f31 * (50 * temp_f26 * temp_f25);
-        temp_r30->time = 0;
-        temp_r30->parManId = ((s32)frand() % 16) + 45;
-        temp_r30->zRot = (s32)frand() % 360;
-        temp_r30->scale = 145.0f;
-        temp_r30->pos.x = 0.05f * (((s32)frand() & 0x7F) - 64);
-        temp_r30->pos.y = 0.65f * (((s32)frand() & 0x7F) - 64);
-        temp_r30->pos.z = 0.05f * (((s32)frand() & 0x7F) - 64);
-        temp_r30->color.r = ((s32)frand() % 64) + 192;
-        temp_r30->color.g = ((s32)frand() % 64) + 192;
-        temp_r30->color.b = ((s32)frand() % 64) + 192;
-        temp_r30->color.a = 64;
+    Hu3DModelAttrReset(work->particleModelId, HU3D_ATTR_DISPOFF);
+    work->isActive = 1;
+    work->elapsedFrames = 0;
+    particleModel = &Hu3DData[work->particleModelId];
+    particleSystem = particleModel->hookData;
+    particleSystem->blendMode = 1;
+    particleData = particleSystem->data;
+    for (i = 0; i < particleSystem->maxCnt; i++, particleData++) {
+        float elevationAngle = ((s32)frand() % 20) + 90;
+        float radialAngle = (s32)frand() % 360;
+        float elevationSine = sind(elevationAngle);
+        float elevationCosine = cosd(elevationAngle);
+        float randomScale = 0.75f + 0.15f * (0.007874016f * ((s32)frand() & 0x7F));
+        float velocityScale = 0.15f;
+        particleData->vel.x = velocityScale * (0.65f * (50.0 * (elevationCosine * sind(radialAngle))));
+        particleData->vel.z = velocityScale * (0.65f * (50.0 * (elevationCosine * cosd(radialAngle))));
+        particleData->vel.y = velocityScale * (50 * elevationSine * randomScale);
+        particleData->time = 0;
+        particleData->parManId = ((s32)frand() % 16) + 45;
+        particleData->zRot = (s32)frand() % 360;
+        particleData->scale = 145.0f;
+        particleData->pos.x = 0.05f * (((s32)frand() & 0x7F) - 64);
+        particleData->pos.y = 0.65f * (((s32)frand() & 0x7F) - 64);
+        particleData->pos.z = 0.05f * (((s32)frand() & 0x7F) - 64);
+        particleData->color.r = ((s32)frand() % 64) + 192;
+        particleData->color.g = ((s32)frand() % 64) + 192;
+        particleData->color.b = ((s32)frand() % 64) + 192;
+        particleData->color.a = 64;
     }
-    if (arg1 < 0.0f) {
-        arg1 = 1.0f;
+    if (scale < 0.0f) {
+        scale = 1.0f;
     }
-    work->unk14 = *arg0;
-    work->unk20.x = work->unk20.y = work->unk20.z = 0;
-    work->unk2C.x = work->unk2C.y = work->unk2C.z = arg1;
-    Hu3DModelPosSet(work->unk4, work->unk14.x, work->unk14.y, work->unk14.z);
-    Hu3DModelRotSet(work->unk4, work->unk20.x, work->unk20.y, work->unk20.z);
-    Hu3DModelScaleSet(work->unk4, work->unk2C.x, work->unk2C.y, work->unk2C.z);
+    work->position = *position;
+    work->rotation.x = work->rotation.y = work->rotation.z = 0;
+    work->scale.x = work->scale.y = work->scale.z = scale;
+    Hu3DModelPosSet(work->particleModelId, work->position.x, work->position.y, work->position.z);
+    Hu3DModelRotSet(work->particleModelId, work->rotation.x, work->rotation.y, work->rotation.z);
+    Hu3DModelScaleSet(work->particleModelId, work->scale.x, work->scale.y, work->scale.z);
     return i;
 }
 
-void fn_1_6E98(OMOBJ *object);
+void UpdateWaterEffect(OMOBJ *object);
 
-void fn_1_6DB0(OMOBJ *object)
+void InitializeWaterEffect(OMOBJ *object)
 {
     s32 i;
     for (i = 0; i < object->mdlcnt; i++) {
@@ -1094,10 +1094,10 @@ void fn_1_6DB0(OMOBJ *object)
         Hu3DModelAttrSet(object->mdlId[i], HU3D_ATTR_DISPOFF);
     }
     object->stat |= 0x100;
-    object->objFunc = fn_1_6E98;
+    object->objFunc = UpdateWaterEffect;
 }
 
-void fn_1_6E98(OMOBJ *object)
+void UpdateWaterEffect(OMOBJ *object)
 {
     s32 i;
     for (i = 0; i < object->mdlcnt; i++) {
@@ -1110,34 +1110,34 @@ void fn_1_6E98(OMOBJ *object)
     }
 }
 
-void fn_1_6F60(OMOBJ *object) { }
+void DestroyWaterEffect(OMOBJ *object) { }
 
-s32 fn_1_6F64(Vec *pos, float scale)
+s32 CreateWaterParticle(Vec *pos, float scale)
 {
     s32 i;
-    for (i = 0; i < lbl_1_bss_AC->mdlcnt; i++) {
-        HU3DMODEL *modelP = &Hu3DData[lbl_1_bss_AC->mdlId[i]];
+    for (i = 0; i < waterEffectObject->mdlcnt; i++) {
+        HU3DMODEL *modelP = &Hu3DData[waterEffectObject->mdlId[i]];
         if (modelP->attr & HU3D_ATTR_DISPOFF) {
             break;
         }
     }
-    if (i >= lbl_1_bss_AC->mdlcnt) {
+    if (i >= waterEffectObject->mdlcnt) {
         return -1;
     }
-    Hu3DMotionTimeSet(lbl_1_bss_AC->mdlId[i], 0);
-    Hu3DMotionSpeedSet(lbl_1_bss_AC->mdlId[i], 1);
-    Hu3DModelPosSet(lbl_1_bss_AC->mdlId[i], pos->x, pos->y, pos->z);
-    Hu3DModelScaleSet(lbl_1_bss_AC->mdlId[i], scale, scale, scale);
-    Hu3DModelAttrReset(lbl_1_bss_AC->mdlId[i], HU3D_ATTR_DISPOFF);
+    Hu3DMotionTimeSet(waterEffectObject->mdlId[i], 0);
+    Hu3DMotionSpeedSet(waterEffectObject->mdlId[i], 1);
+    Hu3DModelPosSet(waterEffectObject->mdlId[i], pos->x, pos->y, pos->z);
+    Hu3DModelScaleSet(waterEffectObject->mdlId[i], scale, scale, scale);
+    Hu3DModelAttrReset(waterEffectObject->mdlId[i], HU3D_ATTR_DISPOFF);
     return i;
 }
 
-void fn_1_71E0(OMOBJ *object);
+void UpdateSprinkleObject(OMOBJ *object);
 
-void fn_1_70F0(OMOBJ *object)
+void InitializeSprinkleObject(OMOBJ *object)
 {
-    HU3DPARTICLE *temp_r30;
-    HU3DPARTICLEDATA *temp_r29;
+    HU3DPARTICLE *particleSystem;
+    HU3DPARTICLEDATA *particleData;
     s32 i;
     HU3DMODEL *modelP;
     ANIMDATA *anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 26), HU_MEMNUM_OVL));
@@ -1148,38 +1148,38 @@ void fn_1_70F0(OMOBJ *object)
     Hu3DModelLayerSet(object->mdlId[0], 3);
     Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_PARTICLE_KILL);
     modelP = &Hu3DData[object->mdlId[0]];
-    temp_r30 = modelP->hookData;
-    temp_r29 = temp_r30->data;
-    temp_r30->blendMode = 1;
-    for (i = 0; i < temp_r30->maxCnt; i++, temp_r29++) {
-        temp_r29->scale = 0;
+    particleSystem = modelP->hookData;
+    particleData = particleSystem->data;
+    particleSystem->blendMode = 1;
+    for (i = 0; i < particleSystem->maxCnt; i++, particleData++) {
+        particleData->scale = 0;
     }
-    object->objFunc = fn_1_71E0;
+    object->objFunc = UpdateSprinkleObject;
 }
 
-void fn_1_71E0(OMOBJ *object)
+void UpdateSprinkleObject(OMOBJ *object)
 {
     HU3DMODEL *modelP = &Hu3DData[object->mdlId[0]];
-    HU3DPARTICLE *temp_r29 = modelP->hookData;
-    HU3DPARTICLEDATA *temp_r30 = temp_r29->data;
+    HU3DPARTICLE *particleSystem = modelP->hookData;
+    HU3DPARTICLEDATA *particleData = particleSystem->data;
     s32 i;
-    for (i = 0; i < temp_r29->maxCnt; i++, temp_r30++) {
-        if (temp_r30->scale <= 0.0f) {
+    for (i = 0; i < particleSystem->maxCnt; i++, particleData++) {
+        if (particleData->scale <= 0.0f) {
             continue;
         }
-        if (++temp_r30->time > 360) {
-            temp_r30->time -= 360;
+        if (++particleData->time > 360) {
+            particleData->time -= 360;
         }
-        temp_r30->pos.x += temp_r30->vel.x * sind(2.0f * temp_r30->time);
-        temp_r30->pos.y += temp_r30->vel.y;
-        if (temp_r30->pos.y >= 0.0f) {
-            fn_1_61C8(&temp_r30->pos, 0.00625f * temp_r30->scale, 1, REFRESH_RATE / 4);
-            temp_r30->scale = 0;
+        particleData->pos.x += particleData->vel.x * sind(2.0f * particleData->time);
+        particleData->pos.y += particleData->vel.y;
+        if (particleData->pos.y >= 0.0f) {
+            CreateSprinkleEffect(&particleData->pos, 0.00625f * particleData->scale, 1, REFRESH_RATE / 4);
+            particleData->scale = 0;
         }
     }
 }
 
-void fn_1_74A4(OMOBJ *object)
+void DestroySprinkleObject(OMOBJ *object)
 {
     ANIMDATA *anim = object->data;
     HuSprAnimKill(anim);
@@ -1187,254 +1187,254 @@ void fn_1_74A4(OMOBJ *object)
     object->mdlId[0] = -1;
 }
 
-s32 fn_1_74F8(Vec *pos, float scale)
+s32 CreateSprinkleObject(Vec *pos, float scale)
 {
     s32 i;
-    HU3DMODEL *modelP = &Hu3DData[lbl_1_bss_A8->mdlId[0]];
-    HU3DPARTICLE *temp_r30 = modelP->hookData;
-    HU3DPARTICLEDATA *temp_r31 = temp_r30->data;
-    for (i = 0; i < temp_r30->maxCnt; i++, temp_r31++) {
-        if (temp_r31->scale <= 0.0f) {
+    HU3DMODEL *modelP = &Hu3DData[sprinkleObject->mdlId[0]];
+    HU3DPARTICLE *particleSystem = modelP->hookData;
+    HU3DPARTICLEDATA *particleData = particleSystem->data;
+    for (i = 0; i < particleSystem->maxCnt; i++, particleData++) {
+        if (particleData->scale <= 0.0f) {
             break;
         }
     }
-    if (i >= temp_r30->maxCnt) {
+    if (i >= particleSystem->maxCnt) {
         return -1;
     }
     if (scale <= 0.0f) {
         scale = 1.0f;
     }
-    temp_r31->pos = *pos;
-    temp_r31->vel.x = ((60.0f/REFRESH_RATE) * (1.5f + (0.2f * (0.007874016f * (frand() & 0x7F))))) * 0.5f;
-    temp_r31->vel.z = (1.5f + (0.2f * (0.007874016f * (frand() & 0x7F)))) * (60.0f/REFRESH_RATE);
-    temp_r31->vel.y = ((60.0f/REFRESH_RATE) * (1.5f + (0.2f * (0.007874016f * (frand() & 0x7F))))) * 2.0f;
-    temp_r31->time = (s32)frand() % 360;
-    temp_r31->scale = 20 * scale;
+    particleData->pos = *pos;
+    particleData->vel.x = ((60.0f/REFRESH_RATE) * (1.5f + (0.2f * (0.007874016f * (frand() & 0x7F))))) * 0.5f;
+    particleData->vel.z = (1.5f + (0.2f * (0.007874016f * (frand() & 0x7F)))) * (60.0f/REFRESH_RATE);
+    particleData->vel.y = ((60.0f/REFRESH_RATE) * (1.5f + (0.2f * (0.007874016f * (frand() & 0x7F))))) * 2.0f;
+    particleData->time = (s32)frand() % 360;
+    particleData->scale = 20 * scale;
     return i;
 }
 
-typedef struct work7C48 {
-    s32 unk0;
-    s32 unk4;
-    s32 unk8;
-    float unkC;
-    float unk10;
-    Vec unk14;
-    Vec unk20;
-} Work7C48;
+typedef struct WhaleWork {
+    s32 modelId;
+    s32 isReturning;
+    s32 phase;
+    float speed;
+    float heading;
+    Vec targetPosition;
+    Vec position;
+} WhaleWork;
 
-void fn_1_7B50(OMOBJ *object);
+void UpdateWhaleObject(OMOBJ *object);
 
-void fn_1_7778(OMOBJ *object)
+void InitializeWhaleObject(OMOBJ *object)
 {
-    Work7C48 *workBase = object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(Work7C48) * 8, HU_MEMNUM_OVL);
-    Work7C48 *workP = workBase;
+    WhaleWork *workBase = object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WhaleWork) * 8, HU_MEMNUM_OVL);
+    WhaleWork *workP = workBase;
     s32 i;
-    memset(workP, 0, 8 * sizeof(Work7C48));
+    memset(workP, 0, 8 * sizeof(WhaleWork));
     for (i = 0; i < 8; i++, workP++) {
         switch (i) {
             case 0:
-                workP->unk0 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M456, 3));
+                workP->modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M456, 3));
                 break;
 
             case 1:
-                workP->unk0 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M456, 4));
+                workP->modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M456, 4));
                 break;
 
             default:
                 if (i & 0x1) {
-                    workP->unk0 = Hu3DModelLink(workBase[0].unk0);
+                    workP->modelId = Hu3DModelLink(workBase[0].modelId);
                 }
                 else {
-                    workP->unk0 = Hu3DModelLink(workBase[1].unk0);
+                    workP->modelId = Hu3DModelLink(workBase[1].modelId);
                 }
                 break;
         }
-        Hu3DModelCameraSet(workP->unk0, HU3D_CAM0);
-        Hu3DModelLayerSet(workP->unk0, 1);
-        workP->unk4 = 0;
-        workP->unk8 = 0;
-        workP->unkC = 2;
-        workP->unk10 = (s32)frand() % 360;
-        workP->unk14.x = 1500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
-        workP->unk14.z = 500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
-        workP->unk14.y = -250 + (100 * (0.3f * i));
-        workP->unk20.x = 1500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
-        workP->unk20.z = 500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
-        workP->unk20.y = workP->unk14.y;
-        Hu3DModelPosSet(workP->unk0, workP->unk14.x, workP->unk14.y, workP->unk14.z);
-        Hu3DModelRotSet(workP->unk0, 0, workP->unk10, 0);
+        Hu3DModelCameraSet(workP->modelId, HU3D_CAM0);
+        Hu3DModelLayerSet(workP->modelId, 1);
+        workP->isReturning = 0;
+        workP->phase = 0;
+        workP->speed = 2;
+        workP->heading = (s32)frand() % 360;
+        workP->targetPosition.x = 1500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
+        workP->targetPosition.z = 500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
+        workP->targetPosition.y = -250 + (100 * (0.3f * i));
+        workP->position.x = 1500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
+        workP->position.z = 500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
+        workP->position.y = workP->targetPosition.y;
+        Hu3DModelPosSet(workP->modelId, workP->targetPosition.x, workP->targetPosition.y, workP->targetPosition.z);
+        Hu3DModelRotSet(workP->modelId, 0, workP->heading, 0);
     }
-    object->objFunc = fn_1_7B50;
+    object->objFunc = UpdateWhaleObject;
 }
 
-float fn_1_9A18(float start, float end, float weight);
+float ApproachValue(float start, float end, float weight);
 
-void fn_1_7B50(OMOBJ *object)
+void UpdateWhaleObject(OMOBJ *object)
 {
-    Work7C48 *workP = object->data;
+    WhaleWork *workP = object->data;
     s32 i;
     for (i = 0; i < 8; i++, workP++) {
         float dx;
         float dz;
         float vel;
         float angle;
-        if (workP->unk4 == 0) {
-            vel = 1 + (0.5 * sind((workP->unk8 * 5) % 180));
+        if (workP->isReturning == 0) {
+            vel = 1 + (0.5 * sind((workP->phase * 5) % 180));
         }
         else {
             vel = 3;
         }
-        workP->unk14.x += ((60.0f/REFRESH_RATE) * (vel * (workP->unkC * sind(workP->unk10))));
-        workP->unk14.z += ((60.0f/REFRESH_RATE) * (vel * (workP->unkC * cosd(workP->unk10))));
-        dx = workP->unk20.x - workP->unk14.x;
-        dz = workP->unk20.z - workP->unk14.z;
+        workP->targetPosition.x += ((60.0f/REFRESH_RATE) * (vel * (workP->speed * sind(workP->heading))));
+        workP->targetPosition.z += ((60.0f/REFRESH_RATE) * (vel * (workP->speed * cosd(workP->heading))));
+        dx = workP->position.x - workP->targetPosition.x;
+        dz = workP->position.z - workP->targetPosition.z;
         angle = atan2d(dx, dz);
-        workP->unk10 = fn_1_9A18(angle, workP->unk10, 3.5f);
+        workP->heading = ApproachValue(angle, workP->heading, 3.5f);
         if ((dx * dx) + (dz * dz) < 10000.0f) {
-            if (workP->unk4 == 0) {
-                workP->unk20.x = 2000 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
-                workP->unk20.z = 700 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
-                workP->unk20.y = workP->unk14.y;
+            if (workP->isReturning == 0) {
+                workP->position.x = 2000 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
+                workP->position.z = 700 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
+                workP->position.y = workP->targetPosition.y;
             }
             else {
-                if (workP->unk14.x < 0.0f) {
-                    workP->unk20.x = -2500;
+                if (workP->targetPosition.x < 0.0f) {
+                    workP->position.x = -2500;
                 }
                 else {
-                    workP->unk20.x = 2500;
+                    workP->position.x = 2500;
                 }
-                workP->unk20.z = 500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
-                workP->unk20.y = workP->unk14.y;
+                workP->position.z = 500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
+                workP->position.y = workP->targetPosition.y;
             }
         }
-        Hu3DModelPosSet(workP->unk0, workP->unk14.x, workP->unk14.y, workP->unk14.z);
-        Hu3DModelRotSet(workP->unk0, 0, workP->unk10, 0);
-        workP->unk8 += frand() & 0x3;
+        Hu3DModelPosSet(workP->modelId, workP->targetPosition.x, workP->targetPosition.y, workP->targetPosition.z);
+        Hu3DModelRotSet(workP->modelId, 0, workP->heading, 0);
+        workP->phase += frand() & 0x3;
     }
 }
 
-void fn_1_7F74(OMOBJ *object) { }
+void DestroyWhaleObject(OMOBJ *object) { }
 
-void fn_1_7F78(void)
+void SendWhalesOffscreen(void)
 {
-    Work7C48 *workP = lbl_1_bss_A4->data;
+    WhaleWork *workP = whaleObject->data;
     s32 i;
     for (i = 0; i < 8; i++, workP++) {
-        workP->unk4 = 1;
-        if (workP->unk14.x < 0.0f) {
-            workP->unk20.x = -2500;
+        workP->isReturning = 1;
+        if (workP->targetPosition.x < 0.0f) {
+            workP->position.x = -2500;
         }
         else {
-            workP->unk20.x = 2500;
+            workP->position.x = 2500;
         }
-        workP->unk20.z = 500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
-        workP->unk20.y = workP->unk14.y;
+        workP->position.z = 500 * ((0.007874016f * ((s32)frand() & 0x7F)) - 0.5f);
+        workP->position.y = workP->targetPosition.y;
     }
 }
 
-typedef struct work891C {
-    s16 unk0;
-    s16 unk2[2];
-    s16 unk6;
-    Vec unk8;
-    Vec unk14;
-    float unk20;
-    float unk24;
-    float unk28;
-    float unk2C;
-    float unk30;
-    float unk34;
-    float unk38;
-    float unk3C;
-} Work891C;
+typedef struct FishSchoolWork {
+    s16 modelId;
+    s16 reserved2[2];
+    s16 modelCount;
+    Vec position;
+    Vec targetPosition;
+    float speed;
+    float targetSpeed;
+    float heading;
+    float targetHeading;
+    float distanceTraveled;
+    float animationPhase;
+    float turnSpeed;
+    float steeringOffset;
+} FishSchoolWork;
 
-void fn_1_8078(OMOBJ *object, Work891C *workP)
+void UpdateFishModels(OMOBJ *object, FishSchoolWork *workP)
 {
-    s32 num = workP[0].unk6;
+    s32 num = workP[0].modelCount;
     float ofsZ = -2000;
     s32 i;
     for (i = 0; i < num; i++, workP++) {
         Mtx *modelMtx;
         Mtx rotZ;
-        Hu3DModelPosSet(workP->unk0, workP->unk8.x, workP->unk8.y, workP->unk8.z + ofsZ);
-        modelMtx = &Hu3DData[workP->unk0].mtx;
-        MTXRotDeg(*modelMtx, 'Y', workP->unk28);
-        MTXRotDeg(rotZ, 'Z', workP->unk38);
+        Hu3DModelPosSet(workP->modelId, workP->position.x, workP->position.y, workP->position.z + ofsZ);
+        modelMtx = &Hu3DData[workP->modelId].mtx;
+        MTXRotDeg(*modelMtx, 'Y', workP->heading);
+        MTXRotDeg(rotZ, 'Z', workP->turnSpeed);
         MTXConcat(*modelMtx, rotZ, *modelMtx);
-        Hu3DModelAttrReset(workP->unk0, HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(workP->modelId, HU3D_ATTR_DISPOFF);
     }
 }
 
-float fn_1_8890(float start, float end, float weight);
+float ApproachHeading(float start, float end, float weight);
 
-void fn_1_817C(OMOBJ *object)
+void UpdateFishSchool(OMOBJ *object)
 {
-    Work891C *workP = object->data;
-    s32 num = workP[0].unk6;
+    FishSchoolWork *workP = object->data;
+    s32 num = workP[0].modelCount;
     s32 i;
     for (i = 0; i < num; i++, workP++) {
         Vec diff;
-        s32 unk8 = 0;
-        VECSubtract(&workP->unk14, &workP->unk8, &diff);
-        workP->unk2C = atan2d(diff.x, diff.z);
-        workP->unk28 = fn_1_8890(workP->unk28, workP->unk2C + workP->unk3C, 0.08f);
-        workP->unk24 += 0.05f * (600.0f - workP->unk24);
-        workP->unk20 += 0.2f * (workP->unk24 - workP->unk20);
-        workP->unk8.x += (workP->unk20 * (1.0f / REFRESH_RATE)) * sind(workP->unk28);
-        workP->unk8.z += (workP->unk20 * (1.0f / REFRESH_RATE)) * cosd(workP->unk28);
-        workP->unk30 += workP->unk20 * (1.0f / REFRESH_RATE);
+        s32 unusedCounter = 0;
+        VECSubtract(&workP->targetPosition, &workP->position, &diff);
+        workP->targetHeading = atan2d(diff.x, diff.z);
+        workP->heading = ApproachHeading(workP->heading, workP->targetHeading + workP->steeringOffset, 0.08f);
+        workP->targetSpeed += 0.05f * (600.0f - workP->targetSpeed);
+        workP->speed += 0.2f * (workP->targetSpeed - workP->speed);
+        workP->position.x += (workP->speed * (1.0f / REFRESH_RATE)) * sind(workP->heading);
+        workP->position.z += (workP->speed * (1.0f / REFRESH_RATE)) * cosd(workP->heading);
+        workP->distanceTraveled += workP->speed * (1.0f / REFRESH_RATE);
     }
-    fn_1_8078(object, object->data);
+    UpdateFishModels(object, object->data);
 }
 
-void fn_1_841C(OMOBJ *object)
+void InitializeFishSchool(OMOBJ *object)
 {
     s16 num = 12;
-    Work891C *workBase;
+    FishSchoolWork *workBase;
     s32 modelId;
-    Work891C *work;
+    FishSchoolWork *work;
     float radius;
     float angle;
     float ofsZ;
     s32 i;
-    object->data = workBase = HuMemDirectMallocNum(HEAP_HEAP, num * sizeof(Work891C), HU_MEMNUM_OVL);
-    memset(workBase, 0, num * sizeof(Work891C));
+    object->data = workBase = HuMemDirectMallocNum(HEAP_HEAP, num * sizeof(FishSchoolWork), HU_MEMNUM_OVL);
+    memset(workBase, 0, num * sizeof(FishSchoolWork));
     modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M456, 8));
     ofsZ = 1500;
     work = workBase;
     for (i = 0; i < num; i++, work++) {
 
-        work->unk0 = Hu3DModelLink(modelId);
-        Hu3DModelLayerSet(work->unk0, 6);
-        Hu3DModelCameraSet(work->unk0, 1);
-        Hu3DModelScaleSet(work->unk0, 7, 7, 7);
-        work->unk14.x = ((s32)frandmod(1000) * 4.0f) - 2000;
-        work->unk14.z = ((s32)frandmod(1000)) - 500.0f;
-        work->unk14.y = ((s32)frandmod(1000) * 0.8f) + 300;
+        work->modelId = Hu3DModelLink(modelId);
+        Hu3DModelLayerSet(work->modelId, 6);
+        Hu3DModelCameraSet(work->modelId, 1);
+        Hu3DModelScaleSet(work->modelId, 7, 7, 7);
+        work->targetPosition.x = ((s32)frandmod(1000) * 4.0f) - 2000;
+        work->targetPosition.z = ((s32)frandmod(1000)) - 500.0f;
+        work->targetPosition.y = ((s32)frandmod(1000) * 0.8f) + 300;
         angle = (s32)frandmod(360);
         radius = ((s32)frandmod(250)) + 200.0f;
-        work->unk8.x = radius * sind(angle);
-        work->unk8.y = 0;
-        work->unk8.z = radius * cosd(angle);
-        VECAdd(&work->unk14, &work->unk8, &work->unk8);
-        work->unk38 = 60 - ((6.0f / 55.0f) * radius);
-        work->unk28 = (s32)frandmod(360);
+        work->position.x = radius * sind(angle);
+        work->position.y = 0;
+        work->position.z = radius * cosd(angle);
+        VECAdd(&work->targetPosition, &work->position, &work->position);
+        work->turnSpeed = 60 - ((6.0f / 55.0f) * radius);
+        work->heading = (s32)frandmod(360);
 
-        work->unk3C = ((s32)frandmod(1000) < 500) ? (-70.0f + ((s32)frandmod(50) * 0.1f)) : (70.0f - ((s32)frandmod(50) * 0.1f));
-        if (work->unk3C < 0.0f) {
-            work->unk38 = -work->unk38;
+        work->steeringOffset = ((s32)frandmod(1000) < 500) ? (-70.0f + ((s32)frandmod(50) * 0.1f)) : (70.0f - ((s32)frandmod(50) * 0.1f));
+        if (work->steeringOffset < 0.0f) {
+            work->turnSpeed = -work->turnSpeed;
         }
-        work->unk30 = 1;
-        work->unk34 = 0;
+        work->speed = 1;
+        work->targetSpeed = 0;
         ofsZ -= 50.0f;
-        work->unk6 = num;
+        work->modelCount = num;
     }
     Hu3DModelKill(modelId);
-    object->objFunc = fn_1_817C;
+    object->objFunc = UpdateFishSchool;
 }
 
-float fn_1_8890(float start, float end, float weight)
+float ApproachHeading(float start, float end, float weight)
 {
     float angle = fmodf(end - start, 360);
     if (angle < 0.0f) {
@@ -1450,179 +1450,179 @@ float fn_1_8890(float start, float end, float weight)
     return angle;
 }
 
-void fn_1_8CB8(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void UpdateStageParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 
-void fn_1_89AC(void)
+void InitializeStageParticles(void)
 {
-    StructBss90 *workP = lbl_1_bss_90 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(StructBss90), HU_MEMNUM_OVL);
+    StageParticleWork *workP = stageParticleWork = HuMemDirectMallocNum(HEAP_HEAP, sizeof(StageParticleWork), HU_MEMNUM_OVL);
     HU3DPARTICLE *particle;
     HU3DMODEL *modelP;
     s16 *newWork;
     s32 modelId;
-    memset(workP, 0, sizeof(StructBss90));
-    workP->unk0[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 13), HU_MEMNUM_OVL));
-    workP->unk0[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 14), HU_MEMNUM_OVL));
-    workP->unk0[2] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 15), HU_MEMNUM_OVL));
-    workP->unk0[3] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 16), HU_MEMNUM_OVL));
-    workP->unk20.y = 1;
-    workP->unk20.z = 0;
-    workP->unk10[0] = modelId = Hu3DParticleCreate(workP->unk0[0], 1);
+    memset(workP, 0, sizeof(StageParticleWork));
+    workP->spriteAnimations[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 13), HU_MEMNUM_OVL));
+    workP->spriteAnimations[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 14), HU_MEMNUM_OVL));
+    workP->spriteAnimations[2] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 15), HU_MEMNUM_OVL));
+    workP->spriteAnimations[3] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M456, 16), HU_MEMNUM_OVL));
+    workP->fadeParameters.y = 1;
+    workP->fadeParameters.z = 0;
+    workP->particleModelIds[0] = modelId = Hu3DParticleCreate(workP->spriteAnimations[0], 1);
     Hu3DModelLayerSet(modelId, 6);
     modelP = &Hu3DData[modelId];
     particle = modelP->hookData;
     particle->blendMode = 1;
-    particle->hook = fn_1_8CB8;
+    particle->hook = UpdateStageParticle;
     newWork = particle->work = HuMemDirectMallocNum(HEAP_MODEL, sizeof(s16) * 4, modelP->mallocNo);
     memset(newWork, 0, 4 * sizeof(s16));
     newWork[1] = 0;
-    workP->unk10[1] = modelId = Hu3DParticleCreate(workP->unk0[3], 10);
+    workP->particleModelIds[1] = modelId = Hu3DParticleCreate(workP->spriteAnimations[3], 10);
     Hu3DModelLayerSet(modelId, 6);
     modelP = &Hu3DData[modelId];
     particle = modelP->hookData;
     particle->blendMode = 1;
-    particle->hook = fn_1_8CB8;
+    particle->hook = UpdateStageParticle;
     newWork = particle->work = HuMemDirectMallocNum(HEAP_MODEL, sizeof(s16) * 4, modelP->mallocNo);
     memset(newWork, 0, 4 * sizeof(s16));
     newWork[1] = 1;
-    workP->unk10[2] = modelId = Hu3DParticleCreate(workP->unk0[2], 4);
+    workP->particleModelIds[2] = modelId = Hu3DParticleCreate(workP->spriteAnimations[2], 4);
     Hu3DModelLayerSet(modelId, 6);
     modelP = &Hu3DData[modelId];
     particle = modelP->hookData;
     particle->blendMode = 1;
-    particle->hook = fn_1_8CB8;
+    particle->hook = UpdateStageParticle;
     newWork = particle->work = HuMemDirectMallocNum(HEAP_MODEL, sizeof(s16) * 4, modelP->mallocNo);
     memset(newWork, 0, 4 * sizeof(s16));
     newWork[1] = 2;
-    workP->unk10[3] = modelId = Hu3DParticleCreate(workP->unk0[1], 6);
+    workP->particleModelIds[3] = modelId = Hu3DParticleCreate(workP->spriteAnimations[1], 6);
     Hu3DModelLayerSet(modelId, 6);
     modelP = &Hu3DData[modelId];
     particle = modelP->hookData;
     particle->blendMode = 1;
-    particle->hook = fn_1_8CB8;
+    particle->hook = UpdateStageParticle;
     newWork = particle->work = HuMemDirectMallocNum(HEAP_MODEL, sizeof(s16) * 4, modelP->mallocNo);
     memset(newWork, 0, 4 * sizeof(s16));
     newWork[1] = 3;
 }
 
-void fn_1_8C68(void)
+void DestroyStageParticles(void)
 {
-    StructBss90 *workP = lbl_1_bss_90;
-    HuSprAnimKill(workP->unk0[0]);
-    HuSprAnimKill(workP->unk0[1]);
-    HuSprAnimKill(workP->unk0[2]);
-    HuSprAnimKill(workP->unk0[3]);
+    StageParticleWork *workP = stageParticleWork;
+    HuSprAnimKill(workP->spriteAnimations[0]);
+    HuSprAnimKill(workP->spriteAnimations[1]);
+    HuSprAnimKill(workP->spriteAnimations[2]);
+    HuSprAnimKill(workP->spriteAnimations[3]);
 }
 
-float lbl_1_data_7B0[4] = { 1000, 200, 600, 1200 };
+float stageParticleSizes[4] = { 1000, 200, 600, 1200 };
 
-float lbl_1_data_7C0[4] = { 1, 0.6, 0.3, 0.425 };
+float stageParticleAlpha[4] = { 1, 0.6, 0.3, 0.425 };
 
-void fn_1_8CB8(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateStageParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    s16 unk8 = 0;
-    StructBss90 *workP = lbl_1_bss_90;
+    s16 particleState = 0;
+    StageParticleWork *workP = stageParticleWork;
     s16 *newWorkP = particle->work;
-    s32 unk14 = 0;
+    s32 particleSlot = 0;
     Vec pos = Center;
     Vec rot = CRot;
-    float temp_f26;
-    float temp_f25;
+    float particleDistance;
+    float distanceRatio;
     float zoom = CZoom;
-    HU3DPARTICLEDATA *temp_r31;
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    float temp_f29;
-    float temp_f23;
+    HU3DPARTICLEDATA *particleData;
+    Vec surfaceNormal;
+    Vec viewDirection;
+    Vec reflectedDirection;
+    Vec emitterDirection;
+    float inverseMagnitude;
+    float particleSpacing;
     s32 i;
     switch (newWorkP[2]) {
         case 0:
-            temp_r31 = particle->data;
+            particleData = particle->data;
             if (newWorkP[1]) {
-                sp18.x = 2000;
-                sp18.y = -300;
-                sp18.z = 500;
-                temp_f29 = 1 / VECMagPoint(sp18.x, sp18.y, sp18.z);
-                sp18.x *= temp_f29;
-                sp18.y *= temp_f29;
-                sp18.z *= temp_f29;
-                temp_f23 = 3200.0f / particle->maxCnt;
-                for (i = 0; i < particle->maxCnt; i++, temp_r31++) {
-                    temp_f26 = 500.0 + ((temp_f23 * i) + ((0.25f * temp_f23) * ((float)((s32)frand() & 0xFFFF) * 0.0000152587890625)));
-                    temp_f25 = temp_f26 / 3200;
-                    temp_r31->accel.x = temp_f26;
-                    temp_r31->pos.x = 1000 + (temp_f26 * sp18.x);
-                    temp_r31->pos.y = 4800 + (temp_f26 * sp18.y);
-                    temp_r31->pos.z = -3500 + (temp_f26 * sp18.z);
-                    temp_r31->scale = ((0.7f * (temp_f25 * temp_f25)) + 0.3f)
-                        * (lbl_1_data_7B0[newWorkP[1]] * (0.7f + (0.3f * ((float)((s32)frand() & 0xFFFF) * 0.0000152587890625))));
-                    temp_r31->color.r = (s32)(((float)((s32)frand() & 0xFFFF) * 0.0000152587890625) * 160.0) + 32;
-                    temp_r31->color.g = (s32)(((float)((s32)frand() & 0xFFFF) * 0.0000152587890625) * 96.0) + 32;
-                    temp_r31->color.b = (s32)(((float)((s32)frand() & 0xFFFF) * 0.0000152587890625) * 128.0) + 32;
-                    temp_r31->color.a = (255 * lbl_1_data_7C0[newWorkP[1]] * (1.0 - (0.4 * temp_f25)))
+                emitterDirection.x = 2000;
+                emitterDirection.y = -300;
+                emitterDirection.z = 500;
+                inverseMagnitude = 1 / VECMagPoint(emitterDirection.x, emitterDirection.y, emitterDirection.z);
+                emitterDirection.x *= inverseMagnitude;
+                emitterDirection.y *= inverseMagnitude;
+                emitterDirection.z *= inverseMagnitude;
+                particleSpacing = 3200.0f / particle->maxCnt;
+                for (i = 0; i < particle->maxCnt; i++, particleData++) {
+                    particleDistance = 500.0 + ((particleSpacing * i) + ((0.25f * particleSpacing) * ((float)((s32)frand() & 0xFFFF) * 0.0000152587890625)));
+                    distanceRatio = particleDistance / 3200;
+                    particleData->accel.x = particleDistance;
+                    particleData->pos.x = 1000 + (particleDistance * emitterDirection.x);
+                    particleData->pos.y = 4800 + (particleDistance * emitterDirection.y);
+                    particleData->pos.z = -3500 + (particleDistance * emitterDirection.z);
+                    particleData->scale = ((0.7f * (distanceRatio * distanceRatio)) + 0.3f)
+                        * (stageParticleSizes[newWorkP[1]] * (0.7f + (0.3f * ((float)((s32)frand() & 0xFFFF) * 0.0000152587890625))));
+                    particleData->color.r = (s32)(((float)((s32)frand() & 0xFFFF) * 0.0000152587890625) * 160.0) + 32;
+                    particleData->color.g = (s32)(((float)((s32)frand() & 0xFFFF) * 0.0000152587890625) * 96.0) + 32;
+                    particleData->color.b = (s32)(((float)((s32)frand() & 0xFFFF) * 0.0000152587890625) * 128.0) + 32;
+                    particleData->color.a = (255 * stageParticleAlpha[newWorkP[1]] * (1.0 - (0.4 * distanceRatio)))
                         - (s32)(((float)((s32)frand() & 0xFFFF) * 0.0000152587890625) * 16.0);
-                    temp_r31->accel.z = temp_r31->color.a;
+                    particleData->accel.z = particleData->color.a;
                 }
                 newWorkP[2]++;
             }
             else {
-                temp_r31->pos.x = 1000;
-                temp_r31->pos.y = 4800;
-                temp_r31->pos.z = -3500;
-                temp_r31->scale = 1000;
+                particleData->pos.x = 1000;
+                particleData->pos.y = 4800;
+                particleData->pos.z = -3500;
+                particleData->scale = 1000;
             }
             break;
 
         case 1:
-            sp3C.x = sind(rot.y) * cosd(rot.x);
-            sp3C.y = -sind(rot.x);
-            sp3C.z = cosd(rot.y) * cosd(rot.x);
-            sp30.x = 1000 - (pos.x + (1.25f * (sp3C.x * zoom)));
-            sp30.y = 4800 - (pos.y + (sp3C.y * zoom));
-            sp30.z = -3500 - (pos.z + (1.25f * (sp3C.z * zoom)));
-            temp_f29 = 1 / VECMagPoint(sp30.x, sp30.y, sp30.z);
-            sp30.x *= temp_f29;
-            sp30.y *= temp_f29;
-            sp30.z *= temp_f29;
-            temp_f29 = -((-sp30.x * -sp3C.x) + (-sp30.y * -sp3C.y) + (-sp30.z * -sp3C.z));
-            sp24.x = -sp3C.x + ((-2.0f * sp30.x) * temp_f29);
-            sp24.y = -sp3C.y + ((-2.0f * sp30.y) * temp_f29);
-            sp24.z = -sp3C.z + ((-2.0f * sp30.z) * temp_f29);
-            temp_r31 = particle->data;
-            for (i = 0; i < particle->maxCnt; i++, temp_r31++) {
-                temp_r31->pos.x = 1000 + (sp24.x * temp_r31->accel.x);
-                temp_r31->pos.y = 4800 + (sp24.y * temp_r31->accel.x);
-                temp_r31->pos.z = -3500 + (sp24.z * temp_r31->accel.x);
-                temp_r31->color.a = temp_r31->accel.z * workP->unk20.y;
+            surfaceNormal.x = sind(rot.y) * cosd(rot.x);
+            surfaceNormal.y = -sind(rot.x);
+            surfaceNormal.z = cosd(rot.y) * cosd(rot.x);
+            viewDirection.x = 1000 - (pos.x + (1.25f * (surfaceNormal.x * zoom)));
+            viewDirection.y = 4800 - (pos.y + (surfaceNormal.y * zoom));
+            viewDirection.z = -3500 - (pos.z + (1.25f * (surfaceNormal.z * zoom)));
+            inverseMagnitude = 1 / VECMagPoint(viewDirection.x, viewDirection.y, viewDirection.z);
+            viewDirection.x *= inverseMagnitude;
+            viewDirection.y *= inverseMagnitude;
+            viewDirection.z *= inverseMagnitude;
+            inverseMagnitude = -((-viewDirection.x * -surfaceNormal.x) + (-viewDirection.y * -surfaceNormal.y) + (-viewDirection.z * -surfaceNormal.z));
+            reflectedDirection.x = -surfaceNormal.x + ((-2.0f * viewDirection.x) * inverseMagnitude);
+            reflectedDirection.y = -surfaceNormal.y + ((-2.0f * viewDirection.y) * inverseMagnitude);
+            reflectedDirection.z = -surfaceNormal.z + ((-2.0f * viewDirection.z) * inverseMagnitude);
+            particleData = particle->data;
+            for (i = 0; i < particle->maxCnt; i++, particleData++) {
+                particleData->pos.x = 1000 + (reflectedDirection.x * particleData->accel.x);
+                particleData->pos.y = 4800 + (reflectedDirection.y * particleData->accel.x);
+                particleData->pos.z = -3500 + (reflectedDirection.z * particleData->accel.x);
+                particleData->color.a = particleData->accel.z * workP->fadeParameters.y;
             }
             break;
     }
     DCFlushRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-void fn_1_97FC(float arg0)
+void SetStageParticleFade(float alpha)
 {
-    StructBss90 *workP = lbl_1_bss_90;
-    workP->unk20.y = arg0;
-    if (workP->unk20.y > 1.0f) {
-        workP->unk20.y = 1.0f;
+    StageParticleWork *workP = stageParticleWork;
+    workP->fadeParameters.y = alpha;
+    if (workP->fadeParameters.y > 1.0f) {
+        workP->fadeParameters.y = 1.0f;
     }
-    if (workP->unk20.y <= 0.0f) {
-        Hu3DModelAttrSet(workP->unk10[0], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(workP->unk10[1], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(workP->unk10[2], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(workP->unk10[3], HU3D_ATTR_DISPOFF);
+    if (workP->fadeParameters.y <= 0.0f) {
+        Hu3DModelAttrSet(workP->particleModelIds[0], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(workP->particleModelIds[1], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(workP->particleModelIds[2], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(workP->particleModelIds[3], HU3D_ATTR_DISPOFF);
     }
     else {
-        Hu3DModelAttrReset(workP->unk10[0], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrReset(workP->unk10[1], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrReset(workP->unk10[2], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrReset(workP->unk10[3], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(workP->particleModelIds[0], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(workP->particleModelIds[1], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(workP->particleModelIds[2], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(workP->particleModelIds[3], HU3D_ATTR_DISPOFF);
     }
 }
 
-float fn_1_9900(float start, float end)
+float InterpolateValue(float start, float end)
 {
     float angleDiff;
     if (start >= 360.0f) {
@@ -1647,7 +1647,7 @@ float fn_1_9900(float start, float end)
     return angleDiff;
 }
 
-float fn_1_9A18(float start, float end, float max)
+float ApproachValue(float start, float end, float max)
 {
     float angle;
     float diff;
