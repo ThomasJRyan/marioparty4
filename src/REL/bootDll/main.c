@@ -30,14 +30,14 @@ Vec debugCamRot[2];
 Vec debugCamPos[2];
 float debugCamZoom[2];
 
-Vec lbl_1_bss_10;
+Vec debugCamLookAt;
 
 static s16 demoWinId;
 
 static s16 titleMdlId[3];
 static s16 bootGrpId;
 
-s16 lbl_1_bss_4;
+s16 unreferencedBootId;
 #if VERSION_PAL
 static BOOL initLanguageF;
 #endif
@@ -90,10 +90,10 @@ void BootExec(void)
 {
     ANIMDATA *data;
     s16 group;
-    s16 sprite_nintendo;
-    s16 sprite_hudson;
+    s16 spriteNintendo;
+    s16 spriteHudson;
     s16 i;
-    OSTick tick_prev;
+    OSTick tickPrev;
     HUPROCESS *curr = HuPrcCurrentGet();
     #if VERSION_NTSC
     if (omovlevtno == 0) {
@@ -113,15 +113,15 @@ void BootExec(void)
     #endif
     group = HuSprGrpCreate(2);
     data = HuSprAnimRead(NintendoDataDecode());
-    sprite_nintendo = HuSprCreate(data, 0, 0);
-    HuSprGrpMemberSet(group, 0, sprite_nintendo);
+    spriteNintendo = HuSprCreate(data, 0, 0);
+    HuSprGrpMemberSet(group, 0, spriteNintendo);
     HuSprPosSet(group, 0, 288, 240);
     HuSprAttrSet(group, 0, HUSPR_ATTR_DISPOFF);
     if (omovlevtno != 0) {
         HuAudSndGrpSetSet(0);
         data = HuSprAnimReadFile(TITLE_HUDSON_ANM);
-        sprite_hudson = HuSprCreate(data, 0, 0);
-        HuSprGrpMemberSet(group, 1, sprite_hudson);
+        spriteHudson = HuSprCreate(data, 0, 0);
+        HuSprGrpMemberSet(group, 1, spriteHudson);
         HuSprPosSet(group, 1, 288, 240);
         HuSprAttrSet(group, 1, HUSPR_ATTR_DISPOFF);
         HuWinInit(1);
@@ -129,18 +129,18 @@ void BootExec(void)
         SystemInitF = 1;
     }
     else {
-        s16 group_thp;
-        BOOL skip_wait;
-        float win_size[2];
-        s16 sprite_thp;
+        s16 groupThp;
+        BOOL skipWait;
+        float winSize[2];
+        s16 spriteThp;
         for (i = 0; i < 4; i++) {
             GWPlayerCfg[i].pad_idx = i;
         }
         #if VERSION_PAL
         if(SystemInitF) {
             data = HuSprAnimReadFile(TITLE_HUDSON_ANM);
-            sprite_hudson = HuSprCreate(data, 0, 0);
-            HuSprGrpMemberSet(group, 1, sprite_hudson);
+            spriteHudson = HuSprCreate(data, 0, 0);
+            HuSprGrpMemberSet(group, 1, spriteHudson);
             HuSprPosSet(group, 1, 288, 240);
             HuSprAttrSet(group, 1, HUSPR_ATTR_DISPOFF);
             HuAudSndGrpSetSet(0);
@@ -156,18 +156,18 @@ void BootExec(void)
         }
         WipeColorSet(255, 255, 255);
         if (!SystemInitF) {
-            tick_prev = OSGetTick();
+            tickPrev = OSGetTick();
             CharInit();
             HuWindowInit();
             MGSeqInit();
             HuWinInit(1);
             BootTitleCreate();
             data = HuSprAnimReadFile(TITLE_HUDSON_ANM);
-            sprite_hudson = HuSprCreate(data, 0, 0);
-            HuSprGrpMemberSet(group, 1, sprite_hudson);
+            spriteHudson = HuSprCreate(data, 0, 0);
+            HuSprGrpMemberSet(group, 1, spriteHudson);
             HuSprPosSet(group, 1, 288, 240);
             HuSprAttrSet(group, 1, HUSPR_ATTR_DISPOFF);
-            while (OSTicksToMilliseconds(OSGetTick() - tick_prev) < 3000) {
+            while (OSTicksToMilliseconds(OSGetTick() - tickPrev) < 3000) {
                 HuPrcVSleep();
             }
         }
@@ -197,12 +197,12 @@ void BootExec(void)
             HuPrcVSleep();
         }
         if (!SystemInitF) {
-            void *group_samp;
-            tick_prev = OSGetTick();
-            group_samp = HuMemDirectMalloc(HEAP_MODEL, msmSysGetSampSize(0));
-            msmSysLoadGroup(0, group_samp, 0);
-            HuMemDirectFree(group_samp);
-            while (OSTicksToMilliseconds(OSGetTick() - tick_prev) < 3000) {
+            void *groupSamp;
+            tickPrev = OSGetTick();
+            groupSamp = HuMemDirectMalloc(HEAP_MODEL, msmSysGetSampSize(0));
+            msmSysLoadGroup(0, groupSamp, 0);
+            HuMemDirectFree(groupSamp);
+            while (OSTicksToMilliseconds(OSGetTick() - tickPrev) < 3000) {
                 HuPrcVSleep();
             }
         }
@@ -227,22 +227,22 @@ void BootExec(void)
         while (WipeStatGet()) {
             HuPrcVSleep();
         }
-        tick_prev = OSGetTick();
+        tickPrev = OSGetTick();
         if (!SystemInitF) {
             HuAudSndGrpSetSet(0);
             SystemInitF = 1;
         }
-        while (OSTicksToMilliseconds(OSGetTick() - tick_prev) < 1000) {
+        while (OSTicksToMilliseconds(OSGetTick() - tickPrev) < 1000) {
             HuPrcVSleep();
         }
         HuSprAttrSet(group, 0, HUSPR_ATTR_DISPOFF);
         HuSprAttrSet(group, 1, HUSPR_ATTR_DISPOFF);
-        group_thp = HuSprGrpCreate(1);
-        sprite_thp = HuTHPSprCreateVol("movie/opmov_a00.thp", 0, 100, 122);
-        HuSprGrpMemberSet(group_thp, 0, sprite_thp);
-        HuSprPosSet(group_thp, 0, 288, 240);
-        HuWinMesMaxSizeBetGet(win_size, MAKE_MESSID(54, 0), MAKE_MESSID(54, 4));
-        demoWinId = HuWinCreate(-10000, 448 - win_size[1], win_size[0], win_size[1], 0);
+        groupThp = HuSprGrpCreate(1);
+        spriteThp = HuTHPSprCreateVol("movie/opmov_a00.thp", 0, 100, 122);
+        HuSprGrpMemberSet(groupThp, 0, spriteThp);
+        HuSprPosSet(groupThp, 0, 288, 240);
+        HuWinMesMaxSizeBetGet(winSize, MAKE_MESSID(54, 0), MAKE_MESSID(54, 4));
+        demoWinId = HuWinCreate(-10000, 448 - winSize[1], winSize[0], winSize[1], 0);
         HuWinMesSpeedSet(demoWinId, 0);
         HuWinBGTPLvlSet(demoWinId, 0);
         HuWinPriSet(demoWinId, 10);
@@ -252,11 +252,11 @@ void BootExec(void)
         while (WipeStatGet()) {
             HuPrcVSleep();
         }
-        skip_wait = FALSE;
+        skipWait = FALSE;
         while (!HuTHPEndCheck()) {
             UpdateDemoMess();
             if (HuPadBtnDown[0] & (PAD_BUTTON_START | PAD_BUTTON_A)) {
-                skip_wait = TRUE;
+                skipWait = TRUE;
                 break;
             }
             HuPrcVSleep();
@@ -268,11 +268,11 @@ void BootExec(void)
         HuWinKill(demoWinId);
         HuTHPClose();
         HuPrcVSleep();
-        HuSprGrpKill(group_thp);
-        if (!skip_wait) {
+        HuSprGrpKill(groupThp);
+        if (!skipWait) {
             HuPrcSleep(60);
         }
-        skip_wait = FALSE;
+        skipWait = FALSE;
     }
     if (!BootTitleExec()) {
         HuPrcSleep(60);
@@ -463,10 +463,10 @@ void DebugCamUpdate(OMOBJ *obj)
     Vec pos;
     Vec offset;
     Vec dir;
-    Vec y_offset;
+    Vec yOffset;
 
-    f32 z_rot;
-    s8 stick_pos;
+    f32 zRot;
+    s8 stickPos;
     
     #if VERSION_NTSC
     if ((HuPadBtnDown[0] & 0x800)) {
@@ -490,33 +490,33 @@ void DebugCamUpdate(OMOBJ *obj)
         dir.x = (sind(debugCamRot[0].y) * sind(debugCamRot[0].x));
         dir.y = cosd(debugCamRot[0].x);
         dir.z = (cosd(debugCamRot[0].y) * sind(debugCamRot[0].x));
-        z_rot = debugCamRot[0].z;
-        y_offset.x = dir.x * (offset.x * offset.x + (1.0f - offset.x * offset.x) * cosd(z_rot))
-            + dir.y * (offset.x * offset.y * (1.0f - cosd(z_rot)) - offset.z * sind(z_rot))
-            + dir.z * (offset.x * offset.z * (1.0f - cosd(z_rot)) + offset.y * sind(z_rot));
+        zRot = debugCamRot[0].z;
+        yOffset.x = dir.x * (offset.x * offset.x + (1.0f - offset.x * offset.x) * cosd(zRot))
+            + dir.y * (offset.x * offset.y * (1.0f - cosd(zRot)) - offset.z * sind(zRot))
+            + dir.z * (offset.x * offset.z * (1.0f - cosd(zRot)) + offset.y * sind(zRot));
 
-        y_offset.y = dir.y * (offset.y * offset.y + (1.0f - offset.y * offset.y) * cosd(z_rot))
-            + dir.x * (offset.x * offset.y * (1.0f - cosd(z_rot)) + offset.z * sind(z_rot))
-            + dir.z * (offset.y * offset.z * (1.0f - cosd(z_rot)) - offset.x * sind(z_rot));
+        yOffset.y = dir.y * (offset.y * offset.y + (1.0f - offset.y * offset.y) * cosd(zRot))
+            + dir.x * (offset.x * offset.y * (1.0f - cosd(zRot)) + offset.z * sind(zRot))
+            + dir.z * (offset.y * offset.z * (1.0f - cosd(zRot)) - offset.x * sind(zRot));
 
-        y_offset.z = dir.z * (offset.z * offset.z + (1.0f - offset.z * offset.z) * cosd(z_rot))
-            + (dir.x * (offset.x * offset.z * (1.0 - cosd(z_rot)) - offset.y * sind(z_rot))
-                + dir.y * (offset.y * offset.z * (1.0 - cosd(z_rot)) + offset.x * sind(z_rot)));
+        yOffset.z = dir.z * (offset.z * offset.z + (1.0f - offset.z * offset.z) * cosd(zRot))
+            + (dir.x * (offset.x * offset.z * (1.0 - cosd(zRot)) - offset.y * sind(zRot))
+                + dir.y * (offset.y * offset.z * (1.0 - cosd(zRot)) + offset.x * sind(zRot)));
 
         VECCrossProduct(&dir, &offset, &offset);
         VECNormalize(&offset, &offset);
-        stick_pos = (HuPadSubStkX[0] & 0xF8);
-        if (stick_pos != 0) {
-            debugCamPos[0].x += 0.05f * (offset.x * stick_pos);
-            debugCamPos[0].y += 0.05f * (offset.y * stick_pos);
-            debugCamPos[0].z += 0.05f * (offset.z * stick_pos);
+        stickPos = (HuPadSubStkX[0] & 0xF8);
+        if (stickPos != 0) {
+            debugCamPos[0].x += 0.05f * (offset.x * stickPos);
+            debugCamPos[0].y += 0.05f * (offset.y * stickPos);
+            debugCamPos[0].z += 0.05f * (offset.z * stickPos);
         }
-        VECNormalize(&y_offset, &offset);
-        stick_pos = -(HuPadSubStkY[0] & 0xF8);
-        if (stick_pos != 0) {
-            debugCamPos[0].x += 0.05f * (offset.x * stick_pos);
-            debugCamPos[0].y += 0.05f * (offset.y * stick_pos);
-            debugCamPos[0].z += 0.05f * (offset.z * stick_pos);
+        VECNormalize(&yOffset, &offset);
+        stickPos = -(HuPadSubStkY[0] & 0xF8);
+        if (stickPos != 0) {
+            debugCamPos[0].x += 0.05f * (offset.x * stickPos);
+            debugCamPos[0].y += 0.05f * (offset.y * stickPos);
+            debugCamPos[0].z += 0.05f * (offset.z * stickPos);
         }
     }
 }
@@ -525,7 +525,7 @@ void BootTitleCreate(void)
 {
     s16 model;
     s16 sprite;
-    ANIMDATA *sprite_data;
+    ANIMDATA *spriteData;
     s16 i;
     titleMdlId[0] = model = Hu3DModelCreateFile(TITLE_CHAR_HSF);
     Hu3DModelAttrSet(model, HU3D_ATTR_DISPOFF);
@@ -543,44 +543,44 @@ void BootTitleCreate(void)
     #else
     bootGrpId = HuSprGrpCreate(13);
     #endif
-    sprite_data = HuSprAnimReadFile(TITLE_BG_ANM);
-    sprite = HuSprCreate(sprite_data, 0, 0);
+    spriteData = HuSprAnimReadFile(TITLE_BG_ANM);
+    sprite = HuSprCreate(spriteData, 0, 0);
     HuSprGrpMemberSet(bootGrpId, 0, sprite);
     HuSprAttrSet(bootGrpId, 0, HUSPR_ATTR_DISPOFF);
     HuSprDrawNoSet(bootGrpId, 0, 127);
     HuSprPosSet(bootGrpId, 0, 288, 240);
-    sprite_data = HuSprAnimReadFile(TITLE_COPYRIGHT_ANM);
-    sprite = HuSprCreate(sprite_data, 1, 0);
+    spriteData = HuSprAnimReadFile(TITLE_COPYRIGHT_ANM);
+    sprite = HuSprCreate(spriteData, 1, 0);
     HuSprGrpMemberSet(bootGrpId, 1, sprite);
     HuSprAttrSet(bootGrpId, 1, HUSPR_ATTR_DISPOFF);
     HuSprPosSet(bootGrpId, 1, 288, 420);
     #if VERSION_NTSC
-    sprite_data = HuSprAnimReadFile(TITLE_PRESS_START_ANM);
-    sprite = HuSprCreate(sprite_data, 2, 0);
+    spriteData = HuSprAnimReadFile(TITLE_PRESS_START_ANM);
+    sprite = HuSprCreate(spriteData, 2, 0);
     HuSprGrpMemberSet(bootGrpId, 2, sprite);
     HuSprAttrSet(bootGrpId, 2, HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
     HuSprPosSet(bootGrpId, 2, 288, 380);
-    sprite_data = HuSprAnimReadFile(TITLE_LOGO_ANM);
-    sprite = HuSprCreate(sprite_data, 0, 0);
+    spriteData = HuSprAnimReadFile(TITLE_LOGO_ANM);
+    sprite = HuSprCreate(spriteData, 0, 0);
     HuSprGrpMemberSet(bootGrpId, 3, sprite);
     HuSprAttrSet(bootGrpId, 3, HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
     HuSprPosSet(bootGrpId, 3, 288, 200);
     #else
-    sprite_data = HuSprAnimReadFile(TITLE_LOGO_ANM);
-    sprite = HuSprCreate(sprite_data, 0, 0);
+    spriteData = HuSprAnimReadFile(TITLE_LOGO_ANM);
+    sprite = HuSprCreate(spriteData, 0, 0);
     HuSprGrpMemberSet(bootGrpId, 2, sprite);
     HuSprAttrSet(bootGrpId, 2, HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
     HuSprPosSet(bootGrpId, 2, 288, 200);
     for(i=0; i<5; i++) {
-        sprite_data = HuSprAnimReadFile(TITLE_PRESS_START_EN_ANM+i);
-        sprite = HuSprCreate(sprite_data, 3+i, 0);
+        spriteData = HuSprAnimReadFile(TITLE_PRESS_START_EN_ANM+i);
+        sprite = HuSprCreate(spriteData, 3+i, 0);
         HuSprGrpMemberSet(bootGrpId, 3+i, sprite);
         HuSprAttrSet(bootGrpId, 3+i, HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
         HuSprPosSet(bootGrpId, 3+i, 288, 340);
     }
     for(i=0; i<5; i++) {
-        sprite_data = HuSprAnimReadFile(TITLE_LANGUAGE_EN_ANM+i);
-        sprite = HuSprCreate(sprite_data, 8+i, 0);
+        spriteData = HuSprAnimReadFile(TITLE_LANGUAGE_EN_ANM+i);
+        sprite = HuSprCreate(spriteData, 8+i, 0);
         HuSprGrpMemberSet(bootGrpId, 8+i, sprite);
         HuSprAttrSet(bootGrpId, 8+i, HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
         HuSprPosSet(bootGrpId, 8+i, 288, 380);
@@ -591,7 +591,7 @@ void BootTitleCreate(void)
 BOOL BootTitleExec(void)
 {
     float scale;
-    float scale_time;
+    float scaleTime;
     int seNo[32];
     s16 pressStartMemberNo;
     s16 languageMemberNo;
@@ -643,11 +643,11 @@ BOOL BootTitleExec(void)
         HuPrcVSleep();
     }
     choice = 0;
-    scale_time = 0;
+    scaleTime = 0;
     #endif
     
     #if VERSION_NTSC
-    for (i = scale_time = 0; i < 1800; i++) {
+    for (i = scaleTime = 0; i < 1800; i++) {
     #else
     for (i = temp = 0; i < 1800; i++) { 
     #endif
@@ -655,13 +655,13 @@ BOOL BootTitleExec(void)
         if((choice == 0 && (HuPadDStkRep[0] & PAD_BUTTON_DOWN)) || (choice != 0 && (HuPadDStkRep[0] & PAD_BUTTON_UP))) {
             HuAudFXPlay(0);
             for(i=1; i<=10; i++) {
-                scale = ((1-(i/10.0))*(((cosd(scale_time)*0.1)+0.9)-0.7))+0.7;
+                scale = ((1-(i/10.0))*(((cosd(scaleTime)*0.1)+0.9)-0.7))+0.7;
                 if(choice == 0) {
                     HuSprScaleSet(bootGrpId, pressStartMemberNo, scale, scale);
                 } else {
                     HuSprScaleSet(bootGrpId, languageMemberNo, scale, scale);
                 }
-                scale = ((1-(i/10.0))*(((cosd(scale_time/3.0)*0.05)+0.65)-1.0))+1.0;
+                scale = ((1-(i/10.0))*(((cosd(scaleTime/3.0)*0.05)+0.65)-1.0))+1.0;
                 if(choice == 0) {
                     HuSprScaleSet(bootGrpId, languageMemberNo, scale, scale);
                 } else {
@@ -670,7 +670,7 @@ BOOL BootTitleExec(void)
                 HuPrcVSleep();
             }
             choice ^= 1;
-            scale_time = 0;
+            scaleTime = 0;
         }
         if (HuPadBtnDown[0] & (PAD_BUTTON_START|PAD_BUTTON_A)) {
             if(choice == 0) {
@@ -708,19 +708,19 @@ BOOL BootTitleExec(void)
                 goto repeat;
             }
         }
-        scale = (cosd(scale_time) * 0.1) + 0.9;
+        scale = (cosd(scaleTime) * 0.1) + 0.9;
         if(choice == 0) {
             HuSprScaleSet(bootGrpId, pressStartMemberNo, scale, scale);
         } else {
             HuSprScaleSet(bootGrpId, languageMemberNo, scale, scale);
         }
-        scale = (cosd(scale_time/3.0) * 0.05) + 0.65;
+        scale = (cosd(scaleTime/3.0) * 0.05) + 0.65;
         if(choice == 0) {
             HuSprScaleSet(bootGrpId, languageMemberNo, scale, scale);
         } else {
             HuSprScaleSet(bootGrpId, pressStartMemberNo, scale, scale);
         }
-        scale_time += 5;
+        scaleTime += 5;
         HuPrcVSleep();
         #else
         if (i <= 10) {
@@ -734,10 +734,10 @@ BOOL BootTitleExec(void)
             HuSprAttrSet(bootGrpId, 2, HUSPR_ATTR_DISPOFF);
             return 1;
         }
-        scale = (sind(i * scale_time) * 0.1) + 0.9;
-        scale_time += 0.05;
-        if (scale_time > 5) {
-            scale_time = 5;
+        scale = (sind(i * scaleTime) * 0.1) + 0.9;
+        scaleTime += 0.05;
+        if (scaleTime > 5) {
+            scaleTime = 5;
         }
         HuSprScaleSet(bootGrpId, 2, scale, scale);
         HuPrcVSleep();
@@ -778,9 +778,9 @@ void *NintendoDataDecode(void)
     u32 *src = (u32 *)nintendoData;
     u32 size = *src++;
     void *dst = HuMemDirectMalloc(HEAP_MODEL, size);
-    int decode_type = *src++;
+    int decodeType = *src++;
     if(dst) {
-        HuDecodeData(src, dst, size, decode_type);
+        HuDecodeData(src, dst, size, decodeType);
     }
     return dst;
 }

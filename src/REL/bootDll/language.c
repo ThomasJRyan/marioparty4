@@ -84,11 +84,11 @@ BOOL LanguageMenuExec(void)
         HuPrcVSleep();
     }
     if(!SystemInitF) {
-        void *group_samp;
+        void *groupSamp;
         HuWindowInit();
-        group_samp = HuMemDirectMalloc(HEAP_MODEL, msmSysGetSampSize(0));
-        msmSysLoadGroup(0, group_samp, 0);
-        HuMemDirectFree(group_samp);
+        groupSamp = HuMemDirectMalloc(HEAP_MODEL, msmSysGetSampSize(0));
+        msmSysLoadGroup(0, groupSamp, 0);
+        HuMemDirectFree(groupSamp);
     }
     for(i=0; i<5; i++) {
         modelId[i] = Hu3DModelCreateFile(TITLE_FLAG_HSF);
