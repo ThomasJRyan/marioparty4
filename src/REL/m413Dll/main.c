@@ -20,788 +20,788 @@
 
 s32 rand8(void);
 
-typedef struct struct_bss_2A6C StructBss2A6C;
+typedef struct BoardNode BoardNode;
 
-typedef struct struct_sp_14C8 StructSp14C8;
+typedef struct BoardEvent BoardEvent;
 
-typedef struct struct_sp_14C8 {
-    u8 unk0;
-    u8 unk1;
-    u8 unk2;
-    s32 unk4[4];
-    StructBss2A6C *unk14;
-    StructBss2A6C *unk18;
-    StructSp14C8 *unk1C;
-} StructSp14C8;
+typedef struct BoardEvent {
+    u8 eventType;
+    u8 nodeCount;
+    u8 playerMask;
+    s32 playerValues[4];
+    BoardNode *firstNode;
+    BoardNode *secondNode;
+    BoardEvent *nextEvent;
+} BoardEvent;
 
-typedef struct work_19C8 {
-    s32 unk0;
-    s32 unk4;
-    s32 unk8;
-    s32 unkC;
-    s32 unk10;
-    s32 unk14;
-    s32 unk18;
-    s32 unk1C;
-    s32 unk20;
-    s32 unk24;
-    s32 unk28;
-    s32 unk2C;
-    u8 unk30[0x10];
-    float unk40;
-    s32 unk44;
-    StructBss2A6C *unk48[2];
-    u8 unk50[8][2];
-    u8 unk60;
-    u8 unk61;
-    u8 unk62;
-    u8 unk63[2];
-    u8 unk65[2];
-    s32 unk68;
-    s32 unk6C;
-    u8 unk70;
-    u8 unk71;
-    u8 unk72;
-    s32 unk74;
-    u8 unk78;
-    u8 unk79;
-    s32 unk7C;
-    s32 unk80;
-    s32 unk84;
-    s32 unk88;
-    s32 unk8C;
-    s32 unk90;
-    s32 unk94;
-    float unk98;
-    float unk9C;
-    float unkA0;
-    s16 unkA4;
-} Work19C8;
+typedef struct PlayerWork {
+    s32 cursorDirection;
+    s32 cursorRepeatFrames;
+    s32 buttonState;
+    s32 buttonRepeatFrames;
+    s32 playerSlot;
+    s32 playerIndex;
+    s32 characterId;
+    s32 controllerIndex;
+    s32 cpuDifficulty;
+    s32 targetScore;
+    s32 previousScore;
+    s32 rankedScore;
+    u8 reservedStateBytes[0x10];
+    float displayedScore;
+    s32 scoreHoldFrames;
+    BoardNode *boardNodes[2];
+    u8 cardLayout[8][2];
+    u8 cardColumn;
+    u8 cardState;
+    u8 cardAnimation;
+    u8 cardTypes[2];
+    u8 cardAnimationFrames[2];
+    s32 turnScore;
+    s32 turnScoreTarget;
+    u8 selectedLane;
+    u8 inputDelay;
+    u8 playerState;
+    s32 selectionTimer;
+    u8 inputEnabled;
+    u8 turnComplete;
+    s32 targetLane;
+    s32 targetDirection;
+    s32 aiDelay;
+    s32 targetLaneHoldFrames;
+    s32 currentLane;
+    s32 laneChangeFrames;
+    s32 playerFlags;
+    float cameraX;
+    float cameraY;
+    float cameraZ;
+    s16 playerSpriteGroup;
+} PlayerWork;
 
-typedef struct struct_bss_2A6C {
-    u8 unk0;
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
-    u8 unk4;
-    u8 unk5;
-    s32 unk8[4];
+typedef struct BoardNode {
+    u8 objectKind;
+    u8 stateFlags;
+    u8 ownerGroup;
+    u8 playerMask;
+    u8 pathId;
+    u8 animationFrame;
+    s32 playerScores[4];
     union {
-        s8 unk18;
-        u8 unk18_u;
+        s8 laneIndex;
+        u8 characterId;
     };
 
-    Vec unk1C;
-    u32 unk28;
-    StructSp14C8 *unk2C;
-    StructBss2A6C *unk30;
-    StructBss2A6C *unk34;
-    StructBss2A6C *unk38;
-    StructBss2A6C *unk3C;
-    StructBss2A6C *unk40;
-    StructBss2A6C *unk44;
-    StructBss2A6C *unk48;
-    StructBss2A6C *unk4C;
-    Work19C8 *unk50;
-} StructBss2A6C;
+    Vec position;
+    u32 nodeValue;
+    BoardEvent *associatedObject;
+    BoardNode *nextGroupNode;
+    BoardNode *nextChainNode;
+    BoardNode *pairedNodeLeft;
+    BoardNode *pairedNodeRight;
+    BoardNode *pairedNodeLower;
+    BoardNode *pairedNodeUpper;
+    BoardNode *nextLaneNode;
+    BoardNode *previousLaneNode;
+    PlayerWork *ownerWork;
+} BoardNode;
 
-typedef struct struct_bss_2684 {
-    float unk0;
-    float unk4;
-    s32 unk8;
-    s32 unkC;
-    u8 unk10;
-} StructBss2684;
+typedef struct ScorePopup {
+    float screenX;
+    float screenY;
+    s32 scoreValue;
+    s32 lifetimeFrames;
+    u8 playerMask;
+} ScorePopup;
 
-typedef struct struct_bss_100 {
-    u8 unk0;
-    Vec unk4;
-    Vec unk10;
-    u8 unk1C;
-    u8 unk1D;
-} StructBss100;
+typedef struct FallingPiece {
+    u8 pieceType;
+    Vec position;
+    Vec velocity;
+    u8 rotationPhase;
+    u8 spinPhase;
+} FallingPiece;
 
-typedef struct struct_bss_b8 {
-    s32 unk0;
-    s32 unk4;
-    float unk8;
-    Vec unkC;
-} StructBssB8;
+typedef struct CameraShakeState {
+    s32 shakePhase;
+    s32 shakeAmplitude;
+    float previousHorizontalOffset;
+    Vec shakeDirection;
+} CameraShakeState;
 
-typedef struct struct_bss_48 {
-    s32 unk0;
-    float unk4[3];
-} StructBss48;
+typedef struct PendingVoiceEvent {
+    s32 queuedSoundCount;
+    float queuedPanValues[3];
+} PendingVoiceEvent;
 
-StructBss2A6C *lbl_1_bss_7884[12];
-StructBss2A6C lbl_1_bss_2A6C[238];
-StructBss2684 lbl_1_bss_2684[50];
-s32 lbl_1_bss_2680;
-StructBss100 lbl_1_bss_100[300];
-s32 lbl_1_bss_FC;
-s32 lbl_1_bss_D4[5][2];
-s32 lbl_1_bss_D0;
-StructBssB8 lbl_1_bss_B8;
-StructBss48 lbl_1_bss_48[7];
-OMOBJ *lbl_1_bss_44;
-OMOBJ *lbl_1_bss_34[4];
-OMOBJ *lbl_1_bss_30;
-float lbl_1_bss_2C;
-s32 lbl_1_bss_28;
-HUPROCESS *lbl_1_bss_24;
-s16 lbl_1_bss_20;
-s32 lbl_1_bss_1C;
-s32 lbl_1_bss_18;
-s16 lbl_1_bss_14;
-s32 lbl_1_bss_10;
-s32 lbl_1_bss_8[2];
-s32 lbl_1_bss_4;
-s32 lbl_1_bss_0;
+BoardNode *laneHeads[12];
+BoardNode boardNodePool[238];
+ScorePopup scorePopupPool[50];
+s32 scorePopupHead;
+FallingPiece fallingPiecePool[300];
+s32 fallingPieceHead;
+s32 playerModelHideTimers[5][2];
+s32 playerModelHiddenCount;
+CameraShakeState cameraShakeState;
+PendingVoiceEvent pendingVoiceEvents[7];
+OMOBJ *mainSequenceObject;
+OMOBJ *playerObjects[4];
+OMOBJ *boardObject;
+float sequenceTimer;
+s32 boardState;
+HUPROCESS *objectManager;
+s16 minigameSequenceId;
+s32 boardLightId;
+s32 winningPlayer;
+s16 popupSpriteGroup;
+s32 winnerSoundFadeTimer;
+s32 winnerSoundHandles[2];
+s32 frameCounter;
+s32 unusedState;
 
-s32 lbl_1_data_0 = -1;
-s32 lbl_1_data_4[2] = { -1, -1 };
-s32 lbl_1_data_C[4] = { 0, 1, 2, 3 };
-float lbl_1_data_1C[7] = { 1000, 1000, 1000, 0, 0, 0, 30 };
+s32 sequenceAudioId = -1;
+s32 winnerSoundEffects[2] = { -1, -1 };
+s32 playerOrderByRank[4] = { 0, 1, 2, 3 };
+float boardCameraDefaults[7] = { 1000, 1000, 1000, 0, 0, 0, 30 };
 
-const Vec lbl_1_rodata_10[2] = { 0, 7955, 3436, 0, -0.898794f, -0.43837115f };
+const Vec boardCameraStartPositions[2] = { 0, 7955, 3436, 0, -0.898794f, -0.43837115f };
 
-const GXColor lbl_1_rodata_28 = { 0, 0, 0, 255 };
+const GXColor boardCameraClearColor = { 0, 0, 0, 255 };
 
-const Vec lbl_1_rodata_2C[2] = { 0, 5966.25f, 3436, 0, -0.6740955f, -0.43837115f };
+const Vec boardCameraAlternatePositions[2] = { 0, 5966.25f, 3436, 0, -0.6740955f, -0.43837115f };
 
-const GXColor lbl_1_rodata_44 = { 0, 0, 0, 255 };
+const GXColor boardCameraAlternateClearColor = { 0, 0, 0, 255 };
 
-void fn_1_A0(s32 arg0)
+void TransformCamerasWithControllerInput(s32 cameraSelectionMask)
 {
-    Mtx44 sp10C;
-    Mtx44 spCC;
-    Mtx44 sp8C;
-    Mtx44 sp4C;
-    Mtx44 spC;
-    HU3DCAMERA *temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s16 temp_r25;
+    Mtx44 cameraTransform;
+    Mtx44 pitchMatrix;
+    Mtx44 yawMatrix;
+    Mtx44 rotationMatrix;
+    Mtx44 translationMatrix;
+    HU3DCAMERA *camera;
+    s16 cameraIndex;
+    s16 cameraMask;
+    s16 unusedCameraRegister0;
+    s16 unusedCameraRegister1;
+    s16 unusedCameraRegister2;
+    s16 unusedCameraRegister3;
 
-    MTXRotDeg(sp8C, 'y', HuPadSubStkX[0] / 16.0);
-    MTXRotDeg(spCC, 'x', HuPadSubStkY[0] / -16.0);
-    MTXTrans(spC, (((HuPadBtn[0] & PAD_BUTTON_RIGHT) != 0) - ((HuPadBtn[0] & PAD_BUTTON_LEFT) != 0)) * 10.0,
+    MTXRotDeg(yawMatrix, 'y', HuPadSubStkX[0] / 16.0);
+    MTXRotDeg(pitchMatrix, 'x', HuPadSubStkY[0] / -16.0);
+    MTXTrans(translationMatrix, (((HuPadBtn[0] & PAD_BUTTON_RIGHT) != 0) - ((HuPadBtn[0] & PAD_BUTTON_LEFT) != 0)) * 10.0,
         (((HuPadBtn[0] & PAD_BUTTON_UP) != 0) - ((HuPadBtn[0] & PAD_BUTTON_DOWN) != 0)) * 10.0, ((HuPadTrigL[0] - HuPadTrigR[0]) / 128.0) * 30.0);
-    MTXConcat(spCC, sp8C, sp4C);
-    MTXConcat(spC, sp4C, sp10C);
-    for (temp_r30 = 0, temp_r29 = 1; temp_r30 < 16; temp_r30++, temp_r29 <<= 1) {
-        if (arg0 & temp_r29) {
-            temp_r31 = &Hu3DCamera[temp_r30];
-            MTXMultVec(sp10C, &temp_r31->pos, &temp_r31->pos);
-            MTXMultVec(sp4C, &temp_r31->up, &temp_r31->up);
-            MTXMultVec(sp10C, &temp_r31->target, &temp_r31->target);
+    MTXConcat(pitchMatrix, yawMatrix, rotationMatrix);
+    MTXConcat(translationMatrix, rotationMatrix, cameraTransform);
+    for (cameraIndex = 0, cameraMask = 1; cameraIndex < 16; cameraIndex++, cameraMask <<= 1) {
+        if (cameraSelectionMask & cameraMask) {
+            camera = &Hu3DCamera[cameraIndex];
+            MTXMultVec(cameraTransform, &camera->pos, &camera->pos);
+            MTXMultVec(rotationMatrix, &camera->up, &camera->up);
+            MTXMultVec(cameraTransform, &camera->target, &camera->target);
         }
     }
-    (void)temp_r28;
-    (void)temp_r27;
-    (void)temp_r26;
-    (void)temp_r25;
-    (void)temp_r28;
-    (void)temp_r27;
-    (void)temp_r26;
-    (void)temp_r25;
+    (void)unusedCameraRegister0;
+    (void)unusedCameraRegister1;
+    (void)unusedCameraRegister2;
+    (void)unusedCameraRegister3;
+    (void)unusedCameraRegister0;
+    (void)unusedCameraRegister1;
+    (void)unusedCameraRegister2;
+    (void)unusedCameraRegister3;
 }
 
-s32 fn_1_38C(u8 *arg0, s32 *arg1)
+s32 SelectRandomPlayerFromMask(u8 *playerMask, s32 *playerValues)
 {
-    s32 temp_r28;
-    s32 temp_r27 = rand8() % 4;
+    s32 selectionOffset;
+    s32 randomStart = rand8() % 4;
 
-    if (!arg0 || *arg0 == 0) {
+    if (!playerMask || *playerMask == 0) {
         return 0;
     }
-    for (temp_r28 = 0; temp_r28 < 4; temp_r28++) {
-        s32 temp_r31 = (temp_r28 + temp_r27) % 4;
-        if (*arg0 & (1 << temp_r31)) {
-            *arg0 = 1 << temp_r31;
-            if (arg1) {
-                arg1[(temp_r31 + 1) % 4] = arg1[(temp_r31 + 2) % 4] = arg1[(temp_r31 + 3) % 4] = 0;
+    for (selectionOffset = 0; selectionOffset < 4; selectionOffset++) {
+        s32 candidateIndex = (selectionOffset + randomStart) % 4;
+        if (*playerMask & (1 << candidateIndex)) {
+            *playerMask = 1 << candidateIndex;
+            if (playerValues) {
+                playerValues[(candidateIndex + 1) % 4] = playerValues[(candidateIndex + 2) % 4] = playerValues[(candidateIndex + 3) % 4] = 0;
             }
-            return temp_r31;
+            return candidateIndex;
         }
     }
     return 0;
 }
 
-s32 fn_1_4C0(u8 *arg0, s32 *arg1)
+s32 GetRandomSelectedPlayerValue(u8 *playerMask, s32 *playerValues)
 {
-    s32 temp_r31;
+    s32 selectionOffset;
 
-    s32 temp_r28 = rand8() % 4;
-    if (!arg0 || *arg0 == 0) {
+    s32 randomStart = rand8() % 4;
+    if (!playerMask || *playerMask == 0) {
         return 0;
     }
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        s32 temp_r29 = (temp_r31 + temp_r28) % 4;
-        if (*arg0 & (1 << temp_r29)) {
-            return arg1[temp_r29];
+    for (selectionOffset = 0; selectionOffset < 4; selectionOffset++) {
+        s32 candidateIndex = (selectionOffset + randomStart) % 4;
+        if (*playerMask & (1 << candidateIndex)) {
+            return playerValues[candidateIndex];
         }
     }
     return 0;
 }
 
-#pragma dont_inline on
-s32 fn_1_57C(s8 arg0, float arg1, StructBss2A6C *arg2, StructBss2A6C **arg3)
+#pragma dontInline on
+s32 LanePositionIsOccupied(s8 laneIndex, float rowPosition, BoardNode *ignoredNode, BoardNode **blockingNodeOut)
 {
-    StructBss2A6C *temp_r31;
-    if (arg3) {
-        *arg3 = NULL;
+    BoardNode *laneNode;
+    if (blockingNodeOut) {
+        *blockingNodeOut = NULL;
     }
-    if (arg0 < 0 || arg0 >= 12 || arg1 < 0 || arg1 > 16) {
+    if (laneIndex < 0 || laneIndex >= 12 || rowPosition < 0 || rowPosition > 16) {
         return 1;
     }
-    for (temp_r31 = lbl_1_bss_7884[arg0]; temp_r31;) {
-        if (arg2 == NULL || (temp_r31 != arg2 && (!(arg2->unk1 & 0x2) || !(temp_r31->unk1 & 0x2) || (arg2->unk2 != temp_r31->unk2)))) {
-            if (temp_r31->unk1C.y > arg1 - 1.0f && temp_r31->unk1C.y < arg1 + 1.0f) {
-                if (arg3) {
-                    *arg3 = temp_r31;
+    for (laneNode = laneHeads[laneIndex]; laneNode;) {
+        if (ignoredNode == NULL || (laneNode != ignoredNode && (!(ignoredNode->stateFlags & 0x2) || !(laneNode->stateFlags & 0x2) || (ignoredNode->ownerGroup != laneNode->ownerGroup)))) {
+            if (laneNode->position.y > rowPosition - 1.0f && laneNode->position.y < rowPosition + 1.0f) {
+                if (blockingNodeOut) {
+                    *blockingNodeOut = laneNode;
                 }
                 return 1;
             }
         }
-        temp_r31 = temp_r31->unk48;
-        if (!temp_r31) {
+        laneNode = laneNode->nextLaneNode;
+        if (!laneNode) {
             continue;
         }
-        if (temp_r31->unk1C.y >= arg1 + 1.0f) {
+        if (laneNode->position.y >= rowPosition + 1.0f) {
             break;
         }
     }
     return 0;
 }
-#pragma dont_inline off
+#pragma dontInline off
 
-static inline s32 fn_1_57C_inline(s8 arg0, float arg1, StructBss2A6C *arg2, StructBss2A6C **arg3)
+static inline s32 LanePositionIsOccupiedInline(s8 laneIndex, float rowPosition, BoardNode *ignoredNode, BoardNode **blockingNodeOut)
 {
-    StructBss2A6C *temp_r31;
-    if (arg3) {
-        *arg3 = NULL;
+    BoardNode *laneNode;
+    if (blockingNodeOut) {
+        *blockingNodeOut = NULL;
     }
-    if (arg0 < 0 || arg0 >= 12 || arg1 < 0 || arg1 > 16) {
+    if (laneIndex < 0 || laneIndex >= 12 || rowPosition < 0 || rowPosition > 16) {
         return 1;
     }
-    for (temp_r31 = lbl_1_bss_7884[arg0]; temp_r31;) {
-        if (arg2 == NULL || (temp_r31 != arg2 && (!(arg2->unk1 & 0x2) || !(temp_r31->unk1 & 0x2) || (arg2->unk2 != temp_r31->unk2)))) {
-            if (temp_r31->unk1C.y > arg1 - 1.0f && temp_r31->unk1C.y < arg1 + 1.0f) {
-                if (arg3) {
-                    *arg3 = temp_r31;
+    for (laneNode = laneHeads[laneIndex]; laneNode;) {
+        if (ignoredNode == NULL || (laneNode != ignoredNode && (!(ignoredNode->stateFlags & 0x2) || !(laneNode->stateFlags & 0x2) || (ignoredNode->ownerGroup != laneNode->ownerGroup)))) {
+            if (laneNode->position.y > rowPosition - 1.0f && laneNode->position.y < rowPosition + 1.0f) {
+                if (blockingNodeOut) {
+                    *blockingNodeOut = laneNode;
                 }
                 return 1;
             }
         }
-        temp_r31 = temp_r31->unk48;
-        if (!temp_r31) {
+        laneNode = laneNode->nextLaneNode;
+        if (!laneNode) {
             continue;
         }
-        if (temp_r31->unk1C.y >= arg1 + 1.0f) {
+        if (laneNode->position.y >= rowPosition + 1.0f) {
             break;
         }
     }
     return 0;
 }
 
-void fn_1_6D0(s8 arg0, float arg1, StructBss2A6C *arg2)
+void InsertBoardNodeInLane(s8 laneIndex, float rowPosition, BoardNode *node)
 {
-    StructBss2A6C *temp_r31;
-    StructBss2A6C *temp_r30;
-    if (arg2->unk4C == NULL) {
-        lbl_1_bss_7884[arg2->unk18] = arg2->unk48;
+    BoardNode *laneNode;
+    BoardNode *previousNode;
+    if (node->previousLaneNode == NULL) {
+        laneHeads[node->laneIndex] = node->nextLaneNode;
     }
     else {
-        arg2->unk4C->unk48 = arg2->unk48;
+        node->previousLaneNode->nextLaneNode = node->nextLaneNode;
     }
-    if (arg2->unk48 != NULL) {
-        arg2->unk48->unk4C = arg2->unk4C;
+    if (node->nextLaneNode != NULL) {
+        node->nextLaneNode->previousLaneNode = node->previousLaneNode;
     }
-    for (temp_r31 = lbl_1_bss_7884[arg0], temp_r30 = NULL; temp_r31; temp_r31 = temp_r31->unk48) {
-        if (temp_r31->unk1C.y > arg1) {
+    for (laneNode = laneHeads[laneIndex], previousNode = NULL; laneNode; laneNode = laneNode->nextLaneNode) {
+        if (laneNode->position.y > rowPosition) {
             break;
         }
-        temp_r30 = temp_r31;
+        previousNode = laneNode;
     }
-    arg2->unk18 = arg0;
-    arg2->unk1C.y = arg1;
-    arg2->unk48 = temp_r31;
-    if (arg2->unk48) {
-        arg2->unk48->unk4C = arg2;
+    node->laneIndex = laneIndex;
+    node->position.y = rowPosition;
+    node->nextLaneNode = laneNode;
+    if (node->nextLaneNode) {
+        node->nextLaneNode->previousLaneNode = node;
     }
-    arg2->unk4C = temp_r30;
-    if (arg2->unk4C) {
-        arg2->unk4C->unk48 = arg2;
+    node->previousLaneNode = previousNode;
+    if (node->previousLaneNode) {
+        node->previousLaneNode->nextLaneNode = node;
     }
-    if (lbl_1_bss_7884[arg0] == arg2->unk48) {
-        lbl_1_bss_7884[arg0] = arg2;
+    if (laneHeads[laneIndex] == node->nextLaneNode) {
+        laneHeads[laneIndex] = node;
     }
 }
 
-s32 fn_1_7F8(StructBss2A6C *arg0, StructSp14C8 *arg1)
+s32 RemoveBoardNodeAndScore(BoardNode *node, BoardEvent *event)
 {
-    s32 temp_r29;
-    Work19C8 *temp_r28;
-    Work19C8 *temp_r27;
-    Work19C8 *temp_r26;
-    Work19C8 *temp_r25;
-    s32 temp_r23;
-    temp_r29 = 0;
-    if (!arg0) {
-        return temp_r29;
+    s32 scoreValue;
+    PlayerWork *firstPlayerWork;
+    PlayerWork *secondPlayerWork;
+    PlayerWork *thirdPlayerWork;
+    PlayerWork *fourthPlayerWork;
+    s32 particleIndex;
+    scoreValue = 0;
+    if (!node) {
+        return scoreValue;
     }
-    if (arg0->unk0 == 0) {
-        return temp_r29;
+    if (node->objectKind == 0) {
+        return scoreValue;
     }
-    if (lbl_1_bss_7884[arg0->unk18] == arg0) {
-        lbl_1_bss_7884[arg0->unk18] = arg0->unk48;
+    if (laneHeads[node->laneIndex] == node) {
+        laneHeads[node->laneIndex] = node->nextLaneNode;
     }
-    if (arg0->unk4C) {
-        arg0->unk4C->unk48 = arg0->unk48;
+    if (node->previousLaneNode) {
+        node->previousLaneNode->nextLaneNode = node->nextLaneNode;
     }
-    if (arg0->unk48) {
-        arg0->unk48->unk4C = arg0->unk4C;
+    if (node->nextLaneNode) {
+        node->nextLaneNode->previousLaneNode = node->previousLaneNode;
     }
-    if (arg0->unk38) {
-        arg0->unk38->unk3C = NULL;
+    if (node->pairedNodeLeft) {
+        node->pairedNodeLeft->pairedNodeRight = NULL;
     }
-    if (arg0->unk3C) {
-        arg0->unk3C->unk38 = NULL;
+    if (node->pairedNodeRight) {
+        node->pairedNodeRight->pairedNodeLeft = NULL;
     }
-    if (arg0->unk44) {
-        arg0->unk44->unk40 = NULL;
+    if (node->pairedNodeUpper) {
+        node->pairedNodeUpper->pairedNodeLower = NULL;
     }
-    if (arg0->unk40) {
-        arg0->unk40->unk44 = NULL;
+    if (node->pairedNodeLower) {
+        node->pairedNodeLower->pairedNodeUpper = NULL;
     }
 
-    if (arg0->unk0 >= 1 && arg0->unk0 <= 4) {
-        temp_r28 = lbl_1_bss_34[0]->data;
-        temp_r27 = lbl_1_bss_34[1]->data;
-        temp_r26 = lbl_1_bss_34[2]->data;
-        temp_r25 = lbl_1_bss_34[3]->data;
-        temp_r29 = (fn_1_4C0(&arg1->unk2, arg1->unk4) > 0) ? 2 : 1;
-        if (lbl_1_bss_18 == -1) {
-            if (arg1->unk2 & 0x1) {
-                temp_r28->unk24 += temp_r29;
-                temp_r28->unk68 += (arg0->unk1 & 0x10) ? 1 : 0;
+    if (node->objectKind >= 1 && node->objectKind <= 4) {
+        firstPlayerWork = playerObjects[0]->data;
+        secondPlayerWork = playerObjects[1]->data;
+        thirdPlayerWork = playerObjects[2]->data;
+        fourthPlayerWork = playerObjects[3]->data;
+        scoreValue = (GetRandomSelectedPlayerValue(&event->playerMask, event->playerValues) > 0) ? 2 : 1;
+        if (winningPlayer == -1) {
+            if (event->playerMask & 0x1) {
+                firstPlayerWork->targetScore += scoreValue;
+                firstPlayerWork->turnScore += (node->stateFlags & 0x10) ? 1 : 0;
             }
-            if (arg1->unk2 & 0x2) {
-                temp_r27->unk24 += temp_r29;
-                temp_r27->unk68 += (arg0->unk1 & 0x10) ? 1 : 0;
+            if (event->playerMask & 0x2) {
+                secondPlayerWork->targetScore += scoreValue;
+                secondPlayerWork->turnScore += (node->stateFlags & 0x10) ? 1 : 0;
             }
-            if (arg1->unk2 & 0x4) {
-                temp_r26->unk24 += temp_r29;
-                temp_r26->unk68 += (arg0->unk1 & 0x10) ? 1 : 0;
+            if (event->playerMask & 0x4) {
+                thirdPlayerWork->targetScore += scoreValue;
+                thirdPlayerWork->turnScore += (node->stateFlags & 0x10) ? 1 : 0;
             }
-            if (arg1->unk2 & 0x8) {
-                temp_r25->unk24 += temp_r29;
-                temp_r25->unk68 += (arg0->unk1 & 0x10) ? 1 : 0;
+            if (event->playerMask & 0x8) {
+                fourthPlayerWork->targetScore += scoreValue;
+                fourthPlayerWork->turnScore += (node->stateFlags & 0x10) ? 1 : 0;
             }
         }
-        for (temp_r23 = 0; temp_r23 < 2; temp_r23++) {
-            lbl_1_bss_100[lbl_1_bss_FC].unk0 = arg0->unk0;
-            lbl_1_bss_100[lbl_1_bss_FC].unk4.x = ((arg0->unk18 * 100) - 500.0) - 50.0;
-            lbl_1_bss_100[lbl_1_bss_FC].unk4.y = ((100.0f * arg0->unk1C.y) - 500.0f) + 50.0f;
-            lbl_1_bss_100[lbl_1_bss_FC].unk4.z = 120;
-            lbl_1_bss_100[lbl_1_bss_FC].unk10.x = ((rand8() / 255.0) * 24.0) - 12;
-            lbl_1_bss_100[lbl_1_bss_FC].unk10.y = (rand8() / 255.0) * 16.0;
-            lbl_1_bss_100[lbl_1_bss_FC].unk10.z = ((rand8() / 255.0) * 10.0) + 6;
-            lbl_1_bss_100[lbl_1_bss_FC].unk1C = rand8();
-            lbl_1_bss_100[lbl_1_bss_FC].unk1D = rand8();
-            lbl_1_bss_FC++;
-            lbl_1_bss_FC = (lbl_1_bss_FC >= 300) ? 0 : lbl_1_bss_FC;
+        for (particleIndex = 0; particleIndex < 2; particleIndex++) {
+            fallingPiecePool[fallingPieceHead].pieceType = node->objectKind;
+            fallingPiecePool[fallingPieceHead].position.x = ((node->laneIndex * 100) - 500.0) - 50.0;
+            fallingPiecePool[fallingPieceHead].position.y = ((100.0f * node->position.y) - 500.0f) + 50.0f;
+            fallingPiecePool[fallingPieceHead].position.z = 120;
+            fallingPiecePool[fallingPieceHead].velocity.x = ((rand8() / 255.0) * 24.0) - 12;
+            fallingPiecePool[fallingPieceHead].velocity.y = (rand8() / 255.0) * 16.0;
+            fallingPiecePool[fallingPieceHead].velocity.z = ((rand8() / 255.0) * 10.0) + 6;
+            fallingPiecePool[fallingPieceHead].rotationPhase = rand8();
+            fallingPiecePool[fallingPieceHead].spinPhase = rand8();
+            fallingPieceHead++;
+            fallingPieceHead = (fallingPieceHead >= 300) ? 0 : fallingPieceHead;
         }
     }
-    arg0->unk0 = arg0->unk1 = arg0->unk2 = arg0->unk3 = 0;
-    arg0->unk48 = arg0->unk4C = NULL;
-    return temp_r29;
+    node->objectKind = node->stateFlags = node->ownerGroup = node->playerMask = 0;
+    node->nextLaneNode = node->previousLaneNode = NULL;
+    return scoreValue;
 }
 
-void fn_1_EC0(Work19C8 *arg0)
+void ShufflePlayerCardLayout(PlayerWork *playerWork)
 {
-    s32 temp_r30;
-    s32 temp_r29;
-    s32 temp_r28;
-    s32 temp_r26;
-    s32 temp_r27;
-    s32 temp_r25;
-    u8 temp_r24;
+    s32 groupIndex;
+    s32 assignmentCount;
+    s32 randomColumn;
+    s32 randomSlot;
+    s32 swapSlot;
+    s32 firstGroup;
+    u8 secondGroup;
 
-    for (temp_r30 = 0; temp_r30 < 8; temp_r30++) {
-        for (temp_r29 = 0; temp_r29 < 2; temp_r29++) {
-            arg0->unk50[temp_r30][temp_r29] = 1;
+    for (groupIndex = 0; groupIndex < 8; groupIndex++) {
+        for (assignmentCount = 0; assignmentCount < 2; assignmentCount++) {
+            playerWork->cardLayout[groupIndex][assignmentCount] = 1;
         }
     }
-    for (temp_r30 = 1; temp_r30 < 4; temp_r30++) {
-        for (temp_r29 = 0; temp_r29 < 4;) {
-            temp_r26 = rand8() % 8;
-            temp_r28 = rand8() % 2;
-            if (arg0->unk50[temp_r26][temp_r28] == 1) {
-                arg0->unk50[temp_r26][temp_r28] = temp_r30 + 1;
-                temp_r29++;
+    for (groupIndex = 1; groupIndex < 4; groupIndex++) {
+        for (assignmentCount = 0; assignmentCount < 4;) {
+            randomSlot = rand8() % 8;
+            randomColumn = rand8() % 2;
+            if (playerWork->cardLayout[randomSlot][randomColumn] == 1) {
+                playerWork->cardLayout[randomSlot][randomColumn] = groupIndex + 1;
+                assignmentCount++;
             }
         }
     }
-    for (temp_r30 = 0; temp_r30 < 8; temp_r30++) {
-        if (arg0->unk50[temp_r30][0] == arg0->unk50[temp_r30][1]) {
+    for (groupIndex = 0; groupIndex < 8; groupIndex++) {
+        if (playerWork->cardLayout[groupIndex][0] == playerWork->cardLayout[groupIndex][1]) {
             do {
-                temp_r29 = rand8() % 8;
+                assignmentCount = rand8() % 8;
             } while (
-                temp_r30 == temp_r29 || arg0->unk50[temp_r30][0] == arg0->unk50[temp_r29][0] || arg0->unk50[temp_r30][0] == arg0->unk50[temp_r29][1]);
+                groupIndex == assignmentCount || playerWork->cardLayout[groupIndex][0] == playerWork->cardLayout[assignmentCount][0] || playerWork->cardLayout[groupIndex][0] == playerWork->cardLayout[assignmentCount][1]);
 
-            temp_r27 = rand8() % 2;
-            temp_r25 = arg0->unk50[temp_r30][0];
-            temp_r24 = arg0->unk50[temp_r29][temp_r27];
-            arg0->unk50[temp_r30][rand8() % 2] = temp_r24;
-            arg0->unk50[temp_r29][temp_r27] = temp_r25;
+            swapSlot = rand8() % 2;
+            firstGroup = playerWork->cardLayout[groupIndex][0];
+            secondGroup = playerWork->cardLayout[assignmentCount][swapSlot];
+            playerWork->cardLayout[groupIndex][rand8() % 2] = secondGroup;
+            playerWork->cardLayout[assignmentCount][swapSlot] = firstGroup;
         }
     }
 }
 
-void fn_1_10B8(Work19C8 *arg0)
+void ChooseCpuMove(PlayerWork *playerWork)
 {
-    s32 temp_r31;
-    s32 temp_r30;
-    u8 sp16C[12][17] = {0};
+    s32 laneIndex;
+    s32 candidateDirection;
+    u8 laneCellTypes[12][17] = {0};
 #ifdef NON_MATCHING
-    u8 sp6C[13] = {0};
+    u8 occupiedCellsPerLane[13] = {0};
 #else
-    u8 sp6C[12] = {0};
+    u8 occupiedCellsPerLane[12] = {0};
 #endif
-    s32 temp_r22 = (arg0->unk48[0]->unk18 - 4 < 0) ? 0 : (arg0->unk48[0]->unk18 - 4);
-    s32 temp_r21 = (arg0->unk48[0]->unk18 + 4 > 11) ? 11 : (arg0->unk48[0]->unk18 + 4);
-    s32 sp44[2] = {};
-    s32 sp3C[2] = {};
-    s32 sp34[2] = { 9, 9 };
-    s32 temp_r20 = 0;
-    s32 temp_r19 = 0;
-    s32 temp_r18 = 0;
-    u8 sp8[2];
-    sp44[0] = sp44[1] = temp_r22;
-    sp3C[0] = sp3C[1] = temp_r21;
-    sp34[0] = arg0->unk48[0]->unk1C.y - 0.5;
-    sp34[1] = arg0->unk48[0]->unk1C.y - 1.5;
-    sp34[1] = (sp34[1] < 0) ? 0 : sp34[1];
-    sp8[0] = arg0->unk48[0]->unk0;
-    sp8[1] = arg0->unk48[1]->unk0;
-    for (temp_r31 = temp_r22; temp_r31 <= temp_r21; temp_r31++) {
-        StructBss2A6C *temp_r27;
-        s32 temp_r26;
-        for (temp_r27 = lbl_1_bss_7884[temp_r31], temp_r26 = 0; temp_r27; temp_r27 = temp_r27->unk48) {
-            if (temp_r27->unk1 & 0x2) {
+    s32 minimumLane = (playerWork->boardNodes[0]->laneIndex - 4 < 0) ? 0 : (playerWork->boardNodes[0]->laneIndex - 4);
+    s32 maximumLane = (playerWork->boardNodes[0]->laneIndex + 4 > 11) ? 11 : (playerWork->boardNodes[0]->laneIndex + 4);
+    s32 candidateStartLanes[2] = {};
+    s32 candidateEndLanes[2] = {};
+    s32 maximumStackHeights[2] = { 9, 9 };
+    s32 bestCandidateScore = 0;
+    s32 bestCandidateLane = 0;
+    s32 bestCandidateDirection = 0;
+    u8 playerPieceTypes[2];
+    candidateStartLanes[0] = candidateStartLanes[1] = minimumLane;
+    candidateEndLanes[0] = candidateEndLanes[1] = maximumLane;
+    maximumStackHeights[0] = playerWork->boardNodes[0]->position.y - 0.5;
+    maximumStackHeights[1] = playerWork->boardNodes[0]->position.y - 1.5;
+    maximumStackHeights[1] = (maximumStackHeights[1] < 0) ? 0 : maximumStackHeights[1];
+    playerPieceTypes[0] = playerWork->boardNodes[0]->objectKind;
+    playerPieceTypes[1] = playerWork->boardNodes[1]->objectKind;
+    for (laneIndex = minimumLane; laneIndex <= maximumLane; laneIndex++) {
+        BoardNode *existingNode;
+        s32 occupiedCellCount;
+        for (existingNode = laneHeads[laneIndex], occupiedCellCount = 0; existingNode; existingNode = existingNode->nextLaneNode) {
+            if (existingNode->stateFlags & 0x2) {
                 continue;
             }
-            sp16C[temp_r31][temp_r26] = temp_r27->unk0;
-            temp_r26++;
+            laneCellTypes[laneIndex][occupiedCellCount] = existingNode->objectKind;
+            occupiedCellCount++;
         }
-        sp6C[temp_r31] = temp_r26;
-        for (temp_r30 = 0; temp_r30 < 2; temp_r30++) {
-            if (temp_r26 > sp34[temp_r30]) {
-                if (temp_r31 <= arg0->unk48[0]->unk18) {
-                    sp44[temp_r30] = temp_r31 + 1;
+        occupiedCellsPerLane[laneIndex] = occupiedCellCount;
+        for (candidateDirection = 0; candidateDirection < 2; candidateDirection++) {
+            if (occupiedCellCount > maximumStackHeights[candidateDirection]) {
+                if (laneIndex <= playerWork->boardNodes[0]->laneIndex) {
+                    candidateStartLanes[candidateDirection] = laneIndex + 1;
                 }
                 else {
-                    sp3C[temp_r30] = temp_r31 - 1;
+                    candidateEndLanes[candidateDirection] = laneIndex - 1;
                 }
             }
         }
     }
-    for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-        for (temp_r31 = sp44[temp_r30 == 2]; temp_r31 <= sp3C[temp_r30 == 2]; temp_r31++) {
-            if (temp_r31 != sp44[temp_r30 == 2] || temp_r30 != 3) {
-                if (temp_r31 != sp3C[temp_r30 == 2] - 1 || temp_r30 != 1) {
-                    s32 temp_r25;
-                    s32 spAC[4][12];
-                    for (temp_r25 = 0; temp_r25 < 2; temp_r25++) {
-                        s32 sp5C[4] = { 0, 1, 0, -1 };
-                        s32 sp4C[4] = { 1, 0, -1, 0 };
-                        s32 temp_r29;
-                        s32 temp_r28;
-                        s32 temp_r24;
-                        s32 temp_r23;
+    for (candidateDirection = 0; candidateDirection < 4; candidateDirection++) {
+        for (laneIndex = candidateStartLanes[candidateDirection == 2]; laneIndex <= candidateEndLanes[candidateDirection == 2]; laneIndex++) {
+            if (laneIndex != candidateStartLanes[candidateDirection == 2] || candidateDirection != 3) {
+                if (laneIndex != candidateEndLanes[candidateDirection == 2] - 1 || candidateDirection != 1) {
+                    s32 neighborSet;
+                    s32 candidateScores[4][12];
+                    for (neighborSet = 0; neighborSet < 2; neighborSet++) {
+                        s32 rowOffsets[4] = { 0, 1, 0, -1 };
+                        s32 laneOffsets[4] = { 1, 0, -1, 0 };
+                        s32 neighborRow;
+                        s32 neighborColumn;
+                        s32 neighborCenterRow;
+                        s32 neighborCenterColumn;
 
-                        spAC[temp_r30][temp_r31] = arg0->unk48[0]->unk18 - temp_r31;
-                        spAC[temp_r30][temp_r31] = (spAC[temp_r30][temp_r31] < 0) ? (-spAC[temp_r30][temp_r31]) : spAC[temp_r30][temp_r31];
-                        spAC[temp_r30][temp_r31]
-                            = (spAC[temp_r30][temp_r31] < 3) ? ((3 - spAC[temp_r30][temp_r31]) * (3 - spAC[temp_r30][temp_r31])) : 0;
-                        spAC[temp_r30][temp_r31] *= (arg0->unk20 == 0) ? 4 : ((arg0->unk20 == 1) ? 2 : 1);
-                        temp_r24 = temp_r31 + ((temp_r25 == 1) ? sp5C[temp_r30] : 0);
-                        for (temp_r28 = temp_r24 - 2; temp_r28 <= temp_r24 + 2; temp_r28++) {
-                            temp_r23 = sp6C[temp_r24] + ((temp_r25 == 1) ? sp4C[temp_r30] : 0);
-                            for (temp_r29 = temp_r23 - 2; temp_r29 <= temp_r23 + 2; temp_r29++) {
-                                if (temp_r28 < 0 || temp_r28 >= 12 || temp_r29 < 0 || temp_r29 >= 9) {
+                        candidateScores[candidateDirection][laneIndex] = playerWork->boardNodes[0]->laneIndex - laneIndex;
+                        candidateScores[candidateDirection][laneIndex] = (candidateScores[candidateDirection][laneIndex] < 0) ? (-candidateScores[candidateDirection][laneIndex]) : candidateScores[candidateDirection][laneIndex];
+                        candidateScores[candidateDirection][laneIndex]
+                            = (candidateScores[candidateDirection][laneIndex] < 3) ? ((3 - candidateScores[candidateDirection][laneIndex]) * (3 - candidateScores[candidateDirection][laneIndex])) : 0;
+                        candidateScores[candidateDirection][laneIndex] *= (playerWork->cpuDifficulty == 0) ? 4 : ((playerWork->cpuDifficulty == 1) ? 2 : 1);
+                        neighborCenterRow = laneIndex + ((neighborSet == 1) ? rowOffsets[candidateDirection] : 0);
+                        for (neighborColumn = neighborCenterRow - 2; neighborColumn <= neighborCenterRow + 2; neighborColumn++) {
+                            neighborCenterColumn = occupiedCellsPerLane[neighborCenterRow] + ((neighborSet == 1) ? laneOffsets[candidateDirection] : 0);
+                            for (neighborRow = neighborCenterColumn - 2; neighborRow <= neighborCenterColumn + 2; neighborRow++) {
+                                if (neighborColumn < 0 || neighborColumn >= 12 || neighborRow < 0 || neighborRow >= 9) {
                                     continue;
                                 }
-                                if (sp16C[temp_r28][temp_r29] != 5 && arg0->unk48[temp_r25]->unk0 == sp16C[temp_r28][temp_r29]) {
-                                    u8 sp91[5][5] = { 0, 3, 0, 3, 0, 2, 10, 24, 10, 2, 10, 24, 0, 24, 10, 2, 10, 24, 10, 2, 0, 2, 10, 2, 0 };
-                                    spAC[temp_r30][temp_r31] += sp91[temp_r28 - (temp_r24 - 2)][temp_r29 - (temp_r23 - 2)];
+                                if (laneCellTypes[neighborColumn][neighborRow] != 5 && playerWork->boardNodes[neighborSet]->objectKind == laneCellTypes[neighborColumn][neighborRow]) {
+                                    u8 matchingPieceWeights[5][5] = { 0, 3, 0, 3, 0, 2, 10, 24, 10, 2, 10, 24, 0, 24, 10, 2, 10, 24, 10, 2, 0, 2, 10, 2, 0 };
+                                    candidateScores[candidateDirection][laneIndex] += matchingPieceWeights[neighborColumn - (neighborCenterRow - 2)][neighborRow - (neighborCenterColumn - 2)];
                                 }
-                                if (sp16C[temp_r28][temp_r29] == 5) {
-                                    u8 sp78[5][5] = { 0, 0, 0, 0, 0, 0, 40, 40, 40, 0, 0, 40, 0, 40, 0, 0, 40, 40, 40, 0, 0, 0, 0, 0, 0 };
-                                    spAC[temp_r30][temp_r31]
-                                        += sp78[temp_r28 - (temp_r24 - 2)][temp_r29 - (temp_r23 - 2)] / ((arg0->unk20 == 0) ? 4 : 1);
+                                if (laneCellTypes[neighborColumn][neighborRow] == 5) {
+                                    u8 hazardWeights[5][5] = { 0, 0, 0, 0, 0, 0, 40, 40, 40, 0, 0, 40, 0, 40, 0, 0, 40, 40, 40, 0, 0, 0, 0, 0, 0 };
+                                    candidateScores[candidateDirection][laneIndex]
+                                        += hazardWeights[neighborColumn - (neighborCenterRow - 2)][neighborRow - (neighborCenterColumn - 2)] / ((playerWork->cpuDifficulty == 0) ? 4 : 1);
                                 }
                             }
                         }
                     }
-                    if (spAC[temp_r30][temp_r31] > temp_r20) {
-                        temp_r20 = spAC[temp_r30][temp_r31];
-                        temp_r18 = temp_r30;
-                        temp_r19 = temp_r31;
+                    if (candidateScores[candidateDirection][laneIndex] > bestCandidateScore) {
+                        bestCandidateScore = candidateScores[candidateDirection][laneIndex];
+                        bestCandidateDirection = candidateDirection;
+                        bestCandidateLane = laneIndex;
                     }
                 }
             }
         }
     }
-    arg0->unk7C = temp_r19;
-    arg0->unk80 = temp_r18;
+    playerWork->targetLane = bestCandidateLane;
+    playerWork->targetDirection = bestCandidateDirection;
 }
 
-void fn_1_19C4(OMOBJ *object) { }
+void EmptyPlayerObjectCallback(OMOBJ *object) { }
 
-void fn_1_19C8(OMOBJ *object)
+void UpdatePlayerObject(OMOBJ *object)
 {
-    Work19C8 *temp_r31;
-    s32 sp19C;
-    s32 spC4;
-    s32 spC0;
+    PlayerWork *playerState;
+    s32 inputDirection;
+    s32 unusedInputState;
+    s32 unusedRepeatState;
 
-    temp_r31 = object->data;
-    temp_r31->unk28 = temp_r31->unk24;
+    playerState = object->data;
+    playerState->previousScore = playerState->targetScore;
 
-    temp_r31->unk65[0] = (temp_r31->unk65[0] == 0 || temp_r31->unk65[0] >= 15) ? 0 : temp_r31->unk65[0] + 1;
-    if (temp_r31->unk1C != -1) {
-        sp19C = (HuPadStkX[temp_r31->unk1C] > 26) - (HuPadStkX[temp_r31->unk1C] < -26);
+    playerState->cardAnimationFrames[0] = (playerState->cardAnimationFrames[0] == 0 || playerState->cardAnimationFrames[0] >= 15) ? 0 : playerState->cardAnimationFrames[0] + 1;
+    if (playerState->controllerIndex != -1) {
+        inputDirection = (HuPadStkX[playerState->controllerIndex] > 26) - (HuPadStkX[playerState->controllerIndex] < -26);
     }
     else {
-        sp19C = (temp_r31->unk72 == 1 && temp_r31->unk7C != -1) ? ((temp_r31->unk48[0]) ? ((temp_r31->unk7C < temp_r31->unk48[0]->unk18) ? -1
-                                                                           : (temp_r31->unk7C > temp_r31->unk48[0]->unk18)               ? 1
+        inputDirection = (playerState->playerState == 1 && playerState->targetLane != -1) ? ((playerState->boardNodes[0]) ? ((playerState->targetLane < playerState->boardNodes[0]->laneIndex) ? -1
+                                                                           : (playerState->targetLane > playerState->boardNodes[0]->laneIndex)               ? 1
                                                                                                                                          : 0)
                                                                                         : 0)
                                                                 : 0;
     }
-    temp_r31->unk88 = ((temp_r31->unk72 == 1 && temp_r31->unk48[0]) && temp_r31->unk7C == temp_r31->unk48[0]->unk18) ? (temp_r31->unk88 + 1) : 0;
-    if (sp19C != temp_r31->unk0) {
-        temp_r31->unkC = (sp19C == 0) ? 0 : 1;
+    playerState->targetLaneHoldFrames = ((playerState->playerState == 1 && playerState->boardNodes[0]) && playerState->targetLane == playerState->boardNodes[0]->laneIndex) ? (playerState->targetLaneHoldFrames + 1) : 0;
+    if (inputDirection != playerState->cursorDirection) {
+        playerState->buttonRepeatFrames = (inputDirection == 0) ? 0 : 1;
     }
     else {
-        temp_r31->unkC = (temp_r31->unk0 != 0) ? temp_r31->unkC + 1 : 0;
+        playerState->buttonRepeatFrames = (playerState->cursorDirection != 0) ? playerState->buttonRepeatFrames + 1 : 0;
     }
-    temp_r31->unkC = (temp_r31->unkC >= 17) ? 14 : temp_r31->unkC;
-    temp_r31->unk0 = sp19C;
-    if (temp_r31->unk72 == 2) {
-        float temp_f30;
-        float temp_f24;
-        s32 temp_r25;
-        s32 temp_r23;
-        s32 temp_r22;
-        StructBss2A6C *sp198;
+    playerState->buttonRepeatFrames = (playerState->buttonRepeatFrames >= 17) ? 14 : playerState->buttonRepeatFrames;
+    playerState->cursorDirection = inputDirection;
+    if (playerState->playerState == 2) {
+        float transitionProgress;
+        float remainingProgress;
+        s32 candidateNodeIndex;
+        s32 laneSearchIndex;
+        s32 candidateLane;
+        BoardNode *lastNodeInLane;
 
-        for (temp_r23 = 0; temp_r23 < 3; temp_r23++) {
-            s32 sp24C[3] = { 1, 2, 0 };
-            temp_r22 = (temp_r31->unk10 * 3) + ((temp_r31->unk10 < 2) ? sp24C[temp_r23] : (2 - sp24C[temp_r23]));
-            if (fn_1_57C_inline(temp_r22, 9.5f, NULL, NULL) == 0) {
-                if (fn_1_57C_inline(temp_r22, 8.5f, NULL, NULL) == 0) {
+        for (laneSearchIndex = 0; laneSearchIndex < 3; laneSearchIndex++) {
+            s32 laneSearchOrder[3] = { 1, 2, 0 };
+            candidateLane = (playerState->playerSlot * 3) + ((playerState->playerSlot < 2) ? laneSearchOrder[laneSearchIndex] : (2 - laneSearchOrder[laneSearchIndex]));
+            if (LanePositionIsOccupiedInline(candidateLane, 9.5f, NULL, NULL) == 0) {
+                if (LanePositionIsOccupiedInline(candidateLane, 8.5f, NULL, NULL) == 0) {
                     break;
                 }
             }
         }
-        temp_r22 = (temp_r23 == 3) ? ((temp_r31->unk10 * 3) + 1) : temp_r22;
-        temp_f30 = (temp_r22 * 100) - 490;
-        temp_r31->unkA0 = (temp_r31->unk74 == 0)
-            ? temp_f30
-            : ((temp_r31->unkA0 - 10 > temp_f30)
-                    ? (temp_r31->unkA0 - 10)
-                    : (((temp_r31->unkA0 > temp_f30)
-                            ? temp_f30
-                            : ((temp_r31->unkA0 + 10 < temp_f30) ? (temp_r31->unkA0 + 10)
-                                                                 : ((temp_r31->unkA0 < temp_f30) ? temp_f30 : temp_r31->unkA0)))));
-        temp_r31->unk74++;
-        temp_f30 = temp_r31->unk74 / 24.0f;
-        temp_f30 = (temp_f30 > 1.0f) ? 1.0f : temp_f30;
-        temp_f30 = (0.5 * sind((temp_f30 * 180.0f) + 270.0f)) + 0.5;
-        temp_f24 = 1.0f - temp_f30;
-        if (lbl_1_bss_18 == -1) {
-            Vec sp240;
-            Vec sp234;
-            sp240.x = (temp_r31->unkA0 * temp_f30) + (temp_r31->unk98 * temp_f24);
-            sp240.y = (425.0f * temp_f30) + (temp_r31->unk9C * temp_f24);
-            sp240.z = 55;
-            Hu3D3Dto2D(&sp240, 1, &sp234);
-            HuSprPosSet(temp_r31->unkA4, 0, sp234.x, sp234.y);
+        candidateLane = (laneSearchIndex == 3) ? ((playerState->playerSlot * 3) + 1) : candidateLane;
+        transitionProgress = (candidateLane * 100) - 490;
+        playerState->cameraZ = (playerState->selectionTimer == 0)
+            ? transitionProgress
+            : ((playerState->cameraZ - 10 > transitionProgress)
+                    ? (playerState->cameraZ - 10)
+                    : (((playerState->cameraZ > transitionProgress)
+                            ? transitionProgress
+                            : ((playerState->cameraZ + 10 < transitionProgress) ? (playerState->cameraZ + 10)
+                                                                 : ((playerState->cameraZ < transitionProgress) ? transitionProgress : playerState->cameraZ)))));
+        playerState->selectionTimer++;
+        transitionProgress = playerState->selectionTimer / 24.0f;
+        transitionProgress = (transitionProgress > 1.0f) ? 1.0f : transitionProgress;
+        transitionProgress = (0.5 * sind((transitionProgress * 180.0f) + 270.0f)) + 0.5;
+        remainingProgress = 1.0f - transitionProgress;
+        if (winningPlayer == -1) {
+            Vec cameraWorldPosition;
+            Vec cameraScreenPosition;
+            cameraWorldPosition.x = (playerState->cameraZ * transitionProgress) + (playerState->cameraX * remainingProgress);
+            cameraWorldPosition.y = (425.0f * transitionProgress) + (playerState->cameraY * remainingProgress);
+            cameraWorldPosition.z = 55;
+            Hu3D3Dto2D(&cameraWorldPosition, 1, &cameraScreenPosition);
+            HuSprPosSet(playerState->playerSpriteGroup, 0, cameraScreenPosition.x, cameraScreenPosition.y);
         }
-        if (lbl_1_bss_44->work[0] == 1002 && temp_r31->unk74 >= 24) {
-            for (temp_r23 = 0; temp_r23 < 3; temp_r23++) {
-                s32 sp228[3] = { 1, 2, 0 };
-                temp_r22 = (temp_r31->unk10 * 3) + ((temp_r31->unk10 < 2) ? sp228[temp_r23] : (2 - sp228[temp_r23]));
-                if (fn_1_57C_inline(temp_r22, 9.5f, NULL, NULL) == 0) {
-                    if (fn_1_57C_inline(temp_r22, 8.5f, NULL, NULL) == 0) {
+        if (mainSequenceObject->work[0] == 1002 && playerState->selectionTimer >= 24) {
+            for (laneSearchIndex = 0; laneSearchIndex < 3; laneSearchIndex++) {
+                s32 laneSearchOrder[3] = { 1, 2, 0 };
+                candidateLane = (playerState->playerSlot * 3) + ((playerState->playerSlot < 2) ? laneSearchOrder[laneSearchIndex] : (2 - laneSearchOrder[laneSearchIndex]));
+                if (LanePositionIsOccupiedInline(candidateLane, 9.5f, NULL, NULL) == 0) {
+                    if (LanePositionIsOccupiedInline(candidateLane, 8.5f, NULL, NULL) == 0) {
                         break;
                     }
                 }
             }
-            if (temp_r23 != 3) {
-                for (sp198 = lbl_1_bss_7884[temp_r22]; sp198 && sp198->unk48; sp198 = sp198->unk48)
+            if (laneSearchIndex != 3) {
+                for (lastNodeInLane = laneHeads[candidateLane]; lastNodeInLane && lastNodeInLane->nextLaneNode; lastNodeInLane = lastNodeInLane->nextLaneNode)
                     ;
-                for (temp_r23 = 0; temp_r23 < 2; temp_r23++) {
-                    temp_r25 = (lbl_1_bss_0 + 1) % 238;
-                    while (temp_r25 != lbl_1_bss_0) {
-                        if (lbl_1_bss_2A6C[temp_r25].unk0 == 0) {
+                for (laneSearchIndex = 0; laneSearchIndex < 2; laneSearchIndex++) {
+                    candidateNodeIndex = (unusedState + 1) % 238;
+                    while (candidateNodeIndex != unusedState) {
+                        if (boardNodePool[candidateNodeIndex].objectKind == 0) {
                             break;
                         }
-                        temp_r25++;
-                        temp_r25 = temp_r25 % 238;
-                        if (temp_r25 == 0) {
+                        candidateNodeIndex++;
+                        candidateNodeIndex = candidateNodeIndex % 238;
+                        if (candidateNodeIndex == 0) {
                             OSReport("looped.\n");
                         }
                     }
-                    if (temp_r25 == lbl_1_bss_0) {
+                    if (candidateNodeIndex == unusedState) {
                         OSReport("m413:error:block empty.\n");
                     }
-                    lbl_1_bss_0 = temp_r25;
-                    temp_r31->unk48[temp_r23] = &lbl_1_bss_2A6C[temp_r25];
-                    lbl_1_bss_2A6C[temp_r25].unk0 = temp_r31->unk50[temp_r31->unk60][temp_r23];
-                    lbl_1_bss_2A6C[temp_r25].unk1 = 2;
-                    lbl_1_bss_2A6C[temp_r25].unk3 = 1 << temp_r31->unk10;
-                    lbl_1_bss_2A6C[temp_r25].unk2 = temp_r31->unk10;
-                    lbl_1_bss_2A6C[temp_r25].unk18 = temp_r22;
-                    lbl_1_bss_2A6C[temp_r25].unk1C.x = temp_r22;
-                    lbl_1_bss_2A6C[temp_r25].unk1C.y = temp_r23 + 8.9375f;
-                    lbl_1_bss_2A6C[temp_r25].unk1C.z = 0;
-                    lbl_1_bss_2A6C[temp_r25].unk8[0] = lbl_1_bss_2A6C[temp_r25].unk8[1] = lbl_1_bss_2A6C[temp_r25].unk8[2]
-                        = lbl_1_bss_2A6C[temp_r25].unk8[3] = 0;
-                    lbl_1_bss_2A6C[temp_r25].unk2C = 0;
-                    lbl_1_bss_2A6C[temp_r25].unk30 = 0;
-                    lbl_1_bss_2A6C[temp_r25].unk34 = 0;
-                    lbl_1_bss_2A6C[temp_r25].unk50 = temp_r31;
+                    unusedState = candidateNodeIndex;
+                    playerState->boardNodes[laneSearchIndex] = &boardNodePool[candidateNodeIndex];
+                    boardNodePool[candidateNodeIndex].objectKind = playerState->cardLayout[playerState->cardColumn][laneSearchIndex];
+                    boardNodePool[candidateNodeIndex].stateFlags = 2;
+                    boardNodePool[candidateNodeIndex].playerMask = 1 << playerState->playerSlot;
+                    boardNodePool[candidateNodeIndex].ownerGroup = playerState->playerSlot;
+                    boardNodePool[candidateNodeIndex].laneIndex = candidateLane;
+                    boardNodePool[candidateNodeIndex].position.x = candidateLane;
+                    boardNodePool[candidateNodeIndex].position.y = laneSearchIndex + 8.9375f;
+                    boardNodePool[candidateNodeIndex].position.z = 0;
+                    boardNodePool[candidateNodeIndex].playerScores[0] = boardNodePool[candidateNodeIndex].playerScores[1] = boardNodePool[candidateNodeIndex].playerScores[2]
+                        = boardNodePool[candidateNodeIndex].playerScores[3] = 0;
+                    boardNodePool[candidateNodeIndex].associatedObject = 0;
+                    boardNodePool[candidateNodeIndex].nextGroupNode = 0;
+                    boardNodePool[candidateNodeIndex].nextChainNode = 0;
+                    boardNodePool[candidateNodeIndex].ownerWork = playerState;
                 }
-                temp_r31->unk48[1]->unk48 = NULL;
-                temp_r31->unk48[1]->unk4C = temp_r31->unk48[0];
-                temp_r31->unk48[0]->unk48 = temp_r31->unk48[1];
-                temp_r31->unk48[0]->unk4C = sp198;
-                if (!sp198) {
-                    lbl_1_bss_7884[temp_r31->unk48[0]->unk18] = temp_r31->unk48[0];
+                playerState->boardNodes[1]->nextLaneNode = NULL;
+                playerState->boardNodes[1]->previousLaneNode = playerState->boardNodes[0];
+                playerState->boardNodes[0]->nextLaneNode = playerState->boardNodes[1];
+                playerState->boardNodes[0]->previousLaneNode = lastNodeInLane;
+                if (!lastNodeInLane) {
+                    laneHeads[playerState->boardNodes[0]->laneIndex] = playerState->boardNodes[0];
                 }
                 else {
-                    temp_r31->unk48[0]->unk4C->unk48 = temp_r31->unk48[0];
+                    playerState->boardNodes[0]->previousLaneNode->nextLaneNode = playerState->boardNodes[0];
                 }
-                temp_r31->unk60++;
-                if (temp_r31->unk60 >= 8) {
-                    fn_1_EC0(temp_r31);
-                    temp_r31->unk60 = 0;
+                playerState->cardColumn++;
+                if (playerState->cardColumn >= 8) {
+                    ShufflePlayerCardLayout(playerState);
+                    playerState->cardColumn = 0;
                 }
-                temp_r31->unk63[0] = temp_r31->unk48[0]->unk0;
-                temp_r31->unk63[1] = temp_r31->unk48[1]->unk0;
-                temp_r31->unk65[0] = 1;
-                if (((temp_r31->unk68 + 5) / 7) != ((temp_r31->unk6C + 5) / 7)) {
-                    if (((temp_r31->unk68 + 5) / 7) % 4 == 2) {
-                        temp_r31->unk50[temp_r31->unk60][0] = 5;
-                        temp_r31->unk50[temp_r31->unk60][1] = 5;
+                playerState->cardTypes[0] = playerState->boardNodes[0]->objectKind;
+                playerState->cardTypes[1] = playerState->boardNodes[1]->objectKind;
+                playerState->cardAnimationFrames[0] = 1;
+                if (((playerState->turnScore + 5) / 7) != ((playerState->turnScoreTarget + 5) / 7)) {
+                    if (((playerState->turnScore + 5) / 7) % 4 == 2) {
+                        playerState->cardLayout[playerState->cardColumn][0] = 5;
+                        playerState->cardLayout[playerState->cardColumn][1] = 5;
                     }
                     else {
-                        temp_r31->unk50[temp_r31->unk60][rand8() % 2] = 5;
+                        playerState->cardLayout[playerState->cardColumn][rand8() % 2] = 5;
                     }
                 }
-                temp_r31->unk6C = temp_r31->unk68;
-                temp_r31->unk72 = 1;
-                temp_r31->unk74 = 0;
-                temp_r31->unk71 = 20;
-                temp_r31->unk70 = 0;
-                temp_r31->unk7C = -1;
-                temp_r31->unk80 = -1;
-                if (temp_r31->unk1C == -1) {
-                    temp_r31->unk84 = 0;
-                    temp_r31->unk88 = 0;
-                    temp_r31->unk8C = temp_r31->unk48[0]->unk18;
-                    temp_r31->unk90 = 0;
+                playerState->turnScoreTarget = playerState->turnScore;
+                playerState->playerState = 1;
+                playerState->selectionTimer = 0;
+                playerState->inputDelay = 20;
+                playerState->selectedLane = 0;
+                playerState->targetLane = -1;
+                playerState->targetDirection = -1;
+                if (playerState->controllerIndex == -1) {
+                    playerState->aiDelay = 0;
+                    playerState->targetLaneHoldFrames = 0;
+                    playerState->currentLane = playerState->boardNodes[0]->laneIndex;
+                    playerState->laneChangeFrames = 0;
                 }
-                temp_r31->unk78 = 0;
-                temp_r31->unk79 = 0;
-                HuSprAttrReset(temp_r31->unkA4, 0, HUSPR_ATTR_DISPOFF);
-                HuSprAttrReset(temp_r31->unkA4, 0, HUSPR_ATTR_REVERSE);
+                playerState->inputEnabled = 0;
+                playerState->turnComplete = 0;
+                HuSprAttrReset(playerState->playerSpriteGroup, 0, HUSPR_ATTR_DISPOFF);
+                HuSprAttrReset(playerState->playerSpriteGroup, 0, HUSPR_ATTR_REVERSE);
                 {
-                    s32 sp258[12] = {};
-                    s32 sp194;
-                    for (sp194 = 0; sp194 < 3; sp194++) {
-                        StructBss2A6C *sp190;
-                        for (sp190 = lbl_1_bss_7884[sp194 + (temp_r31->unk10 * 3)]; sp190; sp190 = sp190->unk48) {
+                    s32 laneOccupancyCounts[12] = {};
+                    s32 laneScanIndex;
+                    for (laneScanIndex = 0; laneScanIndex < 3; laneScanIndex++) {
+                        BoardNode *laneNode;
+                        for (laneNode = laneHeads[laneScanIndex + (playerState->playerSlot * 3)]; laneNode; laneNode = laneNode->nextLaneNode) {
 
-                            sp258[sp194] += (sp190 && sp190->unk0 && (sp190->unk1 & 0x2) == 0 && sp258[sp194] < 9);
+                            laneOccupancyCounts[laneScanIndex] += (laneNode && laneNode->objectKind && (laneNode->stateFlags & 0x2) == 0 && laneOccupancyCounts[laneScanIndex] < 9);
                         }
                     }
-                    Hu3DModelRotSet(object->mdlId[4], 0, ((sp258[0] + sp258[1] + sp258[2] >= 22) ? -90 : 0), 0);
+                    Hu3DModelRotSet(object->mdlId[4], 0, ((laneOccupancyCounts[0] + laneOccupancyCounts[1] + laneOccupancyCounts[2] >= 22) ? -90 : 0), 0);
                 }
             }
             else {
-                s32 sp21C[3];
-                s32 sp18C;
-                for (sp18C = 0; sp18C < 3; sp18C++) {
-                    s32 sp188;
-                    StructBss2A6C *sp184;
-                    for (sp184 = lbl_1_bss_7884[sp18C + (temp_r31->unk10 * 3)], sp188 = 0; sp188 < 9; sp184 = sp184->unk48, sp188++) {
-                        if (!sp184 || sp184->unk1 != 1) {
+                s32 laneHeights[3];
+                s32 candidateLaneIndex;
+                for (candidateLaneIndex = 0; candidateLaneIndex < 3; candidateLaneIndex++) {
+                    s32 laneHeight;
+                    BoardNode *laneNode;
+                    for (laneNode = laneHeads[candidateLaneIndex + (playerState->playerSlot * 3)], laneHeight = 0; laneHeight < 9; laneNode = laneNode->nextLaneNode, laneHeight++) {
+                        if (!laneNode || laneNode->stateFlags != 1) {
                             break;
                         }
                     }
-                    sp21C[sp18C] = sp188;
+                    laneHeights[candidateLaneIndex] = laneHeight;
                 }
-                if (sp21C[0] >= 9 && sp21C[1] >= 9 && sp21C[2] >= 9) {
-                    temp_r31->unk78 += temp_r31->unk78 < 255;
+                if (laneHeights[0] >= 9 && laneHeights[1] >= 9 && laneHeights[2] >= 9) {
+                    playerState->inputEnabled += playerState->inputEnabled < 255;
                     Hu3DModelRotSet(object->mdlId[4], 0, -90, 0);
-                    temp_r31->unk79 = 1;
+                    playerState->turnComplete = 1;
                 }
                 else {
-                    temp_r31->unk79 = 0;
+                    playerState->turnComplete = 0;
                 }
             }
         }
     }
-    else if (temp_r31->unk72 == 1) {
-        if (!temp_r31->unk48[0] || !temp_r31->unk48[1]) {
-            temp_r31->unk72 = 2;
-            temp_r31->unk74 = 0;
-            HuSprAttrSet(temp_r31->unkA4, 0, HUSPR_ATTR_REVERSE);
+    else if (playerState->playerState == 1) {
+        if (!playerState->boardNodes[0] || !playerState->boardNodes[1]) {
+            playerState->playerState = 2;
+            playerState->selectionTimer = 0;
+            HuSprAttrSet(playerState->playerSpriteGroup, 0, HUSPR_ATTR_REVERSE);
         }
         else {
-            s32 temp_r26;
-            s32 sp180;
+            s32 selectedLaneIndex;
+            s32 movementDirection;
 
-            sp180 = (temp_r31->unkC == 1 || temp_r31->unkC == 14) ? temp_r31->unk0 : 0;
-            temp_r26 = temp_r31->unk70;
-            if (temp_r31->unk1C != -1) {
-                temp_r26 = (HuPadBtnDown[temp_r31->unk1C] & (PAD_BUTTON_X | PAD_BUTTON_Y))
-                    ? (temp_r31->unk70 + 2)
-                    : (temp_r31->unk70 + ((HuPadBtnDown[temp_r31->unk1C] & PAD_BUTTON_A) ? 1 : 0)
-                        + ((HuPadBtnDown[temp_r31->unk1C] & PAD_BUTTON_B) ? -1 : 0));
+            movementDirection = (playerState->buttonRepeatFrames == 1 || playerState->buttonRepeatFrames == 14) ? playerState->cursorDirection : 0;
+            selectedLaneIndex = playerState->selectedLane;
+            if (playerState->controllerIndex != -1) {
+                selectedLaneIndex = (HuPadBtnDown[playerState->controllerIndex] & (PAD_BUTTON_X | PAD_BUTTON_Y))
+                    ? (playerState->selectedLane + 2)
+                    : (playerState->selectedLane + ((HuPadBtnDown[playerState->controllerIndex] & PAD_BUTTON_A) ? 1 : 0)
+                        + ((HuPadBtnDown[playerState->controllerIndex] & PAD_BUTTON_B) ? -1 : 0));
             }
             else {
-                if (temp_r31->unk80 != -1 && temp_r31->unk80 != temp_r31->unk70 && temp_r31->unk84 > 5) {
-                    temp_r26 = temp_r31->unk80;
-                    temp_r31->unk84 = 0;
+                if (playerState->targetDirection != -1 && playerState->targetDirection != playerState->selectedLane && playerState->aiDelay > 5) {
+                    selectedLaneIndex = playerState->targetDirection;
+                    playerState->aiDelay = 0;
                 }
                 else {
-                    temp_r31->unk84++;
+                    playerState->aiDelay++;
                 }
             }
-            temp_r26 = (temp_r26 >= 4) ? (temp_r26 - 4) : ((temp_r26 < 0) ? (temp_r26 + 4) : temp_r26);
-            temp_r31->unk74++;
-            if (temp_r31->unk1C == -1) {
-                s32 sp20C[4] = { 120, 60, 25, 2 };
-                s32 sp200[3] = { 60, 45, 25 };
-                temp_r31->unk90 = (temp_r31->unk8C == temp_r31->unk48[0]->unk18 && temp_r31->unk8C != temp_r31->unk7C) ? (temp_r31->unk90 + 1) : 0;
-                temp_r31->unk8C = temp_r31->unk48[0]->unk18;
-                if (temp_r31->unk7C == -1 && temp_r31->unk90 >= sp20C[temp_r31->unk20]
-                    || (temp_r31->unk20 >= 1 && (temp_r31->unk90 >= sp200[temp_r31->unk20 - 1]))) {
-                    s32 sp1F0[4] = { 30, 30, 20, 10 };
-                    fn_1_10B8(temp_r31);
-                    temp_r31->unk84 = 0;
-                    temp_r31->unk88 = 0;
-                    temp_r31->unk94 = (rand8() % sp1F0[temp_r31->unk20]) - (sp1F0[temp_r31->unk20] / 2);
+            selectedLaneIndex = (selectedLaneIndex >= 4) ? (selectedLaneIndex - 4) : ((selectedLaneIndex < 0) ? (selectedLaneIndex + 4) : selectedLaneIndex);
+            playerState->selectionTimer++;
+            if (playerState->controllerIndex == -1) {
+                s32 easyCpuWaitFrames[4] = { 120, 60, 25, 2 };
+                s32 harderCpuWaitFrames[3] = { 60, 45, 25 };
+                playerState->laneChangeFrames = (playerState->currentLane == playerState->boardNodes[0]->laneIndex && playerState->currentLane != playerState->targetLane) ? (playerState->laneChangeFrames + 1) : 0;
+                playerState->currentLane = playerState->boardNodes[0]->laneIndex;
+                if (playerState->targetLane == -1 && playerState->laneChangeFrames >= easyCpuWaitFrames[playerState->cpuDifficulty]
+                    || (playerState->cpuDifficulty >= 1 && (playerState->laneChangeFrames >= harderCpuWaitFrames[playerState->cpuDifficulty - 1]))) {
+                    s32 cpuLaneChangeDelay[4] = { 30, 30, 20, 10 };
+                    ChooseCpuMove(playerState);
+                    playerState->aiDelay = 0;
+                    playerState->targetLaneHoldFrames = 0;
+                    playerState->playerFlags = (rand8() % cpuLaneChangeDelay[playerState->cpuDifficulty]) - (cpuLaneChangeDelay[playerState->cpuDifficulty] / 2);
                 }
             }
 #if VERSION_PAL
@@ -809,429 +809,429 @@ void fn_1_19C8(OMOBJ *object)
 #else
 #define _VALUE -0.26875f
 #endif
-            if (lbl_1_bss_18 == -1) {
-                if (temp_r31->unk1C != -1) {
-                    temp_r31->unk48[0]->unk1C.z = temp_r31->unk48[1]->unk1C.z
-                        = -0.03125f + ((HuPadStkY[temp_r31->unk1C] < -36) ? (_VALUE * ((-HuPadStkY[temp_r31->unk1C] - 36) / 36.0f)) : 0);
-                    temp_r31->unk4 = (HuPadStkY[temp_r31->unk1C] < -36) ? 1 : 0;
+            if (winningPlayer == -1) {
+                if (playerState->controllerIndex != -1) {
+                    playerState->boardNodes[0]->position.z = playerState->boardNodes[1]->position.z
+                        = -0.03125f + ((HuPadStkY[playerState->controllerIndex] < -36) ? (_VALUE * ((-HuPadStkY[playerState->controllerIndex] - 36) / 36.0f)) : 0);
+                    playerState->cursorRepeatFrames = (HuPadStkY[playerState->controllerIndex] < -36) ? 1 : 0;
                 }
                 else {
-                    s32 sp1E4[3] = { 50, 30, 25 };
-                    s32 sp1D8[3] = { 90, 80, 70 };
+                    s32 cpuJumpDelay[3] = { 50, 30, 25 };
+                    s32 cpuRepeatJumpDelay[3] = { 90, 80, 70 };
 
-                    temp_r31->unk4
-                        = ((temp_r31->unk20
-                              && (temp_r31->unk88 > temp_r31->unk94 + sp1E4[temp_r31->unk20 - 1] || temp_r31->unk90 > sp1D8[temp_r31->unk20 - 1])))
+                    playerState->cursorRepeatFrames
+                        = ((playerState->cpuDifficulty
+                              && (playerState->targetLaneHoldFrames > playerState->playerFlags + cpuJumpDelay[playerState->cpuDifficulty - 1] || playerState->laneChangeFrames > cpuRepeatJumpDelay[playerState->cpuDifficulty - 1])))
                         ? 1
                         : 0;
-                    temp_r31->unk48[0]->unk1C.z = temp_r31->unk48[1]->unk1C.z = -0.03125f + (temp_r31->unk4 ? _VALUE : 0.0f);
+                    playerState->boardNodes[0]->position.z = playerState->boardNodes[1]->position.z = -0.03125f + (playerState->cursorRepeatFrames ? _VALUE : 0.0f);
                 }
             }
 #undef _VALUE
             else {
-                temp_r31->unk48[0]->unk1C.z = temp_r31->unk48[1]->unk1C.z = 0;
+                playerState->boardNodes[0]->position.z = playerState->boardNodes[1]->position.z = 0;
             }
-            if (lbl_1_bss_18 == -1 && sp180) {
-                if (fn_1_57C_inline(temp_r31->unk48[0]->unk18_u + sp180, temp_r31->unk48[0]->unk1C.y, temp_r31->unk48[0], NULL) == 0) {
-                    if (fn_1_57C_inline(temp_r31->unk48[1]->unk18_u + sp180, temp_r31->unk48[1]->unk1C.y, temp_r31->unk48[1], NULL) == 0) {
-                        float sp17C = temp_r31->unk48[0]->unk18;
-                        float sp178 = temp_r31->unk48[1]->unk18;
-                        fn_1_6D0(temp_r31->unk48[0]->unk18_u + sp180, temp_r31->unk48[0]->unk1C.y, temp_r31->unk48[0]);
-                        fn_1_6D0(temp_r31->unk48[1]->unk18_u + sp180, temp_r31->unk48[1]->unk1C.y, temp_r31->unk48[1]);
-                        temp_r31->unk48[0]->unk1C.x = (sp17C * 0.5) + (0.5 * temp_r31->unk48[0]->unk18);
-                        temp_r31->unk48[1]->unk1C.x = (sp178 * 0.5) + (0.5 * temp_r31->unk48[1]->unk18);
+            if (winningPlayer == -1 && movementDirection) {
+                if (LanePositionIsOccupiedInline(playerState->boardNodes[0]->characterId + movementDirection, playerState->boardNodes[0]->position.y, playerState->boardNodes[0], NULL) == 0) {
+                    if (LanePositionIsOccupiedInline(playerState->boardNodes[1]->characterId + movementDirection, playerState->boardNodes[1]->position.y, playerState->boardNodes[1], NULL) == 0) {
+                        float previousFirstLane = playerState->boardNodes[0]->laneIndex;
+                        float previousSecondLane = playerState->boardNodes[1]->laneIndex;
+                        InsertBoardNodeInLane(playerState->boardNodes[0]->characterId + movementDirection, playerState->boardNodes[0]->position.y, playerState->boardNodes[0]);
+                        InsertBoardNodeInLane(playerState->boardNodes[1]->characterId + movementDirection, playerState->boardNodes[1]->position.y, playerState->boardNodes[1]);
+                        playerState->boardNodes[0]->position.x = (previousFirstLane * 0.5) + (0.5 * playerState->boardNodes[0]->laneIndex);
+                        playerState->boardNodes[1]->position.x = (previousSecondLane * 0.5) + (0.5 * playerState->boardNodes[1]->laneIndex);
                     }
                 }
             }
-            if (lbl_1_bss_18 != -1) {
-                temp_r26 = temp_r31->unk70;
+            if (winningPlayer != -1) {
+                selectedLaneIndex = playerState->selectedLane;
             }
-            if (temp_r26 != temp_r31->unk70) {
-                StructBss2A6C *temp_r29 = temp_r31->unk48[0];
-                StructBss2A6C *temp_r30 = temp_r31->unk48[1];
-                s32 sp174 = temp_r29->unk18;
-                float temp_f25 = temp_r29->unk1C.y;
-                s32 sp1C8[4] = { 0, 1, 0, -1 };
-                s32 sp1B8[4] = { 1, 0, -1, 0 };
-                StructBss2A6C *sp170;
-                if (fn_1_57C_inline(sp174 + sp1C8[temp_r26], temp_f25 + sp1B8[temp_r26], temp_r30, &sp170) == 0) {
-                    if (temp_r31->unk70 != temp_r26) {
-                        temp_r30->unk5 = 1;
-                        temp_r30->unk4 = (((((temp_r26 - temp_r31->unk70) + 8) % 4) - 1) * 4) + temp_r31->unk70 + 1;
+            if (selectedLaneIndex != playerState->selectedLane) {
+                BoardNode *firstNode = playerState->boardNodes[0];
+                BoardNode *secondNode = playerState->boardNodes[1];
+                s32 startingLane = firstNode->laneIndex;
+                float startingRow = firstNode->position.y;
+                s32 laneOffsets[4] = { 0, 1, 0, -1 };
+                s32 rowOffsets[4] = { 1, 0, -1, 0 };
+                BoardNode *blockingNode;
+                if (LanePositionIsOccupiedInline(startingLane + laneOffsets[selectedLaneIndex], startingRow + rowOffsets[selectedLaneIndex], secondNode, &blockingNode) == 0) {
+                    if (playerState->selectedLane != selectedLaneIndex) {
+                        secondNode->animationFrame = 1;
+                        secondNode->pathId = (((((selectedLaneIndex - playerState->selectedLane) + 8) % 4) - 1) * 4) + playerState->selectedLane + 1;
                     }
-                    temp_r31->unk70 = temp_r26;
-                    fn_1_6D0(sp174 + sp1C8[temp_r26], temp_f25 + sp1B8[temp_r26], temp_r30);
-                    temp_r30->unk1C.x = temp_r30->unk18;
+                    playerState->selectedLane = selectedLaneIndex;
+                    InsertBoardNodeInLane(startingLane + laneOffsets[selectedLaneIndex], startingRow + rowOffsets[selectedLaneIndex], secondNode);
+                    secondNode->position.x = secondNode->laneIndex;
                 }
                 else {
-                    float temp_f31;
-                    s32 temp_r24;
-                    if (temp_r26 % 2 == 0) {
-                        s32 sp16C = (temp_r26 == 2) ? 1 : 0;
-                        temp_f31 = temp_f25 + ((sp16C == 1) ? sp1B8[temp_r26] : sp1B8[temp_r26]);
-                        fn_1_57C_inline(sp174, temp_f31, (sp16C == 0) ? temp_r30 : temp_r30, &sp170);
-                        if (temp_r26 == 2) {
-                            if (!sp170 || sp170->unk1C.y <= temp_f31) {
-                                temp_f31 = ((sp16C == 1) ? 1.0f : 0.0f) + ((sp170) ? sp170->unk1C.y + 1.0f : 0.0f);
-                                temp_r24 = sp174;
+                    float targetRow;
+                    s32 targetLane;
+                    if (selectedLaneIndex % 2 == 0) {
+                        s32 isVerticalMove = (selectedLaneIndex == 2) ? 1 : 0;
+                        targetRow = startingRow + ((isVerticalMove == 1) ? rowOffsets[selectedLaneIndex] : rowOffsets[selectedLaneIndex]);
+                        LanePositionIsOccupiedInline(startingLane, targetRow, (isVerticalMove == 0) ? secondNode : secondNode, &blockingNode);
+                        if (selectedLaneIndex == 2) {
+                            if (!blockingNode || blockingNode->position.y <= targetRow) {
+                                targetRow = ((isVerticalMove == 1) ? 1.0f : 0.0f) + ((blockingNode) ? blockingNode->position.y + 1.0f : 0.0f);
+                                targetLane = startingLane;
                             }
                             else {
-                                temp_f31 = (sp170->unk1C.y - 1.0f) - (sp16C == 0);
-                                temp_r24 = sp174;
+                                targetRow = (blockingNode->position.y - 1.0f) - (isVerticalMove == 0);
+                                targetLane = startingLane;
                             }
                         }
                         else {
-                            if (sp170->unk1C.y >= temp_f31) {
-                                temp_f31 = ((sp16C == 1) ? 1.0f : 0.0f) + ((sp170) ? sp170->unk1C.y - 2.0f : 0.0f);
-                                temp_r24 = sp174;
+                            if (blockingNode->position.y >= targetRow) {
+                                targetRow = ((isVerticalMove == 1) ? 1.0f : 0.0f) + ((blockingNode) ? blockingNode->position.y - 2.0f : 0.0f);
+                                targetLane = startingLane;
                             }
                             else {
-                                temp_f31 = (sp170->unk1C.y - 1.0f) - (sp16C == 0);
-                                temp_r24 = sp174;
+                                targetRow = (blockingNode->position.y - 1.0f) - (isVerticalMove == 0);
+                                targetLane = startingLane;
                             }
                         }
                     }
                     else {
-                        temp_r24 = sp174 - sp1C8[temp_r26];
-                        temp_f31 = temp_f25;
+                        targetLane = startingLane - laneOffsets[selectedLaneIndex];
+                        targetRow = startingRow;
                     }
-                    if (fn_1_57C_inline(temp_r24, temp_f31, temp_r29, NULL) == 0) {
-                        if (fn_1_57C_inline(temp_r24 + sp1C8[temp_r26], temp_f31 + sp1B8[temp_r26], temp_r30, NULL) == 0) {
-                            float sp168 = temp_r31->unk48[0]->unk18;
-                            float sp164 = temp_r31->unk48[1]->unk18;
-                            if (temp_r31->unk70 != temp_r26) {
-                                temp_r30->unk5 = 1;
-                                temp_r30->unk4 = (((((temp_r26 - temp_r31->unk70) + 8) % 4) - 1) * 4) + temp_r31->unk70 + 1;
+                    if (LanePositionIsOccupiedInline(targetLane, targetRow, firstNode, NULL) == 0) {
+                        if (LanePositionIsOccupiedInline(targetLane + laneOffsets[selectedLaneIndex], targetRow + rowOffsets[selectedLaneIndex], secondNode, NULL) == 0) {
+                            float previousFirstLane = playerState->boardNodes[0]->laneIndex;
+                            float previousSecondLane = playerState->boardNodes[1]->laneIndex;
+                            if (playerState->selectedLane != selectedLaneIndex) {
+                                secondNode->animationFrame = 1;
+                                secondNode->pathId = (((((selectedLaneIndex - playerState->selectedLane) + 8) % 4) - 1) * 4) + playerState->selectedLane + 1;
                             }
-                            temp_r31->unk70 = temp_r26;
-                            if (temp_r26 == 2) {
-                                fn_1_6D0(temp_r24, temp_f31 + (0.5 * (float)sp1B8[temp_r26]), temp_r29);
-                                fn_1_6D0(temp_r24 + sp1C8[temp_r26], temp_f31 + sp1B8[temp_r26], temp_r30);
-                                fn_1_6D0(temp_r24, temp_f31, temp_r29);
+                            playerState->selectedLane = selectedLaneIndex;
+                            if (selectedLaneIndex == 2) {
+                                InsertBoardNodeInLane(targetLane, targetRow + (0.5 * (float)rowOffsets[selectedLaneIndex]), firstNode);
+                                InsertBoardNodeInLane(targetLane + laneOffsets[selectedLaneIndex], targetRow + rowOffsets[selectedLaneIndex], secondNode);
+                                InsertBoardNodeInLane(targetLane, targetRow, firstNode);
                             }
                             else {
-                                fn_1_6D0(temp_r24, temp_f31, temp_r29);
-                                fn_1_6D0(temp_r24 + sp1C8[temp_r26], temp_f31 + sp1B8[temp_r26], temp_r30);
+                                InsertBoardNodeInLane(targetLane, targetRow, firstNode);
+                                InsertBoardNodeInLane(targetLane + laneOffsets[selectedLaneIndex], targetRow + rowOffsets[selectedLaneIndex], secondNode);
                             }
-                            temp_r31->unk48[0]->unk1C.x = (sp168 * 0.5) + (0.5 * temp_r31->unk48[0]->unk18);
-                            temp_r31->unk48[1]->unk1C.x = (sp164 * 0.5) + (0.5 * temp_r31->unk48[1]->unk18);
+                            playerState->boardNodes[0]->position.x = (previousFirstLane * 0.5) + (0.5 * playerState->boardNodes[0]->laneIndex);
+                            playerState->boardNodes[1]->position.x = (previousSecondLane * 0.5) + (0.5 * playerState->boardNodes[1]->laneIndex);
                         }
                     }
                 }
             }
         }
-        if (temp_r31->unk48[0]) {
-            temp_r31->unk98 = 10.0 + ((100.0 * ((temp_r31->unk48[0]->unk18 + temp_r31->unk48[0]->unk1C.x) / 2.0)) - 500);
-            temp_r31->unk9C = 25.0f + ((100.0f * temp_r31->unk48[0]->unk1C.y) - 500.0f);
+        if (playerState->boardNodes[0]) {
+            playerState->cameraX = 10.0 + ((100.0 * ((playerState->boardNodes[0]->laneIndex + playerState->boardNodes[0]->position.x) / 2.0)) - 500);
+            playerState->cameraY = 25.0f + ((100.0f * playerState->boardNodes[0]->position.y) - 500.0f);
         }
-        if (lbl_1_bss_18 == -1) {
-            Vec sp1AC;
-            Vec sp1A0;
-            sp1AC.x = temp_r31->unk98;
-            sp1AC.y = temp_r31->unk9C;
-            sp1AC.z = 55;
-            Hu3D3Dto2D(&sp1AC, 1, &sp1A0);
-            HuSprPosSet(temp_r31->unkA4, 0, sp1A0.x, sp1A0.y);
+        if (winningPlayer == -1) {
+            Vec cameraWorldPosition;
+            Vec screenPosition;
+            cameraWorldPosition.x = playerState->cameraX;
+            cameraWorldPosition.y = playerState->cameraY;
+            cameraWorldPosition.z = 55;
+            Hu3D3Dto2D(&cameraWorldPosition, 1, &screenPosition);
+            HuSprPosSet(playerState->playerSpriteGroup, 0, screenPosition.x, screenPosition.y);
         }
     }
 }
 
-void fn_1_8AC8(StructBss2A6C *arg0, StructSp14C8 *arg1);
+void PropagateChainScore(BoardNode *node, BoardEvent *event);
 
-#define CHECK_2E48(arg0, arg1, arg2)                                                                                                                 \
-    (((arg0)-1 <= 0 || (arg2[(arg0)-1][(arg1)] && arg2[(arg0)-1][(arg1)]->unk0))                                                                     \
-        && ((arg0)-1 >= 11 || (arg2[(arg0) + 1][(arg1)] && arg2[(arg0) + 1][(arg1)]->unk0))                                                          \
-        && ((arg1)-1 <= 0 || (arg2[(arg0)][(arg1)-1] && arg2[(arg0)][(arg1)-1]->unk0))                                                               \
-        && ((arg1)-1 >= 8 || (arg2[(arg0)][(arg1) + 1] && arg2[(arg0)][(arg1) + 1]->unk0))                                                           \
-        && ((arg0)-1 >= 11 || (arg1)-1 <= 0 || (arg2[(arg0) + 1][(arg1)-1] && arg2[(arg0) + 1][(arg1)-1]->unk0))                                     \
-        && ((arg0)-1 >= 11 || (arg1)-1 >= 8 || (arg2[(arg0) + 1][(arg1) + 1] && arg2[(arg0) + 1][(arg1) + 1]->unk0))                                 \
-        && ((arg0)-1 <= 0 || (arg1)-1 <= 0 || (arg2[(arg0)-1][(arg1)-1] && arg2[(arg0)-1][(arg1)-1]->unk0))                                          \
-        && ((arg0)-1 <= 0 || (arg1)-1 >= 8 || (arg2[(arg0)-1][(arg1) + 1] && arg2[(arg0)-1][(arg1) + 1]->unk0)))
+#define CHECK_2E48(lane, row, grid)                                                                                                                 \
+    (((lane)-1 <= 0 || (grid[(lane)-1][(row)] && grid[(lane)-1][(row)]->objectKind))                                                                     \
+        && ((lane)-1 >= 11 || (grid[(lane) + 1][(row)] && grid[(lane) + 1][(row)]->objectKind))                                                          \
+        && ((row)-1 <= 0 || (grid[(lane)][(row)-1] && grid[(lane)][(row)-1]->objectKind))                                                               \
+        && ((row)-1 >= 8 || (grid[(lane)][(row) + 1] && grid[(lane)][(row) + 1]->objectKind))                                                           \
+        && ((lane)-1 >= 11 || (row)-1 <= 0 || (grid[(lane) + 1][(row)-1] && grid[(lane) + 1][(row)-1]->objectKind))                                     \
+        && ((lane)-1 >= 11 || (row)-1 >= 8 || (grid[(lane) + 1][(row) + 1] && grid[(lane) + 1][(row) + 1]->objectKind))                                 \
+        && ((lane)-1 <= 0 || (row)-1 <= 0 || (grid[(lane)-1][(row)-1] && grid[(lane)-1][(row)-1]->objectKind))                                          \
+        && ((lane)-1 <= 0 || (row)-1 >= 8 || (grid[(lane)-1][(row) + 1] && grid[(lane)-1][(row) + 1]->objectKind)))
 
-void fn_1_52A4(s32 arg0)
+void ResolveBoardMatches(s32 activePlayerIndex)
 {
-    OMOBJ *sp1EC = lbl_1_bss_30;
-    StructBss2A6C *sp2E48[14][19] = {};
-    StructBss2A6C *sp1E8 = NULL;
-    StructBss2A6C *temp_r31;
-    StructBss2A6C *temp_r30;
-    s32 temp_r29;
-    s32 temp_r23;
-    s32 temp_r19;
-    s32 temp_r18;
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
+    OMOBJ *boardObject = boardObject;
+    BoardNode *boardGrid[14][19] = {};
+    BoardNode *excludedNode = NULL;
+    BoardNode *followingNode;
+    BoardNode *relatedNode;
+    s32 eventIndex;
+    s32 eventCount;
+    s32 scanIndex;
+    s32 laneIndex;
+    float animationProgress;
+    float verticalVelocity;
+    float verticalOffset;
 
-    StructSp14C8 sp14C8[204];
-    StructBss2A6C *spD58[476];
-    StructSp14C8 *spA28[204];
-    float sp6F8[204];
-    float sp3C8[204];
-    s16 sp230[204];
+    BoardEvent boardEvents[204];
+    BoardNode *removedNodes[476];
+    BoardEvent *activeEvents[204];
+    float eventLanePositions[204];
+    float eventRowPositions[204];
+    s16 eventNodeCounts[204];
 
-    for (temp_r18 = 0; temp_r18 < 12; temp_r18++) {
-        for (temp_r31 = lbl_1_bss_7884[temp_r18]; temp_r31; temp_r31 = temp_r31->unk48) {
-            s32 sp1E4 = temp_r31->unk1;
-            s32 sp1E0 = (((sp1E4 & 0x2) == 0 && (arg0 == 4)) || ((sp1E4 & 0x2) && (temp_r31->unk3 & (1 << arg0))));
-            temp_f29 = (sp1E0) ? temp_r31->unk1C.z : 0;
-            temp_r31->unk2C = (void *)(temp_r31->unk30 = temp_r31->unk34 = NULL);
-            temp_r31->unk38 = temp_r31->unk3C = temp_r31->unk40 = temp_r31->unk44 = NULL;
-            if (arg0 == 4) {
-                temp_r31->unk5 += temp_r31->unk4 != 0 && temp_r31->unk5 != 0;
-                temp_r31->unk5 = (temp_r31->unk4 == 0 || (temp_r31->unk5 > (((temp_r31->unk4 - 1) / 4 == 1) ? 15 : 15))) ? 0 : temp_r31->unk5;
-                temp_r31->unk4 = (temp_r31->unk5 == 0) ? 0 : temp_r31->unk4;
-                temp_r31->unk1C.x = (0.5 * temp_r31->unk18) + (0.5 * temp_r31->unk1C.x);
+    for (laneIndex = 0; laneIndex < 12; laneIndex++) {
+        for (followingNode = laneHeads[laneIndex]; followingNode; followingNode = followingNode->nextLaneNode) {
+            s32 nodeFlags = followingNode->stateFlags;
+            s32 includeNode = (((nodeFlags & 0x2) == 0 && (activePlayerIndex == 4)) || ((nodeFlags & 0x2) && (followingNode->playerMask & (1 << activePlayerIndex))));
+            verticalOffset = (includeNode) ? followingNode->position.z : 0;
+            followingNode->associatedObject = (void *)(followingNode->nextGroupNode = followingNode->nextChainNode = NULL);
+            followingNode->pairedNodeLeft = followingNode->pairedNodeRight = followingNode->pairedNodeLower = followingNode->pairedNodeUpper = NULL;
+            if (activePlayerIndex == 4) {
+                followingNode->animationFrame += followingNode->pathId != 0 && followingNode->animationFrame != 0;
+                followingNode->animationFrame = (followingNode->pathId == 0 || (followingNode->animationFrame > (((followingNode->pathId - 1) / 4 == 1) ? 15 : 15))) ? 0 : followingNode->animationFrame;
+                followingNode->pathId = (followingNode->animationFrame == 0) ? 0 : followingNode->pathId;
+                followingNode->position.x = (0.5 * followingNode->laneIndex) + (0.5 * followingNode->position.x);
             }
-            if (temp_r31->unk0) {
-                s32 sp1DC = 0;
-                StructBss2A6C *sp1D8;
-                if ((temp_r31->unk1 & 0x1) && temp_r31->unk1C.y == 0.0f && !temp_r31->unk4C) {
-                    sp1DC = 1;
-                    sp1D8 = NULL;
+            if (followingNode->objectKind) {
+                s32 relatedNodeCount = 0;
+                BoardNode *previousLaneNode;
+                if ((followingNode->stateFlags & 0x1) && followingNode->position.y == 0.0f && !followingNode->previousLaneNode) {
+                    relatedNodeCount = 1;
+                    previousLaneNode = NULL;
                 }
-                else if ((temp_r31->unk1 & 0x1) && temp_r31->unk4C && (temp_r31->unk4C->unk1C.y == temp_r31->unk1C.y - 1.0f)) {
-                    sp1DC = 2;
-                    sp1D8 = temp_r31->unk4C;
+                else if ((followingNode->stateFlags & 0x1) && followingNode->previousLaneNode && (followingNode->previousLaneNode->position.y == followingNode->position.y - 1.0f)) {
+                    relatedNodeCount = 2;
+                    previousLaneNode = followingNode->previousLaneNode;
                 }
                 else {
-                    if (fn_1_57C(temp_r18, temp_r31->unk1C.y + temp_f29, temp_r31, &sp1D8)) {
-                        if (!sp1D8 || temp_r31->unk1C.y + temp_f29 >= sp1D8->unk1C.y) {
-                            sp1DC = 2;
+                    if (LanePositionIsOccupied(laneIndex, followingNode->position.y + verticalOffset, followingNode, &previousLaneNode)) {
+                        if (!previousLaneNode || followingNode->position.y + verticalOffset >= previousLaneNode->position.y) {
+                            relatedNodeCount = 2;
                         }
                     }
                 }
-                if (sp1DC != 0) {
-                    if (temp_r31->unk1 & 0x2) {
-                        float temp_f28 = (temp_r31->unk1C.y + temp_f29) - ((!sp1D8) ? 0.0f : (1.0f + sp1D8->unk1C.y));
-                        temp_f28 = temp_r31->unk1C.y - ((!sp1D8) ? 0.0f : (1.0f + sp1D8->unk1C.y));
-                        if (temp_r31->unk50->unk48[0]->unk18 != temp_r31->unk50->unk48[1]->unk18) {
-                            temp_r31->unk50->unk48[0]->unk1C.y = ((!sp1D8) ? 0.0f : (1.0f + sp1D8->unk1C.y));
-                            temp_r31->unk50->unk48[1]->unk1C.y = ((!sp1D8) ? 0.0f : (1.0f + sp1D8->unk1C.y));
+                if (relatedNodeCount != 0) {
+                    if (followingNode->stateFlags & 0x2) {
+                        float verticalGap = (followingNode->position.y + verticalOffset) - ((!previousLaneNode) ? 0.0f : (1.0f + previousLaneNode->position.y));
+                        verticalGap = followingNode->position.y - ((!previousLaneNode) ? 0.0f : (1.0f + previousLaneNode->position.y));
+                        if (followingNode->ownerWork->boardNodes[0]->laneIndex != followingNode->ownerWork->boardNodes[1]->laneIndex) {
+                            followingNode->ownerWork->boardNodes[0]->position.y = ((!previousLaneNode) ? 0.0f : (1.0f + previousLaneNode->position.y));
+                            followingNode->ownerWork->boardNodes[1]->position.y = ((!previousLaneNode) ? 0.0f : (1.0f + previousLaneNode->position.y));
                         }
                         else {
-                            temp_r31->unk50->unk48[0]->unk1C.y -= temp_f28;
-                            temp_r31->unk50->unk48[1]->unk1C.y -= temp_f28;
+                            followingNode->ownerWork->boardNodes[0]->position.y -= verticalGap;
+                            followingNode->ownerWork->boardNodes[1]->position.y -= verticalGap;
                         }
-                        temp_r31->unk50->unk48[0]->unk1C.z = 0;
-                        temp_r31->unk50->unk48[1]->unk1C.z = 0;
-                        if (sp1E0) {
-                            if (!sp1D8 || ((sp1D8->unk1 & 0x1) && (sp1D8->unk1 & 0x2) == 0)) {
-                                temp_r31->unk50->unk71 -= (temp_r31->unk50->unk71 != 0 && lbl_1_bss_18 == -1);
+                        followingNode->ownerWork->boardNodes[0]->position.z = 0;
+                        followingNode->ownerWork->boardNodes[1]->position.z = 0;
+                        if (includeNode) {
+                            if (!previousLaneNode || ((previousLaneNode->stateFlags & 0x1) && (previousLaneNode->stateFlags & 0x2) == 0)) {
+                                followingNode->ownerWork->inputDelay -= (followingNode->ownerWork->inputDelay != 0 && winningPlayer == -1);
                             }
                         }
-                        if (temp_r31->unk50->unk71 == 0
-                            || temp_r31->unk50->unk4 != 0 && (!sp1D8 || ((sp1D8->unk1 & 0x1) && (sp1D8->unk1 & 0x2) == 0))) {
-                            temp_r31->unk50->unk48[0]->unk1 &= ~0x2;
-                            temp_r31->unk50->unk48[1]->unk1 &= ~0x2;
-                            temp_r31->unk50->unk48[0]->unk1 |= 0x10;
-                            temp_r31->unk50->unk48[1]->unk1 |= 0x10;
-                            temp_r31->unk1 |= 0x1;
-                            if (temp_r31->unk50->unk48[0]->unk18 != temp_r31->unk50->unk48[1]->unk18) {
-                                s32 sp1D4;
-                                s32 sp1D0 = (temp_r31 == temp_r31->unk50->unk48[1]) ? 1 : 0;
-                                s32 sp1CC = temp_r31->unk50->unk48[sp1D0]->unk18;
-                                s32 sp1C8 = temp_r31->unk50->unk48[1 - sp1D0]->unk18;
-                                float sp1C4 = temp_r31->unk50->unk48[sp1D0]->unk1C.y;
-                                float sp1C0 = temp_r31->unk50->unk48[1 - sp1D0]->unk1C.y;
-                                sp1D4 = (sp1CC < sp1C8 || (sp1CC == sp1C8 && sp1C4 < sp1C0)) ? 1 : 0;
-                                if (sp1D4 == 1) {
-                                    StructBss2A6C *temp_r21 = temp_r31->unk50->unk48[1 - sp1D0];
-                                    StructBss2A6C *temp_r20 = (temp_r21) ? temp_r21->unk4C : NULL;
-                                    if (temp_r21) {
-                                        if ((!temp_r20 && temp_r21->unk1C.y == 0.0f)
-                                            || (temp_r20 && temp_r21->unk1C.y == temp_r20->unk1C.y + 1.0f && (temp_r20->unk1 & 0x1)
-                                                && (temp_r20->unk1 & 0x2) == 0)) {
-                                            temp_r21->unk1C.y = (temp_r20) ? (temp_r20->unk1C.y + 1.0f) : 0.0f;
-                                            temp_r21->unk1 &= ~0x1;
-                                            temp_r21->unk1 |= (temp_r20 && ((temp_r20->unk1 & 0x1) == 0 || (temp_r20->unk1 & 0x2) != 0)) ? 0 : 1;
-                                            temp_r21->unk1C.z
-                                                = (temp_r21->unk1 & 0x1) ? -0.010416667f : ((!temp_r20) ? -0.010416667f : temp_r20->unk1C.z);
-                                            sp1E8 = temp_r21;
+                        if (followingNode->ownerWork->inputDelay == 0
+                            || followingNode->ownerWork->cursorRepeatFrames != 0 && (!previousLaneNode || ((previousLaneNode->stateFlags & 0x1) && (previousLaneNode->stateFlags & 0x2) == 0))) {
+                            followingNode->ownerWork->boardNodes[0]->stateFlags &= ~0x2;
+                            followingNode->ownerWork->boardNodes[1]->stateFlags &= ~0x2;
+                            followingNode->ownerWork->boardNodes[0]->stateFlags |= 0x10;
+                            followingNode->ownerWork->boardNodes[1]->stateFlags |= 0x10;
+                            followingNode->stateFlags |= 0x1;
+                            if (followingNode->ownerWork->boardNodes[0]->laneIndex != followingNode->ownerWork->boardNodes[1]->laneIndex) {
+                                s32 nodeScore;
+                                s32 activePlayerSide = (followingNode == followingNode->ownerWork->boardNodes[1]) ? 1 : 0;
+                                s32 firstPlayerLane = followingNode->ownerWork->boardNodes[activePlayerSide]->laneIndex;
+                                s32 secondPlayerLane = followingNode->ownerWork->boardNodes[1 - activePlayerSide]->laneIndex;
+                                float firstPlayerRow = followingNode->ownerWork->boardNodes[activePlayerSide]->position.y;
+                                float secondPlayerRow = followingNode->ownerWork->boardNodes[1 - activePlayerSide]->position.y;
+                                nodeScore = (firstPlayerLane < secondPlayerLane || (firstPlayerLane == secondPlayerLane && firstPlayerRow < secondPlayerRow)) ? 1 : 0;
+                                if (nodeScore == 1) {
+                                    BoardNode *opponentNode = followingNode->ownerWork->boardNodes[1 - activePlayerSide];
+                                    BoardNode *precedingNode = (opponentNode) ? opponentNode->previousLaneNode : NULL;
+                                    if (opponentNode) {
+                                        if ((!precedingNode && opponentNode->position.y == 0.0f)
+                                            || (precedingNode && opponentNode->position.y == precedingNode->position.y + 1.0f && (precedingNode->stateFlags & 0x1)
+                                                && (precedingNode->stateFlags & 0x2) == 0)) {
+                                            opponentNode->position.y = (precedingNode) ? (precedingNode->position.y + 1.0f) : 0.0f;
+                                            opponentNode->stateFlags &= ~0x1;
+                                            opponentNode->stateFlags |= (precedingNode && ((precedingNode->stateFlags & 0x1) == 0 || (precedingNode->stateFlags & 0x2) != 0)) ? 0 : 1;
+                                            opponentNode->position.z
+                                                = (opponentNode->stateFlags & 0x1) ? -0.010416667f : ((!precedingNode) ? -0.010416667f : precedingNode->position.z);
+                                            excludedNode = opponentNode;
                                         }
                                     }
                                 }
                             }
-                            temp_r31->unk4 = temp_r31->unk5 = 0;
-                            if (temp_r31->unk50->unk48[0]->unk18 == temp_r31->unk50->unk48[1]->unk18) {
-                                s32 sp1BC = (temp_r31->unk50->unk48[1] == temp_r31) ? 1 : 0;
-                                s32 sp1B8 = temp_r31->unk50->unk48[0]->unk1C.y > temp_r31->unk50->unk48[1]->unk1C.y;
-                                temp_r31->unk50->unk48[1 - sp1B8]->unk1C.y = 1 + temp_r31->unk50->unk48[sp1B8]->unk1C.y;
-                                temp_r31->unk50->unk48[1 - sp1B8]->unk1C.z = -0.010416667f;
-                                temp_r31->unk50->unk48[0]->unk1 |= 0x1;
-                                temp_r31->unk50->unk48[1]->unk1 |= 0x1;
-                                temp_r31->unk50->unk48[0]->unk4 = temp_r31->unk50->unk48[0]->unk5 = 0;
-                                temp_r31->unk50->unk48[1]->unk4 = temp_r31->unk50->unk48[1]->unk5 = 0;
-                                temp_r31->unk38 = (temp_r31->unk50->unk48[1] == temp_r31) ? temp_r31->unk50->unk48[0] : temp_r31->unk50->unk48[1];
-                                if (sp1BC) {
-                                    temp_r31->unk50->unk48[0]->unk1 |= 0x8;
+                            followingNode->pathId = followingNode->animationFrame = 0;
+                            if (followingNode->ownerWork->boardNodes[0]->laneIndex == followingNode->ownerWork->boardNodes[1]->laneIndex) {
+                                s32 matchedPlayerSide = (followingNode->ownerWork->boardNodes[1] == followingNode) ? 1 : 0;
+                                s32 higherRowSide = followingNode->ownerWork->boardNodes[0]->position.y > followingNode->ownerWork->boardNodes[1]->position.y;
+                                followingNode->ownerWork->boardNodes[1 - higherRowSide]->position.y = 1 + followingNode->ownerWork->boardNodes[higherRowSide]->position.y;
+                                followingNode->ownerWork->boardNodes[1 - higherRowSide]->position.z = -0.010416667f;
+                                followingNode->ownerWork->boardNodes[0]->stateFlags |= 0x1;
+                                followingNode->ownerWork->boardNodes[1]->stateFlags |= 0x1;
+                                followingNode->ownerWork->boardNodes[0]->pathId = followingNode->ownerWork->boardNodes[0]->animationFrame = 0;
+                                followingNode->ownerWork->boardNodes[1]->pathId = followingNode->ownerWork->boardNodes[1]->animationFrame = 0;
+                                followingNode->pairedNodeLeft = (followingNode->ownerWork->boardNodes[1] == followingNode) ? followingNode->ownerWork->boardNodes[0] : followingNode->ownerWork->boardNodes[1];
+                                if (matchedPlayerSide) {
+                                    followingNode->ownerWork->boardNodes[0]->stateFlags |= 0x8;
                                 }
                                 else {
-                                    temp_r31->unk50->unk48[1]->unk1 |= 0x8;
+                                    followingNode->ownerWork->boardNodes[1]->stateFlags |= 0x8;
                                 }
                             }
-                            temp_r31->unk50->unk48[0] = NULL;
-                            temp_r31->unk50->unk48[1] = NULL;
+                            followingNode->ownerWork->boardNodes[0] = NULL;
+                            followingNode->ownerWork->boardNodes[1] = NULL;
                         }
                     }
                     else {
-                        temp_r31->unk1C.y = (sp1D8) ? (1.0f + sp1D8->unk1C.y) : 0.0f;
-                        temp_r31->unk1 &= ~0x1;
-                        temp_r31->unk1 |= (sp1D8 && ((sp1D8->unk1 & 0x1) == 0 || (sp1D8->unk1 & 0x2) != 0)) ? 0 : 1;
-                        temp_r31->unk1C.z = (temp_r31->unk1 & 0x1) ? -0.010416667f : ((!sp1D8) ? -0.010416667f : sp1D8->unk1C.z);
+                        followingNode->position.y = (previousLaneNode) ? (1.0f + previousLaneNode->position.y) : 0.0f;
+                        followingNode->stateFlags &= ~0x1;
+                        followingNode->stateFlags |= (previousLaneNode && ((previousLaneNode->stateFlags & 0x1) == 0 || (previousLaneNode->stateFlags & 0x2) != 0)) ? 0 : 1;
+                        followingNode->position.z = (followingNode->stateFlags & 0x1) ? -0.010416667f : ((!previousLaneNode) ? -0.010416667f : previousLaneNode->position.z);
                     }
                 }
                 else {
-                    temp_r31->unk1C.y += temp_f29;
-                    temp_r31->unk1C.z = (sp1E0) ? ((temp_r31->unk1 & 0x3) ? 0.0f : -0.010416667f + temp_r31->unk1C.z) : temp_r31->unk1C.z;
-                    if (temp_r31->unk1 & 0x1) {
-                        temp_r31->unk1 &= ~0x1;
+                    followingNode->position.y += verticalOffset;
+                    followingNode->position.z = (includeNode) ? ((followingNode->stateFlags & 0x3) ? 0.0f : -0.010416667f + followingNode->position.z) : followingNode->position.z;
+                    if (followingNode->stateFlags & 0x1) {
+                        followingNode->stateFlags &= ~0x1;
                     }
                 }
             }
-            if ((temp_r31->unk1 & 0x1) && (sp1E4 & 0x1) && (temp_r31->unk1 & 0x8) == 0 && temp_r31 != sp1E8) {
-                temp_r31->unk8[0] = temp_r31->unk8[1] = temp_r31->unk8[2] = temp_r31->unk8[3] = 0;
-                temp_r31->unk3 = 0;
-                temp_r31->unk1 &= ~0x10;
+            if ((followingNode->stateFlags & 0x1) && (nodeFlags & 0x1) && (followingNode->stateFlags & 0x8) == 0 && followingNode != excludedNode) {
+                followingNode->playerScores[0] = followingNode->playerScores[1] = followingNode->playerScores[2] = followingNode->playerScores[3] = 0;
+                followingNode->playerMask = 0;
+                followingNode->stateFlags &= ~0x10;
             }
-            temp_r31->unk1 &= ~0x8;
-            if ((temp_r31->unk1 & 0x1) && (temp_r31->unk1 & 0x2) == 0) {
-                sp2E48[temp_r31->unk18 + 1][(int)temp_r31->unk1C.y + 1] = temp_r31;
+            followingNode->stateFlags &= ~0x8;
+            if ((followingNode->stateFlags & 0x1) && (followingNode->stateFlags & 0x2) == 0) {
+                boardGrid[followingNode->laneIndex + 1][(int)followingNode->position.y + 1] = followingNode;
             }
-            if (temp_r31->unk1 & 0x2) {
-                temp_r31->unk1C.z = 0;
+            if (followingNode->stateFlags & 0x2) {
+                followingNode->position.z = 0;
             }
         }
     }
-    temp_r23 = 0;
+    eventCount = 0;
     {
-        s32 sp1B4;
-        for (temp_r18 = 0; temp_r18 < 12; temp_r18++) {
-            StructBss2A6C *sp1B0 = (temp_r18 < 11) ? lbl_1_bss_7884[temp_r18 + 1] : NULL;
-            StructBss2A6C *sp1AC = NULL;
-            StructBss2A6C *sp1A8 = NULL;
-            float sp1A4 = (sp1B0) ? (sp1B0->unk1C.y) : 0.0f;
-            for (temp_r31 = lbl_1_bss_7884[temp_r18]; temp_r31; temp_r31 = temp_r31->unk48) {
-                s32 sp1A0 = temp_r31->unk18 + 1;
-                s32 sp19C = (int)temp_r31->unk1C.y + 1;
-                if ((temp_r31->unk1 & 0x1) && (temp_r31->unk1 & 0x2) == 0) {
-                    if (sp2E48[sp1A0][sp19C + 1]) {
-                        temp_r31->unk38 = sp2E48[sp1A0][sp19C + 1];
-                        temp_r31->unk38->unk3C = temp_r31;
+        s32 eventPass;
+        for (laneIndex = 0; laneIndex < 12; laneIndex++) {
+            BoardNode *nextLaneNode = (laneIndex < 11) ? laneHeads[laneIndex + 1] : NULL;
+            BoardNode *adjacentNodeA = NULL;
+            BoardNode *adjacentNodeB = NULL;
+            float highestNeighborRow = (nextLaneNode) ? (nextLaneNode->position.y) : 0.0f;
+            for (followingNode = laneHeads[laneIndex]; followingNode; followingNode = followingNode->nextLaneNode) {
+                s32 neighborLane = followingNode->laneIndex + 1;
+                s32 neighborRow = (int)followingNode->position.y + 1;
+                if ((followingNode->stateFlags & 0x1) && (followingNode->stateFlags & 0x2) == 0) {
+                    if (boardGrid[neighborLane][neighborRow + 1]) {
+                        followingNode->pairedNodeLeft = boardGrid[neighborLane][neighborRow + 1];
+                        followingNode->pairedNodeLeft->pairedNodeRight = followingNode;
                     }
-                    if (sp2E48[sp1A0 + 1][sp19C]) {
-                        sp1B0 = sp2E48[sp1A0 + 1][sp19C];
-                        temp_r31->unk44 = sp1B0;
-                        temp_r31->unk44->unk40 = temp_r31;
+                    if (boardGrid[neighborLane + 1][neighborRow]) {
+                        nextLaneNode = boardGrid[neighborLane + 1][neighborRow];
+                        followingNode->pairedNodeUpper = nextLaneNode;
+                        followingNode->pairedNodeUpper->pairedNodeLower = followingNode;
                     }
-                    sp1AC = sp2E48[sp1A0 + 1][sp19C + 1];
-                    sp1A8 = sp2E48[sp1A0 + 1][sp19C - 1];
-                    if (temp_r31->unk0 == 5 && temp_r31->unk2C == NULL && temp_r31->unk1C.y <= 8.0f && sp19C - 1 < 9) {
-                        s32 sp198 = temp_r31->unk0 == 5;
-                        sp14C8[temp_r23].unk0 = 5;
-                        sp14C8[temp_r23].unk4[0] = (sp198) ? temp_r31->unk8[0] : temp_r30->unk8[0];
-                        sp14C8[temp_r23].unk4[1] = (sp198) ? temp_r31->unk8[0] : temp_r30->unk8[1];
-                        sp14C8[temp_r23].unk4[2] = (sp198) ? temp_r31->unk8[0] : temp_r30->unk8[2];
-                        sp14C8[temp_r23].unk4[3] = (sp198) ? temp_r31->unk8[0] : temp_r30->unk8[3];
-                        sp14C8[temp_r23].unk1 = 1;
-                        sp14C8[temp_r23].unk2 = 0;
-                        sp14C8[temp_r23].unk14 = (sp198) ? temp_r31 : temp_r30;
-                        sp14C8[temp_r23].unk18 = (sp198) ? temp_r31 : temp_r30;
-                        sp14C8[temp_r23].unk1C = 0;
-                        if (sp198) {
-                            temp_r31->unk30 = NULL;
-                            temp_r31->unk34 = NULL;
-                            temp_r31->unk2C = &sp14C8[temp_r23];
+                    adjacentNodeA = boardGrid[neighborLane + 1][neighborRow + 1];
+                    adjacentNodeB = boardGrid[neighborLane + 1][neighborRow - 1];
+                    if (followingNode->objectKind == 5 && followingNode->associatedObject == NULL && followingNode->position.y <= 8.0f && neighborRow - 1 < 9) {
+                        s32 isSpecialNode = followingNode->objectKind == 5;
+                        boardEvents[eventCount].eventType = 5;
+                        boardEvents[eventCount].playerValues[0] = (isSpecialNode) ? followingNode->playerScores[0] : relatedNode->playerScores[0];
+                        boardEvents[eventCount].playerValues[1] = (isSpecialNode) ? followingNode->playerScores[0] : relatedNode->playerScores[1];
+                        boardEvents[eventCount].playerValues[2] = (isSpecialNode) ? followingNode->playerScores[0] : relatedNode->playerScores[2];
+                        boardEvents[eventCount].playerValues[3] = (isSpecialNode) ? followingNode->playerScores[0] : relatedNode->playerScores[3];
+                        boardEvents[eventCount].nodeCount = 1;
+                        boardEvents[eventCount].playerMask = 0;
+                        boardEvents[eventCount].firstNode = (isSpecialNode) ? followingNode : relatedNode;
+                        boardEvents[eventCount].secondNode = (isSpecialNode) ? followingNode : relatedNode;
+                        boardEvents[eventCount].nextEvent = 0;
+                        if (isSpecialNode) {
+                            followingNode->nextGroupNode = NULL;
+                            followingNode->nextChainNode = NULL;
+                            followingNode->associatedObject = &boardEvents[eventCount];
                         }
                         else {
-                            temp_r30->unk30 = NULL;
-                            temp_r30->unk34 = NULL;
-                            temp_r30->unk2C = &sp14C8[temp_r23];
+                            relatedNode->nextGroupNode = NULL;
+                            relatedNode->nextChainNode = NULL;
+                            relatedNode->associatedObject = &boardEvents[eventCount];
                         }
-                        temp_r23++;
+                        eventCount++;
                     }
-                    for (temp_r29 = 0; temp_r29 < ((temp_r31 && temp_r31->unk0 == 5) ? 2 : 0) + 2; temp_r29++) {
-                        temp_r30 = (temp_r29 == 0) ? temp_r31->unk48 : ((temp_r29 == 1) ? sp1B0 : ((temp_r29 == 2) ? sp1AC : sp1A8));
-                        if (temp_r30 && (temp_r30->unk1 & 0x1)) {
-                            if (temp_r29 != 1 || temp_r31->unk1C.y == temp_r30->unk1C.y) {
-                                if (temp_r31->unk0 == temp_r30->unk0) {
-                                    if ((temp_r31->unk0 >= 1 && temp_r31->unk0 <= 4)
-                                        || (temp_r31->unk0 == 5 && (temp_r31->unk1C.y <= 8.0f || temp_r30->unk1C.y <= 8.0f))) {
-                                        StructSp14C8 *temp_r28 = temp_r31->unk2C;
-                                        StructSp14C8 *temp_r27 = temp_r30->unk2C;
-                                        if (temp_r31->unk2C && temp_r30->unk2C) {
-                                            if (temp_r31->unk2C != temp_r30->unk2C) {
-                                                StructBss2A6C *sp194 = temp_r28->unk14;
-                                                StructBss2A6C *sp190 = temp_r27->unk14;
+                    for (eventIndex = 0; eventIndex < ((followingNode && followingNode->objectKind == 5) ? 2 : 0) + 2; eventIndex++) {
+                        relatedNode = (eventIndex == 0) ? followingNode->nextLaneNode : ((eventIndex == 1) ? nextLaneNode : ((eventIndex == 2) ? adjacentNodeA : adjacentNodeB));
+                        if (relatedNode && (relatedNode->stateFlags & 0x1)) {
+                            if (eventIndex != 1 || followingNode->position.y == relatedNode->position.y) {
+                                if (followingNode->objectKind == relatedNode->objectKind) {
+                                    if ((followingNode->objectKind >= 1 && followingNode->objectKind <= 4)
+                                        || (followingNode->objectKind == 5 && (followingNode->position.y <= 8.0f || relatedNode->position.y <= 8.0f))) {
+                                        BoardEvent *eventType = followingNode->associatedObject;
+                                        BoardEvent *nodeType = relatedNode->associatedObject;
+                                        if (followingNode->associatedObject && relatedNode->associatedObject) {
+                                            if (followingNode->associatedObject != relatedNode->associatedObject) {
+                                                BoardNode *chainNodeIndex = eventType->firstNode;
+                                                BoardNode *chainNode = nodeType->firstNode;
                                                 while (1) {
-                                                    sp190->unk2C = temp_r28;
-                                                    if (!sp190->unk34) {
+                                                    chainNode->associatedObject = eventType;
+                                                    if (!chainNode->nextChainNode) {
                                                         break;
                                                     }
-                                                    sp190 = sp190->unk34;
+                                                    chainNode = chainNode->nextChainNode;
                                                 }
-                                                temp_r27->unk14->unk30 = temp_r28->unk18;
-                                                temp_r28->unk18->unk34 = temp_r27->unk14;
-                                                temp_r28->unk4[0] = (temp_r28->unk4[0] > temp_r27->unk4[0]) ? temp_r28->unk4[0] : temp_r27->unk4[0];
-                                                temp_r28->unk4[1] = (temp_r28->unk4[1] > temp_r27->unk4[1]) ? temp_r28->unk4[1] : temp_r27->unk4[1];
-                                                temp_r28->unk4[2] = (temp_r28->unk4[2] > temp_r27->unk4[2]) ? temp_r28->unk4[2] : temp_r27->unk4[2];
-                                                temp_r28->unk4[3] = (temp_r28->unk4[3] > temp_r27->unk4[3]) ? temp_r28->unk4[3] : temp_r27->unk4[3];
-                                                temp_r28->unk1 = temp_r28->unk1 + temp_r27->unk1;
-                                                temp_r28->unk2 |= temp_r27->unk2;
-                                                temp_r28->unk18 = sp190;
-                                                temp_r27->unk14 = temp_r27->unk18 = NULL;
-                                                temp_r27->unk1 = 0;
-                                                temp_r27->unk0 = 0;
-                                                temp_r27->unk1C = temp_r28;
+                                                nodeType->firstNode->nextGroupNode = eventType->secondNode;
+                                                eventType->secondNode->nextChainNode = nodeType->firstNode;
+                                                eventType->pathId[0] = (eventType->pathId[0] > nodeType->pathId[0]) ? eventType->pathId[0] : nodeType->pathId[0];
+                                                eventType->pathId[1] = (eventType->pathId[1] > nodeType->pathId[1]) ? eventType->pathId[1] : nodeType->pathId[1];
+                                                eventType->pathId[2] = (eventType->pathId[2] > nodeType->pathId[2]) ? eventType->pathId[2] : nodeType->pathId[2];
+                                                eventType->pathId[3] = (eventType->pathId[3] > nodeType->pathId[3]) ? eventType->pathId[3] : nodeType->pathId[3];
+                                                eventType->stateFlags = eventType->stateFlags + nodeType->stateFlags;
+                                                eventType->ownerGroup |= nodeType->ownerGroup;
+                                                eventType->secondNode = chainNode;
+                                                nodeType->firstNode = nodeType->secondNode = NULL;
+                                                nodeType->stateFlags = 0;
+                                                nodeType->objectKind = 0;
+                                                nodeType->position = eventType;
                                             }
                                         }
                                         else {
-                                            if (temp_r31->unk2C) {
-                                                temp_r30->unk2C = temp_r31->unk2C;
-                                                temp_r28->unk18->unk34 = temp_r30;
-                                                temp_r30->unk30 = temp_r28->unk18;
-                                                temp_r28->unk18 = temp_r30;
-                                                temp_r28->unk1++;
-                                                temp_r28->unk2 |= temp_r30->unk3;
-                                                temp_r28->unk4[0] = (temp_r28->unk4[0] < temp_r30->unk8[0]) ? temp_r30->unk8[0] : temp_r28->unk4[0];
-                                                temp_r28->unk4[1] = (temp_r28->unk4[1] < temp_r30->unk8[1]) ? temp_r30->unk8[1] : temp_r28->unk4[1];
-                                                temp_r28->unk4[2] = (temp_r28->unk4[2] < temp_r30->unk8[2]) ? temp_r30->unk8[2] : temp_r28->unk4[2];
-                                                temp_r28->unk4[3] = (temp_r28->unk4[3] < temp_r30->unk8[3]) ? temp_r30->unk8[3] : temp_r28->unk4[3];
+                                            if (followingNode->associatedObject) {
+                                                relatedNode->associatedObject = followingNode->associatedObject;
+                                                eventType->secondNode->nextChainNode = relatedNode;
+                                                relatedNode->nextGroupNode = eventType->secondNode;
+                                                eventType->secondNode = relatedNode;
+                                                eventType->stateFlags++;
+                                                eventType->ownerGroup |= relatedNode->playerMask;
+                                                eventType->pathId[0] = (eventType->pathId[0] < relatedNode->playerScores[0]) ? relatedNode->playerScores[0] : eventType->pathId[0];
+                                                eventType->pathId[1] = (eventType->pathId[1] < relatedNode->playerScores[1]) ? relatedNode->playerScores[1] : eventType->pathId[1];
+                                                eventType->pathId[2] = (eventType->pathId[2] < relatedNode->playerScores[2]) ? relatedNode->playerScores[2] : eventType->pathId[2];
+                                                eventType->pathId[3] = (eventType->pathId[3] < relatedNode->playerScores[3]) ? relatedNode->playerScores[3] : eventType->pathId[3];
                                             }
-                                            else if (temp_r30->unk2C) {
-                                                temp_r31->unk2C = temp_r30->unk2C;
-                                                temp_r27->unk18->unk34 = temp_r31;
-                                                temp_r31->unk30 = temp_r27->unk18;
-                                                temp_r27->unk18 = temp_r31;
-                                                temp_r27->unk1++;
-                                                temp_r27->unk2 |= temp_r31->unk3;
-                                                temp_r27->unk4[0] = (temp_r27->unk4[0] < temp_r31->unk8[0]) ? temp_r31->unk8[0] : temp_r27->unk4[0];
-                                                temp_r27->unk4[1] = (temp_r27->unk4[1] < temp_r31->unk8[1]) ? temp_r31->unk8[1] : temp_r27->unk4[1];
-                                                temp_r27->unk4[2] = (temp_r27->unk4[2] < temp_r31->unk8[2]) ? temp_r31->unk8[2] : temp_r27->unk4[2];
-                                                temp_r27->unk4[3] = (temp_r27->unk4[3] < temp_r31->unk8[3]) ? temp_r31->unk8[3] : temp_r27->unk4[3];
+                                            else if (relatedNode->associatedObject) {
+                                                followingNode->associatedObject = relatedNode->associatedObject;
+                                                nodeType->secondNode->nextChainNode = followingNode;
+                                                followingNode->nextGroupNode = nodeType->secondNode;
+                                                nodeType->secondNode = followingNode;
+                                                nodeType->stateFlags++;
+                                                nodeType->ownerGroup |= followingNode->playerMask;
+                                                nodeType->pathId[0] = (nodeType->pathId[0] < followingNode->playerScores[0]) ? followingNode->playerScores[0] : nodeType->pathId[0];
+                                                nodeType->pathId[1] = (nodeType->pathId[1] < followingNode->playerScores[1]) ? followingNode->playerScores[1] : nodeType->pathId[1];
+                                                nodeType->pathId[2] = (nodeType->pathId[2] < followingNode->playerScores[2]) ? followingNode->playerScores[2] : nodeType->pathId[2];
+                                                nodeType->pathId[3] = (nodeType->pathId[3] < followingNode->playerScores[3]) ? followingNode->playerScores[3] : nodeType->pathId[3];
                                             }
                                             else {
-                                                sp14C8[temp_r23].unk0 = temp_r31->unk0;
-                                                sp14C8[temp_r23].unk4[0]
-                                                    = (temp_r31->unk8[0] > temp_r30->unk8[0]) ? temp_r31->unk8[0] : temp_r30->unk8[0];
-                                                sp14C8[temp_r23].unk4[1]
-                                                    = (temp_r31->unk8[1] > temp_r30->unk8[1]) ? temp_r31->unk8[1] : temp_r30->unk8[1];
-                                                sp14C8[temp_r23].unk4[2]
-                                                    = (temp_r31->unk8[2] > temp_r30->unk8[2]) ? temp_r31->unk8[2] : temp_r30->unk8[2];
-                                                sp14C8[temp_r23].unk4[3]
-                                                    = (temp_r31->unk8[3] > temp_r30->unk8[3]) ? temp_r31->unk8[3] : temp_r30->unk8[3];
-                                                sp14C8[temp_r23].unk1 = 2;
-                                                sp14C8[temp_r23].unk2 = (temp_r31->unk3 | temp_r30->unk3);
-                                                sp14C8[temp_r23].unk14 = temp_r31;
-                                                sp14C8[temp_r23].unk18 = temp_r30;
-                                                sp14C8[temp_r23].unk1C = NULL;
-                                                temp_r31->unk30 = NULL;
-                                                temp_r31->unk34 = temp_r30;
-                                                temp_r30->unk30 = temp_r31;
-                                                temp_r30->unk34 = NULL;
-                                                temp_r31->unk2C = &sp14C8[temp_r23];
-                                                temp_r30->unk2C = &sp14C8[temp_r23];
-                                                temp_r23++;
+                                                boardEvents[eventCount].eventType = followingNode->objectKind;
+                                                boardEvents[eventCount].playerValues[0]
+                                                    = (followingNode->playerScores[0] > relatedNode->playerScores[0]) ? followingNode->playerScores[0] : relatedNode->playerScores[0];
+                                                boardEvents[eventCount].playerValues[1]
+                                                    = (followingNode->playerScores[1] > relatedNode->playerScores[1]) ? followingNode->playerScores[1] : relatedNode->playerScores[1];
+                                                boardEvents[eventCount].playerValues[2]
+                                                    = (followingNode->playerScores[2] > relatedNode->playerScores[2]) ? followingNode->playerScores[2] : relatedNode->playerScores[2];
+                                                boardEvents[eventCount].playerValues[3]
+                                                    = (followingNode->playerScores[3] > relatedNode->playerScores[3]) ? followingNode->playerScores[3] : relatedNode->playerScores[3];
+                                                boardEvents[eventCount].nodeCount = 2;
+                                                boardEvents[eventCount].playerMask = (followingNode->playerMask | relatedNode->playerMask);
+                                                boardEvents[eventCount].firstNode = followingNode;
+                                                boardEvents[eventCount].secondNode = relatedNode;
+                                                boardEvents[eventCount].nextEvent = NULL;
+                                                followingNode->nextGroupNode = NULL;
+                                                followingNode->nextChainNode = relatedNode;
+                                                relatedNode->nextGroupNode = followingNode;
+                                                relatedNode->nextChainNode = NULL;
+                                                followingNode->associatedObject = &boardEvents[eventCount];
+                                                relatedNode->associatedObject = &boardEvents[eventCount];
+                                                eventCount++;
                                             }
                                         }
                                     }
@@ -1242,633 +1242,633 @@ void fn_1_52A4(s32 arg0)
                 }
             }
         }
-        for (temp_r29 = 0; temp_r29 < temp_r23; temp_r29++) {
-            StructBss2A6C *sp18C;
-            if (sp14C8[temp_r29].unk0 != 5) {
+        for (eventIndex = 0; eventIndex < eventCount; eventIndex++) {
+            BoardNode *eventNode;
+            if (boardEvents[eventIndex].eventType != 5) {
                 continue;
             }
-            sp18C = sp14C8[temp_r29].unk14;
-            for (temp_r19 = 0; temp_r19 < sp14C8[temp_r29].unk1; temp_r19++) {
-                s32 temp_r24 = sp18C->unk18 + 1;
-                s32 temp_r25 = (int)sp18C->unk1C.y + 1;
-                if (sp14C8[temp_r29].unk0 != 0 && temp_r25 <= 9) {
-                    if (!CHECK_2E48(temp_r24, temp_r25, sp2E48)) {
-                        sp14C8[temp_r29].unk0 = 0;
+            eventNode = boardEvents[eventIndex].firstNode;
+            for (scanIndex = 0; scanIndex < boardEvents[eventIndex].nodeCount; scanIndex++) {
+                s32 nodeLane = eventNode->laneIndex + 1;
+                s32 nodeRow = (int)eventNode->position.y + 1;
+                if (boardEvents[eventIndex].eventType != 0 && nodeRow <= 9) {
+                    if (!CHECK_2E48(nodeLane, nodeRow, boardGrid)) {
+                        boardEvents[eventIndex].eventType = 0;
                     }
                     else {
-                        sp14C8[temp_r29].unk2 |= ((sp2E48[temp_r24 - 1][temp_r25]) ? sp2E48[temp_r24 - 1][temp_r25]->unk3 : 0)
-                            | ((sp2E48[temp_r24 + 1][temp_r25]) ? sp2E48[temp_r24 + 1][temp_r25]->unk3 : 0)
-                            | ((sp2E48[temp_r24][temp_r25 - 1]) ? sp2E48[temp_r24][temp_r25 - 1]->unk3 : 0)
-                            | ((sp2E48[temp_r24][temp_r25 + 1]) ? sp2E48[temp_r24][temp_r25 + 1]->unk3 : 0)
-                            | ((sp2E48[temp_r24 + 1][temp_r25 - 1]) ? sp2E48[temp_r24 + 1][temp_r25 - 1]->unk3 : 0)
-                            | ((sp2E48[temp_r24 + 1][temp_r25 + 1]) ? sp2E48[temp_r24 + 1][temp_r25 + 1]->unk3 : 0)
-                            | ((sp2E48[temp_r24 - 1][temp_r25 - 1]) ? sp2E48[temp_r24 - 1][temp_r25 - 1]->unk3 : 0)
-                            | ((sp2E48[temp_r24 - 1][temp_r25 + 1]) ? sp2E48[temp_r24 - 1][temp_r25 + 1]->unk3 : 0);
+                        boardEvents[eventIndex].playerMask |= ((boardGrid[nodeLane - 1][nodeRow]) ? boardGrid[nodeLane - 1][nodeRow]->playerMask : 0)
+                            | ((boardGrid[nodeLane + 1][nodeRow]) ? boardGrid[nodeLane + 1][nodeRow]->playerMask : 0)
+                            | ((boardGrid[nodeLane][nodeRow - 1]) ? boardGrid[nodeLane][nodeRow - 1]->playerMask : 0)
+                            | ((boardGrid[nodeLane][nodeRow + 1]) ? boardGrid[nodeLane][nodeRow + 1]->playerMask : 0)
+                            | ((boardGrid[nodeLane + 1][nodeRow - 1]) ? boardGrid[nodeLane + 1][nodeRow - 1]->playerMask : 0)
+                            | ((boardGrid[nodeLane + 1][nodeRow + 1]) ? boardGrid[nodeLane + 1][nodeRow + 1]->playerMask : 0)
+                            | ((boardGrid[nodeLane - 1][nodeRow - 1]) ? boardGrid[nodeLane - 1][nodeRow - 1]->playerMask : 0)
+                            | ((boardGrid[nodeLane - 1][nodeRow + 1]) ? boardGrid[nodeLane - 1][nodeRow + 1]->playerMask : 0);
                     }
-                    sp18C = sp18C->unk34;
-                    if (!sp18C) {
+                    eventNode = eventNode->nextChainNode;
+                    if (!eventNode) {
                         break;
                     }
                 }
             }
         }
-        for (temp_r29 = 0; temp_r29 < temp_r23; temp_r29++) {
-            if ((sp14C8[temp_r29].unk0 >= 1 && sp14C8[temp_r29].unk0 <= 4 && sp14C8[temp_r29].unk1 >= 3) || sp14C8[temp_r29].unk0 == 5) {
-                fn_1_38C(&sp14C8[temp_r29].unk2, sp14C8[temp_r29].unk4);
+        for (eventIndex = 0; eventIndex < eventCount; eventIndex++) {
+            if ((boardEvents[eventIndex].eventType >= 1 && boardEvents[eventIndex].eventType <= 4 && boardEvents[eventIndex].nodeCount >= 3) || boardEvents[eventIndex].eventType == 5) {
+                SelectRandomPlayerFromMask(&boardEvents[eventIndex].playerMask, boardEvents[eventIndex].playerValues);
             }
         }
-        sp1B4 = 1;
-        while (sp1B4 >= 0) {
-            s32 temp_r22 = 0;
-            s32 sp188 = 0;
-            for (temp_r29 = 0; temp_r29 < temp_r23; temp_r29++) {
-                if ((!sp1B4 && (sp14C8[temp_r29].unk0 >= 1 && sp14C8[temp_r29].unk0 <= 4 && sp14C8[temp_r29].unk1 >= 3))
-                    || (sp1B4 == 1 && sp14C8[temp_r29].unk0 == 5)) {
-                    StructBss2A6C *temp_r26 = sp14C8[temp_r29].unk14;
-                    s32 sp184 = 0;
-                    s32 sp180 = 0;
-                    float temp_f31 = -1;
-                    float temp_f30 = -1;
-                    if (sp14C8[temp_r29].unk0 == 5) {
-                        lbl_1_bss_D0++;
-                        lbl_1_bss_D0 %= 5;
-                        lbl_1_bss_D4[lbl_1_bss_D0][1] = 1;
-                        lbl_1_bss_D4[lbl_1_bss_D0][0] = 0;
-                        for (temp_r19 = 0; temp_r19 < 10; temp_r19++) {
-                            Hu3DModelAttrSet(lbl_1_bss_30->mdlId[((lbl_1_bss_D0 * 10) + 13 + temp_r19)], HU3D_ATTR_DISPOFF);
+        eventPass = 1;
+        while (eventPass >= 0) {
+            s32 eventNodeIndex = 0;
+            s32 eventNodeCount = 0;
+            for (eventIndex = 0; eventIndex < eventCount; eventIndex++) {
+                if ((!eventPass && (boardEvents[eventIndex].eventType >= 1 && boardEvents[eventIndex].eventType <= 4 && boardEvents[eventIndex].nodeCount >= 3))
+                    || (eventPass == 1 && boardEvents[eventIndex].eventType == 5)) {
+                    BoardNode *eventNode = boardEvents[eventIndex].firstNode;
+                    s32 laneScanStart = 0;
+                    s32 laneScanCount = 0;
+                    float animationProgress = -1;
+                    float verticalVelocity = -1;
+                    if (boardEvents[eventIndex].eventType == 5) {
+                        playerModelHiddenCount++;
+                        playerModelHiddenCount %= 5;
+                        playerModelHideTimers[playerModelHiddenCount][1] = 1;
+                        playerModelHideTimers[playerModelHiddenCount][0] = 0;
+                        for (scanIndex = 0; scanIndex < 10; scanIndex++) {
+                            Hu3DModelAttrSet(boardObject->mdlId[((playerModelHiddenCount * 10) + 13 + scanIndex)], HU3D_ATTR_DISPOFF);
                         }
                     }
-                    for (temp_r19 = 0; temp_r19 < sp14C8[temp_r29].unk1; temp_r19++) {
-                        if (-1.0f == temp_f31) {
-                            sp180 = 1;
-                            temp_f31 = temp_r26->unk18;
-                            temp_f30 = temp_r26->unk1C.y;
+                    for (scanIndex = 0; scanIndex < boardEvents[eventIndex].nodeCount; scanIndex++) {
+                        if (-1.0f == animationProgress) {
+                            laneScanCount = 1;
+                            animationProgress = eventNode->laneIndex;
+                            verticalVelocity = eventNode->position.y;
                         }
                         else {
-                            sp180++;
-                            temp_f31 = (temp_f31 * (1.0 - (1.0 / sp180))) + (temp_r26->unk18 * (1.0 / sp180));
-                            temp_f30 = (temp_f30 * (1.0 - (1.0 / sp180))) + (temp_r26->unk1C.y * (1.0 / sp180));
+                            laneScanCount++;
+                            animationProgress = (animationProgress * (1.0 - (1.0 / laneScanCount))) + (eventNode->laneIndex * (1.0 / laneScanCount));
+                            verticalVelocity = (verticalVelocity * (1.0 - (1.0 / laneScanCount))) + (eventNode->position.y * (1.0 / laneScanCount));
                         }
-                        if (sp14C8[temp_r29].unk0 == 5) {
-                            if (lbl_1_bss_D4[lbl_1_bss_D0][0] < 10) {
-                                Hu3DModelPosSet(lbl_1_bss_30->mdlId[((lbl_1_bss_D0 * 10) + 13 + lbl_1_bss_D4[lbl_1_bss_D0][0])],
-                                    (((temp_r26->unk18 * 100) - 500.0) - 50.0), 50.0f + ((100.0f * temp_r26->unk1C.y) - 500.0f), 120);
+                        if (boardEvents[eventIndex].eventType == 5) {
+                            if (playerModelHideTimers[playerModelHiddenCount][0] < 10) {
+                                Hu3DModelPosSet(boardObject->mdlId[((playerModelHiddenCount * 10) + 13 + playerModelHideTimers[playerModelHiddenCount][0])],
+                                    (((eventNode->laneIndex * 100) - 500.0) - 50.0), 50.0f + ((100.0f * eventNode->position.y) - 500.0f), 120);
                                 Hu3DModelAttrReset(
-                                    lbl_1_bss_30->mdlId[((lbl_1_bss_D0 * 10) + 13 + lbl_1_bss_D4[lbl_1_bss_D0][0])], HU3D_ATTR_DISPOFF);
-                                Hu3DMotionTimeSet(lbl_1_bss_30->mdlId[((lbl_1_bss_D0 * 10) + 13 + lbl_1_bss_D4[lbl_1_bss_D0][0])], 2.0f);
-                                lbl_1_bss_D4[lbl_1_bss_D0][0]++;
-                                lbl_1_bss_B8.unk4 += 4;
-                                if (lbl_1_bss_D4[lbl_1_bss_D0][0] == 1) {
-                                    lbl_1_bss_B8.unk4 += 7;
+                                    boardObject->mdlId[((playerModelHiddenCount * 10) + 13 + playerModelHideTimers[playerModelHiddenCount][0])], HU3D_ATTR_DISPOFF);
+                                Hu3DMotionTimeSet(boardObject->mdlId[((playerModelHiddenCount * 10) + 13 + playerModelHideTimers[playerModelHiddenCount][0])], 2.0f);
+                                playerModelHideTimers[playerModelHiddenCount][0]++;
+                                cameraShakeState.shakeAmplitude += 4;
+                                if (playerModelHideTimers[playerModelHiddenCount][0] == 1) {
+                                    cameraShakeState.shakeAmplitude += 7;
                                 }
                             }
-                            fn_1_8AC8(temp_r26->unk38, &sp14C8[temp_r29]);
-                            fn_1_8AC8((temp_r26->unk44 && temp_r26->unk44->unk38) ? temp_r26->unk44->unk38 : temp_r26->unk44, &sp14C8[temp_r29]);
-                            fn_1_8AC8((temp_r26->unk40 && temp_r26->unk40->unk38) ? temp_r26->unk40->unk38 : temp_r26->unk40, &sp14C8[temp_r29]);
-                            spD58[temp_r22] = temp_r26->unk38;
-                            temp_r22++;
-                            spD58[temp_r22] = temp_r26->unk3C;
-                            temp_r22++;
-                            if (temp_r26->unk44) {
-                                spD58[temp_r22] = temp_r26->unk44->unk38;
-                                temp_r22++;
-                                spD58[temp_r22] = temp_r26->unk44->unk3C;
-                                temp_r22++;
+                            PropagateChainScore(eventNode->pairedNodeLeft, &boardEvents[eventIndex]);
+                            PropagateChainScore((eventNode->pairedNodeUpper && eventNode->pairedNodeUpper->pairedNodeLeft) ? eventNode->pairedNodeUpper->pairedNodeLeft : eventNode->pairedNodeUpper, &boardEvents[eventIndex]);
+                            PropagateChainScore((eventNode->pairedNodeLower && eventNode->pairedNodeLower->pairedNodeLeft) ? eventNode->pairedNodeLower->pairedNodeLeft : eventNode->pairedNodeLower, &boardEvents[eventIndex]);
+                            removedNodes[eventNodeIndex] = eventNode->pairedNodeLeft;
+                            eventNodeIndex++;
+                            removedNodes[eventNodeIndex] = eventNode->pairedNodeRight;
+                            eventNodeIndex++;
+                            if (eventNode->pairedNodeUpper) {
+                                removedNodes[eventNodeIndex] = eventNode->pairedNodeUpper->pairedNodeLeft;
+                                eventNodeIndex++;
+                                removedNodes[eventNodeIndex] = eventNode->pairedNodeUpper->pairedNodeRight;
+                                eventNodeIndex++;
                             }
-                            spD58[temp_r22] = temp_r26->unk44;
-                            temp_r22++;
-                            if (temp_r26->unk40) {
-                                spD58[temp_r22] = temp_r26->unk40->unk38;
-                                temp_r22++;
-                                spD58[temp_r22] = temp_r26->unk40->unk3C;
-                                temp_r22++;
+                            removedNodes[eventNodeIndex] = eventNode->pairedNodeUpper;
+                            eventNodeIndex++;
+                            if (eventNode->pairedNodeLower) {
+                                removedNodes[eventNodeIndex] = eventNode->pairedNodeLower->pairedNodeLeft;
+                                eventNodeIndex++;
+                                removedNodes[eventNodeIndex] = eventNode->pairedNodeLower->pairedNodeRight;
+                                eventNodeIndex++;
                             }
-                            spD58[temp_r22] = temp_r26->unk40;
-                            temp_r22++;
-                            spD58[temp_r22] = temp_r26;
-                            temp_r22++;
+                            removedNodes[eventNodeIndex] = eventNode->pairedNodeLower;
+                            eventNodeIndex++;
+                            removedNodes[eventNodeIndex] = eventNode;
+                            eventNodeIndex++;
                         }
                         else {
-                            fn_1_8AC8(temp_r26, &sp14C8[temp_r29]);
-                            sp184 += fn_1_7F8(temp_r26, &sp14C8[temp_r29]);
+                            PropagateChainScore(eventNode, &boardEvents[eventIndex]);
+                            laneScanStart += RemoveBoardNodeAndScore(eventNode, &boardEvents[eventIndex]);
                         }
-                        temp_r26 = temp_r26->unk34;
-                        if (!temp_r26) {
+                        eventNode = eventNode->nextChainNode;
+                        if (!eventNode) {
                             break;
                         }
                     }
-                    if (sp14C8[temp_r29].unk0 == 5 && (sp14C8[temp_r29].unk2 & 0xF)) {
-                        Work19C8 *sp220[4];
-                        s32 sp17C;
-                        for (sp17C = 0; sp17C < 4; sp17C++) {
-                            if ((1 << sp17C) & (sp14C8[temp_r29].unk2)) {
-                                sp220[sp17C] = lbl_1_bss_34[sp17C]->data;
-                                omVibrate(sp220[sp17C]->unk14, 12, 6, 6);
+                    if (boardEvents[eventIndex].eventType == 5 && (boardEvents[eventIndex].playerMask & 0xF)) {
+                        PlayerWork *playerWork[4];
+                        s32 playerIndex;
+                        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                            if ((1 << playerIndex) & (boardEvents[eventIndex].playerMask)) {
+                                playerWork[playerIndex] = playerObjects[playerIndex]->data;
+                                omVibrate(playerWork[playerIndex]->playerIndex, 12, 6, 6);
                             }
                         }
                     }
-                    if (lbl_1_bss_48[(sp14C8[temp_r29].unk0 == 5) ? 0 : 1].unk0 < 3) {
-                        lbl_1_bss_48[(sp14C8[temp_r29].unk0 == 5) ? 0 : 1].unk4[lbl_1_bss_48[(sp14C8[temp_r29].unk0 == 5) ? 0 : 1].unk0]
-                            = 0.45 * (((temp_f31 - 5.0) - 0.5) / 5.5);
-                        lbl_1_bss_48[(sp14C8[temp_r29].unk0 == 5) ? 0 : 1].unk0++;
+                    if (pendingVoiceEvents[(boardEvents[eventIndex].queuedSoundCount == 5) ? 0 : 1].queuedSoundCount < 3) {
+                        pendingVoiceEvents[(boardEvents[eventIndex].queuedSoundCount == 5) ? 0 : 1].queuedPanValues[pendingVoiceEvents[(boardEvents[eventIndex].queuedSoundCount == 5) ? 0 : 1].queuedSoundCount]
+                            = 0.45 * (((animationProgress - 5.0) - 0.5) / 5.5);
+                        pendingVoiceEvents[(boardEvents[eventIndex].queuedSoundCount == 5) ? 0 : 1].queuedSoundCount++;
                     }
-                    if (sp1B4 == 0 && sp184 > 0 && lbl_1_bss_18 == -1) {
-                        s32 sp178 = 0;
-                        s32 sp174 = fn_1_4C0(&sp14C8[temp_r29].unk2, sp14C8[temp_r29].unk4);
-                        Vec sp214 = { 0, 0, 50 };
-                        s32 temp_r17;
-                        for (temp_r17 = 0; temp_r17 < 4; temp_r17++) {
-                            sp178 += ((1 << temp_r17) != 0) & sp14C8[temp_r29].unk2;
+                    if (eventPass == 0 && laneScanStart > 0 && winningPlayer == -1) {
+                        s32 playerCount = 0;
+                        s32 voicePlayerIndex = GetRandomSelectedPlayerValue(&boardEvents[eventIndex].playerMask, boardEvents[eventIndex].playerValues);
+                        Vec popupWorldPosition = { 0, 0, 50 };
+                        s32 playerIndex;
+                        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                            playerCount += ((1 << playerIndex) != 0) & boardEvents[eventIndex].playerMask;
                         }
-                        sp178--;
-                        sp214.x = (100.0f * temp_f31) - 500.0;
-                        sp214.y = 100 + ((100 * temp_f30) - 500);
-                        sp214.x += sp178 * 12;
-                        sp214.y -= sp178 * 30;
-                        for (temp_r17 = 3; temp_r17 >= 0; temp_r17--) {
-                            if ((1 << temp_r17) & sp14C8[temp_r29].unk2) {
-                                Vec sp208;
-                                lbl_1_bss_2684[lbl_1_bss_2680].unkC = 1;
-                                lbl_1_bss_2684[lbl_1_bss_2680].unk8 = sp184;
-                                lbl_1_bss_2684[lbl_1_bss_2680].unk10 = 1 << temp_r17;
-                                Hu3D3Dto2D(&sp214, 1, &sp208);
-                                lbl_1_bss_2684[lbl_1_bss_2680].unk0 = sp208.x;
-                                lbl_1_bss_2684[lbl_1_bss_2680].unk4 = sp208.y;
-                                lbl_1_bss_2680++;
-                                lbl_1_bss_2680 %= 50;
-                                sp214.x -= 24.0f;
-                                sp214.y += 60.0f;
+                        playerCount--;
+                        popupWorldPosition.x = (100.0f * animationProgress) - 500.0;
+                        popupWorldPosition.y = 100 + ((100 * verticalVelocity) - 500);
+                        popupWorldPosition.x += playerCount * 12;
+                        popupWorldPosition.y -= playerCount * 30;
+                        for (playerIndex = 3; playerIndex >= 0; playerIndex--) {
+                            if ((1 << playerIndex) & boardEvents[eventIndex].playerMask) {
+                                Vec popupScreenPosition;
+                                scorePopupPool[scorePopupHead].lifetimeFrames = 1;
+                                scorePopupPool[scorePopupHead].scoreValue = laneScanStart;
+                                scorePopupPool[scorePopupHead].playerMask = 1 << playerIndex;
+                                Hu3D3Dto2D(&popupWorldPosition, 1, &popupScreenPosition);
+                                scorePopupPool[scorePopupHead].screenX = popupScreenPosition.x;
+                                scorePopupPool[scorePopupHead].screenY = popupScreenPosition.y;
+                                scorePopupHead++;
+                                scorePopupHead %= 50;
+                                popupWorldPosition.x -= 24.0f;
+                                popupWorldPosition.y += 60.0f;
                             }
                         }
-                        sp174 = (sp174 > 3) ? 3 : sp174;
-                        if (lbl_1_bss_48[sp174 + 3].unk0 < 3) {
-                            lbl_1_bss_48[sp174 + 3].unk4[lbl_1_bss_48[sp174 + 3].unk0] = 0.45 * (((temp_f31 - 5.0) - 0.5) / 5.5);
-                            lbl_1_bss_48[sp174 + 3].unk0++;
+                        voicePlayerIndex = (voicePlayerIndex > 3) ? 3 : voicePlayerIndex;
+                        if (pendingVoiceEvents[voicePlayerIndex + 3].queuedSoundCount < 3) {
+                            pendingVoiceEvents[voicePlayerIndex + 3].queuedPanValues[pendingVoiceEvents[voicePlayerIndex + 3].queuedSoundCount] = 0.45 * (((animationProgress - 5.0) - 0.5) / 5.5);
+                            pendingVoiceEvents[voicePlayerIndex + 3].queuedSoundCount++;
                         }
                     }
-                    spA28[sp188] = &sp14C8[temp_r29];
-                    sp230[sp188] = temp_r22;
-                    sp6F8[sp188] = temp_f31;
-                    sp3C8[sp188] = temp_f30;
-                    sp188++;
+                    activeEvents[eventNodeCount] = &boardEvents[eventIndex];
+                    eventNodeCounts[eventNodeCount] = eventNodeIndex;
+                    eventLanePositions[eventNodeCount] = animationProgress;
+                    eventRowPositions[eventNodeCount] = verticalVelocity;
+                    eventNodeCount++;
                 }
             }
-            for (temp_r29 = 0; temp_r29 < sp188; temp_r29++) {
-                s32 sp170 = 0;
+            for (eventIndex = 0; eventIndex < eventNodeCount; eventIndex++) {
+                s32 removedScore = 0;
 
-                for (temp_r19 = (temp_r29 < 1) ? 0 : sp230[temp_r29 - 1]; temp_r19 < sp230[temp_r29]; temp_r19++) {
-                    sp170 += fn_1_7F8(spD58[temp_r19], spA28[temp_r29]);
+                for (scanIndex = (eventIndex < 1) ? 0 : eventNodeCounts[eventIndex - 1]; scanIndex < eventNodeCounts[eventIndex]; scanIndex++) {
+                    removedScore += RemoveBoardNodeAndScore(removedNodes[scanIndex], activeEvents[eventIndex]);
                 }
-                if (sp1B4 == 1 && sp170 > 0 && lbl_1_bss_18 == -1) {
-                    s32 sp16C;
-                    s32 sp168 = 0;
-                    s32 sp164 = fn_1_4C0(&spA28[temp_r29]->unk2, spA28[temp_r29]->unk4);
-                    Vec sp1FC = { 0, 0, 50 };
-                    for (sp16C = 0; sp16C < 4; sp16C++) {
-                        sp168 += ((1 << sp16C) != 0) & spA28[temp_r29]->unk2;
+                if (eventPass == 1 && removedScore > 0 && winningPlayer == -1) {
+                    s32 playerIndex;
+                    s32 playerCount = 0;
+                    s32 voicePlayerIndex = GetRandomSelectedPlayerValue(&activeEvents[eventIndex]->ownerGroup, activeEvents[eventIndex]->pathId);
+                    Vec popupWorldPosition = { 0, 0, 50 };
+                    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                        playerCount += ((1 << playerIndex) != 0) & activeEvents[eventIndex]->ownerGroup;
                     }
-                    sp168--;
-                    sp1FC.x = (100.0f * sp6F8[temp_r29]) - 500.0;
-                    sp1FC.y = 100 + ((100 * sp3C8[temp_r29]) - 500);
-                    sp1FC.x += sp168 * 12;
-                    sp1FC.y -= sp168 * 30;
-                    for (sp16C = 3; sp16C >= 0; sp16C--) {
-                        if ((1 << sp16C) & spA28[temp_r29]->unk2) {
-                            Vec sp1F0;
-                            lbl_1_bss_2684[lbl_1_bss_2680].unkC = 1;
-                            lbl_1_bss_2684[lbl_1_bss_2680].unk8 = sp170;
-                            lbl_1_bss_2684[lbl_1_bss_2680].unk10 = 1 << sp16C;
-                            Hu3D3Dto2D(&sp1FC, 1, &sp1F0);
-                            lbl_1_bss_2684[lbl_1_bss_2680].unk0 = sp1F0.x;
-                            lbl_1_bss_2684[lbl_1_bss_2680].unk4 = sp1F0.y;
-                            lbl_1_bss_2680++;
-                            lbl_1_bss_2680 %= 50;
-                            sp1FC.x -= 24.0f;
-                            sp1FC.y += 60.0f;
+                    playerCount--;
+                    popupWorldPosition.x = (100.0f * eventLanePositions[eventIndex]) - 500.0;
+                    popupWorldPosition.y = 100 + ((100 * eventRowPositions[eventIndex]) - 500);
+                    popupWorldPosition.x += playerCount * 12;
+                    popupWorldPosition.y -= playerCount * 30;
+                    for (playerIndex = 3; playerIndex >= 0; playerIndex--) {
+                        if ((1 << playerIndex) & activeEvents[eventIndex]->ownerGroup) {
+                            Vec popupScreenPosition;
+                            scorePopupPool[scorePopupHead].lifetimeFrames = 1;
+                            scorePopupPool[scorePopupHead].scoreValue = removedScore;
+                            scorePopupPool[scorePopupHead].playerMask = 1 << playerIndex;
+                            Hu3D3Dto2D(&popupWorldPosition, 1, &popupScreenPosition);
+                            scorePopupPool[scorePopupHead].screenX = popupScreenPosition.x;
+                            scorePopupPool[scorePopupHead].screenY = popupScreenPosition.y;
+                            scorePopupHead++;
+                            scorePopupHead %= 50;
+                            popupWorldPosition.x -= 24.0f;
+                            popupWorldPosition.y += 60.0f;
                         }
                     }
-                    sp164 = (sp164 > 3) ? 3 : sp164;
-                    if (lbl_1_bss_48[sp164 + 3].unk0 < 3) {
-                        lbl_1_bss_48[sp164 + 3].unk4[lbl_1_bss_48[sp164 + 3].unk0] = 0.45 * (((sp6F8[temp_r29] - 5.0) - 0.5) / 5.5);
-                        lbl_1_bss_48[sp164 + 3].unk0++;
+                    voicePlayerIndex = (voicePlayerIndex > 3) ? 3 : voicePlayerIndex;
+                    if (pendingVoiceEvents[voicePlayerIndex + 3].queuedSoundCount < 3) {
+                        pendingVoiceEvents[voicePlayerIndex + 3].queuedPanValues[pendingVoiceEvents[voicePlayerIndex + 3].queuedSoundCount] = 0.45 * (((eventLanePositions[eventIndex] - 5.0) - 0.5) / 5.5);
+                        pendingVoiceEvents[voicePlayerIndex + 3].queuedSoundCount++;
                     }
                 }
             }
-            sp1B4--;
+            eventPass--;
         }
     }
 }
 #undef CHECK_2E48
 
-void fn_1_8AC8(StructBss2A6C *arg0, StructSp14C8 *arg1)
+void PropagateChainScore(BoardNode *node, BoardEvent *event)
 {
-    StructBss2A6C *temp_r31 = arg0;
-    if (!arg0) {
+    BoardNode *followingChainNode = node;
+    if (!node) {
         return;
     }
-    if (arg0->unk0 == 0) {
+    if (node->objectKind == 0) {
         return;
     }
-    while (temp_r31->unk48) {
-        if (!temp_r31->unk48->unk0 || (temp_r31->unk48->unk1 & 0x1) == 0 || temp_r31->unk48->unk1C.y != temp_r31->unk1C.y + 1.0f) {
+    while (followingChainNode->nextLaneNode) {
+        if (!followingChainNode->nextLaneNode->objectKind || (followingChainNode->nextLaneNode->stateFlags & 0x1) == 0 || followingChainNode->nextLaneNode->position.y != followingChainNode->position.y + 1.0f) {
             break;
         }
-        temp_r31 = temp_r31->unk48;
-        temp_r31->unk8[0] = arg1->unk4[0] + ((arg1->unk2 & 0x1) ? 1 : 0);
-        temp_r31->unk8[1] = arg1->unk4[1] + ((arg1->unk2 & 0x2) ? 1 : 0);
-        temp_r31->unk8[2] = arg1->unk4[2] + ((arg1->unk2 & 0x4) ? 1 : 0);
-        temp_r31->unk8[3] = arg1->unk4[3] + ((arg1->unk2 & 0x8) ? 1 : 0);
-        temp_r31->unk3 = arg1->unk2;
+        followingChainNode = followingChainNode->nextLaneNode;
+        followingChainNode->playerScores[0] = event->playerValues[0] + ((event->playerMask & 0x1) ? 1 : 0);
+        followingChainNode->playerScores[1] = event->playerValues[1] + ((event->playerMask & 0x2) ? 1 : 0);
+        followingChainNode->playerScores[2] = event->playerValues[2] + ((event->playerMask & 0x4) ? 1 : 0);
+        followingChainNode->playerScores[3] = event->playerValues[3] + ((event->playerMask & 0x8) ? 1 : 0);
+        followingChainNode->playerMask = event->playerMask;
     }
 }
 
-void fn_1_8C10(OMOBJ *object)
+void UpdateGameplaySequence(OMOBJ *object)
 {
-    s32 temp_r31;
-    s32 temp_r30;
+    s32 playerIndex;
+    s32 digitIndex;
 
-    Work19C8 *sp88[4];
-    lbl_1_bss_4++;
+    PlayerWork *playerStates[4];
+    frameCounter++;
     {
-        s32 temp_r23;
-        for (temp_r23 = 0; temp_r23 < 4; temp_r23++) {
-            fn_1_19C8(lbl_1_bss_34[temp_r23]);
-            fn_1_52A4(temp_r23);
+        s32 playerIndex;
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            UpdatePlayerObject(playerObjects[playerIndex]);
+            ResolveBoardMatches(playerIndex);
         }
     }
 
-    fn_1_52A4(4);
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        sp88[temp_r31] = lbl_1_bss_34[temp_r31]->data;
+    ResolveBoardMatches(4);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerStates[playerIndex] = playerObjects[playerIndex]->data;
     }
-    if (lbl_1_bss_18 == -1) {
-        if (sp88[0]->unk24 >= 100 || sp88[1]->unk24 >= 100 || sp88[2]->unk24 >= 100 || sp88[3]->unk24 >= 100) {
-            s32 sp78[4] = { 0, 1, 2, 3 };
-            for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                s32 temp_r22 = rand8() % 4;
-                if (sp88[temp_r22]->unk24 >= 100) {
-                    lbl_1_bss_18 = temp_r22;
-                    for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-                        if (temp_r30 != temp_r22) {
-                            if (sp88[temp_r30]->unk24 >= 100) {
-                                sp88[temp_r30]->unk24 = sp88[temp_r30]->unk28;
+    if (winningPlayer == -1) {
+        if (playerStates[0]->targetScore >= 100 || playerStates[1]->targetScore >= 100 || playerStates[2]->targetScore >= 100 || playerStates[3]->targetScore >= 100) {
+            s32 remainingPlayerOrder[4] = { 0, 1, 2, 3 };
+            for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                s32 randomPlayerIndex = rand8() % 4;
+                if (playerStates[randomPlayerIndex]->targetScore >= 100) {
+                    winningPlayer = randomPlayerIndex;
+                    for (digitIndex = 0; digitIndex < 4; digitIndex++) {
+                        if (digitIndex != randomPlayerIndex) {
+                            if (playerStates[digitIndex]->targetScore >= 100) {
+                                playerStates[digitIndex]->targetScore = playerStates[digitIndex]->previousScore;
                             }
                         }
                     }
                 }
                 else {
-                    for (temp_r30 = temp_r22; temp_r30 < 3 - temp_r31; temp_r30++) {
-                        sp78[temp_r30] = sp78[temp_r30 + 1];
+                    for (digitIndex = randomPlayerIndex; digitIndex < 3 - playerIndex; digitIndex++) {
+                        remainingPlayerOrder[digitIndex] = remainingPlayerOrder[digitIndex + 1];
                     }
                 }
             }
         }
     }
-    temp_r31 = (sp88[0]->unk79 != 0) + (sp88[1]->unk79 != 0) + (sp88[2]->unk79 != 0) + (sp88[3]->unk79 != 0);
-    if (lbl_1_bss_18 == -1 && temp_r31 == 3) {
-        for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-            if (!sp88[temp_r30]->unk78) {
-                lbl_1_bss_18 = temp_r30;
+    playerIndex = (playerStates[0]->turnComplete != 0) + (playerStates[1]->turnComplete != 0) + (playerStates[2]->turnComplete != 0) + (playerStates[3]->turnComplete != 0);
+    if (winningPlayer == -1 && playerIndex == 3) {
+        for (digitIndex = 0; digitIndex < 4; digitIndex++) {
+            if (!playerStates[digitIndex]->inputEnabled) {
+                winningPlayer = digitIndex;
             }
         }
     }
-    if (lbl_1_bss_18 == -1 && temp_r31 == 4) {
-        lbl_1_bss_18 = 4;
+    if (winningPlayer == -1 && playerIndex == 4) {
+        winningPlayer = 4;
     }
-    if (lbl_1_bss_18 != -1) {
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            if (sp88[temp_r31]->unk48[0]) {
-                sp88[temp_r31]->unk48[0]->unk1 &= ~0x2;
+    if (winningPlayer != -1) {
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            if (playerStates[playerIndex]->boardNodes[0]) {
+                playerStates[playerIndex]->boardNodes[0]->stateFlags &= ~0x2;
             }
-            if (sp88[temp_r31]->unk48[1]) {
-                sp88[temp_r31]->unk48[1]->unk1 &= ~0x2;
+            if (playerStates[playerIndex]->boardNodes[1]) {
+                playerStates[playerIndex]->boardNodes[1]->stateFlags &= ~0x2;
             }
-            sp88[temp_r31]->unk48[0] = NULL;
-            sp88[temp_r31]->unk48[1] = NULL;
+            playerStates[playerIndex]->boardNodes[0] = NULL;
+            playerStates[playerIndex]->boardNodes[1] = NULL;
         }
     }
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        sp88[temp_r31]->unk44 = (sp88[temp_r31]->unk40 == sp88[temp_r31]->unk24) ? sp88[temp_r31]->unk44 + 1 : 0;
-        sp88[temp_r31]->unk40 += (sp88[temp_r31]->unk40 < sp88[temp_r31]->unk24) ? 0.375 : 0;
-        sp88[temp_r31]->unk40 = (sp88[temp_r31]->unk40 > sp88[temp_r31]->unk24) ? (float)sp88[temp_r31]->unk24 : sp88[temp_r31]->unk40;
-        for (temp_r30 = 0; temp_r30 < 3; temp_r30++) {
-            float temp_f28 = sp88[temp_r31]->unk40;
-            float sp4C = (s32)(temp_f28 / 100.0f) % 10;
-            float temp_f22 = (s32)(temp_f28 / 10.0f) % 10;
-            float temp_f24 = ((s32)temp_f28) % 10;
-            float temp_f23 = temp_f28 - (s32)temp_f28;
-            float temp_f25 = (temp_r30 == 0) ? ((sp88[temp_r31]->unk24 / 100) % 10)
-                                             : ((temp_r30 == 1) ? ((sp88[temp_r31]->unk24 / 10) % 10) : sp88[temp_r31]->unk24 % 10);
-            s32 sp98[5] = { 0, 15, -9, 3, 0 };
-            switch (temp_r30) {
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerStates[playerIndex]->scoreHoldFrames = (playerStates[playerIndex]->displayedScore == playerStates[playerIndex]->targetScore) ? playerStates[playerIndex]->scoreHoldFrames + 1 : 0;
+        playerStates[playerIndex]->displayedScore += (playerStates[playerIndex]->displayedScore < playerStates[playerIndex]->targetScore) ? 0.375 : 0;
+        playerStates[playerIndex]->displayedScore = (playerStates[playerIndex]->displayedScore > playerStates[playerIndex]->targetScore) ? (float)playerStates[playerIndex]->targetScore : playerStates[playerIndex]->displayedScore;
+        for (digitIndex = 0; digitIndex < 3; digitIndex++) {
+            float animatedScore = playerStates[playerIndex]->displayedScore;
+            float hundredsDigit = (s32)(animatedScore / 100.0f) % 10;
+            float tensDigit = (s32)(animatedScore / 10.0f) % 10;
+            float onesDigit = ((s32)animatedScore) % 10;
+            float fractionalDigit = animatedScore - (s32)animatedScore;
+            float displayedDigit = (digitIndex == 0) ? ((playerStates[playerIndex]->targetScore / 100) % 10)
+                                             : ((digitIndex == 1) ? ((playerStates[playerIndex]->targetScore / 10) % 10) : playerStates[playerIndex]->targetScore % 10);
+            s32 digitOffsets[5] = { 0, 15, -9, 3, 0 };
+            switch (digitIndex) {
                 case 0:
-                    temp_f25 = sp4C + (temp_f23 * ((9.0f == temp_f24 && 9.0f == temp_f22) ? 1.0 : 0.0));
+                    displayedDigit = hundredsDigit + (fractionalDigit * ((9.0f == onesDigit && 9.0f == tensDigit) ? 1.0 : 0.0));
                     break;
 
                 case 1:
-                    temp_f25 = temp_f22 + (temp_f23 * ((9.0f == temp_f24) ? 1.0 : 0.0));
+                    displayedDigit = tensDigit + (fractionalDigit * ((9.0f == onesDigit) ? 1.0 : 0.0));
                     break;
 
                 case 2:
-                    temp_f25 = temp_f24 + temp_f23;
+                    displayedDigit = onesDigit + fractionalDigit;
                     break;
             }
-            Hu3DModelRotSet(lbl_1_bss_34[temp_r31]->mdlId[temp_r30 + 1], 36.0f * temp_f25, 0, 0);
+            Hu3DModelRotSet(playerObjects[playerIndex]->mdlId[digitIndex + 1], 36.0f * displayedDigit, 0, 0);
         }
     }
     {
-        s32 spAC[8][3] = { 255, 64, 64, 32, 192, 255, 255, 128, 255, 32, 208, 32, 224, 32, 224, 230, 128, 32, 255, 240, 32, 160, 160, 160 };
-        s32 temp_r29 = lbl_1_bss_2680;
-        s32 temp_r28 = 0;
-        Work19C8 *sp68[4];
-        for (temp_r28 = 0; temp_r28 < 4; temp_r28++) {
-            sp68[temp_r28] = lbl_1_bss_34[temp_r28]->data;
+        s32 playerColors[8][3] = { 255, 64, 64, 32, 192, 255, 255, 128, 255, 32, 208, 32, 224, 32, 224, 230, 128, 32, 255, 240, 32, 160, 160, 160 };
+        s32 soundHandle = scorePopupHead;
+        s32 spriteIndex = 0;
+        PlayerWork *playerStates[4];
+        for (spriteIndex = 0; spriteIndex < 4; spriteIndex++) {
+            playerStates[spriteIndex] = playerObjects[spriteIndex]->data;
         }
         do {
-            temp_r29--;
-            temp_r29 = (temp_r29 < 0) ? temp_r29 + 50 : temp_r29;
-            if (lbl_1_bss_2684[temp_r29].unkC == 0 || (lbl_1_bss_2684[temp_r29].unk10 & 0xF) == 0) {
-                HuSprAttrSet(lbl_1_bss_14, temp_r28, HUSPR_ATTR_DISPOFF);
+            soundHandle--;
+            soundHandle = (soundHandle < 0) ? soundHandle + 50 : soundHandle;
+            if (scorePopupPool[soundHandle].lifetimeFrames == 0 || (scorePopupPool[soundHandle].playerMask & 0xF) == 0) {
+                HuSprAttrSet(popupSpriteGroup, spriteIndex, HUSPR_ATTR_DISPOFF);
             }
             else {
-                s32 temp_r26 = 0;
-                u32 temp_r19;
-                s32 temp_r18;
+                s32 activePlayerCount = 0;
+                u32 playerCharacter;
+                s32 digitCount;
 
-                s32 temp_r24;
+                s32 glyphIndex;
 
-                s32 sp58[4];
-                temp_r18 = ((lbl_1_bss_2684[temp_r29].unk8 >= 10) ? 2 : 1) + 1;
-                if (lbl_1_bss_2684[temp_r29].unk10 & 0x1) {
-                    sp58[temp_r26] = 0;
-                    temp_r26++;
+                s32 activePlayerIndices[4];
+                digitCount = ((scorePopupPool[soundHandle].scoreValue >= 10) ? 2 : 1) + 1;
+                if (scorePopupPool[soundHandle].playerMask & 0x1) {
+                    activePlayerIndices[activePlayerCount] = 0;
+                    activePlayerCount++;
                 }
-                if (lbl_1_bss_2684[temp_r29].unk10 & 0x2) {
-                    sp58[temp_r26] = 1;
-                    temp_r26++;
+                if (scorePopupPool[soundHandle].playerMask & 0x2) {
+                    activePlayerIndices[activePlayerCount] = 1;
+                    activePlayerCount++;
                 }
-                if (lbl_1_bss_2684[temp_r29].unk10 & 0x4) {
-                    sp58[temp_r26] = 2;
-                    temp_r26++;
+                if (scorePopupPool[soundHandle].playerMask & 0x4) {
+                    activePlayerIndices[activePlayerCount] = 2;
+                    activePlayerCount++;
                 }
-                if (lbl_1_bss_2684[temp_r29].unk10 & 0x8) {
-                    sp58[temp_r26] = 3;
-                    temp_r26++;
+                if (scorePopupPool[soundHandle].playerMask & 0x8) {
+                    activePlayerIndices[activePlayerCount] = 3;
+                    activePlayerCount++;
                 }
-                temp_r19 = sp68[sp58[lbl_1_bss_4 % temp_r26]]->unk18;
-                for (temp_r24 = 0; temp_r24 < temp_r18; temp_r28++, temp_r24++) {
-                    HuSprPosSet(lbl_1_bss_14, temp_r28, (temp_r24 * 14) + (lbl_1_bss_2684[temp_r29].unk0 - ((temp_r18 * 14) / 2)),
-                        lbl_1_bss_2684[temp_r29].unk4 - lbl_1_bss_2684[temp_r29].unkC);
-                    HuSprAttrReset(lbl_1_bss_14, temp_r28, HUSPR_ATTR_DISPOFF);
-                    HuSprColorSet(lbl_1_bss_14, temp_r28, spAC[temp_r19][0], spAC[temp_r19][1], spAC[temp_r19][2]);
-                    HuSprTPLvlSet(lbl_1_bss_14, temp_r28,
-                        (lbl_1_bss_2684[temp_r29].unkC <= 30) ? 1.0f : (1.0f - ((lbl_1_bss_2684[temp_r29].unkC - 30) / 10.0f)));
-                    HuSprBankSet(lbl_1_bss_14, temp_r28,
-                        (temp_r24 == 0)
+                playerCharacter = playerStates[activePlayerIndices[frameCounter % activePlayerCount]]->laneIndex;
+                for (glyphIndex = 0; glyphIndex < digitCount; spriteIndex++, glyphIndex++) {
+                    HuSprPosSet(popupSpriteGroup, spriteIndex, (glyphIndex * 14) + (scorePopupPool[soundHandle].screenX - ((digitCount * 14) / 2)),
+                        scorePopupPool[soundHandle].screenY - scorePopupPool[soundHandle].lifetimeFrames);
+                    HuSprAttrReset(popupSpriteGroup, spriteIndex, HUSPR_ATTR_DISPOFF);
+                    HuSprColorSet(popupSpriteGroup, spriteIndex, playerColors[playerCharacter][0], playerColors[playerCharacter][1], playerColors[playerCharacter][2]);
+                    HuSprTPLvlSet(popupSpriteGroup, spriteIndex,
+                        (scorePopupPool[soundHandle].lifetimeFrames <= 30) ? 1.0f : (1.0f - ((scorePopupPool[soundHandle].lifetimeFrames - 30) / 10.0f)));
+                    HuSprBankSet(popupSpriteGroup, spriteIndex,
+                        (glyphIndex == 0)
                             ? 10
-                            : ((temp_r24 == 2 || temp_r18 == 2) ? lbl_1_bss_2684[temp_r29].unk8 % 10 : ((lbl_1_bss_2684[temp_r29].unk8 / 10) % 10)));
+                            : ((glyphIndex == 2 || digitCount == 2) ? scorePopupPool[soundHandle].scoreValue % 10 : ((scorePopupPool[soundHandle].scoreValue / 10) % 10)));
                 }
             }
-            lbl_1_bss_2684[temp_r29].unkC += lbl_1_bss_2684[temp_r29].unkC > 0;
-            if (lbl_1_bss_2684[temp_r29].unkC >= 40) {
-                lbl_1_bss_2684[temp_r29].unkC = 0;
+            scorePopupPool[soundHandle].lifetimeFrames += scorePopupPool[soundHandle].lifetimeFrames > 0;
+            if (scorePopupPool[soundHandle].lifetimeFrames >= 40) {
+                scorePopupPool[soundHandle].lifetimeFrames = 0;
             }
 
-        } while (temp_r29 != lbl_1_bss_2680);
-        for (; temp_r28 < 150; temp_r28++) {
-            HuSprAttrSet(lbl_1_bss_14, temp_r28, HUSPR_ATTR_DISPOFF);
+        } while (soundHandle != scorePopupHead);
+        for (; spriteIndex < 150; spriteIndex++) {
+            HuSprAttrSet(popupSpriteGroup, spriteIndex, HUSPR_ATTR_DISPOFF);
         }
     }
     {
-        s32 temp_r27 = lbl_1_bss_FC;
-        s32 temp_r25;
-        s32 temp_r17;
-        for (temp_r17 = 0; temp_r17 < 300; temp_r17++) {
-            temp_r27 = temp_r27 + 1;
-            temp_r27 %= 300;
-            if (!lbl_1_bss_100[temp_r27].unk0) {
+        s32 pieceCursor = fallingPieceHead;
+        s32 hideTimerIndex;
+        s32 particleIndex;
+        for (particleIndex = 0; particleIndex < 300; particleIndex++) {
+            pieceCursor = pieceCursor + 1;
+            pieceCursor %= 300;
+            if (!fallingPiecePool[pieceCursor].pieceType) {
                 continue;
             }
-            lbl_1_bss_100[temp_r27].unk4.x += lbl_1_bss_100[temp_r27].unk10.x;
-            lbl_1_bss_100[temp_r27].unk4.y += lbl_1_bss_100[temp_r27].unk10.y;
-            lbl_1_bss_100[temp_r27].unk4.z += lbl_1_bss_100[temp_r27].unk10.z;
-            lbl_1_bss_100[temp_r27].unk10.y += -1.5;
-            if (lbl_1_bss_100[temp_r27].unk4.y < -1000.0f) {
-                lbl_1_bss_100[temp_r27].unk0 = 0;
+            fallingPiecePool[pieceCursor].position.x += fallingPiecePool[pieceCursor].velocity.x;
+            fallingPiecePool[pieceCursor].position.y += fallingPiecePool[pieceCursor].velocity.y;
+            fallingPiecePool[pieceCursor].position.z += fallingPiecePool[pieceCursor].velocity.z;
+            fallingPiecePool[pieceCursor].velocity.y += -1.5;
+            if (fallingPiecePool[pieceCursor].position.y < -1000.0f) {
+                fallingPiecePool[pieceCursor].pieceType = 0;
             }
-            lbl_1_bss_100[temp_r27].unk1C += 9;
+            fallingPiecePool[pieceCursor].rotationPhase += 9;
         }
-        for (temp_r25 = 0; temp_r25 < 5; temp_r25++) {
-            if (lbl_1_bss_D4[temp_r25][0] > 0) {
-                lbl_1_bss_D4[temp_r25][1]++;
-                if (lbl_1_bss_D4[temp_r25][1] > 30) {
-                    s32 temp_r21;
-                    lbl_1_bss_D4[temp_r25][0] = 0;
-                    lbl_1_bss_D4[temp_r25][1] = 0;
-                    for (temp_r21 = 0; temp_r21 < 10; temp_r21++) {
-                        Hu3DModelAttrSet(object->mdlId[(temp_r25 * 10) + 13 + temp_r21], HU3D_ATTR_DISPOFF);
+        for (hideTimerIndex = 0; hideTimerIndex < 5; hideTimerIndex++) {
+            if (playerModelHideTimers[hideTimerIndex][0] > 0) {
+                playerModelHideTimers[hideTimerIndex][1]++;
+                if (playerModelHideTimers[hideTimerIndex][1] > 30) {
+                    s32 modelIndex;
+                    playerModelHideTimers[hideTimerIndex][0] = 0;
+                    playerModelHideTimers[hideTimerIndex][1] = 0;
+                    for (modelIndex = 0; modelIndex < 10; modelIndex++) {
+                        Hu3DModelAttrSet(object->mdlId[(hideTimerIndex * 10) + 13 + modelIndex], HU3D_ATTR_DISPOFF);
                     }
                 }
             }
         }
-        if (lbl_1_bss_44->work[0] >= 1002) {
-            float temp_f27 = 0;
-            float temp_f26 = 0;
-            if (lbl_1_bss_B8.unk0 % 2 >= 0) {
-                lbl_1_bss_B8.unk8 = lbl_1_bss_B8.unkC.y;
-                lbl_1_bss_B8.unkC.x = lbl_1_bss_B8.unkC.z;
+        if (mainSequenceObject->work[0] >= 1002) {
+            float cameraProgress = 0;
+            float cameraBlend = 0;
+            if (cameraShakeState.shakePhase % 2 >= 0) {
+                cameraShakeState.previousHorizontalOffset = cameraShakeState.shakeDirection.y;
+                cameraShakeState.shakeDirection.x = cameraShakeState.shakeDirection.z;
                 do {
-                    lbl_1_bss_B8.unkC.y = (2.0 * (rand8() / 255.0)) - 1.0;
-                    lbl_1_bss_B8.unkC.z = (2.0 * (rand8() / 255.0)) - 1.0;
-                    lbl_1_bss_B8.unkC.y = 0;
-                } while (VECMagPoint(lbl_1_bss_B8.unkC.y - lbl_1_bss_B8.unk8, lbl_1_bss_B8.unkC.z - lbl_1_bss_B8.unkC.x, 0) < 0.75);
+                    cameraShakeState.shakeDirection.y = (2.0 * (rand8() / 255.0)) - 1.0;
+                    cameraShakeState.shakeDirection.z = (2.0 * (rand8() / 255.0)) - 1.0;
+                    cameraShakeState.shakeDirection.y = 0;
+                } while (VECMagPoint(cameraShakeState.shakeDirection.y - cameraShakeState.previousHorizontalOffset, cameraShakeState.shakeDirection.z - cameraShakeState.shakeDirection.x, 0) < 0.75);
             }
-            temp_f27 = lbl_1_bss_B8.unk8;
-            temp_f26 = lbl_1_bss_B8.unkC.x;
-            temp_f27 *= lbl_1_bss_B8.unk4 * 2;
-            temp_f26 *= lbl_1_bss_B8.unk4 * 2;
-            lbl_1_bss_B8.unk0 = !lbl_1_bss_B8.unk0;
-            lbl_1_bss_B8.unk4 = (lbl_1_bss_B8.unk4 > 24) ? 23 : ((lbl_1_bss_B8.unk4 - 1 > 0) ? lbl_1_bss_B8.unk4 - 1 : 0);
-            Hu3DCameraPosSet(1, temp_f27, 37.139069 + temp_f26, 2599.7346f, 0, 1, 0, temp_f27, 50.0f + temp_f26, 0);
+            cameraProgress = cameraShakeState.previousHorizontalOffset;
+            cameraBlend = cameraShakeState.shakeDirection.x;
+            cameraProgress *= cameraShakeState.shakeAmplitude * 2;
+            cameraBlend *= cameraShakeState.shakeAmplitude * 2;
+            cameraShakeState.shakePhase = !cameraShakeState.shakePhase;
+            cameraShakeState.shakeAmplitude = (cameraShakeState.shakeAmplitude > 24) ? 23 : ((cameraShakeState.shakeAmplitude - 1 > 0) ? cameraShakeState.shakeAmplitude - 1 : 0);
+            Hu3DCameraPosSet(1, cameraProgress, 37.139069 + cameraBlend, 2599.7346f, 0, 1, 0, cameraProgress, 50.0f + cameraBlend, 0);
         }
-        if (lbl_1_bss_18 != -1) {
-            float temp_f30;
-            s32 temp_r20;
-            lbl_1_bss_10++;
-            temp_f30 = 1.0f - ((lbl_1_bss_10 > REFRESH_RATE * 3) ? 1.0f : (lbl_1_bss_10 / (REFRESH_RATE_F * 3)));
-            Hu3DMotionSpeedSet(lbl_1_bss_30->mdlId[0], 0.5 * temp_f30);
-            for (temp_r20 = 0; temp_r20 < 4; temp_r20++) {
-                Hu3DMotionSpeedSet(lbl_1_bss_34[temp_r20]->mdlId[5], 0.5 * temp_f30);
+        if (winningPlayer != -1) {
+            float cameraHorizontalOffset;
+            s32 soundIndex;
+            winnerSoundFadeTimer++;
+            cameraHorizontalOffset = 1.0f - ((winnerSoundFadeTimer > REFRESH_RATE * 3) ? 1.0f : (winnerSoundFadeTimer / (REFRESH_RATE_F * 3)));
+            Hu3DMotionSpeedSet(boardObject->mdlId[0], 0.5 * cameraHorizontalOffset);
+            for (soundIndex = 0; soundIndex < 4; soundIndex++) {
+                Hu3DMotionSpeedSet(playerObjects[soundIndex]->mdlId[5], 0.5 * cameraHorizontalOffset);
             }
-            if (temp_f30 > 0.0f && lbl_1_data_4[0] != -1) {
-                HuAudFXPitchSet(lbl_1_data_4[0], -8192.0f + (8192.0f * temp_f30));
-                HuAudFXPitchSet(lbl_1_data_4[1], -8192.0f + (8192.0f * temp_f30));
-                HuAudFXVolSet(lbl_1_data_4[0], 63.0f + (64.0f * temp_f30));
-                HuAudFXVolSet(lbl_1_data_4[1], 63.0f + (64.0f * temp_f30));
+            if (cameraHorizontalOffset > 0.0f && winnerSoundEffects[0] != -1) {
+                HuAudFXPitchSet(winnerSoundEffects[0], -8192.0f + (8192.0f * cameraHorizontalOffset));
+                HuAudFXPitchSet(winnerSoundEffects[1], -8192.0f + (8192.0f * cameraHorizontalOffset));
+                HuAudFXVolSet(winnerSoundEffects[0], 63.0f + (64.0f * cameraHorizontalOffset));
+                HuAudFXVolSet(winnerSoundEffects[1], 63.0f + (64.0f * cameraHorizontalOffset));
             }
             else {
-                if (lbl_1_data_4[0] != -1) {
-                    HuAudFXStop(lbl_1_data_4[0]);
-                    HuAudFXStop(lbl_1_data_4[1]);
-                    lbl_1_data_4[0] = lbl_1_data_4[1] = -1;
+                if (winnerSoundEffects[0] != -1) {
+                    HuAudFXStop(winnerSoundEffects[0]);
+                    HuAudFXStop(winnerSoundEffects[1]);
+                    winnerSoundEffects[0] = winnerSoundEffects[1] = -1;
                 }
             }
         }
     }
 }
 
-void fn_1_D700(OMOBJ *object);
+void UpdateCameraSequence(OMOBJ *object);
 
-void fn_1_A53C(OMOBJ *object)
+void UpdateBoardCamera(OMOBJ *object)
 {
-    Work19C8 *sp28[4];
-    s32 temp_r31;
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        sp28[temp_r31] = lbl_1_bss_34[temp_r31]->data;
+    PlayerWork *playerStates[4];
+    s32 playerIndex;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerStates[playerIndex] = playerObjects[playerIndex]->data;
     }
-    for (temp_r31 = 0; temp_r31 < 7; temp_r31++) {
-        s32 sp38[7] = { 1422, 1423, 1424, 1425, 1426, 1427, 1428 };
-        if (lbl_1_bss_48[temp_r31].unk0 > 3) {
-            lbl_1_bss_48[temp_r31].unk0 = 3;
+    for (playerIndex = 0; playerIndex < 7; playerIndex++) {
+        s32 voiceEffectIds[7] = { 1422, 1423, 1424, 1425, 1426, 1427, 1428 };
+        if (pendingVoiceEvents[playerIndex].queuedSoundCount > 3) {
+            pendingVoiceEvents[playerIndex].queuedSoundCount = 3;
         }
-        if (lbl_1_bss_48[temp_r31].unk0 > 0) {
-            s32 temp_r19 = HuAudFXPlay(sp38[temp_r31]);
-            HuAudFXPanning(temp_r19, 0.5 + ((63 * lbl_1_bss_48[temp_r31].unk4[lbl_1_bss_48[temp_r31].unk0 - 1]) + 64));
-            lbl_1_bss_48[temp_r31].unk0--;
+        if (pendingVoiceEvents[playerIndex].queuedSoundCount > 0) {
+            s32 voiceHandle = HuAudFXPlay(voiceEffectIds[playerIndex]);
+            HuAudFXPanning(voiceHandle, 0.5 + ((63 * pendingVoiceEvents[playerIndex].queuedPanValues[pendingVoiceEvents[playerIndex].queuedSoundCount - 1]) + 64));
+            pendingVoiceEvents[playerIndex].queuedSoundCount--;
         }
     }
     if (omSysExitReq && !WipeStatGet()) {
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-        object->objFunc = fn_1_D700;
+        object->objFunc = UpdateCameraSequence;
     }
     switch (object->work[0]) {
         case 1000:
             if (!WipeStatGet()) {
-                s32 temp_r29;
-                s32 temp_r28;
-                s32 temp_r27;
-                s32 temp_r26;
-                lbl_1_bss_2C++;
-                if (lbl_1_bss_2C == 10.0f) {
+                s32 brightness;
+                s32 playerIndex;
+                s32 motionIndex;
+                s32 playerIndex;
+                sequenceTimer++;
+                if (sequenceTimer == 10.0f) {
 #if VERSION_PAL
-                    lbl_1_bss_2C = 59.0f;
+                    sequenceTimer = 59.0f;
 #else
-                    lbl_1_bss_2C = 50.0f;
+                    sequenceTimer = 50.0f;
 #endif
                 }
-                temp_r29 = (lbl_1_bss_2C > 180.0f) ? 255.0 : ((lbl_1_bss_2C > 120.0f) ? (255.0 * ((lbl_1_bss_2C - 120.0f) / 60.0)) : 0.0);
-                temp_r29 = (lbl_1_bss_2C >= 235.0f)
+                brightness = (sequenceTimer > 180.0f) ? 255.0 : ((sequenceTimer > 120.0f) ? (255.0 * ((sequenceTimer - 120.0f) / 60.0)) : 0.0);
+                brightness = (sequenceTimer >= 235.0f)
                     ? 255
-                    : ((lbl_1_bss_2C >= 205.0f) ? 192 : ((lbl_1_bss_2C >= 190.0f) ? 128 : (((lbl_1_bss_2C >= 160.0f) ? 64 : 0))));
-                Hu3DGLightColorSet(lbl_1_bss_1C, temp_r29, temp_r29, temp_r29, 255);
-                for (temp_r28 = 0; temp_r28 < 4; temp_r28++) {
+                    : ((sequenceTimer >= 205.0f) ? 192 : ((sequenceTimer >= 190.0f) ? 128 : (((sequenceTimer >= 160.0f) ? 64 : 0))));
+                Hu3DGLightColorSet(boardLightId, brightness, brightness, brightness, 255);
+                for (playerIndex = 0; playerIndex < 4; playerIndex++) {
 
-                    Hu3DMotionTimeSet(lbl_1_bss_34[temp_r28]->mdlId[0], 60.0 + (40.0 * (temp_r29 / 255.0)));
-                    for (temp_r27 = 0; temp_r27 < 3; temp_r27++) {
-                        Hu3DMotionTimeSet(lbl_1_bss_34[temp_r28]->mdlId[temp_r27 + 1], 60.0 + (40.0 * (temp_r29 / 255.0)));
+                    Hu3DMotionTimeSet(playerObjects[playerIndex]->mdlId[0], 60.0 + (40.0 * (brightness / 255.0)));
+                    for (motionIndex = 0; motionIndex < 3; motionIndex++) {
+                        Hu3DMotionTimeSet(playerObjects[playerIndex]->mdlId[motionIndex + 1], 60.0 + (40.0 * (brightness / 255.0)));
                     }
-                    Hu3DMotionTimeSet(lbl_1_bss_34[temp_r28]->mdlId[4], 60.0 + (40.0 * (temp_r29 / 255.0)));
+                    Hu3DMotionTimeSet(playerObjects[playerIndex]->mdlId[4], 60.0 + (40.0 * (brightness / 255.0)));
                 }
                 Hu3DMotionSpeedSet(
-                    lbl_1_bss_30->mdlId[0], 0.5 * ((lbl_1_bss_2C < 100.0f) ? 0.0 : ((lbl_1_bss_2C < 320.0f) ? ((lbl_1_bss_2C - 100) / 220.0) : 1.0)));
-                for (temp_r26 = 0; temp_r26 < 4; temp_r26++) {
-                    Hu3DMotionSpeedSet(lbl_1_bss_34[temp_r26]->mdlId[5],
-                        0.5 * ((lbl_1_bss_2C < 100.0f) ? 0.0 : ((lbl_1_bss_2C < 280.0f) ? ((lbl_1_bss_2C - 100) / 180.0) : 1.0)));
+                    boardObject->mdlId[0], 0.5 * ((sequenceTimer < 100.0f) ? 0.0 : ((sequenceTimer < 320.0f) ? ((sequenceTimer - 100) / 220.0) : 1.0)));
+                for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                    Hu3DMotionSpeedSet(playerObjects[playerIndex]->mdlId[5],
+                        0.5 * ((sequenceTimer < 100.0f) ? 0.0 : ((sequenceTimer < 280.0f) ? ((sequenceTimer - 100) / 180.0) : 1.0)));
                 }
-                if (100.0f == lbl_1_bss_2C) {
-                    Hu3DMotionSpeedSet(lbl_1_bss_30->mdlId[1], 1.0f);
-                    omVibrate(sp28[0]->unk14, 12, 4, 2);
-                    omVibrate(sp28[1]->unk14, 12, 4, 2);
-                    omVibrate(sp28[2]->unk14, 12, 4, 2);
-                    omVibrate(sp28[3]->unk14, 12, 4, 2);
+                if (100.0f == sequenceTimer) {
+                    Hu3DMotionSpeedSet(boardObject->mdlId[1], 1.0f);
+                    omVibrate(playerStates[0]->playerIndex, 12, 4, 2);
+                    omVibrate(playerStates[1]->playerIndex, 12, 4, 2);
+                    omVibrate(playerStates[2]->playerIndex, 12, 4, 2);
+                    omVibrate(playerStates[3]->playerIndex, 12, 4, 2);
                     HuAudFXPlay(1431);
                 }
-                if (145.0f == lbl_1_bss_2C) {
-                    lbl_1_data_4[0] = HuAudFXPlay(1429);
+                if (145.0f == sequenceTimer) {
+                    winnerSoundEffects[0] = HuAudFXPlay(1429);
                 }
-                if (160.0f == lbl_1_bss_2C) {
-                    lbl_1_data_4[1] = HuAudFXPlay(1430);
+                if (160.0f == sequenceTimer) {
+                    winnerSoundEffects[1] = HuAudFXPlay(1430);
                 }
-                if (350.0f < lbl_1_bss_2C) {
+                if (350.0f < sequenceTimer) {
                     object->work[0]++;
-                    lbl_1_bss_2C = 0;
+                    sequenceTimer = 0;
                 }
             }
             break;
 
         case 1001:
-            lbl_1_bss_2C++;
-            if (5.0f == lbl_1_bss_2C && lbl_1_bss_20 < 0) {
-                lbl_1_bss_20 = MGSeqStartCreate();
+            sequenceTimer++;
+            if (5.0f == sequenceTimer && minigameSequenceId < 0) {
+                minigameSequenceId = MGSeqStartCreate();
             }
-            if (lbl_1_bss_2C >= 5.0f && lbl_1_data_0 == -1 && (MGSeqStatGet(lbl_1_bss_20) & 0x10)) {
-                lbl_1_data_0 = HuAudSeqPlay(71);
+            if (sequenceTimer >= 5.0f && sequenceAudioId == -1 && (MGSeqStatGet(minigameSequenceId) & 0x10)) {
+                sequenceAudioId = HuAudSeqPlay(71);
             }
-            if (lbl_1_bss_2C >= 5.0f && !MGSeqStatGet(lbl_1_bss_20) && lbl_1_bss_20 >= 0) {
+            if (sequenceTimer >= 5.0f && !MGSeqStatGet(minigameSequenceId) && minigameSequenceId >= 0) {
                 object->work[0]++;
-                lbl_1_bss_20 = -1;
-                lbl_1_bss_2C = 0;
+                minigameSequenceId = -1;
+                sequenceTimer = 0;
             }
             else {
-                float temp_f26 = (lbl_1_bss_2C > 60.0f) ? 1.0 : ((lbl_1_bss_2C > 0.0f) ? (lbl_1_bss_2C / 60.0) : 0.0);
-                float temp_f27 = 1.0f - temp_f26;
-                float temp_f31 = 830.0f * temp_f27;
-                float temp_f30 = (-1792.0f * temp_f27) + (50.0f * temp_f26);
-                float temp_f29 = (2854.0f * temp_f27) + (3500.0f * temp_f26);
-                float temp_f25 = ((2578.212 * temp_f27) + (2600.0 * temp_f26)) / VECMagPoint(temp_f31, temp_f30, temp_f29);
-                temp_f31 *= temp_f25;
-                temp_f30 *= temp_f25;
-                temp_f29 *= temp_f25;
-                Hu3DCameraPosSet(1, temp_f31, temp_f30, temp_f29, -0.05f * temp_f27, 1, 0, 0, 50 * temp_f26, 0);
-                (void)temp_f27;
+                float cameraBlend = (sequenceTimer > 60.0f) ? 1.0 : ((sequenceTimer > 0.0f) ? (sequenceTimer / 60.0) : 0.0);
+                float cameraBlendInverse = 1.0f - cameraBlend;
+                float cameraX = 830.0f * cameraBlendInverse;
+                float cameraY = (-1792.0f * cameraBlendInverse) + (50.0f * cameraBlend);
+                float cameraZ = (2854.0f * cameraBlendInverse) + (3500.0f * cameraBlend);
+                float cameraDistanceScale = ((2578.212 * cameraBlendInverse) + (2600.0 * cameraBlend)) / VECMagPoint(cameraX, cameraY, cameraZ);
+                cameraX *= cameraDistanceScale;
+                cameraY *= cameraDistanceScale;
+                cameraZ *= cameraDistanceScale;
+                Hu3DCameraPosSet(1, cameraX, cameraY, cameraZ, -0.05f * cameraBlendInverse, 1, 0, 0, 50 * cameraBlend, 0);
+                (void)cameraBlendInverse;
             }
             break;
 
         case 1002:
-            if (lbl_1_bss_18 != -1) {
+            if (winningPlayer != -1) {
                 object->work[0] = 1003;
-                lbl_1_bss_2C = 0;
+                sequenceTimer = 0;
             }
             break;
 
         case 1003:
-            if (lbl_1_bss_20 < 0 && lbl_1_bss_2C == 0.0f) {
-                lbl_1_bss_20 = MGSeqFinishCreate();
-                for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                    Work19C8 *temp_r25 = lbl_1_bss_34[temp_r31]->data;
-                    HuSprAttrSet(temp_r25->unkA4, 0, HUSPR_ATTR_DISPOFF);
+            if (minigameSequenceId < 0 && sequenceTimer == 0.0f) {
+                minigameSequenceId = MGSeqFinishCreate();
+                for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                    PlayerWork *playerState = playerObjects[playerIndex]->data;
+                    HuSprAttrSet(playerState->playerSpriteGroup, 0, HUSPR_ATTR_DISPOFF);
                 }
-                if (lbl_1_data_0 != -1) {
-                    HuAudSeqFadeOut(lbl_1_data_0, 100);
+                if (sequenceAudioId != -1) {
+                    HuAudSeqFadeOut(sequenceAudioId, 100);
                 }
             }
-            else if (!MGSeqStatGet(lbl_1_bss_20)) {
-                lbl_1_bss_2C++;
-                if (lbl_1_bss_2C >= REFRESH_RATE_F / 2) {
+            else if (!MGSeqStatGet(minigameSequenceId)) {
+                sequenceTimer++;
+                if (sequenceTimer >= REFRESH_RATE_F / 2) {
                     object->work[0]++;
-                    lbl_1_bss_2C = 0;
-                    if (lbl_1_bss_18 != 4) {
-                        lbl_1_bss_20 = MGSeqWinCreate(sp28[lbl_1_bss_18]->unk18, -1, -1, -1);
-                        GWPlayerCoinWinSet(sp28[lbl_1_bss_18]->unk14, 10);
+                    sequenceTimer = 0;
+                    if (winningPlayer != 4) {
+                        minigameSequenceId = MGSeqWinCreate(playerStates[winningPlayer]->characterId, -1, -1, -1);
+                        GWPlayerCoinWinSet(playerStates[winningPlayer]->playerIndex, 10);
                         HuAudSStreamPlay(1);
                     }
-                    else if (lbl_1_bss_18 == 4) {
-                        lbl_1_bss_20 = MGSeqDrawCreate();
+                    else if (winningPlayer == 4) {
+                        minigameSequenceId = MGSeqDrawCreate();
                         HuAudSStreamPlay(4);
                     }
-                    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                        Hu3DModelRotSet(lbl_1_bss_34[temp_r31]->mdlId[4], 0, (lbl_1_bss_18 == temp_r31) ? 90 : -90, 0);
+                    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                        Hu3DModelRotSet(playerObjects[playerIndex]->mdlId[4], 0, (winningPlayer == playerIndex) ? 90 : -90, 0);
                     }
                 }
             }
             break;
 
         case 1004:
-            lbl_1_bss_2C++;
-            if (REFRESH_RATE_F * 3.5f < lbl_1_bss_2C) {
-                lbl_1_bss_20 = -1;
+            sequenceTimer++;
+            if (REFRESH_RATE_F * 3.5f < sequenceTimer) {
+                minigameSequenceId = -1;
                 WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-                object->objFunc = fn_1_D700;
+                object->objFunc = UpdateCameraSequence;
             }
             break;
 
@@ -1879,9 +1879,9 @@ void fn_1_A53C(OMOBJ *object)
     }
 }
 
-void fn_1_B6C4(HU3DMODEL *arg0, Mtx arg1)
+void ApplyBoardModelTransform(HU3DMODEL *model, Mtx transform)
 {
-    GXLoadPosMtxImm(arg1, GX_PNMTX0);
+    GXLoadPosMtxImm(transform, GX_PNMTX0);
     GXSetNumTevStages(1);
     GXSetNumTexGens(0);
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
@@ -1895,56 +1895,56 @@ void fn_1_B6C4(HU3DMODEL *arg0, Mtx arg1)
     GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
     {
-        s8 sp60[9] = { -1, 0, 1, 2, 3, 4, -1, -1, -1 };
-        char *sp6C[6] = { "m413_11-m413_11", "m413_12-m413_12", "m413_13-m413_13", "m413_14-m413_14", "g005m3A-bomhei_A", "g005m3B-bomhei_B" };
-        s8 sp28[6] = { 3, 4, 5, 6, 11, 12 };
-        char *sp50[4] = { "m413_11b-m413_11b", "m413_12b-m143_12b", "m413_13b-m413_13b", "twest-m413_14b" };
-        s8 sp24[4] = { 7, 8, 9, 10 };
-        s32 temp_r27;
-        Mtx spB4;
-        Mtx sp84;
-        for (temp_r27 = 0; temp_r27 < 12; temp_r27++) {
-            StructBss2A6C *temp_r31;
-            for (temp_r31 = lbl_1_bss_7884[temp_r27]; temp_r31; temp_r31 = temp_r31->unk48) {
-                float temp_f31;
-                if (temp_r31->unk0) {
-                    s32 temp_r19 = 100;
-                    s32 temp_r18 = 100;
-                    float temp_f30 = temp_r31->unk1C.x;
-                    float temp_f29 = temp_r31->unk1C.y;
-                    float temp_f27 = 0;
-                    if (temp_r31->unk4 && temp_r31->unk5) {
-                        s32 sp40[4] = { 0, 1, 0, -1 };
-                        s32 sp30[4] = { 1, 0, -1, 0 };
-                        s32 temp_r24 = (temp_r31->unk4 + 3) % 4;
-                        s32 temp_r26 = ((((temp_r31->unk4 + 3) % 4) + (9 + ((temp_r31->unk4 - 1) / 4)))) % 4;
-                        s32 temp_r25 = 0;
-                        float temp_f28 = 1;
-                        temp_f30 -= sp40[temp_r26];
-                        temp_f29 -= sp30[temp_r26];
-                        switch ((temp_r31->unk4 - 1) / 4) {
+        s8 pieceModelIndices[9] = { -1, 0, 1, 2, 3, 4, -1, -1, -1 };
+        char *pieceModelNames[6] = { "m413_11-m413_11", "m413_12-m413_12", "m413_13-m413_13", "m413_14-m413_14", "g005m3A-bomhei_A", "g005m3B-bomhei_B" };
+        s8 characterModelIndices[6] = { 3, 4, 5, 6, 11, 12 };
+        char *characterModelNames[4] = { "m413_11b-m413_11b", "m413_12b-m143_12b", "m413_13b-m413_13b", "twest-m413_14b" };
+        s8 fallingPieceIndices[4] = { 7, 8, 9, 10 };
+        s32 laneIndex;
+        Mtx modelTransform;
+        Mtx auxiliaryTransform;
+        for (laneIndex = 0; laneIndex < 12; laneIndex++) {
+            BoardNode *boardNode;
+            for (boardNode = laneHeads[laneIndex]; boardNode; boardNode = boardNode->nextLaneNode) {
+                float pieceHeight;
+                if (boardNode->objectKind) {
+                    s32 horizontalScale = 100;
+                    s32 verticalScale = 100;
+                    float screenX = boardNode->position.x;
+                    float screenY = boardNode->position.y;
+                    float screenZ = 0;
+                    if (boardNode->pathId && boardNode->animationFrame) {
+                        s32 rowDirections[4] = { 0, 1, 0, -1 };
+                        s32 laneDirections[4] = { 1, 0, -1, 0 };
+                        s32 pathCorner = (boardNode->pathId + 3) % 4;
+                        s32 pathIndex = ((((boardNode->pathId + 3) % 4) + (9 + ((boardNode->pathId - 1) / 4)))) % 4;
+                        s32 curveStep = 0;
+                        float curveProgress = 1;
+                        screenX -= rowDirections[pathIndex];
+                        screenY -= laneDirections[pathIndex];
+                        switch ((boardNode->pathId - 1) / 4) {
                             case 0:
                             case 2:
-                                for (temp_r25 = temp_r31->unk5 - 1; temp_r25 > 0; temp_r25--) {
-                                    temp_f28 /= 2.0;
+                                for (curveStep = boardNode->animationFrame - 1; curveStep > 0; curveStep--) {
+                                    curveProgress /= 2.0;
                                 }
-                                temp_f31 = 1.0f - temp_f28;
-                                temp_r26 = (temp_r24 + 3 == temp_r26) ? (temp_r26 - 4) : ((temp_r24 - 3 == temp_r26) ? (temp_r26 + 4) : temp_r26);
-                                temp_f30 += sind((temp_f28 * (temp_r24 * 90)) + (temp_f31 * (temp_r26 * 90)));
-                                temp_f29 += cosd((temp_f28 * (temp_r24 * 90)) + (temp_f31 * (temp_r26 * 90)));
+                                pieceHeight = 1.0f - curveProgress;
+                                pathIndex = (pathCorner + 3 == pathIndex) ? (pathIndex - 4) : ((pathCorner - 3 == pathIndex) ? (pathIndex + 4) : pathIndex);
+                                screenX += sind((curveProgress * (pathCorner * 90)) + (pieceHeight * (pathIndex * 90)));
+                                screenY += cosd((curveProgress * (pathCorner * 90)) + (pieceHeight * (pathIndex * 90)));
                                 break;
 
                             case 1:
-                                for (temp_r25 = temp_r31->unk5 - 1; temp_r25 > 0; temp_r25--) {
-                                    temp_f28 /= 2.0;
+                                for (curveStep = boardNode->animationFrame - 1; curveStep > 0; curveStep--) {
+                                    curveProgress /= 2.0;
                                 }
-                                temp_f31 = (temp_r31->unk5 - 1) / 3.0;
-                                temp_f31 = (temp_f31 < 0.0f) ? 0.0f : ((temp_f31 > 1.0f) ? 1.0f : temp_f31);
-                                temp_f31 = (0.75 * ((1.0f - temp_f28))) + (0.25 * temp_f31);
-                                temp_f28 = 1.0f - temp_f31;
-                                temp_f30 += sp40[temp_r24] * cosd(temp_f31 * 180.0f);
-                                temp_f29 += sp30[temp_r24] * cosd(temp_f31 * 180.0f);
-                                temp_f27 += sind(temp_f31 * 180.0f);
+                                pieceHeight = (boardNode->animationFrame - 1) / 3.0;
+                                pieceHeight = (pieceHeight < 0.0f) ? 0.0f : ((pieceHeight > 1.0f) ? 1.0f : pieceHeight);
+                                pieceHeight = (0.75 * ((1.0f - curveProgress))) + (0.25 * pieceHeight);
+                                curveProgress = 1.0f - pieceHeight;
+                                screenX += rowDirections[pathCorner] * cosd(pieceHeight * 180.0f);
+                                screenY += laneDirections[pathCorner] * cosd(pieceHeight * 180.0f);
+                                screenZ += sind(pieceHeight * 180.0f);
 
                                 break;
 
@@ -1952,79 +1952,79 @@ void fn_1_B6C4(HU3DMODEL *arg0, Mtx arg1)
                                 break;
                         }
                     }
-                    temp_f30 = (temp_f30 * temp_r19) - (temp_r19 * 6);
-                    temp_f29 = (temp_f29 * temp_r18) - (temp_r18 * 5);
-                    temp_f27 = 100 * temp_f27;
-                    if (sp60[temp_r31->unk0] != -1) {
-                        s32 temp_r21 = sp60[temp_r31->unk0]
-                            + (temp_r31->unk0 == 5 && ((temp_r31->unk1C.z < 0.0f && (temp_r31->unk1 & 0x1) == 0) || (temp_r31->unk1 & 0x2) != 0));
-                        MTXTrans(spB4, 50 + temp_f30, 50 + temp_f29, temp_f27);
-                        MTXConcat(arg1, spB4, spB4);
-                        Hu3DModelObjDraw(lbl_1_bss_30->mdlId[sp28[temp_r21]], sp6C[temp_r21], spB4);
+                    screenX = (screenX * horizontalScale) - (horizontalScale * 6);
+                    screenY = (screenY * verticalScale) - (verticalScale * 5);
+                    screenZ = 100 * screenZ;
+                    if (pieceModelIndices[boardNode->objectKind] != -1) {
+                        s32 pieceModelIndex = pieceModelIndices[boardNode->objectKind]
+                            + (boardNode->objectKind == 5 && ((boardNode->position.z < 0.0f && (boardNode->stateFlags & 0x1) == 0) || (boardNode->stateFlags & 0x2) != 0));
+                        MTXTrans(modelTransform, 50 + screenX, 50 + screenY, screenZ);
+                        MTXConcat(transform, modelTransform, modelTransform);
+                        Hu3DModelObjDraw(boardObject->mdlId[characterModelIndices[pieceModelIndex]], pieceModelNames[pieceModelIndex], modelTransform);
                     }
                 }
             }
         }
-        for (temp_r27 = 0; temp_r27 < 4; temp_r27++) {
-            s32 temp_r29;
-            for (temp_r29 = 0; temp_r29 < 2; temp_r29++) {
-                s32 temp_r17 = 25;
-                s32 sp20 = (temp_r27 * 300) - 450;
-                s32 sp1C = (505 - temp_r17) + (temp_r29 * (temp_r17 * 2));
-                Work19C8 *temp_r30 = lbl_1_bss_34[temp_r27]->data;
-                s32 temp_r23 = temp_r30->unk50[temp_r30->unk60][temp_r29];
-                if (temp_r30->unk65[0] == 0 || temp_r30->unk65[0] > 7) {
-                    if (sp60[temp_r23] != -1) {
-                        MTXScale(spB4, 0.5f, 0.5f, 0.5f);
-                        MTXTrans(sp84, sp20, sp1C + ((temp_r30->unk65[0]) ? (200.0f * ((15 - temp_r30->unk65[0]) / 15.0f)) : 0.0f), 125.0f);
-                        MTXConcat(sp84, spB4, spB4);
-                        MTXConcat(arg1, spB4, spB4);
-                        Hu3DModelObjDraw(lbl_1_bss_30->mdlId[sp28[sp60[temp_r23]]], sp6C[sp60[temp_r23]], spB4);
+        for (laneIndex = 0; laneIndex < 4; laneIndex++) {
+            s32 playerIndex;
+            for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+                s32 pieceType = 25;
+                s32 playerScreenX = (laneIndex * 300) - 450;
+                s32 playerScreenY = (505 - pieceType) + (playerIndex * (pieceType * 2));
+                PlayerWork *playerWork = playerObjects[laneIndex]->data;
+                s32 pieceKind = playerWork->cardLayout[playerWork->cardColumn][playerIndex];
+                if (playerWork->cardAnimationFrames[0] == 0 || playerWork->cardAnimationFrames[0] > 7) {
+                    if (pieceModelIndices[pieceKind] != -1) {
+                        MTXScale(modelTransform, 0.5f, 0.5f, 0.5f);
+                        MTXTrans(auxiliaryTransform, playerScreenX, playerScreenY + ((playerWork->cardAnimationFrames[0]) ? (200.0f * ((15 - playerWork->cardAnimationFrames[0]) / 15.0f)) : 0.0f), 125.0f);
+                        MTXConcat(auxiliaryTransform, modelTransform, modelTransform);
+                        MTXConcat(transform, modelTransform, modelTransform);
+                        Hu3DModelObjDraw(boardObject->mdlId[characterModelIndices[pieceModelIndices[pieceKind]]], pieceModelNames[pieceModelIndices[pieceKind]], modelTransform);
                     }
                 }
-                if (temp_r30->unk65[0] != 0 && temp_r30->unk65[0] < (15 - (temp_r29 * 4)) && sp60[temp_r30->unk63[temp_r29]] != -1) {
-                    MTXScale(spB4, 0.5f, 0.5f, 0.5f);
-                    MTXTrans(sp84, sp20, sp1C, 125.0 - (0.25 * (40.0f * (temp_r30->unk65[0] / 15.0f))));
-                    MTXConcat(sp84, spB4, spB4);
-                    MTXConcat(arg1, spB4, spB4);
-                    Hu3DModelObjDraw(lbl_1_bss_30->mdlId[sp28[sp60[temp_r30->unk63[temp_r29]]]], sp6C[sp60[temp_r30->unk63[temp_r29]]], spB4);
+                if (playerWork->cardAnimationFrames[0] != 0 && playerWork->cardAnimationFrames[0] < (15 - (playerIndex * 4)) && pieceModelIndices[playerWork->cardTypes[playerIndex]] != -1) {
+                    MTXScale(modelTransform, 0.5f, 0.5f, 0.5f);
+                    MTXTrans(auxiliaryTransform, playerScreenX, playerScreenY, 125.0 - (0.25 * (40.0f * (playerWork->cardAnimationFrames[0] / 15.0f))));
+                    MTXConcat(auxiliaryTransform, modelTransform, modelTransform);
+                    MTXConcat(transform, modelTransform, modelTransform);
+                    Hu3DModelObjDraw(boardObject->mdlId[characterModelIndices[pieceModelIndices[playerWork->cardTypes[playerIndex]]]], pieceModelNames[pieceModelIndices[playerWork->cardTypes[playerIndex]]], modelTransform);
                 }
             }
         }
         {
-            s32 temp_r28 = lbl_1_bss_FC;
-            s32 temp_r20;
-            for (temp_r20 = 0; temp_r20 < 300; temp_r20++) {
-                temp_r28++;
-                temp_r28 %= 300;
-                if (lbl_1_bss_100[temp_r28].unk0) {
-                    MTXScale(spB4, 0.4f, 0.4f, 0.4f);
-                    MTXRotDeg(sp84, 'x', 360.0 * (lbl_1_bss_100[temp_r28].unk1C / 255.0));
-                    MTXConcat(sp84, spB4, spB4);
-                    MTXRotDeg(sp84, 'z', 360.0 * (lbl_1_bss_100[temp_r28].unk1D / 255.0));
-                    MTXConcat(sp84, spB4, spB4);
-                    MTXTrans(sp84, lbl_1_bss_100[temp_r28].unk4.x, lbl_1_bss_100[temp_r28].unk4.y, lbl_1_bss_100[temp_r28].unk4.z);
-                    MTXConcat(sp84, spB4, spB4);
-                    MTXConcat(arg1, spB4, spB4);
-                    Hu3DModelObjDraw(lbl_1_bss_30->mdlId[sp24[sp60[lbl_1_bss_100[temp_r28].unk0]]], sp50[sp60[lbl_1_bss_100[temp_r28].unk0]], spB4);
+            s32 particleCursor = fallingPieceHead;
+            s32 particleIndex;
+            for (particleIndex = 0; particleIndex < 300; particleIndex++) {
+                particleCursor++;
+                particleCursor %= 300;
+                if (fallingPiecePool[particleCursor].pieceType) {
+                    MTXScale(modelTransform, 0.4f, 0.4f, 0.4f);
+                    MTXRotDeg(auxiliaryTransform, 'x', 360.0 * (fallingPiecePool[particleCursor].rotationPhase / 255.0));
+                    MTXConcat(auxiliaryTransform, modelTransform, modelTransform);
+                    MTXRotDeg(auxiliaryTransform, 'z', 360.0 * (fallingPiecePool[particleCursor].spinPhase / 255.0));
+                    MTXConcat(auxiliaryTransform, modelTransform, modelTransform);
+                    MTXTrans(auxiliaryTransform, fallingPiecePool[particleCursor].position.x, fallingPiecePool[particleCursor].position.y, fallingPiecePool[particleCursor].position.z);
+                    MTXConcat(auxiliaryTransform, modelTransform, modelTransform);
+                    MTXConcat(transform, modelTransform, modelTransform);
+                    Hu3DModelObjDraw(boardObject->mdlId[fallingPieceIndices[pieceModelIndices[fallingPiecePool[particleCursor].pieceType]]], characterModelNames[pieceModelIndices[fallingPiecePool[particleCursor].pieceType]], modelTransform);
                 }
             }
         }
     }
 }
 
-void fn_1_C6E0(OMOBJ *object)
+void InitializeBoardObject(OMOBJ *object)
 {
-    s32 temp_r30;
-    memset(lbl_1_bss_2A6C, 0, sizeof(lbl_1_bss_2A6C));
-    memset(lbl_1_bss_7884, 0, sizeof(lbl_1_bss_7884));
-    memset(lbl_1_bss_2684, 0, sizeof(lbl_1_bss_2684));
-    lbl_1_bss_2680 = 0;
-    memset(lbl_1_bss_100, 0, sizeof(lbl_1_bss_100));
-    lbl_1_bss_FC = 0;
-    memset(lbl_1_bss_D4, 0, sizeof(lbl_1_bss_D4));
-    lbl_1_bss_D0 = 0;
-    memset(lbl_1_bss_B8, 0, sizeof(lbl_1_bss_B8));
+    s32 modelIndex;
+    memset(boardNodePool, 0, sizeof(boardNodePool));
+    memset(laneHeads, 0, sizeof(laneHeads));
+    memset(scorePopupPool, 0, sizeof(scorePopupPool));
+    scorePopupHead = 0;
+    memset(fallingPiecePool, 0, sizeof(fallingPiecePool));
+    fallingPieceHead = 0;
+    memset(playerModelHideTimers, 0, sizeof(playerModelHideTimers));
+    playerModelHiddenCount = 0;
+    memset(cameraShakeState, 0, sizeof(cameraShakeState));
     object->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x00));
     omSetTra(object, 0, 0, 0);
     Hu3DMotionSpeedSet(object->mdlId[0], 0);
@@ -2032,113 +2032,113 @@ void fn_1_C6E0(OMOBJ *object)
     Hu3DMotionSpeedSet(object->mdlId[1], 0);
     Hu3DModelPosSet(object->mdlId[1], 0, 0, 0);
     Hu3DModelAttrSet(object->mdlId[0], HU3D_MOTATTR_LOOP);
-    object->mdlId[2] = Hu3DHookFuncCreate(fn_1_B6C4);
+    object->mdlId[2] = Hu3DHookFuncCreate(ApplyBoardModelTransform);
     Hu3DModelLayerSet(object->mdlId[2], 1);
-    for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-        object->mdlId[temp_r30 + 3] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x03) + temp_r30);
-        Hu3DModelAttrSet(object->mdlId[temp_r30 + 3], HU3D_ATTR_DISPOFF);
-        object->mdlId[temp_r30 + 7] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x07) + temp_r30);
-        Hu3DModelAttrSet(object->mdlId[temp_r30 + 7], HU3D_ATTR_DISPOFF);
+    for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+        object->mdlId[modelIndex + 3] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x03) + modelIndex);
+        Hu3DModelAttrSet(object->mdlId[modelIndex + 3], HU3D_ATTR_DISPOFF);
+        object->mdlId[modelIndex + 7] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x07) + modelIndex);
+        Hu3DModelAttrSet(object->mdlId[modelIndex + 7], HU3D_ATTR_DISPOFF);
     }
-    for (temp_r30 = 0; temp_r30 < 2; temp_r30++) {
-        s32 temp_r28;
-        if (temp_r30 == 0) {
-            temp_r28 = DATA_MAKE_NUM(DATADIR_M413, 0x0B);
+    for (modelIndex = 0; modelIndex < 2; modelIndex++) {
+        s32 modelDataId;
+        if (modelIndex == 0) {
+            modelDataId = DATA_MAKE_NUM(DATADIR_M413, 0x0B);
         }
         else {
-            temp_r28 = DATA_MAKE_NUM(DATADIR_M413, 0x0C);
+            modelDataId = DATA_MAKE_NUM(DATADIR_M413, 0x0C);
         }
-        object->mdlId[temp_r30 + 11] = Hu3DModelCreateFile(temp_r28);
-        Hu3DModelAttrSet(object->mdlId[temp_r30 + 11], HU3D_ATTR_DISPOFF);
+        object->mdlId[modelIndex + 11] = Hu3DModelCreateFile(modelDataId);
+        Hu3DModelAttrSet(object->mdlId[modelIndex + 11], HU3D_ATTR_DISPOFF);
     }
-    for (temp_r30 = 0; temp_r30 < 5; temp_r30++) {
-        s32 temp_r29;
-        object->mdlId[(temp_r30 * 10) + 13] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x1E));
-        for (temp_r29 = 0; temp_r29 < 10; temp_r29++) {
-            if (temp_r29 != 0) {
-                object->mdlId[(13 + (temp_r30 * 10) + temp_r29)] = Hu3DModelLink(object->mdlId[(temp_r30 * 10) + 13]);
+    for (modelIndex = 0; modelIndex < 5; modelIndex++) {
+        s32 linkedModelIndex;
+        object->mdlId[(modelIndex * 10) + 13] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x1E));
+        for (linkedModelIndex = 0; linkedModelIndex < 10; linkedModelIndex++) {
+            if (linkedModelIndex != 0) {
+                object->mdlId[(13 + (modelIndex * 10) + linkedModelIndex)] = Hu3DModelLink(object->mdlId[(modelIndex * 10) + 13]);
             }
-            Hu3DModelAttrSet(object->mdlId[(13 + (temp_r30 * 10) + temp_r29)], HU3D_ATTR_DISPOFF);
-            Hu3DModelLayerSet(object->mdlId[(13 + (temp_r30 * 10) + temp_r29)], 2);
+            Hu3DModelAttrSet(object->mdlId[(13 + (modelIndex * 10) + linkedModelIndex)], HU3D_ATTR_DISPOFF);
+            Hu3DModelLayerSet(object->mdlId[(13 + (modelIndex * 10) + linkedModelIndex)], 2);
         }
     }
     {
-        void *temp_r27 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M413, 0x1F), HU_MEMNUM_OVL, HEAP_MODEL);
-        ANIMDATA *temp_r26 = HuSprAnimRead(temp_r27);
-        lbl_1_bss_14 = HuSprGrpCreate(150);
-        for (temp_r30 = 0; temp_r30 < 150; temp_r30++) {
-            s16 temp_r25 = HuSprCreate(temp_r26, 0, 0);
-            HuSprGrpMemberSet(lbl_1_bss_14, temp_r30, temp_r25);
-            HuSprAttrSet(lbl_1_bss_14, temp_r30, HUSPR_ATTR_DISPOFF);
-            HuSprColorSet(lbl_1_bss_14, temp_r30, 255, 255, 255);
-            HuSprTPLvlSet(lbl_1_bss_14, temp_r30, 1.0f);
-            HuSprPriSet(lbl_1_bss_14, temp_r30, 256 + temp_r30);
+        void *animationData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M413, 0x1F), HU_MEMNUM_OVL, HEAP_MODEL);
+        ANIMDATA *spriteAnimation = HuSprAnimRead(animationData);
+        popupSpriteGroup = HuSprGrpCreate(150);
+        for (modelIndex = 0; modelIndex < 150; modelIndex++) {
+            s16 spriteId = HuSprCreate(spriteAnimation, 0, 0);
+            HuSprGrpMemberSet(popupSpriteGroup, modelIndex, spriteId);
+            HuSprAttrSet(popupSpriteGroup, modelIndex, HUSPR_ATTR_DISPOFF);
+            HuSprColorSet(popupSpriteGroup, modelIndex, 255, 255, 255);
+            HuSprTPLvlSet(popupSpriteGroup, modelIndex, 1.0f);
+            HuSprPriSet(popupSpriteGroup, modelIndex, 256 + modelIndex);
         }
     }
-    object->objFunc = fn_1_8C10;
+    object->objFunc = UpdateGameplaySequence;
 }
 
-void fn_1_CBB4(OMOBJ *object)
+void InitializePlayerObject(OMOBJ *object)
 {
-    s32 sp8[4] = { 0, 1, 2, 3 };
-    s32 temp_r27 = 0;
-    Work19C8 *temp_r31 = object->data;
-    s32 temp_r29;
-    s32 temp_r28;
-    memset(temp_r31, 0, sizeof(Work19C8));
+    s32 orderedPlayerSlots[4] = { 0, 1, 2, 3 };
+    s32 orderedPlayerCount = 0;
+    PlayerWork *playerState = object->data;
+    s32 rankIndex;
+    s32 playerSlot;
+    memset(playerState, 0, sizeof(PlayerWork));
     if (object->work[0] == 0) {
-        lbl_1_data_C[0] = lbl_1_data_C[1] = lbl_1_data_C[2] = lbl_1_data_C[3] = -1;
-        for (temp_r29 = 0; temp_r29 < 4; temp_r29++) {
-            s32 temp_r26;
-        repeat_iter:
-            temp_r26 = rand8() % 4;
-            if (lbl_1_data_C[temp_r26] != -1) {
-                goto repeat_iter;
+        playerOrderByRank[0] = playerOrderByRank[1] = playerOrderByRank[2] = playerOrderByRank[3] = -1;
+        for (rankIndex = 0; rankIndex < 4; rankIndex++) {
+            s32 randomPlayerSlot;
+        repeatIter:
+            randomPlayerSlot = rand8() % 4;
+            if (playerOrderByRank[randomPlayerSlot] != -1) {
+                goto repeatIter;
             }
-            lbl_1_data_C[temp_r26] = temp_r29;
+            playerOrderByRank[randomPlayerSlot] = rankIndex;
         }
     }
-    for (temp_r29 = 0; temp_r29 < 4; temp_r29++) {
-        for (temp_r28 = 0; temp_r28 < 4; temp_r28++) {
-            if (temp_r29 == lbl_1_data_C[temp_r28]) {
-                sp8[temp_r27] = temp_r28;
-                temp_r27++;
+    for (rankIndex = 0; rankIndex < 4; rankIndex++) {
+        for (playerSlot = 0; playerSlot < 4; playerSlot++) {
+            if (rankIndex == playerOrderByRank[playerSlot]) {
+                orderedPlayerSlots[orderedPlayerCount] = playerSlot;
+                orderedPlayerCount++;
             }
         }
     }
-    temp_r31->unk0 = temp_r31->unk4 = temp_r31->unk8 = temp_r31->unkC = 0;
-    temp_r31->unk10 = object->work[0];
-    temp_r31->unk14 = sp8[temp_r31->unk10];
-    if (temp_r31->unk14 == 4) {
+    playerState->cursorDirection = playerState->cursorRepeatFrames = playerState->buttonState = playerState->buttonRepeatFrames = 0;
+    playerState->playerSlot = object->work[0];
+    playerState->playerIndex = orderedPlayerSlots[playerState->playerSlot];
+    if (playerState->playerIndex == 4) {
         OSReport("m413:wrong player group\n");
-        temp_r31->unk14 = temp_r31->unk10;
+        playerState->playerIndex = playerState->playerSlot;
     }
-    temp_r31->unk18 = GWPlayerCfg[temp_r31->unk14].character;
-    temp_r31->unk1C = (GWPlayerCfg[temp_r31->unk14].iscom) ? -1 : GWPlayerCfg[temp_r31->unk14].pad_idx;
-    temp_r31->unk20 = (temp_r31->unk1C != -1) ? 0 : GWPlayerCfg[temp_r31->unk14].diff;
-    temp_r31->unk2C = -1;
-    temp_r31->unk24 = 0;
-    temp_r31->unk28 = temp_r31->unk24;
-    temp_r31->unk40 = temp_r31->unk24;
-    temp_r31->unk44 = 100;
-    temp_r31->unk72 = 2;
-    temp_r31->unk74 = 0;
-    fn_1_EC0(temp_r31);
-    temp_r31->unk60 = 0;
-    temp_r31->unk68 = ((rand8() % 4) * 7) + 3;
-    temp_r31->unk6C = temp_r31->unk68;
-    temp_r31->unk71 = 20;
-    temp_r31->unk70 = 0;
-    temp_r31->unk98 = 0;
-    temp_r31->unk9C = 0;
+    playerState->characterId = GWPlayerCfg[playerState->playerIndex].character;
+    playerState->controllerIndex = (GWPlayerCfg[playerState->playerIndex].iscom) ? -1 : GWPlayerCfg[playerState->playerIndex].pad_idx;
+    playerState->cpuDifficulty = (playerState->controllerIndex != -1) ? 0 : GWPlayerCfg[playerState->playerIndex].diff;
+    playerState->rankedScore = -1;
+    playerState->targetScore = 0;
+    playerState->previousScore = playerState->targetScore;
+    playerState->displayedScore = playerState->targetScore;
+    playerState->scoreHoldFrames = 100;
+    playerState->playerState = 2;
+    playerState->selectionTimer = 0;
+    ShufflePlayerCardLayout(playerState);
+    playerState->cardColumn = 0;
+    playerState->turnScore = ((rand8() % 4) * 7) + 3;
+    playerState->turnScoreTarget = playerState->turnScore;
+    playerState->inputDelay = 20;
+    playerState->selectedLane = 0;
+    playerState->cameraX = 0;
+    playerState->cameraY = 0;
     object->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x02));
     Hu3DModelLayerSet(object->mdlId[0], 1);
     object->mdlId[1] = Hu3DModelLink(object->mdlId[0]);
     object->mdlId[2] = Hu3DModelLink(object->mdlId[0]);
     object->mdlId[3] = Hu3DModelLink(object->mdlId[0]);
-    Hu3DModelPosSet(object->mdlId[1], (temp_r31->unk10 * 300) - 525, -602, 40);
-    Hu3DModelPosSet(object->mdlId[2], (temp_r31->unk10 * 300) - 450, -602, 40);
-    Hu3DModelPosSet(object->mdlId[3], (temp_r31->unk10 * 300) - 375, -602, 40);
+    Hu3DModelPosSet(object->mdlId[1], (playerState->playerSlot * 300) - 525, -602, 40);
+    Hu3DModelPosSet(object->mdlId[2], (playerState->playerSlot * 300) - 450, -602, 40);
+    Hu3DModelPosSet(object->mdlId[3], (playerState->playerSlot * 300) - 375, -602, 40);
     Hu3DMotionTimeSet(object->mdlId[1], 60.0f);
     Hu3DMotionTimeSet(object->mdlId[2], 60.0f);
     Hu3DMotionTimeSet(object->mdlId[3], 60.0f);
@@ -2148,37 +2148,37 @@ void fn_1_CBB4(OMOBJ *object)
     Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
     Hu3DMotionTimeSet(object->mdlId[0], 60.0f);
     Hu3DMotionSpeedSet(object->mdlId[0], 0.0f);
-    object->mdlId[4] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x0D) + temp_r31->unk18);
-    Hu3DModelPosSet(object->mdlId[4], (temp_r31->unk10 * 300) - 450, 670, 60);
+    object->mdlId[4] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x0D) + playerState->characterId);
+    Hu3DModelPosSet(object->mdlId[4], (playerState->playerSlot * 300) - 450, 670, 60);
     Hu3DMotionTimeSet(object->mdlId[4], 60.0f);
     Hu3DMotionSpeedSet(object->mdlId[4], 0.0f);
-    object->mdlId[5] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x15) + temp_r31->unk18);
-    Hu3DModelPosSet(object->mdlId[5], (temp_r31->unk10 * 300) - 450, 0, 0);
+    object->mdlId[5] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M413, 0x15) + playerState->characterId);
+    Hu3DModelPosSet(object->mdlId[5], (playerState->playerSlot * 300) - 450, 0, 0);
     Hu3DModelAttrSet(object->mdlId[5], HU3D_MOTATTR_LOOP);
     Hu3DMotionSpeedSet(object->mdlId[5], 0.0f);
     {
-        ANIMDATA *temp_r23 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MGCONST, 0x38) + GWPlayerCfg[temp_r31->unk14].character);
-        s16 temp_r22;
-        temp_r31->unkA4 = HuSprGrpCreate(1);
-        temp_r22 = HuSprCreate(temp_r23, 0, 0);
-        HuSprGrpMemberSet(temp_r31->unkA4, 0, temp_r22);
-        HuSprAttrSet(temp_r31->unkA4, 0, HUSPR_ATTR_LOOP | HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
-        HuSprColorSet(temp_r31->unkA4, 0, 255, 255, 255);
-        HuSprTPLvlSet(temp_r31->unkA4, 0, 1);
-        HuSprPriSet(temp_r31->unkA4, 0, 512);
-        HuSprScaleSet(temp_r31->unkA4, 0, 0.875f, 0.875f);
-        HuSprSpeedSet(temp_r31->unkA4, 0, 1.0f);
+        ANIMDATA *spriteAnimation = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MGCONST, 0x38) + GWPlayerCfg[playerState->playerIndex].character);
+        s16 playerSpriteId;
+        playerState->playerSpriteGroup = HuSprGrpCreate(1);
+        playerSpriteId = HuSprCreate(spriteAnimation, 0, 0);
+        HuSprGrpMemberSet(playerState->playerSpriteGroup, 0, playerSpriteId);
+        HuSprAttrSet(playerState->playerSpriteGroup, 0, HUSPR_ATTR_LOOP | HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
+        HuSprColorSet(playerState->playerSpriteGroup, 0, 255, 255, 255);
+        HuSprTPLvlSet(playerState->playerSpriteGroup, 0, 1);
+        HuSprPriSet(playerState->playerSpriteGroup, 0, 512);
+        HuSprScaleSet(playerState->playerSpriteGroup, 0, 0.875f, 0.875f);
+        HuSprSpeedSet(playerState->playerSpriteGroup, 0, 1.0f);
     }
 
-    object->objFunc = fn_1_19C4;
+    object->objFunc = EmptyPlayerObjectCallback;
 }
 
-void fn_1_D340(OMOBJ *object)
+void InitializeGameplaySequence(OMOBJ *object)
 {
     object->work[0] = 1000;
-    memset(lbl_1_bss_48, 0, sizeof(StructBss48));
+    memset(pendingVoiceEvents, 0, sizeof(PendingVoiceEvent));
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
-    object->objFunc = fn_1_A53C;
+    object->objFunc = UpdateBoardCamera;
 }
 
 void ObjectSetup(void)
@@ -2186,42 +2186,42 @@ void ObjectSetup(void)
     s32 i;
     OSReport("******* M413 ObjectSetup *********\n");
     HuAudSndGrpSet(38);
-    lbl_1_bss_24 = omInitObjMan(600, 8192);
-    omGameSysInit(lbl_1_bss_24);
+    objectManager = omInitObjMan(600, 8192);
+    omGameSysInit(objectManager);
     Hu3DCameraViewportSet(1, 0, 0, 640, 480, 0, 1);
     Hu3DCameraPerspectiveSet(1, 40, 10, 20000, 1.2f);
     {
-        Vec sp54 = { 616.5714f, -1331.2f, 2120.1142f };
-        Vec sp48 = { -0.05f, 1.0f, 0.0f };
-        Vec sp3C = { 0, 0, 0 };
-        Vec sp30 = { 0, 0, 0 };
-        Vec sp24 = { 0, 0, -1 };
-        Hu3DCameraPosSetV(1, &sp54, &sp48, &sp3C);
+        Vec cameraPosition = { 616.5714f, -1331.2f, 2120.1142f };
+        Vec cameraUp = { -0.05f, 1.0f, 0.0f };
+        Vec cameraTarget = { 0, 0, 0 };
+        Vec unusedCameraVector = { 0, 0, 0 };
+        Vec cameraForward = { 0, 0, -1 };
+        Hu3DCameraPosSetV(1, &cameraPosition, &cameraUp, &cameraTarget);
     }
     {
-        Vec sp18 = { -822.5f, 6743.0f, 4625.5f };
-        Vec spC = { 0.1545085f, -0.788462f, -0.5850064f };
-        GXColor sp8 = { 0, 0, 0, 255 };
-        lbl_1_bss_1C = Hu3DGLightCreateV(&sp18, &spC, &sp8);
+        Vec boardLightPosition = { -822.5f, 6743.0f, 4625.5f };
+        Vec boardLightDirection = { 0.1545085f, -0.788462f, -0.5850064f };
+        GXColor boardLightColor = { 0, 0, 0, 255 };
+        boardLightId = Hu3DGLightCreateV(&boardLightPosition, &boardLightDirection, &boardLightColor);
     }
-    Hu3DGLightStaticSet(lbl_1_bss_1C, 1);
-    Hu3DGLightSpotSet(lbl_1_bss_1C, 20, 2);
-    lbl_1_bss_20 = -1;
-    lbl_1_bss_18 = -1;
-    lbl_1_bss_30 = omAddObjEx(lbl_1_bss_24, 101, 63, 0, 1, fn_1_C6E0);
+    Hu3DGLightStaticSet(boardLightId, 1);
+    Hu3DGLightSpotSet(boardLightId, 20, 2);
+    minigameSequenceId = -1;
+    winningPlayer = -1;
+    boardObject = omAddObjEx(objectManager, 101, 63, 0, 1, InitializeBoardObject);
     for (i = 0; i < 4; i++) {
-        OMOBJ *object = lbl_1_bss_34[i] = omAddObjEx(lbl_1_bss_24, 100, 6, 0, 0, fn_1_CBB4);
-        object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(Work19C8), HU_MEMNUM_OVL);
+        OMOBJ *object = playerObjects[i] = omAddObjEx(objectManager, 100, 6, 0, 0, InitializePlayerObject);
+        object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PlayerWork), HU_MEMNUM_OVL);
         object->work[0] = i;
     }
-    lbl_1_bss_44 = omAddObjEx(lbl_1_bss_24, 102, 0, 0, -1, fn_1_D340);
+    mainSequenceObject = omAddObjEx(objectManager, 102, 0, 0, -1, InitializeGameplaySequence);
 }
 
-void fn_1_D700(OMOBJ *object)
+void UpdateCameraSequence(OMOBJ *object)
 {
     if (!WipeStatGet()) {
-        if (lbl_1_bss_20 >= 0) {
-            MGSeqKill(lbl_1_bss_20);
+        if (minigameSequenceId >= 0) {
+            MGSeqKill(minigameSequenceId);
         }
         MGSeqKillAll();
         HuAudAllStop();
