@@ -10,329 +10,329 @@
 #include "game/board/window.h"
 
 // data
-s32 lbl_1_data_1A8[3] = { DATA_MAKE_NUM(DATADIR_W05, 0x1F), DATA_MAKE_NUM(DATADIR_W05, 0x20), DATA_NUM_LISTEND };
-char *lbl_1_data_1C4[2] = { "monkyA", "monkyB"};
-s32 lbl_1_data_1CC[3] = { 0x78, 0x6F, 0x70 };
+s32 monkeyModelList[3] = { DATA_MAKE_NUM(DATADIR_W05, 0x1F), DATA_MAKE_NUM(DATADIR_W05, 0x20), DATA_NUM_LISTEND };
+char *monkeyHookNames[2] = { "monkyA", "monkyB"};
+s32 monkeyPlayerMotions[3] = { 0x78, 0x6F, 0x70 };
 
 // bss
-s16 lbl_1_bss_4E[2];
-s16 lbl_1_bss_4C;
-s16 lbl_1_bss_4A;
-s16 lbl_1_bss_48;
-s16 lbl_1_bss_44[2];
-Vec lbl_1_bss_38;
-s16 lbl_1_bss_30[4];
+s16 monkeyModels[2];
+s16 monkeyPlayerIndex;
+s16 monkeyBoardModel;
+s16 monkeySide;
+s16 monkeyEffectModels[2];
+Vec monkeyLandingPosition;
+s16 monkeyPlayerMotionIds[4];
 
-void fn_1_2B40(void) {
-        s32 var_r31;
+void W05CreateMonkeyModels(void) {
+        s32 loopIndex;
 
-    BoardModelAttrSet(lbl_1_bss_14[2], 0x40000002);
-    BoardModelAttrSet(lbl_1_bss_14[3], 0x40000002);
-    BoardModelMotionTimeSet(lbl_1_bss_14[2], 0.0f);
-    BoardModelMotionTimeSet(lbl_1_bss_14[3], 0.0f);
+    BoardModelAttrSet(boardMapModelIds[2], 0x40000002);
+    BoardModelAttrSet(boardMapModelIds[3], 0x40000002);
+    BoardModelMotionTimeSet(boardMapModelIds[2], 0.0f);
+    BoardModelMotionTimeSet(boardMapModelIds[3], 0.0f);
     
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        lbl_1_bss_4E[var_r31] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x1E), lbl_1_data_1A8, 0);
-        BoardModelAttrSet(lbl_1_bss_4E[var_r31], 0x40000001);
+    for (loopIndex = 0; loopIndex < 2; loopIndex++) {
+        monkeyModels[loopIndex] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x1E), monkeyModelList, 0);
+        BoardModelAttrSet(monkeyModels[loopIndex], 0x40000001);
     }
-    BoardModelHookSet(lbl_1_bss_14[2], lbl_1_data_1C4[0], lbl_1_bss_4E[0]);
-    BoardModelHookSet(lbl_1_bss_14[3], lbl_1_data_1C4[1], lbl_1_bss_4E[1]);
+    BoardModelHookSet(boardMapModelIds[2], monkeyHookNames[0], monkeyModels[0]);
+    BoardModelHookSet(boardMapModelIds[3], monkeyHookNames[1], monkeyModels[1]);
 }
 
-void fn_1_2C7C(s32 arg0) {
-    Vec spC;
-    s32 var_r31;
+void W05RunMonkeyBoardEvent(s32 monkeySide) {
+    Vec vector;
+    s32 loopIndex;
 
-    lbl_1_bss_4C = GWSystem.player_curr;
-    lbl_1_bss_48 = arg0;
-    if (lbl_1_bss_48 == 0) {
-        lbl_1_bss_4A = lbl_1_bss_14[2];
-        spC.x = 150.0f;
-        BoardModelPosGet(lbl_1_bss_4A, &lbl_1_bss_38);
-        lbl_1_bss_38.x += 140.0f;
+    monkeyPlayerIndex = GWSystem.player_curr;
+    monkeySide = monkeySide;
+    if (monkeySide == 0) {
+        monkeyBoardModel = boardMapModelIds[2];
+        vector.x = 150.0f;
+        BoardModelPosGet(monkeyBoardModel, &monkeyLandingPosition);
+        monkeyLandingPosition.x += 140.0f;
     } else {
-        lbl_1_bss_4A = lbl_1_bss_14[3];
-        spC.x = -150.0f;
-        BoardModelPosGet(lbl_1_bss_4A, &lbl_1_bss_38);
-        lbl_1_bss_38.x -= 140.0f;
+        monkeyBoardModel = boardMapModelIds[3];
+        vector.x = -150.0f;
+        BoardModelPosGet(monkeyBoardModel, &monkeyLandingPosition);
+        monkeyLandingPosition.x -= 140.0f;
     }
-    lbl_1_bss_44[0] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x1C), NULL, 0);
-    lbl_1_bss_44[1] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x1D), NULL, 0);
-    BoardModelVisibilitySet(lbl_1_bss_44[0], 0);
-    BoardModelVisibilitySet(lbl_1_bss_44[1], 0);
-    BoardModelAttrSet(lbl_1_bss_44[0], 0x40000001);
+    monkeyEffectModels[0] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x1C), NULL, 0);
+    monkeyEffectModels[1] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x1D), NULL, 0);
+    BoardModelVisibilitySet(monkeyEffectModels[0], 0);
+    BoardModelVisibilitySet(monkeyEffectModels[1], 0);
+    BoardModelAttrSet(monkeyEffectModels[0], 0x40000001);
     
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        lbl_1_bss_30[var_r31] = BoardPlayerMotionCreate(lbl_1_bss_4C, lbl_1_data_1CC[var_r31] | lbl_1_data_124[GWPlayer[lbl_1_bss_4C].character]);
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        monkeyPlayerMotionIds[loopIndex] = BoardPlayerMotionCreate(monkeyPlayerIndex, monkeyPlayerMotions[loopIndex] | characterIdleMotions[GWPlayer[monkeyPlayerIndex].character]);
     }
     BoardRollDispSet(0);
-    BoardPlayerIdleSet(lbl_1_bss_4C);
-    spC.y = 100.0f;
-    spC.z = 0.0f;
-    BoardCameraMotionStartEx(lbl_1_bss_4A, NULL, &spC, 2300.0f, -1.0f, 0x1E);
+    BoardPlayerIdleSet(monkeyPlayerIndex);
+    vector.y = 100.0f;
+    vector.z = 0.0f;
+    BoardCameraMotionStartEx(monkeyBoardModel, NULL, &vector, 2300.0f, -1.0f, 0x1E);
     BoardCameraRotSet(-33.0f, 0.0f);
     BoardCameraMotionWait();
     HuAudFXPlay(0x48A);
     BoardWinCreate(0, MAKE_MESSID(39, 24), -1);
     BoardWinWait();
     BoardWinKill();
-    fn_1_3044();
-    fn_1_3430();
-    if (GWPlayer[lbl_1_bss_4C].bowser_suit != 0) {
-        fn_1_3D88();
+    W05AnimateMonkeyDrop();
+    W05SetMonkeyPlayerAnimation();
+    if (GWPlayer[monkeyPlayerIndex].bowser_suit != 0) {
+        W05MoveBowserPlayerToNextSpace();
     } else {
-        fn_1_3514();
+        W05AnimateMonkeyPlayerDrop();
     }
-    BoardPlayerIdleSet(lbl_1_bss_4C);
+    BoardPlayerIdleSet(monkeyPlayerIndex);
     BoardCameraViewSet(1);
     BoardCameraMotionWait();
     BoardRollDispSet(1);
     
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        BoardModelKill(lbl_1_bss_44[var_r31]);
+    for (loopIndex = 0; loopIndex < 2; loopIndex++) {
+        BoardModelKill(monkeyEffectModels[loopIndex]);
     }
     
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        BoardPlayerMotionKill(lbl_1_bss_4C, lbl_1_bss_30[var_r31]);
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        BoardPlayerMotionKill(monkeyPlayerIndex, monkeyPlayerMotionIds[loopIndex]);
     }
 }
 
-void fn_1_3044(void) {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    f32 temp_f30;
-    f32 var_f29;
-    f32 temp_f28;
-    f32 var_f31;
+void W05AnimateMonkeyDrop(void) {
+    Vec movementVector;
+    Vec movementVector2;
+    Vec movementVector3;
+    F32 floatValue;
+    F32 floatValue2;
+    F32 floatValue3;
+    F32 frameCount;
 
     HuPrcSleep(0x1E);
-    BoardModelMotionStart(lbl_1_bss_4E[lbl_1_bss_48], 1, 0);
-    BoardModelAttrReset(lbl_1_bss_4A, 0x40000002);
-    BoardModelMotionTimeSet(lbl_1_bss_4A, 0.0f);
+    BoardModelMotionStart(monkeyModels[monkeySide], 1, 0);
+    BoardModelAttrReset(monkeyBoardModel, 0x40000002);
+    BoardModelMotionTimeSet(monkeyBoardModel, 0.0f);
     HuPrcSleep(0x88);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_4A), lbl_1_data_1C4[lbl_1_bss_48], &sp20);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_4E[lbl_1_bss_48]), "bakawa1", &sp14);
-    VECAdd(&sp20, &sp14, &sp14);
-    BoardModelPosSetV(lbl_1_bss_44[0], &sp14);
-    BoardModelVisibilitySet(lbl_1_bss_44[0], 1);
-    BoardModelMotionTimeSet(lbl_1_bss_44[0], 0.0f);
+    Hu3DModelObjPosGet(BoardModelIDGet(monkeyBoardModel), monkeyHookNames[monkeySide], &movementVector);
+    Hu3DModelObjPosGet(BoardModelIDGet(monkeyModels[monkeySide]), "bakawa1", &movementVector2);
+    VECAdd(&movementVector, &movementVector2, &movementVector2);
+    BoardModelPosSetV(monkeyEffectModels[0], &movementVector2);
+    BoardModelVisibilitySet(monkeyEffectModels[0], 1);
+    BoardModelMotionTimeSet(monkeyEffectModels[0], 0.0f);
     HuAudFXPlay(0x48C);
-    VECSubtract(&lbl_1_bss_38, &sp14, &sp8);
-    sp8.y = 0.0f;
-    VECNormalize(&sp8, &sp8);
-    VECScale(&sp8, &sp8, 8.0f);
-    temp_f30 = 11.0f;
-    var_f31 = 0.0f;
+    VECSubtract(&monkeyLandingPosition, &movementVector2, &movementVector3);
+    movementVector3.y = 0.0f;
+    VECNormalize(&movementVector3, &movementVector3);
+    VECScale(&movementVector3, &movementVector3, 8.0f);
+    floatValue = 11.0f;
+    frameCount = 0.0f;
     
     while (1) {
-        sp8.y = (temp_f30 - (0.075 * (0.25f * (var_f31 * var_f31))));
-        var_f31 += 1.0f;
-        VECAdd(&sp14, &sp8, &sp14);
-        VECSubtract(&lbl_1_bss_38, &sp14, &sp20);
-        sp20.y = 0.0f;
-        var_f29 = VECMag(&sp20);
-        if (var_f29 <= 8.0f) {
-            sp14.x = lbl_1_bss_38.x;
-            sp14.z = lbl_1_bss_38.z;
-            sp8.x = sp8.z = 0.0f;
+        movementVector3.y = (floatValue - (0.075 * (0.25f * (frameCount * frameCount))));
+        frameCount += 1.0f;
+        VECAdd(&movementVector2, &movementVector3, &movementVector2);
+        VECSubtract(&monkeyLandingPosition, &movementVector2, &movementVector);
+        movementVector.y = 0.0f;
+        floatValue2 = VECMag(&movementVector);
+        if (floatValue2 <= 8.0f) {
+            movementVector2.x = monkeyLandingPosition.x;
+            movementVector2.z = monkeyLandingPosition.z;
+            movementVector3.x = movementVector3.z = 0.0f;
         }
-        if (sp14.y <= lbl_1_bss_38.y) {
-            sp14.y = lbl_1_bss_38.y;
-            BoardModelVisibilitySet(lbl_1_bss_44[0], 0);
-            BoardModelVisibilitySet(lbl_1_bss_44[1], 1);
-            BoardModelPosSetV(lbl_1_bss_44[1], &sp14);
-            BoardModelMotionTimeSet(lbl_1_bss_44[1], 0.0f);
+        if (movementVector2.y <= monkeyLandingPosition.y) {
+            movementVector2.y = monkeyLandingPosition.y;
+            BoardModelVisibilitySet(monkeyEffectModels[0], 0);
+            BoardModelVisibilitySet(monkeyEffectModels[1], 1);
+            BoardModelPosSetV(monkeyEffectModels[1], &movementVector2);
+            BoardModelMotionTimeSet(monkeyEffectModels[1], 0.0f);
             break;
         } else {
-            BoardModelPosSetV(lbl_1_bss_44[0], &sp14);
-            if (BoardModelMotionTimeGet(lbl_1_bss_4E[lbl_1_bss_48]) >= BoardModelMotionMaxTimeGet(lbl_1_bss_4E[lbl_1_bss_48])) {
-                BoardModelMotionStart(lbl_1_bss_4E[lbl_1_bss_48], 0, 0x40000001);
+            BoardModelPosSetV(monkeyEffectModels[0], &movementVector2);
+            if (BoardModelMotionTimeGet(monkeyModels[monkeySide]) >= BoardModelMotionMaxTimeGet(monkeyModels[monkeySide])) {
+                BoardModelMotionStart(monkeyModels[monkeySide], 0, 0x40000001);
             }
             HuPrcVSleep();
         }
     }
 }
 
-void fn_1_3430(void) {
-    if (GWPlayer[lbl_1_bss_4C].bowser_suit == 0) {
-        BoardPlayerMotionShiftSet(lbl_1_bss_4C, lbl_1_bss_30[2], 0.0f, 8.0f, HU3D_MOTATTR_NONE);
+void W05SetMonkeyPlayerAnimation(void) {
+    if (GWPlayer[monkeyPlayerIndex].bowser_suit == 0) {
+        BoardPlayerMotionShiftSet(monkeyPlayerIndex, monkeyPlayerMotionIds[2], 0.0f, 8.0f, HU3D_MOTATTR_NONE);
         HuPrcSleep(8);
 
-        while (BoardPlayerMotionEndCheck(lbl_1_bss_4C) == 0) {
+        while (BoardPlayerMotionEndCheck(monkeyPlayerIndex) == 0) {
             HuPrcVSleep();
         }
-        BoardPlayerMotionStart(lbl_1_bss_4C, lbl_1_bss_30[1], 0x40000001);
+        BoardPlayerMotionStart(monkeyPlayerIndex, monkeyPlayerMotionIds[1], 0x40000001);
         HuPrcSleep(0x5A);
         return;
     }
     HuPrcSleep(0x2D);
 }
 
-void fn_1_3514(void) {
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    f32 var_f29;
-    f32 var_f30;
-    f32 var_f31;
-    s32 var_r30;
-    s32 var_r31;
+void W05AnimateMonkeyPlayerDrop(void) {
+    Vec movementVector;
+    Vec movementVector2;
+    Vec movementVector3;
+    Vec movementVector4;
+    F32 floatValue;
+    F32 floatValue2;
+    F32 frameCount;
+    s32 spaceIndex;
+    s32 playerIndex;
 
-    BoardPlayerPosGet(lbl_1_bss_4C, &sp2C);
-    BoardPlayerMotionShiftSet(lbl_1_bss_4C, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
-    VECSubtract(&lbl_1_bss_38, &sp2C, &sp20);
-    sp20.y = 0.0f;
-    VECNormalize(&sp20, &sp20);
-    VECScale(&sp20, &sp20, 7.2f);
-    var_f30 = 10.0f;
-    var_f31 = 0.0f;
+    BoardPlayerPosGet(monkeyPlayerIndex, &movementVector);
+    BoardPlayerMotionShiftSet(monkeyPlayerIndex, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
+    VECSubtract(&monkeyLandingPosition, &movementVector, &movementVector2);
+    movementVector2.y = 0.0f;
+    VECNormalize(&movementVector2, &movementVector2);
+    VECScale(&movementVector2, &movementVector2, 7.2f);
+    floatValue2 = 10.0f;
+    frameCount = 0.0f;
     while (1) {
-        sp20.y = (var_f30 - (0.075f * (0.25f * (var_f31 * var_f31))));
-        var_f31 += 1.0f;
-        VECAdd(&sp2C, &sp20, &sp2C);
-        VECSubtract(&lbl_1_bss_38, &sp2C, &sp14);
-        sp14.y = 0.0f;
-        var_f29 = VECMag(&sp14);
-        if (var_f29 <= 7.2f) {
-            sp2C.x = lbl_1_bss_38.x;
-            sp2C.z = lbl_1_bss_38.z;
-            sp20.x = sp20.z = 0.0f;
+        movementVector2.y = (floatValue2 - (0.075f * (0.25f * (frameCount * frameCount))));
+        frameCount += 1.0f;
+        VECAdd(&movementVector, &movementVector2, &movementVector);
+        VECSubtract(&monkeyLandingPosition, &movementVector, &movementVector3);
+        movementVector3.y = 0.0f;
+        floatValue = VECMag(&movementVector3);
+        if (floatValue <= 7.2f) {
+            movementVector.x = monkeyLandingPosition.x;
+            movementVector.z = monkeyLandingPosition.z;
+            movementVector2.x = movementVector2.z = 0.0f;
         }
-        if (sp2C.y <= lbl_1_bss_38.y) {
-            sp2C.y = lbl_1_bss_38.y;
-            BoardPlayerMotionStart(lbl_1_bss_4C, lbl_1_bss_30[0], 0);
+        if (movementVector.y <= monkeyLandingPosition.y) {
+            movementVector.y = monkeyLandingPosition.y;
+            BoardPlayerMotionStart(monkeyPlayerIndex, monkeyPlayerMotionIds[0], 0);
             break;
         } else {
-            BoardPlayerPosSetV(lbl_1_bss_4C, &sp2C);
+            BoardPlayerPosSetV(monkeyPlayerIndex, &movementVector);
             HuPrcVSleep();
         }
     }
     HuAudFXPlay(0x48B);
-    PlayerFXPlay(lbl_1_bss_4C, 0x123);
-    HuPrcChildCreate(fn_1_3E8C, 0x2001, 0x1000, 0, boardMainProc);
+    PlayerFXPlay(monkeyPlayerIndex, 0x123);
+    HuPrcChildCreate(W05UpdateMonkeyEffects, 0x2001, 0x1000, 0, boardMainProc);
     HuAudFXPlay(0x48A);
-    BoardModelMotionStart(lbl_1_bss_4E[lbl_1_bss_48], 2, 0);
-    var_r31 = BoardSpaceLinkFlagSearch(0, GWPlayer[lbl_1_bss_4C].space_curr, 0x100);
+    BoardModelMotionStart(monkeyModels[monkeySide], 2, 0);
+    playerIndex = BoardSpaceLinkFlagSearch(0, GWPlayer[monkeyPlayerIndex].space_curr, 0x100);
     if (frandBool() != 0) {
-        var_r31 = BoardSpaceLinkFlagSearch(0, var_r31, 0x200);
+        playerIndex = BoardSpaceLinkFlagSearch(0, playerIndex, 0x200);
     } else {
-        var_r31 = BoardSpaceLinkFlagSearch(0, var_r31, 0x400);
+        playerIndex = BoardSpaceLinkFlagSearch(0, playerIndex, 0x400);
     }
-    BoardSpacePosGet(0, var_r31, &sp8);
-    VECSubtract(&sp8, &sp2C, &sp20);
-    sp20.y = 0.0f;
-    VECNormalize(&sp20, &sp20);
-    VECScale(&sp20, &sp20, 10.0f);
-    var_f30 = 9.0f;
-    var_f31 = 0.0f;
+    BoardSpacePosGet(0, playerIndex, &movementVector4);
+    VECSubtract(&movementVector4, &movementVector, &movementVector2);
+    movementVector2.y = 0.0f;
+    VECNormalize(&movementVector2, &movementVector2);
+    VECScale(&movementVector2, &movementVector2, 10.0f);
+    floatValue2 = 9.0f;
+    frameCount = 0.0f;
     while (1) {
-        sp20.y = var_f30 - (0.075f * (0.25f * (var_f31 * var_f31)));
-        var_f31 += 1.0f;
-        VECAdd(&sp2C, &sp20, &sp2C);
-        VECSubtract(&sp8, &sp2C, &sp14);
-        sp14.y = 0.0f;
-        var_f29 = VECMag(&sp14);
-        if (var_f29 <= 10.0f) {
-            sp2C.x = sp8.x;
-            sp2C.z = sp8.z;
-            sp20.x = sp20.z = 0.0f;
+        movementVector2.y = floatValue2 - (0.075f * (0.25f * (frameCount * frameCount)));
+        frameCount += 1.0f;
+        VECAdd(&movementVector, &movementVector2, &movementVector);
+        VECSubtract(&movementVector4, &movementVector, &movementVector3);
+        movementVector3.y = 0.0f;
+        floatValue = VECMag(&movementVector3);
+        if (floatValue <= 10.0f) {
+            movementVector.x = movementVector4.x;
+            movementVector.z = movementVector4.z;
+            movementVector2.x = movementVector2.z = 0.0f;
         }
-        if (sp2C.y <= sp8.y) {
-            sp2C.y = sp8.y;
-            omVibrate(lbl_1_bss_4C, 0xC, 4, 2);
+        if (movementVector.y <= movementVector4.y) {
+            movementVector.y = movementVector4.y;
+            omVibrate(monkeyPlayerIndex, 0xC, 4, 2);
             break;
         }
-        BoardPlayerPosSetV(lbl_1_bss_4C, &sp2C);
-        if (BoardModelMotionTimeGet(lbl_1_bss_4E[lbl_1_bss_48]) >= BoardModelMotionMaxTimeGet(lbl_1_bss_4E[lbl_1_bss_48])) {
-            BoardModelMotionStart(lbl_1_bss_4E[lbl_1_bss_48], 0, 0x40000001);
+        BoardPlayerPosSetV(monkeyPlayerIndex, &movementVector);
+        if (BoardModelMotionTimeGet(monkeyModels[monkeySide]) >= BoardModelMotionMaxTimeGet(monkeyModels[monkeySide])) {
+            BoardModelMotionStart(monkeyModels[monkeySide], 0, 0x40000001);
         }
         HuPrcVSleep();
     }
-    var_f30 = 10.0f;
-    var_f31 = 0.0f;
-    if (BoardPlayerSizeGet(lbl_1_bss_4C) == 2) {
+    floatValue2 = 10.0f;
+    frameCount = 0.0f;
+    if (BoardPlayerSizeGet(monkeyPlayerIndex) == 2) {
         HuAudFXPlay(0x490);
-    } else if (BoardPlayerSizeGet(lbl_1_bss_4C) == 1) {
+    } else if (BoardPlayerSizeGet(monkeyPlayerIndex) == 1) {
         HuAudFXPlay(0x48F);
     } else {
-        PlayerFXPlay(lbl_1_bss_4C, 0x119);
+        PlayerFXPlay(monkeyPlayerIndex, 0x119);
     }
     while (1) {
-        sp20.y = var_f30 - (0.18333334f * (0.25f * (var_f31 * var_f31)));
-        var_f31 += 1.0f;
-        sp2C.y += sp20.y;
-        if (sp2C.y <= sp8.y) {
-            var_f30 = 0.25f * -sp20.y;
-            var_f31 = 0.0f;
-            sp2C.y = sp8.y;
-            if (BoardPlayerSizeGet(lbl_1_bss_4C) == 2) {
+        movementVector2.y = floatValue2 - (0.18333334f * (0.25f * (frameCount * frameCount)));
+        frameCount += 1.0f;
+        movementVector.y += movementVector2.y;
+        if (movementVector.y <= movementVector4.y) {
+            floatValue2 = 0.25f * -movementVector2.y;
+            frameCount = 0.0f;
+            movementVector.y = movementVector4.y;
+            if (BoardPlayerSizeGet(monkeyPlayerIndex) == 2) {
                 OSReport("big se\n");
                 HuAudFXPlay(0x490);
             } else {
-                if (BoardPlayerSizeGet(lbl_1_bss_4C) == 1) {
+                if (BoardPlayerSizeGet(monkeyPlayerIndex) == 1) {
                     OSReport("small se\n");
                     HuAudFXPlay(0x48F);
                 } else {
                     OSReport("normal se\n");
-                    PlayerFXPlay(lbl_1_bss_4C, 0x119);
+                    PlayerFXPlay(monkeyPlayerIndex, 0x119);
                 }
             }
         }
-        BoardPlayerPosSetV(lbl_1_bss_4C, &sp2C);
-        if (!(fabs(var_f30) < 5.0)) {
-            if (BoardModelMotionTimeGet(lbl_1_bss_4E[lbl_1_bss_48]) >= BoardModelMotionMaxTimeGet(lbl_1_bss_4E[lbl_1_bss_48])) {
-                BoardModelMotionStart(lbl_1_bss_4E[lbl_1_bss_48], 0, 0x40000001U);
+        BoardPlayerPosSetV(monkeyPlayerIndex, &movementVector);
+        if (!(fabs(floatValue2) < 5.0)) {
+            if (BoardModelMotionTimeGet(monkeyModels[monkeySide]) >= BoardModelMotionMaxTimeGet(monkeyModels[monkeySide])) {
+                BoardModelMotionStart(monkeyModels[monkeySide], 0, 0x40000001U);
             }
             HuPrcVSleep();
         } else {
-            BoardPlayerMotionShiftSet(lbl_1_bss_4C, 6, 0.0f, 8.0f, HU3D_MOTATTR_LOOP);
+            BoardPlayerMotionShiftSet(monkeyPlayerIndex, 6, 0.0f, 8.0f, HU3D_MOTATTR_LOOP);
             break;
         }
     }
 
-    var_r30 = 0x44;
-    while (var_r30--, var_r30 != 0) {
-        if (BoardModelMotionTimeGet(lbl_1_bss_4E[lbl_1_bss_48]) >= BoardModelMotionMaxTimeGet(lbl_1_bss_4E[lbl_1_bss_48])) {
-            BoardModelMotionStart(lbl_1_bss_4E[lbl_1_bss_48], 0, 0x40000001U);
+    spaceIndex = 0x44;
+    while (spaceIndex--, spaceIndex != 0) {
+        if (BoardModelMotionTimeGet(monkeyModels[monkeySide]) >= BoardModelMotionMaxTimeGet(monkeyModels[monkeySide])) {
+            BoardModelMotionStart(monkeyModels[monkeySide], 0, 0x40000001U);
         }
         HuPrcVSleep();
     }
-    GWPlayer[lbl_1_bss_4C].space_curr = var_r31;
+    GWPlayer[monkeyPlayerIndex].space_curr = playerIndex;
 }
 
-void fn_1_3D88(void) {
-    s32 temp_r3;
+void W05MoveBowserPlayerToNextSpace(void) {
+    s32 playerIndex;
 
-    temp_r3 = BoardSpaceLinkFlagSearch(0, GWPlayer[lbl_1_bss_4C].space_curr, 0x100U);
-    BoardPlayerMoveBetween(lbl_1_bss_4C, GWPlayer[lbl_1_bss_4C].space_curr, temp_r3);
-    GWPlayer[lbl_1_bss_4C].space_curr = temp_r3;
+    playerIndex = BoardSpaceLinkFlagSearch(0, GWPlayer[monkeyPlayerIndex].space_curr, 0x100U);
+    BoardPlayerMoveBetween(monkeyPlayerIndex, GWPlayer[monkeyPlayerIndex].space_curr, playerIndex);
+    GWPlayer[monkeyPlayerIndex].space_curr = playerIndex;
     HuAudFXPlay(0x48B);
-    HuPrcChildCreate(fn_1_3E8C, 0x2001U, 0x1000U, 0, boardMainProc);
-    BoardPlayerIdleSet(lbl_1_bss_4C);
+    HuPrcChildCreate(W05UpdateMonkeyEffects, 0x2001U, 0x1000U, 0, boardMainProc);
+    BoardPlayerIdleSet(monkeyPlayerIndex);
     BoardWinCreate(0, MAKE_MESSID(39, 25), -1);
     BoardWinWait();
     BoardWinKill();
 }
 
-void fn_1_3E8C(void) {
-    Vec sp14;
-    Vec sp8;
+void W05UpdateMonkeyEffects(void) {
+    Vec position;
+    Vec vector;
     s32 i;
 
-    BoardModelPosGet(lbl_1_bss_44[1], &sp14);
-    sp8.z = 0.0f;
-    sp8.y = 10.0f;
-    if (lbl_1_bss_48 == 0) {
-        sp8.x = -25.0f;
+    BoardModelPosGet(monkeyEffectModels[1], &position);
+    vector.z = 0.0f;
+    vector.y = 10.0f;
+    if (monkeySide == 0) {
+        vector.x = -25.0f;
     } else {
-        sp8.x = 25.0f;
+        vector.x = 25.0f;
     }
     for (i = 0; i < 60; i++) {
-        VECAdd(&sp14, &sp8, &sp14);
-        sp8.y -= 0.625f;
-        BoardModelPosSetV(lbl_1_bss_44[1], &sp14);
+        VECAdd(&position, &vector, &position);
+        vector.y -= 0.625f;
+        BoardModelPosSetV(monkeyEffectModels[1], &position);
         HuPrcVSleep();        
     }
     HuPrcEnd();

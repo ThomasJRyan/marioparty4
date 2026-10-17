@@ -15,162 +15,162 @@
 #include "ext_math.h"
 
 // data
-s32 lbl_1_data_310[2] = { 0x79, 0x7A };
-char *lbl_1_data_330[3] = { "suika1", "suika2", "suika3" };
+s32 itemPlayerMotions[2] = { 0x79, 0x7A };
+char *itemObjectNames[3] = { "suika1", "suika2", "suika3" };
 
 // bss
-s16 lbl_1_bss_B6;
-s16 lbl_1_bss_B0[3];
-s16 lbl_1_bss_AA[3];
-s16 lbl_1_bss_A4[3];
-s16 lbl_1_bss_A2;
-s16 lbl_1_bss_9E[2];
-s16 lbl_1_bss_9C;
-HUPROCESS *lbl_1_bss_98;
-OMOBJ *lbl_1_bss_94;
-OMOBJ *lbl_1_bss_90;
-OMOBJ *lbl_1_bss_8C;
-s32 lbl_1_bss_88;
-s32 lbl_1_bss_7C[3];
-ANIMDATA *lbl_1_bss_78;
+s16 itemPlayerIndex;
+s16 itemModels[3];
+s16 itemModelMotions[3];
+s16 itemMotionModels[3];
+s16 itemEffectModel;
+s16 itemPlayerMotionIds[2];
+s16 itemMinigameExitRequested;
+HUPROCESS *itemMinigameProcess;
+OMOBJ *itemControllerObject;
+OMOBJ *itemMinigameObject;
+OMOBJ *itemInputObject;
+s32 itemMinigameState;
+s32 itemParticleModels[3];
+ANIMDATA *itemAnimationData;
 
-void fn_1_6B28(void)
+void W05InitializeItemMinigame(void)
 {
-    BoardModelAttrSet(*lbl_1_bss_14, 0x40000002U);
-    lbl_1_bss_98 = NULL;
-    lbl_1_bss_78 = NULL;
+    BoardModelAttrSet(*boardMapModelIds, 0x40000002U);
+    itemMinigameProcess = NULL;
+    itemAnimationData = NULL;
 }
 
-void fn_1_6B7C(void)
+void W05StartItemMinigame(void)
 {
-    Vec sp1C;
-    Vec sp10;
-    s32 spC;
-    s32 var_r31;
+    Vec scale;
+    Vec position;
+    s32 playerIndex;
+    s32 loopIndex;
 
-    lbl_1_bss_B6 = GWSystem.player_curr;
-    spC = GWPlayer[lbl_1_bss_B6].character;
+    itemPlayerIndex = GWSystem.player_curr;
+    playerIndex = GWPlayer[itemPlayerIndex].character;
 
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        lbl_1_bss_9E[var_r31] = BoardPlayerMotionCreate(lbl_1_bss_B6, lbl_1_data_310[var_r31] | lbl_1_data_124[GWPlayer[lbl_1_bss_B6].character]);
+    for (loopIndex = 0; loopIndex < 2; loopIndex++) {
+        itemPlayerMotionIds[loopIndex] = BoardPlayerMotionCreate(itemPlayerIndex, itemPlayerMotions[loopIndex] | characterIdleMotions[GWPlayer[itemPlayerIndex].character]);
     }
-    lbl_1_bss_A2 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x13), NULL, 0);
-    BoardModelVisibilitySet(lbl_1_bss_A2, 0);
-    sp1C.x = sp1C.y = sp1C.z = 3.33333f;
-    BoardModelScaleSetV(lbl_1_bss_A2, &sp1C);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_14[0]), "chara1", &sp1C);
-    BoardPlayerPosGet(lbl_1_bss_B6, &sp10);
-    BoardPlayerPosLerpStart(lbl_1_bss_B6, &sp10, &sp1C, 0x1E);
+    itemEffectModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x13), NULL, 0);
+    BoardModelVisibilitySet(itemEffectModel, 0);
+    scale.x = scale.y = scale.z = 3.33333f;
+    BoardModelScaleSetV(itemEffectModel, &scale);
+    Hu3DModelObjPosGet(BoardModelIDGet(boardMapModelIds[0]), "chara1", &scale);
+    BoardPlayerPosGet(itemPlayerIndex, &position);
+    BoardPlayerPosLerpStart(itemPlayerIndex, &position, &scale, 0x1E);
 
-    while (GWPlayer[lbl_1_bss_B6].moving != 0) {
+    while (GWPlayer[itemPlayerIndex].moving != 0) {
         HuPrcVSleep();
     }
-    BoardPlayerMotBlendSet(lbl_1_bss_B6, 0, 0xF);
+    BoardPlayerMotBlendSet(itemPlayerIndex, 0, 0xF);
 
-    while (BoardPlayerMotBlendCheck(lbl_1_bss_B6) == 0) {
+    while (BoardPlayerMotBlendCheck(itemPlayerIndex) == 0) {
         HuPrcVSleep();
     }
 
     HuPrcSleep(0x3C);
     BoardAudSeqPause(0, 1, 0x3E8);
     HuAudFXPlay(0x30D);
-    fn_1_88B8();
+    W05SetItemMinigameInputState();
     HuAudFXPlay(0x491);
-    omVibrate(lbl_1_bss_B6, 0x7FFF, 6, 6);
-    BoardModelHookSet(lbl_1_bss_14[0], "chara1", BoardPlayerModelGet(lbl_1_bss_B6));
-    BoardModelMotionStartEndSet(lbl_1_bss_14[0], 0x1E, 0x5A);
-    BoardModelAttrReset(lbl_1_bss_14[0], 0x40000002);
+    omVibrate(itemPlayerIndex, 0x7FFF, 6, 6);
+    BoardModelHookSet(boardMapModelIds[0], "chara1", BoardPlayerModelGet(itemPlayerIndex));
+    BoardModelMotionStartEndSet(boardMapModelIds[0], 0x1E, 0x5A);
+    BoardModelAttrReset(boardMapModelIds[0], 0x40000002);
     BoardMusStart(1, 0x22, 0x7F, 0);
-    BoardPlayerMotionShiftSet(lbl_1_bss_B6, lbl_1_bss_9E[0], 0.0f, 30.0f, HU3D_MOTATTR_LOOP);
+    BoardPlayerMotionShiftSet(itemPlayerIndex, itemPlayerMotionIds[0], 0.0f, 30.0f, HU3D_MOTATTR_LOOP);
     HuPrcSleep(REFRESH_RATE/2);
-    BoardModelVisibilitySet(lbl_1_bss_A2, 1);
-    BoardModelHookSet(BoardPlayerModelGet(lbl_1_bss_B6), "a-itemhook-r", lbl_1_bss_A2);
-    Hu3DModelObjPosGet(BoardModelIDGet(*lbl_1_bss_14), "chara1", &sp10);
-    Hu3DModelObjPosGet(BoardModelIDGet(BoardPlayerModelGet(lbl_1_bss_B6)), "a-itemhook-r", &sp1C);
-    VECAdd(&sp1C, &sp10, &sp1C);
-    sp1C.y += 25.0f;
+    BoardModelVisibilitySet(itemEffectModel, 1);
+    BoardModelHookSet(BoardPlayerModelGet(itemPlayerIndex), "a-itemhook-r", itemEffectModel);
+    Hu3DModelObjPosGet(BoardModelIDGet(*boardMapModelIds), "chara1", &position);
+    Hu3DModelObjPosGet(BoardModelIDGet(BoardPlayerModelGet(itemPlayerIndex)), "a-itemhook-r", &scale);
+    VECAdd(&scale, &position, &scale);
+    scale.y += 25.0f;
     CharEffectLayerSet(7);
-    CharEffectSmokeCreate(-1, &sp1C);
-    HuPadRumbleStop(GWPlayer[lbl_1_bss_B6].port);
-    BoardModelAttrSet(lbl_1_bss_14[0], 0x40000002);
+    CharEffectSmokeCreate(-1, &scale);
+    HuPadRumbleStop(GWPlayer[itemPlayerIndex].port);
+    BoardModelAttrSet(boardMapModelIds[0], 0x40000002);
     HuPrcSleep(0x1E);
-    BoardModelAttrReset(lbl_1_bss_14[0], 0x40000002);
-    omVibrate(lbl_1_bss_B6, 0x7FFF, 6, 6);
+    BoardModelAttrReset(boardMapModelIds[0], 0x40000002);
+    omVibrate(itemPlayerIndex, 0x7FFF, 6, 6);
     HuAudFXPlay(0x492);
 
-    while (BoardModelMotionTimeGet(lbl_1_bss_14[0]) < 90.0f) {
+    while (BoardModelMotionTimeGet(boardMapModelIds[0]) < 90.0f) {
         HuPrcVSleep();
     }
-    BoardModelMotionTimeSet(lbl_1_bss_14[0], 90.0f);
-    HuPadRumbleStop(GWPlayer[lbl_1_bss_B6].port);
-    BoardModelHookReset(lbl_1_bss_14[0]);
+    BoardModelMotionTimeSet(boardMapModelIds[0], 90.0f);
+    HuPadRumbleStop(GWPlayer[itemPlayerIndex].port);
+    BoardModelHookReset(boardMapModelIds[0]);
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        BoardModelHookSet(lbl_1_bss_14[0], lbl_1_data_330[var_r31], lbl_1_bss_AA[var_r31]);
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        BoardModelHookSet(boardMapModelIds[0], itemObjectNames[loopIndex], itemModelMotions[loopIndex]);
     }
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_14[0]), "chara1", &sp10);
-    BoardPlayerPosSetV(lbl_1_bss_B6, &sp10);
+    Hu3DModelObjPosGet(BoardModelIDGet(boardMapModelIds[0]), "chara1", &position);
+    BoardPlayerPosSetV(itemPlayerIndex, &position);
     HuPrcSleep(0x3C);
-    lbl_1_bss_94 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, fn_1_7284);
-    lbl_1_bss_8C = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, fn_1_78A0);
-    lbl_1_bss_90 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, NULL);
-    lbl_1_bss_90->data = HuMemDirectMallocNum(HEAP_HEAP, 0x14, HU_MEMNUM_OVL);
-    if (lbl_1_bss_78 == NULL) {
-        lbl_1_bss_78 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 0x00));
-        HuSprAnimLock(lbl_1_bss_78);
+    itemControllerObject = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, W05PollItemMinigameEnd);
+    itemInputObject = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, W05PollItemMinigameSequence);
+    itemMinigameObject = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, NULL);
+    itemMinigameObject->data = HuMemDirectMallocNum(HEAP_HEAP, 0x14, HU_MEMNUM_OVL);
+    if (itemAnimationData == NULL) {
+        itemAnimationData = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 0x00));
+        HuSprAnimLock(itemAnimationData);
     }
-    lbl_1_bss_9C = 0;
+    itemMinigameExitRequested = 0;
 }
 
-void fn_1_7284(OMOBJ *arg0)
+void W05PollItemMinigameEnd(OMOBJ *object)
 {
-    if ((lbl_1_bss_9C != 0) && (BoardMGDoneFlagGet() == 1)) {
-        fn_1_77B0();
-        fn_1_7314();
-        fn_1_73C0();
-        omDelObjEx(boardObjMan, arg0);
+    if ((itemMinigameExitRequested != 0) && (BoardMGDoneFlagGet() == 1)) {
+        W05PlayItemSpaceExitAnimation();
+        W05CleanupItemMinigame();
+        W05FinishItemMinigameCleanup();
+        omDelObjEx(boardObjMan, object);
     }
 }
 
-void fn_1_72E4(void)
+void W05ExitItemMinigame(void)
 {
-    lbl_1_bss_9C = 1;
+    itemMinigameExitRequested = 1;
     BoardMGExit();
 }
 
-void fn_1_7314(void)
+void W05CleanupItemMinigame(void)
 {
-    s32 var_r31;
+    s32 loopIndex;
 
-    BoardModelHookReset(lbl_1_bss_14[0]);
+    BoardModelHookReset(boardMapModelIds[0]);
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        BoardModelKill(lbl_1_bss_A4[var_r31]);
-        BoardModelKill(lbl_1_bss_AA[var_r31]);
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        BoardModelKill(itemMotionModels[loopIndex]);
+        BoardModelKill(itemModelMotions[loopIndex]);
     }
-    if (lbl_1_bss_78 != 0) {
-        HuSprAnimKill(lbl_1_bss_78);
-        lbl_1_bss_78 = NULL;
+    if (itemAnimationData != 0) {
+        HuSprAnimKill(itemAnimationData);
+        itemAnimationData = NULL;
     }
 }
 
-void fn_1_73C0(void)
+void W05FinishItemMinigameCleanup(void)
 {
-    omDelObjEx(boardObjMan, lbl_1_bss_90);
+    omDelObjEx(boardObjMan, itemMinigameObject);
     BoardMGDoneFlagSet(0);
 }
 
-void fn_1_7400(void)
+void W05WaitForItemModelAnimation(void)
 {
 
-    while (BoardModelMotionTimeGet(lbl_1_bss_14[0]) < 30.0f) {
+    while (BoardModelMotionTimeGet(boardMapModelIds[0]) < 30.0f) {
         HuPrcVSleep();
     }
-    BoardModelAttrSet(lbl_1_bss_14[0], 0x40000002U);
-    BoardModelMotionTimeSet(lbl_1_bss_14[0], 30.0f);
-    lbl_1_bss_98 = HuPrcCreate(fn_1_896C, 0x2004, 0x1000, 0);
-    HuPrcDestructorSet2(lbl_1_bss_98, fn_1_91DC);
-    lbl_1_bss_98->user_data = (void *)7;
+    BoardModelAttrSet(boardMapModelIds[0], 0x40000002U);
+    BoardModelMotionTimeSet(boardMapModelIds[0], 30.0f);
+    itemMinigameProcess = HuPrcCreate(W05RunItemMinigameIntro, 0x2004, 0x1000, 0);
+    HuPrcDestructorSet2(itemMinigameProcess, W05DestroyItemMinigameModels);
+    itemMinigameProcess->user_data = (void *)7;
     HuPrcEnd();
 }
 
@@ -180,7 +180,7 @@ void fn_1_7400(void)
 #define MDL_ID_SHIFT 1
 #endif
 
-s32 lbl_1_data_350[14] = {
+s32 itemMinigameModels[14] = {
     DATA_MAKE_NUM(DATADIR_BOARD, 0x6C + MDL_ID_SHIFT),
     DATA_MAKE_NUM(DATADIR_BOARD, 0x6D + MDL_ID_SHIFT),
     DATA_MAKE_NUM(DATADIR_BOARD, 0x6E + MDL_ID_SHIFT),
@@ -197,448 +197,448 @@ s32 lbl_1_data_350[14] = {
     DATA_MAKE_NUM(DATADIR_BOARD, 0x7A + MDL_ID_SHIFT),
 };
 
-s16 lbl_1_data_388[92] = { 0, 1, -1, 2, 0, -1, 1, 2, 0, -1, 2, 1, 0, 2, -1, 1, 0, 2, 1, -1, 1, 2, -1, 0, 1, 2, 0, -1, 1, -1, 0, 2, 1, -1, 2, 0, 1, 0,
+s16 itemChoiceSequence[92] = { 0, 1, -1, 2, 0, -1, 1, 2, 0, -1, 2, 1, 0, 2, -1, 1, 0, 2, 1, -1, 1, 2, -1, 0, 1, 2, 0, -1, 1, -1, 0, 2, 1, -1, 2, 0, 1, 0,
     2, -1, 1, 0, -1, 2, 2, -1, 0, 1, 2, -1, 1, 0, 2, 0, 1, -1, 2, 0, -1, 1, 2, 1, -1, 0, 2, 1, 0, -1, -1, 0, 1, 2, -1, 0, 2, 1, -1, 1, 2, 0, -1, 1, 0,
     2, -1, 2, 0, 1, -1, 2, 1, 0 };
 
-f32 lbl_1_data_440[3] = { -90.0f, 0.0f, 90.0f };
+F32 itemChoiceRotations[3] = { -90.0f, 0.0f, 90.0f };
 
-void fn_1_74D0(s16 arg0[3])
+void W05ShuffleItemChoices(s16 itemChoices[3])
 {
-    f32 temp_f31;
-    s32 var_r31;
+    F32 floatValue;
+    s32 loopIndex;
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        lbl_1_bss_B0[var_r31] = arg0[var_r31];
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        itemModels[loopIndex] = itemChoices[loopIndex];
     }
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        lbl_1_bss_A4[var_r31] = BoardModelCreate(lbl_1_data_350[lbl_1_bss_B0[var_r31]], NULL, 0);
-        if (lbl_1_bss_B0[var_r31] == 0xB) {
-            BoardModelAttrSet(lbl_1_bss_A4[var_r31], 0x40000001U);
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        itemMotionModels[loopIndex] = BoardModelCreate(itemMinigameModels[itemModels[loopIndex]], NULL, 0);
+        if (itemModels[loopIndex] == 0xB) {
+            BoardModelAttrSet(itemMotionModels[loopIndex], 0x40000001U);
         }
-        if (lbl_1_bss_B0[var_r31] == 5) {
-            temp_f31 = -50.0f;
-            Hu3DData[BoardModelIDGet(lbl_1_bss_A4[var_r31])].mtx[1][3] = temp_f31;
+        if (itemModels[loopIndex] == 5) {
+            floatValue = -50.0f;
+            Hu3DData[BoardModelIDGet(itemMotionModels[loopIndex])].mtx[1][3] = floatValue;
         }
-        if (lbl_1_bss_B0[var_r31] == 4) {
-            BoardModelMotionSpeedSet(lbl_1_bss_A4[var_r31], 0.0f);
+        if (itemModels[loopIndex] == 4) {
+            BoardModelMotionSpeedSet(itemMotionModels[loopIndex], 0.0f);
         }
-        BoardModelVisibilitySet(lbl_1_bss_A4[var_r31], 0);
+        BoardModelVisibilitySet(itemMotionModels[loopIndex], 0);
     }
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        lbl_1_bss_AA[var_r31] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x12), NULL, 1);
-        BoardModelHookSet(lbl_1_bss_14[0], lbl_1_data_330[var_r31], lbl_1_bss_AA[var_r31]);
-        BoardModelAttrSet(lbl_1_bss_AA[var_r31], 0x40000002);
-        BoardModelMotionTimeSet(lbl_1_bss_AA[var_r31], 10.0f);
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        itemModelMotions[loopIndex] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x12), NULL, 1);
+        BoardModelHookSet(boardMapModelIds[0], itemObjectNames[loopIndex], itemModelMotions[loopIndex]);
+        BoardModelAttrSet(itemModelMotions[loopIndex], 0x40000002);
+        BoardModelMotionTimeSet(itemModelMotions[loopIndex], 10.0f);
     }
 
     HuAudFXPlay(0x488);
-    BoardModelMotionTimeSet(lbl_1_bss_14[0], 0.0f);
-    BoardModelMotionStartEndSet(lbl_1_bss_14[0], 0, 0x1E);
-    BoardModelAttrReset(lbl_1_bss_14[0], 0x40000002);
-    HuPrcCreate(fn_1_7400, 0x2004, 0x1000, 0);
+    BoardModelMotionTimeSet(boardMapModelIds[0], 0.0f);
+    BoardModelMotionStartEndSet(boardMapModelIds[0], 0, 0x1E);
+    BoardModelAttrReset(boardMapModelIds[0], 0x40000002);
+    HuPrcCreate(W05WaitForItemModelAnimation, 0x2004, 0x1000, 0);
 }
 
-void fn_1_77B0(void)
+void W05PlayItemSpaceExitAnimation(void)
 {
     HuAudFXPlay(0x489);
-    BoardModelMotionStartEndSet(lbl_1_bss_14[0], 0x5A, 0x78);
-    BoardModelMotionTimeSet(lbl_1_bss_14[0], 90.0f);
-    BoardModelAttrReset(lbl_1_bss_14[0], 0x40000002);
+    BoardModelMotionStartEndSet(boardMapModelIds[0], 0x5A, 0x78);
+    BoardModelMotionTimeSet(boardMapModelIds[0], 90.0f);
+    BoardModelAttrReset(boardMapModelIds[0], 0x40000002);
 
-    while (BoardModelMotionEndCheck(lbl_1_bss_14[0]) == 0) {
-        fn_1_1208(lbl_1_bss_14[6], 0.0f, 6.0f);
+    while (BoardModelMotionEndCheck(boardMapModelIds[0]) == 0) {
+        W05TurnBoardModelTowardAngle(boardMapModelIds[6], 0.0f, 6.0f);
         HuPrcVSleep();
     }
 
-    while (fn_1_1208(lbl_1_bss_14[6], 0.0f, 6.0f) == 0) {
+    while (W05TurnBoardModelTowardAngle(boardMapModelIds[6], 0.0f, 6.0f) == 0) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_78A0(OMOBJ *arg0)
+void W05PollItemMinigameSequence(OMOBJ *object)
 {
-    if (arg0->work[0] == 0) {
-        arg0->work[0] = MGSeqCreate(3, 0);
+    if (object->work[0] == 0) {
+        object->work[0] = MGSeqCreate(3, 0);
         return;
     }
-    if (MGSeqStatGet(arg0->work[0]) == 0) {
-        arg0->objFunc = NULL;
-        lbl_1_bss_90->objFunc = fn_1_7F04;
+    if (MGSeqStatGet(object->work[0]) == 0) {
+        object->objFunc = NULL;
+        itemMinigameObject->objFunc = W05UpdateItemTargets;
     }
 }
 
-void fn_1_7928(OMOBJ *arg0)
+void W05PollItemInput(OMOBJ *object)
 {
-    HUPROCESS *temp;
-    if (((u32)lbl_1_bss_98->user_data & 0x10) != 0) {
-        temp = HuPrcCreate(fn_1_799C, 0x2004, 0x1800, 0);
-        temp->user_data = arg0;
-        arg0->objFunc = NULL;
+    HUPROCESS *process;
+    if (((u32)itemMinigameProcess->user_data & 0x10) != 0) {
+        process = HuPrcCreate(W05RunItemMinigameRound, 0x2004, 0x1800, 0);
+        process->user_data = object;
+        object->objFunc = NULL;
     }
 }
 
-void fn_1_799C(void)
+void W05RunItemMinigameRound(void)
 {
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    f32 temp_f29;
-    f32 temp_f30;
-    f32 var_f31;
-    s32 temp_r27;
-    s32 temp_r31;
-    s32 var_r28;
-    s32 var_r29;
-    OMOBJ *temp_r30;
+    Vec movementVector;
+    Vec movementVector2;
+    Vec movementVector3;
+    Vec scale;
+    F32 floatValue;
+    F32 floatValue2;
+    F32 frameCount;
+    s32 integerValue;
+    s32 integerValue2;
+    s32 integerValue3;
+    s32 loopIndex;
+    OMOBJ *effectObject;
 
-    temp_r30 = HuPrcCurrentGet()->user_data;
-    BoardPlayerPosGet(lbl_1_bss_B6, &sp2C);
-    temp_r31 = temp_r30->work[0];
-    BoardModelPosGet(lbl_1_bss_A4[temp_r31], &sp20);
-    sp2C.y = sp20.y = 0.0f;
-    VECSubtract(&sp2C, &sp20, &sp14);
-    temp_f30 = VECMag(&sp14);
-    VECScale(&sp14, &sp14, 0.016666668);
+    effectObject = HuPrcCurrentGet()->user_data;
+    BoardPlayerPosGet(itemPlayerIndex, &movementVector);
+    integerValue2 = effectObject->work[0];
+    BoardModelPosGet(itemMotionModels[integerValue2], &movementVector2);
+    movementVector.y = movementVector2.y = 0.0f;
+    VECSubtract(&movementVector, &movementVector2, &movementVector3);
+    floatValue2 = VECMag(&movementVector3);
+    VECScale(&movementVector3, &movementVector3, 0.016666668);
 
-    for (var_r29 = 0; var_r29 < 0x3C; var_r29++) {
-        BoardModelPosGet(lbl_1_bss_A4[temp_r31], &sp20);
-        VECAdd(&sp20, &sp14, &sp20);
-        BoardModelPosSetV(lbl_1_bss_A4[temp_r31], &sp20);
+    for (loopIndex = 0; loopIndex < 0x3C; loopIndex++) {
+        BoardModelPosGet(itemMotionModels[integerValue2], &movementVector2);
+        VECAdd(&movementVector2, &movementVector3, &movementVector2);
+        BoardModelPosSetV(itemMotionModels[integerValue2], &movementVector2);
         HuPrcVSleep();
     }
-    BoardModelPosGet(lbl_1_bss_A4[temp_r31], &sp20);
-    sp20.x = sp2C.x;
-    sp20.z = sp2C.z;
-    BoardModelPosSetV(lbl_1_bss_A4[temp_r31], &sp20);
-    BoardPlayerMotBlendSet(lbl_1_bss_B6, 0, 0xF);
+    BoardModelPosGet(itemMotionModels[integerValue2], &movementVector2);
+    movementVector2.x = movementVector.x;
+    movementVector2.z = movementVector.z;
+    BoardModelPosSetV(itemMotionModels[integerValue2], &movementVector2);
+    BoardPlayerMotBlendSet(itemPlayerIndex, 0, 0xF);
 
-    while (BoardPlayerMotBlendCheck(lbl_1_bss_B6) == 0) {
-        fn_1_1208(lbl_1_bss_14[6], 90.0f, 6.0f);
+    while (BoardPlayerMotBlendCheck(itemPlayerIndex) == 0) {
+        W05TurnBoardModelTowardAngle(boardMapModelIds[6], 90.0f, 6.0f);
         HuPrcVSleep();
     }
 
-    while (fn_1_1208(lbl_1_bss_14[6], 90.0f, 6.0f) == 0) {
+    while (W05TurnBoardModelTowardAngle(boardMapModelIds[6], 90.0f, 6.0f) == 0) {
         HuPrcVSleep();
     }
     BoardWinCreate(2, MAKE_MESSID(39, 12), 7);
-    BoardWinInsertMesSet(lbl_1_bss_B0[temp_r31] + 0x80000, 0);
+    BoardWinInsertMesSet(itemModels[integerValue2] + 0x80000, 0);
     BoardWinWait();
     BoardWinKill();
-    HuPrcKill(lbl_1_bss_98);
-    lbl_1_bss_98 = NULL;
+    HuPrcKill(itemMinigameProcess);
+    itemMinigameProcess = NULL;
     HuPrcVSleep();
     HuAudFXPlay(0x30D);
-    BoardModelPosGet(lbl_1_bss_A4[temp_r31], &sp20);
-    BoardModelScaleGet(lbl_1_bss_A4[temp_r31], &sp8);
-    var_f31 = sp8.x;
-    temp_f29 = -0.075f;
-    temp_f30 = (sp2C.y - sp20.y) / 30.0f;
-    var_r28 = 0;
-    HuAudFXFadeOut(lbl_1_bss_88, 0x1F3);
-    while (var_r28 == 0) {
-        sp20.y += temp_f30;
-        var_f31 += temp_f29;
-        if (var_f31 < 0.0f) {
-            var_f31 = 0.0f;
-            var_r28 = 1;
+    BoardModelPosGet(itemMotionModels[integerValue2], &movementVector2);
+    BoardModelScaleGet(itemMotionModels[integerValue2], &scale);
+    frameCount = scale.x;
+    floatValue = -0.075f;
+    floatValue2 = (movementVector.y - movementVector2.y) / 30.0f;
+    integerValue3 = 0;
+    HuAudFXFadeOut(itemMinigameState, 0x1F3);
+    while (integerValue3 == 0) {
+        movementVector2.y += floatValue2;
+        frameCount += floatValue;
+        if (frameCount < 0.0f) {
+            frameCount = 0.0f;
+            integerValue3 = 1;
         }
-        sp8.x = sp8.y = sp8.z = var_f31;
-        BoardModelPosSetV(lbl_1_bss_A4[temp_r31], &sp20);
-        BoardModelScaleSetV(lbl_1_bss_A4[temp_r31], &sp8);
+        scale.x = scale.y = scale.z = frameCount;
+        BoardModelPosSetV(itemMotionModels[integerValue2], &movementVector2);
+        BoardModelScaleSetV(itemMotionModels[integerValue2], &scale);
         HuPrcVSleep();
     }
-    HuAudFXStop(lbl_1_bss_88);
-    BoardModelVisibilitySet(lbl_1_bss_A4[temp_r31], 0);
-    BoardPlayerItemAdd(lbl_1_bss_B6, lbl_1_bss_B0[temp_r31]);
-    omVibrate(lbl_1_bss_B6, 0xC, 6, 6);
-    temp_r27 = HuAudSStreamPlay(2);
-    BoardPlayerMotionShiftSet(lbl_1_bss_B6, 7, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
+    HuAudFXStop(itemMinigameState);
+    BoardModelVisibilitySet(itemMotionModels[integerValue2], 0);
+    BoardPlayerItemAdd(itemPlayerIndex, itemModels[integerValue2]);
+    omVibrate(itemPlayerIndex, 0xC, 6, 6);
+    integerValue = HuAudSStreamPlay(2);
+    BoardPlayerMotionShiftSet(itemPlayerIndex, 7, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
 
-    while (BoardPlayerMotionEndCheck(lbl_1_bss_B6) == 0) {
+    while (BoardPlayerMotionEndCheck(itemPlayerIndex) == 0) {
         HuPrcVSleep();
     }
     HuPrcSleep(REFRESH_RATE/2);
 
-    while (HuAudSStreamStatGet(temp_r27) != 0) {
+    while (HuAudSStreamStatGet(integerValue) != 0) {
         HuPrcVSleep();
     }
     BoardAudSeqPause(0, 0, 0x3E8);
     BoardWinCreate(2, MAKE_MESSID(39, 13), 7);
     BoardWinWait();
     BoardWinKill();
-    temp_r30->objFunc = &fn_1_7E4C;
+    effectObject->objFunc = &W05ExitItemMinigameFromObject;
     HuPrcEnd();
 }
 
-void fn_1_7E4C(OMOBJ *arg0)
+void W05ExitItemMinigameFromObject(OMOBJ *object)
 {
-    lbl_1_bss_9C = 1;
+    itemMinigameExitRequested = 1;
     BoardMGExit();
-    omDelObjEx(boardObjMan, arg0);
+    omDelObjEx(boardObjMan, object);
 }
 
-void fn_1_7E94(dataCopy *arg0)
+void W05UpdateItemMinigameState(ItemMinigameState *state)
 {
-    if (--arg0->unk_02 == 0) {
-        arg0->unk_02 = 0x3C;
-        if (--arg0->unk_00 >= 0) {
-            MGSeqParamSet(arg0->unk_04, 1, arg0->unk_00);
+    if (--state->roundTimer == 0) {
+        state->roundTimer = 0x3C;
+        if (--state->remainingRounds >= 0) {
+            MGSeqParamSet(state->sequenceId, 1, state->remainingRounds);
         }
     }
 }
 
-void fn_1_7F04(OMOBJ *arg0)
+void W05UpdateItemTargets(OMOBJ *object)
 {
-    f32 sp8[2];
-    s32 var_r30;
-    s32 var_r28;
-    dataCopy *temp_r31;
+    F32 floatValue[2];
+    s32 loopIndex;
+    s32 integerValue;
+    ItemMinigameState *minigameState;
 
-    temp_r31 = arg0->data;
-    temp_r31->unk_00 = 5;
-    temp_r31->unk_02 = 0x3C;
-    temp_r31->unk_04 = MGSeqCreate(1, temp_r31->unk_00, 0x120, 0x40);
-    HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x27, 0x0E));
-    temp_r31->unk_06 = HuWinCreate(-10000.0f, 344.0f, sp8[0], sp8[1], 0);
-    HuWinMesSet(temp_r31->unk_06, MAKE_MESSID(0x27, 0x0E));
-    HuWinBGTPLvlSet(temp_r31->unk_06, 0.0f);
-    HuWinMesSpeedSet(temp_r31->unk_06, 0);
-    temp_r31->unk_08 = 1;
+    minigameState = object->data;
+    minigameState->remainingRounds = 5;
+    minigameState->roundTimer = 0x3C;
+    minigameState->sequenceId = MGSeqCreate(1, minigameState->remainingRounds, 0x120, 0x40);
+    HuWinMesMaxSizeGet(1, floatValue, MAKE_MESSID(0x27, 0x0E));
+    minigameState->messageWindowId = HuWinCreate(-10000.0f, 344.0f, floatValue[0], floatValue[1], 0);
+    HuWinMesSet(minigameState->messageWindowId, MAKE_MESSID(0x27, 0x0E));
+    HuWinBGTPLvlSet(minigameState->messageWindowId, 0.0f);
+    HuWinMesSpeedSet(minigameState->messageWindowId, 0);
+    minigameState->selectedChoice = 1;
 
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        temp_r31->unk_0A[var_r30] = -1;
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        minigameState->choiceToItem[loopIndex] = -1;
     }
 
-    for (var_r30 = 0; var_r30 < 2; var_r30++) {
+    for (loopIndex = 0; loopIndex < 2; loopIndex++) {
         do {
-            var_r28 = frandmod(3);
-        } while (temp_r31->unk_0A[var_r28] != -1);
-        temp_r31->unk_0A[var_r28] = var_r30;
+            integerValue = frandmod(3);
+        } while (minigameState->choiceToItem[integerValue] != -1);
+        minigameState->choiceToItem[integerValue] = loopIndex;
     }
 
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        if (temp_r31->unk_0A[var_r30] == -1) {
-            temp_r31->unk_0A[var_r30] = 2;
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        if (minigameState->choiceToItem[loopIndex] == -1) {
+            minigameState->choiceToItem[loopIndex] = 2;
         }
     }
-    temp_r31->unk_12 = frandmod(5);
-    temp_r31->unk_10 = (frandmod(0x1E) + 0xF);
-    arg0->objFunc = fn_1_80D8;
+    minigameState->cpuInputCountdown = frandmod(5);
+    minigameState->cpuInputDelay = (frandmod(0x1E) + 0xF);
+    object->objFunc = W05UpdateItemMovement;
 }
 
-void fn_1_80D8(OMOBJ *arg0)
+void W05UpdateItemMovement(OMOBJ *object)
 {
-    s32 sp10;
-    s32 spC;
-    s32 sp8;
-    f32 var_f31;
-    s32 temp_r30;
-    s32 var_r29;
-    dataCopy *temp_r31;
+    s32 integerValue;
+    s32 integerValue2;
+    s32 integerValue3;
+    F32 frameCount;
+    s32 integerValue4;
+    s32 integerValue5;
+    ItemMinigameState *minigameState;
 
-    temp_r31 = arg0->data;
-    fn_1_7E94(temp_r31);
-    temp_r30 = GWPlayer[lbl_1_bss_B6].port;
-    if (GWPlayer[lbl_1_bss_B6].com != 0) {
-        fn_1_8798(temp_r31, &sp10, &spC, &sp8);
+    minigameState = object->data;
+    W05UpdateItemMinigameState(minigameState);
+    integerValue4 = GWPlayer[itemPlayerIndex].port;
+    if (GWPlayer[itemPlayerIndex].com != 0) {
+        W05GetItemMinigameResult(minigameState, &integerValue, &integerValue2, &integerValue3);
     }
     else {
-        sp10 = HuPadStkX[temp_r30];
-        spC = HuPadStkY[temp_r30];
-        sp8 = HuPadBtnDown[temp_r30];
+        integerValue = HuPadStkX[integerValue4];
+        integerValue2 = HuPadStkY[integerValue4];
+        integerValue3 = HuPadBtnDown[integerValue4];
     }
 
-    if (((sp8 & 0x100) != 0) || (temp_r31->unk_00 < 0)) {
-        MGSeqParamSet(temp_r31->unk_04, 2, -1);
-        HuWinKill(temp_r31->unk_06);
-        BoardPlayerMotionStart(lbl_1_bss_B6, lbl_1_bss_9E[1], 0);
-        arg0->objFunc = fn_1_8410;
+    if (((integerValue3 & 0x100) != 0) || (minigameState->remainingRounds < 0)) {
+        MGSeqParamSet(minigameState->sequenceId, 2, -1);
+        HuWinKill(minigameState->messageWindowId);
+        BoardPlayerMotionStart(itemPlayerIndex, itemPlayerMotionIds[1], 0);
+        object->objFunc = W05UpdateItemSelection;
         return;
     }
-    if ((spC != 0) || (sp10 != 0)) {
-        var_r29 = -1;
-        var_f31 = atan2d(spC, sp10);
-        if (var_f31 < 0.0f) {
-            var_f31 += 360.0f;
+    if ((integerValue2 != 0) || (integerValue != 0)) {
+        integerValue5 = -1;
+        frameCount = atan2d(integerValue2, integerValue);
+        if (frameCount < 0.0f) {
+            frameCount += 360.0f;
         }
 
-        if ((var_f31 > 170.0f) && (var_f31 < 190.0f)) {
-            var_r29 = 0;
+        if ((frameCount > 170.0f) && (frameCount < 190.0f)) {
+            integerValue5 = 0;
         }
-        else if ((var_f31 > 260.0f) && (var_f31 < 280.0f)) {
-            var_r29 = 1;
+        else if ((frameCount > 260.0f) && (frameCount < 280.0f)) {
+            integerValue5 = 1;
         }
-        else if ((var_f31 < 10.0f) || (var_f31 > 350.0f)) {
-            var_r29 = 2;
+        else if ((frameCount < 10.0f) || (frameCount > 350.0f)) {
+            integerValue5 = 2;
         }
-        if (var_r29 != -1) {
-            temp_r31->unk_08 = temp_r31->unk_0A[var_r29];
-            BoardPlayerRotYSet(lbl_1_bss_B6, lbl_1_data_440[temp_r31->unk_08]);
+        if (integerValue5 != -1) {
+            minigameState->selectedChoice = minigameState->choiceToItem[integerValue5];
+            BoardPlayerRotYSet(itemPlayerIndex, itemChoiceRotations[minigameState->selectedChoice]);
         }
     }
 }
 
-void fn_1_8410(OMOBJ *arg0)
+void W05UpdateItemSelection(OMOBJ *object)
 {
-    s32 temp_r30;
-    dataCopy *temp_r31;
+    s32 integerValue;
+    ItemMinigameState *minigameState;
 
-    temp_r31 = arg0->data;
-    if (BoardPlayerMotionTimeGet(lbl_1_bss_B6) >= 30.0f) {
+    minigameState = object->data;
+    if (BoardPlayerMotionTimeGet(itemPlayerIndex) >= 30.0f) {
         BoardAudSeqFadeOut(1, 0x64);
         HuAudFXPlay(0x486);
         HuAudFXPlay(0x487);
-        temp_r30 = (1 << temp_r31->unk_08);
-        temp_r30 |= 0x1C0;
-        lbl_1_bss_98 = HuPrcCreate(fn_1_896C, 0x2004, 0x4000, 0);
-        HuPrcDestructorSet2(lbl_1_bss_98, fn_1_91DC);
-        lbl_1_bss_98->user_data = (void *)temp_r30;
-        lbl_1_bss_8C->work[0] = temp_r31->unk_08;
-        arg0->objFunc = fn_1_850C;
+        integerValue = (1 << minigameState->selectedChoice);
+        integerValue |= 0x1C0;
+        itemMinigameProcess = HuPrcCreate(W05RunItemMinigameIntro, 0x2004, 0x4000, 0);
+        HuPrcDestructorSet2(itemMinigameProcess, W05DestroyItemMinigameModels);
+        itemMinigameProcess->user_data = (void *)integerValue;
+        itemInputObject->work[0] = minigameState->selectedChoice;
+        object->objFunc = W05MoveItemModels;
     }
 }
 
-void fn_1_850C(OMOBJ *arg0)
+void W05MoveItemModels(OMOBJ *object)
 {
-    Vec sp14;
-    Vec sp8;
-    f32 temp_f31;
+    Vec vector;
+    Vec vector2;
+    F32 animationTime;
 
-    temp_f31 = BoardPlayerMotionMaxTimeGet(lbl_1_bss_B6);
-    if (BoardPlayerMotionTimeGet(lbl_1_bss_B6) >= temp_f31) {
-        BoardPlayerMotionStart(lbl_1_bss_B6, lbl_1_bss_9E[0], 0x40000001);
-        Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_14[0]), "chara1", &sp8);
-        Hu3DModelObjPosGet(BoardModelIDGet(BoardPlayerModelGet(lbl_1_bss_B6)), "a-itemhook-r", &sp14);
-        VECAdd(&sp14, &sp8, &sp14);
-        sp14.y += 25.0f;
+    animationTime = BoardPlayerMotionMaxTimeGet(itemPlayerIndex);
+    if (BoardPlayerMotionTimeGet(itemPlayerIndex) >= animationTime) {
+        BoardPlayerMotionStart(itemPlayerIndex, itemPlayerMotionIds[0], 0x40000001);
+        Hu3DModelObjPosGet(BoardModelIDGet(boardMapModelIds[0]), "chara1", &vector2);
+        Hu3DModelObjPosGet(BoardModelIDGet(BoardPlayerModelGet(itemPlayerIndex)), "a-itemhook-r", &vector);
+        VECAdd(&vector, &vector2, &vector);
+        vector.y += 25.0f;
         CharEffectLayerSet(7);
-        CharEffectSmokeCreate(-1, &sp14);
-        arg0->work[0] = 0xA;
-        arg0->objFunc = fn_1_8668;
+        CharEffectSmokeCreate(-1, &vector);
+        object->work[0] = 0xA;
+        object->objFunc = W05UpdateItemMinigameResult;
     }
 }
 
-void fn_1_8668(OMOBJ *arg0)
+void W05UpdateItemMinigameResult(OMOBJ *object)
 {
-    s32 var_r30;
+    s32 loopIndex;
 
-    if (arg0->work[0] == 0) {
-        BoardModelHookReset(BoardPlayerModelGet(lbl_1_bss_B6));
-        BoardPlayerMotionShiftSet(lbl_1_bss_B6, 1, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
-        arg0->objFunc = NULL;
-        lbl_1_bss_8C->objFunc = fn_1_7928;
-        BoardModelKill(lbl_1_bss_A2);
+    if (object->work[0] == 0) {
+        BoardModelHookReset(BoardPlayerModelGet(itemPlayerIndex));
+        BoardPlayerMotionShiftSet(itemPlayerIndex, 1, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
+        object->objFunc = NULL;
+        itemInputObject->objFunc = W05PollItemInput;
+        BoardModelKill(itemEffectModel);
 
-        for (var_r30 = 0; var_r30 < 2; var_r30++) {
-            BoardPlayerMotionKill(lbl_1_bss_B6, lbl_1_bss_9E[var_r30]);
+        for (loopIndex = 0; loopIndex < 2; loopIndex++) {
+            BoardPlayerMotionKill(itemPlayerIndex, itemPlayerMotionIds[loopIndex]);
         }
         return;
     }
-    arg0->work[0] -= 1;
+    object->work[0] -= 1;
 }
 
-void fn_1_8798(dataCopy *arg0, s32 *arg1, s32 *arg2, s32 *arg3)
+void W05GetItemMinigameResult(ItemMinigameState *state, s32 *stickX, s32 *stickY, s32 *buttonFlags)
 {
-    *arg1 = *arg2 = *arg3 = 0;
-    if (arg0->unk_10 != 0) {
-        arg0->unk_10 -= 1;
+    *stickX = *stickY = *buttonFlags = 0;
+    if (state->cpuInputDelay != 0) {
+        state->cpuInputDelay -= 1;
         return;
     }
-    arg0->unk_10 = frandmod(0xF) + 10;
-    if (arg0->unk_12 == 0) {
-        *arg3 = 0x100;
+    state->cpuInputDelay = frandmod(0xF) + 10;
+    if (state->cpuInputCountdown == 0) {
+        *buttonFlags = 0x100;
         return;
     }
-    arg0->unk_12 -= 1;
+    state->cpuInputCountdown -= 1;
     if (frandBool() != 0) {
-        *arg1 = (frandBool() * 0x8C) - 0x46;
+        *stickX = (frandBool() * 0x8C) - 0x46;
         return;
     }
-    *arg2 = (frandBool() * 0x8C) - 0x46;
+    *stickY = (frandBool() * 0x8C) - 0x46;
 }
 
-void *fn_1_8884(void)
+void *W05GetItemMinigameInput(void)
 {
-    if (lbl_1_bss_98 == NULL) {
+    if (itemMinigameProcess == NULL) {
         return NULL;
     }
-    return lbl_1_bss_98->user_data;
+    return itemMinigameProcess->user_data;
 }
 
-void fn_1_88B8(void)
+void W05SetItemMinigameInputState(void)
 {
-    s32 userData = (s32)lbl_1_bss_98->user_data;
+    s32 userData = (s32)itemMinigameProcess->user_data;
     userData |= 8;
-    lbl_1_bss_98->user_data = (void *)(userData);
+    itemMinigameProcess->user_data = (void *)(userData);
 
-    while (((u32)fn_1_8884() & 0x20) == 0) {
+    while (((u32)W05GetItemMinigameInput() & 0x20) == 0) {
         HuPrcVSleep();
     }
-    HuPrcKill(lbl_1_bss_98);
-    lbl_1_bss_98 = NULL;
+    HuPrcKill(itemMinigameProcess);
+    itemMinigameProcess = NULL;
 }
 
-void fn_1_896C(void)
+void W05RunItemMinigameIntro(void)
 {
-    Vec sp18;
-    Vec spC;
-    f32 sp8;
-    f32 temp_f29;
-    f32 var_f30;
-    f32 var_f31;
-    u32 temp_r30;
-    s32 var_r28;
-    s32 var_r31;
-    s32 var_r29;
-    HU3DPARTICLE *var_r27;
+    Vec position;
+    Vec scale;
+    F32 frameCount;
+    F32 floatValue;
+    F32 frameCount2;
+    F32 floatValue2;
+    u32 integerValue;
+    s32 loopIndex;
+    s32 loopIndex2;
+    s32 integerValue2;
+    HU3DPARTICLE *objectPointer;
 
-    temp_r30 = (u32)HuPrcCurrentGet()->user_data;
+    integerValue = (u32)HuPrcCurrentGet()->user_data;
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        var_r29 = (1 << var_r31);
-        if ((temp_r30 & var_r29) != 0) {
-            BoardModelAttrReset(lbl_1_bss_AA[var_r31], 0x40000002);
-            if ((temp_r30 & 0x80) != 0) {
-                BoardModelMotionStartEndSet(lbl_1_bss_AA[var_r31], 0, 0x28);
-                BoardModelMotionTimeSet(lbl_1_bss_AA[var_r31], 0.0f);
+    for (loopIndex2 = 0; loopIndex2 < 3; loopIndex2++) {
+        integerValue2 = (1 << loopIndex2);
+        if ((integerValue & integerValue2) != 0) {
+            BoardModelAttrReset(itemModelMotions[loopIndex2], 0x40000002);
+            if ((integerValue & 0x80) != 0) {
+                BoardModelMotionStartEndSet(itemModelMotions[loopIndex2], 0, 0x28);
+                BoardModelMotionTimeSet(itemModelMotions[loopIndex2], 0.0f);
             }
             else {
-                BoardModelMotionStartEndSet(lbl_1_bss_AA[var_r31], 0xA, 0x28);
-                BoardModelMotionTimeSet(lbl_1_bss_AA[var_r31], 10.0f);
+                BoardModelMotionStartEndSet(itemModelMotions[loopIndex2], 0xA, 0x28);
+                BoardModelMotionTimeSet(itemModelMotions[loopIndex2], 10.0f);
             }
         }
     }
-    if ((temp_r30 & 0x80) != 0) {
+    if ((integerValue & 0x80) != 0) {
         HuPrcSleep(((REFRESH_RATE*5)+6)/12);
     }
     else {
         HuPrcSleep((REFRESH_RATE+2)/4);
     }
-    spC.x = spC.y = spC.z = 0.0f;
+    scale.x = scale.y = scale.z = 0.0f;
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        var_r29 = (1 << var_r31);
-        if ((temp_r30 & var_r29) != 0) {
-            BoardModelVisibilitySet(lbl_1_bss_A4[var_r31], 1);
-            BoardModelScaleSetV(lbl_1_bss_A4[var_r31], &spC);
-            Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_14[0]), lbl_1_data_330[var_r31], &sp18);
-            BoardModelPosSetV(lbl_1_bss_A4[var_r31], &sp18);
-            if ((temp_r30 & 0x40) != 0) {
-                lbl_1_bss_7C[var_r31] = Hu3DParticleCreate(lbl_1_bss_78, 0x64);
-                var_r27 = Hu3DData[lbl_1_bss_7C[var_r31]].hookData;
-                var_r27->emitCnt = lbl_1_bss_A4[var_r31];
-                Hu3DParticleHookSet(lbl_1_bss_7C[var_r31], fn_1_9268);
-                Hu3DParticleColSet(lbl_1_bss_7C[var_r31], 0xFF, 0xFF, 0);
-                Hu3DModelPosSet(lbl_1_bss_7C[var_r31], 0.0f, 0.0f, 0.0f);
-                Hu3DParticleBlendModeSet(lbl_1_bss_7C[var_r31], 1);
-                Hu3DModelLayerSet(lbl_1_bss_7C[var_r31], 2);
+    for (loopIndex2 = 0; loopIndex2 < 3; loopIndex2++) {
+        integerValue2 = (1 << loopIndex2);
+        if ((integerValue & integerValue2) != 0) {
+            BoardModelVisibilitySet(itemMotionModels[loopIndex2], 1);
+            BoardModelScaleSetV(itemMotionModels[loopIndex2], &scale);
+            Hu3DModelObjPosGet(BoardModelIDGet(boardMapModelIds[0]), itemObjectNames[loopIndex2], &position);
+            BoardModelPosSetV(itemMotionModels[loopIndex2], &position);
+            if ((integerValue & 0x40) != 0) {
+                itemParticleModels[loopIndex2] = Hu3DParticleCreate(itemAnimationData, 0x64);
+                objectPointer = Hu3DData[itemParticleModels[loopIndex2]].hookData;
+                objectPointer->emitCnt = itemMotionModels[loopIndex2];
+                Hu3DParticleHookSet(itemParticleModels[loopIndex2], w05UpdateItemParticle);
+                Hu3DParticleColSet(itemParticleModels[loopIndex2], 0xFF, 0xFF, 0);
+                Hu3DModelPosSet(itemParticleModels[loopIndex2], 0.0f, 0.0f, 0.0f);
+                Hu3DParticleBlendModeSet(itemParticleModels[loopIndex2], 1);
+                Hu3DModelLayerSet(itemParticleModels[loopIndex2], 2);
             }
-            if ((temp_r30 & 0x100) != 0) {
-                lbl_1_bss_88 = HuAudFXPlay(0x35F);
+            if ((integerValue & 0x100) != 0) {
+                itemMinigameState = HuAudFXPlay(0x35F);
                 HuAudFXPlay(0x310);
             }
             else {
@@ -646,64 +646,64 @@ void fn_1_896C(void)
             }
         }
     }
-    temp_f29 = 150.0f + sp18.y;
-    sp8 = 0.0f;
-    var_f31 = 12.0f;
+    floatValue = 150.0f + position.y;
+    frameCount = 0.0f;
+    floatValue2 = 12.0f;
 
     while (1) {
-        for (var_r28 = 0, var_r31 = 0; var_r31 < 3; var_r31++) {
-            var_r29 = (1 << var_r31);
-            if ((temp_r30 & var_r29) != 0) {
-                var_r28++;
-                sp8 += 0.1f;
-                if (sp8 > 1.0f) {
-                    sp8 = 1.0f;
+        for (loopIndex = 0, loopIndex2 = 0; loopIndex2 < 3; loopIndex2++) {
+            integerValue2 = (1 << loopIndex2);
+            if ((integerValue & integerValue2) != 0) {
+                loopIndex++;
+                frameCount += 0.1f;
+                if (frameCount > 1.0f) {
+                    frameCount = 1.0f;
                 }
 
-                spC.x = spC.y = spC.z = sp8;
-                BoardModelScaleSetV(lbl_1_bss_A4[var_r31], (Vec *)&sp8); //!
-                BoardModelPosGet(lbl_1_bss_A4[var_r31], &sp18);
-                sp18.y += var_f31;
-                if (sp18.y >= temp_f29) {
-                    sp18.y = temp_f29;
-                    var_r28 -= 1;
+                scale.x = scale.y = scale.z = frameCount;
+                BoardModelScaleSetV(itemMotionModels[loopIndex2], (Vec *)&frameCount); //!
+                BoardModelPosGet(itemMotionModels[loopIndex2], &position);
+                position.y += floatValue2;
+                if (position.y >= floatValue) {
+                    position.y = floatValue;
+                    loopIndex -= 1;
                 }
-                BoardModelPosSetV(lbl_1_bss_A4[var_r31], &sp18);
+                BoardModelPosSetV(itemMotionModels[loopIndex2], &position);
             }
         }
-        var_f31 *= 0.95f;
-        if (var_r28 > 0) {
+        floatValue2 *= 0.95f;
+        if (loopIndex > 0) {
             HuPrcVSleep();
         }
         else {
             break;
         }
     }
-    spC.x = spC.y = spC.z = 1.0f;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        var_r29 = (1 << var_r31);
-        if ((temp_r30 & var_r29) != 0) {
-            BoardModelScaleSetV(lbl_1_bss_A4[var_r31], &spC);
+    scale.x = scale.y = scale.z = 1.0f;
+    for (loopIndex2 = 0; loopIndex2 < 3; loopIndex2++) {
+        integerValue2 = (1 << loopIndex2);
+        if ((integerValue & integerValue2) != 0) {
+            BoardModelScaleSetV(itemMotionModels[loopIndex2], &scale);
         }
     }
-    temp_r30 = (u32)HuPrcCurrentGet()->user_data | 0x10;
-    HuPrcCurrentGet()->user_data = (void *)temp_r30;
-    var_f30 = 0.0f;
+    integerValue = (u32)HuPrcCurrentGet()->user_data | 0x10;
+    HuPrcCurrentGet()->user_data = (void *)integerValue;
+    frameCount2 = 0.0f;
 
     while (1) {
-        temp_r30 = (u32)HuPrcCurrentGet()->user_data;
-        if ((temp_r30 & 8) == 0) {
-            for (var_r31 = 0; var_r31 < 3; var_r31++) {
-                var_r29 = (1 << var_r31);
-                if ((temp_r30 & var_r29) != 0) {
-                    BoardModelPosGet(lbl_1_bss_A4[var_r31], &sp18);
-                    sp18.y += 0.25 * sind(var_f30);
-                    BoardModelPosSetV(lbl_1_bss_A4[var_r31], &sp18);
+        integerValue = (u32)HuPrcCurrentGet()->user_data;
+        if ((integerValue & 8) == 0) {
+            for (loopIndex2 = 0; loopIndex2 < 3; loopIndex2++) {
+                integerValue2 = (1 << loopIndex2);
+                if ((integerValue & integerValue2) != 0) {
+                    BoardModelPosGet(itemMotionModels[loopIndex2], &position);
+                    position.y += 0.25 * sind(frameCount2);
+                    BoardModelPosSetV(itemMotionModels[loopIndex2], &position);
                 }
             }
-            var_f30 += 5.0f;
-            if (var_f30 >= 360.0f) {
-                var_f30 -= 360.0f;
+            frameCount2 += 5.0f;
+            if (frameCount2 >= 360.0f) {
+                frameCount2 -= 360.0f;
             }
             HuPrcVSleep();
         }
@@ -711,35 +711,35 @@ void fn_1_896C(void)
             break;
         }
     }
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        BoardModelMotionStartEndSet(lbl_1_bss_AA[var_r31], 0x28, 0x46);
+    for (loopIndex2 = 0; loopIndex2 < 3; loopIndex2++) {
+        BoardModelMotionStartEndSet(itemModelMotions[loopIndex2], 0x28, 0x46);
     }
     HuPrcSleep((REFRESH_RATE*2)/9);
-    var_f31 = -8.0f;
+    floatValue2 = -8.0f;
     while (1) {
-        for (var_r28 = 0, var_r31 = 0; var_r31 < 3; var_r31++) {
-            var_r29 = (1 << var_r31);
-            if ((temp_r30 & var_r29) != 0) {
-                var_r28++;
-                sp8 -= 0.02f;
-                if (sp8 < 0.0f) {
-                    sp8 = 0.0f;
+        for (loopIndex = 0, loopIndex2 = 0; loopIndex2 < 3; loopIndex2++) {
+            integerValue2 = (1 << loopIndex2);
+            if ((integerValue & integerValue2) != 0) {
+                loopIndex++;
+                frameCount -= 0.02f;
+                if (frameCount < 0.0f) {
+                    frameCount = 0.0f;
                 }
-                spC.x = spC.y = spC.z = sp8;
-                BoardModelScaleSetV(lbl_1_bss_A4[var_r31], (Vec *)&sp8); //!
-                BoardModelPosGet(lbl_1_bss_A4[var_r31], &sp18);
-                sp18.y += var_f31;
-                if (sp18.y <= (temp_f29 - 150.0f)) {
-                    sp18.y = temp_f29 - 150.0f;
+                scale.x = scale.y = scale.z = frameCount;
+                BoardModelScaleSetV(itemMotionModels[loopIndex2], (Vec *)&frameCount); //!
+                BoardModelPosGet(itemMotionModels[loopIndex2], &position);
+                position.y += floatValue2;
+                if (position.y <= (floatValue - 150.0f)) {
+                    position.y = floatValue - 150.0f;
                 }
-                if (BoardModelMotionTimeGet(lbl_1_bss_AA[var_r31]) >= 70.0f) {
-                    var_r28--;
+                if (BoardModelMotionTimeGet(itemModelMotions[loopIndex2]) >= 70.0f) {
+                    loopIndex--;
                 }
-                BoardModelPosSetV(lbl_1_bss_A4[var_r31], &sp18);
+                BoardModelPosSetV(itemMotionModels[loopIndex2], &position);
             }
         }
-        var_f31 *= 0.98f;
-        if (var_r28 > 0) {
+        floatValue2 *= 0.98f;
+        if (loopIndex > 0) {
             HuPrcVSleep();
         }
         else {
@@ -747,87 +747,87 @@ void fn_1_896C(void)
         }
     }
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        var_r29 = (1 << var_r31);
-        if ((temp_r30 & var_r29) != 0) {
-            spC.x = spC.y = spC.z = 1.0f;
-            BoardModelScaleSetV(lbl_1_bss_A4[var_r31], &spC);
-            BoardModelVisibilitySet(lbl_1_bss_A4[var_r31], 0);
+    for (loopIndex2 = 0; loopIndex2 < 3; loopIndex2++) {
+        integerValue2 = (1 << loopIndex2);
+        if ((integerValue & integerValue2) != 0) {
+            scale.x = scale.y = scale.z = 1.0f;
+            BoardModelScaleSetV(itemMotionModels[loopIndex2], &scale);
+            BoardModelVisibilitySet(itemMotionModels[loopIndex2], 0);
         }
     }
-    temp_r30 = (u32)HuPrcCurrentGet()->user_data;
-    temp_r30 |= 0x20;
-    HuPrcCurrentGet()->user_data = (void *)temp_r30;
+    integerValue = (u32)HuPrcCurrentGet()->user_data;
+    integerValue |= 0x20;
+    HuPrcCurrentGet()->user_data = (void *)integerValue;
     while (1) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_91DC(void)
+void W05DestroyItemMinigameModels(void)
 {
-    u32 temp_r30;
-    s32 var_r29;
-    s32 var_r31;
+    u32 integerValue;
+    s32 integerValue2;
+    s32 loopIndex;
 
-    temp_r30 = (u32)HuPrcCurrentGet()->user_data;
-    if ((temp_r30 & 0x40) != 0) {
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            var_r29 = (1 << var_r31);
-            if ((temp_r30 & var_r29) != 0) {
-                Hu3DModelKill(lbl_1_bss_7C[var_r31]);
+    integerValue = (u32)HuPrcCurrentGet()->user_data;
+    if ((integerValue & 0x40) != 0) {
+        for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+            integerValue2 = (1 << loopIndex);
+            if ((integerValue & integerValue2) != 0) {
+                Hu3DModelKill(itemParticleModels[loopIndex]);
             }
         }
     }
 }
 
-void fn_1_9268(HU3DMODEL *model, HU3DPARTICLE *particle, f32 (*matrix)[4])
+void w05UpdateItemParticle(HU3DMODEL *model, HU3DPARTICLE *particle, F32 (*matrix)[4])
 {
-    Vec sp8;
-    HU3DPARTICLEDATA *var_r31;
-    f32 temp_f30;
-    f32 temp_f29;
-    f32 temp_f31;
-    s32 var_r28;
-    s32 var_r29;
+    Vec scale;
+    HU3DPARTICLEDATA *particleData;
+    F32 floatValue;
+    F32 floatValue2;
+    F32 floatValue3;
+    s32 loopIndex;
+    s32 loopIndex2;
 
     if (particle->count == 0) {
-        var_r31 = particle->data;
-        for (var_r29 = 0; var_r29 < particle->maxCnt; var_r29++, var_r31++) {
-            var_r31->color.a = 0;
-            var_r31->scale = 0.0f;
+        particleData = particle->data;
+        for (loopIndex2 = 0; loopIndex2 < particle->maxCnt; loopIndex2++, particleData++) {
+            particleData->color.a = 0;
+            particleData->scale = 0.0f;
         }
         particle->dataCnt = 0;
     }
-    BoardModelScaleGet(particle->emitCnt, &sp8);
-    temp_f31 = sp8.x;
-    BoardModelPosGet(particle->emitCnt, &sp8);
+    BoardModelScaleGet(particle->emitCnt, &scale);
+    floatValue3 = scale.x;
+    BoardModelPosGet(particle->emitCnt, &scale);
 
-    for (var_r29 = 0; var_r29 < 0x16; var_r29++) {
-        var_r31 = particle->data;
+    for (loopIndex2 = 0; loopIndex2 < 0x16; loopIndex2++) {
+        particleData = particle->data;
 
-        for (var_r28 = 0; var_r28 < particle->maxCnt; var_r28++, var_r31++) {
-            if (var_r31->scale == 0.0f)
+        for (loopIndex = 0; loopIndex < particle->maxCnt; loopIndex++, particleData++) {
+            if (particleData->scale == 0.0f)
                 break;
         }
-        if (var_r28 != particle->maxCnt) {
-            temp_f30 = 360.0f * (0.003921569f * (s32)(frand() & 0xFF));
-            temp_f29 = temp_f31 * (20.0f + (60.0f * (0.003921569f * (s32)(frand() & 0xFF))));
-            var_r31->pos.x = sp8.x + temp_f29 * sind(temp_f30);
-            var_r31->pos.z = sp8.z + temp_f29 * cosd(temp_f30);
-            var_r31->pos.y = sp8.y + (temp_f31 * (-30.0f + (40.0f * (0.003921569f * (s32)(frand() & 0xFF)))));
-            var_r31->vel.x = 0.5f + (3.0f * (0.003921569f * (s32)(frand() & 0xFF)));
-            var_r31->vel.y = 0.3f + (2.0f * (0.003921569f * (s32)(frand() & 0xFF)));
-            var_r31->color.a = 0xB4;
-            var_r31->scale = 15.0f * temp_f31;
+        if (loopIndex != particle->maxCnt) {
+            floatValue = 360.0f * (0.003921569f * (s32)(frand() & 0xFF));
+            floatValue2 = floatValue3 * (20.0f + (60.0f * (0.003921569f * (s32)(frand() & 0xFF))));
+            particleData->pos.x = scale.x + floatValue2 * sind(floatValue);
+            particleData->pos.z = scale.z + floatValue2 * cosd(floatValue);
+            particleData->pos.y = scale.y + (floatValue3 * (-30.0f + (40.0f * (0.003921569f * (s32)(frand() & 0xFF)))));
+            particleData->vel.x = 0.5f + (3.0f * (0.003921569f * (s32)(frand() & 0xFF)));
+            particleData->vel.y = 0.3f + (2.0f * (0.003921569f * (s32)(frand() & 0xFF)));
+            particleData->color.a = 0xB4;
+            particleData->scale = 15.0f * floatValue3;
         }
     }
-    var_r31 = particle->data;
-    for (var_r29 = 0; var_r29 < particle->maxCnt; var_r29++, var_r31++) {
-        if (0.0f != var_r31->scale) {
-            var_r31->pos.y -= var_r31->vel.x;
-            var_r31->scale -= var_r31->vel.y;
-            if (var_r31->scale <= 0.0f) {
-                var_r31->scale = 0.0f;
+    particleData = particle->data;
+    for (loopIndex2 = 0; loopIndex2 < particle->maxCnt; loopIndex2++, particleData++) {
+        if (0.0f != particleData->scale) {
+            particleData->pos.y -= particleData->vel.x;
+            particleData->scale -= particleData->vel.y;
+            if (particleData->scale <= 0.0f) {
+                particleData->scale = 0.0f;
             }
         }
     }

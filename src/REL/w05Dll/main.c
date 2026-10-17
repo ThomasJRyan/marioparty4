@@ -12,12 +12,12 @@
 #include "game/board/model.h"
 #include "game/board/player.h"
 #include "game/board/shop.h"
-#include "game/board/space.h"
+#include "game/board/lottery.h"
 #include "game/board/star.h"
 #include "game/board/window.h"
 
 // data
-BoardMapObject lbl_1_data_0[7] = {
+BoardMapObject boardMapObjects[7] = {
     { { 3300.0f, 100.0f, -900.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W05, 0x11) },
     { { -2550.0f, 0.0f, 1350.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W05, 0x14) },
     { { -3000.0f, 100.0f, -1050.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W05, 0x1A) },
@@ -26,12 +26,12 @@ BoardMapObject lbl_1_data_0[7] = {
     { { -2710.0f, 0.0f, 1315.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W05, 0x0A) },
     { { 3055.0f, 100.0f, -815.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W05, 0x0A) },
 };
-s16 lbl_1_data_118 = 0xFFFF;
-s16 lbl_1_data_11A = 0xFFFF;
-s16 lbl_1_data_11C = 0xFFFF;
-s16 lbl_1_data_11E = 0xFFFF;
-s16 lbl_1_data_120 = 0xFFFF;
-s32 lbl_1_data_124[8] = {
+s16 mainBoardModel = 0xFFFF;
+s16 secondaryBoardModel = 0xFFFF;
+s16 starHostModel = 0xFFFF;
+s16 eventHostModel = 0xFFFF;
+s16 upperBoardModel = 0xFFFF;
+s32 characterIdleMotions[8] = {
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00),
     DATA_MAKE_NUM(DATADIR_LUIGIMOT, 0x00),
     DATA_MAKE_NUM(DATADIR_PEACHMOT, 0x00),
@@ -41,212 +41,212 @@ s32 lbl_1_data_124[8] = {
     DATA_MAKE_NUM(DATADIR_DAISYMOT, 0x00),
     DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 0x00),
 };
-s32 lbl_1_data_144[2] = { DATA_MAKE_NUM(DATADIR_W05, 0x06), DATA_NUM_LISTEND };
-s32 lbl_1_data_14C = 0xFFFFFFFF;
+s32 starModelMotionList[2] = { DATA_MAKE_NUM(DATADIR_W05, 0x06), DATA_NUM_LISTEND };
+s32 boardModelMotionListEnd = 0xFFFFFFFF;
 
 // bss
-s16 lbl_1_bss_14[7];
-s32 *lbl_1_bss_10;
-s16 lbl_1_bss_8[4];
-HUPROCESS *lbl_1_bss_4;
-bitcopy *lbl_1_bss_0;
+s16 boardMapModelIds[7];
+s32 *boardMotionList;
+s16 itemChoiceIds[4];
+HUPROCESS *boardEventProcess;
+HotelBoardState *hotelBoardState;
 
 void BoardCreate(void)
 {
-    s32 sp8;
-    s32 var_r31;
-    BoardMapObject *temp_r30;
+    s32 spaceIndex;
+    s32 loopIndex;
+    BoardMapObject *mapObject;
 
-    sp8 = GWBoardGet();
-    lbl_1_bss_0 = (bitcopy *)GWSystem.board_data;
+    spaceIndex = GWBoardGet();
+    hotelBoardState = (HotelBoardState *)GWSystem.board_data;
     BoardSpaceInit(DATA_MAKE_NUM(DATADIR_W05, 0x00));
-    lbl_1_data_118 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x01), NULL, 0);
-    lbl_1_data_120 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x02), NULL, 0);
-    fn_8006DDE8(lbl_1_data_118, -1.0f);
-    BoardModelPosSet(lbl_1_data_118, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_118, 0, 0x40000001);
-    BoardModelMotionSpeedSet(lbl_1_data_118, 1.0f);
-    fn_8006DDE8(lbl_1_data_120, -1.0f);
-    BoardModelPosSet(lbl_1_data_120, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_120, 0, 0x40000001);
-    BoardModelMotionSpeedSet(lbl_1_data_120, 1.0f);
-    BoardModelLayerSet(lbl_1_data_120, 1);
-    lbl_1_data_11A = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x03), NULL, 0);
-    fn_8006DDE8(lbl_1_data_11A, -1.0f);
-    BoardModelPosSet(lbl_1_data_11A, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_11A, 0, 0x40000001);
-    lbl_1_data_11C = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x05), lbl_1_data_144, 0);
-    BoardModelPosSet(lbl_1_data_11C, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_11C, 1, 0x40000001);
-    lbl_1_data_11E = BoardModelCreate(0x2001C, &lbl_1_data_14C, 0);
-    BoardModelMotionStart(lbl_1_data_11E, 1, 0x40000001);
-    BoardLightHookSet(&fn_1_744, &fn_1_788);
+    mainBoardModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x01), NULL, 0);
+    upperBoardModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x02), NULL, 0);
+    Fn8006DDE8(mainBoardModel, -1.0f);
+    BoardModelPosSet(mainBoardModel, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(mainBoardModel, 0, 0x40000001);
+    BoardModelMotionSpeedSet(mainBoardModel, 1.0f);
+    Fn8006DDE8(upperBoardModel, -1.0f);
+    BoardModelPosSet(upperBoardModel, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(upperBoardModel, 0, 0x40000001);
+    BoardModelMotionSpeedSet(upperBoardModel, 1.0f);
+    BoardModelLayerSet(upperBoardModel, 1);
+    secondaryBoardModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x03), NULL, 0);
+    Fn8006DDE8(secondaryBoardModel, -1.0f);
+    BoardModelPosSet(secondaryBoardModel, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(secondaryBoardModel, 0, 0x40000001);
+    starHostModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x05), starModelMotionList, 0);
+    BoardModelPosSet(starHostModel, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(starHostModel, 1, 0x40000001);
+    eventHostModel = BoardModelCreate(0x2001C, &boardModelMotionListEnd, 0);
+    BoardModelMotionStart(eventHostModel, 1, 0x40000001);
+    BoardLightHookSet(&W05SetBoardModelLighting, &W05BoardLightingNoop);
 
-    for (var_r31 = 0; var_r31 < 7; var_r31++) {
-        temp_r30 = &lbl_1_data_0[var_r31];
-        if (temp_r30->data_num != -1) {
-            if ((var_r31 == 4) || (var_r31 == 5) || (var_r31 == 6)) {
-                lbl_1_bss_10 = &lbl_1_data_14C;
+    for (loopIndex = 0; loopIndex < 7; loopIndex++) {
+        mapObject = &boardMapObjects[loopIndex];
+        if (mapObject->data_num != -1) {
+            if ((loopIndex == 4) || (loopIndex == 5) || (loopIndex == 6)) {
+                boardMotionList = &boardModelMotionListEnd;
             }
             else {
-                lbl_1_bss_10 = NULL;
+                boardMotionList = NULL;
             }
-            lbl_1_bss_14[var_r31] = BoardModelCreate(temp_r30->data_num, lbl_1_bss_10, 0);
-            BoardModelPosSetV(lbl_1_bss_14[var_r31], &temp_r30->pos);
-            BoardModelRotSetV(lbl_1_bss_14[var_r31], &temp_r30->rot);
-            BoardModelScaleSetV(lbl_1_bss_14[var_r31], &temp_r30->scale);
-            BoardModelVisibilitySet(lbl_1_bss_14[var_r31], 1);
-            if (lbl_1_bss_10 != NULL) {
-                BoardModelMotionStart(lbl_1_bss_14[var_r31], 0, 0x40000001);
+            boardMapModelIds[loopIndex] = BoardModelCreate(mapObject->data_num, boardMotionList, 0);
+            BoardModelPosSetV(boardMapModelIds[loopIndex], &mapObject->pos);
+            BoardModelRotSetV(boardMapModelIds[loopIndex], &mapObject->rot);
+            BoardModelScaleSetV(boardMapModelIds[loopIndex], &mapObject->scale);
+            BoardModelVisibilitySet(boardMapModelIds[loopIndex], 1);
+            if (boardMotionList != NULL) {
+                BoardModelMotionStart(boardMapModelIds[loopIndex], 0, 0x40000001);
             }
         }
     }
-    fn_1_92C();
-    fn_1_13D4();
-    fn_1_2B40();
-    BoardSpaceWalkEventFuncSet(&fn_1_82C);
-    BoardSpaceWalkMiniEventFuncSet(&fn_1_1114);
-    BoardSpaceLandEventFuncSet(&fn_1_78C);
-    BoardStarHostSet(lbl_1_data_11C);
-    BoardBooHouseHostSet(lbl_1_data_11E);
-    BoardShopHostSet(lbl_1_data_11E);
-    BoardLotteryHostSet(lbl_1_data_11E);
+    W05InitializeBoardMinigames();
+    W05HotelCreateLevelModel();
+    W05CreateMonkeyModels();
+    BoardSpaceWalkEventFuncSet(&W05HandleBoardWalkEvent);
+    BoardSpaceWalkMiniEventFuncSet(&W05HandleBoardMiniEventSpace);
+    BoardSpaceLandEventFuncSet(&W05HandleBoardLandingEvent);
+    BoardStarHostSet(starHostModel);
+    BoardBooHouseHostSet(eventHostModel);
+    BoardShopHostSet(eventHostModel);
+    BoardLotteryHostSet(eventHostModel);
 }
 
 void BoardDestroy(void)
 {
-    s32 var_r31;
+    s32 loopIndex;
 
-    for (var_r31 = 0; var_r31 < 7; var_r31++) {
-        if (lbl_1_bss_14[var_r31] != 0) {
-            BoardModelKill(lbl_1_bss_14[var_r31]);
-            lbl_1_bss_14[var_r31] = 0;
+    for (loopIndex = 0; loopIndex < 7; loopIndex++) {
+        if (boardMapModelIds[loopIndex] != 0) {
+            BoardModelKill(boardMapModelIds[loopIndex]);
+            boardMapModelIds[loopIndex] = 0;
         }
     }
-    if (lbl_1_data_11E != -1) {
-        BoardModelKill(lbl_1_data_11E);
-        lbl_1_data_11E = -1;
+    if (eventHostModel != -1) {
+        BoardModelKill(eventHostModel);
+        eventHostModel = -1;
     }
-    if (lbl_1_data_11C != -1) {
-        BoardModelKill(lbl_1_data_11C);
-        lbl_1_data_11C = -1;
+    if (starHostModel != -1) {
+        BoardModelKill(starHostModel);
+        starHostModel = -1;
     }
-    if (lbl_1_data_118 != -1) {
-        BoardModelKill(lbl_1_data_118);
-        lbl_1_data_118 = -1;
+    if (mainBoardModel != -1) {
+        BoardModelKill(mainBoardModel);
+        mainBoardModel = -1;
     }
-    if (lbl_1_data_120 != -1) {
-        BoardModelKill(lbl_1_data_120);
-        lbl_1_data_120 = -1;
+    if (upperBoardModel != -1) {
+        BoardModelKill(upperBoardModel);
+        upperBoardModel = -1;
     }
-    if (lbl_1_data_11A != -1) {
-        BoardModelKill(lbl_1_data_11A);
-        lbl_1_data_11A = -1;
+    if (secondaryBoardModel != -1) {
+        BoardModelKill(secondaryBoardModel);
+        secondaryBoardModel = -1;
     }
     BoardSpaceDestroy();
 }
 
-void fn_1_744(void)
+void W05SetBoardModelLighting(void)
 {
-    s16 var_r31 = BoardModelIDGet(lbl_1_data_118);
-    Hu3DModelLightInfoSet(var_r31, 1);
+    s16 modelId = BoardModelIDGet(mainBoardModel);
+    Hu3DModelLightInfoSet(modelId, 1);
 }
 
-void fn_1_788(void) { }
+void W05BoardLightingNoop(void) { }
 
-s32 fn_1_78C(void)
+s32 W05HandleBoardLandingEvent(void)
 {
-    s32 var_r30 = GWSystem.player_curr;
-    s32 var_r29 = GWPlayer[var_r30].space_curr;
-    s32 var_r28;
-    u32 temp_r3;
+    s32 playerIndex = GWSystem.player_curr;
+    s32 playerIndex2 = GWPlayer[playerIndex].space_curr;
+    s32 spaceIndex;
+    u32 spaceIndex2;
 
-    temp_r3 = BoardSpaceFlagGet(0, var_r29);
-    if ((temp_r3 & 2) != 0) {
-        fn_1_1E44();
+    spaceIndex2 = BoardSpaceFlagGet(0, playerIndex2);
+    if ((spaceIndex2 & 2) != 0) {
+        W05HotelUpgrade();
         return;
     }
-    if ((temp_r3 & 0x40) != 0) {
-        var_r28 = (temp_r3 & 0x38) >> 3;
-        fn_1_4034(var_r28);
+    if ((spaceIndex2 & 0x40) != 0) {
+        spaceIndex = (spaceIndex2 & 0x38) >> 3;
+        W05RunDolphinBoardEvent(spaceIndex);
     }
 }
 
-s32 fn_1_82C(void)
+s32 W05HandleBoardWalkEvent(void)
 {
-    s32 temp_r30;
-    BoardSpace *temp_r3;
+    s32 playerIndex;
+    BoardSpace *space;
 
-    temp_r30 = GWSystem.player_curr;
-    temp_r3 = BoardSpaceGet(0, GWPlayer[temp_r30].space_curr);
-    if ((temp_r3->flag & 1) != 0) {
-        fn_1_2C7C(0);
+    playerIndex = GWSystem.player_curr;
+    space = BoardSpaceGet(0, GWPlayer[playerIndex].space_curr);
+    if ((space->flag & 1) != 0) {
+        W05RunMonkeyBoardEvent(0);
         return 1;
     }
-    if ((temp_r3->flag & 0x800) != 0) {
-        fn_1_2C7C(1);
+    if ((space->flag & 0x800) != 0) {
+        W05RunMonkeyBoardEvent(1);
         return 1;
     }
-    if (BoardPlayerSizeGet(temp_r30) == 2) {
+    if (BoardPlayerSizeGet(playerIndex) == 2) {
         return 0;
     }
-    if (GWPlayer[temp_r30].bowser_suit != 0) {
+    if (GWPlayer[playerIndex].bowser_suit != 0) {
         return 0;
     }
-    if ((temp_r3->flag & 4) != 0) {
-        fn_1_155C();
+    if ((space->flag & 4) != 0) {
+        W05HotelCollectToll();
         return 1;
     }
     return 0;
 }
 
-void fn_1_92C(void)
+void W05InitializeBoardMinigames(void)
 {
-    fn_1_6B28();
-    fn_1_9680();
+    W05InitializeItemMinigame();
+    W05PrepareCoinBoardModel();
 }
 
-void fn_1_950(void) { }
+void W05BoardEventNoop(void) { }
 
-void fn_1_954(void)
+void W05RunItemSpaceEvent(void)
 {
-    Vec sp14;
-    Vec sp8;
-    s32 var_r26;
-    u32 var_r28;
-    s32 temp_r27;
-    s32 var_r29;
-    s32 var_r31;
-    s32 temp_r30;
+    Vec vector;
+    Vec vector2;
+    s32 spaceIndex;
+    u32 spaceIndex2;
+    s32 playerIndex;
+    s32 loopIndex;
+    s32 loopIndex2;
+    s32 playerIndex2;
 
-    temp_r30 = GWSystem.player_curr;
-    if (BoardPlayerItemCount(temp_r30) == 3) {
+    playerIndex2 = GWSystem.player_curr;
+    if (BoardPlayerItemCount(playerIndex2) == 3) {
         BoardWinCreate(2, MAKE_MESSID(39, 9), 7);
         BoardWinWait();
         BoardWinKill();
         HuPrcEnd();
     }
-    lbl_1_bss_8[0] = 0;
+    itemChoiceIds[0] = 0;
 
-    for (var_r31 = 1; var_r31 < 3;) {
-        lbl_1_bss_8[var_r31] = (u32)frandmod(0xE);
-        if ((lbl_1_bss_8[var_r31] == 0xA) || (lbl_1_bss_8[var_r31] == 0xD)) {
+    for (loopIndex2 = 1; loopIndex2 < 3;) {
+        itemChoiceIds[loopIndex2] = (u32)frandmod(0xE);
+        if ((itemChoiceIds[loopIndex2] == 0xA) || (itemChoiceIds[loopIndex2] == 0xD)) {
             continue;
         }
-        for (var_r29 = 0; var_r29 < var_r31; var_r29++) {
-            if (lbl_1_bss_8[var_r31] == lbl_1_bss_8[var_r29]) {
-                lbl_1_bss_8[var_r31] = -1;
+        for (loopIndex = 0; loopIndex < loopIndex2; loopIndex++) {
+            if (itemChoiceIds[loopIndex2] == itemChoiceIds[loopIndex]) {
+                itemChoiceIds[loopIndex2] = -1;
             }
         }
-        if (lbl_1_bss_8[var_r31] == -1) {
+        if (itemChoiceIds[loopIndex2] == -1) {
             continue;
         }
-        var_r31++;
+        loopIndex2++;
     }
-    fn_1_74D0(lbl_1_bss_8);
+    W05ShuffleItemChoices(itemChoiceIds);
     BoardWinCreateChoice(2, MAKE_MESSID(39, 10), 7, 0);
-    if (GWPlayer[temp_r30].com != 0) {
-        if (BoardComPreferItemCheck(temp_r30, lbl_1_bss_8[0], lbl_1_bss_8[1], lbl_1_bss_8[2]) != -1) {
+    if (GWPlayer[playerIndex2].com != 0) {
+        if (BoardComPreferItemCheck(playerIndex2, itemChoiceIds[0], itemChoiceIds[1], itemChoiceIds[2]) != -1) {
             BoardComKeySetLeft();
         }
         else {
@@ -255,92 +255,92 @@ void fn_1_954(void)
     }
     BoardWinWait();
     BoardWinKill();
-    var_r28 = BoardWinChoiceGet();
-    if (var_r28 == 1 || var_r28 == -1) {
-        while (((u32)fn_1_8884() & 0x10) == 0) {
+    spaceIndex2 = BoardWinChoiceGet();
+    if (spaceIndex2 == 1 || spaceIndex2 == -1) {
+        while (((u32)W05GetItemMinigameInput() & 0x10) == 0) {
             HuPrcVSleep();
         }
         BoardWinCreate(2, MAKE_MESSID(39, 11), 7);
         BoardWinWait();
         BoardWinKill();
         BoardMGExit();
-        fn_1_88B8();
-        fn_1_77B0();
-        fn_1_7314();
+        W05SetItemMinigameInputState();
+        W05PlayItemSpaceExitAnimation();
+        W05CleanupItemMinigame();
         while (BoardMGDoneFlagGet() != 1) {
             HuPrcVSleep();
         }
         BoardMGDoneFlagSet(0);
         HuPrcEnd();
     }
-    sp14.x = -30.0f;
-    sp14.y = sp14.z = 0.0f;
-    sp8.x = 0.0f;
-    sp8.y = 0.0f;
-    sp8.z = 0.0f;
-    BoardCameraMotionStartEx(lbl_1_bss_14[0], &sp14, &sp8, 1250.0f, 25.0f, 0x15);
+    vector.x = -30.0f;
+    vector.y = vector.z = 0.0f;
+    vector2.x = 0.0f;
+    vector2.y = 0.0f;
+    vector2.z = 0.0f;
+    BoardCameraMotionStartEx(boardMapModelIds[0], &vector, &vector2, 1250.0f, 25.0f, 0x15);
 
-    while (((u32)fn_1_8884() & 0x10) == 0) {
+    while (((u32)W05GetItemMinigameInput() & 0x10) == 0) {
         HuPrcVSleep();
     }
-    temp_r27 = GWPlayer[temp_r30].space_curr;
-    var_r26 = BoardSpaceLinkFlagSearch(0, temp_r27, 0x02000000);
-    BoardPlayerMoveBetween(temp_r30, temp_r27, var_r26);
+    playerIndex = GWPlayer[playerIndex2].space_curr;
+    spaceIndex = BoardSpaceLinkFlagSearch(0, playerIndex, 0x02000000);
+    BoardPlayerMoveBetween(playerIndex2, playerIndex, spaceIndex);
 
-    while (GWPlayer[temp_r30].moving != 0) {
+    while (GWPlayer[playerIndex2].moving != 0) {
         HuPrcVSleep();
     }
-    BoardPlayerMotionStart(temp_r30, 1, 0x40000001);
-    fn_1_6B7C();
+    BoardPlayerMotionStart(playerIndex2, 1, 0x40000001);
+    W05StartItemMinigame();
 
     while (BoardEventFlagGet() != 0) {
         HuPrcVSleep();
     }
-    while ((GWPlayer[temp_r30].moving) != 0) {
+    while ((GWPlayer[playerIndex2].moving) != 0) {
         HuPrcVSleep();
     }
-    BoardPlayerMotionStart(temp_r30, 1, 0x40000001);
+    BoardPlayerMotionStart(playerIndex2, 1, 0x40000001);
     HuPrcEnd();
 }
 
-void fn_1_D4C(void)
+void W05CleanupItemSpaceEvent(void)
 {
     BoardWinKill();
     CharModelDataClose(-1);
-    lbl_1_bss_4 = NULL;
+    boardEventProcess = NULL;
 }
 
-void fn_1_D84(void)
+void W05StartItemSpaceEvent(void)
 {
-    lbl_1_bss_4 = HuPrcChildCreate(fn_1_954, 0x2003U, 0x3000U, 0, boardMainProc);
-    HuPrcDestructorSet2(lbl_1_bss_4, fn_1_D4C);
+    boardEventProcess = HuPrcChildCreate(W05RunItemSpaceEvent, 0x2003U, 0x3000U, 0, boardMainProc);
+    HuPrcDestructorSet2(boardEventProcess, W05CleanupItemSpaceEvent);
 
-    while (lbl_1_bss_4 != 0) {
+    while (boardEventProcess != 0) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_E04(void)
+void W05StartBoardMusicAfterDelay(void)
 {
     HuPrcSleep(0x3C);
     BoardMusStart(1, 0x23, 0x7F, 0);
     HuPrcEnd();
 }
 
-void fn_1_E40(void)
+void W05RunCoinSpaceEvent(void)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    s32 temp_r30;
-    s32 temp_r29;
-    s32 temp_r3_2;
-    s32 temp_r31;
+    Vec vector;
+    Vec vector2;
+    Vec vector3;
+    s32 spaceIndex;
+    s32 playerIndex;
+    s32 localinteger32;
+    s32 playerIndex2;
 
-    temp_r31 = GWSystem.player_curr;
-    fn_1_96B4();
+    playerIndex2 = GWSystem.player_curr;
+    W05AnimateCoinBoardModelIntro();
     BoardWinCreateChoice(2, MAKE_MESSID(39, 15), 7, 0);
-    if (GWPlayer[temp_r31].com != 0) {
+    if (GWPlayer[playerIndex2].com != 0) {
         if (frandBool() != 0) {
             BoardComKeySetLeft();
         }
@@ -350,9 +350,9 @@ void fn_1_E40(void)
     }
     BoardWinWait();
     BoardWinKill();
-    temp_r30 = BoardWinChoiceGet();
-    if ((temp_r30 == 1) || (temp_r30 == -1)) {
-        fn_1_9760();
+    spaceIndex = BoardWinChoiceGet();
+    if ((spaceIndex == 1) || (spaceIndex == -1)) {
+        W05AnimateCoinBoardModelOutro();
         BoardWinCreate(2, MAKE_MESSID(39, 16), 7);
         BoardWinWait();
         BoardWinKill();
@@ -365,99 +365,99 @@ void fn_1_E40(void)
         return;
     }
     BoardAudSeqPause(0, 1, 0x3E8);
-    HuPrcChildCreate(fn_1_E04, 0x2003, 0x1000, 0, boardMainProc);
-    sp20.x = -35.0f;
-    sp20.y = sp20.z = 0.0f;
-    sp14.x = 0.0f;
-    sp14.y = 0.0f;
-    sp14.z = -250.0f;
-    BoardCameraMotionStartEx(lbl_1_bss_14[1], &sp20, &sp14, 1550.0f, 25.0f, 0x15);
-    temp_r29 = GWPlayer[temp_r31].space_curr;
-    temp_r3_2 = BoardSpaceLinkFlagSearch(0, temp_r29, 0x02000000);
-    BoardSpacePosGet(0, temp_r3_2, &sp8);
-    BoardPlayerMoveBetween(temp_r31, temp_r29, temp_r3_2);
-    while (GWPlayer[temp_r31].moving != 0) {
+    HuPrcChildCreate(W05StartBoardMusicAfterDelay, 0x2003, 0x1000, 0, boardMainProc);
+    vector.x = -35.0f;
+    vector.y = vector.z = 0.0f;
+    vector2.x = 0.0f;
+    vector2.y = 0.0f;
+    vector2.z = -250.0f;
+    BoardCameraMotionStartEx(boardMapModelIds[1], &vector, &vector2, 1550.0f, 25.0f, 0x15);
+    playerIndex = GWPlayer[playerIndex2].space_curr;
+    localinteger32 = BoardSpaceLinkFlagSearch(0, playerIndex, 0x02000000);
+    BoardSpacePosGet(0, localinteger32, &vector3);
+    BoardPlayerMoveBetween(playerIndex2, playerIndex, localinteger32);
+    while (GWPlayer[playerIndex2].moving != 0) {
         HuPrcVSleep();
     }
-    BoardPlayerMotionStart(temp_r31, 1, 0x40000001);
-    fn_1_97AC();
-    while (GWPlayer[temp_r31].moving != 0) {
+    BoardPlayerMotionStart(playerIndex2, 1, 0x40000001);
+    W05StartCoinMinigame();
+    while (GWPlayer[playerIndex2].moving != 0) {
         HuPrcVSleep();
     }
     while (BoardEventFlagGet() != 0) {
         HuPrcVSleep();
     }
-    while (GWPlayer[temp_r31].moving != 0) {
+    while (GWPlayer[playerIndex2].moving != 0) {
         HuPrcVSleep();
     }
-    BoardPlayerMotionStart(temp_r31, 1, 0x40000001);
+    BoardPlayerMotionStart(playerIndex2, 1, 0x40000001);
 }
 
-s32 fn_1_1114(void)
+s32 W05HandleBoardMiniEventSpace(void)
 {
-    u32 temp_r31;
-    s16 var_r30 = GWPlayer[GWSystem.player_curr].space_curr;
+    u32 spaceIndex;
+    s16 playerIndex = GWPlayer[GWSystem.player_curr].space_curr;
 
-    temp_r31 = BoardSpaceFlagGet(0, var_r30) & 0x600000;
+    spaceIndex = BoardSpaceFlagGet(0, playerIndex) & 0x600000;
     BoardRollDispSet(0);
-    if ((temp_r31 & 0x200000) != 0) {
-        lbl_1_bss_4 = HuPrcChildCreate(fn_1_954, 0x2003, 0x3000, 0, boardMainProc);
-        HuPrcDestructorSet2(lbl_1_bss_4, fn_1_D4C);
+    if ((spaceIndex & 0x200000) != 0) {
+        boardEventProcess = HuPrcChildCreate(W05RunItemSpaceEvent, 0x2003, 0x3000, 0, boardMainProc);
+        HuPrcDestructorSet2(boardEventProcess, W05CleanupItemSpaceEvent);
 
-        while (lbl_1_bss_4 != 0) {
+        while (boardEventProcess != 0) {
             HuPrcVSleep();
         }
     }
-    else if ((temp_r31 & 0x400000) != 0) {
-        fn_1_E40();
+    else if ((spaceIndex & 0x400000) != 0) {
+        W05RunCoinSpaceEvent();
     }
     BoardRollDispSet(1);
 }
 
-s32 fn_1_1208(s16 arg0, f32 arg8, f32 arg9)
+s32 W05TurnBoardModelTowardAngle(s16 modelId, F32 targetAngle, F32 maxTurnStep)
 {
-    f32 var_f29;
-    f32 var_f31;
-    s32 var_r31;
+    F32 frameCount;
+    F32 frameCount2;
+    s32 integerValue;
 
-    var_r31 = 0;
-    var_f31 = BoardModelRotYGet(arg0);
-    arg8 = fmod(arg8, 360.0);
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    integerValue = 0;
+    frameCount2 = BoardModelRotYGet(modelId);
+    targetAngle = fmod(targetAngle, 360.0);
+    if (frameCount2 < 0.0f) {
+        frameCount2 += 360.0f;
     }
-    if (arg8 < 0.0f) {
-        arg8 += 360.0f;
+    if (targetAngle < 0.0f) {
+        targetAngle += 360.0f;
     }
-    if (var_f31 != arg8) {
-        var_f29 = arg8 - var_f31;
-        if (var_f29 < 0.0f) {
-            var_f29 += 360.0f;
+    if (frameCount2 != targetAngle) {
+        frameCount = targetAngle - frameCount2;
+        if (frameCount < 0.0f) {
+            frameCount += 360.0f;
         }
-        if (var_f29 < 180.0f) {
-            if (var_f29 > arg9) {
-                var_f31 = var_f31 + arg9;
+        if (frameCount < 180.0f) {
+            if (frameCount > maxTurnStep) {
+                frameCount2 = frameCount2 + maxTurnStep;
             }
             else {
-                var_f31 = arg8;
+                frameCount2 = targetAngle;
             }
         }
-        else if ((360.0f - var_f29) > arg9) {
-            var_f31 = var_f31 - arg9;
+        else if ((360.0f - frameCount) > maxTurnStep) {
+            frameCount2 = frameCount2 - maxTurnStep;
         }
         else {
-            var_f31 = arg8;
+            frameCount2 = targetAngle;
         }
-        if (var_f31 < 0.0f) {
-            var_f31 += 360.0f;
+        if (frameCount2 < 0.0f) {
+            frameCount2 += 360.0f;
         }
-        if (var_f31 >= 360.0f) {
-            var_f31 -= 360.0f;
+        if (frameCount2 >= 360.0f) {
+            frameCount2 -= 360.0f;
         }
-        BoardModelRotYSet(arg0, var_f31);
+        BoardModelRotYSet(modelId, frameCount2);
     }
     else {
-        var_r31 = 1;
+        integerValue = 1;
     }
-    return var_r31;
+    return integerValue;
 }

@@ -13,141 +13,141 @@
 #include "ext_math.h"
 
 // data
-s32 lbl_1_data_150[5] = {
+s32 hotelLevelModels[5] = {
     DATA_MAKE_NUM(DATADIR_W05, 0x21), DATA_MAKE_NUM(DATADIR_W05, 0x22), DATA_MAKE_NUM(DATADIR_W05, 0x23),
     DATA_MAKE_NUM(DATADIR_W05, 0x24), DATA_MAKE_NUM(DATADIR_W05, 0x25),
 };
-s16 lbl_1_data_164 = 0xFFFF;
+s16 hotelModel = 0xFFFF;
 
 // bss
-s16 lbl_1_bss_28;
+s16 hotelPlayerIndex;
 
-void fn_1_13D4(void) {
-    Vec sp8;
-    HU3DMODEL* temp_r31;
+void W05HotelCreateLevelModel(void) {
+    Vec position;
+    HU3DMODEL* modelData;
 
-    lbl_1_data_164 = BoardModelCreate(lbl_1_data_150[lbl_1_bss_0->unk_04], NULL, 0);
-    BoardModelAttrSet(lbl_1_data_164, 0x40000001);
-    temp_r31 = &Hu3DData[BoardModelIDGet(lbl_1_data_118)];
-    Hu3DMotionExec(BoardModelIDGet(lbl_1_data_118), temp_r31->motId, 0.0f, 0);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_118), "hotel1", &sp8);
-    BoardModelPosSetV(lbl_1_data_164, &sp8);
+    hotelModel = BoardModelCreate(hotelLevelModels[hotelBoardState->hotelLevel], NULL, 0);
+    BoardModelAttrSet(hotelModel, 0x40000001);
+    modelData = &Hu3DData[BoardModelIDGet(mainBoardModel)];
+    Hu3DMotionExec(BoardModelIDGet(mainBoardModel), modelData->motId, 0.0f, 0);
+    Hu3DModelObjPosGet(BoardModelIDGet(mainBoardModel), "hotel1", &position);
+    BoardModelPosSetV(hotelModel, &position);
 }
 
-void fn_1_14D0(void) {
-    BoardModelKill(lbl_1_data_164);
+void W05HotelDestroyLevelModel(void) {
+    BoardModelKill(hotelModel);
 }
 
-u32 lbl_1_data_170[4] = { 0, 10, 25, 40 };
-s32 lbl_1_data_180 = DATA_MAKE_NUM(DATADIR_W05, 0x0C);
+u32 hotelCoinThresholds[4] = { 0, 10, 25, 40 };
+s32 hotelMotion = DATA_MAKE_NUM(DATADIR_W05, 0x0C);
 
-s16 fn_1_14FC(void) {
-    s16 var_r31;
+s16 W05HotelGetLevelForCoinCount(void) {
+    s16 loopIndex;
     
-    for (var_r31 = 0; var_r31 < 4;var_r31++) {
-        if (lbl_1_bss_0->unk_00 <= lbl_1_data_170[var_r31]) {
+    for (loopIndex = 0; loopIndex < 4;loopIndex++) {
+        if (hotelBoardState->coinsInvested <= hotelCoinThresholds[loopIndex]) {
             break;
         }
     }
-    return var_r31;
+    return loopIndex;
 }
 
-void fn_1_155C(void) {
-    Vec sp64;
-    Vec sp58;
-    Vec sp4C;
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
-    char sp18[16];
-    Vec spC;
-    char sp8[4];
-    s32 var_r27;
-    HU3DMODEL* temp_r25;
-    f32 temp_f30;
-    f32 temp_f31;
-    s16 var_r26;
-    s16 temp_r28;
-    s16 var_r30;
-    u32 var_r31;
+void W05HotelCollectToll(void) {
+    Vec vector;
+    Vec position;
+    Vec position2;
+    Vec movementVector;
+    Vec movementVector2;
+    Vec movementVector3;
+    char investedCoinsText[16];
+    Vec vector2;
+    char contributionCoinsText[4];
+    s32 messageId;
+    HU3DMODEL* modelData;
+    F32 playerFacingAngle;
+    F32 hotelFacingAngle;
+    s16 updatedHotelLevel;
+    s16 modelId;
+    s16 coinCount;
+    u32 loopIndex;
 
-    lbl_1_bss_28 = GWSystem.player_curr;
+    hotelPlayerIndex = GWSystem.player_curr;
     BoardRollDispSet(0);
-    temp_r28 = BoardModelMotionCreate(lbl_1_bss_14[4], lbl_1_data_180);
-    temp_f30 = BoardPlayerRotYGet(lbl_1_bss_28);
-    BoardPlayerPosGet(lbl_1_bss_28, &sp58);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_118), "hotel1", &sp64);
-    temp_f31 = atan2d(sp64.x - sp58.x, sp64.z - sp58.z);
-    BoardPlayerMotBlendSet(lbl_1_bss_28, temp_f31, 0xF);
+    modelId = BoardModelMotionCreate(boardMapModelIds[4], hotelMotion);
+    playerFacingAngle = BoardPlayerRotYGet(hotelPlayerIndex);
+    BoardPlayerPosGet(hotelPlayerIndex, &position);
+    Hu3DModelObjPosGet(BoardModelIDGet(mainBoardModel), "hotel1", &vector);
+    hotelFacingAngle = atan2d(vector.x - position.x, vector.z - position.z);
+    BoardPlayerMotBlendSet(hotelPlayerIndex, hotelFacingAngle, 0xF);
     BoardCameraViewSet(2);
 
-    while (BoardPlayerMotBlendCheck(lbl_1_bss_28) == 0) {
+    while (BoardPlayerMotBlendCheck(hotelPlayerIndex) == 0) {
         HuPrcVSleep();
     }
     BoardCameraMotionWait();
-    BoardModelPosGet(lbl_1_bss_14[4], &sp4C);
+    BoardModelPosGet(boardMapModelIds[4], &position2);
 
-    sp40 = sp28 = sp4C;
-    if (sp58.x > sp28.x) {
-        sp28.x += 650.0f;
-        BoardModelRotYSet(lbl_1_bss_14[4], 90.0f);
+    movementVector = movementVector3 = position2;
+    if (position.x > movementVector3.x) {
+        movementVector3.x += 650.0f;
+        BoardModelRotYSet(boardMapModelIds[4], 90.0f);
     } else {
-        sp28.x -= 650.0f;
-        BoardModelRotYSet(lbl_1_bss_14[4], -90.0f);
+        movementVector3.x -= 650.0f;
+        BoardModelRotYSet(boardMapModelIds[4], -90.0f);
     }
-    BoardModelMotionStart(lbl_1_bss_14[4], temp_r28, 0x40000001);
-    VECSubtract(&sp28, &sp40, &sp34);
-    VECScale(&sp34, &sp34, 0.018518519f);
+    BoardModelMotionStart(boardMapModelIds[4], modelId, 0x40000001);
+    VECSubtract(&movementVector3, &movementVector, &movementVector2);
+    VECScale(&movementVector2, &movementVector2, 0.018518519f);
     
-    for (var_r31 = 0; var_r31 < 0x36; var_r31++) {
-        VECAdd(&sp40, &sp34, &sp40);
-        BoardModelPosSetV(lbl_1_bss_14[4], &sp40);
+    for (loopIndex = 0; loopIndex < 0x36; loopIndex++) {
+        VECAdd(&movementVector, &movementVector2, &movementVector);
+        BoardModelPosSetV(boardMapModelIds[4], &movementVector);
         HuPrcVSleep();
     }
-    BoardModelPosSetV(lbl_1_bss_14[4], &sp28);
-    temp_f31 = atan2d(sp58.x - sp28.x, sp58.z - sp28.z);
+    BoardModelPosSetV(boardMapModelIds[4], &movementVector3);
+    hotelFacingAngle = atan2d(position.x - movementVector3.x, position.z - movementVector3.z);
 
-    while (fn_1_1208(lbl_1_bss_14[4], temp_f31, 10.0f) == 0) {
+    while (W05TurnBoardModelTowardAngle(boardMapModelIds[4], hotelFacingAngle, 10.0f) == 0) {
         HuPrcVSleep();
     }
-    BoardModelMotionShiftSet(lbl_1_bss_14[4], 0, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
-    var_r30 = BoardPlayerCoinsGet(lbl_1_bss_28);
-    sprintf(sp18, "%d", lbl_1_bss_0->unk_00);
-    if (var_r30 > 0) {
-        if (var_r30 >= 5) {
-            var_r27 = MAKE_MESSID(0x27, 0x01);
-            var_r30 = 5;
+    BoardModelMotionShiftSet(boardMapModelIds[4], 0, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
+    coinCount = BoardPlayerCoinsGet(hotelPlayerIndex);
+    sprintf(investedCoinsText, "%d", hotelBoardState->coinsInvested);
+    if (coinCount > 0) {
+        if (coinCount >= 5) {
+            messageId = MAKE_MESSID(0x27, 0x01);
+            coinCount = 5;
         } else {
-            var_r27 = MAKE_MESSID(0x27, 0x02);
+            messageId = MAKE_MESSID(0x27, 0x02);
         }
-        sprintf(sp8, "%d", var_r30);
-        BoardWinCreate(2, var_r27, 7);
-        BoardWinInsertMesSet(MAKE_MESSID_PTR(sp8), 1);
+        sprintf(contributionCoinsText, "%d", coinCount);
+        BoardWinCreate(2, messageId, 7);
+        BoardWinInsertMesSet(MAKE_MESSID_PTR(contributionCoinsText), 1);
     } else {
         BoardWinCreate(2, MAKE_MESSID(39, 3), 7);
-        BoardWinInsertMesSet(MAKE_MESSID_PTR(sp18), 0);
+        BoardWinInsertMesSet(MAKE_MESSID_PTR(investedCoinsText), 0);
     }
     BoardWinWait();
     BoardWinKill();
-    if (var_r30 > 0) {
-        for (var_r31 = 0; (s32) var_r31 < var_r30; var_r31++) {
-            BoardPlayerCoinsAdd(lbl_1_bss_28, -1);
+    if (coinCount > 0) {
+        for (loopIndex = 0; (s32) loopIndex < coinCount; loopIndex++) {
+            BoardPlayerCoinsAdd(hotelPlayerIndex, -1);
             HuAudFXPlay(0xE);
             HuPrcSleep(6);
         }
         HuAudFXPlay(0xF);
-        lbl_1_bss_0->unk_00 += var_r30;
-        sprintf(sp18, "%d", lbl_1_bss_0->unk_00);
+        hotelBoardState->coinsInvested += coinCount;
+        sprintf(investedCoinsText, "%d", hotelBoardState->coinsInvested);
         BoardWinCreate(2, MAKE_MESSID(39, 22), 7);
-        BoardWinInsertMesSet(MAKE_MESSID_PTR(sp18), 0);
+        BoardWinInsertMesSet(MAKE_MESSID_PTR(investedCoinsText), 0);
         BoardWinWait();
         BoardWinKill();
     }
 
-    var_r26 = fn_1_14FC();
-    if (var_r26 != lbl_1_bss_0->unk_04) {
-        lbl_1_bss_0->unk_04 = var_r26;
-        BoardCameraTargetModelSet(lbl_1_data_164);
+    updatedHotelLevel = W05HotelGetLevelForCoinCount();
+    if (updatedHotelLevel != hotelBoardState->hotelLevel) {
+        hotelBoardState->hotelLevel = updatedHotelLevel;
+        BoardCameraTargetModelSet(hotelModel);
         BoardCameraOffsetSet(0.0f, 200.0f, 0.0f);
         BoardCameraMotionWait();
         HuPrcSleep(60);
@@ -157,279 +157,279 @@ void fn_1_155C(void) {
         while (WipeStatGet() != 0) {
             HuPrcVSleep();
         }
-        fn_1_14D0();
-        fn_1_13D4();
+        W05HotelDestroyLevelModel();
+        W05HotelCreateLevelModel();
         WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 48);
 
         while (WipeStatGet() != 0) {
             HuPrcVSleep();
         }
         HuPrcSleep(60);
-        BoardCameraTargetPlayerSet(lbl_1_bss_28);
+        BoardCameraTargetPlayerSet(hotelPlayerIndex);
         BoardCameraMotionWait();
     }
-    BoardPlayerMotBlendSet(lbl_1_bss_28, temp_f30, 0xF);
-    BoardModelPosGet(lbl_1_bss_14[4], &sp40);
-    sp28 = sp4C;
-    if (sp58.x > sp28.x) {
-        BoardModelRotYSet(lbl_1_bss_14[4], -90.0f);
+    BoardPlayerMotBlendSet(hotelPlayerIndex, playerFacingAngle, 0xF);
+    BoardModelPosGet(boardMapModelIds[4], &movementVector);
+    movementVector3 = position2;
+    if (position.x > movementVector3.x) {
+        BoardModelRotYSet(boardMapModelIds[4], -90.0f);
     } else {
-        BoardModelRotYSet(lbl_1_bss_14[4], 90.0f);
+        BoardModelRotYSet(boardMapModelIds[4], 90.0f);
     }
-    BoardModelMotionStart(lbl_1_bss_14[4], temp_r28, 0x40000001);
-    VECSubtract(&sp28, &sp40, &sp34);
-    VECScale(&sp34, &sp34, 0.033333335f);
+    BoardModelMotionStart(boardMapModelIds[4], modelId, 0x40000001);
+    VECSubtract(&movementVector3, &movementVector, &movementVector2);
+    VECScale(&movementVector2, &movementVector2, 0.033333335f);
     
-    for (var_r31 = 0; var_r31 < 0x1E; var_r31++) {
-        VECAdd(&sp40, &sp34, &sp40);
-        BoardModelPosSetV(lbl_1_bss_14[4], &sp40);
+    for (loopIndex = 0; loopIndex < 0x1E; loopIndex++) {
+        VECAdd(&movementVector, &movementVector2, &movementVector);
+        BoardModelPosSetV(boardMapModelIds[4], &movementVector);
         HuPrcVSleep();
     }
-    BoardModelPosSetV(lbl_1_bss_14[4], &sp28);
+    BoardModelPosSetV(boardMapModelIds[4], &movementVector3);
 
-    while (fn_1_1208(lbl_1_bss_14[4], 0.0f, 15.0f) == 0) {
+    while (W05TurnBoardModelTowardAngle(boardMapModelIds[4], 0.0f, 15.0f) == 0) {
         HuPrcVSleep();
     }
-    BoardModelMotionShiftSet(lbl_1_bss_14[4], 0, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
+    BoardModelMotionShiftSet(boardMapModelIds[4], 0, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
     BoardCameraViewSet(1);
 
-    while (BoardPlayerMotBlendCheck(lbl_1_bss_28) == 0) {
+    while (BoardPlayerMotBlendCheck(hotelPlayerIndex) == 0) {
         HuPrcVSleep();
     }
     BoardCameraMotionWait();
-    BoardModelMotionKill(lbl_1_bss_14[4], temp_r28);
+    BoardModelMotionKill(boardMapModelIds[4], modelId);
     BoardRollDispSet(1);
 }
 
-s32 lbl_1_data_188[4] = {
+s32 hotelUpgradeMotions[4] = {
     DATA_MAKE_NUM(DATADIR_W05, 0x0C), DATA_MAKE_NUM(DATADIR_W05, 0x0E),
     DATA_MAKE_NUM(DATADIR_W05, 0x0F),DATA_MAKE_NUM(DATADIR_W05, 0x10)
 };
-s32 lbl_1_data_198[2] = { 28, 25 };
+s32 hotelGuestMotions[2] = { 28, 25 };
 
-void fn_1_1E44(void) {
-    char sp84[0x10];
-    char sp74[0x10];
-    Vec sp68;
-    f32 sp64;
-    f32 sp60;
-    Vec sp5C;
-    Vec sp50;
-    Vec sp44;
-    Vec sp38;
-    f32 sp34;
-    f32 sp30;
-    Vec sp2C;
-    s16 sp1C[4][2];
-    Vec sp10;
-    s16 sp8[4];
-    HU3DMODEL* temp_r25;
-    f32 temp_f31;
-    f32 temp;
-    s16 temp_r3;
-    s16 var_r26;
-    s16 var_r27;
-    s32 var_r28;
-    s32 var_r31;
-    s32 temp_r24;
-    s32 var_r30;
+void W05HotelUpgrade(void) {
+    char investedCoinsText[0x10];
+    char coinCountText[0x10];
+    Vec position;
+    F32 floatValue;
+    F32 floatValue2;
+    Vec movementVector;
+    Vec position2;
+    Vec movementVector2;
+    Vec movementVector3;
+    F32 floatValue3;
+    F32 floatValue4;
+    Vec movementVector4;
+    s16 guestMotionIds[4][2];
+    Vec position3;
+    s16 hotelMotionIds[4];
+    HU3DMODEL* modelData;
+    F32 facingAngle;
+    F32 floatValue6;
+    s16 modelId;
+    s16 paymentStepDelay;
+    s16 integerValue6;
+    s32 coinCount;
+    s32 loopIndex;
+    s32 soundHandle;
+    s32 loopIndex2;
 
-    lbl_1_bss_28 = GWSystem.player_curr;
+    hotelPlayerIndex = GWSystem.player_curr;
     BoardRollDispSet(0);
     
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        sp8[var_r31] = BoardModelMotionCreate(lbl_1_bss_14[4], lbl_1_data_188[var_r31]);
+    for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+        hotelMotionIds[loopIndex] = BoardModelMotionCreate(boardMapModelIds[4], hotelUpgradeMotions[loopIndex]);
     }
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        for (var_r30 = 0; var_r30 < 2; var_r30++) {
-            sp1C[var_r31][var_r30] = BoardPlayerMotionCreate(var_r31, lbl_1_data_198[var_r30] | lbl_1_data_124[GWPlayer[var_r31].character]);
+    for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+        for (loopIndex2 = 0; loopIndex2 < 2; loopIndex2++) {
+            guestMotionIds[loopIndex][loopIndex2] = BoardPlayerMotionCreate(loopIndex, hotelGuestMotions[loopIndex2] | characterIdleMotions[GWPlayer[loopIndex].character]);
         }
     }
     BoardCameraViewSet(2);
     BoardCameraMotionWait();
-    BoardPlayerPosGet(lbl_1_bss_28, &sp50);
-    BoardModelPosGet(lbl_1_bss_14[4], &sp38);
-    sp5C = sp2C = sp38;
-    if (sp50.x > sp2C.x) {
-        sp2C.x += 520.0f;
-        BoardModelRotYSet(lbl_1_bss_14[4], 90.0f);
+    BoardPlayerPosGet(hotelPlayerIndex, &position2);
+    BoardModelPosGet(boardMapModelIds[4], &movementVector3);
+    movementVector = movementVector4 = movementVector3;
+    if (position2.x > movementVector4.x) {
+        movementVector4.x += 520.0f;
+        BoardModelRotYSet(boardMapModelIds[4], 90.0f);
     } else {
-        sp2C.x -= 520.0f;
-        BoardModelRotYSet(lbl_1_bss_14[4], -90.0f);
+        movementVector4.x -= 520.0f;
+        BoardModelRotYSet(boardMapModelIds[4], -90.0f);
     }
-    BoardModelMotionStart(lbl_1_bss_14[4], sp8[0], 0x40000001);
-    VECSubtract(&sp2C, &sp5C, &sp44);
-    VECScale(&sp44, &sp44, 0.018518519f);
+    BoardModelMotionStart(boardMapModelIds[4], hotelMotionIds[0], 0x40000001);
+    VECSubtract(&movementVector4, &movementVector, &movementVector2);
+    VECScale(&movementVector2, &movementVector2, 0.018518519f);
 
-    for (var_r31 = 0; var_r31 < 0x36U; var_r31++) {
-        VECAdd(&sp5C, &sp44, &sp5C);
-        BoardModelPosSetV(lbl_1_bss_14[4], &sp5C);
+    for (loopIndex = 0; loopIndex < 0x36U; loopIndex++) {
+        VECAdd(&movementVector, &movementVector2, &movementVector);
+        BoardModelPosSetV(boardMapModelIds[4], &movementVector);
         HuPrcVSleep();
     }
-    BoardModelPosSetV(lbl_1_bss_14[4], &sp2C);
-    temp_f31 = atan2d(sp50.x - sp2C.x, sp50.z - sp2C.z);
+    BoardModelPosSetV(boardMapModelIds[4], &movementVector4);
+    facingAngle = atan2d(position2.x - movementVector4.x, position2.z - movementVector4.z);
 
-    while (fn_1_1208(lbl_1_bss_14[4], temp_f31, 10.0f) == 0) {
+    while (W05TurnBoardModelTowardAngle(boardMapModelIds[4], facingAngle, 10.0f) == 0) {
         HuPrcVSleep();
     }
-    BoardModelMotionShiftSet(lbl_1_bss_14[4], 0, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
-    temp_f31 = atan2d(sp2C.x - sp50.x, sp2C.z - sp50.z);
-    BoardPlayerMotBlendSet(lbl_1_bss_28, temp_f31, 0xF);
+    BoardModelMotionShiftSet(boardMapModelIds[4], 0, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
+    facingAngle = atan2d(movementVector4.x - position2.x, movementVector4.z - position2.z);
+    BoardPlayerMotBlendSet(hotelPlayerIndex, facingAngle, 0xF);
 
-    while (BoardPlayerMotBlendCheck(lbl_1_bss_28) == 0) {
+    while (BoardPlayerMotBlendCheck(hotelPlayerIndex) == 0) {
         HuPrcVSleep();
     }
-    if (lbl_1_bss_0->unk_00 == 0) {
+    if (hotelBoardState->coinsInvested == 0) {
         BoardWinCreate(2, MAKE_MESSID(39, 5), 7);
         BoardWinWait();
         BoardWinKill();
     } else {
-        temp_r3 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x04), NULL, 0);
-        BoardModelVisibilitySet(temp_r3, 0);
-        BoardModelLayerSet(temp_r3, 2U);
-        if (lbl_1_bss_0->unk_00 > BoardPlayerCoinsGet(lbl_1_bss_28)) {
-            var_r28 = BoardPlayerCoinsGet(lbl_1_bss_28);
+        modelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x04), NULL, 0);
+        BoardModelVisibilitySet(modelId, 0);
+        BoardModelLayerSet(modelId, 2U);
+        if (hotelBoardState->coinsInvested > BoardPlayerCoinsGet(hotelPlayerIndex)) {
+            coinCount = BoardPlayerCoinsGet(hotelPlayerIndex);
         } else {
-            var_r28 = lbl_1_bss_0->unk_00;
+            coinCount = hotelBoardState->coinsInvested;
         }
-        if (var_r28 < 0x14) {
-            var_r26 = 6;
-        } else if (var_r28 < 0x32) {
-            var_r26 = 3;
-        } else if (var_r28 < 0x64) {
-            var_r26 = 2;
+        if (coinCount < 0x14) {
+            paymentStepDelay = 6;
+        } else if (coinCount < 0x32) {
+            paymentStepDelay = 3;
+        } else if (coinCount < 0x64) {
+            paymentStepDelay = 2;
         } else {
-            var_r26 = 0;
+            paymentStepDelay = 0;
         }
-        sprintf(sp84, "%d", lbl_1_bss_0->unk_00);
-        sprintf(sp74, "%d", var_r28);
-        if (var_r28 == lbl_1_bss_0->unk_00) {
+        sprintf(investedCoinsText, "%d", hotelBoardState->coinsInvested);
+        sprintf(coinCountText, "%d", coinCount);
+        if (coinCount == hotelBoardState->coinsInvested) {
             BoardWinCreate(2, MAKE_MESSID(39, 4), 7);
         } else {
             BoardWinCreate(2, MAKE_MESSID(39, 23), 7);
         }
-        BoardWinInsertMesSet(MAKE_MESSID_PTR(sp84), 0);
-        BoardWinInsertMesSet(MAKE_MESSID_PTR(sp74), 1);
+        BoardWinInsertMesSet(MAKE_MESSID_PTR(investedCoinsText), 0);
+        BoardWinInsertMesSet(MAKE_MESSID_PTR(coinCountText), 1);
         BoardWinWait();
         BoardWinKill();
         
-        for (var_r31 = 0; var_r31 < var_r28; var_r31++) {
-            BoardPlayerCoinsAdd(lbl_1_bss_28, -1);
+        for (loopIndex = 0; loopIndex < coinCount; loopIndex++) {
+            BoardPlayerCoinsAdd(hotelPlayerIndex, -1);
             HuAudFXPlay(0xE);
-            HuPrcSleep(var_r26);
+            HuPrcSleep(paymentStepDelay);
         }
         HuAudFXPlay(0xF);
         HuPrcSleep(0x1E);
         BoardCameraViewSet(1);
-        BoardCameraTargetModelSet(lbl_1_data_164);
+        BoardCameraTargetModelSet(hotelModel);
         BoardCameraMotionWait();
         HuPrcSleep(0x1E);
-        omVibrate(lbl_1_bss_28, 0x7FFF, 0xC, 0);
+        omVibrate(hotelPlayerIndex, 0x7FFF, 0xC, 0);
         BoardCameraQuakeSet(0x8C, 250.0f);
-        temp_r24 = HuAudFXPlay(0x482);
+        soundHandle = HuAudFXPlay(0x482);
 
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            BoardPlayerMotBlendSet(var_r31, 0, 0xF);
+        for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+            BoardPlayerMotBlendSet(loopIndex, 0, 0xF);
         }
 
-        while (fn_1_1208(lbl_1_bss_14[4], 0.0f, 15.0f) == 0) {
+        while (W05TurnBoardModelTowardAngle(boardMapModelIds[4], 0.0f, 15.0f) == 0) {
             HuPrcVSleep();
         }
-        BoardModelMotionStart(lbl_1_bss_14[4], sp8[1], 0U);
+        BoardModelMotionStart(boardMapModelIds[4], hotelMotionIds[1], 0U);
 
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            BoardPlayerVoiceEnableSet(var_r31, sp1C[var_r31][0], 0);
-            BoardPlayerMotionStart(var_r31, sp1C[var_r31][0], 0);
+        for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+            BoardPlayerVoiceEnableSet(loopIndex, guestMotionIds[loopIndex][0], 0);
+            BoardPlayerMotionStart(loopIndex, guestMotionIds[loopIndex][0], 0);
         }
-        PlayerFXPlay(lbl_1_bss_28, 0x12E);
+        PlayerFXPlay(hotelPlayerIndex, 0x12E);
         HuPrcSleep(0x5A);
-        HuAudFXStop(temp_r24);
+        HuAudFXStop(soundHandle);
         HuAudFXPlay(0x483);
-        Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_118), "tunami1", &sp68);
-        BoardModelPosSetV(temp_r3, &sp68);
-        BoardModelVisibilitySet(temp_r3, 1);
-        BoardModelMotionTimeSet(temp_r3, 0.0f);
+        Hu3DModelObjPosGet(BoardModelIDGet(mainBoardModel), "tunami1", &position);
+        BoardModelPosSetV(modelId, &position);
+        BoardModelVisibilitySet(modelId, 1);
+        BoardModelMotionTimeSet(modelId, 0.0f);
         HuPrcSleep(0x1E);
-        lbl_1_bss_0->unk_00 = 0;
+        hotelBoardState->coinsInvested = 0;
         
-        lbl_1_bss_0->unk_04 = fn_1_14FC();
-        BoardModelKill(lbl_1_data_164);
-        lbl_1_data_164 = BoardModelCreate(lbl_1_data_150[lbl_1_bss_0->unk_04], NULL, 0);
-        BoardModelAttrSet(lbl_1_data_164, 0x40000001);
-        temp_r25 = &Hu3DData[BoardModelIDGet(lbl_1_data_118)];
-        Hu3DMotionExec(BoardModelIDGet(lbl_1_data_118), temp_r25->motId, 0.0f, 0);
-        Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_118), "hotel1", &sp10);
-        BoardModelPosSetV(lbl_1_data_164, &sp10);
-        BoardModelMotionStart(lbl_1_bss_14[4], sp8[2], 0x40000001U);
+        hotelBoardState->hotelLevel = W05HotelGetLevelForCoinCount();
+        BoardModelKill(hotelModel);
+        hotelModel = BoardModelCreate(hotelLevelModels[hotelBoardState->hotelLevel], NULL, 0);
+        BoardModelAttrSet(hotelModel, 0x40000001);
+        modelData = &Hu3DData[BoardModelIDGet(mainBoardModel)];
+        Hu3DMotionExec(BoardModelIDGet(mainBoardModel), modelData->motId, 0.0f, 0);
+        Hu3DModelObjPosGet(BoardModelIDGet(mainBoardModel), "hotel1", &position3);
+        BoardModelPosSetV(hotelModel, &position3);
+        BoardModelMotionStart(boardMapModelIds[4], hotelMotionIds[2], 0x40000001U);
         
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            BoardPlayerVoiceEnableSet(var_r31, sp1C[var_r31][0], 1);
-            if (var_r31 != lbl_1_bss_28) {
-                BoardPlayerVoiceEnableSet(var_r31, 6, 0);
+        for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+            BoardPlayerVoiceEnableSet(loopIndex, guestMotionIds[loopIndex][0], 1);
+            if (loopIndex != hotelPlayerIndex) {
+                BoardPlayerVoiceEnableSet(loopIndex, 6, 0);
             }
-            BoardPlayerMotionStart(var_r31, 6, 0x40000001);
+            BoardPlayerMotionStart(loopIndex, 6, 0x40000001);
         }
-        while (BoardModelMotionTimeGet(temp_r3) < BoardModelMotionMaxTimeGet(temp_r3)) {
+        while (BoardModelMotionTimeGet(modelId) < BoardModelMotionMaxTimeGet(modelId)) {
             HuPrcVSleep();
         }
-        BoardModelKill(temp_r3);
-        HuPadRumbleStop(GWPlayer[lbl_1_bss_28].port);
+        BoardModelKill(modelId);
+        HuPadRumbleStop(GWPlayer[hotelPlayerIndex].port);
         BoardWinCreate(0, MAKE_MESSID(39, 6), -1);
         BoardWinWait();
         BoardWinKill();
         HuPrcSleep(0x1E);
-        BoardModelMotionShiftSet(lbl_1_bss_14[4], sp8[3], 0.0f, 5.0f, HU3D_MOTATTR_NONE);
+        BoardModelMotionShiftSet(boardMapModelIds[4], hotelMotionIds[3], 0.0f, 5.0f, HU3D_MOTATTR_NONE);
         
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            BoardPlayerMotionShiftSet(var_r31, sp1C[var_r31][1], 0.0f, 5.0f, HU3D_MOTATTR_NONE);
-            BoardPlayerVoiceEnableSet(var_r31, 6, 1);
+        for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+            BoardPlayerMotionShiftSet(loopIndex, guestMotionIds[loopIndex][1], 0.0f, 5.0f, HU3D_MOTATTR_NONE);
+            BoardPlayerVoiceEnableSet(loopIndex, 6, 1);
         }
         HuPrcSleep(0x23);
-        BoardModelMotionShiftSet(lbl_1_bss_14[4], 0, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
+        BoardModelMotionShiftSet(boardMapModelIds[4], 0, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
         
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            BoardPlayerMotionShiftSet(var_r31, 1, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
+        for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+            BoardPlayerMotionShiftSet(loopIndex, 1, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
         }
     }
     BoardCameraViewSet(1);
-    BoardPlayerPosGet(lbl_1_bss_28, &sp50);
-    BoardModelPosGet(lbl_1_bss_14[4], &sp5C);
-    sp2C = sp38;
-    if (sp50.x > sp2C.x) {
-        BoardModelRotYSet(lbl_1_bss_14[4], -90.0f);
+    BoardPlayerPosGet(hotelPlayerIndex, &position2);
+    BoardModelPosGet(boardMapModelIds[4], &movementVector);
+    movementVector4 = movementVector3;
+    if (position2.x > movementVector4.x) {
+        BoardModelRotYSet(boardMapModelIds[4], -90.0f);
     } else {
-        BoardModelRotYSet(lbl_1_bss_14[4], 90.0f);
+        BoardModelRotYSet(boardMapModelIds[4], 90.0f);
     }
-    BoardModelMotionStart(lbl_1_bss_14[4], sp8[0], 0x40000001U);
-    VECSubtract(&sp38, &sp5C, &sp44);
-    VECScale(&sp44, &sp44, 0.055555556);
+    BoardModelMotionStart(boardMapModelIds[4], hotelMotionIds[0], 0x40000001U);
+    VECSubtract(&movementVector3, &movementVector, &movementVector2);
+    VECScale(&movementVector2, &movementVector2, 0.055555556);
 
-    for (var_r31 = 0; var_r31 < 0x12U; var_r31++) {
-        VECAdd(&sp5C, &sp44, &sp5C);
-        BoardModelPosSetV(lbl_1_bss_14[4], &sp5C);
+    for (loopIndex = 0; loopIndex < 0x12U; loopIndex++) {
+        VECAdd(&movementVector, &movementVector2, &movementVector);
+        BoardModelPosSetV(boardMapModelIds[4], &movementVector);
         HuPrcVSleep();
     }
-    BoardModelPosSetV(lbl_1_bss_14[4], &sp38);
+    BoardModelPosSetV(boardMapModelIds[4], &movementVector3);
     
-    while (fn_1_1208(lbl_1_bss_14[4], 0.0f, 15.0f) == 0) {
+    while (W05TurnBoardModelTowardAngle(boardMapModelIds[4], 0.0f, 15.0f) == 0) {
         HuPrcVSleep();
     }
-    BoardModelMotionShiftSet(lbl_1_bss_14[4], 0, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
+    BoardModelMotionShiftSet(boardMapModelIds[4], 0, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
     
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        BoardModelMotionKill(lbl_1_bss_14[4], sp8[var_r31]);
+    for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+        BoardModelMotionKill(boardMapModelIds[4], hotelMotionIds[loopIndex]);
     }
     
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        for (var_r30 = 0; var_r30 < 2; var_r30++) {
-            BoardPlayerMotionKill(var_r31, sp1C[var_r31][var_r30]);
+    for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+        for (loopIndex2 = 0; loopIndex2 < 2; loopIndex2++) {
+            BoardPlayerMotionKill(loopIndex, guestMotionIds[loopIndex][loopIndex2]);
         }
     }
     BoardCameraMotionWait();
-    BoardPlayerMotBlendSet(lbl_1_bss_28, 0, 0xF);
+    BoardPlayerMotBlendSet(hotelPlayerIndex, 0, 0xF);
 
-    while (BoardPlayerMotBlendCheck(lbl_1_bss_28) == 0) {
+    while (BoardPlayerMotBlendCheck(hotelPlayerIndex) == 0) {
         HuPrcVSleep();
     }
 }

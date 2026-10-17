@@ -14,15 +14,15 @@
 #include "ext_math.h"
 
 // bss
-s16 lbl_1_bss_72[2];
-s16 lbl_1_bss_6C[3];
-s32 lbl_1_bss_68;
-s16 lbl_1_bss_64;
-s16 lbl_1_bss_58[6];
+s16 dolphinPlayerMotionIds[2];
+s16 dolphinEffectModelIds[3];
+s32 dolphinPlayerIndex;
+s16 dolphinBoardModel;
+s16 dolphinSpaceList[6];
 
 // data
-char *lbl_1_data_22C[6] = { "orange1", "orange2", "pine2", "pine1", "suika1", "suika2" };
-s32 lbl_1_data_244[6] = {
+char *dolphinObjectNames[6] = { "orange1", "orange2", "pine2", "pine1", "suika1", "suika2" };
+s32 dolphinEffectModels[6] = {
     DATA_MAKE_NUM(DATADIR_W05, 0x27),
     DATA_MAKE_NUM(DATADIR_W05, 0x28),
     DATA_MAKE_NUM(DATADIR_W05, 0x29),
@@ -30,7 +30,7 @@ s32 lbl_1_data_244[6] = {
     DATA_MAKE_NUM(DATADIR_W05, 0x2B),
     DATA_NUM_LISTEND,
 };
-Vec lbl_1_data_25C[6] = {
+Vec dolphinRotations[6] = {
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 90.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f },
@@ -38,7 +38,7 @@ Vec lbl_1_data_25C[6] = {
     { 0.0f, 270.0f, 0.0f },
     { 0.0f, 90.0f, 0.0f },
 };
-Vec lbl_1_data_2A4[6] = {
+Vec dolphinPositionOffsets[6] = {
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 300.0f, 0.0f },
@@ -46,8 +46,8 @@ Vec lbl_1_data_2A4[6] = {
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f },
 };
-s32 lbl_1_data_2EC[2] = { 0x76, 0x77 };
-s32 lbl_1_data_2F4[6] = {
+s32 dolphinPlayerMotions[2] = { 0x76, 0x77 };
+s32 dolphinEffectParameters[6] = {
     DATA_MAKE_NUM(DATADIR_W05, 0x2C),
     DATA_MAKE_NUM(DATADIR_W05, 0x2D),
     DATA_MAKE_NUM(DATADIR_W05, 0x2E),
@@ -56,13 +56,13 @@ s32 lbl_1_data_2F4[6] = {
     DATA_MAKE_NUM(DATADIR_W05, 0x30),
 };
 
-void fn_1_3F74(void)
+void W05PauseMusicAfterDelay(void)
 {
-    s32 var_r31;
+    s32 loopIndex;
 
     BoardAudSeqPause(0, 1, 0x3E8);
 
-    for (var_r31 = 0x3C; var_r31 != 0; var_r31--) {
+    for (loopIndex = 0x3C; loopIndex != 0; loopIndex--) {
         HuPrcVSleep();
     }
 
@@ -70,684 +70,684 @@ void fn_1_3F74(void)
     HuPrcEnd();
 }
 
-void fn_1_3FD8(void)
+void W05FadeOutMusicAfterDelay(void)
 {
-    s32 var_r31;
+    s32 loopIndex;
 
     BoardAudSeqFadeOut(1, 0x3E8);
 
-    for (var_r31 = 0x3C; var_r31 != 0; var_r31--) {
+    for (loopIndex = 0x3C; loopIndex != 0; loopIndex--) {
         HuPrcVSleep();
     }
     BoardAudSeqPause(0, 0, 0x3E8);
     HuPrcEnd();
 }
 
-void fn_1_4034(s32 arg0)
+void W05RunDolphinBoardEvent(s32 eventIndex)
 {
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
-    Vec sp1C;
-    s16 sp14[4];
-    s32 sp10;
-    f32 temp_f22;
-    f32 temp_f25;
-    f32 var_f26;
-    f32 var_f27;
-    s16 var_r30;
-    s32 var_r27;
-    BoardSpace *var_r25;
-    OMOBJ *temp_r24;
-    BoardSpace *var_r28;
-    s32 var_r31;
-    s32 temp_r26;
+    Vec movementVector;
+    Vec vector;
+    Vec movementVector2;
+    Vec movementVector3;
+    s16 spaceIndex[4];
+    s32 playerIndex;
+    F32 floatValue;
+    F32 floatValue2;
+    F32 frameCount;
+    F32 floatValue3;
+    s16 spaceIndex2;
+    s32 playerIndex2;
+    BoardSpace *space;
+    OMOBJ *effectObject;
+    BoardSpace *space2;
+    s32 loopIndex;
+    s32 spaceIndex3;
 
-    lbl_1_bss_68 = GWSystem.player_curr;
-    sp10 = GWPlayer[lbl_1_bss_68].character;
+    dolphinPlayerIndex = GWSystem.player_curr;
+    playerIndex = GWPlayer[dolphinPlayerIndex].character;
 
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        lbl_1_bss_72[var_r31] = BoardPlayerMotionCreate(lbl_1_bss_68, lbl_1_data_2EC[var_r31] | lbl_1_data_124[GWPlayer[lbl_1_bss_68].character]);
+    for (loopIndex = 0; loopIndex < 2; loopIndex++) {
+        dolphinPlayerMotionIds[loopIndex] = BoardPlayerMotionCreate(dolphinPlayerIndex, dolphinPlayerMotions[loopIndex] | characterIdleMotions[GWPlayer[dolphinPlayerIndex].character]);
     }
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        lbl_1_bss_6C[var_r31] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x0A), NULL, 1);
-        BoardModelAttrSet(lbl_1_bss_6C[var_r31], 0x40000001);
-        BoardModelVisibilitySet(lbl_1_bss_6C[var_r31], 0);
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        dolphinEffectModelIds[loopIndex] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x0A), NULL, 1);
+        BoardModelAttrSet(dolphinEffectModelIds[loopIndex], 0x40000001);
+        BoardModelVisibilitySet(dolphinEffectModelIds[loopIndex], 0);
     }
-    fn_1_65E8();
-    var_r27 = BoardSpaceLinkFlagSearch(0, GWPlayer[lbl_1_bss_68].space_curr, 0x02000000);
-    BoardPlayerMoveBetween(lbl_1_bss_68, GWPlayer[lbl_1_bss_68].space_curr, var_r27);
-    var_r28 = BoardSpaceGet(0, var_r27);
+    W05DolphinCreateEffect();
+    playerIndex2 = BoardSpaceLinkFlagSearch(0, GWPlayer[dolphinPlayerIndex].space_curr, 0x02000000);
+    BoardPlayerMoveBetween(dolphinPlayerIndex, GWPlayer[dolphinPlayerIndex].space_curr, playerIndex2);
+    space2 = BoardSpaceGet(0, playerIndex2);
 
-    var_r31 = 0;
-    while (var_r31 < var_r28->link_cnt) {
-        var_r25 = BoardSpaceGet(0, var_r28->link[var_r31]);
-        if ((var_r25->flag & 0x02000000) == 0) {
-            var_r31++;
+    loopIndex = 0;
+    while (loopIndex < space2->link_cnt) {
+        space = BoardSpaceGet(0, space2->link[loopIndex]);
+        if ((space->flag & 0x02000000) == 0) {
+            loopIndex++;
             continue;
         }
         break;
     }
-    temp_r26 = var_r28->link[var_r31];
-    BoardPlayerMotBlendSet(lbl_1_bss_68, lbl_1_data_25C[arg0].y - 180.0f, 5);
+    spaceIndex3 = space2->link[loopIndex];
+    BoardPlayerMotBlendSet(dolphinPlayerIndex, dolphinRotations[eventIndex].y - 180.0f, 5);
 
-    while (BoardPlayerMotBlendCheck(lbl_1_bss_68) == 0) {
+    while (BoardPlayerMotBlendCheck(dolphinPlayerIndex) == 0) {
         HuPrcVSleep();
     }
-    BoardPlayerIdleSet(lbl_1_bss_68);
+    BoardPlayerIdleSet(dolphinPlayerIndex);
     HuPrcSleep(8);
-    lbl_1_bss_64 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x26), lbl_1_data_244, 0);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_118), lbl_1_data_22C[arg0], &sp40);
-    VECAdd(&sp40, &lbl_1_data_2A4[arg0], &sp40);
-    BoardModelMotionStart(lbl_1_bss_64, 4, 0);
-    sp40.y = -50.0f;
-    BoardModelPosSetV(lbl_1_bss_64, &sp40);
-    BoardModelRotSetV(lbl_1_bss_64, &lbl_1_data_25C[arg0]);
-    fn_1_66C0(0, &sp40);
+    dolphinBoardModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W05, 0x26), dolphinEffectModels, 0);
+    Hu3DModelObjPosGet(BoardModelIDGet(mainBoardModel), dolphinObjectNames[eventIndex], &movementVector);
+    VECAdd(&movementVector, &dolphinPositionOffsets[eventIndex], &movementVector);
+    BoardModelMotionStart(dolphinBoardModel, 4, 0);
+    movementVector.y = -50.0f;
+    BoardModelPosSetV(dolphinBoardModel, &movementVector);
+    BoardModelRotSetV(dolphinBoardModel, &dolphinRotations[eventIndex]);
+    W05DolphinSpawnEffect(0, &movementVector);
 
-    var_r30 = 0;
-    while (BoardModelMotionTimeGet(lbl_1_bss_64) < BoardModelMotionMaxTimeGet(lbl_1_bss_64)) {
-        if (BoardModelMotionTimeGet(lbl_1_bss_64) > 50.0f && var_r30 == 0) {
-            var_r30++;
+    spaceIndex2 = 0;
+    while (BoardModelMotionTimeGet(dolphinBoardModel) < BoardModelMotionMaxTimeGet(dolphinBoardModel)) {
+        if (BoardModelMotionTimeGet(dolphinBoardModel) > 50.0f && spaceIndex2 == 0) {
+            spaceIndex2++;
             HuAudFXPlay(0x47D);
             HuAudFXPlay(0x48E);
         }
-        if (BoardModelMotionTimeGet(lbl_1_bss_64) > 70.0f && var_r30 == 1) {
-            var_r30++;
+        if (BoardModelMotionTimeGet(dolphinBoardModel) > 70.0f && spaceIndex2 == 1) {
+            spaceIndex2++;
             HuAudFXPlay(0x47E);
         }
-        if (BoardModelMotionTimeGet(lbl_1_bss_64) > 105.0f && var_r30 == 2) {
-            var_r30++;
+        if (BoardModelMotionTimeGet(dolphinBoardModel) > 105.0f && spaceIndex2 == 2) {
+            spaceIndex2++;
             HuAudFXPlay(0x481);
         }
         HuPrcVSleep();
     }
-    BoardModelMotionStart(lbl_1_bss_64, 1, 0x40000001);
-    temp_r24 = fn_1_66C0(2, &sp40);
+    BoardModelMotionStart(dolphinBoardModel, 1, 0x40000001);
+    effectObject = W05DolphinSpawnEffect(2, &movementVector);
     BoardCameraViewSet(2);
     BoardCameraMotionWait();
     HuAudFXPlay(0x480);
     BoardWinCreate(2, MAKE_MESSID(39, 7), 0xA);
     BoardWinWait();
     BoardWinKill();
-    if (arg0 >= 4) {
-        HuPrcChildCreate(fn_1_3F74, 0x2001, 0x800, 0, boardMainProc);
+    if (eventIndex >= 4) {
+        HuPrcChildCreate(W05PauseMusicAfterDelay, 0x2001, 0x800, 0, boardMainProc);
     }
-    if ((arg0 & 1) != 0) {
-        var_r27 = arg0 - 1;
-    }
-    else {
-        var_r27 = arg0 + 1;
-    }
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_118), lbl_1_data_22C[var_r27], &sp34);
-    temp_f25 = atan2d(sp34.x - sp40.x, sp34.z - sp40.z);
-    BoardModelMotionShiftSet(lbl_1_bss_64, 2, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-
-    while (fn_1_1208(lbl_1_bss_64, temp_f25, 10.0f) == 0) {
-        HuPrcVSleep();
-    }
-
-    BoardPlayerPosGet(lbl_1_bss_68, &sp28);
-    var_f27 = sqrtf(((sp40.x - sp28.x) * (sp40.x - sp28.x)) + ((sp40.z - sp28.z) * (sp40.z - sp28.z)));
-    VECSubtract(&sp40, &sp28, &sp1C);
-    VECNormalize(&sp1C, &sp1C);
-    VECScale(&sp1C, &sp1C, var_f27 / 50.0f);
-    BoardPlayerMotionStart(lbl_1_bss_68, 4, 0);
-    var_f26 = 0.0f;
-    temp_f22 = 15.0f;
-
-loop_37:
-    sp1C.y = temp_f22 - (0.075f * (0.25f * (var_f26 * var_f26)));
-    var_f26++;
-    VECAdd(&sp28, &sp1C, &sp28);
-    var_f27 = sqrtf(((sp40.x - sp28.x) * (sp40.x - sp28.x)) + ((sp40.z - sp28.z) * (sp40.z - sp28.z)));
-    if (var_f27 < 5.0f) {
-        sp1C.x = sp1C.z = 0.0f;
-        sp28.x = sp40.x;
-        sp28.z = sp40.z;
-    }
-
-    if (sp28.y <= 20.0f + sp40.y) {
-        sp28.y = 20.0f + sp40.y;
+    if ((eventIndex & 1) != 0) {
+        playerIndex2 = eventIndex - 1;
     }
     else {
-        BoardPlayerPosSetV(lbl_1_bss_68, &sp28);
-        HuPrcVSleep();
-        goto loop_37;
+        playerIndex2 = eventIndex + 1;
     }
-    BoardPlayerPosSetV(lbl_1_bss_68, &sp28);
-    BoardPlayerMotionStart(lbl_1_bss_68, lbl_1_bss_72[0], 0);
+    Hu3DModelObjPosGet(BoardModelIDGet(mainBoardModel), dolphinObjectNames[playerIndex2], &vector);
+    floatValue2 = atan2d(vector.x - movementVector.x, vector.z - movementVector.z);
+    BoardModelMotionShiftSet(dolphinBoardModel, 2, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
 
-    while (fn_1_1208(BoardPlayerModelGet(lbl_1_bss_68), temp_f25, 10.0f) == 0) {
-        HuPrcVSleep();
-    }
-
-    while (BoardPlayerMotionEndCheck(lbl_1_bss_68) == 0) {
+    while (W05TurnBoardModelTowardAngle(dolphinBoardModel, floatValue2, 10.0f) == 0) {
         HuPrcVSleep();
     }
 
-    BoardPlayerMotionStart(lbl_1_bss_68, lbl_1_bss_72[1], 0x40000001);
+    BoardPlayerPosGet(dolphinPlayerIndex, &movementVector2);
+    floatValue3 = sqrtf(((movementVector.x - movementVector2.x) * (movementVector.x - movementVector2.x)) + ((movementVector.z - movementVector2.z) * (movementVector.z - movementVector2.z)));
+    VECSubtract(&movementVector, &movementVector2, &movementVector3);
+    VECNormalize(&movementVector3, &movementVector3);
+    VECScale(&movementVector3, &movementVector3, floatValue3 / 50.0f);
+    BoardPlayerMotionStart(dolphinPlayerIndex, 4, 0);
+    frameCount = 0.0f;
+    floatValue = 15.0f;
+
+loop37:
+    movementVector3.y = floatValue - (0.075f * (0.25f * (frameCount * frameCount)));
+    frameCount++;
+    VECAdd(&movementVector2, &movementVector3, &movementVector2);
+    floatValue3 = sqrtf(((movementVector.x - movementVector2.x) * (movementVector.x - movementVector2.x)) + ((movementVector.z - movementVector2.z) * (movementVector.z - movementVector2.z)));
+    if (floatValue3 < 5.0f) {
+        movementVector3.x = movementVector3.z = 0.0f;
+        movementVector2.x = movementVector.x;
+        movementVector2.z = movementVector.z;
+    }
+
+    if (movementVector2.y <= 20.0f + movementVector.y) {
+        movementVector2.y = 20.0f + movementVector.y;
+    }
+    else {
+        BoardPlayerPosSetV(dolphinPlayerIndex, &movementVector2);
+        HuPrcVSleep();
+        goto loop37;
+    }
+    BoardPlayerPosSetV(dolphinPlayerIndex, &movementVector2);
+    BoardPlayerMotionStart(dolphinPlayerIndex, dolphinPlayerMotionIds[0], 0);
+
+    while (W05TurnBoardModelTowardAngle(BoardPlayerModelGet(dolphinPlayerIndex), floatValue2, 10.0f) == 0) {
+        HuPrcVSleep();
+    }
+
+    while (BoardPlayerMotionEndCheck(dolphinPlayerIndex) == 0) {
+        HuPrcVSleep();
+    }
+
+    BoardPlayerMotionStart(dolphinPlayerIndex, dolphinPlayerMotionIds[1], 0x40000001);
     HuPrcSleep(0x12);
-    temp_r24->work[1] = 1;
-    if (arg0 < 4) {
-        fn_1_4EB4(arg0, temp_r26, &sp34);
+    effectObject->work[1] = 1;
+    if (eventIndex < 4) {
+        W05DolphinMovePlayerToRewardSpace(eventIndex, spaceIndex3, &vector);
     }
     else {
-        fn_1_5794(arg0, temp_r26, &sp34);
+        W05DolphinMovePlayerToItemSpace(eventIndex, spaceIndex3, &vector);
     }
-    BoardModelPosGet(lbl_1_bss_64, &sp40);
-    BoardPlayerPosGet(lbl_1_bss_68, &sp28);
-    var_f27 = atan2d(sp40.x - sp28.x, sp40.z - sp28.z);
-    BoardPlayerMotBlendSet(lbl_1_bss_68, var_f27, 0xF);
+    BoardModelPosGet(dolphinBoardModel, &movementVector);
+    BoardPlayerPosGet(dolphinPlayerIndex, &movementVector2);
+    floatValue3 = atan2d(movementVector.x - movementVector2.x, movementVector.z - movementVector2.z);
+    BoardPlayerMotBlendSet(dolphinPlayerIndex, floatValue3, 0xF);
 
-    while (BoardPlayerMotBlendCheck(lbl_1_bss_68) == 0) {
+    while (BoardPlayerMotBlendCheck(dolphinPlayerIndex) == 0) {
         HuPrcVSleep();
     }
 
-    fn_1_66C0(1, &sp40);
-    BoardModelMotionShiftSet(lbl_1_bss_64, 5, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
-    var_r30 = 0;
-    var_r31 = 0;
+    W05DolphinSpawnEffect(1, &movementVector);
+    BoardModelMotionShiftSet(dolphinBoardModel, 5, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
+    spaceIndex2 = 0;
+    loopIndex = 0;
 
-    while (var_r31 < 0x5AU) {
-        if ((BoardModelMotionTimeGet(lbl_1_bss_64) > 15.0f) && (var_r30 == 0)) {
-            var_r30++;
+    while (loopIndex < 0x5AU) {
+        if ((BoardModelMotionTimeGet(dolphinBoardModel) > 15.0f) && (spaceIndex2 == 0)) {
+            spaceIndex2++;
             HuAudFXPlay(0x47D);
-            if (arg0 >= 4) {
+            if (eventIndex >= 4) {
                 BoardAudSeqFadeOut(1, 0x3E8);
-                HuPrcChildCreate(fn_1_3FD8, 0x2001, 0x800, 0, boardMainProc);
+                HuPrcChildCreate(W05FadeOutMusicAfterDelay, 0x2001, 0x800, 0, boardMainProc);
             }
         }
-        if ((BoardModelMotionTimeGet(lbl_1_bss_64) > 30.0f) && (var_r30 == 1)) {
-            var_r30++;
+        if ((BoardModelMotionTimeGet(dolphinBoardModel) > 30.0f) && (spaceIndex2 == 1)) {
+            spaceIndex2++;
             HuAudFXPlay(0x47E);
         }
-        if ((BoardModelMotionTimeGet(lbl_1_bss_64) > 65.0f) && (var_r30 == 2)) {
-            var_r30++;
+        if ((BoardModelMotionTimeGet(dolphinBoardModel) > 65.0f) && (spaceIndex2 == 2)) {
+            spaceIndex2++;
             HuAudFXPlay(0x481);
         }
         HuPrcVSleep();
-        var_r31++;
+        loopIndex++;
     }
     BoardCameraMoveSet(0);
-    GWPlayer[lbl_1_bss_68].space_curr = temp_r26;
-    var_r27 = BoardSpaceLinkTargetListGet(0, temp_r26, sp14);
+    GWPlayer[dolphinPlayerIndex].space_curr = spaceIndex3;
+    playerIndex2 = BoardSpaceLinkTargetListGet(0, spaceIndex3, spaceIndex);
 
-    for (var_r31 = 0; (s32)var_r31 < var_r27;) {
-        var_r28 = BoardSpaceGet(0, sp14[var_r31]);
-        if ((var_r28->flag & 0x80) == 0) {
-            var_r31++;
+    for (loopIndex = 0; (s32)loopIndex < playerIndex2;) {
+        space2 = BoardSpaceGet(0, spaceIndex[loopIndex]);
+        if ((space2->flag & 0x80) == 0) {
+            loopIndex++;
             continue;
         }
         break;
     }
-    BoardPlayerMoveBetween(lbl_1_bss_68, temp_r26, sp14[var_r31]);
-    GWPlayer[lbl_1_bss_68].space_curr = sp14[var_r31];
-    BoardPlayerIdleSet(lbl_1_bss_68);
+    BoardPlayerMoveBetween(dolphinPlayerIndex, spaceIndex3, spaceIndex[loopIndex]);
+    GWPlayer[dolphinPlayerIndex].space_curr = spaceIndex[loopIndex];
+    BoardPlayerIdleSet(dolphinPlayerIndex);
     HuPrcSleep(8);
-    if (arg0 >= 4) {
+    if (eventIndex >= 4) {
         BoardStatusShowSetAll(1);
     }
-    BoardModelKill(lbl_1_bss_64);
+    BoardModelKill(dolphinBoardModel);
 
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        BoardPlayerMotionKill(lbl_1_bss_68, lbl_1_bss_72[var_r31]);
+    for (loopIndex = 0; loopIndex < 2; loopIndex++) {
+        BoardPlayerMotionKill(dolphinPlayerIndex, dolphinPlayerMotionIds[loopIndex]);
     }
 
-    fn_1_6670();
+    W05DolphinDestroyEffects();
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        BoardModelKill(lbl_1_bss_6C[var_r31]);
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        BoardModelKill(dolphinEffectModelIds[loopIndex]);
     }
 }
 
-void fn_1_4EB4(s32 arg1, s32 arg2, Vec *arg3)
+void W05DolphinMovePlayerToRewardSpace(s32 playerIndex, s32 targetSpace, Vec *targetPosition)
 {
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    f32 temp_f19;
-    f32 temp_f23;
-    f32 var_f20;
-    f32 var_f22;
-    f32 var_f24;
-    f32 var_f28;
-    OMOBJ *temp_r30;
-    OMOBJ *temp_r29;
-    s32 temp_r28;
+    Vec movementVector;
+    Vec movementVector2;
+    Vec movementVector3;
+    Vec position;
+    F32 floatValue;
+    F32 floatValue2;
+    F32 floatValue3;
+    F32 floatValue4;
+    F32 frameCount;
+    F32 floatValue5;
+    OMOBJ *effectObject;
+    OMOBJ *effectObject2;
+    s32 soundHandle;
 
-    temp_f23 = 10.0f;
-    BoardModelPosGet(lbl_1_bss_64, &sp3C);
-    arg3->y = sp3C.y;
-    VECSubtract(arg3, &sp3C, &sp24);
-    VECNormalize(&sp24, &sp24);
-    VECScale(&sp24, &sp24, temp_f23);
-    temp_r28 = HuAudFXPlay(0x47F);
-    BoardModelPosGet(lbl_1_bss_64, &sp18);
-    temp_r30 = fn_1_66C0(4, &sp18);
-    temp_r29 = fn_1_66C0(5, &sp18);
+    floatValue2 = 10.0f;
+    BoardModelPosGet(dolphinBoardModel, &movementVector);
+    targetPosition->y = movementVector.y;
+    VECSubtract(targetPosition, &movementVector, &movementVector3);
+    VECNormalize(&movementVector3, &movementVector3);
+    VECScale(&movementVector3, &movementVector3, floatValue2);
+    soundHandle = HuAudFXPlay(0x47F);
+    BoardModelPosGet(dolphinBoardModel, &position);
+    effectObject = W05DolphinSpawnEffect(4, &position);
+    effectObject2 = W05DolphinSpawnEffect(5, &position);
     while (1) {
-        var_f28 = sqrtf((arg3->x - sp3C.x) * (arg3->x - sp3C.x) + (arg3->z - sp3C.z) * (arg3->z - sp3C.z));
-        if (var_f28 <= temp_f23) {
-            sp3C.x = arg3->x;
-            sp3C.z = arg3->z;
-            BoardModelPosSetV(lbl_1_bss_64, &sp3C);
-            sp30 = sp3C;
-            sp30.y += 20.0f;
-            BoardPlayerPosSetV(lbl_1_bss_68, &sp30);
+        floatValue5 = sqrtf((targetPosition->x - movementVector.x) * (targetPosition->x - movementVector.x) + (targetPosition->z - movementVector.z) * (targetPosition->z - movementVector.z));
+        if (floatValue5 <= floatValue2) {
+            movementVector.x = targetPosition->x;
+            movementVector.z = targetPosition->z;
+            BoardModelPosSetV(dolphinBoardModel, &movementVector);
+            movementVector2 = movementVector;
+            movementVector2.y += 20.0f;
+            BoardPlayerPosSetV(dolphinPlayerIndex, &movementVector2);
             break;
         }
         else {
-            VECAdd(&sp3C, &sp24, &sp3C);
-            BoardModelPosSetV(lbl_1_bss_64, &sp3C);
-            sp30 = sp3C;
-            sp30.y += 20.0f;
-            BoardPlayerPosSetV(lbl_1_bss_68, &sp30);
+            VECAdd(&movementVector, &movementVector3, &movementVector);
+            BoardModelPosSetV(dolphinBoardModel, &movementVector);
+            movementVector2 = movementVector;
+            movementVector2.y += 20.0f;
+            BoardPlayerPosSetV(dolphinPlayerIndex, &movementVector2);
             HuPrcVSleep();
         }
     }
-    HuAudFXStop(temp_r28);
-    temp_r30->work[1] = 1;
-    temp_r29->work[1] = 1;
-    BoardPlayerIdleSet(lbl_1_bss_68);
+    HuAudFXStop(soundHandle);
+    effectObject->work[1] = 1;
+    effectObject2->work[1] = 1;
+    BoardPlayerIdleSet(dolphinPlayerIndex);
     HuPrcSleep(8);
-    BoardSpacePosGet(0, arg2, &sp3C);
-    var_f28 = atan2d(sp3C.x - sp30.x, sp3C.z - sp30.z);
-    BoardPlayerMotBlendSet(lbl_1_bss_68, var_f28, 0xF);
+    BoardSpacePosGet(0, targetSpace, &movementVector);
+    floatValue5 = atan2d(movementVector.x - movementVector2.x, movementVector.z - movementVector2.z);
+    BoardPlayerMotBlendSet(dolphinPlayerIndex, floatValue5, 0xF);
 
-    while (BoardPlayerMotBlendCheck(lbl_1_bss_68) == 0) {
+    while (BoardPlayerMotBlendCheck(dolphinPlayerIndex) == 0) {
         HuPrcVSleep();
     }
 
-    BoardPlayerPosGet(lbl_1_bss_68, &sp30);
-    var_f28 = sqrtf(((sp3C.x - sp30.x) * (sp3C.x - sp30.x)) + ((sp3C.z - sp30.z) * (sp3C.z - sp30.z)));
-    VECSubtract(&sp3C, &sp30, &sp24);
-    VECNormalize(&sp24, &sp24);
-    VECScale(&sp24, &sp24, var_f28 / 45.0f);
-    BoardPlayerMotionStart(lbl_1_bss_68, 4, 0);
+    BoardPlayerPosGet(dolphinPlayerIndex, &movementVector2);
+    floatValue5 = sqrtf(((movementVector.x - movementVector2.x) * (movementVector.x - movementVector2.x)) + ((movementVector.z - movementVector2.z) * (movementVector.z - movementVector2.z)));
+    VECSubtract(&movementVector, &movementVector2, &movementVector3);
+    VECNormalize(&movementVector3, &movementVector3);
+    VECScale(&movementVector3, &movementVector3, floatValue5 / 45.0f);
+    BoardPlayerMotionStart(dolphinPlayerIndex, 4, 0);
 
-    var_f24 = 0.0f;
-    temp_f19 = 15.0f;
+    frameCount = 0.0f;
+    floatValue = 15.0f;
 
     while (1) {
-        sp24.y = temp_f19 - (0.075f * (0.25f * (var_f24 * var_f24)));
-        var_f24++;
-        VECAdd(&sp30, &sp24, &sp30);
-        var_f28 = sqrtf(((sp3C.x - sp30.x) * (sp3C.x - sp30.x)) + ((sp3C.z - sp30.z) * (sp3C.z - sp30.z)));
-        if (var_f28 < 5.0f) {
-            sp24.x = sp24.z = 0.0f;
-            sp30.x = sp3C.x;
-            sp30.z = sp3C.z;
+        movementVector3.y = floatValue - (0.075f * (0.25f * (frameCount * frameCount)));
+        frameCount++;
+        VECAdd(&movementVector2, &movementVector3, &movementVector2);
+        floatValue5 = sqrtf(((movementVector.x - movementVector2.x) * (movementVector.x - movementVector2.x)) + ((movementVector.z - movementVector2.z) * (movementVector.z - movementVector2.z)));
+        if (floatValue5 < 5.0f) {
+            movementVector3.x = movementVector3.z = 0.0f;
+            movementVector2.x = movementVector.x;
+            movementVector2.z = movementVector.z;
         }
-        if (sp30.y <= sp3C.y && sp24.y < 0.0f) {
-            sp30.y = sp3C.y;
+        if (movementVector2.y <= movementVector.y && movementVector3.y < 0.0f) {
+            movementVector2.y = movementVector.y;
         }
         else {
-            BoardPlayerPosSetV(lbl_1_bss_68, &sp30);
+            BoardPlayerPosSetV(dolphinPlayerIndex, &movementVector2);
             HuPrcVSleep();
             continue;
         }
-        BoardPlayerPosSetV(lbl_1_bss_68, &sp30);
+        BoardPlayerPosSetV(dolphinPlayerIndex, &movementVector2);
         break;
     }
 }
 
-void fn_1_5648(void)
+void W05DolphinEventCleanup(void)
 {
-    Vec sp8;
-    s32 var_r31;
+    Vec rotation;
+    s32 loopIndex;
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        BoardModelRotGet(lbl_1_bss_6C[var_r31], &sp8);
-        sp8.y = 0.003921569f * (360.0f * frand8());
-        BoardModelRotSetV(lbl_1_bss_6C[var_r31], &sp8);
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        BoardModelRotGet(dolphinEffectModelIds[loopIndex], &rotation);
+        rotation.y = 0.003921569f * (360.0f * frand8());
+        BoardModelRotSetV(dolphinEffectModelIds[loopIndex], &rotation);
     }
     while (1) {
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            BoardModelRotGet(lbl_1_bss_6C[var_r31], &sp8);
-            sp8.y += 10.0f;
-            if (sp8.y >= 360.0f) {
-                sp8.y -= 360.0f;
+        for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+            BoardModelRotGet(dolphinEffectModelIds[loopIndex], &rotation);
+            rotation.y += 10.0f;
+            if (rotation.y >= 360.0f) {
+                rotation.y -= 360.0f;
             }
-            BoardModelRotSetV(lbl_1_bss_6C[var_r31], &sp8);
+            BoardModelRotSetV(dolphinEffectModelIds[loopIndex], &rotation);
         }
         HuPrcVSleep();
     }
 }
 
-void fn_1_5794(s32 arg0, s32 arg1, Vec *arg2)
+void W05DolphinMovePlayerToItemSpace(s32 eventIndex, s32 targetSpace, Vec *targetPosition)
 {
-    Vec sp64;
-    Vec sp58;
-    Vec sp4C;
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
-    Vec sp1C;
-    f32 sp18;
-    HUPROCESS *temp_r23;
-    f32 temp_f18;
-    f32 temp_f22;
-    f32 var_f27;
-    f32 var_f23;
-    f32 var_f28;
-    OMOBJ *temp_r27;
-    OMOBJ *var_r26;
-    OMOBJ *temp_r25;
-    OMOBJ *var_r24;
-    s32 var_r28;
-    s32 var_r29;
-    s32 var_r30;
+    Vec vector;
+    Vec movementVector;
+    Vec movementVector2;
+    Vec movementVector3;
+    Vec rotation;
+    Vec rotation2;
+    Vec position;
+    F32 floatValue;
+    HUPROCESS *process;
+    F32 floatValue2;
+    F32 floatValue3;
+    F32 floatValue4;
+    F32 frameCount;
+    F32 floatValue5;
+    OMOBJ *effectObject;
+    OMOBJ *effectObject2;
+    OMOBJ *effectObject3;
+    OMOBJ *effectObject4;
+    s32 soundHandle;
+    s32 integerValue;
+    s32 integerValue2;
 
-    BoardModelPosGet(lbl_1_bss_64, &sp58);
-    temp_r23 = HuPrcChildCreate(fn_1_5648, 0x2001, 0x800, 0, boardMainProc);
+    BoardModelPosGet(dolphinBoardModel, &movementVector);
+    process = HuPrcChildCreate(W05DolphinEventCleanup, 0x2001, 0x800, 0, boardMainProc);
     BoardCameraMoveSet(0);
-    BoardCameraTargetPlayerSet(lbl_1_bss_68);
-    BoardCameraRotSet(-15.0f, 180.0f + BoardModelRotYGet(lbl_1_bss_64));
+    BoardCameraTargetPlayerSet(dolphinPlayerIndex);
+    BoardCameraRotSet(-15.0f, 180.0f + BoardModelRotYGet(dolphinBoardModel));
     BoardCameraZoomSet(1400.0f);
     BoardStatusShowSetAll(0);
-    fn_1_62AC(arg0, arg2);
-    temp_f22 = 10.0f;
-    arg2->y = sp58.y;
-    VECSubtract(arg2, &sp58, &sp40);
-    VECNormalize(&sp40, &sp40);
-    VECScale(&sp40, &sp40, temp_f22);
-    if (arg0 == 5) {
-        var_r29 = 0x96;
+    W05DolphinFinishPlayerMovement(eventIndex, targetPosition);
+    floatValue3 = 10.0f;
+    targetPosition->y = movementVector.y;
+    VECSubtract(targetPosition, &movementVector, &movementVector3);
+    VECNormalize(&movementVector3, &movementVector3);
+    VECScale(&movementVector3, &movementVector3, floatValue3);
+    if (eventIndex == 5) {
+        integerValue = 0x96;
     }
     else {
-        var_r29 = 0x5A;
+        integerValue = 0x5A;
     }
-    var_f28 = 0.0f;
-    sp64 = sp58;
-    BoardModelRotGet(lbl_1_bss_64, &sp34);
-    BoardPlayerRotGet(lbl_1_bss_68, &sp28);
+    floatValue5 = 0.0f;
+    vector = movementVector;
+    BoardModelRotGet(dolphinBoardModel, &rotation);
+    BoardPlayerRotGet(dolphinPlayerIndex, &rotation2);
     BoardCameraTargetModelSet(-1);
-    var_r30 = 0;
-    var_r28 = HuAudFXPlay(0x47F);
-    BoardModelPosGet(lbl_1_bss_64, &sp1C);
-    temp_r27 = fn_1_66C0(4, &sp1C);
-    temp_r25 = fn_1_66C0(5, &sp1C);
+    integerValue2 = 0;
+    soundHandle = HuAudFXPlay(0x47F);
+    BoardModelPosGet(dolphinBoardModel, &position);
+    effectObject = W05DolphinSpawnEffect(4, &position);
+    effectObject3 = W05DolphinSpawnEffect(5, &position);
 
     while (1) {
-        sp18 = BoardModelRotYGet(lbl_1_bss_64);
-        sp58 = sp64;
-        var_f27 = sqrtf(((arg2->x - sp58.x) * (arg2->x - sp58.x)) + ((arg2->z - sp58.z) * (arg2->z - sp58.z)));
-        if (var_f27 <= temp_f22) {
-            sp58.x = arg2->x;
-            sp58.z = arg2->z;
-            BoardModelPosSetV(lbl_1_bss_64, &sp58);
-            sp4C = sp58;
-            sp4C.y += 20.0f;
-            BoardPlayerPosSetV(lbl_1_bss_68, &sp4C);
+        floatValue = BoardModelRotYGet(dolphinBoardModel);
+        movementVector = vector;
+        floatValue4 = sqrtf(((targetPosition->x - movementVector.x) * (targetPosition->x - movementVector.x)) + ((targetPosition->z - movementVector.z) * (targetPosition->z - movementVector.z)));
+        if (floatValue4 <= floatValue3) {
+            movementVector.x = targetPosition->x;
+            movementVector.z = targetPosition->z;
+            BoardModelPosSetV(dolphinBoardModel, &movementVector);
+            movementVector2 = movementVector;
+            movementVector2.y += 20.0f;
+            BoardPlayerPosSetV(dolphinPlayerIndex, &movementVector2);
             break;
         }
         else {
-            VECAdd(&sp58, &sp40, &sp58);
-            sp64 = sp58;
-            if (var_r29 == 0) {
-                sp58.y += 250.0 * sind(var_f28);
-                var_f28 -= 2.5f;
-                if (var_f28 < -540.0f) {
-                    var_f28 = -540.0f;
+            VECAdd(&movementVector, &movementVector3, &movementVector);
+            vector = movementVector;
+            if (integerValue == 0) {
+                movementVector.y += 250.0 * sind(floatValue5);
+                floatValue5 -= 2.5f;
+                if (floatValue5 < -540.0f) {
+                    floatValue5 = -540.0f;
                 }
 
-                if (var_r30 == 0) {
-                    temp_r27->work[1] = 1;
-                    temp_r25->work[1] = 1;
-                    var_r30++;
+                if (integerValue2 == 0) {
+                    effectObject->work[1] = 1;
+                    effectObject3->work[1] = 1;
+                    integerValue2++;
                 }
-                else if (var_r30 == 1 && var_f28 < -180.0f) {
-                    HuAudFXStop(var_r28);
+                else if (integerValue2 == 1 && floatValue5 < -180.0f) {
+                    HuAudFXStop(soundHandle);
                     HuAudFXPlay(0x47D);
-                    PlayerFXPlay(lbl_1_bss_68, 0x125);
-                    fn_1_66C0(3, &sp58);
-                    var_r30++;
+                    PlayerFXPlay(dolphinPlayerIndex, 0x125);
+                    W05DolphinSpawnEffect(3, &movementVector);
+                    integerValue2++;
                 }
-                else if ((var_r30 == 2) && (var_f28 < -360.0f)) {
-                    var_r28 = HuAudFXPlay(0x47F);
+                else if ((integerValue2 == 2) && (floatValue5 < -360.0f)) {
+                    soundHandle = HuAudFXPlay(0x47F);
                     HuAudFXPlay(0x481);
-                    fn_1_66C0(3, &sp58);
-                    var_r30++;
+                    W05DolphinSpawnEffect(3, &movementVector);
+                    integerValue2++;
                 }
-                else if ((var_r30 == 3) && (-540.0f == var_f28)) {
-                    var_r30++;
-                    BoardModelPosGet(lbl_1_bss_64, &sp1C);
-                    var_r26 = fn_1_66C0(4, &sp1C);
-                    var_r24 = fn_1_66C0(5, &sp1C);
+                else if ((integerValue2 == 3) && (-540.0f == floatValue5)) {
+                    integerValue2++;
+                    BoardModelPosGet(dolphinBoardModel, &position);
+                    effectObject2 = W05DolphinSpawnEffect(4, &position);
+                    effectObject4 = W05DolphinSpawnEffect(5, &position);
                 }
             }
             else {
-                var_r29--;
+                integerValue--;
             }
-            BoardModelPosSetV(lbl_1_bss_64, &sp58);
-            sp28.x = sp34.x = 45.0 * -sind(var_f28);
-            BoardModelRotSetV(lbl_1_bss_64, &sp34);
-            BoardPlayerRotSetV(lbl_1_bss_68, &sp28);
-            sp4C = sp58;
-            sp4C.y += 20.0f;
-            BoardPlayerPosSetV(lbl_1_bss_68, &sp4C);
-            fn_1_64BC();
-            BoardCameraTargetSet(sp58.x, -50.0f, sp58.z);
+            BoardModelPosSetV(dolphinBoardModel, &movementVector);
+            rotation2.x = rotation.x = 45.0 * -sind(floatValue5);
+            BoardModelRotSetV(dolphinBoardModel, &rotation);
+            BoardPlayerRotSetV(dolphinPlayerIndex, &rotation2);
+            movementVector2 = movementVector;
+            movementVector2.y += 20.0f;
+            BoardPlayerPosSetV(dolphinPlayerIndex, &movementVector2);
+            W05DolphinInitializeModels();
+            BoardCameraTargetSet(movementVector.x, -50.0f, movementVector.z);
             HuPrcVSleep();
         }
     }
-    HuAudFXStop(var_r28);
-    var_r26->work[1] = 1;
-    var_r24->work[1] = 1;
+    HuAudFXStop(soundHandle);
+    effectObject2->work[1] = 1;
+    effectObject4->work[1] = 1;
     BoardCameraMoveSet(1);
-    BoardCameraTargetPlayerSet(lbl_1_bss_68);
-    BoardPlayerIdleSet(lbl_1_bss_68);
+    BoardCameraTargetPlayerSet(dolphinPlayerIndex);
+    BoardPlayerIdleSet(dolphinPlayerIndex);
     HuPrcSleep(8);
-    BoardSpacePosGet(0, arg1, &sp58);
-    var_f27 = atan2d(sp58.x - sp4C.x, sp58.z - sp4C.z);
-    BoardPlayerMotBlendSet(lbl_1_bss_68, var_f27, 0xF);
+    BoardSpacePosGet(0, targetSpace, &movementVector);
+    floatValue4 = atan2d(movementVector.x - movementVector2.x, movementVector.z - movementVector2.z);
+    BoardPlayerMotBlendSet(dolphinPlayerIndex, floatValue4, 0xF);
 
-    while (BoardPlayerMotBlendCheck(lbl_1_bss_68) == 0) {
+    while (BoardPlayerMotBlendCheck(dolphinPlayerIndex) == 0) {
         HuPrcVSleep();
     }
-    BoardPlayerPosGet(lbl_1_bss_68, &sp4C);
-    var_f27 = sqrtf(((sp58.x - sp4C.x) * (sp58.x - sp4C.x)) + ((sp58.z - sp4C.z) * (sp58.z - sp4C.z)));
-    VECSubtract(&sp58, &sp4C, &sp40);
-    VECNormalize(&sp40, &sp40);
-    VECScale(&sp40, &sp40, var_f27 / 45.0f);
-    BoardPlayerMotionStart(lbl_1_bss_68, 4, 0);
-    var_f23 = 0.0f;
-    temp_f18 = 15.0f;
+    BoardPlayerPosGet(dolphinPlayerIndex, &movementVector2);
+    floatValue4 = sqrtf(((movementVector.x - movementVector2.x) * (movementVector.x - movementVector2.x)) + ((movementVector.z - movementVector2.z) * (movementVector.z - movementVector2.z)));
+    VECSubtract(&movementVector, &movementVector2, &movementVector3);
+    VECNormalize(&movementVector3, &movementVector3);
+    VECScale(&movementVector3, &movementVector3, floatValue4 / 45.0f);
+    BoardPlayerMotionStart(dolphinPlayerIndex, 4, 0);
+    frameCount = 0.0f;
+    floatValue2 = 15.0f;
     while (1) {
-        sp40.y = temp_f18 - (0.075f * (0.25f * (var_f23 * var_f23)));
-        var_f23++;
-        VECAdd(&sp4C, &sp40, &sp4C);
-        var_f27 = sqrtf(((sp58.x - sp4C.x) * (sp58.x - sp4C.x)) + ((sp58.z - sp4C.z) * (sp58.z - sp4C.z)));
-        if (var_f27 < 5.0f) {
-            sp40.x = sp40.z = 0.0f;
-            sp4C.x = sp58.x;
-            sp4C.z = sp58.z;
+        movementVector3.y = floatValue2 - (0.075f * (0.25f * (frameCount * frameCount)));
+        frameCount++;
+        VECAdd(&movementVector2, &movementVector3, &movementVector2);
+        floatValue4 = sqrtf(((movementVector.x - movementVector2.x) * (movementVector.x - movementVector2.x)) + ((movementVector.z - movementVector2.z) * (movementVector.z - movementVector2.z)));
+        if (floatValue4 < 5.0f) {
+            movementVector3.x = movementVector3.z = 0.0f;
+            movementVector2.x = movementVector.x;
+            movementVector2.z = movementVector.z;
         }
-        if (sp4C.y <= sp58.y && sp40.y < 0.0f) {
-            sp4C.y = sp58.y;
+        if (movementVector2.y <= movementVector.y && movementVector3.y < 0.0f) {
+            movementVector2.y = movementVector.y;
             break;
         }
         else {
-            BoardPlayerPosSetV(lbl_1_bss_68, &sp4C);
+            BoardPlayerPosSetV(dolphinPlayerIndex, &movementVector2);
             HuPrcVSleep();
         }
     }
-    BoardPlayerPosSetV(lbl_1_bss_68, &sp4C);
-    HuPrcKill(temp_r23);
+    BoardPlayerPosSetV(dolphinPlayerIndex, &movementVector2);
+    HuPrcKill(process);
 }
 
-void fn_1_62AC(s32 arg0, Vec *arg1)
+void W05DolphinFinishPlayerMovement(s32 dolphinVariant, Vec *targetPosition)
 {
-    Vec sp34;
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
-    f32 sp8[2] = { 1950.0f, 2550.0f };
-    f32 var_f30;
-    f32 var_f31;
-    s32 var_r31;
+    Vec movementVector;
+    Vec movementVector2;
+    Vec movementVector3;
+    Vec movementVector4;
+    F32 floatValue[2] = { 1950.0f, 2550.0f };
+    F32 floatValue2;
+    F32 frameCount;
+    s32 integerValue;
 
-    BoardModelPosGet(lbl_1_bss_64, &sp34);
-    arg0 -= 4;
-    arg1->y = sp34.y;
-    VECSubtract(arg1, &sp34, &sp28);
-    VECNormalize(&sp28, &sp28);
-    var_f31 = 45.0f;
-    var_r31 = 0;
-    while (var_r31 < 3) {
-        sp1C = sp28;
-        sp10 = sp28;
-        VECScale(&sp1C, &sp1C, sp8[arg0]);
-        sp1C.y += 250.0 * sind(var_f31);
-        var_f30 = 250.0 * -cosd(var_f31);
-        VECScale(&sp10, &sp10, var_f30);
-        VECAdd(&sp10, &sp1C, &sp1C);
-        VECAdd(&sp1C, &sp34, &sp1C);
-        BoardModelPosSetV(lbl_1_bss_6C[var_r31], &sp1C);
-        BoardModelVisibilitySet(lbl_1_bss_6C[var_r31], 1);
-        var_f31 += 45.0f;
-        var_r31++;
+    BoardModelPosGet(dolphinBoardModel, &movementVector);
+    dolphinVariant -= 4;
+    targetPosition->y = movementVector.y;
+    VECSubtract(targetPosition, &movementVector, &movementVector2);
+    VECNormalize(&movementVector2, &movementVector2);
+    frameCount = 45.0f;
+    integerValue = 0;
+    while (integerValue < 3) {
+        movementVector3 = movementVector2;
+        movementVector4 = movementVector2;
+        VECScale(&movementVector3, &movementVector3, floatValue[dolphinVariant]);
+        movementVector3.y += 250.0 * sind(frameCount);
+        floatValue2 = 250.0 * -cosd(frameCount);
+        VECScale(&movementVector4, &movementVector4, floatValue2);
+        VECAdd(&movementVector4, &movementVector3, &movementVector3);
+        VECAdd(&movementVector3, &movementVector, &movementVector3);
+        BoardModelPosSetV(dolphinEffectModelIds[integerValue], &movementVector3);
+        BoardModelVisibilitySet(dolphinEffectModelIds[integerValue], 1);
+        frameCount += 45.0f;
+        integerValue++;
     }
 }
 
-void fn_1_64BC(void)
+void W05DolphinInitializeModels(void)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    s32 var_r31;
-    f32 var_f31;
+    Vec movementVector;
+    Vec movementVector2;
+    Vec movementVector3;
+    s32 loopIndex;
+    F32 floatValue;
 
-    BoardPlayerPosGet(lbl_1_bss_68, &sp20);
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        if (BoardModelVisibilityGet(lbl_1_bss_6C[var_r31]) != 0) {
-            BoardModelPosGet(lbl_1_bss_6C[var_r31], &sp14);
-            VECSubtract(&sp14, &sp20, &sp8);
-            var_f31 = VECMag(&sp8);
-            if (var_f31 < 60.0f) {
-                CharEffectCoinGlowCreate(1, &sp14);
-                BoardModelVisibilitySet(lbl_1_bss_6C[var_r31], 0);
-                BoardPlayerCoinsAdd(lbl_1_bss_68, 1);
+    BoardPlayerPosGet(dolphinPlayerIndex, &movementVector);
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        if (BoardModelVisibilityGet(dolphinEffectModelIds[loopIndex]) != 0) {
+            BoardModelPosGet(dolphinEffectModelIds[loopIndex], &movementVector2);
+            VECSubtract(&movementVector2, &movementVector, &movementVector3);
+            floatValue = VECMag(&movementVector3);
+            if (floatValue < 60.0f) {
+                CharEffectCoinGlowCreate(1, &movementVector2);
+                BoardModelVisibilitySet(dolphinEffectModelIds[loopIndex], 0);
+                BoardPlayerCoinsAdd(dolphinPlayerIndex, 1);
                 HuAudFXPlay(7);
-                omVibrate(lbl_1_bss_68, 0xC, 6, 6);
+                omVibrate(dolphinPlayerIndex, 0xC, 6, 6);
             }
         }
     }
 }
 
-void fn_1_65E8(void)
+void W05DolphinCreateEffect(void)
 {
-    s32 var_r31;
+    s32 loopIndex;
 
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        lbl_1_bss_58[var_r31] = BoardModelCreate(lbl_1_data_2F4[var_r31], NULL, 0);
-        BoardModelVisibilitySet(lbl_1_bss_58[var_r31], 0);
+    for (loopIndex = 0; loopIndex < 6; loopIndex++) {
+        dolphinSpaceList[loopIndex] = BoardModelCreate(dolphinEffectParameters[loopIndex], NULL, 0);
+        BoardModelVisibilitySet(dolphinSpaceList[loopIndex], 0);
     }
 }
 
-void fn_1_6670(void)
+void W05DolphinDestroyEffects(void)
 {
-    s32 var_r31;
+    s32 loopIndex;
 
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        BoardModelKill(lbl_1_bss_58[var_r31]);
+    for (loopIndex = 0; loopIndex < 6; loopIndex++) {
+        BoardModelKill(dolphinSpaceList[loopIndex]);
     }
 }
 
-OMOBJ *fn_1_66C0(u32 arg0, Vec *arg1)
+OMOBJ *W05DolphinSpawnEffect(u32 effectType, Vec *effectPosition)
 {
-    Vec sp8;
-    OMOBJ *temp_r31;
-    f32 temp_f31;
+    Vec boardPosition;
+    OMOBJ *effectObject;
+    F32 boardRotation;
 
-    temp_r31 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, fn_1_6914);
-    temp_r31->trans.x = arg1->x;
-    temp_r31->trans.y = arg1->y;
-    temp_r31->trans.z = arg1->z;
-    temp_r31->work[0] = BoardModelCreate(lbl_1_data_2F4[arg0], NULL, 1);
-    temp_r31->work[2] = arg0;
-    BoardModelPosSetV(temp_r31->work[0], arg1);
-    BoardModelMotionTimeSet(temp_r31->work[0], 0.0f);
-    switch (arg0) {
+    effectObject = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, W05DolphinEffectUpdate);
+    effectObject->trans.x = effectPosition->x;
+    effectObject->trans.y = effectPosition->y;
+    effectObject->trans.z = effectPosition->z;
+    effectObject->work[0] = BoardModelCreate(dolphinEffectParameters[effectType], NULL, 1);
+    effectObject->work[2] = effectType;
+    BoardModelPosSetV(effectObject->work[0], effectPosition);
+    BoardModelMotionTimeSet(effectObject->work[0], 0.0f);
+    switch (effectType) {
         case 0:
         case 1:
             break;
         case 2:
-            BoardModelAttrSet(temp_r31->work[0], 0x40000001);
+            BoardModelAttrSet(effectObject->work[0], 0x40000001);
             break;
         case 3:
-            BoardModelMotionTimeSet(temp_r31->work[0], 110.0f);
+            BoardModelMotionTimeSet(effectObject->work[0], 110.0f);
             break;
         case 4:
-            temp_f31 = BoardModelRotYGet(lbl_1_bss_64);
-            BoardModelRotYSet(temp_r31->work[0], temp_f31);
-            BoardModelAttrSet(temp_r31->work[0], 0x40000001);
-            BoardModelPosGet(lbl_1_bss_64, &sp8);
-            temp_r31->rot.x = arg1->x - sp8.x;
-            temp_r31->rot.y = arg1->y - sp8.y;
-            temp_r31->rot.z = arg1->z - sp8.z;
-            BoardModelLayerSet(temp_r31->work[0], 2);
+            boardRotation = BoardModelRotYGet(dolphinBoardModel);
+            BoardModelRotYSet(effectObject->work[0], boardRotation);
+            BoardModelAttrSet(effectObject->work[0], 0x40000001);
+            BoardModelPosGet(dolphinBoardModel, &boardPosition);
+            effectObject->rot.x = effectPosition->x - boardPosition.x;
+            effectObject->rot.y = effectPosition->y - boardPosition.y;
+            effectObject->rot.z = effectPosition->z - boardPosition.z;
+            BoardModelLayerSet(effectObject->work[0], 2);
             break;
         case 5:
-            temp_f31 = BoardModelRotYGet(lbl_1_bss_64);
-            BoardModelRotYSet(temp_r31->work[0], temp_f31);
-            BoardModelAttrSet(temp_r31->work[0], 0x40000001);
-            BoardModelPosGet(lbl_1_bss_64, &sp8);
-            temp_r31->rot.x = arg1->x - sp8.x;
-            temp_r31->rot.y = arg1->y - sp8.y;
-            temp_r31->rot.z = arg1->z - sp8.z;
+            boardRotation = BoardModelRotYGet(dolphinBoardModel);
+            BoardModelRotYSet(effectObject->work[0], boardRotation);
+            BoardModelAttrSet(effectObject->work[0], 0x40000001);
+            BoardModelPosGet(dolphinBoardModel, &boardPosition);
+            effectObject->rot.x = effectPosition->x - boardPosition.x;
+            effectObject->rot.y = effectPosition->y - boardPosition.y;
+            effectObject->rot.z = effectPosition->z - boardPosition.z;
             break;
     }
-    return temp_r31;
+    return effectObject;
 }
 
-void fn_1_6914(OMOBJ *arg0)
+void W05DolphinEffectUpdate(OMOBJ *object)
 {
-    Vec sp8;
+    Vec position;
 
-    if (arg0->work[1] != 0) {
-        if (arg0->work[2] != 4) {
-            BoardModelKill(arg0->work[0]);
-            omDelObjEx(boardObjMan, arg0);
+    if (object->work[1] != 0) {
+        if (object->work[2] != 4) {
+            BoardModelKill(object->work[0]);
+            omDelObjEx(boardObjMan, object);
             return;
         }
-        BoardModelAttrReset(arg0->work[0], 0x40000001);
-        BoardModelMotionStartEndSet(arg0->work[0], 0x14, 0x50);
-        if (BoardModelMotionEndCheck(arg0->work[0]) != 0) {
-            BoardModelKill(arg0->work[0]);
-            omDelObjEx(boardObjMan, arg0);
+        BoardModelAttrReset(object->work[0], 0x40000001);
+        BoardModelMotionStartEndSet(object->work[0], 0x14, 0x50);
+        if (BoardModelMotionEndCheck(object->work[0]) != 0) {
+            BoardModelKill(object->work[0]);
+            omDelObjEx(boardObjMan, object);
         }
     }
     else {
-        switch (arg0->work[2]) {
+        switch (object->work[2]) {
             case 0:
             case 1:
             case 3:
-                if (BoardModelMotionEndCheck(arg0->work[0]) != 0) {
-                    BoardModelKill(arg0->work[0]);
-                    omDelObjEx(boardObjMan, arg0);
+                if (BoardModelMotionEndCheck(object->work[0]) != 0) {
+                    BoardModelKill(object->work[0]);
+                    omDelObjEx(boardObjMan, object);
                     return;
                 }
                 break;
             case 4:
-                if (BoardModelMotionTimeGet(arg0->work[0]) >= 20.0f) {
-                    BoardModelMotionStartEndSet(arg0->work[0], 0x14, 0x3C);
+                if (BoardModelMotionTimeGet(object->work[0]) >= 20.0f) {
+                    BoardModelMotionStartEndSet(object->work[0], 0x14, 0x3C);
                 }
-                BoardModelPosGet(lbl_1_bss_64, &sp8);
-                sp8.x += arg0->rot.x;
-                sp8.y += arg0->rot.y;
-                sp8.z += arg0->rot.z;
-                BoardModelPosSetV(arg0->work[0], &sp8);
+                BoardModelPosGet(dolphinBoardModel, &position);
+                position.x += object->rot.x;
+                position.y += object->rot.y;
+                position.z += object->rot.z;
+                BoardModelPosSetV(object->work[0], &position);
                 break;
             case 5:
-                BoardModelPosGet(lbl_1_bss_64, &sp8);
-                sp8.x += arg0->rot.x;
-                sp8.y += arg0->rot.y;
-                sp8.z += arg0->rot.z;
-                BoardModelPosSetV(arg0->work[0], &sp8);
+                BoardModelPosGet(dolphinBoardModel, &position);
+                position.x += object->rot.x;
+                position.y += object->rot.y;
+                position.z += object->rot.z;
+                BoardModelPosSetV(object->work[0], &position);
                 break;
         }
     }
