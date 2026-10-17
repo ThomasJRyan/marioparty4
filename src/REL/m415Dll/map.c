@@ -7,1512 +7,1512 @@
 
 #include <string.h>
 
-void fn_1_8780(s16 arg0, s16 arg1)
+void MapRendererInitialize(s16 objectCapacity, s16 textureCapacity)
 {
-    s32 var_r31;
-    unkSubStruct2 *var_r29;
-    unkSubStruct3 *var_r30;
+    s32 objectIndex;
+    MapObject *mapObject;
+    MapTexture *mapTexture;
 
-    lbl_1_bss_36C.unk34 = Hu3DHookFuncCreate(fn_1_95C0);
-    Hu3DModelLayerSet(lbl_1_bss_36C.unk34, 6);
-    lbl_1_bss_36C.unk30 = arg0;
-    lbl_1_bss_36C.unk40 = var_r29 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * sizeof(unkSubStruct2), HU_MEMNUM_OVL);
-    lbl_1_bss_36C.unk32 = arg1;
-    lbl_1_bss_36C.unk3C = var_r30 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(unkSubStruct3), HU_MEMNUM_OVL);
+    mapRenderer.hookModelId = Hu3DHookFuncCreate(MapRendererDrawHook);
+    Hu3DModelLayerSet(mapRenderer.hookModelId, 6);
+    mapRenderer.objectCapacity = objectCapacity;
+    mapRenderer.objects = mapObject = HuMemDirectMallocNum(HEAP_HEAP, objectCapacity * sizeof(MapObject), HU_MEMNUM_OVL);
+    mapRenderer.textureCapacity = textureCapacity;
+    mapRenderer.textures = mapTexture = HuMemDirectMallocNum(HEAP_HEAP, textureCapacity * sizeof(MapTexture), HU_MEMNUM_OVL);
 
-    for (var_r31 = 0; var_r31 < arg0; var_r31++, var_r29++) {
-        var_r29->unk8 = 0;
+    for (objectIndex = 0; objectIndex < objectCapacity; objectIndex++, mapObject++) {
+        mapObject->flags = 0;
     }
 
-    for (var_r31 = 0; var_r31 < arg1; var_r31++, var_r30++) {
-        var_r30->unk6 = 0;
-        var_r30->unk8 = 0;
+    for (objectIndex = 0; objectIndex < textureCapacity; objectIndex++, mapTexture++) {
+        mapTexture->referenceCount = 0;
+        mapTexture->resourceId = 0;
     }
-    lbl_1_bss_36C.unk36 = lbl_1_bss_36C.unk38 = lbl_1_bss_36C.unk3A = 0;
+    mapRenderer.activeObjectId = mapRenderer.activeMeshId = mapRenderer.activeTextureSlot = 0;
 }
 
-void fn_1_88B8(unkSubStruct2 *arg0)
+void MapObjectDraw(MapObject *mapObject)
 {
-    HU3DMODEL sp120;
-    Mtx spF0;
-    Mtx spC0;
-    Mtx sp90;
-    Mtx sp60;
-    Mtx sp30;
-    GXColor sp2C;
-    s16 sp8;
-    s32 var_r25;
-    s32 var_r27;
-    s16 temp_r23;
-    s16 var_r28;
-    s16 var_r29;
-    s32 var_r24;
-    s32 var_r22;
-    s32 var_r21;
-    s32 var_r20;
-    s32 var_r19;
-    unkSubStruct3 *temp_r26;
-    unkSubStruct *var_r31;
+    HU3DMODEL lightModel;
+    Mtx meshModelViewMatrix;
+    Mtx cameraModelMatrix;
+    Mtx modelMatrix;
+    Mtx rotationMatrix;
+    Mtx textureMatrix;
+    GXColor tevColor;
+    s16 shadowTextureMap;
+    s32 channelControlSource;
+    s32 textureSlot;
+    s16 lightId;
+    s16 texCoordGeneratorCount;
+    s16 tevStageCount;
+    s32 meshIndex;
+    s32 textureMatrixId0;
+    s32 textureMatrixId1;
+    s32 textureMatrixId2;
+    s32 textureMatrixId3;
+    MapTexture *mapTexture;
+    MapMesh *mapMesh;
 
-    mtxRot(sp60, arg0->unk18.x, arg0->unk18.y, arg0->unk18.z);
-    MTXScale(sp90, arg0->unk24.x, arg0->unk24.y, arg0->unk24.z);
-    MTXConcat(sp60, sp90, sp90);
-    mtxTransCat(sp90, arg0->unkC.x, arg0->unkC.y, arg0->unkC.z);
-    MTXConcat(Hu3DCameraMtx, sp90, spC0);
-    var_r29 = 0;
-    var_r28 = 0;
-    sp8 = 0;
+    mtxRot(rotationMatrix, mapObject->rotation.x, mapObject->rotation.y, mapObject->rotation.z);
+    MTXScale(modelMatrix, mapObject->scale.x, mapObject->scale.y, mapObject->scale.z);
+    MTXConcat(rotationMatrix, modelMatrix, modelMatrix);
+    mtxTransCat(modelMatrix, mapObject->position.x, mapObject->position.y, mapObject->position.z);
+    MTXConcat(Hu3DCameraMtx, modelMatrix, cameraModelMatrix);
+    tevStageCount = 0;
+    texCoordGeneratorCount = 0;
+    shadowTextureMap = 0;
 
-    for (var_r27 = GX_TEXMAP0; var_r27 < arg0->unk4; var_r27++) {
-        if (arg0->unk34[var_r27] != 0) {
-            temp_r26 = &lbl_1_bss_36C.unk3C[arg0->unk34[var_r27]];
-            MTXCopy(temp_r26->unk18, sp30);
-            mtxTransCat(sp30, temp_r26->unkC.x, temp_r26->unkC.y, temp_r26->unkC.z);
-            switch (temp_r26->unk4) {
+    for (textureSlot = GX_TEXMAP0; textureSlot < mapObject->textureSlotCount; textureSlot++) {
+        if (mapObject->textureIds[textureSlot] != 0) {
+            mapTexture = &mapRenderer.textures[mapObject->textureIds[textureSlot]];
+            MTXCopy(mapTexture->textureMatrix, textureMatrix);
+            mtxTransCat(textureMatrix, mapTexture->translation.x, mapTexture->translation.y, mapTexture->translation.z);
+            switch (mapTexture->frame) {
                 case 0:
-                    GXLoadTexMtxImm(sp30, texMtxTbl[var_r28], GX_MTX2x4);
-                    var_r22 = texMtxTbl[var_r28];
-                    GXSetTexCoordGen2(var_r28, GX_TG_MTX2x4, var_r27 + 4, var_r22, 0, 0x7D);
-                    GXSetTevOrder(var_r29, var_r28, var_r27, GX_COLOR0A0);
-                    if (var_r27 == GX_TEXMAP0) {
-                        if ((temp_r26->unk0->bmp->dataFmt == 7) || (temp_r26->unk0->bmp->dataFmt == 8)) {
-                            GXSetTevColor(GX_TEVREG2, temp_r26->unk48);
-                            GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_C2, GX_CC_RASC, GX_CC_ZERO);
+                    GXLoadTexMtxImm(textureMatrix, texMtxTbl[texCoordGeneratorCount], GX_MTX2x4);
+                    textureMatrixId0 = texMtxTbl[texCoordGeneratorCount];
+                    GXSetTexCoordGen2(texCoordGeneratorCount, GX_TG_MTX2x4, textureSlot + 4, textureMatrixId0, 0, 0x7D);
+                    GXSetTevOrder(tevStageCount, texCoordGeneratorCount, textureSlot, GX_COLOR0A0);
+                    if (textureSlot == GX_TEXMAP0) {
+                        if ((mapTexture->animation->bmp->dataFmt == 7) || (mapTexture->animation->bmp->dataFmt == 8)) {
+                            GXSetTevColor(GX_TEVREG2, mapTexture->color);
+                            GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_C2, GX_CC_RASC, GX_CC_ZERO);
                         }
                         else {
-                            GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
+                            GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
                         }
-                        GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_TEXA, GX_CA_RASA, GX_CA_ZERO);
+                        GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_TEXA, GX_CA_RASA, GX_CA_ZERO);
                     }
                     else {
-                        sp2C.a = temp_r26->unk48.a;
-                        GXSetTevColor(GX_TEVREG2, sp2C);
-                        GXSetTevColorIn(var_r29, GX_CC_CPREV, GX_CC_TEXC, GX_CC_A2, GX_CC_ZERO);
-                        GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
+                        tevColor.a = mapTexture->color.a;
+                        GXSetTevColor(GX_TEVREG2, tevColor);
+                        GXSetTevColorIn(tevStageCount, GX_CC_CPREV, GX_CC_TEXC, GX_CC_A2, GX_CC_ZERO);
+                        GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
                     }
-                    GXSetTevColorOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
                     break;
                 case 1:
-                    GXLoadTexMtxImm(sp30, texMtxTbl[var_r28], GX_MTX2x4);
-                    var_r21 = texMtxTbl[var_r28];
-                    GXSetTexCoordGen2(var_r28, GX_TG_MTX2x4, var_r27 + 4, var_r21, 0, 0x7D);
-                    GXSetTevOrder(var_r29, var_r28, var_r27, GX_COLOR0A0);
-                    GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXA, GX_CC_ZERO);
-                    GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
-                    GXSetTevColorOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXLoadTexMtxImm(textureMatrix, texMtxTbl[texCoordGeneratorCount], GX_MTX2x4);
+                    textureMatrixId1 = texMtxTbl[texCoordGeneratorCount];
+                    GXSetTexCoordGen2(texCoordGeneratorCount, GX_TG_MTX2x4, textureSlot + 4, textureMatrixId1, 0, 0x7D);
+                    GXSetTevOrder(tevStageCount, texCoordGeneratorCount, textureSlot, GX_COLOR0A0);
+                    GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXA, GX_CC_ZERO);
+                    GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
                     break;
                 case 2:
-                    sp2C.a = 0xE0;
-                    GXSetTevColor(GX_TEVREG1, sp2C);
-                    GXSetTexCoordGen2(var_r28 + 1, GX_TG_BUMP0, var_r28, 0x3C, 0, 0x7D);
-                    GXSetTevOrder(var_r29, var_r28, var_r27, GX_COLOR0A0);
-                    GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_RASC);
-                    GXSetTevColorOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
-                    var_r29++;
-                    GXSetTevOrder(var_r29, var_r28 + 1, GX_TEXMAP0, GX_COLOR0A0);
-                    GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_CPREV);
-                    GXSetTevColorOp(var_r29, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
+                    tevColor.a = 0xE0;
+                    GXSetTevColor(GX_TEVREG1, tevColor);
+                    GXSetTexCoordGen2(texCoordGeneratorCount + 1, GX_TG_BUMP0, texCoordGeneratorCount, 0x3C, 0, 0x7D);
+                    GXSetTevOrder(tevStageCount, texCoordGeneratorCount, textureSlot, GX_COLOR0A0);
+                    GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_RASC);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
+                    tevStageCount++;
+                    GXSetTevOrder(tevStageCount, texCoordGeneratorCount + 1, GX_TEXMAP0, GX_COLOR0A0);
+                    GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_CPREV);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
                     break;
                 case 3:
-                    var_r28--;
-                    GXLoadTexMtxImm(sp30, texMtxTbl[var_r28], GX_MTX2x4);
-                    var_r20 = texMtxTbl[var_r28];
-                    GXSetTexCoordGen2(var_r28, GX_TG_MTX2x4, var_r27 + 4, var_r20, 0, 0x7D);
-                    GXSetTevOrder(var_r29, var_r28, var_r27, GX_COLOR0A0);
-                    GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXC, GX_CC_ZERO);
-                    GXSetTevColorOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    var_r28++;
+                    texCoordGeneratorCount--;
+                    GXLoadTexMtxImm(textureMatrix, texMtxTbl[texCoordGeneratorCount], GX_MTX2x4);
+                    textureMatrixId2 = texMtxTbl[texCoordGeneratorCount];
+                    GXSetTexCoordGen2(texCoordGeneratorCount, GX_TG_MTX2x4, textureSlot + 4, textureMatrixId2, 0, 0x7D);
+                    GXSetTevOrder(tevStageCount, texCoordGeneratorCount, textureSlot, GX_COLOR0A0);
+                    GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXC, GX_CC_ZERO);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    texCoordGeneratorCount++;
                     break;
                 case 4:
-                    mtxRot(sp60, arg0->unk18.x, arg0->unk18.y, arg0->unk18.z);
-                    MTXScale(sp90, arg0->unk24.x, arg0->unk24.y, arg0->unk24.z);
-                    MTXConcat(sp60, sp90, sp90);
-                    mtxTransCat(sp90, arg0->unkC.x, arg0->unkC.y, arg0->unkC.z);
-                    MTXConcat(Hu3DCameraMtx, sp90, sp30);
-                    MTXInverse(Hu3DCameraMtx, sp60);
-                    MTXConcat(sp60, sp30, sp60);
-                    MTXConcat(Hu3DShadowData.projMtx, Hu3DShadowData.lookAtMtx, sp90);
-                    MTXConcat(sp90, sp60, sp30);
-                    GXLoadTexMtxImm(sp30, texMtxTbl[var_r28], GX_MTX3x4);
-                    var_r19 = texMtxTbl[var_r28];
-                    GXSetTexCoordGen2(var_r28, GX_TG_MTX3x4, GX_TG_POS, var_r19, 0, 0x7D);
-                    GXSetTevOrder(var_r29, var_r28, var_r27, GX_COLOR0A0);
-                    if (var_r27 == GX_TEXMAP0) {
-                        GXSetTevColorIn(var_r29, GX_CC_ONE, GX_CC_ZERO, GX_CC_TEXC, GX_CC_ZERO);
-                        GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
+                    mtxRot(rotationMatrix, mapObject->rotation.x, mapObject->rotation.y, mapObject->rotation.z);
+                    MTXScale(modelMatrix, mapObject->scale.x, mapObject->scale.y, mapObject->scale.z);
+                    MTXConcat(rotationMatrix, modelMatrix, modelMatrix);
+                    mtxTransCat(modelMatrix, mapObject->position.x, mapObject->position.y, mapObject->position.z);
+                    MTXConcat(Hu3DCameraMtx, modelMatrix, textureMatrix);
+                    MTXInverse(Hu3DCameraMtx, rotationMatrix);
+                    MTXConcat(rotationMatrix, textureMatrix, rotationMatrix);
+                    MTXConcat(Hu3DShadowData.projMtx, Hu3DShadowData.lookAtMtx, modelMatrix);
+                    MTXConcat(modelMatrix, rotationMatrix, textureMatrix);
+                    GXLoadTexMtxImm(textureMatrix, texMtxTbl[texCoordGeneratorCount], GX_MTX3x4);
+                    textureMatrixId3 = texMtxTbl[texCoordGeneratorCount];
+                    GXSetTexCoordGen2(texCoordGeneratorCount, GX_TG_MTX3x4, GX_TG_POS, textureMatrixId3, 0, 0x7D);
+                    GXSetTevOrder(tevStageCount, texCoordGeneratorCount, textureSlot, GX_COLOR0A0);
+                    if (textureSlot == GX_TEXMAP0) {
+                        GXSetTevColorIn(tevStageCount, GX_CC_ONE, GX_CC_ZERO, GX_CC_TEXC, GX_CC_ZERO);
+                        GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
                     }
                     else {
-                        GXSetTevColorIn(var_r29, GX_CC_CPREV, GX_CC_ZERO, GX_CC_TEXC, GX_CC_ZERO);
-                        GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_APREV);
+                        GXSetTevColorIn(tevStageCount, GX_CC_CPREV, GX_CC_ZERO, GX_CC_TEXC, GX_CC_ZERO);
+                        GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_APREV);
                     }
-                    GXSetTevColorOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
                     break;
             }
-            var_r29++;
-            var_r28++;
-            if (temp_r26->unk4D != 0) {
-                HuSprTexLoad(temp_r26->unk0, 0, var_r27, 1, 1, 1);
+            tevStageCount++;
+            texCoordGeneratorCount++;
+            if (mapTexture->scaledToFit != 0) {
+                HuSprTexLoad(mapTexture->animation, 0, textureSlot, 1, 1, 1);
             }
             else {
-                HuSprTexLoad(temp_r26->unk0, 0, var_r27, 0, 0, 1);
+                HuSprTexLoad(mapTexture->animation, 0, textureSlot, 0, 0, 1);
             }
         }
     }
-    GXSetNumTevStages((s16)var_r29);
-    GXSetNumTexGens((s16)var_r28);
-    var_r31 = arg0->unk3C;
+    GXSetNumTevStages((s16)tevStageCount);
+    GXSetNumTexGens((s16)texCoordGeneratorCount);
+    mapMesh = mapObject->meshes;
 
-    for (var_r24 = 0; var_r24 < arg0->unk2; var_r24++, var_r31++) {
-        if ((var_r31->unk34 != 0) && ((var_r31->unk34 & 4) == 0)) {
-            switch (var_r31->unk30) {
+    for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++, mapMesh++) {
+        if ((mapMesh->flags != 0) && ((mapMesh->flags & 4) == 0)) {
+            switch (mapMesh->renderMode) {
                 case 0:
-                    mtxRot(sp60, var_r31->unkC.x, var_r31->unkC.y, var_r31->unkC.z);
-                    if (var_r31->unk31 == 2) {
-                        MTXConcat(lbl_1_bss_36C.unk0, sp60, sp60);
+                    mtxRot(rotationMatrix, mapMesh->rotation.x, mapMesh->rotation.y, mapMesh->rotation.z);
+                    if (mapMesh->billboardMode == 2) {
+                        MTXConcat(mapRenderer.cameraMatrix, rotationMatrix, rotationMatrix);
                     }
-                    else if (var_r31->unk31 == 1) {
-                        MTXRotDeg(sp90, 0x59, CRot.y);
-                        MTXConcat(sp90, sp60, sp60);
+                    else if (mapMesh->billboardMode == 1) {
+                        MTXRotDeg(modelMatrix, 0x59, CRot.y);
+                        MTXConcat(modelMatrix, rotationMatrix, rotationMatrix);
                     }
-                    MTXScale(sp90, var_r31->unk18.x, var_r31->unk18.y, var_r31->unk18.z);
-                    MTXConcat(sp60, sp90, sp90);
-                    mtxTransCat(sp90, var_r31->unk0.x, var_r31->unk0.y, var_r31->unk0.z);
-                    MTXConcat(Hu3DCameraMtx, sp90, spF0);
+                    MTXScale(modelMatrix, mapMesh->scale.x, mapMesh->scale.y, mapMesh->scale.z);
+                    MTXConcat(rotationMatrix, modelMatrix, modelMatrix);
+                    mtxTransCat(modelMatrix, mapMesh->position.x, mapMesh->position.y, mapMesh->position.z);
+                    MTXConcat(Hu3DCameraMtx, modelMatrix, meshModelViewMatrix);
                     break;
                 case 1:
-                    mtxRot(sp60, var_r31->unkC.x, var_r31->unkC.y, var_r31->unkC.z);
-                    if (var_r31->unk31 == 2) {
-                        if (HmfInverseMtxF3X3(spC0, sp90) == 0) {
-                            MTXIdentity(sp90);
+                    mtxRot(rotationMatrix, mapMesh->rotation.x, mapMesh->rotation.y, mapMesh->rotation.z);
+                    if (mapMesh->billboardMode == 2) {
+                        if (HmfInverseMtxF3X3(cameraModelMatrix, modelMatrix) == 0) {
+                            MTXIdentity(modelMatrix);
                         }
-                        MTXConcat(sp90, sp60, sp60);
+                        MTXConcat(modelMatrix, rotationMatrix, rotationMatrix);
                     }
-                    else if (var_r31->unk31 == 1) {
-                        MTXRotDeg(sp90, 0x59, CRot.y);
-                        MTXConcat(sp90, sp60, sp60);
+                    else if (mapMesh->billboardMode == 1) {
+                        MTXRotDeg(modelMatrix, 0x59, CRot.y);
+                        MTXConcat(modelMatrix, rotationMatrix, rotationMatrix);
                     }
-                    MTXScale(sp90, var_r31->unk18.x, var_r31->unk18.y, var_r31->unk18.z);
-                    MTXConcat(sp60, sp90, sp90);
-                    mtxTransCat(sp90, var_r31->unk0.x, var_r31->unk0.y, var_r31->unk0.z);
-                    MTXConcat(spC0, sp90, spF0);
+                    MTXScale(modelMatrix, mapMesh->scale.x, mapMesh->scale.y, mapMesh->scale.z);
+                    MTXConcat(rotationMatrix, modelMatrix, modelMatrix);
+                    mtxTransCat(modelMatrix, mapMesh->position.x, mapMesh->position.y, mapMesh->position.z);
+                    MTXConcat(cameraModelMatrix, modelMatrix, meshModelViewMatrix);
                     break;
             }
-            GXLoadPosMtxImm(spF0, 0);
-            MTXInverse(spF0, sp90);
-            MTXTranspose(sp90, sp60);
-            GXLoadNrmMtxImm(sp60, 0);
-            GXSetChanAmbColor(GX_COLOR0A0, var_r31->unk4C);
-            GXSetChanMatColor(GX_COLOR0A0, var_r31->unk50);
+            GXLoadPosMtxImm(meshModelViewMatrix, 0);
+            MTXInverse(meshModelViewMatrix, modelMatrix);
+            MTXTranspose(modelMatrix, rotationMatrix);
+            GXLoadNrmMtxImm(rotationMatrix, 0);
+            GXSetChanAmbColor(GX_COLOR0A0, mapMesh->ambientColor);
+            GXSetChanMatColor(GX_COLOR0A0, mapMesh->materialColor);
             GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
             GXSetZCompLoc(0);
             GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
-            if ((var_r31->unk34 & 0x10) != 0) {
+            if ((mapMesh->flags & 0x10) != 0) {
                 GXSetZMode(0, GX_LEQUAL, 1);
             }
             else {
                 GXSetZMode(1, GX_LEQUAL, 0);
             }
-            sp120.attr = 0;
-            temp_r23 = Hu3DLightSet(&sp120, &Hu3DCameraMtx, &Hu3DCameraMtxXPose, 0.0f);
+            lightModel.attr = 0;
+            lightId = Hu3DLightSet(&lightModel, &Hu3DCameraMtx, &Hu3DCameraMtxXPose, 0.0f);
             GXSetNumChans(1);
-            if ((var_r31->unk34 & 8) != 0) {
-                var_r25 = GX_SRC_VTX;
+            if ((mapMesh->flags & 8) != 0) {
+                channelControlSource = GX_SRC_VTX;
             }
             else {
-                var_r25 = GX_SRC_REG;
+                channelControlSource = GX_SRC_REG;
             }
-            switch (var_r31->unk32) {
+            switch (mapMesh->materialFlags) {
                 case 0:
-                    GXSetChanCtrl(GX_COLOR0A0, 0, GX_SRC_REG, var_r25, 0, GX_DF_CLAMP, GX_AF_NONE);
+                    GXSetChanCtrl(GX_COLOR0A0, 0, GX_SRC_REG, channelControlSource, 0, GX_DF_CLAMP, GX_AF_NONE);
                     break;
                 case 1:
-                    GXSetChanCtrl(GX_COLOR0A0, 1, GX_SRC_REG, var_r25, temp_r23, GX_DF_CLAMP, GX_AF_SPOT);
+                    GXSetChanCtrl(GX_COLOR0A0, 1, GX_SRC_REG, channelControlSource, lightId, GX_DF_CLAMP, GX_AF_SPOT);
                     break;
                 case 2:
-                    GXSetChanCtrl(GX_COLOR0A0, 1, GX_SRC_REG, var_r25, temp_r23, GX_DF_CLAMP, GX_AF_SPEC);
+                    GXSetChanCtrl(GX_COLOR0A0, 1, GX_SRC_REG, channelControlSource, lightId, GX_DF_CLAMP, GX_AF_SPEC);
                     break;
             }
             GXClearVtxDesc();
             GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
             GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-            GXSetArray(GX_VA_POS, var_r31->unk40, 12);
+            GXSetArray(GX_VA_POS, mapMesh->vertices, 12);
             GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
             GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-            GXSetArray(GX_VA_CLR0, var_r31->unk44, 4);
+            GXSetArray(GX_VA_CLR0, mapMesh->colors, 4);
 
-            for (var_r27 = 0; var_r27 < var_r31->unk33; var_r27++) {
-                GXSetVtxDesc(var_r27 + GX_VA_TEX0, GX_INDEX16);
-                GXSetVtxAttrFmt(GX_VTXFMT0, var_r27 + GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-                GXSetArray(var_r27 + GX_VA_TEX0, var_r31->unk54[var_r27].unk4, 8);
+            for (textureSlot = 0; textureSlot < mapMesh->textureCount; textureSlot++) {
+                GXSetVtxDesc(textureSlot + GX_VA_TEX0, GX_INDEX16);
+                GXSetVtxAttrFmt(GX_VTXFMT0, textureSlot + GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+                GXSetArray(textureSlot + GX_VA_TEX0, mapMesh->textureFrames[textureSlot].coordinates, 8);
             }
             GXSetVtxDesc(GX_VA_NRM, GX_INDEX16);
             GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_NRM, GX_NRM_XYZ, GX_F32, 0);
-            GXSetArray(GX_VA_NRM, var_r31->unk48, 12);
-            GXCallDisplayList(var_r31->unk3C, var_r31->unk38);
+            GXSetArray(GX_VA_NRM, mapMesh->normals, 12);
+            GXCallDisplayList(mapMesh->displayList, mapMesh->displayListSize);
         }
     }
 }
 
-void fn_1_95C0(HU3DMODEL *arg0, Mtx arg1)
+void MapRendererDrawHook(HU3DMODEL *model, Mtx modelMatrix)
 {
-    Mtx sp38;
-    Mtx sp8;
-    s32 var_r30;
-    unkSubStruct2 *var_r31;
+    Mtx inverseModelMatrix;
+    Mtx normalMatrix;
+    s32 objectIndex;
+    MapObject *mapObject;
 
-    var_r31 = lbl_1_bss_36C.unk40;
-    GXLoadPosMtxImm(arg1, 0);
-    MTXInverse(arg1, sp38);
-    MTXTranspose(sp38, sp8);
-    GXLoadNrmMtxImm(sp8, 0);
-    HmfInverseMtxF3X3(Hu3DCameraMtx, lbl_1_bss_36C.unk0);
+    mapObject = mapRenderer.objects;
+    GXLoadPosMtxImm(modelMatrix, 0);
+    MTXInverse(modelMatrix, inverseModelMatrix);
+    MTXTranspose(inverseModelMatrix, normalMatrix);
+    GXLoadNrmMtxImm(normalMatrix, 0);
+    HmfInverseMtxF3X3(Hu3DCameraMtx, mapRenderer.cameraMatrix);
 
-    for (var_r30 = 0; var_r30 < lbl_1_bss_36C.unk30; var_r30++, var_r31++) {
-        if ((var_r31->unk8 != 0) && ((var_r31->unk8 & 2) != 0) && ((var_r31->unk8 & 4) == 0)) {
+    for (objectIndex = 0; objectIndex < mapRenderer.objectCapacity; objectIndex++, mapObject++) {
+        if ((mapObject->flags != 0) && ((mapObject->flags & 2) != 0) && ((mapObject->flags & 4) == 0)) {
             if ((u8)omPauseChk() == 0) {
-                if (var_r31->unk30) {
-                    var_r31->unk30(var_r31);
+                if (mapObject->animationCallback) {
+                    mapObject->animationCallback(mapObject);
                 }
-                if (var_r31->unk8 == 0)
+                if (mapObject->flags == 0)
                     continue;
-                fn_1_9DC8(var_r31);
-                if (var_r31->unk8 == 0)
+                MapObjectAnimationsUpdate(mapObject);
+                if (mapObject->flags == 0)
                     continue;
             }
-            fn_1_88B8(var_r31);
+            MapObjectDraw(mapObject);
         }
     }
 }
 
-unkSubStruct2 *fn_1_96EC(s16 arg0)
+MapObject *MapObjectGet(s16 objectId)
 {
-    return &lbl_1_bss_36C.unk40[arg0];
+    return &mapRenderer.objects[objectId];
 }
 
-unkSubStruct *fn_1_9708(s16 arg0, s16 arg1)
+MapMesh *MapObjectMeshGet(s16 objectId, s16 meshIndex)
 {
-    return &lbl_1_bss_36C.unk40[arg0].unk3C[arg1];
+    return &mapRenderer.objects[objectId].meshes[meshIndex];
 }
 
-ANIMDATA **fn_1_9734(s16 arg0)
+ANIMDATA **mapTextureAnimationGet(s16 textureId)
 {
-    return &lbl_1_bss_36C.unk3C[arg0].unk0;
+    return &mapRenderer.textures[textureId].animation;
 }
 
-void fn_1_9750(unkStruct6 **arg0, s16 arg1, f32 arg8, f32 arg9)
+void MapQuadVerticesAllocate(MapQuadVertices **verticesOut, s16 quadCount, f32 quadWidth, f32 quadHeight)
 {
-    s32 var_r30;
-    unkStruct6 *var_r31;
+    s32 textureIndex;
+    MapQuadVertices *quadVertices;
 
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(unkStruct6), HU_MEMNUM_OVL);
+    quadVertices = *verticesOut = HuMemDirectMallocNum(HEAP_HEAP, quadCount * sizeof(MapQuadVertices), HU_MEMNUM_OVL);
 
-    for (var_r30 = 0; var_r30 < arg1; var_r31++, var_r30++) {
-        var_r31->unk0.x = (-0.5f * arg8);
-        var_r31->unk0.y = (0.5f * arg9);
-        var_r31->unk0.z = 0.0f;
-        var_r31->unkC.x = (0.5f * arg8);
-        var_r31->unkC.y = (0.5f * arg9);
-        var_r31->unkC.z = 0.0f;
-        var_r31->unk18.x = (0.5f * arg8);
-        var_r31->unk18.y = (-0.5f * arg9);
-        var_r31->unk18.z = 0.0f;
-        var_r31->unk24.x = (-0.5f * arg8);
-        var_r31->unk24.y = (-0.5f * arg9);
-        var_r31->unk24.z = 0.0f;
+    for (textureIndex = 0; textureIndex < quadCount; quadVertices++, textureIndex++) {
+        quadVertices->topLeft.x = (-0.5f * quadWidth);
+        quadVertices->topLeft.y = (0.5f * quadHeight);
+        quadVertices->topLeft.z = 0.0f;
+        quadVertices->topRight.x = (0.5f * quadWidth);
+        quadVertices->topRight.y = (0.5f * quadHeight);
+        quadVertices->topRight.z = 0.0f;
+        quadVertices->bottomRight.x = (0.5f * quadWidth);
+        quadVertices->bottomRight.y = (-0.5f * quadHeight);
+        quadVertices->bottomRight.z = 0.0f;
+        quadVertices->bottomLeft.x = (-0.5f * quadWidth);
+        quadVertices->bottomLeft.y = (-0.5f * quadHeight);
+        quadVertices->bottomLeft.z = 0.0f;
     }
 }
 
-void fn_1_98D4(Vec **arg0, s16 arg1, Vec *arg2)
+void MapVertexArrayCopy(Vec **verticesOut, s16 vertexCount, Vec *sourceVertices)
 {
-    s32 var_r29;
-    s32 var_r28;
-    Vec *var_r31;
+    s32 textureIndex;
+    s32 itemIndex;
+    Vec *vector;
 
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(Vec[4]), HU_MEMNUM_OVL);
+    vector = *verticesOut = HuMemDirectMallocNum(HEAP_HEAP, vertexCount * sizeof(Vec[4]), HU_MEMNUM_OVL);
 
-    for (var_r29 = 0; var_r29 < arg1; var_r29++) {
-        for (var_r28 = 0; var_r28 < 4; var_r31++, arg2++, var_r28++) {
-            var_r31->x = arg2->x;
-            var_r31->y = arg2->y;
-            var_r31->z = arg2->z;
+    for (textureIndex = 0; textureIndex < vertexCount; textureIndex++) {
+        for (itemIndex = 0; itemIndex < 4; vector++, sourceVertices++, itemIndex++) {
+            vector->x = sourceVertices->x;
+            vector->y = sourceVertices->y;
+            vector->z = sourceVertices->z;
         }
     }
 }
 
-void fn_1_9974(GXColor **arg0, s16 arg1, GXColor *arg2)
+void MapColorArrayCopy(GXColor **colorsOut, s16 colorCount, GXColor *sourceColors)
 {
-    s32 var_r29;
-    s32 var_r28;
-    GXColor *var_r31;
+    s32 textureIndex;
+    s32 itemIndex;
+    GXColor *color;
 
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(GXColor[4]), HU_MEMNUM_OVL);
+    color = *colorsOut = HuMemDirectMallocNum(HEAP_HEAP, colorCount * sizeof(GXColor[4]), HU_MEMNUM_OVL);
 
-    for (var_r29 = 0; var_r29 < arg1; var_r29++) {
-        for (var_r28 = 0; var_r28 < 4; var_r31++, arg2++, var_r28++) {
-            var_r31->r = arg2->r;
-            var_r31->g = arg2->g;
-            var_r31->b = arg2->b;
-            var_r31->a = arg2->a;
+    for (textureIndex = 0; textureIndex < colorCount; textureIndex++) {
+        for (itemIndex = 0; itemIndex < 4; color++, sourceColors++, itemIndex++) {
+            color->r = sourceColors->r;
+            color->g = sourceColors->g;
+            color->b = sourceColors->b;
+            color->a = sourceColors->a;
         }
     }
 }
 
-void fn_1_9A1C(Vec **arg0, s16 arg1, Vec *arg2)
+void MapVectorArrayCopy(Vec **vectorsOut, s16 vectorCount, Vec *sourceVectors)
 {
-    s32 var_r29;
-    Vec *var_r31;
+    s32 textureIndex;
+    Vec *vector;
 
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(Vec), HU_MEMNUM_OVL);
+    vector = *vectorsOut = HuMemDirectMallocNum(HEAP_HEAP, vectorCount * sizeof(Vec), HU_MEMNUM_OVL);
 
-    for (var_r29 = 0; var_r29 < arg1; var_r31++, arg2++, var_r29++) {
-        var_r31->x = arg2->x;
-        var_r31->y = arg2->y;
-        var_r31->z = arg2->z;
+    for (textureIndex = 0; textureIndex < vectorCount; vector++, sourceVectors++, textureIndex++) {
+        vector->x = sourceVectors->x;
+        vector->y = sourceVectors->y;
+        vector->z = sourceVectors->z;
     }
 }
 
-void fn_1_9AA8(HuVec2f **arg0, s16 arg1, HuVec2f *arg2)
+void MapTexcoordArrayCopy(HuVec2f **texcoordsOut, s16 quadCount, HuVec2f *sourceTexcoords)
 {
-    s32 var_r28;
-    s32 var_r29;
-    HuVec2f *var_r31;
+    s32 textureIndex;
+    s32 itemIndex;
+    HuVec2f *texcoord;
 
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(HuVec2f[4]), HU_MEMNUM_OVL);
+    texcoord = *texcoordsOut = HuMemDirectMallocNum(HEAP_HEAP, quadCount * sizeof(HuVec2f[4]), HU_MEMNUM_OVL);
 
-    for (var_r28 = 0; var_r28 < arg1; var_r28++) {
-        for (var_r29 = 0; var_r29 < 4; var_r31++, arg2++, var_r29++) {
-            var_r31->x = arg2->x;
-            var_r31->y = arg2->y;
+    for (textureIndex = 0; textureIndex < quadCount; textureIndex++) {
+        for (itemIndex = 0; itemIndex < 4; texcoord++, sourceTexcoords++, itemIndex++) {
+            texcoord->x = sourceTexcoords->x;
+            texcoord->y = sourceTexcoords->y;
         }
     }
 }
 
-void fn_1_9B40(unkSubStruct *arg0)
+void MapMeshDisplayListBuild(MapMesh *mesh)
 {
-    void *sp8;
-    s32 var_r29;
-    s32 var_r31;
-    void *temp_r28;
+    void *displayListBuffer;
+    s32 objectIndex;
+    s32 itemIndex;
+    void *dataPointer;
 
-    Vec sp1C[4] = { { -50.0f, 50.0f, 0.0f }, { 50.0f, 50.0f, 0.0f }, { 50.0f, -50.0f, 0.0f }, { -50.0f, -50.0f, 0.0f } };
-    GXColor spC[4] = { { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF } };
+    Vec defaultVertexPositions[4] = { { -50.0f, 50.0f, 0.0f }, { 50.0f, 50.0f, 0.0f }, { 50.0f, -50.0f, 0.0f }, { -50.0f, -50.0f, 0.0f } };
+    GXColor defaultVertexColors[4] = { { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF } };
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        arg0->unk40[var_r31] = sp1C[var_r31];
+    for (itemIndex = 0; itemIndex < 4; itemIndex++) {
+        mesh->vertices[itemIndex] = defaultVertexPositions[itemIndex];
     }
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        arg0->unk44[var_r31] = spC[var_r31];
+    for (itemIndex = 0; itemIndex < 4; itemIndex++) {
+        mesh->colors[itemIndex] = defaultVertexColors[itemIndex];
     }
-    arg0->unk48->x = 0.0f;
-    arg0->unk48->y = 0.0f;
-    arg0->unk48->z = 1.0;
-    temp_r28 = arg0->unk3C;
-    sp8 = temp_r28;
-    GXBeginDisplayList(temp_r28, 0x100U);
+    mesh->normals->x = 0.0f;
+    mesh->normals->y = 0.0f;
+    mesh->normals->z = 1.0;
+    dataPointer = mesh->displayList;
+    displayListBuffer = dataPointer;
+    GXBeginDisplayList(dataPointer, 0x100U);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        GXPosition1x16(var_r31);
+    for (itemIndex = 0; itemIndex < 4; itemIndex++) {
+        GXPosition1x16(itemIndex);
         GXNormal1x16(0);
-        GXColor1x16(var_r31);
-        for (var_r29 = 0; var_r29 < arg0->unk33; var_r29++) {
-            GXTexCoord1x16(var_r31);
+        GXColor1x16(itemIndex);
+        for (objectIndex = 0; objectIndex < mesh->textureCount; objectIndex++) {
+            GXTexCoord1x16(itemIndex);
         }
     }
-    arg0->unk38 = GXEndDisplayList();
+    mesh->displayListSize = GXEndDisplayList();
 }
 
-void fn_1_9DC8(unkSubStruct2 *arg0)
+void MapObjectAnimationsUpdate(MapObject *mapObject)
 {
-    s32 temp_r0;
-    s32 var_r25;
-    s32 var_r26;
-    s32 var_r27;
-    unkSubStruct *var_r28;
-    unkSubStruct3 *temp_r30;
-    unkSubStruct4 *var_r31;
+    s32 animationState;
+    s32 meshIndex2;
+    s32 textureSlotIndex;
+    s32 completedMeshCount;
+    MapMesh *mapMesh;
+    MapTexture *mapTexture;
+    MapTextureFrame *textureFrame;
 
-    var_r27 = 0;
-    var_r28 = arg0->unk3C;
+    completedMeshCount = 0;
+    mapMesh = mapObject->meshes;
 
-    for (var_r25 = 0; var_r25 < arg0->unk2; var_r25++, var_r28++) {
-        if ((var_r28->unk34 & 4) != 0) {
-            var_r27++;
+    for (meshIndex2 = 0; meshIndex2 < mapObject->meshCount; meshIndex2++, mapMesh++) {
+        if ((mapMesh->flags & 4) != 0) {
+            completedMeshCount++;
         }
         else {
 #ifdef NON_MATCHING
-            u8 count = var_r28->unk33;
+            u8 count = mapMesh->textureCount;
 #endif
-            var_r31 = var_r28->unk54;
+            textureFrame = mapMesh->textureFrames;
 #ifdef NON_MATCHING
-            // They free var_r28 and the for loop tries to access unk33 afterwards
-            for (var_r26 = 0; var_r26 < count; var_r26++, var_r31++) {
+            // They free mapMesh and the for loop tries to access textureCount afterwards
+            for (textureSlotIndex = 0; textureSlotIndex < count; textureSlotIndex++, textureFrame++) {
 #else
-            for (var_r26 = 0; var_r26 < var_r28->unk33; var_r26++, var_r31++) {
+            for (textureSlotIndex = 0; textureSlotIndex < mapMesh->textureCount; textureSlotIndex++, textureFrame++) {
 #endif
-                temp_r30 = &lbl_1_bss_36C.unk3C[arg0->unk34[var_r26]];
-                var_r31->unk24 &= ~4;
-                switch (var_r31->unk24 & 0xF) {
+                mapTexture = &mapRenderer.textures[mapObject->textureIds[textureSlotIndex]];
+                textureFrame->flags &= ~4;
+                switch (textureFrame->flags & 0xF) {
                     case 1:
-                        var_r31->unk2C += var_r31->unk28;
-                        if (var_r31->unk2C >= 1.0f) {
-                            var_r31->unk0++;
-                            var_r31->unk2C--;
+                        textureFrame->frameFraction += textureFrame->frameDuration;
+                        if (textureFrame->frameFraction >= 1.0f) {
+                            textureFrame->currentFrame++;
+                            textureFrame->frameFraction--;
                         }
                         break;
                     case 2:
-                        var_r31->unk2C += var_r31->unk28;
-                        if (var_r31->unk2C >= 1.0f) {
-                            var_r31->unk0--;
-                            var_r31->unk2C--;
+                        textureFrame->frameFraction += textureFrame->frameDuration;
+                        if (textureFrame->frameFraction >= 1.0f) {
+                            textureFrame->currentFrame--;
+                            textureFrame->frameFraction--;
                         }
                         break;
                 }
-                if (var_r31->unk0 >= temp_r30->unk4C) {
-                    if ((var_r31->unk24 & 0x10) != 0) {
-                        var_r31->unk24 |= 8;
-                        var_r31->unk0--;
+                if (textureFrame->currentFrame >= mapTexture->atlasRowCount) {
+                    if ((textureFrame->flags & 0x10) != 0) {
+                        textureFrame->flags |= 8;
+                        textureFrame->currentFrame--;
                     }
-                    else if ((var_r31->unk24 & 0x40) != 0) {
-                        var_r31->unk24 = (var_r31->unk24 & 0xF0) | 2;
-                        var_r31->unk0 -= 2;
+                    else if ((textureFrame->flags & 0x40) != 0) {
+                        textureFrame->flags = (textureFrame->flags & 0xF0) | 2;
+                        textureFrame->currentFrame -= 2;
                     }
-                    else if ((var_r31->unk24 & 0x20) != 0) {
-                        var_r31->unk0 = 0;
+                    else if ((textureFrame->flags & 0x20) != 0) {
+                        textureFrame->currentFrame = 0;
                     }
-                    var_r31->unk24 |= 4;
+                    textureFrame->flags |= 4;
                 }
-                else if (var_r31->unk0 < 0) {
-                    if ((var_r31->unk24 & 0x10) != 0) {
-                        var_r31->unk24 |= 8;
-                        var_r31->unk0 = 0;
+                else if (textureFrame->currentFrame < 0) {
+                    if ((textureFrame->flags & 0x10) != 0) {
+                        textureFrame->flags |= 8;
+                        textureFrame->currentFrame = 0;
                     }
-                    else if ((var_r31->unk24 & 0x20) != 0) {
-                        if ((var_r31->unk24 & 0x40) != 0) {
-                            var_r31->unk24 = (var_r31->unk24 & 0xF0) | 1;
-                            var_r31->unk0 = 1;
+                    else if ((textureFrame->flags & 0x20) != 0) {
+                        if ((textureFrame->flags & 0x40) != 0) {
+                            textureFrame->flags = (textureFrame->flags & 0xF0) | 1;
+                            textureFrame->currentFrame = 1;
                         }
                         else {
-                            var_r31->unk0 = temp_r30->unk4C - 1;
+                            textureFrame->currentFrame = mapTexture->atlasRowCount - 1;
                         }
                     }
-                    else if ((var_r31->unk24 & 0x40) != 0) {
-                        var_r31->unk24 |= 8;
-                        var_r31->unk0 = 0;
+                    else if ((textureFrame->flags & 0x40) != 0) {
+                        textureFrame->flags |= 8;
+                        textureFrame->currentFrame = 0;
                     }
-                    var_r31->unk24 |= 4;
+                    textureFrame->flags |= 4;
                 }
                 else {
-                    var_r31->unk24 &= ~8;
+                    textureFrame->flags &= ~8;
                 }
-                if (var_r31->unk0 != var_r31->unk1) {
-                    var_r31->unk4[0].y = var_r31->unk0 * temp_r30->unk58;
-                    var_r31->unk4[1].y = var_r31->unk0 * temp_r30->unk58;
-                    var_r31->unk4[2].y = ((var_r31->unk0 + 1) * temp_r30->unk58);
-                    var_r31->unk4[3].y = ((var_r31->unk0 + 1) * temp_r30->unk58);
-                    if ((var_r31->unk0 + 1) < temp_r30->unk4C) {
-                        var_r31->unk4[2].y -= temp_r30->unk60;
-                        var_r31->unk4[3].y -= temp_r30->unk60;
+                if (textureFrame->currentFrame != textureFrame->previousFrame) {
+                    textureFrame->coordinates[0].y = textureFrame->currentFrame * mapTexture->scaleY;
+                    textureFrame->coordinates[1].y = textureFrame->currentFrame * mapTexture->scaleY;
+                    textureFrame->coordinates[2].y = ((textureFrame->currentFrame + 1) * mapTexture->scaleY);
+                    textureFrame->coordinates[3].y = ((textureFrame->currentFrame + 1) * mapTexture->scaleY);
+                    if ((textureFrame->currentFrame + 1) < mapTexture->atlasRowCount) {
+                        textureFrame->coordinates[2].y -= mapTexture->texelHeight;
+                        textureFrame->coordinates[3].y -= mapTexture->texelHeight;
                     }
-                    var_r31->unk1 = var_r31->unk0;
+                    textureFrame->previousFrame = textureFrame->currentFrame;
                 }
-                if ((var_r31->unk24 & 8) != 0) {
-                    if ((var_r28->unk34 & 0x40000000) != 0) {
-                        var_r28->unk34 |= 4;
-                        if ((var_r31->unk24 & 0x40) == 0) {
-                            if (var_r31->unk0 <= 0) {
-                                var_r31->unk0 = temp_r30->unk4C;
+                if ((textureFrame->flags & 8) != 0) {
+                    if ((mapMesh->flags & 0x40000000) != 0) {
+                        mapMesh->flags |= 4;
+                        if ((textureFrame->flags & 0x40) == 0) {
+                            if (textureFrame->currentFrame <= 0) {
+                                textureFrame->currentFrame = mapTexture->atlasRowCount;
                             }
                             else {
-                                var_r31->unk0 = 0;
+                                textureFrame->currentFrame = 0;
                             }
                         }
                     }
-                    else if ((var_r28->unk34 & 0x80000000) != 0) {
-                        fn_1_A800(arg0->unk0);
+                    else if ((mapMesh->flags & 0x80000000) != 0) {
+                        MapObjectDestroy(mapObject->objectIndex);
                     }
-                    var_r27++;
+                    completedMeshCount++;
                 }
             }
         }
     }
-    if (var_r27 >= arg0->unk2) {
-        if ((arg0->unk8 & 0x40000000) != 0) {
-            arg0->unk8 |= 4;
+    if (completedMeshCount >= mapObject->meshCount) {
+        if ((mapObject->flags & 0x40000000) != 0) {
+            mapObject->flags |= 4;
             return;
         }
-        if ((arg0->unk8 & 0x80000000) != 0) {
-            fn_1_A800(arg0->unk0);
+        if ((mapObject->flags & 0x80000000) != 0) {
+            MapObjectDestroy(mapObject->objectIndex);
         }
     }
 }
 
-s16 fn_1_A2D0(u8 arg0, u8 arg1)
+s16 MapObjectCreate(u8 meshCount, u8 textureSlotCount)
 {
-    s32 var_r29;
-    s32 var_r28;
-    unkSubStruct *var_r30;
-    unkSubStruct2 *var_r31;
-    void *temp_r25;
+    s32 objectIndex2;
+    s32 textureIndex;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
+    void *meshIndex2;
 
-    var_r31 = lbl_1_bss_36C.unk40 + 1;
+    mapObject = mapRenderer.objects + 1;
 
-    for (var_r29 = 1; var_r29 < lbl_1_bss_36C.unk30; var_r29++, var_r31++) {
-        if (var_r31->unk8 == 0) {
+    for (objectIndex2 = 1; objectIndex2 < mapRenderer.objectCapacity; objectIndex2++, mapObject++) {
+        if (mapObject->flags == 0) {
             break;
         }
     }
-    if (var_r29 == lbl_1_bss_36C.unk30) {
+    if (objectIndex2 == mapRenderer.objectCapacity) {
         return 0;
     }
-    var_r31->unk0 = var_r29;
-    var_r31->unk8 = 1;
-    var_r31->unk30 = NULL;
-    var_r31->unk2 = arg0;
-    var_r31->unk4 = arg1;
-    var_r30 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * sizeof(unkSubStruct), HU_MEMNUM_OVL);
-    var_r31->unk3C = var_r30;
-    var_r31->unk34 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * 2, HU_MEMNUM_OVL);
-    var_r31->unk48 = 0;
-    var_r31->unk4C = HuMemDirectMallocNum(HEAP_HEAP, arg0 * sizeof(unkType), HU_MEMNUM_OVL);
-    var_r31->unk50 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * sizeof(Vec[4]), HU_MEMNUM_OVL);
-    var_r31->unk54 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * sizeof(unkType2), HU_MEMNUM_OVL);
-    var_r31->unk58 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * sizeof(Vec), HU_MEMNUM_OVL);
-    var_r31->unk5C = HuMemDirectMallocNum(HEAP_HEAP, arg1 * (arg0 * sizeof(unkSubStruct4)), HU_MEMNUM_OVL);
-    DCFlushRangeNoSync(var_r31->unk4C, arg0 << 8);
-    var_r31->unkC.x = var_r31->unkC.y = var_r31->unkC.z = 0.0f;
-    var_r31->unk18.x = var_r31->unk18.y = var_r31->unk18.z = 0.0f;
-    var_r31->unk24.x = var_r31->unk24.y = var_r31->unk24.z = 1.0f;
-    var_r31->unk70.x = var_r31->unk70.y = var_r31->unk70.z = 0.0f;
-    var_r31->unk64.x = var_r31->unk64.y = var_r31->unk64.z = 0.0f;
-    var_r31->unk60 = 0;
+    mapObject->objectIndex = objectIndex2;
+    mapObject->flags = 1;
+    mapObject->animationCallback = NULL;
+    mapObject->meshCount = meshCount;
+    mapObject->textureSlotCount = textureSlotCount;
+    mapMesh = HuMemDirectMallocNum(HEAP_HEAP, meshCount * sizeof(MapMesh), HU_MEMNUM_OVL);
+    mapObject->meshes = mapMesh;
+    mapObject->textureIds = HuMemDirectMallocNum(HEAP_HEAP, textureSlotCount * 2, HU_MEMNUM_OVL);
+    mapObject->displayListUsed = 0;
+    mapObject->displayList = HuMemDirectMallocNum(HEAP_HEAP, meshCount * sizeof(MapVertexAttributeQuads), HU_MEMNUM_OVL);
+    mapObject->vertexPositions = HuMemDirectMallocNum(HEAP_HEAP, meshCount * sizeof(Vec[4]), HU_MEMNUM_OVL);
+    mapObject->vertexColors = HuMemDirectMallocNum(HEAP_HEAP, meshCount * sizeof(MapVectorQuad), HU_MEMNUM_OVL);
+    mapObject->vertexNormals = HuMemDirectMallocNum(HEAP_HEAP, meshCount * sizeof(Vec), HU_MEMNUM_OVL);
+    mapObject->textureFrames = HuMemDirectMallocNum(HEAP_HEAP, textureSlotCount * (meshCount * sizeof(MapTextureFrame)), HU_MEMNUM_OVL);
+    DCFlushRangeNoSync(mapObject->displayList, meshCount << 8);
+    mapObject->position.x = mapObject->position.y = mapObject->position.z = 0.0f;
+    mapObject->rotation.x = mapObject->rotation.y = mapObject->rotation.z = 0.0f;
+    mapObject->scale.x = mapObject->scale.y = mapObject->scale.z = 1.0f;
+    mapObject->sortRotation.x = mapObject->sortRotation.y = mapObject->sortRotation.z = 0.0f;
+    mapObject->sortPosition.x = mapObject->sortPosition.y = mapObject->sortPosition.z = 0.0f;
+    mapObject->renderMode = 0;
 
-    for (var_r29 = 0; var_r29 < 0x20; var_r29++) {
-        var_r31->unk7C[var_r29] = 0;
+    for (objectIndex2 = 0; objectIndex2 < 0x20; objectIndex2++) {
+        mapObject->renderParameters[objectIndex2] = 0;
     }
-    for (var_r29 = 0; var_r29 < arg1; var_r29++) {
-        var_r31->unk34[var_r29] = 0;
+    for (objectIndex2 = 0; objectIndex2 < textureSlotCount; objectIndex2++) {
+        mapObject->textureIds[objectIndex2] = 0;
     }
-    for (var_r29 = 0; var_r29 < arg0; var_r29++, var_r30++) {
-        var_r30->unk34 = 1;
-        var_r30->unk33 = arg1;
-        var_r30->unk30 = 0;
-        var_r30->unk31 = 2;
-        var_r30->unk32 = 0;
+    for (objectIndex2 = 0; objectIndex2 < meshCount; objectIndex2++, mapMesh++) {
+        mapMesh->flags = 1;
+        mapMesh->textureCount = textureSlotCount;
+        mapMesh->renderMode = 0;
+        mapMesh->billboardMode = 2;
+        mapMesh->materialFlags = 0;
 
-        var_r30->unk4C.r = var_r30->unk4C.g = var_r30->unk4C.b = 0;
-        var_r30->unk4C.a = 0xFF;
-        var_r30->unk50.r = var_r30->unk50.g = var_r30->unk50.b = 0xFF;
-        var_r30->unk50.a = 0xFF;
-        var_r30->unk54 = &var_r31->unk5C[var_r29 * arg1];
-        for (var_r28 = 0; var_r28 < arg1; var_r28++) {
-            var_r30->unk54[var_r28].unk0 = var_r30->unk54[var_r28].unk1 = 0;
-            var_r30->unk54[var_r28].unk28 = 1.0f;
-            var_r30->unk54[var_r28].unk2C = 0.0f;
+        mapMesh->ambientColor.r = mapMesh->ambientColor.g = mapMesh->ambientColor.b = 0;
+        mapMesh->ambientColor.a = 0xFF;
+        mapMesh->materialColor.r = mapMesh->materialColor.g = mapMesh->materialColor.b = 0xFF;
+        mapMesh->materialColor.a = 0xFF;
+        mapMesh->textureFrames = &mapObject->textureFrames[objectIndex2 * textureSlotCount];
+        for (textureIndex = 0; textureIndex < textureSlotCount; textureIndex++) {
+            mapMesh->textureFrames[textureIndex].currentFrame = mapMesh->textureFrames[textureIndex].previousFrame = 0;
+            mapMesh->textureFrames[textureIndex].frameDuration = 1.0f;
+            mapMesh->textureFrames[textureIndex].frameFraction = 0.0f;
         }
 
-        var_r30->unk0.x = var_r30->unk0.y = var_r30->unk0.z = 0.0f;
-        var_r30->unkC.x = var_r30->unkC.y = var_r30->unkC.z = 0.0f;
-        var_r30->unk18.x = var_r30->unk18.y = var_r30->unk18.z = 1.0f;
-        var_r30->unk68.x = var_r30->unk68.y = var_r30->unk68.z = 0.0f;
-        var_r30->unk5C.x = var_r30->unk5C.y = var_r30->unk5C.z = 0.0f;
-        var_r30->unk58 = 0;
+        mapMesh->position.x = mapMesh->position.y = mapMesh->position.z = 0.0f;
+        mapMesh->rotation.x = mapMesh->rotation.y = mapMesh->rotation.z = 0.0f;
+        mapMesh->scale.x = mapMesh->scale.y = mapMesh->scale.z = 1.0f;
+        mapMesh->rotationOffset.x = mapMesh->rotationOffset.y = mapMesh->rotationOffset.z = 0.0f;
+        mapMesh->translationOffset.x = mapMesh->translationOffset.y = mapMesh->translationOffset.z = 0.0f;
+        mapMesh->normal = 0;
 
-        for (var_r28 = 0; var_r28 < 0x10; var_r28++) {
-            var_r30->unk74[var_r28] = 0;
+        for (textureIndex = 0; textureIndex < 0x10; textureIndex++) {
+            mapMesh->textureIds[textureIndex] = 0;
         }
-        var_r30->unk40 = &var_r31->unk50[var_r29 * 4];
-        var_r30->unk44 = &var_r31->unk54[var_r29 * 4];
-        var_r30->unk48 = &var_r31->unk58[var_r29];
-        var_r30->unk3C = var_r31->unk4C + var_r31->unk48;
-        fn_1_9B40(var_r30);
-        var_r31->unk48 += var_r30->unk38;
+        mapMesh->vertices = &mapObject->vertexPositions[objectIndex2 * 4];
+        mapMesh->colors = &mapObject->vertexColors[objectIndex2 * 4];
+        mapMesh->normals = &mapObject->vertexNormals[objectIndex2];
+        mapMesh->displayList = mapObject->displayList + mapObject->displayListUsed;
+        MapMeshDisplayListBuild(mapMesh);
+        mapObject->displayListUsed += mapMesh->displayListSize;
     }
-    temp_r25 = var_r31->unk4C;
-    var_r31->unk4C = HuMemDirectMallocNum(HEAP_HEAP, var_r31->unk48, HU_MEMNUM_OVL);
-    memcpy(var_r31->unk4C, temp_r25, var_r31->unk48);
-    HuMemDirectFree(temp_r25);
-    DCFlushRangeNoSync(var_r31->unk50, arg0 * 0x30);
-    DCFlushRangeNoSync(var_r31->unk54, arg0 * 0x10);
-    DCFlushRangeNoSync(var_r31->unk58, arg0 * 0xC);
-    DCFlushRangeNoSync(var_r31->unk4C, var_r31->unk48);
-    var_r30 = var_r31->unk3C;
-    var_r31->unk48 = 0;
+    meshIndex2 = mapObject->displayList;
+    mapObject->displayList = HuMemDirectMallocNum(HEAP_HEAP, mapObject->displayListUsed, HU_MEMNUM_OVL);
+    memcpy(mapObject->displayList, meshIndex2, mapObject->displayListUsed);
+    HuMemDirectFree(meshIndex2);
+    DCFlushRangeNoSync(mapObject->vertexPositions, meshCount * 0x30);
+    DCFlushRangeNoSync(mapObject->vertexColors, meshCount * 0x10);
+    DCFlushRangeNoSync(mapObject->vertexNormals, meshCount * 0xC);
+    DCFlushRangeNoSync(mapObject->displayList, mapObject->displayListUsed);
+    mapMesh = mapObject->meshes;
+    mapObject->displayListUsed = 0;
 
-    for (var_r29 = 0; var_r29 < arg0; var_r29++, var_r30++) {
-        var_r30->unk3C = var_r31->unk4C + var_r31->unk48;
-        var_r31->unk48 += var_r30->unk38;
+    for (objectIndex2 = 0; objectIndex2 < meshCount; objectIndex2++, mapMesh++) {
+        mapMesh->displayList = mapObject->displayList + mapObject->displayListUsed;
+        mapObject->displayListUsed += mapMesh->displayListSize;
     }
-    lbl_1_bss_36C.unk36 = var_r31->unk0;
-    lbl_1_bss_36C.unk38 = 0;
-    lbl_1_bss_36C.unk3A = 0;
-    return var_r31->unk0;
+    mapRenderer.activeObjectId = mapObject->objectIndex;
+    mapRenderer.activeMeshId = 0;
+    mapRenderer.activeTextureSlot = 0;
+    return mapObject->objectIndex;
 }
 
-void fn_1_A800(s16 arg0)
+void MapObjectDestroy(s16 objectId)
 {
-    s32 var_r30;
-    unkSubStruct2 *temp_r31;
+    s32 textureSlot;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk8 != 0) {
-            if (temp_r31->unk50 != NULL) {
-                HuMemDirectFree(temp_r31->unk50);
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->flags != 0) {
+            if (mapObject->vertexPositions != NULL) {
+                HuMemDirectFree(mapObject->vertexPositions);
             }
-            if (temp_r31->unk54 != NULL) {
-                HuMemDirectFree(temp_r31->unk54);
+            if (mapObject->vertexColors != NULL) {
+                HuMemDirectFree(mapObject->vertexColors);
             }
-            if (temp_r31->unk58 != NULL) {
-                HuMemDirectFree(temp_r31->unk58);
+            if (mapObject->vertexNormals != NULL) {
+                HuMemDirectFree(mapObject->vertexNormals);
             }
-            if (temp_r31->unk4C != NULL) {
-                HuMemDirectFree(temp_r31->unk4C);
+            if (mapObject->displayList != NULL) {
+                HuMemDirectFree(mapObject->displayList);
             }
-            if (temp_r31->unk5C != NULL) {
-                HuMemDirectFree(temp_r31->unk5C);
+            if (mapObject->textureFrames != NULL) {
+                HuMemDirectFree(mapObject->textureFrames);
             }
 
-            for (var_r30 = 0; var_r30 < temp_r31->unk4; var_r30++) {
-                fn_1_AF48(temp_r31->unk34[var_r30]);
+            for (textureSlot = 0; textureSlot < mapObject->textureSlotCount; textureSlot++) {
+                MapTextureAnimationRelease(mapObject->textureIds[textureSlot]);
             }
-            HuMemDirectFree(temp_r31->unk3C);
-            HuMemDirectFree(temp_r31->unk34);
-            temp_r31->unk8 = 0;
+            HuMemDirectFree(mapObject->meshes);
+            HuMemDirectFree(mapObject->textureIds);
+            mapObject->flags = 0;
         }
     }
 }
 
-void fn_1_A920(s16 arg0, s16 arg1, u8 arg2)
+void MapRendererStateSet(s16 objectId, s16 meshIndex, u8 textureSlot)
 {
-    lbl_1_bss_36C.unk36 = arg0;
-    lbl_1_bss_36C.unk38 = arg1;
-    lbl_1_bss_36C.unk3A = arg2;
+    mapRenderer.activeObjectId = objectId;
+    mapRenderer.activeMeshId = meshIndex;
+    mapRenderer.activeTextureSlot = textureSlot;
 }
 
-s16 fn_1_A94C(u32 arg0, s16 arg1, s16 arg2)
+s16 MapTextureAnimationLoad(u32 assetId, s16 width, s16 height)
 {
-    ANIMDATA *var_r30;
-    f32 var_f31;
-    f32 var_f30;
-    s32 var_r29;
-    unkSubStruct3 *var_r31;
+    ANIMDATA *textureAnimation;
+    f32 horizontalScale;
+    f32 verticalScale;
+    s32 textureIndex;
+    MapTexture *mapTexture;
 
-    var_r31 = lbl_1_bss_36C.unk3C + 1;
-    for (var_r29 = 1; var_r29 < lbl_1_bss_36C.unk32; var_r29++, var_r31++) {
-        if ((var_r31->unk6 != 0) && (var_r31->unk8 == arg0)) {
+    mapTexture = mapRenderer.textures + 1;
+    for (textureIndex = 1; textureIndex < mapRenderer.textureCapacity; textureIndex++, mapTexture++) {
+        if ((mapTexture->referenceCount != 0) && (mapTexture->resourceId == assetId)) {
             break;
         }
     }
-    if (var_r29 < lbl_1_bss_36C.unk32) {
-        var_r31->unk6++;
-        return var_r29;
+    if (textureIndex < mapRenderer.textureCapacity) {
+        mapTexture->referenceCount++;
+        return textureIndex;
     }
-    var_r31 = lbl_1_bss_36C.unk3C + 1;
-    for (var_r29 = 1; var_r29 < lbl_1_bss_36C.unk32; var_r29++, var_r31++) {
-        if (var_r31->unk6 == 0) {
+    mapTexture = mapRenderer.textures + 1;
+    for (textureIndex = 1; textureIndex < mapRenderer.textureCapacity; textureIndex++, mapTexture++) {
+        if (mapTexture->referenceCount == 0) {
             break;
         }
     }
-    var_r31->unk8 = arg0;
-    var_r31->unk6 = 1;
-    if (((arg0 & 0xFFFF0000) + 0x10000) == 0U) {
-        var_r30 = HuSprAnimMake(arg1, arg2, 2);
-        var_r30->bmp->data = HuMemDirectMallocNum(HEAP_HEAP, arg2 * (arg1 * 2), HU_MEMNUM_OVL);
-        arg1 = arg2 = 0;
+    mapTexture->resourceId = assetId;
+    mapTexture->referenceCount = 1;
+    if (((assetId & 0xFFFF0000) + 0x10000) == 0U) {
+        textureAnimation = HuSprAnimMake(width, height, 2);
+        textureAnimation->bmp->data = HuMemDirectMallocNum(HEAP_HEAP, height * (width * 2), HU_MEMNUM_OVL);
+        width = height = 0;
     }
     else {
-        var_r30 = HuSprAnimRead(HuDataReadNum(arg0, 0x10000000));
+        textureAnimation = HuSprAnimRead(HuDataReadNum(assetId, 0x10000000));
     }
-    if ((arg1 == 0) || (arg2 == 0)) {
-        arg1 = var_r30->bmp->sizeX;
-        arg2 = var_r30->bmp->sizeY;
-        var_f31 = var_f30 = 1.0f;
-    }
-    else {
-        var_f31 = arg1 / (f32)var_r30->bmp->sizeX;
-        var_f30 = arg2 / (f32)var_r30->bmp->sizeY;
-    }
-    var_r31->unk0 = var_r30;
-    var_r31->unk4E = arg1;
-    var_r31->unk50 = arg2;
-    var_r31->unk54 = var_f31;
-    var_r31->unk58 = var_f30;
-    var_r31->unk5C = 1.0f / var_r30->bmp->sizeX;
-    var_r31->unk60 = 1.0f / var_r30->bmp->sizeY;
-    var_r31->unk4 = 0;
-    var_r31->unk4C = (var_r30->bmp->sizeY / arg2);
-    if (var_r31->unk4C < 1) {
-        var_r31->unk4C = 1;
-    }
-    var_r31->unk4D = 0;
-    if ((arg1 > var_r30->bmp->sizeX) || (arg2 > var_r30->bmp->sizeY)) {
-        var_r31->unk4D = 1;
-    }
-    var_r31->unk48.r = var_r31->unk48.g = var_r31->unk48.b = 0xFF;
-    var_r31->unk48.a = 0xFF;
-    MTXIdentity(var_r31->unk18);
-    var_r31->unkC.x = var_r31->unkC.y = var_r31->unkC.z = 0.0f;
-    return var_r29;
-}
-
-void fn_1_ACF4(s16 arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, s16 arg5)
-{
-    f32 var_f31;
-    f32 var_f30;
-    ANIMDATA *var_r30;
-    unkSubStruct3 *var_r31;
-
-    var_r31 = &lbl_1_bss_36C.unk3C[arg0];
-    HuSprAnimKill(var_r31->unk0);
-    var_r31->unk8 |= 0xFFFF0000;
-    var_r30 = HuSprAnimMake(arg2, arg3, arg1);
-    var_r30->bmp->data = HuMemDirectMallocNum(HEAP_HEAP, arg3 * (var_r30->bmp->pixSize * arg2), 0x10000000U);
-    var_f31 = arg4 / (f32)var_r30->bmp->sizeX;
-    var_f30 = arg5 / (f32)var_r30->bmp->sizeY;
-    var_r31->unk0 = var_r30;
-    var_r31->unk4E = arg2;
-    var_r31->unk50 = arg3;
-    var_r31->unk54 = var_f31;
-    var_r31->unk58 = var_f30;
-    var_r31->unk5C = 1.0f / var_r30->bmp->sizeX;
-    var_r31->unk60 = 1.0f / var_r30->bmp->sizeY;
-    var_r31->unk4 = 0;
-    var_r31->unk4C = var_r30->bmp->sizeY / arg5;
-    var_r31->unk4D = 0;
-    var_r31->unk48.r = var_r31->unk48.g = var_r31->unk48.b = 0xFF;
-    var_r31->unk48.a = 0xFF;
-}
-
-void fn_1_AF48(s16 arg0)
-{
-    unkSubStruct3 *temp_r31;
-
-    temp_r31 = &lbl_1_bss_36C.unk3C[arg0];
-    if (temp_r31->unk8 != 0) {
-        if (temp_r31->unk6 != 0) {
-            temp_r31->unk6 -= 1;
-        }
-        if (temp_r31->unk6 == 0) {
-            HuSprAnimKill(temp_r31->unk0);
-            temp_r31->unk8 = 0;
-        }
-    }
-}
-
-u8 fn_1_AFC8(s16 arg0, u8 arg1, s32 arg2, s16 arg3, s16 arg4)
-{
-    s32 temp_r3;
-
-    temp_r3 = fn_1_A94C(arg2, arg3, arg4);
-    if (temp_r3 == 0) {
-        return 0;
-    }
-    fn_1_B0B8(arg0, arg1, temp_r3);
-    return temp_r3;
-}
-
-u8 fn_1_B038(s16 arg0, u8 arg1, s32 arg2)
-{
-    u8 var_r31;
-    s32 var_r30;
-    u8 var_r29;
-
-    if ((var_r30 = fn_1_A94C(arg2, 0, 0)) == 0) {
-        var_r31 = 0;
+    if ((width == 0) || (height == 0)) {
+        width = textureAnimation->bmp->sizeX;
+        height = textureAnimation->bmp->sizeY;
+        horizontalScale = verticalScale = 1.0f;
     }
     else {
-        fn_1_B0B8(arg0, arg1, var_r30);
-        var_r31 = var_r30;
+        horizontalScale = width / (f32)textureAnimation->bmp->sizeX;
+        verticalScale = height / (f32)textureAnimation->bmp->sizeY;
     }
-    var_r29 = var_r31;
-    return var_r29;
+    mapTexture->animation = textureAnimation;
+    mapTexture->width = width;
+    mapTexture->height = height;
+    mapTexture->scaleX = horizontalScale;
+    mapTexture->scaleY = verticalScale;
+    mapTexture->texelWidth = 1.0f / textureAnimation->bmp->sizeX;
+    mapTexture->texelHeight = 1.0f / textureAnimation->bmp->sizeY;
+    mapTexture->frame = 0;
+    mapTexture->atlasRowCount = (textureAnimation->bmp->sizeY / height);
+    if (mapTexture->atlasRowCount < 1) {
+        mapTexture->atlasRowCount = 1;
+    }
+    mapTexture->scaledToFit = 0;
+    if ((width > textureAnimation->bmp->sizeX) || (height > textureAnimation->bmp->sizeY)) {
+        mapTexture->scaledToFit = 1;
+    }
+    mapTexture->color.r = mapTexture->color.g = mapTexture->color.b = 0xFF;
+    mapTexture->color.a = 0xFF;
+    MTXIdentity(mapTexture->textureMatrix);
+    mapTexture->translation.x = mapTexture->translation.y = mapTexture->translation.z = 0.0f;
+    return textureIndex;
 }
 
-s32 fn_1_B0B8(s16 arg0, u8 arg1, s16 arg2)
+void MapTextureAnimationCreate(s16 textureId, s16 textureFormat, s16 width, s16 height, s16 frameWidth, s16 frameHeight)
 {
-    s32 var_r27;
-    unkSubStruct *var_r29;
-    unkSubStruct2 *temp_r28;
-    unkSubStruct3 *temp_r30;
-    unkSubStruct4 *temp_r31;
+    f32 horizontalScale;
+    f32 verticalScale;
+    ANIMDATA *textureAnimation;
+    MapTexture *mapTexture;
 
-    if (arg2 == 0) {
+    mapTexture = &mapRenderer.textures[textureId];
+    HuSprAnimKill(mapTexture->animation);
+    mapTexture->resourceId |= 0xFFFF0000;
+    textureAnimation = HuSprAnimMake(width, height, textureFormat);
+    textureAnimation->bmp->data = HuMemDirectMallocNum(HEAP_HEAP, height * (textureAnimation->bmp->pixSize * width), 0x10000000U);
+    horizontalScale = frameWidth / (f32)textureAnimation->bmp->sizeX;
+    verticalScale = frameHeight / (f32)textureAnimation->bmp->sizeY;
+    mapTexture->animation = textureAnimation;
+    mapTexture->width = width;
+    mapTexture->height = height;
+    mapTexture->scaleX = horizontalScale;
+    mapTexture->scaleY = verticalScale;
+    mapTexture->texelWidth = 1.0f / textureAnimation->bmp->sizeX;
+    mapTexture->texelHeight = 1.0f / textureAnimation->bmp->sizeY;
+    mapTexture->frame = 0;
+    mapTexture->atlasRowCount = textureAnimation->bmp->sizeY / frameHeight;
+    mapTexture->scaledToFit = 0;
+    mapTexture->color.r = mapTexture->color.g = mapTexture->color.b = 0xFF;
+    mapTexture->color.a = 0xFF;
+}
+
+void MapTextureAnimationRelease(s16 textureId)
+{
+    MapTexture *mapTexture;
+
+    mapTexture = &mapRenderer.textures[textureId];
+    if (mapTexture->resourceId != 0) {
+        if (mapTexture->referenceCount != 0) {
+            mapTexture->referenceCount -= 1;
+        }
+        if (mapTexture->referenceCount == 0) {
+            HuSprAnimKill(mapTexture->animation);
+            mapTexture->resourceId = 0;
+        }
+    }
+}
+
+u8 MapObjectTextureLoad(s16 objectId, u8 textureSlot, s32 assetId, s16 width, s16 height)
+{
+    s32 textureId;
+
+    textureId = MapTextureAnimationLoad(assetId, width, height);
+    if (textureId == 0) {
         return 0;
     }
-    if (arg0 == 0) {
+    MapObjectTextureSet(objectId, textureSlot, textureId);
+    return textureId;
+}
+
+u8 MapObjectTextureRead(s16 objectId, u8 textureSlot, s32 assetId)
+{
+    u8 textureFrame2;
+    s32 mapTexture3;
+    u8 textureId;
+
+    if ((mapTexture3 = MapTextureAnimationLoad(assetId, 0, 0)) == 0) {
+        textureFrame2 = 0;
+    }
+    else {
+        MapObjectTextureSet(objectId, textureSlot, mapTexture3);
+        textureFrame2 = mapTexture3;
+    }
+    textureId = textureFrame2;
+    return textureId;
+}
+
+s32 MapObjectTextureSet(s16 objectId, u8 textureSlot, s16 textureId)
+{
+    s32 meshIndex;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
+    MapTexture *mapTexture;
+    MapTextureFrame *textureFrame;
+
+    if (textureId == 0) {
         return 0;
     }
-    temp_r28 = &lbl_1_bss_36C.unk40[arg0];
-    temp_r28->unk8 |= 2;
-    temp_r28->unk34[arg1] = arg2;
-    temp_r30 = &lbl_1_bss_36C.unk3C[arg2];
-    var_r29 = temp_r28->unk3C;
-
-    for (var_r27 = 0; var_r27 < temp_r28->unk2; var_r27++, var_r29++) {
-        if (arg1 == 0) {
-            var_r29->unk40[0].x = -0.5f * temp_r30->unk4E;
-            var_r29->unk40[0].y = 0.5f * temp_r30->unk50;
-            var_r29->unk40[1].x = (0.5f * temp_r30->unk4E);
-            var_r29->unk40[1].y = (0.5f * temp_r30->unk50);
-            var_r29->unk40[2].x = (0.5f * temp_r30->unk4E);
-            var_r29->unk40[2].y = (-0.5f * temp_r30->unk50);
-            var_r29->unk40[3].x = (-0.5f * temp_r30->unk4E);
-            var_r29->unk40[3].y = (-0.5f * temp_r30->unk50);
-            var_r29->unk40[0].z = var_r29->unk40[1].z = var_r29->unk40[2].z = var_r29->unk40[3].z = 0.0f;
-        }
-        temp_r31 = &var_r29->unk54[arg1];
-        temp_r31->unk24 = 0;
-        temp_r31->unk0 = temp_r31->unk1 = 0;
-        temp_r31->unk28 = 1.0f;
-        temp_r31->unk2C = 0.0f;
-        temp_r31->unk4[0].x = temp_r31->unk0 * temp_r30->unk54;
-        temp_r31->unk4[0].y = temp_r31->unk0 * temp_r30->unk58;
-        temp_r31->unk4[1].x = (temp_r31->unk0 + 1) * temp_r30->unk54;
-        temp_r31->unk4[1].y = temp_r31->unk0 * temp_r30->unk58;
-        temp_r31->unk4[2].x = (temp_r31->unk0 + 1) * temp_r30->unk54;
-        temp_r31->unk4[2].y = (temp_r31->unk0 + 1) * temp_r30->unk58;
-        temp_r31->unk4[3].x = temp_r31->unk0 * temp_r30->unk54;
-        temp_r31->unk4[3].y = (temp_r31->unk0 + 1) * temp_r30->unk58;
-        if ((temp_r31->unk0 + 1) < temp_r30->unk4C) {
-            temp_r31->unk4[2].y -= temp_r30->unk60;
-            temp_r31->unk4[3].y -= temp_r30->unk60;
-        }
-        DCFlushRangeNoSync(temp_r31->unk4, 0x20);
+    if (objectId == 0) {
+        return 0;
     }
-    lbl_1_bss_36C.unk36 = arg0;
-    lbl_1_bss_36C.unk3A = arg1;
+    mapObject = &mapRenderer.objects[objectId];
+    mapObject->flags |= 2;
+    mapObject->textureIds[textureSlot] = textureId;
+    mapTexture = &mapRenderer.textures[textureId];
+    mapMesh = mapObject->meshes;
+
+    for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++, mapMesh++) {
+        if (textureSlot == 0) {
+            mapMesh->vertices[0].x = -0.5f * mapTexture->width;
+            mapMesh->vertices[0].y = 0.5f * mapTexture->height;
+            mapMesh->vertices[1].x = (0.5f * mapTexture->width);
+            mapMesh->vertices[1].y = (0.5f * mapTexture->height);
+            mapMesh->vertices[2].x = (0.5f * mapTexture->width);
+            mapMesh->vertices[2].y = (-0.5f * mapTexture->height);
+            mapMesh->vertices[3].x = (-0.5f * mapTexture->width);
+            mapMesh->vertices[3].y = (-0.5f * mapTexture->height);
+            mapMesh->vertices[0].z = mapMesh->vertices[1].z = mapMesh->vertices[2].z = mapMesh->vertices[3].z = 0.0f;
+        }
+        textureFrame = &mapMesh->textureFrames[textureSlot];
+        textureFrame->flags = 0;
+        textureFrame->currentFrame = textureFrame->previousFrame = 0;
+        textureFrame->frameDuration = 1.0f;
+        textureFrame->frameFraction = 0.0f;
+        textureFrame->coordinates[0].x = textureFrame->currentFrame * mapTexture->scaleX;
+        textureFrame->coordinates[0].y = textureFrame->currentFrame * mapTexture->scaleY;
+        textureFrame->coordinates[1].x = (textureFrame->currentFrame + 1) * mapTexture->scaleX;
+        textureFrame->coordinates[1].y = textureFrame->currentFrame * mapTexture->scaleY;
+        textureFrame->coordinates[2].x = (textureFrame->currentFrame + 1) * mapTexture->scaleX;
+        textureFrame->coordinates[2].y = (textureFrame->currentFrame + 1) * mapTexture->scaleY;
+        textureFrame->coordinates[3].x = textureFrame->currentFrame * mapTexture->scaleX;
+        textureFrame->coordinates[3].y = (textureFrame->currentFrame + 1) * mapTexture->scaleY;
+        if ((textureFrame->currentFrame + 1) < mapTexture->atlasRowCount) {
+            textureFrame->coordinates[2].y -= mapTexture->texelHeight;
+            textureFrame->coordinates[3].y -= mapTexture->texelHeight;
+        }
+        DCFlushRangeNoSync(textureFrame->coordinates, 0x20);
+    }
+    mapRenderer.activeObjectId = objectId;
+    mapRenderer.activeTextureSlot = textureSlot;
     return 1;
 }
 
-void fn_1_B634(void)
+void MapRendererShutdown(void)
 {
-    s32 var_r28;
-    s32 var_r27;
-    s16 var_r26;
-    unkSubStruct2 *temp_r31;
-    unkSubStruct3 *temp_r30;
-    unkSubStruct3 *temp_r29;
+    s32 objectIndex;
+    s32 textureSlot;
+    s16 index2;
+    MapObject *mapObject;
+    MapTexture *mapTexture;
+    MapTexture *mapTexture2;
 
-    for (var_r28 = 1; var_r28 < lbl_1_bss_36C.unk30; var_r28++) {
-        if ((s16)var_r28 != 0) {
-            temp_r31 = &lbl_1_bss_36C.unk40[(s16)var_r28];
-            if (temp_r31->unk8 != 0) {
-                if (temp_r31->unk50 != NULL) {
-                    HuMemDirectFree(temp_r31->unk50);
+    for (objectIndex = 1; objectIndex < mapRenderer.objectCapacity; objectIndex++) {
+        if ((s16)objectIndex != 0) {
+            mapObject = &mapRenderer.objects[(s16)objectIndex];
+            if (mapObject->flags != 0) {
+                if (mapObject->vertexPositions != NULL) {
+                    HuMemDirectFree(mapObject->vertexPositions);
                 }
-                if (temp_r31->unk54 != NULL) {
-                    HuMemDirectFree(temp_r31->unk54);
+                if (mapObject->vertexColors != NULL) {
+                    HuMemDirectFree(mapObject->vertexColors);
                 }
-                if (temp_r31->unk58 != NULL) {
-                    HuMemDirectFree(temp_r31->unk58);
+                if (mapObject->vertexNormals != NULL) {
+                    HuMemDirectFree(mapObject->vertexNormals);
                 }
-                if (temp_r31->unk4C != NULL) {
-                    HuMemDirectFree(temp_r31->unk4C);
+                if (mapObject->displayList != NULL) {
+                    HuMemDirectFree(mapObject->displayList);
                 }
-                if (temp_r31->unk5C != NULL) {
-                    HuMemDirectFree(temp_r31->unk5C);
+                if (mapObject->textureFrames != NULL) {
+                    HuMemDirectFree(mapObject->textureFrames);
                 }
 
-                for (var_r27 = 0; var_r27 < temp_r31->unk4; var_r27++) {
-                    var_r26 = temp_r31->unk34[var_r27];
-                    temp_r29 = &lbl_1_bss_36C.unk3C[var_r26];
-                    if (temp_r29->unk8 != 0) {
-                        if (temp_r29->unk6 != 0) {
-                            temp_r29->unk6--;
+                for (textureSlot = 0; textureSlot < mapObject->textureSlotCount; textureSlot++) {
+                    index2 = mapObject->textureIds[textureSlot];
+                    mapTexture2 = &mapRenderer.textures[index2];
+                    if (mapTexture2->resourceId != 0) {
+                        if (mapTexture2->referenceCount != 0) {
+                            mapTexture2->referenceCount--;
                         }
-                        if (temp_r29->unk6 == 0) {
-                            HuSprAnimKill(temp_r29->unk0);
-                            temp_r29->unk8 = 0;
+                        if (mapTexture2->referenceCount == 0) {
+                            HuSprAnimKill(mapTexture2->animation);
+                            mapTexture2->resourceId = 0;
                         }
                     }
                 }
-                HuMemDirectFree(temp_r31->unk3C);
-                HuMemDirectFree(temp_r31->unk34);
-                temp_r31->unk8 = 0;
+                HuMemDirectFree(mapObject->meshes);
+                HuMemDirectFree(mapObject->textureIds);
+                mapObject->flags = 0;
             }
         }
     }
 
-    for (var_r28 = 1; var_r28 < lbl_1_bss_36C.unk32; var_r28++) {
-        temp_r30 = &lbl_1_bss_36C.unk3C[(s16)var_r28];
-        if (temp_r30->unk8 != 0) {
-            if (temp_r30->unk6 != 0) {
-                temp_r30->unk6 -= 1;
+    for (objectIndex = 1; objectIndex < mapRenderer.textureCapacity; objectIndex++) {
+        mapTexture = &mapRenderer.textures[(s16)objectIndex];
+        if (mapTexture->resourceId != 0) {
+            if (mapTexture->referenceCount != 0) {
+                mapTexture->referenceCount -= 1;
             }
-            if (temp_r30->unk6 == 0) {
-                HuSprAnimKill(temp_r30->unk0);
-                temp_r30->unk8 = 0;
+            if (mapTexture->referenceCount == 0) {
+                HuSprAnimKill(mapTexture->animation);
+                mapTexture->resourceId = 0;
             }
         }
     }
-    HuMemDirectFree(lbl_1_bss_36C.unk40);
-    HuMemDirectFree(lbl_1_bss_36C.unk3C);
-    Hu3DModelKill(lbl_1_bss_36C.unk34);
+    HuMemDirectFree(mapRenderer.objects);
+    HuMemDirectFree(mapRenderer.textures);
+    Hu3DModelKill(mapRenderer.hookModelId);
 }
 
-void fn_1_B864(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void MapObjectPositionSet(s16 objectId, f32 x, f32 y, f32 z)
 {
-    unkSubStruct2 *temp_r31;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        temp_r31->unkC.x = arg8;
-        temp_r31->unkC.y = arg9;
-        temp_r31->unkC.z = argA;
-        if (temp_r31->unk2 == 1) {
-            temp_r31->unk3C->unk0 = temp_r31->unkC;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapObject->position.x = x;
+        mapObject->position.y = y;
+        mapObject->position.z = z;
+        if (mapObject->meshCount == 1) {
+            mapObject->meshes->position = mapObject->position;
         }
     }
 }
 
-void fn_1_B8D0(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA)
+void MapMeshPositionSet(s16 objectId, s16 meshIndex, f32 x, f32 y, f32 z)
 {
-    unkSubStruct *temp_r31;
-    unkSubStruct2 *temp_r30;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r30->unk2 > arg1) {
-            temp_r31 = &temp_r30->unk3C[arg1];
-            temp_r31->unk0.x = arg8;
-            temp_r31->unk0.y = arg9;
-            temp_r31->unk0.z = argA;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->position.x = x;
+            mapMesh->position.y = y;
+            mapMesh->position.z = z;
         }
     }
 }
 
-void fn_1_B940(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void MapMeshesPositionSet(s16 objectId, f32 x, f32 y, f32 z)
 {
-    s32 var_r29;
-    unkSubStruct *var_r31;
-    unkSubStruct2 *temp_r30;
+    s32 meshIndex;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_36C.unk40[arg0];
-        var_r31 = temp_r30->unk3C;
-        for (var_r29 = 0; var_r29 < temp_r30->unk2; var_r29++, var_r31++) {
-            var_r31->unk0.x = arg8;
-            var_r31->unk0.y = arg9;
-            var_r31->unk0.z = argA;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = mapObject->meshes;
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++, mapMesh++) {
+            mapMesh->position.x = x;
+            mapMesh->position.y = y;
+            mapMesh->position.z = z;
         }
     }
 }
 
-void fn_1_B9B4(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void MapObjectPositionAdd(s16 objectId, f32 x, f32 y, f32 z)
 {
-    unkSubStruct2 *temp_r31;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        temp_r31->unkC.x += arg8;
-        temp_r31->unkC.y += arg9;
-        temp_r31->unkC.z += argA;
-        if (temp_r31->unk2 == 1) {
-            temp_r31->unk3C->unk0 = temp_r31->unkC;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapObject->position.x += x;
+        mapObject->position.y += y;
+        mapObject->position.z += z;
+        if (mapObject->meshCount == 1) {
+            mapObject->meshes->position = mapObject->position;
         }
     }
 }
 
-void fn_1_BA38(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA)
+void MapMeshPositionAdd(s16 objectId, s16 meshIndex, f32 x, f32 y, f32 z)
 {
-    unkSubStruct *temp_r31;
-    unkSubStruct2 *temp_r30;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r30->unk2 > arg1) {
-            temp_r31 = &temp_r30->unk3C[arg1];
-            temp_r31->unk0.x += arg8;
-            temp_r31->unk0.y += arg9;
-            temp_r31->unk0.z += argA;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->position.x += x;
+            mapMesh->position.y += y;
+            mapMesh->position.z += z;
         }
     }
 }
 
-void fn_1_BAC0(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void MapMeshesPositionAdd(s16 objectId, f32 x, f32 y, f32 z)
 {
-    s32 var_r29;
-    unkSubStruct *var_r31;
-    unkSubStruct2 *temp_r30;
+    s32 meshIndex;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_36C.unk40[arg0];
-        var_r31 = temp_r30->unk3C;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = mapObject->meshes;
 
-        for (var_r29 = 0; var_r29 < temp_r30->unk2; var_r29++, var_r31++) {
-            var_r31->unk0.x += arg8;
-            var_r31->unk0.y += arg9;
-            var_r31->unk0.z += argA;
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++, mapMesh++) {
+            mapMesh->position.x += x;
+            mapMesh->position.y += y;
+            mapMesh->position.z += z;
         }
     }
 }
 
-void fn_1_BB4C(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void MapObjectRotationSet(s16 objectId, f32 xRotation, f32 yRotation, f32 zRotation)
 {
-    unkSubStruct2 *temp_r31;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        temp_r31->unk18.x = arg8;
-        temp_r31->unk18.y = arg9;
-        temp_r31->unk18.z = argA;
-        if (temp_r31->unk2 == 1) {
-            temp_r31->unk3C->unkC = temp_r31->unk18;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapObject->rotation.x = xRotation;
+        mapObject->rotation.y = yRotation;
+        mapObject->rotation.z = zRotation;
+        if (mapObject->meshCount == 1) {
+            mapObject->meshes->rotation = mapObject->rotation;
         }
     }
 }
 
-void fn_1_BBB8(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA)
+void MapMeshRotationSet(s16 objectId, s16 meshIndex, f32 xRotation, f32 yRotation, f32 zRotation)
 {
-    unkSubStruct *temp_r31;
-    unkSubStruct2 *temp_r30;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r30->unk2 > arg1) {
-            temp_r31 = &temp_r30->unk3C[arg1];
-            temp_r31->unkC.x = arg8;
-            temp_r31->unkC.y = arg9;
-            temp_r31->unkC.z = argA;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->rotation.x = xRotation;
+            mapMesh->rotation.y = yRotation;
+            mapMesh->rotation.z = zRotation;
         }
     }
 }
 
-void fn_1_BC28(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void MapMeshesRotationSet(s16 objectId, f32 xRotation, f32 yRotation, f32 zRotation)
 {
-    s32 var_r29;
-    unkSubStruct *var_r31;
-    unkSubStruct2 *temp_r30;
+    s32 meshIndex;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_36C.unk40[arg0];
-        var_r31 = temp_r30->unk3C;
-        for (var_r29 = 0; var_r29 < temp_r30->unk2; var_r29++, var_r31++) {
-            var_r31->unkC.x = arg8;
-            var_r31->unkC.y = arg9;
-            var_r31->unkC.z = argA;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = mapObject->meshes;
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++, mapMesh++) {
+            mapMesh->rotation.x = xRotation;
+            mapMesh->rotation.y = yRotation;
+            mapMesh->rotation.z = zRotation;
         }
     }
 }
 
-void fn_1_BC9C(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void MapObjectScaleSet(s16 objectId, f32 scaleX, f32 scaleY, f32 scaleZ)
 {
-    unkSubStruct2 *temp_r31;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        temp_r31->unk24.x = arg8;
-        temp_r31->unk24.y = arg9;
-        temp_r31->unk24.z = argA;
-        if (temp_r31->unk2 == 1) {
-            temp_r31->unk3C->unk18 = temp_r31->unk24;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapObject->scale.x = scaleX;
+        mapObject->scale.y = scaleY;
+        mapObject->scale.z = scaleZ;
+        if (mapObject->meshCount == 1) {
+            mapObject->meshes->scale = mapObject->scale;
         }
     }
 }
 
-void fn_1_BD08(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA)
+void MapMeshScaleSet(s16 objectId, s16 meshIndex, f32 scaleX, f32 scaleY, f32 scaleZ)
 {
-    unkSubStruct *temp_r31;
-    unkSubStruct2 *temp_r30;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r30->unk2 > arg1) {
-            temp_r31 = &temp_r30->unk3C[arg1];
-            temp_r31->unk18.x = arg8;
-            temp_r31->unk18.y = arg9;
-            temp_r31->unk18.z = argA;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->scale.x = scaleX;
+            mapMesh->scale.y = scaleY;
+            mapMesh->scale.z = scaleZ;
         }
     }
 }
 
-void fn_1_BD78(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void MapMeshesScaleSet(s16 objectId, f32 scaleX, f32 scaleY, f32 scaleZ)
 {
-    s32 var_r29;
-    unkSubStruct *var_r31;
-    unkSubStruct2 *temp_r30;
+    s32 meshIndex;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_36C.unk40[arg0];
-        var_r31 = temp_r30->unk3C;
-        for (var_r29 = 0; var_r29 < temp_r30->unk2; var_r29++, var_r31++) {
-            var_r31->unk18.x = arg8;
-            var_r31->unk18.y = arg9;
-            var_r31->unk18.z = argA;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = mapObject->meshes;
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++, mapMesh++) {
+            mapMesh->scale.x = scaleX;
+            mapMesh->scale.y = scaleY;
+            mapMesh->scale.z = scaleZ;
         }
     }
 }
 
-void fn_1_BDEC(s16 arg0, s32 arg1)
+void MapObjectFlagsEnable(s16 objectId, s32 flags)
 {
-    unkSubStruct2 *temp_r31;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        temp_r31->unk8 |= arg1;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapObject->flags |= flags;
     }
 }
 
-void fn_1_BE30(s16 arg0, s16 arg1, s32 arg2)
+void MapMeshFlagsEnable(s16 objectId, s16 meshIndex, s32 flags)
 {
-    unkSubStruct *temp_r30;
-    unkSubStruct2 *temp_r31;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk2 > arg1) {
-            temp_r30 = &temp_r31->unk3C[arg1];
-            temp_r30->unk34 |= arg2;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->flags |= flags;
         }
     }
 }
 
-void fn_1_BEA0(s16 arg0, s32 arg1)
+void MapMeshesFlagsEnable(s16 objectId, s32 flags)
 {
-    s32 var_r30;
-    unkSubStruct *temp_r29;
-    unkSubStruct2 *temp_r31;
+    s32 meshIndex;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        temp_r29 = temp_r31->unk3C;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = mapObject->meshes;
 
-        for (var_r30 = 0; var_r30 < temp_r31->unk2; var_r30++) {
-            temp_r29->unk34 |= arg1;
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++) {
+            mapMesh->flags |= flags;
         }
     }
 }
 
-void fn_1_BF10(s16 arg0, u32 arg1)
+void MapObjectFlagsDisable(s16 objectId, u32 flags)
 {
-    unkSubStruct2 *temp_r31;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        temp_r31->unk8 &= ~arg1;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapObject->flags &= ~flags;
     }
 }
 
-void fn_1_BF54(s16 arg0, s16 arg1, u32 arg2)
+void MapMeshFlagsDisable(s16 objectId, s16 meshIndex, u32 flags)
 {
-    unkSubStruct *temp_r30;
-    unkSubStruct2 *temp_r31;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk2 > arg1) {
-            temp_r30 = &temp_r31->unk3C[arg1];
-            temp_r30->unk34 &= ~arg2;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->flags &= ~flags;
         }
     }
 }
 
-void fn_1_BFC4(s16 arg0, u32 arg1)
+void MapMeshesFlagsDisable(s16 objectId, u32 flags)
 {
-    s32 var_r30;
-    unkSubStruct *temp_r29;
-    unkSubStruct2 *temp_r31;
+    s32 meshIndex;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        temp_r29 = temp_r31->unk3C;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = mapObject->meshes;
 
-        for (var_r30 = 0; var_r30 < temp_r31->unk2; var_r30++) {
-            temp_r29->unk34 &= ~arg1;
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++) {
+            mapMesh->flags &= ~flags;
         }
     }
 }
 
-s32 fn_1_C034(s16 arg0, s32 arg1)
+s32 MapObjectFlagCheck(s16 objectId, s32 flags)
 {
-    unkSubStruct2 *temp_r31;
+    MapObject *mapObject;
 
-    if (arg0 == 0) {
+    if (objectId == 0) {
         return 0;
     }
 
-    temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-    if ((temp_r31->unk8 & arg1) != 0) {
+    mapObject = &mapRenderer.objects[objectId];
+    if ((mapObject->flags & flags) != 0) {
         return 1;
     }
     return 0;
 }
 
-s16 fn_1_C090(s16 arg0, s16 arg1, s32 arg2)
+s16 MapMeshFlagCheck(s16 objectId, s16 meshIndex, s32 flags)
 {
-    unkSubStruct *temp_r30;
-    unkSubStruct2 *temp_r31;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk2 > arg1) {
-            temp_r30 = &temp_r31->unk3C[arg1];
-            if ((temp_r30->unk34 & arg2) != 0) {
-                arg0 = 1;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            if ((mapMesh->flags & flags) != 0) {
+                objectId = 1;
             }
             else {
-                arg0 = 0;
+                objectId = 0;
             }
         }
     }
-    return arg0;
+    return objectId;
 }
 
-void fn_1_C110(s16 arg0, s16 arg1, u8 arg2, u8 arg3, u8 arg4, u8 arg5)
+void MapMeshColorSet(s16 objectId, s16 meshIndex, u8 red, u8 green, u8 blue, u8 alpha)
 {
-    unkSubStruct *temp_r31;
-    unkSubStruct2 *temp_r30;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r30->unk2 > arg1) {
-            temp_r31 = &temp_r30->unk3C[arg1];
-            temp_r31->unk50.r = arg2;
-            temp_r31->unk50.g = arg3;
-            temp_r31->unk50.b = arg4;
-            temp_r31->unk50.a = arg5;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->materialColor.r = red;
+            mapMesh->materialColor.g = green;
+            mapMesh->materialColor.b = blue;
+            mapMesh->materialColor.a = alpha;
         }
     }
 }
 
-void fn_1_C184(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4)
+void MapMeshesColorSet(s16 objectId, u8 red, u8 green, u8 blue, u8 alpha)
 {
-    s32 var_r29;
-    unkSubStruct *var_r31;
-    unkSubStruct2 *temp_r30;
+    s32 meshIndex;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_36C.unk40[arg0];
-        var_r31 = temp_r30->unk3C;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = mapObject->meshes;
 
-        for (var_r29 = 0; var_r29 < temp_r30->unk2; var_r29++, var_r31++) {
-            var_r31->unk50.r = arg1;
-            var_r31->unk50.g = arg2;
-            var_r31->unk50.b = arg3;
-            var_r31->unk50.a = arg4;
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++, mapMesh++) {
+            mapMesh->materialColor.r = red;
+            mapMesh->materialColor.g = green;
+            mapMesh->materialColor.b = blue;
+            mapMesh->materialColor.a = alpha;
         }
     }
 }
 
-void fn_1_C1FC(s16 arg0, s16 arg1, u8 arg2)
+void MapMeshRenderModeSet(s16 objectId, s16 meshIndex, u8 renderMode)
 {
-    unkSubStruct *temp_r30;
-    unkSubStruct2 *temp_r31;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk2 > arg1) {
-            temp_r30 = &temp_r31->unk3C[arg1];
-            temp_r30->unk30 = arg2;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->renderMode = renderMode;
         }
     }
 }
 
-void fn_1_C264(s16 arg0, u8 arg1)
+void MapMeshesRenderModeSet(s16 objectId, u8 renderMode)
 {
-    s32 var_r29;
-    unkSubStruct2 *temp_r31;
-    unkSubStruct *var_r30;
+    s32 meshIndex;
+    MapObject *mapObject;
+    MapMesh *mapMesh;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        var_r30 = temp_r31->unk3C;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = mapObject->meshes;
 
-        for (var_r29 = 0; var_r29 < temp_r31->unk2; var_r29++, var_r30++) {
-            var_r30->unk30 = arg1;
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++, mapMesh++) {
+            mapMesh->renderMode = renderMode;
         }
     }
 }
 
-void fn_1_C2D0(s16 arg0, s16 arg1, u8 arg2)
+void MapMeshBillboardModeSet(s16 objectId, s16 meshIndex, u8 billboardMode)
 {
-    unkSubStruct2 *temp_r31;
-    unkSubStruct *var_r30;
+    MapObject *mapObject;
+    MapMesh *mapMesh;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk31 = arg2;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->billboardMode = billboardMode;
         }
     }
 }
 
-void fn_1_C338(s16 arg0, u8 arg1)
+void MapMeshesBillboardModeSet(s16 objectId, u8 billboardMode)
 {
-    s32 var_r29;
-    unkSubStruct2 *temp_r31;
-    unkSubStruct *var_r30;
+    s32 meshIndex;
+    MapObject *mapObject;
+    MapMesh *mapMesh;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        var_r30 = temp_r31->unk3C;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = mapObject->meshes;
 
-        for (var_r29 = 0; var_r29 < temp_r31->unk2; var_r29++, var_r30++) {
-            var_r30->unk31 = arg1;
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++, mapMesh++) {
+            mapMesh->billboardMode = billboardMode;
         }
     }
 }
 
-void fn_1_C3A4(s16 arg0, s16 arg1, u8 arg2)
+void MapMeshTextureFlagsSet(s16 objectId, s16 meshIndex, u8 textureFlags)
 {
-    unkSubStruct2 *temp_r31;
-    unkSubStruct *var_r30;
+    MapObject *mapObject;
+    MapMesh *mapMesh;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54->unk24 = arg2;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->textureFrames->flags = textureFlags;
         }
     }
 }
 
-void fn_1_C410(s16 arg0, s16 arg1, u8 arg2, u8 arg3)
+void MapMeshTextureFlagsIndexedSet(s16 objectId, s16 meshIndex, u8 textureIndex, u8 textureFlags)
 {
-    unkSubStruct2 *temp_r31;
-    unkSubStruct *var_r30;
+    MapObject *mapObject;
+    MapMesh *mapMesh;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54[arg2].unk24 = arg3;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->textureFrames[textureIndex].flags = textureFlags;
         }
     }
 }
 
-void fn_1_C488(s16 arg0, u8 arg1)
+void MapMeshesTextureFlagsSet(s16 objectId, u8 textureFlags)
 {
-    s32 var_r28;
-    s32 var_r30;
-    unkSubStruct *var_r31;
-    unkSubStruct2 *temp_r29;
+    s32 meshIndex;
+    s32 index;
+    MapMesh *mapMesh;
+    MapObject *mapObject;
 
-    if (arg0 != 0) {
-        temp_r29 = &lbl_1_bss_36C.unk40[arg0];
-        var_r31 = (unkSubStruct *)&temp_r29->unk3C; //! BAD WHY
-        (void)temp_r29;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = (MapMesh *)&mapObject->meshes; //! BAD WHY
+        (void)mapObject;
 
-        for (var_r28 = 0; var_r28 < temp_r29->unk2; var_r28++, var_r31++) {
-            for (var_r30 = 0; var_r30 < var_r31->unk33; var_r30++) {
-                var_r31->unk54[var_r30].unk24 = arg1;
-            }
-        }
-    }
-}
-
-void fn_1_C520(s16 arg0, s16 arg1, f32 arg8)
-{
-    unkSubStruct2 *temp_r31;
-    unkSubStruct *var_r30;
-
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54->unk28 = arg8;
-        }
-    }
-}
-
-void fn_1_C58C(s16 arg0, s16 arg1, u8 arg2, f32 arg8)
-{
-    unkSubStruct2 *temp_r31;
-    unkSubStruct *var_r30;
-
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54[arg2].unk28 = arg8;
-        }
-    }
-}
-
-void fn_1_C604(s16 arg0, f32 arg8)
-{
-    unkSubStruct *volatile sp8;
-    s32 var_r29;
-    unkSubStruct2 *temp_r31;
-    s32 var_r30;
-
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        sp8 = temp_r31->unk3C;
-
-        for (var_r29 = 0; var_r29 < temp_r31->unk2; var_r29++) {
-            for (var_r30 = 0; var_r30 < sp8->unk33; var_r30++) {
-                sp8->unk54[var_r30].unk28 = arg8;
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++, mapMesh++) {
+            for (index = 0; index < mapMesh->textureCount; index++) {
+                mapMesh->textureFrames[index].flags = textureFlags;
             }
         }
     }
 }
 
-void fn_1_C69C(s16 arg0, s16 arg1, u8 arg2)
+void MapMeshTextureAnimationSpeedSet(s16 objectId, s16 meshIndex, f32 frameDuration)
 {
-    unkSubStruct2 *temp_r31;
-    unkSubStruct *var_r30;
+    MapObject *mapObject;
+    MapMesh *mapMesh;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54->unk0 = arg2;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->textureFrames->frameDuration = frameDuration;
         }
     }
 }
 
-void fn_1_C70C(s16 arg0, s16 arg1, u8 arg2, u8 arg3)
+void MapMeshTextureAnimationSpeedIndexedSet(s16 objectId, s16 meshIndex, u8 textureIndex, f32 frameDuration)
 {
-    unkSubStruct2 *temp_r31;
-    unkSubStruct *var_r30;
+    MapObject *mapObject;
+    MapMesh *mapMesh;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54[arg2].unk0 = arg3;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->textureFrames[textureIndex].frameDuration = frameDuration;
+        }
+    }
+}
+
+void MapMeshesTextureAnimationSpeedSet(s16 objectId, f32 frameDuration)
+{
+    MapMesh *volatile mapMesh;
+    s32 meshIndex;
+    MapObject *mapObject;
+    s32 index;
+
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = mapObject->meshes;
+
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++) {
+            for (index = 0; index < mapMesh->textureCount; index++) {
+                mapMesh->textureFrames[index].frameDuration = frameDuration;
+            }
+        }
+    }
+}
+
+void MapMeshTextureFrameSet(s16 objectId, s16 meshIndex, u8 frameIndex)
+{
+    MapObject *mapObject;
+    MapMesh *mapMesh;
+
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->textureFrames->currentFrame = frameIndex;
+        }
+    }
+}
+
+void MapMeshTextureFrameIndexedSet(s16 objectId, s16 meshIndex, u8 textureIndex, u8 frameIndex)
+{
+    MapObject *mapObject;
+    MapMesh *mapMesh;
+
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        if (mapObject->meshCount > meshIndex) {
+            mapMesh = &mapObject->meshes[meshIndex];
+            mapMesh->textureFrames[textureIndex].currentFrame = frameIndex;
         }
     }
 }
 
 // ...
 
-void fn_1_C784(s16 arg0, u8 arg1)
+void MapMeshesTextureFrameSet(s16 objectId, u8 frameIndex)
 {
-    unkSubStruct *volatile sp8;
-    s32 var_r29;
-    unkSubStruct2 *temp_r31;
-    s32 var_r30;
+    MapMesh *volatile mapMesh;
+    s32 meshIndex;
+    MapObject *mapObject;
+    s32 index;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_36C.unk40[arg0];
-        sp8 = temp_r31->unk3C;
-        for (var_r29 = 0; var_r29 < temp_r31->unk2; var_r29++) {
-            for (var_r30 = 0; var_r30 < sp8->unk33; var_r30++) {
-                sp8->unk54[var_r30].unk0 = arg1;
+    if (objectId != 0) {
+        mapObject = &mapRenderer.objects[objectId];
+        mapMesh = mapObject->meshes;
+        for (meshIndex = 0; meshIndex < mapObject->meshCount; meshIndex++) {
+            for (index = 0; index < mapMesh->textureCount; index++) {
+                mapMesh->textureFrames[index].currentFrame = frameIndex;
             }
         }
     }
 }
 
-void fn_1_C81C(s16 arg0, u8 arg1)
+void MapTextureAnimationFrameSet(s16 textureId, u8 frameIndex)
 {
-    unkSubStruct3 *var_r31;
-    if (arg0 != 0) {
-        var_r31 = &lbl_1_bss_36C.unk3C[arg0];
-        var_r31->unk4 = arg1;
+    MapTexture *mapTexture;
+    if (textureId != 0) {
+        mapTexture = &mapRenderer.textures[textureId];
+        mapTexture->frame = frameIndex;
     }
 }
