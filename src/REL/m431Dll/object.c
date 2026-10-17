@@ -14,472 +14,472 @@
 
 s32 rand8(void);
 
-typedef struct bss_struct_62C {
-    u8 unk0;
-    float unk4;
-} BssStruct62C;
+typedef struct ItemRingRotationState {
+    u8 isActive;
+    float rotationAngle;
+} ItemRingRotationState;
 
-BssStruct62C lbl_1_bss_62C[10];
-OMOBJ *lbl_1_bss_61C[4];
-Bss12CStruct lbl_1_bss_12C[4];
-s32 lbl_1_bss_AC[16][2];
-u32 lbl_1_bss_9C[4];
-s8 lbl_1_bss_98;
+ItemRingRotationState itemRotationStates[10];
+OMOBJ *playerObjects[4];
+PlayerGroupState playerGroups[4];
+s32 collisionResponseTable[16][2];
+u32 playerFinishFlags[4];
+s8 activePlayerCount;
 
-float lbl_1_data_1D0 = 18;
-float lbl_1_data_1D4[8] = { 30.000002f, 0, 20.0f, 0, 20.0f, 50.0f, 20.0f, 30.000002f };
+float itemStartingAngle = 18;
+float playerItemRotationOffsets[8] = { 30.000002f, 0, 20.0f, 0, 20.0f, 50.0f, 20.0f, 30.000002f };
 
-u32 lbl_1_data_1F4[8] = { DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x03), -1,
+u32 playerMotions[8] = { DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x03), -1,
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x48), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x49), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x17),
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x72) };
 
-char *lbl_1_data_230[8] = { "test11_tex_we-itemhook-r", "test11_tex_we-itemhook-r", "test11_tex_we-itemhook-r", "test11_tex_we-itemhook-r",
+char *playerModelHookNames[8] = { "test11_tex_we-itemhook-r", "test11_tex_we-itemhook-r", "test11_tex_we-itemhook-r", "test11_tex_we-itemhook-r",
     "test11_tex_we-itemhook-r", "test11_tex_we-itemhook-r", "test11_tex_we-itemhook-r", "test11_tex_we-itemhook-r" };
 
-void fn_1_858C(OMOBJ *object);
-void fn_1_9440(OMOBJ *object);
+void UpdatePlayerController(OMOBJ *object);
+void InitializePlayerCharacter(OMOBJ *object);
 
-void fn_1_B384(HUPROCESS *objman);
+void UpdatePlayerGroup(HUPROCESS *objman);
 
-void fn_1_7ABC(HUPROCESS *objman)
+void InitializePlayerGroups(HUPROCESS *objman)
 {
-    Vec sp8[3];
-    Bss12CStruct *temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    BssStruct62C *temp_r28;
-    OMOBJ *temp_r26;
+    Vec collisionTriangle[3];
+    PlayerGroupState *playerGroup;
+    s16 playerIndex;
+    s16 completeGroupCount;
+    ItemRingRotationState *itemRotationState;
+    OMOBJ *playerObject;
     omMakeGroupEx(objman, 0, 4);
     omGetGroupMemberListEx(objman, 0);
-    memset(lbl_1_bss_12C, 0, sizeof(lbl_1_bss_12C));
-    for (temp_r30 = 0, temp_r29 = 0; temp_r30 < 4; temp_r30++) {
-        temp_r31 = &lbl_1_bss_12C[GWPlayerCfg[temp_r30].group];
-        if (GWPlayerCfg[temp_r30].group != 0 && GWPlayerCfg[temp_r30].group != 1) {
+    memset(playerGroups, 0, sizeof(playerGroups));
+    for (playerIndex = 0, completeGroupCount = 0; playerIndex < 4; playerIndex++) {
+        playerGroup = &playerGroups[GWPlayerCfg[playerIndex].group];
+        if (GWPlayerCfg[playerIndex].group != 0 && GWPlayerCfg[playerIndex].group != 1) {
             break;
         }
-        temp_r31->unk0[temp_r31->unk8++] = temp_r30;
-        if (temp_r31->unk8 == 2) {
-            temp_r29++;
+        playerGroup->playerIds[playerGroup->playerCount++] = playerIndex;
+        if (playerGroup->playerCount == 2) {
+            completeGroupCount++;
         }
     }
-    if (temp_r29 != 2) {
+    if (completeGroupCount != 2) {
         GWPlayerCfg[0].group = GWPlayerCfg[1].group = 0;
         GWPlayerCfg[2].group = GWPlayerCfg[3].group = 1;
-        lbl_1_bss_12C[0].unk0[0] = 0;
-        lbl_1_bss_12C[0].unk0[1] = 1;
-        lbl_1_bss_12C[0].unk8 = 2;
-        lbl_1_bss_12C[1].unk0[0] = 2;
-        lbl_1_bss_12C[1].unk0[1] = 3;
-        lbl_1_bss_12C[1].unk8 = 2;
+        playerGroups[0].playerIds[0] = 0;
+        playerGroups[0].playerIds[1] = 1;
+        playerGroups[0].playerCount = 2;
+        playerGroups[1].playerIds[0] = 2;
+        playerGroups[1].playerIds[1] = 3;
+        playerGroups[1].playerCount = 2;
     }
-    for (temp_r30 = 0, temp_r28 = &lbl_1_bss_62C[0]; temp_r30 < 10; temp_r30++, temp_r28++) {
-        temp_r28->unk0 = 1;
-        temp_r28->unk4 = lbl_1_data_1D0 + (temp_r30 * 36.0f);
+    for (playerIndex = 0, itemRotationState = &itemRotationStates[0]; playerIndex < 10; playerIndex++, itemRotationState++) {
+        itemRotationState->isActive = 1;
+        itemRotationState->rotationAngle = itemStartingAngle + (playerIndex * 36.0f);
     }
-    lbl_1_bss_12C[0].unkC.x = -317;
-    lbl_1_bss_12C[1].unkC.x = 317;
-    lbl_1_bss_12C[0].unkC.y = lbl_1_bss_12C[1].unkC.y = 0;
-    lbl_1_bss_12C[0].unkC.z = lbl_1_bss_12C[1].unkC.z = 100;
-    lbl_1_bss_12C[0].unk18 = lbl_1_bss_12C[1].unk18 = 230;
-    for (temp_r30 = 0, temp_r31 = &lbl_1_bss_12C[0]; temp_r30 < 2; temp_r30++, temp_r31++) {
-        sp8[0].x = temp_r31->unkC.x;
-        sp8[0].y = temp_r31->unkC.y;
-        sp8[0].z = temp_r31->unkC.z;
-        for (temp_r29 = 0; temp_r29 < 10; temp_r29++) {
-            sp8[1].x = sp8[2].x = (temp_r31->unk18 * sind(lbl_1_bss_62C[temp_r29].unk4)) + sp8[0].x;
-            sp8[1].z = sp8[2].z = (temp_r31->unk18 * cosd(lbl_1_bss_62C[temp_r29].unk4)) + sp8[0].z;
-            sp8[1].y = sp8[0].y;
-            sp8[2].y = sp8[0].y - 50;
-            fn_1_6184(sp8, &temp_r31->unk1C[temp_r29]);
-            temp_r31->unkE4[temp_r29][0] = sp8[1].x;
-            temp_r31->unkE4[temp_r29][1] = sp8[1].z;
+    playerGroups[0].startingPosition.x = -317;
+    playerGroups[1].startingPosition.x = 317;
+    playerGroups[0].startingPosition.y = playerGroups[1].startingPosition.y = 0;
+    playerGroups[0].startingPosition.z = playerGroups[1].startingPosition.z = 100;
+    playerGroups[0].itemRingRadius = playerGroups[1].itemRingRadius = 230;
+    for (playerIndex = 0, playerGroup = &playerGroups[0]; playerIndex < 2; playerIndex++, playerGroup++) {
+        collisionTriangle[0].x = playerGroup->startingPosition.x;
+        collisionTriangle[0].y = playerGroup->startingPosition.y;
+        collisionTriangle[0].z = playerGroup->startingPosition.z;
+        for (completeGroupCount = 0; completeGroupCount < 10; completeGroupCount++) {
+            collisionTriangle[1].x = collisionTriangle[2].x = (playerGroup->itemRingRadius * sind(itemRotationStates[completeGroupCount].rotationAngle)) + collisionTriangle[0].x;
+            collisionTriangle[1].z = collisionTriangle[2].z = (playerGroup->itemRingRadius * cosd(itemRotationStates[completeGroupCount].rotationAngle)) + collisionTriangle[0].z;
+            collisionTriangle[1].y = collisionTriangle[0].y;
+            collisionTriangle[2].y = collisionTriangle[0].y - 50;
+            CalculateCollisionPlane(collisionTriangle, &playerGroup->collisionBoundaries[completeGroupCount]);
+            playerGroup->itemPositions[completeGroupCount][0] = collisionTriangle[1].x;
+            playerGroup->itemPositions[completeGroupCount][1] = collisionTriangle[1].z;
         }
-        temp_r31->unk138[0] = 0;
+        playerGroup->completedRoundCounts[0] = 0;
     }
-    for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-        OSReport("PNo:%d Grp:%d\n", temp_r30, GWPlayerCfg[temp_r30].group);
-        temp_r26 = omAddObjEx(objman, 99, 0, 0, -1, fn_1_858C);
-        lbl_1_bss_61C[temp_r30] = omAddObjEx(objman, 100, 9, 8, 0, fn_1_9440);
-        lbl_1_bss_61C[temp_r30]->work[0] = temp_r26->work[0] = temp_r30;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        OSReport("PNo:%d Grp:%d\n", playerIndex, GWPlayerCfg[playerIndex].group);
+        playerObject = omAddObjEx(objman, 99, 0, 0, -1, UpdatePlayerController);
+        playerObjects[playerIndex] = omAddObjEx(objman, 100, 9, 8, 0, InitializePlayerCharacter);
+        playerObjects[playerIndex]->work[0] = playerObject->work[0] = playerIndex;
     }
-    fn_1_B384(objman);
+    UpdatePlayerGroup(objman);
 }
 
-s16 lbl_1_data_260[4] = { 0, 0, 0, 0 };
-s16 lbl_1_data_268[2] = { 0, 9 };
+s16 playerInputEnabled[4] = { 0, 0, 0, 0 };
+s16 playerStatusValues[2] = { 0, 9 };
 
-s16 fn_1_8AD4(Bss61CWork *arg0, s16 arg1, s16 arg2, s16 *arg3, u8 arg4);
-void fn_1_8CC0(OMOBJ *object);
+s16 CalculateItemPath(PlayerCharacterState *playerState, s16 startItemIndex, s16 targetItemIndex, s16 *directionOut, u8 avoidOpponent);
+void UpdatePlayerMovement(OMOBJ *object);
 
-s16 fn_1_B4F8(float arg0);
-s16 fn_1_B530(s16 arg0);
+s16 GetItemRingIndex(float ringAngle);
+s16 GetItemRingDirection(s16 itemIndex);
 
-s32 fn_1_7FB8(s16 arg0)
+s32 MovePlayerPairToTarget(s16 groupIndex)
 {
-    Bss61CWork *temp_r31;
-    Bss12CStruct *temp_r30 = &lbl_1_bss_12C[arg0];
-    s16 sp18[4] = { 0, 9, 9, 0 };
+    PlayerCharacterState *playerState;
+    PlayerGroupState *playerGroup = &playerGroups[groupIndex];
+    s16 playerPriorityOrder[4] = { 0, 9, 9, 0 };
 
-    s16 sp14[2];
-    s16 sp10[2];
-    s16 spC[2];
-    s16 spA;
-    s16 temp_r29;
-    s32 temp_r28;
-    if (lbl_1_bss_98 != 0) {
-        (void)lbl_1_bss_98;
+    s16 playerMoveResults[2];
+    s16 playerTargetAngles[2];
+    s16 playerDirections[2];
+    s16 playerDirection;
+    s16 playerIndex;
+    s32 playerIsBlocked;
+    if (activePlayerCount != 0) {
+        (void)activePlayerCount;
     }
     else {
-        for (temp_r29 = 0, temp_r28 = 0; temp_r29 < 2; temp_r29++) {
-            temp_r31 = lbl_1_bss_61C[temp_r30->unk0[temp_r29]]->data;
-            if ((temp_r31->unk0 & 0xC0) || (temp_r31->unk0 & 0x600)) {
-                temp_r28 = 1;
+        for (playerIndex = 0, playerIsBlocked = 0; playerIndex < 2; playerIndex++) {
+            playerState = playerObjects[playerGroup->playerIds[playerIndex]]->data;
+            if ((playerState->stateFlags & 0xC0) || (playerState->stateFlags & 0x600)) {
+                playerIsBlocked = 1;
             }
-            fn_1_8CC0(lbl_1_bss_61C[temp_r30->unk0[temp_r29]]);
-            sp10[temp_r29] = temp_r31->unk40 = fn_1_B4F8(temp_r31->unk44.y);
-            spC[temp_r29] = fn_1_B530(temp_r31->unk40);
+            UpdatePlayerMovement(playerObjects[playerGroup->playerIds[playerIndex]]);
+            playerTargetAngles[playerIndex] = playerState->itemIndex = GetItemRingIndex(playerState->ringMovementState.y);
+            playerDirections[playerIndex] = GetItemRingDirection(playerState->itemIndex);
         }
-        if (temp_r28 != 0) {
+        if (playerIsBlocked != 0) {
             return 0;
         }
-        if (spC[0] != spC[1]) {
-            if (spC[0] == 0) {
-                temp_r31 = lbl_1_bss_61C[temp_r30->unk0[0]]->data;
-                temp_r31->unk84 = lbl_1_data_268[0];
-                temp_r31->unk14->unk84 = lbl_1_data_268[1];
+        if (playerDirections[0] != playerDirections[1]) {
+            if (playerDirections[0] == 0) {
+                playerState = playerObjects[playerGroup->playerIds[0]]->data;
+                playerState->groupTargetItemIndex = playerStatusValues[0];
+                playerState->opponent->groupTargetItemIndex = playerStatusValues[1];
             }
             else {
-                temp_r31 = lbl_1_bss_61C[temp_r30->unk0[1]]->data;
-                temp_r31->unk84 = lbl_1_data_268[0];
-                temp_r31->unk14->unk84 = lbl_1_data_268[1];
+                playerState = playerObjects[playerGroup->playerIds[1]]->data;
+                playerState->groupTargetItemIndex = playerStatusValues[0];
+                playerState->opponent->groupTargetItemIndex = playerStatusValues[1];
             }
         }
         else {
-            if (spC[0] == 0) {
-                if (sp10[0] < sp10[1]) {
-                    temp_r31 = lbl_1_bss_61C[temp_r30->unk0[0]]->data;
-                    temp_r31->unk84 = lbl_1_data_268[1];
-                    temp_r31->unk14->unk84 = lbl_1_data_268[0];
+            if (playerDirections[0] == 0) {
+                if (playerTargetAngles[0] < playerTargetAngles[1]) {
+                    playerState = playerObjects[playerGroup->playerIds[0]]->data;
+                    playerState->groupTargetItemIndex = playerStatusValues[1];
+                    playerState->opponent->groupTargetItemIndex = playerStatusValues[0];
                 }
                 else {
-                    temp_r31 = lbl_1_bss_61C[temp_r30->unk0[1]]->data;
-                    temp_r31->unk84 = lbl_1_data_268[1];
-                    temp_r31->unk14->unk84 = lbl_1_data_268[0];
+                    playerState = playerObjects[playerGroup->playerIds[1]]->data;
+                    playerState->groupTargetItemIndex = playerStatusValues[1];
+                    playerState->opponent->groupTargetItemIndex = playerStatusValues[0];
                 }
             }
             else {
-                if (sp10[0] > sp10[1]) {
-                    temp_r31 = lbl_1_bss_61C[temp_r30->unk0[0]]->data;
-                    temp_r31->unk84 = lbl_1_data_268[0];
-                    temp_r31->unk14->unk84 = lbl_1_data_268[1];
+                if (playerTargetAngles[0] > playerTargetAngles[1]) {
+                    playerState = playerObjects[playerGroup->playerIds[0]]->data;
+                    playerState->groupTargetItemIndex = playerStatusValues[0];
+                    playerState->opponent->groupTargetItemIndex = playerStatusValues[1];
                 }
                 else {
-                    temp_r31 = lbl_1_bss_61C[temp_r30->unk0[1]]->data;
-                    temp_r31->unk84 = lbl_1_data_268[0];
-                    temp_r31->unk14->unk84 = lbl_1_data_268[1];
+                    playerState = playerObjects[playerGroup->playerIds[1]]->data;
+                    playerState->groupTargetItemIndex = playerStatusValues[0];
+                    playerState->opponent->groupTargetItemIndex = playerStatusValues[1];
                 }
             }
         }
-        lbl_1_bss_98++;
+        activePlayerCount++;
     }
-    for (temp_r29 = 0; temp_r29 < 2; temp_r29++) {
-        temp_r31 = lbl_1_bss_61C[temp_r30->unk0[temp_r29]]->data;
-        temp_r31->unkC = 0;
-        temp_r31->unk86 = 1;
-        temp_r31->unkB4 = 0;
-        temp_r31->unkB5 = 0;
-        sp14[temp_r29] = fn_1_8AD4(temp_r31, temp_r31->unk40, temp_r31->unk84, &spA, 0);
-        if (sp14[temp_r29] != 0) {
-            temp_r31->unkB4 = (spA == 0) ? 50 : -50;
+    for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+        playerState = playerObjects[playerGroup->playerIds[playerIndex]]->data;
+        playerState->isHuman = 0;
+        playerState->hasMovementInput = 1;
+        playerState->stickX = 0;
+        playerState->stickY = 0;
+        playerMoveResults[playerIndex] = CalculateItemPath(playerState, playerState->itemIndex, playerState->groupTargetItemIndex, &playerDirection, 0);
+        if (playerMoveResults[playerIndex] != 0) {
+            playerState->stickX = (playerDirection == 0) ? 50 : -50;
         }
         else {
-            temp_r31->unk86 = 0;
+            playerState->hasMovementInput = 0;
         }
-        fn_1_8CC0(lbl_1_bss_61C[temp_r30->unk0[temp_r29]]);
-        sp14[temp_r29] = (temp_r31->unk0 & 0xC0) ? 1 : 0;
-        if (temp_r31->unk0 & 0x600) {
-            sp14[temp_r29] = 1;
+        UpdatePlayerMovement(playerObjects[playerGroup->playerIds[playerIndex]]);
+        playerMoveResults[playerIndex] = (playerState->stateFlags & 0xC0) ? 1 : 0;
+        if (playerState->stateFlags & 0x600) {
+            playerMoveResults[playerIndex] = 1;
         }
     }
-    if (sp14[0] == 0 && sp14[1] == 0) {
+    if (playerMoveResults[0] == 0 && playerMoveResults[1] == 0) {
         return 1;
     }
     return 0;
 }
 
-s32 fn_1_8474(s16 arg0)
+s32 CheckPlayerGroupReady(s16 groupIndex)
 {
-    s32 spC[2];
-    s32 temp_r31;
-    Bss61CWork *temp_r30;
-    Bss12CStruct *temp_r29;
-    temp_r29 = &lbl_1_bss_12C[arg0];
-    for (temp_r31 = 0; temp_r31 < 2; temp_r31++) {
-        temp_r30 = lbl_1_bss_61C[temp_r29->unk0[temp_r31]]->data;
-        fn_1_8CC0(lbl_1_bss_61C[temp_r29->unk0[temp_r31]]);
-        if ((temp_r30->unk0 & 0xC0) || (temp_r30->unk0 & 0x600) || (temp_r30->unk0 & 0x20)) {
-            spC[temp_r31] = 1;
+    s32 playerBlockedFlags[2];
+    s32 playerIndex;
+    PlayerCharacterState *playerState;
+    PlayerGroupState *playerGroup;
+    playerGroup = &playerGroups[groupIndex];
+    for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+        playerState = playerObjects[playerGroup->playerIds[playerIndex]]->data;
+        UpdatePlayerMovement(playerObjects[playerGroup->playerIds[playerIndex]]);
+        if ((playerState->stateFlags & 0xC0) || (playerState->stateFlags & 0x600) || (playerState->stateFlags & 0x20)) {
+            playerBlockedFlags[playerIndex] = 1;
         }
         else {
-            spC[temp_r31] = 0;
+            playerBlockedFlags[playerIndex] = 0;
         }
     }
-    if (spC[0] == 0 && spC[1] == 0) {
+    if (playerBlockedFlags[0] == 0 && playerBlockedFlags[1] == 0) {
         return 1;
     }
     return 0;
 }
 
-void fn_1_8790(OMOBJ *object);
-Bss61CWork *fn_1_AAF0(OMOBJ *object);
-u32 fn_1_ABA0(OMOBJ *object, u32 arg1);
+void UpdateComputerPlayerController(OMOBJ *object);
+PlayerCharacterState *GetOpposingPlayerState(OMOBJ *object);
+u32 GetPlayerStateFlags(OMOBJ *object, u32 stateMask);
 
-void fn_1_858C(OMOBJ *object)
+void UpdatePlayerController(OMOBJ *object)
 {
-    Bss61CWork *temp_r31;
-    u16 temp_r29;
-    if (lbl_1_data_260[object->work[0]] == 0) {
+    PlayerCharacterState *playerState;
+    u16 gameState;
+    if (playerInputEnabled[object->work[0]] == 0) {
         return;
     }
-    temp_r31 = lbl_1_bss_61C[object->work[0]]->data;
-    temp_r31->unkB0 = HuPadBtn[temp_r31->unk6];
-    temp_r31->unkB2 = HuPadBtnDown[temp_r31->unk6];
-    temp_r31->unkB4 = HuPadStkX[temp_r31->unk6];
-    temp_r31->unkB5 = HuPadStkY[temp_r31->unk6];
-    if (fn_1_2090(1) != 0) {
+    playerState = playerObjects[object->work[0]]->data;
+    playerState->buttonsHeld = HuPadBtn[playerState->controllerIndex];
+    playerState->buttonsPressed = HuPadBtnDown[playerState->controllerIndex];
+    playerState->stickX = HuPadStkX[playerState->controllerIndex];
+    playerState->stickY = HuPadStkY[playerState->controllerIndex];
+    if (getSequenceStatusFlags(1) != 0) {
         return;
     }
-    temp_r29 = fn_1_2090(28);
-    if (temp_r29 == 12 || temp_r29 == 16) {
-        if (fn_1_ABA0(lbl_1_bss_61C[object->work[0]], 0x600) == 0 && lbl_1_data_260[object->work[0]] != 0) {
-            temp_r31 = lbl_1_bss_61C[object->work[0]]->data;
-            if (temp_r31->unk14 == 0) {
-                temp_r31->unk14 = fn_1_AAF0(lbl_1_bss_61C[object->work[0]]);
+    gameState = getSequenceStatusFlags(28);
+    if (gameState == 12 || gameState == 16) {
+        if (GetPlayerStateFlags(playerObjects[object->work[0]], 0x600) == 0 && playerInputEnabled[object->work[0]] != 0) {
+            playerState = playerObjects[object->work[0]]->data;
+            if (playerState->opponent == 0) {
+                playerState->opponent = GetOpposingPlayerState(playerObjects[object->work[0]]);
             }
-            if (GWPlayerCfg[temp_r31->unk4].iscom) {
-                fn_1_8790(lbl_1_bss_61C[object->work[0]]);
+            if (GWPlayerCfg[playerState->playerIndex].iscom) {
+                UpdateComputerPlayerController(playerObjects[object->work[0]]);
             }
-            fn_1_8CC0(lbl_1_bss_61C[object->work[0]]);
+            UpdatePlayerMovement(playerObjects[object->work[0]]);
         }
     }
 }
 
-void fn_1_8790(OMOBJ *object)
+void UpdateComputerPlayerController(OMOBJ *object)
 {
-    Bss61CWork *temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    u32 temp_r26;
-    s16 sp18[9];
-    s16 sp8[8];
-    temp_r31 = object->data;
-    temp_r31->unkB4 = temp_r31->unkB5 = 0;
-    temp_r31->unkB2 = 0;
-    if (fn_1_2090(224)) {
+    PlayerCharacterState *playerState;
+    s16 candidateIndex;
+    s16 bestCandidateIndex;
+    s16 unavailableItemCount;
+    u32 itemFlags;
+    s16 candidateScores[9];
+    s16 candidateDirections[8];
+    playerState = object->data;
+    playerState->stickX = playerState->stickY = 0;
+    playerState->buttonsPressed = 0;
+    if (getSequenceStatusFlags(224)) {
         return;
     }
-    sp18[8] = 999;
-    for (temp_r30 = 0, temp_r28 = 0, temp_r29 = 8; temp_r30 < temp_r31->unk6E; temp_r30++) {
-        temp_r26 = fn_1_4738(temp_r31->unkA, temp_r31->unk5E[temp_r30]);
-        if (temp_r26 & 0x1) {
-            temp_r31->unk5E[temp_r30] = -1;
+    candidateScores[8] = 999;
+    for (candidateIndex = 0, unavailableItemCount = 0, bestCandidateIndex = 8; candidateIndex < playerState->availableItemCount; candidateIndex++) {
+        itemFlags = getStoryItemFlags(playerState->groupIndex, playerState->availableItemIndices[candidateIndex]);
+        if (itemFlags & 0x1) {
+            playerState->availableItemIndices[candidateIndex] = -1;
         }
-        sp18[temp_r30] = fn_1_8AD4(temp_r31, temp_r31->unk40, temp_r31->unk5E[temp_r30], &sp8[temp_r30], 1);
-        if (sp18[temp_r30] < sp18[temp_r29]) {
-            temp_r29 = temp_r30;
+        candidateScores[candidateIndex] = CalculateItemPath(playerState, playerState->itemIndex, playerState->availableItemIndices[candidateIndex], &candidateDirections[candidateIndex], 1);
+        if (candidateScores[candidateIndex] < candidateScores[bestCandidateIndex]) {
+            bestCandidateIndex = candidateIndex;
         }
-        if (temp_r31->unk5E[temp_r30] == -1) {
-            temp_r28++;
+        if (playerState->availableItemIndices[candidateIndex] == -1) {
+            unavailableItemCount++;
         }
     }
-    if (temp_r28 == temp_r31->unk6E) {
+    if (unavailableItemCount == playerState->availableItemCount) {
         return;
     }
-    if (temp_r31->unk70 < temp_r31->unk72 && temp_r29 < 4) {
-        for (temp_r30 = 4; temp_r30 < temp_r31->unk6E; temp_r30++) {
-            if (sp18[temp_r30] < 10) {
-                temp_r29 = temp_r30;
+    if (playerState->selectedItemCount < playerState->computerChoiceBias && bestCandidateIndex < 4) {
+        for (candidateIndex = 4; candidateIndex < playerState->availableItemCount; candidateIndex++) {
+            if (candidateScores[candidateIndex] < 10) {
+                bestCandidateIndex = candidateIndex;
                 break;
             }
         }
     }
-    if (temp_r31->unk7C == 0) {
-        if (GWPlayerCfg[temp_r31->unk14->unk4].iscom) {
-            if (temp_r31->unk4 > temp_r31->unk14->unk4 && (temp_r31->unk0 & 0x20)) {
-                temp_r31->unk7C = 1;
+    if (playerState->computerInputDelay == 0) {
+        if (GWPlayerCfg[playerState->opponent->playerIndex].iscom) {
+            if (playerState->playerIndex > playerState->opponent->playerIndex && (playerState->stateFlags & 0x20)) {
+                playerState->computerInputDelay = 1;
             }
         }
         else {
-            if (temp_r31->unk0 & 0x20) {
-                temp_r31->unk7C = 1;
+            if (playerState->stateFlags & 0x20) {
+                playerState->computerInputDelay = 1;
             }
         }
     }
-    if (temp_r31->unk7C && temp_r28 == temp_r31->unk6E - 1) {
-        if (++temp_r31->unk7C > 2 * REFRESH_RATE) {
-            temp_r31->unk7C = 0;
+    if (playerState->computerInputDelay && unavailableItemCount == playerState->availableItemCount - 1) {
+        if (++playerState->computerInputDelay > 2 * REFRESH_RATE) {
+            playerState->computerInputDelay = 0;
         }
-        if ((temp_r31->unk14->unk0 & 0xC0) == 0x40) {
-            sp8[temp_r29] = 0;
+        if ((playerState->opponent->stateFlags & 0xC0) == 0x40) {
+            candidateDirections[bestCandidateIndex] = 0;
         }
         else {
-            if ((temp_r31->unk14->unk0 & 0xC0) == 0x80) {
-                sp8[temp_r29] = 1;
+            if ((playerState->opponent->stateFlags & 0xC0) == 0x80) {
+                candidateDirections[bestCandidateIndex] = 1;
             }
             else {
-                temp_r31->unk7C = 0;
+                playerState->computerInputDelay = 0;
             }
         }
     }
-    if (sp18[temp_r29] != -1) {
-        temp_r31->unkB4 = (sp8[temp_r29] == 0) ? 50 : -50;
+    if (candidateScores[bestCandidateIndex] != -1) {
+        playerState->stickX = (candidateDirections[bestCandidateIndex] == 0) ? 50 : -50;
     }
     else {
-        if (temp_r31->unk44.z <= 15.0f) {
-            temp_r31->unkB2 = PAD_BUTTON_A;
+        if (playerState->ringMovementState.z <= 15.0f) {
+            playerState->buttonsPressed = PAD_BUTTON_A;
         }
     }
 }
 
-s16 fn_1_8AD4(Bss61CWork *arg0, s16 arg1, s16 arg2, s16 *arg3, u8 arg4)
+s16 CalculateItemPath(PlayerCharacterState *playerState, s16 startItemIndex, s16 targetItemIndex, s16 *directionOut, u8 avoidOpponent)
 {
-    s16 temp_r31;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s16 temp_r25;
+    s16 candidateIndex;
+    s16 pathDistance;
+    s16 clockwiseSteps;
+    s16 counterclockwiseSteps;
+    s16 clockwiseBlocked;
+    s16 counterclockwiseBlocked;
 
-    if (arg2 == -1) {
-        *arg3 = rand16() % 2;
-        temp_r29 = 99;
+    if (targetItemIndex == -1) {
+        *directionOut = rand16() % 2;
+        pathDistance = 99;
     }
-    else if (arg1 == arg2) {
-        *arg3 = -1;
-        temp_r29 = (arg4) ? -1 : 0;
+    else if (startItemIndex == targetItemIndex) {
+        *directionOut = -1;
+        pathDistance = (avoidOpponent) ? -1 : 0;
     }
     else {
-        temp_r28 = temp_r27 = temp_r26 = temp_r25 = 0;
-        temp_r31 = arg1;
+        clockwiseSteps = counterclockwiseSteps = clockwiseBlocked = counterclockwiseBlocked = 0;
+        candidateIndex = startItemIndex;
         do {
-            temp_r31++;
-            temp_r28++;
-            if (temp_r31 >= 10) {
-                temp_r31 = 0;
+            candidateIndex++;
+            clockwiseSteps++;
+            if (candidateIndex >= 10) {
+                candidateIndex = 0;
             }
-            if (arg4 && temp_r31 == arg0->unk14->unk40) {
-                temp_r26 = 99;
+            if (avoidOpponent && candidateIndex == playerState->opponent->itemIndex) {
+                clockwiseBlocked = 99;
                 break;
             }
-        } while (temp_r31 != arg2);
-        temp_r31 = arg1;
+        } while (candidateIndex != targetItemIndex);
+        candidateIndex = startItemIndex;
         do {
-            temp_r31--;
-            temp_r27++;
-            if (temp_r31 < 0) {
-                temp_r31 = 9;
+            candidateIndex--;
+            counterclockwiseSteps++;
+            if (candidateIndex < 0) {
+                candidateIndex = 9;
             }
-            if (arg4 && temp_r31 == arg0->unk14->unk40) {
-                temp_r25 = 99;
+            if (avoidOpponent && candidateIndex == playerState->opponent->itemIndex) {
+                counterclockwiseBlocked = 99;
                 break;
             }
-        } while (temp_r31 != arg2);
-        if (temp_r26 != temp_r25) {
-            temp_r28 += temp_r26;
-            temp_r27 += temp_r25;
-            if (temp_r28 < temp_r27) {
-                *arg3 = 0;
-                temp_r29 = temp_r28;
+        } while (candidateIndex != targetItemIndex);
+        if (clockwiseBlocked != counterclockwiseBlocked) {
+            clockwiseSteps += clockwiseBlocked;
+            counterclockwiseSteps += counterclockwiseBlocked;
+            if (clockwiseSteps < counterclockwiseSteps) {
+                *directionOut = 0;
+                pathDistance = clockwiseSteps;
             }
             else {
-                *arg3 = 1;
-                temp_r29 = temp_r27;
+                *directionOut = 1;
+                pathDistance = counterclockwiseSteps;
             }
         }
         else {
-            if (temp_r28 < temp_r27) {
-                *arg3 = 0;
-                temp_r29 = temp_r28;
+            if (clockwiseSteps < counterclockwiseSteps) {
+                *directionOut = 0;
+                pathDistance = clockwiseSteps;
             }
             else {
-                *arg3 = 1;
-                temp_r29 = temp_r27;
+                *directionOut = 1;
+                pathDistance = counterclockwiseSteps;
             }
-            temp_r29 += 10;
+            pathDistance += 10;
         }
     }
-    return temp_r29;
+    return pathDistance;
 }
 
-s16 fn_1_938C(OMOBJ *object);
-void fn_1_ABC0(OMOBJ *object, u32 arg1, u32 arg2);
+s16 GetRelativePlayerSide(OMOBJ *object);
+void UpdatePlayerStateFlags(OMOBJ *object, u32 clearMask, u32 setMask);
 
-void fn_1_8CC0(OMOBJ *object)
+void UpdatePlayerMovement(OMOBJ *object)
 {
-    float temp_f31;
-    float temp_f30;
-    float temp_f28;
+    float playerDeltaX;
+    float playerDeltaZ;
+    float distanceToOpponent;
 
-    Bss61CWork *temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
+    PlayerCharacterState *playerState;
+    s16 moveRight;
+    s16 moveLeft;
+    s16 stickX;
+    s16 targetPlayerDelta;
+    s16 stickY;
 
-    Vec sp10;
-    u16 sp8;
-    Bss12CInner *temp_r25;
-    temp_r31 = object->data;
-    if (temp_r31->unk38 == 3 || temp_r31->unk38 == 5) {
+    Vec targetPosition;
+    u16 gameState;
+    PlayerCollisionBoundary *playerBoundary;
+    playerState = object->data;
+    if (playerState->motionIndex == 3 || playerState->motionIndex == 5) {
         return;
     }
-    sp8 = fn_1_2090(28);
-    if ((temp_r31->unk0 & 0x20) || (fn_1_2090(28) != 12 && temp_r31->unk86 == 0)) {
-        temp_r28 = temp_r26 = 0;
+    gameState = getSequenceStatusFlags(28);
+    if ((playerState->stateFlags & 0x20) || (getSequenceStatusFlags(28) != 12 && playerState->hasMovementInput == 0)) {
+        stickX = stickY = 0;
     }
     else {
-        temp_r28 = temp_r31->unkB4;
-        temp_r26 = temp_r31->unkB5;
+        stickX = playerState->stickX;
+        stickY = playerState->stickY;
     }
-    temp_r30 = temp_r29 = 0;
-    if (temp_r31->unk52 == 0) {
-        switch (temp_r31->unkC) {
+    moveRight = moveLeft = 0;
+    if (playerState->stickInputState == 0) {
+        switch (playerState->isHuman) {
             case 0:
-                if (temp_r28 > 10) {
-                    temp_r30 = 1;
+                if (stickX > 10) {
+                    moveRight = 1;
                 }
-                else if (temp_r28 < -10) {
-                    temp_r29 = 1;
+                else if (stickX < -10) {
+                    moveLeft = 1;
                 }
                 break;
 
             case 1:
-                if (ABS(temp_r28) >= 10 || ABS(temp_r26) >= 10) {
-                    temp_r25 = &lbl_1_bss_12C[temp_r31->unkA].unk1C[temp_r31->unk40];
-                    sp10.x = temp_r28 + lbl_1_bss_12C[temp_r31->unkA].unkE4[temp_r31->unk40][0];
-                    sp10.z = lbl_1_bss_12C[temp_r31->unkA].unkE4[temp_r31->unk40][1] - temp_r26;
-                    temp_f28 = (temp_r25->unk0.x * sp10.x) + (temp_r25->unk0.z * sp10.z) - temp_r25->unkC;
-                    if (temp_f28 > 0.0f) {
-                        if (temp_r31->unk50 != temp_r31->unk40) {
-                            if (temp_r31->unk54 == 128) {
-                                temp_r31->unk52 = 1;
+                if (ABS(stickX) >= 10 || ABS(stickY) >= 10) {
+                    playerBoundary = &playerGroups[playerState->groupIndex].collisionBoundaries[playerState->itemIndex];
+                    targetPosition.x = stickX + playerGroups[playerState->groupIndex].itemPositions[playerState->itemIndex][0];
+                    targetPosition.z = playerGroups[playerState->groupIndex].itemPositions[playerState->itemIndex][1] - stickY;
+                    distanceToOpponent = (playerBoundary->planeNormal.x * targetPosition.x) + (playerBoundary->planeNormal.z * targetPosition.z) - playerBoundary->planeDistance;
+                    if (distanceToOpponent > 0.0f) {
+                        if (playerState->previousItemIndex != playerState->itemIndex) {
+                            if (playerState->directionInputFlags == 128) {
+                                playerState->stickInputState = 1;
                             }
                         }
                         else {
-                            temp_r30 = 1;
+                            moveRight = 1;
                         }
                     }
                     else {
-                        if (temp_f28 < 0.0f) {
-                            if (temp_r31->unk50 != temp_r31->unk40) {
-                                if (temp_r31->unk54 == 64) {
-                                    temp_r31->unk52 = 1;
+                        if (distanceToOpponent < 0.0f) {
+                            if (playerState->previousItemIndex != playerState->itemIndex) {
+                                if (playerState->directionInputFlags == 64) {
+                                    playerState->stickInputState = 1;
                                 }
                             }
                             else {
-                                temp_r29 = 1;
+                                moveLeft = 1;
                             }
                         }
                     }
@@ -488,735 +488,735 @@ void fn_1_8CC0(OMOBJ *object)
         }
     }
     else {
-        if (temp_r31->unk58 != temp_r28 || temp_r31->unk5A != temp_r26) {
-            temp_r31->unk52 = 0;
+        if (playerState->previousStickX != stickX || playerState->previousStickY != stickY) {
+            playerState->stickInputState = 0;
         }
     }
-    temp_f31 = temp_r31->unk24.x - temp_r31->unk14->unk24.x;
-    temp_f30 = temp_r31->unk24.z - temp_r31->unk14->unk24.z;
-    temp_f28 = VECMagPoint(temp_f31, 0, temp_f30);
-    if (temp_f28 < 90 && (temp_r31->unk0 & 0x20) == 0) {
-        if (fn_1_938C(object) == 0) {
-            temp_r30 = 0;
-            temp_r29 = 1;
+    playerDeltaX = playerState->position.x - playerState->opponent->position.x;
+    playerDeltaZ = playerState->position.z - playerState->opponent->position.z;
+    distanceToOpponent = VECMagPoint(playerDeltaX, 0, playerDeltaZ);
+    if (distanceToOpponent < 90 && (playerState->stateFlags & 0x20) == 0) {
+        if (GetRelativePlayerSide(object) == 0) {
+            moveRight = 0;
+            moveLeft = 1;
         }
         else {
-            temp_r30 = 1;
-            temp_r29 = 0;
+            moveRight = 1;
+            moveLeft = 0;
         }
-        temp_r31->unk0 |= 0x20;
+        playerState->stateFlags |= 0x20;
     }
     else {
-        if (temp_r31->unk54 == 64) {
-            temp_r27 = temp_r31->unk42 - temp_r31->unk40;
-            if (temp_r27 < 0) {
-                temp_r27 += 10;
+        if (playerState->directionInputFlags == 64) {
+            targetPlayerDelta = playerState->targetItemIndex - playerState->itemIndex;
+            if (targetPlayerDelta < 0) {
+                targetPlayerDelta += 10;
             }
-            if (temp_r27 > 1) {
-                temp_r31->unk42 = 1;
+            if (targetPlayerDelta > 1) {
+                playerState->targetItemIndex = 1;
             }
         }
         else {
-            temp_r27 = temp_r31->unk40 - temp_r31->unk42;
-            if (temp_r27 < 0) {
-                temp_r27 += 10;
+            targetPlayerDelta = playerState->itemIndex - playerState->targetItemIndex;
+            if (targetPlayerDelta < 0) {
+                targetPlayerDelta += 10;
             }
-            if (temp_r27 > 1) {
-                temp_r31->unk42 = 9;
+            if (targetPlayerDelta > 1) {
+                playerState->targetItemIndex = 9;
             }
         }
     }
-    if (temp_r30) {
-        temp_r30 = 0;
-        if (temp_r31->unk54 == 64) {
-            if (temp_r31->unk44.z <= 2.0f) {
-                temp_r30 = 1;
+    if (moveRight) {
+        moveRight = 0;
+        if (playerState->directionInputFlags == 64) {
+            if (playerState->ringMovementState.z <= 2.0f) {
+                moveRight = 1;
             }
         }
-        else if (temp_r31->unk54 == 128) {
-            if (temp_r31->unk40 != temp_r31->unk42) {
-                temp_r31->unk40 = temp_r31->unk42;
+        else if (playerState->directionInputFlags == 128) {
+            if (playerState->itemIndex != playerState->targetItemIndex) {
+                playerState->itemIndex = playerState->targetItemIndex;
             }
-            temp_r30 = 1;
+            moveRight = 1;
         }
         else {
-            temp_r30 = 1;
+            moveRight = 1;
         }
-        if (temp_r30) {
-            fn_1_ABC0(object, 192, 64);
-            temp_r31->unk42 = temp_r31->unk40 + 1;
-            if (temp_r31->unk42 >= 10) {
-                temp_r31->unk42 = 0;
+        if (moveRight) {
+            UpdatePlayerStateFlags(object, 192, 64);
+            playerState->targetItemIndex = playerState->itemIndex + 1;
+            if (playerState->targetItemIndex >= 10) {
+                playerState->targetItemIndex = 0;
             }
         }
     }
-    else if (temp_r29) {
-        temp_r29 = 0;
-        if (temp_r31->unk54 == 128) {
-            if (temp_r31->unk44.z <= 2.0f) {
-                temp_r29 = 1;
+    else if (moveLeft) {
+        moveLeft = 0;
+        if (playerState->directionInputFlags == 128) {
+            if (playerState->ringMovementState.z <= 2.0f) {
+                moveLeft = 1;
             }
         }
-        else if (temp_r31->unk54 == 64) {
-            if (temp_r31->unk40 != temp_r31->unk42) {
-                temp_r31->unk40 = temp_r31->unk42;
+        else if (playerState->directionInputFlags == 64) {
+            if (playerState->itemIndex != playerState->targetItemIndex) {
+                playerState->itemIndex = playerState->targetItemIndex;
             }
-            temp_r29 = 1;
+            moveLeft = 1;
         }
         else {
-            temp_r29 = 1;
+            moveLeft = 1;
         }
-        if (temp_r29) {
-            fn_1_ABC0(object, 192, 128);
-            temp_r31->unk42 = temp_r31->unk40 - 1;
-            if (temp_r31->unk42 < 0) {
-                temp_r31->unk42 = 9;
+        if (moveLeft) {
+            UpdatePlayerStateFlags(object, 192, 128);
+            playerState->targetItemIndex = playerState->itemIndex - 1;
+            if (playerState->targetItemIndex < 0) {
+                playerState->targetItemIndex = 9;
             }
         }
     }
-    temp_r31->unk50 = temp_r31->unk40;
-    temp_r31->unk54 = fn_1_ABA0(object, 192);
-    temp_r31->unk58 = temp_r28;
-    temp_r31->unk5A = temp_r26;
+    playerState->previousItemIndex = playerState->itemIndex;
+    playerState->directionInputFlags = GetPlayerStateFlags(object, 192);
+    playerState->previousStickX = stickX;
+    playerState->previousStickY = stickY;
 }
 
-s16 fn_1_938C(OMOBJ *object)
+s16 GetRelativePlayerSide(OMOBJ *object)
 {
-    Bss61CWork *temp_r31;
-    float temp_f31;
-    temp_r31 = object->data;
-    temp_f31 = temp_r31->unk44.y - temp_r31->unk14->unk44.y;
-    if (temp_f31 > 180.0f) {
-        temp_f31 -= 360.0f;
+    PlayerCharacterState *playerState;
+    float relativeHeading;
+    playerState = object->data;
+    relativeHeading = playerState->ringMovementState.y - playerState->opponent->ringMovementState.y;
+    if (relativeHeading > 180.0f) {
+        relativeHeading -= 360.0f;
     }
-    else if (temp_f31 < -180.0f) {
-        temp_f31 = 360.0f + temp_f31;
+    else if (relativeHeading < -180.0f) {
+        relativeHeading = 360.0f + relativeHeading;
     }
-    return (temp_f31 <= 0.0f) ? 0 : 1;
+    return (relativeHeading <= 0.0f) ? 0 : 1;
 }
 
-void fn_1_98D4(OMOBJ *object);
+void UpdatePlayerCharacter(OMOBJ *object);
 
-void fn_1_B0E8(OMOBJ *object, s16 arg1, u32 arg2);
+void SetPlayerMotion(OMOBJ *object, s16 motionIndex, u32 motionFlags);
 
-void fn_1_9440(OMOBJ *object)
+void InitializePlayerCharacter(OMOBJ *object)
 {
-    Bss61CWork *temp_r31;
-    Bss12CStruct *temp_r29;
-    s16 temp_r28;
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(Bss61CWork), HU_MEMNUM_OVL);
-    temp_r31 = object->data;
-    memset(temp_r31, 0, sizeof(Bss61CWork));
+    PlayerCharacterState *playerState;
+    PlayerGroupState *playerGroup;
+    s16 motionIndex;
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PlayerCharacterState), HU_MEMNUM_OVL);
+    playerState = object->data;
+    memset(playerState, 0, sizeof(PlayerCharacterState));
     object->stat |= 0x100;
-    temp_r31->unk4 = object->work[0];
-    temp_r31->unk6 = GWPlayerCfg[temp_r31->unk4].pad_idx;
-    temp_r31->unk8 = GWPlayerCfg[temp_r31->unk4].character;
-    temp_r31->unkA = GWPlayerCfg[temp_r31->unk4].group;
-    temp_r31->unkC = (GWPlayerCfg[temp_r31->unk4].iscom) ? 0 : 1;
-    temp_r31->unkAC = 0;
-    object->mdlId[0] = CharModelCreate(temp_r31->unk8, 2);
+    playerState->playerIndex = object->work[0];
+    playerState->controllerIndex = GWPlayerCfg[playerState->playerIndex].pad_idx;
+    playerState->characterId = GWPlayerCfg[playerState->playerIndex].character;
+    playerState->groupIndex = GWPlayerCfg[playerState->playerIndex].group;
+    playerState->isHuman = (GWPlayerCfg[playerState->playerIndex].iscom) ? 0 : 1;
+    playerState->alternateResultMotion = 0;
+    object->mdlId[0] = CharModelCreate(playerState->characterId, 2);
     Hu3DModelLayerSet(object->mdlId[0], 0);
     Hu3DModelShadowSet(object->mdlId[0]);
-    CharModelStepFxSet(temp_r31->unk8, 0);
-    for (temp_r28 = 0; temp_r28 < 8; temp_r28++) {
-        if (lbl_1_data_1F4[temp_r28] != -1) {
-            object->mtnId[temp_r28] = CharMotionCreate(temp_r31->unk8, lbl_1_data_1F4[temp_r28]);
+    CharModelStepFxSet(playerState->characterId, 0);
+    for (motionIndex = 0; motionIndex < 8; motionIndex++) {
+        if (playerMotions[motionIndex] != -1) {
+            object->mtnId[motionIndex] = CharMotionCreate(playerState->characterId, playerMotions[motionIndex]);
         }
         else {
-            object->mtnId[temp_r28] = Hu3DJointMotionFile(object->mdlId[0], DATA_MAKE_NUM(DATADIR_M431, 0x21) + temp_r31->unk8);
+            object->mtnId[motionIndex] = Hu3DJointMotionFile(object->mdlId[0], DATA_MAKE_NUM(DATADIR_M431, 0x21) + playerState->characterId);
         }
-        if (temp_r28 == 4 || temp_r28 == 5) {
-            CharMotionVoiceOnSet(temp_r31->unk8, object->mtnId[temp_r28], 0);
+        if (motionIndex == 4 || motionIndex == 5) {
+            CharMotionVoiceOnSet(playerState->characterId, object->mtnId[motionIndex], 0);
         }
     }
-    CharMotionDataClose(temp_r31->unk8);
-    temp_r29 = &lbl_1_bss_12C[temp_r31->unkA];
-    for (temp_r28 = 0; temp_r28 < 8; temp_r28++) {
-        temp_r31->unk5E[temp_r28] = -1;
+    CharMotionDataClose(playerState->characterId);
+    playerGroup = &playerGroups[playerState->groupIndex];
+    for (motionIndex = 0; motionIndex < 8; motionIndex++) {
+        playerState->availableItemIndices[motionIndex] = -1;
     }
-    if (temp_r31->unkA == 0) {
-        if (temp_r29->unk0[0] == object->work[0]) {
-            temp_r31->unk44.y = lbl_1_bss_62C[9].unk4;
+    if (playerState->groupIndex == 0) {
+        if (playerGroup->playerIds[0] == object->work[0]) {
+            playerState->ringMovementState.y = itemRotationStates[9].rotationAngle;
         }
         else {
-            temp_r31->unk44.y = lbl_1_bss_62C[4].unk4;
+            playerState->ringMovementState.y = itemRotationStates[4].rotationAngle;
         }
     }
     else {
-        if (temp_r29->unk0[0] == object->work[0]) {
-            temp_r31->unk44.y = lbl_1_bss_62C[5].unk4;
+        if (playerGroup->playerIds[0] == object->work[0]) {
+            playerState->ringMovementState.y = itemRotationStates[5].rotationAngle;
         }
         else {
-            temp_r31->unk44.y = lbl_1_bss_62C[0].unk4;
+            playerState->ringMovementState.y = itemRotationStates[0].rotationAngle;
         }
     }
-    temp_r31->unk40 = (temp_r31->unk44.y / 360.0f) * 10.0f;
-    temp_r31->unk42 = temp_r31->unk40;
-    temp_r31->unk10 = lbl_1_data_1D4[temp_r31->unk8];
-    temp_r31->unk24.x = ((temp_r29->unk18 + temp_r31->unk10) * sind(temp_r31->unk44.y)) + temp_r29->unkC.x;
-    temp_r31->unk24.y = temp_r29->unkC.y;
-    temp_r31->unk24.z = ((temp_r29->unk18 + temp_r31->unk10) * cosd(temp_r31->unk44.y)) + temp_r29->unkC.z;
-    temp_r31->unk30 = atan2d(temp_r29->unkC.x - temp_r31->unk24.x, temp_r29->unkC.z - temp_r31->unk24.z);
-    Hu3DModelPosSet(object->mdlId[0], temp_r31->unk24.x, temp_r31->unk24.y, temp_r31->unk24.z);
-    Hu3DModelRotSet(object->mdlId[0], 0, temp_r31->unk30, 0);
-    temp_r31->unk38 = temp_r31->unk3A = -1;
-    fn_1_B0E8(object, 0, 10);
-    lbl_1_data_260[object->work[0]] = 1;
-    object->objFunc = fn_1_98D4;
+    playerState->itemIndex = (playerState->ringMovementState.y / 360.0f) * 10.0f;
+    playerState->targetItemIndex = playerState->itemIndex;
+    playerState->modelRadiusOffset = playerItemRotationOffsets[playerState->characterId];
+    playerState->position.x = ((playerGroup->itemRingRadius + playerState->modelRadiusOffset) * sind(playerState->ringMovementState.y)) + playerGroup->startingPosition.x;
+    playerState->position.y = playerGroup->startingPosition.y;
+    playerState->position.z = ((playerGroup->itemRingRadius + playerState->modelRadiusOffset) * cosd(playerState->ringMovementState.y)) + playerGroup->startingPosition.z;
+    playerState->facingAngle = atan2d(playerGroup->startingPosition.x - playerState->position.x, playerGroup->startingPosition.z - playerState->position.z);
+    Hu3DModelPosSet(object->mdlId[0], playerState->position.x, playerState->position.y, playerState->position.z);
+    Hu3DModelRotSet(object->mdlId[0], 0, playerState->facingAngle, 0);
+    playerState->motionIndex = playerState->queuedMotionIndex = -1;
+    SetPlayerMotion(object, 0, 10);
+    playerInputEnabled[object->work[0]] = 1;
+    object->objFunc = UpdatePlayerCharacter;
 }
 
-void fn_1_9A04(OMOBJ *object);
-void fn_1_9C5C(OMOBJ *object);
-void fn_1_A0F8(OMOBJ *object);
-void fn_1_A450(OMOBJ *object);
+void HandlePlayerItemSelection(OMOBJ *object);
+void UpdatePlayerRingMovement(OMOBJ *object);
+void UpdatePlayerFacing(OMOBJ *object);
+void UpdatePlayerResultAnimation(OMOBJ *object);
 
-void fn_1_AA40(OMOBJ *object);
+void CleanupPlayerItemEffect(OMOBJ *object);
 
-void fn_1_B130(OMOBJ *object, s16 arg1, u32 arg2);
-void fn_1_B150(OMOBJ *object, OMOBJFUNC arg1);
+void SetPlayerMotionTimer(OMOBJ *object, s16 motionIndex, u32 motionFlags);
+void SetPlayerObjectCallback(OMOBJ *object, OMOBJFUNC callback);
 
-void fn_1_B18C(OMOBJ *object);
+void DestroyPlayerCharacter(OMOBJ *object);
 
-s32 fn_1_B494(s32 arg0, s32 arg1);
+s32 PlayPlayerSoundEffect(s32 soundId, s32 volume);
 
-void fn_1_98D4(OMOBJ *object)
+void UpdatePlayerCharacter(OMOBJ *object)
 {
-    Vec sp8;
+    Vec modelPositionDelta;
 
-    Bss61CWork *temp_r31;
-    HU3DMODEL *temp_r29;
-    temp_r31 = object->data;
-    temp_r29 = &Hu3DData[object->mdlId[0]];
-    sp8.x = temp_r31->unk24.x - temp_r29->pos.x;
-    sp8.z = temp_r31->unk24.z - temp_r29->pos.z;
-    if ((temp_r31->unk0 & 0x600) == 0 || 0.0f != sp8.x || 0.0f != sp8.z || (temp_r31->unk0 & 0x20)) {
-        fn_1_9A04(object);
-        fn_1_9C5C(object);
-        fn_1_A0F8(object);
+    PlayerCharacterState *playerState;
+    HU3DMODEL *playerModel;
+    playerState = object->data;
+    playerModel = &Hu3DData[object->mdlId[0]];
+    modelPositionDelta.x = playerState->position.x - playerModel->pos.x;
+    modelPositionDelta.z = playerState->position.z - playerModel->pos.z;
+    if ((playerState->stateFlags & 0x600) == 0 || 0.0f != modelPositionDelta.x || 0.0f != modelPositionDelta.z || (playerState->stateFlags & 0x20)) {
+        HandlePlayerItemSelection(object);
+        UpdatePlayerRingMovement(object);
+        UpdatePlayerFacing(object);
     }
     else {
-        fn_1_A450(object);
+        UpdatePlayerResultAnimation(object);
     }
-    fn_1_B18C(object);
-    Hu3DModelPosSet(object->mdlId[0], temp_r31->unk24.x, temp_r31->unk24.y, temp_r31->unk24.z);
-    Hu3DModelRotSet(object->mdlId[0], 0, temp_r31->unk30, 0);
+    DestroyPlayerCharacter(object);
+    Hu3DModelPosSet(object->mdlId[0], playerState->position.x, playerState->position.y, playerState->position.z);
+    Hu3DModelRotSet(object->mdlId[0], 0, playerState->facingAngle, 0);
 }
 
 #if VERSION_NTSC
-#define fn_1_9A04_CHECK (temp_r29->motIdShift == -1 && temp_r29->motWork.time == 14.0f)
+#define handlePlayerItemSelectionCHECK (playerModel->motIdShift == -1 && playerModel->motWork.time == 14.0f)
 #else
-#define fn_1_9A04_CHECK (temp_r29->motIdShift == -1 && temp_r29->motWork.time >= 14.0f && temp_r31->unk3C_pal == 0)
+#define handlePlayerItemSelectionCHECK (playerModel->motIdShift == -1 && playerModel->motWork.time >= 14.0f && playerState->palMotionTransitionFlag == 0)
 #endif
 
-void fn_1_9A04(OMOBJ *object)
+void HandlePlayerItemSelection(OMOBJ *object)
 {
-    Bss61CWork *temp_r31;
-    HU3DMODEL *temp_r29;
+    PlayerCharacterState *playerState;
+    HU3DMODEL *playerModel;
 
-    temp_r29 = &Hu3DData[object->mdlId[0]];
-    temp_r31 = object->data;
-    if (fn_1_2090(28) != 12 || fn_1_2090(224) != 0) {
+    playerModel = &Hu3DData[object->mdlId[0]];
+    playerState = object->data;
+    if (getSequenceStatusFlags(28) != 12 || getSequenceStatusFlags(224) != 0) {
         return;
     }
-    if (fn_1_4724() == 2) {
+    if (getStoryItemAnimationPhase() == 2) {
         return;
     }
-    if (fn_1_ABA0(object, 192) != 0) {
+    if (GetPlayerStateFlags(object, 192) != 0) {
         return;
     }
-    if (temp_r31->unk38 == 0) {
-        if (temp_r29->motIdShift == -1 && temp_r31->unkB2 == PAD_BUTTON_A) {
-            if (fn_1_4CDC(temp_r31->unkA, temp_r31->unk40)) {
-                fn_1_B0E8(object, 3, 4);
-                fn_1_B130(object, 0, 8);
+    if (playerState->motionIndex == 0) {
+        if (playerModel->motIdShift == -1 && playerState->buttonsPressed == PAD_BUTTON_A) {
+            if (isStoryItemAvailable(playerState->groupIndex, playerState->itemIndex)) {
+                SetPlayerMotion(object, 3, 4);
+                SetPlayerMotionTimer(object, 0, 8);
 #if VERSION_PAL
-                temp_r31->unk3C_pal = 0;
+                playerState->palMotionTransitionFlag = 0;
 #endif
             }
         }
     }
     else {
-        if (temp_r31->unk38 == 3) {
-            if (fn_1_9A04_CHECK) {
+        if (playerState->motionIndex == 3) {
+            if (handlePlayerItemSelectionCHECK) {
 #if VERSION_PAL
-                temp_r31->unk3C_pal = 1;
+                playerState->palMotionTransitionFlag = 1;
 #endif
-                temp_r31->unk5C = fn_1_4B14(temp_r31->unkA, temp_r31->unk40, &temp_r31->unk7E);
-                if (temp_r31->unk5C != -1) {
-                    if (temp_r31->unkA == 0) {
+                playerState->capturedItemModelId = selectStoryItem(playerState->groupIndex, playerState->itemIndex, &playerState->opponentPriorityFlag);
+                if (playerState->capturedItemModelId != -1) {
+                    if (playerState->groupIndex == 0) {
                         HuAudFXPlay(1668);
                     }
                     else {
                         HuAudFXPlay(1673);
                     }
-                    if (temp_r31->unk7E != 0) {
-                        omVibrate(temp_r31->unk4, 12, 6, 6);
-                        if (temp_r31->unkA == 0) {
-                            fn_1_B494(1666, 0.5f * REFRESH_RATE);
+                    if (playerState->opponentPriorityFlag != 0) {
+                        omVibrate(playerState->playerIndex, 12, 6, 6);
+                        if (playerState->groupIndex == 0) {
+                            PlayPlayerSoundEffect(1666, 0.5f * REFRESH_RATE);
                         }
                         else {
-                            fn_1_B494(1671, 0.5f * REFRESH_RATE);
+                            PlayPlayerSoundEffect(1671, 0.5f * REFRESH_RATE);
                         }
                     }
                     else {
-                        if (temp_r31->unkA == 0) {
-                            fn_1_B494(1667, 0.5f * REFRESH_RATE);
+                        if (playerState->groupIndex == 0) {
+                            PlayPlayerSoundEffect(1667, 0.5f * REFRESH_RATE);
                         }
                         else {
-                            fn_1_B494(1672, 0.5f * REFRESH_RATE);
+                            PlayPlayerSoundEffect(1672, 0.5f * REFRESH_RATE);
                         }
                     }
-                    temp_r31->unk70++;
-                    Hu3DModelPosSet(temp_r31->unk5C, 0, 0, 0);
-                    Hu3DModelHookSet(object->mdlId[0], lbl_1_data_230[temp_r31->unk8], temp_r31->unk5C);
-                    fn_1_B150(object, fn_1_AA40);
+                    playerState->selectedItemCount++;
+                    Hu3DModelPosSet(playerState->capturedItemModelId, 0, 0, 0);
+                    Hu3DModelHookSet(object->mdlId[0], playerModelHookNames[playerState->characterId], playerState->capturedItemModelId);
+                    SetPlayerObjectCallback(object, CleanupPlayerItemEffect);
                 }
             }
         }
     }
 }
 
-void fn_1_9C5C(OMOBJ *object)
+void UpdatePlayerRingMovement(OMOBJ *object)
 {
-    float temp_f31;
-    Bss61CWork *temp_r31;
-    Bss12CStruct *temp_r30;
-    s8 temp_r29;
-    u32 temp_r27;
-    temp_r31 = object->data;
-    temp_r30 = &lbl_1_bss_12C[temp_r31->unkA];
-    temp_r29 = 0;
-    if ((temp_r27 = fn_1_ABA0(object, 192)) == 0) {
+    float targetAngle;
+    PlayerCharacterState *playerState;
+    PlayerGroupState *playerGroup;
+    s8 movementComplete;
+    u32 playerStep;
+    playerState = object->data;
+    playerGroup = &playerGroups[playerState->groupIndex];
+    movementComplete = 0;
+    if ((playerStep = GetPlayerStateFlags(object, 192)) == 0) {
         return;
     }
-    if (temp_r27 == 192) {
-        temp_r29 = 1;
+    if (playerStep == 192) {
+        movementComplete = 1;
     }
-    else if (temp_r27 == 64) {
-        temp_r31->unk44.x += 0.3f;
-        if (temp_r31->unk44.x > 1.5f) {
-            temp_r31->unk44.x = 1.5f;
+    else if (playerStep == 64) {
+        playerState->ringMovementState.x += 0.3f;
+        if (playerState->ringMovementState.x > 1.5f) {
+            playerState->ringMovementState.x = 1.5f;
         }
-        temp_r31->unk44.y += temp_r31->unk44.x;
-        temp_f31 = lbl_1_bss_62C[temp_r31->unk42].unk4;
-        if (temp_r31->unk40 == 9 && temp_r31->unk42 == 0) {
-            temp_f31 += 360.0f;
+        playerState->ringMovementState.y += playerState->ringMovementState.x;
+        targetAngle = itemRotationStates[playerState->targetItemIndex].rotationAngle;
+        if (playerState->itemIndex == 9 && playerState->targetItemIndex == 0) {
+            targetAngle += 360.0f;
         }
         else {
-            if (temp_r31->unk44.y >= 360.0f) {
-                temp_r31->unk44.y -= 360.0f;
+            if (playerState->ringMovementState.y >= 360.0f) {
+                playerState->ringMovementState.y -= 360.0f;
             }
         }
-        temp_r31->unk44.z = ABS(temp_r31->unk44.y - temp_f31);
-        if (temp_r31->unk44.y >= temp_f31) {
-            temp_r29 = 1;
+        playerState->ringMovementState.z = ABS(playerState->ringMovementState.y - targetAngle);
+        if (playerState->ringMovementState.y >= targetAngle) {
+            movementComplete = 1;
         }
     }
     else {
-        temp_r31->unk44.x -= 0.3f;
-        if (temp_r31->unk44.x < -1.5f) {
-            temp_r31->unk44.x = -1.5f;
+        playerState->ringMovementState.x -= 0.3f;
+        if (playerState->ringMovementState.x < -1.5f) {
+            playerState->ringMovementState.x = -1.5f;
         }
-        temp_r31->unk44.y += temp_r31->unk44.x;
-        temp_f31 = lbl_1_bss_62C[temp_r31->unk42].unk4;
-        if (temp_r31->unk42 == 9 && temp_r31->unk40 == 0) {
-            if (temp_r31->unk44.y < 0.0f) {
-                temp_r31->unk44.y += 360.0f;
+        playerState->ringMovementState.y += playerState->ringMovementState.x;
+        targetAngle = itemRotationStates[playerState->targetItemIndex].rotationAngle;
+        if (playerState->targetItemIndex == 9 && playerState->itemIndex == 0) {
+            if (playerState->ringMovementState.y < 0.0f) {
+                playerState->ringMovementState.y += 360.0f;
             }
             else {
-                temp_f31 -= 360.0f;
+                targetAngle -= 360.0f;
             }
         }
         else {
-            if (temp_r31->unk42 == 0 || temp_r31->unk40 == 0) {
-                if (temp_r31->unk44.y < 0.0f) {
-                    temp_r31->unk44.y += 360.0f;
-                    temp_f31 += 360.0f;
+            if (playerState->targetItemIndex == 0 || playerState->itemIndex == 0) {
+                if (playerState->ringMovementState.y < 0.0f) {
+                    playerState->ringMovementState.y += 360.0f;
+                    targetAngle += 360.0f;
                 }
             }
             else {
-                if (temp_r31->unk44.y < 0.0f) {
-                    temp_r31->unk44.y += 360.0f;
+                if (playerState->ringMovementState.y < 0.0f) {
+                    playerState->ringMovementState.y += 360.0f;
                 }
             }
         }
-        temp_r31->unk44.z = ABS(temp_r31->unk44.y - temp_f31);
-        if (temp_r31->unk44.y <= temp_f31) {
-            temp_r29 = 1;
+        playerState->ringMovementState.z = ABS(playerState->ringMovementState.y - targetAngle);
+        if (playerState->ringMovementState.y <= targetAngle) {
+            movementComplete = 1;
         }
     }
-    if (temp_r29 != 0) {
-        temp_r31->unk44.x = 0;
-        temp_r31->unk44.y = lbl_1_bss_62C[temp_r31->unk42].unk4;
-        temp_r31->unk0 &= ~0xE0;
+    if (movementComplete != 0) {
+        playerState->ringMovementState.x = 0;
+        playerState->ringMovementState.y = itemRotationStates[playerState->targetItemIndex].rotationAngle;
+        playerState->stateFlags &= ~0xE0;
     }
-    temp_r31->unk40 = (temp_r31->unk44.y / 360.0f) * 10.0f;
-    if (temp_r31->unk40 >= 10) {
-        temp_r31->unk40 -= 10;
+    playerState->itemIndex = (playerState->ringMovementState.y / 360.0f) * 10.0f;
+    if (playerState->itemIndex >= 10) {
+        playerState->itemIndex -= 10;
     }
-    temp_r31->unk24.x = ((temp_r30->unk18 + temp_r31->unk10) * sind(temp_r31->unk44.y)) + temp_r30->unkC.x;
-    temp_r31->unk24.y = temp_r30->unkC.y;
-    temp_r31->unk24.z = ((temp_r30->unk18 + temp_r31->unk10) * cosd(temp_r31->unk44.y)) + temp_r30->unkC.z;
-    fn_1_B0E8(object, 2, 8);
+    playerState->position.x = ((playerGroup->itemRingRadius + playerState->modelRadiusOffset) * sind(playerState->ringMovementState.y)) + playerGroup->startingPosition.x;
+    playerState->position.y = playerGroup->startingPosition.y;
+    playerState->position.z = ((playerGroup->itemRingRadius + playerState->modelRadiusOffset) * cosd(playerState->ringMovementState.y)) + playerGroup->startingPosition.z;
+    SetPlayerMotion(object, 2, 8);
 }
 
-void fn_1_A0F8(OMOBJ *object)
+void UpdatePlayerFacing(OMOBJ *object)
 {
-    Vec sp8;
-    Bss61CWork *temp_r31;
-    HU3DMODEL *temp_r29;
-    Bss12CStruct *temp_r28;
-    s32 temp_r27;
-    temp_r29 = &Hu3DData[object->mdlId[0]];
-    temp_r31 = object->data;
-    temp_r28 = &lbl_1_bss_12C[temp_r31->unkA];
-    temp_r27 = 0;
-    if (temp_r31->unk38 == 3 || temp_r31->unk38 == 5) {
+    Vec playerPositionDelta;
+    PlayerCharacterState *playerState;
+    HU3DMODEL *playerModel;
+    PlayerGroupState *playerGroup;
+    s32 startTurn;
+    playerModel = &Hu3DData[object->mdlId[0]];
+    playerState = object->data;
+    playerGroup = &playerGroups[playerState->groupIndex];
+    startTurn = 0;
+    if (playerState->motionIndex == 3 || playerState->motionIndex == 5) {
         return;
     }
-    sp8.x = temp_r31->unk24.x - temp_r29->pos.x;
-    sp8.z = temp_r31->unk24.z - temp_r29->pos.z;
-    if (0.0f == sp8.x && 0.0f == sp8.z) {
-        if (fn_1_2090(224) == 0 && temp_r31->unk38 == 2 && (temp_r31->unkB0 & PAD_BUTTON_A)) {
-            temp_r31->unk7A = 1;
+    playerPositionDelta.x = playerState->position.x - playerModel->pos.x;
+    playerPositionDelta.z = playerState->position.z - playerModel->pos.z;
+    if (0.0f == playerPositionDelta.x && 0.0f == playerPositionDelta.z) {
+        if (getSequenceStatusFlags(224) == 0 && playerState->motionIndex == 2 && (playerState->buttonsHeld & PAD_BUTTON_A)) {
+            playerState->actionButtonState = 1;
         }
-        if (temp_r31->unk78 == 0) {
-            sp8.x = temp_r28->unkC.x - temp_r31->unk24.x;
-            sp8.z = temp_r28->unkC.z - temp_r31->unk24.z;
-            temp_r31->unk8C.x = temp_r31->unk30;
-            temp_r31->unk8C.y = atan2d(sp8.x, sp8.z);
-            temp_r31->unk8C.z = 0;
-            if (temp_r31->unk8C.y < 0.0f) {
-                temp_r31->unk8C.y += 360.0f;
+        if (playerState->facingTransitionActive == 0) {
+            playerPositionDelta.x = playerGroup->startingPosition.x - playerState->position.x;
+            playerPositionDelta.z = playerGroup->startingPosition.z - playerState->position.z;
+            playerState->facingTransition.x = playerState->facingAngle;
+            playerState->facingTransition.y = atan2d(playerPositionDelta.x, playerPositionDelta.z);
+            playerState->facingTransition.z = 0;
+            if (playerState->facingTransition.y < 0.0f) {
+                playerState->facingTransition.y += 360.0f;
             }
-            temp_r31->unk78 = 1;
+            playerState->facingTransitionActive = 1;
         }
-        temp_r31->unk8C.z += 0.1f;
-        if (temp_r31->unk8C.z >= 1.0f) {
-            temp_r31->unk8C.z = 1.0f;
-            if (temp_r31->unk7A == 0) {
-                fn_1_B0E8(object, 0, 8);
+        playerState->facingTransition.z += 0.1f;
+        if (playerState->facingTransition.z >= 1.0f) {
+            playerState->facingTransition.z = 1.0f;
+            if (playerState->actionButtonState == 0) {
+                SetPlayerMotion(object, 0, 8);
             }
             else {
-                if (fn_1_4CDC(temp_r31->unkA, temp_r31->unk40) && fn_1_2090(28) == 12 && fn_1_2090(224) == 0 && fn_1_4724() < 2) {
-                    fn_1_B0E8(object, 3, 4);
-                    fn_1_B130(object, 0, 8);
+                if (isStoryItemAvailable(playerState->groupIndex, playerState->itemIndex) && getSequenceStatusFlags(28) == 12 && getSequenceStatusFlags(224) == 0 && getStoryItemAnimationPhase() < 2) {
+                    SetPlayerMotion(object, 3, 4);
+                    SetPlayerMotionTimer(object, 0, 8);
 #if VERSION_PAL
-                    temp_r31->unk3C_pal = 0;
+                    playerState->palMotionTransitionFlag = 0;
 #endif
-                    temp_r27 = 1;
+                    startTurn = 1;
                 }
-                if (temp_r27 == 0) {
-                    fn_1_B0E8(object, 0, 8);
+                if (startTurn == 0) {
+                    SetPlayerMotion(object, 0, 8);
                 }
             }
-            temp_r31->unk7A = 0;
+            playerState->actionButtonState = 0;
         }
-        temp_r31->unk30 = fn_1_6504(temp_r31->unk8C.x, temp_r31->unk8C.y, temp_r31->unk8C.z);
+        playerState->facingAngle = interpolateAngle(playerState->facingTransition.x, playerState->facingTransition.y, playerState->facingTransition.z);
     }
     else {
-        temp_r31->unk78 = temp_r31->unk7A = 0;
-        temp_r31->unk30 = atan2d(sp8.x, sp8.z);
-        if (temp_r31->unk30 < 0.0f) {
-            temp_r31->unk30 += 360.0f;
+        playerState->facingTransitionActive = playerState->actionButtonState = 0;
+        playerState->facingAngle = atan2d(playerPositionDelta.x, playerPositionDelta.z);
+        if (playerState->facingAngle < 0.0f) {
+            playerState->facingAngle += 360.0f;
         }
     }
-    lbl_1_bss_9C[object->work[0]] = temp_r31->unk0 & 0xC0;
+    playerFinishFlags[object->work[0]] = playerState->stateFlags & 0xC0;
 }
 
-void fn_1_A450(OMOBJ *object)
+void UpdatePlayerResultAnimation(OMOBJ *object)
 {
-    float temp_f31;
-    Bss61CWork *temp_r31;
-    s32 temp_r29;
-    HU3DMODEL *temp_r28;
-    temp_r28 = &Hu3DData[object->mdlId[0]];
-    temp_r31 = object->data;
-    if (temp_r31->unk38 == 3) {
+    float targetYaw;
+    PlayerCharacterState *playerState;
+    s32 gameMode;
+    HU3DMODEL *playerModel;
+    playerModel = &Hu3DData[object->mdlId[0]];
+    playerState = object->data;
+    if (playerState->motionIndex == 3) {
         return;
     }
-    temp_r31->unk7A = 0;
-    switch (temp_r31->unk80) {
+    playerState->actionButtonState = 0;
+    switch (playerState->resultAnimationState) {
         case 0:
-            temp_r31->unk9C.y += 0.05f;
-            if (temp_r31->unk9C.y > 1.0f) {
-                temp_r31->unk9C.y = 1.0f;
-                temp_r31->unk80++;
+            playerState->resultFacingTransition.y += 0.05f;
+            if (playerState->resultFacingTransition.y > 1.0f) {
+                playerState->resultFacingTransition.y = 1.0f;
+                playerState->resultAnimationState++;
             }
-            temp_r29 = fn_1_2090(28);
-            if (temp_r29 >= 16 && lbl_1_bss_4) {
-                temp_f31 = CRot.y;
+            gameMode = getSequenceStatusFlags(28);
+            if (gameMode >= 16 && playerWon) {
+                targetYaw = CRot.y;
             }
             else {
-                temp_f31 = 0.0f;
+                targetYaw = 0.0f;
             }
-            if (temp_f31 < 0.0f) {
-                temp_f31 += 360.0f;
+            if (targetYaw < 0.0f) {
+                targetYaw += 360.0f;
             }
-            else if (temp_f31 >= 360.0f) {
-                temp_f31 -= 360.0f;
+            else if (targetYaw >= 360.0f) {
+                targetYaw -= 360.0f;
             }
-            temp_r31->unk30 = fn_1_6504(temp_r31->unk9C.x, temp_f31, temp_r31->unk9C.y);
-            fn_1_B0E8(object, 2, 8);
+            playerState->facingAngle = interpolateAngle(playerState->resultFacingTransition.x, targetYaw, playerState->resultFacingTransition.y);
+            SetPlayerMotion(object, 2, 8);
             break;
 
         case 1:
-            temp_r31->unk3A = -1;
-            temp_r29 = fn_1_2090(28);
-            if (temp_r29 >= 16 && lbl_1_bss_4) {
-                if (temp_r31->unkAC == 0) {
-                    fn_1_B0E8(object, 6, 4);
+            playerState->queuedMotionIndex = -1;
+            gameMode = getSequenceStatusFlags(28);
+            if (gameMode >= 16 && playerWon) {
+                if (playerState->alternateResultMotion == 0) {
+                    SetPlayerMotion(object, 6, 4);
                 }
                 else {
-                    fn_1_B0E8(object, 7, 4);
+                    SetPlayerMotion(object, 7, 4);
                 }
-                temp_r31->unk80 = 99;
+                playerState->resultAnimationState = 99;
             }
             else {
-                fn_1_B0E8(object, 4, 4);
-                CharFXPlay(temp_r31->unk8, 290);
-                temp_r31->unk80++;
+                SetPlayerMotion(object, 4, 4);
+                CharFXPlay(playerState->characterId, 290);
+                playerState->resultAnimationState++;
             }
             break;
 
         case 2:
-            if (temp_r28->motIdShift == -1) {
+            if (playerModel->motIdShift == -1) {
                 if (Hu3DMotionTimeGet(object->mdlId[0]) >= Hu3DMotionMaxTimeGet(object->mdlId[0]) - 1.0f) {
-                    fn_1_B0E8(object, 1, 8);
-                    temp_r31->unk9C.y = 0;
-                    temp_r31->unk80++;
+                    SetPlayerMotion(object, 1, 8);
+                    playerState->resultFacingTransition.y = 0;
+                    playerState->resultAnimationState++;
                 }
             }
             break;
 
         case 3:
-            temp_r31->unk9C.y += 0.05f;
-            if (temp_r31->unk9C.y > 1.0f) {
-                if (fn_1_2090(1)) {
-                    fn_1_2050(2, 2);
+            playerState->resultFacingTransition.y += 0.05f;
+            if (playerState->resultFacingTransition.y > 1.0f) {
+                if (getSequenceStatusFlags(1)) {
+                    UpdateSequenceStatusFlags(2, 2);
                 }
-                fn_1_B0E8(object, 0, 8);
-                fn_1_ABC0(object, 0x600, 0);
-                temp_r31->unk9C.y = 1.0f;
-                temp_r31->unk80++;
+                SetPlayerMotion(object, 0, 8);
+                UpdatePlayerStateFlags(object, 0x600, 0);
+                playerState->resultFacingTransition.y = 1.0f;
+                playerState->resultAnimationState++;
             }
-            if (!temp_r31->unkAC) {
-                temp_r31->unk30 = fn_1_6504(0, temp_r31->unk9C.x, temp_r31->unk9C.y);
+            if (!playerState->alternateResultMotion) {
+                playerState->facingAngle = interpolateAngle(0, playerState->resultFacingTransition.x, playerState->resultFacingTransition.y);
             }
             break;
     }
 }
 
-void fn_1_A7D0(s16 arg0)
+void StartPlayerGroupVictory(s16 groupIndex)
 {
-    Bss61CWork *temp_r31;
-    Bss12CStruct *temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    temp_r30 = &lbl_1_bss_12C[arg0];
-    if (arg0 == -1) {
+    PlayerCharacterState *playerState;
+    PlayerGroupState *playerGroup;
+    s16 groupIndex;
+    s16 playerIndex;
+    playerGroup = &playerGroups[groupIndex];
+    if (groupIndex == -1) {
         return;
     }
-    for (temp_r29 = 0; temp_r29 < 1; temp_r29++) {
-        if (temp_r29 == 0) {
-            temp_r30 = &lbl_1_bss_12C[arg0];
+    for (groupIndex = 0; groupIndex < 1; groupIndex++) {
+        if (groupIndex == 0) {
+            playerGroup = &playerGroups[groupIndex];
         }
         else {
-            temp_r30 = &lbl_1_bss_12C[arg0 ^ 1];
+            playerGroup = &playerGroups[groupIndex ^ 1];
         }
-        for (temp_r28 = 0; temp_r28 < temp_r30->unk8; temp_r28++) {
-            temp_r31 = lbl_1_bss_61C[temp_r30->unk0[temp_r28]]->data;
-            temp_r31->unk80 = 0;
-            temp_r31->unk9C.x = temp_r31->unk30;
-            temp_r31->unk9C.y = 0;
-            temp_r31->unk0 &= ~0x600;
+        for (playerIndex = 0; playerIndex < playerGroup->playerCount; playerIndex++) {
+            playerState = playerObjects[playerGroup->playerIds[playerIndex]]->data;
+            playerState->resultAnimationState = 0;
+            playerState->resultFacingTransition.x = playerState->facingAngle;
+            playerState->resultFacingTransition.y = 0;
+            playerState->stateFlags &= ~0x600;
 
-            if (temp_r29 == 0) {
-                temp_r31->unk0 |= 0x200;
+            if (groupIndex == 0) {
+                playerState->stateFlags |= 0x200;
             }
             else {
-                temp_r31->unk0 |= 0x400;
+                playerState->stateFlags |= 0x400;
             }
         }
     }
 }
 
-void fn_1_A904(s16 arg0)
+void StartPlayerGroupDraw(s16 groupIndex)
 {
-    Bss61CWork *temp_r31;
-    Bss12CStruct *temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    temp_r30 = &lbl_1_bss_12C[arg0];
-    if (arg0 == -1) {
+    PlayerCharacterState *playerState;
+    PlayerGroupState *playerGroup;
+    s16 groupIndex;
+    s16 playerIndex;
+    playerGroup = &playerGroups[groupIndex];
+    if (groupIndex == -1) {
         return;
     }
-    for (temp_r29 = 0; temp_r29 < 1; temp_r29++) {
-        if (temp_r29 == 0) {
-            temp_r30 = &lbl_1_bss_12C[arg0];
+    for (groupIndex = 0; groupIndex < 1; groupIndex++) {
+        if (groupIndex == 0) {
+            playerGroup = &playerGroups[groupIndex];
         }
         else {
-            temp_r30 = &lbl_1_bss_12C[arg0 ^ 1];
+            playerGroup = &playerGroups[groupIndex ^ 1];
         }
-        for (temp_r28 = 0; temp_r28 < temp_r30->unk8; temp_r28++) {
-            temp_r31 = lbl_1_bss_61C[temp_r30->unk0[temp_r28]]->data;
-            temp_r31->unk80 = 1;
-            temp_r31->unk9C.x = temp_r31->unk30;
-            temp_r31->unk9C.y = 0;
-            temp_r31->unk0 &= ~0x600;
+        for (playerIndex = 0; playerIndex < playerGroup->playerCount; playerIndex++) {
+            playerState = playerObjects[playerGroup->playerIds[playerIndex]]->data;
+            playerState->resultAnimationState = 1;
+            playerState->resultFacingTransition.x = playerState->facingAngle;
+            playerState->resultFacingTransition.y = 0;
+            playerState->stateFlags &= ~0x600;
 
-            if (temp_r29 == 0) {
-                temp_r31->unk0 |= 0x200;
+            if (groupIndex == 0) {
+                playerState->stateFlags |= 0x200;
             }
             else {
-                temp_r31->unk0 |= 0x400;
+                playerState->stateFlags |= 0x400;
             }
-            temp_r31->unkAC = 1;
+            playerState->alternateResultMotion = 1;
         }
     }
 }
 
-void fn_1_AC80(OMOBJ *object, Vec *arg1);
-void fn_1_B16C(OMOBJ *object);
+void GetPlayerWorldPosition(OMOBJ *object, Vec *worldPositionOut);
+void ResetPlayerMotionState(OMOBJ *object);
 
-void fn_1_AA40(OMOBJ *object)
+void CleanupPlayerItemEffect(OMOBJ *object)
 {
-    Vec sp8;
-    Bss61CWork *temp_r30;
-    temp_r30 = object->data;
-    fn_1_AC80(object, &sp8);
-    fn_1_5B70(sp8.x, sp8.y, sp8.z, 20, NULL, -1);
-    Hu3DModelAttrSet(temp_r30->unk5C, HU3D_ATTR_DISPOFF);
+    Vec particlePosition;
+    PlayerCharacterState *playerState;
+    playerState = object->data;
+    GetPlayerWorldPosition(object, &particlePosition);
+    CreateParticleEffect(particlePosition.x, particlePosition.y, particlePosition.z, 20, NULL, -1);
+    Hu3DModelAttrSet(playerState->capturedItemModelId, HU3D_ATTR_DISPOFF);
     Hu3DModelHookReset(object->mdlId[0]);
-    temp_r30->unk5C = -1;
-    if (temp_r30->unk7E == 0) {
-        fn_1_B0E8(object, 5, 4);
-        fn_1_B130(object, 0, 8);
+    playerState->capturedItemModelId = -1;
+    if (playerState->opponentPriorityFlag == 0) {
+        SetPlayerMotion(object, 5, 4);
+        SetPlayerMotionTimer(object, 0, 8);
     }
-    fn_1_B16C(object);
+    ResetPlayerMotionState(object);
 }
 
-Bss61CWork *fn_1_AAF0(OMOBJ *object)
+PlayerCharacterState *GetOpposingPlayerState(OMOBJ *object)
 {
-    Bss12CStruct *temp_r31;
-    s16 temp_r30;
-    Bss61CWork *temp_r29 = object->data;
-    s32 sp8 = 0;
+    PlayerGroupState *playerGroup;
+    s16 playerIndex;
+    PlayerCharacterState *playerState = object->data;
+    s32 unreferencedPlayerSearchFlag = 0;
 
-    temp_r31 = &lbl_1_bss_12C[temp_r29->unkA];
-    for (temp_r30 = 0; temp_r30 < temp_r31->unk8; temp_r30++) {
-        if (object->work[temp_r30] != temp_r31->unk0[temp_r30]) {
-            return lbl_1_bss_61C[temp_r31->unk0[temp_r30]]->data;
+    playerGroup = &playerGroups[playerState->groupIndex];
+    for (playerIndex = 0; playerIndex < playerGroup->playerCount; playerIndex++) {
+        if (object->work[playerIndex] != playerGroup->playerIds[playerIndex]) {
+            return playerObjects[playerGroup->playerIds[playerIndex]]->data;
         }
     }
     return NULL;
 }
 
-u32 fn_1_ABA0(OMOBJ *object, u32 arg1)
+u32 GetPlayerStateFlags(OMOBJ *object, u32 stateMask)
 {
-    Bss61CWork *temp_r31 = object->data;
-    return temp_r31->unk0 & arg1;
+    PlayerCharacterState *playerState = object->data;
+    return playerState->stateFlags & stateMask;
 }
 
-void fn_1_ABC0(OMOBJ *object, u32 arg1, u32 arg2)
+void UpdatePlayerStateFlags(OMOBJ *object, u32 clearMask, u32 setMask)
 {
-    Bss61CWork *temp_r31 = object->data;
-    temp_r31->unk0 &= ~arg1;
-    temp_r31->unk0 |= arg2;
+    PlayerCharacterState *playerState = object->data;
+    playerState->stateFlags &= ~clearMask;
+    playerState->stateFlags |= setMask;
 }
 
-void fn_1_ABF0(s16 arg0, u32 arg1, u32 arg2)
+void UpdatePlayerFlagsByIndex(s16 playerIndex, u32 clearMask, u32 setMask)
 {
-    Bss12CStruct *temp_r31;
-    Bss61CWork *temp_r30;
-    s16 temp_r29;
-    temp_r31 = &lbl_1_bss_12C[arg0];
-    for (temp_r29 = 0; temp_r29 < temp_r31->unk8; temp_r29++) {
-        temp_r30 = lbl_1_bss_61C[temp_r31->unk0[temp_r29]]->data;
-        temp_r30->unk0 &= ~arg1;
-        temp_r30->unk0 |= arg2;
+    PlayerGroupState *playerGroup;
+    PlayerCharacterState *playerState;
+    s16 playerIndex;
+    playerGroup = &playerGroups[playerIndex];
+    for (playerIndex = 0; playerIndex < playerGroup->playerCount; playerIndex++) {
+        playerState = playerObjects[playerGroup->playerIds[playerIndex]]->data;
+        playerState->stateFlags &= ~clearMask;
+        playerState->stateFlags |= setMask;
     }
 }
 
-void fn_1_AC80(OMOBJ *object, Vec *arg1)
+void GetPlayerWorldPosition(OMOBJ *object, Vec *worldPositionOut)
 {
-    Bss61CWork *temp_r31;
-    float temp_f31;
-    temp_r31 = object->data;
-    temp_f31 = lbl_1_bss_62C[temp_r31->unk40].unk4;
-    arg1->x = temp_r31->unk24.x - (50.0 * sind(temp_f31));
-    arg1->y = temp_r31->unk24.y + 100;
-    arg1->z = temp_r31->unk24.z - (50.0 * cosd(temp_f31));
+    PlayerCharacterState *playerState;
+    float itemAngle;
+    playerState = object->data;
+    itemAngle = itemRotationStates[playerState->itemIndex].rotationAngle;
+    worldPositionOut->x = playerState->position.x - (50.0 * sind(itemAngle));
+    worldPositionOut->y = playerState->position.y + 100;
+    worldPositionOut->z = playerState->position.z - (50.0 * cosd(itemAngle));
 }
 
-float fn_1_AD88(s8 arg0)
+float GetItemRingPosition(s8 stickX)
 {
-    float temp_f31;
-    if (arg0 > 65) {
-        arg0 = 65;
+    float normalizedStickX;
+    if (stickX > 65) {
+        stickX = 65;
     }
-    else if (arg0 < -65) {
-        arg0 = -65;
+    else if (stickX < -65) {
+        stickX = -65;
     }
-    temp_f31 = arg0;
-    temp_f31 /= 65.0f;
-    return temp_f31;
+    normalizedStickX = stickX;
+    normalizedStickX /= 65.0f;
+    return normalizedStickX;
 }
 
-float fn_1_AE04(s8 arg0, s8 arg1)
+float GetRelativeItemRingPosition(s8 stickX, s8 stickY)
 {
-    float temp_f30;
-    temp_f30 = 0.01539 * VECMagPoint(arg0, arg1, 0);
-    if (temp_f30 > 1.0f) {
-        temp_f30 = 1.0f;
+    float normalizedStickMagnitude;
+    normalizedStickMagnitude = 0.01539 * VECMagPoint(stickX, stickY, 0);
+    if (normalizedStickMagnitude > 1.0f) {
+        normalizedStickMagnitude = 1.0f;
     }
-    return temp_f30;
+    return normalizedStickMagnitude;
 }
 
-void fn_1_B0E8(OMOBJ *object, s16 arg1, u32 arg2)
+void SetPlayerMotion(OMOBJ *object, s16 motionIndex, u32 motionFlags)
 {
-    Bss61CWork *temp_r31 = object->data;
-    if (temp_r31->unk38 != arg1) {
-        temp_r31->unk0 &= ~0xF;
-        temp_r31->unk38 = arg1;
-        temp_r31->unk0 |= arg2;
+    PlayerCharacterState *playerState = object->data;
+    if (playerState->motionIndex != motionIndex) {
+        playerState->stateFlags &= ~0xF;
+        playerState->motionIndex = motionIndex;
+        playerState->stateFlags |= motionFlags;
     }
 }
 
-void fn_1_B130(OMOBJ *object, s16 arg1, u32 arg2)
+void SetPlayerMotionTimer(OMOBJ *object, s16 motionIndex, u32 motionFlags)
 {
-    Bss61CWork *temp_r31 = object->data;
-    temp_r31->unk3A = arg1;
-    temp_r31->unk3C = arg2;
+    PlayerCharacterState *playerState = object->data;
+    playerState->queuedMotionIndex = motionIndex;
+    playerState->queuedMotionFlags = motionFlags;
 }
 
-void fn_1_B150(OMOBJ *object, OMOBJFUNC arg1)
+void SetPlayerObjectCallback(OMOBJ *object, OMOBJFUNC callback)
 {
-    Bss61CWork *temp_r31 = object->data;
-    temp_r31->unk34 = arg1;
+    PlayerCharacterState *playerState = object->data;
+    playerState->motionCallback = callback;
 }
 
-void fn_1_B16C(OMOBJ *object)
+void ResetPlayerMotionState(OMOBJ *object)
 {
-    fn_1_B150(object, NULL);
+    SetPlayerObjectCallback(object, NULL);
 }
 
-void fn_1_B18C(OMOBJ *object)
+void DestroyPlayerCharacter(OMOBJ *object)
 {
-    Bss61CWork *temp_r31;
-    u32 temp_r28;
-    HU3DMODEL *temp_r27;
-    OMOBJFUNC temp_r25;
-    temp_r27 = &Hu3DData[object->mdlId[0]];
-    temp_r31 = object->data;
-    if (temp_r31->unk0 & 0x1) {
-        if (temp_r31->unk3A != -1 && temp_r27->motIdShift == -1) {
+    PlayerCharacterState *playerState;
+    u32 motionAttributes;
+    HU3DMODEL *playerModel;
+    OMOBJFUNC completionCallback;
+    playerModel = &Hu3DData[object->mdlId[0]];
+    playerState = object->data;
+    if (playerState->stateFlags & 0x1) {
+        if (playerState->queuedMotionIndex != -1 && playerModel->motIdShift == -1) {
             if (Hu3DMotionTimeGet(object->mdlId[0]) >= Hu3DMotionMaxTimeGet(object->mdlId[0])) {
-                fn_1_B0E8(object, temp_r31->unk3A, temp_r31->unk3C);
-                temp_r31->unk3A = -1;
-                if (temp_r31->unk34) {
-                    temp_r25 = temp_r31->unk34;
-                    temp_r25(object);
+                SetPlayerMotion(object, playerState->queuedMotionIndex, playerState->queuedMotionFlags);
+                playerState->queuedMotionIndex = -1;
+                if (playerState->motionCallback) {
+                    completionCallback = playerState->motionCallback;
+                    completionCallback(object);
                 }
             }
         }
@@ -1226,86 +1226,86 @@ void fn_1_B18C(OMOBJ *object)
     }
     else {
         Hu3DModelAttrReset(object->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV);
-        switch (temp_r31->unk0 & 0xC) {
+        switch (playerState->stateFlags & 0xC) {
             case 0:
-                temp_r28 = HU3D_MOTATTR_PAUSE;
+                motionAttributes = HU3D_MOTATTR_PAUSE;
                 break;
 
             case 4:
-                temp_r28 = HU3D_MOTATTR_NONE;
+                motionAttributes = HU3D_MOTATTR_NONE;
                 break;
 
             case 8:
-                temp_r28 = HU3D_MOTATTR_LOOP;
+                motionAttributes = HU3D_MOTATTR_LOOP;
                 break;
         }
-        if (temp_r31->unk0 & 0x2) {
-            Hu3DMotionSet(object->mdlId[0], object->mtnId[temp_r31->unk38]);
-            Hu3DModelAttrSet(object->mdlId[0], temp_r28);
+        if (playerState->stateFlags & 0x2) {
+            Hu3DMotionSet(object->mdlId[0], object->mtnId[playerState->motionIndex]);
+            Hu3DModelAttrSet(object->mdlId[0], motionAttributes);
         }
         else {
-            Hu3DMotionShiftSet(object->mdlId[0], object->mtnId[temp_r31->unk38], 0, 8, temp_r28);
+            Hu3DMotionShiftSet(object->mdlId[0], object->mtnId[playerState->motionIndex], 0, 8, motionAttributes);
         }
-        temp_r31->unk0 |= 0x1;
+        playerState->stateFlags |= 0x1;
     }
 }
 
-void fn_1_B404(OMOBJ *object);
+void DestroyPlayerGroup(OMOBJ *object);
 
-void fn_1_B384(HUPROCESS *objman)
+void UpdatePlayerGroup(HUPROCESS *objman)
 {
-    s32 *temp_r31;
-    s32 temp_r30;
-    omAddObjEx(objman, 100, 0, 0, -1, fn_1_B404);
-    temp_r31 = &lbl_1_bss_AC[0][0];
-    for (temp_r30 = 0; temp_r30 < 16; temp_r30++, temp_r31 += 2) {
-        temp_r31[0] = -1;
-        temp_r31[1] = -1;
+    s32 *soundQueueEntry;
+    s32 queueIndex;
+    omAddObjEx(objman, 100, 0, 0, -1, DestroyPlayerGroup);
+    soundQueueEntry = &collisionResponseTable[0][0];
+    for (queueIndex = 0; queueIndex < 16; queueIndex++, soundQueueEntry += 2) {
+        soundQueueEntry[0] = -1;
+        soundQueueEntry[1] = -1;
     }
 }
 
-void fn_1_B404(OMOBJ *object)
+void DestroyPlayerGroup(OMOBJ *object)
 {
-    s32 *temp_r31;
-    s32 temp_r30;
-    temp_r31 = &lbl_1_bss_AC[0][0];
-    for (temp_r30 = 0; temp_r30 < 16; temp_r30++, temp_r31 += 2) {
-        if (temp_r31[0] >= 0 && temp_r31[1] > 0) {
-            if (--temp_r31[1] <= 0) {
-                HuAudFXPlay(temp_r31[0]);
-                temp_r31[0] = -1;
-                temp_r31[1] = -1;
+    s32 *soundQueueEntry;
+    s32 queueIndex;
+    soundQueueEntry = &collisionResponseTable[0][0];
+    for (queueIndex = 0; queueIndex < 16; queueIndex++, soundQueueEntry += 2) {
+        if (soundQueueEntry[0] >= 0 && soundQueueEntry[1] > 0) {
+            if (--soundQueueEntry[1] <= 0) {
+                HuAudFXPlay(soundQueueEntry[0]);
+                soundQueueEntry[0] = -1;
+                soundQueueEntry[1] = -1;
             }
         }
     }
 }
 
-s32 fn_1_B494(s32 arg0, s32 arg1)
+s32 PlayPlayerSoundEffect(s32 soundId, s32 volume)
 {
-    s32 *temp_r31;
-    s32 temp_r30;
-    temp_r31 = &lbl_1_bss_AC[0][0];
-    for (temp_r30 = 0; temp_r30 < 16; temp_r30++, temp_r31 += 2) {
-        if (temp_r31[0] == -1) {
+    s32 *soundQueueEntry;
+    s32 queueIndex;
+    soundQueueEntry = &collisionResponseTable[0][0];
+    for (queueIndex = 0; queueIndex < 16; queueIndex++, soundQueueEntry += 2) {
+        if (soundQueueEntry[0] == -1) {
             break;
         }
     }
-    if (temp_r30 >= 16) {
+    if (queueIndex >= 16) {
         return -1;
     }
-    temp_r31[0] = arg0;
-    temp_r31[1] = arg1;
-    return temp_r30;
+    soundQueueEntry[0] = soundId;
+    soundQueueEntry[1] = volume;
+    return queueIndex;
 }
 
-s16 fn_1_B4F8(float arg0)
+s16 GetItemRingIndex(float ringAngle)
 {
-    return 10.0f * (arg0 / 360.0f);
+    return 10.0f * (ringAngle / 360.0f);
 }
 
-s16 fn_1_B530(s16 arg0)
+s16 GetItemRingDirection(s16 itemIndex)
 {
-    if (arg0 >= 0 && arg0 <= 4) {
+    if (itemIndex >= 0 && itemIndex <= 4) {
         return 0;
     }
     return 1;

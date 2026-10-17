@@ -5,139 +5,139 @@
 
 #define rand16() ((rand8() << 8) | (rand8()))
 
-typedef struct bss_12C_inner {
-    Vec unk0;
-    float unkC;
-    s8 unk10;
-} Bss12CInner;
+typedef struct PlayerCollisionBoundary {
+    Vec planeNormal;
+    float planeDistance;
+    s8 dominantNormalAxis;
+} PlayerCollisionBoundary;
 
-typedef struct bss_12c_struct {
-    s16 unk0[2];
-    s16 unk4;
-    s16 unk6;
-    s16 unk8;
-    Vec unkC;
-    float unk18;
-    Bss12CInner unk1C[10];
-    float unkE4[10][2];
-    s16 unk134[2];
-    s16 unk138[2];
-} Bss12CStruct;
+typedef struct PlayerGroupState {
+    s16 playerIds[2];
+    s16 playerGroupId;
+    s16 groupState;
+    s16 playerCount;
+    Vec startingPosition;
+    float itemRingRadius;
+    PlayerCollisionBoundary collisionBoundaries[10];
+    float itemPositions[10][2];
+    s16 playerReadyFlags[2];
+    s16 completedRoundCounts[2];
+} PlayerGroupState;
 
-typedef struct bss_61C_work {
-    u32 unk0;
-    s16 unk4;
-    s16 unk6;
-    s16 unk8;
-    s16 unkA;
-    s16 unkC;
-    float unk10;
-    struct bss_61C_work *unk14;
-    Vec unk18;
-    Vec unk24;
-    float unk30;
-    OMOBJFUNC unk34;
-    s16 unk38;
-    s16 unk3A;
+typedef struct PlayerCharacterState {
+    u32 stateFlags;
+    s16 playerIndex;
+    s16 controllerIndex;
+    s16 characterId;
+    s16 groupIndex;
+    s16 isHuman;
+    float modelRadiusOffset;
+    struct PlayerCharacterState *opponent;
+    Vec initialPosition;
+    Vec position;
+    float facingAngle;
+    OMOBJFUNC motionCallback;
+    s16 motionIndex;
+    s16 queuedMotionIndex;
 #if VERSION_PAL
-	s16 unk3C_pal;
-	s16 unk3E_pal;
+	s16 palMotionTransitionFlag;
+	s16 unusedPalState3E;
 #endif
-    u32 unk3C;
-    s16 unk40;
-    s16 unk42;
-    Vec unk44;
-    s16 unk50;
-    s8 unk52;
-    u32 unk54;
-    s16 unk58;
-    s16 unk5A;
-    s16 unk5C;
-    s16 unk5E[8];
-    s16 unk6E;
-    s16 unk70;
-    s16 unk72;
-    u32 unk74;
-    s16 unk78;
-    s16 unk7A;
-    s16 unk7C;
-    s16 unk7E;
-    s16 unk80;
-    s16 unk82;
-    s16 unk84;
-    s16 unk86;
-    float unk88;
-    Vec unk8C;
-    float unk98;
-    Vec unk9C;
-    float unkA8;
-    s32 unkAC;
-    s16 unkB0;
-    s16 unkB2;
-    s8 unkB4;
-    s8 unkB5;
-} Bss61CWork;
+    u32 queuedMotionFlags;
+    s16 itemIndex;
+    s16 targetItemIndex;
+    Vec ringMovementState;
+    s16 previousItemIndex;
+    s8 stickInputState;
+    u32 directionInputFlags;
+    s16 previousStickX;
+    s16 previousStickY;
+    s16 capturedItemModelId;
+    s16 availableItemIndices[8];
+    s16 availableItemCount;
+    s16 selectedItemCount;
+    s16 computerChoiceBias;
+    u32 unusedState74;
+    s16 facingTransitionActive;
+    s16 actionButtonState;
+    s16 computerInputDelay;
+    s16 opponentPriorityFlag;
+    s16 resultAnimationState;
+    s16 unusedState82;
+    s16 groupTargetItemIndex;
+    s16 hasMovementInput;
+    float unusedFloat88;
+    Vec facingTransition;
+    float unusedFloat98;
+    Vec resultFacingTransition;
+    float unusedFloatA8;
+    s32 alternateResultMotion;
+    s16 buttonsHeld;
+    s16 buttonsPressed;
+    s8 stickX;
+    s8 stickY;
+} PlayerCharacterState;
 
-typedef void (*unkHook72B4Data18)(struct unk_72B4_data_18 *);
-typedef void (*unkHook72B4)(HU3DMODEL *, struct work_72B4 *, Mtx);
+typedef void (*ParticleUpdateCallback)(struct ParticleState *);
+typedef void (*ParticleSystemCallback)(HU3DMODEL *, struct ParticleSystemState *, Mtx);
 
-typedef struct unk_72B4_data_18 {
-    Vec unk0;
-    Vec unkC;
-    char unk18[16];
-    s16 unk28;
-    s16 unk2A;
-    s16 unk2C;
-    unkHook72B4Data18 unk30;
-    s16 unk34;
-    float unk38;
-    Vec unk3C;
-    Vec unk48;
-    s16 unk54;
-    s8 unk56;
-} Unk72B4Data18;
+typedef struct ParticleState {
+    Vec velocity;
+    Vec velocityDecay;
+    char reservedParticleData[16];
+    s16 lifetimeFrame;
+    s16 lifetimeLimit;
+    s16 modelId;
+    ParticleUpdateCallback updateCallback;
+    s16 particleIndex;
+    float rotation;
+    Vec scale;
+    Vec position;
+    s16 textureTileIndex;
+    s8 isActive;
+} ParticleState;
 
-typedef struct work_72B4 {
-    s16 unk0;
-    u32 unk4;
-    u8 unk8;
-    unkHook72B4 unkC;
-    ANIMDATA *unk10;
-    s16 unk14;
-    Unk72B4Data18 *unk18;
-    Vec *unk1C;
-    HuVec2f *unk20;
-    GXColor *unk24;
-    void *unk28;
-    Vec unk2C[4];
-    HuVec2f *unk5C;
-    float unk60;
-    float unk64;
-} Work72B4;
+typedef struct ParticleSystemState {
+    s16 particleCount;
+    u32 displayListSize;
+    u8 renderMode;
+    ParticleSystemCallback renderCallback;
+    ANIMDATA *animation;
+    s16 textureTileCount;
+    ParticleState *particles;
+    Vec *vertexPositions;
+    HuVec2f *textureCoordinates;
+    GXColor *vertexColors;
+    void *displayList;
+    Vec quadVertices[4];
+    HuVec2f *textureTiles;
+    float textureTileWidth;
+    float textureTileHeight;
+} ParticleSystemState;
 
-extern s32 lbl_1_bss_4;
-extern Bss12CStruct lbl_1_bss_12C[4];
-extern OMOBJ *lbl_1_bss_61C[4];
-extern float lbl_1_data_1D0;
+extern s32 playerWon;
+extern PlayerGroupState playerGroups[4];
+extern OMOBJ *playerObjects[4];
+extern float playerItemSpinOffset;
 
-void fn_1_2000(s16 arg0);
-void fn_1_2050(u16 arg0, u16 arg1);
-u16 fn_1_2090(u16 arg0);
-s16 fn_1_4724(void);
-u32 fn_1_4738(s16 arg0, s16 arg1);
-s16 fn_1_4B14(s16 arg0, s16 arg1, s16 *arg2);
-s16 fn_1_4CDC(s16 arg0, s16 arg1);
+void SetSelectedWinner(s16 playerIndex);
+void UpdateSequenceStatusFlags(u16 clearMask, u16 setMask);
+u16 GetSequenceStatusFlags(u16 statusMask);
+s16 GetStoryItemAnimationPhase(void);
+u32 GetStoryItemFlags(s16 playerSide, s16 itemIndex);
+s16 SelectStoryItem(s16 playerSide, s16 itemIndex, s16 *playerMatched);
+s16 IsStoryItemAvailable(s16 playerSide, s16 itemIndex);
 
-void fn_1_5B70(float arg0, float arg1, float arg2, s16 arg3, unkHook72B4Data18 arg4, s16 arg5);
+void CreateParticleEffect(float x, float y, float z, s16 particleCount, ParticleUpdateCallback updateCallback, s16 modelId);
 
-void fn_1_6184(Vec *arg0, Bss12CInner *arg1);
-float fn_1_6504(float arg0, float arg1, float arg2);
+void CalculateCollisionPlane(Vec *triangleVertices, PlayerCollisionBoundary *collisionPlane);
+float InterpolateAngle(float startAngle, float endAngle, float progress);
 
-void fn_1_7ABC(HUPROCESS *objman);
-s32 fn_1_7FB8(s16 arg0);
-void fn_1_A7D0(s16 arg0);
-void fn_1_A904(s16 arg0);
+void InitializePlayerGroups(HUPROCESS *objman);
+s32 MovePlayerPairToTarget(s16 groupIndex);
+void StartPlayerGroupVictory(s16 groupIndex);
+void StartPlayerGroupDraw(s16 groupIndex);
 
-s32 fn_1_8474(s16 arg0);
+s32 CheckPlayerGroupReady(s16 groupIndex);
 
 #endif
