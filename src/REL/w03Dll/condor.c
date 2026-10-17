@@ -26,249 +26,249 @@
 
 // structs
 
-typedef struct w03UnkStruct5 {
+typedef struct CondorMotionWork {
     /* 0x00 */ struct {
-        u8 unk00_bit0 : 1;
-        u8 unk00_bit1 : 2;
-        u8 unk00_bit3 : 1;
-        u8 unk00_bit4 : 4;
+        u8 isActive : 1;
+        u8 condorState : 2;
+        u8 isMoving : 1;
+        u8 movementFlags : 4;
     };
-    /* 0x01 */ char unk_01[3];
-    /* 0x04 */ f32 unk_04;
-    /* 0x08 */ f32 unk_08;
-} w03UnkStruct5;
+    /* 0x01 */ char unreferencedCondorData[3];
+    /* 0x04 */ f32 positionX;
+    /* 0x08 */ f32 positionY;
+} CondorMotionWork;
 
-typedef struct w03UnkStruct4 {
+typedef struct CondorProcessWork {
     /* 0x00 */ struct {
-        u8 unk00_bit0 : 1;
+        u8 isActive : 1;
     };
-} w03UnkStruct4;
+} CondorProcessWork;
 
-typedef struct w03StructUnk3 {
-    /* 0x00 */ s16 unk_00;
+typedef struct CondorPlayerPositionWork {
+    /* 0x00 */ s16 playerIndex;
     /* 0x02 */ s16 model;
-    /* 0x04 */ f32 unk_04;
-    /* 0x08 */ Vec unk_08;
-    /* 0x14 */ Vec unk_14;
-} w03StructUnk3;
+    /* 0x04 */ f32 state;
+    /* 0x08 */ Vec startPosition;
+    /* 0x14 */ Vec targetPosition;
+} CondorPlayerPositionWork;
 
-typedef struct w03StructUnk2 {
+typedef struct CondorPlayerWork {
     /* 0x00 */ struct {
-        u8 unkbit_00 : 1;
-        u8 unkbit_01 : 2;
-        u8 unkbit_03 : 1;
-        u8 unkbit_04 : 1;
+        u8 isActive : 1;
+        u8 state : 2;
+        u8 isMoving : 1;
+        u8 isVisible : 1;
     };
-    s8 unk_01;
-    s8 unk_02;
-    u8 unk_03;
+    s8 playerIndex;
+    s8 timer;
+    u8 animationState;
     s16 model;
-    char unk_06[2];
-    w03StructUnk3 *unk_08;
-} w03StructUnk2;
+    char unreferencedCondorData[2];
+    CondorPlayerPositionWork *playerWork;
+} CondorPlayerWork;
 
 // function signatures
-void fn_1_313C(void);
-void fn_1_3218(void);
-void fn_1_3304(void);
-s32 fn_1_3478(s32);
-void fn_1_3814(s32);
-void fn_1_3968(s32);
-void fn_1_3E88(s32);
-void fn_1_3F5C(s32);
-void fn_1_4354(s32);
-void fn_1_48EC(s32);
-void fn_1_4A9C(void);
-void fn_1_50D4(OMOBJ *arg0);
-void fn_1_5838(s32);
-void fn_1_5AC8(OMOBJ *arg0);
-void fn_1_5C5C(OMOBJ *arg0, w03UnkStruct5 *arg1);
-void fn_1_602C(OMOBJ *arg0, w03UnkStruct5 *arg1);
-f32 fn_1_61A4(OMOBJ *arg0, w03UnkStruct5 *arg1);
-void fn_1_629C(s8 arg0);
-s32 fn_1_62D0(void);
-void fn_1_62FC(void);
+void CondorEventStart(void);
+void CondorEventProcessCleanup(void);
+void CondorPositionAtSpace(void);
+s32 CondorOfferPurchase(s32);
+void CondorReturnPlayer(s32);
+void CondorPlayPurchaseAnimation(s32);
+void CondorAnimatePlayerRide(s32);
+void CondorMoveToOtherSpace(s32);
+void CondorCheckPlayerEligibility(s32);
+void CondorSetupPlayerWork(s32);
+void CondorWorkCleanup(void);
+void CondorUpdate(OMOBJ *object);
+void CondorMoveToDestination(s32);
+void CondorMotionUpdate(OMOBJ *object);
+void CondorFlyToTarget(OMOBJ *object, CondorMotionWork *motionWork);
+void CondorLandAtTarget(OMOBJ *object, CondorMotionWork *motionWork);
+f32 CondorDistanceToTarget(OMOBJ *object, CondorMotionWork *motionWork);
+void CondorStateSet(s8 value);
+s32 CondorCheckCompletion(void);
+void CondorCleanup(void);
 
 // bss
-float lbl_1_bss_80[20][2];
-s8 lbl_1_bss_7D;
-s8 lbl_1_bss_7C;
-OMOBJ *lbl_1_bss_78;
-OMOBJ *lbl_1_bss_74;
-HUPROCESS *lbl_1_bss_70;
+float condorPlayerPositions[20][2];
+s8 condorDestinationSide;
+s8 condorEventSucceeded;
+OMOBJ *condorMotionObject;
+OMOBJ *condorMovementObject;
+HUPROCESS *condorEventProcess;
 
 // data
-s16 lbl_1_data_310 = -1;
-s16 lbl_1_data_312 = -1;
-s16 lbl_1_data_314 = -1;
-s16 lbl_1_data_316 = -1;
-s32 lbl_1_data_318[] = { DATA_MAKE_NUM(DATADIR_W03, 0x0016), DATA_MAKE_NUM(DATADIR_W03, 0x0017), DATA_MAKE_NUM(DATADIR_W03, 0x0018),
+s16 condorModelId = -1;
+s16 condorPlayerMotionId = -1;
+s16 condorCartModelId = -1;
+s16 condorCartMotionId = -1;
+s32 condorCartMotionData[] = { DATA_MAKE_NUM(DATADIR_W03, 0x0016), DATA_MAKE_NUM(DATADIR_W03, 0x0017), DATA_MAKE_NUM(DATADIR_W03, 0x0018),
     DATA_MAKE_NUM(DATADIR_W03, 0x0019), DATA_MAKE_NUM(DATADIR_W03, 0x001A), DATA_NUM_LISTEND };
 
-void fn_1_3058(void)
+void CondorCreate(void)
 {
-    lbl_1_data_310 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x15), lbl_1_data_318, 0);
-    fn_1_3304();
+    condorModelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x15), condorCartMotionData, 0);
+    CondorPositionAtSpace();
 }
 
-s32 fn_1_309C(void)
+s32 CondorCheckPlayerChoice(void)
 {
     BoardRollDispSet(0);
-    lbl_1_bss_70 = HuPrcChildCreate(fn_1_313C, 0x2003U, 0x2000U, 0, boardMainProc);
-    HuPrcDestructorSet2(lbl_1_bss_70, fn_1_3218);
+    condorEventProcess = HuPrcChildCreate(CondorEventStart, 0x2003U, 0x2000U, 0, boardMainProc);
+    HuPrcDestructorSet2(condorEventProcess, CondorEventProcessCleanup);
 
-    while (lbl_1_bss_70) {
+    while (condorEventProcess) {
         HuPrcVSleep();
     }
 
     BoardRollDispSet(1);
-    return lbl_1_bss_7C;
+    return condorEventSucceeded;
 }
 
-void fn_1_313C(void)
+void CondorEventStart(void)
 {
-    s32 temp_r31;
+    s32 currentPlayerIndex;
 
-    temp_r31 = GWSystem.player_curr;
-    lbl_1_bss_7C = 0;
-    lbl_1_bss_0->unk3 = 1;
+    currentPlayerIndex = GWSystem.player_curr;
+    condorEventSucceeded = 0;
+    boardState->eventActive = 1;
 
-    if (fn_1_3478(temp_r31) != 0) {
+    if (CondorOfferPurchase(currentPlayerIndex) != 0) {
         BoardCameraNearFarSet(500.0f, 20000.0f);
         BoardStatusShowSetAll(0);
-        fn_1_3968(temp_r31);
-        fn_1_3E88(temp_r31);
-        fn_1_3F5C(temp_r31);
-        lbl_1_bss_7C = 1;
+        CondorPlayPurchaseAnimation(currentPlayerIndex);
+        CondorAnimatePlayerRide(currentPlayerIndex);
+        CondorMoveToOtherSpace(currentPlayerIndex);
+        condorEventSucceeded = 1;
     }
 
     BoardCameraNearFarSet(100.0f, 13000.0f);
-    fn_1_3814(temp_r31);
+    CondorReturnPlayer(currentPlayerIndex);
     HuPrcEnd();
 }
 
-void fn_1_3218(void)
+void CondorEventProcessCleanup(void)
 {
-    if (lbl_1_data_316 != -1) {
-        HuWinKill(lbl_1_data_316);
-        lbl_1_data_316 = -1;
+    if (condorCartMotionId != -1) {
+        HuWinKill(condorCartMotionId);
+        condorCartMotionId = -1;
     }
 
-    if (lbl_1_data_314 != -1) {
-        BoardModelKill(lbl_1_data_314);
-        lbl_1_data_314 = -1;
+    if (condorCartModelId != -1) {
+        BoardModelKill(condorCartModelId);
+        condorCartModelId = -1;
     }
 
-    if (lbl_1_data_312 != -1) {
-        BoardPlayerMotionKill(GWSystem.player_curr, lbl_1_data_312);
-        lbl_1_data_312 = -1;
+    if (condorPlayerMotionId != -1) {
+        BoardPlayerMotionKill(GWSystem.player_curr, condorPlayerMotionId);
+        condorPlayerMotionId = -1;
     }
 
-    lbl_1_bss_0->unk3 = 0;
-    lbl_1_bss_70 = 0;
+    boardState->eventActive = 0;
+    condorEventProcess = 0;
 }
 
-void fn_1_3304(void)
+void CondorPositionAtSpace(void)
 {
-    Vec sp8;
-    f32 temp_f31;
-    s32 var_r31;
+    Vec spacePosition;
+    f32 floatValue;
+    s32 linkedSpaceIndex;
 
-    if (lbl_1_bss_0->unk1 != 0) {
-        var_r31 = BoardSpaceFlagSearch(0, 0x4000);
+    if (boardState->condorSide != 0) {
+        linkedSpaceIndex = BoardSpaceFlagSearch(0, 0x4000);
     }
     else {
-        var_r31 = BoardSpaceFlagSearch(0, 0x8000);
+        linkedSpaceIndex = BoardSpaceFlagSearch(0, 0x8000);
     }
 
-    var_r31 = BoardSpaceLinkFlagSearch(0, var_r31, 0x02000000);
-    BoardSpacePosGet(0, var_r31, &sp8);
-    temp_f31 = 0.0f;
-    sp8.x += -300.0 * sind(temp_f31);
-    sp8.z += -300.0 * cosd(temp_f31);
-    sp8.y = 45.0f + sp8.y;
-    BoardModelPosSetV(lbl_1_data_310, &sp8);
-    BoardModelMotionStart(lbl_1_data_310, 2, 0x40000001);
+    linkedSpaceIndex = BoardSpaceLinkFlagSearch(0, linkedSpaceIndex, 0x02000000);
+    BoardSpacePosGet(0, linkedSpaceIndex, &spacePosition);
+    floatValue = 0.0f;
+    spacePosition.x += -300.0 * sind(floatValue);
+    spacePosition.z += -300.0 * cosd(floatValue);
+    spacePosition.y = 45.0f + spacePosition.y;
+    BoardModelPosSetV(condorModelId, &spacePosition);
+    BoardModelMotionStart(condorModelId, 2, 0x40000001);
 }
 
-s32 fn_1_3478(s32 arg0)
+s32 CondorOfferPurchase(s32 playerIndex)
 {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    f32 sp1C;
-    f32 sp18;
-    Vec sp14;
-    Vec sp8;
-    s32 temp_r28;
-    s32 temp_r3;
-    s32 var_r29;
-    s32 var_r30;
-    s32 temp;
-    s32 temp_r26;
-    f32 float_temp;
+    Vec spacePosition;
+    Vec playerPosition;
+    Vec positionDelta;
+    f32 floatValue;
+    f32 floatValue2;
+    Vec cameraRotation;
+    Vec cameraRotation2;
+    s32 currentSpaceIndex;
+    s32 integerValue;
+    s32 stateValue;
+    s32 integerValue2;
+    s32 linkedSpaceIndex;
+    s32 integerValue3;
+    f32 floatTemp;
     s32 i, j;
 
-    sp14.x = 0.0f;
-    sp14.y = 150.0f;
-    sp14.z = 0.0f;
+    cameraRotation.x = 0.0f;
+    cameraRotation.y = 150.0f;
+    cameraRotation.z = 0.0f;
 
-    sp8.x = -15.0f;
-    sp8.y = 0.0f;
-    sp8.z = 0.0f;
+    cameraRotation2.x = -15.0f;
+    cameraRotation2.y = 0.0f;
+    cameraRotation2.z = 0.0f;
 
-    BoardCameraMotionStartEx(lbl_1_data_310, &sp8, &sp14, 1900.0f, -1.0f, 21);
-    temp_r28 = GWPlayer[arg0].space_curr;
-    BoardPlayerPosGet(arg0, &sp2C);
-    temp = BoardSpaceLinkFlagSearch(0, temp_r28, 0x02000000);
-    BoardSpacePosGet(0, temp, &sp38);
-    VECSubtract(&sp38, &sp2C, &sp20);
-    float_temp = atan2d(sp20.x, sp20.z);
-    BoardPlayerMotBlendSet(arg0, (float_temp), 0xF);
+    BoardCameraMotionStartEx(condorModelId, &cameraRotation2, &cameraRotation, 1900.0f, -1.0f, 21);
+    currentSpaceIndex = GWPlayer[playerIndex].space_curr;
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    linkedSpaceIndex = BoardSpaceLinkFlagSearch(0, currentSpaceIndex, 0x02000000);
+    BoardSpacePosGet(0, linkedSpaceIndex, &spacePosition);
+    VECSubtract(&spacePosition, &playerPosition, &positionDelta);
+    floatTemp = atan2d(positionDelta.x, positionDelta.z);
+    BoardPlayerMotBlendSet(playerIndex, (floatTemp), 0xF);
 
-    while (BoardPlayerMotBlendCheck(arg0) == 0) {
+    while (BoardPlayerMotBlendCheck(playerIndex) == 0) {
         HuPrcVSleep();
     }
 
-    BoardPlayerIdleSet(arg0);
+    BoardPlayerIdleSet(playerIndex);
     HuAudFXPlay(0x447);
-    BoardModelMotionShiftSet(lbl_1_data_310, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
+    BoardModelMotionShiftSet(condorModelId, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
     HuPrcSleep(6);
 
-    while (BoardModelMotionEndCheck(lbl_1_data_310) == 0) {
+    while (BoardModelMotionEndCheck(condorModelId) == 0) {
         HuPrcVSleep();
     }
 
-    BoardModelMotionShiftSet(lbl_1_data_310, 1, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
-    temp_r26 = BoardPlayerGetCharMess(arg0);
+    BoardModelMotionShiftSet(condorModelId, 1, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
+    integerValue3 = BoardPlayerGetCharMess(playerIndex);
     BoardWinCreate(2, MAKE_MESSID(22, 16), 8);
-    BoardWinInsertMesSet(temp_r26, 3);
+    BoardWinInsertMesSet(integerValue3, 3);
     BoardWinWait();
 
-    if (BoardPlayerCoinsGet(arg0) < 5) {
+    if (BoardPlayerCoinsGet(playerIndex) < 5) {
         BoardWinCreate(2, MAKE_MESSID(22, 19), 8);
         BoardWinWait();
         BoardWinKill();
         return 0;
     }
 
-    var_r29 = 0;
-    while (var_r29 == 0) {
+    stateValue = 0;
+    while (stateValue == 0) {
         BoardWinCreateChoice(2, MAKE_MESSID(22, 17), 8, 0);
         BoardWinAttrSet(0x10);
 
-        if (GWPlayer[arg0].com != 0) {
-            fn_1_4354(arg0);
+        if (GWPlayer[playerIndex].com != 0) {
+            CondorCheckPlayerEligibility(playerIndex);
         }
 
         BoardWinWait();
         BoardWinKill();
         switch (BoardWinChoiceGet()) {
             case 0:
-                var_r29 = 1;
+                stateValue = 1;
                 break;
             case 2:
-                BoardViewMapExec(arg0);
+                BoardViewMapExec(playerIndex);
                 break;
             default:
             case 1:
@@ -282,7 +282,7 @@ s32 fn_1_3478(s32 arg0)
     BoardAudSeqPause(0, 1, 1000);
 
     for (j = 0; j < 5; j++) {
-        BoardPlayerCoinsAdd(arg0, -1);
+        BoardPlayerCoinsAdd(playerIndex, -1);
         HuAudFXPlay(14);
         HuPrcSleep(6);
     }
@@ -292,129 +292,129 @@ s32 fn_1_3478(s32 arg0)
     return 1;
 }
 
-void fn_1_3814(s32 arg0)
+void CondorReturnPlayer(s32 playerIndex)
 {
-    Vec sp14;
-    Vec sp8;
-    f32 temp;
+    Vec spacePosition;
+    Vec playerPosition;
+    f32 value;
 
-    BoardModelMotionShiftSet(lbl_1_data_310, 2, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-    temp = (180.0f + BoardPlayerRotYGet(arg0));
-    BoardPlayerMotBlendSet(arg0, temp, 0xF);
+    BoardModelMotionShiftSet(condorModelId, 2, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+    value = (180.0f + BoardPlayerRotYGet(playerIndex));
+    BoardPlayerMotBlendSet(playerIndex, value, 0xF);
 
-    while (BoardPlayerMotBlendCheck(arg0) == 0) {
+    while (BoardPlayerMotBlendCheck(playerIndex) == 0) {
         HuPrcVSleep();
     }
 
     BoardCameraViewSet(1);
-    BoardCameraTargetPlayerSet(arg0);
+    BoardCameraTargetPlayerSet(playerIndex);
 
-    if (lbl_1_bss_7C != 0) {
-        BoardSpacePosGet(0, GWPlayer[arg0].space_curr, &sp14);
-        BoardPlayerPosGet(arg0, &sp8);
-        BoardPlayerPosLerpStart(arg0, &sp8, &sp14, 0x14);
-        while (GWPlayer[arg0].moving) {
+    if (condorEventSucceeded != 0) {
+        BoardSpacePosGet(0, GWPlayer[playerIndex].space_curr, &spacePosition);
+        BoardPlayerPosGet(playerIndex, &playerPosition);
+        BoardPlayerPosLerpStart(playerIndex, &playerPosition, &spacePosition, 0x14);
+        while (GWPlayer[playerIndex].moving) {
             HuPrcVSleep();
         }
     }
 
-    BoardPlayerIdleSet(arg0);
+    BoardPlayerIdleSet(playerIndex);
     BoardCameraMotionWait();
 }
 
-void fn_1_3968(s32 arg0)
+void CondorPlayPurchaseAnimation(s32 playerIndex)
 {
-    s32 var_r29 = 0;
-    s32 var_r28 = 0;
-    s32 sp48[] = { DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x65), DATA_MAKE_NUM(DATADIR_LUIGIMOT, 0x65), DATA_MAKE_NUM(DATADIR_PEACHMOT, 0x65),
+    s32 stateValue = 0;
+    s32 index = 0;
+    s32 integerValue[] = { DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x65), DATA_MAKE_NUM(DATADIR_LUIGIMOT, 0x65), DATA_MAKE_NUM(DATADIR_PEACHMOT, 0x65),
         DATA_MAKE_NUM(DATADIR_YOSHIMOT, 0x65), DATA_MAKE_NUM(DATADIR_WARIOMOT, 0x65), DATA_MAKE_NUM(DATADIR_DONKEYMOT, 0x65),
         DATA_MAKE_NUM(DATADIR_DAISYMOT, 0x65), DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 0x65) };
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    s32 sp10[2] = { 0x00770013, 0x00770014 };
-    f32 spC;
-    s16 sp8;
+    Vec modelPosition;
+    Vec playerPosition;
+    Vec positionDelta;
+    Vec cameraRotation;
+    s32 integerValue2[2] = { 0x00770013, 0x00770014 };
+    f32 floatValue;
+    s16 stateValue2;
 
-    f32 temp_f30;
-    f32 temp_f28;
-    f32 temp_f31;
-    f32 temp_f27;
+    f32 distance;
+    f32 floatValue2;
+    f32 floatValue3;
+    f32 floatValue4;
 
     s16 character;
 
-    lbl_1_data_314 = BoardModelCreate(sp10[lbl_1_bss_0->unk1], NULL, 0);
-    character = GWPlayer[arg0].character;
-    lbl_1_data_312 = BoardPlayerMotionCreate(arg0, sp48[character]);
+    condorCartModelId = BoardModelCreate(integerValue2[boardState->condorSide], NULL, 0);
+    character = GWPlayer[playerIndex].character;
+    condorPlayerMotionId = BoardPlayerMotionCreate(playerIndex, integerValue[character]);
 
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_310), "itemhook_oya", &sp3C);
-    BoardPlayerPosGet(arg0, &sp30);
-    temp_f30 = BoardVecDistXZCalc(&sp3C, &sp30);
-    VECSubtract(&sp3C, &sp30, &sp24);
-    VECNormalize(&sp24, &sp24);
-    VECScale(&sp24, &sp24, temp_f30 / 45.0f);
-    BoardPlayerMotionShiftSet(arg0, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
+    Hu3DModelObjPosGet(BoardModelIDGet(condorModelId), "itemhook_oya", &modelPosition);
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    distance = BoardVecDistXZCalc(&modelPosition, &playerPosition);
+    VECSubtract(&modelPosition, &playerPosition, &positionDelta);
+    VECNormalize(&positionDelta, &positionDelta);
+    VECScale(&positionDelta, &positionDelta, distance / 45.0f);
+    BoardPlayerMotionShiftSet(playerIndex, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
     HuPrcSleep(5);
 
-    spC = BoardPlayerRotYGet(arg0);
-    temp_f27 = 180.0f + spC;
-    var_r29 = 0;
-    sp8 = 0;
-    temp_f28 = 40.0f;
+    floatValue = BoardPlayerRotYGet(playerIndex);
+    floatValue4 = 180.0f + floatValue;
+    stateValue = 0;
+    stateValue2 = 0;
+    floatValue2 = 40.0f;
 
     while (1) {
-        temp_f31 = __OSs16tof32(&sp8);
-        sp24.y = temp_f28 + (-0.08166667f * (0.75f * (temp_f31 * temp_f31)));
-        VECAdd(&sp30, &sp24, &sp30);
-        temp_f30 = BoardVecDistXZCalc(&sp3C, &sp30);
+        floatValue3 = __OSs16tof32(&stateValue2);
+        positionDelta.y = floatValue2 + (-0.08166667f * (0.75f * (floatValue3 * floatValue3)));
+        VECAdd(&playerPosition, &positionDelta, &playerPosition);
+        distance = BoardVecDistXZCalc(&modelPosition, &playerPosition);
 
-        if (temp_f30 < 5.0f) {
-            sp24.x = sp24.z = 0.0f;
-            sp30.x = sp3C.x;
-            sp30.z = sp3C.z;
+        if (distance < 5.0f) {
+            positionDelta.x = positionDelta.z = 0.0f;
+            playerPosition.x = modelPosition.x;
+            playerPosition.z = modelPosition.z;
         }
 
-        if (var_r29 == 0) {
-            if (sp3C.y < sp30.y) {
-                var_r29 = 1;
+        if (stateValue == 0) {
+            if (modelPosition.y < playerPosition.y) {
+                stateValue = 1;
             }
         }
         else {
-            BoardDAngleCalcRange(&spC, temp_f27, 5.142857f);
-            BoardPlayerRotYSet(arg0, spC);
+            BoardDAngleCalcRange(&floatValue, floatValue4, 5.142857f);
+            BoardPlayerRotYSet(playerIndex, floatValue);
         }
 
-        if (sp30.y <= sp3C.y && var_r29 != 0) {
-            sp30.y = sp3C.y;
+        if (playerPosition.y <= modelPosition.y && stateValue != 0) {
+            playerPosition.y = modelPosition.y;
             break;
         }
 
-        BoardPlayerPosSetV(arg0, &sp30);
+        BoardPlayerPosSetV(playerIndex, &playerPosition);
         HuPrcVSleep();
-        sp8 += 1;
+        stateValue2 += 1;
     }
 
     BoardMusStart(1, 0x18, 0x7F, 0);
-    BoardPlayerPosSet(arg0, 0.0f, 0.0f, 0.0f);
+    BoardPlayerPosSet(playerIndex, 0.0f, 0.0f, 0.0f);
 
-    BoardModelHookSet(lbl_1_data_310, "itemhook_oya", BoardPlayerModelGet(arg0));
-    BoardPlayerMotionStart(arg0, lbl_1_data_312, 0x40000001);
+    BoardModelHookSet(condorModelId, "itemhook_oya", BoardPlayerModelGet(playerIndex));
+    BoardPlayerMotionStart(playerIndex, condorPlayerMotionId, 0x40000001);
     HuAudFXPlay(0x44F);
-    BoardModelMotionShiftSet(lbl_1_data_310, 5, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
+    BoardModelMotionShiftSet(condorModelId, 5, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
 
-    sp18.x = -15.0f;
-    sp18.y = 180.0f;
-    sp18.z = 0.0f;
+    cameraRotation.x = -15.0f;
+    cameraRotation.y = 180.0f;
+    cameraRotation.z = 0.0f;
 
-    BoardCameraMotionStartEx(lbl_1_data_310, &sp18, NULL, 4000.0f, -1.0f, 336);
+    BoardCameraMotionStartEx(condorModelId, &cameraRotation, NULL, 4000.0f, -1.0f, 336);
 
-    for (var_r28 = 0, sp8 = 0;; sp8++) {
-        if (var_r28 == 0) {
-            if (sp8 == 0x78U) {
+    for (index = 0, stateValue2 = 0;; stateValue2++) {
+        if (index == 0) {
+            if (stateValue2 == 0x78U) {
                 WipeColorSet(0, 0, 0);
                 WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
-                var_r28 = 1;
+                index = 1;
             }
         }
         else if (WipeStatGet() == 0) {
@@ -424,21 +424,21 @@ void fn_1_3968(s32 arg0)
     }
 }
 
-void fn_1_3E88(s32 arg0)
+void CondorAnimatePlayerRide(s32 value)
 {
-    lbl_1_bss_7D = 0;
-    fn_1_48EC(arg0);
-    fn_1_5838(arg0);
-    lbl_1_bss_7D = 1;
-    BoardStatusShowSetForce(arg0);
-    BoardStatusShowSet(arg0, 1);
+    condorDestinationSide = 0;
+    CondorSetupPlayerWork(value);
+    CondorMoveToDestination(value);
+    condorDestinationSide = 1;
+    BoardStatusShowSetForce(value);
+    BoardStatusShowSet(value, 1);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 21);
 
     while (WipeStatGet() != 0) {
         HuPrcVSleep();
     }
 
-    while (fn_1_62D0() != 3) {
+    while (CondorCheckCompletion() != 3) {
         HuPrcVSleep();
     }
 
@@ -446,72 +446,72 @@ void fn_1_3E88(s32 arg0)
         HuPrcVSleep();
     }
 
-    fn_1_4A9C();
+    CondorWorkCleanup();
     BoardAudSeqPause(0, 0, 0x3E8);
 }
 
-void fn_1_3F5C(s32 arg0)
+void CondorMoveToOtherSpace(s32 playerIndex)
 {
-    Mtx sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    f32 temp_f31;
-    s16 temp_r28;
-    s32 var_r31;
-    s16 var_r30;
+    Mtx modelMatrix;
+    Vec spacePosition;
+    Vec cameraRotation;
+    Vec cameraRotation2;
+    Vec spacePosition2;
+    f32 floatValue;
+    s16 linkedSpaceIndex;
+    s32 linkedSpaceIndex2;
+    s16 spaceIndex;
 
-    if (lbl_1_bss_0->unk1 != 0) {
-        lbl_1_bss_0->unk1 = 0;
-        var_r30 = BoardSpaceFlagSearch(0, 0x8000);
+    if (boardState->condorSide != 0) {
+        boardState->condorSide = 0;
+        spaceIndex = BoardSpaceFlagSearch(0, 0x8000);
     }
     else {
-        lbl_1_bss_0->unk1 = 1;
-        var_r30 = BoardSpaceFlagSearch(0, 0x4000);
+        boardState->condorSide = 1;
+        spaceIndex = BoardSpaceFlagSearch(0, 0x4000);
     }
 
-    temp_r28 = BoardSpaceLinkFlagSearch(0, var_r30, 0x02000000);
+    linkedSpaceIndex = BoardSpaceLinkFlagSearch(0, spaceIndex, 0x02000000);
     BoardCameraMoveSet(0);
-    BoardModelHookReset(lbl_1_data_310);
+    BoardModelHookReset(condorModelId);
 
-    if (lbl_1_bss_0->unk1 != 0) {
-        var_r31 = BoardSpaceFlagSearch(0, 0x4000);
+    if (boardState->condorSide != 0) {
+        linkedSpaceIndex2 = BoardSpaceFlagSearch(0, 0x4000);
     }
     else {
-        var_r31 = BoardSpaceFlagSearch(0, 0x8000);
+        linkedSpaceIndex2 = BoardSpaceFlagSearch(0, 0x8000);
     }
 
-    var_r31 = BoardSpaceLinkFlagSearch(0, var_r31, 0x02000000);
-    BoardSpacePosGet(0, var_r31, &sp8);
-    temp_f31 = 0.0f;
-    sp8.x += -300.0 * sind(temp_f31);
-    sp8.z += -300.0 * cosd(temp_f31);
-    sp8.y = 45.0f + sp8.y;
-    BoardModelPosSetV(lbl_1_data_310, &sp8);
-    BoardModelMotionStart(lbl_1_data_310, 2, 0x40000001);
-    BoardModelMotionStart(lbl_1_data_310, 1, 0x40000001);
-    BoardModelRotYSet(lbl_1_data_310, 0.0f);
-    MTXIdentity(sp38);
-    BoardModelMtxSet(lbl_1_data_310, &sp38);
+    linkedSpaceIndex2 = BoardSpaceLinkFlagSearch(0, linkedSpaceIndex2, 0x02000000);
+    BoardSpacePosGet(0, linkedSpaceIndex2, &spacePosition2);
+    floatValue = 0.0f;
+    spacePosition2.x += -300.0 * sind(floatValue);
+    spacePosition2.z += -300.0 * cosd(floatValue);
+    spacePosition2.y = 45.0f + spacePosition2.y;
+    BoardModelPosSetV(condorModelId, &spacePosition2);
+    BoardModelMotionStart(condorModelId, 2, 0x40000001);
+    BoardModelMotionStart(condorModelId, 1, 0x40000001);
+    BoardModelRotYSet(condorModelId, 0.0f);
+    MTXIdentity(modelMatrix);
+    BoardModelMtxSet(condorModelId, &modelMatrix);
 
-    sp20.x = 0.0f;
-    sp20.y = 150.0f;
-    sp20.z = 0.0f;
-    sp14.x = -15.0f;
-    sp14.y = 0.0f;
-    sp14.z = 0.0f;
+    cameraRotation.x = 0.0f;
+    cameraRotation.y = 150.0f;
+    cameraRotation.z = 0.0f;
+    cameraRotation2.x = -15.0f;
+    cameraRotation2.y = 0.0f;
+    cameraRotation2.z = 0.0f;
 
-    BoardCameraMotionStartEx(lbl_1_data_310, &sp14, &sp20, 1900.0f, -1.0f, 1);
-    BoardSpacePosGet(0, temp_r28, &sp2C);
-    BoardPlayerPosSetV(arg0, &sp2C);
-    GWPlayer[arg0].space_curr = var_r30;
-    BoardPlayerRotYSet(arg0, 180.0f);
-    BoardPlayerIdleSet(arg0);
+    BoardCameraMotionStartEx(condorModelId, &cameraRotation2, &cameraRotation, 1900.0f, -1.0f, 1);
+    BoardSpacePosGet(0, linkedSpaceIndex, &spacePosition);
+    BoardPlayerPosSetV(playerIndex, &spacePosition);
+    GWPlayer[playerIndex].space_curr = spaceIndex;
+    BoardPlayerRotYSet(playerIndex, 180.0f);
+    BoardPlayerIdleSet(playerIndex);
     HuPrcSleep(2);
     BoardCameraMoveSet(1);
-    BoardModelMotionStart(lbl_1_bss_C[2], 0, 0x40000001);
-    BoardModelMotionStartEndSet(lbl_1_bss_C[2], 1, 0x64);
+    BoardModelMotionStart(boardModelIds[2], 0, 0x40000001);
+    BoardModelMotionStartEndSet(boardModelIds[2], 1, 0x64);
     BoardStatusItemSet(0);
     HuPrcSleep(2);
     BoardStatusItemSet(1);
@@ -526,29 +526,29 @@ void fn_1_3F5C(s32 arg0)
     BoardWinKill();
 }
 
-void fn_1_4354(s32 arg0)
+void CondorCheckPlayerEligibility(s32 playerIndex)
 {
-    s32 sp8;
+    s32 integerValue;
     s32 starPos;
-    s32 var_r30;
+    s32 stateValue;
 
-    var_r30 = 0;
+    stateValue = 0;
     starPos = GWSystem.star_pos;
 
-    if (lbl_1_bss_0->unk1 != 0) {
+    if (boardState->condorSide != 0) {
         if ((starPos == 1) || (starPos == 2) || (starPos == 3) || (starPos == 4)) {
-            var_r30 = 1;
+            stateValue = 1;
         }
     }
     else if ((starPos == 0) || (starPos == 5) || (starPos == 6) || (starPos == 7)) {
-        var_r30 = 1;
+        stateValue = 1;
     }
 
-    if (BoardPlayerCoinsGet(arg0) < 0x14) {
-        var_r30 = 1;
+    if (BoardPlayerCoinsGet(playerIndex) < 0x14) {
+        stateValue = 1;
     }
 
-    if (var_r30 != 0) {
+    if (stateValue != 0) {
         BoardComKeySetLeft();
         return;
     }
@@ -556,165 +556,165 @@ void fn_1_4354(s32 arg0)
     BoardComKeySetRight();
 }
 
-char *lbl_1_data_34C[] = { "jyanA", "jyanB" };
+char *condorHookNames[] = { "jyanA", "jyanB" };
 
-void fn_1_4424(w03StructUnk2 *arg0)
+void CondorUpdatePlayerAnimation(CondorPlayerWork *playerWork)
 {
-    Mtx sp108;
-    Mtx spD8;
-    Mtx spA8;
-    Mtx sp78;
-    Vec sp6C;
-    Vec sp60;
-    Vec sp54;
-    Vec sp48;
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    s32 sp14;
-    f32 temp;
-    s16 spC;
-    s16 sp8;
-    f32 temp_f30;
-    s16 temp_r23;
-    s16 var_r25;
-    f32 sp10;
-    f32 sp10_2;
+    Mtx modelMatrix;
+    Mtx modelMatrix2;
+    Mtx modelMatrix3;
+    Mtx modelMatrix4;
+    Vec spacePosition;
+    Vec spacePosition2;
+    Vec modelPosition;
+    Vec modelPosition2;
+    Vec positionDelta;
+    Vec position;
+    Vec position2;
+    Vec position3;
+    s32 stateValue;
+    f32 unusedFloatValue;
+    s16 integerValue;
+    s16 integerValue2;
+    f32 floatValue;
+    s16 modelId;
+    s16 stateValue2;
+    f32 floatValue2;
+    f32 headingAngle;
     s16 i;
-    char *temp_r22;
-    w03StructUnk3 *temp_r27;
-    HU3DMODEL *temp_r28;
+    char *hookName;
+    CondorPlayerPositionWork *value2;
+    HU3DMODEL *value3;
 
-    memset(&lbl_1_bss_80, 0, 0xA0);
-    sp48.x = sp54.x = 0.0f;
-    sp48.y = sp54.y = 0.0f;
-    sp48.z = sp54.z = 0.0f;
-    sp14 = 0;
-    BoardSpaceFlagPosGet(0, 0x8000U, &sp6C);
-    BoardSpaceFlagPosGet(0, 0x8000U, &sp60);
+    memset(&condorPlayerPositions, 0, 0xA0);
+    modelPosition2.x = modelPosition.x = 0.0f;
+    modelPosition2.y = modelPosition.y = 0.0f;
+    modelPosition2.z = modelPosition.z = 0.0f;
+    stateValue = 0;
+    BoardSpaceFlagPosGet(0, 0x8000U, &spacePosition);
+    BoardSpaceFlagPosGet(0, 0x8000U, &spacePosition2);
 
-    if (lbl_1_bss_0->unk1 != 0) {
-        VECSubtract(&sp6C, &sp60, &sp3C);
+    if (boardState->condorSide != 0) {
+        VECSubtract(&spacePosition, &spacePosition2, &positionDelta);
     }
     else {
-        VECSubtract(&sp60, &sp6C, &sp3C);
+        VECSubtract(&spacePosition2, &spacePosition, &positionDelta);
     }
 
-    sp10_2 = atan2d(-sp3C.x, -sp3C.z);
-    BoardModelMotionStart(lbl_1_data_314, 0, 0U);
-    BoardModelMotionSpeedSet(lbl_1_data_314, 8.0f);
+    headingAngle = atan2d(-positionDelta.x, -positionDelta.z);
+    BoardModelMotionStart(condorCartModelId, 0, 0U);
+    BoardModelMotionSpeedSet(condorCartModelId, 8.0f);
     HuPrcSleep(1);
-    temp_r23 = BoardModelIDGet(lbl_1_data_314);
-    temp_r28 = &Hu3DData[temp_r23];
-    temp_r22 = lbl_1_data_34C[lbl_1_bss_0->unk1];
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_314), temp_r22, &sp48);
-    sp24.x = 0.0f;
-    sp24.y = 1.0f;
-    sp24.z = 0.0f;
+    modelId = BoardModelIDGet(condorCartModelId);
+    value3 = &Hu3DData[modelId];
+    hookName = condorHookNames[boardState->condorSide];
+    Hu3DModelObjPosGet(BoardModelIDGet(condorCartModelId), hookName, &modelPosition2);
+    position2.x = 0.0f;
+    position2.y = 1.0f;
+    position2.z = 0.0f;
 
-    for (i = var_r25 = 0; i < 20;) {
-        Hu3DMotionExec(temp_r23, temp_r28->motId, temp_r28->motWork.time, 0);
-        Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_314), temp_r22, &sp54);
-        temp_r28->motWork.time += temp_r28->motWork.speed;
+    for (i = stateValue2 = 0; i < 20;) {
+        Hu3DMotionExec(modelId, value3->motId, value3->motWork.time, 0);
+        Hu3DModelObjPosGet(BoardModelIDGet(condorCartModelId), hookName, &modelPosition);
+        value3->motWork.time += value3->motWork.value4;
 
-        if (temp_r28->motWork.time > 400.0f) {
+        if (value3->motWork.time > 400.0f) {
             break;
         }
 
-        if (var_r25 % 4 == 0 && ((s16)var_r25 != 0)) {
-            temp_r27 = &arg0->unk_08[i];
-            temp_r27->unk_00 = 1;
-            temp_f30 = (0.5f - BoardRandFloat()) * 90;
-            OSf32tos16(&temp_f30, &sp8);
-            sp8 = (sp8 / 10) * 10;
-            OSs16tof32(&sp8, &temp_f30);
-            lbl_1_bss_80[i + 1][0] = temp_f30;
-            lbl_1_bss_80[i + 1][1] = temp_r28->motWork.time;
-            sp30 = sp48;
-            sp18 = sp54;
-            BoardMTXCalcLookAt(spA8, &sp18, &sp24, &sp30);
-            MTXTranspose(spA8, spA8);
-            MTXRotDeg(spD8, 'z', temp_f30);
-            MTXTrans(sp108, 0.0f, -350.0f, 0.0f);
-            MTXConcat(spD8, sp108, sp108);
-            MTXConcat(spA8, sp108, sp108);
-            MTXTrans(sp78, sp54.x, sp54.y, sp54.z);
-            MTXConcat(sp78, sp108, sp78);
-            Hu3DMtxTransGet(sp78, &temp_r27->unk_08);
-            BoardModelPosSetV(temp_r27->model, &temp_r27->unk_08);
-            BoardModelVisibilitySet(temp_r27->model, 1);
+        if (stateValue2 % 4 == 0 && ((s16)stateValue2 != 0)) {
+            value2 = &playerWork->positionY[i];
+            value2->playerIndex = 1;
+            floatValue = (0.5f - BoardRandFloat()) * 90;
+            OSf32tos16(&floatValue, &integerValue2);
+            integerValue2 = (integerValue2 / 10) * 10;
+            OSs16tof32(&integerValue2, &floatValue);
+            condorPlayerPositions[i + 1][0] = floatValue;
+            condorPlayerPositions[i + 1][1] = value3->motWork.time;
+            position = modelPosition2;
+            position3 = modelPosition;
+            BoardMTXCalcLookAt(modelMatrix3, &position3, &position2, &position);
+            MTXTranspose(modelMatrix3, modelMatrix3);
+            MTXRotDeg(modelMatrix2, 'z', floatValue);
+            MTXTrans(modelMatrix, 0.0f, -350.0f, 0.0f);
+            MTXConcat(modelMatrix2, modelMatrix, modelMatrix);
+            MTXConcat(modelMatrix3, modelMatrix, modelMatrix);
+            MTXTrans(modelMatrix4, modelPosition.x, modelPosition.y, modelPosition.z);
+            MTXConcat(modelMatrix4, modelMatrix, modelMatrix4);
+            Hu3DMtxTransGet(modelMatrix4, &value2->positionY);
+            BoardModelPosSetV(value2->model, &value2->positionY);
+            BoardModelVisibilitySet(value2->model, 1);
             i++;
         }
-        sp48 = sp54;
-        var_r25++;
+        modelPosition2 = modelPosition;
+        stateValue2++;
     }
 
-    arg0->unk_03 = i;
+    playerWork->animationState = i;
 }
 
-void fn_1_48EC(s32 arg0)
+void CondorSetupPlayerWork(s32 playerIndex)
 {
-    Vec spC;
+    Vec modelPosition;
     OMOBJ *obj;
     s32 i;
-    w03StructUnk2 *temp_r31;
-    w03StructUnk3 *temp_r30;
+    CondorPlayerWork *work;
+    CondorPlayerPositionWork *positionWork;
 
-    obj = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, fn_1_50D4);
-    lbl_1_bss_74 = obj;
-    temp_r31 = omObjGetWork(obj, w03StructUnk2);
-    temp_r31->unkbit_00 = 0;
-    temp_r31->unk_01 = 0;
-    temp_r31->unkbit_03 = 0;
-    temp_r31->unkbit_04 = 0;
-    temp_r31->unk_02 = -1;
-    temp_r31->unkbit_01 = arg0;
-    temp_r31->unk_08 = HuMemDirectMallocNum(HEAP_HEAP, 0xA00, HU_MEMNUM_OVL);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_C[2]), "coin", &spC);
-    temp_r31->model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x07), NULL, 0);
-    BoardModelVisibilitySet(temp_r31->model, 0);
-    BoardModelPosSetV(temp_r31->model, &spC);
-    BoardModelLayerSet(temp_r31->model, 2U);
-    memset(temp_r31->unk_08, 0, 0xA00U);
+    obj = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, CondorUpdate);
+    condorMovementObject = obj;
+    work = omObjGetWork(obj, CondorPlayerWork);
+    work->isActive = 0;
+    work->unreferencedCondorData = 0;
+    work->isMoving = 0;
+    work->isVisible = 0;
+    work->timer = -1;
+    work->state = playerIndex;
+    work->positionY = HuMemDirectMallocNum(HEAP_HEAP, 0xA00, HU_MEMNUM_OVL);
+    Hu3DModelObjPosGet(BoardModelIDGet(boardModelIds[2]), "coin", &modelPosition);
+    work->model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x07), NULL, 0);
+    BoardModelVisibilitySet(work->model, 0);
+    BoardModelPosSetV(work->model, &modelPosition);
+    BoardModelLayerSet(work->model, 2U);
+    memset(work->positionY, 0, 0xA00U);
 
     for (i = 0; i < 80; i++) {
-        temp_r30 = &temp_r31->unk_08[i];
-        temp_r30->model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x09), 0, 1);
-        BoardModelVisibilitySet(temp_r30->model, 0);
-        BoardModelMotionStart(temp_r30->model, 0, 0x40000001U);
+        positionWork = &work->positionY[i];
+        positionWork->model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x09), 0, 1);
+        BoardModelVisibilitySet(positionWork->model, 0);
+        BoardModelMotionStart(positionWork->model, 0, 0x40000001U);
     }
 
-    fn_1_4424(temp_r31);
+    CondorUpdatePlayerAnimation(work);
 }
 
-void fn_1_4A9C(void)
+void CondorWorkCleanup(void)
 {
-    omObjGetWork(lbl_1_bss_74, w03UnkStruct4)->unk00_bit0 = 1;
+    omObjGetWork(condorMovementObject, CondorProcessWork)->isActive = 1;
 }
 
-void fn_1_4ABC(w03StructUnk2 *arg0)
+void CondorPlayerWorkUpdate(CondorPlayerWork *playerWork)
 {
-    Vec sp8;
-    f32 temp_f31;
-    w03StructUnk3 *temp_r31;
+    Vec modelPosition;
+    f32 floatValue;
+    CondorPlayerPositionWork *value;
     s32 i;
 
-    BoardModelPosGet(lbl_1_data_310, &sp8);
-    sp8.y += 250.0f;
+    BoardModelPosGet(condorModelId, &modelPosition);
+    modelPosition.y += 250.0f;
 
-    for (i = 0; i < arg0->unk_03; i++) {
-        temp_r31 = &arg0->unk_08[i];
-        if (temp_r31->unk_00 == 1) {
-            if (BoardVecMinDistCheck(&sp8, &temp_r31->unk_08, 200.0f) != 0) {
-                temp_r31->unk_00 = -1;
-                BoardModelVisibilitySet(temp_r31->model, 0);
+    for (i = 0; i < playerWork->animationState; i++) {
+        value = &playerWork->positionY[i];
+        if (value->playerIndex == 1) {
+            if (BoardVecMinDistCheck(&modelPosition, &value->positionY, 200.0f) != 0) {
+                value->playerIndex = -1;
+                BoardModelVisibilitySet(value->model, 0);
                 CharEffectLayerSet(2);
-                CharEffectCoinGlowCreate(1, &temp_r31->unk_08);
-                BoardPlayerCoinsAdd(arg0->unkbit_01, 1);
+                CharEffectCoinGlowCreate(1, &value->positionY);
+                BoardPlayerCoinsAdd(playerWork->state, 1);
                 HuAudFXPlay(7);
             }
-            BoardModelPosSetV(temp_r31->model, &temp_r31->unk_08);
+            BoardModelPosSetV(value->model, &value->positionY);
         }
     }
 
@@ -722,74 +722,74 @@ void fn_1_4ABC(w03StructUnk2 *arg0)
     (void)i;
     (void)i;
 
-    BoardModelPosGet(lbl_1_data_310, &sp8);
+    BoardModelPosGet(condorModelId, &modelPosition);
 
-    for (i = arg0->unk_03; i < 80; i++) {
-        temp_r31 = &arg0->unk_08[i];
-        if (temp_r31->unk_00 == 1) {
-            temp_r31->unk_04 += 1.0f;
-            temp_f31 = 0.8f * (temp_r31->unk_04 * temp_r31->unk_04);
-            VECAdd(&temp_r31->unk_14, &temp_r31->unk_08, &temp_r31->unk_08);
-            temp_r31->unk_08.y += -0.0375f * temp_f31;
-            if (temp_r31->unk_08.y < -300.0f) {
-                temp_r31->unk_00 = -1;
-                BoardModelVisibilitySet(temp_r31->model, 0);
+    for (i = playerWork->animationState; i < 80; i++) {
+        value = &playerWork->positionY[i];
+        if (value->playerIndex == 1) {
+            value->positionX += 1.0f;
+            floatValue = 0.8f * (value->positionX * value->positionX);
+            VECAdd(&value->targetPosition, &value->positionY, &value->positionY);
+            value->positionY.y += -0.0375f * floatValue;
+            if (value->positionY.y < -300.0f) {
+                value->playerIndex = -1;
+                BoardModelVisibilitySet(value->model, 0);
             }
-            else if (BoardVecMinDistCheck(&sp8, &temp_r31->unk_08, 200.0f) != 0) {
-                temp_r31->unk_00 = -1;
-                BoardModelVisibilitySet(temp_r31->model, 0);
-                BoardPlayerCoinsAdd(arg0->unkbit_01, 1);
+            else if (BoardVecMinDistCheck(&modelPosition, &value->positionY, 200.0f) != 0) {
+                value->playerIndex = -1;
+                BoardModelVisibilitySet(value->model, 0);
+                BoardPlayerCoinsAdd(playerWork->state, 1);
                 CharEffectLayerSet(2);
-                CharEffectCoinGlowCreate(1, &temp_r31->unk_08);
+                CharEffectCoinGlowCreate(1, &value->positionY);
                 HuAudFXPlay(7);
             }
             else {
-                BoardModelPosSetV(temp_r31->model, &temp_r31->unk_08);
+                BoardModelPosSetV(value->model, &value->positionY);
             }
         }
     }
 }
 
-s32 fn_1_4D0C(w03StructUnk3 **arg0, s16 *arg1)
+s32 CondorFindPlayerPosition(CondorPlayerPositionWork **positionWorkOut, s16 *animationStateOut)
 {
-    w03StructUnk2 *temp_r31;
+    CondorPlayerWork *work;
 
-    if (!(lbl_1_bss_74)) {
+    if (!(condorMovementObject)) {
         return 0;
     }
 
-    temp_r31 = omObjGetWork(lbl_1_bss_74, w03StructUnk2);
-    *arg0 = temp_r31->unk_08;
-    *arg1 = temp_r31->unk_03;
+    work = omObjGetWork(condorMovementObject, CondorPlayerWork);
+    *positionWorkOut = work->positionY;
+    *animationStateOut = work->animationState;
     return 1;
 }
 
-void fn_1_4D60(w03StructUnk2 *arg0)
+void CondorPlayerStateUpdate(CondorPlayerWork *playerWork)
 {
-    Vec sp8;
-    f32 temp_f31;
-    f32 temp_f30;
+    Vec modelPosition;
+    f32 floatValue;
+    f32 radialDistance;
     s32 i;
     s32 j;
-    w03StructUnk3 *temp_r31;
+    CondorPlayerPositionWork *positionWork;
 
-    if (arg0->unk_02 == 1) {
-        Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_C[2]), "coin", &sp8);
+    if (playerWork->timer == 1) {
+        Hu3DModelObjPosGet(BoardModelIDGet(boardModelIds[2]), "coin", &modelPosition);
         for (i = 0; i < 5; i++) {
-            for (j = arg0->unk_03; j < 80; j++) {
-                temp_r31 = &arg0->unk_08[j];
-                if (temp_r31->unk_00 == 0) {
-                    temp_r31->unk_00 = 1;
-                    temp_f31 = 360.0f * BoardRandFloat();
-                    temp_f30 = 5.0f * BoardRandFloat();
-                    temp_r31->unk_14.x = temp_f30 * sind(temp_f31);
-                    temp_r31->unk_14.y = 50.0f + (20.0f * BoardRandFloat());
-                    temp_r31->unk_14.z = temp_f30 * cosd(temp_f31);
-                    temp_r31->unk_08.x = sp8.x;
-                    temp_r31->unk_08.y = sp8.y;
-                    temp_r31->unk_08.z = sp8.z;
-                    BoardModelVisibilitySet(temp_r31->model, 1);
-                    BoardModelMotionStart(temp_r31->model, 0, 0x40000001);
+            for (j = playerWork->animationState; j < 80; j++) {
+                positionWork = &playerWork->positionY[j];
+                if (positionWork->playerIndex == 0) {
+                    positionWork->playerIndex = 1;
+                    floatValue = 360.0f * BoardRandFloat();
+                    radialDistance = 5.0f * BoardRandFloat();
+                    positionWork->targetPosition.x = radialDistance * sind(floatValue);
+                    positionWork->targetPosition.y = 50.0f + (20.0f * BoardRandFloat());
+                    positionWork->targetPosition.z = radialDistance * cosd(floatValue);
+                    positionWork->positionY.x = modelPosition.x;
+                    positionWork->positionY.y = modelPosition.y;
+                    positionWork->positionY.z = modelPosition.z;
+                    BoardModelVisibilitySet(positionWork->model, 1);
+                    BoardModelMotionStart(positionWork->model, 0, 0x40000001);
                     break;
                 }
             }
@@ -797,137 +797,137 @@ void fn_1_4D60(w03StructUnk2 *arg0)
     }
 }
 
-void fn_1_4F24(w03StructUnk2 *arg0)
+void CondorPlayerMotionUpdate(CondorPlayerWork *playerWork)
 {
-    s32 var_r30 = 0;
-    s32 sp8[4] = { 5, 10, 30, 40 };
-    s32 temp_r29;
-    s32 temp_r28;
+    s32 playerIndex = 0;
+    s32 playerIndex2[4] = { 5, 10, 30, 40 };
+    s32 randomValue;
+    s32 randomValue2;
 
-    if (arg0->unk_02 == -1) {
+    if (playerWork->timer == -1) {
         if (GWTeamGet()) {
-            if (GWPlayer[arg0->unkbit_01].rank == 0) {
-                var_r30 = 5;
+            if (GWPlayer[playerWork->state].rank == 0) {
+                playerIndex = 5;
             }
-            else if (GWPlayer[arg0->unkbit_01].rank == 1) {
-                var_r30 = 20;
+            else if (GWPlayer[playerWork->state].rank == 1) {
+                playerIndex = 20;
             }
         }
         else {
-            var_r30 = sp8[GWPlayer[arg0->unkbit_01].rank];
+            playerIndex = playerIndex2[GWPlayer[playerWork->state].rank];
         }
 
-        temp_r29 = BoardRandMod(100);
-        temp_r28 = BoardRandMod(100);
+        randomValue = BoardRandMod(100);
+        randomValue2 = BoardRandMod(100);
 
-        if (temp_r29 < var_r30) {
-            if (temp_r28 < 30) {
-                arg0->unk_02 = 2;
+        if (randomValue < playerIndex) {
+            if (randomValue2 < 30) {
+                playerWork->timer = 2;
             }
             else {
-                arg0->unk_02 = 1;
+                playerWork->timer = 1;
             }
         }
         else {
-            arg0->unk_02 = 0;
+            playerWork->timer = 0;
         }
 
-        if (arg0->unk_02 != 0) {
-            BoardModelMotionShiftSet(lbl_1_bss_C[2], 0, 101.0f, 10.0f, HU3D_MOTATTR_NONE);
+        if (playerWork->timer != 0) {
+            BoardModelMotionShiftSet(boardModelIds[2], 0, 101.0f, 10.0f, HU3D_MOTATTR_NONE);
         }
     }
 }
 
-void fn_1_50D4(OMOBJ *arg0)
+void CondorUpdate(OMOBJ *object)
 {
-    Vec sp50;
-    Vec sp44;
-    Vec sp38;
-    PlayerState *sp18;
-    PlayerState *sp14;
-    s16 sp10[2];
-    s16 spC[2];
-    f32 temp_f31;
-    f32 temp_f30;
-    f32 temp_f29;
+    Vec playerPosition;
+    Vec modelPosition;
+    Vec positionDelta;
+    PlayerState *value3;
+    PlayerState *value2;
+    s16 integerValue[2];
+    s16 integerValue2[2];
+    f32 animationTime;
+    f32 floatValue;
+    f32 floatValue2;
     s32 i, j, k;
-    s32 temp_r22;
-    s32 temp_r23;
-    w03StructUnk3 *temp_r30;
-    w03StructUnk2 *temp_r31;
-    w03StructUnk3 *temp;
+    s32 integerValue3;
+    s32 integerValue4;
+    CondorPlayerPositionWork *unusedPositionWork;
+    CondorPlayerWork *condorWork;
+    CondorPlayerPositionWork *positionWork;
 
-    temp_r31 = omObjGetWork(lbl_1_bss_74, w03StructUnk2);
+    condorWork = omObjGetWork(condorMovementObject, CondorPlayerWork);
 
-    if ((temp_r31->unkbit_00 != 0) || (BoardIsKill() != 0)) {
+    if ((condorWork->isActive != 0) || (BoardIsKill() != 0)) {
         for (i = 0; i < 80; i++) {
-            temp = &temp_r31->unk_08[i];
-            BoardModelKill(temp->model);
+            positionWork = &condorWork->positionY[i];
+            BoardModelKill(positionWork->model);
         }
 
         for (i = 0; i < 4; i++) {
             BoardModelVisibilitySet(BoardPlayerModelGet(i), 1);
         }
 
-        BoardModelKill(temp_r31->model);
-        HuMemDirectFree(temp_r31->unk_08);
-        lbl_1_bss_74 = 0;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        BoardModelKill(condorWork->model);
+        HuMemDirectFree(condorWork->positionY);
+        condorMovementObject = 0;
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
 
-    if (lbl_1_data_314 != -1) {
-        temp_f31 = BoardModelMotionTimeGet(lbl_1_data_314);
-        if (temp_r31->unk_01 == 0) {
-            if ((lbl_1_bss_0->unk1 != 0) && ((temp_f31 >= 212.0f)) || (lbl_1_bss_0->unk1 == 0) && ((temp_f31 >= 86.0f))) {
+    if (condorCartModelId != -1) {
+        animationTime = BoardModelMotionTimeGet(condorCartModelId);
+        if (condorWork->unreferencedCondorData == 0) {
+            if ((boardState->condorSide != 0) && ((animationTime >= 212.0f)) || (boardState->condorSide == 0) && ((animationTime >= 86.0f))) {
 
-                temp_r31->unk_01 = 1;
+                condorWork->unreferencedCondorData = 1;
             }
         }
         else {
-            fn_1_4F24(temp_r31);
+            CondorPlayerMotionUpdate(condorWork);
         }
 
-        if (temp_r31->unk_01 != 0) {
-            if (BoardModelMotionEndCheck(lbl_1_bss_C[2]) != 0) {
-                BoardModelMotionStart(lbl_1_bss_C[2], 0, 0x40000001);
-                BoardModelMotionStartEndSet(lbl_1_bss_C[2], 1, 100);
+        if (condorWork->unreferencedCondorData != 0) {
+            if (BoardModelMotionEndCheck(boardModelIds[2]) != 0) {
+                BoardModelMotionStart(boardModelIds[2], 0, 0x40000001);
+                BoardModelMotionStartEndSet(boardModelIds[2], 1, 100);
             }
-            if (BoardModelMotionEndCheck(temp_r31->model) != 0) {
-                BoardModelVisibilitySet(temp_r31->model, 0);
+            if (BoardModelMotionEndCheck(condorWork->model) != 0) {
+                BoardModelVisibilitySet(condorWork->model, 0);
             }
         }
 
-        if (BoardModelMotionTimeGet(lbl_1_bss_C[2]) >= 170.0f) {
-            if (temp_r31->unkbit_04 == 0) {
-                if (temp_r31->unkbit_03 == 0) {
+        if (BoardModelMotionTimeGet(boardModelIds[2]) >= 170.0f) {
+            if (condorWork->isVisible == 0) {
+                if (condorWork->isMoving == 0) {
                     HuAudFXPlay(0x43C);
                 }
                 else {
                     HuAudFXPlay(0x43D);
                 }
-                temp_r31->unkbit_04 = 1;
+                condorWork->isVisible = 1;
             }
-            if (temp_r31->unk_02 == 1) {
+            if (condorWork->timer == 1) {
                 omVibrate(GWSystem.player_curr, 0xC, 4, 2);
-                fn_1_4D60(temp_r31);
+                CondorPlayerStateUpdate(condorWork);
             }
-            else if ((temp_r31->unk_02 == 2) && (temp_r31->unkbit_03 == 0)) {
+            else if ((condorWork->timer == 2) && (condorWork->isMoving == 0)) {
                 omVibrate(GWSystem.player_curr, 0xC, 0xC, 0);
-                BoardModelVisibilitySet(temp_r31->model, 1);
-                BoardModelMotionStart(temp_r31->model, 0, 0);
-                temp_r31->unkbit_03 = 1;
+                BoardModelVisibilitySet(condorWork->model, 1);
+                BoardModelMotionStart(condorWork->model, 0, 0);
+                condorWork->isMoving = 1;
             }
         }
 
-        fn_1_4ABC(temp_r31);
+        CondorPlayerWorkUpdate(condorWork);
 
         for (i = 0; i < 4; i++) {
             if (i != GWSystem.player_curr) {
-                BoardPlayerPosGet(i, &sp50);
-                BoardModelPosGet(lbl_1_data_310, &sp44);
-                VECSubtract(&sp50, &sp44, &sp38);
-                if (VECMag(&sp38) >= 2000.0f) {
+                BoardPlayerPosGet(i, &playerPosition);
+                BoardModelPosGet(condorModelId, &modelPosition);
+                VECSubtract(&playerPosition, &modelPosition, &positionDelta);
+                if (VECMag(&positionDelta) >= 2000.0f) {
                     BoardModelVisibilitySet(BoardPlayerModelGet(i), 0);
                 }
                 else {
@@ -938,242 +938,242 @@ void fn_1_50D4(OMOBJ *arg0)
     }
 }
 
-void fn_1_5838(s32 arg0)
+void CondorMoveToDestination(s32 playerIndex)
 {
-    Vec sp18;
-    Vec spC;
+    Vec cameraRotation;
+    Vec cameraRotation2;
     OMOBJ *obj;
-    w03UnkStruct5 *temp_r31;
+    CondorMotionWork *work;
 
-    obj = omAddObjEx(boardObjMan, 0x7E01, 0, 0, -1, &fn_1_5AC8);
-    lbl_1_bss_78 = obj;
-    temp_r31 = omObjGetWork(obj, w03UnkStruct5);
-    temp_r31->unk00_bit0 = 0;
-    temp_r31->unk00_bit1 = arg0;
-    temp_r31->unk00_bit4 = 1;
-    temp_r31->unk00_bit3 = 0;
+    obj = omAddObjEx(boardObjMan, 0x7E01, 0, 0, -1, &CondorMotionUpdate);
+    condorMotionObject = obj;
+    work = omObjGetWork(obj, CondorMotionWork);
+    work->isActive = 0;
+    work->condorState = playerIndex;
+    work->movementFlags = 1;
+    work->isMoving = 0;
 
-    switch (GWPlayer[temp_r31->unk00_bit1].diff) {
+    switch (GWPlayer[work->condorState].diff) {
         case 0:
-            temp_r31->unk_08 = (-15.0f + (-30.0f * BoardRandFloat()));
+            work->positionY = (-15.0f + (-30.0f * BoardRandFloat()));
             break;
         case 1:
-            temp_r31->unk_08 = (-5.0f + (-10.0f * BoardRandFloat()));
+            work->positionY = (-5.0f + (-10.0f * BoardRandFloat()));
             break;
         case 2:
-            temp_r31->unk_08 = (-2.0f + (-5.0f * BoardRandFloat()));
+            work->positionY = (-2.0f + (-5.0f * BoardRandFloat()));
             break;
         case 3:
-            temp_r31->unk_08 = 0.0f;
+            work->positionY = 0.0f;
             break;
     }
 
     BoardCameraMoveSet(0);
 
-    sp18.x = 0.0f;
-    sp18.y = -350.0f;
-    sp18.z = 0.0f;
-    spC.x = -20.0f;
-    spC.y = 0.0f;
-    spC.z = 0.0f;
+    cameraRotation.x = 0.0f;
+    cameraRotation.y = -350.0f;
+    cameraRotation.z = 0.0f;
+    cameraRotation2.x = -20.0f;
+    cameraRotation2.y = 0.0f;
+    cameraRotation2.z = 0.0f;
 
-    BoardCameraMotionStartEx(lbl_1_data_310, &spC, &sp18, 3000.0f, -1.0f, 1);
-    BoardModelMotionStart(lbl_1_data_310, 3, 0x40000001U);
-    BoardModelMotionStart(lbl_1_data_314, 0, 0U);
-    BoardModelMotionSpeedSet(lbl_1_data_314, 0.7f);
-    fn_1_5C5C(obj, temp_r31);
+    BoardCameraMotionStartEx(condorModelId, &cameraRotation2, &cameraRotation, 3000.0f, -1.0f, 1);
+    BoardModelMotionStart(condorModelId, 3, 0x40000001U);
+    BoardModelMotionStart(condorCartModelId, 0, 0U);
+    BoardModelMotionSpeedSet(condorCartModelId, 0.7f);
+    CondorFlyToTarget(obj, work);
     BoardCameraMotionWait();
     BoardCameraTargetModelSet(-1);
 }
 
-void fn_1_5AC8(OMOBJ *arg0)
+void CondorMotionUpdate(OMOBJ *object)
 {
-    s32 temp_r0;
-    w03UnkStruct5 *temp_r31;
+    s32 integerValue;
+    CondorMotionWork *work;
 
-    temp_r31 = omObjGetWork(arg0, w03UnkStruct5);
+    work = omObjGetWork(object, CondorMotionWork);
 
-    if ((temp_r31->unk00_bit0 != 0) || (BoardIsKill() != 0)) {
-        lbl_1_bss_78 = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
-        if (lbl_1_data_316 != -1) {
-            HuWinKill(lbl_1_data_316);
-            lbl_1_data_316 = -1;
+    if ((work->isActive != 0) || (BoardIsKill() != 0)) {
+        condorMotionObject = NULL;
+        omDelObjEx(HuPrcCurrentGet(), object);
+        if (condorCartMotionId != -1) {
+            HuWinKill(condorCartMotionId);
+            condorCartMotionId = -1;
         }
         return;
     }
 
-    if ((10.0f == BoardModelMotionTimeGet(lbl_1_data_310)) || (50.0f == BoardModelMotionTimeGet(lbl_1_data_310))) {
+    if ((10.0f == BoardModelMotionTimeGet(condorModelId)) || (50.0f == BoardModelMotionTimeGet(condorModelId))) {
         HuAudFXPlay(0x43B);
     }
 
-    switch (temp_r31->unk00_bit4) {
+    switch (work->movementFlags) {
         case 1:
-            if (lbl_1_bss_7D != 0) {
-                fn_1_629C(2);
-                fn_1_62FC();
-                BoardCameraTargetModelSet(lbl_1_data_310);
+            if (condorDestinationSide != 0) {
+                CondorStateSet(2);
+                CondorCleanup();
+                BoardCameraTargetModelSet(condorModelId);
                 BoardCameraMoveSet(1);
             }
             break;
         case 2:
-            fn_1_5C5C(arg0, (w03UnkStruct5 *)temp_r31);
+            CondorFlyToTarget(object, (CondorMotionWork *)work);
             break;
         case 3:
             BoardCameraTargetModelSet(-1);
             BoardCameraMoveSet(0);
-            temp_r31->unk00_bit0 = 1;
+            work->isActive = 1;
             break;
     }
 }
 
-char *lbl_1_data_35C[] = { "jyanA", "jyanB" };
+char *condorPlayerHookNames[] = { "jyanA", "jyanB" };
 
-void fn_1_5C5C(OMOBJ *arg0, w03UnkStruct5 *arg1)
+void CondorFlyToTarget(OMOBJ *object, CondorMotionWork *motionWork)
 {
-    Mtx sp110;
-    Mtx spE0;
-    Mtx spB0;
-    Mtx sp80;
-    Mtx sp50;
-    Vec sp44;
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    s16 temp_r3;
-    char *temp_r27;
-    HU3DMODEL *temp_r30;
+    Mtx modelMatrix;
+    Mtx modelMatrix2;
+    Mtx modelMatrix3;
+    Mtx modelMatrix4;
+    Mtx modelMatrix5;
+    Vec modelPosition;
+    Vec position;
+    Vec positionDelta;
+    Vec position2;
+    Vec position3;
+    Vec position4;
+    s16 modelId;
+    char *value;
+    HU3DMODEL *value2;
 
-    if (((WipeStatGet() == 0) && (arg1->unk00_bit3) || (BoardModelMotionEndCheck(lbl_1_data_314) != 0))) {
-        fn_1_629C(3);
+    if (((WipeStatGet() == 0) && (motionWork->isMoving) || (BoardModelMotionEndCheck(condorCartModelId) != 0))) {
+        CondorStateSet(3);
         return;
     }
 
-    if ((BoardModelMotionTimeGet(lbl_1_data_314) >= 410.0f) && (arg1->unk00_bit3) == 0) {
+    if ((BoardModelMotionTimeGet(condorCartModelId) >= 410.0f) && (motionWork->isMoving) == 0) {
         WipeColorSet(0, 0, 0);
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
-        arg1->unk00_bit3 = 1;
+        motionWork->isMoving = 1;
         BoardAudSeqFadeOut(1, 0x3E8);
     }
 
-    sp38.x = arg0->rot.x;
-    sp38.y = arg0->rot.y;
-    sp38.z = arg0->rot.z;
+    position.x = object->rot.x;
+    position.y = object->rot.y;
+    position.z = object->rot.z;
 
-    temp_r3 = BoardModelIDGet(lbl_1_data_314);
-    temp_r30 = &Hu3DData[temp_r3];
-    temp_r27 = lbl_1_data_35C[lbl_1_bss_0->unk1];
+    modelId = BoardModelIDGet(condorCartModelId);
+    value2 = &Hu3DData[modelId];
+    value = condorPlayerHookNames[boardState->condorSide];
 
-    Hu3DMotionExec(temp_r3, temp_r30->motId, temp_r30->motWork.time, 0);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_314), temp_r27, &sp44);
+    Hu3DMotionExec(modelId, value2->motId, value2->motWork.time, 0);
+    Hu3DModelObjPosGet(BoardModelIDGet(condorCartModelId), value, &modelPosition);
 
-    if (0.0f != temp_r30->motWork.time) {
-        VECSubtract(&sp38, &sp44, &sp2C);
+    if (0.0f != value2->motWork.time) {
+        VECSubtract(&position, &modelPosition, &positionDelta);
     }
     else {
-        sp2C.x = sp2C.y = sp2C.z = 0.0f;
+        positionDelta.x = positionDelta.y = positionDelta.z = 0.0f;
     }
 
-    arg0->rot.x = sp44.x;
-    arg0->rot.y = sp44.y;
-    arg0->rot.z = sp44.z;
+    object->rot.x = modelPosition.x;
+    object->rot.y = modelPosition.y;
+    object->rot.z = modelPosition.z;
 
-    fn_1_602C(arg0, arg1);
+    CondorLandAtTarget(object, motionWork);
 
-    sp8 = sp38;
-    sp14 = sp44;
-    sp20.x = sp20.z = 0.0f;
-    sp20.y = 1.0f;
+    position4 = position;
+    position3 = modelPosition;
+    position2.x = position2.z = 0.0f;
+    position2.y = 1.0f;
 
-    BoardMTXCalcLookAt(sp110, &sp14, &sp20, &sp8);
-    MTXTranspose(sp110, sp110);
-    MTXRotDeg(spE0, 'z', -arg1->unk_04);
-    MTXTrans(sp50, 0.0f, -600.0f, 0.0f);
-    MTXConcat(spE0, sp50, sp50);
-    MTXConcat(sp110, sp50, sp50);
-    MTXTrans(sp80, sp44.x, sp44.y, sp44.z);
-    MTXConcat(sp80, sp50, sp80);
-    Hu3DMtxTransGet(sp80, &sp44);
-    MTXRotDeg(spB0, 'y', atan2d(-sp2C.x, -sp2C.z));
-    MTXConcat(spB0, spE0, sp110);
-    BoardModelMtxSet(lbl_1_data_310, &sp110);
-    BoardModelPosSetV(lbl_1_data_310, &sp44);
-    BoardCameraRotSet(-20.0f, atan2d(sp2C.x, sp2C.z));
+    BoardMTXCalcLookAt(modelMatrix, &position3, &position2, &position4);
+    MTXTranspose(modelMatrix, modelMatrix);
+    MTXRotDeg(modelMatrix2, 'z', -motionWork->positionX);
+    MTXTrans(modelMatrix5, 0.0f, -600.0f, 0.0f);
+    MTXConcat(modelMatrix2, modelMatrix5, modelMatrix5);
+    MTXConcat(modelMatrix, modelMatrix5, modelMatrix5);
+    MTXTrans(modelMatrix4, modelPosition.x, modelPosition.y, modelPosition.z);
+    MTXConcat(modelMatrix4, modelMatrix5, modelMatrix4);
+    Hu3DMtxTransGet(modelMatrix4, &modelPosition);
+    MTXRotDeg(modelMatrix3, 'y', atan2d(-positionDelta.x, -positionDelta.z));
+    MTXConcat(modelMatrix3, modelMatrix2, modelMatrix);
+    BoardModelMtxSet(condorModelId, &modelMatrix);
+    BoardModelPosSetV(condorModelId, &modelPosition);
+    BoardCameraRotSet(-20.0f, atan2d(positionDelta.x, positionDelta.z));
 }
 
-void fn_1_602C(OMOBJ *arg0, w03UnkStruct5 *arg1)
+void CondorLandAtTarget(OMOBJ *object, CondorMotionWork *motionWork)
 {
-    f32 temp_f31 = 0.0f;
-    f32 var_f30;
-    f32 var_f29;
+    f32 floatValue = 0.0f;
+    f32 floatValue2;
+    f32 floatValue3;
 
-    if (GWPlayer[arg1->unk00_bit1].com == 0) {
-        var_f30 = HuPadStkX[GWPlayer[arg1->unk00_bit1].port];
+    if (GWPlayer[motionWork->condorState].com == 0) {
+        floatValue2 = HuPadStkX[GWPlayer[motionWork->condorState].port];
     }
     else {
-        var_f30 = fn_1_61A4(arg0, arg1);
+        floatValue2 = CondorDistanceToTarget(object, motionWork);
     }
 
-    temp_f31 = 0.625f * var_f30;
+    floatValue = 0.625f * floatValue2;
 
-    if (temp_f31 < 0.0f) {
-        var_f29 = -temp_f31;
+    if (floatValue < 0.0f) {
+        floatValue3 = -floatValue;
     }
     else {
-        var_f29 = temp_f31;
+        floatValue3 = floatValue;
     }
 
-    if (var_f29 < 2.0f) {
-        arg1->unk_04 *= 0.97f;
+    if (floatValue3 < 2.0f) {
+        motionWork->positionX *= 0.97f;
         return;
     }
 
-    BoardDAngleCalcRange(&arg1->unk_04, temp_f31, 1.0f);
+    BoardDAngleCalcRange(&motionWork->positionX, floatValue, 1.0f);
 }
 
-f32 fn_1_61A4(OMOBJ *arg0, w03UnkStruct5 *arg1)
+f32 CondorDistanceToTarget(OMOBJ *object, CondorMotionWork *motionWork)
 {
-    w03StructUnk3 *sp8;
-    f32 temp_f31;
+    CondorPlayerPositionWork *value2;
+    f32 animationTime;
     s16 i;
-    w03StructUnk2 *temp_r29;
-    s16 var_r28;
-    f32 *temp_r31;
+    CondorPlayerWork *work;
+    s16 integerValue;
+    f32 *value;
 
-    if (lbl_1_bss_74) {
-        temp_r29 = omObjGetWork(lbl_1_bss_74, w03StructUnk2);
-        sp8 = temp_r29->unk_08;
-        var_r28 = temp_r29->unk_03;
+    if (condorMovementObject) {
+        work = omObjGetWork(condorMovementObject, CondorPlayerWork);
+        value2 = work->positionY;
+        integerValue = work->animationState;
     }
 
-    temp_f31 = BoardModelMotionTimeGet(lbl_1_data_314);
-    temp_f31 = temp_f31 + arg1->unk_08;
+    animationTime = BoardModelMotionTimeGet(condorCartModelId);
+    animationTime = animationTime + motionWork->positionY;
 
-    for (i = 0; i < var_r28; i++) {
-        temp_r31 = lbl_1_bss_80[i];
-        if ((temp_r31[1] < temp_f31) && (temp_r31[3] > temp_f31)) {
-            return -1.5f * temp_r31[2];
+    for (i = 0; i < integerValue; i++) {
+        value = condorPlayerPositions[i];
+        if ((value[1] < animationTime) && (value[3] > animationTime)) {
+            return -1.5f * value[2];
         }
     }
 
     return 0.0f;
 }
 
-void fn_1_629C(s8 arg0)
+void CondorStateSet(s8 value)
 {
-    w03UnkStruct5 *temp_r31 = omObjGetWork(lbl_1_bss_78, w03UnkStruct5);
-    temp_r31->unk00_bit4 = arg0;
+    CondorMotionWork *work = omObjGetWork(condorMotionObject, CondorMotionWork);
+    work->movementFlags = value;
 }
 
-s32 fn_1_62D0(void)
+s32 CondorCheckCompletion(void)
 {
-    w03UnkStruct5 *temp_r31 = omObjGetWork(lbl_1_bss_78, w03UnkStruct5);
-    return temp_r31->unk00_bit4;
+    CondorMotionWork *work = omObjGetWork(condorMotionObject, CondorMotionWork);
+    return work->movementFlags;
 }
 
-void fn_1_62FC(void)
+void CondorCleanup(void)
 {
     f32 widthHeight[2];
     s32 messageID = DATA_MAKE_NUM(DATADIR_DAISYMOT, 0x05);
@@ -1183,8 +1183,8 @@ void fn_1_62FC(void)
     HuWinMesMaxSizeGet(1, widthHeight, messageID);
     x = -10000.0f;
     y = 392.0f;
-    lbl_1_data_316 = HuWinCreate(x, y, widthHeight[0], widthHeight[1], 0);
-    HuWinBGTPLvlSet(lbl_1_data_316, 0.0f);
-    HuWinMesSpeedSet(lbl_1_data_316, 0);
-    HuWinMesSet(lbl_1_data_316, messageID);
+    condorCartMotionId = HuWinCreate(x, y, widthHeight[0], widthHeight[1], 0);
+    HuWinBGTPLvlSet(condorCartMotionId, 0.0f);
+    HuWinMesSpeedSet(condorCartMotionId, 0);
+    HuWinMesSet(condorCartMotionId, messageID);
 }

@@ -18,120 +18,120 @@
 #include "ext_math.h"
 
 // BSS
-char lbl_1_bss_130[8];
-OMOBJ *lbl_1_bss_12C;
-s16 lbl_1_bss_128;
-s32 lbl_1_bss_124;
-HUPROCESS *lbl_1_bss_120;
+char riverRewardText[8];
+OMOBJ *riverRaftObject;
+s16 riverEventSucceeded;
+s32 riverEventState;
+HUPROCESS *riverEventProcess;
 
 // function signatures
-void fn_1_67F8(void);
-void fn_1_6884(void);
-void fn_1_767C(OMOBJ *arg0);
-s32 fn_1_6898(s32 arg0);
-void fn_1_6B98(s32 arg0);
-void fn_1_6F9C(s32 arg0);
-void fn_1_767C(OMOBJ *arg0);
-void fn_1_735C(s32 arg0);
-void fn_1_77E4(s32 arg0);
+void RiverRunPlayerEvent(void);
+void RiverEventProcessCleanup(void);
+void RiverRaftUpdate(OMOBJ *object);
+s32 RiverCheckPlayerChoice(s32 playerIndex);
+void RiverAnimatePlayerRide(s32 value);
+void RiverMoveRaft(s32 playerIndex);
+void RiverRaftUpdate(OMOBJ *object);
+void RiverFinishPlayerRide(s32 playerIndex);
+void RiverCheckStarPosition(s32 value);
 
-typedef struct unkWorkStruct {
+typedef struct RiverRaftWork {
     struct {
-        u8 temp1 : 1;
+        u8 shouldStop : 1;
     };
-    s8 unk_01[3];
-    f32 unk_04;
-} unkWorkStruct;
+    s8 unreferencedRiverData[3];
+    f32 rotation;
+} RiverRaftWork;
 
 // data
-s32 lbl_1_data_368[] = { 0x00000105, 0x00000145, 0x00000185, 0x000001C5, 0x00000205, 0x00000245, 0x00000285, 0x000002C5 };
+s32 riverPlayerMotionIds[] = { 0x00000105, 0x00000145, 0x00000185, 0x000001C5, 0x00000205, 0x00000245, 0x00000285, 0x000002C5 };
 
-s16 lbl_1_data_388 = -1;
-s16 lbl_1_data_38A = -1;
-s16 lbl_1_data_38C = -1;
-s32 lbl_1_data_390[] = { DATA_MAKE_NUM(DATADIR_W03, 0x26), DATA_MAKE_NUM(DATADIR_W03, 0x27), DATA_MAKE_NUM(DATADIR_W03, 0x28), DATA_NUM_LISTEND };
+s16 riverModelId = -1;
+s16 riverRaftModelId = -1;
+s16 riverWaterModelId = -1;
+s32 riverRaftMotionData[] = { DATA_MAKE_NUM(DATADIR_W03, 0x26), DATA_MAKE_NUM(DATADIR_W03, 0x27), DATA_MAKE_NUM(DATADIR_W03, 0x28), DATA_NUM_LISTEND };
 
-void fn_1_63F4(s32 arg0)
+void RiverSetWaterHeight(s32 value)
 {
-    Vec spC;
-    unkWorkStruct *work = omObjGetWork(lbl_1_bss_12C, unkWorkStruct);
+    Vec modelPosition;
+    RiverRaftWork *work = omObjGetWork(riverRaftObject, RiverRaftWork);
 
-    work->unk_04 = 0.0f;
+    work->rotation = 0.0f;
 
-    BoardModelPosGet(lbl_1_data_388, &spC);
-    if (arg0 != 0) {
-        spC.y = -185.0f;
+    BoardModelPosGet(riverModelId, &modelPosition);
+    if (value != 0) {
+        modelPosition.y = -185.0f;
     }
     else {
-        spC.y = 10.0f;
+        modelPosition.y = 10.0f;
     }
 
-    BoardModelPosSetV(lbl_1_data_388, &spC);
+    BoardModelPosSetV(riverModelId, &modelPosition);
 }
 
-void fn_1_6494(void)
+void RiverCreateRaft(void)
 {
-    Vec sp14;
-    Vec sp8;
-    unkWorkStruct *temp_r31;
+    Vec modelPosition;
+    Vec spacePosition;
+    RiverRaftWork *work;
 
-    lbl_1_data_388 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x0E), NULL, 0);
-    lbl_1_data_38C = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x0F), NULL, 0);
-    lbl_1_data_38A = BoardModelCreate(0x2000D, &lbl_1_data_390[0], 0);
-    BoardModelMotionStart(lbl_1_data_38A, 1, 0x40000001);
-    BoardModelHookSet(lbl_1_data_38A, "itemhook_R", lbl_1_data_38C);
-    BoardModelHookSet(lbl_1_data_388, "hei01", lbl_1_data_38A);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_C[0]), "ikada", &sp14);
-    BoardSpaceFlagPosGet(0, 0x200, &sp8);
-    sp14.x = sp8.x + (400.0 * sin(-(M_PI / 2)));
-    sp14.z = sp8.z + (400.0 * cos(-(M_PI / 2)));
-    BoardModelPosSetV(lbl_1_data_388, &sp14);
-    lbl_1_bss_12C = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, (void *)fn_1_767C);
-    temp_r31 = omObjGetWork(lbl_1_bss_12C, unkWorkStruct);
-    temp_r31->temp1 = 0;
-    temp_r31->unk_04 = 0.0f;
-    lbl_1_bss_124 = 0;
+    riverModelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x0E), NULL, 0);
+    riverWaterModelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x0F), NULL, 0);
+    riverRaftModelId = BoardModelCreate(0x2000D, &riverRaftMotionData[0], 0);
+    BoardModelMotionStart(riverRaftModelId, 1, 0x40000001);
+    BoardModelHookSet(riverRaftModelId, "itemhook_R", riverWaterModelId);
+    BoardModelHookSet(riverModelId, "hei01", riverRaftModelId);
+    Hu3DModelObjPosGet(BoardModelIDGet(boardModelIds[0]), "ikada", &modelPosition);
+    BoardSpaceFlagPosGet(0, 0x200, &spacePosition);
+    modelPosition.x = spacePosition.x + (400.0 * sin(-(M_PI / 2)));
+    modelPosition.z = spacePosition.z + (400.0 * cos(-(M_PI / 2)));
+    BoardModelPosSetV(riverModelId, &modelPosition);
+    riverRaftObject = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, (void *)RiverRaftUpdate);
+    work = omObjGetWork(riverRaftObject, RiverRaftWork);
+    work->shouldStop = 0;
+    work->rotation = 0.0f;
+    riverEventState = 0;
 }
 
-s32 fn_1_6698(void)
+s32 RiverResetRaftPosition(void)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec modelPosition;
+    Vec spacePosition;
 
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_C[0]), "ikada", &sp14);
-    BoardSpaceFlagPosGet(0, 0x200, &sp8);
-    sp14.x = sp8.x + (400.0 * sin(-(M_PI / 2)));
-    sp14.z = sp8.z + (400.0 * cos(-(M_PI / 2)));
-    BoardModelPosSetV(lbl_1_data_388, (Vec *)&sp14);
+    Hu3DModelObjPosGet(BoardModelIDGet(boardModelIds[0]), "ikada", &modelPosition);
+    BoardSpaceFlagPosGet(0, 0x200, &spacePosition);
+    modelPosition.x = spacePosition.x + (400.0 * sin(-(M_PI / 2)));
+    modelPosition.z = spacePosition.z + (400.0 * cos(-(M_PI / 2)));
+    BoardModelPosSetV(riverModelId, (Vec *)&modelPosition);
     return 1;
 }
 
-s16 fn_1_675C(void)
+s16 RiverRunBoardEvent(void)
 {
     BoardRollDispSet(0);
-    lbl_1_bss_120 = HuPrcChildCreate(fn_1_67F8, 0x2003, 0x2000, 0, boardMainProc);
-    HuPrcDestructorSet2(lbl_1_bss_120, fn_1_6884);
+    riverEventProcess = HuPrcChildCreate(RiverRunPlayerEvent, 0x2003, 0x2000, 0, boardMainProc);
+    HuPrcDestructorSet2(riverEventProcess, RiverEventProcessCleanup);
 
-    while (lbl_1_bss_120 != 0) {
+    while (riverEventProcess != 0) {
         HuPrcVSleep();
     }
 
     BoardRollDispSet(1);
-    return lbl_1_bss_128;
+    return riverEventSucceeded;
 }
 
-void fn_1_67F8(void)
+void RiverRunPlayerEvent(void)
 {
-    s32 temp_r31;
+    s32 currentPlayerIndex;
 
-    temp_r31 = GWSystem.player_curr;
-    lbl_1_bss_128 = 0;
+    currentPlayerIndex = GWSystem.player_curr;
+    riverEventSucceeded = 0;
 
-    if (fn_1_6898(temp_r31) != 0) {
-        fn_1_6F9C(temp_r31);
-        fn_1_6B98(temp_r31);
-        fn_1_735C(temp_r31);
-        lbl_1_bss_128 = 1;
+    if (RiverCheckPlayerChoice(currentPlayerIndex) != 0) {
+        RiverMoveRaft(currentPlayerIndex);
+        RiverAnimatePlayerRide(currentPlayerIndex);
+        RiverFinishPlayerRide(currentPlayerIndex);
+        riverEventSucceeded = 1;
     }
 
     BoardCameraViewSet(1);
@@ -139,18 +139,18 @@ void fn_1_67F8(void)
     HuPrcEnd();
 }
 
-void fn_1_6884(void)
+void RiverEventProcessCleanup(void)
 {
-    lbl_1_bss_120 = 0;
+    riverEventProcess = 0;
 }
 
-typedef struct unkPos {
+typedef struct CoinRewardRange {
     s32 x;
     s32 y;
     s32 z;
-} unkPos;
+} CoinRewardRange;
 
-unkPos lbl_1_data_3B8[6] = {
+CoinRewardRange coinRewardRanges[6] = {
     { 5, 20, 5 },
     { 21, 35, 7 },
     { 31, 50, 10 },
@@ -159,65 +159,65 @@ unkPos lbl_1_data_3B8[6] = {
     { 101, 999, 20 },
 };
 
-s32 fn_1_6898(s32 arg0)
+s32 RiverCheckPlayerChoice(s32 playerIndex)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    f32 temp_f31;
-    s32 var_r27;
-    s32 temp_r3;
+    Vec modelPosition;
+    Vec playerPosition;
+    Vec positionDelta;
+    f32 headingAngle;
+    s32 index;
+    s32 coinCount;
     s32 i, j;
-    s32 temp, temp2;
+    s32 minimumCoinCount, maximumCoinCount;
 
-    BoardPlayerIdleSet(arg0);
+    BoardPlayerIdleSet(playerIndex);
     BoardCameraViewSet(2);
     BoardCameraMotionWait();
 
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_388), "hei01", &sp20);
-    BoardPlayerPosGet(arg0, &sp14);
-    VECSubtract(&sp20, &sp14, &sp8);
-    temp_f31 = atan2d(sp8.x, sp8.z);
-    BoardCameraTargetModelSet(lbl_1_data_388);
-    BoardPlayerMotBlendSet(arg0, temp_f31, 15);
+    Hu3DModelObjPosGet(BoardModelIDGet(riverModelId), "hei01", &modelPosition);
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    VECSubtract(&modelPosition, &playerPosition, &positionDelta);
+    headingAngle = atan2d(positionDelta.x, positionDelta.z);
+    BoardCameraTargetModelSet(riverModelId);
+    BoardPlayerMotBlendSet(playerIndex, headingAngle, 15);
 
-    while (BoardPlayerMotBlendCheck(arg0) == 0) {
+    while (BoardPlayerMotBlendCheck(playerIndex) == 0) {
         HuPrcVSleep();
     }
 
     BoardCameraTargetModelSet(-1);
     BoardWinCreate(2, MAKE_MESSID(22, 9), 2);
     BoardWinWait();
-    temp_r3 = BoardPlayerCoinsGet(arg0);
+    coinCount = BoardPlayerCoinsGet(playerIndex);
 
-    if (temp_r3 < 5) {
+    if (coinCount < 5) {
         BoardWinCreate(2, MAKE_MESSID(22, 10), 2);
         BoardWinWait();
         BoardWinKill();
         return 0;
     }
 
-    for (var_r27 = i = 0; i < ARRAY_COUNT(lbl_1_data_3B8); i++) {
-        temp = lbl_1_data_3B8[i].x;
-        temp2 = lbl_1_data_3B8[i].y;
-        if (temp_r3 >= temp) {
-            if (temp_r3 <= temp2) {
-                var_r27 = lbl_1_data_3B8[i].z;
+    for (index = i = 0; i < ARRAY_COUNT(coinRewardRanges); i++) {
+        minimumCoinCount = coinRewardRanges[i].x;
+        maximumCoinCount = coinRewardRanges[i].y;
+        if (coinCount >= minimumCoinCount) {
+            if (coinCount <= maximumCoinCount) {
+                index = coinRewardRanges[i].z;
                 break;
             }
         }
     }
 
-    sprintf(lbl_1_bss_130, "%d", var_r27);
+    sprintf(riverRewardText, "%d", index);
 
     j = 0;
     while (j == 0) {
         BoardWinCreateChoice(2, MAKE_MESSID(22, 11), 2, 0);
-        BoardWinInsertMesSet(MAKE_MESSID_PTR(lbl_1_bss_130), 2);
+        BoardWinInsertMesSet(MAKE_MESSID_PTR(riverRewardText), 2);
         BoardWinAttrSet(0x10);
 
-        if (GWPlayer[arg0].com != 0) {
-            fn_1_77E4(arg0);
+        if (GWPlayer[playerIndex].com != 0) {
+            RiverCheckStarPosition(playerIndex);
         }
 
         BoardWinWait();
@@ -234,12 +234,12 @@ s32 fn_1_6898(s32 arg0)
                 BoardWinKill();
                 return 0;
             default:
-                BoardViewMapExec(arg0);
+                BoardViewMapExec(playerIndex);
         }
     }
 
-    for (i = 0; i < var_r27; i++) {
-        BoardPlayerCoinsAdd(arg0, -1);
+    for (i = 0; i < index; i++) {
+        BoardPlayerCoinsAdd(playerIndex, -1);
         HuAudFXPlay(0xE);
         HuPrcSleep(6);
     }
@@ -253,245 +253,245 @@ s32 fn_1_6898(s32 arg0)
 
 s32 BoardDAngleCalcRange(float *value, float min, float range);
 
-void fn_1_6B98(s32 arg0)
+void RiverAnimatePlayerRide(s32 value)
 {
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    f32 sp8;
-    f32 temp_f1;
-    f32 temp_f31;
-    s16 var_r31;
+    Vec spacePosition;
+    Vec modelPosition;
+    Vec position;
+    Vec positionDelta;
+    f32 floatValue;
+    f32 animationTime;
+    f32 floatValue2;
+    s16 stateValue;
     s16 i;
 
-    BoardModelMotionShiftSet(lbl_1_data_38A, 2, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-    sp8 = BoardModelRotYGet(lbl_1_data_38A);
-    temp_f31 = sp8 + 180.0f;
+    BoardModelMotionShiftSet(riverRaftModelId, 2, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+    floatValue = BoardModelRotYGet(riverRaftModelId);
+    floatValue2 = floatValue + 180.0f;
 
-    while (BoardDAngleCalcRange(&sp8, temp_f31, 3.0f) == 0) {
-        BoardModelRotYSet(lbl_1_data_38A, sp8);
+    while (BoardDAngleCalcRange(&floatValue, floatValue2, 3.0f) == 0) {
+        BoardModelRotYSet(riverRaftModelId, floatValue);
         HuPrcVSleep();
     }
 
-    while (BoardModelMotionEndCheck(lbl_1_data_38A) == 0) {
+    while (BoardModelMotionEndCheck(riverRaftModelId) == 0) {
         HuPrcVSleep();
     }
 
-    BoardModelPosGet(lbl_1_data_388, &sp24);
-    BoardSpaceFlagPosGet(0, 0x100, &sp30);
-    sp18.x = sp30.x + (400.0 * sin(M_PI / 2));
-    sp18.z = sp30.z + (400.0 * cos(M_PI / 2));
-    sp18.y = sp24.y;
-    VECSubtract(&sp18, &sp24, &spC);
-    spC.x = spC.x / 120.0f;
-    spC.y /= 120.0f;
-    spC.z = spC.z / 120.0f;
-    BoardCameraTargetModelSet(lbl_1_data_388);
-    BoardModelMotionShiftSet(lbl_1_data_38A, 3, 0.0f, 4.0f, HU3D_MOTATTR_LOOP);
+    BoardModelPosGet(riverModelId, &modelPosition);
+    BoardSpaceFlagPosGet(0, 0x100, &spacePosition);
+    position.x = spacePosition.x + (400.0 * sin(M_PI / 2));
+    position.z = spacePosition.z + (400.0 * cos(M_PI / 2));
+    position.y = modelPosition.y;
+    VECSubtract(&position, &modelPosition, &positionDelta);
+    positionDelta.x = positionDelta.x / 120.0f;
+    positionDelta.y /= 120.0f;
+    positionDelta.z = positionDelta.z / 120.0f;
+    BoardCameraTargetModelSet(riverModelId);
+    BoardModelMotionShiftSet(riverRaftModelId, 3, 0.0f, 4.0f, HU3D_MOTATTR_LOOP);
     HuPrcSleep(4);
 
-    var_r31 = 0;
+    stateValue = 0;
     for (i = 0; i < 0x78U; i++) {
-        VECAdd(&spC, &sp24, &sp24);
-        temp_f1 = BoardModelMotionTimeGet(lbl_1_data_38A);
+        VECAdd(&positionDelta, &modelPosition, &modelPosition);
+        animationTime = BoardModelMotionTimeGet(riverRaftModelId);
 
-        if ((temp_f1 >= 5.0f) && (temp_f1 < 15.0f) && ((s16)var_r31 == 0)) {
+        if ((animationTime >= 5.0f) && (animationTime < 15.0f) && ((s16)stateValue == 0)) {
             HuAudFXPlay(0x451);
-            var_r31 = 1;
+            stateValue = 1;
         }
 
-        if ((BoardModelMotionTimeGet(lbl_1_data_38A) >= 21.0f) && ((s16)var_r31 != 0)) {
-            var_r31 = 0;
+        if ((BoardModelMotionTimeGet(riverRaftModelId) >= 21.0f) && ((s16)stateValue != 0)) {
+            stateValue = 0;
         }
 
-        BoardModelPosSetV(lbl_1_data_388, &sp24);
+        BoardModelPosSetV(riverModelId, &modelPosition);
         HuPrcVSleep();
     }
 
-    BoardModelPosSetV(lbl_1_data_388, &sp18);
+    BoardModelPosSetV(riverModelId, &position);
     BoardCameraTargetModelSet(-1);
-    BoardModelMotionShiftSet(lbl_1_data_38A, 2, 0.0f, 10.0f, HU3D_MOTATTR_REV);
-    sp8 = BoardModelRotYGet(lbl_1_data_38A);
-    temp_f31 = 0.0f;
+    BoardModelMotionShiftSet(riverRaftModelId, 2, 0.0f, 10.0f, HU3D_MOTATTR_REV);
+    floatValue = BoardModelRotYGet(riverRaftModelId);
+    floatValue2 = 0.0f;
 
-    while (BoardDAngleCalcRange(&sp8, temp_f31, 3.0f) == 0) {
-        BoardModelRotYSet(lbl_1_data_38A, sp8);
+    while (BoardDAngleCalcRange(&floatValue, floatValue2, 3.0f) == 0) {
+        BoardModelRotYSet(riverRaftModelId, floatValue);
         HuPrcVSleep();
     }
 
-    while (BoardModelMotionEndCheck(lbl_1_data_38A) == 0) {
+    while (BoardModelMotionEndCheck(riverRaftModelId) == 0) {
         HuPrcVSleep();
     }
 
-    BoardModelMotionShiftSet(lbl_1_data_38A, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+    BoardModelMotionShiftSet(riverRaftModelId, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
 }
 
-extern s32 lbl_1_data_368[];
-// extern w03State* lbl_1_bss_0;
+extern s32 riverPlayerMotionIds[];
+// extern W03BoardState* boardState;
 
-void fn_1_6F9C(s32 arg0)
+void RiverMoveRaft(s32 playerIndex)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    f32 var_f30;
-    f32 var_f29;
-    f32 var_f31;
-    s32 temp_r4;
-    s32 var_r30;
+    Vec modelPosition;
+    Vec playerPosition;
+    Vec positionDelta;
+    f32 floatValue;
+    f32 floatValue2;
+    f32 floatValue3;
+    s32 integerValue;
+    s32 hasLanded;
     s16 model;
 
-    BoardPlayerPosGet(arg0, &sp14);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_388), "chara01", &sp20);
-    VECSubtract(&sp20, &sp14, &sp8);
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    Hu3DModelObjPosGet(BoardModelIDGet(riverModelId), "chara01", &modelPosition);
+    VECSubtract(&modelPosition, &playerPosition, &positionDelta);
 
-    sp8.x /= 60.0f;
-    sp8.z /= 60.0f;
-    sp8.y = 0.0f;
+    positionDelta.x /= 60.0f;
+    positionDelta.z /= 60.0f;
+    positionDelta.y = 0.0f;
 
-    if (lbl_1_bss_0->unk0 != 0) {
-        var_f30 = 10.0f;
-        var_f29 = 0.21f;
-        sp14.y += sp20.y;
+    if (boardState->statueRewardCount != 0) {
+        floatValue = 10.0f;
+        floatValue2 = 0.21f;
+        playerPosition.y += modelPosition.y;
     }
     else {
-        var_f30 = 0.0f;
-        var_f29 = 0.15f;
+        floatValue = 0.0f;
+        floatValue2 = 0.15f;
     }
 
-    lbl_1_bss_124 = 1;
-    HuAudFXPlay(lbl_1_data_368[GWPlayer[arg0].character]);
-    BoardPlayerMotionShiftSet(arg0, 4, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+    riverEventState = 1;
+    HuAudFXPlay(riverPlayerMotionIds[GWPlayer[playerIndex].character]);
+    BoardPlayerMotionShiftSet(playerIndex, 4, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
 
-    for (var_r30 = 0, var_f31 = 0.0f; var_f31 < 60.0f; var_f31 += 1.0f) {
-        VECAdd(&sp14, &sp8, &sp14);
-        sp14.y += 10.0f + var_f30 + (var_f29 * (-0.08166667f * var_f31 * var_f31));
-        if (sp14.y <= sp20.y) {
-            sp14.y = sp20.y;
-            if (var_r30 == 0) {
-                BoardPlayerMotionShiftSet(arg0, 5, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
-                var_r30 = 1;
+    for (hasLanded = 0, floatValue3 = 0.0f; floatValue3 < 60.0f; floatValue3 += 1.0f) {
+        VECAdd(&playerPosition, &positionDelta, &playerPosition);
+        playerPosition.y += 10.0f + floatValue + (floatValue2 * (-0.08166667f * floatValue3 * floatValue3));
+        if (playerPosition.y <= modelPosition.y) {
+            playerPosition.y = modelPosition.y;
+            if (hasLanded == 0) {
+                BoardPlayerMotionShiftSet(playerIndex, 5, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
+                hasLanded = 1;
             }
         }
-        BoardPlayerPosSetV(arg0, &sp14);
+        BoardPlayerPosSetV(playerIndex, &playerPosition);
         HuPrcVSleep();
     }
 
-    BoardPlayerMotionShiftSet(arg0, 5, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
+    BoardPlayerMotionShiftSet(playerIndex, 5, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
     HuPrcSleep(10);
-    BoardPlayerIdleSet(arg0);
+    BoardPlayerIdleSet(playerIndex);
 
-    if (GWPlayer[arg0].bowser_suit != 0) {
-        BoardModelHookSet(lbl_1_data_388, "chara01", BoardPlayerModelGet(arg0));
+    if (GWPlayer[playerIndex].bowser_suit != 0) {
+        BoardModelHookSet(riverModelId, "chara01", BoardPlayerModelGet(playerIndex));
     }
     else {
-        BoardModelHookSet(lbl_1_data_388, "chara01", BoardPlayerModelGet(arg0));
+        BoardModelHookSet(riverModelId, "chara01", BoardPlayerModelGet(playerIndex));
     }
 
-    BoardPlayerPosSet(arg0, 0.0f, 0.0f, 0.0f);
-    lbl_1_bss_124 = 0;
+    BoardPlayerPosSet(playerIndex, 0.0f, 0.0f, 0.0f);
+    riverEventState = 0;
 }
 
-void fn_1_735C(s32 arg0)
+void RiverFinishPlayerRide(s32 playerIndex)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    f32 temp_f1;
-    f32 var_f30;
-    f32 var_f31;
-    s32 temp_r29;
-    s32 temp_r4;
-    s32 var_r30;
+    Vec spacePosition;
+    Vec modelPosition;
+    Vec positionDelta;
+    f32 floatValue;
+    f32 floatValue2;
+    f32 floatValue3;
+    s32 integerValue;
+    s32 integerValue2;
+    s32 hasLanded;
 
-    temp_r29 = BoardSpaceFlagPosGet(0, 0x100, &sp20);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_data_388), "chara01", &sp14);
-    BoardPlayerPosSetV(arg0, &sp14);
-    BoardModelHookObjReset(lbl_1_data_388, "chara01");
-    VECSubtract(&sp20, &sp14, &sp8);
+    integerValue = BoardSpaceFlagPosGet(0, 0x100, &spacePosition);
+    Hu3DModelObjPosGet(BoardModelIDGet(riverModelId), "chara01", &modelPosition);
+    BoardPlayerPosSetV(playerIndex, &modelPosition);
+    BoardModelHookObjReset(riverModelId, "chara01");
+    VECSubtract(&spacePosition, &modelPosition, &positionDelta);
 
-    sp8.x = sp8.x / 60.0f;
-    sp8.z = sp8.z / 60.0f;
-    sp8.y = 0.0f;
+    positionDelta.x = positionDelta.x / 60.0f;
+    positionDelta.z = positionDelta.z / 60.0f;
+    positionDelta.y = 0.0f;
 
-    HuAudFXPlay(lbl_1_data_368[GWPlayer[arg0].character]);
-    BoardPlayerMotionShiftSet(arg0, 4, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-    if (lbl_1_bss_0->unk0 != 0) {
-        var_f30 = 0.25f;
+    HuAudFXPlay(riverPlayerMotionIds[GWPlayer[playerIndex].character]);
+    BoardPlayerMotionShiftSet(playerIndex, 4, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+    if (boardState->statueRewardCount != 0) {
+        floatValue2 = 0.25f;
     }
     else {
-        var_f30 = 0.2f;
+        floatValue2 = 0.2f;
     }
 
-    for (var_r30 = 0, var_f31 = 0.0f; var_f31 < 60.0f; var_f31 += 1.0f) {
-        VECAdd(&sp14, &sp8, &sp14);
-        sp14.y += 20.0f + (var_f30 * (-0.08166667f * var_f31 * var_f31));
-        if (sp14.y <= sp20.y && var_f31 > 48.0f) {
-            sp14.y = sp20.y;
-            if (var_r30 == 0) {
-                BoardPlayerMotionShiftSet(arg0, 5, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
-                var_r30 = 1;
+    for (hasLanded = 0, floatValue3 = 0.0f; floatValue3 < 60.0f; floatValue3 += 1.0f) {
+        VECAdd(&modelPosition, &positionDelta, &modelPosition);
+        modelPosition.y += 20.0f + (floatValue2 * (-0.08166667f * floatValue3 * floatValue3));
+        if (modelPosition.y <= spacePosition.y && floatValue3 > 48.0f) {
+            modelPosition.y = spacePosition.y;
+            if (hasLanded == 0) {
+                BoardPlayerMotionShiftSet(playerIndex, 5, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
+                hasLanded = 1;
             }
         }
-        BoardPlayerPosSetV(arg0, &sp14);
+        BoardPlayerPosSetV(playerIndex, &modelPosition);
         HuPrcVSleep();
     }
 
-    BoardPlayerPosSetV(arg0, &sp20);
+    BoardPlayerPosSetV(playerIndex, &spacePosition);
     HuPrcSleep(0xA);
-    BoardPlayerMotBlendSet(arg0, 0, 15);
+    BoardPlayerMotBlendSet(playerIndex, 0, 15);
 
-    while (BoardPlayerMotBlendCheck(arg0) == 0) {
+    while (BoardPlayerMotBlendCheck(playerIndex) == 0) {
         HuPrcVSleep();
     }
 
-    BoardPlayerIdleSet(arg0);
-    GWPlayer[arg0].space_curr = temp_r29;
-    GWPlayer[arg0].space_prev = -1;
-    BoardPlayerPostTurnHookSet(arg0, fn_1_6698);
+    BoardPlayerIdleSet(playerIndex);
+    GWPlayer[playerIndex].space_curr = integerValue;
+    GWPlayer[playerIndex].space_prev = -1;
+    BoardPlayerPostTurnHookSet(playerIndex, RiverResetRaftPosition);
     BoardWinCreate(2, MAKE_MESSID(22, 13), 2);
     BoardWinWait();
     BoardWinKill();
 }
 
-void fn_1_767C(OMOBJ *arg0)
+void RiverRaftUpdate(OMOBJ *object)
 {
-    Vec sp8;
-    s32 temp_r30;
-    unkWorkStruct *temp_r31;
+    Vec modelPosition;
+    s32 integerValue;
+    RiverRaftWork *work;
 
-    temp_r31 = omObjGetWork(arg0, unkWorkStruct);
+    work = omObjGetWork(object, RiverRaftWork);
 
-    if ((temp_r31->temp1 != 0) || (BoardIsKill() != 0)) {
-        lbl_1_bss_12C = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+    if ((work->shouldStop != 0) || (BoardIsKill() != 0)) {
+        riverRaftObject = NULL;
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
 
-    if ((lbl_1_data_388 != -1) && (lbl_1_bss_124 == 0)) {
-        temp_r31->unk_04 += 3.0f;
-        if (temp_r31->unk_04 >= 360.0f) {
-            temp_r31->unk_04 -= 360.0f;
+    if ((riverModelId != -1) && (riverEventState == 0)) {
+        work->rotation += 3.0f;
+        if (work->rotation >= 360.0f) {
+            work->rotation -= 360.0f;
         }
-        BoardModelPosGet(lbl_1_data_388, &sp8);
-        sp8.y += 0.25 * (2.0 * sind(temp_r31->unk_04));
-        BoardModelPosSetV(lbl_1_data_388, &sp8);
+        BoardModelPosGet(riverModelId, &modelPosition);
+        modelPosition.y += 0.25 * (2.0 * sind(work->rotation));
+        BoardModelPosSetV(riverModelId, &modelPosition);
     }
 }
 
-void fn_1_77E4(s32 arg0)
+void RiverCheckStarPosition(s32 value)
 {
     s32 boardIndex;
-    s32 var_r30 = 0;
+    s32 stateValue = 0;
 
     boardIndex = GWSystem.star_pos;
 
     if ((boardIndex == 1) || (boardIndex == 2) || (boardIndex == 3) || (boardIndex == 4)) {
-        var_r30 = 1;
+        stateValue = 1;
     }
 
-    if (var_r30 != 0) {
+    if (stateValue != 0) {
         BoardComKeySetLeft();
         return;
     }

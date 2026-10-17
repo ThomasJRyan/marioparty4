@@ -12,21 +12,21 @@ enum {
     MAPOBJ_MAX = 12
 };
 
-typedef struct w03UnkStruct2{
-    u8 unk0 : 1;
-} w03UnkStruct2;
+typedef struct AmbientAudioProcessWork{
+    u8 shouldStop : 1;
+} AmbientAudioProcessWork;
 
-typedef struct w03State {
-           s8 unk0;
-           u8 unk1;
-           u8 unk2;
-           s8 unk3;
-           u16 unk4;
-           u16 unk6;
-           s16 unk8;
-} w03State;
+typedef struct W03BoardState {
+           s8 statueRewardCount;
+           u8 condorSide;
+           u8 rewardPlayerMask;
+           s8 eventActive;
+           u16 reserved04;
+           u16 reserved06;
+           s16 reserved08;
+} W03BoardState;
 
-extern w03State* lbl_1_bss_0;
-extern s16 lbl_1_bss_C[MAPOBJ_MAX];
+extern W03BoardState* boardState;
+extern s16 boardModelIds[MAPOBJ_MAX];
 
 #endif

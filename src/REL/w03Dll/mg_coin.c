@@ -23,141 +23,141 @@
 #include <string.h>
 
 // structs
-typedef struct someBits3 { // make sure this is defined correctly
+typedef struct CoinCollectibleWork {
     /* 0x00 */ struct {
-        u8 unk00_bit0 : 1;
-        u8 unk00_bit1 : 4;
-        u8 unk00_bit5 : 2;
-        u8 unk00_bit7 : 1;
+        u8 isActive : 1;
+        u8 coinCount : 4;
+        u8 isCollected : 2;
+        u8 isHidden : 1;
     };
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
-    s16 unk_04;
-    s16 unk_06[3];
-    s32 unk_0C;
-} someBits3;
+    u8 playerIndex;
+    u8 coinState;
+    u8 timer;
+    s16 modelId;
+    s16 motionIds[3];
+    s32 counter;
+} CoinCollectibleWork;
 
-typedef struct unkTemp {
-    s8 unk0;
-    u8 unk1;
-    s16 unk_02;
-    f32 unk4;
-    Vec unk8;
-} unkTemp;
+typedef struct CoinPlayerAnimationWork {
+    s8 isActive;
+    u8 playerIndex;
+    s16 timer;
+    f32 rotation;
+    Vec position;
+} CoinPlayerAnimationWork;
 
-typedef struct unkTemp2 {
+typedef struct CoinCollectionWork {
     /* 0x00 */ struct {
-        u8 unk00_bit0 : 1;
+        u8 isActive : 1;
     };
-    char unk_01[3];
-    s8 unk4;
-    char unk_05[3];
-    f32 unk8;
-    unkTemp *unk_0C;
-} unkTemp2;
+    char unreferencedCoinData[3];
+    s8 state;
+    char unreferencedCoinData[3];
+    f32 rotation;
+    CoinPlayerAnimationWork *coinWork;
+} CoinCollectionWork;
 
 // function signatures
-void fn_1_7C98(void);
-void fn_1_7C38(void);
-s32 fn_1_7D18(s32 arg0);
-void fn_1_8140(s32 arg0);
-void fn_1_81E0(s32 arg0);
-void fn_1_8530(OMOBJ *arg0);
-void fn_1_84A8(s32 arg0);
-void fn_1_8698(OMOBJ *arg0, someBits3 *arg1);
-void fn_1_8C08(OMOBJ *arg0, someBits3 *arg1);
-void fn_1_8E44(OMOBJ *arg0, someBits3 *arg1);
-void fn_1_9044(OMOBJ *arg0, someBits3 *arg1);
-void fn_1_91B8(void);
-void fn_1_9230(s32 arg0);
-void fn_1_9384(void);
-void fn_1_9474(s32 arg0);
-void fn_1_97F8(s32 arg0);
-void fn_1_9A1C(unkTemp2 *arg0);
+void CoinEventRunProcess(void);
+void CoinEventProcessCleanup(void);
+s32 CoinCheckPlayerChoice(s32 playerIndex);
+void CoinRunCollectSequence(s32 value);
+void CoinCollectibleCreate(s32 playerIndex);
+void CoinCollectibleUpdate(OMOBJ *object);
+void CoinCollectibleStateSet(s32 value);
+void CoinAnimatePlayerCollect(OMOBJ *object, CoinCollectibleWork *collectibleWork);
+void CoinCollectReward(OMOBJ *object, CoinCollectibleWork *collectibleWork);
+void CoinAnimateRewardDisappear(OMOBJ *object, CoinCollectibleWork *collectibleWork);
+void CoinAnimateRewardSpin(OMOBJ *object, CoinCollectibleWork *collectibleWork);
+void CoinRewardValueUpdate(void);
+void CoinReturnPlayerToSpace(s32 playerIndex);
+void CoinResultWindowCreate(void);
+void CoinShowResult(s32 playerIndex);
+void CoinRewardObjectsCreate(s32 playerIndex);
+void CoinCollectionObjectDestroy(CoinCollectionWork *collectionWork);
 
 // data
-s32 lbl_1_data_450 = -1;
-s16 lbl_1_data_454 = -1;
-s16 lbl_1_data_456 = -1;
-s16 lbl_1_data_458 = -1;
-s32 lbl_1_data_45C[] = { DATA_MAKE_NUM(DATADIR_W03, 0x21), DATA_MAKE_NUM(DATADIR_W03, 0x22), DATA_NUM_LISTEND };
+s32 coinSoundHandle = -1;
+s16 coinResultWindowId = -1;
+s16 coinPedestalModelId = -1;
+s16 coinPedestalMotionId = -1;
+s32 coinPedestalMotionData[] = { DATA_MAKE_NUM(DATADIR_W03, 0x21), DATA_MAKE_NUM(DATADIR_W03, 0x22), DATA_NUM_LISTEND };
 
 // BSS
-char lbl_1_bss_150[0x30];
-s16 lbl_1_bss_14E;
-s8 lbl_1_bss_14C;
-OMOBJ *lbl_1_bss_148;
-OMOBJ *lbl_1_bss_144;
-HUPROCESS *lbl_1_bss_140;
+char coinRewardAmountText[0x30];
+s16 coinRewardTimer;
+s8 coinRewardAmount;
+OMOBJ *coinRewardObject;
+OMOBJ *coinCollectibleObject;
+HUPROCESS *coinEventProcess;
 
-void fn_1_7ABC(void)
+void CoinPedestalCreate(void)
 {
-    lbl_1_data_456 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x20), lbl_1_data_45C, 0);
-    BoardModelHookSet(lbl_1_bss_C[7], "phei", lbl_1_data_456);
-    BoardModelMotionStart(lbl_1_data_456, 2, 0x40000002);
-    BoardModelRotYSet(lbl_1_data_456, -45.0f);
+    coinPedestalModelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x20), coinPedestalMotionData, 0);
+    BoardModelHookSet(boardModelIds[7], "phei", coinPedestalModelId);
+    BoardModelMotionStart(coinPedestalModelId, 2, 0x40000002);
+    BoardModelRotYSet(coinPedestalModelId, -45.0f);
 }
 
-void fn_1_7B58(void)
+void CoinPedestalDestroy(void)
 {
-    if (lbl_1_data_456 != -1) {
-        BoardModelKill(lbl_1_data_456);
-        lbl_1_data_456 = -1;
+    if (coinPedestalModelId != -1) {
+        BoardModelKill(coinPedestalModelId);
+        coinPedestalModelId = -1;
     }
 }
 
-void fn_1_7BA8(void)
+void CoinEventStart(void)
 {
     BoardRollDispSet(0);
-    lbl_1_bss_140 = HuPrcChildCreate(&fn_1_7C98, 0x2003, 0x2000, 0, boardMainProc);
-    HuPrcDestructorSet2(lbl_1_bss_140, &fn_1_7C38);
-    while (lbl_1_bss_140) {
+    coinEventProcess = HuPrcChildCreate(&CoinEventRunProcess, 0x2003, 0x2000, 0, boardMainProc);
+    HuPrcDestructorSet2(coinEventProcess, &CoinEventProcessCleanup);
+    while (coinEventProcess) {
         HuPrcVSleep();
     }
     BoardRollDispSet(1);
 }
 
-void fn_1_7C38(void)
+void CoinEventProcessCleanup(void)
 {
-    if (lbl_1_data_454 != -1) {
-        HuWinKill(lbl_1_data_454);
-        lbl_1_data_454 = -1;
+    if (coinResultWindowId != -1) {
+        HuWinKill(coinResultWindowId);
+        coinResultWindowId = -1;
     }
-    lbl_1_bss_140 = 0;
+    coinEventProcess = 0;
 }
 
-void fn_1_7C98(void)
+void CoinEventRunProcess(void)
 {
-    s32 temp_r31;
+    s32 currentPlayerIndex;
 
-    temp_r31 = GWSystem.player_curr;
-    lbl_1_bss_14C = 0;
-    lbl_1_bss_14E = 0;
-    if (fn_1_7D18(temp_r31) != 0) {
-        fn_1_8140(temp_r31);
-        fn_1_9474(temp_r31);
-        fn_1_9230(temp_r31);
+    currentPlayerIndex = GWSystem.player_curr;
+    coinRewardAmount = 0;
+    coinRewardTimer = 0;
+    if (CoinCheckPlayerChoice(currentPlayerIndex) != 0) {
+        CoinRunCollectSequence(currentPlayerIndex);
+        CoinShowResult(currentPlayerIndex);
+        CoinReturnPlayerToSpace(currentPlayerIndex);
     }
     HuPrcEnd();
 }
 
-s32 fn_1_7D18(s32 arg0)
+s32 CoinCheckPlayerChoice(s32 playerIndex)
 {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    f32 var_f31;
+    Vec spacePosition;
+    Vec playerPosition;
+    Vec positionDelta;
+    Vec cameraRotation;
+    Vec cameraRotation2;
+    f32 angle;
     s16 model;
-    s16 space;
-    s16 temp_r28;
+    s16 currentSpace;
+    s16 linkedSpaceIndex;
     f32 arctan;
 
     BoardWinCreateChoice(2, MAKE_MESSID(22, 21), 2, 0);
 
-    if (GWPlayer[arg0].com != 0) {
+    if (GWPlayer[playerIndex].com != 0) {
         BoardComKeySetLeft();
     }
 
@@ -173,79 +173,79 @@ s32 fn_1_7D18(s32 arg0)
 
     BoardAudSeqPause(0, 1, 1000);
 
-    sp14.x = 0.0f;
-    sp14.y = 200.0f;
-    sp14.z = 0.0f;
-    sp8.x = -10.0f;
-    sp8.y = 0.0f;
-    sp8.z = 0.0f;
+    cameraRotation.x = 0.0f;
+    cameraRotation.y = 200.0f;
+    cameraRotation.z = 0.0f;
+    cameraRotation2.x = -10.0f;
+    cameraRotation2.y = 0.0f;
+    cameraRotation2.z = 0.0f;
 
-    BoardCameraMotionStartEx(lbl_1_bss_C[7], &sp8, &sp14, 1500.0f, -1.0f, 21);
-    space = GWPlayer[arg0].space_curr;
-    temp_r28 = BoardSpaceLinkFlagSearch(0, space, 0x02000000);
-    BoardPlayerPosGet(arg0, &sp2C);
-    BoardSpacePosGet(0, temp_r28, &sp38);
-    VECSubtract(&sp38, &sp2C, &sp20);
-    VECNormalize(&sp20, &sp20);
-    BoardPlayerRotYSet(arg0, atan2d(-sp20.x, -sp20.z));
+    BoardCameraMotionStartEx(boardModelIds[7], &cameraRotation2, &cameraRotation, 1500.0f, -1.0f, 21);
+    currentSpace = GWPlayer[playerIndex].space_curr;
+    linkedSpaceIndex = BoardSpaceLinkFlagSearch(0, currentSpace, 0x02000000);
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    BoardSpacePosGet(0, linkedSpaceIndex, &spacePosition);
+    VECSubtract(&spacePosition, &playerPosition, &positionDelta);
+    VECNormalize(&positionDelta, &positionDelta);
+    BoardPlayerRotYSet(playerIndex, atan2d(-positionDelta.x, -positionDelta.z));
     HuPrcSleep(0x1E);
-    model = BoardModelIDGet(lbl_1_bss_C[7]);
-    Hu3DModelObjPosGet(model, "phei", &sp38);
+    model = BoardModelIDGet(boardModelIds[7]);
+    Hu3DModelObjPosGet(model, "phei", &spacePosition);
 
-    if (GWPlayer[arg0].character == 5) {
-        var_f31 = 54.000004f;
+    if (GWPlayer[playerIndex].character == 5) {
+        angle = 54.000004f;
     }
     else {
-        var_f31 = 39.0f;
+        angle = 39.0f;
     }
 
-    sp38.x += var_f31 * sind(180.0f + BoardModelRotYGet(lbl_1_data_456));
-    sp38.z += var_f31 * cosd(180.0f + BoardModelRotYGet(lbl_1_data_456));
+    spacePosition.x += angle * sind(180.0f + BoardModelRotYGet(coinPedestalModelId));
+    spacePosition.z += angle * cosd(180.0f + BoardModelRotYGet(coinPedestalModelId));
 
-    BoardPlayerPosGet(arg0, &sp2C);
-    BoardPlayerPosLerpStart(arg0, &sp2C, &sp38, 0x14);
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    BoardPlayerPosLerpStart(playerIndex, &playerPosition, &spacePosition, 0x14);
 
-    while (GWPlayer[arg0].moving != 0) {
-        BoardModelPosGet(lbl_1_bss_C[10], &sp2C);
-        BoardPlayerPosGet(arg0, &sp38);
-        VECSubtract(&sp38, &sp2C, &sp20);
-        arctan = atan2d(sp20.x, sp20.z);
-        BoardModelRotYSet(lbl_1_bss_C[10], arctan);
+    while (GWPlayer[playerIndex].moving != 0) {
+        BoardModelPosGet(boardModelIds[10], &playerPosition);
+        BoardPlayerPosGet(playerIndex, &spacePosition);
+        VECSubtract(&spacePosition, &playerPosition, &positionDelta);
+        arctan = atan2d(positionDelta.x, positionDelta.z);
+        BoardModelRotYSet(boardModelIds[10], arctan);
         HuPrcVSleep();
     }
 
-    BoardPlayerMotBlendSet(arg0, -0x2D, 7);
+    BoardPlayerMotBlendSet(playerIndex, -0x2D, 7);
 
-    while (BoardPlayerMotBlendCheck(arg0) == 0) {
+    while (BoardPlayerMotBlendCheck(playerIndex) == 0) {
         HuPrcVSleep();
     }
 
     return 1;
 }
 
-void fn_1_8140(s32 arg0)
+void CoinRunCollectSequence(s32 value)
 {
-    s16 temp_r31;
+    s16 integerValue;
 
-    fn_1_81E0(arg0);
+    CoinCollectibleCreate(value);
     BoardMusStart(1, 0x16, 0x7F, 0);
-    temp_r31 = MGSeqStartCreate();
+    integerValue = MGSeqStartCreate();
 
-    while (MGSeqStatGet(temp_r31)) {
+    while (MGSeqStatGet(integerValue)) {
         HuPrcVSleep();
     }
 
-    fn_1_9384();
-    fn_1_84A8(0);
+    CoinResultWindowCreate();
+    CoinCollectibleStateSet(0);
 
-    while (lbl_1_bss_144) {
+    while (coinCollectibleObject) {
         HuPrcVSleep();
     }
 
-    fn_1_91B8();
+    CoinRewardValueUpdate();
 }
 
-s32 lbl_1_data_470[] = {
+s32 playerCoinCollectMotionData[] = {
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x66),
     DATA_MAKE_NUM(DATADIR_LUIGIMOT, 0x66),
     DATA_MAKE_NUM(DATADIR_PEACHMOT, 0x66),
@@ -256,7 +256,7 @@ s32 lbl_1_data_470[] = {
     DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 0x66),
 };
 
-s32 lbl_1_data_490[] = {
+s32 playerCoinRewardMotionData[] = {
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x67),
     DATA_MAKE_NUM(DATADIR_LUIGIMOT, 0x67),
     DATA_MAKE_NUM(DATADIR_PEACHMOT, 0x67),
@@ -267,387 +267,387 @@ s32 lbl_1_data_490[] = {
     DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 0x67),
 };
 
-void fn_1_81E0(s32 arg0)
+void CoinCollectibleCreate(s32 playerIndex)
 {
-    Vec sp8;
-    OMOBJ *temp_r3;
-    f32 temp_f31;
-    s32 temp_r28;
-    s32 temp_r5;
-    s32 temp_r5_2;
-    someBits3 *temp_r31;
+    Vec playerPosition;
+    OMOBJ *object;
+    f32 floatValue;
+    s32 characterIndex;
+    s32 integerValue;
+    s32 integerValue2;
+    CoinCollectibleWork *work;
 
-    temp_r3 = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, fn_1_8530);
-    lbl_1_bss_144 = temp_r3;
-    temp_r31 = omObjGetWork(temp_r3, someBits3);
-    temp_r31->unk00_bit0 = 0;
-    temp_r31->unk00_bit5 = arg0;
-    temp_r31->unk00_bit1 = 4; //?
-    temp_r31->unk1 = 0;
-    temp_r31->unk2 = 5;
-    temp_r31->unk3 = 0x3C;
-    temp_r31->unk_0C = -1;
-    lbl_1_data_450 = -1;
-    temp_r3->trans.x = 0.0f;
-    temp_r3->trans.y = 0.0f;
-    temp_r28 = GWPlayer[arg0].character;
-    temp_r31->unk_06[1] = BoardPlayerMotionCreate(arg0, lbl_1_data_470[temp_r28]);
-    temp_r31->unk_06[2] = BoardPlayerMotionCreate(arg0, lbl_1_data_490[temp_r28]);
-    temp_f31 = 0.3f;
-    temp_r31->unk_06[0] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x09), NULL, 0);
-    BoardModelVisibilitySet(temp_r31->unk_06[0], 0);
-    BoardPlayerPosGet(arg0, &sp8);
-    BoardModelPosSetV(temp_r31->unk_06[0], &sp8);
-    BoardModelScaleSet(temp_r31->unk_06[0], temp_f31, temp_f31, temp_f31);
-    BoardModelMotionStart(temp_r31->unk_06[0], 0, 0x40000001);
-    BoardModelMotionStart(lbl_1_data_456, 0, 0x40000001);
-    BoardModelMotionSpeedSet(lbl_1_data_456, temp_r3->trans.x);
-    BoardPlayerMotionStart(arg0, temp_r31->unk_06[1], 0x40000001);
-    BoardPlayerMotionSpeedSet(arg0, temp_r3->trans.x);
-    lbl_1_data_458 = BoardModelMotionCreate(lbl_1_bss_C[10], DATA_MAKE_NUM(DATADIR_W03, 0x25));
+    object = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, CoinCollectibleUpdate);
+    coinCollectibleObject = object;
+    work = omObjGetWork(object, CoinCollectibleWork);
+    work->isActive = 0;
+    work->isCollected = playerIndex;
+    work->coinCount = 4; //?
+    work->playerIndex = 0;
+    work->coinState = 5;
+    work->timer = 0x3C;
+    work->counter = -1;
+    coinSoundHandle = -1;
+    object->trans.x = 0.0f;
+    object->trans.y = 0.0f;
+    characterIndex = GWPlayer[playerIndex].character;
+    work->motionIds[1] = BoardPlayerMotionCreate(playerIndex, playerCoinCollectMotionData[characterIndex]);
+    work->motionIds[2] = BoardPlayerMotionCreate(playerIndex, playerCoinRewardMotionData[characterIndex]);
+    floatValue = 0.3f;
+    work->motionIds[0] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x09), NULL, 0);
+    BoardModelVisibilitySet(work->motionIds[0], 0);
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    BoardModelPosSetV(work->motionIds[0], &playerPosition);
+    BoardModelScaleSet(work->motionIds[0], floatValue, floatValue, floatValue);
+    BoardModelMotionStart(work->motionIds[0], 0, 0x40000001);
+    BoardModelMotionStart(coinPedestalModelId, 0, 0x40000001);
+    BoardModelMotionSpeedSet(coinPedestalModelId, object->trans.x);
+    BoardPlayerMotionStart(playerIndex, work->motionIds[1], 0x40000001);
+    BoardPlayerMotionSpeedSet(playerIndex, object->trans.x);
+    coinPedestalMotionId = BoardModelMotionCreate(boardModelIds[10], DATA_MAKE_NUM(DATADIR_W03, 0x25));
 }
 
-void fn_1_8434(someBits3 *arg0)
+void CoinCollectibleDestroy(CoinCollectibleWork *collectibleWork)
 {
-    if (arg0->unk_06[1] != -1) {
-        BoardPlayerMotionKill(arg0->unk00_bit5, arg0->unk_06[1]);
+    if (collectibleWork->motionIds[1] != -1) {
+        BoardPlayerMotionKill(collectibleWork->isCollected, collectibleWork->motionIds[1]);
     }
-    if (arg0->unk_06[2] != -1) {
-        BoardPlayerMotionKill(arg0->unk00_bit5, arg0->unk_06[2]);
+    if (collectibleWork->motionIds[2] != -1) {
+        BoardPlayerMotionKill(collectibleWork->isCollected, collectibleWork->motionIds[2]);
     }
-    if (arg0->unk_06[0] != -1) {
-        BoardModelKill(arg0->unk_06[0]);
-    }
-}
-
-void fn_1_84A8(s32 arg0)
-{
-    someBits3 *temp_r31;
-
-    if (lbl_1_bss_144) {
-        temp_r31 = omObjGetWork(lbl_1_bss_144, someBits3);
-        temp_r31->unk00_bit1 = arg0;
-        if (arg0 == 0) {
-            temp_r31->unk_04 = MGSeqTimerCreateXY(temp_r31->unk2, 288, 64);
-        }
+    if (collectibleWork->motionIds[0] != -1) {
+        BoardModelKill(collectibleWork->motionIds[0]);
     }
 }
 
-void fn_1_8530(OMOBJ *arg0)
+void CoinCollectibleStateSet(s32 value)
 {
-    s32 temp_r0;
-    someBits3 *temp_r31;
+    CoinCollectibleWork *work;
 
-    temp_r31 = omObjGetWork(arg0, someBits3);
+    if (coinCollectibleObject) {
+        work = omObjGetWork(coinCollectibleObject, CoinCollectibleWork);
+        work->coinCount = value;
+        if (value == 0) {
+            work->modelId = MGSeqTimerCreateXY(work->coinState, 288, 64);
+        }
+    }
+}
 
-    if ((temp_r31->unk00_bit0 != 0) || (BoardIsKill() != 0)) {
-        if (temp_r31->unk_04 != -1) {
-            MGSeqParamSet(temp_r31->unk_04, 2, -1);
-        }
-        if (temp_r31->unk_06[1] != -1) {
-            BoardPlayerMotionKill(temp_r31->unk00_bit5, temp_r31->unk_06[1]);
-        }
-        if (temp_r31->unk_06[2] != -1) {
-            BoardPlayerMotionKill(temp_r31->unk00_bit5, temp_r31->unk_06[2]);
-        }
-        if (temp_r31->unk_06[0] != -1) {
-            BoardModelKill(temp_r31->unk_06[0]);
-        }
-        lbl_1_bss_144 = NULL;
+void CoinCollectibleUpdate(OMOBJ *object)
+{
+    s32 integerValue;
+    CoinCollectibleWork *work;
 
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+    work = omObjGetWork(object, CoinCollectibleWork);
+
+    if ((work->isActive != 0) || (BoardIsKill() != 0)) {
+        if (work->modelId != -1) {
+            MGSeqParamSet(work->modelId, 2, -1);
+        }
+        if (work->motionIds[1] != -1) {
+            BoardPlayerMotionKill(work->isCollected, work->motionIds[1]);
+        }
+        if (work->motionIds[2] != -1) {
+            BoardPlayerMotionKill(work->isCollected, work->motionIds[2]);
+        }
+        if (work->motionIds[0] != -1) {
+            BoardModelKill(work->motionIds[0]);
+        }
+        coinCollectibleObject = NULL;
+
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
 
-    if (temp_r31->unk1 != 0) {
-        temp_r31->unk1--;
+    if (work->playerIndex != 0) {
+        work->playerIndex--;
         return;
     }
 
-    switch (temp_r31->unk00_bit1) {
+    switch (work->coinCount) {
         case 0:
-            fn_1_8698(arg0, temp_r31);
+            CoinAnimatePlayerCollect(object, work);
             return;
         case 1:
-            fn_1_8C08(arg0, temp_r31);
+            CoinCollectReward(object, work);
             return;
         case 2:
-            fn_1_8E44(arg0, temp_r31);
+            CoinAnimateRewardDisappear(object, work);
             return;
         case 3:
-            fn_1_9044(arg0, temp_r31);
+            CoinAnimateRewardSpin(object, work);
             /* fallthrough */
         case 4:
             break;
     }
 }
 
-void fn_1_8698(OMOBJ *arg0, someBits3 *arg1)
+void CoinAnimatePlayerCollect(OMOBJ *object, CoinCollectibleWork *collectibleWork)
 {
-    s32 temp_r27;
-    u32 var_r28;
-    u32 var_r26;
-    f32 temp;
-    Vec sp8;
+    s32 randomValue;
+    u32 stateValue;
+    u32 playerIndex;
+    f32 animationFrame;
+    Vec modelPosition;
 
-    if (arg1->unk3 != 0) {
-        arg1->unk3--;
+    if (collectibleWork->timer != 0) {
+        collectibleWork->timer--;
     }
     else {
-        if (arg1->unk2 != 0) {
-            arg1->unk2--;
+        if (collectibleWork->coinState != 0) {
+            collectibleWork->coinState--;
         }
         else {
-            MGSeqParamSet(arg1->unk_04, 2, -1);
-            arg1->unk_04 = -1;
-            arg1->unk00_bit1 = 1;
-            temp = BoardModelMotionTimeGet(lbl_1_bss_C[7]);
+            MGSeqParamSet(collectibleWork->modelId, 2, -1);
+            collectibleWork->modelId = -1;
+            collectibleWork->coinCount = 1;
+            animationFrame = BoardModelMotionTimeGet(boardModelIds[7]);
 
-            if (temp == 0.0f) {
-                temp = 1.0f;
+            if (animationFrame == 0.0f) {
+                animationFrame = 1.0f;
             }
 
-            if (lbl_1_bss_14E > 30) {
-                lbl_1_bss_14E = 30;
+            if (coinRewardTimer > 30) {
+                coinRewardTimer = 30;
             }
 
-            OSu16tof32((u16 *)&lbl_1_bss_14E, &arg0->rot.x); //??
-            BoardModelAttrReset(lbl_1_data_456, 0x40000002);
-            BoardModelAttrReset(lbl_1_bss_C[7], 0x40000002);
-            BoardModelAttrReset(lbl_1_bss_C[10], 0x40000002);
-            BoardPlayerModelAttrReset(arg1->unk00_bit5, 0x40000002);
-            BoardModelMotionStart(lbl_1_data_456, 1, 0x40000001);
-            BoardModelMotionStart(lbl_1_bss_C[7], 0, 0);
-            BoardModelMotionStart(lbl_1_bss_C[10], lbl_1_data_458, 0);
-            BoardPlayerMotionStart(arg1->unk00_bit5, arg1->unk_06[2], 0);
-            BoardModelVisibilitySet(arg1->unk_06[0], 0);
-            arg1->unk_0C = HuAudFXPlay(0x43F);
-            BoardModelPosGet(lbl_1_data_456, &sp8);
-            arg0->trans.z = sp8.y;
-            arg0->rot.y = 16.666666f * arg0->rot.x;
-            arg0->scale.x = BoardModelMotionMaxTimeGet(lbl_1_bss_C[7]);
-            HuWinDispOff(lbl_1_data_454);
+            OSu16tof32((u16 *)&coinRewardTimer, &object->rot.x); //??
+            BoardModelAttrReset(coinPedestalModelId, 0x40000002);
+            BoardModelAttrReset(boardModelIds[7], 0x40000002);
+            BoardModelAttrReset(boardModelIds[10], 0x40000002);
+            BoardPlayerModelAttrReset(collectibleWork->isCollected, 0x40000002);
+            BoardModelMotionStart(coinPedestalModelId, 1, 0x40000001);
+            BoardModelMotionStart(boardModelIds[7], 0, 0);
+            BoardModelMotionStart(boardModelIds[10], coinPedestalMotionId, 0);
+            BoardPlayerMotionStart(collectibleWork->isCollected, collectibleWork->motionIds[2], 0);
+            BoardModelVisibilitySet(collectibleWork->motionIds[0], 0);
+            collectibleWork->counter = HuAudFXPlay(0x43F);
+            BoardModelPosGet(coinPedestalModelId, &modelPosition);
+            object->trans.z = modelPosition.y;
+            object->rot.y = 16.666666f * object->rot.x;
+            object->scale.x = BoardModelMotionMaxTimeGet(boardModelIds[7]);
+            HuWinDispOff(coinResultWindowId);
             BoardCameraMotionStartEx(-1, NULL, NULL, 1900.0f, -1.0f, 21);
             return;
         }
 
-        MGSeqParamSet(arg1->unk_04, 1, arg1->unk2);
-        arg1->unk3 = 60;
+        MGSeqParamSet(collectibleWork->modelId, 1, collectibleWork->coinState);
+        collectibleWork->timer = 60;
     }
 
-    var_r26 = GWPlayer[arg1->unk00_bit5].port;
-    var_r28 = 0;
+    playerIndex = GWPlayer[collectibleWork->isCollected].port;
+    stateValue = 0;
 
-    if ((GWPlayer[arg1->unk00_bit5].com) != 0) {
-        temp_r27 = BoardRandMod(100);
+    if ((GWPlayer[collectibleWork->isCollected].com) != 0) {
+        randomValue = BoardRandMod(100);
 
-        switch (GWPlayer[arg1->unk00_bit5].diff) {
+        switch (GWPlayer[collectibleWork->isCollected].diff) {
             case 0:
-                if (temp_r27 < 12) {
-                    var_r28 = 0x100;
+                if (randomValue < 12) {
+                    stateValue = 0x100;
                 }
                 break;
             case 1:
-                if (temp_r27 < 22) {
-                    var_r28 = 0x100;
+                if (randomValue < 22) {
+                    stateValue = 0x100;
                 }
                 break;
             case 2:
-                if (temp_r27 < 50) {
-                    var_r28 = 0x100;
+                if (randomValue < 50) {
+                    stateValue = 0x100;
                 }
                 break;
             case 3:
-                var_r28 = 0x100;
+                stateValue = 0x100;
                 break;
         }
     }
     else {
-        var_r28 = HuPadBtnDown[var_r26] & 0x100;
+        stateValue = HuPadBtnDown[playerIndex] & 0x100;
     }
 
-    if ((var_r28 & 0x100)) {
-        arg0->trans.y += 0.5f;
-        if (arg0->trans.y > 2.0f) {
-            arg0->trans.y = 2.0f;
+    if ((stateValue & 0x100)) {
+        object->trans.y += 0.5f;
+        if (object->trans.y > 2.0f) {
+            object->trans.y = 2.0f;
         }
-        if (lbl_1_data_450 == -1) {
-            lbl_1_data_450 = HuAudFXPlay(0x43E);
+        if (coinSoundHandle == -1) {
+            coinSoundHandle = HuAudFXPlay(0x43E);
         }
-        lbl_1_bss_14E += 1;
-        BoardModelVisibilitySet(arg1->unk_06[0], 1);
-        BoardModelRotYSet(arg1->unk_06[0], BoardPlayerRotYGet(arg1->unk00_bit5));
+        coinRewardTimer += 1;
+        BoardModelVisibilitySet(collectibleWork->motionIds[0], 1);
+        BoardModelRotYSet(collectibleWork->motionIds[0], BoardPlayerRotYGet(collectibleWork->isCollected));
     }
     else {
-        arg0->trans.x *= 0.98f;
-        arg0->trans.y = 0.0f;
-        if (arg0->trans.x <= 1.0f) {
-            BoardModelVisibilitySet(arg1->unk_06[0], 0);
-            if (lbl_1_data_450 != -1) {
-                HuAudFXStop(lbl_1_data_450);
-                lbl_1_data_450 = -1;
+        object->trans.x *= 0.98f;
+        object->trans.y = 0.0f;
+        if (object->trans.x <= 1.0f) {
+            BoardModelVisibilitySet(collectibleWork->motionIds[0], 0);
+            if (coinSoundHandle != -1) {
+                HuAudFXStop(coinSoundHandle);
+                coinSoundHandle = -1;
             }
         }
     }
 
-    if ((lbl_1_data_450 != -1) && (HuAudFXStatusGet(lbl_1_data_450) == 0)) {
-        lbl_1_data_450 = -1;
+    if ((coinSoundHandle != -1) && (HuAudFXStatusGet(coinSoundHandle) == 0)) {
+        coinSoundHandle = -1;
     }
 
-    arg0->trans.x += arg0->trans.y;
+    object->trans.x += object->trans.y;
 
-    if (arg0->trans.x > 3.0f) {
-        arg0->trans.x = 3.0f;
+    if (object->trans.x > 3.0f) {
+        object->trans.x = 3.0f;
     }
 
-    BoardPlayerMotionSpeedSet(arg1->unk00_bit5, arg0->trans.x);
-    BoardModelMotionSpeedSet(lbl_1_data_456, arg0->trans.x);
+    BoardPlayerMotionSpeedSet(collectibleWork->isCollected, object->trans.x);
+    BoardModelMotionSpeedSet(coinPedestalModelId, object->trans.x);
 }
 
-s8 lbl_1_data_4B0 = -1;
-s32 lbl_1_data_4B4[] = { 0x00000440, 0x00000441, 0x00000442, 0x00000443, 0x00000444 };
+s8 soundFrameIndex = -1;
+s32 coinRewardSoundIds[] = { 0x00000440, 0x00000441, 0x00000442, 0x00000443, 0x00000444 };
 
-void fn_1_8C08(OMOBJ *arg0, someBits3 *arg1)
+void CoinCollectReward(OMOBJ *object, CoinCollectibleWork *collectibleWork)
 {
-    Vec spC;
-    f32 temp_f31;
-    f32 temp_f30;
-    s8 temp_r27;
+    Vec modelPosition;
+    f32 floatValue;
+    f32 floatValue2;
+    s8 integerValue;
 
-    BoardModelPosGet(lbl_1_data_456, &spC);
-    spC.y += 1.6666666f;
+    BoardModelPosGet(coinPedestalModelId, &modelPosition);
+    modelPosition.y += 1.6666666f;
 
-    if (spC.y >= (arg0->trans.z + arg0->rot.y)) {
-        spC.y = arg0->trans.z + arg0->rot.y;
-        BoardModelMotionSpeedSet(lbl_1_bss_C[10], 0.0f);
-        BoardPlayerMotionSpeedSet(arg1->unk00_bit5, 0.0f);
-        BoardModelAttrSet(lbl_1_bss_C[7], 0x40000002);
-        BoardModelAttrSet(lbl_1_data_456, 0x40000002);
-        arg1->unk00_bit1 = 2;
-        arg1->unk1 = 0x3C;
-        arg1->unk2 = 0;
+    if (modelPosition.y >= (object->trans.z + object->rot.y)) {
+        modelPosition.y = object->trans.z + object->rot.y;
+        BoardModelMotionSpeedSet(boardModelIds[10], 0.0f);
+        BoardPlayerMotionSpeedSet(collectibleWork->isCollected, 0.0f);
+        BoardModelAttrSet(boardModelIds[7], 0x40000002);
+        BoardModelAttrSet(coinPedestalModelId, 0x40000002);
+        collectibleWork->coinCount = 2;
+        collectibleWork->playerIndex = 0x3C;
+        collectibleWork->coinState = 0;
     }
 
-    BoardModelPosSetV(lbl_1_data_456, &spC);
-    temp_f30 = arg0->scale.x * ((spC.y - arg0->trans.z) / 500.0f);
-    OSf32tos8(&temp_f30, &temp_r27);
-    temp_r27 = temp_r27 / 30;
+    BoardModelPosSetV(coinPedestalModelId, &modelPosition);
+    floatValue2 = object->scale.x * ((modelPosition.y - object->trans.z) / 500.0f);
+    OSf32tos8(&floatValue2, &integerValue);
+    integerValue = integerValue / 30;
 
-    if (lbl_1_data_4B0 != temp_r27) {
-        lbl_1_data_4B0 = temp_r27;
-        HuAudFXPlay(lbl_1_data_4B4[temp_r27]);
+    if (soundFrameIndex != integerValue) {
+        soundFrameIndex = integerValue;
+        HuAudFXPlay(coinRewardSoundIds[integerValue]);
     }
 
-    BoardModelMotionTimeSet(lbl_1_bss_C[7], temp_f30);
-    BoardModelMotionTimeSet(lbl_1_bss_C[10], 0.2f * temp_f30);
-    BoardPlayerMotionTimeSet(arg1->unk00_bit5, 2.0f * temp_f30);
+    BoardModelMotionTimeSet(boardModelIds[7], floatValue2);
+    BoardModelMotionTimeSet(boardModelIds[10], 0.2f * floatValue2);
+    BoardPlayerMotionTimeSet(collectibleWork->isCollected, 2.0f * floatValue2);
 }
 
-void fn_1_8E44(OMOBJ *arg0, someBits3 *arg1)
+void CoinAnimateRewardDisappear(OMOBJ *object, CoinCollectibleWork *collectibleWork)
 {
-    Vec sp8;
-    f32 temp_f1;
-    f32 temp_f31;
+    Vec modelPosition;
+    f32 floatValue;
+    f32 floatValue2;
 
-    if (arg1->unk00_bit7 == 0) {
+    if (collectibleWork->isHidden == 0) {
         HuAudFXPlay(0x448);
-        arg1->unk00_bit7 = 1;
-        if (arg1->unk_0C != -1) {
-            HuAudFXStop(arg1->unk_0C);
-            arg1->unk_0C = -1;
+        collectibleWork->isHidden = 1;
+        if (collectibleWork->counter != -1) {
+            HuAudFXStop(collectibleWork->counter);
+            collectibleWork->counter = -1;
         }
         BoardAudSeqFadeOut(1, 0x3E8);
     }
 
-    OSu8tof32(&arg1->unk2, &temp_f31);
-    BoardModelPosGet(lbl_1_data_456, &sp8);
+    OSu8tof32(&collectibleWork->coinState, &floatValue2);
+    BoardModelPosGet(coinPedestalModelId, &modelPosition);
 
-    sp8.y = (sp8.y + (-0.08166666666666668 * temp_f31 * temp_f31));
+    modelPosition.y = (modelPosition.y + (-0.08166666666666668 * floatValue2 * floatValue2));
 
-    if (sp8.y < arg0->trans.z) {
-        sp8.y = arg0->trans.z;
-        arg1->unk00_bit1 = 3;
-        arg0->trans.x = arg0->rot.y / 20.0f;
-        arg0->trans.y = 0.0f;
-        arg0->trans.z = 24.0f;
-        BoardModelAttrReset(lbl_1_bss_C[10], 0x40000003);
-        BoardModelMotionSpeedSet(lbl_1_bss_C[10], -2.0f);
-        BoardPlayerModelAttrReset(arg1->unk00_bit5, 0x40000003);
-        BoardPlayerMotionSpeedSet(arg1->unk00_bit5, -2.0f);
+    if (modelPosition.y < object->trans.z) {
+        modelPosition.y = object->trans.z;
+        collectibleWork->coinCount = 3;
+        object->trans.x = object->rot.y / 20.0f;
+        object->trans.y = 0.0f;
+        object->trans.z = 24.0f;
+        BoardModelAttrReset(boardModelIds[10], 0x40000003);
+        BoardModelMotionSpeedSet(boardModelIds[10], -2.0f);
+        BoardPlayerModelAttrReset(collectibleWork->isCollected, 0x40000003);
+        BoardPlayerMotionSpeedSet(collectibleWork->isCollected, -2.0f);
         HuAudFXPlay(0x449);
         BoardAudSeqPause(0, 0, 0x3E8);
     }
 
-    arg1->unk2 += 1;
-    BoardModelPosSetV(lbl_1_data_456, &sp8);
+    collectibleWork->coinState += 1;
+    BoardModelPosSetV(coinPedestalModelId, &modelPosition);
 }
 
-void fn_1_9044(OMOBJ *arg0, someBits3 *arg1)
+void CoinAnimateRewardSpin(OMOBJ *object, CoinCollectibleWork *collectibleWork)
 {
-    Vec sp8;
+    Vec position;
 
-    BoardModelRotGet(lbl_1_data_456, &sp8);
-    arg0->trans.y = BoardDAngleCalc(arg0->trans.y + arg0->trans.z);
+    BoardModelRotGet(coinPedestalModelId, &position);
+    object->trans.y = BoardDAngleCalc(object->trans.y + object->trans.z);
 
-    if (arg0->trans.y <= 2.0f) {
-        if (arg0->trans.y >= -2.0) {
-            arg0->trans.x *= 0.5f;
-            if (arg0->trans.x <= 1.0f) {
-                arg0->trans.y = 0.0f;
-                BoardPlayerIdleSet(arg1->unk00_bit5);
-                BoardModelMotionShiftSet(lbl_1_bss_C[10], 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-                arg1->unk00_bit0 = 1;
+    if (object->trans.y <= 2.0f) {
+        if (object->trans.y >= -2.0) {
+            object->trans.x *= 0.5f;
+            if (object->trans.x <= 1.0f) {
+                object->trans.y = 0.0f;
+                BoardPlayerIdleSet(collectibleWork->isCollected);
+                BoardModelMotionShiftSet(boardModelIds[10], 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+                collectibleWork->isActive = 1;
             }
         }
     }
 
-    sp8.z = arg0->trans.x * sind(arg0->trans.y);
-    BoardModelRotSetV(lbl_1_data_456, &sp8);
+    position.z = object->trans.x * sind(object->trans.y);
+    BoardModelRotSetV(coinPedestalModelId, &position);
 }
 
-s8 lbl_1_data_4C8[] = { 1, 5, 10, 15, 20, 20 };
+s8 coinRewardAmounts[] = { 1, 5, 10, 15, 20, 20 };
 
-void fn_1_91B8(void)
+void CoinRewardValueUpdate(void)
 {
-    s8 temp_r3;
+    s8 integerValue;
 
-    if (lbl_1_bss_14E == 0) {
-        lbl_1_bss_14E = 1;
+    if (coinRewardTimer == 0) {
+        coinRewardTimer = 1;
     }
 
-    temp_r3 = lbl_1_bss_14E / 6;
-    lbl_1_bss_14C = lbl_1_data_4C8[temp_r3];
+    integerValue = coinRewardTimer / 6;
+    coinRewardAmount = coinRewardAmounts[integerValue];
 }
 
-void fn_1_9230(s32 arg0)
+void CoinReturnPlayerToSpace(s32 playerIndex)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    s16 temp_r30;
+    Vec playerPosition;
+    Vec spacePosition;
+    Vec positionDelta;
+    s16 currentSpaceIndex;
     f32 rotY;
 
-    temp_r30 = GWPlayer[arg0].space_curr;
-    BoardPlayerPosGet(arg0, &sp20);
-    BoardSpacePosGet(0, temp_r30, &sp14);
-    BoardCameraTargetPlayerSet(arg0);
+    currentSpaceIndex = GWPlayer[playerIndex].space_curr;
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    BoardSpacePosGet(0, currentSpaceIndex, &spacePosition);
+    BoardCameraTargetPlayerSet(playerIndex);
     BoardCameraViewSet(1);
-    BoardPlayerPosLerpStart(arg0, &sp20, &sp14, 0x14);
+    BoardPlayerPosLerpStart(playerIndex, &playerPosition, &spacePosition, 0x14);
 
-    while (GWPlayer[arg0].moving != 0) {
-        BoardModelPosGet(lbl_1_bss_C[10], &sp20);
-        BoardPlayerPosGet(arg0, &sp14);
-        VECSubtract(&sp14, &sp20, &sp8);
-        rotY = atan2d(sp8.x, sp8.z);
-        BoardModelRotYSet(lbl_1_bss_C[10], rotY);
+    while (GWPlayer[playerIndex].moving != 0) {
+        BoardModelPosGet(boardModelIds[10], &playerPosition);
+        BoardPlayerPosGet(playerIndex, &spacePosition);
+        VECSubtract(&spacePosition, &playerPosition, &positionDelta);
+        rotY = atan2d(positionDelta.x, positionDelta.z);
+        BoardModelRotYSet(boardModelIds[10], rotY);
         HuPrcVSleep();
     }
 
-    BoardModelRotYSet(lbl_1_bss_C[10], 0.0f);
+    BoardModelRotYSet(boardModelIds[10], 0.0f);
     BoardCameraMotionWait();
 }
 
-void fn_1_9384(void)
+void CoinResultWindowCreate(void)
 {
     f32 widthHeight[2];
     f32 x, y;
@@ -655,152 +655,152 @@ void fn_1_9384(void)
     HuWinMesMaxSizeGet(1, widthHeight, MAKE_MESSID(0x16, 0x19));
     x = -10000.0f;
     y = 288.0f;
-    lbl_1_data_454 = HuWinCreate(x, y, widthHeight[0], widthHeight[1], 0);
-    HuWinBGTPLvlSet(lbl_1_data_454, 0.0f);
-    HuWinMesSpeedSet(lbl_1_data_454, 0);
-    HuWinMesSet(lbl_1_data_454, MAKE_MESSID(0x16, 0x19));
+    coinResultWindowId = HuWinCreate(x, y, widthHeight[0], widthHeight[1], 0);
+    HuWinBGTPLvlSet(coinResultWindowId, 0.0f);
+    HuWinMesSpeedSet(coinResultWindowId, 0);
+    HuWinMesSet(coinResultWindowId, MAKE_MESSID(0x16, 0x19));
 }
 
-void fn_1_9474(s32 arg0)
+void CoinShowResult(s32 playerIndex)
 {
-    sprintf(lbl_1_bss_150, "%d", lbl_1_bss_14C);
+    sprintf(coinRewardAmountText, "%d", coinRewardAmount);
     BoardWinCreate(2, MAKE_MESSID(22, 23), 2);
-    BoardWinInsertMesSet((u32)lbl_1_bss_150, 4);
+    BoardWinInsertMesSet((u32)coinRewardAmountText, 4);
     BoardWinWait();
     BoardWinKill();
-    BoardPlayerMotBlendSet(arg0, 0, 0xF);
+    BoardPlayerMotBlendSet(playerIndex, 0, 0xF);
 
-    while (BoardPlayerMotBlendCheck(arg0) == 0) {
+    while (BoardPlayerMotBlendCheck(playerIndex) == 0) {
         HuPrcVSleep();
     }
 
-    fn_1_97F8(arg0);
+    CoinRewardObjectsCreate(playerIndex);
 
-    while (lbl_1_bss_148) {
+    while (coinRewardObject) {
         HuPrcVSleep();
     }
 
-    BoardPlayerMotionShiftSet(arg0, 7, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
+    BoardPlayerMotionShiftSet(playerIndex, 7, 0.0f, 8.0f, HU3D_MOTATTR_NONE);
     HuPrcSleep(8);
 
-    while (BoardPlayerMotionEndCheck(arg0) == 0) {
+    while (BoardPlayerMotionEndCheck(playerIndex) == 0) {
         HuPrcVSleep();
     }
 
     BoardWinCreate(2, MAKE_MESSID(22, 24), 2);
     BoardWinWait();
     BoardWinKill();
-    BoardModelMotionStart(lbl_1_bss_C[7], 0, 0x40000002);
+    BoardModelMotionStart(boardModelIds[7], 0, 0x40000002);
 }
 
-void fn_1_95B8(OMOBJ *arg0)
+void CoinRewardObjectUpdate(OMOBJ *object)
 {
-    f32 temp_f31;
-    s32 var_r25;
-    s32 var_r26;
-    s32 var_r27;
-    s32 var_r28;
-    unkTemp *var_r30;
-    unkTemp2 *temp_r29;
+    f32 floatValue;
+    s32 stateValue;
+    s32 integerValue;
+    s32 index;
+    s32 integerValue2;
+    CoinPlayerAnimationWork *coinWork;
+    CoinCollectionWork *work;
     s32 i;
-    s32 temp;
+    s32 activeCoinCount;
 
-    temp_r29 = omObjGetWork(arg0, unkTemp2);
+    work = omObjGetWork(object, CoinCollectionWork);
 
-    if ((temp_r29->unk00_bit0 != 0) || (BoardIsKill() != 0)) {
-        fn_1_9A1C(temp_r29);
-        HuMemDirectFree((void *)temp_r29->unk_0C);
-        lbl_1_bss_148 = 0;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+    if ((work->isActive != 0) || (BoardIsKill() != 0)) {
+        CoinCollectionObjectDestroy(work);
+        HuMemDirectFree((void *)work->counter);
+        coinRewardObject = 0;
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
 
-    var_r30 = temp_r29->unk_0C;
+    coinWork = work->counter;
 
-    for (var_r27 = i = 0; i < 20; i++, var_r30++) {
-        if (var_r30->unk0 == 0) {
-            var_r27++;
+    for (activeCoinCount = i = 0; i < 20; i++, coinWork++) {
+        if (coinWork->isActive == 0) {
+            activeCoinCount++;
         }
     }
 
-    if (var_r27 == 20) {
-        temp_r29->unk00_bit0 = 1;
+    if (activeCoinCount == 20) {
+        work->isActive = 1;
         return;
     }
 
-    var_r25 = 0;
+    stateValue = 0;
     for (i = 0; i < 20; i++) {
-        var_r30 = &temp_r29->unk_0C[i];
-        if ((var_r30->unk0 == 1) && (var_r25 == 0)) {
-            var_r30->unk0 = 2U;
-            var_r25 = 1;
+        coinWork = &work->counter[i];
+        if ((coinWork->isActive == 1) && (stateValue == 0)) {
+            coinWork->isActive = 2U;
+            stateValue = 1;
         }
-        if (var_r30->unk0 == 2) {
-            var_r30->unk1++;
-            OSu8tof32(&var_r30->unk1, &temp_f31);
-            var_r30->unk4 += 45.0f;
-            var_r30->unk8.y += -0.08166667f * temp_f31 * temp_f31 * 0.75f;
-            if (var_r30->unk8.y < temp_r29->unk8) {
-                var_r30->unk8.y = temp_r29->unk8;
-                CharEffectCoinGlowCreate(1, &var_r30->unk8);
-                BoardModelVisibilitySet(var_r30->unk_02, 0);
+        if (coinWork->isActive == 2) {
+            coinWork->playerIndex++;
+            OSu8tof32(&coinWork->playerIndex, &floatValue);
+            coinWork->rotation += 45.0f;
+            coinWork->position.y += -0.08166667f * floatValue * floatValue * 0.75f;
+            if (coinWork->position.y < work->position) {
+                coinWork->position.y = work->position;
+                CharEffectCoinGlowCreate(1, &coinWork->position);
+                BoardModelVisibilitySet(coinWork->timer, 0);
                 HuAudFXPlay(7);
-                BoardPlayerCoinsAdd(temp_r29->unk4, 1);
-                omVibrate(temp_r29->unk4, 0xC, 6, 6);
-                var_r30->unk0 = 0;
+                BoardPlayerCoinsAdd(work->rotation, 1);
+                omVibrate(work->rotation, 0xC, 6, 6);
+                coinWork->isActive = 0;
             }
-            BoardModelPosSetV(var_r30->unk_02, &var_r30->unk8);
-            BoardModelRotYSet(var_r30->unk_02, var_r30->unk4);
+            BoardModelPosSetV(coinWork->timer, &coinWork->position);
+            BoardModelRotYSet(coinWork->timer, coinWork->rotation);
         }
     }
 }
 
-void fn_1_97F8(s32 arg0)
+void CoinRewardObjectsCreate(s32 playerIndex)
 {
-    Vec sp8;
-    f32 temp_f2;
-    f32 var_f31;
-    f64 temp_f1;
-    OMOBJ *temp_r3;
+    Vec playerPosition;
+    f32 floatValue;
+    f32 floatValue2;
+    f64 unusedDoubleValue;
+    OMOBJ *object;
     s32 i;
-    unkTemp2 *temp_r30;
-    unkTemp *temp_r31;
+    CoinCollectionWork *work;
+    CoinPlayerAnimationWork *coinWork;
 
-    temp_r3 = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, fn_1_95B8);
-    lbl_1_bss_148 = temp_r3;
-    temp_r30 = omObjGetWork(temp_r3, unkTemp2);
-    temp_r30->unk00_bit0 = 0;
-    temp_r30->unk4 = arg0;
-    temp_r30->unk_0C = HuMemDirectMallocNum(0, 0x190, HU_MEMNUM_OVL);
-    BoardPlayerPosGet(arg0, &sp8);
-    temp_r30->unk8 = (80.0f + sp8.y);
-    memset(temp_r30->unk_0C, 0, 0x190);
+    object = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, CoinRewardObjectUpdate);
+    coinRewardObject = object;
+    work = omObjGetWork(object, CoinCollectionWork);
+    work->isActive = 0;
+    work->rotation = playerIndex;
+    work->counter = HuMemDirectMallocNum(0, 0x190, HU_MEMNUM_OVL);
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    work->position = (80.0f + playerPosition.y);
+    memset(work->counter, 0, 0x190);
 
-    for (i = 0; i < lbl_1_bss_14C; i++) {
+    for (i = 0; i < coinRewardAmount; i++) {
         if (i == 0) {
-            var_f31 = 0.0f;
+            floatValue2 = 0.0f;
         }
         else {
-            var_f31 = BoardRandFloat();
+            floatValue2 = BoardRandFloat();
         }
-        temp_r31 = &temp_r30->unk_0C[i];
-        temp_r31->unk0 = 1;
-        temp_r31->unk8.x = sp8.x + (50.0f * sind(var_f31));
-        temp_r31->unk8.z = sp8.z + (50.0f * cosd(var_f31));
-        temp_r31->unk8.y = 600.0f + sp8.y + (500.0f * BoardRandFloat());
-        temp_r31->unk1 = 0;
-        temp_r31->unk4 = BoardRandFloat() * 360.0f;
-        temp_r31->unk_02 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x0A), NULL, 1);
+        coinWork = &work->counter[i];
+        coinWork->isActive = 1;
+        coinWork->position.x = playerPosition.x + (50.0f * sind(floatValue2));
+        coinWork->position.z = playerPosition.z + (50.0f * cosd(floatValue2));
+        coinWork->position.y = 600.0f + playerPosition.y + (500.0f * BoardRandFloat());
+        coinWork->playerIndex = 0;
+        coinWork->rotation = BoardRandFloat() * 360.0f;
+        coinWork->timer = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 0x0A), NULL, 1);
     }
 }
 
-void fn_1_9A1C(unkTemp2 *arg0)
+void CoinCollectionObjectDestroy(CoinCollectionWork *collectionWork)
 {
     s32 i;
-    unkTemp *temp;
+    CoinPlayerAnimationWork *work;
 
     for (i = 0; i < 20; i++) {
-        temp = &arg0->unk_0C[i];
-        BoardModelKill(temp->unk_02);
+        work = &collectionWork->counter[i];
+        BoardModelKill(work->timer);
     }
 }

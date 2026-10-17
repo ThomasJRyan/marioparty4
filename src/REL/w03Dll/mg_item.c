@@ -26,42 +26,42 @@
 #include "game/sprite.h"
 #include "math.h"
 
-typedef struct someBits {
+typedef struct ItemEffectWork {
     /* 0x00 */ struct {
-        u8 unk00_bit0 : 1;
-        u8 unk00_bit1 : 3;
-        u8 unk00_bit4 : 2;
-        u8 unk00_bit6 : 1;
-        u8 unk00_bit7 : 1;
+        u8 isActive : 1;
+        u8 itemType : 3;
+        u8 isVisible : 2;
+        u8 isTimed : 1;
+        u8 isComplete : 1;
     };
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
-    s16 unk4;
-    s16 unk_06[3];
-} someBits;
+    u8 itemId;
+    u8 itemTimer;
+    u8 playerIndex;
+    s16 timerHandle;
+    s16 modelIds[3];
+} ItemEffectWork;
 
-typedef struct someBits2 {
+typedef struct ItemObjectWork {
     /* 0x00 */ struct {
-        u8 unk00_bit0 : 1;
-        u8 unk00_bit1 : 3;
-        u8 unk00_bit4 : 2;
-        u8 unk00_bit6 : 1;
-        u8 unk00_bit7 : 1;
+        u8 isActive : 1;
+        u8 itemType : 3;
+        u8 isVisible : 2;
+        u8 isTimed : 1;
+        u8 isComplete : 1;
     };
-    s8 unk1;
-    s8 unk2;
-    u8 unk3[3];
-    s16 unk_06[4];
-} someBits2;
+    s8 itemId;
+    s8 itemTimer;
+    u8 playerIndex[3];
+    s16 modelIds[4];
+} ItemObjectWork;
 
-typedef struct w03UnkMG {
-    /* 0x00 */ char unk_00[0x10];
-    /* 0x10 */ s16 unk_10;
-    /* 0x12 */ s16 unk_12;
-    /* 0x14 */ s16 unk_14;
-    /* 0x16 */ s16 unk_16;
-} w03UnkMG;
+typedef struct ItemAnimationWork {
+    /* 0x00 */ char unreferencedPayload[0x10];
+    /* 0x10 */ s16 unreferencedWorkValue10;
+    /* 0x12 */ s16 unreferencedWorkValue12;
+    /* 0x14 */ s16 unreferencedWorkValue14;
+    /* 0x16 */ s16 unreferencedWorkValue16;
+} ItemAnimationWork;
 
 // external symbols
 
@@ -70,46 +70,46 @@ extern u16 HuPadBtnDown[4];
 // function signatures
 s32 BoardVecDAngleCalcRange(float *value, float min, float range);
 
-void fn_1_BE30(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
-void fn_1_BDAC(void);
-void fn_1_BC7C(s16 arg0);
-void fn_1_BBF8(void);
-s32 fn_1_BBC4(void);
-void fn_1_BB74(s8 *arg0);
-s32 fn_1_BB48(void);
-void fn_1_B8E8(s32 arg0);
-void fn_1_B748(OMOBJ *arg0, someBits2 *arg1);
-void fn_1_B688(OMOBJ *arg0, someBits2 *arg1);
-void fn_1_B4AC(OMOBJ *arg0, someBits2 *arg1);
-void fn_1_B350(OMOBJ *arg0);
-void fn_1_B0A4(s32 arg0);
-u32 fn_1_AF24(s32 arg0);
-s32 fn_1_AE4C(s32 arg0, s8 *arg1);
-s32 fn_1_AE20(void);
-void fn_1_ACD8(s32 arg0);
-void fn_1_ABD0(OMOBJ *arg0, someBits *arg1);
-void fn_1_AB18(OMOBJ *arg0, someBits *arg1);
-void fn_1_A8AC(s32 arg0);
-void fn_1_A7A0(s32 arg0);
-void fn_1_A994(OMOBJ *arg0);
-void fn_1_A5E0(s32 arg0);
-void fn_1_A6B0(void);
-void fn_1_A44C(s32 arg0);
-void fn_1_9C8C(void);
-void fn_1_9B30(void);
-s32 fn_1_9CF4(s32 arg0);
-void fn_1_9F78(void);
-void fn_1_9FE4(void);
+void ItemParticleUpdate(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void ItemParticleEffectDestroy(void);
+void ItemParticleEffectCreate(s16 state);
+void ItemModelsDestroy(void);
+s32 ItemSelectedGet(void);
+void ItemNamesCopy(s8 *textBuffer);
+s32 ItemEffectCheckComplete(void);
+void ItemEffectStateSet(s32 effectState);
+void ItemEffectAnimateDisappear(OMOBJ *object, ItemObjectWork *itemWork);
+void ItemEffectAnimateCollect(OMOBJ *object, ItemObjectWork *itemWork);
+void ItemEffectAnimateAppear(OMOBJ *object, ItemObjectWork *itemWork);
+void ItemEffectUpdate(OMOBJ *object);
+void ItemEffectStart(s32 playerIndex);
+u32 ItemModelForStateGet(s32 playerIndex);
+s32 ItemSelectForPlayer(s32 playerIndex, s8 *textBuffer);
+s32 ItemCheckRevealComplete(void);
+void ItemObjectStateSet(s32 itemState);
+void ItemAnimateCollect(OMOBJ *object, ItemEffectWork *effectWork);
+void ItemAnimateReveal(OMOBJ *object, ItemEffectWork *effectWork);
+void ItemPlayerFaceItem(s32 playerIndex);
+void ItemObjectCreate(s32 state);
+void ItemObjectUpdate(OMOBJ *object);
+void ItemReturnPlayerToSpace(s32 playerIndex);
+void ItemResultWindowCreate(void);
+void ItemGrantToPlayer(s32 playerIndex);
+void ItemEventRunProcess(void);
+void ItemEventCleanup(void);
+s32 ItemCheckPlayerChoice(s32 playerIndex);
+void ItemEventCreateModels(void);
+void ItemEventPositionModels(void);
 
 // data
-s16 lbl_1_data_4D8 = -1;
-s16 lbl_1_data_4DA = -1;
-s16 lbl_1_data_4DC = -1;
-s32 lbl_1_data_4E0 = -1;
-s16 lbl_1_data_4E4 = -1;
-s8 lbl_1_data_4E6[] = { 1, 1, 3, 3, 2, 2, 2, 1, 2, 3, 0, 4, 5, 0 };
+s16 itemResultWindowId = -1;
+s16 itemCollectMotionId = -1;
+s16 itemAppearMotionId = -1;
+s32 itemSoundHandle = -1;
+s16 itemParticleId = -1;
+s8 itemModelIndices[] = { 1, 1, 3, 3, 2, 2, 2, 1, 2, 3, 0, 4, 5, 0 };
 
-char *lbl_1_data_508[] = { "item", "item1", "item2" };
+char *itemModelHookNames[] = { "item", "item1", "item2" };
 
 #if VERSION_JP
 #define MDL_ID_SHIFT 0
@@ -117,7 +117,7 @@ char *lbl_1_data_508[] = { "item", "item1", "item2" };
 #define MDL_ID_SHIFT 1
 #endif
 
-s32 lbl_1_data_514[] = {
+s32 itemModelDataIds[] = {
     DATA_MAKE_NUM(DATADIR_BOARD, 0x6C + MDL_ID_SHIFT),
     DATA_MAKE_NUM(DATADIR_BOARD, 0x6D + MDL_ID_SHIFT),
     DATA_MAKE_NUM(DATADIR_BOARD, 0x6E + MDL_ID_SHIFT),
@@ -135,94 +135,94 @@ s32 lbl_1_data_514[] = {
 };
 
 // BSS
-s8 lbl_1_bss_194[3];
-ANIMDATA *lbl_1_bss_190;
-s8 lbl_1_bss_18C;
-OMOBJ *lbl_1_bss_188;
-OMOBJ *lbl_1_bss_184;
-HUPROCESS *lbl_1_bss_180;
+s8 itemHookNames[3];
+ANIMDATA *itemParticleAnimation;
+s8 selectedItemId;
+OMOBJ *itemParticleObject;
+OMOBJ *itemObject;
+HUPROCESS *itemEventProcess;
 
-void fn_1_9A7C(void)
+void ItemEventPrepare(void)
 {
-    fn_1_BBF8();
+    ItemModelsDestroy();
 }
 
-void fn_1_9A9C(void) { }
+void ItemEventNoop(void) { }
 
-void fn_1_9AA0(void)
+void ItemEventStart(void)
 {
     BoardRollDispSet(0);
-    lbl_1_bss_180 = HuPrcChildCreate(fn_1_9C8C, 0x2003, 0x2000, 0, boardMainProc);
-    HuPrcDestructorSet2(lbl_1_bss_180, fn_1_9B30);
+    itemEventProcess = HuPrcChildCreate(ItemEventRunProcess, 0x2003, 0x2000, 0, boardMainProc);
+    HuPrcDestructorSet2(itemEventProcess, ItemEventCleanup);
 
-    while (lbl_1_bss_180 != 0) {
+    while (itemEventProcess != 0) {
         HuPrcVSleep();
     }
 
     BoardRollDispSet(1);
 }
 
-void fn_1_9B30(void)
+void ItemEventCleanup(void)
 {
-    fn_1_BDAC();
+    ItemParticleEffectDestroy();
 
-    if (lbl_1_bss_188) {
-        lbl_1_bss_188;
+    if (itemParticleObject) {
+        itemParticleObject;
     }
 
-    if (lbl_1_bss_184) {
-        omObjGetWork(lbl_1_bss_184, someBits2)->unk00_bit0 = 1;
+    if (itemObject) {
+        omObjGetWork(itemObject, ItemObjectWork)->isActive = 1;
     }
 
-    if (lbl_1_data_4E0 != -1) {
-        HuAudFXStop(lbl_1_data_4E0);
-        lbl_1_data_4E0 = -1;
+    if (itemSoundHandle != -1) {
+        HuAudFXStop(itemSoundHandle);
+        itemSoundHandle = -1;
     }
 
-    if (lbl_1_data_4DC != -1) {
-        BoardModelMotionKill(lbl_1_bss_C[11], lbl_1_data_4DC);
-        lbl_1_data_4DC = -1;
+    if (itemAppearMotionId != -1) {
+        BoardModelMotionKill(boardModelIds[11], itemAppearMotionId);
+        itemAppearMotionId = -1;
     }
 
-    if (lbl_1_data_4DA != -1) {
-        BoardModelMotionKill(lbl_1_bss_C[11], lbl_1_data_4DA);
-        lbl_1_data_4DA = -1;
+    if (itemCollectMotionId != -1) {
+        BoardModelMotionKill(boardModelIds[11], itemCollectMotionId);
+        itemCollectMotionId = -1;
     }
 
-    if (lbl_1_data_4D8 != -1) {
-        HuWinKill(lbl_1_data_4D8);
-        lbl_1_data_4D8 = -1;
+    if (itemResultWindowId != -1) {
+        HuWinKill(itemResultWindowId);
+        itemResultWindowId = -1;
     }
 
-    lbl_1_bss_180 = 0;
+    itemEventProcess = 0;
 }
 
-void fn_1_9C8C(void)
+void ItemEventRunProcess(void)
 {
-    s32 temp_r31;
+    s32 currentPlayerIndex;
 
-    temp_r31 = GWSystem.player_curr;
-    lbl_1_data_4E0 = -1;
+    currentPlayerIndex = GWSystem.player_curr;
+    itemSoundHandle = -1;
 
-    if (fn_1_9CF4(temp_r31) != 0) {
-        fn_1_A44C(temp_r31);
-        fn_1_A5E0(temp_r31);
+    if (ItemCheckPlayerChoice(currentPlayerIndex) != 0) {
+        ItemGrantToPlayer(currentPlayerIndex);
+        ItemReturnPlayerToSpace(currentPlayerIndex);
     }
 
     HuPrcEnd();
 }
 
-s32 fn_1_9CF4(s32 arg0)
+s32 ItemCheckPlayerChoice(s32 playerIndex)
 {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+    Vec spacePosition;
+    Vec playerPosition;
+    Vec positionDelta;
+    Vec cameraRotation;
+    Vec cameraRotation2;
     s16 spaceCur;
-    s16 temp_r29;
+    s16 linkedSpaceIndex;
 
-    if (BoardPlayerItemCount(arg0) == 3) {
+    if (BoardPlayerItemCount(playerIndex) == 3) {
         BoardWinCreate(2, MAKE_MESSID(22, 30), 2);
         BoardWinWait();
         BoardWinKill();
@@ -231,7 +231,7 @@ s32 fn_1_9CF4(s32 arg0)
 
     BoardWinCreateChoice(2, MAKE_MESSID(22, 26), 2, 0);
 
-    if (GWPlayer[arg0].com != 0) {
+    if (GWPlayer[playerIndex].com != 0) {
         BoardComKeySetLeft();
     }
 
@@ -246,157 +246,157 @@ s32 fn_1_9CF4(s32 arg0)
 
     BoardWinKill();
 
-    sp14.x = 0.0f;
-    sp14.y = 200.0f;
-    sp14.z = 0.0f;
-    sp8.x = -10.0f;
-    sp8.y = 0.0f;
-    sp8.z = 0.0f;
+    cameraRotation.x = 0.0f;
+    cameraRotation.y = 200.0f;
+    cameraRotation.z = 0.0f;
+    cameraRotation2.x = -10.0f;
+    cameraRotation2.y = 0.0f;
+    cameraRotation2.z = 0.0f;
 
-    BoardCameraMotionStartEx(lbl_1_bss_C[8], &sp8, &sp14, 1500.0f, -1.0f, 21);
-    spaceCur = GWPlayer[arg0].space_curr;
-    temp_r29 = BoardSpaceLinkFlagSearch(0, spaceCur, 0x02000000);
-    BoardPlayerPosGet(arg0, &sp2C);
-    BoardSpacePosGet(0, temp_r29, &sp38);
-    VECSubtract(&sp38, &sp2C, &sp20);
-    VECNormalize(&sp20, &sp20);
-    BoardPlayerRotYSet(arg0, atan2d(-sp20.x, -sp20.z));
-    BoardPlayerPosLerpStart(arg0, &sp2C, &sp38, 0x14);
+    BoardCameraMotionStartEx(boardModelIds[8], &cameraRotation2, &cameraRotation, 1500.0f, -1.0f, 21);
+    spaceCur = GWPlayer[playerIndex].space_curr;
+    linkedSpaceIndex = BoardSpaceLinkFlagSearch(0, spaceCur, 0x02000000);
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    BoardSpacePosGet(0, linkedSpaceIndex, &spacePosition);
+    VECSubtract(&spacePosition, &playerPosition, &positionDelta);
+    VECNormalize(&positionDelta, &positionDelta);
+    BoardPlayerRotYSet(playerIndex, atan2d(-positionDelta.x, -positionDelta.z));
+    BoardPlayerPosLerpStart(playerIndex, &playerPosition, &spacePosition, 0x14);
 
-    while (GWPlayer[arg0].moving != 0) {
+    while (GWPlayer[playerIndex].moving != 0) {
         HuPrcVSleep();
     }
 
-    BoardPlayerIdleSet(arg0);
+    BoardPlayerIdleSet(playerIndex);
     HuPrcSleep(0x3C);
-    fn_1_B0A4(arg0);
-    fn_1_9F78();
-    fn_1_9FE4();
-    fn_1_A8AC(arg0);
+    ItemEffectStart(playerIndex);
+    ItemEventCreateModels();
+    ItemEventPositionModels();
+    ItemPlayerFaceItem(playerIndex);
     return 1;
 }
 
-void fn_1_9F78(void)
+void ItemEventCreateModels(void)
 {
-    lbl_1_data_4DA = BoardModelMotionCreate(lbl_1_bss_C[11], DATA_MAKE_NUM(DATADIR_W03, 0x23));
-    lbl_1_data_4DC = BoardModelMotionCreate(lbl_1_bss_C[11], DATA_MAKE_NUM(DATADIR_W03, 0x24));
+    itemCollectMotionId = BoardModelMotionCreate(boardModelIds[11], DATA_MAKE_NUM(DATADIR_W03, 0x23));
+    itemAppearMotionId = BoardModelMotionCreate(boardModelIds[11], DATA_MAKE_NUM(DATADIR_W03, 0x24));
 }
 
-void fn_1_9FE4(void)
+void ItemEventPositionModels(void)
 {
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    f32 sp8;
-    f32 temp_f30;
-    f32 var_f31;
+    Vec position;
+    Vec modelPosition;
+    Vec position2;
+    Vec positionDelta;
+    f32 floatValue;
+    f32 headingAngle;
+    f32 floatValue2;
 
-    BoardModelPosGet(lbl_1_bss_C[11], &sp24);
-    sp18.x = -3179.8f + 200.0 * sin(0.0);
-    sp18.z = -907.7f + 200.0 * cos(0.0);
-    sp18.y = sp24.y;
-    VECSubtract(&sp18, &sp24, &spC);
-    temp_f30 = atan2d(spC.z, spC.x);
-    sp8 = BoardModelRotYGet(lbl_1_bss_C[11]);
-    BoardModelMotionShiftSet(lbl_1_bss_C[11], lbl_1_data_4DA, 0.0f, 10.0, HU3D_MOTATTR_LOOP);
+    BoardModelPosGet(boardModelIds[11], &modelPosition);
+    position2.x = -3179.8f + 200.0 * sin(0.0);
+    position2.z = -907.7f + 200.0 * cos(0.0);
+    position2.y = modelPosition.y;
+    VECSubtract(&position2, &modelPosition, &positionDelta);
+    headingAngle = atan2d(positionDelta.z, positionDelta.x);
+    floatValue = BoardModelRotYGet(boardModelIds[11]);
+    BoardModelMotionShiftSet(boardModelIds[11], itemCollectMotionId, 0.0f, 10.0, HU3D_MOTATTR_LOOP);
 
-    while (BoardDAngleCalcRange(&sp8, temp_f30, 10.0) == 0) {
-        BoardModelRotYSet(lbl_1_bss_C[11], sp8);
+    while (BoardDAngleCalcRange(&floatValue, headingAngle, 10.0) == 0) {
+        BoardModelRotYSet(boardModelIds[11], floatValue);
         HuPrcVSleep();
     }
 
-    BoardModelRotYSet(lbl_1_bss_C[11], temp_f30);
-    BoardModelMotionSpeedSet(lbl_1_bss_C[11], 2.0f);
+    BoardModelRotYSet(boardModelIds[11], headingAngle);
+    BoardModelMotionSpeedSet(boardModelIds[11], 2.0f);
 
-    spC.x /= 20.0f;
-    spC.z /= 20.0f;
-    spC.y = 0.0f;
-    sp30 = sp24;
-    var_f31 = 0.0f;
+    positionDelta.x /= 20.0f;
+    positionDelta.z /= 20.0f;
+    positionDelta.y = 0.0f;
+    position = modelPosition;
+    floatValue2 = 0.0f;
 
-    while (var_f31 < 20.0f) {
-        VECAdd(&sp30, &spC, &sp30);
-        BoardModelPosSetV(lbl_1_bss_C[11], &sp30);
+    while (floatValue2 < 20.0f) {
+        VECAdd(&position, &positionDelta, &position);
+        BoardModelPosSetV(boardModelIds[11], &position);
         HuPrcVSleep();
-        var_f31 += 1.0f;
+        floatValue2 += 1.0f;
     }
 
     BoardAudSeqPause(0, 1, 0x3E8);
     HuAudFXPlay(0x450);
     HuAudFXPlay(0x362);
     BoardCameraQuakeSet(3, 100.0f);
-    fn_1_B8E8(1);
-    BoardModelMotionShiftSet(lbl_1_bss_C[11], lbl_1_data_4DC, 0.0f, 10.0, HU3D_MOTATTR_LOOP | HU3D_MOTATTR_REV);
-    VECSubtract(&sp24, &sp30, &spC);
+    ItemEffectStateSet(1);
+    BoardModelMotionShiftSet(boardModelIds[11], itemAppearMotionId, 0.0f, 10.0, HU3D_MOTATTR_LOOP | HU3D_MOTATTR_REV);
+    VECSubtract(&modelPosition, &position, &positionDelta);
 
-    spC.x /= 60.0f;
-    spC.z /= 60.0f;
-    spC.y = 0.0f;
-    var_f31 = 0.0f;
+    positionDelta.x /= 60.0f;
+    positionDelta.z /= 60.0f;
+    positionDelta.y = 0.0f;
+    floatValue2 = 0.0f;
 
-    while (var_f31 < 60.0f) {
-        VECAdd(&sp30, &spC, &sp30);
-        BoardModelPosSetV(lbl_1_bss_C[11], &sp30);
+    while (floatValue2 < 60.0f) {
+        VECAdd(&position, &positionDelta, &position);
+        BoardModelPosSetV(boardModelIds[11], &position);
         HuPrcVSleep();
-        var_f31 += 1.0f;
+        floatValue2 += 1.0f;
     }
 
-    temp_f30 = 0.0f;
-    sp8 = BoardModelRotYGet(lbl_1_bss_C[11]);
-    BoardModelMotionShiftSet(lbl_1_bss_C[11], lbl_1_data_4DA, 0.0f, 10.0, HU3D_MOTATTR_LOOP);
+    headingAngle = 0.0f;
+    floatValue = BoardModelRotYGet(boardModelIds[11]);
+    BoardModelMotionShiftSet(boardModelIds[11], itemCollectMotionId, 0.0f, 10.0, HU3D_MOTATTR_LOOP);
 
-    while (BoardDAngleCalcRange(&sp8, temp_f30, 10.0) == 0) {
-        BoardModelRotYSet(lbl_1_bss_C[11], sp8);
+    while (BoardDAngleCalcRange(&floatValue, headingAngle, 10.0) == 0) {
+        BoardModelRotYSet(boardModelIds[11], floatValue);
         HuPrcVSleep();
     }
 
-    BoardModelMotionShiftSet(lbl_1_bss_C[11], 1, 0.0f, 10.0, HU3D_MOTATTR_LOOP);
+    BoardModelMotionShiftSet(boardModelIds[11], 1, 0.0f, 10.0, HU3D_MOTATTR_LOOP);
 }
 
-void fn_1_A44C(s32 arg0)
+void ItemGrantToPlayer(s32 playerIndex)
 {
-    s16 temp_r30;
-    s32 temp_r29;
-    s32 temp_r28;
+    s16 integerValue;
+    s32 integerValue2;
+    s32 integerValue3;
 
     BoardMusStart(1, 0x17, 0x7F, 0);
-    temp_r30 = MGSeqStartCreate();
+    integerValue = MGSeqStartCreate();
 
-    while (MGSeqStatGet(temp_r30) != 0) {
+    while (MGSeqStatGet(integerValue) != 0) {
         HuPrcVSleep();
     }
 
-    fn_1_A7A0(arg0);
-    fn_1_A6B0();
-    fn_1_ACD8(1);
+    ItemObjectCreate(playerIndex);
+    ItemResultWindowCreate();
+    ItemEffectStateSet(1);
 
-    while (fn_1_AE20() != 0) {
+    while (ItemCheckRevealComplete() != 0) {
         HuPrcVSleep();
     }
 
-    temp_r29 = fn_1_BBC4() + 0x80000;
+    integerValue2 = ItemSelectedGet() + 0x80000;
     BoardWinCreate(2, MAKE_MESSID(22, 28), 2);
-    BoardWinInsertMesSet(temp_r29, 0);
+    BoardWinInsertMesSet(integerValue2, 0);
     BoardWinWait();
-    fn_1_B8E8(4);
+    ItemEffectStateSet(4);
 
-    while (fn_1_BB48() != 0) {
+    while (ItemEffectCheckComplete() != 0) {
         HuPrcVSleep();
     }
 
-    omVibrate(arg0, 0xC, 6, 6);
-    BoardPlayerItemAdd(arg0, fn_1_BBC4());
-    fn_1_ACD8(3);
-    temp_r28 = HuAudSStreamPlay(2);
+    omVibrate(playerIndex, 0xC, 6, 6);
+    BoardPlayerItemAdd(playerIndex, ItemSelectedGet());
+    ItemEffectStateSet(3);
+    integerValue3 = HuAudSStreamPlay(2);
 
-    while (HuAudSStreamStatGet(temp_r28) != 0) {
+    while (HuAudSStreamStatGet(integerValue3) != 0) {
         HuPrcVSleep();
     }
 
     BoardAudSeqPause(0, 0, 1000);
 
-    while (lbl_1_bss_188) {
+    while (itemParticleObject) {
         HuPrcVSleep();
     }
 
@@ -406,289 +406,289 @@ void fn_1_A44C(s32 arg0)
     BoardWinKill();
 }
 
-void fn_1_A5E0(s32 arg0)
+void ItemReturnPlayerToSpace(s32 playerIndex)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec playerPosition;
+    Vec spacePosition;
     s16 spaceCur;
 
-    spaceCur = GWPlayer[arg0].space_curr;
-    BoardPlayerPosGet(arg0, &sp14);
-    BoardSpacePosGet(0, spaceCur, &sp8);
-    BoardCameraTargetPlayerSet(arg0);
+    spaceCur = GWPlayer[playerIndex].space_curr;
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    BoardSpacePosGet(0, spaceCur, &spacePosition);
+    BoardCameraTargetPlayerSet(playerIndex);
     BoardCameraViewSet(1);
-    BoardPlayerPosLerpStart(arg0, &sp14, &sp8, 20);
-    while (GWPlayer[arg0].moving != 0) {
+    BoardPlayerPosLerpStart(playerIndex, &playerPosition, &spacePosition, 20);
+    while (GWPlayer[playerIndex].moving != 0) {
         HuPrcVSleep();
     }
-    BoardModelRotYSet(lbl_1_bss_C[11], 0.0f);
+    BoardModelRotYSet(boardModelIds[11], 0.0f);
     BoardCameraMotionWait();
 }
 
-void fn_1_A6B0(void)
+void ItemResultWindowCreate(void)
 {
-    f32 sp8[2];
+    f32 floatValue[2];
     f32 val1, val2;
 
-    HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x16, 0x1F));
+    HuWinMesMaxSizeGet(1, floatValue, MAKE_MESSID(0x16, 0x1F));
     val1 = -10000.0f;
     val2 = 392.0f;
-    lbl_1_data_4D8 = HuWinCreate(val1, val2, sp8[0], sp8[1], 0);
-    HuWinBGTPLvlSet(lbl_1_data_4D8, 0.0f);
-    HuWinMesSpeedSet(lbl_1_data_4D8, 0);
-    HuWinMesSet(lbl_1_data_4D8, MAKE_MESSID(0x16, 0x1F));
+    itemResultWindowId = HuWinCreate(val1, val2, floatValue[0], floatValue[1], 0);
+    HuWinBGTPLvlSet(itemResultWindowId, 0.0f);
+    HuWinMesSpeedSet(itemResultWindowId, 0);
+    HuWinMesSet(itemResultWindowId, MAKE_MESSID(0x16, 0x1F));
 }
 
-void fn_1_A7A0(s32 arg0)
+void ItemObjectCreate(s32 state)
 {
-    someBits *temp_r31;
-    OMOBJ *temp_r3;
+    ItemEffectWork *itemWork;
+    OMOBJ *object;
 
-    temp_r3 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, (void *)fn_1_A994);
-    lbl_1_bss_188 = temp_r3;
-    temp_r31 = (someBits *)&temp_r3->work[0];
-    temp_r31->unk00_bit0 = 0;
-    temp_r31->unk00_bit6 = 0;
-    temp_r31->unk00_bit4 = arg0;
-    temp_r31->unk00_bit1 = 0;
-    temp_r31->unk1 = 5U;
-    temp_r31->unk2 = 0x3C;
-    temp_r31->unk4 = MGSeqTimerCreateXY(temp_r31->unk1, 288, 64);
-    fn_1_BB74(lbl_1_bss_194);
-    lbl_1_bss_18C = fn_1_AE4C(arg0, lbl_1_bss_194);
+    object = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, (void *)ItemObjectUpdate);
+    itemParticleObject = object;
+    itemWork = (ItemEffectWork *)&object->work[0];
+    itemWork->isActive = 0;
+    itemWork->isTimed = 0;
+    itemWork->isVisible = state;
+    itemWork->itemType = 0;
+    itemWork->itemId = 5U;
+    itemWork->itemTimer = 0x3C;
+    itemWork->timerHandle = MGSeqTimerCreateXY(itemWork->itemId, 288, 64);
+    ItemNamesCopy(itemHookNames);
+    selectedItemId = ItemSelectForPlayer(state, itemHookNames);
 }
 
-void fn_1_A8AC(s32 arg0)
+void ItemPlayerFaceItem(s32 playerIndex)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec playerPosition;
+    Vec modelPosition;
     f32 playerYRot;
 
-    BoardModelPosGet(lbl_1_bss_C[9], &sp8);
-    BoardPlayerPosGet(arg0, &sp14);
-    sp8.y = sp14.y;
-    BoardPlayerPosLerpStart(arg0, &sp14, &sp8, 20);
+    BoardModelPosGet(boardModelIds[9], &modelPosition);
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    modelPosition.y = playerPosition.y;
+    BoardPlayerPosLerpStart(playerIndex, &playerPosition, &modelPosition, 20);
 
-    while (GWPlayer[arg0].moving != 0) {
+    while (GWPlayer[playerIndex].moving != 0) {
         HuPrcVSleep();
     }
 
-    playerYRot = BoardPlayerRotYGet(arg0) + 180.0f;
-    BoardPlayerMotBlendSet(arg0, playerYRot, 15);
+    playerYRot = BoardPlayerRotYGet(playerIndex) + 180.0f;
+    BoardPlayerMotBlendSet(playerIndex, playerYRot, 15);
 
-    while (BoardPlayerMotBlendCheck(arg0) == 0) {
+    while (BoardPlayerMotBlendCheck(playerIndex) == 0) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_A994(OMOBJ *arg0)
+void ItemObjectUpdate(OMOBJ *object)
 {
-    s32 temp_r0;
-    someBits *temp_r31;
+    s32 integerValue;
+    ItemEffectWork *itemWork;
 
-    temp_r31 = (someBits *)&lbl_1_bss_188->work[0];
-    if ((temp_r31->unk00_bit0 != 0) || (BoardIsKill() != 0)) {
-        if (temp_r31->unk4 != -1) {
-            MGSeqParamSet(temp_r31->unk4, 2, -1U);
-            temp_r31->unk4 = -1;
+    itemWork = (ItemEffectWork *)&itemParticleObject->work[0];
+    if ((itemWork->isActive != 0) || (BoardIsKill() != 0)) {
+        if (itemWork->timerHandle != -1) {
+            MGSeqParamSet(itemWork->timerHandle, 2, -1U);
+            itemWork->timerHandle = -1;
         }
-        lbl_1_bss_188 = NULL;
+        itemParticleObject = NULL;
 
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
 
-    if (temp_r31->unk00_bit6 == 0) {
-        if (temp_r31->unk2 != 0) {
-            temp_r31->unk2--;
+    if (itemWork->isTimed == 0) {
+        if (itemWork->itemTimer != 0) {
+            itemWork->itemTimer--;
         }
         else {
-            if (temp_r31->unk1 != 0) {
-                temp_r31->unk1--;
+            if (itemWork->itemId != 0) {
+                itemWork->itemId--;
             }
             else {
-                fn_1_ACD8(2);
+                ItemEffectStateSet(2);
             }
-            MGSeqParamSet(temp_r31->unk4, 1, temp_r31->unk1);
-            temp_r31->unk2 = 0x3CU;
+            MGSeqParamSet(itemWork->timerHandle, 1, itemWork->itemId);
+            itemWork->itemTimer = 0x3CU;
         }
     }
 
-    switch (temp_r31->unk00_bit1) {
+    switch (itemWork->itemType) {
         case 1:
-            fn_1_AB18(arg0, temp_r31);
+            ItemAnimateReveal(object, value);
             return;
         case 2:
-            fn_1_ABD0(arg0, temp_r31);
+            ItemAnimateCollect(object, value);
             return;
         case 3:
-            if (BoardPlayerMotionEndCheck(temp_r31->unk00_bit4) != 0) {
-                temp_r31->unk00_bit0 = 1;
+            if (BoardPlayerMotionEndCheck(itemWork->isVisible) != 0) {
+                itemWork->isActive = 1;
             }
         case 0:
             break;
     }
 }
 
-void fn_1_AB18(OMOBJ *arg0, someBits *arg1)
+void ItemAnimateReveal(OMOBJ *object, ItemEffectWork *effectWork)
 {
-    u32 var_r31 = 0;
+    u32 playerIndex = 0;
 
-    if (GWPlayer[arg1->unk00_bit4].com != 0) {
-        var_r31 = fn_1_AF24(arg1->unk00_bit4);
+    if (GWPlayer[effectWork->isVisible].com != 0) {
+        playerIndex = ItemModelForStateGet(effectWork->isVisible);
     }
     else {
-        var_r31 = HuPadBtnDown[GWPlayer[arg1->unk00_bit4].port];
+        playerIndex = HuPadBtnDown[GWPlayer[effectWork->isVisible].port];
     }
-    if (var_r31 == 0x100) {
-        fn_1_ACD8(2);
+    if (playerIndex == 0x100) {
+        ItemEffectStateSet(2);
     }
 }
 
 // TODO properly use inlines
-void fn_1_ABD0(OMOBJ *arg0, someBits *arg1)
+void ItemAnimateCollect(OMOBJ *object, ItemEffectWork *effectWork)
 {
     s16 boardModelID;
     PlayerState *playerStateCopy;
     s32 bit;
     PlayerState *playerState;
-    s16 temp, temp2;
+    s16 playerModelId, currentMotionId;
 
-    bit = arg1->unk00_bit4;
+    bit = effectWork->isVisible;
     playerState = &GWPlayer[bit];
     playerStateCopy = playerState;
-    temp = boardPlayerMdl[playerStateCopy->player_idx];
-    temp2 = temp;
-    boardModelID = BoardModelIDGet(temp2);
+    playerModelId = boardPlayerMdl[playerStateCopy->player_idx];
+    currentMotionId = playerModelId;
+    boardModelID = BoardModelIDGet(currentMotionId);
 
     if (Hu3DMotionShiftIDGet(boardModelID) == -1) {
-        if (!(arg1->unk00_bit7)) {
-            if (BoardPlayerMotionTimeGet(arg1->unk00_bit4) >= 27.0f) {
-                arg1->unk00_bit7 = 1;
+        if (!(effectWork->isComplete)) {
+            if (BoardPlayerMotionTimeGet(effectWork->isVisible) >= 27.0f) {
+                effectWork->isComplete = 1;
                 BoardAudSeqFadeOut(1, 0x64);
-                fn_1_B8E8(2);
+                ItemEffectStateSet(2);
                 return;
             }
         }
-        if (BoardPlayerMotionEndCheck(arg1->unk00_bit4)) {
-            fn_1_ACD8(0);
+        if (BoardPlayerMotionEndCheck(effectWork->isVisible)) {
+            ItemEffectStateSet(0);
         }
     }
 }
 
-void fn_1_ACD8(s32 arg0)
+void ItemEffectStateSet(s32 effectState)
 {
-    someBits *temp_r31;
+    ItemEffectWork *effectWork;
 
-    temp_r31 = (someBits *)&lbl_1_bss_188->work[0];
-    temp_r31->unk00_bit1 = arg0;
+    effectWork = (ItemEffectWork *)&itemParticleObject->work[0];
+    effectWork->itemType = effectState;
 
-    switch (arg0) {
+    switch (effectState) {
         case 0:
-            BoardPlayerIdleSet(temp_r31->unk00_bit4);
+            BoardPlayerIdleSet(effectWork->isVisible);
             return;
         case 2:
-            temp_r31->unk00_bit6 = 1;
-            if (lbl_1_data_4D8 != -1) {
-                HuWinKill(lbl_1_data_4D8);
-                lbl_1_data_4D8 = -1;
+            effectWork->isTimed = 1;
+            if (itemResultWindowId != -1) {
+                HuWinKill(itemResultWindowId);
+                itemResultWindowId = -1;
             }
-            if (temp_r31->unk4 != -1) {
-                MGSeqParamSet(temp_r31->unk4, 2, -1U);
-                temp_r31->unk4 = -1;
+            if (effectWork->timerHandle != -1) {
+                MGSeqParamSet(effectWork->timerHandle, 2, -1U);
+                effectWork->timerHandle = -1;
             }
-            BoardPlayerMotionShiftSet(temp_r31->unk00_bit4, 0xB, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+            BoardPlayerMotionShiftSet(effectWork->isVisible, 0xB, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
             return;
         case 3:
-            BoardPlayerMotionShiftSet(temp_r31->unk00_bit4, 7, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+            BoardPlayerMotionShiftSet(effectWork->isVisible, 7, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
             break;
     }
 }
 
-s32 fn_1_AE20(void)
+s32 ItemCheckRevealComplete(void)
 {
-    someBits *temp_r31 = (someBits *)&lbl_1_bss_188->work[0];
-    return temp_r31->unk00_bit1;
+    ItemEffectWork *effectWork = (ItemEffectWork *)&itemParticleObject->work[0];
+    return effectWork->itemType;
 }
 
-s32 fn_1_AE4C(s32 arg0, s8 *arg1)
+s32 ItemSelectForPlayer(s32 playerIndex, s8 *textBuffer)
 {
-    s32 temp_r30;
-    s32 temp_r29;
-    s32 temp_r28;
-    s32 var_r31;
+    s32 integerValue;
+    s32 integerValue2;
+    s32 integerValue3;
+    s32 stateValue;
 
-    temp_r29 = lbl_1_data_4E6[arg1[0]];
-    temp_r28 = lbl_1_data_4E6[arg1[1]];
-    temp_r30 = lbl_1_data_4E6[arg1[2]];
+    integerValue2 = itemModelIndices[textBuffer[0]];
+    integerValue3 = itemModelIndices[textBuffer[1]];
+    integerValue = itemModelIndices[textBuffer[2]];
 
-    if (temp_r29 > temp_r28) {
-        if (temp_r29 > temp_r30) {
-            var_r31 = 0;
+    if (integerValue2 > integerValue3) {
+        if (integerValue2 > integerValue) {
+            stateValue = 0;
         }
-        else if (temp_r30 > temp_r28) {
-            var_r31 = 2;
+        else if (integerValue > integerValue3) {
+            stateValue = 2;
         }
         else {
-            var_r31 = 1;
+            stateValue = 1;
         }
     }
-    else if (temp_r28 > temp_r30) {
-        var_r31 = 1;
+    else if (integerValue3 > integerValue) {
+        stateValue = 1;
     }
-    else if (temp_r30 > temp_r29) {
-        var_r31 = 2;
+    else if (integerValue > integerValue2) {
+        stateValue = 2;
     }
     else {
-        var_r31 = 0;
+        stateValue = 0;
     }
 
-    return var_r31;
+    return stateValue;
 }
 
-u32 fn_1_AF24(s32 arg0)
+u32 ItemModelForStateGet(s32 playerIndex)
 {
-    s32 spC;
-    s32 sp8;
-    s16 temp_r31;
-    s16 var_r30;
-    s8 temp_r0_2;
+    s32 stateValue;
+    s32 integerValue;
+    s16 animationFrame;
+    s16 stateValue2;
+    s8 integerValue2;
 
-    spC = 0;
+    stateValue = 0;
 
-    switch (GWPlayer[arg0].diff) {
+    switch (GWPlayer[playerIndex].diff) {
         case 3:
-            var_r30 = 0;
+            stateValue2 = 0;
             break;
         case 2:
-            var_r30 = 5;
+            stateValue2 = 5;
             break;
         case 1:
-            var_r30 = 15;
+            stateValue2 = 15;
             break;
         case 0:
-            var_r30 = 40;
+            stateValue2 = 40;
             break;
     }
-    if ((var_r30 != 0) && (BoardRandMod(100) < var_r30)) {
+    if ((stateValue2 != 0) && (BoardRandMod(100) < stateValue2)) {
         return 0x100U;
     }
 
-    temp_r31 = BoardModelMotionTimeGet(lbl_1_bss_C[9]);
+    animationFrame = BoardModelMotionTimeGet(boardModelIds[9]);
 
-    switch (lbl_1_bss_18C) {
+    switch (selectedItemId) {
         case 0:
-            if ((temp_r31 < 33) || (temp_r31 > 35)) {
+            if ((animationFrame < 33) || (animationFrame > 35)) {
                 break;
             }
             return 0x100U;
         case 1:
-            if (((temp_r31 >= 40) && (temp_r31 <= 42)) || ((temp_r31 >= 20) && (temp_r31 <= 22))) {
+            if (((animationFrame >= 40) && (animationFrame <= 42)) || ((animationFrame >= 20) && (animationFrame <= 22))) {
                 return 0x100U;
             }
             break;
         case 2:
-            if (temp_r31 >= 50) {
+            if (animationFrame >= 50) {
                 return 0x100U;
             }
             break;
@@ -696,34 +696,34 @@ u32 fn_1_AF24(s32 arg0)
     return 0;
 }
 
-void fn_1_B0A4(s32 arg0)
+void ItemEffectStart(s32 playerIndex)
 {
-    Mtx sp18;
-    s32 spC[3];
+    Mtx modelMatrix;
+    s32 integerValue[3];
     s32 j;
     s32 i;
-    s32 var_r31_2;
-    s32 temp_r29;
-    someBits2 *temp_r30;
-    OMOBJ *temp_r3;
+    s32 integerValue2;
+    s32 integerValue3;
+    ItemObjectWork *itemWork;
+    OMOBJ *object;
 
-    temp_r3 = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, (void *)fn_1_B350);
-    lbl_1_bss_184 = (void *)temp_r3;
-    temp_r30 = (someBits2 *)&temp_r3->work[0];
+    object = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, (void *)ItemEffectUpdate);
+    itemObject = (void *)object;
+    itemWork = (ItemObjectWork *)&object->work[0];
 
-    temp_r30->unk00_bit0 = 0;
-    temp_r30->unk00_bit1 = 0;
-    temp_r30->unk00_bit4 = arg0;
+    itemWork->isActive = 0;
+    itemWork->itemType = 0;
+    itemWork->isVisible = playerIndex;
 
-    for (i = 0; i < ARRAY_COUNT(spC);) {
-        spC[i] = BoardRandMod(14);
-        if ((spC[i] != 10) && (spC[i] != 13)) {
+    for (i = 0; i < ARRAY_COUNT(integerValue);) {
+        integerValue[i] = BoardRandMod(14);
+        if ((integerValue[i] != 10) && (integerValue[i] != 13)) {
             for (j = 0; j < i; j++) {
-                if (spC[i] == spC[j]) {
-                    spC[i] = -1;
+                if (integerValue[i] == integerValue[j]) {
+                    integerValue[i] = -1;
                 }
             }
-            if (spC[i] == -1) {
+            if (integerValue[i] == -1) {
                 continue;
             }
         }
@@ -733,301 +733,301 @@ void fn_1_B0A4(s32 arg0)
         i++;
     }
 
-    fn_1_BBF8();
+    ItemModelsDestroy();
 
-    for (i = 0; i < ARRAY_COUNT(spC); i++) {
-        temp_r29 = spC[i];
-        temp_r30->unk3[i] = temp_r29;
-        temp_r30->unk_06[i] = BoardModelCreate(lbl_1_data_514[temp_r29], NULL, 0);
-        BoardModelHookSet(lbl_1_bss_C[9], lbl_1_data_508[i], temp_r30->unk_06[i]);
-        BoardModelMotionSpeedSet(temp_r30->unk_06[i], 0.0f);
+    for (i = 0; i < ARRAY_COUNT(integerValue); i++) {
+        integerValue3 = integerValue[i];
+        itemWork->playerIndex[i] = integerValue3;
+        itemWork->modelIds[i] = BoardModelCreate(itemModelDataIds[integerValue3], NULL, 0);
+        BoardModelHookSet(boardModelIds[9], itemModelHookNames[i], itemWork->modelIds[i]);
+        BoardModelMotionSpeedSet(itemWork->modelIds[i], 0.0f);
 
-        if (temp_r29 == 11) {
-            BoardModelMotionStart(temp_r30->unk_06[i], 0, 0x40000001);
+        if (integerValue3 == 11) {
+            BoardModelMotionStart(itemWork->modelIds[i], 0, 0x40000001);
         }
 
-        if (temp_r29 == 5) {
-            MTXTrans(sp18, 0.0f, -50.0f, 0.0f);
-            BoardModelMtxSet(temp_r30->unk_06[i], &sp18);
+        if (integerValue3 == 5) {
+            MTXTrans(modelMatrix, 0.0f, -50.0f, 0.0f);
+            BoardModelMtxSet(itemWork->modelIds[i], &modelMatrix);
         }
 
-        if ((temp_r29 == 6) || (temp_r29 == 7)) {
-            MTXTrans(sp18, 0.0f, 0.0f, 8.0f);
-            BoardModelMtxSet(temp_r30->unk_06[i], &sp18);
+        if ((integerValue3 == 6) || (integerValue3 == 7)) {
+            MTXTrans(modelMatrix, 0.0f, 0.0f, 8.0f);
+            BoardModelMtxSet(itemWork->modelIds[i], &modelMatrix);
         }
     }
 }
 
-void fn_1_B350(OMOBJ *arg0)
+void ItemEffectUpdate(OMOBJ *object)
 {
     s32 i;
-    someBits2 *temp_r31;
+    ItemObjectWork *animationTime;
 
-    temp_r31 = (someBits2 *)&arg0->work[0];
+    animationTime = (ItemObjectWork *)&object->work[0];
 
-    if ((temp_r31->unk00_bit0 != 0) || (BoardIsKill() != 0)) {
-        BoardModelHookReset(lbl_1_bss_C[9]);
+    if ((animationTime->isActive != 0) || (BoardIsKill() != 0)) {
+        BoardModelHookReset(boardModelIds[9]);
         for (i = 0; i < 3; i++) {
-            BoardModelKill(temp_r31->unk_06[i]);
+            BoardModelKill(animationTime->modelIds[i]);
         }
-        fn_1_BBF8();
-        omDelObjEx(HuPrcCurrentGet(), arg0);
-        lbl_1_bss_184 = NULL;
+        ItemModelsDestroy();
+        omDelObjEx(HuPrcCurrentGet(), object);
+        itemObject = NULL;
         return;
     }
 
-    switch (temp_r31->unk00_bit1) {
+    switch (animationTime->itemType) {
         case 1:
-            if (!(BoardModelMotionTimeGet(lbl_1_bss_C[9]) < 20.0f)) {
-                BoardModelMotionStartEndSet(lbl_1_bss_C[9], 0x14, 0x3A);
-                fn_1_B8E8(0);
+            if (!(BoardModelMotionTimeGet(boardModelIds[9]) < 20.0f)) {
+                BoardModelMotionStartEndSet(boardModelIds[9], 0x14, 0x3A);
+                ItemObjectStateSet(0);
                 return;
             }
         case 0:
             break;
         case 2:
-            fn_1_B4AC(arg0, temp_r31);
+            ItemEffectAnimateAppear(object, animationTime);
             return;
         case 3:
-            fn_1_B688(arg0, temp_r31);
+            ItemEffectAnimateCollect(object, animationTime);
             return;
         case 4:
-            fn_1_B748(arg0, temp_r31);
+            ItemEffectAnimateDisappear(object, animationTime);
             break;
     }
 }
 
-void fn_1_B4AC(OMOBJ *arg0, someBits2 *arg1)
+void ItemEffectAnimateAppear(OMOBJ *object, ItemObjectWork *itemWork)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    f32 temp_f31;
-    s8 temp_r0;
+    Vec modelPosition;
+    Vec playerPosition;
+    Vec position;
+    f32 animationTime;
+    s8 integerValue;
     s32 i;
 
-    arg1->unk2 = -1;
+    itemWork->itemTimer = -1;
 
     for (i = 0; i < 3; i++) {
-        Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_C[9]), lbl_1_data_508[i], &sp20);
-        BoardPlayerPosGet(arg1->unk00_bit4, &sp14);
-        sp14.y += 66.0f;
-        if (BoardVecMinDistCheck(&sp20, &sp14, 100.0f) != 0) {
-            sp8 = sp20;
-            arg1->unk2 = i;
+        Hu3DModelObjPosGet(BoardModelIDGet(boardModelIds[9]), itemModelHookNames[i], &modelPosition);
+        BoardPlayerPosGet(itemWork->isVisible, &playerPosition);
+        playerPosition.y += 66.0f;
+        if (BoardVecMinDistCheck(&modelPosition, &playerPosition, 100.0f) != 0) {
+            position = modelPosition;
+            itemWork->itemTimer = i;
             break;
         }
     }
 
     HuAudFXPlay(0x30C);
-    BoardModelHookObjReset(lbl_1_bss_C[9], lbl_1_data_508[arg1->unk2]);
-    temp_f31 = BoardModelMotionTimeGet(lbl_1_bss_C[9]);
-    BoardModelMotionShiftSet(lbl_1_bss_C[9], 0, 15.0f, 10.0f, HU3D_MOTATTR_REV);
-    BoardModelMotionSpeedSet(lbl_1_bss_C[9], 0.5f);
-    BoardModelMotionTimeSet(lbl_1_bss_C[9], temp_f31);
-    BoardModelPosSetV(arg1->unk_06[arg1->unk2], &sp8);
-    fn_1_B8E8(3);
-    fn_1_BC7C(arg1->unk_06[arg1->unk2]);
+    BoardModelHookObjReset(boardModelIds[9], itemModelHookNames[itemWork->itemTimer]);
+    animationTime = BoardModelMotionTimeGet(boardModelIds[9]);
+    BoardModelMotionShiftSet(boardModelIds[9], 0, 15.0f, 10.0f, HU3D_MOTATTR_REV);
+    BoardModelMotionSpeedSet(boardModelIds[9], 0.5f);
+    BoardModelMotionTimeSet(boardModelIds[9], animationTime);
+    BoardModelPosSetV(itemWork->modelIds[itemWork->itemTimer], &position);
+    ItemObjectStateSet(3);
+    ItemParticleEffectCreate(itemWork->modelIds[itemWork->itemTimer]);
 }
 
-void fn_1_B688(OMOBJ *arg0, someBits2 *arg1)
+void ItemEffectAnimateCollect(OMOBJ *object, ItemObjectWork *itemWork)
 {
-    Vec sp8;
+    Vec modelPosition;
 
-    if (arg1->unk1-- != 0) {
-        BoardModelPosGet(arg1->unk_06[arg1->unk2], &sp8);
-        sp8.x = sp8.x + arg0->trans.x;
-        sp8.y += arg0->trans.y;
-        sp8.z = sp8.z + arg0->trans.z;
-        BoardModelPosSetV(arg1->unk_06[arg1->unk2], &sp8);
+    if (itemWork->itemId-- != 0) {
+        BoardModelPosGet(itemWork->modelIds[itemWork->itemTimer], &modelPosition);
+        modelPosition.x = modelPosition.x + object->trans.x;
+        modelPosition.y += object->trans.y;
+        modelPosition.z = modelPosition.z + object->trans.z;
+        BoardModelPosSetV(itemWork->modelIds[itemWork->itemTimer], &modelPosition);
         return;
     }
 
-    fn_1_B8E8(0);
+    ItemObjectStateSet(0);
 }
 
-void fn_1_B748(OMOBJ *arg0, someBits2 *arg1)
+void ItemEffectAnimateDisappear(OMOBJ *object, ItemObjectWork *itemWork)
 {
-    Vec sp14;
-    Vec sp8;
-    f32 temp_f0;
-    s16 temp_r29;
+    Vec position;
+    Vec modelPosition;
+    f32 floatValue;
+    s16 integerValue;
 
-    temp_r29 = arg1->unk_06[arg1->unk2];
+    integerValue = itemWork->modelIds[itemWork->itemTimer];
 
-    if (arg1->unk1 == 0) {
+    if (itemWork->itemId == 0) {
         HuAudFXPlay(781);
     }
 
-    if (arg1->unk1 < 90) {
-        OSu8tof32((u8 *)&arg1->unk1, &temp_f0);
-        BoardModelPosGet(temp_r29, &sp8);
-        sp8.y += arg0->trans.y;
-        BoardModelPosSetV(temp_r29, &sp8);
-        BoardModelRotYSet(temp_r29, 8.0f + BoardModelRotYGet(temp_r29));
-        BoardModelScaleGet(temp_r29, &sp14);
-        sp14.x = sp14.y = sp14.z = cosd(temp_f0);
-        BoardModelScaleSetV(temp_r29, &sp14);
-        arg1->unk1 += 4;
+    if (itemWork->itemId < 90) {
+        OSu8tof32((u8 *)&itemWork->itemId, &floatValue);
+        BoardModelPosGet(integerValue, &modelPosition);
+        modelPosition.y += object->trans.y;
+        BoardModelPosSetV(integerValue, &modelPosition);
+        BoardModelRotYSet(integerValue, 8.0f + BoardModelRotYGet(integerValue));
+        BoardModelScaleGet(integerValue, &position);
+        position.x = position.y = position.z = cosd(floatValue);
+        BoardModelScaleSetV(integerValue, &position);
+        itemWork->itemId += 4;
         return;
     }
 
-    if (lbl_1_data_4E0 != -1) {
-        HuAudFXStop(lbl_1_data_4E0);
-        lbl_1_data_4E0 = -1;
+    if (itemSoundHandle != -1) {
+        HuAudFXStop(itemSoundHandle);
+        itemSoundHandle = -1;
     }
 
-    fn_1_B8E8(0);
+    ItemObjectStateSet(0);
 }
 
-void fn_1_B8E8(s32 arg0)
+void ItemObjectStateSet(s32 itemState)
 {
-    Vec sp14;
-    Vec sp8;
-    f32 temp_f31;
-    someBits2 *temp_r31;
-    f32 temp;
+    Vec playerPosition;
+    Vec modelPosition;
+    f32 floatValue;
+    ItemObjectWork *itemWork;
+    f32 targetHeight;
 
-    temp_r31 = (someBits2 *)&lbl_1_bss_184->work[0];
-    temp_r31->unk00_bit1 = arg0;
+    itemWork = (ItemObjectWork *)&itemObject->work[0];
+    itemWork->itemType = itemState;
 
-    switch (arg0) {
+    switch (itemState) {
         case 1:
-            temp_f31 = 0.31666666f;
-            BoardModelMotionStart(lbl_1_bss_C[9], 0, 0x40000001);
-            BoardModelMotionSpeedSet(lbl_1_bss_C[9], temp_f31);
-            BoardModelMotionTimeSet(lbl_1_bss_C[9], 8.0f);
+            floatValue = 0.31666666f;
+            BoardModelMotionStart(boardModelIds[9], 0, 0x40000001);
+            BoardModelMotionSpeedSet(boardModelIds[9], floatValue);
+            BoardModelMotionTimeSet(boardModelIds[9], 8.0f);
             return;
         case 2:
-            temp_r31->unk00_bit6 = 1;
+            itemWork->isTimed = 1;
             return;
         case 3:
-            lbl_1_data_4E0 = HuAudFXPlay(0x35F);
-            BoardModelPosGet(temp_r31->unk_06[temp_r31->unk2], &sp8);
-            BoardPlayerPosGet(temp_r31->unk00_bit4, &sp14);
-            temp = 50.0f + sp8.y;
-            lbl_1_bss_184->trans.x = (sp14.x - sp8.x) / 10.0f;
-            lbl_1_bss_184->trans.z = (sp14.z - sp8.z) / 10.0f;
-            lbl_1_bss_184->trans.y = (temp - sp8.y) / 10.0f;
-            temp_r31->unk1 = 10;
+            itemSoundHandle = HuAudFXPlay(0x35F);
+            BoardModelPosGet(itemWork->modelIds[itemWork->itemTimer], &modelPosition);
+            BoardPlayerPosGet(itemWork->isVisible, &playerPosition);
+            targetHeight = 50.0f + modelPosition.y;
+            itemObject->trans.x = (playerPosition.x - modelPosition.x) / 10.0f;
+            itemObject->trans.z = (playerPosition.z - modelPosition.z) / 10.0f;
+            itemObject->trans.y = (targetHeight - modelPosition.y) / 10.0f;
+            itemWork->itemId = 10;
             return;
         case 4:
-            BoardPlayerPosGet(temp_r31->unk00_bit4, &sp14);
-            sp14.y += 30.000002f;
-            BoardModelPosGet(temp_r31->unk_06[temp_r31->unk2], &sp8);
-            lbl_1_bss_184->trans.y = (sp14.y - sp8.y) / 22.0f;
-            temp_r31->unk1 = 0;
+            BoardPlayerPosGet(itemWork->isVisible, &playerPosition);
+            playerPosition.y += 30.000002f;
+            BoardModelPosGet(itemWork->modelIds[itemWork->itemTimer], &modelPosition);
+            itemObject->trans.y = (playerPosition.y - modelPosition.y) / 22.0f;
+            itemWork->itemId = 0;
     }
 }
 
-s32 fn_1_BB48(void)
+s32 ItemEffectCheckComplete(void)
 {
-    someBits2 *temp = (someBits2 *)&lbl_1_bss_184->work[0];
-    return temp->unk00_bit1;
+    ItemObjectWork *work = (ItemObjectWork *)&itemObject->work[0];
+    return work->itemType;
 }
 
-void fn_1_BB74(s8 *arg0)
+void ItemNamesCopy(s8 *textBuffer)
 {
-    someBits2 *bits = omObjGetWork(lbl_1_bss_184, someBits2);
+    ItemObjectWork *bits = omObjGetWork(itemObject, ItemObjectWork);
     s32 i;
 
-    for (i = 0; i < ARRAY_COUNT(bits->unk3); i++) {
-        arg0[i] = bits->unk3[i];
+    for (i = 0; i < ARRAY_COUNT(bits->playerIndex); i++) {
+        textBuffer[i] = bits->playerIndex[i];
     }
 }
 
-s32 fn_1_BBC4(void)
+s32 ItemSelectedGet(void)
 {
-    someBits2 *bits = omObjGetWork(lbl_1_bss_184, someBits2);
-    return bits->unk3[bits->unk2];
+    ItemObjectWork *bits = omObjGetWork(itemObject, ItemObjectWork);
+    return bits->playerIndex[bits->itemTimer];
 }
 
-void fn_1_BBF8(void)
+void ItemModelsDestroy(void)
 {
-    BoardModelMotionStart(lbl_1_bss_C[9], 0, 0);
-    BoardModelMotionSpeedSet(lbl_1_bss_C[9], 0.0f);
-    BoardModelMotionTimeSet(lbl_1_bss_C[9], 0.0f);
-    BoardModelAttrReset(lbl_1_bss_C[9], 0x40000004);
+    BoardModelMotionStart(boardModelIds[9], 0, 0);
+    BoardModelMotionSpeedSet(boardModelIds[9], 0.0f);
+    BoardModelMotionTimeSet(boardModelIds[9], 0.0f);
+    BoardModelAttrReset(boardModelIds[9], 0x40000004);
 }
 
-void fn_1_BC7C(s16 arg0)
+void ItemParticleEffectCreate(s16 state)
 {
     HU3DPARTICLE *particle;
 
-    lbl_1_bss_190 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 0x00));
-    HuSprAnimLock(lbl_1_bss_190);
-    lbl_1_data_4E4 = Hu3DParticleCreate(lbl_1_bss_190, 100);
-    Hu3DParticleHookSet(lbl_1_data_4E4, fn_1_BE30);
-    Hu3DParticleColSet(lbl_1_data_4E4, 0xFF, 0xFF, 0);
-    Hu3DModelPosSet(lbl_1_data_4E4, 0.0f, 0.0f, 0.0f);
-    Hu3DParticleBlendModeSet(lbl_1_data_4E4, 1);
-    Hu3DModelLayerSet(lbl_1_data_4E4, 2);
-    particle = Hu3DData[lbl_1_data_4E4].hookData;
-    particle->emitCnt = arg0;
+    itemParticleAnimation = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 0x00));
+    HuSprAnimLock(itemParticleAnimation);
+    itemParticleId = Hu3DParticleCreate(itemParticleAnimation, 100);
+    Hu3DParticleHookSet(itemParticleId, ItemParticleUpdate);
+    Hu3DParticleColSet(itemParticleId, 0xFF, 0xFF, 0);
+    Hu3DModelPosSet(itemParticleId, 0.0f, 0.0f, 0.0f);
+    Hu3DParticleBlendModeSet(itemParticleId, 1);
+    Hu3DModelLayerSet(itemParticleId, 2);
+    particle = Hu3DData[itemParticleId].hookData;
+    particle->emitCnt = state;
 }
 
-void fn_1_BDAC(void)
+void ItemParticleEffectDestroy(void)
 {
-    if (lbl_1_data_4E4 != -1) {
-        Hu3DModelKill(lbl_1_data_4E4);
-        lbl_1_data_4E4 = -1;
+    if (itemParticleId != -1) {
+        Hu3DModelKill(itemParticleId);
+        itemParticleId = -1;
     }
-    if (lbl_1_bss_190) {
-        HuSprAnimKill(lbl_1_bss_190);
-        lbl_1_bss_190 = NULL;
+    if (itemParticleAnimation) {
+        HuSprAnimKill(itemParticleAnimation);
+        itemParticleAnimation = NULL;
     }
 }
 
-void fn_1_BE30(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void ItemParticleUpdate(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    Vec sp8;
-    f32 temp_f30;
-    f32 temp_f29;
-    f32 temp_f31;
-    HU3DPARTICLEDATA *var_r31;
+    Vec modelPosition;
+    f32 floatValue;
+    f32 particleRadius;
+    f32 floatValue2;
+    HU3DPARTICLEDATA *particleData;
     s32 i, j;
 
     if (particle->count == 0) {
-        var_r31 = particle->data;
-        for (i = 0; i < particle->maxCnt; i++, var_r31++) {
-            var_r31->color.a = 0;
-            var_r31->scale = 0.0f;
+        particleData = particle->data;
+        for (i = 0; i < particle->maxCnt; i++, particleData++) {
+            particleData->color.a = 0;
+            particleData->scale = 0.0f;
         }
         particle->dataCnt = 0;
     }
 
-    BoardModelScaleGet(particle->emitCnt, &sp8);
-    temp_f31 = sp8.x;
-    BoardModelPosGet(particle->emitCnt, &sp8);
+    BoardModelScaleGet(particle->emitCnt, &modelPosition);
+    floatValue2 = modelPosition.x;
+    BoardModelPosGet(particle->emitCnt, &modelPosition);
 
     for (i = 0; i < 22; i++) {
-        var_r31 = particle->data;
-        for (j = 0; j < particle->maxCnt; j++, var_r31++) {
-            if (0.0f == var_r31->scale) {
+        particleData = particle->data;
+        for (j = 0; j < particle->maxCnt; j++, particleData++) {
+            if (0.0f == particleData->scale) {
                 break;
             }
         }
         if (j != particle->maxCnt) {
-            temp_f30 = 360.0f * ((1.0f / 255.0f) * frand8());
-            temp_f29 = temp_f31 * (20.0f + (60.0f * ((1.0f / 255.0f) * frand8())));
-            var_r31->pos.x = (sp8.x + (temp_f29 * sind(temp_f30)));
-            var_r31->pos.z = (sp8.z + (temp_f29 * cosd(temp_f30)));
-            var_r31->pos.y = (sp8.y + (temp_f31 * (-30.0f + (40.0f * ((1.0f / 255.0f) * frand8())))));
-            var_r31->vel.x = (0.5f + (3.0f * ((1.0f / 255.0f) * frand8())));
-            var_r31->vel.y = (0.3f + (2.0f * ((1.0f / 255.0f) * frand8())));
-            var_r31->color.a = 180;
-            var_r31->scale = (15.0f * temp_f31);
+            floatValue = 360.0f * ((1.0f / 255.0f) * frand8());
+            particleRadius = floatValue2 * (20.0f + (60.0f * ((1.0f / 255.0f) * frand8())));
+            particleData->pos.x = (modelPosition.x + (particleRadius * sind(floatValue)));
+            particleData->pos.z = (modelPosition.z + (particleRadius * cosd(floatValue)));
+            particleData->pos.y = (modelPosition.y + (floatValue2 * (-30.0f + (40.0f * ((1.0f / 255.0f) * frand8())))));
+            particleData->vel.x = (0.5f + (3.0f * ((1.0f / 255.0f) * frand8())));
+            particleData->vel.y = (0.3f + (2.0f * ((1.0f / 255.0f) * frand8())));
+            particleData->color.a = 180;
+            particleData->scale = (15.0f * floatValue2);
         }
     }
 
-    var_r31 = particle->data;
+    particleData = particle->data;
 
-    for (i = 0; i < particle->maxCnt; i++, var_r31++) {
-        if (0.0f != var_r31->scale) {
-            var_r31->pos.y = (var_r31->pos.y - var_r31->vel.x);
-            var_r31->scale = (var_r31->scale - var_r31->vel.y);
-            if (var_r31->scale <= 0.0f) {
-                var_r31->scale = 0.0f;
+    for (i = 0; i < particle->maxCnt; i++, particleData++) {
+        if (0.0f != particleData->scale) {
+            particleData->pos.y = (particleData->pos.y - particleData->vel.x);
+            particleData->scale = (particleData->scale - particleData->vel.y);
+            if (particleData->scale <= 0.0f) {
+                particleData->scale = 0.0f;
             }
         }
     }

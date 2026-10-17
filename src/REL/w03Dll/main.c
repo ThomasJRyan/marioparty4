@@ -22,32 +22,32 @@
 #include "game/hu3d.h"
 
 //function signatures
-void fn_1_E0(void);
-void fn_1_884(void);
-void fn_1_740(void);
-void fn_1_8F0(void);
-s32 fn_1_910(void);
-s32 fn_1_A74(void);
-void fn_1_AF8(void);
-void fn_1_DEC(void);
-void fn_1_10B0(void);
-void fn_1_10E4(OMOBJ* arg0);
-s32 fn_1_12C8(void);
-s32 fn_1_2930(s32 arg0);
+void w03Initialize(void);
+void W03ConfigureLightingAndFog(void);
+void w03Destroy(void);
+void W03ClearFog(void);
+s32 W03HandleCurrentSpaceEvent(void);
+s32 W03HandleMapObjectEvent(void);
+void W03UpdateJunctionMask(void);
+void W03CreateAmbientEffects(void);
+void W03StopAmbientEffects(void);
+void W03UpdateAmbientEffects(OMOBJ* object);
+s32 StatueEventStart(void);
+s32 StatueRewardTimerUpdate(s32 state);
 
 #ifndef __MWERKS__
-void fn_1_3058(void);
-s32 fn_1_309C(void);
-void fn_1_63F4(s32 arg0);
-void fn_1_6494(void);
-s16 fn_1_675C(void);
-void fn_1_785C(void);
-void fn_1_7ABC(void);
-void fn_1_7B58(void);
-void fn_1_7BA8(void);
-void fn_1_9A7C(void);
-void fn_1_9A9C(void);
-void fn_1_9AA0(void);
+void CondorCreate(void);
+s32 CondorCheckPlayerChoice(void);
+void RiverSetWaterHeight(s32 value);
+void RiverCreateRaft(void);
+s16 RiverRunBoardEvent(void);
+void SmokeEffectsCreate(void);
+void CoinPedestalCreate(void);
+void CoinPedestalDestroy(void);
+void CoinEventStart(void);
+void ItemEventPrepare(void);
+void ItemEventNoop(void);
+void ItemEventStart(void);
 #endif
 
 typedef void (*VoidFunc)(void);
@@ -55,9 +55,9 @@ extern const VoidFunc _ctors[];
 extern const VoidFunc _dtors[];
 
 //Map Objects
-s16 lbl_1_bss_C[MAPOBJ_MAX];
+s16 boardModelIds[MAPOBJ_MAX];
 
-BoardMapObject lbl_1_data_0[MAPOBJ_MAX] = {
+BoardMapObject boardMapObjects[MAPOBJ_MAX] = {
 	{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, DATA_MAKE_NUM(DATADIR_W03, 4)},
 	{{145.0988f, 65.6173f, -2004.14f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, DATA_MAKE_NUM(DATADIR_W03, 5)},
 	{{-1548.14f, -1148.76f, -1095.54f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, DATA_MAKE_NUM(DATADIR_W03, 6)},
@@ -72,420 +72,420 @@ BoardMapObject lbl_1_data_0[MAPOBJ_MAX] = {
 	{{-3000.0f, 0.0f, -500.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, DATA_MAKE_NUM(DATADIR_BGUEST, 13)},
 };
 
-s16 lbl_1_data_1E0 = -1;
-s16 lbl_1_data_1E2 = -1;
-s16 lbl_1_data_1E4 = -1;
-s16 lbl_1_data_1E6 = -1;
-s16 lbl_1_data_1E8 = -1;
+s16 lightHookModel = -1;
+s16 ambientLightModelId = -1;
+s16 boardFeatureModelId = -1;
+s16 boardPropModelId = -1;
+s16 boardWaterModelId = -1;
 
-typedef struct w03StructUnk1 {
-    f32 unk_00;
-    f32 unk_04;
-    f32 unk_08;
-    f32 unk_0C;
-    f32 unk_10;
-    f32 unk_14;
-    f32 unk_18;
-    f32 unk_1C;
-} w03StructUnk1;
+typedef struct CameraMotionTiming {
+    f32 cameraStartX;
+    f32 cameraStartY;
+    f32 cameraStartZ;
+    f32 cameraEndX;
+    f32 cameraEndY;
+    f32 cameraEndZ;
+    f32 cameraTargetX;
+    f32 cameraTargetY;
+} CameraMotionTiming;
 
-w03StructUnk1 lbl_1_data_1EC = {
+CameraMotionTiming cameraMotionTiming = {
 	0.0f, 118.0f, 120.0f, 180.0f, 180.0f, 240.0f, 240.0f, 300.0f
 };
 
-s32 lbl_1_data_20C[] = {
+s32 boardFeatureMotionIds[] = {
     DATA_MAKE_NUM(DATADIR_W03, 0x001C),
 	DATA_NUM_LISTEND
 };
 
-s32 lbl_1_data_214[] = {
+s32 boardPropMotionIds[] = {
     DATA_MAKE_NUM(DATADIR_BGUEST, 0x000E),
 	DATA_NUM_LISTEND
 };
 
-s32 lbl_1_data_21C[] = {
+s32 ambientSoundEmitterIds[] = {
     -1, -1, -1, -1
 };
 
-Vec lbl_1_data_22C[] = {
+Vec ambientSoundPositions[] = {
     {3900.0f, 0.0f, 2100.0f},
     {3900.0f, 0.0f, 3600.0f},
     {2700.0f, 0.0f, 5400.0f},
     {2700.0f, 0.0f, 6300.0f},
 };
 
-s32 lbl_1_data_25C[] = {
+s32 normalAmbientSoundIds[] = {
     0x0000044B, 0x00000439, 0x00000439, 0x0000044D
 };
 
-s32 lbl_1_data_26C[] = {
+s32 alternateAmbientSoundIds[] = {
     0x0000044C, 0x0000043A, 0x0000043A, 0x0000044E
 };
 
 //BSS
-s32 lbl_1_bss_8;
-OMOBJ* lbl_1_bss_4;
-w03State* lbl_1_bss_0;
+s32 ambientAudioPaused;
+OMOBJ* ambientAudioProcessObject;
+W03BoardState* boardState;
 
-void fn_1_CF4(void);
+void W03UpdateJunctionLinks(void);
 
 void BoardCreate(void) {
-    s32* var_r29;
-    f32 var_f30;
-    f32 var_f31;
-    s32 var_r31;
-    s32 var_r31_2;
-    BoardMapObject* temp_r30;
+    s32* value;
+    f32 floatValue;
+    f32 floatValue2;
+    s32 integerValue;
+    s32 integerValue2;
+    BoardMapObject* value2;
     s32 i;
 
-    lbl_1_bss_0 = (w03State*)&GWSystem.board_data;
-    lbl_1_bss_0->unk3 = 0;
+    boardState = (W03BoardState*)&GWSystem.board_data;
+    boardState->eventActive = 0;
     BoardSpaceInit(DATA_MAKE_NUM(DATADIR_W03, 0x00));
 
-    lbl_1_data_1E0 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x01), NULL, 0);
-    fn_8006DDE8(lbl_1_data_1E0, -1.0f);
-    BoardModelPosSet(lbl_1_data_1E0, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_1E0, 0, 0x40000001);
+    lightHookModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x01), NULL, 0);
+    Fn8006DDE8(lightHookModel, -1.0f);
+    BoardModelPosSet(lightHookModel, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(lightHookModel, 0, 0x40000001);
 
-    lbl_1_data_1E8 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x03), NULL, 0);
-    fn_8006DDE8(lbl_1_data_1E8, -1.0f);
-    BoardModelPosSet(lbl_1_data_1E8, 0.0f, 0.0f, 0.0f);
-    BoardModelLayerSet(lbl_1_data_1E8, 2);
+    boardWaterModelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x03), NULL, 0);
+    Fn8006DDE8(boardWaterModelId, -1.0f);
+    BoardModelPosSet(boardWaterModelId, 0.0f, 0.0f, 0.0f);
+    BoardModelLayerSet(boardWaterModelId, 2);
 
-    lbl_1_data_1E2 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x02), NULL, 0);
-    fn_8006DDE8(lbl_1_data_1E2, -1.0f);
-    BoardModelPosSet(lbl_1_data_1E2, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_1E2, 0, 0x40000001);
+    ambientLightModelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x02), NULL, 0);
+    Fn8006DDE8(ambientLightModelId, -1.0f);
+    BoardModelPosSet(ambientLightModelId, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(ambientLightModelId, 0, 0x40000001);
 
-    lbl_1_data_1E4 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x1B), lbl_1_data_20C, 0);
-    BoardModelPosSet(lbl_1_data_1E4, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_1E4, 1, 0x40000001);
+    boardFeatureModelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W03, 0x1B), boardFeatureMotionIds, 0);
+    BoardModelPosSet(boardFeatureModelId, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(boardFeatureModelId, 1, 0x40000001);
 
-    lbl_1_data_1E6 = BoardModelCreate(0x2000D, lbl_1_data_214, 0);
-    BoardModelPosSet(lbl_1_data_1E6, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_1E6, 1, 0x40000001);
+    boardPropModelId = BoardModelCreate(0x2000D, boardPropMotionIds, 0);
+    BoardModelPosSet(boardPropModelId, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(boardPropModelId, 1, 0x40000001);
 
     for (i = 0; i < MAPOBJ_MAX; i++) {
-        temp_r30 = &lbl_1_data_0[i];
-        if (temp_r30->data_num != -1) {
+        value2 = &boardMapObjects[i];
+        if (value2->data_num != -1) {
             if ((i == 10) || (i == 11)) {
-                var_r29 = lbl_1_data_214;
+                value = boardPropMotionIds;
             } else {
-                var_r29 = NULL;
+                value = NULL;
             }
-            lbl_1_bss_C[i]= BoardModelCreate(temp_r30->data_num, var_r29, 0);
-            BoardModelPosSetV(lbl_1_bss_C[i], &temp_r30->pos);
-            BoardModelRotSetV(lbl_1_bss_C[i], &temp_r30->rot);
-            BoardModelScaleSetV(lbl_1_bss_C[i], &temp_r30->scale);
-            BoardModelVisibilitySet(lbl_1_bss_C[i], 1);
+            boardModelIds[i]= BoardModelCreate(value2->data_num, value, 0);
+            BoardModelPosSetV(boardModelIds[i], &value2->pos);
+            BoardModelRotSetV(boardModelIds[i], &value2->rot);
+            BoardModelScaleSetV(boardModelIds[i], &value2->scale);
+            BoardModelVisibilitySet(boardModelIds[i], 1);
         }
     }
 
-    BoardModelMotionStart(lbl_1_bss_C[10], 1, 0x40000001);
-    BoardModelMotionStart(lbl_1_bss_C[11], 1, 0x40000001);
-    BoardModelMotionStart(lbl_1_bss_C[7], 0, 0x40000002);
-    BoardModelMotionStart(lbl_1_bss_C[9], 0, 0x40000002);
-    BoardModelMotionStart(lbl_1_bss_C[1], 0, 0x40000002);
+    BoardModelMotionStart(boardModelIds[10], 1, 0x40000001);
+    BoardModelMotionStart(boardModelIds[11], 1, 0x40000001);
+    BoardModelMotionStart(boardModelIds[7], 0, 0x40000002);
+    BoardModelMotionStart(boardModelIds[9], 0, 0x40000002);
+    BoardModelMotionStart(boardModelIds[1], 0, 0x40000002);
 
-    fn_1_3058();
-    fn_1_6494();
-    fn_1_7ABC();
-    fn_1_9A7C();
+    CondorCreate();
+    RiverCreateRaft();
+    CoinPedestalCreate();
+    ItemEventPrepare();
 
-    BoardLightHookSet(&fn_1_884, &fn_1_8F0);
-    BoardSpaceWalkEventFuncSet(&fn_1_910);
-    BoardSpaceWalkMiniEventFuncSet((void*)&fn_1_A74);
-    BoardSpaceLandEventFuncSet((void*)&fn_1_AF8);
-    BoardStarHostSet(lbl_1_data_1E4);
-    BoardBooHouseHostSet(lbl_1_data_1E6);
-    BoardLotteryHostSet(lbl_1_data_1E6);
-    BoardShopHostSet(lbl_1_data_1E6);
+    BoardLightHookSet(&W03ConfigureLightingAndFog, &W03ClearFog);
+    BoardSpaceWalkEventFuncSet(&W03HandleCurrentSpaceEvent);
+    BoardSpaceWalkMiniEventFuncSet((void*)&W03HandleMapObjectEvent);
+    BoardSpaceLandEventFuncSet((void*)&W03UpdateJunctionMask);
+    BoardStarHostSet(boardFeatureModelId);
+    BoardBooHouseHostSet(boardPropModelId);
+    BoardLotteryHostSet(boardPropModelId);
+    BoardShopHostSet(boardPropModelId);
     BoardJunctionMaskSet(0x0000C000);
     BoardJunctionMaskSet(0x3000);
-    fn_1_CF4();
-    BoardModelMotionStart(lbl_1_bss_C[0], 0, 0x40000001);
+    W03UpdateJunctionLinks();
+    BoardModelMotionStart(boardModelIds[0], 0, 0x40000001);
 
-    if (lbl_1_bss_0->unk0 != 0) {
-        var_f30 = lbl_1_data_1EC.unk_10;
-        var_f31 = lbl_1_data_1EC.unk_14;
-        fn_1_63F4(0);
+    if (boardState->statueRewardCount != 0) {
+        floatValue = cameraMotionTiming.cameraEndY;
+        floatValue2 = cameraMotionTiming.cameraEndZ;
+        RiverSetWaterHeight(0);
     } else {
-        var_f30 = lbl_1_data_1EC.unk_00;
-        var_f31 = lbl_1_data_1EC.unk_04;
-        fn_1_63F4(1);
+        floatValue = cameraMotionTiming.cameraStartX;
+        floatValue2 = cameraMotionTiming.cameraStartY;
+        RiverSetWaterHeight(1);
     }
 
-    BoardModelMotionStartEndSet(lbl_1_bss_C[0], var_f30, var_f31);
-    BoardModelMotionStart(lbl_1_bss_C[2], 0, 0x40000001);
-    BoardModelMotionStartEndSet(lbl_1_bss_C[2], 1, 100);
-    fn_1_785C();
+    BoardModelMotionStartEndSet(boardModelIds[0], floatValue, floatValue2);
+    BoardModelMotionStart(boardModelIds[2], 0, 0x40000001);
+    BoardModelMotionStartEndSet(boardModelIds[2], 1, 100);
+    SmokeEffectsCreate();
 
-    if (lbl_1_bss_0->unk2 != 0) {
+    if (boardState->rewardPlayerMask != 0) {
         for (i = 0; i < 4; i++) {
-            if ((lbl_1_bss_0->unk2 & (1 << i)) != 0) {
-                BoardPlayerPreTurnHookSet(i, &fn_1_2930);
+            if ((boardState->rewardPlayerMask & (1 << i)) != 0) {
+                BoardPlayerPreTurnHookSet(i, &StatueRewardTimerUpdate);
                 break;
             }
         }
     }
 
-    fn_1_DEC();
+    W03CreateAmbientEffects();
 }
 
 void BoardDestroy(void) {
     s32 i;
 
-    fn_1_10B0();
-    fn_1_9A9C();
-    fn_1_7B58();
+    W03StopAmbientEffects();
+    ItemEventNoop();
+    CoinPedestalDestroy();
 
     for (i = 0; i < 0x0C; i++) {
-        BoardModelKill(lbl_1_bss_C[i]);
-        lbl_1_bss_C[i] = -1;        
+        BoardModelKill(boardModelIds[i]);
+        boardModelIds[i] = -1;
     }
 
-    if (lbl_1_data_1E6 != -1) {
-        BoardModelKill(lbl_1_data_1E6);
-        lbl_1_data_1E6 = -1;
+    if (boardPropModelId != -1) {
+        BoardModelKill(boardPropModelId);
+        boardPropModelId = -1;
     }
 
-    if (lbl_1_data_1E4 != -1) {
-        BoardModelKill(lbl_1_data_1E4);
-        lbl_1_data_1E4 = -1;
-    }
-    
-    if (lbl_1_data_1E0 != -1) {
-        BoardModelKill(lbl_1_data_1E0);
-        lbl_1_data_1E0 = -1;
+    if (boardFeatureModelId != -1) {
+        BoardModelKill(boardFeatureModelId);
+        boardFeatureModelId = -1;
     }
 
-    if (lbl_1_data_1E2 != -1) {
-        BoardModelKill(lbl_1_data_1E2);
-        lbl_1_data_1E2 = -1;
+    if (lightHookModel != -1) {
+        BoardModelKill(lightHookModel);
+        lightHookModel = -1;
+    }
+
+    if (ambientLightModelId != -1) {
+        BoardModelKill(ambientLightModelId);
+        ambientLightModelId = -1;
     }
 }
 
-void fn_1_884(void) {
-    s16 var = BoardModelIDGet(lbl_1_data_1E0);
+void W03ConfigureLightingAndFog(void) {
+    s16 var = BoardModelIDGet(lightHookModel);
     Hu3DModelLightInfoSet(var, 1);
     Hu3DFogSet(5000.0f, 30000.0f, 0xE4U, 0xF0U, 0xFFU);
 }
 
-void fn_1_8F0(void) {
+void W03ClearFog(void) {
     Hu3DFogClear();
 }
 
-s32 fn_1_910(void) {
-    u32 temp_r3;
-    s32 cur_player_index;
-    s32 space;
+s32 W03HandleCurrentSpaceEvent(void) {
+    u32 playerIndex;
+    s32 curPlayerIndex;
+    s32 currentSpace;
 
-    cur_player_index = GWSystem.player_curr;
-    space = GWPlayer[cur_player_index].space_curr;
-    temp_r3 = BoardSpaceFlagGet(0, space);
+    curPlayerIndex = GWSystem.player_curr;
+    currentSpace = GWPlayer[curPlayerIndex].space_curr;
+    playerIndex = BoardSpaceFlagGet(0, currentSpace);
 
-    if (temp_r3 & 0xC000) {
-        if ((BoardPlayerSizeGet(cur_player_index) == 2) || ((u8) (( GWPlayer[cur_player_index].bowser_suit)))) {
+    if (playerIndex & 0xC000) {
+        if ((BoardPlayerSizeGet(curPlayerIndex) == 2) || ((u8) (( GWPlayer[curPlayerIndex].bowser_suit)))) {
             return 0;
         }
-        if (temp_r3 & 0x4000) {
-            if (lbl_1_bss_0->unk1 == 0) {
+        if (playerIndex & 0x4000) {
+            if (boardState->condorSide == 0) {
                 return 0;
             }
         }
-        else if (temp_r3 & 0x8000 && lbl_1_bss_0->unk1 != 0) {
+        else if (playerIndex & 0x8000 && boardState->condorSide != 0) {
             return 0;
         }
-        
-        return fn_1_309C();
+
+        return CondorCheckPlayerChoice();
     }
 
-    if (temp_r3 & 0x200) {
-        if ((BoardPlayerSizeGet(cur_player_index) == 2) || ((u8) ((GWPlayer[cur_player_index].bowser_suit)) != 0)) {
+    if (playerIndex & 0x200) {
+        if ((BoardPlayerSizeGet(curPlayerIndex) == 2) || ((u8) ((GWPlayer[curPlayerIndex].bowser_suit)) != 0)) {
             return 0;
         }
-        return fn_1_675C();
+        return RiverRunBoardEvent();
     }
 
     return 0;
 }
 
-s32 fn_1_A74(void) {
-    s16 space = GWPlayer[GWSystem.player_curr].space_curr;
-    u32 var = BoardSpaceFlagGet(0, space) & 0x600000;
+s32 W03HandleMapObjectEvent(void) {
+    s16 currentSpace = GWPlayer[GWSystem.player_curr].space_curr;
+    u32 var = BoardSpaceFlagGet(0, currentSpace) & 0x600000;
 
     if (var + -0x200000 == 0) {
-        fn_1_7BA8();
+        CoinEventStart();
         return;
     }
     if (var + -0x400000 == 0) {
-        fn_1_9AA0();
+        ItemEventStart();
     }
 }
 
-void fn_1_AF8(void) {
-    if ((BoardPlayerSizeGet(GWSystem.player_curr) == 0) && (fn_1_12C8() != 0) && (lbl_1_bss_0->unk2 != 0)) {
+void W03UpdateJunctionMask(void) {
+    if ((BoardPlayerSizeGet(GWSystem.player_curr) == 0) && (StatueEventStart() != 0) && (boardState->rewardPlayerMask != 0)) {
         BoardJunctionMaskSet(0xC00);
     }
 }
-void fn_1_B5C(s32 arg0) {
-    f32 var_f31;
-    f32 var_f30;
-    f32 var_f29;
-    f32 var_f28;
-    f32 temp;
+void W03SetBridgeMotion(s32 value) {
+    f32 floatValue;
+    f32 floatValue2;
+    f32 floatValue3;
+    f32 floatValue4;
+    f32 animationFrame;
 
-    if (arg0 != 0) {
-        var_f30 = lbl_1_data_1EC.unk_08;
-        var_f29 = lbl_1_data_1EC.unk_0C;
-        var_f31 = lbl_1_data_1EC.unk_10;
-        var_f28 = lbl_1_data_1EC.unk_14;
-        fn_1_63F4(0);
+    if (value != 0) {
+        floatValue2 = cameraMotionTiming.cameraStartZ;
+        floatValue3 = cameraMotionTiming.cameraEndX;
+        floatValue = cameraMotionTiming.cameraEndY;
+        floatValue4 = cameraMotionTiming.cameraEndZ;
+        RiverSetWaterHeight(0);
     } else {
-        var_f30 = lbl_1_data_1EC.unk_18;
-        var_f29 = lbl_1_data_1EC.unk_1C;
-        var_f31 = lbl_1_data_1EC.unk_00;
-        var_f28 = lbl_1_data_1EC.unk_04;
-        fn_1_63F4(1);
+        floatValue2 = cameraMotionTiming.cameraTargetX;
+        floatValue3 = cameraMotionTiming.cameraTargetY;
+        floatValue = cameraMotionTiming.cameraStartX;
+        floatValue4 = cameraMotionTiming.cameraStartY;
+        RiverSetWaterHeight(1);
     }
 
-    BoardModelMotionStart(lbl_1_bss_C[0], 0, 0);
-    BoardModelMotionTimeSet(lbl_1_bss_C[0], var_f30);
+    BoardModelMotionStart(boardModelIds[0], 0, 0);
+    BoardModelMotionTimeSet(boardModelIds[0], floatValue2);
 
     while (1) {
-        temp = BoardModelMotionTimeGet(lbl_1_bss_C[0]);
-        if (temp >= var_f29) {
+        animationFrame = BoardModelMotionTimeGet(boardModelIds[0]);
+        if (animationFrame >= floatValue3) {
             break;
         }
         HuPrcVSleep();
     }
 
-    BoardModelAttrSet(lbl_1_bss_C[0], 0x40000001);
-    BoardModelMotionTimeSet(lbl_1_bss_C[0], var_f31);
-    BoardModelMotionStartEndSet(lbl_1_bss_C[0], var_f31, var_f28);
+    BoardModelAttrSet(boardModelIds[0], 0x40000001);
+    BoardModelMotionTimeSet(boardModelIds[0], floatValue);
+    BoardModelMotionStartEndSet(boardModelIds[0], floatValue, floatValue4);
 }
 
-void fn_1_CF4(void) {
+void W03UpdateJunctionLinks(void) {
     s16 var;
     s32 i, j;
-    BoardSpace* temp_r28;
-    BoardSpace* temp_r31;
+    BoardSpace* value;
+    BoardSpace* value2;
 
     for (i = 0; i < BoardSpaceCountGet(0); i++) {
         var = i + 1;
-        temp_r31 = BoardSpaceGet(0, var);
-        for (j = 0; j < temp_r31->link_cnt; j++) {
-            if (BoardSpaceFlagGet(0, temp_r31->link[j]) & 0xC00) {
-                temp_r28 = BoardSpaceGet(0, temp_r31->link[j]);
-                if (lbl_1_bss_0->unk0 != 0) {
-                    temp_r28->flag |= 0x04000000;
+        value2 = BoardSpaceGet(0, var);
+        for (j = 0; j < value2->link_cnt; j++) {
+            if (BoardSpaceFlagGet(0, value2->link[j]) & 0xC00) {
+                value = BoardSpaceGet(0, value2->link[j]);
+                if (boardState->statueRewardCount != 0) {
+                    value->flag |= 0x04000000;
                     BoardJunctionMaskSet(0xC00);
                 } else {
-                    temp_r28->flag &= ~0x04000000;
+                    value->flag &= ~0x04000000;
                     BoardJunctionMaskReset(0xC00);
                 }
-            }            
+            }
         }
     }
 }
 
-void fn_1_DEC(void) {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    OMOBJ* temp_r3;
-    s32 var_r31;
-    s32 var_r31_2;
-    w03UnkStruct2* temp_r29;
+void W03CreateAmbientEffects(void) {
+    Vec position;
+    Vec position2;
+    Vec position3;
+    OMOBJ* object;
+    s32 integerValue;
+    s32 integerValue2;
+    AmbientAudioProcessWork* work;
     s32 i;
 
-    temp_r3 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, &fn_1_10E4);
-    lbl_1_bss_4 = temp_r3;
-    temp_r29 = omObjGetWork(temp_r3, w03UnkStruct2);
-    temp_r29->unk0 = 0;
-    lbl_1_bss_8 = 0;
-    BoardCameraPosGet(&sp20);
-    BoardCameraDirGet(&sp14);
-    HuAudFXListnerSetEX(&sp20, &sp14, 4800.0f, 36000.0f, 0.0f, 1200.0f, 1200.0f);
+    object = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, &W03UpdateAmbientEffects);
+    ambientAudioProcessObject = object;
+    work = omObjGetWork(object, AmbientAudioProcessWork);
+    work->shouldStop = 0;
+    ambientAudioPaused = 0;
+    BoardCameraPosGet(&position);
+    BoardCameraDirGet(&position2);
+    HuAudFXListnerSetEX(&position, &position2, 4800.0f, 36000.0f, 0.0f, 1200.0f, 1200.0f);
 
-    for (i = 0; i < ARRAY_COUNT(lbl_1_data_22C); i++) {
-        sp8.x = lbl_1_data_22C[i].x - 3600.0f;
-        sp8.y = lbl_1_data_22C[i].y;
-        sp8.z = lbl_1_data_22C[i].z - 3600.0f;
-        if (lbl_1_bss_0->unk2 != 0) {
-            lbl_1_data_21C[i] = HuAudFXEmiterPlay(lbl_1_data_26C[i], &sp8);
+    for (i = 0; i < ARRAY_COUNT(ambientSoundPositions); i++) {
+        position3.x = ambientSoundPositions[i].x - 3600.0f;
+        position3.y = ambientSoundPositions[i].y;
+        position3.z = ambientSoundPositions[i].z - 3600.0f;
+        if (boardState->rewardPlayerMask != 0) {
+            ambientSoundEmitterIds[i] = HuAudFXEmiterPlay(alternateAmbientSoundIds[i], &position3);
         } else {
-            lbl_1_data_21C[i] = HuAudFXEmiterPlay(lbl_1_data_25C[i], &sp8);
+            ambientSoundEmitterIds[i] = HuAudFXEmiterPlay(normalAmbientSoundIds[i], &position3);
         }
     }
 
     for (i = 0; i < 4; i++) {
         if ((WipeStatGet() != 0) || (_CheckFlag(FLAG_ID_MAKE(1, 28)) != 0)) {
-            HuAudFXVolSet(lbl_1_data_21C[i], 0);
+            HuAudFXVolSet(ambientSoundEmitterIds[i], 0);
         } else {
-            HuAudFXVolSet(lbl_1_data_21C[i], 0x7F);
-        }        
+            HuAudFXVolSet(ambientSoundEmitterIds[i], 0x7F);
+        }
     }
 
     if (_CheckFlag(FLAG_ID_MAKE(1, 16)) == 0) {
-        if (lbl_1_bss_8 == 0) {
+        if (ambientAudioPaused == 0) {
             HuAudFXPauseAll(1);
-            lbl_1_bss_8 = 1;
+            ambientAudioPaused = 1;
         }
-    } else if (lbl_1_bss_8 != 0) {
+    } else if (ambientAudioPaused != 0) {
         HuAudFXPauseAll(0);
-        lbl_1_bss_8 = 0;
+        ambientAudioPaused = 0;
     }
 }
 
-void fn_1_10B0(void) {
-    if (lbl_1_bss_4) {
-        omObjGetWork(lbl_1_bss_4, w03UnkStruct2)->unk0 = 1;
+void W03StopAmbientEffects(void) {
+    if (ambientAudioProcessObject) {
+        omObjGetWork(ambientAudioProcessObject, AmbientAudioProcessWork)->shouldStop = 1;
     }
 }
 
-void fn_1_10E4(OMOBJ* arg0) {
-    Vec sp14;
-    Vec sp8;
+void W03UpdateAmbientEffects(OMOBJ* object) {
+    Vec position;
+    Vec position2;
     s32 i;
-    w03UnkStruct2* temp_r29;
+    AmbientAudioProcessWork* work;
 
-    temp_r29 = omObjGetWork(arg0, w03UnkStruct2);
+    work = omObjGetWork(object, AmbientAudioProcessWork);
 
-    if (temp_r29->unk0 != 0 || (BoardIsKill() != 0)) {
-        for (i = 0; i < ARRAY_COUNT(lbl_1_data_21C); i++) {
-            if (lbl_1_data_21C[i] != -1) {
-                HuAudFXFadeOut(lbl_1_data_21C[i], 100);
-            }            
+    if (work->shouldStop != 0 || (BoardIsKill() != 0)) {
+        for (i = 0; i < ARRAY_COUNT(ambientSoundEmitterIds); i++) {
+            if (ambientSoundEmitterIds[i] != -1) {
+                HuAudFXFadeOut(ambientSoundEmitterIds[i], 100);
+            }
         }
         HuAudFXListnerKill();
-        lbl_1_bss_4 = 0;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        ambientAudioProcessObject = 0;
+        omDelObjEx(HuPrcCurrentGet(), object);
         return;
     }
 
-    BoardCameraDirGet(&sp8);
-    BoardCameraTargetGet(&sp14);
+    BoardCameraDirGet(&position2);
+    BoardCameraTargetGet(&position);
 
     for (i = 0; i < 4; i++) {
         if ((WipeStatGet() != 0) || (_CheckFlag(0x1001C) != 0)) {
-            HuAudFXVolSet(lbl_1_data_21C[i], 0);
+            HuAudFXVolSet(ambientSoundEmitterIds[i], 0);
         } else {
-            HuAudFXVolSet(lbl_1_data_21C[i], 0x7F);
+            HuAudFXVolSet(ambientSoundEmitterIds[i], 0x7F);
         }
     }
 
-    sp14.y += 2000.0f;
+    position.y += 2000.0f;
 
     if (_CheckFlag(0x10010) == 0) {
-        if (lbl_1_bss_8 == 0) {
+        if (ambientAudioPaused == 0) {
             HuAudFXPauseAll(1);
-            lbl_1_bss_8 = 1;
+            ambientAudioPaused = 1;
         }
-    } else if (lbl_1_bss_8 != 0) {
+    } else if (ambientAudioPaused != 0) {
         HuAudFXPauseAll(0);
-        lbl_1_bss_8 = 0;
+        ambientAudioPaused = 0;
     }
-    
-    HuAudFXListnerUpdate(&sp14, &sp8);
+
+    HuAudFXListnerUpdate(&position, &position2);
 }
