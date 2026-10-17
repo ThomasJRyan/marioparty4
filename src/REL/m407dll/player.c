@@ -11,55 +11,55 @@
 
 #include "REL/m407dll.h"
 
-typedef struct unkDominationData {
-    u8 unk_00;
-    u8 unk_01;
-    u8 unk_02;
+typedef struct PlayerCharacterWork {
+    u8 playerIndex;
+    u8 characterId;
+    u8 difficulty;
     // padding unk_03
-    s32 unk_04;
-    s32 unk_08;
-    u8 unk_0C;
+    s32 isComputer;
+    s32 animationId;
+    u8 controllerPort;
     // padding unk_0D
-    f32 unk_10;
-    f32 unk_14;
-    f32 unk_18;
-    s32 unk_1C;
-    s32 unk_20;
-    f32 unk_24;
-    f32 unk_28;
-    f32 unk_2C;
-    f32 unk_30;
-    s32 unk_34;
-    s32 unk_38;
-} unkDominationData;
+    f32 positionX;
+    f32 positionY;
+    f32 positionZ;
+    s32 actionState;
+    s32 actionFrame;
+    f32 verticalVelocity;
+    f32 inputFrame;
+    f32 nextInputFrame;
+    f32 inputFrameStep;
+    s32 motionTransitionActive;
+    s32 motionAction;
+} PlayerCharacterWork;
 
 // function signatures
-void fn_1_628(OMOBJ *, s32);
-void fn_1_64C(OMOBJ *);
-void fn_1_99C(OMOBJ *);
-void fn_1_A1C(OMOBJ *arg0);
-void fn_1_26CC(u8);
-void fn_1_4544(s32, s32, f32, f32, f32);
-s16 fn_1_28B8(u8);
-s16 fn_1_28E4(u8);
-void fn_1_A88(OMOBJ *arg0);
-void fn_1_A8C(OMOBJ *arg0);
-void fn_1_C58(OMOBJ *arg0);
-void fn_1_CF4(OMOBJ *arg0);
-void fn_1_DB4(OMOBJ *arg0);
-void fn_1_F8C(OMOBJ *arg0);
-void fn_1_1074(OMOBJ *arg0);
-void fn_1_11CC(OMOBJ *arg0);
-void fn_1_13E4(OMOBJ *arg0);
-void fn_1_1460(OMOBJ *arg0);
+void SetPlayerActionState(OMOBJ *, s32);
+void CreatePlayerCharacter(OMOBJ *);
+void DestroyPlayerCharacter(OMOBJ *);
+void UpdatePlayerCharacter(OMOBJ *object);
+void IncrementPlayerWhompCount(u8);
+void SpawnEffect(s32, s32, f32, f32, f32);
+s16 GetPlayerWhompCount(u8);
+s16 GetPlayerWhompModelId(u8);
+void PlayerMotionStateIdle(OMOBJ *object);
+void PlayerMotionStateWalk(OMOBJ *object);
+void PlayerMotionStateReact(OMOBJ *object);
+void PlayerMotionStateJump(OMOBJ *object);
+void PlayerMotionStateCheer(OMOBJ *object);
+void PlayerMotionStateFall(OMOBJ *object);
+void PlayerMotionStateWin(OMOBJ *object);
+void PlayerMotionStateLose(OMOBJ *object);
+void PlayerMotionStateLand(OMOBJ *object);
+void PlayerMotionStateSpecial(OMOBJ *object);
 
 // bss
-HUPROCESS *lbl_1_bss_18;
-OMOBJ *lbl_1_bss_8[4];
-HUPROCESS *lbl_1_bss_0[2];
+HUPROCESS *playerProcess;
+OMOBJ *playerObjects[4];
+HUPROCESS *playerIdleProcesses[2];
 
 // data
-u32 lbl_1_data_0[8][8] = {
+u32 characterMotionAssetIds[8][8] = {
     {
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00),
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x24),
@@ -142,7 +142,7 @@ u32 lbl_1_data_0[8][8] = {
     },
 };
 
-s32 lbl_1_data_100[] = {
+s32 characterModelAssetIds[] = {
     DATA_MAKE_NUM(DATADIR_M407, 0x0D),
     DATA_MAKE_NUM(DATADIR_M407, 0x0E),
     DATA_MAKE_NUM(DATADIR_M407, 0x0F),
@@ -153,422 +153,422 @@ s32 lbl_1_data_100[] = {
     DATA_MAKE_NUM(DATADIR_M407, 0x14),
 };
 
-char lbl_1_data_120[] = "test11_tex_we-itemhook-r";
-char *lbl_1_data_13C[]
-    = { lbl_1_data_120, lbl_1_data_120, lbl_1_data_120, lbl_1_data_120, lbl_1_data_120, lbl_1_data_120, lbl_1_data_120, lbl_1_data_120 };
+char itemHookTextureName[] = "test11_tex_we-itemhook-r";
+char *characterHookNames[]
+    = { itemHookTextureName, itemHookTextureName, itemHookTextureName, itemHookTextureName, itemHookTextureName, itemHookTextureName, itemHookTextureName, itemHookTextureName };
 
-ObjFuncs lbl_1_data_15C[] = { fn_1_A88, fn_1_A8C, fn_1_C58, fn_1_CF4, fn_1_DB4, fn_1_F8C, fn_1_1074, fn_1_11CC, fn_1_13E4, fn_1_1460 };
+ObjFuncs playerActionCallbacks[] = { PlayerMotionStateIdle, PlayerMotionStateWalk, PlayerMotionStateReact, PlayerMotionStateJump, PlayerMotionStateCheer, PlayerMotionStateFall, PlayerMotionStateWin, PlayerMotionStateLose, PlayerMotionStateLand, PlayerMotionStateSpecial };
 
-u8 lbl_1_data_184[4][2] = { { 0x3C, 0x0F }, { 0x50, 0x0F }, { 0x64, 0x14 }, { 0x78, 0x14 } };
+u8 playerSpawnOffsets[4][2] = { { 0x3C, 0x0F }, { 0x50, 0x0F }, { 0x64, 0x14 }, { 0x78, 0x14 } };
 
-inline void SetDominationDataStuff(OMOBJ *arg0, s32 val0, s32 val1)
+inline void SetPlayerActionAndMotion(OMOBJ *object, s32 actionState, s32 actionFrame)
 {
-    unkDominationData *temp_r29 = arg0->data;
-    temp_r29->unk_1C = val0;
-    temp_r29->unk_20 = val1;
+    PlayerCharacterWork *playerWork = object->data;
+    playerWork->actionState = actionState;
+    playerWork->actionFrame = actionFrame;
 }
 
 void ObjectSetup(void)
 {
-    lbl_1_bss_0[0] = omInitObjMan(0x2F8, 0x2000);
-    omGameSysInit(lbl_1_bss_0[0]);
-    fn_1_4980(lbl_1_bss_0[0]);
+    playerIdleProcesses[0] = omInitObjMan(0x2F8, 0x2000);
+    omGameSysInit(playerIdleProcesses[0]);
+    InitializeMinigameSequence(playerIdleProcesses[0]);
 }
 
-void fn_1_F4(HUPROCESS *arg0)
+void InitializePlayerSystem(HUPROCESS *process)
 {
     u32 i;
-    lbl_1_bss_18 = arg0;
+    playerProcess = process;
 
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_8[i] = omAddObjEx(lbl_1_bss_18, 0x100, 2, 8, 0, fn_1_64C);
-        lbl_1_bss_8[i]->work[0] = i;
+        playerObjects[i] = omAddObjEx(playerProcess, 0x100, 2, 8, 0, CreatePlayerCharacter);
+        playerObjects[i]->work[0] = i;
     }
 }
 
-void fn_1_194(void)
+void PlayPlayerIdleMotion(void)
 {
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        fn_1_99C(lbl_1_bss_8[i]);
+        DestroyPlayerCharacter(playerObjects[i]);
     }
 }
 
-void fn_1_1E4(void)
+void PlayPlayerWalkMotion(void)
 {
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        fn_1_628(lbl_1_bss_8[i], 1);
+        SetPlayerActionState(playerObjects[i], 1);
     }
 }
 
-void fn_1_238(void)
+void PlayPlayerTurnMotion(void)
 {
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        fn_1_628(lbl_1_bss_8[i], 2);
+        SetPlayerActionState(playerObjects[i], 2);
     }
 }
 
-void fn_1_28C(void)
+void PlayPlayerReactionMotion(void)
 {
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        fn_1_628(lbl_1_bss_8[i], 3);
+        SetPlayerActionState(playerObjects[i], 3);
     }
 }
 
-void fn_1_2E0(void)
+void PlayPlayerJumpMotion(void)
 {
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        fn_1_628(lbl_1_bss_8[i], 4);
+        SetPlayerActionState(playerObjects[i], 4);
     }
 }
 
-void fn_1_334(void)
+void PlayPlayerLandMotion(void)
 {
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        fn_1_628(lbl_1_bss_8[i], 5);
+        SetPlayerActionState(playerObjects[i], 5);
     }
 }
 
-void fn_1_388(u8 arg0, s32 arg1)
+void SetPlayerMotionAction(u8 playerIndex, s32 motionAction)
 {
-    OMOBJ *obj = lbl_1_bss_8[arg0];
-    unkDominationData *unkData = obj->data;
-    unkData->unk_38 = arg1;
+    OMOBJ *obj = playerObjects[playerIndex];
+    PlayerCharacterWork *playerWork = obj->data;
+    playerWork->motionAction = motionAction;
 }
 
-void fn_1_3C4(u8 arg0)
+void PlayPlayerMotionAction(u8 playerIndex)
 {
-    fn_1_628(lbl_1_bss_8[arg0], 8);
+    SetPlayerActionState(playerObjects[playerIndex], 8);
 }
 
-void fn_1_404(void)
+void StopPlayerMotion(void)
 {
-    OMOBJ *temp_r31;
-    unkDominationData *unkData;
-    s32 temp_r0;
+    OMOBJ *workData;
+    PlayerCharacterWork *playerWork;
+    s32 void;
     u8 i;
 
     for (i = 0; i < 4; i++) {
-        temp_r31 = lbl_1_bss_8[i];
-        unkData = temp_r31->data;
-        switch (unkData->unk_38) {
+        workData = playerObjects[i];
+        playerWork = workData->data;
+        switch (playerWork->motionAction) {
             case 0:
-                fn_1_628(temp_r31, 9);
+                SetPlayerActionState(workData, 9);
                 break;
             case 1:
-                fn_1_628(temp_r31, 6);
+                SetPlayerActionState(workData, 6);
                 break;
             case 2:
-                fn_1_628(temp_r31, 9);
+                SetPlayerActionState(workData, 9);
                 break;
         }
     }
 }
 
-s32 fn_1_4C0(u8 arg0)
+s32 GetPlayerMotionState(u8 playerIndex)
 {
-    unkDominationData *unkData;
+    PlayerCharacterWork *playerWork;
 
-    if (arg0 >= 4) {
+    if (playerIndex >= 4) {
         return -1;
     }
 
-    unkData = lbl_1_bss_8[arg0]->data;
-    return unkData->unk_01;
+    playerWork = playerObjects[playerIndex]->data;
+    return playerWork->characterId;
 }
 
-s32 fn_1_508(u8 arg0)
+s32 GetPlayerActionState(u8 playerIndex)
 {
-    unkDominationData *unkData = lbl_1_bss_8[arg0]->data;
-    return unkData->unk_04;
+    PlayerCharacterWork *playerWork = playerObjects[playerIndex]->data;
+    return playerWork->isComputer;
 }
 
-s32 fn_1_53C(u8 arg0)
+s32 IsPlayerIdle(u8 playerIndex)
 {
-    return ((unkDominationData *)(lbl_1_bss_8[arg0]->data))->unk_1C == 0;
+    return ((PlayerCharacterWork *)(playerObjects[playerIndex]->data))->actionState == 0;
 }
 
-void fn_1_568(s16 arg0, s16 arg1, s16 arg2)
+void VibratePlayerController(s16 vibrationPattern, s16 vibrationDuration, s16 vibrationStrength)
 {
-    unkDominationData *unkData;
+    PlayerCharacterWork *playerWork;
 
-    unkData = lbl_1_bss_8[arg0]->data;
-    switch (arg1) {
+    playerWork = playerObjects[vibrationPattern]->data;
+    switch (vibrationPattern) {
         case 0:
-            omVibrate(unkData->unk_00, arg2, 6, 6);
+            omVibrate(playerWork->playerIndex, vibrationDuration, 6, 6);
             break;
         case 1:
-            omVibrate(unkData->unk_00, arg2, 4, 2);
+            omVibrate(playerWork->playerIndex, vibrationDuration, 4, 2);
             break;
         case 2:
-            omVibrate(unkData->unk_00, arg2, 0xC, 0);
+            omVibrate(playerWork->playerIndex, vibrationDuration, 0xC, 0);
             break;
     }
 }
 
-void fn_1_628(OMOBJ *arg0, s32 arg1)
+void SetPlayerActionState(OMOBJ *object, s32 actionState)
 {
-    unkDominationData *temp_r31;
+    PlayerCharacterWork *workData;
 
-    temp_r31 = arg0->data;
-    temp_r31->unk_1C = arg1;
-    temp_r31->unk_20 = 0;
+    workData = object->data;
+    workData->actionState = actionState;
+    workData->actionFrame = 0;
 }
 
-void fn_1_64C(OMOBJ *arg0)
+void CreatePlayerCharacter(OMOBJ *object)
 {
-    u32 temp_r29;
-    unkDominationData *temp_r27;
-    unkDominationData *temp_r31;
+    u32 playerIndex;
+    PlayerCharacterWork *unusedPlayerWork;
+    PlayerCharacterWork *workData;
     u32 i;
 
-    arg0->objFunc = fn_1_A1C;
-    arg0->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(unkDominationData), HU_MEMNUM_OVL);
-    temp_r31 = arg0->data;
-    temp_r29 = arg0->work[0];
-    temp_r31->unk_00 = temp_r29;
-    temp_r31->unk_01 = GWPlayerCfg[temp_r29].character;
-    temp_r31->unk_0C = GWPlayerCfg[temp_r29].pad_idx;
-    temp_r31->unk_04 = GWPlayerCfg[temp_r29].iscom;
-    temp_r31->unk_02 = GWPlayerCfg[temp_r29].diff;
-    temp_r31->unk_08 = 0;
-    temp_r31->unk_34 = 0;
-    temp_r31->unk_38 = 0;
-    temp_r31->unk_28 = 0.0f;
-    temp_r31->unk_30 = (600.0f / (lbl_1_data_184[temp_r31->unk_02][0] - frandmod31(lbl_1_data_184[temp_r31->unk_02][1])));
-    temp_r31->unk_2C = temp_r31->unk_30;
-    arg0->mdlId[0] = CharModelCreate(temp_r31->unk_01, 8);
-    arg0->mdlId[1] = Hu3DModelCreateFile(lbl_1_data_100[temp_r31->unk_01]);
-    Hu3DModelAmbSet(arg0->mdlId[0], 1.0f, 1.0f, 1.0f);
-    Hu3DModelAmbSet(arg0->mdlId[1], 1.0f, 1.0f, 1.0f);
+    object->objFunc = UpdatePlayerCharacter;
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PlayerCharacterWork), HU_MEMNUM_OVL);
+    workData = object->data;
+    playerIndex = object->work[0];
+    workData->playerIndex = playerIndex;
+    workData->characterId = GWPlayerCfg[playerIndex].character;
+    workData->controllerPort = GWPlayerCfg[playerIndex].pad_idx;
+    workData->isComputer = GWPlayerCfg[playerIndex].iscom;
+    workData->difficulty = GWPlayerCfg[playerIndex].diff;
+    workData->animationId = 0;
+    workData->motionTransitionActive = 0;
+    workData->motionAction = 0;
+    workData->inputFrame = 0.0f;
+    workData->inputFrameStep = (600.0f / (playerSpawnOffsets[workData->difficulty][0] - frandmod31(playerSpawnOffsets[workData->difficulty][1])));
+    workData->nextInputFrame = workData->inputFrameStep;
+    object->mdlId[0] = CharModelCreate(workData->characterId, 8);
+    object->mdlId[1] = Hu3DModelCreateFile(characterModelAssetIds[workData->characterId]);
+    Hu3DModelAmbSet(object->mdlId[0], 1.0f, 1.0f, 1.0f);
+    Hu3DModelAmbSet(object->mdlId[1], 1.0f, 1.0f, 1.0f);
 
     for (i = 0; i < 8; i++) {
-        arg0->mtnId[i] = CharMotionCreate(temp_r31->unk_01, lbl_1_data_0[temp_r31->unk_01][i]);
+        object->mtnId[i] = CharMotionCreate(workData->characterId, characterMotionAssetIds[workData->characterId][i]);
     }
 
-    Hu3DModelShadowSet(arg0->mdlId[0]);
-    Hu3DModelShadowSet(arg0->mdlId[1]);
-    CharMotionDataClose(temp_r31->unk_01);
-    CharMotionSet(temp_r31->unk_01, arg0->mtnId[1]);
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_MOTATTR_LOOP);
-    Hu3DModelHookSet(arg0->mdlId[0], lbl_1_data_13C[temp_r31->unk_01], arg0->mdlId[1]);
-    temp_r31->unk_10 = (600.0f - (400.0f * temp_r29));
-    temp_r31->unk_14 = 0.0f;
-    temp_r31->unk_18 = -500.0f;
-    SetDominationDataStuff(arg0, 0, 0);
+    Hu3DModelShadowSet(object->mdlId[0]);
+    Hu3DModelShadowSet(object->mdlId[1]);
+    CharMotionDataClose(workData->characterId);
+    CharMotionSet(workData->characterId, object->mtnId[1]);
+    Hu3DModelAttrSet(object->mdlId[0], HU3D_MOTATTR_LOOP);
+    Hu3DModelHookSet(object->mdlId[0], characterHookNames[workData->characterId], object->mdlId[1]);
+    workData->positionX = (600.0f - (400.0f * playerIndex));
+    workData->positionY = 0.0f;
+    workData->positionZ = -500.0f;
+    SetPlayerActionAndMotion(object, 0, 0);
 }
 
-void fn_1_99C(OMOBJ *arg0)
+void DestroyPlayerCharacter(OMOBJ *object)
 {
     s32 i;
 
     for (i = 0; i < 8; i++) {
-        Hu3DMotionKill(arg0->mtnId[i]);
+        Hu3DMotionKill(object->mtnId[i]);
     }
 
     for (i = 0; i < 2; i++) {
-        Hu3DModelKill(arg0->mdlId[i]);
+        Hu3DModelKill(object->mdlId[i]);
     }
 
-    HuMemDirectFree(arg0->data);
+    HuMemDirectFree(object->data);
 }
 
-void fn_1_A1C(OMOBJ *arg0)
+void UpdatePlayerCharacter(OMOBJ *object)
 {
-    unkDominationData *temp_r31;
+    PlayerCharacterWork *workData;
 
-    temp_r31 = arg0->data;
-    lbl_1_data_15C[temp_r31->unk_1C](arg0);
-    omSetTra(arg0, temp_r31->unk_10, temp_r31->unk_14, temp_r31->unk_18);
+    workData = object->data;
+    playerActionCallbacks[workData->actionState](object);
+    omSetTra(object, workData->positionX, workData->positionY, workData->positionZ);
 }
 
-void fn_1_A88(OMOBJ *arg0) { }
+void PlayerMotionStateIdle(OMOBJ *object) { }
 
-void fn_1_A8C(OMOBJ *arg0)
+void PlayerMotionStateWalk(OMOBJ *object)
 {
-    s32 var_r29;
-    unkDominationData *temp_r31;
+    s32 actionPressed;
+    PlayerCharacterWork *workData;
 
-    var_r29 = 0;
-    temp_r31 = arg0->data;
-    temp_r31->unk_28 += 1.0f;
+    actionPressed = 0;
+    workData = object->data;
+    workData->inputFrame += 1.0f;
 
-    if (temp_r31->unk_04 == 0) {
-        var_r29 = (HuPadBtnDown[temp_r31->unk_0C] & 0x100) ? 1 : 0;
+    if (workData->isComputer == 0) {
+        actionPressed = (HuPadBtnDown[workData->controllerPort] & 0x100) ? 1 : 0;
     }
-    else if ((u32)temp_r31->unk_28 >= (u32)temp_r31->unk_2C) {
-        var_r29 = 1;
-        temp_r31->unk_2C += temp_r31->unk_30;
+    else if ((u32)workData->inputFrame >= (u32)workData->nextInputFrame) {
+        actionPressed = 1;
+        workData->nextInputFrame += workData->inputFrameStep;
     }
 
-    if (var_r29 != 0) {
-        CharMotionShiftSet(temp_r31->unk_01, arg0->mtnId[2], 0.0f, 0.0f, HU3D_MOTATTR_NONE);
-        fn_1_4544(4, 0x10, 600.0f - (400.0f * temp_r31->unk_00), -20.0f, -450.0f);
-        fn_1_26CC(temp_r31->unk_00);
-        temp_r31->unk_34 = 1;
+    if (actionPressed != 0) {
+        CharMotionShiftSet(workData->characterId, object->mtnId[2], 0.0f, 0.0f, HU3D_MOTATTR_NONE);
+        SpawnEffect(4, 0x10, 600.0f - (400.0f * workData->playerIndex), -20.0f, -450.0f);
+        IncrementPlayerWhompCount(workData->playerIndex);
+        workData->motionTransitionActive = 1;
         return;
     }
 
-    if ((temp_r31->unk_34 != 0) && (Hu3DMotionEndCheck(arg0->mdlId[0]) != 0)) {
-        CharMotionShiftSet(temp_r31->unk_01, arg0->mtnId[1], 0.0f, 0.0f, HU3D_MOTATTR_LOOP);
-        temp_r31->unk_34 = 0;
+    if ((workData->motionTransitionActive != 0) && (Hu3DMotionEndCheck(object->mdlId[0]) != 0)) {
+        CharMotionShiftSet(workData->characterId, object->mtnId[1], 0.0f, 0.0f, HU3D_MOTATTR_LOOP);
+        workData->motionTransitionActive = 0;
     }
 }
 
-void fn_1_C58(OMOBJ *arg0)
+void PlayerMotionStateReact(OMOBJ *object)
 {
-    unkDominationData *temp_r30;
+    PlayerCharacterWork *playerWork;
 
-    temp_r30 = arg0->data;
-    if (Hu3DMotionEndCheck(arg0->mdlId[0]) != 0) {
-        CharMotionShiftSet(temp_r30->unk_01, arg0->mtnId[1], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-        temp_r30->unk_34 = 0;
-        SetDominationDataStuff(arg0, 0, 0);
+    playerWork = object->data;
+    if (Hu3DMotionEndCheck(object->mdlId[0]) != 0) {
+        CharMotionShiftSet(playerWork->characterId, object->mtnId[1], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+        playerWork->motionTransitionActive = 0;
+        SetPlayerActionAndMotion(object, 0, 0);
     }
 }
 
-void fn_1_CF4(OMOBJ *arg0)
+void PlayerMotionStateJump(OMOBJ *object)
 {
-    unkDominationData *temp_r31;
+    PlayerCharacterWork *workData;
 
-    temp_r31 = arg0->data;
-    if (temp_r31->unk_20 == 0) {
-        CharMotionShiftSet(temp_r31->unk_01, arg0->mtnId[1], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-        CharModelHookDustCreate(temp_r31->unk_01, lbl_1_data_13C[temp_r31->unk_01]);
+    workData = object->data;
+    if (workData->actionFrame == 0) {
+        CharMotionShiftSet(workData->characterId, object->mtnId[1], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+        CharModelHookDustCreate(workData->characterId, characterHookNames[workData->characterId]);
     }
-    if (temp_r31->unk_20++ >= 30) {
-        SetDominationDataStuff(arg0, 0, 0);
+    if (workData->actionFrame++ >= 30) {
+        SetPlayerActionAndMotion(object, 0, 0);
     }
 }
 
-void fn_1_DB4(OMOBJ *arg0)
+void PlayerMotionStateCheer(OMOBJ *object)
 {
-    f32 temp_f31;
-    f32 temp_f30;
-    unkDominationData *temp_r31;
+    f32 verticalDisplacement;
+    f32 forwardDisplacement;
+    PlayerCharacterWork *workData;
 
-    temp_r31 = arg0->data;
+    workData = object->data;
 
-    if (temp_r31->unk_20 == 0) {
-        CharMotionVoiceOnSet(temp_r31->unk_01, arg0->mtnId[3], 0);
-        CharMotionShiftSet(temp_r31->unk_01, arg0->mtnId[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-        temp_r31->unk_24 = 0.0f;
-        temp_r31->unk_20++;
+    if (workData->actionFrame == 0) {
+        CharMotionVoiceOnSet(workData->characterId, object->mtnId[3], 0);
+        CharMotionShiftSet(workData->characterId, object->mtnId[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+        workData->verticalVelocity = 0.0f;
+        workData->actionFrame++;
     }
 
-    temp_f31 = 32.0f * sin(M_PI / 3) - 9.8f * temp_r31->unk_24;
-    temp_f30 = 22.0f * cos(M_PI / 3);
-    temp_r31->unk_18 = temp_r31->unk_18 + temp_f30;
-    temp_r31->unk_14 = temp_r31->unk_14 + temp_f31;
-    temp_r31->unk_24 += 0.3f;
+    verticalDisplacement = 32.0f * sin(M_PI / 3) - 9.8f * workData->verticalVelocity;
+    forwardDisplacement = 22.0f * cos(M_PI / 3);
+    workData->positionZ = workData->positionZ + forwardDisplacement;
+    workData->positionY = workData->positionY + verticalDisplacement;
+    workData->verticalVelocity += 0.3f;
 
-    if (!(temp_f31 < 0.0f) || !(temp_r31->unk_14 <= 30.0f)) {
+    if (!(verticalDisplacement < 0.0f) || !(workData->positionY <= 30.0f)) {
         return;
     }
 
-    temp_r31->unk_14 = 30.0f;
-    CharMotionShiftSet(temp_r31->unk_01, arg0->mtnId[4], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-    SetDominationDataStuff(arg0, 0, 0);
+    workData->positionY = 30.0f;
+    CharMotionShiftSet(workData->characterId, object->mtnId[4], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+    SetPlayerActionAndMotion(object, 0, 0);
 }
 
-// can also be placed into fn_1_F8C as static const
-const s32 lbl_1_rodata_70[] = { 0x00000122, 0x00000162, 0x000001A2, 0x000001E2, 0x00000222, 0x00000262, 0x000002A2, 0x000002E2 };
+// can also be placed into player_motion_state_fall as static const
+const s32 characterFallSoundIds[] = { 0x00000122, 0x00000162, 0x000001A2, 0x000001E2, 0x00000222, 0x00000262, 0x000002A2, 0x000002E2 };
 
-void fn_1_F8C(OMOBJ *arg0)
+void PlayerMotionStateFall(OMOBJ *object)
 {
-    unkDominationData *temp_r31;
+    PlayerCharacterWork *workData;
 
-    temp_r31 = arg0->data;
+    workData = object->data;
 
-    if (temp_r31->unk_20 == 0) {
-        CharMotionShiftSet(temp_r31->unk_01, arg0->mtnId[5], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-        HuAudFXPlay(lbl_1_rodata_70[temp_r31->unk_01]);
+    if (workData->actionFrame == 0) {
+        CharMotionShiftSet(workData->characterId, object->mtnId[5], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+        HuAudFXPlay(characterFallSoundIds[workData->characterId]);
     }
 
-    if (temp_r31->unk_20++ >= 120) {
-        CharMotionShiftSet(temp_r31->unk_01, arg0->mtnId[0], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-        SetDominationDataStuff(arg0, 0, 0);
-    }
-}
-
-void fn_1_1074(OMOBJ *arg0)
-{
-    unkDominationData *temp_r31;
-
-    temp_r31 = arg0->data;
-    if (temp_r31->unk_20 == 0) {
-        CharMotionVoiceOnSet(temp_r31->unk_01, arg0->mtnId[3], 0);
-        CharMotionShiftSet(temp_r31->unk_01, arg0->mtnId[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-        temp_r31->unk_24 = 0.0f;
-        temp_r31->unk_20 = 1;
-    }
-
-    temp_r31->unk_14 += 80.0 * sin(M_PI / 2) - 9.8 * temp_r31->unk_24;
-    temp_r31->unk_24 += 0.3f;
-
-    if (!(temp_r31->unk_14 < 1000.0f)) {
-        CharMotionShiftSet(temp_r31->unk_01, arg0->mtnId[4], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-        SetDominationDataStuff(arg0, 7, 0);
+    if (workData->actionFrame++ >= 120) {
+        CharMotionShiftSet(workData->characterId, object->mtnId[0], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+        SetPlayerActionAndMotion(object, 0, 0);
     }
 }
 
-void fn_1_11CC(OMOBJ *arg0)
+void PlayerMotionStateWin(OMOBJ *object)
 {
-    unkDominationData *temp_r31;
-    s16 temp;
+    PlayerCharacterWork *workData;
 
-    temp_r31 = arg0->data;
-    if (temp_r31->unk_20 == 0) {
-        CharMotionVoiceOnSet(temp_r31->unk_01, arg0->mtnId[3], 0);
-        CharMotionShiftSet(temp_r31->unk_01, arg0->mtnId[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-        temp_r31->unk_14 = 1000.0f;
-        temp_r31->unk_18 = 200.0f * (fn_1_28B8(temp_r31->unk_00) + 2);
-        temp_r31->unk_24 = 0.0f;
-        temp_r31->unk_20 = 1;
+    workData = object->data;
+    if (workData->actionFrame == 0) {
+        CharMotionVoiceOnSet(workData->characterId, object->mtnId[3], 0);
+        CharMotionShiftSet(workData->characterId, object->mtnId[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+        workData->verticalVelocity = 0.0f;
+        workData->actionFrame = 1;
     }
 
-    temp_r31->unk_14 = (temp_r31->unk_14 - (2.0f + (9.8f * temp_r31->unk_24)));
-    temp_r31->unk_24 += 0.3f;
+    workData->positionY += 80.0 * sin(M_PI / 2) - 9.8 * workData->verticalVelocity;
+    workData->verticalVelocity += 0.3f;
 
-    if (!(temp_r31->unk_14 > 300.0f)) {
-        temp_r31->unk_14 = 300.0f;
-        CharMotionVoiceOnSet(temp_r31->unk_01, arg0->mtnId[4], 0);
-        CharMotionShiftSet(temp_r31->unk_01, arg0->mtnId[4], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-        temp = fn_1_28E4(temp_r31->unk_00);
-        Hu3DModelHookSet(temp, "itemhook_c", arg0->mdlId[0]);
-        temp_r31->unk_10 = 0.0f;
-        temp_r31->unk_14 = 0.0f;
-        temp_r31->unk_18 = 0.0f;
-        SetDominationDataStuff(arg0, 0, 0);
+    if (!(workData->positionY < 1000.0f)) {
+        CharMotionShiftSet(workData->characterId, object->mtnId[4], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+        SetPlayerActionAndMotion(object, 7, 0);
     }
 }
 
-void fn_1_13E4(OMOBJ *arg0)
+void PlayerMotionStateLose(OMOBJ *object)
 {
-    unkDominationData *temp_r30;
+    PlayerCharacterWork *workData;
+    s16 whompModelId;
 
-    temp_r30 = arg0->data;
-    CharMotionShiftSet(temp_r30->unk_01, arg0->mtnId[6], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-    SetDominationDataStuff(arg0, 0, 0);
+    workData = object->data;
+    if (workData->actionFrame == 0) {
+        CharMotionVoiceOnSet(workData->characterId, object->mtnId[3], 0);
+        CharMotionShiftSet(workData->characterId, object->mtnId[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+        workData->positionY = 1000.0f;
+        workData->positionZ = 200.0f * (GetPlayerWhompCount(workData->playerIndex) + 2);
+        workData->verticalVelocity = 0.0f;
+        workData->actionFrame = 1;
+    }
+
+    workData->positionY = (workData->positionY - (2.0f + (9.8f * workData->verticalVelocity)));
+    workData->verticalVelocity += 0.3f;
+
+    if (!(workData->positionY > 300.0f)) {
+        workData->positionY = 300.0f;
+        CharMotionVoiceOnSet(workData->characterId, object->mtnId[4], 0);
+        CharMotionShiftSet(workData->characterId, object->mtnId[4], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+        whompModelId = GetPlayerWhompModelId(workData->playerIndex);
+        Hu3DModelHookSet(whompModelId, "itemhook_c", object->mdlId[0]);
+        workData->positionX = 0.0f;
+        workData->positionY = 0.0f;
+        workData->positionZ = 0.0f;
+        SetPlayerActionAndMotion(object, 0, 0);
+    }
 }
 
-void fn_1_1460(OMOBJ *arg0)
+void PlayerMotionStateLand(OMOBJ *object)
 {
-    unkDominationData *temp_r30;
+    PlayerCharacterWork *playerWork;
 
-    temp_r30 = arg0->data;
-    CharMotionVoiceOnSet(temp_r30->unk_01, arg0->mtnId[7], 0);
-    CharMotionShiftSet(temp_r30->unk_01, arg0->mtnId[7], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-    SetDominationDataStuff(arg0, 0, 0);
+    playerWork = object->data;
+    CharMotionShiftSet(playerWork->characterId, object->mtnId[6], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+    SetPlayerActionAndMotion(object, 0, 0);
+}
+
+void PlayerMotionStateSpecial(OMOBJ *object)
+{
+    PlayerCharacterWork *playerWork;
+
+    playerWork = object->data;
+    CharMotionVoiceOnSet(playerWork->characterId, object->mtnId[7], 0);
+    CharMotionShiftSet(playerWork->characterId, object->mtnId[7], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+    SetPlayerActionAndMotion(object, 0, 0);
 }

@@ -6,17 +6,17 @@
 #include "REL/m407dll.h"
 
 // function signatures
-void fn_1_162C(OMOBJ *);
-void fn_1_1A8C(OMOBJ *);
+void CreateMapSceneModels(OMOBJ *);
+void UpdateMapSceneModels(OMOBJ *);
 
 // bss
-HUPROCESS *lbl_1_bss_2C;
-OMOBJ *lbl_1_bss_28;
-s16 lbl_1_bss_24;
-s32 lbl_1_bss_20;
+HUPROCESS *mapProcess;
+OMOBJ *mapSceneObject;
+s16 mapSceneState;
+s32 mapSectionIndex;
 
 // data
-s32 lbl_1_data_198[] = {
+s32 mapModelAssetIds[] = {
     DATA_MAKE_NUM(DATADIR_M407, 0x00),
     DATA_MAKE_NUM(DATADIR_M407, 0x02),
     DATA_MAKE_NUM(DATADIR_M407, 0x03),
@@ -32,96 +32,96 @@ s32 lbl_1_data_198[] = {
     DATA_MAKE_NUM(DATADIR_M407, 0x04),
 };
 
-Vec lbl_1_data_1CC[] = { { 600.0f, 3.0f, -300.0f }, { 200.0f, 3.0f, -300.0f }, { -200.0f, 3.0f, -300.0f }, { -600.0f, 3.0f, -300.0f } };
+Vec playerMapPositions[] = { { 600.0f, 3.0f, -300.0f }, { 200.0f, 3.0f, -300.0f }, { -200.0f, 3.0f, -300.0f }, { -600.0f, 3.0f, -300.0f } };
 
-Vec lbl_1_data_1FC = { 2000.0f, 3000.0f, 2000.0f };
-Vec lbl_1_data_208 = { -0.5f, -0.5f, -0.5f };
-GXColor lbl_1_data_214 = { 255, 255, 255, 255 };
-Vec lbl_1_data_218 = { 0.0f, 1.0f, 0.0f };
+Vec mapLightPosition = { 2000.0f, 3000.0f, 2000.0f };
+Vec mapLightDirection = { -0.5f, -0.5f, -0.5f };
+GXColor mapLightColor = { 255, 255, 255, 255 };
+Vec mapShadowUp = { 0.0f, 1.0f, 0.0f };
 
-void fn_1_14F0(HUPROCESS *arg0, s32 arg1)
+void InitializeMapScene(HUPROCESS *process, s32 mapSectionIndex)
 {
-    HU3DLIGHT *sp10;
+    HU3DLIGHT *activeLight;
 
-    lbl_1_bss_2C = arg0;
-    lbl_1_bss_20 = arg1;
-    lbl_1_bss_28 = omAddObjEx(lbl_1_bss_2C, 0x100, 0xD, 0, 1, fn_1_162C);
-    omSetStatBit(lbl_1_bss_28, 0x100);
+    mapProcess = process;
+    mapSectionIndex = mapSectionIndex;
+    mapSceneObject = omAddObjEx(mapProcess, 0x100, 0xD, 0, 1, CreateMapSceneModels);
+    omSetStatBit(mapSceneObject, 0x100);
     Hu3DLighInit();
-    lbl_1_bss_24 = Hu3DGLightCreateV(&lbl_1_data_1FC, &lbl_1_data_208, &lbl_1_data_214);
-    Hu3DGLightInfinitytSet(lbl_1_bss_24);
-    sp10 = &Hu3DGlobalLight[lbl_1_bss_24];
+    mapSceneState = Hu3DGLightCreateV(&mapLightPosition, &mapLightDirection, &mapLightColor);
+    Hu3DGLightInfinitytSet(mapSceneState);
+    activeLight = &Hu3DGlobalLight[mapSceneState];
 }
 
-void fn_1_15D8(void)
+void GetMapSceneState(void)
 {
     s32 i;
 
     for (i = 0; i < 13; i++) {
-        Hu3DModelKill(lbl_1_bss_28->mdlId[i]);
+        Hu3DModelKill(mapSceneObject->mdlId[i]);
     }
 }
 
-void fn_1_162C(OMOBJ *arg0)
+void CreateMapSceneModels(OMOBJ *object)
 {
-    s32 var_r30;
-    s32 var_r30_2;
-    s32 var_r30_3;
-    s32 var_r30_4;
+    s32 unusedModelIndex;
+    s32 secondIndex;
+    s32 thirdIndex;
+    s32 fourthIndex;
     s32 i;
 
-    arg0->objFunc = fn_1_1A8C;
-    arg0->mdlId[0] = Hu3DModelCreateFile(lbl_1_data_198[2]);
-    Hu3DModelShadowMapSet(arg0->mdlId[0]);
-    Hu3DModelAmbSet(arg0->mdlId[0], 1.0f, 1.0f, 1.0f);
-    arg0->mdlId[1] = Hu3DModelCreateFile(lbl_1_data_198[3]);
-    Hu3DModelAmbSet(arg0->mdlId[1], 1.0f, 1.0f, 1.0f);
-    Hu3DModelAttrSet(arg0->mdlId[1], HU3D_ATTR_DISPOFF);
+    object->objFunc = UpdateMapSceneModels;
+    object->mdlId[0] = Hu3DModelCreateFile(mapModelAssetIds[2]);
+    Hu3DModelShadowMapSet(object->mdlId[0]);
+    Hu3DModelAmbSet(object->mdlId[0], 1.0f, 1.0f, 1.0f);
+    object->mdlId[1] = Hu3DModelCreateFile(mapModelAssetIds[3]);
+    Hu3DModelAmbSet(object->mdlId[1], 1.0f, 1.0f, 1.0f);
+    Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
     for (i = 0; i < ARRAY_COUNT(GWPlayerCfg); i++) {
-        arg0->mdlId[i + 2] = Hu3DModelCreateFile(lbl_1_data_198[GWPlayerCfg[i].character + 4]);
-        Hu3DModelAmbSet(arg0->mdlId[i + 2], 1.0f, 1.0f, 1.0f);
-        Hu3DModelShadowMapSet(arg0->mdlId[i + 2]);
+        object->mdlId[i + 2] = Hu3DModelCreateFile(mapModelAssetIds[GWPlayerCfg[i].character + 4]);
+        Hu3DModelAmbSet(object->mdlId[i + 2], 1.0f, 1.0f, 1.0f);
+        Hu3DModelShadowMapSet(object->mdlId[i + 2]);
     }
 
     for (i = 0; i < 5; i++) {
         if (i == 0) {
-            arg0->mdlId[i + 6] = Hu3DModelCreateFile(lbl_1_data_198[0]);
+            object->mdlId[i + 6] = Hu3DModelCreateFile(mapModelAssetIds[0]);
         }
         else {
-            arg0->mdlId[i + 6] = Hu3DModelLink(arg0->mdlId[6]);
+            object->mdlId[i + 6] = Hu3DModelLink(object->mdlId[6]);
         }
-        Hu3DModelAmbSet(arg0->mdlId[i + 6], 1.0f, 1.0f, 1.0f);
-        Hu3DModelShadowMapSet(arg0->mdlId[i + 6]);
+        Hu3DModelAmbSet(object->mdlId[i + 6], 1.0f, 1.0f, 1.0f);
+        Hu3DModelShadowMapSet(object->mdlId[i + 6]);
     }
 
-    arg0->mdlId[11] = Hu3DModelCreateFile(lbl_1_data_198[12]);
-    arg0->mdlId[12] = Hu3DModelCreateFile(lbl_1_data_198[1]);
+    object->mdlId[11] = Hu3DModelCreateFile(mapModelAssetIds[12]);
+    object->mdlId[12] = Hu3DModelCreateFile(mapModelAssetIds[1]);
 
     for (i = 0; i < 4; i++) {
-        Hu3DModelPosSetV(arg0->mdlId[i + 2], &lbl_1_data_1CC[i]);
+        Hu3DModelPosSetV(object->mdlId[i + 2], &playerMapPositions[i]);
     }
 
     for (i = 0; i < 5; i++) {
-        Hu3DModelPosSet(arg0->mdlId[i + 6], 0.0f, 0.0f, -2000.0f + (8000.0f * (f32)i));
+        Hu3DModelPosSet(object->mdlId[i + 6], 0.0f, 0.0f, -2000.0f + (8000.0f * (f32)i));
     }
 
-    Hu3DModelPosSet(arg0->mdlId[11], 0.0f, 0.0f, -3900.0f);
-    Hu3DModelPosSet(arg0->mdlId[12], 0.0f, 0.0f, 0.0f);
-    Hu3DModelAttrSet(arg0->mdlId[12], HU3D_MOTATTR_LOOP);
+    Hu3DModelPosSet(object->mdlId[11], 0.0f, 0.0f, -3900.0f);
+    Hu3DModelPosSet(object->mdlId[12], 0.0f, 0.0f, 0.0f);
+    Hu3DModelAttrSet(object->mdlId[12], HU3D_MOTATTR_LOOP);
 
-    if (lbl_1_bss_20 > 0) {
-        Hu3DModelPosSet(arg0->mdlId[1], 0.0f, 0.0f, 200.0f * (f32)lbl_1_bss_20);
-        Hu3DModelAttrReset(arg0->mdlId[1], HU3D_ATTR_DISPOFF);
+    if (mapSectionIndex > 0) {
+        Hu3DModelPosSet(object->mdlId[1], 0.0f, 0.0f, 200.0f * (f32)mapSectionIndex);
+        Hu3DModelAttrReset(object->mdlId[1], HU3D_ATTR_DISPOFF);
     }
 }
 
-void fn_1_1A8C(OMOBJ *arg0)
+void UpdateMapSceneModels(OMOBJ *object)
 {
-    Vec sp8;
+    Vec adjustedLightPosition;
 
-    sp8.x = lbl_1_data_1FC.x;
-    sp8.y = lbl_1_data_1FC.y;
-    sp8.z = lbl_1_data_1FC.z + Center.z;
-    Hu3DGLightPosSetV(lbl_1_bss_24, &sp8, &lbl_1_data_208);
-    Hu3DShadowPosSet(&sp8, &lbl_1_data_218, &Center);
+    adjustedLightPosition.x = mapLightPosition.x;
+    adjustedLightPosition.y = mapLightPosition.y;
+    adjustedLightPosition.z = mapLightPosition.z + Center.z;
+    Hu3DGLightPosSetV(mapSceneState, &adjustedLightPosition, &mapLightDirection);
+    Hu3DShadowPosSet(&adjustedLightPosition, &mapShadowUp, &Center);
 }

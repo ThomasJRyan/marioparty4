@@ -10,49 +10,49 @@
 #define MAX_WHOMPS_ALL_PLAYERS MAX_WHOMPS_PLAYER *ARRAY_COUNT(GWPlayer)
 #define MAX_WHOMPS (MAX_WHOMPS_PLAYER + 1) * ARRAY_COUNT(GWPlayer)
 
-typedef struct unkDominationData7 {
-    /* 0x00 */ u32 unk_00;
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ Vec unk_08;
-    /* 0x14 */ Vec unk_14;
-    /* 0x20 */ char unk_20[4];
-    /* 0x24 */ s32 unk_24;
-    /* 0x28 */ s32 unk_28;
-    /* 0x2C */ s32 unk_2C;
-} unkDominationData7; // sizeof 0x30
+typedef struct WhompWork {
+    /* 0x00 */ u32 whompIndex;
+    /* 0x04 */ s32 shadowInitialized;
+    /* 0x08 */ Vec position;
+    /* 0x14 */ Vec rotation;
+    /* 0x20 */ char padding[4];
+    /* 0x24 */ s32 behaviorIndex;
+    /* 0x28 */ s32 hasAttachedShadow;
+    /* 0x2C */ s32 behaviorTimer;
+} WhompWork; // sizeof 0x30
 
 // function signatures
-void fn_1_3360(OMOBJ *);
-void fn_1_3364(OMOBJ *);
-void fn_1_34A4(OMOBJ *);
-void fn_1_37B0(OMOBJ *);
-void fn_1_36D0(OMOBJ *);
-void fn_1_2B7C(OMOBJ *);
-void fn_1_290C(OMOBJ *, s32);
-void fn_1_31F8(OMOBJ *);
-void fn_1_4544(s32, s32, f32, f32, f32);
-void fn_1_3BB8(s16, f32, f32);
-void fn_1_568(s16, s16, s16);
+void WhompStateIdle(OMOBJ *);
+void WhompStateFall(OMOBJ *);
+void WhompStateImpact(OMOBJ *);
+void WhompStateReset(OMOBJ *);
+void WhompStateRecover(OMOBJ *);
+void CreateWhomp(OMOBJ *);
+void SetWhompBehaviorState(OMOBJ *, s32);
+void DestroyWhomp(OMOBJ *);
+void SpawnEffect(s32, s32, f32, f32, f32);
+void ShowWhompScorePopup(s16, f32, f32);
+void VibratePlayerController(s16, s16, s16);
 
 // bss
-HUPROCESS *lbl_1_bss_37C0;
-OMOBJ *lbl_1_bss_2DB0[MAX_WHOMPS];
-s16 lbl_1_bss_1E98[MAX_WHOMPS][3];
-s16 lbl_1_bss_68[MAX_WHOMPS][6];
-s16 lbl_1_bss_66;
-s16 lbl_1_bss_64;
-s16 lbl_1_bss_3A[21];
-s16 lbl_1_bss_38;
+HUPROCESS *whompProcess;
+OMOBJ *whompObjects[MAX_WHOMPS];
+s16 whompModelIds[MAX_WHOMPS][3];
+s16 whompMotionIds[MAX_WHOMPS][6];
+s16 whompCount;
+s16 whompState;
+s16 playerWhompCounts[21];
+s16 whompScoreMode;
 
 // data
-s32 lbl_1_data_228[] = {
+s32 whompModelAssetIds[] = {
     DATA_MAKE_NUM(DATADIR_M407, 0x1C),
     DATA_MAKE_NUM(DATADIR_M407, 0x1D),
     DATA_MAKE_NUM(DATADIR_M407, 0x1E),
     DATA_MAKE_NUM(DATADIR_M407, 0x1B),
 };
 
-s32 lbl_1_data_238[] = {
+s32 whompMotionAssetIds[] = {
     DATA_MAKE_NUM(DATADIR_M407, 0x2E),
     DATA_MAKE_NUM(DATADIR_M407, 0x2F),
     DATA_MAKE_NUM(DATADIR_M407, 0x2D),
@@ -63,457 +63,457 @@ s32 lbl_1_data_238[] = {
     DATA_MAKE_NUM(DATADIR_M407, 0x29),
 };
 
-ObjFuncs lbl_1_data_258[] = {
-    fn_1_3360,
-    fn_1_3364,
-    fn_1_34A4,
-    fn_1_37B0,
-    fn_1_36D0,
+ObjFuncs whompBehaviorCallbacks[] = {
+    WhompStateIdle,
+    WhompStateFall,
+    WhompStateImpact,
+    WhompStateReset,
+    WhompStateRecover,
 };
 
-void fn_1_2354(HUPROCESS *arg0)
+void InitializeWhompSystem(HUPROCESS *process)
 {
-    HUPROCESS *sp8;
+    HUPROCESS *unusedProcessAlias;
     u32 i;
     u32 j;
 
-    lbl_1_bss_37C0 = arg0;
+    whompProcess = process;
 
     for (j = 0, i = 0; i < MAX_WHOMPS_ALL_PLAYERS; i++) {
-        lbl_1_bss_2DB0[i] = omAddObjEx(lbl_1_bss_37C0, 0x200, 3, 6, 2, fn_1_2B7C);
-        lbl_1_bss_2DB0[i]->work[0] = i;
-        lbl_1_bss_2DB0[i]->work[1] = 0;
+        whompObjects[i] = omAddObjEx(whompProcess, 0x200, 3, 6, 2, CreateWhomp);
+        whompObjects[i]->work[0] = i;
+        whompObjects[i]->work[1] = 0;
     }
 
     j = j + i;
 
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_2DB0[j + i] = omAddObjEx(lbl_1_bss_37C0, 0x200, 3, 6, 2, fn_1_2B7C);
-        lbl_1_bss_2DB0[j + i]->work[0] = j + i;
-        lbl_1_bss_2DB0[j + i]->work[1] = 1;
+        whompObjects[j + i] = omAddObjEx(whompProcess, 0x200, 3, 6, 2, CreateWhomp);
+        whompObjects[j + i]->work[0] = j + i;
+        whompObjects[j + i]->work[1] = 1;
     }
 
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_3A[i] = 0;
+        playerWhompCounts[i] = 0;
     }
 
-    lbl_1_bss_64 = 0;
+    whompState = 0;
 }
 
-void fn_1_24F0(void)
+void ResetWhompSystem(void)
 {
     u32 i;
 
     for (i = 0; i < MAX_WHOMPS; i++) {
-        fn_1_31F8(lbl_1_bss_2DB0[i]);
-        omDelObjEx(lbl_1_bss_37C0, lbl_1_bss_2DB0[i]);
+        DestroyWhomp(whompObjects[i]);
+        omDelObjEx(whompProcess, whompObjects[i]);
     }
 }
 
-void fn_1_2564(void)
+void ClearWhompScores(void)
 {
     u32 i;
 
     HuAudFXPlay(0x542);
     for (i = 0; i < MAX_WHOMPS; i++) {
-        fn_1_290C(lbl_1_bss_2DB0[i], 1);
+        SetWhompBehaviorState(whompObjects[i], 1);
     }
 }
 
-void fn_1_25C0(void)
+void ResetWhompCounts(void)
 {
     u32 i, j;
 
-    lbl_1_bss_38 = 0;
+    whompScoreMode = 0;
 
     for (i = 0; i < 4; i++) {
-        if (lbl_1_bss_38 < lbl_1_bss_3A[i]) {
-            lbl_1_bss_38 = lbl_1_bss_3A[i];
+        if (whompScoreMode < playerWhompCounts[i]) {
+            whompScoreMode = playerWhompCounts[i];
         }
     }
 
-    lbl_1_bss_66 = 0;
+    whompCount = 0;
 
     for (i = 0; i < 4; i++) {
-        if (lbl_1_bss_3A[i] > 0) {
-            fn_1_290C(lbl_1_bss_2DB0[i], 3);
-            lbl_1_bss_66 += 1;
+        if (playerWhompCounts[i] > 0) {
+            SetWhompBehaviorState(whompObjects[i], 3);
+            whompCount += 1;
         }
     }
 }
 
-void fn_1_26CC(u8 arg0)
+void IncrementPlayerWhompCount(u8 playerIndex)
 {
     u32 i;
-    OMOBJ *temp;
+    OMOBJ *whompObject;
 
-    i = lbl_1_bss_3A[arg0];
+    i = playerWhompCounts[playerIndex];
     if (i < MAX_WHOMPS_PLAYER) {
-        lbl_1_bss_3A[arg0] = i + 1;
-        temp = lbl_1_bss_2DB0[arg0 + i * ARRAY_COUNT(GWPlayer)];
-        fn_1_290C(temp, 2);
+        playerWhompCounts[playerIndex] = i + 1;
+        whompObject = whompObjects[playerIndex + i * ARRAY_COUNT(GWPlayer)];
+        SetWhompBehaviorState(whompObject, 2);
     }
 }
 
 #ifdef __MWERKS__
-void fn_1_2770(u8 arg0, s16 arg2)
+void SpawnPlayerWhomp(u8 playerIndex, s16 whompType)
 #else
-void fn_1_2770(u8 arg0)
+void SpawnPlayerWhomp(u8 playerIndex)
 #endif
 {
-    OMOBJ *temp_r30;
-    unkDominationData7 *temp_r31;
+    OMOBJ *playerWhompObject;
+    WhompWork *workData;
 
-    temp_r30 = lbl_1_bss_2DB0[arg0 + MAX_WHOMPS_ALL_PLAYERS];
-    temp_r31 = temp_r30->data;
-    temp_r31->unk_08.x = 600.0f - (400.0f * arg0);
-    temp_r31->unk_08.y = -300.0f;
-    temp_r31->unk_08.z = 200.0f * (lbl_1_bss_3A[arg0] + 2);
-    fn_1_290C(temp_r30, 2);
+    playerWhompObject = whompObjects[playerIndex + MAX_WHOMPS_ALL_PLAYERS];
+    workData = playerWhompObject->data;
+    workData->position.x = 600.0f - (400.0f * playerIndex);
+    workData->position.y = -300.0f;
+    workData->position.z = 200.0f * (playerWhompCounts[playerIndex] + 2);
+    SetWhompBehaviorState(playerWhompObject, 2);
 }
 
-s32 fn_1_2880(void)
+s32 GetWhompScoreTotal(void)
 {
-    return (lbl_1_bss_66 == 0) ? 1 : 0;
+    return (whompCount == 0) ? 1 : 0;
 }
 
-s16 fn_1_28B8(u8 arg0)
+s16 GetPlayerWhompCount(u8 playerIndex)
 {
-    return lbl_1_bss_3A[arg0];
+    return playerWhompCounts[playerIndex];
 }
 
-s16 fn_1_28D4(void)
+s16 GetWhompScoreDisplayMode(void)
 {
-    return lbl_1_bss_64;
+    return whompState;
 }
 
-s16 fn_1_28E4(u8 arg0)
+s16 GetPlayerWhompModelId(u8 playerIndex)
 {
-    return lbl_1_bss_2DB0[arg0 + MAX_WHOMPS_ALL_PLAYERS]->mdlId[0];
+    return whompObjects[playerIndex + MAX_WHOMPS_ALL_PLAYERS]->mdlId[0];
 }
 
-void fn_1_290C(OMOBJ *arg0, s32 arg1)
+void SetWhompBehaviorState(OMOBJ *object, s32 behaviorState)
 {
-    unkDominationData7 *temp_r31;
+    WhompWork *workData;
 
-    temp_r31 = arg0->data;
-    temp_r31->unk_24 = arg1;
-    temp_r31->unk_2C = 0;
+    workData = object->data;
+    workData->behaviorIndex = behaviorState;
+    workData->behaviorTimer = 0;
 }
 
-void fn_1_2930(OMOBJ *arg0)
+void UpdateWhomp(OMOBJ *object)
 {
-    unkDominationData7 *temp_r28;
-    OMOBJ *temp_r29;
+    WhompWork *shadowWork;
+    OMOBJ *shadowObject;
     u32 i;
-    unkDominationData7 *temp_r31;
+    WhompWork *workData;
 
-    temp_r31 = arg0->data;
-    lbl_1_data_258[temp_r31->unk_24](arg0);
-    if ((temp_r31->unk_08.z > (Center.z - 2000.0f)) && (temp_r31->unk_08.z < (2000.0f + Center.z)) && (temp_r31->unk_04 == 0)) {
+    workData = object->data;
+    whompBehaviorCallbacks[workData->behaviorIndex](object);
+    if ((workData->position.z > (Center.z - 2000.0f)) && (workData->position.z < (2000.0f + Center.z)) && (workData->shadowInitialized == 0)) {
         for (i = 0; i < 8; i++) {
-            temp_r29 = lbl_1_bss_2DB0[(temp_r31->unk_00 % 80) + (i * 80)];
-            temp_r29->mdlId[0] = -1;
-            temp_r28 = temp_r29->data;
-            temp_r28->unk_04 = 0;
+            shadowObject = whompObjects[(workData->whompIndex % 80) + (i * 80)];
+            shadowObject->mdlId[0] = -1;
+            shadowWork = shadowObject->data;
+            shadowWork->shadowInitialized = 0;
         }
-        arg0->mdlId[0] = lbl_1_bss_1E98[((temp_r31->unk_00 % 80))][0];
+        object->mdlId[0] = whompModelIds[((workData->whompIndex % 80))][0];
 
-        if (temp_r31->unk_08.y < 0.0f) {
-            Hu3DModelShadowDispOff(arg0->mdlId[0]);
+        if (workData->position.y < 0.0f) {
+            Hu3DModelShadowDispOff(object->mdlId[0]);
         }
         else {
-            Hu3DModelShadowDispOn(arg0->mdlId[0]);
+            Hu3DModelShadowDispOn(object->mdlId[0]);
         }
 
-        temp_r31->unk_04 = 1;
+        workData->shadowInitialized = 1;
     }
 
-    if ((temp_r31->unk_08.y < 0.0f) || (temp_r31->unk_08.z < (Center.z - 2000.0f))) {
-        Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
+    if ((workData->position.y < 0.0f) || (workData->position.z < (Center.z - 2000.0f))) {
+        Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
     }
     else {
-        Hu3DModelAttrReset(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
     }
 
-    omSetTra(arg0, temp_r31->unk_08.x, temp_r31->unk_08.y, temp_r31->unk_08.z);
-    omSetRot(arg0, temp_r31->unk_14.x, temp_r31->unk_14.y, temp_r31->unk_14.z);
+    omSetTra(object, workData->position.x, workData->position.y, workData->position.z);
+    omSetRot(object, workData->rotation.x, workData->rotation.y, workData->rotation.z);
 
-    if (temp_r31->unk_28 == 1) {
-        Hu3DModelPosSet(arg0->mdlId[2], temp_r31->unk_08.x, 1.0f + temp_r31->unk_08.y, temp_r31->unk_08.z);
+    if (workData->hasAttachedShadow == 1) {
+        Hu3DModelPosSet(object->mdlId[2], workData->position.x, 1.0f + workData->position.y, workData->position.z);
     }
 }
 
-void fn_1_2B7C(OMOBJ *arg0)
+void CreateWhomp(OMOBJ *object)
 {
     u32 i;
-    unkDominationData7 *temp_r30;
+    WhompWork *whompWork;
 
-    arg0->objFunc = fn_1_2930;
-    arg0->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(unkDominationData7), HU_MEMNUM_OVL);
-    temp_r30 = arg0->data;
+    object->objFunc = UpdateWhomp;
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WhompWork), HU_MEMNUM_OVL);
+    whompWork = object->data;
 
     for (i = 0; i < 3; i++) {
-        arg0->mdlId[i] = -1;
+        object->mdlId[i] = -1;
     }
 
     for (i = 0; i < 6; i++) {
-        arg0->mtnId[i] = -1;
+        object->mtnId[i] = -1;
     }
 
-    temp_r30->unk_00 = (u32)arg0->work[0];
-    temp_r30->unk_28 = (u32)arg0->work[1];
-    temp_r30->unk_04 = 0;
-    temp_r30->unk_2C = 0;
-    switch (temp_r30->unk_28) {
+    whompWork->whompIndex = (u32)object->work[0];
+    whompWork->hasAttachedShadow = (u32)object->work[1];
+    whompWork->shadowInitialized = 0;
+    whompWork->behaviorTimer = 0;
+    switch (whompWork->hasAttachedShadow) {
         case 0:
-            temp_r30->unk_14.x = 0.0f;
-            temp_r30->unk_14.y = 180.0f;
-            temp_r30->unk_14.z = 0.0f;
-            if (temp_r30->unk_00 < 80) {
-                arg0->mdlId[0] = Hu3DModelCreateFile(lbl_1_data_228[1]);
-                Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_NOCULL);
-                Hu3DModelAmbSet(arg0->mdlId[0], 1.0f, 1.0f, 1.0f);
-                if (temp_r30->unk_00 == 0) {
-                    arg0->mtnId[5] = Hu3DJointMotionFile(arg0->mdlId[0], lbl_1_data_238[5]);
-                    arg0->mtnId[3] = Hu3DJointMotionFile(arg0->mdlId[0], lbl_1_data_238[7]);
-                    arg0->mtnId[4] = Hu3DJointMotionFile(arg0->mdlId[0], lbl_1_data_238[6]);
+            whompWork->rotation.x = 0.0f;
+            whompWork->rotation.y = 180.0f;
+            whompWork->rotation.z = 0.0f;
+            if (whompWork->whompIndex < 80) {
+                object->mdlId[0] = Hu3DModelCreateFile(whompModelAssetIds[1]);
+                Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_NOCULL);
+                Hu3DModelAmbSet(object->mdlId[0], 1.0f, 1.0f, 1.0f);
+                if (whompWork->whompIndex == 0) {
+                    object->mtnId[5] = Hu3DJointMotionFile(object->mdlId[0], whompMotionAssetIds[5]);
+                    object->mtnId[3] = Hu3DJointMotionFile(object->mdlId[0], whompMotionAssetIds[7]);
+                    object->mtnId[4] = Hu3DJointMotionFile(object->mdlId[0], whompMotionAssetIds[6]);
                 }
                 else {
-                    arg0->mtnId[5] = lbl_1_bss_68[0][5];
-                    arg0->mtnId[3] = lbl_1_bss_68[0][3];
-                    arg0->mtnId[4] = lbl_1_bss_68[0][4];
+                    object->mtnId[5] = whompMotionIds[0][5];
+                    object->mtnId[3] = whompMotionIds[0][3];
+                    object->mtnId[4] = whompMotionIds[0][4];
                 }
-                Hu3DModelShadowSet(arg0->mdlId[0]);
+                Hu3DModelShadowSet(object->mdlId[0]);
                 for (i = 0; i < 3; i++) {
-                    lbl_1_bss_1E98[temp_r30->unk_00][i] = arg0->mdlId[i];
+                    whompModelIds[whompWork->whompIndex][i] = object->mdlId[i];
                 }
 
                 for (i = 0; i < 6; i++) {
-                    lbl_1_bss_68[temp_r30->unk_00][i] = arg0->mtnId[i];
+                    whompMotionIds[whompWork->whompIndex][i] = object->mtnId[i];
                 }
-                Hu3DMotionSet(arg0->mdlId[0], arg0->mtnId[5]);
-                Hu3DModelAttrSet(arg0->mdlId[0], HU3D_MOTATTR_LOOP);
-                temp_r30->unk_04 = 1;
+                Hu3DMotionSet(object->mdlId[0], object->mtnId[5]);
+                Hu3DModelAttrSet(object->mdlId[0], HU3D_MOTATTR_LOOP);
+                whompWork->shadowInitialized = 1;
             }
             else {
-                temp_r30->unk_04 = 0;
+                whompWork->shadowInitialized = 0;
             }
             break;
         case 1:
-            temp_r30->unk_14.x = 0.0f;
-            temp_r30->unk_14.y = 0.0f;
-            temp_r30->unk_14.z = 0.0f;
-            arg0->mdlId[0] = Hu3DModelCreateFile(lbl_1_data_228[0]);
-            arg0->mdlId[1] = Hu3DModelCreateFile(lbl_1_data_228[2]);
-            arg0->mdlId[2] = Hu3DModelCreateFile(lbl_1_data_228[3]);
-            Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_NOCULL);
-            Hu3DModelAttrSet(arg0->mdlId[1], HU3D_ATTR_NOCULL);
-            Hu3DModelAmbSet(arg0->mdlId[0], 1.0f, 1.0f, 1.0f);
-            Hu3DModelAmbSet(arg0->mdlId[1], 1.0f, 1.0f, 1.0f);
-            arg0->mtnId[2] = Hu3DJointMotionFile(arg0->mdlId[0], lbl_1_data_238[2]);
-            arg0->mtnId[3] = Hu3DJointMotionFile(arg0->mdlId[0], lbl_1_data_238[4]);
-            arg0->mtnId[5] = Hu3DJointMotionFile(arg0->mdlId[0], lbl_1_data_238[3]);
-            arg0->mtnId[0] = Hu3DJointMotionFile(arg0->mdlId[1], lbl_1_data_238[0]);
-            arg0->mtnId[1] = Hu3DJointMotionFile(arg0->mdlId[1], lbl_1_data_238[1]);
-            Hu3DModelHookSet(arg0->mdlId[0], "itemhook_r", arg0->mdlId[1]);
-            Hu3DModelShadowSet(arg0->mdlId[0]);
-            Hu3DModelShadowSet(arg0->mdlId[1]);
-            Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(arg0->mdlId[1], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(arg0->mdlId[2], HU3D_MOTATTR_PAUSE);
-            Hu3DModelAttrSet(arg0->mdlId[2], HU3D_MOTATTR_LOOP);
-            temp_r30->unk_04 = 1;
+            whompWork->rotation.x = 0.0f;
+            whompWork->rotation.y = 0.0f;
+            whompWork->rotation.z = 0.0f;
+            object->mdlId[0] = Hu3DModelCreateFile(whompModelAssetIds[0]);
+            object->mdlId[1] = Hu3DModelCreateFile(whompModelAssetIds[2]);
+            object->mdlId[2] = Hu3DModelCreateFile(whompModelAssetIds[3]);
+            Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_NOCULL);
+            Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_NOCULL);
+            Hu3DModelAmbSet(object->mdlId[0], 1.0f, 1.0f, 1.0f);
+            Hu3DModelAmbSet(object->mdlId[1], 1.0f, 1.0f, 1.0f);
+            object->mtnId[2] = Hu3DJointMotionFile(object->mdlId[0], whompMotionAssetIds[2]);
+            object->mtnId[3] = Hu3DJointMotionFile(object->mdlId[0], whompMotionAssetIds[4]);
+            object->mtnId[5] = Hu3DJointMotionFile(object->mdlId[0], whompMotionAssetIds[3]);
+            object->mtnId[0] = Hu3DJointMotionFile(object->mdlId[1], whompMotionAssetIds[0]);
+            object->mtnId[1] = Hu3DJointMotionFile(object->mdlId[1], whompMotionAssetIds[1]);
+            Hu3DModelHookSet(object->mdlId[0], "itemhook_r", object->mdlId[1]);
+            Hu3DModelShadowSet(object->mdlId[0]);
+            Hu3DModelShadowSet(object->mdlId[1]);
+            Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(object->mdlId[2], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(object->mdlId[2], HU3D_MOTATTR_PAUSE);
+            Hu3DModelAttrSet(object->mdlId[2], HU3D_MOTATTR_LOOP);
+            whompWork->shadowInitialized = 1;
             break;
     }
-    temp_r30->unk_08.x = (600.0f - (400.0f * (temp_r30->unk_00 & 3)));
-    temp_r30->unk_08.y = 0.0f;
-    temp_r30->unk_08.z = (200.0f * (temp_r30->unk_00 >> 2));
-    fn_1_290C(arg0, 0);
+    whompWork->position.x = (600.0f - (400.0f * (whompWork->whompIndex & 3)));
+    whompWork->position.y = 0.0f;
+    whompWork->position.z = (200.0f * (whompWork->whompIndex >> 2));
+    SetWhompBehaviorState(object, 0);
 }
 
-void fn_1_31F8(OMOBJ *arg0)
+void DestroyWhomp(OMOBJ *object)
 {
     s32 i;
-    unkDominationData7 *temp_r29;
+    WhompWork *whompWork;
 
-    temp_r29 = arg0->data;
-    switch (temp_r29->unk_28) { /* irregular */
+    whompWork = object->data;
+    switch (whompWork->hasAttachedShadow) { /* irregular */
         case 0:
-            if (temp_r29->unk_00 == 0) {
+            if (whompWork->whompIndex == 0) {
                 for (i = 0; i < 6; i++) {
-                    if (arg0->mtnId[i] != -1) {
-                        Hu3DMotionKill(arg0->mtnId[i]);
+                    if (object->mtnId[i] != -1) {
+                        Hu3DMotionKill(object->mtnId[i]);
                     }
                 }
             }
-            if (temp_r29->unk_04 != 0) {
+            if (whompWork->shadowInitialized != 0) {
                 for (i = 0; i < 3; i++) {
-                    if (arg0->mdlId[i] != -1) {
-                        Hu3DModelKill(arg0->mdlId[i]);
+                    if (object->mdlId[i] != -1) {
+                        Hu3DModelKill(object->mdlId[i]);
                     }
                 }
             }
             break;
         case 1:
             for (i = 0; i < 6; i++) {
-                if (arg0->mtnId[i] != -1) {
-                    Hu3DMotionKill(arg0->mtnId[i]);
+                if (object->mtnId[i] != -1) {
+                    Hu3DMotionKill(object->mtnId[i]);
                 }
             }
             for (i = 0; i < 3; i++) {
-                if (arg0->mdlId[i] != -1) {
-                    Hu3DModelKill(arg0->mdlId[i]);
+                if (object->mdlId[i] != -1) {
+                    Hu3DModelKill(object->mdlId[i]);
                 }
             }
             break;
     }
-    if (arg0->data) {
-        HuMemDirectFree(arg0->data);
+    if (object->data) {
+        HuMemDirectFree(object->data);
     }
 }
 
-void fn_1_3360(OMOBJ *) { }
+void WhompStateIdle(OMOBJ *) { }
 
-void fn_1_3364(OMOBJ *arg0)
+void WhompStateFall(OMOBJ *object)
 {
-    unkDominationData7 *temp_r31;
+    WhompWork *workData;
 
-    temp_r31 = arg0->data;
-    if (temp_r31->unk_2C == 0) {
-        Hu3DMotionSet(arg0->mdlId[0], arg0->mtnId[4]);
-        Hu3DModelAttrReset(arg0->mdlId[0], HU3D_MOTATTR_LOOP);
-        switch (temp_r31->unk_28) {
+    workData = object->data;
+    if (workData->behaviorTimer == 0) {
+        Hu3DMotionSet(object->mdlId[0], object->mtnId[4]);
+        Hu3DModelAttrReset(object->mdlId[0], HU3D_MOTATTR_LOOP);
+        switch (workData->hasAttachedShadow) {
             case 0:
-                fn_1_4544(0, 0, temp_r31->unk_08.x, 0.0f, temp_r31->unk_08.z);
+                SpawnEffect(0, 0, workData->position.x, 0.0f, workData->position.z);
                 break;
             case 1:
-                fn_1_4544(1, 0, temp_r31->unk_08.x, 0.0f, temp_r31->unk_08.z);
+                SpawnEffect(1, 0, workData->position.x, 0.0f, workData->position.z);
                 break;
         }
     }
 
-    if (temp_r31->unk_2C == 0x2A) {
-        Hu3DModelShadowDispOff(arg0->mdlId[0]);
+    if (workData->behaviorTimer == 0x2A) {
+        Hu3DModelShadowDispOff(object->mdlId[0]);
     }
 
-    if (Hu3DMotionEndCheck(*arg0->mdlId) == 0) {
-        temp_r31->unk_2C++;
+    if (Hu3DMotionEndCheck(*object->mdlId) == 0) {
+        workData->behaviorTimer++;
         return;
     }
 
-    temp_r31->unk_08.y = -300.0f;
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    fn_1_290C(arg0, 0);
+    workData->position.y = -300.0f;
+    Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
+    SetWhompBehaviorState(object, 0);
 }
 
-void fn_1_34A4(OMOBJ *arg0)
+void WhompStateImpact(OMOBJ *object)
 {
-    unkDominationData7 *temp_r30;
+    WhompWork *whompWork;
 
-    temp_r30 = arg0->data;
-    if (temp_r30->unk_2C == 0) {
-        if (temp_r30->unk_28 == 1) {
-            Hu3DModelAttrReset(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrReset(arg0->mdlId[1], HU3D_ATTR_DISPOFF);
+    whompWork = object->data;
+    if (whompWork->behaviorTimer == 0) {
+        if (whompWork->hasAttachedShadow == 1) {
+            Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrReset(object->mdlId[1], HU3D_ATTR_DISPOFF);
         }
         else {
-            Hu3DModelAttrReset(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
         }
-        Hu3DMotionSet(arg0->mdlId[0], arg0->mtnId[3]);
-        Hu3DModelAttrReset(arg0->mdlId[0], HU3D_MOTATTR_LOOP);
-        switch (temp_r30->unk_28) { /* irregular */
+        Hu3DMotionSet(object->mdlId[0], object->mtnId[3]);
+        Hu3DModelAttrReset(object->mdlId[0], HU3D_MOTATTR_LOOP);
+        switch (whompWork->hasAttachedShadow) { /* irregular */
             case 0:
-                fn_1_4544(0, 0, temp_r30->unk_08.x, 0.0f, temp_r30->unk_08.z);
+                SpawnEffect(0, 0, whompWork->position.x, 0.0f, whompWork->position.z);
                 HuAudFXPlay(0x543);
                 break;
             case 1:
                 HuAudFXPlay(0x544);
-                fn_1_4544(1, 0, temp_r30->unk_08.x, 0.0f, temp_r30->unk_08.z);
+                SpawnEffect(1, 0, whompWork->position.x, 0.0f, whompWork->position.z);
                 break;
         }
-        temp_r30->unk_08.y = 0.0f;
+        whompWork->position.y = 0.0f;
     }
 
-    if (temp_r30->unk_2C == 0xA) {
-        Hu3DModelShadowDispOn(arg0->mdlId[0]);
+    if (whompWork->behaviorTimer == 0xA) {
+        Hu3DModelShadowDispOn(object->mdlId[0]);
     }
 
-    if ((temp_r30->unk_2C == 0xA) && (temp_r30->unk_28 == 1)) {
-        Hu3DMotionSet(arg0->mdlId[1], arg0->mtnId[1]);
-        Hu3DModelAttrReset(arg0->mdlId[1], HU3D_MOTATTR_LOOP);
+    if ((whompWork->behaviorTimer == 0xA) && (whompWork->hasAttachedShadow == 1)) {
+        Hu3DMotionSet(object->mdlId[1], object->mtnId[1]);
+        Hu3DModelAttrReset(object->mdlId[1], HU3D_MOTATTR_LOOP);
     }
 
-    temp_r30->unk_2C++;
+    whompWork->behaviorTimer++;
 
-    if (Hu3DMotionEndCheck(arg0->mdlId[0]) != 0) {
-        Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[5], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-        switch (temp_r30->unk_28) {
+    if (Hu3DMotionEndCheck(object->mdlId[0]) != 0) {
+        Hu3DMotionShiftSet(object->mdlId[0], object->mtnId[5], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+        switch (whompWork->hasAttachedShadow) {
             case 0:
-                fn_1_290C(arg0, 0);
+                SetWhompBehaviorState(object, 0);
                 return;
             case 1:
-                fn_1_290C(arg0, 4);
+                SetWhompBehaviorState(object, 4);
                 break;
         }
     }
 }
 
-void fn_1_36D0(OMOBJ *arg0)
+void WhompStateRecover(OMOBJ *object)
 {
-    unkDominationData7 *sp8;
+    WhompWork *whompWork;
 
-    sp8 = arg0->data;
-    Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[2], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-    Hu3DMotionSet(arg0->mdlId[1], arg0->mtnId[0]);
-    Hu3DModelAttrSet(arg0->mdlId[1], HU3D_MOTATTR_LOOP);
-    Hu3DModelAttrReset(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(arg0->mdlId[2], HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrSet(arg0->mdlId[2], HU3D_MOTATTR_LOOP);
-    fn_1_290C(arg0, 0);
+    whompWork = object->data;
+    Hu3DMotionShiftSet(object->mdlId[0], object->mtnId[2], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+    Hu3DMotionSet(object->mdlId[1], object->mtnId[0]);
+    Hu3DModelAttrSet(object->mdlId[1], HU3D_MOTATTR_LOOP);
+    Hu3DModelAttrReset(object->mdlId[2], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(object->mdlId[2], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrSet(object->mdlId[2], HU3D_MOTATTR_LOOP);
+    SetWhompBehaviorState(object, 0);
 }
 
-void fn_1_37B0(OMOBJ *arg0)
+void WhompStateReset(OMOBJ *object)
 {
-    unkDominationData7 *temp_r31;
+    WhompWork *workData;
 
-    temp_r31 = arg0->data;
-    if (temp_r31->unk_2C == 0) {
-        temp_r31->unk_14.x = 0.0f;
-        temp_r31->unk_08.y = 0.0f;
-        Hu3DModelAttrSet(arg0->mdlId[0], HU3D_MOTATTR_PAUSE);
-        temp_r31->unk_2C++;
+    workData = object->data;
+    if (workData->behaviorTimer == 0) {
+        workData->rotation.x = 0.0f;
+        workData->position.y = 0.0f;
+        Hu3DModelAttrSet(object->mdlId[0], HU3D_MOTATTR_PAUSE);
+        workData->behaviorTimer++;
     }
-    temp_r31->unk_14.x -= 4.0f;
-    temp_r31->unk_08.y += 0.9f;
-    if ((temp_r31->unk_14.x <= -25.0f) && (temp_r31->unk_2C == 1)) {
-        if ((temp_r31->unk_00 < 640) && ((temp_r31->unk_00 >> 2) < (lbl_1_bss_3A[temp_r31->unk_00 & 3] - 1))) {
-            fn_1_290C(lbl_1_bss_2DB0[temp_r31->unk_00 + 4], 3);
-            temp_r31->unk_2C++;
+    workData->rotation.x -= 4.0f;
+    workData->position.y += 0.9f;
+    if ((workData->rotation.x <= -25.0f) && (workData->behaviorTimer == 1)) {
+        if ((workData->whompIndex < 640) && ((workData->whompIndex >> 2) < (playerWhompCounts[workData->whompIndex & 3] - 1))) {
+            SetWhompBehaviorState(whompObjects[workData->whompIndex + 4], 3);
+            workData->behaviorTimer++;
         }
-        if (lbl_1_bss_64 < (temp_r31->unk_00 >> 2) + 1) {
-            lbl_1_bss_64 = (temp_r31->unk_00 >> 2) + 1;
+        if (whompState < (workData->whompIndex >> 2) + 1) {
+            whompState = (workData->whompIndex >> 2) + 1;
         }
     }
-    if ((temp_r31->unk_2C == 1) && (temp_r31->unk_14.x > -90.0f) || (temp_r31->unk_2C == 2) && (temp_r31->unk_14.x > -68.0f)) {
+    if ((workData->behaviorTimer == 1) && (workData->rotation.x > -90.0f) || (workData->behaviorTimer == 2) && (workData->rotation.x > -68.0f)) {
         return;
     }
 
-    temp_r31->unk_14.x = (temp_r31->unk_2C == 1) ? -90.0f : -68.0f;
+    workData->rotation.x = (workData->behaviorTimer == 1) ? -90.0f : -68.0f;
 
-    if (temp_r31->unk_2C == 1) {
-        fn_1_4544(3, 0, temp_r31->unk_08.x, 0.0f, 200.0f + temp_r31->unk_08.z);
+    if (workData->behaviorTimer == 1) {
+        SpawnEffect(3, 0, workData->position.x, 0.0f, 200.0f + workData->position.z);
         HuAudFXPlay(0x544);
-        if (lbl_1_bss_38 > (temp_r31->unk_00 >> 2) + 1) {
-            fn_1_3BB8((temp_r31->unk_00 >> 2) + 1, temp_r31->unk_08.x, temp_r31->unk_08.z);
+        if (whompScoreMode > (workData->whompIndex >> 2) + 1) {
+            ShowWhompScorePopup((workData->whompIndex >> 2) + 1, workData->position.x, workData->position.z);
         }
-        lbl_1_bss_66 -= 1;
+        whompCount -= 1;
     }
     else {
-        fn_1_4544(2, 0, temp_r31->unk_08.x, 0.0f, 200.0f + temp_r31->unk_08.z);
+        SpawnEffect(2, 0, workData->position.x, 0.0f, 200.0f + workData->position.z);
         HuAudFXPlay(0x543);
     }
-    fn_1_568(temp_r31->unk_00 & 3, 2, 4);
-    fn_1_290C(arg0, 0);
+    VibratePlayerController(workData->whompIndex & 3, 2, 4);
+    SetWhompBehaviorState(object, 0);
 }

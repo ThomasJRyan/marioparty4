@@ -8,478 +8,478 @@
 
 #include "REL/m407dll.h"
 
-typedef struct unkDominationData5 {
-/* 0x00 */ u32 unk_00;
-/* 0x04 */ s16 unk_04;
-/* 0x06 */ s16 unk_06;
-/* 0x08 */ s16 unk_08;
-/* 0x0A */ char unk_0A[6];
-/* 0x10 */ s16 unk_10;
-/* 0x12 */ char unk_12[10];
-/* 0x1C */ s16 unk_1C[4];
-/* 0x24 */ s16 unk_24;
-/* 0x26 */ char unk_26[2];
-/* 0x28 */ Vec unk_28;
-/* 0x34 */ Vec unk_34;
-/* 0x40 */ f32 unk_40;
-/* 0x44 */ s32 unk_44;
-} unkDominationData5; //sizeof 0x48
+typedef struct MinigameSequenceWork {
+/* 0x00 */ u32 sequenceIndex;
+/* 0x04 */ s16 sequenceState;
+/* 0x06 */ s16 primarySequenceId;
+/* 0x08 */ s16 secondarySequenceId;
+/* 0x0A */ char padding0A[6];
+/* 0x10 */ s16 timerFrames;
+/* 0x12 */ char padding12[10];
+/* 0x1C */ s16 winningPlayerIds[4];
+/* 0x24 */ s16 winnerCount;
+/* 0x26 */ char padding26[2];
+/* 0x28 */ Vec cameraStart;
+/* 0x34 */ Vec cameraTarget;
+/* 0x40 */ f32 cameraDuration;
+/* 0x44 */ s32 audioSequenceId;
+} MinigameSequenceWork; //sizeof 0x48
 
 //function signatures
-void fn_1_4B7C(void);
-void fn_1_4C3C(s32);
-void fn_1_4C6C(OMOBJ*);
-void fn_1_4D0C(void);
-void fn_1_4D54(void);
-void fn_1_4E8C(void);
-void fn_1_4FAC(void);
-void fn_1_50E8(void);
-void fn_1_51E4(void);
-void fn_1_52AC(void);
-void fn_1_53B8(void);
-void fn_1_5574(void);
-void fn_1_5630(void);
-s16 fn_1_5804(void); 
-void fn_1_5A80(void);
-void fn_1_5BB0(void);
+void FinishMinigameSequence(void);
+void SetMinigameSequenceState(s32);
+void UpdateMinigameSequence(OMOBJ*);
+void SequenceStateIntro(void);
+void SequenceStateCountdown(void);
+void SequenceStateStart(void);
+void SequenceStatePlay(void);
+void SequenceStateWhompRound(void);
+void SequenceStateResults(void);
+void SequenceStateAward(void);
+void SequenceStateCameraPan(void);
+void SequenceStateWinnerReact(void);
+void SequenceStateScoreSummary(void);
+s16 GetSequenceState(void);
+void SequenceStateFinish(void);
+void SequenceStateCleanup(void);
 
 //bss
-HUPROCESS* lbl_1_bss_3980;
-OMOBJ* lbl_1_bss_397C;
-s16 lbl_1_bss_3978;
+HUPROCESS* minigameProcess;
+OMOBJ* minigameSequenceObject;
+s16 minigameSequenceState;
 
 //data
-VoidFuncs lbl_1_data_2A8[] = {
-    fn_1_4D0C,
-    fn_1_4D54,
-    fn_1_4E8C,
-    fn_1_4FAC,
-    fn_1_50E8,
-    fn_1_51E4,
-    fn_1_52AC,
-    fn_1_53B8,
-    fn_1_5574,
-    fn_1_5630,
-    fn_1_5A80,
-    fn_1_5BB0,
-    fn_1_4B7C
+VoidFuncs minigameSequenceCallbacks[] = {
+    SequenceStateIntro,
+    SequenceStateCountdown,
+    SequenceStateStart,
+    SequenceStatePlay,
+    SequenceStateWhompRound,
+    SequenceStateResults,
+    SequenceStateAward,
+    SequenceStateCameraPan,
+    SequenceStateWinnerReact,
+    SequenceStateScoreSummary,
+    SequenceStateFinish,
+    SequenceStateCleanup,
+    FinishMinigameSequence
 };
 
-f32 lbl_1_data_2DC[4] = {850.0f, 900.0f, 1300.0f, 1500.0f};
-Vec lbl_1_data_2EC = {540.0f, 0.0f, 10000.0f};
-Vec lbl_1_data_2F8 = {-50.0f, -360.0f, 0.0f};
-f32 lbl_1_data_304 = 2670.0f;
-Vec lbl_1_data_308 = {437.0f, 0.0f, 5000.0f};
-Vec lbl_1_data_314 = {-50.0f, -360.0f, 0.0f};
-f32 lbl_1_data_320 = 2290.0f;
-Vec lbl_1_data_324 = {0.0f, 0.0f, 100.0f};
-Vec lbl_1_data_330 = {-45.0f, -540.0f, 0.0f};
-f32 lbl_1_data_33C = 1910.0f;
-Vec lbl_1_data_340 = {0.0f, 0.0f, 100.0f};
-Vec lbl_1_data_34C = {-53.0f, -680.0f, 0.0f};
-f32 lbl_1_data_358 = 1900.0f;
+f32 sequenceCameraDurations[4] = {850.0f, 900.0f, 1300.0f, 1500.0f};
+Vec sequenceCameraPosition1 = {540.0f, 0.0f, 10000.0f};
+Vec sequenceCameraTarget1 = {-50.0f, -360.0f, 0.0f};
+f32 sequenceCameraZoom1 = 2670.0f;
+Vec sequenceCameraPosition2 = {437.0f, 0.0f, 5000.0f};
+Vec sequenceCameraTarget2 = {-50.0f, -360.0f, 0.0f};
+f32 sequenceCameraZoom2 = 2290.0f;
+Vec sequenceCameraPosition3 = {0.0f, 0.0f, 100.0f};
+Vec sequenceCameraTarget3 = {-45.0f, -540.0f, 0.0f};
+f32 sequenceCameraZoom3 = 1910.0f;
+Vec sequenceCameraPosition4 = {0.0f, 0.0f, 100.0f};
+Vec sequenceCameraTarget4 = {-53.0f, -680.0f, 0.0f};
+f32 sequenceCameraZoom4 = 1900.0f;
 
-void fn_1_4980(HUPROCESS* arg0) {
+void InitializeMinigameSequence(HUPROCESS* process) {
     s32 i;
-    unkDominationData5* temp_r31;
+    MinigameSequenceWork* workData;
 
-    lbl_1_bss_3980 = arg0;
-    lbl_1_bss_397C = omAddObjEx(lbl_1_bss_3980, 0x40, 0, 0, 0, fn_1_4C6C);
-    lbl_1_bss_397C->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(unkDominationData5), HU_MEMNUM_OVL);
-    temp_r31 = lbl_1_bss_397C->data;
+    minigameProcess = process;
+    minigameSequenceObject = omAddObjEx(minigameProcess, 0x40, 0, 0, 0, UpdateMinigameSequence);
+    minigameSequenceObject->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(MinigameSequenceWork), HU_MEMNUM_OVL);
+    workData = minigameSequenceObject->data;
     Hu3DShadowCreate(45.0f, 10.0f, 10000.0f);
     Hu3DShadowTPLvlSet(0.6f);
-    fn_1_1B1C(lbl_1_bss_3980);
-    lbl_1_bss_3978 = GWMGRecordGet(1);
+    InitializeCameraSystem(minigameProcess);
+    minigameSequenceState = GWMGRecordGet(1);
     
-    if (lbl_1_bss_3978 == 0) {
-        lbl_1_bss_3978 = 0x96;
+    if (minigameSequenceState == 0) {
+        minigameSequenceState = 0x96;
     }
     
-    fn_1_14F0(lbl_1_bss_3980, lbl_1_bss_3978);
-    fn_1_F4(lbl_1_bss_3980);
-    fn_1_2354(lbl_1_bss_3980);
-    fn_1_3AC8(lbl_1_bss_3980);
-    fn_1_41CC(lbl_1_bss_3980);
-    fn_1_5C5C(lbl_1_bss_3980, lbl_1_bss_3978);
+    InitializeMapScene(minigameProcess, minigameSequenceState);
+    InitializePlayerSystem(minigameProcess);
+    InitializeWhompSystem(minigameProcess);
+    InitializeWhompScoreSystem(minigameProcess);
+    InitializeEffectSystem(minigameProcess);
+    InitializeScoreDisplay(minigameProcess, minigameSequenceState);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
-    temp_r31->unk_06 = -1;
-    temp_r31->unk_08 = -1;
-    temp_r31->unk_24 = 0;
+    workData->primarySequenceId = -1;
+    workData->secondarySequenceId = -1;
+    workData->winnerCount = 0;
     
-    for (i = 0; i < ARRAY_COUNT(temp_r31->unk_1C); i++) {
-        temp_r31->unk_1C[i] = -1;
+    for (i = 0; i < ARRAY_COUNT(workData->winningPlayerIds); i++) {
+        workData->winningPlayerIds[i] = -1;
     }
     
-    fn_1_5F40(0);
-    fn_1_4C3C(0);
+    SetScoreDisplayMode(0);
+    SetMinigameSequenceState(0);
 }
 
-void fn_1_4B7C(void) {
-    unkDominationData5* temp_r31;
+void FinishMinigameSequence(void) {
+    MinigameSequenceWork* workData;
 
-    temp_r31 = lbl_1_bss_397C->data;
-    if (temp_r31->unk_04 == 0) {
+    workData = minigameSequenceObject->data;
+    if (workData->sequenceState == 0) {
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-        temp_r31->unk_04++;
+        workData->sequenceState++;
     }
     if (WipeStatGet() == 0) {
         HuAudFadeOut(100);
         
-        if (temp_r31->unk_06 != -1) {
-            MGSeqKill(temp_r31->unk_06);
+        if (workData->primarySequenceId != -1) {
+            MGSeqKill(workData->primarySequenceId);
         }
         
-        if (temp_r31->unk_08 != -1) {
-            MGSeqKill(temp_r31->unk_08);
+        if (workData->secondarySequenceId != -1) {
+            MGSeqKill(workData->secondarySequenceId);
         }
         
-        fn_1_194();
-        fn_1_1CA8();
-        fn_1_15D8();
-        fn_1_3B68();
-        fn_1_44F4();
-        fn_1_5ECC();
+        PlayPlayerIdleMotion();
+        ResetCameraTransition();
+        GetMapSceneState();
+        ResetWhompScoreDisplay();
+        ResetEffectPool();
+        ResetScoreDisplay();
         omOvlReturnEx(1, 1);
     }
 }
 
-void fn_1_4C3C(s32 arg0) {
-    unkDominationData5* temp_r31;
+void SetMinigameSequenceState(s32 sequenceState) {
+    MinigameSequenceWork* workData;
 
-    temp_r31 = lbl_1_bss_397C->data;
-    temp_r31->unk_00 = arg0;
-    temp_r31->unk_04 = 0;
+    workData = minigameSequenceObject->data;
+    workData->sequenceIndex = sequenceState;
+    workData->sequenceState = 0;
 }
 
-void fn_1_4C6C(OMOBJ* obj) {
-    unkDominationData5* temp_r30;
+void UpdateMinigameSequence(OMOBJ* obj) {
+    MinigameSequenceWork* sequenceWork;
     
-    temp_r30 = lbl_1_bss_397C->data;
-    lbl_1_data_2A8[temp_r30->unk_00]();
+    sequenceWork = minigameSequenceObject->data;
+    minigameSequenceCallbacks[sequenceWork->sequenceIndex]();
 
     if (omSysExitReq != 0) {
-        fn_1_4C3C(12);
+        SetMinigameSequenceState(12);
         omSysExitReq = 0;
     }
 }
 
-void fn_1_4D0C(void) {
-    unkDominationData5* sp8;
+void SequenceStateIntro(void) {
+    MinigameSequenceWork* sequenceWork;
 
-    sp8 = lbl_1_bss_397C->data;
-    fn_1_4C3C(1);
+    sequenceWork = minigameSequenceObject->data;
+    SetMinigameSequenceState(1);
 }
 
-void fn_1_4D54(void) {
-    unkDominationData5* temp_r31;
+void SequenceStateCountdown(void) {
+    MinigameSequenceWork* workData;
 
-    temp_r31 = lbl_1_bss_397C->data;
-    switch (temp_r31->unk_04) {
+    workData = minigameSequenceObject->data;
+    switch (workData->sequenceState) {
     case 0:
         HuAudFXPlay(0x545);
-        fn_1_1DB0(&lbl_1_data_2EC, &lbl_1_data_2F8, &lbl_1_data_304, 0, 0);
-        temp_r31->unk_04 = 1;
+        StartCameraTransition(&sequenceCameraPosition1, &sequenceCameraTarget1, &sequenceCameraZoom1, 0, 0);
+        workData->sequenceState = 1;
         break;
     case 1:
-        fn_1_1DB0(&lbl_1_data_308, &lbl_1_data_314, &lbl_1_data_320, 0x64, 1);
-        temp_r31->unk_04 = 2;
+        StartCameraTransition(&sequenceCameraPosition2, &sequenceCameraTarget2, &sequenceCameraZoom2, 0x64, 1);
+        workData->sequenceState = 2;
         break;
     case 2:
-        if (fn_1_1D88() == 0) {
-            fn_1_1DB0(&lbl_1_data_324, &lbl_1_data_330, &lbl_1_data_33C, 0x6E, 2);
-            temp_r31->unk_04 = 3;
+        if (isCameraTransitionActive() == 0) {
+            StartCameraTransition(&sequenceCameraPosition3, &sequenceCameraTarget3, &sequenceCameraZoom3, 0x6E, 2);
+            workData->sequenceState = 3;
         case 3:
-            if (fn_1_1D88() == 0) {
-                fn_1_4C3C(2);
+            if (isCameraTransitionActive() == 0) {
+                SetMinigameSequenceState(2);
                 return;
             }
         }
     }
 }
 
-void fn_1_4E8C(void) {
+void SequenceStateStart(void) {
     s32 i;
-    unkDominationData5* temp_r31;
+    MinigameSequenceWork* workData;
 
-    temp_r31 = lbl_1_bss_397C->data;
-    if (temp_r31->unk_06 == -1) {
-        temp_r31->unk_06 = MGSeqStartCreate();
-        temp_r31->unk_44 = HuAudSeqPlay(0x46);
-        fn_1_2564();
+    workData = minigameSequenceObject->data;
+    if (workData->primarySequenceId == -1) {
+        workData->primarySequenceId = MGSeqStartCreate();
+        workData->audioSequenceId = HuAudSeqPlay(0x46);
+        ClearWhompScores();
         for (i = 0; i < 4; i++) {
-            fn_1_568(i, 1, 0x3C);
+            VibratePlayerController(i, 1, 0x3C);
         }
     }
-    if (MGSeqStatGet(temp_r31->unk_06) == 0) {
-        MGSeqKill(temp_r31->unk_06);
-        temp_r31->unk_06 = -1;
-        temp_r31->unk_10 = REFRESH_RATE*10;
-        temp_r31->unk_08 = MGSeqTimerCreate(temp_r31->unk_10 / REFRESH_RATE);
-        fn_1_1E4();
-        fn_1_4C3C(3);
+    if (MGSeqStatGet(workData->primarySequenceId) == 0) {
+        MGSeqKill(workData->primarySequenceId);
+        workData->primarySequenceId = -1;
+        workData->timerFrames = REFRESH_RATE*10;
+        workData->secondarySequenceId = MGSeqTimerCreate(workData->timerFrames / REFRESH_RATE);
+        PlayPlayerWalkMotion();
+        SetMinigameSequenceState(3);
     }
 }
 
-void fn_1_4FAC(void) {
-    unkDominationData5* temp_r31;
+void SequenceStatePlay(void) {
+    MinigameSequenceWork* workData;
     
-    temp_r31 = lbl_1_bss_397C->data;
-    if (temp_r31->unk_10 > 0) {
-        if ((--temp_r31->unk_10 % REFRESH_RATE) == 0) {
-            MGSeqParamSet(temp_r31->unk_08, 1, (temp_r31->unk_10 / REFRESH_RATE));
+    workData = minigameSequenceObject->data;
+    if (workData->timerFrames > 0) {
+        if ((--workData->timerFrames % REFRESH_RATE) == 0) {
+            MGSeqParamSet(workData->secondarySequenceId, 1, (workData->timerFrames / REFRESH_RATE));
         }
         return;
     }
     
-    MGSeqParamSet(temp_r31->unk_08, 2, -1);
-    temp_r31->unk_08 = -1;
-    HuAudSeqFadeOut(temp_r31->unk_44, 0x64);
-    fn_1_238();
-    fn_1_5804();
+    MGSeqParamSet(workData->secondarySequenceId, 2, -1);
+    workData->secondarySequenceId = -1;
+    HuAudSeqFadeOut(workData->audioSequenceId, 0x64);
+    PlayPlayerTurnMotion();
+    GetSequenceState();
     
-    if (temp_r31->unk_24 > 0) {
-        fn_1_4C3C(4);
+    if (workData->winnerCount > 0) {
+        SetMinigameSequenceState(4);
         return;
     }
 
-    fn_1_4C3C(6);
+    SetMinigameSequenceState(6);
 }
 
-void fn_1_50E8(void) {
-    unkDominationData5* temp_r31;
+void SequenceStateWhompRound(void) {
+    MinigameSequenceWork* workData;
 
-    temp_r31 = lbl_1_bss_397C->data;
-    switch (temp_r31->unk_04++) {
+    workData = minigameSequenceObject->data;
+    switch (workData->sequenceState++) {
     case 0xA:
-        fn_1_1DB0(&lbl_1_data_340, &lbl_1_data_34C, &lbl_1_data_358, 0xB4, 4);
+        StartCameraTransition(&sequenceCameraPosition4, &sequenceCameraTarget4, &sequenceCameraZoom4, 0xB4, 4);
         return;
     case 0x32:
-        fn_1_28C();
+        PlayPlayerReactionMotion();
         return;
     case 0x78:
-        fn_1_2E0();
+        PlayPlayerJumpMotion();
         return;
     case 0x9A:
-        fn_1_334();
+        PlayPlayerLandMotion();
         return;
     case 0xBE:
-        temp_r31->unk_44 = HuAudSeqPlay(0x3A);
-        fn_1_25C0();
-        fn_1_4C3C(5);
+        workData->audioSequenceId = HuAudSeqPlay(0x3A);
+        ResetWhompCounts();
+        SetMinigameSequenceState(5);
         return;
     }
 }
 
-void fn_1_51E4(void) {
-    Vec sp8;
-    unkDominationData5* temp_r30;
+void SequenceStateResults(void) {
+    Vec cameraCenter;
+    MinigameSequenceWork* sequenceWork;
 
-    temp_r30 = lbl_1_bss_397C->data;
-    if ((temp_r30->unk_04++ >= 15) || (fn_1_2880() != 0)) {
-        if (fn_1_2880() == 0) {
-            fn_1_1CD4(&sp8.z, &sp8.y, &sp8.x);
-            sp8.x += 33.5f;
-            fn_1_1CAC(sp8.z, sp8.y, sp8.x);
+    sequenceWork = minigameSequenceObject->data;
+    if ((sequenceWork->sequenceState++ >= 15) || (getWhompScoreTotal() != 0)) {
+        if (getWhompScoreTotal() == 0) {
+            GetCameraCenter(&cameraCenter.z, &cameraCenter.y, &cameraCenter.x);
+            cameraCenter.x += 33.5f;
+            SetCameraCenter(cameraCenter.z, cameraCenter.y, cameraCenter.x);
             return;
         }
-        fn_1_4C3C(6);
+        SetMinigameSequenceState(6);
     }
 }
 
-void fn_1_52AC(void) {
-    unkDominationData5* temp_r31;
+void SequenceStateAward(void) {
+    MinigameSequenceWork* workData;
 
-    temp_r31 = lbl_1_bss_397C->data;
-    if (temp_r31->unk_04 == 0) {
-        temp_r31->unk_06 = MGSeqFinishCreate();
-        temp_r31->unk_04++;
-        HuAudSeqFadeOut(temp_r31->unk_44, 100);
+    workData = minigameSequenceObject->data;
+    if (workData->sequenceState == 0) {
+        workData->primarySequenceId = MGSeqFinishCreate();
+        workData->sequenceState++;
+        HuAudSeqFadeOut(workData->audioSequenceId, 100);
     }
-    if (MGSeqStatGet(temp_r31->unk_06) == 0) {
-        MGSeqKill(temp_r31->unk_06);
-        temp_r31->unk_06 = -1;
+    if (MGSeqStatGet(workData->primarySequenceId) == 0) {
+        MGSeqKill(workData->primarySequenceId);
+        workData->primarySequenceId = -1;
 
-        if (temp_r31->unk_08 != 0) {
-            MGSeqKill(temp_r31->unk_08);
-            temp_r31->unk_08 = -1;
+        if (workData->secondarySequenceId != 0) {
+            MGSeqKill(workData->secondarySequenceId);
+            workData->secondarySequenceId = -1;
         }
         
-        if (temp_r31->unk_24 > 0) {
-            fn_1_4C3C(7);
+        if (workData->winnerCount > 0) {
+            SetMinigameSequenceState(7);
             return;
         }
-        fn_1_4C3C(10);
+        SetMinigameSequenceState(10);
     }
 }
 
-void fn_1_53B8(void) {
+void SequenceStateCameraPan(void) {
     s32 i;
-    unkDominationData5* temp_r31;
+    MinigameSequenceWork* workData;
     
-    temp_r31 = lbl_1_bss_397C->data;
-    if (temp_r31->unk_04 == 0) {
-        fn_1_1DB0(&temp_r31->unk_28, &temp_r31->unk_34, &temp_r31->unk_40, 60, 4);
-        temp_r31->unk_04++;
+    workData = minigameSequenceObject->data;
+    if (workData->sequenceState == 0) {
+        StartCameraTransition(&workData->cameraStart, &workData->cameraTarget, &workData->cameraDuration, 60, 4);
+        workData->sequenceState++;
         for (i = 0; i < 4; i++) {
-            if ((fn_1_508(i) == 0) && (fn_1_28B8(i) >= 100)) {
+            if ((getPlayerActionState(i) == 0) && (getPlayerWhompCount(i) >= 100)) {
                 GWGameStat.present[56] = 1;
             }
         }
     }
 
-    if (temp_r31->unk_04 == 40) {
-        fn_1_404();
-        for (i = 0; i < temp_r31->unk_24; i++) {
-            fn_1_2770(temp_r31->unk_1C[i]);
-            fn_1_568(temp_r31->unk_1C[i], 2, 60);
+    if (workData->sequenceState == 40) {
+        StopPlayerMotion();
+        for (i = 0; i < workData->winnerCount; i++) {
+            SpawnPlayerWhomp(workData->winningPlayerIds[i]);
+            VibratePlayerController(workData->winningPlayerIds[i], 2, 60);
         }
     }
 
-    if (temp_r31->unk_04 == 70) {
-       for (i = 0; i < temp_r31->unk_24; i++) {
-            if (!(fn_1_508(temp_r31->unk_1C[i])) && (lbl_1_bss_3978 < fn_1_28D4())) {
-                fn_1_4C3C(8);
+    if (workData->sequenceState == 70) {
+       for (i = 0; i < workData->winnerCount; i++) {
+            if (!(getPlayerActionState(workData->winningPlayerIds[i])) && (minigameSequenceState < getWhompScoreDisplayMode())) {
+                SetMinigameSequenceState(8);
                 return;
             }
         }
-        fn_1_4C3C(9);
+        SetMinigameSequenceState(9);
     } else {
-        temp_r31->unk_04++;
+        workData->sequenceState++;
     }
 }
 
-void fn_1_5574(void) {
-    unkDominationData5* temp_r31;
+void SequenceStateWinnerReact(void) {
+    MinigameSequenceWork* workData;
     
-    temp_r31 = lbl_1_bss_397C->data;
-    if (temp_r31->unk_04 == 0) {
-        GWMGRecordSet(1, fn_1_28D4());
-        temp_r31->unk_06 = MGSeqRecordCreate(fn_1_28D4());
-        fn_1_5F40(1);
-        temp_r31->unk_04++;
+    workData = minigameSequenceObject->data;
+    if (workData->sequenceState == 0) {
+        GWMGRecordSet(1, getWhompScoreDisplayMode());
+        workData->primarySequenceId = MGSeqRecordCreate(getWhompScoreDisplayMode());
+        SetScoreDisplayMode(1);
+        workData->sequenceState++;
         return;
     }
-    if (MGSeqStatGet(temp_r31->unk_06) == 0) {
-        fn_1_4C3C(9);
+    if (MGSeqStatGet(workData->primarySequenceId) == 0) {
+        SetMinigameSequenceState(9);
     }
 }
 
-void fn_1_5630(void) {
-    unkDominationData5* temp_r31;
+void SequenceStateScoreSummary(void) {
+    MinigameSequenceWork* workData;
     s32 i;
 
-    temp_r31 = lbl_1_bss_397C->data;
-    if (temp_r31->unk_04 == 0) {
+    workData = minigameSequenceObject->data;
+    if (workData->sequenceState == 0) {
         for (i = 0; i < 4; i++) {
-            if (fn_1_53C(i) == 0) {
+            if (isPlayerIdle(i) == 0) {
                 return;
             }
         }
-        if (temp_r31->unk_24 == 0) {
-            temp_r31->unk_06 = MGSeqDrawCreate();
+        if (workData->winnerCount == 0) {
+            workData->primarySequenceId = MGSeqDrawCreate();
             HuAudSStreamPlay(4);
         } else {
-            temp_r31->unk_06 = MGSeqWinCreate(fn_1_4C0(temp_r31->unk_1C[0]), fn_1_4C0(temp_r31->unk_1C[1]), fn_1_4C0(temp_r31->unk_1C[2]), fn_1_4C0(temp_r31->unk_1C[3]));
-            for (i = 0; i < ARRAY_COUNT(temp_r31->unk_1C); i++) {
-                if (temp_r31->unk_1C[i] != -1) {
-                    fn_1_3C4(temp_r31->unk_1C[i]);
-                    GWPlayerCoinWinAdd(temp_r31->unk_1C[i], 10);
+            workData->primarySequenceId = MGSeqWinCreate(getPlayerMotionState(workData->winningPlayerIds[0]), getPlayerMotionState(workData->winningPlayerIds[1]), getPlayerMotionState(workData->winningPlayerIds[2]), getPlayerMotionState(workData->winningPlayerIds[3]));
+            for (i = 0; i < ARRAY_COUNT(workData->winningPlayerIds); i++) {
+                if (workData->winningPlayerIds[i] != -1) {
+                    PlayPlayerMotionAction(workData->winningPlayerIds[i]);
+                    GWPlayerCoinWinAdd(workData->winningPlayerIds[i], 10);
                 }
             }
             HuAudSStreamPlay(1);
         }
         
     }
-    if (temp_r31->unk_04++ >= 210) {
-        MGSeqKill(temp_r31->unk_06);
-        temp_r31->unk_06 = -1;
-        fn_1_4C3C(12);
+    if (workData->sequenceState++ >= 210) {
+        MGSeqKill(workData->primarySequenceId);
+        workData->primarySequenceId = -1;
+        SetMinigameSequenceState(12);
     }
 }
 
-s16 fn_1_5804(void) {
-    f32 var_f31;
-    f32 var_f30;
-    s16 temp_r28;
-    s16 temp_r3;
-    s16 var_r29;
+s16 GetSequenceState(void) {
+    f32 firstWinnerPosition;
+    f32 secondWinnerPosition;
+    s16 playerWhompCount;
+    s16 loopIndex;
+    s16 maximumWhompCount;
     s32 i;
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r30;
-    unkDominationData5* temp_r31;
+    s32 hasFirstWinner;
+    s32 hasSecondWinner;
+    s32 unusedWinnerIndex;
+    MinigameSequenceWork* workData;
 
-    var_r27 = 0;
-    var_r26 = 0;
-    temp_r31 = lbl_1_bss_397C->data;
-    var_r29 = 0;
+    hasFirstWinner = 0;
+    hasSecondWinner = 0;
+    workData = minigameSequenceObject->data;
+    maximumWhompCount = 0;
 
     for (i = 0; i < 4; i++) {
-        temp_r28 = fn_1_28B8(i);
-        if (temp_r28 > var_r29) {
-            var_r29 = temp_r28;
+        playerWhompCount = getPlayerWhompCount(i);
+        if (playerWhompCount > maximumWhompCount) {
+            maximumWhompCount = playerWhompCount;
         }
     }
 
     for (i = 0; i < 4; i++) {
-        temp_r28 = fn_1_28B8(i);
-        if (var_r29 == temp_r28) {
-            if (var_r29 > 0) {
-                temp_r31->unk_1C[temp_r31->unk_24++] = i;
-                fn_1_388(i, 1);
+        playerWhompCount = getPlayerWhompCount(i);
+        if (maximumWhompCount == playerWhompCount) {
+            if (maximumWhompCount > 0) {
+                workData->winningPlayerIds[workData->winnerCount++] = i;
+                SetPlayerMotionAction(i, 1);
             }
-            if (var_r27 == 0) {
-                var_r27 = 1;
-                var_f31 = 400.0f * i;
+            if (hasFirstWinner == 0) {
+                hasFirstWinner = 1;
+                firstWinnerPosition = 400.0f * i;
             } else {
-                var_r26 = 1;
-                var_f30 = 400.0f * i;
+                hasSecondWinner = 1;
+                secondWinnerPosition = 400.0f * i;
             }
         } else {
-            fn_1_388(i, 2);
+            SetPlayerMotionAction(i, 2);
         }        
     }
 
-    if (var_r26 == 0) {
-        var_f30 = var_f31;
+    if (hasSecondWinner == 0) {
+        secondWinnerPosition = firstWinnerPosition;
     }
 
-    temp_r31->unk_28.x = (600.0f - (0.5f * (var_f30 + var_f31)));
-    temp_r31->unk_28.y = 250.0f;
-    temp_r31->unk_28.z = (200.0f * ((s16) var_r29 + 2));
-    temp_r31->unk_34.x = -42.0f;
-    temp_r31->unk_34.y = -720.0f;
-    temp_r31->unk_34.z = 0.0f;
-    temp_r31->unk_40 = lbl_1_data_2DC[(s32) ((var_f30 - var_f31) / 400.0f)];
-    return var_r29;
+    workData->cameraStart.x = (600.0f - (0.5f * (secondWinnerPosition + firstWinnerPosition)));
+    workData->cameraStart.y = 250.0f;
+    workData->cameraStart.z = (200.0f * ((s16) maximumWhompCount + 2));
+    workData->cameraTarget.x = -42.0f;
+    workData->cameraTarget.y = -720.0f;
+    workData->cameraTarget.z = 0.0f;
+    workData->cameraDuration = sequenceCameraDurations[(s32) ((secondWinnerPosition - firstWinnerPosition) / 400.0f)];
+    return maximumWhompCount;
 }
 
-void fn_1_5A80(void) {
-    s32 sp20;
-    s32 sp1C;
-    Vec sp18 = {0.0f, 0.0f, -300.0f};
-    Vec spC = {-40.0f, -720.0f, 0.0f};
-    f32 sp8;
-    s16 temp_r0;
-    s16 temp_r3;
-    unkDominationData5* temp_r31;
+void SequenceStateFinish(void) {
+    s32 unusedInteger20;
+    s32 unusedInteger1c;
+    Vec cameraPositionOffset = {0.0f, 0.0f, -300.0f};
+    Vec cameraTarget = {-40.0f, -720.0f, 0.0f};
+    f32 cameraZoom;
+    s16 unusedFlag;
+    s16 loopIndex;
+    MinigameSequenceWork* workData;
 
-    sp8 = 1420.0f;
-    temp_r31 = lbl_1_bss_397C->data;
-    switch (temp_r31->unk_04++) {
+    cameraZoom = 1420.0f;
+    workData = minigameSequenceObject->data;
+    switch (workData->sequenceState++) {
     case 0:
-        MGSeqKill(temp_r31->unk_08);
-        temp_r31->unk_08 = -1;
-        fn_1_1DB0(&sp18, &spC, &sp8, 0x78, 4);
+        MGSeqKill(workData->secondarySequenceId);
+        workData->secondarySequenceId = -1;
+        StartCameraTransition(&cameraPositionOffset, &cameraTarget, &cameraZoom, 0x78, 4);
         return;
     case 10:
-        fn_1_5F40(0);
-        fn_1_28C();
+        SetScoreDisplayMode(0);
+        PlayPlayerReactionMotion();
         return;
     case 120:
-        fn_1_404();
-        fn_1_4C3C(9);
+        StopPlayerMotion();
+        SetMinigameSequenceState(9);
         return;
         /* fallthrough */
     case 0x3C:
@@ -488,17 +488,17 @@ void fn_1_5A80(void) {
     
 }
 
-void fn_1_5BB0(void) {
-    unkDominationData5* temp_r31;
+void SequenceStateCleanup(void) {
+    MinigameSequenceWork* workData;
 
-    temp_r31 = lbl_1_bss_397C->data;
-    if (temp_r31->unk_04 == 0) {
-        temp_r31->unk_06 = MGSeqDrawCreate();
-        temp_r31->unk_04++;
+    workData = minigameSequenceObject->data;
+    if (workData->sequenceState == 0) {
+        workData->primarySequenceId = MGSeqDrawCreate();
+        workData->sequenceState++;
     }
-    if (MGSeqStatGet(temp_r31->unk_06) == 0) {
-        MGSeqKill(temp_r31->unk_06);
-        temp_r31->unk_06 = -1;
-        fn_1_4C3C(12);
+    if (MGSeqStatGet(workData->primarySequenceId) == 0) {
+        MGSeqKill(workData->primarySequenceId);
+        workData->primarySequenceId = -1;
+        SetMinigameSequenceState(12);
     }
 }

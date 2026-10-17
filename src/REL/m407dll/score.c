@@ -5,190 +5,190 @@
 
 #include "REL/m407dll.h"
 
-typedef struct unkDominationData6 {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ s16 unk_08;
-    /* 0x0A */ s16 unk_0A;
-    /* 0x0C */ s16 unk_0C[8]; // what size is this??
-    /* 0x1C */ s32 unk_1C;
-    /* 0x20 */ f32 unk_20;
-} unkDominationData6; // sizeof 0x24
+typedef struct ScoreDisplayWork {
+    /* 0x00 */ s32 scoreDisplayMode;
+    /* 0x04 */ s32 displayState;
+    /* 0x08 */ s16 coinScore;
+    /* 0x0A */ s16 starScore;
+    /* 0x0C */ s16 digitSpriteIds[8]; // what size is this??
+    /* 0x1C */ s32 scoreTimer;
+    /* 0x20 */ f32 scoreOpacity;
+} ScoreDisplayWork; // sizeof 0x24
 
 // func signatures
-void fn_1_61A0(void);
-void fn_1_6218(void);
-void fn_1_62A0(void);
-void fn_1_5FE4(OMOBJ *arg0);
-void fn_1_5FB4(s32 arg0);
-s16 fn_1_28D4(void);
+void ScoreDisplayStateHidden(void);
+void ScoreDisplayStateShow(void);
+void ScoreDisplayStateUpdate(void);
+void UpdateScoreDisplay(OMOBJ *object);
+void SetScoreDisplayState(s32 displayState);
+s16 GetWhompScoreDisplayMode(void);
 
 // bss
-HUPROCESS *lbl_1_bss_398C;
-OMOBJ *lbl_1_bss_3988;
+HUPROCESS *scoreDisplayProcess;
+OMOBJ *scoreDisplayObject;
 
 // data
-VoidFuncs lbl_1_data_360[] = { fn_1_61A0, fn_1_6218, fn_1_62A0 };
+VoidFuncs scoreDisplayCallbacks[] = { ScoreDisplayStateHidden, ScoreDisplayStateShow, ScoreDisplayStateUpdate };
 
-void fn_1_5C5C(HUPROCESS *arg0, s16 arg1)
+void InitializeScoreDisplay(HUPROCESS *process, s16 initialScore)
 {
-    unkDominationData6 *temp_r31;
+    ScoreDisplayWork *workData;
     u32 i;
 
-    lbl_1_bss_398C = arg0;
-    lbl_1_bss_3988 = omAddObjEx(lbl_1_bss_398C, 0x800, 0, 0, 7, fn_1_5FE4);
-    lbl_1_bss_3988->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(unkDominationData6), HU_MEMNUM_OVL);
-    temp_r31 = lbl_1_bss_3988->data;
-    temp_r31->unk_08 = arg1;
-    temp_r31->unk_0A = 0;
-    temp_r31->unk_0C[6] = espEntry(DATA_MAKE_NUM(DATADIR_M407, 0x25), 2, 0);
-    espTPLvlSet(temp_r31->unk_0C[6], 0.5f);
-    espPosSet(temp_r31->unk_0C[6], 508.0f, 64.0f);
-    temp_r31->unk_0C[7] = espEntry(DATA_MAKE_NUM(DATADIR_M407, 0x22), 1, 0);
-    espPosSet(temp_r31->unk_0C[7], 480.0f, 56.0f);
+    scoreDisplayProcess = process;
+    scoreDisplayObject = omAddObjEx(scoreDisplayProcess, 0x800, 0, 0, 7, UpdateScoreDisplay);
+    scoreDisplayObject->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(ScoreDisplayWork), HU_MEMNUM_OVL);
+    workData = scoreDisplayObject->data;
+    workData->coinScore = initialScore;
+    workData->starScore = 0;
+    workData->digitSpriteIds[6] = espEntry(DATA_MAKE_NUM(DATADIR_M407, 0x25), 2, 0);
+    espTPLvlSet(workData->digitSpriteIds[6], 0.5f);
+    espPosSet(workData->digitSpriteIds[6], 508.0f, 64.0f);
+    workData->digitSpriteIds[7] = espEntry(DATA_MAKE_NUM(DATADIR_M407, 0x22), 1, 0);
+    espPosSet(workData->digitSpriteIds[7], 480.0f, 56.0f);
 
     for (i = 0; i < 3; i++) {
-        temp_r31->unk_0C[i] = espEntry(DATA_MAKE_NUM(DATADIR_M407, 0x1F), 0, 0);
-        espPosSet(temp_r31->unk_0C[i], i * 16 + 0x1F4, 56.0f);
-        espDispOff(temp_r31->unk_0C[i]);
+        workData->digitSpriteIds[i] = espEntry(DATA_MAKE_NUM(DATADIR_M407, 0x1F), 0, 0);
+        espPosSet(workData->digitSpriteIds[i], i * 16 + 0x1F4, 56.0f);
+        espDispOff(workData->digitSpriteIds[i]);
     }
 
     for (i = 0; i < 3; i++) {
-        temp_r31->unk_0C[i + 3] = espEntry(DATA_MAKE_NUM(DATADIR_M407, 0x20), 1, 0);
-        espPosSet(temp_r31->unk_0C[i + 3], i * 16 + 0x1F4, 74.0f);
+        workData->digitSpriteIds[i + 3] = espEntry(DATA_MAKE_NUM(DATADIR_M407, 0x20), 1, 0);
+        espPosSet(workData->digitSpriteIds[i + 3], i * 16 + 0x1F4, 74.0f);
     }
 
     for (i = 0; i < 8; i++) {
-        espDispOff(temp_r31->unk_0C[i]);
+        espDispOff(workData->digitSpriteIds[i]);
     }
 
-    fn_1_5FB4(0);
+    SetScoreDisplayState(0);
 }
 
-void fn_1_5ECC(void)
+void ResetScoreDisplay(void)
 {
     s32 i;
-    unkDominationData6 *temp_r30;
+    ScoreDisplayWork *scoreWork;
 
-    temp_r30 = lbl_1_bss_3988->data;
+    scoreWork = scoreDisplayObject->data;
     for (i = 0; i < 7; i++) {
-        espKill(temp_r30->unk_0C[i]);
+        espKill(scoreWork->digitSpriteIds[i]);
     }
 
-    HuMemDirectFree(lbl_1_bss_3988->data);
+    HuMemDirectFree(scoreDisplayObject->data);
 }
 
-void fn_1_5F40(s32 arg0)
+void SetScoreDisplayMode(s32 displayMode)
 {
-    switch (arg0) {
+    switch (displayMode) {
         case 0:
-            fn_1_5FB4(1);
+            SetScoreDisplayState(1);
             break;
         case 1:
-            fn_1_5FB4(2);
+            SetScoreDisplayState(2);
             break;
     }
 }
 
-void fn_1_5F90(void)
+void HideScoreDisplay(void)
 {
-    fn_1_5FB4(0);
+    SetScoreDisplayState(0);
 }
 
-void fn_1_5FB4(s32 arg0)
+void SetScoreDisplayState(s32 displayState)
 {
-    unkDominationData6 *temp_r31;
+    ScoreDisplayWork *workData;
 
-    temp_r31 = lbl_1_bss_3988->data;
-    temp_r31->unk_00 = arg0;
-    temp_r31->unk_04 = 0;
+    workData = scoreDisplayObject->data;
+    workData->scoreDisplayMode = displayState;
+    workData->displayState = 0;
 }
 
-void fn_1_5FE4(OMOBJ *arg0)
+void UpdateScoreDisplay(OMOBJ *object)
 {
-    s16 temp_r31;
-    unkDominationData6 *temp_r30;
+    s16 scoreDigits;
+    ScoreDisplayWork *scoreWork;
 
-    temp_r30 = lbl_1_bss_3988->data;
-    lbl_1_data_360[temp_r30->unk_00]();
-    temp_r31 = temp_r30->unk_08;
-    espBankSet(temp_r30->unk_0C[0], temp_r31 / 100);
-    temp_r31 = (temp_r31 - ((temp_r31 / 100) * 100));
-    espBankSet(temp_r30->unk_0C[1], (temp_r31 / 10));
-    temp_r31 = (temp_r31 - ((temp_r31 / 10) * 10));
-    espBankSet(temp_r30->unk_0C[2], temp_r31);
-    temp_r31 = temp_r30->unk_0A;
-    espBankSet(temp_r30->unk_0C[3], (temp_r31 / 100));
-    temp_r31 = (temp_r31 - ((temp_r31 / 100) * 100));
-    espBankSet(temp_r30->unk_0C[4], (temp_r31 / 10));
-    temp_r31 = (temp_r31 - ((temp_r31 / 10) * 10));
-    espBankSet(temp_r30->unk_0C[5], temp_r31);
+    scoreWork = scoreDisplayObject->data;
+    scoreDisplayCallbacks[scoreWork->scoreDisplayMode]();
+    scoreDigits = scoreWork->coinScore;
+    espBankSet(scoreWork->digitSpriteIds[0], scoreDigits / 100);
+    scoreDigits = (scoreDigits - ((scoreDigits / 100) * 100));
+    espBankSet(scoreWork->digitSpriteIds[1], (scoreDigits / 10));
+    scoreDigits = (scoreDigits - ((scoreDigits / 10) * 10));
+    espBankSet(scoreWork->digitSpriteIds[2], scoreDigits);
+    scoreDigits = scoreWork->starScore;
+    espBankSet(scoreWork->digitSpriteIds[3], (scoreDigits / 100));
+    scoreDigits = (scoreDigits - ((scoreDigits / 100) * 100));
+    espBankSet(scoreWork->digitSpriteIds[4], (scoreDigits / 10));
+    scoreDigits = (scoreDigits - ((scoreDigits / 10) * 10));
+    espBankSet(scoreWork->digitSpriteIds[5], scoreDigits);
 }
 
-void fn_1_61A0(void)
+void ScoreDisplayStateHidden(void)
 {
     s32 i;
-    unkDominationData6 *temp_r31;
+    ScoreDisplayWork *workData;
 
-    temp_r31 = lbl_1_bss_3988->data;
+    workData = scoreDisplayObject->data;
 
-    if (temp_r31->unk_04 == 0) {
-        for (i = 0; i < ARRAY_COUNT(temp_r31->unk_0C); i++) {
-            espDispOff(temp_r31->unk_0C[i]);
+    if (workData->displayState == 0) {
+        for (i = 0; i < ARRAY_COUNT(workData->digitSpriteIds); i++) {
+            espDispOff(workData->digitSpriteIds[i]);
         }
-        temp_r31->unk_04++;
+        workData->displayState++;
     }
 }
 
-void fn_1_6218(void)
+void ScoreDisplayStateShow(void)
 {
     s16 i;
-    unkDominationData6 *temp_r31;
+    ScoreDisplayWork *workData;
 
-    temp_r31 = lbl_1_bss_3988->data;
+    workData = scoreDisplayObject->data;
 
-    if (temp_r31->unk_04 == 0) {
-        for (i = 0; i < ARRAY_COUNT(temp_r31->unk_0C); i++) {
-            espDispOn(temp_r31->unk_0C[i]);
+    if (workData->displayState == 0) {
+        for (i = 0; i < ARRAY_COUNT(workData->digitSpriteIds); i++) {
+            espDispOn(workData->digitSpriteIds[i]);
         }
-        temp_r31->unk_04++;
+        workData->displayState++;
     }
 
-    temp_r31->unk_0A = fn_1_28D4();
+    workData->starScore = GetWhompScoreDisplayMode();
 }
 
-void fn_1_62A0(void)
+void ScoreDisplayStateUpdate(void)
 {
     s32 i;
-    unkDominationData6 *temp_r31;
+    ScoreDisplayWork *workData;
 
-    temp_r31 = lbl_1_bss_3988->data;
+    workData = scoreDisplayObject->data;
 
-    if (temp_r31->unk_04 == 0) {
-        temp_r31->unk_1C = 0;
-        temp_r31->unk_20 = 1.0f;
-        if (temp_r31->unk_0A > temp_r31->unk_08) {
-            temp_r31->unk_08 = temp_r31->unk_0A;
+    if (workData->displayState == 0) {
+        workData->scoreTimer = 0;
+        workData->scoreOpacity = 1.0f;
+        if (workData->starScore > workData->coinScore) {
+            workData->coinScore = workData->starScore;
         }
-        temp_r31->unk_04++;
+        workData->displayState++;
     }
 
-    if (temp_r31->unk_1C == 0) {
-        if ((temp_r31->unk_20 += 0.02f) >= 1.2f) {
-            temp_r31->unk_20 = 1.2f;
-            temp_r31->unk_1C = 1;
+    if (workData->scoreTimer == 0) {
+        if ((workData->scoreOpacity += 0.02f) >= 1.2f) {
+            workData->scoreOpacity = 1.2f;
+            workData->scoreTimer = 1;
         }
     }
     else {
-        if ((temp_r31->unk_20 -= 0.04f) <= 1.0f) {
-            temp_r31->unk_20 = 1.0f;
-            temp_r31->unk_1C = 0;
+        if ((workData->scoreOpacity -= 0.04f) <= 1.0f) {
+            workData->scoreOpacity = 1.0f;
+            workData->scoreTimer = 0;
         }
     }
 
     for (i = 0; i <= 2; i++) {
-        espScaleSet(temp_r31->unk_0C[i], temp_r31->unk_20, temp_r31->unk_20);
+        espScaleSet(workData->digitSpriteIds[i], workData->scoreOpacity, workData->scoreOpacity);
     }
 
-    espScaleSet(temp_r31->unk_0C[7], temp_r31->unk_20, temp_r31->unk_20);
+    espScaleSet(workData->digitSpriteIds[7], workData->scoreOpacity, workData->scoreOpacity);
 }

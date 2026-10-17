@@ -6,54 +6,54 @@
 typedef void (*VoidFuncs)(void);
 typedef void (*ObjFuncs)(OMOBJ *);
 
-void fn_1_F4(HUPROCESS *arg0);
-void fn_1_194(void);
-void fn_1_1E4(void);
-void fn_1_238(void);
-void fn_1_28C(void);
-void fn_1_2E0(void);
-void fn_1_334(void);
-void fn_1_388(u8, s32);
-void fn_1_3C4(u8);
-void fn_1_404(void);
+void initialize_player_system(HUPROCESS *process);
+void play_player_idle_motion(void);
+void play_player_walk_motion(void);
+void play_player_turn_motion(void);
+void play_player_reaction_motion(void);
+void play_player_jump_motion(void);
+void play_player_land_motion(void);
+void set_player_motion_action(u8, s32);
+void play_player_motion_action(u8);
+void stop_player_motion(void);
 #ifndef __MWERKS__
-s32 fn_1_4C0(u8 arg0);
+s32 get_player_motion_state(u8 player_index);
 #endif
-s32 fn_1_508(u8);
-s32 fn_1_53C(u8);
-void fn_1_568(s16, s16, s16);
+s32 get_player_action_state(u8);
+s32 is_player_idle(u8);
+void vibrate_player_controller(s16, s16, s16);
 
-void fn_1_14F0(HUPROCESS *arg0, s32 arg1);
-void fn_1_15D8(void);
+void initialize_map_scene(HUPROCESS *process, s32 map_section_index);
+void get_map_scene_state(void);
 
-void fn_1_1B1C(HUPROCESS *arg0);
-void fn_1_1CA8(void);
-void fn_1_1CAC(float, float, float);
-void fn_1_1CD4(float *arg0, float *arg1, float *arg2);
-s32 fn_1_1D88(void);
-void fn_1_1DB0(Vec *arg0, Vec *arg1, float *arg2, s32 arg3, s32 arg4);
+void initialize_camera_system(HUPROCESS *process);
+void reset_camera_transition(void);
+void set_camera_center(float, float, float);
+void get_camera_center(float *center_x, float *center_y, float *center_z);
+s32 is_camera_transition_active(void);
+void start_camera_transition(Vec *start_center, Vec *start_rotation, float *start_zoom, s32 frame_count, s32 transition_mode);
 
-void fn_1_2354(HUPROCESS *arg0);
-void fn_1_2564(void);
-void fn_1_25C0(void);
-s32 fn_1_2880(void);
+void initialize_whomp_system(HUPROCESS *process);
+void clear_whomp_scores(void);
+void reset_whomp_counts(void);
+s32 get_whomp_score_total(void);
 #ifndef __MWERKS__
-void fn_1_2770(u8 arg0);
-s16 fn_1_28B8(u8 arg0);
-s16 fn_1_28D4(void);
+void spawn_player_whomp(u8 player_index);
+s16 get_player_whomp_count(u8 player_index);
+s16 get_whomp_score_display_mode(void);
 #endif
 
-void fn_1_3AC8(HUPROCESS *arg0);
-void fn_1_3B68(void);
+void initialize_whomp_score_system(HUPROCESS *process);
+void reset_whomp_score_display(void);
 
-void fn_1_41CC(HUPROCESS *arg0);
-void fn_1_44F4(void);
+void initialize_effect_system(HUPROCESS *process);
+void reset_effect_pool(void);
 
-void fn_1_4980(HUPROCESS *arg0);
-void fn_1_4C6C(OMOBJ *obj);
+void initialize_minigame_sequence(HUPROCESS *process);
+void update_minigame_sequence(OMOBJ *obj);
 
-void fn_1_5C5C(HUPROCESS *arg0, s16 arg1);
-void fn_1_5ECC(void);
-void fn_1_5F40(s32 arg0);
+void initialize_score_display(HUPROCESS *process, s16 initial_score);
+void reset_score_display(void);
+void set_score_display_mode(s32 display_mode);
 
 #endif

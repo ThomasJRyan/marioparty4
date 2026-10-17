@@ -9,170 +9,170 @@
 #endif
 
 
-typedef struct unkDominationData2 {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ Vec unk_08;
-    /* 0x14 */ Vec unk_14;
-    /* 0x20 */ f32 unk_20;
-    /* 0x24 */ Vec unk_24;
-    /* 0x30 */ Vec unk_30;
-    /* 0x3C */ f32 unk_3C;
-    /* 0x40 */ s32 unk_40;
-    /* 0x44 */ f32 unk_44;
-    /* 0x48 */ f32 unk_48;
-} unkDominationData2; // sizeof 0x4C
+typedef struct CameraTransitionWork {
+    /* 0x00 */ s32 transitionDuration;
+    /* 0x04 */ s32 cameraTransitionActive;
+    /* 0x08 */ Vec startCenter;
+    /* 0x14 */ Vec startRotation;
+    /* 0x20 */ f32 startZoom;
+    /* 0x24 */ Vec targetCenter;
+    /* 0x30 */ Vec targetRotation;
+    /* 0x3C */ f32 targetZoom;
+    /* 0x40 */ s32 transitionFrameCount;
+    /* 0x44 */ f32 transitionProgress;
+    /* 0x48 */ f32 transitionFrameStep;
+} CameraTransitionWork; // sizeof 0x4C
 
 // function signatures
-void fn_1_1CAC(f32, f32, f32);
-void fn_1_1D08(f32, f32, f32);
-void fn_1_1D64(f32);
-void fn_1_2024(OMOBJ *);
+void SetCameraCenter(f32, f32, f32);
+void SetCameraRotation(f32, f32, f32);
+void SetCameraZoom(f32);
+void UpdateCameraTransition(OMOBJ *);
 
 // bss
-HUPROCESS *lbl_1_bss_34;
-OMOBJ *lbl_1_bss_30;
+HUPROCESS *cameraProcess;
+OMOBJ *cameraTransitionObject;
 
-void fn_1_1B1C(HUPROCESS *arg0)
+void InitializeCameraSystem(HUPROCESS *process)
 {
-    unkDominationData2 *unkData;
+    CameraTransitionWork *cameraWork;
 
-    lbl_1_bss_34 = arg0;
+    cameraProcess = process;
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 45.0f, 10.0f, 40000.0f, 1.2f);
-    lbl_1_bss_30 = omAddObjEx(lbl_1_bss_34, 0x80, 0, 0, -1, fn_1_2024);
-    lbl_1_bss_30->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(unkDominationData2), HU_MEMNUM_OVL);
-    unkData = lbl_1_bss_30->data;
-    unkData->unk_04 = 0;
-    fn_1_1CAC(0.0f, 0.0f, 0.0f);
-    fn_1_1D08(0.0f, 0.0f, 0.0f);
-    fn_1_1D64(0.0f);
+    cameraTransitionObject = omAddObjEx(cameraProcess, 0x80, 0, 0, -1, UpdateCameraTransition);
+    cameraTransitionObject->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(CameraTransitionWork), HU_MEMNUM_OVL);
+    cameraWork = cameraTransitionObject->data;
+    cameraWork->cameraTransitionActive = 0;
+    SetCameraCenter(0.0f, 0.0f, 0.0f);
+    SetCameraRotation(0.0f, 0.0f, 0.0f);
+    SetCameraZoom(0.0f);
 }
 
-void fn_1_1CA8(void) { }
+void ResetCameraTransition(void) { }
 
-void fn_1_1CAC(f32 arg8, f32 arg9, f32 argA)
+void SetCameraCenter(f32 centerX, f32 centerY, f32 centerZ)
 {
-    Center.x = arg8;
-    Center.y = arg9;
-    Center.z = argA;
+    Center.x = centerX;
+    Center.y = centerY;
+    Center.z = centerZ;
 }
 
-void fn_1_1CD4(f32 *arg0, f32 *arg1, f32 *arg2)
+void GetCameraCenter(f32 *centerX, f32 *centerY, f32 *centerZ)
 {
-    *arg0 = Center.x;
-    *arg1 = Center.y;
-    *arg2 = Center.z;
+    *centerX = Center.x;
+    *centerY = Center.y;
+    *centerZ = Center.z;
 }
 
-void fn_1_1D08(f32 arg8, f32 arg9, f32 argA)
+void SetCameraRotation(f32 rotationX, f32 rotationY, f32 rotationZ)
 {
-    CRot.x = arg8;
-    CRot.y = arg9;
-    CRot.z = argA;
+    CRot.x = rotationX;
+    CRot.y = rotationY;
+    CRot.z = rotationZ;
 }
 
-void fn_1_1D30(f32 *arg0, f32 *arg1, f32 *arg2)
+void GetCameraRotation(f32 *rotationX, f32 *rotationY, f32 *rotationZ)
 {
-    *arg0 = CRot.x;
-    *arg1 = CRot.y;
-    *arg2 = CRot.z;
+    *rotationX = CRot.x;
+    *rotationY = CRot.y;
+    *rotationZ = CRot.z;
 }
 
-void fn_1_1D64(f32 arg8)
+void SetCameraZoom(f32 zoom)
 {
-    CZoom = arg8;
+    CZoom = zoom;
 }
 
-void fn_1_1D74(f32 *arg0)
+void GetCameraZoom(f32 *zoom)
 {
-    *arg0 = CZoom;
+    *zoom = CZoom;
 }
 
-s32 fn_1_1D88(void)
+s32 IsCameraTransitionActive(void)
 {
-    unkDominationData2 *unkData = lbl_1_bss_30->data;
-    return unkData->unk_04;
+    CameraTransitionWork *cameraWork = cameraTransitionObject->data;
+    return cameraWork->cameraTransitionActive;
 }
 
-void fn_1_1DB0(Vec *arg0, Vec *arg1, f32 *arg2, s32 arg3, s32 arg4)
+void StartCameraTransition(Vec *startCenter, Vec *startRotation, f32 *startZoom, s32 frameCount, s32 transitionMode)
 {
-    unkDominationData2 *temp_r31;
+    CameraTransitionWork *workData;
 
-    temp_r31 = lbl_1_bss_30->data;
-    temp_r31->unk_00 = arg4;
-    temp_r31->unk_08 = (arg0) ? *arg0 : Center;
-    temp_r31->unk_14 = (arg1) ? *arg1 : CRot;
-    temp_r31->unk_20 = (arg2) ? *arg2 : CZoom;
-    temp_r31->unk_24 = Center;
-    temp_r31->unk_30 = CRot;
-    temp_r31->unk_3C = CZoom;
-    temp_r31->unk_40 = arg3;
-    temp_r31->unk_44 = 0.0f;
-    temp_r31->unk_48 = 1.0f / arg3;
-    temp_r31->unk_04 = 1;
+    workData = cameraTransitionObject->data;
+    workData->transitionDuration = transitionMode;
+    workData->startCenter = (startCenter) ? *startCenter : Center;
+    workData->startRotation = (startRotation) ? *startRotation : CRot;
+    workData->startZoom = (startZoom) ? *startZoom : CZoom;
+    workData->targetCenter = Center;
+    workData->targetRotation = CRot;
+    workData->targetZoom = CZoom;
+    workData->transitionFrameCount = frameCount;
+    workData->transitionProgress = 0.0f;
+    workData->transitionFrameStep = 1.0f / frameCount;
+    workData->cameraTransitionActive = 1;
 }
 
-f32 fn_1_1F1C(f32 arg8, f32 arg9)
+f32 GetAngleDistance(f32 angleA, f32 angleB)
 {
-    if (((arg8 > 0.0f) && (arg9 > 0.0f)) || ((arg8 < 0.0f) && (arg9 < 0.0f))) {
-        return abs(arg8 - arg9);
+    if (((angleA > 0.0f) && (angleB > 0.0f)) || ((angleA < 0.0f) && (angleB < 0.0f))) {
+        return abs(angleA - angleB);
     }
 
-    return abs(arg8) + abs(arg9);
+    return abs(angleA) + abs(angleB);
 }
 
-void fn_1_2024(OMOBJ *arg0)
+void UpdateCameraTransition(OMOBJ *object)
 {
-    Vec sp14;
-    Vec sp8;
-    f32 var_f31;
+    Vec interpolatedCenter;
+    Vec interpolatedRotation;
+    f32 transitionBlend;
     f32 cZoomTemp;
-    unkDominationData2 *temp_r31;
+    CameraTransitionWork *workData;
 
-    temp_r31 = arg0->data;
-    if (temp_r31->unk_04 != 0) {
-        switch (temp_r31->unk_00) {
+    workData = object->data;
+    if (workData->cameraTransitionActive != 0) {
+        switch (workData->transitionDuration) {
             case 0:
-                var_f31 = temp_r31->unk_44;
+                transitionBlend = workData->transitionProgress;
                 break;
             case 1:
-                var_f31 = temp_r31->unk_44;
-                if (temp_r31->unk_48 > 0.5) {
-                    temp_r31->unk_00 = 2;
+                transitionBlend = workData->transitionProgress;
+                if (workData->transitionFrameStep > 0.5) {
+                    workData->transitionDuration = 2;
                 }
                 break;
             case 2:
-                var_f31 = sind(90.0f * temp_r31->unk_44);
+                transitionBlend = sind(90.0f * workData->transitionProgress);
                 break;
             case 3:
-                var_f31 = sind(90.0f * temp_r31->unk_44);
-                if (temp_r31->unk_48 > 0.5) {
-                    temp_r31->unk_00 = 4;
+                transitionBlend = sind(90.0f * workData->transitionProgress);
+                if (workData->transitionFrameStep > 0.5) {
+                    workData->transitionDuration = 4;
                 }
                 break;
             case 4:
-                var_f31 = sind(90.0f * temp_r31->unk_44);
-                var_f31 *= var_f31;
+                transitionBlend = sind(90.0f * workData->transitionProgress);
+                transitionBlend *= transitionBlend;
                 break;
         }
-        sp14.x = temp_r31->unk_24.x + (var_f31 * (temp_r31->unk_08.x - temp_r31->unk_24.x));
-        sp14.y = temp_r31->unk_24.y + (var_f31 * (temp_r31->unk_08.y - temp_r31->unk_24.y));
-        sp14.z = temp_r31->unk_24.z + (var_f31 * (temp_r31->unk_08.z - temp_r31->unk_24.z));
-        sp8.x = temp_r31->unk_30.x + (var_f31 * (temp_r31->unk_14.x - temp_r31->unk_30.x));
-        sp8.y = temp_r31->unk_30.y + (var_f31 * (temp_r31->unk_14.y - temp_r31->unk_30.y));
-        sp8.z = temp_r31->unk_30.z + (var_f31 * (temp_r31->unk_14.z - temp_r31->unk_30.z));
-        cZoomTemp = temp_r31->unk_3C + (var_f31 * (temp_r31->unk_20 - temp_r31->unk_3C));
-        temp_r31->unk_44 += temp_r31->unk_48;
-        Center = sp14;
-        CRot = sp8;
+        interpolatedCenter.x = workData->targetCenter.x + (transitionBlend * (workData->startCenter.x - workData->targetCenter.x));
+        interpolatedCenter.y = workData->targetCenter.y + (transitionBlend * (workData->startCenter.y - workData->targetCenter.y));
+        interpolatedCenter.z = workData->targetCenter.z + (transitionBlend * (workData->startCenter.z - workData->targetCenter.z));
+        interpolatedRotation.x = workData->targetRotation.x + (transitionBlend * (workData->startRotation.x - workData->targetRotation.x));
+        interpolatedRotation.y = workData->targetRotation.y + (transitionBlend * (workData->startRotation.y - workData->targetRotation.y));
+        interpolatedRotation.z = workData->targetRotation.z + (transitionBlend * (workData->startRotation.z - workData->targetRotation.z));
+        cZoomTemp = workData->targetZoom + (transitionBlend * (workData->startZoom - workData->targetZoom));
+        workData->transitionProgress += workData->transitionFrameStep;
+        Center = interpolatedCenter;
+        CRot = interpolatedRotation;
         CZoom = cZoomTemp;
-        if (--temp_r31->unk_40 <= 0) {
-            Center = temp_r31->unk_08;
-            CRot = temp_r31->unk_14;
-            CZoom = temp_r31->unk_20;
-            temp_r31->unk_04 = 0;
+        if (--workData->transitionFrameCount <= 0) {
+            Center = workData->startCenter;
+            CRot = workData->startRotation;
+            CZoom = workData->startZoom;
+            workData->cameraTransitionActive = 0;
         }
     }
-    omOutView(arg0);
+    omOutView(object);
 }

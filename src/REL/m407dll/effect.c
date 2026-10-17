@@ -5,193 +5,193 @@
 
 #include "REL/m407dll.h"
 
-typedef struct unkDominationData4 {
-    /* 0x00 */ u32 unk_00;
-    /* 0x04 */ u32 unk_04;
-    /* 0x08 */ s32 unk_08;
-    /* 0x0C */ s32 unk_0C;
-    /* 0x10 */ f32 unk_10;
-    /* 0x14 */ f32 unk_14;
-    /* 0x18 */ f32 unk_18;
-    /* 0x1C */ s32 unk_1C;
-} unkDominationData4; // size of 0x20
+typedef struct EffectObjectWork {
+    /* 0x00 */ u32 effectPoolIndex;
+    /* 0x04 */ u32 framesRemaining;
+    /* 0x08 */ s32 effectType;
+    /* 0x0C */ s32 effectState;
+    /* 0x10 */ f32 positionX;
+    /* 0x14 */ f32 positionY;
+    /* 0x18 */ f32 positionZ;
+    /* 0x1C */ s32 animationState;
+} EffectObjectWork; // size of 0x20
 
 // function signatures
-void fn_1_4858(OMOBJ *arg0);
-void fn_1_485C(OMOBJ *arg0);
-void fn_1_46EC(OMOBJ *arg0);
-void fn_1_465C(OMOBJ *arg0, s32 arg1);
-void fn_1_4808(OMOBJ *arg0);
+void EffectStateIdle(OMOBJ *object);
+void EffectStatePlay(OMOBJ *object);
+void CreateEffectObject(OMOBJ *object);
+void SetEffectState(OMOBJ *object, s32 effectState);
+void DestroyEffectObject(OMOBJ *object);
 
 // bss
-HUPROCESS *lbl_1_bss_3970;
-OMOBJ *lbl_1_bss_37E0[100];
+HUPROCESS *effectProcess;
+OMOBJ *effectObjects[100];
 
 // data
-s32 lbl_1_data_288[] = { DATA_MAKE_NUM(DATADIR_M407, 0x15), DATA_MAKE_NUM(DATADIR_M407, 0x16), DATA_MAKE_NUM(DATADIR_M407, 0x17),
+s32 effectModelAssetIds[] = { DATA_MAKE_NUM(DATADIR_M407, 0x15), DATA_MAKE_NUM(DATADIR_M407, 0x16), DATA_MAKE_NUM(DATADIR_M407, 0x17),
     DATA_MAKE_NUM(DATADIR_M407, 0x18), DATA_MAKE_NUM(DATADIR_M407, 0x19) };
 
-ObjFuncs lbl_1_data_29C[] = {
-    fn_1_4858,
-    fn_1_485C,
+ObjFuncs effectStateCallbacks[] = {
+    EffectStateIdle,
+    EffectStatePlay,
 };
 
-void fn_1_41CC(HUPROCESS *arg0)
+void InitializeEffectSystem(HUPROCESS *process)
 {
-    HUPROCESS *sp8;
+    HUPROCESS *unusedProcessAlias;
     u32 i;
-    u32 temp_r30;
+    u32 effectObjectIndexOffset;
 
-    lbl_1_bss_3970 = arg0;
-    temp_r30 = 0;
+    effectProcess = process;
+    effectObjectIndexOffset = 0;
 
     for (i = 0; i < 40; i++) {
-        lbl_1_bss_37E0[i] = omAddObjEx(lbl_1_bss_3970, 0x800, 1, 0, 5, fn_1_46EC);
-        lbl_1_bss_37E0[i]->work[0] = i;
-        lbl_1_bss_37E0[i]->work[1] = 0;
+        effectObjects[i] = omAddObjEx(effectProcess, 0x800, 1, 0, 5, CreateEffectObject);
+        effectObjects[i]->work[0] = i;
+        effectObjects[i]->work[1] = 0;
     }
 
-    temp_r30 += i;
+    effectObjectIndexOffset += i;
 
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_37E0[temp_r30 + i] = omAddObjEx(lbl_1_bss_3970, 0x800, 1, 0, 5, fn_1_46EC);
-        lbl_1_bss_37E0[temp_r30 + i]->work[0] = temp_r30 + i;
-        lbl_1_bss_37E0[temp_r30 + i]->work[1] = 1;
+        effectObjects[effectObjectIndexOffset + i] = omAddObjEx(effectProcess, 0x800, 1, 0, 5, CreateEffectObject);
+        effectObjects[effectObjectIndexOffset + i]->work[0] = effectObjectIndexOffset + i;
+        effectObjects[effectObjectIndexOffset + i]->work[1] = 1;
     }
 
-    temp_r30 += i;
+    effectObjectIndexOffset += i;
 
     for (i = 0; i < 30; i++) {
-        lbl_1_bss_37E0[temp_r30 + i] = omAddObjEx(lbl_1_bss_3970, 0x800, 1, 0, 5, fn_1_46EC);
-        lbl_1_bss_37E0[temp_r30 + i]->work[0] = temp_r30 + i;
-        lbl_1_bss_37E0[temp_r30 + i]->work[1] = 2;
+        effectObjects[effectObjectIndexOffset + i] = omAddObjEx(effectProcess, 0x800, 1, 0, 5, CreateEffectObject);
+        effectObjects[effectObjectIndexOffset + i]->work[0] = effectObjectIndexOffset + i;
+        effectObjects[effectObjectIndexOffset + i]->work[1] = 2;
     }
 
-    temp_r30 += i;
+    effectObjectIndexOffset += i;
 
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_37E0[temp_r30 + i] = omAddObjEx(lbl_1_bss_3970, 0x800, 1, 0, 5, fn_1_46EC);
-        lbl_1_bss_37E0[temp_r30 + i]->work[0] = temp_r30 + i;
-        lbl_1_bss_37E0[temp_r30 + i]->work[1] = 3;
+        effectObjects[effectObjectIndexOffset + i] = omAddObjEx(effectProcess, 0x800, 1, 0, 5, CreateEffectObject);
+        effectObjects[effectObjectIndexOffset + i]->work[0] = effectObjectIndexOffset + i;
+        effectObjects[effectObjectIndexOffset + i]->work[1] = 3;
     }
 
-    temp_r30 += i;
+    effectObjectIndexOffset += i;
 
     for (i = 0; i < 22; i++) {
-        lbl_1_bss_37E0[temp_r30 + i] = omAddObjEx(lbl_1_bss_3970, 0x800, 1, 0, 5, fn_1_46EC);
-        lbl_1_bss_37E0[temp_r30 + i]->work[0] = temp_r30 + i;
-        lbl_1_bss_37E0[temp_r30 + i]->work[1] = 4;
+        effectObjects[effectObjectIndexOffset + i] = omAddObjEx(effectProcess, 0x800, 1, 0, 5, CreateEffectObject);
+        effectObjects[effectObjectIndexOffset + i]->work[0] = effectObjectIndexOffset + i;
+        effectObjects[effectObjectIndexOffset + i]->work[1] = 4;
     }
 }
 
-void fn_1_44F4(void)
+void ResetEffectPool(void)
 {
     u32 i;
 
-    for (i = 0; i < ARRAY_COUNT(lbl_1_bss_37E0); i++) {
-        fn_1_4808(lbl_1_bss_37E0[i]);
+    for (i = 0; i < ARRAY_COUNT(effectObjects); i++) {
+        DestroyEffectObject(effectObjects[i]);
     }
 }
 
-void fn_1_4544(s32 arg0, s32 arg1, f32 arg2, f32 arg3, f32 arg4)
+void SpawnEffect(s32 effectType, s32 durationFrames, f32 positionX, f32 positionY, f32 positionZ)
 {
-    OMOBJ *temp_r29;
-    unkDominationData4 *temp_r31;
+    OMOBJ *availableEffectObject;
+    EffectObjectWork *workData;
     u32 i;
 
-    if ((arg4 < (Center.z - 2000.0f)) || (arg4 > (2000.0f + Center.z))) {
+    if ((positionZ < (Center.z - 2000.0f)) || (positionZ > (2000.0f + Center.z))) {
         return;
     }
 
-    for (i = 0; i < ARRAY_COUNT(lbl_1_bss_37E0); i++) {
-        temp_r29 = lbl_1_bss_37E0[i];
-        temp_r31 = temp_r29->data;
-        if ((temp_r31->unk_08 == arg0) && (temp_r31->unk_0C == 0)) {
-            temp_r31->unk_04 = arg1;
-            temp_r31->unk_10 = arg2;
-            temp_r31->unk_14 = arg3;
-            temp_r31->unk_18 = arg4;
-            fn_1_465C(temp_r29, 1);
+    for (i = 0; i < ARRAY_COUNT(effectObjects); i++) {
+        availableEffectObject = effectObjects[i];
+        workData = availableEffectObject->data;
+        if ((workData->effectType == effectType) && (workData->effectState == 0)) {
+            workData->framesRemaining = durationFrames;
+            workData->positionX = positionX;
+            workData->positionY = positionY;
+            workData->positionZ = positionZ;
+            SetEffectState(availableEffectObject, 1);
             return;
         }
     }
 }
 
-void fn_1_465C(OMOBJ *arg0, s32 arg1)
+void SetEffectState(OMOBJ *object, s32 effectState)
 {
-    unkDominationData4 *temp_r31;
+    EffectObjectWork *workData;
 
-    temp_r31 = arg0->data;
-    temp_r31->unk_0C = arg1;
-    temp_r31->unk_1C = 0;
+    workData = object->data;
+    workData->effectState = effectState;
+    workData->animationState = 0;
 }
 
-void fn_1_4680(OMOBJ *arg0)
+void UpdateEffectObject(OMOBJ *object)
 {
-    unkDominationData4 *temp_r31;
+    EffectObjectWork *workData;
 
-    temp_r31 = arg0->data;
-    lbl_1_data_29C[temp_r31->unk_0C](arg0);
-    omSetTra(arg0, temp_r31->unk_10, temp_r31->unk_14, temp_r31->unk_18);
+    workData = object->data;
+    effectStateCallbacks[workData->effectState](object);
+    omSetTra(object, workData->positionX, workData->positionY, workData->positionZ);
 }
 
-void fn_1_46EC(OMOBJ *arg0)
+void CreateEffectObject(OMOBJ *object)
 {
-    unkDominationData4 *temp_r30;
+    EffectObjectWork *effectWork;
 
-    arg0->objFunc = fn_1_4680;
-    arg0->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(unkDominationData4), HU_MEMNUM_OVL);
-    temp_r30 = arg0->data;
-    temp_r30->unk_00 = arg0->work[0];
-    temp_r30->unk_08 = arg0->work[1];
-    temp_r30->unk_1C = 0;
-    arg0->mdlId[0] = Hu3DModelCreateFile(lbl_1_data_288[temp_r30->unk_08]);
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_NOCULL);
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    temp_r30->unk_10 = 0.0f;
-    temp_r30->unk_14 = 0.0f;
-    temp_r30->unk_18 = 0.0f;
-    fn_1_465C(arg0, 0);
+    object->objFunc = UpdateEffectObject;
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(EffectObjectWork), HU_MEMNUM_OVL);
+    effectWork = object->data;
+    effectWork->effectPoolIndex = object->work[0];
+    effectWork->effectType = object->work[1];
+    effectWork->animationState = 0;
+    object->mdlId[0] = Hu3DModelCreateFile(effectModelAssetIds[effectWork->effectType]);
+    Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_NOCULL);
+    Hu3DModelAttrSet(object->mdlId[0], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
+    effectWork->positionX = 0.0f;
+    effectWork->positionY = 0.0f;
+    effectWork->positionZ = 0.0f;
+    SetEffectState(object, 0);
 }
 
-void fn_1_4808(OMOBJ *arg0)
+void DestroyEffectObject(OMOBJ *object)
 {
-    unkDominationData4 *sp8;
-    sp8 = arg0->data;
+    EffectObjectWork *effectWork;
+    effectWork = object->data;
 
-    Hu3DModelKill(arg0->mdlId[0]);
+    Hu3DModelKill(object->mdlId[0]);
 
-    if (arg0->data) {
-        HuMemDirectFree(arg0->data);
+    if (object->data) {
+        HuMemDirectFree(object->data);
     }
 }
 
-void fn_1_4858(OMOBJ *arg0) { }
+void EffectStateIdle(OMOBJ *object) { }
 
-void fn_1_485C(OMOBJ *arg0)
+void EffectStatePlay(OMOBJ *object)
 {
-    unkDominationData4 *temp_r30;
+    EffectObjectWork *effectWork;
 
-    temp_r30 = arg0->data;
-    if (temp_r30->unk_04 != 0) {
-        temp_r30->unk_04--;
+    effectWork = object->data;
+    if (effectWork->framesRemaining != 0) {
+        effectWork->framesRemaining--;
     }
 
-    if (temp_r30->unk_1C == 0) {
-        Hu3DMotionTimeSet(*arg0->mdlId, 0.0f);
-        Hu3DModelAttrReset(*arg0->mdlId, HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrReset(*arg0->mdlId, HU3D_MOTATTR_PAUSE);
-        Hu3DModelAttrSet(*arg0->mdlId, HU3D_MOTATTR_LOOP);
-        temp_r30->unk_1C++;
+    if (effectWork->animationState == 0) {
+        Hu3DMotionTimeSet(*object->mdlId, 0.0f);
+        Hu3DModelAttrReset(*object->mdlId, HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(*object->mdlId, HU3D_MOTATTR_PAUSE);
+        Hu3DModelAttrSet(*object->mdlId, HU3D_MOTATTR_LOOP);
+        effectWork->animationState++;
     }
-    else if (temp_r30->unk_1C == 1) {
-        Hu3DModelAttrReset(arg0->mdlId[0], HU3D_MOTATTR_LOOP);
-        temp_r30->unk_1C++;
+    else if (effectWork->animationState == 1) {
+        Hu3DModelAttrReset(object->mdlId[0], HU3D_MOTATTR_LOOP);
+        effectWork->animationState++;
     }
 
-    if (Hu3DMotionEndCheck(*arg0->mdlId) != 0) {
-        Hu3DModelAttrSet(*arg0->mdlId, HU3D_ATTR_DISPOFF);
-        fn_1_465C(arg0, 0);
+    if (Hu3DMotionEndCheck(*object->mdlId) != 0) {
+        Hu3DModelAttrSet(*object->mdlId, HU3D_ATTR_DISPOFF);
+        SetEffectState(object, 0);
     }
 }
