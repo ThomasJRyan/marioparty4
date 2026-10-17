@@ -8,6 +8,6 @@ void ObjectSetup(void) {
     OSReport("minigame dll setup\n");
 }
 
-unsigned char fn_1_CC(void) {
+unsigned char GetRandomByte(void) {
     return rand8();
 }
