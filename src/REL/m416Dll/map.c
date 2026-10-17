@@ -13,8 +13,8 @@
 
 #include "REL/m416Dll.h"
 
-GXColor lbl_1_data_268 = { 0, 0, 0, 255 };
-Vec lbl_1_data_26C[8] = {
+GXColor mapFadeColor = { 0, 0, 0, 255 };
+Vec mapObjectPositions[8] = {
     { 70, 0, 70 },
     { 70, 0, -70 },
     { -70, 0, -70 },
@@ -24,42 +24,42 @@ Vec lbl_1_data_26C[8] = {
     { -70, 0, -70 },
     { -70, 0, 70 },
 };
-Vec lbl_1_data_2CC[2] = { { 370, 615, -245 }, { -370, 615, -245 } };
-float lbl_1_data_2E4[2] = { 0, 1 };
+Vec mapLightPositions[2] = { { 370, 615, -245 }, { -370, 615, -245 } };
+float mapRotationDelta[2] = { 0, 1 };
 
-OMOBJ *lbl_1_bss_118C;
-OMOBJ *lbl_1_bss_1188;
-u32 lbl_1_bss_1184;
-void *lbl_1_bss_1180;
-float lbl_1_bss_117C;
-s16 lbl_1_bss_1174[4];
-float lbl_1_bss_116C[2];
-s16 lbl_1_bss_1168;
-s16 lbl_1_bss_968[256][4];
+OMOBJ *mapObject;
+OMOBJ *mapObjectsObject;
+u32 mapTextureBufferSize;
+void *mapTextureBuffer;
+float mapRotation;
+s16 mapLightIds[4];
+float mapRotationAngles[2];
+s16 trackedModelCount;
+s16 trackedModelIds[256][4];
 
-void fn_1_7A74(OMOBJ *object);
-void fn_1_7D74(OMOBJ *object);
-void fn_1_7F30(OMOBJ *object);
-void fn_1_83B4(OMOBJ *object);
+void InitializeMapModel(OMOBJ *object);
+void UpdateMapModel(OMOBJ *object);
+void InitializeMapObjects(OMOBJ *object);
+void UpdateMapObjects(OMOBJ *object);
 
-void fn_1_89BC(HU3DMODEL *model, Mtx mtx);
+void DrawMapTexture(HU3DMODEL *model, Mtx mtx);
 
-void fn_1_8EA0(void);
-void fn_1_8FF0(void);
+void InitializeModelTracking(void);
+void EmptyMapCallback(void);
 
-void fn_1_79D0(HUPROCESS *objman)
+void InitializeMap(HUPROCESS *objman)
 {
-    lbl_1_bss_118C = omAddObjEx(objman, 20, 2, 0, -1, fn_1_7A74);
-    lbl_1_bss_1188 = omAddObjEx(objman, 20, 10, 0, -1, fn_1_7F30);
-    fn_1_8EA0();
+    mapObject = omAddObjEx(objman, 20, 2, 0, -1, InitializeMapModel);
+    mapObjectsObject = omAddObjEx(objman, 20, 10, 0, -1, InitializeMapObjects);
+    InitializeModelTracking();
 }
 
-void fn_1_7A54(void)
+void ShutdownMap(void)
 {
-    fn_1_8FF0();
+    EmptyMapCallback();
 }
 
-void fn_1_7A74(OMOBJ *object)
+void InitializeMapModel(OMOBJ *object)
 {
     s16 i;
     object->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M416, 0x00));
@@ -68,27 +68,27 @@ void fn_1_7A74(OMOBJ *object)
     object->trans.x = 0;
     object->trans.y = 0;
     object->trans.z = 0;
-    fn_1_8EB4(object->mdlId[0]);
+    TrackModelMaterials(object->mdlId[0]);
     for (i = 0; i < 2; i++) {
-        lbl_1_bss_1174[i + 2] = Hu3DLLightCreate(object->mdlId[0], 0, 0, 0, 0, 0, 0, 0, 0, 0);
-        Hu3DLLightStaticSet(object->mdlId[0], lbl_1_bss_1174[i + 2], 1);
-        Hu3DLLightPointSet(object->mdlId[0], lbl_1_bss_1174[i + 2], 45, 0.8, 3);
-        Hu3DLLightColorSet(object->mdlId[0], lbl_1_bss_1174[i + 2], 255, 160, 0, 255);
-        Hu3DLLightPosSet(object->mdlId[0], lbl_1_bss_1174[i + 2], lbl_1_data_2CC[i].x, 475, lbl_1_data_2CC[i].z, 0, 1, 0);
+        mapLightIds[i + 2] = Hu3DLLightCreate(object->mdlId[0], 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        Hu3DLLightStaticSet(object->mdlId[0], mapLightIds[i + 2], 1);
+        Hu3DLLightPointSet(object->mdlId[0], mapLightIds[i + 2], 45, 0.8, 3);
+        Hu3DLLightColorSet(object->mdlId[0], mapLightIds[i + 2], 255, 160, 0, 255);
+        Hu3DLLightPosSet(object->mdlId[0], mapLightIds[i + 2], mapLightPositions[i].x, 475, mapLightPositions[i].z, 0, 1, 0);
     }
-    object->mdlId[1] = Hu3DHookFuncCreate(fn_1_89BC);
+    object->mdlId[1] = Hu3DHookFuncCreate(DrawMapTexture);
     Hu3DModelLayerSet(object->mdlId[1], 1);
-    lbl_1_bss_1184 = GXGetTexBufferSize(640, 480, GX_TF_RGBA8, GX_FALSE, 0);
-    lbl_1_bss_1180 = HuMemDirectMallocNum(HEAP_MODEL, lbl_1_bss_1184, HU_MEMNUM_OVL);
-    memset(lbl_1_bss_1180, 0, lbl_1_bss_1184);
-    object->objFunc = fn_1_7D74;
+    mapTextureBufferSize = GXGetTexBufferSize(640, 480, GX_TF_RGBA8, GX_FALSE, 0);
+    mapTextureBuffer = HuMemDirectMallocNum(HEAP_MODEL, mapTextureBufferSize, HU_MEMNUM_OVL);
+    memset(mapTextureBuffer, 0, mapTextureBufferSize);
+    object->objFunc = UpdateMapModel;
 }
 
-void fn_1_7D74(OMOBJ *object)
+void UpdateMapModel(OMOBJ *object)
 {
     s32 i;
     for (i = 0; i < 2; i++) {
-        Hu3DLLightPointSet(object->mdlId[0], lbl_1_bss_1174[i + 2], (15 * sind(object->work[i])) + 45, 0.8, 3);
+        Hu3DLLightPointSet(object->mdlId[0], mapLightIds[i + 2], (15 * sind(object->work[i])) + 45, 0.8, 3);
         object->work[i] += 8.0f;
         if (object->work[i] > 360.0f) {
             object->work[i] -= 360.0f;
@@ -96,154 +96,154 @@ void fn_1_7D74(OMOBJ *object)
     }
 }
 
-void fn_1_7F30(OMOBJ *object)
+void InitializeMapObjects(OMOBJ *object)
 {
-    Mtx sp68;
-    Mtx sp38;
-    Mtx sp8;
-    s32 temp_r30;
-    Vec *temp_r29;
-    s32 temp_r28;
-    s32 temp_r27;
-    s16 temp_r26;
-    s16 temp_r25;
-    s16 temp_r24;
-    ANIMDATA *temp_r23;
+    Mtx transformMatrix68;
+    Mtx transformMatrix38;
+    Mtx transformMatrix8;
+    s32 index30;
+    Vec *position29;
+    s32 index28;
+    s32 index27;
+    s16 index26;
+    s16 index25;
+    s16 index24;
+    ANIMDATA *animationData23;
     object->stat |= 0x100;
-    for (temp_r30 = 0; temp_r30 < 2; temp_r30++) {
-        if (temp_r30 == 0) {
-            temp_r25 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M416, 0x01));
-            temp_r26 = temp_r25;
+    for (index30 = 0; index30 < 2; index30++) {
+        if (index30 == 0) {
+            index25 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M416, 0x01));
+            index26 = index25;
         }
         else {
-            temp_r24 = Hu3DModelLink(temp_r25);
-            temp_r26 = temp_r24;
+            index24 = Hu3DModelLink(index25);
+            index26 = index24;
         }
-        object->mdlId[temp_r30] = temp_r26;
-        Hu3DModelLayerSet(temp_r26, 2);
-        fn_1_8EB4(object->mdlId[temp_r30]);
-        Hu3DModelPosSet(object->mdlId[temp_r30], lbl_1_data_2CC[temp_r30].x, lbl_1_data_2CC[temp_r30].y, lbl_1_data_2CC[temp_r30].z);
+        object->mdlId[index30] = index26;
+        Hu3DModelLayerSet(index26, 2);
+        TrackModelMaterials(object->mdlId[index30]);
+        Hu3DModelPosSet(object->mdlId[index30], mapLightPositions[index30].x, mapLightPositions[index30].y, mapLightPositions[index30].z);
     }
-    temp_r23 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M416, 0x06));
-    temp_r29 = &lbl_1_data_26C[0];
-    for (temp_r30 = 0; temp_r30 < 2; temp_r30++) {
-        for (temp_r27 = 0; temp_r27 < 4; temp_r27++, temp_r29++) {
-            temp_r28 = (temp_r30 * 4) + 2;
-            temp_r28 = temp_r27 + temp_r28;
-            object->mdlId[temp_r28] = Hu3DParticleCreate(temp_r23, 50);
-            Hu3DParticleHookSet(object->mdlId[temp_r28], fn_1_613C);
-            Hu3DParticleBlendModeSet(object->mdlId[temp_r28], 1);
-            Hu3DModelLayerSet(object->mdlId[temp_r28], 6);
-            Hu3DModelScaleSet(object->mdlId[temp_r28], 0.5f, 0.7f, 0.5f);
-            MTXTrans(sp68, lbl_1_data_2CC[temp_r30].x, lbl_1_data_2CC[temp_r30].y, lbl_1_data_2CC[temp_r30].z);
-            MTXTrans(sp38, 0, -150, 0);
-            MTXConcat(sp68, sp38, sp68);
-            MTXTrans(sp8, temp_r29->x, temp_r29->y, temp_r29->z);
-            MTXConcat(sp68, sp8, sp68);
-            Hu3DModelPosSet(object->mdlId[temp_r28], sp68[0][3], sp68[1][3], sp68[2][3]);
+    animationData23 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M416, 0x06));
+    position29 = &mapObjectPositions[0];
+    for (index30 = 0; index30 < 2; index30++) {
+        for (index27 = 0; index27 < 4; index27++, position29++) {
+            index28 = (index30 * 4) + 2;
+            index28 = index27 + index28;
+            object->mdlId[index28] = Hu3DParticleCreate(animationData23, 50);
+            Hu3DParticleHookSet(object->mdlId[index28], updatePlayerParticle);
+            Hu3DParticleBlendModeSet(object->mdlId[index28], 1);
+            Hu3DModelLayerSet(object->mdlId[index28], 6);
+            Hu3DModelScaleSet(object->mdlId[index28], 0.5f, 0.7f, 0.5f);
+            MTXTrans(transformMatrix68, mapLightPositions[index30].x, mapLightPositions[index30].y, mapLightPositions[index30].z);
+            MTXTrans(transformMatrix38, 0, -150, 0);
+            MTXConcat(transformMatrix68, transformMatrix38, transformMatrix68);
+            MTXTrans(transformMatrix8, position29->x, position29->y, position29->z);
+            MTXConcat(transformMatrix68, transformMatrix8, transformMatrix68);
+            Hu3DModelPosSet(object->mdlId[index28], transformMatrix68[0][3], transformMatrix68[1][3], transformMatrix68[2][3]);
         }
     }
-    for (temp_r30 = 0; temp_r30 < 2; temp_r30++) {
-        lbl_1_bss_1174[temp_r30] = Hu3DLLightCreate(object->mdlId[temp_r30], 0, 0, 0, 0, 0, 0, 0, 0, 0);
-        Hu3DLLightStaticSet(object->mdlId[temp_r30], lbl_1_bss_1174[temp_r30], 1);
-        Hu3DLLightPointSet(object->mdlId[temp_r30], lbl_1_bss_1174[temp_r30], 1000, 0.8, 3);
-        Hu3DLLightColorSet(object->mdlId[temp_r30], lbl_1_bss_1174[temp_r30], 255, 160, 0, 255);
-        Hu3DLLightPosSet(object->mdlId[temp_r30], lbl_1_bss_1174[temp_r30], lbl_1_data_2CC[temp_r30].x, 475, lbl_1_data_2CC[temp_r30].z, 0, 1, 0);
+    for (index30 = 0; index30 < 2; index30++) {
+        mapLightIds[index30] = Hu3DLLightCreate(object->mdlId[index30], 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        Hu3DLLightStaticSet(object->mdlId[index30], mapLightIds[index30], 1);
+        Hu3DLLightPointSet(object->mdlId[index30], mapLightIds[index30], 1000, 0.8, 3);
+        Hu3DLLightColorSet(object->mdlId[index30], mapLightIds[index30], 255, 160, 0, 255);
+        Hu3DLLightPosSet(object->mdlId[index30], mapLightIds[index30], mapLightPositions[index30].x, 475, mapLightPositions[index30].z, 0, 1, 0);
     }
     object->work[0] = 0;
     object->work[1] = 45;
-    lbl_1_bss_117C = 0;
-    object->objFunc = fn_1_83B4;
+    mapRotation = 0;
+    object->objFunc = UpdateMapObjects;
 }
 
-void fn_1_83B4(OMOBJ *object)
+void UpdateMapObjects(OMOBJ *object)
 {
-    float temp_f31;
+    float scalarValue31;
 
-    s32 temp_r31;
-    Vec *temp_r29;
-    s32 temp_r28;
-    s32 temp_r27;
-    HU3DMODEL *temp_r26;
+    s32 index31;
+    Vec *position29;
+    s32 index28;
+    s32 index27;
+    HU3DMODEL *model26;
 
-    Mtx sp130[2];
-    Mtx sp100;
-    Mtx spD0;
-    Mtx spA0;
-    Mtx sp70;
-    Mtx sp40;
-    Mtx sp10;
-    float sp8[2];
-    MTXIdentity(sp100);
-    MTXIdentity(sp130[0]);
-    MTXIdentity(sp130[1]);
-    MTXIdentity(spD0);
-    MTXIdentity(spA0);
-    MTXIdentity(sp70);
-    MTXIdentity(sp40);
-    MTXIdentity(sp10);
-    lbl_1_bss_117C = fmod(60.0f / REFRESH_RATE + lbl_1_bss_117C, 360);
-    sp8[0] = 20 * sind(lbl_1_bss_117C);
-    sp8[1] = 20 * cosd(lbl_1_bss_117C);
-    if (fn_1_1240() == 6) {
-        for (temp_r31 = 0; temp_r31 < 2; temp_r31++) {
-            temp_f31 = sp8[temp_r31] - lbl_1_bss_116C[temp_r31];
-            if (temp_f31 * lbl_1_data_2E4[temp_r31] <= 0.0f) {
-                temp_r26 = &Hu3DData[object->mdlId[temp_r31]];
-                HuAudFXEmiterPlay(1467, &temp_r26->pos);
+    Mtx transformMatrix130[2];
+    Mtx transformMatrix100;
+    Mtx transformMatrixD0;
+    Mtx transformMatrixA0;
+    Mtx transformMatrix70;
+    Mtx transformMatrix40;
+    Mtx transformMatrix10;
+    float scalarValues8[2];
+    MTXIdentity(transformMatrix100);
+    MTXIdentity(transformMatrix130[0]);
+    MTXIdentity(transformMatrix130[1]);
+    MTXIdentity(transformMatrixD0);
+    MTXIdentity(transformMatrixA0);
+    MTXIdentity(transformMatrix70);
+    MTXIdentity(transformMatrix40);
+    MTXIdentity(transformMatrix10);
+    mapRotation = fmod(60.0f / REFRESH_RATE + mapRotation, 360);
+    scalarValues8[0] = 20 * sind(mapRotation);
+    scalarValues8[1] = 20 * cosd(mapRotation);
+    if (getGameState() == 6) {
+        for (index31 = 0; index31 < 2; index31++) {
+            scalarValue31 = scalarValues8[index31] - mapRotationAngles[index31];
+            if (scalarValue31 * mapRotationDelta[index31] <= 0.0f) {
+                model26 = &Hu3DData[object->mdlId[index31]];
+                HuAudFXEmiterPlay(1467, &model26->pos);
             }
-            lbl_1_data_2E4[temp_r31] = temp_f31;
+            mapRotationDelta[index31] = scalarValue31;
         }
     }
-    lbl_1_bss_116C[0] = sp8[0];
-    lbl_1_bss_116C[1] = sp8[1];
-    temp_r29 = &lbl_1_data_26C[0];
-    for (temp_r31 = 0; temp_r31 < 2; temp_r31++) {
-        MTXRotDeg(sp130[temp_r31], 'y', lbl_1_bss_116C[temp_r31]);
-        for (temp_r28 = 0; temp_r28 < 4; temp_r28++, temp_r29++) {
-            temp_r27 = (temp_r31 * 4) + 2;
-            temp_r27 = temp_r28 + temp_r27;
-            MTXTrans(spA0, lbl_1_data_2CC[temp_r31].x, lbl_1_data_2CC[temp_r31].y, lbl_1_data_2CC[temp_r31].z);
-            MTXTrans(sp70, 0, -150, 0);
-            MTXConcat(spA0, sp70, spA0);
-            MTXTrans(sp40, temp_r29->x, temp_r29->y, temp_r29->z);
-            MTXConcat(sp130[temp_r31], sp40, sp10);
-            MTXConcat(spA0, sp10, spA0);
-            Hu3DModelPosSet(object->mdlId[temp_r27], spA0[0][3], spA0[1][3], spA0[2][3]);
+    mapRotationAngles[0] = scalarValues8[0];
+    mapRotationAngles[1] = scalarValues8[1];
+    position29 = &mapObjectPositions[0];
+    for (index31 = 0; index31 < 2; index31++) {
+        MTXRotDeg(transformMatrix130[index31], 'y', mapRotationAngles[index31]);
+        for (index28 = 0; index28 < 4; index28++, position29++) {
+            index27 = (index31 * 4) + 2;
+            index27 = index28 + index27;
+            MTXTrans(transformMatrixA0, mapLightPositions[index31].x, mapLightPositions[index31].y, mapLightPositions[index31].z);
+            MTXTrans(transformMatrix70, 0, -150, 0);
+            MTXConcat(transformMatrixA0, transformMatrix70, transformMatrixA0);
+            MTXTrans(transformMatrix40, position29->x, position29->y, position29->z);
+            MTXConcat(transformMatrix130[index31], transformMatrix40, transformMatrix10);
+            MTXConcat(transformMatrixA0, transformMatrix10, transformMatrixA0);
+            Hu3DModelPosSet(object->mdlId[index27], transformMatrixA0[0][3], transformMatrixA0[1][3], transformMatrixA0[2][3]);
         }
     }
-    Hu3DModelRotSet(object->mdlId[0], 0, lbl_1_bss_116C[0], 0);
-    Hu3DModelRotSet(object->mdlId[1], 0, lbl_1_bss_116C[1], 0);
-    for (temp_r31 = 0; temp_r31 < 2; temp_r31++) {
-        Hu3DLLightPointSet(object->mdlId[temp_r31], lbl_1_bss_1174[temp_r31], (15 * sind(object->work[temp_r31])) + 45, 0.9, 3);
-        object->work[temp_r31] += 8.0f;
-        if (object->work[temp_r31] > 360.0f) {
-            object->work[temp_r31] -= 360.0f;
+    Hu3DModelRotSet(object->mdlId[0], 0, mapRotationAngles[0], 0);
+    Hu3DModelRotSet(object->mdlId[1], 0, mapRotationAngles[1], 0);
+    for (index31 = 0; index31 < 2; index31++) {
+        Hu3DLLightPointSet(object->mdlId[index31], mapLightIds[index31], (15 * sind(object->work[index31])) + 45, 0.9, 3);
+        object->work[index31] += 8.0f;
+        if (object->work[index31] > 360.0f) {
+            object->work[index31] -= 360.0f;
         }
     }
 }
 
-void fn_1_8904(void *arg0, u8 arg1)
+void CopyMapTexture(void *textureBuffer, u8 clearAfterCopy)
 {
     GXSetTexCopySrc(0, 0, 640, 480);
     GXSetTexCopyDst(640, 480, GX_TF_RGBA8, GX_FALSE);
     GXSetCopyClear(BGColor, 0xFFFFFF);
-    GXCopyTex(arg0, arg1);
-    DCFlushRange(arg0, lbl_1_bss_1184);
+    GXCopyTex(textureBuffer, clearAfterCopy);
+    DCFlushRange(textureBuffer, mapTextureBufferSize);
 }
 
-void fn_1_89BC(HU3DMODEL *model, Mtx mtx)
+void DrawMapTexture(HU3DMODEL *model, Mtx mtx)
 {
-    Mtx44 sp34;
-    GXTexObj sp14;
-    MTXOrtho(sp34, 0, 480, 0, 576, 0, 1000);
-    GXSetProjection(sp34, GX_ORTHOGRAPHIC);
+    Mtx44 transformMatrix34;
+    GXTexObj textureObject14;
+    MTXOrtho(transformMatrix34, 0, 480, 0, 576, 0, 1000);
+    GXSetProjection(transformMatrix34, GX_ORTHOGRAPHIC);
     MTXIdentity(mtx);
     GXLoadPosMtxImm(mtx, GX_PNMTX0);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_CLAMP, GX_AF_NONE);
-    GXSetChanAmbColor(GX_COLOR0A0, lbl_1_data_268);
-    GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_268);
+    GXSetChanAmbColor(GX_COLOR0A0, mapFadeColor);
+    GXSetChanMatColor(GX_COLOR0A0, mapFadeColor);
     GXSetNumTexGens(1);
     GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
     GXSetNumTevStages(1);
@@ -253,8 +253,8 @@ void fn_1_89BC(HU3DMODEL *model, Mtx mtx)
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_RASA);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXInitTexObj(&sp14, lbl_1_bss_1180, 640, 480, GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXLoadTexObj(&sp14, GX_TEXMAP0);
+    GXInitTexObj(&textureObject14, mapTextureBuffer, 640, 480, GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GXLoadTexObj(&textureObject14, GX_TEXMAP0);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_INVSRCALPHA, GX_BL_SRCALPHA, GX_LO_NOOP);
     GXSetZMode(GX_FALSE, GX_LEQUAL, GX_FALSE);
     GXSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_AND, GX_ALWAYS, 0);
@@ -273,48 +273,48 @@ void fn_1_89BC(HU3DMODEL *model, Mtx mtx)
     GXPosition3f32(0, 480, -10);
     GXTexCoord2f32(0, 1);
     GXEnd();
-    fn_1_8904(lbl_1_bss_1180, GX_FALSE);
+    CopyMapTexture(mapTextureBuffer, GX_FALSE);
 }
 
-void fn_1_8EA0(void)
+void InitializeModelTracking(void)
 {
-    lbl_1_bss_1168 = 0;
+    trackedModelCount = 0;
 }
 
-void fn_1_8EB4(s16 model)
+void TrackModelMaterials(s16 model)
 {
-    HSFMATERIAL *temp_r31;
-    HSFDATA *temp_r30;
-    s32 temp_r29;
-    HU3DMODEL *temp_r28;
-    s16 *temp_r27;
-    s16 temp_r26;
-    temp_r28 = &Hu3DData[model];
-    temp_r30 = temp_r28->hsf;
-    temp_r26 = temp_r30->materialNum;
-    temp_r27 = &lbl_1_bss_968[lbl_1_bss_1168][0];
-    *temp_r27 = model;
-    temp_r31 = temp_r30->material;
-    for (temp_r29 = 0; temp_r29 < temp_r26; temp_r31++, temp_r29++) {
-        temp_r31->vtxMode = 1;
+    HSFMATERIAL *material31;
+    HSFDATA *modelData30;
+    s32 index29;
+    HU3DMODEL *model28;
+    s16 *modelIds27;
+    s16 index26;
+    model28 = &Hu3DData[model];
+    modelData30 = model28->hsf;
+    index26 = modelData30->materialNum;
+    modelIds27 = &trackedModelIds[trackedModelCount][0];
+    *modelIds27 = model;
+    material31 = modelData30->material;
+    for (index29 = 0; index29 < index26; material31++, index29++) {
+        material31->vtxMode = 1;
     }
-    lbl_1_bss_1168++;
+    trackedModelCount++;
 }
 
-void fn_1_8F60(float arg0)
+void SetTrackedModelAmbient(float ambientLevel)
 {
-    s16 *temp_r31;
-    s32 temp_r30;
-    temp_r31 = &lbl_1_bss_968[0][0];
-    for (temp_r30 = 0; temp_r30 < lbl_1_bss_1168; temp_r31 += 4, temp_r30++) {
-        HU3DMODEL *sp8 = &Hu3DData[*temp_r31];
-        Hu3DModelAmbSet(*temp_r31, arg0, arg0, arg0);
+    s16 *modelIds31;
+    s32 index30;
+    modelIds31 = &trackedModelIds[0][0];
+    for (index30 = 0; index30 < trackedModelCount; modelIds31 += 4, index30++) {
+        HU3DMODEL *model = &Hu3DData[*modelIds31];
+        Hu3DModelAmbSet(*modelIds31, ambientLevel, ambientLevel, ambientLevel);
     }
 }
 
-void fn_1_8FF0(void) { }
+void EmptyMapCallback(void) { }
 
-void fn_1_8FF4(float arg0)
+void SetMapFadeAlpha(float alpha)
 {
-    lbl_1_data_268.a = arg0 * 255;
+    mapFadeColor.a = alpha * 255;
 }
