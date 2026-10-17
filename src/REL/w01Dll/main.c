@@ -60,7 +60,7 @@ typedef struct {
     s16 pathMdlId;
     s16 endSpace;
     float speed;
-    float unk0C;
+    float reservedPlayerValue;
     float time;
     Vec pos;
     Mtx matrix;
@@ -95,7 +95,7 @@ static void LightResetHook(void);
 static s32 LandEvent(void);
 static s32 WalkEvent(void);
 static void MapObjDispSet(void);
-static void fn_1_D00(void);
+static void BoardDestroyNoopHook(void);
 static void RoundItemMain(void);
 static void RoundItemDestroy(void);
 static void RoundItemEvent(void);
@@ -163,39 +163,39 @@ static void CoasterEffModelUpdate(CoasterEffWork *work);
 extern void CoasterHostComKeySet(s32 playerNo);
 
 static BoardMapObject mapObjData[MAPOBJ_MAX]
-    = { { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 8) },
-          { { 0.0f, 700.0f, 300.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 9) },
-          { { -2025.0f, 100.0f, 1950.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_BGUEST, 0) },
-          { { 1725.0f, 200.0f, -1650.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_BGUEST, 0) },
-          { { 2757.974f, 200.0f, -536.781f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_BGUEST, 0) },
-          { { -2750.0f, 300.0f, -2150.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_BGUEST, 0) },
-          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 12) },
-          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 13) },
-          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 14) },
-          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 15) },
-          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 16) },
-          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 16) },
-          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 16) },
-          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 17) },
-          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 18) },
-          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 18) },
-          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 21) },
-          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 22) },
-          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 23) },
-          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 24) },
-          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 25) },
-          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 26) },
-          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 27) },
-          { { 1200.0f, 0.0f, 1200.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 3) },
-          { { 1200.0f, 0.0f, 1200.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 4) },
-          { { 1200.0f, 0.0f, 1200.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 4) },
-          { { 1200.0f, 0.0f, 1200.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 4) },
-          { { 1200.0f, 0.0f, 1200.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 5) },
-          { { -1800.0f, 200.0f, -900.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 3) },
-          { { -1800.0f, 200.0f, -900.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 4) },
-          { { -1800.0f, 200.0f, -900.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 4) },
-          { { -1800.0f, 200.0f, -900.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 4) },
-          { { -1800.0f, 200.0f, -900.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W01, 5) } };
+    = { { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 8) },
+          { { 0.0f, 700.0f, 300.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 9) },
+          { { -2025.0f, 100.0f, 1950.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_BGUEST, 0) },
+          { { 1725.0f, 200.0f, -1650.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_BGUEST, 0) },
+          { { 2757.974f, 200.0f, -536.781f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_BGUEST, 0) },
+          { { -2750.0f, 300.0f, -2150.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_BGUEST, 0) },
+          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 12) },
+          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 13) },
+          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 14) },
+          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 15) },
+          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 16) },
+          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 16) },
+          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 16) },
+          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 17) },
+          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 18) },
+          { { -2550.0f, 300.0f, -2250.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 18) },
+          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 21) },
+          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 22) },
+          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 23) },
+          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 24) },
+          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 25) },
+          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 26) },
+          { { 3000.0f, 200.0f, -450.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 27) },
+          { { 1200.0f, 0.0f, 1200.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 3) },
+          { { 1200.0f, 0.0f, 1200.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 4) },
+          { { 1200.0f, 0.0f, 1200.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 4) },
+          { { 1200.0f, 0.0f, 1200.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 4) },
+          { { 1200.0f, 0.0f, 1200.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 5) },
+          { { -1800.0f, 200.0f, -900.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 3) },
+          { { -1800.0f, 200.0f, -900.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 4) },
+          { { -1800.0f, 200.0f, -900.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 4) },
+          { { -1800.0f, 200.0f, -900.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 4) },
+          { { -1800.0f, 200.0f, -900.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATAMAKENUM(DATADIR_W01, 5) } };
 
 s16 mapObjMdlId[MAPOBJ_MAX];
 
@@ -208,7 +208,7 @@ static s8 coasterLandF;
 static s8 coasterType;
 static s16 coasterPathMdlId;
 static s16 coasterStartSpace;
-static float lbl_1_bss_6A8;
+static float coasterReservedState;
 static Mtx coasterMtx;
 static float coasterAccel;
 static float coasterSpeed;
@@ -225,8 +225,8 @@ static Vec coasterCameraTarget;
 static s8 coasterCoinF[24];
 static s16 coasterCoinMdlId[24];
 static s16 coasterMotId[2];
-static s8 lbl_1_bss_2C[1440];
-static s8 lbl_1_bss_2A[2]; // padding
+static s8 coasterRuntimeScratch[1440];
+static s8 coasterRuntimePadding[2]; // padding
 static s8 cupSide;
 static s8 cupHookNo;
 static s16 cupSpaceStart;
@@ -247,9 +247,9 @@ static s16 starHostMdl = -1;
 static s16 hostMdl = -1;
 static s16 syuppouMdl = -1;
 
-static s32 starHostMotTbl[] = { DATA_MAKE_NUM(DATADIR_W01, 30), -1 };
+static s32 starHostMotTbl[] = { DATAMAKENUM(DATADIR_W01, 30), -1 };
 
-static s32 hostMotTbl[] = { DATA_MAKE_NUM(DATADIR_BGUEST, 1), -1 };
+static s32 hostMotTbl[] = { DATAMAKENUM(DATADIR_BGUEST, 1), -1 };
 
 void BoardCreate(void)
 {
@@ -259,22 +259,22 @@ void BoardCreate(void)
 
     boardNo = GWBoardGet();
     boardWork = (W01BoardWork *)GWSystem.board_data;
-    BoardSpaceInit(DATA_MAKE_NUM(DATADIR_W01, 0));
-    bgMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W01, 1), NULL, 0);
-    fn_8006DDE8(bgMdl, -1.0f);
+    BoardSpaceInit(DATAMAKENUM(DATADIR_W01, 0));
+    bgMdl = BoardModelCreate(DATAMAKENUM(DATADIR_W01, 1), NULL, 0);
+    Fn8006DDE8(bgMdl, -1.0f);
     BoardModelPosSet(bgMdl, 0.0f, 0.0f, 0.0f);
     BoardModelMotionStart(bgMdl, 0, HU3D_MOTATTR_LOOP);
-    fgMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W01, 2), NULL, 0);
-    fn_8006DDE8(fgMdl, -1.0f);
+    fgMdl = BoardModelCreate(DATAMAKENUM(DATADIR_W01, 2), NULL, 0);
+    Fn8006DDE8(fgMdl, -1.0f);
     BoardModelPosSet(fgMdl, 0.0f, 0.0f, 0.0f);
     BoardModelMotionStart(fgMdl, 0, HU3D_MOTATTR_LOOP);
-    starHostMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W01, 29), starHostMotTbl, 0);
+    starHostMdl = BoardModelCreate(DATAMAKENUM(DATADIR_W01, 29), starHostMotTbl, 0);
     BoardModelPosSet(starHostMdl, 0.0f, 0.0f, 0.0f);
     BoardModelMotionStart(starHostMdl, 1, HU3D_MOTATTR_LOOP);
-    hostMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BGUEST, 0), hostMotTbl, 0);
+    hostMdl = BoardModelCreate(DATAMAKENUM(DATADIR_BGUEST, 0), hostMotTbl, 0);
     BoardModelPosSet(hostMdl, 0.0f, 0.0f, 0.0f);
     BoardModelMotionStart(hostMdl, 1, HU3D_MOTATTR_LOOP);
-    syuppouMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W01, 11), NULL, 0);
+    syuppouMdl = BoardModelCreate(DATAMAKENUM(DATADIR_W01, 11), NULL, 0);
     BoardModelMotionStart(syuppouMdl, 0, HU3D_MOTATTR_LOOP);
     BoardLightHookSet(LightSetHook, LightResetHook);
     for (i = 0; i < MAPOBJ_MAX; i++) {
@@ -316,7 +316,7 @@ void BoardDestroy(void)
     s32 i;
 
     CoasterWinKill();
-    fn_1_D00();
+    BoardDestroyNoopHook();
     for (i = 0; i < MAPOBJ_MAX; i++) {
         if (mapObjMdlId[i] != 0) {
             BoardModelKill(mapObjMdlId[i]);
@@ -460,7 +460,7 @@ static void MapObjDispSet(void)
     BoardModelHookSet(mapObjMdlId[MAPOBJ_ROUNDITEM_ITEM_UP], "m_goraund_01-flag1", mapObjMdlId[MAPOBJ_ROUNDITEM_ITEM_DENSYOKU]);
 }
 
-static void fn_1_D00(void) { }
+static void BoardDestroyNoopHook(void) { }
 
 static void RoundItemMain(void)
 {
@@ -691,11 +691,11 @@ static void CoasterInit(void)
     Mtx matrix;
 
     coasterLandF = 0;
-    coasterPathMdlId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W01, 10), NULL, 0);
+    coasterPathMdlId = BoardModelCreate(DATAMAKENUM(DATADIR_W01, 10), NULL, 0);
     coasterMaxTime = BoardModelMotionMaxTimeGet(coasterPathMdlId);
     BoardModelVisibilitySet(coasterPathMdlId, 0);
-    memset(lbl_1_bss_2C, 0, sizeof(lbl_1_bss_2C));
-    if (BoardSpaceRead(1, DATA_MAKE_NUM(DATADIR_W01, 6)) == 0) {
+    memset(coasterRuntimeScratch, 0, sizeof(coasterRuntimeScratch));
+    if (BoardSpaceRead(1, DATAMAKENUM(DATADIR_W01, 6)) == 0) {
         if (boardWork->hostSide == 0) {
             BoardSpaceFlagPosGet(1, 0x2000, &pos);
             BoardModelMotionTimeSet(coasterPathMdlId, coasterMaxTime);
@@ -711,7 +711,7 @@ static void CoasterInit(void)
         BoardModelRotSet(mapObjMdlId[MAPOBJ_COASTER], 0.0f, coasterBaseRotY, 0.0f);
         BoardModelExistDupe(mapObjMdlId[MAPOBJ_COASTER], 1);
         BoardModelExistDupe(mapObjMdlId[MAPOBJ_COASTER_RAIL], 1);
-        fn_8006DDE8(mapObjMdlId[MAPOBJ_COASTER_RAIL], 500.0f);
+        Fn8006DDE8(mapObjMdlId[MAPOBJ_COASTER_RAIL], 500.0f);
         MTXIdentity(matrix);
         BoardModelMtxSet(mapObjMdlId[MAPOBJ_COASTER], &matrix);
         UpdateHostDisp();
@@ -933,7 +933,7 @@ static void CoasterRotUpdate(void)
 {
     float motTime;
     float stickRot;
-    Mtx sp70;
+    Mtx rotationMatrix;
 
     CoasterCameraUpdate();
     if (coasterLandF != 0) {
@@ -1045,10 +1045,10 @@ static void CoasterPathMotUpdate(void)
 }
 
 static s32 coasterMotTbl[8][2]
-    = { { DATA_MAKE_NUM(DATADIR_W01, 34), DATA_MAKE_NUM(DATADIR_W01, 42) }, { DATA_MAKE_NUM(DATADIR_W01, 35), DATA_MAKE_NUM(DATADIR_W01, 43) },
-          { DATA_MAKE_NUM(DATADIR_W01, 36), DATA_MAKE_NUM(DATADIR_W01, 44) }, { DATA_MAKE_NUM(DATADIR_W01, 37), DATA_MAKE_NUM(DATADIR_W01, 45) },
-          { DATA_MAKE_NUM(DATADIR_W01, 38), DATA_MAKE_NUM(DATADIR_W01, 46) }, { DATA_MAKE_NUM(DATADIR_W01, 39), DATA_MAKE_NUM(DATADIR_W01, 47) },
-          { DATA_MAKE_NUM(DATADIR_W01, 40), DATA_MAKE_NUM(DATADIR_W01, 48) }, { DATA_MAKE_NUM(DATADIR_W01, 41), DATA_MAKE_NUM(DATADIR_W01, 49) } };
+    = { { DATAMAKENUM(DATADIR_W01, 34), DATAMAKENUM(DATADIR_W01, 42) }, { DATAMAKENUM(DATADIR_W01, 35), DATAMAKENUM(DATADIR_W01, 43) },
+          { DATAMAKENUM(DATADIR_W01, 36), DATAMAKENUM(DATADIR_W01, 44) }, { DATAMAKENUM(DATADIR_W01, 37), DATAMAKENUM(DATADIR_W01, 45) },
+          { DATAMAKENUM(DATADIR_W01, 38), DATAMAKENUM(DATADIR_W01, 46) }, { DATAMAKENUM(DATADIR_W01, 39), DATAMAKENUM(DATADIR_W01, 47) },
+          { DATAMAKENUM(DATADIR_W01, 40), DATAMAKENUM(DATADIR_W01, 48) }, { DATAMAKENUM(DATADIR_W01, 41), DATAMAKENUM(DATADIR_W01, 49) } };
 
 static void CoasterMotCreate(s32 playerNo)
 {
@@ -1089,7 +1089,7 @@ static void CoasterExec(void)
     coasterRot.x = 0.0f;
     coasterRot.y = 0.0f;
     coasterRot.z = 0.0f;
-    lbl_1_bss_6A8 = 0.0f;
+    coasterReservedState = 0.0f;
     coasterLoopF = 0;
     coasterCameraUp.x = 0.0f;
     coasterCameraUp.z = 0.0f;
@@ -1427,7 +1427,7 @@ static void CoasterCoinCreate(void)
     s32 i;
 
     for (i = 0; i < 24; i++) {
-        coasterCoinMdlId[i] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 9), NULL, 0);
+        coasterCoinMdlId[i] = BoardModelCreate(DATAMAKENUM(DATADIR_BOARD, 9), NULL, 0);
         BoardModelVisibilitySet(coasterCoinMdlId[i], 0);
         BoardModelMotionStart(coasterCoinMdlId[i], 0, HU3D_MOTATTR_LOOP);
         coasterCoinF[i] = 0;
@@ -1730,18 +1730,18 @@ static void CupObjInit(CupObjWork *work, OMOBJ *obj)
     Vec playerPos;
     Vec objRot;
     Vec objPos;
-    float temp_f31;
-    float var_f30;
-    s32 var_r28;
+    float candidateDistanceSquared;
+    float closestDistanceSquared;
+    s32 playerRotationY;
     s32 i;
 
     BoardPlayerPosGet(GWSystem.player_curr, &playerPos);
-    var_f30 = 1000000.0f;
+    closestDistanceSquared = 1000000.0f;
     for (i = 0; i < 3; i++) {
         Hu3DModelObjPosGet(BoardModelIDGet(work->dishMdlId), cupHookTbl[i], &objPos);
-        temp_f31 = VECSquareDistance(&objPos, &playerPos);
-        if (temp_f31 < var_f30) {
-            var_f30 = temp_f31;
+        candidateDistanceSquared = VECSquareDistance(&objPos, &playerPos);
+        if (candidateDistanceSquared < closestDistanceSquared) {
+            closestDistanceSquared = candidateDistanceSquared;
             cupHookNo = i;
             objPosPrev = objPos;
         }
@@ -1752,8 +1752,8 @@ static void CupObjInit(CupObjWork *work, OMOBJ *obj)
     VECSubtract(&objPosPrev, &playerPos, &objPos);
     obj->trans.x = objPos.x / 25.0f;
     obj->trans.z = objPos.z / 25.0f;
-    var_r28 = BoardPlayerRotYGet(GWSystem.player_curr);
-    obj->trans.y = BoardDAngleCalc(objRot.y - var_r28) / 25.0f;
+    playerRotationY = BoardPlayerRotYGet(GWSystem.player_curr);
+    obj->trans.y = BoardDAngleCalc(objRot.y - playerRotationY) / 25.0f;
     obj->scale.x = objPosPrev.x;
     obj->scale.y = objPosPrev.y;
     obj->scale.z = objPosPrev.z;
@@ -1768,7 +1768,7 @@ static void CupObjJumpWait(CupObjWork *work, OMOBJ *obj)
     float time;
     float rotY;
     float scaleY;
-    s16 var_r24;
+    s16 mapModelId;
 
     if (work->time >= 55) {
         BoardPlayerRotSet(GWSystem.player_curr, 0.0f, 0.0f, 0.0f);
@@ -1779,9 +1779,9 @@ static void CupObjJumpWait(CupObjWork *work, OMOBJ *obj)
         else {
             BoardModelHookSet(work->dishMdlId, cupHookTbl[cupHookNo], BoardPlayerModelGet(GWSystem.player_curr));
         }
-        var_r24 = mapObjMdlId[cupMapObj[cupSide][cupHookNo]];
+        mapModelId = mapObjMdlId[cupMapObj[cupSide][cupHookNo]];
         if (work->decaF != 0) {
-            BoardModelScaleSet(var_r24, 1.0f, 0.1f, 1.0f);
+            BoardModelScaleSet(mapModelId, 1.0f, 0.1f, 1.0f);
         }
         CupMotOnSet(1);
         cupMoveSeNo = HuAudFXPlay(0x410);
@@ -1816,8 +1816,8 @@ static void CupObjJumpWait(CupObjWork *work, OMOBJ *obj)
             if (scaleY < 0.1f) {
                 scaleY = 0.1f;
             }
-            var_r24 = mapObjMdlId[cupMapObj[cupSide][cupHookNo]];
-            BoardModelScaleSet(var_r24, 1.0f, scaleY, 1.0f);
+            mapModelId = mapObjMdlId[cupMapObj[cupSide][cupHookNo]];
+            BoardModelScaleSet(mapModelId, 1.0f, scaleY, 1.0f);
         }
     }
     work->time++;
@@ -1958,7 +1958,7 @@ static void CupLandEvent(s32 playerNo, s32 spaceId)
     Vec cupLPos;
     float cupRDist;
     float cupLDist;
-    s16 sp14[] = { MAPOBJ_CUPR_DISH, MAPOBJ_CUPL_DISH };
+    s16 cupDishMapObjects[] = { MAPOBJ_CUPR_DISH, MAPOBJ_CUPL_DISH };
 
     BoardPlayerIdleSet(GWSystem.player_curr);
     BoardSpacePosGet(0, spaceId, &spacePos);
@@ -1972,7 +1972,7 @@ static void CupLandEvent(s32 playerNo, s32 spaceId)
     else {
         cupSide = 1;
     }
-    BoardCameraTargetModelSet(mapObjMdlId[sp14[cupSide]]);
+    BoardCameraTargetModelSet(mapObjMdlId[cupDishMapObjects[cupSide]]);
     BoardCameraMotionWait();
     HuPrcSleep(42);
     CupExec();
@@ -2019,7 +2019,7 @@ static void CoasterLandExec(void)
     coasterRot.x = 0.0f;
     coasterRot.y = 0.0f;
     coasterRot.z = 0.0f;
-    lbl_1_bss_6A8 = 0.0f;
+    coasterReservedState = 0.0f;
     coasterLoopF = 0;
     coasterCameraUp.x = 0.0f;
     coasterCameraUp.z = 0.0f;
@@ -2142,7 +2142,7 @@ static void CoasterPlayerManCreate(void)
         workPlayer->playerNo = i;
         workPlayer->delay = 0;
         BoardPlayerPosGet(workPlayer->playerNo, &playerPos);
-        workPlayer->pathMdlId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W01, 10), NULL, 0);
+        workPlayer->pathMdlId = BoardModelCreate(DATAMAKENUM(DATADIR_W01, 10), NULL, 0);
         motTime = BoardModelMotionMaxTimeGet(workPlayer->pathMdlId);
         BoardModelVisibilitySet(workPlayer->pathMdlId, 0);
         CoasterPlayerTimeInit(workPlayer);
@@ -2427,11 +2427,11 @@ static void CoasterPlayerEndSet(CoasterPlayerWork *work)
     }
 }
 
-static s32 CoasterPlayerLoopCheck(CoasterPlayerWork *arg0)
+static s32 CoasterPlayerLoopCheck(CoasterPlayerWork *work)
 {
     Vec playerPos;
     s16 linkTbl[4];
-    float sp8;
+    float spaceTraversalDistance;
     s32 spaceId;
     s32 spaceIdLink;
     s32 spaceIdPrev;
@@ -2439,11 +2439,11 @@ static s32 CoasterPlayerLoopCheck(CoasterPlayerWork *arg0)
     BoardSpace *spaceLink;
     BoardSpace *spacePrev;
 
-    BoardPlayerPosGet(arg0->playerNo, &playerPos);
+    BoardPlayerPosGet(work->playerNo, &playerPos);
     spacePrev = NULL;
     spaceIdPrev = -1;
     spaceId = coasterStartSpace;
-    sp8 = 0.0f;
+    spaceTraversalDistance = 0.0f;
     while (TRUE) {
         space = BoardSpaceGet(1, spaceId);
         if (boardWork->hostSide == 0) {
@@ -2544,7 +2544,7 @@ static void CoasterEffCreate(void)
     data = work->data;
     for (i = 0; i < 20; data++, i++) {
         data->time = -1;
-        data->mdlId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W01, 7), NULL, 0);
+        data->mdlId = BoardModelCreate(DATAMAKENUM(DATADIR_W01, 7), NULL, 0);
         BoardModelVisibilitySet(data->mdlId, 0);
     }
 }

@@ -33,8 +33,8 @@ typedef struct {
 typedef SpaceAmidaPathPoint SpaceAmidaMap[15];
 
 typedef struct {
-    /* 0x00 */ s16 unk00;
-    /* 0x02 */ s16 unk02;
+    /* 0x00 */ s16 reserved00;
+    /* 0x02 */ s16 reserved02;
     /* 0x04 */ Vec rocketPos;
     /* 0x10 */ Vec jumpDir;
     /* 0x1C */ u16 waitTime;
@@ -45,7 +45,7 @@ typedef struct {
 } SpaceAmidaGameWork; // Size 0x2C
 
 typedef struct {
-    /* 0x00 */ char unk00[4];
+    /* 0x00 */ char reserved[4];
     /* 0x04 */ SpaceAmidaMap *map;
     /* 0x08 */ u16 mapCursor;
     /* 0x0C */ float len;
@@ -56,7 +56,7 @@ typedef struct {
     /* 0x20 */ Vec kemuriScale;
     /* 0x2C */ Vec kemuriScaleVel;
     /* 0x38 */ float kemuriTPLvl;
-    /* 0x3C */ float unk3C;
+    /* 0x3C */ float reserved3C;
     /* 0x40 */ s16 targetNo;
 } RocketWork; // Size 0x44
 
@@ -64,7 +64,7 @@ static void SpaceAmidaMainUpdate(OMOBJ *obj);
 static void SpaceAmidaStop(void);
 static void SpaceAmidaKill(void);
 static void SpaceAmidaRocketObjUpdate(OMOBJ *obj);
-static float SpaceAmidaMapLenGet(SpaceAmidaMap *obj);
+static float SpaceAmidaMapLenGet(SpaceAmidaMap *mapPath);
 static void SpaceAmidaComChoiceSet(OMOBJ *obj);
 static void SpaceAmidaComInputGet(OMOBJ *obj, u16 *stkBtn, u16 *btn);
 static void SpaceAmidaGameOpen(OMOBJ *obj);
@@ -78,12 +78,12 @@ static void SpaceAmidaJumpDown(OMOBJ *obj);
 static void SpaceAmidaCoinRainMain(void);
 static void SpaceAmidaReturnWinMain(void);
 static void SpaceAmidaGameStop(OMOBJ *obj);
-static void SpaceAmidaDirGet(Vec *a, Vec *b, Vec *result);
+static void SpaceAmidaDirGet(Vec *fromPosition, Vec *toPosition, Vec *direction);
 static float SpaceAmidaAngleGet(Vec *dir);
 static u32 SpaceAmidaPlayerRotAdd(Vec *rocketPos, float delta);
 static void SpaceAmidaEffCreate(void);
 static void SpaceAmidaEffKill(void);
-static void SpaceAmidaEffUpdate(OMOBJ *arg0);
+static void SpaceAmidaEffUpdate(OMOBJ *obj);
 static void SpaceAmidaEffParticleHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 
 static s32 spaceAmidaPadNo;
@@ -188,12 +188,12 @@ void SpaceAmidaExec(void)
     spaceAmidaGameObj = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, SpaceAmidaGameOpen);
     spaceAmidaGameObj->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(SpaceAmidaGameWork), HU_MEMNUM_OVL);
     gameObjWork = spaceAmidaGameObj->data;
-    gameObjWork->unk02 = 0;
+    gameObjWork->reserved02 = 0;
     gameObjWork->rocketPos = rocketPos;
     gameObjWork->comInputTimer = 0;
     SpaceAmidaPlayerRotAdd(&rocketPos, 0.0f);
     SpaceAmidaComChoiceSet(spaceAmidaGameObj);
-    kemuriMdlId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_W01, 19));
+    kemuriMdlId = Hu3DModelCreateFile(DATAMAKENUM(DATADIR_W01, 19));
     Hu3DModelAttrSet(kemuriMdlId, HU3D_ATTR_DISPOFF);
     for (i = 0; i < 3; i++) {
         rocketObj[i] = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, SpaceAmidaRocketObjUpdate);
@@ -216,11 +216,11 @@ void SpaceAmidaExec(void)
     timerFrame = REFRESH_RATE;
     spaceAmidaStopF = 0;
     SpaceAmidaEffCreate();
-    spaceAmidaEffMdlId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W01, 17), NULL, 0);
+    spaceAmidaEffMdlId = BoardModelCreate(DATAMAKENUM(DATADIR_W01, 17), NULL, 0);
     BoardModelMotionUpdateSet(spaceAmidaEffMdlId, 1);
     BoardModelVisibilitySet(spaceAmidaEffMdlId, 0);
     for (i = 0; i < 20; i++) {
-        coinMdlId[i] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 10), NULL, 1);
+        coinMdlId[i] = BoardModelCreate(DATAMAKENUM(DATADIR_BOARD, 10), NULL, 1);
         BoardModelVisibilitySet(coinMdlId[i], 0);
     }
 }
@@ -431,7 +431,7 @@ static void SpaceAmidaRocketObjUpdate(OMOBJ *obj)
     }
 }
 
-static float SpaceAmidaMapLenGet(SpaceAmidaMap *arg0)
+static float SpaceAmidaMapLenGet(SpaceAmidaMap *mapPath)
 {
     float len;
     s32 i;
@@ -439,10 +439,10 @@ static float SpaceAmidaMapLenGet(SpaceAmidaMap *arg0)
     len = 0.0f;
     i = 0;
     while (TRUE) {
-        if ((*arg0)[i].len == 0.0f) {
+        if ((*mapPath)[i].len == 0.0f) {
             break;
         }
-        len += (*arg0)[i].len;
+        len += (*mapPath)[i].len;
         i++;
     }
     return len;
@@ -566,7 +566,7 @@ static void SpaceAmidaGameUpdate(OMOBJ *obj)
         work->jumpDir.y = 0.0f;
         work->jumpDir.x *= jumpDist / 30.0f;
         work->jumpDir.z *= jumpDist / 30.0f;
-        work->unk00 = 0;
+        work->reserved00 = 0;
         work->jumpTime = 0.0f;
         obj->objFunc = SpaceAmidaRocketJump;
     }
@@ -623,7 +623,7 @@ static void SpaceAmidaRocketKemuriExec(OMOBJ *obj)
         rocketWork->kemuriScaleVel.y = 0.08088889f;
         rocketWork->kemuriScaleVel.z = 0.055999998f;
         rocketWork->kemuriTPLvl = 1.0f;
-        rocketWork->unk3C = 0.0f;
+        rocketWork->reserved3C = 0.0f;
         Hu3DModelScaleSet(kemuriMdlId, 1.4f, 1.4f, 1.4f);
         obj->objFunc = SpaceAmidaRocketWait;
     }
@@ -792,10 +792,10 @@ static void SpaceAmidaGameStop(OMOBJ *obj)
     omDelObjEx(HuPrcCurrentGet(), obj);
 }
 
-static void SpaceAmidaDirGet(Vec *b, Vec *a, Vec *result)
+static void SpaceAmidaDirGet(Vec *fromPosition, Vec *toPosition, Vec *direction)
 {
-    VECSubtract(a, b, result);
-    VECNormalize(result, result);
+    VECSubtract(toPosition, fromPosition, direction);
+    VECNormalize(direction, direction);
 }
 
 static float SpaceAmidaAngleGet(Vec *dir)
@@ -891,7 +891,7 @@ static u32 SpaceAmidaPlayerRotAdd(Vec *rocketPos, float delta)
 
 static void SpaceAmidaEffCreate(void)
 {
-    spaceAmidaEffAnim = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_W01, 20));
+    spaceAmidaEffAnim = HuSprAnimReadFile(DATAMAKENUM(DATADIR_W01, 20));
     spaceAmidaEffObj = omAddObjEx(boardObjMan, 0x101, 1, 0, -1, SpaceAmidaEffUpdate);
     spaceAmidaEffObj->data = HuMemDirectMallocNum(HEAP_HEAP, 12, HU_MEMNUM_OVL);
     spaceAmidaEffObj->mdlId[0] = Hu3DParticleCreate(spaceAmidaEffAnim, 0x320);

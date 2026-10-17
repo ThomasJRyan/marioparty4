@@ -52,7 +52,7 @@ static void ItemGetPlayerMove(OMOBJ *obj);
 static void ItemGetShrink(OMOBJ *obj);
 static float RoundItemUmaRotYGet(u32 umaNo);
 static void RoundItemUmaPlayerSet(u32 umaNo);
-static float RoundItemAngleGet(Vec *arg0);
+static float RoundItemAngleGet(Vec *direction);
 static void ItemGetEff1Hook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 static void ItemGetEff2Hook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 
@@ -71,11 +71,11 @@ static s16 timerSeqId;
 static s16 timerSec;
 static s16 timerFrame;
 static Vec roundItemPlayerPos;
-static s32 lbl_1_bss_7C0_pad;
+static s32 roundItemReservedState0;
 static s32 itemGetMotId;
 static s32 jumpMotId;
 static s16 umaStopF;
-static s32 lbl_1_bss_7B0_pad;
+static s32 roundItemReservedState1;
 static s32 itemGetSeNo;
 static s16 roundItemStopF;
 static s16 umaStopTimer;
@@ -89,29 +89,29 @@ static ANIMDATA *roundItemEffAnim;
 #endif
 
 static s32 itemMdlTbl[] = {
-    DATA_MAKE_NUM(DATADIR_BOARD, 108 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 109 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 110 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 111 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 112 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 113 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 114 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 115 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 117 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 118 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 119 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 120 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 121 + MDL_ID_SHIFT),
-    DATA_MAKE_NUM(DATADIR_BOARD, 122 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 108 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 109 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 110 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 111 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 112 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 113 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 114 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 115 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 117 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 118 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 119 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 120 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 121 + MDL_ID_SHIFT),
+    DATAMAKENUM(DATADIR_BOARD, 122 + MDL_ID_SHIFT),
 };
 
-static s32 itemGetMotTbl[8] = { DATA_MAKE_NUM(DATADIR_MARIOMOT, 23), DATA_MAKE_NUM(DATADIR_LUIGIMOT, 23), DATA_MAKE_NUM(DATADIR_PEACHMOT, 23),
-    DATA_MAKE_NUM(DATADIR_YOSHIMOT, 23), DATA_MAKE_NUM(DATADIR_WARIOMOT, 23), DATA_MAKE_NUM(DATADIR_DONKEYMOT, 23),
-    DATA_MAKE_NUM(DATADIR_DAISYMOT, 23), DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 23) };
+static s32 itemGetMotTbl[8] = { DATAMAKENUM(DATADIR_MARIOMOT, 23), DATAMAKENUM(DATADIR_LUIGIMOT, 23), DATAMAKENUM(DATADIR_PEACHMOT, 23),
+    DATAMAKENUM(DATADIR_YOSHIMOT, 23), DATAMAKENUM(DATADIR_WARIOMOT, 23), DATAMAKENUM(DATADIR_DONKEYMOT, 23),
+    DATAMAKENUM(DATADIR_DAISYMOT, 23), DATAMAKENUM(DATADIR_WALUIGIMOT, 23) };
 
-static s32 jumpMotTbl[8] = { DATA_MAKE_NUM(DATADIR_MARIOMOT, 64), DATA_MAKE_NUM(DATADIR_LUIGIMOT, 64), DATA_MAKE_NUM(DATADIR_PEACHMOT, 64),
-    DATA_MAKE_NUM(DATADIR_YOSHIMOT, 64), DATA_MAKE_NUM(DATADIR_WARIOMOT, 64), DATA_MAKE_NUM(DATADIR_DONKEYMOT, 64),
-    DATA_MAKE_NUM(DATADIR_DAISYMOT, 64), DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 64) };
+static s32 jumpMotTbl[8] = { DATAMAKENUM(DATADIR_MARIOMOT, 64), DATAMAKENUM(DATADIR_LUIGIMOT, 64), DATAMAKENUM(DATADIR_PEACHMOT, 64),
+    DATAMAKENUM(DATADIR_YOSHIMOT, 64), DATAMAKENUM(DATADIR_WARIOMOT, 64), DATAMAKENUM(DATADIR_DONKEYMOT, 64),
+    DATAMAKENUM(DATADIR_DAISYMOT, 64), DATAMAKENUM(DATADIR_WALUIGIMOT, 64) };
 
 void RoundItemInit(s16 *itemTbl)
 {
@@ -125,12 +125,12 @@ void RoundItemInit(s16 *itemTbl)
     s32 i;
     s32 j;
 
-    itemAnim = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_W01, 28), HU_MEMNUM_OVL, HEAP_MODEL);
+    itemAnim = HuDataSelHeapReadNum(DATAMAKENUM(DATADIR_W01, 28), HU_MEMNUM_OVL, HEAP_MODEL);
     BoardModelPosGet(mapObjMdlId[MAPOBJ_ROUNDITEM], &roundItemPos);
     itemMdlId[0] = BoardModelIDGet(mapObjMdlId[MAPOBJ_ROUNDITEM_ITEM]);
     BoardModelVisibilitySet(mapObjMdlId[MAPOBJ_ROUNDITEM_ITEM], 1);
     for (i = 1; i < 4; i++) {
-        itemMdlId[i] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_W01, 24));
+        itemMdlId[i] = Hu3DModelCreateFile(DATAMAKENUM(DATADIR_W01, 24));
     }
     itemNum = 0;
     for (i = 0; i < 4; i++) {
@@ -227,7 +227,7 @@ void RoundItemEventStart(void)
     roundItemStopF = 0;
     itemGetMotId = BoardPlayerMotionCreate(roundItemPlayer, itemGetMotTbl[GWPlayer[roundItemPlayer].character]);
     jumpMotId = BoardPlayerMotionCreate(roundItemPlayer, jumpMotTbl[GWPlayer[roundItemPlayer].character]);
-    roundItemEffAnim = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 0));
+    roundItemEffAnim = HuSprAnimReadFile(DATAMAKENUM(DATADIR_EFFECT, 0));
     HuSprAnimLock(roundItemEffAnim);
     umaStopF = 0;
 }
@@ -748,7 +748,7 @@ static void ItemGetPlayerMove(OMOBJ *obj)
     Vec playerPos;
     Vec objPos;
     Vec dir;
-    float var_f28;
+    float playerDistance;
     float *data;
 
     data = obj->data;
@@ -760,8 +760,8 @@ static void ItemGetPlayerMove(OMOBJ *obj)
         playerPos.y = 0.0f;
         VECSubtract(&playerPos, &objPos, &dir);
         VECNormalize(&dir, &dir);
-        var_f28 = VECDistanceXZ(&playerPos, &objPos);
-        if (var_f28 < 8.0f) {
+        playerDistance = VECDistanceXZ(&playerPos, &objPos);
+        if (playerDistance < 8.0f) {
             obj->trans.x = playerPos.x;
             obj->trans.z = playerPos.z;
             obj->work[0] = 1;
