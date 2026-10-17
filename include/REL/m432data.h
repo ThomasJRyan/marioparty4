@@ -6,43 +6,43 @@
 #include "game/hu3d.h"
 #include "version.h"
 
-typedef struct UnkM432DllBss0SubStruct {
-    char *unk_00;
-    char *unk_04;
-    s32 unk_08;
-    u32 unk_0C[2];
-    u32 unk_14;
-    float unk_18;
-    float unk_1C;
-    Vec unk_20;
-    Vec unk_2C;
-    float unk_38;
-    float unk_3C;
-    s16 unk_40;
-    s32 unk_44;
-} UnkM432DllBss0SubStruct; /* size = 0x48 */
+typedef struct MapObjectDefinition {
+    char *modelName;
+    char *attachmentName;
+    s32 modelSlot;
+    u32 modelDataIds[2];
+    u32 objectFlags;
+    float rotationDegrees;
+    float objectVariant;
+    Vec modelOrigin;
+    Vec worldPosition;
+    float rotationPhase;
+    float rotationVelocity;
+    s16 objectState;
+    s32 objectIndex;
+} MapObjectDefinition; /* size = 0x48 */
 
-typedef struct UnkM432DllData1794Struct {
-    float unk_00;
-    float unk_04;
-    float unk_08;
-    float unk_0C;
-    float unk_10;
-    float unk_14;
-    s32 unk_18;
-    s32 unk_1C;
-} UnkM432DllData1794Struct; /* size = 0x20 */
+typedef struct PlayerAiBehaviorParams {
+    float targetSearchDelay;
+    float movementDistanceScale;
+    float decisionInterval;
+    float actionProbability;
+    float slowMotionThreshold;
+    float fastMotionThreshold;
+    s32 recentResultCount;
+    s32 resultSequenceLimit;
+} PlayerAiBehaviorParams; /* size = 0x20 */
 
-s32 lbl_1_data_A0[2] = { 1, 2 };
-float lbl_1_data_A8[8] = { 0.0f, 0.0f, 318.0f, 480.0f, 322.0f, 0.0f, 318.0f, 480.0f };
-Vec lbl_1_data_C8 = { 0.0f, 1.0f, 0.0f };
-Vec lbl_1_data_D4 = { 0.0f, 3000.0f, 1000.0f };
-Vec lbl_1_data_E0 = { 0.0f, -3.0f, -1.0f };
-GXColor lbl_1_data_EC = { 0xFF, 0xFF, 0xFF, 0xFF };
-Vec lbl_1_data_F0 = { 0.0f, 5000.0f, 100.0f };
-Vec lbl_1_data_FC = { 0.0f, 0.0f, 0.0f };
+s32 gameCameraIds[2] = { 1, 2 };
+float gameCameraViewports[8] = { 0.0f, 0.0f, 318.0f, 480.0f, 322.0f, 0.0f, 318.0f, 480.0f };
+Vec worldUpVector = { 0.0f, 1.0f, 0.0f };
+Vec keyLightPosition = { 0.0f, 3000.0f, 1000.0f };
+Vec keyLightDirection = { 0.0f, -3.0f, -1.0f };
+GXColor keyLightColor = { 0xFF, 0xFF, 0xFF, 0xFF };
+Vec shadowPosition = { 0.0f, 5000.0f, 100.0f };
+Vec shadowUpVector = { 0.0f, 0.0f, 0.0f };
 
-s32 lbl_1_data_108[8][0xB] = {
+s32 characterMotionFiles[8][0xB] = {
     {
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00),
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02),
@@ -149,9 +149,9 @@ s32 lbl_1_data_108[8][0xB] = {
     },
 };
 
-s32 lbl_1_data_268[8] = { 0, 1, 2, 3, 4, -1, -1, -1 };
+s32 playerNumberBySlot[8] = { 0, 1, 2, 3, 4, -1, -1, -1 };
 
-s32 lbl_1_data_288[9] = {
+s32 scoreSpriteFiles[9] = {
     DATA_MAKE_NUM(DATADIR_M432, 0x1F),
     DATA_MAKE_NUM(DATADIR_M432, 0x20),
     DATA_MAKE_NUM(DATADIR_M432, 0x21),
@@ -163,14 +163,14 @@ s32 lbl_1_data_288[9] = {
     DATA_MAKE_NUM(DATADIR_M432, 0x27),
 };
 
-s32 lbl_1_data_2AC[9] = { 0, 8, -0x10, 4, 0, -4, -1, 0, 0 };
-s32 lbl_1_data_2D0[9] = { 0, 8, -0x10, 8, 0, -4, -1, 0, 0 };
-s32 lbl_1_data_2F4[9] = { 0, 8, -0x10, 7, 0, -4, -1, 0, 0 };
-s32 lbl_1_data_318[0xF] = { 1, 0, -0x10, 5, -0x18, -5, 2, 0, -5, 6, 0x18, -5, -1, 0, 0 };
-Vec lbl_1_data_354[2] = { { -1200.0f, 0.0f, 0.0f }, { -400.0f, 0.0f, 0.0f } };
-Vec lbl_1_data_36C[2] = { { 400.0f, 0.0f, 0.0f }, { 1200.0f, 0.0f, 0.0f } };
+s32 scoreSpriteLayoutA[9] = { 0, 8, -0x10, 4, 0, -4, -1, 0, 0 };
+s32 scoreSpriteLayoutB[9] = { 0, 8, -0x10, 8, 0, -4, -1, 0, 0 };
+s32 scoreSpriteLayoutC[9] = { 0, 8, -0x10, 7, 0, -4, -1, 0, 0 };
+s32 scoreSpriteLayoutD[0xF] = { 1, 0, -0x10, 5, -0x18, -5, 2, 0, -5, 6, 0x18, -5, -1, 0, 0 };
+Vec leftTeamSpawnPositions[2] = { { -1200.0f, 0.0f, 0.0f }, { -400.0f, 0.0f, 0.0f } };
+Vec rightTeamSpawnPositions[2] = { { 400.0f, 0.0f, 0.0f }, { 1200.0f, 0.0f, 0.0f } };
 
-char *lbl_1_data_3DC[8] = {
+char *stageObjectNames[8] = {
     "m432_00-o0",
     "m432_00-o1",
     "m432_00-o2",
@@ -181,7 +181,7 @@ char *lbl_1_data_3DC[8] = {
     "m432_00-o7",
 };
 
-char *lbl_1_data_440[6] = {
+char *firstTeamObjectNames[6] = {
     "m432_00-p0",
     "m432_00-p1",
     "m432_00-p2",
@@ -190,7 +190,7 @@ char *lbl_1_data_440[6] = {
     "m432_00-q0",
 };
 
-char *lbl_1_data_4C8[0xA] = {
+char *secondTeamObjectNames[0xA] = {
     "m432_00-r0",
     "m432_00-r1",
     "m432_00-r2",
@@ -203,7 +203,7 @@ char *lbl_1_data_4C8[0xA] = {
     "m432_00-s0",
 };
 
-u8 lbl_1_data_4F0[0x14] = {
+u8 firstTeamObjectIndices[0x14] = {
     0,
     0,
     0,
@@ -226,7 +226,7 @@ u8 lbl_1_data_4F0[0x14] = {
     3,
 };
 
-u8 lbl_1_data_504[0x24] = {
+u8 secondTeamObjectIndices[0x24] = {
     0,
     0,
     0,
@@ -265,9 +265,9 @@ u8 lbl_1_data_504[0x24] = {
     0xFF,
 };
 
-s32 lbl_1_data_528[2] = { DATA_MAKE_NUM(DATADIR_M432, 0x05), DATA_MAKE_NUM(DATADIR_M432, 0x06) };
+s32 stageModelFiles[2] = { DATA_MAKE_NUM(DATADIR_M432, 0x05), DATA_MAKE_NUM(DATADIR_M432, 0x06) };
 
-UnkM432DllBss0SubStruct lbl_1_data_5EC[0x1F] = {
+MapObjectDefinition firstTeamMapObjects[0x1F] = {
     {
         "m432_00-i0",
         NULL,
@@ -735,7 +735,7 @@ UnkM432DllBss0SubStruct lbl_1_data_5EC[0x1F] = {
     },
 };
 
-UnkM432DllBss0SubStruct lbl_1_data_EDC[0x1F] = {
+MapObjectDefinition secondTeamMapObjects[0x1F] = {
     {
         "m432_00-i1",
         NULL,
@@ -1203,11 +1203,11 @@ UnkM432DllBss0SubStruct lbl_1_data_EDC[0x1F] = {
     },
 };
 
-UnkM432DllData1794Struct lbl_1_data_1794 = { 105.0f * REFRESH_RATE, 0.7f, 10.0f, 0.4f, 1.0f, 0, 2, 6 };
-UnkM432DllData1794Struct lbl_1_data_17B4 = { 95.0f * REFRESH_RATE, 0.8f, 8.0f, 0.6f, 1.0f, 0, 4, 5 };
-UnkM432DllData1794Struct lbl_1_data_17D4 = { 85.0f * REFRESH_RATE, 0.9f, 6.0f, 0.8f, 1.0f, 0, 6, 4 };
-UnkM432DllData1794Struct lbl_1_data_17F4 = { 75.0f * REFRESH_RATE, 1.0f, 4.0f, 1.0f, 1.0f, 0, 8, 3 };
-HU3DPARMANPARAM lbl_1_data_1814 = {
+PlayerAiBehaviorParams humanAiBehaviorParams = { 105.0f * REFRESH_RATE, 0.7f, 10.0f, 0.4f, 1.0f, 0, 2, 6 };
+PlayerAiBehaviorParams easyAiBehaviorParams = { 95.0f * REFRESH_RATE, 0.8f, 8.0f, 0.6f, 1.0f, 0, 4, 5 };
+PlayerAiBehaviorParams normalAiBehaviorParams = { 85.0f * REFRESH_RATE, 0.9f, 6.0f, 0.8f, 1.0f, 0, 6, 4 };
+PlayerAiBehaviorParams hardAiBehaviorParams = { 75.0f * REFRESH_RATE, 1.0f, 4.0f, 1.0f, 1.0f, 0, 8, 3 };
+HU3DPARMANPARAM particleParameters = {
     0x1E,
     { 0, 0 },
     1.0f,
