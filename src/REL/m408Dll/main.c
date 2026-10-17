@@ -22,7 +22,7 @@
 #include "game/esprite.h"
 #endif
 
-s32 lbl_1_data_0[] = {
+s32 characterAssetIds[] = {
     DATA_MAKE_NUM(DATADIR_MGCONST, 0x00),
     DATA_MAKE_NUM(DATADIR_MGCONST, 0x01),
     DATA_MAKE_NUM(DATADIR_MGCONST, 0x02),
@@ -33,185 +33,185 @@ s32 lbl_1_data_0[] = {
     DATA_MAKE_NUM(DATADIR_MGCONST, 0x07),
 };
 
-Vec lbl_1_data_20 = { 150, 1250, 150 };
-Vec lbl_1_data_2C = { -0.1, -0.8, 0.1 };
-GXColor lbl_1_data_38 = { 255, 255, 255, 255 };
-Vec lbl_1_data_3C[] = { { 0, -2000, 0 }, { 0, 1, 0 } };
-GXColor lbl_1_data_54 = { 255, 255, 255, 255 };
-Vec lbl_1_data_58 = { 50, 15000, 50 };
-Vec lbl_1_data_64 = { 0, 1, 0 };
-Vec lbl_1_data_70 = { 0, 0, 0 };
+Vec globalLightPosition = { 150, 1250, 150 };
+Vec globalLightDirection = { -0.1, -0.8, 0.1 };
+GXColor globalLightColor = { 255, 255, 255, 255 };
+Vec shadowLightVectors[] = { { 0, -2000, 0 }, { 0, 1, 0 } };
+GXColor shadowLightColor = { 255, 255, 255, 255 };
+Vec shadowCameraPosition = { 50, 15000, 50 };
+Vec shadowCameraUp = { 0, 1, 0 };
+Vec shadowCameraTarget = { 0, 0, 0 };
 
-OMOBJ *lbl_1_bss_78;
-OMOBJ *lbl_1_bss_74;
-OMOBJ *lbl_1_bss_70;
-OMOBJ **lbl_1_bss_6C;
-OMOBJ *lbl_1_bss_68;
-s16 lbl_1_bss_66;
-s16 lbl_1_bss_64;
-u16 lbl_1_bss_62;
-u16 lbl_1_bss_60;
-s32 lbl_1_bss_5C;
-s32 lbl_1_bss_58;
-float lbl_1_bss_54;
-float lbl_1_bss_50;
-u32 lbl_1_bss_4C;
-s32 lbl_1_bss_48;
-s32 lbl_1_bss_44;
-s32 lbl_1_bss_40;
-u32 lbl_1_bss_3C;
-s32 lbl_1_bss_28[5];
-s32 lbl_1_bss_24;
-s32 lbl_1_bss_20;
-s32 lbl_1_bss_1C;
-s32 lbl_1_bss_18;
-s32 lbl_1_bss_14;
-s32 lbl_1_bss_10;
-s32 lbl_1_bss_C;
-OMOBJ *lbl_1_bss_8;
-float lbl_1_bss_4;
-s32 lbl_1_bss_0;
+OMOBJ *mainPlayerObject;
+OMOBJ *stageProgressObject;
+OMOBJ *viewExitObject;
+OMOBJ **characterObjects;
+OMOBJ *characterMotionObject;
+s16 minigameEntryDelay;
+s16 minigameRefreshDuration;
+u16 minigameState;
+u16 stageProgressState;
+s32 stageProgressTimer;
+s32 characterObjectCount;
+float stageVerticalPosition;
+float stageVerticalSpeed;
+u32 activeCharacterCountdown;
+s32 stageFinishStarted;
+s32 minigameExitAllowed;
+s32 minigameExitRequested;
+u32 maxCharacterAnimationSpeed;
+s32 activeCharacterIds[5];
+s32 startMessageSequence;
+s32 finishMessageSequence;
+s32 stageMusicSequence;
+s32 stageSoundStreamId;
+s32 stageEffectStreamId;
+s32 cameraSoundEmitterId;
+s32 stageEffectEnabled;
+OMOBJ *characterMotionManager;
+float cameraFadeValue;
+s32 cameraFallStarted;
 
-void fn_1_51C(OMOBJ *object);
-void fn_1_9F0(OMOBJ *object);
+void InitializeMinigameState(OMOBJ *object);
+void InitializeStageProgress(OMOBJ *object);
 
-void fn_1_25D4(HUPROCESS *objman);
+void CreateCharacterObjects(HUPROCESS *objman);
 
 void ObjectSetup(void)
 {
-    s32 temp_r31;
-    HUPROCESS *temp_r30;
-    s16 temp_r29;
-    HU3DLIGHT *temp_r28;
-    Vec sp14 = { 0, 0, 0 };
-    Vec sp8 = { 0, 0, -1 };
+    s32 animationIndex;
+    HUPROCESS *objectManager;
+    s16 integerValue;
+    HU3DLIGHT *light;
+    Vec positionVector = { 0, 0, 0 };
+    Vec positionVector2 = { 0, 0, -1 };
     HuAudSndGrpSet(33);
 #if VERSION_PAL
-    HuAudFXListnerSetEX(&sp14, &sp8, 6000, 3668.0f, 0, 300, 300);
+    HuAudFXListnerSetEX(&positionVector, &positionVector2, 6000, 3668.0f, 0, 300, 300);
 #else
-    HuAudFXListnerSetEX(&sp14, &sp8, 6000, 3656.6667f, 0, 300, 300);
+    HuAudFXListnerSetEX(&positionVector, &positionVector2, 6000, 3656.6667f, 0, 300, 300);
 #endif
-    lbl_1_bss_1C = lbl_1_bss_18 = lbl_1_bss_14 = lbl_1_bss_10 = -1;
-    lbl_1_bss_C = 0;
-    lbl_1_bss_44 = 1;
-    lbl_1_bss_40 = 0;
-    temp_r29 = Hu3DGLightCreateV(&lbl_1_data_20, &lbl_1_data_2C, &lbl_1_data_38);
-    Hu3DGLightInfinitytSet(temp_r29);
-    temp_r28 = &Hu3DGlobalLight[temp_r29];
-    temp_r28->type |= 0x8000;
+    stageMusicSequence = stageSoundStreamId = stageEffectStreamId = cameraSoundEmitterId = -1;
+    stageEffectEnabled = 0;
+    minigameExitAllowed = 1;
+    minigameExitRequested = 0;
+    integerValue = Hu3DGLightCreateV(&globalLightPosition, &globalLightDirection, &globalLightColor);
+    Hu3DGLightInfinitytSet(integerValue);
+    light = &Hu3DGlobalLight[integerValue];
+    light->type |= 0x8000;
     Hu3DShadowCreate(30, 100, 25000);
     Hu3DShadowTPLvlSet(0.3f);
-    Hu3DShadowPosSet(&lbl_1_data_58, &lbl_1_data_64, &lbl_1_data_70);
-    temp_r30 = omInitObjMan(50, 8192);
-    omGameSysInit(temp_r30);
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        CRotM[temp_r31].x = 324.3f;
-        CRotM[temp_r31].y = 0;
-        CRotM[temp_r31].z = 0;
-        CenterM[temp_r31].x = 0;
-        CenterM[temp_r31].y = 130;
-        CenterM[temp_r31].z = 224;
-        CZoomM[temp_r31] = 220;
+    Hu3DShadowPosSet(&shadowCameraPosition, &shadowCameraUp, &shadowCameraTarget);
+    objectManager = omInitObjMan(50, 8192);
+    omGameSysInit(objectManager);
+    for (animationIndex = 0; animationIndex < 4; animationIndex++) {
+        CRotM[animationIndex].x = 324.3f;
+        CRotM[animationIndex].y = 0;
+        CRotM[animationIndex].z = 0;
+        CenterM[animationIndex].x = 0;
+        CenterM[animationIndex].y = 130;
+        CenterM[animationIndex].z = 224;
+        CZoomM[animationIndex] = 220;
     }
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, -1, 5, 25000, (4.0f / 3.0f));
     Hu3DCameraViewportSet(1, 0, 0, 640, 480, 0, 1);
-    lbl_1_bss_70 = omAddObjEx(temp_r30, 32730, 0, 0, -1, omOutView);
-    lbl_1_bss_62 = 0;
-    lbl_1_bss_60 = 0;
-    lbl_1_bss_48 = 0;
-    lbl_1_bss_78 = omAddObjEx(temp_r30, 10, 0, 0, -1, fn_1_51C);
-    lbl_1_bss_3C = 0;
-    for (temp_r31 = 0; temp_r31 < 5; temp_r31++) {
-        lbl_1_bss_28[temp_r31] = -1;
+    viewExitObject = omAddObjEx(objectManager, 32730, 0, 0, -1, omOutView);
+    minigameState = 0;
+    stageProgressState = 0;
+    stageFinishStarted = 0;
+    mainPlayerObject = omAddObjEx(objectManager, 10, 0, 0, -1, InitializeMinigameState);
+    maxCharacterAnimationSpeed = 0;
+    for (animationIndex = 0; animationIndex < 5; animationIndex++) {
+        activeCharacterIds[animationIndex] = -1;
     }
-    lbl_1_bss_74 = omAddObjEx(temp_r30, 50, 0, 0, -1, fn_1_9F0);
-    fn_1_25D4(temp_r30);
-    fn_1_C44C(temp_r30);
-    fn_1_118D0(temp_r30);
-    fn_1_8958(temp_r30);
+    stageProgressObject = omAddObjEx(objectManager, 50, 0, 0, -1, InitializeStageProgress);
+    CreateCharacterObjects(objectManager);
+    CreateStageEffects(objectManager);
+    CreateEffectObjects(objectManager);
+    CreateCameraObjects(objectManager);
 }
 
-void fn_1_56C(OMOBJ *object);
-void fn_1_9A4(OMOBJ *object);
+void UpdateMinigameState(OMOBJ *object);
+void FinishMinigameExit(OMOBJ *object);
 
-void fn_1_51C(OMOBJ *object)
+void InitializeMinigameState(OMOBJ *object)
 {
-    lbl_1_bss_66 = 30;
-    lbl_1_bss_64 = REFRESH_RATE;
-    lbl_1_bss_4C = 4;
-    lbl_1_bss_62 = 0;
-    object->objFunc = fn_1_56C;
+    minigameEntryDelay = 30;
+    minigameRefreshDuration = REFRESH_RATE;
+    activeCharacterCountdown = 4;
+    minigameState = 0;
+    object->objFunc = UpdateMinigameState;
 }
 
-void fn_1_56C(OMOBJ *object)
+void UpdateMinigameState(OMOBJ *object)
 {
-    s32 temp_r30 = 0;
-    Vec sp14;
-    Vec sp8;
-    switch (lbl_1_bss_62) {
+    s32 integerValue = 0;
+    Vec scratchValues;
+    Vec scratchValues2;
+    switch (minigameState) {
         case 0:
             WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
-            lbl_1_bss_44 = 0;
+            minigameExitAllowed = 0;
             Hu3DCameraPerspectiveSet(1, 50, 5, 25000, (4.0f / 3.0f));
-            lbl_1_bss_62 = 1;
+            minigameState = 1;
             break;
 
         case 1:
-            if (fn_1_C43C() == 5) {
-                lbl_1_bss_62 = 2;
+            if (GetCameraSequenceState() == 5) {
+                minigameState = 2;
             }
             break;
 
         case 2:
-            if (fn_1_6878() == 5) {
+            if (GetStageEventState() == 5) {
                 object->work[0] = 0;
-                lbl_1_bss_62 = 3;
+                minigameState = 3;
             }
             break;
 
         case 3:
-            if (lbl_1_bss_4C == 0 || WipeStatGet() == 0) {
+            if (activeCharacterCountdown == 0 || WipeStatGet() == 0) {
 #if VERSION_PAL
                 if (++object->work[0] >= 175.0f) {
 #else
                 if (++object->work[0] >= 210.0f) {
 #endif
-                    lbl_1_bss_62 = 4;
+                    minigameState = 4;
                 }
             }
             break;
 
         case 4:
-            lbl_1_bss_62 = 5;
+            minigameState = 5;
             break;
 
         case 5:
-            if (fn_1_C43C() == 5) {
-                temp_r30 = 1;
-                lbl_1_bss_62 = 5;
+            if (GetCameraSequenceState() == 5) {
+                integerValue = 1;
+                minigameState = 5;
             }
             break;
     }
-    sp8.x = -(sind(CRot.y) * cosd(CRot.x));
-    sp8.y = -(-sind(CRot.x));
-    sp8.z = -(cosd(CRot.y) * cosd(CRot.x));
-    sp14.x = Center.x - (sp8.x * CZoom);
-    sp14.y = Center.y - (sp8.y * CZoom);
-    sp14.z = Center.z - (sp8.z * CZoom);
-    HuAudFXListnerUpdate(&sp14, &sp8);
-    if ((omSysExitReq && !WipeStatGet()) && !lbl_1_bss_44 || temp_r30) {
+    scratchValues2.x = -(sind(CRot.y) * cosd(CRot.x));
+    scratchValues2.y = -(-sind(CRot.x));
+    scratchValues2.z = -(cosd(CRot.y) * cosd(CRot.x));
+    scratchValues.x = Center.x - (scratchValues2.x * CZoom);
+    scratchValues.y = Center.y - (scratchValues2.y * CZoom);
+    scratchValues.z = Center.z - (scratchValues2.z * CZoom);
+    HuAudFXListnerUpdate(&scratchValues, &scratchValues2);
+    if ((omSysExitReq && !WipeStatGet()) && !minigameExitAllowed || integerValue) {
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-        lbl_1_bss_44 = 1;
-        lbl_1_bss_40 = 1;
-        if (lbl_1_bss_10 >= 0) {
-            HuAudFXFadeOut(lbl_1_bss_10, REFRESH_RATE / 2);
+        minigameExitAllowed = 1;
+        minigameExitRequested = 1;
+        if (cameraSoundEmitterId >= 0) {
+            HuAudFXFadeOut(cameraSoundEmitterId, REFRESH_RATE / 2);
         }
-        object->objFunc = fn_1_9A4;
+        object->objFunc = FinishMinigameExit;
     }
 }
 
-void fn_1_9A4(OMOBJ *object)
+void FinishMinigameExit(OMOBJ *object)
 {
     if (!WipeStatGet()) {
         CharModelKill(-1);
@@ -221,155 +221,155 @@ void fn_1_9A4(OMOBJ *object)
     }
 }
 
-void fn_1_A40(OMOBJ *object);
+void UpdateStageProgress(OMOBJ *object);
 
-void fn_1_9F0(OMOBJ *object)
+void InitializeStageProgress(OMOBJ *object)
 {
-    lbl_1_bss_54 = 12000;
-    lbl_1_bss_50 = 0;
-    lbl_1_bss_60 = 0;
-    object->objFunc = fn_1_A40;
+    stageVerticalPosition = 12000;
+    stageVerticalSpeed = 0;
+    stageProgressState = 0;
+    object->objFunc = UpdateStageProgress;
 }
 
-void fn_1_CD8(OMOBJ *object);
+void InitializeStageAnimation(OMOBJ *object);
 
-u32 fn_1_6868(void);
+u32 GetStageProgress(void);
 
-void fn_1_A40(OMOBJ *object)
+void UpdateStageProgress(OMOBJ *object)
 {
-    if (fn_1_6868() != 2) {
+    if (GetStageProgress() != 2) {
         return;
     }
-    switch (lbl_1_bss_60) {
+    switch (stageProgressState) {
         case 0:
             Hu3DCameraPerspectiveSet(1, 35, 5, 25000, (4.0f / 3.0f));
             CRot.x = -80.5f;
             CRot.y = CRot.z = 0;
             Center.x = 0;
-            Center.y = lbl_1_bss_54;
+            Center.y = stageVerticalPosition;
             Center.z = 0;
             CZoom = 260;
-            lbl_1_bss_60 = 1;
+            stageProgressState = 1;
             break;
 
         case 1:
-            lbl_1_bss_24 = MGSeqStartCreate();
-            MGSeqPosSet(lbl_1_bss_24, 320, 240);
-            lbl_1_bss_60 = 2;
+            startMessageSequence = MGSeqStartCreate();
+            MGSeqPosSet(startMessageSequence, 320, 240);
+            stageProgressState = 2;
 
         case 2:
-            Center.y = lbl_1_bss_54;
-            lbl_1_bss_50 = -400.0f;
+            Center.y = stageVerticalPosition;
+            stageVerticalSpeed = -400.0f;
             ;
-            lbl_1_bss_54 += lbl_1_bss_50 * REFRESH_FREQ;
-            if (lbl_1_bss_1C < 0 && (MGSeqStatGet(lbl_1_bss_24) & 0x10)) {
-                lbl_1_bss_1C = HuAudSeqPlay(74);
+            stageVerticalPosition += stageVerticalSpeed * REFRESH_FREQ;
+            if (stageMusicSequence < 0 && (MGSeqStatGet(startMessageSequence) & 0x10)) {
+                stageMusicSequence = HuAudSeqPlay(74);
             }
-            if (MGSeqStatGet(lbl_1_bss_24) == 0) {
-                lbl_1_bss_60 = 3;
-                object->objFunc = fn_1_CD8;
+            if (MGSeqStatGet(startMessageSequence) == 0) {
+                stageProgressState = 3;
+                object->objFunc = InitializeStageAnimation;
             }
 
             break;
     }
 }
 
-void fn_1_8020(void);
+void UpdateStageObjects(void);
 
-void fn_1_EF8(OMOBJ *object);
+void InitializeStageObject(OMOBJ *object);
 
-void fn_1_12A0(OMOBJ *object);
+void UpdateStageObject(OMOBJ *object);
 
-void fn_1_CD8(OMOBJ *object)
+void InitializeStageAnimation(OMOBJ *object)
 {
-    Center.y = lbl_1_bss_54;
-    lbl_1_bss_50 = -400.0f;
-    lbl_1_bss_54 += lbl_1_bss_50 * REFRESH_FREQ;
-    fn_1_8020();
-    if (lbl_1_bss_4C == 0) {
-        lbl_1_bss_48 = 1;
-        lbl_1_bss_20 = MGSeqFinishCreate();
-        MGSeqPosSet(lbl_1_bss_20, 320, 240);
-        HuAudSeqFadeOut(lbl_1_bss_1C, 100);
-        object->objFunc = fn_1_12A0;
+    Center.y = stageVerticalPosition;
+    stageVerticalSpeed = -400.0f;
+    stageVerticalPosition += stageVerticalSpeed * REFRESH_FREQ;
+    UpdateStageObjects();
+    if (activeCharacterCountdown == 0) {
+        stageFinishStarted = 1;
+        finishMessageSequence = MGSeqFinishCreate();
+        MGSeqPosSet(finishMessageSequence, 320, 240);
+        HuAudSeqFadeOut(stageMusicSequence, 100);
+        object->objFunc = UpdateStageObject;
     }
     else {
-        if (lbl_1_bss_54 <= (-lbl_1_bss_50 * 0.5f)) {
-            lbl_1_bss_20 = MGSeqFinishCreate();
-            MGSeqPosSet(lbl_1_bss_20, 320, 240);
-            HuAudSeqFadeOut(lbl_1_bss_1C, 100);
-            lbl_1_bss_50 = -120.00001f;
-            lbl_1_bss_54 = -lbl_1_bss_50 * 2.0f;
-            lbl_1_bss_60 = 4;
-            object->objFunc = fn_1_EF8;
+        if (stageVerticalPosition <= (-stageVerticalSpeed * 0.5f)) {
+            finishMessageSequence = MGSeqFinishCreate();
+            MGSeqPosSet(finishMessageSequence, 320, 240);
+            HuAudSeqFadeOut(stageMusicSequence, 100);
+            stageVerticalSpeed = -120.00001f;
+            stageVerticalPosition = -stageVerticalSpeed * 2.0f;
+            stageProgressState = 4;
+            object->objFunc = InitializeStageObject;
         }
     }
 }
 
-void fn_1_18C0(OMOBJ *object);
+void UpdateStageObjectAnimation(OMOBJ *object);
 
-void fn_1_EF8(OMOBJ *object)
+void InitializeStageObject(OMOBJ *object)
 {
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    float temp_f29;
-    if (lbl_1_bss_10 < 0) {
-        lbl_1_bss_10 = HuAudFXPlay(1360);
+    Vec positionVector;
+    Vec positionVector2;
+    Vec positionVector3;
+    Vec positionVector4;
+    float angle;
+    if (cameraSoundEmitterId < 0) {
+        cameraSoundEmitterId = HuAudFXPlay(1360);
     }
-    sp30.x = 0;
-    sp30.y = 50;
-    sp30.z = 230;
-    temp_f29 = atan2d(lbl_1_bss_54 - sp30.y, sp30.z);
-    if (temp_f29 < 0.0f) {
-        temp_f29 += 360.0f;
+    positionVector.x = 0;
+    positionVector.y = 50;
+    positionVector.z = 230;
+    angle = atan2d(stageVerticalPosition - positionVector.y, positionVector.z);
+    if (angle < 0.0f) {
+        angle += 360.0f;
     }
     Center.x = 0;
-    Center.y = lbl_1_bss_54;
+    Center.y = stageVerticalPosition;
     Center.z = 0;
-    CRot.x = temp_f29;
-    CZoom = sqrtf((sp30.z * sp30.z) + ((lbl_1_bss_54 - sp30.y) * (lbl_1_bss_54 - sp30.y)));
-    spC.x = 0;
-    spC.z = 0;
-    sp24.x = 200;
-    sp24.z = 200;
-    sp24.y = 800;
-    spC.y = 20;
-    sp18.x = sp18.y = 0;
-    sp18.z = 1;
-    Hu3DShadowPosSet(&sp24, &sp18, &spC);
+    CRot.x = angle;
+    CZoom = sqrtf((positionVector.z * positionVector.z) + ((stageVerticalPosition - positionVector.y) * (stageVerticalPosition - positionVector.y)));
+    positionVector4.x = 0;
+    positionVector4.z = 0;
+    positionVector2.x = 200;
+    positionVector2.z = 200;
+    positionVector2.y = 800;
+    positionVector4.y = 20;
+    positionVector3.x = positionVector3.y = 0;
+    positionVector3.z = 1;
+    Hu3DShadowPosSet(&positionVector2, &positionVector3, &positionVector4);
     Hu3DShadowTPLvlSet(0.5f);
-    lbl_1_bss_54 += lbl_1_bss_50 * REFRESH_FREQ;
-    if (lbl_1_bss_54 <= 0.0f) {
-        lbl_1_bss_54 = 0;
-        lbl_1_bss_60 = 5;
-        object->objFunc = fn_1_18C0;
+    stageVerticalPosition += stageVerticalSpeed * REFRESH_FREQ;
+    if (stageVerticalPosition <= 0.0f) {
+        stageVerticalPosition = 0;
+        stageProgressState = 5;
+        object->objFunc = UpdateStageObjectAnimation;
     }
 }
 
-void fn_1_148C(OMOBJ *object);
+void UpdateStageObjectEffect(OMOBJ *object);
 
-void fn_1_12A0(OMOBJ *object)
+void UpdateStageObject(OMOBJ *object)
 {
-    if (lbl_1_bss_54 > (-lbl_1_bss_50 * 0.8f)) {
-        Center.y = lbl_1_bss_54;
-        lbl_1_bss_50 = -400;
-        lbl_1_bss_54 += lbl_1_bss_50 * REFRESH_FREQ;
+    if (stageVerticalPosition > (-stageVerticalSpeed * 0.8f)) {
+        Center.y = stageVerticalPosition;
+        stageVerticalSpeed = -400;
+        stageVerticalPosition += stageVerticalSpeed * REFRESH_FREQ;
     }
-    if (MGSeqStatGet(lbl_1_bss_20)) {
+    if (MGSeqStatGet(finishMessageSequence)) {
         return;
     }
-    switch (fn_1_CE68()) {
+    switch (GetStageEffectState()) {
         case 0:
             OSReport("Map 0\n");
         case 1:
             OSReport("Map 1\n");
-            if (lbl_1_bss_40 == 0) {
+            if (minigameExitRequested == 0) {
                 WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, REFRESH_RATE);
-                lbl_1_bss_44 = 1;
+                minigameExitAllowed = 1;
             }
-            object->objFunc = fn_1_148C;
+            object->objFunc = UpdateStageObjectEffect;
             break;
 
         case 2:
@@ -380,186 +380,186 @@ void fn_1_12A0(OMOBJ *object)
 
         case 4:
             OSReport("Map 4\n");
-            if (lbl_1_bss_40 == 0) {
+            if (minigameExitRequested == 0) {
                 WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, REFRESH_RATE / 2);
-                lbl_1_bss_44 = 1;
+                minigameExitAllowed = 1;
             }
-            object->objFunc = fn_1_148C;
+            object->objFunc = UpdateStageObjectEffect;
             break;
     }
 }
 
-void fn_1_148C(OMOBJ *object)
+void UpdateStageObjectEffect(OMOBJ *object)
 {
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    float temp_f29;
+    Vec positionVector;
+    Vec positionVector2;
+    Vec positionVector3;
+    Vec positionVector4;
+    float angle;
     if (!WipeStatGet()) {
-        lbl_1_bss_54 = 0;
-        sp30.x = 0;
-        sp30.y = 50;
-        sp30.z = 230;
-        temp_f29 = atan2d(lbl_1_bss_54 - sp30.y, sp30.z);
-        if (temp_f29 < 0.0f) {
-            temp_f29 += 360.0f;
+        stageVerticalPosition = 0;
+        positionVector.x = 0;
+        positionVector.y = 50;
+        positionVector.z = 230;
+        angle = atan2d(stageVerticalPosition - positionVector.y, positionVector.z);
+        if (angle < 0.0f) {
+            angle += 360.0f;
         }
         Center.x = 0;
-        Center.y = lbl_1_bss_54;
+        Center.y = stageVerticalPosition;
         Center.z = 0;
-        CRot.x = temp_f29;
-        CZoom = sqrtf((sp30.z * sp30.z) + ((lbl_1_bss_54 - sp30.y) * (lbl_1_bss_54 - sp30.y)));
-        spC.x = 0;
-        spC.z = 0;
-        sp24.x = 200;
-        sp24.z = 200;
-        sp24.y = 800;
-        spC.y = 20;
-        sp18.x = sp18.y = 0;
-        sp18.z = 1;
-        Hu3DShadowPosSet(&sp24, &sp18, &spC);
+        CRot.x = angle;
+        CZoom = sqrtf((positionVector.z * positionVector.z) + ((stageVerticalPosition - positionVector.y) * (stageVerticalPosition - positionVector.y)));
+        positionVector4.x = 0;
+        positionVector4.z = 0;
+        positionVector2.x = 200;
+        positionVector2.z = 200;
+        positionVector2.y = 800;
+        positionVector4.y = 20;
+        positionVector3.x = positionVector3.y = 0;
+        positionVector3.z = 1;
+        Hu3DShadowPosSet(&positionVector2, &positionVector3, &positionVector4);
         Hu3DShadowTPLvlSet(0.5f);
-        fn_1_CEEC();
-        if (lbl_1_bss_10 < 0) {
-            lbl_1_bss_10 = HuAudFXPlay(1360);
+        CleanupStageEffects();
+        if (cameraSoundEmitterId < 0) {
+            cameraSoundEmitterId = HuAudFXPlay(1360);
         }
-        if (lbl_1_bss_40 == 0) {
+        if (minigameExitRequested == 0) {
             WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, REFRESH_RATE / 2);
-            lbl_1_bss_44 = 0;
+            minigameExitAllowed = 0;
         }
-        lbl_1_bss_60 = 5;
-        object->objFunc = fn_1_18C0;
+        stageProgressState = 5;
+        object->objFunc = UpdateStageObjectAnimation;
     }
     else {
-        if (lbl_1_bss_54 > (-lbl_1_bss_50 * 0.8f)) {
-            Center.y = lbl_1_bss_54;
-            lbl_1_bss_50 = -400;
-            lbl_1_bss_54 += lbl_1_bss_50 * REFRESH_FREQ;
+        if (stageVerticalPosition > (-stageVerticalSpeed * 0.8f)) {
+            Center.y = stageVerticalPosition;
+            stageVerticalSpeed = -400;
+            stageVerticalPosition += stageVerticalSpeed * REFRESH_FREQ;
         }
     }
 }
 
-void fn_1_18C0(OMOBJ *object)
+void UpdateStageObjectAnimation(OMOBJ *object)
 {
-    if (!WipeStatGet() && lbl_1_bss_14 < 0) {
-        if (lbl_1_bss_C) {
-            lbl_1_bss_14 = HuAudSStreamPlay(1);
+    if (!WipeStatGet() && stageEffectStreamId < 0) {
+        if (stageEffectEnabled) {
+            stageEffectStreamId = HuAudSStreamPlay(1);
         }
         else {
-            lbl_1_bss_14 = HuAudSStreamPlay(4);
+            stageEffectStreamId = HuAudSStreamPlay(4);
         }
     }
 }
 
-float lbl_1_data_A0[] = { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7 };
+float characterVerticalOffsets[] = { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7 };
 
-void fn_1_1940(Work2FAC *arg0, Vec *arg1)
+void CalculateCharacterModelOffset(CharacterEffectWork *characterWork, Vec *modelOffset)
 {
-    Mtx sp18;
-    Vec spC;
-    spC.x = sind(arg0->unk58.x + 90.0f);
-    spC.y = 0;
-    spC.z = cosd(arg0->unk58.x + 90.0f);
-    MTXRotAxisDeg(sp18, &spC, arg0->unk58.y);
-    spC.x = spC.z = 0;
-    spC.y = -lbl_1_data_A0[arg0->unk2];
-    MTXMultVec(sp18, &spC, arg1);
+    Mtx transformMatrix;
+    Vec positionVector;
+    positionVector.x = sind(characterWork->rotation.x + 90.0f);
+    positionVector.y = 0;
+    positionVector.z = cosd(characterWork->rotation.x + 90.0f);
+    MTXRotAxisDeg(transformMatrix, &positionVector, characterWork->rotation.y);
+    positionVector.x = positionVector.z = 0;
+    positionVector.y = -characterVerticalOffsets[characterWork->characterId];
+    MTXMultVec(transformMatrix, &positionVector, modelOffset);
 }
 
-void fn_1_1A60(Vec *arg0, Vec *arg1, Vec *arg2, Vec *arg3)
+void RotateVectorAndTranslate(Vec *translation, Vec *rotation, Vec *inputVector, Vec *outputVector)
 {
-    Mtx spC;
-    mtxRot(spC, arg1->x, arg1->y, arg1->z);
-    MTXMultVec(spC, arg2, arg3);
-    arg3->x += arg0->x;
-    arg3->y += arg0->y;
-    arg3->z += arg0->z;
+    Mtx transformMatrix;
+    mtxRot(transformMatrix, rotation->x, rotation->y, rotation->z);
+    MTXMultVec(transformMatrix, inputVector, outputVector);
+    outputVector->x += translation->x;
+    outputVector->y += translation->y;
+    outputVector->z += translation->z;
 }
 
-void fn_1_1AF8(Work2FAC *arg0, s32 arg1, Vec *arg2)
+void CalculateCharacterVelocity(CharacterEffectWork *characterWork, s32 steeringMode, Vec *velocity)
 {
-    float temp_f31;
-    float temp_f30;
-    temp_f30 = temp_f31 = 0;
-    arg2->x = (temp_f31 * sind(temp_f30)) + arg0->unk1C.x;
-    arg2->y = 15.0f + arg0->unk1C.y + temp_f31;
-    arg2->z = (temp_f31 * cosd(temp_f30)) + arg0->unk1C.z;
+    float angle;
+    float angle2;
+    angle2 = angle = 0;
+    velocity->x = (angle * sind(angle2)) + characterWork->velocity.x;
+    velocity->y = 15.0f + characterWork->velocity.y + angle;
+    velocity->z = (angle * cosd(angle2)) + characterWork->velocity.z;
 }
 
-void fn_1_1BE8(OMOBJ *arg0, float arg1)
+void UpdateCharacterParticleModel(OMOBJ *object, float blendFactor)
 {
-    Vec sp8;
-    Work2FAC *temp_r31 = arg0->data;
-    float temp_f31 = 1.0f - arg1;
-    float temp_f29;
-    if (!temp_r31->unk8) {
+    Vec positionVector;
+    CharacterEffectWork *charactereffectworkPointer = object->data;
+    float scale = 1.0f - blendFactor;
+    float scale2;
+    if (!charactereffectworkPointer->animationSpeed) {
         return;
     }
-    fn_1_1AF8(temp_r31, 1, &sp8);
-    if (fn_1_6878() >= 4) {
-        sp8.z += -5.0f;
+    CalculateCharacterVelocity(charactereffectworkPointer, 1, &positionVector);
+    if (GetStageEventState() >= 4) {
+        positionVector.z += -5.0f;
     }
-    temp_r31->unk94.x = (temp_r31->unk94.x * temp_f31) + (sp8.x * arg1);
-    temp_r31->unk94.y = (temp_r31->unk94.y * temp_f31) + (sp8.y * arg1);
-    temp_r31->unk94.z = (temp_r31->unk94.z * temp_f31) + (sp8.z * arg1);
-    temp_f29 = (0.1f * ((temp_r31->unk8 * 0.5f) + 0.5f)) * arg1;
-    temp_r31->unkA0.x = temp_r31->unkC * (temp_f29 + (temp_r31->unkA0.x * temp_f31));
-    temp_r31->unkA0.y = temp_r31->unkC * (temp_f29 + (temp_r31->unkA0.y * temp_f31));
-    temp_r31->unkA0.z = temp_r31->unkC * (temp_f29 + (temp_r31->unkA0.z * temp_f31));
-    Hu3DModelPosSetV(arg0->mdlId[1], &temp_r31->unk94);
-    Hu3DModelScaleSetV(arg0->mdlId[1], &temp_r31->unkA0);
+    charactereffectworkPointer->particlePosition.x = (charactereffectworkPointer->particlePosition.x * scale) + (positionVector.x * blendFactor);
+    charactereffectworkPointer->particlePosition.y = (charactereffectworkPointer->particlePosition.y * scale) + (positionVector.y * blendFactor);
+    charactereffectworkPointer->particlePosition.z = (charactereffectworkPointer->particlePosition.z * scale) + (positionVector.z * blendFactor);
+    scale2 = (0.1f * ((charactereffectworkPointer->animationSpeed * 0.5f) + 0.5f)) * blendFactor;
+    charactereffectworkPointer->particleScaleVector.x = charactereffectworkPointer->motionScale * (scale2 + (charactereffectworkPointer->particleScaleVector.x * scale));
+    charactereffectworkPointer->particleScaleVector.y = charactereffectworkPointer->motionScale * (scale2 + (charactereffectworkPointer->particleScaleVector.y * scale));
+    charactereffectworkPointer->particleScaleVector.z = charactereffectworkPointer->motionScale * (scale2 + (charactereffectworkPointer->particleScaleVector.z * scale));
+    Hu3DModelPosSetV(object->mdlId[1], &charactereffectworkPointer->particlePosition);
+    Hu3DModelScaleSetV(object->mdlId[1], &charactereffectworkPointer->particleScaleVector);
 }
 
-void fn_1_1E54(OMOBJ *object)
+void InitializeCharacterEffect(OMOBJ *object)
 {
-    Work2FAC *work = object->data;
-    if (work->unk8) {
+    CharacterEffectWork *work = object->data;
+    if (work->animationSpeed) {
 #if VERSION_PAL
-        work->unk94.y += 0.59999999f; // supposedly 0.6f
+        work->particlePosition.y += 0.59999999f; // supposedly 0.6f
 #else
-        work->unk94.y += 0.5f;
+        work->particlePosition.y += 0.5f;
 #endif
-        Hu3DModelPosSetV(object->mdlId[1], &work->unk94);
+        Hu3DModelPosSetV(object->mdlId[1], &work->particlePosition);
     }
 }
 
-s32 fn_1_1EBC(OMOBJ *object)
+s32 GetCharacterEffectState(OMOBJ *object)
 {
-    float temp_f31;
-    float temp_f22;
-    float temp_f21;
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
+    float interpolationValue;
+    float interpolationValue2;
+    float interpolationValue3;
+    Vec positionVector;
+    Vec positionVector2;
+    Vec positionVector3;
 
-    Work2FAC *temp_r31 = object->data;
-    temp_f31 = (temp_r31->unk1C.x * temp_r31->unk1C.x) + ((10.0f / 7.0f) * ((10.0f / 7.0f) * temp_r31->unk1C.z * temp_r31->unk1C.z));
-    if (temp_f31 > 6400) {
-        temp_f22 = 80.0f / sqrtf(temp_f31);
-        sp3C.x = temp_r31->unk1C.x * temp_f22;
-        sp3C.z = temp_r31->unk1C.z * temp_f22;
-        temp_r31->unk34.x = sp3C.x - temp_r31->unk1C.x;
-        temp_r31->unk34.z = sp3C.z - temp_r31->unk1C.z;
-        temp_f21 = 80.0f * sqrtf(0.51f);
-        sp30.x = temp_f21 - sp3C.x;
-        sp30.z = -sp3C.z;
-        sp24.x = -temp_f21 - sp3C.x;
-        sp24.z = -sp3C.z;
-        temp_f31 = 1.0f / VECMagXZ(&sp30);
-        sp30.x *= temp_f31;
-        sp30.z *= temp_f31;
-        temp_f31 = 1.0f / VECMagXZ(&sp24);
-        sp24.x *= temp_f31;
-        sp24.z *= temp_f31;
-        sp30.x += sp24.x;
-        sp30.z += sp24.z;
-        temp_f31 = 1.0f / VECMagXZ(&sp30);
-        sp30.x *= temp_f31;
-        sp30.z *= temp_f31;
-        temp_f22 = -((sp30.x * temp_r31->unk28.x) + (sp30.z * temp_r31->unk28.z));
-        temp_r31->unk28.x += (sp30.x * 20.0f) + (sp30.x * 2.0f * temp_f22);
-        temp_r31->unk28.z += (sp30.z * 20.0f) + (sp30.z * 2.0f * temp_f22);
+    CharacterEffectWork *charactereffectworkPointer = object->data;
+    interpolationValue = (charactereffectworkPointer->velocity.x * charactereffectworkPointer->velocity.x) + ((10.0f / 7.0f) * ((10.0f / 7.0f) * charactereffectworkPointer->velocity.z * charactereffectworkPointer->velocity.z));
+    if (interpolationValue > 6400) {
+        interpolationValue2 = 80.0f / sqrtf(interpolationValue);
+        positionVector.x = charactereffectworkPointer->velocity.x * interpolationValue2;
+        positionVector.z = charactereffectworkPointer->velocity.z * interpolationValue2;
+        charactereffectworkPointer->velocityChange.x = positionVector.x - charactereffectworkPointer->velocity.x;
+        charactereffectworkPointer->velocityChange.z = positionVector.z - charactereffectworkPointer->velocity.z;
+        interpolationValue3 = 80.0f * sqrtf(0.51f);
+        positionVector2.x = interpolationValue3 - positionVector.x;
+        positionVector2.z = -positionVector.z;
+        positionVector3.x = -interpolationValue3 - positionVector.x;
+        positionVector3.z = -positionVector.z;
+        interpolationValue = 1.0f / VECMagXZ(&positionVector2);
+        positionVector2.x *= interpolationValue;
+        positionVector2.z *= interpolationValue;
+        interpolationValue = 1.0f / VECMagXZ(&positionVector3);
+        positionVector3.x *= interpolationValue;
+        positionVector3.z *= interpolationValue;
+        positionVector2.x += positionVector3.x;
+        positionVector2.z += positionVector3.z;
+        interpolationValue = 1.0f / VECMagXZ(&positionVector2);
+        positionVector2.x *= interpolationValue;
+        positionVector2.z *= interpolationValue;
+        interpolationValue2 = -((positionVector2.x * charactereffectworkPointer->acceleration.x) + (positionVector2.z * charactereffectworkPointer->acceleration.z));
+        charactereffectworkPointer->acceleration.x += (positionVector2.x * 20.0f) + (positionVector2.x * 2.0f * interpolationValue2);
+        charactereffectworkPointer->acceleration.z += (positionVector2.z * 20.0f) + (positionVector2.z * 2.0f * interpolationValue2);
         return 1;
     }
     else {
@@ -567,26 +567,26 @@ s32 fn_1_1EBC(OMOBJ *object)
     }
 }
 
-void fn_1_26E4(OMOBJ *object);
-void fn_1_61FC(OMOBJ *object);
+void InitializeCharacterObject(OMOBJ *object);
+void InitializeCharacterMotions(OMOBJ *object);
 
-void fn_1_25D4(HUPROCESS *objman)
+void CreateCharacterObjects(HUPROCESS *objman)
 {
     s32 i;
     omMakeGroupEx(objman, 0, 4);
-    lbl_1_bss_6C = omGetGroupMemberListEx(objman, 0);
-    lbl_1_bss_58 = 0;
+    characterObjects = omGetGroupMemberListEx(objman, 0);
+    characterObjectCount = 0;
     for (i = 0; i < 4; i++) {
-        OMOBJ *object = omAddObjEx(objman, 40, 5, 7, 0, fn_1_26E4);
+        OMOBJ *object = omAddObjEx(objman, 40, 5, 7, 0, InitializeCharacterObject);
         if (!GWPlayerCfg[i].iscom) {
-            lbl_1_bss_58++;
+            characterObjectCount++;
         }
         object->work[0] = i;
     }
-    lbl_1_bss_8 = omAddObjEx(objman, 10, 0, 0, -1, fn_1_61FC);
+    characterMotionManager = omAddObjEx(objman, 10, 0, 0, -1, InitializeCharacterMotions);
 }
 
-s32 lbl_1_data_C8[] = {
+s32 characterEffectModelIds[] = {
     DATA_MAKE_NUM(DATADIR_M408, 0x02),
     DATA_MAKE_NUM(DATADIR_M408, 0x03),
     DATA_MAKE_NUM(DATADIR_M408, 0x04),
@@ -597,7 +597,7 @@ s32 lbl_1_data_C8[] = {
     DATA_MAKE_NUM(DATADIR_M408, 0x09),
 };
 
-u32 lbl_1_data_E8[] = {
+u32 characterMotionIds[] = {
     0,
     23,
     24,
@@ -607,252 +607,252 @@ u32 lbl_1_data_E8[] = {
     22,
 };
 
-float lbl_1_data_104[][2] = { -40, -30, 40, -30, -40, 30, 40, 30 };
+float characterStartPositions[][2] = { -40, -30, 40, -30, -40, 30, 40, 30 };
 
-float lbl_1_data_124[][2] = { 0, -56, 0, 56, -80, 0, 80, 0 };
+float characterEffectOffsets[][2] = { 0, -56, 0, 56, -80, 0, 80, 0 };
 
-void fn_1_2FAC(OMOBJ *object);
-void fn_1_5AB4(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void UpdateCharacterObject(OMOBJ *object);
+void UpdateCharacterParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 
-void fn_1_26E4(OMOBJ *object)
+void InitializeCharacterObject(OMOBJ *object)
 {
-    Work2FAC *temp_r31;
-    s32 temp_r28;
-    s32 temp_r27;
+    CharacterEffectWork *charactereffectworkPointer;
+    s32 playerIndex;
+    s32 createdObjectId;
 
-    float sp20[4] = { 0.25, 0.5, 0.75, 1.0 };
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(Work2FAC), HU_MEMNUM_OVL);
-    temp_r31 = object->data;
-    memset(temp_r31, 0, sizeof(Work2FAC));
-    temp_r31->unk0 = object->work[0];
-    temp_r31->unk2 = GWPlayerCfg[temp_r31->unk0].character;
-    temp_r31->unk2 &= 0x7;
-    temp_r31->unk4 = 0;
-    temp_r31->unk90 = sp20[GWPlayerCfg[object->work[0]].diff & 0x3];
-    temp_r31->unk1C.x = lbl_1_data_104[temp_r31->unk0][0];
-    temp_r31->unk1C.y = lbl_1_bss_54;
-    temp_r31->unk1C.z = lbl_1_data_104[temp_r31->unk0][1];
-    temp_r31->unk28.x = temp_r31->unk28.y = temp_r31->unk28.z = 0;
-    temp_r31->unk34.x = temp_r31->unk34.y = temp_r31->unk34.z = 0;
-    temp_r31->unk58.y = 0;
-    temp_r31->unk58.x = 0;
-    temp_r31->unk4C.x = temp_r31->unk4C.y = temp_r31->unk4C.z = 0;
-    temp_r31->unk58.z = 9.0f;
-    temp_r31->unk40.x = temp_r31->unk40.y = temp_r31->unk40.z = 0;
-    temp_r31->unk8 = 4;
-    temp_r31->unkC = 0;
-    fn_1_1940(temp_r31, &temp_r31->unk68);
-    omSetTra(object, temp_r31->unk1C.x + temp_r31->unk68.x, temp_r31->unk1C.y + temp_r31->unk68.y, temp_r31->unk1C.z + temp_r31->unk68.z);
+    float scratchValue[4] = { 0.25, 0.5, 0.75, 1.0 };
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(CharacterEffectWork), HU_MEMNUM_OVL);
+    charactereffectworkPointer = object->data;
+    memset(charactereffectworkPointer, 0, sizeof(CharacterEffectWork));
+    charactereffectworkPointer->playerIndex = object->work[0];
+    charactereffectworkPointer->characterId = GWPlayerCfg[charactereffectworkPointer->playerIndex].character;
+    charactereffectworkPointer->characterId &= 0x7;
+    charactereffectworkPointer->animationState = 0;
+    charactereffectworkPointer->movementSpeed = scratchValue[GWPlayerCfg[object->work[0]].diff & 0x3];
+    charactereffectworkPointer->velocity.x = characterStartPositions[charactereffectworkPointer->playerIndex][0];
+    charactereffectworkPointer->velocity.y = stageVerticalPosition;
+    charactereffectworkPointer->velocity.z = characterStartPositions[charactereffectworkPointer->playerIndex][1];
+    charactereffectworkPointer->acceleration.x = charactereffectworkPointer->acceleration.y = charactereffectworkPointer->acceleration.z = 0;
+    charactereffectworkPointer->velocityChange.x = charactereffectworkPointer->velocityChange.y = charactereffectworkPointer->velocityChange.z = 0;
+    charactereffectworkPointer->rotation.y = 0;
+    charactereffectworkPointer->rotation.x = 0;
+    charactereffectworkPointer->modelRotation.x = charactereffectworkPointer->modelRotation.y = charactereffectworkPointer->modelRotation.z = 0;
+    charactereffectworkPointer->rotation.z = 9.0f;
+    charactereffectworkPointer->steeringVector.x = charactereffectworkPointer->steeringVector.y = charactereffectworkPointer->steeringVector.z = 0;
+    charactereffectworkPointer->animationSpeed = 4;
+    charactereffectworkPointer->motionScale = 0;
+    CalculateCharacterModelOffset(charactereffectworkPointer, &charactereffectworkPointer->modelOffset);
+    omSetTra(object, charactereffectworkPointer->velocity.x + charactereffectworkPointer->modelOffset.x, charactereffectworkPointer->velocity.y + charactereffectworkPointer->modelOffset.y, charactereffectworkPointer->velocity.z + charactereffectworkPointer->modelOffset.z);
     omSetSca(object, 0.075f, 0.075f, 0.075f);
-    object->mdlId[0] = CharModelCreate(temp_r31->unk2, 4);
-    for (temp_r28 = 0; temp_r28 < 7; temp_r28++) {
-        if (lbl_1_data_E8[temp_r28] < 0x10000) {
-            object->mtnId[temp_r28] = CharMotionCreate(temp_r31->unk2, lbl_1_data_E8[temp_r28]);
+    object->mdlId[0] = CharModelCreate(charactereffectworkPointer->characterId, 4);
+    for (playerIndex = 0; playerIndex < 7; playerIndex++) {
+        if (characterMotionIds[playerIndex] < 0x10000) {
+            object->mtnId[playerIndex] = CharMotionCreate(charactereffectworkPointer->characterId, characterMotionIds[playerIndex]);
         }
         else {
-            object->mtnId[temp_r28] = Hu3DJointMotionFile(object->mdlId[0], temp_r31->unk2 + lbl_1_data_E8[temp_r28]);
+            object->mtnId[playerIndex] = Hu3DJointMotionFile(object->mdlId[0], charactereffectworkPointer->characterId + characterMotionIds[playerIndex]);
         }
     }
-    CharMotionVoiceOnSet(temp_r31->unk2, object->mtnId[1], 0);
-    CharMotionShiftSet(temp_r31->unk2, object->mtnId[0], 0, 0.2, HU3D_MOTATTR_LOOP);
+    CharMotionVoiceOnSet(charactereffectworkPointer->characterId, object->mtnId[1], 0);
+    CharMotionShiftSet(charactereffectworkPointer->characterId, object->mtnId[0], 0, 0.2, HU3D_MOTATTR_LOOP);
     CharEffectLayerSet(2);
-    CharMotionDataClose(temp_r31->unk2);
-    object->mdlId[1] = Hu3DModelCreateFile(lbl_1_data_C8[temp_r31->unk2]);
+    CharMotionDataClose(charactereffectworkPointer->characterId);
+    object->mdlId[1] = Hu3DModelCreateFile(characterEffectModelIds[charactereffectworkPointer->characterId]);
     Hu3DModelLayerSet(object->mdlId[1], 6);
-    Hu3DModelScaleSet(object->mdlId[1], 0.1f * temp_r31->unk8, 0.1f * temp_r31->unk8, 0.1f * temp_r31->unk8);
+    Hu3DModelScaleSet(object->mdlId[1], 0.1f * charactereffectworkPointer->animationSpeed, 0.1f * charactereffectworkPointer->animationSpeed, 0.1f * charactereffectworkPointer->animationSpeed);
     Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
-    temp_r31->unk94.x = temp_r31->unk94.y = temp_r31->unk94.z = 0;
-    temp_r31->unkA0.x = temp_r31->unkA0.y = temp_r31->unkA0.z = 0;
-    fn_1_1BE8(object, 1.0f);
-    temp_r27 = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x24)), 256);
-    object->mdlId[2] = temp_r27;
-    Hu3DModelLayerSet(temp_r27, 6);
-    Hu3DParticleColSet(temp_r27, 255, 255, 255);
-    Hu3DParticleHookSet(temp_r27, fn_1_5AB4);
-    Hu3DModelPosSet(temp_r27, 0, 0, 0);
-    ((HU3DPARTICLE *)Hu3DData[temp_r27].hookData)->dataCnt = 0;
-    temp_r31->unk74 = temp_r31->unk78 = 0;
-    temp_r31->unk7C[0] = temp_r31->unk7C[1] = 0;
-    temp_r31->unk8C = -1;
-    temp_r31->unk8E = 0;
-    temp_r31->unk84[0] = temp_r31->unk84[1] = 0;
+    charactereffectworkPointer->particlePosition.x = charactereffectworkPointer->particlePosition.y = charactereffectworkPointer->particlePosition.z = 0;
+    charactereffectworkPointer->particleScaleVector.x = charactereffectworkPointer->particleScaleVector.y = charactereffectworkPointer->particleScaleVector.z = 0;
+    UpdateCharacterParticleModel(object, 1.0f);
+    createdObjectId = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x24)), 256);
+    object->mdlId[2] = createdObjectId;
+    Hu3DModelLayerSet(createdObjectId, 6);
+    Hu3DParticleColSet(createdObjectId, 255, 255, 255);
+    Hu3DParticleHookSet(createdObjectId, UpdateCharacterParticle);
+    Hu3DModelPosSet(createdObjectId, 0, 0, 0);
+    ((HU3DPARTICLE *)Hu3DData[createdObjectId].hookData)->dataCnt = 0;
+    charactereffectworkPointer->steeringTimer = charactereffectworkPointer->steeringUpdateCounter = 0;
+    charactereffectworkPointer->steeringOffset[0] = charactereffectworkPointer->steeringOffset[1] = 0;
+    charactereffectworkPointer->targetCharacterIndex = -1;
+    charactereffectworkPointer->steeringState = 0;
+    charactereffectworkPointer->steeringAngles[0] = charactereffectworkPointer->steeringAngles[1] = 0;
     object->work[1] = 0;
-    object->objFunc = fn_1_2FAC;
+    object->objFunc = UpdateCharacterObject;
 }
 
-void fn_1_5DCC(s32 arg0, Vec *arg1, u32 arg2);
-void fn_1_3E80(OMOBJ *object);
+void SetParticleEmission(s32 particleModelId, Vec *emissionPosition, u32 particleCount);
+void UpdateCharacterAnimation(OMOBJ *object);
 
-void fn_1_2FAC(OMOBJ *object)
+void UpdateCharacterObject(OMOBJ *object)
 {
-    Work2FAC *temp_r31 = object->data;
-    Vec sp78[] = { { 8, -25, -18 }, { 2, -25, -10 }, { 2, -25, -24 }, { -3, -25, -15 } };
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    float sp14[] = { 45, 135, 225, 315 };
-    float temp_f27;
+    CharacterEffectWork *charactereffectworkPointer = object->data;
+    Vec positionVector[] = { { 8, -25, -18 }, { 2, -25, -10 }, { 2, -25, -24 }, { -3, -25, -15 } };
+    Vec positionVector2;
+    Vec positionVector3;
+    Vec positionVector4;
+    float scratchValue[] = { 45, 135, 225, 315 };
+    float interpolationValue;
     switch (object->work[1]) {
         case 0:
-            fn_1_C3C0(&sp3C, &sp30);
-            fn_1_1A60(&sp3C, &sp30, &sp78[temp_r31->unk0], &sp24);
+            GetCameraTargetTransform(&positionVector2, &positionVector3);
+            RotateVectorAndTranslate(&positionVector2, &positionVector3, &positionVector[charactereffectworkPointer->playerIndex], &positionVector4);
             omSetRot(object, 0, 90, 0);
-            omSetTra(object, sp24.x, sp24.y, sp24.z);
-            if (fn_1_C43C() != 1) {
+            omSetTra(object, positionVector4.x, positionVector4.y, positionVector4.z);
+            if (GetCameraSequenceState() != 1) {
                 object->work[1]++;
-                temp_r31->unk58.y = 60;
-                temp_r31->unk58.x = sp14[temp_r31->unk0];
-                temp_r31->unk28.x = temp_r31->unk28.y = temp_r31->unk28.z = 0;
-                object->trans.x -= 10.0 * (2.0 * sind(temp_r31->unk58.x));
-                object->trans.z -= 10.0 * (2.0 * cosd(temp_r31->unk58.x));
-                CharMotionShiftSet(temp_r31->unk2, object->mtnId[4], 0, 0.2, HU3D_MOTATTR_LOOP);
-                temp_r31->unk1C.x = temp_r31->unk94.x = object->trans.x;
-                temp_r31->unk1C.y = temp_r31->unk94.y = object->trans.y;
-                temp_r31->unk1C.z = temp_r31->unk94.z = object->trans.z;
+                charactereffectworkPointer->rotation.y = 60;
+                charactereffectworkPointer->rotation.x = scratchValue[charactereffectworkPointer->playerIndex];
+                charactereffectworkPointer->acceleration.x = charactereffectworkPointer->acceleration.y = charactereffectworkPointer->acceleration.z = 0;
+                object->trans.x -= 10.0 * (2.0 * sind(charactereffectworkPointer->rotation.x));
+                object->trans.z -= 10.0 * (2.0 * cosd(charactereffectworkPointer->rotation.x));
+                CharMotionShiftSet(charactereffectworkPointer->characterId, object->mtnId[4], 0, 0.2, HU3D_MOTATTR_LOOP);
+                charactereffectworkPointer->velocity.x = charactereffectworkPointer->particlePosition.x = object->trans.x;
+                charactereffectworkPointer->velocity.y = charactereffectworkPointer->particlePosition.y = object->trans.y;
+                charactereffectworkPointer->velocity.z = charactereffectworkPointer->particlePosition.z = object->trans.z;
             }
             break;
 
         case 1:
-            temp_r31->unk28.y += -98.0f;
-            if (temp_r31->unk28.y < -400.0f) {
-                temp_r31->unk28.y = -400.0f;
+            charactereffectworkPointer->acceleration.y += -98.0f;
+            if (charactereffectworkPointer->acceleration.y < -400.0f) {
+                charactereffectworkPointer->acceleration.y = -400.0f;
             }
-            temp_f27 = object->trans.y;
-            object->trans.y += temp_r31->unk28.y * REFRESH_FREQ;
+            interpolationValue = object->trans.y;
+            object->trans.y += charactereffectworkPointer->acceleration.y * REFRESH_FREQ;
 #if VERSION_PAL
-            temp_r31->unk58.x += 1.8f;
+            charactereffectworkPointer->rotation.x += 1.8f;
 #else
-            temp_r31->unk58.x += 1.5000001f;
+            charactereffectworkPointer->rotation.x += 1.5000001f;
 #endif
-            if (temp_r31->unk58.x >= 360.0f) {
-                temp_r31->unk58.x -= 360.0f;
+            if (charactereffectworkPointer->rotation.x >= 360.0f) {
+                charactereffectworkPointer->rotation.x -= 360.0f;
             }
-            object->trans.x += (3.141590118408203f * (10.0 * sind(temp_r31->unk58.x - 90.0f))) * REFRESH_FREQ;
-            object->trans.z += (3.141590118408203f * (10.0 * cosd(temp_r31->unk58.x - 90.0f))) * REFRESH_FREQ;
-            if (temp_f27 > 12000 && object->trans.y <= 12000) {
-                sp3C.x = object->trans.x;
-                sp3C.y = object->trans.y;
-                sp3C.z = object->trans.z;
-                fn_1_5DCC(object->mdlId[2], &sp3C, 100);
+            object->trans.x += (3.141590118408203f * (10.0 * sind(charactereffectworkPointer->rotation.x - 90.0f))) * REFRESH_FREQ;
+            object->trans.z += (3.141590118408203f * (10.0 * cosd(charactereffectworkPointer->rotation.x - 90.0f))) * REFRESH_FREQ;
+            if (interpolationValue > 12000 && object->trans.y <= 12000) {
+                positionVector2.x = object->trans.x;
+                positionVector2.y = object->trans.y;
+                positionVector2.z = object->trans.z;
+                SetParticleEmission(object->mdlId[2], &positionVector2, 100);
             }
-            temp_r31->unk4C.x = temp_r31->unk58.y;
-            temp_r31->unk4C.y = temp_r31->unk58.x;
-            temp_r31->unk4C.z = 0;
-            temp_r31->unk1C.x = object->trans.x;
-            temp_r31->unk1C.y = object->trans.y;
-            temp_r31->unk1C.z = object->trans.z;
-            omSetRot(object, temp_r31->unk4C.x, temp_r31->unk4C.y, temp_r31->unk4C.z);
+            charactereffectworkPointer->modelRotation.x = charactereffectworkPointer->rotation.y;
+            charactereffectworkPointer->modelRotation.y = charactereffectworkPointer->rotation.x;
+            charactereffectworkPointer->modelRotation.z = 0;
+            charactereffectworkPointer->velocity.x = object->trans.x;
+            charactereffectworkPointer->velocity.y = object->trans.y;
+            charactereffectworkPointer->velocity.z = object->trans.z;
+            omSetRot(object, charactereffectworkPointer->modelRotation.x, charactereffectworkPointer->modelRotation.y, charactereffectworkPointer->modelRotation.z);
             Hu3DModelAttrReset(object->mdlId[1], HU3D_ATTR_DISPOFF);
-            temp_r31->unkC += 0.2f * (1.0f - temp_r31->unkC);
+            charactereffectworkPointer->motionScale += 0.2f * (1.0f - charactereffectworkPointer->motionScale);
             if (object->trans.y < 11940) {
                 object->work[1]++;
             }
             break;
     }
-    fn_1_1BE8(object, 1.0f);
-    if (fn_1_6878() == 1) {
+    UpdateCharacterParticleModel(object, 1.0f);
+    if (GetStageEventState() == 1) {
         omSetSca(object, 0.15f, 0.15f, 0.15f);
-        object->trans.x = temp_r31->unk1C.x = temp_r31->unk94.x = lbl_1_data_104[temp_r31->unk0][0];
-        object->trans.y = temp_r31->unk1C.y = temp_r31->unk94.y = lbl_1_bss_54;
-        object->trans.z = temp_r31->unk1C.z = temp_r31->unk94.z = lbl_1_data_104[temp_r31->unk0][1];
-        object->rot.y = temp_r31->unk58.x = atan2d(object->trans.x, object->trans.z) + 180.0;
+        object->trans.x = charactereffectworkPointer->velocity.x = charactereffectworkPointer->particlePosition.x = characterStartPositions[charactereffectworkPointer->playerIndex][0];
+        object->trans.y = charactereffectworkPointer->velocity.y = charactereffectworkPointer->particlePosition.y = stageVerticalPosition;
+        object->trans.z = charactereffectworkPointer->velocity.z = charactereffectworkPointer->particlePosition.z = characterStartPositions[charactereffectworkPointer->playerIndex][1];
+        object->rot.y = charactereffectworkPointer->rotation.x = atan2d(object->trans.x, object->trans.z) + 180.0;
         Hu3DModelAttrReset(object->mdlId[1], HU3D_ATTR_DISPOFF);
         ((HU3DPARTICLE *)Hu3DData[object->mdlId[2]].hookData)->dataCnt = 0;
-        object->objFunc = fn_1_3E80;
+        object->objFunc = UpdateCharacterAnimation;
     }
 }
 
-void fn_1_38D0(OMOBJ *arg0, s8 *arg1, s8 *arg2)
+void SetCharacterMotion(OMOBJ *object, s8 *motionIds, s8 *motionFlags)
 {
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    Work2FAC *temp_r31;
-    Work2FAC *temp_r30;
-    s8 temp_r29;
-    s32 temp_r28;
-    s32 temp_r25;
-    Vec sp18;
-    Vec spC;
-    s8 sp8[4];
+    float angle;
+    float angle2;
+    float angle3;
+    CharacterEffectWork *charactereffectworkPointer;
+    CharacterEffectWork *charactereffectworkPointer2;
+    s8 frameCounter;
+    s32 playerIndex;
+    s32 integerValue;
+    Vec positionVector;
+    Vec positionVector2;
+    s8 scratchValue[4];
 
-    temp_r31 = arg0->data;
-    *arg1 = temp_r31->unk7C[0];
-    *arg2 = temp_r31->unk7C[1];
-    sp18.x = temp_r31->unk1C.x;
-    sp18.y = temp_r31->unk1C.y;
-    sp18.z = temp_r31->unk1C.z;
-    temp_r25 = fn_1_162CC(&sp18, &spC);
-    temp_r29 = 0;
-    sp8[0] = -1;
-    for (temp_r28 = 0; temp_r28 < 4; temp_r28++) {
-        if (temp_r28 != temp_r31->unk0) {
-            temp_r30 = fn_1_68A8(temp_r28);
-            if ((temp_r30->unk4 & 0x12) == 0) {
-                sp8[temp_r29++] = temp_r28;
+    charactereffectworkPointer = object->data;
+    *motionIds = charactereffectworkPointer->steeringOffset[0];
+    *motionFlags = charactereffectworkPointer->steeringOffset[1];
+    positionVector.x = charactereffectworkPointer->velocity.x;
+    positionVector.y = charactereffectworkPointer->velocity.y;
+    positionVector.z = charactereffectworkPointer->velocity.z;
+    integerValue = findNearestEffectPosition(&positionVector, &positionVector2);
+    frameCounter = 0;
+    scratchValue[0] = -1;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        if (playerIndex != charactereffectworkPointer->playerIndex) {
+            charactereffectworkPointer2 = GetCharacterWork(playerIndex);
+            if ((charactereffectworkPointer2->animationState & 0x12) == 0) {
+                scratchValue[frameCounter++] = playerIndex;
             }
         }
     }
-    switch (temp_r31->unk8E) {
+    switch (charactereffectworkPointer->steeringState) {
         case 0:
-            if (temp_r29 > 0 || temp_r25) {
-                if (temp_r29 > 0) {
-                    temp_r31->unk8C = sp8[frandmod(temp_r29)];
+            if (frameCounter > 0 || integerValue) {
+                if (frameCounter > 0) {
+                    charactereffectworkPointer->targetCharacterIndex = scratchValue[frandmod(frameCounter)];
                 }
 #if VERSION_PAL
-                temp_r31->unk74 = frandmod(150) + 100.0f;
+                charactereffectworkPointer->steeringTimer = frandmod(150) + 100.0f;
 #else
-                temp_r31->unk74 = frandmod(180) + 120.0f;
+                charactereffectworkPointer->steeringTimer = frandmod(180) + 120.0f;
 #endif
-                temp_r31->unk78 = 0;
-                temp_r31->unk8E = 1;
+                charactereffectworkPointer->steeringUpdateCounter = 0;
+                charactereffectworkPointer->steeringState = 1;
             }
             else {
-                temp_r31->unk78 = 0;
-                temp_r31->unk8E = 2;
+                charactereffectworkPointer->steeringUpdateCounter = 0;
+                charactereffectworkPointer->steeringState = 2;
             }
             break;
 
         case 1:
-            if ((temp_r31->unk78 & 0x3) == 0) {
-                if (temp_r25) {
-                    temp_f31 = atan2d(spC.x - temp_r31->unk1C.x, spC.z - temp_r31->unk1C.z);
+            if ((charactereffectworkPointer->steeringUpdateCounter & 0x3) == 0) {
+                if (integerValue) {
+                    angle = atan2d(positionVector2.x - charactereffectworkPointer->velocity.x, positionVector2.z - charactereffectworkPointer->velocity.z);
                 }
                 else {
-                    temp_r30 = fn_1_68A8(temp_r31->unk8C);
-                    temp_f31 = atan2d(temp_r30->unk1C.x - temp_r31->unk1C.x, temp_r30->unk1C.z - temp_r31->unk1C.z);
+                    charactereffectworkPointer2 = GetCharacterWork(charactereffectworkPointer->targetCharacterIndex);
+                    angle = atan2d(charactereffectworkPointer2->velocity.x - charactereffectworkPointer->velocity.x, charactereffectworkPointer2->velocity.z - charactereffectworkPointer->velocity.z);
                 }
-                temp_r31->unk84[1] = fn_1_883C(temp_r31->unk84[0], temp_f31, (0.3f * temp_r31->unk90) + 0.15f);
+                charactereffectworkPointer->steeringAngles[1] = ApproachAngle(charactereffectworkPointer->steeringAngles[0], angle, (0.3f * charactereffectworkPointer->movementSpeed) + 0.15f);
             }
-            temp_r31->unk78++;
-            temp_r31->unk84[0] = fn_1_883C(temp_r31->unk84[0], temp_r31->unk84[1], 0.2f);
-            temp_r31->unk7C[0] = sind(temp_r31->unk84[0]) * 80.0;
-            temp_r31->unk7C[1] = -cosd(temp_r31->unk84[0]) * 80.0;
-            *arg1 = temp_r31->unk7C[0];
-            *arg2 = temp_r31->unk7C[1];
-            temp_r31->unk74--;
-            if (temp_r25 == 0 && (temp_r30->unk4 & 0x12)) {
-                temp_r31->unk74 = 0;
+            charactereffectworkPointer->steeringUpdateCounter++;
+            charactereffectworkPointer->steeringAngles[0] = ApproachAngle(charactereffectworkPointer->steeringAngles[0], charactereffectworkPointer->steeringAngles[1], 0.2f);
+            charactereffectworkPointer->steeringOffset[0] = sind(charactereffectworkPointer->steeringAngles[0]) * 80.0;
+            charactereffectworkPointer->steeringOffset[1] = -cosd(charactereffectworkPointer->steeringAngles[0]) * 80.0;
+            *motionIds = charactereffectworkPointer->steeringOffset[0];
+            *motionFlags = charactereffectworkPointer->steeringOffset[1];
+            charactereffectworkPointer->steeringTimer--;
+            if (integerValue == 0 && (charactereffectworkPointer2->animationState & 0x12)) {
+                charactereffectworkPointer->steeringTimer = 0;
             }
-            if (temp_r31->unk74 == 0) {
-                temp_r31->unk8E = 0;
+            if (charactereffectworkPointer->steeringTimer == 0) {
+                charactereffectworkPointer->steeringState = 0;
             }
             break;
 
         case 2:
-            if ((temp_r31->unk78 & 0xF) == 0) {
-                temp_f30 = (0.04f * frandmod(1000)) - 20.0f;
-                temp_f29 = (0.04f * frandmod(1000)) - 20.0f;
-                temp_r31->unk84[1] = temp_f31 = atan2d(temp_f30 - temp_r31->unk1C.x, temp_f29 - temp_r31->unk1C.z);
+            if ((charactereffectworkPointer->steeringUpdateCounter & 0xF) == 0) {
+                angle2 = (0.04f * frandmod(1000)) - 20.0f;
+                angle3 = (0.04f * frandmod(1000)) - 20.0f;
+                charactereffectworkPointer->steeringAngles[1] = angle = atan2d(angle2 - charactereffectworkPointer->velocity.x, angle3 - charactereffectworkPointer->velocity.z);
             }
-            temp_r31->unk78++;
-            temp_r31->unk84[0] = fn_1_883C(temp_r31->unk84[0], temp_r31->unk84[1], 0.2f);
-            temp_r31->unk7C[0] = sind(temp_r31->unk84[0]) * 80.0;
-            temp_r31->unk7C[1] = -cosd(temp_r31->unk84[0]) * 80.0;
-            *arg1 = temp_r31->unk7C[0];
-            *arg2 = temp_r31->unk7C[1];
-            if (temp_r29 > 0 || temp_r25) {
-                temp_r31->unk8E = 0;
+            charactereffectworkPointer->steeringUpdateCounter++;
+            charactereffectworkPointer->steeringAngles[0] = ApproachAngle(charactereffectworkPointer->steeringAngles[0], charactereffectworkPointer->steeringAngles[1], 0.2f);
+            charactereffectworkPointer->steeringOffset[0] = sind(charactereffectworkPointer->steeringAngles[0]) * 80.0;
+            charactereffectworkPointer->steeringOffset[1] = -cosd(charactereffectworkPointer->steeringAngles[0]) * 80.0;
+            *motionIds = charactereffectworkPointer->steeringOffset[0];
+            *motionFlags = charactereffectworkPointer->steeringOffset[1];
+            if (frameCounter > 0 || integerValue) {
+                charactereffectworkPointer->steeringState = 0;
             }
             break;
     }
@@ -860,49 +860,49 @@ void fn_1_38D0(OMOBJ *arg0, s8 *arg1, s8 *arg2)
 
 #define CHECK_IDLE(pos) (((pos) < 0) ? -(pos) : ((pos) > 15))
 
-void fn_1_4A58(OMOBJ *object);
-void fn_1_5098(OMOBJ *object);
-void fn_1_5684(OMOBJ *object);
+void UpdateCharacterMovement(OMOBJ *object);
+void InitializeCharacterParticleEffect(OMOBJ *object);
+void UpdateCharacterEffect(OMOBJ *object);
 
-void fn_1_3E80(OMOBJ *object)
+void UpdateCharacterAnimation(OMOBJ *object)
 {
-    Work2FAC *temp_r31;
-    s32 temp_r27;
+    CharacterEffectWork *charactereffectworkPointer;
+    s32 integerValue;
 
-    float temp_f29;
-    float temp_f28;
-    float temp_f22;
-    float temp_f21;
-    float temp_f20;
-    s8 sp9;
-    s8 sp8;
+    float interpolationValue;
+    float angle;
+    float interpolationValue2;
+    float angle2;
+    float angle3;
+    s8 scratchValue;
+    s8 scratchValue2;
 
-    temp_r31 = object->data;
-    temp_r27 = GWPlayerCfg[temp_r31->unk0].pad_idx;
-    sp9 = sp8 = 0;
-    if (lbl_1_bss_60 == 3) {
-        if (!GWPlayerCfg[temp_r31->unk0].iscom) {
-            sp9 = HuPadStkX[temp_r27];
-            sp8 = HuPadStkY[temp_r27];
+    charactereffectworkPointer = object->data;
+    integerValue = GWPlayerCfg[charactereffectworkPointer->playerIndex].padIdx;
+    scratchValue = scratchValue2 = 0;
+    if (stageProgressState == 3) {
+        if (!GWPlayerCfg[charactereffectworkPointer->playerIndex].iscom) {
+            scratchValue = HuPadStkX[integerValue];
+            scratchValue2 = HuPadStkY[integerValue];
         }
         else {
-            fn_1_38D0(object, &sp9, &sp8);
+            SetCharacterMotion(object, &scratchValue, &scratchValue2);
         }
     }
-    temp_r31->unk1C.y = lbl_1_bss_54;
-    temp_f21 = temp_f20 = 0;
-    temp_f28 = temp_r31->unk58.x;
-    temp_f22 = -20;
-    if (CHECK_IDLE(sp9) || CHECK_IDLE(sp8)) {
-        temp_f28 = atan2d(sp9, -sp8);
-        if (temp_f28 < 0) {
-            temp_f28 += 360;
+    charactereffectworkPointer->velocity.y = stageVerticalPosition;
+    angle2 = angle3 = 0;
+    angle = charactereffectworkPointer->rotation.x;
+    interpolationValue2 = -20;
+    if (CHECK_IDLE(scratchValue) || CHECK_IDLE(scratchValue2)) {
+        angle = atan2d(scratchValue, -scratchValue2);
+        if (angle < 0) {
+            angle += 360;
         }
-        temp_f21 = 70 * sind(temp_f28);
-        temp_f20 = 70 * cosd(temp_f28);
-        temp_f22 = 30;
+        angle2 = 70 * sind(angle);
+        angle3 = 70 * cosd(angle);
+        interpolationValue2 = 30;
     }
-    fn_1_1EBC(object);
+    GetCharacterEffectState(object);
 #if VERSION_PAL
 #define _VAL_1 (23.0f / 25.0f)
 #define _VAL_2 (2.0f / 25.0f)
@@ -910,793 +910,793 @@ void fn_1_3E80(OMOBJ *object)
 #define _VAL_1 (28.0f / 30.0f)
 #define _VAL_2 (2.0f / 30.0f)
 #endif
-    temp_r31->unk28.x = (_VAL_1 * temp_r31->unk28.x) + (_VAL_2 * temp_f21);
-    temp_r31->unk28.z = (_VAL_1 * temp_r31->unk28.z) + (_VAL_2 * temp_f20);
+    charactereffectworkPointer->acceleration.x = (_VAL_1 * charactereffectworkPointer->acceleration.x) + (_VAL_2 * angle2);
+    charactereffectworkPointer->acceleration.z = (_VAL_1 * charactereffectworkPointer->acceleration.z) + (_VAL_2 * angle3);
 #undef _VAL_1
 #undef _VAL_2
-    temp_f29 = VECMagXZ(&temp_r31->unk28);
-    if (temp_f29 > 200.0f) {
-        temp_f29 = 200.0f / temp_f29;
-        temp_r31->unk28.x *= temp_f29;
-        temp_r31->unk28.z *= temp_f29;
+    interpolationValue = VECMagXZ(&charactereffectworkPointer->acceleration);
+    if (interpolationValue > 200.0f) {
+        interpolationValue = 200.0f / interpolationValue;
+        charactereffectworkPointer->acceleration.x *= interpolationValue;
+        charactereffectworkPointer->acceleration.z *= interpolationValue;
     }
-    temp_r31->unk34.x += (temp_r31->unk28.x * REFRESH_FREQ);
-    temp_r31->unk34.y = 0;
-    temp_r31->unk34.z += (temp_r31->unk28.z * REFRESH_FREQ);
-    temp_r31->unk58.x = temp_f28;
-    temp_r31->unk58.y = (0.9f * temp_r31->unk58.y) + (0.1f * temp_f22);
-    temp_r31->unk4C.x = temp_r31->unk58.y;
-    temp_r31->unk4C.y = fn_1_883C(temp_r31->unk4C.y, temp_r31->unk58.x, 0.2f);
-    temp_r31->unk4C.z = 0;
-    omSetRot(object, temp_r31->unk4C.x, temp_r31->unk4C.y, temp_r31->unk4C.z);
-    fn_1_1940(temp_r31, &temp_r31->unk68);
-    omSetTra(object, temp_r31->unk1C.x + temp_r31->unk68.x, temp_r31->unk1C.y + temp_r31->unk68.y, temp_r31->unk1C.z + temp_r31->unk68.z);
-    temp_r31->unkC += (1.0f - temp_r31->unkC) * 0.2f;
-    fn_1_1BE8(object, 0.3f);
-    if (temp_r31->unk4 & 0x1) {
-        temp_r31->unk8--;
-        temp_r31->unk10 = 0;
-        temp_r31->unk4 |= 2;
-        temp_f29 = VECMagXZ(&temp_r31->unk40);
-        if (temp_f29 > 0.0f) {
-            temp_f29 = 150.0f / temp_f29;
+    charactereffectworkPointer->velocityChange.x += (charactereffectworkPointer->acceleration.x * REFRESH_FREQ);
+    charactereffectworkPointer->velocityChange.y = 0;
+    charactereffectworkPointer->velocityChange.z += (charactereffectworkPointer->acceleration.z * REFRESH_FREQ);
+    charactereffectworkPointer->rotation.x = angle;
+    charactereffectworkPointer->rotation.y = (0.9f * charactereffectworkPointer->rotation.y) + (0.1f * interpolationValue2);
+    charactereffectworkPointer->modelRotation.x = charactereffectworkPointer->rotation.y;
+    charactereffectworkPointer->modelRotation.y = ApproachAngle(charactereffectworkPointer->modelRotation.y, charactereffectworkPointer->rotation.x, 0.2f);
+    charactereffectworkPointer->modelRotation.z = 0;
+    omSetRot(object, charactereffectworkPointer->modelRotation.x, charactereffectworkPointer->modelRotation.y, charactereffectworkPointer->modelRotation.z);
+    CalculateCharacterModelOffset(charactereffectworkPointer, &charactereffectworkPointer->modelOffset);
+    omSetTra(object, charactereffectworkPointer->velocity.x + charactereffectworkPointer->modelOffset.x, charactereffectworkPointer->velocity.y + charactereffectworkPointer->modelOffset.y, charactereffectworkPointer->velocity.z + charactereffectworkPointer->modelOffset.z);
+    charactereffectworkPointer->motionScale += (1.0f - charactereffectworkPointer->motionScale) * 0.2f;
+    UpdateCharacterParticleModel(object, 0.3f);
+    if (charactereffectworkPointer->animationState & 0x1) {
+        charactereffectworkPointer->animationSpeed--;
+        charactereffectworkPointer->animationEventTimer = 0;
+        charactereffectworkPointer->animationState |= 2;
+        interpolationValue = VECMagXZ(&charactereffectworkPointer->steeringVector);
+        if (interpolationValue > 0.0f) {
+            interpolationValue = 150.0f / interpolationValue;
         }
-        temp_r31->unk28.x = temp_r31->unk40.x * temp_f29;
-        temp_r31->unk28.z = temp_r31->unk40.z * temp_f29;
-        temp_r31->unk34.x = temp_r31->unk28.x * REFRESH_FREQ;
-        temp_r31->unk34.z = temp_r31->unk28.z * REFRESH_FREQ;
-        CharMotionShiftSet(temp_r31->unk2, object->mtnId[5], 0, 0.2f, HU3D_MOTATTR_NONE);
+        charactereffectworkPointer->acceleration.x = charactereffectworkPointer->steeringVector.x * interpolationValue;
+        charactereffectworkPointer->acceleration.z = charactereffectworkPointer->steeringVector.z * interpolationValue;
+        charactereffectworkPointer->velocityChange.x = charactereffectworkPointer->acceleration.x * REFRESH_FREQ;
+        charactereffectworkPointer->velocityChange.z = charactereffectworkPointer->acceleration.z * REFRESH_FREQ;
+        CharMotionShiftSet(charactereffectworkPointer->characterId, object->mtnId[5], 0, 0.2f, HU3D_MOTATTR_NONE);
         HuAudFXPlay(1358);
         omVibrate(object->work[0], 12, 4, 2);
-        if (temp_r31->unk8) {
-            CharFXPlay(temp_r31->unk2, 296);
-            object->objFunc = fn_1_4A58;
+        if (charactereffectworkPointer->animationSpeed) {
+            CharFXPlay(charactereffectworkPointer->characterId, 296);
+            object->objFunc = UpdateCharacterMovement;
         }
         else {
-            temp_r31->unk4 |= 0x30;
-            lbl_1_bss_4C--;
-            CharFXPlay(temp_r31->unk2, 291);
-            object->objFunc = fn_1_5684;
+            charactereffectworkPointer->animationState |= 0x30;
+            activeCharacterCountdown--;
+            CharFXPlay(charactereffectworkPointer->characterId, 291);
+            object->objFunc = UpdateCharacterEffect;
         }
     }
-    if (fn_1_6878() == 4 && (temp_r31->unk4 & 0x20) == 0) {
-        CharMotionShiftSet(temp_r31->unk2, object->mtnId[3], 0, 0.2f, HU3D_MOTATTR_NONE);
+    if (GetStageEventState() == 4 && (charactereffectworkPointer->animationState & 0x20) == 0) {
+        CharMotionShiftSet(charactereffectworkPointer->characterId, object->mtnId[3], 0, 0.2f, HU3D_MOTATTR_NONE);
         Hu3DModelShadowSet(object->mdlId[0]);
         object->work[1] = 0;
-        object->objFunc = fn_1_5098;
+        object->objFunc = InitializeCharacterParticleEffect;
     }
 }
 #undef CHECK_IDLE
 
-void fn_1_4A58(OMOBJ *object)
+void UpdateCharacterMovement(OMOBJ *object)
 {
-    Work2FAC *temp_r31;
-    s32 temp_r28;
-    s32 temp_r26;
-    s32 sp8;
-    temp_r31 = object->data;
-    sp8 = temp_r31->unk0;
-    temp_r31->unk4 |= 2;
-    temp_r31->unk1C.y = lbl_1_bss_54;
-    fn_1_1EBC(object);
+    CharacterEffectWork *charactereffectworkPointer;
+    s32 playerIndex;
+    s32 integerValue;
+    s32 scratchValue;
+    charactereffectworkPointer = object->data;
+    scratchValue = charactereffectworkPointer->playerIndex;
+    charactereffectworkPointer->animationState |= 2;
+    charactereffectworkPointer->velocity.y = stageVerticalPosition;
+    GetCharacterEffectState(object);
 #if VERSION_PAL
-    temp_r31->unk28.x = (24.0f / 25.0f) * temp_r31->unk28.x;
-    temp_r31->unk28.z = (24.0f / 25.0f) * temp_r31->unk28.z;
+    charactereffectworkPointer->acceleration.x = (24.0f / 25.0f) * charactereffectworkPointer->acceleration.x;
+    charactereffectworkPointer->acceleration.z = (24.0f / 25.0f) * charactereffectworkPointer->acceleration.z;
 #else
-    temp_r31->unk28.x = (29.0f / 30.0f) * temp_r31->unk28.x;
-    temp_r31->unk28.z = (29.0f / 30.0f) * temp_r31->unk28.z;
+    charactereffectworkPointer->acceleration.x = (29.0f / 30.0f) * charactereffectworkPointer->acceleration.x;
+    charactereffectworkPointer->acceleration.z = (29.0f / 30.0f) * charactereffectworkPointer->acceleration.z;
 #endif
-    temp_r31->unk34.x += temp_r31->unk28.x * REFRESH_FREQ;
-    temp_r31->unk34.y = 0;
-    temp_r31->unk34.z += temp_r31->unk28.z * REFRESH_FREQ;
+    charactereffectworkPointer->velocityChange.x += charactereffectworkPointer->acceleration.x * REFRESH_FREQ;
+    charactereffectworkPointer->velocityChange.y = 0;
+    charactereffectworkPointer->velocityChange.z += charactereffectworkPointer->acceleration.z * REFRESH_FREQ;
 
 #if VERSION_PAL
-    temp_r31->unk58.x += 10.8f;
+    charactereffectworkPointer->rotation.x += 10.8f;
 #else
-    temp_r31->unk58.x += 9.0f;
+    charactereffectworkPointer->rotation.x += 9.0f;
 #endif
-    if (temp_r31->unk58.x >= 360.0f) {
-        temp_r31->unk58.x -= 360.0f;
+    if (charactereffectworkPointer->rotation.x >= 360.0f) {
+        charactereffectworkPointer->rotation.x -= 360.0f;
     }
-    temp_r31->unk58.y = 0.9f * temp_r31->unk58.y;
-    temp_r31->unk4C.x = temp_r31->unk58.y;
-    temp_r31->unk4C.y = temp_r31->unk58.x;
-    temp_r31->unk4C.z = 0;
-    omSetRot(object, temp_r31->unk4C.x, temp_r31->unk4C.y, temp_r31->unk4C.z);
-    fn_1_1940(temp_r31, &temp_r31->unk68);
-    omSetTra(object, temp_r31->unk1C.x + temp_r31->unk68.x, temp_r31->unk1C.y + temp_r31->unk68.y, temp_r31->unk1C.z + temp_r31->unk68.z);
-    fn_1_1BE8(object, 0.8f);
-    temp_r26 = temp_r31->unk10 & 0x1;
-    temp_r31->unk10++;
-    if (fn_1_6878() == 4) {
-        temp_r26 = 0;
-        CharMotionShiftSet(temp_r31->unk2, object->mtnId[3], 0, 0.2f, HU3D_MOTATTR_NONE);
+    charactereffectworkPointer->rotation.y = 0.9f * charactereffectworkPointer->rotation.y;
+    charactereffectworkPointer->modelRotation.x = charactereffectworkPointer->rotation.y;
+    charactereffectworkPointer->modelRotation.y = charactereffectworkPointer->rotation.x;
+    charactereffectworkPointer->modelRotation.z = 0;
+    omSetRot(object, charactereffectworkPointer->modelRotation.x, charactereffectworkPointer->modelRotation.y, charactereffectworkPointer->modelRotation.z);
+    CalculateCharacterModelOffset(charactereffectworkPointer, &charactereffectworkPointer->modelOffset);
+    omSetTra(object, charactereffectworkPointer->velocity.x + charactereffectworkPointer->modelOffset.x, charactereffectworkPointer->velocity.y + charactereffectworkPointer->modelOffset.y, charactereffectworkPointer->velocity.z + charactereffectworkPointer->modelOffset.z);
+    UpdateCharacterParticleModel(object, 0.8f);
+    integerValue = charactereffectworkPointer->animationEventTimer & 0x1;
+    charactereffectworkPointer->animationEventTimer++;
+    if (GetStageEventState() == 4) {
+        integerValue = 0;
+        CharMotionShiftSet(charactereffectworkPointer->characterId, object->mtnId[3], 0, 0.2f, HU3D_MOTATTR_NONE);
         Hu3DModelShadowSet(object->mdlId[0]);
         object->work[1] = 0;
-        object->objFunc = fn_1_5098;
+        object->objFunc = InitializeCharacterParticleEffect;
     }
-    else if (temp_r31->unk10 > REFRESH_RATE) {
-        temp_r26 = 0;
-        temp_r31->unk4 &= ~0x3;
-        CharMotionShiftSet(temp_r31->unk2, object->mtnId[4], 0, 0.2f, HU3D_MOTATTR_LOOP);
-        object->objFunc = fn_1_3E80;
+    else if (charactereffectworkPointer->animationEventTimer > REFRESH_RATE) {
+        integerValue = 0;
+        charactereffectworkPointer->animationState &= ~0x3;
+        CharMotionShiftSet(charactereffectworkPointer->characterId, object->mtnId[4], 0, 0.2f, HU3D_MOTATTR_LOOP);
+        object->objFunc = UpdateCharacterAnimation;
     }
-    if (temp_r26) {
+    if (integerValue) {
         Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
-        for (temp_r28 = 0; temp_r28 < temp_r31->unk8; temp_r28++) {
+        for (playerIndex = 0; playerIndex < charactereffectworkPointer->animationSpeed; playerIndex++) {
             Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
         }
     }
     else {
         Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
-        for (temp_r28 = 0; temp_r28 < temp_r31->unk8; temp_r28++) {
+        for (playerIndex = 0; playerIndex < charactereffectworkPointer->animationSpeed; playerIndex++) {
             Hu3DModelAttrReset(object->mdlId[1], HU3D_ATTR_DISPOFF);
         }
     }
 }
 
-Vec lbl_1_data_144[] = { { -50, 0, 0 }, { -16, 0, 0 }, { 16, 0, 0 }, { 50, 0, 0 } };
+Vec characterParticleOffsets[] = { { -50, 0, 0 }, { -16, 0, 0 }, { 16, 0, 0 }, { 50, 0, 0 } };
 
-Vec lbl_1_data_174[] = { { 0, 1500, 2500 }, { 1500, 0, 1 }, { 0, 0, 0 } };
+Vec effectLightVectors[] = { { 0, 1500, 2500 }, { 1500, 0, 1 }, { 0, 0, 0 } };
 
-void fn_1_54E4(OMOBJ *object);
+void UpdateCharacterParticleEffect(OMOBJ *object);
 
-void fn_1_5098(OMOBJ *object)
+void InitializeCharacterParticleEffect(OMOBJ *object)
 {
-    Work2FAC *temp_r29;
-    s32 temp_r27;
+    CharacterEffectWork *charactereffectworkPointer;
+    s32 particleIndex;
 
-    temp_r29 = object->data;
-    object->trans.x = lbl_1_data_144[object->work[0]].x;
-    object->trans.z = lbl_1_data_144[object->work[0]].z;
+    charactereffectworkPointer = object->data;
+    object->trans.x = characterParticleOffsets[object->work[0]].x;
+    object->trans.z = characterParticleOffsets[object->work[0]].z;
     if (object->work[1] == 0) {
-        if (lbl_1_bss_3C < temp_r29->unk8) {
-            lbl_1_bss_3C = temp_r29->unk8;
+        if (maxCharacterAnimationSpeed < charactereffectworkPointer->animationSpeed) {
+            maxCharacterAnimationSpeed = charactereffectworkPointer->animationSpeed;
         }
     }
-    else if (object->work[1] == 10 && lbl_1_bss_3C == temp_r29->unk8) {
-        for (temp_r27 = 0; lbl_1_bss_28[temp_r27] >= 0; temp_r27++)
+    else if (object->work[1] == 10 && maxCharacterAnimationSpeed == charactereffectworkPointer->animationSpeed) {
+        for (particleIndex = 0; activeCharacterIds[particleIndex] >= 0; particleIndex++)
             ;
-        lbl_1_bss_28[temp_r27] = temp_r29->unk2;
+        activeCharacterIds[particleIndex] = charactereffectworkPointer->characterId;
     }
     object->work[1]++;
-    temp_r29->unk1C.y = lbl_1_bss_54;
-    temp_r29->unk58.y = 0;
-    temp_r29->unk58.x = 0;
+    charactereffectworkPointer->velocity.y = stageVerticalPosition;
+    charactereffectworkPointer->rotation.y = 0;
+    charactereffectworkPointer->rotation.x = 0;
     object->rot.x = object->rot.y = object->rot.z = 0;
-    object->trans.y = temp_r29->unk1C.y;
-    temp_r29->unk1C.x = object->trans.x;
-    temp_r29->unk1C.z = object->trans.z;
-    temp_r29->unk1C.y += lbl_1_data_A0[temp_r29->unk2];
+    object->trans.y = charactereffectworkPointer->velocity.y;
+    charactereffectworkPointer->velocity.x = object->trans.x;
+    charactereffectworkPointer->velocity.z = object->trans.z;
+    charactereffectworkPointer->velocity.y += characterVerticalOffsets[charactereffectworkPointer->characterId];
     if (object->trans.y < 0) {
         object->trans.y = 0;
     }
-    fn_1_1BE8(object, 1.0f);
-    if (fn_1_6878() == 5) {
-        object->objFunc = fn_1_54E4;
-        if (temp_r29->unk14) {
-            lbl_1_bss_C = 1;
+    UpdateCharacterParticleModel(object, 1.0f);
+    if (GetStageEventState() == 5) {
+        object->objFunc = UpdateCharacterParticleEffect;
+        if (charactereffectworkPointer->motionDirection) {
+            stageEffectEnabled = 1;
         }
     }
 }
 
-void fn_1_54E4(OMOBJ *object)
+void UpdateCharacterParticleEffect(OMOBJ *object)
 {
-    Work2FAC *temp_r30 = object->data;
-    fn_1_1E54(object);
-    if (!(temp_r30->unk4 & 0x8)) {
-        temp_r30->unk4 |= 0x8;
-        if (temp_r30->unk14 != 0) {
-            CharMotionShiftSet(temp_r30->unk2, object->mtnId[1], 0, 0.2f, HU3D_MOTATTR_NONE);
-            CharFXPlay(temp_r30->unk2, 290);
-            GWPlayerCoinCollectAdd(object->work[0], temp_r30->unk14);
+    CharacterEffectWork *charactereffectworkPointer = object->data;
+    InitializeCharacterEffect(object);
+    if (!(charactereffectworkPointer->animationState & 0x8)) {
+        charactereffectworkPointer->animationState |= 0x8;
+        if (charactereffectworkPointer->motionDirection != 0) {
+            CharMotionShiftSet(charactereffectworkPointer->characterId, object->mtnId[1], 0, 0.2f, HU3D_MOTATTR_NONE);
+            CharFXPlay(charactereffectworkPointer->characterId, 290);
+            GWPlayerCoinCollectAdd(object->work[0], charactereffectworkPointer->motionDirection);
         }
         else {
-            CharMotionShiftSet(temp_r30->unk2, object->mtnId[2], 0, 0.2f, HU3D_MOTATTR_NONE);
+            CharMotionShiftSet(charactereffectworkPointer->characterId, object->mtnId[2], 0, 0.2f, HU3D_MOTATTR_NONE);
         }
         object->work[1] = 0;
     }
     else if (object->work[1] == 0 && Hu3DMotionEndCheck(object->mdlId[0])) {
-        lbl_1_bss_4C--;
+        activeCharacterCountdown--;
         object->work[1]++;
     }
 }
 
-void fn_1_5AA0(OMOBJ *object);
+void InitializeCharacterParticleSystem(OMOBJ *object);
 
-void fn_1_5684(OMOBJ *object)
+void UpdateCharacterEffect(OMOBJ *object)
 {
-    Work2FAC *temp_r31;
-    s32 temp_r29;
-    temp_r31 = object->data;
+    CharacterEffectWork *charactereffectworkPointer;
+    s32 modelIndex;
+    charactereffectworkPointer = object->data;
     if (fabs(object->trans.x) < 160.0 || fabs(object->trans.z) < 160.0) {
-        temp_r31->unk1C.x += temp_r31->unk28.x * REFRESH_FREQ;
-        temp_r31->unk1C.z += temp_r31->unk28.z * REFRESH_FREQ;
+        charactereffectworkPointer->velocity.x += charactereffectworkPointer->acceleration.x * REFRESH_FREQ;
+        charactereffectworkPointer->velocity.z += charactereffectworkPointer->acceleration.z * REFRESH_FREQ;
 #if VERSION_PAL
-        temp_r31->unk58.x += 10.8f;
+        charactereffectworkPointer->rotation.x += 10.8f;
 #else
-        temp_r31->unk58.x += 9.0f;
+        charactereffectworkPointer->rotation.x += 9.0f;
 #endif
-        if (temp_r31->unk58.x >= 360.0f) {
-            temp_r31->unk58.x -= 360.0f;
+        if (charactereffectworkPointer->rotation.x >= 360.0f) {
+            charactereffectworkPointer->rotation.x -= 360.0f;
         }
-        temp_r31->unk58.y = 0.9f * temp_r31->unk58.y;
-        temp_r31->unk4C.x = 90.0f + temp_r31->unk58.y;
-        temp_r31->unk4C.y = temp_r31->unk58.x;
-        temp_r31->unk4C.z = 0;
-        omSetRot(object, temp_r31->unk4C.x, temp_r31->unk4C.y, temp_r31->unk4C.z);
-        fn_1_1940(temp_r31, &temp_r31->unk68);
-        omSetTra(object, temp_r31->unk1C.x + temp_r31->unk68.x, temp_r31->unk1C.y + temp_r31->unk68.y, temp_r31->unk1C.z + temp_r31->unk68.z);
+        charactereffectworkPointer->rotation.y = 0.9f * charactereffectworkPointer->rotation.y;
+        charactereffectworkPointer->modelRotation.x = 90.0f + charactereffectworkPointer->rotation.y;
+        charactereffectworkPointer->modelRotation.y = charactereffectworkPointer->rotation.x;
+        charactereffectworkPointer->modelRotation.z = 0;
+        omSetRot(object, charactereffectworkPointer->modelRotation.x, charactereffectworkPointer->modelRotation.y, charactereffectworkPointer->modelRotation.z);
+        CalculateCharacterModelOffset(charactereffectworkPointer, &charactereffectworkPointer->modelOffset);
+        omSetTra(object, charactereffectworkPointer->velocity.x + charactereffectworkPointer->modelOffset.x, charactereffectworkPointer->velocity.y + charactereffectworkPointer->modelOffset.y, charactereffectworkPointer->velocity.z + charactereffectworkPointer->modelOffset.z);
     }
-    if (fn_1_6878() >= 4) {
-        GWPlayerCoinCollectAdd(object->work[0], temp_r31->unk14);
-        if (lbl_1_bss_48) {
+    if (GetStageEventState() >= 4) {
+        GWPlayerCoinCollectAdd(object->work[0], charactereffectworkPointer->motionDirection);
+        if (stageFinishStarted) {
             Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
-            CharMotionSet(temp_r31->unk2, object->mtnId[6]);
+            CharMotionSet(charactereffectworkPointer->characterId, object->mtnId[6]);
             Hu3DModelAttrSet(object->mdlId[0], HU3D_MOTATTR_LOOP);
-            object->trans.x = lbl_1_data_144[object->work[0]].x;
+            object->trans.x = characterParticleOffsets[object->work[0]].x;
             object->trans.y = 0;
-            object->trans.z = lbl_1_data_144[object->work[0]].z;
+            object->trans.z = characterParticleOffsets[object->work[0]].z;
             object->rot.x = object->rot.y = object->rot.z = 0;
         }
         else {
             Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
         }
 
-        for (temp_r29 = 0; temp_r29 < 4; temp_r29++) {
+        for (modelIndex = 0; modelIndex < 4; modelIndex++) {
             Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
         }
-        object->objFunc = fn_1_5AA0;
+        object->objFunc = InitializeCharacterParticleSystem;
     }
 }
 
-void fn_1_5AA0(OMOBJ *object)
+void InitializeCharacterParticleSystem(OMOBJ *object)
 {
-    Work2FAC *sp8 = object->data;
+    CharacterEffectWork *charactereffectworkPointer = object->data;
 }
 
-void fn_1_5AB4(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateCharacterParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    HU3DPARTICLEDATA *temp_r31;
-    s32 temp_r29;
-    float temp_f31;
+    HU3DPARTICLEDATA *particleData;
+    s32 particleIndex;
+    float interpolationValue;
     if (particle->dataCnt == 0) {
         particle->dataCnt++;
-        temp_r31 = particle->data;
-        for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r31++) {
-            temp_r31->time = 0;
-            temp_r31->scale = 0;
-            temp_r31->color.a = 0;
+        particleData = particle->data;
+        for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+            particleData->time = 0;
+            particleData->scale = 0;
+            particleData->color.a = 0;
         }
         return;
     }
-    temp_r31 = particle->data;
-    for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r31++) {
-        if (temp_r31->time == 0 || temp_r31->time != 1) {
+    particleData = particle->data;
+    for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+        if (particleData->time == 0 || particleData->time != 1) {
             continue;
         }
-        temp_r31->parManId++;
+        particleData->parManId++;
 #if VERSION_PAL
-        temp_f31 = temp_r31->parManId - 8.5f;
+        interpolationValue = particleData->parManId - 8.5f;
 #else
-        temp_f31 = temp_r31->parManId - 10.2f;
+        interpolationValue = particleData->parManId - 10.2f;
 #endif
-        if (temp_f31 < 0.0f) {
-            temp_r31->pos.x += (temp_r31->vel.x - temp_r31->pos.x) * 0.2f;
-            temp_r31->pos.y += (temp_r31->vel.y - temp_r31->pos.y) * 0.15f;
-            temp_r31->pos.z += (temp_r31->vel.z - temp_r31->pos.z) * 0.2f;
-            temp_r31->scale += (temp_r31->accel.x - temp_r31->scale) * 0.2f;
-            temp_r31->accel.y += (temp_r31->accel.z - temp_r31->accel.y) * 0.2f;
-            temp_r31->color.a = temp_r31->accel.y;
+        if (interpolationValue < 0.0f) {
+            particleData->pos.x += (particleData->vel.x - particleData->pos.x) * 0.2f;
+            particleData->pos.y += (particleData->vel.y - particleData->pos.y) * 0.15f;
+            particleData->pos.z += (particleData->vel.z - particleData->pos.z) * 0.2f;
+            particleData->scale += (particleData->accel.x - particleData->scale) * 0.2f;
+            particleData->accel.y += (particleData->accel.z - particleData->accel.y) * 0.2f;
+            particleData->color.a = particleData->accel.y;
         }
         else {
-            temp_r31->pos.x += (temp_r31->speedDecay * 1.5f) * REFRESH_FREQ;
-            temp_r31->pos.y += (temp_r31->colorIdx * 1.5f) * REFRESH_FREQ;
-            temp_r31->pos.z += (temp_r31->scaleBase * 1.5f) * REFRESH_FREQ;
-            temp_r31->scale += (temp_r31->accel.x * 0.01f);
-            temp_r31->color.a = 0.92f * temp_r31->color.a;
+            particleData->pos.x += (particleData->speedDecay * 1.5f) * REFRESH_FREQ;
+            particleData->pos.y += (particleData->colorIdx * 1.5f) * REFRESH_FREQ;
+            particleData->pos.z += (particleData->scaleBase * 1.5f) * REFRESH_FREQ;
+            particleData->scale += (particleData->accel.x * 0.01f);
+            particleData->color.a = 0.92f * particleData->color.a;
         }
     }
     DCStoreRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-void fn_1_5DCC(s32 arg0, Vec *arg1, u32 arg2)
+void SetParticleEmission(s32 particleModelId, Vec *emissionPosition, u32 particleCount)
 {
-    float temp_f31;
-    float temp_f30;
+    float angle;
+    float angle2;
 
-    HU3DPARTICLEDATA *temp_r31;
-    HU3DPARTICLE *temp_r29;
-    s32 temp_r28;
-    temp_r29 = Hu3DData[arg0].hookData;
-    if (temp_r29->dataCnt != 0) {
-        temp_r31 = temp_r29->data;
-        for (temp_r28 = 0; temp_r28 < temp_r29->maxCnt; temp_r28++, temp_r31++) {
-            if (temp_r31->time) {
+    HU3DPARTICLEDATA *particleData;
+    HU3DPARTICLE *particleWork;
+    s32 modelIndex;
+    particleWork = Hu3DData[particleModelId].hookData;
+    if (particleWork->dataCnt != 0) {
+        particleData = particleWork->data;
+        for (modelIndex = 0; modelIndex < particleWork->maxCnt; modelIndex++, particleData++) {
+            if (particleData->time) {
                 continue;
             }
-            temp_r31->time = 1;
-            temp_r31->parManId = 0;
-            temp_r31->pos.x = arg1->x;
-            temp_r31->pos.y = 11990;
-            temp_r31->pos.z = arg1->z;
-            temp_f31 = frandmod(1000) * (1.0f / 1000.0f);
-            temp_f30 = frandmod(1000) * (360.0f / 1000.0f);
-            temp_r31->speedDecay = 10 * (0.8f * (temp_f31 * sind(temp_f30)));
-            temp_r31->colorIdx = 10.0f * (5.0f * (1.0f - (temp_f31 * temp_f31)));
-            temp_r31->scaleBase = 10 * (0.8f * (temp_f31 * cosd(temp_f30)));
-            temp_r31->vel.x = temp_r31->speedDecay + arg1->x;
-            temp_r31->vel.y = temp_r31->colorIdx + temp_r31->pos.y;
-            temp_r31->vel.z = temp_r31->scaleBase + arg1->z;
-            temp_r31->accel.x = (6.0f + (0.012f * frandmod(1000)));
-            temp_r31->scale = 2.0f;
-            temp_r31->accel.y = temp_r31->color.a = 10;
-            temp_r31->accel.z = frandmod(100) + 64;
-            temp_f31 = 0.00040000002f * frandmod(1000);
-            temp_f31 += 0.6f * cosd(temp_f30);
-            temp_r31->color.r = (55 * temp_f31) + 200;
-            temp_r31->color.g = (50 * temp_f31) + 205;
-            temp_r31->color.b = (5 * temp_f31) + 250;
-            if (--arg2 == 0) {
+            particleData->time = 1;
+            particleData->parManId = 0;
+            particleData->pos.x = emissionPosition->x;
+            particleData->pos.y = 11990;
+            particleData->pos.z = emissionPosition->z;
+            angle = frandmod(1000) * (1.0f / 1000.0f);
+            angle2 = frandmod(1000) * (360.0f / 1000.0f);
+            particleData->speedDecay = 10 * (0.8f * (angle * sind(angle2)));
+            particleData->colorIdx = 10.0f * (5.0f * (1.0f - (angle * angle)));
+            particleData->scaleBase = 10 * (0.8f * (angle * cosd(angle2)));
+            particleData->vel.x = particleData->speedDecay + emissionPosition->x;
+            particleData->vel.y = particleData->colorIdx + particleData->pos.y;
+            particleData->vel.z = particleData->scaleBase + emissionPosition->z;
+            particleData->accel.x = (6.0f + (0.012f * frandmod(1000)));
+            particleData->scale = 2.0f;
+            particleData->accel.y = particleData->color.a = 10;
+            particleData->accel.z = frandmod(100) + 64;
+            angle = 0.00040000002f * frandmod(1000);
+            angle += 0.6f * cosd(angle2);
+            particleData->color.r = (55 * angle) + 200;
+            particleData->color.g = (50 * angle) + 205;
+            particleData->color.b = (5 * angle) + 250;
+            if (--particleCount == 0) {
                 break;
             }
         }
     }
 }
 
-typedef struct work_61FC {
-    s32 unk0;
-    s32 unk4;
-    u32 unk8;
-    float unkC[2];
-    s32 unk14;
-    s32 unk18;
-    s32 unk1C[7];
-    float unk38[7];
-    s16 unk54[7];
-} Work61FC;
+typedef struct CharacterMotionWork {
+    s32 playerIndex;
+    s32 animationState;
+    u32 animationSpeed;
+    float motionScale[2];
+    s32 motionDirection;
+    s32 position;
+    s32 velocity[7];
+    float cameraAngle[7];
+    s16 particleScale[7];
+} CharacterMotionWork;
 
-void fn_1_6540(OMOBJ *object);
+void UpdateCharacterMotions(OMOBJ *object);
 
-void fn_1_61FC(OMOBJ *object)
+void InitializeCharacterMotions(OMOBJ *object)
 {
-    Work61FC *temp_r31;
-    s32 temp_r30;
-    s32 temp_r28;
-    s32 temp_r26;
+    CharacterMotionWork *charactermotionworkPointer;
+    s32 playerIndex;
+    s32 playerIndex2;
+    s32 integerValue;
 
-    Work61FC *temp_r27;
+    CharacterMotionWork *integerValue2;
 
-    float sp8[][2] = { 96, 64, 486, 64, 96, 416, 486, 416 };
-    float sp28[][2] = { 0, 0, 0, 0, -54, -1, 2, 1, -20, 0, 42, 2, 22, 2 };
+    float scratchValue[][2] = { 96, 64, 486, 64, 96, 416, 486, 416 };
+    float scratchValue2[][2] = { 0, 0, 0, 0, -54, -1, 2, 1, -20, 0, 42, 2, 22, 2 };
 
     object->stat |= 0x100;
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, 4 * sizeof(Work61FC), HU_MEMNUM_OVL);
-    temp_r27 = object->data;
-    memset(temp_r27, 0, 4 * sizeof(Work61FC));
-    temp_r31 = temp_r27;
-    for (temp_r28 = 0; temp_r28 < 4; temp_r28++, temp_r31++) {
-        for (temp_r30 = 0; temp_r30 < 7; temp_r30++) {
-            temp_r31->unk54[temp_r30] = -1;
-            temp_r31->unk38[temp_r30] = 1;
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, 4 * sizeof(CharacterMotionWork), HU_MEMNUM_OVL);
+    integerValue2 = object->data;
+    memset(integerValue2, 0, 4 * sizeof(CharacterMotionWork));
+    charactermotionworkPointer = integerValue2;
+    for (playerIndex2 = 0; playerIndex2 < 4; playerIndex2++, charactermotionworkPointer++) {
+        for (playerIndex = 0; playerIndex < 7; playerIndex++) {
+            charactermotionworkPointer->particleScale[playerIndex] = -1;
+            charactermotionworkPointer->cameraAngle[playerIndex] = 1;
         }
-        temp_r31->unkC[0] = sp8[temp_r28][0];
-        temp_r31->unkC[1] = sp8[temp_r28][1];
-        temp_r26 = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x29), 4, 0);
-        temp_r31->unk54[0] = temp_r26;
-        espColorSet(temp_r26, 0, 0, 0);
-        espTPLvlSet(temp_r26, 0.5);
-        temp_r31->unk54[1] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x28), 3, 0);
-        temp_r31->unk54[2] = espEntry(lbl_1_data_0[GWPlayerCfg[temp_r28].character], 2, 0);
-        temp_r31->unk54[3] = espEntry(DATA_MAKE_NUM(DATADIR_M408, 0x2B), 2, 0);
-        temp_r31->unk54[4] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x08), 2, 0);
-        temp_r31->unk54[6] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x33), 2, 0);
-        temp_r31->unk54[5] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x33), 2, 0);
-        for (temp_r30 = 0; temp_r30 < 7; temp_r30++) {
-            if (temp_r31->unk54[temp_r30] >= 0) {
-                espPosSet(temp_r31->unk54[temp_r30], temp_r31->unkC[0] + sp28[temp_r30][0], temp_r31->unkC[1] + sp28[temp_r30][1]);
-                espDispOff(temp_r31->unk54[temp_r30]);
+        charactermotionworkPointer->motionScale[0] = scratchValue[playerIndex2][0];
+        charactermotionworkPointer->motionScale[1] = scratchValue[playerIndex2][1];
+        integerValue = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x29), 4, 0);
+        charactermotionworkPointer->particleScale[0] = integerValue;
+        espColorSet(integerValue, 0, 0, 0);
+        espTPLvlSet(integerValue, 0.5);
+        charactermotionworkPointer->particleScale[1] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x28), 3, 0);
+        charactermotionworkPointer->particleScale[2] = espEntry(characterAssetIds[GWPlayerCfg[playerIndex2].character], 2, 0);
+        charactermotionworkPointer->particleScale[3] = espEntry(DATA_MAKE_NUM(DATADIR_M408, 0x2B), 2, 0);
+        charactermotionworkPointer->particleScale[4] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x08), 2, 0);
+        charactermotionworkPointer->particleScale[6] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x33), 2, 0);
+        charactermotionworkPointer->particleScale[5] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x33), 2, 0);
+        for (playerIndex = 0; playerIndex < 7; playerIndex++) {
+            if (charactermotionworkPointer->particleScale[playerIndex] >= 0) {
+                espPosSet(charactermotionworkPointer->particleScale[playerIndex], charactermotionworkPointer->motionScale[0] + scratchValue2[playerIndex][0], charactermotionworkPointer->motionScale[1] + scratchValue2[playerIndex][1]);
+                espDispOff(charactermotionworkPointer->particleScale[playerIndex]);
             }
         }
-        temp_r31->unk0 = 0;
+        charactermotionworkPointer->playerIndex = 0;
     }
     HuDataDirClose(DATADIR_MGCONST);
-    object->objFunc = fn_1_6540;
-    (void)temp_r27;
-    (void)temp_r27;
+    object->objFunc = UpdateCharacterMotions;
+    (void)integerValue2;
+    (void)integerValue2;
 }
 
-void fn_1_6540(OMOBJ *object)
+void UpdateCharacterMotions(OMOBJ *object)
 {
-    float temp_f31;
-    Work61FC *temp_r31;
-    s32 temp_r30;
-    s32 temp_r29;
-    Work61FC *temp_r28 = object->data;
-    temp_r31 = temp_r28;
-    for (temp_r29 = 0; temp_r29 < 4; temp_r29++, temp_r31++) {
-        switch (temp_r31->unk14) {
+    float interpolationValue;
+    CharacterMotionWork *charactermotionworkPointer;
+    s32 playerIndex;
+    s32 playerIndex2;
+    CharacterMotionWork *integerValue = object->data;
+    charactermotionworkPointer = integerValue;
+    for (playerIndex2 = 0; playerIndex2 < 4; playerIndex2++, charactermotionworkPointer++) {
+        switch (charactermotionworkPointer->motionDirection) {
             case 0:
-                if (fn_1_6878() == 3) {
-                    temp_r31->unk14 = 1;
+                if (GetStageEventState() == 3) {
+                    charactermotionworkPointer->motionDirection = 1;
                 }
                 break;
 
             case 1:
-                temp_r31->unk18 = 0;
-                temp_r31->unk1C[5] = temp_r31->unk8 % 10;
-                temp_r31->unk1C[6] = (temp_r31->unk8 / 10) % 10;
-                for (temp_r30 = 0; temp_r30 < 7; temp_r30++) {
-                    if (temp_r31->unk54[temp_r30] >= 0) {
-                        espDispOn(temp_r31->unk54[temp_r30]);
+                charactermotionworkPointer->position = 0;
+                charactermotionworkPointer->velocity[5] = charactermotionworkPointer->animationSpeed % 10;
+                charactermotionworkPointer->velocity[6] = (charactermotionworkPointer->animationSpeed / 10) % 10;
+                for (playerIndex = 0; playerIndex < 7; playerIndex++) {
+                    if (charactermotionworkPointer->particleScale[playerIndex] >= 0) {
+                        espDispOn(charactermotionworkPointer->particleScale[playerIndex]);
                     }
                 }
-                if (temp_r31->unk0) {
-                    temp_r31->unk38[5] = temp_r31->unk38[6] = 0.5f;
-                    temp_r31->unk14++;
+                if (charactermotionworkPointer->playerIndex) {
+                    charactermotionworkPointer->cameraAngle[5] = charactermotionworkPointer->cameraAngle[6] = 0.5f;
+                    charactermotionworkPointer->motionDirection++;
                 }
                 else {
-                    temp_r31->unk0 = 1;
-                    temp_r31->unk38[5] = temp_r31->unk38[6] = 1.0f;
-                    temp_r31->unk14 += 3;
+                    charactermotionworkPointer->playerIndex = 1;
+                    charactermotionworkPointer->cameraAngle[5] = charactermotionworkPointer->cameraAngle[6] = 1.0f;
+                    charactermotionworkPointer->motionDirection += 3;
                     break;
                 }
 
             case 2:
-                temp_f31 = temp_r31->unk38[5];
+                interpolationValue = charactermotionworkPointer->cameraAngle[5];
 #if VERSION_PAL
-                temp_f31 += 0.12f;
+                interpolationValue += 0.12f;
 #else
-                temp_f31 += 0.10000001f;
+                interpolationValue += 0.10000001f;
 #endif
-                if (temp_f31 >= 1.5f) {
-                    temp_r31->unk14++;
+                if (interpolationValue >= 1.5f) {
+                    charactermotionworkPointer->motionDirection++;
                 }
-                temp_r31->unk38[5] = temp_r31->unk38[6] = temp_f31;
+                charactermotionworkPointer->cameraAngle[5] = charactermotionworkPointer->cameraAngle[6] = interpolationValue;
                 break;
 
             case 3:
-                temp_f31 = temp_r31->unk38[5];
+                interpolationValue = charactermotionworkPointer->cameraAngle[5];
 #if VERSION_PAL
-                temp_f31 -= 0.12f;
+                interpolationValue -= 0.12f;
 #else
-                temp_f31 -= 0.10000001f;
+                interpolationValue -= 0.10000001f;
 #endif
-                if (temp_f31 <= 1.0f) {
-                    temp_f31 = 1.0f;
-                    temp_r31->unk14++;
+                if (interpolationValue <= 1.0f) {
+                    interpolationValue = 1.0f;
+                    charactermotionworkPointer->motionDirection++;
                 }
-                temp_r31->unk38[5] = temp_r31->unk38[6] = temp_f31;
+                charactermotionworkPointer->cameraAngle[5] = charactermotionworkPointer->cameraAngle[6] = interpolationValue;
                 break;
 
             default:
                 break;
         }
-        temp_r31->unk18++;
-        for (temp_r30 = 0; temp_r30 < 7; temp_r30++) {
-            espBankSet(temp_r31->unk54[temp_r30], temp_r31->unk1C[temp_r30]);
-            espScaleSet(temp_r31->unk54[temp_r30], temp_r31->unk38[temp_r30], temp_r31->unk38[temp_r30]);
+        charactermotionworkPointer->position++;
+        for (playerIndex = 0; playerIndex < 7; playerIndex++) {
+            espBankSet(charactermotionworkPointer->particleScale[playerIndex], charactermotionworkPointer->velocity[playerIndex]);
+            espScaleSet(charactermotionworkPointer->particleScale[playerIndex], charactermotionworkPointer->cameraAngle[playerIndex], charactermotionworkPointer->cameraAngle[playerIndex]);
         }
     }
 }
 
-void fn_1_67C4(u16 arg0, u16 arg1)
+void SetStageProgress(u16 stageIndex, u16 progressState)
 {
-    Work61FC *temp_r31;
-    temp_r31 = lbl_1_bss_8->data;
-    if (fn_1_6878() == 3) {
-        temp_r31[arg0].unk4 += arg1;
-        temp_r31[arg0].unk8 += arg1;
-        temp_r31[arg0].unk14 = 1;
+    CharacterMotionWork *charactermotionworkPointer;
+    charactermotionworkPointer = characterMotionManager->data;
+    if (GetStageEventState() == 3) {
+        charactermotionworkPointer[stageIndex].animationState += progressState;
+        charactermotionworkPointer[stageIndex].animationSpeed += progressState;
+        charactermotionworkPointer[stageIndex].motionDirection = 1;
     }
 }
 
-u32 fn_1_6868(void)
+u32 GetStageProgress(void)
 {
-    return lbl_1_bss_62;
+    return minigameState;
 }
 
-u32 fn_1_6878(void)
+u32 GetStageEventState(void)
 {
-    return lbl_1_bss_60;
+    return stageProgressState;
 }
 
-float fn_1_6888(void)
+float GetStageEventValue(void)
 {
-    return lbl_1_bss_54;
+    return stageVerticalPosition;
 }
 
-void fn_1_6898(void) { }
+void EmptyStageCallback(void) { }
 
-s32 fn_1_689C(void)
+s32 GetStageEventCounter(void)
 {
     return 0;
 }
 
-void fn_1_68A4(void) { }
+void EmptyStageUpdate(void) { }
 
-Work2FAC *fn_1_68A8(s32 arg0)
+CharacterEffectWork *GetCharacterWork(s32 playerIndex)
 {
-    return lbl_1_bss_6C[arg0]->data;
+    return characterObjects[playerIndex]->data;
 }
 
-float fn_1_68C4(float arg8, float arg9, float argA, float argB, float argC, float argD, float argE, float argF, float arg2, float arg3)
+float InterpolateCurveValue(float startValue, float startTangent, float controlValue1, float controlValue2, float endTangent, float endValue, float controlTangent1, float controlTangent2, float interpolationTime, float curveParameter)
 {
-    float temp_f30;
-    float sp14;
-    float temp_f29;
-    float temp_f28;
+    float interpolationValue;
+    float scratchValue;
+    float interpolationValue2;
+    float interpolationValue3;
 
-    float temp_f27;
-    float temp_f26;
+    float interpolationValue4;
+    float interpolationValue5;
 
-    float sp10;
+    float scratchValue2;
 
-    sp14 = (argC + arg3) * (argC + arg3);
-    temp_f27 = (arg2 * arg2) + (((argB * argB) + ((argF * argF) + ((argA * argA) - (2.0f * argA * argF)))) - (2.0f * argB * arg2));
-    temp_f26 = 2.0f
-        * ((argE * arg2) + ((((arg9 * argB) + ((argD * argF) + (((arg8 * argA) - (arg8 * argF)) - (argD * argA)))) - (arg9 * arg2)) - (argE * argB)));
-    sp10 = ((argE * argE) + (((arg9 * arg9) + ((argD * argD) + ((arg8 * arg8) - (2.0f * arg8 * argD)))) - (2.0f * arg9 * argE))) - sp14;
-    if (0.0f == temp_f27) {
+    scratchValue = (endTangent + curveParameter) * (endTangent + curveParameter);
+    interpolationValue4 = (interpolationTime * interpolationTime) + (((controlValue2 * controlValue2) + ((controlTangent2 * controlTangent2) + ((controlValue1 * controlValue1) - (2.0f * controlValue1 * controlTangent2)))) - (2.0f * controlValue2 * interpolationTime));
+    interpolationValue5 = 2.0f
+        * ((controlTangent1 * interpolationTime) + ((((startTangent * controlValue2) + ((endValue * controlTangent2) + (((startValue * controlValue1) - (startValue * controlTangent2)) - (endValue * controlValue1)))) - (startTangent * interpolationTime)) - (controlTangent1 * controlValue2)));
+    scratchValue2 = ((controlTangent1 * controlTangent1) + (((startTangent * startTangent) + ((endValue * endValue) + ((startValue * startValue) - (2.0f * startValue * endValue)))) - (2.0f * startTangent * controlTangent1))) - scratchValue;
+    if (0.0f == interpolationValue4) {
         return -1;
     }
-    temp_f30 = (temp_f26 * temp_f26) - (4.0f * temp_f27 * sp10);
-    if (temp_f30 <= 0.0) {
+    interpolationValue = (interpolationValue5 * interpolationValue5) - (4.0f * interpolationValue4 * scratchValue2);
+    if (interpolationValue <= 0.0) {
         return -1;
     }
-    temp_f30 = sqrtf(temp_f30);
-    temp_f29 = (-temp_f26 + temp_f30) / (2.0f * temp_f27);
-    temp_f28 = (-temp_f26 - temp_f30) / (2.0f * temp_f27);
-    if (temp_f29 >= 0.0f && temp_f28 >= 0.0f) {
-        if (temp_f29 < temp_f28) {
-            if (temp_f29 < 1.0f) {
-                return temp_f29;
+    interpolationValue = sqrtf(interpolationValue);
+    interpolationValue2 = (-interpolationValue5 + interpolationValue) / (2.0f * interpolationValue4);
+    interpolationValue3 = (-interpolationValue5 - interpolationValue) / (2.0f * interpolationValue4);
+    if (interpolationValue2 >= 0.0f && interpolationValue3 >= 0.0f) {
+        if (interpolationValue2 < interpolationValue3) {
+            if (interpolationValue2 < 1.0f) {
+                return interpolationValue2;
             }
         }
-        if (temp_f28 < 1.0f) {
-            return temp_f28;
+        if (interpolationValue3 < 1.0f) {
+            return interpolationValue3;
         }
     }
     return -1;
 }
 
-void fn_1_6C28(float *arg0, float arg1, float arg2, float arg3, float arg4, float arg5, float arg6)
+void EvaluateCurve(float *coefficients, float parameter, float startValue, float endValue, float startTangent, float endTangent, float scale)
 {
-    float temp_f24;
-    float temp_f29;
-    float temp_f28;
-    float temp_f31;
-    float temp_f30;
+    float interpolationValue;
+    float interpolationValue2;
+    float interpolationValue3;
+    float interpolationValue4;
+    float scale2;
 
-    float temp_f25;
+    float interpolationValue5;
 
-    temp_f29 = arg3;
-    temp_f28 = arg4;
-    temp_f24 = sqrtf((temp_f29 * temp_f29) + (temp_f28 * temp_f28));
-    if (temp_f24 != 0.0) {
-        temp_f25 = 1.0f / temp_f24;
-        temp_f29 *= temp_f25;
-        temp_f28 *= temp_f25;
+    interpolationValue2 = endValue;
+    interpolationValue3 = startTangent;
+    interpolationValue = sqrtf((interpolationValue2 * interpolationValue2) + (interpolationValue3 * interpolationValue3));
+    if (interpolationValue != 0.0) {
+        interpolationValue5 = 1.0f / interpolationValue;
+        interpolationValue2 *= interpolationValue5;
+        interpolationValue3 *= interpolationValue5;
     }
-    temp_f31 = arg5 - arg1;
-    temp_f30 = arg6 - arg2;
-    temp_f25 = 1.0f / sqrtf((temp_f31 * temp_f31) + (temp_f30 * temp_f30));
-    temp_f31 *= temp_f25;
-    temp_f30 *= temp_f25;
-    temp_f25 = (temp_f29 * temp_f31) + (temp_f28 * temp_f30);
-    arg0[0] = temp_f25 * (temp_f31 * temp_f24);
-    arg0[1] = temp_f25 * (temp_f30 * temp_f24);
+    interpolationValue4 = endTangent - parameter;
+    scale2 = scale - startValue;
+    interpolationValue5 = 1.0f / sqrtf((interpolationValue4 * interpolationValue4) + (scale2 * scale2));
+    interpolationValue4 *= interpolationValue5;
+    scale2 *= interpolationValue5;
+    interpolationValue5 = (interpolationValue2 * interpolationValue4) + (interpolationValue3 * scale2);
+    coefficients[0] = interpolationValue5 * (interpolationValue4 * interpolationValue);
+    coefficients[1] = interpolationValue5 * (scale2 * interpolationValue);
 }
 
-void fn_1_6F4C(float arg8, float arg9, float argA, float argB, float argC, float argD, float argE, float argF, float *arg0, float *arg1, float *arg2,
-    float *arg3)
+void SolveCurveParameters(float startX, float startY, float controlX, float controlY, float endX, float endY, float startTangent, float endTangent, float *playerIndex, float *coefficientB, float *coefficientC,
+    float *coefficientD)
 {
-    float sp70[2];
-    float sp68[2];
-    float sp64;
-    float sp60;
-    sp64 = arg8 + (0.5f * (argC - arg8));
-    sp60 = arg9 + (0.5f * (argD - arg9));
-    fn_1_6C28(sp70, arg8, arg9, argA, argB, sp64, sp60);
-    fn_1_6C28(sp68, argC, argD, argE, argF, sp64, sp60);
-    *arg0 = sp68[0] - sp70[0];
-    *arg1 = sp68[1] - sp70[1];
-    *arg2 = sp70[0] - sp68[0];
-    *arg3 = sp70[1] - sp68[1];
+    float scratchValue[2];
+    float scratchValue2[2];
+    float scratchValue3;
+    float scratchValue4;
+    scratchValue3 = startX + (0.5f * (endX - startX));
+    scratchValue4 = startY + (0.5f * (endY - startY));
+    EvaluateCurve(scratchValue, coefficients, parameter, startValue, endValue, scratchValue3, scratchValue4);
+    EvaluateCurve(scratchValue2, coefficients, parameter, startValue, endValue, scratchValue3, scratchValue4);
+    *playerIndex = scratchValue2[0] - scratchValue[0];
+    *coefficientB = scratchValue2[1] - scratchValue[1];
+    *coefficientC = scratchValue[0] - scratchValue2[0];
+    *coefficientD = scratchValue[1] - scratchValue2[1];
 }
 
-void fn_1_75B8(float *arg0, float *arg1, float arg2, float arg3, float arg4, float arg5, float arg6, float arg7)
+void CalculateCurveCoefficients(float *coefficientA, float *coefficientB, float value0, float value1, float value2, float value3, float value4, float value5)
 {
-    float temp_f26 = arg2 + (0.5f * (arg6 - arg2));
-    float temp_f25 = arg3 + (0.5f * (arg7 - arg3));
-    float temp_f31 = arg2 - temp_f26;
-    float temp_f30 = arg3 - temp_f25;
-    float temp_f28;
-    if (temp_f31 == 0.0f || temp_f30 == 0.0f) {
-        *arg0 = *arg1 = 0.0f;
+    float interpolationValue = value0 + (0.5f * (value4 - value0));
+    float interpolationValue2 = value1 + (0.5f * (value5 - value1));
+    float interpolationValue3 = value0 - interpolationValue;
+    float interpolationValue4 = value1 - interpolationValue2;
+    float interpolationValue5;
+    if (interpolationValue3 == 0.0f || interpolationValue4 == 0.0f) {
+        *coefficientA = *coefficientB = 0.0f;
         return;
     }
-    temp_f28 = 1.0f / sqrtf((temp_f31 * temp_f31) + (temp_f30 * temp_f30));
-    temp_f31 *= temp_f28;
-    temp_f30 *= temp_f28;
-    *arg0 = (2.0f * temp_f31) * ((-arg4 * temp_f31) - (arg5 * temp_f30));
-    *arg1 = (2.0f * temp_f30) * ((-arg4 * temp_f31) - (arg5 * temp_f30));
+    interpolationValue5 = 1.0f / sqrtf((interpolationValue3 * interpolationValue3) + (interpolationValue4 * interpolationValue4));
+    interpolationValue3 *= interpolationValue5;
+    interpolationValue4 *= interpolationValue5;
+    *coefficientA = (2.0f * interpolationValue3) * ((-value2 * interpolationValue3) - (value3 * interpolationValue4));
+    *coefficientB = (2.0f * interpolationValue4) * ((-value2 * interpolationValue3) - (value3 * interpolationValue4));
 }
 
-void fn_1_7818(OMOBJ *arg0, OMOBJ *arg1)
+void UpdateCharacterPair(OMOBJ *firstCharacter, OMOBJ *secondCharacter)
 {
-    Work2FAC *temp_r31 = arg0->data;
-    Work2FAC *temp_r30 = arg1->data;
+    CharacterEffectWork *charactereffectworkPointer = firstCharacter->data;
+    CharacterEffectWork *charactereffectworkPointer2 = secondCharacter->data;
 
-    float sp14;
-    float sp10;
-    float spC;
-    float sp8;
-    fn_1_6F4C(temp_r31->unk1C.x, temp_r31->unk1C.z, temp_r31->unk34.x, temp_r31->unk34.z, temp_r30->unk1C.x, temp_r30->unk1C.z, temp_r30->unk34.x,
-        temp_r30->unk34.z, &sp14, &sp10, &spC, &sp8);
-    temp_r31->unk34.x += sp14;
-    temp_r31->unk34.z += sp10;
-    temp_r30->unk34.x += spC;
-    temp_r30->unk34.z += sp8;
+    float scratchValue;
+    float scratchValue2;
+    float scratchValue3;
+    float scratchValue4;
+    SolveCurveParameters(charactereffectworkPointer->velocity.x, charactereffectworkPointer->velocity.z, charactereffectworkPointer->velocityChange.x, charactereffectworkPointer->velocityChange.z, charactereffectworkPointer2->velocity.x, charactereffectworkPointer2->velocity.z, charactereffectworkPointer2->velocityChange.x,
+        charactereffectworkPointer2->velocityChange.z, &scratchValue, &scratchValue2, &scratchValue3, &scratchValue4);
+    charactereffectworkPointer->velocityChange.x += scratchValue;
+    charactereffectworkPointer->velocityChange.z += scratchValue2;
+    charactereffectworkPointer2->velocityChange.x += scratchValue3;
+    charactereffectworkPointer2->velocityChange.z += scratchValue4;
 }
 
-s32 fn_1_78D8(void)
+s32 GetCharacterCount(void)
 {
-    float temp_f29;
-    float temp_f18;
+    float interpolationValue;
+    float interpolationValue2;
 
-    Work2FAC *temp_r31;
-    s32 temp_r30;
-    Work2FAC *temp_r29;
-    Work2FAC *temp_r28;
-    s32 temp_r27;
-    s32 temp_r26;
-    OMOBJ *temp_r25;
-    OMOBJ *temp_r24;
-    OMOBJ *temp_r23;
+    CharacterEffectWork *charactereffectworkPointer;
+    s32 playerIndex;
+    CharacterEffectWork *charactereffectworkPointer2;
+    CharacterEffectWork *charactereffectworkPointer3;
+    s32 playerIndex2;
+    s32 integerValue;
+    OMOBJ *integerValue2;
+    OMOBJ *integerValue3;
+    OMOBJ *object;
 
-    OMOBJ *sp30[2];
-    temp_r26 = -1;
-    temp_f18 = 0;
-    temp_f29 = 9999;
-    for (temp_r27 = 0; temp_r27 < 3; temp_r27++) {
-        temp_r25 = lbl_1_bss_6C[temp_r27];
-        temp_r29 = temp_r25->data;
-        if (temp_r29->unk4 & 0x10) {
+    OMOBJ *candidateCharacterObjects[2];
+    integerValue = -1;
+    interpolationValue2 = 0;
+    interpolationValue = 9999;
+    for (playerIndex2 = 0; playerIndex2 < 3; playerIndex2++) {
+        integerValue2 = characterObjects[playerIndex2];
+        charactereffectworkPointer2 = integerValue2->data;
+        if (charactereffectworkPointer2->animationState & 0x10) {
             continue;
         }
-        for (temp_r30 = temp_r27 + 1; temp_r30 < 4; temp_r30++) {
-            temp_r24 = lbl_1_bss_6C[temp_r30];
-            temp_r28 = temp_r24->data;
-            if (temp_r28->unk4 & 0x10) {
+        for (playerIndex = playerIndex2 + 1; playerIndex < 4; playerIndex++) {
+            integerValue3 = characterObjects[playerIndex];
+            charactereffectworkPointer3 = integerValue3->data;
+            if (charactereffectworkPointer3->animationState & 0x10) {
                 continue;
             }
-            temp_f18
-                = fn_1_68C4(temp_r29->unk1C.x, temp_r29->unk1C.z, temp_r29->unk34.x * lbl_1_bss_4, temp_r29->unk34.z * lbl_1_bss_4, temp_r29->unk58.z,
-                    temp_r28->unk1C.x, temp_r28->unk1C.z, temp_r28->unk34.x * lbl_1_bss_4, temp_r28->unk34.z * lbl_1_bss_4, temp_r28->unk58.z);
-            if (temp_f18 >= 0.0 && temp_f18 <= temp_f29) {
-                temp_f29 = temp_f18;
-                temp_r26 = 1;
-                sp30[0] = temp_r25;
-                sp30[1] = temp_r24;
+            interpolationValue2
+                = InterpolateCurveValue(charactereffectworkPointer2->velocity.x, charactereffectworkPointer2->velocity.z, charactereffectworkPointer2->velocityChange.x * cameraFadeValue, charactereffectworkPointer2->velocityChange.z * cameraFadeValue, charactereffectworkPointer2->rotation.z,
+                    charactereffectworkPointer3->velocity.x, charactereffectworkPointer3->velocity.z, charactereffectworkPointer3->velocityChange.x * cameraFadeValue, charactereffectworkPointer3->velocityChange.z * cameraFadeValue, charactereffectworkPointer3->rotation.z);
+            if (interpolationValue2 >= 0.0 && interpolationValue2 <= interpolationValue) {
+                interpolationValue = interpolationValue2;
+                integerValue = 1;
+                candidateCharacterObjects[0] = integerValue2;
+                candidateCharacterObjects[1] = integerValue3;
             }
         }
     }
-    if (temp_r26 < 0) {
+    if (integerValue < 0) {
         return 0;
     }
-    if (temp_f29 > 0.0f) {
-        for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-            temp_r31 = lbl_1_bss_6C[temp_r30]->data;
-            temp_r31->unk64 = 0;
+    if (interpolationValue > 0.0f) {
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            charactereffectworkPointer = characterObjects[playerIndex]->data;
+            charactereffectworkPointer->animationPhaseTimer = 0;
         }
     }
-    for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-        temp_r23 = lbl_1_bss_6C[temp_r30];
-        temp_r31 = temp_r23->data;
-        if (!(temp_r31->unk4 & 0x10)) {
-            temp_r31->unk1C.x += lbl_1_bss_4 * (temp_r31->unk34.x * temp_f29);
-            temp_r31->unk1C.z += lbl_1_bss_4 * (temp_r31->unk34.z * temp_f29);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        object = characterObjects[playerIndex];
+        charactereffectworkPointer = object->data;
+        if (!(charactereffectworkPointer->animationState & 0x10)) {
+            charactereffectworkPointer->velocity.x += cameraFadeValue * (charactereffectworkPointer->velocityChange.x * interpolationValue);
+            charactereffectworkPointer->velocity.z += cameraFadeValue * (charactereffectworkPointer->velocityChange.z * interpolationValue);
         }
     }
-    if (temp_r26 != 1) {
-        (void)temp_r26;
+    if (integerValue != 1) {
+        (void)integerValue;
     }
     else {
-        fn_1_7818(sp30[0], sp30[1]);
-        for (temp_r30 = 0; temp_r30 < 2; temp_r30++) {
-            temp_r31 = sp30[temp_r30]->data;
-            if (temp_r31->unk4 & 0x10) {
+        UpdateCharacterPair(candidateCharacterObjects[0], candidateCharacterObjects[1]);
+        for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+            charactereffectworkPointer = candidateCharacterObjects[playerIndex]->data;
+            if (charactereffectworkPointer->animationState & 0x10) {
                 continue;
             }
-            temp_r31->unk64++;
-            if (temp_r31->unk18 == 0) {
-                lbl_1_bss_0 = 1;
+            charactereffectworkPointer->animationPhaseTimer++;
+            if (charactereffectworkPointer->motionDirection == 0) {
+                cameraFallStarted = 1;
             }
 #if VERSION_PAL
-            temp_r31->unk18 = 15;
+            charactereffectworkPointer->motionDirection = 15;
 #else
-            temp_r31->unk18 = 18;
+            charactereffectworkPointer->motionDirection = 18;
 #endif
-            if (temp_r31->unk64 > 2.0f) {
-                temp_r31->unk34.x = temp_r31->unk34.z = 0;
+            if (charactereffectworkPointer->animationPhaseTimer > 2.0f) {
+                charactereffectworkPointer->velocityChange.x = charactereffectworkPointer->velocityChange.z = 0;
             }
         }
     }
-    lbl_1_bss_4 *= (1.0f - temp_f29);
+    cameraFadeValue *= (1.0f - interpolationValue);
     return 1;
 }
 
-void fn_1_8020(void)
+void UpdateStageObjects(void)
 {
-    Work2FAC *temp_r31;
-    s32 temp_r30;
-    OMOBJ *temp_r29;
-    lbl_1_bss_4 = 1.0f;
-    lbl_1_bss_0 = 0;
-    while (fn_1_78D8())
+    CharacterEffectWork *charactereffectworkPointer;
+    s32 playerIndex;
+    OMOBJ *object;
+    cameraFadeValue = 1.0f;
+    cameraFallStarted = 0;
+    while (GetCharacterCount())
         ;
-    if (lbl_1_bss_0) {
+    if (cameraFallStarted) {
         HuAudFXPlay(1359);
     }
-    for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-        temp_r29 = lbl_1_bss_6C[temp_r30];
-        temp_r31 = temp_r29->data;
-        if (temp_r31->unk18 != 0) {
-            temp_r31->unk18--;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        object = characterObjects[playerIndex];
+        charactereffectworkPointer = object->data;
+        if (charactereffectworkPointer->position != 0) {
+            charactereffectworkPointer->position--;
         }
-        if (temp_r31->unk4 & 0x10) {
+        if (charactereffectworkPointer->animationState & 0x10) {
             continue;
         }
-        temp_r31->unk1C.x += temp_r31->unk34.x * lbl_1_bss_4;
-        temp_r31->unk1C.z += temp_r31->unk34.z * lbl_1_bss_4;
-        temp_r31->unk28.x = temp_r31->unk34.x * REFRESH_RATE;
-        temp_r31->unk28.z = temp_r31->unk34.z * REFRESH_RATE;
-        temp_r31->unk34.x = temp_r31->unk34.z = 0;
+        charactereffectworkPointer->velocity.x += charactereffectworkPointer->velocityChange.x * cameraFadeValue;
+        charactereffectworkPointer->velocity.z += charactereffectworkPointer->velocityChange.z * cameraFadeValue;
+        charactereffectworkPointer->acceleration.x = charactereffectworkPointer->velocityChange.x * REFRESH_RATE;
+        charactereffectworkPointer->acceleration.z = charactereffectworkPointer->velocityChange.z * REFRESH_RATE;
+        charactereffectworkPointer->velocityChange.x = charactereffectworkPointer->velocityChange.z = 0;
     }
 }
 
-void fn_1_817C(Vec *arg0, Vec *arg1)
+void GetCameraPositionRotation(Vec *cameraPosition, Vec *cameraRotation)
 {
-    Vec sp10;
-    sp10.x = arg1->x - arg0->x;
-    sp10.y = arg1->y - arg0->y;
-    sp10.z = arg1->z - arg0->z;
-    Center.x = arg1->x;
-    Center.y = arg1->y;
-    Center.z = arg1->z;
-    CRot.x = atan2d(sp10.y, VECMagXZ(&sp10));
-    CRot.y = atan2d(-sp10.x, -sp10.z);
+    Vec positionVector;
+    positionVector.x = cameraRotation->x - cameraPosition->x;
+    positionVector.y = cameraRotation->y - cameraPosition->y;
+    positionVector.z = cameraRotation->z - cameraPosition->z;
+    Center.x = cameraRotation->x;
+    Center.y = cameraRotation->y;
+    Center.z = cameraRotation->z;
+    CRot.x = atan2d(positionVector.y, VECMagXZ(&positionVector));
+    CRot.y = atan2d(-positionVector.x, -positionVector.z);
     CRot.z = 0;
-    CZoom = sqrtf(VECMag2Point(&sp10));
+    CZoom = sqrtf(VECMag2Point(&positionVector));
 }
 
-void fn_1_84C4(float arg0, float arg1, float arg2, float arg3, float arg4, float arg5)
+void SetCameraParameters(float targetX, float targetY, float targetZ, float positionX, float positionY, float positionZ)
 {
-    Vec sp40;
-    Vec sp34;
-    sp40.x = arg0;
-    sp40.y = arg1;
-    sp40.z = arg2;
-    sp34.x = arg3;
-    sp34.y = arg4;
-    sp34.z = arg5;
-    fn_1_817C(&sp40, &sp34);
+    Vec positionVector;
+    Vec positionVector2;
+    positionVector.x = targetX;
+    positionVector.y = targetY;
+    positionVector.z = targetZ;
+    positionVector2.x = positionX;
+    positionVector2.y = positionY;
+    positionVector2.z = positionZ;
+    GetCameraPositionRotation(&positionVector, &positionVector2);
 }
 
-float fn_1_883C(float arg0, float arg1, float arg2)
+float ApproachAngle(float currentAngle, float targetAngle, float stepScale)
 {
-    float temp_f31;
-    temp_f31 = fmodf(arg1 - arg0, 360);
-    if (temp_f31 < 0.0f) {
-        temp_f31 += 360.0f;
+    float scale;
+    scale = fmodf(targetAngle - currentAngle, 360);
+    if (scale < 0.0f) {
+        scale += 360.0f;
     }
-    if (temp_f31 > 180.0f) {
-        temp_f31 -= 360.0f;
+    if (scale > 180.0f) {
+        scale -= 360.0f;
     }
-    temp_f31 = fmodf((arg2 * temp_f31) + arg0, 360);
-    if (temp_f31 < 0.0f) {
-        temp_f31 += 360.0f;
+    scale = fmodf((stepScale * scale) + currentAngle, 360);
+    if (scale < 0.0f) {
+        scale += 360.0f;
     }
-    return temp_f31;
+    return scale;
 }

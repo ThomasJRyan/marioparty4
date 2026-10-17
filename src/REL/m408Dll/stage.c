@@ -13,172 +13,172 @@
 #include "game/frand.h"
 #endif
 
-s32 lbl_1_bss_160[2];
-ANIMDATA *lbl_1_bss_14C[5];
-s16 lbl_1_bss_148;
-s32 lbl_1_bss_144;
-u32 lbl_1_bss_140;
-OMOBJ *lbl_1_bss_13C;
-s32 lbl_1_bss_138;
-s32 lbl_1_bss_134;
-s32 lbl_1_bss_130;
-HSFCONSTDATA *lbl_1_bss_128[2];
-void *lbl_1_bss_120[2];
-HSFDRAWDATA *lbl_1_bss_11C;
-s16 lbl_1_bss_118;
+s32 vertexColorScratch[2];
+ANIMDATA *stageSpriteAnimations[5];
+s16 stageModelId;
+s32 stageEffectTimer;
+u32 stageParticleSeed;
+OMOBJ *stageEffectObject;
+s32 stageLightId;
+s32 stageCameraModelId;
+s32 stageParticleModelId;
+HSFCONSTDATA *stageModelConstants[2];
+void *stageDisplayLists[2];
+HSFDRAWDATA *stageDrawData;
+s16 stageLightHandle;
 
-float lbl_1_data_198 = 1000;
-u32 lbl_1_data_19C = 0x41C64E6D;
+float textureScrollSpeed = 1000;
+u32 stageRandomSeed = 0x41C64E6D;
 
-void fn_1_C4E4(HUPROCESS *objman);
+void CreateStageEffectObject(HUPROCESS *objman);
 
-void fn_1_C44C(HUPROCESS *objman)
+void CreateStageEffects(HUPROCESS *objman)
 {
     s32 i;
-    lbl_1_bss_144 = 0;
-    lbl_1_bss_140 = 0;
-    lbl_1_bss_138 = lbl_1_bss_134 = lbl_1_bss_130 = -1;
-    fn_1_C4E4(objman);
+    stageEffectTimer = 0;
+    stageParticleSeed = 0;
+    stageLightId = stageCameraModelId = stageParticleModelId = -1;
+    CreateStageEffectObject(objman);
     for (i = 0; i < (frand() & 0x7F); i++) {
-        fn_1_11670();
+        GetRandomStageValue();
     }
 }
 
-void fn_1_C530(OMOBJ *object);
+void InitializeStageEffects(OMOBJ *object);
 
-void fn_1_C4E4(HUPROCESS *objman)
+void CreateStageEffectObject(HUPROCESS *objman)
 {
-    lbl_1_bss_13C = omAddObjEx(objman, 30, 35, 0, -1, fn_1_C530);
+    stageEffectObject = omAddObjEx(objman, 30, 35, 0, -1, InitializeStageEffects);
 }
 
-typedef struct work_f4b0 {
-    s16 unk0;
-    s16 unk2;
-    GXColor *unk4;
-    HuVec2f *unk8;
-    u8 *unkC;
+typedef struct StageModelHookWork {
+    s16 animationPhase;
+    s16 animationFrame;
+    GXColor *originalVertexColors;
+    HuVec2f *originalTextureCoordinates;
+    u8 *processedVertexFlags;
     union {
-        s16 unk10[32];
-        float unk10_f[16];
+        s16 animationParameters[32];
+        float animationTimers[16];
     };
-} WorkF4B0;
+} StageModelHookWork;
 
-void fn_1_CD14(OMOBJ *object);
+void UpdateStageEffects(OMOBJ *object);
 
-s16 fn_1_D978(ANIMDATA *arg0, s16 arg1, HU3DPARTICLEHOOK arg2);
-void fn_1_E310(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
-void fn_1_EEF8(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+s16 CreateStageParticle(ANIMDATA *animationData, s16 particleCount, HU3DPARTICLEHOOK particleHook);
+void UpdateStageParticleSparkles(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void UpdateStageParticleDebris(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 
-WorkF4B0 *fn_1_F4B0(s16 arg0, s16 arg1);
+StageModelHookWork *CreateStageModelHookWork(s16 modelId, s16 animationFrame);
 
-void fn_1_C530(OMOBJ *object)
+void InitializeStageEffects(OMOBJ *object)
 {
-    s32 temp_r31;
-    float *temp_r29;
-    s32 temp_r28;
+    s32 integerValue;
+    float *floatPointer;
+    s32 modelIndex;
 
-    u16 *spC;
-    WorkF4B0 *sp8;
-    object->data = spC = HuMemDirectMallocNum(HEAP_HEAP, 436 * sizeof(u16), HU_MEMNUM_OVL);
-    lbl_1_bss_14C[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M408, 0x24), HU_MEMNUM_OVL));
-    lbl_1_bss_14C[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M408, 0x25), HU_MEMNUM_OVL));
-    lbl_1_bss_14C[2] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M408, 0x26), HU_MEMNUM_OVL));
-    lbl_1_bss_14C[4] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M408, 0x28), HU_MEMNUM_OVL));
-    lbl_1_bss_14C[3] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M408, 0x29), HU_MEMNUM_OVL));
+    u16 *u16Pointer;
+    StageModelHookWork *stagemodelhookworkPointer;
+    object->data = u16Pointer = HuMemDirectMallocNum(HEAP_HEAP, 436 * sizeof(u16), HU_MEMNUM_OVL);
+    stageSpriteAnimations[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M408, 0x24), HU_MEMNUM_OVL));
+    stageSpriteAnimations[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M408, 0x25), HU_MEMNUM_OVL));
+    stageSpriteAnimations[2] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M408, 0x26), HU_MEMNUM_OVL));
+    stageSpriteAnimations[4] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M408, 0x28), HU_MEMNUM_OVL));
+    stageSpriteAnimations[3] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M408, 0x29), HU_MEMNUM_OVL));
     object->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x1A));
     omSetSca(object, 0.1f, 0.1f, 0.1f);
-    temp_r31 = object->mdlId[0];
-    Hu3DModelLayerSet(temp_r31, 1);
-    Hu3DModelAttrSet(temp_r31, HU3D_ATTR_DISPOFF);
+    integerValue = object->mdlId[0];
+    Hu3DModelLayerSet(integerValue, 1);
+    Hu3DModelAttrSet(integerValue, HU3D_ATTR_DISPOFF);
     object->mdlId[4] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x1E));
-    temp_r31 = object->mdlId[4];
-    Hu3DModelLayerSet(temp_r31, 1);
-    Hu3DModelScaleSet(temp_r31, 0.1f, 0.1f, 0.1f);
-    Hu3DModelAttrSet(temp_r31, HU3D_ATTR_DISPOFF);
+    integerValue = object->mdlId[4];
+    Hu3DModelLayerSet(integerValue, 1);
+    Hu3DModelScaleSet(integerValue, 0.1f, 0.1f, 0.1f);
+    Hu3DModelAttrSet(integerValue, HU3D_ATTR_DISPOFF);
     object->mdlId[5] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x20));
-    temp_r31 = object->mdlId[5];
-    Hu3DModelLayerSet(temp_r31, 1);
-    Hu3DModelScaleSet(temp_r31, 0.1f, 0.1f, 0.1f);
+    integerValue = object->mdlId[5];
+    Hu3DModelLayerSet(integerValue, 1);
+    Hu3DModelScaleSet(integerValue, 0.1f, 0.1f, 0.1f);
     object->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x1B));
-    temp_r31 = object->mdlId[2];
-    Hu3DModelLayerSet(temp_r31, 1);
-    Hu3DModelPosSet(temp_r31, -20, -10, -150);
-    Hu3DModelScaleSet(temp_r31, 0.14500001f, 0.14500001f, 0.14500001f);
-    Hu3DModelAttrSet(temp_r31, HU3D_ATTR_DISPOFF);
+    integerValue = object->mdlId[2];
+    Hu3DModelLayerSet(integerValue, 1);
+    Hu3DModelPosSet(integerValue, -20, -10, -150);
+    Hu3DModelScaleSet(integerValue, 0.14500001f, 0.14500001f, 0.14500001f);
+    Hu3DModelAttrSet(integerValue, HU3D_ATTR_DISPOFF);
     object->mdlId[3] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x1D));
-    temp_r31 = object->mdlId[3];
-    Hu3DModelPosSet(temp_r31, 0, -50, -500);
-    Hu3DModelScaleSet(temp_r31, 0.15f, 0.15f, 0.15f);
-    Hu3DModelLayerSet(temp_r31, 0);
-    Hu3DModelAttrSet(temp_r31, HU3D_ATTR_DISPOFF);
-    sp8 = fn_1_F4B0(temp_r31, temp_r31);
+    integerValue = object->mdlId[3];
+    Hu3DModelPosSet(integerValue, 0, -50, -500);
+    Hu3DModelScaleSet(integerValue, 0.15f, 0.15f, 0.15f);
+    Hu3DModelLayerSet(integerValue, 0);
+    Hu3DModelAttrSet(integerValue, HU3D_ATTR_DISPOFF);
+    stagemodelhookworkPointer = CreateStageModelHookWork(integerValue, integerValue);
     object->mdlId[9] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x1C));
-    temp_r31 = object->mdlId[9];
-    lbl_1_bss_148 = temp_r31;
-    Hu3DModelScaleSet(temp_r31, 0.11000001f, 0.1f, 0.11000001f);
-    Hu3DModelPosSet(temp_r31, 0, 10000, 0);
-    Hu3DModelLayerSet(temp_r31, 1);
-    Hu3DModelAttrSet(temp_r31, HU3D_ATTR_DISPOFF);
+    integerValue = object->mdlId[9];
+    stageModelId = integerValue;
+    Hu3DModelScaleSet(integerValue, 0.11000001f, 0.1f, 0.11000001f);
+    Hu3DModelPosSet(integerValue, 0, 10000, 0);
+    Hu3DModelLayerSet(integerValue, 1);
+    Hu3DModelAttrSet(integerValue, HU3D_ATTR_DISPOFF);
     object->mdlId[11] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x1F));
-    temp_r31 = object->mdlId[11];
-    Hu3DModelPosSet(temp_r31, 0, 10000, 0);
-    Hu3DModelLayerSet(temp_r31, 1);
-    Hu3DModelScaleSet(temp_r31, 0.105f, 0.1f, 0.105f);
-    Hu3DModelAttrSet(temp_r31, HU3D_ATTR_DISPOFF);
+    integerValue = object->mdlId[11];
+    Hu3DModelPosSet(integerValue, 0, 10000, 0);
+    Hu3DModelLayerSet(integerValue, 1);
+    Hu3DModelScaleSet(integerValue, 0.105f, 0.1f, 0.105f);
+    Hu3DModelAttrSet(integerValue, HU3D_ATTR_DISPOFF);
     object->mdlId[12] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x23));
-    temp_r31 = object->mdlId[12];
-    Hu3DModelLayerSet(temp_r31, 3);
-    Hu3DModelPosSet(temp_r31, 0, 5000, 0);
-    Hu3DModelScaleSet(temp_r31, 0.1f, 0.1f, 0.1f);
-    Hu3DModelAttrSet(temp_r31, HU3D_ATTR_DISPOFF);
-    Hu3DMotionSpeedSet(temp_r31, 0);
-    object->mdlId[19] = temp_r31 = fn_1_D978(lbl_1_bss_14C[0], 80, fn_1_E310);
-    Hu3DModelLayerSet(temp_r31, 1);
-    Hu3DModelPosSet(temp_r31, 0, 5100, 0);
-    Hu3DParticleBlendModeSet(temp_r31, 1);
-    temp_r29 = ((HU3DPARTICLE *)Hu3DData[temp_r31].hookData)->work;
-    temp_r29[2] = 140;
+    integerValue = object->mdlId[12];
+    Hu3DModelLayerSet(integerValue, 3);
+    Hu3DModelPosSet(integerValue, 0, 5000, 0);
+    Hu3DModelScaleSet(integerValue, 0.1f, 0.1f, 0.1f);
+    Hu3DModelAttrSet(integerValue, HU3D_ATTR_DISPOFF);
+    Hu3DMotionSpeedSet(integerValue, 0);
+    object->mdlId[19] = integerValue = CreateStageParticle(stageSpriteAnimations[0], 80, UpdateStageParticleSparkles);
+    Hu3DModelLayerSet(integerValue, 1);
+    Hu3DModelPosSet(integerValue, 0, 5100, 0);
+    Hu3DParticleBlendModeSet(integerValue, 1);
+    floatPointer = ((HU3DPARTICLE *)Hu3DData[integerValue].hookData)->work;
+    floatPointer[2] = 140;
     object->mdlId[14] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x21));
     object->mdlId[15] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x22));
     object->mdlId[16] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x21));
     object->mdlId[17] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x22));
-    for (temp_r28 = 0; temp_r28 < 4; temp_r28++) {
-        temp_r31 = object->mdlId[temp_r28 + 14];
-        Hu3DModelLayerSet(temp_r31, 3);
-        Hu3DModelRotSet(temp_r31, 0, frandmod(360), 0);
-        Hu3DModelScaleSet(temp_r31, 0.1f, 0.1f, 0.1f);
-        Hu3DModelAttrSet(temp_r31, HU3D_ATTR_DISPOFF);
-        Hu3DMotionSpeedSet(temp_r31, 0);
+    for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+        integerValue = object->mdlId[modelIndex + 14];
+        Hu3DModelLayerSet(integerValue, 3);
+        Hu3DModelRotSet(integerValue, 0, frandmod(360), 0);
+        Hu3DModelScaleSet(integerValue, 0.1f, 0.1f, 0.1f);
+        Hu3DModelAttrSet(integerValue, HU3D_ATTR_DISPOFF);
+        Hu3DMotionSpeedSet(integerValue, 0);
     }
-    object->mdlId[6] = temp_r31 = fn_1_D978(lbl_1_bss_14C[4], 1, fn_1_EEF8);
-    Hu3DModelPosSet(temp_r31, 0, 5000, 0);
-    Hu3DModelLayerSet(temp_r31, 3);
-    Hu3DModelAttrReset(temp_r31, HU3D_ATTR_DISPOFF);
-    Hu3DParticleBlendModeSet(temp_r31, 1);
-    temp_r29 = ((HU3DPARTICLE *)Hu3DData[temp_r31].hookData)->work;
-    temp_r29[1] = 800;
-    object->objFunc = fn_1_CD14;
+    object->mdlId[6] = integerValue = CreateStageParticle(stageSpriteAnimations[4], 1, UpdateStageParticleDebris);
+    Hu3DModelPosSet(integerValue, 0, 5000, 0);
+    Hu3DModelLayerSet(integerValue, 3);
+    Hu3DModelAttrReset(integerValue, HU3D_ATTR_DISPOFF);
+    Hu3DParticleBlendModeSet(integerValue, 1);
+    floatPointer = ((HU3DPARTICLE *)Hu3DData[integerValue].hookData)->work;
+    floatPointer[1] = 800;
+    object->objFunc = UpdateStageEffects;
 }
 
-void fn_1_D004(OMOBJ *object);
+void UpdateStageEffectAnimation(OMOBJ *object);
 
-void fn_1_CD14(OMOBJ *object)
+void UpdateStageEffects(OMOBJ *object)
 {
-    u16 *temp_r30;
-    u32 temp_r29;
-    temp_r29 = fn_1_6878();
-    temp_r30 = object->data;
-    switch (temp_r29) {
+    u16 *u16Pointer;
+    u32 state;
+    state = GetStageEventState();
+    u16Pointer = object->data;
+    switch (state) {
         case 1:
-            temp_r30[0] = 2;
-            temp_r30[1] = 0;
-            lbl_1_bss_140 = 1;
+            u16Pointer[0] = 2;
+            u16Pointer[1] = 0;
+            stageParticleSeed = 1;
             break;
 
         case 2:
         case 3:
-            fn_1_D004(object);
-            temp_r30[1]++;
+            UpdateStageEffectAnimation(object);
+            u16Pointer[1]++;
             break;
 
         case 4:
@@ -190,26 +190,26 @@ void fn_1_CD14(OMOBJ *object)
         default:
             break;
     }
-    if (temp_r29 > 3) {
-        if (lbl_1_bss_134 >= 0) {
-            HuAudFXStop(lbl_1_bss_134);
-            lbl_1_bss_134 = -1;
+    if (state > 3) {
+        if (stageCameraModelId >= 0) {
+            HuAudFXStop(stageCameraModelId);
+            stageCameraModelId = -1;
         }
-        if (lbl_1_bss_130 >= 0) {
-            HuAudFXStop(lbl_1_bss_130);
-            lbl_1_bss_130 = -1;
+        if (stageParticleModelId >= 0) {
+            HuAudFXStop(stageParticleModelId);
+            stageParticleModelId = -1;
         }
     }
 }
 
-s32 fn_1_CE68(void)
+s32 GetStageEffectState(void)
 {
-    switch (lbl_1_bss_140) {
+    switch (stageParticleSeed) {
         case 0:
             return 0;
 
         case 1:
-            if (lbl_1_bss_144) {
+            if (stageEffectTimer) {
                 return 2;
             }
             else {
@@ -218,7 +218,7 @@ s32 fn_1_CE68(void)
             break;
 
         case 2:
-            if (lbl_1_bss_144) {
+            if (stageEffectTimer) {
                 return 3;
             }
             else {
@@ -228,314 +228,314 @@ s32 fn_1_CE68(void)
     }
 }
 
-void fn_1_CEEC(void)
+void CleanupStageEffects(void)
 {
-    OMOBJ *temp_r31;
-    s32 temp_r30;
-    temp_r31 = lbl_1_bss_13C;
-    if (lbl_1_bss_140 >= 2) {
+    OMOBJ *object;
+    s32 modelIndex;
+    object = stageEffectObject;
+    if (stageParticleSeed >= 2) {
         return;
     }
-    lbl_1_bss_140 = 2;
-    Hu3DModelAttrSet(temp_r31->mdlId[5], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(temp_r31->mdlId[9], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(temp_r31->mdlId[11], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(temp_r31->mdlId[12], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(temp_r31->mdlId[19], HU3D_ATTR_DISPOFF);
-    for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-        Hu3DModelAttrSet(temp_r31->mdlId[temp_r30 + 14], HU3D_ATTR_DISPOFF);
+    stageParticleSeed = 2;
+    Hu3DModelAttrSet(object->mdlId[5], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(object->mdlId[9], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(object->mdlId[11], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(object->mdlId[12], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(object->mdlId[19], HU3D_ATTR_DISPOFF);
+    for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+        Hu3DModelAttrSet(object->mdlId[modelIndex + 14], HU3D_ATTR_DISPOFF);
     }
-    Hu3DModelAttrReset(temp_r31->mdlId[0], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(temp_r31->mdlId[4], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(temp_r31->mdlId[2], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(temp_r31->mdlId[3], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(object->mdlId[4], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(object->mdlId[2], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(object->mdlId[3], HU3D_ATTR_DISPOFF);
 }
 
-void fn_1_D6F0(OMOBJ *object);
+void UpdateStageEffectParticles(OMOBJ *object);
 
-void fn_1_D004(OMOBJ *object)
+void UpdateStageEffectAnimation(OMOBJ *object)
 {
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    float temp_f28;
-    u16 *temp_r30;
-    float *temp_r28;
-    s32 temp_r27;
-    s32 temp_r26;
-    HU3DCAMERA *sp8;
-    temp_r30 = object->data;
-    sp8 = &Hu3DCamera[0];
-    temp_f30 = fn_1_6888();
-    temp_f28 = 7000;
-    switch (temp_r30[0]) {
+    float scale;
+    float interpolationValue;
+    float interpolationValue2;
+    float interpolationValue3;
+    u16 *u16Pointer;
+    float *floatPointer;
+    s32 integerValue;
+    s32 modelIndex;
+    HU3DCAMERA *camera;
+    u16Pointer = object->data;
+    camera = &Hu3DCamera[0];
+    interpolationValue = GetStageEventValue();
+    interpolationValue3 = 7000;
+    switch (u16Pointer[0]) {
         case 2:
             Hu3DModelAttrReset(object->mdlId[9], HU3D_ATTR_DISPOFF);
             Hu3DModelAttrReset(object->mdlId[11], HU3D_ATTR_DISPOFF);
             Hu3DModelAttrReset(object->mdlId[12], HU3D_ATTR_DISPOFF);
             Hu3DModelAttrReset(object->mdlId[19], HU3D_ATTR_DISPOFF);
-            for (temp_r26 = 0; temp_r26 < 4; temp_r26++) {
-                Hu3DModelAttrReset(object->mdlId[temp_r26 + 14], HU3D_ATTR_DISPOFF);
+            for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+                Hu3DModelAttrReset(object->mdlId[modelIndex + 14], HU3D_ATTR_DISPOFF);
             }
             Hu3DModelAttrReset(object->mdlId[6], HU3D_ATTR_DISPOFF);
-            if (lbl_1_bss_134 < 0) {
-                lbl_1_bss_134 = HuAudFXPlay(1363);
+            if (stageCameraModelId < 0) {
+                stageCameraModelId = HuAudFXPlay(1363);
             }
-            temp_r30[2] = 0;
-            temp_r30[0]++;
+            u16Pointer[2] = 0;
+            u16Pointer[0]++;
 
         case 3:
-            temp_f31 = temp_r30[1] * 0.25f;
-            Hu3DModelRotSet(object->mdlId[9], 0, 0.7f * -temp_f31, 0);
-            Hu3DModelRotSet(object->mdlId[11], 0, 1.3f * temp_f31, 0);
-            Hu3DModelRotSet(object->mdlId[12], 0, 3.7f * temp_f31, 0);
-            temp_f29 = 1.0f - ((temp_f30 - 5000) / 15000);
-            Hu3DMotionTimeSet(object->mdlId[12], 95.0f * temp_f29);
-            temp_r27 = object->mdlId[6];
-            temp_r28 = ((HU3DPARTICLE *)Hu3DData[temp_r27].hookData)->work;
-            temp_r28[2] = 1.0f - ((temp_f30 - 5000) / (temp_f28 - 5000));
-            if (temp_f30 <= 5400 && temp_r30[2] == 0) {
-                temp_r30[2] = 30;
-                if (!lbl_1_bss_40) {
-                    WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, temp_r30[2]);
-                    lbl_1_bss_44 = 1;
+            scale = u16Pointer[1] * 0.25f;
+            Hu3DModelRotSet(object->mdlId[9], 0, 0.7f * -scale, 0);
+            Hu3DModelRotSet(object->mdlId[11], 0, 1.3f * scale, 0);
+            Hu3DModelRotSet(object->mdlId[12], 0, 3.7f * scale, 0);
+            interpolationValue2 = 1.0f - ((interpolationValue - 5000) / 15000);
+            Hu3DMotionTimeSet(object->mdlId[12], 95.0f * interpolationValue2);
+            integerValue = object->mdlId[6];
+            floatPointer = ((HU3DPARTICLE *)Hu3DData[integerValue].hookData)->work;
+            floatPointer[2] = 1.0f - ((interpolationValue - 5000) / (interpolationValue3 - 5000));
+            if (interpolationValue <= 5400 && u16Pointer[2] == 0) {
+                u16Pointer[2] = 30;
+                if (!minigameExitRequested) {
+                    WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, u16Pointer[2]);
+                    minigameExitAllowed = 1;
                 }
-                lbl_1_bss_144 = 1;
-                temp_r30[0]++;
+                stageEffectTimer = 1;
+                u16Pointer[0]++;
             }
-            if (temp_f30 <= 4800) {
-                temp_r28[1] = 1200;
-                temp_r30[0]++;
+            if (interpolationValue <= 4800) {
+                floatPointer[1] = 1200;
+                u16Pointer[0]++;
             }
-            fn_1_D6F0(object);
+            UpdateStageEffectParticles(object);
             break;
 
         case 4:
-            if (temp_r30[2]-- == 0) {
-                if (!lbl_1_bss_40) {
+            if (u16Pointer[2]-- == 0) {
+                if (!minigameExitRequested) {
                     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 30);
-                    lbl_1_bss_44 = 0;
+                    minigameExitAllowed = 0;
                 }
-                if (lbl_1_bss_138 < 0) {
-                    lbl_1_bss_138 = HuAudFXPlay(1357);
+                if (stageLightId < 0) {
+                    stageLightId = HuAudFXPlay(1357);
                 }
-                fn_1_CEEC();
-                if (lbl_1_bss_134 >= 0) {
-                    HuAudFXStop(lbl_1_bss_134);
-                    lbl_1_bss_134 = -1;
+                CleanupStageEffects();
+                if (stageCameraModelId >= 0) {
+                    HuAudFXStop(stageCameraModelId);
+                    stageCameraModelId = -1;
                 }
-                if (lbl_1_bss_130 < 0) {
-                    lbl_1_bss_130 = HuAudFXPlay(1361);
+                if (stageParticleModelId < 0) {
+                    stageParticleModelId = HuAudFXPlay(1361);
                 }
-                temp_r30[0]++;
+                u16Pointer[0]++;
             }
 
             break;
 
         case 5:
             if (!WipeStatGet()) {
-                lbl_1_bss_144 = 0;
+                stageEffectTimer = 0;
             }
-            temp_r27 = object->mdlId[6];
-            if (temp_r27 != 0) {
-                Hu3DModelPosSet(temp_r27, 0, 200 + temp_f30, 0);
-                temp_r28 = ((HU3DPARTICLE *)Hu3DData[temp_r27].hookData)->work;
-                temp_r28[2] -= 0.025f;
-                if (temp_r28[2] <= 0) {
-                    Hu3DModelAttrReset(temp_r27, HU3D_ATTR_PARTICLE_KILL);
-                    Hu3DModelKill(temp_r27);
+            integerValue = object->mdlId[6];
+            if (integerValue != 0) {
+                Hu3DModelPosSet(integerValue, 0, 200 + interpolationValue, 0);
+                floatPointer = ((HU3DPARTICLE *)Hu3DData[integerValue].hookData)->work;
+                floatPointer[2] -= 0.025f;
+                if (floatPointer[2] <= 0) {
+                    Hu3DModelAttrReset(integerValue, HU3D_ATTR_PARTICLE_KILL);
+                    Hu3DModelKill(integerValue);
                     object->mdlId[6] = 0;
                 }
             }
-            temp_f31 = temp_r30[1] % 360;
-            temp_f31 = 0.1f * (1.4f + ((0.2f * temp_f30) / 5000));
-            Hu3DModelScaleSet(object->mdlId[2], temp_f31, temp_f31, temp_f31);
+            scale = u16Pointer[1] % 360;
+            scale = 0.1f * (1.4f + ((0.2f * interpolationValue) / 5000));
+            Hu3DModelScaleSet(object->mdlId[2], scale, scale, scale);
             break;
     }
 }
 
-void fn_1_D6F0(OMOBJ *object)
+void UpdateStageEffectParticles(OMOBJ *object)
 {
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    float temp_f28;
-    s32 temp_r31;
-    s32 temp_r30;
-    s32 temp_r29;
-    temp_f28 = fn_1_6888() - 1500;
-    temp_f29 = 500.0f * (int)(temp_f28 / 500.0f);
-    temp_r30 = (int)(temp_f28 / 500.0f) % 4;
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        temp_r29 = object->mdlId[temp_r30 + 14];
-        Hu3DModelPosSet(temp_r29, 0, temp_f29, 0);
-        temp_f31 = temp_f29 - temp_f28;
-        temp_f30 = 0;
-        if (temp_f31 > -250.0f && temp_f31 < 1525.0f) {
-            temp_f30 = 45;
-            if (temp_f31 < 0.0f) {
-                temp_f31 -= -250.0f;
-                temp_f30 *= fabs(temp_f31 / 250.0f);
+    float interpolationValue;
+    float interpolationValue2;
+    float interpolationValue3;
+    float interpolationValue4;
+    s32 modelIndex;
+    s32 integerValue;
+    s32 integerValue2;
+    interpolationValue4 = GetStageEventValue() - 1500;
+    interpolationValue3 = 500.0f * (int)(interpolationValue4 / 500.0f);
+    integerValue = (int)(interpolationValue4 / 500.0f) % 4;
+    for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+        integerValue2 = object->mdlId[integerValue + 14];
+        Hu3DModelPosSet(integerValue2, 0, interpolationValue3, 0);
+        interpolationValue = interpolationValue3 - interpolationValue4;
+        interpolationValue2 = 0;
+        if (interpolationValue > -250.0f && interpolationValue < 1525.0f) {
+            interpolationValue2 = 45;
+            if (interpolationValue < 0.0f) {
+                interpolationValue -= -250.0f;
+                interpolationValue2 *= fabs(interpolationValue / 250.0f);
             }
             else {
-                if (temp_f31 > 1425) {
-                    temp_f31 -= 1425;
-                    temp_f30 *= 1.0 - fabs(temp_f31 / 100.0f);
+                if (interpolationValue > 1425) {
+                    interpolationValue -= 1425;
+                    interpolationValue2 *= 1.0 - fabs(interpolationValue / 100.0f);
                 }
             }
         }
-        Hu3DMotionTimeSet(temp_r29, temp_f30);
-        temp_f29 += 500.0f;
-        temp_r30 = (temp_r30 + 1) % 4;
+        Hu3DMotionTimeSet(integerValue2, interpolationValue2);
+        interpolationValue3 += 500.0f;
+        integerValue = (integerValue + 1) % 4;
     }
 }
 
-s16 fn_1_D978(ANIMDATA *arg0, s16 arg1, HU3DPARTICLEHOOK arg2)
+s16 CreateStageParticle(ANIMDATA *animationData, s16 particleCount, HU3DPARTICLEHOOK particleHook)
 {
-    s32 temp_r31;
-    HU3DPARTICLEDATA *temp_r30;
-    HU3DPARTICLE *temp_r29;
-    s32 temp_r28;
-    HU3DPARTICLEDATA *temp_r27;
-    temp_r28 = Hu3DParticleCreate(arg0, arg1);
-    Hu3DParticleHookSet(temp_r28, arg2);
-    Hu3DModelAttrSet(temp_r28, HU3D_ATTR_DISPOFF);
-    temp_r29 = Hu3DData[temp_r28].hookData;
-    temp_r27 = temp_r29->data;
-    for (temp_r31 = 0; temp_r31 < temp_r29->maxCnt; temp_r31++, temp_r27++) {
-        temp_r27->scale = 0;
+    s32 modelIndex;
+    HU3DPARTICLEDATA *integerValue;
+    HU3DPARTICLE *particleWork;
+    s32 createdObjectId;
+    HU3DPARTICLEDATA *particleData;
+    createdObjectId = Hu3DParticleCreate(animationData, particleCount);
+    Hu3DParticleHookSet(createdObjectId, particleHook);
+    Hu3DModelAttrSet(createdObjectId, HU3D_ATTR_DISPOFF);
+    particleWork = Hu3DData[createdObjectId].hookData;
+    particleData = particleWork->data;
+    for (modelIndex = 0; modelIndex < particleWork->maxCnt; modelIndex++, particleData++) {
+        particleData->scale = 0;
     }
-    temp_r30 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(HU3DPARTICLEDATA), HU_MEMNUM_OVL);
-    temp_r29->work = temp_r30;
-    temp_r30->time = temp_r28;
-    temp_r30->parManId = 0;
-    for (temp_r31 = 0; temp_r31 < 32; temp_r31++) {
+    integerValue = HuMemDirectMallocNum(HEAP_HEAP, sizeof(HU3DPARTICLEDATA), HU_MEMNUM_OVL);
+    particleWork->work = integerValue;
+    integerValue->time = createdObjectId;
+    integerValue->parManId = 0;
+    for (modelIndex = 0; modelIndex < 32; modelIndex++) {
         // Ugly expression to match store without new type
-        *((s16 *)(((u8 *)temp_r30) + (temp_r31 * 2) + 4)) = 0;
+        *((s16 *)(((u8 *)integerValue) + (modelIndex * 2) + 4)) = 0;
     }
-    return temp_r28;
+    return createdObjectId;
 }
 
-void fn_1_DA6C(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateStageParticleFlames(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    float temp_f31;
-    float temp_f30;
+    float interpolationValue;
+    float interpolationValue2;
 
-    HU3DPARTICLEDATA *temp_r31;
-    HU3DPARTICLE *temp_r29;
-    s32 temp_r28;
-    s32 temp_r27;
-    s16 temp_r26;
-    temp_r29 = particle->work;
-    switch (temp_r29->emitCnt) {
+    HU3DPARTICLEDATA *particleData;
+    HU3DPARTICLE *particleWork;
+    s32 particleIndex;
+    s32 particleIndex2;
+    s16 integerValue;
+    particleWork = particle->work;
+    switch (particleWork->emitCnt) {
         case 0:
-            temp_r31 = particle->data;
-            for (temp_r28 = 0; temp_r28 < particle->maxCnt; temp_r28++, temp_r31++) {
-                temp_r31->time = 0;
+            particleData = particle->data;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->time = 0;
             }
             particle->dataCnt = 0;
-            temp_r29->emitCnt++;
-            temp_r29->pos.y = 3;
-            temp_r29->pos.z = 25;
+            particleWork->emitCnt++;
+            particleWork->pos.y = 3;
+            particleWork->pos.z = 25;
             break;
 
         case 1:
-            for (temp_r28 = 0; temp_r28 < 100; temp_r28++) {
-                temp_r31 = particle->data;
-                for (temp_r27 = 0; temp_r27 < particle->maxCnt; temp_r27++, temp_r31++) {
-                    if (!temp_r31->time) {
+            for (particleIndex = 0; particleIndex < 100; particleIndex++) {
+                particleData = particle->data;
+                for (particleIndex2 = 0; particleIndex2 < particle->maxCnt; particleIndex2++, particleData++) {
+                    if (!particleData->time) {
                         break;
                     }
                 }
-                if (temp_r27 == particle->maxCnt) {
-                    temp_r29->emitCnt++;
+                if (particleIndex2 == particle->maxCnt) {
+                    particleWork->emitCnt++;
                     break;
                 }
-                temp_r31->pos.x = temp_r31->pos.y = temp_r31->pos.z = 0;
-                temp_r26 = fn_1_11670() % 360;
-                temp_r31->vel.x = sind(temp_r26);
-                temp_r31->vel.y = -6.0 + (2.0 * temp_r29->unk_10.x);
-                temp_r31->vel.z = cosd(temp_r26);
-                temp_r31->accel.x = ((fn_1_11670() & 0x7) + temp_r29->pos.z) - 4.0f;
-                temp_r31->accel.x *= 0.1f;
-                temp_f31 = temp_r29->pos.y + (0.01 * (float)(fn_1_11670() % 400));
-                temp_f31 *= 0.1f;
-                temp_r31->pos.x = temp_f31 * temp_r31->vel.x;
-                temp_r31->pos.y = 0;
-                temp_r31->pos.z = temp_f31 * temp_r31->vel.z;
-                temp_r31->scale = (0.01 * (frand() % 2000)) + 30.0;
-                temp_r31->scale *= 0.1f;
-                temp_r31->color.a = 255;
-                temp_r31->time = 30;
+                particleData->pos.x = particleData->pos.y = particleData->pos.z = 0;
+                integerValue = GetRandomStageValue() % 360;
+                particleData->vel.x = sind(integerValue);
+                particleData->vel.y = -6.0 + (2.0 * particleWork->unk10.x);
+                particleData->vel.z = cosd(integerValue);
+                particleData->accel.x = ((GetRandomStageValue() & 0x7) + particleWork->pos.z) - 4.0f;
+                particleData->accel.x *= 0.1f;
+                interpolationValue = particleWork->pos.y + (0.01 * (float)(GetRandomStageValue() % 400));
+                interpolationValue *= 0.1f;
+                particleData->pos.x = interpolationValue * particleData->vel.x;
+                particleData->pos.y = 0;
+                particleData->pos.z = interpolationValue * particleData->vel.z;
+                particleData->scale = (0.01 * (frand() % 2000)) + 30.0;
+                particleData->scale *= 0.1f;
+                particleData->color.a = 255;
+                particleData->time = 30;
             }
             break;
     }
-    temp_r31 = particle->data;
-    for (temp_r28 = 0; temp_r28 < particle->maxCnt; temp_r28++, temp_r31++) {
-        if (temp_r31->time == 0) {
+    particleData = particle->data;
+    for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+        if (particleData->time == 0) {
             continue;
         }
-        temp_f30 = temp_r31->accel.x;
-        temp_r31->pos.x += temp_r31->vel.x * temp_f30;
-        temp_r31->pos.y += temp_r31->vel.y;
-        temp_r31->pos.z += temp_r31->vel.z * temp_f30;
-        temp_r31->scale *= 1.025f;
-        temp_r31->color.a *= 0.95f;
-        temp_r31->color.a--;
-        temp_r31->accel.x *= 0.8f;
-        temp_r31->vel.y *= 0.85f;
-        temp_r31->vel.y += 0.1f;
-        if (temp_r31->color.a < 2) {
-            temp_r31->color.a = 0;
-            temp_r31->time = 0;
+        interpolationValue2 = particleData->accel.x;
+        particleData->pos.x += particleData->vel.x * interpolationValue2;
+        particleData->pos.y += particleData->vel.y;
+        particleData->pos.z += particleData->vel.z * interpolationValue2;
+        particleData->scale *= 1.025f;
+        particleData->color.a *= 0.95f;
+        particleData->color.a--;
+        particleData->accel.x *= 0.8f;
+        particleData->vel.y *= 0.85f;
+        particleData->vel.y += 0.1f;
+        if (particleData->color.a < 2) {
+            particleData->color.a = 0;
+            particleData->time = 0;
             particle->dataCnt++;
         }
     }
     DCFlushRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
-    if (particle->dataCnt >= particle->maxCnt && temp_r29->emitCnt == 2) {
-        temp_r29->emitCnt = 0;
-        Hu3DModelAttrReset(temp_r29->dataCnt, HU3D_ATTR_PARTICLE_KILL);
-        Hu3DModelKill(temp_r29->dataCnt);
+    if (particle->dataCnt >= particle->maxCnt && particleWork->emitCnt == 2) {
+        particleWork->emitCnt = 0;
+        Hu3DModelAttrReset(particleWork->dataCnt, HU3D_ATTR_PARTICLE_KILL);
+        Hu3DModelKill(particleWork->dataCnt);
     }
 }
 
-void fn_1_DFD0(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateStageParticleSmoke(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    float temp_f31;
-    HU3DPARTICLEDATA *temp_r31;
-    HU3DPARTICLE *temp_r30;
-    s32 temp_r28;
-    s16 temp_r27;
-    s32 temp_r26;
-    temp_r30 = particle->work;
-    switch (temp_r30->emitCnt) {
+    float interpolationValue;
+    HU3DPARTICLEDATA *particleData;
+    HU3DPARTICLE *particleWork;
+    s32 particleIndex;
+    s16 integerValue;
+    s32 integerValue2;
+    particleWork = particle->work;
+    switch (particleWork->emitCnt) {
         case 0:
-            temp_r31 = particle->data;
-            temp_r30->pos.x = 10;
-            for (temp_r28 = 0; temp_r28 < particle->maxCnt; temp_r28++, temp_r31++) {
-                temp_r31->pos.x = temp_r31->pos.y = temp_r31->pos.z = 0;
-                temp_r27 = fn_1_11670() % 360;
-                temp_r31->vel.x = sind(temp_r27);
-                temp_r31->vel.y = 0;
-                temp_r31->vel.z = cosd(temp_r27);
-                temp_f31 = temp_r30->pos.x + (temp_r30->pos.x * ((1.0 / 65536.0) * (float)fn_1_11670()));
-                temp_r31->pos.x = temp_f31 * temp_r31->vel.x;
-                temp_r31->pos.y = -(100.0 * ((1.0 / 65536.0) * (float)fn_1_11670()));
-                temp_r31->pos.z = temp_f31 * temp_r31->vel.z;
-                temp_r31->scale = (0.01 * (frand() % 2000)) + 40.0;
-                temp_r26 = frand() & 0x2F;
-                temp_r31->color.r = temp_r26 + 208;
-                temp_r31->color.g = temp_r26 + 208;
-                temp_r31->color.a = (frand() & 0x5F) + 32;
+            particleData = particle->data;
+            particleWork->pos.x = 10;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->pos.x = particleData->pos.y = particleData->pos.z = 0;
+                integerValue = GetRandomStageValue() % 360;
+                particleData->vel.x = sind(integerValue);
+                particleData->vel.y = 0;
+                particleData->vel.z = cosd(integerValue);
+                interpolationValue = particleWork->pos.x + (particleWork->pos.x * ((1.0 / 65536.0) * (float)GetRandomStageValue()));
+                particleData->pos.x = interpolationValue * particleData->vel.x;
+                particleData->pos.y = -(100.0 * ((1.0 / 65536.0) * (float)GetRandomStageValue()));
+                particleData->pos.z = interpolationValue * particleData->vel.z;
+                particleData->scale = (0.01 * (frand() % 2000)) + 40.0;
+                integerValue2 = frand() & 0x2F;
+                particleData->color.r = integerValue2 + 208;
+                particleData->color.g = integerValue2 + 208;
+                particleData->color.a = (frand() & 0x5F) + 32;
             }
-            temp_r30->emitCnt++;
+            particleWork->emitCnt++;
             particle->dataCnt = 60;
             break;
 
         case 1:
             if (--particle->dataCnt == 0) {
-                Hu3DModelAttrReset(temp_r30->dataCnt, HU3D_ATTR_PARTICLE_KILL);
-                Hu3DModelKill(temp_r30->dataCnt);
+                Hu3DModelAttrReset(particleWork->dataCnt, HU3D_ATTR_PARTICLE_KILL);
+                Hu3DModelKill(particleWork->dataCnt);
                 return;
             }
             break;
@@ -543,206 +543,206 @@ void fn_1_DFD0(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
     DCFlushRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-void fn_1_E310(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateStageParticleSparkles(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    float temp_f31;
-    float temp_f30;
+    float interpolationValue;
+    float interpolationValue2;
 
-    HU3DPARTICLEDATA *temp_r31;
-    HU3DPARTICLE *temp_r29;
-    s32 temp_r28;
-    s32 temp_r27;
-    s16 temp_r26;
-    temp_r29 = particle->work;
-    switch (temp_r29->emitCnt) {
+    HU3DPARTICLEDATA *particleData;
+    HU3DPARTICLE *particleWork;
+    s32 particleIndex;
+    s32 integerValue;
+    s16 integerValue2;
+    particleWork = particle->work;
+    switch (particleWork->emitCnt) {
         case 0:
-            temp_r31 = particle->data;
-            temp_f30 = 360.0f / particle->maxCnt;
+            particleData = particle->data;
+            interpolationValue2 = 360.0f / particle->maxCnt;
 
-            for (temp_r28 = 0; temp_r28 < particle->maxCnt; temp_r28++, temp_r31++) {
-                temp_r31->time = (s32)(360.0 * ((1.0 / 65536.0) * (float)fn_1_11670()));
-                temp_r31->pos.x = temp_r31->pos.y = temp_r31->pos.z = 0;
-                temp_r26 = (temp_f30 * temp_r28) + (int)((temp_f30 * 0.5f) * ((1.0 / 32768.0) * (float)(fn_1_11670() - 32768)));
-                temp_r31->speedDecay = temp_r26;
-                temp_r31->zRot = (M_PI * (temp_r26 + 90.0f)) / 180.0;
-                temp_r31->vel.x = sind(temp_r26);
-                temp_r31->vel.y = 0;
-                temp_r31->vel.z = cosd(temp_r26);
-                temp_f31 = temp_r29->pos.y + ((0.25f * temp_r29->pos.y) * ((1.0 / 65536.0) * (float)fn_1_11670()));
-                temp_r31->accel.x = temp_f31 * temp_r31->vel.x;
-                temp_r31->accel.y = 120.0 * ((1.0 / 32768.0) * (float)(fn_1_11670() - 32768));
-                temp_r31->accel.z = temp_f31 * temp_r31->vel.z;
-                temp_r31->colorIdx = temp_r31->scale = (0.01 * (frand() % 2000)) + 160;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->time = (s32)(360.0 * ((1.0 / 65536.0) * (float)GetRandomStageValue()));
+                particleData->pos.x = particleData->pos.y = particleData->pos.z = 0;
+                integerValue2 = (interpolationValue2 * particleIndex) + (int)((interpolationValue2 * 0.5f) * ((1.0 / 32768.0) * (float)(GetRandomStageValue() - 32768)));
+                particleData->speedDecay = integerValue2;
+                particleData->zRot = (M_PI * (integerValue2 + 90.0f)) / 180.0;
+                particleData->vel.x = sind(integerValue2);
+                particleData->vel.y = 0;
+                particleData->vel.z = cosd(integerValue2);
+                interpolationValue = particleWork->pos.y + ((0.25f * particleWork->pos.y) * ((1.0 / 65536.0) * (float)GetRandomStageValue()));
+                particleData->accel.x = interpolationValue * particleData->vel.x;
+                particleData->accel.y = 120.0 * ((1.0 / 32768.0) * (float)(GetRandomStageValue() - 32768));
+                particleData->accel.z = interpolationValue * particleData->vel.z;
+                particleData->colorIdx = particleData->scale = (0.01 * (frand() % 2000)) + 160;
                 if (particle->blendMode == 1) {
-                    temp_r27 = frand() & 0x2F;
-                    temp_r31->color.r = temp_r27 + 32;
-                    temp_r31->color.g = temp_r27 + 32;
-                    temp_r31->color.b = 64 + temp_r27 + ((int)(((46 - temp_r27) * ((1.0 / 65536.0) * (float)fn_1_11670()))));
-                    temp_r31->color.a = (frand() & 0x2F) + 32;
+                    integerValue = frand() & 0x2F;
+                    particleData->color.r = integerValue + 32;
+                    particleData->color.g = integerValue + 32;
+                    particleData->color.b = 64 + integerValue + ((int)(((46 - integerValue) * ((1.0 / 65536.0) * (float)GetRandomStageValue()))));
+                    particleData->color.a = (frand() & 0x2F) + 32;
                 }
                 else {
-                    temp_r27 = frand() & 0x2F;
-                    temp_r31->color.r = temp_r27 + 208;
-                    temp_r31->color.g = temp_r27 + 208;
-                    temp_r31->color.a = (frand() & 0x4F) + 176;
+                    integerValue = frand() & 0x2F;
+                    particleData->color.r = integerValue + 208;
+                    particleData->color.g = integerValue + 208;
+                    particleData->color.a = (frand() & 0x4F) + 176;
                 }
             }
-            temp_r29->emitCnt++;
+            particleWork->emitCnt++;
 
         case 1:
-            temp_r31 = particle->data;
-            for (temp_r28 = 0; temp_r28 < particle->maxCnt; temp_r28++, temp_r31++) {
-                temp_r31->time += 4;
-                if (temp_r31->time >= 360) {
-                    temp_r31->time -= 360;
+            particleData = particle->data;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->time += 4;
+                if (particleData->time >= 360) {
+                    particleData->time -= 360;
                 }
-                temp_r31->pos.x = temp_r31->accel.x;
-                temp_r31->pos.y = temp_r31->accel.y;
-                temp_r31->pos.z = temp_r31->accel.z;
-                temp_r31->zRot = M_PI * (90 + (temp_r31->speedDecay + temp_r29->pos.z)) / 180;
-                temp_r31->scale = temp_r31->colorIdx * ((0.1f * sind(temp_r31->time)) + 1.0);
+                particleData->pos.x = particleData->accel.x;
+                particleData->pos.y = particleData->accel.y;
+                particleData->pos.z = particleData->accel.z;
+                particleData->zRot = M_PI * (90 + (particleData->speedDecay + particleWork->pos.z)) / 180;
+                particleData->scale = particleData->colorIdx * ((0.1f * sind(particleData->time)) + 1.0);
             }
             break;
     }
     DCFlushRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-void fn_1_E9B4(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateStageParticleGlow(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    float temp_f30;
-    float temp_f31;
-    HU3DPARTICLEDATA *temp_r31;
-    HU3DPARTICLE *temp_r30;
-    s32 temp_r28;
-    s16 temp_r27;
-    s32 temp_r26;
-    temp_r30 = particle->work;
-    switch (temp_r30->emitCnt) {
+    float interpolationValue;
+    float interpolationValue2;
+    HU3DPARTICLEDATA *particleData;
+    HU3DPARTICLE *particleWork;
+    s32 particleIndex;
+    s16 integerValue;
+    s32 integerValue2;
+    particleWork = particle->work;
+    switch (particleWork->emitCnt) {
         case 0:
-            temp_r31 = particle->data;
-            for (temp_r28 = 0; temp_r28 < particle->maxCnt; temp_r28++, temp_r31++) {
-                temp_r31->time = fn_1_11670() % 360;
-                temp_r31->pos.x = temp_r31->pos.y = temp_r31->pos.z = 0;
-                temp_r27 = fn_1_11670() % 360;
-                temp_r31->speedDecay = temp_r27;
-                temp_r31->vel.x = sind(temp_r27);
-                temp_r31->vel.y = 0;
-                temp_r31->vel.z = cosd(temp_r27);
-                temp_f31 = temp_r30->pos.x + (0.01 * ((30.0f * temp_r30->pos.x) * ((1.0 / 65536.0) * (float)fn_1_11670())));
-                temp_f30 = (0.15f + (0.3f * ((1.0 / 65536.0) * (float)fn_1_11670())));
-                temp_r31->accel.x = temp_f31 * temp_r31->vel.x;
-                temp_r31->accel.y = 50 * ((1.0 / 32768.0) * (float)(fn_1_11670() - 32768));
-                temp_r31->accel.z = temp_f31 * temp_r31->vel.z * temp_f30;
-                temp_r31->colorIdx = temp_r31->scale
-                    = temp_r30->pos.x + (0.01 * ((50.0f * temp_r30->pos.x) * ((1.0 / 65536.0) * (float)fn_1_11670())));
-                temp_r26 = frand() & 0x7F;
-                temp_r31->color.r = temp_r26 + 64;
-                temp_r31->color.g = temp_r26 + 64;
-                temp_f31 -= temp_r30->pos.x;
-                temp_r31->color.a
-                    = 32 + (int)((48.0f * temp_f31) / (0.2f * temp_r30->pos.x)) + (int)(32 * ((1.0 / 65536.0) * (float)fn_1_11670()));
+            particleData = particle->data;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->time = GetRandomStageValue() % 360;
+                particleData->pos.x = particleData->pos.y = particleData->pos.z = 0;
+                integerValue = GetRandomStageValue() % 360;
+                particleData->speedDecay = integerValue;
+                particleData->vel.x = sind(integerValue);
+                particleData->vel.y = 0;
+                particleData->vel.z = cosd(integerValue);
+                interpolationValue2 = particleWork->pos.x + (0.01 * ((30.0f * particleWork->pos.x) * ((1.0 / 65536.0) * (float)GetRandomStageValue())));
+                interpolationValue = (0.15f + (0.3f * ((1.0 / 65536.0) * (float)GetRandomStageValue())));
+                particleData->accel.x = interpolationValue2 * particleData->vel.x;
+                particleData->accel.y = 50 * ((1.0 / 32768.0) * (float)(GetRandomStageValue() - 32768));
+                particleData->accel.z = interpolationValue2 * particleData->vel.z * interpolationValue;
+                particleData->colorIdx = particleData->scale
+                    = particleWork->pos.x + (0.01 * ((50.0f * particleWork->pos.x) * ((1.0 / 65536.0) * (float)GetRandomStageValue())));
+                integerValue2 = frand() & 0x7F;
+                particleData->color.r = integerValue2 + 64;
+                particleData->color.g = integerValue2 + 64;
+                interpolationValue2 -= particleWork->pos.x;
+                particleData->color.a
+                    = 32 + (int)((48.0f * interpolationValue2) / (0.2f * particleWork->pos.x)) + (int)(32 * ((1.0 / 65536.0) * (float)GetRandomStageValue()));
             }
-            temp_r30->emitCnt++;
+            particleWork->emitCnt++;
 
         case 1:
-            temp_r31 = particle->data;
-            for (temp_r28 = 0; temp_r28 < particle->maxCnt; temp_r28++, temp_r31++) {
-                temp_r31->time += 2;
-                if (temp_r31->time >= 360) {
-                    temp_r31->time -= 360;
+            particleData = particle->data;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->time += 2;
+                if (particleData->time >= 360) {
+                    particleData->time -= 360;
                 }
-                temp_r31->pos.x = temp_r31->accel.x;
-                temp_r31->pos.y = temp_r31->accel.y;
-                temp_r31->pos.z = temp_r31->accel.z;
-                temp_r31->scale = temp_r31->colorIdx * ((0.1f * sind(temp_r31->time)) + 1.0);
+                particleData->pos.x = particleData->accel.x;
+                particleData->pos.y = particleData->accel.y;
+                particleData->pos.z = particleData->accel.z;
+                particleData->scale = particleData->colorIdx * ((0.1f * sind(particleData->time)) + 1.0);
             }
             break;
     }
     DCFlushRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-void fn_1_EEF8(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateStageParticleDebris(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    float temp_f31;
-    HU3DPARTICLEDATA *temp_r31;
-    HU3DPARTICLE *temp_r29;
-    s32 temp_r28;
-    u8 temp_r27;
-    temp_r29 = particle->work;
-    switch (temp_r29->emitCnt) {
+    float interpolationValue;
+    HU3DPARTICLEDATA *particleData;
+    HU3DPARTICLE *particleWork;
+    s32 particleIndex;
+    u8 integerValue;
+    particleWork = particle->work;
+    switch (particleWork->emitCnt) {
         case 0:
-            temp_r31 = particle->data;
-            for (temp_r28 = 0; temp_r28 < particle->maxCnt; temp_r28++, temp_r31++) {
-                temp_r31->pos.x = temp_r31->pos.y = temp_r31->pos.z = 0;
-                temp_r31->color.r = temp_r31->color.g = temp_r31->color.b = temp_r31->color.a = 255;
-                temp_r31->scale = temp_r29->pos.x;
+            particleData = particle->data;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->pos.x = particleData->pos.y = particleData->pos.z = 0;
+                particleData->color.r = particleData->color.g = particleData->color.b = particleData->color.a = 255;
+                particleData->scale = particleWork->pos.x;
             }
-            temp_r29->emitCnt++;
+            particleWork->emitCnt++;
             break;
 
         case 1:
-            if (temp_r29->pos.y < 0.0f) {
+            if (particleWork->pos.y < 0.0f) {
                 break;
             }
-            temp_f31 = 0.1f + temp_r29->pos.y;
-            temp_f31 = 1.2f * (temp_f31 * temp_f31);
-            if (temp_f31 > 1.0f) {
-                temp_f31 = 1.0f;
+            interpolationValue = 0.1f + particleWork->pos.y;
+            interpolationValue = 1.2f * (interpolationValue * interpolationValue);
+            if (interpolationValue > 1.0f) {
+                interpolationValue = 1.0f;
             }
-            temp_r27 = 255 * temp_f31;
-            temp_r31 = particle->data;
-            for (temp_r28 = 0; temp_r28 < particle->maxCnt; temp_r28++, temp_r31++) {
-                temp_r31->color.a = temp_r27;
+            integerValue = 255 * interpolationValue;
+            particleData = particle->data;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->color.a = integerValue;
             }
             break;
     }
     DCFlushRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-void fn_1_F06C(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateStageParticleTrail(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    float temp_f31;
-    HU3DPARTICLEDATA *temp_r31;
-    HU3DPARTICLE *temp_r29;
-    s32 temp_r28;
-    s16 temp_r27;
-    temp_r27 = 0;
-    temp_r29 = particle->work;
-    switch (temp_r29->emitCnt) {
+    float angle;
+    HU3DPARTICLEDATA *particleData;
+    HU3DPARTICLE *particleWork;
+    s32 particleIndex;
+    s16 integerValue;
+    integerValue = 0;
+    particleWork = particle->work;
+    switch (particleWork->emitCnt) {
         case 0:
-            temp_r31 = particle->data;
-            for (temp_r28 = 0; temp_r28 < particle->maxCnt; temp_r28++, temp_r31++) {
-                temp_r31->time = temp_r31->parManId = 0;
+            particleData = particle->data;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->time = particleData->parManId = 0;
             }
-            temp_r29->emitCnt++;
+            particleWork->emitCnt++;
             break;
 
         case 1:
-            temp_r31 = particle->data;
-            for (temp_r28 = 0; temp_r28 < particle->maxCnt; temp_r28++, temp_r31++) {
-                if (temp_r31->time) {
-                    temp_r31->time--;
+            particleData = particle->data;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                if (particleData->time) {
+                    particleData->time--;
                     continue;
                 }
-                if (temp_r31->parManId == 0) {
-                    temp_f31 = 360.0f * ((1.0 / 65536.0) * (float)fn_1_11670());
-                    temp_r31->pos.x = 10.0 * (50.0 + (250.0 * ((1.0 / 65536.0) * (float)fn_1_11670()))) * sind(temp_f31);
-                    temp_r31->pos.y = 0;
-                    temp_r31->pos.z = 10.0 * (50.0 + (250.0 * ((1.0 / 65536.0) * (float)fn_1_11670()))) * cosd(temp_f31);
-                    temp_r31->zRot = (M_PI * (temp_f31 - 90.0f)) / 180;
-                    temp_r31->color.r = temp_r31->color.g = temp_r31->color.b = temp_r31->color.a = 192;
-                    temp_r31->color.b = 160;
-                    temp_r31->scale = 0;
-                    temp_r31->time = (s32)(90.0 * ((1.0 / 65536.0) * (float)fn_1_11670()));
-                    temp_r31->parManId = 60;
+                if (particleData->parManId == 0) {
+                    angle = 360.0f * ((1.0 / 65536.0) * (float)GetRandomStageValue());
+                    particleData->pos.x = 10.0 * (50.0 + (250.0 * ((1.0 / 65536.0) * (float)GetRandomStageValue()))) * sind(angle);
+                    particleData->pos.y = 0;
+                    particleData->pos.z = 10.0 * (50.0 + (250.0 * ((1.0 / 65536.0) * (float)GetRandomStageValue()))) * cosd(angle);
+                    particleData->zRot = (M_PI * (angle - 90.0f)) / 180;
+                    particleData->color.r = particleData->color.g = particleData->color.b = particleData->color.a = 192;
+                    particleData->color.b = 160;
+                    particleData->scale = 0;
+                    particleData->time = (s32)(90.0 * ((1.0 / 65536.0) * (float)GetRandomStageValue()));
+                    particleData->parManId = 60;
                 }
-                temp_r31->color.a = 248 * sind(temp_r31->parManId * 3);
-                temp_r31->scale = temp_r29->pos.x * (60 - temp_r31->parManId);
-                temp_r31->parManId--;
+                particleData->color.a = 248 * sind(particleData->parManId * 3);
+                particleData->scale = particleWork->pos.x * (60 - particleData->parManId);
+                particleData->parManId--;
             }
-            if (particle->maxCnt == temp_r27) {
-                Hu3DModelAttrReset(temp_r29->dataCnt, HU3D_ATTR_PARTICLE_KILL);
-                Hu3DModelKill(temp_r29->dataCnt);
+            if (particle->maxCnt == integerValue) {
+                Hu3DModelAttrReset(particleWork->dataCnt, HU3D_ATTR_PARTICLE_KILL);
+                Hu3DModelKill(particleWork->dataCnt);
                 return;
             }
             break;
@@ -750,446 +750,446 @@ void fn_1_F06C(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
     DCFlushRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-WorkF4B0 *fn_1_F4B0(s16 arg0, s16 arg1)
+StageModelHookWork *CreateStageModelHookWork(s16 modelId, s16 animationFrame)
 {
-    WorkF4B0 *temp_r31;
-    s32 temp_r30;
-    HU3DMODEL *temp_r29;
-    temp_r29 = &Hu3DData[arg0];
-    temp_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WorkF4B0), HU_MEMNUM_OVL);
-    temp_r29->hookData = temp_r31;
-    temp_r31->unk0 = arg0;
-    temp_r31->unk2 = arg1;
-    temp_r31->unk4 = NULL;
-    temp_r31->unk8 = NULL;
-    for (temp_r30 = 0; temp_r30 < 32; temp_r30++) {
-        temp_r31->unk10[temp_r30] = 0;
+    StageModelHookWork *returnPointer;
+    s32 modelIndex;
+    HU3DMODEL *model;
+    model = &Hu3DData[modelId];
+    returnPointer = HuMemDirectMallocNum(HEAP_HEAP, sizeof(StageModelHookWork), HU_MEMNUM_OVL);
+    model->hookData = returnPointer;
+    returnPointer->animationPhase = modelId;
+    returnPointer->animationFrame = animationFrame;
+    returnPointer->originalVertexColors = NULL;
+    returnPointer->originalTextureCoordinates = NULL;
+    for (modelIndex = 0; modelIndex < 32; modelIndex++) {
+        returnPointer->animationParameters[modelIndex] = 0;
     }
-    return temp_r31;
+    return returnPointer;
 }
 
-void fn_1_F564(s16 arg0)
+void UpdateStageModelHook(s16 modelId)
 {
-    float temp_f31;
-    WorkF4B0 *temp_r31;
-    s32 temp_r30;
-    HSFOBJECT *temp_r29;
-    s32 temp_r28;
-    HU3DMODEL *temp_r27;
-    temp_r27 = &Hu3DData[arg0];
-    temp_r29 = temp_r27->hsf->root;
-    temp_r31 = temp_r27->hookData;
-    if (temp_r31->unk8 == NULL) {
-        temp_r31->unk8 = HuMemDirectMallocNum(HEAP_HEAP, temp_r29->mesh.st->count * sizeof(HuVec2f), HU_MEMNUM_OVL);
-        temp_r31->unkC = HuMemDirectMallocNum(HEAP_HEAP, temp_r29->mesh.st->count, HU_MEMNUM_OVL);
-        for (temp_r30 = 0; temp_r30 < temp_r29->mesh.st->count; temp_r30++) {
-            temp_r31->unk8[temp_r30].x = ((HuVec2f *)(temp_r29->mesh.st->data))[temp_r30].x;
-            temp_r31->unk8[temp_r30].y = ((HuVec2f *)(temp_r29->mesh.st->data))[temp_r30].y;
+    float angle;
+    StageModelHookWork *stagemodelhookworkPointer;
+    s32 modelIndex;
+    HSFOBJECT *sceneObject;
+    s32 modelIndex2;
+    HU3DMODEL *model;
+    model = &Hu3DData[modelId];
+    sceneObject = model->hsf->root;
+    stagemodelhookworkPointer = model->hookData;
+    if (stagemodelhookworkPointer->originalTextureCoordinates == NULL) {
+        stagemodelhookworkPointer->originalTextureCoordinates = HuMemDirectMallocNum(HEAP_HEAP, sceneObject->mesh.st->count * sizeof(HuVec2f), HU_MEMNUM_OVL);
+        stagemodelhookworkPointer->processedVertexFlags = HuMemDirectMallocNum(HEAP_HEAP, sceneObject->mesh.st->count, HU_MEMNUM_OVL);
+        for (modelIndex = 0; modelIndex < sceneObject->mesh.st->count; modelIndex++) {
+            stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].x = ((HuVec2f *)(sceneObject->mesh.st->data))[modelIndex].x;
+            stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].y = ((HuVec2f *)(sceneObject->mesh.st->data))[modelIndex].y;
         }
     }
-    temp_r31->unk10_f[0] += 2.0f;
-    for (temp_r30 = 0; temp_r30 < temp_r29->mesh.st->count; temp_r30++) {
-        temp_r31->unkC[temp_r30] = 0;
+    stagemodelhookworkPointer->animationTimers[0] += 2.0f;
+    for (modelIndex = 0; modelIndex < sceneObject->mesh.st->count; modelIndex++) {
+        stagemodelhookworkPointer->processedVertexFlags[modelIndex] = 0;
     }
-    for (temp_r30 = 0; temp_r30 < temp_r29->mesh.st->count; temp_r30++) {
-        if (temp_r31->unkC[temp_r30]) {
+    for (modelIndex = 0; modelIndex < sceneObject->mesh.st->count; modelIndex++) {
+        if (stagemodelhookworkPointer->processedVertexFlags[modelIndex]) {
             continue;
         }
-        temp_r31->unkC[temp_r30]++;
-        temp_f31 = temp_r31->unk10_f[0] + (60.0f * temp_r30);
-        ((HuVec2f *)(temp_r29->mesh.st->data))[temp_r30].x = temp_r31->unk8[temp_r30].x + (0.005f * sind(temp_f31));
-        ((HuVec2f *)(temp_r29->mesh.st->data))[temp_r30].y = temp_r31->unk8[temp_r30].y + (0.005f * cosd(temp_f31));
-        for (temp_r28 = temp_r30; temp_r28 < temp_r29->mesh.st->count; temp_r28++) {
-            if (temp_r31->unkC[temp_r28]) {
+        stagemodelhookworkPointer->processedVertexFlags[modelIndex]++;
+        angle = stagemodelhookworkPointer->animationTimers[0] + (60.0f * modelIndex);
+        ((HuVec2f *)(sceneObject->mesh.st->data))[modelIndex].x = stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].x + (0.005f * sind(angle));
+        ((HuVec2f *)(sceneObject->mesh.st->data))[modelIndex].y = stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].y + (0.005f * cosd(angle));
+        for (modelIndex2 = modelIndex; modelIndex2 < sceneObject->mesh.st->count; modelIndex2++) {
+            if (stagemodelhookworkPointer->processedVertexFlags[modelIndex2]) {
                 continue;
             }
-            if (temp_r31->unk8[temp_r30].x != temp_r31->unk8[temp_r28].x || temp_r31->unk8[temp_r30].y != temp_r31->unk8[temp_r28].y) {
+            if (stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].x != stagemodelhookworkPointer->originalTextureCoordinates[modelIndex2].x || stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].y != stagemodelhookworkPointer->originalTextureCoordinates[modelIndex2].y) {
                 continue;
             }
-            temp_r31->unkC[temp_r28]++;
-            ((HuVec2f *)(temp_r29->mesh.st->data))[temp_r28].x = ((HuVec2f *)(temp_r29->mesh.st->data))[temp_r30].x;
-            ((HuVec2f *)(temp_r29->mesh.st->data))[temp_r28].y = ((HuVec2f *)(temp_r29->mesh.st->data))[temp_r30].y;
+            stagemodelhookworkPointer->processedVertexFlags[modelIndex2]++;
+            ((HuVec2f *)(sceneObject->mesh.st->data))[modelIndex2].x = ((HuVec2f *)(sceneObject->mesh.st->data))[modelIndex].x;
+            ((HuVec2f *)(sceneObject->mesh.st->data))[modelIndex2].y = ((HuVec2f *)(sceneObject->mesh.st->data))[modelIndex].y;
         }
     }
 }
 
-typedef struct unk_fn_10484 {
-    HU3DMODEL *unk0;
-    HSFOBJECT *unk4;
-    s32 unk8;
-    Mtx unkC;
-    float unk3C[2];
+typedef struct AnimatedMeshDrawWork {
+    HU3DMODEL *model;
+    HSFOBJECT *sceneObject;
+    s32 textureCoordinateCount;
+    Mtx transformMatrix;
+    float textureAnimationOffset[2];
 
-} UnkFn10484;
+} AnimatedMeshDrawWork;
 
-void fn_1_10484(UnkFn10484 *arg0, HSFFACE *arg1, HSFDRAWDATA *arg2, GXColor *arg3);
+void DrawAnimatedStageMesh(AnimatedMeshDrawWork *drawWork, HSFFACE *face, HSFDRAWDATA *drawData, GXColor *vertexColors);
 
-void fn_1_F8A0(HU3DMODEL *arg0, Mtx arg1)
+void TransformStageModelVertices(HU3DMODEL *model, Mtx transformMatrix)
 {
-    WorkF4B0 *temp_r31;
-    GXColor *temp_r30;
-    s16 temp_r29;
-    s32 temp_r28;
-    HSFBUFFER *temp_r27;
-    HSFFACE *temp_r26;
+    StageModelHookWork *stagemodelhookworkPointer;
+    GXColor *gxcolorPointer;
+    s16 modelIndex;
+    s32 frameCounter;
+    HSFBUFFER *hsfbufferPointer;
+    HSFFACE *hsffacePointer;
 
-    UnkFn10484 spA0;
-    Mtx sp70;
-    Mtx sp40;
-    Mtx sp10;
-    s16 spC = 0;
-    temp_r31 = arg0->hookData;
-    spA0.unk0 = &Hu3DData[temp_r31->unk2];
-    spA0.unk4 = spA0.unk0->hsf->root;
-    MTXCopy(arg1, spA0.unkC);
-    lbl_1_bss_128[0] = spA0.unk4->constData;
-    lbl_1_bss_120[0] = lbl_1_bss_128[0]->dlBuf;
-    lbl_1_bss_11C = lbl_1_bss_128[0]->drawData;
-    GXLoadPosMtxImm(spA0.unkC, GX_PNMTX0);
-    MTXInverse(spA0.unkC, sp70);
-    MTXTranspose(sp70, sp40);
-    GXLoadNrmMtxImm(sp40, GX_PNMTX0);
-    if (Hu3DShadowF && (lbl_1_bss_128[0]->attr & 0x8)) {
-        MTXConcat(sp10, spA0.unkC, sp40);
-        MTXConcat(Hu3DShadowData.projMtx, Hu3DShadowData.lookAtMtx, sp70);
-        MTXConcat(sp70, sp40, sp40);
-        GXLoadTexMtxImm(sp40, GX_TEXMTX9, GX_MTX3x4);
+    AnimatedMeshDrawWork scratchValue;
+    Mtx transformMatrix2;
+    Mtx transformMatrix3;
+    Mtx transformMatrix4;
+    s16 scratchValue2 = 0;
+    stagemodelhookworkPointer = model->hookData;
+    scratchValue.model = &Hu3DData[stagemodelhookworkPointer->animationFrame];
+    scratchValue.sceneObject = scratchValue.model->hsf->root;
+    MTXCopy(transformMatrix, scratchValue.transformMatrix);
+    stageModelConstants[0] = scratchValue.sceneObject->constData;
+    stageDisplayLists[0] = stageModelConstants[0]->dlBuf;
+    stageDrawData = stageModelConstants[0]->drawData;
+    GXLoadPosMtxImm(scratchValue.transformMatrix, GX_PNMTX0);
+    MTXInverse(scratchValue.transformMatrix, transformMatrix2);
+    MTXTranspose(transformMatrix2, transformMatrix3);
+    GXLoadNrmMtxImm(transformMatrix3, GX_PNMTX0);
+    if (Hu3DShadowF && (stageModelConstants[0]->attr & 0x8)) {
+        MTXConcat(transformMatrix4, scratchValue.transformMatrix, transformMatrix3);
+        MTXConcat(Hu3DShadowData.projMtx, Hu3DShadowData.lookAtMtx, transformMatrix2);
+        MTXConcat(transformMatrix2, transformMatrix3, transformMatrix3);
+        GXLoadTexMtxImm(transformMatrix3, GX_TEXMTX9, GX_MTX3x4);
     }
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_NOOP);
-    if (temp_r31->unk4 == NULL) {
-        temp_r31->unk4 = HuMemDirectMallocNum(HEAP_HEAP, spA0.unk4->mesh.color->count * sizeof(GXColor), HU_MEMNUM_OVL);
-        for (temp_r29 = 0; temp_r29 < spA0.unk4->mesh.color->count; temp_r29++) {
-            temp_r30 = &temp_r31->unk4[temp_r29];
-            temp_r30->r = temp_r31->unk10[0];
-            temp_r30->g = temp_r31->unk10[1];
-            temp_r30->b = temp_r31->unk10[2];
-            if (((GXColor *)(spA0.unk4->mesh.color->data))[temp_r29].a == 255) {
-                temp_r30->a = temp_r31->unk10[3];
+    if (stagemodelhookworkPointer->originalVertexColors == NULL) {
+        stagemodelhookworkPointer->originalVertexColors = HuMemDirectMallocNum(HEAP_HEAP, scratchValue.sceneObject->mesh.color->count * sizeof(GXColor), HU_MEMNUM_OVL);
+        for (modelIndex = 0; modelIndex < scratchValue.sceneObject->mesh.color->count; modelIndex++) {
+            gxcolorPointer = &stagemodelhookworkPointer->originalVertexColors[modelIndex];
+            gxcolorPointer->r = stagemodelhookworkPointer->animationParameters[0];
+            gxcolorPointer->g = stagemodelhookworkPointer->animationParameters[1];
+            gxcolorPointer->b = stagemodelhookworkPointer->animationParameters[2];
+            if (((GXColor *)(scratchValue.sceneObject->mesh.color->data))[modelIndex].a == 255) {
+                gxcolorPointer->a = stagemodelhookworkPointer->animationParameters[3];
             }
             else {
-                temp_r30->a = ((GXColor *)(spA0.unk4->mesh.color->data))[temp_r29].a;
+                gxcolorPointer->a = ((GXColor *)(scratchValue.sceneObject->mesh.color->data))[modelIndex].a;
             }
         }
     }
-    temp_r27 = spA0.unk4->mesh.face;
-    temp_r26 = temp_r27->data;
-    temp_r28 = 0;
-    for (temp_r29 = 0; temp_r29 < temp_r27->count;) {
-        fn_1_10484(&spA0, temp_r26, &lbl_1_bss_11C[temp_r28], temp_r31->unk4);
-        temp_r28++;
-        temp_r29 += lbl_1_bss_11C[temp_r28 - 1].polyCnt;
-        temp_r26 += lbl_1_bss_11C[temp_r28 - 1].polyCnt;
+    hsfbufferPointer = scratchValue.sceneObject->mesh.face;
+    hsffacePointer = hsfbufferPointer->data;
+    frameCounter = 0;
+    for (modelIndex = 0; modelIndex < hsfbufferPointer->count;) {
+        DrawAnimatedStageMesh(&scratchValue, hsffacePointer, &stageDrawData[frameCounter], stagemodelhookworkPointer->originalVertexColors);
+        frameCounter++;
+        modelIndex += stageDrawData[frameCounter - 1].polyCnt;
+        hsffacePointer += stageDrawData[frameCounter - 1].polyCnt;
     }
 }
 
-void fn_1_FB98(HU3DMODEL *arg0, Mtx arg1)
+void TransformStageModelNormals(HU3DMODEL *model, Mtx normalMatrix)
 {
-    WorkF4B0 *temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    GXColor *temp_r27;
-    s32 temp_r26;
-    HSFBUFFER *temp_r25;
-    HSFFACE *temp_r24;
-    s32 temp_r23;
-    void *temp_r22;
+    StageModelHookWork *stagemodelhookworkPointer;
+    s16 modelIndex;
+    s16 modelIndex2;
+    s16 modelIndex3;
+    GXColor *gxcolorPointer;
+    s32 frameCounter;
+    HSFBUFFER *hsfbufferPointer;
+    HSFFACE *hsffacePointer;
+    s32 integerValue;
+    void *integerValue2;
 
-    UnkFn10484 sp120;
-    Mtx spF0;
-    Mtx spC0;
-    Mtx sp90;
-    float sp50[2][8];
-    float sp10[2][8];
-    s16 spC = 0;
-    temp_r31 = arg0->hookData;
-    sp120.unk0 = &Hu3DData[temp_r31->unk2];
-    sp120.unk4 = sp120.unk0->hsf->root;
-    MTXCopy(arg1, sp120.unkC);
-    lbl_1_bss_128[0] = sp120.unk4->constData;
-    lbl_1_bss_120[0] = lbl_1_bss_128[0]->dlBuf;
-    lbl_1_bss_11C = lbl_1_bss_128[0]->drawData;
-    GXLoadPosMtxImm(sp120.unkC, GX_PNMTX0);
-    MTXInverse(sp120.unkC, spF0);
-    MTXTranspose(spF0, spC0);
-    GXLoadNrmMtxImm(spC0, GX_PNMTX0);
-    if (Hu3DShadowF && (lbl_1_bss_128[0]->attr & 0x8)) {
-        MTXConcat(sp90, sp120.unkC, spC0);
-        MTXConcat(Hu3DShadowData.projMtx, Hu3DShadowData.lookAtMtx, spF0);
-        MTXConcat(spF0, spC0, spC0);
-        GXLoadTexMtxImm(spC0, GX_TEXMTX9, GX_MTX3x4);
+    AnimatedMeshDrawWork scratchValue;
+    Mtx transformMatrix;
+    Mtx transformMatrix2;
+    Mtx transformMatrix3;
+    float scratchValue2[2][8];
+    float scratchValue3[2][8];
+    s16 scratchValue4 = 0;
+    stagemodelhookworkPointer = model->hookData;
+    scratchValue.model = &Hu3DData[stagemodelhookworkPointer->animationFrame];
+    scratchValue.sceneObject = scratchValue.model->hsf->root;
+    MTXCopy(normalMatrix, scratchValue.transformMatrix);
+    stageModelConstants[0] = scratchValue.sceneObject->constData;
+    stageDisplayLists[0] = stageModelConstants[0]->dlBuf;
+    stageDrawData = stageModelConstants[0]->drawData;
+    GXLoadPosMtxImm(scratchValue.transformMatrix, GX_PNMTX0);
+    MTXInverse(scratchValue.transformMatrix, transformMatrix);
+    MTXTranspose(transformMatrix, transformMatrix2);
+    GXLoadNrmMtxImm(transformMatrix2, GX_PNMTX0);
+    if (Hu3DShadowF && (stageModelConstants[0]->attr & 0x8)) {
+        MTXConcat(transformMatrix3, scratchValue.transformMatrix, transformMatrix2);
+        MTXConcat(Hu3DShadowData.projMtx, Hu3DShadowData.lookAtMtx, transformMatrix);
+        MTXConcat(transformMatrix, transformMatrix2, transformMatrix2);
+        GXLoadTexMtxImm(transformMatrix2, GX_TEXMTX9, GX_MTX3x4);
     }
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_NOOP);
-    if (temp_r31->unk4 == NULL) {
-        temp_r31->unk4 = HuMemDirectMallocNum(HEAP_HEAP, sp120.unk4->mesh.color->count * sizeof(GXColor), HU_MEMNUM_OVL);
-        for (temp_r30 = 0; temp_r30 < sp120.unk4->mesh.color->count; temp_r30++) {
-            temp_r27 = &temp_r31->unk4[temp_r30];
-            temp_r27->r = temp_r31->unk10[0];
-            temp_r27->g = temp_r31->unk10[1];
-            temp_r27->b = temp_r31->unk10[2];
-            temp_r27->a = temp_r31->unk10[3];
+    if (stagemodelhookworkPointer->originalVertexColors == NULL) {
+        stagemodelhookworkPointer->originalVertexColors = HuMemDirectMallocNum(HEAP_HEAP, scratchValue.sceneObject->mesh.color->count * sizeof(GXColor), HU_MEMNUM_OVL);
+        for (modelIndex = 0; modelIndex < scratchValue.sceneObject->mesh.color->count; modelIndex++) {
+            gxcolorPointer = &stagemodelhookworkPointer->originalVertexColors[modelIndex];
+            gxcolorPointer->r = stagemodelhookworkPointer->animationParameters[0];
+            gxcolorPointer->g = stagemodelhookworkPointer->animationParameters[1];
+            gxcolorPointer->b = stagemodelhookworkPointer->animationParameters[2];
+            gxcolorPointer->a = stagemodelhookworkPointer->animationParameters[3];
         }
     }
-    if (temp_r31->unk8 == NULL) {
-        temp_r31->unk8 = HuMemDirectMallocNum(HEAP_HEAP, sp120.unk4->mesh.st->count * sizeof(HuVec2f), HU_MEMNUM_OVL);
-        temp_r31->unkC = HuMemDirectMallocNum(HEAP_HEAP, sp120.unk4->mesh.st->count, HU_MEMNUM_OVL);
-        for (temp_r30 = 0; temp_r30 < sp120.unk4->mesh.st->count; temp_r30++) {
-            temp_r31->unk8[temp_r30].x = ((HuVec2f *)(sp120.unk4->mesh.st->data))[temp_r30].x;
-            temp_r31->unk8[temp_r30].y = ((HuVec2f *)(sp120.unk4->mesh.st->data))[temp_r30].y;
+    if (stagemodelhookworkPointer->originalTextureCoordinates == NULL) {
+        stagemodelhookworkPointer->originalTextureCoordinates = HuMemDirectMallocNum(HEAP_HEAP, scratchValue.sceneObject->mesh.st->count * sizeof(HuVec2f), HU_MEMNUM_OVL);
+        stagemodelhookworkPointer->processedVertexFlags = HuMemDirectMallocNum(HEAP_HEAP, scratchValue.sceneObject->mesh.st->count, HU_MEMNUM_OVL);
+        for (modelIndex = 0; modelIndex < scratchValue.sceneObject->mesh.st->count; modelIndex++) {
+            stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].x = ((HuVec2f *)(scratchValue.sceneObject->mesh.st->data))[modelIndex].x;
+            stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].y = ((HuVec2f *)(scratchValue.sceneObject->mesh.st->data))[modelIndex].y;
         }
     }
-    temp_r31->unk10_f[15] += 0.5f;
-    for (temp_r30 = 0; temp_r30 < 8; temp_r30++) {
-        float temp_f31 = temp_r31->unk10_f[15] + (40.0f * temp_r30);
-        sp50[0][temp_r30] = sind(temp_f31);
-        sp10[0][temp_r30] = cosd(temp_f31);
+    stagemodelhookworkPointer->animationTimers[15] += 0.5f;
+    for (modelIndex = 0; modelIndex < 8; modelIndex++) {
+        float angle = stagemodelhookworkPointer->animationTimers[15] + (40.0f * modelIndex);
+        scratchValue2[0][modelIndex] = sind(angle);
+        scratchValue3[0][modelIndex] = cosd(angle);
     }
-    for (temp_r30 = 0; temp_r30 < sp120.unk4->mesh.st->count; temp_r30++) {
-        temp_r31->unkC[temp_r30] = 0;
+    for (modelIndex = 0; modelIndex < scratchValue.sceneObject->mesh.st->count; modelIndex++) {
+        stagemodelhookworkPointer->processedVertexFlags[modelIndex] = 0;
     }
-    for (temp_r30 = 0, temp_r29 = 0; temp_r30 < sp120.unk4->mesh.st->count; temp_r30++, temp_r29++) {
-        if (temp_r31->unkC[temp_r30]) {
+    for (modelIndex = 0, modelIndex2 = 0; modelIndex < scratchValue.sceneObject->mesh.st->count; modelIndex++, modelIndex2++) {
+        if (stagemodelhookworkPointer->processedVertexFlags[modelIndex]) {
             continue;
         }
-        temp_r31->unkC[temp_r30]++;
-        if (temp_r31->unk10[4]) {
-            temp_r31->unk8[temp_r30].x = (1.5f * ((HuVec2f *)(sp120.unk4->mesh.st->data))[temp_r30].x) + (0.04f * sp50[0][temp_r29 & 0x7]);
-            temp_r31->unk8[temp_r30].y = (2.0f * ((HuVec2f *)(sp120.unk4->mesh.st->data))[temp_r30].y) + (0.04f * sp10[0][temp_r29 & 0x7]);
+        stagemodelhookworkPointer->processedVertexFlags[modelIndex]++;
+        if (stagemodelhookworkPointer->animationParameters[4]) {
+            stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].x = (1.5f * ((HuVec2f *)(scratchValue.sceneObject->mesh.st->data))[modelIndex].x) + (0.04f * scratchValue2[0][modelIndex2 & 0x7]);
+            stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].y = (2.0f * ((HuVec2f *)(scratchValue.sceneObject->mesh.st->data))[modelIndex].y) + (0.04f * scratchValue3[0][modelIndex2 & 0x7]);
         }
         else {
-            temp_r31->unk8[temp_r30].x = (1.25f * ((HuVec2f *)(sp120.unk4->mesh.st->data))[temp_r30].x) + (0.04f * sp50[0][temp_r29 & 0x7]);
-            temp_r31->unk8[temp_r30].y = (1.75f * ((HuVec2f *)(sp120.unk4->mesh.st->data))[temp_r30].y) + (0.04f * sp10[0][temp_r29 & 0x7]);
+            stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].x = (1.25f * ((HuVec2f *)(scratchValue.sceneObject->mesh.st->data))[modelIndex].x) + (0.04f * scratchValue2[0][modelIndex2 & 0x7]);
+            stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].y = (1.75f * ((HuVec2f *)(scratchValue.sceneObject->mesh.st->data))[modelIndex].y) + (0.04f * scratchValue3[0][modelIndex2 & 0x7]);
         }
-        temp_r23 = temp_r31->unk10[3] + ((0.8f * temp_r31->unk10[3]) * sind((3.0f * temp_r31->unk10_f[15]) + (120.0f * temp_r29)));
-        temp_r31->unk4[temp_r30].a = temp_r23;
-        for (temp_r28 = temp_r30; temp_r28 < sp120.unk4->mesh.st->count; temp_r28++) {
-            temp_r29++;
-            if (temp_r31->unkC[temp_r28]) {
+        integerValue = stagemodelhookworkPointer->animationParameters[3] + ((0.8f * stagemodelhookworkPointer->animationParameters[3]) * sind((3.0f * stagemodelhookworkPointer->animationTimers[15]) + (120.0f * modelIndex2)));
+        stagemodelhookworkPointer->originalVertexColors[modelIndex].a = integerValue;
+        for (modelIndex3 = modelIndex; modelIndex3 < scratchValue.sceneObject->mesh.st->count; modelIndex3++) {
+            modelIndex2++;
+            if (stagemodelhookworkPointer->processedVertexFlags[modelIndex3]) {
                 continue;
             }
-            if (((HuVec2f *)(sp120.unk4->mesh.st->data))[temp_r30].x != ((HuVec2f *)(sp120.unk4->mesh.st->data))[temp_r28].x
-                || ((HuVec2f *)(sp120.unk4->mesh.st->data))[temp_r30].y != ((HuVec2f *)(sp120.unk4->mesh.st->data))[temp_r28].y) {
+            if (((HuVec2f *)(scratchValue.sceneObject->mesh.st->data))[modelIndex].x != ((HuVec2f *)(scratchValue.sceneObject->mesh.st->data))[modelIndex3].x
+                || ((HuVec2f *)(scratchValue.sceneObject->mesh.st->data))[modelIndex].y != ((HuVec2f *)(scratchValue.sceneObject->mesh.st->data))[modelIndex3].y) {
                 continue;
             }
-            temp_r31->unkC[temp_r28]++;
-            temp_r31->unk8[temp_r28].x = temp_r31->unk8[temp_r30].x;
-            temp_r31->unk8[temp_r28].y = temp_r31->unk8[temp_r30].y;
-            temp_r31->unk4[temp_r28].a = temp_r23;
-            temp_r29--;
+            stagemodelhookworkPointer->processedVertexFlags[modelIndex3]++;
+            stagemodelhookworkPointer->originalTextureCoordinates[modelIndex3].x = stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].x;
+            stagemodelhookworkPointer->originalTextureCoordinates[modelIndex3].y = stagemodelhookworkPointer->originalTextureCoordinates[modelIndex].y;
+            stagemodelhookworkPointer->originalVertexColors[modelIndex3].a = integerValue;
+            modelIndex2--;
         }
     }
-    temp_r22 = sp120.unk4->mesh.st->data;
-    sp120.unk4->mesh.st->data = temp_r31->unk8;
-    temp_r25 = sp120.unk4->mesh.face;
-    temp_r24 = temp_r25->data;
-    temp_r26 = 0;
-    for (temp_r30 = 0; temp_r30 < temp_r25->count;) {
-        fn_1_10484(&sp120, temp_r24, &lbl_1_bss_11C[temp_r26], temp_r31->unk4);
-        temp_r26++;
-        temp_r30 += lbl_1_bss_11C[temp_r26 - 1].polyCnt;
-        temp_r24 += lbl_1_bss_11C[temp_r26 - 1].polyCnt;
+    integerValue2 = scratchValue.sceneObject->mesh.st->data;
+    scratchValue.sceneObject->mesh.st->data = stagemodelhookworkPointer->originalTextureCoordinates;
+    hsfbufferPointer = scratchValue.sceneObject->mesh.face;
+    hsffacePointer = hsfbufferPointer->data;
+    frameCounter = 0;
+    for (modelIndex = 0; modelIndex < hsfbufferPointer->count;) {
+        DrawAnimatedStageMesh(&scratchValue, hsffacePointer, &stageDrawData[frameCounter], stagemodelhookworkPointer->originalVertexColors);
+        frameCounter++;
+        modelIndex += stageDrawData[frameCounter - 1].polyCnt;
+        hsffacePointer += stageDrawData[frameCounter - 1].polyCnt;
     }
-    sp120.unk4->mesh.st->data = temp_r22;
+    scratchValue.sceneObject->mesh.st->data = integerValue2;
 }
 
-void fn_1_10830(HU3DMODEL *arg0, HSFBITMAP *arg1, HSFATTRIBUTE *arg2, s16 arg3);
-void fn_1_10B60(UnkFn10484 *arg0, HSFMATERIAL *arg1);
+void LoadStageTexture(HU3DMODEL *model, HSFBITMAP *bitmap, HSFATTRIBUTE *attribute, s16 textureMapId);
+void ConfigureStageMaterial(AnimatedMeshDrawWork *drawWork, HSFMATERIAL *material);
 
-void fn_1_10484(UnkFn10484 *arg0, HSFFACE *arg1, HSFDRAWDATA *arg2, GXColor *arg3)
+void DrawAnimatedStageMesh(AnimatedMeshDrawWork *drawWork, HSFFACE *face, HSFDRAWDATA *drawData, GXColor *vertexColors)
 {
-    HSFMATERIAL *temp_r31;
-    HSFOBJECT *temp_r30;
-    HSFATTRIBUTE *temp_r29;
-    s16 temp_r27;
-    s16 temp_r25;
-    HU3DATTRANIM *temp_r24;
-    HU3DMODEL *temp_r23;
-    HU3DTEXANIM *temp_r22;
-    void *temp_r20;
-    GXColor sp14;
-    temp_r30 = arg0->unk4;
-    temp_r23 = arg0->unk0;
-    temp_r31 = &temp_r30->mesh.material[arg1->mat & 0xFFF];
-    sp14.r = temp_r31->litColor[0];
-    sp14.g = temp_r31->litColor[1];
-    sp14.b = temp_r31->litColor[2];
-    sp14.a = 255;
-    GXSetChanAmbColor(GX_COLOR0A0, sp14);
-    sp14.r = temp_r31->color[0];
-    sp14.g = temp_r31->color[1];
-    sp14.b = temp_r31->color[2];
-    sp14.a = 255;
-    GXSetChanMatColor(GX_COLOR0A0, sp14);
-    if ((temp_r31->invAlpha != 0 || temp_r31->pass == 1) && !(temp_r23->attr & 0x2)) {
+    HSFMATERIAL *material2;
+    HSFOBJECT *sceneObject;
+    HSFATTRIBUTE *attribute2;
+    s16 animationIndex;
+    s16 integerValue;
+    HU3DATTRANIM *hu3dattranimPointer;
+    HU3DMODEL *model;
+    HU3DTEXANIM *hu3dtexanimPointer;
+    void *voidPointer;
+    GXColor drawColor;
+    sceneObject = drawWork->sceneObject;
+    model = drawWork->model;
+    material2 = &sceneObject->mesh.material[face->mat & 0xFFF];
+    drawColor.r = material2->litColor[0];
+    drawColor.g = material2->litColor[1];
+    drawColor.b = material2->litColor[2];
+    drawColor.a = 255;
+    GXSetChanAmbColor(GX_COLOR0A0, drawColor);
+    drawColor.r = material2->color[0];
+    drawColor.g = material2->color[1];
+    drawColor.b = material2->color[2];
+    drawColor.a = 255;
+    GXSetChanMatColor(GX_COLOR0A0, drawColor);
+    if ((material2->invAlpha != 0 || material2->pass == 1) && !(model->attr & 0x2)) {
         GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     }
     else {
         GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     }
-    if (temp_r31->attrNum == 0) {
+    if (material2->attrNum == 0) {
         return;
     }
-    temp_r25 = (temp_r30->mesh.color) ? 5 : 1;
-    if (arg2->flags & 0x2) {
-        temp_r25 |= 0x2;
+    integerValue = (sceneObject->mesh.color) ? 5 : 1;
+    if (drawData->flags & 0x2) {
+        integerValue |= 0x2;
     }
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetArray(GX_VA_POS, temp_r30->mesh.vertex->data, sizeof(HuVecF));
-    if (temp_r25 & 0x2) {
+    GXSetArray(GX_VA_POS, sceneObject->mesh.vertex->data, sizeof(HuVecF));
+    if (integerValue & 0x2) {
         GXSetVtxDesc(GX_VA_NBT, GX_DIRECT);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_NBT, GX_NRM_NBT, GX_S16, 8);
     }
     else {
         GXSetVtxDesc(GX_VA_NRM, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_NRM, GX_NRM_XYZ, GX_F32, 0);
-        GXSetArray(GX_VA_NRM, temp_r30->mesh.normal->data, sizeof(HuVecF));
+        GXSetArray(GX_VA_NRM, sceneObject->mesh.normal->data, sizeof(HuVecF));
     }
     GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetArray(GX_VA_TEX0, temp_r30->mesh.st->data, sizeof(HuVec2f));
-    if (temp_r25 & 0x4) {
+    GXSetArray(GX_VA_TEX0, sceneObject->mesh.st->data, sizeof(HuVec2f));
+    if (integerValue & 0x4) {
         GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-        GXSetArray(GX_VA_CLR0, arg3, sizeof(GXColor));
+        GXSetArray(GX_VA_CLR0, vertexColors, sizeof(GXColor));
     }
     GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
     GXSetZCompLoc(GX_FALSE);
-    for (temp_r27 = 0; temp_r27 < temp_r31->attrNum; temp_r27++) {
-        temp_r29 = &temp_r30->mesh.attribute[temp_r31->attr[temp_r27]];
-        if (temp_r29->animWorkP) {
-            temp_r24 = temp_r29->animWorkP;
-            temp_r22 = &Hu3DTexAnimData[temp_r24->animId];
-            if ((temp_r24->attr & 0x1) && !(temp_r22->attr & 0x4)) {
-                if (Hu3DAnimSet(arg0->unk0, temp_r29, (s16)temp_r27)) {
+    for (animationIndex = 0; animationIndex < material2->attrNum; animationIndex++) {
+        attribute2 = &sceneObject->mesh.attribute[material2->attr[animationIndex]];
+        if (attribute2->animWorkP) {
+            hu3dattranimPointer = attribute2->animWorkP;
+            hu3dtexanimPointer = &Hu3DTexAnimData[hu3dattranimPointer->animId];
+            if ((hu3dattranimPointer->attr & 0x1) && !(hu3dtexanimPointer->attr & 0x4)) {
+                if (Hu3DAnimSet(drawWork->model, attribute2, (s16)animationIndex)) {
                     continue;
                 }
             }
         }
-        fn_1_10830(arg0->unk0, temp_r29->bitmap, temp_r29, (s16)temp_r27);
+        LoadStageTexture(drawWork->model, attribute2->bitmap, attribute2, (s16)animationIndex);
     }
-    fn_1_10B60(arg0, temp_r31);
-    temp_r20 = (void *)(arg2->dlOfs + ((u32)lbl_1_bss_120[0]));
-    GXCallDisplayList(temp_r20, arg2->dlSize);
+    ConfigureStageMaterial(drawWork, material2);
+    voidPointer = (void *)(drawData->dlOfs + ((u32)stageDisplayLists[0]));
+    GXCallDisplayList(voidPointer, drawData->dlSize);
 }
 
-void fn_1_10830(HU3DMODEL *arg0, HSFBITMAP *arg1, HSFATTRIBUTE *arg2, s16 arg3)
+void LoadStageTexture(HU3DMODEL *model, HSFBITMAP *bitmap, HSFATTRIBUTE *attribute, s16 textureMapId)
 {
-    GXTexObj sp1C;
-    GXTlutObj sp10;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    temp_r29 = arg1->sizeX;
-    temp_r28 = arg1->sizeY;
-    temp_r27 = (arg2->wrapS == 1) ? 1 : 0;
-    temp_r26 = (arg2->wrapT == 1) ? 1 : 0;
-    switch (arg1->dataFmt) {
+    GXTexObj textureObject;
+    GXTlutObj textureObject2;
+    s16 integerValue;
+    s16 integerValue2;
+    s16 integerValue3;
+    s16 integerValue4;
+    integerValue = bitmap->sizeX;
+    integerValue2 = bitmap->sizeY;
+    integerValue3 = (attribute->wrapS == 1) ? 1 : 0;
+    integerValue4 = (attribute->wrapT == 1) ? 1 : 0;
+    switch (bitmap->dataFmt) {
         case 6:
-            GXInitTexObj(&sp1C, arg1->data, temp_r29, temp_r28, GX_TF_RGBA8, temp_r27, temp_r26, GX_FALSE);
+            GXInitTexObj(&textureObject, bitmap->data, integerValue, integerValue2, GX_TF_RGBA8, integerValue3, integerValue4, GX_FALSE);
             break;
 
         case 4:
-            GXInitTexObj(&sp1C, arg1->data, temp_r29, temp_r28, GX_TF_RGB565, temp_r27, temp_r26, GX_FALSE);
+            GXInitTexObj(&textureObject, bitmap->data, integerValue, integerValue2, GX_TF_RGB565, integerValue3, integerValue4, GX_FALSE);
             break;
 
         case 5:
-            GXInitTexObj(&sp1C, arg1->data, temp_r29, temp_r28, GX_TF_RGB5A3, temp_r27, temp_r26, GX_FALSE);
+            GXInitTexObj(&textureObject, bitmap->data, integerValue, integerValue2, GX_TF_RGB5A3, integerValue3, integerValue4, GX_FALSE);
             break;
 
         case 9:
-            if (arg1->pixSize < 8) {
-                GXInitTlutObj(&sp10, arg1->palData, GX_TL_RGB565, arg1->palSize);
-                GXLoadTlut(&sp10, arg3);
-                GXInitTexObjCI(&sp1C, arg1->data, temp_r29, temp_r28, GX_TF_C4, temp_r27, temp_r26, GX_FALSE, arg3);
+            if (bitmap->pixSize < 8) {
+                GXInitTlutObj(&textureObject2, bitmap->palData, GX_TL_RGB565, bitmap->palSize);
+                GXLoadTlut(&textureObject2, textureMapId);
+                GXInitTexObjCI(&textureObject, bitmap->data, integerValue, integerValue2, GX_TF_C4, integerValue3, integerValue4, GX_FALSE, textureMapId);
             }
             else {
-                GXInitTlutObj(&sp10, arg1->palData, GX_TL_RGB565, arg1->palSize);
-                GXLoadTlut(&sp10, arg3);
-                GXInitTexObjCI(&sp1C, arg1->data, temp_r29, temp_r28, GX_TF_C8, temp_r27, temp_r26, GX_FALSE, arg3);
+                GXInitTlutObj(&textureObject2, bitmap->palData, GX_TL_RGB565, bitmap->palSize);
+                GXLoadTlut(&textureObject2, textureMapId);
+                GXInitTexObjCI(&textureObject, bitmap->data, integerValue, integerValue2, GX_TF_C8, integerValue3, integerValue4, GX_FALSE, textureMapId);
             }
             break;
 
         case 10:
-            if (arg1->pixSize < 8) {
-                GXInitTlutObj(&sp10, arg1->palData, GX_TL_RGB5A3, arg1->palSize);
-                GXLoadTlut(&sp10, arg3);
-                GXInitTexObjCI(&sp1C, arg1->data, temp_r29, temp_r28, GX_TF_C4, temp_r27, temp_r26, GX_FALSE, arg3);
+            if (bitmap->pixSize < 8) {
+                GXInitTlutObj(&textureObject2, bitmap->palData, GX_TL_RGB5A3, bitmap->palSize);
+                GXLoadTlut(&textureObject2, textureMapId);
+                GXInitTexObjCI(&textureObject, bitmap->data, integerValue, integerValue2, GX_TF_C4, integerValue3, integerValue4, GX_FALSE, textureMapId);
             }
             else {
-                GXInitTlutObj(&sp10, arg1->palData, GX_TL_RGB5A3, arg1->palSize);
-                GXLoadTlut(&sp10, arg3);
-                GXInitTexObjCI(&sp1C, arg1->data, temp_r29, temp_r28, GX_TF_C8, temp_r27, temp_r26, GX_FALSE, arg3);
+                GXInitTlutObj(&textureObject2, bitmap->palData, GX_TL_RGB5A3, bitmap->palSize);
+                GXLoadTlut(&textureObject2, textureMapId);
+                GXInitTexObjCI(&textureObject, bitmap->data, integerValue, integerValue2, GX_TF_C8, integerValue3, integerValue4, GX_FALSE, textureMapId);
             }
             break;
     }
-    if (arg0->attr & 0x40) {
-        GXInitTexObjLOD(&sp1C, GX_NEAR, GX_NEAR, 0, 0, 0, GX_FALSE, GX_FALSE, GX_ANISO_1);
+    if (model->attr & 0x40) {
+        GXInitTexObjLOD(&textureObject, GX_NEAR, GX_NEAR, 0, 0, 0, GX_FALSE, GX_FALSE, GX_ANISO_1);
     }
     else {
-        GXInitTexObjLOD(&sp1C, GX_LINEAR, GX_LINEAR, 0, 0, 0, GX_FALSE, GX_FALSE, GX_ANISO_1);
+        GXInitTexObjLOD(&textureObject, GX_LINEAR, GX_LINEAR, 0, 0, 0, GX_FALSE, GX_FALSE, GX_ANISO_1);
     }
-    GXLoadTexObj(&sp1C, arg3);
+    GXLoadTexObj(&textureObject, textureMapId);
 }
 
-#define SET_TEVCOLOR_ALPHA(reg, color_var, value)                                                                                                    \
+#define SET_TEVCOLOR_ALPHA(reg, colorVar, value)                                                                                                    \
     {                                                                                                                                                \
-        color_var.a = (value);                                                                                                                       \
-        GXSetTevColor(reg, color_var);                                                                                                               \
+        colorVar.a = (value);                                                                                                                       \
+        GXSetTevColor(reg, colorVar);                                                                                                               \
     }
 
 extern u32 texMtxTbl[];
 
-void fn_1_10B60(UnkFn10484 *arg0, HSFMATERIAL *arg1)
+void ConfigureStageMaterial(AnimatedMeshDrawWork *drawWork, HSFMATERIAL *material)
 {
-    GXColor sp28;
-    GXColor sp24;
-    GXColor sp20;
-    u16 temp_r31;
-    HSFATTRIBUTE *temp_r29;
-    u16 temp_r28;
-    HSFOBJECT *temp_r27;
-    HU3DATTRANIM *temp_r26;
-    u16 temp_r25;
-    u16 temp_r24;
-    s32 temp_r23;
-    s32 temp_r22;
-    u16 temp_r20;
-    temp_r27 = arg0->unk4;
-    if (arg1->vtxMode == 2 || arg1->vtxMode == 3) {
-        temp_r24 = 1;
+    GXColor drawColor;
+    GXColor drawColor2;
+    GXColor drawColor3;
+    u16 animationIndex;
+    HSFATTRIBUTE *attribute2;
+    u16 updateCounter;
+    HSFOBJECT *sceneObject;
+    HU3DATTRANIM *hu3dattranimPointer;
+    u16 animationIndex2;
+    u16 integerValue;
+    s32 integerValue2;
+    s32 integerValue3;
+    u16 integerValue4;
+    sceneObject = drawWork->sceneObject;
+    if (material->vtxMode == 2 || material->vtxMode == 3) {
+        integerValue = 1;
     }
     else {
-        temp_r24 = 0;
-        if (arg1->vtxMode == 0 && !temp_r27->mesh.color) {
-            temp_r23 = 0;
+        integerValue = 0;
+        if (material->vtxMode == 0 && !sceneObject->mesh.color) {
+            integerValue2 = 0;
         }
         else {
-            temp_r23 = 1;
+            integerValue2 = 1;
         }
     }
 
-    if (arg1->attrNum == 1) {
-        temp_r28 = temp_r31 = 1;
-        temp_r29 = &temp_r27->mesh.attribute[arg1->attr[0]];
+    if (material->attrNum == 1) {
+        updateCounter = animationIndex = 1;
+        attribute2 = &sceneObject->mesh.attribute[material->attr[0]];
         GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
-        if (temp_r29->animWorkP) {
-            temp_r26 = temp_r29->animWorkP;
-            if (temp_r26->attr & 0x2) {
-                GXLoadTexMtxImm(Hu3DTexScrData[temp_r26->texScrId].texMtx, GX_TEXMTX0, GX_MTX2x4);
+        if (attribute2->animWorkP) {
+            hu3dattranimPointer = attribute2->animWorkP;
+            if (hu3dattranimPointer->attr & 0x2) {
+                GXLoadTexMtxImm(Hu3DTexScrData[hu3dattranimPointer->texScrId].texMtx, GX_TEXMTX0, GX_MTX2x4);
                 GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_TEXMTX0);
             }
         }
-        if (temp_r29->unk8[2] == 0) {
+        if (attribute2->originalTextureCoordinates[2] == 0) {
             GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-            GXSetTevOrder(temp_r31, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-            GXSetTevColorIn(temp_r31, GX_CC_CPREV, GX_CC_TEXC, GX_CC_TEXA, GX_CC_ZERO);
-            GXSetTevColorOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            GXSetTevAlphaIn(temp_r31, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_KONST);
-            GXSetTevAlphaOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            temp_r31++;
+            GXSetTevOrder(animationIndex, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+            GXSetTevColorIn(animationIndex, GX_CC_CPREV, GX_CC_TEXC, GX_CC_TEXA, GX_CC_ZERO);
+            GXSetTevColorOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            GXSetTevAlphaIn(animationIndex, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_KONST);
+            GXSetTevAlphaOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            animationIndex++;
         }
         else {
             GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
@@ -1198,152 +1198,152 @@ void fn_1_10B60(UnkFn10484 *arg0, HSFMATERIAL *arg1)
             GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
             GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
         }
-        SET_TEVCOLOR_ALPHA(GX_TEVREG0, sp28, 255 * (1.0f - arg1->invAlpha));
-        if (temp_r24) {
-            GXSetTevOrder(temp_r31, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR1A1);
-            GXSetTevColorIn(temp_r31, GX_CC_CPREV, GX_CC_ONE, GX_CC_RASC, GX_CC_ZERO);
-            GXSetTevColorOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            GXSetTevAlphaIn(temp_r31, GX_CA_ZERO, GX_CA_APREV, GX_CA_A0, GX_CA_ZERO);
-            GXSetTevAlphaOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            temp_r31++;
+        SET_TEVCOLOR_ALPHA(GX_TEVREG0, drawColor, 255 * (1.0f - material->invAlpha));
+        if (integerValue) {
+            GXSetTevOrder(animationIndex, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR1A1);
+            GXSetTevColorIn(animationIndex, GX_CC_CPREV, GX_CC_ONE, GX_CC_RASC, GX_CC_ZERO);
+            GXSetTevColorOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            GXSetTevAlphaIn(animationIndex, GX_CA_ZERO, GX_CA_APREV, GX_CA_A0, GX_CA_ZERO);
+            GXSetTevAlphaOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            animationIndex++;
         }
-        else if (0.0f != arg1->invAlpha) {
-            GXSetTevOrder(temp_r31, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
-            GXSetTevColorIn(temp_r31, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_CPREV);
-            GXSetTevColorOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            GXSetTevAlphaIn(temp_r31, GX_CA_ZERO, GX_CA_APREV, GX_CA_RASA, GX_CA_ZERO);
-            GXSetTevAlphaOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            temp_r31++;
+        else if (0.0f != material->invAlpha) {
+            GXSetTevOrder(animationIndex, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
+            GXSetTevColorIn(animationIndex, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_CPREV);
+            GXSetTevColorOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            GXSetTevAlphaIn(animationIndex, GX_CA_ZERO, GX_CA_APREV, GX_CA_RASA, GX_CA_ZERO);
+            GXSetTevAlphaOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            animationIndex++;
         }
-        GXSetNumTexGens(temp_r28);
-        GXSetNumTevStages(temp_r31);
+        GXSetNumTexGens(updateCounter);
+        GXSetNumTevStages(animationIndex);
     }
     else {
-        temp_r22 = 0;
-        temp_r28 = 1;
+        integerValue3 = 0;
+        updateCounter = 1;
         GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
-        for (temp_r25 = temp_r31 = 0; temp_r25 < arg1->attrNum; temp_r31++, temp_r25++) {
-            temp_r29 = &temp_r27->mesh.attribute[arg1->attr[temp_r25]];
-            if (0.0f != temp_r29->nbtTpLvl) {
+        for (animationIndex2 = animationIndex = 0; animationIndex2 < material->attrNum; animationIndex++, animationIndex2++) {
+            attribute2 = &sceneObject->mesh.attribute[material->attr[animationIndex2]];
+            if (0.0f != attribute2->nbtTpLvl) {
                 GXSetTexCoordGen(GX_TEXCOORD1, GX_TG_BUMP0, GX_TG_TEXCOORD0, GX_IDENTITY);
-                SET_TEVCOLOR_ALPHA(GX_TEVREG1, sp24, 10 * temp_r29->nbtTpLvl);
-                GXSetTevOrder(temp_r31, GX_TEXCOORD0, temp_r25, GX_COLOR0A0);
-                GXSetTevColorIn(temp_r31, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_RASC);
-                GXSetTevColorOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-                GXSetTevAlphaIn(temp_r31, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
-                GXSetTevAlphaOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-                temp_r31++;
-                GXSetTevOrder(temp_r31, GX_TEXCOORD1, temp_r25, GX_COLOR0A0);
-                GXSetTevColorIn(temp_r31, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_CPREV);
-                GXSetTevColorOp(temp_r31, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-                GXSetTevAlphaIn(temp_r31, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
-                GXSetTevAlphaOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-                temp_r28++;
-                temp_r22 = 1;
+                SET_TEVCOLOR_ALPHA(GX_TEVREG1, drawColor2, 10 * attribute2->nbtTpLvl);
+                GXSetTevOrder(animationIndex, GX_TEXCOORD0, animationIndex2, GX_COLOR0A0);
+                GXSetTevColorIn(animationIndex, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_RASC);
+                GXSetTevColorOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                GXSetTevAlphaIn(animationIndex, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
+                GXSetTevAlphaOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+                animationIndex++;
+                GXSetTevOrder(animationIndex, GX_TEXCOORD1, animationIndex2, GX_COLOR0A0);
+                GXSetTevColorIn(animationIndex, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_CPREV);
+                GXSetTevColorOp(animationIndex, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                GXSetTevAlphaIn(animationIndex, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
+                GXSetTevAlphaOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+                updateCounter++;
+                integerValue3 = 1;
             }
             else {
-                if (temp_r29->animWorkP) {
-                    temp_r26 = temp_r29->animWorkP;
-                    if (temp_r26->attr & 0x2) {
-                        GXLoadTexMtxImm(Hu3DTexScrData[temp_r26->texScrId].texMtx, texMtxTbl[temp_r28], GX_MTX2x4);
-                        GXSetTexCoordGen(temp_r28, GX_TG_MTX2x4, GX_TG_TEX0, texMtxTbl[temp_r28]);
-                        temp_r20 = (u16)temp_r28;
-                        temp_r28++;
+                if (attribute2->animWorkP) {
+                    hu3dattranimPointer = attribute2->animWorkP;
+                    if (hu3dattranimPointer->attr & 0x2) {
+                        GXLoadTexMtxImm(Hu3DTexScrData[hu3dattranimPointer->texScrId].texMtx, texMtxTbl[updateCounter], GX_MTX2x4);
+                        GXSetTexCoordGen(updateCounter, GX_TG_MTX2x4, GX_TG_TEX0, texMtxTbl[updateCounter]);
+                        integerValue4 = (u16)updateCounter;
+                        updateCounter++;
                     }
                 }
                 else {
-                    temp_r20 = 0;
+                    integerValue4 = 0;
                 }
-                GXSetTevOrder(temp_r31, temp_r20, temp_r25, GX_COLOR0A0);
-                if (temp_r25 == 0) {
-                    GXSetTevColorIn(temp_r31, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
-                    GXSetTevAlphaIn(temp_r31, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
+                GXSetTevOrder(animationIndex, integerValue4, animationIndex2, GX_COLOR0A0);
+                if (animationIndex2 == 0) {
+                    GXSetTevColorIn(animationIndex, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
+                    GXSetTevAlphaIn(animationIndex, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
                 }
-                else if (temp_r22 != 0) {
-                    GXSetTevColorIn(temp_r31, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXC, GX_CC_ZERO);
-                    GXSetTevAlphaIn(temp_r31, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
-                    temp_r22 = 0;
+                else if (integerValue3 != 0) {
+                    GXSetTevColorIn(animationIndex, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXC, GX_CC_ZERO);
+                    GXSetTevAlphaIn(animationIndex, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
+                    integerValue3 = 0;
                 }
-                else if (temp_r29->unk8[2] == 0) {
-                    GXSetTevColorIn(temp_r31, GX_CC_CPREV, GX_CC_TEXC, GX_CC_TEXA, GX_CC_ZERO);
-                    GXSetTevAlphaIn(temp_r31, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_APREV);
+                else if (attribute2->originalTextureCoordinates[2] == 0) {
+                    GXSetTevColorIn(animationIndex, GX_CC_CPREV, GX_CC_TEXC, GX_CC_TEXA, GX_CC_ZERO);
+                    GXSetTevAlphaIn(animationIndex, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_APREV);
                 }
                 else {
-                    SET_TEVCOLOR_ALPHA(GX_TEVREG2, sp20, 255 * temp_r29->kColor);
-                    GXSetTevColorIn(temp_r31, GX_CC_CPREV, GX_CC_TEXC, GX_CC_A2, GX_CC_ZERO);
-                    GXSetTevAlphaIn(temp_r31, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
+                    SET_TEVCOLOR_ALPHA(GX_TEVREG2, drawColor3, 255 * attribute2->kColor);
+                    GXSetTevColorIn(animationIndex, GX_CC_CPREV, GX_CC_TEXC, GX_CC_A2, GX_CC_ZERO);
+                    GXSetTevAlphaIn(animationIndex, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
                 }
-                GXSetTevColorOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-                GXSetTevAlphaOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                GXSetTevColorOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                GXSetTevAlphaOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
             }
         }
-        SET_TEVCOLOR_ALPHA(GX_TEVREG0, sp28, 255 * (1.0f - arg1->invAlpha));
-        if (temp_r24) {
-            GXSetTevOrder(temp_r31, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR1A1);
-            GXSetTevColorIn(temp_r31, GX_CC_CPREV, GX_CC_ONE, GX_CC_RASC, GX_CC_ZERO);
-            GXSetTevColorOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            GXSetTevAlphaIn(temp_r31, GX_CA_ZERO, GX_CA_APREV, GX_CA_A0, GX_CA_ZERO);
-            GXSetTevAlphaOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            temp_r31++;
+        SET_TEVCOLOR_ALPHA(GX_TEVREG0, drawColor, 255 * (1.0f - material->invAlpha));
+        if (integerValue) {
+            GXSetTevOrder(animationIndex, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR1A1);
+            GXSetTevColorIn(animationIndex, GX_CC_CPREV, GX_CC_ONE, GX_CC_RASC, GX_CC_ZERO);
+            GXSetTevColorOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            GXSetTevAlphaIn(animationIndex, GX_CA_ZERO, GX_CA_APREV, GX_CA_A0, GX_CA_ZERO);
+            GXSetTevAlphaOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            animationIndex++;
         }
         else {
-            GXSetTevOrder(temp_r31, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
-            GXSetTevColorIn(temp_r31, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_CPREV);
-            GXSetTevColorOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            GXSetTevAlphaIn(temp_r31, GX_CA_ZERO, GX_CA_APREV, GX_CA_A0, GX_CA_ZERO);
-            GXSetTevAlphaOp(temp_r31, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            temp_r31++;
+            GXSetTevOrder(animationIndex, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
+            GXSetTevColorIn(animationIndex, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_CPREV);
+            GXSetTevColorOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            GXSetTevAlphaIn(animationIndex, GX_CA_ZERO, GX_CA_APREV, GX_CA_A0, GX_CA_ZERO);
+            GXSetTevAlphaOp(animationIndex, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            animationIndex++;
         }
-        GXSetNumTexGens(temp_r28);
-        GXSetNumTevStages(temp_r31);
+        GXSetNumTexGens(updateCounter);
+        GXSetNumTevStages(animationIndex);
     }
-    lbl_1_bss_118 = Hu3DLightSet(arg0->unk0, &Hu3DCameraMtx, &Hu3DCameraMtxXPose, (temp_r24) ? arg1->hiliteScale : 0);
-    if (temp_r24) {
+    stageLightHandle = Hu3DLightSet(drawWork->model, &Hu3DCameraMtx, &Hu3DCameraMtxXPose, (integerValue) ? material->hiliteScale : 0);
+    if (integerValue) {
         GXSetNumChans(2);
-        if (temp_r27->mesh.color) {
-            GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_VTX, lbl_1_bss_118, GX_DF_CLAMP, GX_AF_NONE);
-            GXSetChanCtrl(GX_COLOR1A1, GX_TRUE, GX_SRC_REG, GX_SRC_VTX, lbl_1_bss_118, GX_DF_NONE, GX_AF_SPEC);
+        if (sceneObject->mesh.color) {
+            GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_VTX, stageLightHandle, GX_DF_CLAMP, GX_AF_NONE);
+            GXSetChanCtrl(GX_COLOR1A1, GX_TRUE, GX_SRC_REG, GX_SRC_VTX, stageLightHandle, GX_DF_NONE, GX_AF_SPEC);
         }
         else {
-            GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_REG, lbl_1_bss_118, GX_DF_CLAMP, GX_AF_NONE);
-            GXSetChanCtrl(GX_COLOR1A1, GX_TRUE, GX_SRC_REG, GX_SRC_REG, lbl_1_bss_118, GX_DF_NONE, GX_AF_SPEC);
+            GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_REG, stageLightHandle, GX_DF_CLAMP, GX_AF_NONE);
+            GXSetChanCtrl(GX_COLOR1A1, GX_TRUE, GX_SRC_REG, GX_SRC_REG, stageLightHandle, GX_DF_NONE, GX_AF_SPEC);
         }
     }
     else {
         GXSetNumChans(1);
-        if (temp_r27->mesh.color) {
-            GXSetChanCtrl(GX_COLOR0A0, temp_r23, GX_SRC_REG, GX_SRC_VTX, lbl_1_bss_118, GX_DF_CLAMP, GX_AF_SPOT);
+        if (sceneObject->mesh.color) {
+            GXSetChanCtrl(GX_COLOR0A0, integerValue2, GX_SRC_REG, GX_SRC_VTX, stageLightHandle, GX_DF_CLAMP, GX_AF_SPOT);
         }
         else {
-            GXSetChanCtrl(GX_COLOR0A0, temp_r23, GX_SRC_REG, GX_SRC_REG, lbl_1_bss_118, GX_DF_CLAMP, GX_AF_SPOT);
+            GXSetChanCtrl(GX_COLOR0A0, integerValue2, GX_SRC_REG, GX_SRC_REG, stageLightHandle, GX_DF_CLAMP, GX_AF_SPOT);
         }
     }
 }
 #undef SET_TEVCOLOR_ALPHA
 
-s32 fn_1_11670(void)
+s32 GetRandomStageValue(void)
 {
-    lbl_1_data_19C *= 0x41C64E6D;
-    lbl_1_data_19C += 0x3039;
-    return lbl_1_data_19C >> 16;
+    stageRandomSeed *= 0x41C64E6D;
+    stageRandomSeed += 0x3039;
+    return stageRandomSeed >> 16;
 }
 
-float fn_1_116C4(float arg0, float arg1)
+float ApproachFloat(float currentValue, float targetValue)
 {
-    float temp_f31;
-    float temp_f30;
-    temp_f30 = 360;
-    temp_f31 = atan2d(arg0, arg1);
-    if (temp_f31 < -180) {
-        temp_f31 += temp_f30;
+    float angle;
+    float interpolationValue;
+    interpolationValue = 360;
+    angle = atan2d(currentValue, targetValue);
+    if (angle < -180) {
+        angle += interpolationValue;
     }
-    else if (temp_f31 >= 180.0) {
-        temp_f31 -= temp_f30;
+    else if (angle >= 180.0) {
+        angle -= interpolationValue;
     }
-    return temp_f31;
+    return angle;
 }
 
-float fn_1_11780(Vec *arg0, Vec *arg1)
+float MeasureVectorDistance(Vec *firstPosition, Vec *secondPosition)
 {
-    return VECDistanceXYZ(arg0, arg1);
+    return VECDistanceXYZ(firstPosition, secondPosition);
 }

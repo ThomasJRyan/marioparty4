@@ -16,49 +16,49 @@
 #include "game/frand.h"
 #endif
 
-OMOBJ *lbl_1_bss_110;
-u32 lbl_1_bss_10C;
-Vec lbl_1_bss_100;
-Vec lbl_1_bss_F4;
-HU3DPARTICLEDATA *lbl_1_bss_A4[20];
-u32 lbl_1_bss_A0;
-HU3DPARTICLEDATA *lbl_1_bss_94[3];
-s32 lbl_1_bss_88[3];
-s32 lbl_1_bss_84;
-s32 lbl_1_bss_80;
+OMOBJ *cameraTargetObject;
+u32 cameraParticleEffectState;
+Vec cameraParticlePosition;
+Vec cameraParticleVelocity;
+HU3DPARTICLEDATA *cameraParticleData[20];
+u32 cameraParticleCount;
+HU3DPARTICLEDATA *cameraParticleGroups[3];
+s32 cameraParticleGroupCounts[3];
+s32 cameraPrimaryParticleId;
+s32 cameraSecondaryParticleId;
 
-void fn_1_8A20(OMOBJ *object);
-void fn_1_9770(OMOBJ *object);
+void InitializeCameraEffects(OMOBJ *object);
+void InitializeCameraTarget(OMOBJ *object);
 
-void fn_1_8958(HUPROCESS *objman)
+void CreateCameraObjects(HUPROCESS *objman)
 {
     OMOBJ *object;
-    lbl_1_bss_10C = 0;
-    object = omAddObjEx(objman, 20, 9, 0, -1, fn_1_8A20);
+    cameraParticleEffectState = 0;
+    object = omAddObjEx(objman, 20, 9, 0, -1, InitializeCameraEffects);
     object->work[0] = 0;
-    lbl_1_bss_110 = omAddObjEx(objman, 21, 2, 0, -1, fn_1_9770);
-    lbl_1_bss_110->work[0] = 0;
-    lbl_1_bss_84 = lbl_1_bss_80 = -1;
+    cameraTargetObject = omAddObjEx(objman, 21, 2, 0, -1, InitializeCameraTarget);
+    cameraTargetObject->work[0] = 0;
+    cameraPrimaryParticleId = cameraSecondaryParticleId = -1;
 }
 
-void fn_1_8FAC(OMOBJ *object);
+void UpdateCameraEffects(OMOBJ *object);
 
-void fn_1_A894(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
-void fn_1_B700(s16 arg0, u32 arg1);
-void fn_1_BB94(void);
-void fn_1_BDE0(void);
+void UpdateCameraParticleEmitter(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void SetCameraParticleGroup(s16 particleModelId, u32 particleGroupId);
+void UpdateCameraFade(void);
+void CleanupCameraEffects(void);
 
-void fn_1_8A20(OMOBJ *object)
+void InitializeCameraEffects(OMOBJ *object)
 {
-    s16 temp_r31;
-    s32 temp_r29;
-    for (temp_r29 = 0; temp_r29 < 20; temp_r29++) {
-        lbl_1_bss_A4[temp_r29] = NULL;
+    s16 createdObjectId;
+    s32 modelIndex;
+    for (modelIndex = 0; modelIndex < 20; modelIndex++) {
+        cameraParticleData[modelIndex] = NULL;
     }
-    lbl_1_bss_A0 = 0;
-    for (temp_r29 = 0; temp_r29 < 3; temp_r29++) {
-        lbl_1_bss_94[temp_r29] = NULL;
-        lbl_1_bss_88[temp_r29] = 0;
+    cameraParticleCount = 0;
+    for (modelIndex = 0; modelIndex < 3; modelIndex++) {
+        cameraParticleGroups[modelIndex] = NULL;
+        cameraParticleGroupCounts[modelIndex] = 0;
     }
     object->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x00));
     omSetSca(object, 0.1f, 0.1f, 0.1f);
@@ -66,100 +66,100 @@ void fn_1_8A20(OMOBJ *object)
     Hu3DModelScaleSet(object->mdlId[1], 0.1f, 0.1f, 0.1f);
     Hu3DModelPosSet(object->mdlId[1], 0, 11990, 0);
     Hu3DModelShadowMapSet(object->mdlId[1]);
-    temp_r31 = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x0B)), 1);
-    object->mdlId[2] = temp_r31;
-    Hu3DModelLayerSet(temp_r31, 6);
-    Hu3DParticleColSet(temp_r31, 255, 255, 255);
-    Hu3DParticleHookSet(temp_r31, fn_1_A894);
-    Hu3DModelPosSet(temp_r31, 0, 0, 0);
-    ((HU3DPARTICLE *)Hu3DData[temp_r31].hookData)->dataCnt = 0;
-    ((HU3DPARTICLE *)Hu3DData[temp_r31].hookData)->emitCnt = 0;
-    temp_r31 = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x0D)), 1);
-    object->mdlId[3] = temp_r31;
-    Hu3DParticleBlendModeSet(temp_r31, 1);
-    Hu3DModelLayerSet(temp_r31, 6);
-    Hu3DParticleColSet(temp_r31, 255, 255, 255);
-    Hu3DParticleHookSet(temp_r31, fn_1_A894);
-    Hu3DModelPosSet(temp_r31, 0, 0, 0);
-    ((HU3DPARTICLE *)Hu3DData[temp_r31].hookData)->dataCnt = 0;
-    ((HU3DPARTICLE *)Hu3DData[temp_r31].hookData)->emitCnt = 1;
-    temp_r31 = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x11)), 1);
-    object->mdlId[5] = temp_r31;
-    Hu3DModelLayerSet(temp_r31, 7);
-    Hu3DParticleColSet(temp_r31, 255, 255, 255);
-    Hu3DParticleHookSet(temp_r31, fn_1_A894);
-    Hu3DModelPosSet(temp_r31, 0, 0, 0);
-    ((HU3DPARTICLE *)Hu3DData[temp_r31].hookData)->dataCnt = 0;
-    ((HU3DPARTICLE *)Hu3DData[temp_r31].hookData)->emitCnt = 2;
-    temp_r31 = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x10)), 8);
-    object->mdlId[6] = temp_r31;
-    Hu3DParticleBlendModeSet(temp_r31, 1);
-    Hu3DModelLayerSet(temp_r31, 6);
-    Hu3DModelPosSet(temp_r31, 0, 0, 0);
-    fn_1_B700(temp_r31, 0);
-    temp_r31 = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x0F)), 6);
-    object->mdlId[6] = temp_r31;
-    Hu3DParticleBlendModeSet(temp_r31, 1);
-    Hu3DModelLayerSet(temp_r31, 6);
-    Hu3DModelPosSet(temp_r31, 0, 0, 0);
-    fn_1_B700(temp_r31, 1);
-    temp_r31 = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x0D)), 5);
-    object->mdlId[6] = temp_r31;
-    Hu3DParticleBlendModeSet(temp_r31, 1);
-    Hu3DModelLayerSet(temp_r31, 6);
-    Hu3DModelPosSet(temp_r31, 0, 0, 0);
-    fn_1_B700(temp_r31, 2);
-    fn_1_BB94();
-    lbl_1_bss_10C = 1;
-    object->objFunc = fn_1_8FAC;
+    createdObjectId = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x0B)), 1);
+    object->mdlId[2] = createdObjectId;
+    Hu3DModelLayerSet(createdObjectId, 6);
+    Hu3DParticleColSet(createdObjectId, 255, 255, 255);
+    Hu3DParticleHookSet(createdObjectId, UpdateCameraParticleEmitter);
+    Hu3DModelPosSet(createdObjectId, 0, 0, 0);
+    ((HU3DPARTICLE *)Hu3DData[createdObjectId].hookData)->dataCnt = 0;
+    ((HU3DPARTICLE *)Hu3DData[createdObjectId].hookData)->emitCnt = 0;
+    createdObjectId = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x0D)), 1);
+    object->mdlId[3] = createdObjectId;
+    Hu3DParticleBlendModeSet(createdObjectId, 1);
+    Hu3DModelLayerSet(createdObjectId, 6);
+    Hu3DParticleColSet(createdObjectId, 255, 255, 255);
+    Hu3DParticleHookSet(createdObjectId, UpdateCameraParticleEmitter);
+    Hu3DModelPosSet(createdObjectId, 0, 0, 0);
+    ((HU3DPARTICLE *)Hu3DData[createdObjectId].hookData)->dataCnt = 0;
+    ((HU3DPARTICLE *)Hu3DData[createdObjectId].hookData)->emitCnt = 1;
+    createdObjectId = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x11)), 1);
+    object->mdlId[5] = createdObjectId;
+    Hu3DModelLayerSet(createdObjectId, 7);
+    Hu3DParticleColSet(createdObjectId, 255, 255, 255);
+    Hu3DParticleHookSet(createdObjectId, UpdateCameraParticleEmitter);
+    Hu3DModelPosSet(createdObjectId, 0, 0, 0);
+    ((HU3DPARTICLE *)Hu3DData[createdObjectId].hookData)->dataCnt = 0;
+    ((HU3DPARTICLE *)Hu3DData[createdObjectId].hookData)->emitCnt = 2;
+    createdObjectId = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x10)), 8);
+    object->mdlId[6] = createdObjectId;
+    Hu3DParticleBlendModeSet(createdObjectId, 1);
+    Hu3DModelLayerSet(createdObjectId, 6);
+    Hu3DModelPosSet(createdObjectId, 0, 0, 0);
+    SetCameraParticleGroup(createdObjectId, 0);
+    createdObjectId = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x0F)), 6);
+    object->mdlId[6] = createdObjectId;
+    Hu3DParticleBlendModeSet(createdObjectId, 1);
+    Hu3DModelLayerSet(createdObjectId, 6);
+    Hu3DModelPosSet(createdObjectId, 0, 0, 0);
+    SetCameraParticleGroup(createdObjectId, 1);
+    createdObjectId = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x0D)), 5);
+    object->mdlId[6] = createdObjectId;
+    Hu3DParticleBlendModeSet(createdObjectId, 1);
+    Hu3DModelLayerSet(createdObjectId, 6);
+    Hu3DModelPosSet(createdObjectId, 0, 0, 0);
+    SetCameraParticleGroup(createdObjectId, 2);
+    UpdateCameraFade();
+    cameraParticleEffectState = 1;
+    object->objFunc = UpdateCameraEffects;
     object->work[1] = 0;
 }
 
-void fn_1_9514(OMOBJ *object);
+void UpdateCameraEffectCleanup(OMOBJ *object);
 
-void fn_1_8FAC(OMOBJ *object)
+void UpdateCameraEffects(OMOBJ *object)
 {
     object->work[1]++;
-    switch (lbl_1_bss_10C) {
+    switch (cameraParticleEffectState) {
         case 1:
-            if (lbl_1_bss_110->work[0] == 4) {
-                lbl_1_bss_10C = 2;
-                fn_1_817C(&lbl_1_bss_100, &lbl_1_bss_F4);
+            if (cameraTargetObject->work[0] == 4) {
+                cameraParticleEffectState = 2;
+                GetCameraPositionRotation(&cameraParticlePosition, &cameraParticleVelocity);
                 object->work[1] = 0;
             }
             break;
 
         case 2:
-            fn_1_817C(&lbl_1_bss_100, &lbl_1_bss_F4);
-            if (lbl_1_bss_80 < 0) {
-                lbl_1_bss_80 = HuAudFXPlay(1361);
+            GetCameraPositionRotation(&cameraParticlePosition, &cameraParticleVelocity);
+            if (cameraSecondaryParticleId < 0) {
+                cameraSecondaryParticleId = HuAudFXPlay(1361);
             }
-            lbl_1_bss_10C = 3;
+            cameraParticleEffectState = 3;
             object->work[1] = 0;
             break;
 
         case 3:
 #if VERSION_PAL
-            lbl_1_bss_F4.y += -400.0f / REFRESH_RATE_F;
-            lbl_1_bss_F4.z += -35.0f / REFRESH_RATE_F;
-            lbl_1_bss_100.y += 20.0f / 50.000005f;
+            cameraParticleVelocity.y += -400.0f / REFRESH_RATE_F;
+            cameraParticleVelocity.z += -35.0f / REFRESH_RATE_F;
+            cameraParticlePosition.y += 20.0f / 50.000005f;
 #else
-            lbl_1_bss_F4.y += -400.0f / REFRESH_RATE_OFF_BY_1;
-            lbl_1_bss_F4.z += -35.0f / REFRESH_RATE_OFF_BY_1;
-            lbl_1_bss_100.y += 20.0f / 60.0f;
+            cameraParticleVelocity.y += -400.0f / REFRESH_RATE_OFF_BY_1;
+            cameraParticleVelocity.z += -35.0f / REFRESH_RATE_OFF_BY_1;
+            cameraParticlePosition.y += 20.0f / 60.0f;
 #endif
-            fn_1_817C(&lbl_1_bss_100, &lbl_1_bss_F4);
-            if (lbl_1_bss_F4.y > 12010) {
+            GetCameraPositionRotation(&cameraParticlePosition, &cameraParticleVelocity);
+            if (cameraParticleVelocity.y > 12010) {
                 break;
             }
-            if (lbl_1_bss_84 < 0) {
-                lbl_1_bss_84 = HuAudFXPlay(1357);
+            if (cameraPrimaryParticleId < 0) {
+                cameraPrimaryParticleId = HuAudFXPlay(1357);
             }
-            if (lbl_1_bss_80 >= 0) {
-                HuAudFXStop(lbl_1_bss_80);
-                lbl_1_bss_80 = -1;
+            if (cameraSecondaryParticleId >= 0) {
+                HuAudFXStop(cameraSecondaryParticleId);
+                cameraSecondaryParticleId = -1;
             }
-            lbl_1_bss_10C = 4;
+            cameraParticleEffectState = 4;
             object->work[1] = 0;
             object->work[2] = 0;
             break;
@@ -167,18 +167,18 @@ void fn_1_8FAC(OMOBJ *object)
         case 4:
 #if VERSION_PAL
             if (object->work[1] < 20.0f) {
-                lbl_1_bss_100.y += 0.39999998f;
+                cameraParticlePosition.y += 0.39999998f;
 #else
             if (object->work[1] < 24.0f) {
-                lbl_1_bss_100.y += 4.0f / 12.0f;
+                cameraParticlePosition.y += 4.0f / 12.0f;
 #endif
-                fn_1_817C(&lbl_1_bss_100, &lbl_1_bss_F4);
+                GetCameraPositionRotation(&cameraParticlePosition, &cameraParticleVelocity);
             }
             else {
                 if (object->work[2] == 0) {
-                    if (!lbl_1_bss_40) {
+                    if (!minigameExitRequested) {
                         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
-                        lbl_1_bss_44 = 1;
+                        minigameExitAllowed = 1;
                     }
                     object->work[2]++;
                 }
@@ -194,146 +194,146 @@ void fn_1_8FAC(OMOBJ *object)
 #endif
                     break;
                 }
-                lbl_1_bss_10C = 5;
+                cameraParticleEffectState = 5;
                 object->work[1] = 0;
             }
             break;
 
         default:
-            lbl_1_bss_10C = 5;
+            cameraParticleEffectState = 5;
             break;
     }
     omSetTra(object, Center.x + (sind(CRot.y) * cosd(CRot.x) * CZoom), Center.y + (-sind(CRot.x) * CZoom),
         Center.z + (cosd(CRot.y) * cosd(CRot.x) * CZoom));
-    fn_1_BDE0();
-    if (lbl_1_bss_10C == 5) {
+    CleanupCameraEffects();
+    if (cameraParticleEffectState == 5) {
         Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
         Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
-        lbl_1_bss_10C = 5;
-        object->objFunc = fn_1_9514;
+        cameraParticleEffectState = 5;
+        object->objFunc = UpdateCameraEffectCleanup;
     }
 }
 
-void fn_1_9514(OMOBJ *object)
+void UpdateCameraEffectCleanup(OMOBJ *object)
 {
     if (!WipeStatGet() && object->work[2] != 0) {
-        if (!lbl_1_bss_40) {
+        if (!minigameExitRequested) {
             WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
-            lbl_1_bss_44 = 0;
+            minigameExitAllowed = 0;
         }
         object->work[2] = 0;
     }
-    if (fn_1_6878() >= 4) {
+    if (GetStageEventState() >= 4) {
         Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
     }
     omSetTra(object, Center.x + (sind(CRot.y) * cosd(CRot.x) * CZoom), Center.y + (-sind(CRot.x) * CZoom) - 1000,
         Center.z + (cosd(CRot.y) * cosd(CRot.x) * CZoom));
 }
 
-typedef struct work_99C8 {
-    Vec unk0;
-    Vec unkC;
-    Vec unk18;
-    Vec unk24;
-    Vec unk30;
-    Vec unk3C;
-    s32 unk48[2];
-} Work99C8;
+typedef struct CameraTargetWork {
+    Vec velocity;
+    Vec cameraPosition;
+    Vec cameraTarget;
+    Vec cameraVelocity;
+    Vec cameraOrbit;
+    Vec cameraRotation;
+    s32 soundEmitterIds[2];
+} CameraTargetWork;
 
-void fn_1_99C8(OMOBJ *object);
-void fn_1_A37C(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void UpdateCameraTarget(OMOBJ *object);
+void UpdateCameraParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 
-void fn_1_9770(OMOBJ *object)
+void InitializeCameraTarget(OMOBJ *object)
 {
-    Work99C8 *temp_r31;
-    s32 temp_r29;
+    CameraTargetWork *cameratargetworkPointer;
+    s32 createdObjectId;
 
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(Work99C8), HU_MEMNUM_OVL);
-    temp_r31 = object->data;
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(CameraTargetWork), HU_MEMNUM_OVL);
+    cameratargetworkPointer = object->data;
     object->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M408, 0x0A));
     Hu3DModelAttrSet(object->mdlId[0], HU3D_MOTATTR_LOOP);
     Hu3DMotionSpeedSet(object->mdlId[0], 3.0f);
     Hu3DModelShadowSet(object->mdlId[0]);
-    object->objFunc = fn_1_99C8;
+    object->objFunc = UpdateCameraTarget;
     object->work[0] = 0;
     object->work[1] = 0;
-    temp_r31->unk3C.x = temp_r31->unk3C.y = temp_r31->unk3C.z = 0;
-    temp_r31->unk0.x = temp_r31->unk0.y = temp_r31->unk0.z = 0;
-    temp_r31->unk0.z = 1000;
-    omSetTra(object, 0, 12080, -2 * temp_r31->unk0.z);
+    cameratargetworkPointer->cameraRotation.x = cameratargetworkPointer->cameraRotation.y = cameratargetworkPointer->cameraRotation.z = 0;
+    cameratargetworkPointer->velocity.x = cameratargetworkPointer->velocity.y = cameratargetworkPointer->velocity.z = 0;
+    cameratargetworkPointer->velocity.z = 1000;
+    omSetTra(object, 0, 12080, -2 * cameratargetworkPointer->velocity.z);
     omSetSca(object, 0.5f, 0.5f, 0.5f);
-    temp_r29 = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x24)), 1024);
-    object->mdlId[1] = temp_r29;
-    Hu3DModelLayerSet(temp_r29, 6);
-    Hu3DParticleColSet(temp_r29, 255, 255, 255);
-    Hu3DParticleHookSet(temp_r29, fn_1_A37C);
-    Hu3DModelPosSet(temp_r29, 0, 0, 0);
-    ((HU3DPARTICLE *)Hu3DData[temp_r29].hookData)->dataCnt = 0;
-    temp_r31->unk30.y = -35;
-    temp_r31->unk30.z = 350;
-    temp_r31->unk18.y = 800 + object->trans.y;
-    temp_r31->unk48[0] = temp_r31->unk48[1] = -1;
+    createdObjectId = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M408, 0x24)), 1024);
+    object->mdlId[1] = createdObjectId;
+    Hu3DModelLayerSet(createdObjectId, 6);
+    Hu3DParticleColSet(createdObjectId, 255, 255, 255);
+    Hu3DParticleHookSet(createdObjectId, UpdateCameraParticle);
+    Hu3DModelPosSet(createdObjectId, 0, 0, 0);
+    ((HU3DPARTICLE *)Hu3DData[createdObjectId].hookData)->dataCnt = 0;
+    cameratargetworkPointer->cameraOrbit.y = -35;
+    cameratargetworkPointer->cameraOrbit.z = 350;
+    cameratargetworkPointer->cameraTarget.y = 800 + object->trans.y;
+    cameratargetworkPointer->soundEmitterIds[0] = cameratargetworkPointer->soundEmitterIds[1] = -1;
     HuDataDirClose(DATA_MAKE_NUM(DATADIR_M408, 10));
 }
 
-void fn_1_A334(OMOBJ *object);
-void fn_1_A4E8(s32 arg0, Vec *arg1, u32 arg2);
+void SetCameraTargetPosition(OMOBJ *object);
+void SetCameraParticleEmission(s32 particleModelId, Vec *emissionPosition, u32 particleCount);
 
-void fn_1_99C8(OMOBJ *object)
+void UpdateCameraTarget(OMOBJ *object)
 {
-    float temp_f31;
-    float temp_f30;
+    float frameTimer;
+    float frameTimer2;
 
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+    Vec positionVector;
+    Vec positionVector2;
+    Vec positionVector3;
+    Vec positionVector4;
 
-    Work99C8 *temp_r31;
-    temp_r31 = object->data;
-    object->trans.x += temp_r31->unk0.x * REFRESH_FREQ;
-    object->trans.y += temp_r31->unk0.y * REFRESH_FREQ;
-    object->trans.z += temp_r31->unk0.z * REFRESH_FREQ;
+    CameraTargetWork *cameratargetworkPointer;
+    cameratargetworkPointer = object->data;
+    object->trans.x += cameratargetworkPointer->velocity.x * REFRESH_FREQ;
+    object->trans.y += cameratargetworkPointer->velocity.y * REFRESH_FREQ;
+    object->trans.z += cameratargetworkPointer->velocity.z * REFRESH_FREQ;
     object->work[1]++;
     switch (object->work[0]) {
         case 0:
             if (object->work[1] < REFRESH_RATE_F * 2) {
-                temp_f30 = REFRESH_FREQ * (1.5f * (REFRESH_RATE_F * 2 - object->work[1]));
-                if (temp_f30 > 1.0f) {
-                    temp_f30 = 1.0f;
+                frameTimer2 = REFRESH_FREQ * (1.5f * (REFRESH_RATE_F * 2 - object->work[1]));
+                if (frameTimer2 > 1.0f) {
+                    frameTimer2 = 1.0f;
                 }
-                temp_f31 = temp_r31->unk18.z;
-                temp_r31->unk30.z -= (175.0f / REFRESH_RATE) * temp_f30;
+                frameTimer = cameratargetworkPointer->cameraTarget.z;
+                cameratargetworkPointer->cameraOrbit.z -= (175.0f / REFRESH_RATE) * frameTimer2;
 #if VERSION_PAL
-                temp_r31->unk30.y += (70.0f / REFRESH_RATE) * temp_f30;
+                cameratargetworkPointer->cameraOrbit.y += (70.0f / REFRESH_RATE) * frameTimer2;
 #else
-                temp_r31->unk30.y += (70.0f / REFRESH_RATE_OFF_BY_1) * temp_f30;
+                cameratargetworkPointer->cameraOrbit.y += (70.0f / REFRESH_RATE_OFF_BY_1) * frameTimer2;
 #endif
-                temp_r31->unk18.x = object->trans.x + (temp_r31->unk30.z * sind(temp_r31->unk30.y));
-                temp_r31->unk18.z = object->trans.z + (temp_r31->unk30.z * cosd(temp_r31->unk30.y));
+                cameratargetworkPointer->cameraTarget.x = object->trans.x + (cameratargetworkPointer->cameraOrbit.z * sind(cameratargetworkPointer->cameraOrbit.y));
+                cameratargetworkPointer->cameraTarget.z = object->trans.z + (cameratargetworkPointer->cameraOrbit.z * cosd(cameratargetworkPointer->cameraOrbit.y));
 #if VERSION_PAL
-                temp_r31->unk18.y -= (500.0f / REFRESH_RATE) * temp_f30;
+                cameratargetworkPointer->cameraTarget.y -= (500.0f / REFRESH_RATE) * frameTimer2;
 #else
-                temp_r31->unk18.y -= (500.0f / REFRESH_RATE_OFF_BY_1) * temp_f30;
+                cameratargetworkPointer->cameraTarget.y -= (500.0f / REFRESH_RATE_OFF_BY_1) * frameTimer2;
 #endif
-                temp_r31->unk24.x = 0;
-                temp_r31->unk24.y = 0;
-                temp_r31->unk24.z = 0.96f * temp_r31->unk0.z;
+                cameratargetworkPointer->cameraVelocity.x = 0;
+                cameratargetworkPointer->cameraVelocity.y = 0;
+                cameratargetworkPointer->cameraVelocity.z = 0.96f * cameratargetworkPointer->velocity.z;
             }
             else {
-                temp_r31->unk18.z += temp_r31->unk24.z * REFRESH_FREQ;
+                cameratargetworkPointer->cameraTarget.z += cameratargetworkPointer->cameraVelocity.z * REFRESH_FREQ;
             }
-            temp_r31->unkC.x = object->trans.x;
-            temp_r31->unkC.y = object->trans.y;
-            temp_r31->unkC.z = object->trans.z;
-            sp2C.x = object->trans.x;
-            sp2C.y = object->trans.y;
-            sp2C.z = object->trans.z;
-            if (temp_r31->unk48[0] < 0) {
-                temp_r31->unk48[0] = HuAudFXEmiterPlay(1362, &sp2C);
+            cameratargetworkPointer->cameraPosition.x = object->trans.x;
+            cameratargetworkPointer->cameraPosition.y = object->trans.y;
+            cameratargetworkPointer->cameraPosition.z = object->trans.z;
+            positionVector.x = object->trans.x;
+            positionVector.y = object->trans.y;
+            positionVector.z = object->trans.z;
+            if (cameratargetworkPointer->soundEmitterIds[0] < 0) {
+                cameratargetworkPointer->soundEmitterIds[0] = HuAudFXEmiterPlay(1362, &positionVector);
             }
-            if (temp_r31->unk48[1] < 0) {
-                temp_r31->unk48[1] = HuAudFXEmiterPlay(1356, &sp2C);
+            if (cameratargetworkPointer->soundEmitterIds[1] < 0) {
+                cameratargetworkPointer->soundEmitterIds[1] = HuAudFXEmiterPlay(1356, &positionVector);
             }
             if (object->work[1] < REFRESH_RATE_F * 3) {
                 break;
@@ -343,12 +343,12 @@ void fn_1_99C8(OMOBJ *object)
             break;
 
         case 1:
-            temp_r31->unk24.z *= 0.6f;
-            temp_r31->unk18.z += (temp_r31->unk24.z * REFRESH_FREQ);
-            temp_r31->unk18.x += (temp_r31->unk24.z * REFRESH_FREQ);
-            temp_r31->unkC.x = object->trans.x;
-            temp_r31->unkC.y = object->trans.y;
-            temp_r31->unkC.z = object->trans.z;
+            cameratargetworkPointer->cameraVelocity.z *= 0.6f;
+            cameratargetworkPointer->cameraTarget.z += (cameratargetworkPointer->cameraVelocity.z * REFRESH_FREQ);
+            cameratargetworkPointer->cameraTarget.x += (cameratargetworkPointer->cameraVelocity.z * REFRESH_FREQ);
+            cameratargetworkPointer->cameraPosition.x = object->trans.x;
+            cameratargetworkPointer->cameraPosition.y = object->trans.y;
+            cameratargetworkPointer->cameraPosition.z = object->trans.z;
             if (object->work[1] < REFRESH_RATE_F) {
                 break;
             }
@@ -358,61 +358,61 @@ void fn_1_99C8(OMOBJ *object)
 
         case 2:
 #if VERSION_PAL
-            temp_r31->unk3C.x += (90.0f / REFRESH_RATE_F);
+            cameratargetworkPointer->cameraRotation.x += (90.0f / REFRESH_RATE_F);
 #else
-            temp_r31->unk3C.x += (90.0f / REFRESH_RATE_OFF_BY_1);
+            cameratargetworkPointer->cameraRotation.x += (90.0f / REFRESH_RATE_OFF_BY_1);
 #endif
-            temp_r31->unk0.z = 1000.0 * cosd(temp_r31->unk3C.x);
-            temp_r31->unk0.y = 1000.0 * sind(temp_r31->unk3C.x);
-            temp_r31->unkC.x = object->trans.x;
-            temp_r31->unkC.y = object->trans.y;
-            temp_r31->unkC.z = object->trans.z;
+            cameratargetworkPointer->velocity.z = 1000.0 * cosd(cameratargetworkPointer->cameraRotation.x);
+            cameratargetworkPointer->velocity.y = 1000.0 * sind(cameratargetworkPointer->cameraRotation.x);
+            cameratargetworkPointer->cameraPosition.x = object->trans.x;
+            cameratargetworkPointer->cameraPosition.y = object->trans.y;
+            cameratargetworkPointer->cameraPosition.z = object->trans.z;
             if (object->work[1] < REFRESH_RATE_F * 2) {
                 break;
             }
             object->work[0] = 3;
             object->work[1] = 0;
-            temp_r31->unk3C.x = 180;
+            cameratargetworkPointer->cameraRotation.x = 180;
             break;
 
         case 3:
 #if VERSION_PAL
-            temp_r31->unk3C.z += (180.0f / REFRESH_RATE_F);
+            cameratargetworkPointer->cameraRotation.z += (180.0f / REFRESH_RATE_F);
 #else
-            temp_r31->unk3C.z += (180.0f / REFRESH_RATE_OFF_BY_1);
+            cameratargetworkPointer->cameraRotation.z += (180.0f / REFRESH_RATE_OFF_BY_1);
 #endif
-            temp_f31 = REFRESH_FREQ * object->work[1];
-            temp_f31 = 1.0f - (temp_f31 * temp_f31);
-            temp_r31->unkC.x += temp_f31 * (object->trans.x - temp_r31->unkC.x);
-            temp_r31->unkC.y += temp_f31 * (object->trans.y - temp_r31->unkC.y);
-            temp_r31->unkC.z += temp_f31 * (object->trans.z - temp_r31->unkC.z);
+            frameTimer = REFRESH_FREQ * object->work[1];
+            frameTimer = 1.0f - (frameTimer * frameTimer);
+            cameratargetworkPointer->cameraPosition.x += frameTimer * (object->trans.x - cameratargetworkPointer->cameraPosition.x);
+            cameratargetworkPointer->cameraPosition.y += frameTimer * (object->trans.y - cameratargetworkPointer->cameraPosition.y);
+            cameratargetworkPointer->cameraPosition.z += frameTimer * (object->trans.z - cameratargetworkPointer->cameraPosition.z);
             if (object->work[1] < REFRESH_RATE_F) {
                 break;
             }
-            lbl_1_bss_F4.x = temp_r31->unkC.x;
-            lbl_1_bss_F4.y = temp_r31->unkC.y;
-            lbl_1_bss_F4.z = temp_r31->unkC.z;
-            lbl_1_bss_100.x = temp_r31->unk18.x;
-            lbl_1_bss_100.y = temp_r31->unk18.y;
-            lbl_1_bss_100.z = temp_r31->unk18.z;
+            cameraParticleVelocity.x = cameratargetworkPointer->cameraPosition.x;
+            cameraParticleVelocity.y = cameratargetworkPointer->cameraPosition.y;
+            cameraParticleVelocity.z = cameratargetworkPointer->cameraPosition.z;
+            cameraParticlePosition.x = cameratargetworkPointer->cameraTarget.x;
+            cameraParticlePosition.y = cameratargetworkPointer->cameraTarget.y;
+            cameraParticlePosition.z = cameratargetworkPointer->cameraTarget.z;
             object->work[0] = 4;
             object->work[1] = 0;
             break;
 
         case 4:
 #if VERSION_PAL
-            temp_r31->unk3C.z += (180.0f / REFRESH_RATE_F);
+            cameratargetworkPointer->cameraRotation.z += (180.0f / REFRESH_RATE_F);
 #else
-            temp_r31->unk3C.z += (180.0f / REFRESH_RATE_OFF_BY_1);
+            cameratargetworkPointer->cameraRotation.z += (180.0f / REFRESH_RATE_OFF_BY_1);
 #endif
             if (object->work[1] > REFRESH_RATE_F * 0.7f) {
-                if (temp_r31->unk48[0] >= 0) {
-                    HuAudFXStop(temp_r31->unk48[0]);
-                    temp_r31->unk48[0] = -1;
+                if (cameratargetworkPointer->soundEmitterIds[0] >= 0) {
+                    HuAudFXStop(cameratargetworkPointer->soundEmitterIds[0]);
+                    cameratargetworkPointer->soundEmitterIds[0] = -1;
                 }
-                if (temp_r31->unk48[1] >= 0) {
-                    HuAudFXStop(temp_r31->unk48[1]);
-                    temp_r31->unk48[1] = -1;
+                if (cameratargetworkPointer->soundEmitterIds[1] >= 0) {
+                    HuAudFXStop(cameratargetworkPointer->soundEmitterIds[1]);
+                    cameratargetworkPointer->soundEmitterIds[1] = -1;
                 }
             }
             if (object->work[1] < REFRESH_RATE_F * 4) {
@@ -424,78 +424,78 @@ void fn_1_99C8(OMOBJ *object)
 
         default:
             object->work[0] = 5;
-            object->objFunc = fn_1_A334;
+            object->objFunc = SetCameraTargetPosition;
             break;
     }
-    omSetRot(object, -temp_r31->unk3C.x, temp_r31->unk3C.y, temp_r31->unk3C.z);
+    omSetRot(object, -cameratargetworkPointer->cameraRotation.x, cameratargetworkPointer->cameraRotation.y, cameratargetworkPointer->cameraRotation.z);
     if (object->trans.y < 12150.0f) {
-        sp20.x = object->trans.x;
-        sp20.y = object->trans.y;
-        sp20.z = object->trans.z + 10;
-        fn_1_A4E8(object->mdlId[1], &sp20, 4);
-        sp20.x = sp8.x = object->trans.x;
-        sp20.z = object->trans.z;
-        sp8.z = object->trans.z - 10;
-        sp20.y = object->trans.y + 250.0f;
-        sp8.y = object->trans.y;
-        sp14.x = 0;
-        sp14.y = 0;
-        sp14.z = 1;
-        Hu3DShadowPosSet(&sp20, &sp14, &sp8);
+        positionVector2.x = object->trans.x;
+        positionVector2.y = object->trans.y;
+        positionVector2.z = object->trans.z + 10;
+        SetCameraParticleEmission(object->mdlId[1], &positionVector2, 4);
+        positionVector2.x = positionVector4.x = object->trans.x;
+        positionVector2.z = object->trans.z;
+        positionVector4.z = object->trans.z - 10;
+        positionVector2.y = object->trans.y + 250.0f;
+        positionVector4.y = object->trans.y;
+        positionVector3.x = 0;
+        positionVector3.y = 0;
+        positionVector3.z = 1;
+        Hu3DShadowPosSet(&positionVector2, &positionVector3, &positionVector4);
     }
-    if (temp_r31->unk48[0] >= 0) {
-        sp2C.x = object->trans.x - 30;
-        sp2C.y = object->trans.y;
-        sp2C.z = object->trans.z + 25;
-        HuAudFXEmiterUpDate(temp_r31->unk48[0], &sp2C);
+    if (cameratargetworkPointer->soundEmitterIds[0] >= 0) {
+        positionVector.x = object->trans.x - 30;
+        positionVector.y = object->trans.y;
+        positionVector.z = object->trans.z + 25;
+        HuAudFXEmiterUpDate(cameratargetworkPointer->soundEmitterIds[0], &positionVector);
     }
-    if (temp_r31->unk48[1] < 0) {
-        sp2C.x = object->trans.x + 30;
-        sp2C.y = object->trans.y;
-        sp2C.z = object->trans.z + 25;
-        HuAudFXEmiterUpDate(temp_r31->unk48[1], &sp2C);
+    if (cameratargetworkPointer->soundEmitterIds[1] < 0) {
+        positionVector.x = object->trans.x + 30;
+        positionVector.y = object->trans.y;
+        positionVector.z = object->trans.z + 25;
+        HuAudFXEmiterUpDate(cameratargetworkPointer->soundEmitterIds[1], &positionVector);
     }
     if (object->work[0] < 4) {
-        fn_1_84C4(temp_r31->unk18.x, temp_r31->unk18.y, temp_r31->unk18.z, temp_r31->unkC.x, temp_r31->unkC.y, temp_r31->unkC.z);
+        SetCameraParameters(cameratargetworkPointer->cameraTarget.x, cameratargetworkPointer->cameraTarget.y, cameratargetworkPointer->cameraTarget.z, cameratargetworkPointer->cameraPosition.x, cameratargetworkPointer->cameraPosition.y, cameratargetworkPointer->cameraPosition.z);
     }
-    if (fn_1_C43C() == 5) {
-        object->objFunc = fn_1_A334;
+    if (GetCameraSequenceState() == 5) {
+        object->objFunc = SetCameraTargetPosition;
     }
 }
 
-void fn_1_A334(OMOBJ *object)
+void SetCameraTargetPosition(OMOBJ *object)
 {
     Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
     Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
 }
 
-void fn_1_A37C(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateCameraParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    HU3DPARTICLEDATA *temp_r31;
-    s32 temp_r29;
+    HU3DPARTICLEDATA *particleData;
+    s32 particleIndex;
     if (particle->dataCnt == 0) {
         particle->dataCnt++;
-        temp_r31 = particle->data;
-        for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r31++) {
-            temp_r31->time = 0;
-            temp_r31->scale = 0;
-            temp_r31->color.a = 0;
+        particleData = particle->data;
+        for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+            particleData->time = 0;
+            particleData->scale = 0;
+            particleData->color.a = 0;
         }
     }
     else {
-        temp_r31 = particle->data;
-        for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r31++) {
-            if (temp_r31->time) {
-                temp_r31->pos.x += temp_r31->vel.x;
-                temp_r31->pos.y += temp_r31->vel.y;
-                temp_r31->pos.z += temp_r31->vel.z;
-                temp_r31->scale += temp_r31->accel.x;
-                temp_r31->accel.y -= temp_r31->accel.z;
-                temp_r31->color.a = temp_r31->accel.y;
-                if (--temp_r31->time == 0) {
-                    temp_r31->time = 0;
-                    temp_r31->scale = 0;
-                    temp_r31->color.a = 0;
+        particleData = particle->data;
+        for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+            if (particleData->time) {
+                particleData->pos.x += particleData->vel.x;
+                particleData->pos.y += particleData->vel.y;
+                particleData->pos.z += particleData->vel.z;
+                particleData->scale += particleData->accel.x;
+                particleData->accel.y -= particleData->accel.z;
+                particleData->color.a = particleData->accel.y;
+                if (--particleData->time == 0) {
+                    particleData->time = 0;
+                    particleData->scale = 0;
+                    particleData->color.a = 0;
                 }
             }
         }
@@ -503,36 +503,36 @@ void fn_1_A37C(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
     }
 }
 
-void fn_1_A4E8(s32 arg0, Vec *arg1, u32 arg2)
+void SetCameraParticleEmission(s32 particleModelId, Vec *emissionPosition, u32 particleCount)
 {
-    float temp_f31;
-    HU3DPARTICLEDATA *temp_r31;
-    HU3DPARTICLE *temp_r30;
-    s32 temp_r29;
-    temp_r30 = Hu3DData[arg0].hookData;
-    if (temp_r30->dataCnt) {
-        temp_r31 = temp_r30->data;
-        for (temp_r29 = 0; temp_r29 < temp_r30->maxCnt; temp_r29++, temp_r31++) {
-            if (temp_r31->time != 0) {
+    float interpolationValue;
+    HU3DPARTICLEDATA *particleData;
+    HU3DPARTICLE *particleWork;
+    s32 modelIndex;
+    particleWork = Hu3DData[particleModelId].hookData;
+    if (particleWork->dataCnt) {
+        particleData = particleWork->data;
+        for (modelIndex = 0; modelIndex < particleWork->maxCnt; modelIndex++, particleData++) {
+            if (particleData->time != 0) {
                 continue;
             }
-            temp_r31->time = REFRESH_RATE_F * (((1.5f / 1000.0f) * frandmod(1000)) + 1.0f);
-            temp_r31->pos.x = arg1->x;
-            temp_r31->pos.y = 12000;
-            temp_r31->pos.z = arg1->z;
-            temp_r31->vel.x = REFRESH_FREQ * ((0.6f * frandmod(1000)) - 300.0f);
-            temp_r31->vel.y = REFRESH_FREQ * ((0.04f * frandmod(1000)) + 10.0f);
-            temp_r31->vel.z = 0;
-            temp_r31->accel.x = 0.3f + ((3.0f / 1000.0f) * frandmod(1000));
-            temp_r31->scale = 10;
-            temp_r31->color.a = frandmod(127) + 64;
-            temp_r31->accel.y = temp_r31->color.a;
-            temp_r31->accel.z = temp_r31->accel.y * (1.0f / temp_r31->time);
-            temp_f31 = frandmod(1000) * (1.0f / 1000.0f);
-            temp_r31->color.r = (temp_f31 * 55) + 200;
-            temp_r31->color.g = (temp_f31 * 50) + 205;
-            temp_r31->color.b = (temp_f31 * 5) + 250;
-            if (--arg2 == 0) {
+            particleData->time = REFRESH_RATE_F * (((1.5f / 1000.0f) * frandmod(1000)) + 1.0f);
+            particleData->pos.x = emissionPosition->x;
+            particleData->pos.y = 12000;
+            particleData->pos.z = emissionPosition->z;
+            particleData->vel.x = REFRESH_FREQ * ((0.6f * frandmod(1000)) - 300.0f);
+            particleData->vel.y = REFRESH_FREQ * ((0.04f * frandmod(1000)) + 10.0f);
+            particleData->vel.z = 0;
+            particleData->accel.x = 0.3f + ((3.0f / 1000.0f) * frandmod(1000));
+            particleData->scale = 10;
+            particleData->color.a = frandmod(127) + 64;
+            particleData->accel.y = particleData->color.a;
+            particleData->accel.z = particleData->accel.y * (1.0f / particleData->time);
+            interpolationValue = frandmod(1000) * (1.0f / 1000.0f);
+            particleData->color.r = (interpolationValue * 55) + 200;
+            particleData->color.g = (interpolationValue * 50) + 205;
+            particleData->color.b = (interpolationValue * 5) + 250;
+            if (--particleCount == 0) {
                 break;
             }
         }
@@ -549,33 +549,33 @@ void fn_1_A4E8(s32 arg0, Vec *arg1, u32 arg2)
 #define PARTICLE_00_CAP 601
 #endif
 
-void fn_1_A894(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateCameraParticleEmitter(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    float temp_f31;
-    float temp_f30;
-    HU3DPARTICLEDATA *temp_r31;
-    s32 temp_r29;
-    float sp14[][6] = {
+    float angle;
+    float angle2;
+    HU3DPARTICLEDATA *particleData;
+    s32 particleIndex;
+    float scratchValue[][6] = {
         { 600, 1, 0.95, 0.8, 1, 0 },
         { 600, 1, 0.6, 0.9, 0.3, 0 },
         { 13, 1, 1, 1, 0.5, 0 },
     };
-    Vec sp8;
+    Vec positionVector;
     if (particle->dataCnt == 0) {
         particle->dataCnt++;
-        temp_r31 = particle->data;
-        for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r31++) {
-            temp_r31->time = 1;
-            temp_r31->scale = sp14[particle->emitCnt][0];
-            temp_r31->color.r = 255 * sp14[particle->emitCnt][1];
-            temp_r31->color.g = 255 * sp14[particle->emitCnt][2];
-            temp_r31->color.b = 255 * sp14[particle->emitCnt][3];
-            temp_r31->color.a = 255 * sp14[particle->emitCnt][4];
-            temp_f31 = -70;
-            temp_f30 = -10;
-            temp_r31->vel.x = sind(temp_f30) * cosd(temp_f31);
-            temp_r31->vel.y = -sind(temp_f31);
-            temp_r31->vel.z = cosd(temp_f30) * cosd(temp_f31);
+        particleData = particle->data;
+        for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+            particleData->time = 1;
+            particleData->scale = scratchValue[particle->emitCnt][0];
+            particleData->color.r = 255 * scratchValue[particle->emitCnt][1];
+            particleData->color.g = 255 * scratchValue[particle->emitCnt][2];
+            particleData->color.b = 255 * scratchValue[particle->emitCnt][3];
+            particleData->color.a = 255 * scratchValue[particle->emitCnt][4];
+            angle = -70;
+            angle2 = -10;
+            particleData->vel.x = sind(angle2) * cosd(angle);
+            particleData->vel.y = -sind(angle);
+            particleData->vel.z = cosd(angle2) * cosd(angle);
         }
     }
     else {
@@ -585,51 +585,51 @@ void fn_1_A894(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
         }
         if (particle->dataCnt >= MAX_PARTICLE_00_VALUE) {
             particle->dataCnt = PARTICLE_00_CAP;
-            temp_r31 = particle->data;
-            for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r31++) {
-                temp_r31->time = 0;
-                temp_r31->scale = 0;
-                temp_r31->color.a = 0;
+            particleData = particle->data;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->time = 0;
+                particleData->scale = 0;
+                particleData->color.a = 0;
             }
         }
         else {
-            temp_r31 = particle->data;
-            for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r31++) {
-                if (temp_r31->time == 0) {
+            particleData = particle->data;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                if (particleData->time == 0) {
                     continue;
                 }
-                sp8.x = sind(CRot.y) * cosd(CRot.x);
-                sp8.y = -sind(CRot.x);
-                sp8.z = cosd(CRot.y) * cosd(CRot.x);
+                positionVector.x = sind(CRot.y) * cosd(CRot.x);
+                positionVector.y = -sind(CRot.x);
+                positionVector.z = cosd(CRot.y) * cosd(CRot.x);
                 if (particle->emitCnt < 2) {
-                    temp_f31 = 4500;
-                    temp_r31->pos.x = (Center.x + (temp_r31->vel.x * temp_f31)) + (sp8.x * CZoom);
-                    temp_r31->pos.y = (Center.y + (temp_r31->vel.y * temp_f31)) + (sp8.y * CZoom);
-                    temp_r31->pos.z = (Center.z + (temp_r31->vel.z * temp_f31)) + (sp8.z * CZoom);
+                    angle = 4500;
+                    particleData->pos.x = (Center.x + (particleData->vel.x * angle)) + (positionVector.x * CZoom);
+                    particleData->pos.y = (Center.y + (particleData->vel.y * angle)) + (positionVector.y * CZoom);
+                    particleData->pos.z = (Center.z + (particleData->vel.z * angle)) + (positionVector.z * CZoom);
                     if (particle->emitCnt != 0) {
-                        temp_f31 = -((sp8.x * temp_r31->vel.x) + (sp8.y * temp_r31->vel.y) + (sp8.z * temp_r31->vel.z));
-                        if (temp_f31 > 0.77f) {
-                            temp_f30 = (1.0f / 0.23f) * (temp_f31 - 0.77f);
-                            temp_r31->scale = 1400 * temp_f30;
-                            temp_r31->color.a = (32.0f * temp_f30) + 16.0f;
+                        angle = -((positionVector.x * particleData->vel.x) + (positionVector.y * particleData->vel.y) + (positionVector.z * particleData->vel.z));
+                        if (angle > 0.77f) {
+                            angle2 = (1.0f / 0.23f) * (angle - 0.77f);
+                            particleData->scale = 1400 * angle2;
+                            particleData->color.a = (32.0f * angle2) + 16.0f;
                         }
                         else {
-                            temp_r31->scale = 0;
+                            particleData->scale = 0;
                         }
                     }
                 }
                 else {
-                    temp_f31 = CZoom - 10;
-                    temp_r31->pos.x = (sp8.x * temp_f31) + Center.x;
-                    temp_r31->pos.y = (sp8.y * temp_f31) + Center.y;
-                    temp_r31->pos.z = (sp8.z * temp_f31) + Center.z;
-                    temp_f31 = -((sp8.x * temp_r31->vel.x) + (sp8.y * temp_r31->vel.y) + (sp8.z * temp_r31->vel.z));
-                    if (temp_f31 > 0.9f) {
-                        temp_f30 = 10.0f * (temp_f31 - 0.9f);
-                        temp_r31->color.a = temp_f30 * 210.0f;
+                    angle = CZoom - 10;
+                    particleData->pos.x = (positionVector.x * angle) + Center.x;
+                    particleData->pos.y = (positionVector.y * angle) + Center.y;
+                    particleData->pos.z = (positionVector.z * angle) + Center.z;
+                    angle = -((positionVector.x * particleData->vel.x) + (positionVector.y * particleData->vel.y) + (positionVector.z * particleData->vel.z));
+                    if (angle > 0.9f) {
+                        angle2 = 10.0f * (angle - 0.9f);
+                        particleData->color.a = angle2 * 210.0f;
                     }
                     else {
-                        temp_r31->color.a = 0;
+                        particleData->color.a = 0;
                     }
                 }
             }
@@ -638,32 +638,32 @@ void fn_1_A894(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
     }
 }
 
-void fn_1_AFF4(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateCameraParticleAnimation(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    float temp_f31;
-    float temp_f30;
-    HU3DPARTICLEDATA *temp_r30;
-    s32 temp_r29;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+    float angle;
+    float angle2;
+    HU3DPARTICLEDATA *particleData;
+    s32 particleIndex;
+    Vec positionVector;
+    Vec positionVector2;
+    Vec positionVector3;
     if (particle->dataCnt == 0) {
         particle->dataCnt++;
-        temp_f31 = -70;
-        temp_f30 = -10;
-        particle->pos.x = sind(temp_f30) * cosd(temp_f31);
-        particle->pos.y = -sind(temp_f31);
-        particle->pos.z = cosd(temp_f30) * cosd(temp_f31);
-        temp_f31 = 0;
-        temp_r30 = particle->data;
-        for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r30++) {
-            temp_r30->time = 1;
-            temp_f31 += 1.0f / particle->maxCnt;
-            temp_r30->scale = 40.0f + ((1.0f - temp_f31) * (100.0f + frandmod(1000)));
-            temp_r30->color.r = frandmod(127) + 128;
-            temp_r30->color.g = frandmod(127) + 128;
-            temp_r30->color.b = frandmod(127) + 128;
-            temp_r30->color.a = frandmod(16) + 16;
+        angle = -70;
+        angle2 = -10;
+        particle->pos.x = sind(angle2) * cosd(angle);
+        particle->pos.y = -sind(angle);
+        particle->pos.z = cosd(angle2) * cosd(angle);
+        angle = 0;
+        particleData = particle->data;
+        for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+            particleData->time = 1;
+            angle += 1.0f / particle->maxCnt;
+            particleData->scale = 40.0f + ((1.0f - angle) * (100.0f + frandmod(1000)));
+            particleData->color.r = frandmod(127) + 128;
+            particleData->color.g = frandmod(127) + 128;
+            particleData->color.b = frandmod(127) + 128;
+            particleData->color.a = frandmod(16) + 16;
         }
     }
     else {
@@ -673,189 +673,189 @@ void fn_1_AFF4(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
         }
         if (particle->dataCnt >= MAX_PARTICLE_00_VALUE) {
             particle->dataCnt = PARTICLE_00_CAP;
-            temp_r30 = particle->data;
-            for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r30++) {
-                temp_r30->time = 0;
-                temp_r30->scale = 0;
-                temp_r30->color.a = 0;
+            particleData = particle->data;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->time = 0;
+                particleData->scale = 0;
+                particleData->color.a = 0;
             }
         }
         else {
-            sp20.x = sind(CRot.y) * cosd(CRot.x);
-            sp20.y = -sind(CRot.x);
-            sp20.z = cosd(CRot.y) * cosd(CRot.x);
-            temp_f31 = -((-particle->pos.x * -sp20.x) + (-particle->pos.y * -sp20.y) + (-particle->pos.z * -sp20.z));
-            sp14.x = -sp20.x + (-2.0f * particle->pos.x * temp_f31);
-            sp14.y = -sp20.y + (-2.0f * particle->pos.y * temp_f31);
-            sp14.z = -sp20.z + (-2.0f * particle->pos.z * temp_f31);
-            temp_f31 = 4500;
-            sp8.x = (Center.x + (particle->pos.x * temp_f31)) + (sp20.x * CZoom);
-            sp8.y = (Center.y + (particle->pos.y * temp_f31)) + (sp20.y * CZoom);
-            sp8.z = (Center.z + (particle->pos.z * temp_f31)) + (sp20.z * CZoom);
-            temp_r30 = particle->data;
-            temp_f30 = 0;
-            for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r30++) {
-                if (temp_r30->time == 0) {
+            positionVector.x = sind(CRot.y) * cosd(CRot.x);
+            positionVector.y = -sind(CRot.x);
+            positionVector.z = cosd(CRot.y) * cosd(CRot.x);
+            angle = -((-particle->pos.x * -positionVector.x) + (-particle->pos.y * -positionVector.y) + (-particle->pos.z * -positionVector.z));
+            positionVector2.x = -positionVector.x + (-2.0f * particle->pos.x * angle);
+            positionVector2.y = -positionVector.y + (-2.0f * particle->pos.y * angle);
+            positionVector2.z = -positionVector.z + (-2.0f * particle->pos.z * angle);
+            angle = 4500;
+            positionVector3.x = (Center.x + (particle->pos.x * angle)) + (positionVector.x * CZoom);
+            positionVector3.y = (Center.y + (particle->pos.y * angle)) + (positionVector.y * CZoom);
+            positionVector3.z = (Center.z + (particle->pos.z * angle)) + (positionVector.z * CZoom);
+            particleData = particle->data;
+            angle2 = 0;
+            for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                if (particleData->time == 0) {
                     continue;
                 }
-                temp_f30 += 1.0f / particle->maxCnt;
-                temp_f31 = 10.0f * (430.0f * (1.0f - ((1.0f - temp_f30) * (1.0f - temp_f30))));
-                temp_r30->pos.x = sp8.x + (sp14.x * temp_f31);
-                temp_r30->pos.y = sp8.y + (sp14.y * temp_f31);
-                temp_r30->pos.z = sp8.z + (sp14.z * temp_f31);
+                angle2 += 1.0f / particle->maxCnt;
+                angle = 10.0f * (430.0f * (1.0f - ((1.0f - angle2) * (1.0f - angle2))));
+                particleData->pos.x = positionVector3.x + (positionVector2.x * angle);
+                particleData->pos.y = positionVector3.y + (positionVector2.y * angle);
+                particleData->pos.z = positionVector3.z + (positionVector2.z * angle);
             }
             DCStoreRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
         }
     }
 }
 
-void fn_1_B700(s16 arg0, u32 arg1)
+void SetCameraParticleGroup(s16 particleModelId, u32 particleGroupId)
 {
-    float temp_f31;
-    float temp_f30;
-    HU3DPARTICLEDATA *temp_r31;
-    HU3DPARTICLE *temp_r30;
-    s32 temp_r29;
-    s32 temp_r27;
-    float sp1C[] = { 0.4f, 0.21f, 0.16f, 1.0f };
-    float spC[] = { 0.15f, 0.6f, 1.3f, 1.0f };
-    s16 sp2C[] = { 1, 0, 2, 0, 0, 1, 2, 0, 0, 1, 2, 1, 0, 0, 1, 2, 0, 1, 2, -1 };
-    arg1 &= 0x3;
-    temp_r30 = Hu3DData[arg0].hookData;
-    temp_r30->dataCnt = 1;
-    temp_f31 = -70;
-    temp_f30 = -10;
-    temp_r30->pos.x = sind(temp_f30) * cosd(temp_f31);
-    temp_r30->pos.y = -sind(temp_f31);
-    temp_r30->pos.z = cosd(temp_f30) * cosd(temp_f31);
-    temp_r31 = temp_r30->data;
-    for (temp_r27 = 0; temp_r27 < temp_r30->maxCnt; temp_r27++, temp_r31++) {
-        temp_r31->time = 1;
-        temp_r31->parManId = arg1;
-        for (temp_r29 = 0; sp2C[temp_r29] >= 0; temp_r29++) {
-            if (arg1 != sp2C[temp_r29]) {
+    float angle;
+    float angle2;
+    HU3DPARTICLEDATA *updateCounter;
+    HU3DPARTICLE *particleWork;
+    s32 modelIndex;
+    s32 modelIndex2;
+    float scratchValue[] = { 0.4f, 0.21f, 0.16f, 1.0f };
+    float scratchValue2[] = { 0.15f, 0.6f, 1.3f, 1.0f };
+    s16 scratchValue3[] = { 1, 0, 2, 0, 0, 1, 2, 0, 0, 1, 2, 1, 0, 0, 1, 2, 0, 1, 2, -1 };
+    particleGroupId &= 0x3;
+    particleWork = Hu3DData[particleModelId].hookData;
+    particleWork->dataCnt = 1;
+    angle = -70;
+    angle2 = -10;
+    particleWork->pos.x = sind(angle2) * cosd(angle);
+    particleWork->pos.y = -sind(angle);
+    particleWork->pos.z = cosd(angle2) * cosd(angle);
+    updateCounter = particleWork->data;
+    for (modelIndex2 = 0; modelIndex2 < particleWork->maxCnt; modelIndex2++, updateCounter++) {
+        updateCounter->time = 1;
+        updateCounter->parManId = particleGroupId;
+        for (modelIndex = 0; scratchValue3[modelIndex] >= 0; modelIndex++) {
+            if (particleGroupId != scratchValue3[modelIndex]) {
                 continue;
             }
-            if (lbl_1_bss_A4[temp_r29] == NULL) {
+            if (cameraParticleData[modelIndex] == NULL) {
                 break;
             }
         }
-        if (sp2C[temp_r29] < 0) {
-            temp_r31->scale = 0;
-            temp_r31->color.a = 0;
+        if (scratchValue3[modelIndex] < 0) {
+            updateCounter->scale = 0;
+            updateCounter->color.a = 0;
             continue;
         }
-        lbl_1_bss_A4[temp_r29] = temp_r31;
-        lbl_1_bss_A0++;
-        temp_r31->scale = 800.0f * (spC[arg1] * (1.0f + ((0.7f / 1000.0f) * frandmod(1000))));
-        temp_r31->color.r = frandmod(160) + 32;
-        temp_r31->color.g = frandmod(160) + 32;
-        temp_r31->color.b = frandmod(160) + 32;
-        temp_r31->color.a = (255.0f * sp1C[arg1]) - frandmod(16);
+        cameraParticleData[modelIndex] = updateCounter;
+        cameraParticleCount++;
+        updateCounter->scale = 800.0f * (scratchValue2[particleGroupId] * (1.0f + ((0.7f / 1000.0f) * frandmod(1000))));
+        updateCounter->color.r = frandmod(160) + 32;
+        updateCounter->color.g = frandmod(160) + 32;
+        updateCounter->color.b = frandmod(160) + 32;
+        updateCounter->color.a = (255.0f * scratchValue[particleGroupId]) - frandmod(16);
     }
-    lbl_1_bss_94[arg1] = temp_r30->data;
-    lbl_1_bss_88[arg1] = temp_r30->maxCnt;
+    cameraParticleGroups[particleGroupId] = particleWork->data;
+    cameraParticleGroupCounts[particleGroupId] = particleWork->maxCnt;
 }
 
-void fn_1_BB94(void)
+void UpdateCameraFade(void)
 {
-    float temp_f31;
-    float temp_f30;
-    HU3DPARTICLEDATA *temp_r31;
-    s32 temp_r30;
-    float sp18[] = { 0.02f, 0.08f, 0.07f, 0.5f };
-    float sp8[] = { 0.0009f, 0.00020000001f, 0.00001f, 0.0005f };
-    temp_f31 = 0.1f;
-    for (temp_r30 = 0; temp_r30 < lbl_1_bss_A0; temp_r30++) {
-        temp_r31 = lbl_1_bss_A4[temp_r30];
-        temp_f30 = 0.5f * (sp18[temp_r31->parManId] * (1.0f + (frandmod(1000) * sp8[temp_r31->parManId])));
-        temp_f31 += temp_f30;
-        temp_r31->accel.x = temp_f31;
-        temp_f31 += temp_f30;
+    float interpolationValue;
+    float interpolationValue2;
+    HU3DPARTICLEDATA *particleData;
+    s32 particleIndex;
+    float scratchValue[] = { 0.02f, 0.08f, 0.07f, 0.5f };
+    float scratchValue2[] = { 0.0009f, 0.00020000001f, 0.00001f, 0.0005f };
+    interpolationValue = 0.1f;
+    for (particleIndex = 0; particleIndex < cameraParticleCount; particleIndex++) {
+        particleData = cameraParticleData[particleIndex];
+        interpolationValue2 = 0.5f * (scratchValue[particleData->parManId] * (1.0f + (frandmod(1000) * scratchValue2[particleData->parManId])));
+        interpolationValue += interpolationValue2;
+        particleData->accel.x = interpolationValue;
+        interpolationValue += interpolationValue2;
     }
-    temp_f31 = 1.0f / temp_f31;
-    for (temp_r30 = 0; temp_r30 < lbl_1_bss_A0; temp_r30++) {
-        temp_r31 = lbl_1_bss_A4[temp_r30];
-        temp_r31->accel.x *= temp_f31;
-        temp_r31->scale *= (0.8f - (0.4f * temp_r31->accel.x));
-        temp_r31->accel.x = 10.0f * (400.0f * temp_r31->accel.x);
+    interpolationValue = 1.0f / interpolationValue;
+    for (particleIndex = 0; particleIndex < cameraParticleCount; particleIndex++) {
+        particleData = cameraParticleData[particleIndex];
+        particleData->accel.x *= interpolationValue;
+        particleData->scale *= (0.8f - (0.4f * particleData->accel.x));
+        particleData->accel.x = 10.0f * (400.0f * particleData->accel.x);
     }
-    for (temp_r30 = 0; temp_r30 < 3; temp_r30++) {
-        DCStoreRangeNoSync(lbl_1_bss_94[temp_r30], lbl_1_bss_88[temp_r30] * sizeof(HU3DPARTICLEDATA));
+    for (particleIndex = 0; particleIndex < 3; particleIndex++) {
+        DCStoreRangeNoSync(cameraParticleGroups[particleIndex], cameraParticleGroupCounts[particleIndex] * sizeof(HU3DPARTICLEDATA));
     }
     PPCSync();
 }
 
-void fn_1_BDE0(void)
+void CleanupCameraEffects(void)
 {
-    float temp_f31;
-    float temp_f30;
-    HU3DPARTICLEDATA *temp_r31;
-    s32 temp_r30;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    temp_r31 = lbl_1_bss_A4[0];
-    temp_r31->time++;
-    if (temp_r31->time < MIN_PARTICLE_00_VALUE) {
+    float angle;
+    float angle2;
+    HU3DPARTICLEDATA *particleData;
+    s32 particleIndex;
+    Vec positionVector;
+    Vec positionVector2;
+    Vec positionVector3;
+    Vec positionVector4;
+    particleData = cameraParticleData[0];
+    particleData->time++;
+    if (particleData->time < MIN_PARTICLE_00_VALUE) {
         return;
     }
-    if (temp_r31->time >= MAX_PARTICLE_00_VALUE) {
-        temp_r31->time = PARTICLE_00_CAP;
-        for (temp_r30 = 0; temp_r30 < lbl_1_bss_A0; temp_r30++) {
-            temp_r31 = lbl_1_bss_A4[temp_r30];
-            temp_r31->time = 0;
-            temp_r31->scale = 0;
-            temp_r31->color.a = 0;
+    if (particleData->time >= MAX_PARTICLE_00_VALUE) {
+        particleData->time = PARTICLE_00_CAP;
+        for (particleIndex = 0; particleIndex < cameraParticleCount; particleIndex++) {
+            particleData = cameraParticleData[particleIndex];
+            particleData->time = 0;
+            particleData->scale = 0;
+            particleData->color.a = 0;
         }
         return;
     }
-    sp2C.x = sind(CRot.y) * cosd(CRot.x);
-    sp2C.y = -sind(CRot.x);
-    sp2C.z = cosd(CRot.y) * cosd(CRot.x);
-    temp_f31 = -70;
-    temp_f30 = -10;
-    sp20.x = sind(temp_f30) * cosd(temp_f31);
-    sp20.y = -sind(temp_f31);
-    sp20.z = cosd(temp_f30) * cosd(temp_f31);
-    temp_f31 = 4500;
-    sp8.x = (Center.x + (sp20.x * temp_f31)) + (sp2C.x * CZoom);
-    sp8.y = (Center.y + (sp20.y * temp_f31)) + (sp2C.y * CZoom);
-    sp8.z = (Center.z + (sp20.z * temp_f31)) + (sp2C.z * CZoom);
-    temp_f31 = -((-sp20.x * -sp2C.x) + (-sp20.y * -sp2C.y) + (-sp20.z * -sp2C.z));
-    sp14.x = -sp2C.x + (-2.0f * sp20.x * temp_f31);
-    sp14.y = -sp2C.y + (-2.0f * sp20.y * temp_f31);
-    sp14.z = -sp2C.z + (-2.0f * sp20.z * temp_f31);
-    if (temp_f31 > 0.5f) {
-        temp_f30 = 3.0f - (2.0f * temp_f31);
+    positionVector.x = sind(CRot.y) * cosd(CRot.x);
+    positionVector.y = -sind(CRot.x);
+    positionVector.z = cosd(CRot.y) * cosd(CRot.x);
+    angle = -70;
+    angle2 = -10;
+    positionVector2.x = sind(angle2) * cosd(angle);
+    positionVector2.y = -sind(angle);
+    positionVector2.z = cosd(angle2) * cosd(angle);
+    angle = 4500;
+    positionVector4.x = (Center.x + (positionVector2.x * angle)) + (positionVector.x * CZoom);
+    positionVector4.y = (Center.y + (positionVector2.y * angle)) + (positionVector.y * CZoom);
+    positionVector4.z = (Center.z + (positionVector2.z * angle)) + (positionVector.z * CZoom);
+    angle = -((-positionVector2.x * -positionVector.x) + (-positionVector2.y * -positionVector.y) + (-positionVector2.z * -positionVector.z));
+    positionVector3.x = -positionVector.x + (-2.0f * positionVector2.x * angle);
+    positionVector3.y = -positionVector.y + (-2.0f * positionVector2.y * angle);
+    positionVector3.z = -positionVector.z + (-2.0f * positionVector2.z * angle);
+    if (angle > 0.5f) {
+        angle2 = 3.0f - (2.0f * angle);
     }
     else {
-        temp_f30 = 1.0f;
+        angle2 = 1.0f;
     }
-    for (temp_r30 = 0; temp_r30 < lbl_1_bss_A0; temp_r30++) {
-        temp_r31 = lbl_1_bss_A4[temp_r30];
-        temp_r31->pos.x = sp8.x + (temp_f30 * (sp14.x * temp_r31->accel.x));
-        temp_r31->pos.y = sp8.y + (temp_f30 * (sp14.y * temp_r31->accel.x));
-        temp_r31->pos.z = sp8.z + (temp_f30 * (sp14.z * temp_r31->accel.x));
+    for (particleIndex = 0; particleIndex < cameraParticleCount; particleIndex++) {
+        particleData = cameraParticleData[particleIndex];
+        particleData->pos.x = positionVector4.x + (angle2 * (positionVector3.x * particleData->accel.x));
+        particleData->pos.y = positionVector4.y + (angle2 * (positionVector3.y * particleData->accel.x));
+        particleData->pos.z = positionVector4.z + (angle2 * (positionVector3.z * particleData->accel.x));
     }
-    for (temp_r30 = 0; temp_r30 < 3; temp_r30++) {
-        DCStoreRangeNoSync(lbl_1_bss_94[temp_r30], lbl_1_bss_88[temp_r30] * sizeof(HU3DPARTICLEDATA));
+    for (particleIndex = 0; particleIndex < 3; particleIndex++) {
+        DCStoreRangeNoSync(cameraParticleGroups[particleIndex], cameraParticleGroupCounts[particleIndex] * sizeof(HU3DPARTICLEDATA));
     }
     PPCSync();
 }
 
-void fn_1_C3C0(Vec *arg0, Vec *arg1)
+void GetCameraTargetTransform(Vec *cameraPosition, Vec *cameraRotation)
 {
-    arg0->x = lbl_1_bss_110->trans.x;
-    arg0->y = lbl_1_bss_110->trans.y;
-    arg0->z = lbl_1_bss_110->trans.z;
-    arg1->x = lbl_1_bss_110->rot.x;
-    arg1->y = lbl_1_bss_110->rot.y;
-    arg1->z = lbl_1_bss_110->rot.z;
+    cameraPosition->x = cameraTargetObject->trans.x;
+    cameraPosition->y = cameraTargetObject->trans.y;
+    cameraPosition->z = cameraTargetObject->trans.z;
+    cameraRotation->x = cameraTargetObject->rot.x;
+    cameraRotation->y = cameraTargetObject->rot.y;
+    cameraRotation->z = cameraTargetObject->rot.z;
 }
 
-u32 fn_1_C43C(void)
+u32 GetCameraSequenceState(void)
 {
-    return lbl_1_bss_10C;
+    return cameraParticleEffectState;
 }
