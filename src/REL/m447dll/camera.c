@@ -7,145 +7,145 @@
 #include "ext_math.h"
 
 typedef struct {
-    /* 0x00 */ Vec unk00;
-    /* 0x0C */ Vec unk0C;
-    /* 0x18 */ float unk18;
-} UnkM447Struct_05; // Size 0x1C
+    /* 0x00 */ Vec position;
+    /* 0x0C */ Vec lookDirection;
+    /* 0x18 */ float zoom;
+} M447CameraState; // Size 0x1C
 
-void fn_1_3564(void);
-void fn_1_3C7C(void);
-void fn_1_3EA8(void);
+void M447CameraUpdate(void);
+void M447CameraDebugControl(void);
+void M447CameraDebugPrint(void);
 
-HUPROCESS* lbl_1_bss_90;
-UnkM447Struct_05 lbl_1_bss_74;
-UnkM447Struct_05 lbl_1_bss_58;
-UnkM447Struct_05 lbl_1_bss_3C;
-s32 lbl_1_bss_38;
-s32 lbl_1_bss_34;
-s32 lbl_1_bss_30;
-float lbl_1_bss_2C;
-float lbl_1_bss_28;
-float lbl_1_bss_24;
-float lbl_1_bss_20;
-float lbl_1_bss_1C;
-float lbl_1_bss_18;
+HUPROCESS* cameraProcess;
+M447CameraState currentCamera;
+M447CameraState cameraStart;
+M447CameraState cameraTarget;
+s32 positionTransitionActive;
+s32 lookTransitionActive;
+s32 zoomTransitionActive;
+float positionTransitionProgress;
+float lookTransitionProgress;
+float zoomTransitionProgress;
+float positionTransitionStep;
+float lookTransitionStep;
+float zoomTransitionStep;
 
-s32 fn_1_3130(void) {
+s32 M447CameraInit(void) {
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 55.0f, 10.0f, 8000.0f, 1.2f);
-    lbl_1_bss_74.unk00.x = 0.0f;
-    lbl_1_bss_74.unk00.y = 400.0f;
-    lbl_1_bss_74.unk00.z = 0.0f;
-    lbl_1_bss_74.unk0C.x = 0.0f;
-    lbl_1_bss_74.unk0C.y = 0.0f;
-    lbl_1_bss_74.unk0C.z = 0.0f;
-    lbl_1_bss_74.unk18 = 200.0f;
-    lbl_1_bss_38 = 0;
-    lbl_1_bss_34 = 0;
-    lbl_1_bss_30 = 0;
-    lbl_1_bss_90 = HuPrcChildCreate(fn_1_3564, 100, 0x2000, 0, lbl_1_bss_4);
+    currentCamera.position.x = 0.0f;
+    currentCamera.position.y = 400.0f;
+    currentCamera.position.z = 0.0f;
+    currentCamera.lookDirection.x = 0.0f;
+    currentCamera.lookDirection.y = 0.0f;
+    currentCamera.lookDirection.z = 0.0f;
+    currentCamera.zoom = 200.0f;
+    positionTransitionActive = 0;
+    lookTransitionActive = 0;
+    zoomTransitionActive = 0;
+    cameraProcess = HuPrcChildCreate(M447CameraUpdate, 100, 0x2000, 0, objectManager);
     return 1;
 }
 
-void fn_1_32E0(void) {
-    HuPrcKill(lbl_1_bss_90);
+void M447CameraShutdown(void) {
+    HuPrcKill(cameraProcess);
 }
 
-void fn_1_330C(const Vec* arg0, s32 arg1) {
-    lbl_1_bss_3C.unk00 = *arg0;
-    lbl_1_bss_58.unk00 = lbl_1_bss_74.unk00;
-    lbl_1_bss_2C = 0.0f;
-    lbl_1_bss_20 = 1.0f / arg1;
-    lbl_1_bss_38 = 1;
+void M447CameraPositionTargetSet(const Vec* target, s32 duration) {
+    cameraTarget.position = *target;
+    cameraStart.position = currentCamera.position;
+    positionTransitionProgress = 0.0f;
+    positionTransitionStep = 1.0f / duration;
+    positionTransitionActive = 1;
 }
 
-void fn_1_33C8(const Vec* arg0, s32 arg1) {
-    lbl_1_bss_3C.unk0C = *arg0;
-    lbl_1_bss_58.unk0C = lbl_1_bss_74.unk0C;
-    lbl_1_bss_28 = 0.0f;
-    lbl_1_bss_1C = 1.0f / arg1;
-    lbl_1_bss_34 = 1;
+void M447CameraLookTargetSet(const Vec* target, s32 duration) {
+    cameraTarget.lookDirection = *target;
+    cameraStart.lookDirection = currentCamera.lookDirection;
+    lookTransitionProgress = 0.0f;
+    lookTransitionStep = 1.0f / duration;
+    lookTransitionActive = 1;
 }
 
-void fn_1_3484(float arg0, s32 arg1) {
-    lbl_1_bss_3C.unk18 = arg0;
-    lbl_1_bss_58.unk18 = lbl_1_bss_74.unk18;
-    lbl_1_bss_24 = 0.0f;
-    lbl_1_bss_18 = 1.0f / arg1;
-    lbl_1_bss_30 = 1;
+void M447CameraZoomTargetSet(float zoom, s32 duration) {
+    cameraTarget.zoom = zoom;
+    cameraStart.zoom = currentCamera.zoom;
+    zoomTransitionProgress = 0.0f;
+    zoomTransitionStep = 1.0f / duration;
+    zoomTransitionActive = 1;
 }
 
-void fn_1_351C(Vec* arg0) {
-    *arg0 = lbl_1_bss_74.unk00;
+void M447CameraPositionGet(Vec* position) {
+    *position = currentCamera.position;
 }
 
-void fn_1_3540(Vec* arg0) {
-    lbl_1_bss_74.unk00 = *arg0;
+void M447CameraPositionSet(Vec* position) {
+    currentCamera.position = *position;
 }
 
-void fn_1_3564(void) {
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
-    float temp_f31;
+void M447CameraUpdate(void) {
+    Vec cursorPosition;
+    Vec playerPosition;
+    Vec scaleVector;
+    float distance;
 
     while (TRUE) {
-        if (lbl_1_bss_38 != 0) {
-            temp_f31 = sind(90.0f * lbl_1_bss_2C);
-            temp_f31 *= temp_f31;
-            lbl_1_bss_74.unk00.x = lbl_1_bss_58.unk00.x + temp_f31 * (lbl_1_bss_3C.unk00.x - lbl_1_bss_58.unk00.x);
-            lbl_1_bss_74.unk00.y = lbl_1_bss_58.unk00.y + temp_f31 * (lbl_1_bss_3C.unk00.y - lbl_1_bss_58.unk00.y);
-            lbl_1_bss_74.unk00.z = lbl_1_bss_58.unk00.z + temp_f31 * (lbl_1_bss_3C.unk00.z - lbl_1_bss_58.unk00.z);
-            if ((lbl_1_bss_2C += lbl_1_bss_20) >= 1.0f) {
-                lbl_1_bss_74.unk00 = lbl_1_bss_3C.unk00;
-                lbl_1_bss_38 = 0;
+        if (positionTransitionActive != 0) {
+            distance = sind(90.0f * positionTransitionProgress);
+            distance *= distance;
+            currentCamera.position.x = cameraStart.position.x + distance * (cameraTarget.position.x - cameraStart.position.x);
+            currentCamera.position.y = cameraStart.position.y + distance * (cameraTarget.position.y - cameraStart.position.y);
+            currentCamera.position.z = cameraStart.position.z + distance * (cameraTarget.position.z - cameraStart.position.z);
+            if ((positionTransitionProgress += positionTransitionStep) >= 1.0f) {
+                currentCamera.position = cameraTarget.position;
+                positionTransitionActive = 0;
             }
         }
-        if (lbl_1_bss_34 != 0) {
-            temp_f31 = sind(90.0f * lbl_1_bss_28);
-            temp_f31 *= temp_f31;
-            lbl_1_bss_74.unk0C.x = lbl_1_bss_58.unk0C.x + temp_f31 * (lbl_1_bss_3C.unk0C.x - lbl_1_bss_58.unk0C.x);
-            lbl_1_bss_74.unk0C.y = lbl_1_bss_58.unk0C.y + temp_f31 * (lbl_1_bss_3C.unk0C.y - lbl_1_bss_58.unk0C.y);
-            lbl_1_bss_74.unk0C.z = lbl_1_bss_58.unk0C.z + temp_f31 * (lbl_1_bss_3C.unk0C.z - lbl_1_bss_58.unk0C.z);
-            if ((lbl_1_bss_28 += lbl_1_bss_1C) >= 1.0f) {
-                lbl_1_bss_74.unk0C = lbl_1_bss_3C.unk0C;
-                lbl_1_bss_34 = 0;
+        if (lookTransitionActive != 0) {
+            distance = sind(90.0f * lookTransitionProgress);
+            distance *= distance;
+            currentCamera.lookDirection.x = cameraStart.lookDirection.x + distance * (cameraTarget.lookDirection.x - cameraStart.lookDirection.x);
+            currentCamera.lookDirection.y = cameraStart.lookDirection.y + distance * (cameraTarget.lookDirection.y - cameraStart.lookDirection.y);
+            currentCamera.lookDirection.z = cameraStart.lookDirection.z + distance * (cameraTarget.lookDirection.z - cameraStart.lookDirection.z);
+            if ((lookTransitionProgress += lookTransitionStep) >= 1.0f) {
+                currentCamera.lookDirection = cameraTarget.lookDirection;
+                lookTransitionActive = 0;
             }
         }
-        if (lbl_1_bss_30 != 0) {
-            temp_f31 = sind(90.0f * lbl_1_bss_24);
-            temp_f31 *= temp_f31;
-            lbl_1_bss_74.unk18 = lbl_1_bss_58.unk18 + temp_f31 * (lbl_1_bss_3C.unk18 - lbl_1_bss_58.unk18);
-            if ((lbl_1_bss_24 += lbl_1_bss_18) >= 1.0f) {
-                lbl_1_bss_74.unk18 = lbl_1_bss_3C.unk18;
-                lbl_1_bss_30 = 0;
+        if (zoomTransitionActive != 0) {
+            distance = sind(90.0f * zoomTransitionProgress);
+            distance *= distance;
+            currentCamera.zoom = cameraStart.zoom + distance * (cameraTarget.zoom - cameraStart.zoom);
+            if ((zoomTransitionProgress += zoomTransitionStep) >= 1.0f) {
+                currentCamera.zoom = cameraTarget.zoom;
+                zoomTransitionActive = 0;
             }
         }
-        sp28.x = lbl_1_bss_74.unk00.x + sind(lbl_1_bss_74.unk0C.y) * cosd(lbl_1_bss_74.unk0C.x) * lbl_1_bss_74.unk18;
-        sp28.y = lbl_1_bss_74.unk00.y + -sind(lbl_1_bss_74.unk0C.x) * lbl_1_bss_74.unk18;
-        sp28.z = lbl_1_bss_74.unk00.z + cosd(lbl_1_bss_74.unk0C.y) * cosd(lbl_1_bss_74.unk0C.x) * lbl_1_bss_74.unk18;
-        sp10.x = sind(lbl_1_bss_74.unk0C.y) * sind(lbl_1_bss_74.unk0C.x);
-        sp10.y = cosd(lbl_1_bss_74.unk0C.x);
-        sp10.z = cosd(lbl_1_bss_74.unk0C.y) * sind(lbl_1_bss_74.unk0C.x);
-        sp1C = lbl_1_bss_74.unk00;
-        Hu3DCameraPosSet(1, sp28.x, sp28.y, sp28.z, sp10.x, sp10.y, sp10.z, sp1C.x, sp1C.y, sp1C.z);
+        cursorPosition.x = currentCamera.position.x + sind(currentCamera.lookDirection.y) * cosd(currentCamera.lookDirection.x) * currentCamera.zoom;
+        cursorPosition.y = currentCamera.position.y + -sind(currentCamera.lookDirection.x) * currentCamera.zoom;
+        cursorPosition.z = currentCamera.position.z + cosd(currentCamera.lookDirection.y) * cosd(currentCamera.lookDirection.x) * currentCamera.zoom;
+        scaleVector.x = sind(currentCamera.lookDirection.y) * sind(currentCamera.lookDirection.x);
+        scaleVector.y = cosd(currentCamera.lookDirection.x);
+        scaleVector.z = cosd(currentCamera.lookDirection.y) * sind(currentCamera.lookDirection.x);
+        playerPosition = currentCamera.position;
+        Hu3DCameraPosSet(1, cursorPosition.x, cursorPosition.y, cursorPosition.z, scaleVector.x, scaleVector.y, scaleVector.z, playerPosition.x, playerPosition.y, playerPosition.z);
         HuPrcVSleep();
     }
 }
 
-void fn_1_3C7C(void) {
+void M447CameraDebugControl(void) {
     if (HuPadBtn[0] & 4) {
-        lbl_1_bss_74.unk00.x += 0.02f * HuPadStkX[0];
-        lbl_1_bss_74.unk00.y += 0.02f * HuPadStkY[0];
-        lbl_1_bss_74.unk0C.y -= 0.02f * HuPadSubStkX[0];
-        lbl_1_bss_74.unk0C.x += 0.02f * HuPadSubStkY[0];
-        lbl_1_bss_74.unk18 += 0.02f * HuPadTrigL[0];
-        lbl_1_bss_74.unk18 -= 0.02f * HuPadTrigR[0];
+        currentCamera.position.x += 0.02f * HuPadStkX[0];
+        currentCamera.position.y += 0.02f * HuPadStkY[0];
+        currentCamera.lookDirection.y -= 0.02f * HuPadSubStkX[0];
+        currentCamera.lookDirection.x += 0.02f * HuPadSubStkY[0];
+        currentCamera.zoom += 0.02f * HuPadTrigL[0];
+        currentCamera.zoom -= 0.02f * HuPadTrigR[0];
     }
 }
 
-void fn_1_3EA8(void) {
-    print8(32, 132, 1.5f, "LOOKAT : x=%.2f y=%.2f z=%.2f", lbl_1_bss_74.unk00.x, lbl_1_bss_74.unk00.y, lbl_1_bss_74.unk00.z);
-    print8(32, 148, 1.5f, "ANGLE  : x=%.2f y=%.2f z=%.2f", lbl_1_bss_74.unk0C.x, lbl_1_bss_74.unk0C.y, lbl_1_bss_74.unk0C.z);
-    print8(32, 164, 1.5f, "ZOOM   : x=%.2f", lbl_1_bss_74.unk18);
+void M447CameraDebugPrint(void) {
+    print8(32, 132, 1.5f, "LOOKAT : x=%.2f y=%.2f z=%.2f", currentCamera.position.x, currentCamera.position.y, currentCamera.position.z);
+    print8(32, 148, 1.5f, "ANGLE  : x=%.2f y=%.2f z=%.2f", currentCamera.lookDirection.x, currentCamera.lookDirection.y, currentCamera.lookDirection.z);
+    print8(32, 164, 1.5f, "ZOOM   : x=%.2f", currentCamera.zoom);
 }

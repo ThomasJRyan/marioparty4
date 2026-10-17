@@ -19,41 +19,41 @@
 #endif
 
 typedef struct {
-    /* 0x00 */ s16 unk00;
-    /* 0x02 */ char unk02[2];
-    /* 0x04 */ float unk04;
-    /* 0x08 */ float unk08;
-} UnkM447Struct_03; // Size 0xC
+    /* 0x00 */ s16 spriteId;
+    /* 0x02 */ char padding02[2];
+    /* 0x04 */ float scaleProgress;
+    /* 0x08 */ float scaleStep;
+} M447TransitionState; // Size 0xC
 
-void fn_1_12C(void);
-UnkM447Struct_00* fn_1_1B8(void);
-void fn_1_43C(UnkM447Struct_00* arg0);
-BOOL fn_1_490(UnkM447Struct_00* arg0);
-void fn_1_4A0(UnkM447Struct_00* arg0, s32 arg1);
-void fn_1_4B0(void);
-void fn_1_544(UnkM447Struct_00* arg0);
-void fn_1_7A8(UnkM447Struct_00* arg0);
-void fn_1_B5C(UnkM447Struct_00* arg0);
-void fn_1_F34(UnkM447Struct_00* arg0);
-void fn_1_1068(UnkM447Struct_00* arg0);
-void fn_1_1394(UnkM447Struct_00* arg0, s16 arg1, s32 arg2);
-s32 fn_1_141C(UnkM447Struct_00* arg0, s16 arg1, s32 arg2, s32 arg3, s32 arg4);
-void fn_1_1484(void);
-void fn_1_1754(UnkM447Struct_00* arg0);
-void fn_1_1830(UnkM447Struct_00* arg0);
-void fn_1_1884(UnkM447Struct_00* arg0);
-void fn_1_1AFC(UnkM447Struct_00* arg0, s32 arg1, s32 arg2);
-void fn_1_1BF8(void);
-void fn_1_1CE0(UnkM447Struct_00* arg0);
-void fn_1_1D34(UnkM447Struct_00* arg0);
+void M447ExitProcess(void);
+M447GameState* M447GameCreate(void);
+void M447GameDestroy(M447GameState* gameState);
+BOOL M447ExitReadyCheck(M447GameState* gameState);
+void M447GamePhaseSet(M447GameState* gameState, s32 phaseIndex);
+void M447GameProcess(void);
+void M447IntroPhaseUpdate(M447GameState* gameState);
+void M447RoundSetupUpdate(M447GameState* gameState);
+void M447RoundPlayUpdate(M447GameState* gameState);
+void M447BoardCleanupUpdate(M447GameState* gameState);
+void M447GameResultUpdate(M447GameState* gameState);
+void M447MessageWait(M447GameState* gameState, s16 windowId, s32 waitFrames);
+s32 M447ChoiceGet(M447GameState* gameState, s16 windowId, s32 choiceFlags, s32 computerChoice, s32 waitFrames);
+void M447CharacterIntroDialog(void);
+void M447HudCreate(M447GameState* gameState);
+void M447HudDestroy(M447GameState* gameState);
+void M447ScoreboardShow(M447GameState* gameState);
+void M447ScoreIconAnimate(M447GameState* gameState, s32 playerIndex, s32 scoreIndex);
+void M447ScoreIconAnimationProcess(void);
+void M447HudHide(M447GameState* gameState);
+void M447ComputerPlayerCountGet(M447GameState* gameState);
 
-UnkM447Struct_06* lbl_1_bss_10;
-char lbl_1_bss_C_pad[4];
-UnkM447Struct_00* lbl_1_bss_8;
-HUPROCESS* lbl_1_bss_4;
-HUPROCESS* lbl_1_bss_0;
+M447StageState* stageState;
+char alignmentPadding[4];
+M447GameState* gameState;
+HUPROCESS* objectManager;
+HUPROCESS* exitProcess;
 
-const s32 lbl_1_rodata_10[] = {
+const s32 hudAssetIds[] = {
     DATA_MAKE_NUM(DATADIR_M447, 53),
     DATA_MAKE_NUM(DATADIR_M447, 53),
     DATA_MAKE_NUM(DATADIR_M447, 54),
@@ -82,14 +82,14 @@ const s32 lbl_1_rodata_10[] = {
 };
 
 void ObjectSetup(void) {
-    lbl_1_bss_4 = omInitObjMan(10, 0x2000);
-    omGameSysInit(lbl_1_bss_4);
+    objectManager = omInitObjMan(10, 0x2000);
+    omGameSysInit(objectManager);
     HuWinInit(1);
-    lbl_1_bss_0 = HuPrcChildCreate(fn_1_12C, 1000, 0x2000, 0, lbl_1_bss_4);
-    lbl_1_bss_8 = fn_1_1B8();
+    exitProcess = HuPrcChildCreate(M447ExitProcess, 1000, 0x2000, 0, objectManager);
+    gameState = M447GameCreate();
 }
 
-void fn_1_12C(void) {
+void M447ExitProcess(void) {
     while (omSysExitReq == 0) {
         HuPrcVSleep();
     }
@@ -98,458 +98,458 @@ void fn_1_12C(void) {
         HuPrcVSleep();
     }
     HuAudFadeOut(100);
-    fn_1_43C(lbl_1_bss_8);
+    M447GameDestroy(gameState);
     HuPrcVSleep();
     omOvlReturnEx(1, 1);
     HuPrcEnd();
 }
 
-UnkM447Struct_00* fn_1_1B8(void) {
-    Vec sp2C;
-    Vec sp20 = { 0.0f, 3000.0f, 1.0f };
-    Vec sp14 = { 0.0f, 1.0f, 0.0f };
-    Vec sp8 = { 0.0f, 0.0f, 0.0f };
-    UnkM447Struct_00* temp_r3;
+M447GameState* M447GameCreate(void) {
+    Vec blockPosition;
+    Vec velocity = { 0.0f, 3000.0f, 1.0f };
+    Vec rotation = { 0.0f, 1.0f, 0.0f };
+    Vec position = { 0.0f, 0.0f, 0.0f };
+    M447GameState* object;
     s32 i;
 
-    temp_r3 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*temp_r3), HU_MEMNUM_OVL);
-    if (!temp_r3) {
+    object = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*object), HU_MEMNUM_OVL);
+    if (!object) {
         OSReport("M447FlowCreate ERROR...\n");
         return NULL;
     }
     Hu3DShadowCreate(30.0f, 20.0f, 5000.0f);
     Hu3DShadowTPLvlSet(0.45f);
-    Hu3DShadowPosSet(&sp20, &sp14, &sp8);
-    fn_1_A230(frand());
-    temp_r3->unk08 = 0;
-    fn_1_3130();
-    lbl_1_bss_10 = fn_1_1D90();
-    sp2C.x = 0.0f;
-    sp2C.y = -1000.0f;
-    sp2C.z = 0.0f;
+    Hu3DShadowPosSet(&velocity, &rotation, &position);
+    M447RandomSeedSet(frand());
+    object->shutdownComplete = 0;
+    M447CameraInit();
+    stageState = M447StageCreate();
+    blockPosition.x = 0.0f;
+    blockPosition.y = -1000.0f;
+    blockPosition.z = 0.0f;
     for (i = 0; i < 5; i++) {
-        lbl_1_bss_A4[i] = fn_1_8DF8();
-        lbl_1_bss_A4[i]->unk10 = sp2C;
+        blockStates[i] = M447BlockCreate();
+        blockStates[i]->position = blockPosition;
     }
-    fn_1_3F84();
+    M447PlayerRegistryInit();
     for (i = 0; i < 2; i++) {
-        lbl_1_bss_98[i] = fn_1_3FC4(i);
+        playerStates[i] = M447PlayerCreate(i);
     }
-    fn_1_1D34(temp_r3);
-    fn_1_1754(temp_r3);
-    temp_r3->unk14 = 0;
-    temp_r3->unk1C = 0;
-    temp_r3->unk24 = 0;
-    temp_r3->unk28 = 0;
-    temp_r3->unk2C = 0;
-    temp_r3->unk10 = 0;
-    temp_r3->unk70 = -1;
-    temp_r3->unk30 = -1;
-    temp_r3->unk32 = -1;
-    temp_r3->unk00 = HuPrcChildCreate(fn_1_4B0, 100, 0x4000, 0, lbl_1_bss_4);
-    temp_r3->unk00->user_data = temp_r3;
+    M447ComputerPlayerCountGet(object);
+    M447HudCreate(object);
+    object->gamePhase = 0;
+    object->phaseStep = 0;
+    object->roundTimer = 0;
+    object->roundState = 0;
+    object->roundNumber = 0;
+    object->bonusRoundActive = 0;
+    object->musicSequenceId = -1;
+    object->resultWindowId = -1;
+    object->countdownWindowId = -1;
+    object->mainProcess = HuPrcChildCreate(M447GameProcess, 100, 0x4000, 0, objectManager);
+    object->mainProcess->user_data = object;
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
-    return temp_r3;
+    return object;
 }
 
-void fn_1_43C(UnkM447Struct_00* arg0) {
-    fn_1_1830(arg0);
-    fn_1_1E70(lbl_1_bss_10);
-    fn_1_32E0();
-    HuPrcKill(arg0->unk00);
-    HuMemDirectFree(arg0);
+void M447GameDestroy(M447GameState* gameState) {
+    M447HudDestroy(gameState);
+    M447StageDestroy(stageState);
+    M447CameraShutdown();
+    HuPrcKill(gameState->mainProcess);
+    HuMemDirectFree(gameState);
 }
 
-BOOL fn_1_490(UnkM447Struct_00* arg0) {
-    return arg0->unk08 == 0;
+BOOL M447ExitReadyCheck(M447GameState* gameState) {
+    return gameState->shutdownComplete == 0;
 }
 
-void fn_1_4A0(UnkM447Struct_00* arg0, s32 arg1) {
-    arg0->unk14 = arg1;
-    arg0->unk1C = 0;
+void M447GamePhaseSet(M447GameState* gameState, s32 phaseIndex) {
+    gameState->gamePhase = phaseIndex;
+    gameState->phaseStep = 0;
 }
 
-void (*lbl_1_data_1C[])(UnkM447Struct_00*) = {
-	fn_1_544,
-	fn_1_7A8,
-	fn_1_B5C,
-	fn_1_F34,
-	fn_1_1068
+void (*gamePhaseHandlers[])(M447GameState*) = {
+	M447IntroPhaseUpdate,
+	M447RoundSetupUpdate,
+	M447RoundPlayUpdate,
+	M447BoardCleanupUpdate,
+	M447GameResultUpdate
 };
 
-void fn_1_4B0(void) {
-    UnkM447Struct_00* temp_r31;
+void M447GameProcess(void) {
+    M447GameState* objectWork;
 
-    temp_r31 = HuPrcCurrentGet()->user_data;
-    while (omSysExitReq == 0 || !fn_1_490(temp_r31)) {
-        lbl_1_data_1C[temp_r31->unk14](temp_r31);
+    objectWork = HuPrcCurrentGet()->user_data;
+    while (omSysExitReq == 0 || !M447ExitReadyCheck(objectWork)) {
+        gamePhaseHandlers[objectWork->gamePhase](objectWork);
         HuPrcVSleep();
     }
     omSysExitReq = 1;
-    temp_r31->unk08 = 1;
+    objectWork->shutdownComplete = 1;
     HuPrcEnd();
 }
 
-const Vec lbl_1_rodata_B0[2] = {
+const Vec introCameraPositions[2] = {
     {   0.0f, 300.0f, 0.0f },
     { -0.12f, 176.0f, 0.0f }
 };
 
-void fn_1_544(UnkM447Struct_00* arg0) {
+void M447IntroPhaseUpdate(M447GameState* gameState) {
     s32 i;
 
-    switch (arg0->unk1C) {
+    switch (gameState->phaseStep) {
         case 0:
-            arg0->unk20 = 0;
-            arg0->unk1C = 1;
+            gameState->phaseTimer = 0;
+            gameState->phaseStep = 1;
             break;
         case 1:
             WipeStatGet();
-            arg0->unk1C = 2;
+            gameState->phaseStep = 2;
             break;
         case 2:
-            if (arg0->unk20++ >= 60) {
-                arg0->unk1C = 3;
+            if (gameState->phaseTimer++ >= 60) {
+                gameState->phaseStep = 3;
             }
             break;
         case 3:
-            fn_1_1EB0(lbl_1_bss_10, 1);
-            arg0->unk20 = 0;
-            arg0->unk1C = 4;
+            M447StageActionSet(stageState, 1);
+            gameState->phaseTimer = 0;
+            gameState->phaseStep = 4;
             break;
         case 4:
-            if (!fn_1_1EC0(lbl_1_bss_10)) {
-                arg0->unk1C = 5;
+            if (!M447StageActionActiveCheck(stageState)) {
+                gameState->phaseStep = 5;
             }
             break;
         case 5:
-            if (lbl_1_bss_98[1]->unk18 == 8) {
-                arg0->unk70 = HuAudSeqPlay(0x3D);
+            if (playerStates[1]->characterIndex == 8) {
+                gameState->musicSequenceId = HuAudSeqPlay(0x3D);
             }
-            fn_1_3484(860.0f, 60);
-            fn_1_330C(&lbl_1_rodata_B0[1], 60);
-            arg0->unk20 = 0;
-            arg0->unk1C = 6;
+            M447CameraZoomTargetSet(860.0f, 60);
+            M447CameraPositionTargetSet(&introCameraPositions[1], 60);
+            gameState->phaseTimer = 0;
+            gameState->phaseStep = 6;
             break;
         case 6:
-            if (arg0->unk20++ >= 60) {
-                if (lbl_1_bss_98[1]->unk18 == 8) {
-                    arg0->unk1C = 7;
+            if (gameState->phaseTimer++ >= 60) {
+                if (playerStates[1]->characterIndex == 8) {
+                    gameState->phaseStep = 7;
                 } else {
-                    arg0->unk1C = 9;
+                    gameState->phaseStep = 9;
                 }
             }
             break;
         case 7:
-            arg0->unk04 = HuPrcChildCreate(fn_1_1484, 100, 0x2000, 0, lbl_1_bss_4);
-            arg0->unk04->user_data = arg0;
-            arg0->unk0C = 1;
-            arg0->unk1C = 8;
+            gameState->dialogProcess = HuPrcChildCreate(M447CharacterIntroDialog, 100, 0x2000, 0, objectManager);
+            gameState->dialogProcess->user_data = gameState;
+            gameState->dialogComplete = 1;
+            gameState->phaseStep = 8;
             break;
         case 8:
-            if (arg0->unk0C != 0) {
+            if (gameState->dialogComplete != 0) {
                 break;
             }
-            arg0->unk04 = NULL;
-            arg0->unk1C = 9;
+            gameState->dialogProcess = NULL;
+            gameState->phaseStep = 9;
             /* fallthrough */
         case 9:
-            if (arg0->unk70 != -1) {
-                HuAudSeqFadeOut(arg0->unk70, 1000);
+            if (gameState->musicSequenceId != -1) {
+                HuAudSeqFadeOut(gameState->musicSequenceId, 1000);
             }
-            fn_1_3484(1150.0f, 60);
-            fn_1_330C(&lbl_1_rodata_B0[0], 60);
+            M447CameraZoomTargetSet(1150.0f, 60);
+            M447CameraPositionTargetSet(&introCameraPositions[0], 60);
             for (i = 0; i < 2; i++) {
-                fn_1_43CC(lbl_1_bss_98[i], 6);
+                M447PlayerStateSet(playerStates[i], 6);
             }
-            fn_1_4A0(arg0, 1);
+            M447GamePhaseSet(gameState, 1);
             break;
     }
 }
 
-void fn_1_7A8(UnkM447Struct_00* arg0) {
-    Vec sp14;
-    Vec sp8;
-    s32 temp_r29;
-    s32 temp_r28;
+void M447RoundSetupUpdate(M447GameState* gameState) {
+    Vec rotation;
+    Vec position;
+    s32 cardIndex;
+    s32 cardWork;
     s32 i;
 
-    switch (arg0->unk1C) {
+    switch (gameState->phaseStep) {
         case 0:
-            arg0->unk1C = 1;
+            gameState->phaseStep = 1;
             /* fallthrough */
         case 1:
-            fn_1_1EB0(lbl_1_bss_10, 3);
-            arg0->unk20 = 0;
-            arg0->unk1C = 2;
+            M447StageActionSet(stageState, 3);
+            gameState->phaseTimer = 0;
+            gameState->phaseStep = 2;
             /* fallthrough */
         case 2:
-            if (arg0->unk20++ < 110) {
+            if (gameState->phaseTimer++ < 110) {
                 break;
             }
-            arg0->unk1C = 3;
+            gameState->phaseStep = 3;
             /* fallthrough */
         case 3:
-            fn_1_90FC(fn_1_A240() % 10 > 5);
-            temp_r29 = arg0->unk2C * 2 + fn_1_A240() % 2;
-            temp_r28 = fn_1_A240() % 5;
+            M447BlockLayoutSet(M447RandomValueGet() % 10 > 5);
+            cardIndex = gameState->roundNumber * 2 + M447RandomValueGet() % 2;
+            cardWork = M447RandomValueGet() % 5;
             for (i = 0; i < 5; i++) {
-                fn_1_9004(lbl_1_bss_A4[i], temp_r29, temp_r28 == i);
-                fn_1_1ED4(i, &sp8);
-                lbl_1_bss_A4[i]->unk10 = sp8;
-                sp14.x = fn_1_A240() % 360;
-                sp14.y = 0.0f;
-                sp14.z = fn_1_A240() % 360;
-                lbl_1_bss_A4[i]->unk1C = sp14;
-                fn_1_8FF4(lbl_1_bss_A4[i], 1);
+                M447BlockCardSet(blockStates[i], cardIndex, cardWork == i);
+                M447PlayerSpawnPositionGet(i, &position);
+                blockStates[i]->position = position;
+                rotation.x = M447RandomValueGet() % 360;
+                rotation.y = 0.0f;
+                rotation.z = M447RandomValueGet() % 360;
+                blockStates[i]->rotation = rotation;
+                M447BlockActionSet(blockStates[i], 1);
             }
-            arg0->unk20 = 0;
-            arg0->unk1C = 4;
+            gameState->phaseTimer = 0;
+            gameState->phaseStep = 4;
             /* fallthrough */
         case 4:
-            if (arg0->unk20++ < 60) {
+            if (gameState->phaseTimer++ < 60) {
                 break;
             }
             for (i = 0; i < 5; i++) {
-                fn_1_8FF4(lbl_1_bss_A4[i], 2);
+                M447BlockActionSet(blockStates[i], 2);
             }
             /* fallthrough */
-            arg0->unk1C = 5;
+            gameState->phaseStep = 5;
         case 5:
-            fn_1_1EB0(lbl_1_bss_10, 4);
-            arg0->unk20 = 0;
-            arg0->unk1C = 6;
+            M447StageActionSet(stageState, 4);
+            gameState->phaseTimer = 0;
+            gameState->phaseStep = 6;
             /* fallthrough */
         case 6:
-            if (!fn_1_1EC0(lbl_1_bss_10)) {
-                if (arg0->unk10 != 0) {
-                    arg0->unk1C = 9;
+            if (!M447StageActionActiveCheck(stageState)) {
+                if (gameState->bonusRoundActive != 0) {
+                    gameState->phaseStep = 9;
                 } else {
-                    arg0->unk1C = 7;
+                    gameState->phaseStep = 7;
                 }
             }
             break;
         case 7:
-            arg0->unk70 = HuAudSeqPlay(0x3E);
-            arg0->unk30 = MGSeqStartCreate();
-            arg0->unk1C = 8;
+            gameState->musicSequenceId = HuAudSeqPlay(0x3E);
+            gameState->resultWindowId = MGSeqStartCreate();
+            gameState->phaseStep = 8;
             /* fallthrough */
         case 8:
-            if (MGSeqStatGet(arg0->unk30) != 0) {
+            if (MGSeqStatGet(gameState->resultWindowId) != 0) {
                 break;
             }
-            arg0->unk10 = 1;
-            arg0->unk1C = 9;
+            gameState->bonusRoundActive = 1;
+            gameState->phaseStep = 9;
             /* fallthrough */
         case 9:
-            fn_1_4A0(arg0, 2);
+            M447GamePhaseSet(gameState, 2);
             break;
     }
 }
 
-void fn_1_B5C(UnkM447Struct_00* arg0) {
-    s32 temp_r26;
-    s32 var_r27;
+void M447RoundPlayUpdate(M447GameState* gameState) {
+    s32 cardValue;
+    s32 stateIndex;
     s32 i;
 
-    switch (arg0->unk1C) {
+    switch (gameState->phaseStep) {
         case 0:
-            fn_1_1884(arg0);
-            arg0->unk24 = REFRESH_RATE * 15;
-            arg0->unk32 = MGSeqCreate(1, arg0->unk24 / REFRESH_RATE, -1, -1);
+            M447ScoreboardShow(gameState);
+            gameState->roundTimer = REFRESH_RATE * 15;
+            gameState->countdownWindowId = MGSeqCreate(1, gameState->roundTimer / REFRESH_RATE, -1, -1);
             for (i = 0; i < 2; i++) {
-                fn_1_43CC(lbl_1_bss_98[i], 1);
-                lbl_1_bss_98[i]->unk04 = 1;
+                M447PlayerStateSet(playerStates[i], 1);
+                playerStates[i]->inputEnabled = 1;
             }
-            arg0->unk1C = 1;
+            gameState->phaseStep = 1;
             /* fallthrough */
         case 1:
-            temp_r26 = fn_1_1F9C(lbl_1_bss_10);
-            if (arg0->unk24 > 0 && temp_r26 > 0 && --arg0->unk24 % REFRESH_RATE == 0) {
-                MGSeqParamSet(arg0->unk32, 1, arg0->unk24 / REFRESH_RATE);
+            cardValue = M447UnrevealedPlayerCountGet(stageState);
+            if (gameState->roundTimer > 0 && cardValue > 0 && --gameState->roundTimer % REFRESH_RATE == 0) {
+                MGSeqParamSet(gameState->countdownWindowId, 1, gameState->roundTimer / REFRESH_RATE);
             }
-            if (arg0->unk24 > 0 && temp_r26 > 0) {
+            if (gameState->roundTimer > 0 && cardValue > 0) {
                 break;
             }
-            arg0->unk1C = 2;
+            gameState->phaseStep = 2;
             /* fallthrough */
         case 2:
             for (i = 0; i < 2; i++) {
-                lbl_1_bss_98[i]->unk04 = 0;
-                fn_1_7A6C(lbl_1_bss_98[i]);
+                playerStates[i]->inputEnabled = 0;
+                M447PlayerDisplayOff(playerStates[i]);
             }
-            arg0->unk1C = 3;
+            gameState->phaseStep = 3;
             break;
         case 3:
-            if (arg0->unk32 != -1) {
-                MGSeqParamSet(arg0->unk32, 2, -1);
-                arg0->unk32 = -1;
+            if (gameState->countdownWindowId != -1) {
+                MGSeqParamSet(gameState->countdownWindowId, 2, -1);
+                gameState->countdownWindowId = -1;
             }
             for (i = 0; i < 2; i++) {
-                if (lbl_1_bss_98[i]->unk24 != 1 && lbl_1_bss_98[i]->unk24 != 0) {
+                if (playerStates[i]->state != 1 && playerStates[i]->state != 0) {
                     return;
                 }
             }
             for (i = 0; i < 5; i++) {
-                if (lbl_1_bss_A4[i]->unk04 != 0 && lbl_1_bss_A4[i]->unk04 != 2) {
+                if (blockStates[i]->actionState != 0 && blockStates[i]->actionState != 2) {
                     return;
                 }
             }
-            arg0->unk1C = 4;
+            gameState->phaseStep = 4;
             /* fallthrough */
         case 4:
             for (i = 0; i < 2; i++) {
-                if (lbl_1_bss_98[i]->unk14 != 0) {
-                    fn_1_1AFC(arg0, i, lbl_1_bss_98[i]->unk1B - 1);
+                if (playerStates[i]->roundWinFlag != 0) {
+                    M447ScoreIconAnimate(gameState, i, playerStates[i]->scoreCount - 1);
                 }
             }
-            arg0->unk2C++;
-            for (i = 0, var_r27 = 0; i < 2; i++) {
-                if (lbl_1_bss_98[i]->unk1B > var_r27) {
-                    var_r27 = lbl_1_bss_98[i]->unk1B;
+            gameState->roundNumber++;
+            for (i = 0, stateIndex = 0; i < 2; i++) {
+                if (playerStates[i]->scoreCount > stateIndex) {
+                    stateIndex = playerStates[i]->scoreCount;
                 }
             }
-            if (var_r27 >= 3 || arg0->unk2C >= 5) {
-                fn_1_4A0(lbl_1_bss_8, 4);
+            if (stateIndex >= 3 || gameState->roundNumber >= 5) {
+                M447GamePhaseSet(gameState, 4);
             } else {
-                fn_1_4A0(lbl_1_bss_8, 3);
+                M447GamePhaseSet(gameState, 3);
             }
             break;
     }
 }
 
-void fn_1_F34(UnkM447Struct_00* arg0) {
+void M447BoardCleanupUpdate(M447GameState* gameState) {
     s32 i;
 
-    switch (arg0->unk1C) {
+    switch (gameState->phaseStep) {
         case 0:
             for (i = 0; i < 2; i++) {
-                fn_1_43CC(lbl_1_bss_98[i], 6);
+                M447PlayerStateSet(playerStates[i], 6);
             }
-            arg0->unk1C = 1;
+            gameState->phaseStep = 1;
             /* fallthrough */
         case 1:
             for (i = 0; i < 5; i++) {
-                if (lbl_1_bss_A4[i]->unk04 != 0) {
-                    fn_1_8FF4(lbl_1_bss_A4[i], 4);
+                if (blockStates[i]->actionState != 0) {
+                    M447BlockActionSet(blockStates[i], 4);
                 }
             }
-            arg0->unk20 = 0;
-            arg0->unk1C = 2;
+            gameState->phaseTimer = 0;
+            gameState->phaseStep = 2;
             /* fallthrough */
         case 2:
-            if (arg0->unk20++ < 160) {
+            if (gameState->phaseTimer++ < 160) {
                 break;
             }
-            arg0->unk1C = 3;
+            gameState->phaseStep = 3;
             /* fallthrough */
         case 3:
-            fn_1_4A0(lbl_1_bss_8, 1);
+            M447GamePhaseSet(gameState, 1);
             break;
     }
 }
 
-const Vec lbl_1_rodata_D8 = { 0.0f, 150.0f, 0.0f };
-const Vec lbl_1_rodata_E4 = { 6.0f,   0.0f, 0.0f };
+const Vec resultCameraPosition = { 0.0f, 150.0f, 0.0f };
+const Vec resultCameraLookDirection = { 6.0f,   0.0f, 0.0f };
 
-void fn_1_1068(UnkM447Struct_00* arg0) {
-    s32 temp_r29;
-    s32 temp_r28;
+void M447GameResultUpdate(M447GameState* gameState) {
+    s32 cardIndex;
+    s32 cardWork;
     s32 i;
 
-    switch (arg0->unk1C) {
+    switch (gameState->phaseStep) {
         case 0:
             for (i = 0; i < 5; i++) {
-                if (lbl_1_bss_A4[i]->unk04 != 0) {
-                    fn_1_8FF4(lbl_1_bss_A4[i], 4);
+                if (blockStates[i]->actionState != 0) {
+                    M447BlockActionSet(blockStates[i], 4);
                 }
             }
-            arg0->unk1C = 1;
+            gameState->phaseStep = 1;
             /* fallthrough */
         case 1:
             // Bug: HuAudSeqFadeOut takes two arguments.
-            HuAudSeqFadeOut(arg0->unk70);
-            arg0->unk30 = MGSeqCreate(3, 1);
-            arg0->unk1C = 2;
+            HuAudSeqFadeOut(gameState->musicSequenceId);
+            gameState->resultWindowId = MGSeqCreate(3, 1);
+            gameState->phaseStep = 2;
             /* fallthrough */
         case 2:
-            if (MGSeqStatGet(arg0->unk30) != 0) {
+            if (MGSeqStatGet(gameState->resultWindowId) != 0) {
                 break;
             }
-            arg0->unk1C = 3;
+            gameState->phaseStep = 3;
             /* fallthrough */
         case 3:
             for (i = 0; i < 2; i++) {
-                fn_1_43CC(lbl_1_bss_98[i], 7);
+                M447PlayerStateSet(playerStates[i], 7);
             }
-            fn_1_330C(&lbl_1_rodata_D8, 180);
-            fn_1_3484(300.0f, 180);
-            fn_1_33C8(&lbl_1_rodata_E4, 180);
-            arg0->unk20 = 0;
-            arg0->unk1C = 4;
+            M447CameraPositionTargetSet(&resultCameraPosition, 180);
+            M447CameraZoomTargetSet(300.0f, 180);
+            M447CameraLookTargetSet(&resultCameraLookDirection, 180);
+            gameState->phaseTimer = 0;
+            gameState->phaseStep = 4;
             /* fallthrough */
         case 4:
-            if (arg0->unk20++ < 180) {
+            if (gameState->phaseTimer++ < 180) {
                 break;
             }
-            arg0->unk1C = 5;
+            gameState->phaseStep = 5;
             /* fallthrough */
         case 5:
-            temp_r29 = lbl_1_bss_98[0]->unk1B;
-            temp_r28 = lbl_1_bss_98[1]->unk1B;
-            if (lbl_1_bss_98[1]->unk18 != 8 && temp_r29 == temp_r28) {
-                fn_1_43CC(lbl_1_bss_98[0], 10);
-                fn_1_43CC(lbl_1_bss_98[1], 10);
+            cardIndex = playerStates[0]->scoreCount;
+            cardWork = playerStates[1]->scoreCount;
+            if (playerStates[1]->characterIndex != 8 && cardIndex == cardWork) {
+                M447PlayerStateSet(playerStates[0], 10);
+                M447PlayerStateSet(playerStates[1], 10);
                 HuAudSStreamPlay(4);
-            } else if (temp_r29 > temp_r28) {
-                fn_1_43CC(lbl_1_bss_98[0], 9);
-                fn_1_43CC(lbl_1_bss_98[1], 10);
+            } else if (cardIndex > cardWork) {
+                M447PlayerStateSet(playerStates[0], 9);
+                M447PlayerStateSet(playerStates[1], 10);
                 GWPlayerCoinWinAdd(0, 10);
                 HuAudSStreamPlay(1);
             } else {
-                fn_1_43CC(lbl_1_bss_98[0], 10);
-                fn_1_43CC(lbl_1_bss_98[1], 9);
+                M447PlayerStateSet(playerStates[0], 10);
+                M447PlayerStateSet(playerStates[1], 9);
                 GWPlayerCoinWinAdd(1, 10);
-                if (lbl_1_bss_98[1]->unk18 == 8) {
+                if (playerStates[1]->characterIndex == 8) {
                     HuAudSStreamPlay(3);
                 } else {
                     HuAudSStreamPlay(1);
                 }
             }
-            arg0->unk20 = 0;
-            arg0->unk1C = 6;
+            gameState->phaseTimer = 0;
+            gameState->phaseStep = 6;
             /* fallthrough */
         case 6:
-            if (arg0->unk20++ < 210) {
+            if (gameState->phaseTimer++ < 210) {
                 break;
             }
-            arg0->unk1C = 7;
+            gameState->phaseStep = 7;
             /* fallthrough */
         case 7:
             omSysExitReq = 1;
-            arg0->unk08 = 1;
+            gameState->shutdownComplete = 1;
             break;
     }
 }
 
-void fn_1_1394(UnkM447Struct_00* arg0, s16 arg1, s32 arg2) {
+void M447MessageWait(M447GameState* gameState, s16 windowId, s32 waitFrames) {
     HuWinComKeyReset();
-    if (arg0->unk18 == 2) {
-        HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, arg2);
+    if (gameState->computerPlayerCount == 2) {
+        HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, waitFrames);
     }
-    winData[arg1].active_pad = 1;
-    HuWinMesWait(arg1);
+    winData[windowId].active_pad = 1;
+    HuWinMesWait(windowId);
 }
 
-s32 fn_1_141C(UnkM447Struct_00* arg0, s16 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    if (arg0->unk18 == 2) {
-        HuPrcSleep(arg4);
-        return arg3;
+s32 M447ChoiceGet(M447GameState* gameState, s16 windowId, s32 choiceFlags, s32 computerChoice, s32 waitFrames) {
+    if (gameState->computerPlayerCount == 2) {
+        HuPrcSleep(waitFrames);
+        return computerChoice;
     }
-    return HuWinChoiceGet(arg1, arg2);
+    return HuWinChoiceGet(windowId, choiceFlags);
 }
 
-const s32 lbl_1_rodata_F4[] = {
+const s32 introDialogueMessages[] = {
     MAKE_MESSID(42, 3),
     MAKE_MESSID(42, 4),
     MAKE_MESSID(42, 5),
@@ -558,161 +558,161 @@ const s32 lbl_1_rodata_F4[] = {
     0
 };
 
-void fn_1_1484(void) {
-    UnkM447Struct_00* temp_r30;
-    s16 temp_r3;
-    s16 var_r29;
-    s32 var_r28;
-    u32 temp_r26;
+void M447CharacterIntroDialog(void) {
+    M447GameState* gameState;
+    s16 object;
+    s16 cardIndex;
+    s32 modelIndex;
+    u32 cardValue;
 
-    temp_r30 = HuPrcCurrentGet()->user_data;
-    temp_r3 = HuWinExCreateStyled(-10000.0f, 40.0f, 280, 120, -1, 1);
-    HuWinExAnimIn(temp_r3);
-    HuWinBGTPLvlSet(temp_r3, 0.8f);
-    HuWinMesSpeedSet(temp_r3, 1);
-    HuWinMesColSet(temp_r3, 0);
-    HuWinMesSet(temp_r3, MAKE_MESSID(42, 1));
-    fn_1_1394(temp_r30, temp_r3, 60);
-    if (temp_r30->unk18 < 2) {
-        HuWinMesColSet(temp_r3, 0);
-        HuWinMesSet(temp_r3, MAKE_MESSID(42, 2));
-        var_r29 = fn_1_141C(temp_r30, temp_r3, 0, 1, 60);
+    gameState = HuPrcCurrentGet()->user_data;
+    object = HuWinExCreateStyled(-10000.0f, 40.0f, 280, 120, -1, 1);
+    HuWinExAnimIn(object);
+    HuWinBGTPLvlSet(object, 0.8f);
+    HuWinMesSpeedSet(object, 1);
+    HuWinMesColSet(object, 0);
+    HuWinMesSet(object, MAKE_MESSID(42, 1));
+    M447MessageWait(gameState, object, 60);
+    if (gameState->computerPlayerCount < 2) {
+        HuWinMesColSet(object, 0);
+        HuWinMesSet(object, MAKE_MESSID(42, 2));
+        cardIndex = M447ChoiceGet(gameState, object, 0, 1, 60);
     } else {
-        var_r29 = 1;
+        cardIndex = 1;
     }
-    if (var_r29 == 0) {
-        var_r28 = 0;
-        while ((temp_r26 = lbl_1_rodata_F4[var_r28++]) != 0) {
-            HuWinMesColSet(temp_r3, 0);
-            HuWinMesSet(temp_r3, temp_r26);
-            fn_1_1394(temp_r30, temp_r3, 60);
+    if (cardIndex == 0) {
+        modelIndex = 0;
+        while ((cardValue = introDialogueMessages[modelIndex++]) != 0) {
+            HuWinMesColSet(object, 0);
+            HuWinMesSet(object, cardValue);
+            M447MessageWait(gameState, object, 60);
         }
-        HuWinMesColSet(temp_r3, 0);
-        HuWinMesSet(temp_r3, MAKE_MESSID(42, 8));
-        fn_1_1394(temp_r30, temp_r3, 60);
+        HuWinMesColSet(object, 0);
+        HuWinMesSet(object, MAKE_MESSID(42, 8));
+        M447MessageWait(gameState, object, 60);
     } else {
-        HuWinMesColSet(temp_r3, 0);
-        HuWinMesSet(temp_r3, MAKE_MESSID(42, 9));
-        fn_1_1394(temp_r30, temp_r3, 60);
+        HuWinMesColSet(object, 0);
+        HuWinMesSet(object, MAKE_MESSID(42, 9));
+        M447MessageWait(gameState, object, 60);
     }
-    HuWinExAnimOut(temp_r3);
-    HuWinExCleanup(temp_r3);
-    temp_r30->unk0C = 0;
+    HuWinExAnimOut(object);
+    HuWinExCleanup(object);
+    gameState->dialogComplete = 0;
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_1754(UnkM447Struct_00* arg0) {
+void M447HudCreate(M447GameState* gameState) {
     s32 i;
 
     for (i = 0; i < 25; i++) {
-        arg0->unk34[i] = espEntry(lbl_1_rodata_10[i], 0, 0);
-        espDispOff(arg0->unk34[i]);
-        espPriSet(arg0->unk34[i], 100);
+        gameState->hudSprites[i] = espEntry(hudAssetIds[i], 0, 0);
+        espDispOff(gameState->hudSprites[i]);
+        espPriSet(gameState->hudSprites[i], 100);
     }
-    espPriSet(arg0->unk34[7], 99);
-    espPriSet(arg0->unk34[8], 99);
-    espPriSet(arg0->unk34[9], 99);
-    espPriSet(arg0->unk34[13], 99);
-    espPriSet(arg0->unk34[14], 99);
-    espPriSet(arg0->unk34[15], 99);
+    espPriSet(gameState->hudSprites[7], 99);
+    espPriSet(gameState->hudSprites[8], 99);
+    espPriSet(gameState->hudSprites[9], 99);
+    espPriSet(gameState->hudSprites[13], 99);
+    espPriSet(gameState->hudSprites[14], 99);
+    espPriSet(gameState->hudSprites[15], 99);
 }
 
-void fn_1_1830(UnkM447Struct_00* arg0) {
+void M447HudDestroy(M447GameState* gameState) {
     s32 i;
 
     for (i = 0; i < 25; i++) {
-        espKill(arg0->unk34[i]);
+        espKill(gameState->hudSprites[i]);
     }
 }
 
-void fn_1_1884(UnkM447Struct_00* arg0) {
-    s16 temp_r28;
-    s32 sp8;
+void M447ScoreboardShow(M447GameState* gameState) {
+    s16 cardWork;
+    s32 position;
     s32 i;
     s32 j;
 
-    espDispOn(arg0->unk34[0]);
-    espPosSet(arg0->unk34[0], 96.0f, 64.0f);
-    espDispOn(arg0->unk34[2]);
-    espPosSet(arg0->unk34[2], 96.0f, 63.0f);
-    espTPLvlSet(arg0->unk34[2], 0.5f);
-    espColorSet(arg0->unk34[2], 0, 0, 0);
-    espDispOn(arg0->unk34[1]);
-    espPosSet(arg0->unk34[1], 480.0f, 64.0f);
-    espDispOn(arg0->unk34[3]);
-    espPosSet(arg0->unk34[3], 480.0f, 63.0f);
-    espTPLvlSet(arg0->unk34[3], 0.5f);
-    espColorSet(arg0->unk34[3], 0, 0, 0);
+    espDispOn(gameState->hudSprites[0]);
+    espPosSet(gameState->hudSprites[0], 96.0f, 64.0f);
+    espDispOn(gameState->hudSprites[2]);
+    espPosSet(gameState->hudSprites[2], 96.0f, 63.0f);
+    espTPLvlSet(gameState->hudSprites[2], 0.5f);
+    espColorSet(gameState->hudSprites[2], 0, 0, 0);
+    espDispOn(gameState->hudSprites[1]);
+    espPosSet(gameState->hudSprites[1], 480.0f, 64.0f);
+    espDispOn(gameState->hudSprites[3]);
+    espPosSet(gameState->hudSprites[3], 480.0f, 63.0f);
+    espTPLvlSet(gameState->hudSprites[3], 0.5f);
+    espColorSet(gameState->hudSprites[3], 0, 0, 0);
     for (i = 0; i < 2; i++) {
-        temp_r28 = lbl_1_bss_98[i]->unk18 + 16;
-        espDispOn(arg0->unk34[temp_r28]);
-        espPosSet(arg0->unk34[temp_r28], i * 384 + 46, 63.0f);
+        cardWork = playerStates[i]->characterIndex + 16;
+        espDispOn(gameState->hudSprites[cardWork]);
+        espPosSet(gameState->hudSprites[cardWork], i * 384 + 46, 63.0f);
     }
     for (j = 0; j < 2; j++) {
-        sp8 = lbl_1_bss_98[j]->unk1B;
+        position = playerStates[j]->scoreCount;
         for (i = 0; i < 3; i++) {
-            temp_r28 = i + 4 + j * 6;
-            espDispOn(arg0->unk34[temp_r28]);
-            espPosSet(arg0->unk34[temp_r28], j * 384 + 80 + i * 32, 63.0f);
+            cardWork = i + 4 + j * 6;
+            espDispOn(gameState->hudSprites[cardWork]);
+            espPosSet(gameState->hudSprites[cardWork], j * 384 + 80 + i * 32, 63.0f);
         }
     }
 }
 
-void fn_1_1AFC(UnkM447Struct_00* arg0, s32 arg1, s32 arg2) {
-    UnkM447Struct_03* temp_r3;
-    HUPROCESS* var_r30;
+void M447ScoreIconAnimate(M447GameState* gameState, s32 playerIndex, s32 scoreIndex) {
+    M447TransitionState* object;
+    HUPROCESS* playerIndex;
 
-    temp_r3 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*temp_r3), HU_MEMNUM_OVL);
-    temp_r3->unk00 = arg0->unk34[arg2 + 7 + arg1 * 6];
-    espPosSet(temp_r3->unk00, arg1 * 384 + 80 + arg2 * 32, 63.0f);
-    temp_r3->unk04 = 0.0f;
-    temp_r3->unk08 = 0.05f;
-    var_r30 = HuPrcChildCreate(fn_1_1BF8, 100, 0x1000, 0, lbl_1_bss_4);
-    var_r30->user_data = temp_r3;
+    object = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*object), HU_MEMNUM_OVL);
+    object->spriteId = gameState->hudSprites[scoreIndex + 7 + playerIndex * 6];
+    espPosSet(object->spriteId, playerIndex * 384 + 80 + scoreIndex * 32, 63.0f);
+    object->scaleProgress = 0.0f;
+    object->scaleStep = 0.05f;
+    playerIndex = HuPrcChildCreate(M447ScoreIconAnimationProcess, 100, 0x1000, 0, objectManager);
+    playerIndex->user_data = object;
 }
 
-void fn_1_1BF8(void) {
-    float temp_f31;
-    UnkM447Struct_03* temp_r31;
+void M447ScoreIconAnimationProcess(void) {
+    float distance;
+    M447TransitionState* objectWork;
 
-    temp_r31 = HuPrcCurrentGet()->user_data;
-    espDispOn(temp_r31->unk00);
+    objectWork = HuPrcCurrentGet()->user_data;
+    espDispOn(objectWork->spriteId);
     while (TRUE) {
-        if ((temp_r31->unk04 += temp_r31->unk08) > 1.0f) {
-            temp_r31->unk04 = 1.0f;
+        if ((objectWork->scaleProgress += objectWork->scaleStep) > 1.0f) {
+            objectWork->scaleProgress = 1.0f;
             break;
         }
-        temp_f31 = 1.0f + 1.5f * (1.0f - temp_r31->unk04);
-        espScaleSet(temp_r31->unk00, temp_f31, temp_f31);
+        distance = 1.0f + 1.5f * (1.0f - objectWork->scaleProgress);
+        espScaleSet(objectWork->spriteId, distance, distance);
         HuPrcVSleep();
     }
-    espScaleSet(temp_r31->unk00, 1.0f, 1.0f);
+    espScaleSet(objectWork->spriteId, 1.0f, 1.0f);
     HuAudFXPlay(9);
-    HuMemDirectFree(temp_r31);
+    HuMemDirectFree(objectWork);
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_1CE0(UnkM447Struct_00* arg0) {
+void M447HudHide(M447GameState* gameState) {
     s32 i;
 
     for (i = 0; i <= 25; i++) {
-        espDispOff(arg0->unk34[i]);
+        espDispOff(gameState->hudSprites[i]);
     }
 }
 
-void fn_1_1D34(UnkM447Struct_00* arg0) {
+void M447ComputerPlayerCountGet(M447GameState* gameState) {
     s32 i;
 
-    arg0->unk18 = 0;
+    gameState->computerPlayerCount = 0;
     for (i = 0; i < 2; i++) {
-        if (lbl_1_bss_98[i]->unk08 != 0) {
-            arg0->unk18++;
+        if (playerStates[i]->isComputer != 0) {
+            gameState->computerPlayerCount++;
         }
     }
 }
