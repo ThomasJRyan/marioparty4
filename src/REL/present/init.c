@@ -13,23 +13,23 @@
 
 #include "REL/present.h"
 
-typedef struct FaderWork {
+typedef struct SpriteFaderWork {
     /* 0x00 */ s16 id;
     /* 0x04 */ float tplvl;
     /* 0x08 */ float speed;
-} FaderWork; /* size 0x0C */ // same as in option/scene.c
+} SpriteFaderWork; /* size 0x0C */ // same as in option/scene.c
 
-typedef struct FaderWork2 {
+typedef struct ModelFaderWork {
     /* 0x00 */ s16 id;
     /* 0x04 */ float tpMultiplier;
     /* 0x08 */ float tplvl;
     /* 0x0C */ float speed;
-} FaderWork2; /* size = 0x10 */
+} ModelFaderWork; /* size = 0x10 */
 
 OMOBJ *presentState;
-OMOBJ *lbl_1_bss_14;
+OMOBJ *presentObject14;
 OMOBJ *present;
-OMOBJ *lbl_1_bss_C;
+OMOBJ *presentObject0C;
 OMOBJ *presentCamera;
 HUPROCESS *presentObjMan;
 static OMOBJ *scene;
@@ -52,7 +52,7 @@ void PresentFadeSprite(s16 sprite, BOOL inF, s32 duration)
 {
     HUPROCESS *process;
 
-    FaderWork *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(FaderWork), HU_MEMNUM_OVL);
+    SpriteFaderWork *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(SpriteFaderWork), HU_MEMNUM_OVL);
     work->id = sprite;
     work->speed = 1.0f / duration;
     if (inF) {
@@ -71,7 +71,7 @@ void PresentFadeSprite(s16 sprite, BOOL inF, s32 duration)
 
 static void FadeSprite(void)
 {
-    FaderWork *work = HuPrcCurrentGet()->user_data;
+    SpriteFaderWork *work = HuPrcCurrentGet()->user_data;
 
     while (TRUE) {
         work->tplvl = work->tplvl + work->speed;
@@ -100,7 +100,7 @@ void FadeSpriteWithMultiplier(s16 model, BOOL inF, float tpMultiplier, s32 durat
 {
     HUPROCESS *process;
     //  bug: wrong struct in sizeof
-    FaderWork2 *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(FaderWork), HU_MEMNUM_OVL);
+    ModelFaderWork *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(SpriteFaderWork), HU_MEMNUM_OVL);
     work->id = model;
     work->speed = 1.0f / duration;
     work->tpMultiplier = tpMultiplier;
@@ -121,28 +121,28 @@ void FadeSpriteWithMultiplier(s16 model, BOOL inF, float tpMultiplier, s32 durat
 
 static void FadeModel(void)
 {
-    FaderWork2 *var_r31 = HuPrcCurrentGet()->user_data;
+    ModelFaderWork *fadeWork = HuPrcCurrentGet()->user_data;
 
     while (TRUE) {
-        var_r31->tplvl += var_r31->speed;
-        if (var_r31->tplvl > 1.0f) {
-            var_r31->tplvl = 1.0f;
+        fadeWork->tplvl += fadeWork->speed;
+        if (fadeWork->tplvl > 1.0f) {
+            fadeWork->tplvl = 1.0f;
             break;
         }
-        else if (var_r31->tplvl < 0.0f) {
-            var_r31->tplvl = 0.0f;
+        else if (fadeWork->tplvl < 0.0f) {
+            fadeWork->tplvl = 0.0f;
             break;
         }
         else {
-            Hu3DModelTPLvlSet(var_r31->id, var_r31->tplvl * var_r31->tpMultiplier);
+            Hu3DModelTPLvlSet(fadeWork->id, fadeWork->tplvl * fadeWork->tpMultiplier);
             HuPrcVSleep();
         }
     }
-    Hu3DModelTPLvlSet(var_r31->id, var_r31->tplvl * var_r31->tpMultiplier);
-    if (var_r31->speed < 0.0f) {
-        Hu3DModelAttrSet(var_r31->id, HU3D_ATTR_DISPOFF);
+    Hu3DModelTPLvlSet(fadeWork->id, fadeWork->tplvl * fadeWork->tpMultiplier);
+    if (fadeWork->speed < 0.0f) {
+        Hu3DModelAttrSet(fadeWork->id, HU3D_ATTR_DISPOFF);
     }
-    HuMemDirectFree(var_r31);
+    HuMemDirectFree(fadeWork);
     HuPrcEnd();
 }
 

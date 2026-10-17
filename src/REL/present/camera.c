@@ -13,12 +13,12 @@ typedef struct CameraWork {
     /* 0x28 */ float rot;
     /* 0x2C */ Vec posPrev;
     /* 0x38 */ Vec targetPrev;
-    /* 0x44 */ char unk44[0xC];
+    /* 0x44 */ char reserved44[0xC];
     /* 0x50 */ float zoomPrev;
     /* 0x54 */ float rotPrev;
     /* 0x58 */ Vec posTarget;
     /* 0x64 */ Vec posFocus;
-    /* 0x70 */ char unk70[0xC];
+    /* 0x70 */ char reserved70[0xC];
     /* 0x7C */ float zoomTarget;
     /* 0x80 */ float rotTarget;
     /* 0x84 */ float timeEye;
@@ -147,16 +147,16 @@ s32 PresentCameraDoneCheck(OMOBJ *object)
 {
     CameraWork *work = object->data;
 
-    s32 var_r30 = 1;
-    s32 var_r29 = 1;
+    s32 cameraMotionDone = 1;
+    s32 targetAndRotationDone = 1;
 
     if (!(work->timeTarget < 1.0f) && !(work->timeRot < 1.0f)) {
-        var_r29 = 0;
+        targetAndRotationDone = 0;
     }
-    if (!var_r29 && !(work->timeEye < 1.0f)) {
-        var_r30 = 0;
+    if (!targetAndRotationDone && !(work->timeEye < 1.0f)) {
+        cameraMotionDone = 0;
     }
-    return var_r30;
+    return cameraMotionDone;
 }
 
 static void ExecCameraObj(OMOBJ *object)

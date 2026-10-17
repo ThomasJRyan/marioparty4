@@ -60,18 +60,18 @@ typedef struct PresentWork {
     /* 0x260 */ Vec2f cursorPos;
     /* 0x268 */ Vec2f newCursorPos;
     /* 0x270 */ BOOL presentUnlockedF[PRESENT_MAX];
-    /* 0x360 */ char unk360[4];
+    /* 0x360 */ char reserved360[4];
 } PresentWork; /* size = 0x364 */
 
-typedef struct UnkLightDataStruct {
+typedef struct PresentLightData {
     /* 0x00 */ Vec pos;
     /* 0x0C */ Vec dest;
     /* 0x18 */ GXColor color;
-} UnkLightDataStruct; /* size = 0x1C */ // same as option::state::UnkLightDataStruct
+} PresentLightData; /* size = 0x1C */
 
 typedef struct PresentData {
     /* 0x00 */ s32 cursorPosIdx;
-    /* 0x04 */ s32 unk04;
+    /* 0x04 */ s32 presentFlags;
     /* 0x08 */ s32 nameMess;
     /* 0x0C */ s32 descMess;
 } PresentData; /* size = 0x10 */
@@ -81,10 +81,10 @@ typedef struct RoomData {
     /* 0x04 */ PresentData presentData[11];
 } RoomData; /* size = 0xB4 */
 
-typedef struct PresentDistanceStruct {
-    /* 0x00 */ s32 present;
+typedef struct PresentDistance {
+    /* 0x00 */ s32 presentIndex;
     /* 0x04 */ float distance;
-} PresentDistanceStruct; /* size = 0x08 */
+} PresentDistance; /* size = 0x08 */
 
 static void ExecSelectRoom(OMOBJ *object);
 static void ChangeRoom(OMOBJ *object, s32 direction);
@@ -96,12 +96,12 @@ static BOOL CameraRotationDoneCheck(OMOBJ *object);
 static void ShowHidePresents(OMOBJ *object);
 static BOOL PresentUnlocked(OMOBJ *object, s32 room, s32 present);
 static s32 UnlockedPresents(OMOBJ *object, s32 room);
-static s32 MoveCursor(OMOBJ *object, s32 arg1);
+static s32 MoveCursor(OMOBJ *object, s32 padDirection);
 static s32 TotalPresentsInRoom(s32 room);
 static void ExecPresentGet(OMOBJ *object);
-static s32 fn_1_393C(s32 arg0, s32 arg1);
+static s32 PresentGetFadeSpriteNeeded(s32 room, s32 presentIndex);
 
-static UnkLightDataStruct lightTbl = {
+static PresentLightData presentLight = {
     { 0.0f, 400.0f, 0.0f },
     { 0.0f, -400.0f, -500.0f },
     { 255, 255, 255, 255 },
@@ -385,7 +385,7 @@ OMOBJ *PresentCreate(void)
         work->presentUnlockedF[PRESENT_MAX - 1] = TRUE;
     }
     Hu3DLighInit();
-    lightId = Hu3DGLightCreateV(&lightTbl.pos, &lightTbl.dest, &lightTbl.color);
+    lightId = Hu3DGLightCreateV(&presentLight.pos, &presentLight.dest, &presentLight.color);
     Hu3DGLightInfinitytSet(lightId);
     Hu3DGLightStaticSet(lightId, 1);
     lightData = &Hu3DGlobalLight[lightId];
@@ -823,12 +823,12 @@ static void ExecSelectPresent(OMOBJ *object)
 
 static void GetCursorPos(OMOBJ *object, float *x, float *y, float *z)
 {
-    Mtx sp8;
+    Mtx cursorMatrix;
 
-    Hu3DModelObjMtxGet(object->mdlId[0], "cursor", sp8);
-    *x = sp8[0][3];
-    *y = sp8[1][3];
-    *z = sp8[2][3];
+    Hu3DModelObjMtxGet(object->mdlId[0], "cursor", cursorMatrix);
+    *x = cursorMatrix[0][3];
+    *y = cursorMatrix[1][3];
+    *z = cursorMatrix[2][3];
 }
 
 static void SetCameraRot(OMOBJ *object, float rot, s32 duration)
@@ -950,9 +950,9 @@ static s32 UnlockedPresents(OMOBJ *object, s32 room)
 }
 
 /* Returns the index of the newly selected present inside the room */
-static s32 MoveCursor(OMOBJ *object, s32 arg1)
+static s32 MoveCursor(OMOBJ *object, s32 padDirection)
 {
-    PresentDistanceStruct availablePresents[10];
+    PresentDistance availablePresents[10];
     Vec cursorPos;
 
     float angle;
@@ -961,7 +961,7 @@ static s32 MoveCursor(OMOBJ *object, s32 arg1)
     s32 present;
     s32 i;
     s32 j;
-    s32 var_r23;
+    s32 needsAnotherPass;
     s32 totalPresents = TotalPresentsInRoom(work->room);
     s32 unlockedPresents = UnlockedPresents(object, work->room);
 
@@ -989,12 +989,12 @@ static s32 MoveCursor(OMOBJ *object, s32 arg1)
             if (angle < 0.0f) {
                 angle += 360.0f;
             }
-            if ((arg1 == 1 && angle >= 45.0f && angle < 135.0f) || (arg1 == 2 && angle >= 225.0f && angle < 315.0f)
-                || (arg1 == 8 && angle >= 135.0f && angle < 225.0f)
-                || (arg1 == 4 && (angle >= 0.0f && angle < 45.0f || angle >= 315.0f && angle < 360.0f))
-                || (arg1 == 5 && angle >= 0.0f && angle < 90.0f) || (arg1 == 9 && angle >= 90.0f && angle < 180.0f)
-                || (arg1 == 6 && angle >= 270.0f && angle < 360.0f) || (arg1 == 10 && angle >= 180.0f && angle < 270.0f)) {
-                availablePresents[i].present = present;
+            if ((padDirection == 1 && angle >= 45.0f && angle < 135.0f) || (padDirection == 2 && angle >= 225.0f && angle < 315.0f)
+                || (padDirection == 8 && angle >= 135.0f && angle < 225.0f)
+                || (padDirection == 4 && (angle >= 0.0f && angle < 45.0f || angle >= 315.0f && angle < 360.0f))
+                || (padDirection == 5 && angle >= 0.0f && angle < 90.0f) || (padDirection == 9 && angle >= 90.0f && angle < 180.0f)
+                || (padDirection == 6 && angle >= 270.0f && angle < 360.0f) || (padDirection == 10 && angle >= 180.0f && angle < 270.0f)) {
+                availablePresents[i].presentIndex = present;
                 availablePresents[i].distance = sqrtf(dx * dx + dy * dy);
                 i++;
             }
@@ -1003,36 +1003,36 @@ static s32 MoveCursor(OMOBJ *object, s32 arg1)
         if (i != 0) {
             continue;
         }
-        switch (arg1) {
+        switch (padDirection) {
             case 0:
                 break;
             case 1:
-                arg1 = 2;
+                padDirection = 2;
                 break;
             case 2:
-                arg1 = 1;
+                padDirection = 1;
                 break;
             case 3:
                 break;
             case 4:
-                arg1 = 8;
+                padDirection = 8;
                 break;
             case 7:
                 break;
             case 8:
-                arg1 = 4;
+                padDirection = 4;
                 break;
             case 5:
-                arg1 = 10;
+                padDirection = 10;
                 break;
             case 9:
-                arg1 = 6;
+                padDirection = 6;
                 break;
             case 6:
-                arg1 = 9;
+                padDirection = 9;
                 break;
             case 10:
-                arg1 = 5;
+                padDirection = 5;
                 break;
             default:
                 break;
@@ -1042,16 +1042,16 @@ static s32 MoveCursor(OMOBJ *object, s32 arg1)
         return work->idxInRoom;
     }
     do {
-        for (var_r23 = 0, present = 0; present < (i - 1); present++) {
+        for (needsAnotherPass = 0, present = 0; present < (i - 1); present++) {
             if (availablePresents[present].distance > availablePresents[present + 1].distance) {
-                PresentDistanceStruct next = availablePresents[present + 1];
+                PresentDistance next = availablePresents[present + 1];
                 availablePresents[present + 1] = availablePresents[present];
                 availablePresents[present] = next;
-                var_r23 = 1;
+                needsAnotherPass = 1;
             }
         }
-    } while (var_r23);
-    return availablePresents[(j <= 1) ? 0 : i - 1].present;
+    } while (needsAnotherPass);
+    return availablePresents[(j <= 1) ? 0 : i - 1].presentIndex;
 }
 
 static const s32 totalPresentCntTbl[10] = { 6, 6, 6, 6, 6, 1, 6, 6, 6, 11 };
@@ -1062,7 +1062,7 @@ static s32 TotalPresentsInRoom(s32 room)
 }
 
 static const s32 presentItemIdxTbl[10] = { 2, 14, 26, 38, 50, 0, 62, 74, 86, 0 };
-static const s32 lbl_1_rodata_B18[10] = { 8, 20, 32, 44, 56, 0, 68, 80, 92, 0 };
+static const s32 presentDescObjIdxTbl[10] = { 8, 20, 32, 44, 56, 0, 68, 80, 92, 0 };
 static const s32 constellationIdxTbl[10] = { 126, 127, 128, 129, 130, 0, 131, 132, 133, 0 };
 static const s32 roofIdxTbl[10] = { 118, 119, 120, 121, 122, 0, 123, 124, 125, 0 };
 
@@ -1078,7 +1078,7 @@ static void ExecPresentGet(OMOBJ *object)
             rot = 36.0f * work->room;
             SetCameraRot(object, rot, 1);
             RotateCamera(object);
-            Hu3DModelAttrSet(work->object[work->idxInRoom + lbl_1_rodata_B18[work->room]]->mdlId[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(work->object[work->idxInRoom + presentDescObjIdxTbl[work->room]]->mdlId[0], HU3D_ATTR_DISPOFF);
             Hu3DModelAttrSet(work->object[roofIdxTbl[work->room]]->mdlId[0], HU3D_ATTR_DISPOFF);
             Hu3DModelAttrSet(work->object[constellationIdxTbl[work->room]]->mdlId[0], HU3D_ATTR_DISPOFF);
             work->presentFallingTime = 0.0f;
@@ -1096,8 +1096,8 @@ static void ExecPresentGet(OMOBJ *object)
             if ((work->presentFallingTime += work->presentFallingSpeed) < 1.0f) {
                 return;
             }
-            if (fn_1_393C(work->room, work->idxInRoom)) {
-                FadeSpriteWithMultiplier(work->object[work->idxInRoom + lbl_1_rodata_B18[work->room]]->mdlId[0], 1, 0.4f, 30);
+            if (PresentGetFadeSpriteNeeded(work->room, work->idxInRoom)) {
+                FadeSpriteWithMultiplier(work->object[work->idxInRoom + presentDescObjIdxTbl[work->room]]->mdlId[0], 1, 0.4f, 30);
             }
             object->mode = 3;
         case 3:
@@ -1122,14 +1122,14 @@ static void ExecPresentGet(OMOBJ *object)
     }
 }
 
-static const s32 lbl_1_rodata_BA4[][2] = { { 7, 1 } };
+static const s32 noFadePresentTbl[][2] = { { 7, 1 } };
 
-static s32 fn_1_393C(s32 arg0, s32 arg1)
+static s32 PresentGetFadeSpriteNeeded(s32 room, s32 presentIndex)
 {
-    s32 var_r31;
+    s32 roomIndex;
 
-    for (var_r31 = 0; var_r31 < 1; var_r31++) {
-        if (arg0 == lbl_1_rodata_BA4[var_r31][0] && arg1 == lbl_1_rodata_BA4[var_r31][1]) {
+    for (roomIndex = 0; roomIndex < 1; roomIndex++) {
+        if (room == noFadePresentTbl[roomIndex][0] && presentIndex == noFadePresentTbl[roomIndex][1]) {
             return 0;
         }
     }

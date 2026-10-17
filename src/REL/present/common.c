@@ -13,11 +13,11 @@ typedef struct GuideWork {
     /* 0x20 */ Vec rot;
     /* 0x2C */ Vec posDelta;
     /* 0x38 */ float distRemain;
-    /* 0x3C */ char unk3C[0xC];
+    /* 0x3C */ char reserved3C[0xC];
     /* 0x48 */ float time;
     /* 0x4C */ float speed;
-    /* 0x50 */ s32 unk_50;
-    /* 0x54 */ s32 unk_54;
+    /* 0x50 */ s32 enterDustEffectId;
+    /* 0x54 */ s32 leaveDustEffectId;
 } GuideWork; /* size = 0x58 */
 
 static void ExecGuideEnter(OMOBJ *object);
@@ -35,7 +35,7 @@ static const s32 guideMotTbl[] = {
 
 OMOBJ *PresentGuideCreate(void)
 {
-    s32 var_r29;
+    s32 motionIndex;
 
     OMOBJ *object = omAddObjEx(presentObjMan, 1002, 1, 3, 2, NULL);
     GuideWork *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(GuideWork), HU_MEMNUM_OVL);
@@ -54,12 +54,12 @@ OMOBJ *PresentGuideCreate(void)
     object->mdlId[0] = Hu3DModelCreate(HuDataReadNum(DATA_MAKE_NUM(DATADIR_PRESENT, 136), HU_MEMNUM_OVL));
     Hu3DModelLayerSet(object->mdlId[0], 1);
 
-    for (var_r29 = 0; var_r29 < 3; var_r29++) {
-        object->mtnId[var_r29] = Hu3DJointMotionFile(object->mdlId[0], guideMotTbl[var_r29]);
+    for (motionIndex = 0; motionIndex < 3; motionIndex++) {
+        object->mtnId[motionIndex] = Hu3DJointMotionFile(object->mdlId[0], guideMotTbl[motionIndex]);
     }
     Hu3DMotionShiftSet(object->mdlId[0], object->mtnId[work->motion = 0], 0.0f, 8.0f, HU3D_MOTATTR_LOOP);
-    work->unk_50 = CharNpcDustSet(object->mdlId[0], object->mtnId[2], 1, 10);
-    work->unk_54 = CharNpcDustSet(object->mdlId[0], object->mtnId[1], 0, 10);
+    work->enterDustEffectId = CharNpcDustSet(object->mdlId[0], object->mtnId[2], 1, 10);
+    work->leaveDustEffectId = CharNpcDustSet(object->mdlId[0], object->mtnId[1], 0, 10);
     CharEffectLayerSet(1);
     Hu3DModelShadowSet(object->mdlId[0]);
     PresentGuideExecModeSet(object, PRESENT_GUIDE_MODE_NONE);
@@ -103,7 +103,7 @@ s32 PresentGuideExecModeGet(OMOBJ *object)
 
 static void ExecGuideEnter(OMOBJ *object)
 {
-    float var_f31;
+    float easingValue;
     GuideWork *work = object->data;
 
     switch (object->mode) {
@@ -115,9 +115,9 @@ static void ExecGuideEnter(OMOBJ *object)
             work->speed = 0.025f;
             object->mode = 1;
         case 1:
-            var_f31 = sind(90.0f * work->time);
-            var_f31 *= var_f31;
-            work->newPos.x = -300.0f + (300.0f * var_f31);
+            easingValue = sind(90.0f * work->time);
+            easingValue *= easingValue;
+            work->newPos.x = -300.0f + (300.0f * easingValue);
             work->posDelta.x = work->newPos.x - work->pos.x;
             if ((work->time += work->speed) < 1.0f) {
                 break;

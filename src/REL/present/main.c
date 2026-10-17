@@ -7,20 +7,20 @@
 
 #include "REL/present.h"
 
-typedef struct StateWork {
+typedef struct PresentStateWork {
     /* 0x00 */ PresentWindow *window;
     /* 0x04 */ s32 quitTimer;
-} StateWork; /* size = 0x08 */
+} PresentStateWork; /* size = 0x08 */
 
-typedef struct UnkShadowDataStruct {
+typedef struct PresentShadowData {
     /* 0x00 */ Vec camPos;
     /* 0x0C */ Vec camUp;
     /* 0x18 */ Vec camTarget;
-} UnkShadowDataStruct; /* size = 0x24 */
+} PresentShadowData; /* size = 0x24 */
 
 OMOBJ *presentGuide;
 
-static UnkShadowDataStruct shadow = {
+static PresentShadowData presentShadow = {
     { 0.0f, 3000.0f, 1.0f },
     { 0.0f, 1.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f },
@@ -35,7 +35,7 @@ static void ExecWindow(void);
 OMOBJ *PresentStateCreate(void)
 {
     OMOBJ *object = omAddObjEx(presentObjMan, 1000, 0, 0, 4, NULL);
-    StateWork *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(StateWork), HU_MEMNUM_OVL);
+    PresentStateWork *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PresentStateWork), HU_MEMNUM_OVL);
     object->data = work;
 
     work->quitTimer = 0;
@@ -45,7 +45,7 @@ OMOBJ *PresentStateCreate(void)
     work->window = PresentWinCreate(0);
     Hu3DShadowCreate(30.0f, 20.0f, 5000.0f);
     Hu3DShadowTPLvlSet(0.45f);
-    Hu3DShadowPosSet(&shadow.camPos, &shadow.camUp, &shadow.camTarget);
+    Hu3DShadowPosSet(&presentShadow.camPos, &presentShadow.camUp, &presentShadow.camTarget);
 
     if (omovlevtno > 0) {
         OSReport("*** PRESENTROOM ( PRESENT GET MODE ) ***\n");
@@ -63,18 +63,18 @@ OMOBJ *PresentStateCreate(void)
 
 void PresentStateKill(OMOBJ *object)
 {
-    PresentWindow **var_r31 = object->data;
+    PresentWindow **windowList = object->data;
 
     PresentCameraKill(presentCamera);
     PresentKill(present);
     PresentGuideKill(presentGuide);
-    PresentWinKill(*var_r31);
-    HuMemDirectFree(var_r31);
+    PresentWinKill(*windowList);
+    HuMemDirectFree(windowList);
 }
 
 static void ExecPresentView(OMOBJ *object)
 {
-    StateWork *work = object->data;
+    PresentStateWork *work = object->data;
 
     switch (object->mode) {
         case 0:
@@ -155,7 +155,7 @@ static void ExecPresentView(OMOBJ *object)
 
 static void ExecPresentGet(OMOBJ *object)
 {
-    void *sp8 = object->data;
+    void *stateWork = object->data;
 
     switch (object->mode) {
         case 0:
@@ -185,33 +185,33 @@ static void ExecPresentGet(OMOBJ *object)
 
 PresentWindow *PresentWinCreate(s32 id)
 {
-    PresentWindow *var_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PresentWindow), HU_MEMNUM_OVL);
+    PresentWindow *presentWindow = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PresentWindow), HU_MEMNUM_OVL);
 
-    var_r31->messToBeSet = 0;
-    var_r31->messWaitSignal = 0;
-    var_r31->choiceSignal = 0;
-    var_r31->state = 0;
-    var_r31->process = HuPrcChildCreate(ExecWindow, 1000, 8192, 0, presentObjMan);
-    var_r31->process->user_data = var_r31;
-    var_r31->id = id;
+    presentWindow->messToBeSet = 0;
+    presentWindow->messWaitSignal = 0;
+    presentWindow->choiceSignal = 0;
+    presentWindow->state = 0;
+    presentWindow->process = HuPrcChildCreate(ExecWindow, 1000, 8192, 0, presentObjMan);
+    presentWindow->process->user_data = presentWindow;
+    presentWindow->id = id;
     switch (id) {
         case 0:
-            var_r31->window = HuWinExCreateStyled(-10000.0f, 360.0f, 480, 80, -1, 1);
-            HuWinBGTPLvlSet(var_r31->window, 0.8f);
-            HuWinMesSpeedSet(var_r31->window, 0);
-            HuWinMesPalSet(var_r31->window, 7, 0, 0, 0);
+            presentWindow->window = HuWinExCreateStyled(-10000.0f, 360.0f, 480, 80, -1, 1);
+            HuWinBGTPLvlSet(presentWindow->window, 0.8f);
+            HuWinMesSpeedSet(presentWindow->window, 0);
+            HuWinMesPalSet(presentWindow->window, 7, 0, 0, 0);
             break;
         case 1:
-            var_r31->window = HuWinExCreateStyled(-10000.0f, 326.0f, 500, 40, -1, 0);
-            HuWinAttrSet(var_r31->window, 2048);
-            HuWinBGTPLvlSet(var_r31->window, 0.0f);
-            HuWinMesSpeedSet(var_r31->window, 0);
+            presentWindow->window = HuWinExCreateStyled(-10000.0f, 326.0f, 500, 40, -1, 0);
+            HuWinAttrSet(presentWindow->window, 2048);
+            HuWinBGTPLvlSet(presentWindow->window, 0.0f);
+            HuWinMesSpeedSet(presentWindow->window, 0);
             break;
     }
-    HuWinDrawNoSet(var_r31->window, 63);
-    PresentWinDispOff(var_r31);
+    HuWinDrawNoSet(presentWindow->window, 63);
+    PresentWinDispOff(presentWindow);
     HuSprExecLayerSet(63, 2);
-    return var_r31;
+    return presentWindow;
 }
 
 void PresentWinKill(PresentWindow *work)
