@@ -10,34 +10,35 @@
 
 #include "ext_math.h"
 
-static void fn_1_2BC(OMOBJ *arg0);
-static void fn_1_300(OMOBJ *arg0);
-static void fn_1_E88(void);
+static void MessageCameraWipeStart(OMOBJ *cameraObject);
+static void MessageCameraControl(OMOBJ *cameraObject);
+static void MessageBrowserProcess(void);
 #if VERSION_PAL
-static void fn_1_1174();
+static void MessageBrowserWindowsCreate();
 #endif
-static s32 fn_1_11B0(s16 arg0, s16 arg1);
+static s32 MessageDisplayAndWait(s16 messageCategoryIndex, s16 messageIndex);
 
-static HUPROCESS *lbl_1_bss_34;
-static OMOBJ *lbl_1_bss_30;
-static OMOBJ *lbl_1_bss_2C;
-static u8 lbl_1_bss_pad[0x20];
+static HUPROCESS *messageProcessManager;
+static OMOBJ *messageCameraObject;
+static OMOBJ *messageViewObject;
+static u8 messageProcessManagerPadding[0x20];
 #if VERSION_PAL
-static HUPROCESS *lbl_1_bss_C;
-#endif
-static HUPROCESS *lbl_1_bss_8;
-#if VERSION_PAL
-static s16 lbl_1_bss_4;
+static HUPROCESS *messageBrowserProcess;
 #else
-static u8 lbl_1_bss_4_pad[4];
+static HUPROCESS *messageBrowserProcess;
 #endif
-static s16 lbl_1_bss_2;
-static s16 lbl_1_bss_0;
+#if VERSION_PAL
+static s16 languageWindow;
+#else
+static u8 languageWindowPadding[4];
+#endif
+static s16 messageListWindow;
+static s16 messageDetailWindow;
 
 void ObjectSetup(void)
 {
     OSReport("******* SAFObjectSetup *********\n");
-    lbl_1_bss_34 = omInitObjMan(0x32, 0x2000);
+    messageProcessManager = omInitObjMan(0x32, 0x2000);
     CRot.x = -20.0f;
     CRot.y = 0.0f;
     CRot.z = 0.0f;
@@ -48,34 +49,29 @@ void ObjectSetup(void)
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 45.0f, 20.0f, 15000.0f, 1.2f);
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
-    lbl_1_bss_30 = omAddObjEx(lbl_1_bss_34, 0, 0x40, 0, -1, fn_1_2BC);
-    lbl_1_bss_2C = omAddObjEx(lbl_1_bss_34, 0x7FDA, 0, 0, -1, omOutView);
+    messageCameraObject = omAddObjEx(messageProcessManager, 0, 0x40, 0, -1, MessageCameraWipeStart);
+    messageViewObject = omAddObjEx(messageProcessManager, 0x7FDA, 0, 0, -1, omOutView);
 #if VERSION_PAL
     GWGameStat.language = 1;
 #endif
     HuWinInit(1);
-#if VERSION_PAL
-    lbl_1_bss_C
-#else
-    lbl_1_bss_8
-#endif
-        = HuPrcChildCreate(fn_1_E88, 100, 0x3000, 0, lbl_1_bss_34);
+    messageBrowserProcess = HuPrcChildCreate(MessageBrowserProcess, 100, 0x3000, 0, messageProcessManager);
 }
 
-static void fn_1_2BC(OMOBJ *arg0)
+static void MessageCameraWipeStart(OMOBJ *cameraObject)
 {
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 10);
-    arg0->objFunc = fn_1_300;
+    cameraObject->objFunc = MessageCameraControl;
 }
 
-static void fn_1_300(OMOBJ *arg0)
+static void MessageCameraControl(OMOBJ *cameraObject)
 {
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float temp_f31;
-    s8 temp_r31;
+    Vec cameraPosition;
+    Vec cameraOffset;
+    Vec rotationAxis;
+    Vec rotatedDirection;
+    float cameraBank;
+    s8 stickInput;
 
     if (HuPadBtnDown[0] & 0x1000) {
         GWSystem.mg_next = 1;
@@ -86,43 +82,43 @@ static void fn_1_300(OMOBJ *arg0)
     CRot.y += HuPadSubStkX[0] / 20;
     CZoom += HuPadTrigL[0] / 2;
     CZoom -= HuPadTrigR[0] / 2;
-    sp2C.x = Center.x + CZoom * (sind(CRot.y) * cosd(CRot.x));
-    sp2C.y = Center.y + CZoom * -sind(CRot.x);
-    sp2C.z = Center.z + CZoom * (cosd(CRot.y) * cosd(CRot.x));
-    sp20.x = Center.x - sp2C.x;
-    sp20.y = Center.y - sp2C.y;
-    sp20.z = Center.z - sp2C.z;
-    sp14.x = sind(CRot.y) * sind(CRot.x);
-    sp14.y = cosd(CRot.x);
-    sp14.z = cosd(CRot.y) * sind(CRot.x);
-    temp_f31 = CRot.z;
-    sp8.x = sp14.x * (sp20.x * sp20.x + (1.0f - sp20.x * sp20.x) * cosd(temp_f31))
-        + sp14.y * (sp20.x * sp20.y * (1.0 - cosd(temp_f31)) - sp20.z * sind(temp_f31))
-        + sp14.z * (sp20.x * sp20.z * (1.0 - cosd(temp_f31)) + sp20.y * sind(temp_f31));
-    sp8.y = sp14.x * (sp20.x * sp20.y * (1.0 - cosd(temp_f31)) + sp20.z * sind(temp_f31))
-        + sp14.y * (sp20.y * sp20.y + (1.0f - sp20.y * sp20.y) * cosd(temp_f31))
-        + sp14.z * (sp20.y * sp20.z * (1.0 - cosd(temp_f31)) - sp20.x * sind(temp_f31));
-    sp8.z = sp14.x * (sp20.x * sp20.z * (1.0 - cosd(temp_f31)) - sp20.y * sind(temp_f31))
-        + sp14.y * (sp20.y * sp20.z * (1.0 - cosd(temp_f31)) + sp20.x * sind(temp_f31))
-        + sp14.z * (sp20.z * sp20.z + (1.0f - sp20.z * sp20.z) * cosd(temp_f31));
-    VECCrossProduct(&sp14, &sp20, &sp20);
-    VECNormalize(&sp20, &sp20);
-    temp_r31 = HuPadSubStkX[0] & 0xF8;
-    if (temp_r31 != 0) {
-        Center.x += sp20.x * temp_r31 * 0.05f;
-        Center.y += sp20.y * temp_r31 * 0.05f;
-        Center.z += sp20.z * temp_r31 * 0.05f;
+    cameraPosition.x = Center.x + CZoom * (sind(CRot.y) * cosd(CRot.x));
+    cameraPosition.y = Center.y + CZoom * -sind(CRot.x);
+    cameraPosition.z = Center.z + CZoom * (cosd(CRot.y) * cosd(CRot.x));
+    cameraOffset.x = Center.x - cameraPosition.x;
+    cameraOffset.y = Center.y - cameraPosition.y;
+    cameraOffset.z = Center.z - cameraPosition.z;
+    rotationAxis.x = sind(CRot.y) * sind(CRot.x);
+    rotationAxis.y = cosd(CRot.x);
+    rotationAxis.z = cosd(CRot.y) * sind(CRot.x);
+    cameraBank = CRot.z;
+    rotatedDirection.x = rotationAxis.x * (cameraOffset.x * cameraOffset.x + (1.0f - cameraOffset.x * cameraOffset.x) * cosd(cameraBank))
+        + rotationAxis.y * (cameraOffset.x * cameraOffset.y * (1.0 - cosd(cameraBank)) - cameraOffset.z * sind(cameraBank))
+        + rotationAxis.z * (cameraOffset.x * cameraOffset.z * (1.0 - cosd(cameraBank)) + cameraOffset.y * sind(cameraBank));
+    rotatedDirection.y = rotationAxis.x * (cameraOffset.x * cameraOffset.y * (1.0 - cosd(cameraBank)) + cameraOffset.z * sind(cameraBank))
+        + rotationAxis.y * (cameraOffset.y * cameraOffset.y + (1.0f - cameraOffset.y * cameraOffset.y) * cosd(cameraBank))
+        + rotationAxis.z * (cameraOffset.y * cameraOffset.z * (1.0 - cosd(cameraBank)) - cameraOffset.x * sind(cameraBank));
+    rotatedDirection.z = rotationAxis.x * (cameraOffset.x * cameraOffset.z * (1.0 - cosd(cameraBank)) - cameraOffset.y * sind(cameraBank))
+        + rotationAxis.y * (cameraOffset.y * cameraOffset.z * (1.0 - cosd(cameraBank)) + cameraOffset.x * sind(cameraBank))
+        + rotationAxis.z * (cameraOffset.z * cameraOffset.z + (1.0f - cameraOffset.z * cameraOffset.z) * cosd(cameraBank));
+    VECCrossProduct(&rotationAxis, &cameraOffset, &cameraOffset);
+    VECNormalize(&cameraOffset, &cameraOffset);
+    stickInput = HuPadSubStkX[0] & 0xF8;
+    if (stickInput != 0) {
+        Center.x += cameraOffset.x * stickInput * 0.05f;
+        Center.y += cameraOffset.y * stickInput * 0.05f;
+        Center.z += cameraOffset.z * stickInput * 0.05f;
     }
-    VECNormalize(&sp8, &sp20);
-    temp_r31 = -(HuPadSubStkY[0] & 0xF8);
-    if (temp_r31 != 0) {
-        Center.x += sp20.x * temp_r31 * 0.05f;
-        Center.y += sp20.y * temp_r31 * 0.05f;
-        Center.z += sp20.z * temp_r31 * 0.05f;
+    VECNormalize(&rotatedDirection, &cameraOffset);
+    stickInput = -(HuPadSubStkY[0] & 0xF8);
+    if (stickInput != 0) {
+        Center.x += cameraOffset.x * stickInput * 0.05f;
+        Center.y += cameraOffset.y * stickInput * 0.05f;
+        Center.z += cameraOffset.z * stickInput * 0.05f;
     }
 }
 
-static char *lbl_1_data_32C[]
+static char *messageCategoryNames[]
     = { "001_Character_Name_ss", "002_Hidden_Block", "003_Battle_M", "004_Bowser_M", "005_Warp_M", "006_Mushroom_M", "007_Lot_house", "008_Boo_house",
           "009_ItemName", "010_Bord", "011_RoundItem", "012_Spaceamida", "013_Star_M", "014_RollerCoaster", "015_Last5", "016_ItemShop", "017_System",
           "018_ModeSelect", "019_Item", "020_Map2_event", "021_Lucky_Minigame", "022_Bord_Start", "023_Map3_event", "024_Minigame_Name", "025_mg_446",
@@ -132,231 +128,231 @@ static char *lbl_1_data_32C[]
           "051_Present_Room", "052_Extra_Room", "053_Staff_Post", "054_Staff_Name", "055_Opening_Demo", "056_mgex_inst", NULL };
 
 #if VERSION_PAL
-char *lbl_1_data_438[] = {
+char *languageNames[] = {
     "ENGLISH", "GERMANY", "FRENCH", "ITALY", "SPANISH"
 };
 #endif
 
-static s16 lbl_1_data_410 = -1;
+static s16 activeMessageWindow = -1;
 
-static void fn_1_E88(void)
+static void MessageBrowserProcess(void)
 {
-    s16 sp10[256]; // unknown size
-    char spC[4];
-    char sp8[4];
-    s16 temp_r3;
-    s16 var_r25;
-    s16 var_r27;
+    s16 messageLengths[256]; // unknown size
+    char messageSize[4];
+    char messageCountBuffer[4];
+    s16 windowId;
+    s16 messageIdIndex;
+    s16 messageCategoryCount;
 #if VERSION_PAL
-    s16 var_r26 = 0;
+    s16 hasEndMarker = 0;
 #endif
-    s16 var_r28;
-    s32 var_r30;
-    s32 var_r31;
-    s32 temp_r3_2;
-    char *var_r29;
+    s16 messageIndex;
+    s32 messageOffset;
+    s32 selectedMessageIndex;
+    s32 pressedButtons;
+    char *messageText;
 
-    var_r28 = var_r27 = 0;
-    while (lbl_1_data_32C[var_r28] != 0) {
-        var_r29 = lbl_1_data_32C[var_r28];
-        while (*var_r29 != 0) {
-            if (*var_r29 == '_') {
-                *var_r29 = 0x86;
+    messageIndex = messageCategoryCount = 0;
+    while (messageCategoryNames[messageIndex] != 0) {
+        messageText = messageCategoryNames[messageIndex];
+        while (*messageText != 0) {
+            if (*messageText == '_') {
+                *messageText = 0x86;
             }
-            var_r29++;
+            messageText++;
         }
-        sp10[var_r28] = 0;
-        var_r30 = (var_r28 << 16);
-        var_r25 = 0;
+        messageLengths[messageIndex] = 0;
+        messageOffset = (messageIndex << 16);
+        messageIdIndex = 0;
         while (1) {
-            if ((s32)MessData_MesPtrGet(messDataPtr, var_r30 + var_r25) == 0) {
+            if ((s32)MessData_MesPtrGet(messDataPtr, messageOffset + messageIdIndex) == 0) {
                 break;
             }
-            sp10[var_r28]++;
-            var_r25++;
+            messageLengths[messageIndex]++;
+            messageIdIndex++;
         }
-        var_r27++;
-        var_r28++;
+        messageCategoryCount++;
+        messageIndex++;
     }
 #if VERSION_NTSC
-    temp_r3 = HuWinExCreateStyled(-10000.0f, 32.0f, 316, 40, -1, 0);
-    HuWinExAnimIn(temp_r3);
-    HuWinAttrSet(temp_r3, 0x800);
-    HuWinMesSpeedSet(temp_r3, 0);
-    HuWinMesSet(temp_r3, MAKE_MESSID_PTR(lbl_1_data_32C[0]));
-    lbl_1_bss_0 = HuWinCreate(460.0f, 32.0f, 100, 40, 0);
-    HuWinAttrSet(lbl_1_bss_0, 0x800);
-    HuWinMesSpeedSet(lbl_1_bss_0, 0);
-    HuWinMesSet(lbl_1_bss_0, MAKE_MESSID_PTR("\x1F\x01_\x1F\x02"));
+    windowId = HuWinExCreateStyled(-10000.0f, 32.0f, 316, 40, -1, 0);
+    HuWinExAnimIn(windowId);
+    HuWinAttrSet(windowId, 0x800);
+    HuWinMesSpeedSet(windowId, 0);
+    HuWinMesSet(windowId, MAKE_MESSID_PTR(messageCategoryNames[0]));
+    messageListWindow = HuWinCreate(460.0f, 32.0f, 100, 40, 0);
+    HuWinAttrSet(messageListWindow, 0x800);
+    HuWinMesSpeedSet(messageListWindow, 0);
+    HuWinMesSet(messageListWindow, MAKE_MESSID_PTR("\x1F\x01_\x1F\x02"));
 #else
     MAKE_MESSID_PTR("\x1F\x01_\x1F\x02");
-    fn_1_1174();
-    HuWinMesSet(lbl_1_bss_0, (u32)lbl_1_data_438[0]);
+    MessageBrowserWindowsCreate();
+    HuWinMesSet(messageDetailWindow, (u32)languageNames[0]);
 #endif
-    var_r31 = 0;
-    var_r30 = 0;
+    selectedMessageIndex = 0;
+    messageOffset = 0;
     while (1) {
 #if VERSION_PAL
-#define _WINDOW lbl_1_bss_2
+#define _WINDOW messageListWindow
 #else
-#define _WINDOW lbl_1_bss_0
+#define _WINDOW messageListWindow
 #endif
         HuWinHomeClear(_WINDOW);
-        sprintf(spC, "%03d", var_r30 + 1);
-        HuWinInsertMesSet(_WINDOW, MAKE_MESSID_PTR(spC), 0);
-        sprintf(sp8, "%03d", sp10[var_r31]);
-        HuWinInsertMesSet(_WINDOW, MAKE_MESSID_PTR(sp8), 1);
+        sprintf(messageSize, "%03d", messageOffset + 1);
+        HuWinInsertMesSet(_WINDOW, MAKE_MESSID_PTR(messageSize), 0);
+        sprintf(messageCountBuffer, "%03d", messageLengths[selectedMessageIndex]);
+        HuWinInsertMesSet(_WINDOW, MAKE_MESSID_PTR(messageCountBuffer), 1);
         HuWinMesSet(_WINDOW, MAKE_MESSID_PTR("\x1F\x01_\x1F\x02"));
-        temp_r3_2 = fn_1_11B0(var_r31, var_r30);
+        pressedButtons = MessageDisplayAndWait(selectedMessageIndex, messageOffset);
 #undef _WINDOW
 #if VERSION_PAL
-        if (temp_r3_2 & 0x400) {
+        if (pressedButtons & 0x400) {
             HuWinAllKill();
             HuPrcVSleep();
-            var_r26++;
-            if (var_r26 >= 5) {
-                var_r26 = 0;
+            hasEndMarker++;
+            if (hasEndMarker >= 5) {
+                hasEndMarker = 0;
             }
-            GWGameStat.language = var_r26 + 1;
+            GWGameStat.language = hasEndMarker + 1;
             HuWinInit(1);
             HuPrcVSleep();
-            fn_1_1174();
-            HuWinMesSet(lbl_1_bss_0, (u32)lbl_1_data_438[var_r26]);
+            MessageBrowserWindowsCreate();
+            HuWinMesSet(messageDetailWindow, (u32)languageNames[hasEndMarker]);
         }
         else
 #endif
-        if (temp_r3_2 & 0x20) {
-            var_r31++;
-            if (var_r31 >= var_r27) {
-                var_r31 = 0;
+        if (pressedButtons & 0x20) {
+            selectedMessageIndex++;
+            if (selectedMessageIndex >= messageCategoryCount) {
+                selectedMessageIndex = 0;
             }
-            var_r30 = 0;
+            messageOffset = 0;
         }
-        else if (temp_r3_2 & 0x40) {
-            var_r31--;
-            if (var_r31 < 0) {
-                var_r31 = var_r27 - 1;
+        else if (pressedButtons & 0x40) {
+            selectedMessageIndex--;
+            if (selectedMessageIndex < 0) {
+                selectedMessageIndex = messageCategoryCount - 1;
             }
-            var_r30 = 0;
+            messageOffset = 0;
         }
-        else if (temp_r3_2 & 0x200) {
-            var_r30--;
-            if (var_r30 < 0) {
-                var_r31--;
-                if (var_r31 < 0) {
-                    var_r31 = var_r27 - 1;
+        else if (pressedButtons & 0x200) {
+            messageOffset--;
+            if (messageOffset < 0) {
+                selectedMessageIndex--;
+                if (selectedMessageIndex < 0) {
+                    selectedMessageIndex = messageCategoryCount - 1;
                 }
-                var_r30 = sp10[var_r31] - 1;
+                messageOffset = messageLengths[selectedMessageIndex] - 1;
             }
         }
         else {
-            var_r30++;
-            if (var_r30 >= sp10[var_r31]) {
-                var_r31++;
-                if (var_r31 >= var_r27) {
-                    var_r31 = 0;
+            messageOffset++;
+            if (messageOffset >= messageLengths[selectedMessageIndex]) {
+                selectedMessageIndex++;
+                if (selectedMessageIndex >= messageCategoryCount) {
+                    selectedMessageIndex = 0;
                 }
-                var_r30 = 0;
+                messageOffset = 0;
             }
         }
         HuPrcVSleep();
     }
 }
 
-static char *lbl_1_data_440[] = { "]1^", "]2^", "]3^", "]4^", "]5^", "]6^", "]7^", "]8^" };
+static char *messagePositionInsertions[] = { "]1^", "]2^", "]3^", "]4^", "]5^", "]6^", "]7^", "]8^" };
 
 #if VERSION_PAL
-static void fn_1_1174()
+static void MessageBrowserWindowsCreate()
 {
-    lbl_1_bss_4 = HuWinExCreateStyled(-10000.0f, 32.0f, 316, 40, -1, 0);
-    HuWinExAnimIn(lbl_1_bss_4);
-    HuWinAttrSet(lbl_1_bss_4, 0x800);
-    HuWinMesSpeedSet(lbl_1_bss_4, 0x0);
+    languageWindow = HuWinExCreateStyled(-10000.0f, 32.0f, 316, 40, -1, 0);
+    HuWinExAnimIn(languageWindow);
+    HuWinAttrSet(languageWindow, 0x800);
+    HuWinMesSpeedSet(languageWindow, 0x0);
     
-    lbl_1_bss_2 = HuWinCreate(460.0f, 32.0f, 100, 40, 0);
-    HuWinAttrSet(lbl_1_bss_2, 0x800);
-    HuWinMesSpeedSet(lbl_1_bss_2, 0x0);
+    messageListWindow = HuWinCreate(460.0f, 32.0f, 100, 40, 0);
+    HuWinAttrSet(messageListWindow, 0x800);
+    HuWinMesSpeedSet(messageListWindow, 0x0);
 
-    lbl_1_bss_0 = HuWinExCreateStyled(16.0f, 32.0f, 100, 40, -1, 0);
-    HuWinExAnimIn(lbl_1_bss_0);
-    HuWinAttrSet(lbl_1_bss_0, 0x800);
-    HuWinMesSpeedSet(lbl_1_bss_0, 0x0);
+    messageDetailWindow = HuWinExCreateStyled(16.0f, 32.0f, 100, 40, -1, 0);
+    HuWinExAnimIn(messageDetailWindow);
+    HuWinAttrSet(messageDetailWindow, 0x800);
+    HuWinMesSpeedSet(messageDetailWindow, 0x0);
 }
 #endif
 
-static s32 fn_1_11B0(s16 arg0, s16 arg1)
+static s32 MessageDisplayAndWait(s16 messageCategoryIndex, s16 messageIndex)
 {
-    WindowData *temp_r30;
-    float spC[2];
-    s32 temp_r28;
-    s32 var_r27;
-    s32 var_r26;
-    u8 *var_r29;
-    s16 i;
+    WindowData *windowData;
+    float messageSize[2];
+    s32 messageId;
+    s32 hasWaitControl;
+    s32 hasEndMarker;
+    u8 *messageText;
+    s16 characterIndex;
 
-    var_r27 = 0;
-    var_r26 = 0;
+    hasWaitControl = 0;
+    hasEndMarker = 0;
 #if VERSION_PAL
-    HuWinHomeClear(lbl_1_bss_4);
-    HuWinMesSet(lbl_1_bss_4, MAKE_MESSID_PTR(lbl_1_data_32C[arg0]));
+    HuWinHomeClear(languageWindow);
+    HuWinMesSet(languageWindow, MAKE_MESSID_PTR(messageCategoryNames[messageCategoryIndex]));
 #else
-    HuWinHomeClear(lbl_1_bss_2);
-    HuWinMesSet(lbl_1_bss_2, MAKE_MESSID_PTR(lbl_1_data_32C[arg0]));
+    HuWinHomeClear(messageListWindow);
+    HuWinMesSet(messageListWindow, MAKE_MESSID_PTR(messageCategoryNames[messageCategoryIndex]));
 #endif
     HuPrcVSleep();
-    if (lbl_1_data_410 != -1) {
-        HuWinKill(lbl_1_data_410);
+    if (activeMessageWindow != -1) {
+        HuWinKill(activeMessageWindow);
     }
-    temp_r28 = MAKE_MESSID(arg0, arg1);
-    for (i = 0; i < 8; i++) {
-        HuWinInsertMesSizeGet(MAKE_MESSID_PTR(lbl_1_data_440[i]), (s16)i);
+    messageId = MAKE_MESSID(messageCategoryIndex, messageIndex);
+    for (characterIndex = 0; characterIndex < 8; characterIndex++) {
+        HuWinInsertMesSizeGet(MAKE_MESSID_PTR(messagePositionInsertions[characterIndex]), (s16)characterIndex);
     }
-    HuWinMesMaxSizeGet(1, &spC[0], temp_r28);
-    if (spC[0] <= 16.0f) {
-        spC[0] = 32.0f;
+    HuWinMesMaxSizeGet(1, &messageSize[0], messageId);
+    if (messageSize[0] <= 16.0f) {
+        messageSize[0] = 32.0f;
     }
-    lbl_1_data_410 = HuWinCreate(-10000.0f, -10000.0f, spC[0], spC[1], (VERSION_PAL) ? 1 : 0);
+    activeMessageWindow = HuWinCreate(-10000.0f, -10000.0f, messageSize[0], messageSize[1], (VERSION_PAL) ? 1 : 0);
 #if VERSION_PAL
-    HuWinMesPalSet(lbl_1_data_410, 7, 0, 0, 0);
+    HuWinMesPalSet(activeMessageWindow, 7, 0, 0, 0);
 #endif
-    for (i = 0; i < 8; i++) {
-        HuWinInsertMesSet(lbl_1_data_410, MAKE_MESSID_PTR(lbl_1_data_440[i]), (s16)i);
+    for (characterIndex = 0; characterIndex < 8; characterIndex++) {
+        HuWinInsertMesSet(activeMessageWindow, MAKE_MESSID_PTR(messagePositionInsertions[characterIndex]), (s16)characterIndex);
     }
-    temp_r30 = &winData[lbl_1_data_410];
-    temp_r30->push_key |= (VERSION_PAL) ? 0x760 : 0x360;
-    temp_r30->key_auto = (VERSION_PAL) ? 0x460 : 0x60;
-    HuWinMesSet(lbl_1_data_410, temp_r28);
-    var_r29 = MessData_MesPtrGet(messDataPtr, temp_r28);
-    while (*var_r29 != 0) {
-        if (*var_r29 == 0xF) {
-            var_r27 = 1;
+    windowData = &winData[activeMessageWindow];
+    windowData->push_key |= (VERSION_PAL) ? 0x760 : 0x360;
+    windowData->key_auto = (VERSION_PAL) ? 0x460 : 0x60;
+    HuWinMesSet(activeMessageWindow, messageId);
+    messageText = MessData_MesPtrGet(messDataPtr, messageId);
+    while (*messageText != 0) {
+        if (*messageText == 0xF) {
+            hasWaitControl = 1;
         }
 
 #if VERSION_PAL
-        if (*var_r29 == 0xFF) {
+        if (*messageText == 0xFF) {
 #else
-        if (*var_r29 == 0) {
+        if (*messageText == 0) {
 #endif
-            var_r26 = 1;
+            hasEndMarker = 1;
         }
-        var_r29++;
+        messageText++;
     }
-    if (var_r27 != 0) {
-        HuWinMesWait(lbl_1_data_410);
-        HuWinChoiceGet(lbl_1_data_410, 0);
-        return temp_r30->key_down;
+    if (hasWaitControl != 0) {
+        HuWinMesWait(activeMessageWindow);
+        HuWinChoiceGet(activeMessageWindow, 0);
+        return windowData->key_down;
     }
-    if (var_r26 == 0) {
+    if (hasEndMarker == 0) {
         while (!(HuPadBtnRep[0] & ((VERSION_PAL) ? 0x760 : 0x360))) {
             HuPrcVSleep();
         }
         return HuPadBtnRep[0];
     }
-    while (temp_r30->stat != 0) {
+    while (windowData->stat != 0) {
         if (HuPadBtnRep[0] & ((VERSION_PAL) ? 0x460 : 0x60)) {
             return HuPadBtnDown[0];
         }
         HuPrcVSleep();
     }
-    return temp_r30->key_down;
+    return windowData->key_down;
 }
