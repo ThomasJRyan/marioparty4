@@ -18,1588 +18,1588 @@
 extern u32 GlobalCounter;
 extern HU3DLIGHT Hu3DLocalLight[0x20];
 
-typedef struct M425DllUnkStruct4 {
-    s16 unk_00;
-    s16 unk_02;
-    s16 unk_04;
-    s16 unk_06;
-    float unk_08;
-    float unk_0C;
-    float unk_10;
-    float unk_14;
-    float unk_18;
-    float unk_1C;
-    float unk_20;
-    float unk_24;
-    s32 unk_28;
-    s32 unk_2C;
-    float unk_30;
-    s32 unk_34;
-    s32 unk_38;
-    s32 unk_3C[5];
-    s32 unk_50;
-    float unk_54[6];
-    s32 unk_6C[6];
-    s32 unk_84[6];
-    float unk_9C[6];
-    s32 unk_B4[6];
-    Vec unk_CC;
-    float unk_D8;
-    float unk_DC;
-    float unk_E0;
-    float unk_E4;
-    float unk_E8;
-    float unk_EC;
-    s32 unk_F0[3];
-    float unk_FC;
-    float unk_100;
-    char unk104[0x8];
-    s16 unk_10C;
-    s16 unk_10E;
-    s16 unk_110;
-    s16 unk_112[0x19];
-    s16 unk_144[0x1A];
-    s16 *unk_178;
-    Vec *unk_17C;
-    Vec *unk_180;
-    Vec2f *unk_184;
-    Vec *unk_188;
-    Vec *unk_18C;
-    s16 (*unk_190)[3];
-    Vec *unk_194;
-    Vec *unk_198;
-    s32 unk_19C;
-    u8 *unk_1A0;
-    s16 *unk_1A4[0x19];
-    s16 unk_208[0x19];
-    GXColor unk_23A;
-    s32 unk_240;
-    u32 unk_244[0x19];
-    void *unk_2A8[0x19];
-} M425DllUnkStruct4; /* size = 0x30C */
+typedef struct M425ThwompModelWork {
+    s16 animationIndex;
+    s16 animationstateAt02;
+    s16 frameStart;
+    s16 referenceVertexIndex;
+    float animationTimeRemaining;
+    float animationTimeTotal;
+    float frameEnd;
+    float motionTimer;
+    float motionIntensity;
+    float frameLength;
+    float movementSpeed;
+    float collisionState;
+    s32 animationFrameCounter;
+    s32 animationFrame;
+    float animationCycleProgress;
+    s32 frameCount;
+    s32 motionSlotCount;
+    s32 activeMotionIds[5];
+    s32 modelCount;
+    float activeMotionTimers[6];
+    s32 animationIds[6];
+    s32 motionStates[6];
+    float motionTimers[6];
+    s32 animationTextureIds[6];
+    Vec worldPosition;
+    float rotationAngle;
+    float modelScale;
+    float actionTimer;
+    float lightElevationAngle;
+    float effectTimer;
+    float animationBlend;
+    s32 activeVertexIndices[3];
+    float initialRotation;
+    float movementAngle;
+    char reservedAnimationData[0x8];
+    s16 playerState;
+    s16 actionIndex;
+    s16 vertexCount;
+    s16 vertexIndexCounts[0x19];
+    s16 vertexIndexOffsets[0x1A];
+    s16 *positionBuffer;
+    Vec *positionStart;
+    Vec *positionTarget;
+    Vec2f *textureCoordinates;
+    Vec *positionWork;
+    Vec *rotationWork;
+    s16 (*displayListIndices)[3];
+    Vec *positionOutput;
+    Vec *rotationOutput;
+    s32 workState;
+    u8 *stateBuffer;
+    s16 *vertexBuffers[0x19];
+    s16 vertexBufferCounts[0x19];
+    GXColor effectColor;
+    s32 surfaceCount;
+    u32 displayListSizes[0x19];
+    void *displayLists[0x19];
+} M425ThwompModelWork; /* size = 0x30C */
 
-typedef struct M425DllUnkStruct5 {
-    char unk00[4];
-    Vec unk_04;
-    Vec unk_10;
-    float unk_1C;
-    char unk20[8];
-    float unk_28;
-    float unk_2C;
-    Vec unk_30;
-    GXColor unk_3C;
-    s32 unk_40;
-} M425DllUnkStruct5; /* size = 0x44 */
+typedef struct M425ThwompAnimationWork {
+    char reservedAnimationHeader[4];
+    Vec frameStart;
+    Vec frameEnd;
+    float frameLength;
+    char reservedAnimationData[8];
+    float lifetimeRemaining;
+    float animationFrame;
+    Vec worldPosition;
+    GXColor motionIds;
+    s32 animationFrameIndex;
+} M425ThwompAnimationWork; /* size = 0x44 */
 
-typedef void (*UnkHook)(HU3DMODEL *model, struct M425DllUnkStruct6 *particle, Mtx matrix);
+typedef void (*ThwompParticleUpdateHook)(HU3DMODEL *model, struct M425ThwompParticleWork *particle, Mtx matrix);
 
-typedef struct M425DllUnkStruct6 {
-    s16 unk_00;
-    s16 unk_02;
-    char unk04[0x1C];
-    u8 unk_20;
-    u8 unk_21;
-    char unk22[2];
-    s16 unk_24;
-    s32 unk_28;
-    s32 unk_2C;
-    u32 unk_30;
-    u32 unk_34;
-    ANIMDATA *unk_38;
-    M425DllUnkStruct5 *unk_3C;
-    Vec *unk_40;
-    Vec2f *unk_44;
-    void *unk_48;
-    UnkHook unk_4C;
-} M425DllUnkStruct6; /* size = 0x50 */
+typedef struct M425ThwompParticleWork {
+    s16 animationIndex;
+    s16 animationstateAt02;
+    char reservedParticleData[0x1C];
+    u8 movementSpeed;
+    u8 thwompFlags;
+    char thwompPadding[2];
+    s16 collisionState;
+    s32 elapsedFrameCount;
+    s32 animationFrame;
+    u32 frameLimit;
+    u32 frameCount;
+    ANIMDATA *animationTimer;
+    M425ThwompAnimationWork *motionIds;
+    Vec *animationData;
+    Vec2f *position;
+    void *rotation;
+    ThwompParticleUpdateHook updateHook;
+} M425ThwompParticleWork; /* size = 0x50 */
 
-void fn_1_6BD8(OMOBJ *object);
-s32 fn_1_6EC4(float arg8, float arg9, s16 arg0, s16 arg1);
-void fn_1_6DFC(s32 arg0, float arg8);
-void fn_1_E210(s32 arg0);
-void fn_1_E914(HU3DMODEL *arg0, Mtx matrix);
-void fn_1_D9A8(M425DllUnkStruct4 *var_r31, HU3DMODEL *var_r24, s32 var_r30, s32 var_r26, s32 var_r25);
-void fn_1_DB44(M425DllUnkStruct4 *arg0, HU3DMODEL *model);
-void fn_1_DE3C(M425DllUnkStruct4 *arg0, HU3DMODEL *model);
-void fn_1_101C4(HU3DMODEL *model, Mtx matrix);
-void fn_1_11284(void);
-void fn_1_112FC(void);
-void fn_1_11418(void);
-s32 fn_1_11454(Vec *arg0, Vec *arg1, float arg8, float arg9);
-s16 fn_1_115D4(HU3DMODEL *arg0, Mtx arg1, Mtx arg2, float arg8);
-void fn_1_116E4(HU3DMODEL *arg1, HU3DLIGHT *arg2, s16 arg3, Mtx arg4, Mtx arg5, float arg8);
-s16 fn_1_11A74(ANIMDATA *arg0, s16 arg1);
-void fn_1_11EE0(HU3DMODEL *model, Mtx matrix);
+void InitializeThwompScene(OMOBJ *object);
+s32 CalculateThwompMotion(float modelWidth, float modelHeight, s16 verticalSegmentCount, s16 horizontalSegmentCount);
+void InitializeThwompModels(s32 modelIndex, float initialRotation);
+void SetThwompAnimationState(s32 modelIndex);
+void DrawThwompShadow(HU3DMODEL *model, Mtx matrix);
+void InitializeThwompModelData(M425ThwompModelWork *thwompModel, HU3DMODEL *model, s32 horizontalSegmentCount, s32 verticalSegmentCount, s32 vertexBufferIndex);
+void UpdateThwompModelVertices(M425ThwompModelWork *thwompModel, HU3DMODEL *model);
+void BuildThwompModelGeometry(M425ThwompModelWork *thwompModel, HU3DMODEL *model);
+void DrawThwompModel(HU3DMODEL *model, Mtx matrix);
+void InitializeThwompSprite(void);
+void CreateThwompEffect(void);
+void CleanupThwompSprite(void);
+s32 UpdateThwompEffect(Vec *position, Vec *velocity, float effectLifetime, float effectScale);
+s16 ConfigureThwompLight(HU3DMODEL *model, Mtx matrix, Mtx cameraMatrix, float specularStrength);
+void InitializeLightParameters(HU3DMODEL *model, HU3DLIGHT *light, s16 lightMask, Mtx modelMatrix, Mtx cameraMatrix, float specularStrength);
+s16 LoadThwompAnimation(ANIMDATA *animation, s16 particleCount);
+void DrawThwompEffect(HU3DMODEL *model, Mtx matrix);
 
-Vec lbl_1_data_118[2] = {
+Vec thwompModelOffsets[2] = {
     { -300.0f, 1.0f, 0.0f },
     { 300.0f, 1.0f, 0.0f },
 };
 
-HUPROCESS *lbl_1_bss_6F0;
-OMOBJ *lbl_1_bss_6EC;
-s32 lbl_1_bss_6E8;
-u8 *lbl_1_bss_6E4;
-ANIMDATA *lbl_1_bss_6E0;
-ANIMDATA *lbl_1_bss_6DC;
-ANIMDATA *lbl_1_bss_6D8;
-// M425DllUnkStruct6
-s32 lbl_1_bss_6D4;
-u8 lbl_1_bss_6D0;
-s32 lbl_1_bss_6CC;
-GXColor lbl_1_bss_6C8;
-GXLightObj lbl_1_bss_688;
-Vec lbl_1_bss_67C;
-Vec lbl_1_bss_670;
+HUPROCESS *thwompProcess;
+OMOBJ *thwompObject;
+s32 thwompAnimationFrame;
+u8 *thwompDataBuffer;
+ANIMDATA *thwompIdleAnimation;
+ANIMDATA *thwompHitAnimation;
+ANIMDATA *thwompEffectAnimation;
+// M425ThwompParticleWork
+s32 thwompSpriteId;
+u8 thwompAlpha;
+s32 thwompState;
+GXColor thwompEffectColor;
+GXLightObj thwompLight;
+Vec thwompLightPosition;
+Vec thwompLightDirection;
 
-OMOBJ *fn_1_6A0C(HUPROCESS *process, s32 sp8)
+OMOBJ *CreateThwompObjectManager(HUPROCESS *process, s32 objectPriority)
 {
     OMOBJ *object;
 
-    lbl_1_bss_6F0 = process;
-    object = omAddObjEx(process, sp8, 6, 0, -1, fn_1_6BD8);
-    lbl_1_bss_6EC = object;
+    thwompProcess = process;
+    object = omAddObjEx(process, objectPriority, 6, 0, -1, InitializeThwompScene);
+    thwompObject = object;
     object->stat |= 0x100;
-    lbl_1_bss_6E8 = 0;
-    lbl_1_bss_6D0 = 0x40;
-    lbl_1_bss_6CC = 0;
-    object->mdlId[0] = fn_1_6EC4(350.0f, 350.0f, 0x10, 0x10);
-    object->mdlId[1] = fn_1_6EC4(350.0f, 350.0f, 0x10, 0x10);
-    fn_1_6CD0(0, &lbl_1_data_118[0]);
-    fn_1_6CD0(1, &lbl_1_data_118[1]);
-    fn_1_6DFC(0, 30.0f);
-    fn_1_6DFC(1, -30.0f);
-    lbl_1_bss_6E4 = HuDataReadNum(0x38000A, HU_MEMNUM_OVL);
-    lbl_1_bss_6E0 = HuSprAnimRead(HuDataReadNum(0x38000B, HU_MEMNUM_OVL));
-    lbl_1_bss_6DC = HuSprAnimRead(HuDataReadNum(0x38000C, HU_MEMNUM_OVL));
-    fn_1_11284();
-    return lbl_1_bss_6EC;
+    thwompAnimationFrame = 0;
+    thwompAlpha = 0x40;
+    thwompState = 0;
+    object->mdlId[0] = CalculateThwompMotion(350.0f, 350.0f, 0x10, 0x10);
+    object->mdlId[1] = CalculateThwompMotion(350.0f, 350.0f, 0x10, 0x10);
+    CreateThwompModels(0, &thwompModelOffsets[0]);
+    CreateThwompModels(1, &thwompModelOffsets[1]);
+    InitializeThwompModels(0, 30.0f);
+    InitializeThwompModels(1, -30.0f);
+    thwompDataBuffer = HuDataReadNum(0x38000A, HU_MEMNUM_OVL);
+    thwompIdleAnimation = HuSprAnimRead(HuDataReadNum(0x38000B, HU_MEMNUM_OVL));
+    thwompHitAnimation = HuSprAnimRead(HuDataReadNum(0x38000C, HU_MEMNUM_OVL));
+    InitializeThwompSprite();
+    return thwompObject;
 }
 
-void fn_1_6BD8(OMOBJ *object)
+void InitializeThwompScene(OMOBJ *object)
 {
-    fn_1_E210(0);
-    fn_1_E210(1);
-    fn_1_112FC();
+    SetThwompAnimationState(0);
+    SetThwompAnimationState(1);
+    CreateThwompEffect();
 }
 
-void fn_1_6C08(void)
+void CleanupThwompScene(void)
 {
-    OMOBJ *object = lbl_1_bss_6EC;
+    OMOBJ *object = thwompObject;
     if (object) {
-        HuMemDirectFree(lbl_1_bss_6E4);
-        lbl_1_bss_6E4 = NULL;
-        HuSprAnimKill(lbl_1_bss_6E0);
-        lbl_1_bss_6E0 = NULL;
-        HuSprAnimKill(lbl_1_bss_6DC);
-        lbl_1_bss_6DC = NULL;
-        fn_1_11418();
-        lbl_1_bss_6EC = NULL;
+        HuMemDirectFree(thwompDataBuffer);
+        thwompDataBuffer = NULL;
+        HuSprAnimKill(thwompIdleAnimation);
+        thwompIdleAnimation = NULL;
+        HuSprAnimKill(thwompHitAnimation);
+        thwompHitAnimation = NULL;
+        CleanupThwompSprite();
+        thwompObject = NULL;
         object->objFunc = NULL;
-        omDelObjEx(lbl_1_bss_6F0, object);
+        omDelObjEx(thwompProcess, object);
     }
 }
 
-void fn_1_6CD0(s32 arg0, Vec *arg1)
+void CreateThwompModels(s32 modelIndex, Vec *targetPosition)
 {
-    M425DllUnkStruct4 *var_r30;
-    s32 var_r29;
-    HU3DMODEL *var_r28;
+    M425ThwompModelWork *thwompModel;
+    s32 vibrationIndex;
+    HU3DMODEL *model;
 
-    if (lbl_1_bss_6EC) {
-        var_r28 = &Hu3DData[lbl_1_bss_6EC->mdlId[arg0]];
-        var_r30 = var_r28->hookData;
-        var_r30->unk_CC.x = arg1->x;
-        var_r30->unk_CC.y = arg1->y;
-        var_r30->unk_CC.z = arg1->z;
-        Hu3DModelPosSet(lbl_1_bss_6EC->mdlId[arg0], arg1->x, arg1->y, arg1->z);
-        if ((lbl_1_bss_6CC == 0) && (arg0 == 0) && (arg1->y <= 0.0f)) {
-            for (var_r29 = 0; var_r29 < 4; var_r29++) {
+    if (thwompObject) {
+        model = &Hu3DData[thwompObject->mdlId[modelIndex]];
+        thwompModel = model->hookData;
+        thwompModel->worldPosition.x = targetPosition->x;
+        thwompModel->worldPosition.y = targetPosition->y;
+        thwompModel->worldPosition.z = targetPosition->z;
+        Hu3DModelPosSet(thwompObject->mdlId[modelIndex], targetPosition->x, targetPosition->y, targetPosition->z);
+        if ((thwompState == 0) && (modelIndex == 0) && (targetPosition->y <= 0.0f)) {
+            for (vibrationIndex = 0; vibrationIndex < 4; vibrationIndex++) {
                 omVibrate(0, 0xC, 6, 6);
             }
             HuAudFXPlay(0x62E);
-            lbl_1_bss_6CC = 1;
+            thwompState = 1;
         }
     }
 }
 
-void fn_1_6DFC(s32 arg0, float arg8)
+void InitializeThwompModels(s32 modelIndex, float initialRotation)
 {
-    HU3DMODEL *var_r31;
-    M425DllUnkStruct4 *var_r30;
+    HU3DMODEL *model;
+    M425ThwompModelWork *thwompModel;
 
-    if (lbl_1_bss_6EC) {
-        var_r31 = &Hu3DData[lbl_1_bss_6EC->mdlId[arg0]];
-        var_r30 = var_r31->hookData;
-        var_r30->unk_D8 = arg8;
-        Hu3DModelRotSet(lbl_1_bss_6EC->mdlId[arg0], 0.0f, arg8, 0.0f);
+    if (thwompObject) {
+        model = &Hu3DData[thwompObject->mdlId[modelIndex]];
+        thwompModel = model->hookData;
+        thwompModel->rotationAngle = initialRotation;
+        Hu3DModelRotSet(thwompObject->mdlId[modelIndex], 0.0f, initialRotation, 0.0f);
     }
 }
 
-s32 fn_1_6EC4(float var_f24, float sp8, s16 var_r22, s16 var_r24)
+s32 CalculateThwompMotion(float modelWidth, float modelHeight, s16 verticalSegmentCount, s16 horizontalSegmentCount)
 {
-    float sp24;
-    float sp20;
-    float sp1C;
-    float sp18;
-    float sp14;
-    float sp10;
-    void *spC;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
-    float var_f25;
-    float var_f23;
-    float var_f22;
-    float var_f21;
-    float var_f20;
-    float var_f19;
-    float var_f18;
+    float vectorMagnitude;
+    float baseY;
+    float baseZ;
+    float textureVStart;
+    float modelWidthExtent;
+    float modelHeightExtent;
+    void *displayListBuffer;
+    float textureU;
+    float positionX;
+    float textureV;
+    float positionY;
+    float angleDegrees;
+    float positionZ;
+    float rowStartX;
+    float positionStepX;
+    float secondaryAngleDegrees;
+    float textureUStep;
+    float textureVStep;
+    float textureUStart;
+    float positionStepY;
 
-    M425DllUnkStruct4 *var_r31;
-    s32 var_r30;
-    Vec *var_r29;
-    Vec2f *var_r28;
-    s32 var_r27;
-    Vec *var_r26;
-    s16 *var_r25;
-    HU3DMODEL *var_r23;
-    s32 var_r21;
-    s16 *var_r20;
-    s32 var_r19;
-    s16 var_r18;
-    void *var_r17;
+    M425ThwompModelWork *thwompModel;
+    s32 lightId;
+    Vec *vector;
+    Vec2f *textureCoordinate;
+    s32 vertexCount;
+    Vec *vector2;
+    s16 *positionBufferCursor;
+    HU3DMODEL *model;
+    s32 vertexIndex;
+    s16 *vertexIndexBuffer;
+    s32 modelId;
+    s16 hookId;
+    void *displayListAllocation;
 
-    var_r19 = Hu3DHookFuncCreate(fn_1_101C4);
-    var_r23 = &Hu3DData[var_r19];
-    Hu3DModelLayerSet(var_r19, 5);
-    var_r31 = HuMemDirectMallocNum(HEAP_MODEL, sizeof(M425DllUnkStruct4), var_r23->mallocNo);
-    var_r23->hookData = var_r31;
-    memset(var_r31, 0, sizeof(M425DllUnkStruct4));
-    var_r31->unk_00 = lbl_1_bss_6E8;
-    lbl_1_bss_6E8++;
-    var_r31->unk_02 = 0;
-    var_r31->unk_04 = Hu3DModelCreateFile(0x38000D);
-    Hu3DModelLayerSet(var_r31->unk_04, 6);
-    var_r31->unk_06 = 0;
-    var_r31->unk_08 = 1000.0f;
-    var_r31->unk_0C = 1000.0f;
-    var_r31->unk_10 = 1000.0f;
-    var_r31->unk_14 = 0.0f;
-    var_r31->unk_18 = 0.0f;
-    var_r31->unk_1C = 0.0f;
-    var_r31->unk_20 = 0.0f;
-    var_r31->unk_24 = sp8;
-    var_r31->unk_FC = var_f24;
-    var_r31->unk_100 = sp8;
-    var_r31->unk_28 = 0;
-    var_r31->unk_2C = 0;
-    var_r31->unk_30 = 0.0f;
-    for (var_r30 = 0; var_r30 < 6; var_r30++) {
-        var_r31->unk_3C[var_r30] = -1;
-        var_r31->unk_54[var_r30] = 0.0f;
-        var_r31->unk_84[var_r30] = -1;
-        var_r31->unk_9C[var_r30] = 0.0f;
+    modelId = Hu3DHookFuncCreate(DrawThwompModel);
+    model = &Hu3DData[modelId];
+    Hu3DModelLayerSet(modelId, 5);
+    thwompModel = HuMemDirectMallocNum(HEAP_MODEL, sizeof(M425ThwompModelWork), model->mallocNo);
+    model->hookData = thwompModel;
+    memset(thwompModel, 0, sizeof(M425ThwompModelWork));
+    thwompModel->animationIndex = thwompAnimationFrame;
+    thwompAnimationFrame++;
+    thwompModel->animationstateAt02 = 0;
+    thwompModel->frameStart = Hu3DModelCreateFile(0x38000D);
+    Hu3DModelLayerSet(thwompModel->frameStart, 6);
+    thwompModel->referenceVertexIndex = 0;
+    thwompModel->animationTimeRemaining = 1000.0f;
+    thwompModel->animationTimeTotal = 1000.0f;
+    thwompModel->frameEnd = 1000.0f;
+    thwompModel->motionTimer = 0.0f;
+    thwompModel->motionIntensity = 0.0f;
+    thwompModel->frameLength = 0.0f;
+    thwompModel->movementSpeed = 0.0f;
+    thwompModel->collisionState = modelHeight;
+    thwompModel->initialRotation = modelWidth;
+    thwompModel->movementAngle = modelHeight;
+    thwompModel->animationFrameCounter = 0;
+    thwompModel->animationFrame = 0;
+    thwompModel->animationCycleProgress = 0.0f;
+    for (lightId = 0; lightId < 6; lightId++) {
+        thwompModel->activeMotionIds[lightId] = -1;
+        thwompModel->activeMotionTimers[lightId] = 0.0f;
+        thwompModel->motionStates[lightId] = -1;
+        thwompModel->motionTimers[lightId] = 0.0f;
     }
-    var_r31->unk_CC.x = var_r31->unk_CC.y = var_r31->unk_CC.z = 0.0f;
-    var_r31->unk_D8 = 0.0f;
-    var_r31->unk_DC = 1.0f;
-    var_r31->unk_F0[0] = -1;
-    var_r31->unk_F0[1] = -1;
-    var_r31->unk_F0[2] = -1;
-    lbl_1_bss_6EC->mdlId[var_r31->unk_00 + 2] = var_r31->unk_04;
-    if (var_r31->unk_00 == 0) {
-        var_r31->unk_E0 = var_f22 = 302.0f;
-        var_r31->unk_E4 = var_f27 = 193.0f;
-    }
-    else {
-        var_r31->unk_E0 = var_f22 = 302.0f;
-        var_r31->unk_E4 = var_f27 = 150.0f;
-    }
-    var_r31->unk_E8 = var_r31->unk_EC = 0.0f;
-    var_f30 = sind(var_f27) * cosd(var_f22);
-    var_f26 = cosd(var_f27) * cosd(var_f22);
-    var_f28 = sind(var_f22);
-    sp24 = sqrtf((var_f26 * var_f26) + ((var_f30 * var_f30) + (var_f28 * var_f28)));
-    if (sp24 != 0.0f) {
-        sp24 = 1.0f / sp24;
+    thwompModel->worldPosition.x = thwompModel->worldPosition.y = thwompModel->worldPosition.z = 0.0f;
+    thwompModel->rotationAngle = 0.0f;
+    thwompModel->modelScale = 1.0f;
+    thwompModel->activeVertexIndices[0] = -1;
+    thwompModel->activeVertexIndices[1] = -1;
+    thwompModel->activeVertexIndices[2] = -1;
+    thwompObject->animationIndex[thwompModel->animationIndex + 2] = thwompModel->frameStart;
+    if (thwompModel->animationIndex == 0) {
+        thwompModel->actionTimer = secondaryAngleDegrees = 302.0f;
+        thwompModel->lightElevationAngle = angleDegrees = 193.0f;
     }
     else {
-        sp24 = 0.0f;
+        thwompModel->actionTimer = secondaryAngleDegrees = 302.0f;
+        thwompModel->lightElevationAngle = angleDegrees = 150.0f;
     }
-    var_f30 *= sp24;
-    var_f28 *= sp24;
-    var_f26 *= sp24;
-    var_r30 = Hu3DLLightCreate(var_r19, 1000.0f * var_f30, 1000.0f * var_f28, 1000.0f * var_f26, var_f30, var_f28, var_f26, 0xFF, 0xFF, 0xFF);
-    Hu3DLLightInfinitytSet(var_r19, var_r30);
-    Hu3DLLightStaticSet(var_r19, var_r30, 1);
-    var_r22++;
-    var_r24++;
-    sp14 = var_f24 - 50.0f;
-    sp10 = sp8 - 50.0f;
-    var_r31->unk_112[0] = var_r24 * var_r24;
-    var_r31->unk_144[0] = 0;
-    var_r31->unk_112[1] = var_r22 * var_r24;
-    var_r31->unk_144[1] = var_r31->unk_144[0] + var_r31->unk_112[0];
-    if (var_r31->unk_00 != 0) {
-        var_r31->unk_112[2] = 0;
+    thwompModel->effectTimer = thwompModel->animationBlend = 0.0f;
+    positionX = sind(angleDegrees) * cosd(secondaryAngleDegrees);
+    positionZ = cosd(angleDegrees) * cosd(secondaryAngleDegrees);
+    positionY = sind(secondaryAngleDegrees);
+    vectorMagnitude = sqrtf((positionZ * positionZ) + ((positionX * positionX) + (positionY * positionY)));
+    if (vectorMagnitude != 0.0f) {
+        vectorMagnitude = 1.0f / vectorMagnitude;
     }
     else {
-        var_r31->unk_112[2] = var_r22 * var_r24;
+        vectorMagnitude = 0.0f;
     }
-    var_r31->unk_144[2] = var_r31->unk_144[1] + var_r31->unk_112[1];
-    if (var_r31->unk_00 == 0) {
-        var_r31->unk_112[3] = 0;
-    }
-    else {
-        var_r31->unk_112[3] = var_r22 * var_r24;
-    }
-    var_r31->unk_144[3] = var_r31->unk_144[2] + var_r31->unk_112[2];
-    var_r31->unk_112[4] = var_r24 * 5;
-    var_r31->unk_144[4] = var_r31->unk_144[3] + var_r31->unk_112[3];
-    var_r31->unk_112[5] = var_r24 * 5;
-    var_r31->unk_144[5] = var_r31->unk_144[4] + var_r31->unk_112[4];
-    var_r31->unk_112[6] = var_r22 * 5;
-    var_r31->unk_144[6] = var_r31->unk_144[5] + var_r31->unk_112[5];
-    var_r31->unk_112[7] = var_r22 * 5;
-    var_r31->unk_144[7] = var_r31->unk_144[6] + var_r31->unk_112[6];
-    var_r31->unk_112[8] = var_r24 * 5;
-    var_r31->unk_144[8] = var_r31->unk_144[7] + var_r31->unk_112[7];
-    var_r31->unk_112[9] = var_r24 * 5;
-    var_r31->unk_144[9] = var_r31->unk_144[8] + var_r31->unk_112[8];
-    var_r31->unk_112[10] = var_r24 * 5;
-    var_r31->unk_144[10] = var_r31->unk_144[9] + var_r31->unk_112[9];
-    var_r31->unk_112[11] = var_r24 * 5;
-    var_r31->unk_144[11] = var_r31->unk_144[10] + var_r31->unk_112[10];
-    var_r31->unk_112[12] = var_r24 * 5;
-    var_r31->unk_144[12] = var_r31->unk_144[11] + var_r31->unk_112[11];
-    var_r31->unk_112[13] = var_r24 * 5;
-    var_r31->unk_144[13] = var_r31->unk_144[12] + var_r31->unk_112[12];
-    if (var_r31->unk_00 == 0) {
-        var_r31->unk_112[14] = 0;
+    positionX *= vectorMagnitude;
+    positionY *= vectorMagnitude;
+    positionZ *= vectorMagnitude;
+    lightId = Hu3DLLightCreate(modelId, 1000.0f * positionX, 1000.0f * positionY, 1000.0f * positionZ, positionX, positionY, positionZ, 0xFF, 0xFF, 0xFF);
+    Hu3DLLightInfinitytSet(modelId, lightId);
+    Hu3DLLightStaticSet(modelId, lightId, 1);
+    verticalSegmentCount++;
+    horizontalSegmentCount++;
+    modelWidthExtent = modelWidth - 50.0f;
+    modelHeightExtent = modelHeight - 50.0f;
+    thwompModel->vertexIndexCounts[0] = horizontalSegmentCount * horizontalSegmentCount;
+    thwompModel->vertexIndexOffsets[0] = 0;
+    thwompModel->vertexIndexCounts[1] = verticalSegmentCount * horizontalSegmentCount;
+    thwompModel->vertexIndexOffsets[1] = thwompModel->vertexIndexOffsets[0] + thwompModel->vertexIndexCounts[0];
+    if (thwompModel->animationIndex != 0) {
+        thwompModel->vertexIndexCounts[2] = 0;
     }
     else {
-        var_r31->unk_112[14] = var_r22 * 5;
+        thwompModel->vertexIndexCounts[2] = verticalSegmentCount * horizontalSegmentCount;
     }
-    var_r31->unk_144[14] = var_r31->unk_144[13] + var_r31->unk_112[13];
-    if (var_r31->unk_00 != 0) {
-        var_r31->unk_112[15] = 0;
-    }
-    else {
-        var_r31->unk_112[15] = var_r22 * 5;
-    }
-    var_r31->unk_144[15] = var_r31->unk_144[14] + var_r31->unk_112[14];
-    var_r31->unk_112[16] = 0x19;
-    var_r31->unk_144[16] = var_r31->unk_144[15] + var_r31->unk_112[15];
-    var_r31->unk_112[17] = 0x19;
-    var_r31->unk_144[17] = var_r31->unk_144[16] + var_r31->unk_112[16];
-    var_r31->unk_112[18] = 0x19;
-    var_r31->unk_144[18] = var_r31->unk_144[17] + var_r31->unk_112[17];
-    var_r31->unk_112[19] = 0x19;
-    var_r31->unk_144[19] = var_r31->unk_144[18] + var_r31->unk_112[18];
-    var_r31->unk_112[20] = 0x19;
-    var_r31->unk_144[20] = var_r31->unk_144[19] + var_r31->unk_112[19];
-    var_r31->unk_112[21] = 0x19;
-    var_r31->unk_144[21] = var_r31->unk_144[20] + var_r31->unk_112[20];
-    var_r31->unk_112[22] = 0x19;
-    var_r31->unk_144[22] = var_r31->unk_144[21] + var_r31->unk_112[21];
-    var_r31->unk_112[23] = 0x19;
-    var_r31->unk_144[23] = var_r31->unk_144[22] + var_r31->unk_112[22];
-    var_r31->unk_112[24] = var_r24 * var_r24;
-    var_r31->unk_144[24] = var_r31->unk_144[23] + var_r31->unk_112[23];
-    if (var_r31->unk_00 == 0) {
-        var_r31->unk_06 = var_r31->unk_144[17] + (var_r31->unk_112[17] / 2) + 1;
+    thwompModel->vertexIndexOffsets[2] = thwompModel->vertexIndexOffsets[1] + thwompModel->vertexIndexCounts[1];
+    if (thwompModel->animationIndex == 0) {
+        thwompModel->vertexIndexCounts[3] = 0;
     }
     else {
-        var_r31->unk_06 = var_r31->unk_144[16] + (var_r31->unk_112[16] / 2) - 1;
+        thwompModel->vertexIndexCounts[3] = verticalSegmentCount * horizontalSegmentCount;
     }
-    var_r31->unk_10C = var_r22;
-    var_r31->unk_10E = var_r24;
-    var_r31->unk_110 = var_r31->unk_144[24] + var_r31->unk_112[24];
-    var_r31->unk_240 = 0x19;
-    var_r31->unk_178 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_110 * 2, var_r23->mallocNo);
-    memset(var_r31->unk_178, 0, var_r31->unk_110 * 2);
-    var_r31->unk_17C = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_110 * 0xC, var_r23->mallocNo);
-    memset(var_r31->unk_17C, 0, var_r31->unk_110 * 0xC);
-    var_r31->unk_180 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_110 * 0xC, var_r23->mallocNo);
-    memset(var_r31->unk_180, 0, var_r31->unk_110 * 0xC);
-    var_r31->unk_184 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_110 * 8, var_r23->mallocNo);
-    memset(var_r31->unk_184, 0, var_r31->unk_110 * 8);
-    var_r31->unk_188 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_110 * 0xC, var_r23->mallocNo);
-    memset(var_r31->unk_188, 0, var_r31->unk_110 * 0xC);
-    var_r31->unk_18C = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_110 * 0xC, var_r23->mallocNo);
-    memset(var_r31->unk_18C, 0, var_r31->unk_110 * 0xC);
-    var_r31->unk_190 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_110 * 6, var_r23->mallocNo);
-    memset(var_r31->unk_190, 0, var_r31->unk_110 * 6);
-    var_r31->unk_194 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_110 * 0xC, var_r23->mallocNo);
-    memset(var_r31->unk_194, 0, var_r31->unk_110 * 0xC);
-    var_r31->unk_198 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_112[0] * 0xC, var_r23->mallocNo);
-    memset(var_r31->unk_198, 0, var_r31->unk_112[0] * 0xC);
-    var_r31->unk_1A0 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_110, var_r23->mallocNo);
-    memset(var_r31->unk_1A0, 0, var_r31->unk_110);
-    for (var_r30 = 0; var_r30 < var_r31->unk_110; var_r30++) {
-        if (((var_r31->unk_112[0] > 0) && (var_r30 >= var_r31->unk_144[0]) && (var_r30 < (var_r31->unk_144[0] + var_r31->unk_112[0])))
-            || ((var_r31->unk_112[4] > 0) && (var_r30 >= var_r31->unk_144[4]) && (var_r30 < (var_r31->unk_144[4] + var_r31->unk_112[4])))
-            || ((var_r31->unk_112[8] > 0) && (var_r30 >= var_r31->unk_144[8]) && (var_r30 < (var_r31->unk_144[8] + var_r31->unk_112[8])))
-            || ((var_r31->unk_112[10] > 0) && (var_r30 >= var_r31->unk_144[10]) && (var_r30 < (var_r31->unk_144[10] + var_r31->unk_112[10])))
-            || ((var_r31->unk_112[12] > 0) && (var_r30 >= var_r31->unk_144[12]) && (var_r30 < (var_r31->unk_144[12] + var_r31->unk_112[12])))
-            || ((var_r31->unk_112[16] > 0) && (var_r30 >= var_r31->unk_144[16]) && (var_r30 < (var_r31->unk_144[16] + var_r31->unk_112[16])))
-            || ((var_r31->unk_112[17] > 0) && (var_r30 >= var_r31->unk_144[17]) && (var_r30 < (var_r31->unk_144[17] + var_r31->unk_112[17])))
-            || ((var_r31->unk_112[20] > 0) && (var_r30 >= var_r31->unk_144[20]) && (var_r30 < (var_r31->unk_144[20] + var_r31->unk_112[20])))
-            || ((var_r31->unk_112[21] > 0) && (var_r30 >= var_r31->unk_144[21]) && (var_r30 < (var_r31->unk_144[21] + var_r31->unk_112[21])))) {
-            var_r31->unk_1A0[var_r30] = 1;
+    thwompModel->vertexIndexOffsets[3] = thwompModel->vertexIndexOffsets[2] + thwompModel->vertexIndexCounts[2];
+    thwompModel->vertexIndexCounts[4] = horizontalSegmentCount * 5;
+    thwompModel->vertexIndexOffsets[4] = thwompModel->vertexIndexOffsets[3] + thwompModel->vertexIndexCounts[3];
+    thwompModel->vertexIndexCounts[5] = horizontalSegmentCount * 5;
+    thwompModel->vertexIndexOffsets[5] = thwompModel->vertexIndexOffsets[4] + thwompModel->vertexIndexCounts[4];
+    thwompModel->vertexIndexCounts[6] = verticalSegmentCount * 5;
+    thwompModel->vertexIndexOffsets[6] = thwompModel->vertexIndexOffsets[5] + thwompModel->vertexIndexCounts[5];
+    thwompModel->vertexIndexCounts[7] = verticalSegmentCount * 5;
+    thwompModel->vertexIndexOffsets[7] = thwompModel->vertexIndexOffsets[6] + thwompModel->vertexIndexCounts[6];
+    thwompModel->vertexIndexCounts[8] = horizontalSegmentCount * 5;
+    thwompModel->vertexIndexOffsets[8] = thwompModel->vertexIndexOffsets[7] + thwompModel->vertexIndexCounts[7];
+    thwompModel->vertexIndexCounts[9] = horizontalSegmentCount * 5;
+    thwompModel->vertexIndexOffsets[9] = thwompModel->vertexIndexOffsets[8] + thwompModel->vertexIndexCounts[8];
+    thwompModel->vertexIndexCounts[10] = horizontalSegmentCount * 5;
+    thwompModel->vertexIndexOffsets[10] = thwompModel->vertexIndexOffsets[9] + thwompModel->vertexIndexCounts[9];
+    thwompModel->vertexIndexCounts[11] = horizontalSegmentCount * 5;
+    thwompModel->vertexIndexOffsets[11] = thwompModel->vertexIndexOffsets[10] + thwompModel->vertexIndexCounts[10];
+    thwompModel->vertexIndexCounts[12] = horizontalSegmentCount * 5;
+    thwompModel->vertexIndexOffsets[12] = thwompModel->vertexIndexOffsets[11] + thwompModel->vertexIndexCounts[11];
+    thwompModel->vertexIndexCounts[13] = horizontalSegmentCount * 5;
+    thwompModel->vertexIndexOffsets[13] = thwompModel->vertexIndexOffsets[12] + thwompModel->vertexIndexCounts[12];
+    if (thwompModel->animationIndex == 0) {
+        thwompModel->vertexIndexCounts[14] = 0;
+    }
+    else {
+        thwompModel->vertexIndexCounts[14] = verticalSegmentCount * 5;
+    }
+    thwompModel->vertexIndexOffsets[14] = thwompModel->vertexIndexOffsets[13] + thwompModel->vertexIndexCounts[13];
+    if (thwompModel->animationIndex != 0) {
+        thwompModel->vertexIndexCounts[15] = 0;
+    }
+    else {
+        thwompModel->vertexIndexCounts[15] = verticalSegmentCount * 5;
+    }
+    thwompModel->vertexIndexOffsets[15] = thwompModel->vertexIndexOffsets[14] + thwompModel->vertexIndexCounts[14];
+    thwompModel->vertexIndexCounts[16] = 0x19;
+    thwompModel->vertexIndexOffsets[16] = thwompModel->vertexIndexOffsets[15] + thwompModel->vertexIndexCounts[15];
+    thwompModel->vertexIndexCounts[17] = 0x19;
+    thwompModel->vertexIndexOffsets[17] = thwompModel->vertexIndexOffsets[16] + thwompModel->vertexIndexCounts[16];
+    thwompModel->vertexIndexCounts[18] = 0x19;
+    thwompModel->vertexIndexOffsets[18] = thwompModel->vertexIndexOffsets[17] + thwompModel->vertexIndexCounts[17];
+    thwompModel->vertexIndexCounts[19] = 0x19;
+    thwompModel->vertexIndexOffsets[19] = thwompModel->vertexIndexOffsets[18] + thwompModel->vertexIndexCounts[18];
+    thwompModel->vertexIndexCounts[20] = 0x19;
+    thwompModel->vertexIndexOffsets[20] = thwompModel->vertexIndexOffsets[19] + thwompModel->vertexIndexCounts[19];
+    thwompModel->vertexIndexCounts[21] = 0x19;
+    thwompModel->vertexIndexOffsets[21] = thwompModel->vertexIndexOffsets[20] + thwompModel->vertexIndexCounts[20];
+    thwompModel->vertexIndexCounts[22] = 0x19;
+    thwompModel->vertexIndexOffsets[22] = thwompModel->vertexIndexOffsets[21] + thwompModel->vertexIndexCounts[21];
+    thwompModel->vertexIndexCounts[23] = 0x19;
+    thwompModel->vertexIndexOffsets[23] = thwompModel->vertexIndexOffsets[22] + thwompModel->vertexIndexCounts[22];
+    thwompModel->vertexIndexCounts[24] = horizontalSegmentCount * horizontalSegmentCount;
+    thwompModel->vertexIndexOffsets[24] = thwompModel->vertexIndexOffsets[23] + thwompModel->vertexIndexCounts[23];
+    if (thwompModel->animationIndex == 0) {
+        thwompModel->referenceVertexIndex = thwompModel->vertexIndexOffsets[17] + (thwompModel->vertexIndexCounts[17] / 2) + 1;
+    }
+    else {
+        thwompModel->referenceVertexIndex = thwompModel->vertexIndexOffsets[16] + (thwompModel->vertexIndexCounts[16] / 2) - 1;
+    }
+    thwompModel->playerState = verticalSegmentCount;
+    thwompModel->actionIndex = horizontalSegmentCount;
+    thwompModel->vertexCount = thwompModel->vertexIndexOffsets[24] + thwompModel->vertexIndexCounts[24];
+    thwompModel->surfaceCount = 0x19;
+    thwompModel->positionBuffer = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->vertexCount * 2, model->mallocNo);
+    memset(thwompModel->positionBuffer, 0, thwompModel->vertexCount * 2);
+    thwompModel->positionStart = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->vertexCount * 0xC, model->mallocNo);
+    memset(thwompModel->positionStart, 0, thwompModel->vertexCount * 0xC);
+    thwompModel->positionTarget = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->vertexCount * 0xC, model->mallocNo);
+    memset(thwompModel->positionTarget, 0, thwompModel->vertexCount * 0xC);
+    thwompModel->textureCoordinates = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->vertexCount * 8, model->mallocNo);
+    memset(thwompModel->textureCoordinates, 0, thwompModel->vertexCount * 8);
+    thwompModel->positionWork = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->vertexCount * 0xC, model->mallocNo);
+    memset(thwompModel->positionWork, 0, thwompModel->vertexCount * 0xC);
+    thwompModel->rotationWork = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->vertexCount * 0xC, model->mallocNo);
+    memset(thwompModel->rotationWork, 0, thwompModel->vertexCount * 0xC);
+    thwompModel->displayListIndices = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->vertexCount * 6, model->mallocNo);
+    memset(thwompModel->displayListIndices, 0, thwompModel->vertexCount * 6);
+    thwompModel->positionOutput = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->vertexCount * 0xC, model->mallocNo);
+    memset(thwompModel->positionOutput, 0, thwompModel->vertexCount * 0xC);
+    thwompModel->rotationOutput = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->vertexIndexCounts[0] * 0xC, model->mallocNo);
+    memset(thwompModel->rotationOutput, 0, thwompModel->vertexIndexCounts[0] * 0xC);
+    thwompModel->stateBuffer = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->vertexCount, model->mallocNo);
+    memset(thwompModel->stateBuffer, 0, thwompModel->vertexCount);
+    for (lightId = 0; lightId < thwompModel->vertexCount; lightId++) {
+        if (((thwompModel->vertexIndexCounts[0] > 0) && (lightId >= thwompModel->vertexIndexOffsets[0]) && (lightId < (thwompModel->vertexIndexOffsets[0] + thwompModel->vertexIndexCounts[0])))
+            || ((thwompModel->vertexIndexCounts[4] > 0) && (lightId >= thwompModel->vertexIndexOffsets[4]) && (lightId < (thwompModel->vertexIndexOffsets[4] + thwompModel->vertexIndexCounts[4])))
+            || ((thwompModel->vertexIndexCounts[8] > 0) && (lightId >= thwompModel->vertexIndexOffsets[8]) && (lightId < (thwompModel->vertexIndexOffsets[8] + thwompModel->vertexIndexCounts[8])))
+            || ((thwompModel->vertexIndexCounts[10] > 0) && (lightId >= thwompModel->vertexIndexOffsets[10]) && (lightId < (thwompModel->vertexIndexOffsets[10] + thwompModel->vertexIndexCounts[10])))
+            || ((thwompModel->vertexIndexCounts[12] > 0) && (lightId >= thwompModel->vertexIndexOffsets[12]) && (lightId < (thwompModel->vertexIndexOffsets[12] + thwompModel->vertexIndexCounts[12])))
+            || ((thwompModel->vertexIndexCounts[16] > 0) && (lightId >= thwompModel->vertexIndexOffsets[16]) && (lightId < (thwompModel->vertexIndexOffsets[16] + thwompModel->vertexIndexCounts[16])))
+            || ((thwompModel->vertexIndexCounts[17] > 0) && (lightId >= thwompModel->vertexIndexOffsets[17]) && (lightId < (thwompModel->vertexIndexOffsets[17] + thwompModel->vertexIndexCounts[17])))
+            || ((thwompModel->vertexIndexCounts[20] > 0) && (lightId >= thwompModel->vertexIndexOffsets[20]) && (lightId < (thwompModel->vertexIndexOffsets[20] + thwompModel->vertexIndexCounts[20])))
+            || ((thwompModel->vertexIndexCounts[21] > 0) && (lightId >= thwompModel->vertexIndexOffsets[21]) && (lightId < (thwompModel->vertexIndexOffsets[21] + thwompModel->vertexIndexCounts[21])))) {
+            thwompModel->stateBuffer[lightId] = 1;
         }
         else {
-            var_r31->unk_1A0[var_r30] = 0;
+            thwompModel->stateBuffer[lightId] = 0;
         }
     }
-    var_r31->unk_23A.r = 0;
-    var_r31->unk_23A.g = 0;
-    var_r31->unk_23A.b = 0xFF;
-    var_r31->unk_23A.a = 0x40;
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[0]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[0]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[0]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[0]];
-    var_f25 = var_f30 = -((0.5f * var_f24) - 25.0f);
-    sp20 = var_f28 = sp8;
-    sp1C = var_f26 = -((0.5f * var_f24) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp14 / (var_r24 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[0] != 0) {
-        for (var_r30 = 0; var_r30 < var_r31->unk_10E; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_r29->x = var_f30;
-                var_r29->y = var_f28;
-                var_r29->z = var_f26;
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    thwompModel->effectColor.r = 0;
+    thwompModel->effectColor.g = 0;
+    thwompModel->effectColor.b = 0xFF;
+    thwompModel->effectColor.a = 0x40;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[0]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[0]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[0]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[0]];
+    rowStartX = positionX = -((0.5f * modelWidth) - 25.0f);
+    baseY = positionY = modelHeight;
+    baseZ = positionZ = -((0.5f * modelWidth) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelWidthExtent / (horizontalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[0] != 0) {
+        for (lightId = 0; lightId < thwompModel->actionIndex; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                vector->x = positionX;
+                vector->y = positionY;
+                vector->z = positionZ;
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f26 = var_f26 + var_f23;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionZ = positionZ + positionStepX;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0, var_r24 - 1, var_r24 - 1);
+        InitializeThwompModelData(thwompModel, model, 0, horizontalSegmentCount - 1, horizontalSegmentCount - 1);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[1]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[1]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[1]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[1]];
-    var_f25 = var_f30 = -((0.5f * var_f24) - 25.0f);
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = 0.5f * var_f24;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[1] != 0) {
-        for (var_r30 = 0; var_r30 < var_r31->unk_10E; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_r29->x = var_f30;
-                var_r29->y = var_f28;
-                var_r29->z = var_f26;
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[1]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[1]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[1]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[1]];
+    rowStartX = positionX = -((0.5f * modelWidth) - 25.0f);
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = 0.5f * modelWidth;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[1] != 0) {
+        for (lightId = 0; lightId < thwompModel->actionIndex; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                vector->x = positionX;
+                vector->y = positionY;
+                vector->z = positionZ;
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 1, var_r24 - 1, var_r22 - 1);
+        InitializeThwompModelData(thwompModel, model, 1, horizontalSegmentCount - 1, verticalSegmentCount - 1);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[2]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[2]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[2]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[2]];
-    var_f25 = var_f30 = -(0.5f * var_f24);
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = -((0.5f * var_f24) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[2] != 0) {
-        for (var_r30 = 0; var_r30 < var_r31->unk_10E; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_r29->x = var_f30;
-                var_r29->y = var_f28;
-                var_r29->z = var_f26;
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f26 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[2]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[2]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[2]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[2]];
+    rowStartX = positionX = -(0.5f * modelWidth);
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = -((0.5f * modelWidth) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[2] != 0) {
+        for (lightId = 0; lightId < thwompModel->actionIndex; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                vector->x = positionX;
+                vector->y = positionY;
+                vector->z = positionZ;
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionZ += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f26 = sp1C;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionZ = baseZ;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 2, var_r24 - 1, var_r22 - 1);
+        InitializeThwompModelData(thwompModel, model, 2, horizontalSegmentCount - 1, verticalSegmentCount - 1);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[3]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[3]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[3]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[3]];
-    var_f25 = var_f30 = 0.5f * var_f24;
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = (0.5f * var_f24) - 25.0f;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[3] != 0) {
-        for (var_r30 = 0; var_r30 < var_r31->unk_10E; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_r29->x = var_f30;
-                var_r29->y = var_f28;
-                var_r29->z = var_f26;
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f26 -= var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[3]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[3]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[3]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[3]];
+    rowStartX = positionX = 0.5f * modelWidth;
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = (0.5f * modelWidth) - 25.0f;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[3] != 0) {
+        for (lightId = 0; lightId < thwompModel->actionIndex; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                vector->x = positionX;
+                vector->y = positionY;
+                vector->z = positionZ;
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionZ -= positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f26 = sp1C;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionZ = baseZ;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 3, var_r24 - 1, var_r22 - 1);
+        InitializeThwompModelData(thwompModel, model, 3, horizontalSegmentCount - 1, verticalSegmentCount - 1);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[4]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[4]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[4]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[4]];
-    var_f25 = var_f30 = -((0.5f * var_f24) - 25.0f);
-    sp20 = var_f28 = sp8;
-    sp1C = var_f26 = (0.5f * var_f24) - 25.0f;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[4] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_f27 = 90.0f * (var_r30 / 4.0f);
-                var_r29->x = var_f30;
-                var_r29->y = sp20 + (25.0 * (cosd(var_f27) - 1.0));
-                var_r29->z = sp1C + (25.0 * sind(var_f27));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[4]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[4]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[4]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[4]];
+    rowStartX = positionX = -((0.5f * modelWidth) - 25.0f);
+    baseY = positionY = modelHeight;
+    baseZ = positionZ = (0.5f * modelWidth) - 25.0f;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[4] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                angleDegrees = 90.0f * (lightId / 4.0f);
+                vector->x = positionX;
+                vector->y = baseY + (25.0 * (cosd(angleDegrees) - 1.0));
+                vector->z = baseZ + (25.0 * sind(angleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 4, var_r24 - 1, 4);
+        InitializeThwompModelData(thwompModel, model, 4, horizontalSegmentCount - 1, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[5]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[5]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[5]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[5]];
-    var_f25 = var_f30 = -((0.5f * var_f24) - 25.0f);
-    sp20 = var_f28 = 25.0f;
-    sp1C = var_f26 = (0.5f * var_f24) - 25.0f;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[5] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_f27 = 90.0f + (90.0f * (var_r30 / 4.0f));
-                var_r29->x = var_f30;
-                var_r29->y = sp20 + (25.0 * cosd(var_f27));
-                var_r29->z = sp1C + (25.0 * sind(var_f27));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[5]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[5]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[5]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[5]];
+    rowStartX = positionX = -((0.5f * modelWidth) - 25.0f);
+    baseY = positionY = 25.0f;
+    baseZ = positionZ = (0.5f * modelWidth) - 25.0f;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[5] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                angleDegrees = 90.0f + (90.0f * (lightId / 4.0f));
+                vector->x = positionX;
+                vector->y = baseY + (25.0 * cosd(angleDegrees));
+                vector->z = baseZ + (25.0 * sind(angleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 5, var_r24 - 1, 4);
+        InitializeThwompModelData(thwompModel, model, 5, horizontalSegmentCount - 1, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[6]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[6]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[6]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[6]];
-    var_f25 = var_f30 = -(0.5f * var_f24);
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = (0.5f * var_f24) - 25.0f;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[6] != 0) {
-        for (var_r30 = 0; var_r30 < var_r31->unk_10C; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = 90.0f * (var_r27 / 4.0f);
-                var_r29->x = var_f25 - (25.0 * (cosd(var_f27) - 1.0));
-                var_r29->y = var_f28;
-                var_r29->z = sp1C + (25.0 * sind(var_f27));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[6]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[6]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[6]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[6]];
+    rowStartX = positionX = -(0.5f * modelWidth);
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = (0.5f * modelWidth) - 25.0f;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[6] != 0) {
+        for (lightId = 0; lightId < thwompModel->playerState; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = 90.0f * (vertexCount / 4.0f);
+                vector->x = rowStartX - (25.0 * (cosd(angleDegrees) - 1.0));
+                vector->y = positionY;
+                vector->z = baseZ + (25.0 * sind(angleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 6, 4, var_r22 - 1);
+        InitializeThwompModelData(thwompModel, model, 6, 4, verticalSegmentCount - 1);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[7]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[7]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[7]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[7]];
-    var_f25 = var_f30 = (0.5f * var_f24) - 25.0f;
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = 0.5f * var_f24;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[7] != 0) {
-        for (var_r30 = 0; var_r30 < var_r31->unk_10C; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = 90.0f - (90.0f * (var_r27 / 4.0f));
-                var_r29->x = var_f25 + (25.0 * cosd(var_f27));
-                var_r29->y = var_f28;
-                var_r29->z = sp1C + (25.0 * (sind(var_f27) - 1.0));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[7]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[7]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[7]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[7]];
+    rowStartX = positionX = (0.5f * modelWidth) - 25.0f;
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = 0.5f * modelWidth;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[7] != 0) {
+        for (lightId = 0; lightId < thwompModel->playerState; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = 90.0f - (90.0f * (vertexCount / 4.0f));
+                vector->x = rowStartX + (25.0 * cosd(angleDegrees));
+                vector->y = positionY;
+                vector->z = baseZ + (25.0 * (sind(angleDegrees) - 1.0));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 7, 4, var_r22 - 1);
+        InitializeThwompModelData(thwompModel, model, 7, 4, verticalSegmentCount - 1);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[8]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[8]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[8]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[8]];
-    var_f25 = var_f30 = -((0.5f * var_f24) - 25.0f);
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = -((0.5f * var_f24) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[8] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_f27 = 90.0f + (90.0f * (var_r30 / 4.0f));
-                var_r29->x = var_f25 + 25.0 * cosd(var_f27);
-                var_r29->y = sp20 + (25.0 * sind(var_f27));
-                var_r29->z = var_f26;
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f26 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[8]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[8]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[8]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[8]];
+    rowStartX = positionX = -((0.5f * modelWidth) - 25.0f);
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = -((0.5f * modelWidth) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[8] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                angleDegrees = 90.0f + (90.0f * (lightId / 4.0f));
+                vector->x = rowStartX + 25.0 * cosd(angleDegrees);
+                vector->y = baseY + (25.0 * sind(angleDegrees));
+                vector->z = positionZ;
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionZ += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f26 = sp1C;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionZ = baseZ;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 8, var_r24 - 1, 4);
+        InitializeThwompModelData(thwompModel, model, 8, horizontalSegmentCount - 1, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[9]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[9]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[9]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[9]];
-    var_f25 = var_f30 = -(0.5f * var_f24 - 25.0f);
-    sp20 = var_f28 = 25.0f;
-    sp1C = var_f26 = -((0.5f * var_f24) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[9] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_f27 = 180.0f + (90.0f * (var_r30 / 4.0f));
-                var_r29->x = var_f25 + (25.0 * cosd(var_f27));
-                var_r29->y = sp20 + (25.0 * sind(var_f27));
-                var_r29->z = var_f26;
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f26 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[9]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[9]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[9]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[9]];
+    rowStartX = positionX = -(0.5f * modelWidth - 25.0f);
+    baseY = positionY = 25.0f;
+    baseZ = positionZ = -((0.5f * modelWidth) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[9] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                angleDegrees = 180.0f + (90.0f * (lightId / 4.0f));
+                vector->x = rowStartX + (25.0 * cosd(angleDegrees));
+                vector->y = baseY + (25.0 * sind(angleDegrees));
+                vector->z = positionZ;
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionZ += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f26 = sp1C;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionZ = baseZ;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 9, var_r24 - 1, 4);
+        InitializeThwompModelData(thwompModel, model, 9, horizontalSegmentCount - 1, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[10]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[10]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[10]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[10]];
-    var_f25 = var_f30 = (0.5f * var_f24) - 25.0f;
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = (0.5f * var_f24) - 25.0f;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[10] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_f27 = 90.0f - (90.0f * (var_r30 / 4.0f));
-                var_r29->x = var_f25 + (25.0 * cosd(var_f27));
-                var_r29->y = sp20 + (25.0 * sind(var_f27));
-                var_r29->z = var_f26;
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f26 -= var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[10]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[10]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[10]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[10]];
+    rowStartX = positionX = (0.5f * modelWidth) - 25.0f;
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = (0.5f * modelWidth) - 25.0f;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[10] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                angleDegrees = 90.0f - (90.0f * (lightId / 4.0f));
+                vector->x = rowStartX + (25.0 * cosd(angleDegrees));
+                vector->y = baseY + (25.0 * sind(angleDegrees));
+                vector->z = positionZ;
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionZ -= positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f26 = sp1C;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionZ = baseZ;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0xA, var_r24 - 1, 4);
+        InitializeThwompModelData(thwompModel, model, 0xA, horizontalSegmentCount - 1, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[11]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[11]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[11]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[11]];
-    var_f25 = var_f30 = (0.5f * var_f24) - 25.0f;
-    sp20 = var_f28 = 25.0f;
-    sp1C = var_f26 = (0.5f * var_f24) - 25.0f;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[11] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_f27 = -(90.0f * (var_r30 / 4.0f));
-                var_r29->x = var_f25 + (25.0 * cosd(var_f27));
-                var_r29->y = sp20 + (25.0 * sind(var_f27));
-                var_r29->z = var_f26;
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f26 -= var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[11]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[11]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[11]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[11]];
+    rowStartX = positionX = (0.5f * modelWidth) - 25.0f;
+    baseY = positionY = 25.0f;
+    baseZ = positionZ = (0.5f * modelWidth) - 25.0f;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[11] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                angleDegrees = -(90.0f * (lightId / 4.0f));
+                vector->x = rowStartX + (25.0 * cosd(angleDegrees));
+                vector->y = baseY + (25.0 * sind(angleDegrees));
+                vector->z = positionZ;
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionZ -= positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f26 = sp1C;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionZ = baseZ;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0xB, var_r24 - 1, 4);
+        InitializeThwompModelData(thwompModel, model, 0xB, horizontalSegmentCount - 1, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[12]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[12]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[12]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[12]];
-    var_f25 = var_f30 = (0.5f * var_f24) - 25.0f;
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = -((0.5f * var_f24) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[12] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_f27 = 90.0f + (90.0f * (var_r30 / 4.0f));
-                var_r29->x = var_f30;
-                var_r29->y = sp20 + (25.0 * sind(var_f27));
-                var_r29->z = sp1C + (25.0 * cosd(var_f27));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 -= var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[12]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[12]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[12]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[12]];
+    rowStartX = positionX = (0.5f * modelWidth) - 25.0f;
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = -((0.5f * modelWidth) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[12] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                angleDegrees = 90.0f + (90.0f * (lightId / 4.0f));
+                vector->x = positionX;
+                vector->y = baseY + (25.0 * sind(angleDegrees));
+                vector->z = baseZ + (25.0 * cosd(angleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX -= positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0xC, var_r24 - 1, 4);
+        InitializeThwompModelData(thwompModel, model, 0xC, horizontalSegmentCount - 1, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[13]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[13]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[13]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[13]];
-    var_f25 = var_f30 = (0.5f * var_f24) - 25.0f;
-    sp20 = var_f28 = 25.0f;
-    sp1C = var_f26 = -((0.5f * var_f24) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[13] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_f27 = 180.0f + (90.0f * (var_r30 / 4.0f));
-                var_r29->x = var_f30;
-                var_r29->y = sp20 + (25.0 * sind(var_f27));
-                var_r29->z = sp1C + (25.0 * cosd(var_f27));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 -= var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[13]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[13]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[13]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[13]];
+    rowStartX = positionX = (0.5f * modelWidth) - 25.0f;
+    baseY = positionY = 25.0f;
+    baseZ = positionZ = -((0.5f * modelWidth) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[13] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                angleDegrees = 180.0f + (90.0f * (lightId / 4.0f));
+                vector->x = positionX;
+                vector->y = baseY + (25.0 * sind(angleDegrees));
+                vector->z = baseZ + (25.0 * cosd(angleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX -= positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0xD, var_r24 - 1, 4);
+        InitializeThwompModelData(thwompModel, model, 0xD, horizontalSegmentCount - 1, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[14]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[14]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[14]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[14]];
-    var_f25 = var_f30 = (0.5f * var_f24) - 25.0f;
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = -((0.5f * var_f24) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[14] != 0) {
-        for (var_r30 = 0; var_r30 < var_r31->unk_10C; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = -(90.0f * (var_r27 / 4.0f));
-                var_r29->x = var_f25 + (25.0 * cosd(var_f27));
-                var_r29->y = var_f28;
-                var_r29->z = sp1C + (25.0 * sind(var_f27));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[14]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[14]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[14]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[14]];
+    rowStartX = positionX = (0.5f * modelWidth) - 25.0f;
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = -((0.5f * modelWidth) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[14] != 0) {
+        for (lightId = 0; lightId < thwompModel->playerState; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = -(90.0f * (vertexCount / 4.0f));
+                vector->x = rowStartX + (25.0 * cosd(angleDegrees));
+                vector->y = positionY;
+                vector->z = baseZ + (25.0 * sind(angleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0xE, 4, var_r22 - 1);
+        InitializeThwompModelData(thwompModel, model, 0xE, 4, verticalSegmentCount - 1);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[15]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[15]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[15]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[15]];
-    var_f25 = var_f30 = -((0.5f * var_f24) - 25.0f);
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = -((0.5f * var_f24) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[15] != 0) {
-        for (var_r30 = 0; var_r30 < var_r31->unk_10C; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = -90.0f - (90.0f * (var_r27 / 4.0f));
-                var_r29->x = var_f25 + (25.0 * cosd(var_f27));
-                var_r29->y = var_f28;
-                var_r29->z = sp1C + (25.0 * sind(var_f27));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[15]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[15]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[15]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[15]];
+    rowStartX = positionX = -((0.5f * modelWidth) - 25.0f);
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = -((0.5f * modelWidth) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[15] != 0) {
+        for (lightId = 0; lightId < thwompModel->playerState; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = -90.0f - (90.0f * (vertexCount / 4.0f));
+                vector->x = rowStartX + (25.0 * cosd(angleDegrees));
+                vector->y = positionY;
+                vector->z = baseZ + (25.0 * sind(angleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0xF, 4, var_r22 - 1);
+        InitializeThwompModelData(thwompModel, model, 0xF, 4, verticalSegmentCount - 1);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[16]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[16]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[16]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[16]];
-    var_f25 = var_f30 = -((0.5f * var_f24) - 25.0f);
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = (0.5f * var_f24) - 25.0f;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[16] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = 90.0f * (var_r27 / 4.0f);
-                var_f22 = 90.0f * (var_r30 / 4.0f);
-                var_r29->x = var_f25 - (25.0 * cosd(var_f27) * sind(var_f22));
-                var_r29->y = sp20 + (25.0 * cosd(var_f22));
-                var_r29->z = sp1C + (25.0 * sind(var_f27) * sind(var_f22));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[16]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[16]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[16]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[16]];
+    rowStartX = positionX = -((0.5f * modelWidth) - 25.0f);
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = (0.5f * modelWidth) - 25.0f;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[16] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = 90.0f * (vertexCount / 4.0f);
+                secondaryAngleDegrees = 90.0f * (lightId / 4.0f);
+                vector->x = rowStartX - (25.0 * cosd(angleDegrees) * sind(secondaryAngleDegrees));
+                vector->y = baseY + (25.0 * cosd(secondaryAngleDegrees));
+                vector->z = baseZ + (25.0 * sind(angleDegrees) * sind(secondaryAngleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0x10, 4, 4);
+        InitializeThwompModelData(thwompModel, model, 0x10, 4, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[17]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[17]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[17]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[17]];
-    var_f25 = var_f30 = (0.5f * var_f24) - 25.0f;
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = (0.5f * var_f24) - 25.0f;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[17] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = 90.0f - (90.0f * (var_r27 / 4.0f));
-                var_f22 = -(90.0f * (var_r30 / 4.0f));
-                var_r29->x = var_f25 + (25.0 * cosd(var_f27) * -sind(var_f22));
-                var_r29->y = sp20 + (25.0 * cosd(var_f22));
-                var_r29->z = sp1C + (25.0 * sind(var_f27) * -sind(var_f22));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[17]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[17]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[17]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[17]];
+    rowStartX = positionX = (0.5f * modelWidth) - 25.0f;
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = (0.5f * modelWidth) - 25.0f;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[17] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = 90.0f - (90.0f * (vertexCount / 4.0f));
+                secondaryAngleDegrees = -(90.0f * (lightId / 4.0f));
+                vector->x = rowStartX + (25.0 * cosd(angleDegrees) * -sind(secondaryAngleDegrees));
+                vector->y = baseY + (25.0 * cosd(secondaryAngleDegrees));
+                vector->z = baseZ + (25.0 * sind(angleDegrees) * -sind(secondaryAngleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0x11, 4, 4);
+        InitializeThwompModelData(thwompModel, model, 0x11, 4, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[18]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[18]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[18]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[18]];
-    var_f25 = var_f30 = -((0.5f * var_f24) - 25.0f);
-    sp20 = var_f28 = 25.0f;
-    sp1C = var_f26 = (0.5f * var_f24) - 25.0f;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[18] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = 90.0f * (var_r27 / 4.0f);
-                var_f22 = 90.0f + (90.0f * (var_r30 / 4.0f));
-                var_r29->x = var_f25 - (25.0 * cosd(var_f27) * sind(var_f22));
-                var_r29->y = sp20 + (25.0 * cosd(var_f22));
-                var_r29->z = sp1C + (25.0 * sind(var_f27) * sind(var_f22));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[18]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[18]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[18]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[18]];
+    rowStartX = positionX = -((0.5f * modelWidth) - 25.0f);
+    baseY = positionY = 25.0f;
+    baseZ = positionZ = (0.5f * modelWidth) - 25.0f;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[18] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = 90.0f * (vertexCount / 4.0f);
+                secondaryAngleDegrees = 90.0f + (90.0f * (lightId / 4.0f));
+                vector->x = rowStartX - (25.0 * cosd(angleDegrees) * sind(secondaryAngleDegrees));
+                vector->y = baseY + (25.0 * cosd(secondaryAngleDegrees));
+                vector->z = baseZ + (25.0 * sind(angleDegrees) * sind(secondaryAngleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0x12, 4, 4);
+        InitializeThwompModelData(thwompModel, model, 0x12, 4, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[19]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[19]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[19]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[19]];
-    var_f25 = var_f30 = (0.5f * var_f24) - 25.0f;
-    sp20 = var_f28 = 25.0f;
-    sp1C = var_f26 = (0.5f * var_f24) - 25.0f;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[19] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = 90.0f * (var_r27 / 4.0f);
-                var_f22 = 90.0f * (var_r30 / 4.0f);
-                var_r29->x = var_f25 + (25.0 * cosd(var_f27) * sind(var_f22));
-                var_r29->y = sp20 - (25.0 * cosd(var_f22));
-                var_r29->z = sp1C + (25.0 * sind(var_f27) * sind(var_f22));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[19]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[19]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[19]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[19]];
+    rowStartX = positionX = (0.5f * modelWidth) - 25.0f;
+    baseY = positionY = 25.0f;
+    baseZ = positionZ = (0.5f * modelWidth) - 25.0f;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[19] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = 90.0f * (vertexCount / 4.0f);
+                secondaryAngleDegrees = 90.0f * (lightId / 4.0f);
+                vector->x = rowStartX + (25.0 * cosd(angleDegrees) * sind(secondaryAngleDegrees));
+                vector->y = baseY - (25.0 * cosd(secondaryAngleDegrees));
+                vector->z = baseZ + (25.0 * sind(angleDegrees) * sind(secondaryAngleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0x13, 4, 4);
+        InitializeThwompModelData(thwompModel, model, 0x13, 4, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[20]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[20]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[20]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[20]];
-    var_f25 = var_f30 = (0.5f * var_f24) - 25.0f;
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = -((0.5f * var_f24) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[20] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = 180.0f + (90.0f * (var_r27 / 4.0f));
-                var_f22 = 90.0f * (var_r30 / 4.0f);
-                var_r29->x = var_f25 - (25.0 * cosd(var_f27) * sind(var_f22));
-                var_r29->y = sp20 + (25.0 * cosd(var_f22));
-                var_r29->z = sp1C + (25.0 * sind(var_f27) * sind(var_f22));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[20]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[20]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[20]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[20]];
+    rowStartX = positionX = (0.5f * modelWidth) - 25.0f;
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = -((0.5f * modelWidth) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[20] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = 180.0f + (90.0f * (vertexCount / 4.0f));
+                secondaryAngleDegrees = 90.0f * (lightId / 4.0f);
+                vector->x = rowStartX - (25.0 * cosd(angleDegrees) * sind(secondaryAngleDegrees));
+                vector->y = baseY + (25.0 * cosd(secondaryAngleDegrees));
+                vector->z = baseZ + (25.0 * sind(angleDegrees) * sind(secondaryAngleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0x14, 4, 4);
+        InitializeThwompModelData(thwompModel, model, 0x14, 4, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[21]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[21]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[21]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[21]];
-    var_f25 = var_f30 = -(0.5f * var_f24 - 25.0f);
-    sp20 = var_f28 = sp8 - 25.0f;
-    sp1C = var_f26 = -((0.5f * var_f24) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[21] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = 270.0f - (90.0f * (var_r27 / 4.0f));
-                var_f22 = -(90.0f * (var_r30 / 4.0f));
-                var_r29->x = var_f25 + (cosd(var_f27) * 25.0 * -sind(var_f22));
-                var_r29->y = sp20 + 25.0 * cosd(var_f22);
-                var_r29->z = sp1C + (25.0 * sind(var_f27) * -sind(var_f22));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[21]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[21]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[21]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[21]];
+    rowStartX = positionX = -(0.5f * modelWidth - 25.0f);
+    baseY = positionY = modelHeight - 25.0f;
+    baseZ = positionZ = -((0.5f * modelWidth) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[21] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = 270.0f - (90.0f * (vertexCount / 4.0f));
+                secondaryAngleDegrees = -(90.0f * (lightId / 4.0f));
+                vector->x = rowStartX + (cosd(angleDegrees) * 25.0 * -sind(secondaryAngleDegrees));
+                vector->y = baseY + 25.0 * cosd(secondaryAngleDegrees);
+                vector->z = baseZ + (25.0 * sind(angleDegrees) * -sind(secondaryAngleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0x15, 4, 4);
+        InitializeThwompModelData(thwompModel, model, 0x15, 4, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[22]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[22]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[22]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[22]];
-    var_f25 = var_f30 = (0.5f * var_f24) - 25.0f;
-    sp20 = var_f28 = 25.0f;
-    sp1C = var_f26 = -((0.5f * var_f24) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[22] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = 180.0f + (90.0f * (var_r27 / 4.0f));
-                var_f22 = 90.0f + (90.0f * (var_r30 / 4.0f));
-                var_r29->x = var_f25 - (25.0 * cosd(var_f27) * sind(var_f22));
-                var_r29->y = sp20 + (25.0 * cosd(var_f22));
-                var_r29->z = sp1C + (25.0 * sind(var_f27) * sind(var_f22));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[22]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[22]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[22]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[22]];
+    rowStartX = positionX = (0.5f * modelWidth) - 25.0f;
+    baseY = positionY = 25.0f;
+    baseZ = positionZ = -((0.5f * modelWidth) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[22] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = 180.0f + (90.0f * (vertexCount / 4.0f));
+                secondaryAngleDegrees = 90.0f + (90.0f * (lightId / 4.0f));
+                vector->x = rowStartX - (25.0 * cosd(angleDegrees) * sind(secondaryAngleDegrees));
+                vector->y = baseY + (25.0 * cosd(secondaryAngleDegrees));
+                vector->z = baseZ + (25.0 * sind(angleDegrees) * sind(secondaryAngleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0x16, 4, 4);
+        InitializeThwompModelData(thwompModel, model, 0x16, 4, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[23]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[23]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[23]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[23]];
-    var_f25 = var_f30 = -((var_f24 * 0.5f) - 25.0f);
-    sp20 = var_f28 = 25.0f;
-    sp1C = var_f26 = -((var_f24 * 0.5f) - 25.0f);
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp10 / (var_r22 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[23] != 0) {
-        for (var_r30 = 0; var_r30 < 5; var_r30++) {
-            for (var_r27 = 0; var_r27 < 5; var_r27++) {
-                var_f27 = 180.0f + (90.0f * (var_r27 / 4.0f));
-                var_f22 = 90.0f * (var_r30 / 4.0f);
-                var_r29->x = var_f25 + (25.0 * cosd(var_f27) * sind(var_f22));
-                var_r29->y = sp20 - (25.0 * cosd(var_f22));
-                var_r29->z = sp1C + (25.0 * sind(var_f27) * sind(var_f22));
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[23]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[23]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[23]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[23]];
+    rowStartX = positionX = -((modelWidth * 0.5f) - 25.0f);
+    baseY = positionY = 25.0f;
+    baseZ = positionZ = -((modelWidth * 0.5f) - 25.0f);
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelHeightExtent / (verticalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[23] != 0) {
+        for (lightId = 0; lightId < 5; lightId++) {
+            for (vertexCount = 0; vertexCount < 5; vertexCount++) {
+                angleDegrees = 180.0f + (90.0f * (vertexCount / 4.0f));
+                secondaryAngleDegrees = 90.0f * (lightId / 4.0f);
+                vector->x = rowStartX + (25.0 * cosd(angleDegrees) * sind(secondaryAngleDegrees));
+                vector->y = baseY - (25.0 * cosd(secondaryAngleDegrees));
+                vector->z = baseZ + (25.0 * sind(angleDegrees) * sind(secondaryAngleDegrees));
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f28 -= var_f18;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionY -= positionStepY;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0x17, 4, 4);
+        InitializeThwompModelData(thwompModel, model, 0x17, 4, 4);
     }
-    var_r29 = &var_r31->unk_17C[var_r31->unk_144[24]];
-    var_r26 = &var_r31->unk_188[var_r31->unk_144[24]];
-    var_r28 = &var_r31->unk_184[var_r31->unk_144[24]];
-    var_r25 = &var_r31->unk_178[var_r31->unk_144[24]];
-    var_f25 = var_f30 = -((0.5f * var_f24) - 25.0f);
-    sp20 = var_f28 = 0.0f;
-    sp1C = var_f26 = (0.5f * var_f24) - 25.0f;
-    var_f19 = var_f31 = 0.0f;
-    sp18 = var_f29 = 0.0f;
-    var_f23 = sp14 / (var_r24 - 1);
-    var_f18 = sp14 / (var_r24 - 1);
-    var_f21 = 1.0f / (var_r31->unk_10E - 1);
-    var_f20 = 1.0f / (var_r31->unk_10E - 1);
-    if (var_r31->unk_112[0x18] != 0) {
-        for (var_r30 = 0; var_r30 < var_r31->unk_10E; var_r30++) {
-            for (var_r27 = 0; var_r27 < var_r31->unk_10E; var_r27++) {
-                var_r29->x = var_f30;
-                var_r29->y = var_f28;
-                var_r29->z = var_f26;
-                var_r28->x = var_f31;
-                var_r28->y = var_f29;
-                var_f30 += var_f23;
-                var_f31 += var_f21;
-                var_r29++;
-                var_r26++;
-                var_r28++;
-                var_r25++;
+    vector = &thwompModel->positionStart[thwompModel->vertexIndexOffsets[24]];
+    vector2 = &thwompModel->positionWork[thwompModel->vertexIndexOffsets[24]];
+    textureCoordinate = &thwompModel->textureCoordinates[thwompModel->vertexIndexOffsets[24]];
+    positionBufferCursor = &thwompModel->positionBuffer[thwompModel->vertexIndexOffsets[24]];
+    rowStartX = positionX = -((0.5f * modelWidth) - 25.0f);
+    baseY = positionY = 0.0f;
+    baseZ = positionZ = (0.5f * modelWidth) - 25.0f;
+    textureUStart = textureU = 0.0f;
+    textureVStart = textureV = 0.0f;
+    positionStepX = modelWidthExtent / (horizontalSegmentCount - 1);
+    positionStepY = modelWidthExtent / (horizontalSegmentCount - 1);
+    textureUStep = 1.0f / (thwompModel->actionIndex - 1);
+    textureVStep = 1.0f / (thwompModel->actionIndex - 1);
+    if (thwompModel->vertexIndexCounts[0x18] != 0) {
+        for (lightId = 0; lightId < thwompModel->actionIndex; lightId++) {
+            for (vertexCount = 0; vertexCount < thwompModel->actionIndex; vertexCount++) {
+                vector->x = positionX;
+                vector->y = positionY;
+                vector->z = positionZ;
+                textureCoordinate->x = textureU;
+                textureCoordinate->y = textureV;
+                positionX += positionStepX;
+                textureU += textureUStep;
+                vector++;
+                vector2++;
+                textureCoordinate++;
+                positionBufferCursor++;
             }
-            var_f30 = var_f25;
-            var_f31 = var_f19;
-            var_f26 = var_f26 - var_f23;
-            var_f29 += var_f20;
+            positionX = rowStartX;
+            textureU = textureUStart;
+            positionZ = positionZ - positionStepX;
+            textureV += textureVStep;
         }
-        fn_1_D9A8(var_r31, var_r23, 0x18, var_r24 - 1, var_r24 - 1);
+        InitializeThwompModelData(thwompModel, model, 0x18, horizontalSegmentCount - 1, horizontalSegmentCount - 1);
     }
-    for (var_r30 = 0; var_r30 < var_r31->unk_110; var_r30++) {
-        for (var_r27 = 0; var_r27 < var_r30; var_r27++) {
-            var_f30 = var_r31->unk_17C[var_r30].x - var_r31->unk_17C[var_r27].x;
-            var_f28 = var_r31->unk_17C[var_r30].y - var_r31->unk_17C[var_r27].y;
-            var_f26 = var_r31->unk_17C[var_r30].z - var_r31->unk_17C[var_r27].z;
-            sp24 = (var_f26 * var_f26) + ((var_f30 * var_f30) + (var_f28 * var_f28));
-            if (sp24 < 10.0f) {
-                var_r31->unk_178[var_r30] = var_r27;
-                if (var_r31->unk_178[var_r27] != -1) {
-                    var_r31->unk_178[var_r30] = var_r31->unk_178[var_r27];
+    for (lightId = 0; lightId < thwompModel->vertexCount; lightId++) {
+        for (vertexCount = 0; vertexCount < lightId; vertexCount++) {
+            positionX = thwompModel->positionStart[lightId].x - thwompModel->positionStart[vertexCount].x;
+            positionY = thwompModel->positionStart[lightId].y - thwompModel->positionStart[vertexCount].y;
+            positionZ = thwompModel->positionStart[lightId].z - thwompModel->positionStart[vertexCount].z;
+            vectorMagnitude = (positionZ * positionZ) + ((positionX * positionX) + (positionY * positionY));
+            if (vectorMagnitude < 10.0f) {
+                thwompModel->positionBuffer[lightId] = vertexCount;
+                if (thwompModel->positionBuffer[vertexCount] != -1) {
+                    thwompModel->positionBuffer[lightId] = thwompModel->positionBuffer[vertexCount];
                 }
                 break;
             }
         }
-        if (var_r27 >= var_r30) {
-            var_r31->unk_178[var_r30] = -1;
+        if (vertexCount >= lightId) {
+            thwompModel->positionBuffer[lightId] = -1;
         }
     }
-    memcpy(var_r31->unk_180, var_r31->unk_17C, var_r31->unk_110 * sizeof(Vec));
-    memcpy(var_r31->unk_198, &var_r31->unk_180[var_r31->unk_144[0]], var_r31->unk_112[0] * sizeof(Vec));
-    var_r31->unk_19C = 0;
-    fn_1_DB44(var_r31, var_r23);
-    fn_1_DE3C(var_r31, var_r23);
-    var_f31 = sqrtf((0.5f * sp8 * (0.5f * sp8)) + ((0.5f * var_f24 * (0.5f * var_f24)) + (0.5f * var_f24 * (0.5f * var_f24))));
-    for (var_r30 = 0; var_r30 < var_r31->unk_110; var_r30++) {
-        var_f30 = var_r31->unk_17C[var_r30].x;
-        var_f28 = var_r31->unk_17C[var_r30].y - (0.5f * sp8);
-        var_f26 = var_r31->unk_17C[var_r30].z;
-        sp24 = sqrtf((var_f26 * var_f26) + ((var_f30 * var_f30) + (var_f28 * var_f28)));
-        var_f27 = sp24;
-        sp24 = 1.0f - (sp24 / var_f31);
-        if (var_f27 != 0.0f) {
-            var_f22 = 1.0f / var_f27;
+    memcpy(thwompModel->positionTarget, thwompModel->positionStart, thwompModel->vertexCount * sizeof(Vec));
+    memcpy(thwompModel->rotationOutput, &thwompModel->positionTarget[thwompModel->vertexIndexOffsets[0]], thwompModel->vertexIndexCounts[0] * sizeof(Vec));
+    thwompModel->workState = 0;
+    UpdateThwompModelVertices(thwompModel, model);
+    BuildThwompModelGeometry(thwompModel, model);
+    textureU = sqrtf((0.5f * modelHeight * (0.5f * modelHeight)) + ((0.5f * modelWidth * (0.5f * modelWidth)) + (0.5f * modelWidth * (0.5f * modelWidth))));
+    for (lightId = 0; lightId < thwompModel->vertexCount; lightId++) {
+        positionX = thwompModel->positionStart[lightId].x;
+        positionY = thwompModel->positionStart[lightId].y - (0.5f * modelHeight);
+        positionZ = thwompModel->positionStart[lightId].z;
+        vectorMagnitude = sqrtf((positionZ * positionZ) + ((positionX * positionX) + (positionY * positionY)));
+        angleDegrees = vectorMagnitude;
+        vectorMagnitude = 1.0f - (vectorMagnitude / textureU);
+        if (angleDegrees != 0.0f) {
+            secondaryAngleDegrees = 1.0f / angleDegrees;
         }
         else {
-            var_f22 = 0.0;
+            secondaryAngleDegrees = 0.0;
         }
-        var_r31->unk_194[var_r30].x = sp24 * (var_f22 * var_r31->unk_17C[var_r30].x);
-        var_r31->unk_194[var_r30].y = sp24 * (var_f22 * var_r31->unk_17C[var_r30].y);
-        var_r31->unk_194[var_r30].z = sp24 * (var_f22 * var_r31->unk_17C[var_r30].z);
+        thwompModel->positionOutput[lightId].x = vectorMagnitude * (secondaryAngleDegrees * thwompModel->positionStart[lightId].x);
+        thwompModel->positionOutput[lightId].y = vectorMagnitude * (secondaryAngleDegrees * thwompModel->positionStart[lightId].y);
+        thwompModel->positionOutput[lightId].z = vectorMagnitude * (secondaryAngleDegrees * thwompModel->positionStart[lightId].z);
     }
-    for (var_r30 = 0; var_r30 < var_r31->unk_110; var_r30++) {
-        if ((((var_r31->unk_112[6] <= 0) || (var_r30 < var_r31->unk_144[6]) || (var_r30 >= (var_r31->unk_144[6] + var_r31->unk_112[6])))
-                && ((var_r31->unk_112[7] <= 0) || (var_r30 < var_r31->unk_144[7]) || (var_r30 >= (var_r31->unk_144[7] + var_r31->unk_112[7])))
-                && ((var_r31->unk_112[0xE] <= 0) || (var_r30 < var_r31->unk_144[0xE]) || (var_r30 >= (var_r31->unk_144[0xE] + var_r31->unk_112[0xE])))
-                && ((var_r31->unk_112[0xF] <= 0) || (var_r30 < var_r31->unk_144[0xF]) || (var_r30 >= (var_r31->unk_144[0xF] + var_r31->unk_112[0xF])))
-                && ((var_r31->unk_112[4] <= 0) || (var_r30 < var_r31->unk_144[4]) || (var_r30 >= (var_r31->unk_144[4] + var_r31->unk_112[4])))
-                && ((var_r31->unk_112[8] <= 0) || (var_r30 < var_r31->unk_144[8]) || (var_r30 >= (var_r31->unk_144[8] + var_r31->unk_112[8])))
-                && ((var_r31->unk_112[0xA] <= 0) || (var_r30 < var_r31->unk_144[0xA]) || (var_r30 >= (var_r31->unk_144[0xA] + var_r31->unk_112[0xA])))
-                && ((var_r31->unk_112[0xC] <= 0) || (var_r30 < var_r31->unk_144[0xC]) || (var_r30 >= (var_r31->unk_144[0xC] + var_r31->unk_112[0xC])))
-                && ((var_r31->unk_112[0x10] <= 0) || (var_r30 < var_r31->unk_144[0x10])
-                    || (var_r30 >= (var_r31->unk_144[0x10] + var_r31->unk_112[0x10])))
-                && ((var_r31->unk_112[0x11] <= 0) || (var_r30 < var_r31->unk_144[0x11])
-                    || (var_r30 >= (var_r31->unk_144[0x11] + var_r31->unk_112[0x11])))
-                && ((var_r31->unk_112[0x14] <= 0) || (var_r30 < var_r31->unk_144[0x14])
-                    || (var_r30 >= (var_r31->unk_144[0x14] + var_r31->unk_112[0x14])))
-                && ((var_r31->unk_112[0x15] <= 0) || (var_r30 < var_r31->unk_144[0x15])
-                    || (var_r30 >= (var_r31->unk_144[0x15] + var_r31->unk_112[0x15])))
-                && (var_r30 >= var_r31->unk_144[4]))
-            || (var_r31->unk_178[var_r30] != -1)) {
-            var_r31->unk_18C[var_r30].x = var_r31->unk_18C[var_r30].y = var_r31->unk_18C[var_r30].z = 0.0;
-            var_r31->unk_190[var_r30][0] = var_r31->unk_190[var_r30][1] = 0;
-            var_r31->unk_190[var_r30][2] = 0;
+    for (lightId = 0; lightId < thwompModel->vertexCount; lightId++) {
+        if ((((thwompModel->vertexIndexCounts[6] <= 0) || (lightId < thwompModel->vertexIndexOffsets[6]) || (lightId >= (thwompModel->vertexIndexOffsets[6] + thwompModel->vertexIndexCounts[6])))
+                && ((thwompModel->vertexIndexCounts[7] <= 0) || (lightId < thwompModel->vertexIndexOffsets[7]) || (lightId >= (thwompModel->vertexIndexOffsets[7] + thwompModel->vertexIndexCounts[7])))
+                && ((thwompModel->vertexIndexCounts[0xE] <= 0) || (lightId < thwompModel->vertexIndexOffsets[0xE]) || (lightId >= (thwompModel->vertexIndexOffsets[0xE] + thwompModel->vertexIndexCounts[0xE])))
+                && ((thwompModel->vertexIndexCounts[0xF] <= 0) || (lightId < thwompModel->vertexIndexOffsets[0xF]) || (lightId >= (thwompModel->vertexIndexOffsets[0xF] + thwompModel->vertexIndexCounts[0xF])))
+                && ((thwompModel->vertexIndexCounts[4] <= 0) || (lightId < thwompModel->vertexIndexOffsets[4]) || (lightId >= (thwompModel->vertexIndexOffsets[4] + thwompModel->vertexIndexCounts[4])))
+                && ((thwompModel->vertexIndexCounts[8] <= 0) || (lightId < thwompModel->vertexIndexOffsets[8]) || (lightId >= (thwompModel->vertexIndexOffsets[8] + thwompModel->vertexIndexCounts[8])))
+                && ((thwompModel->vertexIndexCounts[0xA] <= 0) || (lightId < thwompModel->vertexIndexOffsets[0xA]) || (lightId >= (thwompModel->vertexIndexOffsets[0xA] + thwompModel->vertexIndexCounts[0xA])))
+                && ((thwompModel->vertexIndexCounts[0xC] <= 0) || (lightId < thwompModel->vertexIndexOffsets[0xC]) || (lightId >= (thwompModel->vertexIndexOffsets[0xC] + thwompModel->vertexIndexCounts[0xC])))
+                && ((thwompModel->vertexIndexCounts[0x10] <= 0) || (lightId < thwompModel->vertexIndexOffsets[0x10])
+                    || (lightId >= (thwompModel->vertexIndexOffsets[0x10] + thwompModel->vertexIndexCounts[0x10])))
+                && ((thwompModel->vertexIndexCounts[0x11] <= 0) || (lightId < thwompModel->vertexIndexOffsets[0x11])
+                    || (lightId >= (thwompModel->vertexIndexOffsets[0x11] + thwompModel->vertexIndexCounts[0x11])))
+                && ((thwompModel->vertexIndexCounts[0x14] <= 0) || (lightId < thwompModel->vertexIndexOffsets[0x14])
+                    || (lightId >= (thwompModel->vertexIndexOffsets[0x14] + thwompModel->vertexIndexCounts[0x14])))
+                && ((thwompModel->vertexIndexCounts[0x15] <= 0) || (lightId < thwompModel->vertexIndexOffsets[0x15])
+                    || (lightId >= (thwompModel->vertexIndexOffsets[0x15] + thwompModel->vertexIndexCounts[0x15])))
+                && (lightId >= thwompModel->vertexIndexOffsets[4]))
+            || (thwompModel->positionBuffer[lightId] != -1)) {
+            thwompModel->rotationWork[lightId].x = thwompModel->rotationWork[lightId].y = thwompModel->rotationWork[lightId].z = 0.0;
+            thwompModel->displayListIndices[lightId][0] = thwompModel->displayListIndices[lightId][1] = 0;
+            thwompModel->displayListIndices[lightId][2] = 0;
         }
-        else if (((var_r31->unk_112[0] > 0) && (var_r30 >= var_r31->unk_144[0]) && (var_r30 < (var_r31->unk_144[0] + var_r31->unk_112[0])))
-            || ((var_r31->unk_112[4] > 0) && (var_r30 >= var_r31->unk_144[4]) && (var_r30 < (var_r31->unk_144[4] + var_r31->unk_112[4])))
-            || ((var_r31->unk_112[8] > 0) && (var_r30 >= var_r31->unk_144[8]) && (var_r30 < (var_r31->unk_144[8] + var_r31->unk_112[8])))
-            || ((var_r31->unk_112[0xA] > 0) && (var_r30 >= var_r31->unk_144[0xA]) && (var_r30 < (var_r31->unk_144[0xA] + var_r31->unk_112[0xA])))
-            || ((var_r31->unk_112[0xC] > 0) && (var_r30 >= var_r31->unk_144[0xC]) && (var_r30 < (var_r31->unk_144[0xC] + var_r31->unk_112[0xC])))
-            || ((var_r31->unk_112[0x10] > 0) && (var_r30 >= var_r31->unk_144[0x10]) && (var_r30 < (var_r31->unk_144[0x10] + var_r31->unk_112[0x10])))
-            || ((var_r31->unk_112[0x11] > 0) && (var_r30 >= var_r31->unk_144[0x11]) && (var_r30 < (var_r31->unk_144[0x11] + var_r31->unk_112[0x11])))
-            || ((var_r31->unk_112[0x14] > 0) && (var_r30 >= var_r31->unk_144[0x14]) && (var_r30 < (var_r31->unk_144[0x14] + var_r31->unk_112[0x14])))
-            || ((var_r31->unk_112[0x15] > 0) && (var_r30 >= var_r31->unk_144[0x15])
-                && (var_r30 < (var_r31->unk_144[0x15] + var_r31->unk_112[0x15])))) {
-            *var_r31->unk_190[var_r30] = var_r31->unk_190[var_r30][1] = 0;
-            sp24 = sqrtf((var_r31->unk_17C[var_r30].x * var_r31->unk_17C[var_r30].x) + (var_r31->unk_17C[var_r30].z * var_r31->unk_17C[var_r30].z));
-            var_f27 = sp24;
-            sp24 = 1.0f - (sp24 / sqrtf(var_f24 * var_f24));
-            var_r31->unk_18C[var_r30].y = -(180.0f * sp24);
-            var_f27 = sqrtf(var_f27);
-            if (var_f27 != 0.0f) {
-                var_f22 = 1.0f / var_f27;
+        else if (((thwompModel->vertexIndexCounts[0] > 0) && (lightId >= thwompModel->vertexIndexOffsets[0]) && (lightId < (thwompModel->vertexIndexOffsets[0] + thwompModel->vertexIndexCounts[0])))
+            || ((thwompModel->vertexIndexCounts[4] > 0) && (lightId >= thwompModel->vertexIndexOffsets[4]) && (lightId < (thwompModel->vertexIndexOffsets[4] + thwompModel->vertexIndexCounts[4])))
+            || ((thwompModel->vertexIndexCounts[8] > 0) && (lightId >= thwompModel->vertexIndexOffsets[8]) && (lightId < (thwompModel->vertexIndexOffsets[8] + thwompModel->vertexIndexCounts[8])))
+            || ((thwompModel->vertexIndexCounts[0xA] > 0) && (lightId >= thwompModel->vertexIndexOffsets[0xA]) && (lightId < (thwompModel->vertexIndexOffsets[0xA] + thwompModel->vertexIndexCounts[0xA])))
+            || ((thwompModel->vertexIndexCounts[0xC] > 0) && (lightId >= thwompModel->vertexIndexOffsets[0xC]) && (lightId < (thwompModel->vertexIndexOffsets[0xC] + thwompModel->vertexIndexCounts[0xC])))
+            || ((thwompModel->vertexIndexCounts[0x10] > 0) && (lightId >= thwompModel->vertexIndexOffsets[0x10]) && (lightId < (thwompModel->vertexIndexOffsets[0x10] + thwompModel->vertexIndexCounts[0x10])))
+            || ((thwompModel->vertexIndexCounts[0x11] > 0) && (lightId >= thwompModel->vertexIndexOffsets[0x11]) && (lightId < (thwompModel->vertexIndexOffsets[0x11] + thwompModel->vertexIndexCounts[0x11])))
+            || ((thwompModel->vertexIndexCounts[0x14] > 0) && (lightId >= thwompModel->vertexIndexOffsets[0x14]) && (lightId < (thwompModel->vertexIndexOffsets[0x14] + thwompModel->vertexIndexCounts[0x14])))
+            || ((thwompModel->vertexIndexCounts[0x15] > 0) && (lightId >= thwompModel->vertexIndexOffsets[0x15])
+                && (lightId < (thwompModel->vertexIndexOffsets[0x15] + thwompModel->vertexIndexCounts[0x15])))) {
+            *thwompModel->displayListIndices[lightId] = thwompModel->displayListIndices[lightId][1] = 0;
+            vectorMagnitude = sqrtf((thwompModel->positionStart[lightId].x * thwompModel->positionStart[lightId].x) + (thwompModel->positionStart[lightId].z * thwompModel->positionStart[lightId].z));
+            angleDegrees = vectorMagnitude;
+            vectorMagnitude = 1.0f - (vectorMagnitude / sqrtf(modelWidth * modelWidth));
+            thwompModel->rotationWork[lightId].y = -(180.0f * vectorMagnitude);
+            angleDegrees = sqrtf(angleDegrees);
+            if (angleDegrees != 0.0f) {
+                secondaryAngleDegrees = 1.0f / angleDegrees;
             }
             else {
-                var_f22 = 0.0;
+                secondaryAngleDegrees = 0.0;
             }
-            var_r31->unk_18C[var_r30].x = sind((180.0f * (var_f22 * var_r31->unk_17C[var_r30].x)));
-            var_r31->unk_18C[var_r30].z = sind((180.0f * (var_f22 * var_r31->unk_17C[var_r30].z)));
-            var_r31->unk_18C[var_r30].x *= 20.0f * -(1.0f - sp24);
-            var_r31->unk_18C[var_r30].z *= (20.0f * -(1.0f - sp24));
-            var_r31->unk_190[var_r30][2] = 1;
+            thwompModel->rotationWork[lightId].x = sind((180.0f * (secondaryAngleDegrees * thwompModel->positionStart[lightId].x)));
+            thwompModel->rotationWork[lightId].z = sind((180.0f * (secondaryAngleDegrees * thwompModel->positionStart[lightId].z)));
+            thwompModel->rotationWork[lightId].x *= 20.0f * -(1.0f - vectorMagnitude);
+            thwompModel->rotationWork[lightId].z *= (20.0f * -(1.0f - vectorMagnitude));
+            thwompModel->displayListIndices[lightId][2] = 1;
         }
         else {
-            sp24 = sqrtf((var_r31->unk_17C[var_r30].x * var_r31->unk_17C[var_r30].x) + (var_r31->unk_17C[var_r30].z * var_r31->unk_17C[var_r30].z));
-            if (sp24 != 0.0f) {
-                sp24 = 1.0f / sp24;
+            vectorMagnitude = sqrtf((thwompModel->positionStart[lightId].x * thwompModel->positionStart[lightId].x) + (thwompModel->positionStart[lightId].z * thwompModel->positionStart[lightId].z));
+            if (vectorMagnitude != 0.0f) {
+                vectorMagnitude = 1.0f / vectorMagnitude;
             }
             else {
-                sp24 = 0.0f;
+                vectorMagnitude = 0.0f;
             }
-            var_r31->unk_18C[var_r30].x = -(sp24 * var_r31->unk_17C[var_r30].x);
-            var_r31->unk_18C[var_r30].z = -(sp24 * var_r31->unk_17C[var_r30].z);
-            var_r31->unk_18C[var_r30].y = 0.0;
-            var_f27 = 180.0 + atan2d(var_r31->unk_17C[var_r30].x, var_r31->unk_17C[var_r30].z);
-            if (var_f27 > 360.0f) {
-                var_f27 = fmod(var_f27, 360.0);
+            thwompModel->rotationWork[lightId].x = -(vectorMagnitude * thwompModel->positionStart[lightId].x);
+            thwompModel->rotationWork[lightId].z = -(vectorMagnitude * thwompModel->positionStart[lightId].z);
+            thwompModel->rotationWork[lightId].y = 0.0;
+            angleDegrees = 180.0 + atan2d(thwompModel->positionStart[lightId].x, thwompModel->positionStart[lightId].z);
+            if (angleDegrees > 360.0f) {
+                angleDegrees = fmod(angleDegrees, 360.0);
             }
-            else if (var_f27 < 0.0f) {
-                var_f27 += 360.0f;
+            else if (angleDegrees < 0.0f) {
+                angleDegrees += 360.0f;
             }
-            var_f27 = 255.0f * (0.0027777778f * var_f27);
-            if (var_f27 >= 255.0f) {
-                var_f27 = 255.0f;
+            angleDegrees = 255.0f * (0.0027777778f * angleDegrees);
+            if (angleDegrees >= 255.0f) {
+                angleDegrees = 255.0f;
             }
-            else if (var_f27 < 0.0f) {
-                var_f27 = 0.0;
+            else if (angleDegrees < 0.0f) {
+                angleDegrees = 0.0;
             }
-            var_f22 = 64.0f * (var_r31->unk_17C[var_r30].y / sp8);
-            if (var_f22 >= 63.0f) {
-                var_f22 = 63.0f;
+            secondaryAngleDegrees = 64.0f * (thwompModel->positionStart[lightId].y / modelHeight);
+            if (secondaryAngleDegrees >= 63.0f) {
+                secondaryAngleDegrees = 63.0f;
             }
-            else if (var_f22 < 0.0f) {
-                var_f22 = 0.0;
+            else if (secondaryAngleDegrees < 0.0f) {
+                secondaryAngleDegrees = 0.0;
             }
-            var_r31->unk_190[var_r30][0] = var_f27;
-            var_r31->unk_190[var_r30][1] = var_f22;
-            var_r31->unk_190[var_r30][2] = 2;
+            thwompModel->displayListIndices[lightId][0] = angleDegrees;
+            thwompModel->displayListIndices[lightId][1] = secondaryAngleDegrees;
+            thwompModel->displayListIndices[lightId][2] = 2;
         }
     }
-    DCFlushRangeNoSync(var_r31->unk_180, var_r31->unk_110 * sizeof(Vec));
-    DCFlushRangeNoSync(var_r31->unk_17C, var_r31->unk_110 * sizeof(Vec));
-    DCFlushRangeNoSync(var_r31->unk_188, var_r31->unk_110 * sizeof(Vec));
-    DCFlushRangeNoSync(var_r31->unk_184, var_r31->unk_110 * sizeof(Vec2f));
-    DCFlushRangeNoSync(var_r31->unk_178, var_r31->unk_110 * 2);
+    DCFlushRangeNoSync(thwompModel->positionTarget, thwompModel->vertexCount * sizeof(Vec));
+    DCFlushRangeNoSync(thwompModel->positionStart, thwompModel->vertexCount * sizeof(Vec));
+    DCFlushRangeNoSync(thwompModel->positionWork, thwompModel->vertexCount * sizeof(Vec));
+    DCFlushRangeNoSync(thwompModel->textureCoordinates, thwompModel->vertexCount * sizeof(Vec2f));
+    DCFlushRangeNoSync(thwompModel->positionBuffer, thwompModel->vertexCount * 2);
     PPCSync();
-    for (var_r21 = 0; var_r21 < 0x19; var_r21++) {
-        if ((var_r31->unk_208[var_r21] != 0) && var_r31->unk_1A4[var_r21] && (var_r31->unk_112[var_r21] != 0)) {
-            var_r17 = HuMemDirectMallocNum(HEAP_MODEL, 0x4000, var_r23->mallocNo);
-            spC = var_r17;
-            (void)var_r18;
-            DCFlushRange(var_r17, 0x4000);
-            GXBeginDisplayList(spC, 0x4000);
-            GXBegin(GX_QUADS, GX_VTXFMT0, var_r31->unk_208[var_r21] * 4);
-            var_r20 = var_r31->unk_1A4[var_r21];
-            for (var_r30 = 0; var_r30 < var_r31->unk_208[var_r21]; var_r30++) {
-                for (var_r27 = 0; var_r27 < 4; var_r27++) {
-                    if (var_r31->unk_178[var_r20[var_r27]] == -1) {
-                        var_r18 = var_r20[var_r27];
+    for (vertexIndex = 0; vertexIndex < 0x19; vertexIndex++) {
+        if ((thwompModel->vertexBufferCounts[vertexIndex] != 0) && thwompModel->vertexBuffers[vertexIndex] && (thwompModel->vertexIndexCounts[vertexIndex] != 0)) {
+            displayListAllocation = HuMemDirectMallocNum(HEAP_MODEL, 0x4000, model->mallocNo);
+            displayListBuffer = displayListAllocation;
+            (void)hookId;
+            DCFlushRange(displayListAllocation, 0x4000);
+            GXBeginDisplayList(displayListBuffer, 0x4000);
+            GXBegin(GX_QUADS, GX_VTXFMT0, thwompModel->vertexBufferCounts[vertexIndex] * 4);
+            vertexIndexBuffer = thwompModel->vertexBuffers[vertexIndex];
+            for (lightId = 0; lightId < thwompModel->vertexBufferCounts[vertexIndex]; lightId++) {
+                for (vertexCount = 0; vertexCount < 4; vertexCount++) {
+                    if (thwompModel->positionBuffer[vertexIndexBuffer[vertexCount]] == -1) {
+                        hookId = vertexIndexBuffer[vertexCount];
                     }
                     else {
-                        var_r18 = var_r31->unk_178[var_r20[var_r27]];
+                        hookId = thwompModel->positionBuffer[vertexIndexBuffer[vertexCount]];
                     }
-                    GXPosition1x16(var_r18);
-                    GXNormal1x16(var_r18);
+                    GXPosition1x16(hookId);
+                    GXNormal1x16(hookId);
                     GXColor1x16(0);
-                    GXTexCoord1x16(var_r20[var_r27]);
+                    GXTexCoord1x16(vertexIndexBuffer[vertexCount]);
                 }
-                var_r20 += 5;
+                vertexIndexBuffer += 5;
             }
-            var_r31->unk_244[var_r21] = GXEndDisplayList();
-            if (var_r31->unk_244[var_r21] >= 0x4000) {
+            thwompModel->displayListSizes[vertexIndex] = GXEndDisplayList();
+            if (thwompModel->displayListSizes[vertexIndex] >= 0x4000) {
                 OSReport("ERROR! GList test size over! \n");
             }
-            var_r31->unk_2A8[var_r21] = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_244[var_r21], var_r23->mallocNo);
-            memcpy(var_r31->unk_2A8[var_r21], var_r17, var_r31->unk_244[var_r21]);
-            DCFlushRange(var_r31->unk_2A8[var_r21], var_r31->unk_244[var_r21]);
-            HuMemDirectFree(var_r17);
+            thwompModel->displayLists[vertexIndex] = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->displayListSizes[vertexIndex], model->mallocNo);
+            memcpy(thwompModel->displayLists[vertexIndex], displayListAllocation, thwompModel->displayListSizes[vertexIndex]);
+            DCFlushRange(thwompModel->displayLists[vertexIndex], thwompModel->displayListSizes[vertexIndex]);
+            HuMemDirectFree(displayListAllocation);
         }
     }
-    return var_r19;
+    return modelId;
 }
 
-void fn_1_D9A8(M425DllUnkStruct4 *var_r31, HU3DMODEL *var_r24, s32 var_r30, s32 var_r26, s32 var_r25)
+void InitializeThwompModelData(M425ThwompModelWork *thwompModel, HU3DMODEL *model, s32 surfaceIndex, s32 horizontalSegmentCount, s32 verticalSegmentCount)
 {
-    s16 *var_r29;
-    s32 var_r28;
-    s32 var_r27;
+    s16 *vertexIndices;
+    s32 verticalSegment;
+    s32 horizontalSegment;
 
-    var_r31->unk_208[var_r30] = var_r26 * var_r25;
-    var_r31->unk_1A4[var_r30] = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_208[var_r30] * 10, var_r24->mallocNo);
-    memset(var_r31->unk_1A4[var_r30], 0, var_r31->unk_208[var_r30] * 10);
-    var_r29 = var_r31->unk_1A4[var_r30];
-    for (var_r28 = 0; var_r28 < var_r25; var_r28++) {
-        for (var_r27 = 0; var_r27 < var_r26; var_r27++) {
-            var_r29[0] = var_r31->unk_144[var_r30] + (var_r26 + 1) * var_r28 + var_r27;
-            var_r29[1] = var_r31->unk_144[var_r30] + (var_r26 + 1) * var_r28 + (var_r27 + 1);
-            var_r29[2] = var_r31->unk_144[var_r30] + (var_r26 + 1) * (var_r28 + 1) + (var_r27 + 1);
-            var_r29[3] = var_r31->unk_144[var_r30] + (var_r26 + 1) * (var_r28 + 1) + var_r27;
-            var_r29 += 5;
+    thwompModel->vertexBufferCounts[surfaceIndex] = horizontalSegmentCount * verticalSegmentCount;
+    thwompModel->vertexBuffers[surfaceIndex] = HuMemDirectMallocNum(HEAP_MODEL, thwompModel->vertexBufferCounts[surfaceIndex] * 10, model->mallocNo);
+    memset(thwompModel->vertexBuffers[surfaceIndex], 0, thwompModel->vertexBufferCounts[surfaceIndex] * 10);
+    vertexIndices = thwompModel->vertexBuffers[surfaceIndex];
+    for (verticalSegment = 0; verticalSegment < verticalSegmentCount; verticalSegment++) {
+        for (horizontalSegment = 0; horizontalSegment < horizontalSegmentCount; horizontalSegment++) {
+            vertexIndices[0] = thwompModel->vertexIndexOffsets[surfaceIndex] + (horizontalSegmentCount + 1) * verticalSegment + horizontalSegment;
+            vertexIndices[1] = thwompModel->vertexIndexOffsets[surfaceIndex] + (horizontalSegmentCount + 1) * verticalSegment + (horizontalSegment + 1);
+            vertexIndices[2] = thwompModel->vertexIndexOffsets[surfaceIndex] + (horizontalSegmentCount + 1) * (verticalSegment + 1) + (horizontalSegment + 1);
+            vertexIndices[3] = thwompModel->vertexIndexOffsets[surfaceIndex] + (horizontalSegmentCount + 1) * (verticalSegment + 1) + horizontalSegment;
+            vertexIndices += 5;
         }
     }
-    DCFlushRangeNoSync(var_r31->unk_1A4[var_r30], var_r31->unk_208[var_r30] * 10);
+    DCFlushRangeNoSync(thwompModel->vertexBuffers[surfaceIndex], thwompModel->vertexBufferCounts[surfaceIndex] * 10);
     PPCSync();
 }
 
-void fn_1_DB44(M425DllUnkStruct4 *arg0, HU3DMODEL *model)
+void UpdateThwompModelVertices(M425ThwompModelWork *thwompModel, HU3DMODEL *model)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    s16 *var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
+    float edgeDeltaX;
+    float edgeDeltaY;
+    float edgeDeltaZ;
+    float edgeLengthSquared;
+    s16 *vertexIndices;
+    s32 surfaceIndex;
+    s32 polygonIndex;
+    s32 cornerIndex;
 
-    for (var_r30 = 0; var_r30 < 0x19; var_r30++) {
-        if ((arg0->unk_208[var_r30] != 0) && arg0->unk_1A4[var_r30]) {
-            for (var_r31 = arg0->unk_1A4[var_r30], var_r29 = 0; var_r29 < arg0->unk_208[var_r30]; var_r29++, var_r31 += 0x5) {
-                for (var_r28 = 0; var_r28 < 4; var_r28++) {
-                    if (arg0->unk_178[var_r31[var_r28]] != -1) {
-                        var_r31[var_r28] = arg0->unk_178[var_r31[var_r28]];
+    for (surfaceIndex = 0; surfaceIndex < 0x19; surfaceIndex++) {
+        if ((thwompModel->vertexBufferCounts[surfaceIndex] != 0) && thwompModel->vertexBuffers[surfaceIndex]) {
+            for (vertexIndices = thwompModel->vertexBuffers[surfaceIndex], polygonIndex = 0; polygonIndex < thwompModel->vertexBufferCounts[surfaceIndex]; polygonIndex++, vertexIndices += 0x5) {
+                for (cornerIndex = 0; cornerIndex < 4; cornerIndex++) {
+                    if (thwompModel->positionBuffer[vertexIndices[cornerIndex]] != -1) {
+                        vertexIndices[cornerIndex] = thwompModel->positionBuffer[vertexIndices[cornerIndex]];
                     }
                 }
             }
         }
     }
-    for (var_r30 = 0; var_r30 < 0x19; var_r30++) {
-        if ((arg0->unk_208[var_r30] != 0) && arg0->unk_1A4[var_r30]) {
-            for (var_r31 = arg0->unk_1A4[var_r30], var_r29 = 0; var_r29 < arg0->unk_208[var_r30]; var_r29++, var_r31 += 0x5) {
-                var_f31 = arg0->unk_17C[var_r31[0]].x - arg0->unk_17C[var_r31[1]].x;
-                var_f30 = arg0->unk_17C[var_r31[0]].y - arg0->unk_17C[var_r31[1]].y;
-                var_f29 = arg0->unk_17C[var_r31[0]].z - arg0->unk_17C[var_r31[1]].z;
-                var_f28 = (var_f29 * var_f29) + ((var_f31 * var_f31) + (var_f30 * var_f30));
-                if (var_f28 < 10.0f) {
-                    var_r31[4] = 1;
+    for (surfaceIndex = 0; surfaceIndex < 0x19; surfaceIndex++) {
+        if ((thwompModel->vertexBufferCounts[surfaceIndex] != 0) && thwompModel->vertexBuffers[surfaceIndex]) {
+            for (vertexIndices = thwompModel->vertexBuffers[surfaceIndex], polygonIndex = 0; polygonIndex < thwompModel->vertexBufferCounts[surfaceIndex]; polygonIndex++, vertexIndices += 0x5) {
+                edgeDeltaX = thwompModel->positionStart[vertexIndices[0]].x - thwompModel->positionStart[vertexIndices[1]].x;
+                edgeDeltaY = thwompModel->positionStart[vertexIndices[0]].y - thwompModel->positionStart[vertexIndices[1]].y;
+                edgeDeltaZ = thwompModel->positionStart[vertexIndices[0]].z - thwompModel->positionStart[vertexIndices[1]].z;
+                edgeLengthSquared = (edgeDeltaZ * edgeDeltaZ) + ((edgeDeltaX * edgeDeltaX) + (edgeDeltaY * edgeDeltaY));
+                if (edgeLengthSquared < 10.0f) {
+                    vertexIndices[4] = 1;
                 }
                 else {
-                    var_f31 = arg0->unk_17C[var_r31[0]].x - arg0->unk_17C[var_r31[2]].x;
-                    var_f30 = arg0->unk_17C[var_r31[0]].y - arg0->unk_17C[var_r31[2]].y;
-                    var_f29 = arg0->unk_17C[var_r31[0]].z - arg0->unk_17C[var_r31[2]].z;
-                    var_f28 = (var_f29 * var_f29) + ((var_f31 * var_f31) + (var_f30 * var_f30));
-                    if (var_f28 < 10.0f) {
-                        var_r31[4] = 2;
+                    edgeDeltaX = thwompModel->positionStart[vertexIndices[0]].x - thwompModel->positionStart[vertexIndices[2]].x;
+                    edgeDeltaY = thwompModel->positionStart[vertexIndices[0]].y - thwompModel->positionStart[vertexIndices[2]].y;
+                    edgeDeltaZ = thwompModel->positionStart[vertexIndices[0]].z - thwompModel->positionStart[vertexIndices[2]].z;
+                    edgeLengthSquared = (edgeDeltaZ * edgeDeltaZ) + ((edgeDeltaX * edgeDeltaX) + (edgeDeltaY * edgeDeltaY));
+                    if (edgeLengthSquared < 10.0f) {
+                        vertexIndices[4] = 2;
                     }
                     else {
-                        var_r31[4] = 0;
+                        vertexIndices[4] = 0;
                     }
                 }
             }
@@ -1607,381 +1607,381 @@ void fn_1_DB44(M425DllUnkStruct4 *arg0, HU3DMODEL *model)
     }
 }
 
-void fn_1_DE3C(M425DllUnkStruct4 *arg0, HU3DMODEL *model)
+void BuildThwompModelGeometry(M425ThwompModelWork *thwompModel, HU3DMODEL *model)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    s32 var_r30;
-    s32 var_r29;
-    s16 *var_r28;
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r25;
-    s32 var_r24;
+    Vec vector;
+    Vec vector2;
+    Vec vector3;
+    s32 surfaceIndex;
+    s32 triangleIndexB;
+    s16 *vertexIndices;
+    s32 triangleIndexA;
+    s32 triangleIndexC;
+    s32 triangleIndexD;
+    s32 polygonIndex;
 
-    memset(arg0->unk_188, 0, arg0->unk_110 * sizeof(Vec));
-    for (var_r30 = 0; var_r30 < arg0->unk_240; var_r30++) {
-        if ((arg0->unk_208[var_r30] != 0) && arg0->unk_1A4[var_r30]) {
-            for (var_r28 = arg0->unk_1A4[var_r30], var_r24 = 0; var_r24 < arg0->unk_208[var_r30]; var_r24++, var_r28 += 5) {
-                switch (var_r28[4]) {
+    memset(thwompModel->positionWork, 0, thwompModel->vertexCount * sizeof(Vec));
+    for (surfaceIndex = 0; surfaceIndex < thwompModel->surfaceCount; surfaceIndex++) {
+        if ((thwompModel->vertexBufferCounts[surfaceIndex] != 0) && thwompModel->vertexBuffers[surfaceIndex]) {
+            for (vertexIndices = thwompModel->vertexBuffers[surfaceIndex], polygonIndex = 0; polygonIndex < thwompModel->vertexBufferCounts[surfaceIndex]; polygonIndex++, vertexIndices += 5) {
+                switch (vertexIndices[4]) {
                     case 1:
-                        var_r27 = 0;
-                        var_r29 = 2;
-                        var_r26 = 3;
-                        var_r25 = 1;
+                        triangleIndexA = 0;
+                        triangleIndexB = 2;
+                        triangleIndexC = 3;
+                        triangleIndexD = 1;
                         break;
                     case 2:
-                        var_r27 = 0;
-                        var_r29 = 1;
-                        var_r26 = 3;
-                        var_r25 = 2;
+                        triangleIndexA = 0;
+                        triangleIndexB = 1;
+                        triangleIndexC = 3;
+                        triangleIndexD = 2;
                         break;
                     default:
-                        var_r27 = 0;
-                        var_r29 = 1;
-                        var_r26 = 2;
-                        var_r25 = 3;
+                        triangleIndexA = 0;
+                        triangleIndexB = 1;
+                        triangleIndexC = 2;
+                        triangleIndexD = 3;
                         break;
                 }
-                var_r27 = var_r28[var_r27];
-                var_r29 = var_r28[var_r29];
-                var_r26 = var_r28[var_r26];
-                var_r25 = var_r28[var_r25];
-                sp14.x = arg0->unk_180[var_r29].x - arg0->unk_180[var_r27].x;
-                sp14.y = arg0->unk_180[var_r29].y - arg0->unk_180[var_r27].y;
-                sp14.z = arg0->unk_180[var_r29].z - arg0->unk_180[var_r27].z;
-                sp8.x = arg0->unk_180[var_r26].x - arg0->unk_180[var_r29].x;
-                sp8.y = arg0->unk_180[var_r26].y - arg0->unk_180[var_r29].y;
-                sp8.z = arg0->unk_180[var_r26].z - arg0->unk_180[var_r29].z;
-                VECCrossProduct(&sp14, &sp8, &sp20);
-                sp20.x *= -1.0f;
-                sp20.y *= -1.0f;
-                sp20.z *= -1.0f;
-                arg0->unk_188[var_r27].x += sp20.x;
-                arg0->unk_188[var_r27].y += sp20.y;
-                arg0->unk_188[var_r27].z += sp20.z;
-                arg0->unk_188[var_r29].x += sp20.x;
-                arg0->unk_188[var_r29].y += sp20.y;
-                arg0->unk_188[var_r29].z += sp20.z;
-                arg0->unk_188[var_r26].x += sp20.x;
-                arg0->unk_188[var_r26].y += sp20.y;
-                arg0->unk_188[var_r26].z += sp20.z;
-                arg0->unk_188[var_r25].x += sp20.x;
-                arg0->unk_188[var_r25].y += sp20.y;
-                arg0->unk_188[var_r25].z += sp20.z;
+                triangleIndexA = vertexIndices[triangleIndexA];
+                triangleIndexB = vertexIndices[triangleIndexB];
+                triangleIndexC = vertexIndices[triangleIndexC];
+                triangleIndexD = vertexIndices[triangleIndexD];
+                vector2.x = thwompModel->positionTarget[triangleIndexB].x - thwompModel->positionTarget[triangleIndexA].x;
+                vector2.y = thwompModel->positionTarget[triangleIndexB].y - thwompModel->positionTarget[triangleIndexA].y;
+                vector2.z = thwompModel->positionTarget[triangleIndexB].z - thwompModel->positionTarget[triangleIndexA].z;
+                vector3.x = thwompModel->positionTarget[triangleIndexC].x - thwompModel->positionTarget[triangleIndexB].x;
+                vector3.y = thwompModel->positionTarget[triangleIndexC].y - thwompModel->positionTarget[triangleIndexB].y;
+                vector3.z = thwompModel->positionTarget[triangleIndexC].z - thwompModel->positionTarget[triangleIndexB].z;
+                VECCrossProduct(&vector2, &vector3, &vector);
+                vector.x *= -1.0f;
+                vector.y *= -1.0f;
+                vector.z *= -1.0f;
+                thwompModel->positionWork[triangleIndexA].x += vector.x;
+                thwompModel->positionWork[triangleIndexA].y += vector.y;
+                thwompModel->positionWork[triangleIndexA].z += vector.z;
+                thwompModel->positionWork[triangleIndexB].x += vector.x;
+                thwompModel->positionWork[triangleIndexB].y += vector.y;
+                thwompModel->positionWork[triangleIndexB].z += vector.z;
+                thwompModel->positionWork[triangleIndexC].x += vector.x;
+                thwompModel->positionWork[triangleIndexC].y += vector.y;
+                thwompModel->positionWork[triangleIndexC].z += vector.z;
+                thwompModel->positionWork[triangleIndexD].x += vector.x;
+                thwompModel->positionWork[triangleIndexD].y += vector.y;
+                thwompModel->positionWork[triangleIndexD].z += vector.z;
             }
         }
     }
-    for (var_r30 = 0; var_r30 < arg0->unk_110; var_r30++) {
-        VECNormalize(&arg0->unk_188[var_r30], &arg0->unk_188[var_r30]);
+    for (surfaceIndex = 0; surfaceIndex < thwompModel->vertexCount; surfaceIndex++) {
+        VECNormalize(&thwompModel->positionWork[surfaceIndex], &thwompModel->positionWork[surfaceIndex]);
     }
 }
 
-s32 lbl_1_data_150[3][2] = { { 0x638, 0x63B }, { 0x639, 0x63C }, { 0x63A, 0x63D } };
-GXColor lbl_1_data_168 = { 255, 255, 255, 255 };
-Mtx lbl_1_data_16C = {
+s32 thwompModelResourceIds[3][2] = { { 0x638, 0x63B }, { 0x639, 0x63C }, { 0x63A, 0x63D } };
+GXColor thwompModelColor = { 255, 255, 255, 255 };
+Mtx thwompModelMatrix = {
     { 0.5f, 0.0f, 0.0f, -0.5f },
     { 0.0f, 0.5f, 0.0f, -0.5f },
     { 0.0f, 0.0f, 0.5f, -0.5f },
 };
-Vec lbl_1_data_19C[4] = {
+Vec thwompQuadVertices[4] = {
     { -0.5f, 0.5f, 0.0f },
     { 0.5f, 0.5f, 0.0f },
     { 0.5f, -0.5f, 0.0f },
     { -0.5f, -0.5f, 0.0f },
 };
-Vec2f lbl_1_data_1CC[4] = {
+Vec2f thwompTextureCoordinates[4] = {
     { 0.0f, 0.0f },
     { 0.25f, 0.0f },
     { 0.25f, 0.25f },
     { 0.0f, 0.25f },
 };
 
-void fn_1_E210(s32 arg0)
+void SetThwompAnimationState(s32 modelIndex)
 {
-    Vec sp8;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    M425DllUnkStruct4 *var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    HU3DLIGHT *var_r28;
-    HU3DMODEL *var_r27;
-    s32 var_r26;
+    Vec vector;
+    float totalMotionTime;
+    float pitchScale;
+    float motionWeight;
+    M425ThwompModelWork *thwompModel;
+    s32 motionSlot;
+    s32 animationSlot;
+    HU3DLIGHT *light;
+    HU3DMODEL *model;
+    s32 soundEffectId;
 
-    if (lbl_1_bss_6EC) {
-        var_r27 = &Hu3DData[lbl_1_bss_6EC->mdlId[arg0]];
-        var_r31 = var_r27->hookData;
-        for (var_r30 = 0, var_f31 = 0.0f; var_r30 < 6; var_r30++) {
-            if ((var_r31->unk_84[var_r30] == -1) || (var_r31->unk_9C[var_r30] < 0.0f)) {
-                var_r31->unk_84[var_r30] = -1;
-                var_r31->unk_9C[var_r30] = 0.0f;
+    if (thwompObject) {
+        model = &Hu3DData[thwompObject->mdlId[modelIndex]];
+        thwompModel = model->hookData;
+        for (motionSlot = 0, totalMotionTime = 0.0f; motionSlot < 6; motionSlot++) {
+            if ((thwompModel->motionStates[motionSlot] == -1) || (thwompModel->motionTimers[motionSlot] < 0.0f)) {
+                thwompModel->motionStates[motionSlot] = -1;
+                thwompModel->motionTimers[motionSlot] = 0.0f;
             }
             else {
-                var_f31 += var_r31->unk_9C[var_r30];
-                for (var_r29 = 0; var_r29 < 5; var_r29++) {
-                    if (var_r31->unk_3C[var_r29] == var_r31->unk_84[var_r30]) {
+                totalMotionTime += thwompModel->motionTimers[motionSlot];
+                for (animationSlot = 0; animationSlot < 5; animationSlot++) {
+                    if (thwompModel->activeMotionIds[animationSlot] == thwompModel->motionStates[motionSlot]) {
                         break;
                     }
                 }
-                if (var_r29 >= 5) {
-                    for (var_r29 = 0; var_r29 < 5; var_r29++) {
-                        if ((var_r31->unk_3C[var_r29] == -1) && (var_r31->unk_54[var_r29] <= 0.0f)) {
+                if (animationSlot >= 5) {
+                    for (animationSlot = 0; animationSlot < 5; animationSlot++) {
+                        if ((thwompModel->activeMotionIds[animationSlot] == -1) && (thwompModel->activeMotionTimers[animationSlot] <= 0.0f)) {
                             break;
                         }
                     }
                 }
-                if ((var_r29 < 5) && (var_r31->unk_54[var_r29] < var_r31->unk_9C[var_r30])) {
-                    var_r31->unk_3C[var_r29] = var_r31->unk_84[var_r30];
-                    var_r31->unk_54[var_r29] = var_r31->unk_9C[var_r30];
-                    var_r31->unk_6C[var_r29] = var_r31->unk_B4[var_r30];
+                if ((animationSlot < 5) && (thwompModel->activeMotionTimers[animationSlot] < thwompModel->motionTimers[motionSlot])) {
+                    thwompModel->activeMotionIds[animationSlot] = thwompModel->motionStates[motionSlot];
+                    thwompModel->activeMotionTimers[animationSlot] = thwompModel->motionTimers[motionSlot];
+                    thwompModel->animationIds[animationSlot] = thwompModel->animationTextureIds[motionSlot];
                 }
-                var_r31->unk_84[var_r30] = -1;
-                var_r31->unk_9C[var_r30] = 0.0f;
-                var_r31->unk_B4[var_r30] = 0;
+                thwompModel->motionStates[motionSlot] = -1;
+                thwompModel->motionTimers[motionSlot] = 0.0f;
+                thwompModel->animationTextureIds[motionSlot] = 0;
             }
         }
-        for (var_r30 = 0, var_r29 = 0, var_r31->unk_14 = 0.0f; var_r30 < 6; var_r30++) {
-            if ((var_r31->unk_3C[var_r30] != -1) && (var_r31->unk_54[var_r30] > 0.0f)) {
-                var_r31->unk_14 += 0.8f * var_r31->unk_54[var_r30];
-                var_r29++;
+        for (motionSlot = 0, animationSlot = 0, thwompModel->motionTimer = 0.0f; motionSlot < 6; motionSlot++) {
+            if ((thwompModel->activeMotionIds[motionSlot] != -1) && (thwompModel->activeMotionTimers[motionSlot] > 0.0f)) {
+                thwompModel->motionTimer += 0.8f * thwompModel->activeMotionTimers[motionSlot];
+                animationSlot++;
             }
         }
 
-        for (var_r30 = 0, var_r29 = 0, var_r31->unk_20 = 0.0f; var_r30 < 6; var_r30++) {
-            if ((var_r31->unk_3C[var_r30] != -1) && (var_r31->unk_54[var_r30] > 0.0f) && (var_r31->unk_6C[var_r30] != 0)) {
-                var_r31->unk_20 += 0.8f * var_r31->unk_54[var_r30];
-                var_r29++;
+        for (motionSlot = 0, animationSlot = 0, thwompModel->movementSpeed = 0.0f; motionSlot < 6; motionSlot++) {
+            if ((thwompModel->activeMotionIds[motionSlot] != -1) && (thwompModel->activeMotionTimers[motionSlot] > 0.0f) && (thwompModel->animationIds[motionSlot] != 0)) {
+                thwompModel->movementSpeed += 0.8f * thwompModel->activeMotionTimers[motionSlot];
+                animationSlot++;
             }
         }
-        if (var_r29 != 0) {
-            var_r31->unk_18 = 20.0f * (var_r31->unk_20 * var_r31->unk_20);
-            var_r31->unk_08 -= var_r31->unk_18;
-            if (var_r31->unk_08 < 0.0f) {
-                var_r31->unk_08 = 0.0f;
+        if (animationSlot != 0) {
+            thwompModel->motionIntensity = 20.0f * (thwompModel->movementSpeed * thwompModel->movementSpeed);
+            thwompModel->animationTimeRemaining -= thwompModel->motionIntensity;
+            if (thwompModel->animationTimeRemaining < 0.0f) {
+                thwompModel->animationTimeRemaining = 0.0f;
             }
-            if ((var_r31->unk_18 > var_r31->unk_1C) && (var_r31->unk_18 >= 0.0f)) {
-                if (var_r31->unk_18 >= 13.200000000000001) {
-                    var_r26 = HuAudFXPlay(lbl_1_data_150[2][arg0]);
+            if ((thwompModel->motionIntensity > thwompModel->frameLength) && (thwompModel->motionIntensity >= 0.0f)) {
+                if (thwompModel->motionIntensity >= 13.200000000000001) {
+                    soundEffectId = HuAudFXPlay(thwompModelResourceIds[2][modelIndex]);
                 }
-                else if (var_r31->unk_18 >= 6.6000000000000005) {
-                    var_r26 = HuAudFXPlay(lbl_1_data_150[1][arg0]);
+                else if (thwompModel->motionIntensity >= 6.6000000000000005) {
+                    soundEffectId = HuAudFXPlay(thwompModelResourceIds[1][modelIndex]);
                 }
                 else {
-                    var_r26 = HuAudFXPlay(lbl_1_data_150[0][arg0]);
+                    soundEffectId = HuAudFXPlay(thwompModelResourceIds[0][modelIndex]);
                 }
-                var_f30 = var_r31->unk_08 / 1000.0f;
-                if (var_r26 != -1) {
-                    HuAudFXPitchSet(var_r26, (s32)(8191.0f * (1.0f - var_f30)));
+                pitchScale = thwompModel->animationTimeRemaining / 1000.0f;
+                if (soundEffectId != -1) {
+                    HuAudFXPitchSet(soundEffectId, (s32)(8191.0f * (1.0f - pitchScale)));
                 }
             }
         }
         else {
-            var_r31->unk_18 = 0.0f;
+            thwompModel->motionIntensity = 0.0f;
         }
-        var_r31->unk_1C = var_r31->unk_18;
-        if (var_r31->unk_2C != 0) {
-            if (++var_r31->unk_28 >= var_r31->unk_2C) {
-                var_r31->unk_2C = var_r31->unk_28 = 0;
-                var_r31->unk_30 = 0.0f;
+        thwompModel->frameLength = thwompModel->motionIntensity;
+        if (thwompModel->animationFrame != 0) {
+            if (++thwompModel->animationFrameCounter >= thwompModel->animationFrame) {
+                thwompModel->animationFrame = thwompModel->animationFrameCounter = 0;
+                thwompModel->animationCycleProgress = 0.0f;
             }
         }
-        if ((var_r31->unk_E0 != var_r31->unk_E8) || (var_r31->unk_E4 != var_r31->unk_EC)) {
-            sp8.x = sind(var_r31->unk_E4) * cosd(var_r31->unk_E0);
-            sp8.z = cosd(var_r31->unk_E4) * cosd(var_r31->unk_E0);
-            sp8.y = sind(var_r31->unk_E0);
-            VECNormalize(&sp8, &sp8);
-            var_r28 = &Hu3DLocalLight[var_r27->lLightId[0]];
-            var_r28->pos.x = 1000.0f * sp8.x;
-            var_r28->pos.y = 1000.0f * sp8.y;
-            var_r28->pos.z = 1000.0f * sp8.z;
-            var_r28->dir.x = sp8.x;
-            var_r28->dir.y = sp8.y;
-            var_r28->dir.z = sp8.z;
-            var_r31->unk_E8 = var_r31->unk_E0;
-            var_r31->unk_EC = var_r31->unk_E4;
+        if ((thwompModel->actionTimer != thwompModel->effectTimer) || (thwompModel->lightElevationAngle != thwompModel->animationBlend)) {
+            vector.x = sind(thwompModel->lightElevationAngle) * cosd(thwompModel->actionTimer);
+            vector.z = cosd(thwompModel->lightElevationAngle) * cosd(thwompModel->actionTimer);
+            vector.y = sind(thwompModel->actionTimer);
+            VECNormalize(&vector, &vector);
+            light = &Hu3DLocalLight[model->lLightId[0]];
+            light->pos.x = 1000.0f * vector.x;
+            light->pos.y = 1000.0f * vector.y;
+            light->pos.z = 1000.0f * vector.z;
+            light->dir.x = vector.x;
+            light->dir.y = vector.y;
+            light->dir.z = vector.z;
+            thwompModel->effectTimer = thwompModel->actionTimer;
+            thwompModel->animationBlend = thwompModel->lightElevationAngle;
         }
-        var_r31->unk_20 = 0.0f;
+        thwompModel->movementSpeed = 0.0f;
     }
 }
 
-void fn_1_E914(HU3DMODEL *var_r27, Mtx matrix)
+void DrawThwompShadow(HU3DMODEL *model, Mtx matrix)
 {
-    s32 spB4;
-    s32 spB0;
-    Mtx sp70;
-    Vec sp64;
-    Vec sp58;
-    float sp48;
-    float sp44;
-    float sp40;
-    float sp3C;
-    float sp38;
-    float sp34;
-    float sp30;
-    float sp2C;
-    float sp28;
+    s32 unusedDisplayListBytes;
+    s32 unusedVertexCount;
+    Mtx matrix2;
+    Vec vector;
+    Vec vector2;
+    float horizontalVelocity;
+    float verticalOffset;
+    float bounceOffset;
+    float shadowScale;
+    float motionProgress;
+    float rotationX;
+    float rotationY;
+    float rotationZ;
+    float particleScale;
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
-    float var_f25;
-    float var_f24;
-    float var_f19;
-    float var_f18;
+    float worldZ;
+    float worldX;
+    float worldY;
+    float distanceSquared;
+    float averageX;
+    float averageWeight;
+    float averageZ;
+    float effectDisplacement;
+    float animationProgress;
+    float motionStrength;
 
-    M425DllUnkStruct4 *var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s16 var_r28;
-    s32 var_r26;
+    M425ThwompModelWork *thwompModel;
+    s32 vertexIndex;
+    s32 motionSlot;
+    s16 activeMotionCount;
+    s32 particleCount;
 
-    var_r31 = var_r27->hookData;
-    if (var_r31->unk_2C != 0) {
-        var_f24 = (float)var_r31->unk_28 / var_r31->unk_2C;
-        var_r31->unk_30 = 0.30000001192092896 * cosd((90.0f * var_f24));
-        sp40 = var_r31->unk_30 * (0.5 * sind((720.0f * var_f24)));
+    thwompModel = model->hookData;
+    if (thwompModel->animationFrame != 0) {
+        effectDisplacement = (float)thwompModel->animationFrameCounter / thwompModel->animationFrame;
+        thwompModel->animationCycleProgress = 0.30000001192092896 * cosd((90.0f * effectDisplacement));
+        bounceOffset = thwompModel->animationCycleProgress * (0.5 * sind((720.0f * effectDisplacement)));
     }
     else {
-        sp40 = 0.0f;
+        bounceOffset = 0.0f;
     }
-    if (var_r31->unk_0C != 0.0f) {
-        var_f19 = var_r31->unk_08 / var_r31->unk_0C;
-    }
-    else {
-        var_f19 = 1.0f;
-    }
-    var_r27->scale.y = var_r31->unk_DC = (0.100000024f + (0.9f * var_f19)) - sp40;
-    if (var_r31->unk_DC > 0.3f) {
-        sp3C = 1.0f - (-0.39999998f * ((var_r31->unk_DC - 0.3f) / 0.7f));
+    if (thwompModel->animationTimeTotal != 0.0f) {
+        animationProgress = thwompModel->animationTimeRemaining / thwompModel->animationTimeTotal;
     }
     else {
-        sp3C = 0.6f * (var_r31->unk_DC / 0.3f);
+        animationProgress = 1.0f;
     }
-    if (var_r31->unk_DC != 0.0f) {
-        sp3C /= var_r31->unk_DC;
+    model->modelScale.y = thwompModel->modelScale = (0.100000024f + (0.9f * animationProgress)) - bounceOffset;
+    if (thwompModel->modelScale > 0.3f) {
+        shadowScale = 1.0f - (-0.39999998f * ((thwompModel->modelScale - 0.3f) / 0.7f));
     }
     else {
-        sp3C = 0.0f;
+        shadowScale = 0.6f * (thwompModel->modelScale / 0.3f);
     }
-    if (var_r31->unk_08 < 0.0f) {
-        sp3C = 0.0f;
+    if (thwompModel->modelScale != 0.0f) {
+        shadowScale /= thwompModel->modelScale;
     }
-    if (var_f19 <= 0.3f) {
-        var_f24 = var_f19 / 0.3f;
-        var_r31->unk_E0 = 222.0f + (80.0f * var_f24);
+    else {
+        shadowScale = 0.0f;
     }
-    var_f18 = 100.0f * var_r31->unk_14;
-    if (var_f19 > 0.85f) {
-        var_f18 += 100.0f * (4.0f * (var_f19 - 0.85f));
+    if (thwompModel->animationTimeRemaining < 0.0f) {
+        shadowScale = 0.0f;
     }
-    if (var_f18 > 150.0f) {
-        var_f18 = 150.0f;
+    if (animationProgress <= 0.3f) {
+        effectDisplacement = animationProgress / 0.3f;
+        thwompModel->actionTimer = 222.0f + (80.0f * effectDisplacement);
     }
-    sp38 = 1.0f - var_f19;
-    if (var_f18 >= 0.0f) {
-        for (var_r30 = 0; var_r30 < var_r31->unk_110; var_r30++) {
-            if (var_r31->unk_178[var_r30] == -1) {
-                var_r31->unk_180[var_r30].x = var_r31->unk_17C[var_r30].x + (var_f18 * var_r31->unk_194[var_r30].x);
-                var_r31->unk_180[var_r30].y = var_r31->unk_17C[var_r30].y + (var_f18 * var_r31->unk_194[var_r30].y);
-                var_r31->unk_180[var_r30].z = var_r31->unk_17C[var_r30].z + (var_f18 * var_r31->unk_194[var_r30].z);
+    motionStrength = 100.0f * thwompModel->motionTimer;
+    if (animationProgress > 0.85f) {
+        motionStrength += 100.0f * (4.0f * (animationProgress - 0.85f));
+    }
+    if (motionStrength > 150.0f) {
+        motionStrength = 150.0f;
+    }
+    motionProgress = 1.0f - animationProgress;
+    if (motionStrength >= 0.0f) {
+        for (vertexIndex = 0; vertexIndex < thwompModel->vertexCount; vertexIndex++) {
+            if (thwompModel->positionBuffer[vertexIndex] == -1) {
+                thwompModel->positionTarget[vertexIndex].x = thwompModel->positionStart[vertexIndex].x + (motionStrength * thwompModel->positionOutput[vertexIndex].x);
+                thwompModel->positionTarget[vertexIndex].y = thwompModel->positionStart[vertexIndex].y + (motionStrength * thwompModel->positionOutput[vertexIndex].y);
+                thwompModel->positionTarget[vertexIndex].z = thwompModel->positionStart[vertexIndex].z + (motionStrength * thwompModel->positionOutput[vertexIndex].z);
             }
         }
     }
     else {
-        memcpy(var_r31->unk_180, var_r31->unk_17C, var_r31->unk_110 * 0xC);
+        memcpy(thwompModel->positionTarget, thwompModel->positionStart, thwompModel->vertexCount * 0xC);
     }
-    var_r31->unk_14 = 0.0f;
-    for (var_r30 = 0; var_r30 < var_r31->unk_110; var_r30++) {
-        if (!(var_f19 >= 1.0f) && (var_r31->unk_190[var_r30][2] != 0)) {
-            switch (var_r31->unk_190[var_r30][2]) {
+    thwompModel->motionTimer = 0.0f;
+    for (vertexIndex = 0; vertexIndex < thwompModel->vertexCount; vertexIndex++) {
+        if (!(animationProgress >= 1.0f) && (thwompModel->displayListIndices[vertexIndex][2] != 0)) {
+            switch (thwompModel->displayListIndices[vertexIndex][2]) {
                 case 1:
-                    var_r31->unk_180[var_r30].x += sp38 * var_r31->unk_18C[var_r30].x;
-                    var_r31->unk_180[var_r30].y += sp38 * var_r31->unk_18C[var_r30].y;
-                    var_r31->unk_180[var_r30].z += sp38 * var_r31->unk_18C[var_r30].z;
+                    thwompModel->positionTarget[vertexIndex].x += motionProgress * thwompModel->rotationWork[vertexIndex].x;
+                    thwompModel->positionTarget[vertexIndex].y += motionProgress * thwompModel->rotationWork[vertexIndex].y;
+                    thwompModel->positionTarget[vertexIndex].z += motionProgress * thwompModel->rotationWork[vertexIndex].z;
                     break;
                 case 2:
-                    var_f24 = lbl_1_bss_6E4[var_r31->unk_190[var_r30][0] + (var_r31->unk_190[var_r30][1] << 8)];
-                    var_f24 = 80.0f * (0.003921569f * (255.0f - var_f24) * sp38);
-                    var_r31->unk_180[var_r30].x += var_f24 * var_r31->unk_18C[var_r30].x;
-                    var_r31->unk_180[var_r30].y += var_f24 * var_r31->unk_18C[var_r30].y;
-                    var_r31->unk_180[var_r30].z += var_f24 * var_r31->unk_18C[var_r30].z;
+                    effectDisplacement = thwompDataBuffer[thwompModel->displayListIndices[vertexIndex][0] + (thwompModel->displayListIndices[vertexIndex][1] << 8)];
+                    effectDisplacement = 80.0f * (0.003921569f * (255.0f - effectDisplacement) * motionProgress);
+                    thwompModel->positionTarget[vertexIndex].x += effectDisplacement * thwompModel->rotationWork[vertexIndex].x;
+                    thwompModel->positionTarget[vertexIndex].y += effectDisplacement * thwompModel->rotationWork[vertexIndex].y;
+                    thwompModel->positionTarget[vertexIndex].z += effectDisplacement * thwompModel->rotationWork[vertexIndex].z;
                     break;
             }
         }
     }
-    for (var_r29 = 0, var_r28 = 0, var_f27 = var_f26 = var_f25 = 0.0f; var_r29 < 6; var_r29++) {
-        if ((var_r31->unk_54[var_r29] > 0.0f) || (var_r31->unk_3C[var_r29] != -1)) {
-            var_f27 += var_r31->unk_180[var_r31->unk_3C[var_r29]].x;
-            var_f25 += var_r31->unk_180[var_r31->unk_3C[var_r29]].z;
-            var_f26 += var_r31->unk_54[var_r29];
-            var_r28++;
+    for (motionSlot = 0, activeMotionCount = 0, averageX = averageWeight = averageZ = 0.0f; motionSlot < 6; motionSlot++) {
+        if ((thwompModel->activeMotionTimers[motionSlot] > 0.0f) || (thwompModel->activeMotionIds[motionSlot] != -1)) {
+            averageX += thwompModel->positionTarget[thwompModel->activeMotionIds[motionSlot]].x;
+            averageZ += thwompModel->positionTarget[thwompModel->activeMotionIds[motionSlot]].z;
+            averageWeight += thwompModel->activeMotionTimers[motionSlot];
+            activeMotionCount++;
         }
     }
-    if (var_r28 >= 2) {
-        var_f27 /= var_r28;
-        var_f25 /= var_r28;
-        var_f26 /= var_r28;
-        mtxRot(sp70, 0.0f, var_r31->unk_D8, 0.0f);
-        var_f30 = var_r31->unk_CC.x + ((sp70[0][0] * var_f27) + (sp70[0][2] * var_f25));
-        var_f31 = var_r31->unk_CC.z + ((sp70[2][0] * var_f27) + (sp70[2][2] * var_f25));
-        fn_1_10EF8(var_r31->unk_00, 2, var_f30, var_f31);
-        var_r31->unk_50 = var_r31->unk_34;
-        var_r31->unk_54[5] = var_f26;
-        var_r31->unk_6C[5] = 0;
+    if (activeMotionCount >= 2) {
+        averageX /= activeMotionCount;
+        averageZ /= activeMotionCount;
+        averageWeight /= activeMotionCount;
+        mtxRot(matrix2, 0.0f, thwompModel->rotationAngle, 0.0f);
+        worldX = thwompModel->worldPosition.x + ((matrix2[0][0] * averageX) + (matrix2[0][2] * averageZ));
+        worldZ = thwompModel->worldPosition.z + ((matrix2[2][0] * averageX) + (matrix2[2][2] * averageZ));
+        CalculateThwompVertexPosition(thwompModel->animationIndex, 2, worldX, worldZ);
+        thwompModel->modelCount = thwompModel->frameCount;
+        thwompModel->activeMotionTimers[5] = averageWeight;
+        thwompModel->animationIds[5] = 0;
     }
     else {
-        var_r31->unk_50 = -1;
-        var_r31->unk_54[5] = 0.0f;
-        var_r31->unk_6C[5] = 0;
+        thwompModel->modelCount = -1;
+        thwompModel->activeMotionTimers[5] = 0.0f;
+        thwompModel->animationIds[5] = 0;
     }
-    for (var_r29 = 0; var_r29 < 6; var_r29++) {
-        if ((var_r31->unk_54[var_r29] <= 0.0f) || (var_r31->unk_3C[var_r29] == -1)) {
-            var_r31->unk_3C[var_r29] = -1;
-            var_r31->unk_54[var_r29] = 0.0f;
-            var_r31->unk_6C[var_r29] = 0;
+    for (motionSlot = 0; motionSlot < 6; motionSlot++) {
+        if ((thwompModel->activeMotionTimers[motionSlot] <= 0.0f) || (thwompModel->activeMotionIds[motionSlot] == -1)) {
+            thwompModel->activeMotionIds[motionSlot] = -1;
+            thwompModel->activeMotionTimers[motionSlot] = 0.0f;
+            thwompModel->animationIds[motionSlot] = 0;
         }
         else {
-            var_f24 = 150.0f * var_r31->unk_54[var_r29] * sp3C;
-            sp44 = 50.0f * var_r31->unk_54[var_r29];
-            if (sp44 > 15.000001f) {
-                sp44 = 15.000001f;
+            effectDisplacement = 150.0f * thwompModel->activeMotionTimers[motionSlot] * shadowScale;
+            verticalOffset = 50.0f * thwompModel->activeMotionTimers[motionSlot];
+            if (verticalOffset > 15.000001f) {
+                verticalOffset = 15.000001f;
             }
-            var_f27 = var_r31->unk_180[var_r31->unk_3C[var_r29]].x;
-            var_f26 = var_r31->unk_180[var_r31->unk_3C[var_r29]].y;
-            var_f25 = var_r31->unk_180[var_r31->unk_3C[var_r29]].z;
-            if (var_r29 != 5) {
-                for (var_r30 = 0; var_r30 < var_r31->unk_110; var_r30++) {
-                    if (var_r31->unk_178[var_r30] == -1) {
-                        var_f30 = var_r31->unk_180[var_r30].x - var_f27;
-                        var_f29 = var_r31->unk_DC * (var_r31->unk_180[var_r30].y - var_f26);
-                        var_f31 = 0.425f * (var_r31->unk_180[var_r30].z - var_f25);
-                        var_f28 = (var_f31 * var_f31) + ((var_f30 * var_f30) + (var_f29 * var_f29));
-                        if (var_f28 < 10000.0f) {
-                            var_f28 = sqrtf((var_f31 * var_f31) + ((var_f30 * var_f30) + (var_f29 * var_f29)));
-                            var_f28 = var_f28 * 0.01f;
-                            var_r31->unk_180[var_r30].y -= (1.0f - var_f28) * var_f24;
-                            if (var_r31->unk_180[var_r30].y < 1.0f) {
-                                var_r31->unk_180[var_r30].y = 1.0f;
+            averageX = thwompModel->positionTarget[thwompModel->activeMotionIds[motionSlot]].x;
+            averageWeight = thwompModel->positionTarget[thwompModel->activeMotionIds[motionSlot]].y;
+            averageZ = thwompModel->positionTarget[thwompModel->activeMotionIds[motionSlot]].z;
+            if (motionSlot != 5) {
+                for (vertexIndex = 0; vertexIndex < thwompModel->vertexCount; vertexIndex++) {
+                    if (thwompModel->positionBuffer[vertexIndex] == -1) {
+                        worldX = thwompModel->positionTarget[vertexIndex].x - averageX;
+                        worldY = thwompModel->modelScale * (thwompModel->positionTarget[vertexIndex].y - averageWeight);
+                        worldZ = 0.425f * (thwompModel->positionTarget[vertexIndex].z - averageZ);
+                        distanceSquared = (worldZ * worldZ) + ((worldX * worldX) + (worldY * worldY));
+                        if (distanceSquared < 10000.0f) {
+                            distanceSquared = sqrtf((worldZ * worldZ) + ((worldX * worldX) + (worldY * worldY)));
+                            distanceSquared = distanceSquared * 0.01f;
+                            thwompModel->positionTarget[vertexIndex].y -= (1.0f - distanceSquared) * effectDisplacement;
+                            if (thwompModel->positionTarget[vertexIndex].y < 1.0f) {
+                                thwompModel->positionTarget[vertexIndex].y = 1.0f;
                             }
                         }
-                        if (var_r31->unk_1A0[var_r30] != 0) {
-                            var_f31 = var_r31->unk_180[var_r30].z - var_f25;
-                            if (!(fabs(var_f31) > 100.0)) {
-                                var_f28 = sqrtf((var_f30 * var_f30) + (var_f31 * var_f31));
-                                if (var_f28 < 200.0f) {
-                                    var_f28 = var_f28 * 0.005f;
-                                    var_r31->unk_180[var_r30].y += (sp44 * sind((90.0f * var_f28))); // is this right?
+                        if (thwompModel->stateBuffer[vertexIndex] != 0) {
+                            worldZ = thwompModel->positionTarget[vertexIndex].z - averageZ;
+                            if (!(fabs(worldZ) > 100.0)) {
+                                distanceSquared = sqrtf((worldX * worldX) + (worldZ * worldZ));
+                                if (distanceSquared < 200.0f) {
+                                    distanceSquared = distanceSquared * 0.005f;
+                                    thwompModel->positionTarget[vertexIndex].y += (verticalOffset * sind((90.0f * distanceSquared))); // is this right?
                                 }
-                                else if (var_f28 < 400.0f) {
-                                    var_f28 -= 200.0f;
-                                    var_f28 = var_f28 * 0.005f;
-                                    var_r31->unk_180[var_r30].y += (sp44 * cosd((90.0f * var_f28)));
+                                else if (distanceSquared < 400.0f) {
+                                    distanceSquared -= 200.0f;
+                                    distanceSquared = distanceSquared * 0.005f;
+                                    thwompModel->positionTarget[vertexIndex].y += (verticalOffset * cosd((90.0f * distanceSquared)));
                                 }
                             }
                         }
@@ -1989,113 +1989,113 @@ void fn_1_E914(HU3DMODEL *var_r27, Mtx matrix)
                 }
             }
             else {
-                for (var_r30 = 0; var_r30 < var_r31->unk_110; var_r30++) {
-                    if ((var_r31->unk_178[var_r30] == -1) && ((var_r31->unk_F0[0] != var_r30) || (var_r31->unk_F0[1] != var_r30))) {
-                        var_f30 = var_r31->unk_180[var_r30].x - var_f27;
-                        var_f29 = var_r31->unk_DC * (var_r31->unk_180[var_r30].y - var_f26);
-                        var_f31 = 0.425f * (var_r31->unk_180[var_r30].z - var_f25);
-                        var_f28 = (var_f31 * var_f31) + ((var_f30 * var_f30) + (var_f29 * var_f29));
-                        if (var_f28 < 10000.0f) {
-                            var_f28 = sqrtf((var_f31 * var_f31) + ((var_f30 * var_f30) + (var_f29 * var_f29)));
-                            var_f28 = var_f28 * 0.01f;
-                            var_r31->unk_180[var_r30].y -= (1.0f - var_f28) * var_f24;
-                            if (var_r31->unk_180[var_r30].y < 1.0f) {
-                                var_r31->unk_180[var_r30].y = 1.0f;
+                for (vertexIndex = 0; vertexIndex < thwompModel->vertexCount; vertexIndex++) {
+                    if ((thwompModel->positionBuffer[vertexIndex] == -1) && ((thwompModel->activeVertexIndices[0] != vertexIndex) || (thwompModel->activeVertexIndices[1] != vertexIndex))) {
+                        worldX = thwompModel->positionTarget[vertexIndex].x - averageX;
+                        worldY = thwompModel->modelScale * (thwompModel->positionTarget[vertexIndex].y - averageWeight);
+                        worldZ = 0.425f * (thwompModel->positionTarget[vertexIndex].z - averageZ);
+                        distanceSquared = (worldZ * worldZ) + ((worldX * worldX) + (worldY * worldY));
+                        if (distanceSquared < 10000.0f) {
+                            distanceSquared = sqrtf((worldZ * worldZ) + ((worldX * worldX) + (worldY * worldY)));
+                            distanceSquared = distanceSquared * 0.01f;
+                            thwompModel->positionTarget[vertexIndex].y -= (1.0f - distanceSquared) * effectDisplacement;
+                            if (thwompModel->positionTarget[vertexIndex].y < 1.0f) {
+                                thwompModel->positionTarget[vertexIndex].y = 1.0f;
                             }
                         }
                     }
                 }
             }
-            if (var_r29 < 5) {
-                if ((var_r31->unk_54[var_r29] -= 0.075f) <= 0.0f) {
-                    var_r31->unk_54[var_r29] = 0.0f;
-                    var_r31->unk_3C[var_r29] = -1;
-                    var_r31->unk_6C[var_r29] = 0;
+            if (motionSlot < 5) {
+                if ((thwompModel->activeMotionTimers[motionSlot] -= 0.075f) <= 0.0f) {
+                    thwompModel->activeMotionTimers[motionSlot] = 0.0f;
+                    thwompModel->activeMotionIds[motionSlot] = -1;
+                    thwompModel->animationIds[motionSlot] = 0;
                 }
             }
             else {
-                var_r31->unk_54[var_r29] = 0.0f;
-                var_r31->unk_3C[var_r29] = -1;
-                var_r31->unk_6C[var_r29] = 0;
+                thwompModel->activeMotionTimers[motionSlot] = 0.0f;
+                thwompModel->activeMotionIds[motionSlot] = -1;
+                thwompModel->animationIds[motionSlot] = 0;
             }
         }
     }
-    var_r31->unk_38 = 0;
-    memcpy(var_r31->unk_198, &var_r31->unk_180[var_r31->unk_144[0]], var_r31->unk_112[0] * 0xC);
-    var_r31->unk_19C = 0;
-    fn_1_DE3C(var_r31, var_r27);
-    if ((var_r31->unk_04 != -1) && (var_r31->unk_06 != -1)) {
-        mtxRot(sp70, 0.0f, var_r31->unk_D8, 0.0f);
-        sp70[1][0] *= var_r31->unk_DC;
-        sp70[1][1] *= var_r31->unk_DC;
-        sp70[1][2] *= var_r31->unk_DC;
-        var_f30 = var_r31->unk_180[var_r31->unk_06].x;
-        var_f29 = var_r31->unk_180[var_r31->unk_06].y;
-        var_f31 = var_r31->unk_180[var_r31->unk_06].z;
-        var_f27 = var_r31->unk_CC.x + ((sp70[0][2] * var_f31) + ((sp70[0][0] * var_f30) + (sp70[0][1] * var_f29)));
-        var_f26 = var_r31->unk_CC.y + ((sp70[1][2] * var_f31) + ((sp70[1][0] * var_f30) + (sp70[1][1] * var_f29)));
-        var_f25 = var_r31->unk_CC.z + ((sp70[2][2] * var_f31) + ((sp70[2][0] * var_f30) + (sp70[2][1] * var_f29)));
-        Hu3DModelPosSet(var_r31->unk_04, var_f27, var_f26, var_f25);
-        var_f30 = var_r31->unk_188[var_r31->unk_06].x;
-        var_f29 = var_r31->unk_188[var_r31->unk_06].y;
-        var_f31 = var_r31->unk_188[var_r31->unk_06].z;
-        sp64.x = var_f27 + (20.0f * var_f30);
-        sp64.y = var_f26 + (20.0f * var_f29);
-        sp64.z = var_f25 + (20.0f * var_f31);
-        sp48 = sqrtf((var_f30 * var_f30) + (var_f31 * var_f31));
-        var_f27 = sp34 = atan2d(sp48, var_f29);
-        var_f26 = sp30 = atan2d(var_f30, var_f31);
-        var_f25 = sp2C = 0.0f;
-        Hu3DModelRotSet(var_r31->unk_04, var_f27, var_f26, var_f25);
-        var_r30 = (s32)(10.0f * var_r31->unk_18) / 40;
-        if (var_r30 > 0x10) {
-            var_r30 = 0x10;
+    thwompModel->motionSlotCount = 0;
+    memcpy(thwompModel->rotationOutput, &thwompModel->positionTarget[thwompModel->vertexIndexOffsets[0]], thwompModel->vertexIndexCounts[0] * 0xC);
+    thwompModel->workState = 0;
+    BuildThwompModelGeometry(thwompModel, model);
+    if ((thwompModel->frameStart != -1) && (thwompModel->referenceVertexIndex != -1)) {
+        mtxRot(matrix2, 0.0f, thwompModel->rotationAngle, 0.0f);
+        matrix2[1][0] *= thwompModel->modelScale;
+        matrix2[1][1] *= thwompModel->modelScale;
+        matrix2[1][2] *= thwompModel->modelScale;
+        worldX = thwompModel->positionTarget[thwompModel->referenceVertexIndex].x;
+        worldY = thwompModel->positionTarget[thwompModel->referenceVertexIndex].y;
+        worldZ = thwompModel->positionTarget[thwompModel->referenceVertexIndex].z;
+        averageX = thwompModel->worldPosition.x + ((matrix2[0][2] * worldZ) + ((matrix2[0][0] * worldX) + (matrix2[0][1] * worldY)));
+        averageWeight = thwompModel->worldPosition.y + ((matrix2[1][2] * worldZ) + ((matrix2[1][0] * worldX) + (matrix2[1][1] * worldY)));
+        averageZ = thwompModel->worldPosition.z + ((matrix2[2][2] * worldZ) + ((matrix2[2][0] * worldX) + (matrix2[2][1] * worldY)));
+        Hu3DModelPosSet(thwompModel->frameStart, averageX, averageWeight, averageZ);
+        worldX = thwompModel->positionWork[thwompModel->referenceVertexIndex].x;
+        worldY = thwompModel->positionWork[thwompModel->referenceVertexIndex].y;
+        worldZ = thwompModel->positionWork[thwompModel->referenceVertexIndex].z;
+        vector.x = averageX + (20.0f * worldX);
+        vector.y = averageWeight + (20.0f * worldY);
+        vector.z = averageZ + (20.0f * worldZ);
+        horizontalVelocity = sqrtf((worldX * worldX) + (worldZ * worldZ));
+        averageX = rotationX = atan2d(horizontalVelocity, worldY);
+        averageWeight = rotationY = atan2d(worldX, worldZ);
+        averageZ = rotationZ = 0.0f;
+        Hu3DModelRotSet(thwompModel->frameStart, averageX, averageWeight, averageZ);
+        vertexIndex = (s32)(10.0f * thwompModel->motionIntensity) / 40;
+        if (vertexIndex > 0x10) {
+            vertexIndex = 0x10;
         }
-        for (var_r26 = 0; var_r26 < var_r30; var_r26++) {
-            var_f27 = sp34;
-            var_f26 = sp30;
-            var_f25 = sp2C;
-            var_f27 += 0.5f * ((s32)frand() % 48);
-            var_f30 = sind(var_f26) * sind(var_f27);
-            var_f31 = cosd(var_f26) * sind(var_f27);
-            var_f29 = cosd(var_f27);
-            sp28 = 12.0f - ((s32)frand() % 6);
-            sp58.x = var_f30;
-            sp58.y = var_f29;
-            sp58.z = var_f31;
-            fn_1_11454(&sp64, &sp58, 50.0f + (5.0f * var_r30), sp28);
+        for (particleCount = 0; particleCount < vertexIndex; particleCount++) {
+            averageX = rotationX;
+            averageWeight = rotationY;
+            averageZ = rotationZ;
+            averageX += 0.5f * ((s32)frand() % 48);
+            worldX = sind(averageWeight) * sind(averageX);
+            worldZ = cosd(averageWeight) * sind(averageX);
+            worldY = cosd(averageX);
+            particleScale = 12.0f - ((s32)frand() % 6);
+            vector2.x = worldX;
+            vector2.y = worldY;
+            vector2.z = worldZ;
+            UpdateThwompEffect(&vector, &vector2, 50.0f + (5.0f * vertexIndex), particleScale);
         }
     }
-    DCFlushRangeNoSync(var_r31->unk_180, var_r31->unk_110 * 0xC);
-    DCFlushRangeNoSync(var_r31->unk_188, var_r31->unk_110 * 0xC);
+    DCFlushRangeNoSync(thwompModel->positionTarget, thwompModel->vertexCount * 0xC);
+    DCFlushRangeNoSync(thwompModel->positionWork, thwompModel->vertexCount * 0xC);
     PPCSync();
 }
 
-void fn_1_101C4(HU3DMODEL *var_r29, Mtx var_r28)
+void DrawThwompModel(HU3DMODEL *model, Mtx matrix)
 {
-    Mtx sp50;
-    ROMtx sp20;
-    GXColor sp1C;
-    M425DllUnkStruct4 *var_r31;
-    s32 var_r30;
-    s16 var_r27;
+    Mtx matrix2;
+    ROMtx rotationMatrix;
+    GXColor color;
+    M425ThwompModelWork *thwompModel;
+    s32 vertexIndex;
+    s16 drawState;
 
-    var_r31 = var_r29->hookData;
-    GXLoadPosMtxImm(var_r28, 0);
-    MTXInvXpose(var_r28, sp50);
-    GXLoadNrmMtxImm(sp50, 0);
-    var_r27 = fn_1_115D4(var_r29, Hu3DCameraMtx, Hu3DCameraMtxXPose, 4.0f);
+    thwompModel = model->hookData;
+    GXLoadPosMtxImm(matrix, 0);
+    MTXInvXpose(matrix, matrix2);
+    GXLoadNrmMtxImm(matrix2, 0);
+    drawState = ConfigureThwompLight(model, Hu3DCameraMtx, Hu3DCameraMtxXPose, 4.0f);
     if (omPauseChk() == 0) {
-        fn_1_E914(var_r29, var_r28);
+        DrawThwompShadow(model, matrix);
     }
-    var_r29->scale.y = var_r31->unk_DC;
-    memcpy(sp50, lbl_1_data_16C, sizeof(lbl_1_data_16C));
-    mtxRotCat(&sp50[0], CRot.x, CRot.y + var_r31->unk_D8, 180.0f);
-    GXLoadTexMtxImm(sp50, 0x36, GX_MTX2x4);
-    sp1C.a = lbl_1_bss_6D0;
-    GXSetTevColor(GX_TEVREG2, sp1C);
-    HuSprTexLoad(lbl_1_bss_6E0, 0, 0, GX_CLAMP, GX_CLAMP, GX_LINEAR);
-    HuSprTexLoad(lbl_1_bss_6DC, 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    model->modelScale.y = thwompModel->modelScale;
+    memcpy(matrix2, thwompModelMatrix, sizeof(thwompModelMatrix));
+    mtxRotCat(&matrix2[0], CRot.x, CRot.y + thwompModel->rotationAngle, 180.0f);
+    GXLoadTexMtxImm(matrix2, 0x36, GX_MTX2x4);
+    color.a = thwompAlpha;
+    GXSetTevColor(GX_TEVREG2, color);
+    HuSprTexLoad(thwompIdleAnimation, 0, 0, GX_CLAMP, GX_CLAMP, GX_LINEAR);
+    HuSprTexLoad(thwompHitAnimation, 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
     GXSetNumTevStages(1);
     GXSetNumTexGens(1);
     GXSetNumChans(1);
@@ -2106,37 +2106,37 @@ void fn_1_101C4(HU3DMODEL *var_r29, Mtx var_r28)
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_RASA, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    lbl_1_bss_6C8.r = var_r31->unk_23A.r;
-    lbl_1_bss_6C8.g = var_r31->unk_23A.g;
-    lbl_1_bss_6C8.b = var_r31->unk_23A.b;
-    lbl_1_bss_6C8.a = var_r31->unk_23A.a;
-    GXSetChanAmbColor(GX_COLOR0A0, lbl_1_bss_6C8);
-    GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_168);
-    GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_REG, var_r27, GX_DF_CLAMP, GX_AF_SPEC);
+    thwompEffectColor.r = thwompModel->effectColor.r;
+    thwompEffectColor.g = thwompModel->effectColor.g;
+    thwompEffectColor.b = thwompModel->effectColor.b;
+    thwompEffectColor.a = thwompModel->effectColor.a;
+    GXSetChanAmbColor(GX_COLOR0A0, thwompEffectColor);
+    GXSetChanMatColor(GX_COLOR0A0, thwompModelColor);
+    GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_REG, drawState, GX_DF_CLAMP, GX_AF_SPEC);
     GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
     GXSetZMode(1, GX_LEQUAL, GX_FALSE);
     GXSetZCompLoc(0);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
-    if (HmfInverseMtxF3X3(var_r28, sp50) == 0) {
-        MTXIdentity(sp50);
+    if (HmfInverseMtxF3X3(matrix, matrix2) == 0) {
+        MTXIdentity(matrix2);
     }
-    PSMTXReorder(sp50, sp20);
+    PSMTXReorder(matrix2, rotationMatrix);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetArray(GX_VA_POS, var_r31->unk_180, 0xC);
+    GXSetArray(GX_VA_POS, thwompModel->positionTarget, 0xC);
     GXSetVtxDesc(GX_VA_NRM, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_NRM, GX_NRM_XYZ, GX_F32, 0);
-    GXSetArray(GX_VA_NRM, var_r31->unk_188, 0xC);
+    GXSetArray(GX_VA_NRM, thwompModel->positionWork, 0xC);
     GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetArray(GX_VA_CLR0, &var_r31->unk_23A, 4);
+    GXSetArray(GX_VA_CLR0, &thwompModel->effectColor, 4);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_CLR_RGBA, GX_RGBA6, 0);
     GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
-    GXSetArray(GX_VA_TEX0, var_r31->unk_184, 8);
-    for (var_r30 = 0; var_r30 < var_r31->unk_240; var_r30++) {
-        if (var_r31->unk_2A8[var_r30] && var_r31->unk_244[var_r30] != 0 && var_r30 != 1) {
-            GXCallDisplayList(var_r31->unk_2A8[var_r30], var_r31->unk_244[var_r30]);
+    GXSetArray(GX_VA_TEX0, thwompModel->textureCoordinates, 8);
+    for (vertexIndex = 0; vertexIndex < thwompModel->surfaceCount; vertexIndex++) {
+        if (thwompModel->displayLists[vertexIndex] && thwompModel->displayListSizes[vertexIndex] != 0 && vertexIndex != 1) {
+            GXCallDisplayList(thwompModel->displayLists[vertexIndex], thwompModel->displayListSizes[vertexIndex]);
         }
     }
     GXSetNumTevStages(2);
@@ -2156,13 +2156,13 @@ void fn_1_101C4(HU3DMODEL *var_r29, Mtx var_r28)
     GXSetTevColorOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE1, GX_CA_APREV, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
     GXSetTevAlphaOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    lbl_1_bss_6C8.r = var_r31->unk_23A.r;
-    lbl_1_bss_6C8.g = var_r31->unk_23A.g;
-    lbl_1_bss_6C8.b = var_r31->unk_23A.b;
-    lbl_1_bss_6C8.a = var_r31->unk_23A.a;
-    GXSetChanAmbColor(GX_COLOR0A0, lbl_1_bss_6C8);
-    GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_168);
-    GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_REG, var_r27, GX_DF_CLAMP, GX_AF_SPEC);
+    thwompEffectColor.r = thwompModel->effectColor.r;
+    thwompEffectColor.g = thwompModel->effectColor.g;
+    thwompEffectColor.b = thwompModel->effectColor.b;
+    thwompEffectColor.a = thwompModel->effectColor.a;
+    GXSetChanAmbColor(GX_COLOR0A0, thwompEffectColor);
+    GXSetChanMatColor(GX_COLOR0A0, thwompModelColor);
+    GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_REG, drawState, GX_DF_CLAMP, GX_AF_SPEC);
     GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetZCompLoc(0);
@@ -2170,471 +2170,471 @@ void fn_1_101C4(HU3DMODEL *var_r29, Mtx var_r28)
     GXClearVtxDesc();
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_TEX_ST, GX_RGBA6, 0);
     GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
-    GXSetArray(GX_VA_POS, var_r31->unk_180, 0xC);
+    GXSetArray(GX_VA_POS, thwompModel->positionTarget, 0xC);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_NRM, GX_TEX_S, GX_RGBA6, 0);
     GXSetVtxDesc(GX_VA_NRM, GX_INDEX16);
-    GXSetArray(GX_VA_NRM, var_r31->unk_188, 0xC);
+    GXSetArray(GX_VA_NRM, thwompModel->positionWork, 0xC);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_TEX_ST, GX_RGBA8, 0);
     GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
-    GXSetArray(GX_VA_CLR0, &var_r31->unk_23A, 4);
+    GXSetArray(GX_VA_CLR0, &thwompModel->effectColor, 4);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
     GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
-    GXSetArray(GX_VA_TEX0, var_r31->unk_184, 8);
-    if (var_r31->unk_2A8[1] && (var_r31->unk_244[1] != 0)) {
-        GXCallDisplayList(var_r31->unk_2A8[1], var_r31->unk_244[1]);
+    GXSetArray(GX_VA_TEX0, thwompModel->textureCoordinates, 8);
+    if (thwompModel->displayLists[1] && (thwompModel->displayListSizes[1] != 0)) {
+        GXCallDisplayList(thwompModel->displayLists[1], thwompModel->displayListSizes[1]);
     }
 }
 
-s32 fn_1_109EC(s32 arg0, s32 arg1, Vec *arg2, Vec *arg3, Vec *arg4, s32 arg5)
+s32 CalculateThwompCollision(s32 modelIndex, s32 vertexCacheSlot, Vec *position, Vec *movement, Vec *nextPosition, s32 collisionEffectId)
 {
-    float var_f31;
-    float var_f30;
-    M425DllUnkStruct4 *var_r31;
-    s32 var_r29;
-    HU3DMODEL *var_r26;
+    float impactStrength;
+    float animationProgress;
+    M425ThwompModelWork *thwompModel;
+    s32 motionSlotIndex;
+    HU3DMODEL *model;
 
-    if (!lbl_1_bss_6EC) {
+    if (!thwompObject) {
         return;
     }
-    var_r26 = &Hu3DData[lbl_1_bss_6EC->mdlId[arg0]];
-    var_r31 = var_r26->hookData;
-    if (var_r31->unk_0C != 0.0f) {
-        var_f30 = var_r31->unk_08 / var_r31->unk_0C;
+    model = &Hu3DData[thwompObject->mdlId[modelIndex]];
+    thwompModel = model->hookData;
+    if (thwompModel->animationTimeTotal != 0.0f) {
+        animationProgress = thwompModel->animationTimeRemaining / thwompModel->animationTimeTotal;
     }
     else {
-        var_f30 = 1.0f;
+        animationProgress = 1.0f;
     }
-    var_r31->unk_24 = fn_1_10EF8(arg0, arg1, arg2->x, arg2->z);
-    arg4->x = arg2->x + arg3->x;
-    arg4->y = arg2->y + arg3->y;
-    arg4->z = arg2->z + arg3->z;
-    if ((arg4->y < var_r31->unk_24) && (arg3->y < 0.0f) && (var_r31->unk_34 >= 0)) {
-        var_f31 = -arg3->y;
-        if (var_f31 > 50.0f) {
-            var_f31 = 50.0f;
+    thwompModel->collisionState = CalculateThwompVertexPosition(modelIndex, vertexCacheSlot, position->x, position->z);
+    nextPosition->x = position->x + movement->x;
+    nextPosition->y = position->y + movement->y;
+    nextPosition->z = position->z + movement->z;
+    if ((nextPosition->y < thwompModel->frameCount) && (movement->y < 0.0f) && (thwompModel->frameCount >= 0)) {
+        impactStrength = -movement->y;
+        if (impactStrength > 50.0f) {
+            impactStrength = 50.0f;
         }
-        else if (var_f31 < 10.0f) {
-            var_f31 = 0.0f;
+        else if (impactStrength < 10.0f) {
+            impactStrength = 0.0f;
         }
-        if ((var_f31 > 0.0f) && (arg5 != 0)) {
-            var_f31 = (var_f31 - 10.0f) / 40.0f;
+        if ((impactStrength > 0.0f) && (collisionEffectId != 0)) {
+            impactStrength = (impactStrength - 10.0f) / 40.0f;
 #if VERSION_PAL
-            var_r31->unk_20 += var_f31 * 0.8333333f;
+            thwompModel->movementSpeed += impactStrength * 0.8333333f;
 #else
-            var_r31->unk_20 += var_f31;
+            thwompModel->movementSpeed += impactStrength;
 #endif
         }
-        var_f31 = -arg3->y;
-        var_f31 = var_f31 * 0.02f;
-        if (var_r31->unk_34 >= 0) {
-            for (var_r29 = 0; var_r29 < var_r31->unk_38; var_r29++) {
-                if (var_r31->unk_84[var_r29] == var_r31->unk_34) {
+        impactStrength = -movement->y;
+        impactStrength = impactStrength * 0.02f;
+        if (thwompModel->frameCount >= 0) {
+            for (motionSlotIndex = 0; motionSlotIndex < thwompModel->motionSlotCount; motionSlotIndex++) {
+                if (thwompModel->motionStates[motionSlotIndex] == thwompModel->frameCount) {
                     break;
                 }
             }
-            if (var_r29 >= var_r31->unk_38) {
-                var_r29 = var_r31->unk_38;
+            if (motionSlotIndex >= thwompModel->motionSlotCount) {
+                motionSlotIndex = thwompModel->motionSlotCount;
             }
-            if (var_r29 < 6) {
-                var_r31->unk_84[var_r29] = var_r31->unk_34;
-                if (var_r31->unk_9C[var_r29] < var_f31) {
-                    var_r31->unk_9C[var_r29] = var_f31;
-                    var_r31->unk_B4[var_r29] = arg5;
+            if (motionSlotIndex < 6) {
+                thwompModel->motionStates[motionSlotIndex] = thwompModel->frameCount;
+                if (thwompModel->motionTimers[motionSlotIndex] < impactStrength) {
+                    thwompModel->motionTimers[motionSlotIndex] = impactStrength;
+                    thwompModel->animationTextureIds[motionSlotIndex] = collisionEffectId;
                 }
-                var_r31->unk_38++;
+                thwompModel->motionSlotCount++;
             }
         }
-        arg4->y = var_r31->unk_24 - (150.0f * (var_f30 * var_f31));
-        if (arg4->y < 1.0f) {
-            arg4->y = 1.0f;
+        nextPosition->y = thwompModel->collisionState - (150.0f * (animationProgress * impactStrength));
+        if (nextPosition->y < 1.0f) {
+            nextPosition->y = 1.0f;
         }
         return 1;
     }
-    if (arg4->y < var_r31->unk_24) {
-        arg4->y = var_r31->unk_24;
+    if (nextPosition->y < thwompModel->collisionState) {
+        nextPosition->y = thwompModel->collisionState;
     }
     return 0;
 }
 
-float fn_1_10CF4(s32 arg0)
+float GetThwompModelId(s32 modelIndex)
 {
-    HU3DMODEL *var_r31;
-    M425DllUnkStruct4 *var_r30;
+    HU3DMODEL *model;
+    M425ThwompModelWork *thwompModel;
 
-    if (!lbl_1_bss_6EC) {
+    if (!thwompObject) {
         return;
     }
-    var_r31 = &Hu3DData[lbl_1_bss_6EC->mdlId[arg0]];
-    var_r30 = var_r31->hookData;
-    return var_r30->unk_08;
+    model = &Hu3DData[thwompObject->mdlId[modelIndex]];
+    thwompModel = model->hookData;
+    return thwompModel->animationTimeRemaining;
 }
 
-void fn_1_10D54(s32 arg0, float arg8)
+void SetThwompModelState(s32 modelIndex, float animationTime)
 {
-    HU3DMODEL *var_r31;
-    M425DllUnkStruct4 *var_r30;
+    HU3DMODEL *model;
+    M425ThwompModelWork *thwompModel;
 
-    if (lbl_1_bss_6EC) {
-        var_r31 = &Hu3DData[lbl_1_bss_6EC->mdlId[arg0]];
-        var_r30 = var_r31->hookData;
-        var_r30->unk_08 = arg8;
+    if (thwompObject) {
+        model = &Hu3DData[thwompObject->mdlId[modelIndex]];
+        thwompModel = model->hookData;
+        thwompModel->animationTimeRemaining = animationTime;
     }
 }
 
-void fn_1_10DB4(s32 arg0)
+void UpdateThwompModelState(s32 modelIndex)
 {
-    M425DllUnkStruct4 *var_r31;
-    HU3DMODEL *var_r30;
+    M425ThwompModelWork *thwompModel;
+    HU3DMODEL *model;
 
-    if (lbl_1_bss_6EC) {
-        var_r30 = &Hu3DData[lbl_1_bss_6EC->mdlId[arg0]];
-        var_r31 = var_r30->hookData;
-        if (var_r31->unk_2C == 0) {
-            var_r31->unk_28 = 0;
-            var_r31->unk_2C = 0x28;
-            var_r31->unk_30 = 0.3f;
+    if (thwompObject) {
+        model = &Hu3DData[thwompObject->mdlId[modelIndex]];
+        thwompModel = model->hookData;
+        if (thwompModel->animationFrame == 0) {
+            thwompModel->animationFrameCounter = 0;
+            thwompModel->animationFrame = 0x28;
+            thwompModel->animationCycleProgress = 0.3f;
         }
     }
 }
 
-void fn_1_10E3C(s32 arg0)
+void ResetThwompModel(s32 modelVariant)
 {
-    M425DllUnkStruct4 *var_r31;
-    s32 var_r30;
-    HU3DMODEL *var_r29;
+    M425ThwompModelWork *thwompModel;
+    s32 modelIndex;
+    HU3DMODEL *model;
 
-    if (lbl_1_bss_6EC) {
-        for (var_r30 = 0; var_r30 < 2; var_r30++) {
-            var_r29 = &Hu3DData[lbl_1_bss_6EC->mdlId[var_r30]];
-            var_r31 = var_r29->hookData;
-            if (arg0 != 0) {
-                var_r31->unk_110 = var_r31->unk_144[0x18] + var_r31->unk_112[24];
-                var_r31->unk_240 = 0x19;
+    if (thwompObject) {
+        for (modelIndex = 0; modelIndex < 2; modelIndex++) {
+            model = &Hu3DData[thwompObject->mdlId[modelIndex]];
+            thwompModel = model->hookData;
+            if (modelVariant != 0) {
+                thwompModel->vertexCount = thwompModel->vertexIndexOffsets[0x18] + thwompModel->vertexIndexCounts[24];
+                thwompModel->surfaceCount = 0x19;
             }
             else {
-                var_r31->unk_110 = var_r31->unk_144[0x17] + var_r31->unk_112[23];
-                var_r31->unk_240 = 0x18;
+                thwompModel->vertexCount = thwompModel->vertexIndexOffsets[0x17] + thwompModel->vertexIndexCounts[23];
+                thwompModel->surfaceCount = 0x18;
             }
         }
     }
 }
 
-float fn_1_10EF8(s32 arg0, s32 arg1, float arg8, float arg9)
+float CalculateThwompVertexPosition(s32 modelIndex, s32 vertexCacheSlot, float worldX, float worldZ)
 {
-    Mtx spC;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f25;
-    M425DllUnkStruct4 *var_r31;
-    Vec *var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    HU3DMODEL *var_r26;
+    Mtx matrix;
+    float transformedX;
+    float transformedZ;
+    float distanceSquared;
+    float nearestDistanceSquared;
+    float transformedY;
+    M425ThwompModelWork *thwompModel;
+    Vec *vector;
+    s32 vertexIndex;
+    s32 nearestVertexIndex;
+    HU3DMODEL *model;
 
-    if (!lbl_1_bss_6EC) {
+    if (!thwompObject) {
         return 0.0f;
     }
-    var_r26 = &Hu3DData[lbl_1_bss_6EC->mdlId[arg0]];
-    var_r31 = var_r26->hookData;
-    if ((arg1 >= 0) && (arg1 <= 2) && (var_r31->unk_F0[arg1] != -1)) {
-        var_r28 = var_r31->unk_F0[arg1];
-        var_r31->unk_34 = var_r28;
-        if (var_r31->unk_19C == 0) {
-            return var_r31->unk_DC * var_r31->unk_198[var_r28].y;
+    model = &Hu3DData[thwompObject->mdlId[modelIndex]];
+    thwompModel = model->hookData;
+    if ((vertexCacheSlot >= 0) && (vertexCacheSlot <= 2) && (thwompModel->activeVertexIndices[vertexCacheSlot] != -1)) {
+        nearestVertexIndex = thwompModel->activeVertexIndices[vertexCacheSlot];
+        thwompModel->frameCount = nearestVertexIndex;
+        if (thwompModel->workState == 0) {
+            return thwompModel->modelScale * thwompModel->rotationOutput[nearestVertexIndex].y;
         }
-        return var_r31->unk_198[var_r28].y;
+        return thwompModel->rotationOutput[nearestVertexIndex].y;
     }
-    if (var_r31->unk_19C == 0) {
-        mtxRot(spC, 0.0f, var_r31->unk_D8, 0.0f);
-        spC[1][0] *= var_r31->unk_DC;
-        spC[1][1] *= var_r31->unk_DC;
-        spC[1][2] *= var_r31->unk_DC;
-        for (var_r29 = 0, var_r30 = var_r31->unk_198; var_r29 < var_r31->unk_112[0]; var_r29++, var_r30++) {
-            var_f31 = (spC[0][2] * var_r30->z) + ((spC[0][0] * var_r30->x) + (spC[0][1] * var_r30->y));
-            var_f25 = (spC[1][2] * var_r30->z) + ((spC[1][0] * var_r30->x) + (spC[1][1] * var_r30->y));
-            var_f30 = (spC[2][2] * var_r30->z) + ((spC[2][0] * var_r30->x) + (spC[2][1] * var_r30->y));
-            var_r30->x = var_f31;
-            var_r30->y = var_f25;
-            var_r30->z = var_f30;
+    if (thwompModel->workState == 0) {
+        mtxRot(matrix, 0.0f, thwompModel->rotationAngle, 0.0f);
+        matrix[1][0] *= thwompModel->modelScale;
+        matrix[1][1] *= thwompModel->modelScale;
+        matrix[1][2] *= thwompModel->modelScale;
+        for (vertexIndex = 0, vector = thwompModel->rotationOutput; vertexIndex < thwompModel->vertexIndexCounts[0]; vertexIndex++, vector++) {
+            transformedX = (matrix[0][2] * vector->z) + ((matrix[0][0] * vector->x) + (matrix[0][1] * vector->y));
+            transformedY = (matrix[1][2] * vector->z) + ((matrix[1][0] * vector->x) + (matrix[1][1] * vector->y));
+            transformedZ = (matrix[2][2] * vector->z) + ((matrix[2][0] * vector->x) + (matrix[2][1] * vector->y));
+            vector->x = transformedX;
+            vector->y = transformedY;
+            vector->z = transformedZ;
         }
-        var_r31->unk_19C = 1;
+        thwompModel->workState = 1;
     }
-    arg8 -= var_r31->unk_CC.x;
-    arg9 -= var_r31->unk_CC.z;
-    var_f28 = 10000.0f;
-    var_r28 = -1;
-    for (var_r29 = 0, var_r30 = var_r31->unk_198; var_r29 < var_r31->unk_112[0]; var_r29++, var_r30++) {
-        var_f31 = arg8 - var_r30->x;
-        var_f30 = arg9 - var_r30->z;
-        if (!(fabs(var_f31) > 100.0)) {
-            if (!(fabs(var_f30) > 100.0)) {
-                var_f29 = (var_f31 * var_f31) + (var_f30 * var_f30);
-                if (var_f29 < var_f28) {
-                    var_r28 = var_r29;
-                    var_f28 = var_f29;
+    worldX -= thwompModel->worldPosition.x;
+    worldZ -= thwompModel->worldPosition.z;
+    nearestDistanceSquared = 10000.0f;
+    nearestVertexIndex = -1;
+    for (vertexIndex = 0, vector = thwompModel->rotationOutput; vertexIndex < thwompModel->vertexIndexCounts[0]; vertexIndex++, vector++) {
+        transformedX = worldX - vector->x;
+        transformedZ = worldZ - vector->z;
+        if (!(fabs(transformedX) > 100.0)) {
+            if (!(fabs(transformedZ) > 100.0)) {
+                distanceSquared = (transformedX * transformedX) + (transformedZ * transformedZ);
+                if (distanceSquared < nearestDistanceSquared) {
+                    nearestVertexIndex = vertexIndex;
+                    nearestDistanceSquared = distanceSquared;
                 }
             }
         }
     }
-    (void)var_r29;
-    var_r31->unk_34 = var_r28;
-    if ((arg1 >= 0) && (arg1 <= 2)) {
-        var_r31->unk_F0[arg1] = var_r28;
+    (void)vertexIndex;
+    thwompModel->frameCount = nearestVertexIndex;
+    if ((vertexCacheSlot >= 0) && (vertexCacheSlot <= 2)) {
+        thwompModel->activeVertexIndices[vertexCacheSlot] = nearestVertexIndex;
     }
-    if (var_r28 >= 0) {
-        return var_r31->unk_198[var_r28].y;
+    if (nearestVertexIndex >= 0) {
+        return thwompModel->rotationOutput[nearestVertexIndex].y;
     }
     return 0.0f;
 }
 
-void fn_1_11284(void)
+void InitializeThwompSprite(void)
 {
-    lbl_1_bss_6D8 = HuSprAnimRead(HuDataReadNum(0x38000E, 0x10000000));
-    lbl_1_bss_6D4 = fn_1_11A74(lbl_1_bss_6D8, 0x40);
-    Hu3DModelLayerSet(lbl_1_bss_6D4, 6);
+    thwompEffectAnimation = HuSprAnimRead(HuDataReadNum(0x38000E, 0x10000000));
+    thwompSpriteId = LoadThwompAnimation(thwompEffectAnimation, 0x40);
+    Hu3DModelLayerSet(thwompSpriteId, 6);
 }
 
-void fn_1_112FC(void)
+void CreateThwompEffect(void)
 {
-    M425DllUnkStruct5 *var_r31;
-    M425DllUnkStruct6 *var_r30;
-    s32 var_r29;
-    HU3DMODEL *var_r28;
+    M425ThwompAnimationWork *thwompAnimation;
+    M425ThwompParticleWork *thwompParticle;
+    s32 particleIndex;
+    HU3DMODEL *model;
 
-    var_r28 = &Hu3DData[lbl_1_bss_6D4];
-    var_r30 = var_r28->hookData;
-    for (var_r31 = var_r30->unk_3C, var_r29 = 0; var_r29 < var_r30->unk_24; var_r29++, var_r31++) {
-        if (!(var_r31->unk_28 <= 0.0f)) {
-            var_r31->unk_04.x = var_r31->unk_10.x * var_r31->unk_1C;
-            var_r31->unk_04.y = var_r31->unk_10.y * var_r31->unk_1C;
-            var_r31->unk_04.z = var_r31->unk_10.z * var_r31->unk_1C;
-            var_r31->unk_1C *= 0.95f;
-            VECAdd(&var_r31->unk_30, &var_r31->unk_04, &var_r31->unk_30);
-            if (++var_r31->unk_40 >= 0xF) {
-                var_r31->unk_40 = 0;
-                var_r31->unk_28 = 0.0f;
+    model = &Hu3DData[thwompSpriteId];
+    thwompParticle = model->hookData;
+    for (thwompAnimation = thwompParticle->motionIds, particleIndex = 0; particleIndex < thwompParticle->collisionState; particleIndex++, thwompAnimation++) {
+        if (!(thwompAnimation->lifetimeRemaining <= 0.0f)) {
+            thwompAnimation->frameStart.x = thwompAnimation->frameEnd.x * thwompAnimation->frameLength;
+            thwompAnimation->frameStart.y = thwompAnimation->frameEnd.y * thwompAnimation->frameLength;
+            thwompAnimation->frameStart.z = thwompAnimation->frameEnd.z * thwompAnimation->frameLength;
+            thwompAnimation->frameLength *= 0.95f;
+            VECAdd(&thwompAnimation->worldPosition, &thwompAnimation->frameStart, &thwompAnimation->worldPosition);
+            if (++thwompAnimation->animationFrameIndex >= 0xF) {
+                thwompAnimation->animationFrameIndex = 0;
+                thwompAnimation->lifetimeRemaining = 0.0f;
             }
         }
     }
 }
 
-void fn_1_11418(void)
+void CleanupThwompSprite(void)
 {
-    HuSprAnimKill(lbl_1_bss_6D8);
-    lbl_1_bss_6D8 = NULL;
+    HuSprAnimKill(thwompEffectAnimation);
+    thwompEffectAnimation = NULL;
 }
 
-s32 fn_1_11454(Vec *arg0, Vec *arg1, float arg8, float arg9)
+s32 UpdateThwompEffect(Vec *vector, Vec *vector2, float effectLifetime, float effectScale)
 {
-    M425DllUnkStruct5 *var_r31;
-    M425DllUnkStruct6 *var_r29;
-    s32 var_r28;
-    HU3DMODEL *var_r26;
+    M425ThwompAnimationWork *thwompAnimation;
+    M425ThwompParticleWork *thwompParticle;
+    s32 effectSlot;
+    HU3DMODEL *model;
 
-    var_r26 = &Hu3DData[lbl_1_bss_6D4];
-    var_r29 = var_r26->hookData;
-    for (var_r31 = var_r29->unk_3C, var_r28 = 0; var_r28 < var_r29->unk_24; var_r28++, var_r31++) {
-        if (var_r31->unk_28 <= 0.0f) {
+    model = &Hu3DData[thwompSpriteId];
+    thwompParticle = model->hookData;
+    for (thwompAnimation = thwompParticle->motionIds, effectSlot = 0; effectSlot < thwompParticle->collisionState; effectSlot++, thwompAnimation++) {
+        if (thwompAnimation->lifetimeRemaining <= 0.0f) {
             break;
         }
     }
-    if (var_r28 >= var_r29->unk_24) {
+    if (effectSlot >= thwompParticle->collisionState) {
         return -1;
     }
-    var_r31->unk_30.x = arg0->x;
-    var_r31->unk_30.y = arg0->y;
-    var_r31->unk_30.z = arg0->z;
-    var_r31->unk_10.x = arg1->x;
-    var_r31->unk_10.y = arg1->y;
-    var_r31->unk_10.z = arg1->z;
-    var_r31->unk_04.x = arg1->x * arg9;
-    var_r31->unk_04.y = arg1->y * arg9;
-    var_r31->unk_04.z = arg1->z * arg9;
-    var_r31->unk_1C = arg9;
-    var_r31->unk_28 = arg8;
-    var_r31->unk_2C = (s32)frand() % 360;
-    var_r31->unk_3C.a = 0x40;
-    var_r31->unk_40 = 0;
-    return var_r28;
+    thwompAnimation->worldPosition.x = vector->x;
+    thwompAnimation->worldPosition.y = vector->y;
+    thwompAnimation->worldPosition.z = vector->z;
+    thwompAnimation->frameEnd.x = vector2->x;
+    thwompAnimation->frameEnd.y = vector2->y;
+    thwompAnimation->frameEnd.z = vector2->z;
+    thwompAnimation->frameStart.x = vector2->x * effectScale;
+    thwompAnimation->frameStart.y = vector2->y * effectScale;
+    thwompAnimation->frameStart.z = vector2->z * effectScale;
+    thwompAnimation->frameLength = effectScale;
+    thwompAnimation->lifetimeRemaining = effectLifetime;
+    thwompAnimation->animationFrame = (s32)frand() % 360;
+    thwompAnimation->motionIds.a = 0x40;
+    thwompAnimation->animationFrameIndex = 0;
+    return effectSlot;
 }
 
-s16 fn_1_115D4(HU3DMODEL *arg0, Mtx arg1, Mtx arg2, float arg8)
+s16 ConfigureThwompLight(HU3DMODEL *model, Mtx matrix, Mtx matrix2, float specularStrength)
 {
-    s16 var_r31;
-    s16 var_r30;
-    HU3DLIGHT *var_r29;
-    s16 var_r27;
+    s16 lightIndex;
+    s16 lightMask;
+    HU3DLIGHT *light;
+    s16 enabledLightMask;
 
-    var_r27 = 0;
-    var_r30 = 1;
-    for (var_r29 = Hu3DGlobalLight, var_r31 = 0; var_r31 < 8; var_r31++, var_r29++) {
-        if (var_r29->type != -1) {
-            var_r30 <<= 1;
+    enabledLightMask = 0;
+    lightMask = 1;
+    for (light = Hu3DGlobalLight, lightIndex = 0; lightIndex < 8; lightIndex++, light++) {
+        if (light->type != -1) {
+            lightMask <<= 1;
         }
     }
-    if ((arg0->attr & 0x1000) != 0) {
-        for (var_r31 = 0; var_r31 < 8; var_r31++) {
-            if (arg0->lLightId[var_r31] != -1) {
-                var_r29 = &Hu3DLocalLight[arg0->lLightId[var_r31]];
-                fn_1_116E4(arg0, var_r29, var_r30, arg2, arg1, arg8);
-                var_r27 |= var_r30;
-                var_r30 <<= 1;
+    if ((model->attr & 0x1000) != 0) {
+        for (lightIndex = 0; lightIndex < 8; lightIndex++) {
+            if (model->lLightId[lightIndex] != -1) {
+                light = &Hu3DLocalLight[model->lLightId[lightIndex]];
+                InitializeLightParameters(model, light, lightMask, matrix2, model, specularStrength);
+                enabledLightMask |= lightMask;
+                lightMask <<= 1;
             }
         }
     }
-    return var_r27;
+    return enabledLightMask;
 }
 
-void fn_1_116E4(HU3DMODEL *arg1, HU3DLIGHT *var_r31, s16 sp8, Mtx spC, Mtx sp10, float var_f31)
+void InitializeLightParameters(HU3DMODEL *model, HU3DLIGHT *light, s16 lightMask, Mtx matrix, Mtx matrix2, float specularStrength)
 {
-    switch ((u8)var_r31->type) {
+    switch ((u8)light->type) {
         case 0:
-            GXInitLightAttn(&lbl_1_bss_688, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-            GXInitLightSpot(&lbl_1_bss_688, var_r31->cutoff, var_r31->func);
+            GXInitLightAttn(&thwompLight, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+            GXInitLightSpot(&thwompLight, light->cutoff, light->func);
             break;
         case 1:
-            GXInitLightAttn(&lbl_1_bss_688, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-            VECScale(&var_r31->dir, &var_r31->pos, -100000.0f);
+            GXInitLightAttn(&thwompLight, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+            VECScale(&light->dir, &light->pos, -100000.0f);
             break;
         case 2:
-            GXInitLightAttn(&lbl_1_bss_688, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-            GXInitLightDistAttn(&lbl_1_bss_688, var_r31->cutoff, var_r31->brightness, var_r31->func);
+            GXInitLightAttn(&thwompLight, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+            GXInitLightDistAttn(&thwompLight, light->cutoff, light->brightness, light->func);
             break;
     }
-    if ((var_r31->type & 0x8000) != 0) {
-        MTXMultVec(spC, &var_r31->dir, &lbl_1_bss_67C);
-        MTXMultVec(sp10, &var_r31->pos, &lbl_1_bss_670);
-        GXInitLightPos(&lbl_1_bss_688, lbl_1_bss_670.x, lbl_1_bss_670.y, lbl_1_bss_670.z);
+    if ((light->type & 0x8000) != 0) {
+        MTXMultVec(matrix, &light->dir, &thwompLightPosition);
+        MTXMultVec(matrix2, &light->pos, &thwompLightDirection);
+        GXInitLightPos(&thwompLight, thwompLightDirection.x, thwompLightDirection.y, thwompLightDirection.z);
     }
     else {
-        GXInitLightPos(&lbl_1_bss_688, var_r31->pos.x, var_r31->pos.y, var_r31->pos.z);
-        lbl_1_bss_67C = var_r31->dir;
+        GXInitLightPos(&thwompLight, light->pos.x, light->pos.y, light->pos.z);
+        thwompLightPosition = light->dir;
     }
-    if (var_f31 == 0.0f) {
-        GXInitLightDir(&lbl_1_bss_688, lbl_1_bss_67C.x, lbl_1_bss_67C.y, lbl_1_bss_67C.z);
+    if (specularStrength == 0.0f) {
+        GXInitLightDir(&thwompLight, thwompLightPosition.x, thwompLightPosition.y, thwompLightPosition.z);
     }
     else {
-        GXInitSpecularDir(&lbl_1_bss_688, lbl_1_bss_67C.x, lbl_1_bss_67C.y, lbl_1_bss_67C.z);
-        GXInitLightAttn(&lbl_1_bss_688, 0.0f, 0.0f, 1.0f, var_f31 / 2, 0.0f, 1.0f - (var_f31 / 2));
+        GXInitSpecularDir(&thwompLight, thwompLightPosition.x, thwompLightPosition.y, thwompLightPosition.z);
+        GXInitLightAttn(&thwompLight, 0.0f, 0.0f, 1.0f, specularStrength / 2, 0.0f, 1.0f - (specularStrength / 2));
     }
-    GXInitLightColor(&lbl_1_bss_688, var_r31->color);
-    GXLoadLightObjImm(&lbl_1_bss_688, sp8);
+    GXInitLightColor(&thwompLight, light->color);
+    GXLoadLightObjImm(&thwompLight, lightMask);
 }
 
-s16 fn_1_11A74(ANIMDATA *arg0, s16 arg1)
+s16 LoadThwompAnimation(ANIMDATA *animation, s16 particleCount)
 {
-    M425DllUnkStruct6 *var_r31;
-    s16 var_r30;
-    Vec2f *var_r29;
-    M425DllUnkStruct5 *var_r28;
-    HU3DMODEL *var_r27;
-    Vec *var_r26;
-    void *var_r24;
-    s16 var_r23;
-    void *var_r21;
+    M425ThwompParticleWork *thwompParticle;
+    s16 particleIndex;
+    Vec2f *textureCoordinate;
+    M425ThwompAnimationWork *thwompAnimation;
+    HU3DMODEL *model;
+    Vec *vector;
+    void *displayListBuffer;
+    s16 textureRow;
+    void *displayListCommandBuffer;
 
-    var_r23 = Hu3DHookFuncCreate(fn_1_11EE0);
-    var_r27 = &Hu3DData[var_r23];
-    var_r31 = HuMemDirectMallocNum(HEAP_MODEL, sizeof(M425DllUnkStruct6), var_r27->mallocNo);
-    var_r27->hookData = var_r31;
-    var_r31->unk_38 = arg0;
-    arg0->useNum++;
-    var_r31->unk_24 = arg1;
-    var_r31->unk_20 = 0;
-    var_r31->unk_4C = 0;
-    var_r31->unk_28 = 0;
-    var_r31->unk_21 = 0;
-    var_r31->unk_30 = 0;
-    var_r31->unk_00 = var_r31->unk_02 = 0;
-    var_r28 = HuMemDirectMallocNum(HEAP_MODEL, arg1 * sizeof(M425DllUnkStruct5), var_r27->mallocNo);
-    var_r31->unk_3C = var_r28;
-    for (var_r30 = 0; var_r30 < arg1; var_r30++, var_r28++) {
-        var_r28->unk_28 = 0.0f;
-        var_r28->unk_2C = 0.0f;
-        var_r28->unk_30.x = (s32)((frand() & 0x7F) - 0x40) * 0x14;
-        var_r28->unk_30.y = (s32)((frand() & 0x7F) - 0x40) * 0x1E;
-        var_r28->unk_30.z = (s32)((frand() & 0x7F) - 0x40) * 0x14;
-        var_r28->unk_3C.r = var_r28->unk_3C.g = var_r28->unk_3C.b = var_r28->unk_3C.a = 0xFF;
-        var_r28->unk_40 = 0;
+    textureRow = Hu3DHookFuncCreate(DrawThwompEffect);
+    model = &Hu3DData[textureRow];
+    thwompParticle = HuMemDirectMallocNum(HEAP_MODEL, sizeof(M425ThwompParticleWork), model->mallocNo);
+    model->hookData = thwompParticle;
+    thwompParticle->animationTimer = animation;
+    animation->useNum++;
+    thwompParticle->collisionState = particleCount;
+    thwompParticle->movementSpeed = 0;
+    thwompParticle->updateHook = 0;
+    thwompParticle->elapsedFrameCount = 0;
+    thwompParticle->thwompFlags = 0;
+    thwompParticle->frameLimit = 0;
+    thwompParticle->animationIndex = thwompParticle->animationstateAt02 = 0;
+    thwompAnimation = HuMemDirectMallocNum(HEAP_MODEL, particleCount * sizeof(M425ThwompAnimationWork), model->mallocNo);
+    thwompParticle->motionIds = thwompAnimation;
+    for (particleIndex = 0; particleIndex < particleCount; particleIndex++, thwompAnimation++) {
+        thwompAnimation->lifetimeRemaining = 0.0f;
+        thwompAnimation->animationFrame = 0.0f;
+        thwompAnimation->worldPosition.x = (s32)((frand() & 0x7F) - 0x40) * 0x14;
+        thwompAnimation->worldPosition.y = (s32)((frand() & 0x7F) - 0x40) * 0x1E;
+        thwompAnimation->worldPosition.z = (s32)((frand() & 0x7F) - 0x40) * 0x14;
+        thwompAnimation->motionIds.r = thwompAnimation->motionIds.g = thwompAnimation->motionIds.b = thwompAnimation->motionIds.a = 0xFF;
+        thwompAnimation->animationFrameIndex = 0;
     }
-    var_r26 = HuMemDirectMallocNum(HEAP_MODEL, arg1 * sizeof(Vec) * 4, var_r27->mallocNo);
-    var_r31->unk_40 = var_r26;
-    for (var_r30 = 0; var_r30 < (arg1 * 4); var_r30++, var_r26++) {
-        var_r26->x = var_r26->y = var_r26->z = 0.0f;
+    vector = HuMemDirectMallocNum(HEAP_MODEL, particleCount * sizeof(Vec) * 4, model->mallocNo);
+    thwompParticle->animationData = vector;
+    for (particleIndex = 0; particleIndex < (particleCount * 4); particleIndex++, vector++) {
+        vector->x = vector->y = vector->z = 0.0f;
     }
-    var_r29 = HuMemDirectMallocNum(HEAP_MODEL, arg1 * sizeof(Vec2f) * 4, var_r27->mallocNo);
-    var_r31->unk_44 = var_r29;
-    for (var_r30 = 0; var_r30 < arg1; var_r30++) {
-        var_r29->x = 0.0f;
-        var_r29->y = 0.0f;
-        var_r29++;
-        var_r29->x = 1.0f;
-        var_r29->y = 0.0f;
-        var_r29++;
-        var_r29->x = 1.0f;
-        var_r29->y = 1.0f;
-        var_r29++;
-        var_r29->x = 0.0f;
-        var_r29->y = 1.0f;
-        var_r29++;
+    textureCoordinate = HuMemDirectMallocNum(HEAP_MODEL, particleCount * sizeof(Vec2f) * 4, model->mallocNo);
+    thwompParticle->position = textureCoordinate;
+    for (particleIndex = 0; particleIndex < particleCount; particleIndex++) {
+        textureCoordinate->x = 0.0f;
+        textureCoordinate->y = 0.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 1.0f;
+        textureCoordinate->y = 0.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 1.0f;
+        textureCoordinate->y = 1.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 0.0f;
+        textureCoordinate->y = 1.0f;
+        textureCoordinate++;
     }
-    var_r24 = HuMemDirectMallocNum(HEAP_MODEL, 0x4000, var_r27->mallocNo);
-    var_r21 = var_r24;
-    DCFlushRange(var_r24, 0x4000);
-    GXBeginDisplayList(var_r21, 0x4000);
-    GXBegin(GX_QUADS, GX_VTXFMT0, arg1 * 4);
-    for (var_r30 = 0; var_r30 < arg1; var_r30++) {
-        GXPosition1x16(var_r30 * 4);
-        GXColor1x16(var_r30);
-        GXTexCoord1x16(var_r30 * 4);
+    displayListBuffer = HuMemDirectMallocNum(HEAP_MODEL, 0x4000, model->mallocNo);
+    displayListCommandBuffer = displayListBuffer;
+    DCFlushRange(displayListBuffer, 0x4000);
+    GXBeginDisplayList(displayListCommandBuffer, 0x4000);
+    GXBegin(GX_QUADS, GX_VTXFMT0, particleCount * 4);
+    for (particleIndex = 0; particleIndex < particleCount; particleIndex++) {
+        GXPosition1x16(particleIndex * 4);
+        GXColor1x16(particleIndex);
+        GXTexCoord1x16(particleIndex * 4);
 
-        GXPosition1x16(var_r30 * 4 + 1);
-        GXColor1x16(var_r30);
-        GXTexCoord1x16(var_r30 * 4 + 1);
+        GXPosition1x16(particleIndex * 4 + 1);
+        GXColor1x16(particleIndex);
+        GXTexCoord1x16(particleIndex * 4 + 1);
 
-        GXPosition1x16(var_r30 * 4 + 2);
-        GXColor1x16(var_r30);
-        GXTexCoord1x16(var_r30 * 4 + 2);
+        GXPosition1x16(particleIndex * 4 + 2);
+        GXColor1x16(particleIndex);
+        GXTexCoord1x16(particleIndex * 4 + 2);
 
-        GXPosition1x16(var_r30 * 4 + 3);
-        GXColor1x16(var_r30);
-        GXTexCoord1x16(var_r30 * 4 + 3);
+        GXPosition1x16(particleIndex * 4 + 3);
+        GXColor1x16(particleIndex);
+        GXTexCoord1x16(particleIndex * 4 + 3);
     }
-    var_r31->unk_34 = GXEndDisplayList();
-    var_r31->unk_48 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_34, var_r27->mallocNo);
-    memcpy(var_r31->unk_48, var_r24, var_r31->unk_34);
-    DCFlushRange(var_r31->unk_48, var_r31->unk_34);
-    HuMemDirectFree(var_r24);
-    return var_r23;
+    thwompParticle->frameCount = GXEndDisplayList();
+    thwompParticle->rotation = HuMemDirectMallocNum(HEAP_MODEL, thwompParticle->frameCount, model->mallocNo);
+    memcpy(thwompParticle->rotation, displayListBuffer, thwompParticle->frameCount);
+    DCFlushRange(thwompParticle->rotation, thwompParticle->frameCount);
+    HuMemDirectFree(displayListBuffer);
+    return textureRow;
 }
 
-void fn_1_11EE0(HU3DMODEL *var_r24, Mtx var_r21)
+void DrawThwompEffect(HU3DMODEL *model, Mtx matrix)
 {
-    Mtx sp128;
-    Mtx spF8;
-    Mtx spC8;
-    Vec sp98[4];
-    Vec sp68[4];
-    Vec sp38[4];
-    ROMtx sp8;
-    M425DllUnkStruct6 *var_r31;
-    Vec *var_r30;
-    M425DllUnkStruct5 *var_r29;
-    Vec *var_r28;
-    Vec *var_r27;
-    Vec2f *var_r26;
-    s16 var_r25;
-    s16 var_r23;
-    s16 var_r22;
-    s16 var_r20;
-    s16 var_r19;
-    UnkHook var_r18;
+    Mtx matrix2;
+    Mtx matrix3;
+    Mtx matrix4;
+    Vec vector4[4];
+    Vec vector5[4];
+    Vec vector6[4];
+    ROMtx rotationMatrix;
+    M425ThwompParticleWork *thwompParticle;
+    Vec *vector;
+    M425ThwompAnimationWork *thwompAnimation;
+    Vec *vector2;
+    Vec *vector3;
+    Vec2f *textureCoordinate;
+    s16 quadVertexIndex;
+    s16 particleIndex;
+    s16 textureFormat;
+    s16 textureColumn;
+    s16 textureRow;
+    ThwompParticleUpdateHook particleUpdateHook;
 
-    var_r31 = var_r24->hookData;
-    if ((var_r31->unk_2C != GlobalCounter) || (shadowModelDrawF != 0)) {
-        GXLoadPosMtxImm(var_r21, 0);
+    thwompParticle = model->hookData;
+    if ((thwompParticle->animationFrame != GlobalCounter) || (shadowModelDrawF != 0)) {
+        GXLoadPosMtxImm(matrix, 0);
         GXSetNumTevStages(1);
         GXSetNumTexGens(1);
         GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, 0x3C, GX_FALSE, 0x7D);
@@ -2644,14 +2644,14 @@ void fn_1_11EE0(HU3DMODEL *var_r24, Mtx var_r21)
             GXSetZMode(0, GX_LEQUAL, 0);
         }
         else {
-            var_r22 = var_r31->unk_38->bmp->dataFmt & 0xF;
-            if ((var_r22 == 7) || (var_r22 == 8)) {
+            textureFormat = thwompParticle->animationTimer->bmp->dataFmt & 0xF;
+            if ((textureFormat == 7) || (textureFormat == 8)) {
                 GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ONE, GX_CC_RASC, GX_CC_ZERO);
             }
             else {
                 GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
             }
-            if ((var_r24->attr & 2) != 0) {
+            if ((model->attr & 2) != 0) {
                 GXSetZMode(1, GX_LEQUAL, GX_TRUE);
             }
             else {
@@ -2663,10 +2663,10 @@ void fn_1_11EE0(HU3DMODEL *var_r24, Mtx var_r21)
         GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
         GXSetNumChans(1);
         GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_VTX, 0, GX_DF_CLAMP, GX_AF_NONE);
-        HuSprTexLoad(var_r31->unk_38, 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+        HuSprTexLoad(thwompParticle->animationTimer, 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
         GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
         GXSetZCompLoc(0);
-        switch (var_r31->unk_20) {
+        switch (thwompParticle->movementSpeed) {
             case 0:
                 GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
                 break;
@@ -2680,85 +2680,85 @@ void fn_1_11EE0(HU3DMODEL *var_r24, Mtx var_r21)
         GXClearVtxDesc();
         GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_TEX_ST, GX_RGBA6, 0);
-        GXSetArray(GX_VA_POS, var_r31->unk_40, 0xC);
+        GXSetArray(GX_VA_POS, thwompParticle->animationData, 0xC);
         GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_TEX_ST, GX_RGBA8, 0);
-        GXSetArray(GX_VA_CLR0, &var_r31->unk_3C->unk_3C, 0x44);
+        GXSetArray(GX_VA_CLR0, &thwompParticle->motionIds->motionIds, 0x44);
         GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_RGBA6, 0);
-        GXSetArray(GX_VA_TEX0, var_r31->unk_44, 8);
-        if (HmfInverseMtxF3X3(var_r21, sp128) == 0) {
-            MTXIdentity(sp128);
+        GXSetArray(GX_VA_TEX0, thwompParticle->position, 8);
+        if (HmfInverseMtxF3X3(matrix, matrix2) == 0) {
+            MTXIdentity(matrix2);
         }
-        PSMTXReorder(sp128, &sp8[0]);
-        if (var_r31->unk_4C) {
-            var_r18 = var_r31->unk_4C;
-            var_r18(var_r24, var_r31, var_r21);
+        PSMTXReorder(matrix2, &rotationMatrix[0]);
+        if (thwompParticle->updateHook) {
+            particleUpdateHook = thwompParticle->updateHook;
+            particleUpdateHook(model, thwompParticle, matrix);
         }
-        var_r29 = var_r31->unk_3C;
-        var_r30 = var_r31->unk_40;
-        var_r26 = var_r31->unk_44;
-        PSMTXROMultVecArray(sp8, lbl_1_data_19C, &sp38[0], 4);
-        for (var_r23 = 0; var_r23 < var_r31->unk_24; var_r23++, var_r29++) {
-            if (!var_r29->unk_28) {
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
-                var_r30->x = var_r30->y = var_r30->z = 0.0f;
-                var_r30++;
+        thwompAnimation = thwompParticle->motionIds;
+        vector = thwompParticle->animationData;
+        textureCoordinate = thwompParticle->position;
+        PSMTXROMultVecArray(rotationMatrix, thwompQuadVertices, &vector6[0], 4);
+        for (particleIndex = 0; particleIndex < thwompParticle->collisionState; particleIndex++, thwompAnimation++) {
+            if (!thwompAnimation->lifetimeRemaining) {
+                vector->x = vector->y = vector->z = 0.0f;
+                vector++;
+                vector->x = vector->y = vector->z = 0.0f;
+                vector++;
+                vector->x = vector->y = vector->z = 0.0f;
+                vector++;
+                vector->x = vector->y = vector->z = 0.0f;
+                vector++;
             }
             else {
-                if (!var_r29->unk_2C) {
-                    var_r28 = &sp98[0];
-                    var_r27 = &sp38[0];
-                    VECScale(var_r27++, var_r28, var_r29->unk_28);
-                    VECAdd(var_r28++, &var_r29->unk_30, var_r30++);
-                    VECScale(var_r27++, var_r28, var_r29->unk_28);
-                    VECAdd(var_r28++, &var_r29->unk_30, var_r30++);
-                    VECScale(var_r27++, var_r28, var_r29->unk_28);
-                    VECAdd(var_r28++, &var_r29->unk_30, var_r30++);
-                    VECScale(var_r27++, var_r28, var_r29->unk_28);
-                    VECAdd(var_r28++, &var_r29->unk_30, var_r30++);
+                if (!thwompAnimation->animationFrame) {
+                    vector2 = &vector4[0];
+                    vector3 = &vector6[0];
+                    VECScale(vector3++, vector2, thwompAnimation->lifetimeRemaining);
+                    VECAdd(vector2++, &thwompAnimation->worldPosition, vector++);
+                    VECScale(vector3++, vector2, thwompAnimation->lifetimeRemaining);
+                    VECAdd(vector2++, &thwompAnimation->worldPosition, vector++);
+                    VECScale(vector3++, vector2, thwompAnimation->lifetimeRemaining);
+                    VECAdd(vector2++, &thwompAnimation->worldPosition, vector++);
+                    VECScale(vector3++, vector2, thwompAnimation->lifetimeRemaining);
+                    VECAdd(vector2++, &thwompAnimation->worldPosition, vector++);
                 }
                 else {
-                    VECScale(lbl_1_data_19C, &sp98[0], var_r29->unk_28);
-                    VECScale(&lbl_1_data_19C[1], &sp98[1], var_r29->unk_28);
-                    VECScale(&lbl_1_data_19C[2], &sp98[2], var_r29->unk_28);
-                    VECScale(&lbl_1_data_19C[3], &sp98[3], var_r29->unk_28);
-                    MTXRotRad(spC8, 0x5A, var_r29->unk_2C);
-                    MTXConcat(sp128, spC8, spF8);
-                    MTXMultVecArray(spF8, &sp98[0], &sp68[0], 4);
-                    VECAdd(&sp68[0], &var_r29->unk_30, var_r30++);
-                    VECAdd(&sp68[1], &var_r29->unk_30, var_r30++);
-                    VECAdd(&sp68[2], &var_r29->unk_30, var_r30++);
-                    VECAdd(&sp68[3], &var_r29->unk_30, var_r30++);
+                    VECScale(thwompQuadVertices, &vector4[0], thwompAnimation->lifetimeRemaining);
+                    VECScale(&thwompQuadVertices[1], &vector4[1], thwompAnimation->lifetimeRemaining);
+                    VECScale(&thwompQuadVertices[2], &vector4[2], thwompAnimation->lifetimeRemaining);
+                    VECScale(&thwompQuadVertices[3], &vector4[3], thwompAnimation->lifetimeRemaining);
+                    MTXRotRad(matrix4, 0x5A, thwompAnimation->animationFrame);
+                    MTXConcat(matrix2, matrix4, matrix3);
+                    MTXMultVecArray(matrix3, &vector4[0], &vector5[0], 4);
+                    VECAdd(&vector5[0], &thwompAnimation->worldPosition, vector++);
+                    VECAdd(&vector5[1], &thwompAnimation->worldPosition, vector++);
+                    VECAdd(&vector5[2], &thwompAnimation->worldPosition, vector++);
+                    VECAdd(&vector5[3], &thwompAnimation->worldPosition, vector++);
                 }
-                var_r20 = var_r29->unk_40 & 3;
-                var_r19 = (var_r29->unk_40 >> 2) & 3;
-                for (var_r25 = 0; var_r25 < 4; var_r25++, var_r26++) {
-                    var_r26->x = (0.25f * var_r20) + lbl_1_data_1CC[var_r25].x;
-                    var_r26->y = (0.25f * var_r19) + lbl_1_data_1CC[var_r25].y;
+                textureColumn = thwompAnimation->animationFrameIndex & 3;
+                textureRow = (thwompAnimation->animationFrameIndex >> 2) & 3;
+                for (quadVertexIndex = 0; quadVertexIndex < 4; quadVertexIndex++, textureCoordinate++) {
+                    textureCoordinate->x = (0.25f * textureColumn) + thwompTextureCoordinates[quadVertexIndex].x;
+                    textureCoordinate->y = (0.25f * textureRow) + thwompTextureCoordinates[quadVertexIndex].y;
                 }
             }
         }
-        DCFlushRangeNoSync(var_r31->unk_40, var_r31->unk_24 * 0xC * 4);
-        DCFlushRangeNoSync(var_r31->unk_44, var_r31->unk_24 * 8 * 4);
+        DCFlushRangeNoSync(thwompParticle->animationData, thwompParticle->collisionState * 0xC * 4);
+        DCFlushRangeNoSync(thwompParticle->position, thwompParticle->collisionState * 8 * 4);
         PPCSync();
-        GXCallDisplayList(var_r31->unk_48, var_r31->unk_34);
+        GXCallDisplayList(thwompParticle->rotation, thwompParticle->frameCount);
         if (shadowModelDrawF == 0) {
-            if ((var_r31->unk_21 & 2) == 0) {
-                var_r31->unk_28++;
+            if ((thwompParticle->thwompFlags & 2) == 0) {
+                thwompParticle->elapsedFrameCount++;
             }
-            if ((var_r31->unk_30 != 0) && (var_r31->unk_30 <= var_r31->unk_28)) {
-                if ((var_r31->unk_21 & 1) != 0) {
-                    var_r31->unk_28 = 0;
+            if ((thwompParticle->frameLimit != 0) && (thwompParticle->frameLimit <= thwompParticle->elapsedFrameCount)) {
+                if ((thwompParticle->thwompFlags & 1) != 0) {
+                    thwompParticle->elapsedFrameCount = 0;
                 }
-                var_r31->unk_28 = var_r31->unk_30;
+                thwompParticle->elapsedFrameCount = thwompParticle->frameLimit;
             }
-            var_r31->unk_2C = GlobalCounter;
+            thwompParticle->animationFrame = GlobalCounter;
         }
     }
 }
