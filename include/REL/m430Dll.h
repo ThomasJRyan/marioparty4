@@ -3,24 +3,24 @@
 
 #include "game/object.h"
 
-s32 fn_1_4030(void);
-u32 fn_1_4058(void);
-u32 fn_1_4070(void);
-u32 fn_1_4088(void);
-void fn_1_40D0(s32 arg0);
-void fn_1_4100(s32 arg0);
-float fn_1_4130(void);
-float fn_1_48B0(float arg8, float arg9, float argA);
+s32 Fn14030(void);
+u32 Fn14058(void);
+u32 Fn14070(void);
+u32 Fn14088(void);
+void Fn140D0(s32 arg0);
+void Fn14100(s32 arg0);
+float Fn14130(void);
+float Fn148B0(float arg8, float arg9, float argA);
 
-void fn_1_4A80(HUPROCESS *process);
-void fn_1_4C48(void);
-float fn_1_7FBC(s32 arg0);
-void fn_1_7FFC(s32 arg0, float arg8);
-void fn_1_AEE0(s32 arg0, Vec *arg1, float arg8, float arg9);
-void fn_1_B570(s32 arg0, Vec *arg1, float arg8, float arg9, Vec *arg2);
-void fn_1_BB98(u32 arg0);
+void Fn14A80(HUPROCESS *process);
+void Fn14C48(void);
+float Fn17FBC(s32 arg0);
+void Fn17FFC(s32 arg0, float arg8);
+void Fn1AEE0(s32 arg0, Vec *arg1, float arg8, float arg9);
+void Fn1B570(s32 arg0, Vec *arg1, float arg8, float arg9, Vec *arg2);
+void Fn1BB98(u32 arg0);
 
-void fn_1_BBC4(HUPROCESS *process);
-void fn_1_C00C(void);
+void Fn1BBC4(HUPROCESS *process);
+void Fn1C00C(void);
 
 #endif

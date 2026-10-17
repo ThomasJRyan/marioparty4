@@ -21,64 +21,64 @@
 #endif
 
 typedef struct M430DllMainWork {
-    u32 unk_00;
-    s32 unk_04;
-    s32 unk_08;
-    u32 unk_0C;
-    s32 unk_10;
-    u32 unk_14;
-    s32 unk_18;
-    s32 unk_1C;
-    s32 unk_20;
-    u32 unk_24;
-    u32 unk_28;
-    s32 unk_2C;
-    u32 unk_30;
-    s32 unk_34;
+    u32 sceneState;
+    s32 stateFrame;
+    s32 sequenceComplete;
+    u32 introPhase;
+    s32 stateElapsedFrames;
+    u32 roundState;
+    s32 roundElapsedFrames;
+    s32 countdownValue;
+    s32 countdownFrame;
+    u32 resultState;
+    u32 resultElapsedFrames;
+    s32 minigameParameter;
+    u32 playerInputFlags;
+    s32 playerActionFlags;
 } M430DllMainWork; /* size = 0x38 */
 
-void fn_1_10FC(OMOBJ *object);
-void fn_1_168C(OMOBJ *object);
-void fn_1_1B04(OMOBJ *object);
-void fn_1_21E4(OMOBJ *object);
-void fn_1_2710(OMOBJ *object);
-OMOBJFUNC fn_1_2D48(HUPROCESS *process, OMOBJ *object);
-void fn_1_2E80(OMOBJ *object);
-OMOBJFUNC fn_1_369C(HUPROCESS *arg1, OMOBJ *object);
-void fn_1_3768(OMOBJ *object);
-s32 fn_1_4030(void);
-void fn_1_65C(OMOBJ *object);
-void fn_1_A54(OMOBJ *arg0);
-void fn_1_B98(OMOBJ *object);
+void UpdateIntroCameraState(OMOBJ *object);
+void UpdateMinigameResultState(OMOBJ *object);
+void UpdateRoundCountdownState(OMOBJ *object);
+void UpdateRoundPlayState(OMOBJ *object);
+void UpdateRoundResultState(OMOBJ *object);
+OMOBJFUNC BeginMinigameSequence(HUPROCESS *process, OMOBJ *object);
+void UpdateMinigameSequence(OMOBJ *object);
+OMOBJFUNC BeginMinigameFailureSequence(HUPROCESS *cameraTarget, OMOBJ *object);
+void UpdateMinigameFailureSequence(OMOBJ *object);
+s32 IsMinigameActive(void);
+void CreateMinigameController(OMOBJ *object);
+void AdvanceMinigameSceneState(OMOBJ *playerIndex);
+void MainControllerCallback(OMOBJ *object);
 
-Vec lbl_1_data_0 = { 100.0f, 800.0f, -100.0f };
-Vec lbl_1_data_C = { 0.3f, -0.8f, 0.3f };
-Vec lbl_1_data_18 = { 10.0f, 45.0f, 3500.0f };
-GXColor lbl_1_data_24 = { 0xFF, 0xFF, 0xFF, 0xFF };
-Vec lbl_1_data_28 = { 50.0f, 150000.0f, 50.0f };
-Vec lbl_1_data_34 = { 0.0f, 1.0f, 0.0f };
-Vec lbl_1_data_40 = { 0.0f, 0.0f, 0.0f };
+Vec globalLightPosition = { 100.0f, 800.0f, -100.0f };
+Vec globalLightDirection = { 0.3f, -0.8f, 0.3f };
+Vec lightAimRotation = { 10.0f, 45.0f, 3500.0f };
+GXColor globalLightColor = { 0xFF, 0xFF, 0xFF, 0xFF };
+Vec shadowCameraPosition = { 50.0f, 150000.0f, 50.0f };
+Vec worldUpVector = { 0.0f, 1.0f, 0.0f };
+Vec shadowLookAtTarget = { 0.0f, 0.0f, 0.0f };
 
-HUPROCESS *lbl_1_bss_38;
-OMOBJ *lbl_1_bss_34;
-OMOBJ *lbl_1_bss_30;
-s16 lbl_1_bss_2C;
-char lbl_1_bss_28[4];
-s16 lbl_1_bss_26;
-s16 lbl_1_bss_24;
-s16 lbl_1_bss_22;
-s16 lbl_1_bss_20;
-s32 lbl_1_bss_1C;
-s32 lbl_1_bss_18;
-s32 lbl_1_bss_14;
-s16 lbl_1_bss_10;
+HUPROCESS *minigameProcess;
+OMOBJ *minigameControllerObject;
+OMOBJ *multiviewCameraObject;
+s16 countdownSequenceId;
+char unusedMainStateBytes[4];
+s16 globalLightId;
+s16 roundSequenceId;
+s16 resultSequenceId;
+s16 unusedSequenceId;
+s32 minigameActive;
+s32 sceneTransitionActive;
+s32 continueScene;
+s16 countdownSpriteId;
 #if VERSION_PAL
-s16 lbl_1_bss_pal;
+s16 palCountdownSpriteId;
 #endif
-s32 lbl_1_bss_C;
-s32 lbl_1_bss_8;
-s32 lbl_1_bss_4;
-s32 lbl_1_bss_0;
+s32 minigameSoundId;
+s32 failureSoundId;
+s32 roundSoundId;
+s32 resultSoundId;
 
 #if VERSION_PAL
 #define CAMERA_Y 0x10
@@ -90,49 +90,49 @@ s32 lbl_1_bss_0;
 
 void ObjectSetup(void)
 {
-    Mtx sp20;
-    Vec sp14;
-    Vec sp8;
-    HUPROCESS *var_r31;
-    HU3DLIGHT *var_r30;
+    Mtx lightRotationMatrix;
+    Vec lightTarget;
+    Vec lightPosition;
+    HUPROCESS *objectManager;
+    HU3DLIGHT *globalLight;
 
     HuAudSndGrpSet(0x37);
-    lbl_1_bss_C = lbl_1_bss_8 = -1;
-    lbl_1_bss_4 = lbl_1_bss_0 = -1;
-    lbl_1_bss_2C = -1;
-    lbl_1_bss_14 = 1;
-    lbl_1_data_28.x = 200.0f;
-    lbl_1_data_28.y = 1200.0f;
-    lbl_1_data_28.z = 160.0f;
-    lbl_1_data_34.x = 0.0f;
-    lbl_1_data_34.y = 1.0f;
-    lbl_1_data_34.z = 0.0f;
-    lbl_1_data_40.x = 0.0f;
-    lbl_1_data_40.y = 0.0f;
-    lbl_1_data_40.z = 0.0f;
+    minigameSoundId = failureSoundId = -1;
+    roundSoundId = resultSoundId = -1;
+    countdownSequenceId = -1;
+    continueScene = 1;
+    shadowCameraPosition.x = 200.0f;
+    shadowCameraPosition.y = 1200.0f;
+    shadowCameraPosition.z = 160.0f;
+    worldUpVector.x = 0.0f;
+    worldUpVector.y = 1.0f;
+    worldUpVector.z = 0.0f;
+    shadowLookAtTarget.x = 0.0f;
+    shadowLookAtTarget.y = 0.0f;
+    shadowLookAtTarget.z = 0.0f;
     Hu3DShadowCreate(30.0f, 20.0f, 25000.0f);
     Hu3DShadowTPLvlSet(0.625f);
-    Hu3DShadowPosSet(&lbl_1_data_28, &lbl_1_data_34, &lbl_1_data_40);
-    lbl_1_bss_26 = Hu3DGLightCreateV(&lbl_1_data_0, &lbl_1_data_C, &lbl_1_data_24);
-    Hu3DGLightInfinitytSet(lbl_1_bss_26);
-    var_r30 = &Hu3DGlobalLight[lbl_1_bss_26];
-    var_r30->type |= 0x8000;
-    lbl_1_data_18.x = 34.75f;
-    lbl_1_data_18.y = -24.75f;
-    lbl_1_data_18.z = 3500.0f;
-    sp14.x = sp14.y = sp14.z = 0.0f;
-    sp8.x = sp8.z = 0.0f;
-    sp8.y = lbl_1_data_18.z;
-    mtxRot(sp20, lbl_1_data_18.x, lbl_1_data_18.y, 0.0f);
-    MTXMultVec(sp20, &sp8, &sp8);
-    Hu3DGLightPosAimSetV(lbl_1_bss_26, &sp8, &sp14);
-    Hu3DShadowPosSet(&sp8, &lbl_1_data_34, &sp14);
-    lbl_1_bss_24 = lbl_1_bss_22 = lbl_1_bss_20 = -1;
-    lbl_1_bss_1C = 1;
-    lbl_1_bss_18 = 1;
-    var_r31 = omInitObjMan(0x32, 0x2000);
-    lbl_1_bss_38 = var_r31;
-    omGameSysInit(var_r31);
+    Hu3DShadowPosSet(&shadowCameraPosition, &worldUpVector, &shadowLookAtTarget);
+    globalLightId = Hu3DGLightCreateV(&globalLightPosition, &globalLightDirection, &globalLightColor);
+    Hu3DGLightInfinitytSet(globalLightId);
+    globalLight = &Hu3DGlobalLight[globalLightId];
+    globalLight->type |= 0x8000;
+    lightAimRotation.x = 34.75f;
+    lightAimRotation.y = -24.75f;
+    lightAimRotation.z = 3500.0f;
+    lightTarget.x = lightTarget.y = lightTarget.z = 0.0f;
+    lightPosition.x = lightPosition.z = 0.0f;
+    lightPosition.y = lightAimRotation.z;
+    mtxRot(lightRotationMatrix, lightAimRotation.x, lightAimRotation.y, 0.0f);
+    MTXMultVec(lightRotationMatrix, &lightPosition, &lightPosition);
+    Hu3DGLightPosAimSetV(globalLightId, &lightPosition, &lightTarget);
+    Hu3DShadowPosSet(&lightPosition, &worldUpVector, &lightTarget);
+    roundSequenceId = resultSequenceId = unusedSequenceId = -1;
+    minigameActive = 1;
+    sceneTransitionActive = 1;
+    objectManager = omInitObjMan(0x32, 0x2000);
+    minigameProcess = objectManager;
+    omGameSysInit(objectManager);
     Hu3DCameraCreate(3);
     Hu3DCameraPerspectiveSet(1, -1.0f, 5.0f, 25000.0f, 0.6f);
     Hu3DCameraPerspectiveSet(2, -1.0f, 5.0f, 25000.0f, 0.6f);
@@ -140,57 +140,57 @@ void ObjectSetup(void)
     Hu3DCameraViewportSet(2, 320.0f, 0.0f, 320.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraScissorSet(1, 0, CAMERA_Y, 0x140, CAMERA_H);
     Hu3DCameraScissorSet(2, 0x140, CAMERA_Y, 0x140, CAMERA_H);
-    lbl_1_bss_30 = omAddObjEx(var_r31, 0x7FDA, 0, 0, -1, omOutViewMulti);
-    lbl_1_bss_30->work[0] = 2;
-    lbl_1_bss_34 = omAddObjEx(var_r31, 0xA, 0, 0, -1, fn_1_65C);
-    fn_1_4A80(var_r31);
-    fn_1_BBC4(var_r31);
-    lbl_1_bss_10 = espEntry(DATA_MAKE_NUM(DATADIR_M430, 0x1B), 0x64, 0);
-    espPosSet(lbl_1_bss_10, 288.0, 240.0);
-    espScaleSet(lbl_1_bss_10, 0.22499999403953552, 60.0);
-    espDispOff(lbl_1_bss_10);
+    multiviewCameraObject = omAddObjEx(objectManager, 0x7FDA, 0, 0, -1, omOutViewMulti);
+    multiviewCameraObject->work[0] = 2;
+    minigameControllerObject = omAddObjEx(objectManager, 0xA, 0, 0, -1, CreateMinigameController);
+    InitializeWaterAssets(objectManager);
+    InitializePlayers(objectManager);
+    countdownSpriteId = espEntry(DATA_MAKE_NUM(DATADIR_M430, 0x1B), 0x64, 0);
+    espPosSet(countdownSpriteId, 288.0, 240.0);
+    espScaleSet(countdownSpriteId, 0.22499999403953552, 60.0);
+    espDispOff(countdownSpriteId);
 #if VERSION_PAL
-    lbl_1_bss_pal = espEntry(DATA_MAKE_NUM(DATADIR_M430, 0x1B), 100, 0);
-    espPosSet(lbl_1_bss_pal, 288.0, 475.20001220703125);
-    espScaleSet(lbl_1_bss_pal, 72.0, 4.0);
+    palCountdownSpriteId = espEntry(DATA_MAKE_NUM(DATADIR_M430, 0x1B), 100, 0);
+    espPosSet(palCountdownSpriteId, 288.0, 475.20001220703125);
+    espScaleSet(palCountdownSpriteId, 72.0, 4.0);
 #endif
 }
 
-void fn_1_65C(OMOBJ *object)
+void CreateMinigameController(OMOBJ *object)
 {
     M430DllMainWork *work;
 
     object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M430DllMainWork), HU_MEMNUM_OVL);
     work = object->data;
     memset(work, 0, sizeof(M430DllMainWork));
-    work->unk_00 = 0;
-    work->unk_04 = 0;
-    work->unk_0C = 0;
-    work->unk_10 = 0;
-    work->unk_14 = 0;
-    work->unk_18 = 0;
-    work->unk_24 = 0;
-    work->unk_28 = 0;
-    work->unk_08 = 0;
-    work->unk_2C = 0;
-    work->unk_30 = 0;
-    work->unk_34 = 0;
-    object->objFunc = fn_1_B98;
+    work->sceneState = 0;
+    work->stateFrame = 0;
+    work->introPhase = 0;
+    work->stateElapsedFrames = 0;
+    work->roundState = 0;
+    work->roundElapsedFrames = 0;
+    work->resultState = 0;
+    work->resultElapsedFrames = 0;
+    work->sequenceComplete = 0;
+    work->minigameParameter = 0;
+    work->playerInputFlags = 0;
+    work->playerActionFlags = 0;
+    object->objFunc = MainControllerCallback;
 }
 
-void fn_1_720(OMOBJ *object)
+void UpdateMinigameController(OMOBJ *object)
 {
     M430DllMainWork *work = object->data;
-    work->unk_04++;
-    work->unk_10++;
-    work->unk_18++;
-    work->unk_28++;
-    if ((omSysExitReq != 0) && (work->unk_00 != 5)) {
-        work->unk_00 = 4;
-        fn_1_A54(object);
+    work->stateFrame++;
+    work->stateElapsedFrames++;
+    work->roundElapsedFrames++;
+    work->resultElapsedFrames++;
+    if ((omSysExitReq != 0) && (work->sceneState != 5)) {
+        work->sceneState = 4;
+        AdvanceMinigameSceneState(object);
     }
-    if (lbl_1_bss_18 == 0) {
-        if (fn_1_4030() != 0) {
+    if (sceneTransitionActive == 0) {
+        if (IsMinigameActive() != 0) {
             if ((Hu3DCamera->fov < 0.0f) || (Hu3DCamera[1].fov < 0.0f)) {
                 Hu3DCameraPerspectiveSet(1, 41.5f, 5.0f, 25000.0f, 0.6f);
                 Hu3DCameraPerspectiveSet(2, 41.5f, 5.0f, 25000.0f, 0.6f);
@@ -209,87 +209,87 @@ void fn_1_720(OMOBJ *object)
     }
 }
 
-void fn_1_A54(OMOBJ *object)
+void AdvanceMinigameSceneState(OMOBJ *object)
 {
     M430DllMainWork *work = object->data;
-    if (work->unk_08 == 0) {
-        switch (work->unk_00) {
+    if (work->sequenceComplete == 0) {
+        switch (work->sceneState) {
             case 0:
                 WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
-                lbl_1_bss_18 = 0;
-                work->unk_00 = 1;
-                work->unk_10 = 0;
-                object->objFunc = fn_1_2D48(lbl_1_bss_38, object);
+                sceneTransitionActive = 0;
+                work->sceneState = 1;
+                work->stateElapsedFrames = 0;
+                object->objFunc = BeginMinigameSequence(minigameProcess, object);
                 break;
             case 1:
-                work->unk_00 = 2;
-                work->unk_18 = 0;
-                object->objFunc = fn_1_1B04;
+                work->sceneState = 2;
+                work->roundElapsedFrames = 0;
+                object->objFunc = UpdateRoundCountdownState;
                 break;
             case 2:
-                work->unk_00 = 3;
-                work->unk_28 = 0;
-                object->objFunc = fn_1_369C(lbl_1_bss_38, object);
+                work->sceneState = 3;
+                work->resultElapsedFrames = 0;
+                object->objFunc = BeginMinigameFailureSequence(minigameProcess, object);
                 break;
             case 3:
             case 4:
-                work->unk_08 = 1;
-                work->unk_00 = 5;
-                object->objFunc = fn_1_10FC;
+                work->sequenceComplete = 1;
+                work->sceneState = 5;
+                object->objFunc = UpdateIntroCameraState;
                 break;
             case 5:
             default:
-                work->unk_00 = 5;
-                object->objFunc = fn_1_168C;
+                work->sceneState = 5;
+                object->objFunc = UpdateMinigameResultState;
                 break;
         }
-        work->unk_04 = 0;
+        work->stateFrame = 0;
     }
 }
 
-void fn_1_B98(OMOBJ *object)
+void MainControllerCallback(OMOBJ *object)
 {
-    fn_1_720(object);
-    fn_1_A54(object);
+    UpdateMinigameController(object);
+    AdvanceMinigameSceneState(object);
 }
 
-void fn_1_10FC(OMOBJ *object)
+void UpdateIntroCameraState(OMOBJ *object)
 {
     M430DllMainWork *work = object->data;
-    fn_1_720(object);
+    UpdateMinigameController(object);
 
     if (WipeStatGet() == 0) {
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-        lbl_1_bss_14 = 1;
-        work->unk_08 = 0;
-        fn_1_A54(object);
+        continueScene = 1;
+        work->sequenceComplete = 0;
+        AdvanceMinigameSceneState(object);
     }
 }
 
-void fn_1_168C(OMOBJ *object)
+void UpdateMinigameResultState(OMOBJ *object)
 {
-    fn_1_720(object);
+    UpdateMinigameController(object);
     if (WipeStatGet() == 0) {
-        fn_1_C00C();
-        fn_1_4C48();
+        ReleasePlayerAssets();
+        ReleaseWaterAssets();
         MGSeqKillAll();
         HuAudFadeOut(1);
         omOvlReturnEx(1, 1);
     }
 }
 
-void fn_1_1B04(OMOBJ *object)
+void UpdateRoundCountdownState(OMOBJ *object)
 {
     M430DllMainWork *work = object->data;
-    fn_1_720(object);
-    switch (work->unk_14) {
+    UpdateMinigameController(object);
+    switch (work->roundState) {
         case 0:
-            lbl_1_bss_1C = 1;
+            minigameActive = 1;
             WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
-            lbl_1_bss_14 = 0;
-            espDispOn(lbl_1_bss_10);
-            work->unk_1C = 0x2D;
-            work->unk_20 = REFRESH_RATE;
+            continueScene = 0;
+            espDispOn(countdownSpriteId);
+            work->countdownValue = 0x2D;
+            work->countdownFrame = REFRESH_RATE;
             CenterM->x = -450.0f;
             CenterM[1].x = 450.0f;
             CenterM->y = CenterM[1].y = 300.0f;
@@ -297,85 +297,85 @@ void fn_1_1B04(OMOBJ *object)
             CRotM->x = CRotM[1].x = -5.0f;
             CRotM->y = CRotM[1].y = 0.0f;
             CZoomM[0] = CZoomM[1] = 700.0f;
-            work->unk_14 = 1;
-            work->unk_18 = 0;
+            work->roundState = 1;
+            work->roundElapsedFrames = 0;
             object->work[0] = 0;
             return;
         case 1:
             if (object->work[0] == 0) {
                 if (WipeStatGet() == 0) {
-                    lbl_1_bss_24 = MGSeqCreate(3, 0);
-                    MGSeqPosSet(lbl_1_bss_24, 320.0f, 240.0f);
+                    roundSequenceId = MGSeqCreate(3, 0);
+                    MGSeqPosSet(roundSequenceId, 320.0f, 240.0f);
                     object->work[0]++;
                 }
             }
             else {
-                if ((lbl_1_bss_4 < 0) && ((MGSeqStatGet(lbl_1_bss_24) & 0x10) != 0)) {
-                    lbl_1_bss_4 = HuAudSeqPlay(0x4A);
+                if ((roundSoundId < 0) && ((MGSeqStatGet(roundSequenceId) & 0x10) != 0)) {
+                    roundSoundId = HuAudSeqPlay(0x4A);
                 }
-                if ((MGSeqStatGet(lbl_1_bss_24) == 0) && (work->unk_08 == 0)) {
-                    lbl_1_bss_2C = MGSeqCreate(1, work->unk_1C, -1, -1);
-                    work->unk_14 = 2;
-                    work->unk_18 = 0;
-                    object->objFunc = fn_1_21E4;
+                if ((MGSeqStatGet(roundSequenceId) == 0) && (work->sequenceComplete == 0)) {
+                    countdownSequenceId = MGSeqCreate(1, work->countdownValue, -1, -1);
+                    work->roundState = 2;
+                    work->roundElapsedFrames = 0;
+                    object->objFunc = UpdateRoundPlayState;
                 }
             }
             break;
     }
 }
 
-void fn_1_21E4(OMOBJ *object)
+void UpdateRoundPlayState(OMOBJ *object)
 {
     M430DllMainWork *work = object->data;
-    s32 var_r27 = 0;
-    fn_1_720(object);
-    if (--work->unk_20 == 0) {
-        work->unk_20 = REFRESH_RATE;
-        work->unk_1C--;
-        if (work->unk_1C <= 0) {
-            var_r27 = 1;
+    s32 countdownExpired = 0;
+    UpdateMinigameController(object);
+    if (--work->countdownFrame == 0) {
+        work->countdownFrame = REFRESH_RATE;
+        work->countdownValue--;
+        if (work->countdownValue <= 0) {
+            countdownExpired = 1;
         }
     }
-    if (var_r27 != 0) {
-        lbl_1_bss_22 = MGSeqCreate(3, 1);
-        MGSeqPosSet(lbl_1_bss_22, 320.0f, 240.0f);
-        HuAudSeqFadeOut(lbl_1_bss_4, 0x64);
+    if (countdownExpired != 0) {
+        resultSequenceId = MGSeqCreate(3, 1);
+        MGSeqPosSet(resultSequenceId, 320.0f, 240.0f);
+        HuAudSeqFadeOut(roundSoundId, 0x64);
         object->work[1] = 0;
-        work->unk_14 = 3;
-        work->unk_18 = 0;
-        if (work->unk_08 == 0) {
-            object->objFunc = fn_1_2710;
+        work->roundState = 3;
+        work->roundElapsedFrames = 0;
+        if (work->sequenceComplete == 0) {
+            object->objFunc = UpdateRoundResultState;
         }
     }
-    MGSeqParamSet(lbl_1_bss_2C, 1, work->unk_1C);
+    MGSeqParamSet(countdownSequenceId, 1, work->countdownValue);
 }
 
-void fn_1_2710(OMOBJ *object)
+void UpdateRoundResultState(OMOBJ *object)
 {
     M430DllMainWork *work = object->data;
-    if (lbl_1_bss_2C >= 0) {
-        MGSeqParamSet(lbl_1_bss_2C, 2, -1);
-        lbl_1_bss_2C = -1;
+    if (countdownSequenceId >= 0) {
+        MGSeqParamSet(countdownSequenceId, 2, -1);
+        countdownSequenceId = -1;
     }
-    fn_1_720(object);
+    UpdateMinigameController(object);
     if (object->work[1] == 0) {
-        if (MGSeqStatGet(lbl_1_bss_22) == 0) {
-            if (work->unk_08 == 0) {
+        if (MGSeqStatGet(resultSequenceId) == 0) {
+            if (work->sequenceComplete == 0) {
                 WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
-                lbl_1_bss_14 = 1;
+                continueScene = 1;
             }
             object->work[1]++;
-            HuAudFXFadeOut(lbl_1_bss_C, REFRESH_RATE / 2);
+            HuAudFXFadeOut(minigameSoundId, REFRESH_RATE / 2);
         }
     }
-    else if ((WipeStatGet() == 0) && (work->unk_30 == 0x1111)) {
-        work->unk_14 = 4;
-        work->unk_18 = 0;
-        fn_1_A54(object);
+    else if ((WipeStatGet() == 0) && (work->playerInputFlags == 0x1111)) {
+        work->roundState = 4;
+        work->roundElapsedFrames = 0;
+        AdvanceMinigameSceneState(object);
     }
 }
 
-OMOBJFUNC fn_1_2D48(HUPROCESS *process, OMOBJ *object)
+OMOBJFUNC BeginMinigameSequence(HUPROCESS *process, OMOBJ *object)
 {
     CenterM->x = CenterM[1].x = 0.0f;
     CenterM->y = CenterM[1].y = 300.0f;
@@ -384,23 +384,23 @@ OMOBJFUNC fn_1_2D48(HUPROCESS *process, OMOBJ *object)
     CRotM->y = CRotM[1].y = 0.0f;
     CZoomM[0] = CZoomM[1] = 700.0f;
     object->work[0] = object->work[1] = 0;
-    lbl_1_bss_1C = 0;
-    lbl_1_bss_C = HuAudFXPlay(0x674);
-    return fn_1_2E80;
+    minigameActive = 0;
+    minigameSoundId = HuAudFXPlay(0x674);
+    return UpdateMinigameSequence;
 }
 
-void fn_1_2E80(OMOBJ *object)
+void UpdateMinigameSequence(OMOBJ *object)
 {
     M430DllMainWork *work = object->data;
-    fn_1_720(object);
-    work->unk_0C = 1;
+    UpdateMinigameController(object);
+    work->introPhase = 1;
     object->work[0]++;
     switch (object->work[1]) {
         case 0:
             if (object->work[0] > REFRESH_RATE_F * 3) {
-                if (work->unk_08 == 0) {
+                if (work->sequenceComplete == 0) {
                     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
-                    lbl_1_bss_14 = 1;
+                    continueScene = 1;
                 }
                 object->work[1]++;
                 object->work[0] = 0;
@@ -409,172 +409,172 @@ void fn_1_2E80(OMOBJ *object)
         case 1:
             if (WipeStatGet() == 0) {
                 object->work[0] = 0;
-                work->unk_0C = 2;
-                fn_1_A54(object);
+                work->introPhase = 2;
+                AdvanceMinigameSceneState(object);
             }
             break;
     }
 }
 
-OMOBJFUNC fn_1_369C(HUPROCESS *arg0, OMOBJ *object)
+OMOBJFUNC BeginMinigameFailureSequence(HUPROCESS *playerIndex, OMOBJ *object)
 {
     M430DllMainWork *work = object->data;
-    s32 spC = 0;
-    s32 sp8 = 1;
-    lbl_1_bss_1C = 0;
-    espDispOff(lbl_1_bss_10);
-    fn_1_BB98(1);
-    if (work->unk_08 == 0) {
+    s32 unusedSequenceFlagValue = 0;
+    s32 unusedSequenceCountValue = 1;
+    minigameActive = 0;
+    espDispOff(countdownSpriteId);
+    SetWaterSurfaceMoving(1);
+    if (work->sequenceComplete == 0) {
         WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
-        lbl_1_bss_14 = 0;
+        continueScene = 0;
     }
     CenterM->x = 0.0f;
-    lbl_1_bss_8 = HuAudFXPlay(0x679);
-    return fn_1_3768;
+    failureSoundId = HuAudFXPlay(0x679);
+    return UpdateMinigameFailureSequence;
 }
 
-void fn_1_3768(OMOBJ *object)
+void UpdateMinigameFailureSequence(OMOBJ *object)
 {
     M430DllMainWork *work = object->data;
 
-    fn_1_720(object);
+    UpdateMinigameController(object);
     if (WipeStatGet() == 0) {
-        work->unk_24 = 1;
-        if (work->unk_28 >= REFRESH_RATE_F * 3.5f) {
-            work->unk_24 = 2;
-            fn_1_A54(object);
+        work->resultState = 1;
+        if (work->resultElapsedFrames >= REFRESH_RATE_F * 3.5f) {
+            work->resultState = 2;
+            AdvanceMinigameSceneState(object);
         }
     }
     else {
-        work->unk_28 = 0;
+        work->resultElapsedFrames = 0;
     }
 }
 
-s32 fn_1_4030(void)
+s32 IsMinigameActive(void)
 {
-    return lbl_1_bss_1C;
+    return minigameActive;
 }
 
-u32 fn_1_4040(void)
+u32 GetSceneState(void)
 {
-    return omObjGetDataAs(lbl_1_bss_34, M430DllMainWork)->unk_00;
+    return omObjGetDataAs(minigameControllerObject, M430DllMainWork)->sceneState;
 }
 
-u32 fn_1_4058(void)
+u32 GetIntroPhase(void)
 {
-    return omObjGetDataAs(lbl_1_bss_34, M430DllMainWork)->unk_0C;
+    return omObjGetDataAs(minigameControllerObject, M430DllMainWork)->introPhase;
 }
 
-u32 fn_1_4070(void)
+u32 GetRoundState(void)
 {
-    return omObjGetDataAs(lbl_1_bss_34, M430DllMainWork)->unk_14;
+    return omObjGetDataAs(minigameControllerObject, M430DllMainWork)->roundState;
 }
 
-u32 fn_1_4088(void)
+u32 GetResultState(void)
 {
-    return omObjGetDataAs(lbl_1_bss_34, M430DllMainWork)->unk_24;
+    return omObjGetDataAs(minigameControllerObject, M430DllMainWork)->resultState;
 }
 
-void fn_1_40A0(s32 arg0)
+void SetMinigameParameter(s32 playerIndex)
 {
-    omObjGetDataAs(lbl_1_bss_34, M430DllMainWork)->unk_2C = arg0;
+    omObjGetDataAs(minigameControllerObject, M430DllMainWork)->minigameParameter = playerIndex;
 }
 
-s32 fn_1_40B8(void)
+s32 GetMinigameParameter(void)
 {
-    return omObjGetDataAs(lbl_1_bss_34, M430DllMainWork)->unk_2C;
+    return omObjGetDataAs(minigameControllerObject, M430DllMainWork)->minigameParameter;
 }
 
-void fn_1_40D0(s32 arg0)
+void SetPlayerInputFlag(s32 playerIndex)
 {
 
-    omObjGetDataAs(lbl_1_bss_34, M430DllMainWork)->unk_30 |= (1 << ((arg0 & 3) * 4));
+    omObjGetDataAs(minigameControllerObject, M430DllMainWork)->playerInputFlags |= (1 << ((playerIndex & 3) * 4));
 }
 
-void fn_1_4100(s32 arg0)
+void SetPlayerActionFlag(s32 playerIndex)
 {
-    omObjGetDataAs(lbl_1_bss_34, M430DllMainWork)->unk_34 |= (1 << ((arg0 & 3) * 4));
+    omObjGetDataAs(minigameControllerObject, M430DllMainWork)->playerActionFlags |= (1 << ((playerIndex & 3) * 4));
 }
 
-float fn_1_4130(void)
+float GetCountdownTime(void)
 {
-    M430DllMainWork *work = lbl_1_bss_34->data;
-    float var_f31 = work->unk_1C - 1;
-    if (var_f31 < 0.0f) {
-        var_f31 = 0.0f;
+    M430DllMainWork *work = minigameControllerObject->data;
+    float countdownSeconds = work->countdownValue - 1;
+    if (countdownSeconds < 0.0f) {
+        countdownSeconds = 0.0f;
     }
-    var_f31 += REFRESH_FREQ * work->unk_20;
-    return var_f31;
+    countdownSeconds += REFRESH_FREQ * work->countdownFrame;
+    return countdownSeconds;
 }
 
-void fn_1_41F0(Vec *arg0, Vec *arg1)
+void SetCameraFromLookAt(Vec *cameraPosition, Vec *cameraTarget)
 {
-    Vec sp10;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
+    Vec cameraOffset;
+    float unusedCameraScalarA;
+    float unusedCameraScalarB;
+    float unusedCameraScalarC;
+    float unusedCameraScalarD;
 
-    sp10.x = arg1->x - arg0->x;
-    sp10.y = arg1->y - arg0->y;
-    sp10.z = arg1->z - arg0->z;
-    Center.x = arg1->x;
-    Center.y = arg1->y;
-    Center.z = arg1->z;
-    CRot.x = atan2d(sp10.y, sqrtf((sp10.x * sp10.x) + (sp10.z * sp10.z)));
-    CRot.y = atan2d(-sp10.x, -sp10.z);
+    cameraOffset.x = cameraTarget->x - cameraPosition->x;
+    cameraOffset.y = cameraTarget->y - cameraPosition->y;
+    cameraOffset.z = cameraTarget->z - cameraPosition->z;
+    Center.x = cameraTarget->x;
+    Center.y = cameraTarget->y;
+    Center.z = cameraTarget->z;
+    CRot.x = atan2d(cameraOffset.y, sqrtf((cameraOffset.x * cameraOffset.x) + (cameraOffset.z * cameraOffset.z)));
+    CRot.y = atan2d(-cameraOffset.x, -cameraOffset.z);
     CRot.z = 0.0f;
-    CZoom = sqrtf((sp10.z * sp10.z) + ((sp10.x * sp10.x) + (sp10.y * sp10.y)));
+    CZoom = sqrtf((cameraOffset.z * cameraOffset.z) + ((cameraOffset.x * cameraOffset.x) + (cameraOffset.y * cameraOffset.y)));
 }
 
-void fn_1_4538(float sp8, float spC, float sp10, float sp14, float sp18, float sp1C)
+void SetCameraPositionAndTarget(float cameraPositionX, float cameraPositionY, float cameraPositionZ, float cameraTargetX, float cameraTargetY, float cameraTargetZ)
 {
-    Vec sp40;
-    Vec sp34;
-    sp40.x = sp8;
-    sp40.y = spC;
-    sp40.z = sp10;
+    Vec cameraPosition;
+    Vec cameraTarget;
+    cameraPosition.x = cameraPositionX;
+    cameraPosition.y = cameraPositionY;
+    cameraPosition.z = cameraPositionZ;
 
-    sp34.x = sp14;
-    sp34.y = sp18;
-    sp34.z = sp1C;
-    fn_1_41F0(&sp40, &sp34);
+    cameraTarget.x = cameraTargetX;
+    cameraTarget.y = cameraTargetY;
+    cameraTarget.z = cameraTargetZ;
+    SetCameraFromLookAt(&cameraPosition, &cameraTarget);
 }
 
-float fn_1_48B0(float arg8, float arg9, float argA)
+float InterpolateAngle(float startAngle, float targetAngle, float blendFactor)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    float normalizedAngleDifference;
+    float angleDifference;
+    float interpolatedAngle;
 
-    var_f30 = fmod(arg9 - arg8, 360.0);
-    var_f31 = var_f30;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    angleDifference = fmod(targetAngle - startAngle, 360.0);
+    normalizedAngleDifference = angleDifference;
+    if (normalizedAngleDifference < 0.0f) {
+        normalizedAngleDifference += 360.0f;
     }
-    if (var_f31 > 180.0f) {
-        var_f31 -= 360.0f;
+    if (normalizedAngleDifference > 180.0f) {
+        normalizedAngleDifference -= 360.0f;
     }
-    var_f29 = fmod(arg8 + (argA * var_f31), 360.0);
-    var_f31 = var_f29;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    interpolatedAngle = fmod(startAngle + (blendFactor * normalizedAngleDifference), 360.0);
+    normalizedAngleDifference = interpolatedAngle;
+    if (normalizedAngleDifference < 0.0f) {
+        normalizedAngleDifference += 360.0f;
     }
-    return var_f31;
+    return normalizedAngleDifference;
 }
 
-float fn_1_49CC(float arg0, float arg1)
+float GetShortestAngleDifference(float startAngle, float targetAngle)
 {
-    float var_f31;
-    float var_f30;
+    float normalizedAngleDifference;
+    float angleDifference;
 
-    var_f30 = fmod(arg1 - arg0, 360.0);
-    var_f31 = var_f30;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    angleDifference = fmod(targetAngle - startAngle, 360.0);
+    normalizedAngleDifference = angleDifference;
+    if (normalizedAngleDifference < 0.0f) {
+        normalizedAngleDifference += 360.0f;
     }
-    if (var_f31 > 180.0f) {
-        var_f31 -= 360.0f;
+    if (normalizedAngleDifference > 180.0f) {
+        normalizedAngleDifference -= 360.0f;
     }
-    return var_f31;
+    return normalizedAngleDifference;
 }
