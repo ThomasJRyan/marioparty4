@@ -23,98 +23,98 @@
 
 #include "REL/mpexDll.h"
 
-typedef void (*MpexDllUnkFunc2)(OMOBJ *, ...);
+typedef void (*MpexObjectUpdateCallback)(OMOBJ *, ...);
 
-typedef struct MpexDllUnkStruct3 {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ s32 unk_08;
-    /* 0x0C */ s32 unk_0C;
-    /* 0x10 */ s32 unk_10;
-} MpexDllUnkStruct3; /* size = 0x14 */
+typedef struct MinigamePlayerStateWork {
+    /* 0x00 */ s32 state;
+    /* 0x04 */ s32 stateTimer;
+    /* 0x08 */ s32 playerFlags;
+    /* 0x0C */ s32 selectionIndex;
+    /* 0x10 */ s32 selectionCount;
+} MinigamePlayerStateWork; /* size = 0x14 */
 
-typedef struct MpexDllUnkStruct4 {
-    /* 0x00 */ OMOBJ *unk_00;
-    /* 0x04 */ MpexDllUnkFunc2 unk_04;
-    /* 0x08 */ s32 unk_08;
-    /* 0x0C */ s32 unk_0C;
-    /* 0x10 */ s32 unk_10;
-    /* 0x14 */ char unk14[0x14];
-    /* 0x28 */ s32 unk_28;
-    /* 0x2C */ char unk2C[0x1C];
-} MpexDllUnkStruct4; /* size = 0x48 */
+typedef struct MpexMenuObjectWork {
+    /* 0x00 */ OMOBJ *ownerObject;
+    /* 0x04 */ MpexObjectUpdateCallback updateCallback;
+    /* 0x08 */ s32 state;
+    /* 0x0C */ s32 stateTimer;
+    /* 0x10 */ s32 playerIndex;
+    /* 0x14 */ char reserved14[0x14];
+    /* 0x28 */ s32 characterIndex;
+    /* 0x2C */ char reserved2C[0x1C];
+} MpexMenuObjectWork; /* size = 0x48 */
 
 s32 rand8(void);
-float fn_1_1B52C(float arg8, float arg9, float argA, float argB);
-float fn_1_1B574(float arg0, float arg1, float arg2, float arg3);
-float fn_1_1B64C(float arg0, float arg1, float arg2, float arg3);
+float InterpolateLinear(float startValue, float endValue, float currentFrame, float duration);
+float InterpolateCosine(float startValue, float endValue, float currentFrame, float duration);
+float InterpolateSine(float startValue, float endValue, float currentFrame, float duration);
 
-void fn_1_1015C(void);
-void fn_1_10228(void);
-void fn_1_10268(s32 arg0);
-void fn_1_1045C(void);
-void fn_1_107EC(void);
-void fn_1_1085C(void);
-void fn_1_10ABC(void);
-void fn_1_10C30(void);
-void fn_1_110F8(void);
-void fn_1_114D4(void);
-void fn_1_115A0(void);
-void fn_1_115E0(s32 arg0);
-void fn_1_117D4(void);
-void fn_1_11930(void);
-void fn_1_11984(void);
-void fn_1_119E0(void);
-void fn_1_11A3C(s32 arg0);
-void fn_1_11E28(void);
-void fn_1_11FC0(OMOBJ *object, MpexDllUnkStruct4 *arg1);
-void fn_1_121E8(void);
-void fn_1_125DC(float *arg0, s32 arg1);
-void fn_1_32D8(void);
-void fn_1_5D40(OMOBJ *arg0, MpexDllUnkStruct4 *arg1);
-void fn_1_7D80(void);
-void fn_1_7FC4(OMOBJ *arg0, MpexDllUnkStruct4 *arg1);
-void fn_1_8320(void);
-void fn_1_8ADC(void);
-void fn_1_901C(OMOBJ *arg0, MpexDllUnkStruct4 *arg1);
-void fn_1_9430(OMOBJ *arg0, MpexDllUnkStruct4 *arg1);
-void fn_1_96B4(void);
-void fn_1_A608(void);
-void fn_1_AD34(void);
-void fn_1_B004(void);
-void fn_1_B210(void);
-s32 fn_1_B248(s32 arg0, s32 arg1);
-void fn_1_B2E4(s32 arg0);
-void fn_1_B7F4(s32 arg0);
-void fn_1_B870(s32 arg0);
-void fn_1_B9A8(s32);
-void fn_1_BC18(void);
-void fn_1_BCD8(void);
-u32 fn_1_BD10(s32 arg0, s32 arg1);
-void fn_1_BD78(s32 arg0, s32 arg1);
-void fn_1_C0DC(s32 arg0, s32);
-void fn_1_C4D4(s32);
-void fn_1_C544(void);
-void fn_1_C860(void);
-s32 fn_1_C898(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void fn_1_CF10(s32 arg0);
-void fn_1_D3AC(s32 arg0);
-void fn_1_D468(s32 arg0);
-void fn_1_D6AC(s32 arg0);
-void fn_1_DBD0(s32 arg0);
-void fn_1_E174(void);
-void fn_1_E384(void);
-void fn_1_E568(void);
-void fn_1_EB1C(void);
-void fn_1_ED78(s32 arg0, s32 arg1);
-void fn_1_F0C0(void);
-void fn_1_F40C(void);
-void fn_1_F47C(void);
-void fn_1_F730(void);
-void fn_1_F8A4(void);
-void fn_1_FDA0(void);
+void ShowPlayerNameText(void);
+void HidePlayerNameText(void);
+void AnimatePlayerNameText(s32 messageId);
+void CreatePlayerScoreSprites(void);
+void DestroyPlayerScoreDisplay(void);
+void ShowPlayerScoreDisplay(void);
+void HidePlayerScoreDisplay(void);
+void ShowPlayerScoreDisplayAlternate(void);
+void AnimatePlayerScoreDisplayOut(void);
+void ShowPlayerScoreText(void);
+void HidePlayerScoreText(void);
+void AnimatePlayerScoreText(s32 messageId);
+void CreatePlayerStatusDisplay(void);
+void DestroyPlayerStatusDisplay(void);
+void ShowPlayerStatusIcon(void);
+void HidePlayerStatusIcon(void);
+void AnimatePlayerStatusDisplay(s32 playerIndex);
+void ScalePlayerStatusDisplay(void);
+void PositionPlayerStatusSprite(OMOBJ *object, MpexMenuObjectWork *statusWork);
+void ReportMinigameHighScore(void);
+void FitMessageWindowToText(float *windowSize, s32 messageId);
+void RunMinigamePracticeMenuProcess(void);
+void UpdateMinigameMenuObject(OMOBJ *object, MpexMenuObjectWork *menuWork);
+void CreateMenuCharactersProcess(void);
+void AnimateMenuCharacterEntry(OMOBJ *object, MpexMenuObjectWork *menuWork);
+void CreatePracticePlayerModelsProcess(void);
+void CreateMenuMinigameModelsProcess(void);
+void MoveMenuModelWithSineEasing(OMOBJ *object, MpexMenuObjectWork *menuWork);
+void MoveMenuModelWithCosineEasing(OMOBJ *object, MpexMenuObjectWork *menuWork);
+void InitializePracticeCamera(void);
+void RunPracticeMenuState(void);
+void RunPracticeMenuResultsSequence(void);
+void CreateCoinScoreDisplay(void);
+void DestroyCoinScoreDisplay(void);
+s32 GetPlayerCoinScore(s32 rank, s32 playerIndex);
+void UpdateCoinScoreDisplay(s32 playerCount);
+void HideCoinScoreDisplay(s32 playerCount);
+void AnimateCoinScoreDisplay(s32 playerCount);
+void AnimateCoinScoreDisplayAlternate(s32);
+void CreateMinigameScoreDisplay(void);
+void DestroyMinigameScoreDisplay(void);
+u32 GetMinigameScoreMessageId(s32 playerCount, s32 scoreType);
+void UpdateMinigameScoreDisplay(s32 playerCount, s32 scoreType);
+void AnimateMinigameScoreDisplay(s32 playerCount, s32);
+void HideMinigameScoreWindow(s32);
+void CreateHighScoreDisplay(void);
+void DestroyHighScoreDisplay(void);
+s32 GetFormattedHighScore(s32 minigameId, s32 playerIndex, s32 recordType, s32 score);
+void CreateMinigameNameDisplay(s32 messageId);
+void DestroyMinigameNameDisplay(s32 displayMode);
+void PositionMinigameNameDisplay(s32 displayMode);
+void AnimateMinigameNameDisplay(s32 displayMode);
+void HideMinigameNameDisplay(s32 displayMode);
+void ShowPlayerScoreIcon(void);
+void HidePlayerScoreIcon(void);
+void SetPlayerScoreIconBank(void);
+void HidePlayerScoreIconAlternate(void);
+void CreatePlayerNameDisplay(s32 playerCount, s32 displayMode);
+void CreatePlayerNameSprites(void);
+void DestroyPlayerNameDisplay(void);
+void ShowPlayerNameDisplay(void);
+void HidePlayerNameDisplay(void);
+void ShowPlayerNameDisplayAlternate(void);
+void AnimatePlayerNameDisplayOut(void);
 
-float lbl_1_data_240[21] = {
+float menuModelPathOffsets[21] = {
     0.0f,
     0.0f,
     0.0f,
@@ -138,122 +138,122 @@ float lbl_1_data_240[21] = {
     0.0f,
 };
 
-MpexDllUnkStruct4 lbl_1_bss_3F8;
-MpexDllUnkStruct4 lbl_1_bss_3B0;
-MpexDllUnkStruct4 lbl_1_bss_2D8[3];
-MpexDllUnkStruct4 lbl_1_bss_1B8[4];
-s32 lbl_1_bss_1B4;
-s32 lbl_1_bss_1B0;
-s32 lbl_1_bss_1AC;
-s32 lbl_1_bss_180[0xB];
-MpexDllUnkStruct3 lbl_1_bss_130[4];
-char lbl_1_bss_120[16];
-char lbl_1_bss_118[8];
-char lbl_1_bss_110[8];
-s32 lbl_1_bss_10C;
-s32 lbl_1_bss_108;
-s32 lbl_1_bss_104;
-char lbl_1_bss_FC[8];
-char lbl_1_bss_F4[8];
-char lbl_1_bss_EC[8];
-char lbl_1_bss_E4[8];
-s32 lbl_1_bss_E0;
-s32 lbl_1_bss_C8[6];
-s32 lbl_1_bss_C4;
-s32 lbl_1_bss_C0;
-s32 lbl_1_bss_BC;
-float lbl_1_bss_B8;
-s32 lbl_1_bss_B4;
-s32 lbl_1_bss_B0;
-u32 lbl_1_bss_AC;
-HUPROCESS *lbl_1_bss_A8;
+MpexMenuObjectWork minigameNameWork;
+MpexMenuObjectWork practiceMenuStateWork;
+MpexMenuObjectWork menuModelObjects[3];
+MpexMenuObjectWork playerCharacterObjects[4];
+s32 practiceMenuState;
+s32 practiceMenuSelection;
+s32 currentMenuPlayer;
+s32 availableMinigameFlags[0xB];
+MinigamePlayerStateWork practicePlayerSettings[4];
+char formattedPlayerRank[16];
+char formattedPlayerCoins[8];
+char formattedCoinDigits[8];
+s32 coinScoreSpriteGroup;
+s32 minigameScoreSpriteGroup;
+s32 scoreSummaryWindow;
+char formattedScoreRank[8];
+char formattedScoreValue[8];
+char formattedScoreDigits[8];
+char formattedScoreRecord[8];
+s32 playerNameWindow;
+s32 playerNameWindows[6];
+s32 playerScoreSpriteGroup;
+s32 playerStatusSpriteGroup;
+s32 playerStatusWindow;
+float menuModelAnimationPhase;
+s32 activePlayerStatusCount;
+s32 playerStatusAnimationIndex;
+u32 menuObjectCreateIndex;
+HUPROCESS *minigamePracticeProcess;
 
-HUPROCESS *fn_1_3044(HUPROCESS *arg0)
+HUPROCESS *InitializeMinigamePracticeOverlay(HUPROCESS *parentProcess)
 {
-    s32 var_r31;
+    s32 loopIndex;
 
-    lbl_1_bss_A8 = arg0;
+    minigamePracticeProcess = parentProcess;
     if (omovlevtno == 0) {
         mgGameStatBackup = GWGameStat;
     }
-    fn_1_298();
-    fn_1_374();
-    fn_1_1B810();
-    fn_1_910(fn_1_96B4);
-    lbl_1_bss_180[0] = 1;
-    lbl_1_bss_180[1] = 1;
-    lbl_1_bss_180[2] = GWMGAvailGet(omMgIndexGet(0x40) + 0x191);
-    lbl_1_bss_180[3] = GWMGAvailGet(omMgIndexGet(0xB) + 0x191);
-    lbl_1_bss_180[4] = GWMGAvailGet(omMgIndexGet(0x13) + 0x191);
-    lbl_1_bss_180[5] = 1;
-    lbl_1_bss_180[6] = 1;
-    lbl_1_bss_180[7] = 1;
-    lbl_1_bss_180[8] = 1;
-    lbl_1_bss_180[9] = GWMGAvailGet(omMgIndexGet(0x1B) + 0x191);
-    fn_1_121E8();
-    for (var_r31 = 0; var_r31 < 0xA; var_r31++) {
-        if (lbl_1_bss_180[var_r31] == 0) {
+    CreateDirectionalLight();
+    CreateOverlayShadow();
+    InitializeMessageWindows();
+    CreateOverlayCamera(InitializePracticeCamera);
+    availableMinigameFlags[0] = 1;
+    availableMinigameFlags[1] = 1;
+    availableMinigameFlags[2] = GWMGAvailGet(omMgIndexGet(0x40) + 0x191);
+    availableMinigameFlags[3] = GWMGAvailGet(omMgIndexGet(0xB) + 0x191);
+    availableMinigameFlags[4] = GWMGAvailGet(omMgIndexGet(0x13) + 0x191);
+    availableMinigameFlags[5] = 1;
+    availableMinigameFlags[6] = 1;
+    availableMinigameFlags[7] = 1;
+    availableMinigameFlags[8] = 1;
+    availableMinigameFlags[9] = GWMGAvailGet(omMgIndexGet(0x1B) + 0x191);
+    ReportMinigameHighScore();
+    for (loopIndex = 0; loopIndex < 0xA; loopIndex++) {
+        if (availableMinigameFlags[loopIndex] == 0) {
             break;
         }
     }
-    if (var_r31 == 0xA) {
-        lbl_1_bss_180[0xA] = 1;
+    if (loopIndex == 0xA) {
+        availableMinigameFlags[0xA] = 1;
     }
     else {
-        lbl_1_bss_180[0xA] = 0;
+        availableMinigameFlags[0xA] = 0;
     }
     if (omovlevtno == 1) {
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            HuPrcChildCreate(fn_1_8320, 0x7D0, 0x2000, 0, HuPrcCurrentGet());
+        for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+            HuPrcChildCreate(CreatePracticePlayerModelsProcess, 0x7D0, 0x2000, 0, HuPrcCurrentGet());
         }
     }
-    HuPrcChildCreate(fn_1_7D80, 0x7D0, 0x2000, 0, HuPrcCurrentGet());
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuPrcChildCreate(fn_1_8ADC, 0x7D0, 0x2000, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(CreateMenuCharactersProcess, 0x7D0, 0x2000, 0, HuPrcCurrentGet());
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        HuPrcChildCreate(CreateMenuMinigameModelsProcess, 0x7D0, 0x2000, 0, HuPrcCurrentGet());
     }
-    fn_1_1264C(lbl_1_bss_A8);
+    CreateCharacterSelectionProcesses(minigamePracticeProcess);
 
-    return HuPrcChildCreate(fn_1_32D8, 0x3E8, 0x2000, 0, HuPrcCurrentGet());
+    return HuPrcChildCreate(RunMinigamePracticeMenuProcess, 0x3E8, 0x2000, 0, HuPrcCurrentGet());
 }
 
-void fn_1_32D8(void)
+void RunMinigamePracticeMenuProcess(void)
 {
-    OMOBJ *var_r31;
+    OMOBJ *object;
 
-    var_r31 = NULL;
-    var_r31 = omAddObjEx(lbl_1_bss_A8, 0x2000, 0x10, 0x10, -1, NULL);
-    lbl_1_bss_3F8.unk_00 = var_r31;
-    lbl_1_bss_3F8.unk_04 = (MpexDllUnkFunc2)fn_1_5D40;
+    object = NULL;
+    object = omAddObjEx(minigamePracticeProcess, 0x2000, 0x10, 0x10, -1, NULL);
+    minigameNameWork.ownerObject = object;
+    minigameNameWork.updateCallback = (MpexObjectUpdateCallback)UpdateMinigameMenuObject;
     while (TRUE) {
-        fn_1_1B7D0(1);
-        if (lbl_1_bss_3F8.unk_04 == NULL) {
+        WaitFrames(1);
+        if (minigameNameWork.updateCallback == NULL) {
             continue;
         }
-        lbl_1_bss_3F8.unk_04(lbl_1_bss_3F8.unk_00, &lbl_1_bss_3F8);
+        minigameNameWork.updateCallback(minigameNameWork.ownerObject, &minigameNameWork);
     }
 }
 
-void fn_1_3384(void)
+void ReturnToOverlayCaller(void)
 {
-    fn_1_1B7D0(0x1E);
+    WaitFrames(0x1E);
     HuAudFadeOut(0x3E8);
     WipeColorSet(0, 0, 0);
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
 
     while (WipeStatGet() != 0) {
-        fn_1_1B7D0(1);
+        WaitFrames(1);
     }
     HuAudAllStop();
     omOvlReturnEx(1, 1);
 
     while (TRUE) {
-        fn_1_1B7D0(1);
+        WaitFrames(1);
     }
 }
 
-void fn_1_33F8(void)
+void SaveSettingsAndExitMinigame(void)
 {
-    s16 var_r31;
+    s16 minigameValue;
 
     if (SLSaveFlagGet() != 0) {
         Hu3DAllKill();
@@ -261,9 +261,9 @@ void fn_1_33F8(void)
         HuSprInit();
         espInit();
         HuPrcVSleep();
-        var_r31 = espEntry(0x860020, 0x1388, 0);
-        espPosSet(var_r31, 288.0f, 240.0f);
-        espAttrReset(var_r31, HUSPR_ATTR_DISPOFF);
+        minigameValue = espEntry(0x860020, 0x1388, 0);
+        espPosSet(minigameValue, 288.0f, 240.0f);
+        espAttrReset(minigameValue, HUSPR_ATTR_DISPOFF);
         Hu3DBGColorSet(0, 0, 0);
         WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 10);
 
@@ -282,59 +282,59 @@ void fn_1_33F8(void)
     }
 }
 
-void fn_1_3508(void)
+void ReturnToMainMenu(void)
 {
-    s16 var_r31;
+    s16 minigameValue;
 
-    fn_1_1B7D0(0x1E);
+    WaitFrames(0x1E);
     HuAudFadeOut(0x3E8);
     WipeColorSet(0, 0, 0);
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
 
     while (WipeStatGet() != 0) {
-        fn_1_1B7D0(1);
+        WaitFrames(1);
     }
 
     HuAudAllStop();
     CharModelKill(-1);
     MGSeqKillAll();
     if (omovlevtno != 0) {
-        fn_1_1B7D0(0x3C);
-        fn_1_33F8();
+        WaitFrames(0x3C);
+        SaveSettingsAndExitMinigame();
     }
     mgQuitExtraF = 0;
     omOvlReturnEx(1, 1);
 
     while (TRUE) {
-        fn_1_1B7D0(1);
+        WaitFrames(1);
     }
 }
 
-void fn_1_36A4(void)
+void ReturnToMinigameMenu(void)
 {
-    OMOVLHIS *sp8;
+    OMOVLHIS *minigameValue;
 
-    fn_1_1B7D0(0x1E);
+    WaitFrames(0x1E);
     HuAudSStreamAllFadeOut(0x3E8);
     WipeColorSet(0xFF, 0xFF, 0xFF);
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
     while (WipeStatGet() != 0) {
-        fn_1_1B7D0(1);
+        WaitFrames(1);
     }
     CharModelKill(-1);
     MGSeqKillAll();
-    sp8 = omOvlHisGet(0);
+    minigameValue = omOvlHisGet(0);
     omOvlHisChg(0, DLL_mpexdll, 2, 0);
     mgQuitExtraF = 0;
     omOvlCallEx(DLL_ztardll, 1, 0, 0);
     while (TRUE) {
-        fn_1_1B7D0(1);
+        WaitFrames(1);
     }
 }
 
-void fn_1_3758(s32 arg0, s32 arg1)
+void InitializePracticePlayers(s32 playerCount, s32 saveMode)
 {
-    s32 spC[10][3] = {
+    s32 overlayHistoryTable[10][3] = {
         { 0x60, 0x01, 0x00 },
         { 0x61, 0x01, 0x01 },
         { 0x45, 0x01, 0x02 },
@@ -346,30 +346,30 @@ void fn_1_3758(s32 arg0, s32 arg1)
         { 0x43, 0x01, 0x08 },
         { 0x44, 0x01, 0x09 },
     };
-    OMOVLHIS *sp8;
-    s32 var_r29;
+    OMOVLHIS *historyEntry;
+    s32 partyConfigId;
 
-    fn_1_1B7D0(0x1E);
+    WaitFrames(0x1E);
     HuAudSeqAllFadeOut(0x3E8);
     HuAudSStreamAllFadeOut(0x3E8);
     WipeColorSet(0xFF, 0xFF, 0xFF);
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
     while (WipeStatGet() != 0) {
-        fn_1_1B7D0(1);
+        WaitFrames(1);
     }
-    if (arg0 == 0 || arg0 == 1) {
-        var_r29 = (arg1 * 0xA) + 0xA;
-        BoardPartyConfigSet(0, 0, 0, var_r29, 0, 0, 0, 0);
-        BoardSaveInit(arg0 + 7);
-        spC[arg0][2] += (arg1 * 0xA);
+    if (playerCount == 0 || playerCount == 1) {
+        partyConfigId = (saveMode * 0xA) + 0xA;
+        BoardPartyConfigSet(0, 0, 0, partyConfigId, 0, 0, 0, 0);
+        BoardSaveInit(playerCount + 7);
+        overlayHistoryTable[playerCount][2] += (saveMode * 0xA);
     }
-    else if (arg0 == 4) {
-        GWSystem.mg_type = arg1;
-        spC[arg0][2] += (arg1 * 0xA);
+    else if (playerCount == 4) {
+        GWSystem.mg_type = saveMode;
+        overlayHistoryTable[playerCount][2] += (saveMode * 0xA);
     }
 
-    sp8 = omOvlHisGet(0);
-    omOvlHisChg(0, DLL_mpexdll, spC[arg0][1], spC[arg0][2]);
+    historyEntry = omOvlHisGet(0);
+    omOvlHisChg(0, DLL_mpexdll, overlayHistoryTable[playerCount][1], overlayHistoryTable[playerCount][2]);
     HuDataDirClose(DATA_MAKE_NUM(DATADIR_MPEX, 0x00));
     HuDataDirClose(0x150000);
     CharModelKill(-1);
@@ -379,224 +379,224 @@ void fn_1_3758(s32 arg0, s32 arg1)
     CharMotionInit(GWPlayerCfg[2].character);
     CharMotionInit(GWPlayerCfg[3].character);
     HuAudAllStop();
-    if (arg0 > 1) {
+    if (playerCount > 1) {
         mgPracticeEnableF = 1;
     }
     mgQuitExtraF = 0;
-    omOvlCallEx(spC[arg0][0], 1, 0, 0);
+    omOvlCallEx(overlayHistoryTable[playerCount][0], 1, 0, 0);
     while (TRUE) {
-        fn_1_1B7D0(1);
+        WaitFrames(1);
     }
 }
 
-s32 lbl_1_data_294 = -1;
-s32 lbl_1_data_298 = -1;
+s32 activeMessageId = -1;
+s32 practiceMenuSequenceId = -1;
 
-void fn_1_397C(void)
+void StartMinigameMenuSequence(void)
 {
     if (omovlevtno != 2) {
-        lbl_1_data_298 = HuAudSeqPlay(0x2E);
+        practiceMenuSequenceId = HuAudSeqPlay(0x2E);
     }
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
     while (WipeStatGet() != 0) {
-        fn_1_1B7D0(1);
+        WaitFrames(1);
     }
-    fn_1_1B7D0(0x3C);
+    WaitFrames(0x3C);
 }
 
-void fn_1_39F4(void)
+void RunPrimaryGameModeMenu(void)
 {
-    fn_1_1B834();
-    fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 3, 0xF, 1);
-    fn_1_1BA78(0x330000, -1, -1);
-    fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 1, 0xF, 1);
-    fn_1_1B9F4();
-    fn_1_1B7D0(0x3C);
-    fn_1_1B834();
-    fn_1_1BA78(0x330001, 5, -1);
-    if (fn_1_1BBA4(1) == 0) {
-        fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 3, 0xF, 1);
-        fn_1_1BA78(0x330002, -1, -1);
-        fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 1, 0xF, 1);
+    CreateCharacterSelectMessageWindow();
+    SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 3, 0xF, 1);
+    ShowCharacterSelectMessage(0x330000, -1, -1);
+    SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 1, 0xF, 1);
+    DestroyCharacterSelectMessageWindow();
+    WaitFrames(0x3C);
+    CreateCharacterSelectMessageWindow();
+    ShowCharacterSelectMessage(0x330001, 5, -1);
+    if (ShowCharacterSelectChoice(1) == 0) {
+        SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 3, 0xF, 1);
+        ShowCharacterSelectMessage(0x330002, -1, -1);
+        SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 1, 0xF, 1);
     }
-    fn_1_1B9F4();
-    fn_1_1B7D0(0x3C);
+    DestroyCharacterSelectMessageWindow();
+    WaitFrames(0x3C);
 }
 
-void fn_1_3AF8(void)
+void RunPracticeMenuSelection(void)
 {
-    s16 var_r29;
-    s32 var_r30;
-    s32 var_r31;
+    s16 minigameValue;
+    s32 minigameValue2;
+    s32 minigameValue3;
 
-    var_r31 = -1;
-    var_r30 = 0;
-    fn_1_1B834();
+    minigameValue3 = -1;
+    minigameValue2 = 0;
+    CreateCharacterSelectMessageWindow();
     while (TRUE) {
-        fn_1_1B7D0(1);
-        fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 3, 0xF, 1);
-        fn_1_1BA78(0x330003, -1, -1);
-        fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 1, 0xF, 1);
-        fn_1_1BF1C(0x33004C);
-        var_r31 = -1;
-        lbl_1_bss_3B0.unk_08 = 0;
-        lbl_1_bss_3B0.unk_04 = (MpexDllUnkFunc2)fn_1_11FC0;
+        WaitFrames(1);
+        SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 3, 0xF, 1);
+        ShowCharacterSelectMessage(0x330003, -1, -1);
+        SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 1, 0xF, 1);
+        ShowCharacterSelectTopMessage(0x33004C);
+        minigameValue3 = -1;
+        practiceMenuStateWork.state = 0;
+        practiceMenuStateWork.updateCallback = (MpexObjectUpdateCallback)PositionPlayerStatusSprite;
         while (TRUE) {
-            fn_1_1B7D0(1);
-            if (var_r31 != lbl_1_bss_3B0.unk_08) {
+            WaitFrames(1);
+            if (minigameValue3 != practiceMenuStateWork.state) {
                 HuAudFXPlay(0);
-                fn_1_11A3C(var_r31);
-                var_r31 = lbl_1_bss_3B0.unk_08;
-                switch (lbl_1_bss_3B0.unk_08) {
+                AnimatePlayerStatusDisplay(minigameValue3);
+                minigameValue3 = practiceMenuStateWork.state;
+                switch (practiceMenuStateWork.state) {
                     case 0:
-                        fn_1_1BA78(0x330005, -1, 1);
+                        ShowCharacterSelectMessage(0x330005, -1, 1);
                         break;
                     case 1:
-                        fn_1_1BA78(0x330012, -1, 1);
+                        ShowCharacterSelectMessage(0x330012, -1, 1);
                         break;
                     case 2:
-                        fn_1_1BA78(0x330023, -1, 1);
+                        ShowCharacterSelectMessage(0x330023, -1, 1);
                         break;
                 }
             }
             if (HuPadBtnDown[0] & PAD_BUTTON_A) {
                 HuAudFXPlay(2);
-                var_r30 = 1;
+                minigameValue2 = 1;
                 break;
             }
             else if (HuPadBtnDown[0] & PAD_BUTTON_B) {
                 HuAudFXPlay(3);
-                var_r30 = 0;
+                minigameValue2 = 0;
                 break;
             }
             else {
-                if (lbl_1_bss_180[0xA] == 1) {
+                if (availableMinigameFlags[0xA] == 1) {
                     if (HuPadStkX[0] <= -0x1E) {
-                        lbl_1_bss_3B0.unk_08 = 0;
+                        practiceMenuStateWork.state = 0;
                     }
                     else if (HuPadStkX[0] >= 0x1E) {
-                        lbl_1_bss_3B0.unk_08 = 1;
+                        practiceMenuStateWork.state = 1;
                     }
                     else if (HuPadStkY[0] >= 0x1E) {
-                        lbl_1_bss_3B0.unk_08 = 2;
+                        practiceMenuStateWork.state = 2;
                     }
-                    else if ((HuPadStkY[0] <= -0x1E) && (lbl_1_bss_3B0.unk_08 == 2)) {
+                    else if ((HuPadStkY[0] <= -0x1E) && (practiceMenuStateWork.state == 2)) {
                         if (HuPadStkX[0] >= 5) {
-                            lbl_1_bss_3B0.unk_08 = 1;
+                            practiceMenuStateWork.state = 1;
                         }
                         else {
-                            lbl_1_bss_3B0.unk_08 = 0;
+                            practiceMenuStateWork.state = 0;
                         }
                     }
                 }
                 else if (HuPadStkX[0] <= -0x1E) {
-                    lbl_1_bss_3B0.unk_08 = 0;
+                    practiceMenuStateWork.state = 0;
                 }
                 else if (HuPadStkX[0] >= 0x1E) {
-                    lbl_1_bss_3B0.unk_08 = 1;
+                    practiceMenuStateWork.state = 1;
                 }
             }
         }
-        lbl_1_bss_3B0.unk_04 = NULL;
-        fn_1_1C120();
-        if (var_r30 == 0) {
-            fn_1_11E28();
-            fn_1_1BA78(0x330004, 5, -1);
-            if (fn_1_1BBA4(1) == 0) {
-                fn_1_1B9F4();
-                fn_1_3508();
+        practiceMenuStateWork.updateCallback = NULL;
+        DestroyCharacterSelectTextWindow();
+        if (minigameValue2 == 0) {
+            ScalePlayerStatusDisplay();
+            ShowCharacterSelectMessage(0x330004, 5, -1);
+            if (ShowCharacterSelectChoice(1) == 0) {
+                DestroyCharacterSelectMessageWindow();
+                ReturnToMainMenu();
             }
             continue;
         }
         break;
     }
-    fn_1_11E28();
-    fn_1_1B9F4();
-    lbl_1_bss_1B4 = lbl_1_bss_3B0.unk_08;
+    ScalePlayerStatusDisplay();
+    DestroyCharacterSelectMessageWindow();
+    practiceMenuState = practiceMenuStateWork.state;
 }
 
-void fn_1_4014(void)
+void SetMenuObjectsToEnterCallbacks(void)
 {
-    s32 var_r31;
+    s32 frameIndex;
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        lbl_1_bss_2D8[var_r31].unk_04 = (MpexDllUnkFunc2)fn_1_901C;
+    for (frameIndex = 0; frameIndex < 3; frameIndex++) {
+        menuModelObjects[frameIndex].updateCallback = (MpexObjectUpdateCallback)MoveMenuModelWithSineEasing;
     }
     do {
-        fn_1_1B7D0(1);
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            if (lbl_1_bss_2D8[var_r31].unk_04 != NULL) {
+        WaitFrames(1);
+        for (frameIndex = 0; frameIndex < 3; frameIndex++) {
+            if (menuModelObjects[frameIndex].updateCallback != NULL) {
                 break;
             }
         }
-    } while (var_r31 != 3);
+    } while (frameIndex != 3);
 }
 
-void fn_1_40AC(void)
+void SetMenuObjectsToExitCallbacks(void)
 {
-    s32 var_r31;
+    s32 frameIndex;
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        lbl_1_bss_2D8[var_r31].unk_04 = (MpexDllUnkFunc2)fn_1_9430;
+    for (frameIndex = 0; frameIndex < 3; frameIndex++) {
+        menuModelObjects[frameIndex].updateCallback = (MpexObjectUpdateCallback)MoveMenuModelWithCosineEasing;
     }
     do {
-        fn_1_1B7D0(1);
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            if (lbl_1_bss_2D8[var_r31].unk_04 != NULL) {
+        WaitFrames(1);
+        for (frameIndex = 0; frameIndex < 3; frameIndex++) {
+            if (menuModelObjects[frameIndex].updateCallback != NULL) {
                 break;
             }
         }
-    } while (var_r31 != 3);
+    } while (frameIndex != 3);
 }
 
-s32 fn_1_4144(s32 arg0)
+s32 RunCharacterSelectForPractice(s32 playerCount)
 {
-    s32 var_r31;
+    s32 characterSelectionValue;
 
-    var_r31 = 1;
-    var_r31 = fn_1_140B0(0, arg0);
-    return var_r31;
+    characterSelectionValue = 1;
+    characterSelectionValue = InitializeCharacterSelection(0, playerCount);
+    return characterSelectionValue;
 }
 
-s32 fn_1_4184(s32 arg0)
+s32 RunPracticeSelectionFlow(s32 selectionMode)
 {
-    s32 var_r31 = 0;
-    s32 var_r30 = -1;
-    if (arg0 == 0) {
-        fn_1_148BC(lbl_1_bss_1B4);
+    s32 minigameValue = 0;
+    s32 minigameValue2 = -1;
+    if (selectionMode == 0) {
+        SelectCharacterMode(practiceMenuState);
     }
-    fn_1_F8A4();
-    fn_1_1B834();
-    if (lbl_1_data_294 == -1) {
-        fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 3, 0xF, 1);
-        fn_1_1BA78(0x330007, -1, -1);
-        fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 1, 0xF, 1);
+    ShowPlayerNameDisplayAlternate();
+    CreateCharacterSelectMessageWindow();
+    if (activeMessageId == -1) {
+        SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 3, 0xF, 1);
+        ShowCharacterSelectMessage(0x330007, -1, -1);
+        SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 1, 0xF, 1);
     }
     else {
-        lbl_1_bss_3B0.unk_0C = lbl_1_data_294;
-        lbl_1_data_294 = -1;
+        practiceMenuStateWork.stateTimer = activeMessageId;
+        activeMessageId = -1;
     }
-    fn_1_1B7D0(1);
-    fn_1_1BF1C(0x33004D);
-    fn_1_1015C();
+    WaitFrames(1);
+    ShowCharacterSelectTopMessage(0x33004D);
+    ShowPlayerNameText();
     while (TRUE) {
-        fn_1_1B7D0(1);
-        if (var_r30 != lbl_1_bss_3B0.unk_0C) {
-            var_r30 = lbl_1_bss_3B0.unk_0C;
+        WaitFrames(1);
+        if (minigameValue2 != practiceMenuStateWork.stateTimer) {
+            minigameValue2 = practiceMenuStateWork.stateTimer;
             HuAudFXPlay(0);
-            if (lbl_1_bss_180[lbl_1_bss_3B0.unk_0C] == 1) {
-                fn_1_1BA78(lbl_1_bss_3B0.unk_0C + MAKE_MESSID(0x33, 0x08), -1, 1);
+            if (availableMinigameFlags[practiceMenuStateWork.stateTimer] == 1) {
+                ShowCharacterSelectMessage(practiceMenuStateWork.stateTimer + MAKE_MESSID(0x33, 0x08), -1, 1);
             }
             else {
-                fn_1_1BA78(0x33002E, -1, 1);
+                ShowCharacterSelectMessage(0x33002E, -1, 1);
             }
-            fn_1_1B7D0(1);
+            WaitFrames(1);
         }
         if (HuPadBtnDown[0] & PAD_BUTTON_A) {
-            if (lbl_1_bss_180[lbl_1_bss_3B0.unk_0C] == 1) {
+            if (availableMinigameFlags[practiceMenuStateWork.stateTimer] == 1) {
                 HuAudFXPlay(2);
-                lbl_1_data_294 = lbl_1_bss_3B0.unk_0C;
-                var_r31 = 1;
+                activeMessageId = practiceMenuStateWork.stateTimer;
+                minigameValue = 1;
                 break;
             }
             else {
@@ -605,170 +605,170 @@ s32 fn_1_4184(s32 arg0)
         }
         else if (HuPadBtnDown[0] & PAD_BUTTON_B) {
             HuAudFXPlay(3);
-            var_r31 = 0;
+            minigameValue = 0;
             break;
         }
         else {
             if (HuPadStkY[0] >= 0x1E) {
-                fn_1_10268(-1);
+                AnimatePlayerNameText(-1);
             }
             else if (HuPadStkY[0] <= -0x1E) {
-                fn_1_10268(1);
+                AnimatePlayerNameText(1);
             }
         }
     }
-    fn_1_10228();
-    fn_1_1C120();
-    fn_1_1B9F4();
-    fn_1_FDA0();
-    if (var_r31 == 0) {
-        fn_1_148E4(lbl_1_bss_1B4);
+    HidePlayerNameText();
+    DestroyCharacterSelectTextWindow();
+    DestroyCharacterSelectMessageWindow();
+    AnimatePlayerNameDisplayOut();
+    if (minigameValue == 0) {
+        SelectDifficultyMode(practiceMenuState);
     }
-    lbl_1_bss_1B0 = lbl_1_bss_3B0.unk_0C;
-    return var_r31;
+    practiceMenuSelection = practiceMenuStateWork.stateTimer;
+    return minigameValue;
 }
 
-s32 fn_1_444C(s32 arg0)
+s32 RunMinigameDescriptionPrompt(s32 playerCount)
 {
-    s32 var_r31;
+    s32 minigameValue;
 
-    var_r31 = 1;
-    if (arg0 == 0) {
-        lbl_1_bss_3B0.unk_10 = 0;
-        fn_1_D6AC(lbl_1_bss_1B0);
+    minigameValue = 1;
+    if (playerCount == 0) {
+        practiceMenuStateWork.playerIndex = 0;
+        AnimateMinigameNameDisplay(practiceMenuSelection);
     }
     while (TRUE) {
-        fn_1_1B7D0(1);
+        WaitFrames(1);
         if (HuPadBtnDown[0] & PAD_BUTTON_START) {
             HuAudFXPlay(2);
-            var_r31 = 1;
+            minigameValue = 1;
             break;
         }
         else if (HuPadBtnDown[0] & PAD_BUTTON_B) {
             HuAudFXPlay(3);
-            var_r31 = 0;
+            minigameValue = 0;
             break;
         }
     }
-    if (var_r31 == 0) {
-        fn_1_DBD0(lbl_1_bss_1B0);
+    if (minigameValue == 0) {
+        HideMinigameNameDisplay(practiceMenuSelection);
     }
-    return var_r31;
+    return minigameValue;
 }
 
-s32 fn_1_4514(s32 arg0)
+s32 RunPracticeOptionPrompt(s32 playerCount)
 {
-    s32 var_r31;
-    s32 var_r30;
+    s32 scoreValue;
+    s32 scoreValue2;
 
-    var_r31 = 1;
-    var_r30 = lbl_1_bss_3B0.unk_10;
-    if ((lbl_1_bss_1B0 == 0) || (lbl_1_bss_1B0 == 1) || (lbl_1_bss_1B0 == 4)) {
-        if (lbl_1_bss_1B0 == 4) {
-            fn_1_E568();
+    scoreValue = 1;
+    scoreValue2 = practiceMenuStateWork.playerIndex;
+    if ((practiceMenuSelection == 0) || (practiceMenuSelection == 1) || (practiceMenuSelection == 4)) {
+        if (practiceMenuSelection == 4) {
+            SetPlayerScoreIconBank();
         }
         else {
-            fn_1_E174();
+            ShowPlayerScoreIcon();
         }
         while (TRUE) {
-            fn_1_1B7D0(1);
-            if (lbl_1_bss_3B0.unk_10 != var_r30) {
+            WaitFrames(1);
+            if (practiceMenuStateWork.playerIndex != scoreValue2) {
                 HuAudFXPlay(0);
-                fn_1_ED78(lbl_1_bss_3B0.unk_10, var_r30);
-                var_r30 = lbl_1_bss_3B0.unk_10;
+                CreatePlayerNameDisplay(practiceMenuStateWork.playerIndex, scoreValue2);
+                scoreValue2 = practiceMenuStateWork.playerIndex;
             }
             if (HuPadStkY[0] <= -0x1E) {
-                lbl_1_bss_3B0.unk_10++;
-                if (lbl_1_bss_3B0.unk_10 > 2) {
-                    lbl_1_bss_3B0.unk_10 = 0;
+                practiceMenuStateWork.playerIndex++;
+                if (practiceMenuStateWork.playerIndex > 2) {
+                    practiceMenuStateWork.playerIndex = 0;
                 }
                 continue;
             }
             if (HuPadStkY[0] >= 0x1E) {
-                lbl_1_bss_3B0.unk_10--;
-                if (lbl_1_bss_3B0.unk_10 < 0) {
-                    lbl_1_bss_3B0.unk_10 = 2;
+                practiceMenuStateWork.playerIndex--;
+                if (practiceMenuStateWork.playerIndex < 0) {
+                    practiceMenuStateWork.playerIndex = 2;
                 }
                 continue;
             }
             if (HuPadBtnDown[0] & PAD_BUTTON_START) {
                 HuAudFXPlay(2);
-                var_r31 = 1;
+                scoreValue = 1;
                 break;
             }
             else if (HuPadBtnDown[0] & PAD_BUTTON_B) {
                 HuAudFXPlay(3);
-                var_r31 = 0;
+                scoreValue = 0;
                 break;
             }
         }
-        lbl_1_bss_1AC = lbl_1_bss_3B0.unk_10;
+        currentMenuPlayer = practiceMenuStateWork.playerIndex;
     }
     else {
-        var_r31 = 1;
+        scoreValue = 1;
     }
-    if (var_r31 == 0) {
-        if (lbl_1_bss_1B0 == 4) {
-            fn_1_EB1C();
+    if (scoreValue == 0) {
+        if (practiceMenuSelection == 4) {
+            HidePlayerScoreIconAlternate();
         }
         else {
-            fn_1_E384();
+            HidePlayerScoreIcon();
         }
     }
-    return var_r31;
+    return scoreValue;
 }
 
-s32 fn_1_4730(s32 arg0)
+s32 RunCharacterSelectForMainGame(s32 playerCount)
 {
-    s32 var_r31;
+    s32 characterSelectionValue;
 
-    var_r31 = 1;
-    var_r31 = fn_1_140B0(1, arg0);
-    return var_r31;
+    characterSelectionValue = 1;
+    characterSelectionValue = InitializeCharacterSelection(1, playerCount);
+    return characterSelectionValue;
 }
 
-s32 fn_1_4770(s32 arg0)
+s32 RunMainGameSelectionFlow(s32 selectionMode)
 {
-    s32 var_r31;
-    s32 var_r30;
+    s32 minigameValue;
+    s32 minigameValue2;
 
-    var_r30 = -1;
-    if (arg0 == 0) {
-        fn_1_148BC(lbl_1_bss_1B4);
+    minigameValue2 = -1;
+    if (selectionMode == 0) {
+        SelectCharacterMode(practiceMenuState);
     }
-    fn_1_10C30();
-    fn_1_1B834();
-    if (lbl_1_data_294 == -1) {
+    ShowPlayerScoreDisplayAlternate();
+    CreateCharacterSelectMessageWindow();
+    if (activeMessageId == -1) {
         HuAudFXPlay(0x4A);
-        fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 3, 0xF, 1);
-        fn_1_1BA78(0x330014, -1, -1);
-        fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 1, 0xF, 1);
+        SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 3, 0xF, 1);
+        ShowCharacterSelectMessage(0x330014, -1, -1);
+        SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 1, 0xF, 1);
     }
     else {
-        lbl_1_bss_3B0.unk_0C = lbl_1_data_294;
-        lbl_1_data_294 = -1;
+        practiceMenuStateWork.stateTimer = activeMessageId;
+        activeMessageId = -1;
     }
-    fn_1_1B7D0(1);
-    fn_1_1BF1C(0x33004D);
-    fn_1_114D4();
+    WaitFrames(1);
+    ShowCharacterSelectTopMessage(0x33004D);
+    ShowPlayerScoreText();
     while (TRUE) {
-        fn_1_1B7D0(1);
-        if (var_r30 != lbl_1_bss_3B0.unk_0C) {
-            var_r30 = lbl_1_bss_3B0.unk_0C;
+        WaitFrames(1);
+        if (minigameValue2 != practiceMenuStateWork.stateTimer) {
+            minigameValue2 = practiceMenuStateWork.stateTimer;
             HuAudFXPlay(0);
-            if (lbl_1_bss_180[lbl_1_bss_3B0.unk_0C + 4] == 1) {
-                fn_1_1BA78(lbl_1_bss_3B0.unk_0C + 0x330015, -1, 1);
+            if (availableMinigameFlags[practiceMenuStateWork.stateTimer + 4] == 1) {
+                ShowCharacterSelectMessage(practiceMenuStateWork.stateTimer + 0x330015, -1, 1);
             }
             else {
-                fn_1_1BA78(0x33002E, -1, 1);
+                ShowCharacterSelectMessage(0x33002E, -1, 1);
             }
-            fn_1_1B7D0(1);
+            WaitFrames(1);
         }
         if (HuPadBtnDown[0] & PAD_BUTTON_A) {
-            if (lbl_1_bss_180[lbl_1_bss_3B0.unk_0C + 4] == 1) {
+            if (availableMinigameFlags[practiceMenuStateWork.stateTimer + 4] == 1) {
                 HuAudFXPlay(2);
-                lbl_1_data_294 = lbl_1_bss_3B0.unk_0C;
-                var_r31 = 1;
+                activeMessageId = practiceMenuStateWork.stateTimer;
+                minigameValue = 1;
                 break;
             }
             else {
@@ -777,471 +777,471 @@ s32 fn_1_4770(s32 arg0)
         }
         else if (HuPadBtnDown[0] & PAD_BUTTON_B) {
             HuAudFXPlay(3);
-            var_r31 = 0;
+            minigameValue = 0;
             break;
         }
         else {
             if (HuPadStkY[0] >= 0x1E) {
-                fn_1_115E0(-1);
+                AnimatePlayerScoreText(-1);
             }
             else if (HuPadStkY[0] <= -0x1E) {
-                fn_1_115E0(1);
+                AnimatePlayerScoreText(1);
             }
         }
     }
-    fn_1_115A0();
-    fn_1_1C120();
-    fn_1_1B9F4();
-    fn_1_110F8();
-    if (var_r31 == 0) {
-        fn_1_148E4(lbl_1_bss_1B4);
+    HidePlayerScoreText();
+    DestroyCharacterSelectTextWindow();
+    DestroyCharacterSelectMessageWindow();
+    AnimatePlayerScoreDisplayOut();
+    if (minigameValue == 0) {
+        SelectDifficultyMode(practiceMenuState);
     }
-    lbl_1_bss_1B0 = lbl_1_bss_3B0.unk_0C + (lbl_1_bss_1B4 * 4);
-    return var_r31;
+    practiceMenuSelection = practiceMenuStateWork.stateTimer + (practiceMenuState * 4);
+    return minigameValue;
 }
 
-s32 fn_1_4A58(s32 arg0)
+s32 WaitForMinigameDescriptionPrompt(s32 playerCount)
 {
-    s32 var_r31 = 1;
-    var_r31 = fn_1_444C(arg0);
-    return var_r31;
+    s32 minigameValue = 1;
+    minigameValue = RunMinigameDescriptionPrompt(playerCount);
+    return minigameValue;
 }
 
-s32 fn_1_4B3C(s32 arg0)
+s32 WaitForPracticeOptionPrompt(s32 playerCount)
 {
-    s32 var_r31 = 1;
-    var_r31 = fn_1_4514(arg0);
-    return var_r31;
+    s32 playerStateValue = 1;
+    playerStateValue = RunPracticeOptionPrompt(playerCount);
+    return playerStateValue;
 }
 
-s32 fn_1_4B78(s32 arg0)
+s32 SetPracticeMenuMode(s32 selectionMode)
 {
-    s32 var_r30;
+    s32 minigameValue;
 
-    var_r30 = 1;
-    lbl_1_bss_1B0 = 0xA;
-    var_r30 = fn_1_444C(arg0);
-    return var_r30;
+    minigameValue = 1;
+    practiceMenuSelection = 0xA;
+    minigameValue = RunMinigameDescriptionPrompt(selectionMode);
+    return minigameValue;
 }
 
-void fn_1_4C6C(void)
+void MoveMenuModelsOnscreen(void)
 {
-    s32 var_r31;
+    s32 modelIndex;
 
-    Hu3DModelPosSet(lbl_1_bss_2D8[0].unk_00->mdlId[1], -400.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_2D8[1].unk_00->mdlId[1], 1000.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_2D8[2].unk_00->mdlId[1], 0.0f, 1000.0f, 0.0f);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        Hu3DModelPosSet(lbl_1_bss_1B8[var_r31].unk_00->mdlId[1], -225.0f + (150.0f * var_r31), 0.0f, 0.0f);
-        Hu3DModelAttrReset(lbl_1_bss_1B8[var_r31].unk_00->mdlId[1], HU3D_ATTR_DISPOFF);
-    }
-}
-
-void fn_1_4DF8(void)
-{
-    s32 var_r31;
-
-    Hu3DModelPosSet(lbl_1_bss_2D8[0].unk_00->mdlId[1], 0.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_2D8[1].unk_00->mdlId[1], 1000.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_2D8[2].unk_00->mdlId[1], 0.0f, 1000.0f, 0.0f);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        Hu3DModelPosSet(lbl_1_bss_1B8[var_r31].unk_00->mdlId[1], -225.0f + (150.0f * var_r31), 0.0f, 0.0f);
-        Hu3DModelAttrSet(lbl_1_bss_1B8[var_r31].unk_00->mdlId[1], HU3D_ATTR_DISPOFF);
+    Hu3DModelPosSet(menuModelObjects[0].ownerObject->mdlId[1], -400.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(menuModelObjects[1].ownerObject->mdlId[1], 1000.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(menuModelObjects[2].ownerObject->mdlId[1], 0.0f, 1000.0f, 0.0f);
+    for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+        Hu3DModelPosSet(playerCharacterObjects[modelIndex].ownerObject->mdlId[1], -225.0f + (150.0f * modelIndex), 0.0f, 0.0f);
+        Hu3DModelAttrReset(playerCharacterObjects[modelIndex].ownerObject->mdlId[1], HU3D_ATTR_DISPOFF);
     }
 }
 
-void fn_1_4F84(void)
+void HideMenuModels(void)
 {
-    s32 var_r31;
-    s32 var_r30;
+    s32 modelIndex;
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_130[var_r31].unk_00 = GWPlayerCfg[var_r31].group;
-        lbl_1_bss_130[var_r31].unk_04 = GWPlayerCfg[var_r31].iscom;
-        lbl_1_bss_130[var_r31].unk_08 = GWPlayerCfg[var_r31].diff;
-        lbl_1_bss_130[var_r31].unk_0C = GWPlayerCfg[var_r31].character;
-        lbl_1_bss_130[var_r31].unk_10 = GWPlayerCfg[var_r31].pad_idx;
+    Hu3DModelPosSet(menuModelObjects[0].ownerObject->mdlId[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(menuModelObjects[1].ownerObject->mdlId[1], 1000.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(menuModelObjects[2].ownerObject->mdlId[1], 0.0f, 1000.0f, 0.0f);
+    for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+        Hu3DModelPosSet(playerCharacterObjects[modelIndex].ownerObject->mdlId[1], -225.0f + (150.0f * modelIndex), 0.0f, 0.0f);
+        Hu3DModelAttrSet(playerCharacterObjects[modelIndex].ownerObject->mdlId[1], HU3D_ATTR_DISPOFF);
     }
-    for (var_r30 = 0; var_r30 < 4; var_r30++) {
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            if (var_r30 == lbl_1_bss_130[var_r31].unk_10) {
-                GWPlayer[var_r30].team = GWPlayerCfg[var_r30].group = lbl_1_bss_130[var_r31].unk_00;
-                GWPlayer[var_r30].com = GWPlayerCfg[var_r30].iscom = lbl_1_bss_130[var_r31].unk_04;
-                GWPlayer[var_r30].diff = GWPlayerCfg[var_r30].diff = lbl_1_bss_130[var_r31].unk_08;
-                GWPlayer[var_r30].character = GWPlayerCfg[var_r30].character = lbl_1_bss_130[var_r31].unk_0C;
-                GWPlayer[var_r30].port = GWPlayerCfg[var_r30].pad_idx = lbl_1_bss_130[var_r31].unk_10;
+}
+
+void InitializePracticeMenuModels(void)
+{
+    s32 playerIndex;
+    s32 playerIndex2;
+
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        practicePlayerSettings[playerIndex].playerGroup = GWPlayerCfg[playerIndex].group;
+        practicePlayerSettings[playerIndex].isComputerPlayer = GWPlayerCfg[playerIndex].iscom;
+        practicePlayerSettings[playerIndex].difficulty = GWPlayerCfg[playerIndex].diff;
+        practicePlayerSettings[playerIndex].characterId = GWPlayerCfg[playerIndex].character;
+        practicePlayerSettings[playerIndex].controllerPort = GWPlayerCfg[playerIndex].pad_idx;
+    }
+    for (playerIndex2 = 0; playerIndex2 < 4; playerIndex2++) {
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            if (playerIndex2 == practicePlayerSettings[playerIndex].controllerPort) {
+                GWPlayer[playerIndex2].team = GWPlayerCfg[playerIndex2].group = practicePlayerSettings[playerIndex].playerGroup;
+                GWPlayer[playerIndex2].com = GWPlayerCfg[playerIndex2].iscom = practicePlayerSettings[playerIndex].isComputerPlayer;
+                GWPlayer[playerIndex2].diff = GWPlayerCfg[playerIndex2].diff = practicePlayerSettings[playerIndex].difficulty;
+                GWPlayer[playerIndex2].character = GWPlayerCfg[playerIndex2].character = practicePlayerSettings[playerIndex].characterId;
+                GWPlayer[playerIndex2].port = GWPlayerCfg[playerIndex2].pad_idx = practicePlayerSettings[playerIndex].controllerPort;
                 break;
             }
         }
     }
 }
 
-s32 fn_1_5238(void)
+s32 RunMinigameMenuIntro(void)
 {
-    s32 var_r29 = 0;
-    if (lbl_1_bss_1B0 != 2) {
-        fn_1_A608();
+    s32 minigameValue = 0;
+    if (practiceMenuSelection != 2) {
+        RunPracticeMenuState();
     }
-    fn_1_4F84();
-    fn_1_1B7D0(0x3C);
-    var_r29 = 0;
-    return var_r29;
+    InitializePracticeMenuModels();
+    WaitFrames(0x3C);
+    minigameValue = 0;
+    return minigameValue;
 }
 
-void fn_1_5530(void)
+void AnimateMenuModelEntry(void)
 {
-    Vec sp14 = { 0.0f, 0.0f, 0.0f };
-    s32 var_r31;
+    Vec position = { 0.0f, 0.0f, 0.0f };
+    s32 frameIndex;
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_1B8[var_r31].unk_04 = (MpexDllUnkFunc2)fn_1_7FC4;
+    for (frameIndex = 0; frameIndex < 4; frameIndex++) {
+        playerCharacterObjects[frameIndex].updateCallback = (MpexObjectUpdateCallback)AnimateMenuCharacterEntry;
     }
     do {
-        fn_1_1B7D0(1);
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            if (lbl_1_bss_1B8[var_r31].unk_04 != NULL) {
+        WaitFrames(1);
+        for (frameIndex = 0; frameIndex < 4; frameIndex++) {
+            if (playerCharacterObjects[frameIndex].updateCallback != NULL) {
                 break;
             }
         }
-    } while (var_r31 != 4);
-    Hu3DModelAttrReset(lbl_1_bss_3B0.unk_00->mdlId[5], HU3D_MOTATTR_PAUSE);
-    fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 2, 0xF, 1);
-    fn_1_28E0(lbl_1_bss_2D8[0].unk_00, 1, sp14, 0.0f, 9.0f, 0.0f, 1, 0);
-    fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 1, 0xF, 1);
-    fn_1_1B7D0(0x3C);
+    } while (frameIndex != 4);
+    Hu3DModelAttrReset(practiceMenuStateWork.ownerObject->mdlId[5], HU3D_MOTATTR_PAUSE);
+    SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 2, 0xF, 1);
+    MoveModelTowardPosition(menuModelObjects[0].ownerObject, 1, position, 0.0f, 9.0f, 0.0f, 1, 0);
+    SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 1, 0xF, 1);
+    WaitFrames(0x3C);
 }
 
-void fn_1_56B8(void)
+void PositionMenuModelsForPractice(void)
 {
-    Hu3DModelPosSet(lbl_1_bss_2D8[0].unk_00->mdlId[1], -1000.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_2D8[1].unk_00->mdlId[1], -400.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_2D8[2].unk_00->mdlId[1], 0.0f, 1000.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_1B8[0].unk_00->mdlId[1], 0.0f, 0.0f, 0.0f);
-    Hu3DModelAttrReset(lbl_1_bss_1B8[0].unk_00->mdlId[1], HU3D_ATTR_DISPOFF);
+    Hu3DModelPosSet(menuModelObjects[0].ownerObject->mdlId[1], -1000.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(menuModelObjects[1].ownerObject->mdlId[1], -400.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(menuModelObjects[2].ownerObject->mdlId[1], 0.0f, 1000.0f, 0.0f);
+    Hu3DModelPosSet(playerCharacterObjects[0].ownerObject->mdlId[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelAttrReset(playerCharacterObjects[0].ownerObject->mdlId[1], HU3D_ATTR_DISPOFF);
 }
 
-s32 fn_1_57E0(void)
+s32 RunMenuResultsSequence(void)
 {
-    s32 var_r31 = 0;
-    fn_1_AD34();
-    fn_1_1B7D0(0x3C);
-    var_r31 = 0;
-    return var_r31;
+    s32 currentValue = 0;
+    RunPracticeMenuResultsSequence();
+    WaitFrames(0x3C);
+    currentValue = 0;
+    return currentValue;
 }
 
-// similar to fn_1_5530
-void fn_1_581C(void)
+// similar to AnimateMenuModelEntry
+void AnimateMenuModelExit(void)
 {
-    Vec sp14 = { 0.0f, 0.0f, 0.0f };
+    Vec position = { 0.0f, 0.0f, 0.0f };
 
-    lbl_1_bss_1B8[0].unk_04 = (MpexDllUnkFunc2)fn_1_7FC4;
+    playerCharacterObjects[0].updateCallback = (MpexObjectUpdateCallback)AnimateMenuCharacterEntry;
 
     do {
-        fn_1_1B7D0(1);
-    } while (lbl_1_bss_1B8[0].unk_04 != NULL);
+        WaitFrames(1);
+    } while (playerCharacterObjects[0].updateCallback != NULL);
 
-    Hu3DModelAttrReset(lbl_1_bss_3B0.unk_00->mdlId[5], HU3D_MOTATTR_PAUSE);
-    fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 2, 0xF, 1);
-    fn_1_28E0(lbl_1_bss_2D8[1].unk_00, 1, sp14, 0.0f, 9.0f, 0.0f, 1, 0);
-    fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 1, 0xF, 1);
-    fn_1_1B7D0(0x3C);
+    Hu3DModelAttrReset(practiceMenuStateWork.ownerObject->mdlId[5], HU3D_MOTATTR_PAUSE);
+    SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 2, 0xF, 1);
+    MoveModelTowardPosition(menuModelObjects[1].ownerObject, 1, position, 0.0f, 9.0f, 0.0f, 1, 0);
+    SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 1, 0xF, 1);
+    WaitFrames(0x3C);
 }
 
-void fn_1_595C(void)
+void ExitToMainMenu(void)
 {
-    fn_1_3508();
+    ReturnToMainMenu();
 }
 
-void fn_1_5AF8(void)
+void ShowSingleMenuModel(void)
 {
-    s32 var_r31;
+    s32 modelIndex;
 
-    Hu3DModelPosSet(lbl_1_bss_2D8[0].unk_00->mdlId[1], 0.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_2D8[1].unk_00->mdlId[1], 1000.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_2D8[2].unk_00->mdlId[1], 0.0f, 1000.0f, 0.0f);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        Hu3DModelAttrSet(lbl_1_bss_1B8[var_r31].unk_00->mdlId[1], HU3D_ATTR_DISPOFF);
+    Hu3DModelPosSet(menuModelObjects[0].ownerObject->mdlId[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(menuModelObjects[1].ownerObject->mdlId[1], 1000.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(menuModelObjects[2].ownerObject->mdlId[1], 0.0f, 1000.0f, 0.0f);
+    for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+        Hu3DModelAttrSet(playerCharacterObjects[modelIndex].ownerObject->mdlId[1], HU3D_ATTR_DISPOFF);
     }
-    fn_1_C544();
-    fn_1_D468(lbl_1_bss_1B0);
+    CreateHighScoreDisplay();
+    PositionMinigameNameDisplay(practiceMenuSelection);
 }
 
-void fn_1_5C1C(void)
+void ShowAlternateMenuModel(void)
 {
-    s32 var_r31;
+    s32 modelIndex;
 
-    Hu3DModelPosSet(lbl_1_bss_2D8[0].unk_00->mdlId[1], -1000.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_2D8[1].unk_00->mdlId[1], 0.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_2D8[2].unk_00->mdlId[1], 0.0f, 1000.0f, 0.0f);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        Hu3DModelAttrSet(lbl_1_bss_1B8[var_r31].unk_00->mdlId[1], HU3D_ATTR_DISPOFF);
+    Hu3DModelPosSet(menuModelObjects[0].ownerObject->mdlId[1], -1000.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(menuModelObjects[1].ownerObject->mdlId[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(menuModelObjects[2].ownerObject->mdlId[1], 0.0f, 1000.0f, 0.0f);
+    for (modelIndex = 0; modelIndex < 4; modelIndex++) {
+        Hu3DModelAttrSet(playerCharacterObjects[modelIndex].ownerObject->mdlId[1], HU3D_ATTR_DISPOFF);
     }
-    fn_1_C544();
-    fn_1_D468(lbl_1_bss_1B0);
+    CreateHighScoreDisplay();
+    PositionMinigameNameDisplay(practiceMenuSelection);
 }
 
-void fn_1_5D40(OMOBJ *object, MpexDllUnkStruct4 *arg1)
+void UpdateMinigameMenuObject(OMOBJ *object, MpexMenuObjectWork *menuWork)
 {
-    s32 var_r31 = 0;
-    s32 var_r29 = 0;
-    s32 var_r30 = 0;
+    s32 minigameValue = 0;
+    s32 minigameValue2 = 0;
+    s32 minigameValue3 = 0;
 
     if (omovlevtno == 1) {
-        lbl_1_bss_1B0 = omovlstat % 10;
-        if (lbl_1_bss_1B0 <= 3) {
-            lbl_1_bss_1B4 = 0;
+        practiceMenuSelection = omovlstat % 10;
+        if (practiceMenuSelection <= 3) {
+            practiceMenuState = 0;
         }
         else {
-            lbl_1_bss_1B4 = 1;
+            practiceMenuState = 1;
         }
-        lbl_1_bss_1AC = omovlstat / 10;
+        currentMenuPlayer = omovlstat / 10;
         if (mgQuitExtraF == 1) {
             mgQuitExtraF = 0;
-            Hu3DMotionTimeSet(lbl_1_bss_3B0.unk_00->mdlId[5], Hu3DMotionMotionMaxTimeGet(lbl_1_bss_3B0.unk_00->mdlId[5]) - 5.0f);
-            if (lbl_1_bss_1B0 <= 3) {
-                fn_1_4F84();
-                lbl_1_data_294 = lbl_1_bss_1B0;
-                fn_1_5AF8();
-                var_r31 = 0x320;
+            Hu3DMotionTimeSet(practiceMenuStateWork.ownerObject->mdlId[5], Hu3DMotionMotionMaxTimeGet(practiceMenuStateWork.ownerObject->mdlId[5]) - 5.0f);
+            if (practiceMenuSelection <= 3) {
+                InitializePracticeMenuModels();
+                activeMessageId = practiceMenuSelection;
+                ShowSingleMenuModel();
+                minigameValue = 0x320;
             }
             else {
-                lbl_1_data_294 = lbl_1_bss_1B0 - 4;
-                fn_1_5C1C();
-                var_r31 = 0x384;
+                activeMessageId = practiceMenuSelection - 4;
+                ShowAlternateMenuModel();
+                minigameValue = 0x384;
             }
         }
-        else if (lbl_1_bss_1B0 <= 3) {
-            lbl_1_data_294 = lbl_1_bss_1B0;
-            if (lbl_1_bss_1B0 == 2) {
-                Hu3DMotionTimeSet(lbl_1_bss_3B0.unk_00->mdlId[5], Hu3DMotionMotionMaxTimeGet(lbl_1_bss_3B0.unk_00->mdlId[5]) - 5.0f);
-                fn_1_4DF8();
-                var_r31 = 0x1FE;
+        else if (practiceMenuSelection <= 3) {
+            activeMessageId = practiceMenuSelection;
+            if (practiceMenuSelection == 2) {
+                Hu3DMotionTimeSet(practiceMenuStateWork.ownerObject->mdlId[5], Hu3DMotionMotionMaxTimeGet(practiceMenuStateWork.ownerObject->mdlId[5]) - 5.0f);
+                HideMenuModels();
+                minigameValue = 0x1FE;
             }
             else {
-                Hu3DMotionTimeSet(lbl_1_bss_3B0.unk_00->mdlId[5], 33.0f);
-                fn_1_4C6C();
-                var_r31 = 0x1F4;
+                Hu3DMotionTimeSet(practiceMenuStateWork.ownerObject->mdlId[5], 33.0f);
+                MoveMenuModelsOnscreen();
+                minigameValue = 0x1F4;
             }
         }
         else {
-            lbl_1_data_294 = lbl_1_bss_1B0 - 4;
-            Hu3DMotionTimeSet(lbl_1_bss_3B0.unk_00->mdlId[5], 33.0f);
-            fn_1_56B8();
-            var_r31 = 0x258;
+            activeMessageId = practiceMenuSelection - 4;
+            Hu3DMotionTimeSet(practiceMenuStateWork.ownerObject->mdlId[5], 33.0f);
+            PositionMenuModelsForPractice();
+            minigameValue = 0x258;
         }
     }
     else if (omovlevtno == 2) {
-        lbl_1_bss_1B0 = 0;
-        lbl_1_bss_1B4 = 0;
-        var_r31 = 1;
+        practiceMenuSelection = 0;
+        practiceMenuState = 0;
+        minigameValue = 1;
     }
     else {
-        var_r31 = 0;
+        minigameValue = 0;
     }
     while (TRUE) {
-        fn_1_1B7D0(1);
-        switch (var_r31) {
+        WaitFrames(1);
+        switch (minigameValue) {
             case 0x0:
-                fn_1_397C();
-                fn_1_25C4(lbl_1_bss_3B0.unk_00, 5, 5, 0, 0);
-                fn_1_1B7D0(0x3C);
-                fn_1_39F4();
-                var_r31 = 0x64;
+                StartMinigameMenuSequence();
+                SetModelMotionWithTransition(practiceMenuStateWork.ownerObject, 5, 5, 0, 0);
+                WaitFrames(0x3C);
+                RunPrimaryGameModeMenu();
+                minigameValue = 0x64;
                 break;
             case 0x1:
-                Hu3DMotionTimeSet(lbl_1_bss_3B0.unk_00->mdlId[5], Hu3DMotionMotionMaxTimeGet(lbl_1_bss_3B0.unk_00->mdlId[5]) - 5.0f);
-                fn_1_397C();
-                var_r31 = 0x64;
+                Hu3DMotionTimeSet(practiceMenuStateWork.ownerObject->mdlId[5], Hu3DMotionMotionMaxTimeGet(practiceMenuStateWork.ownerObject->mdlId[5]) - 5.0f);
+                StartMinigameMenuSequence();
+                minigameValue = 0x64;
                 break;
             case 0x64:
-                fn_1_117D4();
-                fn_1_3AF8();
-                fn_1_11930();
-                var_r30 = 0;
-                var_r31 = 0x65;
+                CreatePlayerStatusDisplay();
+                RunPracticeMenuSelection();
+                DestroyPlayerStatusDisplay();
+                minigameValue3 = 0;
+                minigameValue = 0x65;
                 break;
             case 0x65:
-                fn_1_4014();
+                SetMenuObjectsToEnterCallbacks();
 
-                if (lbl_1_bss_1B4 == 2) {
-                    var_r31 = (lbl_1_bss_1B4 * 0x64) + 0xC9;
+                if (practiceMenuState == 2) {
+                    minigameValue = (practiceMenuState * 0x64) + 0xC9;
                 }
                 else {
-                    var_r31 = (lbl_1_bss_1B4 * 0x64) + 0xC8;
+                    minigameValue = (practiceMenuState * 0x64) + 0xC8;
                 }
                 break;
             case 0x66:
-                fn_1_40AC();
-                var_r31 = 0x64;
+                SetMenuObjectsToExitCallbacks();
+                minigameValue = 0x64;
                 break;
             case 0xC8:
-                var_r29 = fn_1_4144(var_r30);
-                if (var_r29 != 0) {
-                    var_r30 = 0;
-                    var_r31 = 0xC9;
+                minigameValue2 = RunCharacterSelectForPractice(minigameValue3);
+                if (minigameValue2 != 0) {
+                    minigameValue3 = 0;
+                    minigameValue = 0xC9;
                 }
                 else {
-                    var_r30 = 1;
-                    var_r31 = 0x66;
+                    minigameValue3 = 1;
+                    minigameValue = 0x66;
                 }
                 break;
             case 0xC9:
-                fn_1_F0C0();
-                var_r29 = fn_1_4184(var_r30);
-                fn_1_F40C();
-                if (var_r29 != 0) {
-                    fn_1_C544();
-                    var_r30 = 0;
-                    var_r31 = 0xCA;
+                CreatePlayerNameSprites();
+                minigameValue2 = RunPracticeSelectionFlow(minigameValue3);
+                DestroyPlayerNameDisplay();
+                if (minigameValue2 != 0) {
+                    CreateHighScoreDisplay();
+                    minigameValue3 = 0;
+                    minigameValue = 0xCA;
                 }
                 else {
-                    var_r30 = 1;
-                    var_r31 = 0x66;
+                    minigameValue3 = 1;
+                    minigameValue = 0x66;
                 }
                 break;
             case 0xCA:
-                var_r29 = fn_1_444C(var_r30);
-                if (var_r29 != 0) {
-                    var_r30 = 0;
-                    var_r31 = 0xCB;
+                minigameValue2 = RunMinigameDescriptionPrompt(minigameValue3);
+                if (minigameValue2 != 0) {
+                    minigameValue3 = 0;
+                    minigameValue = 0xCB;
                 }
                 else {
-                    fn_1_C860();
-                    var_r30 = 1;
-                    var_r31 = 0xC9;
+                    DestroyHighScoreDisplay();
+                    minigameValue3 = 1;
+                    minigameValue = 0xC9;
                 }
                 break;
             case 0xCB:
-                var_r29 = fn_1_4514(var_r30);
-                if (var_r29 != 0) {
-                    var_r30 = 0;
-                    var_r31 = 0xCC;
+                minigameValue2 = RunPracticeOptionPrompt(minigameValue3);
+                if (minigameValue2 != 0) {
+                    minigameValue3 = 0;
+                    minigameValue = 0xCC;
                 }
                 else {
-                    var_r30 = 1;
-                    var_r31 = 0xCA;
+                    minigameValue3 = 1;
+                    minigameValue = 0xCA;
                 }
                 break;
             case 0xCC:
-                fn_1_3758(lbl_1_bss_1B0, lbl_1_bss_1AC);
-                var_r31 = -1;
+                InitializePracticePlayers(practiceMenuSelection, currentMenuPlayer);
+                minigameValue = -1;
                 break;
             case 0x12C:
-                var_r29 = fn_1_4730(var_r30);
-                if (var_r29 != 0) {
-                    var_r30 = 0;
-                    var_r31 = 0x12D;
+                minigameValue2 = RunCharacterSelectForMainGame(minigameValue3);
+                if (minigameValue2 != 0) {
+                    minigameValue3 = 0;
+                    minigameValue = 0x12D;
                 }
                 else {
-                    var_r30 = 1;
-                    var_r31 = 0x66;
+                    minigameValue3 = 1;
+                    minigameValue = 0x66;
                 }
                 break;
             case 0x12D:
-                fn_1_1045C();
-                var_r29 = fn_1_4770(var_r30);
-                fn_1_107EC();
-                if (var_r29 != 0) {
-                    fn_1_C544();
-                    var_r30 = 0;
-                    var_r31 = 0x12E;
+                CreatePlayerScoreSprites();
+                minigameValue2 = RunMainGameSelectionFlow(minigameValue3);
+                DestroyPlayerScoreDisplay();
+                if (minigameValue2 != 0) {
+                    CreateHighScoreDisplay();
+                    minigameValue3 = 0;
+                    minigameValue = 0x12E;
                 }
                 else {
-                    var_r30 = 1;
-                    var_r31 = 0x66;
+                    minigameValue3 = 1;
+                    minigameValue = 0x66;
                 }
                 break;
             case 0x12E:
-                var_r29 = fn_1_4A58(var_r30);
-                if (var_r29 != 0) {
-                    var_r30 = 0;
-                    var_r31 = 0x12F;
+                minigameValue2 = WaitForMinigameDescriptionPrompt(minigameValue3);
+                if (minigameValue2 != 0) {
+                    minigameValue3 = 0;
+                    minigameValue = 0x12F;
                 }
                 else {
-                    fn_1_C860();
-                    var_r30 = 1;
-                    var_r31 = 0x12D;
+                    DestroyHighScoreDisplay();
+                    minigameValue3 = 1;
+                    minigameValue = 0x12D;
                 }
                 break;
             case 0x12F:
-                var_r29 = fn_1_4B3C(var_r30);
-                if (var_r29 != 0) {
-                    var_r30 = 0;
-                    var_r31 = 0x130;
+                minigameValue2 = WaitForPracticeOptionPrompt(minigameValue3);
+                if (minigameValue2 != 0) {
+                    minigameValue3 = 0;
+                    minigameValue = 0x130;
                 }
                 else {
-                    var_r30 = 1;
-                    var_r31 = 0x12E;
+                    minigameValue3 = 1;
+                    minigameValue = 0x12E;
                 }
                 break;
             case 0x130:
-                fn_1_3758(lbl_1_bss_1B0, lbl_1_bss_1AC);
-                var_r31 = -1;
+                InitializePracticePlayers(practiceMenuSelection, currentMenuPlayer);
+                minigameValue = -1;
                 continue;
             case 0x191:
-                fn_1_C544();
-                var_r29 = fn_1_4B78(var_r30);
-                if (var_r29 != 0) {
-                    var_r30 = 0;
-                    var_r31 = 0x192;
+                CreateHighScoreDisplay();
+                minigameValue2 = SetPracticeMenuMode(minigameValue3);
+                if (minigameValue2 != 0) {
+                    minigameValue3 = 0;
+                    minigameValue = 0x192;
                 }
                 else {
-                    fn_1_C860();
-                    var_r30 = 1;
-                    var_r31 = 0x66;
+                    DestroyHighScoreDisplay();
+                    minigameValue3 = 1;
+                    minigameValue = 0x66;
                 }
                 break;
             case 0x192:
-                fn_1_36A4();
+                ReturnToMinigameMenu();
             case 0x1F4:
-                fn_1_397C();
-                var_r29 = fn_1_5238();
-                if (var_r29 == 1) {
-                    var_r31 = 0xCC;
+                StartMinigameMenuSequence();
+                minigameValue2 = RunMinigameMenuIntro();
+                if (minigameValue2 == 1) {
+                    minigameValue = 0xCC;
                 }
-                else if (var_r29 == 0) {
-                    var_r31 = 0x1F5;
+                else if (minigameValue2 == 0) {
+                    minigameValue = 0x1F5;
                 }
                 else {
-                    var_r31 = 0x2BC;
+                    minigameValue = 0x2BC;
                 }
                 break;
             case 0x1F5:
-                fn_1_5530();
-                var_r31 = 0xC9;
+                AnimateMenuModelEntry();
+                minigameValue = 0xC9;
                 break;
             case 0x1FE:
-                fn_1_397C();
-                var_r31 = 0xC9;
+                StartMinigameMenuSequence();
+                minigameValue = 0xC9;
                 break;
             case 0x258:
-                fn_1_397C();
-                var_r29 = fn_1_57E0();
-                if (var_r29 == 1) {
-                    var_r31 = 0x130;
+                StartMinigameMenuSequence();
+                minigameValue2 = RunMenuResultsSequence();
+                if (minigameValue2 == 1) {
+                    minigameValue = 0x130;
                 }
-                else if (var_r29 == 0) {
-                    var_r31 = 0x259;
+                else if (minigameValue2 == 0) {
+                    minigameValue = 0x259;
                 }
                 else {
-                    var_r31 = 0x2BC;
+                    minigameValue = 0x2BC;
                 }
                 break;
             case 0x259:
-                fn_1_581C();
-                var_r31 = 0x12D;
+                AnimateMenuModelExit();
+                minigameValue = 0x12D;
                 break;
             case 0x2BC:
-                fn_1_3508();
+                ReturnToMainMenu();
             case 0x320:
-                fn_1_397C();
-                var_r31 = 0xCA;
-                var_r30 = 1;
+                StartMinigameMenuSequence();
+                minigameValue = 0xCA;
+                minigameValue3 = 1;
                 break;
             case 0x384:
-                fn_1_397C();
-                var_r31 = 0x12E;
-                var_r30 = 1;
+                StartMinigameMenuSequence();
+                minigameValue = 0x12E;
+                minigameValue3 = 1;
                 break;
             default:
                 break;
@@ -1249,117 +1249,117 @@ void fn_1_5D40(OMOBJ *object, MpexDllUnkStruct4 *arg1)
     }
 }
 
-void fn_1_7BC8(OMOBJ *object)
+void CreateMinigameMenuCharacter(OMOBJ *object)
 {
-    s32 var_r30;
+    s32 modelIndex;
 
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x00));
     object->mtnId[1] = Hu3DMotionIDGet(object->mdlId[1]);
     Hu3DModelShadowMapObjSet(object->mdlId[1], "extra_ent_fix0-obj41");
-    fn_1_25C4(object, 1, 1, 0, 1);
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        object->mdlId[var_r30 + 1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x02));
-        Hu3DModelAttrSet(object->mdlId[var_r30 + 1], HU3D_ATTR_DISPOFF);
+    SetModelMotionWithTransition(object, 1, 1, 0, 1);
+    for (modelIndex = 0; modelIndex < 3; modelIndex++) {
+        object->mdlId[modelIndex + 1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x02));
+        Hu3DModelAttrSet(object->mdlId[modelIndex + 1], HU3D_ATTR_DISPOFF);
     }
     object->mdlId[5] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x01));
     object->mtnId[5] = Hu3DMotionIDGet(object->mdlId[5]);
     Hu3DModelPosSet(object->mdlId[5], 0.0f, 0.0f, 270.0f);
     if (omovlevtno == 2) {
-        fn_1_25C4(object, 5, 5, 0, 0);
+        SetModelMotionWithTransition(object, 5, 5, 0, 0);
         return;
     }
     if (omovlevtno == 1) {
         Hu3DModelAttrSet(object->mdlId[5], HU3D_MOTATTR_PAUSE);
         return;
     }
-    fn_1_25C4(object, 5, 5, 0, 2);
+    SetModelMotionWithTransition(object, 5, 5, 0, 2);
 }
 
-void fn_1_7D80(void)
+void CreateMenuCharactersProcess(void)
 {
-    OMOBJ *var_r29;
-    OMOBJ *var_r31;
-    s32 var_r30;
+    OMOBJ *object;
+    OMOBJ *object2;
+    s32 minigameValue;
 
-    var_r29 = NULL;
-    var_r29 = omAddObjEx(lbl_1_bss_A8, 0x2000, 0x10, 0x10, -1, NULL);
-    lbl_1_bss_3B0.unk_00 = var_r29;
-    lbl_1_bss_3B0.unk_04 = NULL;
-    var_r31 = lbl_1_bss_3B0.unk_00;
-    fn_1_7BC8(var_r31);
+    object = NULL;
+    object = omAddObjEx(minigamePracticeProcess, 0x2000, 0x10, 0x10, -1, NULL);
+    practiceMenuStateWork.ownerObject = object;
+    practiceMenuStateWork.updateCallback = NULL;
+    object2 = practiceMenuStateWork.ownerObject;
+    CreateMinigameMenuCharacter(object2);
     while (TRUE) {
-        fn_1_1B7D0(1);
-        if (lbl_1_bss_3B0.unk_04 == NULL) {
+        WaitFrames(1);
+        if (practiceMenuStateWork.updateCallback == NULL) {
             continue;
         }
-        lbl_1_bss_3B0.unk_04(lbl_1_bss_3B0.unk_00, &lbl_1_bss_3B0);
+        practiceMenuStateWork.updateCallback(practiceMenuStateWork.ownerObject, &practiceMenuStateWork);
     }
 }
 
-void fn_1_7FC4(OMOBJ *object, MpexDllUnkStruct4 *arg1)
+void AnimateMenuCharacterEntry(OMOBJ *object, MpexMenuObjectWork *menuWork)
 {
-    Vec sp14 = { 700.0f, 0.0f, 0.0f };
-    fn_1_1B7D0((4 - object->work[0]) * 5);
-    fn_1_25C4(object, 1, 2, 0xA, 1);
+    Vec modelRotation = { 700.0f, 0.0f, 0.0f };
+    WaitFrames((4 - object->work[0]) * 5);
+    SetModelMotionWithTransition(object, 1, 2, 0xA, 1);
     object->work[1] = 0;
     while (object->work[1] <= 0xA) {
-        fn_1_1B7D0(1);
-        Hu3DData[object->mdlId[1]].rot.y = fn_1_1B52C(0.0f, 90.0f, object->work[1], 10.0f);
+        WaitFrames(1);
+        Hu3DData[object->mdlId[1]].rot.y = InterpolateLinear(0.0f, 90.0f, object->work[1], 10.0f);
         object->work[1]++;
     }
 
-    fn_1_25C4(object, 1, 3, 0xA, 1);
-    fn_1_28E0(object, 1, sp14, 0.0f, 9.0f, 0.0f, 1, 0);
-    fn_1_25C4(object, 1, 1, 0xA, 1);
-    arg1->unk_04 = NULL;
+    SetModelMotionWithTransition(object, 1, 3, 0xA, 1);
+    MoveModelTowardPosition(object, 1, modelRotation, 0.0f, 9.0f, 0.0f, 1, 0);
+    SetModelMotionWithTransition(object, 1, 1, 0xA, 1);
+    menuWork->updateCallback = NULL;
 }
 
-void fn_1_816C(OMOBJ *object, s32 arg1)
+void CreatePlayerCharacterModel(OMOBJ *object, s32 playerIndex)
 {
-    s32 var_r30 = GWPlayerCfg[arg1].character;
-    object->mdlId[1] = CharModelCreate(var_r30, 4);
-    object->mtnId[1] = CharMotionCreate(var_r30, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00));
-    object->mtnId[2] = CharMotionCreate(var_r30, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02));
-    object->mtnId[3] = CharMotionCreate(var_r30, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x03));
-    object->mtnId[4] = CharMotionCreate(var_r30, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x48));
-    object->mtnId[5] = CharMotionCreate(var_r30, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x49));
-    Hu3DModelPosSet(object->mdlId[1], -150.0f + (100.0f * arg1), 0.0f, 0.0f);
+    s32 playerIndex = GWPlayerCfg[playerIndex].character;
+    object->mdlId[1] = CharModelCreate(playerIndex, 4);
+    object->mtnId[1] = CharMotionCreate(playerIndex, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00));
+    object->mtnId[2] = CharMotionCreate(playerIndex, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02));
+    object->mtnId[3] = CharMotionCreate(playerIndex, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x03));
+    object->mtnId[4] = CharMotionCreate(playerIndex, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x48));
+    object->mtnId[5] = CharMotionCreate(playerIndex, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x49));
+    Hu3DModelPosSet(object->mdlId[1], -150.0f + (100.0f * playerIndex), 0.0f, 0.0f);
     Hu3DModelShadowSet(object->mdlId[1]);
     Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
     CharModelLayerSetAll2(2);
-    fn_1_25C4(object, 1, 1, 0, 1);
-    CharDataClose(var_r30);
+    SetModelMotionWithTransition(object, 1, 1, 0, 1);
+    CharDataClose(playerIndex);
     object->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x02));
     Hu3DModelAttrSet(object->mdlId[2], HU3D_ATTR_DISPOFF);
 }
 
-void fn_1_8320(void)
+void CreatePracticePlayerModelsProcess(void)
 {
-    MpexDllUnkStruct4 *temp_r5;
-    OMOBJ *var_r28;
-    OMOBJ *var_r31;
-    s16 var_r29;
-    u32 var_r30;
+    MpexMenuObjectWork *menuObjectWork;
+    OMOBJ *object;
+    OMOBJ *object2;
+    s16 minigameValue;
+    u32 minigameValue2;
 
-    var_r30 = lbl_1_bss_AC;
-    lbl_1_bss_AC = var_r30 + 1;
-    var_r28 = NULL;
-    var_r28 = omAddObjEx(lbl_1_bss_A8, 0x2000, 0x10, 0x10, -1, NULL);
-    lbl_1_bss_1B8[var_r30].unk_00 = var_r28;
-    lbl_1_bss_1B8[var_r30].unk_04 = NULL;
-    lbl_1_bss_1B8[var_r30].unk_00->work[0] = var_r30;
-    var_r31 = lbl_1_bss_1B8[var_r30].unk_00;
-    fn_1_816C(var_r31, var_r30);
+    minigameValue2 = menuObjectCreateIndex;
+    menuObjectCreateIndex = minigameValue2 + 1;
+    object = NULL;
+    object = omAddObjEx(minigamePracticeProcess, 0x2000, 0x10, 0x10, -1, NULL);
+    playerCharacterObjects[minigameValue2].ownerObject = object;
+    playerCharacterObjects[minigameValue2].updateCallback = NULL;
+    playerCharacterObjects[minigameValue2].ownerObject->work[0] = minigameValue2;
+    object2 = playerCharacterObjects[minigameValue2].ownerObject;
+    CreatePlayerCharacterModel(object2, minigameValue2);
     while (TRUE) {
-        fn_1_1B7D0(1);
-        if (lbl_1_bss_1B8[var_r30].unk_04 == NULL) {
+        WaitFrames(1);
+        if (playerCharacterObjects[minigameValue2].updateCallback == NULL) {
             continue;
         }
-        lbl_1_bss_1B8[var_r30].unk_04(lbl_1_bss_1B8[var_r30].unk_00, &lbl_1_bss_1B8[var_r30]);
+        playerCharacterObjects[minigameValue2].updateCallback(playerCharacterObjects[minigameValue2].ownerObject, &playerCharacterObjects[minigameValue2]);
     }
 }
 
-void fn_1_85C4(OMOBJ *object)
+void CreateMenuMinigameModelA(OMOBJ *object)
 {
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x03));
     object->mtnId[1] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MPEX, 0x04));
@@ -1370,10 +1370,10 @@ void fn_1_85C4(OMOBJ *object)
     Hu3DModelPosSet(object->mdlId[1], -200.0f, 0.0f, 0.0f);
     Hu3DModelShadowSet(object->mdlId[1]);
     CharNpcDustSet(object->mdlId[1], object->mtnId[2], 0, 0xF);
-    fn_1_25C4(object, 1, 1, 0, 1);
+    SetModelMotionWithTransition(object, 1, 1, 0, 1);
 }
 
-void fn_1_8758(OMOBJ *object)
+void CreateMenuMinigameModelB(OMOBJ *object)
 {
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x09));
     object->mtnId[1] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MPEX, 0x0A));
@@ -1384,878 +1384,878 @@ void fn_1_8758(OMOBJ *object)
     Hu3DModelPosSet(object->mdlId[1], 200.0f, 0.0f, 0.0f);
     Hu3DModelShadowSet(object->mdlId[1]);
     CharNpcDustSet(object->mdlId[1], object->mtnId[2], 0, 0x10);
-    fn_1_25C4(object, 1, 1, 0, 1);
+    SetModelMotionWithTransition(object, 1, 1, 0, 1);
 }
 
-void fn_1_88EC(OMOBJ *object)
+void UpdateMenuModelSineMotion(OMOBJ *object)
 {
-    float var_f31;
+    float interpolatedValue;
 
-    var_f31 = 0.0f;
-    var_f31 = fn_1_1B714(0.0f, 1.0f, object->work[3], 180.0f);
-    Hu3DData[object->mdlId[1]].pos.y += var_f31;
+    interpolatedValue = 0.0f;
+    interpolatedValue = CalculateSineWaveValue(0.0f, 1.0f, object->work[3], 180.0f);
+    Hu3DData[object->mdlId[1]].pos.y += interpolatedValue;
     if (object->work[3]++ >= 0xB4) {
         object->work[3] -= 0xB4;
     }
 }
 
-void fn_1_89C4(OMOBJ *object)
+void CreateMenuMinigameModelC(OMOBJ *object)
 {
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x0F));
     object->mtnId[1] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MPEX, 0x10));
     object->mtnId[3] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MPEX, 0x11));
     Hu3DModelPosSet(object->mdlId[1], 0.0f, 400.0f, 0.0f);
-    if (lbl_1_bss_180[0xA] == 0) {
+    if (availableMinigameFlags[0xA] == 0) {
         Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
     }
-    fn_1_25C4(object, 1, 1, 0, 1);
-    object->objFunc = fn_1_88EC;
+    SetModelMotionWithTransition(object, 1, 1, 0, 1);
+    object->objFunc = UpdateMenuModelSineMotion;
 }
 
-void fn_1_8ADC(void)
+void CreateMenuMinigameModelsProcess(void)
 {
-    OMOBJ *var_r31;
-    OMOBJ *var_r30;
-    OMOBJ *var_r29;
-    s32 var_r28;
-    OMOBJ *var_r27;
+    OMOBJ *object;
+    OMOBJ *object2;
+    OMOBJ *object3;
+    s32 minigameValue;
+    OMOBJ *object4;
 
-    var_r28 = lbl_1_bss_B0;
-    lbl_1_bss_B0 = var_r28 + 1;
-    var_r27 = NULL;
-    var_r27 = omAddObjEx(lbl_1_bss_A8, 0x2000, 0x10, 0x10, -1, NULL);
-    lbl_1_bss_2D8[var_r28].unk_00 = var_r27;
-    lbl_1_bss_2D8[var_r28].unk_04 = 0;
-    lbl_1_bss_2D8[var_r28].unk_00->work[0] = var_r28;
-    switch (var_r28) {
+    minigameValue = playerStatusAnimationIndex;
+    playerStatusAnimationIndex = minigameValue + 1;
+    object4 = NULL;
+    object4 = omAddObjEx(minigamePracticeProcess, 0x2000, 0x10, 0x10, -1, NULL);
+    menuModelObjects[minigameValue].ownerObject = object4;
+    menuModelObjects[minigameValue].updateCallback = 0;
+    menuModelObjects[minigameValue].ownerObject->work[0] = minigameValue;
+    switch (minigameValue) {
         case 0:
-            var_r31 = lbl_1_bss_2D8[var_r28].unk_00;
-            fn_1_85C4(var_r31);
+            object = menuModelObjects[minigameValue].ownerObject;
+            CreateMenuMinigameModelA(object);
             break;
         case 1:
-            var_r30 = lbl_1_bss_2D8[var_r28].unk_00;
-            fn_1_8758(var_r30);
+            object2 = menuModelObjects[minigameValue].ownerObject;
+            CreateMenuMinigameModelB(object2);
             break;
         case 2:
-            var_r29 = lbl_1_bss_2D8[var_r28].unk_00;
-            fn_1_89C4(var_r29);
+            object3 = menuModelObjects[minigameValue].ownerObject;
+            CreateMenuMinigameModelC(object3);
             break;
     }
     while (TRUE) {
-        fn_1_1B7D0(1);
-        if (lbl_1_bss_2D8[var_r28].unk_04 == NULL) {
+        WaitFrames(1);
+        if (menuModelObjects[minigameValue].updateCallback == NULL) {
             continue;
         }
-        lbl_1_bss_2D8[var_r28].unk_04(lbl_1_bss_2D8[var_r28].unk_00, &lbl_1_bss_2D8[var_r28]);
+        menuModelObjects[minigameValue].updateCallback(menuModelObjects[minigameValue].ownerObject, &menuModelObjects[minigameValue]);
     }
 }
 
-void fn_1_901C(OMOBJ *object, MpexDllUnkStruct4 *arg1)
+void MoveMenuModelWithSineEasing(OMOBJ *object, MpexMenuObjectWork *menuWork)
 {
-    float var_f31;
+    float interpolatedValue;
 
-    s32 var_r30;
-    s32 *var_r29;
-    s32 *var_r28;
-    s32 *var_r27;
-    s32 *var_r26;
-    void *var_r25;
+    s32 modelIndex;
+    s32 *unusedMotionStatePointer;
+    s32 *unusedModelScalePointer;
+    s32 *unusedModelRotationPointer;
+    s32 *unusedModelPositionPointer;
+    void *unusedCallbackContext;
 
-    Vec sp50 = { 0.0f, 0.0f, 0.0f };
-    Vec sp44 = { -1000.0f, 0.0f, 0.0f };
-    Vec sp38 = { 1000.0f, 0.0f, 0.0f };
+    Vec position = { 0.0f, 0.0f, 0.0f };
+    Vec position2 = { -1000.0f, 0.0f, 0.0f };
+    Vec position3 = { 1000.0f, 0.0f, 0.0f };
     switch (object->work[0]) {
         case 0:
-            fn_1_25C4(object, 1, 3, 0xF, 1);
-            if (lbl_1_bss_1B4 == 0) {
-                fn_1_28E0(object, 1, sp50, 0.0f, 9.0f, 0.0f, 1, 0);
+            SetModelMotionWithTransition(object, 1, 3, 0xF, 1);
+            if (practiceMenuState == 0) {
+                MoveModelTowardPosition(object, 1, position, 0.0f, 9.0f, 0.0f, 1, 0);
             }
             else {
-                fn_1_28E0(object, 1, sp44, 0.0f, 9.0f, 0.0f, 1, 0);
+                MoveModelTowardPosition(object, 1, position2, 0.0f, 9.0f, 0.0f, 1, 0);
             }
-            fn_1_25C4(object, 1, 1, 0xF, 1);
+            SetModelMotionWithTransition(object, 1, 1, 0xF, 1);
             break;
         case 1:
-            fn_1_25C4(object, 1, 2, 0xF, 1);
-            if (lbl_1_bss_1B4 == 1) {
-                fn_1_28E0(object, 1, sp50, 0.0f, 9.0f, 0.0f, 1, 0);
+            SetModelMotionWithTransition(object, 1, 2, 0xF, 1);
+            if (practiceMenuState == 1) {
+                MoveModelTowardPosition(object, 1, position, 0.0f, 9.0f, 0.0f, 1, 0);
             }
             else {
-                fn_1_28E0(object, 1, sp38, 0.0f, 9.0f, 0.0f, 1, 0);
+                MoveModelTowardPosition(object, 1, position3, 0.0f, 9.0f, 0.0f, 1, 0);
             }
-            fn_1_25C4(object, 1, 1, 0xF, 1);
+            SetModelMotionWithTransition(object, 1, 1, 0xF, 1);
             break;
         case 2:
-            if (lbl_1_bss_1B4 == 2) {
-                var_f31 = Hu3DData[object->mdlId[1]].pos.y;
-                for (var_r30 = 0; var_r30 <= 0x78; var_r30++) {
-                    fn_1_1B7D0(1);
-                    Hu3DData[object->mdlId[1]].pos.y = fn_1_1B64C(var_f31, 250.0f, var_r30, 120.0f);
+            if (practiceMenuState == 2) {
+                interpolatedValue = Hu3DData[object->mdlId[1]].pos.y;
+                for (modelIndex = 0; modelIndex <= 0x78; modelIndex++) {
+                    WaitFrames(1);
+                    Hu3DData[object->mdlId[1]].pos.y = InterpolateSine(interpolatedValue, 250.0f, modelIndex, 120.0f);
                 }
             }
             else {
-                var_f31 = Hu3DData[object->mdlId[1]].pos.y;
-                for (var_r30 = 0; var_r30 <= 0x78; var_r30++) {
-                    fn_1_1B7D0(1);
-                    Hu3DData[object->mdlId[1]].pos.y = fn_1_1B64C(var_f31, 1000.0f, var_r30, 120.0f);
+                interpolatedValue = Hu3DData[object->mdlId[1]].pos.y;
+                for (modelIndex = 0; modelIndex <= 0x78; modelIndex++) {
+                    WaitFrames(1);
+                    Hu3DData[object->mdlId[1]].pos.y = InterpolateSine(interpolatedValue, 1000.0f, modelIndex, 120.0f);
                 }
             }
             break;
     }
-    arg1->unk_04 = 0;
+    menuWork->updateCallback = 0;
 }
 
-void fn_1_9430(OMOBJ *object, MpexDllUnkStruct4 *arg1)
+void MoveMenuModelWithCosineEasing(OMOBJ *object, MpexMenuObjectWork *menuWork)
 {
-    float var_f31;
-    s32 var_r30;
-    s32 *var_r29;
-    s32 *var_r28;
+    float interpolatedValue;
+    s32 modelIndex;
+    s32 *unusedMotionStatePointer;
+    s32 *unusedModelPositionPointer;
 
-    Vec sp38 = { 0.0f, 0.0f, 0.0f };
-    Vec sp2C = { -200.0f, 0.0f, 0.0f };
-    Vec sp20 = { 200.0f, 0.0f, 0.0f };
+    Vec position = { 0.0f, 0.0f, 0.0f };
+    Vec position2 = { -200.0f, 0.0f, 0.0f };
+    Vec position3 = { 200.0f, 0.0f, 0.0f };
     switch (object->work[0]) {
         case 0:
-            fn_1_25C4(object, 1, 2, 0xF, 1);
-            fn_1_28E0(object, 1, sp2C, 0.0f, 9.0f, 0.0f, 1, 0);
-            fn_1_25C4(object, 1, 1, 0xF, 1);
+            SetModelMotionWithTransition(object, 1, 2, 0xF, 1);
+            MoveModelTowardPosition(object, 1, position2, 0.0f, 9.0f, 0.0f, 1, 0);
+            SetModelMotionWithTransition(object, 1, 1, 0xF, 1);
             break;
         case 1:
-            fn_1_25C4(object, 1, 2, 0xF, 1);
-            fn_1_28E0(object, 1, sp20, 0.0f, 9.0f, 0.0f, 1, 0);
-            fn_1_25C4(object, 1, 1, 0xF, 1);
+            SetModelMotionWithTransition(object, 1, 2, 0xF, 1);
+            MoveModelTowardPosition(object, 1, position3, 0.0f, 9.0f, 0.0f, 1, 0);
+            SetModelMotionWithTransition(object, 1, 1, 0xF, 1);
             break;
         case 2:
-            var_f31 = Hu3DData[object->mdlId[1]].pos.y;
-            for (var_r30 = 0; var_r30 <= 0x78; var_r30++) {
-                fn_1_1B7D0(1);
-                Hu3DData[object->mdlId[1]].pos.y = fn_1_1B574(var_f31, 400.0f, var_r30, 120.0f);
+            interpolatedValue = Hu3DData[object->mdlId[1]].pos.y;
+            for (modelIndex = 0; modelIndex <= 0x78; modelIndex++) {
+                WaitFrames(1);
+                Hu3DData[object->mdlId[1]].pos.y = InterpolateCosine(interpolatedValue, 400.0f, modelIndex, 120.0f);
             }
             break;
     }
-    arg1->unk_04 = 0;
+    menuWork->updateCallback = 0;
 }
 
-void fn_1_96B4(void)
+void InitializePracticeCamera(void)
 {
-    MpexDllUnkStruct *var_r31 = &lbl_1_bss_64;
-    var_r31->unk_08.x = 0.0f;
-    var_r31->unk_08.y = 165.0f;
-    var_r31->unk_08.z = 0.0f;
-    var_r31->unk_20.x = 0.0f;
-    var_r31->unk_20.y = 0.0f;
-    var_r31->unk_20.z = 0.0f;
-    var_r31->unk_38 = 1200.0f;
+    MpexCameraWork *cameraState = &cameraWork;
+    cameraState->currentCenter.x = 0.0f;
+    cameraState->currentCenter.y = 165.0f;
+    cameraState->currentCenter.z = 0.0f;
+    cameraState->currentRotation.x = 0.0f;
+    cameraState->currentRotation.y = 0.0f;
+    cameraState->currentRotation.z = 0.0f;
+    cameraState->currentZoom = 1200.0f;
 }
 
-s32 lbl_1_data_2B4[4] = { -1, -1, -1, -1 };
-s32 lbl_1_data_2C4 = -1;
+s32 playerOrderByRank[4] = { -1, -1, -1, -1 };
+s32 selectedPlayerCount = -1;
 
-void fn_1_9740(s32 arg0)
+void SetPracticeMenuModeAndPlayerCount(s32 selectionMode)
 {
-    s32 spC[4];
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
+    s32 scoreValues[4];
+    s32 loopIndex;
+    s32 scoreValue;
+    s32 scoreValue2;
 
-    var_r29 = 0;
-    var_r30 = 0;
-    lbl_1_bss_B4 = 0;
-    lbl_1_data_2B4[0] = lbl_1_data_2B4[1] = lbl_1_data_2B4[2] = lbl_1_data_2B4[3] = -1;
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        spC[var_r31] = fn_1_B248(arg0, var_r31);
+    scoreValue2 = 0;
+    scoreValue = 0;
+    activePlayerStatusCount = 0;
+    playerOrderByRank[0] = playerOrderByRank[1] = playerOrderByRank[2] = playerOrderByRank[3] = -1;
+    for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+        scoreValues[loopIndex] = GetPlayerCoinScore(selectionMode, loopIndex);
     }
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (spC[var_r31] >= var_r30) {
-            var_r30 = spC[var_r31];
+    for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+        if (scoreValues[loopIndex] >= scoreValue) {
+            scoreValue = scoreValues[loopIndex];
         }
     }
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (var_r30 == spC[var_r31]) {
-            lbl_1_bss_B4++;
-            lbl_1_data_2B4[var_r29++] = var_r31;
+    for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+        if (scoreValue == scoreValues[loopIndex]) {
+            activePlayerStatusCount++;
+            playerOrderByRank[scoreValue2++] = loopIndex;
         }
     }
-    lbl_1_data_2C4 = var_r30;
+    selectedPlayerCount = scoreValue;
 }
 
-void fn_1_9890(void)
+void ShowMinigameRecordMessage(void)
 {
-    fn_1_1B834();
-    fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 3, 0xF, 1);
-    fn_1_1BA78(0x33000C, -1, -1);
-    fn_1_25C4(lbl_1_bss_2D8[0].unk_00, 1, 1, 0xF, 1);
-    fn_1_1B9F4();
+    CreateCharacterSelectMessageWindow();
+    SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 3, 0xF, 1);
+    ShowCharacterSelectMessage(0x33000C, -1, -1);
+    SetModelMotionWithTransition(menuModelObjects[0].ownerObject, 1, 1, 0xF, 1);
+    DestroyCharacterSelectMessageWindow();
 }
 
-void fn_1_9908(void)
+void ShowMinigameResultMessage(void)
 {
-    fn_1_1B834();
+    CreateCharacterSelectMessageWindow();
     HuAudFXPlay(0x4A);
-    fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 3, 0xF, 1);
-    fn_1_1BA78(0x33001B, -1, -1);
-    fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 1, 0xF, 1);
-    fn_1_1B9F4();
+    SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 3, 0xF, 1);
+    ShowCharacterSelectMessage(0x33001B, -1, -1);
+    SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 1, 0xF, 1);
+    DestroyCharacterSelectMessageWindow();
 }
 
-void fn_1_9988(s32 arg0)
+void ShowMinigameRecordDetails(s32 recordIndex)
 {
-    s32 var_r31;
-    u32 var_r30;
-    u32 var_r29;
+    s32 minigameValue;
+    u32 minigameValue2;
+    u32 minigameValue3;
 
-    fn_1_1B834();
-    if (((mgRecordExtra == 0) && (arg0 != 4)) || ((mgRecordExtra >= 600*REFRESH_RATE) && (arg0 == 4))) {
+    CreateCharacterSelectMessageWindow();
+    if (((mgRecordExtra == 0) && (recordIndex != 4)) || ((mgRecordExtra >= 600*REFRESH_RATE) && (recordIndex == 4))) {
         HuAudFXPlay(0x4A);
-        fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 3, 0xF, 1);
-        fn_1_1BA78(arg0 + 0x330096, -1, -1);
-        fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 1, 0xF, 1);
+        SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 3, 0xF, 1);
+        ShowCharacterSelectMessage(recordIndex + 0x330096, -1, -1);
+        SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 1, 0xF, 1);
     }
     else {
-        if ((arg0 == 4) || (arg0 == 8)) {
-            var_r31 = mgRecordExtra;
-            var_r30 = var_r31 / (600*REFRESH_RATE);
-            var_r31 -= var_r30 * (600*REFRESH_RATE);
-            var_r29 = var_r31 / (60*REFRESH_RATE);
-            var_r31 -= var_r29 * (60*REFRESH_RATE);
-            sprintf(lbl_1_bss_120, "%d", var_r29);
-            fn_1_1BB4C((u32)&lbl_1_bss_120, 0);
-            var_r30 = var_r31 / (10*REFRESH_RATE);
-            var_r31 -= var_r30 * (10*REFRESH_RATE);
-            var_r29 = var_r31 / REFRESH_RATE;
-            var_r31 -= var_r29 * REFRESH_RATE;
-            sprintf(lbl_1_bss_118, "%d%d", var_r30, var_r29);
-            fn_1_1BB4C((u32)lbl_1_bss_118, 1);
-            if (arg0 == 8) {
-                var_r31 = (101.5/REFRESH_RATE) * (float)var_r31;
+        if ((recordIndex == 4) || (recordIndex == 8)) {
+            minigameValue = mgRecordExtra;
+            minigameValue2 = minigameValue / (600*REFRESH_RATE);
+            minigameValue -= minigameValue2 * (600*REFRESH_RATE);
+            minigameValue3 = minigameValue / (60*REFRESH_RATE);
+            minigameValue -= minigameValue3 * (60*REFRESH_RATE);
+            sprintf(formattedPlayerRank, "%d", minigameValue3);
+            InsertCharacterSelectMessage((u32)&formattedPlayerRank, 0);
+            minigameValue2 = minigameValue / (10*REFRESH_RATE);
+            minigameValue -= minigameValue2 * (10*REFRESH_RATE);
+            minigameValue3 = minigameValue / REFRESH_RATE;
+            minigameValue -= minigameValue3 * REFRESH_RATE;
+            sprintf(formattedPlayerCoins, "%d%d", minigameValue2, minigameValue3);
+            InsertCharacterSelectMessage((u32)formattedPlayerCoins, 1);
+            if (recordIndex == 8) {
+                minigameValue = (101.5/REFRESH_RATE) * (float)minigameValue;
             }
             else {
-                var_r31 = (100.0/REFRESH_RATE) * (float)var_r31;
+                minigameValue = (100.0/REFRESH_RATE) * (float)minigameValue;
             }
-            var_r30 = var_r31 / 10;
-            var_r31 -= var_r30 * 0xA;
-            var_r29 = var_r31;
-            sprintf(lbl_1_bss_110, "%d%d", var_r30, var_r29);
-            fn_1_1BB4C((u32)lbl_1_bss_110, 2);
+            minigameValue2 = minigameValue / 10;
+            minigameValue -= minigameValue2 * 0xA;
+            minigameValue3 = minigameValue;
+            sprintf(formattedCoinDigits, "%d%d", minigameValue2, minigameValue3);
+            InsertCharacterSelectMessage((u32)formattedCoinDigits, 2);
         }
         else {
-            sprintf(lbl_1_bss_110, "%d", mgRecordExtra);
-            fn_1_1BB4C((u32)lbl_1_bss_110, 0);
+            sprintf(formattedCoinDigits, "%d", mgRecordExtra);
+            InsertCharacterSelectMessage((u32)formattedCoinDigits, 0);
         }
         HuAudFXPlay(0x4A);
-        fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 3, 0xF, 1);
-        fn_1_1BA78(arg0 + 0x330018, -1, -1);
-        fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 1, 0xF, 1);
+        SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 3, 0xF, 1);
+        ShowCharacterSelectMessage(recordIndex + 0x330018, -1, -1);
+        SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 1, 0xF, 1);
     }
-    fn_1_1B9F4();
+    DestroyCharacterSelectMessageWindow();
 }
 
-void fn_1_9CD4(s32 arg0)
+void ShowAdditionalMinigameRecord(s32 recordIndex)
 {
-    fn_1_1B834();
-    fn_1_1BB4C(fn_1_BD10(arg0, mgRecordExtra), 3);
-    fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 3, 0xF, 1);
-    fn_1_1BA78(0x330090, -1, -1);
-    fn_1_25C4(lbl_1_bss_2D8[1].unk_00, 1, 1, 0xF, 1);
-    fn_1_1B9F4();
+    CreateCharacterSelectMessageWindow();
+    InsertCharacterSelectMessage(GetMinigameScoreMessageId(recordIndex, mgRecordExtra), 3);
+    SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 3, 0xF, 1);
+    ShowCharacterSelectMessage(0x330090, -1, -1);
+    SetModelMotionWithTransition(menuModelObjects[1].ownerObject, 1, 1, 0xF, 1);
+    DestroyCharacterSelectMessageWindow();
 }
 
-void fn_1_9D6C(void)
+void ShowPracticeMenuResults(void)
 {
-    fn_1_1B834();
-    switch (lbl_1_bss_B4) {
+    CreateCharacterSelectMessageWindow();
+    switch (activePlayerStatusCount) {
         case 1:
-            fn_1_1BB4C(GWPlayerCfg[lbl_1_data_2B4[0]].character, 0);
-            fn_1_1BA78(0x33000D, -1, -1);
+            InsertCharacterSelectMessage(GWPlayerCfg[playerOrderByRank[0]].character, 0);
+            ShowCharacterSelectMessage(0x33000D, -1, -1);
             break;
         case 2:
-            fn_1_1BB4C(GWPlayerCfg[lbl_1_data_2B4[0]].character, 0);
-            fn_1_1BB4C(GWPlayerCfg[lbl_1_data_2B4[1]].character, 1);
-            fn_1_1BA78(0x33000E, -1, -1);
+            InsertCharacterSelectMessage(GWPlayerCfg[playerOrderByRank[0]].character, 0);
+            InsertCharacterSelectMessage(GWPlayerCfg[playerOrderByRank[1]].character, 1);
+            ShowCharacterSelectMessage(0x33000E, -1, -1);
             break;
         case 3:
-            fn_1_1BB4C(GWPlayerCfg[lbl_1_data_2B4[0]].character, 0);
-            fn_1_1BB4C(GWPlayerCfg[lbl_1_data_2B4[1]].character, 1);
-            fn_1_1BB4C(GWPlayerCfg[lbl_1_data_2B4[2]].character, 2);
-            fn_1_1BA78(0x33000F, -1, -1);
+            InsertCharacterSelectMessage(GWPlayerCfg[playerOrderByRank[0]].character, 0);
+            InsertCharacterSelectMessage(GWPlayerCfg[playerOrderByRank[1]].character, 1);
+            InsertCharacterSelectMessage(GWPlayerCfg[playerOrderByRank[2]].character, 2);
+            ShowCharacterSelectMessage(0x33000F, -1, -1);
             break;
         case 4:
-            fn_1_1BA78(0x330010, -1, -1);
+            ShowCharacterSelectMessage(0x330010, -1, -1);
             break;
     }
-    fn_1_1B9F4();
+    DestroyCharacterSelectMessageWindow();
 }
 
-void fn_1_9F10(OMOBJ *object, MpexDllUnkStruct4 *arg1)
+void UpdateMenuModelTransforms(OMOBJ *object, MpexMenuObjectWork *menuWork)
 {
-    float var_f31;
-    s32 var_r31;
+    float angle;
+    s32 modelIndex;
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        var_f31 = 30.0 * sind(8.0f * (lbl_1_bss_B8 + (var_r31 * 0x78)));
-        Hu3DModelPosSet(object->mdlId[var_r31 + 1], -200.0f + (200.0f * var_r31), 850.0f, 0.0f);
-        Hu3DModelRotSet(object->mdlId[var_r31 + 1], 0.0f, 0.0f, var_f31);
-        Hu3DModelScaleSet(object->mdlId[var_r31 + 1], 1.5f, 2.0f, 1.5f);
+    for (modelIndex = 0; modelIndex < 3; modelIndex++) {
+        angle = 30.0 * sind(8.0f * (menuModelAnimationPhase + (modelIndex * 0x78)));
+        Hu3DModelPosSet(object->mdlId[modelIndex + 1], -200.0f + (200.0f * modelIndex), 850.0f, 0.0f);
+        Hu3DModelRotSet(object->mdlId[modelIndex + 1], 0.0f, 0.0f, angle);
+        Hu3DModelScaleSet(object->mdlId[modelIndex + 1], 1.5f, 2.0f, 1.5f);
     }
-    lbl_1_bss_B8 += 0.5f;
+    menuModelAnimationPhase += 0.5f;
 }
 
-void fn_1_A0E4(OMOBJ *object, MpexDllUnkStruct4 *arg_1)
+void AnimateMenuModelFadeIn(OMOBJ *object, MpexMenuObjectWork *menuWork)
 {
-    float var_f31;
-    float var_f30;
-    s32 var_r30;
+    float interpolatedValue;
+    float interpolatedValue2;
+    s32 frameIndex;
 
     Hu3DModelAttrReset(object->mdlId[2], HU3D_ATTR_DISPOFF);
     Hu3DModelTPLvlSet(object->mdlId[2], 0.0f);
-    for (var_r30 = 0; var_r30 <= 0xF; var_r30++) {
-        fn_1_1B7D0(1);
-        var_f30 = fn_1_1B52C(0.0f, 0.5f, var_r30, 15.0f);
-        var_f31 = fn_1_1B52C(0.0f, 1.5f, var_r30, 15.0f);
+    for (frameIndex = 0; frameIndex <= 0xF; frameIndex++) {
+        WaitFrames(1);
+        interpolatedValue2 = InterpolateLinear(0.0f, 0.5f, frameIndex, 15.0f);
+        interpolatedValue = InterpolateLinear(0.0f, 1.5f, frameIndex, 15.0f);
         Hu3DModelPosSet(object->mdlId[2], Hu3DData[object->mdlId[1]].pos.x, 850.0f, Hu3DData[object->mdlId[1]].pos.z);
-        Hu3DModelScaleSet(object->mdlId[2], var_f31, 2.0f, var_f31);
-        Hu3DModelTPLvlSet(object->mdlId[2], var_f30);
+        Hu3DModelScaleSet(object->mdlId[2], interpolatedValue, 2.0f, interpolatedValue);
+        Hu3DModelTPLvlSet(object->mdlId[2], interpolatedValue2);
     }
-    arg_1->unk_04 = NULL;
+    menuWork->updateCallback = NULL;
 }
 
-void fn_1_A2AC(OMOBJ *object, MpexDllUnkStruct4 *arg1)
+void AnimateMenuModelFadeOut(OMOBJ *object, MpexMenuObjectWork *menuWork)
 {
-    float var_f31;
-    s32 var_r30;
+    float interpolatedValue;
+    s32 frameIndex;
 
-    for (var_r30 = 0; var_r30 <= 0xF; var_r30++) {
-        fn_1_1B7D0(1);
-        var_f31 = fn_1_1B52C(0.5f, 0.0f, var_r30, 15.0f);
-        Hu3DModelTPLvlSet(object->mdlId[2], var_f31);
+    for (frameIndex = 0; frameIndex <= 0xF; frameIndex++) {
+        WaitFrames(1);
+        interpolatedValue = InterpolateLinear(0.5f, 0.0f, frameIndex, 15.0f);
+        Hu3DModelTPLvlSet(object->mdlId[2], interpolatedValue);
     }
     Hu3DModelAttrSet(object->mdlId[2], HU3D_ATTR_DISPOFF);
     Hu3DModelTPLvlSet(object->mdlId[2], 0.0f);
-    arg1->unk_04 = NULL;
+    menuWork->updateCallback = NULL;
 }
 
-void fn_1_A3A4(void)
+void StopMenuModelFadeProcess(void)
 {
-    float var_f31;
-    s32 var_r31;
-    s32 var_r30;
+    float interpolatedValue;
+    s32 modelIndex;
+    s32 modelIndex2;
 
-    lbl_1_bss_3B0.unk_04 = (MpexDllUnkFunc2)fn_1_9F10;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        Hu3DModelAttrReset(lbl_1_bss_3B0.unk_00->mdlId[var_r31 + 1], HU3D_ATTR_DISPOFF);
-        Hu3DModelTPLvlSet(lbl_1_bss_3B0.unk_00->mdlId[var_r31 + 1], 0.0f);
+    practiceMenuStateWork.updateCallback = (MpexObjectUpdateCallback)UpdateMenuModelTransforms;
+    for (modelIndex = 0; modelIndex < 3; modelIndex++) {
+        Hu3DModelAttrReset(practiceMenuStateWork.ownerObject->mdlId[modelIndex + 1], HU3D_ATTR_DISPOFF);
+        Hu3DModelTPLvlSet(practiceMenuStateWork.ownerObject->mdlId[modelIndex + 1], 0.0f);
     }
-    for (var_r31 = 0; var_r31 <= 0x3C; var_r31++) {
-        fn_1_1B7D0(1);
-        var_f31 = fn_1_1B52C(0.0f, 0.5f, var_r31, 60.0f);
-        for (var_r30 = 0; var_r30 < 3; var_r30++) {
-            Hu3DModelTPLvlSet(lbl_1_bss_3B0.unk_00->mdlId[var_r30 + 1], var_f31);
+    for (modelIndex = 0; modelIndex <= 0x3C; modelIndex++) {
+        WaitFrames(1);
+        interpolatedValue = InterpolateLinear(0.0f, 0.5f, modelIndex, 60.0f);
+        for (modelIndex2 = 0; modelIndex2 < 3; modelIndex2++) {
+            Hu3DModelTPLvlSet(practiceMenuStateWork.ownerObject->mdlId[modelIndex2 + 1], interpolatedValue);
         }
     }
-    fn_1_1B7D0(0x5A);
-    for (var_r31 = 0; var_r31 <= 0x3C; var_r31++) {
-        fn_1_1B7D0(1);
-        var_f31 = fn_1_1B52C(0.5f, 0.0f, var_r31, 60.0f);
-        for (var_r30 = 0; var_r30 < 3; var_r30++) {
-            Hu3DModelTPLvlSet(lbl_1_bss_3B0.unk_00->mdlId[var_r30 + 1], var_f31);
+    WaitFrames(0x5A);
+    for (modelIndex = 0; modelIndex <= 0x3C; modelIndex++) {
+        WaitFrames(1);
+        interpolatedValue = InterpolateLinear(0.5f, 0.0f, modelIndex, 60.0f);
+        for (modelIndex2 = 0; modelIndex2 < 3; modelIndex2++) {
+            Hu3DModelTPLvlSet(practiceMenuStateWork.ownerObject->mdlId[modelIndex2 + 1], interpolatedValue);
         }
     }
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        Hu3DModelAttrSet(lbl_1_bss_3B0.unk_00->mdlId[var_r31 + 1], HU3D_ATTR_DISPOFF);
-        Hu3DModelTPLvlSet(lbl_1_bss_3B0.unk_00->mdlId[var_r31 + 1], 0.0f);
+    for (modelIndex = 0; modelIndex < 3; modelIndex++) {
+        Hu3DModelAttrSet(practiceMenuStateWork.ownerObject->mdlId[modelIndex + 1], HU3D_ATTR_DISPOFF);
+        Hu3DModelTPLvlSet(practiceMenuStateWork.ownerObject->mdlId[modelIndex + 1], 0.0f);
     }
-    lbl_1_bss_3B0.unk_04 = NULL;
+    practiceMenuStateWork.updateCallback = NULL;
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_A608(void)
+void RunPracticeMenuState(void)
 {
-    s32 var_r31;
-    s32 var_r29;
+    s32 frameIndex;
+    s32 frameIndex2;
 
-    fn_1_9740(lbl_1_bss_1B0);
-    OSReport("CNT:%d, WIN:%d %d %d %d\n", lbl_1_bss_B4, lbl_1_data_2B4[0], lbl_1_data_2B4[1], lbl_1_data_2B4[2], lbl_1_data_2B4[3]);
-    fn_1_9890();
-    if (lbl_1_data_298 != -1) {
-        HuAudSeqPause(lbl_1_data_298, 1, 0x1F4);
+    SetPracticeMenuModeAndPlayerCount(practiceMenuSelection);
+    OSReport("CNT:%d, WIN:%d %d %d %d\n", activePlayerStatusCount, playerOrderByRank[0], playerOrderByRank[1], playerOrderByRank[2], playerOrderByRank[3]);
+    ShowMinigameRecordMessage();
+    if (practiceMenuSequenceId != -1) {
+        HuAudSeqPause(practiceMenuSequenceId, 1, 0x1F4);
     }
-    HuPrcChildCreate(fn_1_A3A4, 0x3E8, 0x1000, 0, HuPrcCurrentGet());
-    fn_1_1B7D0(0xF);
+    HuPrcChildCreate(StopMenuModelFadeProcess, 0x3E8, 0x1000, 0, HuPrcCurrentGet());
+    WaitFrames(0xF);
     HuAudFXPlay(0x9E);
-    fn_1_1B7D0(0xA5);
+    WaitFrames(0xA5);
     HuAudFXPlay(0x9F);
     HuAudFXPlay(0xA8);
     HuAudFXPlay(0x9A);
-    if (lbl_1_data_298 != -1) {
-        HuAudSeqPause(lbl_1_data_298, 0, 0x7D0);
+    if (practiceMenuSequenceId != -1) {
+        HuAudSeqPause(practiceMenuSequenceId, 0, 0x7D0);
     }
-    if ((lbl_1_bss_B4 >= 1) && (lbl_1_data_2C4 != 0)) {
-        for (var_r31 = 0; var_r31 < lbl_1_bss_B4; var_r31++) {
-            lbl_1_bss_1B8[lbl_1_data_2B4[var_r31]].unk_04 = (MpexDllUnkFunc2)fn_1_A0E4;
-            OSReport("CNT:%d, WIN:%d %d %d %d\n", lbl_1_bss_B4, lbl_1_data_2B4[0], lbl_1_data_2B4[1], lbl_1_data_2B4[2], lbl_1_data_2B4[3]);
+    if ((activePlayerStatusCount >= 1) && (selectedPlayerCount != 0)) {
+        for (frameIndex = 0; frameIndex < activePlayerStatusCount; frameIndex++) {
+            playerCharacterObjects[playerOrderByRank[frameIndex]].updateCallback = (MpexObjectUpdateCallback)AnimateMenuModelFadeIn;
+            OSReport("CNT:%d, WIN:%d %d %d %d\n", activePlayerStatusCount, playerOrderByRank[0], playerOrderByRank[1], playerOrderByRank[2], playerOrderByRank[3]);
         }
-        fn_1_9D6C();
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            for (var_r29 = 0; var_r29 < 4; var_r29++) {
-                if (var_r31 == lbl_1_data_2B4[var_r29]) {
-                    fn_1_25C4(lbl_1_bss_1B8[var_r31].unk_00, 1, 4, 0xF, 0);
+        ShowPracticeMenuResults();
+        for (frameIndex = 0; frameIndex < 4; frameIndex++) {
+            for (frameIndex2 = 0; frameIndex2 < 4; frameIndex2++) {
+                if (frameIndex == playerOrderByRank[frameIndex2]) {
+                    SetModelMotionWithTransition(playerCharacterObjects[frameIndex].ownerObject, 1, 4, 0xF, 0);
                     break;
                 }
             }
-            if (var_r29 == 4) {
-                fn_1_25C4(lbl_1_bss_1B8[var_r31].unk_00, 1, 5, 0xF, 0);
+            if (frameIndex2 == 4) {
+                SetModelMotionWithTransition(playerCharacterObjects[frameIndex].ownerObject, 1, 5, 0xF, 0);
             }
         }
     }
     else {
-        fn_1_1B834();
-        fn_1_25C4(lbl_1_bss_2D8->unk_00, 1, 3, 0xF, 1);
-        fn_1_1BA78(lbl_1_bss_1B0 + MAKE_MESSID(0x33, 0x96), -1, -1);
-        fn_1_25C4(lbl_1_bss_2D8->unk_00, 1, 1, 0xF, 1);
-        fn_1_1B9F4();
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            fn_1_25C4(lbl_1_bss_1B8[var_r31].unk_00, 1, 5, 0xF, 0);
+        CreateCharacterSelectMessageWindow();
+        SetModelMotionWithTransition(menuModelObjects->ownerObject, 1, 3, 0xF, 1);
+        ShowCharacterSelectMessage(practiceMenuSelection + MAKE_MESSID(0x33, 0x96), -1, -1);
+        SetModelMotionWithTransition(menuModelObjects->ownerObject, 1, 1, 0xF, 1);
+        DestroyCharacterSelectMessageWindow();
+        for (frameIndex = 0; frameIndex < 4; frameIndex++) {
+            SetModelMotionWithTransition(playerCharacterObjects[frameIndex].ownerObject, 1, 5, 0xF, 0);
         }
     }
-    fn_1_1B7D0(0x3C);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        fn_1_25C4(lbl_1_bss_1B8[var_r31].unk_00, 1, 1, 0xF, 1);
+    WaitFrames(0x3C);
+    for (frameIndex = 0; frameIndex < 4; frameIndex++) {
+        SetModelMotionWithTransition(playerCharacterObjects[frameIndex].ownerObject, 1, 1, 0xF, 1);
     }
-    fn_1_B004();
-    fn_1_1B7D0(1);
-    fn_1_B870(lbl_1_bss_1B0);
-    fn_1_1B7D0(0x3C);
-    fn_1_1B7D0(0x3C);
-    fn_1_1BD00(0x240007, 1);
+    CreateCoinScoreDisplay();
+    WaitFrames(1);
+    AnimateCoinScoreDisplay(practiceMenuSelection);
+    WaitFrames(0x3C);
+    WaitFrames(0x3C);
+    ShowCharacterSelectWindowMessage(0x240007, 1);
     do {
-        fn_1_1B7D0(1);
+        WaitFrames(1);
     } while ((HuPadBtnDown[0] & 0x100) == 0);
     HuAudFXPlay(2);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_1B8[var_r31].unk_04 = (MpexDllUnkFunc2)fn_1_A2AC;
+    for (frameIndex = 0; frameIndex < 4; frameIndex++) {
+        playerCharacterObjects[frameIndex].updateCallback = (MpexObjectUpdateCallback)AnimateMenuModelFadeOut;
     }
-    fn_1_1C120();
-    fn_1_B9A8(lbl_1_bss_1B0);
-    fn_1_1B7D0(1);
-    fn_1_B210();
+    DestroyCharacterSelectTextWindow();
+    AnimateCoinScoreDisplayAlternate(practiceMenuSelection);
+    WaitFrames(1);
+    DestroyCoinScoreDisplay();
 }
 
-void fn_1_AD34(void)
+void RunPracticeMenuResultsSequence(void)
 {
-    fn_1_9908();
-    fn_1_1B7D0(0x3C);
-    fn_1_9988(lbl_1_bss_1B0);
-    if (lbl_1_data_298 != -1) {
-        HuAudSeqPause(lbl_1_data_298, 1, 0x1F4);
+    ShowMinigameResultMessage();
+    WaitFrames(0x3C);
+    ShowMinigameRecordDetails(practiceMenuSelection);
+    if (practiceMenuSequenceId != -1) {
+        HuAudSeqPause(practiceMenuSequenceId, 1, 0x1F4);
     }
-    fn_1_1B7D0(0xF);
+    WaitFrames(0xF);
     HuAudFXPlay(0x9E);
-    fn_1_1B7D0(0xA5);
-    lbl_1_bss_1B8[0].unk_04 = (MpexDllUnkFunc2)fn_1_A0E4;
+    WaitFrames(0xA5);
+    playerCharacterObjects[0].updateCallback = (MpexObjectUpdateCallback)AnimateMenuModelFadeIn;
     #if VERSION_NTSC
-    if (((mgRecordExtra == 0) && (lbl_1_bss_1B0 != 4)) || ((mgRecordExtra >= 600*REFRESH_RATE) && (lbl_1_bss_1B0 == 4))) {
-        fn_1_25C4(lbl_1_bss_1B8[0].unk_00, 1, 5, 0xF, 0);
+    if (((mgRecordExtra == 0) && (practiceMenuSelection != 4)) || ((mgRecordExtra >= 600*REFRESH_RATE) && (practiceMenuSelection == 4))) {
+        SetModelMotionWithTransition(playerCharacterObjects[0].ownerObject, 1, 5, 0xF, 0);
     }
     else {
-        fn_1_25C4(lbl_1_bss_1B8[0].unk_00, 1, 4, 0xF, 0);
+        SetModelMotionWithTransition(playerCharacterObjects[0].ownerObject, 1, 4, 0xF, 0);
     }
     #else
-    if (((mgRecordExtra == 0) && (lbl_1_bss_1B0 != 4)) || ((mgRecordExtra >= 500*REFRESH_RATE) && (lbl_1_bss_1B0 == 4))) {
-        fn_1_25C4(lbl_1_bss_1B8[0].unk_00, 1, 5, 0xF, 0);
+    if (((mgRecordExtra == 0) && (practiceMenuSelection != 4)) || ((mgRecordExtra >= 500*REFRESH_RATE) && (practiceMenuSelection == 4))) {
+        SetModelMotionWithTransition(playerCharacterObjects[0].ownerObject, 1, 5, 0xF, 0);
     }
     else {
-        fn_1_25C4(lbl_1_bss_1B8[0].unk_00, 1, 4, 0xF, 0);
+        SetModelMotionWithTransition(playerCharacterObjects[0].ownerObject, 1, 4, 0xF, 0);
     } 
     #endif
-    fn_1_BC18();
-    fn_1_1B7D0(1);
+    CreateMinigameScoreDisplay();
+    WaitFrames(1);
     HuAudFXPlay(0x9F);
     HuAudFXPlay(0xA8);
     HuAudFXPlay(0x9A);
-    if (lbl_1_data_298 != -1) {
-        HuAudSeqPause(lbl_1_data_298, 0, 0x7D0);
+    if (practiceMenuSequenceId != -1) {
+        HuAudSeqPause(practiceMenuSequenceId, 0, 0x7D0);
     }
-    fn_1_C0DC(lbl_1_bss_1B0, rand8());
-    fn_1_1B7D0(0x3C);
-    fn_1_25C4(lbl_1_bss_1B8[0].unk_00, 1, 1, 0xF, 1);
-    fn_1_9CD4(lbl_1_bss_1B0);
-    lbl_1_bss_1B8[0].unk_04 = (MpexDllUnkFunc2)fn_1_A2AC;
-    fn_1_C4D4(lbl_1_bss_1B0);
-    fn_1_1B7D0(1);
-    fn_1_BCD8();
+    AnimateMinigameScoreDisplay(practiceMenuSelection, rand8());
+    WaitFrames(0x3C);
+    SetModelMotionWithTransition(playerCharacterObjects[0].ownerObject, 1, 1, 0xF, 1);
+    ShowAdditionalMinigameRecord(practiceMenuSelection);
+    playerCharacterObjects[0].updateCallback = (MpexObjectUpdateCallback)AnimateMenuModelFadeOut;
+    HideMinigameScoreWindow(practiceMenuSelection);
+    WaitFrames(1);
+    DestroyMinigameScoreDisplay();
 }
 
-void fn_1_B004(void)
+void CreateCoinScoreDisplay(void)
 {
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    ANIMDATA *var_r28;
+    s32 spriteIndex;
+    s32 spriteId;
+    s32 spriteGroupId;
+    ANIMDATA *animationData;
 
-    var_r29 = HuSprGrpCreate(0x1B);
-    lbl_1_bss_10C = var_r29;
-    var_r30 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x37)), 0xBB8, 0);
-    HuSprGrpMemberSet(var_r29, 0, var_r30);
-    var_r30 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x38)), 0x7D0, 0);
-    HuSprGrpMemberSet(var_r29, 1, var_r30);
-    for (var_r31 = 0; var_r31 < 8; var_r31++) {
-        var_r30 = HuSprCreate(HuSprAnimReadFile(var_r31 + DATA_MAKE_NUM(DATADIR_MPEX, 0x3E)), 0x7D0, 0);
-        HuSprGrpMemberSet(var_r29, var_r31 + 2, var_r30);
+    spriteGroupId = HuSprGrpCreate(0x1B);
+    coinScoreSpriteGroup = spriteGroupId;
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x37)), 0xBB8, 0);
+    HuSprGrpMemberSet(spriteGroupId, 0, spriteId);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x38)), 0x7D0, 0);
+    HuSprGrpMemberSet(spriteGroupId, 1, spriteId);
+    for (spriteIndex = 0; spriteIndex < 8; spriteIndex++) {
+        spriteId = HuSprCreate(HuSprAnimReadFile(spriteIndex + DATA_MAKE_NUM(DATADIR_MPEX, 0x3E)), 0x7D0, 0);
+        HuSprGrpMemberSet(spriteGroupId, spriteIndex + 2, spriteId);
     }
-    var_r28 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x3B));
-    for (var_r31 = 0; var_r31 < 0xC; var_r31++) {
-        var_r30 = HuSprCreate(var_r28, 0x384, 0);
-        HuSprGrpMemberSet(var_r29, var_r31 + 0xA, var_r30);
+    animationData = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x3B));
+    for (spriteIndex = 0; spriteIndex < 0xC; spriteIndex++) {
+        spriteId = HuSprCreate(animationData, 0x384, 0);
+        HuSprGrpMemberSet(spriteGroupId, spriteIndex + 0xA, spriteId);
     }
-    var_r28 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x3C));
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        var_r30 = HuSprCreate(var_r28, 0x384, 0);
-        HuSprGrpMemberSet(var_r29, var_r31 + 0x16, var_r30);
+    animationData = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x3C));
+    for (spriteIndex = 0; spriteIndex < 4; spriteIndex++) {
+        spriteId = HuSprCreate(animationData, 0x384, 0);
+        HuSprGrpMemberSet(spriteGroupId, spriteIndex + 0x16, spriteId);
     }
-    var_r30 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x3D)), 0x7D0, 0);
-    HuSprGrpMemberSet(var_r29, 0x1A, var_r30);
-    fn_1_B2E4(0);
-    fn_1_B7F4(0);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x3D)), 0x7D0, 0);
+    HuSprGrpMemberSet(spriteGroupId, 0x1A, spriteId);
+    UpdateCoinScoreDisplay(0);
+    HideCoinScoreDisplay(0);
 }
 
-void fn_1_B210(void)
+void DestroyCoinScoreDisplay(void)
 {
-    s32 var_r31;
+    s32 spriteGroupId;
 
-    var_r31 = lbl_1_bss_10C;
-    HuSprGrpKill(var_r31);
+    spriteGroupId = coinScoreSpriteGroup;
+    HuSprGrpKill(spriteGroupId);
 }
 
-s32 fn_1_B248(s32 arg0, s32 arg1)
+s32 GetPlayerCoinScore(s32 rank, s32 playerIndex)
 {
-    s32 var_r31 = 0;
-    if (lbl_1_bss_1B0 <= 1) {
-        var_r31 = GWPlayer[arg1].coins;
+    s32 playerIndex = 0;
+    if (practiceMenuSelection <= 1) {
+        playerIndex = GWPlayer[playerIndex].coins;
     }
     else {
-        var_r31 = GWPlayerCoinWinGet(arg1);
-        OSReport("########## %d:%d\n", arg1, var_r31);
+        playerIndex = GWPlayerCoinWinGet(playerIndex);
+        OSReport("########## %d:%d\n", playerIndex, playerIndex);
     }
-    return var_r31;
+    return playerIndex;
 }
 
-void fn_1_B2E4(s32 arg0)
+void UpdateCoinScoreDisplay(s32 playerCount)
 {
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r24;
+    s32 playerIndex;
+    s32 spriteGroupId;
+    s32 spriteIndex;
+    s32 characterSelectionValue;
+    s32 characterSelectionValue2;
 
-    var_r30 = lbl_1_bss_10C;
-    for (var_r31 = 0; var_r31 < 0x1B; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31, 4);
+    spriteGroupId = coinScoreSpriteGroup;
+    for (playerIndex = 0; playerIndex < 0x1B; playerIndex++) {
+        HuSprAttrSet(spriteGroupId, playerIndex, 4);
     }
-    if (arg0 != -1) {
-        HuSprAttrReset(var_r30, 0, 4);
-        HuSprPosSet(var_r30, 0, 288.0f, 148.0f);
-        HuSprAttrReset(var_r30, 1, 4);
-        HuSprPosSet(var_r30, 1, 288.0f, 156.0f);
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            HuSprAttrReset(var_r30, GWPlayerCfg[var_r31].character + 2, 4);
-            HuSprPosSet(var_r30, GWPlayerCfg[var_r31].character + 2, 201.0f, (var_r31 * 0x2A) + 0x60);
+    if (playerCount != -1) {
+        HuSprAttrReset(spriteGroupId, 0, 4);
+        HuSprPosSet(spriteGroupId, 0, 288.0f, 148.0f);
+        HuSprAttrReset(spriteGroupId, 1, 4);
+        HuSprPosSet(spriteGroupId, 1, 288.0f, 156.0f);
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            HuSprAttrReset(spriteGroupId, GWPlayerCfg[playerIndex].character + 2, 4);
+            HuSprPosSet(spriteGroupId, GWPlayerCfg[playerIndex].character + 2, 201.0f, (playerIndex * 0x2A) + 0x60);
         }
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            for (var_r29 = 0; var_r29 < 3; var_r29++) {
-                HuSprAttrReset(var_r30, 0xA + var_r29 + (var_r31 * 3), 4);
-                HuSprPosSet(var_r30, 0xA + var_r29 + (var_r31 * 3), (var_r29 * 0x1C) + 0xF7, (var_r31 * 0x2A) + 0x60);
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+                HuSprAttrReset(spriteGroupId, 0xA + spriteIndex + (playerIndex * 3), 4);
+                HuSprPosSet(spriteGroupId, 0xA + spriteIndex + (playerIndex * 3), (spriteIndex * 0x1C) + 0xF7, (playerIndex * 0x2A) + 0x60);
             }
-            var_r24 = fn_1_B248(0, var_r31);
-            var_r28 = var_r24 / 100;
-            if (var_r28 == 0) {
-                HuSprAttrSet(var_r30, (var_r31 * 3) + 0xA, 4);
+            characterSelectionValue2 = GetPlayerCoinScore(0, playerIndex);
+            characterSelectionValue = characterSelectionValue2 / 100;
+            if (characterSelectionValue == 0) {
+                HuSprAttrSet(spriteGroupId, (playerIndex * 3) + 0xA, 4);
             }
-            HuSprBankSet(var_r30, (var_r31 * 3) + 0xA, var_r28);
-            var_r28 = (var_r24 % 100) / 10;
-            if ((var_r28 == 0) && ((var_r24 / 100) == 0)) {
-                HuSprAttrSet(var_r30, (var_r31 * 3) + 0xB, 4);
+            HuSprBankSet(spriteGroupId, (playerIndex * 3) + 0xA, characterSelectionValue);
+            characterSelectionValue = (characterSelectionValue2 % 100) / 10;
+            if ((characterSelectionValue == 0) && ((characterSelectionValue2 / 100) == 0)) {
+                HuSprAttrSet(spriteGroupId, (playerIndex * 3) + 0xB, 4);
             }
-            HuSprBankSet(var_r30, (var_r31 * 3) + 0xB, var_r28);
-            var_r28 = var_r24 % 10;
-            HuSprBankSet(var_r30, (var_r31 * 3) + 0xC, var_r28);
+            HuSprBankSet(spriteGroupId, (playerIndex * 3) + 0xB, characterSelectionValue);
+            characterSelectionValue = characterSelectionValue2 % 10;
+            HuSprBankSet(spriteGroupId, (playerIndex * 3) + 0xC, characterSelectionValue);
         }
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            HuSprAttrReset(var_r30, var_r31 + 0x16, 4);
-            HuSprPosSet(var_r30, var_r31 + 0x16, 358.0f, (var_r31 * 0x2A) + 0x60);
-            switch (arg0) {
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            HuSprAttrReset(spriteGroupId, playerIndex + 0x16, 4);
+            HuSprPosSet(spriteGroupId, playerIndex + 0x16, 358.0f, (playerIndex * 0x2A) + 0x60);
+            switch (playerCount) {
                 case 0:
                 case 1:
-                    HuSprBankSet(var_r30, var_r31 + 0x16, 0);
+                    HuSprBankSet(spriteGroupId, playerIndex + 0x16, 0);
                     break;
                 case 3:
-                    HuSprBankSet(var_r30, var_r31 + 0x16, 1);
+                    HuSprBankSet(spriteGroupId, playerIndex + 0x16, 1);
                     break;
                 case 2:
                     break;
             }
         }
-        HuSprAttrReset(var_r30, 0x1A, 4);
-        HuSprPosSet(var_r30, 0x1A, 288.0f, 55.0f);
-        switch (arg0) {
+        HuSprAttrReset(spriteGroupId, 0x1A, 4);
+        HuSprPosSet(spriteGroupId, 0x1A, 288.0f, 55.0f);
+        switch (playerCount) {
             case 2:
                 break;
             case 0:
-                HuSprBankSet(var_r30, 0x1A, 0);
+                HuSprBankSet(spriteGroupId, 0x1A, 0);
                 break;
             case 1:
-                HuSprBankSet(var_r30, 0x1A, 1);
+                HuSprBankSet(spriteGroupId, 0x1A, 1);
                 break;
             case 3:
-                HuSprBankSet(var_r30, 0x1A, 2);
+                HuSprBankSet(spriteGroupId, 0x1A, 2);
                 break;
         }
-        HuSprGrpPosSet(var_r30, 0.0f, -500.0f);
+        HuSprGrpPosSet(spriteGroupId, 0.0f, -500.0f);
     }
-    (void)var_r29;
+    (void)spriteIndex;
 }
 
-void fn_1_B7F4(s32 arg0)
+void HideCoinScoreDisplay(s32 playerCount)
 {
-    s32 var_r31;
-    s32 var_r30;
+    s32 spriteIndex;
+    s32 spriteGroupId;
 
-    var_r30 = lbl_1_bss_10C;
-    for (var_r31 = 0; var_r31 < 0x1B; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31, 4);
+    spriteGroupId = coinScoreSpriteGroup;
+    for (spriteIndex = 0; spriteIndex < 0x1B; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId, spriteIndex, 4);
     }
-    HuSprGrpPosSet(var_r30, 0.0f, -500.0f);
+    HuSprGrpPosSet(spriteGroupId, 0.0f, -500.0f);
 }
 
-void fn_1_B870(s32 arg0)
+void AnimateCoinScoreDisplay(s32 playerCount)
 {
-    float var_f31;
-    s32 var_r31;
-    s32 var_r30 = lbl_1_bss_10C;
+    float verticalOffset;
+    s32 frameIndex;
+    s32 coinScoreGroup = coinScoreSpriteGroup;
 
-    fn_1_B2E4(arg0);
-    for (var_r31 = 0; var_r31 < 0x3C; var_r31++) {
-        fn_1_1B7D0(1);
-        if (var_r31 <= 0x32) {
-            var_f31 = fn_1_1B64C(-500.0f, 10.0f, var_r31, 50.0f);
+    UpdateCoinScoreDisplay(playerCount);
+    for (frameIndex = 0; frameIndex < 0x3C; frameIndex++) {
+        WaitFrames(1);
+        if (frameIndex <= 0x32) {
+            verticalOffset = InterpolateSine(-500.0f, 10.0f, frameIndex, 50.0f);
         }
         else {
-            var_f31 = fn_1_1B574(10.0f, 0.0f, var_r31 - 0x32, 10.0f);
+            verticalOffset = InterpolateCosine(10.0f, 0.0f, frameIndex - 0x32, 10.0f);
         }
-        HuSprGrpPosSet(var_r30, 0.0f, var_f31);
+        HuSprGrpPosSet(coinScoreGroup, 0.0f, verticalOffset);
     }
 }
 
-void fn_1_B9A8(s32 arg0)
+void AnimateCoinScoreDisplayAlternate(s32 playerCount)
 {
-    float var_f31;
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
+    float spriteGroupId;
+    s32 frameIndex;
+    s32 spriteIndex;
+    s32 spriteGroupId2;
+    s32 spriteGroupId3;
 
-    var_r28 = lbl_1_bss_10C;
-    for (var_r31 = 0; var_r31 < 0x3C; var_r31++) {
-        fn_1_1B7D0(1);
-        if (var_r31 <= 0xA) {
-            var_f31 = fn_1_1B64C(0.0f, 10.0f, var_r31, 10.0f);
+    spriteGroupId3 = coinScoreSpriteGroup;
+    for (frameIndex = 0; frameIndex < 0x3C; frameIndex++) {
+        WaitFrames(1);
+        if (frameIndex <= 0xA) {
+            spriteGroupId = InterpolateSine(0.0f, 10.0f, frameIndex, 10.0f);
         }
         else {
-            var_f31 = fn_1_1B574(10.0f, -500.0f, var_r31 - 0xA, 50.0f);
+            spriteGroupId = InterpolateCosine(10.0f, -500.0f, frameIndex - 0xA, 50.0f);
         }
-        HuSprGrpPosSet(var_r28, 0.0f, var_f31);
+        HuSprGrpPosSet(spriteGroupId3, 0.0f, spriteGroupId);
     }
-    var_r29 = lbl_1_bss_10C;
-    for (var_r30 = 0; var_r30 < 0x1B; var_r30++) {
-        HuSprAttrSet(var_r29, var_r30, 4);
+    spriteGroupId2 = coinScoreSpriteGroup;
+    for (spriteIndex = 0; spriteIndex < 0x1B; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId2, spriteIndex, 4);
     }
-    HuSprGrpPosSet(var_r29, 0.0f, -500.0f);
+    HuSprGrpPosSet(spriteGroupId2, 0.0f, -500.0f);
 }
 
-void fn_1_BB34(s32 arg0, s32 arg1)
+void GetScoreWindowSize(s32 messageId, s32 windowIndex)
 {
-    float sp10[2];
-    s32 var_r31;
-    HUSPRGRP *var_r30;
-    HUSPRITE *var_r29;
+    float messageDimensions[2];
+    s32 loopIndex;
+    HUSPRGRP *spriteGroup;
+    HUSPRITE *sprite;
 
-    var_r30 = &HuSprGrpData[winData[arg0].group];
-    HuWinMesMaxSizeGet(1, sp10, arg1);
-    for (var_r31 = 0; var_r31 < var_r30->capacity; var_r31++) {
-        var_r29 = &HuSprData[var_r30->members[var_r31]];
-        var_r29->pos.x -= sp10[0] / 2;
-        var_r29->pos.y -= 30.0f;
-    }
-}
-
-void fn_1_BC18(void)
-{
-    s32 var_r31;
-    s32 var_r30 = HuSprGrpCreate(2);
-
-    lbl_1_bss_108 = var_r30;
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x39)), 0xBB8, 0);
-    HuSprGrpMemberSet(var_r30, 0, var_r31);
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x3A)), 0x7D0, 0);
-    HuSprGrpMemberSet(var_r30, 1, var_r31);
-    fn_1_BD78(-1, 0);
-}
-
-void fn_1_BCD8(void)
-{
-    s32 var_r31 = lbl_1_bss_108;
-    HuSprGrpKill(var_r31);
-}
-
-u32 fn_1_BD10(s32 arg0, s32 arg1)
-{
-    s32 var_r31 = fn_1_C898(arg1, arg0, lbl_1_bss_1AC, 0);
-    return ((arg0 - 4) * 0xA) + MAKE_MESSID(0x33, 0x00) + var_r31 + 0x51;
-}
-
-void fn_1_BD78(s32 arg0, s32 arg1)
-{
-    float sp10[2];
-    s32 var_r31;
-    s32 var_r30;
-    u32 var_r25;
-
-    var_r31 = lbl_1_bss_108;
-    for (var_r30 = 0; var_r30 < 2; var_r30++) {
-        HuSprAttrSet(var_r31, var_r30, 4);
-    }
-    if (arg0 != -1) {
-        HuSprAttrReset(var_r31, 0, 4);
-        HuSprAttrReset(var_r31, 1, 4);
-        HuSprBankSet(var_r31, 1, arg0 - 4);
-        HuSprGrpPosSet(var_r31, 288.0f, 100.0f);
-        HuSprGrpScaleSet(var_r31, 0.0f, 0.0f);
-        OSReport("#################### SCORE(%d-%d) : %d\n", arg0, lbl_1_bss_1AC, mgRecordExtra);
-        var_r25 = fn_1_BD10(arg0, mgRecordExtra);
-        HuWinMesMaxSizeGet(1, sp10, var_r25);
-        lbl_1_bss_104 = HuWinCreate(0.0f, 0.0f, sp10[0], sp10[1], 0);
-        HuWinBGTPLvlSet(lbl_1_bss_104, 0.0f);
-        HuWinMesSpeedSet(lbl_1_bss_104, 0);
-        HuWinDispOn(lbl_1_bss_104);
-        fn_1_BB34(lbl_1_bss_104, var_r25);
-        HuWinMesSet(lbl_1_bss_104, var_r25);
-        HuWinPosSet(lbl_1_bss_104, 296.0f, 100.0f);
+    spriteGroup = &HuSprGrpData[winData[messageId].group];
+    HuWinMesMaxSizeGet(1, messageDimensions, windowIndex);
+    for (loopIndex = 0; loopIndex < spriteGroup->capacity; loopIndex++) {
+        sprite = &HuSprData[spriteGroup->members[loopIndex]];
+        sprite->pos.x -= messageDimensions[0] / 2;
+        sprite->pos.y -= 30.0f;
     }
 }
 
-void fn_1_C06C(void)
+void CreateMinigameScoreDisplay(void)
 {
-    s32 var_r31;
-    s32 var_r30 = lbl_1_bss_108;
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31, 4);
-    }
-    HuWinKill(lbl_1_bss_104);
+    s32 spriteId;
+    s32 spriteGroupId = HuSprGrpCreate(2);
+
+    minigameScoreSpriteGroup = spriteGroupId;
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x39)), 0xBB8, 0);
+    HuSprGrpMemberSet(spriteGroupId, 0, spriteId);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x3A)), 0x7D0, 0);
+    HuSprGrpMemberSet(spriteGroupId, 1, spriteId);
+    UpdateMinigameScoreDisplay(-1, 0);
 }
 
-void fn_1_C0DC(s32 arg0, s32 arg1)
+void DestroyMinigameScoreDisplay(void)
 {
-    float var_f31;
-    float var_f30;
-    s32 var_r30;
-    s32 var_r24;
-    s32 var_r22;
+    s32 spriteGroupId = minigameScoreSpriteGroup;
+    HuSprGrpKill(spriteGroupId);
+}
 
-    var_r30 = 0;
-    var_r22 = lbl_1_bss_108;
-    var_f30 = 1.5f;
-    fn_1_BD78(arg0, arg1);
-    for (var_r24 = 0; var_r24 < 0xA; var_r24++) {
-        fn_1_1B7D0(1);
-        var_f31 = fn_1_1B64C(var_f30, 1.0f, var_r30, 5.0f);
-        if (++var_r30 == 5) {
-            if (var_f30 > 1.0f) {
-                var_f30 -= 0.1f;
+u32 GetMinigameScoreMessageId(s32 playerCount, s32 scoreType)
+{
+    s32 minigameValue = GetFormattedHighScore(scoreType, playerCount, currentMenuPlayer, 0);
+    return ((playerCount - 4) * 0xA) + MAKE_MESSID(0x33, 0x00) + minigameValue + 0x51;
+}
+
+void UpdateMinigameScoreDisplay(s32 playerCount, s32 scoreType)
+{
+    float messageDimensions[2];
+    s32 spriteGroupId;
+    s32 spriteIndex;
+    u32 windowId;
+
+    spriteGroupId = minigameScoreSpriteGroup;
+    for (spriteIndex = 0; spriteIndex < 2; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId, spriteIndex, 4);
+    }
+    if (playerCount != -1) {
+        HuSprAttrReset(spriteGroupId, 0, 4);
+        HuSprAttrReset(spriteGroupId, 1, 4);
+        HuSprBankSet(spriteGroupId, 1, playerCount - 4);
+        HuSprGrpPosSet(spriteGroupId, 288.0f, 100.0f);
+        HuSprGrpScaleSet(spriteGroupId, 0.0f, 0.0f);
+        OSReport("#################### SCORE(%d-%d) : %d\n", playerCount, currentMenuPlayer, mgRecordExtra);
+        windowId = GetMinigameScoreMessageId(playerCount, mgRecordExtra);
+        HuWinMesMaxSizeGet(1, messageDimensions, windowId);
+        scoreSummaryWindow = HuWinCreate(0.0f, 0.0f, messageDimensions[0], messageDimensions[1], 0);
+        HuWinBGTPLvlSet(scoreSummaryWindow, 0.0f);
+        HuWinMesSpeedSet(scoreSummaryWindow, 0);
+        HuWinDispOn(scoreSummaryWindow);
+        GetScoreWindowSize(scoreSummaryWindow, windowId);
+        HuWinMesSet(scoreSummaryWindow, windowId);
+        HuWinPosSet(scoreSummaryWindow, 296.0f, 100.0f);
+    }
+}
+
+void HideMinigameScoreDisplay(void)
+{
+    s32 spriteIndex;
+    s32 minigameValue = minigameScoreSpriteGroup;
+    for (spriteIndex = 0; spriteIndex < 2; spriteIndex++) {
+        HuSprAttrSet(minigameValue, spriteIndex, 4);
+    }
+    HuWinKill(scoreSummaryWindow);
+}
+
+void AnimateMinigameScoreDisplay(s32 playerCount, s32 scoreType)
+{
+    float spriteGroupId;
+    float interpolatedValue;
+    s32 minigameValue;
+    s32 frameIndex;
+    s32 spriteGroupId2;
+
+    minigameValue = 0;
+    spriteGroupId2 = minigameScoreSpriteGroup;
+    interpolatedValue = 1.5f;
+    UpdateMinigameScoreDisplay(playerCount, scoreType);
+    for (frameIndex = 0; frameIndex < 0xA; frameIndex++) {
+        WaitFrames(1);
+        spriteGroupId = InterpolateSine(interpolatedValue, 1.0f, minigameValue, 5.0f);
+        if (++minigameValue == 5) {
+            if (interpolatedValue > 1.0f) {
+                interpolatedValue -= 0.1f;
             }
-            var_r30 = 0;
+            minigameValue = 0;
         }
-        HuSprGrpScaleSet(var_r22, var_f31, var_f31);
-        HuWinScaleSet(lbl_1_bss_104, var_f31, var_f31);
+        HuSprGrpScaleSet(spriteGroupId2, spriteGroupId, spriteGroupId);
+        HuWinScaleSet(scoreSummaryWindow, spriteGroupId, spriteGroupId);
     }
 }
 
-void fn_1_C4D4(s32 arg0)
+void HideMinigameScoreWindow(s32 playerCount)
 {
-    fn_1_C06C();
+    HideMinigameScoreDisplay();
 }
 
-s32 lbl_1_data_324 = 0xFFFFFFFF;
-s32 lbl_1_data_328 = -1;
-s32 lbl_1_data_32C[3] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+s32 selectedMinigameId = 0xFFFFFFFF;
+s32 minigameNameSpriteGroup = -1;
+s32 minigameNameWindows[3] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
 
-void fn_1_C544(void)
+void CreateHighScoreDisplay(void)
 {
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    ANIMDATA *var_r28;
+    s32 spriteId;
+    s32 spriteIndex;
+    s32 spriteGroupId;
+    ANIMDATA *animationData;
 
-    var_r29 = HuSprGrpCreate(0x25);
-    lbl_1_data_324 = var_r29;
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1B)), 0x1388, 0);
-    HuSprGrpMemberSet(var_r29, 0, var_r31);
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1C)), 0x1388, 0);
-    HuSprGrpMemberSet(var_r29, 0x23, var_r31);
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1D)), 0x7D0, 0);
-    HuSprGrpMemberSet(var_r29, 1, var_r31);
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1E)), 0x7D0, 0);
-    HuSprGrpMemberSet(var_r29, 2, var_r31);
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1F)), 0x7D0, 0);
-    HuSprGrpMemberSet(var_r29, 3, var_r31);
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x20)), 0x76C, 0);
-    HuSprGrpMemberSet(var_r29, 4, var_r31);
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x21)), 0x834, 0);
-    HuSprGrpMemberSet(var_r29, 6, var_r31);
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        var_r31 = HuSprCreate(HuSprAnimReadFile(var_r30 + DATA_MAKE_NUM(DATADIR_MPEX, 0x2F)), 0xA, 0);
-        HuSprGrpMemberSet(var_r29, var_r30 + 7, var_r31);
+    spriteGroupId = HuSprGrpCreate(0x25);
+    selectedMinigameId = spriteGroupId;
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1B)), 0x1388, 0);
+    HuSprGrpMemberSet(spriteGroupId, 0, spriteId);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1C)), 0x1388, 0);
+    HuSprGrpMemberSet(spriteGroupId, 0x23, spriteId);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1D)), 0x7D0, 0);
+    HuSprGrpMemberSet(spriteGroupId, 1, spriteId);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1E)), 0x7D0, 0);
+    HuSprGrpMemberSet(spriteGroupId, 2, spriteId);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1F)), 0x7D0, 0);
+    HuSprGrpMemberSet(spriteGroupId, 3, spriteId);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x20)), 0x76C, 0);
+    HuSprGrpMemberSet(spriteGroupId, 4, spriteId);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x21)), 0x834, 0);
+    HuSprGrpMemberSet(spriteGroupId, 6, spriteId);
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        spriteId = HuSprCreate(HuSprAnimReadFile(spriteIndex + DATA_MAKE_NUM(DATADIR_MPEX, 0x2F)), 0xA, 0);
+        HuSprGrpMemberSet(spriteGroupId, spriteIndex + 7, spriteId);
     }
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        var_r31 = HuSprCreate(HuSprAnimReadFile(var_r30 + DATA_MAKE_NUM(DATADIR_MPEX, 0x32)), 0xA, 0);
-        HuSprGrpMemberSet(var_r29, var_r30 + 0xA, var_r31);
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        spriteId = HuSprCreate(HuSprAnimReadFile(spriteIndex + DATA_MAKE_NUM(DATADIR_MPEX, 0x32)), 0xA, 0);
+        HuSprGrpMemberSet(spriteGroupId, spriteIndex + 0xA, spriteId);
     }
-    var_r28 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x35));
-    for (var_r30 = 0; var_r30 < 0x15; var_r30++) {
-        var_r31 = HuSprCreate(var_r28, 9, 0);
-        HuSprGrpMemberSet(var_r29, var_r30 + 0xD, var_r31);
+    animationData = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x35));
+    for (spriteIndex = 0; spriteIndex < 0x15; spriteIndex++) {
+        spriteId = HuSprCreate(animationData, 9, 0);
+        HuSprGrpMemberSet(spriteGroupId, spriteIndex + 0xD, spriteId);
     }
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x15)), 8, 0);
-    HuSprGrpMemberSet(var_r29, 0x22, var_r31);
-    fn_1_CF10(-1);
-    fn_1_D3AC(-1);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x15)), 8, 0);
+    HuSprGrpMemberSet(spriteGroupId, 0x22, spriteId);
+    CreateMinigameNameDisplay(-1);
+    DestroyMinigameNameDisplay(-1);
 }
 
-void fn_1_C860(void)
+void DestroyHighScoreDisplay(void)
 {
-    s32 var_r31 = lbl_1_data_324;
-    HuSprGrpKill(var_r31);
+    s32 spriteGroupId = selectedMinigameId;
+    HuSprGrpKill(spriteGroupId);
 }
 
-s32 fn_1_C898(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 GetFormattedHighScore(s32 minigameId, s32 playerIndex, s32 recordType, s32 score)
 {
     #if VERSION_NTSC
-    s32 sp88[5][9] = {
+    s32 thresholdsByPlayerCount[5][9] = {
         { 0x64, 0xC8, 0x12C, 0x136, 0x140, 0x14A, 0x154, 0x15E, 0x168 },
         { 0x05, 0x0A, 0x0F, 0x14, 0x19, 0x1E, 0x23, 0x28, 0x32 },
         { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09 },
         { 0xE10, 0x1C20, 0x2A30, 0x3840, 0x4650, 0x5460, 0x6270, 0x7080, 0x7E90 },
         { 0x0A, 0x14, 0x1E, 0x23, 0x28, 0x2D, 0x32, 0x35, 0x37 },
     };
-    s32 sp1C[3][9] = {
+    s32 thresholdsByRecordType[3][9] = {
         { 0x4650, 0x3840, 0x2A30, 0x1C20, 0x0E10, 0, 0, 0, 0 },
         { 0x4650, 0x3840, 0x2A30, 0x1C20, 0x1770, 0x12C0, 0x0E10, 0, 0 },
         { 0x4650, 0x3840, 0x2A30, 0x2328, 0x1C20, 0x19C8, 0x1770, 0x1644, 0x1518 },
     };
     #else
-    s32 sp88[5][9] = {
+    s32 thresholdsByPlayerCount[5][9] = {
         { 0x32, 0x64, 0xC8, 0x12C, 0x136, 0x140, 0x14A, 0x154, 0x15E },
         { 0x05, 0x0A, 0x0F, 0x14, 0x19, 0x1E, 0x23, 0x28, 0x32 },
         { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09 },
@@ -2263,57 +2263,57 @@ s32 fn_1_C898(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
             360*REFRESH_RATE, 420*REFRESH_RATE, 480*REFRESH_RATE, 540*REFRESH_RATE },
         { 0x0A, 0xF, 0x14, 0x19, 0x1E, 0x23, 0x28, 0x2B, 0x2D },
     };
-    s32 sp1C[3][9] = {
+    s32 thresholdsByRecordType[3][9] = {
         { 300*REFRESH_RATE, 240*REFRESH_RATE, 180*REFRESH_RATE, 120*REFRESH_RATE, 60*REFRESH_RATE, 0, 0, 0, 0 },
         { 300*REFRESH_RATE, 240*REFRESH_RATE, 180*REFRESH_RATE, 120*REFRESH_RATE, 110*REFRESH_RATE, 100*REFRESH_RATE, 90*REFRESH_RATE, 0, 0 },
         { 300*REFRESH_RATE, 240*REFRESH_RATE, 180*REFRESH_RATE, 170*REFRESH_RATE, 124*REFRESH_RATE, 150*REFRESH_RATE, 140*REFRESH_RATE, 130*REFRESH_RATE, 120*REFRESH_RATE },
     };
     #endif
-    s32 sp10[3];
-    s32 var_r31;
-    s32 var_r30;
+    s32 rankByPlayer[3];
+    s32 loopIndex;
+    s32 loopIndex2;
 
-    if (arg1 >= 5) {
-        for (var_r31 = 0; var_r31 < 9; var_r31++) {
-            if (arg0 < sp88[arg1 - 5][var_r31]) {
+    if (playerIndex >= 5) {
+        for (loopIndex = 0; loopIndex < 9; loopIndex++) {
+            if (minigameId < thresholdsByPlayerCount[playerIndex - 5][loopIndex]) {
                 break;
             }
         }
     }
-    else if (arg3 != 0) {
-        for (var_r30 = 0; var_r30 < 3; var_r30++) {
-            OSReport("#################### HI-SCORE(%d-%d) : %d\n", arg1, var_r30, GWGameStat.mg_record[var_r30 + 6]);
-            arg0 = GWGameStat.mg_record[var_r30 + 6];
-            for (var_r31 = 0; var_r31 < 9; var_r31++) {
-                if (arg0 >= sp1C[var_r30][var_r31]) {
+    else if (score != 0) {
+        for (loopIndex2 = 0; loopIndex2 < 3; loopIndex2++) {
+            OSReport("#################### HI-SCORE(%d-%d) : %d\n", playerIndex, loopIndex2, GWGameStat.mg_record[loopIndex2 + 6]);
+            minigameId = GWGameStat.mg_record[loopIndex2 + 6];
+            for (loopIndex = 0; loopIndex < 9; loopIndex++) {
+                if (minigameId >= thresholdsByRecordType[loopIndex2][loopIndex]) {
                     break;
                 }
             }
-            sp10[var_r30] = var_r31;
+            rankByPlayer[loopIndex2] = loopIndex;
         }
-        if (sp10[0] <= sp10[1]) {
-            var_r31 = sp10[1];
+        if (rankByPlayer[0] <= rankByPlayer[1]) {
+            loopIndex = rankByPlayer[1];
         }
         else {
-            var_r31 = sp10[0];
+            loopIndex = rankByPlayer[0];
         }
-        if (var_r31 <= sp10[2]) {
-            var_r31 = sp10[2];
+        if (loopIndex <= rankByPlayer[2]) {
+            loopIndex = rankByPlayer[2];
         }
     }
     else {
-        for (var_r31 = 0; var_r31 < 9; var_r31++) {
-            if (arg0 >= sp1C[arg2][var_r31]) {
+        for (loopIndex = 0; loopIndex < 9; loopIndex++) {
+            if (minigameId >= thresholdsByRecordType[recordType][loopIndex]) {
                 break;
             }
         }
     }
-    return var_r31;
+    return loopIndex;
 }
 
-void fn_1_CA98(s32 arg0, u32 arg1)
+void InsertFormattedHighScore(s32 messageId, u32 highScore)
 {
-    s32 sp8[11] = {
+    s32 recordIndexByScoreType[11] = {
         0xFFFFFFFF,
         0xFFFFFFFF,
         0xFFFFFFFF,
@@ -2326,90 +2326,90 @@ void fn_1_CA98(s32 arg0, u32 arg1)
         0x0000000E,
         0xFFFFFFFF,
     };
-    s32 var_r31;
-    u32 var_r29;
-    u32 var_r28;
+    s32 windowId;
+    u32 scoreValue;
+    u32 scoreValue2;
 
-    switch (arg1) {
+    switch (highScore) {
         case 0:
         case 1:
         case 2:
         case 10:
             break;
         case 4:
-            var_r31 = fn_1_C898(-1, arg1, 0, 1);
-            HuWinInsertMesSet(arg0, ((arg1 - 4) * 0xA) + 0x330000 + var_r31 + 0x51, 3);
+            windowId = GetFormattedHighScore(-1, highScore, 0, 1);
+            HuWinInsertMesSet(messageId, ((highScore - 4) * 0xA) + 0x330000 + windowId + 0x51, 3);
             break;
         case 5:
         case 6:
         case 7:
         case 9:
-            var_r31 = fn_1_C898(GWGameStat.mg_record[sp8[arg1]], arg1, 0, 0);
-            HuWinInsertMesSet(arg0, ((arg1 - 4) * 0xA) + 0x330000 + var_r31 + 0x51, 3);
+            windowId = GetFormattedHighScore(GWGameStat.mg_record[recordIndexByScoreType[highScore]], highScore, 0, 0);
+            HuWinInsertMesSet(messageId, ((highScore - 4) * 0xA) + 0x330000 + windowId + 0x51, 3);
         case 3:
-            OSReport("#################### HI-SCORE(%d) : %d\n", arg1, GWGameStat.mg_record[sp8[arg1]]);
-            var_r31 = GWGameStat.mg_record[sp8[arg1]];
+            OSReport("#################### HI-SCORE(%d) : %d\n", highScore, GWGameStat.mg_record[recordIndexByScoreType[highScore]]);
+            windowId = GWGameStat.mg_record[recordIndexByScoreType[highScore]];
             #if VERSION_NTSC
-            if (var_r31 < 0xA) {
-                sprintf(lbl_1_bss_FC, "  %d", var_r31);
+            if (windowId < 0xA) {
+                sprintf(formattedScoreRank, "  %d", windowId);
             }
-            else if (var_r31 < 0x64) {
-                sprintf(lbl_1_bss_FC, " %d", var_r31);
+            else if (windowId < 0x64) {
+                sprintf(formattedScoreRank, " %d", windowId);
             }
             else {
-                sprintf(lbl_1_bss_FC, "%d", var_r31);
+                sprintf(formattedScoreRank, "%d", windowId);
             }
             #else
-            sprintf(lbl_1_bss_FC, " %d", var_r31);
+            sprintf(formattedScoreRank, " %d", windowId);
             #endif
-            HuWinInsertMesSet(arg0, (u32)lbl_1_bss_FC, 0);
+            HuWinInsertMesSet(messageId, (u32)formattedScoreRank, 0);
             break;
         case 8:
-            OSReport("#################### HI-SCORE(%d) : %d\n", arg1, GWGameStat.mg_record[sp8[arg1]]);
-            var_r31 = GWGameStat.mg_record[sp8[arg1]];
-            var_r29 = var_r31 / (600 *REFRESH_RATE);
-            var_r31 -= var_r29 * (600 *REFRESH_RATE);
-            var_r28 = var_r31 / (60 *REFRESH_RATE);
-            var_r31 -= var_r28 * (60 *REFRESH_RATE);
-            sprintf(lbl_1_bss_F4, " %d", var_r28);
-            HuWinInsertMesSet(arg0, (u32)lbl_1_bss_F4, 0);
-            var_r29 = var_r31 / (10 *REFRESH_RATE);
-            var_r31 -= var_r29 * (10 *REFRESH_RATE);
-            var_r28 = var_r31 / REFRESH_RATE;
-            var_r31 -= var_r28 * REFRESH_RATE;
-            sprintf(lbl_1_bss_EC, "%d%d", var_r29, var_r28);
-            HuWinInsertMesSet(arg0, (u32)lbl_1_bss_EC, 1);
-            var_r31 = (101.5/REFRESH_RATE) * (float)var_r31;
-            var_r29 = var_r31 / 10;
-            var_r31 -= var_r29 * 0xA;
-            var_r28 = var_r31;
-            if (GWGameStat.mg_record[sp8[arg1]] >= ((600*REFRESH_RATE)-1)) {
-                sprintf(lbl_1_bss_E4, "99");
+            OSReport("#################### HI-SCORE(%d) : %d\n", highScore, GWGameStat.mg_record[recordIndexByScoreType[highScore]]);
+            windowId = GWGameStat.mg_record[recordIndexByScoreType[highScore]];
+            scoreValue = windowId / (600 *REFRESH_RATE);
+            windowId -= scoreValue * (600 *REFRESH_RATE);
+            scoreValue2 = windowId / (60 *REFRESH_RATE);
+            windowId -= scoreValue2 * (60 *REFRESH_RATE);
+            sprintf(formattedScoreValue, " %d", scoreValue2);
+            HuWinInsertMesSet(messageId, (u32)formattedScoreValue, 0);
+            scoreValue = windowId / (10 *REFRESH_RATE);
+            windowId -= scoreValue * (10 *REFRESH_RATE);
+            scoreValue2 = windowId / REFRESH_RATE;
+            windowId -= scoreValue2 * REFRESH_RATE;
+            sprintf(formattedScoreDigits, "%d%d", scoreValue, scoreValue2);
+            HuWinInsertMesSet(messageId, (u32)formattedScoreDigits, 1);
+            windowId = (101.5/REFRESH_RATE) * (float)windowId;
+            scoreValue = windowId / 10;
+            windowId -= scoreValue * 0xA;
+            scoreValue2 = windowId;
+            if (GWGameStat.mg_record[recordIndexByScoreType[highScore]] >= ((600*REFRESH_RATE)-1)) {
+                sprintf(formattedScoreRecord, "99");
             }
             else {
-                sprintf(lbl_1_bss_E4, "%d%d", var_r29, var_r28);
+                sprintf(formattedScoreRecord, "%d%d", scoreValue, scoreValue2);
             }
-            HuWinInsertMesSet(arg0, (u32)lbl_1_bss_E4, 2);
-            var_r31 = fn_1_C898(GWGameStat.mg_record[sp8[arg1]], arg1, 0, 0);
-            HuWinInsertMesSet(arg0, ((arg1 - 4) * 0xA) + 0x330000 + var_r31 + 0x51, 3);
+            HuWinInsertMesSet(messageId, (u32)formattedScoreRecord, 2);
+            windowId = GetFormattedHighScore(GWGameStat.mg_record[recordIndexByScoreType[highScore]], highScore, 0, 0);
+            HuWinInsertMesSet(messageId, ((highScore - 4) * 0xA) + 0x330000 + windowId + 0x51, 3);
             break;
         default:
             break;
     }
 }
 
-void fn_1_CF10(s32 arg0)
+void CreateMinigameNameDisplay(s32 messageId)
 {
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r28;
+    s32 spriteGroupId;
+    s32 spriteIndex;
+    s32 spriteId;
 
-    var_r31 = lbl_1_data_324;
-    for (var_r30 = 0; var_r30 < 0x25; var_r30++) {
-        HuSprAttrSet(var_r31, var_r30, 4);
+    spriteGroupId = selectedMinigameId;
+    for (spriteIndex = 0; spriteIndex < 0x25; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId, spriteIndex, 4);
     }
-    if (arg0 != -1) {
-        s32 sp8[11][4] = {
+    if (messageId != -1) {
+        s32 windowId[11][4] = {
             { 0x00370000, 0x00370001, 0x00370002, 0x0017003E },
             { 0x00370003, 0x00370004, 0x00370005, 0x0017003F },
             { 0x00370006, 0x00370007, 0x00370008, 0x0017003D },
@@ -2422,1030 +2422,1030 @@ void fn_1_CF10(s32 arg0)
             { 0x0037001B, 0x0037001C, 0x0037001D, 0x0017003C },
             { 0x0037001E, 0x0037001F, 0x00370020, 0x00170021 },
         };
-        var_r28 = HuSprCreate(HuSprAnimReadFile(arg0 + DATA_MAKE_NUM(DATADIR_MPEX, 0x22)), 0x7D0, 0);
-        HuSprGrpMemberSet(var_r31, 5, var_r28);
-        lbl_1_data_328 = fn_1_1D02C(sp8[arg0][3]);
-        HuSprGrpPosSet(lbl_1_data_328, 288.0f, -437.0f);
-        for (var_r30 = 0; var_r30 < 3; var_r30++) {
-            lbl_1_data_32C[var_r30] = HuWinCreate(0.0f, 0.0f, 0x136, 0x78, 0);
-            HuWinBGTPLvlSet(lbl_1_data_32C[var_r30], 0.0f);
-            HuWinMesSpeedSet(lbl_1_data_32C[var_r30], 0);
-            HuWinDispOn(lbl_1_data_32C[var_r30]);
-            if (sp8[arg0][var_r30] != -1) {
-                if (var_r30 == 2) {
-                    fn_1_CA98(lbl_1_data_32C[2], arg0);
+        spriteId = HuSprCreate(HuSprAnimReadFile(messageId + DATA_MAKE_NUM(DATADIR_MPEX, 0x22)), 0x7D0, 0);
+        HuSprGrpMemberSet(spriteGroupId, 5, spriteId);
+        minigameNameSpriteGroup = CreateMinigameNameSprites(windowId[messageId][3]);
+        HuSprGrpPosSet(minigameNameSpriteGroup, 288.0f, -437.0f);
+        for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+            minigameNameWindows[spriteIndex] = HuWinCreate(0.0f, 0.0f, 0x136, 0x78, 0);
+            HuWinBGTPLvlSet(minigameNameWindows[spriteIndex], 0.0f);
+            HuWinMesSpeedSet(minigameNameWindows[spriteIndex], 0);
+            HuWinDispOn(minigameNameWindows[spriteIndex]);
+            if (windowId[messageId][spriteIndex] != -1) {
+                if (spriteIndex == 2) {
+                    InsertFormattedHighScore(minigameNameWindows[2], messageId);
                 }
-                HuWinMesSet(lbl_1_data_32C[var_r30], sp8[arg0][var_r30]);
+                HuWinMesSet(minigameNameWindows[spriteIndex], windowId[messageId][spriteIndex]);
             }
-            HuWinPosSet(lbl_1_data_32C[var_r30], -485.0f, (var_r30 << 7) + 0x70);
+            HuWinPosSet(minigameNameWindows[spriteIndex], -485.0f, (spriteIndex << 7) + 0x70);
         }
-        if (arg0 != 0xA) {
-            HuSprAttrReset(var_r31, 0, 4);
-            HuSprPosSet(var_r31, 0, 288.0f, 240.0f);
-            HuSprTPLvlSet(var_r31, 0, 0.0f);
-        }
-        else {
-            HuSprAttrReset(var_r31, 0x23, 4);
-            HuSprPosSet(var_r31, 0x23, 288.0f, 240.0f);
-            HuSprTPLvlSet(var_r31, 0x23, 0.0f);
-        }
-        HuSprAttrReset(var_r31, 1, 4);
-        HuSprPosSet(var_r31, 1, -331.0f, 272.0f);
-        HuSprAttrReset(var_r31, 2, 4);
-        HuSprPosSet(var_r31, 2, 452.0f, 911.0f);
-        HuSprAttrReset(var_r31, 3, 4);
-        HuSprPosSet(var_r31, 3, 288.0f, -437.0f);
-        HuSprAttrReset(var_r31, 4, 4);
-        HuSprPosSet(var_r31, 4, 952.0f, 212.0f);
-        HuSprAttrReset(var_r31, 5, 4);
-        HuSprPosSet(var_r31, 5, 952.0f, 212.0f);
-        HuSprScaleSet(var_r31, 5, 0.5f, 0.5f);
-        HuSprAttrReset(var_r31, 6, 4);
-        HuSprPosSet(var_r31, 6, 952.0f, 212.0f);
-    }
-}
-
-void fn_1_D3AC(s32 arg0)
-{
-    s32 var_r31;
-    s32 var_r30;
-
-    var_r30 = lbl_1_data_324;
-    for (var_r31 = 0; var_r31 < 0x25; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31, 4);
-    }
-    if (arg0 != -1) {
-        HuSprGrpMemberKill(var_r30, 5);
-        HuSprGrpKill(lbl_1_data_328);
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            HuWinKill(lbl_1_data_32C[var_r31]);
-        }
-    }
-}
-
-void fn_1_D468(s32 arg0)
-{
-    s32 var_r28;
-    s32 var_r30;
-    s32 var_r31;
-
-    var_r31 = lbl_1_data_324;
-    fn_1_CF10(arg0);
-    if (arg0 != 0xA) {
-        HuSprTPLvlSet(var_r31, 0, 1.0f);
-    }
-    else {
-        HuSprTPLvlSet(var_r31, 0x23, 1.0f);
-    }
-    HuSprPosSet(var_r31, 3, 288.0f, 63.0f);
-    HuSprGrpPosSet(lbl_1_data_328, 288.0f, 63.0f);
-    HuSprPosSet(var_r31, 1, 169.0f, 272.0f);
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        HuWinPosSet(lbl_1_data_32C[var_r30], 14.0f, (var_r30 << 7) + 0x70);
-    }
-    HuSprPosSet(var_r31, 4, 452.0f, 212.0f);
-    HuSprPosSet(var_r31, 5, 452.0f, 212.0f);
-    HuSprPosSet(var_r31, 6, 452.0f, 212.0f);
-    HuSprPosSet(var_r31, 2, 452.0f, 411.0f);
-    var_r28 = lbl_1_bss_63C[2];
-    if (arg0 <= 3) {
-        fn_1_1A5A4(0);
-    }
-    else {
-        fn_1_1A5A4(1);
-    }
-    HuSprGrpPosSet(var_r28, 452.0f, 355.0f);
-}
-
-void fn_1_D6AC(s32 arg0)
-{
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r26;
-
-    var_r30 = lbl_1_data_324;
-    fn_1_CF10(arg0);
-    for (var_r31 = 0; var_r31 <= 0x1E; var_r31++) {
-        fn_1_1B7D0(1);
-        var_f31 = fn_1_1B64C(0.0f, 1.0f, var_r31, 30.0f);
-        if (arg0 != 0xA) {
-            HuSprTPLvlSet(var_r30, 0, var_f31);
+        if (messageId != 0xA) {
+            HuSprAttrReset(spriteGroupId, 0, 4);
+            HuSprPosSet(spriteGroupId, 0, 288.0f, 240.0f);
+            HuSprTPLvlSet(spriteGroupId, 0, 0.0f);
         }
         else {
-            HuSprTPLvlSet(var_r30, 0x23, var_f31);
+            HuSprAttrReset(spriteGroupId, 0x23, 4);
+            HuSprPosSet(spriteGroupId, 0x23, 288.0f, 240.0f);
+            HuSprTPLvlSet(spriteGroupId, 0x23, 0.0f);
+        }
+        HuSprAttrReset(spriteGroupId, 1, 4);
+        HuSprPosSet(spriteGroupId, 1, -331.0f, 272.0f);
+        HuSprAttrReset(spriteGroupId, 2, 4);
+        HuSprPosSet(spriteGroupId, 2, 452.0f, 911.0f);
+        HuSprAttrReset(spriteGroupId, 3, 4);
+        HuSprPosSet(spriteGroupId, 3, 288.0f, -437.0f);
+        HuSprAttrReset(spriteGroupId, 4, 4);
+        HuSprPosSet(spriteGroupId, 4, 952.0f, 212.0f);
+        HuSprAttrReset(spriteGroupId, 5, 4);
+        HuSprPosSet(spriteGroupId, 5, 952.0f, 212.0f);
+        HuSprScaleSet(spriteGroupId, 5, 0.5f, 0.5f);
+        HuSprAttrReset(spriteGroupId, 6, 4);
+        HuSprPosSet(spriteGroupId, 6, 952.0f, 212.0f);
+    }
+}
+
+void DestroyMinigameNameDisplay(s32 displayMode)
+{
+    s32 spriteIndex;
+    s32 spriteGroupId;
+
+    spriteGroupId = selectedMinigameId;
+    for (spriteIndex = 0; spriteIndex < 0x25; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId, spriteIndex, 4);
+    }
+    if (displayMode != -1) {
+        HuSprGrpMemberKill(spriteGroupId, 5);
+        HuSprGrpKill(minigameNameSpriteGroup);
+        for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+            HuWinKill(minigameNameWindows[spriteIndex]);
         }
     }
-    if (arg0 != 0xA) {
-        HuSprTPLvlSet(var_r30, 0, 1.0f);
+}
+
+void PositionMinigameNameDisplay(s32 displayMode)
+{
+    s32 spriteGroupId;
+    s32 windowIndex;
+    s32 positionValue;
+
+    positionValue = selectedMinigameId;
+    CreateMinigameNameDisplay(displayMode);
+    if (displayMode != 0xA) {
+        HuSprTPLvlSet(positionValue, 0, 1.0f);
     }
     else {
-        HuSprTPLvlSet(var_r30, 0x23, 1.0f);
+        HuSprTPLvlSet(positionValue, 0x23, 1.0f);
     }
-    for (var_r31 = 0; var_r31 <= 0x1E; var_r31++) {
-        fn_1_1B7D0(1);
-        var_r29 = fn_1_1B64C(-500.0f, 0.0f, var_r31, 30.0f);
-        HuSprPosSet(var_r30, 3, 288.0f, var_r29 + 0x3F);
-        HuSprGrpPosSet(lbl_1_data_328, 288.0f, var_r29 + 0x3F);
-        HuSprPosSet(var_r30, 1, var_r29 + 0xA9, 272.0f);
-        for (var_r28 = 0; var_r28 < 3; var_r28++) {
-            HuWinPosSet(lbl_1_data_32C[var_r28], var_r29 + 0xE, (var_r28 << 7) + 0x70);
-        }
-        var_r29 = fn_1_1B64C(500.0f, 0.0f, var_r31, 30.0f);
-        HuSprPosSet(var_r30, 4, var_r29 + 0x1C4, 212.0f);
-        HuSprPosSet(var_r30, 5, var_r29 + 0x1C4, 212.0f);
-        HuSprPosSet(var_r30, 6, var_r29 + 0x1C4, 212.0f);
-        HuSprPosSet(var_r30, 2, 452.0f, var_r29 + 0x19B);
-        if (arg0 != 0xA) {
-            var_r26 = lbl_1_bss_63C[2];
-            var_f30 = fn_1_1B64C(112.0f, 452.0f, var_r31, 30.0f);
-            var_f29 = fn_1_1B64C(72.0f, 355.0f, var_r31, 30.0f);
-            HuSprGrpPosSet(var_r26, var_f30, var_f29);
-        }
+    HuSprPosSet(positionValue, 3, 288.0f, 63.0f);
+    HuSprGrpPosSet(minigameNameSpriteGroup, 288.0f, 63.0f);
+    HuSprPosSet(positionValue, 1, 169.0f, 272.0f);
+    for (windowIndex = 0; windowIndex < 3; windowIndex++) {
+        HuWinPosSet(minigameNameWindows[windowIndex], 14.0f, (windowIndex << 7) + 0x70);
     }
-}
-
-void fn_1_DBD0(s32 arg0)
-{
-    float var_f31;
-    float var_f30;
-    float var_f29;
-
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
-    s32 var_r25;
-    s32 var_r24;
-
-    var_r30 = lbl_1_data_324;
-    for (var_r31 = 0; var_r31 <= 0x1E; var_r31++) {
-        fn_1_1B7D0(1);
-        var_r29 = fn_1_1B574(0.0f, -500.0f, var_r31, 30.0f);
-        HuSprPosSet(var_r30, 3, 288.0f, var_r29 + 0x3F);
-        HuSprGrpPosSet(lbl_1_data_328, 288.0f, var_r29 + 0x3F);
-        HuSprPosSet(var_r30, 1, var_r29 + 0xA9, 272.0f);
-        for (var_r27 = 0; var_r27 < 3; var_r27++) {
-            HuWinPosSet(lbl_1_data_32C[var_r27], var_r29 + 0xE, (var_r27 << 7) + 0x70);
-        }
-        var_r29 = fn_1_1B574(0.0f, 500.0f, var_r31, 30.0f);
-        HuSprPosSet(var_r30, 4, var_r29 + 0x1C4, 212.0f);
-        HuSprPosSet(var_r30, 5, var_r29 + 0x1C4, 212.0f);
-        HuSprPosSet(var_r30, 6, var_r29 + 0x1C4, 212.0f);
-        HuSprPosSet(var_r30, 2, 452.0f, var_r29 + 0x19B);
-        if (arg0 != 0xA) {
-            var_r24 = lbl_1_bss_63C[2];
-            var_f30 = fn_1_1B574(452.0f, 112.0f, var_r31, 30.0f);
-            var_f29 = fn_1_1B574(355.0f, 72.0f, var_r31, 30.0f);
-            HuSprGrpPosSet(var_r24, var_f30, var_f29);
-        }
-    }
-    for (var_r31 = 0; var_r31 <= 0x1E; var_r31++) {
-        fn_1_1B7D0(1);
-        var_f31 = fn_1_1B574(1.0f, 0.0f, var_r31, 30.0f);
-        if (arg0 != 0xA) {
-            HuSprTPLvlSet(var_r30, 0, var_f31);
-        }
-        else {
-            HuSprTPLvlSet(var_r30, 0x23, var_f31);
-        }
-    }
-    if (arg0 != 0xA) {
-        HuSprTPLvlSet(var_r30, 0, 0.0f);
+    HuSprPosSet(positionValue, 4, 452.0f, 212.0f);
+    HuSprPosSet(positionValue, 5, 452.0f, 212.0f);
+    HuSprPosSet(positionValue, 6, 452.0f, 212.0f);
+    HuSprPosSet(positionValue, 2, 452.0f, 411.0f);
+    spriteGroupId = characterSelectSpriteGroups[2];
+    if (displayMode <= 3) {
+        UpdateCharacterSelectionDisplay(0);
     }
     else {
-        HuSprTPLvlSet(var_r30, 0x23, 0.0f);
+        UpdateCharacterSelectionDisplay(1);
     }
-    var_r25 = lbl_1_data_324;
-    for (var_r28 = 0; var_r28 < 0x25; var_r28++) {
-        HuSprAttrSet(var_r25, var_r28, 4);
-    }
-    if (arg0 != -1) {
-        HuSprGrpMemberKill(var_r25, 5);
-        HuSprGrpKill(lbl_1_data_328);
-        for (var_r28 = 0; var_r28 < 3; var_r28++) {
-            HuWinKill(lbl_1_data_32C[var_r28]);
-        }
-    }
+    HuSprGrpPosSet(spriteGroupId, 452.0f, 355.0f);
 }
 
-void fn_1_E174(void)
+void AnimateMinigameNameDisplay(s32 displayMode)
 {
-    float var_f31;
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
+    float interpolatedValue;
+    float spriteGroupId;
+    float spriteGroupId2;
+    s32 frameIndex;
+    s32 positionValue;
+    s32 spriteGroupId3;
+    s32 windowIndex;
+    s32 spriteGroupId4;
 
-    var_r30 = lbl_1_data_324;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrReset(var_r30, var_r31 + 7, 4);
-        HuSprPosSet(var_r30, var_r31 + 7, 788.0f, (var_r31 * 0x38) + 0xB8);
-    }
-    for (var_r29 = 0; var_r29 <= 0x3C; var_r29++) {
-        fn_1_1B7D0(1);
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            var_f31 = fn_1_1B64C(1000.0f, 0.0f, var_r29, 0x3C - ((2 - var_r31) * 5));
-            HuSprPosSet(var_r30, var_r31 + 7, 288.0f + var_f31, (var_r31 * 0x38) + 0xB8);
-        }
-    }
-    HuSprAttrReset(var_r30, 0x22, 4);
-    HuSprPosSet(var_r30, 0x22, 185.0f, (lbl_1_bss_3B0.unk_10 * 0x38) + 0xA0);
-}
-
-void fn_1_E384(void)
-{
-    float var_f31;
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-
-    var_r30 = lbl_1_data_324;
-    HuSprAttrSet(var_r30, 0x22, 4);
-    HuSprPosSet(var_r30, 0x22, 125.0f, 190.0f);
-    for (var_r29 = 0; var_r29 <= 0x3C; var_r29++) {
-        fn_1_1B7D0(1);
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            var_f31 = fn_1_1B574(0.0f, -1000.0f, var_r29, 0x3C - ((2 - var_r31) * 5));
-            HuSprPosSet(var_r30, var_r31 + 7, 288.0f + var_f31, (var_r31 * 0x38) + 0xB8);
-        }
-    }
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31 + 7, 4);
-        HuSprPosSet(var_r30, var_r31 + 7, 288.0f, (var_r31 * 0x38) + 0xB8);
-    }
-}
-
-void fn_1_E568(void)
-{
-    s32 sp10;
-    s32 spC;
-    s32 sp8;
-    float var_f31;
-
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    u32 var_r27;
-    u32 var_r26;
-    s32 var_r25;
-
-    var_r29 = lbl_1_data_324;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        sp10 = rand8() % 10;
-        spC = rand8() % 60;
-        sp8 = rand8() % 100;
-        HuSprAttrReset(var_r29, var_r31 + 0xA, 4);
-        HuSprPosSet(var_r29, var_r31 + 0xA, 1288.0f, (var_r31 * 0x38) + 0xB8);
-        for (var_r28 = 0; var_r28 < 7; var_r28++) {
-            HuSprAttrReset(var_r29, 0xD + var_r28 + (var_r31 * 7), 4);
-            HuSprPosSet(var_r29, 0x0D + var_r28 + (var_r31 * 7), (var_r28 * 0x14) + 0x512, (var_r31 * 0x38) + 0xBA);
-        }
-        var_r30 = GWGameStat.mg_record[var_r31 + 6];
-        var_r27 = var_r30 / (600*REFRESH_RATE);
-        var_r30 -= var_r27 * (600*REFRESH_RATE);
-        var_r26 = var_r30 / (60*REFRESH_RATE);
-        var_r30 -= var_r26 * (60*REFRESH_RATE);
-        HuSprBankSet(var_r29, (var_r31 * 7) + 0xD, var_r26);
-        HuSprBankSet(var_r29, (var_r31 * 7) + 0xE, 0xA);
-        var_r27 = var_r30 / (10*REFRESH_RATE);
-        var_r30 -= var_r27 * (10*REFRESH_RATE);
-        var_r26 = var_r30 / REFRESH_RATE;
-        var_r30 -= var_r26 * REFRESH_RATE;
-        HuSprBankSet(var_r29, (var_r31 * 7) + 0xF, var_r27);
-        HuSprBankSet(var_r29, (var_r31 * 7) + 0x10, var_r26);
-        HuSprBankSet(var_r29, (var_r31 * 7) + 0x11, 0xB);
-        var_r30 = (100.0/REFRESH_RATE) * (float)var_r30;
-        var_r27 = var_r30 / 10;
-        var_r30 -= var_r27 * 0xA;
-        var_r26 = var_r30;
-        if (GWGameStat.mg_record[var_r31 + 6] == ((600*REFRESH_RATE)-1)) {
-            HuSprBankSet(var_r29, (var_r31 * 7) + 0x12, 9);
-            HuSprBankSet(var_r29, (var_r31 * 7) + 0x13, 9);
+    positionValue = selectedMinigameId;
+    CreateMinigameNameDisplay(displayMode);
+    for (frameIndex = 0; frameIndex <= 0x1E; frameIndex++) {
+        WaitFrames(1);
+        interpolatedValue = InterpolateSine(0.0f, 1.0f, frameIndex, 30.0f);
+        if (displayMode != 0xA) {
+            HuSprTPLvlSet(positionValue, 0, interpolatedValue);
         }
         else {
-            HuSprBankSet(var_r29, (var_r31 * 7) + 0x12, var_r27);
-            HuSprBankSet(var_r29, (var_r31 * 7) + 0x13, var_r26);
+            HuSprTPLvlSet(positionValue, 0x23, interpolatedValue);
         }
     }
-    for (var_r25 = 0; var_r25 <= 0x3C; var_r25++) {
-        fn_1_1B7D0(1);
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            var_f31 = fn_1_1B64C(1000.0f, 0.0f, var_r25, 0x3C - ((2 - var_r31) * 5));
-            HuSprPosSet(var_r29, var_r31 + 0xA, 288.0f + var_f31, (var_r31 * 0x38) + 0xB8);
-            for (var_r28 = 0; var_r28 < 7; var_r28++) {
-                HuSprPosSet(var_r29, 0xD + var_r28 + (var_r31 * 7), var_f31 + ((var_r28 * 0x14) + 0x12A), (var_r31 * 0x38) + 0xBA);
-            }
+    if (displayMode != 0xA) {
+        HuSprTPLvlSet(positionValue, 0, 1.0f);
+    }
+    else {
+        HuSprTPLvlSet(positionValue, 0x23, 1.0f);
+    }
+    for (frameIndex = 0; frameIndex <= 0x1E; frameIndex++) {
+        WaitFrames(1);
+        spriteGroupId3 = InterpolateSine(-500.0f, 0.0f, frameIndex, 30.0f);
+        HuSprPosSet(positionValue, 3, 288.0f, spriteGroupId3 + 0x3F);
+        HuSprGrpPosSet(minigameNameSpriteGroup, 288.0f, spriteGroupId3 + 0x3F);
+        HuSprPosSet(positionValue, 1, spriteGroupId3 + 0xA9, 272.0f);
+        for (windowIndex = 0; windowIndex < 3; windowIndex++) {
+            HuWinPosSet(minigameNameWindows[windowIndex], spriteGroupId3 + 0xE, (windowIndex << 7) + 0x70);
+        }
+        spriteGroupId3 = InterpolateSine(500.0f, 0.0f, frameIndex, 30.0f);
+        HuSprPosSet(positionValue, 4, spriteGroupId3 + 0x1C4, 212.0f);
+        HuSprPosSet(positionValue, 5, spriteGroupId3 + 0x1C4, 212.0f);
+        HuSprPosSet(positionValue, 6, spriteGroupId3 + 0x1C4, 212.0f);
+        HuSprPosSet(positionValue, 2, 452.0f, spriteGroupId3 + 0x19B);
+        if (displayMode != 0xA) {
+            spriteGroupId4 = characterSelectSpriteGroups[2];
+            spriteGroupId = InterpolateSine(112.0f, 452.0f, frameIndex, 30.0f);
+            spriteGroupId2 = InterpolateSine(72.0f, 355.0f, frameIndex, 30.0f);
+            HuSprGrpPosSet(spriteGroupId4, spriteGroupId, spriteGroupId2);
         }
     }
-    HuSprAttrReset(var_r29, 0x22, 4);
-    HuSprPosSet(var_r29, 0x22, 110.0f, (lbl_1_bss_3B0.unk_10 * 0x38) + 0xA0);
 }
 
-void fn_1_EB1C(void)
+void HideMinigameNameDisplay(s32 displayMode)
 {
-    float var_f31;
-    s32 var_r28;
-    s32 var_r29;
-    s32 var_r30;
-    s32 var_r31;
+    float interpolatedValue;
+    float spriteGroupId;
+    float spriteGroupId2;
 
-    var_r29 = lbl_1_data_324;
-    HuSprAttrSet(var_r29, 0x22, 4);
-    HuSprPosSet(var_r29, 0x22, 125.0f, 184.0f);
-    for (var_r28 = 0; var_r28 <= 0x3C; var_r28++) {
-        fn_1_1B7D0(1);
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            var_f31 = fn_1_1B574(0.0f, -1000.0f, var_r28, 0x3C - ((2 - var_r31) * 5));
-            HuSprPosSet(var_r29, var_r31 + 0xA, 288.0f + var_f31, (var_r31 * 0x38) + 0xB8);
-            for (var_r30 = 0; var_r30 < 7; var_r30++) {
-                HuSprPosSet(var_r29, 0xD + var_r30 + (var_r31 * 7), var_f31 + ((var_r30 * 0x14) + 0x12A), (var_r31 * 0x38) + 0xBA);
+    s32 frameIndex;
+    s32 positionValue;
+    s32 spriteGroupId3;
+    s32 spriteIndex;
+    s32 windowIndex;
+    s32 spriteGroupId4;
+    s32 spriteGroupId5;
+
+    positionValue = selectedMinigameId;
+    for (frameIndex = 0; frameIndex <= 0x1E; frameIndex++) {
+        WaitFrames(1);
+        spriteGroupId3 = InterpolateCosine(0.0f, -500.0f, frameIndex, 30.0f);
+        HuSprPosSet(positionValue, 3, 288.0f, spriteGroupId3 + 0x3F);
+        HuSprGrpPosSet(minigameNameSpriteGroup, 288.0f, spriteGroupId3 + 0x3F);
+        HuSprPosSet(positionValue, 1, spriteGroupId3 + 0xA9, 272.0f);
+        for (windowIndex = 0; windowIndex < 3; windowIndex++) {
+            HuWinPosSet(minigameNameWindows[windowIndex], spriteGroupId3 + 0xE, (windowIndex << 7) + 0x70);
+        }
+        spriteGroupId3 = InterpolateCosine(0.0f, 500.0f, frameIndex, 30.0f);
+        HuSprPosSet(positionValue, 4, spriteGroupId3 + 0x1C4, 212.0f);
+        HuSprPosSet(positionValue, 5, spriteGroupId3 + 0x1C4, 212.0f);
+        HuSprPosSet(positionValue, 6, spriteGroupId3 + 0x1C4, 212.0f);
+        HuSprPosSet(positionValue, 2, 452.0f, spriteGroupId3 + 0x19B);
+        if (displayMode != 0xA) {
+            spriteGroupId5 = characterSelectSpriteGroups[2];
+            spriteGroupId = InterpolateCosine(452.0f, 112.0f, frameIndex, 30.0f);
+            spriteGroupId2 = InterpolateCosine(355.0f, 72.0f, frameIndex, 30.0f);
+            HuSprGrpPosSet(spriteGroupId5, spriteGroupId, spriteGroupId2);
+        }
+    }
+    for (frameIndex = 0; frameIndex <= 0x1E; frameIndex++) {
+        WaitFrames(1);
+        interpolatedValue = InterpolateCosine(1.0f, 0.0f, frameIndex, 30.0f);
+        if (displayMode != 0xA) {
+            HuSprTPLvlSet(positionValue, 0, interpolatedValue);
+        }
+        else {
+            HuSprTPLvlSet(positionValue, 0x23, interpolatedValue);
+        }
+    }
+    if (displayMode != 0xA) {
+        HuSprTPLvlSet(positionValue, 0, 0.0f);
+    }
+    else {
+        HuSprTPLvlSet(positionValue, 0x23, 0.0f);
+    }
+    spriteGroupId4 = selectedMinigameId;
+    for (spriteIndex = 0; spriteIndex < 0x25; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId4, spriteIndex, 4);
+    }
+    if (displayMode != -1) {
+        HuSprGrpMemberKill(spriteGroupId4, 5);
+        HuSprGrpKill(minigameNameSpriteGroup);
+        for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+            HuWinKill(minigameNameWindows[spriteIndex]);
+        }
+    }
+}
+
+void ShowPlayerScoreIcon(void)
+{
+    float positionValue;
+    s32 spriteIndex;
+    s32 positionValue2;
+    s32 frameIndex;
+
+    positionValue2 = selectedMinigameId;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrReset(positionValue2, spriteIndex + 7, 4);
+        HuSprPosSet(positionValue2, spriteIndex + 7, 788.0f, (spriteIndex * 0x38) + 0xB8);
+    }
+    for (frameIndex = 0; frameIndex <= 0x3C; frameIndex++) {
+        WaitFrames(1);
+        for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+            positionValue = InterpolateSine(1000.0f, 0.0f, frameIndex, 0x3C - ((2 - spriteIndex) * 5));
+            HuSprPosSet(positionValue2, spriteIndex + 7, 288.0f + positionValue, (spriteIndex * 0x38) + 0xB8);
+        }
+    }
+    HuSprAttrReset(positionValue2, 0x22, 4);
+    HuSprPosSet(positionValue2, 0x22, 185.0f, (practiceMenuStateWork.playerIndex * 0x38) + 0xA0);
+}
+
+void HidePlayerScoreIcon(void)
+{
+    float positionValue;
+    s32 spriteIndex;
+    s32 positionValue2;
+    s32 frameIndex;
+
+    positionValue2 = selectedMinigameId;
+    HuSprAttrSet(positionValue2, 0x22, 4);
+    HuSprPosSet(positionValue2, 0x22, 125.0f, 190.0f);
+    for (frameIndex = 0; frameIndex <= 0x3C; frameIndex++) {
+        WaitFrames(1);
+        for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+            positionValue = InterpolateCosine(0.0f, -1000.0f, frameIndex, 0x3C - ((2 - spriteIndex) * 5));
+            HuSprPosSet(positionValue2, spriteIndex + 7, 288.0f + positionValue, (spriteIndex * 0x38) + 0xB8);
+        }
+    }
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(positionValue2, spriteIndex + 7, 4);
+        HuSprPosSet(positionValue2, spriteIndex + 7, 288.0f, (spriteIndex * 0x38) + 0xB8);
+    }
+}
+
+void SetPlayerScoreIconBank(void)
+{
+    s32 minigameValue;
+    s32 minigameValue2;
+    s32 minigameValue3;
+    float positionValue;
+
+    s32 spriteIndex;
+    s32 minigameValue4;
+    s32 positionValue2;
+    s32 spriteIndex2;
+    u32 minigameValue5;
+    u32 minigameValue6;
+    s32 frameIndex;
+
+    positionValue2 = selectedMinigameId;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        minigameValue = rand8() % 10;
+        minigameValue2 = rand8() % 60;
+        minigameValue3 = rand8() % 100;
+        HuSprAttrReset(positionValue2, spriteIndex + 0xA, 4);
+        HuSprPosSet(positionValue2, spriteIndex + 0xA, 1288.0f, (spriteIndex * 0x38) + 0xB8);
+        for (spriteIndex2 = 0; spriteIndex2 < 7; spriteIndex2++) {
+            HuSprAttrReset(positionValue2, 0xD + spriteIndex2 + (spriteIndex * 7), 4);
+            HuSprPosSet(positionValue2, 0x0D + spriteIndex2 + (spriteIndex * 7), (spriteIndex2 * 0x14) + 0x512, (spriteIndex * 0x38) + 0xBA);
+        }
+        minigameValue4 = GWGameStat.mg_record[spriteIndex + 6];
+        minigameValue5 = minigameValue4 / (600*REFRESH_RATE);
+        minigameValue4 -= minigameValue5 * (600*REFRESH_RATE);
+        minigameValue6 = minigameValue4 / (60*REFRESH_RATE);
+        minigameValue4 -= minigameValue6 * (60*REFRESH_RATE);
+        HuSprBankSet(positionValue2, (spriteIndex * 7) + 0xD, minigameValue6);
+        HuSprBankSet(positionValue2, (spriteIndex * 7) + 0xE, 0xA);
+        minigameValue5 = minigameValue4 / (10*REFRESH_RATE);
+        minigameValue4 -= minigameValue5 * (10*REFRESH_RATE);
+        minigameValue6 = minigameValue4 / REFRESH_RATE;
+        minigameValue4 -= minigameValue6 * REFRESH_RATE;
+        HuSprBankSet(positionValue2, (spriteIndex * 7) + 0xF, minigameValue5);
+        HuSprBankSet(positionValue2, (spriteIndex * 7) + 0x10, minigameValue6);
+        HuSprBankSet(positionValue2, (spriteIndex * 7) + 0x11, 0xB);
+        minigameValue4 = (100.0/REFRESH_RATE) * (float)minigameValue4;
+        minigameValue5 = minigameValue4 / 10;
+        minigameValue4 -= minigameValue5 * 0xA;
+        minigameValue6 = minigameValue4;
+        if (GWGameStat.mg_record[spriteIndex + 6] == ((600*REFRESH_RATE)-1)) {
+            HuSprBankSet(positionValue2, (spriteIndex * 7) + 0x12, 9);
+            HuSprBankSet(positionValue2, (spriteIndex * 7) + 0x13, 9);
+        }
+        else {
+            HuSprBankSet(positionValue2, (spriteIndex * 7) + 0x12, minigameValue5);
+            HuSprBankSet(positionValue2, (spriteIndex * 7) + 0x13, minigameValue6);
+        }
+    }
+    for (frameIndex = 0; frameIndex <= 0x3C; frameIndex++) {
+        WaitFrames(1);
+        for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+            positionValue = InterpolateSine(1000.0f, 0.0f, frameIndex, 0x3C - ((2 - spriteIndex) * 5));
+            HuSprPosSet(positionValue2, spriteIndex + 0xA, 288.0f + positionValue, (spriteIndex * 0x38) + 0xB8);
+            for (spriteIndex2 = 0; spriteIndex2 < 7; spriteIndex2++) {
+                HuSprPosSet(positionValue2, 0xD + spriteIndex2 + (spriteIndex * 7), positionValue + ((spriteIndex2 * 0x14) + 0x12A), (spriteIndex * 0x38) + 0xBA);
             }
         }
     }
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r29, var_r31 + 0xA, 4);
-        for (var_r30 = 0; var_r30 < 7; var_r30++) {
-            HuSprAttrSet(var_r29, 0xD + var_r30 + (var_r31 * 7), 4);
+    HuSprAttrReset(positionValue2, 0x22, 4);
+    HuSprPosSet(positionValue2, 0x22, 110.0f, (practiceMenuStateWork.playerIndex * 0x38) + 0xA0);
+}
+
+void HidePlayerScoreIconAlternate(void)
+{
+    float positionValue;
+    s32 frameIndex;
+    s32 positionValue2;
+    s32 spriteIndex;
+    s32 spriteIndex2;
+
+    positionValue2 = selectedMinigameId;
+    HuSprAttrSet(positionValue2, 0x22, 4);
+    HuSprPosSet(positionValue2, 0x22, 125.0f, 184.0f);
+    for (frameIndex = 0; frameIndex <= 0x3C; frameIndex++) {
+        WaitFrames(1);
+        for (spriteIndex2 = 0; spriteIndex2 < 3; spriteIndex2++) {
+            positionValue = InterpolateCosine(0.0f, -1000.0f, frameIndex, 0x3C - ((2 - spriteIndex2) * 5));
+            HuSprPosSet(positionValue2, spriteIndex2 + 0xA, 288.0f + positionValue, (spriteIndex2 * 0x38) + 0xB8);
+            for (spriteIndex = 0; spriteIndex < 7; spriteIndex++) {
+                HuSprPosSet(positionValue2, 0xD + spriteIndex + (spriteIndex2 * 7), positionValue + ((spriteIndex * 0x14) + 0x12A), (spriteIndex2 * 0x38) + 0xBA);
+            }
+        }
+    }
+    for (spriteIndex2 = 0; spriteIndex2 < 3; spriteIndex2++) {
+        HuSprAttrSet(positionValue2, spriteIndex2 + 0xA, 4);
+        for (spriteIndex = 0; spriteIndex < 7; spriteIndex++) {
+            HuSprAttrSet(positionValue2, 0xD + spriteIndex + (spriteIndex2 * 7), 4);
         }
     }
 }
 
-void fn_1_ED78(s32 arg0, s32 arg1)
+void CreatePlayerNameDisplay(s32 playerCount, s32 displayMode)
 {
-    float var_f31;
-    float var_f30;
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
+    float positionValue;
+    float interpolatedValue;
+    s32 frameIndex;
+    s32 spriteGroupId;
+    s32 spriteId;
 
-    var_r30 = lbl_1_data_324;
+    spriteGroupId = selectedMinigameId;
     {
-        s32 spC[3] = { 4, 11, 12 };
-        for (var_r31 = 0; var_r31 <= 0xA; var_r31++) {
-            fn_1_1B7D0(1);
-            if (var_r31 <= 5) {
-                var_f30 = fn_1_1B64C(1.0f, 0.0f, var_r31, 5.0f);
+        s32 minigameValue[3] = { 4, 11, 12 };
+        for (frameIndex = 0; frameIndex <= 0xA; frameIndex++) {
+            WaitFrames(1);
+            if (frameIndex <= 5) {
+                interpolatedValue = InterpolateSine(1.0f, 0.0f, frameIndex, 5.0f);
             }
             else {
-                var_f30 = fn_1_1B64C(0.0f, 1.0f, var_r31, var_r31 - 5);
+                interpolatedValue = InterpolateSine(0.0f, 1.0f, frameIndex, frameIndex - 5);
             }
-            if (lbl_1_bss_1B0 == 4) {
-                HuSprTPLvlSet(var_r30, 5, var_f30);
+            if (practiceMenuSelection == 4) {
+                HuSprTPLvlSet(spriteGroupId, 5, interpolatedValue);
             }
-            var_f31 = fn_1_1B64C((arg1 * 0x38) + 0xA0, (arg0 * 0x38) + 0xA0, var_r31, 10.0f);
-            if (lbl_1_bss_1B0 == 4) {
-                HuSprPosSet(var_r30, 0x22, 110.0f, var_f31);
+            positionValue = InterpolateSine((displayMode * 0x38) + 0xA0, (playerCount * 0x38) + 0xA0, frameIndex, 10.0f);
+            if (practiceMenuSelection == 4) {
+                HuSprPosSet(spriteGroupId, 0x22, 110.0f, positionValue);
             }
             else {
-                HuSprPosSet(var_r30, 0x22, 185.0f, var_f31);
+                HuSprPosSet(spriteGroupId, 0x22, 185.0f, positionValue);
             }
-            if ((lbl_1_bss_1B0 == 4) && (var_r31 == 5)) {
-                HuSprGrpMemberKill(var_r30, 5);
-                var_r29 = HuSprCreate(HuSprAnimReadFile(spC[arg0] + DATA_MAKE_NUM(DATADIR_MPEX, 0x22)), 0x7D0, 0);
-                HuSprGrpMemberSet(var_r30, 5, var_r29);
-                HuSprPosSet(var_r30, 5, 452.0f, 212.0f);
-                HuSprScaleSet(var_r30, 5, 0.5f, 0.5f);
-                HuSprTPLvlSet(var_r30, 5, 0.0f);
+            if ((practiceMenuSelection == 4) && (frameIndex == 5)) {
+                HuSprGrpMemberKill(spriteGroupId, 5);
+                spriteId = HuSprCreate(HuSprAnimReadFile(minigameValue[playerCount] + DATA_MAKE_NUM(DATADIR_MPEX, 0x22)), 0x7D0, 0);
+                HuSprGrpMemberSet(spriteGroupId, 5, spriteId);
+                HuSprPosSet(spriteGroupId, 5, 452.0f, 212.0f);
+                HuSprScaleSet(spriteGroupId, 5, 0.5f, 0.5f);
+                HuSprTPLvlSet(spriteGroupId, 5, 0.0f);
             }
         }
     }
 }
 
-void fn_1_F0C0(void)
+void CreatePlayerNameSprites(void)
 {
-    float sp8[2];
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
+    float coordinateTable[2];
+    s32 windowIndex;
+    s32 spriteGroupId;
+    s32 spriteId;
 
-    var_r30 = HuSprGrpCreate(3);
-    lbl_1_bss_E0 = var_r30;
-    var_r29 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x16)), 0xBB8, 0);
-    HuSprGrpMemberSet(var_r30, 0, var_r29);
-    HuSprPosSet(var_r30, 0, 0.0f, 88.0f);
-    var_r29 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x18)), 0x7D0, 0);
-    HuSprGrpMemberSet(var_r30, 1, var_r29);
-    HuSprPosSet(var_r30, 1, 0.0f, 25.0f);
-    var_r29 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1A)), 0x3E8, 0);
-    HuSprGrpMemberSet(var_r30, 2, var_r29);
-    HuSprPosSet(var_r30, 2, 0.0f, 0.0f);
-    HuSprScaleSet(var_r30, 2, 0.9f, 0.65f);
-    HuSprTPLvlSet(var_r30, 2, 0.8f);
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        fn_1_125DC(sp8, MAKE_MESSID(0x33, 0x2F));
-        fn_1_125DC(sp8, MAKE_MESSID(0x33, 0x30));
-        fn_1_125DC(sp8, MAKE_MESSID(0x33, 0x31));
-        fn_1_125DC(sp8, MAKE_MESSID(0x33, 0x32));
-        lbl_1_bss_C8[var_r31] = HuWinCreate(0.0f, 0.0f, sp8[0], sp8[1], 0);
-        HuWinBGTPLvlSet(lbl_1_bss_C8[var_r31], 0.0f);
-        HuWinMesSpeedSet(lbl_1_bss_C8[var_r31], 0);
-        HuWinDispOff(lbl_1_bss_C8[var_r31]);
-        HuWinPosSet(lbl_1_bss_C8[var_r31], 304.0f, 40.0f + (((60.0f - (sp8[1] / 2)) + (var_r31 * 0x1F)) - 500.0f));
+    spriteGroupId = HuSprGrpCreate(3);
+    playerNameWindow = spriteGroupId;
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x16)), 0xBB8, 0);
+    HuSprGrpMemberSet(spriteGroupId, 0, spriteId);
+    HuSprPosSet(spriteGroupId, 0, 0.0f, 88.0f);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x18)), 0x7D0, 0);
+    HuSprGrpMemberSet(spriteGroupId, 1, spriteId);
+    HuSprPosSet(spriteGroupId, 1, 0.0f, 25.0f);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1A)), 0x3E8, 0);
+    HuSprGrpMemberSet(spriteGroupId, 2, spriteId);
+    HuSprPosSet(spriteGroupId, 2, 0.0f, 0.0f);
+    HuSprScaleSet(spriteGroupId, 2, 0.9f, 0.65f);
+    HuSprTPLvlSet(spriteGroupId, 2, 0.8f);
+    for (windowIndex = 0; windowIndex < 6; windowIndex++) {
+        FitMessageWindowToText(coordinateTable, MAKE_MESSID(0x33, 0x2F));
+        FitMessageWindowToText(coordinateTable, MAKE_MESSID(0x33, 0x30));
+        FitMessageWindowToText(coordinateTable, MAKE_MESSID(0x33, 0x31));
+        FitMessageWindowToText(coordinateTable, MAKE_MESSID(0x33, 0x32));
+        playerNameWindows[windowIndex] = HuWinCreate(0.0f, 0.0f, coordinateTable[0], coordinateTable[1], 0);
+        HuWinBGTPLvlSet(playerNameWindows[windowIndex], 0.0f);
+        HuWinMesSpeedSet(playerNameWindows[windowIndex], 0);
+        HuWinDispOff(playerNameWindows[windowIndex]);
+        HuWinPosSet(playerNameWindows[windowIndex], 304.0f, 40.0f + (((60.0f - (coordinateTable[1] / 2)) + (windowIndex * 0x1F)) - 500.0f));
     }
-    fn_1_F47C();
-    fn_1_F730();
+    ShowPlayerNameDisplay();
+    HidePlayerNameDisplay();
 }
 
-void fn_1_F40C(void)
+void DestroyPlayerNameDisplay(void)
 {
-    s32 var_r31;
-    s32 var_r30 = lbl_1_bss_E0;
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        HuWinKill(lbl_1_bss_C8[var_r31]);
+    s32 windowIndex;
+    s32 spriteGroupId = playerNameWindow;
+    for (windowIndex = 0; windowIndex < 6; windowIndex++) {
+        HuWinKill(playerNameWindows[windowIndex]);
     }
-    HuSprGrpKill(var_r30);
+    HuSprGrpKill(spriteGroupId);
 }
 
-void fn_1_F47C(void)
+void ShowPlayerNameDisplay(void)
 {
-    float sp8[2];
-    s32 var_r31;
+    float messageDimensions[2];
+    s32 spriteIndex;
 
-    s32 var_r30 = lbl_1_bss_E0;
-    lbl_1_bss_3B0.unk_0C = 0;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31, 4);
+    s32 spriteGroupId = playerNameWindow;
+    practiceMenuStateWork.stateTimer = 0;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId, spriteIndex, 4);
     }
-    HuSprAttrReset(var_r30, 0, 4);
-    HuSprPosSet(var_r30, 0, 0.0f, 92.0f);
-    HuSprAttrReset(var_r30, 1, 4);
-    HuSprPosSet(var_r30, 1, 0.0f, 25.0f);
-    lbl_1_bss_3B0.unk_0C = 0;
-    HuSprPosSet(var_r30, 2, -3.0f, (lbl_1_bss_3B0.unk_0C * 0x19) + 0x3C);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        HuWinDispOn(lbl_1_bss_C8[var_r31]);
-        if (lbl_1_bss_180[var_r31] == 1) {
-            HuWinMesSet(lbl_1_bss_C8[var_r31], var_r31 + MAKE_MESSID(0x33, 0x2F));
+    HuSprAttrReset(spriteGroupId, 0, 4);
+    HuSprPosSet(spriteGroupId, 0, 0.0f, 92.0f);
+    HuSprAttrReset(spriteGroupId, 1, 4);
+    HuSprPosSet(spriteGroupId, 1, 0.0f, 25.0f);
+    practiceMenuStateWork.stateTimer = 0;
+    HuSprPosSet(spriteGroupId, 2, -3.0f, (practiceMenuStateWork.stateTimer * 0x19) + 0x3C);
+    for (spriteIndex = 0; spriteIndex < 4; spriteIndex++) {
+        HuWinDispOn(playerNameWindows[spriteIndex]);
+        if (availableMinigameFlags[spriteIndex] == 1) {
+            HuWinMesSet(playerNameWindows[spriteIndex], spriteIndex + MAKE_MESSID(0x33, 0x2F));
         }
         else {
-            HuWinMesSet(lbl_1_bss_C8[var_r31], MAKE_MESSID(0x33, 0x2E));
+            HuWinMesSet(playerNameWindows[spriteIndex], MAKE_MESSID(0x33, 0x2E));
         }
-        HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x33, 0x30));
-        HuWinPosSet(lbl_1_bss_C8[var_r31], 288.0f - (sp8[0] / 2), 40.0f + (((60.0f - (sp8[1] / 2)) + (var_r31 * 0x1F)) - 500.0f));
+        HuWinMesMaxSizeGet(1, messageDimensions, MAKE_MESSID(0x33, 0x30));
+        HuWinPosSet(playerNameWindows[spriteIndex], 288.0f - (messageDimensions[0] / 2), 40.0f + (((60.0f - (messageDimensions[1] / 2)) + (spriteIndex * 0x1F)) - 500.0f));
     }
-    HuSprGrpPosSet(var_r30, 288.0f, -460.0f);
+    HuSprGrpPosSet(spriteGroupId, 288.0f, -460.0f);
 }
 
-void fn_1_F730(void)
+void HidePlayerNameDisplay(void)
 {
-    float sp8[2];
-    s32 var_r31;
+    float messageDimensions[2];
+    s32 spriteIndex;
 
-    s32 var_r30 = lbl_1_bss_E0;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31, 4);
+    s32 spriteGroupId = playerNameWindow;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId, spriteIndex, 4);
     }
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        HuWinDispOff(lbl_1_bss_C8[var_r31]);
-        HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x33, 0x30));
-        HuWinPosSet(lbl_1_bss_C8[var_r31], 288.0f - (sp8[0] / 2), 40.0f + (((60.0f - (sp8[1] / 2)) + (var_r31 * 0x1F)) - 500.0f));
+    for (spriteIndex = 0; spriteIndex < 4; spriteIndex++) {
+        HuWinDispOff(playerNameWindows[spriteIndex]);
+        HuWinMesMaxSizeGet(1, messageDimensions, MAKE_MESSID(0x33, 0x30));
+        HuWinPosSet(playerNameWindows[spriteIndex], 288.0f - (messageDimensions[0] / 2), 40.0f + (((60.0f - (messageDimensions[1] / 2)) + (spriteIndex * 0x1F)) - 500.0f));
     }
-    HuSprGrpPosSet(var_r30, 288.0f, -460.0f);
+    HuSprGrpPosSet(spriteGroupId, 288.0f, -460.0f);
 }
 
-void fn_1_F8A4(void)
+void ShowPlayerNameDisplayAlternate(void)
 {
-    float sp10[2];
-    float sp8[2];
-    float var_f31;
+    float messageDimensions[2];
+    float messageDimensions2[2];
+    float verticalOffset;
 
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
+    s32 spriteIndex;
+    s32 playerNameGroup2;
+    s32 frameIndex;
+    s32 windowIndex;
 
-    s32 var_r27 = lbl_1_bss_E0;
-    sp10[0] = sp10[1] = 0.0f;
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x2E));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x2F));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x30));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x31));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x32));
-    var_r30 = lbl_1_bss_E0;
-    lbl_1_bss_3B0.unk_0C = 0;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31, 4);
+    s32 playerNameGroup = playerNameWindow;
+    messageDimensions[0] = messageDimensions[1] = 0.0f;
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x2E));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x2F));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x30));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x31));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x32));
+    playerNameGroup2 = playerNameWindow;
+    practiceMenuStateWork.stateTimer = 0;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(playerNameGroup2, spriteIndex, 4);
     }
-    HuSprAttrReset(var_r30, 0, 4);
-    HuSprPosSet(var_r30, 0, 0.0f, 92.0f);
-    HuSprAttrReset(var_r30, 1, 4);
-    HuSprPosSet(var_r30, 1, 0.0f, 25.0f);
-    lbl_1_bss_3B0.unk_0C = 0;
-    HuSprPosSet(var_r30, 2, -3.0f, (lbl_1_bss_3B0.unk_0C * 0x19) + 0x3C);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        HuWinDispOn(lbl_1_bss_C8[var_r31]);
-        if (lbl_1_bss_180[var_r31] == 1) {
-            HuWinMesSet(lbl_1_bss_C8[var_r31], var_r31 + MAKE_MESSID(0x33, 0x2F));
-        }
-        else {
-            HuWinMesSet(lbl_1_bss_C8[var_r31], MAKE_MESSID(0x33, 0x2E));
-        }
-        HuWinMesMaxSizeGet(1, sp8, 0x330030);
-        HuWinPosSet(lbl_1_bss_C8[var_r31], 288.0f - (sp8[0] / 2), 40.0f + (((60.0f - (sp8[1] / 2)) + (var_r31 * 0x1F)) - 500.0f));
-    }
-    HuSprGrpPosSet(var_r30, 288.0f, -460.0f);
-    for (var_r29 = 0; var_r29 < 0x3C; var_r29++) {
-        fn_1_1B7D0(1);
-        if (var_r29 <= 0x32) {
-            var_f31 = fn_1_1B64C(-500.0f, 10.0f, var_r29, 50.0f);
+    HuSprAttrReset(playerNameGroup2, 0, 4);
+    HuSprPosSet(playerNameGroup2, 0, 0.0f, 92.0f);
+    HuSprAttrReset(playerNameGroup2, 1, 4);
+    HuSprPosSet(playerNameGroup2, 1, 0.0f, 25.0f);
+    practiceMenuStateWork.stateTimer = 0;
+    HuSprPosSet(playerNameGroup2, 2, -3.0f, (practiceMenuStateWork.stateTimer * 0x19) + 0x3C);
+    for (spriteIndex = 0; spriteIndex < 4; spriteIndex++) {
+        HuWinDispOn(playerNameWindows[spriteIndex]);
+        if (availableMinigameFlags[spriteIndex] == 1) {
+            HuWinMesSet(playerNameWindows[spriteIndex], spriteIndex + MAKE_MESSID(0x33, 0x2F));
         }
         else {
-            var_f31 = fn_1_1B574(10.0f, 0.0f, var_r29 - 0x32, 10.0f);
+            HuWinMesSet(playerNameWindows[spriteIndex], MAKE_MESSID(0x33, 0x2E));
         }
-        HuSprGrpPosSet(var_r27, 288.0f, 64.0f + (40.0f + var_f31));
-        for (var_r28 = 0; var_r28 < 4; var_r28++) {
-            HuWinPosSet(lbl_1_bss_C8[var_r28], 288.0f - (sp10[0] / 2), 64.0f + (40.0f + (var_f31 + ((60.0f - (sp10[1] / 2)) + (var_r28 * 0x1F)))));
-        }
+        HuWinMesMaxSizeGet(1, messageDimensions2, 0x330030);
+        HuWinPosSet(playerNameWindows[spriteIndex], 288.0f - (messageDimensions2[0] / 2), 40.0f + (((60.0f - (messageDimensions2[1] / 2)) + (spriteIndex * 0x1F)) - 500.0f));
     }
-}
-
-void fn_1_FDA0(void)
-{
-    float sp10[2];
-    float sp8[2];
-    float var_f31;
-
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-
-    s32 var_r27 = lbl_1_bss_E0;
-    sp10[0] = sp10[1] = 0.0f;
-
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x2E));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x2F));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x30));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x31));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x32));
-    for (var_r30 = 0; var_r30 < 0x3C; var_r30++) {
-        fn_1_1B7D0(1);
-        if (var_r30 <= 0xA) {
-            var_f31 = fn_1_1B64C(0.0f, 10.0f, var_r30, 10.0f);
+    HuSprGrpPosSet(playerNameGroup2, 288.0f, -460.0f);
+    for (frameIndex = 0; frameIndex < 0x3C; frameIndex++) {
+        WaitFrames(1);
+        if (frameIndex <= 0x32) {
+            verticalOffset = InterpolateSine(-500.0f, 10.0f, frameIndex, 50.0f);
         }
         else {
-            var_f31 = fn_1_1B574(10.0f, -500.0f, var_r30 - 0xA, 50.0f);
+            verticalOffset = InterpolateCosine(10.0f, 0.0f, frameIndex - 0x32, 10.0f);
         }
-        HuSprGrpPosSet(var_r27, 288.0f, 64.0f + (40.0f + var_f31));
-        for (var_r29 = 0; var_r29 < 4; var_r29++) {
-            HuWinPosSet(lbl_1_bss_C8[var_r29], 288.0f - (sp10[0] / 2), 64.0f + (40.0f + (var_f31 + ((60.0f - (sp10[1] / 2)) + (var_r29 * 0x1F)))));
+        HuSprGrpPosSet(playerNameGroup, 288.0f, 64.0f + (40.0f + verticalOffset));
+        for (windowIndex = 0; windowIndex < 4; windowIndex++) {
+            HuWinPosSet(playerNameWindows[windowIndex], 288.0f - (messageDimensions[0] / 2), 64.0f + (40.0f + (verticalOffset + ((60.0f - (messageDimensions[1] / 2)) + (windowIndex * 0x1F)))));
         }
     }
-    var_r28 = lbl_1_bss_E0;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r28, var_r31, 4);
-    }
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        HuWinDispOff(lbl_1_bss_C8[var_r31]);
-        HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x33, 0x30));
-        HuWinPosSet(lbl_1_bss_C8[var_r31], 288.0f - (sp8[0] / 2), 40.0f + (((60.0f - (sp8[1] / 2)) + (var_r31 * 0x1F)) - 500.0f));
-    }
-    HuSprGrpPosSet(var_r28, 288.0f, -460.0f);
 }
 
-void fn_1_1015C(void)
+void AnimatePlayerNameDisplayOut(void)
 {
-    float sp8[2];
-    s32 var_r31 = lbl_1_bss_E0;
-    HuWinMesMaxSizeGet(1, sp8, 0x330030);
-    HuSprAttrReset(var_r31, 2, 4);
-    HuSprPosSet(var_r31, 2, 0.0f, 40.0f + ((60.0f - sp8[1]) + (lbl_1_bss_3B0.unk_0C * 0x1F)));
-}
+    float messageDimensions[2];
+    float messageDimensions2[2];
+    float verticalOffset;
 
-void fn_1_10228(void)
-{
-    s32 var_r31 = lbl_1_bss_E0;
-    HuSprAttrSet(var_r31, 2, 4);
-}
+    s32 spriteIndex;
+    s32 frameIndex;
+    s32 windowIndex;
+    s32 playerNameGroup2;
 
-void fn_1_10268(s32 arg0)
-{
-    float spC[2];
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
+    s32 playerNameGroup = playerNameWindow;
+    messageDimensions[0] = messageDimensions[1] = 0.0f;
 
-    s32 var_r28 = lbl_1_bss_E0;
-    HuWinMesMaxSizeGet(1, spC, MAKE_MESSID(0x33, 0x30));
-    var_r29 = lbl_1_bss_3B0.unk_0C;
-    var_r31 = lbl_1_bss_3B0.unk_0C + arg0;
-    if (var_r31 > 3) {
-        var_r31 = 0;
-    }
-    else if (var_r31 < 0) {
-        var_r31 = 3;
-    }
-    for (var_r30 = 0; var_r30 <= 5; var_r30++) {
-        fn_1_1B7D0(1);
-        var_f31 = 40.0f + ((60.0f - spC[1]) + (var_r29 * 0x1F));
-        var_f30 = 40.0f + ((60.0f - spC[1]) + (var_r31 * 0x1F));
-        var_f29 = fn_1_1B64C(var_f31, var_f30, var_r30, 5.0f);
-        HuSprPosSet(var_r28, 2, -4.0f, var_f29);
-    }
-    lbl_1_bss_3B0.unk_0C = var_r31;
-}
-
-void fn_1_1045C(void)
-{
-    float sp8[2];
-    s32 var_r31;
-    s32 var_r29;
-
-    s32 var_r30 = HuSprGrpCreate(3);
-    lbl_1_bss_C4 = var_r30;
-    var_r29 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x17)), 0xBB8, 0);
-    HuSprGrpMemberSet(var_r30, 0, var_r29);
-    HuSprPosSet(var_r30, 0, 0.0f, 118.0f);
-    var_r29 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x19)), 0x7D0, 0);
-    HuSprGrpMemberSet(var_r30, 1, var_r29);
-    HuSprPosSet(var_r30, 1, 0.0f, 25.0f);
-    var_r29 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1A)), 0x3E8, 0);
-    HuSprGrpMemberSet(var_r30, 2, var_r29);
-    HuSprPosSet(var_r30, 2, 0.0f, 0.0f);
-    HuSprPosSet(var_r30, 2, 0.0f, 0.0f);
-    HuSprScaleSet(var_r30, 2, 0.9f, 0.65f);
-    HuSprTPLvlSet(var_r30, 2, 0.8f);
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        fn_1_125DC(sp8, MAKE_MESSID(0x33, 0x33));
-        fn_1_125DC(sp8, MAKE_MESSID(0x33, 0x34));
-        fn_1_125DC(sp8, MAKE_MESSID(0x33, 0x35));
-        fn_1_125DC(sp8, MAKE_MESSID(0x33, 0x36));
-        fn_1_125DC(sp8, MAKE_MESSID(0x33, 0x37));
-        fn_1_125DC(sp8, MAKE_MESSID(0x33, 0x38));
-        lbl_1_bss_C8[var_r31] = HuWinCreate(0.0f, 0.0f, sp8[0], sp8[1], 0);
-        HuWinBGTPLvlSet(lbl_1_bss_C8[var_r31], 0.0f);
-        HuWinMesSpeedSet(lbl_1_bss_C8[var_r31], 0);
-        HuWinDispOff(lbl_1_bss_C8[var_r31]);
-        HuWinPosSet(lbl_1_bss_C8[var_r31], 304.0f, 40.0f + (((60.0f - (sp8[1] / 2)) + (var_r31 * 0x1D)) - 500.0f));
-    }
-    fn_1_1085C();
-    fn_1_10ABC();
-    (void)var_r31;
-}
-
-void fn_1_107EC(void)
-{
-    s32 var_r30;
-    s32 var_r31;
-
-    var_r30 = lbl_1_bss_C4;
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        HuWinKill(lbl_1_bss_C8[var_r31]);
-    }
-    HuSprGrpKill(var_r30);
-}
-
-void fn_1_1085C(void)
-{
-    float sp8[2];
-    s32 var_r31;
-
-    s32 var_r30 = lbl_1_bss_C4;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31, 4);
-    }
-    HuSprAttrReset(var_r30, 0, 4);
-    HuSprAttrReset(var_r30, 1, 4);
-    lbl_1_bss_3B0.unk_0C = 0;
-    HuSprPosSet(var_r30, 2, -3.0f, (lbl_1_bss_3B0.unk_0C * 0x19) + 0x3C);
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        HuWinDispOn(lbl_1_bss_C8[var_r31]);
-        if (lbl_1_bss_180[var_r31 + 4] == 1) {
-            HuWinMesSet(lbl_1_bss_C8[var_r31], var_r31 + MAKE_MESSID(0x33, 0x33));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x2E));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x2F));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x30));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x31));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x32));
+    for (frameIndex = 0; frameIndex < 0x3C; frameIndex++) {
+        WaitFrames(1);
+        if (frameIndex <= 0xA) {
+            verticalOffset = InterpolateSine(0.0f, 10.0f, frameIndex, 10.0f);
         }
         else {
-            HuWinMesSet(lbl_1_bss_C8[var_r31], MAKE_MESSID(0x33, 0x2E));
+            verticalOffset = InterpolateCosine(10.0f, -500.0f, frameIndex - 0xA, 50.0f);
         }
-        HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x33, 0x33));
-        HuWinPosSet(lbl_1_bss_C8[var_r31], 288.0f - (sp8[0] / 2), 40.0f + (((60.0f - (sp8[1] / 2)) + (var_r31 * 0x1D)) - 500.0f));
+        HuSprGrpPosSet(playerNameGroup, 288.0f, 64.0f + (40.0f + verticalOffset));
+        for (windowIndex = 0; windowIndex < 4; windowIndex++) {
+            HuWinPosSet(playerNameWindows[windowIndex], 288.0f - (messageDimensions[0] / 2), 64.0f + (40.0f + (verticalOffset + ((60.0f - (messageDimensions[1] / 2)) + (windowIndex * 0x1F)))));
+        }
     }
-    HuSprGrpPosSet(var_r30, 288.0f, -460.0f);
+    playerNameGroup2 = playerNameWindow;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(playerNameGroup2, spriteIndex, 4);
+    }
+    for (spriteIndex = 0; spriteIndex < 4; spriteIndex++) {
+        HuWinDispOff(playerNameWindows[spriteIndex]);
+        HuWinMesMaxSizeGet(1, messageDimensions2, MAKE_MESSID(0x33, 0x30));
+        HuWinPosSet(playerNameWindows[spriteIndex], 288.0f - (messageDimensions2[0] / 2), 40.0f + (((60.0f - (messageDimensions2[1] / 2)) + (spriteIndex * 0x1F)) - 500.0f));
+    }
+    HuSprGrpPosSet(playerNameGroup2, 288.0f, -460.0f);
 }
 
-void fn_1_10ABC(void)
+void ShowPlayerNameText(void)
 {
-    float sp8[2];
-    s32 var_r31;
-
-    s32 var_r30 = lbl_1_bss_C4;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31, 4);
-    }
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        HuWinDispOff(lbl_1_bss_C8[var_r31]);
-        HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x33, 0x33));
-        HuWinPosSet(lbl_1_bss_C8[var_r31], 288.0f - (sp8[0] / 2), 40.0f + (((60.0f - (sp8[1] / 2)) + (var_r31 * 0x1D)) - 500.0f));
-    }
-    HuSprGrpPosSet(var_r30, 288.0f, -460.0f);
+    float messageDimensions[2];
+    s32 positionValue = playerNameWindow;
+    HuWinMesMaxSizeGet(1, messageDimensions, 0x330030);
+    HuSprAttrReset(positionValue, 2, 4);
+    HuSprPosSet(positionValue, 2, 0.0f, 40.0f + ((60.0f - messageDimensions[1]) + (practiceMenuStateWork.stateTimer * 0x1F)));
 }
 
-void fn_1_10C30(void)
+void HidePlayerNameText(void)
 {
-    float sp10[2];
-    float sp8[2];
-    float var_f31;
+    s32 playerStateValue = playerNameWindow;
+    HuSprAttrSet(playerStateValue, 2, 4);
+}
 
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
+void AnimatePlayerNameText(s32 messageId)
+{
+    float messageDimensions[2];
+    float interpolatedValue;
+    float interpolatedValue2;
+    float verticalPosition;
+    s32 playerStateValue;
+    s32 frameIndex;
+    s32 playerStateValue2;
 
-    var_r27 = lbl_1_bss_C4;
-    sp10[0] = sp10[1] = 0.0f;
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x2E));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x33));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x34));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x35));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x36));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x37));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x38));
-    var_r28 = lbl_1_bss_C4;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r28, var_r31, 4);
+    s32 playerNameGroup = playerNameWindow;
+    HuWinMesMaxSizeGet(1, messageDimensions, MAKE_MESSID(0x33, 0x30));
+    playerStateValue2 = practiceMenuStateWork.stateTimer;
+    playerStateValue = practiceMenuStateWork.stateTimer + messageId;
+    if (playerStateValue > 3) {
+        playerStateValue = 0;
     }
-    HuSprAttrReset(var_r28, 0, 4);
-    HuSprAttrReset(var_r28, 1, 4);
-    lbl_1_bss_3B0.unk_0C = 0;
-    HuSprPosSet(var_r28, 2, -3.0f, (lbl_1_bss_3B0.unk_0C * 0x19) + 0x3C);
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        HuWinDispOn(lbl_1_bss_C8[var_r31]);
-        if (lbl_1_bss_180[var_r31 + 4] == 1) {
-            HuWinMesSet(lbl_1_bss_C8[var_r31], var_r31 + MAKE_MESSID(0x33, 0x33));
+    else if (playerStateValue < 0) {
+        playerStateValue = 3;
+    }
+    for (frameIndex = 0; frameIndex <= 5; frameIndex++) {
+        WaitFrames(1);
+        interpolatedValue = 40.0f + ((60.0f - messageDimensions[1]) + (playerStateValue2 * 0x1F));
+        interpolatedValue2 = 40.0f + ((60.0f - messageDimensions[1]) + (playerStateValue * 0x1F));
+        verticalPosition = InterpolateSine(interpolatedValue, interpolatedValue2, frameIndex, 5.0f);
+        HuSprPosSet(playerNameGroup, 2, -4.0f, verticalPosition);
+    }
+    practiceMenuStateWork.stateTimer = playerStateValue;
+}
+
+void CreatePlayerScoreSprites(void)
+{
+    float scoreValues[2];
+    s32 windowIndex;
+    s32 spriteId;
+
+    s32 spriteGroupId = HuSprGrpCreate(3);
+    playerScoreSpriteGroup = spriteGroupId;
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x17)), 0xBB8, 0);
+    HuSprGrpMemberSet(spriteGroupId, 0, spriteId);
+    HuSprPosSet(spriteGroupId, 0, 0.0f, 118.0f);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x19)), 0x7D0, 0);
+    HuSprGrpMemberSet(spriteGroupId, 1, spriteId);
+    HuSprPosSet(spriteGroupId, 1, 0.0f, 25.0f);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x1A)), 0x3E8, 0);
+    HuSprGrpMemberSet(spriteGroupId, 2, spriteId);
+    HuSprPosSet(spriteGroupId, 2, 0.0f, 0.0f);
+    HuSprPosSet(spriteGroupId, 2, 0.0f, 0.0f);
+    HuSprScaleSet(spriteGroupId, 2, 0.9f, 0.65f);
+    HuSprTPLvlSet(spriteGroupId, 2, 0.8f);
+    for (windowIndex = 0; windowIndex < 6; windowIndex++) {
+        FitMessageWindowToText(scoreValues, MAKE_MESSID(0x33, 0x33));
+        FitMessageWindowToText(scoreValues, MAKE_MESSID(0x33, 0x34));
+        FitMessageWindowToText(scoreValues, MAKE_MESSID(0x33, 0x35));
+        FitMessageWindowToText(scoreValues, MAKE_MESSID(0x33, 0x36));
+        FitMessageWindowToText(scoreValues, MAKE_MESSID(0x33, 0x37));
+        FitMessageWindowToText(scoreValues, MAKE_MESSID(0x33, 0x38));
+        playerNameWindows[windowIndex] = HuWinCreate(0.0f, 0.0f, scoreValues[0], scoreValues[1], 0);
+        HuWinBGTPLvlSet(playerNameWindows[windowIndex], 0.0f);
+        HuWinMesSpeedSet(playerNameWindows[windowIndex], 0);
+        HuWinDispOff(playerNameWindows[windowIndex]);
+        HuWinPosSet(playerNameWindows[windowIndex], 304.0f, 40.0f + (((60.0f - (scoreValues[1] / 2)) + (windowIndex * 0x1D)) - 500.0f));
+    }
+    ShowPlayerScoreDisplay();
+    HidePlayerScoreDisplay();
+    (void)windowIndex;
+}
+
+void DestroyPlayerScoreDisplay(void)
+{
+    s32 spriteGroupId;
+    s32 windowIndex;
+
+    spriteGroupId = playerScoreSpriteGroup;
+    for (windowIndex = 0; windowIndex < 6; windowIndex++) {
+        HuWinKill(playerNameWindows[windowIndex]);
+    }
+    HuSprGrpKill(spriteGroupId);
+}
+
+void ShowPlayerScoreDisplay(void)
+{
+    float messageDimensions[2];
+    s32 spriteIndex;
+
+    s32 spriteGroupId = playerScoreSpriteGroup;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId, spriteIndex, 4);
+    }
+    HuSprAttrReset(spriteGroupId, 0, 4);
+    HuSprAttrReset(spriteGroupId, 1, 4);
+    practiceMenuStateWork.stateTimer = 0;
+    HuSprPosSet(spriteGroupId, 2, -3.0f, (practiceMenuStateWork.stateTimer * 0x19) + 0x3C);
+    for (spriteIndex = 0; spriteIndex < 6; spriteIndex++) {
+        HuWinDispOn(playerNameWindows[spriteIndex]);
+        if (availableMinigameFlags[spriteIndex + 4] == 1) {
+            HuWinMesSet(playerNameWindows[spriteIndex], spriteIndex + MAKE_MESSID(0x33, 0x33));
         }
         else {
-            HuWinMesSet(lbl_1_bss_C8[var_r31], MAKE_MESSID(0x33, 0x2E));
+            HuWinMesSet(playerNameWindows[spriteIndex], MAKE_MESSID(0x33, 0x2E));
         }
-        HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x33, 0x33));
-        HuWinPosSet(lbl_1_bss_C8[var_r31], 288.0f - (sp8[0] / 2), 40.0f + (((60.0f - (sp8[1] / 2)) + (var_r31 * 0x1D)) - 500.0f));
+        HuWinMesMaxSizeGet(1, messageDimensions, MAKE_MESSID(0x33, 0x33));
+        HuWinPosSet(playerNameWindows[spriteIndex], 288.0f - (messageDimensions[0] / 2), 40.0f + (((60.0f - (messageDimensions[1] / 2)) + (spriteIndex * 0x1D)) - 500.0f));
     }
-    HuSprGrpPosSet(var_r28, 288.0f, -460.0f);
-    for (var_r30 = 0; var_r30 < 0x3C; var_r30++) {
-        fn_1_1B7D0(1);
-        if (var_r30 <= 0x32) {
-            var_f31 = fn_1_1B64C(-500.0f, 10.0f, var_r30, 50.0f);
+    HuSprGrpPosSet(spriteGroupId, 288.0f, -460.0f);
+}
+
+void HidePlayerScoreDisplay(void)
+{
+    float messageDimensions[2];
+    s32 spriteIndex;
+
+    s32 spriteGroupId = playerScoreSpriteGroup;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId, spriteIndex, 4);
+    }
+    for (spriteIndex = 0; spriteIndex < 6; spriteIndex++) {
+        HuWinDispOff(playerNameWindows[spriteIndex]);
+        HuWinMesMaxSizeGet(1, messageDimensions, MAKE_MESSID(0x33, 0x33));
+        HuWinPosSet(playerNameWindows[spriteIndex], 288.0f - (messageDimensions[0] / 2), 40.0f + (((60.0f - (messageDimensions[1] / 2)) + (spriteIndex * 0x1D)) - 500.0f));
+    }
+    HuSprGrpPosSet(spriteGroupId, 288.0f, -460.0f);
+}
+
+void ShowPlayerScoreDisplayAlternate(void)
+{
+    float messageDimensions[2];
+    float messageDimensions2[2];
+    float spriteGroupId;
+
+    s32 spriteIndex;
+    s32 frameIndex;
+    s32 windowIndex;
+    s32 spriteGroupId2;
+    s32 spriteGroupId3;
+
+    spriteGroupId3 = playerScoreSpriteGroup;
+    messageDimensions[0] = messageDimensions[1] = 0.0f;
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x2E));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x33));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x34));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x35));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x36));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x37));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x38));
+    spriteGroupId2 = playerScoreSpriteGroup;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId2, spriteIndex, 4);
+    }
+    HuSprAttrReset(spriteGroupId2, 0, 4);
+    HuSprAttrReset(spriteGroupId2, 1, 4);
+    practiceMenuStateWork.stateTimer = 0;
+    HuSprPosSet(spriteGroupId2, 2, -3.0f, (practiceMenuStateWork.stateTimer * 0x19) + 0x3C);
+    for (spriteIndex = 0; spriteIndex < 6; spriteIndex++) {
+        HuWinDispOn(playerNameWindows[spriteIndex]);
+        if (availableMinigameFlags[spriteIndex + 4] == 1) {
+            HuWinMesSet(playerNameWindows[spriteIndex], spriteIndex + MAKE_MESSID(0x33, 0x33));
         }
         else {
-            var_f31 = fn_1_1B574(10.0f, 0.0f, var_r30 - 0x32, 10.0f);
+            HuWinMesSet(playerNameWindows[spriteIndex], MAKE_MESSID(0x33, 0x2E));
         }
-        HuSprGrpPosSet(var_r27, 288.0f, 64.0f + (40.0f + var_f31));
-        for (var_r29 = 0; var_r29 < 6; var_r29++) {
-            HuWinPosSet(lbl_1_bss_C8[var_r29], 288.0f - (sp10[0] / 2), 64.0f + (40.0f + (var_f31 + ((60.0f - (sp10[1] / 2)) + (var_r29 * 0x1D)))));
-        }
+        HuWinMesMaxSizeGet(1, messageDimensions2, MAKE_MESSID(0x33, 0x33));
+        HuWinPosSet(playerNameWindows[spriteIndex], 288.0f - (messageDimensions2[0] / 2), 40.0f + (((60.0f - (messageDimensions2[1] / 2)) + (spriteIndex * 0x1D)) - 500.0f));
     }
-}
-
-void fn_1_110F8(void)
-{
-    float sp10[2];
-    float sp8[2];
-    float var_f31;
-
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
-
-    var_r27 = lbl_1_bss_C4;
-    sp10[0] = sp10[1] = 0.0f;
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x2E));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x33));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x34));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x35));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x36));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x37));
-    fn_1_125DC(sp10, MAKE_MESSID(0x33, 0x38));
-    for (var_r30 = 0; var_r30 < 0x3C; var_r30++) {
-        fn_1_1B7D0(1);
-        if (var_r30 <= 0xA) {
-            var_f31 = fn_1_1B64C(0.0f, 10.0f, var_r30, 10.0f);
+    HuSprGrpPosSet(spriteGroupId2, 288.0f, -460.0f);
+    for (frameIndex = 0; frameIndex < 0x3C; frameIndex++) {
+        WaitFrames(1);
+        if (frameIndex <= 0x32) {
+            spriteGroupId = InterpolateSine(-500.0f, 10.0f, frameIndex, 50.0f);
         }
         else {
-            var_f31 = fn_1_1B574(10.0f, -500.0f, var_r30 - 0xA, 50.0f);
+            spriteGroupId = InterpolateCosine(10.0f, 0.0f, frameIndex - 0x32, 10.0f);
         }
-        HuSprGrpPosSet(var_r27, 288.0f, 64.0f + (40.0f + var_f31));
-        for (var_r29 = 0; var_r29 < 6; var_r29++) {
-            HuWinPosSet(lbl_1_bss_C8[var_r29], 288.0f - (sp10[0] / 2), 64.0f + (40.0f + (var_f31 + ((60.0f - (sp10[1] / 2)) + (var_r29 * 0x1D)))));
+        HuSprGrpPosSet(spriteGroupId3, 288.0f, 64.0f + (40.0f + spriteGroupId));
+        for (windowIndex = 0; windowIndex < 6; windowIndex++) {
+            HuWinPosSet(playerNameWindows[windowIndex], 288.0f - (messageDimensions[0] / 2), 64.0f + (40.0f + (spriteGroupId + ((60.0f - (messageDimensions[1] / 2)) + (windowIndex * 0x1D)))));
         }
     }
-    var_r28 = lbl_1_bss_C4;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r28, var_r31, 4);
+}
+
+void AnimatePlayerScoreDisplayOut(void)
+{
+    float messageDimensions[2];
+    float messageDimensions2[2];
+    float spriteGroupId;
+
+    s32 spriteIndex;
+    s32 frameIndex;
+    s32 windowIndex;
+    s32 spriteGroupId2;
+    s32 spriteGroupId3;
+
+    spriteGroupId3 = playerScoreSpriteGroup;
+    messageDimensions[0] = messageDimensions[1] = 0.0f;
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x2E));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x33));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x34));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x35));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x36));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x37));
+    FitMessageWindowToText(messageDimensions, MAKE_MESSID(0x33, 0x38));
+    for (frameIndex = 0; frameIndex < 0x3C; frameIndex++) {
+        WaitFrames(1);
+        if (frameIndex <= 0xA) {
+            spriteGroupId = InterpolateSine(0.0f, 10.0f, frameIndex, 10.0f);
+        }
+        else {
+            spriteGroupId = InterpolateCosine(10.0f, -500.0f, frameIndex - 0xA, 50.0f);
+        }
+        HuSprGrpPosSet(spriteGroupId3, 288.0f, 64.0f + (40.0f + spriteGroupId));
+        for (windowIndex = 0; windowIndex < 6; windowIndex++) {
+            HuWinPosSet(playerNameWindows[windowIndex], 288.0f - (messageDimensions[0] / 2), 64.0f + (40.0f + (spriteGroupId + ((60.0f - (messageDimensions[1] / 2)) + (windowIndex * 0x1D)))));
+        }
     }
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        HuWinDispOff(lbl_1_bss_C8[var_r31]);
-        HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x33, 0x33));
-        HuWinPosSet(lbl_1_bss_C8[var_r31], 288.0f - (sp8[0] / 2), 40.0f + (((60.0f - (sp8[1] / 2)) + (var_r31 * 0x1D)) - 500.0f));
+    spriteGroupId2 = playerScoreSpriteGroup;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(spriteGroupId2, spriteIndex, 4);
     }
-    HuSprGrpPosSet(var_r28, 288.0f, -460.0f);
-}
-
-void fn_1_114D4(void)
-{
-    float sp8[2];
-    s32 var_r31 = lbl_1_bss_C4;
-    HuWinMesMaxSizeGet(1, sp8, 0x330033);
-    HuSprAttrReset(var_r31, 2, 4);
-    HuSprPosSet(var_r31, 2, 0.0f, 40.0f + ((60.0f - sp8[1]) + (lbl_1_bss_3B0.unk_0C * 0x1D)));
-}
-
-void fn_1_115A0(void)
-{
-    s32 var_r31 = lbl_1_bss_C4;
-    HuSprAttrSet(var_r31, 2, 4);
-}
-
-void fn_1_115E0(s32 arg0)
-{
-    float spC[2];
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-
-    var_r28 = lbl_1_bss_C4;
-    HuWinMesMaxSizeGet(1, spC, MAKE_MESSID(0x33, 0x33));
-    var_r29 = lbl_1_bss_3B0.unk_0C;
-    var_r31 = lbl_1_bss_3B0.unk_0C + arg0;
-    if (var_r31 > 5) {
-        var_r31 = 0;
+    for (spriteIndex = 0; spriteIndex < 6; spriteIndex++) {
+        HuWinDispOff(playerNameWindows[spriteIndex]);
+        HuWinMesMaxSizeGet(1, messageDimensions2, MAKE_MESSID(0x33, 0x33));
+        HuWinPosSet(playerNameWindows[spriteIndex], 288.0f - (messageDimensions2[0] / 2), 40.0f + (((60.0f - (messageDimensions2[1] / 2)) + (spriteIndex * 0x1D)) - 500.0f));
     }
-    else if (var_r31 < 0) {
-        var_r31 = 5;
+    HuSprGrpPosSet(spriteGroupId2, 288.0f, -460.0f);
+}
+
+void ShowPlayerScoreText(void)
+{
+    float messageDimensions[2];
+    s32 positionValue = playerScoreSpriteGroup;
+    HuWinMesMaxSizeGet(1, messageDimensions, 0x330033);
+    HuSprAttrReset(positionValue, 2, 4);
+    HuSprPosSet(positionValue, 2, 0.0f, 40.0f + ((60.0f - messageDimensions[1]) + (practiceMenuStateWork.stateTimer * 0x1D)));
+}
+
+void HidePlayerScoreText(void)
+{
+    s32 scoreValue = playerScoreSpriteGroup;
+    HuSprAttrSet(scoreValue, 2, 4);
+}
+
+void AnimatePlayerScoreText(s32 messageId)
+{
+    float messageDimensions[2];
+    float interpolatedValue;
+    float interpolatedValue2;
+    float positionValue;
+    s32 scoreValue;
+    s32 frameIndex;
+    s32 scoreValue2;
+    s32 positionValue2;
+
+    positionValue2 = playerScoreSpriteGroup;
+    HuWinMesMaxSizeGet(1, messageDimensions, MAKE_MESSID(0x33, 0x33));
+    scoreValue2 = practiceMenuStateWork.stateTimer;
+    scoreValue = practiceMenuStateWork.stateTimer + messageId;
+    if (scoreValue > 5) {
+        scoreValue = 0;
     }
-    for (var_r30 = 0; var_r30 <= 5; var_r30++) {
-        fn_1_1B7D0(1);
-        var_f31 = 40.0f + ((60.0f - spC[1]) + (var_r29 * 0x1D));
-        var_f30 = 40.0f + ((60.0f - spC[1]) + (var_r31 * 0x1D));
-        var_f29 = fn_1_1B64C(var_f31, var_f30, var_r30, 5.0f);
-        HuSprPosSet(var_r28, 2, -4.0f, var_f29);
+    else if (scoreValue < 0) {
+        scoreValue = 5;
     }
-    lbl_1_bss_3B0.unk_0C = var_r31;
-}
-
-void fn_1_117D4(void)
-{
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-
-    var_r30 = HuSprGrpCreate(3);
-    lbl_1_bss_C0 = var_r30;
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x12)), 0xBB8, 0);
-    HuSprGrpMemberSet(var_r30, 0, var_r31);
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x13)), 0xBB8, 0);
-    HuSprGrpMemberSet(var_r30, 1, var_r31);
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x14)), 0xBB8, 0);
-    HuSprGrpMemberSet(var_r30, 2, var_r31);
-    var_r29 = HuSprGrpCreate(1);
-    lbl_1_bss_BC = var_r29;
-    var_r31 = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x15)), 0xBB8, 0);
-    HuSprGrpMemberSet(var_r29, 0, var_r31);
-    HuSprAttrSet(var_r29, 0, 4);
-    fn_1_11984();
-    fn_1_119E0();
-}
-
-void fn_1_11930(void)
-{
-    s32 var_r31 = lbl_1_bss_C0;
-    s32 var_r30 = lbl_1_bss_BC;
-    HuSprGrpKill(var_r31);
-    HuSprGrpKill(var_r30);
-}
-
-void fn_1_11984(void)
-{
-    s32 var_r31;
-    s32 var_r30 = lbl_1_bss_C0;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31, 4);
+    for (frameIndex = 0; frameIndex <= 5; frameIndex++) {
+        WaitFrames(1);
+        interpolatedValue = 40.0f + ((60.0f - messageDimensions[1]) + (scoreValue2 * 0x1D));
+        interpolatedValue2 = 40.0f + ((60.0f - messageDimensions[1]) + (scoreValue * 0x1D));
+        positionValue = InterpolateSine(interpolatedValue, interpolatedValue2, frameIndex, 5.0f);
+        HuSprPosSet(positionValue2, 2, -4.0f, positionValue);
     }
+    practiceMenuStateWork.stateTimer = scoreValue;
 }
 
-void fn_1_119E0(void)
+void CreatePlayerStatusDisplay(void)
 {
-    s32 var_r31;
-    s32 var_r30 = lbl_1_bss_C0;
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        HuSprAttrSet(var_r30, var_r31, 4);
+    s32 spriteId;
+    s32 spriteGroupId;
+    s32 spriteGroupId2;
+
+    spriteGroupId = HuSprGrpCreate(3);
+    playerStatusSpriteGroup = spriteGroupId;
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x12)), 0xBB8, 0);
+    HuSprGrpMemberSet(spriteGroupId, 0, spriteId);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x13)), 0xBB8, 0);
+    HuSprGrpMemberSet(spriteGroupId, 1, spriteId);
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x14)), 0xBB8, 0);
+    HuSprGrpMemberSet(spriteGroupId, 2, spriteId);
+    spriteGroupId2 = HuSprGrpCreate(1);
+    playerStatusWindow = spriteGroupId2;
+    spriteId = HuSprCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MPEX, 0x15)), 0xBB8, 0);
+    HuSprGrpMemberSet(spriteGroupId2, 0, spriteId);
+    HuSprAttrSet(spriteGroupId2, 0, 4);
+    ShowPlayerStatusIcon();
+    HidePlayerStatusIcon();
+}
+
+void DestroyPlayerStatusDisplay(void)
+{
+    s32 spriteGroupId = playerStatusSpriteGroup;
+    s32 spriteGroupId2 = playerStatusWindow;
+    HuSprGrpKill(spriteGroupId);
+    HuSprGrpKill(spriteGroupId2);
+}
+
+void ShowPlayerStatusIcon(void)
+{
+    s32 spriteIndex;
+    s32 playerStateValue = playerStatusSpriteGroup;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(playerStateValue, spriteIndex, 4);
     }
 }
 
-void fn_1_11A3C(s32 arg0)
+void HidePlayerStatusIcon(void)
 {
-    float var_f31;
-    float var_f30;
+    s32 spriteIndex;
+    s32 playerStateValue = playerStatusSpriteGroup;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(playerStateValue, spriteIndex, 4);
+    }
+}
 
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r26;
+void AnimatePlayerStatusDisplay(s32 playerIndex)
+{
+    float scaleX;
+    float scaleY;
 
-    var_r29 = lbl_1_bss_C0;
-    var_r28 = lbl_1_bss_BC;
+    s32 frameIndex;
+    s32 spriteIndex;
+    s32 spriteGroupId3;
+    s32 spriteGroupId4;
+    s32 playerStateValue;
+
+    spriteGroupId3 = playerStatusSpriteGroup;
+    spriteGroupId4 = playerStatusWindow;
     {
-        s32 sp8[3][2] = {
+        s32 playerStatusPositions[3][2] = {
             { 0x72, 0xFA },
             { 0x144, 0xE1 },
             { 0xEF, 0x5A },
         };
-        var_r26 = lbl_1_bss_C0;
-        for (var_r30 = 0; var_r30 < 3; var_r30++) {
-            HuSprAttrSet(var_r26, var_r30, 4);
+        playerStateValue = playerStatusSpriteGroup;
+        for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+            HuSprAttrSet(playerStateValue, spriteIndex, 4);
         }
-        if (lbl_1_bss_3B0.unk_08 != 2) {
-            HuSprAttrReset(var_r29, lbl_1_bss_3B0.unk_08, 4);
+        if (practiceMenuStateWork.state != 2) {
+            HuSprAttrReset(spriteGroupId3, practiceMenuStateWork.state, 4);
         }
-        HuSprGrpScaleSet(var_r29, 0.0f, 0.0f);
-        for (var_r31 = 0; var_r31 <= 0xF; var_r31++) {
-            fn_1_1B7D0(1);
-            if (var_r31 <= 0xA) {
-                var_f31 = fn_1_1B64C(0.0f, 1.0f, var_r31, 10.0f);
-                var_f30 = 0.01f;
+        HuSprGrpScaleSet(spriteGroupId3, 0.0f, 0.0f);
+        for (frameIndex = 0; frameIndex <= 0xF; frameIndex++) {
+            WaitFrames(1);
+            if (frameIndex <= 0xA) {
+                scaleX = InterpolateSine(0.0f, 1.0f, frameIndex, 10.0f);
+                scaleY = 0.01f;
             }
             else {
-                var_f31 = 1.0f;
-                var_f30 = fn_1_1B64C(0.01f, 1.0f, var_r31 - 0xA, 5.0f);
+                scaleX = 1.0f;
+                scaleY = InterpolateSine(0.01f, 1.0f, frameIndex - 0xA, 5.0f);
             }
-            HuSprGrpScaleSet(var_r29, var_f31, var_f30);
-            if (arg0 != -1) {
-                var_f31 = fn_1_1B64C(sp8[arg0][0], sp8[lbl_1_bss_3B0.unk_08][0], var_r31, 15.0f);
-                var_f30 = fn_1_1B64C(sp8[arg0][1], sp8[lbl_1_bss_3B0.unk_08][1], var_r31, 15.0f);
-                HuSprGrpPosSet(var_r28, var_f31, var_f30);
+            HuSprGrpScaleSet(spriteGroupId3, scaleX, scaleY);
+            if (playerIndex != -1) {
+                scaleX = InterpolateSine(playerStatusPositions[playerIndex][0], playerStatusPositions[practiceMenuStateWork.state][0], frameIndex, 15.0f);
+                scaleY = InterpolateSine(playerStatusPositions[playerIndex][1], playerStatusPositions[practiceMenuStateWork.state][1], frameIndex, 15.0f);
+                HuSprGrpPosSet(spriteGroupId4, scaleX, scaleY);
             }
         }
-        HuSprAttrReset(var_r28, 0, 4);
-        if (arg0 == -1) {
-            HuSprGrpPosSet(var_r28, sp8[0][0], sp8[0][1]);
+        HuSprAttrReset(spriteGroupId4, 0, 4);
+        if (playerIndex == -1) {
+            HuSprGrpPosSet(spriteGroupId4, playerStatusPositions[0][0], playerStatusPositions[0][1]);
         }
     }
 }
 
-void fn_1_11E28(void)
+void ScalePlayerStatusDisplay(void)
 {
-    float var_f31;
-    float var_f30;
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
+    float spriteGroupId;
+    float spriteGroupId2;
+    s32 frameIndex;
+    s32 spriteIndex;
+    s32 spriteGroupId3;
+    s32 playerStateValue;
+    s32 playerStateValue2;
 
-    var_r29 = lbl_1_bss_C0;
-    var_r28 = lbl_1_bss_BC;
-    HuSprAttrSet(var_r28, 0, 4);
-    for (var_r31 = 0; var_r31 <= 0xF; var_r31++) {
-        fn_1_1B7D0(1);
-        if (var_r31 <= 0xA) {
-            var_f30 = fn_1_1B64C(1.0f, 0.01f, var_r31, 10.0f);
-            var_f31 = 1.0f;
+    spriteGroupId3 = playerStatusSpriteGroup;
+    playerStateValue = playerStatusWindow;
+    HuSprAttrSet(playerStateValue, 0, 4);
+    for (frameIndex = 0; frameIndex <= 0xF; frameIndex++) {
+        WaitFrames(1);
+        if (frameIndex <= 0xA) {
+            spriteGroupId2 = InterpolateSine(1.0f, 0.01f, frameIndex, 10.0f);
+            spriteGroupId = 1.0f;
         }
         else {
-            var_f30 = 0.01f;
-            var_f31 = fn_1_1B64C(1.0f, 0.01f, var_r31 - 0xA, 5.0f);
+            spriteGroupId2 = 0.01f;
+            spriteGroupId = InterpolateSine(1.0f, 0.01f, frameIndex - 0xA, 5.0f);
         }
-        HuSprGrpScaleSet(var_r29, var_f31, var_f30);
+        HuSprGrpScaleSet(spriteGroupId3, spriteGroupId, spriteGroupId2);
     }
-    var_r27 = lbl_1_bss_C0;
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        HuSprAttrSet(var_r27, var_r30, 4);
+    playerStateValue2 = playerStatusSpriteGroup;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        HuSprAttrSet(playerStateValue2, spriteIndex, 4);
     }
 }
 
-void fn_1_11FC0(OMOBJ *object, MpexDllUnkStruct4 *arg1)
+void PositionPlayerStatusSprite(OMOBJ *object, MpexMenuObjectWork *statusWork)
 {
-    Vec sp20;
-    Vec sp14;
+    Vec position;
+    Vec position2;
 
-    s32 var_r31 = lbl_1_bss_C0;
-    s32 sp8[3] = { 0x64, 0x64, 0xE1 };
-    sp20.x = Hu3DData[lbl_1_bss_2D8[lbl_1_bss_3B0.unk_08].unk_00->mdlId[1]].pos.x;
-    sp20.y = 0.0f;
-    sp20.z = Hu3DData[lbl_1_bss_2D8[lbl_1_bss_3B0.unk_08].unk_00->mdlId[1]].pos.z;
-    Hu3D3Dto2D(&sp20, 1, &sp14);
-    sp14.y = fn_1_1B714(sp8[lbl_1_bss_3B0.unk_08], 10.0f + sp8[lbl_1_bss_3B0.unk_08], lbl_1_bss_3B0.unk_28++, 360.0f);
-    if (lbl_1_bss_3B0.unk_28 >= 0x168) {
-        lbl_1_bss_3B0.unk_28 = 0;
+    s32 spriteGroupId = playerStatusSpriteGroup;
+    s32 characterSelectionValue[3] = { 0x64, 0x64, 0xE1 };
+    position.x = Hu3DData[menuModelObjects[practiceMenuStateWork.state].ownerObject->mdlId[1]].pos.x;
+    position.y = 0.0f;
+    position.z = Hu3DData[menuModelObjects[practiceMenuStateWork.state].ownerObject->mdlId[1]].pos.z;
+    Hu3D3Dto2D(&position, 1, &position2);
+    position2.y = CalculateSineWaveValue(characterSelectionValue[practiceMenuStateWork.state], 10.0f + characterSelectionValue[practiceMenuStateWork.state], practiceMenuStateWork.characterIndex++, 360.0f);
+    if (practiceMenuStateWork.characterIndex >= 0x168) {
+        practiceMenuStateWork.characterIndex = 0;
     }
-    HuSprGrpPosSet(var_r31, sp14.x, (s32)sp14.y);
+    HuSprGrpPosSet(spriteGroupId, position2.x, (s32)position2.y);
 }
 
-void fn_1_121E8(void)
+void ReportMinigameHighScore(void)
 {
     OSReport("\n\n####################### HI SCORE #######################\n");
     OSReport("HIScore 453(0-99):%d\n", GWGameStat.mg_record[9]);
@@ -3530,15 +3530,15 @@ void fn_1_121E8(void)
     OSReport("########################################################\n\n");
 }
 
-void fn_1_125DC(float *arg0, s32 arg1)
+void FitMessageWindowToText(float *windowSize, s32 messageId)
 {
-    float spC[2];
+    float messageDimensions[2];
 
-    HuWinMesMaxSizeGet(1, spC, arg1);
-    if (spC[0] > arg0[0]) {
-        arg0[0] = spC[0];
+    HuWinMesMaxSizeGet(1, messageDimensions, messageId);
+    if (messageDimensions[0] > windowSize[0]) {
+        windowSize[0] = messageDimensions[0];
     }
-    if (spC[1] > arg0[1]) {
-        arg0[1] = spC[1];
+    if (messageDimensions[1] > windowSize[1]) {
+        windowSize[1] = messageDimensions[1];
     }
 }

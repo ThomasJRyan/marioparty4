@@ -10,21 +10,22 @@
 
 #include "REL/mpexDll.h"
 
+void InitializeMpexOverlayResources(void);
+
 #ifndef __MWERKS__
-float fn_1_1B52C(float arg8, float arg9, float argA, float argB);
-float fn_1_1B554(float, float, float);
-float fn_1_1B574(float arg0, float arg1, float arg2, float arg3);
-float fn_1_1B64C(float arg0, float arg1, float arg2, float arg3);
+float InterpolateLinear(float startValue, float endValue, float currentFrame, float duration);
+float InterpolateByStep(float, float, float);
+float InterpolateCosine(float startValue, float endValue, float currentFrame, float duration);
+float InterpolateSine(float startValue, float endValue, float currentFrame, float duration);
 #endif
 
-void fn_1_230();
-void fn_1_A70(MpexDllUnkStruct *arg0);
+void CopyCurrentCameraToTarget(MpexCameraWork *cameraWork);
 
-MpexDllUnkStruct lbl_1_bss_64;
-s32 lbl_1_bss_4[0x18];
-HUPROCESS *lbl_1_bss_0;
+MpexCameraWork cameraWork;
+s32 reservedBssWords[0x18];
+HUPROCESS *overlayObjectManager;
 
-void fn_1_A0(void)
+void DumpMemoryHeapsOnInput(void)
 {
     if (HuPadBtnDown[0] & PAD_BUTTON_Y) {
         OSReport("\n###################################################################### HEAP\n\n");
@@ -42,466 +43,466 @@ void fn_1_A0(void)
     }
 }
 
-void fn_1_188(OMOBJ *object)
+void ReturnFromOverlayAfterWipe(OMOBJ *object)
 {
     if (WipeStatGet() == 0) {
         omOvlReturnEx(1, 1);
     }
 }
 
-void fn_1_1C0(OMOBJ *object)
+void HandleOverlayExitRequest(OMOBJ *object)
 {
     if (omSysExitReq != 0) {
         HuAudFadeOut(0x3E8);
         WipeColorSet(0, 0, 0);
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
-        object->objFunc = fn_1_188;
+        object->objFunc = ReturnFromOverlayAfterWipe;
     }
 }
 
 void ObjectSetup(void)
 {
     mgPracticeEnableF = 0;
-    lbl_1_bss_0 = omInitObjMan(0x3E, 0x2000);
+    overlayObjectManager = omInitObjMan(0x3E, 0x2000);
     GWSystem.mg_next = 0xFFFF;
-    fn_1_3044(lbl_1_bss_0);
+    InitializeMinigamePracticeOverlay(overlayObjectManager);
 }
 
-void fn_1_298(void)
+void CreateDirectionalLight(void)
 {
-    s32 var_r31;
+    s32 lightId;
 
-    var_r31 = -1;
-    var_r31 = Hu3DGLightCreate(0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0xFF, 0xFF, 0xFF);
-    Hu3DGLightPosAimSet(var_r31, 0.0f, 1000.0f, 1000.0f, 0.0f, 0.0f, 0.0f);
-    Hu3DGLightInfinitytSet(var_r31);
+    lightId = -1;
+    lightId = Hu3DGLightCreate(0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0xFF, 0xFF, 0xFF);
+    Hu3DGLightPosAimSet(lightId, 0.0f, 1000.0f, 1000.0f, 0.0f, 0.0f, 0.0f);
+    Hu3DGLightInfinitytSet(lightId);
 }
 
-void fn_1_374(void)
+void CreateOverlayShadow(void)
 {
-    Vec sp20 = { 0.0f, 3000.0f, 3000.0f };
-    Vec sp14 = { 0.0f, 0.0f, 0.0f };
-    Vec sp8 = { 0.0f, 1.0f, 0.0f };
+    Vec shadowCameraPosition = { 0.0f, 3000.0f, 3000.0f };
+    Vec shadowTargetPosition = { 0.0f, 0.0f, 0.0f };
+    Vec shadowUpVector = { 0.0f, 1.0f, 0.0f };
 
     Hu3DShadowCreate(45.0f, 2000.0f, 25000.0f);
-    Hu3DShadowPosSet(&sp20, &sp8, &sp14);
+    Hu3DShadowPosSet(&shadowCameraPosition, &shadowUpVector, &shadowTargetPosition);
     Hu3DShadowTPLvlSet(0.8f);
 }
 
-void fn_1_438(void)
+void UpdateCameraFromController(void)
 {
-    MpexDllUnkStruct *var_r31 = &lbl_1_bss_64;
+    MpexCameraWork *cameraState = &cameraWork;
 
     if (HuPadBtn[0] & PAD_BUTTON_B) {
         if (HuPadBtn[0] & 0x20) {
-            var_r31->unk_08.z -= (HuPadStkY[0] / 10.0f);
+            cameraState->currentCenter.z -= (HuPadStkY[0] / 10.0f);
         }
         else {
-            var_r31->unk_08.x += HuPadStkX[0] / 10.0f;
-            var_r31->unk_08.y += (HuPadStkY[0] / 10.0f);
+            cameraState->currentCenter.x += HuPadStkX[0] / 10.0f;
+            cameraState->currentCenter.y += (HuPadStkY[0] / 10.0f);
         }
     }
     if (HuPadBtn[0] & PAD_BUTTON_Y) {
-        var_r31->unk_20.x -= HuPadStkY[0] / 100.0f;
-        var_r31->unk_20.y += (HuPadStkX[0] / 100.0f);
-        if (var_r31->unk_20.x < 0.0f) {
-            var_r31->unk_20.x += 360.0f;
+        cameraState->currentRotation.x -= HuPadStkY[0] / 100.0f;
+        cameraState->currentRotation.y += (HuPadStkX[0] / 100.0f);
+        if (cameraState->currentRotation.x < 0.0f) {
+            cameraState->currentRotation.x += 360.0f;
         }
-        if (var_r31->unk_20.x >= 360.0f) {
-            var_r31->unk_20.x -= 360.0f;
+        if (cameraState->currentRotation.x >= 360.0f) {
+            cameraState->currentRotation.x -= 360.0f;
         }
-        if (var_r31->unk_20.y < 0.0f) {
-            var_r31->unk_20.y += 360.0f;
+        if (cameraState->currentRotation.y < 0.0f) {
+            cameraState->currentRotation.y += 360.0f;
         }
-        if (var_r31->unk_20.y >= 360.0f) {
-            var_r31->unk_20.y -= 360.0f;
+        if (cameraState->currentRotation.y >= 360.0f) {
+            cameraState->currentRotation.y -= 360.0f;
         }
     }
     if (HuPadBtn[0] & PAD_BUTTON_X) {
-        var_r31->unk_38 -= (HuPadStkY[0] / 10.0f);
+        cameraState->currentZoom -= (HuPadStkY[0] / 10.0f);
     }
     print8(0x18, 0x28, 1.0f, ">>>>>>>>>> CAMERA DATA <<<<<<<<<<");
-    print8(0x18, 0x32, 1.0f, "CENTER : %.2f, %.2f, %.2f", var_r31->unk_08.x, var_r31->unk_08.y, var_r31->unk_08.z);
-    print8(0x18, 0x3C, 1.0f, "ROT    : %.2f, %.2f, %.2f", var_r31->unk_20.x, var_r31->unk_20.y, var_r31->unk_20.z);
-    print8(0x18, 0x46, 1.0f, "ZOOM   : %.2f", var_r31->unk_38);
+    print8(0x18, 0x32, 1.0f, "CENTER : %.2f, %.2f, %.2f", cameraState->currentCenter.x, cameraState->currentCenter.y, cameraState->currentCenter.z);
+    print8(0x18, 0x3C, 1.0f, "ROT    : %.2f, %.2f, %.2f", cameraState->currentRotation.x, cameraState->currentRotation.y, cameraState->currentRotation.z);
+    print8(0x18, 0x46, 1.0f, "ZOOM   : %.2f", cameraState->currentZoom);
 }
 
-void fn_1_81C(OMOBJ *object)
+void ApplyCameraWorkToView(OMOBJ *object)
 {
-    MpexDllUnkStruct *var_r31 = &lbl_1_bss_64;
-    if (var_r31->unk_00 != NULL) {
-        var_r31->unk_00();
+    MpexCameraWork *cameraState = &cameraWork;
+    if (cameraState->updateCameraInput != NULL) {
+        cameraState->updateCameraInput();
     }
-    Center.x = var_r31->unk_08.x;
-    Center.y = var_r31->unk_08.y;
-    Center.z = var_r31->unk_08.z;
-    CRot.x = var_r31->unk_20.x;
-    CRot.y = var_r31->unk_20.y;
-    CRot.z = var_r31->unk_20.z;
-    CZoom = var_r31->unk_38;
+    Center.x = cameraState->currentCenter.x;
+    Center.y = cameraState->currentCenter.y;
+    Center.z = cameraState->currentCenter.z;
+    CRot.x = cameraState->currentRotation.x;
+    CRot.y = cameraState->currentRotation.y;
+    CRot.z = cameraState->currentRotation.z;
+    CZoom = cameraState->currentZoom;
 }
 
-void fn_1_8D4(MpexDllUnkFunc arg0)
+void SetCameraInputCallback(CameraInputCallback cameraInputCallback)
 {
-    lbl_1_bss_64.unk_00 = arg0;
-    fn_1_A70(&lbl_1_bss_64);
+    cameraWork.updateCameraInput = cameraInputCallback;
+    CopyCurrentCameraToTarget(&cameraWork);
 }
 
-void fn_1_910(MpexDllUnkFunc arg0)
+void CreateOverlayCamera(CameraInputCallback cameraInputCallback)
 {
     Hu3DCameraCreate(1);
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 45.0f, 20.0f, 5000.0f, 1.2f);
-    lbl_1_bss_64.unk_00 = arg0;
-    lbl_1_bss_64.unk_04 = fn_1_438;
-    omAddObjEx(lbl_1_bss_0, 0x7FDA, 0, 0, -1, omOutView);
-    omAddObjEx(lbl_1_bss_0, 0x7FD9, 0, 0, -1, fn_1_81C);
+    cameraWork.updateCameraInput = cameraInputCallback;
+    cameraWork.controlCamera = UpdateCameraFromController;
+    omAddObjEx(overlayObjectManager, 0x7FDA, 0, 0, -1, omOutView);
+    omAddObjEx(overlayObjectManager, 0x7FD9, 0, 0, -1, ApplyCameraWorkToView);
 }
 
-void fn_1_A34(MpexDllUnkStruct *arg0)
+void CopyTargetCameraToCurrent(MpexCameraWork *cameraWork)
 {
-    arg0->unk_08.x = arg0->unk_14.x;
-    arg0->unk_08.y = arg0->unk_14.y;
-    arg0->unk_08.z = arg0->unk_14.z;
-    arg0->unk_20.x = arg0->unk_2C.x;
-    arg0->unk_20.y = arg0->unk_2C.y;
-    arg0->unk_20.z = arg0->unk_2C.z;
-    arg0->unk_38 = arg0->unk_3C;
+    cameraWork->currentCenter.x = cameraWork->targetCenter.x;
+    cameraWork->currentCenter.y = cameraWork->targetCenter.y;
+    cameraWork->currentCenter.z = cameraWork->targetCenter.z;
+    cameraWork->currentRotation.x = cameraWork->targetRotation.x;
+    cameraWork->currentRotation.y = cameraWork->targetRotation.y;
+    cameraWork->currentRotation.z = cameraWork->targetRotation.z;
+    cameraWork->currentZoom = cameraWork->targetZoom;
 }
 
-void fn_1_A70(MpexDllUnkStruct *arg0)
+void CopyCurrentCameraToTarget(MpexCameraWork *cameraWork)
 {
-    arg0->unk_40 = 0;
-    arg0->unk_14.x = arg0->unk_08.x;
-    arg0->unk_14.y = arg0->unk_08.y;
-    arg0->unk_14.z = arg0->unk_08.z;
-    arg0->unk_2C.x = arg0->unk_20.x;
-    arg0->unk_2C.y = arg0->unk_20.y;
-    arg0->unk_2C.z = arg0->unk_20.z;
-    arg0->unk_3C = arg0->unk_38;
+    cameraWork->interpolationState = 0;
+    cameraWork->targetCenter.x = cameraWork->currentCenter.x;
+    cameraWork->targetCenter.y = cameraWork->currentCenter.y;
+    cameraWork->targetCenter.z = cameraWork->currentCenter.z;
+    cameraWork->targetRotation.x = cameraWork->currentRotation.x;
+    cameraWork->targetRotation.y = cameraWork->currentRotation.y;
+    cameraWork->targetRotation.z = cameraWork->currentRotation.z;
+    cameraWork->targetZoom = cameraWork->currentZoom;
 }
 
-void fn_1_AB4(MpexDllUnkStruct *arg0, MpexDllUnkStruct *arg1, float arg8)
+void EaseCameraTowardWorkTarget(MpexCameraWork *currentCamera, MpexCameraWork *targetCamera, float interpolationStep)
 {
-    arg0->unk_08.x = fn_1_1B554(arg0->unk_08.x, arg1->unk_14.x, arg8);
-    arg0->unk_08.y = fn_1_1B554(arg0->unk_08.y, arg1->unk_14.y, arg8);
-    arg0->unk_08.z = fn_1_1B554(arg0->unk_08.z, arg1->unk_14.z, arg8);
-    arg0->unk_20.x = fn_1_1B554(arg0->unk_20.x, arg1->unk_2C.x, arg8);
-    arg0->unk_20.y = fn_1_1B554(arg0->unk_20.y, arg1->unk_2C.y, arg8);
-    arg0->unk_20.z = fn_1_1B554(arg0->unk_20.z, arg1->unk_2C.z, arg8);
-    arg0->unk_38 = fn_1_1B554(arg0->unk_38, arg1->unk_3C, arg8);
+    currentCamera->currentCenter.x = InterpolateByStep(currentCamera->currentCenter.x, targetCamera->targetCenter.x, interpolationStep);
+    currentCamera->currentCenter.y = InterpolateByStep(currentCamera->currentCenter.y, targetCamera->targetCenter.y, interpolationStep);
+    currentCamera->currentCenter.z = InterpolateByStep(currentCamera->currentCenter.z, targetCamera->targetCenter.z, interpolationStep);
+    currentCamera->currentRotation.x = InterpolateByStep(currentCamera->currentRotation.x, targetCamera->targetRotation.x, interpolationStep);
+    currentCamera->currentRotation.y = InterpolateByStep(currentCamera->currentRotation.y, targetCamera->targetRotation.y, interpolationStep);
+    currentCamera->currentRotation.z = InterpolateByStep(currentCamera->currentRotation.z, targetCamera->targetRotation.z, interpolationStep);
+    currentCamera->currentZoom = InterpolateByStep(currentCamera->currentZoom, targetCamera->targetZoom, interpolationStep);
 }
 
-void fn_1_C84(MpexDllUnkStruct *arg0, float arg8, float argB)
+void EaseCameraTowardOwnTarget(MpexCameraWork *cameraWork, float interpolationStep, float unusedFrameCount)
 {
-    arg0->unk_08.x = fn_1_1B554(arg0->unk_08.x, arg0->unk_14.x, arg8);
-    arg0->unk_08.y = fn_1_1B554(arg0->unk_08.y, arg0->unk_14.y, arg8);
-    arg0->unk_08.z = fn_1_1B554(arg0->unk_08.z, arg0->unk_14.z, arg8);
-    arg0->unk_20.x = fn_1_1B554(arg0->unk_20.x, arg0->unk_2C.x, arg8);
-    arg0->unk_20.y = fn_1_1B554(arg0->unk_20.y, arg0->unk_2C.y, arg8);
-    arg0->unk_20.z = fn_1_1B554(arg0->unk_20.z, arg0->unk_2C.z, arg8);
-    arg0->unk_38 = fn_1_1B554(arg0->unk_38, arg0->unk_3C, arg8);
+    cameraWork->currentCenter.x = InterpolateByStep(cameraWork->currentCenter.x, cameraWork->targetCenter.x, interpolationStep);
+    cameraWork->currentCenter.y = InterpolateByStep(cameraWork->currentCenter.y, cameraWork->targetCenter.y, interpolationStep);
+    cameraWork->currentCenter.z = InterpolateByStep(cameraWork->currentCenter.z, cameraWork->targetCenter.z, interpolationStep);
+    cameraWork->currentRotation.x = InterpolateByStep(cameraWork->currentRotation.x, cameraWork->targetRotation.x, interpolationStep);
+    cameraWork->currentRotation.y = InterpolateByStep(cameraWork->currentRotation.y, cameraWork->targetRotation.y, interpolationStep);
+    cameraWork->currentRotation.z = InterpolateByStep(cameraWork->currentRotation.z, cameraWork->targetRotation.z, interpolationStep);
+    cameraWork->currentZoom = InterpolateByStep(cameraWork->currentZoom, cameraWork->targetZoom, interpolationStep);
 }
 
-void fn_1_E48(MpexDllUnkStruct *arg0, MpexDllUnkStruct *arg1, float arg8, float arg9, float argC)
+void InterpolateCameraWorkTargets(MpexCameraWork *sourceCamera, MpexCameraWork *targetCamera, float frameIndex, float frameCount, float unusedBlendFactor)
 {
-    arg1->unk_14.x = fn_1_1B52C(arg0->unk_14.x, arg1->unk_08.x, arg8, arg9);
-    arg1->unk_14.y = fn_1_1B52C(arg0->unk_14.y, arg1->unk_08.y, arg8, arg9);
-    arg1->unk_14.z = fn_1_1B52C(arg0->unk_14.z, arg1->unk_08.z, arg8, arg9);
-    arg1->unk_2C.x = fn_1_1B52C(arg0->unk_2C.x, arg1->unk_20.x, arg8, arg9);
-    arg1->unk_2C.y = fn_1_1B52C(arg0->unk_2C.y, arg1->unk_20.y, arg8, arg9);
-    arg1->unk_2C.z = fn_1_1B52C(arg0->unk_2C.z, arg1->unk_20.z, arg8, arg9);
-    arg1->unk_3C = fn_1_1B52C(arg0->unk_3C, arg1->unk_38, arg8, arg9);
+    targetCamera->targetCenter.x = InterpolateLinear(sourceCamera->targetCenter.x, targetCamera->currentCenter.x, frameIndex, frameCount);
+    targetCamera->targetCenter.y = InterpolateLinear(sourceCamera->targetCenter.y, targetCamera->currentCenter.y, frameIndex, frameCount);
+    targetCamera->targetCenter.z = InterpolateLinear(sourceCamera->targetCenter.z, targetCamera->currentCenter.z, frameIndex, frameCount);
+    targetCamera->targetRotation.x = InterpolateLinear(sourceCamera->targetRotation.x, targetCamera->currentRotation.x, frameIndex, frameCount);
+    targetCamera->targetRotation.y = InterpolateLinear(sourceCamera->targetRotation.y, targetCamera->currentRotation.y, frameIndex, frameCount);
+    targetCamera->targetRotation.z = InterpolateLinear(sourceCamera->targetRotation.z, targetCamera->currentRotation.z, frameIndex, frameCount);
+    targetCamera->targetZoom = InterpolateLinear(sourceCamera->targetZoom, targetCamera->currentZoom, frameIndex, frameCount);
 }
 
-void fn_1_1048(MpexDllUnkStruct *arg0, MpexDllUnkStruct *arg1, float arg8, float arg9, float argC)
+void InterpolateAndApplyCameraWorkTargets(MpexCameraWork *sourceCamera, MpexCameraWork *targetCamera, float frameIndex, float frameCount, float unusedBlendFactor)
 {
-    arg1->unk_14.x = fn_1_1B52C(arg0->unk_14.x, arg1->unk_08.x, arg8, arg9);
-    arg1->unk_14.y = fn_1_1B52C(arg0->unk_14.y, arg1->unk_08.y, arg8, arg9);
-    arg1->unk_14.z = fn_1_1B52C(arg0->unk_14.z, arg1->unk_08.z, arg8, arg9);
-    arg1->unk_2C.x = fn_1_1B52C(arg0->unk_2C.x, arg1->unk_20.x, arg8, arg9);
-    arg1->unk_2C.y = fn_1_1B52C(arg0->unk_2C.y, arg1->unk_20.y, arg8, arg9);
-    arg1->unk_2C.z = fn_1_1B52C(arg0->unk_2C.z, arg1->unk_20.z, arg8, arg9);
-    arg1->unk_3C = fn_1_1B52C(arg0->unk_3C, arg1->unk_38, arg8, arg9);
-    arg0->unk_08.x = arg1->unk_14.x;
-    arg0->unk_08.y = arg1->unk_14.y;
-    arg0->unk_08.z = arg1->unk_14.z;
-    arg0->unk_20.x = arg1->unk_2C.x;
-    arg0->unk_20.y = arg1->unk_2C.y;
-    arg0->unk_20.z = arg1->unk_2C.z;
-    arg0->unk_38 = arg1->unk_3C;
+    targetCamera->targetCenter.x = InterpolateLinear(sourceCamera->targetCenter.x, targetCamera->currentCenter.x, frameIndex, frameCount);
+    targetCamera->targetCenter.y = InterpolateLinear(sourceCamera->targetCenter.y, targetCamera->currentCenter.y, frameIndex, frameCount);
+    targetCamera->targetCenter.z = InterpolateLinear(sourceCamera->targetCenter.z, targetCamera->currentCenter.z, frameIndex, frameCount);
+    targetCamera->targetRotation.x = InterpolateLinear(sourceCamera->targetRotation.x, targetCamera->currentRotation.x, frameIndex, frameCount);
+    targetCamera->targetRotation.y = InterpolateLinear(sourceCamera->targetRotation.y, targetCamera->currentRotation.y, frameIndex, frameCount);
+    targetCamera->targetRotation.z = InterpolateLinear(sourceCamera->targetRotation.z, targetCamera->currentRotation.z, frameIndex, frameCount);
+    targetCamera->targetZoom = InterpolateLinear(sourceCamera->targetZoom, targetCamera->currentZoom, frameIndex, frameCount);
+    sourceCamera->currentCenter.x = targetCamera->targetCenter.x;
+    sourceCamera->currentCenter.y = targetCamera->targetCenter.y;
+    sourceCamera->currentCenter.z = targetCamera->targetCenter.z;
+    sourceCamera->currentRotation.x = targetCamera->targetRotation.x;
+    sourceCamera->currentRotation.y = targetCamera->targetRotation.y;
+    sourceCamera->currentRotation.z = targetCamera->targetRotation.z;
+    sourceCamera->currentZoom = targetCamera->targetZoom;
 }
 
-void fn_1_1280(MpexDllUnkStruct *arg0, MpexDllUnkStruct *arg1, float arg8, float arg9, float argA, float argC)
+void InterpolateAndEaseCameraWorkTargets(MpexCameraWork *sourceCamera, MpexCameraWork *targetCamera, float frameIndex, float frameCount, float interpolationStep, float unusedBlendFactor)
 {
-    arg1->unk_14.x = fn_1_1B52C(arg0->unk_14.x, arg1->unk_08.x, arg8, arg9);
-    arg1->unk_14.y = fn_1_1B52C(arg0->unk_14.y, arg1->unk_08.y, arg8, arg9);
-    arg1->unk_14.z = fn_1_1B52C(arg0->unk_14.z, arg1->unk_08.z, arg8, arg9);
-    arg1->unk_2C.x = fn_1_1B52C(arg0->unk_2C.x, arg1->unk_20.x, arg8, arg9);
-    arg1->unk_2C.y = fn_1_1B52C(arg0->unk_2C.y, arg1->unk_20.y, arg8, arg9);
-    arg1->unk_2C.z = fn_1_1B52C(arg0->unk_2C.z, arg1->unk_20.z, arg8, arg9);
-    arg1->unk_3C = fn_1_1B52C(arg0->unk_3C, arg1->unk_38, arg8, arg9);
-    arg0->unk_08.x = fn_1_1B554(arg0->unk_08.x, arg1->unk_14.x, argA);
-    arg0->unk_08.y = fn_1_1B554(arg0->unk_08.y, arg1->unk_14.y, argA);
-    arg0->unk_08.z = fn_1_1B554(arg0->unk_08.z, arg1->unk_14.z, argA);
-    arg0->unk_20.x = fn_1_1B554(arg0->unk_20.x, arg1->unk_2C.x, argA);
-    arg0->unk_20.y = fn_1_1B554(arg0->unk_20.y, arg1->unk_2C.y, argA);
-    arg0->unk_20.z = fn_1_1B554(arg0->unk_20.z, arg1->unk_2C.z, argA);
-    arg0->unk_38 = fn_1_1B554(arg0->unk_38, arg1->unk_3C, argA);
+    targetCamera->targetCenter.x = InterpolateLinear(sourceCamera->targetCenter.x, targetCamera->currentCenter.x, frameIndex, frameCount);
+    targetCamera->targetCenter.y = InterpolateLinear(sourceCamera->targetCenter.y, targetCamera->currentCenter.y, frameIndex, frameCount);
+    targetCamera->targetCenter.z = InterpolateLinear(sourceCamera->targetCenter.z, targetCamera->currentCenter.z, frameIndex, frameCount);
+    targetCamera->targetRotation.x = InterpolateLinear(sourceCamera->targetRotation.x, targetCamera->currentRotation.x, frameIndex, frameCount);
+    targetCamera->targetRotation.y = InterpolateLinear(sourceCamera->targetRotation.y, targetCamera->currentRotation.y, frameIndex, frameCount);
+    targetCamera->targetRotation.z = InterpolateLinear(sourceCamera->targetRotation.z, targetCamera->currentRotation.z, frameIndex, frameCount);
+    targetCamera->targetZoom = InterpolateLinear(sourceCamera->targetZoom, targetCamera->currentZoom, frameIndex, frameCount);
+    sourceCamera->currentCenter.x = InterpolateByStep(sourceCamera->currentCenter.x, targetCamera->targetCenter.x, interpolationStep);
+    sourceCamera->currentCenter.y = InterpolateByStep(sourceCamera->currentCenter.y, targetCamera->targetCenter.y, interpolationStep);
+    sourceCamera->currentCenter.z = InterpolateByStep(sourceCamera->currentCenter.z, targetCamera->targetCenter.z, interpolationStep);
+    sourceCamera->currentRotation.x = InterpolateByStep(sourceCamera->currentRotation.x, targetCamera->targetRotation.x, interpolationStep);
+    sourceCamera->currentRotation.y = InterpolateByStep(sourceCamera->currentRotation.y, targetCamera->targetRotation.y, interpolationStep);
+    sourceCamera->currentRotation.z = InterpolateByStep(sourceCamera->currentRotation.z, targetCamera->targetRotation.z, interpolationStep);
+    sourceCamera->currentZoom = InterpolateByStep(sourceCamera->currentZoom, targetCamera->targetZoom, interpolationStep);
 }
 
-void fn_1_161C(MpexDllUnkStruct *arg0, MpexDllUnkStruct *arg1, float arg8, float arg9, float argC)
+void SineInterpolateCameraWorkTargets(MpexCameraWork *sourceCamera, MpexCameraWork *targetCamera, float frameIndex, float frameCount, float unusedBlendFactor)
 {
-    arg1->unk_14.x = fn_1_1B64C(arg0->unk_14.x, arg1->unk_08.x, arg8, arg9);
-    arg1->unk_14.y = fn_1_1B64C(arg0->unk_14.y, arg1->unk_08.y, arg8, arg9);
-    arg1->unk_14.z = fn_1_1B64C(arg0->unk_14.z, arg1->unk_08.z, arg8, arg9);
-    arg1->unk_2C.x = fn_1_1B64C(arg0->unk_2C.x, arg1->unk_20.x, arg8, arg9);
-    arg1->unk_2C.y = fn_1_1B64C(arg0->unk_2C.y, arg1->unk_20.y, arg8, arg9);
-    arg1->unk_2C.z = fn_1_1B64C(arg0->unk_2C.z, arg1->unk_20.z, arg8, arg9);
-    arg1->unk_3C = fn_1_1B64C(arg0->unk_3C, arg1->unk_38, arg8, arg9);
+    targetCamera->targetCenter.x = InterpolateSine(sourceCamera->targetCenter.x, targetCamera->currentCenter.x, frameIndex, frameCount);
+    targetCamera->targetCenter.y = InterpolateSine(sourceCamera->targetCenter.y, targetCamera->currentCenter.y, frameIndex, frameCount);
+    targetCamera->targetCenter.z = InterpolateSine(sourceCamera->targetCenter.z, targetCamera->currentCenter.z, frameIndex, frameCount);
+    targetCamera->targetRotation.x = InterpolateSine(sourceCamera->targetRotation.x, targetCamera->currentRotation.x, frameIndex, frameCount);
+    targetCamera->targetRotation.y = InterpolateSine(sourceCamera->targetRotation.y, targetCamera->currentRotation.y, frameIndex, frameCount);
+    targetCamera->targetRotation.z = InterpolateSine(sourceCamera->targetRotation.z, targetCamera->currentRotation.z, frameIndex, frameCount);
+    targetCamera->targetZoom = InterpolateSine(sourceCamera->targetZoom, targetCamera->currentZoom, frameIndex, frameCount);
 }
 
-void fn_1_181C(MpexDllUnkStruct *arg0, MpexDllUnkStruct *arg1, float arg8, float arg9, float argC)
+void SineInterpolateAndApplyCameraWorkTargets(MpexCameraWork *sourceCamera, MpexCameraWork *targetCamera, float frameIndex, float frameCount, float unusedBlendFactor)
 {
-    arg1->unk_14.x = fn_1_1B64C(arg0->unk_14.x, arg1->unk_08.x, arg8, arg9);
-    arg1->unk_14.y = fn_1_1B64C(arg0->unk_14.y, arg1->unk_08.y, arg8, arg9);
-    arg1->unk_14.z = fn_1_1B64C(arg0->unk_14.z, arg1->unk_08.z, arg8, arg9);
-    arg1->unk_2C.x = fn_1_1B64C(arg0->unk_2C.x, arg1->unk_20.x, arg8, arg9);
-    arg1->unk_2C.y = fn_1_1B64C(arg0->unk_2C.y, arg1->unk_20.y, arg8, arg9);
-    arg1->unk_2C.z = fn_1_1B64C(arg0->unk_2C.z, arg1->unk_20.z, arg8, arg9);
-    arg1->unk_3C = fn_1_1B64C(arg0->unk_3C, arg1->unk_38, arg8, arg9);
-    arg0->unk_08.x = arg1->unk_14.x;
-    arg0->unk_08.y = arg1->unk_14.y;
-    arg0->unk_08.z = arg1->unk_14.z;
-    arg0->unk_20.x = arg1->unk_2C.x;
-    arg0->unk_20.y = arg1->unk_2C.y;
-    arg0->unk_20.z = arg1->unk_2C.z;
-    arg0->unk_38 = arg1->unk_3C;
+    targetCamera->targetCenter.x = InterpolateSine(sourceCamera->targetCenter.x, targetCamera->currentCenter.x, frameIndex, frameCount);
+    targetCamera->targetCenter.y = InterpolateSine(sourceCamera->targetCenter.y, targetCamera->currentCenter.y, frameIndex, frameCount);
+    targetCamera->targetCenter.z = InterpolateSine(sourceCamera->targetCenter.z, targetCamera->currentCenter.z, frameIndex, frameCount);
+    targetCamera->targetRotation.x = InterpolateSine(sourceCamera->targetRotation.x, targetCamera->currentRotation.x, frameIndex, frameCount);
+    targetCamera->targetRotation.y = InterpolateSine(sourceCamera->targetRotation.y, targetCamera->currentRotation.y, frameIndex, frameCount);
+    targetCamera->targetRotation.z = InterpolateSine(sourceCamera->targetRotation.z, targetCamera->currentRotation.z, frameIndex, frameCount);
+    targetCamera->targetZoom = InterpolateSine(sourceCamera->targetZoom, targetCamera->currentZoom, frameIndex, frameCount);
+    sourceCamera->currentCenter.x = targetCamera->targetCenter.x;
+    sourceCamera->currentCenter.y = targetCamera->targetCenter.y;
+    sourceCamera->currentCenter.z = targetCamera->targetCenter.z;
+    sourceCamera->currentRotation.x = targetCamera->targetRotation.x;
+    sourceCamera->currentRotation.y = targetCamera->targetRotation.y;
+    sourceCamera->currentRotation.z = targetCamera->targetRotation.z;
+    sourceCamera->currentZoom = targetCamera->targetZoom;
 }
 
-void fn_1_1A54(MpexDllUnkStruct *arg0, MpexDllUnkStruct *arg1, float arg8, float arg9, float argA, float argC)
+void SineInterpolateAndEaseCameraWorkTargets(MpexCameraWork *sourceCamera, MpexCameraWork *targetCamera, float frameIndex, float frameCount, float interpolationStep, float unusedBlendFactor)
 {
-    arg1->unk_14.x = fn_1_1B64C(arg0->unk_14.x, arg1->unk_08.x, arg8, arg9);
-    arg1->unk_14.y = fn_1_1B64C(arg0->unk_14.y, arg1->unk_08.y, arg8, arg9);
-    arg1->unk_14.z = fn_1_1B64C(arg0->unk_14.z, arg1->unk_08.z, arg8, arg9);
-    arg1->unk_2C.x = fn_1_1B64C(arg0->unk_2C.x, arg1->unk_20.x, arg8, arg9);
-    arg1->unk_2C.y = fn_1_1B64C(arg0->unk_2C.y, arg1->unk_20.y, arg8, arg9);
-    arg1->unk_2C.z = fn_1_1B64C(arg0->unk_2C.z, arg1->unk_20.z, arg8, arg9);
-    arg1->unk_3C = fn_1_1B64C(arg0->unk_3C, arg1->unk_38, arg8, arg9);
-    arg0->unk_08.x = fn_1_1B554(arg0->unk_08.x, arg1->unk_14.x, argA);
-    arg0->unk_08.y = fn_1_1B554(arg0->unk_08.y, arg1->unk_14.y, argA);
-    arg0->unk_08.z = fn_1_1B554(arg0->unk_08.z, arg1->unk_14.z, argA);
-    arg0->unk_20.x = fn_1_1B554(arg0->unk_20.x, arg1->unk_2C.x, argA);
-    arg0->unk_20.y = fn_1_1B554(arg0->unk_20.y, arg1->unk_2C.y, argA);
-    arg0->unk_20.z = fn_1_1B554(arg0->unk_20.z, arg1->unk_2C.z, argA);
-    arg0->unk_38 = fn_1_1B554(arg0->unk_38, arg1->unk_3C, argA);
+    targetCamera->targetCenter.x = InterpolateSine(sourceCamera->targetCenter.x, targetCamera->currentCenter.x, frameIndex, frameCount);
+    targetCamera->targetCenter.y = InterpolateSine(sourceCamera->targetCenter.y, targetCamera->currentCenter.y, frameIndex, frameCount);
+    targetCamera->targetCenter.z = InterpolateSine(sourceCamera->targetCenter.z, targetCamera->currentCenter.z, frameIndex, frameCount);
+    targetCamera->targetRotation.x = InterpolateSine(sourceCamera->targetRotation.x, targetCamera->currentRotation.x, frameIndex, frameCount);
+    targetCamera->targetRotation.y = InterpolateSine(sourceCamera->targetRotation.y, targetCamera->currentRotation.y, frameIndex, frameCount);
+    targetCamera->targetRotation.z = InterpolateSine(sourceCamera->targetRotation.z, targetCamera->currentRotation.z, frameIndex, frameCount);
+    targetCamera->targetZoom = InterpolateSine(sourceCamera->targetZoom, targetCamera->currentZoom, frameIndex, frameCount);
+    sourceCamera->currentCenter.x = InterpolateByStep(sourceCamera->currentCenter.x, targetCamera->targetCenter.x, interpolationStep);
+    sourceCamera->currentCenter.y = InterpolateByStep(sourceCamera->currentCenter.y, targetCamera->targetCenter.y, interpolationStep);
+    sourceCamera->currentCenter.z = InterpolateByStep(sourceCamera->currentCenter.z, targetCamera->targetCenter.z, interpolationStep);
+    sourceCamera->currentRotation.x = InterpolateByStep(sourceCamera->currentRotation.x, targetCamera->targetRotation.x, interpolationStep);
+    sourceCamera->currentRotation.y = InterpolateByStep(sourceCamera->currentRotation.y, targetCamera->targetRotation.y, interpolationStep);
+    sourceCamera->currentRotation.z = InterpolateByStep(sourceCamera->currentRotation.z, targetCamera->targetRotation.z, interpolationStep);
+    sourceCamera->currentZoom = InterpolateByStep(sourceCamera->currentZoom, targetCamera->targetZoom, interpolationStep);
 }
 
-void fn_1_1DF0(MpexDllUnkStruct *arg0, MpexDllUnkStruct *arg1, float arg8, float arg9, float argC)
+void CosineInterpolateCameraWorkTargets(MpexCameraWork *sourceCamera, MpexCameraWork *targetCamera, float frameIndex, float frameCount, float unusedBlendFactor)
 {
-    arg1->unk_14.x = fn_1_1B574(arg0->unk_14.x, arg1->unk_08.x, arg8, arg9);
-    arg1->unk_14.y = fn_1_1B574(arg0->unk_14.y, arg1->unk_08.y, arg8, arg9);
-    arg1->unk_14.z = fn_1_1B574(arg0->unk_14.z, arg1->unk_08.z, arg8, arg9);
-    arg1->unk_2C.x = fn_1_1B574(arg0->unk_2C.x, arg1->unk_20.x, arg8, arg9);
-    arg1->unk_2C.y = fn_1_1B574(arg0->unk_2C.y, arg1->unk_20.y, arg8, arg9);
-    arg1->unk_2C.z = fn_1_1B574(arg0->unk_2C.z, arg1->unk_20.z, arg8, arg9);
-    arg1->unk_3C = fn_1_1B574(arg0->unk_3C, arg1->unk_38, arg8, arg9);
+    targetCamera->targetCenter.x = InterpolateCosine(sourceCamera->targetCenter.x, targetCamera->currentCenter.x, frameIndex, frameCount);
+    targetCamera->targetCenter.y = InterpolateCosine(sourceCamera->targetCenter.y, targetCamera->currentCenter.y, frameIndex, frameCount);
+    targetCamera->targetCenter.z = InterpolateCosine(sourceCamera->targetCenter.z, targetCamera->currentCenter.z, frameIndex, frameCount);
+    targetCamera->targetRotation.x = InterpolateCosine(sourceCamera->targetRotation.x, targetCamera->currentRotation.x, frameIndex, frameCount);
+    targetCamera->targetRotation.y = InterpolateCosine(sourceCamera->targetRotation.y, targetCamera->currentRotation.y, frameIndex, frameCount);
+    targetCamera->targetRotation.z = InterpolateCosine(sourceCamera->targetRotation.z, targetCamera->currentRotation.z, frameIndex, frameCount);
+    targetCamera->targetZoom = InterpolateCosine(sourceCamera->targetZoom, targetCamera->currentZoom, frameIndex, frameCount);
 }
 
-void fn_1_1FF0(MpexDllUnkStruct *arg0, MpexDllUnkStruct *arg1, float arg8, float arg9, float argC)
+void CosineInterpolateAndApplyCameraWorkTargets(MpexCameraWork *sourceCamera, MpexCameraWork *targetCamera, float frameIndex, float frameCount, float unusedBlendFactor)
 {
-    arg1->unk_14.x = fn_1_1B574(arg0->unk_14.x, arg1->unk_08.x, arg8, arg9);
-    arg1->unk_14.y = fn_1_1B574(arg0->unk_14.y, arg1->unk_08.y, arg8, arg9);
-    arg1->unk_14.z = fn_1_1B574(arg0->unk_14.z, arg1->unk_08.z, arg8, arg9);
-    arg1->unk_2C.x = fn_1_1B574(arg0->unk_2C.x, arg1->unk_20.x, arg8, arg9);
-    arg1->unk_2C.y = fn_1_1B574(arg0->unk_2C.y, arg1->unk_20.y, arg8, arg9);
-    arg1->unk_2C.z = fn_1_1B574(arg0->unk_2C.z, arg1->unk_20.z, arg8, arg9);
-    arg1->unk_3C = fn_1_1B574(arg0->unk_3C, arg1->unk_38, arg8, arg9);
-    arg0->unk_08.x = arg1->unk_14.x;
-    arg0->unk_08.y = arg1->unk_14.y;
-    arg0->unk_08.z = arg1->unk_14.z;
-    arg0->unk_20.x = arg1->unk_2C.x;
-    arg0->unk_20.y = arg1->unk_2C.y;
-    arg0->unk_20.z = arg1->unk_2C.z;
-    arg0->unk_38 = arg1->unk_3C;
+    targetCamera->targetCenter.x = InterpolateCosine(sourceCamera->targetCenter.x, targetCamera->currentCenter.x, frameIndex, frameCount);
+    targetCamera->targetCenter.y = InterpolateCosine(sourceCamera->targetCenter.y, targetCamera->currentCenter.y, frameIndex, frameCount);
+    targetCamera->targetCenter.z = InterpolateCosine(sourceCamera->targetCenter.z, targetCamera->currentCenter.z, frameIndex, frameCount);
+    targetCamera->targetRotation.x = InterpolateCosine(sourceCamera->targetRotation.x, targetCamera->currentRotation.x, frameIndex, frameCount);
+    targetCamera->targetRotation.y = InterpolateCosine(sourceCamera->targetRotation.y, targetCamera->currentRotation.y, frameIndex, frameCount);
+    targetCamera->targetRotation.z = InterpolateCosine(sourceCamera->targetRotation.z, targetCamera->currentRotation.z, frameIndex, frameCount);
+    targetCamera->targetZoom = InterpolateCosine(sourceCamera->targetZoom, targetCamera->currentZoom, frameIndex, frameCount);
+    sourceCamera->currentCenter.x = targetCamera->targetCenter.x;
+    sourceCamera->currentCenter.y = targetCamera->targetCenter.y;
+    sourceCamera->currentCenter.z = targetCamera->targetCenter.z;
+    sourceCamera->currentRotation.x = targetCamera->targetRotation.x;
+    sourceCamera->currentRotation.y = targetCamera->targetRotation.y;
+    sourceCamera->currentRotation.z = targetCamera->targetRotation.z;
+    sourceCamera->currentZoom = targetCamera->targetZoom;
 }
 
-void fn_1_2228(MpexDllUnkStruct *arg0, MpexDllUnkStruct *arg1, float arg8, float arg9, float argA, float argC)
+void CosineInterpolateAndEaseCameraWorkTargets(MpexCameraWork *sourceCamera, MpexCameraWork *targetCamera, float frameIndex, float frameCount, float interpolationStep, float unusedBlendFactor)
 {
-    arg1->unk_14.x = fn_1_1B574(arg0->unk_14.x, arg1->unk_08.x, arg8, arg9);
-    arg1->unk_14.y = fn_1_1B574(arg0->unk_14.y, arg1->unk_08.y, arg8, arg9);
-    arg1->unk_14.z = fn_1_1B574(arg0->unk_14.z, arg1->unk_08.z, arg8, arg9);
-    arg1->unk_2C.x = fn_1_1B574(arg0->unk_2C.x, arg1->unk_20.x, arg8, arg9);
-    arg1->unk_2C.y = fn_1_1B574(arg0->unk_2C.y, arg1->unk_20.y, arg8, arg9);
-    arg1->unk_2C.z = fn_1_1B574(arg0->unk_2C.z, arg1->unk_20.z, arg8, arg9);
-    arg1->unk_3C = fn_1_1B574(arg0->unk_3C, arg1->unk_38, arg8, arg9);
-    arg0->unk_08.x = fn_1_1B554(arg0->unk_08.x, arg1->unk_14.x, argA);
-    arg0->unk_08.y = fn_1_1B554(arg0->unk_08.y, arg1->unk_14.y, argA);
-    arg0->unk_08.z = fn_1_1B554(arg0->unk_08.z, arg1->unk_14.z, argA);
-    arg0->unk_20.x = fn_1_1B554(arg0->unk_20.x, arg1->unk_2C.x, argA);
-    arg0->unk_20.y = fn_1_1B554(arg0->unk_20.y, arg1->unk_2C.y, argA);
-    arg0->unk_20.z = fn_1_1B554(arg0->unk_20.z, arg1->unk_2C.z, argA);
-    arg0->unk_38 = fn_1_1B554(arg0->unk_38, arg1->unk_3C, argA);
+    targetCamera->targetCenter.x = InterpolateCosine(sourceCamera->targetCenter.x, targetCamera->currentCenter.x, frameIndex, frameCount);
+    targetCamera->targetCenter.y = InterpolateCosine(sourceCamera->targetCenter.y, targetCamera->currentCenter.y, frameIndex, frameCount);
+    targetCamera->targetCenter.z = InterpolateCosine(sourceCamera->targetCenter.z, targetCamera->currentCenter.z, frameIndex, frameCount);
+    targetCamera->targetRotation.x = InterpolateCosine(sourceCamera->targetRotation.x, targetCamera->currentRotation.x, frameIndex, frameCount);
+    targetCamera->targetRotation.y = InterpolateCosine(sourceCamera->targetRotation.y, targetCamera->currentRotation.y, frameIndex, frameCount);
+    targetCamera->targetRotation.z = InterpolateCosine(sourceCamera->targetRotation.z, targetCamera->currentRotation.z, frameIndex, frameCount);
+    targetCamera->targetZoom = InterpolateCosine(sourceCamera->targetZoom, targetCamera->currentZoom, frameIndex, frameCount);
+    sourceCamera->currentCenter.x = InterpolateByStep(sourceCamera->currentCenter.x, targetCamera->targetCenter.x, interpolationStep);
+    sourceCamera->currentCenter.y = InterpolateByStep(sourceCamera->currentCenter.y, targetCamera->targetCenter.y, interpolationStep);
+    sourceCamera->currentCenter.z = InterpolateByStep(sourceCamera->currentCenter.z, targetCamera->targetCenter.z, interpolationStep);
+    sourceCamera->currentRotation.x = InterpolateByStep(sourceCamera->currentRotation.x, targetCamera->targetRotation.x, interpolationStep);
+    sourceCamera->currentRotation.y = InterpolateByStep(sourceCamera->currentRotation.y, targetCamera->targetRotation.y, interpolationStep);
+    sourceCamera->currentRotation.z = InterpolateByStep(sourceCamera->currentRotation.z, targetCamera->targetRotation.z, interpolationStep);
+    sourceCamera->currentZoom = InterpolateByStep(sourceCamera->currentZoom, targetCamera->targetZoom, interpolationStep);
 }
 
-void fn_1_25C4(OMOBJ *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void SetModelMotionWithTransition(OMOBJ *object, s32 modelIndex, s32 motionIndex, s32 transitionFrames, s32 loopMode)
 {
-    switch (arg4) {
+    switch (loopMode) {
         case 0:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0);
+            Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0);
             break;
         case 1:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000001);
+            Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0x40000001);
             break;
         case 2:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000002);
+            Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0x40000002);
             break;
     }
 }
 
-void fn_1_273C(OMOBJ *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void SetModelMotionWithTransitionIfChanged(OMOBJ *object, s32 modelIndex, s32 motionIndex, s32 transitionFrames, s32 loopMode)
 {
-    if (arg0->work[3] != arg0->mtnId[arg2]) {
-        arg0->work[3] = arg0->mtnId[arg2];
-        switch (arg4) {
+    if (object->work[3] != object->mtnId[motionIndex]) {
+        object->work[3] = object->mtnId[motionIndex];
+        switch (loopMode) {
             case 0:
-                Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0);
+                Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0);
                 break;
             case 1:
-                Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000001);
+                Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0x40000001);
                 break;
             case 2:
-                Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, 0x40000002);
+                Hu3DMotionShiftSet(object->mdlId[modelIndex], object->mtnId[motionIndex], 0.0f, transitionFrames, 0x40000002);
                 break;
         }
     }
 }
 
-void fn_1_28DC(void) { }
+void EmptyCameraHelper(void) { }
 
-void fn_1_28E0(OMOBJ *arg0, s32 arg1, Vec arg2, float arg8, float arg9, float argA, s32 arg3, s32 arg4)
+void MoveModelTowardPosition(OMOBJ *object, s32 modelIndex, Vec targetPosition, float startHeight, float movementSpeed, float rotationStep, s32 movementFrames, s32 rotateWhileMoving)
 {
-    Vec sp4C;
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
+    Vec modelPosition;
+    Vec currentPosition;
+    Vec destinationPosition;
+    Vec targetRotation;
+    Vec currentRotation;
+    Vec verticalOffset;
 
-    s32 var_r29 = 0;
-    s32 var_r28 = 0;
-    s32 var_r26;
+    s32 xDirection = 0;
+    s32 zDirection = 0;
+    s32 rotationFrame;
 
-    sp40.x = Hu3DData[arg0->mdlId[arg1]].pos.x;
-    sp40.y = Hu3DData[arg0->mdlId[arg1]].pos.y;
-    sp40.z = Hu3DData[arg0->mdlId[arg1]].pos.z;
+    currentPosition.x = Hu3DData[object->mdlId[modelIndex]].pos.x;
+    currentPosition.y = Hu3DData[object->mdlId[modelIndex]].pos.y;
+    currentPosition.z = Hu3DData[object->mdlId[modelIndex]].pos.z;
 
-    sp34.x = arg2.x;
-    sp34.y = arg2.y;
-    sp34.z = arg2.z;
+    destinationPosition.x = targetPosition.x;
+    destinationPosition.y = targetPosition.y;
+    destinationPosition.z = targetPosition.z;
 
-    sp1C.x = Hu3DData[arg0->mdlId[arg1]].rot.x;
-    sp1C.y = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    sp1C.z = Hu3DData[arg0->mdlId[arg1]].rot.z;
+    currentRotation.x = Hu3DData[object->mdlId[modelIndex]].rot.x;
+    currentRotation.y = Hu3DData[object->mdlId[modelIndex]].rot.y;
+    currentRotation.z = Hu3DData[object->mdlId[modelIndex]].rot.z;
 
-    sp10.x = 0.0f;
-    sp10.y = arg8;
-    sp10.z = 0.0f;
+    verticalOffset.x = 0.0f;
+    verticalOffset.y = startHeight;
+    verticalOffset.z = 0.0f;
 
-    if ((sp34.x - sp40.x) >= 0.0f) {
-        var_r29 = 1;
+    if ((destinationPosition.x - currentPosition.x) >= 0.0f) {
+        xDirection = 1;
     }
     else {
-        var_r29 = 0;
+        xDirection = 0;
     }
-    if ((sp34.z - sp40.z) >= 0.0f) {
-        var_r28 = 1;
+    if ((destinationPosition.z - currentPosition.z) >= 0.0f) {
+        zDirection = 1;
     }
     else {
-        var_r28 = 0;
+        zDirection = 0;
     }
-    while (arg3 != 0) {
-        fn_1_1B7D0(1);
-        sp28.y = -((atan2d(sp34.z - sp40.z, sp34.x - sp40.x)) - 90.0);
-        if (sp28.y < 0.0f) {
-            sp28.y += 360.0f;
+    while (movementFrames != 0) {
+        WaitFrames(1);
+        targetRotation.y = -((atan2d(destinationPosition.z - currentPosition.z, destinationPosition.x - currentPosition.x)) - 90.0);
+        if (targetRotation.y < 0.0f) {
+            targetRotation.y += 360.0f;
         }
-        else if (sp28.y >= 360.0f) {
-            sp28.y -= 360.0f;
+        else if (targetRotation.y >= 360.0f) {
+            targetRotation.y -= 360.0f;
         }
-        if (arg4 != 0) {
-            if (sp28.y >= 180.0f) {
-                if ((sp1C.y - sp28.y) >= 180.0f) {
-                    sp1C.y -= 360.0f;
+        if (rotateWhileMoving != 0) {
+            if (targetRotation.y >= 180.0f) {
+                if ((currentRotation.y - targetRotation.y) >= 180.0f) {
+                    currentRotation.y -= 360.0f;
                 }
-                if ((sp1C.y - sp28.y) < -180.0f) {
-                    sp1C.y += 360.0f;
+                if ((currentRotation.y - targetRotation.y) < -180.0f) {
+                    currentRotation.y += 360.0f;
                 }
             }
             else {
-                if ((sp1C.y - sp28.y) > 180.0f) {
-                    sp1C.y -= 360.0f;
+                if ((currentRotation.y - targetRotation.y) > 180.0f) {
+                    currentRotation.y -= 360.0f;
                 }
-                if ((sp1C.y - sp28.y) <= -180.0f) {
-                    sp1C.y += 360.0f;
+                if ((currentRotation.y - targetRotation.y) <= -180.0f) {
+                    currentRotation.y += 360.0f;
                 }
             }
         }
-        sp4C.x = (sp40.x += (arg9 * sind(sp28.y)));
-        sp4C.z = (sp40.z += (arg9 * cosd(sp28.y)));
-        if (var_r29 == 1) {
-            if (sp40.x >= sp34.x) {
-                sp4C.x = sp40.x = sp34.x;
-                var_r29 = 2;
+        modelPosition.x = (currentPosition.x += (movementSpeed * sind(targetRotation.y)));
+        modelPosition.z = (currentPosition.z += (movementSpeed * cosd(targetRotation.y)));
+        if (xDirection == 1) {
+            if (currentPosition.x >= destinationPosition.x) {
+                modelPosition.x = currentPosition.x = destinationPosition.x;
+                xDirection = 2;
             }
         }
-        else if ((var_r29 == 0) && (sp40.x <= sp34.x)) {
-            sp4C.x = sp40.x = sp34.x;
-            var_r29 = 2;
+        else if ((xDirection == 0) && (currentPosition.x <= destinationPosition.x)) {
+            modelPosition.x = currentPosition.x = destinationPosition.x;
+            xDirection = 2;
         }
-        if (var_r28 == 1) {
-            if (sp40.z >= sp34.z) {
-                sp4C.z = sp40.z = sp34.z;
-                var_r28 = 2;
+        if (zDirection == 1) {
+            if (currentPosition.z >= destinationPosition.z) {
+                modelPosition.z = currentPosition.z = destinationPosition.z;
+                zDirection = 2;
             }
         }
-        else if ((var_r28 == 0) && (sp40.z <= sp34.z)) {
-            sp4C.z = sp40.z = sp34.z;
-            var_r28 = 2;
+        else if ((zDirection == 0) && (currentPosition.z <= destinationPosition.z)) {
+            modelPosition.z = currentPosition.z = destinationPosition.z;
+            zDirection = 2;
         }
-        if (arg4 != 0) {
-            sp1C.y = fn_1_1B554(sp1C.y, sp28.y, argA);
+        if (rotateWhileMoving != 0) {
+            currentRotation.y = InterpolateByStep(currentRotation.y, targetRotation.y, rotationStep);
         }
-        Hu3DModelPosSet(arg0->mdlId[arg1], sp4C.x, sp40.y, sp4C.z);
-        Hu3DModelRotSet(arg0->mdlId[arg1], sp1C.x, sp1C.y, sp1C.z);
+        Hu3DModelPosSet(object->mdlId[modelIndex], modelPosition.x, currentPosition.y, modelPosition.z);
+        Hu3DModelRotSet(object->mdlId[modelIndex], currentRotation.x, currentRotation.y, currentRotation.z);
 
-        if (var_r29 == 2 && var_r28 == 2) {
+        if (xDirection == 2 && zDirection == 2) {
             break;
         }
     };
 
-    sp1C.y = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    if (arg4 != 0) {
-        for (var_r26 = 0; var_r26 <= argA; var_r26++) {
-            fn_1_1B7D0(1);
-            if (sp10.y >= 180.0f) {
-                if ((sp1C.y - sp10.y) >= 180.0f) {
-                    sp1C.y -= 360.0f;
+    currentRotation.y = Hu3DData[object->mdlId[modelIndex]].rot.y;
+    if (rotateWhileMoving != 0) {
+        for (rotationFrame = 0; rotationFrame <= rotationStep; rotationFrame++) {
+            WaitFrames(1);
+            if (verticalOffset.y >= 180.0f) {
+                if ((currentRotation.y - verticalOffset.y) >= 180.0f) {
+                    currentRotation.y -= 360.0f;
                 }
-                if ((sp1C.y - sp10.y) < -180.0f) {
-                    sp1C.y += 360.0f;
+                if ((currentRotation.y - verticalOffset.y) < -180.0f) {
+                    currentRotation.y += 360.0f;
                 }
             }
             else {
-                if ((sp1C.y - sp10.y) > 180.0f) {
-                    sp1C.y -= 360.0f;
+                if ((currentRotation.y - verticalOffset.y) > 180.0f) {
+                    currentRotation.y -= 360.0f;
                 }
-                if ((sp1C.y - sp10.y) <= -180.0f) {
-                    sp1C.y += 360.0f;
+                if ((currentRotation.y - verticalOffset.y) <= -180.0f) {
+                    currentRotation.y += 360.0f;
                 }
             }
-            sp10.z = fn_1_1B52C(sp1C.y, sp10.y, var_r26, argA);
-            Hu3DModelRotSet(arg0->mdlId[arg1], sp1C.x, sp10.z, sp1C.z);
+            verticalOffset.z = InterpolateLinear(currentRotation.y, verticalOffset.y, rotationFrame, rotationStep);
+            Hu3DModelRotSet(object->mdlId[modelIndex], currentRotation.x, verticalOffset.z, currentRotation.z);
         }
     }
 }
