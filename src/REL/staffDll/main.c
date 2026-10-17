@@ -18,24 +18,24 @@
 
 #include "math.h"
 
-typedef struct StaffData {
-    /* 0x00 */ u32 unk_00;
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ float unk_08;
-    /* 0x0C */ u32 unk_0C;
-    /* 0x10 */ s32 logoGroupIdx;
-    /* 0x14 */ s32 unk_14;
-} StaffData;
+typedef struct StaffSequenceEntry {
+    /* 0x00 */ u32 messageId;
+    /* 0x04 */ s32 messageStyle;
+    /* 0x08 */ float displayDuration;
+    /* 0x0C */ u32 advancesPicture;
+    /* 0x10 */ s32 logoSpriteIndex;
+    /* 0x14 */ s32 isFinished;
+} StaffSequenceEntry;
 
-static s16 imgGroup[26];
-static s16 staffLogoGroup[3];
-static s16 thpGroup;
-static s16 thpCoverGroup;
-static s32 staffSide;
-static s32 currImg;
-static OMOBJ *multiViewObj;
+static s16 staffPictureGroups[26];
+static s16 staffLogoGroups[3];
+static s16 staffMovieGroup;
+static s16 staffMovieCoverGroup;
+static s32 staffMessageSide;
+static s32 currentStaffPicture;
+static OMOBJ *staffCameraObject;
 
-static StaffData staffData[] = {
+static StaffSequenceEntry staffSequence[] = {
     { 0x00340001, 0, 0.0f, 0, 0, 0 },
     { 0x00350000, 2, 0.0f, 0, 0, 0 },
     { -3, 0, 72.0f, 0, 0, 0 },
@@ -247,28 +247,28 @@ static StaffData staffData[] = {
 };
 
 #if VERSION_NTSC
-static float staffLogoPosTbl[] = { 460.0f, 293.0f, 293.0f };
+static float staffLogoVerticalPositions[] = { 460.0f, 293.0f, 293.0f };
 #else
-static float staffLogoPosTbl[] = { 460.0f, 290.0f, 293.0f };
+static float staffLogoVerticalPositions[] = { 460.0f, 290.0f, 293.0f };
 #endif
 
-static void MainProc(void);
-static void CreateStaff(void);
-static void ShowPicture(void);
+static void RunStaffSequence(void);
+static void CreateStaffAssets(void);
+static void ShowStaffPictures(void);
 
 void ObjectSetup(void)
 {
-    HUPROCESS *process;
+    HUPROCESS *staffProcess;
 
-    process = omInitObjMan(0x32, 0x2000);
-    omGameSysInit(process);
+    staffProcess = omInitObjMan(0x32, 0x2000);
+    omGameSysInit(staffProcess);
     HuWinInit(1);
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 20.0f, 20.0f, 10000.0f, 1.2f);
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraScissorSet(1, 0, 0, 640, 480);
-    multiViewObj = omAddObjEx(process, 0x7FDA, 0, 0, -1, omOutViewMulti);
-    multiViewObj->work[0] = 1;
+    staffCameraObject = omAddObjEx(staffProcess, 0x7FDA, 0, 0, -1, omOutViewMulti);
+    staffCameraObject->work[0] = 1;
     CRotM[0].x = -35.0f;
     CRotM[0].y = 0.0f;
     CRotM[0].z = 0.0f;
@@ -277,12 +277,12 @@ void ObjectSetup(void)
     CenterM[0].z = -250.0f;
     CZoomM[0] = 4820.0f;
     Hu3DBGColorSet(0, 0, 0);
-    CreateStaff();
-    HuPrcChildCreate(MainProc, 0x1000, 0x2000, 0, HuPrcCurrentGet());
+    CreateStaffAssets();
+    HuPrcChildCreate(RunStaffSequence, 0x1000, 0x2000, 0, HuPrcCurrentGet());
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
 }
 
-static void ExitProc(void)
+static void StaffExitProcess(void)
 {
     while (TRUE) {
         if (omSysExitReq == 1) {
@@ -313,178 +313,178 @@ static void ExitProc(void)
     }
 }
 
-static void CreateStaff(void)
+static void CreateStaffAssets(void)
 {
-    void *var_r29;
-    ANIMDATA *var_r28;
-    s16 var_r30;
-    s32 var_r31;
+    void *assetData;
+    ANIMDATA *spriteAnimation;
+    s16 spriteId;
+    s32 assetIndex;
 
-    staffSide = 0;
-    currImg = 0;
+    staffMessageSide = 0;
+    currentStaffPicture = 0;
 
-    for (var_r31 = 0; var_r31 < 26; var_r31++) {
-        var_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, var_r31), HU_MEMNUM_OVL, HEAP_MODEL);
-        var_r28 = HuSprAnimRead(var_r29);
-        var_r30 = HuSprCreate(var_r28, 16386, 0);
-        imgGroup[var_r31] = HuSprGrpCreate(1);
-        HuSprGrpMemberSet(imgGroup[var_r31], 0, var_r30);
-        if (staffSide != 0) {
-            HuSprGrpPosSet(imgGroup[var_r31], 380.0f, 240.0f);
+    for (assetIndex = 0; assetIndex < 26; assetIndex++) {
+        assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, assetIndex), HU_MEMNUM_OVL, HEAP_MODEL);
+        spriteAnimation = HuSprAnimRead(assetData);
+        spriteId = HuSprCreate(spriteAnimation, 16386, 0);
+        staffPictureGroups[assetIndex] = HuSprGrpCreate(1);
+        HuSprGrpMemberSet(staffPictureGroups[assetIndex], 0, spriteId);
+        if (staffMessageSide != 0) {
+            HuSprGrpPosSet(staffPictureGroups[assetIndex], 380.0f, 240.0f);
         }
         else {
-            HuSprGrpPosSet(imgGroup[var_r31], 200.0f, 240.0f);
+            HuSprGrpPosSet(staffPictureGroups[assetIndex], 200.0f, 240.0f);
         }
-        HuSprAttrSet(imgGroup[var_r31], 0, HUSPR_ATTR_DISPOFF);
+        HuSprAttrSet(staffPictureGroups[assetIndex], 0, HUSPR_ATTR_DISPOFF);
     }
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        int languageNo;
+    for (assetIndex = 0; assetIndex < 3; assetIndex++) {
+        int languageAssetOffset;
         #if VERSION_NTSC
-        var_r29 = HuDataSelHeapReadNum(var_r31 + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A), HU_MEMNUM_OVL, HEAP_MODEL);
+        assetData = HuDataSelHeapReadNum(assetIndex + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A), HU_MEMNUM_OVL, HEAP_MODEL);
         #else
-        if(var_r31 == 2) {
+        if(assetIndex == 2) {
             switch(GWGameStat.language) {
                 case 1:
-                    languageNo = 0;
+                    languageAssetOffset = 0;
                     break;
                 
                 case 2:
-                    languageNo = 1;
+                    languageAssetOffset = 1;
                     break;
                 
                 case 4:
-                    languageNo = 3;
+                    languageAssetOffset = 3;
                     break;
                 
                 default:
-                    languageNo = 2;
+                    languageAssetOffset = 2;
                     break;
                     
             }
             
-            var_r29 = HuDataSelHeapReadNum(var_r31 + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A) + languageNo, HU_MEMNUM_OVL, HEAP_MODEL);
+            assetData = HuDataSelHeapReadNum(assetIndex + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A) + languageAssetOffset, HU_MEMNUM_OVL, HEAP_MODEL);
         } else {
-            var_r29 = HuDataSelHeapReadNum(var_r31 + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A), HU_MEMNUM_OVL, HEAP_MODEL);
+            assetData = HuDataSelHeapReadNum(assetIndex + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A), HU_MEMNUM_OVL, HEAP_MODEL);
         }
         #endif
         
-        var_r28 = HuSprAnimRead(var_r29);
-        var_r30 = HuSprCreate(var_r28, 256, 0);
-        staffLogoGroup[var_r31] = HuSprGrpCreate(1);
-        HuSprGrpMemberSet(staffLogoGroup[var_r31], 0, var_r30);
-        HuSprAttrSet(staffLogoGroup[var_r31], 0, HUSPR_ATTR_DISPOFF);
+        spriteAnimation = HuSprAnimRead(assetData);
+        spriteId = HuSprCreate(spriteAnimation, 256, 0);
+        staffLogoGroups[assetIndex] = HuSprGrpCreate(1);
+        HuSprGrpMemberSet(staffLogoGroups[assetIndex], 0, spriteId);
+        HuSprAttrSet(staffLogoGroups[assetIndex], 0, HUSPR_ATTR_DISPOFF);
     }
-    thpGroup = HuSprGrpCreate(1);
-    var_r30 = HuTHPSprCreate("movie/stmov_a00.thp", 0, 16386);
-    HuSprGrpMemberSet(thpGroup, 0, var_r30);
-    HuSprGrpScaleSet(thpGroup, 0.65f, 0.65f);
-    HuSprGrpPosSet(thpGroup, 280.0f, 200.0f);
-    HuSprAttrSet(thpGroup, 0, HUSPR_ATTR_DISPOFF);
+    staffMovieGroup = HuSprGrpCreate(1);
+    spriteId = HuTHPSprCreate("movie/stmov_a00.thp", 0, 16386);
+    HuSprGrpMemberSet(staffMovieGroup, 0, spriteId);
+    HuSprGrpScaleSet(staffMovieGroup, 0.65f, 0.65f);
+    HuSprGrpPosSet(staffMovieGroup, 280.0f, 200.0f);
+    HuSprAttrSet(staffMovieGroup, 0, HUSPR_ATTR_DISPOFF);
     HuTHPStop();
     #if VERSION_NTSC
-    var_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, 0x1D), HU_MEMNUM_OVL, HEAP_MODEL);
+    assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, 0x1D), HU_MEMNUM_OVL, HEAP_MODEL);
     #else
-    var_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, 0x20), HU_MEMNUM_OVL, HEAP_MODEL);
+    assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, 0x20), HU_MEMNUM_OVL, HEAP_MODEL);
     #endif
-    var_r28 = HuSprAnimRead(var_r29);
-    var_r30 = HuSprCreate(var_r28, 16385, 0);
-    thpCoverGroup = HuSprGrpCreate(1);
-    HuSprGrpMemberSet(thpCoverGroup, 0, var_r30);
-    HuSprGrpScaleSet(thpCoverGroup, 40.0f, 40.0f);
-    HuSprGrpPosSet(thpCoverGroup, 280.0f, 200.0f);
-    HuSprAttrSet(thpCoverGroup, 0, HUSPR_ATTR_DISPOFF);
-    HuPrcChildCreate(ShowPicture, 4096, 8192, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(ExitProc, 4096, 4096, 0, HuPrcCurrentGet());
+    spriteAnimation = HuSprAnimRead(assetData);
+    spriteId = HuSprCreate(spriteAnimation, 16385, 0);
+    staffMovieCoverGroup = HuSprGrpCreate(1);
+    HuSprGrpMemberSet(staffMovieCoverGroup, 0, spriteId);
+    HuSprGrpScaleSet(staffMovieCoverGroup, 40.0f, 40.0f);
+    HuSprGrpPosSet(staffMovieCoverGroup, 280.0f, 200.0f);
+    HuSprAttrSet(staffMovieCoverGroup, 0, HUSPR_ATTR_DISPOFF);
+    HuPrcChildCreate(ShowStaffPictures, 4096, 8192, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(StaffExitProcess, 4096, 4096, 0, HuPrcCurrentGet());
 }
 
-static void MoveStaff(void)
+static void AnimateStaffMessage(void)
 {
-    float sp8[2];
-    float var_f30;
-    float var_f31;
-    s16 var_r30;
-    u32 var_r29;
-    StaffData *var_r31;
+    float messageDimensions[2];
+    float messageY;
+    float messageX;
+    s16 messageWindowId;
+    u32 windowAttributes;
+    StaffSequenceEntry *staffMessage;
 
-    var_r31 = HuPrcCurrentGet()->user_data;
-    var_r31->unk_14 = 0;
-    switch (var_r31->unk_00) {
+    staffMessage = HuPrcCurrentGet()->user_data;
+    staffMessage->isFinished = 0;
+    switch (staffMessage->messageId) {
         case -2:
-            HuSprAttrReset(staffLogoGroup[var_r31->logoGroupIdx], 0, HUSPR_ATTR_DISPOFF);
-            var_f31 = staffLogoPosTbl[var_r31->logoGroupIdx];
-            var_f30 = 576.0f;
+            HuSprAttrReset(staffLogoGroups[staffMessage->logoSpriteIndex], 0, HUSPR_ATTR_DISPOFF);
+            messageX = staffLogoVerticalPositions[staffMessage->logoSpriteIndex];
+            messageY = 576.0f;
             break;
         default:
-            HuWinMesMaxSizeGet(1, sp8, var_r31->unk_00);
-            var_r29 = 0;
-            switch (var_r31->unk_04) {
+            HuWinMesMaxSizeGet(1, messageDimensions, staffMessage->messageId);
+            windowAttributes = 0;
+            switch (staffMessage->messageStyle) {
                 case 3:
-                    var_f31 = 320.0f - (0.75f * sp8[0]) / 2;
+                    messageX = 320.0f - (0.75f * messageDimensions[0]) / 2;
                     break;
                 case 0:
-                    var_f31 = 10.0f;
-                    if (staffSide == 0) {
-                        var_f31 += 240.0f;
+                    messageX = 10.0f;
+                    if (staffMessageSide == 0) {
+                        messageX += 240.0f;
                     }
                     break;
                 case 1:
-                    var_f31 = 30.0f;
-                    if (staffSide == 0) {
-                        var_f31 += 240.0f;
+                    messageX = 30.0f;
+                    if (staffMessageSide == 0) {
+                        messageX += 240.0f;
                     }
                     break;
                 case 2:
-                    var_f31 = 550.0f - (0.75f * sp8[0]);
-                    if (staffSide != 0) {
-                        var_f31 -= 240.0f;
+                    messageX = 550.0f - (0.75f * messageDimensions[0]);
+                    if (staffMessageSide != 0) {
+                        messageX -= 240.0f;
                     }
-                    var_r29 = 0x1000;
+                    windowAttributes = 0x1000;
                     break;
             }
-            var_f30 = 476.0f;
-            var_r30 = HuWinCreate(var_f31, var_f30, sp8[0], sp8[1], 1);
-            HuWinAttrSet(var_r30, var_r29);
-            HuWinPriSet(var_r30, 256);
-            HuWinBGTPLvlSet(var_r30, 0.0f);
-            HuWinMesSpeedSet(var_r30, 0);
-            HuWinMesSet(var_r30, var_r31->unk_00);
-            HuWinScaleSet(var_r30, 0.75f, 0.75f);
-            switch (var_r31->unk_04) {
+            messageY = 476.0f;
+            messageWindowId = HuWinCreate(messageX, messageY, messageDimensions[0], messageDimensions[1], 1);
+            HuWinAttrSet(messageWindowId, windowAttributes);
+            HuWinPriSet(messageWindowId, 256);
+            HuWinBGTPLvlSet(messageWindowId, 0.0f);
+            HuWinMesSpeedSet(messageWindowId, 0);
+            HuWinMesSet(messageWindowId, staffMessage->messageId);
+            HuWinScaleSet(messageWindowId, 0.75f, 0.75f);
+            switch (staffMessage->messageStyle) {
                 case 0:
                 case 1:
-                    HuWinMesPalSet(var_r30, 7, 96, 240, 255);
+                    HuWinMesPalSet(messageWindowId, 7, 96, 240, 255);
                     break;
                 default:
-                    HuWinMesPalSet(var_r30, 7, 255, 255, 255);
+                    HuWinMesPalSet(messageWindowId, 7, 255, 255, 255);
                     break;
             }
             break;
     }
     while (TRUE) {
-        var_f30 -= 0.4f;
-        if (var_r31->unk_00 == -2) {
-            if (var_f30 < -114.0f) {
+        messageY -= 0.4f;
+        if (staffMessage->messageId == -2) {
+            if (messageY < -114.0f) {
                 break;
             }
         }
-        else if (var_f30 < -24.0f) {
+        else if (messageY < -24.0f) {
             break;
         }
-        if (var_r31->unk_00 == -2) {
-            HuSprGrpPosSet(staffLogoGroup[var_r31->logoGroupIdx], var_f31, var_f30);
+        if (staffMessage->messageId == -2) {
+            HuSprGrpPosSet(staffLogoGroups[staffMessage->logoSpriteIndex], messageX, messageY);
         }
         else {
-            HuWinPosSet(var_r30, var_f31, var_f30);
+            HuWinPosSet(messageWindowId, messageX, messageY);
         }
         HuPrcVSleep();
     }
-    var_r31->unk_14 = 1;
-    if (var_r31->unk_00 == -2) {
-        HuSprAttrSet(staffLogoGroup[var_r31->logoGroupIdx], 0, HUSPR_ATTR_DISPOFF);
+    staffMessage->isFinished = 1;
+    if (staffMessage->messageId == -2) {
+        HuSprAttrSet(staffLogoGroups[staffMessage->logoSpriteIndex], 0, HUSPR_ATTR_DISPOFF);
     }
     else {
-        HuWinKill(var_r30);
+        HuWinKill(messageWindowId);
     }
     HuPrcVSleep();
     HuPrcKill(HuPrcCurrentGet());
@@ -493,104 +493,106 @@ static void MoveStaff(void)
     }
 }
 
-static void HidePicture(void)
+static void HideCurrentStaffPicture(void)
 {
-    s32 prevImg;
+    s32 previousPictureIndex;
 
-    prevImg = currImg;
-    currImg++;
-    if (staffSide != 0) {
-        HuSprGrpPosSet(imgGroup[currImg], 380.0f, 240.0f);
+    previousPictureIndex = currentStaffPicture;
+    currentStaffPicture++;
+    if (staffMessageSide != 0) {
+        HuSprGrpPosSet(staffPictureGroups[currentStaffPicture], 380.0f, 240.0f);
     }
     else {
-        HuSprGrpPosSet(imgGroup[currImg], 200.0f, 240.0f);
+        HuSprGrpPosSet(staffPictureGroups[currentStaffPicture], 200.0f, 240.0f);
     }
-    HuSprAttrSet(imgGroup[prevImg], 0, HUSPR_ATTR_DISPOFF);
+    HuSprAttrSet(staffPictureGroups[previousPictureIndex], 0, HUSPR_ATTR_DISPOFF);
     HuPrcSleep(20);
-    HuSprAttrReset(imgGroup[currImg], 0, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(staffPictureGroups[currentStaffPicture], 0, HUSPR_ATTR_DISPOFF);
     HuPrcKill(HuPrcCurrentGet());
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-static void ShowPicture(void)
+static void ShowStaffPictures(void)
 {
-    float var_f31;
-    s32 var_r31;
+    float pictureOpacity;
+    s32 fadeFrame;
 
     HuPrcSleep(360);
-    HuSprAttrReset(imgGroup[currImg], 0, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(staffPictureGroups[currentStaffPicture], 0, HUSPR_ATTR_DISPOFF);
 
-    for (var_r31 = 0, var_f31 = 0.0f; var_r31 < 30; var_r31++, var_f31 += 1.0f / 30.0f) {
-        HuSprTPLvlSet(imgGroup[currImg], 0, var_f31);
+    for (fadeFrame = 0, pictureOpacity = 0.0f; fadeFrame < 30; fadeFrame++, pictureOpacity += 1.0f / 30.0f) {
+        HuSprTPLvlSet(staffPictureGroups[currentStaffPicture], 0, pictureOpacity);
         HuPrcVSleep();
     }
-    HuSprTPLvlSet(imgGroup[currImg], 0, 1.0f);
+    HuSprTPLvlSet(staffPictureGroups[currentStaffPicture], 0, 1.0f);
 
     while (TRUE) {
         #if VERSION_NTSC
-        if (currImg >= 24) {
+        if (currentStaffPicture >= 24) {
             HuPrcSleep(430);
         } else {
             HuPrcSleep(550);
         }
         #else
-        if (currImg >= 24) {
+        if (currentStaffPicture >= 24) {
             HuPrcSleep(480);
         } else {
             HuPrcSleep(600);
         }
         #endif
-        if (currImg >= 25) {
+        if (currentStaffPicture >= 25) {
             break;
         }
-        HuPrcChildCreate(HidePicture, 0x1000, 0x2000, 0, HuPrcCurrentGet());
+        HuPrcChildCreate(HideCurrentStaffPicture, 0x1000, 0x2000, 0, HuPrcCurrentGet());
     }
 
-    for (var_r31 = 0, var_f31 = 1.0f; var_r31 < 30; var_r31++, var_f31 -= 1.0f / 30.0f) {
-        HuSprTPLvlSet(imgGroup[25], 0, var_f31);
+    for (fadeFrame = 0, pictureOpacity = 1.0f; fadeFrame < 30; fadeFrame++, pictureOpacity -= 1.0f / 30.0f) {
+        HuSprTPLvlSet(staffPictureGroups[25], 0, pictureOpacity);
         HuPrcVSleep();
     }
-    HuSprAttrSet(imgGroup[25], 0, HUSPR_ATTR_DISPOFF);
-    HuSprAttrSet(imgGroup[25], 0, HUSPR_ATTR_DISPOFF);
+    HuSprAttrSet(staffPictureGroups[25], 0, HUSPR_ATTR_DISPOFF);
+    HuSprAttrSet(staffPictureGroups[25], 0, HUSPR_ATTR_DISPOFF);
 
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-static void MainProc(void)
+static void RunStaffSequence(void)
 {
-    s32 var_r31;
-    StaffData *var_r30;
-    s32 var_r29;
-    HUPROCESS *var_r28;
-    s32 var_r27;
-    float var_f29;
-    float var_f30;
-    float var_f31;
+    s32 staffMessageIndex;
+    s32 animationFrame;
+    s32 controllerIndex;
+    StaffSequenceEntry *staffMessage;
+    s32 audioFadeStarted;
+    HUPROCESS *messageProcess;
+    s32 staffMusicStream;
+    float logoX;
+    float logoY;
+    float fadeOpacity;
 
     HuPrcSleep(60);
-    var_r27 = HuAudSStreamPlay(22);
+    staffMusicStream = HuAudSStreamPlay(22);
 
-    for (var_r31 = 0;; var_r31++) {
-        var_r30 = &staffData[var_r31];
-        if (var_r30->unk_00 == -1) {
+    for (staffMessageIndex = 0;; staffMessageIndex++) {
+        staffMessage = &staffSequence[staffMessageIndex];
+        if (staffMessage->messageId == -1) {
             break;
         }
 
-        switch (var_r30->unk_00) {
+        switch (staffMessage->messageId) {
             case -3:
-                HuPrcSleep(var_r30->unk_08 / 0.4f);
+                HuPrcSleep(staffMessage->displayDuration / 0.4f);
                 break;
             default:
-                var_r28 = HuPrcChildCreate(MoveStaff, 0x1000, 0x2000, 0, HuPrcCurrentGet());
-                var_r28->user_data = var_r30;
-                if (var_r30->unk_0C == 1) {
-                    staffSide++;
-                    staffSide &= 1;
-                    HuPrcChildCreate(HidePicture, 0x1000, 0x2000, 0, HuPrcCurrentGet());
+                messageProcess = HuPrcChildCreate(AnimateStaffMessage, 0x1000, 0x2000, 0, HuPrcCurrentGet());
+                messageProcess->user_data = staffMessage;
+                if (staffMessage->advancesPicture == 1) {
+                    staffMessageSide++;
+                    staffMessageSide &= 1;
+                    HuPrcChildCreate(HideCurrentStaffPicture, 0x1000, 0x2000, 0, HuPrcCurrentGet());
                 }
                 else {
                     HuPrcSleep(60);
@@ -598,72 +600,72 @@ static void MainProc(void)
                 break;
         }
     }
-    var_r30 = &staffData[var_r31 - 1];
+    staffMessage = &staffSequence[staffMessageIndex - 1];
 
-    while (var_r30->unk_14 == 0) {
+    while (staffMessage->isFinished == 0) {
         HuPrcVSleep();
     }
     HuPrcSleep(60);
-    HuSprAttrReset(staffLogoGroup[1], 0, HUSPR_ATTR_DISPOFF);
-    var_f29 = staffLogoPosTbl[1];
-    var_f30 = 526.0f;
-    var_r29 = 0;
+    HuSprAttrReset(staffLogoGroups[1], 0, HUSPR_ATTR_DISPOFF);
+    logoX = staffLogoVerticalPositions[1];
+    logoY = 526.0f;
+    audioFadeStarted = 0;
 
     while (TRUE) {
-        var_f30 -= 0.4f;
-        if (var_f30 < 400.0f) {
+        logoY -= 0.4f;
+        if (logoY < 400.0f) {
             break;
         }
-        if ((var_r29 == 0) && (var_f30 < 506.0f)) {
-            var_r29 = 1;
-            HuAudSStreamFadeOut(var_r27, 6000);
+        if ((audioFadeStarted == 0) && (logoY < 506.0f)) {
+            audioFadeStarted = 1;
+            HuAudSStreamFadeOut(staffMusicStream, 6000);
         }
-        HuSprGrpPosSet(staffLogoGroup[1], var_f29, var_f30);
+        HuSprGrpPosSet(staffLogoGroups[1], logoX, logoY);
         HuPrcVSleep();
     }
-    HuSprGrpPosSet(staffLogoGroup[1], var_f29, 400.0f);
+    HuSprGrpPosSet(staffLogoGroups[1], logoX, 400.0f);
     #if VERSION_NTSC
     HuPrcSleep(240);
     #else
     HuPrcSleep(60);
     #endif
-    HuSprAttrReset(thpGroup, 0, HUSPR_ATTR_DISPOFF);
-    HuSprAttrReset(thpCoverGroup, 0, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(staffMovieGroup, 0, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(staffMovieCoverGroup, 0, HUSPR_ATTR_DISPOFF);
     HuTHPRestart();
 
-    for (var_r31 = 0, var_f31 = 1.0f; var_r31 < 90; var_r31++, var_f31 -= 0.1f / 9.0f) {
-        HuSprTPLvlSet(thpCoverGroup, 0, var_f31);
+    for (animationFrame = 0, fadeOpacity = 1.0f; animationFrame < 90; animationFrame++, fadeOpacity -= 0.1f / 9.0f) {
+        HuSprTPLvlSet(staffMovieCoverGroup, 0, fadeOpacity);
         HuPrcVSleep();
     }
-    HuSprAttrSet(thpCoverGroup, 0, HUSPR_ATTR_DISPOFF);
+    HuSprAttrSet(staffMovieCoverGroup, 0, HUSPR_ATTR_DISPOFF);
 
     while (HuTHPFrameGet() < 450) {
         HuPrcVSleep();
     }
-    HuSprAttrReset(thpCoverGroup, 0, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(staffMovieCoverGroup, 0, HUSPR_ATTR_DISPOFF);
 
-    for (var_r31 = 0, var_f31 = 0.0f; var_r31 < 120; var_r31++, var_f31 += 0.05f / 6.0f) {
-        HuSprTPLvlSet(thpCoverGroup, 0, var_f31);
+    for (animationFrame = 0, fadeOpacity = 0.0f; animationFrame < 120; animationFrame++, fadeOpacity += 0.05f / 6.0f) {
+        HuSprTPLvlSet(staffMovieCoverGroup, 0, fadeOpacity);
         HuPrcVSleep();
     }
-    HuSprTPLvlSet(thpCoverGroup, 0, 1.0f);
-    HuSprAttrSet(thpGroup, 0, HUSPR_ATTR_DISPOFF);
+    HuSprTPLvlSet(staffMovieCoverGroup, 0, 1.0f);
+    HuSprAttrSet(staffMovieGroup, 0, HUSPR_ATTR_DISPOFF);
     HuTHPClose();
 
-    for (var_r31 = 0, var_f31 = 1.0f; var_r31 < 30; var_r31++, var_f31 -= 1.0f / 30.0f) {
-        HuSprTPLvlSet(staffLogoGroup[1], 0, var_f31);
+    for (animationFrame = 0, fadeOpacity = 1.0f; animationFrame < 30; animationFrame++, fadeOpacity -= 1.0f / 30.0f) {
+        HuSprTPLvlSet(staffLogoGroups[1], 0, fadeOpacity);
         HuPrcVSleep();
     }
-    HuSprAttrSet(staffLogoGroup[1], 0, HUSPR_ATTR_DISPOFF);
+    HuSprAttrSet(staffLogoGroups[1], 0, HUSPR_ATTR_DISPOFF);
     HuPrcSleep(120);
-    HuSprAttrReset(staffLogoGroup[2], 0, HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(staffLogoGroups[2], 0, HUSPR_ATTR_DISPOFF);
     #if VERSION_NTSC
-    HuSprGrpPosSet(staffLogoGroup[2], 280.0f, 240.0f);
+    HuSprGrpPosSet(staffLogoGroups[2], 280.0f, 240.0f);
     #else
-    HuSprGrpPosSet(staffLogoGroup[2], 275.0f, 240.0f);
+    HuSprGrpPosSet(staffLogoGroups[2], 275.0f, 240.0f);
     #endif
-    for (var_r31 = 0, var_f31 = 0.0f; var_r31 < 30; var_r31++, var_f31 += 1.0f / 30.0f) {
-        HuSprTPLvlSet(staffLogoGroup[2], 0, var_f31);
+    for (animationFrame = 0, fadeOpacity = 0.0f; animationFrame < 30; animationFrame++, fadeOpacity += 1.0f / 30.0f) {
+        HuSprTPLvlSet(staffLogoGroups[2], 0, fadeOpacity);
         HuPrcVSleep();
     }
     #if VERSION_NTSC
@@ -672,12 +674,12 @@ static void MainProc(void)
     HuPrcSleep(480);
     #endif
     while (TRUE) {
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            if (HuPadBtn[var_r31] & PAD_BUTTON_START) {
+        for (controllerIndex = 0; controllerIndex < 4; controllerIndex++) {
+            if (HuPadBtn[controllerIndex] & PAD_BUTTON_START) {
                 break;
             }
         }
-        if (var_r31 < 4) {
+        if (controllerIndex < 4) {
             break;
         }
         HuPrcVSleep();
