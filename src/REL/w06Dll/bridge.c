@@ -17,54 +17,54 @@
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 1;
-        u8 unk00_field2 : 1;
-        u8 unk00_field3 : 1;
-        u8 unk00_field4 : 1;
+        u8 isActive : 1;
+        u8 isCompleted : 1;
+        u8 isMoving : 1;
+        u8 isVisible : 1;
+        u8 isInitialized : 1;
     };
-    u8 unk01;
-    s8 unk02;
-    s8 unk03;
-    s16 unk04;
-    char unk06[2];
-    float unk08;
-} BssCCWork;
+    u8 delayFrames;
+    s8 bridgeState;
+    s8 crossingMode;
+    s16 motionId;
+    char padding[2];
+    float bridgeMotionTime;
+} W06BridgeWork;
 
-static void fn_1_8320(void);
-static void fn_1_8420(void);
-static s32 fn_1_8490(s32 arg0, s8 arg1);
-static void fn_1_8A58(OMOBJ *arg0);
+static void W06BridgeCrossingProcess(void);
+static void W06BridgeCrossingCleanup(void);
+static s32 W06BridgePlayerCross(s32 playerIndex, s8 crossingMode);
+static void W06BridgeObjectUpdate(OMOBJ *bridgeObject);
 
-static s8 lbl_1_bss_E6;
-static s16 lbl_1_bss_E4;
-static s16 lbl_1_bss_E2;
-static s16 lbl_1_bss_D6[3][2];
-static s16 lbl_1_bss_D0[3];
-static OMOBJ *lbl_1_bss_CC;
-static HUPROCESS *lbl_1_bss_C8;
+static s8 bridgeCrossingType;
+static s16 bridgeTargetSpace;
+static s16 bridgeLandingSpace;
+static s16 bridgeSpaceLinks[3][2];
+static s16 bridgeModels[3];
+static OMOBJ *bridgeObject;
+static HUPROCESS *bridgeProcess;
 
-static s16 lbl_1_data_418 = -1;
+static s16 bridgePlayerMotion = -1;
 
-static float lbl_1_data_41C[][2] = {
+static float bridgeRotations[][2] = {
     {  90.0f, 180.0f },
     { -90.0f,   0.0f },
     { 180.0f,   0.0f }
 };
 
-static s32 lbl_1_data_434[][2] = {
+static s32 bridgeSpaceFlags[][2] = {
     { 0x00000200, 0x00000100 },
     { 0x00000080, 0x00000040 },
     { 0x00000800, 0x00000400 }
 };
 
-static s32 lbl_1_data_44C[] = {
+static s32 bridgeModelData[] = {
     DATA_MAKE_NUM(DATADIR_W06, 3),
     DATA_MAKE_NUM(DATADIR_W06, 3),
     DATA_MAKE_NUM(DATADIR_W06, 4)
 };
 
-static s32 lbl_1_data_458[8] = {
+static s32 bridgeWalkMotions[8] = {
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 26),
     DATA_MAKE_NUM(DATADIR_LUIGIMOT, 26),
     DATA_MAKE_NUM(DATADIR_PEACHMOT, 26),
@@ -75,7 +75,7 @@ static s32 lbl_1_data_458[8] = {
     DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 26),
 };
 
-static s32 lbl_1_data_478[8] = {
+static s32 bridgeRunMotions[8] = {
     DATA_MAKE_NUM(DATADIR_W06, 30),
     DATA_MAKE_NUM(DATADIR_W06, 31),
     DATA_MAKE_NUM(DATADIR_W06, 32),
@@ -86,233 +86,233 @@ static s32 lbl_1_data_478[8] = {
     DATA_MAKE_NUM(DATADIR_W06, 37)
 };
 
-void fn_1_7BB0(void) {
-    Vec sp8;
-    float var_f29;
-    BoardSpace *var_r26;
-    s16 temp_r27;
-    s32 var_r28;
+void W06BridgeCreate(void) {
+    Vec bridgePosition;
+    float bridgeMotionFrame;
+    BoardSpace *linkedSpace;
+    s16 flaggedSpaceIndex;
+    s32 bridgeSideIndex;
     s32 i;
 
     if (GWSystem.star_pos < 4) {
-        lbl_1_bss_0->unk00_field2 = 0;
+        w06BoardData->isMoving = 0;
     } else {
-        lbl_1_bss_0->unk00_field2 = 1;
+        w06BoardData->isMoving = 1;
     }
     for (i = 0; i < 3; i++) {
-        lbl_1_bss_D0[i] = BoardModelCreate(lbl_1_data_44C[i], NULL, 0);
+        bridgeModels[i] = BoardModelCreate(bridgeModelData[i], NULL, 0);
         switch (i) {
             case 0:
-                var_r28 = (lbl_1_bss_0->unk00_field0 != 0) ? 1 : 0;
-                OSs8tof32(&lbl_1_bss_0->unk01, &var_f29);
+                bridgeSideIndex = (w06BoardData->isActive != 0) ? 1 : 0;
+                OSs8tof32(&w06BoardData->playerIndex, &bridgeMotionFrame);
                 break;
             case 1:
-                var_r28 = (lbl_1_bss_0->unk00_field1 != 0) ? 1 : 0;
-                OSs8tof32(&lbl_1_bss_0->unk02, &var_f29);
+                bridgeSideIndex = (w06BoardData->isCompleted != 0) ? 1 : 0;
+                OSs8tof32(&w06BoardData->bridgeState, &bridgeMotionFrame);
                 break;
             case 2:
-                var_r28 = (lbl_1_bss_0->unk00_field2 != 0) ? 1 : 0;
-                var_f29 = 0.0f;
+                bridgeSideIndex = (w06BoardData->isMoving != 0) ? 1 : 0;
+                bridgeMotionFrame = 0.0f;
                 break;
         }
-        temp_r27 = BoardSpaceFlagPosGet(0, lbl_1_data_434[i][var_r28], &sp8);
-        BoardModelPosSetV(lbl_1_bss_D0[i], &sp8);
-        BoardModelRotYSet(lbl_1_bss_D0[i], lbl_1_data_41C[i][var_r28]);
-        BoardModelMotionShiftSet(lbl_1_bss_D0[i], 0, 60.0f * var_f29, 0.0f, HU3D_MOTATTR_NONE);
+        flaggedSpaceIndex = BoardSpaceFlagPosGet(0, bridgeSpaceFlags[i][bridgeSideIndex], &bridgePosition);
+        BoardModelPosSetV(bridgeModels[i], &bridgePosition);
+        BoardModelRotYSet(bridgeModels[i], bridgeRotations[i][bridgeSideIndex]);
+        BoardModelMotionShiftSet(bridgeModels[i], 0, 60.0f * bridgeMotionFrame, 0.0f, HU3D_MOTATTR_NONE);
         HuPrcSleep(2);
-        BoardModelMotionSpeedSet(lbl_1_bss_D0[i], 0.0f);
-        lbl_1_bss_D6[i][var_r28] = temp_r27;
-        temp_r27 = BoardSpaceFlagSearch(0, lbl_1_data_434[i][var_r28 ^ 1]);
-        var_r26 = BoardSpaceGet(0, temp_r27);
-        var_r26->flag |= 0x04000000;
-        lbl_1_bss_D6[i][var_r28 ^ 1] = temp_r27;
+        BoardModelMotionSpeedSet(bridgeModels[i], 0.0f);
+        bridgeSpaceLinks[i][bridgeSideIndex] = flaggedSpaceIndex;
+        flaggedSpaceIndex = BoardSpaceFlagSearch(0, bridgeSpaceFlags[i][bridgeSideIndex ^ 1]);
+        linkedSpace = BoardSpaceGet(0, flaggedSpaceIndex);
+        linkedSpace->flag |= 0x04000000;
+        bridgeSpaceLinks[i][bridgeSideIndex ^ 1] = flaggedSpaceIndex;
     }
 }
 
-void fn_1_7F3C(void) {
+void W06BridgeDestroy(void) {
     s32 i;
 
     for (i = 0; i < 3; i++) {
-        BoardModelKill(lbl_1_bss_D0[i]);
-        lbl_1_bss_D0[i] = -1;
+        BoardModelKill(bridgeModels[i]);
+        bridgeModels[i] = -1;
     }
 }
 
-void fn_1_7FA4(void) {
-    Vec sp8;
-    float temp_f31;
-    BoardSpace *temp_r3;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 var_r31;
+void W06BridgeStateUpdate(void) {
+    Vec bridgePosition;
+    float bridgeMotionFrame;
+    BoardSpace *linkedSpace;
+    s16 bridgeSideIndex;
+    s16 flaggedSpaceIndex;
+    s16 bridgeIndex;
 
     if (GWSystem.star_pos < 4) {
-        lbl_1_bss_0->unk00_field2 = 0;
+        w06BoardData->isMoving = 0;
     } else {
-        lbl_1_bss_0->unk00_field2 = 1;
+        w06BoardData->isMoving = 1;
     }
-    var_r31 = 2;
-    temp_r30 = (lbl_1_bss_0->unk00_field2 != 0) ? 1 : 0;
-    temp_f31 = 0.0f;
-    temp_r29 = BoardSpaceFlagPosGet(0, lbl_1_data_434[var_r31][temp_r30], &sp8);
-    BoardModelPosSetV(lbl_1_bss_D0[var_r31], &sp8);
-    BoardModelRotYSet(lbl_1_bss_D0[var_r31], lbl_1_data_41C[var_r31][temp_r30]);
-    BoardModelMotionShiftSet(lbl_1_bss_D0[var_r31], 0, 60.0f * temp_f31, 0.0f, HU3D_MOTATTR_NONE);
+    bridgeIndex = 2;
+    bridgeSideIndex = (w06BoardData->isMoving != 0) ? 1 : 0;
+    bridgeMotionFrame = 0.0f;
+    flaggedSpaceIndex = BoardSpaceFlagPosGet(0, bridgeSpaceFlags[bridgeIndex][bridgeSideIndex], &bridgePosition);
+    BoardModelPosSetV(bridgeModels[bridgeIndex], &bridgePosition);
+    BoardModelRotYSet(bridgeModels[bridgeIndex], bridgeRotations[bridgeIndex][bridgeSideIndex]);
+    BoardModelMotionShiftSet(bridgeModels[bridgeIndex], 0, 60.0f * bridgeMotionFrame, 0.0f, HU3D_MOTATTR_NONE);
     HuPrcSleep(2);
-    BoardModelMotionSpeedSet(lbl_1_bss_D0[var_r31], 0.0f);
-    lbl_1_bss_D6[var_r31][temp_r30] = temp_r29;
-    temp_r29 = BoardSpaceFlagSearch(0, lbl_1_data_434[var_r31][temp_r30]);
-    temp_r3 = BoardSpaceGet(0, temp_r29);
-    temp_r3->flag &= ~0x04000000;
-    temp_r29 = BoardSpaceFlagSearch(0, lbl_1_data_434[var_r31][temp_r30 ^ 1]);
-    temp_r3 = BoardSpaceGet(0, temp_r29);
-    temp_r3->flag |= 0x04000000;
-    lbl_1_bss_D6[var_r31][temp_r30 ^ 1] = temp_r29;
+    BoardModelMotionSpeedSet(bridgeModels[bridgeIndex], 0.0f);
+    bridgeSpaceLinks[bridgeIndex][bridgeSideIndex] = flaggedSpaceIndex;
+    flaggedSpaceIndex = BoardSpaceFlagSearch(0, bridgeSpaceFlags[bridgeIndex][bridgeSideIndex]);
+    linkedSpace = BoardSpaceGet(0, flaggedSpaceIndex);
+    linkedSpace->flag &= ~0x04000000;
+    flaggedSpaceIndex = BoardSpaceFlagSearch(0, bridgeSpaceFlags[bridgeIndex][bridgeSideIndex ^ 1]);
+    linkedSpace = BoardSpaceGet(0, flaggedSpaceIndex);
+    linkedSpace->flag |= 0x04000000;
+    bridgeSpaceLinks[bridgeIndex][bridgeSideIndex ^ 1] = flaggedSpaceIndex;
 }
 
-void fn_1_8264(s32 arg0, s16 arg1) {
+void W06BridgeCrossingStart(s32 crossingType, s16 spaceIndex) {
     BoardRollDispSet(0);
-    lbl_1_bss_E6 = arg0;
-    lbl_1_bss_E4 = arg1;
-    lbl_1_bss_C8 = HuPrcChildCreate(fn_1_8320, 0x2003, 0x3800, 0, boardMainProc);
-    HuPrcDestructorSet2(lbl_1_bss_C8, fn_1_8420);
-    while (lbl_1_bss_C8) {
+    bridgeCrossingType = crossingType;
+    bridgeTargetSpace = spaceIndex;
+    bridgeProcess = HuPrcChildCreate(W06BridgeCrossingProcess, 0x2003, 0x3800, 0, boardMainProc);
+    HuPrcDestructorSet2(bridgeProcess, W06BridgeCrossingCleanup);
+    while (bridgeProcess) {
         HuPrcVSleep();
     }
     BoardRollDispSet(1);
 }
 
-static void fn_1_8320(void) {
-    s32 temp_r30;
-    s8 *var_r31;
-    BoardSpace *var_r29;
+static void W06BridgeCrossingProcess(void) {
+    s32 currentPlayerIndex;
+    s8 *crossingCounter;
+    BoardSpace *targetSpace;
 
-    temp_r30 = GWSystem.player_curr;
-    if (lbl_1_bss_E6 != 0) {
-        var_r31 = &lbl_1_bss_0->unk02;
+    currentPlayerIndex = GWSystem.player_curr;
+    if (bridgeCrossingType != 0) {
+        crossingCounter = &w06BoardData->bridgeState;
     } else {
-        var_r31 = &lbl_1_bss_0->unk01;
+        crossingCounter = &w06BoardData->playerIndex;
     }
-    var_r29 = BoardSpaceGet(0, lbl_1_bss_E4);
-    lbl_1_bss_E2 = var_r29->link[0];
-    GWPlayer[temp_r30].space_curr = lbl_1_bss_E2;
-    fn_1_8490(temp_r30, *var_r31);
-    (*var_r31)++;
-    if (*var_r31 >= 3) {
-        *var_r31 = 0;
+    targetSpace = BoardSpaceGet(0, bridgeTargetSpace);
+    bridgeLandingSpace = targetSpace->link[0];
+    GWPlayer[currentPlayerIndex].space_curr = bridgeLandingSpace;
+    W06BridgePlayerCross(currentPlayerIndex, *crossingCounter);
+    (*crossingCounter)++;
+    if (*crossingCounter >= 3) {
+        *crossingCounter = 0;
     }
     HuPrcEnd();
 }
 
-static void fn_1_8420(void) {
-    if (lbl_1_data_418 != -1) {
-        BoardPlayerMotionKill(GWSystem.player_curr, lbl_1_data_418);
-        lbl_1_data_418 = -1;
+static void W06BridgeCrossingCleanup(void) {
+    if (bridgePlayerMotion != -1) {
+        BoardPlayerMotionKill(GWSystem.player_curr, bridgePlayerMotion);
+        bridgePlayerMotion = -1;
     }
-    lbl_1_bss_C8 = NULL;
+    bridgeProcess = NULL;
 }
 
-static s32 fn_1_8490(s32 arg0, s8 arg1) {
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    float temp_f30;
-    float var_f29;
-    float var_f28;
-    s32 temp_r27;
-    OMOBJ *var_r26;
-    BssCCWork *temp_r29;
-    s8 var_r28;
+static s32 W06BridgePlayerCross(s32 playerIndex, s8 crossingMode) {
+    Vec landingPosition;
+    Vec playerPosition;
+    Vec crossingDirection;
+    float facingAngle;
+    float movementDuration;
+    float movementSpeed;
+    s32 characterId;
+    OMOBJ *crossingObject;
+    W06BridgeWork *crossingWork;
+    s8 vibrationFrame;
 
-    BoardPlayerPosGet(arg0, &sp18);
-    BoardSpacePosGet(0, lbl_1_bss_E2, &sp24);
-    VECSubtract(&sp24, &sp18, &spC);
-    temp_f30 = atan2d(spC.x, spC.z);
-    BoardPlayerMotBlendSet(arg0, temp_f30, 0xF);
-    while (!BoardPlayerMotBlendCheck(arg0)) {
+    BoardPlayerPosGet(playerIndex, &playerPosition);
+    BoardSpacePosGet(0, bridgeLandingSpace, &landingPosition);
+    VECSubtract(&landingPosition, &playerPosition, &crossingDirection);
+    facingAngle = atan2d(crossingDirection.x, crossingDirection.z);
+    BoardPlayerMotBlendSet(playerIndex, facingAngle, 0xF);
+    while (!BoardPlayerMotBlendCheck(playerIndex)) {
         HuPrcVSleep();
     }
-    BoardPlayerIdleSet(arg0);
+    BoardPlayerIdleSet(playerIndex);
     HuPrcSleep(11);
-    temp_r27 = GWPlayer[arg0].character;
-    switch (arg1) {
+    characterId = GWPlayer[playerIndex].character;
+    switch (crossingMode) {
         case 0:
-            lbl_1_data_418 = -1;
-            var_f29 = 60.0f;
-            var_f28 = 1.0f;
+            bridgePlayerMotion = -1;
+            movementDuration = 60.0f;
+            movementSpeed = 1.0f;
             break;
         case 1:
-            lbl_1_data_418 = BoardPlayerMotionCreate(arg0, lbl_1_data_478[temp_r27]);
-            var_f29 = 50.0f;
-            var_f28 = 2.5f;
-            if (GWPlayer[arg0].bowser_suit) {
-                BoardPlayerIdleSet(arg0);
+            bridgePlayerMotion = BoardPlayerMotionCreate(playerIndex, bridgeRunMotions[characterId]);
+            movementDuration = 50.0f;
+            movementSpeed = 2.5f;
+            if (GWPlayer[playerIndex].bowser_suit) {
+                BoardPlayerIdleSet(playerIndex);
                 HuPrcSleep(30);
             } else {
-                BoardPlayerMotionShiftSet(arg0, lbl_1_data_418, 0.0f, 6.0f, HU3D_MOTATTR_NONE);
-                BoardPlayerMotionSpeedSet(arg0, 1.5f);
+                BoardPlayerMotionShiftSet(playerIndex, bridgePlayerMotion, 0.0f, 6.0f, HU3D_MOTATTR_NONE);
+                BoardPlayerMotionSpeedSet(playerIndex, 1.5f);
                 HuPrcSleep(60);
             }
             break;
         case 2:
-            lbl_1_data_418 = BoardPlayerMotionCreate(arg0, lbl_1_data_458[temp_r27]);
-            var_f29 = 40.0f;
-            var_f28 = 2.0f;
-            if (GWPlayer[arg0].bowser_suit) {
-                BoardPlayerIdleSet(arg0);
+            bridgePlayerMotion = BoardPlayerMotionCreate(playerIndex, bridgeWalkMotions[characterId]);
+            movementDuration = 40.0f;
+            movementSpeed = 2.0f;
+            if (GWPlayer[playerIndex].bowser_suit) {
+                BoardPlayerIdleSet(playerIndex);
                 HuPrcSleep(30);
             } else {
-                BoardPlayerMotionShiftSet(arg0, lbl_1_data_418, 0.0f, 6.0f, HU3D_MOTATTR_LOOP);
-                BoardPlayerMotionSpeedSet(arg0, 3.0f);
+                BoardPlayerMotionShiftSet(playerIndex, bridgePlayerMotion, 0.0f, 6.0f, HU3D_MOTATTR_LOOP);
+                BoardPlayerMotionSpeedSet(playerIndex, 3.0f);
                 HuPrcSleep(60);
             }
             break;
     }
-    var_r26 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, fn_1_8A58);
-    lbl_1_bss_CC = var_r26;
-    temp_r29 = omObjGetWork(var_r26, BssCCWork);
-    temp_r29->unk00_field0 = 0;
-    temp_r29->unk00_field1 = 0;
-    temp_r29->unk00_field2 = 0;
-    temp_r29->unk00_field3 = 0;
-    temp_r29->unk00_field4 = 0;
-    temp_r29->unk01 = 0;
-    temp_r29->unk03 = arg1;
-    temp_r29->unk02 = 0;
-    temp_r29->unk04 = lbl_1_bss_D0[lbl_1_bss_E6];
-    OSs8tof32(&arg1, &temp_r29->unk08);
-    temp_r29->unk08 = 60.0f * (temp_r29->unk08 + 1.0f);
-    BoardPlayerPosLerpStart(arg0, &sp18, &sp24, var_f29);
-    BoardPlayerMotionSpeedSet(arg0, var_f28);
-    for (var_r28 = 0; GWPlayer[arg0].moving; var_r28++) {
-        if (!(var_r28 & 0xF)) {
-            omVibrate(arg0, 12, 6, 6);
+    crossingObject = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, W06BridgeObjectUpdate);
+    bridgeObject = crossingObject;
+    crossingWork = omObjGetWork(crossingObject, W06BridgeWork);
+    crossingWork->isActive = 0;
+    crossingWork->isCompleted = 0;
+    crossingWork->isMoving = 0;
+    crossingWork->isVisible = 0;
+    crossingWork->isInitialized = 0;
+    crossingWork->delayFrames = 0;
+    crossingWork->crossingMode = crossingMode;
+    crossingWork->bridgeState = 0;
+    crossingWork->motionId = bridgeModels[bridgeCrossingType];
+    OSs8tof32(&crossingMode, &crossingWork->bridgeMotionTime);
+    crossingWork->bridgeMotionTime = 60.0f * (crossingWork->bridgeMotionTime + 1.0f);
+    BoardPlayerPosLerpStart(playerIndex, &playerPosition, &landingPosition, movementDuration);
+    BoardPlayerMotionSpeedSet(playerIndex, movementSpeed);
+    for (vibrationFrame = 0; GWPlayer[playerIndex].moving; vibrationFrame++) {
+        if (!(vibrationFrame & 0xF)) {
+            omVibrate(playerIndex, 12, 6, 6);
         }
         HuPrcVSleep();
     }
-    temp_f30 -= 180.0f;
-    BoardPlayerMotBlendSet(arg0, temp_f30, 0xF);
-    while (!BoardPlayerMotBlendCheck(arg0)) {
+    facingAngle -= 180.0f;
+    BoardPlayerMotBlendSet(playerIndex, facingAngle, 0xF);
+    while (!BoardPlayerMotBlendCheck(playerIndex)) {
         HuPrcVSleep();
     }
-    while (lbl_1_bss_CC) {
+    while (bridgeObject) {
         HuPrcVSleep();
     }
     HuPrcSleep(30);
-    if (arg1 == 2) {
+    if (crossingMode == 2) {
         BoardWinCreate(0, MAKE_MESSID(48, 40), -1);
         BoardWinWait();
         BoardWinKill();
     }
-    BoardCameraTargetPlayerSet(arg0);
+    BoardCameraTargetPlayerSet(playerIndex);
     BoardCameraViewSet(1);
-    temp_f30 += 180.0f;
-    BoardPlayerMotBlendSet(arg0, temp_f30, 0xF);
-    while (!BoardPlayerMotBlendCheck(arg0)) {
+    facingAngle += 180.0f;
+    BoardPlayerMotBlendSet(playerIndex, facingAngle, 0xF);
+    while (!BoardPlayerMotBlendCheck(playerIndex)) {
         HuPrcVSleep();
     }
     BoardCameraMotionWait();
-    if (arg1 == 1) {
+    if (crossingMode == 1) {
         BoardWinCreate(0, MAKE_MESSID(48, 15), -1);
         BoardWinWait();
         BoardWinKill();
@@ -320,83 +320,83 @@ static s32 fn_1_8490(s32 arg0, s8 arg1) {
     return 0;
 }
 
-static void fn_1_8A58(OMOBJ *arg0) {
-    Vec sp8;
-    u8 var_r30;
-    BoardSpace *var_r29;
-    BssCCWork *temp_r31;
+static void W06BridgeObjectUpdate(OMOBJ *bridgeObject) {
+    Vec currentBridgePosition;
+    u8 bridgeFrame;
+    BoardSpace *currentSpace;
+    W06BridgeWork *bridgeWork;
 
-    temp_r31 = omObjGetWork(arg0, BssCCWork);
-    if (temp_r31->unk00_field0 != 0 || BoardIsKill()) {
-        lbl_1_bss_CC = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+    bridgeWork = omObjGetWork(bridgeObject, W06BridgeWork);
+    if (bridgeWork->isActive != 0 || BoardIsKill()) {
+        bridgeObject = NULL;
+        omDelObjEx(HuPrcCurrentGet(), bridgeObject);
         return;
     }
-    if (temp_r31->unk01 != 0) {
-        temp_r31->unk01--;
+    if (bridgeWork->delayFrames != 0) {
+        bridgeWork->delayFrames--;
         return;
     }
-    if (temp_r31->unk00_field1 != 0 && temp_r31->unk00_field4 == 0) {
-        BoardModelMotionStart(temp_r31->unk04, 0, 0);
-        BoardModelMotionTimeSet(temp_r31->unk04, temp_r31->unk08 - 60.0f);
-        BoardModelMotionSpeedSet(temp_r31->unk04, 1.0f);
-        temp_r31->unk00_field4 = 1;
+    if (bridgeWork->isCompleted != 0 && bridgeWork->isInitialized == 0) {
+        BoardModelMotionStart(bridgeWork->motionId, 0, 0);
+        BoardModelMotionTimeSet(bridgeWork->motionId, bridgeWork->bridgeMotionTime - 60.0f);
+        BoardModelMotionSpeedSet(bridgeWork->motionId, 1.0f);
+        bridgeWork->isInitialized = 1;
     }
-    if (temp_r31->unk00_field2 != 0) {
+    if (bridgeWork->isMoving != 0) {
         HuAudFXPlay(0x49C);
-        temp_r31->unk00_field2 = 0;
+        bridgeWork->isMoving = 0;
     }
-    if (temp_r31->unk00_field3 != 0) {
+    if (bridgeWork->isVisible != 0) {
         HuAudFXPlay(0x49D);
-        temp_r31->unk00_field3 = 0;
+        bridgeWork->isVisible = 0;
     }
-    switch (temp_r31->unk02) {
+    switch (bridgeWork->bridgeState) {
         case 0:
-            if (temp_r31->unk00_field1 == 0) {
+            if (bridgeWork->isCompleted == 0) {
                 if (GWPlayer[GWSystem.player_curr].bowser_suit != 0) {
-                    temp_r31->unk01 = 72;
+                    bridgeWork->delayFrames = 72;
                 } else {
-                    temp_r31->unk01 = 30;
+                    bridgeWork->delayFrames = 30;
                 }
-                temp_r31->unk00_field2 = 1;
-                temp_r31->unk00_field1 = 1;
+                bridgeWork->isMoving = 1;
+                bridgeWork->isCompleted = 1;
                 break;
             }
-            if (BoardModelMotionTimeGet(temp_r31->unk04) >= temp_r31->unk08) {
-                BoardModelMotionTimeSet(temp_r31->unk04, temp_r31->unk08);
-                BoardModelMotionSpeedSet(temp_r31->unk04, 0.0f);
-                if (temp_r31->unk03 == 2) {
-                    temp_r31->unk01 = 30;
-                    temp_r31->unk02 = 1;
-                    temp_r31->unk00_field3 = 1;
+            if (BoardModelMotionTimeGet(bridgeWork->motionId) >= bridgeWork->bridgeMotionTime) {
+                BoardModelMotionTimeSet(bridgeWork->motionId, bridgeWork->bridgeMotionTime);
+                BoardModelMotionSpeedSet(bridgeWork->motionId, 0.0f);
+                if (bridgeWork->crossingMode == 2) {
+                    bridgeWork->delayFrames = 30;
+                    bridgeWork->bridgeState = 1;
+                    bridgeWork->isVisible = 1;
                 } else {
-                    temp_r31->unk00_field0 = 1;
+                    bridgeWork->isActive = 1;
                 }
             }
             break;
         case 1:
-            if (lbl_1_bss_E6 == 0) {
-                var_r30 = lbl_1_bss_0->unk00_field0;
-                lbl_1_bss_0->unk00_field0 ^= 1;
+            if (bridgeCrossingType == 0) {
+                bridgeSideIndex = w06BoardData->isActive;
+                w06BoardData->isActive ^= 1;
             } else {
-                var_r30 = lbl_1_bss_0->unk00_field1;
-                lbl_1_bss_0->unk00_field1 ^= 1;
+                bridgeSideIndex = w06BoardData->isCompleted;
+                w06BoardData->isCompleted ^= 1;
             }
-            var_r29 = BoardSpaceGet(0, lbl_1_bss_D6[lbl_1_bss_E6][var_r30]);
-            var_r29->flag |= 0x04000000;
-            var_r29 = BoardSpaceGet(0, lbl_1_bss_D6[lbl_1_bss_E6][var_r30 ^ 1]);
-            var_r29->flag &= ~0x04000000;
-            BoardSpacePosGet(0, lbl_1_bss_D6[lbl_1_bss_E6][var_r30 ^ 1], &sp8);
-            BoardModelMotionStart(temp_r31->unk04, 0, 0);
-            BoardModelMotionTimeSet(temp_r31->unk04, 180.0f);
-            BoardModelPosSetV(temp_r31->unk04, &sp8);
-            BoardModelRotYSet(temp_r31->unk04, lbl_1_data_41C[lbl_1_bss_E6][var_r30 ^ 1]);
-            BoardCameraTargetModelSet(temp_r31->unk04);
-            temp_r31->unk02 = 2;
+            currentSpace = BoardSpaceGet(0, bridgeSpaceLinks[bridgeCrossingType][bridgeSideIndex]);
+            currentSpace->flag |= 0x04000000;
+            currentSpace = BoardSpaceGet(0, bridgeSpaceLinks[bridgeCrossingType][bridgeSideIndex ^ 1]);
+            currentSpace->flag &= ~0x04000000;
+            BoardSpacePosGet(0, bridgeSpaceLinks[bridgeCrossingType][bridgeSideIndex ^ 1], &currentBridgePosition);
+            BoardModelMotionStart(bridgeWork->motionId, 0, 0);
+            BoardModelMotionTimeSet(bridgeWork->motionId, 180.0f);
+            BoardModelPosSetV(bridgeWork->motionId, &currentBridgePosition);
+            BoardModelRotYSet(bridgeWork->motionId, bridgeRotations[bridgeCrossingType][bridgeSideIndex ^ 1]);
+            BoardCameraTargetModelSet(bridgeWork->motionId);
+            bridgeWork->bridgeState = 2;
             break;
         case 2:
-            if (BoardModelMotionEndCheck(temp_r31->unk04) && BoardCameraMotionIsDone()) {
-                temp_r31->unk00_field0 = 1;
+            if (BoardModelMotionEndCheck(bridgeWork->motionId) && BoardCameraMotionIsDone()) {
+                bridgeWork->isActive = 1;
             }
             break;
     }

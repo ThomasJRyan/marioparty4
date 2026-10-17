@@ -20,28 +20,28 @@
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
+        u8 isActive : 1;
     };
-    s8 unk01[10];
-} Bss8Work;
+    s8 soundCuePlayed[10];
+} W06BoardAudioWork;
 
 typedef struct {
-    /* 0x00 */ s32 unk00;
-    /* 0x04 */ Vec unk04;
-} Data108Struct; // Size 0x10
+    /* 0x00 */ s32 motionFrame;
+    /* 0x04 */ Vec soundPosition;
+} W06AmbientSoundCue;
 
-static void fn_1_730(void);
-static void fn_1_79C(void);
-static s32 fn_1_7BC(void);
-static s32 fn_1_900(void);
-static s32 fn_1_984(void);
-static void fn_1_9C0(void);
-static void fn_1_B28(void);
-static void fn_1_B5C(OMOBJ *arg0);
+static void W06SetBoardLighting(void);
+static void W06ClearBoardFog(void);
+static s32 W06HandleBridgeSpaceWalk(void);
+static s32 W06HandleMiniGameSpaceWalk(void);
+static s32 W06HandleSpaceLanding(void);
+static void W06StartAmbientAudio(void);
+static void W06StopAmbientAudio(void);
+static void W06UpdateAmbientAudio(OMOBJ *audioObject);
 
-s16 lbl_1_bss_C[MAPOBJ_MAX];
+s16 w06MapObjectModelIds[MAPOBJ_MAX];
 
-static BoardMapObject lbl_1_data_0[MAPOBJ_MAX] = {
+static BoardMapObject w06MapObjects[MAPOBJ_MAX] = {
     { {   450.0f, 200.0f, -2950.0f }, { 0.0f,        0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W06, 6) },
     { { -1650.0f,   0.0f,  2100.0f }, { 0.0f,        0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W06, 8) },
     { {  2700.0f, 100.0f, -1950.0f }, { 0.0f, -89.999985f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_W06, 5) },
@@ -50,26 +50,26 @@ static BoardMapObject lbl_1_data_0[MAPOBJ_MAX] = {
     { {   300.0f, 200.0f, -2850.0f }, { 0.0f,        0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, DATA_MAKE_NUM(DATADIR_BGUEST, 33) }
 };
 
-static OMOBJ *lbl_1_bss_8;
-static s32 lbl_1_bss_4;
-UnkW06BoardData *lbl_1_bss_0;
+static OMOBJ *w06AudioListenerObject;
+static s32 w06AllAudioPaused;
+W06BoardData *w06BoardData;
 
-static s16 lbl_1_data_F0 = -1;
-static s16 lbl_1_data_F2 = -1;
-static s16 lbl_1_data_F4 = -1;
-static s16 lbl_1_data_F6 = -1;
+static s16 w06BoardBackgroundModel = -1;
+static s16 w06BoardSecondaryModel = -1;
+static s16 w06StarHostModel = -1;
+static s16 w06ServiceHostModel = -1;
 
-static s32 lbl_1_data_F8[] = {
+static s32 w06BoardModelData[] = {
     DATA_MAKE_NUM(DATADIR_W06, 18),
     -1
 };
 
-static s32 lbl_1_data_100[] = {
+static s32 w06GuestModelData[] = {
     DATA_MAKE_NUM(DATADIR_BGUEST, 34),
     -1
 };
 
-static Data108Struct lbl_1_data_108[] = {
+static W06AmbientSoundCue w06AmbientSoundCues[] = {
     0x00000002, { -3359.9998f, 170.0f, -3559.9998f },
     0x0000002A, {  3540.0002f, 170.0f,     1320.0f },
     0x00000052, {     -710.0f, 170.0f,    -4580.0f },
@@ -83,138 +83,138 @@ static Data108Struct lbl_1_data_108[] = {
 };
 
 void BoardCreate(void) {
-    BoardMapObject *temp_r30;
-    s32 *var_r29;
+    BoardMapObject *mapObject;
+    s32 *mapObjectData;
     s32 i;
 
-    lbl_1_bss_0 = (UnkW06BoardData*) GWSystem.board_data;
+    w06BoardData = (W06BoardData*) GWSystem.boardData;
     BoardSpaceInit(DATA_MAKE_NUM(DATADIR_W06, 0));
-    lbl_1_data_F0 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W06, 1), NULL, 0);
-    fn_8006DDE8(lbl_1_data_F0, -1.0f);
-    BoardModelMotionStart(lbl_1_data_F0, 0, 0x40000001);
-    lbl_1_data_F2 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W06, 2), NULL, 0);
-    fn_8006DDE8(lbl_1_data_F2, -1.0f);
-    BoardModelPosSet(lbl_1_data_F2, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_F2, 0, 0x40000001);
-    lbl_1_data_F4 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W06, 17), lbl_1_data_F8, 0);
-    BoardModelPosSet(lbl_1_data_F4, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_F4, 1, 0x40000001);
-    lbl_1_data_F6 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BGUEST, 33), lbl_1_data_100, 0);
-    BoardModelPosSet(lbl_1_data_F6, 0.0f, 0.0f, 0.0f);
-    BoardModelMotionStart(lbl_1_data_F6, 1, 0x40000001);
+    w06BoardBackgroundModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W06, 1), NULL, 0);
+    fn_8006DDE8(w06BoardBackgroundModel, -1.0f);
+    BoardModelMotionStart(w06BoardBackgroundModel, 0, 0x40000001);
+    w06BoardSecondaryModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W06, 2), NULL, 0);
+    fn_8006DDE8(w06BoardSecondaryModel, -1.0f);
+    BoardModelPosSet(w06BoardSecondaryModel, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(w06BoardSecondaryModel, 0, 0x40000001);
+    w06StarHostModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W06, 17), w06BoardModelData, 0);
+    BoardModelPosSet(w06StarHostModel, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(w06StarHostModel, 1, 0x40000001);
+    w06ServiceHostModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BGUEST, 33), w06GuestModelData, 0);
+    BoardModelPosSet(w06ServiceHostModel, 0.0f, 0.0f, 0.0f);
+    BoardModelMotionStart(w06ServiceHostModel, 1, 0x40000001);
     for (i = 0; i < MAPOBJ_MAX; i++) {
-        temp_r30 = &lbl_1_data_0[i];
-        if (temp_r30->data_num != -1) {
+        mapObject = &w06MapObjects[i];
+        if (mapObject->data_num != -1) {
             if (i == 4 || i == 5) {
-                var_r29 = lbl_1_data_100;
+                mapObjectData = w06GuestModelData;
             } else {
-                var_r29 = NULL;
+                mapObjectData = NULL;
             }
-            lbl_1_bss_C[i] = BoardModelCreate(temp_r30->data_num, var_r29, 0);
-            BoardModelPosSetV(lbl_1_bss_C[i], &temp_r30->pos);
-            BoardModelRotSetV(lbl_1_bss_C[i], &temp_r30->rot);
-            BoardModelScaleSetV(lbl_1_bss_C[i], &temp_r30->scale);
-            BoardModelVisibilitySet(lbl_1_bss_C[i], 1);
+            w06MapObjectModelIds[i] = BoardModelCreate(mapObject->data_num, mapObjectData, 0);
+            BoardModelPosSetV(w06MapObjectModelIds[i], &mapObject->pos);
+            BoardModelRotSetV(w06MapObjectModelIds[i], &mapObject->rot);
+            BoardModelScaleSetV(w06MapObjectModelIds[i], &mapObject->scale);
+            BoardModelVisibilitySet(w06MapObjectModelIds[i], 1);
         }
     }
-    BoardModelMotionStart(lbl_1_bss_C[4], 1, 0x40000001);
-    BoardModelMotionStart(lbl_1_bss_C[5], 1, 0x40000001);
-    BoardModelMotionStart(lbl_1_bss_C[2], 0, 0);
-    BoardModelMotionSpeedSet(lbl_1_bss_C[2], 0.0f);
-    BoardModelLayerSet(lbl_1_bss_C[2], 1);
-    BoardModelMotionStart(lbl_1_bss_C[3], 0, 0);
-    BoardModelMotionSpeedSet(lbl_1_bss_C[3], 0.0f);
-    BoardModelLayerSet(lbl_1_bss_C[3], 1);
-    fn_1_D70();
-    fn_1_4878();
-    fn_1_7BB0();
-    fn_1_8F20();
-    BoardLightHookSet(fn_1_730, fn_1_79C);
-    BoardSpaceWalkEventFuncSet(fn_1_7BC);
-    BoardSpaceWalkMiniEventFuncSet(fn_1_900);
-    BoardSpaceLandEventFuncSet(fn_1_984);
-    BoardStarHostSet(lbl_1_data_F4);
-    BoardBooHouseHostSet(lbl_1_data_F6);
-    BoardLotteryHostSet(lbl_1_data_F6);
-    BoardShopHostSet(lbl_1_data_F6);
+    BoardModelMotionStart(w06MapObjectModelIds[4], 1, 0x40000001);
+    BoardModelMotionStart(w06MapObjectModelIds[5], 1, 0x40000001);
+    BoardModelMotionStart(w06MapObjectModelIds[2], 0, 0);
+    BoardModelMotionSpeedSet(w06MapObjectModelIds[2], 0.0f);
+    BoardModelLayerSet(w06MapObjectModelIds[2], 1);
+    BoardModelMotionStart(w06MapObjectModelIds[3], 0, 0);
+    BoardModelMotionSpeedSet(w06MapObjectModelIds[3], 0.0f);
+    BoardModelLayerSet(w06MapObjectModelIds[3], 1);
+    W06ItemBoardInitialize();
+    W06CoinBoardInitialize();
+    W06BridgeCreate();
+    W06BowserEventInitialize();
+    BoardLightHookSet(W06SetBoardLighting, W06ClearBoardFog);
+    BoardSpaceWalkEventFuncSet(W06HandleBridgeSpaceWalk);
+    BoardSpaceWalkMiniEventFuncSet(W06HandleMiniGameSpaceWalk);
+    BoardSpaceLandEventFuncSet(W06HandleSpaceLanding);
+    BoardStarHostSet(w06StarHostModel);
+    BoardBooHouseHostSet(w06ServiceHostModel);
+    BoardLotteryHostSet(w06ServiceHostModel);
+    BoardShopHostSet(w06ServiceHostModel);
     BoardJunctionMaskSet(0x3000);
-    boardTurnFunc = fn_1_C2B4;
-    boardStarShowNextHook = fn_1_CD0C;
-    boardTurnStartFunc = fn_1_9294;
-    boardStarGiveHook = fn_1_CC90;
-    boardBowserHook = fn_1_C108;
-    fn_1_9C0();
+    boardTurnFunc = W06BowserTurnEventCheck;
+    boardStarShowNextHook = W06BowserNextStarShowHook;
+    boardTurnStartFunc = W06BowserTurnStart;
+    boardStarGiveHook = W06BowserStarGiveHook;
+    boardBowserHook = W06BowserModelAnimationSet;
+    W06StartAmbientAudio();
 }
 
 void BoardDestroy(void) {
     s32 i;
 
-    fn_1_B28();
+    W06StopAmbientAudio();
     boardTurnFunc
         = (void*) boardStarShowNextHook
         = (void*) boardTurnStartFunc
         = (void*) boardStarGiveHook
         = (void*) boardBowserHook = NULL;
-    fn_1_91D8();
-    fn_1_7F3C();
-    fn_1_F6C();
-    fn_1_4A10();
+    W06BowserEventCleanup();
+    W06BridgeDestroy();
+    W06ItemBoardCleanup();
+    W06CoinBoardCleanup();
     for (i = 0; i < MAPOBJ_MAX; i++) {
-        BoardModelKill(lbl_1_bss_C[i]);
-        lbl_1_bss_C[i] = -1;
+        BoardModelKill(w06MapObjectModelIds[i]);
+        w06MapObjectModelIds[i] = -1;
     }
-    if (lbl_1_data_F6 != -1) {
-        BoardModelKill(lbl_1_data_F6);
-        lbl_1_data_F6 = -1;
+    if (w06ServiceHostModel != -1) {
+        BoardModelKill(w06ServiceHostModel);
+        w06ServiceHostModel = -1;
     }
-    if (lbl_1_data_F4 != -1) {
-        BoardModelKill(lbl_1_data_F4);
-        lbl_1_data_F4 = -1;
+    if (w06StarHostModel != -1) {
+        BoardModelKill(w06StarHostModel);
+        w06StarHostModel = -1;
     }
-    if (lbl_1_data_F0 != -1) {
-        BoardModelKill(lbl_1_data_F0);
-        lbl_1_data_F0 = -1;
+    if (w06BoardBackgroundModel != -1) {
+        BoardModelKill(w06BoardBackgroundModel);
+        w06BoardBackgroundModel = -1;
     }
-    if (lbl_1_data_F2 != -1) {
-        BoardModelKill(lbl_1_data_F2);
-        lbl_1_data_F2 = -1;
+    if (w06BoardSecondaryModel != -1) {
+        BoardModelKill(w06BoardSecondaryModel);
+        w06BoardSecondaryModel = -1;
     }
 }
 
-static void fn_1_730(void) {
-    s16 var_r31;
+static void W06SetBoardLighting(void) {
+    s16 modelId;
 
-    var_r31 = BoardModelIDGet(lbl_1_data_F0);
-    Hu3DModelLightInfoSet(var_r31, 1);
+    modelId = BoardModelIDGet(w06BoardBackgroundModel);
+    Hu3DModelLightInfoSet(modelId, 1);
     Hu3DFogSet(4200.0f, 30000.0f, 0xF8, 0x30, 0);
 }
 
-static void fn_1_79C(void) {
+static void W06ClearBoardFog(void) {
     Hu3DFogClear();
 }
 
-static s32 fn_1_7BC(void) {
-    s32 sp10[] = { 0, 1 };
-    s32 sp8[] = { 0x300, 0xC0 };
-    BoardSpace *temp_r31;
-    s16 temp_r28;
-    s32 temp_r27;
+static s32 W06HandleBridgeSpaceWalk(void) {
+    s32 bridgeCrossingTypes[] = { 0, 1 };
+    s32 bridgeExitFlags[] = { 0x300, 0xC0 };
+    BoardSpace *currentSpace;
+    s16 currentSpaceIndex;
+    s32 currentPlayerIndex;
     s32 i;
     s32 j;
 
-    temp_r27 = GWSystem.player_curr;
-    temp_r28 = GWPlayer[temp_r27].space_curr;
-    if (fn_1_92D8(temp_r27, temp_r28) != 0) {
+    currentPlayerIndex = GWSystem.player_curr;
+    currentSpaceIndex = GWPlayer[currentPlayerIndex].space_curr;
+    if (W06BowserEventStart(currentPlayerIndex, currentSpaceIndex) != 0) {
         return 1;
     }
     for (i = 0; i < 2; i++) {
-        if (BoardSpaceLinkFlagSearch(0, temp_r28, sp8[i]) == -1) {
+        if (BoardSpaceLinkFlagSearch(0, currentSpaceIndex, bridgeExitFlags[i]) == -1) {
             continue;
         }
-        temp_r31 = BoardSpaceGet(0, temp_r28);
-        for (j = 0; j < temp_r31->link_cnt; j++) {
-            if ((BoardSpaceFlagGet(0, temp_r31->link[j]) & 0x04000000) == 0) {
-                fn_1_8264(sp10[i], temp_r31->link[j]);
+        currentSpace = BoardSpaceGet(0, currentSpaceIndex);
+        for (j = 0; j < currentSpace->link_cnt; j++) {
+            if ((BoardSpaceFlagGet(0, currentSpace->link[j]) & 0x04000000) == 0) {
+                W06BridgeCrossingStart(bridgeCrossingTypes[i], currentSpace->link[j]);
                 return 1;
             }
         }
@@ -222,104 +222,104 @@ static s32 fn_1_7BC(void) {
     return 0;
 }
 
-static s32 fn_1_900(void) {
-    s16 var_r30;
-    s32 temp_r31;
+static s32 W06HandleMiniGameSpaceWalk(void) {
+    s16 currentSpaceIndex;
+    s32 miniGameSpaceFlags;
 
-    var_r30 = GWPlayer[GWSystem.player_curr].space_curr;
-    temp_r31 = BoardSpaceFlagGet(0, var_r30) & 0x600000;
-    if (temp_r31 == 0x200000) {
-        fn_1_1054();
-    } else if (temp_r31 == 0x400000) {
-        fn_1_4A60();
+    currentSpaceIndex = GWPlayer[GWSystem.player_curr].space_curr;
+    miniGameSpaceFlags = BoardSpaceFlagGet(0, currentSpaceIndex) & 0x600000;
+    if (miniGameSpaceFlags == 0x200000) {
+        W06ItemSpaceEventStart();
+    } else if (miniGameSpaceFlags == 0x400000) {
+        W06CoinSpaceEventStart();
     }
 }
 
-static s32 fn_1_984(void) {
+static s32 W06HandleSpaceLanding(void) {
     if (BoardPlayerSizeGet(GWSystem.player_curr) != 2) {
-        fn_1_6EF0();
+        W06FireEventStart();
     }
 }
 
-static void fn_1_9C0(void) {
-    Vec sp14;
-    Vec sp8;
-    OMOBJ *temp_r3;
-    Bss8Work *temp_r30;
+static void W06StartAmbientAudio(void) {
+    Vec cameraPosition;
+    Vec cameraDirection;
+    OMOBJ *audioObject;
+    W06BoardAudioWork *audioWork;
     s32 i;
 
-    temp_r3 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, fn_1_B5C);
-    lbl_1_bss_8 = temp_r3;
-    temp_r30 = omObjGetWork(temp_r3, Bss8Work);
-    temp_r30->unk00_field0 = 0;
-    BoardCameraPosGet(&sp14);
-    BoardCameraDirGet(&sp8);
-    HuAudFXListnerSetEX(&sp14, &sp8, 6600.0f, 36000.0f, 0.0f, 1650.0f, 1650.0f);
+    audioObject = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, W06UpdateAmbientAudio);
+    w06AudioListenerObject = audioObject;
+    audioWork = omObjGetWork(audioObject, W06BoardAudioWork);
+    audioWork->isActive = 0;
+    BoardCameraPosGet(&cameraPosition);
+    BoardCameraDirGet(&cameraDirection);
+    HuAudFXListnerSetEX(&cameraPosition, &cameraDirection, 6600.0f, 36000.0f, 0.0f, 1650.0f, 1650.0f);
     for (i = 0; i < 10; i++) {
-        temp_r30->unk01[i] = 0;
+        audioWork->soundCuePlayed[i] = 0;
     }
     if (!_CheckFlag(FLAG_ID_MAKE(1, 16))) {
-        if (lbl_1_bss_4 == 0) {
+        if (w06AllAudioPaused == 0) {
             HuAudFXPauseAll(1);
-            lbl_1_bss_4 = 1;
+            w06AllAudioPaused = 1;
         }
-    } else if (lbl_1_bss_4 != 0) {
+    } else if (w06AllAudioPaused != 0) {
         HuAudFXPauseAll(0);
-        lbl_1_bss_4 = 0;
+        w06AllAudioPaused = 0;
     }
 }
 
-static void fn_1_B28(void) {
-    if (lbl_1_bss_8) {
-        omObjGetWork(lbl_1_bss_8, Bss8Work)->unk00_field0 = 1;
+static void W06StopAmbientAudio(void) {
+    if (w06AudioListenerObject) {
+        omObjGetWork(w06AudioListenerObject, W06BoardAudioWork)->isActive = 1;
     }
 }
 
-static void fn_1_B5C(OMOBJ *arg0) {
-    Bss8Work *temp_r30;
-    Vec sp14;
-    Vec sp8;
-    s16 temp_r28;
-    s16 var_r29;
+static void W06UpdateAmbientAudio(OMOBJ *audioObject) {
+    W06BoardAudioWork *audioWork;
+    Vec cameraTarget;
+    Vec cameraDirection;
+    s16 backgroundMotionFrame;
+    s16 playedCueCount;
     s16 i;
 
-    temp_r30 = omObjGetWork(arg0, Bss8Work);
-    if (temp_r30->unk00_field0 != 0 || BoardIsKill()) {
+    audioWork = omObjGetWork(audioObject, W06BoardAudioWork);
+    if (audioWork->isActive != 0 || BoardIsKill()) {
         HuAudFXListnerKill();
-        lbl_1_bss_8 = NULL;
-        omDelObjEx(HuPrcCurrentGet(), arg0);
+        w06AudioListenerObject = NULL;
+        omDelObjEx(HuPrcCurrentGet(), audioObject);
         return;
     }
-    temp_r28 = BoardModelMotionTimeGet(lbl_1_data_F0);
-    BoardCameraDirGet(&sp8);
-    BoardCameraTargetGet(&sp14);
-    sp14.y += 2000.0f;
+    backgroundMotionFrame = BoardModelMotionTimeGet(w06BoardBackgroundModel);
+    BoardCameraDirGet(&cameraDirection);
+    BoardCameraTargetGet(&cameraTarget);
+    cameraTarget.y += 2000.0f;
     if (!_CheckFlag(FLAG_ID_MAKE(1, 16))) {
-        if (lbl_1_bss_4 == 0) {
+        if (w06AllAudioPaused == 0) {
             HuAudFXPauseAll(1);
-            lbl_1_bss_4 = 1;
+            w06AllAudioPaused = 1;
         }
-    } else if (lbl_1_bss_4 != 0) {
+    } else if (w06AllAudioPaused != 0) {
         HuAudFXPauseAll(0);
-        lbl_1_bss_4 = 0;
+        w06AllAudioPaused = 0;
     }
     if (!_CheckFlag(FLAG_ID_MAKE(1, 28))) {
-        for (var_r29 = i = 0; i < 10; i++) {
-            if (temp_r30->unk01[i] != 0) {
-                var_r29++;
-            } else if (temp_r28 == lbl_1_data_108[i].unk00) {
-                HuAudFXEmiterPlay(0x4A1, &lbl_1_data_108[i].unk04);
-                temp_r30->unk01[i] = 1;
+        for (playedCueCount = i = 0; i < 10; i++) {
+            if (audioWork->soundCuePlayed[i] != 0) {
+                playedCueCount++;
+            } else if (backgroundMotionFrame == w06AmbientSoundCues[i].motionFrame) {
+                HuAudFXEmiterPlay(0x4A1, &w06AmbientSoundCues[i].soundPosition);
+                audioWork->soundCuePlayed[i] = 1;
                 goto block_20;
             }
         }
-        if (var_r29 < 10) {
+        if (playedCueCount < 10) {
             return;
         }
         for (i = 0; i < 10; i++) {
-            temp_r30->unk01[i] = 0;
+            audioWork->soundCuePlayed[i] = 0;
         }
     }
 block_20:
-    HuAudFXListnerUpdate(&sp14, &sp8);
+    HuAudFXListnerUpdate(&cameraTarget, &cameraDirection);
 }

@@ -9,45 +9,45 @@ enum {
 
 typedef struct {
     struct {
-        u8 unk00_field0 : 1;
-        u8 unk00_field1 : 1;
-        u8 unk00_field2 : 1;
-        u8 unk00_field3 : 1;
-        u8 unk00_field4 : 1;
+        u8 isJunctionPathOpen : 1;
+        u8 isBoardEventEnabled : 1;
+        u8 hasCustomStarSpace : 1;
+        u8 isStarSpaceOccupied : 1;
+        u8 isBowserEventEnabled : 1;
     };
-    s8 unk01;
-    s8 unk02;
-    s8 unk03;
-    s8 unk04;
-    u8 unk05;
-    s16 unk06;
-} UnkW06BoardData;
+    s8 boardEventState;
+    s8 boardEventCounter;
+    s8 reservedBoardState;
+    s8 starSpaceIndex;
+    u8 bowserTargetPlayers;
+    s16 boardEventTimer;
+} W06BoardData;
 
-extern void fn_1_D70(void);
-extern void fn_1_F6C(void);
-extern void fn_1_1054(void);
+extern void W06ItemBoardInitialize(void);
+extern void W06ItemBoardCleanup(void);
+extern void W06ItemSpaceEventStart(void);
 
-extern void fn_1_4878(void);
-extern void fn_1_4A10(void);
-extern void fn_1_4A60(void);
+extern void W06CoinBoardInitialize(void);
+extern void W06CoinBoardCleanup(void);
+extern void W06CoinSpaceEventStart(void);
 
-extern void fn_1_6EF0(void);
+extern void W06FireEventStart(void);
 
-extern void fn_1_7BB0(void);
-extern void fn_1_7F3C(void);
-extern void fn_1_7FA4(void);
-extern void fn_1_8264(s32 arg0, s16 arg1);
+extern void W06BridgeCreate(void);
+extern void W06BridgeDestroy(void);
+extern void W06BridgeStateUpdate(void);
+extern void W06BridgeCrossingStart(s32 crossingType, s16 spaceIndex);
 
-extern void fn_1_8F20(void);
-extern void fn_1_91D8(void);
-extern void fn_1_9294(s32 arg0, s32 arg1);
-extern s32 fn_1_92D8(s32 arg0, s32 arg1);
-extern void fn_1_C108(s32 arg0);
-extern void fn_1_C2B4(void);
-extern void fn_1_CC90(void);
-extern void fn_1_CD0C(void);
+extern void W06BowserEventInitialize(void);
+extern void W06BowserEventCleanup(void);
+extern void W06BowserTurnStart(s32 playerIndex, s32 spaceIndex);
+extern s32 W06BowserEventStart(s32 playerIndex, s32 spaceIndex);
+extern void W06BowserModelAnimationSet(s32 showBowser);
+extern void W06BowserTurnEventCheck(void);
+extern void W06BowserStarGiveHook(void);
+extern void W06BowserNextStarShowHook(void);
 
-extern s16 lbl_1_bss_C[MAPOBJ_MAX];
-extern UnkW06BoardData *lbl_1_bss_0;
+extern s16 w06MapObjectModelIds[MAPOBJ_MAX];
+extern W06BoardData *w06BoardData;
 
 #endif
