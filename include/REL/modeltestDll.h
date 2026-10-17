@@ -16,30 +16,30 @@
 // -------------------------------------------------------------------------- //
 
 typedef struct {
-    s16 unk0[7];
-} HuUnkF9C2;
+    s16 sequenceIds[7];
+} TeropPatternSequence;
 
 typedef struct {
     Vec pos; // 0000
     Vec rot; // 000C
     Vec scale; // 0018
-    s32 unk24;
-    s32 unk28;
-    s32 unk2C;
+    s32 reserved24;
+    s32 reserved28;
+    s32 reserved2C;
     HSFOBJECT *obj; // 0030
-} HuObjUnk;
+} ObjectTransformWork;
 
 extern Vec CRot;
 extern Vec Center;
 extern float CZoom;
-void fn_1_29C();
-void fn_1_28F8(Vec *arg0, Vec *arg1);
-void fn_1_37DC(OMOBJ *);
-void fn_1_439C(OMOBJ *);
-void fn_1_46F0();
+void ModelTestSceneInitialize(OMOBJ *object);
+void WorldPositionToScreenPosition(Vec *worldPosition, Vec *screenPosition);
+void MultiCameraModelTestUpdate(OMOBJ *object);
+void MultiCameraViewUpdate(OMOBJ *object);
+void MultiCameraCharacterModelsInitialize(void);
 
-typedef void(omObjFunc2)(struct omObj_s *);
-omObjFunc2 fn_1_F9C;
+typedef void(ModelTestObjectFunction)(struct omObj_s *);
+ModelTestObjectFunction ModelTestSceneUpdate;
 
 #endif
 

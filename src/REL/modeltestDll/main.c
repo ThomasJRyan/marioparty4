@@ -15,7 +15,7 @@
 
 // -------------------------------------------------------------------------- //
 
-s32 lbl_1_data_0[8] = {
+s32 characterMotionAssetIds[8] = {
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x1B),
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x15),
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x16),
@@ -26,8 +26,8 @@ s32 lbl_1_data_0[8] = {
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x04),
 };
 
-OMOBJ *lbl_1_bss_9A4;
-OMOBJ *lbl_1_bss_9A0;
+OMOBJ *modelTestObject;
+OMOBJ *modelTestViewObject;
 
 // -------------------------------------------------------------------------- //
 
@@ -51,8 +51,8 @@ void ObjectSetup(void)
     Hu3DCameraPerspectiveSet(1, 45.0f, 20.0f, 20000.0f, 1.2f);
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
 
-    lbl_1_bss_9A4 = omAddObjEx(prc, 0, 0x20, 0x20, -1, fn_1_29C);
-    lbl_1_bss_9A0 = omAddObjEx(prc, 0x7FDA, 0, 0, -1, omOutView);
+    modelTestObject = omAddObjEx(prc, 0, 0x20, 0x20, -1, ModelTestSceneInitialize);
+    modelTestViewObject = omAddObjEx(prc, 0x7FDA, 0, 0, -1, omOutView);
 
     Hu3DBGColorSet(0x20U, 0x80U, 0x80U);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 30);
@@ -60,10 +60,10 @@ void ObjectSetup(void)
 
 // -------------------------------------------------------------------------- //
 
-char *lbl_1_data_D8[16] = { "target1A", "target1B", "target2A", "target2B", "target3A", "target3B", "target4A", "target4B", "target5A", "target5B",
+char *characterObjectNames[16] = { "target1A", "target1B", "target2A", "target2B", "target3A", "target3B", "target4A", "target4B", "target5A", "target5B",
     "target6A", "target6B", "target7A", "target7B", "target8A", "target8B" };
 
-HU3DPARMANPARAM lbl_1_data_118 = {
+HU3DPARMANPARAM particleRotationParameters = {
     /* unk00 */ 40,
     /* unk02 */ { 0, 0 },
     /* unk04 */ 50.0f,
@@ -83,7 +83,7 @@ HU3DPARMANPARAM lbl_1_data_118 = {
         { /* r */ 255, /* g */ 255, /* b */ 255, /* a */ 0 }, { /* r */ 255, /* g */ 255, /* b */ 255, /* a */ 0 } },
 };
 
-HU3DPARMANPARAM lbl_1_data_168[2] = { {
+HU3DPARMANPARAM particleRingParameters[2] = { {
                                           /* unk00 */ 50,
                                           /* unk02 */ { 0, 0 },
                                           /* unk04 */ 5.0f,
@@ -122,7 +122,7 @@ HU3DPARMANPARAM lbl_1_data_168[2] = { {
             { /* r */ 0, /* g */ 0, /* b */ 0, /* a */ 0 }, { /* r */ 0, /* g */ 0, /* b */ 0, /* a */ 0 } },
     } };
 
-HU3DPARMANPARAM lbl_1_data_208 = {
+HU3DPARMANPARAM particleEmissionParameters = {
     /* unk00 */ 40,
     /* unk02 */ { 0, 0 },
     /* unk04 */ 50.0f,
@@ -142,7 +142,7 @@ HU3DPARMANPARAM lbl_1_data_208 = {
         { /* r */ 0, /* g */ 0, /* b */ 0, /* a */ 0 } },
 };
 
-HU3DPARMANPARAM lbl_1_data_258 = {
+HU3DPARMANPARAM particleTrailParameters = {
     /* unk00 */ 30,
     /* unk02 */ { 0, 0 },
     /* unk04 */ 50.0f,
@@ -162,158 +162,158 @@ HU3DPARMANPARAM lbl_1_data_258 = {
         { /* r */ 0, /* g */ 0, /* b */ 0, /* a */ 0 }, { /* r */ 0, /* g */ 0, /* b */ 0, /* a */ 0 } },
 };
 
-const Vec lbl_1_rodata_38 = { 0.0f, 0.0f, 0.0f };
-const Vec lbl_1_rodata_44 = { 0.0f, 1.0f, 0.0f };
-s16 lbl_1_bss_99C;
-s16 lbl_1_bss_99A;
-s16 lbl_1_bss_98A[8];
-s16 lbl_1_bss_88A[8][16];
-s16 lbl_1_bss_888;
-s16 unk_bss_886;
-s16 lbl_1_bss_884;
-s16 lbl_1_bss_864[16];
-s16 lbl_1_bss_664[256];
-s16 lbl_1_bss_460[258];
-s16 lbl_1_bss_45A[3];
-s16 lbl_1_bss_458;
-ANIMDATA *lbl_1_bss_454;
-s32 unk_bss_450;
-HuObjUnk lbl_1_bss_40[20];
-void *lbl_1_bss_30[4];
-u8 lbl_1_bss_2C;
-f32 lbl_1_bss_28;
-s16 lbl_1_bss_24;
-f32 lbl_1_bss_20;
-HUPROCESS *lbl_1_bss_18[2];
-HUPROCESS *lbl_1_bss_14;
-HUPROCESS *lbl_1_bss_10;
-s32 lbl_1_bss_C;
-f32 lbl_1_bss_8;
-static u8 unk_bss[8];
+const Vec zeroVector = { 0.0f, 0.0f, 0.0f };
+const Vec worldUpVector = { 0.0f, 1.0f, 0.0f };
+s16 spriteGroupId;
+s16 lastSpriteId;
+s16 characterModelIds[8];
+s16 characterMotionIds[8][16];
+s16 particleManagerId;
+s16 unreferencedParticleManagerScratch;
+s16 linkedParticleManagerId;
+s16 ringParticleManagerIds[16];
+s16 shadowModelIds[256];
+s16 modelIds[258];
+s16 sequenceIds[3];
+s16 sequenceTimerFrames;
+ANIMDATA *screenSpriteAnimation;
+s32 unreferencedAnimationScratch;
+ObjectTransformWork objectTransforms[20];
+void *framebufferBuffers[4];
+u8 spriteTextureLoadCount;
+f32 textureRotationDegrees;
+s16 teropPatternIndex;
+f32 characterRotationDegrees;
+HUPROCESS *effectProcesses[2];
+HUPROCESS *modelMotionProcess;
+HUPROCESS *characterMotionProcess;
+s32 testMode;
+f32 effectRotationDegrees;
+static u8 unreferencedScratchBytes[8];
 
 // -------------------------------------------------------------------------- //
 
-void fn_1_29C(OMOBJ *arg0)
+void ModelTestSceneInitialize(OMOBJ *object)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    Mtx sp2C;
-    s16 var_r31;
-    s16 temp_r27;
-    u32 temp_r26;
-    s16 temp_r3;
-    void *temp_r29;
-    ANIMDATA *temp_r28;
-    f32 temp_r5;
-    f32 temp_f30;
-    s16 chrIdx;
-    s32 temp_r0;
+    Vec shadowPosition;
+    Vec shadowUpDirection;
+    Vec shadowTargetPosition;
+    Mtx objectTransform;
+    s16 modelIndex;
+    s16 jointMotionId;
+    u32 startTick;
+    s16 characterId;
+    void *assetBuffer;
+    ANIMDATA *spriteAnimation;
+    f32 elapsedMicroseconds;
+    f32 unreferencedTimingScratch;
+    s16 characterIndex;
+    s32 unreferencedLoopScratch;
 
-    sp14 = lbl_1_rodata_38;
-    sp8 = lbl_1_rodata_44;
+    shadowUpDirection = zeroVector;
+    shadowTargetPosition = worldUpVector;
 
-    var_r31 = Hu3DGLightCreate(0.0f, 500.0f, 1000.0f, 0.0f, -0.5f, -1.0f, 0xFFU, 0xFFU, 0xFFU);
-    Hu3DGLightInfinitytSet(var_r31);
+    modelIndex = Hu3DGLightCreate(0.0f, 500.0f, 1000.0f, 0.0f, -0.5f, -1.0f, 0xFFU, 0xFFU, 0xFFU);
+    Hu3DGLightInfinitytSet(modelIndex);
     Hu3DShadowCreate(45.0f, 500.0f, 8000.0f);
     Hu3DShadowTPLvlSet(0.5f);
 
     Hu3DShadowSizeSet(0xC0U);
-    sp20.x = -500.0f;
-    sp20.y = 1000.0f;
-    sp20.z = 1000.0f;
-    Hu3DShadowPosSet(&sp20, &sp8, &sp14);
+    shadowPosition.x = -500.0f;
+    shadowPosition.y = 1000.0f;
+    shadowPosition.z = 1000.0f;
+    Hu3DShadowPosSet(&shadowPosition, &shadowTargetPosition, &shadowUpDirection);
 
-    for (var_r31 = 0; var_r31 < 1; ++var_r31) {
-        chrIdx = 0;
-        lbl_1_bss_98A[var_r31] = CharModelCreate(chrIdx, 2);
-        if (var_r31 == 1) {
-            Hu3DModelLayerSet(lbl_1_bss_98A[var_r31], 1);
+    for (modelIndex = 0; modelIndex < 1; ++modelIndex) {
+        characterIndex = 0;
+        characterModelIds[modelIndex] = CharModelCreate(characterIndex, 2);
+        if (modelIndex == 1) {
+            Hu3DModelLayerSet(characterModelIds[modelIndex], 1);
         }
 
-        lbl_1_bss_88A[var_r31][0] = CharMotionCreate(chrIdx, lbl_1_data_0[0]);
-        lbl_1_bss_88A[var_r31][1] = CharMotionCreate(chrIdx, lbl_1_data_0[1]);
-        lbl_1_bss_88A[var_r31][2] = CharMotionCreate(chrIdx, lbl_1_data_0[2]);
-        lbl_1_bss_88A[var_r31][3] = CharMotionCreate(chrIdx, lbl_1_data_0[3]);
-        lbl_1_bss_88A[var_r31][4] = CharMotionCreate(chrIdx, lbl_1_data_0[4]);
-        lbl_1_bss_88A[var_r31][5] = CharMotionCreate(chrIdx, lbl_1_data_0[5]);
-        lbl_1_bss_88A[var_r31][6] = CharMotionCreate(chrIdx, lbl_1_data_0[6]);
-        lbl_1_bss_88A[var_r31][7] = CharMotionCreate(chrIdx, lbl_1_data_0[7]);
-        lbl_1_bss_88A[var_r31][0] = CharMotionCreate(chrIdx, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x4D));
-        CharMotionSet(chrIdx, lbl_1_bss_88A[var_r31][0]);
-        Hu3DModelAttrSet(lbl_1_bss_98A[var_r31], HU3D_MOTATTR_LOOP);
-        Hu3DModelPosSet(lbl_1_bss_98A[var_r31], (var_r31 / 4 * 0xC8) - 100, 0.0f, -(var_r31 % 4) * 0x96);
-        CharMotionDataClose(chrIdx);
+        characterMotionIds[modelIndex][0] = CharMotionCreate(characterIndex, characterMotionAssetIds[0]);
+        characterMotionIds[modelIndex][1] = CharMotionCreate(characterIndex, characterMotionAssetIds[1]);
+        characterMotionIds[modelIndex][2] = CharMotionCreate(characterIndex, characterMotionAssetIds[2]);
+        characterMotionIds[modelIndex][3] = CharMotionCreate(characterIndex, characterMotionAssetIds[3]);
+        characterMotionIds[modelIndex][4] = CharMotionCreate(characterIndex, characterMotionAssetIds[4]);
+        characterMotionIds[modelIndex][5] = CharMotionCreate(characterIndex, characterMotionAssetIds[5]);
+        characterMotionIds[modelIndex][6] = CharMotionCreate(characterIndex, characterMotionAssetIds[6]);
+        characterMotionIds[modelIndex][7] = CharMotionCreate(characterIndex, characterMotionAssetIds[7]);
+        characterMotionIds[modelIndex][0] = CharMotionCreate(characterIndex, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x4D));
+        CharMotionSet(characterIndex, characterMotionIds[modelIndex][0]);
+        Hu3DModelAttrSet(characterModelIds[modelIndex], HU3D_MOTATTR_LOOP);
+        Hu3DModelPosSet(characterModelIds[modelIndex], (modelIndex / 4 * 0xC8) - 100, 0.0f, -(modelIndex % 4) * 0x96);
+        CharMotionDataClose(characterIndex);
     }
-    temp_r26 = OSGetTick();
+    startTick = OSGetTick();
 
-    for (var_r31 = 0; var_r31 < 8; ++var_r31) {
-        Hu3DModelObjMtxGet(lbl_1_bss_98A[0], "test11_tex_we-ske_R_shoe1", sp2C);
+    for (modelIndex = 0; modelIndex < 8; ++modelIndex) {
+        Hu3DModelObjMtxGet(characterModelIds[0], "test11_tex_we-ske_R_shoe1", objectTransform);
     }
 
-    temp_r5 = OSTicksToMicroseconds(OSGetTick() - temp_r26);
-    OSReport("time %f\n", US_TO_60TH_SEC(temp_r5));
-    var_r31 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_SAF, 0x24));
-    Hu3DModelScaleSet(var_r31, 5.0f, 5.0f, 5.0f);
-    Hu3DModelShadowMapSet(var_r31);
-    var_r31 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M407, 0x1E));
-    temp_r27 = Hu3DJointMotion(var_r31, HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M407, 0x2F), HU_MEMNUM_OVL, 2));
-    Hu3DMotionSet(var_r31, temp_r27);
-    Hu3DModelAttrSet(var_r31, HU3D_MOTATTR_LOOP);
+    elapsedMicroseconds = OSTicksToMicroseconds(OSGetTick() - startTick);
+    OSReport("time %f\n", US_TO_60TH_SEC(elapsedMicroseconds));
+    modelIndex = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_SAF, 0x24));
+    Hu3DModelScaleSet(modelIndex, 5.0f, 5.0f, 5.0f);
+    Hu3DModelShadowMapSet(modelIndex);
+    modelIndex = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M407, 0x1E));
+    jointMotionId = Hu3DJointMotion(modelIndex, HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M407, 0x2F), HU_MEMNUM_OVL, 2));
+    Hu3DMotionSet(modelIndex, jointMotionId);
+    Hu3DModelAttrSet(modelIndex, HU3D_MOTATTR_LOOP);
 
-    for (var_r31 = 0; var_r31 < 10; ++var_r31) {
-        if (var_r31 == 0) {
-            lbl_1_bss_664[var_r31] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_SAF, 0x19));
+    for (modelIndex = 0; modelIndex < 10; ++modelIndex) {
+        if (modelIndex == 0) {
+            shadowModelIds[modelIndex] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_SAF, 0x19));
         }
         else {
-            lbl_1_bss_664[var_r31] = Hu3DModelLink(lbl_1_bss_664[0]);
+            shadowModelIds[modelIndex] = Hu3DModelLink(shadowModelIds[0]);
         }
-        Hu3DModelShadowSet(lbl_1_bss_664[var_r31]);
-        Hu3DModelPosSet(lbl_1_bss_664[var_r31], (((var_r31 / 5) * 0x1F4) + 0xC8), 0.0f, (-(var_r31 % 5) * 0x12C));
-        Hu3DModelAttrSet(lbl_1_bss_664[var_r31], HU3D_ATTR_NOCULL);
-        Hu3DModelAttrSet(lbl_1_bss_664[var_r31], HU3D_MOTATTR_LOOP);
+        Hu3DModelShadowSet(shadowModelIds[modelIndex]);
+        Hu3DModelPosSet(shadowModelIds[modelIndex], (((modelIndex / 5) * 0x1F4) + 0xC8), 0.0f, (-(modelIndex % 5) * 0x12C));
+        Hu3DModelAttrSet(shadowModelIds[modelIndex], HU3D_ATTR_NOCULL);
+        Hu3DModelAttrSet(shadowModelIds[modelIndex], HU3D_MOTATTR_LOOP);
     }
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_SAF, 0x13), HU_MEMNUM_OVL, 2);
-    temp_r28 = HuSprAnimRead(temp_r29);
-    lbl_1_bss_99C = HuSprGrpCreate(0x14);
+    assetBuffer = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_SAF, 0x13), HU_MEMNUM_OVL, 2);
+    spriteAnimation = HuSprAnimRead(assetBuffer);
+    spriteGroupId = HuSprGrpCreate(0x14);
 
-    for (var_r31 = 0; var_r31 < 0x14; ++var_r31) {
-        lbl_1_bss_99A = HuSprCreate(temp_r28, 0, 0);
-        HuSprGrpMemberSet(lbl_1_bss_99C, var_r31, lbl_1_bss_99A);
-        HuSprPosSet(lbl_1_bss_99C, var_r31, 640.0f, 240.0f);
+    for (modelIndex = 0; modelIndex < 0x14; ++modelIndex) {
+        lastSpriteId = HuSprCreate(spriteAnimation, 0, 0);
+        HuSprGrpMemberSet(spriteGroupId, modelIndex, lastSpriteId);
+        HuSprPosSet(spriteGroupId, modelIndex, 640.0f, 240.0f);
     }
 
     HuSprExecLayerSet(0x40, 1);
-    HuSprGrpDrawNoSet(lbl_1_bss_99C, 0x40);
-    lbl_1_bss_458 = 0x293;
-    lbl_1_bss_45A[0] = MGSeqTimerCreate(lbl_1_bss_458 / 60);
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 0x01), HU_MEMNUM_OVL, 2);
-    temp_r28 = HuSprAnimRead(temp_r29);
-    lbl_1_bss_888 = Hu3DParManCreate(temp_r28, 0x3E8, &lbl_1_data_208);
-    Hu3DParManAttrSet(lbl_1_bss_888, 0x45);
-    Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(lbl_1_bss_888), 1U);
-    Hu3DParManRotSet(lbl_1_bss_888, 0.0f, 0.0f, 0.0f);
-    Hu3DParManVacumeSet(lbl_1_bss_888, 500.0f, 0.0f, 0.0f, 1.0f);
-    lbl_1_bss_884 = Hu3DParManLink(lbl_1_bss_888, &lbl_1_data_258);
-    Hu3DParManAttrSet(lbl_1_bss_884, 0x143);
-    Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(lbl_1_bss_884), 1U);
-    Hu3DParManVecSet(lbl_1_bss_884, 0.0f, 1.0f, 0.0f);
-    Hu3DParManVacumeSet(lbl_1_bss_884, 500.0f, 0.0f, 0.0f, 1.0f);
-    Hu3DParManColorSet(lbl_1_bss_884, 0);
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 0x02), HU_MEMNUM_OVL, 2);
-    temp_r28 = HuSprAnimRead(temp_r29);
+    HuSprGrpDrawNoSet(spriteGroupId, 0x40);
+    sequenceTimerFrames = 0x293;
+    sequenceIds[0] = MGSeqTimerCreate(sequenceTimerFrames / 60);
+    assetBuffer = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 0x01), HU_MEMNUM_OVL, 2);
+    spriteAnimation = HuSprAnimRead(assetBuffer);
+    particleManagerId = Hu3DParManCreate(spriteAnimation, 0x3E8, &particleEmissionParameters);
+    Hu3DParManAttrSet(particleManagerId, 0x45);
+    Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(particleManagerId), 1U);
+    Hu3DParManRotSet(particleManagerId, 0.0f, 0.0f, 0.0f);
+    Hu3DParManVacumeSet(particleManagerId, 500.0f, 0.0f, 0.0f, 1.0f);
+    linkedParticleManagerId = Hu3DParManLink(particleManagerId, &particleTrailParameters);
+    Hu3DParManAttrSet(linkedParticleManagerId, 0x143);
+    Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(linkedParticleManagerId), 1U);
+    Hu3DParManVecSet(linkedParticleManagerId, 0.0f, 1.0f, 0.0f);
+    Hu3DParManVacumeSet(linkedParticleManagerId, 500.0f, 0.0f, 0.0f, 1.0f);
+    Hu3DParManColorSet(linkedParticleManagerId, 0);
+    assetBuffer = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 0x02), HU_MEMNUM_OVL, 2);
+    spriteAnimation = HuSprAnimRead(assetBuffer);
 
-    for (var_r31 = 0; var_r31 < 10; ++var_r31) {
-        lbl_1_bss_864[var_r31] = Hu3DParManCreate(temp_r28, 0x1F4, &lbl_1_data_168[0]);
-        Hu3DParManAttrSet(lbl_1_bss_864[var_r31], 0x864);
-        Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(lbl_1_bss_864[var_r31]), 1U);
-        Hu3DParManPosSet(lbl_1_bss_864[var_r31], (100.0 * sind(36.0f * var_r31)), 0.0f, 100.0 * cosd(36.0f * var_r31));
-        Hu3DParManRotSet(lbl_1_bss_864[var_r31], -90.0f, 0.0f, 0.0f);
+    for (modelIndex = 0; modelIndex < 10; ++modelIndex) {
+        ringParticleManagerIds[modelIndex] = Hu3DParManCreate(spriteAnimation, 0x1F4, &particleRingParameters[0]);
+        Hu3DParManAttrSet(ringParticleManagerIds[modelIndex], 0x864);
+        Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(ringParticleManagerIds[modelIndex]), 1U);
+        Hu3DParManPosSet(ringParticleManagerIds[modelIndex], (100.0 * sind(36.0f * modelIndex)), 0.0f, 100.0 * cosd(36.0f * modelIndex));
+        Hu3DParManRotSet(ringParticleManagerIds[modelIndex], -90.0f, 0.0f, 0.0f);
     }
 
-    lbl_1_bss_C = 0;
+    testMode = 0;
     Hu3DFogSet(5000.0f, 10000.0f, 0x20U, 0x10U, 0x30U);
-    arg0->objFunc = fn_1_F9C;
+    object->objFunc = ModelTestSceneUpdate;
 }
 
 // -------------------------------------------------------------------------- //
@@ -322,65 +322,65 @@ s32 unrefData[] = { 0, 0, 0 };
 
 // -------------------------------------------------------------------------- //
 
-void fn_1_F38(void)
+void ModelTestMotionRotationLoop(void)
 {
-    f32 var_f31;
-    var_f31 = 0.0f;
+    f32 modelRotationY;
+    modelRotationY = 0.0f;
 
     while (TRUE) {
-        Hu3DModelRotSet(lbl_1_bss_460[0], 0.0f, var_f31, 0.0f);
-        var_f31 += 1.0f;
+        Hu3DModelRotSet(modelIds[0], 0.0f, modelRotationY, 0.0f);
+        modelRotationY += 1.0f;
         HuPrcVSleep();
     }
 }
 
 // -------------------------------------------------------------------------- //
 
-static inline void HuControlCamCenter(Vec *sp18, Vec *sp30)
+static inline void HuControlCamCenter(Vec *cameraRightDirection, Vec *normalizedCameraDirection)
 {
-    s8 temp_r28;
+    s8 substickDelta;
 
-    temp_r28 = HuPadSubStkX[0] & 0xF8;
-    if (temp_r28 != 0) {
-        Center.x += 0.05f * (sp30->x * temp_r28);
-        Center.y += 0.05f * (sp30->y * temp_r28);
-        Center.z += 0.05f * (sp30->z * temp_r28);
+    substickDelta = HuPadSubStkX[0] & 0xF8;
+    if (substickDelta != 0) {
+        Center.x += 0.05f * (normalizedCameraDirection->x * substickDelta);
+        Center.y += 0.05f * (normalizedCameraDirection->y * substickDelta);
+        Center.z += 0.05f * (normalizedCameraDirection->z * substickDelta);
     }
-    VECNormalize(sp18, sp30);
-    temp_r28 = -(HuPadSubStkY[0] & 0xF8);
-    if (temp_r28 != 0) {
-        Center.x += 0.05f * (sp30->x * temp_r28);
-        Center.y += 0.05f * (sp30->y * temp_r28);
-        Center.z += 0.05f * (sp30->z * temp_r28);
+    VECNormalize(cameraRightDirection, normalizedCameraDirection);
+    substickDelta = -(HuPadSubStkY[0] & 0xF8);
+    if (substickDelta != 0) {
+        Center.x += 0.05f * (normalizedCameraDirection->x * substickDelta);
+        Center.y += 0.05f * (normalizedCameraDirection->y * substickDelta);
+        Center.z += 0.05f * (normalizedCameraDirection->z * substickDelta);
     }
 }
 
 // -------------------------------------------------------------------------- //
 
-const HuUnkF9C2 lbl_1_rodata_B8 = { { 8, 6, 4, 7, 9, 10, 11 } };
+const TeropPatternSequence teropPatternSequenceIds = { { 8, 6, 4, 7, 9, 10, 11 } };
 
 // -------------------------------------------------------------------------- //
 
-void fn_1_F9C(struct omObj_s *omData)
+void ModelTestSceneUpdate(struct omObj_s *object)
 {
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    f32 temp_f31;
-    s32 var_r31;
-    s16 var_r30;
-    HuUnkF9C2 teropPatterns;
+    Vec cameraPosition;
+    Vec cameraOffset;
+    Vec cameraUpDirection;
+    Vec cameraRightDirection;
+    f32 cameraRoll;
+    s32 unreferencedCameraScratch;
+    s16 loopIndex;
+    TeropPatternSequence teropPatterns;
 
     if (omSysExitReq != 0) {
-        if (lbl_1_bss_10 != 0) {
-            HuPrcKill(lbl_1_bss_10);
+        if (characterMotionProcess != 0) {
+            HuPrcKill(characterMotionProcess);
         }
-        if (lbl_1_bss_14 != 0) {
-            HuPrcKill(lbl_1_bss_14);
+        if (modelMotionProcess != 0) {
+            HuPrcKill(modelMotionProcess);
         }
-        if (lbl_1_bss_18[0] != 0) {
-            HuPrcKill(lbl_1_bss_18[0]);
+        if (effectProcesses[0] != 0) {
+            HuPrcKill(effectProcesses[0]);
         }
         CharModelKill(-1);
         omOvlReturnEx(1, 1);
@@ -392,122 +392,122 @@ void fn_1_F9C(struct omObj_s *omData)
     CZoom += HuPadTrigL[0] / 2;
     CZoom -= HuPadTrigR[0] / 2;
 
-    if (((HuPadBtn[0] & PAD_BUTTON_LEFT) != 0) && (lbl_1_data_118.angleRange < 360.0f)) {
-        lbl_1_data_118.angleRange += 1.0f;
+    if (((HuPadBtn[0] & PAD_BUTTON_LEFT) != 0) && (particleRotationParameters.angleRange < 360.0f)) {
+        particleRotationParameters.angleRange += 1.0f;
     }
 
-    if (((HuPadBtn[0] & PAD_BUTTON_RIGHT) != 0) && (lbl_1_data_118.angleRange > 0.0f)) {
-        lbl_1_data_118.angleRange -= 1.0f;
+    if (((HuPadBtn[0] & PAD_BUTTON_RIGHT) != 0) && (particleRotationParameters.angleRange > 0.0f)) {
+        particleRotationParameters.angleRange -= 1.0f;
     }
 
     if ((HuPadBtnDown[0] & PAD_BUTTON_X) != 0) {
-        Hu3DParManAttrSet(lbl_1_bss_888, 0x81);
-        Hu3DParManAttrSet(lbl_1_bss_884, 0x81);
+        Hu3DParManAttrSet(particleManagerId, 0x81);
+        Hu3DParManAttrSet(linkedParticleManagerId, 0x81);
     }
 
-    lbl_1_bss_20 += 2.0f;
-    if (lbl_1_bss_20 > 360.0f) {
-        lbl_1_bss_20 -= 360.0f;
+    characterRotationDegrees += 2.0f;
+    if (characterRotationDegrees > 360.0f) {
+        characterRotationDegrees -= 360.0f;
     }
 
-    for (var_r30 = 0; var_r30 < 10; ++var_r30) {
-        f32 temp_f30;
-        s32 var_r29;
-        s32 var_fake;
+    for (loopIndex = 0; loopIndex < 10; ++loopIndex) {
+        f32 unreferencedLoopScratch;
+        s32 unreferencedLoopScratch2;
+        s32 unreferencedLoopScratch3;
 
         while (0) {
-            (void)temp_f30;
-            (void)temp_f30;
-            (void)var_r31;
-            (void)var_r31;
-            (void)var_r31;
-            (void)var_r31;
-            (void)var_r31;
-            (void)var_r31;
-            (void)var_r31;
-            (void)var_r31;
-            (void)var_r31;
-            (void)var_r31;
-            (void)var_r30;
-            (void)var_r30;
-            (void)var_r30;
-            (void)var_r29;
-            (void)var_r29;
-            (void)var_r29;
-            (void)var_r29;
-            (void)var_r29;
-            (void)var_r29;
-            (void)var_r29;
-            (void)var_r29;
-            (void)var_r29;
-            (void)var_r29;
-            (void)var_fake;
-            (void)var_fake;
-            (void)var_fake;
-            (void)var_fake;
-            (void)var_fake;
-            (void)var_fake;
-            (void)var_fake;
-            (void)var_fake;
-            (void)var_fake;
+            (void)unreferencedLoopScratch;
+            (void)unreferencedLoopScratch;
+            (void)unreferencedCameraScratch;
+            (void)unreferencedCameraScratch;
+            (void)unreferencedCameraScratch;
+            (void)unreferencedCameraScratch;
+            (void)unreferencedCameraScratch;
+            (void)unreferencedCameraScratch;
+            (void)unreferencedCameraScratch;
+            (void)unreferencedCameraScratch;
+            (void)unreferencedCameraScratch;
+            (void)unreferencedCameraScratch;
+            (void)loopIndex;
+            (void)loopIndex;
+            (void)loopIndex;
+            (void)unreferencedLoopScratch2;
+            (void)unreferencedLoopScratch2;
+            (void)unreferencedLoopScratch2;
+            (void)unreferencedLoopScratch2;
+            (void)unreferencedLoopScratch2;
+            (void)unreferencedLoopScratch2;
+            (void)unreferencedLoopScratch2;
+            (void)unreferencedLoopScratch2;
+            (void)unreferencedLoopScratch2;
+            (void)unreferencedLoopScratch2;
+            (void)unreferencedLoopScratch3;
+            (void)unreferencedLoopScratch3;
+            (void)unreferencedLoopScratch3;
+            (void)unreferencedLoopScratch3;
+            (void)unreferencedLoopScratch3;
+            (void)unreferencedLoopScratch3;
+            (void)unreferencedLoopScratch3;
+            (void)unreferencedLoopScratch3;
+            (void)unreferencedLoopScratch3;
         }
     }
 
-    if (lbl_1_bss_458 > 0) {
-        MGSeqParamSet(lbl_1_bss_45A[0], 1, lbl_1_bss_458 / 60);
-        --lbl_1_bss_458;
-        if (lbl_1_bss_458 <= 0) {
-            MGSeqParamSet(lbl_1_bss_45A[0], 2, -1);
+    if (sequenceTimerFrames > 0) {
+        MGSeqParamSet(sequenceIds[0], 1, sequenceTimerFrames / 60);
+        --sequenceTimerFrames;
+        if (sequenceTimerFrames <= 0) {
+            MGSeqParamSet(sequenceIds[0], 2, -1);
         }
     }
 
-    sp3C.x = Center.x + CZoom * (sind(CRot.y) * cosd(CRot.x));
-    sp3C.y = Center.y + CZoom * -sind(CRot.x);
-    sp3C.z = Center.z + CZoom * (cosd(CRot.y) * cosd(CRot.x));
-    sp30.x = Center.x - sp3C.x;
-    sp30.y = Center.y - sp3C.y;
-    sp30.z = Center.z - sp3C.z;
-    sp24.x = sind(CRot.y) * sind(CRot.x);
-    sp24.y = cosd(CRot.x);
-    sp24.z = cosd(CRot.y) * sind(CRot.x);
-    temp_f31 = CRot.z;
+    cameraPosition.x = Center.x + CZoom * (sind(CRot.y) * cosd(CRot.x));
+    cameraPosition.y = Center.y + CZoom * -sind(CRot.x);
+    cameraPosition.z = Center.z + CZoom * (cosd(CRot.y) * cosd(CRot.x));
+    cameraOffset.x = Center.x - cameraPosition.x;
+    cameraOffset.y = Center.y - cameraPosition.y;
+    cameraOffset.z = Center.z - cameraPosition.z;
+    cameraUpDirection.x = sind(CRot.y) * sind(CRot.x);
+    cameraUpDirection.y = cosd(CRot.x);
+    cameraUpDirection.z = cosd(CRot.y) * sind(CRot.x);
+    cameraRoll = CRot.z;
 
-    sp18.x = sp24.x * (sp30.x * sp30.x + (1.0f - sp30.x * sp30.x) * cosd(temp_f31))
-        + sp24.y * (sp30.x * sp30.y * (1.0f - cosd(temp_f31)) - sp30.z * sind(temp_f31))
-        + sp24.z * (sp30.x * sp30.z * (1.0f - cosd(temp_f31)) + sp30.y * sind(temp_f31));
+    cameraRightDirection.x = cameraUpDirection.x * (cameraOffset.x * cameraOffset.x + (1.0f - cameraOffset.x * cameraOffset.x) * cosd(cameraRoll))
+        + cameraUpDirection.y * (cameraOffset.x * cameraOffset.y * (1.0f - cosd(cameraRoll)) - cameraOffset.z * sind(cameraRoll))
+        + cameraUpDirection.z * (cameraOffset.x * cameraOffset.z * (1.0f - cosd(cameraRoll)) + cameraOffset.y * sind(cameraRoll));
 
-    sp18.y = sp24.y * (sp30.y * sp30.y + (1.0f - sp30.y * sp30.y) * cosd(temp_f31))
-        + sp24.x * (sp30.x * sp30.y * (1.0f - cosd(temp_f31)) + sp30.z * sind(temp_f31))
-        + sp24.z * (sp30.y * sp30.z * (1.0f - cosd(temp_f31)) - sp30.x * sind(temp_f31));
+    cameraRightDirection.y = cameraUpDirection.y * (cameraOffset.y * cameraOffset.y + (1.0f - cameraOffset.y * cameraOffset.y) * cosd(cameraRoll))
+        + cameraUpDirection.x * (cameraOffset.x * cameraOffset.y * (1.0f - cosd(cameraRoll)) + cameraOffset.z * sind(cameraRoll))
+        + cameraUpDirection.z * (cameraOffset.y * cameraOffset.z * (1.0f - cosd(cameraRoll)) - cameraOffset.x * sind(cameraRoll));
 
-    sp18.z = sp24.z * (sp30.z * sp30.z + (1.0f - sp30.z * sp30.z) * cosd(temp_f31))
-        + (sp24.x * (sp30.x * sp30.z * (1.0 - cosd(temp_f31)) - sp30.y * sind(temp_f31))
-            + sp24.y * (sp30.y * sp30.z * (1.0 - cosd(temp_f31)) + sp30.x * sind(temp_f31)));
+    cameraRightDirection.z = cameraUpDirection.z * (cameraOffset.z * cameraOffset.z + (1.0f - cameraOffset.z * cameraOffset.z) * cosd(cameraRoll))
+        + (cameraUpDirection.x * (cameraOffset.x * cameraOffset.z * (1.0 - cosd(cameraRoll)) - cameraOffset.y * sind(cameraRoll))
+            + cameraUpDirection.y * (cameraOffset.y * cameraOffset.z * (1.0 - cosd(cameraRoll)) + cameraOffset.x * sind(cameraRoll)));
 
-    VECCrossProduct(&sp24, &sp30, &sp30);
-    VECNormalize(&sp30, &sp30);
+    VECCrossProduct(&cameraUpDirection, &cameraOffset, &cameraOffset);
+    VECNormalize(&cameraOffset, &cameraOffset);
 
-    if (lbl_1_bss_C == 0) {
-        HuControlCamCenter(&sp18, &sp30);
+    if (testMode == 0) {
+        HuControlCamCenter(&cameraRightDirection, &cameraOffset);
     }
 
-    teropPatterns = lbl_1_rodata_B8;
+    teropPatterns = teropPatternSequenceIds;
 
     if ((HuPadBtnDown[0] & PAD_BUTTON_X) != 0) {
-        ++lbl_1_bss_24;
-        if (lbl_1_bss_24 >= 7) {
-            lbl_1_bss_24 = 0;
+        ++teropPatternIndex;
+        if (teropPatternIndex >= 7) {
+            teropPatternIndex = 0;
         }
     }
 
     if ((HuPadBtnDown[0] & PAD_BUTTON_B) != 0) {
-        var_r30 = MGSeqStartCreateType(teropPatterns.unk0[lbl_1_bss_24]);
+        loopIndex = MGSeqStartCreateType(teropPatterns.sequenceIds[teropPatternIndex]);
     }
     if ((HuPadBtnDown[0] & PAD_BUTTON_A) != 0) {
-        var_r30 = MGSeqDrawCreateType(teropPatterns.unk0[lbl_1_bss_24]);
+        loopIndex = MGSeqDrawCreateType(teropPatterns.sequenceIds[teropPatternIndex]);
     }
     if ((HuPadBtnDown[0] & PAD_BUTTON_Y) != 0) {
-        var_r30 = MGSeqRecordCreate(59);
+        loopIndex = MGSeqRecordCreate(59);
     }
 
     if ((HuPadBtnDown[0] & (PAD_BUTTON_LEFT | PAD_BUTTON_RIGHT | PAD_BUTTON_UP | PAD_BUTTON_DOWN)) != 0) {
@@ -525,114 +525,114 @@ void fn_1_F9C(struct omObj_s *omData)
         }
     }
     fontcolor = 5;
-    print8(0x10, 0x190, 1.5f, "Terop Pattern%d", lbl_1_bss_24 + 1);
-    lbl_1_bss_8 += 5.0f;
-    if (lbl_1_bss_8 > 360.0f) {
-        lbl_1_bss_8 -= 360.0f;
+    print8(0x10, 0x190, 1.5f, "Terop Pattern%d", teropPatternIndex + 1);
+    effectRotationDegrees += 5.0f;
+    if (effectRotationDegrees > 360.0f) {
+        effectRotationDegrees -= 360.0f;
     }
 }
 
 // -------------------------------------------------------------------------- //
 
-void fn_1_20F4(void)
+void ModelTestCharacterObjectSpritesUpdate(void)
 {
-    s16 temp_r3;
-    s16 var_r29;
-    HSFOBJECT *temp_r3_2;
-    HuObjUnk *temp_r31;
-    Mtx spC0;
-    Vec sp24;
-    Mtx sp90;
-    Mtx sp60;
-    Mtx sp30;
-    Vec sp18;
-    Vec spC;
-    f32 temp_f27;
-    f32 var_f29; // ! - uninitialized
-    s16 var_r27; // ! - uninitialized
-    s32 var_r26;
-    f32 temp_f30;
+    s16 characterModelId;
+    s16 objectIndex;
+    HSFOBJECT *characterObject;
+    ObjectTransformWork *objectWork;
+    Mtx parentObjectMatrix;
+    Vec objectPosition;
+    Mtx childObjectMatrix;
+    Mtx inverseParentMatrix;
+    Mtx skeletonMatrix;
+    Vec objectLocalPosition;
+    Vec screenPosition;
+    f32 objectRotationY;
+    f32 stickMagnitude; // ! - uninitialized
+    s16 stickDirection; // ! - uninitialized
+    s32 absoluteStickX;
+    f32 stickLength;
 
-    temp_r3 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_PEACHMDL1, 0x00));
-    Hu3DModelPosSet(temp_r3, 0.0f, 0.0f, 100.0f);
+    characterModelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_PEACHMDL1, 0x00));
+    Hu3DModelPosSet(characterModelId, 0.0f, 0.0f, 100.0f);
 
-    for (var_r29 = 0; var_r29 < 16; ++var_r29) {
-        OSReport("%s\n", lbl_1_data_D8[var_r29]);
-        temp_r3_2 = Hu3DModelObjPtrGet(temp_r3, lbl_1_data_D8[var_r29]);
-        lbl_1_bss_40[var_r29].obj = temp_r3_2;
+    for (objectIndex = 0; objectIndex < 16; ++objectIndex) {
+        OSReport("%s\n", characterObjectNames[objectIndex]);
+        characterObject = Hu3DModelObjPtrGet(characterModelId, characterObjectNames[objectIndex]);
+        objectTransforms[objectIndex].obj = characterObject;
 
-        Hu3DMotionNoMotSet(temp_r3, lbl_1_data_D8[var_r29], 0x380);
+        Hu3DMotionNoMotSet(characterModelId, characterObjectNames[objectIndex], 0x380);
 
-        lbl_1_bss_40[var_r29].pos.x = temp_r3_2->mesh.base.pos.x;
-        lbl_1_bss_40[var_r29].pos.y = temp_r3_2->mesh.base.pos.y;
-        lbl_1_bss_40[var_r29].pos.z = temp_r3_2->mesh.base.pos.z;
-        lbl_1_bss_40[var_r29].rot.x = temp_r3_2->mesh.base.rot.x;
-        lbl_1_bss_40[var_r29].rot.y = temp_r3_2->mesh.base.rot.y;
-        lbl_1_bss_40[var_r29].rot.z = temp_r3_2->mesh.base.rot.z;
-        lbl_1_bss_40[var_r29].scale.x = temp_r3_2->mesh.base.scale.x;
-        lbl_1_bss_40[var_r29].scale.y = temp_r3_2->mesh.base.scale.y;
-        lbl_1_bss_40[var_r29].scale.z = temp_r3_2->mesh.base.scale.z;
+        objectTransforms[objectIndex].pos.x = characterObject->mesh.base.pos.x;
+        objectTransforms[objectIndex].pos.y = characterObject->mesh.base.pos.y;
+        objectTransforms[objectIndex].pos.z = characterObject->mesh.base.pos.z;
+        objectTransforms[objectIndex].rot.x = characterObject->mesh.base.rot.x;
+        objectTransforms[objectIndex].rot.y = characterObject->mesh.base.rot.y;
+        objectTransforms[objectIndex].rot.z = characterObject->mesh.base.rot.z;
+        objectTransforms[objectIndex].scale.x = characterObject->mesh.base.scale.x;
+        objectTransforms[objectIndex].scale.y = characterObject->mesh.base.scale.y;
+        objectTransforms[objectIndex].scale.z = characterObject->mesh.base.scale.z;
 
-        OSReport("%d:(%3.2f,%3.2f,%3.2f),(%3.2f,%3.2f,%3.2f)\n", var_r29, temp_r3_2->mesh.base.pos.x, temp_r3_2->mesh.base.pos.y,
-            temp_r3_2->mesh.base.pos.z, temp_r3_2->mesh.base.rot.x, temp_r3_2->mesh.base.rot.y, temp_r3_2->mesh.base.rot.z);
+        OSReport("%d:(%3.2f,%3.2f,%3.2f),(%3.2f,%3.2f,%3.2f)\n", objectIndex, characterObject->mesh.base.pos.x, characterObject->mesh.base.pos.y,
+            characterObject->mesh.base.pos.z, characterObject->mesh.base.rot.x, characterObject->mesh.base.rot.y, characterObject->mesh.base.rot.z);
     }
     while (TRUE) {
-        Hu3DModelObjMtxGet(temp_r3, "ske_skirt", sp30);
+        Hu3DModelObjMtxGet(characterModelId, "ske_skirt", skeletonMatrix);
 
-        for (var_r29 = 0; var_r29 < 8; ++var_r29) {
-            temp_r31 = &lbl_1_bss_40[var_r29 * 2];
-            temp_r31->obj->mesh.curr.rot.x = temp_r31->rot.x;
-            temp_r31->obj->mesh.curr.rot.y = temp_r31->rot.y;
-            temp_r31->obj->mesh.curr.rot.z = temp_r31->rot.z;
+        for (objectIndex = 0; objectIndex < 8; ++objectIndex) {
+            objectWork = &objectTransforms[objectIndex * 2];
+            objectWork->obj->mesh.curr.rot.x = objectWork->rot.x;
+            objectWork->obj->mesh.curr.rot.y = objectWork->rot.y;
+            objectWork->obj->mesh.curr.rot.z = objectWork->rot.z;
 
-            Hu3DModelObjMtxGet(temp_r3, lbl_1_data_D8[var_r29 * 2], sp90);
+            Hu3DModelObjMtxGet(characterModelId, characterObjectNames[objectIndex * 2], childObjectMatrix);
 
-            temp_r31 = &lbl_1_bss_40[(var_r29 * 2) + 1];
-            temp_r31->obj->mesh.curr.rot.x = temp_r31->rot.x;
-            temp_r31->obj->mesh.curr.rot.y = temp_r31->rot.y;
-            temp_r31->obj->mesh.curr.rot.z = temp_r31->rot.z;
+            objectWork = &objectTransforms[(objectIndex * 2) + 1];
+            objectWork->obj->mesh.curr.rot.x = objectWork->rot.x;
+            objectWork->obj->mesh.curr.rot.y = objectWork->rot.y;
+            objectWork->obj->mesh.curr.rot.z = objectWork->rot.z;
 
-            Hu3DModelObjMtxGet(temp_r3, lbl_1_data_D8[(var_r29 * 2) + 1], spC0);
-            Hu3DMtxTransGet(spC0, &sp18);
-            MTXInverse(sp30, sp60);
-            Hu3DModelObjMtxGet(temp_r3, lbl_1_data_D8[(var_r29 * 2) + 1], spC0);
-            Hu3DMtxTransGet(spC0, &sp18);
-            MTXMultVec(sp60, &sp18, &sp18);
+            Hu3DModelObjMtxGet(characterModelId, characterObjectNames[(objectIndex * 2) + 1], parentObjectMatrix);
+            Hu3DMtxTransGet(parentObjectMatrix, &objectLocalPosition);
+            MTXInverse(skeletonMatrix, inverseParentMatrix);
+            Hu3DModelObjMtxGet(characterModelId, characterObjectNames[(objectIndex * 2) + 1], parentObjectMatrix);
+            Hu3DMtxTransGet(parentObjectMatrix, &objectLocalPosition);
+            MTXMultVec(inverseParentMatrix, &objectLocalPosition, &objectLocalPosition);
 
-            temp_f27 = atan2d(sp18.z, sp18.x);
-            temp_r31 = &lbl_1_bss_40[var_r29 * 2];
-            temp_r31->obj->mesh.curr.rot.x = temp_r31->rot.x + (var_f29 * (2.0 * (sind(temp_f27) * sind(var_r27))));
-            temp_r31->obj->mesh.curr.rot.y = temp_r31->rot.y;
-            temp_r31->obj->mesh.curr.rot.z = temp_r31->rot.z + (var_f29 * cosd(var_r27));
+            objectRotationY = atan2d(objectLocalPosition.z, objectLocalPosition.x);
+            objectWork = &objectTransforms[objectIndex * 2];
+            objectWork->obj->mesh.curr.rot.x = objectWork->rot.x + (stickMagnitude * (2.0 * (sind(objectRotationY) * sind(stickDirection))));
+            objectWork->obj->mesh.curr.rot.y = objectWork->rot.y;
+            objectWork->obj->mesh.curr.rot.z = objectWork->rot.z + (stickMagnitude * cosd(stickDirection));
 
-            Hu3DModelObjMtxGet(temp_r3, lbl_1_data_D8[(var_r29 * 2) + 1], spC0);
-            Hu3DMtxTransGet(spC0, &sp24);
-            fn_1_28F8(&sp24, &spC);
-            HuSprPosSet(lbl_1_bss_99C, var_r29, spC.x, spC.y);
+            Hu3DModelObjMtxGet(characterModelId, characterObjectNames[(objectIndex * 2) + 1], parentObjectMatrix);
+            Hu3DMtxTransGet(parentObjectMatrix, &objectPosition);
+            WorldPositionToScreenPosition(&objectPosition, &screenPosition);
+            HuSprPosSet(spriteGroupId, objectIndex, screenPosition.x, screenPosition.y);
         }
 
-        var_r27 += 5;
-        if (var_r27 > 0x168) {
-            var_r27 -= 0x168;
+        stickDirection += 5;
+        if (stickDirection > 0x168) {
+            stickDirection -= 0x168;
         }
 
         if (HuPadSubStkX[1] < 0) {
-            var_r26 = -HuPadSubStkX[1];
+            absoluteStickX = -HuPadSubStkX[1];
         }
         else {
-            var_r26 = HuPadSubStkX[1];
+            absoluteStickX = HuPadSubStkX[1];
         }
 
-        if (var_r26 < 0xA && ABS(HuPadSubStkY[1]) < 0xA) {
-            var_r27 = 0x168;
-            var_f29 = 0.0f;
+        if (absoluteStickX < 0xA && ABS(HuPadSubStkY[1]) < 0xA) {
+            stickDirection = 0x168;
+            stickMagnitude = 0.0f;
         }
         else {
-            var_r27 = atan2d(HuPadSubStkX[1], HuPadSubStkY[1]);
-            temp_f30 = (HuPadSubStkX[1] * HuPadSubStkX[1]) + (HuPadSubStkY[1] * HuPadSubStkY[1]);
-            var_f29 = sqrtf(temp_f30);
-            if (var_f29 > 80.0f) {
-                var_f29 = 80.0f;
+            stickDirection = atan2d(HuPadSubStkX[1], HuPadSubStkY[1]);
+            stickLength = (HuPadSubStkX[1] * HuPadSubStkX[1]) + (HuPadSubStkY[1] * HuPadSubStkY[1]);
+            stickMagnitude = sqrtf(stickLength);
+            if (stickMagnitude > 80.0f) {
+                stickMagnitude = 80.0f;
             }
         }
 
@@ -642,42 +642,42 @@ void fn_1_20F4(void)
 
 // -------------------------------------------------------------------------- //
 
-void fn_1_28F8(Vec *arg0, Vec *arg1)
+void WorldPositionToScreenPosition(Vec *worldPosition, Vec *screenPosition)
 {
-    Vec spC;
-    Mtx sp18;
+    Vec cameraSpacePosition;
+    Mtx cameraViewMatrix;
     HU3DCAMERA *cam;
-    f32 temp_f31;
-    f32 temp_f30;
+    f32 horizontalProjectionScale;
+    f32 verticalProjectionScale;
 
     cam = &Hu3DCamera[0];
-    C_MTXLookAt(sp18, &cam->pos, &cam->up, &cam->target);
-    MTXMultVec(sp18, arg0, &spC);
+    C_MTXLookAt(cameraViewMatrix, &cam->pos, &cam->up, &cam->target);
+    MTXMultVec(cameraViewMatrix, worldPosition, &cameraSpacePosition);
 
-    temp_f31 = (1.2f * (spC.z * (sind(cam->fov / 2) / (cosd(cam->fov / 2)))));
-    temp_f30 = (spC.z * (sind(cam->fov / 2) / (cosd(cam->fov / 2))));
-    arg1->x = 288.0f + (spC.x * (288.0f / -temp_f31));
-    arg1->y = 240.0f + (spC.y * (240.0f / temp_f30));
+    horizontalProjectionScale = (1.2f * (cameraSpacePosition.z * (sind(cam->fov / 2) / (cosd(cam->fov / 2)))));
+    verticalProjectionScale = (cameraSpacePosition.z * (sind(cam->fov / 2) / (cosd(cam->fov / 2))));
+    screenPosition->x = 288.0f + (cameraSpacePosition.x * (288.0f / -horizontalProjectionScale));
+    screenPosition->y = 240.0f + (cameraSpacePosition.y * (240.0f / verticalProjectionScale));
 }
 
-void fn_1_2AFC(void)
+void ModelTestMessageWindowLoop(void)
 {
-    s16 temp_r3;
+    s16 messageWindowId;
 
     HuWinInit(1);
-    temp_r3 = HuWinCreate(-10000.0f, -10000.0f, 480, 0x80, 0);
-    HuWinMesSpeedSet(temp_r3, 3);
+    messageWindowId = HuWinCreate(-10000.0f, -10000.0f, 480, 0x80, 0);
+    HuWinMesSpeedSet(messageWindowId, 3);
 
     while (TRUE) {
-        HuWinMesSet(temp_r3, MAKE_MESSID(0x20, 0x11));
-        HuWinMesWait(temp_r3);
+        HuWinMesSet(messageWindowId, MAKE_MESSID(0x20, 0x11));
+        HuWinMesWait(messageWindowId);
     }
 }
 
 // -------------------------------------------------------------------------- //
 
 // unreferenced data
-u8 lbl_1_data_322[54] = {
+u8 unusedModelTestByteData[54] = {
     255,
     255,
     255,
@@ -736,34 +736,34 @@ u8 lbl_1_data_322[54] = {
 
 // -------------------------------------------------------------------------- //
 
-void fn_1_2B68(HU3DMODEL *mdl, Mtx arg1)
+void ModelTestFramebufferTextureDraw(HU3DMODEL *model, Mtx modelTransform)
 {
-    GXColor sp17;
-    Mtx sp150;
-    Mtx sp120;
-    Mtx spF0;
-    Mtx spC0;
-    Mtx sp90;
-    GXTexObj sp30;
-    f32 sp18[2][3];
-    Mtx44 sp50;
-    ANIMBMP *sp10;
-    f32 temp_f31;
-    f32 var_f30; // ! - uninitialized
-    f32 var_f29; // ! - uninitialized
-    f32 var_f28; // ! - uninitialized
-    f32 var_f27; // ! - uninitialized
+    GXColor vertexColor;
+    Mtx textureMatrix;
+    Mtx textureScaleMatrix;
+    Mtx textureRotationMatrix;
+    Mtx textureOffsetMatrix;
+    Mtx normalMatrix;
+    GXTexObj framebufferTexture;
+    f32 indirectTextureMatrix[2][3];
+    Mtx44 orthographicProjection;
+    ANIMBMP *framebufferBitmap;
+    f32 textureTexelScale;
+    f32 unreferencedTextureScaleX; // ! - uninitialized
+    f32 unreferencedTextureScaleY; // ! - uninitialized
+    f32 unreferencedTextureOffsetX; // ! - uninitialized
+    f32 unreferencedTextureOffsetY; // ! - uninitialized
 
-    if (!lbl_1_bss_30[0]) {
-        lbl_1_bss_30[0] = HuMemDirectMallocNum(HEAP_HEAP, FB_SIZE(640, 480), HU_MEMNUM_OVL);
+    if (!framebufferBuffers[0]) {
+        framebufferBuffers[0] = HuMemDirectMallocNum(HEAP_HEAP, FB_SIZE(640, 480), HU_MEMNUM_OVL);
     }
 
     GXSetTexCopySrc(0, 0, 640, 480);
     GXSetTexCopyDst(640, 480, GX_TF_RGB565, GX_FALSE);
-    GXCopyTex(lbl_1_bss_30[0], GX_FALSE);
-    DCFlushRangeNoSync(lbl_1_bss_30[0], FB_SIZE(640, 480));
-    C_MTXOrtho(sp50, 0.0f, 480.0f, 0.0f, 576.0f, 0.0f, 10.0f);
-    GXSetProjection(sp50, GX_ORTHOGRAPHIC);
+    GXCopyTex(framebufferBuffers[0], GX_FALSE);
+    DCFlushRangeNoSync(framebufferBuffers[0], FB_SIZE(640, 480));
+    C_MTXOrtho(orthographicProjection, 0.0f, 480.0f, 0.0f, 576.0f, 0.0f, 10.0f);
+    GXSetProjection(orthographicProjection, GX_ORTHOGRAPHIC);
     GXSetViewport(0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     GXSetScissor(0, 0, 640, 480);
     GXInvalidateTexAll();
@@ -780,12 +780,12 @@ void fn_1_2B68(HU3DMODEL *mdl, Mtx arg1)
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
     GXSetNumTevStages(1);
 
-    sp17.r = sp17.g = sp17.b = sp17.a = 255;
-    GXSetChanMatColor(GX_COLOR0A0, sp17);
+    vertexColor.r = vertexColor.g = vertexColor.b = vertexColor.a = 255;
+    GXSetChanMatColor(GX_COLOR0A0, vertexColor);
 
-    sp17.r = sp17.g = sp17.b = 128;
-    sp17.a = 255;
-    GXSetChanAmbColor(GX_COLOR0A0, sp17);
+    vertexColor.r = vertexColor.g = vertexColor.b = 128;
+    vertexColor.a = 255;
+    GXSetChanAmbColor(GX_COLOR0A0, vertexColor);
 
     GXSetTevOp(GX_TEVSTAGE0, GX_MODULATE);
     GXSetNumChans(1U);
@@ -793,66 +793,66 @@ void fn_1_2B68(HU3DMODEL *mdl, Mtx arg1)
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
     GXSetAlphaCompare(GX_GEQUAL, 1U, GX_AOP_AND, GX_GEQUAL, 1U);
     GXSetZCompLoc(0U);
-    MTXIdentity(arg1);
-    GXLoadPosMtxImm(arg1, 0U);
+    MTXIdentity(modelTransform);
+    GXLoadPosMtxImm(modelTransform, 0U);
 
-    MTXInvXpose(arg1, sp90);
-    GXLoadNrmMtxImm(sp90, 0);
+    MTXInvXpose(modelTransform, normalMatrix);
+    GXLoadNrmMtxImm(normalMatrix, 0);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
 
-    sp10 = lbl_1_bss_454->bmp;
-    lbl_1_bss_2C += 1;
-    HuSprTexLoad(lbl_1_bss_454, 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    framebufferBitmap = screenSpriteAnimation->bmp;
+    spriteTextureLoadCount += 1;
+    HuSprTexLoad(screenSpriteAnimation, 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
 
     PPCSync();
-    GXInitTexObj(&sp30, lbl_1_bss_30[0], 0x280U, 0x1E0U, 4U, GX_CLAMP, GX_CLAMP, 0U);
-    GXInitTexObjLOD(&sp30, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, 0U, 0U, GX_ANISO_1);
-    GXLoadTexObj(&sp30, GX_TEXMAP0);
+    GXInitTexObj(&framebufferTexture, framebufferBuffers[0], 0x280U, 0x1E0U, 4U, GX_CLAMP, GX_CLAMP, 0U);
+    GXInitTexObjLOD(&framebufferTexture, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, 0U, 0U, GX_ANISO_1);
+    GXLoadTexObj(&framebufferTexture, GX_TEXMAP0);
     GXSetNumIndStages(1U);
 
-    MTXScale(sp150, 0.1f, 0.1f, 0.0f);
-    sp18[0][0] = sp150[0][0];
-    sp18[0][1] = sp150[0][1];
-    sp18[0][2] = 0.0f;
-    sp18[1][0] = sp150[1][0];
-    sp18[1][1] = sp150[1][1];
-    sp18[1][2] = 0.0f;
+    MTXScale(textureMatrix, 0.1f, 0.1f, 0.0f);
+    indirectTextureMatrix[0][0] = textureMatrix[0][0];
+    indirectTextureMatrix[0][1] = textureMatrix[0][1];
+    indirectTextureMatrix[0][2] = 0.0f;
+    indirectTextureMatrix[1][0] = textureMatrix[1][0];
+    indirectTextureMatrix[1][1] = textureMatrix[1][1];
+    indirectTextureMatrix[1][2] = 0.0f;
 
-    MTXRotRad(spF0, 0x58, -1.5707964f);
-    mtxRot(spF0, 0.0f, 0.0f, 0.0f);
-    temp_f31 = 0.0015625f;
-    MTXScale(sp120, temp_f31, temp_f31, temp_f31);
-    MTXConcat(sp120, spF0, sp150);
-    MTXTrans(spC0, 0.5f, 0.0f, 0.5f);
-    GXLoadTexMtxImm(sp150, 0x1EU, GX_MTX2x4);
+    MTXRotRad(textureRotationMatrix, 0x58, -1.5707964f);
+    mtxRot(textureRotationMatrix, 0.0f, 0.0f, 0.0f);
+    textureTexelScale = 0.0015625f;
+    MTXScale(textureScaleMatrix, textureTexelScale, textureTexelScale, textureTexelScale);
+    MTXConcat(textureScaleMatrix, textureRotationMatrix, textureMatrix);
+    MTXTrans(textureOffsetMatrix, 0.5f, 0.0f, 0.5f);
+    GXLoadTexMtxImm(textureMatrix, 0x1EU, GX_MTX2x4);
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_POS, 0x1EU, 0U, 0x7DU);
     GXSetIndTexOrder(GX_INDTEXSTAGE0, GX_TEXCOORD0, GX_TEXMAP1);
     GXSetIndTexCoordScale(GX_INDTEXSTAGE0, GX_ITS_4, GX_ITS_4);
-    GXSetIndTexMtx(GX_ITM_0, sp18, 0);
+    GXSetIndTexMtx(GX_ITM_0, indirectTextureMatrix, 0);
     GXSetTevIndWarp(GX_TEVSTAGE0, GX_INDTEXSTAGE0, 1, 0, GX_ITM_0);
 
-    lbl_1_bss_28 += 5.0f;
-    if (lbl_1_bss_28 > 360.0f) {
-        lbl_1_bss_28 -= 360.0f;
+    textureRotationDegrees += 5.0f;
+    if (textureRotationDegrees > 360.0f) {
+        textureRotationDegrees -= 360.0f;
     }
 
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
 
     GXPosition3f32(0.0f, 0.0f, 0.0f);
     GXTexCoord2f32(0.0f, 1.0f);
-    GXNormal3f32(0.0f, var_f30 / 640.0f, var_f29 / 480.0f);
+    GXNormal3f32(0.0f, unreferencedTextureScaleX / 640.0f, unreferencedTextureScaleY / 480.0f);
 
     GXPosition3f32(640.0f, 0.0f, 0.0f);
     GXTexCoord2f32(0.0f, 1.0f);
-    GXNormal3f32(0.0f, var_f28 / 640.0f, var_f29 / 480.0f);
+    GXNormal3f32(0.0f, unreferencedTextureOffsetX / 640.0f, unreferencedTextureScaleY / 480.0f);
 
     GXPosition3f32(640.0f, 480.0f, 0.0f);
     GXTexCoord2f32(0.0f, 1.0f);
-    GXNormal3f32(0.0f, var_f28 / 640.0f, var_f27 / 480.0f);
+    GXNormal3f32(0.0f, unreferencedTextureOffsetX / 640.0f, unreferencedTextureOffsetY / 480.0f);
 
     GXPosition3f32(0.0f, 480.0f, 0.0f);
     GXTexCoord2f32(0.0f, 1.0f);
-    GXNormal3f32(0.0f, var_f30 / 640.0f, var_f27 / 480.0f);
+    GXNormal3f32(0.0f, unreferencedTextureScaleX / 640.0f, unreferencedTextureOffsetY / 480.0f);
 
     GXEnd();
     GXSetNumIndStages(0U);
