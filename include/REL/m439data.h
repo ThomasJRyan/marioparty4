@@ -3,10 +3,10 @@
 
 #include "dolphin/mtx/GeoTypes.h"
 
-Vec lbl_1_data_0[2] = { { -60.0f, 0.0f, 0.0f }, { -60.0f, 0.0f, -800.0f } };
-Vec lbl_1_data_18[2] = { { 60.0f, 0.0f, -5.0f }, { 60.0f, 0.0f, -805.0f } };
-float lbl_1_data_30[2] = { 0.0f, 800.0f };
-Vec lbl_1_data_38[0xB] = {
+Vec course_geometry_points_01[2] = { { -60.0f, 0.0f, 0.0f }, { -60.0f, 0.0f, -800.0f } };
+Vec course_geometry_points_02[2] = { { 60.0f, 0.0f, -5.0f }, { 60.0f, 0.0f, -805.0f } };
+float course_path_distances_01[2] = { 0.0f, 800.0f };
+Vec course_geometry_points_03[0xB] = {
     { -60.0f, 0.0f, 100.0f },
     { -60.0f, 0.0f, -530.0f },
     { -240.0f, 0.0f, -560.0f },
@@ -19,7 +19,7 @@ Vec lbl_1_data_38[0xB] = {
     { -1460.0f, 0.0f, -1400.0f },
     { -1460.0f, 0.0f, -1600.0f },
 };
-Vec lbl_1_data_BC[0xB] = {
+Vec course_geometry_points_04[0xB] = {
     { 60.0f, 0.0f, 100.0f },
     { 60.0f, 0.0f, -630.0f },
     { -210.0f, 0.0f, -670.0f },
@@ -32,7 +32,7 @@ Vec lbl_1_data_BC[0xB] = {
     { -1340.0f, 0.0f, -1400.0f },
     { -1340.0f, 0.0f, -1600.0f },
 };
-float lbl_1_data_140[0xB] = {
+float course_path_distances_02[0xB] = {
     0.0f,
     680.0f,
     907.70593f,
@@ -45,7 +45,7 @@ float lbl_1_data_140[0xB] = {
     2889.315f,
     3089.315f,
 };
-Vec lbl_1_data_16C[0xC] = {
+Vec course_geometry_points_05[0xC] = {
     { -60.0f, 0.0f, 100.0f },
     { -60.0f, 0.0f, -630.0f },
     { 160.0f, 0.0f, -710.0f },
@@ -59,7 +59,7 @@ Vec lbl_1_data_16C[0xC] = {
     { 1340.0f, 0.0f, -1400.0f },
     { 1340.0f, 0.0f, -1600.0f },
 };
-Vec lbl_1_data_1FC[0xC] = {
+Vec course_geometry_points_06[0xC] = {
     { 60.0f, 0.0f, 100.0f },
     { 60.0f, 0.0f, -530.0f },
     { 160.0f, 0.0f, -565.0f },
@@ -73,7 +73,7 @@ Vec lbl_1_data_1FC[0xC] = {
     { 1460.0f, 0.0f, -1400.0f },
     { 1460.0f, 0.0f, -1595.0f },
 };
-float lbl_1_data_28C[0xC] = {
+float course_path_distances_03[0xC] = {
     0.0f,
     680.0f,
     850.0184f,
@@ -87,7 +87,7 @@ float lbl_1_data_28C[0xC] = {
     2898.9922f,
     3096.4922f,
 };
-Vec lbl_1_data_2BC[0xE] = {
+Vec course_geometry_points_07[0xE] = {
     { -60.0f, 0.0f, 100.0f },
     { -60.0f, 0.0f, -230.0f },
     { -40.0f, 0.0f, -350.0f },
@@ -103,7 +103,7 @@ Vec lbl_1_data_2BC[0xE] = {
     { -1460.0f, 0.0f, -1500.0f },
     { -1460.0f, 0.0f, -1700.0f },
 };
-Vec lbl_1_data_364[0xE] = {
+Vec course_geometry_points_08[0xE] = {
     { 60.0f, 0.0f, 100.0f },
     { 60.0f, 0.0f, -230.0f },
     { 70.0f, 0.0f, -350.0f },
@@ -119,7 +119,7 @@ Vec lbl_1_data_364[0xE] = {
     { -1340.0f, 0.0f, -1500.0f },
     { -1340.0f, 0.0f, -1700.0f },
 };
-float lbl_1_data_40C[0xE] = {
+float course_path_distances_04[0xE] = {
     0.0f,
     330.0f,
     450.93387f,
@@ -135,7 +135,7 @@ float lbl_1_data_40C[0xE] = {
     3019.1243f,
     3219.1243f,
 };
-Vec lbl_1_data_444[0xF] = {
+Vec course_geometry_points_09[0xF] = {
     { -60.0f, 0.0f, 100.0f },
     { -60.0f, 0.0f, -230.0f },
     { -40.0f, 0.0f, -350.0f },
@@ -152,7 +152,7 @@ Vec lbl_1_data_444[0xF] = {
     { 1340.0f, 0.0f, -1500.0f },
     { 1340.0f, 0.0f, -1700.0f },
 };
-Vec lbl_1_data_4F8[0xF] = {
+Vec course_geometry_points_10[0xF] = {
     { 60.0f, 0.0f, 100.0f },
     { 60.0f, 0.0f, -230.0f },
     { 70.0f, 0.0f, -350.0f },
@@ -169,7 +169,7 @@ Vec lbl_1_data_4F8[0xF] = {
     { 1460.0f, 0.0f, -1500.0f },
     { 1460.0f, 0.0f, -1700.0f },
 };
-float lbl_1_data_5AC[0xF] = {
+float course_path_distances_05[0xF] = {
     0.0f,
     330.0f,
     450.93387f,
@@ -186,10 +186,10 @@ float lbl_1_data_5AC[0xF] = {
     2950.1624f,
     3150.1624f,
 };
-Vec lbl_1_data_5E8[2] = { { -60.0f, 0.0f, 100.0f }, { -60.0f, 0.0f, -1000.0f } };
-Vec lbl_1_data_600[2] = { { 60.0f, 0.0f, 105.0f }, { 60.0f, 0.0f, -995.0f } };
-float lbl_1_data_618[2] = { 0.0f, 1100.0f };
-Vec lbl_1_data_620[0xE] = {
+Vec course_geometry_points_11[2] = { { -60.0f, 0.0f, 100.0f }, { -60.0f, 0.0f, -1000.0f } };
+Vec course_geometry_points_12[2] = { { 60.0f, 0.0f, 105.0f }, { 60.0f, 0.0f, -995.0f } };
+float course_path_distances_06[2] = { 0.0f, 1100.0f };
+Vec course_geometry_points_13[0xE] = {
     { -60.0f, 0.0f, 100.0f },
     { -60.0f, 0.0f, -210.0f },
     { 400.0f, 0.0f, -210.0f },
@@ -205,7 +205,7 @@ Vec lbl_1_data_620[0xE] = {
     { -60.0f, 0.0f, -1270.0f },
     { -60.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_6C8[0xE] = {
+Vec course_geometry_points_14[0xE] = {
     { 60.0f, 0.0f, 105.0f },
     { 60.0f, 0.0f, -90.0f },
     { 520.0f, 0.0f, -90.0f },
@@ -221,7 +221,7 @@ Vec lbl_1_data_6C8[0xE] = {
     { 60.0f, 0.0f, -1150.0f },
     { 60.0f, 0.0f, -1500.0f },
 };
-float lbl_1_data_770[0xE] = {
+float course_path_distances_07[0xE] = {
     0.0f,
     252.5f,
     712.5f,
@@ -237,7 +237,7 @@ float lbl_1_data_770[0xE] = {
     4232.5f,
     4522.5f,
 };
-Vec lbl_1_data_7A8[0x12] = {
+Vec course_geometry_points_15[0x12] = {
     { -60.0f, 0.0f, 100.0f },
     { -60.0f, 0.0f, -100.0f },
     { -460.0f, 0.0f, -100.0f },
@@ -257,7 +257,7 @@ Vec lbl_1_data_7A8[0x12] = {
     { -60.0f, 0.0f, -1310.0f },
     { -60.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_880[0x12] = {
+Vec course_geometry_points_16[0x12] = {
     { 60.0f, 0.0f, 100.0f },
     { 60.0f, 0.0f, -220.0f },
     { -340.0f, 0.0f, -220.0f },
@@ -277,7 +277,7 @@ Vec lbl_1_data_880[0x12] = {
     { 60.0f, 0.0f, -1190.0f },
     { 60.0f, 0.0f, -1500.0f },
 };
-float lbl_1_data_958[0x12] = {
+float course_path_distances_08[0x12] = {
     0.0f,
     260.0f,
     660.0f,
@@ -297,7 +297,7 @@ float lbl_1_data_958[0x12] = {
     4347.5312f,
     4597.5312f,
 };
-Vec lbl_1_data_9A0[0x10] = {
+Vec course_geometry_points_17[0x10] = {
     { -60.0f, 0.0f, 100.0f },
     { -60.0f, 0.0f, -90.0f },
     { -360.0f, 0.0f, -90.0f },
@@ -315,7 +315,7 @@ Vec lbl_1_data_9A0[0x10] = {
     { -60.0f, 0.0f, -1310.0f },
     { -60.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_A60[0x10] = {
+Vec course_geometry_points_18[0x10] = {
     { 60.0f, 0.0f, 100.0f },
     { 60.0f, 0.0f, -210.0f },
     { -240.0f, 0.0f, -210.0f },
@@ -333,7 +333,7 @@ Vec lbl_1_data_A60[0x10] = {
     { 60.0f, 0.0f, -1190.0f },
     { 60.0f, 0.0f, -1500.0f },
 };
-float lbl_1_data_B20[0x10] = {
+float course_path_distances_09[0x10] = {
     0.0f,
     250.0f,
     550.0f,
@@ -351,7 +351,7 @@ float lbl_1_data_B20[0x10] = {
     4450.0f,
     4700.0f,
 };
-Vec lbl_1_data_B60[0x10] = {
+Vec course_geometry_points_19[0x10] = {
     { -60.0f, 0.0f, 100.0f },
     { -60.0f, 0.0f, 0.0f },
     { -60.0f, 0.0f, -230.0f },
@@ -369,7 +369,7 @@ Vec lbl_1_data_B60[0x10] = {
     { -60.0f, 0.0f, -1400.0f },
     { -60.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_C20[0x10] = {
+Vec course_geometry_points_20[0x10] = {
     { 60.0f, 0.0f, 100.0f },
     { 60.0f, 0.0f, 0.0f },
     { 40.0f, 0.0f, -280.0f },
@@ -387,7 +387,7 @@ Vec lbl_1_data_C20[0x10] = {
     { 60.0f, 0.0f, -1400.0f },
     { 60.0f, 0.0f, -1500.0f },
 };
-float lbl_1_data_CE0[0x10] = {
+float course_path_distances_10[0x10] = {
     0.0f,
     100.0f,
     355.196f,
@@ -405,7 +405,7 @@ float lbl_1_data_CE0[0x10] = {
     2095.4136f,
     2195.4136f,
 };
-Vec lbl_1_data_D20[0xE] = {
+Vec course_geometry_points_21[0xE] = {
     { -60.0f, 0.0f, 100.0f },
     { -60.0f, 0.0f, 0.0f },
     { -60.0f, 0.0f, -100.0f },
@@ -421,7 +421,7 @@ Vec lbl_1_data_D20[0xE] = {
     { -60.0f, 0.0f, -1400.0f },
     { -60.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_DC8[0xE] = {
+Vec course_geometry_points_22[0xE] = {
     { 60.0f, 0.0f, 100.0f },
     { 60.0f, 0.0f, 0.0f },
     { 60.0f, 0.0f, -100.0f },
@@ -437,7 +437,7 @@ Vec lbl_1_data_DC8[0xE] = {
     { 60.0f, 0.0f, -1400.0f },
     { 60.0f, 0.0f, -1500.0f },
 };
-float lbl_1_data_E70[0xE] = {
+float course_path_distances_11[0xE] = {
     0.0f,
     100.0f,
     200.0f,
@@ -453,7 +453,7 @@ float lbl_1_data_E70[0xE] = {
     2044.9556f,
     2144.9556f,
 };
-Vec lbl_1_data_EA8[0xD] = {
+Vec course_geometry_points_23[0xD] = {
     { -60.0f, 0.0f, 100.0f },
     { -60.0f, 0.0f, 0.0f },
     { -60.0f, 0.0f, -100.0f },
@@ -468,7 +468,7 @@ Vec lbl_1_data_EA8[0xD] = {
     { -60.0f, 0.0f, -1400.0f },
     { -60.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_F44[0xD] = {
+Vec course_geometry_points_24[0xD] = {
     { 60.0f, 0.0f, 100.0f },
     { 60.0f, 0.0f, 0.0f },
     { 60.0f, 0.0f, -100.0f },
@@ -483,7 +483,7 @@ Vec lbl_1_data_F44[0xD] = {
     { 60.0f, 0.0f, -1400.0f },
     { 60.0f, 0.0f, -1500.0f },
 };
-float lbl_1_data_FE0[0xD] = {
+float course_path_distances_12[0xD] = {
     0.0f,
     100.0f,
     200.0f,
@@ -498,36 +498,36 @@ float lbl_1_data_FE0[0xD] = {
     1788.3956f,
     1888.3956f,
 };
-Vec *lbl_1_data_1014[0xC][2] = {
-    { lbl_1_data_0, lbl_1_data_18 },
-    { lbl_1_data_38, lbl_1_data_BC },
-    { lbl_1_data_16C, lbl_1_data_1FC },
-    { lbl_1_data_2BC, lbl_1_data_364 },
-    { lbl_1_data_444, lbl_1_data_4F8 },
-    { lbl_1_data_5E8, lbl_1_data_600 },
-    { lbl_1_data_620, lbl_1_data_6C8 },
-    { lbl_1_data_7A8, lbl_1_data_880 },
-    { lbl_1_data_9A0, lbl_1_data_A60 },
-    { lbl_1_data_B60, lbl_1_data_C20 },
-    { lbl_1_data_D20, lbl_1_data_DC8 },
-    { lbl_1_data_EA8, lbl_1_data_F44 },
+Vec *course_rail_points_by_road[0xC][2] = {
+    { course_geometry_points_01, course_geometry_points_02 },
+    { course_geometry_points_03, course_geometry_points_04 },
+    { course_geometry_points_05, course_geometry_points_06 },
+    { course_geometry_points_07, course_geometry_points_08 },
+    { course_geometry_points_09, course_geometry_points_10 },
+    { course_geometry_points_11, course_geometry_points_12 },
+    { course_geometry_points_13, course_geometry_points_14 },
+    { course_geometry_points_15, course_geometry_points_16 },
+    { course_geometry_points_17, course_geometry_points_18 },
+    { course_geometry_points_19, course_geometry_points_20 },
+    { course_geometry_points_21, course_geometry_points_22 },
+    { course_geometry_points_23, course_geometry_points_24 },
 };
-u16 lbl_1_data_1074[0xC] = { 2, 0xB, 0xC, 0xE, 0xF, 2, 0xE, 0x12, 0x10, 0x10, 0xE, 0xD };
-float *lbl_1_data_108C[0xC] = {
-    lbl_1_data_30,
-    lbl_1_data_140,
-    lbl_1_data_28C,
-    lbl_1_data_40C,
-    lbl_1_data_5AC,
-    lbl_1_data_618,
-    lbl_1_data_770,
-    lbl_1_data_958,
-    lbl_1_data_B20,
-    lbl_1_data_CE0,
-    lbl_1_data_E70,
-    lbl_1_data_FE0,
+u16 course_rail_point_counts[0xC] = { 2, 0xB, 0xC, 0xE, 0xF, 2, 0xE, 0x12, 0x10, 0x10, 0xE, 0xD };
+float *course_distance_tables_by_road[0xC] = {
+    course_path_distances_01,
+    course_path_distances_02,
+    course_path_distances_03,
+    course_path_distances_04,
+    course_path_distances_05,
+    course_path_distances_06,
+    course_path_distances_07,
+    course_path_distances_08,
+    course_path_distances_09,
+    course_path_distances_10,
+    course_path_distances_11,
+    course_path_distances_12,
 };
-Vec lbl_1_data_10BC[0x2B] = {
+Vec course_geometry_points_25[0x2B] = {
     { 70.0f, 0.0f, -800.0f },
     { 70.0f, 0.0f, -700.0f },
     { 70.0f, 0.0f, -640.0f },
@@ -572,7 +572,7 @@ Vec lbl_1_data_10BC[0x2B] = {
     { -70.0f, 0.0f, -700.0f },
     { -70.0f, 0.0f, -800.0f },
 };
-Vec lbl_1_data_12C0[0x2B] = {
+Vec course_geometry_points_26[0x2B] = {
     { 350.0f, 0.0f, -800.0f },
     { 350.0f, 0.0f, -700.0f },
     { 350.0f, 0.0f, -640.0f },
@@ -617,7 +617,7 @@ Vec lbl_1_data_12C0[0x2B] = {
     { -350.0f, 0.0f, -700.0f },
     { -350.0f, 0.0f, -800.0f },
 };
-Vec lbl_1_data_14C4[0x2B] = {
+Vec course_geometry_points_27[0x2B] = {
     { 0.0f, 0.0f, -800.0f },
     { 0.0f, 0.0f, -700.0f },
     { 0.0f, 0.0f, -640.0f },
@@ -662,9 +662,9 @@ Vec lbl_1_data_14C4[0x2B] = {
     { 0.0f, 0.0f, -700.0f },
     { 0.0f, 0.0f, -800.0f },
 };
-Vec *lbl_1_data_16C8[3] = { lbl_1_data_10BC, lbl_1_data_12C0, lbl_1_data_14C4 };
-s32 lbl_1_data_16D4 = 0x2B;
-Vec lbl_1_data_16D8[0x27] = {
+Vec *course_geometry_data_03[3] = { course_geometry_points_25, course_geometry_points_26, course_geometry_points_27 };
+s32 course_rail_point_counts = 0x2B;
+Vec course_geometry_points_28[0x27] = {
     { -1335.0f, 0.0f, -1600.0f },
     { -1335.0f, 0.0f, -1400.0f },
     { -1430.0f, 0.0f, -1200.0f },
@@ -705,7 +705,7 @@ Vec lbl_1_data_16D8[0x27] = {
     { 1330.0f, 0.0f, -1400.0f },
     { 1330.0f, 0.0f, -1600.0f },
 };
-Vec lbl_1_data_18AC[0x27] = {
+Vec course_geometry_points_29[0x27] = {
     { -1170.0f, 0.0f, -1600.0f },
     { -1170.0f, 0.0f, -1400.0f },
     { -1170.0f, 0.0f, -1200.0f },
@@ -746,7 +746,7 @@ Vec lbl_1_data_18AC[0x27] = {
     { 1180.0f, 0.0f, -1400.0f },
     { 1180.0f, 0.0f, -1600.0f },
 };
-Vec lbl_1_data_1A80[0x27] = {
+Vec course_geometry_points_30[0x27] = {
     { -1400.0f, 0.0f, -1600.0f },
     { -1400.0f, 0.0f, -1400.0f },
     { -1480.0f, 0.0f, -1200.0f },
@@ -787,7 +787,7 @@ Vec lbl_1_data_1A80[0x27] = {
     { 1400.0f, 0.0f, -1400.0f },
     { 1400.0f, 0.0f, -1600.0f },
 };
-Vec lbl_1_data_1C54[0x18] = {
+Vec course_geometry_points_31[0x18] = {
     { 1470.0f, 0.0f, -1590.0f },
     { 1470.0f, 0.0f, -1400.0f },
     { 1570.0f, 0.0f, -1200.0f },
@@ -813,7 +813,7 @@ Vec lbl_1_data_1C54[0x18] = {
     { 70.0f, 0.0f, -170.0f },
     { 70.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_1D74[0x18] = {
+Vec course_geometry_points_32[0x18] = {
     { 1620.0f, 0.0f, -1600.0f },
     { 1620.0f, 0.0f, -1400.0f },
     { 1830.0f, 0.0f, -1190.0f },
@@ -839,7 +839,7 @@ Vec lbl_1_data_1D74[0x18] = {
     { 300.0f, 0.0f, -170.0f },
     { 300.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_1E94[0x18] = {
+Vec course_geometry_points_33[0x18] = {
     { 1400.0f, 0.0f, -1600.0f },
     { 1400.0f, 0.0f, -1400.0f },
     { 1480.0f, 0.0f, -1200.0f },
@@ -865,7 +865,7 @@ Vec lbl_1_data_1E94[0x18] = {
     { 0.0f, 0.0f, -170.0f },
     { 0.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_1FB4[0x14] = {
+Vec course_geometry_points_34[0x14] = {
     { -70.0f, 0.0f, 100.0f },
     { -70.0f, 0.0f, -170.0f },
     { -75.0f, 0.0f, -240.0f },
@@ -887,7 +887,7 @@ Vec lbl_1_data_1FB4[0x14] = {
     { -1470.0f, 0.0f, -1400.0f },
     { -1470.0f, 0.0f, -1600.0f },
 };
-Vec lbl_1_data_20A4[0x14] = {
+Vec course_geometry_points_35[0x14] = {
     { -300.0f, 0.0f, 100.0f },
     { -300.0f, 0.0f, -170.0f },
     { -280.0f, 0.0f, -220.0f },
@@ -909,7 +909,7 @@ Vec lbl_1_data_20A4[0x14] = {
     { -1640.0f, 0.0f, -1400.0f },
     { -1640.0f, 0.0f, -1595.0f },
 };
-Vec lbl_1_data_2194[0x14] = {
+Vec course_geometry_points_36[0x14] = {
     { 0.0f, 0.0f, 100.0f },
     { 0.0f, 0.0f, -170.0f },
     { 0.0f, 0.0f, -240.0f },
@@ -931,19 +931,19 @@ Vec lbl_1_data_2194[0x14] = {
     { -1400.0f, 0.0f, -1400.0f },
     { -1400.0f, 0.0f, -1600.0f },
 };
-Vec *lbl_1_data_2284[9] = {
-    lbl_1_data_16D8,
-    lbl_1_data_18AC,
-    lbl_1_data_1A80,
-    lbl_1_data_1C54,
-    lbl_1_data_1D74,
-    lbl_1_data_1E94,
-    lbl_1_data_1FB4,
-    lbl_1_data_20A4,
-    lbl_1_data_2194,
+Vec *course_geometry_data_04[9] = {
+    course_geometry_points_28,
+    course_geometry_points_29,
+    course_geometry_points_30,
+    course_geometry_points_31,
+    course_geometry_points_32,
+    course_geometry_points_33,
+    course_geometry_points_34,
+    course_geometry_points_35,
+    course_geometry_points_36,
 };
-s32 lbl_1_data_22A8[3] = { 0x27, 0x18, 0x14 };
-Vec lbl_1_data_22B4[0x1F] = {
+s32 course_geometry_counts_02[3] = { 0x27, 0x18, 0x14 };
+Vec course_geometry_points_37[0x1F] = {
     { 1470.0f, 0.0f, -1700.0f },
     { 1470.0f, 0.0f, -1600.0f },
     { 1470.0f, 0.0f, -1500.0f },
@@ -976,7 +976,7 @@ Vec lbl_1_data_22B4[0x1F] = {
     { 70.0f, 0.0f, 0.0f },
     { 70.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_2428[0x1F] = {
+Vec course_geometry_points_38[0x1F] = {
     { 1620.0f, 0.0f, -1700.0f },
     { 1620.0f, 0.0f, -1600.0f },
     { 1620.0f, 0.0f, -1500.0f },
@@ -1009,7 +1009,7 @@ Vec lbl_1_data_2428[0x1F] = {
     { 200.0f, 0.0f, 0.0f },
     { 200.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_259C[0x1F] = {
+Vec course_geometry_points_39[0x1F] = {
     { 1400.0f, 0.0f, -1700.0f },
     { 1400.0f, 0.0f, -1600.0f },
     { 1400.0f, 0.0f, -1500.0f },
@@ -1042,7 +1042,7 @@ Vec lbl_1_data_259C[0x1F] = {
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_2710[0x1B] = {
+Vec course_geometry_points_40[0x1B] = {
     { -70.0f, 0.0f, 100.0f },
     { -70.0f, 0.0f, 0.0f },
     { -70.0f, 0.0f, -230.0f },
@@ -1071,7 +1071,7 @@ Vec lbl_1_data_2710[0x1B] = {
     { -1470.0f, 0.0f, -1600.0f },
     { -1470.0f, 0.0f, -1700.0f },
 };
-Vec lbl_1_data_2854[0x1B] = {
+Vec course_geometry_points_41[0x1B] = {
     { -200.0f, 0.0f, 100.0f },
     { -200.0f, 0.0f, -5.0f },
     { -200.0f, 0.0f, -225.0f },
@@ -1100,7 +1100,7 @@ Vec lbl_1_data_2854[0x1B] = {
     { -1620.0f, 0.0f, -1600.0f },
     { -1620.0f, 0.0f, -1700.0f },
 };
-Vec lbl_1_data_2998[0x1B] = {
+Vec course_geometry_points_42[0x1B] = {
     { 0.0f, 0.0f, 100.0f },
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, -230.0f },
@@ -1129,7 +1129,7 @@ Vec lbl_1_data_2998[0x1B] = {
     { -1400.0f, 0.0f, -1600.0f },
     { -1400.0f, 0.0f, -1700.0f },
 };
-Vec lbl_1_data_2ADC[0x23] = {
+Vec course_geometry_points_43[0x23] = {
     { -1330.0f, 0.0f, -1700.0f },
     { -1330.0f, 0.0f, -1600.0f },
     { -1330.0f, 0.0f, -1500.0f },
@@ -1166,7 +1166,7 @@ Vec lbl_1_data_2ADC[0x23] = {
     { 1330.0f, 0.0f, -1600.0f },
     { 1330.0f, 0.0f, -1700.0f },
 };
-Vec lbl_1_data_2C80[0x23] = {
+Vec course_geometry_points_44[0x23] = {
     { -1180.0f, 0.0f, -1700.0f },
     { -1180.0f, 0.0f, -1600.0f },
     { -1180.0f, 0.0f, -1500.0f },
@@ -1203,7 +1203,7 @@ Vec lbl_1_data_2C80[0x23] = {
     { 1180.0f, 0.0f, -1600.0f },
     { 1180.0f, 0.0f, -1700.0f },
 };
-Vec lbl_1_data_2E24[0x23] = {
+Vec course_geometry_points_45[0x23] = {
     { -1400.0f, 0.0f, -1700.0f },
     { -1400.0f, 0.0f, -1600.0f },
     { -1400.0f, 0.0f, -1500.0f },
@@ -1240,19 +1240,19 @@ Vec lbl_1_data_2E24[0x23] = {
     { 1400.0f, 0.0f, -1600.0f },
     { 1400.0f, 0.0f, -1700.0f },
 };
-Vec *lbl_1_data_2FC8[9] = {
-    lbl_1_data_22B4,
-    lbl_1_data_2428,
-    lbl_1_data_259C,
-    lbl_1_data_2710,
-    lbl_1_data_2854,
-    lbl_1_data_2998,
-    lbl_1_data_2ADC,
-    lbl_1_data_2C80,
-    lbl_1_data_2E24,
+Vec *course_geometry_data_05[9] = {
+    course_geometry_points_37,
+    course_geometry_points_38,
+    course_geometry_points_39,
+    course_geometry_points_40,
+    course_geometry_points_41,
+    course_geometry_points_42,
+    course_geometry_points_43,
+    course_geometry_points_44,
+    course_geometry_points_45,
 };
-s32 lbl_1_data_2FEC[3] = { 0x1F, 0x1B, 0x23 };
-Vec lbl_1_data_2FF8[0x37] = {
+s32 course_geometry_counts_03[3] = { 0x1F, 0x1B, 0x23 };
+Vec course_geometry_points_46[0x37] = {
     { -70.0f, 0.0f, 100.0f },
     { -70.0f, 0.0f, -170.0f },
     { -65.0f, 0.0f, -190.0f },
@@ -1309,7 +1309,7 @@ Vec lbl_1_data_2FF8[0x37] = {
     { 70.0f, 0.0f, -170.0f },
     { 70.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_328C[0x37] = {
+Vec course_geometry_points_47[0x37] = {
     { -200.0f, 0.0f, 100.0f },
     { -200.0f, 0.0f, -170.0f },
     { -200.0f, 0.0f, -190.0f },
@@ -1366,7 +1366,7 @@ Vec lbl_1_data_328C[0x37] = {
     { 200.0f, 0.0f, -170.0f },
     { 200.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_3520[0x37] = {
+Vec course_geometry_points_48[0x37] = {
     { 0.0f, 0.0f, 100.0f },
     { 0.0f, 0.0f, -170.0f },
     { 0.0f, 0.0f, -190.0f },
@@ -1423,9 +1423,9 @@ Vec lbl_1_data_3520[0x37] = {
     { 0.0f, 0.0f, -170.0f },
     { 0.0f, 0.0f, 100.0f },
 };
-Vec *lbl_1_data_37B4[3] = { lbl_1_data_2FF8, lbl_1_data_328C, lbl_1_data_3520 };
-s32 lbl_1_data_37C0 = 0x37;
-Vec lbl_1_data_37C4[0x22] = {
+Vec *course_geometry_data_06[3] = { course_geometry_points_46, course_geometry_points_47, course_geometry_points_48 };
+s32 course_geometry_counts_04 = 0x37;
+Vec course_geometry_points_49[0x22] = {
     { -70.0f, 0.0f, 100.0f },
     { -70.0f, 0.0f, 0.0f },
     { -70.0f, 0.0f, -190.0f },
@@ -1461,7 +1461,7 @@ Vec lbl_1_data_37C4[0x22] = {
     { -70.0f, 0.0f, -1400.0f },
     { -70.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_395C[0x22] = {
+Vec course_geometry_points_50[0x22] = {
     { -200.0f, 0.0f, 100.0f },
     { -200.0f, 0.0f, 0.0f },
     { -200.0f, 0.0f, -230.0f },
@@ -1497,7 +1497,7 @@ Vec lbl_1_data_395C[0x22] = {
     { -220.0f, 0.0f, -1400.0f },
     { -220.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_3AF4[0x22] = {
+Vec course_geometry_points_51[0x22] = {
     { 0.0f, 0.0f, 100.0f },
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, -125.0f },
@@ -1533,7 +1533,7 @@ Vec lbl_1_data_3AF4[0x22] = {
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_3C8C[0x22] = {
+Vec course_geometry_points_52[0x22] = {
     { 70.0f, 0.0f, -1500.0f },
     { 70.0f, 0.0f, -1400.0f },
     { 70.0f, 0.0f, -1180.0f },
@@ -1569,7 +1569,7 @@ Vec lbl_1_data_3C8C[0x22] = {
     { 70.0f, 0.0f, 0.0f },
     { 70.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_3E24[0x22] = {
+Vec course_geometry_points_53[0x22] = {
     { 220.0f, 0.0f, -1500.0f },
     { 220.0f, 0.0f, -1400.0f },
     { 220.0f, 0.0f, -1090.0f },
@@ -1605,7 +1605,7 @@ Vec lbl_1_data_3E24[0x22] = {
     { 200.0f, 0.0f, 50.0f },
     { 200.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_3FBC[0x22] = {
+Vec course_geometry_points_54[0x22] = {
     { 0.0f, 0.0f, -1500.0f },
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1240.0f },
@@ -1641,16 +1641,16 @@ Vec lbl_1_data_3FBC[0x22] = {
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 100.0f },
 };
-Vec *lbl_1_data_4154[6] = {
-    lbl_1_data_37C4,
-    lbl_1_data_395C,
-    lbl_1_data_3AF4,
-    lbl_1_data_3C8C,
-    lbl_1_data_3E24,
-    lbl_1_data_3FBC,
+Vec *course_geometry_data_07[6] = {
+    course_geometry_points_49,
+    course_geometry_points_50,
+    course_geometry_points_51,
+    course_geometry_points_52,
+    course_geometry_points_53,
+    course_geometry_points_54,
 };
-s32 lbl_1_data_416C[2] = { 0x22, 0x22 };
-Vec lbl_1_data_4174[0x2C] = {
+s32 course_geometry_counts_05[2] = { 0x22, 0x22 };
+Vec course_geometry_points_55[0x2C] = {
     { -70.0f, 0.0f, 100.0f },
     { -70.0f, 0.0f, 0.0f },
     { -70.0f, 0.0f, -70.0f },
@@ -1696,7 +1696,7 @@ Vec lbl_1_data_4174[0x2C] = {
     { -70.0f, 0.0f, -1400.0f },
     { -70.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_4384[0x2C] = {
+Vec course_geometry_points_56[0x2C] = {
     { -220.0f, 0.0f, 100.0f },
     { -250.0f, 0.0f, 30.0f },
     { -250.0f, 0.0f, 30.0f },
@@ -1742,7 +1742,7 @@ Vec lbl_1_data_4384[0x2C] = {
     { -200.0f, 0.0f, -1450.0f },
     { -200.0f, 0.0f, -1505.0f },
 };
-Vec lbl_1_data_4594[0x2C] = {
+Vec course_geometry_points_57[0x2C] = {
     { 0.0f, 0.0f, 100.0f },
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, -135.0f },
@@ -1788,7 +1788,7 @@ Vec lbl_1_data_4594[0x2C] = {
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_47A4[0x2C] = {
+Vec course_geometry_points_58[0x2C] = {
     { 70.0f, 0.0f, -1500.0f },
     { 70.0f, 0.0f, -1400.0f },
     { 70.0f, 0.0f, -1210.0f },
@@ -1834,7 +1834,7 @@ Vec lbl_1_data_47A4[0x2C] = {
     { 70.0f, 0.0f, 0.0f },
     { 70.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_49B4[0x2C] = {
+Vec course_geometry_points_59[0x2C] = {
     { 200.0f, 0.0f, -1500.0f },
     { 200.0f, 0.0f, -1400.0f },
     { 200.0f, 0.0f, -1145.0f },
@@ -1880,7 +1880,7 @@ Vec lbl_1_data_49B4[0x2C] = {
     { 220.0f, 0.0f, 0.0f },
     { 220.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_4BC4[0x2C] = {
+Vec course_geometry_points_60[0x2C] = {
     { 0.0f, 0.0f, -1500.0f },
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1275.0f },
@@ -1926,16 +1926,16 @@ Vec lbl_1_data_4BC4[0x2C] = {
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 100.0f },
 };
-Vec *lbl_1_data_4DD4[6] = {
-    lbl_1_data_4174,
-    lbl_1_data_4384,
-    lbl_1_data_4594,
-    lbl_1_data_47A4,
-    lbl_1_data_49B4,
-    lbl_1_data_4BC4,
+Vec *course_geometry_data_08[6] = {
+    course_geometry_points_55,
+    course_geometry_points_56,
+    course_geometry_points_57,
+    course_geometry_points_58,
+    course_geometry_points_59,
+    course_geometry_points_60,
 };
-s32 lbl_1_data_4DEC[2] = { 0x2C, 0x2C };
-Vec lbl_1_data_4DF4[0x27] = {
+s32 course_geometry_counts_06[2] = { 0x2C, 0x2C };
+Vec course_geometry_points_61[0x27] = {
     { -70.0f, 0.0f, 100.0f },
     { -70.0f, 0.0f, 0.0f },
     { -70.0f, 0.0f, -60.0f },
@@ -1976,7 +1976,7 @@ Vec lbl_1_data_4DF4[0x27] = {
     { -70.0f, 0.0f, -1400.0f },
     { -70.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_4FC8[0x27] = {
+Vec course_geometry_points_62[0x27] = {
     { -200.0f, 0.0f, 100.0f },
     { -200.0f, 0.0f, 60.0f },
     { -200.0f, 0.0f, 40.0f },
@@ -2017,7 +2017,7 @@ Vec lbl_1_data_4FC8[0x27] = {
     { -200.0f, 0.0f, -1450.0f },
     { -200.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_519C[0x27] = {
+Vec course_geometry_points_63[0x27] = {
     { 0.0f, 0.0f, 100.0f },
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, -125.0f },
@@ -2058,7 +2058,7 @@ Vec lbl_1_data_519C[0x27] = {
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_5370[0x27] = {
+Vec course_geometry_points_64[0x27] = {
     { 70.0f, 0.0f, -1500.0f },
     { 70.0f, 0.0f, -1400.0f },
     { 70.0f, 0.0f, -1210.0f },
@@ -2099,7 +2099,7 @@ Vec lbl_1_data_5370[0x27] = {
     { 70.0f, 0.0f, 0.0f },
     { 70.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_5544[0x27] = {
+Vec course_geometry_points_65[0x27] = {
     { 200.0f, 0.0f, -1495.0f },
     { 200.0f, 0.0f, -1400.0f },
     { 200.0f, 0.0f, -1150.0f },
@@ -2140,7 +2140,7 @@ Vec lbl_1_data_5544[0x27] = {
     { 200.0f, 0.0f, 0.0f },
     { 200.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_5718[0x27] = {
+Vec course_geometry_points_66[0x27] = {
     { 0.0f, 0.0f, -1500.0f },
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1275.0f },
@@ -2181,16 +2181,16 @@ Vec lbl_1_data_5718[0x27] = {
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 100.0f },
 };
-Vec *lbl_1_data_58EC[6] = {
-    lbl_1_data_4DF4,
-    lbl_1_data_4FC8,
-    lbl_1_data_519C,
-    lbl_1_data_5370,
-    lbl_1_data_5544,
-    lbl_1_data_5718,
+Vec *course_geometry_data_09[6] = {
+    course_geometry_points_61,
+    course_geometry_points_62,
+    course_geometry_points_63,
+    course_geometry_points_64,
+    course_geometry_points_65,
+    course_geometry_points_66,
 };
-s32 lbl_1_data_5904[2] = { 0x27, 0x27 };
-Vec lbl_1_data_590C[0x21] = {
+s32 course_geometry_counts_07[2] = { 0x27, 0x27 };
+Vec course_geometry_points_67[0x21] = {
     { -70.0f, 0.0f, 100.0f },
     { -70.0f, 0.0f, 0.0f },
     { -70.0f, 0.0f, -100.0f },
@@ -2225,7 +2225,7 @@ Vec lbl_1_data_590C[0x21] = {
     { -70.0f, 0.0f, -1400.0f },
     { -70.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_5A98[0x21] = {
+Vec course_geometry_points_68[0x21] = {
     { -200.0f, 0.0f, 100.0f },
     { -200.0f, 0.0f, 0.0f },
     { -200.0f, 0.0f, -100.0f },
@@ -2260,7 +2260,7 @@ Vec lbl_1_data_5A98[0x21] = {
     { -200.0f, 0.0f, -1400.0f },
     { -200.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_5C24[0x21] = {
+Vec course_geometry_points_69[0x21] = {
     { 0.0f, 0.0f, 100.0f },
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, -100.0f },
@@ -2295,7 +2295,7 @@ Vec lbl_1_data_5C24[0x21] = {
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_5DB0[0x1E] = {
+Vec course_geometry_points_70[0x1E] = {
     { 70.0f, 0.0f, -1500.0f },
     { 70.0f, 0.0f, -1400.0f },
     { 70.0f, 0.0f, -1350.0f },
@@ -2327,7 +2327,7 @@ Vec lbl_1_data_5DB0[0x1E] = {
     { 70.0f, 0.0f, 0.0f },
     { 70.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_5F18[0x1E] = {
+Vec course_geometry_points_71[0x1E] = {
     { 200.0f, 0.0f, -1500.0f },
     { 200.0f, 0.0f, -1400.0f },
     { 200.0f, 0.0f, -1350.0f },
@@ -2359,7 +2359,7 @@ Vec lbl_1_data_5F18[0x1E] = {
     { 200.0f, 0.0f, 0.0f },
     { 200.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_6080[0x1E] = {
+Vec course_geometry_points_72[0x1E] = {
     { 0.0f, 0.0f, -1500.0f },
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1350.0f },
@@ -2391,16 +2391,16 @@ Vec lbl_1_data_6080[0x1E] = {
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 100.0f },
 };
-Vec *lbl_1_data_61E8[6] = {
-    lbl_1_data_590C,
-    lbl_1_data_5A98,
-    lbl_1_data_5C24,
-    lbl_1_data_5DB0,
-    lbl_1_data_5F18,
-    lbl_1_data_6080,
+Vec *course_geometry_data_10[6] = {
+    course_geometry_points_67,
+    course_geometry_points_68,
+    course_geometry_points_69,
+    course_geometry_points_70,
+    course_geometry_points_71,
+    course_geometry_points_72,
 };
-s32 lbl_1_data_6200[2] = { 0x21, 0x1E };
-Vec lbl_1_data_6208[0x1F] = {
+s32 course_geometry_counts_08[2] = { 0x21, 0x1E };
+Vec course_geometry_points_73[0x1F] = {
     { -70.0f, 0.0f, 100.0f },
     { -70.0f, 0.0f, 0.0f },
     { -70.0f, 0.0f, -100.0f },
@@ -2433,7 +2433,7 @@ Vec lbl_1_data_6208[0x1F] = {
     { -70.0f, 0.0f, -1400.0f },
     { -70.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_637C[0x1F] = {
+Vec course_geometry_points_74[0x1F] = {
     { -200.0f, 0.0f, 100.0f },
     { -200.0f, 0.0f, 0.0f },
     { -200.0f, 0.0f, -100.0f },
@@ -2466,7 +2466,7 @@ Vec lbl_1_data_637C[0x1F] = {
     { -200.0f, 0.0f, -1400.0f },
     { -200.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_64F0[0x1F] = {
+Vec course_geometry_points_75[0x1F] = {
     { 0.0f, 0.0f, 100.0f },
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, -100.0f },
@@ -2499,7 +2499,7 @@ Vec lbl_1_data_64F0[0x1F] = {
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_6664[0x1D] = {
+Vec course_geometry_points_76[0x1D] = {
     { 70.0f, 0.0f, -1500.0f },
     { 70.0f, 0.0f, -1400.0f },
     { 70.0f, 0.0f, -1300.0f },
@@ -2530,7 +2530,7 @@ Vec lbl_1_data_6664[0x1D] = {
     { 70.0f, 0.0f, 0.0f },
     { 70.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_67C0[0x1D] = {
+Vec course_geometry_points_77[0x1D] = {
     { 200.0f, 0.0f, -1500.0f },
     { 200.0f, 0.0f, -1400.0f },
     { 200.0f, 0.0f, -1300.0f },
@@ -2561,7 +2561,7 @@ Vec lbl_1_data_67C0[0x1D] = {
     { 200.0f, 0.0f, 0.0f },
     { 200.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_691C[0x1D] = {
+Vec course_geometry_points_78[0x1D] = {
     { 0.0f, 0.0f, -1500.0f },
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1300.0f },
@@ -2592,16 +2592,16 @@ Vec lbl_1_data_691C[0x1D] = {
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 100.0f },
 };
-Vec *lbl_1_data_6A78[6] = {
-    lbl_1_data_6208,
-    lbl_1_data_637C,
-    lbl_1_data_64F0,
-    lbl_1_data_6664,
-    lbl_1_data_67C0,
-    lbl_1_data_691C,
+Vec *course_geometry_data_11[6] = {
+    course_geometry_points_73,
+    course_geometry_points_74,
+    course_geometry_points_75,
+    course_geometry_points_76,
+    course_geometry_points_77,
+    course_geometry_points_78,
 };
-s32 lbl_1_data_6A90[2] = { 0x1F, 0x1D };
-Vec lbl_1_data_6A98[0x21] = {
+s32 course_geometry_counts_09[2] = { 0x1F, 0x1D };
+Vec course_geometry_points_79[0x21] = {
     { -70.0f, 0.0f, 100.0f },
     { -70.0f, 0.0f, 0.0f },
     { -70.0f, 0.0f, -100.0f },
@@ -2636,7 +2636,7 @@ Vec lbl_1_data_6A98[0x21] = {
     { -70.0f, 0.0f, -1400.0f },
     { -70.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_6C24[0x21] = {
+Vec course_geometry_points_80[0x21] = {
     { -200.0f, 0.0f, 100.0f },
     { -200.0f, 0.0f, 0.0f },
     { -200.0f, 0.0f, -100.0f },
@@ -2671,7 +2671,7 @@ Vec lbl_1_data_6C24[0x21] = {
     { -200.0f, 0.0f, -1400.0f },
     { -200.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_6DB0[0x21] = {
+Vec course_geometry_points_81[0x21] = {
     { 0.0f, 0.0f, 100.0f },
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, -100.0f },
@@ -2706,7 +2706,7 @@ Vec lbl_1_data_6DB0[0x21] = {
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1500.0f },
 };
-Vec lbl_1_data_6F3C[0x1F] = {
+Vec course_geometry_points_82[0x1F] = {
     { 70.0f, 0.0f, -1500.0f },
     { 70.0f, 0.0f, -1400.0f },
     { 70.0f, 0.0f, -1300.0f },
@@ -2739,7 +2739,7 @@ Vec lbl_1_data_6F3C[0x1F] = {
     { 70.0f, 0.0f, 0.0f },
     { 70.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_70B0[0x1F] = {
+Vec course_geometry_points_83[0x1F] = {
     { 200.0f, 0.0f, -1500.0f },
     { 200.0f, 0.0f, -1400.0f },
     { 200.0f, 0.0f, -1300.0f },
@@ -2772,7 +2772,7 @@ Vec lbl_1_data_70B0[0x1F] = {
     { 200.0f, 0.0f, 0.0f },
     { 200.0f, 0.0f, 100.0f },
 };
-Vec lbl_1_data_7224[0x1F] = {
+Vec course_geometry_points_84[0x1F] = {
     { 0.0f, 0.0f, -1500.0f },
     { 0.0f, 0.0f, -1400.0f },
     { 0.0f, 0.0f, -1300.0f },
@@ -2805,39 +2805,39 @@ Vec lbl_1_data_7224[0x1F] = {
     { 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 100.0f },
 };
-Vec *lbl_1_data_7398[6] = {
-    lbl_1_data_6A98,
-    lbl_1_data_6C24,
-    lbl_1_data_6DB0,
-    lbl_1_data_6F3C,
-    lbl_1_data_70B0,
-    lbl_1_data_7224,
+Vec *course_geometry_data_12[6] = {
+    course_geometry_points_79,
+    course_geometry_points_80,
+    course_geometry_points_81,
+    course_geometry_points_82,
+    course_geometry_points_83,
+    course_geometry_points_84,
 };
-s32 lbl_1_data_73B0[2] = { 0x21, 0x1F };
-u16 lbl_1_data_73B8[0xA] = { 1, 3, 3, 1, 2, 2, 2, 2, 2, 2 };
-Vec **lbl_1_data_73CC[0xA] = {
-    lbl_1_data_16C8,
-    lbl_1_data_2284,
-    lbl_1_data_2FC8,
-    lbl_1_data_37B4,
-    lbl_1_data_4154,
-    lbl_1_data_4DD4,
-    lbl_1_data_58EC,
-    lbl_1_data_61E8,
-    lbl_1_data_6A78,
-    lbl_1_data_7398,
+s32 course_geometry_counts_10[2] = { 0x21, 0x1F };
+u16 course_geometry_counts_02[0xA] = { 1, 3, 3, 1, 2, 2, 2, 2, 2, 2 };
+Vec **course_geometry_data_13[0xA] = {
+    course_geometry_data_03,
+    course_geometry_data_04,
+    course_geometry_data_05,
+    course_geometry_data_06,
+    course_geometry_data_07,
+    course_geometry_data_08,
+    course_geometry_data_09,
+    course_geometry_data_10,
+    course_geometry_data_11,
+    course_geometry_data_12,
 };
-s32 *lbl_1_data_73F4[0xA] = {
-    &lbl_1_data_16D4,
-    lbl_1_data_22A8,
-    lbl_1_data_2FEC,
-    &lbl_1_data_37C0,
-    lbl_1_data_416C,
-    lbl_1_data_4DEC,
-    lbl_1_data_5904,
-    lbl_1_data_6200,
-    lbl_1_data_6A90,
-    lbl_1_data_73B0,
+s32 *course_geometry_data_14[0xA] = {
+    &course_rail_point_counts,
+    course_geometry_counts_02,
+    course_geometry_counts_03,
+    &course_geometry_counts_04,
+    course_geometry_counts_05,
+    course_geometry_counts_06,
+    course_geometry_counts_07,
+    course_geometry_counts_08,
+    course_geometry_counts_09,
+    course_geometry_counts_10,
 };
 
 #endif
