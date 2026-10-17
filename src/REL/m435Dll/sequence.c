@@ -4,536 +4,536 @@
 #include "ext_math.h"
 #include "string.h"
 
-float fn_1_1526C(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+float InterpolateLinearClamped(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return endValue;
     }
-    return arg0 + (arg2 / arg3) * (arg1 - arg0);
+    return startValue + (elapsedFrames / durationFrames) * (endValue - startValue);
 }
 
-float fn_1_15294(float arg0, float arg1, float arg2) {
-    if (arg2 <= 1.0f) {
-        return arg1;
+float ApproachValueOverDuration(float currentValue, float targetValue, float remainingFrames) {
+    if (remainingFrames <= 1.0f) {
+        return targetValue;
     }
-    return (arg1 + arg0 * (arg2 - 1.0f)) / arg2;
+    return (targetValue + currentValue * (remainingFrames - 1.0f)) / remainingFrames;
 }
 
-float fn_1_152D4(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+float InterpolateSineEaseOut(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return endValue;
     }
-    return arg0 + (arg1 - arg0) * sind((90.0f / arg3) * arg2);
+    return startValue + (endValue - startValue) * sind((90.0f / durationFrames) * elapsedFrames);
 }
 
-float fn_1_1539C(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+float InterpolateCosineEaseIn(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return endValue;
     }
-    return arg0 + (arg1 - arg0) * (1.0 - cosd((90.0f / arg3) * arg2));
+    return startValue + (endValue - startValue) * (1.0 - cosd((90.0f / durationFrames) * elapsedFrames));
 }
 
-void fn_1_15474(StructBss84* arg0) {
-    arg0->unk04 = 0;
-    arg0->unk08 = arg0->unk0C[arg0->unk00].unk08;
-    arg0->unk10 = arg0->unk0C[arg0->unk00].unk00;
-    arg0->unk14 = arg0->unk0C[arg0->unk00].unk04;
+void UpdateSequenceStep(SequencePlayer* sequencePlayer) {
+    sequencePlayer->elapsedFrames = 0;
+    sequencePlayer->stepDuration = sequencePlayer->steps[sequencePlayer->stepIndex].durationFrames;
+    sequencePlayer->onStep = sequencePlayer->cameraCenterX[sequencePlayer->stepIndex].onEnter;
+    sequencePlayer->onComplete = sequencePlayer->cameraCenterX[sequencePlayer->stepIndex].isComplete;
 }
 
-void fn_1_154C4(StructBss84* arg0, StructData3A0* arg1) {
-    arg0->unk00 = 0;
-    arg0->unk0C = arg1;
-    fn_1_15474(arg0);
+void StartSequence(SequencePlayer* sequencePlayer, SequenceStep* sequenceSteps) {
+    sequencePlayer->stepIndex = 0;
+    sequencePlayer->steps = sequenceSteps;
+    UpdateSequenceStep(sequencePlayer);
 }
 
-s32 fn_1_15520(StructBss84* arg0) {
-    arg0->unk00++;
-    fn_1_15474(arg0);
-    if (arg0->unk10 == NULL && arg0->unk14 == NULL) {
+s32 AdvanceSequence(SequencePlayer* sequencePlayer) {
+    sequencePlayer->stepIndex++;
+    UpdateSequenceStep(sequencePlayer);
+    if (sequencePlayer->onStep == NULL && sequencePlayer->onComplete == NULL) {
         return 1;
     }
     return 0;
 }
 
-s32 fn_1_155A8(StructBss84* arg0) {
-    arg0->unk00--;
-    if (arg0->unk00 < 0) {
+s32 RewindSequence(SequencePlayer* sequencePlayer) {
+    sequencePlayer->stepIndex--;
+    if (sequencePlayer->stepIndex < 0) {
         return 1;
     }
-    fn_1_15474(arg0);
+    UpdateSequenceStep(sequencePlayer);
     return 0;
 }
 
-void fn_1_1561C(StructBss84* arg0, s32 arg1) {
-    arg0->unk00 = arg1;
-    fn_1_15474(arg0);
+void SetSequenceStep(SequencePlayer* sequencePlayer, s32 stepIndex) {
+    sequencePlayer->stepIndex = stepIndex;
+    UpdateSequenceStep(sequencePlayer);
 }
 
-s32 fn_1_15670(StructBss84* arg0, s32 arg1) {
-    if (arg1 == 0) {
-        return arg0->unk04;
+s32 UpdateSequenceTimer(SequencePlayer* sequencePlayer, s32 frameDelta) {
+    if (frameDelta == 0) {
+        return sequencePlayer->elapsedFrames;
     }
-    arg0->unk04 += arg1;
-    if (arg0->unk04 >= arg0->unk08) {
+    sequencePlayer->elapsedFrames += frameDelta;
+    if (sequencePlayer->elapsedFrames >= sequencePlayer->stepDuration) {
         return 1;
     }
     return 0;
 }
 
-s32 fn_1_156AC(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    if (arg0->mtnId[arg2] == Hu3DMotionIDGet(arg0->mdlId[0])) {
-        if (arg4 != 0) {
-            if (Hu3DMotionTimeGet(arg0->mdlId[arg1]) >= arg3) {
+s32 IsMotionAtFrame(OMOBJ* modelObject, s32 modelIndex, s32 motionIndex, s32 frameThreshold, s32 checkAfterFrame) {
+    if (modelObject->mtnId[motionIndex] == Hu3DMotionIDGet(modelObject->mdlId[0])) {
+        if (checkAfterFrame != 0) {
+            if (Hu3DMotionTimeGet(modelObject->mdlId[modelIndex]) >= frameThreshold) {
                 return 1;
             }
-        } else if (Hu3DMotionTimeGet(arg0->mdlId[arg1]) <= arg3) {
+        } else if (Hu3DMotionTimeGet(modelObject->mdlId[modelIndex]) <= frameThreshold) {
             return 1;
         }
     }
     return 0;
 }
 
-void fn_1_157BC(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    switch (arg4) {
+void SetModelMotion(OMOBJ* modelObject, s32 modelIndex, s32 motionIndex, s32 blendFrames, s32 motionMode) {
+    switch (motionMode) {
         case 0:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_NONE);
+            Hu3DMotionShiftSet(modelObject->mdlId[modelIndex], modelObject->mtnId[motionIndex], 0.0f, blendFrames, HU3D_MOTATTR_NONE);
             break;
         case 1:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_LOOP);
+            Hu3DMotionShiftSet(modelObject->mdlId[modelIndex], modelObject->mtnId[motionIndex], 0.0f, blendFrames, HU3D_MOTATTR_LOOP);
             break;
         case 2:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_PAUSE);
+            Hu3DMotionShiftSet(modelObject->mdlId[modelIndex], modelObject->mtnId[motionIndex], 0.0f, blendFrames, HU3D_MOTATTR_PAUSE);
             break;
     }
 }
 
-void fn_1_15934(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    if (arg0->mtnId[arg2] != Hu3DMotionIDGet(arg0->mdlId[arg1]) && arg0->mtnId[arg2] != Hu3DMotionShiftIDGet(arg0->mdlId[arg1])) {
-        fn_1_157BC(arg0, arg1, arg2, arg3, arg4);
+void SetModelMotionIfChanged(OMOBJ* modelObject, s32 modelIndex, s32 motionIndex, s32 blendFrames, s32 motionMode) {
+    if (modelObject->mtnId[motionIndex] != Hu3DMotionIDGet(modelObject->mdlId[modelIndex]) && modelObject->mtnId[motionIndex] != Hu3DMotionShiftIDGet(modelObject->mdlId[modelIndex])) {
+        SetModelMotion(modelObject, modelIndex, motionIndex, blendFrames, motionMode);
     }
 }
 
-void fn_1_15AFC(StructBssE08* arg0, Vec* arg1, Vec* arg2) {
-    float temp_f31;
-    float temp_f29;
-    float temp_f30;
-    float temp_f27;
+void SetTransformFromPositions(TransformTween* tween, Vec* startPosition, Vec* targetPosition) {
+    float deltaX;
+    float deltaY;
+    float deltaZ;
+    float horizontalAngle;
 
-    temp_f31 = arg1->x - arg2->x;
-    temp_f29 = arg1->y - arg2->y;
-    temp_f30 = arg1->z - arg2->z;
-    arg0->unk18 = arg2->x;
-    arg0->unk1C = arg2->y;
-    arg0->unk20 = arg2->z;
-    arg0->unk40 = sqrtf(temp_f31 * temp_f31 + temp_f29 * temp_f29 + temp_f30 * temp_f30);
-    temp_f27 = atan2d(temp_f30, temp_f31);
-    arg0->unk30 = -atan2d(temp_f29, temp_f31 * cosd(-temp_f27) + temp_f30 * -sind(-temp_f27));
-    arg0->unk34 = -(temp_f27 - 90.0f);
-    arg0->unk38 = 0.0f;
+    deltaX = startPosition->x - targetPosition->x;
+    deltaY = startPosition->y - targetPosition->y;
+    deltaZ = startPosition->z - targetPosition->z;
+    tween->targetPositionX = targetPosition->x;
+    tween->targetPositionY = targetPosition->y;
+    tween->targetPositionZ = targetPosition->z;
+    tween->targetDistance = sqrtf(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+    horizontalAngle = atan2d(deltaZ, deltaX);
+    tween->targetRotationX = -atan2d(deltaY, deltaX * cosd(-horizontalAngle) + deltaZ * -sind(-horizontalAngle));
+    tween->targetRotationY = -(horizontalAngle - 90.0f);
+    tween->targetRotationZ = 0.0f;
 }
 
-void fn_1_15E14(StructBssE08* arg0) {
-    arg0->unk0C = arg0->unk18;
-    arg0->unk10 = arg0->unk1C;
-    arg0->unk14 = arg0->unk20;
-    arg0->unk24 = arg0->unk30;
-    arg0->unk28 = arg0->unk34;
-    arg0->unk2C = arg0->unk38;
-    arg0->unk3C = arg0->unk40;
+void CopyTransformToStart(TransformTween* tween) {
+    tween->cameraCenterX = tween->targetPositionX;
+    tween->cameraCenterY = tween->targetPositionY;
+    tween->cameraCenterZ = tween->targetPositionZ;
+    tween->cameraRotationX = tween->targetRotationX;
+    tween->cameraRotationY = tween->targetRotationY;
+    tween->cameraRotationZ = tween->targetRotationZ;
+    tween->cameraZoom = tween->targetDistance;
 }
 
-void fn_1_15E50(StructBssE08* arg0) {
-    arg0->unk44 = 0.0f;
-    arg0->unk18 = arg0->unk0C;
-    arg0->unk1C = arg0->unk10;
-    arg0->unk20 = arg0->unk14;
-    arg0->unk30 = arg0->unk24;
-    arg0->unk34 = arg0->unk28;
-    arg0->unk38 = arg0->unk2C;
-    arg0->unk40 = arg0->unk3C;
+void CopyTransformToTarget(TransformTween* tween) {
+    tween->elapsedTime = 0.0f;
+    tween->targetPositionX = tween->cameraCenterX;
+    tween->targetPositionY = tween->cameraCenterY;
+    tween->targetPositionZ = tween->cameraCenterZ;
+    tween->targetRotationX = tween->cameraRotationX;
+    tween->targetRotationY = tween->cameraRotationY;
+    tween->targetRotationZ = tween->cameraRotationZ;
+    tween->targetDistance = tween->cameraZoom;
 }
 
-void fn_1_15E9C(StructBssE08* arg0, StructBssE08* arg1, float arg2) {
-    arg0->unk0C = fn_1_15294(arg0->unk0C, arg1->unk18, arg2);
-    arg0->unk10 = fn_1_15294(arg0->unk10, arg1->unk1C, arg2);
-    arg0->unk14 = fn_1_15294(arg0->unk14, arg1->unk20, arg2);
-    arg0->unk24 = fn_1_15294(arg0->unk24, arg1->unk30, arg2);
-    arg0->unk28 = fn_1_15294(arg0->unk28, arg1->unk34, arg2);
-    arg0->unk2C = fn_1_15294(arg0->unk2C, arg1->unk38, arg2);
-    arg0->unk3C = fn_1_15294(arg0->unk3C, arg1->unk40, arg2);
+void InterpolateTransformToward(TransformTween* currentTween, TransformTween* targetTween, float blendFrames) {
+    currentTween->cameraCenterX = ApproachValueOverDuration(currentTween->cameraCenterX, targetTween->targetPositionX, blendFrames);
+    currentTween->cameraCenterY = ApproachValueOverDuration(currentTween->cameraCenterY, targetTween->targetPositionY, blendFrames);
+    currentTween->cameraCenterZ = ApproachValueOverDuration(currentTween->cameraCenterZ, targetTween->targetPositionZ, blendFrames);
+    currentTween->cameraRotationX = ApproachValueOverDuration(currentTween->cameraRotationX, targetTween->targetRotationX, blendFrames);
+    currentTween->cameraRotationY = ApproachValueOverDuration(currentTween->cameraRotationY, targetTween->targetRotationY, blendFrames);
+    currentTween->cameraRotationZ = ApproachValueOverDuration(currentTween->cameraRotationZ, targetTween->targetRotationZ, blendFrames);
+    currentTween->cameraZoom = ApproachValueOverDuration(currentTween->cameraZoom, targetTween->targetDistance, blendFrames);
 }
 
-void fn_1_161B0(StructBssE08* arg0, float arg1) {
-    fn_1_15E9C(arg0, arg0, arg1);
+void InterpolateTransformTowardSelf(TransformTween* tween, float blendFrames) {
+    InterpolateTransformToward(tween, tween, blendFrames);
 }
 
-void fn_1_164C4(StructBssE08* arg0, StructBssE08* arg1, float arg2, float arg3) {
-    arg1->unk18 = fn_1_1526C(arg0->unk18, arg1->unk0C, arg2, arg3);
-    arg1->unk1C = fn_1_1526C(arg0->unk1C, arg1->unk10, arg2, arg3);
-    arg1->unk20 = fn_1_1526C(arg0->unk20, arg1->unk14, arg2, arg3);
-    arg1->unk30 = fn_1_1526C(arg0->unk30, arg1->unk24, arg2, arg3);
-    arg1->unk34 = fn_1_1526C(arg0->unk34, arg1->unk28, arg2, arg3);
-    arg1->unk38 = fn_1_1526C(arg0->unk38, arg1->unk2C, arg2, arg3);
-    arg1->unk40 = fn_1_1526C(arg0->unk40, arg1->unk3C, arg2, arg3);
+void InterpolateTransformLinear(TransformTween* startTween, TransformTween* targetTween, float elapsedFrames, float durationFrames) {
+    targetTween->targetPositionX = InterpolateLinearClamped(startTween->targetPositionX, targetTween->cameraCenterX, elapsedFrames, durationFrames);
+    targetTween->targetPositionY = InterpolateLinearClamped(startTween->targetPositionY, targetTween->cameraCenterY, elapsedFrames, durationFrames);
+    targetTween->targetPositionZ = InterpolateLinearClamped(startTween->targetPositionZ, targetTween->cameraCenterZ, elapsedFrames, durationFrames);
+    targetTween->targetRotationX = InterpolateLinearClamped(startTween->targetRotationX, targetTween->cameraRotationX, elapsedFrames, durationFrames);
+    targetTween->targetRotationY = InterpolateLinearClamped(startTween->targetRotationY, targetTween->cameraRotationY, elapsedFrames, durationFrames);
+    targetTween->targetRotationZ = InterpolateLinearClamped(startTween->targetRotationZ, targetTween->cameraRotationZ, elapsedFrames, durationFrames);
+    targetTween->targetDistance = InterpolateLinearClamped(startTween->targetDistance, targetTween->cameraZoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_16740(StructBssE08* arg0, StructBssE08* arg1, float arg2, float arg3) {
-    fn_1_164C4(arg0, arg1, arg2, arg3);
-    arg0->unk0C = arg1->unk18;
-    arg0->unk10 = arg1->unk1C;
-    arg0->unk14 = arg1->unk20;
-    arg0->unk24 = arg1->unk30;
-    arg0->unk28 = arg1->unk34;
-    arg0->unk2C = arg1->unk38;
-    arg0->unk3C = arg1->unk40;
+void InterpolateTransformLinearAndStore(TransformTween* startTween, TransformTween* targetTween, float elapsedFrames, float durationFrames) {
+    InterpolateTransformLinear(startTween, targetTween, elapsedFrames, durationFrames);
+    startTween->cameraCenterX = targetTween->targetPositionX;
+    startTween->cameraCenterY = targetTween->targetPositionY;
+    startTween->cameraCenterZ = targetTween->targetPositionZ;
+    startTween->cameraRotationX = targetTween->targetRotationX;
+    startTween->cameraRotationY = targetTween->targetRotationY;
+    startTween->cameraRotationZ = targetTween->targetRotationZ;
+    startTween->cameraZoom = targetTween->targetDistance;
 }
 
-void fn_1_169F4(StructBssE08* arg0, StructBssE08* arg1, float arg2, float arg3, float arg4) {
-    fn_1_164C4(arg0, arg1, arg2, arg3);
-    fn_1_15E9C(arg0, arg1, arg4);
+void InterpolateTransformLinearAndBlend(TransformTween* startTween, TransformTween* targetTween, float elapsedFrames, float durationFrames, float blendFrames) {
+    InterpolateTransformLinear(startTween, targetTween, elapsedFrames, durationFrames);
+    InterpolateTransformToward(startTween, targetTween, blendFrames);
 }
 
-void fn_1_16F24(StructBssE08* arg0, StructBssE08* arg1, float arg2, float arg3) {
-    arg1->unk18 = fn_1_152D4(arg0->unk18, arg1->unk0C, arg2, arg3);
-    arg1->unk1C = fn_1_152D4(arg0->unk1C, arg1->unk10, arg2, arg3);
-    arg1->unk20 = fn_1_152D4(arg0->unk20, arg1->unk14, arg2, arg3);
-    arg1->unk30 = fn_1_152D4(arg0->unk30, arg1->unk24, arg2, arg3);
-    arg1->unk34 = fn_1_152D4(arg0->unk34, arg1->unk28, arg2, arg3);
-    arg1->unk38 = fn_1_152D4(arg0->unk38, arg1->unk2C, arg2, arg3);
-    arg1->unk40 = fn_1_152D4(arg0->unk40, arg1->unk3C, arg2, arg3);
+void InterpolateTransformSine(TransformTween* startTween, TransformTween* targetTween, float elapsedFrames, float durationFrames) {
+    targetTween->targetPositionX = InterpolateSineEaseOut(startTween->targetPositionX, targetTween->cameraCenterX, elapsedFrames, durationFrames);
+    targetTween->targetPositionY = InterpolateSineEaseOut(startTween->targetPositionY, targetTween->cameraCenterY, elapsedFrames, durationFrames);
+    targetTween->targetPositionZ = InterpolateSineEaseOut(startTween->targetPositionZ, targetTween->cameraCenterZ, elapsedFrames, durationFrames);
+    targetTween->targetRotationX = InterpolateSineEaseOut(startTween->targetRotationX, targetTween->cameraRotationX, elapsedFrames, durationFrames);
+    targetTween->targetRotationY = InterpolateSineEaseOut(startTween->targetRotationY, targetTween->cameraRotationY, elapsedFrames, durationFrames);
+    targetTween->targetRotationZ = InterpolateSineEaseOut(startTween->targetRotationZ, targetTween->cameraRotationZ, elapsedFrames, durationFrames);
+    targetTween->targetDistance = InterpolateSineEaseOut(startTween->targetDistance, targetTween->cameraZoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_17378(StructBssE08* arg0, StructBssE08* arg1, float arg2, float arg3) {
-    fn_1_16F24(arg0, arg1, arg2, arg3);
-    arg0->unk0C = arg1->unk18;
-    arg0->unk10 = arg1->unk1C;
-    arg0->unk14 = arg1->unk20;
-    arg0->unk24 = arg1->unk30;
-    arg0->unk28 = arg1->unk34;
-    arg0->unk2C = arg1->unk38;
-    arg0->unk3C = arg1->unk40;
+void InterpolateTransformSineAndStore(TransformTween* startTween, TransformTween* targetTween, float elapsedFrames, float durationFrames) {
+    InterpolateTransformSine(startTween, targetTween, elapsedFrames, durationFrames);
+    startTween->cameraCenterX = targetTween->targetPositionX;
+    startTween->cameraCenterY = targetTween->targetPositionY;
+    startTween->cameraCenterZ = targetTween->targetPositionZ;
+    startTween->cameraRotationX = targetTween->targetRotationX;
+    startTween->cameraRotationY = targetTween->targetRotationY;
+    startTween->cameraRotationZ = targetTween->targetRotationZ;
+    startTween->cameraZoom = targetTween->targetDistance;
 }
 
-void fn_1_17804(StructBssE08* arg0, StructBssE08* arg1, float arg2, float arg3, float arg4) {
-    fn_1_16F24(arg0, arg1, arg2, arg3);
-    fn_1_15E9C(arg0, arg1, arg4);
+void InterpolateTransformSineAndBlend(TransformTween* startTween, TransformTween* targetTween, float elapsedFrames, float durationFrames, float blendFrames) {
+    InterpolateTransformSine(startTween, targetTween, elapsedFrames, durationFrames);
+    InterpolateTransformToward(startTween, targetTween, blendFrames);
 }
 
-void fn_1_17F20(StructBssE08* arg0, StructBssE08* arg1, float arg2, float arg3) {
-    arg1->unk18 = fn_1_1539C(arg0->unk18, arg1->unk0C, arg2, arg3);
-    arg1->unk1C = fn_1_1539C(arg0->unk1C, arg1->unk10, arg2, arg3);
-    arg1->unk20 = fn_1_1539C(arg0->unk20, arg1->unk14, arg2, arg3);
-    arg1->unk30 = fn_1_1539C(arg0->unk30, arg1->unk24, arg2, arg3);
-    arg1->unk34 = fn_1_1539C(arg0->unk34, arg1->unk28, arg2, arg3);
-    arg1->unk38 = fn_1_1539C(arg0->unk38, arg1->unk2C, arg2, arg3);
-    arg1->unk40 = fn_1_1539C(arg0->unk40, arg1->unk3C, arg2, arg3);
+void InterpolateTransformCosine(TransformTween* startTween, TransformTween* targetTween, float elapsedFrames, float durationFrames) {
+    targetTween->targetPositionX = InterpolateCosineEaseIn(startTween->targetPositionX, targetTween->cameraCenterX, elapsedFrames, durationFrames);
+    targetTween->targetPositionY = InterpolateCosineEaseIn(startTween->targetPositionY, targetTween->cameraCenterY, elapsedFrames, durationFrames);
+    targetTween->targetPositionZ = InterpolateCosineEaseIn(startTween->targetPositionZ, targetTween->cameraCenterZ, elapsedFrames, durationFrames);
+    targetTween->targetRotationX = InterpolateCosineEaseIn(startTween->targetRotationX, targetTween->cameraRotationX, elapsedFrames, durationFrames);
+    targetTween->targetRotationY = InterpolateCosineEaseIn(startTween->targetRotationY, targetTween->cameraRotationY, elapsedFrames, durationFrames);
+    targetTween->targetRotationZ = InterpolateCosineEaseIn(startTween->targetRotationZ, targetTween->cameraRotationZ, elapsedFrames, durationFrames);
+    targetTween->targetDistance = InterpolateCosineEaseIn(startTween->targetDistance, targetTween->cameraZoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_183E4(StructBssE08* arg0, StructBssE08* arg1, float arg2, float arg3) {
-    fn_1_17F20(arg0, arg1, arg2, arg3);
-    arg0->unk0C = arg1->unk18;
-    arg0->unk10 = arg1->unk1C;
-    arg0->unk14 = arg1->unk20;
-    arg0->unk24 = arg1->unk30;
-    arg0->unk28 = arg1->unk34;
-    arg0->unk2C = arg1->unk38;
-    arg0->unk3C = arg1->unk40;
+void InterpolateTransformCosineAndStore(TransformTween* startTween, TransformTween* targetTween, float elapsedFrames, float durationFrames) {
+    InterpolateTransformCosine(startTween, targetTween, elapsedFrames, durationFrames);
+    startTween->cameraCenterX = targetTween->targetPositionX;
+    startTween->cameraCenterY = targetTween->targetPositionY;
+    startTween->cameraCenterZ = targetTween->targetPositionZ;
+    startTween->cameraRotationX = targetTween->targetRotationX;
+    startTween->cameraRotationY = targetTween->targetRotationY;
+    startTween->cameraRotationZ = targetTween->targetRotationZ;
+    startTween->cameraZoom = targetTween->targetDistance;
 }
 
-void fn_1_188E0(StructBssE08* arg0, StructBssE08* arg1, float arg2, float arg3, float arg4) {
-    fn_1_17F20(arg0, arg1, arg2, arg3);
-    fn_1_15E9C(arg0, arg1, arg4);
+void InterpolateTransformCosineAndBlend(TransformTween* startTween, TransformTween* targetTween, float elapsedFrames, float durationFrames, float blendFrames) {
+    InterpolateTransformCosine(startTween, targetTween, elapsedFrames, durationFrames);
+    InterpolateTransformToward(startTween, targetTween, blendFrames);
 }
 
-void fn_1_1906C(OMOBJ* arg0, s32 arg1, Vec* arg2, Vec* arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7, s32 arg8) {
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    float var_f31;
-    float var_f30;
-    float temp_f29;
-    float temp_f28;
+void UpdateModelTransformTween(OMOBJ* modelObject, s32 modelIndex, Vec* startPosition, Vec* targetPosition, s32 rotationSmoothingFrames, s32 elapsedFrames, s32 durationFrames, s32 updatePosition, s32 updateRotation) {
+    Vec startPosition;
+    Vec targetPosition;
+    Vec interpolatedPosition;
+    float currentRotation;
+    float targetRotation;
+    float interpolationFrame;
+    float interpolationDuration;
 
-    sp2C.x = arg2->x;
-    sp2C.y = arg2->y;
-    sp2C.z = arg2->z;
-    sp20.x = arg3->x;
-    sp20.y = arg3->y;
-    sp20.z = arg3->z;
-    var_f31 = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
-    } else if (var_f31 >= 360.0f) {
-        var_f31 -= 360.0f;
+    startPosition.x = startPosition->x;
+    startPosition.y = startPosition->y;
+    startPosition.z = startPosition->z;
+    targetPosition.x = targetPosition->x;
+    targetPosition.y = targetPosition->y;
+    targetPosition.z = targetPosition->z;
+    currentRotation = Hu3DData[modelObject->mdlId[modelIndex]].rot.y;
+    if (currentRotation < 0.0f) {
+        currentRotation += 360.0f;
+    } else if (currentRotation >= 360.0f) {
+        currentRotation -= 360.0f;
     }
-    temp_f29 = arg5;
-    temp_f28 = arg6;
-    if (arg7 != 0) {
-        sp14.x = fn_1_1526C(sp2C.x, sp20.x, temp_f29, temp_f28);
-        sp14.y = fn_1_1526C(sp2C.y, sp20.y, temp_f29, temp_f28);
-        sp14.z = fn_1_1526C(sp2C.z, sp20.z, temp_f29, temp_f28);
-        if (arg1 == 0) {
-            omSetTra(arg0, sp14.x, sp14.y, sp14.z);
+    interpolationFrame = elapsedFrames;
+    interpolationDuration = durationFrames;
+    if (updatePosition != 0) {
+        interpolatedPosition.x = InterpolateLinearClamped(startPosition.x, targetPosition.x, interpolationFrame, interpolationDuration);
+        interpolatedPosition.y = InterpolateLinearClamped(startPosition.y, targetPosition.y, interpolationFrame, interpolationDuration);
+        interpolatedPosition.z = InterpolateLinearClamped(startPosition.z, targetPosition.z, interpolationFrame, interpolationDuration);
+        if (modelIndex == 0) {
+            omSetTra(modelObject, interpolatedPosition.x, interpolatedPosition.y, interpolatedPosition.z);
         } else {
-            Hu3DModelPosSet(arg0->mdlId[arg1], sp14.x, sp14.y, sp14.z);
+            Hu3DModelPosSet(modelObject->mdlId[modelIndex], interpolatedPosition.x, interpolatedPosition.y, interpolatedPosition.z);
         }
     }
-    if (arg8 == 0) {
+    if (updateRotation == 0) {
         return;
     }
-    var_f30 = -(atan2d(sp20.z - sp2C.z, sp20.x - sp2C.x) - 90.0);
-    if (var_f30 < 0.0f) {
-        var_f30 += 360.0f;
-    } else if (var_f30 >= 360.0f) {
-        var_f30 -= 360.0f;
+    targetRotation = -(atan2d(targetPosition.z - startPosition.z, targetPosition.x - startPosition.x) - 90.0);
+    if (targetRotation < 0.0f) {
+        targetRotation += 360.0f;
+    } else if (targetRotation >= 360.0f) {
+        targetRotation -= 360.0f;
     }
-    if (var_f30 >= 180.0f) {
-        if (var_f31 - var_f30 >= 180.0f) {
-            var_f31 -= 360.0f;
+    if (targetRotation >= 180.0f) {
+        if (currentRotation - targetRotation >= 180.0f) {
+            currentRotation -= 360.0f;
         }
-        if (var_f31 - var_f30 < -180.0f) {
-            var_f31 += 360.0f;
+        if (currentRotation - targetRotation < -180.0f) {
+            currentRotation += 360.0f;
         }
     } else {
-        if (var_f31 - var_f30 > 180.0f) {
-            var_f31 -= 360.0f;
+        if (currentRotation - targetRotation > 180.0f) {
+            currentRotation -= 360.0f;
         }
-        if (var_f31 - var_f30 <= -180.0f) {
-            var_f31 += 360.0f;
+        if (currentRotation - targetRotation <= -180.0f) {
+            currentRotation += 360.0f;
         }
     }
-    var_f31 = (var_f30 + var_f31 * (arg4 - 1)) / arg4;
-    if (arg1 == 0) {
-        arg0->rot.y = var_f31;
+    currentRotation = (targetRotation + currentRotation * (rotationSmoothingFrames - 1)) / rotationSmoothingFrames;
+    if (modelIndex == 0) {
+        modelObject->rot.y = currentRotation;
     } else {
-        Hu3DData[arg0->mdlId[arg1]].rot.y = var_f31;
+        Hu3DData[modelObject->mdlId[modelIndex]].rot.y = currentRotation;
     }
 }
 
-void fn_1_19530(OMOBJ* arg0, s32 arg1, Vec* arg2, Vec* arg3, s32 arg4, s32 arg5, s32 arg6) {
-    fn_1_1906C(arg0, arg1, arg2, arg3, 0, arg5, arg6, 1, 0);
+void UpdateModelTransformTweenPosition(OMOBJ* modelObject, s32 modelIndex, Vec* startPosition, Vec* targetPosition, s32 unusedRotationFrames, s32 elapsedFrames, s32 durationFrames) {
+    UpdateModelTransformTween(modelObject, modelIndex, startPosition, targetPosition, 0, elapsedFrames, durationFrames, 1, 0);
 }
 
-void fn_1_19590(OMOBJ* arg0, s32 arg1, Vec* arg2, Vec* arg3, s32 arg4, s32 arg5, s32 arg6) {
-    fn_1_1906C(arg0, arg1, arg2, arg3, arg4, arg5, arg6, 0, 1);
+void UpdateModelTransformTweenRotation(OMOBJ* modelObject, s32 modelIndex, Vec* startPosition, Vec* targetPosition, s32 rotationSmoothingFrames, s32 elapsedFrames, s32 durationFrames) {
+    UpdateModelTransformTween(modelObject, modelIndex, startPosition, targetPosition, rotationSmoothingFrames, elapsedFrames, durationFrames, 0, 1);
 }
 
-void fn_1_195F4(OMOBJ* arg0, s32 arg1, Vec* arg2, Vec* arg3, s32 arg4, s32 arg5, s32 arg6) {
-    fn_1_1906C(arg0, arg1, arg2, arg3, arg4, arg5, arg6, 1, 1);
+void UpdateModelTransformTweenPositionAndRotation(OMOBJ* modelObject, s32 modelIndex, Vec* startPosition, Vec* targetPosition, s32 rotationSmoothingFrames, s32 elapsedFrames, s32 durationFrames) {
+    UpdateModelTransformTween(modelObject, modelIndex, startPosition, targetPosition, rotationSmoothingFrames, elapsedFrames, durationFrames, 1, 1);
 }
 
-void fn_1_19658(OMOBJ* arg0, s32 arg1, float arg2, s32 arg3) {
-    float var_f31;
-    float var_f30;
+void UpdateModelRotationTween(OMOBJ* modelObject, s32 modelIndex, float targetRotation, s32 smoothingFrames) {
+    float currentRotation;
+    float targetRotation;
 
-    var_f31 = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
-    } else if (var_f31 >= 360.0f) {
-        var_f31 -= 360.0f;
+    currentRotation = Hu3DData[modelObject->mdlId[modelIndex]].rot.y;
+    if (currentRotation < 0.0f) {
+        currentRotation += 360.0f;
+    } else if (currentRotation >= 360.0f) {
+        currentRotation -= 360.0f;
     }
-    var_f30 = arg2;
-    if (var_f30 < 0.0f) {
-        var_f30 += 360.0f;
-    } else if (var_f30 >= 360.0f) {
-        var_f30 -= 360.0f;
+    targetRotation = targetRotation;
+    if (targetRotation < 0.0f) {
+        targetRotation += 360.0f;
+    } else if (targetRotation >= 360.0f) {
+        targetRotation -= 360.0f;
     }
-    if (var_f30 >= 180.0f) {
-        if (var_f31 - var_f30 >= 180.0f) {
-            var_f31 -= 360.0f;
+    if (targetRotation >= 180.0f) {
+        if (currentRotation - targetRotation >= 180.0f) {
+            currentRotation -= 360.0f;
         }
-        if (var_f31 - var_f30 < -180.0f) {
-            var_f31 += 360.0f;
+        if (currentRotation - targetRotation < -180.0f) {
+            currentRotation += 360.0f;
         }
     } else {
-        if (var_f31 - var_f30 > 180.0f) {
-            var_f31 -= 360.0f;
+        if (currentRotation - targetRotation > 180.0f) {
+            currentRotation -= 360.0f;
         }
-        if (var_f31 - var_f30 <= -180.0f) {
-            var_f31 += 360.0f;
+        if (currentRotation - targetRotation <= -180.0f) {
+            currentRotation += 360.0f;
         }
     }
-    var_f31 = (var_f30 + var_f31 * (arg3 - 1)) / arg3;
-    if (arg1 == 0) {
-        arg0->rot.y = var_f31;
+    currentRotation = (targetRotation + currentRotation * (smoothingFrames - 1)) / smoothingFrames;
+    if (modelIndex == 0) {
+        modelObject->rot.y = currentRotation;
     } else {
-        Hu3DData[arg0->mdlId[arg1]].rot.y = var_f31;
+        Hu3DData[modelObject->mdlId[modelIndex]].rot.y = currentRotation;
     }
 }
 
-void fn_1_19894(StructFn19894* arg0, s32 arg1) {
-    s32 var_r30;
-    s32 i;
+void ReserveMotionTarget(MotionTargetState* trackingState, s32 modelId) {
+    s32 availableTargetSlot;
+    s32 targetSlotIndex;
 
-    var_r30 = -1;
-    for (i = 0; i < 20; i++) {
-        if (arg0->unk414[i] == -1) {
-            var_r30 = i;
+    availableTargetSlot = -1;
+    for (targetSlotIndex = 0; targetSlotIndex < 20; targetSlotIndex++) {
+        if (trackingState->targetModelIds[targetSlotIndex] == -1) {
+            availableTargetSlot = targetSlotIndex;
             break;
         }
     }
-    if (var_r30 != -1) {
-        arg0->unk414[var_r30] = arg1;
+    if (availableTargetSlot != -1) {
+        trackingState->targetModelIds[availableTargetSlot] = modelId;
     }
 }
 
-void fn_1_198F8(StructFn19894* arg0, s32 arg1) {
+void ReleaseMotionTarget(MotionTargetState* trackingState, s32 modelId) {
     s32 i;
 
     for (i = 0; i < 20; i++) {
-        if (arg1 == -1) {
-            arg0->unk414[i] = -1;
-        } else if (arg0->unk414[i] == arg1) {
-            arg0->unk414[i] = -1;
+        if (modelId == -1) {
+            trackingState->targetModelIds[i] = -1;
+        } else if (trackingState->targetModelIds[i] == modelId) {
+            trackingState->targetModelIds[i] = -1;
         }
     }
 }
 
-void fn_1_19960(StructFn19894* arg0, s32 arg1) {
-    arg0->unk464 = arg1;
+void SetMotionTargetModel(MotionTargetState* trackingState, s32 modelIndex) {
+    trackingState->targetMotionIndex = modelIndex;
 }
 
-void fn_1_19968(StructFn19894* arg0, s32 arg1) {
-    arg0->unk464 = -1;
+void ClearMotionTargetModel(MotionTargetState* trackingState, s32 unusedModelIndex) {
+    trackingState->targetMotionIndex = -1;
 }
 
-void fn_1_19974(StructFn19894* arg0, s32 arg1) {
-    arg0->unk04 = arg1;
+void ResetMotionTarget(MotionTargetState* trackingState, s32 newTrackingMode) {
+    trackingState->trackingState = newTrackingMode;
 }
 
-float fn_1_1997C(s32 arg0, s32 arg1, s32 arg2) {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
+float GetMotionTargetValue(s32 sourceModelId, s32 targetModelId, s32 rotationDirection) {
+    Vec sourcePosition;
+    Vec targetPosition;
+    Vec positionDifference;
+    float relativeAngle;
+    float sourceRotation;
 
-    sp20.x = Hu3DData[arg0].pos.x;
-    sp20.z = Hu3DData[arg0].pos.z;
-    sp14.x = Hu3DData[arg1].pos.x;
-    sp14.z = Hu3DData[arg1].pos.z;
-    sp8.x = sp14.x - sp20.x;
-    sp8.z = sp14.z - sp20.z;
-    var_f30 = Hu3DData[arg0].rot.y;
-    if (var_f30 >= 360.0f) {
-        var_f30 -= 360.0f;
-    } else if (var_f30 < 0.0f) {
-        var_f30 += 360.0f;
+    sourcePosition.x = Hu3DData[sourceModelId].pos.x;
+    sourcePosition.z = Hu3DData[sourceModelId].pos.z;
+    targetPosition.x = Hu3DData[targetModelId].pos.x;
+    targetPosition.z = Hu3DData[targetModelId].pos.z;
+    positionDifference.x = targetPosition.x - sourcePosition.x;
+    positionDifference.z = targetPosition.z - sourcePosition.z;
+    sourceRotation = Hu3DData[sourceModelId].rot.y;
+    if (sourceRotation >= 360.0f) {
+        sourceRotation -= 360.0f;
+    } else if (sourceRotation < 0.0f) {
+        sourceRotation += 360.0f;
     }
-    if (var_f30 >= 360.0f) {
-        var_f30 -= 360.0f;
-    } else if (var_f30 < 0.0f) {
-        var_f30 += 360.0f;
+    if (sourceRotation >= 360.0f) {
+        sourceRotation -= 360.0f;
+    } else if (sourceRotation < 0.0f) {
+        sourceRotation += 360.0f;
     }
-    if (var_f30 >= 360.0f) {
-        var_f30 -= 360.0f;
-    } else if (var_f30 < 0.0f) {
-        var_f30 += 360.0f;
+    if (sourceRotation >= 360.0f) {
+        sourceRotation -= 360.0f;
+    } else if (sourceRotation < 0.0f) {
+        sourceRotation += 360.0f;
     }
-    var_f31 = atan2d(sp8.z, sp8.x) - 90.0;
-    if (arg2 == 0) {
-        var_f31 *= -1.0f;
+    relativeAngle = atan2d(positionDifference.z, positionDifference.x) - 90.0;
+    if (rotationDirection == 0) {
+        relativeAngle *= -1.0f;
     }
-    if (arg2 != 0) {
-        var_f31 += var_f30;
+    if (rotationDirection != 0) {
+        relativeAngle += sourceRotation;
     } else {
-        var_f31 -= var_f30;
+        relativeAngle -= sourceRotation;
     }
-    if (var_f31 >= 180.0f) {
-        var_f31 -= 360.0f;
-    } else if (var_f31 < -180.0f) {
-        var_f31 += 360.0f;
+    if (relativeAngle >= 180.0f) {
+        relativeAngle -= 360.0f;
+    } else if (relativeAngle < -180.0f) {
+        relativeAngle += 360.0f;
     }
-    if (var_f31 >= 180.0f) {
-        var_f31 -= 360.0f;
-    } else if (var_f31 < -180.0f) {
-        var_f31 += 360.0f;
+    if (relativeAngle >= 180.0f) {
+        relativeAngle -= 360.0f;
+    } else if (relativeAngle < -180.0f) {
+        relativeAngle += 360.0f;
     }
-    if (var_f31 >= 180.0f) {
-        var_f31 -= 360.0f;
-    } else if (var_f31 < -180.0f) {
-        var_f31 += 360.0f;
+    if (relativeAngle >= 180.0f) {
+        relativeAngle -= 360.0f;
+    } else if (relativeAngle < -180.0f) {
+        relativeAngle += 360.0f;
     }
-    return var_f31;
+    return relativeAngle;
 }
 
-float fn_1_19CC0(s32 arg0, s32 arg1) {
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
+float GetMotionTargetValueByIndex(s32 sourceModelId, s32 targetModelId) {
+    Vec sourcePosition;
+    Vec targetPosition;
+    Vec positionDifference;
 
-    sp24.x = Hu3DData[arg0].pos.x;
-    sp24.z = Hu3DData[arg0].pos.z;
-    sp18.x = Hu3DData[arg1].pos.x;
-    sp18.z = Hu3DData[arg1].pos.z;
-    spC.x = sp18.x - sp24.x;
-    spC.z = sp18.z - sp24.z;
-    return sqrtf(spC.x * spC.x + spC.z * spC.z);
+    sourcePosition.x = Hu3DData[sourceModelId].pos.x;
+    sourcePosition.z = Hu3DData[sourceModelId].pos.z;
+    targetPosition.x = Hu3DData[targetModelId].pos.x;
+    targetPosition.z = Hu3DData[targetModelId].pos.z;
+    positionDifference.x = targetPosition.x - sourcePosition.x;
+    positionDifference.z = targetPosition.z - sourcePosition.z;
+    return sqrtf(positionDifference.x * positionDifference.x + positionDifference.z * positionDifference.z);
 }
 
-void fn_1_19E50(OMOBJ* arg0) {
-    StructFn19894* temp_r31;
-    float var_f30;
-    float var_f27;
-    float var_f28;
-    float var_f24;
-    s32 i;
+void UpdateMotionTarget(OMOBJ* trackingObject) {
+    MotionTargetState* trackingWork;
+    float targetRotation;
+    float bestRotationDifference;
+    float targetDistance;
+    float nearestTargetDistance;
+    s32 targetIndex;
 
-    temp_r31 = arg0->data;
-    var_f30 = 0.0f;
-    var_f27 = 0.0f;
-    var_f28 = 0.0f;
-    var_f24 = temp_r31->unk474;
-    if (temp_r31->unk04 != 11) {
-        if (temp_r31->unk04 == 0 || temp_r31->unk04 == 10) {
-            temp_r31->unk04 = 10;
-            temp_r31->unk47C = fn_1_15294(temp_r31->unk47C, 0.0f, 5.0f);
-            Hu3DMotionForceSet(temp_r31->unk08, temp_r31->unk10, temp_r31->unk468, temp_r31->unk47C);
-            if (temp_r31->unk410++ >= 10) {
-                temp_r31->unk410 = 0;
-                temp_r31->unk04 = 11;
-                Hu3DMotionNoMotReset(temp_r31->unk08, temp_r31->unk10, temp_r31->unk468);
+    trackingWork = trackingObject->data;
+    targetRotation = 0.0f;
+    bestRotationDifference = 0.0f;
+    targetDistance = 0.0f;
+    nearestTargetDistance = trackingWork->targetValue;
+    if (trackingWork->trackingState != 11) {
+        if (trackingWork->trackingState == 0 || trackingWork->trackingState == 10) {
+            trackingWork->trackingState = 10;
+            trackingWork->targetElapsedTime = ApproachValueOverDuration(trackingWork->targetElapsedTime, 0.0f, 5.0f);
+            Hu3DMotionForceSet(trackingWork->motionId, trackingWork->motionName, trackingWork->targetModelIndex, trackingWork->targetElapsedTime);
+            if (trackingWork->targetCount++ >= 10) {
+                trackingWork->targetCount = 0;
+                trackingWork->trackingState = 11;
+                Hu3DMotionNoMotReset(trackingWork->motionId, trackingWork->motionName, trackingWork->targetModelIndex);
             }
             return;
         }
-        if (temp_r31->unk464 >= 0) {
-            var_f30 = fn_1_1997C(temp_r31->unk08, temp_r31->unk464, temp_r31->unk46C);
-            if (var_f30 >= temp_r31->unk478 || var_f30 <= -temp_r31->unk478) {
-                var_f30 = 0.0f;
+        if (trackingWork->targetMotionIndex >= 0) {
+            targetRotation = GetMotionTargetValue(trackingWork->motionId, trackingWork->targetMotionIndex, trackingWork->targetState);
+            if (targetRotation >= trackingWork->targetDuration || targetRotation <= -trackingWork->targetDuration) {
+                targetRotation = 0.0f;
             }
-            temp_r31->unk47C = fn_1_15294(temp_r31->unk47C, var_f30, temp_r31->unk470);
+            trackingWork->targetElapsedTime = ApproachValueOverDuration(trackingWork->targetElapsedTime, targetRotation, trackingWork->targetStartValue);
         } else {
-            for (i = 0; i < 20; i++) {
-                if (temp_r31->unk414[i] < 0) {
+            for (targetIndex = 0; targetIndex < 20; targetIndex++) {
+                if (trackingWork->targetModelIds[targetIndex] < 0) {
                     continue;
                 }
-                var_f28 = fn_1_19CC0(temp_r31->unk08, temp_r31->unk414[i]);
-                if (var_f28 <= temp_r31->unk474) {
-                    var_f30 = fn_1_1997C(temp_r31->unk08, temp_r31->unk414[i], temp_r31->unk46C);
-                    if (var_f30 <= temp_r31->unk478 && var_f30 >= -temp_r31->unk478 && var_f28 <= var_f24) {
-                        var_f27 = var_f30;
-                        var_f24 = var_f28;
+                targetDistance = GetMotionTargetValueByIndex(trackingWork->motionId, trackingWork->targetModelIds[targetIndex]);
+                if (targetDistance <= trackingWork->targetValue) {
+                    targetRotation = GetMotionTargetValue(trackingWork->motionId, trackingWork->targetModelIds[targetIndex], trackingWork->targetState);
+                    if (targetRotation <= trackingWork->targetDuration && targetRotation >= -trackingWork->targetDuration && targetDistance <= nearestTargetDistance) {
+                        bestRotationDifference = targetRotation;
+                        nearestTargetDistance = targetDistance;
                     }
                 }
             }
-            temp_r31->unk47C = fn_1_15294(temp_r31->unk47C, var_f27, temp_r31->unk470);
+            trackingWork->targetElapsedTime = ApproachValueOverDuration(trackingWork->targetElapsedTime, bestRotationDifference, trackingWork->targetStartValue);
         }
-        Hu3DMotionForceSet(temp_r31->unk08, temp_r31->unk10, temp_r31->unk468, temp_r31->unk47C);
+        Hu3DMotionForceSet(trackingWork->motionId, trackingWork->motionName, trackingWork->targetModelIndex, trackingWork->targetElapsedTime);
     }
 }
 
-void fn_1_1A33C(HUPROCESS* arg0, StructFn19894* arg1, s32 arg2, char* arg3, s32 arg4, s32 arg5) {
-    fn_1_19974(arg1, 1);
-    arg1->unk08 = arg2;
-    strcpy(arg1->unk10, arg3);
-    fn_1_19968(arg1, -1);
-    fn_1_198F8(arg1, -1);
-    arg1->unk470 = 5.0f;
-    arg1->unk474 = 10000.0f;
-    arg1->unk478 = 90.0f;
-    arg1->unk410 = 0;
-    arg1->unk47C = 0.0f;
-    arg1->unk468 = arg4;
-    arg1->unk46C = arg5;
-    arg1->unk00 = omAddObjEx(arg0, 0x3000, 0, 0, -1, fn_1_19E50);
-    arg1->unk00->data = arg1;
+void RunMotionTargetProcess(HUPROCESS* objectManager, MotionTargetState* trackingState, s32 motionId, char* motionName, s32 targetModelIndex, s32 trackingMode) {
+    ResetMotionTarget(trackingState, 1);
+    trackingState->motionId = motionId;
+    strcpy(trackingState->motionName, motionName);
+    ClearMotionTargetModel(trackingState, -1);
+    ReleaseMotionTarget(trackingState, -1);
+    trackingState->targetStartValue = 5.0f;
+    trackingState->targetValue = 10000.0f;
+    trackingState->targetDuration = 90.0f;
+    trackingState->targetCount = 0;
+    trackingState->targetElapsedTime = 0.0f;
+    trackingState->targetModelIndex = targetModelIndex;
+    trackingState->targetState = trackingMode;
+    trackingState->trackingObject = omAddObjEx(objectManager, 0x3000, 0, 0, -1, UpdateMotionTarget);
+    trackingState->trackingObject->data = trackingState;
 }
