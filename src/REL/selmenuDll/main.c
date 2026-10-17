@@ -41,7 +41,7 @@ extern s32 rand8(void);
 
 static char *smCharTbl[] = { "Mario", "Luigi", "Peach", "Yoshi", "Wario", "Donkey", "Daisy", "Waluigi" };
 
-typedef struct sm_entry {
+typedef struct SmEntry {
     u16 enabled;
     char *name;
     OMOVL overlay;
@@ -122,7 +122,7 @@ static SMEntry smMenuTbl[SM_PAGE_MAX * SM_PAGE_SIZE] = {
 
 static u32 cameraMaskTbl[] = { (1 << 0), (1 << 1), (1 << 2), (1 << 3) };
 
-static u32 lbl_1_data_844[] = { 0, 1, 2, 3, 4, 5 };
+static u32 unusedMenuIndexTable[] = { 0, 1, 2, 3, 4, 5 };
 
 static char *dvdMusTbl[] = { "sound/mu_016a.dvd", "sound/mu_047a.dvd", "sound/mu_052a.dvd", "sound/mu_054a.dvd", "sound/mu_101a.dvd",
     "sound/mu_108a.dvd", "sound/mu002a.dvd", "" };
@@ -261,10 +261,10 @@ static void MoveSMPage(s16 amount)
     s16 page;
     s32 i;
     u16 enabled;
-    s16 page_old;
+    s16 pageOld;
     enabled = 0;
     page = smPage;
-    page_old = page;
+    pageOld = page;
     do {
         page += amount;
         if (page >= SM_PAGE_MAX) {
@@ -281,13 +281,13 @@ static void MoveSMPage(s16 amount)
         }
     } while (!enabled);
     smPage = page;
-    if (page_old == -1) {
+    if (pageOld == -1) {
         smSelectPos = -1;
         MoveSMCursor(1);
         smSelectPosBackup[smPage] = smSelectPos;
     }
     else {
-        smSelectPosBackup[page_old] = smSelectPos;
+        smSelectPosBackup[pageOld] = smSelectPos;
         smSelectPos = smSelectPosBackup[smPage];
     }
 }
@@ -444,27 +444,27 @@ static void SMGroupGen(s32 index)
             break;
     }
     if (overlay == DLL_m430dll) {
-        s32 team_cnt[2];
-        s32 team_players[2][2];
-        team_cnt[0] = team_cnt[1] = 0;
+        s32 teamCnt[2];
+        s32 teamPlayers[2][2];
+        teamCnt[0] = teamCnt[1] = 0;
         for (i = 0; i < 4; i++) {
-            team_players[smPlayerCfg[i].group][team_cnt[smPlayerCfg[i].group]++] = i;
+            teamPlayers[smPlayerCfg[i].group][teamCnt[smPlayerCfg[i].group]++] = i;
         }
         if (frandBool()) {
-            GWPlayerCfg[team_players[0][0]].group = 0;
-            GWPlayerCfg[team_players[0][1]].group = 1;
+            GWPlayerCfg[teamPlayers[0][0]].group = 0;
+            GWPlayerCfg[teamPlayers[0][1]].group = 1;
         }
         else {
-            GWPlayerCfg[team_players[0][0]].group = 1;
-            GWPlayerCfg[team_players[0][1]].group = 0;
+            GWPlayerCfg[teamPlayers[0][0]].group = 1;
+            GWPlayerCfg[teamPlayers[0][1]].group = 0;
         }
         if (frandBool()) {
-            GWPlayerCfg[team_players[1][0]].group = 2;
-            GWPlayerCfg[team_players[1][1]].group = 3;
+            GWPlayerCfg[teamPlayers[1][0]].group = 2;
+            GWPlayerCfg[teamPlayers[1][1]].group = 3;
         }
         else {
-            GWPlayerCfg[team_players[1][0]].group = 3;
-            GWPlayerCfg[team_players[1][1]].group = 2;
+            GWPlayerCfg[teamPlayers[1][0]].group = 3;
+            GWPlayerCfg[teamPlayers[1][1]].group = 2;
         }
     }
 }
@@ -536,18 +536,18 @@ static void CharRandomize(void)
 {
     s32 i;
     s32 j;
-    s32 valid_cnt;
-    s32 valid_list[8];
+    s32 validCnt;
+    s32 validList[8];
     for (i = 0; i < 4; i++) {
-        valid_cnt = 0;
+        validCnt = 0;
         for (j = 0; j < 8; j++) {
             if (charSelProhibitF[j]) {
                 continue;
             }
-            valid_list[valid_cnt++] = j;
+            validList[validCnt++] = j;
         }
         if (smPlayerCfg[i].iscom == 1) {
-            smPlayerCfg[i].character = valid_list[rand8() % valid_cnt];
+            smPlayerCfg[i].character = validList[rand8() % validCnt];
             charSelProhibitF[smPlayerCfg[i].character] = 1;
         }
     }
@@ -582,8 +582,8 @@ static void SMCharUpdate(OMOBJ *object)
     s16 w;
     s16 x;
     s16 y;
-    s16 done_players;
-    s16 num_players;
+    s16 donePlayers;
+    s16 numPlayers;
 
     for (i = 0; i < 8; i++) {
         Hu3DModelAttrSet(charModelID[i], HU3D_ATTR_DISPOFF);
@@ -594,15 +594,15 @@ static void SMCharUpdate(OMOBJ *object)
             Hu3DModelCameraSet(charModelID[smPlayerCfg[i].character], cameraMaskTbl[i]);
         }
     }
-    for (i = 0, done_players = 0, num_players = 0; i < 4; i++) {
+    for (i = 0, donePlayers = 0, numPlayers = 0; i < 4; i++) {
         if (playerDoneF[i] == 1) {
-            done_players++;
+            donePlayers++;
         }
         if (!smPlayerCfg[i].iscom) {
-            num_players++;
+            numPlayers++;
         }
     }
-    if (done_players == num_players) {
+    if (donePlayers == numPlayers) {
         SMChangeChar(0, 0);
         CharRandomize();
         CopyPlayerCfg(GWPlayerCfg, smPlayerCfg);
@@ -638,7 +638,7 @@ static void SMCharUpdate(OMOBJ *object)
             }
         }
         if (HuPadBtnDown[port] & PAD_BUTTON_B) {
-            if (done_players != 0) {
+            if (donePlayers != 0) {
                 playerDoneF[i] = 0;
             }
             else {
@@ -905,12 +905,12 @@ static void SMRand8Tick(OMOBJ *object)
     rand8();
 }
 
-void fn_1_450C(void) { }
+void EmptyMenuCallback(void) { }
 
 static s16 emiCompDataNo;
 static s16 emiCompVal;
 static s16 smSound3DPos;
-s16 lbl_1_bss_0;
+s16 unusedMenuState;
 
 static void SMSound3DUpdate(OMOBJ *object);
 static void SMSound3DDraw(void);
