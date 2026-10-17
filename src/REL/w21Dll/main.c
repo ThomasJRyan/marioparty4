@@ -25,10 +25,10 @@ void BoardCreate(void)
 {
 	BoardSpaceInit(DATA_MAKE_NUM(DATADIR_W21, 0));
 	bgMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W21, 1), NULL, 0);
-	fn_8006DDE8(bgMdl, -1.0f);
+	fn8006DDE8(bgMdl, -1.0f);
 	BoardModelMotionStart(bgMdl, 0, 0x40000001);
 	fgMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W21, 2), NULL, 0);
-	fn_8006DDE8(fgMdl, -1.0f);
+	fn8006DDE8(fgMdl, -1.0f);
 	BoardModelPosSet(fgMdl, 0.0f, 0.0f, 0.0f);
 	BoardModelMotionStart(fgMdl, 0, 0x40000001);
 	hostMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BGUEST, 41), hostMotTbl, 0);
