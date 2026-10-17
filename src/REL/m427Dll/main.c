@@ -18,72 +18,72 @@
 #include "game/esprite.h"
 #endif
 
-typedef struct M427DllStruct2 {
-    s32 unk0[3];
-    s32 unkC;
-    s32 unk10;
-    s32 unk14[7];
-    s32 unk30[7];
-    HuVec2f unk4C[7];
-    f32 unk84;
-    f32 unk88;
-    s32 unk8C;
-    f32 unk90;
-    f32 unk94;
-    f32 unk98;
-    s32 unk9C;
-    s32 unkA0;
-} M427DllStruct2; // sizeof 0xA4
+typedef struct RecordTimerDisplay {
+    s32 teamSprites[3];
+    s32 teamNameSprite;
+    s32 recordLabelSprite;
+    s32 recordTimeDigits[7];
+    s32 elapsedTimeDigits[7];
+    HuVec2f recordDigitOffsets[7];
+    f32 recordDigitOffsetX;
+    f32 recordDigitOffsetY;
+    s32 digitScaleDirection;
+    f32 recordDigitsOriginX;
+    f32 recordDigitsOriginY;
+    f32 digitScale;
+    s32 recordTimeFrames;
+    s32 elapsedTimeFrames;
+} RecordTimerDisplay; // sizeof 0xA4
 
-typedef struct M427DllStruct3 {
+typedef struct CameraPreset {
     Vec rot;
     Vec cen;
     f32 zoom;
-} M427DllStruct3;
+} CameraPreset;
 
-HUPROCESS* lbl_1_bss_8C;
-OMOBJ* lbl_1_bss_88;
-s32 lbl_1_bss_84;
-s32 lbl_1_bss_80;
-s32 lbl_1_bss_7C;
-s32 lbl_1_bss_78;
-s32 lbl_1_bss_74;
-f32 lbl_1_bss_6C[2];
-s32 lbl_1_bss_68;
-s32 lbl_1_bss_64;
-s32 lbl_1_bss_60;
-s32 lbl_1_bss_5C;
-s32 lbl_1_bss_58;
-s32 lbl_1_bss_54;
-s32 lbl_1_bss_50;
-s32 lbl_1_bss_4C;
-OMOBJ* lbl_1_bss_48;
-s32 lbl_1_bss_44;
-M427DllStruct2* lbl_1_bss_40;
-M427DllStruct lbl_1_bss_0[8];
+HUPROCESS* gameplayObjectManager;
+OMOBJ* gameplayControllerObject;
+s32 gameplayState;
+s32 gameplayStateFrames;
+s32 gameplaySubstateFrames;
+s32 bestRecordFrames;
+s32 previousRecordFrames;
+f32 teamProgress[2];
+s32 completedTeamMask;
+s32 recordTieState;
+s32 activeMinigameSequence;
+s32 countdownSequence;
+s32 resultMusicHandle;
+s32 introSoundHandle;
+s32 countdownSoundHandle;
+s32 wipeActive;
+OMOBJ* resultCameraObject;
+s32 activeCameraIndex;
+RecordTimerDisplay* recordTimerDisplay;
+SoundEffectLifetime soundEffectLifetimes[8];
 
-void fn_1_29C(OMOBJ*);
-void fn_1_300(OMOBJ*);
-void fn_1_1664(OMOBJ*);
-void fn_1_16C4(OMOBJ*);
-void fn_1_1864(s32);
-void fn_1_1954(void);
-void fn_1_1F34(void);
-void fn_1_2188(void);
-void fn_1_21E8(s32, s32);
-void fn_1_232C(s32);
-void fn_1_2518(s32);
-void fn_1_2704(void);
-void fn_1_272C(void);
-void fn_1_2790(void);
-void fn_1_2B20(OMOBJ* object);
-void fn_1_2B28(void);
-void fn_1_2CE8(f32);
-void fn_1_2EE0(void);
-void fn_1_2F6C(f32);
-void fn_1_3164(void);
+void InitializeGameplayObjects(OMOBJ*);
+void UpdateGameplayState(OMOBJ*);
+void CleanupAndReturnToMenu(OMOBJ*);
+void HandleSystemExitRequest(OMOBJ*);
+void SignalTeamCompletion(s32);
+void CreateRecordTimerDisplay(void);
+void UpdateRecordTimerDisplay(void);
+void SetRecordTimerVisible(void);
+void SetPlayerTimerState(s32, s32);
+void SetRecordTimeFrames(s32);
+void SetElapsedTimeFrames(s32);
+void ShowRecordTimer(void);
+void HideRecordTimer(void);
+void InitializeResultCameras(void);
+void EmptyCameraObjectCallback(OMOBJ* object);
+void SetResultCameraPreset(void);
+void InterpolateResultCamera(f32);
+void SetCameraForResults(void);
+void InterpolateCameraToWinner(f32);
+void RestoreDefaultCamera(void);
 
-M427DllStruct3 lbl_1_data_0[4] = {
+CameraPreset cameraPresets[4] = {
     {
         { -25.0f,   0.0f, 0.0f },
         {   0.0f, 275.0f, 0.0f },
@@ -107,366 +107,366 @@ M427DllStruct3 lbl_1_data_0[4] = {
 };
 
 void ObjectSetup(void) {
-    HUPROCESS* var_r30;
-    s32 var_r31;
+    HUPROCESS* objectManager;
+    s32 initializationIndex;
 
     OSReport("******* M426ObjectSetup *********\n");
-    var_r30 = omInitObjMan(0x32, 0x2000);
-    lbl_1_bss_8C = var_r30;
-    omGameSysInit(var_r30);
-    fn_1_2790();
+    objectManager = omInitObjMan(0x32, 0x2000);
+    gameplayObjectManager = objectManager;
+    omGameSysInit(objectManager);
+    InitializeResultCameras();
     Hu3DLightAllKill();
     Hu3DLighInit();
     HuAudSndGrpSet(0x34);
-    lbl_1_bss_88 = omAddObjEx(var_r30, 0xFF, 2, 0, -1, fn_1_29C);
-    lbl_1_bss_84 = 0;
-    lbl_1_bss_80 = 0;
-    lbl_1_bss_7C = 0;
-    lbl_1_bss_78 = lbl_1_bss_74 = GWMGRecordGet(2);
-    if (lbl_1_bss_78 <= 0) {
-        lbl_1_bss_78 = lbl_1_bss_74 = REFRESH_RATE_F * 60;
+    gameplayControllerObject = omAddObjEx(objectManager, 0xFF, 2, 0, -1, InitializeGameplayObjects);
+    gameplayState = 0;
+    gameplayStateFrames = 0;
+    gameplaySubstateFrames = 0;
+    bestRecordFrames = previousRecordFrames = GWMGRecordGet(2);
+    if (bestRecordFrames <= 0) {
+        bestRecordFrames = previousRecordFrames = REFRESH_RATE_F * 60;
     }
     
-    lbl_1_bss_68 = lbl_1_bss_64 = 0;
+    completedTeamMask = recordTieState = 0;
     
-    lbl_1_bss_60 = lbl_1_bss_5C = -1;
-    lbl_1_bss_58 = -1;
-    lbl_1_bss_54 = lbl_1_bss_50 = -1;
+    activeMinigameSequence = countdownSequence = -1;
+    resultMusicHandle = -1;
+    introSoundHandle = countdownSoundHandle = -1;
     
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        lbl_1_bss_6C[var_r31] = 0.0f;
+    for (initializationIndex = 0; initializationIndex < 2; initializationIndex++) {
+        teamProgress[initializationIndex] = 0.0f;
     }
     
-    for (var_r31 = 0; var_r31 < 8; var_r31++) {
-        lbl_1_bss_0[var_r31].unk0 = -1;
-        lbl_1_bss_0[var_r31].unk4 = 0;
+    for (initializationIndex = 0; initializationIndex < 8; initializationIndex++) {
+        soundEffectLifetimes[initializationIndex].soundEffectId = -1;
+        soundEffectLifetimes[initializationIndex].remainingFrames = 0;
     }
 }
 
-void fn_1_29C(OMOBJ* arg0) {
-    fn_1_32F4(lbl_1_bss_8C);
-    fn_1_E98C(lbl_1_bss_8C);
-    fn_1_1954();
-    fn_1_21E8(0, 1);
-    arg0->objFunc = fn_1_300;
+void InitializeGameplayObjects(OMOBJ* controllerObject) {
+    InitializeMapSystem(gameplayObjectManager);
+    InitializePlayerSystem(gameplayObjectManager);
+    CreateRecordTimerDisplay();
+    SetPlayerTimerState(0, 1);
+    controllerObject->objFunc = UpdateGameplayState;
 }
 
-void fn_1_300(OMOBJ* arg0) {
-    s32 sp10[2];
-    s32 sp8[2];
-    f32 var_f31;
-    f32 var_f30;
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r26;
+void UpdateGameplayState(OMOBJ* controllerObject) {
+    s32 winnerCharacterIds[2];
+    s32 winnerPlayerIndices[2];
+    f32 transitionProgress;
+    f32 cameraTransitionProgress;
+    s32 soundEffectIndex;
+    s32 countdownFrames;
+    s32 winningTeamIndex;
+    s32 sequenceStatus;
+    s32 remainingFrames;
 
-    switch (lbl_1_bss_84) {
+    switch (gameplayState) {
         case 0:
-            lbl_1_bss_80++;
-            if (lbl_1_bss_80 == 3) {
+            gameplayStateFrames++;
+            if (gameplayStateFrames == 3) {
                 WipeCreate(1, 0, 0x3C);
-                lbl_1_bss_4C = 0;
-                fn_1_21E8(1, 1);
-                fn_1_2B28();
-            } else if ((lbl_1_bss_80 > 3) && (WipeStatGet() == 0)) {
-                lbl_1_bss_54 = HuAudFXPlay(0x657);
-                lbl_1_bss_50 = HuAudFXPlay(0x651);
-                lbl_1_bss_84 = 1;
-                lbl_1_bss_80 = 0;
-                lbl_1_bss_7C = 0;
+                wipeActive = 0;
+                SetPlayerTimerState(1, 1);
+                SetResultCameraPreset();
+            } else if ((gameplayStateFrames > 3) && (WipeStatGet() == 0)) {
+                introSoundHandle = HuAudFXPlay(0x657);
+                countdownSoundHandle = HuAudFXPlay(0x651);
+                gameplayState = 1;
+                gameplayStateFrames = 0;
+                gameplaySubstateFrames = 0;
             }
             break;
         case 1:
-            lbl_1_bss_80++;
-            var_f31 = lbl_1_bss_80 / (REFRESH_RATE_F * 5.0f);
-            if (var_f31 > 1.0f) {
-                var_f31 = 1.0f;
+            gameplayStateFrames++;
+            transitionProgress = gameplayStateFrames / (REFRESH_RATE_F * 5.0f);
+            if (transitionProgress > 1.0f) {
+                transitionProgress = 1.0f;
             }
-            fn_1_11298(sind(90.0f * var_f31));
-            if (++lbl_1_bss_7C >= REFRESH_RATE_F) {
-                lbl_1_bss_84 = 2;
-                lbl_1_bss_7C = 0;
+            SetPlayerModelOpacity(sind(90.0f * transitionProgress));
+            if (++gameplaySubstateFrames >= REFRESH_RATE_F) {
+                gameplayState = 2;
+                gameplaySubstateFrames = 0;
             }
             break;
         case 2:
-            lbl_1_bss_80++;
-            var_f31 = lbl_1_bss_80 / (REFRESH_RATE_F * 5);
-            if (var_f31 > 1.0f) {
-                var_f31 = 1.0f;
+            gameplayStateFrames++;
+            transitionProgress = gameplayStateFrames / (REFRESH_RATE_F * 5);
+            if (transitionProgress > 1.0f) {
+                transitionProgress = 1.0f;
             }
-            fn_1_11298(sind(90.0f * var_f31));
-            var_f30 = sind(90.0f * (lbl_1_bss_7C / (REFRESH_RATE_F * 4)));
-            fn_1_2CE8(var_f30 * var_f30);
-            if (++lbl_1_bss_7C >= (REFRESH_RATE_F * 4)) {
-                lbl_1_bss_60 = MGSeqCreate(3, 0);
-                fn_1_2EE0();
-                lbl_1_bss_84 = 3;
-                lbl_1_bss_80 = 0;
-                lbl_1_bss_7C = 0;
+            SetPlayerModelOpacity(sind(90.0f * transitionProgress));
+            cameraTransitionProgress = sind(90.0f * (gameplaySubstateFrames / (REFRESH_RATE_F * 4)));
+            InterpolateResultCamera(cameraTransitionProgress * cameraTransitionProgress);
+            if (++gameplaySubstateFrames >= (REFRESH_RATE_F * 4)) {
+                activeMinigameSequence = MGSeqCreate(3, 0);
+                SetCameraForResults();
+                gameplayState = 3;
+                gameplayStateFrames = 0;
+                gameplaySubstateFrames = 0;
             }
             break;
         case 3:
-            if (lbl_1_bss_60 != -1) {
-                var_r28 = MGSeqStatGet(lbl_1_bss_60);
-                if (((var_r28 & 0x10) != 0) && (lbl_1_bss_58 == -1)) {
-                    lbl_1_bss_58 = HuAudSeqPlay(0x49);
+            if (activeMinigameSequence != -1) {
+                sequenceStatus = MGSeqStatGet(activeMinigameSequence);
+                if (((sequenceStatus & 0x10) != 0) && (resultMusicHandle == -1)) {
+                    resultMusicHandle = HuAudSeqPlay(0x49);
                 }
             } else {
-                var_r28 = 0;
+                sequenceStatus = 0;
             }
-            if ((lbl_1_bss_60 == -1) || (var_r28 == 0)) {
-                lbl_1_bss_84 = 4;
-                lbl_1_bss_80 = 0;
-                lbl_1_bss_7C = 0;
+            if ((activeMinigameSequence == -1) || (sequenceStatus == 0)) {
+                gameplayState = 4;
+                gameplayStateFrames = 0;
+                gameplaySubstateFrames = 0;
             }
             break;
         case 4:
-            lbl_1_bss_80++;
-            var_r30 = lbl_1_bss_80;
-            if (var_r30 > REFRESH_RATE * 300) {
-                var_r30 = REFRESH_RATE * 300;
+            gameplayStateFrames++;
+            countdownFrames = gameplayStateFrames;
+            if (countdownFrames > REFRESH_RATE * 300) {
+                countdownFrames = REFRESH_RATE * 300;
             }
             
-            fn_1_2518(var_r30);
-            for (var_r31 = 0; var_r31 < 8; var_r31++) {
-                if (lbl_1_bss_0[var_r31].unk0 != -1) {
-                    if (--lbl_1_bss_0[var_r31].unk4 <= 0) {
-                        lbl_1_bss_0[var_r31].unk0 = -1;
-                        lbl_1_bss_0[var_r31].unk4 = 0;
+            SetElapsedTimeFrames(countdownFrames);
+            for (soundEffectIndex = 0; soundEffectIndex < 8; soundEffectIndex++) {
+                if (soundEffectLifetimes[soundEffectIndex].soundEffectId != -1) {
+                    if (--soundEffectLifetimes[soundEffectIndex].remainingFrames <= 0) {
+                        soundEffectLifetimes[soundEffectIndex].soundEffectId = -1;
+                        soundEffectLifetimes[soundEffectIndex].remainingFrames = 0;
                     }
                 }
             }
-            if (lbl_1_bss_80 == REFRESH_RATE * 270) {
-                lbl_1_bss_5C = MGSeqCreate(1, REFRESH_RATE * 30, -1, -1);
+            if (gameplayStateFrames == REFRESH_RATE * 270) {
+                countdownSequence = MGSeqCreate(1, REFRESH_RATE * 30, -1, -1);
             }
-            if (lbl_1_bss_5C != -1) {
-                var_r26 = (REFRESH_RATE * 300 - lbl_1_bss_80);
-                var_r30 = (var_r26 + REFRESH_RATE - 2) / REFRESH_RATE;
-                if (var_r30 < 0) {
-                    var_r30 = 0;
+            if (countdownSequence != -1) {
+                remainingFrames = (REFRESH_RATE * 300 - gameplayStateFrames);
+                countdownFrames = (remainingFrames + REFRESH_RATE - 2) / REFRESH_RATE;
+                if (countdownFrames < 0) {
+                    countdownFrames = 0;
                 }
-                MGSeqParamSet(lbl_1_bss_5C, 1, var_r30);
+                MGSeqParamSet(countdownSequence, 1, countdownFrames);
             }
-            if (lbl_1_bss_68 != 0) {
-                if (lbl_1_bss_68 != 1 && lbl_1_bss_68 != 2) {
+            if (completedTeamMask != 0) {
+                if (completedTeamMask != 1 && completedTeamMask != 2) {
                     if (((s32)frand() & 1) != 0) {
-                        lbl_1_bss_68 = 1;
+                        completedTeamMask = 1;
                     } else {
-                        lbl_1_bss_68 = 2;
+                        completedTeamMask = 2;
                     }
                 }
-                if (lbl_1_bss_5C != -1) {
-                    MGSeqParamSet(lbl_1_bss_5C, 2, -1);
+                if (countdownSequence != -1) {
+                    MGSeqParamSet(countdownSequence, 2, -1);
                 }
-                lbl_1_bss_5C = -1;
-                lbl_1_bss_60 = MGSeqCreate(3, 1);
-                if (lbl_1_bss_58 != -1) {
-                    HuAudSeqFadeOut(lbl_1_bss_58, 0x64);
+                countdownSequence = -1;
+                activeMinigameSequence = MGSeqCreate(3, 1);
+                if (resultMusicHandle != -1) {
+                    HuAudSeqFadeOut(resultMusicHandle, 0x64);
                 }
                 
-                for (var_r31 = 0; var_r31 < 8; var_r31++) {
-                    if ((lbl_1_bss_0[var_r31].unk0 != -1) && (lbl_1_bss_0[var_r31].unk4 > 0)) {
-                        HuAudFXFadeOut(lbl_1_bss_0[var_r31].unk0, 0x64);
+                for (soundEffectIndex = 0; soundEffectIndex < 8; soundEffectIndex++) {
+                    if ((soundEffectLifetimes[soundEffectIndex].soundEffectId != -1) && (soundEffectLifetimes[soundEffectIndex].remainingFrames > 0)) {
+                        HuAudFXFadeOut(soundEffectLifetimes[soundEffectIndex].soundEffectId, 0x64);
                     }
                 }
-                HuAudFXFadeOut(lbl_1_bss_54, 0x64);
-                HuAudFXFadeOut(lbl_1_bss_50, 0x64);
-                if ((lbl_1_bss_68 != 0) && (lbl_1_bss_80 < lbl_1_bss_78)) {
-                    if (lbl_1_bss_68 == 1) {
-                        var_r29 = 0;
+                HuAudFXFadeOut(introSoundHandle, 0x64);
+                HuAudFXFadeOut(countdownSoundHandle, 0x64);
+                if ((completedTeamMask != 0) && (gameplayStateFrames < bestRecordFrames)) {
+                    if (completedTeamMask == 1) {
+                        winningTeamIndex = 0;
                     } else {
-                        var_r29 = 1;
+                        winningTeamIndex = 1;
                     }
-                    if (fn_1_113F0(var_r29) == 0) {
-                        lbl_1_bss_74 = lbl_1_bss_80;
+                    if (getTeamComputerPlayerCount(winningTeamIndex) == 0) {
+                        previousRecordFrames = gameplayStateFrames;
                     }
                 }
-                if ((lbl_1_bss_68 != 0) && (lbl_1_bss_80 <= 45 * REFRESH_RATE)) {
-                    if (lbl_1_bss_68 == 1) {
-                        var_r29 = 0;
+                if ((completedTeamMask != 0) && (gameplayStateFrames <= 45 * REFRESH_RATE)) {
+                    if (completedTeamMask == 1) {
+                        winningTeamIndex = 0;
                     } else {
-                        var_r29 = 1;
+                        winningTeamIndex = 1;
                     }
-                    if (fn_1_113F0(var_r29) == 0) {
+                    if (getTeamComputerPlayerCount(winningTeamIndex) == 0) {
                         GWGameStat.present[0x34] = 1;
                     }
                 }
-                lbl_1_bss_84 = 5;
-                lbl_1_bss_80 = 0;
-                lbl_1_bss_7C = 0;
+                gameplayState = 5;
+                gameplayStateFrames = 0;
+                gameplaySubstateFrames = 0;
             } else {
-                if (lbl_1_bss_80 >= REFRESH_RATE * 300 + 1) {
-                    MGSeqParamSet(lbl_1_bss_5C, 1, 0);
-                    MGSeqParamSet(lbl_1_bss_5C, 2, -1);
-                    lbl_1_bss_5C = -1;
-                    lbl_1_bss_60 = MGSeqCreate(3, 1);
-                    if (lbl_1_bss_58 != -1) {
-                        HuAudSeqFadeOut(lbl_1_bss_58, 0x64);
+                if (gameplayStateFrames >= REFRESH_RATE * 300 + 1) {
+                    MGSeqParamSet(countdownSequence, 1, 0);
+                    MGSeqParamSet(countdownSequence, 2, -1);
+                    countdownSequence = -1;
+                    activeMinigameSequence = MGSeqCreate(3, 1);
+                    if (resultMusicHandle != -1) {
+                        HuAudSeqFadeOut(resultMusicHandle, 0x64);
                     }
                     
-                    for (var_r31 = 0; var_r31 < 8; var_r31++) {
-                        if ((lbl_1_bss_0[var_r31].unk0 != -1) && (lbl_1_bss_0[var_r31].unk4 > 0)) {
-                            HuAudFXFadeOut(lbl_1_bss_0[var_r31].unk0, 0x64);
+                    for (soundEffectIndex = 0; soundEffectIndex < 8; soundEffectIndex++) {
+                        if ((soundEffectLifetimes[soundEffectIndex].soundEffectId != -1) && (soundEffectLifetimes[soundEffectIndex].remainingFrames > 0)) {
+                            HuAudFXFadeOut(soundEffectLifetimes[soundEffectIndex].soundEffectId, 0x64);
                         }
                     }
-                    HuAudFXFadeOut(lbl_1_bss_54, 0x64);
-                    HuAudFXFadeOut(lbl_1_bss_50, 0x64);
-                    lbl_1_bss_64 = 1;
-                    lbl_1_bss_84 = 5;
-                    lbl_1_bss_80 = 0;
-                    lbl_1_bss_7C = 0;
+                    HuAudFXFadeOut(introSoundHandle, 0x64);
+                    HuAudFXFadeOut(countdownSoundHandle, 0x64);
+                    recordTieState = 1;
+                    gameplayState = 5;
+                    gameplayStateFrames = 0;
+                    gameplaySubstateFrames = 0;
                 }
             }
             break;
         case 5:
-            if (lbl_1_bss_68 != 0) {
+            if (completedTeamMask != 0) {
                 WipeCreate(2, 0, REFRESH_RATE);
 #if VERSION_PAL
                 WipeColorSet(0xA0, 0xA0, 0xA0);
 #else
                 WipeColorSet(0xFF, 0xFF, 0xFF);
 #endif
-                lbl_1_bss_4C = 1;
-                lbl_1_bss_84 = 6;
-                lbl_1_bss_80 = 0;
-                lbl_1_bss_7C = 0;
-            } else if ((lbl_1_bss_60 == -1) || (MGSeqStatGet(lbl_1_bss_60) == 0)) {
-                lbl_1_bss_84 = 0xA;
-                lbl_1_bss_80 = 0;
-                lbl_1_bss_7C = 0;
+                wipeActive = 1;
+                gameplayState = 6;
+                gameplayStateFrames = 0;
+                gameplaySubstateFrames = 0;
+            } else if ((activeMinigameSequence == -1) || (MGSeqStatGet(activeMinigameSequence) == 0)) {
+                gameplayState = 0xA;
+                gameplayStateFrames = 0;
+                gameplaySubstateFrames = 0;
             }
             break;
         case 6:
-            if ((WipeStatGet() == 0) && ((lbl_1_bss_60 == -1) || (MGSeqStatGet(lbl_1_bss_60) == 0))) {
-                lbl_1_bss_60 = -1;
-                fn_1_21E8(0, 0);
-                fn_1_3164();
+            if ((WipeStatGet() == 0) && ((activeMinigameSequence == -1) || (MGSeqStatGet(activeMinigameSequence) == 0))) {
+                activeMinigameSequence = -1;
+                SetPlayerTimerState(0, 0);
+                RestoreDefaultCamera();
                 HuAudFXAllStop();
                 HuAudFXPlay(0x65E);
-                lbl_1_bss_84 = 7;
-                lbl_1_bss_80 = 0;
-                lbl_1_bss_7C = 0;
+                gameplayState = 7;
+                gameplayStateFrames = 0;
+                gameplaySubstateFrames = 0;
             }
             break;
         case 7:
-            if (++lbl_1_bss_80 > 5) {
+            if (++gameplayStateFrames > 5) {
                 WipeCreate(1, 0, REFRESH_RATE / 2);
 #if VERSION_PAL
                 WipeColorSet(0xA0, 0xA0, 0xA0);
 #else
                 WipeColorSet(0xFF, 0xFF, 0xFF);
 #endif
-                lbl_1_bss_4C = 0;
+                wipeActive = 0;
                 HuAudAUXVolSet(-1, -1);
-                fn_1_272C();
-                lbl_1_bss_84 = 8;
-                lbl_1_bss_80 = 0;
-                lbl_1_bss_7C = 0;
+                HideRecordTimer();
+                gameplayState = 8;
+                gameplayStateFrames = 0;
+                gameplaySubstateFrames = 0;
             }
             break;
         case 8:
             if (WipeStatGet() == 0) {
-                lbl_1_bss_84 = 0xA;
-                lbl_1_bss_80 = 0;
-                lbl_1_bss_7C = 0;
+                gameplayState = 0xA;
+                gameplayStateFrames = 0;
+                gameplaySubstateFrames = 0;
             }
             break;
         case 10:
-            if (lbl_1_bss_68 != 0) {
-                var_f31 = sind((90.0f * (lbl_1_bss_80 / (REFRESH_RATE_F * 3))));
-                if (var_f31 >= 1.0f) {
-                    var_f31 = 1.0f;
+            if (completedTeamMask != 0) {
+                transitionProgress = sind((90.0f * (gameplayStateFrames / (REFRESH_RATE_F * 3))));
+                if (transitionProgress >= 1.0f) {
+                    transitionProgress = 1.0f;
                 }
-                fn_1_11298(var_f31);
-                if (lbl_1_bss_80 > REFRESH_RATE_F / 2) {
-                    var_f30 = lbl_1_bss_7C / (REFRESH_RATE_F * 2.5f);
-                    lbl_1_bss_7C++;
-                    if (var_f30 >= 1.0f) {
-                        var_f30 = 1.0f;
+                SetPlayerModelOpacity(transitionProgress);
+                if (gameplayStateFrames > REFRESH_RATE_F / 2) {
+                    cameraTransitionProgress = gameplaySubstateFrames / (REFRESH_RATE_F * 2.5f);
+                    gameplaySubstateFrames++;
+                    if (cameraTransitionProgress >= 1.0f) {
+                        cameraTransitionProgress = 1.0f;
                     }
-                    var_f30 = sind(90.0f * var_f30);
-                    fn_1_2F6C(var_f30);
+                    cameraTransitionProgress = sind(90.0f * cameraTransitionProgress);
+                    InterpolateCameraToWinner(cameraTransitionProgress);
                 }
-                if (++lbl_1_bss_80 > REFRESH_RATE_F * 3) {
-                    if (lbl_1_bss_68 == 1) {
-                        fn_1_110E8(0, sp10);
-                        fn_1_111C0(0, sp8);
+                if (++gameplayStateFrames > REFRESH_RATE_F * 3) {
+                    if (completedTeamMask == 1) {
+                        GetTeamCharacterIds(0, winnerCharacterIds);
+                        GetTeamPlayerIndices(0, winnerPlayerIndices);
                     } else {
-                        fn_1_110E8(1, sp10);
-                        fn_1_111C0(1, sp8);
+                        GetTeamCharacterIds(1, winnerCharacterIds);
+                        GetTeamPlayerIndices(1, winnerPlayerIndices);
                     }
-                    GWPlayerCoinWinAdd(sp8[0], 10);
-                    GWPlayerCoinWinAdd(sp8[1], 10);
-                    if (lbl_1_bss_74 < lbl_1_bss_78) {
-                        lbl_1_bss_78 = lbl_1_bss_74;
-                        fn_1_232C(lbl_1_bss_78);
-                        GWMGRecordSet(2, lbl_1_bss_78);
-                        fn_1_2704();
-                        lbl_1_bss_60 = MGSeqCreate(0xE, lbl_1_bss_78);
-                        lbl_1_bss_7C = REFRESH_RATE * 3;
-                        lbl_1_bss_84 = 0xB;
-                        lbl_1_bss_80 = 0;
+                    GWPlayerCoinWinAdd(winnerPlayerIndices[0], 10);
+                    GWPlayerCoinWinAdd(winnerPlayerIndices[1], 10);
+                    if (previousRecordFrames < bestRecordFrames) {
+                        bestRecordFrames = previousRecordFrames;
+                        SetRecordTimeFrames(bestRecordFrames);
+                        GWMGRecordSet(2, bestRecordFrames);
+                        ShowRecordTimer();
+                        activeMinigameSequence = MGSeqCreate(0xE, bestRecordFrames);
+                        gameplaySubstateFrames = REFRESH_RATE * 3;
+                        gameplayState = 0xB;
+                        gameplayStateFrames = 0;
                     } else {
-                        lbl_1_bss_60 = MGSeqCreate(5, 3, sp10[0], sp10[1], -1, -1);
+                        activeMinigameSequence = MGSeqCreate(5, 3, winnerCharacterIds[0], winnerCharacterIds[1], -1, -1);
                         HuAudSStreamPlay(1);
-                        lbl_1_bss_7C = REFRESH_RATE * 3;
-                        lbl_1_bss_84 = 0xC;
-                        lbl_1_bss_80 = 0;
+                        gameplaySubstateFrames = REFRESH_RATE * 3;
+                        gameplayState = 0xC;
+                        gameplayStateFrames = 0;
                     }
                 }
             } else {
-                lbl_1_bss_60 = MGSeqCreate(3, 2);
+                activeMinigameSequence = MGSeqCreate(3, 2);
                 HuAudSStreamPlay(4);
-                lbl_1_bss_7C = REFRESH_RATE * 3;
-                lbl_1_bss_84 = 0xC;
-                lbl_1_bss_80 = 0;
+                gameplaySubstateFrames = REFRESH_RATE * 3;
+                gameplayState = 0xC;
+                gameplayStateFrames = 0;
             }
             break;
         case 11:
-            if ((lbl_1_bss_60 == -1) || (MGSeqStatGet(lbl_1_bss_60) == 0)) {
-                if (lbl_1_bss_68 == 1) {
-                    fn_1_110E8(0, sp10);
+            if ((activeMinigameSequence == -1) || (MGSeqStatGet(activeMinigameSequence) == 0)) {
+                if (completedTeamMask == 1) {
+                    GetTeamCharacterIds(0, winnerCharacterIds);
                 } else {
-                    fn_1_110E8(1, sp10);
+                    GetTeamCharacterIds(1, winnerCharacterIds);
                 }
-                lbl_1_bss_60 = MGSeqCreate(5, 3, sp10[0], sp10[1], -1, -1);
+                activeMinigameSequence = MGSeqCreate(5, 3, winnerCharacterIds[0], winnerCharacterIds[1], -1, -1);
                 HuAudSStreamPlay(1);
-                lbl_1_bss_7C = REFRESH_RATE * 3;
-                lbl_1_bss_84 = 0xC;
-                lbl_1_bss_80 = 0;
+                gameplaySubstateFrames = REFRESH_RATE * 3;
+                gameplayState = 0xC;
+                gameplayStateFrames = 0;
             }
             break;
         case 12:
-            if (++lbl_1_bss_80 >= REFRESH_RATE_F * 3.5f) {
+            if (++gameplayStateFrames >= REFRESH_RATE_F * 3.5f) {
                 WipeCreate(2, 0, 0x3C);
-                lbl_1_bss_4C = 1;
-                lbl_1_bss_84 = 0xD;
-                lbl_1_bss_80 = 0;
-                lbl_1_bss_7C = 0;
+                wipeActive = 1;
+                gameplayState = 0xD;
+                gameplayStateFrames = 0;
+                gameplaySubstateFrames = 0;
             }
             break;
         case 13:
             if (WipeStatGet() == 0) {
-                lbl_1_bss_84 = 0xE;
-                lbl_1_bss_80 = 0;
-                lbl_1_bss_7C = 0;
+                gameplayState = 0xE;
+                gameplayStateFrames = 0;
+                gameplaySubstateFrames = 0;
             }
             break;
         case 14:
-            arg0->objFunc = fn_1_1664;
+            controllerObject->objFunc = CleanupAndReturnToMenu;
             break;
     }
-    fn_1_1F34();
-    fn_1_16C4(arg0);
+    UpdateRecordTimerDisplay();
+    HandleSystemExitRequest(controllerObject);
 }
 
-void fn_1_1664(OMOBJ* arg0) {
+void CleanupAndReturnToMenu(OMOBJ* controllerObject) {
     if (WipeStatGet() == 0) {
-        fn_1_EC54();
-        fn_1_3A88();
-        fn_1_2188();
+        DestroyPlayerSystem();
+        DestroyMapSystem();
+        SetRecordTimerVisible();
         CharModelKill(-1);
         HuDataDirClose(0x3A0000);
         MGSeqKillAll();
@@ -475,63 +475,63 @@ void fn_1_1664(OMOBJ* arg0) {
     }
 }
 
-void fn_1_16C4(OMOBJ* arg0) {
-    s32 var_r30;
+void HandleSystemExitRequest(OMOBJ* controllerObject) {
+    s32 exitRequested;
 
-    var_r30 = 0;
-    if ((WipeStatGet() != 0) || (arg0->objFunc == fn_1_1664)) {
+    exitRequested = 0;
+    if ((WipeStatGet() != 0) || (controllerObject->objFunc == CleanupAndReturnToMenu)) {
         return;
     }
     if (omSysExitReq != 0) {
-        var_r30 = 1;
+        exitRequested = 1;
     }
-    if (var_r30 != 0) {
-        if ((s32) lbl_1_bss_4C == 0) {
+    if (exitRequested != 0) {
+        if ((s32) wipeActive == 0) {
             WipeCreate(2, 0, 0x3C);
         }
-        lbl_1_bss_4C = 1;
+        wipeActive = 1;
         HuAudStreamFadeOut(0x1E);
-        arg0->objFunc = fn_1_1664;
+        controllerObject->objFunc = CleanupAndReturnToMenu;
     }
 }
 
-s32 fn_1_1788(void) {
-    return lbl_1_bss_84;
+s32 GetGameplayState(void) {
+    return gameplayState;
 }
 
-void fn_1_1798(s32 arg0, f32 arg8) {
+void SetTeamProgress(s32 teamIndex, f32 progress) {
     
-    if (arg8 < 0.0f) {
-        arg8 = 0.0f;
-    } else if (arg8 > 1.0f) {
-        arg8 = 1.0f;
+    if (progress < 0.0f) {
+        progress = 0.0f;
+    } else if (progress > 1.0f) {
+        progress = 1.0f;
     }
-    lbl_1_bss_6C[arg0] = arg8;
-    if (lbl_1_bss_6C[arg0] >= 1.0f) {
-        fn_1_1864(1 << arg0);
+    teamProgress[teamIndex] = progress;
+    if (teamProgress[teamIndex] >= 1.0f) {
+        SignalTeamCompletion(1 << teamIndex);
     }
 }
 
-void fn_1_1864(s32 arg0) {
-    lbl_1_bss_68 |= arg0;
+void SignalTeamCompletion(s32 teamCompletionMask) {
+    completedTeamMask |= teamCompletionMask;
 }
 
-s32 fn_1_1884(void) {
-    if (lbl_1_bss_68 != 0) {
-        if (lbl_1_bss_68 != 1 && lbl_1_bss_68 != 2) {
+s32 GetWinningTeamResult(void) {
+    if (completedTeamMask != 0) {
+        if (completedTeamMask != 1 && completedTeamMask != 2) {
             if (((s32)frand() & 1) != 0) {
-                lbl_1_bss_68 = 1;
+                completedTeamMask = 1;
             } else {
-                lbl_1_bss_68 = 2;
+                completedTeamMask = 2;
             }
         }
-        if (lbl_1_bss_68 == 1) {
+        if (completedTeamMask == 1) {
             return 0;
         } else {
             return 1;
         }
     } else {
-        if (lbl_1_bss_64 != 0) {
+        if (recordTieState != 0) {
             return 3;
         } else {
             return -1;
@@ -539,331 +539,331 @@ s32 fn_1_1884(void) {
     }
 }
 
-s32 lbl_1_data_D0[2] = { 0x3A0029, 0x3A002A };
-s16 lbl_1_data_D8[2] = { -24, 24 };
-s16 lbl_1_data_DC[2] = { -10, 10 };
-s16 lbl_1_data_E0[2] = { 350, 96 };
+s32 teamLabelAssetIds[2] = { 0x3A0029, 0x3A002A };
+s16 teamLabelXOffsets[2] = { -24, 24 };
+s16 teamLabelYOffsets[2] = { -10, 10 };
+s16 timerDigitScaleBounds[2] = { 350, 96 };
 
-void fn_1_1954(void) {
-    f32 temp_f28;
-    f32 temp_f29;
-    f32 var_f31;
-    f32 var_f30;
-    s32 var_r29;
-    s32 var_r31;
-    M427DllStruct2* var_r30;
+void CreateRecordTimerDisplay(void) {
+    f32 recordDigitsOriginX;
+    f32 recordDigitsOriginY;
+    f32 spriteX;
+    f32 spriteY;
+    s32 digitIndex;
+    s32 spriteId;
+    RecordTimerDisplay* timerDisplay;
 
-    var_r30 = HuMemDirectMallocNum(HEAP_HEAP, 0xA4, 0x10000000);
-    lbl_1_bss_40 = var_r30;
-    var_r30->unk9C = 0;
-    var_r30->unkA0 = 0;
-    var_r31 = espEntry(0x3A0028, 1, 0);
-    var_r30->unk0[0] = var_r31;
-    espPriSet(var_r31, 0xFF);
-    espDispOn(var_r31);
-    espDrawNoSet(var_r31, 0);
-    espAttrSet(var_r31, 1);
-    espBankSet(var_r31, 0);
-    espPosSet(var_r31, 288.0, 240.0);
+    timerDisplay = HuMemDirectMallocNum(HEAP_HEAP, 0xA4, 0x10000000);
+    recordTimerDisplay = timerDisplay;
+    timerDisplay->recordTimeFrames = 0;
+    timerDisplay->elapsedTimeFrames = 0;
+    spriteId = espEntry(0x3A0028, 1, 0);
+    timerDisplay->teamSprites[0] = spriteId;
+    espPriSet(spriteId, 0xFF);
+    espDispOn(spriteId);
+    espDrawNoSet(spriteId, 0);
+    espAttrSet(spriteId, 1);
+    espBankSet(spriteId, 0);
+    espPosSet(spriteId, 288.0, 240.0);
     
-    for (var_r29 = 0; var_r29 < 2; var_r29++) {
-        var_r31 = espEntry(lbl_1_data_D0[var_r29], 1, 0);
-        var_r30->unk0[var_r29 + 1] = var_r31;
-        espPriSet(var_r31, 0xC8);
-        espDispOn(var_r31);
-        espDrawNoSet(var_r31, 0);
-        espAttrSet(var_r31, 1);
-        espBankSet(var_r31, 0);
-        espPosSet(var_r31, 288.0f + lbl_1_data_D8[var_r29], 240.0);
+    for (digitIndex = 0; digitIndex < 2; digitIndex++) {
+        spriteId = espEntry(teamLabelAssetIds[digitIndex], 1, 0);
+        timerDisplay->teamSprites[digitIndex + 1] = spriteId;
+        espPriSet(spriteId, 0xC8);
+        espDispOn(spriteId);
+        espDrawNoSet(spriteId, 0);
+        espAttrSet(spriteId, 1);
+        espBankSet(spriteId, 0);
+        espPosSet(spriteId, 288.0f + teamLabelXOffsets[digitIndex], 240.0);
     }
     
-    temp_f28 = 288.0f;
-    temp_f29 = 400.0f;
-    var_f31 = 288.0f;
-    var_f30 = temp_f29;
-    var_r31 = espEntry(0x3A002B, 1, 0);
-    var_r30->unkC = var_r31;
-    espPriSet(var_r31, 0xBE);
-    espDispOn(var_r31);
-    espDrawNoSet(var_r31, 0);
-    espAttrSet(var_r31, 1);
-    espBankSet(var_r31, 0);
-    espTPLvlSet(var_r31, 0.5);
-    espColorSet(var_r31, 0x80, 0x80, 0x80);
-    espScaleSet(var_r31, 1.25, 1.5);
-    espPosSet(var_r31, var_f31, var_f30);
-    var_f31 = 248.0f;
-    var_f30 = temp_f29 - 8.0f;
-    var_r31 = espEntry(0x610037, 1, 0);
-    var_r30->unk10 = var_r31;
-    espPriSet(var_r31, 0xBE);
-    espDispOn(var_r31);
-    espDrawNoSet(var_r31, 0);
-    espAttrSet(var_r31, 1);
-    espBankSet(var_r31, 0);
-    espScaleSet(var_r31, 1.0, 1.0);
-    espPosSet(var_r31, var_f31 - 18.0f, var_f30);
-    var_r30->unk84 = ((var_f31 - 18.0f) - temp_f28);
-    var_r30->unk88 = (var_f30 - temp_f29);
-    var_r30->unk8C = -1;
-    var_r30->unk98 = 1.0f;
-    var_r30->unk90 = temp_f28;
-    var_r30->unk94 = temp_f29;
-    var_f31 = 248.0f;
-    var_f30 = temp_f29 - 8.0f;
+    recordDigitsOriginX = 288.0f;
+    recordDigitsOriginY = 400.0f;
+    spriteX = 288.0f;
+    spriteY = recordDigitsOriginY;
+    spriteId = espEntry(0x3A002B, 1, 0);
+    timerDisplay->teamNameSprite = spriteId;
+    espPriSet(spriteId, 0xBE);
+    espDispOn(spriteId);
+    espDrawNoSet(spriteId, 0);
+    espAttrSet(spriteId, 1);
+    espBankSet(spriteId, 0);
+    espTPLvlSet(spriteId, 0.5);
+    espColorSet(spriteId, 0x80, 0x80, 0x80);
+    espScaleSet(spriteId, 1.25, 1.5);
+    espPosSet(spriteId, spriteX, spriteY);
+    spriteX = 248.0f;
+    spriteY = recordDigitsOriginY - 8.0f;
+    spriteId = espEntry(0x610037, 1, 0);
+    timerDisplay->recordLabelSprite = spriteId;
+    espPriSet(spriteId, 0xBE);
+    espDispOn(spriteId);
+    espDrawNoSet(spriteId, 0);
+    espAttrSet(spriteId, 1);
+    espBankSet(spriteId, 0);
+    espScaleSet(spriteId, 1.0, 1.0);
+    espPosSet(spriteId, spriteX - 18.0f, spriteY);
+    timerDisplay->recordDigitOffsetX = ((spriteX - 18.0f) - recordDigitsOriginX);
+    timerDisplay->recordDigitOffsetY = (spriteY - recordDigitsOriginY);
+    timerDisplay->digitScaleDirection = -1;
+    timerDisplay->digitScale = 1.0f;
+    timerDisplay->recordDigitsOriginX = recordDigitsOriginX;
+    timerDisplay->recordDigitsOriginY = recordDigitsOriginY;
+    spriteX = 248.0f;
+    spriteY = recordDigitsOriginY - 8.0f;
     
-    for (var_r29 = 0; var_r29 < 7; var_r29++) {
-        var_r31 = espEntry(0x610030, 1, 0);
-        var_r30->unk14[var_r29] = var_r31;
-        espPriSet(var_r31, 0xB4);
-        espDispOn(var_r31);
-        espDrawNoSet(var_r31, 0);
-        espAttrSet(var_r31, 9);
-        espScaleSet(var_r31, 1.0, 1.0);
-        espPosSet(var_r31, var_f31, var_f30);
-        if (var_r29 == 1) {
-            espBankSet(var_r31, 10);
-        } else if (var_r29 == 4) {
-            espBankSet(var_r31, 11);
+    for (digitIndex = 0; digitIndex < 7; digitIndex++) {
+        spriteId = espEntry(0x610030, 1, 0);
+        timerDisplay->recordTimeDigits[digitIndex] = spriteId;
+        espPriSet(spriteId, 0xB4);
+        espDispOn(spriteId);
+        espDrawNoSet(spriteId, 0);
+        espAttrSet(spriteId, 9);
+        espScaleSet(spriteId, 1.0, 1.0);
+        espPosSet(spriteId, spriteX, spriteY);
+        if (digitIndex == 1) {
+            espBankSet(spriteId, 10);
+        } else if (digitIndex == 4) {
+            espBankSet(spriteId, 11);
         } else {
-            espBankSet(var_r31, 0);
+            espBankSet(spriteId, 0);
         }
-        var_r30->unk4C[var_r29].x = var_f31 - temp_f28;
-        var_r30->unk4C[var_r29].y = var_f30 - temp_f29;
-        var_f31 += 16.0f;
+        timerDisplay->recordDigitOffsets[digitIndex].x = spriteX - recordDigitsOriginX;
+        timerDisplay->recordDigitOffsets[digitIndex].y = spriteY - recordDigitsOriginY;
+        spriteX += 16.0f;
     }
-    var_f31 = 248.0f;
-    var_f30 = 8.0f + temp_f29;
+    spriteX = 248.0f;
+    spriteY = 8.0f + recordDigitsOriginY;
     
-    for (var_r29 = 0; var_r29 < 7; var_r29++) {
-        var_r31 = espEntry(0x610031, 1, 0);
-        var_r30->unk30[var_r29] = var_r31;
-        espPriSet(var_r31, 0xB4);
-        espDispOn(var_r31);
-        espDrawNoSet(var_r31, 0);
-        espAttrSet(var_r31, 1);
-        espScaleSet(var_r31, 1.0, 1.0);
-        espPosSet(var_r31, var_f31, var_f30);
-        if (var_r29 == 1) {
-            espBankSet(var_r31, 10);
-        } else if (var_r29 == 4) {
-            espBankSet(var_r31, 11);
+    for (digitIndex = 0; digitIndex < 7; digitIndex++) {
+        spriteId = espEntry(0x610031, 1, 0);
+        timerDisplay->elapsedTimeDigits[digitIndex] = spriteId;
+        espPriSet(spriteId, 0xB4);
+        espDispOn(spriteId);
+        espDrawNoSet(spriteId, 0);
+        espAttrSet(spriteId, 1);
+        espScaleSet(spriteId, 1.0, 1.0);
+        espPosSet(spriteId, spriteX, spriteY);
+        if (digitIndex == 1) {
+            espBankSet(spriteId, 10);
+        } else if (digitIndex == 4) {
+            espBankSet(spriteId, 11);
         } else {
-            espBankSet(var_r31, 0);
+            espBankSet(spriteId, 0);
         }
-        var_f31 += 16.0f;
+        spriteX += 16.0f;
     }
-    fn_1_232C(lbl_1_bss_78);
-    fn_1_2518(0);
+    SetRecordTimeFrames(bestRecordFrames);
+    SetElapsedTimeFrames(0);
 }
 
-void fn_1_1F34(void) {
-    f32 var_f30;
-    f32 temp_f31;
-    s32 var_r29;
-    s32 var_r30;
-    M427DllStruct2* temp_r31;
+void UpdateRecordTimerDisplay(void) {
+    f32 scaleFactor;
+    f32 spriteScale;
+    s32 playerIndex;
+    s32 digitIndex;
+    RecordTimerDisplay* timerDisplay;
 
-    temp_r31 = lbl_1_bss_40;
-    for (var_r30 = 0; var_r30 < 2; var_r30++) {
-        var_r29 = temp_r31->unk0[var_r30 + 1];
-        var_f30 = lbl_1_data_E0[0] + (lbl_1_bss_6C[var_r30] * (lbl_1_data_E0[1] - lbl_1_data_E0[0]));
-        espPosSet(var_r29, 288.0f + lbl_1_data_DC[var_r30], var_f30);
+    timerDisplay = recordTimerDisplay;
+    for (digitIndex = 0; digitIndex < 2; digitIndex++) {
+        playerIndex = timerDisplay->teamSprites[digitIndex + 1];
+        scaleFactor = timerDigitScaleBounds[0] + (teamProgress[digitIndex] * (timerDigitScaleBounds[1] - timerDigitScaleBounds[0]));
+        espPosSet(playerIndex, 288.0f + teamLabelYOffsets[digitIndex], scaleFactor);
     }
-    if (temp_r31->unk8C != -1) {
-        if (temp_r31->unk8C == 0) {
-            if ((temp_r31->unk98 += 0.02f) >= 1.2f) {
-                temp_r31->unk98 = 1.2f;
-                temp_r31->unk8C = 1;
+    if (timerDisplay->digitScaleDirection != -1) {
+        if (timerDisplay->digitScaleDirection == 0) {
+            if ((timerDisplay->digitScale += 0.02f) >= 1.2f) {
+                timerDisplay->digitScale = 1.2f;
+                timerDisplay->digitScaleDirection = 1;
             }
         } else {
-            if ((temp_r31->unk98 -= 0.04f) <= 1.0f) {
-                temp_r31->unk98 = 1.0f;
-                temp_r31->unk8C = 0;
+            if ((timerDisplay->digitScale -= 0.04f) <= 1.0f) {
+                timerDisplay->digitScale = 1.0f;
+                timerDisplay->digitScaleDirection = 0;
             }
         }
-        temp_f31 = temp_r31->unk98;
+        spriteScale = timerDisplay->digitScale;
         
-        for (var_r30 = 0; var_r30 < 7; var_r30++) {
-            var_r29 = temp_r31->unk14[var_r30];
-            espScaleSet(var_r29, temp_f31, temp_f31);
+        for (digitIndex = 0; digitIndex < 7; digitIndex++) {
+            playerIndex = timerDisplay->recordTimeDigits[digitIndex];
+            espScaleSet(playerIndex, spriteScale, spriteScale);
         }
-        var_r29 = temp_r31->unk10;
-        espScaleSet(var_r29, temp_f31, temp_f31);
+        playerIndex = timerDisplay->recordLabelSprite;
+        espScaleSet(playerIndex, spriteScale, spriteScale);
     }
 }
 
-void fn_1_2188(void) {
-    M427DllStruct2* temp_r31;
-    s32 var_r30;
+void SetRecordTimerVisible(void) {
+    RecordTimerDisplay* timerDisplay;
+    s32 spriteIndex;
 
-    temp_r31 = lbl_1_bss_40;
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        espKill(temp_r31->unk0[var_r30]);
+    timerDisplay = recordTimerDisplay;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        espKill(timerDisplay->teamSprites[spriteIndex]);
     }
-    espKill(temp_r31->unkC);
+    espKill(timerDisplay->teamNameSprite);
 }
 
-void fn_1_21E8(s32 arg0, s32 arg1) {
-    M427DllStruct2* temp_r31;
-    s32 var_r30;
+void SetPlayerTimerState(s32 teamIndex, s32 timerVisible) {
+    RecordTimerDisplay* timerDisplay;
+    s32 spriteIndex;
 
-    temp_r31 = lbl_1_bss_40;
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        if (arg0 == 0) {
-            espDispOff(temp_r31->unk0[var_r30]);
+    timerDisplay = recordTimerDisplay;
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        if (teamIndex == 0) {
+            espDispOff(timerDisplay->teamSprites[spriteIndex]);
         } else {
-            espDispOn(temp_r31->unk0[var_r30]);
+            espDispOn(timerDisplay->teamSprites[spriteIndex]);
         }
     }
-    if (arg1 != 0) {
-        if (arg0 == 0) {
-            espDispOff(temp_r31->unkC);
+    if (timerVisible != 0) {
+        if (teamIndex == 0) {
+            espDispOff(timerDisplay->teamNameSprite);
         } else {
-            espDispOn(temp_r31->unkC);
+            espDispOn(timerDisplay->teamNameSprite);
         }
-        if (arg0 == 0) {
-            espDispOff(temp_r31->unk10);
+        if (teamIndex == 0) {
+            espDispOff(timerDisplay->recordLabelSprite);
         } else {
-            espDispOn(temp_r31->unk10);
+            espDispOn(timerDisplay->recordLabelSprite);
         }
         
-        for (var_r30 = 0; var_r30 < 7; var_r30++) {
-            if (arg0 == 0) {
-                espDispOff(temp_r31->unk14[var_r30]);
+        for (spriteIndex = 0; spriteIndex < 7; spriteIndex++) {
+            if (teamIndex == 0) {
+                espDispOff(timerDisplay->recordTimeDigits[spriteIndex]);
             } else {
-                espDispOn(temp_r31->unk14[var_r30]);
+                espDispOn(timerDisplay->recordTimeDigits[spriteIndex]);
             }
         }
         
-        for (var_r30 = 0; var_r30 < 7; var_r30++) {
-            if (arg0 == 0) {
-                espDispOff(temp_r31->unk30[var_r30]);
+        for (spriteIndex = 0; spriteIndex < 7; spriteIndex++) {
+            if (teamIndex == 0) {
+                espDispOff(timerDisplay->elapsedTimeDigits[spriteIndex]);
             } else {
-                espDispOn(temp_r31->unk30[var_r30]);
+                espDispOn(timerDisplay->elapsedTimeDigits[spriteIndex]);
             }
         }
     }
 }
 
-void fn_1_232C(s32 arg0) {
-    M427DllStruct2* temp_r29;
-    f32 temp_f0;
-    s32 var_r31;
+void SetRecordTimeFrames(s32 recordFrames) {
+    RecordTimerDisplay* timerDisplay;
+    f32 timerDigitScratch;
+    s32 timeDigit;
 
-    temp_r29 = lbl_1_bss_40;
-    temp_r29->unk9C = arg0;
-    var_r31 = arg0 / (REFRESH_RATE * 60);
-    arg0 -= var_r31 * (REFRESH_RATE * 60);
-    if (var_r31 > 9) {
-        var_r31 = 9;
-    } else if (var_r31 < 0) {
-        var_r31 = 0;
+    timerDisplay = recordTimerDisplay;
+    timerDisplay->recordTimeFrames = recordFrames;
+    timeDigit = recordFrames / (REFRESH_RATE * 60);
+    recordFrames -= timeDigit * (REFRESH_RATE * 60);
+    if (timeDigit > 9) {
+        timeDigit = 9;
+    } else if (timeDigit < 0) {
+        timeDigit = 0;
     }
-    espBankSet(temp_r29->unk14[0], var_r31);
-    var_r31 = (arg0 / (REFRESH_RATE * 10));
-    arg0 -= var_r31 * (REFRESH_RATE * 10);
-    if (var_r31 > 9) {
-        var_r31 = 9;
-    } else if (var_r31 < 0) {
-        var_r31 = 0;
+    espBankSet(timerDisplay->recordTimeDigits[0], timeDigit);
+    timeDigit = (recordFrames / (REFRESH_RATE * 10));
+    recordFrames -= timeDigit * (REFRESH_RATE * 10);
+    if (timeDigit > 9) {
+        timeDigit = 9;
+    } else if (timeDigit < 0) {
+        timeDigit = 0;
     }
-    espBankSet(temp_r29->unk14[2], var_r31);
-    var_r31 = arg0 / REFRESH_RATE;
-    arg0 -= var_r31 * REFRESH_RATE;
-    if (var_r31 > 9) {
-        var_r31 = 9;
-    } else if (var_r31 < 0) {
-        var_r31 = 0;
+    espBankSet(timerDisplay->recordTimeDigits[2], timeDigit);
+    timeDigit = recordFrames / REFRESH_RATE;
+    recordFrames -= timeDigit * REFRESH_RATE;
+    if (timeDigit > 9) {
+        timeDigit = 9;
+    } else if (timeDigit < 0) {
+        timeDigit = 0;
     }
-    espBankSet(temp_r29->unk14[3], var_r31);
-    arg0 = 100.0f * (arg0 / REFRESH_RATE_F);
-    var_r31 = arg0 / 10;
-    arg0 -= var_r31 * 10;
-    if (var_r31 > 9) {
-        var_r31 = 9;
-    } else if (var_r31 < 0) {
-        var_r31 = 0;
+    espBankSet(timerDisplay->recordTimeDigits[3], timeDigit);
+    recordFrames = 100.0f * (recordFrames / REFRESH_RATE_F);
+    timeDigit = recordFrames / 10;
+    recordFrames -= timeDigit * 10;
+    if (timeDigit > 9) {
+        timeDigit = 9;
+    } else if (timeDigit < 0) {
+        timeDigit = 0;
     }
-    espBankSet(temp_r29->unk14[5], var_r31);
-    var_r31 = arg0;
-    if (var_r31 > 9) {
-        var_r31 = 9;
-    } else if (var_r31 < 0) {
-        var_r31 = 0;
+    espBankSet(timerDisplay->recordTimeDigits[5], timeDigit);
+    timeDigit = recordFrames;
+    if (timeDigit > 9) {
+        timeDigit = 9;
+    } else if (timeDigit < 0) {
+        timeDigit = 0;
     }
-    espBankSet(temp_r29->unk14[6], var_r31);
+    espBankSet(timerDisplay->recordTimeDigits[6], timeDigit);
 }
 
-void fn_1_2518(s32 arg0) {
-    M427DllStruct2* temp_r29;
-    f32 temp_f0;
-    s32 var_r31;
+void SetElapsedTimeFrames(s32 elapsedFrames) {
+    RecordTimerDisplay* timerDisplay;
+    f32 timerDigitScratch;
+    s32 timeDigit;
 
-    temp_r29 = lbl_1_bss_40;
-    temp_r29->unkA0 = arg0;
-    var_r31 = arg0 / (REFRESH_RATE * 60);
-    arg0 -= var_r31 * (REFRESH_RATE * 60);
-    if (var_r31 > 9) {
-        var_r31 = 9;
-    } else if (var_r31 < 0) {
-        var_r31 = 0;
+    timerDisplay = recordTimerDisplay;
+    timerDisplay->elapsedTimeFrames = elapsedFrames;
+    timeDigit = elapsedFrames / (REFRESH_RATE * 60);
+    elapsedFrames -= timeDigit * (REFRESH_RATE * 60);
+    if (timeDigit > 9) {
+        timeDigit = 9;
+    } else if (timeDigit < 0) {
+        timeDigit = 0;
     }
-    espBankSet(temp_r29->unk30[0], var_r31);
-    var_r31 = (arg0 / (REFRESH_RATE * 10));
-    arg0 -= var_r31 * (REFRESH_RATE * 10);
-    if (var_r31 > 9) {
-        var_r31 = 9;
-    } else if (var_r31 < 0) {
-        var_r31 = 0;
+    espBankSet(timerDisplay->elapsedTimeDigits[0], timeDigit);
+    timeDigit = (elapsedFrames / (REFRESH_RATE * 10));
+    elapsedFrames -= timeDigit * (REFRESH_RATE * 10);
+    if (timeDigit > 9) {
+        timeDigit = 9;
+    } else if (timeDigit < 0) {
+        timeDigit = 0;
     }
-    espBankSet(temp_r29->unk30[2], var_r31);
-    var_r31 = arg0 / REFRESH_RATE;
-    arg0 -= var_r31 * REFRESH_RATE;
-    if (var_r31 > 9) {
-        var_r31 = 9;
-    } else if (var_r31 < 0) {
-        var_r31 = 0;
+    espBankSet(timerDisplay->elapsedTimeDigits[2], timeDigit);
+    timeDigit = elapsedFrames / REFRESH_RATE;
+    elapsedFrames -= timeDigit * REFRESH_RATE;
+    if (timeDigit > 9) {
+        timeDigit = 9;
+    } else if (timeDigit < 0) {
+        timeDigit = 0;
     }
-    espBankSet(temp_r29->unk30[3], var_r31);
-    arg0 = 100.0f * (arg0 / REFRESH_RATE_F);
-    var_r31 = arg0 / 10;
-    arg0 -= var_r31 * 10;
-    if (var_r31 > 9) {
-        var_r31 = 9;
-    } else if (var_r31 < 0) {
-        var_r31 = 0;
+    espBankSet(timerDisplay->elapsedTimeDigits[3], timeDigit);
+    elapsedFrames = 100.0f * (elapsedFrames / REFRESH_RATE_F);
+    timeDigit = elapsedFrames / 10;
+    elapsedFrames -= timeDigit * 10;
+    if (timeDigit > 9) {
+        timeDigit = 9;
+    } else if (timeDigit < 0) {
+        timeDigit = 0;
     }
-    espBankSet(temp_r29->unk30[5], var_r31);
-    var_r31 = arg0;
-    if (var_r31 > 9) {
-        var_r31 = 9;
-    } else if (var_r31 < 0) {
-        var_r31 = 0;
+    espBankSet(timerDisplay->elapsedTimeDigits[5], timeDigit);
+    timeDigit = elapsedFrames;
+    if (timeDigit > 9) {
+        timeDigit = 9;
+    } else if (timeDigit < 0) {
+        timeDigit = 0;
     }
-    espBankSet(temp_r29->unk30[6], var_r31);
+    espBankSet(timerDisplay->elapsedTimeDigits[6], timeDigit);
 }
 
-void fn_1_2704(void) {
-    M427DllStruct2* var_r31;
+void ShowRecordTimer(void) {
+    RecordTimerDisplay* timerDisplay;
 
-    var_r31 = lbl_1_bss_40;
-    var_r31->unk8C = 0;
+    timerDisplay = recordTimerDisplay;
+    timerDisplay->digitScaleDirection = 0;
 }
 
-void fn_1_272C(void) {
-    M427DllStruct2* var_r31;
-    s32 temp_r30;
+void HideRecordTimer(void) {
+    RecordTimerDisplay* timerDisplay;
+    s32 labelSprite;
 
-    var_r31 = lbl_1_bss_40;
-    temp_r30 = var_r31->unkC;
-    espTPLvlSet(temp_r30, 0.5);
-    espColorSet(temp_r30, 0, 0, 0);
+    timerDisplay = recordTimerDisplay;
+    labelSprite = timerDisplay->teamNameSprite;
+    espTPLvlSet(labelSprite, 0.5);
+    espColorSet(labelSprite, 0, 0, 0);
 }
 
-void fn_1_2790(void) {
-    OMOBJ* var_r30;
-    s32 var_r31;
+void InitializeResultCameras(void) {
+    OMOBJ* cameraObject;
+    s32 cameraIndex;
 
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, -1.0f, 300.0f, 50000.0f, 0.6f);
@@ -877,93 +877,93 @@ void fn_1_2790(void) {
     Hu3DCameraPerspectiveSet(4, -1.0f, 100.0f, 50000.0f, 1.2f);
     Hu3DCameraViewportSet(4, 0.0f, 0.0f, 576.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraScissorSet(4, 0, 0, 0x280, 0x1E0);
-    var_r30 = lbl_1_bss_48 = omAddObjEx(lbl_1_bss_8C, 0x7FDA, 0, 0, -1, omOutViewMulti);
-    var_r30->work[0] = 3;
+    cameraObject = resultCameraObject = omAddObjEx(gameplayObjectManager, 0x7FDA, 0, 0, -1, omOutViewMulti);
+    cameraObject->work[0] = 3;
     
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        CRotM[var_r31].x = lbl_1_data_0[0].rot.x;
-        CRotM[var_r31].y = lbl_1_data_0[0].rot.y;
-        CRotM[var_r31].z = lbl_1_data_0[0].rot.z;
-        CenterM[var_r31].x = lbl_1_data_0[0].cen.x;
-        CenterM[var_r31].y = lbl_1_data_0[0].cen.y;
-        CenterM[var_r31].z = lbl_1_data_0[0].cen.z;
-        CZoomM[var_r31] = lbl_1_data_0[0].zoom;
+    for (cameraIndex = 0; cameraIndex < 3; cameraIndex++) {
+        CRotM[cameraIndex].x = cameraPresets[0].rot.x;
+        CRotM[cameraIndex].y = cameraPresets[0].rot.y;
+        CRotM[cameraIndex].z = cameraPresets[0].rot.z;
+        CenterM[cameraIndex].x = cameraPresets[0].cen.x;
+        CenterM[cameraIndex].y = cameraPresets[0].cen.y;
+        CenterM[cameraIndex].z = cameraPresets[0].cen.z;
+        CZoomM[cameraIndex] = cameraPresets[0].zoom;
     }
-    lbl_1_bss_44 = 0;
-    omAddObjEx(lbl_1_bss_8C, 0x3F, 0, 0, -1, fn_1_2B20);
+    activeCameraIndex = 0;
+    omAddObjEx(gameplayObjectManager, 0x3F, 0, 0, -1, EmptyCameraObjectCallback);
 }
 
-void fn_1_2B20(OMOBJ* object) {}
+void EmptyCameraObjectCallback(OMOBJ* object) {}
 
-void fn_1_2B24(void) {}
+void EmptyResultCameraCallback(void) {}
 
-void fn_1_2B28(void) {
-    s32 var_r31;
+void SetResultCameraPreset(void) {
+    s32 cameraIndex;
 
     Hu3DCameraPerspectiveSet(1, 45.0f, 300.0f, 50000.0f, 0.6f);
     Hu3DCameraPerspectiveSet(2, 45.0f, 300.0f, 50000.0f, 0.6f);
     Hu3DCameraPerspectiveSet(4, 45.0f, 100.0f, 50000.0f, 1.2f);
     
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        CRotM[var_r31].x = lbl_1_data_0[2].rot.x;
-        CRotM[var_r31].y = lbl_1_data_0[2].rot.y;
-        CRotM[var_r31].z = lbl_1_data_0[2].rot.z;
-        CenterM[var_r31].x = lbl_1_data_0[2].cen.x;
-        CenterM[var_r31].y = lbl_1_data_0[2].cen.y;
-        CenterM[var_r31].z = lbl_1_data_0[2].cen.z;
-        CZoomM[var_r31] = lbl_1_data_0[2].zoom;
+    for (cameraIndex = 0; cameraIndex < 2; cameraIndex++) {
+        CRotM[cameraIndex].x = cameraPresets[2].rot.x;
+        CRotM[cameraIndex].y = cameraPresets[2].rot.y;
+        CRotM[cameraIndex].z = cameraPresets[2].rot.z;
+        CenterM[cameraIndex].x = cameraPresets[2].cen.x;
+        CenterM[cameraIndex].y = cameraPresets[2].cen.y;
+        CenterM[cameraIndex].z = cameraPresets[2].cen.z;
+        CZoomM[cameraIndex] = cameraPresets[2].zoom;
     }
 }
 
-void fn_1_2CE8(f32 arg0) {
-    s32 var_r31;
+void InterpolateResultCamera(f32 interpolationProgress) {
+    s32 cameraIndex;
 
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        CRotM[var_r31].x = fn_1_168FC(arg0, lbl_1_data_0[2].rot.x, lbl_1_data_0->rot.x);
-        CRotM[var_r31].y = fn_1_168FC(arg0, lbl_1_data_0[2].rot.y, lbl_1_data_0->rot.z);
-        CRotM[var_r31].z = fn_1_168FC(arg0, lbl_1_data_0[2].rot.z, lbl_1_data_0->rot.z);
-        CenterM[var_r31].x = lbl_1_data_0[2].cen.x + (arg0 * (lbl_1_data_0->cen.x - lbl_1_data_0[2].cen.x));
-        CenterM[var_r31].y = lbl_1_data_0[2].cen.y + (arg0 * (lbl_1_data_0->cen.y - lbl_1_data_0[2].cen.y));
-        CenterM[var_r31].z = lbl_1_data_0[2].cen.z + (arg0 * (lbl_1_data_0->cen.z - lbl_1_data_0[2].cen.z));
-        CZoomM[var_r31] = lbl_1_data_0[2].zoom + (arg0 * (lbl_1_data_0->zoom - lbl_1_data_0[2].zoom));
+    for (cameraIndex = 0; cameraIndex < 2; cameraIndex++) {
+        CRotM[cameraIndex].x = interpolateAngle(interpolationProgress, cameraPresets[2].rot.x, cameraPresets->rot.x);
+        CRotM[cameraIndex].y = interpolateAngle(interpolationProgress, cameraPresets[2].rot.y, cameraPresets->rot.z);
+        CRotM[cameraIndex].z = interpolateAngle(interpolationProgress, cameraPresets[2].rot.z, cameraPresets->rot.z);
+        CenterM[cameraIndex].x = cameraPresets[2].cen.x + (interpolationProgress * (cameraPresets->cen.x - cameraPresets[2].cen.x));
+        CenterM[cameraIndex].y = cameraPresets[2].cen.y + (interpolationProgress * (cameraPresets->cen.y - cameraPresets[2].cen.y));
+        CenterM[cameraIndex].z = cameraPresets[2].cen.z + (interpolationProgress * (cameraPresets->cen.z - cameraPresets[2].cen.z));
+        CZoomM[cameraIndex] = cameraPresets[2].zoom + (interpolationProgress * (cameraPresets->zoom - cameraPresets[2].zoom));
     }
 }
 
-void fn_1_2EE0(void) {
+void SetCameraForResults(void) {
     Hu3DCameraPerspectiveSet(1, 45.0f, 700.0f, 50000.0f, 0.6f);
     Hu3DCameraPerspectiveSet(2, 45.0f, 700.0f, 50000.0f, 0.6f);
 }
 
-void fn_1_2F6C(f32 arg0) {
-    s32 var_r31;
+void InterpolateCameraToWinner(f32 interpolationProgress) {
+    s32 cameraIndex;
 
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        CRotM[var_r31].x = fn_1_168FC(arg0, lbl_1_data_0[1].rot.x, lbl_1_data_0[3].rot.x);
-        CRotM[var_r31].y = fn_1_168FC(arg0, lbl_1_data_0[1].rot.y, lbl_1_data_0[3].rot.y);
-        CRotM[var_r31].z = fn_1_168FC(arg0, lbl_1_data_0[1].rot.z, lbl_1_data_0[3].rot.z);
-        CenterM[var_r31].x = lbl_1_data_0[1].cen.x + (arg0 * (lbl_1_data_0[3].cen.x - lbl_1_data_0[1].cen.x));
-        CenterM[var_r31].y = lbl_1_data_0[1].cen.y + (arg0 * (lbl_1_data_0[3].cen.y - lbl_1_data_0[1].cen.y));
-        CenterM[var_r31].z = lbl_1_data_0[1].cen.z + (arg0 * (lbl_1_data_0[3].cen.z - lbl_1_data_0[1].cen.z));
-        CZoomM[var_r31] = lbl_1_data_0[1].zoom + (arg0 * (lbl_1_data_0[3].zoom - lbl_1_data_0[1].zoom));
+    for (cameraIndex = 0; cameraIndex < 2; cameraIndex++) {
+        CRotM[cameraIndex].x = interpolateAngle(interpolationProgress, cameraPresets[1].rot.x, cameraPresets[3].rot.x);
+        CRotM[cameraIndex].y = interpolateAngle(interpolationProgress, cameraPresets[1].rot.y, cameraPresets[3].rot.y);
+        CRotM[cameraIndex].z = interpolateAngle(interpolationProgress, cameraPresets[1].rot.z, cameraPresets[3].rot.z);
+        CenterM[cameraIndex].x = cameraPresets[1].cen.x + (interpolationProgress * (cameraPresets[3].cen.x - cameraPresets[1].cen.x));
+        CenterM[cameraIndex].y = cameraPresets[1].cen.y + (interpolationProgress * (cameraPresets[3].cen.y - cameraPresets[1].cen.y));
+        CenterM[cameraIndex].z = cameraPresets[1].cen.z + (interpolationProgress * (cameraPresets[3].cen.z - cameraPresets[1].cen.z));
+        CZoomM[cameraIndex] = cameraPresets[1].zoom + (interpolationProgress * (cameraPresets[3].zoom - cameraPresets[1].zoom));
     }
 }
 
-void fn_1_3164(void) {
-    lbl_1_bss_48->work[0] = 1;
+void RestoreDefaultCamera(void) {
+    resultCameraObject->work[0] = 1;
     Hu3DCameraKill(2);
     Hu3DCameraKill(4);
     Hu3DCameraPerspectiveSet(1, 45.0f, 100.0f, 50000.0f, 1.2f);
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraScissorSet(1, 0, 0, 0x280, 0x1E0);
-    CRotM->x = lbl_1_data_0[1].rot.x;
-    CRotM->y = lbl_1_data_0[1].rot.y;
-    CRotM->z = lbl_1_data_0[1].rot.z;
-    CenterM->x = lbl_1_data_0[1].cen.x;
-    CenterM->y = lbl_1_data_0[1].cen.y;
-    CenterM->z = lbl_1_data_0[1].cen.z;
-    *CZoomM = lbl_1_data_0[1].zoom;
+    CRotM->x = cameraPresets[1].rot.x;
+    CRotM->y = cameraPresets[1].rot.y;
+    CRotM->z = cameraPresets[1].rot.z;
+    CenterM->x = cameraPresets[1].cen.x;
+    CenterM->y = cameraPresets[1].cen.y;
+    CenterM->z = cameraPresets[1].cen.z;
+    *CZoomM = cameraPresets[1].zoom;
 }
 
-s32 fn_1_32EC(void) {
+s32 GetResultCameraState(void) {
     return 0;
 }

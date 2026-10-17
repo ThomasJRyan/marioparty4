@@ -4,37 +4,37 @@
 #include "dolphin.h"
 #include "game/object.h"
 
-typedef struct M427DllStruct {
-    s32 unk0;
-    s32 unk4;
-} M427DllStruct;
+typedef struct SoundEffectLifetime {
+    s32 soundEffectId;
+    s32 remainingFrames;
+} SoundEffectLifetime;
 
-s32 fn_1_1788(void);
-void fn_1_1798(s32 arg0, float arg8);
-s32 fn_1_1884(void);
-s32 fn_1_32EC(void);
+s32 GetGameplayState(void);
+void SetTeamProgress(s32 teamIndex, float progress);
+s32 GetWinningTeamResult(void);
+s32 GetResultCameraState(void);
 
-void fn_1_32F4(HUPROCESS *arg0);
-void fn_1_3B20(s8 arg0, s16 arg1);
-void fn_1_3A88(void);
-void fn_1_91E0(s16 arg0, float arg8, float arg9, float argA, float argB);
-float fn_1_AE78(s16 arg0, float arg8, float arg9);
-void fn_1_E98C(HUPROCESS *);
-void fn_1_EC54(void);
-s32 fn_1_10FE8(s32 arg0, s32 *arg1);
-void fn_1_110E8(s32, s32 *);
-void fn_1_111C0(s32, s32 *);
-void fn_1_11298(float);
-s32 fn_1_113F0(s32);
-float fn_1_168FC(float, float, float);
+void InitializeMapSystem(HUPROCESS *mapProcess);
+void PlayTeamRouteEffect(s8 effectIndex, s16 teamIndex);
+void DestroyMapSystem(void);
+void SetBannerAnimationOffset(s16 teamIndex, float offsetX, float offsetY, float scaleX, float scaleY);
+float CalculateTeamMarkerOpacity(s16 teamIndex, float distance, float opacityScale);
+void InitializePlayerSystem(HUPROCESS *playerProcess);
+void DestroyPlayerSystem(void);
+s32 FindCharacterModelIndex(s32 teamIndex, s32 *modelIds);
+void GetTeamCharacterIds(s32 teamIndex, s32 *characterIds);
+void GetTeamPlayerIndices(s32 teamIndex, s32 *playerIndices);
+void SetPlayerModelOpacity(float modelDepthFactor);
+s32 GetTeamComputerPlayerCount(s32 teamIndex);
+float InterpolateAngle(float interpolationRate, float currentAngle, float targetAngle);
 
-s32 fn_1_15F10(Vec arg0, Vec arg1, s32 arg2, s32 arg3, s32 arg4);
-s32 fn_1_15FD0(Vec arg0, float arg8, s32 arg1, s32 arg2, s32 arg3);
+s32 TestRouteSegmentCollision(Vec firstRoutePoint, Vec secondRoutePoint, s32 routeIndex, s32 collisionShape, s32 collisionSide);
+s32 TestRouteCircleCollision(Vec circleCenter, float collisionRadius, s32 routeIndex, s32 collisionShape, s32 collisionSide);
 
-extern s32 lbl_1_bss_580;
-extern Vec *lbl_1_bss_558;
-extern Vec *lbl_1_bss_554;
-extern Vec *lbl_1_bss_550;
-extern M427DllStruct lbl_1_bss_0[8];
+extern s32 routeSegmentCount;
+extern Vec *baseLeftRouteEdge;
+extern Vec *baseRightRouteEdge;
+extern Vec *baseRouteCenterline;
+extern SoundEffectLifetime soundEffectLifetimes[8];
 
 #endif

@@ -21,717 +21,717 @@ extern HU3DLIGHT Hu3DLocalLight[0x20];
 
 #define FABS(value) ((value < 0) ? -(value) : (value))
 
-typedef struct M427DllStruct2 {
-    s32 unk0[3];
-    s32 unkC;
-    s32 unk10;
-    s32 unk14[7];
-    s32 unk30[7];
-    HuVec2f unk4C[7];
-    f32 unk84;
-    f32 unk88;
-    s32 unk8C;
-    f32 unk90;
-    f32 unk94;
-    f32 unk98;
-    s32 unk9C;
-    s32 unkA0;
-} M427DllStruct2; // sizeof 0xA4
+typedef struct RecordTimerDisplay {
+    s32 teamSprites[3];
+    s32 teamNameSprite;
+    s32 recordLabelSprite;
+    s32 recordTimeDigits[7];
+    s32 elapsedTimeDigits[7];
+    HuVec2f recordDigitOffsets[7];
+    f32 recordDigitOffsetX;
+    f32 recordDigitOffsetY;
+    s32 digitScaleDirection;
+    f32 recordDigitsOriginX;
+    f32 recordDigitsOriginY;
+    f32 digitScale;
+    s32 recordTimeFrames;
+    s32 elapsedTimeFrames;
+} RecordTimerDisplay; // sizeof 0xA4
 
-typedef struct M427DllStruct3 {
+typedef struct CameraPreset {
     Vec rot;
     Vec cen;
     f32 zoom;
-} M427DllStruct3; // sizeof 0x1C
+} CameraPreset; // sizeof 0x1C
 
-typedef struct M427DllMapStruct {
-    u8 unk0;
-    char unk_1;
-    s16 unk2;
-    s16 unk4;
-    char unk_6[0x2];
-    ANIMDATA *unk8;
-    Vec unkC;
-    Vec unk18;
-    Vec unk24;
-    Vec unk30;
-    Vec2f unk3C;
-    Vec2f unk44;
-    Vec2f unk4C;
-    Vec2f unk54;
-    Vec2f unk5C[4];
-    GXColor unk7C;
-    void *unk80;
-    s32 unk84;
-    float unk88;
-    float unk8C;
-    float unk90;
-    float unk94;
-} M427DllMapStruct; // sizeof 0x98
+typedef struct MapQuadRenderData {
+    u8 drawFlags;
+    char primitiveType;
+    s16 cameraIndex;
+    s16 modelId;
+    char reservedBytes[0x2];
+    ANIMDATA *animationData;
+    Vec topLeftPosition;
+    Vec topRightPosition;
+    Vec bottomRightPosition;
+    Vec bottomLeftPosition;
+    Vec2f topLeftUv;
+    Vec2f topRightUv;
+    Vec2f bottomRightUv;
+    Vec2f bottomLeftUv;
+    Vec2f transformedUv[4];
+    GXColor tintColor;
+    void *displayList;
+    s32 displayListSize;
+    float textureOffsetX;
+    float textureOffsetY;
+    float secondaryTextureOffsetX;
+    float secondaryTextureOffsetY;
+} MapQuadRenderData; // sizeof 0x98
 
-typedef struct M427DllMapStruct2 {
-    s8 unk0;
-    s16 unk2;
-    s16 unk4;
-} M427DllMapStruct2; // sizeof 0x6
+typedef struct CharacterEffectSlot {
+    s8 activeState;
+    s16 modelId;
+    s16 animationId;
+} CharacterEffectSlot; // sizeof 0x6
 
-typedef struct M427DllMapSubstruct {
-    s16 unk0;
-    Vec unk4;
-} M427DllMapSubstruct; // sizeof 0x10
+typedef struct RoutePoint {
+    s16 routePointType;
+    Vec worldPosition;
+} RoutePoint; // sizeof 0x10
 
-typedef struct M427DllMapSubstruct2 {
-    s16 unk0;
-    Vec unk4;
-    s16 unk10[2];
-    s16 unk14[4];
-} M427DllMapSubstruct2; // sizeof 0x1C
+typedef struct RouteEvent {
+    s16 routeType;
+    Vec worldPosition;
+    s16 linkedPointIndices[2];
+    s16 stateDurations[4];
+} RouteEvent; // sizeof 0x1C
 
-typedef struct M427DllMapSubstruct7 {
-    s16 unk0;
-    s32 unk4;
-    void *unk8;
-} M427DllMapSubstruct7; // sizeof 0xC
+typedef struct MapResourceEntry {
+    s16 resourceType;
+    s32 resourceId;
+    void *resourceData;
+} MapResourceEntry; // sizeof 0xC
 
-typedef struct M427DllMapUNKB8 {
-    s16 unk0;
-    s16 unk2;
-    s16 unk4;
-    s16 unk6;
-    u8 unk8;
-    s16 unkA;
-    float unkC;
-    float unk_10;
-    float unk_14;
-    s16 unk18;
-    s16 unk1A;
-    s16 unk1C;
-    s16 unk1E;
-    float unk20;
-    float unk24;
-    float unk28;
-    float unk2C;
-} M427DllMapUNKB8; // sizeof 0x30
+typedef struct RouteEffectState {
+    s16 routeEventIndex;
+    s16 modelId;
+    s16 lightIndex;
+    s16 spriteId;
+    u8 animationPhase;
+    s16 phaseFrame;
+    float opacity;
+    float lightRadius;
+    float spriteOpacity;
+    s16 phaseOneFrames;
+    s16 phaseTwoFrames;
+    s16 phaseThreeFrames;
+    s16 phaseFourFrames;
+    float scalePulseAngle;
+    float lightPulseAngle;
+    float effectScale;
+    float particleAngle;
+} RouteEffectState; // sizeof 0x30
 
-typedef struct M427DllMapUNK17E {
-    s16 unk0;
-    s16 unk2;
-} M427DllMapUNK17E; // sizeof 0x4
+typedef struct RouteLightModelLink {
+    s16 routePointIndex;
+    s16 modelId;
+} RouteLightModelLink; // sizeof 0x4
 
-typedef struct M427DllMapSubstruct3Sub {
-    s16 unk0;
-    void *unk4;
-    u32 unk8;
-} M427DllMapSubstruct3Sub; // sizeof 0xC
+typedef struct TeamRenderTarget {
+    s16 cameraIndex;
+    void *textureBuffer;
+    u32 textureBufferSize;
+} TeamRenderTarget; // sizeof 0xC
 
-typedef struct M427DllMapSubstruct3 {
-    s16 unk0;
-    s16 unk2[11];
-    s16 unk18;
-    s16 unk1A;
-    s16 unk1C;
-    s16 unk1E;
-    s16 unk20;
-    char unk_22[2];
-    float unk24[4];
-    s16 unk34[4];
-    s16 unk3C[4];
-    s16 unk44[0xB];
-    s16 unk5A;
-    s16 unk5C;
-    char unk_5E[2];
-    Vec unk_60;
-    Vec unk_6C;
-    Vec unk78;
-    Vec unk84;
-    f32 unk90;
-    M427DllMapSubstruct3Sub unk94;
-    char unk_A0[0xC];
-    struct M427DllMapStruct6 *unkAC;
-    s16 unkB0[1];
-    char unk_B2[0x6];
-    M427DllMapUNKB8 unkB8[2][2];
-    s16 unk178[3];
-    M427DllMapUNK17E unk17E[2][2];
-    s16 unk18E[2];
-    char unk194[4];
-} M427DllMapSubstruct3; // sizeof 0x198
+typedef struct TeamMapState {
+    s16 teamIndex;
+    s16 modelIds[11];
+    s16 modelHandleScratch;
+    s16 lightModelId;
+    s16 particleModelId;
+    s16 backgroundHookModelId;
+    s16 foregroundHookModelId;
+    char reservedBytes[2];
+    float effectAngles[4];
+    s16 effectIds[4];
+    s16 lightSlotIndices[4];
+    s16 routeEffectIndices[0xB];
+    s16 spotlightId;
+    s16 highlightLightId;
+    char reservedBytes2[2];
+    Vec spotlightPosition;
+    Vec spotlightTarget;
+    Vec cameraFocusPosition;
+    Vec worldPosition;
+    f32 facingAngle;
+    TeamRenderTarget renderTarget;
+    char reservedBytes3[0xC];
+    struct TerrainWaveRenderData *particleHookData;
+    s16 bannerModelId[1];
+    char reservedBytes4[0x6];
+    RouteEffectState routeEffects[2][2];
+    s16 activeRouteEffectCounts[3];
+    RouteLightModelLink linkedLightModels[2][2];
+    s16 activeRoutePointModels[2];
+    char reservedBytes[4];
+} TeamMapState; // sizeof 0x198
 
-typedef struct M427DllMapStruct3Sub {
-    ANIMDATA *unk_00;
-    ANIMDATA *unk_04;
-    float unk_08;
-    float unk_0C;
-    float unk_10;
-    float unk_14;
-} M427DllMapStruct3Sub; // sizeof 0x18
+typedef struct BannerAnimationSet {
+    ANIMDATA *primaryAnimation;
+    ANIMDATA *secondaryAnimation;
+    float offsetX;
+    float offsetY;
+    float scaleX;
+    float scaleY;
+} BannerAnimationSet; // sizeof 0x18
 
-typedef struct M427DllMapStruct3 {
-    u8 unk0;
-    M427DllMapSubstruct3 unk4[2];
-    M427DllMapStruct3Sub unk334;
-    M427DllMapSubstruct2 unk34C[3];
-    M427DllMapSubstruct unk3A0[5];
-} M427DllMapStruct3; // sizeof 0x3F0
+typedef struct MapState {
+    u8 mapReady;
+    TeamMapState teamStates[2];
+    BannerAnimationSet bannerAnimationResources;
+    RouteEvent routeEvents[3];
+    RoutePoint routePoints[5];
+} MapState; // sizeof 0x3F0
 
-typedef struct M427DllMapSubstruct5 {
-    s16 unk0;
-    s16 unk2;
-    s16 unk4;
-    s16 unk6;
-    Vec unk8;
-    char unk14[0x8];
-} M427DllMapSubstruct5; // sizeof 0x1C
+typedef struct GridQuad {
+    s16 firstVertexIndex;
+    s16 secondVertexIndex;
+    s16 thirdVertexIndex;
+    s16 fourthVertexIndex;
+    Vec vertexNormal;
+    char reservedBytes[0x8];
+} GridQuad; // sizeof 0x1C
 
-typedef struct M427DllMapStruct4 {
-    s16 unk0;
-    Vec *unk4;
-    Vec2f *unk8;
-    Vec *unkC;
-    GXColor *unk10;
-    s16 unk14;
-    s16 unk16;
-    s16 unk18;
-    M427DllMapSubstruct5 *unk1C;
-    void *unk20;
-    u32 unk24;
-    void *unk28;
-    u32 unk2C;
-    void *unk30;
-    u32 unk34;
-    f32 unk38;
-    f32 unk3C;
-    f32 unk40;
-    f32 unk44;
-    s16 unk48[1];
-    s16 unk4A;
-} M427DllMapStruct4; // sizeof 0x4C
+typedef struct MapSurfaceRenderData {
+    s16 renderModelId;
+    Vec *vertexPositions;
+    Vec2f *textureCoordinates;
+    Vec *animatedPositions;
+    GXColor *vertexColors;
+    s16 vertexCount;
+    s16 gridWidth;
+    s16 gridHeight;
+    GridQuad *gridQuads;
+    void *displayList;
+    u32 displayListSize;
+    void *textureBuffer;
+    u32 textureBufferSize;
+    void *secondaryTextureBuffer;
+    u32 secondaryTextureBufferSize;
+    f32 textureOffsetX;
+    f32 textureOffsetY;
+    f32 rotationAngleX;
+    f32 rotationAngleY;
+    s16 particleSpawnTimers[1];
+    s16 quadCounterScratch;
+} MapSurfaceRenderData; // sizeof 0x4C
 
-typedef struct M427DllMapStruct5 {
-    f32 unk0;
-    f32 unk4;
-    f32 unk8;
-    f32 unkC;
-    f32 unk10;
-} M427DllMapStruct5; // sizeof 0x14
+typedef struct TeamMarkerRenderData {
+    f32 positionX;
+    f32 positionY;
+    f32 positionZ;
+    f32 collisionRadius;
+    f32 opacity;
+} TeamMarkerRenderData; // sizeof 0x14
 
-typedef struct M427DllMapStruct6 {
-    s16 unk_00;
-    Vec *unk_04;
-    Vec *unk_08;
-    float unk_0C;
-    float unk_10;
-    float unk_14;
-    float unk_18;
-    float unk_1C;
-    float unk_20;
-    float unk_24;
-    ANIMDATA *unk_28;
-    Vec *unk_2C;
-    Vec2f *unk_30;
-    Vec *unk_34;
-    s16 unk_38;
-    s16 unk_3A;
-    s16 unk_3C;
-    char pad_3E[2];
-    void *unk_40;
-    u32 unk_44;
-    M427DllMapSubstruct5 *unk_48;
-    float unk_4C;
-    float unk_50;
-    float unk_54;
-    float unk_58;
-    float unk_5C;
-    /* 0x60 */ float unk_60;
-} M427DllMapStruct6; /* size = 0x64, stored in unk_120 */
+typedef struct TerrainWaveRenderData {
+    s16 cameraIndex;
+    Vec *sourcePositions;
+    Vec *targetPositions;
+    float terrainOffset;
+    float particleScale;
+    float scrollSineOffset;
+    float terrainWaveState;
+    float textureScrollOffsetY;
+    float textureScrollOffsetX;
+    float textureScrollPhase;
+    ANIMDATA *animationData;
+    Vec *terrainVertices;
+    Vec2f *terrainTextureCoordinates;
+    Vec *terrainNormals;
+    s16 vertexCount;
+    s16 gridColumns;
+    s16 gridRowCount;
+    char reservedBytes3E[2];
+    void *displayList;
+    u32 displayListSize;
+    GridQuad *gridQuads;
+    float wavePhaseX;
+    float wavePhaseZ;
+    float wavePhaseStepX;
+    float wavePhaseStepZ;
+    float waveAmplitudeX;
+    /* 0x60 */ float waveAmplitudeZ;
+} TerrainWaveRenderData; /* size = 0x64 */
 
-typedef struct M427DllMapSubstruct6 {
-    /* 0x00 */ float unk_00;
-    /* 0x04 */ float unk_04;
-    /* 0x08 */ float unk_08;
-    /* 0x0C */ char pad_0C[0xC]; /* maybe part of unk_08[4]? */
-    /* 0x18 */ float unk_18;
-    /* 0x1C */ float unk_1C;
-    /* 0x20 */ float unk_20;
-    /* 0x24 */ float unk_24;
-    /* 0x28 */ float unk_28;
-    /* 0x2C */ float unk_2C;
-    /* 0x30 */ float unk_30;
-    /* 0x34 */ s16 unk_34;
-    /* 0x36 */ s16 unk_36;
-    /* 0x38 */ s16 unk_38;
-    /* 0x3A */ char pad_3A[2];
-    /* 0x3C */ s32 unk_3C;
-    /* 0x40 */ s16 unk_40;
-    /* 0x42 */ char pad_42[2];
-    /* 0x44 */ float unk_44;
-    /* 0x48 */ Vec unk_48;
-    /* 0x54 */ Vec unk_54;
-    /* 0x60 */ s16 unk_60;
-    /* 0x62 */ s8 unk_62;
-    /* 0x63 */ char pad_63[1];
-} M427DllMapSubstruct6; // sizeof 0x64
+typedef struct ParticleState {
+    /* 0x00 */ float velocityX;
+    /* 0x04 */ float velocityY;
+    /* 0x08 */ float velocityZ;
+    /* 0x0C */ char reservedBytes0C[0xC]; /* maybe part of velocityZ[4]? */
+    /* 0x18 */ float decelerationX;
+    /* 0x1C */ float accelerationY;
+    /* 0x20 */ float decelerationZ;
+    /* 0x24 */ float scale;
+    /* 0x28 */ float scaleDelta;
+    /* 0x2C */ float opacity;
+    /* 0x30 */ float opacityDelta;
+    /* 0x34 */ s16 animationFrame;
+    /* 0x36 */ s16 animationFrameCount;
+    /* 0x38 */ s16 particleType;
+    /* 0x3A */ char reservedBytes3A[2];
+    /* 0x3C */ s32 particleStateFlags;
+    /* 0x40 */ s16 particleIndex;
+    /* 0x42 */ char reservedBytes42[2];
+    /* 0x44 */ float rotationAngle;
+    /* 0x48 */ Vec rotation;
+    /* 0x54 */ Vec position;
+    /* 0x60 */ s16 textureTileIndex;
+    /* 0x62 */ s8 active;
+    /* 0x63 */ char reservedBytes63[1];
+} ParticleState; // sizeof 0x64
 
-typedef void (*M427DllHook)(HU3DMODEL *model, struct M427DllMapStruct7 *particle, Mtx matrix);
+typedef void (*ParticleRenderCallback)(HU3DMODEL *model, struct ParticleSystemRenderData *particle, Mtx matrix);
 
-typedef struct M427DllMapStruct7 {
-    /* 0x00 */ s16 unk_00;
-    /* 0x02 */ char pad_02[2];
-    /* 0x04 */ u32 unk_04;
-    /* 0x08 */ u8 unk_08;
-    /* 0x09 */ char pad_09[3]; /* maybe part of unk_08[4]? */
-    /* 0x0C */ M427DllHook unk_0C;
-    /* 0x10 */ ANIMDATA *unk_10;
-    /* 0x14 */ s16 unk_14;
-    /* 0x16 */ char pad_16[2];
-    /* 0x18 */ M427DllMapSubstruct6 *unk_18;
-    /* 0x1C */ Vec *unk_1C;
-    /* 0x20 */ Vec2f *unk_20;
-    /* 0x24 */ GXColor *unk_24;
-    /* 0x28 */ void *unk_28;
-    /* 0x2C */ Vec unk_2C;
-    /* 0x38 */ float unk_38;
-    /* 0x3C */ float unk_3C;
-    /* 0x40 */ float unk_40;
-    /* 0x44 */ float unk_44;
-    /* 0x48 */ float unk_48;
-    /* 0x4C */ float unk_4C;
-    /* 0x50 */ float unk_50;
-    /* 0x54 */ float unk_54;
-    /* 0x58 */ float unk_58;
-    /* 0x5C */ Vec2f *unk_5C;
-    /* 0x60 */ float unk_60;
-    /* 0x64 */ float unk_64;
-} M427DllMapStruct7; /* size = 0x68, stored in unk_120 */
+typedef struct ParticleSystemRenderData {
+    /* 0x00 */ s16 particleCount;
+    /* 0x02 */ char reservedBytes02[2];
+    /* 0x04 */ u32 displayListSize;
+    /* 0x08 */ u8 renderMode;
+    /* 0x09 */ char reservedBytes09[3]; /* maybe part of renderMode[4]? */
+    /* 0x0C */ ParticleRenderCallback particleHook;
+    /* 0x10 */ ANIMDATA *animationData;
+    /* 0x14 */ s16 textureTileCount;
+    /* 0x16 */ char reservedBytes16[2];
+    /* 0x18 */ ParticleState *particles;
+    /* 0x1C */ Vec *positions;
+    /* 0x20 */ Vec2f *textureCoordinates;
+    /* 0x24 */ GXColor *colors;
+    /* 0x28 */ void *displayList;
+    /* 0x2C */ Vec baseRotation;
+    /* 0x38 */ float topLeftX;
+    /* 0x3C */ float topRightX;
+    /* 0x40 */ float bottomRightX;
+    /* 0x44 */ float bottomLeftX;
+    /* 0x48 */ float topLeftY;
+    /* 0x4C */ float topRightY;
+    /* 0x50 */ float bottomRightY;
+    /* 0x54 */ float bottomLeftY;
+    /* 0x58 */ float particleScale;
+    /* 0x5C */ Vec2f *textureTiles;
+    /* 0x60 */ float textureScaleX;
+    /* 0x64 */ float textureScaleY;
+} ParticleSystemRenderData; /* size = 0x68 */
 
-GXColor lbl_1_data_E8 = { 0xFF, 0xFF, 0xFF, 0xFF };
+GXColor whiteTintColor = { 0xFF, 0xFF, 0xFF, 0xFF };
 
-OMOBJ *lbl_1_bss_548;
-M427DllMapStruct3 lbl_1_bss_158;
-M427DllMapStruct2 lbl_1_bss_F8[0x10];
-ANIMDATA *lbl_1_bss_F4;
-M427DllMapStruct *lbl_1_bss_F0;
-s16 lbl_1_bss_EC[2];
-s16 lbl_1_bss_E8[2];
-M427DllMapStruct5 *lbl_1_bss_E4;
-M427DllMapStruct4 lbl_1_bss_98;
-f32 lbl_1_bss_94;
-s8 lbl_1_bss_91;
-s8 lbl_1_bss_90;
+OMOBJ *mapControllerObject;
+MapState mapState;
+CharacterEffectSlot characterEffectSlots[0x10];
+ANIMDATA *mapEffectAnimationData;
+MapQuadRenderData *mapQuadRenderData;
+s16 teamPrimaryAnimationIds[2];
+s16 teamSecondaryAnimationIds[2];
+TeamMarkerRenderData *teamMarkerRenderData;
+MapSurfaceRenderData mapSurfaceRenderState;
+f32 mapAnimationFrame;
+s8 mapEffectState;
+s8 mapRenderState;
 
-void fn_1_372C(void);
-void fn_1_4218(OMOBJ *object);
-void fn_1_44F4(f32, f32, f32, f32, f32);
-void fn_1_48EC(HU3DMODEL *model, Mtx matrix);
-void fn_1_4D7C(HU3DMODEL *model, Mtx matrix);
-void fn_1_50A0(HU3DMODEL *model, Mtx matrix);
-void fn_1_510C(s32, s16, s16);
-void fn_1_558C(M427DllMapStruct4 *);
-void fn_1_618C(HU3DMODEL *model, Mtx matrix);
-void fn_1_6760(OMOBJ *object);
-void fn_1_C2C8(Vec *arg0, Vec *arg1, Vec *arg2, Vec *arg3);
-void fn_1_D22C(HU3DMODEL *model, struct M427DllMapStruct7 *arg1, Mtx matrix);
-s16 fn_1_D63C(ANIMDATA *arg0, s16 arg1, float arg8, s16 arg2, s16 arg3);
-void fn_1_DB80(s16);
-void fn_1_DC64(s16, M427DllHook);
-void fn_1_DC9C(s16, u8);
+void LoadMapRouteData(void);
+void UpdateMapController(OMOBJ *object);
+void SetMapQuadVertices(f32 positionX, f32 positionY, f32 positionZ, f32 particleScale, f32 rotationAngle);
+void RenderMapQuad(HU3DMODEL *model, Mtx matrix);
+void RenderMapQuadWithOffset(HU3DMODEL *model, Mtx matrix);
+void RenderMapQuadOverlay(HU3DMODEL *model, Mtx matrix);
+void SetMapSurfaceAnimation(s32 animationType, s16 gridWidth, s16 gridHeight);
+void BuildMapSurfaceDisplayList(MapSurfaceRenderData *surface);
+void RenderMapSurface(HU3DMODEL *model, Mtx matrix);
+void UpdateTeamMapState(OMOBJ *object);
+void SetVectorFrame(Vec *firstPoint, Vec *secondPoint, Vec *thirdPoint, Vec *normal);
+void RenderParticleSystem(HU3DMODEL *model, struct ParticleSystemRenderData *particleSystem, Mtx matrix);
+s16 CreateMapAnimation(ANIMDATA *animationData, s16 animationType, float animationSpeed, s16 horizontalTileCount, s16 verticalTileCount);
+void DestroyMapAnimation(s16 animationId);
+void SetParticleRenderCallback(s16 animationId, ParticleRenderCallback renderCallback);
+void SetParticleRenderMode(s16 animationId, u8 renderMode);
 
-void fn_1_72E4(OMOBJ *arg0);
-void fn_1_73BC(void);
-void fn_1_794C(M427DllMapSubstruct3 *arg0, s16 arg1);
-void fn_1_7C34(void);
-void fn_1_7E60(s16 arg0, M427DllMapSubstruct3 *arg1);
-void fn_1_7F38(void);
-void fn_1_85D4(s16 arg0, M427DllMapSubstruct3 *arg1);
-void fn_1_8768(M427DllMapSubstruct3 *arg0, M427DllMapUNKB8 *arg1, s16 arg2, float arg8, float arg9);
-void fn_1_8E1C(u8 arg0, M427DllMapSubstruct3 *arg1, M427DllMapUNKB8 *arg2);
-void fn_1_8F90(OMOBJ *object);
-void fn_1_9240(void);
-void fn_1_9318(s16 *arg0, s16 arg1);
-void fn_1_93EC(s32 arg0, s32 arg1, float arg8, float arg9, float argA, float argB);
-s16 fn_1_95E8(s32 arg0, s16 arg1, s16 arg2, float arg8, float arg9, float argA, float argB, float argC);
-void fn_1_9958(s16 arg0, u8 arg1);
-void fn_1_999C(s16 arg0, u8 arg1);
-void fn_1_99E4(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4);
-void fn_1_9A2C(s16 arg0, float arg8, float arg9, float argA);
-void fn_1_9AA0(s16 arg0, float arg8, float arg9, float argA);
-void fn_1_9B14(s16 arg0, float arg8, float arg9, float argA);
-void fn_1_9B88(HU3DMODEL *model, Mtx matrix);
-void fn_1_A148(HU3DMODEL *model, Mtx matrix);
-s16 fn_1_A1F4(s32 arg0, s16 arg1, s16 arg2, s16 arg3, float arg8, Vec *arg4, Vec *arg5);
-void fn_1_A7F8(M427DllMapStruct6 *arg0);
-void fn_1_B194(M427DllMapStruct6 *arg0, float arg8, Vec *arg1);
-void fn_1_B3CC(HU3DMODEL *model, Mtx matrix);
-void fn_1_C154(HU3DMODEL *model, Mtx matrix);
-void fn_1_C200(HU3DMODEL *model, Mtx matrix);
-void fn_1_C2AC(Vec *arg0, float arg8, float arg9, float argA);
-void fn_1_C2BC(Vec2f *arg0, float arg8, float arg9);
-s16 fn_1_C41C(float arg8, float arg9, float argA, float argB, float argC, float argD, u8 arg0, u8 arg1, u8 arg2);
-void fn_1_C528(s16 arg0, s16 arg1, float arg8, float arg9, float argA, float argB, float argC, float argD, u8 arg2, u8 arg3, u8 arg4);
-void fn_1_C68C(HU3DLIGHT *arg0, Vec *arg1, Vec *arg2, GXColor *arg3);
-void fn_1_C76C(u8 arg0, float arg8, float arg9, float argA, s16 arg1, float argB, float argC, s16 arg2);
-s16 fn_1_D430(float arg8, float arg9, float argA, s16 arg0);
-M427DllMapSubstruct6 *fn_1_D4FC(s16 arg0, Vec *arg1, Vec *arg2, float arg8, GXColor *arg3);
-M427DllMapSubstruct6 *fn_1_DC0C(s16 arg0, s16 arg1);
-void fn_1_DCD4(HU3DMODEL *model, Mtx matrix);
-void fn_1_E2B0(Vec2f *arg0, s16 arg1, s16 arg2, float arg8, float arg9);
-void fn_1_E37C(Vec2f *arg0, Vec2f *arg1, s16 arg2, float arg8, float arg9);
-void fn_1_E420(Vec *arg0, Vec *arg1, Vec *arg2, s16 arg3);
+void UpdateMapEffects(OMOBJ *object);
+void InitializeTeamRouteEffects(void);
+void SetTeamMapPosition(TeamMapState *teamState, s16 teamIndex);
+void UpdateTeamRouteEffects(void);
+void SetTeamRouteState(s16 teamIndex, TeamMapState *teamState);
+void UpdateTeamRouteModels(void);
+void SetTeamRouteAnimation(s16 teamIndex, TeamMapState *teamState);
+void UpdateRouteEffectState(TeamMapState *teamState, RouteEffectState *effectState, s16 teamIndex, float effectIntensity, float spriteOpacity);
+void InitializeRouteEffect(u8 effectIndex, TeamMapState *teamState, RouteEffectState *effectState);
+void UpdateRouteEffectController(OMOBJ *object);
+void UpdateBannerAnimation(void);
+void SetBannerAnimationFrame(s16 *animationIds, s16 animationFrame);
+void SetBannerTextureScale(s32 primaryAnimationAsset, s32 secondaryAnimationAsset, float sourceTextureWidth, float sourceTextureHeight, float targetTextureWidth, float targetTextureHeight);
+s16 CreateMapBanner(s32 assetId, s16 teamIndex, s16 animationId, float positionX, float positionY, float positionZ, float scale, float rotation);
+void SetMapModelAnimation(s16 modelId, u8 animationIndex);
+void SetMapModelAnimationSpeed(s16 modelId, u8 animationSpeed);
+void SetMapModelColor(s16 modelId, u8 red, u8 green, u8 blue, u8 alpha);
+void SetMapModelPosition(s16 modelId, float positionX, float positionY, float positionZ);
+void SetMapModelRotation(s16 modelId, float rotationX, float rotationY, float rotationZ);
+void SetMapModelScale(s16 modelId, float scaleX, float scaleY, float scaleZ);
+void RenderMapEffectModel(HU3DMODEL *model, Mtx matrix);
+void RenderMapEffectOverlay(HU3DMODEL *model, Mtx matrix);
+s16 CreateTeamMarker(s32 assetId, s16 animationId, s16 modelIndex, s16 teamIndex, float markerScale, Vec *markerPosition, Vec *markerRotation);
+void UpdateTeamMarker(TerrainWaveRenderData *terrain);
+void UpdateTerrainWave(TerrainWaveRenderData *terrain, float waveAmplitude, Vec *waveDirection);
+void RenderTerrainSurface(HU3DMODEL *model, Mtx matrix);
+void RenderMapHighlight(HU3DMODEL *model, Mtx matrix);
+void RenderMapShadow(HU3DMODEL *model, Mtx matrix);
+void SetVectorComponents(Vec *vector, float x, float y, float z);
+void SetVector2Components(Vec2f *vector, float x, float y);
+s16 CreateMapLight(float x1, float y1, float z1, float x2, float y2, float z2, u8 r, u8 g, u8 b);
+void SetMapLight(s16 modelId, s16 lightIndex, float x1, float y1, float z1, float x2, float y2, float z2, u8 r, u8 g, u8 b);
+void ConfigureMapLight(HU3DLIGHT *light, Vec *lightPosition, Vec *lightTarget, GXColor *lightColor);
+void CreateMapParticleSystem(u8 particleType, float positionX, float positionY, float positionZ, s16 particleCount, float scale, float rotation, s16 textureTileCount);
+s16 CalculateParticleAnimationFrame(float elapsedFrames, float animationSpeed, float frameOffset, s16 frameCount);
+ParticleState *CreateMapParticle(s16 particleType, Vec *position, Vec *velocity, float rotationAngle, GXColor *particleColor);
+ParticleState *FindMapParticle(s16 animationId, s16 particleIndex);
+void RenderMapParticles(HU3DMODEL *model, Mtx matrix);
+void SetTextureScrollOffset(Vec2f *textureOffset, s16 textureTileX, s16 textureTileY, float scrollX, float scrollY);
+void InterpolateTextureScroll(Vec2f *sourceOffset, Vec2f *targetOffset, s16 interpolationFrames, float scrollX, float scrollY);
+void CalculateEffectDirection(Vec *sourcePosition, Vec *targetPosition, Vec *direction, s16 teamIndex);
 
-void fn_1_32F4(HUPROCESS *arg0)
+void InitializeMapSystem(HUPROCESS *mapProcess)
 {
-    s16 var_r31;
-    ANIMDATA *temp_r30;
-    s32 var_r29;
-    s32 var_r28;
+    s16 modelSlotIndex;
+    ANIMDATA *effectAnimationData;
+    s32 primaryCameraId;
+    s32 secondaryCameraId;
 
-    lbl_1_bss_158.unk0 = 0;
-    lbl_1_bss_548 = omAddObjEx(arg0, 0x7F, 0, 0, -1, fn_1_6760);
-    lbl_1_bss_F0 = HuMemDirectMallocNum(HEAP_HEAP, 0x10 * sizeof(M427DllMapStruct), HU_MEMNUM_OVL);
+    mapState.mapReady = 0;
+    mapControllerObject = omAddObjEx(mapProcess, 0x7F, 0, 0, -1, UpdateTeamMapState);
+    mapQuadRenderData = HuMemDirectMallocNum(HEAP_HEAP, 0x10 * sizeof(MapQuadRenderData), HU_MEMNUM_OVL);
 
-    for (var_r31 = 0; var_r31 < 0x10; var_r31++) {
-        lbl_1_bss_F0[var_r31].unk2 = -1;
+    for (modelSlotIndex = 0; modelSlotIndex < 0x10; modelSlotIndex++) {
+        mapQuadRenderData[modelSlotIndex].cameraIndex = -1;
     }
-    temp_r30 = HuSprAnimRead(HuDataReadNum(0x3A0017, HU_MEMNUM_OVL));
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        lbl_1_bss_EC[var_r31] = fn_1_D63C(temp_r30, 0x200, 80.0f, 0x40, 0x40);
-        fn_1_DC64(lbl_1_bss_EC[var_r31], fn_1_D22C);
-        fn_1_DC9C(lbl_1_bss_EC[var_r31], 1);
-        Hu3DModelLayerSet(lbl_1_bss_EC[var_r31], 7);
-        if (var_r31 == 0) {
-            var_r29 = 1;
+    effectAnimationData = HuSprAnimRead(HuDataReadNum(0x3A0017, HU_MEMNUM_OVL));
+    for (modelSlotIndex = 0; modelSlotIndex < 2; modelSlotIndex++) {
+        teamPrimaryAnimationIds[modelSlotIndex] = CreateMapAnimation(effectAnimationData, 0x200, 80.0f, 0x40, 0x40);
+        SetParticleRenderCallback(teamPrimaryAnimationIds[modelSlotIndex], RenderParticleSystem);
+        SetParticleRenderMode(teamPrimaryAnimationIds[modelSlotIndex], 1);
+        Hu3DModelLayerSet(teamPrimaryAnimationIds[modelSlotIndex], 7);
+        if (modelSlotIndex == 0) {
+            primaryCameraId = 1;
         }
         else {
-            var_r29 = 2;
+            primaryCameraId = 2;
         }
-        Hu3DModelCameraSet(lbl_1_bss_EC[var_r31], var_r29);
+        Hu3DModelCameraSet(teamPrimaryAnimationIds[modelSlotIndex], primaryCameraId);
     }
-    temp_r30 = HuSprAnimRead(HuDataReadNum(0x3A001A, HU_MEMNUM_OVL));
-    for (var_r31 = 0; var_r31 < 2; var_r31++) {
-        lbl_1_bss_E8[var_r31] = fn_1_D63C(temp_r30, 4, 120.0f, 0, 0);
-        fn_1_DC9C(lbl_1_bss_E8[var_r31], 1);
-        Hu3DModelLayerSet(lbl_1_bss_E8[var_r31], 7);
-        if (var_r31 == 0) {
-            var_r28 = 1;
+    effectAnimationData = HuSprAnimRead(HuDataReadNum(0x3A001A, HU_MEMNUM_OVL));
+    for (modelSlotIndex = 0; modelSlotIndex < 2; modelSlotIndex++) {
+        teamSecondaryAnimationIds[modelSlotIndex] = CreateMapAnimation(effectAnimationData, 4, 120.0f, 0, 0);
+        SetParticleRenderMode(teamSecondaryAnimationIds[modelSlotIndex], 1);
+        Hu3DModelLayerSet(teamSecondaryAnimationIds[modelSlotIndex], 7);
+        if (modelSlotIndex == 0) {
+            secondaryCameraId = 1;
         }
         else {
-            var_r28 = 2;
+            secondaryCameraId = 2;
         }
-        Hu3DModelCameraSet(lbl_1_bss_E8[var_r31], var_r28);
+        Hu3DModelCameraSet(teamSecondaryAnimationIds[modelSlotIndex], secondaryCameraId);
     }
-    fn_1_372C();
+    LoadMapRouteData();
 
-    for (var_r31 = 0; var_r31 < 0x10; var_r31++) {
-        lbl_1_bss_F8[var_r31].unk0 = -1;
-        lbl_1_bss_F8[var_r31].unk2 = Hu3DModelCreateFile(0x3A0012);
-        Hu3DModelAttrSet(lbl_1_bss_F8[var_r31].unk2, 1);
-        Hu3DModelScaleSet(lbl_1_bss_F8[var_r31].unk2, 0.75f, 0.75f, 0.75f);
-        Hu3DModelLayerSet(lbl_1_bss_F8[var_r31].unk2, 4);
-        Hu3DMotionSpeedSet(lbl_1_bss_F8[var_r31].unk2, 2.0f);
-        lbl_1_bss_F8[var_r31].unk4 = Hu3DAnimCreate(HuDataReadNum(0x3A001B, HU_MEMNUM_OVL), lbl_1_bss_F8[var_r31].unk2, "db91");
-        Hu3DAnimSpeedSet(lbl_1_bss_F8[var_r31].unk4, 2.0f);
+    for (modelSlotIndex = 0; modelSlotIndex < 0x10; modelSlotIndex++) {
+        characterEffectSlots[modelSlotIndex].activeState = -1;
+        characterEffectSlots[modelSlotIndex].modelId = Hu3DModelCreateFile(0x3A0012);
+        Hu3DModelAttrSet(characterEffectSlots[modelSlotIndex].modelId, 1);
+        Hu3DModelScaleSet(characterEffectSlots[modelSlotIndex].modelId, 0.75f, 0.75f, 0.75f);
+        Hu3DModelLayerSet(characterEffectSlots[modelSlotIndex].modelId, 4);
+        Hu3DMotionSpeedSet(characterEffectSlots[modelSlotIndex].modelId, 2.0f);
+        characterEffectSlots[modelSlotIndex].animationId = Hu3DAnimCreate(HuDataReadNum(0x3A001B, HU_MEMNUM_OVL), characterEffectSlots[modelSlotIndex].modelId, "db91");
+        Hu3DAnimSpeedSet(characterEffectSlots[modelSlotIndex].animationId, 2.0f);
     }
 }
 
-void fn_1_372C(void)
+void LoadMapRouteData(void)
 {
-    M427DllMapSubstruct *var_r29 = &lbl_1_bss_158.unk3A0[0];
-    M427DllMapSubstruct2 *var_r30 = &lbl_1_bss_158.unk34C[0];
-    s16 sp1A[5] = { 0, 0, 1, 1, 0 };
-    Vec sp60[5] = { { -700.0f, -150.0f, -7000.0f }, { 0.0f, -300.0f, -12000.0f }, { 800.0f, -350.0f, -12700.0f }, { 600.0f, -350.0f, -13700.0f },
+    RoutePoint *routePointEntry = &mapState.routePoints[0];
+    RouteEvent *routeEventEntry = &mapState.routeEvents[0];
+    s16 routePointTypes[5] = { 0, 0, 1, 1, 0 };
+    Vec routePointPositions[5] = { { -700.0f, -150.0f, -7000.0f }, { 0.0f, -300.0f, -12000.0f }, { 800.0f, -350.0f, -12700.0f }, { 600.0f, -350.0f, -13700.0f },
         { 825.0f, -450.0f, -15000.0f } };
-    s16 sp8[3] = { 1, 1, 0 };
-    s16 spE[3][2] = { { 4, 5 }, { 8, -1 }, { 9, -1 } };
-    s16 sp24[3][4] = {
+    s16 routeTypes[3] = { 1, 1, 0 };
+    s16 linkedRoutePointIndices[3][2] = { { 4, 5 }, { 8, -1 }, { 9, -1 } };
+    s16 routeStateDurations[3][4] = {
         { REFRESH_RATE * 3,   REFRESH_RATE * 2, REFRESH_RATE, REFRESH_RATE },
         { REFRESH_RATE * 1.5, REFRESH_RATE * 3, REFRESH_RATE, REFRESH_RATE },
         { REFRESH_RATE * 1.5, REFRESH_RATE * 3, REFRESH_RATE, REFRESH_RATE },
     };
-    Vec sp3C[3] = { -350.0f, -300.0f, -10000.0f, -700.0f, -600.0f, -17000.0f, 700.0f, -600.0f, -19000.0f };
-    s16 var_r28;
-    s16 var_r31;
+    Vec routeEventPositions[3] = { -350.0f, -300.0f, -10000.0f, -700.0f, -600.0f, -17000.0f, 700.0f, -600.0f, -19000.0f };
+    s16 stateIndex;
+    s16 entryIndex;
 
-    for (var_r31 = 0; var_r31 < 5; var_r31++, var_r29++) {
-        var_r29->unk0 = sp1A[var_r31];
-        var_r29->unk4.x = sp60[var_r31].x;
-        var_r29->unk4.y = sp60[var_r31].y;
-        var_r29->unk4.z = sp60[var_r31].z;
+    for (entryIndex = 0; entryIndex < 5; entryIndex++, routePointEntry++) {
+        routePointEntry->routePointType = routePointTypes[entryIndex];
+        routePointEntry->worldPosition.x = routePointPositions[entryIndex].x;
+        routePointEntry->worldPosition.y = routePointPositions[entryIndex].y;
+        routePointEntry->worldPosition.z = routePointPositions[entryIndex].z;
     }
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++, var_r30++) {
-        var_r30->unk0 = sp8[var_r31];
-        var_r30->unk4.x = sp3C[var_r31].x;
-        var_r30->unk4.y = sp3C[var_r31].y;
-        var_r30->unk4.z = sp3C[var_r31].z;
-        var_r30->unk10[0] = spE[var_r31][0];
-        var_r30->unk10[1] = spE[var_r31][1];
-        for (var_r28 = 0; var_r28 < 4; var_r28++) {
-            var_r30->unk14[var_r28] = sp24[var_r31][var_r28];
+    for (entryIndex = 0; entryIndex < 3; entryIndex++, routeEventEntry++) {
+        routeEventEntry->routeType = routeTypes[entryIndex];
+        routeEventEntry->worldPosition.x = routeEventPositions[entryIndex].x;
+        routeEventEntry->worldPosition.y = routeEventPositions[entryIndex].y;
+        routeEventEntry->worldPosition.z = routeEventPositions[entryIndex].z;
+        routeEventEntry->linkedPointIndices[0] = linkedRoutePointIndices[entryIndex][0];
+        routeEventEntry->linkedPointIndices[1] = linkedRoutePointIndices[entryIndex][1];
+        for (stateIndex = 0; stateIndex < 4; stateIndex++) {
+            routeEventEntry->stateDurations[stateIndex] = routeStateDurations[entryIndex][stateIndex];
         }
     }
 }
 
-void fn_1_3A88(void)
+void DestroyMapSystem(void)
 {
-    M427DllMapStruct *sp8;
-    s16 var_r30;
-    M427DllMapSubstruct3 *var_r31;
+    MapQuadRenderData *mapRenderRecords;
+    s16 teamIndex;
+    TeamMapState *teamState;
 
-    sp8 = lbl_1_bss_F0;
-    HuSprAnimKill(lbl_1_bss_158.unk334.unk_00);
-    HuSprAnimKill(lbl_1_bss_158.unk334.unk_04);
+    mapRenderRecords = mapQuadRenderData;
+    HuSprAnimKill(mapState.bannerAnimationResources.primaryAnimation);
+    HuSprAnimKill(mapState.bannerAnimationResources.secondaryAnimation);
 
-    for (var_r30 = 0, var_r31 = &lbl_1_bss_158.unk4[0]; var_r30 < 2; var_r30++, var_r31++) {
-        if (var_r31->unk94.unk4) {
-            HuMemDirectFree(var_r31->unk94.unk4);
+    for (teamIndex = 0, teamState = &mapState.teamStates[0]; teamIndex < 2; teamIndex++, teamState++) {
+        if (teamState->renderTarget.textureBuffer) {
+            HuMemDirectFree(teamState->renderTarget.textureBuffer);
         }
     }
 }
 
-void fn_1_3B20(s8 arg0, s16 arg1)
+void PlayTeamRouteEffect(s8 effectIndex, s16 teamIndex)
 {
-    M427DllMapStruct2 *var_r31 = &lbl_1_bss_F8[0];
-    M427DllMapSubstruct3 *temp_r30 = &lbl_1_bss_158.unk4[arg1];
-    Vec sp54[4] = { { 110.0f, -20.0f, 0.0f }, { -110.0f, -20.0f, 0.0f }, { 110.0f, -20.0f, 190.0f }, { -110.0f, -20.0f, 190.0f } };
-    Mtx sp24;
-    f32 sp14[4] = { 135.0f, 225.0f, 45.0f, 315.0f };
-    Vec sp8;
-    f32 temp_f31;
-    s16 var_r29;
-    s32 var_r27;
+    CharacterEffectSlot *effectSlot = &characterEffectSlots[0];
+    TeamMapState *teamState = &mapState.teamStates[teamIndex];
+    Vec effectSpawnOffsets[4] = { { 110.0f, -20.0f, 0.0f }, { -110.0f, -20.0f, 0.0f }, { 110.0f, -20.0f, 190.0f }, { -110.0f, -20.0f, 190.0f } };
+    Mtx rotationMatrix;
+    f32 effectFacingOffsets[4] = { 135.0f, 225.0f, 45.0f, 315.0f };
+    Vec worldSpawnPosition;
+    f32 teamFacingAngle;
+    s16 effectSlotIndex;
+    s32 cameraId;
 
-    for (var_r29 = 0; var_r29 < 0x10; var_r29++, var_r31++) {
-        if (var_r31->unk0 == -1)
+    for (effectSlotIndex = 0; effectSlotIndex < 0x10; effectSlotIndex++, effectSlot++) {
+        if (effectSlot->activeState == -1)
             break;
     }
-    if (var_r29 != 0x10) {
-        var_r31->unk0 = arg0;
-        temp_f31 = temp_r30->unk90;
-        MTXRotRad(sp24, 0x59, MTXDegToRad(temp_f31));
-        MTXMultVec(sp24, &sp54[arg0], &sp8);
-        sp8.x += temp_r30->unk84.x;
-        sp8.y += temp_r30->unk84.y;
-        sp8.z += temp_r30->unk84.z;
-        Hu3DModelAttrReset(var_r31->unk2, 1);
-        if (arg1 == 0) {
-            var_r27 = 1;
+    if (effectSlotIndex != 0x10) {
+        effectSlot->activeState = effectIndex;
+        teamFacingAngle = teamState->facingAngle;
+        MTXRotRad(rotationMatrix, 0x59, MTXDegToRad(teamFacingAngle));
+        MTXMultVec(rotationMatrix, &effectSpawnOffsets[effectIndex], &worldSpawnPosition);
+        worldSpawnPosition.x += teamState->worldPosition.x;
+        worldSpawnPosition.y += teamState->worldPosition.y;
+        worldSpawnPosition.z += teamState->worldPosition.z;
+        Hu3DModelAttrReset(effectSlot->modelId, 1);
+        if (teamIndex == 0) {
+            cameraId = 1;
         }
         else {
-            var_r27 = 2;
+            cameraId = 2;
         }
-        Hu3DModelCameraSet(var_r31->unk2, var_r27);
-        Hu3DModelPosSet(var_r31->unk2, sp8.x, sp8.y, sp8.z);
-        Hu3DModelRotSet(var_r31->unk2, 0.0f, temp_f31 + sp14[arg0], 0.0f);
-        Hu3DMotionTimeSet(var_r31->unk2, 0.0f);
-        if (arg0 < 2) {
-            Hu3DModelAmbSet(var_r31->unk2, 1.0f, 1.0f, 1.0f);
+        Hu3DModelCameraSet(effectSlot->modelId, cameraId);
+        Hu3DModelPosSet(effectSlot->modelId, worldSpawnPosition.x, worldSpawnPosition.y, worldSpawnPosition.z);
+        Hu3DModelRotSet(effectSlot->modelId, 0.0f, teamFacingAngle + effectFacingOffsets[effectIndex], 0.0f);
+        Hu3DMotionTimeSet(effectSlot->modelId, 0.0f);
+        if (effectIndex < 2) {
+            Hu3DModelAmbSet(effectSlot->modelId, 1.0f, 1.0f, 1.0f);
         }
         else {
-            Hu3DModelAmbSet(var_r31->unk2, 0.5f, 0.5f, 0.5f);
+            Hu3DModelAmbSet(effectSlot->modelId, 0.5f, 0.5f, 0.5f);
         }
-        Hu3DAnimBankSet(var_r31->unk4, 0);
+        Hu3DAnimBankSet(effectSlot->animationId, 0);
     }
 }
 
-void fn_1_3DBC(void)
+void UpdateCharacterEffectAnimations(void)
 {
-    M427DllMapStruct2 *var_r31;
-    s16 var_r30;
-    f32 temp_f31;
+    CharacterEffectSlot *effectSlot;
+    s16 effectSlotIndex;
+    f32 modelMotionEndTime;
 
-    var_r31 = &lbl_1_bss_F8[0];
-    for (var_r30 = 0; var_r30 < 0x10; var_r30++, var_r31++) {
-        if (var_r31->unk0 != -1) {
-            temp_f31 = Hu3DMotionMaxTimeGet(var_r31->unk2);
-            if (Hu3DMotionTimeGet(var_r31->unk2) >= temp_f31) {
-                var_r31->unk0 = -1;
-                Hu3DModelAttrSet(var_r31->unk2, 1U);
+    effectSlot = &characterEffectSlots[0];
+    for (effectSlotIndex = 0; effectSlotIndex < 0x10; effectSlotIndex++, effectSlot++) {
+        if (effectSlot->activeState != -1) {
+            modelMotionEndTime = Hu3DMotionMaxTimeGet(effectSlot->modelId);
+            if (Hu3DMotionTimeGet(effectSlot->modelId) >= modelMotionEndTime) {
+                effectSlot->activeState = -1;
+                Hu3DModelAttrSet(effectSlot->modelId, 1U);
             }
         }
     }
 }
 
-void fn_1_3E58(OMOBJ *arg0)
+void ResetTeamMapRenderState(OMOBJ *mapObject)
 {
-    s32 sp8[8];
-    M427DllMapStruct *var_r26;
-    M427DllMapSubstruct3 *var_r31;
-    HU3DMODEL *temp_r25;
-    s16 var_r30;
-    M427DllMapStruct4 *var_r29;
-    s16 var_r28;
-    s16 var_r27;
+    s32 teamCharacterModelIds[8];
+    MapQuadRenderData *spriteRecord;
+    TeamMapState *teamState;
+    HU3DMODEL *characterModel;
+    s16 modelOrLoopIndex;
+    MapSurfaceRenderData *mapRenderState;
+    s16 teamIndex;
+    s16 modelIndex;
 
-    var_r29 = &lbl_1_bss_98;
-    for (var_r28 = 0, var_r31 = lbl_1_bss_158.unk4; var_r28 < 2; var_r28++, var_r31++) {
-        var_r27 = fn_1_10FE8(var_r31->unk0, &sp8[0]);
+    mapRenderState = &mapSurfaceRenderState;
+    for (teamIndex = 0, teamState = mapState.teamStates; teamIndex < 2; teamIndex++, teamState++) {
+        modelIndex = findCharacterModelIndex(teamState->teamIndex, &teamCharacterModelIds[0]);
 
-        for (var_r30 = 0; var_r30 < var_r27; var_r30++) {
-            temp_r25 = &Hu3DData[sp8[var_r30]];
-            temp_r25->lLightId[4] = temp_r25->lLightId[5] = temp_r25->lLightId[6] = temp_r25->lLightId[7] = -1;
+        for (modelOrLoopIndex = 0; modelOrLoopIndex < modelIndex; modelOrLoopIndex++) {
+            characterModel = &Hu3DData[teamCharacterModelIds[modelOrLoopIndex]];
+            characterModel->lLightId[4] = characterModel->lLightId[5] = characterModel->lLightId[6] = characterModel->lLightId[7] = -1;
         }
 
-        for (var_r30 = 0; var_r30 < 2; var_r30++) {
-            for (var_r27 = 0; var_r27 < 2; var_r27++) {
-                Hu3DModelKill(var_r31->unk17E[var_r30][var_r27].unk2);
+        for (modelOrLoopIndex = 0; modelOrLoopIndex < 2; modelOrLoopIndex++) {
+            for (modelIndex = 0; modelIndex < 2; modelIndex++) {
+                Hu3DModelKill(teamState->linkedLightModels[modelOrLoopIndex][modelIndex].modelId);
             }
         }
-        for (var_r30 = 0; var_r30 < 2; var_r30++) {
-            for (var_r27 = 0; var_r27 < 2; var_r27++) {
-                Hu3DModelKill(var_r31->unkB8[var_r30][var_r27].unk2);
+        for (modelOrLoopIndex = 0; modelOrLoopIndex < 2; modelOrLoopIndex++) {
+            for (modelIndex = 0; modelIndex < 2; modelIndex++) {
+                Hu3DModelKill(teamState->routeEffects[modelOrLoopIndex][modelIndex].modelId);
             }
         }
-        HuSprAnimKill(var_r31->unkAC->unk_28);
-        Hu3DModelKill(var_r31->unk1A);
-        Hu3DModelKill(var_r31->unk1C);
-        HuMemDirectFree(var_r31->unk94.unk4);
-        var_r31->unk94.unk4 = NULL;
-        fn_1_DB80(lbl_1_bss_EC[var_r28]);
-        fn_1_DB80(lbl_1_bss_E8[var_r28]);
+        HuSprAnimKill(teamState->particleHookData->animationData);
+        Hu3DModelKill(teamState->lightModelId);
+        Hu3DModelKill(teamState->particleModelId);
+        HuMemDirectFree(teamState->renderTarget.textureBuffer);
+        teamState->renderTarget.textureBuffer = NULL;
+        DestroyMapAnimation(teamPrimaryAnimationIds[teamIndex]);
+        DestroyMapAnimation(teamSecondaryAnimationIds[teamIndex]);
 
-        for (var_r30 = 0; var_r30 < 11; var_r30++) {
-            Hu3DModelKill(var_r31->unk2[var_r30]);
+        for (modelOrLoopIndex = 0; modelOrLoopIndex < 11; modelOrLoopIndex++) {
+            Hu3DModelKill(teamState->modelIds[modelOrLoopIndex]);
         }
-        Hu3DModelKill(var_r31->unk1E);
-        Hu3DModelKill(var_r31->unk20);
+        Hu3DModelKill(teamState->backgroundHookModelId);
+        Hu3DModelKill(teamState->foregroundHookModelId);
     }
-    for (var_r28 = 0, var_r26 = lbl_1_bss_F0; var_r28 < 0x10; var_r28++, var_r26++) {
-        if (var_r26->unk2 != -1) {
-            Hu3DModelKill(var_r26->unk4);
-            HuSprAnimKill(var_r26->unk8);
-            HuMemDirectFree(var_r26->unk80);
+    for (teamIndex = 0, spriteRecord = mapQuadRenderData; teamIndex < 0x10; teamIndex++, spriteRecord++) {
+        if (spriteRecord->cameraIndex != -1) {
+            Hu3DModelKill(spriteRecord->modelId);
+            HuSprAnimKill(spriteRecord->animationData);
+            HuMemDirectFree(spriteRecord->displayList);
         }
     }
-    HuMemDirectFree(lbl_1_bss_F0);
+    HuMemDirectFree(mapQuadRenderData);
     Hu3DFogClear();
-    var_r30 = Hu3DModelCreateFile(0x3A0011);
-    Hu3DModelCameraSet(var_r30, 1);
-    Hu3DModelLayerSet(var_r30, 1);
-    Hu3DModelPosSet(var_r30, 0.0f, 0.0f, 0.0f);
-    var_r29->unk0 = Hu3DModelCreateFile(0x3A0010);
-    Hu3DModelCameraSet(var_r29->unk0, 1);
-    Hu3DModelLayerSet(var_r29->unk0, 3);
-    Hu3DModelPosSet(var_r29->unk0, 0.0f, 0.0f, 0.0f);
-    lbl_1_bss_158.unk0 = 1;
-    var_r29->unk48[0] = 0;
-    var_r29->unk4A = 0;
-    var_r29->unk4 = 0;
-    lbl_1_bss_E4 = HuMemDirectMallocNum(HEAP_HEAP, 0x10 * sizeof(M427DllMapStruct5), HU_MEMNUM_OVL);
-    for (var_r28 = 0; var_r28 < 0x10; var_r28++) {
-        lbl_1_bss_E4[var_r28].unk10 = -1.0f;
+    modelOrLoopIndex = Hu3DModelCreateFile(0x3A0011);
+    Hu3DModelCameraSet(modelOrLoopIndex, 1);
+    Hu3DModelLayerSet(modelOrLoopIndex, 1);
+    Hu3DModelPosSet(modelOrLoopIndex, 0.0f, 0.0f, 0.0f);
+    mapRenderState->renderModelId = Hu3DModelCreateFile(0x3A0010);
+    Hu3DModelCameraSet(mapRenderState->renderModelId, 1);
+    Hu3DModelLayerSet(mapRenderState->renderModelId, 3);
+    Hu3DModelPosSet(mapRenderState->renderModelId, 0.0f, 0.0f, 0.0f);
+    mapState.mapReady = 1;
+    mapRenderState->particleSpawnTimers[0] = 0;
+    mapRenderState->quadCounterScratch = 0;
+    mapRenderState->vertexPositions = 0;
+    teamMarkerRenderData = HuMemDirectMallocNum(HEAP_HEAP, 0x10 * sizeof(TeamMarkerRenderData), HU_MEMNUM_OVL);
+    for (teamIndex = 0; teamIndex < 0x10; teamIndex++) {
+        teamMarkerRenderData[teamIndex].opacity = -1.0f;
     }
-    fn_1_510C(0, 0x32, 0x32);
-    arg0->objFunc = fn_1_4218;
+    SetMapSurfaceAnimation(0, 0x32, 0x32);
+    mapObject->objFunc = UpdateMapController;
 }
 
-void fn_1_4218(OMOBJ *arg0)
+void UpdateMapController(OMOBJ *mapObject)
 {
-    f32 var_f31;
-    f32 temp_f30;
-    f32 var_f29;
-    M427DllMapStruct5 *var_r31;
-    s16 var_r30;
-    M427DllMapStruct4 *var_r29;
-    s32 temp_r28;
+    f32 particleSpawnX;
+    f32 particleSpawnY;
+    f32 particleOpacity;
+    TeamMarkerRenderData *particleRecord;
+    s16 particleSlotIndex;
+    MapSurfaceRenderData *mapRenderState;
+    s32 mapControllerScratch;
 
-    var_r29 = &lbl_1_bss_98;
-    var_r31 = &lbl_1_bss_E4[0];
-    for (var_r30 = 0; var_r30 < 1; var_r30++) {
-        if (--var_r29->unk48[var_r30] < 0.0f) {
-            var_r29->unk48[var_r30] = (f32)((((rand8() << 8) | rand8()) % 241) + 0x78);
-            var_f31 = ((((rand8() << 8) | rand8()) % 4001) - 0x7D0);
-            temp_f30 = -3000.0f;
-            var_f29 = ((((rand8() << 8) | rand8()) % 21) + 0xA);
-            fn_1_44F4(var_f31, 0.0f, temp_f30, var_f29, 0.0f);
+    mapRenderState = &mapSurfaceRenderState;
+    particleRecord = &teamMarkerRenderData[0];
+    for (particleSlotIndex = 0; particleSlotIndex < 1; particleSlotIndex++) {
+        if (--mapRenderState->particleSpawnTimers[particleSlotIndex] < 0.0f) {
+            mapRenderState->particleSpawnTimers[particleSlotIndex] = (f32)((((rand8() << 8) | rand8()) % 241) + 0x78);
+            particleSpawnX = ((((rand8() << 8) | rand8()) % 4001) - 0x7D0);
+            particleSpawnY = -3000.0f;
+            particleOpacity = ((((rand8() << 8) | rand8()) % 21) + 0xA);
+            SetMapQuadVertices(particleSpawnX, 0.0f, particleSpawnY, particleOpacity, 0.0f);
         }
     }
 
-    for (var_r30 = 0; var_r30 < 0x10; var_r30++, var_r31++) {
-        if (-1.0f != var_r31->unk10) {
-            var_r31->unkC += 20.0f;
-            var_r31->unk10 -= 0.2f;
-            if (var_r31->unk10 < 0.0f) {
-                var_r31->unk10 = -1.0f;
+    for (particleSlotIndex = 0; particleSlotIndex < 0x10; particleSlotIndex++, particleRecord++) {
+        if (-1.0f != particleRecord->opacity) {
+            particleRecord->collisionRadius += 20.0f;
+            particleRecord->opacity -= 0.2f;
+            if (particleRecord->opacity < 0.0f) {
+                particleRecord->opacity = -1.0f;
             }
         }
     }
 }
 
-void fn_1_44F4(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4)
+void SetMapQuadVertices(f32 positionX, f32 positionY, f32 positionZ, f32 particleScale, f32 rotationAngle)
 {
-    M427DllMapStruct5 *var_r31;
-    s16 var_r30;
+    TeamMarkerRenderData *particleRecord;
+    s16 particleSlotIndex;
 
-    var_r31 = &lbl_1_bss_E4[0];
+    particleRecord = &teamMarkerRenderData[0];
 
-    for (var_r30 = 0; var_r30 < 0x10; var_r30++, var_r31++) {
-        if (-1.0f == var_r31->unk10)
+    for (particleSlotIndex = 0; particleSlotIndex < 0x10; particleSlotIndex++, particleRecord++) {
+        if (-1.0f == particleRecord->opacity)
             break;
     }
-    if (var_r30 != 0x10) {
-        var_r31->unk0 = arg0;
-        var_r31->unk4 = arg1;
-        var_r31->unk8 = arg2;
-        var_r31->unkC = arg4;
-        var_r31->unk10 = arg3;
+    if (particleSlotIndex != 0x10) {
+        particleRecord->positionX = positionX;
+        particleRecord->positionY = positionY;
+        particleRecord->positionZ = positionZ;
+        particleRecord->collisionRadius = rotationAngle;
+        particleRecord->opacity = particleScale;
     }
 }
 
-f32 lbl_1_data_F4 = 450.0f;
+f32 mapQuadScreenWidth = 450.0f;
 
-f32 fn_1_4570(Vec *arg0)
+f32 CalculateMapDistance(Vec *position)
 {
-    f32 temp_f31;
-    f32 temp_f30;
-    f32 var_f28;
-    f32 var_f27;
-    f32 var_f23;
-    M427DllMapStruct5 *var_r31;
-    s16 var_r30;
+    f32 horizontalDistanceX;
+    f32 horizontalDistanceZ;
+    f32 distanceFromParticle;
+    f32 heightOffset;
+    f32 distanceFromRadius;
+    TeamMarkerRenderData *particleRecord;
+    s16 particleSlotIndex;
 
-    var_r31 = &lbl_1_bss_E4[0];
-    var_f27 = 0.0f;
+    particleRecord = &teamMarkerRenderData[0];
+    heightOffset = 0.0f;
 
-    for (var_r30 = 0; var_r30 < 0x10; var_r30++, var_r31++) {
-        if (-1.0f != var_r31->unk10) {
-            temp_f31 = arg0->x - var_r31->unk0;
-            temp_f30 = arg0->z - var_r31->unk8;
-            if (FABS(temp_f31) > (var_r31->unkC + lbl_1_data_F4)) {
-                if (FABS(temp_f30) > (var_r31->unkC + lbl_1_data_F4)) {
+    for (particleSlotIndex = 0; particleSlotIndex < 0x10; particleSlotIndex++, particleRecord++) {
+        if (-1.0f != particleRecord->opacity) {
+            horizontalDistanceX = position->x - particleRecord->positionX;
+            horizontalDistanceZ = position->z - particleRecord->positionZ;
+            if (FABS(horizontalDistanceX) > (particleRecord->collisionRadius + mapQuadScreenWidth)) {
+                if (FABS(horizontalDistanceZ) > (particleRecord->collisionRadius + mapQuadScreenWidth)) {
                     continue;
                 }
             }
-            var_f28 = sqrtf((temp_f31 * temp_f31) + (temp_f30 * temp_f30));
-            var_f23 = FABS(var_f28 - var_r31->unkC);
-            var_f28 = 1.0f - (var_f23 / lbl_1_data_F4);
-            if (var_f28 < 0.0f) {
-                var_f28 = 0.0f;
+            distanceFromParticle = sqrtf((horizontalDistanceX * horizontalDistanceX) + (horizontalDistanceZ * horizontalDistanceZ));
+            distanceFromRadius = FABS(distanceFromParticle - particleRecord->collisionRadius);
+            distanceFromParticle = 1.0f - (distanceFromRadius / mapQuadScreenWidth);
+            if (distanceFromParticle < 0.0f) {
+                distanceFromParticle = 0.0f;
             }
-            var_f27 += var_r31->unk10 * sind(90.0f * var_f28);
+            heightOffset += particleRecord->opacity * sind(90.0f * distanceFromParticle);
         }
     }
-    return var_f27;
+    return heightOffset;
 }
 
-void fn_1_48EC(HU3DMODEL *arg0, Mtx arg1)
+void RenderMapQuad(HU3DMODEL *model, Mtx matrix)
 {
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    f32 sp8;
-    f32 temp_f29;
-    f32 temp_f30;
-    f32 temp_f31;
+    Vec savedCameraCenter;
+    Vec savedCameraRotation;
+    Vec cameraPosition;
+    Vec cameraUp;
+    Vec cameraTarget;
+    f32 cameraRoll;
+    f32 savedCameraZoom;
+    f32 cameraYaw;
+    f32 cameraPitch;
 
-    sp3C.x = CenterM->x;
-    sp3C.y = CenterM->y;
-    sp3C.z = CenterM->z;
-    sp30.x = CRotM->x;
-    sp30.y = CRotM->y;
-    sp30.z = CRotM->z;
-    temp_f29 = *CZoomM;
+    savedCameraCenter.x = CenterM->x;
+    savedCameraCenter.y = CenterM->y;
+    savedCameraCenter.z = CenterM->z;
+    savedCameraRotation.x = CRotM->x;
+    savedCameraRotation.y = CRotM->y;
+    savedCameraRotation.z = CRotM->z;
+    savedCameraZoom = *CZoomM;
     CenterM->x = -CenterM->x;
     CenterM->y = -CenterM->y;
     CenterM->z = CenterM->z;
@@ -739,303 +739,303 @@ void fn_1_48EC(HU3DMODEL *arg0, Mtx arg1)
     CRotM->y = 180.0f + -CRotM->y;
     CRotM->z = CRotM->z;
     *CZoomM = *CZoomM;
-    temp_f31 = CRotM->x;
-    temp_f30 = CRotM->y;
-    sp8 = CRotM->z;
-    sp24.x = (CenterM->x + (*CZoomM * (sind(temp_f30) * cosd(temp_f31))));
-    sp24.y = (CenterM->y + (*CZoomM * -sind(temp_f31)));
-    sp24.z = (CenterM->z + (*CZoomM * (cosd(temp_f30) * cosd(temp_f31))));
-    spC.x = CenterM->x;
-    spC.y = CenterM->y;
-    spC.z = CenterM->z;
-    sp18.x = (sind(temp_f30) * sind(temp_f31));
-    sp18.y = cosd(temp_f31);
-    sp18.z = (cosd(temp_f30) * sind(temp_f31));
-    Hu3DCameraPosSetV(1, &sp24, &sp18, &spC);
-    CenterM->x = sp3C.x;
-    CenterM->y = sp3C.y;
-    CenterM->z = sp3C.z;
-    CRotM->x = sp30.x;
-    CRotM->y = sp30.y;
-    CRotM->z = sp30.z;
-    *CZoomM = temp_f29;
+    cameraPitch = CRotM->x;
+    cameraYaw = CRotM->y;
+    cameraRoll = CRotM->z;
+    cameraPosition.x = (CenterM->x + (*CZoomM * (sind(cameraYaw) * cosd(cameraPitch))));
+    cameraPosition.y = (CenterM->y + (*CZoomM * -sind(cameraPitch)));
+    cameraPosition.z = (CenterM->z + (*CZoomM * (cosd(cameraYaw) * cosd(cameraPitch))));
+    cameraTarget.x = CenterM->x;
+    cameraTarget.y = CenterM->y;
+    cameraTarget.z = CenterM->z;
+    cameraUp.x = (sind(cameraYaw) * sind(cameraPitch));
+    cameraUp.y = cosd(cameraPitch);
+    cameraUp.z = (cosd(cameraYaw) * sind(cameraPitch));
+    Hu3DCameraPosSetV(1, &cameraPosition, &cameraUp, &cameraTarget);
+    CenterM->x = savedCameraCenter.x;
+    CenterM->y = savedCameraCenter.y;
+    CenterM->z = savedCameraCenter.z;
+    CRotM->x = savedCameraRotation.x;
+    CRotM->y = savedCameraRotation.y;
+    CRotM->z = savedCameraRotation.z;
+    *CZoomM = savedCameraZoom;
 }
 
-void fn_1_4D7C(HU3DMODEL *arg0, Mtx arg1)
+void RenderMapQuadWithOffset(HU3DMODEL *model, Mtx matrix)
 {
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    f32 sp8;
-    f32 temp_f30;
-    f32 temp_f31;
+    Vec cameraPosition;
+    Vec cameraTarget;
+    Vec cameraUp;
+    f32 cameraRoll;
+    f32 cameraYaw;
+    f32 cameraPitch;
 
-    temp_f31 = CRotM->x;
-    temp_f30 = CRotM->y;
-    sp8 = CRotM->z;
-    sp24.x = CenterM->x + sind(temp_f30) * cosd(temp_f31) * *CZoomM;
-    sp24.y = CenterM->y + *CZoomM * -sind(temp_f31);
-    sp24.z = CenterM->z + cosd(temp_f30) * cosd(temp_f31) * *CZoomM;
-    sp18.x = CenterM->x;
-    sp18.y = CenterM->y;
-    sp18.z = CenterM->z;
-    spC.x = sind(temp_f30) * sind(temp_f31);
-    spC.y = cosd(temp_f31);
-    spC.z = cosd(temp_f30) * sind(temp_f31);
-    Hu3DCameraPosSetV(1, &sp24, &spC, &sp18);
-    if (lbl_1_bss_98.unk30) {
+    cameraPitch = CRotM->x;
+    cameraYaw = CRotM->y;
+    cameraRoll = CRotM->z;
+    cameraPosition.x = CenterM->x + sind(cameraYaw) * cosd(cameraPitch) * *CZoomM;
+    cameraPosition.y = CenterM->y + *CZoomM * -sind(cameraPitch);
+    cameraPosition.z = CenterM->z + cosd(cameraYaw) * cosd(cameraPitch) * *CZoomM;
+    cameraTarget.x = CenterM->x;
+    cameraTarget.y = CenterM->y;
+    cameraTarget.z = CenterM->z;
+    cameraUp.x = sind(cameraYaw) * sind(cameraPitch);
+    cameraUp.y = cosd(cameraPitch);
+    cameraUp.z = cosd(cameraYaw) * sind(cameraPitch);
+    Hu3DCameraPosSetV(1, &cameraPosition, &cameraUp, &cameraTarget);
+    if (mapSurfaceRenderState.secondaryTextureBuffer) {
         GXSetTexCopySrc(0, 0, 0x280, 0x1E0);
         GXSetTexCopyDst(0x280, 0x1E0, GX_TF_RGB5A3, 0);
-        GXCopyTex(lbl_1_bss_98.unk30, 1);
+        GXCopyTex(mapSurfaceRenderState.secondaryTextureBuffer, 1);
     }
 }
 
-void fn_1_50A0(HU3DMODEL *arg0, Mtx arg1)
+void RenderMapQuadOverlay(HU3DMODEL *model, Mtx matrix)
 {
-    if (lbl_1_bss_98.unk28) {
+    if (mapSurfaceRenderState.textureBuffer) {
         GXSetTexCopySrc(0, 0, 0x280, 0x1E0);
         GXSetTexCopyDst(0x280, 0x1E0, GX_TF_RGB5A3, 0);
-        GXCopyTex(lbl_1_bss_98.unk28, 0);
+        GXCopyTex(mapSurfaceRenderState.textureBuffer, 0);
     }
 }
 
-void fn_1_510C(s32 arg0, s16 arg1, s16 arg2)
+void SetMapSurfaceAnimation(s32 animationType, s16 gridWidth, s16 gridHeight)
 {
-    s16 sp12;
-    s16 sp10;
-    s16 spE;
-    s16 spC;
-    s16 spA;
-    s16 sp8;
-    M427DllMapStruct4 *var_r31;
-    M427DllMapSubstruct5 *var_r30;
-    s16 var_r29;
-    HU3DMODEL *temp_r28;
-    s16 var_r27;
-    M427DllMapSubstruct5 *var_r26;
-    M427DllMapSubstruct5 *var_r23;
+    s16 reservedRegisterValue12;
+    s16 reservedRegisterValue10;
+    s16 reservedRegisterValue0E;
+    s16 reservedRegisterValue0C;
+    s16 reservedRegisterValue0A;
+    s16 reservedRegisterValue08;
+    MapSurfaceRenderData *mapRenderState;
+    GridQuad *quadRecord;
+    s16 hookIdAndGridRow;
+    HU3DMODEL *mapModel;
+    s16 gridColumn;
+    GridQuad *displayListSource;
+    GridQuad *displayListWorkBuffer;
 
-    var_r31 = &lbl_1_bss_98;
-    var_r29 = Hu3DHookFuncCreate(fn_1_618C);
-    Hu3DModelCameraSet(var_r29, 1);
-    Hu3DModelLayerSet(var_r29, 5);
-    temp_r28 = &Hu3DData[var_r29];
-    var_r29 = Hu3DHookFuncCreate(fn_1_48EC);
-    Hu3DModelCameraSet(var_r29, 1);
-    Hu3DModelLayerSet(var_r29, 0);
-    var_r29 = Hu3DHookFuncCreate(fn_1_4D7C);
-    Hu3DModelCameraSet(var_r29, 1);
-    Hu3DModelLayerSet(var_r29, 2);
-    var_r29 = Hu3DHookFuncCreate(fn_1_50A0);
-    Hu3DModelCameraSet(var_r29, 1);
-    Hu3DModelLayerSet(var_r29, 4);
-    var_r31->unk38 = var_r31->unk3C = 0.0f;
-    var_r31->unk34 = GXGetTexBufferSize(0x280, 0x1E0, 5, 0, 0);
-    var_r31->unk30 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk34, temp_r28->mallocNo);
-    var_r31->unk2C = GXGetTexBufferSize(0x280, 0x1E0, 5, 0, 0);
-    var_r31->unk28 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk2C, temp_r28->mallocNo);
-    var_r31->unk16 = arg1 + 1;
-    var_r31->unk18 = arg2 + 1;
-    var_r31->unk14 = var_r31->unk16 * var_r31->unk18;
-    var_r31->unk4 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk14 * sizeof(Vec), temp_r28->mallocNo);
-    var_r31->unk8 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk14 * sizeof(Vec2f), temp_r28->mallocNo);
-    var_r31->unkC = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk14 * sizeof(Vec), temp_r28->mallocNo);
-    var_r31->unk10 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk14 * sizeof(Vec), temp_r28->mallocNo);
-    var_r31->unk1C = HuMemDirectMallocNum(HEAP_MODEL, arg2 * (arg1 * sizeof(M427DllMapSubstruct5)), temp_r28->mallocNo);
-    var_r30 = var_r31->unk1C;
-    var_r23 = var_r26 = HuMemDirectMallocNum(HEAP_MODEL, 0x20000, temp_r28->mallocNo);
-    DCFlushRange(var_r26, 0x20000);
-    GXBeginDisplayList(var_r23, 0x20000);
-    GXBegin(GX_QUADS, GX_VTXFMT0, (arg1 * arg2 * 4));
+    mapRenderState = &mapSurfaceRenderState;
+    hookIdAndGridRow = Hu3DHookFuncCreate(RenderMapSurface);
+    Hu3DModelCameraSet(hookIdAndGridRow, 1);
+    Hu3DModelLayerSet(hookIdAndGridRow, 5);
+    mapModel = &Hu3DData[hookIdAndGridRow];
+    hookIdAndGridRow = Hu3DHookFuncCreate(RenderMapQuad);
+    Hu3DModelCameraSet(hookIdAndGridRow, 1);
+    Hu3DModelLayerSet(hookIdAndGridRow, 0);
+    hookIdAndGridRow = Hu3DHookFuncCreate(RenderMapQuadWithOffset);
+    Hu3DModelCameraSet(hookIdAndGridRow, 1);
+    Hu3DModelLayerSet(hookIdAndGridRow, 2);
+    hookIdAndGridRow = Hu3DHookFuncCreate(RenderMapQuadOverlay);
+    Hu3DModelCameraSet(hookIdAndGridRow, 1);
+    Hu3DModelLayerSet(hookIdAndGridRow, 4);
+    mapRenderState->textureOffsetX = mapRenderState->textureOffsetY = 0.0f;
+    mapRenderState->secondaryTextureBufferSize = GXGetTexBufferSize(0x280, 0x1E0, 5, 0, 0);
+    mapRenderState->secondaryTextureBuffer = HuMemDirectMallocNum(HEAP_MODEL, mapRenderState->secondaryTextureBufferSize, mapModel->mallocNo);
+    mapRenderState->textureBufferSize = GXGetTexBufferSize(0x280, 0x1E0, 5, 0, 0);
+    mapRenderState->textureBuffer = HuMemDirectMallocNum(HEAP_MODEL, mapRenderState->textureBufferSize, mapModel->mallocNo);
+    mapRenderState->gridWidth = gridWidth + 1;
+    mapRenderState->gridHeight = gridHeight + 1;
+    mapRenderState->vertexCount = mapRenderState->gridWidth * mapRenderState->gridHeight;
+    mapRenderState->vertexPositions = HuMemDirectMallocNum(HEAP_MODEL, mapRenderState->vertexCount * sizeof(Vec), mapModel->mallocNo);
+    mapRenderState->textureCoordinates = HuMemDirectMallocNum(HEAP_MODEL, mapRenderState->vertexCount * sizeof(Vec2f), mapModel->mallocNo);
+    mapRenderState->animatedPositions = HuMemDirectMallocNum(HEAP_MODEL, mapRenderState->vertexCount * sizeof(Vec), mapModel->mallocNo);
+    mapRenderState->vertexColors = HuMemDirectMallocNum(HEAP_MODEL, mapRenderState->vertexCount * sizeof(Vec), mapModel->mallocNo);
+    mapRenderState->gridQuads = HuMemDirectMallocNum(HEAP_MODEL, gridHeight * (gridWidth * sizeof(GridQuad)), mapModel->mallocNo);
+    quadRecord = mapRenderState->gridQuads;
+    displayListWorkBuffer = displayListSource = HuMemDirectMallocNum(HEAP_MODEL, 0x20000, mapModel->mallocNo);
+    DCFlushRange(displayListSource, 0x20000);
+    GXBeginDisplayList(displayListWorkBuffer, 0x20000);
+    GXBegin(GX_QUADS, GX_VTXFMT0, (gridWidth * gridHeight * 4));
 
-    for (var_r29 = 0; var_r29 < arg2; var_r29++) {
-        for (var_r27 = 0; var_r27 < arg1; var_r30++, var_r27++) {
-            var_r30->unk0 = var_r27 + var_r29 * var_r31->unk16;
-            var_r30->unk2 = (var_r29 * var_r31->unk16) + var_r27 + 1;
-            var_r30->unk4 = ((var_r29 + 1) * var_r31->unk16) + var_r27 + 1;
-            var_r30->unk6 = var_r27 + ((var_r29 + 1) * var_r31->unk16);
-            GXPosition1x16(var_r30->unk0);
-            GXPosition1x16(var_r30->unk0);
-            GXPosition1x16(var_r30->unk0);
-            GXPosition1x16(var_r30->unk2);
-            GXPosition1x16(var_r30->unk2);
-            GXPosition1x16(var_r30->unk2);
-            GXPosition1x16(var_r30->unk4);
-            GXPosition1x16(var_r30->unk4);
-            GXPosition1x16(var_r30->unk4);
-            GXPosition1x16(var_r30->unk6);
-            GXPosition1x16(var_r30->unk6);
-            GXPosition1x16(var_r30->unk6);
-            fn_1_C2C8(&var_r31->unk4[var_r30->unk0], &var_r31->unk4[var_r30->unk2], &var_r31->unk4[var_r30->unk4], &var_r30->unk8);
+    for (hookIdAndGridRow = 0; hookIdAndGridRow < gridHeight; hookIdAndGridRow++) {
+        for (gridColumn = 0; gridColumn < gridWidth; quadRecord++, gridColumn++) {
+            quadRecord->firstVertexIndex = gridColumn + hookIdAndGridRow * mapRenderState->gridWidth;
+            quadRecord->secondVertexIndex = (hookIdAndGridRow * mapRenderState->gridWidth) + gridColumn + 1;
+            quadRecord->thirdVertexIndex = ((hookIdAndGridRow + 1) * mapRenderState->gridWidth) + gridColumn + 1;
+            quadRecord->fourthVertexIndex = gridColumn + ((hookIdAndGridRow + 1) * mapRenderState->gridWidth);
+            GXPosition1x16(quadRecord->firstVertexIndex);
+            GXPosition1x16(quadRecord->firstVertexIndex);
+            GXPosition1x16(quadRecord->firstVertexIndex);
+            GXPosition1x16(quadRecord->secondVertexIndex);
+            GXPosition1x16(quadRecord->secondVertexIndex);
+            GXPosition1x16(quadRecord->secondVertexIndex);
+            GXPosition1x16(quadRecord->thirdVertexIndex);
+            GXPosition1x16(quadRecord->thirdVertexIndex);
+            GXPosition1x16(quadRecord->thirdVertexIndex);
+            GXPosition1x16(quadRecord->fourthVertexIndex);
+            GXPosition1x16(quadRecord->fourthVertexIndex);
+            GXPosition1x16(quadRecord->fourthVertexIndex);
+            SetVectorFrame(&mapRenderState->vertexPositions[quadRecord->firstVertexIndex], &mapRenderState->vertexPositions[quadRecord->secondVertexIndex], &mapRenderState->vertexPositions[quadRecord->thirdVertexIndex], &quadRecord->vertexNormal);
         }
     }
-    var_r31->unk24 = GXEndDisplayList();
-    var_r31->unk20 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk24, temp_r28->mallocNo);
-    memcpy(var_r31->unk20, var_r26, var_r31->unk24);
-    DCFlushRange(var_r31->unk20, var_r31->unk24);
-    HuMemDirectFree(var_r26);
-    fn_1_558C(var_r31);
+    mapRenderState->displayListSize = GXEndDisplayList();
+    mapRenderState->displayList = HuMemDirectMallocNum(HEAP_MODEL, mapRenderState->displayListSize, mapModel->mallocNo);
+    memcpy(mapRenderState->displayList, displayListSource, mapRenderState->displayListSize);
+    DCFlushRange(mapRenderState->displayList, mapRenderState->displayListSize);
+    HuMemDirectFree(displayListSource);
+    BuildMapSurfaceDisplayList(mapRenderState);
 }
 
-f32 lbl_1_data_F8 = -1.0f;
+f32 disabledEffectOpacity = -1.0f;
 
-void fn_1_558C(M427DllMapStruct4 *arg0)
+void BuildMapSurfaceDisplayList(MapSurfaceRenderData *surface)
 {
-    Mtx spAC;
-    Mtx sp7C;
-    Mtx sp4C;
-    Vec2f sp44;
-    Vec2f sp3C;
-    Vec2f sp34;
-    Vec2f sp2C;
-    f32 sp28;
-    f32 sp24;
-    f32 sp20;
-    f32 var_f26;
-    f32 var_f25;
-    f32 var_f20;
-    M427DllMapSubstruct5 *var_r30;
-    Vec *var_r29;
-    Vec *var_r28;
-    s16 var_r27;
-    M427DllMapStruct5 *var_r26;
-    Vec2f *var_r25;
-    s16 var_r24;
-    HU3DCAMERA *var_r23;
-    s16 var_r22;
+    Mtx cameraViewMatrix;
+    Mtx cameraProjectionMatrix;
+    Mtx cameraViewport;
+    Vec2f gridZBounds;
+    Vec2f gridXBounds;
+    Vec2f rowXAndStep;
+    Vec2f rowZAndStep;
+    f32 projectedScreenX;
+    f32 projectedScreenY;
+    f32 projectedDepth;
+    f32 waveAngleX;
+    f32 waveAngleZ;
+    f32 normalLength;
+    GridQuad *gridQuad;
+    Vec *gridVertexOrNormal;
+    Vec *gridVertex;
+    s16 vertexIndex;
+    TeamMarkerRenderData *particleRecordScratch;
+    Vec2f *textureCoordinate;
+    s16 gridColumnOrQuadCount;
+    HU3DCAMERA *mainCamera;
+    s16 gridIndexScratch;
 
-    var_r23 = &Hu3DCamera[0];
-    if (lbl_1_data_F8 == -1.0f) {
-        lbl_1_bss_94 = 720.0f / arg0->unk16;
-        lbl_1_data_F8 = 1440.0f / arg0->unk18;
+    mainCamera = &Hu3DCamera[0];
+    if (disabledEffectOpacity == -1.0f) {
+        mapAnimationFrame = 720.0f / surface->gridWidth;
+        disabledEffectOpacity = 1440.0f / surface->gridHeight;
     }
     if (omPauseChk() == 0) {
-        arg0->unk40 += 1.0f;
-        arg0->unk44 += 1.5f;
+        surface->rotationAngleX += 1.0f;
+        surface->rotationAngleY += 1.5f;
     }
-    if (arg0->unk40 >= 360.0f) {
-        arg0->unk40 -= 360.0f;
+    if (surface->rotationAngleX >= 360.0f) {
+        surface->rotationAngleX -= 360.0f;
     }
-    if (arg0->unk44 >= 360.0f) {
-        arg0->unk44 -= 360.0f;
+    if (surface->rotationAngleY >= 360.0f) {
+        surface->rotationAngleY -= 360.0f;
     }
-    var_r28 = arg0->unk4;
-    var_r29 = arg0->unkC;
-    sp3C.x = 2000.0f;
-    sp3C.y = -2000.0f;
-    sp44.x = 1000.0f;
-    sp44.y = -2500.0f;
-    sp2C.x = sp44.x;
-    sp2C.y = (sp44.y - sp44.x) / (arg0->unk18 - 1);
-    var_f25 = arg0->unk44;
+    gridVertex = surface->vertexPositions;
+    gridVertexOrNormal = surface->animatedPositions;
+    gridXBounds.x = 2000.0f;
+    gridXBounds.y = -2000.0f;
+    gridZBounds.x = 1000.0f;
+    gridZBounds.y = -2500.0f;
+    rowZAndStep.x = gridZBounds.x;
+    rowZAndStep.y = (gridZBounds.y - gridZBounds.x) / (surface->gridHeight - 1);
+    waveAngleZ = surface->rotationAngleY;
 
-    for (var_r27 = 0; var_r27 < arg0->unk18; var_r27++) {
-        sp34.x = sp3C.x;
-        sp34.y = (sp3C.y - sp3C.x) / (arg0->unk16 - 1);
-        var_f26 = arg0->unk40;
+    for (vertexIndex = 0; vertexIndex < surface->gridHeight; vertexIndex++) {
+        rowXAndStep.x = gridXBounds.x;
+        rowXAndStep.y = (gridXBounds.y - gridXBounds.x) / (surface->gridWidth - 1);
+        waveAngleX = surface->rotationAngleX;
 
-        for (var_r24 = 0; var_r24 < arg0->unk16; var_r28++, var_r29++, var_r24++) {
-            var_r28->x = sp34.x;
-            var_r28->z = sp2C.x;
-            sp24 = 5.0 * sind(var_f26) + 10.0 * sind(var_f25);
-            sp34.x += sp34.y;
-            var_f26 += lbl_1_bss_94;
-            if (var_f26 >= 360.0f) {
-                var_f26 -= 360.0f;
+        for (gridColumnOrQuadCount = 0; gridColumnOrQuadCount < surface->gridWidth; gridVertex++, gridVertexOrNormal++, gridColumnOrQuadCount++) {
+            gridVertex->x = rowXAndStep.x;
+            gridVertex->z = rowZAndStep.x;
+            projectedScreenY = 5.0 * sind(waveAngleX) + 10.0 * sind(waveAngleZ);
+            rowXAndStep.x += rowXAndStep.y;
+            waveAngleX += mapAnimationFrame;
+            if (waveAngleX >= 360.0f) {
+                waveAngleX -= 360.0f;
             }
-            var_r28->y = sp24 + fn_1_4570(var_r28);
-            var_r29->x = var_r29->y = var_r29->z = 0.0f;
+            gridVertex->y = projectedScreenY + CalculateMapDistance(gridVertex);
+            gridVertexOrNormal->x = gridVertexOrNormal->y = gridVertexOrNormal->z = 0.0f;
         }
-        sp2C.x += sp2C.y;
-        var_f25 += lbl_1_data_F8;
-        if (var_f25 >= 360.0f) {
-            var_f25 -= 360.0f;
+        rowZAndStep.x += rowZAndStep.y;
+        waveAngleZ += disabledEffectOpacity;
+        if (waveAngleZ >= 360.0f) {
+            waveAngleZ -= 360.0f;
         }
     }
-    var_r30 = arg0->unk1C;
-    var_r24 = (arg0->unk16 - 1) * (arg0->unk18 - 1);
+    gridQuad = surface->gridQuads;
+    gridColumnOrQuadCount = (surface->gridWidth - 1) * (surface->gridHeight - 1);
 
-    for (var_r27 = 0; var_r27 < var_r24; var_r27++, var_r30++) {
-        fn_1_C2C8(&arg0->unk4[var_r30->unk0], &arg0->unk4[var_r30->unk2], &arg0->unk4[var_r30->unk4], &var_r30->unk8);
-        arg0->unkC[var_r30->unk0].x += var_r30->unk8.x;
-        arg0->unkC[var_r30->unk0].y += var_r30->unk8.y;
-        arg0->unkC[var_r30->unk0].z += var_r30->unk8.z;
-        arg0->unkC[var_r30->unk2].x += var_r30->unk8.x;
-        arg0->unkC[var_r30->unk2].y += var_r30->unk8.y;
-        arg0->unkC[var_r30->unk2].z += var_r30->unk8.z;
-        arg0->unkC[var_r30->unk4].x += var_r30->unk8.x;
-        arg0->unkC[var_r30->unk4].y += var_r30->unk8.y;
-        arg0->unkC[var_r30->unk4].z += var_r30->unk8.z;
-        arg0->unkC[var_r30->unk6].x += var_r30->unk8.x;
-        arg0->unkC[var_r30->unk6].y += var_r30->unk8.y;
-        arg0->unkC[var_r30->unk6].z += var_r30->unk8.z;
+    for (vertexIndex = 0; vertexIndex < gridColumnOrQuadCount; vertexIndex++, gridQuad++) {
+        SetVectorFrame(&surface->vertexPositions[gridQuad->firstVertexIndex], &surface->vertexPositions[gridQuad->secondVertexIndex], &surface->vertexPositions[gridQuad->thirdVertexIndex], &gridQuad->vertexNormal);
+        surface->animatedPositions[gridQuad->firstVertexIndex].x += gridQuad->vertexNormal.x;
+        surface->animatedPositions[gridQuad->firstVertexIndex].y += gridQuad->vertexNormal.y;
+        surface->animatedPositions[gridQuad->firstVertexIndex].z += gridQuad->vertexNormal.z;
+        surface->animatedPositions[gridQuad->secondVertexIndex].x += gridQuad->vertexNormal.x;
+        surface->animatedPositions[gridQuad->secondVertexIndex].y += gridQuad->vertexNormal.y;
+        surface->animatedPositions[gridQuad->secondVertexIndex].z += gridQuad->vertexNormal.z;
+        surface->animatedPositions[gridQuad->thirdVertexIndex].x += gridQuad->vertexNormal.x;
+        surface->animatedPositions[gridQuad->thirdVertexIndex].y += gridQuad->vertexNormal.y;
+        surface->animatedPositions[gridQuad->thirdVertexIndex].z += gridQuad->vertexNormal.z;
+        surface->animatedPositions[gridQuad->fourthVertexIndex].x += gridQuad->vertexNormal.x;
+        surface->animatedPositions[gridQuad->fourthVertexIndex].y += gridQuad->vertexNormal.y;
+        surface->animatedPositions[gridQuad->fourthVertexIndex].z += gridQuad->vertexNormal.z;
     }
 
-    var_r29 = arg0->unkC;
-    for (var_r27 = 0; var_r27 < arg0->unk14; var_r27++, var_r29++) {
-        var_f20 = sqrtf((var_r29->x * var_r29->x) + (var_r29->y * var_r29->y) + (var_r29->z * var_r29->z));
-        var_r29->x /= var_f20;
-        var_r29->y /= var_f20;
-        var_r29->z /= var_f20;
+    gridVertexOrNormal = surface->animatedPositions;
+    for (vertexIndex = 0; vertexIndex < surface->vertexCount; vertexIndex++, gridVertexOrNormal++) {
+        normalLength = sqrtf((gridVertexOrNormal->x * gridVertexOrNormal->x) + (gridVertexOrNormal->y * gridVertexOrNormal->y) + (gridVertexOrNormal->z * gridVertexOrNormal->z));
+        gridVertexOrNormal->x /= normalLength;
+        gridVertexOrNormal->y /= normalLength;
+        gridVertexOrNormal->z /= normalLength;
     }
-    var_r28 = arg0->unk4;
-    var_r25 = arg0->unk8;
-    C_MTXLookAt(spAC, &var_r23->pos, &var_r23->up, &var_r23->target);
-    GXGetProjectionv(&sp7C[0][0]);
-    GXGetViewportv(&sp4C[0][0]);
+    gridVertex = surface->vertexPositions;
+    textureCoordinate = surface->textureCoordinates;
+    C_MTXLookAt(cameraViewMatrix, &mainCamera->pos, &mainCamera->up, &mainCamera->target);
+    GXGetProjectionv(&cameraProjectionMatrix[0][0]);
+    GXGetViewportv(&cameraViewport[0][0]);
 
-    for (var_r27 = 0; var_r27 < arg0->unk14; var_r27++, var_r28++, var_r25++) {
-        GXProject(var_r28->x, var_r28->y, var_r28->z, spAC, &sp7C[0][0], &sp4C[0][0], &sp28, &sp24, &sp20);
-        var_r25->x = 0.0015625f * sp28;
-        var_r25->y = 0.0020833f * sp24;
-        var_r25->x += 0.05f * arg0->unkC[var_r27].x;
-        var_r25->y += 0.05f * arg0->unkC[var_r27].z;
-        arg0->unk10[var_r27].r = 0xFF;
-        arg0->unk10[var_r27].g = 0xFF;
-        arg0->unk10[var_r27].b = 0xFF;
-        arg0->unk10[var_r27].a = 0xFF;
+    for (vertexIndex = 0; vertexIndex < surface->vertexCount; vertexIndex++, gridVertex++, textureCoordinate++) {
+        GXProject(gridVertex->x, gridVertex->y, gridVertex->z, cameraViewMatrix, &cameraProjectionMatrix[0][0], &cameraViewport[0][0], &projectedScreenX, &projectedScreenY, &projectedDepth);
+        textureCoordinate->x = 0.0015625f * projectedScreenX;
+        textureCoordinate->y = 0.0020833f * projectedScreenY;
+        textureCoordinate->x += 0.05f * surface->animatedPositions[vertexIndex].x;
+        textureCoordinate->y += 0.05f * surface->animatedPositions[vertexIndex].z;
+        surface->vertexColors[vertexIndex].r = 0xFF;
+        surface->vertexColors[vertexIndex].g = 0xFF;
+        surface->vertexColors[vertexIndex].b = 0xFF;
+        surface->vertexColors[vertexIndex].a = 0xFF;
     }
-    DCFlushRangeNoSync(arg0->unk4, arg0->unk14 * 0xC);
-    DCFlushRangeNoSync(arg0->unkC, arg0->unk14 * 0xC);
-    DCFlushRangeNoSync(arg0->unk8, arg0->unk14 * 8);
-    DCFlushRangeNoSync(arg0->unk10, arg0->unk14 * 4);
+    DCFlushRangeNoSync(surface->vertexPositions, surface->vertexCount * 0xC);
+    DCFlushRangeNoSync(surface->animatedPositions, surface->vertexCount * 0xC);
+    DCFlushRangeNoSync(surface->textureCoordinates, surface->vertexCount * 8);
+    DCFlushRangeNoSync(surface->vertexColors, surface->vertexCount * 4);
     PPCSync();
 }
 
-void fn_1_618C(HU3DMODEL *arg0, Mtx arg1)
+void RenderMapSurface(HU3DMODEL *model, Mtx matrix)
 {
-    Mtx sp64;
-    Mtx sp34;
-    GXTexObj sp14;
-    GXColor spC;
-    M427DllMapStruct4 *var_r31 = &lbl_1_bss_98;
-    M427DllMapStruct3Sub *var_r30 = &lbl_1_bss_158.unk334;
+    Mtx indirectTextureMatrix;
+    Mtx textureRotationMatrix;
+    GXTexObj textureObject;
+    GXColor environmentTint;
+    MapSurfaceRenderData *mapRenderState = &mapSurfaceRenderState;
+    BannerAnimationSet *bannerAnimations = &mapState.bannerAnimationResources;
 
-    fn_1_558C(var_r31);
-    GXLoadPosMtxImm(arg1, 0);
+    BuildMapSurfaceDisplayList(mapRenderState);
+    GXLoadPosMtxImm(matrix, 0);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_TEX_ST, GX_RGBA6, 0);
-    GXSetArray(GX_VA_POS, var_r31->unk4, 0xC);
+    GXSetArray(GX_VA_POS, mapRenderState->vertexPositions, 0xC);
     GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_RGBA6, 0);
-    GXSetArray(GX_VA_TEX0, var_r31->unk8, 8);
+    GXSetArray(GX_VA_TEX0, mapRenderState->textureCoordinates, 8);
     GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_TEX_ST, GX_RGBA8, 0);
-    GXSetArray(GX_VA_CLR0, var_r31->unk10, 4);
-    GXInitTexObj(&sp14, var_r31->unk30, 0x280, 0x1E0, GX_TF_RGB5A3, GX_CLAMP, GX_CLAMP, 0);
-    GXInitTexObjLOD(&sp14, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, 0, 0, GX_ANISO_1);
-    GXLoadTexObj(&sp14, GX_TEXMAP0);
-    GXInitTexObj(&sp14, var_r31->unk28, 0x280, 0x1E0, GX_TF_RGB5A3, GX_CLAMP, GX_CLAMP, 0);
-    GXInitTexObjLOD(&sp14, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, 0, 0, GX_ANISO_1);
-    GXLoadTexObj(&sp14, GX_TEXMAP1);
-    HuSprTexLoad(var_r30->unk_00, 0, 2, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    GXSetArray(GX_VA_CLR0, mapRenderState->vertexColors, 4);
+    GXInitTexObj(&textureObject, mapRenderState->secondaryTextureBuffer, 0x280, 0x1E0, GX_TF_RGB5A3, GX_CLAMP, GX_CLAMP, 0);
+    GXInitTexObjLOD(&textureObject, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, 0, 0, GX_ANISO_1);
+    GXLoadTexObj(&textureObject, GX_TEXMAP0);
+    GXInitTexObj(&textureObject, mapRenderState->textureBuffer, 0x280, 0x1E0, GX_TF_RGB5A3, GX_CLAMP, GX_CLAMP, 0);
+    GXInitTexObjLOD(&textureObject, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, 0, 0, GX_ANISO_1);
+    GXLoadTexObj(&textureObject, GX_TEXMAP1);
+    HuSprTexLoad(bannerAnimations->primaryAnimation, 0, 2, GX_REPEAT, GX_REPEAT, GX_LINEAR);
     GXSetNumTevStages(3);
-    spC.r = 0;
-    spC.g = 0x10;
-    spC.b = 0x1E;
-    spC.a = 0x4C;
-    GXSetTevColor(GX_TEVREG2, spC);
+    environmentTint.r = 0;
+    environmentTint.g = 0x10;
+    environmentTint.b = 0x1E;
+    environmentTint.a = 0x4C;
+    GXSetTevColor(GX_TEVREG2, environmentTint);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR_NULL);
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_ONE, GX_CC_ZERO);
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVREG0);
@@ -1055,18 +1055,18 @@ void fn_1_618C(HU3DMODEL *arg0, Mtx arg1)
     GXSetIndTexOrder(GX_INDTEXSTAGE0, GX_TEXCOORD1, GX_TEXMAP2);
     GXSetTevIndWarp(GX_TEVSTAGE0, GX_INDTEXSTAGE0, 1, 0, GX_ITM_0);
     GXSetIndTexCoordScale(GX_INDTEXSTAGE0, GX_ITS_1, GX_ITS_1);
-    MTXScale(sp64, -0.1f, 0.0f, 1.0f);
-    GXSetIndTexMtx(GX_ITM_0, (f32(*)[3])(sp64), 0);
+    MTXScale(indirectTextureMatrix, -0.1f, 0.0f, 1.0f);
+    GXSetIndTexMtx(GX_ITM_0, (f32(*)[3])(indirectTextureMatrix), 0);
     GXSetNumTexGens(2);
     if (omPauseChk() == 0) {
-        var_r31->unk38 += 0.001f;
-        var_r31->unk3C += 0.0005f;
+        mapRenderState->textureOffsetX += 0.001f;
+        mapRenderState->textureOffsetY += 0.0005f;
     }
-    MTXRotRad(sp64, 0x58, 1.5707964f);
-    MTXScale(sp34, 0.001f, 0.001f, 0.001f);
-    MTXConcat(sp64, sp34, sp64);
-    mtxTransCat(sp64, var_r31->unk38, var_r31->unk3C, 0.0f);
-    GXLoadTexMtxImm(sp64, 0x1E, GX_MTX2x4);
+    MTXRotRad(indirectTextureMatrix, 0x58, 1.5707964f);
+    MTXScale(textureRotationMatrix, 0.001f, 0.001f, 0.001f);
+    MTXConcat(indirectTextureMatrix, textureRotationMatrix, indirectTextureMatrix);
+    mtxTransCat(indirectTextureMatrix, mapRenderState->textureOffsetX, mapRenderState->textureOffsetY, 0.0f);
+    GXLoadTexMtxImm(indirectTextureMatrix, 0x1E, GX_MTX2x4);
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, 0x3C, GX_FALSE, 0x7D);
     GXSetTexCoordGen2(GX_TEXCOORD1, GX_TG_MTX2x4, GX_TG_POS, 0x1E, GX_FALSE, 0x7D);
     GXSetNumChans(1);
@@ -1075,13 +1075,13 @@ void fn_1_618C(HU3DMODEL *arg0, Mtx arg1)
     GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
     GXSetZCompLoc(0);
     GXSetBlendMode(GX_BM_NONE, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
-    GXCallDisplayList(var_r31->unk20, var_r31->unk24);
+    GXCallDisplayList(mapRenderState->displayList, mapRenderState->displayListSize);
     GXSetNumIndStages(0);
     GXSetTevDirect(GX_TEVSTAGE0);
     GXSetTevDirect(GX_TEVSTAGE1);
 }
 
-s32 lbl_1_data_FC[0xC] = {
+s32 mapAssetIds[0xC] = {
     0x3A0000,
     0x3A0001,
     0x3A0002,
@@ -1095,257 +1095,257 @@ s32 lbl_1_data_FC[0xC] = {
     0x3A000A,
     0x3A000B,
 };
-s32 lbl_1_data_12C[2] = { 0x3A000C, 0x3A000D };
-s32 lbl_1_data_134[4] = { 0x3A000E, 0x3A000F, 0x3F800000, 0x01000000 };
+s32 bannerAssetIds[2] = { 0x3A000C, 0x3A000D };
+s32 bannerTextureParameters[4] = { 0x3A000E, 0x3A000F, 0x3F800000, 0x01000000 };
 
-void fn_1_6760(OMOBJ *object)
+void UpdateTeamMapState(OMOBJ *object)
 {
-    s16 sp14[2][0x20];
-    s16 sp10[2];
-    s16 spC[2];
-    s16 sp8[2];
-    M427DllMapSubstruct3 *var_r31;
-    s16 var_r30;
-    M427DllMapUNKB8 *var_r29;
-    s16 var_r28;
-    M427DllMapUNK17E *var_r27;
-    s16 var_r26;
-    M427DllMapSubstruct3Sub *var_r25;
-    M427DllMapStruct3 *var_r24;
-    u16 var_r23;
+    s16 teamRenderModelIds[2][0x20];
+    s16 teamRenderModelCount[2];
+    s16 routeEffectModelIds[2];
+    s16 linkedLightModelIds[2];
+    TeamMapState *teamState;
+    s16 modelOrEffectIndex;
+    RouteEffectState *routeEffect;
+    s16 teamIndex;
+    RouteLightModelLink *linkedLightModel;
+    s16 modelLinkIndex;
+    TeamRenderTarget *bannerRenderTarget;
+    MapState *mapState;
+    u16 modelHandleScratch;
 
-    var_r24 = &lbl_1_bss_158;
+    mapState = &mapState;
     Hu3DFogSet(3500.0f, 20000.0f, 0, 0, 0);
-    for (var_r28 = 0, var_r31 = &var_r24->unk4[0]; var_r28 < 2; var_r28++, var_r31++) {
-        var_r31->unk0 = var_r28;
-        sp10[var_r28] = 0;
-        for (var_r30 = 0; var_r30 < 3; var_r30++) {
-            var_r31->unk178[var_r30] = 0;
+    for (teamIndex = 0, teamState = &mapState->teamStates[0]; teamIndex < 2; teamIndex++, teamState++) {
+        teamState->teamIndex = teamIndex;
+        teamRenderModelCount[teamIndex] = 0;
+        for (modelOrEffectIndex = 0; modelOrEffectIndex < 3; modelOrEffectIndex++) {
+            teamState->activeRouteEffectCounts[modelOrEffectIndex] = 0;
         }
-        for (var_r30 = 0; var_r30 < 0xB; var_r30++) {
-            var_r31->unk2[var_r30] = Hu3DModelCreateFile(lbl_1_data_FC[var_r30]);
-            var_r31->unk44[var_r30] = -1;
-            if (var_r30 < 0xA) {
-                Hu3DModelLayerSet(var_r31->unk2[var_r30], 2);
+        for (modelOrEffectIndex = 0; modelOrEffectIndex < 0xB; modelOrEffectIndex++) {
+            teamState->modelIds[modelOrEffectIndex] = Hu3DModelCreateFile(mapAssetIds[modelOrEffectIndex]);
+            teamState->routeEffectIndices[modelOrEffectIndex] = -1;
+            if (modelOrEffectIndex < 0xA) {
+                Hu3DModelLayerSet(teamState->modelIds[modelOrEffectIndex], 2);
             }
             else {
-                Hu3DModelLayerSet(var_r31->unk2[var_r30], 5);
+                Hu3DModelLayerSet(teamState->modelIds[modelOrEffectIndex], 5);
             }
-            Hu3DModelAmbSet(var_r31->unk2[var_r30], 0.1f, 0.1f, 0.1f);
-            if (var_r28 == 0) {
-                Hu3DModelCameraSet(var_r31->unk2[var_r30], 1);
+            Hu3DModelAmbSet(teamState->modelIds[modelOrEffectIndex], 0.1f, 0.1f, 0.1f);
+            if (teamIndex == 0) {
+                Hu3DModelCameraSet(teamState->modelIds[modelOrEffectIndex], 1);
             }
             else {
-                Hu3DModelCameraSet(var_r31->unk2[var_r30], 2);
+                Hu3DModelCameraSet(teamState->modelIds[modelOrEffectIndex], 2);
             }
-            sp14[var_r28][sp10[var_r28]++] = var_r31->unk2[var_r30];
+            teamRenderModelIds[teamIndex][teamRenderModelCount[teamIndex]++] = teamState->modelIds[modelOrEffectIndex];
         }
-        var_r30 = Hu3DHookFuncCreate(fn_1_C154);
-        var_r31->unk1E = var_r30;
-        Hu3DModelLayerSet(var_r30, 4);
-        if (var_r28 == 0) {
-            Hu3DModelCameraSet(var_r30, 1);
+        modelOrEffectIndex = Hu3DHookFuncCreate(RenderMapHighlight);
+        teamState->backgroundHookModelId = modelOrEffectIndex;
+        Hu3DModelLayerSet(modelOrEffectIndex, 4);
+        if (teamIndex == 0) {
+            Hu3DModelCameraSet(modelOrEffectIndex, 1);
         }
         else {
-            Hu3DModelCameraSet(var_r30, 2);
+            Hu3DModelCameraSet(modelOrEffectIndex, 2);
         }
-        var_r30 = Hu3DHookFuncCreate(fn_1_C200);
-        var_r31->unk20 = var_r30;
-        Hu3DModelLayerSet(var_r30, 6);
-        if (var_r28 == 0) {
-            Hu3DModelCameraSet(var_r30, 1);
+        modelOrEffectIndex = Hu3DHookFuncCreate(RenderMapShadow);
+        teamState->foregroundHookModelId = modelOrEffectIndex;
+        Hu3DModelLayerSet(modelOrEffectIndex, 6);
+        if (teamIndex == 0) {
+            Hu3DModelCameraSet(modelOrEffectIndex, 1);
         }
         else {
-            Hu3DModelCameraSet(var_r30, 2);
+            Hu3DModelCameraSet(modelOrEffectIndex, 2);
         }
-        for (var_r30 = 0; var_r30 < 2; var_r30++) {
-            var_r29 = var_r31->unkB8[var_r30];
-            for (var_r26 = 0; var_r26 < 2; var_r26++, var_r29++) {
-                if ((var_r28 == 0) && (var_r26 == 0)) {
-                    var_r29->unk2 = spC[var_r30] = Hu3DModelCreateFile(lbl_1_data_134[var_r30]);
+        for (modelOrEffectIndex = 0; modelOrEffectIndex < 2; modelOrEffectIndex++) {
+            routeEffect = teamState->routeEffects[modelOrEffectIndex];
+            for (modelLinkIndex = 0; modelLinkIndex < 2; modelLinkIndex++, routeEffect++) {
+                if ((teamIndex == 0) && (modelLinkIndex == 0)) {
+                    routeEffect->modelId = routeEffectModelIds[modelOrEffectIndex] = Hu3DModelCreateFile(bannerTextureParameters[modelOrEffectIndex]);
                 }
                 else {
-                    var_r29->unk2 = Hu3DModelLink(spC[var_r30]);
+                    routeEffect->modelId = Hu3DModelLink(routeEffectModelIds[modelOrEffectIndex]);
                 }
-                Hu3DModelAttrSet(var_r29->unk2, HU3D_ATTR_DISPOFF);
-                Hu3DModelLayerSet(var_r29->unk2, 2);
-                Hu3DModelAmbSet(var_r29->unk2, 0.0f, 0.0f, 0.0f);
-                if (var_r28 == 0) {
-                    Hu3DModelCameraSet(var_r29->unk2, 1);
+                Hu3DModelAttrSet(routeEffect->modelId, HU3D_ATTR_DISPOFF);
+                Hu3DModelLayerSet(routeEffect->modelId, 2);
+                Hu3DModelAmbSet(routeEffect->modelId, 0.0f, 0.0f, 0.0f);
+                if (teamIndex == 0) {
+                    Hu3DModelCameraSet(routeEffect->modelId, 1);
                 }
                 else {
-                    Hu3DModelCameraSet(var_r29->unk2, 2);
+                    Hu3DModelCameraSet(routeEffect->modelId, 2);
                 }
-                sp14[var_r28][sp10[var_r28]++] = var_r29->unk2;
-                var_r29->unk6 = fn_1_95E8(0x3A0018, var_r28, 0, 0.0f, -400.0f, 700.0f, 800.0f, -5.0f);
-                fn_1_9958(var_r29->unk6, 1);
-                fn_1_99E4(var_r29->unk6, 0xFF, 0xFF, 0xFF, 0);
-                var_r29->unk4 = 2 * var_r30 + 4 + var_r26;
-                fn_1_C528(var_r29->unk2, var_r29->unk4, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0xFF, 0xA0, 0x60);
-                Hu3DLLightStaticSet(var_r29->unk2, var_r29->unk4, 1);
-                Hu3DLLightPointSet(var_r29->unk2, var_r29->unk4, 1.0f, 0.6f, 3);
+                teamRenderModelIds[teamIndex][teamRenderModelCount[teamIndex]++] = routeEffect->modelId;
+                routeEffect->spriteId = CreateMapBanner(0x3A0018, teamIndex, 0, 0.0f, -400.0f, 700.0f, 800.0f, -5.0f);
+                SetMapModelAnimation(routeEffect->spriteId, 1);
+                SetMapModelColor(routeEffect->spriteId, 0xFF, 0xFF, 0xFF, 0);
+                routeEffect->lightIndex = 2 * modelOrEffectIndex + 4 + modelLinkIndex;
+                SetMapLight(routeEffect->modelId, routeEffect->lightIndex, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0xFF, 0xA0, 0x60);
+                Hu3DLLightStaticSet(routeEffect->modelId, routeEffect->lightIndex, 1);
+                Hu3DLLightPointSet(routeEffect->modelId, routeEffect->lightIndex, 1.0f, 0.6f, 3);
             }
         }
-        for (var_r30 = 0; var_r30 < 2; var_r30++) {
-            var_r27 = var_r31->unk17E[var_r30];
-            for (var_r26 = 0; var_r26 < 2; var_r26++, var_r27++) {
-                if ((var_r28 == 0) && (var_r26 == 0)) {
-                    var_r27->unk2 = sp8[var_r30] = Hu3DModelCreateFile(lbl_1_data_12C[var_r30]);
+        for (modelOrEffectIndex = 0; modelOrEffectIndex < 2; modelOrEffectIndex++) {
+            linkedLightModel = teamState->linkedLightModels[modelOrEffectIndex];
+            for (modelLinkIndex = 0; modelLinkIndex < 2; modelLinkIndex++, linkedLightModel++) {
+                if ((teamIndex == 0) && (modelLinkIndex == 0)) {
+                    linkedLightModel->modelId = linkedLightModelIds[modelOrEffectIndex] = Hu3DModelCreateFile(bannerAssetIds[modelOrEffectIndex]);
                 }
                 else {
-                    var_r27->unk2 = Hu3DModelLink(sp8[var_r30]);
+                    linkedLightModel->modelId = Hu3DModelLink(linkedLightModelIds[modelOrEffectIndex]);
                 }
-                Hu3DModelAttrSet(var_r27->unk2, HU3D_ATTR_DISPOFF);
-                Hu3DModelLayerSet(var_r27->unk2, 2);
-                Hu3DModelAmbSet(var_r27->unk2, 0.0f, 0.0f, 0.0f);
-                if (var_r28 == 0) {
-                    Hu3DModelCameraSet(var_r27->unk2, 1);
+                Hu3DModelAttrSet(linkedLightModel->modelId, HU3D_ATTR_DISPOFF);
+                Hu3DModelLayerSet(linkedLightModel->modelId, 2);
+                Hu3DModelAmbSet(linkedLightModel->modelId, 0.0f, 0.0f, 0.0f);
+                if (teamIndex == 0) {
+                    Hu3DModelCameraSet(linkedLightModel->modelId, 1);
                 }
                 else {
-                    Hu3DModelCameraSet(var_r27->unk2, 2);
+                    Hu3DModelCameraSet(linkedLightModel->modelId, 2);
                 }
-                sp14[var_r28][sp10[var_r28]++] = var_r27->unk2;
+                teamRenderModelIds[teamIndex][teamRenderModelCount[teamIndex]++] = linkedLightModel->modelId;
             }
         }
-        for (var_r30 = 0; var_r30 < 4; var_r30++) {
-            var_r31->unk34[var_r30] = fn_1_C41C(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0xFF, 0xFF, 0xFF);
-            var_r31->unk24[var_r30] = -1.0f;
+        for (modelOrEffectIndex = 0; modelOrEffectIndex < 4; modelOrEffectIndex++) {
+            teamState->effectIds[modelOrEffectIndex] = CreateMapLight(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0xFF, 0xFF, 0xFF);
+            teamState->effectAngles[modelOrEffectIndex] = -1.0f;
         }
     }
-    for (var_r28 = 0, var_r31 = var_r24->unk4; var_r28 < 2; var_r28++, var_r31++) {
-        var_r31->unk5C = Hu3DLLightCreate(var_r31->unk2[0], 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0xFA, 0xF0, 0xD2);
-        Hu3DLLightSpotSet(var_r31->unk2[0], var_r31->unk5C, 37.5f, 4);
-        Hu3DLLightStaticSet(var_r31->unk2[0], var_r31->unk5C, 1);
-        var_r31->unk78.x = 0.0f;
-        var_r31->unk78.y = 0.0f;
-        var_r31->unk78.z = 0.0f;
-        var_r31->unk84.x = 0.0f;
-        var_r31->unk84.y = 0.0f;
-        var_r31->unk84.z = 0.0f;
-        var_r31->unk90 = 0.0f;
+    for (teamIndex = 0, teamState = mapState->teamStates; teamIndex < 2; teamIndex++, teamState++) {
+        teamState->highlightLightId = Hu3DLLightCreate(teamState->modelIds[0], 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0xFA, 0xF0, 0xD2);
+        Hu3DLLightSpotSet(teamState->modelIds[0], teamState->highlightLightId, 37.5f, 4);
+        Hu3DLLightStaticSet(teamState->modelIds[0], teamState->highlightLightId, 1);
+        teamState->cameraFocusPosition.x = 0.0f;
+        teamState->cameraFocusPosition.y = 0.0f;
+        teamState->cameraFocusPosition.z = 0.0f;
+        teamState->worldPosition.x = 0.0f;
+        teamState->worldPosition.y = 0.0f;
+        teamState->worldPosition.z = 0.0f;
+        teamState->facingAngle = 0.0f;
     }
-    fn_1_93EC(0x3A0016, 0x3A0014, 2000.0f, 6000.0f, 4.0f, 9.0f);
-    for (var_r28 = 0, var_r31 = var_r24->unk4; var_r28 < 2; var_r28++, var_r31++) {
-        var_r31->unkB0[0] = fn_1_95E8(0x3A0015, var_r28, 0.0f, 0.0f, -900.0f, 500.0f, 700.0f, -10.0f);
-        var_r25 = &var_r31->unk94;
-        var_r25->unk0 = var_r28;
-        var_r25->unk8 = GXGetTexBufferSize(0x140, 0x1E0, 5, 0, 0);
-        var_r25->unk4 = HuMemDirectMalloc(HEAP_MODEL, var_r25->unk8);
-        var_r30 = Hu3DHookFuncCreate(fn_1_A148);
-        var_r31->unk1C = var_r30;
-        Hu3DModelCameraSet(var_r30, var_r28 ? 2 : 1);
-        Hu3DModelLayerSet(var_r30, 1);
-        Hu3DData[var_r30].hookData = var_r25;
-        var_r31->unk1A = fn_1_A1F4(0x3A0013, 0xA, 0x1E, var_r28, 6000.0f, lbl_1_bss_554, lbl_1_bss_558);
-        fn_1_C528(var_r31->unk1A, 1, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0xC8, 0xF0, 0xA0);
-        Hu3DLLightStaticSet(var_r31->unk1A, 1, 1);
-        Hu3DLLightPointSet(var_r31->unk1A, 1, 125.0f, 0.5f, 3);
-        fn_1_C528(var_r31->unk1A, 2, 0.0f, -500.0f, -23500.0f, 0.0f, 0.0f, 0.0f, 0xFA, 0xF0, 0xD2);
-        Hu3DLLightStaticSet(var_r31->unk1A, 2, 1);
-        Hu3DLLightPointSet(var_r31->unk1A, 2, 800.0f, 0.5f, 3);
-        sp14[var_r28][sp10[var_r28]++] = var_r31->unk1A;
-        fn_1_9318(sp14[var_r28], sp10[var_r28]);
+    SetBannerTextureScale(0x3A0016, 0x3A0014, 2000.0f, 6000.0f, 4.0f, 9.0f);
+    for (teamIndex = 0, teamState = mapState->teamStates; teamIndex < 2; teamIndex++, teamState++) {
+        teamState->bannerModelId[0] = CreateMapBanner(0x3A0015, teamIndex, 0.0f, 0.0f, -900.0f, 500.0f, 700.0f, -10.0f);
+        bannerRenderTarget = &teamState->renderTarget;
+        bannerRenderTarget->cameraIndex = teamIndex;
+        bannerRenderTarget->textureBufferSize = GXGetTexBufferSize(0x140, 0x1E0, 5, 0, 0);
+        bannerRenderTarget->textureBuffer = HuMemDirectMalloc(HEAP_MODEL, bannerRenderTarget->textureBufferSize);
+        modelOrEffectIndex = Hu3DHookFuncCreate(RenderMapEffectOverlay);
+        teamState->particleModelId = modelOrEffectIndex;
+        Hu3DModelCameraSet(modelOrEffectIndex, teamIndex ? 2 : 1);
+        Hu3DModelLayerSet(modelOrEffectIndex, 1);
+        Hu3DData[modelOrEffectIndex].hookData = bannerRenderTarget;
+        teamState->lightModelId = CreateTeamMarker(0x3A0013, 0xA, 0x1E, teamIndex, 6000.0f, baseRightRouteEdge, baseLeftRouteEdge);
+        SetMapLight(teamState->lightModelId, 1, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0xC8, 0xF0, 0xA0);
+        Hu3DLLightStaticSet(teamState->lightModelId, 1, 1);
+        Hu3DLLightPointSet(teamState->lightModelId, 1, 125.0f, 0.5f, 3);
+        SetMapLight(teamState->lightModelId, 2, 0.0f, -500.0f, -23500.0f, 0.0f, 0.0f, 0.0f, 0xFA, 0xF0, 0xD2);
+        Hu3DLLightStaticSet(teamState->lightModelId, 2, 1);
+        Hu3DLLightPointSet(teamState->lightModelId, 2, 800.0f, 0.5f, 3);
+        teamRenderModelIds[teamIndex][teamRenderModelCount[teamIndex]++] = teamState->lightModelId;
+        SetBannerAnimationFrame(teamRenderModelIds[teamIndex], teamRenderModelCount[teamIndex]);
     }
-    object->objFunc = fn_1_72E4;
+    object->objFunc = UpdateMapEffects;
 }
 
-void fn_1_72E4(OMOBJ *object)
+void UpdateMapEffects(OMOBJ *object)
 {
-    float var_f31;
-    M427DllMapStruct2 *var_r31;
-    s16 var_r30;
+    float effectMotionEndTime;
+    CharacterEffectSlot *effectSlot;
+    s16 effectSlotIndex;
 
-    if (fn_1_1788() == 7) {
-        object->objFunc = fn_1_3E58;
+    if (getGameplayState() == 7) {
+        object->objFunc = ResetTeamMapRenderState;
     }
-    fn_1_73BC();
-    fn_1_7C34();
-    fn_1_7F38();
-    fn_1_8F90(object);
-    fn_1_9240();
-    for (var_r31 = lbl_1_bss_F8, var_r30 = 0; var_r30 < 0x10; var_r30++, var_r31++) {
-        if (var_r31->unk0 != -1) {
-            var_f31 = Hu3DMotionMaxTimeGet(var_r31->unk2);
-            if (Hu3DMotionTimeGet(var_r31->unk2) >= var_f31) {
-                var_r31->unk0 = -1;
-                Hu3DModelAttrSet(var_r31->unk2, HU3D_ATTR_DISPOFF);
+    InitializeTeamRouteEffects();
+    UpdateTeamRouteEffects();
+    UpdateTeamRouteModels();
+    UpdateRouteEffectController(object);
+    UpdateBannerAnimation();
+    for (effectSlot = characterEffectSlots, effectSlotIndex = 0; effectSlotIndex < 0x10; effectSlotIndex++, effectSlot++) {
+        if (effectSlot->activeState != -1) {
+            effectMotionEndTime = Hu3DMotionMaxTimeGet(effectSlot->modelId);
+            if (Hu3DMotionTimeGet(effectSlot->modelId) >= effectMotionEndTime) {
+                effectSlot->activeState = -1;
+                Hu3DModelAttrSet(effectSlot->modelId, HU3D_ATTR_DISPOFF);
             }
         }
     }
 }
 
-void fn_1_73BC(void)
+void InitializeTeamRouteEffects(void)
 {
-    float var_f31;
-    M427DllMapSubstruct3 *var_r31;
-    M427DllMapSubstruct6 *var_r30;
-    s16 var_r29;
-    HU3DMODEL *var_r28;
-    s16 var_r27;
+    float lightPulseOffset;
+    TeamMapState *teamState;
+    ParticleState *activeSpotEffect;
+    s16 characterIndex;
+    HU3DMODEL *characterModel;
+    s16 teamIndex;
 
-    for (var_r27 = 0, var_r31 = lbl_1_bss_158.unk4; var_r27 < 2; var_r27++, var_r31++) {
-        for (var_r29 = 0; var_r29 < 0xA; var_r29++) {
-            var_r28 = &Hu3DData[var_r31->unk2[var_r29]];
-            var_r30 = fn_1_DC0C(lbl_1_bss_E8[var_r31->unk0], var_r31->unk3C[var_r31->unk44[var_r29]]);
-            var_f31 = -2000.0f * var_r29;
-            if (((var_r31->unk84.z - 25000.0f) < var_f31) && ((3000.0f + var_r31->unk84.z) > var_f31)) {
-                if (var_r31->unk44[var_r29] == -1) {
-                    fn_1_794C(var_r31, var_r29);
-                    var_r28->attr &= 0xFFFFFFFE;
+    for (teamIndex = 0, teamState = mapState.teamStates; teamIndex < 2; teamIndex++, teamState++) {
+        for (characterIndex = 0; characterIndex < 0xA; characterIndex++) {
+            characterModel = &Hu3DData[teamState->modelIds[characterIndex]];
+            activeSpotEffect = FindMapParticle(teamSecondaryAnimationIds[teamState->teamIndex], teamState->lightSlotIndices[teamState->routeEffectIndices[characterIndex]]);
+            lightPulseOffset = -2000.0f * characterIndex;
+            if (((teamState->worldPosition.z - 25000.0f) < lightPulseOffset) && ((3000.0f + teamState->worldPosition.z) > lightPulseOffset)) {
+                if (teamState->routeEffectIndices[characterIndex] == -1) {
+                    SetTeamMapPosition(teamState, characterIndex);
+                    characterModel->attr &= 0xFFFFFFFE;
                 }
                 else {
-                    if (var_r30) {
-                        var_r30->unk_24 += 5.0f;
-                        if (var_r30->unk_24 >= 360.0f) {
-                            var_r30->unk_24 -= 360.0f;
+                    if (activeSpotEffect) {
+                        activeSpotEffect->scale += 5.0f;
+                        if (activeSpotEffect->scale >= 360.0f) {
+                            activeSpotEffect->scale -= 360.0f;
                         }
-                        var_r30->unk_48.x = var_r30->unk_48.y = var_r30->unk_48.z = 1.0 + (0.05000000074505806 * sind(var_r30->unk_24));
+                        activeSpotEffect->rotation.x = activeSpotEffect->rotation.y = activeSpotEffect->rotation.z = 1.0 + (0.05000000074505806 * sind(activeSpotEffect->scale));
                     }
-                    var_r31->unk24[var_r31->unk44[var_r29]] += 5.0f;
-                    if (var_r31->unk24[var_r31->unk44[var_r29]] >= 360.0f) {
-                        var_r31->unk24[var_r31->unk44[var_r29]] -= 360.0f;
+                    teamState->effectAngles[teamState->routeEffectIndices[characterIndex]] += 5.0f;
+                    if (teamState->effectAngles[teamState->routeEffectIndices[characterIndex]] >= 360.0f) {
+                        teamState->effectAngles[teamState->routeEffectIndices[characterIndex]] -= 360.0f;
                     }
-                    var_f31 = 50.0 * sind(var_r31->unk24[var_r31->unk44[var_r29]]);
-                    var_f31 = var_f31;
-                    Hu3DLLightPointSet(var_r31->unk2[var_r29], 1, 400.0f + var_f31, 0.5f, 3);
-                    if (var_r29 == 0) {
-                        var_r30 = fn_1_DC0C(lbl_1_bss_E8[var_r31->unk0], var_r31->unk5A);
-                        if (var_r30->unk_24 >= 360.0f) {
-                            var_r30->unk_24 -= 360.0f;
+                    lightPulseOffset = 50.0 * sind(teamState->effectAngles[teamState->routeEffectIndices[characterIndex]]);
+                    lightPulseOffset = lightPulseOffset;
+                    Hu3DLLightPointSet(teamState->modelIds[characterIndex], 1, 400.0f + lightPulseOffset, 0.5f, 3);
+                    if (characterIndex == 0) {
+                        activeSpotEffect = FindMapParticle(teamSecondaryAnimationIds[teamState->teamIndex], teamState->spotlightId);
+                        if (activeSpotEffect->scale >= 360.0f) {
+                            activeSpotEffect->scale -= 360.0f;
                         }
-                        var_r30->unk_48.x = var_r30->unk_48.y = var_r30->unk_48.z = 1.0 + (0.05000000074505806 * sind(var_r30->unk_24));
-                        var_r31->unk24[1] += 5.0f;
-                        if (var_r31->unk24[1] >= 360.0f) {
-                            var_r31->unk24[1] -= 360.0f;
+                        activeSpotEffect->rotation.x = activeSpotEffect->rotation.y = activeSpotEffect->rotation.z = 1.0 + (0.05000000074505806 * sind(activeSpotEffect->scale));
+                        teamState->effectAngles[1] += 5.0f;
+                        if (teamState->effectAngles[1] >= 360.0f) {
+                            teamState->effectAngles[1] -= 360.0f;
                         }
-                        var_f31 = 50.0 * sind(var_r31->unk24[1]);
-                        var_f31 = var_f31;
-                        Hu3DLLightPointSet(var_r31->unk2[var_r29], 2, 400.0f + var_f31, 0.5f, 3);
+                        lightPulseOffset = 50.0 * sind(teamState->effectAngles[1]);
+                        lightPulseOffset = lightPulseOffset;
+                        Hu3DLLightPointSet(teamState->modelIds[characterIndex], 2, 400.0f + lightPulseOffset, 0.5f, 3);
                     }
                 }
             }
             else {
-                if (var_r31->unk44[var_r29] != -1) {
-                    if (var_r30) {
-                        var_r30->unk_62 = 0;
+                if (teamState->routeEffectIndices[characterIndex] != -1) {
+                    if (activeSpotEffect) {
+                        activeSpotEffect->active = 0;
                     }
-                    var_r28->lLightId[1] = -1;
-                    var_r31->unk24[var_r31->unk44[var_r29]] = -1.0f;
-                    var_r31->unk44[var_r29] = -1;
-                    if (var_r29 == 0) {
-                        var_r30 = fn_1_DC0C(lbl_1_bss_E8[var_r31->unk0], var_r31->unk5A);
-                        var_r30->unk_62 = 0;
-                        var_r28->lLightId[2] = -1;
-                        var_r31->unk24[1] = -1.0f;
+                    characterModel->lLightId[1] = -1;
+                    teamState->effectAngles[teamState->routeEffectIndices[characterIndex]] = -1.0f;
+                    teamState->routeEffectIndices[characterIndex] = -1;
+                    if (characterIndex == 0) {
+                        activeSpotEffect = FindMapParticle(teamSecondaryAnimationIds[teamState->teamIndex], teamState->spotlightId);
+                        activeSpotEffect->active = 0;
+                        characterModel->lLightId[2] = -1;
+                        teamState->effectAngles[1] = -1.0f;
                     }
                 }
-                var_r28->attr |= 1;
+                characterModel->attr |= 1;
             }
         }
     }
 }
 
-Vec lbl_1_data_144[0xC] = {
+Vec mapRoutePositions[0xC] = {
     { -670.0f, 400.0f, 1750.0f },
     { 930.0f, 400.0f, -1000.0f },
     { -930.0f, 400.0f, -3000.0f },
@@ -1360,84 +1360,84 @@ Vec lbl_1_data_144[0xC] = {
     { 930.0f, -200.0f, -21000.0f },
 };
 
-void fn_1_794C(M427DllMapSubstruct3 *arg0, s16 arg1)
+void SetTeamMapPosition(TeamMapState *teamState, s16 teamIndex)
 {
-    Vec sp14;
-    s16 var_r30;
-    HU3DMODEL *var_r28;
+    Vec lightPosition;
+    s16 effectSlotIndex;
+    HU3DMODEL *characterModel;
 
-    var_r28 = &Hu3DData[arg0->unk2[arg1]];
+    characterModel = &Hu3DData[teamState->modelIds[teamIndex]];
     {
-        Vec sp8 = { 0.0f, 0.0f, 0.0f };
-        if (arg1 != 0xA) {
-            for (var_r30 = 0; var_r30 < 4; var_r30++) {
-                if (arg0->unk24[var_r30] == -1.0f) {
+        Vec zeroLightDirection = { 0.0f, 0.0f, 0.0f };
+        if (teamIndex != 0xA) {
+            for (effectSlotIndex = 0; effectSlotIndex < 4; effectSlotIndex++) {
+                if (teamState->effectAngles[effectSlotIndex] == -1.0f) {
                     break;
                 }
             }
-            if (var_r30 != 4) {
-                var_r28->lLightId[1] = arg0->unk34[var_r30];
-                arg0->unk24[var_r30] = 0.0f;
-                arg0->unk44[arg1] = var_r30;
-                if (var_r28->lLightId[1] != -1) {
-                    sp14.x = lbl_1_data_144[arg1 + 1].x;
-                    sp14.y = lbl_1_data_144[arg1 + 1].y;
-                    sp14.z = lbl_1_data_144[arg1 + 1].z;
-                    Hu3DLLightPointSet(arg0->unk2[arg1], 1, 400.0f, 0.5f, 3);
-                    Hu3DLLightPosSetV(arg0->unk2[arg1], 1, &sp14, &sp8);
+            if (effectSlotIndex != 4) {
+                characterModel->lLightId[1] = teamState->effectIds[effectSlotIndex];
+                teamState->effectAngles[effectSlotIndex] = 0.0f;
+                teamState->routeEffectIndices[teamIndex] = effectSlotIndex;
+                if (characterModel->lLightId[1] != -1) {
+                    lightPosition.x = mapRoutePositions[teamIndex + 1].x;
+                    lightPosition.y = mapRoutePositions[teamIndex + 1].y;
+                    lightPosition.z = mapRoutePositions[teamIndex + 1].z;
+                    Hu3DLLightPointSet(teamState->modelIds[teamIndex], 1, 400.0f, 0.5f, 3);
+                    Hu3DLLightPosSetV(teamState->modelIds[teamIndex], 1, &lightPosition, &zeroLightDirection);
                 }
-                arg0->unk3C[var_r30] = fn_1_D430(sp14.x, sp14.y, sp14.z, lbl_1_bss_E8[arg0->unk0]);
-                if (arg1 == 0) {
-                    var_r30 = 1;
-                    var_r28->lLightId[2] = arg0->unk34[var_r30];
-                    arg0->unk24[var_r30] = 0.0f;
-                    sp14.x = lbl_1_data_144[0].x;
-                    sp14.y = lbl_1_data_144[0].y;
-                    sp14.z = lbl_1_data_144[0].z;
-                    Hu3DLLightPointSet(arg0->unk2[0], 2, 400.0f, 0.5f, 3);
-                    Hu3DLLightPosSetV(arg0->unk2[0], 2, &sp14, &sp8);
-                    arg0->unk5A = fn_1_D430(sp14.x, sp14.y, sp14.z, lbl_1_bss_E8[arg0->unk0]);
+                teamState->lightSlotIndices[effectSlotIndex] = CalculateParticleAnimationFrame(lightPosition.x, lightPosition.y, lightPosition.z, teamSecondaryAnimationIds[teamState->teamIndex]);
+                if (teamIndex == 0) {
+                    effectSlotIndex = 1;
+                    characterModel->lLightId[2] = teamState->effectIds[effectSlotIndex];
+                    teamState->effectAngles[effectSlotIndex] = 0.0f;
+                    lightPosition.x = mapRoutePositions[0].x;
+                    lightPosition.y = mapRoutePositions[0].y;
+                    lightPosition.z = mapRoutePositions[0].z;
+                    Hu3DLLightPointSet(teamState->modelIds[0], 2, 400.0f, 0.5f, 3);
+                    Hu3DLLightPosSetV(teamState->modelIds[0], 2, &lightPosition, &zeroLightDirection);
+                    teamState->spotlightId = CalculateParticleAnimationFrame(lightPosition.x, lightPosition.y, lightPosition.z, teamSecondaryAnimationIds[teamState->teamIndex]);
                 }
             }
         }
     }
 }
 
-float lbl_1_data_1D4[2] = { 50.0f, 80.0f };
+float routeEffectScaleBounds[2] = { 50.0f, 80.0f };
 
-void fn_1_7C34(void)
+void UpdateTeamRouteEffects(void)
 {
-    Vec sp14;
-    M427DllMapSubstruct3 *var_r31;
-    HU3DMODEL *var_r30;
-    s16 var_r29;
-    s16 var_r28;
-    M427DllMapUNK17E *var_r27;
-    M427DllMapSubstruct *var_r26;
-    s16 var_r25;
+    Vec linkedModelPosition;
+    TeamMapState *teamState;
+    HU3DMODEL *linkedModel;
+    s16 teamOrRoutePointIndex;
+    s16 linkedModelGroup;
+    RouteLightModelLink *linkedLightModel;
+    RoutePoint *routePoint;
+    s16 linkedModelIndex;
 
-    for (var_r26 = lbl_1_bss_158.unk3A0, var_r29 = 0; var_r29 < 5; var_r29++, var_r26++) {
-        for (var_r28 = 0, var_r31 = lbl_1_bss_158.unk4; var_r28 < 2; var_r28++, var_r31++) {
-            if ((var_r31->unk18E[var_r29] == 0) && ((var_r31->unk84.z - 7000.0f) < var_r26->unk4.z)
-                && ((1000.0f + var_r31->unk84.z) > var_r26->unk4.z)) {
-                fn_1_7E60(var_r29, var_r31);
+    for (routePoint = mapState.routePoints, teamOrRoutePointIndex = 0; teamOrRoutePointIndex < 5; teamOrRoutePointIndex++, routePoint++) {
+        for (linkedModelGroup = 0, teamState = mapState.teamStates; linkedModelGroup < 2; linkedModelGroup++, teamState++) {
+            if ((teamState->activeRoutePointModels[teamOrRoutePointIndex] == 0) && ((teamState->worldPosition.z - 7000.0f) < routePoint->worldPosition.z)
+                && ((1000.0f + teamState->worldPosition.z) > routePoint->worldPosition.z)) {
+                SetTeamRouteState(teamOrRoutePointIndex, teamState);
             }
         }
     }
-    for (var_r29 = 0, var_r31 = lbl_1_bss_158.unk4; var_r29 < 2; var_r29++, var_r31++) {
-        for (var_r28 = 0; var_r28 < 2; var_r28++) {
-            var_r27 = var_r31->unk17E[var_r28];
-            for (var_r25 = 0; var_r25 < 2; var_r25++, var_r27++) {
-                var_r30 = &Hu3DData[var_r27->unk2];
-                if ((var_r30->attr & 1) == 0) {
-                    if (((var_r31->unk84.z - 7000.0f) > var_r30->pos.z) || ((1000.0f + var_r31->unk84.z) < var_r30->pos.z)) {
-                        var_r30->attr |= 1;
-                        var_r31->unk18E[var_r27->unk0] = 0;
+    for (teamOrRoutePointIndex = 0, teamState = mapState.teamStates; teamOrRoutePointIndex < 2; teamOrRoutePointIndex++, teamState++) {
+        for (linkedModelGroup = 0; linkedModelGroup < 2; linkedModelGroup++) {
+            linkedLightModel = teamState->linkedLightModels[linkedModelGroup];
+            for (linkedModelIndex = 0; linkedModelIndex < 2; linkedModelIndex++, linkedLightModel++) {
+                linkedModel = &Hu3DData[linkedLightModel->modelId];
+                if ((linkedModel->attr & 1) == 0) {
+                    if (((teamState->worldPosition.z - 7000.0f) > linkedModel->pos.z) || ((1000.0f + teamState->worldPosition.z) < linkedModel->pos.z)) {
+                        linkedModel->attr |= 1;
+                        teamState->activeRoutePointModels[linkedLightModel->routePointIndex] = 0;
                     }
                     else {
-                        sp14.x = var_r30->pos.x;
-                        sp14.z = var_r30->pos.z;
-                        fn_1_15FD0(sp14, lbl_1_data_1D4[var_r28], 0, 1, var_r31->unk0);
+                        linkedModelPosition.x = linkedModel->pos.x;
+                        linkedModelPosition.z = linkedModel->pos.z;
+                        TestRouteCircleCollision(linkedModelPosition, routeEffectScaleBounds[linkedModelGroup], 0, 1, teamState->teamIndex);
                     }
                 }
             }
@@ -1445,561 +1445,561 @@ void fn_1_7C34(void)
     }
 }
 
-void fn_1_7E60(s16 arg0, M427DllMapSubstruct3 *arg1)
+void SetTeamRouteState(s16 teamIndex, TeamMapState *teamState)
 {
-    M427DllMapUNK17E *var_r31;
-    M427DllMapSubstruct *var_r30;
-    s16 var_r29;
-    HU3DMODEL *var_r28;
+    RouteLightModelLink *linkedLightModel;
+    RoutePoint *routePoint;
+    s16 modelLinkIndex;
+    HU3DMODEL *linkedModel;
 
-    var_r30 = &lbl_1_bss_158.unk3A0[arg0];
-    var_r31 = arg1->unk17E[var_r30->unk0];
-    for (var_r29 = 0; var_r29 < 2; var_r29++, var_r31++) {
-        var_r28 = &Hu3DData[var_r31->unk2];
-        if ((var_r28->attr & 1) != 0) {
-            Hu3DModelAttrReset(var_r31->unk2, HU3D_ATTR_DISPOFF);
-            Hu3DModelPosSet(var_r31->unk2, var_r30->unk4.x, var_r30->unk4.y, var_r30->unk4.z);
-            var_r31->unk0 = arg0;
-            arg1->unk18E[arg0] = 1;
+    routePoint = &mapState.routePoints[teamIndex];
+    linkedLightModel = teamState->linkedLightModels[routePoint->routePointType];
+    for (modelLinkIndex = 0; modelLinkIndex < 2; modelLinkIndex++, linkedLightModel++) {
+        linkedModel = &Hu3DData[linkedLightModel->modelId];
+        if ((linkedModel->attr & 1) != 0) {
+            Hu3DModelAttrReset(linkedLightModel->modelId, HU3D_ATTR_DISPOFF);
+            Hu3DModelPosSet(linkedLightModel->modelId, routePoint->worldPosition.x, routePoint->worldPosition.y, routePoint->worldPosition.z);
+            linkedLightModel->routePointIndex = teamIndex;
+            teamState->activeRoutePointModels[teamIndex] = 1;
             return;
         }
     }
 }
 
-void fn_1_7F38(void)
+void UpdateTeamRouteModels(void)
 {
-    Vec sp14;
-    float var_f31;
-    M427DllMapUNKB8 *var_r31;
-    M427DllMapSubstruct3 *var_r30;
-    HU3DMODEL *var_r29;
-    s16 var_r28;
-    s16 var_r27;
-    M427DllMapSubstruct2 *var_r26;
-    s16 var_r25;
-    s32 var_r24;
-    s32 var_r23;
+    Vec effectPosition;
+    float lightPulseOffset;
+    RouteEffectState *routeEffect;
+    TeamMapState *teamState;
+    HU3DMODEL *effectModel;
+    s16 teamIndex;
+    s16 routeEventIndex;
+    RouteEvent *routeEvent;
+    s16 effectModelIndex;
+    s32 soundEffectId;
+    s32 soundSlotIndex;
 
-    for (var_r26 = lbl_1_bss_158.unk34C, var_r27 = 0; var_r27 < 3; var_r27++, var_r26++) {
-        for (var_r28 = 0, var_r30 = lbl_1_bss_158.unk4; var_r28 < 2; var_r28++, var_r30++) {
-            if ((var_r30->unk178[var_r27] == 0) && ((var_r30->unk84.z - 7000.0f) < var_r26->unk4.z)
-                && ((1000.0f + var_r30->unk84.z) > var_r26->unk4.z)) {
-                fn_1_85D4(var_r27, var_r30);
+    for (routeEvent = mapState.routeEvents, routeEventIndex = 0; routeEventIndex < 3; routeEventIndex++, routeEvent++) {
+        for (teamIndex = 0, teamState = mapState.teamStates; teamIndex < 2; teamIndex++, teamState++) {
+            if ((teamState->activeRouteEffectCounts[routeEventIndex] == 0) && ((teamState->worldPosition.z - 7000.0f) < routeEvent->worldPosition.z)
+                && ((1000.0f + teamState->worldPosition.z) > routeEvent->worldPosition.z)) {
+                SetTeamRouteAnimation(routeEventIndex, teamState);
             }
         }
     }
-    for (var_r27 = 0, var_r30 = lbl_1_bss_158.unk4; var_r27 < 2; var_r27++, var_r30++) {
-        for (var_r28 = 0; var_r28 < 2; var_r28++) {
-            var_r31 = var_r30->unkB8[var_r28];
-            for (var_r25 = 0; var_r25 < 2; var_r25++, var_r31++) {
-                var_r29 = &Hu3DData[var_r31->unk2];
-                if ((var_r29->attr & 1) == 0) {
-                    if (((var_r30->unk84.z - 7000.0f) > var_r29->pos.z) || ((1000.0f + var_r30->unk84.z) < var_r29->pos.z)) {
-                        if (var_r31->unk8 == 0) {
-                            fn_1_8E1C(1, var_r30, var_r31);
-                            fn_1_9958(var_r31->unk6, 1);
-                            var_r29->attr |= 1;
-                            var_r31->unk8 = 0x63;
-                            var_r30->unk178[var_r31->unk0] = 0;
+    for (routeEventIndex = 0, teamState = mapState.teamStates; routeEventIndex < 2; routeEventIndex++, teamState++) {
+        for (teamIndex = 0; teamIndex < 2; teamIndex++) {
+            routeEffect = teamState->routeEffects[teamIndex];
+            for (effectModelIndex = 0; effectModelIndex < 2; effectModelIndex++, routeEffect++) {
+                effectModel = &Hu3DData[routeEffect->modelId];
+                if ((effectModel->attr & 1) == 0) {
+                    if (((teamState->worldPosition.z - 7000.0f) > effectModel->pos.z) || ((1000.0f + teamState->worldPosition.z) < effectModel->pos.z)) {
+                        if (routeEffect->animationPhase == 0) {
+                            InitializeRouteEffect(1, teamState, routeEffect);
+                            SetMapModelAnimation(routeEffect->spriteId, 1);
+                            effectModel->attr |= 1;
+                            routeEffect->animationPhase = 0x63;
+                            teamState->activeRouteEffectCounts[routeEffect->routeEventIndex] = 0;
                         }
-                        else if (var_r31->unk8 != 2) {
-                            var_r31->unkA = 0;
-                            var_r31->unk8 = 2;
+                        else if (routeEffect->animationPhase != 2) {
+                            routeEffect->phaseFrame = 0;
+                            routeEffect->animationPhase = 2;
                         }
                     }
-                    switch (var_r31->unk8) {
+                    switch (routeEffect->animationPhase) {
                         case 0:
-                            if (++var_r31->unkA > var_r31->unk18) {
-                                var_r31->unkA = 0;
-                                var_r31->unkC = 0.0f;
-                                var_r31->unk20 = ((rand8() << 8) | rand8()) % 361;
-                                var_r31->unk24 = ((rand8() << 8) | rand8()) % 361;
-                                var_r31->unk28 = 1.0f;
-                                var_r31->unk2C = 0.0f;
-                                var_r31->unk8++;
+                            if (++routeEffect->phaseFrame > routeEffect->phaseOneFrames) {
+                                routeEffect->phaseFrame = 0;
+                                routeEffect->opacity = 0.0f;
+                                routeEffect->scalePulseAngle = ((rand8() << 8) | rand8()) % 361;
+                                routeEffect->lightPulseAngle = ((rand8() << 8) | rand8()) % 361;
+                                routeEffect->effectScale = 1.0f;
+                                routeEffect->particleAngle = 0.0f;
+                                routeEffect->animationPhase++;
                             }
                             break;
                         case 1:
-                            if (++var_r31->unkA > var_r31->unk1E) {
-                                var_r31->unkA = 0;
-                                var_r31->unk8++;
-                                if (fn_1_1788() <= 4) {
-                                    if (var_r27 == 0) {
-                                        var_r24 = HuAudFXPlay(0x65A);
+                            if (++routeEffect->phaseFrame > routeEffect->phaseFourFrames) {
+                                routeEffect->phaseFrame = 0;
+                                routeEffect->animationPhase++;
+                                if (getGameplayState() <= 4) {
+                                    if (routeEventIndex == 0) {
+                                        soundEffectId = HuAudFXPlay(0x65A);
                                     }
                                     else {
-                                        var_r24 = HuAudFXPlay(0x65B);
+                                        soundEffectId = HuAudFXPlay(0x65B);
                                     }
-                                    var_r23 = var_r27 * 4 + var_r28 * 2 + var_r25;
-                                    lbl_1_bss_0[var_r23].unk0 = var_r24;
-                                    lbl_1_bss_0[var_r23].unk4 = REFRESH_RATE * 2;
+                                    soundSlotIndex = routeEventIndex * 4 + teamIndex * 2 + effectModelIndex;
+                                    soundEffectLifetimes[soundSlotIndex].soundEffectId = soundEffectId;
+                                    soundEffectLifetimes[soundSlotIndex].remainingFrames = REFRESH_RATE * 2;
                                 }
                             }
-                            var_r31->unk_14 = 0.1f;
-                            fn_1_8768(var_r30, var_r31, var_r28, 0.2f, var_r31->unk_14);
+                            routeEffect->spriteOpacity = 0.1f;
+                            UpdateRouteEffectState(teamState, routeEffect, teamIndex, 0.2f, routeEffect->spriteOpacity);
                             break;
                         case 2:
-                            if (++var_r31->unkA > var_r31->unk1A) {
-                                var_r31->unkA = 0;
-                                var_r31->unk8++;
+                            if (++routeEffect->phaseFrame > routeEffect->phaseTwoFrames) {
+                                routeEffect->phaseFrame = 0;
+                                routeEffect->animationPhase++;
                             }
-                            if (var_r31->unk_14 < 1.0f) {
-                                var_r31->unk_14 += 0.05f;
+                            if (routeEffect->spriteOpacity < 1.0f) {
+                                routeEffect->spriteOpacity += 0.05f;
                             }
-                            if (var_r31->unk_14 > 1.0f) {
-                                var_r31->unk_14 = 1.0f;
+                            if (routeEffect->spriteOpacity > 1.0f) {
+                                routeEffect->spriteOpacity = 1.0f;
                             }
-                            var_r31->unk_10 += 40.0f;
-                            var_r31->unkC += 0.05f;
-                            fn_1_8768(var_r30, var_r31, var_r28, 1.0f, var_r31->unk_14);
+                            routeEffect->lightRadius += 40.0f;
+                            routeEffect->opacity += 0.05f;
+                            UpdateRouteEffectState(teamState, routeEffect, teamIndex, 1.0f, routeEffect->spriteOpacity);
                             break;
                         case 3:
-                            var_r31->unkA++;
-                            var_f31 = 1.0f - ((float)var_r31->unkA / var_r31->unk1C);
-                            if (var_r31->unkA > var_r31->unk1C) {
-                                var_r31->unkA = 0;
-                                var_f31 = 0.0f;
-                                var_r31->unk8 = 0;
+                            routeEffect->phaseFrame++;
+                            lightPulseOffset = 1.0f - ((float)routeEffect->phaseFrame / routeEffect->phaseThreeFrames);
+                            if (routeEffect->phaseFrame > routeEffect->phaseThreeFrames) {
+                                routeEffect->phaseFrame = 0;
+                                lightPulseOffset = 0.0f;
+                                routeEffect->animationPhase = 0;
                             }
-                            var_r31->unk_10 = 400.0 * sind((90.0f * var_f31));
-                            var_r31->unkC = 1.2f * var_f31;
-                            var_r31->unk_14 = var_f31;
-                            fn_1_8768(var_r30, var_r31, var_r28, var_f31, var_r31->unk_14);
+                            routeEffect->lightRadius = 400.0 * sind((90.0f * lightPulseOffset));
+                            routeEffect->opacity = 1.2f * lightPulseOffset;
+                            routeEffect->spriteOpacity = lightPulseOffset;
+                            UpdateRouteEffectState(teamState, routeEffect, teamIndex, lightPulseOffset, routeEffect->spriteOpacity);
                             break;
                     }
-                    sp14.x = var_r29->pos.x;
-                    sp14.z = var_r29->pos.z;
-                    fn_1_15FD0(sp14, 50.0f, 0, 1, var_r30->unk0);
+                    effectPosition.x = effectModel->pos.x;
+                    effectPosition.z = effectModel->pos.z;
+                    TestRouteCircleCollision(effectPosition, 50.0f, 0, 1, teamState->teamIndex);
                 }
             }
         }
     }
 }
 
-void fn_1_85D4(s16 arg0, M427DllMapSubstruct3 *arg1)
+void SetTeamRouteAnimation(s16 teamIndex, TeamMapState *teamState)
 {
-    float var_f31;
-    M427DllMapUNKB8 *var_r31;
-    M427DllMapSubstruct2 *var_r30;
-    s16 var_r29;
-    HU3DMODEL *var_r27;
+    float routeEffectFacingAngle;
+    RouteEffectState *routeEffect;
+    RouteEvent *routeEvent;
+    s16 effectModelIndex;
+    HU3DMODEL *effectModel;
 
-    var_r30 = &lbl_1_bss_158.unk34C[arg0];
-    var_r31 = arg1->unkB8[var_r30->unk0];
-    for (var_r29 = 0; var_r29 < 2; var_r29++, var_r31++) {
-        var_r27 = &Hu3DData[var_r31->unk2];
-        if ((var_r27->attr & 1) != 0) {
-            Hu3DModelAttrReset(var_r31->unk2, HU3D_ATTR_DISPOFF);
-            Hu3DModelPosSet(var_r31->unk2, var_r30->unk4.x, var_r30->unk4.y, var_r30->unk4.z);
-            var_r31->unk8 = 0;
-            var_r31->unkA = 0;
-            var_r31->unk18 = var_r30->unk14[0];
-            var_r31->unk1A = var_r30->unk14[1];
-            var_r31->unk1C = var_r30->unk14[2];
-            var_r31->unk1E = var_r30->unk14[3];
-            var_r31->unk0 = arg0;
-            arg1->unk178[arg0] = 1;
-            fn_1_9A2C(var_r31->unk6, var_r30->unk4.x, var_r30->unk4.y, var_r30->unk4.z);
-            if (var_r30->unk0 == 0) {
-                var_f31 = 90.0f;
+    routeEvent = &mapState.routeEvents[teamIndex];
+    routeEffect = teamState->routeEffects[routeEvent->routeType];
+    for (effectModelIndex = 0; effectModelIndex < 2; effectModelIndex++, routeEffect++) {
+        effectModel = &Hu3DData[routeEffect->modelId];
+        if ((effectModel->attr & 1) != 0) {
+            Hu3DModelAttrReset(routeEffect->modelId, HU3D_ATTR_DISPOFF);
+            Hu3DModelPosSet(routeEffect->modelId, routeEvent->worldPosition.x, routeEvent->worldPosition.y, routeEvent->worldPosition.z);
+            routeEffect->animationPhase = 0;
+            routeEffect->phaseFrame = 0;
+            routeEffect->phaseOneFrames = routeEvent->stateDurations[0];
+            routeEffect->phaseTwoFrames = routeEvent->stateDurations[1];
+            routeEffect->phaseThreeFrames = routeEvent->stateDurations[2];
+            routeEffect->phaseFourFrames = routeEvent->stateDurations[3];
+            routeEffect->routeEventIndex = teamIndex;
+            teamState->activeRouteEffectCounts[teamIndex] = 1;
+            SetMapModelPosition(routeEffect->spriteId, routeEvent->worldPosition.x, routeEvent->worldPosition.y, routeEvent->worldPosition.z);
+            if (routeEvent->routeType == 0) {
+                routeEffectFacingAngle = 90.0f;
             }
             else {
-                var_f31 = 270.0f;
+                routeEffectFacingAngle = 270.0f;
             }
-            fn_1_9B14(var_r31->unk6, 0.0f, var_f31, 0.0f);
-            fn_1_999C(var_r31->unk6, 1);
-            fn_1_8E1C(0, arg1, var_r31);
+            SetMapModelScale(routeEffect->spriteId, 0.0f, routeEffectFacingAngle, 0.0f);
+            SetMapModelAnimationSpeed(routeEffect->spriteId, 1);
+            InitializeRouteEffect(0, teamState, routeEffect);
             return;
         }
     }
 }
 
-float lbl_1_data_1DC[2] = { -1.0f, 1.0f };
-float lbl_1_data_1E4[2] = { 270.0f, 90.0f };
+float teamSideDirections[2] = { -1.0f, 1.0f };
+float teamFacingAngles[2] = { 270.0f, 90.0f };
 
-void fn_1_8768(M427DllMapSubstruct3 *var_r28, M427DllMapUNKB8 *var_r31, s16 var_r27, float var_f28, float var_f29)
+void UpdateRouteEffectState(TeamMapState *teamState, RouteEffectState *effectState, s16 teamIndex, float effectIntensity, float spriteOpacity)
 {
-    Vec sp50;
-    Vec sp44;
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    float var_f31;
-    float var_f30;
-    HU3DMODEL *var_r30;
-    M427DllMapStruct *var_r29;
+    Vec particleSpawnCenter;
+    Vec zeroLightDirection;
+    Vec effectScale;
+    Vec leftEffectBoundary;
+    Vec rightEffectBoundary;
+    float particleStrength;
+    float lightRadius;
+    HU3DMODEL *effectModel;
+    MapQuadRenderData *spriteRecord;
 
-    var_r30 = &Hu3DData[var_r31->unk2];
-    var_f31 = var_f28 * var_r31->unk28;
-    sp50.x = var_r30->pos.x + (60.0f * lbl_1_data_1DC[var_r27]);
-    sp50.y = 80.0f + var_r30->pos.y;
-    sp50.z = var_r30->pos.z;
-    if (var_r31->unk8 == 1) {
-        fn_1_C76C(0, sp50.x, sp50.y, sp50.z, 1, lbl_1_data_1E4[var_r27], var_f31, lbl_1_bss_EC[var_r28->unk0]);
+    effectModel = &Hu3DData[effectState->modelId];
+    particleStrength = effectIntensity * effectState->effectScale;
+    particleSpawnCenter.x = effectModel->pos.x + (60.0f * teamSideDirections[teamIndex]);
+    particleSpawnCenter.y = 80.0f + effectModel->pos.y;
+    particleSpawnCenter.z = effectModel->pos.z;
+    if (effectState->animationPhase == 1) {
+        CreateMapParticleSystem(0, particleSpawnCenter.x, particleSpawnCenter.y, particleSpawnCenter.z, 1, teamFacingAngles[teamIndex], particleStrength, teamPrimaryAnimationIds[teamState->teamIndex]);
         return;
     }
-    fn_1_C76C(1, sp50.x, sp50.y, sp50.z, 1, lbl_1_data_1E4[var_r27], var_f31, lbl_1_bss_EC[var_r28->unk0]);
-    if (var_r31->unk_10 > (400.0f * var_r31->unk28)) {
-        var_r31->unk_10 = 400.0f * var_r31->unk28;
+    CreateMapParticleSystem(1, particleSpawnCenter.x, particleSpawnCenter.y, particleSpawnCenter.z, 1, teamFacingAngles[teamIndex], particleStrength, teamPrimaryAnimationIds[teamState->teamIndex]);
+    if (effectState->lightRadius > (400.0f * effectState->effectScale)) {
+        effectState->lightRadius = 400.0f * effectState->effectScale;
     }
-    else if (var_r31->unk_10 < 1.0f) {
-        var_r31->unk_10 = 1.0f;
+    else if (effectState->lightRadius < 1.0f) {
+        effectState->lightRadius = 1.0f;
     }
-    var_r31->unk2C += 30.0f;
-    if (var_r31->unk2C >= 360.0f) {
-        var_r31->unk2C -= 360.0f;
+    effectState->particleAngle += 30.0f;
+    if (effectState->particleAngle >= 360.0f) {
+        effectState->particleAngle -= 360.0f;
     }
-    sp50.x = var_r30->pos.x + (240.0f * lbl_1_data_1DC[var_r27]);
-    sp50.y = 100.0f + var_r30->pos.y;
-    sp50.z = var_r30->pos.z;
-    sp44.x = sp44.y = sp44.z = 0.0f;
-    var_f30 = var_r31->unk_10 + (var_f28 * (50.0 * sind(var_r31->unk2C)));
-    Hu3DLLightPointSet(var_r31->unk2, var_r31->unk4, var_f30, 0.5f, 3);
-    Hu3DLLightPosSetV(var_r31->unk2, var_r31->unk4, &sp50, &sp44);
-    var_r29 = &lbl_1_bss_F0[var_r31->unk6];
-    var_r29->unk90 -= 0.0005f;
-    var_r29->unk8C += 0.005f;
-    var_r29->unk94 += 0.001f;
-    if (var_r31->unkC > 1.0f) {
-        var_r31->unkC = 1.0f;
+    particleSpawnCenter.x = effectModel->pos.x + (240.0f * teamSideDirections[teamIndex]);
+    particleSpawnCenter.y = 100.0f + effectModel->pos.y;
+    particleSpawnCenter.z = effectModel->pos.z;
+    zeroLightDirection.x = zeroLightDirection.y = zeroLightDirection.z = 0.0f;
+    lightRadius = effectState->lightRadius + (effectIntensity * (50.0 * sind(effectState->particleAngle)));
+    Hu3DLLightPointSet(effectState->modelId, effectState->lightIndex, lightRadius, 0.5f, 3);
+    Hu3DLLightPosSetV(effectState->modelId, effectState->lightIndex, &particleSpawnCenter, &zeroLightDirection);
+    spriteRecord = &mapQuadRenderData[effectState->spriteId];
+    spriteRecord->secondaryTextureOffsetX -= 0.0005f;
+    spriteRecord->textureOffsetY += 0.005f;
+    spriteRecord->secondaryTextureOffsetY += 0.001f;
+    if (effectState->opacity > 1.0f) {
+        effectState->opacity = 1.0f;
     }
-    else if (var_r31->unkC < 0.0f) {
-        var_r31->unkC = 0.0f;
+    else if (effectState->opacity < 0.0f) {
+        effectState->opacity = 0.0f;
     }
-    fn_1_99E4(var_r31->unk6, 0xFF, 0xA0, 0x60, 255.0f * var_r31->unkC);
-    var_r31->unk20 += 2.0f;
-    var_r31->unk24 += (((rand8() << 8) | rand8()) % 5) + 4;
-    if (var_r31->unk20 >= 360.0f) {
-        var_r31->unk20 -= 360.0f;
+    SetMapModelColor(effectState->spriteId, 0xFF, 0xA0, 0x60, 255.0f * effectState->opacity);
+    effectState->scalePulseAngle += 2.0f;
+    effectState->lightPulseAngle += (((rand8() << 8) | rand8()) % 5) + 4;
+    if (effectState->scalePulseAngle >= 360.0f) {
+        effectState->scalePulseAngle -= 360.0f;
     }
-    if (var_r31->unk24 >= 360.0f) {
-        var_r31->unk24 -= 360.0f;
+    if (effectState->lightPulseAngle >= 360.0f) {
+        effectState->lightPulseAngle -= 360.0f;
     }
-    sp38.x = 1.0 + (0.009999999776482582 * sind(var_r31->unk24));
-    sp38.z = var_r31->unk28 + (0.009999999776482582 * sind(var_r31->unk20));
-    fn_1_9AA0(var_r31->unk6, sp38.x, 1.0f, sp38.z);
-    if (var_r27 == 0) {
-        sp2C.x = var_r30->pos.x - (700.0f * var_f31 * var_f29);
-        sp20.x = var_r30->pos.x - 50.0f;
+    effectScale.x = 1.0 + (0.009999999776482582 * sind(effectState->lightPulseAngle));
+    effectScale.z = effectState->effectScale + (0.009999999776482582 * sind(effectState->scalePulseAngle));
+    SetMapModelRotation(effectState->spriteId, effectScale.x, 1.0f, effectScale.z);
+    if (teamIndex == 0) {
+        leftEffectBoundary.x = effectModel->pos.x - (700.0f * particleStrength * spriteOpacity);
+        rightEffectBoundary.x = effectModel->pos.x - 50.0f;
     }
     else {
-        sp2C.x = 50.0f + var_r30->pos.x;
-        sp20.x = var_r30->pos.x + (700.0f * var_f31 * var_f29);
+        leftEffectBoundary.x = 50.0f + effectModel->pos.x;
+        rightEffectBoundary.x = effectModel->pos.x + (700.0f * particleStrength * spriteOpacity);
     }
-    sp2C.z = var_r30->pos.z - 30.0f;
-    sp20.z = 30.0f + var_r30->pos.z;
-    fn_1_15F10(sp2C, sp20, 1, 1, var_r28->unk0);
+    leftEffectBoundary.z = effectModel->pos.z - 30.0f;
+    rightEffectBoundary.z = 30.0f + effectModel->pos.z;
+    TestRouteSegmentCollision(leftEffectBoundary, rightEffectBoundary, 1, 1, teamState->teamIndex);
 }
 
-void fn_1_8E1C(u8 arg0, M427DllMapSubstruct3 *arg1, M427DllMapUNKB8 *arg2)
+void InitializeRouteEffect(u8 effectIndex, TeamMapState *teamState, RouteEffectState *effectState)
 {
-    s32 spC[8];
-    s16 var_r30;
-    HU3DMODEL *var_r29;
-    M427DllMapSubstruct2 *var_r27;
-    s16 var_r26;
-    HU3DMODEL *var_r25;
-    s16 var_r24;
+    s32 teamModelIds[8];
+    s16 modelIndex;
+    HU3DMODEL *model;
+    RouteEvent *routeEvent;
+    s16 lightId;
+    HU3DMODEL *effectModel;
+    s16 teamModelCount;
 
-    var_r27 = &lbl_1_bss_158.unk34C[arg2->unk0];
-    var_r25 = &Hu3DData[arg2->unk2];
-    if (arg0 == 0) {
-        var_r26 = var_r25->lLightId[arg2->unk4];
+    routeEvent = &mapState.routeEvents[effectState->routeEventIndex];
+    effectModel = &Hu3DData[effectState->modelId];
+    if (effectIndex == 0) {
+        lightId = effectModel->lLightId[effectState->lightIndex];
     }
     else {
-        var_r26 = -1;
+        lightId = -1;
     }
-    var_r24 = fn_1_10FE8(arg1->unk0, spC);
-    for (var_r30 = 0; var_r30 < var_r24; var_r30++) {
-        var_r29 = &Hu3DData[spC[var_r30]];
-        var_r29->lLightId[arg2->unk4] = var_r26;
+    teamModelCount = findCharacterModelIndex(teamState->teamIndex, teamModelIds);
+    for (modelIndex = 0; modelIndex < teamModelCount; modelIndex++) {
+        model = &Hu3DData[teamModelIds[modelIndex]];
+        model->lLightId[effectState->lightIndex] = lightId;
     }
-    var_r29 = &Hu3DData[arg1->unk1A];
-    var_r29->lLightId[arg2->unk4] = var_r26;
-    for (var_r30 = 0; var_r30 < 2; var_r30++) {
-        if (var_r27->unk10[var_r30] != -1) {
-            var_r29 = &Hu3DData[arg1->unk2[var_r27->unk10[var_r30]]];
-            var_r29->lLightId[arg2->unk4] = var_r26;
+    model = &Hu3DData[teamState->lightModelId];
+    model->lLightId[effectState->lightIndex] = lightId;
+    for (modelIndex = 0; modelIndex < 2; modelIndex++) {
+        if (routeEvent->linkedPointIndices[modelIndex] != -1) {
+            model = &Hu3DData[teamState->modelIds[routeEvent->linkedPointIndices[modelIndex]]];
+            model->lLightId[effectState->lightIndex] = lightId;
         }
     }
 }
 
-void fn_1_8F90(OMOBJ *object)
+void UpdateRouteEffectController(OMOBJ *object)
 {
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
-    M427DllMapSubstruct3 *var_r31;
-    s16 var_r30;
-    M427DllMapStruct3 *var_r29;
+    Vec lightPosition;
+    Vec zeroLightDirection;
+    float headingSine;
+    float headingCosine;
+    TeamMapState *teamState;
+    s16 teamIndex;
+    MapState *mapState;
 
-    var_r29 = &lbl_1_bss_158;
-    for (var_r30 = 0, var_r31 = var_r29->unk4; var_r30 < 2; var_r30++, var_r31++) {
-        var_f31 = sind(var_r31->unk90);
-        var_f30 = cosd(var_r31->unk90);
-        var_r31->unk_60.x = var_r31->unk84.x - (25.0f * var_f31);
-        var_r31->unk_60.y = 100.0f + var_r31->unk84.y;
-        var_r31->unk_60.z = var_r31->unk84.z - (25.0f * var_f30);
-        var_r31->unk_6C.x = var_r31->unk_60.x - (50.0f * var_f31);
-        var_r31->unk_6C.y = var_r31->unk_60.y;
-        var_r31->unk_6C.z = var_r31->unk_60.z - (50.0f * var_f30);
-        Hu3DLLightPosSet(var_r31->unk2[0], var_r31->unk5C, var_r31->unk_60.x, var_r31->unk_60.y, var_r31->unk_60.z, 0.0f, 0.0f, 0.0f);
-        Hu3DLLightPosAimSetV(var_r31->unk2[0], var_r31->unk5C, &var_r31->unk_60, &var_r31->unk_6C);
-        fn_1_9A2C(var_r31->unkB0[0], var_r31->unk84.x, var_r31->unk84.y, var_r31->unk84.z);
-        fn_1_9B14(var_r31->unkB0[0], 0.0f, var_r31->unk90, 0.0f);
-        sp14.x = var_r31->unk84.x;
-        sp14.y = 100.0f + var_r31->unk84.y;
-        sp14.z = 50.0f + var_r31->unk84.z;
-        sp8.x = sp8.y = sp8.z = 0.0f;
-        Hu3DLLightPosSetV(var_r31->unk1A, 1, &sp14, &sp8);
+    mapState = &mapState;
+    for (teamIndex = 0, teamState = mapState->teamStates; teamIndex < 2; teamIndex++, teamState++) {
+        headingSine = sind(teamState->facingAngle);
+        headingCosine = cosd(teamState->facingAngle);
+        teamState->spotlightPosition.x = teamState->worldPosition.x - (25.0f * headingSine);
+        teamState->spotlightPosition.y = 100.0f + teamState->worldPosition.y;
+        teamState->spotlightPosition.z = teamState->worldPosition.z - (25.0f * headingCosine);
+        teamState->spotlightTarget.x = teamState->spotlightPosition.x - (50.0f * headingSine);
+        teamState->spotlightTarget.y = teamState->spotlightPosition.y;
+        teamState->spotlightTarget.z = teamState->spotlightPosition.z - (50.0f * headingCosine);
+        Hu3DLLightPosSet(teamState->modelIds[0], teamState->highlightLightId, teamState->spotlightPosition.x, teamState->spotlightPosition.y, teamState->spotlightPosition.z, 0.0f, 0.0f, 0.0f);
+        Hu3DLLightPosAimSetV(teamState->modelIds[0], teamState->highlightLightId, &teamState->spotlightPosition, &teamState->spotlightTarget);
+        SetMapModelPosition(teamState->bannerModelId[0], teamState->worldPosition.x, teamState->worldPosition.y, teamState->worldPosition.z);
+        SetMapModelScale(teamState->bannerModelId[0], 0.0f, teamState->facingAngle, 0.0f);
+        lightPosition.x = teamState->worldPosition.x;
+        lightPosition.y = 100.0f + teamState->worldPosition.y;
+        lightPosition.z = 50.0f + teamState->worldPosition.z;
+        zeroLightDirection.x = zeroLightDirection.y = zeroLightDirection.z = 0.0f;
+        Hu3DLLightPosSetV(teamState->lightModelId, 1, &lightPosition, &zeroLightDirection);
     }
 }
 
-void fn_1_91E0(s16 arg0, float arg8, float arg9, float argA, float argB)
+void SetBannerAnimationOffset(s16 teamIndex, float offsetX, float offsetY, float scaleX, float scaleY)
 {
-    M427DllMapSubstruct3 *var_r31;
+    TeamMapState *teamState;
 
-    var_r31 = &lbl_1_bss_158.unk4[arg0];
-    var_r31->unk84.x = arg8;
-    var_r31->unk84.y = arg9;
-    var_r31->unk84.z = argA;
-    var_r31->unk90 = argB;
-    if (var_r31->unkAC) {
-        var_r31->unkAC->unk_0C = 1500.0f + argA;
+    teamState = &mapState.teamStates[teamIndex];
+    teamState->worldPosition.x = offsetX;
+    teamState->worldPosition.y = offsetY;
+    teamState->worldPosition.z = scaleX;
+    teamState->facingAngle = scaleY;
+    if (teamState->particleHookData) {
+        teamState->particleHookData->updateOffset = 1500.0f + scaleX;
     }
 }
 
-void fn_1_9240(void)
+void UpdateBannerAnimation(void)
 {
-    M427DllMapStruct *var_r31;
-    M427DllMapSubstruct3 *var_r30;
-    s16 var_r29;
-    s16 var_r28;
+    MapQuadRenderData *spriteRecord;
+    TeamMapState *teamState;
+    s16 bannerIndex;
+    s16 teamIndex;
 
-    for (var_r30 = lbl_1_bss_158.unk4, var_r28 = 0; var_r28 < 2; var_r28++, var_r30++) {
-        for (var_r29 = 0; var_r29 < 1; var_r29++) {
-            var_r31 = &lbl_1_bss_F0[var_r30->unkB0[var_r29]];
-            var_r31->unk90 -= 0.0005f;
-            var_r31->unk8C += 0.0005f;
-            var_r31->unk94 += 0.0005f;
+    for (teamState = mapState.teamStates, teamIndex = 0; teamIndex < 2; teamIndex++, teamState++) {
+        for (bannerIndex = 0; bannerIndex < 1; bannerIndex++) {
+            spriteRecord = &mapQuadRenderData[teamState->bannerModelId[bannerIndex]];
+            spriteRecord->secondaryTextureOffsetX -= 0.0005f;
+            spriteRecord->textureOffsetY += 0.0005f;
+            spriteRecord->secondaryTextureOffsetY += 0.0005f;
         }
     }
 }
 
-void fn_1_9318(s16 *arg0, s16 arg1)
+void SetBannerAnimationFrame(s16 *animationIds, s16 animationFrame)
 {
-    s16 var_r31;
-    HU3DMODEL *var_r30;
-    HU3DMODEL *var_r29;
-    s16 var_r28;
+    s16 lightSlotIndex;
+    HU3DMODEL *sourceModel;
+    HU3DMODEL *linkedModel;
+    s16 modelIndex;
 
-    var_r30 = &Hu3DData[*arg0];
-    for (var_r28 = 1; var_r28 < arg1; var_r28++) {
-        var_r29 = &Hu3DData[arg0[var_r28]];
-        for (var_r31 = 0; var_r31 < 8; var_r31++) {
-            if (var_r30->lLightId[var_r31] != -1) {
-                var_r29->lLightId[var_r31] = var_r30->lLightId[var_r31];
+    sourceModel = &Hu3DData[*animationIds];
+    for (modelIndex = 1; modelIndex < animationFrame; modelIndex++) {
+        linkedModel = &Hu3DData[animationIds[modelIndex]];
+        for (lightSlotIndex = 0; lightSlotIndex < 8; lightSlotIndex++) {
+            if (sourceModel->lLightId[lightSlotIndex] != -1) {
+                linkedModel->lLightId[lightSlotIndex] = sourceModel->lLightId[lightSlotIndex];
             }
         }
-        var_r29->attr |= 0x1000;
+        linkedModel->attr |= 0x1000;
     }
 }
 
-void fn_1_93EC(s32 sp8, s32 spC, float var_f30, float var_f31, float sp10, float sp14)
+void SetBannerTextureScale(s32 primaryAnimationAsset, s32 secondaryAnimationAsset, float sourceTextureWidth, float sourceTextureHeight, float targetTextureWidth, float targetTextureHeight)
 {
-    M427DllMapStruct3Sub *var_r31;
+    BannerAnimationSet *bannerAnimations;
 
-    var_r31 = &lbl_1_bss_158.unk334;
-    var_r31->unk_00 = HuSprAnimRead(HuDataReadNum(sp8, HU_MEMNUM_OVL));
-    var_r31->unk_04 = HuSprAnimRead(HuDataReadNum(spC, HU_MEMNUM_OVL));
-    var_r31->unk_08 = 0.5f * var_f30;
-    var_r31->unk_0C = 0.5f * var_f31;
-    var_r31->unk_10 = sp10 / var_f30;
-    var_r31->unk_14 = sp14 / var_f31;
+    bannerAnimations = &mapState.bannerAnimationResources;
+    bannerAnimations->primaryAnimation = HuSprAnimRead(HuDataReadNum(primaryAnimationAsset, HU_MEMNUM_OVL));
+    bannerAnimations->secondaryAnimation = HuSprAnimRead(HuDataReadNum(secondaryAnimationAsset, HU_MEMNUM_OVL));
+    bannerAnimations->offsetX = 0.5f * sourceTextureWidth;
+    bannerAnimations->offsetY = 0.5f * sourceTextureHeight;
+    bannerAnimations->scaleX = targetTextureWidth / sourceTextureWidth;
+    bannerAnimations->scaleY = targetTextureHeight / sourceTextureHeight;
 }
 
-void fn_1_94BC(Vec *arg0, Vec *arg1, Vec *arg2, Vec *arg3, float arg8, Vec2f *arg4, s16 arg5)
+void CalculateMapProjection(Vec *sourceTopLeft, Vec *sourceBottomLeft, Vec *sourceTopRight, Vec *sourceBottomRight, float screenScale, Vec2f *projectedBounds, s16 teamIndex)
 {
-    Mtx sp58;
-    Mtx sp28;
-    Vec sp1C;
-    Vec sp10;
-    M427DllMapStruct3Sub *var_r31;
-    s16 var_r28;
+    Mtx scaleMatrix;
+    Mtx rotationMatrix;
+    Vec rotatedCorner;
+    Vec uvOffset;
+    BannerAnimationSet *bannerAnimations;
+    s16 vertexIndex;
 
-    var_r31 = &lbl_1_bss_158.unk334;
-    for (var_r28 = 0; var_r28 < arg5; var_r28++, arg2++, arg4++) {
-        MTXScale(sp58, arg3->x, arg3->y, arg3->z);
-        MTXRotRad(sp28, 0x59, MTXDegToRad(arg8));
-        MTXConcat(sp58, sp28, sp58);
-        MTXMultVec(sp58, arg2, &sp1C);
-        sp10.x = var_r31->unk_08 + ((sp1C.x + arg1->x) - arg0->x);
-        sp10.z = var_r31->unk_0C + ((sp1C.z + arg1->z) - arg0->z);
-        arg4->x = sp10.x * var_r31->unk_10;
-        arg4->y = sp10.z * var_r31->unk_14;
+    bannerAnimations = &mapState.bannerAnimationResources;
+    for (vertexIndex = 0; vertexIndex < teamIndex; vertexIndex++, sourceTopRight++, projectedBounds++) {
+        MTXScale(scaleMatrix, sourceBottomRight->x, sourceBottomRight->y, sourceBottomRight->z);
+        MTXRotRad(rotationMatrix, 0x59, MTXDegToRad(screenScale));
+        MTXConcat(scaleMatrix, rotationMatrix, scaleMatrix);
+        MTXMultVec(scaleMatrix, sourceTopRight, &rotatedCorner);
+        uvOffset.x = bannerAnimations->offsetX + ((rotatedCorner.x + sourceBottomLeft->x) - sourceTopLeft->x);
+        uvOffset.z = bannerAnimations->offsetY + ((rotatedCorner.z + sourceBottomLeft->z) - sourceTopLeft->z);
+        projectedBounds->x = uvOffset.x * bannerAnimations->scaleX;
+        projectedBounds->y = uvOffset.z * bannerAnimations->scaleY;
     }
 }
 
-s16 fn_1_95E8(s32 arg0, s16 arg1, s16 arg2, float arg8, float arg9, float argA, float argB, float argC)
+s16 CreateMapBanner(s32 assetId, s16 teamIndex, s16 animationId, float positionX, float positionY, float positionZ, float scale, float rotation)
 {
-    M427DllMapStruct *var_r31;
-    s16 var_r30;
-    s16 var_r29;
-    void *var_r28;
-    void *var_r26;
+    MapQuadRenderData *quadRecord;
+    s16 vertexIndex;
+    s16 quadSlotIndex;
+    void *displayListAllocation;
+    void *displayListWriteCursor;
 
-    for (var_r31 = lbl_1_bss_F0, var_r29 = 0; var_r29 < 0x10; var_r29++, var_r31++) {
-        if (var_r31->unk2 == -1) {
+    for (quadRecord = mapQuadRenderData, quadSlotIndex = 0; quadSlotIndex < 0x10; quadSlotIndex++, quadRecord++) {
+        if (quadRecord->cameraIndex == -1) {
             break;
         }
     }
-    if (var_r29 == 0x10) {
+    if (quadSlotIndex == 0x10) {
         return -1;
     }
-    var_r31->unk4 = Hu3DHookFuncCreate(fn_1_9B88);
-    Hu3DModelCameraSet(var_r31->unk4, arg1 ? 2 : 1);
-    Hu3DModelLayerSet(var_r31->unk4, arg2);
-    Hu3DData[var_r31->unk4].hookData = var_r31;
-    Hu3DModelPosSet(var_r31->unk4, 0.0f, 0.0f, -2000.0f);
-    var_r31->unk0 = 0;
-    var_r31->unk2 = arg1;
-    var_r31->unk7C.r = var_r31->unk7C.g = var_r31->unk7C.b = var_r31->unk7C.a = 0xFF;
-    var_r31->unk88 = var_r31->unk8C = 0.0f;
-    var_r31->unk90 = var_r31->unk94 = 0.0f;
-    var_r31->unk8 = HuSprAnimRead(HuDataReadNum(arg0, HU_MEMNUM_OVL));
-    fn_1_C2AC(&var_r31->unkC, arg8 - argA, argC, arg9 - argB);
-    fn_1_C2BC(&var_r31->unk3C, 0.0f, 0.0f);
-    fn_1_C2AC(&var_r31->unk18, arg8 + argA, argC, arg9 - argB);
-    fn_1_C2BC(&var_r31->unk44, 1.0f, 0.0f);
-    fn_1_C2AC(&var_r31->unk24, arg8 + argA, argC, arg9 + argB);
-    fn_1_C2BC(&var_r31->unk4C, 1.0f, 1.0f);
-    fn_1_C2AC(&var_r31->unk30, arg8 - argA, argC, arg9 + argB);
-    fn_1_C2BC(&var_r31->unk54, 0.0f, 1.0f);
-    DCFlushRangeNoSync(&var_r31->unkC, 0x30);
-    DCFlushRangeNoSync(&var_r31->unk3C, 0x20);
+    quadRecord->modelId = Hu3DHookFuncCreate(RenderMapEffectModel);
+    Hu3DModelCameraSet(quadRecord->modelId, teamIndex ? 2 : 1);
+    Hu3DModelLayerSet(quadRecord->modelId, animationId);
+    Hu3DData[quadRecord->modelId].hookData = quadRecord;
+    Hu3DModelPosSet(quadRecord->modelId, 0.0f, 0.0f, -2000.0f);
+    quadRecord->drawFlags = 0;
+    quadRecord->cameraIndex = teamIndex;
+    quadRecord->tintColor.r = quadRecord->tintColor.g = quadRecord->tintColor.b = quadRecord->tintColor.a = 0xFF;
+    quadRecord->textureOffsetX = quadRecord->textureOffsetY = 0.0f;
+    quadRecord->secondaryTextureOffsetX = quadRecord->secondaryTextureOffsetY = 0.0f;
+    quadRecord->animationData = HuSprAnimRead(HuDataReadNum(assetId, HU_MEMNUM_OVL));
+    SetVectorComponents(&quadRecord->topLeftPosition, positionX - positionZ, rotation, positionY - scale);
+    SetVector2Components(&quadRecord->topLeftUv, 0.0f, 0.0f);
+    SetVectorComponents(&quadRecord->topRightPosition, positionX + positionZ, rotation, positionY - scale);
+    SetVector2Components(&quadRecord->topRightUv, 1.0f, 0.0f);
+    SetVectorComponents(&quadRecord->bottomRightPosition, positionX + positionZ, rotation, positionY + scale);
+    SetVector2Components(&quadRecord->bottomRightUv, 1.0f, 1.0f);
+    SetVectorComponents(&quadRecord->bottomLeftPosition, positionX - positionZ, rotation, positionY + scale);
+    SetVector2Components(&quadRecord->bottomLeftUv, 0.0f, 1.0f);
+    DCFlushRangeNoSync(&quadRecord->topLeftPosition, 0x30);
+    DCFlushRangeNoSync(&quadRecord->topLeftUv, 0x20);
     PPCSync();
-    var_r28 = HuMemDirectMallocNum(HEAP_HEAP, 0x1000, HU_MEMNUM_OVL);
-    var_r26 = var_r28;
-    DCFlushRange(var_r28, 0x1000);
-    GXBeginDisplayList(var_r26, 0x1000);
+    displayListAllocation = HuMemDirectMallocNum(HEAP_HEAP, 0x1000, HU_MEMNUM_OVL);
+    displayListWriteCursor = displayListAllocation;
+    DCFlushRange(displayListAllocation, 0x1000);
+    GXBeginDisplayList(displayListWriteCursor, 0x1000);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
-    for (var_r30 = 0; var_r30 < 4; var_r30++) {
-        GXPosition1x16(var_r30);
-        GXPosition1x16(var_r30);
-        GXPosition1x16(var_r30);
+    for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+        GXPosition1x16(vertexIndex);
+        GXPosition1x16(vertexIndex);
+        GXPosition1x16(vertexIndex);
     }
-    var_r31->unk84 = GXEndDisplayList();
-    var_r31->unk80 = HuMemDirectMallocNum(HEAP_HEAP, var_r31->unk84, HU_MEMNUM_OVL);
-    memcpy(var_r31->unk80, var_r28, var_r31->unk84);
-    DCFlushRange(var_r31->unk80, var_r31->unk84);
-    HuMemDirectFree(var_r28);
-    return var_r29;
+    quadRecord->displayListSize = GXEndDisplayList();
+    quadRecord->displayList = HuMemDirectMallocNum(HEAP_HEAP, quadRecord->displayListSize, HU_MEMNUM_OVL);
+    memcpy(quadRecord->displayList, displayListAllocation, quadRecord->displayListSize);
+    DCFlushRange(quadRecord->displayList, quadRecord->displayListSize);
+    HuMemDirectFree(displayListAllocation);
+    return quadSlotIndex;
 }
 
-void fn_1_9958(s16 arg0, u8 arg1)
+void SetMapModelAnimation(s16 modelId, u8 animationIndex)
 {
-    M427DllMapStruct *var_r31;
+    MapQuadRenderData *quadRecord;
 
-    if (arg0 != -1) {
-        var_r31 = &lbl_1_bss_F0[arg0];
-        var_r31->unk0 |= arg1;
-    }
-}
-
-void fn_1_999C(s16 arg0, u8 arg1)
-{
-    M427DllMapStruct *var_r31;
-
-    if (arg0 != -1) {
-        var_r31 = &lbl_1_bss_F0[arg0];
-        var_r31->unk0 &= ~arg1;
+    if (modelId != -1) {
+        quadRecord = &mapQuadRenderData[modelId];
+        quadRecord->drawFlags |= animationIndex;
     }
 }
 
-void fn_1_99E4(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4)
+void SetMapModelAnimationSpeed(s16 modelId, u8 animationSpeed)
 {
-    M427DllMapStruct *var_r31;
+    MapQuadRenderData *quadRecord;
 
-    if (arg0 != -1) {
-        var_r31 = &lbl_1_bss_F0[arg0];
-        var_r31->unk7C.r = arg1;
-        var_r31->unk7C.g = arg2;
-        var_r31->unk7C.b = arg3;
-        var_r31->unk7C.a = arg4;
+    if (modelId != -1) {
+        quadRecord = &mapQuadRenderData[modelId];
+        quadRecord->drawFlags &= ~animationSpeed;
     }
 }
 
-void fn_1_9A2C(s16 arg0, float arg8, float arg9, float argA)
+void SetMapModelColor(s16 modelId, u8 red, u8 green, u8 blue, u8 alpha)
 {
-    M427DllMapStruct *var_r31;
+    MapQuadRenderData *quadRecord;
 
-    if (arg0 != -1) {
-        var_r31 = &lbl_1_bss_F0[arg0];
-        Hu3DModelPosSet(var_r31->unk4, arg8, arg9, argA);
+    if (modelId != -1) {
+        quadRecord = &mapQuadRenderData[modelId];
+        quadRecord->tintColor.r = red;
+        quadRecord->tintColor.g = green;
+        quadRecord->tintColor.b = blue;
+        quadRecord->tintColor.a = alpha;
     }
 }
 
-void fn_1_9AA0(s16 arg0, float arg8, float arg9, float argA)
+void SetMapModelPosition(s16 modelId, float positionX, float positionY, float positionZ)
 {
-    M427DllMapStruct *var_r31;
+    MapQuadRenderData *quadRecord;
 
-    if (arg0 != -1) {
-        var_r31 = &lbl_1_bss_F0[arg0];
-        Hu3DModelScaleSet(var_r31->unk4, arg8, arg9, argA);
+    if (modelId != -1) {
+        quadRecord = &mapQuadRenderData[modelId];
+        Hu3DModelPosSet(quadRecord->modelId, positionX, positionY, positionZ);
     }
 }
 
-void fn_1_9B14(s16 arg0, float arg8, float arg9, float argA)
+void SetMapModelRotation(s16 modelId, float rotationX, float rotationY, float rotationZ)
 {
-    M427DllMapStruct *var_r31;
+    MapQuadRenderData *quadRecord;
 
-    if (arg0 != -1) {
-        var_r31 = &lbl_1_bss_F0[arg0];
-        Hu3DModelRotSet(var_r31->unk4, arg8, arg9, argA);
+    if (modelId != -1) {
+        quadRecord = &mapQuadRenderData[modelId];
+        Hu3DModelScaleSet(quadRecord->modelId, rotationX, rotationY, rotationZ);
     }
 }
 
-void fn_1_9B88(HU3DMODEL *model, Mtx matrix)
+void SetMapModelScale(s16 modelId, float scaleX, float scaleY, float scaleZ)
 {
-    Mtx sp88;
-    M427DllMapStruct *var_r31;
-    M427DllMapSubstruct3 *var_r27;
-    M427DllMapStruct3Sub *var_r26;
+    MapQuadRenderData *quadRecord;
 
-    var_r31 = model->hookData;
-    var_r27 = &lbl_1_bss_158.unk4[var_r31->unk2];
-    var_r26 = &lbl_1_bss_158.unk334;
-    if ((var_r31->unk0 & 1) == 0) {
-        fn_1_94BC(&var_r27->unk78, &model->pos, &var_r31->unkC, &model->scale, model->rot.y, var_r31->unk5C, 4);
-        DCFlushRangeNoSync(var_r31->unk5C, 4 * sizeof(Vec2f));
+    if (modelId != -1) {
+        quadRecord = &mapQuadRenderData[modelId];
+        Hu3DModelRotSet(quadRecord->modelId, scaleX, scaleY, scaleZ);
+    }
+}
+
+void RenderMapEffectModel(HU3DMODEL *model, Mtx matrix)
+{
+    Mtx textureMatrix;
+    MapQuadRenderData *quadRecord;
+    TeamMapState *teamState;
+    BannerAnimationSet *bannerAnimations;
+
+    quadRecord = model->hookData;
+    teamState = &mapState.teamStates[quadRecord->cameraIndex];
+    bannerAnimations = &mapState.bannerAnimationResources;
+    if ((quadRecord->drawFlags & 1) == 0) {
+        CalculateMapProjection(&teamState->cameraFocusPosition, &model->pos, &quadRecord->topLeftPosition, &model->scale, model->rot.y, quadRecord->transformedUv, 4);
+        DCFlushRangeNoSync(quadRecord->transformedUv, 4 * sizeof(Vec2f));
         PPCSync();
         GXLoadPosMtxImm(matrix, 0);
         GXClearVtxDesc();
         GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_TEX_ST, GX_RGBA6, 0);
-        GXSetArray(GX_VA_POS, &var_r31->unkC, sizeof(Vec));
+        GXSetArray(GX_VA_POS, &quadRecord->topLeftPosition, sizeof(Vec));
         GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_RGBA6, 0);
-        GXSetArray(GX_VA_TEX0, &var_r31->unk3C, sizeof(Vec2f));
+        GXSetArray(GX_VA_TEX0, &quadRecord->topLeftUv, sizeof(Vec2f));
         GXSetVtxDesc(GX_VA_TEX1, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX1, GX_TEX_ST, GX_RGBA6, 0);
-        GXSetArray(GX_VA_TEX1, var_r31->unk5C, sizeof(Vec2f));
-        HuSprTexLoad(var_r31->unk8, 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
-        HuSprTexLoad(var_r26->unk_04, 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
-        HuSprTexLoad(var_r26->unk_00, 0, 2, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+        GXSetArray(GX_VA_TEX1, quadRecord->transformedUv, sizeof(Vec2f));
+        HuSprTexLoad(quadRecord->animationData, 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+        HuSprTexLoad(bannerAnimations->secondaryAnimation, 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+        HuSprTexLoad(bannerAnimations->primaryAnimation, 0, 2, GX_REPEAT, GX_REPEAT, GX_LINEAR);
         GXSetNumTexGens(3);
-        MTXScale(sp88, 1.0f, 1.0f, 1.0f);
-        mtxTransCat(sp88, var_r31->unk88, var_r31->unk90, 0.0f);
-        GXLoadTexMtxImm(sp88, 0x1E, GX_MTX2x4);
-        MTXScale(sp88, 1.0f, 1.0f, 1.0f);
-        mtxTransCat(sp88, var_r31->unk8C, var_r31->unk94, 0.0f);
-        GXLoadTexMtxImm(sp88, 0x21, GX_MTX2x4);
+        MTXScale(textureMatrix, 1.0f, 1.0f, 1.0f);
+        mtxTransCat(textureMatrix, quadRecord->textureOffsetX, quadRecord->secondaryTextureOffsetX, 0.0f);
+        GXLoadTexMtxImm(textureMatrix, 0x1E, GX_MTX2x4);
+        MTXScale(textureMatrix, 1.0f, 1.0f, 1.0f);
+        mtxTransCat(textureMatrix, quadRecord->textureOffsetY, quadRecord->secondaryTextureOffsetY, 0.0f);
+        GXLoadTexMtxImm(textureMatrix, 0x21, GX_MTX2x4);
         GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, 0x3C, 0, 0x7D);
         GXSetTexCoordGen2(GX_TEXCOORD1, GX_TG_MTX2x4, GX_TG_TEX1, 0x1E, 0, 0x7D);
         GXSetTexCoordGen2(GX_TEXCOORD2, GX_TG_MTX2x4, GX_TG_TEX0, 0x21, 0, 0x7D);
         GXSetNumTevStages(2);
-        GXSetTevColor(GX_TEVREG1, var_r31->unk7C);
+        GXSetTevColor(GX_TEVREG1, quadRecord->tintColor);
         GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD1, GX_TEXMAP1, GX_COLOR_NULL);
         GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_C1, GX_CC_TEXA, GX_CC_ZERO);
         GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVREG0);
@@ -2013,26 +2013,26 @@ void fn_1_9B88(HU3DMODEL *model, Mtx matrix)
         GXSetNumIndStages(1);
         GXSetIndTexOrder(GX_INDTEXSTAGE0, GX_TEXCOORD2, GX_TEXMAP2);
         GXSetTevIndWarp(0, 0, 1, 0, 1);
-        MTXScale(sp88, 0.1f, 0.10000000149011612 * -sind(model->rot.y), 1.0f);
-        GXSetIndTexMtx(GX_ITM_0, (float(*)[3])sp88, 0);
+        MTXScale(textureMatrix, 0.1f, 0.10000000149011612 * -sind(model->rot.y), 1.0f);
+        GXSetIndTexMtx(GX_ITM_0, (float(*)[3])textureMatrix, 0);
         GXSetNumChans(0);
         GXSetZMode(0, GX_LEQUAL, 0);
         GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
         GXSetZCompLoc(0);
         GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_NOOP);
-        GXCallDisplayList(var_r31->unk80, var_r31->unk84);
+        GXCallDisplayList(quadRecord->displayList, quadRecord->displayListSize);
         GXSetNumIndStages(0);
         GXSetTevDirect(GX_TEVSTAGE0);
         GXSetTevDirect(GX_TEVSTAGE1);
     }
 }
 
-void fn_1_A148(HU3DMODEL *model, Mtx matrix)
+void RenderMapEffectOverlay(HU3DMODEL *model, Mtx matrix)
 {
-    M427DllMapSubstruct3Sub *var_r31;
+    TeamRenderTarget *renderTarget;
 
-    var_r31 = model->hookData;
-    if (var_r31->unk0 == 0) {
+    renderTarget = model->hookData;
+    if (renderTarget->cameraIndex == 0) {
         GXSetTexCopySrc(0, 0, 320, 480);
         GXSetTexCopyDst(320, 480, GX_TF_RGB5A3, 0);
     }
@@ -2040,340 +2040,340 @@ void fn_1_A148(HU3DMODEL *model, Mtx matrix)
         GXSetTexCopySrc(320, 0, 320, 480);
         GXSetTexCopyDst(320, 480, GX_TF_RGB5A3, 0);
     }
-    GXCopyTex(var_r31->unk4, 1);
-    DCFlushRange(var_r31->unk4, var_r31->unk8);
+    GXCopyTex(renderTarget->textureBuffer, 1);
+    DCFlushRange(renderTarget->textureBuffer, renderTarget->textureBufferSize);
 }
 
-s16 fn_1_A1F4(s32 arg0, s16 arg1, s16 arg2, s16 arg3, float arg8, Vec *arg4, Vec *arg5)
+s16 CreateTeamMarker(s32 assetId, s16 animationId, s16 modelIndex, s16 teamIndex, float markerScale, Vec *markerPosition, Vec *markerRotation)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    M427DllMapStruct6 *var_r31;
-    M427DllMapSubstruct5 *var_r30;
-    HU3DMODEL *var_r29;
-    s16 var_r28;
-    s16 var_r27;
-    Vec2f *var_r26;
-    void *var_r25;
-    M427DllMapStruct3 *var_r22;
-    u16 var_r21;
-    s16 var_r19;
-    void *var_r18;
+    float gridColumnStep;
+    float gridRowStep;
+    float textureUScale;
+    float textureVScale;
+    TerrainWaveRenderData *terrainHookState;
+    GridQuad *gridQuad;
+    HU3DMODEL *terrainHookModel;
+    s16 hookIdOrGridRow;
+    s16 gridColumn;
+    Vec2f *terrainTextureCoordinates;
+    void *displayListAllocation;
+    MapState *mapState;
+    u16 lightChannelIndex;
+    s16 createdHookId;
+    void *displayListWorkBuffer;
 
-    var_r22 = &lbl_1_bss_158;
-    var_r28 = Hu3DHookFuncCreate(fn_1_B3CC);
-    var_r19 = var_r28;
-    Hu3DModelCameraSet(var_r28, arg3 ? 2 : 1);
-    Hu3DModelLayerSet(var_r28, 5);
-    var_r29 = &Hu3DData[var_r28];
-    var_r31 = HuMemDirectMallocNum(HEAP_MODEL, sizeof(M427DllMapStruct6), var_r29->mallocNo);
-    var_r29->hookData = var_r31;
-    var_r22->unk4[arg3].unkAC = var_r31;
-    var_r31->unk_00 = arg3;
-    var_r31->unk_0C = 0.0f;
-    var_r31->unk_10 = arg8;
-    var_r31->unk_04 = arg4;
-    var_r31->unk_08 = arg5;
-    var_r31->unk_14 = var_r31->unk_18 = 0.0f;
-    var_r31->unk_1C = var_r31->unk_20 = 0.0f;
-    var_r31->unk_4C = var_r31->unk_50 = 0.0f;
-    var_r31->unk_54 = 120.0f;
-    var_r31->unk_58 = 72.0f;
-    var_r31->unk_5C = 10.0f;
-    var_r31->unk_60 = 10.0f;
-    var_r31->unk_28 = HuSprAnimRead(HuDataReadNum(arg0, HU_MEMNUM_OVL));
-    var_r31->unk_3A = arg1 + 1;
-    var_r31->unk_3C = arg2 + 1;
-    var_r31->unk_38 = var_r31->unk_3A * var_r31->unk_3C;
-    var_r31->unk_2C = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_38 * sizeof(Vec), var_r29->mallocNo);
-    var_r26 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_38 * sizeof(Vec2f), var_r29->mallocNo);
-    var_r31->unk_30 = var_r26;
-    var_r31->unk_34 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_38 * sizeof(Vec), var_r29->mallocNo);
-    var_r30 = HuMemDirectMallocNum(HEAP_MODEL, arg2 * (arg1 * sizeof(M427DllMapSubstruct5)), var_r29->mallocNo);
-    var_r31->unk_48 = var_r30;
-    var_r25 = HuMemDirectMallocNum(HEAP_MODEL, 0x20000, var_r29->mallocNo);
-    var_r18 = var_r25;
-    DCFlushRange(var_r25, 0x20000);
-    GXBeginDisplayList(var_r18, 0x20000);
-    GXBegin(GX_QUADS, GX_VTXFMT0, arg1 * arg2 * 4);
-    for (var_r28 = 0; var_r28 < arg2; var_r28++) {
-        for (var_r27 = 0; var_r27 < arg1; var_r27++) {
-            var_r30->unk0 = var_r27 + (var_r28 * var_r31->unk_3A);
-            var_r30->unk2 = var_r27 + var_r28 * var_r31->unk_3A + 1;
-            var_r30->unk4 = var_r27 + ((var_r28 + 1) * var_r31->unk_3A) + 1;
-            var_r30->unk6 = var_r27 + ((var_r28 + 1) * var_r31->unk_3A);
-            GXPosition1x16(var_r30->unk0);
-            GXPosition1x16(var_r30->unk0);
-            GXPosition1x16(var_r30->unk0);
-            GXPosition1x16(var_r30->unk2);
-            GXPosition1x16(var_r30->unk2);
-            GXPosition1x16(var_r30->unk2);
-            GXPosition1x16(var_r30->unk4);
-            GXPosition1x16(var_r30->unk4);
-            GXPosition1x16(var_r30->unk4);
-            GXPosition1x16(var_r30->unk6);
-            GXPosition1x16(var_r30->unk6);
-            GXPosition1x16(var_r30->unk6);
-            fn_1_C2C8(&var_r31->unk_2C[var_r30->unk0], &var_r31->unk_2C[var_r30->unk2], &var_r31->unk_2C[var_r30->unk4], &var_r30->unk8);
-            var_r30++;
+    mapState = &mapState;
+    hookIdOrGridRow = Hu3DHookFuncCreate(RenderTerrainSurface);
+    createdHookId = hookIdOrGridRow;
+    Hu3DModelCameraSet(hookIdOrGridRow, teamIndex ? 2 : 1);
+    Hu3DModelLayerSet(hookIdOrGridRow, 5);
+    terrainHookModel = &Hu3DData[hookIdOrGridRow];
+    terrainHookState = HuMemDirectMallocNum(HEAP_MODEL, sizeof(TerrainWaveRenderData), terrainHookModel->mallocNo);
+    terrainHookModel->hookData = terrainHookState;
+    mapState->teamStates[teamIndex].particleHookData = terrainHookState;
+    terrainHookState->cameraIndex = teamIndex;
+    terrainHookState->terrainOffset = 0.0f;
+    terrainHookState->terrainDepth = markerScale;
+    terrainHookState->sourcePositions = markerPosition;
+    terrainHookState->targetPositions = markerRotation;
+    terrainHookState->scrollSineOffset = terrainHookState->terrainWaveState = 0.0f;
+    terrainHookState->textureScrollOffsetY = terrainHookState->textureScrollOffsetX = 0.0f;
+    terrainHookState->wavePhaseX = terrainHookState->wavePhaseZ = 0.0f;
+    terrainHookState->wavePhaseStepX = 120.0f;
+    terrainHookState->wavePhaseStepZ = 72.0f;
+    terrainHookState->waveAmplitudeX = 10.0f;
+    terrainHookState->waveAmplitudeZ = 10.0f;
+    terrainHookState->animationData = HuSprAnimRead(HuDataReadNum(assetId, HU_MEMNUM_OVL));
+    terrainHookState->gridColumnCount = animationId + 1;
+    terrainHookState->gridRowCount = modelIndex + 1;
+    terrainHookState->vertexCount = terrainHookState->gridColumnCount * terrainHookState->gridRowCount;
+    terrainHookState->terrainVertices = HuMemDirectMallocNum(HEAP_MODEL, terrainHookState->vertexCount * sizeof(Vec), terrainHookModel->mallocNo);
+    terrainTextureCoordinates = HuMemDirectMallocNum(HEAP_MODEL, terrainHookState->vertexCount * sizeof(Vec2f), terrainHookModel->mallocNo);
+    terrainHookState->terrainTextureCoordinates = terrainTextureCoordinates;
+    terrainHookState->terrainNormals = HuMemDirectMallocNum(HEAP_MODEL, terrainHookState->vertexCount * sizeof(Vec), terrainHookModel->mallocNo);
+    gridQuad = HuMemDirectMallocNum(HEAP_MODEL, modelIndex * (animationId * sizeof(GridQuad)), terrainHookModel->mallocNo);
+    terrainHookState->gridQuads = gridQuad;
+    displayListAllocation = HuMemDirectMallocNum(HEAP_MODEL, 0x20000, terrainHookModel->mallocNo);
+    displayListWorkBuffer = displayListAllocation;
+    DCFlushRange(displayListAllocation, 0x20000);
+    GXBeginDisplayList(displayListWorkBuffer, 0x20000);
+    GXBegin(GX_QUADS, GX_VTXFMT0, animationId * modelIndex * 4);
+    for (hookIdOrGridRow = 0; hookIdOrGridRow < modelIndex; hookIdOrGridRow++) {
+        for (gridColumn = 0; gridColumn < animationId; gridColumn++) {
+            gridQuad->firstVertexIndex = gridColumn + (hookIdOrGridRow * terrainHookState->gridColumnCount);
+            gridQuad->secondVertexIndex = gridColumn + hookIdOrGridRow * terrainHookState->gridColumnCount + 1;
+            gridQuad->thirdVertexIndex = gridColumn + ((hookIdOrGridRow + 1) * terrainHookState->gridColumnCount) + 1;
+            gridQuad->fourthVertexIndex = gridColumn + ((hookIdOrGridRow + 1) * terrainHookState->gridColumnCount);
+            GXPosition1x16(gridQuad->firstVertexIndex);
+            GXPosition1x16(gridQuad->firstVertexIndex);
+            GXPosition1x16(gridQuad->firstVertexIndex);
+            GXPosition1x16(gridQuad->secondVertexIndex);
+            GXPosition1x16(gridQuad->secondVertexIndex);
+            GXPosition1x16(gridQuad->secondVertexIndex);
+            GXPosition1x16(gridQuad->thirdVertexIndex);
+            GXPosition1x16(gridQuad->thirdVertexIndex);
+            GXPosition1x16(gridQuad->thirdVertexIndex);
+            GXPosition1x16(gridQuad->fourthVertexIndex);
+            GXPosition1x16(gridQuad->fourthVertexIndex);
+            GXPosition1x16(gridQuad->fourthVertexIndex);
+            SetVectorFrame(&terrainHookState->terrainVertices[gridQuad->firstVertexIndex], &terrainHookState->terrainVertices[gridQuad->secondVertexIndex], &terrainHookState->terrainVertices[gridQuad->thirdVertexIndex], &gridQuad->vertexNormal);
+            gridQuad++;
         }
     }
-    var_r31->unk_44 = GXEndDisplayList();
-    var_r31->unk_40 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_44, var_r29->mallocNo);
-    memcpy(var_r31->unk_40, var_r25, var_r31->unk_44);
-    DCFlushRange(var_r31->unk_40, var_r31->unk_44);
-    HuMemDirectFree(var_r25);
-    fn_1_A7F8(var_r31);
-    var_f29 = 3.0f / (var_r31->unk_3A - 1);
-    var_f28 = 5.0f / (var_r31->unk_3C - 1);
-    var_f30 = 0.0f;
-    for (var_r28 = 0; var_r28 < var_r31->unk_3C; var_r28++) {
-        var_f31 = 0.0f;
-        for (var_r27 = 0; var_r27 < var_r31->unk_3A; var_r27++) {
-            var_r26->x = var_f31;
-            var_r26->y = var_f30;
-            var_f31 += var_f29;
-            var_r26++;
+    terrainHookState->displayListSize = GXEndDisplayList();
+    terrainHookState->displayList = HuMemDirectMallocNum(HEAP_MODEL, terrainHookState->displayListSize, terrainHookModel->mallocNo);
+    memcpy(terrainHookState->displayList, displayListAllocation, terrainHookState->displayListSize);
+    DCFlushRange(terrainHookState->displayList, terrainHookState->displayListSize);
+    HuMemDirectFree(displayListAllocation);
+    UpdateTeamMarker(terrainHookState);
+    textureUScale = 3.0f / (terrainHookState->gridColumnCount - 1);
+    textureVScale = 5.0f / (terrainHookState->gridRowCount - 1);
+    gridRowStep = 0.0f;
+    for (hookIdOrGridRow = 0; hookIdOrGridRow < terrainHookState->gridRowCount; hookIdOrGridRow++) {
+        gridColumnStep = 0.0f;
+        for (gridColumn = 0; gridColumn < terrainHookState->gridColumnCount; gridColumn++) {
+            terrainTextureCoordinates->x = gridColumnStep;
+            terrainTextureCoordinates->y = gridRowStep;
+            gridColumnStep += textureUScale;
+            terrainTextureCoordinates++;
         }
-        var_f30 += var_f28;
+        gridRowStep += textureVScale;
     }
-    DCFlushRangeNoSync(var_r31->unk_30, var_r31->unk_38 * 8);
+    DCFlushRangeNoSync(terrainHookState->terrainTextureCoordinates, terrainHookState->vertexCount * 8);
     PPCSync();
-    return var_r19;
+    return createdHookId;
 }
 
-void fn_1_A7F8(M427DllMapStruct6 *var_r31)
+void UpdateTeamMarker(TerrainWaveRenderData *terrain)
 {
-    Vec sp1C;
-    float sp14[2];
-    float spC[2];
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    M427DllMapSubstruct5 *var_r30;
-    Vec *var_r29;
-    s16 var_r28;
-    Vec *var_r27;
-    s16 var_r26;
-    s16 var_r25;
+    Vec routeHeightSample;
+    float gridColumnPositionAndStep[2];
+    float gridRowDepthAndStep[2];
+    float wavePhaseX;
+    float wavePhaseZ;
+    float normalLength;
+    GridQuad *gridQuad;
+    Vec *terrainNormal;
+    s16 gridRow;
+    Vec *terrainVertex;
+    s16 gridColumn;
+    s16 quadCount;
 
     if (omPauseChk() == 0) {
-        var_r31->unk_4C += 1.0f;
-        var_r31->unk_50 += 1.5f;
+        terrain->wavePhaseX += 1.0f;
+        terrain->wavePhaseZ += 1.5f;
     }
-    if (var_r31->unk_4C >= 360.0f) {
-        var_r31->unk_4C -= 360.0f;
+    if (terrain->wavePhaseX >= 360.0f) {
+        terrain->wavePhaseX -= 360.0f;
     }
-    if (var_r31->unk_50 >= 360.0f) {
-        var_r31->unk_50 -= 360.0f;
+    if (terrain->wavePhaseZ >= 360.0f) {
+        terrain->wavePhaseZ -= 360.0f;
     }
-    var_r27 = var_r31->unk_2C;
-    var_r29 = var_r31->unk_34;
-    spC[0] = var_r31->unk_0C - var_r31->unk_10;
-    spC[1] = var_r31->unk_10 / (var_r31->unk_3C - 1);
-    var_f28 = var_r31->unk_50;
-    for (var_r28 = 0; var_r28 < var_r31->unk_3C; var_r28++) {
-        fn_1_B194(var_r31, spC[0], &sp1C);
-        sp14[0] = sp1C.x;
-        sp14[1] = (sp1C.y - sp1C.x) / (var_r31->unk_3A - 1);
-        var_f29 = var_r31->unk_4C;
-        for (var_r26 = 0; var_r26 < var_r31->unk_3A; var_r26++) {
-            var_r27->x = sp14[0];
-            var_r27->y = sp1C.z + (var_r31->unk_5C * sind(var_f29)) + var_r31->unk_60 * sind(var_f28);
-            var_r27->z = spC[0];
-            sp14[0] += sp14[1];
-            var_r27++;
-            var_r29->x = var_r29->y = var_r29->z = 0.0f;
-            var_r29++;
-            var_f29 += var_r31->unk_54;
-            if (var_f29 >= 360.0f) {
-                var_f29 -= 360.0f;
+    terrainVertex = terrain->terrainVertices;
+    terrainNormal = terrain->terrainNormals;
+    gridRowDepthAndStep[0] = terrain->terrainOffset - terrain->terrainDepth;
+    gridRowDepthAndStep[1] = terrain->terrainDepth / (terrain->gridRowCount - 1);
+    wavePhaseZ = terrain->wavePhaseZ;
+    for (gridRow = 0; gridRow < terrain->gridRowCount; gridRow++) {
+        UpdateTerrainWave(terrain, gridRowDepthAndStep[0], &routeHeightSample);
+        gridColumnPositionAndStep[0] = routeHeightSample.x;
+        gridColumnPositionAndStep[1] = (routeHeightSample.y - routeHeightSample.x) / (terrain->gridColumnCount - 1);
+        wavePhaseX = terrain->wavePhaseX;
+        for (gridColumn = 0; gridColumn < terrain->gridColumnCount; gridColumn++) {
+            terrainVertex->x = gridColumnPositionAndStep[0];
+            terrainVertex->y = routeHeightSample.z + (terrain->waveAmplitudeX * sind(wavePhaseX)) + terrain->waveAmplitudeZ * sind(wavePhaseZ);
+            terrainVertex->z = gridRowDepthAndStep[0];
+            gridColumnPositionAndStep[0] += gridColumnPositionAndStep[1];
+            terrainVertex++;
+            terrainNormal->x = terrainNormal->y = terrainNormal->z = 0.0f;
+            terrainNormal++;
+            wavePhaseX += terrain->wavePhaseStepX;
+            if (wavePhaseX >= 360.0f) {
+                wavePhaseX -= 360.0f;
             }
         }
-        spC[0] += spC[1];
-        var_f28 += var_r31->unk_58;
-        if (var_f28 >= 360.0f) {
-            var_f28 -= 360.0f;
+        gridRowDepthAndStep[0] += gridRowDepthAndStep[1];
+        wavePhaseZ += terrain->wavePhaseStepZ;
+        if (wavePhaseZ >= 360.0f) {
+            wavePhaseZ -= 360.0f;
         }
     }
-    var_r30 = var_r31->unk_48;
-    var_r25 = (var_r31->unk_3A - 1) * (var_r31->unk_3C - 1);
-    for (var_r28 = 0; var_r28 < var_r25; var_r28++) {
-        fn_1_C2C8(&var_r31->unk_2C[var_r30->unk0], &var_r31->unk_2C[var_r30->unk2], &var_r31->unk_2C[var_r30->unk4], &var_r30->unk8);
-        var_r31->unk_34[var_r30->unk0].x += var_r30->unk8.x;
-        var_r31->unk_34[var_r30->unk0].y += var_r30->unk8.y;
-        var_r31->unk_34[var_r30->unk0].z += var_r30->unk8.z;
+    gridQuad = terrain->gridQuads;
+    quadCount = (terrain->gridColumnCount - 1) * (terrain->gridRowCount - 1);
+    for (gridRow = 0; gridRow < quadCount; gridRow++) {
+        SetVectorFrame(&terrain->terrainVertices[gridQuad->firstVertexIndex], &terrain->terrainVertices[gridQuad->secondVertexIndex], &terrain->terrainVertices[gridQuad->thirdVertexIndex], &gridQuad->vertexNormal);
+        terrain->terrainNormals[gridQuad->firstVertexIndex].x += gridQuad->vertexNormal.x;
+        terrain->terrainNormals[gridQuad->firstVertexIndex].y += gridQuad->vertexNormal.y;
+        terrain->terrainNormals[gridQuad->firstVertexIndex].z += gridQuad->vertexNormal.z;
 
-        var_r31->unk_34[var_r30->unk2].x += var_r30->unk8.x;
-        var_r31->unk_34[var_r30->unk2].y += var_r30->unk8.y;
-        var_r31->unk_34[var_r30->unk2].z += var_r30->unk8.z;
+        terrain->terrainNormals[gridQuad->secondVertexIndex].x += gridQuad->vertexNormal.x;
+        terrain->terrainNormals[gridQuad->secondVertexIndex].y += gridQuad->vertexNormal.y;
+        terrain->terrainNormals[gridQuad->secondVertexIndex].z += gridQuad->vertexNormal.z;
 
-        var_r31->unk_34[var_r30->unk4].x += var_r30->unk8.x;
-        var_r31->unk_34[var_r30->unk4].y += var_r30->unk8.y;
-        var_r31->unk_34[var_r30->unk4].z += var_r30->unk8.z;
+        terrain->terrainNormals[gridQuad->thirdVertexIndex].x += gridQuad->vertexNormal.x;
+        terrain->terrainNormals[gridQuad->thirdVertexIndex].y += gridQuad->vertexNormal.y;
+        terrain->terrainNormals[gridQuad->thirdVertexIndex].z += gridQuad->vertexNormal.z;
 
-        var_r31->unk_34[var_r30->unk6].x += var_r30->unk8.x;
-        var_r31->unk_34[var_r30->unk6].y += var_r30->unk8.y;
-        var_r31->unk_34[var_r30->unk6].z += var_r30->unk8.z;
-        var_r30++;
+        terrain->terrainNormals[gridQuad->fourthVertexIndex].x += gridQuad->vertexNormal.x;
+        terrain->terrainNormals[gridQuad->fourthVertexIndex].y += gridQuad->vertexNormal.y;
+        terrain->terrainNormals[gridQuad->fourthVertexIndex].z += gridQuad->vertexNormal.z;
+        gridQuad++;
     }
-    var_r29 = var_r31->unk_34;
-    for (var_r28 = 0; var_r28 < var_r31->unk_38; var_r28++) {
-        var_f27 = sqrtf((var_r29->z * var_r29->z) + ((var_r29->x * var_r29->x) + (var_r29->y * var_r29->y)));
-        var_r29->x /= var_f27;
-        var_r29->y /= var_f27;
-        var_r29->z /= var_f27;
-        var_r29++;
+    terrainNormal = terrain->terrainNormals;
+    for (gridRow = 0; gridRow < terrain->vertexCount; gridRow++) {
+        normalLength = sqrtf((terrainNormal->z * terrainNormal->z) + ((terrainNormal->x * terrainNormal->x) + (terrainNormal->y * terrainNormal->y)));
+        terrainNormal->x /= normalLength;
+        terrainNormal->y /= normalLength;
+        terrainNormal->z /= normalLength;
+        terrainNormal++;
     }
-    DCFlushRangeNoSync(var_r31->unk_2C, var_r31->unk_38 * sizeof(Vec));
-    DCFlushRangeNoSync(var_r31->unk_34, var_r31->unk_38 * sizeof(Vec));
+    DCFlushRangeNoSync(terrain->terrainVertices, terrain->vertexCount * sizeof(Vec));
+    DCFlushRangeNoSync(terrain->terrainNormals, terrain->vertexCount * sizeof(Vec));
     PPCSync();
 }
 
-s16 lbl_1_data_1EC[2] = { 0, 0 };
+s16 teamMarkerModelIds[2] = { 0, 0 };
 
-float fn_1_AE78(s16 arg0, float arg8, float arg9)
+float CalculateTeamMarkerOpacity(s16 teamIndex, float distance, float opacityScale)
 {
-    float sp8[2];
-    float var_f31;
-    float var_f30;
-    Vec *var_r31;
-    s16 var_r30;
-    M427DllMapSubstruct3 *var_r29;
-    Vec *var_r28;
-    s16 var_r27;
-    s16 var_r26;
+    float heightInterpolation[2];
+    float heightInterpolationRatio;
+    float gridColumnWidth;
+    Vec *currentTerrainVertex;
+    s16 vertexIndex;
+    TeamMapState *teamState;
+    Vec *terrainVertices;
+    s16 vertexCount;
+    s16 gridColumnCount;
 
-    var_r29 = &lbl_1_bss_158.unk4[arg0];
-    if (lbl_1_bss_158.unk0 != 0) {
-        if (lbl_1_bss_158.unk0 == 1) {
-            lbl_1_data_1EC[arg0] = 0;
-            lbl_1_bss_158.unk0 = 2;
+    teamState = &mapState.teamStates[teamIndex];
+    if (mapState.mapReady != 0) {
+        if (mapState.mapReady == 1) {
+            teamMarkerModelIds[teamIndex] = 0;
+            mapState.mapReady = 2;
         }
-        if (!lbl_1_bss_98.unk4) {
+        if (!mapSurfaceRenderState.vertexPositions) {
             return 0.0f;
         }
-        var_r28 = lbl_1_bss_98.unk4;
-        var_r31 = &lbl_1_bss_98.unk4[lbl_1_data_1EC[arg0]];
-        var_r27 = lbl_1_bss_98.unk14;
-        var_r26 = lbl_1_bss_98.unk16;
-        for (var_r30 = lbl_1_data_1EC[arg0]; var_r30 < var_r27; var_r30++, var_r31++) {
-            if (arg9 >= var_r31->z && arg8 >= var_r31->x) {
+        terrainVertices = mapSurfaceRenderState.vertexPositions;
+        currentTerrainVertex = &mapSurfaceRenderState.vertexPositions[teamMarkerModelIds[teamIndex]];
+        vertexCount = mapSurfaceRenderState.vertexCount;
+        gridColumnCount = mapSurfaceRenderState.gridWidth;
+        for (vertexIndex = teamMarkerModelIds[teamIndex]; vertexIndex < vertexCount; vertexIndex++, currentTerrainVertex++) {
+            if (opacityScale >= currentTerrainVertex->z && distance >= currentTerrainVertex->x) {
                 break;
             }
         }
-        if (var_r30 == var_r27) {
+        if (vertexIndex == vertexCount) {
             return 0.0f;
         }
     }
     else {
-        if (!var_r29->unkAC) {
+        if (!teamState->particleHookData) {
             return 0.0f;
         }
-        var_r28 = var_r29->unkAC->unk_2C;
-        var_r31 = &var_r29->unkAC->unk_2C[lbl_1_data_1EC[arg0]];
-        var_r27 = var_r29->unkAC->unk_38;
-        var_r26 = var_r29->unkAC->unk_3A;
-        for (var_r30 = lbl_1_data_1EC[arg0]; var_r30 < var_r27; var_r30++, var_r31++) {
-            if (arg9 <= var_r31->z && arg8 <= var_r31->x) {
+        terrainVertices = teamState->particleHookData->terrainVertices;
+        currentTerrainVertex = &teamState->particleHookData->terrainVertices[teamMarkerModelIds[teamIndex]];
+        vertexCount = teamState->particleHookData->vertexCount;
+        gridColumnCount = teamState->particleHookData->gridColumnCount;
+        for (vertexIndex = teamMarkerModelIds[teamIndex]; vertexIndex < vertexCount; vertexIndex++, currentTerrainVertex++) {
+            if (opacityScale <= currentTerrainVertex->z && distance <= currentTerrainVertex->x) {
                 break;
             }
         }
-        if (var_r30 == var_r27) {
+        if (vertexIndex == vertexCount) {
             return 0.0f;
         }
     }
-    sp8[0] = var_r31->x - var_r28[var_r30 - 1].x;
-    sp8[1] = arg8 - var_r28[var_r30 - 1].x;
-    var_f30 = sp8[1] / sp8[0];
-    var_f31 = var_r31->y - var_r28[var_r30 - 1].y;
-    var_f31 = var_r28[var_r30 - 1].y + (var_f31 * var_f30);
-    lbl_1_data_1EC[arg0] = var_r30 - (var_r26 * 2);
-    return 20.0f + var_f31;
+    heightInterpolation[0] = currentTerrainVertex->x - terrainVertices[vertexIndex - 1].x;
+    heightInterpolation[1] = distance - terrainVertices[vertexIndex - 1].x;
+    gridColumnWidth = heightInterpolation[1] / heightInterpolation[0];
+    heightInterpolationRatio = currentTerrainVertex->y - terrainVertices[vertexIndex - 1].y;
+    heightInterpolationRatio = terrainVertices[vertexIndex - 1].y + (heightInterpolationRatio * gridColumnWidth);
+    teamMarkerModelIds[teamIndex] = vertexIndex - (gridColumnCount * 2);
+    return 20.0f + heightInterpolationRatio;
 }
 
-void fn_1_B194(M427DllMapStruct6 *arg0, float arg8, Vec *arg1)
+void UpdateTerrainWave(TerrainWaveRenderData *terrain, float waveAmplitude, Vec *waveDirection)
 {
-    float sp10[2];
-    float sp8[2];
-    float var_f31;
-    s16 var_r31;
+    float interpolatedTargetX[2];
+    float interpolatedSourceX[2];
+    float pathInterpolationRatio;
+    s16 pathPointIndex;
 
-    for (var_r31 = lbl_1_bss_580; var_r31 != 0;) {
-        var_r31--;
-        if (arg0->unk_04[var_r31].z >= arg8) {
-            if (var_r31 == (lbl_1_bss_580 - 1)) {
-                arg1->x = arg0->unk_08[var_r31].x;
-                arg1->y = arg0->unk_04[var_r31].x;
-                arg1->z = arg0->unk_04[var_r31].y;
+    for (pathPointIndex = routeSegmentCount; pathPointIndex != 0;) {
+        pathPointIndex--;
+        if (terrain->sourcePositions[pathPointIndex].z >= waveAmplitude) {
+            if (pathPointIndex == (routeSegmentCount - 1)) {
+                waveDirection->x = terrain->targetPositions[pathPointIndex].x;
+                waveDirection->y = terrain->sourcePositions[pathPointIndex].x;
+                waveDirection->z = terrain->sourcePositions[pathPointIndex].y;
             }
             else {
-                var_f31 = (arg0->unk_04[var_r31].z - arg8) / (arg0->unk_04[var_r31].z - arg0->unk_04[var_r31 + 1].z);
-                sp10[0] = arg0->unk_08[var_r31].x - 100.0f;
-                sp10[1] = arg0->unk_08[var_r31 + 1].x - 100.0f;
-                sp8[0] = 100.0f + arg0->unk_04[var_r31].x;
-                sp8[1] = 100.0f + arg0->unk_04[var_r31 + 1].x;
-                arg1->x = sp10[0] + (var_f31 * (sp10[1] - sp10[0]));
-                arg1->y = sp8[0] + (var_f31 * (sp8[1] - sp8[0]));
-                arg1->z = arg0->unk_04[var_r31].y + (var_f31 * (arg0->unk_04[var_r31 + 1].y - arg0->unk_04[var_r31].y));
+                pathInterpolationRatio = (terrain->sourcePositions[pathPointIndex].z - waveAmplitude) / (terrain->sourcePositions[pathPointIndex].z - terrain->sourcePositions[pathPointIndex + 1].z);
+                interpolatedTargetX[0] = terrain->targetPositions[pathPointIndex].x - 100.0f;
+                interpolatedTargetX[1] = terrain->targetPositions[pathPointIndex + 1].x - 100.0f;
+                interpolatedSourceX[0] = 100.0f + terrain->sourcePositions[pathPointIndex].x;
+                interpolatedSourceX[1] = 100.0f + terrain->sourcePositions[pathPointIndex + 1].x;
+                waveDirection->x = interpolatedTargetX[0] + (pathInterpolationRatio * (interpolatedTargetX[1] - interpolatedTargetX[0]));
+                waveDirection->y = interpolatedSourceX[0] + (pathInterpolationRatio * (interpolatedSourceX[1] - interpolatedSourceX[0]));
+                waveDirection->z = terrain->sourcePositions[pathPointIndex].y + (pathInterpolationRatio * (terrain->sourcePositions[pathPointIndex + 1].y - terrain->sourcePositions[pathPointIndex].y));
             }
             return;
         }
     }
 }
 
-void fn_1_B3CC(HU3DMODEL *model, Mtx matrix)
+void RenderTerrainSurface(HU3DMODEL *model, Mtx matrix)
 {
-    Mtx sp154;
-    Mtx sp124;
-    Mtx spF4;
-    Mtx spC4;
-    GXTexObj sp44;
-    Vec2f sp18;
-    GXColor sp14;
-    float var_f31;
-    M427DllMapStruct6 *var_r31;
-    M427DllMapSubstruct3 *var_r30;
-    M427DllMapSubstruct3Sub *var_r27;
-    M427DllMapStruct3Sub *var_r24;
-    s16 var_r21;
+    Mtx lightProjectionMatrix;
+    Mtx modelMatrix;
+    Mtx textureMatrix;
+    Mtx cameraProjectionMatrix;
+    GXTexObj renderTargetTexture;
+    Vec2f bannerUv;
+    GXColor particleLightColor;
+    float bannerRotation;
+    TerrainWaveRenderData *terrainHookState;
+    TeamMapState *teamState;
+    TeamRenderTarget *renderTarget;
+    BannerAnimationSet *bannerAnimations;
+    s16 lightChannelIndex;
 
-    var_r31 = model->hookData;
-    var_r30 = &lbl_1_bss_158.unk4[var_r31->unk_00];
-    var_r27 = &var_r30->unk94;
-    var_r24 = &lbl_1_bss_158.unk334;
-    fn_1_A7F8(var_r31);
+    terrainHookState = model->hookData;
+    teamState = &mapState.teamStates[terrainHookState->cameraIndex];
+    renderTarget = &teamState->renderTarget;
+    bannerAnimations = &mapState.bannerAnimationResources;
+    UpdateTeamMarker(terrainHookState);
     GXLoadPosMtxImm(matrix, 0);
-    MTXInvXpose(matrix, spF4);
-    GXLoadNrmMtxImm(spF4, 0);
+    MTXInvXpose(matrix, textureMatrix);
+    GXLoadNrmMtxImm(textureMatrix, 0);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetArray(GX_VA_POS, var_r31->unk_2C, sizeof(Vec));
+    GXSetArray(GX_VA_POS, terrainHookState->terrainVertices, sizeof(Vec));
     GXSetVtxDesc(GX_VA_NRM, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_NRM, GX_NRM_XYZ, GX_F32, 0);
-    GXSetArray(GX_VA_NRM, var_r31->unk_34, sizeof(Vec));
+    GXSetArray(GX_VA_NRM, terrainHookState->terrainNormals, sizeof(Vec));
     GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetArray(GX_VA_TEX0, var_r31->unk_30, 8);
-    if (var_r31->unk_00 == 0) {
-        GXInitTexObj(&sp44, var_r27->unk4, 0x140, 0x1E0, GX_TF_RGB5A3, GX_CLAMP, GX_CLAMP, 0);
+    GXSetArray(GX_VA_TEX0, terrainHookState->terrainTextureCoordinates, 8);
+    if (terrainHookState->cameraIndex == 0) {
+        GXInitTexObj(&renderTargetTexture, renderTarget->textureBuffer, 0x140, 0x1E0, GX_TF_RGB5A3, GX_CLAMP, GX_CLAMP, 0);
     }
     else {
-        GXInitTexObj(&sp44, var_r27->unk4, 0x140, 0x1E0, GX_TF_RGB5A3, GX_CLAMP, GX_CLAMP, 0);
+        GXInitTexObj(&renderTargetTexture, renderTarget->textureBuffer, 0x140, 0x1E0, GX_TF_RGB5A3, GX_CLAMP, GX_CLAMP, 0);
     }
-    GXInitTexObjLOD(&sp44, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, 0, 0, GX_ANISO_1);
-    GXLoadTexObj(&sp44, GX_TEXMAP0);
-    HuSprTexLoad(var_r31->unk_28, 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
-    HuSprTexLoad(var_r24->unk_00, 0, 2, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    GXInitTexObjLOD(&renderTargetTexture, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, 0, 0, GX_ANISO_1);
+    GXLoadTexObj(&renderTargetTexture, GX_TEXMAP0);
+    HuSprTexLoad(terrainHookState->animationData, 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    HuSprTexLoad(bannerAnimations->primaryAnimation, 0, 2, GX_REPEAT, GX_REPEAT, GX_LINEAR);
     GXSetNumTevStages(3);
-    sp14.r = 0;
-    sp14.g = 0xB6;
-    sp14.b = 0xCC;
-    sp14.a = 0x40;
-    GXSetTevColor(GX_TEVREG2, sp14);
+    particleLightColor.r = 0;
+    particleLightColor.g = 0xB6;
+    particleLightColor.b = 0xCC;
+    particleLightColor.a = 0x40;
+    GXSetTevColor(GX_TEVREG2, particleLightColor);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_4, GX_TRUE, GX_TEVREG0);
@@ -2392,73 +2392,73 @@ void fn_1_B3CC(HU3DMODEL *model, Mtx matrix)
     GXSetNumIndStages(1);
     GXSetIndTexOrder(GX_INDTEXSTAGE0, GX_TEXCOORD2, GX_TEXMAP2);
     GXSetTevIndWarp(1, 0, 1, 0, 1);
-    MTXScale(spF4, -0.1f, 0.1f, 1.0f);
-    GXSetIndTexMtx(GX_ITM_0, (float(*)[3])spF4, 0);
+    MTXScale(textureMatrix, -0.1f, 0.1f, 1.0f);
+    GXSetIndTexMtx(GX_ITM_0, (float(*)[3])textureMatrix, 0);
     GXSetNumTexGens(3);
-    C_MTXLightPerspective(sp154, 45.0f, 0.6f, 0.5f, -0.5f, 0.5f, 0.5f);
-    MTXCopy(matrix, sp124);
-    MTXInverse(Hu3DCameraMtx, spF4);
-    MTXConcat(spF4, sp124, spF4);
-    MTXConcat(sp154, Hu3DCameraMtx, spC4);
-    MTXConcat(spC4, spF4, spF4);
-    GXLoadTexMtxImm(spF4, 0x1E, GX_MTX3x4);
+    C_MTXLightPerspective(lightProjectionMatrix, 45.0f, 0.6f, 0.5f, -0.5f, 0.5f, 0.5f);
+    MTXCopy(matrix, modelMatrix);
+    MTXInverse(Hu3DCameraMtx, textureMatrix);
+    MTXConcat(textureMatrix, modelMatrix, textureMatrix);
+    MTXConcat(lightProjectionMatrix, Hu3DCameraMtx, cameraProjectionMatrix);
+    MTXConcat(cameraProjectionMatrix, textureMatrix, textureMatrix);
+    GXLoadTexMtxImm(textureMatrix, 0x1E, GX_MTX3x4);
     {
-        Vec sp38 = { 1.0f, 1.0f, 1.0f };
-        var_f31 = 0.0f;
-        fn_1_94BC(&var_r30->unk78, &var_r30->unk84, var_r31->unk_2C, &sp38, var_f31, &sp18, 1);
+        Vec projectionScale = { 1.0f, 1.0f, 1.0f };
+        bannerRotation = 0.0f;
+        CalculateMapProjection(&teamState->cameraFocusPosition, &teamState->worldPosition, terrainHookState->terrainVertices, &projectionScale, bannerRotation, &bannerUv, 1);
     }
     if (omPauseChk() == 0) {
-        var_r31->unk_20 = var_r31->unk_20 - 0.001f;
+        terrainHookState->textureScrollOffsetX = terrainHookState->textureScrollOffsetX - 0.001f;
     }
-    MTXScale(spF4, 1.0f, 1.0f, 1.0f);
-    mtxTransCat(spF4, 0.0f, var_r31->unk_20 + (0.3f * sp18.y), 0.0f);
-    GXLoadTexMtxImm(spF4, 0x21, GX_MTX2x4);
+    MTXScale(textureMatrix, 1.0f, 1.0f, 1.0f);
+    mtxTransCat(textureMatrix, 0.0f, terrainHookState->textureScrollOffsetX + (0.3f * bannerUv.y), 0.0f);
+    GXLoadTexMtxImm(textureMatrix, 0x21, GX_MTX2x4);
     if (omPauseChk() == 0) {
-        var_r31->unk_24 += 0.05f;
+        terrainHookState->textureScrollPhase += 0.05f;
     }
-    if (var_r31->unk_24 >= 360.0f) {
-        var_r31->unk_24 -= 360.0f;
+    if (terrainHookState->textureScrollPhase >= 360.0f) {
+        terrainHookState->textureScrollPhase -= 360.0f;
     }
-    var_r31->unk_14 = sind(var_r31->unk_24);
+    terrainHookState->scrollSineOffset = sind(terrainHookState->textureScrollPhase);
     if (omPauseChk() == 0) {
-        var_r31->unk_1C += 0.0005f;
+        terrainHookState->textureScrollOffsetY += 0.0005f;
     }
-    MTXScale(spF4, 0.5f, 0.5f, 0.5f);
-    mtxTransCat(spF4, var_r31->unk_14, var_r31->unk_1C, 0.0f);
-    GXLoadTexMtxImm(spF4, 0x24, GX_MTX2x4);
+    MTXScale(textureMatrix, 0.5f, 0.5f, 0.5f);
+    mtxTransCat(textureMatrix, terrainHookState->scrollSineOffset, terrainHookState->textureScrollOffsetY, 0.0f);
+    GXLoadTexMtxImm(textureMatrix, 0x24, GX_MTX2x4);
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX3x4, GX_TG_POS, 0x1E, GX_FALSE, 0x7D);
     GXSetTexCoordGen2(GX_TEXCOORD1, GX_TG_MTX2x4, GX_TG_TEX0, 0x21, GX_FALSE, 0x7D);
     GXSetTexCoordGen2(GX_TEXCOORD2, GX_TG_MTX2x4, GX_TG_TEX0, 0x24, GX_FALSE, 0x7D);
     GXSetNumChans(1);
-    var_r21 = Hu3DLightSet(model, &Hu3DCameraMtx, &Hu3DCameraMtxXPose, 0.0f);
-    GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_REG, var_r21, GX_DF_CLAMP, GX_AF_SPOT);
-    sp14.r = sp14.g = sp14.b = 0x10;
-    sp14.a = 0xFF;
-    GXSetChanAmbColor(GX_COLOR0A0, sp14);
-    sp14.r = sp14.g = sp14.b = 0xFF;
-    sp14.a = 0xFF;
-    GXSetChanMatColor(GX_COLOR0A0, sp14);
+    lightChannelIndex = Hu3DLightSet(model, &Hu3DCameraMtx, &Hu3DCameraMtxXPose, 0.0f);
+    GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, GX_SRC_REG, lightChannelIndex, GX_DF_CLAMP, GX_AF_SPOT);
+    particleLightColor.r = particleLightColor.g = particleLightColor.b = 0x10;
+    particleLightColor.a = 0xFF;
+    GXSetChanAmbColor(GX_COLOR0A0, particleLightColor);
+    particleLightColor.r = particleLightColor.g = particleLightColor.b = 0xFF;
+    particleLightColor.a = 0xFF;
+    GXSetChanMatColor(GX_COLOR0A0, particleLightColor);
     GXSetZMode(1, GX_LEQUAL, GX_TRUE);
     GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
     GXSetZCompLoc(0);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_NOOP);
-    GXCallDisplayList(var_r31->unk_40, var_r31->unk_44);
+    GXCallDisplayList(terrainHookState->displayList, terrainHookState->displayListSize);
     GXSetNumIndStages(0);
     GXSetTevDirect(GX_TEVSTAGE0);
     GXSetTevDirect(GX_TEVSTAGE1);
 }
 
-void fn_1_BD2C(HU3DMODEL *model, Mtx matrix)
+void RenderTerrainEffects(HU3DMODEL *model, Mtx matrix)
 {
-    GXColor sp14 = { 0, 0, 0, 0xFF };
-    GXSetFog(GX_FOG_EXP, 10000.0f, 20000.0f, 300.0f, 50000.0f, sp14);
+    GXColor fogColor = { 0, 0, 0, 0xFF };
+    GXSetFog(GX_FOG_EXP, 10000.0f, 20000.0f, 300.0f, 50000.0f, fogColor);
     GXLoadPosMtxImm(matrix, 0);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
     GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    HuSprTexLoad(lbl_1_bss_F4, 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    HuSprTexLoad(mapEffectAnimationData, 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
     GXSetNumTevStages(1);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR_NULL);
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_TEXC, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO);
@@ -2485,497 +2485,497 @@ void fn_1_BD2C(HU3DMODEL *model, Mtx matrix)
     GXPosition3f32(-1000.0f, -1000.0f, -24000.0f);
     GXTexCoord2f32(0.0f, 1.0f);
 
-    GXSetFog(GX_FOG_EXP, 3500.0f, 20000.0f, 300.0f, 50000.0f, sp14);
+    GXSetFog(GX_FOG_EXP, 3500.0f, 20000.0f, 300.0f, 50000.0f, fogColor);
 }
 
-void fn_1_C154(HU3DMODEL *model, Mtx matrix)
+void RenderMapHighlight(HU3DMODEL *model, Mtx matrix)
 {
-    GXColor spC = { 0, 0, 0, 255 };
-    GXSetFog(GX_FOG_EXP, 10000.0f, 20000.0f, 300.0f, 50000.0f, spC);
+    GXColor fogColor = { 0, 0, 0, 255 };
+    GXSetFog(GX_FOG_EXP, 10000.0f, 20000.0f, 300.0f, 50000.0f, fogColor);
 }
 
-void fn_1_C200(HU3DMODEL *model, Mtx matrix)
+void RenderMapShadow(HU3DMODEL *model, Mtx matrix)
 {
-    GXColor spC = { 0, 0, 0, 255 };
-    GXSetFog(GX_FOG_EXP, 3500.0f, 20000.0f, 300.0f, 50000.0f, spC);
+    GXColor fogColor = { 0, 0, 0, 255 };
+    GXSetFog(GX_FOG_EXP, 3500.0f, 20000.0f, 300.0f, 50000.0f, fogColor);
 }
 
-void fn_1_C2AC(Vec *arg0, float arg8, float arg9, float argA)
+void SetVectorComponents(Vec *vector, float x, float y, float z)
 {
-    arg0->x = arg8;
-    arg0->y = arg9;
-    arg0->z = argA;
+    vector->x = x;
+    vector->y = y;
+    vector->z = z;
 }
 
-void fn_1_C2BC(Vec2f *arg0, float arg8, float arg9)
+void SetVector2Components(Vec2f *vector, float x, float y)
 {
-    arg0->x = arg8;
-    arg0->y = arg9;
+    vector->x = x;
+    vector->y = y;
 }
 
-void fn_1_C2C8(Vec *arg0, Vec *arg1, Vec *arg2, Vec *arg3)
+void SetVectorFrame(Vec *firstPoint, Vec *secondPoint, Vec *thirdPoint, Vec *normal)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec firstEdgeVector;
+    Vec secondEdgeVector;
 
-    sp14.x = arg1->x - arg0->x;
-    sp14.y = arg1->y - arg0->y;
-    sp14.z = arg1->z - arg0->z;
-    sp8.x = arg2->x - arg1->x;
-    sp8.y = arg2->y - arg1->y;
-    sp8.z = arg2->z - arg1->z;
-    arg3->x = -((sp14.y * sp8.z) - (sp14.z * sp8.y));
-    arg3->y = -((sp14.z * sp8.x) - (sp14.x * sp8.z));
-    arg3->z = -((sp14.x * sp8.y) - (sp14.y * sp8.x));
+    firstEdgeVector.x = secondPoint->x - firstPoint->x;
+    firstEdgeVector.y = secondPoint->y - firstPoint->y;
+    firstEdgeVector.z = secondPoint->z - firstPoint->z;
+    secondEdgeVector.x = thirdPoint->x - secondPoint->x;
+    secondEdgeVector.y = thirdPoint->y - secondPoint->y;
+    secondEdgeVector.z = thirdPoint->z - secondPoint->z;
+    normal->x = -((firstEdgeVector.y * secondEdgeVector.z) - (firstEdgeVector.z * secondEdgeVector.y));
+    normal->y = -((firstEdgeVector.z * secondEdgeVector.x) - (firstEdgeVector.x * secondEdgeVector.z));
+    normal->z = -((firstEdgeVector.x * secondEdgeVector.y) - (firstEdgeVector.y * secondEdgeVector.x));
 }
 
 // is this one of the structs?
-void fn_1_C3A0(float *arg0, float *arg1)
+void CopyVectorComponents(float *destination, float *source)
 {
-    arg1[0] = arg0[0];
-    arg1[4] = arg0[1];
-    arg1[8] = arg0[2];
-    arg1[1] = arg0[4];
-    arg1[5] = arg0[5];
-    arg1[9] = arg0[6];
-    arg1[2] = arg0[8];
-    arg1[6] = arg0[9];
-    arg1[10] = arg0[10];
-    arg1[3] = 0.0f;
-    arg1[7] = 0.0f;
-    arg1[11] = 0.0f;
+    source[0] = destination[0];
+    source[4] = destination[1];
+    source[8] = destination[2];
+    source[1] = destination[4];
+    source[5] = destination[5];
+    source[9] = destination[6];
+    source[2] = destination[8];
+    source[6] = destination[9];
+    source[10] = destination[10];
+    source[3] = 0.0f;
+    source[7] = 0.0f;
+    source[11] = 0.0f;
 }
 
-s16 fn_1_C41C(float x1, float y1, float z1, float x2, float y2, float z2, u8 r, u8 g, u8 b)
+s16 CreateMapLight(float x1, float y1, float z1, float x2, float y2, float z2, u8 r, u8 g, u8 b)
 {
-    Vec sp34;
-    Vec sp28;
-    GXColor sp23;
-    HU3DLIGHT *var_r31;
-    s16 var_r30;
+    Vec lightPosition;
+    Vec lightDirection;
+    GXColor lightColor;
+    HU3DLIGHT *lightRecord;
+    s16 lightIndex;
 
-    sp34.x = x1;
-    sp34.y = y1;
-    sp34.z = z1;
-    sp28.x = x2;
-    sp28.y = y2;
-    sp28.z = z2;
-    sp23.r = r;
-    sp23.g = g;
-    sp23.b = b;
-    sp23.a = 0xFF;
-    for (var_r31 = Hu3DLocalLight, var_r30 = 0; var_r30 < 0x20; var_r30++, var_r31++) {
-        if (var_r31->type == -1) {
+    lightPosition.x = x1;
+    lightPosition.y = y1;
+    lightPosition.z = z1;
+    lightDirection.x = x2;
+    lightDirection.y = y2;
+    lightDirection.z = z2;
+    lightColor.r = r;
+    lightColor.g = g;
+    lightColor.b = b;
+    lightColor.a = 0xFF;
+    for (lightRecord = Hu3DLocalLight, lightIndex = 0; lightIndex < 0x20; lightIndex++, lightRecord++) {
+        if (lightRecord->type == -1) {
             break;
         }
     }
-    if (var_r30 == 0x20) {
+    if (lightIndex == 0x20) {
         return -1;
     }
-    fn_1_C68C(var_r31, &sp34, &sp28, &sp23);
-    var_r31->type |= 0x8000;
-    return var_r30;
+    ConfigureMapLight(lightRecord, &lightPosition, &lightDirection, &lightColor);
+    lightRecord->type |= 0x8000;
+    return lightIndex;
 }
 
-void fn_1_C528(s16 sp8, s16 var_r28, float x1, float y1, float z1, float x2, float y2, float z2, u8 r, u8 g, u8 b)
+void SetMapLight(s16 modelId, s16 lightIndex, float x1, float y1, float z1, float x2, float y2, float z2, u8 r, u8 g, u8 b)
 {
-    Vec sp38;
-    Vec sp2C;
-    GXColor sp27;
-    HU3DMODEL *var_r31;
-    HU3DLIGHT *var_r30;
-    s16 var_r29;
+    Vec lightPosition;
+    Vec lightDirection;
+    GXColor lightColor;
+    HU3DMODEL *model;
+    HU3DLIGHT *lightRecord;
+    s16 lightSlotIndex;
 
-    var_r31 = &Hu3DData[sp8];
-    sp38.x = x1;
-    sp38.y = y1;
-    sp38.z = z1;
-    sp2C.x = x2;
-    sp2C.y = y2;
-    sp2C.z = z2;
-    sp27.r = r;
-    sp27.g = g;
-    sp27.b = b;
-    sp27.a = 0xFF;
-    for (var_r30 = Hu3DLocalLight, var_r29 = 0; var_r29 < 0x20; var_r29++, var_r30++) {
-        if (var_r30->type == -1) {
+    model = &Hu3DData[modelId];
+    lightPosition.x = x1;
+    lightPosition.y = y1;
+    lightPosition.z = z1;
+    lightDirection.x = x2;
+    lightDirection.y = y2;
+    lightDirection.z = z2;
+    lightColor.r = r;
+    lightColor.g = g;
+    lightColor.b = b;
+    lightColor.a = 0xFF;
+    for (lightRecord = Hu3DLocalLight, lightSlotIndex = 0; lightSlotIndex < 0x20; lightSlotIndex++, lightRecord++) {
+        if (lightRecord->type == -1) {
             break;
         }
     }
-    if (var_r29 == 0x20) {
+    if (lightSlotIndex == 0x20) {
         OSReport("Light Entry Over!\n");
         return;
     }
-    fn_1_C68C(var_r30, &sp38, &sp2C, &sp27);
-    if (var_r31->lLightId[var_r28] == -1) {
-        var_r31->lLightId[var_r28] = var_r29;
-        var_r31->attr |= 0x1000;
+    ConfigureMapLight(lightRecord, &lightPosition, &lightDirection, &lightColor);
+    if (model->lLightId[lightIndex] == -1) {
+        model->lLightId[lightIndex] = lightSlotIndex;
+        model->attr |= 0x1000;
     }
 }
 
-void fn_1_C68C(HU3DLIGHT *arg0, Vec *arg1, Vec *arg2, GXColor *arg3)
+void ConfigureMapLight(HU3DLIGHT *light, Vec *lightPosition, Vec *lightTarget, GXColor *lightColor)
 {
-    arg0->type = 0;
-    arg0->pos = *arg1;
-    arg0->dir = *arg2;
-    arg0->offset.x = arg0->offset.y = arg0->offset.z = 0.0f;
-    arg0->cutoff = 30.0f;
-    arg0->func = 2;
-    VECNormalize(&arg0->dir, &arg0->dir);
-    arg0->color.r = arg3->r;
-    arg0->color.g = arg3->g;
-    arg0->color.b = arg3->b;
-    arg0->color.a = arg3->a;
+    light->type = 0;
+    light->pos = *lightPosition;
+    light->dir = *lightTarget;
+    light->offset.x = light->offset.y = light->offset.z = 0.0f;
+    light->cutoff = 30.0f;
+    light->func = 2;
+    VECNormalize(&light->dir, &light->dir);
+    light->color.r = lightColor->r;
+    light->color.g = lightColor->g;
+    light->color.b = lightColor->b;
+    light->color.a = lightColor->a;
 }
 
-void fn_1_C76C(u8 arg0, float arg8, float arg9, float argA, s16 arg1, float argB, float argC, s16 arg2)
+void CreateMapParticleSystem(u8 particleType, float positionX, float positionY, float positionZ, s16 particleCount, float scale, float rotation, s16 textureTileCount)
 {
-    Vec sp24;
-    Vec sp18;
-    float sp10[2];
-    GXColor spC;
-    M427DllMapSubstruct6 *var_r31;
-    s16 var_r30;
+    Vec particleSpawnPosition;
+    Vec particleRotation;
+    float spawnDirectionSinCos[2];
+    GXColor particleColor;
+    ParticleState *particle;
+    s16 spawnIndex;
 
-    if (arg0 != 0) {
-        argB += (((rand8() << 8) | rand8()) % 21) - 0xA;
+    if (particleType != 0) {
+        scale += (((rand8() << 8) | rand8()) % 21) - 0xA;
     }
     else {
-        argB += (((rand8() << 8) | rand8()) % 61) - 0x1E;
+        scale += (((rand8() << 8) | rand8()) % 61) - 0x1E;
     }
-    sp10[0] = sind(argB);
-    sp10[1] = cosd(argB);
-    for (var_r30 = 0; var_r30 < arg1; var_r30++) {
-        if (arg0 != 0) {
-            sp24.x = arg8 + ((((rand8() << 8) | rand8()) % 21) - 0xA);
-            sp24.y = arg9 + ((((rand8() << 8) | rand8()) % 21) - 0xA);
-            sp24.z = argA + ((((rand8() << 8) | rand8()) % 21) - 0xA);
+    spawnDirectionSinCos[0] = sind(scale);
+    spawnDirectionSinCos[1] = cosd(scale);
+    for (spawnIndex = 0; spawnIndex < particleCount; spawnIndex++) {
+        if (particleType != 0) {
+            particleSpawnPosition.x = positionX + ((((rand8() << 8) | rand8()) % 21) - 0xA);
+            particleSpawnPosition.y = positionY + ((((rand8() << 8) | rand8()) % 21) - 0xA);
+            particleSpawnPosition.z = positionZ + ((((rand8() << 8) | rand8()) % 21) - 0xA);
         }
         else {
-            sp24.x = arg8 + ((((rand8() << 8) | rand8()) % 41) - 0x14);
-            sp24.y = arg9 + ((((rand8() << 8) | rand8()) % 41) - 0x14);
-            sp24.z = argA + ((((rand8() << 8) | rand8()) % 41) - 0x14);
+            particleSpawnPosition.x = positionX + ((((rand8() << 8) | rand8()) % 41) - 0x14);
+            particleSpawnPosition.y = positionY + ((((rand8() << 8) | rand8()) % 41) - 0x14);
+            particleSpawnPosition.z = positionZ + ((((rand8() << 8) | rand8()) % 41) - 0x14);
         }
-        sp18.x = sp18.y = sp18.z = 0.0f;
-        spC.r = spC.g = spC.b = spC.a = 0xFF;
-        var_r31 = fn_1_D4FC(arg2, &sp24, &sp18, 0.0f, &spC);
-        if (!var_r31) {
+        particleRotation.x = particleRotation.y = particleRotation.z = 0.0f;
+        particleColor.r = particleColor.g = particleColor.b = particleColor.a = 0xFF;
+        particle = CreateMapParticle(textureTileCount, &particleSpawnPosition, &particleRotation, 0.0f, &particleColor);
+        if (!particle) {
             break;
         }
-        var_r31->unk_38 = arg0;
-        if (arg0 != 0) {
-            var_r31->unk_34 = 0;
-            var_r31->unk_36 = 3;
-            var_r31->unk_00 = argC * (sp10[0] * (0.1f * ((((rand8() << 8) | rand8()) % 151) + 0x96)));
-            var_r31->unk_04 = 0.1f * ((((rand8() << 8) | rand8()) % 31) - 0x14);
-            var_r31->unk_08 = argC * (sp10[1] * (0.1f * ((((rand8() << 8) | rand8()) % 151) + 0x96)));
-            var_r31->unk_18 = 0.01f * var_r31->unk_00;
-            var_r31->unk_1C = 0.1f;
-            var_r31->unk_20 = 0.01f * var_r31->unk_08;
-            var_r31->unk_24 = argC * (0.1f * ((((rand8() << 8) | rand8()) % 11) + 0xA));
-            var_r31->unk_28 = argC * (0.01f * ((((rand8() << 8) | rand8()) % 101) + 0x32) / (var_r31->unk_36 * 0xE));
+        particle->particleType = particleType;
+        if (particleType != 0) {
+            particle->animationFrame = 0;
+            particle->animationFrameCount = 3;
+            particle->velocityX = rotation * (spawnDirectionSinCos[0] * (0.1f * ((((rand8() << 8) | rand8()) % 151) + 0x96)));
+            particle->velocityY = 0.1f * ((((rand8() << 8) | rand8()) % 31) - 0x14);
+            particle->velocityZ = rotation * (spawnDirectionSinCos[1] * (0.1f * ((((rand8() << 8) | rand8()) % 151) + 0x96)));
+            particle->decelerationX = 0.01f * particle->velocityX;
+            particle->accelerationY = 0.1f;
+            particle->decelerationZ = 0.01f * particle->velocityZ;
+            particle->scale = rotation * (0.1f * ((((rand8() << 8) | rand8()) % 11) + 0xA));
+            particle->scaleDelta = rotation * (0.01f * ((((rand8() << 8) | rand8()) % 101) + 0x32) / (particle->animationFrameCount * 0xE));
         }
         else {
-            var_r31->unk_34 = 0;
-            var_r31->unk_36 = 2;
-            var_r31->unk_00 = sp10[0] * (0.1f * ((((rand8() << 8) | rand8()) % 31) + 0x32));
-            var_r31->unk_04 = 0.1f * ((((rand8() << 8) | rand8()) % 31) - 0x14);
-            var_r31->unk_08 = sp10[1] * (0.1f * (((((rand8() << 8) | rand8()) % 31)) + 0x32));
-            var_r31->unk_18 = 0.0f;
-            var_r31->unk_1C = 0.1f;
-            var_r31->unk_20 = 0.0f;
-            var_r31->unk_24 = 0.3f * (0.1f * ((((rand8() << 8) | rand8()) % 11) + 0xA));
-            var_r31->unk_28 = 0.4f * ((0.01f * ((((rand8() << 8) | rand8()) % 51) + 0x32)) / (var_r31->unk_36 * 0xE));
+            particle->animationFrame = 0;
+            particle->animationFrameCount = 2;
+            particle->velocityX = spawnDirectionSinCos[0] * (0.1f * ((((rand8() << 8) | rand8()) % 31) + 0x32));
+            particle->velocityY = 0.1f * ((((rand8() << 8) | rand8()) % 31) - 0x14);
+            particle->velocityZ = spawnDirectionSinCos[1] * (0.1f * (((((rand8() << 8) | rand8()) % 31)) + 0x32));
+            particle->decelerationX = 0.0f;
+            particle->accelerationY = 0.1f;
+            particle->decelerationZ = 0.0f;
+            particle->scale = 0.3f * (0.1f * ((((rand8() << 8) | rand8()) % 11) + 0xA));
+            particle->scaleDelta = 0.4f * ((0.01f * ((((rand8() << 8) | rand8()) % 51) + 0x32)) / (particle->animationFrameCount * 0xE));
         }
-        var_r31->unk_2C = 1024.0f * argC;
-        var_r31->unk_30 = var_r31->unk_2C / (var_r31->unk_36 * 0xE);
+        particle->opacity = 1024.0f * rotation;
+        particle->opacityDelta = particle->opacity / (particle->animationFrameCount * 0xE);
     }
 }
 
-void fn_1_D22C(HU3DMODEL *model, M427DllMapStruct7 *arg1, Mtx matrix)
+void RenderParticleSystem(HU3DMODEL *model, ParticleSystemRenderData *particleSystem, Mtx matrix)
 {
-    M427DllMapSubstruct6 *var_r31;
-    GXColor *var_r30;
-    s16 var_r29;
-    u8 var_r28;
+    ParticleState *particle;
+    GXColor *particleColor;
+    s16 particleIndex;
+    u8 particleAlpha;
 
-    var_r31 = arg1->unk_18;
-    var_r30 = arg1->unk_24;
-    for (var_r29 = 0; var_r29 < arg1->unk_00; var_r29++, var_r31++, var_r30++) {
-        if (var_r31->unk_62 != 0) {
-            var_r31->unk_54.x += var_r31->unk_00;
-            var_r31->unk_54.y += var_r31->unk_04;
-            var_r31->unk_54.z += var_r31->unk_08;
-            if (var_r31->unk_38 != 0) {
-                var_r31->unk_00 -= var_r31->unk_18;
-                var_r31->unk_04 += var_r31->unk_1C;
-                var_r31->unk_08 -= var_r31->unk_20;
-                var_r31->unk_18 = 0.01f * var_r31->unk_00;
-                var_r31->unk_1C *= 1.04f;
-                var_r31->unk_20 = 0.01f * var_r31->unk_08;
+    particle = particleSystem->particles;
+    particleColor = particleSystem->colors;
+    for (particleIndex = 0; particleIndex < particleSystem->particleCount; particleIndex++, particle++, particleColor++) {
+        if (particle->active != 0) {
+            particle->position.x += particle->velocityX;
+            particle->position.y += particle->velocityY;
+            particle->position.z += particle->velocityZ;
+            if (particle->particleType != 0) {
+                particle->velocityX -= particle->decelerationX;
+                particle->velocityY += particle->accelerationY;
+                particle->velocityZ -= particle->decelerationZ;
+                particle->decelerationX = 0.01f * particle->velocityX;
+                particle->accelerationY *= 1.04f;
+                particle->decelerationZ = 0.01f * particle->velocityZ;
             }
             else {
-                var_r31->unk_04 += var_r31->unk_1C;
-                var_r31->unk_1C *= 1.1f;
+                particle->velocityY += particle->accelerationY;
+                particle->accelerationY *= 1.1f;
             }
-            var_r31->unk_24 += var_r31->unk_28;
-            var_r31->unk_48.x = var_r31->unk_48.y = var_r31->unk_48.z = var_r31->unk_24;
-            var_r31->unk_2C -= var_r31->unk_30;
-            if (var_r31->unk_2C > 255.0f) {
-                var_r28 = 0xFF;
+            particle->scale += particle->scaleDelta;
+            particle->rotation.x = particle->rotation.y = particle->rotation.z = particle->scale;
+            particle->opacity -= particle->opacityDelta;
+            if (particle->opacity > 255.0f) {
+                particleAlpha = 0xFF;
             }
             else {
-                var_r28 = (s32)var_r31->unk_2C;
+                particleAlpha = (s32)particle->opacity;
             }
-            var_r30->a = (s32)var_r28;
-            var_r31->unk_34++;
-            if (var_r31->unk_34 >= var_r31->unk_36) {
-                var_r31->unk_34 = 0;
-                var_r31->unk_60++;
+            particleColor->a = (s32)particleAlpha;
+            particle->animationFrame++;
+            if (particle->animationFrame >= particle->animationFrameCount) {
+                particle->animationFrame = 0;
+                particle->textureTileIndex++;
             }
-            if (var_r31->unk_60 >= arg1->unk_14) {
-                var_r31->unk_62 = 0;
+            if (particle->textureTileIndex >= particleSystem->textureTileCount) {
+                particle->active = 0;
             }
         }
     }
 }
 
-s16 fn_1_D430(float arg8, float arg9, float argA, s16 arg0)
+s16 CalculateParticleAnimationFrame(float elapsedFrames, float animationSpeed, float frameOffset, s16 frameCount)
 {
-    Vec sp28;
-    Vec sp1C;
-    GXColor sp16;
-    M427DllMapSubstruct6 *var_r31;
+    Vec particlePosition;
+    Vec particleRotation;
+    GXColor particleColor;
+    ParticleState *particle;
 
-    sp28.x = arg8;
-    sp28.y = arg9;
-    sp28.z = argA;
-    sp1C.x = sp1C.y = sp1C.z = 1.0f;
-    sp16.r = 0xFF;
-    sp16.g = 0xA0;
-    sp16.b = 0x60;
-    sp16.a = 0xFF;
-    var_r31 = fn_1_D4FC(arg0, &sp28, &sp1C, 0.0f, &sp16);
-    if (!var_r31) {
+    particlePosition.x = elapsedFrames;
+    particlePosition.y = animationSpeed;
+    particlePosition.z = frameOffset;
+    particleRotation.x = particleRotation.y = particleRotation.z = 1.0f;
+    particleColor.r = 0xFF;
+    particleColor.g = 0xA0;
+    particleColor.b = 0x60;
+    particleColor.a = 0xFF;
+    particle = CreateMapParticle(frameCount, &particlePosition, &particleRotation, 0.0f, &particleColor);
+    if (!particle) {
         return -1;
     }
-    var_r31->unk_24 = 0.0f;
-    return var_r31->unk_40;
+    particle->scale = 0.0f;
+    return particle->particleIndex;
 }
 
-M427DllMapSubstruct6 *fn_1_D4FC(s16 arg0, Vec *arg1, Vec *arg2, float arg8, GXColor *arg3)
+ParticleState *CreateMapParticle(s16 particleType, Vec *position, Vec *velocity, float rotationAngle, GXColor *particleColor)
 {
-    M427DllMapSubstruct6 *var_r31;
-    M427DllMapStruct7 *var_r30;
-    s16 var_r29;
-    HU3DMODEL *var_r28;
+    ParticleState *particle;
+    ParticleSystemRenderData *particleSystem;
+    s16 particleIndex;
+    HU3DMODEL *particleModel;
 
-    var_r28 = &Hu3DData[arg0];
-    var_r30 = var_r28->hookData;
-    for (var_r29 = 0, var_r31 = var_r30->unk_18; var_r29 < var_r30->unk_00; var_r29++, var_r31++) {
-        if (var_r31->unk_62 == 0) {
+    particleModel = &Hu3DData[particleType];
+    particleSystem = particleModel->hookData;
+    for (particleIndex = 0, particle = particleSystem->particles; particleIndex < particleSystem->particleCount; particleIndex++, particle++) {
+        if (particle->active == 0) {
             break;
         }
     }
-    if (var_r29 == var_r30->unk_00) {
+    if (particleIndex == particleSystem->particleCount) {
         return NULL;
     }
-    var_r30->unk_24[var_r29].r = arg3->r;
-    var_r30->unk_24[var_r29].g = arg3->g;
-    var_r30->unk_24[var_r29].b = arg3->b;
-    var_r30->unk_24[var_r29].a = arg3->a;
-    var_r31->unk_40 = var_r29;
-    var_r31->unk_44 = arg8;
-    var_r31->unk_48 = *arg2;
-    var_r31->unk_54 = *arg1;
-    var_r31->unk_60 = 0;
-    var_r31->unk_3C = 0;
-    var_r31->unk_62 = 1;
-    return var_r31;
+    particleSystem->colors[particleIndex].r = particleColor->r;
+    particleSystem->colors[particleIndex].g = particleColor->g;
+    particleSystem->colors[particleIndex].b = particleColor->b;
+    particleSystem->colors[particleIndex].a = particleColor->a;
+    particle->particleIndex = particleIndex;
+    particle->rotationAngle = rotationAngle;
+    particle->rotation = *velocity;
+    particle->position = *position;
+    particle->textureTileIndex = 0;
+    particle->textureIndex = 0;
+    particle->active = 1;
+    return particle;
 }
 
-s16 fn_1_D63C(ANIMDATA *arg0, s16 arg1, float arg8, s16 arg2, s16 arg3)
+s16 CreateMapAnimation(ANIMDATA *animationData, s16 animationType, float animationSpeed, s16 horizontalTileCount, s16 verticalTileCount)
 {
-    float temp_f0;
-    M427DllMapStruct7 *var_r31;
-    s16 var_r30;
-    Vec2f *var_r29;
-    HU3DMODEL *var_r28;
-    GXColor *var_r27;
-    Vec *var_r25;
-    M427DllMapSubstruct6 *var_r24;
-    s16 var_r22;
-    void *var_r21;
-    s16 var_r20;
-    s16 var_r19;
-    void *var_r18;
+    float textureFormatScratch;
+    ParticleSystemRenderData *particleSystem;
+    s16 particleSlotIndex;
+    Vec2f *textureCoordinate;
+    HU3DMODEL *particleModel;
+    GXColor *particleColor;
+    Vec *particleVertex;
+    ParticleState *particle;
+    s16 horizontalTileCount;
+    void *displayListAllocation;
+    s16 particleHookModelId;
+    s16 verticalTileCount;
+    void *displayListWorkBuffer;
 
-    var_r20 = Hu3DHookFuncCreate(fn_1_DCD4);
-    var_r28 = &Hu3DData[var_r20];
-    var_r31 = HuMemDirectMallocNum(HEAP_MODEL, sizeof(M427DllMapStruct7), var_r28->mallocNo);
-    var_r28->hookData = var_r31;
-    arg0->useNum++;
-    var_r31->unk_10 = arg0;
-    var_r31->unk_00 = arg1;
-    var_r31->unk_08 = 0;
-    var_r31->unk_0C = 0;
-    var_r24 = HuMemDirectMallocNum(HEAP_MODEL, arg1 * sizeof(M427DllMapSubstruct6), var_r28->mallocNo);
-    var_r31->unk_18 = var_r24;
-    for (var_r30 = 0; var_r30 < arg1; var_r30++, var_r24++) {
-        var_r24->unk_60 = -1;
-        var_r24->unk_62 = 0;
+    particleHookModelId = Hu3DHookFuncCreate(RenderMapParticles);
+    particleModel = &Hu3DData[particleHookModelId];
+    particleSystem = HuMemDirectMallocNum(HEAP_MODEL, sizeof(ParticleSystemRenderData), particleModel->mallocNo);
+    particleModel->hookData = particleSystem;
+    animationData->useNum++;
+    particleSystem->animationData = animationData;
+    particleSystem->particleCount = animationType;
+    particleSystem->renderMode = 0;
+    particleSystem->particleHook = 0;
+    particle = HuMemDirectMallocNum(HEAP_MODEL, animationType * sizeof(ParticleState), particleModel->mallocNo);
+    particleSystem->particles = particle;
+    for (particleSlotIndex = 0; particleSlotIndex < animationType; particleSlotIndex++, particle++) {
+        particle->textureTileIndex = -1;
+        particle->active = 0;
     }
-    var_r25 = HuMemDirectMallocNum(HEAP_MODEL, arg1 * sizeof(Vec) * 4, var_r28->mallocNo);
-    var_r31->unk_1C = var_r25;
-    for (var_r30 = 0; var_r30 < (arg1 * 4); var_r30++, var_r25++) {
-        var_r25->x = var_r25->y = var_r25->z = 0.0f;
+    particleVertex = HuMemDirectMallocNum(HEAP_MODEL, animationType * sizeof(Vec) * 4, particleModel->mallocNo);
+    particleSystem->positions = particleVertex;
+    for (particleSlotIndex = 0; particleSlotIndex < (animationType * 4); particleSlotIndex++, particleVertex++) {
+        particleVertex->x = particleVertex->y = particleVertex->z = 0.0f;
     }
-    var_r27 = HuMemDirectMallocNum(HEAP_MODEL, arg1 * sizeof(GXColor), var_r28->mallocNo);
-    var_r31->unk_24 = var_r27;
-    for (var_r30 = 0; var_r30 < arg1; var_r30++, var_r27++) {
-        var_r27->r = var_r27->g = var_r27->b = var_r27->a = 0xFF;
+    particleColor = HuMemDirectMallocNum(HEAP_MODEL, animationType * sizeof(GXColor), particleModel->mallocNo);
+    particleSystem->colors = particleColor;
+    for (particleSlotIndex = 0; particleSlotIndex < animationType; particleSlotIndex++, particleColor++) {
+        particleColor->r = particleColor->g = particleColor->b = particleColor->a = 0xFF;
     }
-    var_r29 = HuMemDirectMallocNum(HEAP_MODEL, arg1 * sizeof(Vec2f) * 4, var_r28->mallocNo);
-    var_r31->unk_20 = var_r29;
-    for (var_r30 = 0; var_r30 < arg1; var_r30++) {
-        var_r29->x = 0.0f;
-        var_r29->y = 0.0f;
-        var_r29++;
-        var_r29->x = 1.0f;
-        var_r29->y = 0.0f;
-        var_r29++;
-        var_r29->x = 1.0f;
-        var_r29->y = 1.0f;
-        var_r29++;
-        var_r29->x = 0.0f;
-        var_r29->y = 1.0f;
-        var_r29++;
+    textureCoordinate = HuMemDirectMallocNum(HEAP_MODEL, animationType * sizeof(Vec2f) * 4, particleModel->mallocNo);
+    particleSystem->textureCoordinates = textureCoordinate;
+    for (particleSlotIndex = 0; particleSlotIndex < animationType; particleSlotIndex++) {
+        textureCoordinate->x = 0.0f;
+        textureCoordinate->y = 0.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 1.0f;
+        textureCoordinate->y = 0.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 1.0f;
+        textureCoordinate->y = 1.0f;
+        textureCoordinate++;
+        textureCoordinate->x = 0.0f;
+        textureCoordinate->y = 1.0f;
+        textureCoordinate++;
     }
-    if ((arg2 != 0) || (arg3 != 0)) {
-        var_r22 = arg0->bmp->sizeX / arg2;
-        var_r19 = arg0->bmp->sizeY / arg3;
-        var_r31->unk_14 = var_r22 * var_r19;
-        var_r31->unk_60 = 1.0f / var_r22;
-        var_r31->unk_64 = 1.0f / var_r19;
+    if ((horizontalTileCount != 0) || (verticalTileCount != 0)) {
+        horizontalTileCount = animationData->bmp->sizeX / horizontalTileCount;
+        verticalTileCount = animationData->bmp->sizeY / verticalTileCount;
+        particleSystem->textureTileCount = horizontalTileCount * verticalTileCount;
+        particleSystem->textureScaleX = 1.0f / horizontalTileCount;
+        particleSystem->textureScaleY = 1.0f / verticalTileCount;
     }
     else {
-        var_r22 = 1;
-        var_r31->unk_14 = 1;
-        var_r31->unk_60 = 1.0f;
-        var_r31->unk_64 = 1.0f;
+        horizontalTileCount = 1;
+        particleSystem->textureTileCount = 1;
+        particleSystem->textureScaleX = 1.0f;
+        particleSystem->textureScaleY = 1.0f;
     }
-    var_r31->unk_5C = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_14 * sizeof(Vec2f), var_r28->mallocNo);
-    fn_1_E2B0(var_r31->unk_5C, var_r31->unk_14, var_r22, var_r31->unk_60, var_r31->unk_64);
-    var_r31->unk_2C.x = var_r31->unk_50 = var_r31->unk_48 = var_r31->unk_54 = -arg8;
-    var_r31->unk_38 = var_r31->unk_44 = var_r31->unk_2C.y = var_r31->unk_3C = arg8;
-    var_r31->unk_2C.z = var_r31->unk_40 = var_r31->unk_4C = var_r31->unk_58 = 0.0f;
-    var_r21 = HuMemDirectMallocNum(HEAP_MODEL, 0x20000, var_r28->mallocNo);
-    var_r18 = var_r21;
-    DCFlushRange(var_r21, 0x20000);
-    GXBeginDisplayList(var_r18, 0x20000);
-    GXBegin(GX_QUADS, GX_VTXFMT0, arg1 * 4);
-    for (var_r30 = 0; var_r30 < arg1; var_r30++) {
-        GXPosition1x16(var_r30 * 4);
-        GXPosition1x16(var_r30);
-        GXPosition1x16(var_r30 * 4);
-        GXPosition1x16(var_r30 * 4 + 1);
-        GXPosition1x16(var_r30);
-        GXPosition1x16(var_r30 * 4 + 1);
-        GXPosition1x16(var_r30 * 4 + 2);
-        GXPosition1x16(var_r30);
-        GXPosition1x16(var_r30 * 4 + 2);
-        GXPosition1x16(var_r30 * 4 + 3);
-        GXPosition1x16(var_r30);
-        GXPosition1x16(var_r30 * 4 + 3);
+    particleSystem->textureTiles = HuMemDirectMallocNum(HEAP_MODEL, particleSystem->textureTileCount * sizeof(Vec2f), particleModel->mallocNo);
+    SetTextureScrollOffset(particleSystem->textureTiles, particleSystem->textureTileCount, horizontalTileCount, particleSystem->textureScaleX, particleSystem->textureScaleY);
+    particleSystem->baseRotation.x = particleSystem->bottomRightY = particleSystem->topLeftY = particleSystem->bottomLeftY = -animationSpeed;
+    particleSystem->topLeftX = particleSystem->bottomLeftX = particleSystem->baseRotation.y = particleSystem->topRightX = animationSpeed;
+    particleSystem->baseRotation.z = particleSystem->bottomRightX = particleSystem->topRightY = particleSystem->particleScale = 0.0f;
+    displayListAllocation = HuMemDirectMallocNum(HEAP_MODEL, 0x20000, particleModel->mallocNo);
+    displayListWorkBuffer = displayListAllocation;
+    DCFlushRange(displayListAllocation, 0x20000);
+    GXBeginDisplayList(displayListWorkBuffer, 0x20000);
+    GXBegin(GX_QUADS, GX_VTXFMT0, animationType * 4);
+    for (particleSlotIndex = 0; particleSlotIndex < animationType; particleSlotIndex++) {
+        GXPosition1x16(particleSlotIndex * 4);
+        GXPosition1x16(particleSlotIndex);
+        GXPosition1x16(particleSlotIndex * 4);
+        GXPosition1x16(particleSlotIndex * 4 + 1);
+        GXPosition1x16(particleSlotIndex);
+        GXPosition1x16(particleSlotIndex * 4 + 1);
+        GXPosition1x16(particleSlotIndex * 4 + 2);
+        GXPosition1x16(particleSlotIndex);
+        GXPosition1x16(particleSlotIndex * 4 + 2);
+        GXPosition1x16(particleSlotIndex * 4 + 3);
+        GXPosition1x16(particleSlotIndex);
+        GXPosition1x16(particleSlotIndex * 4 + 3);
     }
-    var_r31->unk_04 = GXEndDisplayList();
-    var_r31->unk_28 = HuMemDirectMallocNum(HEAP_MODEL, var_r31->unk_04, var_r28->mallocNo);
-    memcpy(var_r31->unk_28, var_r21, var_r31->unk_04);
-    DCFlushRange(var_r31->unk_28, var_r31->unk_04);
-    HuMemDirectFree(var_r21);
-    return var_r20;
+    particleSystem->displayListSize = GXEndDisplayList();
+    particleSystem->displayList = HuMemDirectMallocNum(HEAP_MODEL, particleSystem->displayListSize, particleModel->mallocNo);
+    memcpy(particleSystem->displayList, displayListAllocation, particleSystem->displayListSize);
+    DCFlushRange(particleSystem->displayList, particleSystem->displayListSize);
+    HuMemDirectFree(displayListAllocation);
+    return particleHookModelId;
 }
 
-void fn_1_DB80(s16 arg0)
+void DestroyMapAnimation(s16 animationId)
 {
-    HU3DMODEL *var_r31;
-    M427DllMapStruct7 *var_r30;
+    HU3DMODEL *particleModel;
+    ParticleSystemRenderData *particleSystem;
 
-    var_r31 = &Hu3DData[arg0];
-    var_r30 = var_r31->hookData;
-    HuSprAnimKill(var_r30->unk_10);
-    Hu3DModelKill(arg0);
+    particleModel = &Hu3DData[animationId];
+    particleSystem = particleModel->hookData;
+    HuSprAnimKill(particleSystem->animationData);
+    Hu3DModelKill(animationId);
 }
 
-void *fn_1_DBE0(s16 arg0)
+void *GetMapAnimationData(s16 animationId)
 {
-    HU3DMODEL *var_r31;
+    HU3DMODEL *particleModel;
 
-    var_r31 = &Hu3DData[arg0];
-    return var_r31->hookData;
+    particleModel = &Hu3DData[animationId];
+    return particleModel->hookData;
 }
 
-M427DllMapSubstruct6 *fn_1_DC0C(s16 arg0, s16 arg1)
+ParticleState *FindMapParticle(s16 animationId, s16 particleIndex)
 {
-    HU3DMODEL *var_r31;
-    M427DllMapStruct7 *var_r30;
+    HU3DMODEL *particleModel;
+    ParticleSystemRenderData *particleSystem;
 
-    var_r31 = &Hu3DData[arg0];
-    var_r30 = var_r31->hookData;
-    if (arg1 == -1) {
+    particleModel = &Hu3DData[animationId];
+    particleSystem = particleModel->hookData;
+    if (particleIndex == -1) {
         return NULL;
     }
-    return &var_r30->unk_18[arg1];
+    return &particleSystem->particles[particleIndex];
 }
 
-void fn_1_DC64(s16 arg0, M427DllHook arg1)
+void SetParticleRenderCallback(s16 animationId, ParticleRenderCallback renderCallback)
 {
-    HU3DMODEL *var_r31;
-    M427DllMapStruct7 *var_r30;
+    HU3DMODEL *particleModel;
+    ParticleSystemRenderData *particleSystem;
 
-    var_r31 = &Hu3DData[arg0];
-    var_r30 = var_r31->hookData;
-    var_r30->unk_0C = arg1;
+    particleModel = &Hu3DData[animationId];
+    particleSystem = particleModel->hookData;
+    particleSystem->particleHook = renderCallback;
 }
 
-void fn_1_DC9C(s16 arg0, u8 arg1)
+void SetParticleRenderMode(s16 animationId, u8 renderMode)
 {
-    HU3DMODEL *var_r31;
-    M427DllMapStruct7 *var_r30;
+    HU3DMODEL *particleModel;
+    ParticleSystemRenderData *particleSystem;
 
-    var_r31 = &Hu3DData[arg0];
-    var_r30 = var_r31->hookData;
-    var_r30->unk_08 = arg1;
+    particleModel = &Hu3DData[animationId];
+    particleSystem = particleModel->hookData;
+    particleSystem->renderMode = renderMode;
 }
 
-void fn_1_DCD4(HU3DMODEL *model, Mtx matrix)
+void RenderMapParticles(HU3DMODEL *model, Mtx matrix)
 {
-    Mtx sp128;
-    ROMtx spF8;
-    Mtx spC8;
-    Mtx sp98;
-    Vec sp68[4];
-    Vec sp38[4];
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    Vec *var_r31;
-    M427DllMapStruct7 *var_r30;
-    M427DllMapSubstruct6 *var_r29;
-    Vec2f *var_r26;
-    s16 var_r25;
-    s16 var_r24;
-    M427DllHook var_r23;
+    Mtx modelTransform;
+    ROMtx reorderedModelTransform;
+    Mtx particleRotationMatrix;
+    Mtx particleTransform;
+    Vec unrotatedQuadCorners[4];
+    Vec rotatedQuadCorners[4];
+    Vec bottomLeftPosition;
+    Vec bottomRightPosition;
+    Vec topRightPosition;
+    Vec topLeftPosition;
+    Vec *particleVertex;
+    ParticleSystemRenderData *particleSystem;
+    ParticleState *particle;
+    Vec2f *textureCoordinate;
+    s16 particleIndex;
+    s16 bitmapFormat;
+    ParticleRenderCallback particleUpdateHook;
 
-    var_r30 = model->hookData;
+    particleSystem = model->hookData;
     GXLoadPosMtxImm(matrix, 0);
     GXSetNumTevStages(1);
     GXSetNumTexGens(1);
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, 0x3C, GX_FALSE, 0x7D);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-    var_r24 = var_r30->unk_10->bmp->dataFmt & 0xF;
-    if ((var_r24 == 7) || (var_r24 == 8)) {
+    bitmapFormat = particleSystem->animationData->bmp->dataFmt & 0xF;
+    if ((bitmapFormat == 7) || (bitmapFormat == 8)) {
         GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXA, GX_CC_RASC, GX_CC_ZERO);
     }
     else {
@@ -2992,10 +2992,10 @@ void fn_1_DCD4(HU3DMODEL *model, Mtx matrix)
     else {
         GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     }
-    HuSprTexLoad(var_r30->unk_10, 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+    HuSprTexLoad(particleSystem->animationData, 0, 0, GX_REPEAT, GX_REPEAT, GX_LINEAR);
     GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
     GXSetZCompLoc(0);
-    switch (var_r30->unk_08) {
+    switch (particleSystem->renderMode) {
         case 0:
             GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
             break;
@@ -3009,149 +3009,149 @@ void fn_1_DCD4(HU3DMODEL *model, Mtx matrix)
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetArray(GX_VA_POS, var_r30->unk_1C, 0xC);
+    GXSetArray(GX_VA_POS, particleSystem->positions, 0xC);
     GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetArray(GX_VA_CLR0, var_r30->unk_24, 4);
+    GXSetArray(GX_VA_CLR0, particleSystem->colors, 4);
     GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetArray(GX_VA_TEX0, var_r30->unk_20, 8);
-    sp128[0][0] = matrix[0][0];
-    sp128[1][0] = matrix[0][1];
-    sp128[2][0] = matrix[0][2];
-    sp128[0][1] = matrix[1][0];
-    sp128[1][1] = matrix[1][1];
-    sp128[2][1] = matrix[1][2];
-    sp128[0][2] = matrix[2][0];
-    sp128[1][2] = matrix[2][1];
-    sp128[2][2] = matrix[2][2];
-    sp128[0][3] = 0.0f;
-    sp128[1][3] = 0.0f;
-    sp128[2][3] = 0.0f;
-    PSMTXReorder(sp128, spF8);
-    if ((omPauseChk() == 0) && (var_r30->unk_0C)) {
-        var_r23 = var_r30->unk_0C;
-        var_r23(model, var_r30, matrix);
+    GXSetArray(GX_VA_TEX0, particleSystem->textureCoordinates, 8);
+    modelTransform[0][0] = matrix[0][0];
+    modelTransform[1][0] = matrix[0][1];
+    modelTransform[2][0] = matrix[0][2];
+    modelTransform[0][1] = matrix[1][0];
+    modelTransform[1][1] = matrix[1][1];
+    modelTransform[2][1] = matrix[1][2];
+    modelTransform[0][2] = matrix[2][0];
+    modelTransform[1][2] = matrix[2][1];
+    modelTransform[2][2] = matrix[2][2];
+    modelTransform[0][3] = 0.0f;
+    modelTransform[1][3] = 0.0f;
+    modelTransform[2][3] = 0.0f;
+    PSMTXReorder(modelTransform, reorderedModelTransform);
+    if ((omPauseChk() == 0) && (particleSystem->particleHook)) {
+        particleUpdateHook = particleSystem->particleHook;
+        particleUpdateHook(model, particleSystem, matrix);
     }
-    var_r29 = var_r30->unk_18;
-    var_r31 = var_r30->unk_1C;
-    var_r26 = var_r30->unk_20;
-    PSMTXROMultVecArray(spF8, &var_r30->unk_2C, sp68, 4);
-    for (var_r25 = 0; var_r25 < var_r30->unk_00; var_r25++, var_r29++, var_r26 += 4) {
-        if (var_r29->unk_62 == 0) {
-            var_r31->x = var_r31->y = var_r31->z = 0.0f;
-            var_r31++;
-            var_r31->x = var_r31->y = var_r31->z = 0.0f;
-            var_r31++;
-            var_r31->x = var_r31->y = var_r31->z = 0.0f;
-            var_r31++;
-            var_r31->x = var_r31->y = var_r31->z = 0.0f;
-            var_r31++;
+    particle = particleSystem->particles;
+    particleVertex = particleSystem->positions;
+    textureCoordinate = particleSystem->textureCoordinates;
+    PSMTXROMultVecArray(reorderedModelTransform, &particleSystem->baseRotation, unrotatedQuadCorners, 4);
+    for (particleIndex = 0; particleIndex < particleSystem->particleCount; particleIndex++, particle++, textureCoordinate += 4) {
+        if (particle->active == 0) {
+            particleVertex->x = particleVertex->y = particleVertex->z = 0.0f;
+            particleVertex++;
+            particleVertex->x = particleVertex->y = particleVertex->z = 0.0f;
+            particleVertex++;
+            particleVertex->x = particleVertex->y = particleVertex->z = 0.0f;
+            particleVertex++;
+            particleVertex->x = particleVertex->y = particleVertex->z = 0.0f;
+            particleVertex++;
         }
         else {
-            if (var_r29->unk_44 == 0.0f) {
-                fn_1_E420(sp68, sp38, &var_r29->unk_48, 4);
-                VECAdd(&sp38[0], &var_r29->unk_54, var_r31++);
-                VECAdd(&sp38[1], &var_r29->unk_54, var_r31++);
-                VECAdd(&sp38[2], &var_r29->unk_54, var_r31++);
-                VECAdd(&sp38[3], &var_r29->unk_54, var_r31++);
+            if (particle->rotationAngle == 0.0f) {
+                CalculateEffectDirection(unrotatedQuadCorners, rotatedQuadCorners, &particle->rotation, 4);
+                VECAdd(&rotatedQuadCorners[0], &particle->position, particleVertex++);
+                VECAdd(&rotatedQuadCorners[1], &particle->position, particleVertex++);
+                VECAdd(&rotatedQuadCorners[2], &particle->position, particleVertex++);
+                VECAdd(&rotatedQuadCorners[3], &particle->position, particleVertex++);
             }
             else {
-                fn_1_E420(&var_r30->unk_2C, sp38, &var_r29->unk_48, 4);
-                MTXRotRad(spC8, 0x5A, MTXDegToRad(var_r29->unk_44));
-                MTXConcat(sp128, spC8, sp98);
-                MTXMultVecArray(sp98, sp38, &sp8, 4);
-                VECAdd(&sp8, &var_r29->unk_54, var_r31++);
-                VECAdd(&sp14, &var_r29->unk_54, var_r31++);
-                VECAdd(&sp20, &var_r29->unk_54, var_r31++);
-                VECAdd(&sp2C, &var_r29->unk_54, var_r31++);
+                CalculateEffectDirection(&particleSystem->baseRotation, rotatedQuadCorners, &particle->rotation, 4);
+                MTXRotRad(particleRotationMatrix, 0x5A, MTXDegToRad(particle->rotationAngle));
+                MTXConcat(modelTransform, particleRotationMatrix, particleTransform);
+                MTXMultVecArray(particleTransform, rotatedQuadCorners, &topLeftPosition, 4);
+                VECAdd(&topLeftPosition, &particle->position, particleVertex++);
+                VECAdd(&topRightPosition, &particle->position, particleVertex++);
+                VECAdd(&bottomRightPosition, &particle->position, particleVertex++);
+                VECAdd(&bottomLeftPosition, &particle->position, particleVertex++);
             }
-            if (var_r29->unk_60 != -1) {
-                fn_1_E37C(var_r26, var_r30->unk_5C, var_r29->unk_60, var_r30->unk_60, var_r30->unk_64);
+            if (particle->textureTileIndex != -1) {
+                InterpolateTextureScroll(textureCoordinate, particleSystem->textureTiles, particle->textureTileIndex, particleSystem->textureScaleX, particleSystem->textureScaleY);
             }
         }
     }
-    DCFlushRangeNoSync(var_r30->unk_1C, var_r30->unk_00 * sizeof(Vec) * 4);
-    DCFlushRangeNoSync(var_r30->unk_20, var_r30->unk_00 * sizeof(Vec2f) * 4);
+    DCFlushRangeNoSync(particleSystem->positions, particleSystem->particleCount * sizeof(Vec) * 4);
+    DCFlushRangeNoSync(particleSystem->textureCoordinates, particleSystem->particleCount * sizeof(Vec2f) * 4);
     PPCSync();
-    GXCallDisplayList(var_r30->unk_28, var_r30->unk_04);
+    GXCallDisplayList(particleSystem->displayList, particleSystem->displayListSize);
 }
 
-void fn_1_E2B0(Vec2f *arg0, s16 arg1, s16 arg2, float arg8, float arg9)
+void SetTextureScrollOffset(Vec2f *textureOffset, s16 textureTileX, s16 textureTileY, float scrollX, float scrollY)
 {
-    s16 var_r31;
-    s16 var_r30;
-    s16 var_r29;
+    s16 tileIndex;
+    s16 tileColumn;
+    s16 tileRow;
 
-    for (var_r31 = 0; var_r31 < arg1; var_r31++, arg0++) {
-        var_r30 = var_r31 % arg2;
-        var_r29 = var_r31 / arg2;
-        arg0->x = var_r30 * arg8;
-        arg0->y = var_r29 * arg9;
+    for (tileIndex = 0; tileIndex < textureTileX; tileIndex++, textureOffset++) {
+        tileColumn = tileIndex % textureTileY;
+        tileRow = tileIndex / textureTileY;
+        textureOffset->x = tileColumn * scrollX;
+        textureOffset->y = tileRow * scrollY;
     }
 }
 
-void fn_1_E37C(Vec2f *arg0, Vec2f *arg1, s16 arg2, float arg8, float arg9)
+void InterpolateTextureScroll(Vec2f *sourceOffset, Vec2f *targetOffset, s16 interpolationFrames, float scrollX, float scrollY)
 {
-    arg0[0].x = arg1[arg2].x;
-    arg0[0].y = arg1[arg2].y;
-    arg0[1].x = arg8 + arg1[arg2].x;
-    arg0[1].y = arg1[arg2].y;
-    arg0[2].x = arg8 + arg1[arg2].x;
-    arg0[2].y = arg9 + arg1[arg2].y;
-    arg0[3].x = arg1[arg2].x;
-    arg0[3].y = arg9 + arg1[arg2].y;
+    sourceOffset[0].x = targetOffset[interpolationFrames].x;
+    sourceOffset[0].y = targetOffset[interpolationFrames].y;
+    sourceOffset[1].x = scrollX + targetOffset[interpolationFrames].x;
+    sourceOffset[1].y = targetOffset[interpolationFrames].y;
+    sourceOffset[2].x = scrollX + targetOffset[interpolationFrames].x;
+    sourceOffset[2].y = scrollY + targetOffset[interpolationFrames].y;
+    sourceOffset[3].x = targetOffset[interpolationFrames].x;
+    sourceOffset[3].y = scrollY + targetOffset[interpolationFrames].y;
 }
 
-void fn_1_E420(Vec *arg0, Vec *arg1, Vec *arg2, s16 arg3)
+void CalculateEffectDirection(Vec *sourcePosition, Vec *targetPosition, Vec *direction, s16 teamIndex)
 {
-    s16 var_r31;
+    s16 cornerIndex;
 
-    for (var_r31 = 0; var_r31 < arg3; var_r31++, arg0++, arg1++) {
-        arg1->x = arg0->x * arg2->x;
-        arg1->y = arg0->y * arg2->y;
-        arg1->z = arg0->z * arg2->z;
+    for (cornerIndex = 0; cornerIndex < teamIndex; cornerIndex++, sourcePosition++, targetPosition++) {
+        targetPosition->x = sourcePosition->x * direction->x;
+        targetPosition->y = sourcePosition->y * direction->y;
+        targetPosition->z = sourcePosition->z * direction->z;
     }
 }
 
-void fn_1_E488(void)
+void InitializeMapEffectResources(void)
 {
     if ((HuPadBtnDown[0] & PAD_TRIGGER_L) != 0) {
-        lbl_1_bss_91 ^= 1;
+        mapEffectState ^= 1;
     }
-    if (lbl_1_bss_91 != 0) {
+    if (mapEffectState != 0) {
         if ((HuPadBtnDown[0] & PAD_TRIGGER_Z) != 0) {
-            lbl_1_bss_90 = lbl_1_bss_90 ^ 1;
+            mapRenderState = mapRenderState ^ 1;
         }
         if ((HuPadBtn[0] & PAD_BUTTON_LEFT) != 0) {
-            CRotM[lbl_1_bss_90].y += 1.0f;
+            CRotM[mapRenderState].y += 1.0f;
         }
         if ((HuPadBtn[0] & PAD_BUTTON_RIGHT) != 0) {
-            CRotM[lbl_1_bss_90].y -= 1.0f;
+            CRotM[mapRenderState].y -= 1.0f;
         }
         if ((HuPadBtn[0] & PAD_BUTTON_UP) != 0) {
-            CRotM[lbl_1_bss_90].x -= 1.0f;
+            CRotM[mapRenderState].x -= 1.0f;
         }
         if ((HuPadBtn[0] & PAD_BUTTON_DOWN) != 0) {
-            CRotM[lbl_1_bss_90].x += 1.0f;
+            CRotM[mapRenderState].x += 1.0f;
         }
-        CenterM[lbl_1_bss_90].x += HuPadSubStkX[0];
+        CenterM[mapRenderState].x += HuPadSubStkX[0];
         if ((HuPadBtn[0] & PAD_TRIGGER_R) != 0) {
-            CenterM[lbl_1_bss_90].y += HuPadSubStkY[0];
+            CenterM[mapRenderState].y += HuPadSubStkY[0];
         }
         else {
-            CenterM[lbl_1_bss_90].z += HuPadSubStkY[0];
+            CenterM[mapRenderState].z += HuPadSubStkY[0];
         }
         if ((HuPadBtn[0] & PAD_BUTTON_X) != 0) {
-            CZoomM[lbl_1_bss_90] += 10.0f;
+            CZoomM[mapRenderState] += 10.0f;
         }
         if ((HuPadBtn[0] & PAD_BUTTON_Y) != 0) {
-            CZoomM[lbl_1_bss_90] -= 10.0f;
+            CZoomM[mapRenderState] -= 10.0f;
         }
         if ((HuPadBtnDown[0] & PAD_BUTTON_A) != 0) {
-            OSReport("\nCZoom = %.2f \n", CZoomM[lbl_1_bss_90]);
-            OSReport("Center x = %.2f: y = %.2f: z = %.2f \n", CenterM[lbl_1_bss_90].x, CenterM[lbl_1_bss_90].y, CenterM[lbl_1_bss_90].z);
-            OSReport("CRot x = %.2f: y = %.2f: z = %.2f \n", CRotM[lbl_1_bss_90].x, CRotM[lbl_1_bss_90].y, CRotM[lbl_1_bss_90].z);
+            OSReport("\nCZoom = %.2f \n", CZoomM[mapRenderState]);
+            OSReport("Center x = %.2f: y = %.2f: z = %.2f \n", CenterM[mapRenderState].x, CenterM[mapRenderState].y, CenterM[mapRenderState].z);
+            OSReport("CRot x = %.2f: y = %.2f: z = %.2f \n", CRotM[mapRenderState].x, CRotM[mapRenderState].y, CRotM[mapRenderState].z);
         }
     }
 }
