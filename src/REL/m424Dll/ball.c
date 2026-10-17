@@ -14,1791 +14,1791 @@
 #include "version.h"
 
 // STRUCT
-typedef struct _M424DllBallStruct {
-    u8 unk0;
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
-    u8 unk4;
-    u8 unk5;
-    u8 unk6;
-    u8 unk7;
-    u8 unk8;
-    u8 unk9;
-    u8 unkA;
-    char unkB[0x1];
-    u8 unkC;
-    u8 unkD;
-    u8 unkE;
-    s16 unk10;
-    s16 unk12;
-    s16 unk14;
-    s16 unk16;
-    s16 unk18;
-    s16 unk1A;
-    f32 unk1C;
-    f32 unk20;
-    f32 unk24;
-    f32 unk28;
-    f32 unk2C;
-    f32 unk30;
-    Vec unk34;
-    Vec unk40;
-    Vec unk4C;
-    Vec unk58;
-    void *unk64; // sizeof 0x40
-    char unk68[0x3C];
-    u8 unkA4;
-    void *unkA8; // sizeof 0x40
-    char unkAC[0x3C];
-    s32 unkE8;
-    s32 unkEC;
-} M424DllBallStruct; // sizeof 0xF0
+typedef struct M424CharacterBallState {
+    u8 playerIndex;
+    u8 characterId;
+    u8 ballType;
+    u8 state;
+    u8 controllerPort;
+    u8 movementState;
+    u8 effectState;
+    u8 collisionFlags;
+    u8 actionState;
+    u8 actionTimer;
+    u8 isActive;
+    char reservedPadding0B[0x1];
+    u8 isGrounded;
+    u8 bounceState;
+    u8 ballFlags;
+    s16 modelId;
+    s16 shadowModelId;
+    s16 pressedButtons;
+    s16 animationId;
+    s16 actionId;
+    s16 effectId;
+    f32 scale;
+    f32 movementSpeed;
+    f32 targetHeading;
+    f32 motionFrame;
+    f32 motionDuration;
+    f32 targetScale;
+    Vec worldPosition;
+    Vec rotation;
+    Vec motionState;
+    Vec frameTimer;
+    void *animationTimer; // sizeof 0x40
+    char reservedPadding68[0x3C];
+    u8 ballModel;
+    void *animationStateData; // sizeof 0x40
+    char reservedPaddingAC[0x3C];
+    s32 transitionTimer;
+    s32 transitionState;
+} M424CharacterBallState; // sizeof 0xF0
 
-typedef struct _M424DllBallStruct3 {
-    u8 unk0;
-    M424DllBallStruct2 *unk4;
-    M424DllBallStruct2 *unk8;
-} M424DllBallStruct3;
+typedef struct M424BallObjectState {
+    u8 collisionType;
+    M424BallPhysicsState *firstBall;
+    M424BallPhysicsState *secondBall;
+} M424BallObjectState;
 
-typedef struct _M424BallStruct4 {
-    f32 unk0;
-    f32 unk4;
-    f32 unk8;
-    char unkC[0x8];
-    f32 unk14;
-    f32 unk18;
-    char unk1C[0x8];
-    f32 unk24;
-    f32 unk28;
-} M424BallStruct4;
+typedef struct M424BallCollisionState {
+    f32 positionX;
+    f32 positionY;
+    f32 positionZ;
+    char ballOwner[0x8];
+    f32 targetPosition;
+    f32 targetRotation;
+    char reservedPadding1C[0x8];
+    f32 targetScale;
+    f32 motionFrame;
+} M424BallCollisionState;
 
 // BSS
-void *lbl_1_bss_5BC[0x20];
-OMOBJ *lbl_1_bss_5AC[4];
-OMOBJ *lbl_1_bss_594[6];
-M424DllBallStruct2 lbl_1_bss_60[9];
-s32 lbl_1_bss_5C;
-u8 lbl_1_bss_58;
+void *ballAllocationSlots[0x20];
+OMOBJ *playerBallObjects[4];
+OMOBJ *ambientBallObjects[6];
+M424BallPhysicsState ballPhysicsStates[9];
+s32 unusedBallCounter;
+u8 ballCount;
 
 // PROTO
-f32 fn_1_25C0(void);
-void fn_1_28A0(OMOBJ *object);
-void fn_1_2E3C(OMOBJ *object);
-void fn_1_31C0(OMOBJ *object);
-void fn_1_37FC(OMOBJ *object);
-void fn_1_4220(OMOBJ *object);
-void fn_1_469C(OMOBJ *object);
-u8 fn_1_48D0(OMOBJ *object, u8, u8);
-void fn_1_4A90(s16);
-void fn_1_6038(void);
-void *fn_1_6078(s32);
-void fn_1_61AC(void);
-s32 fn_1_627C(void);
-void fn_1_6230(s16, Mtx);
-void fn_1_62D0(s32, u32 *);
-f32 fn_1_640C(f32, f32, f32);
-f32 fn_1_6D10(Vec, Vec, f32, Vec, Vec, f32);
-f32 fn_1_709C(Vec, Vec, f32, f32);
-f32 fn_1_7420(Vec, Vec, f32, f32);
-void fn_1_77C4(Vec, Vec, Vec, f32, Vec *, Vec *);
-void fn_1_79FC(Vec *, Vec *, f32, Vec *, Vec *, f32, f32);
-void fn_1_7CA0(Vec, Vec, f32, Vec *);
-void fn_1_8924(u8, u8);
-void fn_1_8AA8(s32, s32);
-s32 fn_1_8C78(s32, s32);
-s32 fn_1_907C(Vec *, Vec *);
+f32 MapCameraAnimationOffsetGet(void);
+void PlayerBallInit(OMOBJ *object);
+void PlayerBallUpdate(OMOBJ *object);
+void PlayerBallActionUpdate(OMOBJ *object);
+void PlayerBallMotionUpdate(OMOBJ *object);
+void CpuBallInit(OMOBJ *object);
+void CpuBallUpdate(OMOBJ *object);
+u8 BallModelCreate(OMOBJ *object, u8, u8);
+void BallPhysicsUpdate(s16);
+void BallObjectsSetup(void);
+void *BallStateAlloc(s32);
+void BallObjectsDestroy(void);
+s32 RandomU16Get(void);
+void ModelMatrixApply(s16, Mtx);
+void RandomIndicesShuffle(s32, u32 *);
+f32 AngleApproachDegrees(f32, f32, f32);
+f32 SphereCollisionTime3d(Vec, Vec, f32, Vec, Vec, f32);
+f32 SphereCollisionTimeXz(Vec, Vec, f32, f32);
+f32 SphereBoundaryTimeXz(Vec, Vec, f32, f32);
+void VelocitySplitByCollision(Vec, Vec, Vec, f32, Vec *, Vec *);
+void SpheresResolveCollision(Vec *, Vec *, f32, Vec *, Vec *, f32, f32);
+void VectorReflect(Vec, Vec, f32, Vec *);
+void BallStateSet(u8, u8);
+void BallOrderAdjust(s32, s32);
+s32 BallCollisionResolve(s32, s32);
+s32 BallPositionClamp(Vec *, Vec *);
 
-void fn_1_2720(HUPROCESS *arg0)
+void M424BallObjectsCreate(HUPROCESS *processManager)
 {
-    u32 sp8[10];
-    OMOBJ *var_r30;
-    s32 temp_r28;
-    s32 var_r29;
-    s32 var_r31;
+    u32 ballOrder[10];
+    OMOBJ *ballObject;
+    s32 randomOffsetCount;
+    s32 ballOrderIndex;
+    s32 playerIndex;
 
-    temp_r28 = frand() & 0x1F;
-    for (var_r31 = 0; var_r31 < temp_r28; var_r31++) {
-        fn_1_627C();
+    randomOffsetCount = frand() & 0x1F;
+    for (playerIndex = 0; playerIndex < randomOffsetCount; playerIndex++) {
+        RandomU16Get();
     }
-    fn_1_62D0(8, sp8);
-    sp8[8] = 8;
+    RandomIndicesShuffle(8, ballOrder);
+    ballOrder[8] = 8;
 
-    for (var_r31 = 0, var_r29 = 0; var_r31 < 4; var_r31++) {
-        if (GWPlayerCfg[var_r31].group != 0) {
-            var_r30 = omAddObjEx(arg0, 0x3E, 3, 11, 0, fn_1_28A0);
-            lbl_1_bss_5AC[var_r29] = var_r30;
-            var_r30->work[0] = var_r31;
-            var_r30->work[1] = sp8[var_r29];
-            var_r29++;
+    for (playerIndex = 0, ballOrderIndex = 0; playerIndex < 4; playerIndex++) {
+        if (GWPlayerCfg[playerIndex].group != 0) {
+            ballObject = omAddObjEx(processManager, 0x3E, 3, 11, 0, PlayerBallInit);
+            playerBallObjects[ballOrderIndex] = ballObject;
+            ballObject->work[0] = playerIndex;
+            ballObject->work[1] = ballOrder[ballOrderIndex];
+            ballOrderIndex++;
         }
     }
 
-    for (var_r31 = 0; var_r31 < 6; var_r29++, var_r31++) {
-        var_r30 = omAddObjEx(arg0, 0x3F, 2, 5, 0, fn_1_4220);
-        lbl_1_bss_594[var_r31] = var_r30;
-        var_r30->work[0] = var_r31;
-        var_r30->work[1] = sp8[var_r29];
+    for (playerIndex = 0; playerIndex < 6; ballOrderIndex++, playerIndex++) {
+        ballObject = omAddObjEx(processManager, 0x3F, 2, 5, 0, CpuBallInit);
+        ambientBallObjects[playerIndex] = ballObject;
+        ballObject->work[0] = playerIndex;
+        ballObject->work[1] = ballOrder[ballOrderIndex];
     }
-    Hu3DLayerHookSet(7, fn_1_4A90);
-    fn_1_6038();
+    Hu3DLayerHookSet(7, BallPhysicsUpdate);
+    BallObjectsSetup();
 }
 
-void fn_1_2880(void)
+void M424BallObjectsDestroy(void)
 {
-    fn_1_61AC();
+    BallObjectsDestroy();
 }
 
-u32 lbl_1_data_150[11] = { 0, 2, 3, 8, 10, 9, 20, 22, 23, 24, 0x370021 };
-Vec lbl_1_data_17C[4] = { { -100.0f, 200.0f, -100.0f }, { 300.0f, 200.0f, -100.0f }, { -300.0f, 200.0f, 300.0f }, { 300.0f, 200.0f, 0.0f } };
+u32 ballMotionIds[11] = { 0, 2, 3, 8, 10, 9, 20, 22, 23, 24, 0x370021 };
+Vec ballSpawnPositions[4] = { { -100.0f, 200.0f, -100.0f }, { 300.0f, 200.0f, -100.0f }, { -300.0f, 200.0f, 300.0f }, { 300.0f, 200.0f, 0.0f } };
 
-void fn_1_28A0(OMOBJ *object)
+void PlayerBallInit(OMOBJ *object)
 {
-    Vec sp8;
-    f32 temp_f31;
-    f32 temp_f30;
-    M424DllBallStruct *var_r31;
-    s32 var_r29;
-    s32 temp_r28;
-    s32 var_r27;
+    Vec spawnPosition;
+    f32 spawnAngle;
+    f32 spawnRadius;
+    M424CharacterBallState *ballState;
+    s32 motionIndex;
+    s32 spawnIndex;
+    s32 characterModelId;
 
-    object->data = var_r31 = fn_1_6078(0xF0);
-    memset(var_r31, 0, 0xF0);
-    var_r31->unk0 = object->work[0];
-    var_r31->unk1 = GWPlayerCfg[var_r31->unk0].character;
-    var_r31->unk2 = GWPlayerCfg[var_r31->unk0].group;
-    var_r31->unk3 = 0;
-    var_r31->unk4 = GWPlayerCfg[var_r31->unk0].pad_idx;
-    var_r31->unk5 = GWPlayerCfg[var_r31->unk0].iscom;
-    var_r31->unk6 = GWPlayerCfg[var_r31->unk0].diff;
-    var_r31->unk18 = var_r31->unk1A = 0;
-    var_r31->unk30 = 1.0f;
-    var_r31->unk7 = 1;
-    var_r31->unkC = 1;
-    var_r31->unkD = 0;
-    var_r31->unkA = 0;
-    var_r31->unkA4 = 0;
-    var_r31->unkE = 0;
-    memset(&var_r31->unk64, 0, 0x40);
-    var_r31->unkE8 = 0;
-    var_r31->unkEC = -1;
-    temp_r28 = object->work[1];
-    temp_f31 = 40.0f;
-    temp_f31 = (temp_f31 * temp_r28) + (temp_f31 * (fn_1_627C() / 65536.0f)) + 105.0f;
-    temp_f30 = 125.0f;
-    temp_f30 = (temp_f30 * (temp_r28 & 1)) + (100.0f + (250.0f + (temp_f30 * (fn_1_627C() / 65536.0f))));
-    sp8.x = temp_f30 * sind(temp_f31);
-    sp8.y = 200.0f;
-    sp8.z = temp_f30 * cosd(temp_f31);
-    var_r31->unk34 = sp8;
-    var_r31->unk4C.x = var_r31->unk4C.y = var_r31->unk4C.z = 0.0f;
-    var_r31->unk40.x = var_r31->unk40.y = var_r31->unk40.z = 0.0f;
-    var_r31->unk1C = 0.8f;
-    var_r31->unk24 = var_r31->unk40.y;
-    var_r31->unk2C = 1.0f;
-    var_r31->unk28 = 0.0f;
-    var_r31->unk20 = 0.0f;
-    memset(&var_r31->unkA8, 0, 0x40);
-    object->mdlId[0] = var_r27 = CharModelCreate(var_r31->unk1, 8);
-    Hu3DModelAttrSet(var_r27, 0x40000001);
-    CharModelStepFxSet(var_r31->unk1, 1);
+    object->data = ballState = BallStateAlloc(0xF0);
+    memset(ballState, 0, 0xF0);
+    ballState->playerIndex = object->work[0];
+    ballState->characterId = GWPlayerCfg[ballState->playerIndex].character;
+    ballState->ballType = GWPlayerCfg[ballState->playerIndex].group;
+    ballState->state = 0;
+    ballState->controllerPort = GWPlayerCfg[ballState->playerIndex].pad_idx;
+    ballState->movementState = GWPlayerCfg[ballState->playerIndex].iscom;
+    ballState->effectState = GWPlayerCfg[ballState->playerIndex].diff;
+    ballState->actionId = ballState->effectId = 0;
+    ballState->targetScale = 1.0f;
+    ballState->collisionFlags = 1;
+    ballState->isGrounded = 1;
+    ballState->bounceState = 0;
+    ballState->isActive = 0;
+    ballState->ballModel = 0;
+    ballState->ballFlags = 0;
+    memset(&ballState->animationTimer, 0, 0x40);
+    ballState->transitionTimer = 0;
+    ballState->transitionState = -1;
+    spawnIndex = object->work[1];
+    spawnAngle = 40.0f;
+    spawnAngle = (spawnAngle * spawnIndex) + (spawnAngle * (RandomU16Get() / 65536.0f)) + 105.0f;
+    spawnRadius = 125.0f;
+    spawnRadius = (spawnRadius * (spawnIndex & 1)) + (100.0f + (250.0f + (spawnRadius * (RandomU16Get() / 65536.0f))));
+    spawnPosition.x = spawnRadius * sind(spawnAngle);
+    spawnPosition.y = 200.0f;
+    spawnPosition.z = spawnRadius * cosd(spawnAngle);
+    ballState->worldPosition = spawnPosition;
+    ballState->motionState.x = ballState->motionState.y = ballState->motionState.z = 0.0f;
+    ballState->rotation.x = ballState->rotation.y = ballState->rotation.z = 0.0f;
+    ballState->scale = 0.8f;
+    ballState->targetHeading = ballState->rotation.y;
+    ballState->motionDuration = 1.0f;
+    ballState->motionFrame = 0.0f;
+    ballState->movementSpeed = 0.0f;
+    memset(&ballState->animationStateData, 0, 0x40);
+    object->mdlId[0] = characterModelId = CharModelCreate(ballState->characterId, 8);
+    Hu3DModelAttrSet(characterModelId, 0x40000001);
+    CharModelStepFxSet(ballState->characterId, 1);
     CharEffectLayerSet(2);
-    for (var_r29 = 0; var_r29 < 11; var_r29++) {
-        if (lbl_1_data_150[var_r29] + 0xFFC90000 != 0x21) {
-            object->mtnId[var_r29] = CharMotionCreate(var_r31->unk1, lbl_1_data_150[var_r29]);
+    for (motionIndex = 0; motionIndex < 11; motionIndex++) {
+        if (ballMotionIds[motionIndex] + 0xFFC90000 != 0x21) {
+            object->mtnId[motionIndex] = CharMotionCreate(ballState->characterId, ballMotionIds[motionIndex]);
         }
-        else if (var_r31->unk1 == 5) {
-            object->mtnId[var_r29]
-                = Hu3DJointMotion(object->mdlId[0], HuDataSelHeapReadNum(var_r31->unk1 + lbl_1_data_150[var_r29], 0x10000000, HEAP_MODEL));
+        else if (ballState->characterId == 5) {
+            object->mtnId[motionIndex]
+                = Hu3DJointMotion(object->mdlId[0], HuDataSelHeapReadNum(ballState->characterId + ballMotionIds[motionIndex], 0x10000000, HEAP_MODEL));
         }
         else {
-            object->mtnId[var_r29] = object->mtnId[0];
+            object->mtnId[motionIndex] = object->mtnId[0];
         }
-        if (lbl_1_data_150[var_r29] == 0x16 || lbl_1_data_150[var_r29] == 0x14) {
-            CharMotionVoiceOnSet(var_r31->unk1, object->mtnId[var_r29], 0);
+        if (ballMotionIds[motionIndex] == 0x16 || ballMotionIds[motionIndex] == 0x14) {
+            CharMotionVoiceOnSet(ballState->characterId, object->mtnId[motionIndex], 0);
         }
     }
-    CharMotionDataClose(var_r31->unk1);
-    CharMotionSet(var_r31->unk1, object->mtnId[var_r31->unk18]);
-    omSetTra(object, var_r31->unk34.x, var_r31->unk34.y, var_r31->unk34.z);
-    omSetRot(object, var_r31->unk40.x, var_r31->unk40.y, var_r31->unk40.z);
-    omSetSca(object, var_r31->unk1C, var_r31->unk1C, var_r31->unk1C);
-    object->mdlId[1] = fn_1_48D0(object, var_r31->unk1, 1);
-    object->objFunc = fn_1_2E3C;
+    CharMotionDataClose(ballState->characterId);
+    CharMotionSet(ballState->characterId, object->mtnId[ballState->actionId]);
+    omSetTra(object, ballState->worldPosition.x, ballState->worldPosition.y, ballState->worldPosition.z);
+    omSetRot(object, ballState->rotation.x, ballState->rotation.y, ballState->rotation.z);
+    omSetSca(object, ballState->scale, ballState->scale, ballState->scale);
+    object->mdlId[1] = BallModelCreate(object, ballState->characterId, 1);
+    object->objFunc = PlayerBallUpdate;
 }
 
-void fn_1_2E38(void) { }
+void EmptyBallCallback(void) { }
 
-void fn_1_2E3C(OMOBJ *object)
+void PlayerBallUpdate(OMOBJ *object)
 {
-    s32 temp_r29;
-    M424DllBallStruct *temp_r31;
+    s32 characterModelId;
+    M424CharacterBallState *ballState;
 
-    temp_r29 = object->mdlId[0];
-    temp_r31 = object->data;
-    if (temp_r31->unk7 != 0) {
-        if ((fn_1_FE0() == 4) && ((temp_r31->unk7 & 2) == 0)) {
-            if (temp_r31->unk5 != 0) {
-                fn_1_31C0(object);
+    characterModelId = object->mdlId[0];
+    ballState = object->data;
+    if (ballState->collisionFlags != 0) {
+        if ((M424SceneStateGet() == 4) && ((ballState->collisionFlags & 2) == 0)) {
+            if (ballState->movementState != 0) {
+                PlayerBallActionUpdate(object);
             }
             else {
-                temp_r31->unk10 = HuPadStkX[temp_r31->unk4];
-                temp_r31->unk12 = HuPadStkY[temp_r31->unk4];
-                temp_r31->unk14 = HuPadBtnDown[temp_r31->unk4];
-                temp_r31->unk16 = HuPadBtn[temp_r31->unk4];
+                ballState->modelId = HuPadStkX[ballState->controllerPort];
+                ballState->shadowModelId = HuPadStkY[ballState->controllerPort];
+                ballState->pressedButtons = HuPadBtnDown[ballState->controllerPort];
+                ballState->animationId = HuPadBtn[ballState->controllerPort];
             }
         }
         else {
-            temp_r31->unk10 = temp_r31->unk12 = 0;
-            temp_r31->unk14 = temp_r31->unk16 = 0;
+            ballState->modelId = ballState->shadowModelId = 0;
+            ballState->pressedButtons = ballState->animationId = 0;
         }
-        switch (temp_r31->unk8) {
+        switch (ballState->actionState) {
             case 1:
-                temp_r31->unkC = 1;
-                if (fn_1_FE0() == 6) {
-                    fn_1_8924(object->mdlId[1], 5);
+                ballState->isGrounded = 1;
+                if (M424SceneStateGet() == 6) {
+                    BallStateSet(object->mdlId[1], 5);
                 }
                 break;
             case 5:
-                temp_r31->unkC = 0;
-                temp_r31->unk1C *= 1.1f;
-                if (temp_r31->unk1C >= 1.0f) {
-                    temp_r31->unk1C = 1.0f;
+                ballState->isGrounded = 0;
+                ballState->scale *= 1.1f;
+                if (ballState->scale >= 1.0f) {
+                    ballState->scale = 1.0f;
                 }
-                temp_r31->unk40.y = fn_1_640C(temp_r31->unk40.y, 0.0f, 0.9f);
-                if (temp_r31->unk34.y <= 200.0f) {
-                    temp_r31->unk34.y = 200.0f;
-                    temp_r31->unkC = 1;
+                ballState->rotation.y = AngleApproachDegrees(ballState->rotation.y, 0.0f, 0.9f);
+                if (ballState->worldPosition.y <= 200.0f) {
+                    ballState->worldPosition.y = 200.0f;
+                    ballState->isGrounded = 1;
                 }
-                Hu3DModelShadowSet(temp_r29);
+                Hu3DModelShadowSet(characterModelId);
                 break;
             case 4:
-                temp_r31->unk20 = 0.0f;
-                temp_r31->unk4C.y = 0.0f;
-                temp_r31->unk7 |= 2;
+                ballState->movementSpeed = 0.0f;
+                ballState->motionState.y = 0.0f;
+                ballState->collisionFlags |= 2;
                 break;
             case 6:
-                temp_r31->unk10 = temp_r31->unk12 = 0;
-                temp_r31->unk14 = temp_r31->unk16 = 0;
-                temp_r31->unk1C = 1.0f;
-                temp_r31->unk40.y = temp_r31->unk24 = 0.0f;
-                if (temp_r31->unk34.y <= 50.0f) {
-                    temp_r31->unkC = 1;
-                    temp_r31->unk20 = 0.0f;
-                    temp_r31->unk4C.y = 0.0f;
-                    temp_r31->unk18 = 7;
-                    temp_r31->unk34.x += fn_1_25C0();
-                    temp_r31->unk34.y = 50.0f;
+                ballState->modelId = ballState->shadowModelId = 0;
+                ballState->pressedButtons = ballState->animationId = 0;
+                ballState->scale = 1.0f;
+                ballState->rotation.y = ballState->targetScale = 0.0f;
+                if (ballState->worldPosition.y <= 50.0f) {
+                    ballState->isGrounded = 1;
+                    ballState->movementSpeed = 0.0f;
+                    ballState->motionState.y = 0.0f;
+                    ballState->actionId = 7;
+                    ballState->worldPosition.x += MapCameraAnimationOffsetGet();
+                    ballState->worldPosition.y = 50.0f;
                 }
                 else {
-                    temp_r31->unkC = 0;
-                    temp_r31->unk20 += VERSION_PAL ? 3.6000001f : 3.0f; // 180.0f * REFRESH_FREQ, doesn't match PAL
-                    temp_r31->unk4C.y += VERSION_PAL ? -1.7520001f : -1.46f; // −87.6f * REFRESH_FREQ, doesn't match PAL
-                    if (temp_r31->unk1 != 5) {
-                        temp_r31->unk18 = 6;
+                    ballState->isGrounded = 0;
+                    ballState->movementSpeed += VERSION_PAL ? 3.6000001f : 3.0f; // 180.0f * REFRESH_FREQ, doesn't match PAL
+                    ballState->motionState.y += VERSION_PAL ? -1.7520001f : -1.46f; // −87.6f * REFRESH_FREQ, doesn't match PAL
+                    if (ballState->characterId != 5) {
+                        ballState->actionId = 6;
                     }
                     else {
-                        temp_r31->unk18 = 0xA;
+                        ballState->actionId = 0xA;
                     }
                 }
                 break;
         }
-        if ((fn_1_FE0() == 7) && ((temp_r31->unk7 & 2) == 0)) {
-            temp_r31->unk18 = 8;
+        if ((M424SceneStateGet() == 7) && ((ballState->collisionFlags & 2) == 0)) {
+            ballState->actionId = 8;
         }
-        fn_1_37FC(object);
+        PlayerBallMotionUpdate(object);
     }
 }
 
-void fn_1_31C0(OMOBJ *object)
+void PlayerBallActionUpdate(OMOBJ *object)
 {
-    Vec sp10;
-    s32 spC;
-    s16 sp8;
-    f32 temp_f31;
-    f32 temp_f30;
-    M424DllBallStruct *temp_r31;
-    s16 temp_r30;
-    s16 var_r29;
-    s16 var_r28;
-    s16 var_r26;
-    s16 var_r25;
+    Vec directionVector;
+    s32 characterModelId;
+    s16 currentMotionId;
+    f32 movementAngle;
+    f32 cameraHeight;
+    M424CharacterBallState *ballState;
+    s16 playerDifficulty;
+    s16 horizontalImpulseX;
+    s16 horizontalImpulseZ;
+    s16 buttonMask;
+    s16 animationIndex;
 
-    temp_r31 = object->data;
-    spC = object->mdlId[0];
-    sp8 = temp_r31->unk18;
-    temp_r30 = temp_r31->unk6;
+    ballState = object->data;
+    characterModelId = object->mdlId[0];
+    currentMotionId = ballState->actionId;
+    playerDifficulty = ballState->effectState;
 
-    var_r29 = var_r28 = var_r26 = var_r25 = 0;
-    switch (temp_r31->unk8) {
+    horizontalImpulseX = horizontalImpulseZ = buttonMask = animationIndex = 0;
+    switch (ballState->actionState) {
         case 2:
             break;
         case 1:
-            if ((fn_1_627C() & 0x1F) == 0) {
-                temp_f31 = atan2d(temp_r31->unk34.x, temp_r31->unk34.z);
-                temp_f31 += ((30.0f - (5.0f * temp_r30)) * ((fn_1_627C() - 0x8000) / 32768.0f));
-                sp10.x = sind(temp_f31);
-                sp10.z = cosd(temp_f31);
-                temp_f30 = fn_1_213C();
-                if ((temp_f31 > 70.0f) && (temp_f31 < 100.0f)) {
-                    if (temp_f30 < 0.0f) {
-                        var_r29 = (-sp10.z * (48.0f + (6.0f * temp_r30)));
-                        var_r28 = (-sp10.x * (48.0f + (6.0f * temp_r30)));
+            if ((RandomU16Get() & 0x1F) == 0) {
+                movementAngle = atan2d(ballState->worldPosition.x, ballState->worldPosition.z);
+                movementAngle += ((30.0f - (5.0f * playerDifficulty)) * ((RandomU16Get() - 0x8000) / 32768.0f));
+                directionVector.x = sind(movementAngle);
+                directionVector.z = cosd(movementAngle);
+                cameraHeight = MapCameraHeightGet();
+                if ((movementAngle > 70.0f) && (movementAngle < 100.0f)) {
+                    if (cameraHeight < 0.0f) {
+                        horizontalImpulseX = (-directionVector.z * (48.0f + (6.0f * playerDifficulty)));
+                        horizontalImpulseZ = (-directionVector.x * (48.0f + (6.0f * playerDifficulty)));
                     }
                     else {
-                        var_r29 = (sp10.z * (48.0f + (6.0f * temp_r30)));
-                        var_r28 = (sp10.x * (48.0f + (6.0f * temp_r30)));
+                        horizontalImpulseX = (directionVector.z * (48.0f + (6.0f * playerDifficulty)));
+                        horizontalImpulseZ = (directionVector.x * (48.0f + (6.0f * playerDifficulty)));
                     }
                 }
-                else if (temp_f30 < 0.0f) {
-                    var_r29 = (sp10.z * (48.0f + (6.0f * temp_r30)));
-                    var_r28 = (sp10.x * (48.0f + (6.0f * temp_r30)));
+                else if (cameraHeight < 0.0f) {
+                    horizontalImpulseX = (directionVector.z * (48.0f + (6.0f * playerDifficulty)));
+                    horizontalImpulseZ = (directionVector.x * (48.0f + (6.0f * playerDifficulty)));
                 }
                 else {
-                    var_r29 = (-sp10.z * (48.0f + (6.0f * temp_r30)));
-                    var_r28 = (-sp10.x * (48.0f + (6.0f * temp_r30)));
+                    horizontalImpulseX = (-directionVector.z * (48.0f + (6.0f * playerDifficulty)));
+                    horizontalImpulseZ = (-directionVector.x * (48.0f + (6.0f * playerDifficulty)));
                 }
             }
             else {
-                var_r29 = temp_r31->unk10;
-                var_r28 = temp_r31->unk12;
+                horizontalImpulseX = ballState->modelId;
+                horizontalImpulseZ = ballState->shadowModelId;
             }
             break;
         case 3:
-            if ((fn_1_627C() & 0x1F) == 0) {
-                temp_f31 = 180.0f * ((fn_1_627C() - 0x8000) / 32768.0f);
-                sp10.x = sind(temp_f31);
-                sp10.z = cosd(temp_f31);
-                var_r29 = (48.0f * sp10.x);
-                var_r28 = (48.0f * sp10.z);
+            if ((RandomU16Get() & 0x1F) == 0) {
+                movementAngle = 180.0f * ((RandomU16Get() - 0x8000) / 32768.0f);
+                directionVector.x = sind(movementAngle);
+                directionVector.z = cosd(movementAngle);
+                horizontalImpulseX = (48.0f * directionVector.x);
+                horizontalImpulseZ = (48.0f * directionVector.z);
             }
             else {
-                var_r29 = temp_r31->unk10;
-                var_r28 = temp_r31->unk12;
+                horizontalImpulseX = ballState->modelId;
+                horizontalImpulseZ = ballState->shadowModelId;
             }
             break;
     }
-    temp_r31->unk10 = var_r29;
-    temp_r31->unk12 = var_r28;
-    temp_r31->unk14 = var_r26;
-    temp_r31->unk16 = var_r25;
+    ballState->modelId = horizontalImpulseX;
+    ballState->shadowModelId = horizontalImpulseZ;
+    ballState->pressedButtons = buttonMask;
+    ballState->animationId = animationIndex;
 }
 
-void fn_1_37FC(OMOBJ *object)
+void PlayerBallMotionUpdate(OMOBJ *object)
 {
-    s16 spA;
-    s16 sp8;
-    f32 var_f30;
-    f32 var_f28;
-    f32 temp_f27;
-    M424DllBallStruct *temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 var_r28;
-    s16 var_r27;
-    s32 temp_r25;
+    s16 savedButtonDown;
+    s16 savedButtons;
+    f32 targetScale;
+    f32 movementHeading;
+    f32 motionMaxTime;
+    M424CharacterBallState *ballState;
+    s16 velocityX;
+    s16 velocityZ;
+    s16 nextMotionId;
+    s16 motionTransitionFlags;
+    s32 characterModelId;
 
-    var_f30 = 1.0f;
-    temp_r31 = object->data;
-    temp_r25 = object->mdlId[0];
-    var_r28 = temp_r31->unk18;
-    temp_r31->unk58 = temp_r31->unk34;
-    temp_r30 = temp_r31->unk10;
-    temp_r29 = temp_r31->unk12;
-    spA = temp_r31->unk14;
-    sp8 = temp_r31->unk16;
-    switch (temp_r31->unk18) {
+    targetScale = 1.0f;
+    ballState = object->data;
+    characterModelId = object->mdlId[0];
+    nextMotionId = ballState->actionId;
+    ballState->frameTimer = ballState->worldPosition;
+    velocityX = ballState->modelId;
+    velocityZ = ballState->shadowModelId;
+    savedButtonDown = ballState->pressedButtons;
+    savedButtons = ballState->animationId;
+    switch (ballState->actionId) {
         case 0:
         case 1:
         case 2:
-            temp_r31->unk20 = (0.025f * sqrtf((temp_r30 * temp_r30) + (temp_r29 * temp_r29)));
-            if (temp_r31->unk20 > 0.01f) {
-                if (temp_r31->unk20 >= 6.0f) {
-                    var_r28 = 2;
-                    var_r27 = 1;
+            ballState->movementSpeed = (0.025f * sqrtf((velocityX * velocityX) + (velocityZ * velocityZ)));
+            if (ballState->movementSpeed > 0.01f) {
+                if (ballState->movementSpeed >= 6.0f) {
+                    nextMotionId = 2;
+                    motionTransitionFlags = 1;
                 }
                 else {
-                    var_r28 = 1;
-                    var_r27 = 1;
+                    nextMotionId = 1;
+                    motionTransitionFlags = 1;
                 }
-                var_f28 = atan2d(temp_r30, -temp_r29);
-                temp_r31->unk40.y = fn_1_640C(temp_r31->unk40.y, var_f28, 0.5f);
-                temp_r31->unk24 = temp_r31->unk40.y;
-                temp_r31->unk28++;
-                if (temp_r31->unk28 >= (0.5f * temp_r31->unk2C)) {
-                    temp_r31->unk28 -= 0.5f * temp_r31->unk2C;
+                movementHeading = atan2d(velocityX, -velocityZ);
+                ballState->rotation.y = AngleApproachDegrees(ballState->rotation.y, movementHeading, 0.5f);
+                ballState->targetHeading = ballState->rotation.y;
+                ballState->motionFrame++;
+                if (ballState->motionFrame >= (0.5f * ballState->motionDuration)) {
+                    ballState->motionFrame -= 0.5f * ballState->motionDuration;
                 }
-                temp_r31->unk20 *= 1.0 + 0.25 * cosd(90.0f * (temp_r31->unk28 / (0.5f * temp_r31->unk2C)));
+                ballState->movementSpeed *= 1.0 + 0.25 * cosd(90.0f * (ballState->motionFrame / (0.5f * ballState->motionDuration)));
             }
             else {
-                temp_r31->unk28 = 0.0f;
-                temp_r31->unk20 = 0.0f;
-                var_r28 = 0;
-                var_r27 = 1;
+                ballState->motionFrame = 0.0f;
+                ballState->movementSpeed = 0.0f;
+                nextMotionId = 0;
+                motionTransitionFlags = 1;
             }
-            if (temp_r31->unkC != 0) {
-                temp_r31->unk4C.y = -146.0f / REFRESH_RATE_F;
+            if (ballState->isGrounded != 0) {
+                ballState->motionState.y = -146.0f / REFRESH_RATE_F;
             }
             else {
-                temp_r31->unk4C.y += -146.0f / REFRESH_RATE_F;
+                ballState->motionState.y += -146.0f / REFRESH_RATE_F;
             }
             break;
         case 3:
-            var_r27 = 0;
-            if ((Hu3DData[temp_r25].motIdShift == -1) && (CharMotionEndCheck(temp_r31->unk1) != 0)) {
-                temp_r31->unk4C.y += -146.0f / REFRESH_RATE_F;
+            motionTransitionFlags = 0;
+            if ((Hu3DData[characterModelId].motIdShift == -1) && (CharMotionEndCheck(ballState->characterId) != 0)) {
+                ballState->motionState.y += -146.0f / REFRESH_RATE_F;
             }
             else {
-                temp_r31->unk4C.y = 0.0f;
+                ballState->motionState.y = 0.0f;
             }
-            if (temp_r31->unkC != 0) {
-                if (temp_r31->unkD != 0) {
-                    temp_r31->unk4C.y = 0.0f;
-                    temp_r31->unkD = 0;
-                    var_r28 = 5;
-                    var_r27 = 0;
+            if (ballState->isGrounded != 0) {
+                if (ballState->bounceState != 0) {
+                    ballState->motionState.y = 0.0f;
+                    ballState->bounceState = 0;
+                    nextMotionId = 5;
+                    motionTransitionFlags = 0;
                 }
                 else {
-                    temp_r31->unk4C.y *= -0.1f;
-                    temp_r31->unkC = 0;
-                    var_r28 = 4;
-                    var_r27 = 0;
+                    ballState->motionState.y *= -0.1f;
+                    ballState->isGrounded = 0;
+                    nextMotionId = 4;
+                    motionTransitionFlags = 0;
                 }
             }
             break;
         case 4:
-            temp_r31->unk4C.y += -146.0f / REFRESH_RATE_F;
-            if ((temp_r31->unkC != 0) && (CharMotionEndCheck(temp_r31->unk1) != 0)) {
-                var_r28 = 5;
-                var_r27 = 0;
+            ballState->motionState.y += -146.0f / REFRESH_RATE_F;
+            if ((ballState->isGrounded != 0) && (CharMotionEndCheck(ballState->characterId) != 0)) {
+                nextMotionId = 5;
+                motionTransitionFlags = 0;
             }
             break;
         case 5:
-            if (CharMotionEndCheck(temp_r31->unk1) != 0) {
-                var_r28 = 0;
-                var_r27 = 1;
+            if (CharMotionEndCheck(ballState->characterId) != 0) {
+                nextMotionId = 0;
+                motionTransitionFlags = 1;
             }
             break;
         case 6:
-            var_r28 = 6;
-            var_r27 = 0;
-            if (temp_r31->unk1 == 7) {
-                var_f30 = 0.85f;
-                temp_r31->unk30 = 0.9f;
+            nextMotionId = 6;
+            motionTransitionFlags = 0;
+            if (ballState->characterId == 7) {
+                targetScale = 0.85f;
+                ballState->targetScale = 0.9f;
             }
             break;
         case 7:
-            var_r28 = 7;
-            var_r27 = 1;
-            if (temp_r31->unkE8 == 1) {
-                temp_r31->unkEC = CharFXPlay(temp_r31->unk1, 0x11A);
+            nextMotionId = 7;
+            motionTransitionFlags = 1;
+            if (ballState->transitionTimer == 1) {
+                ballState->transitionState = CharFXPlay(ballState->characterId, 0x11A);
             }
-            else if ((temp_r31->unkE8 > REFRESH_RATE_F * 1.5f) && (temp_r31->unkEC != -1)) {
-                HuAudFXStop(temp_r31->unkEC);
-                temp_r31->unkEC = -1;
+            else if ((ballState->transitionTimer > REFRESH_RATE_F * 1.5f) && (ballState->transitionState != -1)) {
+                HuAudFXStop(ballState->transitionState);
+                ballState->transitionState = -1;
             }
-            temp_r31->unkE8++;
+            ballState->transitionTimer++;
             break;
         case 8:
         case 9:
-            var_r27 = 0;
-            temp_r31->unk4C.y = -146.0f / REFRESH_RATE_F;
+            motionTransitionFlags = 0;
+            ballState->motionState.y = -146.0f / REFRESH_RATE_F;
             break;
         case 10:
-            var_r28 = 10;
-            var_r27 = 4;
-            var_f30 = 0.8f;
-            temp_r31->unk30 = 0.85f;
-            if ((var_r28 == temp_r31->unk18) && (Hu3DMotionShiftIDGet(temp_r25) != -1)) {
-                temp_f27 = Hu3DMotionMaxTimeGet(temp_r25);
-                if (Hu3DMotionTimeGet(temp_r25) >= temp_f27) {
-                    var_r28 = 7;
-                    var_r27 = 1;
+            nextMotionId = 10;
+            motionTransitionFlags = 4;
+            targetScale = 0.8f;
+            ballState->targetScale = 0.85f;
+            if ((nextMotionId == ballState->actionId) && (Hu3DMotionShiftIDGet(characterModelId) != -1)) {
+                motionMaxTime = Hu3DMotionMaxTimeGet(characterModelId);
+                if (Hu3DMotionTimeGet(characterModelId) >= motionMaxTime) {
+                    nextMotionId = 7;
+                    motionTransitionFlags = 1;
                 }
             }
             break;
     }
-    if ((temp_r31->unk7 & 4) != 0) {
-        if ((temp_r31->unkA & 2) != 0) {
-            Hu3DModelAttrSet(temp_r25, 1);
+    if ((ballState->collisionFlags & 4) != 0) {
+        if ((ballState->isActive & 2) != 0) {
+            Hu3DModelAttrSet(characterModelId, 1);
         }
         else {
-            Hu3DModelAttrReset(temp_r25, 1);
+            Hu3DModelAttrReset(characterModelId, 1);
         }
-        if (--temp_r31->unkA == 0) {
-            temp_r31->unk7 &= ~4;
+        if (--ballState->isActive == 0) {
+            ballState->collisionFlags &= ~4;
         }
     }
-    temp_r31->unk4C.x = temp_r31->unk20 * sind(temp_r31->unk24);
-    temp_r31->unk4C.z = temp_r31->unk20 * cosd(temp_r31->unk24);
-    temp_r31->unk34.x += temp_r31->unk4C.x;
-    if (temp_r31->unkC == 0) {
-        temp_r31->unk34.y += temp_r31->unk4C.y;
+    ballState->motionState.x = ballState->movementSpeed * sind(ballState->targetHeading);
+    ballState->motionState.z = ballState->movementSpeed * cosd(ballState->targetHeading);
+    ballState->worldPosition.x += ballState->motionState.x;
+    if (ballState->isGrounded == 0) {
+        ballState->worldPosition.y += ballState->motionState.y;
     }
-    temp_r31->unk34.z += temp_r31->unk4C.z;
-    if (var_r28 != temp_r31->unk1A) {
-        temp_r31->unk1A = var_r28;
-        temp_r31->unk18 = var_r28;
-        CharMotionShiftSet(temp_r31->unk1, object->mtnId[temp_r31->unk18], 0.0f, 8.0f, var_r27);
-        temp_r31->unk2C = CharMotionMaxTimeGet(temp_r31->unk1);
+    ballState->worldPosition.z += ballState->motionState.z;
+    if (nextMotionId != ballState->effectId) {
+        ballState->effectId = nextMotionId;
+        ballState->actionId = nextMotionId;
+        CharMotionShiftSet(ballState->characterId, object->mtnId[ballState->actionId], 0.0f, 8.0f, motionTransitionFlags);
+        ballState->motionDuration = CharMotionMaxTimeGet(ballState->characterId);
     }
-    if (temp_r31->unk30 != var_f30) {
-        if (var_f30 > temp_r31->unk30) {
-            if ((temp_r31->unk30 += 0.05f) > var_f30) {
-                temp_r31->unk30 = var_f30;
+    if (ballState->targetScale != targetScale) {
+        if (targetScale > ballState->targetScale) {
+            if ((ballState->targetScale += 0.05f) > targetScale) {
+                ballState->targetScale = targetScale;
             }
         }
-        if (var_f30 < temp_r31->unk30) {
-            if ((temp_r31->unk30 -= 0.05f) < var_f30) {
-                temp_r31->unk30 = var_f30;
+        if (targetScale < ballState->targetScale) {
+            if ((ballState->targetScale -= 0.05f) < targetScale) {
+                ballState->targetScale = targetScale;
             }
         }
-        temp_r31->unk1C = temp_r31->unk30;
+        ballState->scale = ballState->targetScale;
     }
-    omSetTra(object, temp_r31->unk34.x, temp_r31->unk34.y, temp_r31->unk34.z);
-    omSetRot(object, temp_r31->unk40.x, temp_r31->unk40.y, temp_r31->unk40.z);
-    omSetSca(object, temp_r31->unk1C, temp_r31->unk1C, temp_r31->unk1C);
+    omSetTra(object, ballState->worldPosition.x, ballState->worldPosition.y, ballState->worldPosition.z);
+    omSetRot(object, ballState->rotation.x, ballState->rotation.y, ballState->rotation.z);
+    omSetSca(object, ballState->scale, ballState->scale, ballState->scale);
 }
 
-void fn_1_4220(OMOBJ *object)
+void CpuBallInit(OMOBJ *object)
 {
-    s32 sp14[3] = { 0x370013, 0x370014, 0x370015 };
-    Vec sp8;
-    f32 temp_f31;
-    f32 temp_f30;
-    M424DllBallStruct *var_r31;
-    s32 var_r29;
-    s32 temp_r28;
-    s32 var_r27;
+    s32 ambientMotionIds[3] = { 0x370013, 0x370014, 0x370015 };
+    Vec spawnPosition;
+    f32 spawnAngle;
+    f32 spawnRadius;
+    M424CharacterBallState *ballState;
+    s32 motionIndex;
+    s32 spawnIndex;
+    s32 characterModelId;
 
-    object->mdlId[0] = var_r27 = Hu3DModelCreateFile(0x370012);
+    object->mdlId[0] = characterModelId = Hu3DModelCreateFile(0x370012);
 
-    for (var_r29 = 0; var_r29 < 3; var_r29++) {
-        object->mtnId[var_r29] = Hu3DJointMotion(var_r27, HuDataSelHeapReadNum(sp14[var_r29], 0x10000000, HEAP_MODEL));
+    for (motionIndex = 0; motionIndex < 3; motionIndex++) {
+        object->mtnId[motionIndex] = Hu3DJointMotion(characterModelId, HuDataSelHeapReadNum(ambientMotionIds[motionIndex], 0x10000000, HEAP_MODEL));
     }
-    Hu3DMotionSet(var_r27, object->mtnId[0]);
-    Hu3DModelAttrSet(var_r27, 0x40000001);
-    var_r31 = fn_1_6078(0xF0);
-    object->data = var_r31;
-    memset(var_r31, 0, 0xF0);
-    var_r31->unk0 = object->work[0];
-    var_r31->unk1 = 0xFF;
-    var_r31->unk2 = 0xFF;
-    var_r31->unk3 = 0;
-    var_r31->unk4 = 0xFF;
-    var_r31->unk5 = 0xFF;
-    var_r31->unk6 = 0xFF;
-    var_r31->unk18 = var_r31->unk1A = 0;
-    var_r31->unk7 = 1;
-    var_r31->unkC = 1;
-    var_r31->unkD = 0;
-    var_r31->unkA = 0;
-    var_r31->unkA4 = 0;
-    var_r31->unkE = 0;
-    memset(&var_r31->unk64, 0, 0x40);
-    temp_r28 = object->work[1];
-    if (temp_r28 == 8) {
-        sp8.x = 350.0f;
-        sp8.y = 200.0f;
-        sp8.z = 50.0f;
+    Hu3DMotionSet(characterModelId, object->mtnId[0]);
+    Hu3DModelAttrSet(characterModelId, 0x40000001);
+    ballState = BallStateAlloc(0xF0);
+    object->data = ballState;
+    memset(ballState, 0, 0xF0);
+    ballState->playerIndex = object->work[0];
+    ballState->characterId = 0xFF;
+    ballState->ballType = 0xFF;
+    ballState->state = 0;
+    ballState->controllerPort = 0xFF;
+    ballState->movementState = 0xFF;
+    ballState->effectState = 0xFF;
+    ballState->actionId = ballState->effectId = 0;
+    ballState->collisionFlags = 1;
+    ballState->isGrounded = 1;
+    ballState->bounceState = 0;
+    ballState->isActive = 0;
+    ballState->ballModel = 0;
+    ballState->ballFlags = 0;
+    memset(&ballState->animationTimer, 0, 0x40);
+    spawnIndex = object->work[1];
+    if (spawnIndex == 8) {
+        spawnPosition.x = 350.0f;
+        spawnPosition.y = 200.0f;
+        spawnPosition.z = 50.0f;
     }
     else {
-        temp_f31 = 40.0f;
-        temp_f31 = 105.0f + ((temp_f31 * temp_r28) + (temp_f31 * (fn_1_627C() / 65536.0f)));
-        temp_f30 = 125.0f;
-        temp_f30 = (temp_f30 * (temp_r28 & 1)) + (100.0f + (250.0f + (temp_f30 * (fn_1_627C() / 65536.0f))));
-        sp8.x = temp_f30 * sind(temp_f31);
-        sp8.y = 200.0f;
-        sp8.z = temp_f30 * cosd(temp_f31);
+        spawnAngle = 40.0f;
+        spawnAngle = 105.0f + ((spawnAngle * spawnIndex) + (spawnAngle * (RandomU16Get() / 65536.0f)));
+        spawnRadius = 125.0f;
+        spawnRadius = (spawnRadius * (spawnIndex & 1)) + (100.0f + (250.0f + (spawnRadius * (RandomU16Get() / 65536.0f))));
+        spawnPosition.x = spawnRadius * sind(spawnAngle);
+        spawnPosition.y = 200.0f;
+        spawnPosition.z = spawnRadius * cosd(spawnAngle);
     }
-    var_r31->unk34 = sp8;
-    var_r31->unk4C.x = var_r31->unk4C.y = var_r31->unk4C.z = 0.0f;
-    var_r31->unk40.x = var_r31->unk40.y = var_r31->unk40.z = 0.0f;
-    var_r31->unk24 = var_r31->unk40.y;
-    var_r31->unk2C = 1.0f;
-    var_r31->unk28 = 0.0f;
-    var_r31->unk20 = 0.0f;
-    memset(&var_r31->unkA8, 0, 0x40);
-    omSetTra(object, var_r31->unk34.x, var_r31->unk34.y, var_r31->unk34.z);
-    omSetRot(object, var_r31->unk40.x, var_r31->unk40.y, var_r31->unk40.z);
+    ballState->worldPosition = spawnPosition;
+    ballState->motionState.x = ballState->motionState.y = ballState->motionState.z = 0.0f;
+    ballState->rotation.x = ballState->rotation.y = ballState->rotation.z = 0.0f;
+    ballState->targetHeading = ballState->rotation.y;
+    ballState->motionDuration = 1.0f;
+    ballState->motionFrame = 0.0f;
+    ballState->movementSpeed = 0.0f;
+    memset(&ballState->animationStateData, 0, 0x40);
+    omSetTra(object, ballState->worldPosition.x, ballState->worldPosition.y, ballState->worldPosition.z);
+    omSetRot(object, ballState->rotation.x, ballState->rotation.y, ballState->rotation.z);
     omSetSca(object, 0.8f, 0.8f, 0.8f);
-    object->mdlId[1] = fn_1_48D0(object, 8, 0);
-    object->objFunc = fn_1_469C;
+    object->mdlId[1] = BallModelCreate(object, 8, 0);
+    object->objFunc = CpuBallUpdate;
 }
 
-fn_1_4698(void) { }
+EmptyBallEffectCallback(void) { }
 
-void fn_1_469C(OMOBJ *object)
+void CpuBallUpdate(OMOBJ *object)
 {
-    s32 temp_r27;
-    s16 var_r28;
-    s16 var_r30;
-    M424DllBallStruct *temp_r31;
+    s32 characterModelId;
+    s16 motionTransitionFlags;
+    s16 nextMotionId;
+    M424CharacterBallState *ballState;
 
-    temp_r31 = object->data;
-    temp_r27 = object->mdlId[0];
-    var_r30 = temp_r31->unk18;
-    temp_r31->unk58 = temp_r31->unk34;
+    ballState = object->data;
+    characterModelId = object->mdlId[0];
+    nextMotionId = ballState->actionId;
+    ballState->frameTimer = ballState->worldPosition;
 
-    temp_r31->unk4C.x = temp_r31->unk4C.z = 0.0f;
-    switch (temp_r31->unk8) { /* irregular */
+    ballState->motionState.x = ballState->motionState.z = 0.0f;
+    switch (ballState->actionState) { /* irregular */
         case 3:
-            var_r30 = 2;
-            var_r28 = 1;
-            temp_r31->unk4C.y = -146.0f / REFRESH_RATE_F;
-            if ((fn_1_627C() & 0xF) == 0) {
-                temp_r31->unk24 = (180.0f * ((fn_1_627C() - 0x8000) / 32768.0f));
+            nextMotionId = 2;
+            motionTransitionFlags = 1;
+            ballState->motionState.y = -146.0f / REFRESH_RATE_F;
+            if ((RandomU16Get() & 0xF) == 0) {
+                ballState->targetHeading = (180.0f * ((RandomU16Get() - 0x8000) / 32768.0f));
             }
             break;
         case 1:
-            var_r30 = 1;
-            var_r28 = 1;
-            temp_r31->unk4C.y = -146.0f / REFRESH_RATE_F;
-            if ((fn_1_627C() & 0x3F) == 0) {
-                temp_r31->unk24 = (180.0f * ((fn_1_627C() - 0x8000) / 32768.0f));
+            nextMotionId = 1;
+            motionTransitionFlags = 1;
+            ballState->motionState.y = -146.0f / REFRESH_RATE_F;
+            if ((RandomU16Get() & 0x3F) == 0) {
+                ballState->targetHeading = (180.0f * ((RandomU16Get() - 0x8000) / 32768.0f));
             }
             break;
         case 2:
-            var_r30 = 0;
-            var_r28 = 1;
+            nextMotionId = 0;
+            motionTransitionFlags = 1;
 
-            temp_r31->unk4C.x = temp_r31->unk4C.z = 0.0f;
-            temp_r31->unk4C.y += VERSION_PAL ? -1.1680001f : -0.97333336f; // −58.4f * REFRESH_FREQ, doesn't match PAL
+            ballState->motionState.x = ballState->motionState.z = 0.0f;
+            ballState->motionState.y += VERSION_PAL ? -1.1680001f : -0.97333336f; // −58.4f * REFRESH_FREQ, doesn't match PAL
             break;
     }
-    temp_r31->unk40.y = fn_1_640C(temp_r31->unk40.y, temp_r31->unk24, 0.95f);
-    if (var_r30 != temp_r31->unk1A) {
-        temp_r31->unk1A = var_r30;
-        temp_r31->unk18 = var_r30;
-        Hu3DMotionShiftSet(temp_r27, object->mtnId[temp_r31->unk18], 0.0f, 8.0f, (u32)var_r28);
-        temp_r31->unk2C = Hu3DMotionMaxTimeGet(temp_r31->unk1);
+    ballState->rotation.y = AngleApproachDegrees(ballState->rotation.y, ballState->targetHeading, 0.95f);
+    if (nextMotionId != ballState->effectId) {
+        ballState->effectId = nextMotionId;
+        ballState->actionId = nextMotionId;
+        Hu3DMotionShiftSet(characterModelId, object->mtnId[ballState->actionId], 0.0f, 8.0f, (u32)motionTransitionFlags);
+        ballState->motionDuration = Hu3DMotionMaxTimeGet(ballState->characterId);
     }
 }
 
-u8 fn_1_48D0(OMOBJ *object, u8 arg1, u8 arg2)
+u8 BallModelCreate(OMOBJ *object, u8 characterId, u8 isPlayerControlled)
 {
-    M424DllBallStruct2 *temp_r31;
-    s32 var_r30;
-    s32 var_r28;
+    M424BallPhysicsState *ballPhysicsState;
+    s32 modelId;
+    s32 ballIndex;
 
-    var_r28 = lbl_1_bss_58;
-    lbl_1_bss_58++;
-    temp_r31 = &lbl_1_bss_60[var_r28];
-    memset(temp_r31, 0, 0x94);
-    temp_r31->unk0 = object;
-    var_r30 = Hu3DModelCreate(HuDataSelHeapReadNum((arg1 * 2) + 0x370000, 0x10000000, HEAP_MODEL));
-    temp_r31->unk8 = var_r30;
-    Hu3DModelLayerSet(var_r30, 2);
-    Hu3DModelShadowMapSet(var_r30);
-    Hu3DModelAttrSet(var_r30, 0x20000);
-    Hu3DModelHiliteMapSet(var_r30, HuSprAnimRead(HuDataReadNum(0x370016, 0x10000000)));
-    var_r30 = Hu3DModelCreate(HuDataSelHeapReadNum((arg1 * 2) + 0x370001, 0x10000000, HEAP_MODEL));
-    temp_r31->unkA = var_r30;
-    Hu3DModelLayerSet(var_r30, 1);
-    Hu3DModelShadowSet(var_r30);
-    MTXIdentity(temp_r31->unkC);
-    temp_r31->unk3C.x = object->trans.x;
-    temp_r31->unk3C.y = 100.0f + object->trans.y;
-    temp_r31->unk3C.z = object->trans.z;
-    temp_r31->unk54 = temp_r31->unk3C;
-    temp_r31->unk6C.x = temp_r31->unk6C.y = temp_r31->unk6C.z = 0.0f;
-    temp_r31->unk5 = arg2;
-    temp_r31->unk4 = 2;
-    temp_r31->unk6 = 0;
-    if (arg2 != 0) {
-        temp_r31->unk91 = arg1;
+    ballIndex = ballCount;
+    ballCount++;
+    ballPhysicsState = &ballPhysicsStates[ballIndex];
+    memset(ballPhysicsState, 0, 0x94);
+    ballPhysicsState->object = object;
+    modelId = Hu3DModelCreate(HuDataSelHeapReadNum((characterId * 2) + 0x370000, 0x10000000, HEAP_MODEL));
+    ballPhysicsState->modelId = modelId;
+    Hu3DModelLayerSet(modelId, 2);
+    Hu3DModelShadowMapSet(modelId);
+    Hu3DModelAttrSet(modelId, 0x20000);
+    Hu3DModelHiliteMapSet(modelId, HuSprAnimRead(HuDataReadNum(0x370016, 0x10000000)));
+    modelId = Hu3DModelCreate(HuDataSelHeapReadNum((characterId * 2) + 0x370001, 0x10000000, HEAP_MODEL));
+    ballPhysicsState->shadowModelId = modelId;
+    Hu3DModelLayerSet(modelId, 1);
+    Hu3DModelShadowSet(modelId);
+    MTXIdentity(ballPhysicsState->modelMatrix);
+    ballPhysicsState->position.x = object->trans.x;
+    ballPhysicsState->position.y = 100.0f + object->trans.y;
+    ballPhysicsState->position.z = object->trans.z;
+    ballPhysicsState->previousPosition = ballPhysicsState->position;
+    ballPhysicsState->velocity.x = ballPhysicsState->velocity.y = ballPhysicsState->velocity.z = 0.0f;
+    ballPhysicsState->controllerState = isPlayerControlled;
+    ballPhysicsState->state = 2;
+    ballPhysicsState->effectState = 0;
+    if (isPlayerControlled != 0) {
+        ballPhysicsState->playerIndex = characterId;
     }
     else {
-        temp_r31->unk91 = 0xFFU;
+        ballPhysicsState->playerIndex = 0xFFU;
     }
-    return var_r28;
+    return ballIndex;
 }
 
-void fn_1_4A90(s16 arg0)
+void BallPhysicsUpdate(s16 updateFlags)
 {
-    Mtx sp50;
-    Mtx sp20;
-    Vec sp14;
-    Vec sp8;
-    f32 var_f31;
-    f32 var_f30;
-    M424DllBallStruct2 *var_r31;
-    M424DllBallStruct *temp_r30;
-    s32 var_r29;
+    Mtx modelTransformMatrix;
+    Mtx cameraRotationMatrix;
+    Vec positionDelta;
+    Vec rotationAxis;
+    f32 cameraYaw;
+    f32 rotationMagnitude;
+    M424BallPhysicsState *physicsState;
+    M424CharacterBallState *characterState;
+    s32 ballIndex;
 
     if (omPauseChk() == 0) {
-        var_r31 = lbl_1_bss_60;
-        var_f31 = fn_1_213C();
-        mtxRot(sp20, 0.0f, var_f31, 0.0f);
+        physicsState = ballPhysicsStates;
+        cameraYaw = MapCameraHeightGet();
+        mtxRot(cameraRotationMatrix, 0.0f, cameraYaw, 0.0f);
 
-        for (var_r29 = 0; var_r29 < lbl_1_bss_58; var_r29++, var_r31++) {
-            temp_r30 = var_r31->unk0->data;
-            var_r31->unk48 = var_r31->unk54;
-            var_r31->unk60 = var_r31->unk48;
-            var_r31->unk78.x = var_r31->unk78.y = var_r31->unk78.z = 0.0f;
-            switch (var_r31->unk4) {
+        for (ballIndex = 0; ballIndex < ballCount; ballIndex++, physicsState++) {
+            characterState = physicsState->object->data;
+            physicsState->rotatedPosition = physicsState->previousPosition;
+            physicsState->currentPosition = physicsState->rotatedPosition;
+            physicsState->positionDelta.x = physicsState->positionDelta.y = physicsState->positionDelta.z = 0.0f;
+            switch (physicsState->state) {
                 case 1:
-                    MTXTrans(sp50, var_r31->unk3C.x, var_r31->unk3C.y, var_r31->unk3C.z);
-                    MTXConcat(sp20, sp50, sp50);
-                    var_r31->unk48.x = sp50[0][3];
-                    var_r31->unk48.y = sp50[1][3];
-                    var_r31->unk48.z = sp50[2][3];
-                    VECSubtract(&var_r31->unk48, &var_r31->unk3C, &var_r31->unk78);
-                    VECSubtract(&var_r31->unk3C, &var_r31->unk54, &sp14);
-                    VECAdd(&temp_r30->unk4C, &sp14, &var_r31->unk84);
-                    VECAdd(&var_r31->unk84, &var_r31->unk78, &var_r31->unk6C);
-                    var_r31->unk84.y = 0.0f;
-                    var_r31->unk4 = 2;
+                    MTXTrans(modelTransformMatrix, physicsState->position.x, physicsState->position.y, physicsState->position.z);
+                    MTXConcat(cameraRotationMatrix, modelTransformMatrix, modelTransformMatrix);
+                    physicsState->rotatedPosition.x = modelTransformMatrix[0][3];
+                    physicsState->rotatedPosition.y = modelTransformMatrix[1][3];
+                    physicsState->rotatedPosition.z = modelTransformMatrix[2][3];
+                    VECSubtract(&physicsState->rotatedPosition, &physicsState->position, &physicsState->positionDelta);
+                    VECSubtract(&physicsState->position, &physicsState->previousPosition, &positionDelta);
+                    VECAdd(&characterState->motionState, &positionDelta, &physicsState->targetVelocity);
+                    VECAdd(&physicsState->targetVelocity, &physicsState->positionDelta, &physicsState->velocity);
+                    physicsState->targetVelocity.y = 0.0f;
+                    physicsState->state = 2;
                     break;
                 case 3:
-                    VECSubtract(&var_r31->unk3C, &var_r31->unk60, &var_r31->unk6C);
-                    var_r31->unk84 = var_r31->unk6C;
+                    VECSubtract(&physicsState->position, &physicsState->currentPosition, &physicsState->velocity);
+                    physicsState->targetVelocity = physicsState->velocity;
                     break;
                 case 4:
-                    var_r31->unk6C.y += -146.0f / REFRESH_RATE_F;
-                    var_r31->unk6C.x = var_r31->unk6C.z = 0.0f;
-                    var_r31->unk84 = var_r31->unk6C;
+                    physicsState->velocity.y += -146.0f / REFRESH_RATE_F;
+                    physicsState->velocity.x = physicsState->velocity.z = 0.0f;
+                    physicsState->targetVelocity = physicsState->velocity;
                     break;
                 case 2:
-                    var_r31->unk6C.y = 0.0f;
-                    var_r31->unk6C.x = var_r31->unk6C.z = 0.0f;
-                    VECSubtract(&var_r31->unk3C, &var_r31->unk54, &sp14);
-                    VECAdd(&temp_r30->unk4C, &sp14, &var_r31->unk84);
-                    var_r31->unk6C = var_r31->unk84;
+                    physicsState->velocity.y = 0.0f;
+                    physicsState->velocity.x = physicsState->velocity.z = 0.0f;
+                    VECSubtract(&physicsState->position, &physicsState->previousPosition, &positionDelta);
+                    VECAdd(&characterState->motionState, &positionDelta, &physicsState->targetVelocity);
+                    physicsState->velocity = physicsState->targetVelocity;
                     break;
                 case 5:
-                    if ((var_r31->unk6 & 2) != 0) {
-                        Hu3DModelAttrSet(var_r31->unk8, 1);
-                        Hu3DModelAttrSet(var_r31->unkA, 1);
+                    if ((physicsState->effectState & 2) != 0) {
+                        Hu3DModelAttrSet(physicsState->modelId, 1);
+                        Hu3DModelAttrSet(physicsState->shadowModelId, 1);
                     }
                     else {
-                        Hu3DModelAttrReset(var_r31->unk8, 1);
-                        Hu3DModelAttrReset(var_r31->unkA, 1);
+                        Hu3DModelAttrReset(physicsState->modelId, 1);
+                        Hu3DModelAttrReset(physicsState->shadowModelId, 1);
                     }
-                    if (++var_r31->unk6 >= 0x3C) {
-                        var_r31->unk4 = 6;
+                    if (++physicsState->effectState >= 0x3C) {
+                        physicsState->state = 6;
                     }
                     break;
                 default:
-                    var_r31->unk6C.x = var_r31->unk6C.y = var_r31->unk6C.z = 0.0f;
+                    physicsState->velocity.x = physicsState->velocity.y = physicsState->velocity.z = 0.0f;
                     break;
             }
         }
-        fn_1_8AA8(0x20, 1);
-        var_r31 = lbl_1_bss_60;
-        for (var_r29 = 0; var_r29 < lbl_1_bss_58; var_r29++, var_r31++) {
-            if (var_r31->unk4 != 6) {
-                if (var_r31->unk4 == 1) {
-                    VECSubtract(&var_r31->unk3C, &var_r31->unk48, &sp14);
-                    sp8.x = sp14.z;
-                    sp8.y = 0.0f;
-                    sp8.z = -sp14.x;
-                    var_f30 = VECMag(&sp8);
-                    if (var_f30 > 0.01f) {
-                        MTXRotAxisRad(sp50, &sp8, MTXDegToRad(var_f30));
-                        MTXConcat(sp20, sp50, sp50);
+        BallOrderAdjust(0x20, 1);
+        physicsState = ballPhysicsStates;
+        for (ballIndex = 0; ballIndex < ballCount; ballIndex++, physicsState++) {
+            if (physicsState->state != 6) {
+                if (physicsState->state == 1) {
+                    VECSubtract(&physicsState->position, &physicsState->rotatedPosition, &positionDelta);
+                    rotationAxis.x = positionDelta.z;
+                    rotationAxis.y = 0.0f;
+                    rotationAxis.z = -positionDelta.x;
+                    rotationMagnitude = VECMag(&rotationAxis);
+                    if (rotationMagnitude > 0.01f) {
+                        MTXRotAxisRad(modelTransformMatrix, &rotationAxis, MTXDegToRad(rotationMagnitude));
+                        MTXConcat(cameraRotationMatrix, modelTransformMatrix, modelTransformMatrix);
                     }
                     else {
-                        MTXCopy(sp20, sp50);
+                        MTXCopy(cameraRotationMatrix, modelTransformMatrix);
                     }
-                    MTXConcat(sp50, var_r31->unkC, var_r31->unkC);
-                    fn_1_6230(var_r31->unk8, var_r31->unkC);
-                    fn_1_6230(var_r31->unkA, var_r31->unkC);
+                    MTXConcat(modelTransformMatrix, physicsState->modelMatrix, physicsState->modelMatrix);
+                    ModelMatrixApply(physicsState->modelId, physicsState->modelMatrix);
+                    ModelMatrixApply(physicsState->shadowModelId, physicsState->modelMatrix);
                 }
-                if (var_r31->unk3C.y < 250.0f) {
-                    var_r31->unk3C.y = 250.0f;
-                    var_r31->unk4 = 6;
-                    Hu3DModelAttrSet(var_r31->unk8, 1);
-                    Hu3DModelAttrSet(var_r31->unkA, 1);
+                if (physicsState->position.y < 250.0f) {
+                    physicsState->position.y = 250.0f;
+                    physicsState->state = 6;
+                    Hu3DModelAttrSet(physicsState->modelId, 1);
+                    Hu3DModelAttrSet(physicsState->shadowModelId, 1);
                 }
-                Hu3DModelPosSet(var_r31->unk8, var_r31->unk3C.x, var_r31->unk3C.y, var_r31->unk3C.z);
-                Hu3DModelPosSet(var_r31->unkA, var_r31->unk3C.x, var_r31->unk3C.y, var_r31->unk3C.z);
-                VECSubtract(&var_r31->unk3C, &var_r31->unk54, &sp14);
-                var_r31->unk6C = sp14;
-                var_r31->unk54 = var_r31->unk3C;
-                temp_r30 = var_r31->unk0->data;
-                temp_r30->unk8 = var_r31->unk4;
-                temp_r30->unk40.y += var_f31;
-                if (var_r31->unk4 != 5) {
-                    temp_r30->unk34 = var_r31->unk3C;
-                    temp_r30->unk34.y -= 80.0f;
-                    omSetTra(var_r31->unk0, temp_r30->unk34.x, temp_r30->unk34.y, temp_r30->unk34.z);
-                    omSetRot(var_r31->unk0, temp_r30->unk40.x, temp_r30->unk40.y, temp_r30->unk40.z);
+                Hu3DModelPosSet(physicsState->modelId, physicsState->position.x, physicsState->position.y, physicsState->position.z);
+                Hu3DModelPosSet(physicsState->shadowModelId, physicsState->position.x, physicsState->position.y, physicsState->position.z);
+                VECSubtract(&physicsState->position, &physicsState->previousPosition, &positionDelta);
+                physicsState->velocity = positionDelta;
+                physicsState->previousPosition = physicsState->position;
+                characterState = physicsState->object->data;
+                characterState->actionState = physicsState->state;
+                characterState->rotation.y += cameraYaw;
+                if (physicsState->state != 5) {
+                    characterState->worldPosition = physicsState->position;
+                    characterState->worldPosition.y -= 80.0f;
+                    omSetTra(physicsState->object, characterState->worldPosition.x, characterState->worldPosition.y, characterState->worldPosition.z);
+                    omSetRot(physicsState->object, characterState->rotation.x, characterState->rotation.y, characterState->rotation.z);
                 }
             }
         }
     }
 }
 
-void fn_1_5018(void)
+void BallCollisionUpdate(void)
 {
-    M424DllBallStruct3 sp27C[32];
-    Vec sp270;
-    Vec sp264;
-    Vec sp258;
-    Vec sp24C;
-    Vec sp240;
-    Vec sp234;
-    Vec sp228;
-    f32 var_f31;
-    f32 var_f30;
-    f32 var_f29;
-    f32 temp_f28;
-    M424DllBallStruct2 *var_r31;
-    M424DllBallStruct2 *var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r25;
+    M424BallObjectState collisionEvents[32];
+    Vec secondBallVelocityResult;
+    Vec secondBallImpulseResult;
+    Vec firstBallImpulseResult;
+    Vec firstBallVelocityResult;
+    Vec horizontalPosition;
+    Vec bounceVelocity;
+    Vec collisionNormal;
+    f32 collisionTime;
+    f32 earliestCollisionTime;
+    f32 remainingFrameTime;
+    f32 boundaryPenetration;
+    M424BallPhysicsState *ballState;
+    M424BallPhysicsState *otherBallState;
+    s32 collisionEventCount;
+    s32 ballIndex;
+    s32 duplicateEventIndex;
+    s32 collisionIteration;
+    s32 otherBallIndex;
 
-    var_r31 = &lbl_1_bss_60[0];
-    for (var_r28 = 0; var_r28 < lbl_1_bss_58; var_r28++, var_r31++) {
-        var_r31->unk90 = 1;
+    ballState = &ballPhysicsStates[0];
+    for (ballIndex = 0; ballIndex < ballCount; ballIndex++, ballState++) {
+        ballState->collisionDetected = 1;
     }
 
-    for (var_r26 = 0, var_f29 = 1.0f; var_r26 < 0x80; var_f29 -= var_f30, var_r26++) {
-        var_r29 = 0;
-        var_f30 = var_f29;
-        var_r31 = &lbl_1_bss_60[0];
-        for (var_r28 = 0; var_r28 < lbl_1_bss_58; var_r28++, var_r31++) {
-            if ((var_r31->unk90 != 0) && (var_r31->unk4 < 4)) {
-                var_r31->unk90 = 0;
-                if (var_r31->unk4 < 3) {
-                    if (var_r31->unk6C.y < 0.0f) {
-                        var_f31 = (200.0f - (var_r31->unk60.y - 100.0f)) / var_r31->unk6C.y;
-                        if (var_f31 <= var_f29) {
-                            if (var_f31 < 0.0f) {
-                                var_f31 = 0.0f;
+    for (collisionIteration = 0, remainingFrameTime = 1.0f; collisionIteration < 0x80; remainingFrameTime -= earliestCollisionTime, collisionIteration++) {
+        collisionEventCount = 0;
+        earliestCollisionTime = remainingFrameTime;
+        ballState = &ballPhysicsStates[0];
+        for (ballIndex = 0; ballIndex < ballCount; ballIndex++, ballState++) {
+            if ((ballState->collisionDetected != 0) && (ballState->state < 4)) {
+                ballState->collisionDetected = 0;
+                if (ballState->state < 3) {
+                    if (ballState->velocity.y < 0.0f) {
+                        collisionTime = (200.0f - (ballState->currentPosition.y - 100.0f)) / ballState->velocity.y;
+                        if (collisionTime <= remainingFrameTime) {
+                            if (collisionTime < 0.0f) {
+                                collisionTime = 0.0f;
                             }
-                            var_r31->unk90 = 1;
-                            if (var_f31 <= var_f30) {
-                                if (var_f31 < var_f30) {
-                                    var_r29 = 0;
+                            ballState->collisionDetected = 1;
+                            if (collisionTime <= earliestCollisionTime) {
+                                if (collisionTime < earliestCollisionTime) {
+                                    collisionEventCount = 0;
                                 }
-                                sp27C[var_r29].unk0 = 0;
-                                sp27C[var_r29].unk4 = var_r31;
-                                sp27C[var_r29].unk8 = 0;
-                                var_r29++;
-                                var_f30 = var_f31;
+                                collisionEvents[collisionEventCount].collisionType = 0;
+                                collisionEvents[collisionEventCount].firstBall = ballState;
+                                collisionEvents[collisionEventCount].secondBall = 0;
+                                collisionEventCount++;
+                                earliestCollisionTime = collisionTime;
                             }
                         }
                     }
-                    if (var_r31->unk4 == 1) {
-                        var_f31 = fn_1_7420(var_r31->unk60, var_r31->unk84, 100.0f, 700.0f);
+                    if (ballState->state == 1) {
+                        collisionTime = SphereBoundaryTimeXz(ballState->currentPosition, ballState->targetVelocity, 100.0f, 700.0f);
                     }
                     else {
-                        var_f31 = fn_1_7420(var_r31->unk60, var_r31->unk6C, 100.0f, 700.0f);
+                        collisionTime = SphereBoundaryTimeXz(ballState->currentPosition, ballState->velocity, 100.0f, 700.0f);
                     }
-                    if (var_f31 >= 0.0f && var_f31 <= var_f29) {
-                        var_r31->unk90 = 1;
-                        if (var_f31 <= var_f30) {
-                            if (var_f31 < var_f30) {
-                                var_r29 = 0;
+                    if (collisionTime >= 0.0f && collisionTime <= remainingFrameTime) {
+                        ballState->collisionDetected = 1;
+                        if (collisionTime <= earliestCollisionTime) {
+                            if (collisionTime < earliestCollisionTime) {
+                                collisionEventCount = 0;
                             }
-                            sp27C[var_r29].unk0 = 1;
-                            sp27C[var_r29].unk4 = var_r31;
-                            sp27C[var_r29].unk8 = 0;
-                            var_r29++;
-                            var_f30 = var_f31;
+                            collisionEvents[collisionEventCount].collisionType = 1;
+                            collisionEvents[collisionEventCount].firstBall = ballState;
+                            collisionEvents[collisionEventCount].secondBall = 0;
+                            collisionEventCount++;
+                            earliestCollisionTime = collisionTime;
                         }
                     }
-                    if (var_r31->unk4 == 1) {
-                        var_f31 = fn_1_709C(var_r31->unk60, var_r31->unk84, 100.0f, 250.0f);
+                    if (ballState->state == 1) {
+                        collisionTime = SphereCollisionTimeXz(ballState->currentPosition, ballState->targetVelocity, 100.0f, 250.0f);
                     }
                     else {
-                        var_f31 = fn_1_709C(var_r31->unk60, var_r31->unk6C, 100.0f, 250.0f);
+                        collisionTime = SphereCollisionTimeXz(ballState->currentPosition, ballState->velocity, 100.0f, 250.0f);
                     }
-                    if (var_f31 >= 0.0f && var_f31 <= var_f29) {
-                        var_r31->unk90 = 1;
-                        if (var_f31 <= var_f30) {
-                            if (var_f31 < var_f30) {
-                                var_r29 = 0;
+                    if (collisionTime >= 0.0f && collisionTime <= remainingFrameTime) {
+                        ballState->collisionDetected = 1;
+                        if (collisionTime <= earliestCollisionTime) {
+                            if (collisionTime < earliestCollisionTime) {
+                                collisionEventCount = 0;
                             }
-                            sp27C[var_r29].unk0 = 2;
-                            sp27C[var_r29].unk4 = var_r31;
-                            sp27C[var_r29].unk8 = 0;
-                            var_r29++;
-                            var_f30 = var_f31;
+                            collisionEvents[collisionEventCount].collisionType = 2;
+                            collisionEvents[collisionEventCount].firstBall = ballState;
+                            collisionEvents[collisionEventCount].secondBall = 0;
+                            collisionEventCount++;
+                            earliestCollisionTime = collisionTime;
                         }
                     }
                 }
 
-                var_r30 = lbl_1_bss_60;
-                for (var_r25 = 0; var_r25 < lbl_1_bss_58; var_r25++, var_r30++) {
-                    if ((var_r31 != var_r30) && (var_r30->unk4 < 4)) {
-                        if ((var_r31->unk4 == 1) && (var_r30->unk4 == 1)) {
-                            var_f31 = fn_1_6D10(var_r31->unk60, var_r31->unk84, 100.0f, var_r30->unk60, var_r30->unk84, 100.0f);
+                otherBallState = ballPhysicsStates;
+                for (otherBallIndex = 0; otherBallIndex < ballCount; otherBallIndex++, otherBallState++) {
+                    if ((ballState != otherBallState) && (otherBallState->state < 4)) {
+                        if ((ballState->state == 1) && (otherBallState->state == 1)) {
+                            collisionTime = SphereCollisionTime3d(ballState->currentPosition, ballState->targetVelocity, 100.0f, otherBallState->currentPosition, otherBallState->targetVelocity, 100.0f);
                         }
                         else {
-                            var_f31 = fn_1_6D10(var_r31->unk60, var_r31->unk6C, 100.0f, var_r30->unk60, var_r30->unk6C, 100.0f);
+                            collisionTime = SphereCollisionTime3d(ballState->currentPosition, ballState->velocity, 100.0f, otherBallState->currentPosition, otherBallState->velocity, 100.0f);
                         }
-                        if ((var_f31 < 0.0f) || (var_f31 > var_f29))
+                        if ((collisionTime < 0.0f) || (collisionTime > remainingFrameTime))
                             continue;
-                        var_r31->unk90 = 1;
-                        var_r30->unk90 = 1;
-                        if (var_f31 > var_f30)
+                        ballState->collisionDetected = 1;
+                        otherBallState->collisionDetected = 1;
+                        if (collisionTime > earliestCollisionTime)
                             continue;
-                        if (var_f31 < var_f30) {
-                            var_r29 = 0;
+                        if (collisionTime < earliestCollisionTime) {
+                            collisionEventCount = 0;
                         }
                         else {
-                            for (var_r27 = 0; var_r27 < var_r29; var_r27++) {
-                                if ((sp27C[var_r27].unk4 == var_r30) && (sp27C[var_r27].unk8 == var_r31))
+                            for (duplicateEventIndex = 0; duplicateEventIndex < collisionEventCount; duplicateEventIndex++) {
+                                if ((collisionEvents[duplicateEventIndex].firstBall == otherBallState) && (collisionEvents[duplicateEventIndex].secondBall == ballState))
                                     break;
                             }
-                            if (var_r27 < var_r29)
+                            if (duplicateEventIndex < collisionEventCount)
                                 continue;
                         }
-                        sp27C[var_r29].unk0 = 3;
-                        sp27C[var_r29].unk4 = var_r31;
-                        sp27C[var_r29].unk8 = var_r30;
-                        var_r29++;
-                        var_f30 = var_f31;
+                        collisionEvents[collisionEventCount].collisionType = 3;
+                        collisionEvents[collisionEventCount].firstBall = ballState;
+                        collisionEvents[collisionEventCount].secondBall = otherBallState;
+                        collisionEventCount++;
+                        earliestCollisionTime = collisionTime;
                     }
                 }
             }
         }
-        if (var_r29 == 0)
+        if (collisionEventCount == 0)
             break;
-        var_r31 = lbl_1_bss_60;
-        for (var_r28 = 0; var_r28 < lbl_1_bss_58; var_r28++, var_r31++) {
-            var_r31->unk60.x += var_r31->unk6C.x * var_f30;
-            var_r31->unk60.y += var_r31->unk6C.y * var_f30;
-            var_r31->unk60.z += var_r31->unk6C.z * var_f30;
+        ballState = ballPhysicsStates;
+        for (ballIndex = 0; ballIndex < ballCount; ballIndex++, ballState++) {
+            ballState->currentPosition.x += ballState->velocity.x * earliestCollisionTime;
+            ballState->currentPosition.y += ballState->velocity.y * earliestCollisionTime;
+            ballState->currentPosition.z += ballState->velocity.z * earliestCollisionTime;
         }
-        for (var_r28 = 0; var_r28 < var_r29; var_r28++) {
-            switch (sp27C[var_r28].unk0) {
+        for (ballIndex = 0; ballIndex < collisionEventCount; ballIndex++) {
+            switch (collisionEvents[ballIndex].collisionType) {
                 case 0:
-                    var_r31 = sp27C[var_r28].unk4;
-                    var_r31->unk4 = 1;
-                    sp234.y = 300.0f - var_r31->unk60.y;
-                    var_r31->unk60.y = 300.0f;
-                    var_r31->unk6C.y = sp234.y;
-                    var_r31->unk84.y = sp234.y;
+                    ballState = collisionEvents[ballIndex].firstBall;
+                    ballState->state = 1;
+                    bounceVelocity.y = 300.0f - ballState->currentPosition.y;
+                    ballState->currentPosition.y = 300.0f;
+                    ballState->velocity.y = bounceVelocity.y;
+                    ballState->targetVelocity.y = bounceVelocity.y;
                     break;
                 case 1:
-                    var_r31 = sp27C[var_r28].unk4;
-                    sp240 = var_r31->unk60;
-                    sp240.y = 0.0f;
-                    VECNormalize(&sp240, &sp228);
-                    sp228.x = -sp228.x;
-                    sp228.y = 0.0f;
-                    sp228.z = -sp228.z;
-                    temp_f28 = VECMag(&sp240);
-                    temp_f28 -= 600.0f;
-                    var_r31->unk60.x += temp_f28 * sp228.x;
-                    var_r31->unk60.z += temp_f28 * sp228.z;
-                    sp240 = var_r31->unk60;
-                    sp240.y = 0.0f;
-                    if (var_r31->unk4 == 1) {
-                        fn_1_7CA0(var_r31->unk84, sp228, 0.8f, &sp24C);
-                        var_r31->unk84 = sp24C;
-                        VECAdd(&var_r31->unk84, &var_r31->unk78, &var_r31->unk6C);
+                    ballState = collisionEvents[ballIndex].firstBall;
+                    horizontalPosition = ballState->currentPosition;
+                    horizontalPosition.y = 0.0f;
+                    VECNormalize(&horizontalPosition, &collisionNormal);
+                    collisionNormal.x = -collisionNormal.x;
+                    collisionNormal.y = 0.0f;
+                    collisionNormal.z = -collisionNormal.z;
+                    boundaryPenetration = VECMag(&horizontalPosition);
+                    boundaryPenetration -= 600.0f;
+                    ballState->currentPosition.x += boundaryPenetration * collisionNormal.x;
+                    ballState->currentPosition.z += boundaryPenetration * collisionNormal.z;
+                    horizontalPosition = ballState->currentPosition;
+                    horizontalPosition.y = 0.0f;
+                    if (ballState->state == 1) {
+                        VectorReflect(ballState->targetVelocity, collisionNormal, 0.8f, &firstBallVelocityResult);
+                        ballState->targetVelocity = firstBallVelocityResult;
+                        VECAdd(&ballState->targetVelocity, &ballState->positionDelta, &ballState->velocity);
                     }
                     else {
-                        fn_1_7CA0(var_r31->unk6C, sp228, 0.8f, &sp24C);
-                        var_r31->unk6C = sp24C;
-                        var_r31->unk84 = var_r31->unk6C;
+                        VectorReflect(ballState->velocity, collisionNormal, 0.8f, &firstBallVelocityResult);
+                        ballState->velocity = firstBallVelocityResult;
+                        ballState->targetVelocity = ballState->velocity;
                     }
                     break;
                 case 2:
-                    var_r31 = sp27C[var_r28].unk4;
-                    sp240 = var_r31->unk60;
-                    sp240.y = 0.0f;
-                    VECNormalize(&sp240, &sp228);
-                    temp_f28 = VECMag(&sp240);
-                    temp_f28 = 350.0f;
-                    var_r31->unk60.x = temp_f28 * sp228.x;
-                    var_r31->unk60.z = temp_f28 * sp228.z;
-                    sp240 = var_r31->unk60;
-                    sp240.y = 0.0f;
-                    if (var_r31->unk4 == 1) {
-                        fn_1_7CA0(var_r31->unk84, sp228, 0.8f, &sp24C);
-                        var_r31->unk84 = sp24C;
-                        VECAdd(&var_r31->unk84, &var_r31->unk78, &var_r31->unk6C);
+                    ballState = collisionEvents[ballIndex].firstBall;
+                    horizontalPosition = ballState->currentPosition;
+                    horizontalPosition.y = 0.0f;
+                    VECNormalize(&horizontalPosition, &collisionNormal);
+                    boundaryPenetration = VECMag(&horizontalPosition);
+                    boundaryPenetration = 350.0f;
+                    ballState->currentPosition.x = boundaryPenetration * collisionNormal.x;
+                    ballState->currentPosition.z = boundaryPenetration * collisionNormal.z;
+                    horizontalPosition = ballState->currentPosition;
+                    horizontalPosition.y = 0.0f;
+                    if (ballState->state == 1) {
+                        VectorReflect(ballState->targetVelocity, collisionNormal, 0.8f, &firstBallVelocityResult);
+                        ballState->targetVelocity = firstBallVelocityResult;
+                        VECAdd(&ballState->targetVelocity, &ballState->positionDelta, &ballState->velocity);
                     }
                     else {
-                        fn_1_7CA0(var_r31->unk6C, sp228, 0.8f, &sp24C);
-                        var_r31->unk6C = sp24C;
-                        var_r31->unk84 = var_r31->unk6C;
+                        VectorReflect(ballState->velocity, collisionNormal, 0.8f, &firstBallVelocityResult);
+                        ballState->velocity = firstBallVelocityResult;
+                        ballState->targetVelocity = ballState->velocity;
                     }
                     break;
                 case 3:
-                    var_r31 = sp27C[var_r28].unk4;
-                    var_r30 = sp27C[var_r28].unk8;
-                    if (var_r31->unk4 == 3) {
-                        fn_1_79FC(&var_r30->unk3C, &var_r30->unk6C, 100.0f, &var_r31->unk3C, &var_r31->unk6C, 100.0f, 0.8f);
-                        var_r31->unk84 = var_r31->unk6C;
-                        var_r30->unk84 = var_r30->unk6C;
+                    ballState = collisionEvents[ballIndex].firstBall;
+                    otherBallState = collisionEvents[ballIndex].secondBall;
+                    if (ballState->state == 3) {
+                        SpheresResolveCollision(&otherBallState->position, &otherBallState->velocity, 100.0f, &ballState->position, &ballState->velocity, 100.0f, 0.8f);
+                        ballState->targetVelocity = ballState->velocity;
+                        otherBallState->targetVelocity = otherBallState->velocity;
                     }
-                    else if (var_r30->unk4 == 3) {
-                        fn_1_79FC(&var_r31->unk3C, &var_r31->unk6C, 100.0f, &var_r30->unk3C, &var_r30->unk6C, 100.0f, 0.8f);
-                        var_r31->unk84 = var_r31->unk6C;
-                        var_r30->unk84 = var_r30->unk6C;
+                    else if (otherBallState->state == 3) {
+                        SpheresResolveCollision(&ballState->position, &ballState->velocity, 100.0f, &otherBallState->position, &otherBallState->velocity, 100.0f, 0.8f);
+                        ballState->targetVelocity = ballState->velocity;
+                        otherBallState->targetVelocity = otherBallState->velocity;
                     }
-                    else if ((var_r31->unk4 == 1) && (var_r30->unk4 == 1)) {
-                        fn_1_77C4(var_r31->unk60, var_r31->unk84, var_r30->unk60, 0.8f, &sp24C, &sp258);
-                        fn_1_77C4(var_r30->unk60, var_r30->unk84, var_r31->unk60, 0.8f, &sp270, &sp264);
-                        VECAdd(&sp24C, &sp264, &var_r31->unk84);
-                        VECAdd(&sp258, &sp270, &var_r30->unk84);
-                        VECAdd(&var_r31->unk84, &var_r31->unk78, &var_r31->unk6C);
-                        VECAdd(&var_r30->unk84, &var_r30->unk78, &var_r30->unk6C);
+                    else if ((ballState->state == 1) && (otherBallState->state == 1)) {
+                        VelocitySplitByCollision(ballState->currentPosition, ballState->targetVelocity, otherBallState->currentPosition, 0.8f, &firstBallVelocityResult, &firstBallImpulseResult);
+                        VelocitySplitByCollision(otherBallState->currentPosition, otherBallState->targetVelocity, ballState->currentPosition, 0.8f, &secondBallVelocityResult, &secondBallImpulseResult);
+                        VECAdd(&firstBallVelocityResult, &secondBallImpulseResult, &ballState->targetVelocity);
+                        VECAdd(&firstBallImpulseResult, &secondBallVelocityResult, &otherBallState->targetVelocity);
+                        VECAdd(&ballState->targetVelocity, &ballState->positionDelta, &ballState->velocity);
+                        VECAdd(&otherBallState->targetVelocity, &otherBallState->positionDelta, &otherBallState->velocity);
                     }
                     else {
-                        fn_1_77C4(var_r31->unk60, var_r31->unk6C, var_r30->unk60, 0.8f, &sp24C, &sp258);
-                        fn_1_77C4(var_r30->unk60, var_r30->unk6C, var_r31->unk60, 0.8f, &sp270, &sp264);
-                        VECAdd(&sp24C, &sp264, &var_r31->unk6C);
-                        VECAdd(&sp258, &sp270, &var_r30->unk6C);
-                        var_r31->unk84 = var_r31->unk6C;
-                        var_r30->unk84 = var_r30->unk6C;
+                        VelocitySplitByCollision(ballState->currentPosition, ballState->velocity, otherBallState->currentPosition, 0.8f, &firstBallVelocityResult, &firstBallImpulseResult);
+                        VelocitySplitByCollision(otherBallState->currentPosition, otherBallState->velocity, ballState->currentPosition, 0.8f, &secondBallVelocityResult, &secondBallImpulseResult);
+                        VECAdd(&firstBallVelocityResult, &secondBallImpulseResult, &ballState->velocity);
+                        VECAdd(&firstBallImpulseResult, &secondBallVelocityResult, &otherBallState->velocity);
+                        ballState->targetVelocity = ballState->velocity;
+                        otherBallState->targetVelocity = otherBallState->velocity;
                     }
                     break;
             }
         }
     }
-    var_r31 = lbl_1_bss_60;
-    for (var_r28 = 0; var_r28 < lbl_1_bss_58; var_r28++, var_r31++) {
-        var_r31->unk3C.x = var_r31->unk60.x + (var_r31->unk6C.x * var_f29);
-        var_r31->unk3C.y = var_r31->unk60.y + (var_r31->unk6C.y * var_f29);
-        var_r31->unk3C.z = var_r31->unk60.z + (var_r31->unk6C.z * var_f29);
+    ballState = ballPhysicsStates;
+    for (ballIndex = 0; ballIndex < ballCount; ballIndex++, ballState++) {
+        ballState->position.x = ballState->currentPosition.x + (ballState->velocity.x * remainingFrameTime);
+        ballState->position.y = ballState->currentPosition.y + (ballState->velocity.y * remainingFrameTime);
+        ballState->position.z = ballState->currentPosition.z + (ballState->velocity.z * remainingFrameTime);
     }
 }
 
-void fn_1_6038(void)
+void BallObjectsSetup(void)
 {
-    s32 var_r31;
+    s32 ballIndex;
 
-    for (var_r31 = 0; var_r31 < 0x20; var_r31++) {
-        lbl_1_bss_5BC[var_r31] = 0;
+    for (ballIndex = 0; ballIndex < 0x20; ballIndex++) {
+        ballAllocationSlots[ballIndex] = 0;
     }
 }
 
-void *fn_1_6078(s32 arg0)
+void *BallStateAlloc(s32 allocationSize)
 {
-    s32 var_r31;
+    s32 allocationSlot;
 
-    for (var_r31 = 0; var_r31 < 0x20; var_r31++) {
-        if (lbl_1_bss_5BC[var_r31] == 0)
+    for (allocationSlot = 0; allocationSlot < 0x20; allocationSlot++) {
+        if (ballAllocationSlots[allocationSlot] == 0)
             break;
     }
-    if (var_r31 == 0x20) {
+    if (allocationSlot == 0x20) {
         return NULL;
     }
-    lbl_1_bss_5BC[var_r31] = HuMemDirectMallocNum(HEAP_HEAP, arg0, 0x10000000);
-    return lbl_1_bss_5BC[var_r31];
+    ballAllocationSlots[allocationSlot] = HuMemDirectMallocNum(HEAP_HEAP, allocationSize, 0x10000000);
+    return ballAllocationSlots[allocationSlot];
 }
 
-void fn_1_6118(void *arg0)
+void BallStateFree(void *stateAllocation)
 {
-    s32 var_r31;
+    s32 slotIndex;
 
-    for (var_r31 = 0; var_r31 < 0x20; var_r31++) {
-        if (lbl_1_bss_5BC[var_r31] == arg0)
+    for (slotIndex = 0; slotIndex < 0x20; slotIndex++) {
+        if (ballAllocationSlots[slotIndex] == stateAllocation)
             break;
     }
-    if (var_r31 != 0x20) {
-        HuMemDirectFree(lbl_1_bss_5BC[var_r31]);
-        lbl_1_bss_5BC[var_r31] = NULL;
+    if (slotIndex != 0x20) {
+        HuMemDirectFree(ballAllocationSlots[slotIndex]);
+        ballAllocationSlots[slotIndex] = NULL;
     }
 }
 
-void fn_1_61AC(void)
+void BallObjectsDestroy(void)
 {
-    s32 var_r31;
+    s32 slotIndex;
 
-    for (var_r31 = 0; var_r31 < 0x20; var_r31++) {
-        if (lbl_1_bss_5BC[var_r31]) {
-            HuMemDirectFree(lbl_1_bss_5BC[var_r31]);
-            lbl_1_bss_5BC[var_r31] = NULL;
+    for (slotIndex = 0; slotIndex < 0x20; slotIndex++) {
+        if (ballAllocationSlots[slotIndex]) {
+            HuMemDirectFree(ballAllocationSlots[slotIndex]);
+            ballAllocationSlots[slotIndex] = NULL;
         }
     }
 }
 
-void fn_1_6230(s16 arg0, Mtx arg1)
+void ModelMatrixApply(s16 modelId, Mtx modelMatrix)
 {
-    HU3DMODEL *var_r31;
+    HU3DMODEL *model;
 
-    var_r31 = &Hu3DData[arg0];
-    MTXCopy(arg1, var_r31->mtx);
+    model = &Hu3DData[modelId];
+    MTXCopy(modelMatrix, model->mtx);
 }
 
-u32 lbl_1_data_1D8 = 0x41C64E6D;
+u32 randomSeed = 0x41C64E6D;
 
-s32 fn_1_627C(void)
+s32 RandomU16Get(void)
 {
-    lbl_1_data_1D8 *= 0x41C64E6D;
-    lbl_1_data_1D8 += 0x3039;
-    return lbl_1_data_1D8 >> 0x10;
+    randomSeed *= 0x41C64E6D;
+    randomSeed += 0x3039;
+    return randomSeed >> 0x10;
 }
 
-void fn_1_62D0(s32 arg0, u32 *arg1)
+void RandomIndicesShuffle(s32 itemCount, u32 *indices)
 {
-    s32 var_r31;
-    s32 temp_r30;
-    u32 temp_r29;
+    s32 index;
+    s32 swapIndex;
+    u32 savedIndexValue;
 
-    for (var_r31 = 0; var_r31 < arg0; var_r31++) {
-        arg1[var_r31] = var_r31;
+    for (index = 0; index < itemCount; index++) {
+        indices[index] = index;
     }
 
-    for (var_r31 = 0; var_r31 < arg0 - 1; var_r31++) {
-        temp_r30 = (arg0 * (fn_1_627C() / 65536.0f));
-        temp_r29 = arg1[var_r31];
-        arg1[var_r31] = arg1[temp_r30];
-        arg1[temp_r30] = temp_r29;
+    for (index = 0; index < itemCount - 1; index++) {
+        swapIndex = (itemCount * (RandomU16Get() / 65536.0f));
+        savedIndexValue = indices[index];
+        indices[index] = indices[swapIndex];
+        indices[swapIndex] = savedIndexValue;
     }
 }
 
-f32 fn_1_640C(f32 arg0, f32 arg1, f32 arg2)
+f32 AngleApproachDegrees(f32 currentAngle, f32 targetAngle, f32 approachFactor)
 {
-    f32 var_f31;
+    f32 angleDifference;
 
-    if (arg0 > 180.0f) {
-        arg0 -= 360.0f;
+    if (currentAngle > 180.0f) {
+        currentAngle -= 360.0f;
     }
     else {
-        if (arg0 <= -180.0f) {
-            arg0 += 360.0f;
+        if (currentAngle <= -180.0f) {
+            currentAngle += 360.0f;
         }
     }
-    if (arg1 > 180.0f) {
-        arg1 -= 360.0f;
+    if (targetAngle > 180.0f) {
+        targetAngle -= 360.0f;
     }
     else {
-        if (arg1 <= -180.0f) {
-            arg1 += 360.0f;
+        if (targetAngle <= -180.0f) {
+            targetAngle += 360.0f;
         }
     }
-    var_f31 = arg0 - arg1;
-    if (var_f31 > 180.0f) {
-        var_f31 -= 360.0f;
+    angleDifference = currentAngle - targetAngle;
+    if (angleDifference > 180.0f) {
+        angleDifference -= 360.0f;
     }
     else {
-        if (var_f31 <= -180.0f) {
-            var_f31 += 360.0f;
+        if (angleDifference <= -180.0f) {
+            angleDifference += 360.0f;
         }
     }
-    arg0 = arg1 + (var_f31 * arg2);
-    if (arg0 > 180.0f) {
-        return arg0 - 360.0f;
+    currentAngle = targetAngle + (angleDifference * approachFactor);
+    if (currentAngle > 180.0f) {
+        return currentAngle - 360.0f;
     }
-    if (arg0 <= -180.0f) {
-        arg0 += 360.0f;
+    if (currentAngle <= -180.0f) {
+        currentAngle += 360.0f;
     }
-    return arg0;
+    return currentAngle;
 }
 
-void fn_1_6574(Mtx arg0, f32 arg8, f32 arg9, f32 argA)
+void RotationMatrixCompose(Mtx rotationMatrix, f32 xRotationDegrees, f32 yRotationDegrees, f32 zRotationDegrees)
 {
-    Mtx sp38;
-    Mtx sp8;
+    Mtx xRotationMatrix;
+    Mtx yRotationMatrix;
 
-    if (argA != 0.0f) {
-        MTXRotRad(arg0, 0x5A, MTXDegToRad(argA));
+    if (zRotationDegrees != 0.0f) {
+        MTXRotRad(rotationMatrix, 0x5A, MTXDegToRad(zRotationDegrees));
     }
     else {
-        MTXIdentity(arg0);
+        MTXIdentity(rotationMatrix);
     }
-    if (arg8 != 0.0f) {
-        MTXRotRad(sp38, 0x58, MTXDegToRad(arg8));
-        MTXConcat(sp38, arg0, arg0);
+    if (xRotationDegrees != 0.0f) {
+        MTXRotRad(xRotationMatrix, 0x58, MTXDegToRad(xRotationDegrees));
+        MTXConcat(xRotationMatrix, rotationMatrix, rotationMatrix);
     }
-    if (arg9 != 0.0f) {
-        MTXRotRad(sp8, 0x59, MTXDegToRad(arg9));
-        MTXConcat(sp8, arg0, arg0);
-    }
-}
-
-void fn_1_6694(M424BallStruct4 *arg0, Vec *arg1)
-{
-    f32 temp_f29;
-    f32 var_f28;
-
-    arg1->x = atan2d(arg0->unk18, arg0->unk28);
-    if (arg1->x < 0.0f) {
-        arg1->x += 360.0f;
-    }
-    arg1->z = atan2d(arg0->unk4, arg0->unk0);
-    if (arg1->z < 0.0f) {
-        arg1->z += 360.0f;
-    }
-    temp_f29 = -arg0->unk8;
-    var_f28 = sqrtf(ABS(1.0 - (temp_f29 * temp_f29)));
-    if ((arg1->x > 90.0f) && (arg1->x < 270.0f) && (arg1->z > 90.0f) && (arg1->z < 270.0f)) {
-        arg1->x = fmod((180.0f + arg1->x), 360.0);
-        arg1->z = fmod((180.0f + arg1->z), 360.0);
-        var_f28 = -var_f28;
-    }
-    arg1->y = atan2d(temp_f29, var_f28);
-    if (arg1->y < 0.0f) {
-        arg1->y += 360.0f;
+    if (yRotationDegrees != 0.0f) {
+        MTXRotRad(yRotationMatrix, 0x59, MTXDegToRad(yRotationDegrees));
+        MTXConcat(yRotationMatrix, rotationMatrix, rotationMatrix);
     }
 }
 
-void fn_1_6A30(M424BallStruct4 *arg0, Vec *arg1)
+void BallCollisionStateToEuler(M424BallCollisionState *collisionState, Vec *eulerAngles)
 {
-    f32 temp_f29;
-    f32 var_f27;
+    f32 negativeZComponent;
+    f32 horizontalComponent;
 
-    arg1->z = atan2d(arg0->unk4, arg0->unk14);
-    if (arg1->z < 0.0f) {
-        arg1->z += 360.0f;
+    eulerAngles->x = atan2d(collisionState->targetRotation, collisionState->motionFrame);
+    if (eulerAngles->x < 0.0f) {
+        eulerAngles->x += 360.0f;
     }
-    arg1->y = atan2d(arg0->unk8, arg0->unk28);
-    if (arg1->y < 0.0f) {
-        arg1->y += 360.0f;
+    eulerAngles->z = atan2d(collisionState->positionY, collisionState->positionX);
+    if (eulerAngles->z < 0.0f) {
+        eulerAngles->z += 360.0f;
     }
-    temp_f29 = -arg0->unk24;
-    var_f27 = sqrtf(ABS(1.0 - (temp_f29 * temp_f29)));
-    arg1->x = atan2d(temp_f29, var_f27);
-    if (arg1->x < 0.0f) {
-        arg1->x += 360.0f;
+    negativeZComponent = -collisionState->positionZ;
+    horizontalComponent = sqrtf(ABS(1.0 - (negativeZComponent * negativeZComponent)));
+    if ((eulerAngles->x > 90.0f) && (eulerAngles->x < 270.0f) && (eulerAngles->z > 90.0f) && (eulerAngles->z < 270.0f)) {
+        eulerAngles->x = fmod((180.0f + eulerAngles->x), 360.0);
+        eulerAngles->z = fmod((180.0f + eulerAngles->z), 360.0);
+        horizontalComponent = -horizontalComponent;
+    }
+    eulerAngles->y = atan2d(negativeZComponent, horizontalComponent);
+    if (eulerAngles->y < 0.0f) {
+        eulerAngles->y += 360.0f;
     }
 }
 
-f32 fn_1_6D10(Vec arg0, Vec arg1, f32 arg2, Vec arg3, Vec arg4, f32 arg5)
+void BallCollisionStateToEulerAlt(M424BallCollisionState *collisionState, Vec *eulerAngles)
 {
-    f32 temp_f30;
-    f32 temp_f29;
-    f32 temp_f28;
-    f32 temp_f27;
-    f32 temp_f26;
-    f32 temp_f25;
-    f32 var_f23;
+    f32 negativeScaleComponent;
+    f32 horizontalComponent;
 
-    VECSubtract(&arg3, &arg0, &arg3);
-    VECSubtract(&arg4, &arg1, &arg4);
-    temp_f29 = arg2 + arg5;
-    if (VECMag(&arg3) > temp_f29 + VECMag(&arg4)) {
+    eulerAngles->z = atan2d(collisionState->positionY, collisionState->targetPosition);
+    if (eulerAngles->z < 0.0f) {
+        eulerAngles->z += 360.0f;
+    }
+    eulerAngles->y = atan2d(collisionState->positionZ, collisionState->motionFrame);
+    if (eulerAngles->y < 0.0f) {
+        eulerAngles->y += 360.0f;
+    }
+    negativeScaleComponent = -collisionState->targetScale;
+    horizontalComponent = sqrtf(ABS(1.0 - (negativeScaleComponent * negativeScaleComponent)));
+    eulerAngles->x = atan2d(negativeScaleComponent, horizontalComponent);
+    if (eulerAngles->x < 0.0f) {
+        eulerAngles->x += 360.0f;
+    }
+}
+
+f32 SphereCollisionTime3d(Vec firstPosition, Vec firstVelocity, f32 firstRadius, Vec secondPosition, Vec secondVelocity, f32 secondRadius)
+{
+    f32 discriminant;
+    f32 combinedRadius;
+    f32 laterCollisionTime;
+    f32 velocitySquared;
+    f32 twicePositionVelocityDot;
+    f32 earlierCollisionTime;
+    f32 positionSquaredMinusRadius;
+
+    VECSubtract(&secondPosition, &firstPosition, &secondPosition);
+    VECSubtract(&secondVelocity, &firstVelocity, &secondVelocity);
+    combinedRadius = firstRadius + secondRadius;
+    if (VECMag(&secondPosition) > combinedRadius + VECMag(&secondVelocity)) {
         return -1.0f;
     }
-    temp_f29 *= temp_f29;
-    temp_f27 = (arg4.z * arg4.z) + ((arg4.x * arg4.x) + (arg4.y * arg4.y));
-    temp_f26 = 2.0f * ((arg4.z * arg3.z) + ((arg4.x * arg3.x) + (arg4.y * arg3.y)));
-    var_f23 = ((arg3.z * arg3.z) + ((arg3.x * arg3.x) + (arg3.y * arg3.y))) - temp_f29;
-    if (temp_f27 == 0.0f) {
+    combinedRadius *= combinedRadius;
+    velocitySquared = (secondVelocity.z * secondVelocity.z) + ((secondVelocity.x * secondVelocity.x) + (secondVelocity.y * secondVelocity.y));
+    twicePositionVelocityDot = 2.0f * ((secondVelocity.z * secondPosition.z) + ((secondVelocity.x * secondPosition.x) + (secondVelocity.y * secondPosition.y)));
+    positionSquaredMinusRadius = ((secondPosition.z * secondPosition.z) + ((secondPosition.x * secondPosition.x) + (secondPosition.y * secondPosition.y))) - combinedRadius;
+    if (velocitySquared == 0.0f) {
         return -1.0f;
     }
-    temp_f30 = (temp_f26 * temp_f26) - (4.0f * temp_f27 * var_f23);
-    if (temp_f30 <= 0.0f) {
+    discriminant = (twicePositionVelocityDot * twicePositionVelocityDot) - (4.0f * velocitySquared * positionSquaredMinusRadius);
+    if (discriminant <= 0.0f) {
         return -1.0f;
     }
-    temp_f30 = sqrtf(temp_f30);
-    temp_f25 = (-temp_f26 + temp_f30) / (2.0f * temp_f27);
-    temp_f28 = (-temp_f26 - temp_f30) / (2.0f * temp_f27);
-    if (((temp_f25 * temp_f28) < 0.0f) && (temp_f28 < 0.0f) && (temp_f25 > fabs(temp_f28))) {
+    discriminant = sqrtf(discriminant);
+    earlierCollisionTime = (-twicePositionVelocityDot + discriminant) / (2.0f * velocitySquared);
+    laterCollisionTime = (-twicePositionVelocityDot - discriminant) / (2.0f * velocitySquared);
+    if (((earlierCollisionTime * laterCollisionTime) < 0.0f) && (laterCollisionTime < 0.0f) && (earlierCollisionTime > fabs(laterCollisionTime))) {
         return 0.0f;
     }
-    return temp_f28;
+    return laterCollisionTime;
 }
 
-f32 fn_1_709C(Vec arg0, Vec arg1, f32 arg2, f32 arg3)
+f32 SphereCollisionTimeXz(Vec startPosition, Vec velocity, f32 firstRadius, f32 secondRadius)
 {
-    Vec sp20;
-    Vec sp14;
-    f32 temp_f30;
-    f32 temp_f29;
-    f32 temp_f28;
-    f32 temp_f27;
-    f32 temp_f26;
-    f32 temp_f25;
-    f32 var_f23;
+    Vec flatPosition;
+    Vec flatVelocity;
+    f32 discriminant;
+    f32 combinedRadius;
+    f32 laterCollisionTime;
+    f32 velocitySquared;
+    f32 twicePositionVelocityDot;
+    f32 earlierCollisionTime;
+    f32 positionSquaredMinusRadius;
 
-    sp20 = arg0;
-    sp20.y = 0.0f;
-    sp14 = arg1;
-    sp14.y = 0.0f;
-    temp_f29 = arg3 + arg2;
-    if (VECMag(&sp20) > temp_f29 + VECMag(&sp14)) {
+    flatPosition = startPosition;
+    flatPosition.y = 0.0f;
+    flatVelocity = velocity;
+    flatVelocity.y = 0.0f;
+    combinedRadius = secondRadius + firstRadius;
+    if (VECMag(&flatPosition) > combinedRadius + VECMag(&flatVelocity)) {
         return -1.0f;
     }
-    temp_f29 *= temp_f29;
-    temp_f27 = (arg1.x * arg1.x) + (arg1.z * arg1.z);
-    temp_f26 = 2.0f * ((arg1.x * arg0.x) + (arg1.z * arg0.z));
-    var_f23 = (((arg0.x * arg0.x) + (arg0.z * arg0.z)) - temp_f29);
-    if (0.0f == temp_f27) {
+    combinedRadius *= combinedRadius;
+    velocitySquared = (velocity.x * velocity.x) + (velocity.z * velocity.z);
+    twicePositionVelocityDot = 2.0f * ((velocity.x * startPosition.x) + (velocity.z * startPosition.z));
+    positionSquaredMinusRadius = (((startPosition.x * startPosition.x) + (startPosition.z * startPosition.z)) - combinedRadius);
+    if (0.0f == velocitySquared) {
         return -1.0f;
     }
-    temp_f30 = (temp_f26 * temp_f26) - (4.0f * temp_f27 * var_f23);
-    if (temp_f30 <= 0.0f) {
+    discriminant = (twicePositionVelocityDot * twicePositionVelocityDot) - (4.0f * velocitySquared * positionSquaredMinusRadius);
+    if (discriminant <= 0.0f) {
         return -1.0f;
     }
-    temp_f30 = sqrtf(temp_f30);
-    temp_f25 = (-temp_f26 + temp_f30) / (2.0f * temp_f27);
-    temp_f28 = (-temp_f26 - temp_f30) / (2.0f * temp_f27);
-    if (((temp_f25 * temp_f28) < 0.0f) && (temp_f28 < 0.0f) && (temp_f25 > fabs(temp_f28))) {
+    discriminant = sqrtf(discriminant);
+    earlierCollisionTime = (-twicePositionVelocityDot + discriminant) / (2.0f * velocitySquared);
+    laterCollisionTime = (-twicePositionVelocityDot - discriminant) / (2.0f * velocitySquared);
+    if (((earlierCollisionTime * laterCollisionTime) < 0.0f) && (laterCollisionTime < 0.0f) && (earlierCollisionTime > fabs(laterCollisionTime))) {
         return 0.0f;
     }
-    return temp_f28;
+    return laterCollisionTime;
 }
 
-f32 fn_1_7420(Vec arg0, Vec arg1, f32 arg2, f32 arg3)
+f32 SphereBoundaryTimeXz(Vec startPosition, Vec velocity, f32 sphereRadius, f32 boundaryRadius)
 {
-    Vec sp20;
-    Vec sp14;
-    f32 temp_f30;
-    f32 temp_f29;
-    f32 temp_f28;
-    f32 temp_f27;
-    f32 temp_f26;
-    f32 temp_f25;
-    f32 var_f23;
+    Vec flatPosition;
+    Vec flatVelocity;
+    f32 discriminant;
+    f32 availableRadius;
+    f32 laterCollisionTime;
+    f32 velocitySquared;
+    f32 twicePositionVelocityDot;
+    f32 earlierCollisionTime;
+    f32 positionSquaredMinusRadius;
 
-    sp20 = arg0;
-    sp20.y = 0.0f;
-    sp14 = arg1;
-    sp14.y = 0.0f;
-    temp_f29 = arg3 - arg2;
-    if (VECMag(&sp20) > temp_f29) {
+    flatPosition = startPosition;
+    flatPosition.y = 0.0f;
+    flatVelocity = velocity;
+    flatVelocity.y = 0.0f;
+    availableRadius = boundaryRadius - sphereRadius;
+    if (VECMag(&flatPosition) > availableRadius) {
         return 0.0f;
     }
-    if (VECMag(&sp20) > temp_f29 + VECMag(&sp14)) {
+    if (VECMag(&flatPosition) > availableRadius + VECMag(&flatVelocity)) {
         return -1.0f;
     }
-    temp_f29 *= temp_f29;
-    temp_f27 = (arg1.x * arg1.x) + (arg1.z * arg1.z);
-    temp_f26 = 2.0f * ((arg1.x * arg0.x) + (arg1.z * arg0.z));
-    var_f23 = (arg0.x * arg0.x) + (arg0.z * arg0.z) - temp_f29;
-    if (0.0f == temp_f27) {
+    availableRadius *= availableRadius;
+    velocitySquared = (velocity.x * velocity.x) + (velocity.z * velocity.z);
+    twicePositionVelocityDot = 2.0f * ((velocity.x * startPosition.x) + (velocity.z * startPosition.z));
+    positionSquaredMinusRadius = (startPosition.x * startPosition.x) + (startPosition.z * startPosition.z) - availableRadius;
+    if (0.0f == velocitySquared) {
         return -1.0f;
     }
-    temp_f30 = (temp_f26 * temp_f26) - (4.0f * temp_f27 * var_f23);
-    if (temp_f30 <= 0.0f) {
+    discriminant = (twicePositionVelocityDot * twicePositionVelocityDot) - (4.0f * velocitySquared * positionSquaredMinusRadius);
+    if (discriminant <= 0.0f) {
         return -1.0f;
     }
-    temp_f30 = sqrtf(temp_f30);
-    temp_f25 = (-temp_f26 - temp_f30) / (2.0f * temp_f27);
-    temp_f28 = (-temp_f26 + temp_f30) / (2.0f * temp_f27);
-    if (((temp_f25 * temp_f28) < 0.0f) && (temp_f28 < 0.0f) && (temp_f25 > fabs(temp_f28))) {
+    discriminant = sqrtf(discriminant);
+    earlierCollisionTime = (-twicePositionVelocityDot - discriminant) / (2.0f * velocitySquared);
+    laterCollisionTime = (-twicePositionVelocityDot + discriminant) / (2.0f * velocitySquared);
+    if (((earlierCollisionTime * laterCollisionTime) < 0.0f) && (laterCollisionTime < 0.0f) && (earlierCollisionTime > fabs(laterCollisionTime))) {
         return 0.0f;
     }
-    return temp_f28;
+    return laterCollisionTime;
 }
 
-void fn_1_77C4(Vec arg0, Vec arg1, Vec arg2, f32 arg3, Vec *arg4, Vec *arg5)
+void VelocitySplitByCollision(Vec position, Vec incomingVelocity, Vec otherPosition, f32 restitution, Vec *tangentialVelocity, Vec *normalVelocity)
 {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    f32 var_f31;
-    f32 temp_f30;
-    f32 temp_f29;
-    f32 var_f28;
+    Vec normalizedVelocity;
+    Vec collisionNormal;
+    Vec tangentDirection;
+    Vec crossProduct;
+    f32 incomingSpeed;
+    f32 tangentialSpeed;
+    f32 normalSpeed;
+    f32 normalDotProduct;
 
-    sp38 = arg1;
-    var_f31 = VECMag(&sp38);
-    if (var_f31 < 0.01f) {
-        arg4->x = arg4->y = arg4->z = 0.0f;
-        arg5->x = arg5->y = arg5->z = 0.0f;
+    normalizedVelocity = incomingVelocity;
+    incomingSpeed = VECMag(&normalizedVelocity);
+    if (incomingSpeed < 0.01f) {
+        tangentialVelocity->x = tangentialVelocity->y = tangentialVelocity->z = 0.0f;
+        normalVelocity->x = normalVelocity->y = normalVelocity->z = 0.0f;
         return;
     }
-    VECNormalize(&sp38, &sp38);
-    var_f31 = var_f31 * arg3;
-    VECSubtract(&arg2, &arg0, &sp2C);
-    VECNormalize(&sp2C, &sp2C);
-    var_f28 = VECDotProduct(&sp38, &sp2C);
-    if (var_f28 < 0.0f) {
-        arg4->x = arg1.x;
-        arg4->y = arg1.y;
-        arg4->z = arg1.z;
-        arg5->x = arg5->y = arg5->z = 0.0f;
+    VECNormalize(&normalizedVelocity, &normalizedVelocity);
+    incomingSpeed = incomingSpeed * restitution;
+    VECSubtract(&otherPosition, &position, &collisionNormal);
+    VECNormalize(&collisionNormal, &collisionNormal);
+    normalDotProduct = VECDotProduct(&normalizedVelocity, &collisionNormal);
+    if (normalDotProduct < 0.0f) {
+        tangentialVelocity->x = incomingVelocity.x;
+        tangentialVelocity->y = incomingVelocity.y;
+        tangentialVelocity->z = incomingVelocity.z;
+        normalVelocity->x = normalVelocity->y = normalVelocity->z = 0.0f;
         return;
     }
-    temp_f29 = var_f31 * var_f28;
-    temp_f30 = var_f31 - temp_f29;
-    if (temp_f30 < 0.01f) {
-        arg4->x = arg4->y = arg4->z = 0.0f;
+    normalSpeed = incomingSpeed * normalDotProduct;
+    tangentialSpeed = incomingSpeed - normalSpeed;
+    if (tangentialSpeed < 0.01f) {
+        tangentialVelocity->x = tangentialVelocity->y = tangentialVelocity->z = 0.0f;
     }
     else {
-        VECCrossProduct(&sp38, &sp2C, &sp14);
-        VECNormalize(&sp14, &sp14);
-        VECCrossProduct(&sp2C, &sp14, &sp20);
-        VECNormalize(&sp20, &sp20);
-        arg4->x = sp20.x * temp_f30;
-        arg4->y = sp20.y * temp_f30;
-        arg4->z = sp20.z * temp_f30;
+        VECCrossProduct(&normalizedVelocity, &collisionNormal, &crossProduct);
+        VECNormalize(&crossProduct, &crossProduct);
+        VECCrossProduct(&collisionNormal, &crossProduct, &tangentDirection);
+        VECNormalize(&tangentDirection, &tangentDirection);
+        tangentialVelocity->x = tangentDirection.x * tangentialSpeed;
+        tangentialVelocity->y = tangentDirection.y * tangentialSpeed;
+        tangentialVelocity->z = tangentDirection.z * tangentialSpeed;
     }
-    arg5->x = sp2C.x * temp_f29;
-    arg5->y = sp2C.y * temp_f29;
-    arg5->z = sp2C.z * temp_f29;
+    normalVelocity->x = collisionNormal.x * normalSpeed;
+    normalVelocity->y = collisionNormal.y * normalSpeed;
+    normalVelocity->z = collisionNormal.z * normalSpeed;
 }
 
-void fn_1_79FC(Vec *arg0, Vec *arg1, f32 arg2, Vec *arg3, Vec *arg4, f32 arg5, f32 arg6)
+void SpheresResolveCollision(Vec *firstPosition, Vec *firstVelocity, f32 firstRadius, Vec *secondPosition, Vec *secondVelocity, f32 secondRadius, f32 restitution)
 {
-    Vec sp38;
-    Vec sp2C;
-    f32 temp_f31;
-    f32 var_f30;
-    f32 var_f29;
+    Vec relativeVelocity;
+    Vec collisionNormal;
+    f32 penetrationDepth;
+    f32 relativeSpeed;
+    f32 normalSpeed;
 
-    arg1->x *= arg6;
-    arg1->y *= arg6;
-    arg1->z *= arg6;
-    VECSubtract(arg0, arg3, &sp38);
-    VECNormalize(&sp38, &sp2C);
-    temp_f31 = (arg2 + arg5) - VECMag(&sp38);
-    if (temp_f31 > 0.01f) {
-        VECSubtract(arg1, arg4, &sp38);
-        if (VECMag(&sp38) < 0.01f) {
-            arg0->x += sp2C.x * temp_f31;
-            arg0->y += sp2C.y * temp_f31;
-            arg0->z += sp2C.z * temp_f31;
+    firstVelocity->x *= restitution;
+    firstVelocity->y *= restitution;
+    firstVelocity->z *= restitution;
+    VECSubtract(firstPosition, secondPosition, &relativeVelocity);
+    VECNormalize(&relativeVelocity, &collisionNormal);
+    penetrationDepth = (firstRadius + secondRadius) - VECMag(&relativeVelocity);
+    if (penetrationDepth > 0.01f) {
+        VECSubtract(firstVelocity, secondVelocity, &relativeVelocity);
+        if (VECMag(&relativeVelocity) < 0.01f) {
+            firstPosition->x += collisionNormal.x * penetrationDepth;
+            firstPosition->y += collisionNormal.y * penetrationDepth;
+            firstPosition->z += collisionNormal.z * penetrationDepth;
         }
         else {
-            VECNormalize(&sp38, &sp38);
-            arg0->x -= sp38.x * temp_f31;
-            arg0->y -= sp38.y * temp_f31;
-            arg0->z -= sp38.z * temp_f31;
+            VECNormalize(&relativeVelocity, &relativeVelocity);
+            firstPosition->x -= relativeVelocity.x * penetrationDepth;
+            firstPosition->y -= relativeVelocity.y * penetrationDepth;
+            firstPosition->z -= relativeVelocity.z * penetrationDepth;
         }
     }
-    fn_1_7CA0(*arg1, sp2C, 1.0f, arg1);
-    VECSubtract(arg4, arg1, &sp38);
-    var_f30 = VECMag(&sp38);
-    if (var_f30 < 0.01f)
+    VectorReflect(*firstVelocity, collisionNormal, 1.0f, firstVelocity);
+    VECSubtract(secondVelocity, firstVelocity, &relativeVelocity);
+    relativeSpeed = VECMag(&relativeVelocity);
+    if (relativeSpeed < 0.01f)
         return;
-    VECNormalize(&sp38, &sp38);
-    var_f29 = VECDotProduct(&sp2C, &sp38);
-    if (var_f29 > 0.0f) {
-        arg1->x += var_f30 * (sp2C.x * var_f29);
-        arg1->y += var_f30 * (sp2C.y * var_f29);
-        arg1->z += var_f30 * (sp2C.z * var_f29);
+    VECNormalize(&relativeVelocity, &relativeVelocity);
+    normalSpeed = VECDotProduct(&collisionNormal, &relativeVelocity);
+    if (normalSpeed > 0.0f) {
+        firstVelocity->x += relativeSpeed * (collisionNormal.x * normalSpeed);
+        firstVelocity->y += relativeSpeed * (collisionNormal.y * normalSpeed);
+        firstVelocity->z += relativeSpeed * (collisionNormal.z * normalSpeed);
     }
 }
 
-void fn_1_7CA0(Vec arg0, Vec arg1, f32 arg2, Vec *arg3)
+void VectorReflect(Vec incomingVector, Vec surfaceNormal, f32 restitution, Vec *reflectedVector)
 {
-    f32 var_f31;
+    f32 normalSpeed;
 
-    *arg3 = arg0;
-    arg3->x *= arg2;
-    arg3->y *= arg2;
-    arg3->z *= arg2;
-    var_f31 = VECDotProduct(&arg1, arg3);
-    if (var_f31 < 0.0f) {
-        arg3->x -= 2.0f * arg1.x * var_f31;
-        arg3->y -= 2.0f * arg1.y * var_f31;
-        arg3->z -= 2.0f * arg1.z * var_f31;
+    *reflectedVector = incomingVector;
+    reflectedVector->x *= restitution;
+    reflectedVector->y *= restitution;
+    reflectedVector->z *= restitution;
+    normalSpeed = VECDotProduct(&surfaceNormal, reflectedVector);
+    if (normalSpeed < 0.0f) {
+        reflectedVector->x -= 2.0f * surfaceNormal.x * normalSpeed;
+        reflectedVector->y -= 2.0f * surfaceNormal.y * normalSpeed;
+        reflectedVector->z -= 2.0f * surfaceNormal.z * normalSpeed;
     }
 }
 
-f32 fn_1_7DD0(Vec *arg0)
+f32 VectorNormalize(Vec *vector)
 {
-    f32 temp_f30;
-    f32 temp_f29;
+    f32 vectorLength;
+    f32 inverseLength;
 
-    temp_f30 = (arg0->x * arg0->x) + (arg0->y * arg0->y) + (arg0->z * arg0->z);
-    temp_f30 = sqrtf(temp_f30);
-    if (temp_f30 != 0.0f) {
-        temp_f29 = 1.0f / temp_f30;
-        arg0->x *= temp_f29;
-        arg0->y *= temp_f29;
-        arg0->z *= temp_f29;
-    }
-    else {
-        arg0->x = arg0->y = arg0->z = 0.0f;
-    }
-    return temp_f30;
-}
-
-f32 fn_1_7F68(Vec arg0, Vec arg1, Vec *arg2, f32 arg8)
-{
-    if (arg8 <= 0.0f) {
-        arg2->x = arg0.x;
-        arg2->y = arg0.y;
-        arg2->z = arg0.z;
-        arg8 = 0.0f;
-    }
-    else if (arg8 >= 1.0f) {
-        arg2->x = (arg0.x + arg1.x);
-        arg2->y = (arg0.y + arg1.y);
-        arg2->z = (arg0.z + arg1.z);
-        arg8 = 1.0f;
+    vectorLength = (vector->x * vector->x) + (vector->y * vector->y) + (vector->z * vector->z);
+    vectorLength = sqrtf(vectorLength);
+    if (vectorLength != 0.0f) {
+        inverseLength = 1.0f / vectorLength;
+        vector->x *= inverseLength;
+        vector->y *= inverseLength;
+        vector->z *= inverseLength;
     }
     else {
-        arg2->x = (arg0.x + (arg8 * arg1.x));
-        arg2->y = (arg0.y + (arg8 * arg1.y));
-        arg2->z = (arg0.z + (arg8 * arg1.z));
+        vector->x = vector->y = vector->z = 0.0f;
     }
-    return arg8;
+    return vectorLength;
 }
 
-f32 fn_1_8040(Vec arg0, Vec arg1, Vec arg2)
+f32 LineSegmentPointGet(Vec segmentStart, Vec segmentDirection, Vec *pointOnSegment, f32 segmentFraction)
 {
-    f32 temp_f30;
-    f32 var_f31;
-
-    var_f31 = (arg2.z * (arg1.z - arg0.z)) + ((arg2.x * (arg1.x - arg0.x)) + (arg2.y * (arg1.y - arg0.y)));
-    temp_f30 = -((arg2.z * arg2.z) + ((arg2.x * arg2.x) + (arg2.y * arg2.y)));
-    if (temp_f30 != 0.0f) {
-        var_f31 /= temp_f30;
+    if (segmentFraction <= 0.0f) {
+        pointOnSegment->x = segmentStart.x;
+        pointOnSegment->y = segmentStart.y;
+        pointOnSegment->z = segmentStart.z;
+        segmentFraction = 0.0f;
     }
-    return var_f31;
-}
-
-f32 fn_1_80FC(Vec *arg0, Vec *arg1, Vec *arg2)
-{
-    Vec sp44;
-    f32 var_f30;
-
-    if (0.0f == (arg2->x * arg2->x) + (arg2->y * arg2->y) + (arg2->z * arg2->z)) {
-        return ((arg0->x - arg1->x) * (arg0->x - arg1->x)) + ((arg0->y - arg1->y) * (arg0->y - arg1->y))
-            + ((arg0->z - arg1->z) * (arg0->z - arg1->z));
+    else if (segmentFraction >= 1.0f) {
+        pointOnSegment->x = (segmentStart.x + segmentDirection.x);
+        pointOnSegment->y = (segmentStart.y + segmentDirection.y);
+        pointOnSegment->z = (segmentStart.z + segmentDirection.z);
+        segmentFraction = 1.0f;
     }
-    var_f30 = fn_1_8040(*arg0, *arg1, *arg2);
-    fn_1_7F68(*arg1, *arg2, &sp44, var_f30);
-    return ((arg0->x - sp44.x) * (arg0->x - sp44.x)) + ((arg0->y - sp44.y) * (arg0->y - sp44.y)) + ((arg0->z - sp44.z) * (arg0->z - sp44.z));
-}
-
-f32 fn_1_8438(Vec *arg0, Vec *arg1, Vec *arg2, Vec *arg3, Vec *arg4)
-{
-    f32 var_f27;
-
-    if (0.0f == ((arg2->z * arg2->z) + ((arg2->x * arg2->x) + (arg2->y * arg2->y)))) {
-        return ((arg0->z - arg1->z) * (arg0->z - arg1->z))
-            + (((arg0->x - arg1->x) * (arg0->x - arg1->x)) + ((arg0->y - arg1->y) * (arg0->y - arg1->y)));
+    else {
+        pointOnSegment->x = (segmentStart.x + (segmentFraction * segmentDirection.x));
+        pointOnSegment->y = (segmentStart.y + (segmentFraction * segmentDirection.y));
+        pointOnSegment->z = (segmentStart.z + (segmentFraction * segmentDirection.z));
     }
-    var_f27 = fn_1_8040(*arg0, *arg1, *arg2);
-    fn_1_7F68(*arg1, *arg2, arg3, var_f27);
-    arg4->x = arg0->x - arg3->x;
-    arg4->y = arg0->y - arg3->y;
-    arg4->z = arg0->z - arg3->z;
-    return fn_1_7DD0(arg4);
+    return segmentFraction;
 }
 
-void fn_1_88E8(u8 arg0, f32 arg8, f32 arg9, f32 argA)
+f32 LineSegmentProjectionGet(Vec segmentStart, Vec segmentEnd, Vec point)
 {
-    M424DllBallStruct2 *temp_r31;
+    f32 negativeSegmentLengthSquared;
+    f32 segmentFraction;
 
-    temp_r31 = &lbl_1_bss_60[arg0];
-    temp_r31->unk4 = 3;
-    temp_r31->unk3C.x = arg8;
-    temp_r31->unk3C.y = arg9;
-    temp_r31->unk3C.z = argA;
+    segmentFraction = (point.z * (segmentEnd.z - segmentStart.z)) + ((point.x * (segmentEnd.x - segmentStart.x)) + (point.y * (segmentEnd.y - segmentStart.y)));
+    negativeSegmentLengthSquared = -((point.z * point.z) + ((point.x * point.x) + (point.y * point.y)));
+    if (negativeSegmentLengthSquared != 0.0f) {
+        segmentFraction /= negativeSegmentLengthSquared;
+    }
+    return segmentFraction;
 }
 
-void fn_1_8924(u8 arg0, u8 arg1)
+f32 PointLineSegmentDistanceSquared(Vec *point, Vec *segmentStart, Vec *segmentDirection)
 {
-    M424DllBallStruct2 *temp_r31;
+    Vec closestSegmentPoint;
+    f32 segmentFraction;
 
-    temp_r31 = &lbl_1_bss_60[arg0];
-    temp_r31->unk4 = arg1;
+    if (0.0f == (segmentDirection->x * segmentDirection->x) + (segmentDirection->y * segmentDirection->y) + (segmentDirection->z * segmentDirection->z)) {
+        return ((point->x - segmentStart->x) * (point->x - segmentStart->x)) + ((point->y - segmentStart->y) * (point->y - segmentStart->y))
+            + ((point->z - segmentStart->z) * (point->z - segmentStart->z));
+    }
+    segmentFraction = LineSegmentProjectionGet(*point, *segmentStart, *segmentDirection);
+    LineSegmentPointGet(*segmentStart, *segmentDirection, &closestSegmentPoint, segmentFraction);
+    return ((point->x - closestSegmentPoint.x) * (point->x - closestSegmentPoint.x)) + ((point->y - closestSegmentPoint.y) * (point->y - closestSegmentPoint.y)) + ((point->z - closestSegmentPoint.z) * (point->z - closestSegmentPoint.z));
 }
 
-u8 fn_1_8950(u8 arg0)
+f32 PointLineSegmentDistanceGet(Vec *point, Vec *segmentStart, Vec *segmentDirection, Vec *closestSegmentPoint, Vec *differenceVector)
 {
-    M424DllBallStruct2 *temp_r31;
+    f32 segmentFraction;
 
-    temp_r31 = &lbl_1_bss_60[arg0];
-    return temp_r31->unk4;
+    if (0.0f == ((segmentDirection->z * segmentDirection->z) + ((segmentDirection->x * segmentDirection->x) + (segmentDirection->y * segmentDirection->y)))) {
+        return ((point->z - segmentStart->z) * (point->z - segmentStart->z))
+            + (((point->x - segmentStart->x) * (point->x - segmentStart->x)) + ((point->y - segmentStart->y) * (point->y - segmentStart->y)));
+    }
+    segmentFraction = LineSegmentProjectionGet(*point, *segmentStart, *segmentDirection);
+    LineSegmentPointGet(*segmentStart, *segmentDirection, closestSegmentPoint, segmentFraction);
+    differenceVector->x = point->x - closestSegmentPoint->x;
+    differenceVector->y = point->y - closestSegmentPoint->y;
+    differenceVector->z = point->z - closestSegmentPoint->z;
+    return VectorNormalize(differenceVector);
 }
 
-u8 fn_1_897C(u8 arg0)
+void BallPositionSet(u8 ballIndex, f32 positionX, f32 positionY, f32 positionZ)
 {
-    M424DllBallStruct2 *temp_r31;
+    M424BallPhysicsState *ballState;
 
-    temp_r31 = &lbl_1_bss_60[arg0];
-    return temp_r31->unk5;
+    ballState = &ballPhysicsStates[ballIndex];
+    ballState->state = 3;
+    ballState->position.x = positionX;
+    ballState->position.y = positionY;
+    ballState->position.z = positionZ;
 }
 
-u8 fn_1_89A8(u8 arg0)
+void BallStateSet(u8 ballIndex, u8 newState)
 {
-    M424DllBallStruct2 *temp_r31;
+    M424BallPhysicsState *ballState;
 
-    temp_r31 = &lbl_1_bss_60[arg0];
-    return temp_r31->unk91;
+    ballState = &ballPhysicsStates[ballIndex];
+    ballState->state = newState;
 }
 
-Vec *fn_1_89D4(u8 arg0)
+u8 BallStateGet(u8 ballIndex)
 {
-    M424DllBallStruct2 *temp_r31;
+    M424BallPhysicsState *ballState;
 
-    temp_r31 = &lbl_1_bss_60[arg0];
-    return &temp_r31->unk3C;
+    ballState = &ballPhysicsStates[ballIndex];
+    return ballState->state;
 }
 
-Vec *fn_1_8A00(u8 arg0)
+u8 BallControllerStateGet(u8 ballIndex)
 {
-    M424DllBallStruct2 *temp_r31;
+    M424BallPhysicsState *ballState;
 
-    temp_r31 = &lbl_1_bss_60[arg0];
-    return &temp_r31->unk6C;
+    ballState = &ballPhysicsStates[ballIndex];
+    return ballState->controllerState;
 }
 
-s32 fn_1_8A2C(void)
+u8 BallPlayerIndexGet(u8 ballIndex)
 {
-    M424DllBallStruct2 *var_r31;
-    M424DllBallStruct *temp_r30;
-    s32 var_r29;
+    M424BallPhysicsState *ballState;
 
-    var_r31 = lbl_1_bss_60;
-    for (var_r29 = 0; var_r29 < lbl_1_bss_58; var_r29++, var_r31++) {
-        temp_r30 = var_r31->unk0->data;
-        if ((temp_r30->unk8 == 3) || (temp_r30->unk8 == 2)) {
+    ballState = &ballPhysicsStates[ballIndex];
+    return ballState->playerIndex;
+}
+
+Vec *BallPositionPointerGet(u8 ballIndex)
+{
+    M424BallPhysicsState *ballState;
+
+    ballState = &ballPhysicsStates[ballIndex];
+    return &ballState->position;
+}
+
+Vec *BallVelocityPointerGet(u8 ballIndex)
+{
+    M424BallPhysicsState *ballState;
+
+    ballState = &ballPhysicsStates[ballIndex];
+    return &ballState->velocity;
+}
+
+s32 ActiveBallExists(void)
+{
+    M424BallPhysicsState *ballState;
+    M424CharacterBallState *characterState;
+    s32 ballIndex;
+
+    ballState = ballPhysicsStates;
+    for (ballIndex = 0; ballIndex < ballCount; ballIndex++, ballState++) {
+        characterState = ballState->object->data;
+        if ((characterState->actionState == 3) || (characterState->actionState == 2)) {
             return 0;
         }
     }
     return 1;
 }
 
-void fn_1_8AA8(s32 arg0, s32 arg1)
+void BallOrderAdjust(s32 collisionRetryCount, s32 updatePositions)
 {
-    Vec spC;
-    M424DllBallStruct2 *temp_r31;
-    s32 var_r27;
-    s32 var_r29;
-    s32 var_r30;
+    Vec clampedPosition;
+    M424BallPhysicsState *ballState;
+    s32 collisionResolved;
+    s32 remainingRetries;
+    s32 ballIndex;
 
-    if (arg1 != 0) {
-        for (var_r30 = 0; var_r30 < lbl_1_bss_58; var_r30++) {
-            temp_r31 = &lbl_1_bss_60[var_r30];
-            if (temp_r31->unk4 != 6) {
-                VECAdd(&temp_r31->unk60, &temp_r31->unk6C, &temp_r31->unk3C);
-                if ((temp_r31->unk4 < 3) && (fn_1_907C(&temp_r31->unk3C, &spC) != 0)) {
-                    temp_r31->unk3C = spC;
+    if (updatePositions != 0) {
+        for (ballIndex = 0; ballIndex < ballCount; ballIndex++) {
+            ballState = &ballPhysicsStates[ballIndex];
+            if (ballState->state != 6) {
+                VECAdd(&ballState->currentPosition, &ballState->velocity, &ballState->position);
+                if ((ballState->state < 3) && (BallPositionClamp(&ballState->position, &clampedPosition) != 0)) {
+                    ballState->position = clampedPosition;
                 }
-                if ((temp_r31->unk6C.y < 0.0f) && (temp_r31->unk4 != 4) && (temp_r31->unk4 != 6) && (temp_r31->unk3C.y < 300.0f)) {
-                    temp_r31->unk3C.y = 300.0f;
-                    if (temp_r31->unk4 == 2) {
-                        temp_r31->unk4 = 1;
+                if ((ballState->velocity.y < 0.0f) && (ballState->state != 4) && (ballState->state != 6) && (ballState->position.y < 300.0f)) {
+                    ballState->position.y = 300.0f;
+                    if (ballState->state == 2) {
+                        ballState->state = 1;
                     }
                 }
             }
         }
     }
 
-    for (var_r30 = 0, var_r29 = arg0; var_r30 < lbl_1_bss_58; var_r30++) {
-        temp_r31 = &lbl_1_bss_60[var_r30];
-        var_r27 = 0;
-        if (fn_1_8950(var_r30) < 4) {
-            if (fn_1_8C78(var_r30, arg0) < arg0) {
-                var_r27 = 1;
+    for (ballIndex = 0, remainingRetries = collisionRetryCount; ballIndex < ballCount; ballIndex++) {
+        ballState = &ballPhysicsStates[ballIndex];
+        collisionResolved = 0;
+        if (BallStateGet(ballIndex) < 4) {
+            if (BallCollisionResolve(ballIndex, collisionRetryCount) < collisionRetryCount) {
+                collisionResolved = 1;
             }
-            if ((var_r27 != 0) && (var_r29 > 0)) {
-                var_r29 -= 1;
-                var_r30 -= 1;
+            if ((collisionResolved != 0) && (remainingRetries > 0)) {
+                remainingRetries -= 1;
+                ballIndex -= 1;
             }
             else {
-                var_r29 = arg0;
+                remainingRetries = collisionRetryCount;
             }
         }
     }
-    fn_1_C2E0(0);
+    ClawBallCollisionsUpdate(0);
 }
 
-s32 fn_1_8C78(s32 arg0, s32 arg1)
+s32 BallCollisionResolve(s32 ballIndex, s32 recursionDepth)
 {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec *sp10;
-    f32 temp_f31;
-    f32 var_f30;
-    s32 var_r31;
-    M424DllBallStruct2 *temp_r30;
-    M424DllBallStruct2 *temp_r29;
-    Vec *var_r28;
-    Vec *var_r27;
-    M424DllBallStruct *temp_r26;
-    M424DllBallStruct *temp_r25;
+    Vec ballPosition;
+    Vec otherBallPosition;
+    Vec separationVector;
+    Vec clampedPosition;
+    Vec *unusedPointer;
+    f32 separationScale;
+    f32 separationDistance;
+    s32 otherBallIndex;
+    M424BallPhysicsState *ballPhysicsState;
+    M424BallPhysicsState *otherBallPhysicsState;
+    Vec *ballPositionPointer;
+    Vec *otherBallPositionPointer;
+    M424CharacterBallState *ballCharacterState;
+    M424CharacterBallState *otherCharacterState;
 
-    temp_r30 = &lbl_1_bss_60[arg0];
-    temp_r26 = temp_r30->unk0->data;
-    var_r28 = fn_1_89D4(arg0);
-    sp38 = *var_r28;
+    ballPhysicsState = &ballPhysicsStates[ballIndex];
+    ballCharacterState = ballPhysicsState->object->data;
+    ballPositionPointer = BallPositionPointerGet(ballIndex);
+    ballPosition = *ballPositionPointer;
 
-    for (var_r31 = 0; var_r31 < lbl_1_bss_58; var_r31++) {
-        if (var_r31 != arg0) {
-            if (fn_1_8950(var_r31) < 3) {
-                temp_r29 = &lbl_1_bss_60[var_r31];
-                temp_r25 = temp_r29->unk0->data;
-                var_r27 = fn_1_89D4(var_r31);
-                sp2C = *var_r27;
-                VECSubtract(&sp2C, &sp38, &sp20);
-                var_f30 = VECMag(&sp20);
-                if (var_f30 < 200.0f) {
-                    if (var_f30 > 0.0f) {
-                        temp_f31 = 1.0f / var_f30;
-                        sp20.x *= temp_f31;
-                        sp20.y *= temp_f31;
-                        sp20.z *= temp_f31;
+    for (otherBallIndex = 0; otherBallIndex < ballCount; otherBallIndex++) {
+        if (otherBallIndex != ballIndex) {
+            if (BallStateGet(otherBallIndex) < 3) {
+                otherBallPhysicsState = &ballPhysicsStates[otherBallIndex];
+                otherCharacterState = otherBallPhysicsState->object->data;
+                otherBallPositionPointer = BallPositionPointerGet(otherBallIndex);
+                otherBallPosition = *otherBallPositionPointer;
+                VECSubtract(&otherBallPosition, &ballPosition, &separationVector);
+                separationDistance = VECMag(&separationVector);
+                if (separationDistance < 200.0f) {
+                    if (separationDistance > 0.0f) {
+                        separationScale = 1.0f / separationDistance;
+                        separationVector.x *= separationScale;
+                        separationVector.y *= separationScale;
+                        separationVector.z *= separationScale;
                     }
                     else {
-                        sp20.x = 0.0f;
-                        sp20.y = 0.0f;
-                        sp20.z = 1.0f;
+                        separationVector.x = 0.0f;
+                        separationVector.y = 0.0f;
+                        separationVector.z = 1.0f;
                     }
-                    temp_f31 = 1.0f + (0.5f * (200.0f - var_f30));
-                    if (temp_f31 > 0.0f) {
-                        VECScale(&sp20, &sp20, temp_f31);
-                        VECAdd(&sp2C, &sp20, &sp2C);
-                        *var_r27 = sp2C;
-                        if ((temp_r29->unk4 < 3) && (fn_1_907C(&sp2C, &sp14) != 0)) {
-                            sp2C = sp14;
-                            *var_r27 = sp14;
+                    separationScale = 1.0f + (0.5f * (200.0f - separationDistance));
+                    if (separationScale > 0.0f) {
+                        VECScale(&separationVector, &separationVector, separationScale);
+                        VECAdd(&otherBallPosition, &separationVector, &otherBallPosition);
+                        *otherBallPositionPointer = otherBallPosition;
+                        if ((otherBallPhysicsState->controllerState < 3) && (BallPositionClamp(&otherBallPosition, &clampedPosition) != 0)) {
+                            otherBallPosition = clampedPosition;
+                            *otherBallPositionPointer = clampedPosition;
                         }
-                        if ((temp_r29->unk4 == 2) && (temp_r25->unk4C.y < 0.0f)) {
-                            temp_r25->unk4C.y += 0.1f * temp_f31;
-                        }
-                    }
-                    if (temp_f31 > 0.0f) {
-                        VECScale(&sp20, &sp20, -1.0f);
-                        VECAdd(&sp38, &sp20, &sp38);
-                        *var_r28 = sp38;
-                        if ((temp_r30->unk4 < 3) && (fn_1_907C(&sp38, &sp14) != 0)) {
-                            sp38 = sp14;
-                            *var_r28 = sp14;
-                        }
-                        if ((temp_r30->unk4 == 2) && (temp_r26->unk4C.y < 0.0f)) {
-                            temp_r26->unk4C.y += 0.1f * temp_f31;
+                        if ((otherBallPhysicsState->controllerState == 2) && (otherCharacterState->motionState.y < 0.0f)) {
+                            otherCharacterState->motionState.y += 0.1f * separationScale;
                         }
                     }
-                    if (arg1 > 0) {
-                        arg1--;
-                        fn_1_8C78(var_r31, arg1);
+                    if (separationScale > 0.0f) {
+                        VECScale(&separationVector, &separationVector, -1.0f);
+                        VECAdd(&ballPosition, &separationVector, &ballPosition);
+                        *ballPositionPointer = ballPosition;
+                        if ((ballPhysicsState->controllerState < 3) && (BallPositionClamp(&ballPosition, &clampedPosition) != 0)) {
+                            ballPosition = clampedPosition;
+                            *ballPositionPointer = clampedPosition;
+                        }
+                        if ((ballPhysicsState->controllerState == 2) && (ballCharacterState->motionState.y < 0.0f)) {
+                            ballCharacterState->motionState.y += 0.1f * separationScale;
+                        }
+                    }
+                    if (recursionDepth > 0) {
+                        recursionDepth--;
+                        BallCollisionResolve(otherBallIndex, recursionDepth);
                     }
                 }
             }
         }
     }
-    return arg1;
+    return recursionDepth;
 }
 
-s32 fn_1_907C(Vec *arg0, Vec *arg1)
+s32 BallPositionClamp(Vec *position, Vec *clampedPosition)
 {
-    Vec sp10;
-    f32 temp_f29;
-    f32 temp_f28;
-    f32 var_f27;
-    f32 temp_f26;
+    Vec adjustedPosition;
+    f32 radiusSquared;
+    f32 adjustedRadiusSquared;
+    f32 radius;
+    f32 inverseRadius;
 
-    sp10 = *arg0;
-    *arg1 = *arg0;
-    temp_f29 = (sp10.x * sp10.x) + (sp10.z * sp10.z);
-    var_f27 = sqrtf(temp_f29);
-    if (var_f27 < 350.0f) {
-        if (var_f27 > 0.0f) {
-            temp_f26 = 1.0f / var_f27;
-            sp10.x *= temp_f26;
-            sp10.z *= temp_f26;
+    adjustedPosition = *position;
+    *clampedPosition = *position;
+    radiusSquared = (adjustedPosition.x * adjustedPosition.x) + (adjustedPosition.z * adjustedPosition.z);
+    radius = sqrtf(radiusSquared);
+    if (radius < 350.0f) {
+        if (radius > 0.0f) {
+            inverseRadius = 1.0f / radius;
+            adjustedPosition.x *= inverseRadius;
+            adjustedPosition.z *= inverseRadius;
         }
         else {
-            sp10.x = 1.0f;
-            sp10.z = 0.0f;
+            adjustedPosition.x = 1.0f;
+            adjustedPosition.z = 0.0f;
         }
-        arg1->x = 350.0f * sp10.x;
-        arg1->z = 350.0f * sp10.z;
+        clampedPosition->x = 350.0f * adjustedPosition.x;
+        clampedPosition->z = 350.0f * adjustedPosition.z;
     }
-    temp_f28 = (sp10.x * sp10.x) + (sp10.z * sp10.z);
-    var_f27 = sqrtf(temp_f28);
-    if (var_f27 > 600.0f) {
-        temp_f26 = 1.0f / var_f27;
-        sp10.x *= temp_f26;
-        sp10.z *= temp_f26;
-        arg1->x = 600.0f * sp10.x;
-        arg1->z = 600.0f * sp10.z;
+    adjustedRadiusSquared = (adjustedPosition.x * adjustedPosition.x) + (adjustedPosition.z * adjustedPosition.z);
+    radius = sqrtf(adjustedRadiusSquared);
+    if (radius > 600.0f) {
+        inverseRadius = 1.0f / radius;
+        adjustedPosition.x *= inverseRadius;
+        adjustedPosition.z *= inverseRadius;
+        clampedPosition->x = 600.0f * adjustedPosition.x;
+        clampedPosition->z = 600.0f * adjustedPosition.z;
     }
-    return (s32)arg0;
+    return (s32)position;
 }

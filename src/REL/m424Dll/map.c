@@ -9,287 +9,283 @@
 
 
 // STRUCT
-typedef struct _M424DllMapStruct {
-    f32 unk0;
-    f32 unk4;
-    Mtx unk8;
-    s32 unk38;
-    f32 unk3C;
-    s32 unk40;
-    s32 unk44;
-    s32 unk48;
-    s32 unk4C;
-    s32 unk50;
-} M424DllMapStruct; // sizeof 0x54
+typedef struct M424MapCameraState {
+    f32 cameraZoom;
+    f32 cameraHeight;
+    Mtx cameraMatrix;
+    s32 mapState;
+    f32 cameraSpeed;
+    s32 animationState;
+    s32 animationTimer;
+    s32 effectState;
+    s32 effectTimer;
+    s32 mapFlags;
+} M424MapCameraState; // sizeof 0x54
 
 // BSS
-HUPROCESS *lbl_1_bss_54;
-OMOBJ *lbl_1_bss_50;
+HUPROCESS *mapObjectManager;
+OMOBJ *mapCameraObject;
 
 // DATA
-Vec lbl_1_data_E0 = { 0.0f, 3000.0f, 1.0f };
-Vec lbl_1_data_EC = { 0.0f, 1.0f, 0.0f };
-Vec lbl_1_data_F8 = { 0.0f, 0.0f, 0.0f };
+Vec mapShadowPosition = { 0.0f, 3000.0f, 1.0f };
+Vec mapShadowDirection = { 0.0f, 1.0f, 0.0f };
+Vec mapShadowTarget = { 0.0f, 0.0f, 0.0f };
 
 // PROTO
-void fn_1_1BB8(OMOBJ *);
-void fn_1_1E1C(OMOBJ *);
-void fn_1_2130(OMOBJ *);
-void fn_1_2438(f32);
+void MapCameraObjectInit(OMOBJ *);
+void MapCameraObjectUpdate(OMOBJ *);
+void MapCameraObjectEnd(OMOBJ *);
+void MapModelAttributeAnimate(f32);
 
-OMOBJ *fn_1_1AB8(HUPROCESS *arg0)
+OMOBJ *MapCameraCreate(HUPROCESS *processManager)
 {
-    lbl_1_bss_54 = arg0;
-    lbl_1_bss_50 = omAddObjEx(arg0, 0x7F, 6, 0, -1, fn_1_1BB8);
-    lbl_1_bss_50->data = NULL;
+    mapObjectManager = processManager;
+    mapCameraObject = omAddObjEx(processManager, 0x7F, 6, 0, -1, MapCameraObjectInit);
+    mapCameraObject->data = NULL;
     Hu3DShadowCreate(45.0f, 1000.0f, 250000.0f);
     Hu3DShadowTPLvlSet(0.3f);
-    Hu3DShadowPosSet(&lbl_1_data_E0, &lbl_1_data_EC, &lbl_1_data_F8);
-    return lbl_1_bss_50;
+    Hu3DShadowPosSet(&mapShadowPosition, &mapShadowDirection, &mapShadowTarget);
+    return mapCameraObject;
 }
 
-void fn_1_1B8C(void)
+void MapCameraDestroy(void)
 {
-    fn_1_2130(lbl_1_bss_50);
+    MapCameraObjectEnd(mapCameraObject);
 }
 
-void fn_1_1BB8(OMOBJ *arg0)
+void MapCameraObjectInit(OMOBJ *cameraObject)
 {
-    M424DllMapStruct *var_r30;
+    M424MapCameraState *cameraState;
 
-    var_r30 = arg0->data = HuMemDirectMallocNum(HEAP_HEAP, 0x54, 0x10000000);
-    memset(var_r30, 0, 0x54);
-    var_r30->unk0 = 0.0f;
-    var_r30->unk4 = 0.0f;
-    var_r30->unk38 = -1;
-    var_r30->unk3C = 0.0f;
-    var_r30->unk40 = 0;
-    var_r30->unk44 = -1;
-    var_r30->unk48 = 0;
-    var_r30->unk4C = 0;
-    var_r30->unk50 = -1;
-    arg0->mdlId[0] = Hu3DModelCreateFile(0x370017);
-    arg0->mdlId[1] = Hu3DModelCreateFile(0x370018);
-    arg0->mdlId[2] = Hu3DModelCreateFile(0x370019);
-    arg0->mdlId[3] = Hu3DModelCreateFile(0x37001A);
-    arg0->mdlId[4] = Hu3DModelCreateFile(0x37001B);
-    arg0->mdlId[5] = Hu3DModelCreateFile(0x37001C);
-    Hu3DModelAttrSet(arg0->mdlId[4], 1);
-    Hu3DMotionSpeedSet(arg0->mdlId[1], var_r30->unk0);
-    Hu3DModelAttrSet(arg0->mdlId[1], 0x40000001);
-    Hu3DMotionSpeedSet(arg0->mdlId[0], 0.15f);
-    Hu3DModelAttrSet(arg0->mdlId[0], 0x40000001);
-    Hu3DModelPosSet(arg0->mdlId[2], 847.135f, 0.0f, 424.56f);
-    Hu3DMotionSpeedSet(arg0->mdlId[4], 2.0f);
-    Hu3DModelAttrSet(arg0->mdlId[4], 0x40000001);
-    Hu3DModelShadowMapSet(arg0->mdlId[0]);
-    Hu3DModelShadowMapSet(arg0->mdlId[1]);
-    Hu3DModelShadowMapSet(arg0->mdlId[2]);
-    arg0->objFunc = fn_1_1E1C;
+    cameraState = cameraObject->data = HuMemDirectMallocNum(HEAP_HEAP, 0x54, 0x10000000);
+    memset(cameraState, 0, 0x54);
+    cameraState->cameraZoom = 0.0f;
+    cameraState->cameraHeight = 0.0f;
+    cameraState->mapState = -1;
+    cameraState->cameraSpeed = 0.0f;
+    cameraState->animationState = 0;
+    cameraState->animationTimer = -1;
+    cameraState->effectState = 0;
+    cameraState->effectTimer = 0;
+    cameraState->mapFlags = -1;
+    cameraObject->mdlId[0] = Hu3DModelCreateFile(0x370017);
+    cameraObject->mdlId[1] = Hu3DModelCreateFile(0x370018);
+    cameraObject->mdlId[2] = Hu3DModelCreateFile(0x370019);
+    cameraObject->mdlId[3] = Hu3DModelCreateFile(0x37001A);
+    cameraObject->mdlId[4] = Hu3DModelCreateFile(0x37001B);
+    cameraObject->mdlId[5] = Hu3DModelCreateFile(0x37001C);
+    Hu3DModelAttrSet(cameraObject->mdlId[4], 1);
+    Hu3DMotionSpeedSet(cameraObject->mdlId[1], cameraState->cameraZoom);
+    Hu3DModelAttrSet(cameraObject->mdlId[1], 0x40000001);
+    Hu3DMotionSpeedSet(cameraObject->mdlId[0], 0.15f);
+    Hu3DModelAttrSet(cameraObject->mdlId[0], 0x40000001);
+    Hu3DModelPosSet(cameraObject->mdlId[2], 847.135f, 0.0f, 424.56f);
+    Hu3DMotionSpeedSet(cameraObject->mdlId[4], 2.0f);
+    Hu3DModelAttrSet(cameraObject->mdlId[4], 0x40000001);
+    Hu3DModelShadowMapSet(cameraObject->mdlId[0]);
+    Hu3DModelShadowMapSet(cameraObject->mdlId[1]);
+    Hu3DModelShadowMapSet(cameraObject->mdlId[2]);
+    cameraObject->objFunc = MapCameraObjectUpdate;
 }
 
-void fn_1_1E1C(OMOBJ *arg0)
+void MapCameraObjectUpdate(OMOBJ *cameraObject)
 {
-    f32 temp_f31;
-    M424DllMapStruct *temp_r31;
+    f32 normalizedZoom;
+    M424MapCameraState *cameraState;
 
-    temp_r31 = arg0->data;
-    if (temp_r31->unk40 > 0) {
-        fn_1_2438(temp_r31->unk3C);
-        if ((--temp_r31->unk40 <= 0) && (temp_r31->unk44 != -1)) {
-            HuAudFXStop(temp_r31->unk44);
-            temp_r31->unk44 = -1;
+    cameraState = cameraObject->data;
+    if (cameraState->animationState > 0) {
+        MapModelAttributeAnimate(cameraState->cameraSpeed);
+        if ((--cameraState->animationState <= 0) && (cameraState->animationTimer != -1)) {
+            HuAudFXStop(cameraState->animationTimer);
+            cameraState->animationTimer = -1;
         }
     }
-    switch (fn_1_FE0()) {
+    switch (M424SceneStateGet()) {
         case 0:
-            temp_r31->unk0 = VERSION_PAL ? 0.6f : 0.5f;
+            cameraState->cameraZoom = VERSION_PAL ? 0.6f : 0.5f;
             break;
         case 1:
         case 2:
-            temp_r31->unk0 = 0.0f;
+            cameraState->cameraZoom = 0.0f;
             break;
         case 3:
         case 4:
-            temp_r31->unk0 += 0.001f;
-            if (temp_r31->unk0 > 12.0f / (REFRESH_RATE_F * 5.0f)) {
-                temp_r31->unk0 = 12.0f / (REFRESH_RATE_F * 5.0f);
+            cameraState->cameraZoom += 0.001f;
+            if (cameraState->cameraZoom > 12.0f / (REFRESH_RATE_F * 5.0f)) {
+                cameraState->cameraZoom = 12.0f / (REFRESH_RATE_F * 5.0f);
             }
-            if (temp_r31->unk38 != -1)
+            if (cameraState->mapState != -1)
                 break;
 
-            temp_r31->unk38 = HuAudFXPlay(0x626);
+            cameraState->mapState = HuAudFXPlay(0x626);
             break;
         default:
-            if ((fn_1_B804() == 0) && (fn_1_8A2C() != 0)) {
-                temp_r31->unk0 *= 0.9f;
-                if (temp_r31->unk0 < 0.01f) {
-                    temp_r31->unk0 = 0.0f;
+            if ((ClawMotionActive() == 0) && (ActiveBallExists() != 0)) {
+                cameraState->cameraZoom *= 0.9f;
+                if (cameraState->cameraZoom < 0.01f) {
+                    cameraState->cameraZoom = 0.0f;
                 }
-                temp_f31 = temp_r31->unk0 / (12.0f / (REFRESH_RATE_F * 5.0f));
-                if (temp_r31->unk38 != -1) {
-                    HuAudFXVolSet(temp_r31->unk38, (s16)(-8191.0f * (1.0f - temp_f31)));
-                    HuAudFXPitchSet(temp_r31->unk38, (s16)(127.0f * temp_f31));
-                    if (temp_f31 <= 0.0f) {
-                        HuAudFXStop(temp_r31->unk38);
-                        temp_r31->unk38 = -1;
+                normalizedZoom = cameraState->cameraZoom / (12.0f / (REFRESH_RATE_F * 5.0f));
+                if (cameraState->mapState != -1) {
+                    HuAudFXVolSet(cameraState->mapState, (s16)(-8191.0f * (1.0f - normalizedZoom)));
+                    HuAudFXPitchSet(cameraState->mapState, (s16)(127.0f * normalizedZoom));
+                    if (normalizedZoom <= 0.0f) {
+                        HuAudFXStop(cameraState->mapState);
+                        cameraState->mapState = -1;
                     }
                 }
             }
             break;
     }
 
-    if (temp_r31->unk48 != 0) {
-        if (temp_r31->unk4C != 0) {
-            temp_r31->unk4C = (temp_r31->unk4C - 1);
+    if (cameraState->effectState != 0) {
+        if (cameraState->effectTimer != 0) {
+            cameraState->effectTimer = (cameraState->effectTimer - 1);
         }
         else {
-            temp_r31->unk48 = (temp_r31->unk48 - 1);
-            if (temp_r31->unk48 != 0) {
-                Hu3DModelAttrReset(arg0->mdlId[4], 1);
-                Hu3DModelAttrSet(arg0->mdlId[5], 1);
+            cameraState->effectState = (cameraState->effectState - 1);
+            if (cameraState->effectState != 0) {
+                Hu3DModelAttrReset(cameraObject->mdlId[4], 1);
+                Hu3DModelAttrSet(cameraObject->mdlId[5], 1);
             }
             else {
-                Hu3DModelAttrSet(arg0->mdlId[4], 1);
-                Hu3DModelAttrReset(arg0->mdlId[5], 1);
-                if (temp_r31->unk50 != -1) {
-                    HuAudFXStop(temp_r31->unk50);
-                    temp_r31->unk50 = -1;
+                Hu3DModelAttrSet(cameraObject->mdlId[4], 1);
+                Hu3DModelAttrReset(cameraObject->mdlId[5], 1);
+                if (cameraState->mapFlags != -1) {
+                    HuAudFXStop(cameraState->mapFlags);
+                    cameraState->mapFlags = -1;
                 }
             }
         }
     }
-    temp_r31->unk4 = (20.0f * temp_r31->unk0);
-    MTXRotRad(temp_r31->unk8, 0x59, MTXDegToRad(temp_r31->unk4));
-    Hu3DMotionSpeedSet(arg0->mdlId[1], temp_r31->unk0);
+    cameraState->cameraHeight = (20.0f * cameraState->cameraZoom);
+    MTXRotRad(cameraState->cameraMatrix, 0x59, MTXDegToRad(cameraState->cameraHeight));
+    Hu3DMotionSpeedSet(cameraObject->mdlId[1], cameraState->cameraZoom);
 }
 
-void fn_1_2130(OMOBJ *arg0)
+void MapCameraObjectEnd(OMOBJ *cameraObject)
 {
-    arg0->objFunc = NULL;
+    cameraObject->objFunc = NULL;
 }
 
-f32 fn_1_213C(void)
+f32 MapCameraHeightGet(void)
 {
-    M424DllMapStruct *var_r31;
-    if (!lbl_1_bss_50) {
+    M424MapCameraState *cameraState;
+    if (!mapCameraObject) {
         return 0.0f;
     }
-    if (!lbl_1_bss_50->data) {
+    if (!mapCameraObject->data) {
         return 0.0f;
     }
-    var_r31 = lbl_1_bss_50->data;
-    return var_r31->unk4;
+    cameraState = mapCameraObject->data;
+    return cameraState->cameraHeight;
 }
 
-void fn_1_21B0(Mtx arg0)
+void MapCameraMatrixGet(Mtx cameraMatrix)
 {
-    M424DllMapStruct *var_r31;
-    if (lbl_1_bss_50 && lbl_1_bss_50->data) {
-        var_r31 = lbl_1_bss_50->data;
-        MTXCopy(var_r31->unk8, *(Mtx *)&arg0);
+    M424MapCameraState *cameraState;
+    if (mapCameraObject && mapCameraObject->data) {
+        cameraState = mapCameraObject->data;
+        MTXCopy(cameraState->cameraMatrix, cameraMatrix);
     }
 }
 
-void fn_1_2220(Vec *arg0, Vec *arg1)
+void MapCameraVectorTransform(Vec *inputVector, Vec *transformedOffset)
 {
-    Vec spC;
-    M424DllMapStruct *temp_r30;
+    Vec cameraOffset;
+    M424MapCameraState *cameraState;
 
-    if (lbl_1_bss_50 && lbl_1_bss_50->data) {
-        temp_r30 = lbl_1_bss_50->data;
-        if (sqrtf((arg0->x * arg0->x) + (arg0->z * arg0->z)) < 700.0f) {
-            spC.x = (temp_r30->unk8[0][0] * arg0->x) + (temp_r30->unk8[0][2] * arg0->z);
-            spC.z = (temp_r30->unk8[2][0] * arg0->x) + (temp_r30->unk8[2][2] * arg0->z);
-            spC.y = arg0->y;
+    if (mapCameraObject && mapCameraObject->data) {
+        cameraState = mapCameraObject->data;
+        if (sqrtf((inputVector->x * inputVector->x) + (inputVector->z * inputVector->z)) < 700.0f) {
+            cameraOffset.x = (cameraState->cameraMatrix[0][0] * inputVector->x) + (cameraState->cameraMatrix[0][2] * inputVector->z);
+            cameraOffset.z = (cameraState->cameraMatrix[2][0] * inputVector->x) + (cameraState->cameraMatrix[2][2] * inputVector->z);
+            cameraOffset.y = inputVector->y;
         }
         else {
-            spC = *arg0;
+            cameraOffset = *inputVector;
         }
-        VECSubtract(&spC, arg0, &spC);
-        *arg1 = spC;
+        VECSubtract(&cameraOffset, inputVector, &cameraOffset);
+        *transformedOffset = cameraOffset;
     }
 }
 
-void fn_1_2438(f32 arg0)
+void MapModelAttributeAnimate(f32 horizontalOffset)
 {
-    M424DllMapStruct *spC;
-    HSFATTRIBUTE *var_r31;
-    HU3DMODEL *temp_r30;
-    HSFDATA *temp_r29;
-    s32 var_r28;
-    HSFBITMAP *var_r27;
-    OMOBJ *var_r26;
+    M424MapCameraState *cameraState;
+    HSFATTRIBUTE *attribute;
+    HU3DMODEL *cameraModel;
+    HSFDATA *modelData;
+    s32 attributeIndex;
+    HSFBITMAP *attributeBitmap;
 
-    if (lbl_1_bss_50 && lbl_1_bss_50->data) {
-        var_r26 = lbl_1_bss_50;
-        spC = lbl_1_bss_50->data;
-        temp_r30 = &Hu3DData[var_r26->mdlId[2]];
-        temp_r29 = temp_r30->hsf;
-        var_r31 = temp_r30->hsf->attribute;
-        for (var_r28 = 0; var_r28 < temp_r29->attributeNum; var_r28++, var_r31++) {
-            var_r27 = var_r31->bitmap;
-            if (strcmp("cr_dk2", var_r27->name) == 0)
+    if (mapCameraObject && mapCameraObject->data) {
+        cameraState = mapCameraObject->data;
+        cameraModel = &Hu3DData[mapCameraObject->mdlId[2]];
+        modelData = cameraModel->hsf;
+        attribute = cameraModel->hsf->attribute;
+        for (attributeIndex = 0; attributeIndex < modelData->attributeNum; attributeIndex++, attribute++) {
+            attributeBitmap = attribute->bitmap;
+            if (strcmp("cr_dk2", attributeBitmap->name) == 0)
                 break;
         }
-        if (var_r28 < temp_r29->attributeNum) {
-            var_r31->trans.x += arg0;
+        if (attributeIndex < modelData->attributeNum) {
+            attribute->trans.x += horizontalOffset;
         }
     }
 }
 
-void fn_1_252C(f32 arg8, s32 arg0)
+void MapCameraAnimationStart(f32 cameraSpeed, s32 durationFrames)
 {
-    OMOBJ *sp10;
-    M424DllMapStruct *temp_r31;
+    OMOBJ *cameraObject;
+    M424MapCameraState *cameraState;
 
-    if (lbl_1_bss_50 && lbl_1_bss_50->data) {
-        sp10 = lbl_1_bss_50;
-        temp_r31 = lbl_1_bss_50->data;
-        temp_r31->unk44 = HuAudFXPlay(0x627);
-        temp_r31->unk3C = arg8;
-        temp_r31->unk40 = arg0;
+    if (mapCameraObject && mapCameraObject->data) {
+        cameraObject = mapCameraObject;
+        cameraState = mapCameraObject->data;
+        cameraState->animationTimer = HuAudFXPlay(0x627);
+        cameraState->cameraSpeed = cameraSpeed;
+        cameraState->animationState = durationFrames;
     }
 }
 
-f32 fn_1_25C0(void)
+f32 MapCameraAnimationOffsetGet(void)
 {
-    OMOBJ *sp8;
-    M424DllMapStruct *temp_r31;
+    M424MapCameraState *cameraState;
 
-    if (!lbl_1_bss_50) {
+    if (!mapCameraObject) {
         return 0.0f;
     }
-    if (!lbl_1_bss_50->data) {
+    if (!mapCameraObject->data) {
         return 0.0f;
     }
-    sp8 = lbl_1_bss_50;
-    temp_r31 = lbl_1_bss_50->data;
-    if (temp_r31->unk40 != 0) {
-        return 250.0f * temp_r31->unk3C;
+    cameraState = mapCameraObject->data;
+    if (cameraState->animationState != 0) {
+        return 250.0f * cameraState->cameraSpeed;
     }
     return 0.0f;
 }
 
-void fn_1_2670(s32 arg0, s32 arg1)
+void MapEffectStart(s32 effectDuration, s32 effectDelayFrames)
 {
-    OMOBJ *temp_r30;
-    M424DllMapStruct *temp_r31;
+    OMOBJ *cameraObject;
+    M424MapCameraState *cameraState;
 
-    if (lbl_1_bss_50 && lbl_1_bss_50->data) {
-        temp_r30 = lbl_1_bss_50;
-        temp_r31 = lbl_1_bss_50->data;
-        temp_r31->unk50 = HuAudFXPlay(0x629);
-        temp_r31->unk48 = arg0;
-        temp_r31->unk4C = arg1;
-        Hu3DMotionTimeSet(temp_r30->mdlId[4], 0.0f);
+    if (mapCameraObject && mapCameraObject->data) {
+        cameraObject = mapCameraObject;
+        cameraState = mapCameraObject->data;
+        cameraState->mapFlags = HuAudFXPlay(0x629);
+        cameraState->effectState = effectDuration;
+        cameraState->effectTimer = effectDelayFrames;
+        Hu3DMotionTimeSet(cameraObject->mdlId[4], 0.0f);
     }
 }
 
 // UNUSED (guessing types)
-M424DllMainStruct lbl_1_data_10C = { { 0.0f, 0.0f, 5500.0f }, { -3950.0f, 0.0f, -0.7f }, 0.6f };
+M424CameraConfig unusedMapCameraConfig = { { 0.0f, 0.0f, 5500.0f }, { -3950.0f, 0.0f, -0.7f }, 0.6f };
 
-GXColor lbl_1_data_128 = { 0xFF, 0xFF, 0xFF, 0xFF };
-M424DllMainStruct lbl_1_data_12C = { { 0.0f, 5500.0f, -3950.0f }, { 0.0f, 1.0f, 0.0f }, 0.0f };
+GXColor unusedMapColor = { 0xFF, 0xFF, 0xFF, 0xFF };
+M424CameraConfig unusedMapCameraConfig2 = { { 0.0f, 5500.0f, -3950.0f }, { 0.0f, 1.0f, 0.0f }, 0.0f };
 
-s32 lbl_1_data_148[2] = { 0 };
+s32 unusedMapData[2] = { 0 };

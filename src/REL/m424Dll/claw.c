@@ -18,80 +18,80 @@
 #endif
 
 // STRUCT
-typedef struct _M424DllClawStruct {
-    s16 unk0;
-    s16 unk2;
-    s16 unk4;
-    s16 unk6;
-    s16 unk8;
-    s16 unkA;
-    s16 unkC;
-    s16 unkE;
-    s16 unk10;
-    s16 unk12;
-    s16 unk14;
-    s16 unk16;
-    s16 unk18;
-    f32 unk1C;
-    f32 unk20;
-    f32 unk24;
-    f32 unk28;
-    f32 unk2C;
-    Vec unk30;
-    Vec unk3C[12];
-    Vec unkCC[12];
-    s32 unk15C;
-    s32 unk160;
-    s32 unk164;
-    s32 unk168;
-    s32 unk16C;
-    s32 unk170;
-    Vec unk174;
-    f32 unk180;
-    s32 unk184;
-    s32 unk188;
-    s32 unk18C;
-    s32 unk190;
-    s32 unk194;
-    s32 unk198;
-    s32 unk19C;
-    s32 unk1A0;
-    s32 unk1A4;
-    f32 unk1A8;
-    s32 unk1AC;
-} M424DllClawStruct; // sizeof 0x1B0
+typedef struct M424ClawState {
+    s16 state;
+    s16 characterId;
+    s16 elapsedFrames;
+    s16 animationState;
+    s16 velocity;
+    s16 actionTimer;
+    s16 position;
+    s16 motionIndex;
+    s16 motionTimer;
+    s16 effectState;
+    s16 targetPosition;
+    s16 collisionState;
+    s16 targetRotation;
+    f32 positionX;
+    f32 positionY;
+    f32 targetScale;
+    f32 motionFrame;
+    f32 velocityY;
+    Vec velocityZ;
+    Vec playerPositions[12];
+    Vec targetPositions[12];
+    s32 clawModel;
+    s32 shadowModel;
+    s32 isAnimating;
+    s32 actionState;
+    s32 carriedBallIndex;
+    s32 ballControllerState;
+    Vec collisionTimer;
+    f32 motionState;
+    s32 soundEffectId;
+    s32 effectTimer;
+    s32 animationFrame;
+    s32 animationFrameIndex;
+    s32 animationDuration;
+    s32 turnState;
+    s32 turnTimer;
+    s32 playerIndex;
+    s32 motionCharacterId;
+    f32 clawFlags;
+    s32 animationFrameCounter;
+} M424ClawState; // sizeof 0x1B0
 
-typedef struct _M424DllClawStruct2 {
-    s32 unk0;
-    f32 unk4;
-    f32 unk8;
-    f32 unkC;
-} M424DllClawStruct2; // sizeof 0x10
+typedef struct M424ClawMotionState {
+    s32 state;
+    f32 elapsedFrames;
+    f32 velocity;
+    f32 position;
+} M424ClawMotionState; // sizeof 0x10
 
-typedef struct _M424DllClawStruct3 {
-    s32 unk0;
-    s32 unk4;
-} M424DllClawStruct3; // sizeof 0x8
+typedef struct M424ClawPlayerState {
+    s32 state;
+    s32 elapsedFrames;
+} M424ClawPlayerState; // sizeof 0x8
 
 // BSS
-HUPROCESS* lbl_1_bss_6DC;
-OMOBJ* lbl_1_bss_6D8;
-s32 lbl_1_bss_6D0[2];
-s32 lbl_1_bss_6CC;
-s32 lbl_1_bss_6C8;
-s32 lbl_1_bss_6C4;
-s32 lbl_1_bss_6C0;
-M424DllClawStruct3 lbl_1_bss_640[0x10];
+HUPROCESS* clawObjectManager;
+OMOBJ* clawObject;
+s32 unusedClawValues[2];
+s32 clawPlayerCount;
+s32 clawJointFound;
+s32 useCurrentModelMotion;
+s32 clawJointDebugEnabled;
+M424ClawPlayerState clawPlayerSoundTimers[0x10];
 
 // DATA
-Vec lbl_1_data_1E0[4] = {
+Vec clawPositionConfigs[4] = {
     { 950.0f, 275.0f, 0.0f },
     { 900.0f, 360.0f, 320.0f },
     { 494.99996f, 220.0f, 494.99996f },
     { 0.0f, 225.0f, 0.0f },
 };
-f32 lbl_1_data_210[3] = { 12.0f, 11.0f, 17.5f };
-char lbl_1_data_21C[12][0x10] = {
+f32 clawMovementSpeeds[3] = { 12.0f, 11.0f, 17.5f };
+char clawJointNames[12][0x10] = {
     "tsume10",
     "tsume11",
     "tsume12",
@@ -105,748 +105,747 @@ char lbl_1_data_21C[12][0x10] = {
     "tsume41",
     "tsume42",
 };
-u8 lbl_1_data_2DC[12] = { 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0 };
-s32 lbl_1_data_2E8[9] = { DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x03),
+u8 clawCollisionFlags[12] = { 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0 };
+s32 clawMotionIds[9] = { DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x03),
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x05), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x06), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x42),
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x08), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x17), DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x18) };
-Vec lbl_1_data_30C = { 0.0f, 0.0f, 0.0f };
+Vec zeroVector = { 0.0f, 0.0f, 0.0f };
 
 // PROTO
-void fn_1_88E8(u8, f32, f32, f32);
-void fn_1_8924(u8, s32);
-u8 fn_1_8950(u8);
-u8 fn_1_897C(u8);
-u8 fn_1_89A8(u8);
-Vec *fn_1_89D4(u8);
-void fn_1_94D0(OMOBJ *);
-void fn_1_9A64(OMOBJ *);
-void fn_1_AE58(OMOBJ *);
-void fn_1_AE64(OMOBJ *);
-u16 fn_1_B79C(f32, f32, f32);
-s32 fn_1_B9E0(Vec *arg0, Vec *arg1, f32 arg8, Vec *arg2, s32 arg3);
-void fn_1_C604(s32, s32);
-s32 fn_1_C878(s16, const char *, Mtx, s32);
-void fn_1_C99C(HSFOBJECT *, Mtx, const char *, Mtx);
-void fn_1_CE74(s32);
-void fn_1_CF00(HUPROCESS *);
-void fn_1_CF80(OMOBJ *);
-s32 fn_1_D010(s32, s32);
+void BallPositionSet(u8, f32, f32, f32);
+void BallStateSet(u8, s32);
+u8 BallStateGet(u8);
+u8 BallControllerStateGet(u8);
+u8 BallPlayerIndexGet(u8);
+Vec *BallPositionPointerGet(u8);
+void ClawObjectInit(OMOBJ *);
+void ClawObjectUpdate(OMOBJ *);
+void ClawObjectStop(OMOBJ *);
+void ClawAnimationUpdate(OMOBJ *);
+u16 ClawFallDurationFramesGet(f32, f32, f32);
+s32 ClawPlayerCollisionResolve(Vec *playerPosition, Vec *movementDelta, f32 clawRadius, Vec *resolvedPosition, s32 recursionDepth);
+void ClawBallCollisionApply(s32, s32);
+s32 ModelJointMatrixGet(s16, const char *, Mtx, s32);
+void ModelJointMatrixFindRecursive(HSFOBJECT *, Mtx, const char *, Mtx);
+void ModelAnimationUpdate(s32);
+void ClawSoundTimersInit(HUPROCESS *);
+void ClawSoundTimersUpdate(OMOBJ *);
+s32 ClawSoundTimerStart(s32, s32);
 
-OMOBJ *fn_1_93F0(HUPROCESS *arg0)
+OMOBJ *ClawObjectCreate(HUPROCESS *processManager)
 {
-    lbl_1_bss_6DC = arg0;
-    lbl_1_bss_6D8 = omAddObjEx(arg0, 0x40, 5, 9, -1, fn_1_94D0);
-    lbl_1_bss_6CC = 0;
-    lbl_1_bss_6C8 = 0;
-    lbl_1_bss_6C4 = 0;
-    lbl_1_bss_6C0 = 0;
-    fn_1_CF00(arg0);
-    return lbl_1_bss_6D8;
+    clawObjectManager = processManager;
+    clawObject = omAddObjEx(processManager, 0x40, 5, 9, -1, ClawObjectInit);
+    clawPlayerCount = 0;
+    clawJointFound = 0;
+    useCurrentModelMotion = 0;
+    clawJointDebugEnabled = 0;
+    ClawSoundTimersInit(processManager);
+    return clawObject;
 }
 
-void fn_1_94A4(void)
+void ClawObjectDestroy(void)
 {
-    fn_1_AE58(lbl_1_bss_6D8);
+    ClawObjectStop(clawObject);
 }
 
-void fn_1_94D0(OMOBJ *arg0)
+void ClawObjectInit(OMOBJ *clawObject)
 {
-    s32 var_r29;
-    M424DllClawStruct *var_r31;
+    s32 playerIndex;
+    M424ClawState *clawState;
 
-    var_r31 = arg0->data = HuMemDirectMallocNum(HEAP_HEAP, 0x1B0, 0x10000000);
-    memset(var_r31, 0, 0x1B0);
-    var_r31->unk0 = lbl_1_bss_24[3];
-    var_r31->unk2 = GWPlayerCfg[var_r31->unk0].character;
-    var_r31->unk4 = GWPlayerCfg[var_r31->unk0].pad_idx;
-    var_r31->unk6 = GWPlayerCfg[var_r31->unk0].iscom;
-    var_r31->unk8 = GWPlayerCfg[var_r31->unk0].diff;
-    var_r31->unkA = var_r31->unkC = 0;
-    var_r31->unk10 = 0;
-    var_r31->unk12 = 0;
-    var_r31->unk14 = 0;
-    var_r31->unk16 = 0;
-    var_r31->unk18 = 0;
-    var_r31->unk1C = 0.0f;
-    var_r31->unk20 = 1.0f;
-    var_r31->unk24 = 0.0f;
-    var_r31->unk28 = 0.0f;
-    var_r31->unk2C = 1.0f;
-    var_r31->unk15C = 0;
-    var_r31->unk160 = 0;
-    var_r31->unk164 = 0;
-    var_r31->unk168 = -1;
-    var_r31->unk16C = -1;
-    var_r31->unk170 = -1;
-    var_r31->unk174 = lbl_1_data_30C;
+    clawState = clawObject->data = HuMemDirectMallocNum(HEAP_HEAP, 0x1B0, 0x10000000);
+    memset(clawState, 0, 0x1B0);
+    clawState->state = playerOrder[3];
+    clawState->characterId = GWPlayerCfg[clawState->state].character;
+    clawState->elapsedFrames = GWPlayerCfg[clawState->state].pad_idx;
+    clawState->animationState = GWPlayerCfg[clawState->state].iscom;
+    clawState->velocity = GWPlayerCfg[clawState->state].diff;
+    clawState->actionTimer = clawState->position = 0;
+    clawState->motionTimer = 0;
+    clawState->effectState = 0;
+    clawState->targetPosition = 0;
+    clawState->collisionState = 0;
+    clawState->targetRotation = 0;
+    clawState->positionX = 0.0f;
+    clawState->positionY = 1.0f;
+    clawState->targetScale = 0.0f;
+    clawState->motionFrame = 0.0f;
+    clawState->velocityY = 1.0f;
+    clawState->clawModel = 0;
+    clawState->shadowModel = 0;
+    clawState->isAnimating = 0;
+    clawState->actionState = -1;
+    clawState->carriedBallIndex = -1;
+    clawState->ballControllerState = -1;
+    clawState->collisionTimer = zeroVector;
     // @todo how did this happen
-    var_r31->unk180 = atan2d(-102.864990234375, 424.559997558593750);
-    if (var_r31->unk180 < 0.0f) {
-        var_r31->unk180 += 360.0f;
+    clawState->motionState = atan2d(-102.864990234375, 424.559997558593750);
+    if (clawState->motionState < 0.0f) {
+        clawState->motionState += 360.0f;
     }
-    var_r31->unk184 = -1;
-    var_r31->unk30 = lbl_1_data_30C;
+    clawState->soundEffectId = -1;
+    clawState->velocityZ = zeroVector;
   
-    for (var_r29 = 0; var_r29 < 0xC; var_r29++) {
-        var_r31->unk3C[var_r29] = lbl_1_data_30C;
-        var_r31->unkCC[var_r29] = lbl_1_data_30C;
+    for (playerIndex = 0; playerIndex < 0xC; playerIndex++) {
+        clawState->playerPositions[playerIndex] = zeroVector;
+        clawState->targetPositions[playerIndex] = zeroVector;
     }
-    var_r31->unk188 = 0;
-    var_r31->unk18C = -1;
-    var_r31->unk190 = 0;
-    var_r31->unk194 = 0;
-    var_r31->unk198 = 0;
-    var_r31->unk19C = 0;
-    var_r31->unk1A0 = 0;
-    var_r31->unk1A4 = 0;
-    var_r31->unk1A8 = 0.0f;
-    var_r31->unk1AC = 0;
-    arg0->mdlId[0] = CharModelCreate(var_r31->unk2, 1);
-    Hu3DModelShadowSet(arg0->mdlId[0]);
-    CharModelStepFxSet(var_r31->unk2, 1);
-    for (var_r29 = 0; var_r29 < 9; var_r29++) {
-        arg0->mtnId[var_r29] = CharMotionCreate(var_r31->unk2, lbl_1_data_2E8[var_r29]);
+    clawState->effectTimer = 0;
+    clawState->animationFrame = -1;
+    clawState->motionIndex = 0;
+    clawState->motionTimer = 0;
+    clawState->turnState = 0;
+    clawState->turnTimer = 0;
+    clawState->playerIndex = 0;
+    clawState->motionCharacterId = 0;
+    clawState->clawFlags = 0.0f;
+    clawState->animationFrameCounter = 0;
+    clawObject->mdlId[0] = CharModelCreate(clawState->characterId, 1);
+    Hu3DModelShadowSet(clawObject->mdlId[0]);
+    CharModelStepFxSet(clawState->characterId, 1);
+    for (playerIndex = 0; playerIndex < 9; playerIndex++) {
+        clawObject->mtnId[playerIndex] = CharMotionCreate(clawState->characterId, clawMotionIds[playerIndex]);
     }
-    var_r31->unkE = 5;
-    CharMotionSet(var_r31->unk2, arg0->mtnId[var_r31->unkE]);
-    arg0->mdlId[1] = Hu3DModelCreateFile(0x37001D);
-    Hu3DModelShadowSet(arg0->mdlId[1]);
-    arg0->mdlId[2] = Hu3DModelCreateFile(0x37001E);
-    Hu3DModelShadowSet(arg0->mdlId[2]);
-    arg0->mdlId[3] = Hu3DModelCreateFile(0x37001F);
-    Hu3DModelShadowSet(arg0->mdlId[3]);
-    arg0->mdlId[4] = Hu3DModelCreateFile(0x370020);
-    Hu3DModelShadowSet(arg0->mdlId[4]);
-    Hu3DModelScaleSet(arg0->mdlId[4], 0.9f, 0.9f, 0.9f);
-    Hu3DModelHookSet(arg0->mdlId[1], "hook1", arg0->mdlId[2]);
-    Hu3DModelHookSet(arg0->mdlId[2], "hook2", arg0->mdlId[3]);
-    Hu3DModelHookSet(arg0->mdlId[3], "hook3", arg0->mdlId[4]);
-    Hu3DModelPosSet(arg0->mdlId[1], 950.0f, 0.0f, 0.0f);
-    Hu3DModelAttrSet(arg0->mdlId[2], 0x40000002);
-    Hu3DModelAttrSet(arg0->mdlId[4], 0x40000002);
-    arg0->trans.x = 950.0f;
-    arg0->trans.y = 275.0f;
-    arg0->trans.z = 0.0f;
-    arg0->rot.y = 270.0f;
-    var_r31->unk10 = 3;
-    var_r31->unk24 = 0.45f;
-    var_r31->unk12 = 0;
-    arg0->objFunc = fn_1_9A64;
+    clawState->motionIndex = 5;
+    CharMotionSet(clawState->characterId, clawObject->mtnId[clawState->motionIndex]);
+    clawObject->mdlId[1] = Hu3DModelCreateFile(0x37001D);
+    Hu3DModelShadowSet(clawObject->mdlId[1]);
+    clawObject->mdlId[2] = Hu3DModelCreateFile(0x37001E);
+    Hu3DModelShadowSet(clawObject->mdlId[2]);
+    clawObject->mdlId[3] = Hu3DModelCreateFile(0x37001F);
+    Hu3DModelShadowSet(clawObject->mdlId[3]);
+    clawObject->mdlId[4] = Hu3DModelCreateFile(0x370020);
+    Hu3DModelShadowSet(clawObject->mdlId[4]);
+    Hu3DModelScaleSet(clawObject->mdlId[4], 0.9f, 0.9f, 0.9f);
+    Hu3DModelHookSet(clawObject->mdlId[1], "hook1", clawObject->mdlId[2]);
+    Hu3DModelHookSet(clawObject->mdlId[2], "hook2", clawObject->mdlId[3]);
+    Hu3DModelHookSet(clawObject->mdlId[3], "hook3", clawObject->mdlId[4]);
+    Hu3DModelPosSet(clawObject->mdlId[1], 950.0f, 0.0f, 0.0f);
+    Hu3DModelAttrSet(clawObject->mdlId[2], 0x40000002);
+    Hu3DModelAttrSet(clawObject->mdlId[4], 0x40000002);
+    clawObject->trans.x = 950.0f;
+    clawObject->trans.y = 275.0f;
+    clawObject->trans.z = 0.0f;
+    clawObject->rot.y = 270.0f;
+    clawState->motionTimer = 3;
+    clawState->targetScale = 0.45f;
+    clawState->effectState = 0;
+    clawObject->objFunc = ClawObjectUpdate;
 }
 
-void fn_1_9A64(OMOBJ *arg0)
+void ClawObjectUpdate(OMOBJ *clawObject)
 {
-    Mtx sp74;
-    Mtx sp44;
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    f32 var_f31;
-    f32 temp_f30;
-    M424DllClawStruct *temp_r31;
-    s32 var_r29;
-    s32 temp_r28;
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r25;
+    Mtx jointMatrix;
+    Mtx baseJointMatrix;
+    Vec clawPosition;
+    Vec collisionCorrection;
+    Vec collisionOffset;
+    Vec pathStart;
+    Vec pathEnd;
+    f32 motionValue;
+    f32 modelScale;
+    M424ClawState *clawState;
+    s32 pathIndex;
+    s32 modelId;
+    s32 ballControllerState;
+    s32 playerIndex;
+    s32 motionState;
 
-    temp_r31 = arg0->data;
-    if (fn_1_FE0() == 4) {
-        temp_r31->unkC = HuPadBtn[temp_r31->unk4];
-        temp_r31->unkA = HuPadBtnDown[temp_r31->unk4];
-        if (temp_r31->unk6 != 0) {
-            fn_1_AE64(arg0);
+    clawState = clawObject->data;
+    if (M424SceneStateGet() == 4) {
+        clawState->position = HuPadBtn[clawState->elapsedFrames];
+        clawState->actionTimer = HuPadBtnDown[clawState->elapsedFrames];
+        if (clawState->animationState != 0) {
+            ClawAnimationUpdate(clawObject);
         }
     }
     else {
-        temp_r31->unkC = 0;
-        temp_r31->unkA = 0;
+        clawState->position = 0;
+        clawState->actionTimer = 0;
     }
-    if (fn_1_FE0() <= 1) {
-        var_r25 = -1;
+    if (M424SceneStateGet() <= 1) {
+        motionState = -1;
     }
     else {
-        var_r25 = temp_r31->unk10;
+        motionState = clawState->motionTimer;
     }
-    switch (var_r25) {
+    switch (motionState) {
         case 0:
-            if (fn_1_FE0() >= 4) {
-                temp_r31->unk10 = 1;
-                temp_r31->unk12 = 0;
+            if (M424SceneStateGet() >= 4) {
+                clawState->motionTimer = 1;
+                clawState->effectState = 0;
             }
             break;
         case 1:
-            if (fn_1_FE0() > 4) {
-                temp_r31->unk10 = 10;
-                temp_r31->unk12 = 0;
+            if (M424SceneStateGet() > 4) {
+                clawState->motionTimer = 10;
+                clawState->effectState = 0;
             }
-            else if ((temp_r31->unkA & 0x100) != 0) {
+            else if ((clawState->actionTimer & 0x100) != 0) {
                 HuAudFXPlay(0x62A);
-                temp_r31->unk184 = HuAudFXPlay(0x621);
-                temp_r31->unk10 = 2;
-                temp_r31->unk12 = 0;
+                clawState->soundEffectId = HuAudFXPlay(0x621);
+                clawState->motionTimer = 2;
+                clawState->effectState = 0;
             }
             break;
         case 2:
-            temp_r31->unk12++;
-            temp_r31->unk24 += (REFRESH_FREQ * temp_r31->unk20);
-            if (temp_r31->unk24 >= 1.0f) {
-                temp_r31->unk24 = 1.0f;
-                temp_r31->unk20 = -1.0f;
+            clawState->effectState++;
+            clawState->targetScale += (REFRESH_FREQ * clawState->positionY);
+            if (clawState->targetScale >= 1.0f) {
+                clawState->targetScale = 1.0f;
+                clawState->positionY = -1.0f;
             }
             else {
-                if (temp_r31->unk24 <= 0.0f) {
-                    temp_r31->unk24 = 0.0f;
-                    temp_r31->unk20 = 1.0f;
+                if (clawState->targetScale <= 0.0f) {
+                    clawState->targetScale = 0.0f;
+                    clawState->positionY = 1.0f;
                 }
             }
-            if (fn_1_FE0() > 4) {
-                if (temp_r31->unk184 != -1) {
-                    HuAudFXStop(temp_r31->unk184);
-                    temp_r31->unk184 = -1;
+            if (M424SceneStateGet() > 4) {
+                if (clawState->soundEffectId != -1) {
+                    HuAudFXStop(clawState->soundEffectId);
+                    clawState->soundEffectId = -1;
                 }
                 HuAudFXPlay(0x622);
-                temp_r31->unk10 = 10;
-                temp_r31->unk12 = 0;
+                clawState->motionTimer = 10;
+                clawState->effectState = 0;
             }
-            else if (((temp_r31->unkC & 0x100) == 0) || (temp_r31->unk12 >= REFRESH_RATE_F * 6)) {
-                if (temp_r31->unk184 != -1) {
-                    HuAudFXStop(temp_r31->unk184);
-                    temp_r31->unk184 = -1;
+            else if (((clawState->position & 0x100) == 0) || (clawState->effectState >= REFRESH_RATE_F * 6)) {
+                if (clawState->soundEffectId != -1) {
+                    HuAudFXStop(clawState->soundEffectId);
+                    clawState->soundEffectId = -1;
                 }
                 HuAudFXPlay(0x622);
-                temp_r31->unk184 = HuAudFXPlay(0x62C);
-                temp_r31->unk168 = -1;
-                temp_r31->unk16C = -1;
-                temp_r31->unk10 = 3;
-                temp_r31->unk12 = 0;
+                clawState->soundEffectId = HuAudFXPlay(0x62C);
+                clawState->actionState = -1;
+                clawState->actionTimer = -1;
+                clawState->motionTimer = 3;
+                clawState->effectState = 0;
             }
             break;
         case 3:
-            temp_r31->unk12++;
-            if (temp_r31->unk15C == 0) {
-                temp_r31->unk28 += REFRESH_FREQ;
+            clawState->effectState++;
+            if (clawState->clawModel == 0) {
+                clawState->motionFrame += REFRESH_FREQ;
             }
-            if (temp_r31->unk28 > 1.0f) {
-                temp_r31->unk28 = 1.0f;
+            if (clawState->motionFrame > 1.0f) {
+                clawState->motionFrame = 1.0f;
             }
-            if (temp_r31->unk12 >= REFRESH_RATE) {
-                if (temp_r31->unk184 != -1) {
-                    HuAudFXStop(temp_r31->unk184);
-                    temp_r31->unk184 = -1;
+            if (clawState->effectState >= REFRESH_RATE) {
+                if (clawState->soundEffectId != -1) {
+                    HuAudFXStop(clawState->soundEffectId);
+                    clawState->soundEffectId = -1;
                 }
                 HuAudFXPlay(0x62D);
                 HuAudFXPlay(0x625);
-                temp_r31->unk10 = 4;
-                temp_r31->unk12 = 0;
+                clawState->motionTimer = 4;
+                clawState->effectState = 0;
             }
-            temp_r31->unk15C = 0;
+            clawState->clawModel = 0;
             break;
         case 4:
-            temp_r31->unk12++;
-            if (temp_r31->unk160 == 0) {
-                temp_r31->unk2C -= REFRESH_FREQ;
+            clawState->effectState++;
+            if (clawState->shadowModel == 0) {
+                clawState->velocityY -= REFRESH_FREQ;
             }
-            if (temp_r31->unk2C < 0.0f) {
-                temp_r31->unk2C = 0.0f;
+            if (clawState->velocityY < 0.0f) {
+                clawState->velocityY = 0.0f;
             }
-            if (temp_r31->unk12 >= REFRESH_RATE) {
-                temp_r31->unk10 = 5;
-                temp_r31->unk12 = 0;
+            if (clawState->effectState >= REFRESH_RATE) {
+                clawState->motionTimer = 5;
+                clawState->effectState = 0;
             }
-            temp_r31->unk160 = 0;
+            clawState->shadowModel = 0;
             break;
         case 5:
-            temp_r31->unk12++;
-            if (temp_r31->unk12 >= REFRESH_RATE_F / 10) {
-                temp_r31->unk184 = HuAudFXPlay(0x62C);
-                if ((temp_r31->unk168 != -1)) {
-                    var_r27 = fn_1_897C(temp_r31->unk168);
-                    if (var_r27 != 0) {
-                        var_r26 = fn_1_89A8(temp_r31->unk168);
-                        CharFXPlay(var_r26, 0x128);
+            clawState->effectState++;
+            if (clawState->effectState >= REFRESH_RATE_F / 10) {
+                clawState->soundEffectId = HuAudFXPlay(0x62C);
+                if ((clawState->actionState != -1)) {
+                    ballControllerState = BallControllerStateGet(clawState->actionState);
+                    if (ballControllerState != 0) {
+                        playerIndex = BallPlayerIndexGet(clawState->actionState);
+                        CharFXPlay(playerIndex, 0x128);
                     }
                 }
-                temp_r31->unk10 = 6;
-                temp_r31->unk12 = 0;
+                clawState->motionTimer = 6;
+                clawState->effectState = 0;
             }
             break;
         case 6:
-            temp_r31->unk12++;
-            temp_r31->unk28 -= 2.0f / (REFRESH_RATE_F * 1.5f); // thanks GPT
-            if (temp_r31->unk28 <= 0.0f) {
-                if (temp_r31->unk184 != -1) {
-                    HuAudFXStop(temp_r31->unk184);
-                    temp_r31->unk184 = -1;
+            clawState->effectState++;
+            clawState->motionFrame -= 2.0f / (REFRESH_RATE_F * 1.5f); // thanks GPT
+            if (clawState->motionFrame <= 0.0f) {
+                if (clawState->soundEffectId != -1) {
+                    HuAudFXStop(clawState->soundEffectId);
+                    clawState->soundEffectId = -1;
                 }
                 HuAudFXPlay(0x62D);
-                temp_r31->unk28 = 0.0f;
-                if (temp_r31->unk168 != -1) {
-                    var_r27 = fn_1_897C(temp_r31->unk168);
+                clawState->motionFrame = 0.0f;
+                if (clawState->actionState != -1) {
+                    ballControllerState = BallControllerStateGet(clawState->actionState);
                 }
                 else {
-                    var_r27 = -1;
+                    ballControllerState = -1;
                 }
-                if (temp_r31->unk168 == -1) {
-                    if (fn_1_FE0() > 4) {
-                        temp_r31->unk10 = 10;
-                        temp_r31->unk12 = 0;
+                if (clawState->actionState == -1) {
+                    if (M424SceneStateGet() > 4) {
+                        clawState->motionTimer = 10;
+                        clawState->effectState = 0;
                     }
                     else {
-                        temp_r31->unk10 = 8;
-                        temp_r31->unk12 = 0;
+                        clawState->motionTimer = 8;
+                        clawState->effectState = 0;
                         HuAudFXPlay(0x625);
                     }
                 }
-                else if (var_r27 == 0) {
-                    temp_r31->unk10 = 8;
-                    temp_r31->unk12 = 0;
+                else if (ballControllerState == 0) {
+                    clawState->motionTimer = 8;
+                    clawState->effectState = 0;
                     HuAudFXPlay(0x625);
                 }
                 else {
-                    if (temp_r31->unk168 != -1) {
-                        fn_1_252C(-6.0f / (REFRESH_RATE_F * 10.0f), REFRESH_RATE);
-                        fn_1_2670(REFRESH_RATE * 2 - 3, 0);
+                    if (clawState->actionState != -1) {
+                        MapCameraAnimationStart(-6.0f / (REFRESH_RATE_F * 10.0f), REFRESH_RATE);
+                        MapEffectStart(REFRESH_RATE * 2 - 3, 0);
                     }
                     HuAudFXPlay(0x62B);
-                    temp_r31->unk184 = HuAudFXPlay(0x623);
-                    temp_r31->unk10 = 7;
-                    temp_r31->unk12 = 0;
+                    clawState->soundEffectId = HuAudFXPlay(0x623);
+                    clawState->motionTimer = 7;
+                    clawState->effectState = 0;
                 }
             }
             break;
         case 7:
-            if (arg0->rot.y < temp_r31->unk180) {
-                arg0->rot.y += 1.25f;
+            if (clawObject->rot.y < clawState->motionState) {
+                clawObject->rot.y += 1.25f;
             }
-            else if (arg0->rot.y > temp_r31->unk180) {
-                arg0->rot.y = temp_r31->unk180;
+            else if (clawObject->rot.y > clawState->motionState) {
+                clawObject->rot.y = clawState->motionState;
             }
-            var_f31 = 0.35f - temp_r31->unk24;
-            if (var_f31 > 0.0125f) {
-                temp_r31->unk24 += 0.0125f;
+            motionValue = 0.35f - clawState->targetScale;
+            if (motionValue > 0.0125f) {
+                clawState->targetScale += 0.0125f;
             }
-            else if (var_f31 < -0.0125f) {
-                temp_r31->unk24 -= 0.0125f;
+            else if (motionValue < -0.0125f) {
+                clawState->targetScale -= 0.0125f;
             }
             else {
-                temp_r31->unk24 = 0.35f;
+                clawState->targetScale = 0.35f;
             }
-            if ((arg0->rot.y == temp_r31->unk180) && (0.35f == temp_r31->unk24)) {
-                if (temp_r31->unk184 != -1) {
-                    HuAudFXStop(temp_r31->unk184);
-                    temp_r31->unk184 = -1;
+            if ((clawObject->rot.y == clawState->motionState) && (0.35f == clawState->targetScale)) {
+                if (clawState->soundEffectId != -1) {
+                    HuAudFXStop(clawState->soundEffectId);
+                    clawState->soundEffectId = -1;
                 }
                 HuAudFXPlay(0x624);
                 HuAudFXPlay(0x625);
-                temp_r31->unk10 = 8;
-                temp_r31->unk12 = 0;
+                clawState->motionTimer = 8;
+                clawState->effectState = 0;
             }
             break;
         case 8:
-            if ((temp_r31->unk12 == 0) && (temp_r31->unk168 != -1)) {
-                if (fn_1_897C(temp_r31->unk168) != 0) {
-                    fn_1_8924(temp_r31->unk168, 4);
-                    var_r26 = fn_1_89A8(temp_r31->unk168);
-                    CharFXPlay(var_r26, 0x123);
-                    fn_1_D010(0x628, REFRESH_RATE / 2);
+            if ((clawState->effectState == 0) && (clawState->actionState != -1)) {
+                if (BallControllerStateGet(clawState->actionState) != 0) {
+                    BallStateSet(clawState->actionState, 4);
+                    playerIndex = BallPlayerIndexGet(clawState->actionState);
+                    CharFXPlay(playerIndex, 0x123);
+                    ClawSoundTimerStart(0x628, REFRESH_RATE / 2);
                 }
                 else {
-                    fn_1_8924(temp_r31->unk168, 2);
+                    BallStateSet(clawState->actionState, 2);
                 }
-                temp_r31->unk16C = temp_r31->unk168;
-                temp_r31->unk168 = -1;
+                clawState->carriedBallIndex = clawState->actionState;
+                clawState->actionState = -1;
             }
-            temp_r31->unk12++;
-            temp_r31->unk2C += 2.0f * REFRESH_FREQ;
-            if (temp_r31->unk2C > 1.0f) {
-                temp_r31->unk2C = 1.0f;
+            clawState->effectState++;
+            clawState->velocityY += 2.0f * REFRESH_FREQ;
+            if (clawState->velocityY > 1.0f) {
+                clawState->velocityY = 1.0f;
             }
-            if (temp_r31->unk2C >= 1.0f) {
-                if (arg0->rot.y == temp_r31->unk180) {
-                    temp_r31->unk184 = HuAudFXPlay(0x623);
+            if (clawState->velocityY >= 1.0f) {
+                if (clawObject->rot.y == clawState->motionState) {
+                    clawState->soundEffectId = HuAudFXPlay(0x623);
                 }
-                if (temp_r31->unk16C != -1) {
-                    if (fn_1_897C(temp_r31->unk16C) != 0) {
-                        lbl_1_bss_6CC++;
+                if (clawState->carriedBallIndex != -1) {
+                    if (BallControllerStateGet(clawState->carriedBallIndex) != 0) {
+                        clawPlayerCount++;
                     }
                 }
-                temp_r31->unk10 = 9;
-                temp_r31->unk12 = 0;
+                clawState->motionTimer = 9;
+                clawState->effectState = 0;
             }
             break;
         case 9:
-            temp_r31->unk12++;
-            if (arg0->rot.y > 270.0f) {
-                arg0->rot.y -= 1.25f;
+            clawState->effectState++;
+            if (clawObject->rot.y > 270.0f) {
+                clawObject->rot.y -= 1.25f;
             }
-            else if (arg0->rot.y < 270.0f) {
-                arg0->rot.y = 270.0f;
+            else if (clawObject->rot.y < 270.0f) {
+                clawObject->rot.y = 270.0f;
             }
-            if (temp_r31->unk24 > 0.025f) {
-                temp_r31->unk24 -= 0.025f;
+            if (clawState->targetScale > 0.025f) {
+                clawState->targetScale -= 0.025f;
             }
-            else if (temp_r31->unk24 < 0.05f) {
-                temp_r31->unk24 = 0.0f;
+            else if (clawState->targetScale < 0.05f) {
+                clawState->targetScale = 0.0f;
             }
-            if ((270.0f == arg0->rot.y) && (0.0f == temp_r31->unk24)) {
-                if (temp_r31->unk184 != -1) {
-                    HuAudFXStop(temp_r31->unk184);
-                    temp_r31->unk184 = -1;
+            if ((270.0f == clawObject->rot.y) && (0.0f == clawState->targetScale)) {
+                if (clawState->soundEffectId != -1) {
+                    HuAudFXStop(clawState->soundEffectId);
+                    clawState->soundEffectId = -1;
                     HuAudFXPlay(0x624);
                 }
-                temp_r31->unk20 = 1.0f;
-                temp_r31->unk10 = 1;
-                temp_r31->unk12 = 0;
+                clawState->positionY = 1.0f;
+                clawState->motionTimer = 1;
+                clawState->effectState = 0;
             }
             break;
         case 10:
-            if (fn_1_B888() != 0) {
-                temp_r31->unkE = 5;
-                CharMotionSet(temp_r31->unk2, arg0->mtnId[temp_r31->unkE]);
-                temp_r31->unkE = 3;
-                CharMotionShiftSet(temp_r31->unk2, arg0->mtnId[temp_r31->unkE], 0.0f, 8.0f, 0U);
-                temp_r31->unk16 = 0;
-                temp_r31->unk14 = 0;
-                temp_r31->unk1C = lbl_1_data_210[0];
-                temp_r31->unk18 = fn_1_B79C(lbl_1_data_1E0[0].y, lbl_1_data_1E0[1].y, temp_r31->unk1C);
-                temp_r31->unk10 = 11;
-                temp_r31->unk12 = 0;
+            if (ClawPlayerThresholdReached() != 0) {
+                clawState->motionIndex = 5;
+                CharMotionSet(clawState->characterId, clawObject->mtnId[clawState->motionIndex]);
+                clawState->motionIndex = 3;
+                CharMotionShiftSet(clawState->characterId, clawObject->mtnId[clawState->motionIndex], 0.0f, 8.0f, 0U);
+                clawState->collisionState = 0;
+                clawState->targetPosition = 0;
+                clawState->positionX = clawMovementSpeeds[0];
+                clawState->targetRotation = ClawFallDurationFramesGet(clawPositionConfigs[0].y, clawPositionConfigs[1].y, clawState->positionX);
+                clawState->motionTimer = 11;
+                clawState->effectState = 0;
             }
             else {
-                temp_r31->unk10 = 13;
-                temp_r31->unk12 = 0;
+                clawState->motionTimer = 13;
+                clawState->effectState = 0;
             }
             break;
         case 11:
-            var_r29 = temp_r31->unk14;
-            if (var_r29 > 2) {
-                var_r29 = 2;
+            pathIndex = clawState->targetPosition;
+            if (pathIndex > 2) {
+                pathIndex = 2;
             }
-            if (temp_r31->unk16 == 0) {
-                temp_r31->unk12++;
-                sp14 = lbl_1_data_1E0[var_r29];
-                sp8 = lbl_1_data_1E0[var_r29 + 1];
-                arg0->rot.y = fn_1_1470(atan2d((sp8.x - arg0->trans.x), (sp8.z - arg0->trans.z)), arg0->rot.y, 10.0f);
-                var_f31 = (f32)temp_r31->unk12 / temp_r31->unk18;
-                arg0->trans.x = sp14.x + (var_f31 * (sp8.x - sp14.x));
-                arg0->trans.z = sp14.z + (var_f31 * (sp8.z - sp14.z));
-                arg0->trans.y += temp_r31->unk1C;
-                temp_r31->unk1C -= 39.2f / REFRESH_RATE_F;
-                if (temp_r31->unk14 == 2) {
-                    if ((temp_r31->unk12 >= (0.4f * temp_r31->unk18)) && (temp_r31->unkE != 6) && (CharMotionShiftIDGet(temp_r31->unk2) == -1)) {
-                        temp_r31->unkE = 6;
-                        CharMotionShiftSet(temp_r31->unk2, arg0->mtnId[temp_r31->unkE], 0.0f, 8.0f, 0);
+            if (clawState->collisionState == 0) {
+                clawState->effectState++;
+                pathStart = clawPositionConfigs[pathIndex];
+                pathEnd = clawPositionConfigs[pathIndex + 1];
+                clawObject->rot.y = AngleApproachDegrees(atan2d((pathEnd.x - clawObject->trans.x), (pathEnd.z - clawObject->trans.z)), clawObject->rot.y, 10.0f);
+                motionValue = (f32)clawState->effectState / clawState->targetRotation;
+                clawObject->trans.x = pathStart.x + (motionValue * (pathEnd.x - pathStart.x));
+                clawObject->trans.z = pathStart.z + (motionValue * (pathEnd.z - pathStart.z));
+                clawObject->trans.y += clawState->positionX;
+                clawState->positionX -= 39.2f / REFRESH_RATE_F;
+                if (clawState->targetPosition == 2) {
+                    if ((clawState->effectState >= (0.4f * clawState->targetRotation)) && (clawState->motionIndex != 6) && (CharMotionShiftIDGet(clawState->characterId) == -1)) {
+                        clawState->motionIndex = 6;
+                        CharMotionShiftSet(clawState->characterId, clawObject->mtnId[clawState->motionIndex], 0.0f, 8.0f, 0);
                     }
                 }
-                if (temp_r31->unk12 >= temp_r31->unk18) {
-                    arg0->trans.x = sp8.x;
-                    arg0->trans.y = sp8.y;
-                    arg0->trans.z = sp8.z;
-                    temp_r31->unkE = 4;
-                    CharMotionShiftSet(temp_r31->unk2, arg0->mtnId[temp_r31->unkE], 0.0f, 8.0f, 0U);
-                    temp_r31->unk12 = 0;
-                    temp_r31->unk16 ^= 1;
-                    if (++temp_r31->unk14 >= 3) {
-                        temp_r31->unk10 = 0xC;
+                if (clawState->effectState >= clawState->targetRotation) {
+                    clawObject->trans.x = pathEnd.x;
+                    clawObject->trans.y = pathEnd.y;
+                    clawObject->trans.z = pathEnd.z;
+                    clawState->motionIndex = 4;
+                    CharMotionShiftSet(clawState->characterId, clawObject->mtnId[clawState->motionIndex], 0.0f, 8.0f, 0U);
+                    clawState->effectState = 0;
+                    clawState->collisionState ^= 1;
+                    if (++clawState->targetPosition >= 3) {
+                        clawState->motionTimer = 0xC;
                     }
                 }
             }
             else {
-                sp14 = lbl_1_data_1E0[var_r29];
-                sp8 = lbl_1_data_1E0[var_r29 + 1];
-                var_f31 = atan2d((sp8.x - arg0->trans.x), (sp8.z - arg0->trans.z));
-                arg0->rot.y = fn_1_1470(var_f31, arg0->rot.y, 10.0f);
-                if ((fn_1_1358(var_f31, arg0->rot.y) < 1.0f) && (CharMotionShiftIDGet(temp_r31->unk2) == -1)) {
-                    temp_r31->unkE = 3;
-                    CharMotionShiftSet(temp_r31->unk2, arg0->mtnId[temp_r31->unkE], 0.0f, 8.0f, 0);
-                    temp_r31->unk1C = lbl_1_data_210[var_r29];
-                    temp_r31->unk18 = fn_1_B79C(sp14.y, sp8.y, temp_r31->unk1C);
-                    temp_r31->unk12 = 0;
-                    temp_r31->unk16 ^= 1;
+                pathStart = clawPositionConfigs[pathIndex];
+                pathEnd = clawPositionConfigs[pathIndex + 1];
+                motionValue = atan2d((pathEnd.x - clawObject->trans.x), (pathEnd.z - clawObject->trans.z));
+                clawObject->rot.y = AngleApproachDegrees(motionValue, clawObject->rot.y, 10.0f);
+                if ((AngleDeltaDegrees(motionValue, clawObject->rot.y) < 1.0f) && (CharMotionShiftIDGet(clawState->characterId) == -1)) {
+                    clawState->motionIndex = 3;
+                    CharMotionShiftSet(clawState->characterId, clawObject->mtnId[clawState->motionIndex], 0.0f, 8.0f, 0);
+                    clawState->positionX = clawMovementSpeeds[pathIndex];
+                    clawState->targetRotation = ClawFallDurationFramesGet(pathStart.y, pathEnd.y, clawState->positionX);
+                    clawState->effectState = 0;
+                    clawState->collisionState ^= 1;
                 }
             }
             break;
         case 12:
-            if ((temp_r31->unkE != 0) && (CharMotionShiftIDGet(temp_r31->unk2) == -1)) {
-                temp_r31->unkE = 0;
-                CharMotionShiftSet(temp_r31->unk2, arg0->mtnId[temp_r31->unkE], 0.0f, 8.0f, 0x40000008);
+            if ((clawState->motionIndex != 0) && (CharMotionShiftIDGet(clawState->characterId) == -1)) {
+                clawState->motionIndex = 0;
+                CharMotionShiftSet(clawState->characterId, clawObject->mtnId[clawState->motionIndex], 0.0f, 8.0f, 0x40000008);
             }
-            arg0->rot.y = fn_1_1470(0.0f, arg0->rot.y, 10.0f);
-            if ((fn_1_1358(0.0f, arg0->rot.y) < 1.0f) && (temp_r31->unkE == 0)) {
-                temp_r31->unk10 = 0xD;
-                temp_r31->unk12 = 0;
+            clawObject->rot.y = AngleApproachDegrees(0.0f, clawObject->rot.y, 10.0f);
+            if ((AngleDeltaDegrees(0.0f, clawObject->rot.y) < 1.0f) && (clawState->motionIndex == 0)) {
+                clawState->motionTimer = 0xD;
+                clawState->effectState = 0;
             }
             break;
         case 13:
-            if (fn_1_FE0() >= 7) {
-                if (fn_1_B888() != 0) {
-                    temp_r31->unk10 = 14;
-                    temp_r31->unk12 = 0;
+            if (M424SceneStateGet() >= 7) {
+                if (ClawPlayerThresholdReached() != 0) {
+                    clawState->motionTimer = 14;
+                    clawState->effectState = 0;
                 }
                 else {
-                    temp_r31->unk10 = 15;
-                    temp_r31->unk12 = 0;
+                    clawState->motionTimer = 15;
+                    clawState->effectState = 0;
                 }
             }
             break;
         case 14:
-            if ((temp_r31->unkE != 7) && (CharMotionShiftIDGet(temp_r31->unk2) == -1)) {
-                temp_r31->unkE = 7;
-                CharMotionShiftSet(temp_r31->unk2, arg0->mtnId[temp_r31->unkE], 0.0f, 8.0f, 0);
+            if ((clawState->motionIndex != 7) && (CharMotionShiftIDGet(clawState->characterId) == -1)) {
+                clawState->motionIndex = 7;
+                CharMotionShiftSet(clawState->characterId, clawObject->mtnId[clawState->motionIndex], 0.0f, 8.0f, 0);
             }
             break;
         case 15:
             break;
     }
-    if (temp_r31->unk10 <= 9) {
-        Hu3DModelRotSet(arg0->mdlId[1], 0.0f, 90.0f + arg0->rot.y, 0.0f);
+    if (clawState->motionTimer <= 9) {
+        Hu3DModelRotSet(clawObject->mdlId[1], 0.0f, 90.0f + clawObject->rot.y, 0.0f);
     }
-    temp_r28 = arg0->mdlId[2];
-    Hu3DMotionTimeSet(temp_r28, temp_r31->unk24 * Hu3DMotionMaxTimeGet(temp_r28));
-    fn_1_CE74(temp_r28);
-    temp_f30 = 0.2f + (0.8f * temp_r31->unk28);
-    Hu3DModelScaleSet(arg0->mdlId[3], 1.0f, temp_f30, 1.0f);
-    Hu3DModelScaleSet(arg0->mdlId[4], 1.0f, 1.0f / temp_f30, 1.0f);
-    temp_r28 = arg0->mdlId[4];
-    Hu3DMotionTimeSet(temp_r28, temp_r31->unk2C * Hu3DMotionMaxTimeGet(temp_r28));
-    fn_1_CE74(temp_r28);
-    fn_1_C878(arg0->mdlId[1], "hook1", sp74, 0);
-    fn_1_C878(arg0->mdlId[2], "hook2", sp74, 1);
-    fn_1_C878(arg0->mdlId[3], "hook3", sp74, 1);
-    MTXCopy(sp74, sp44);
-    temp_r31->unk30.x = sp74[0][3];
-    temp_r31->unk30.y = sp74[1][3];
-    temp_r31->unk30.z = sp74[2][3];
+    modelId = clawObject->mdlId[2];
+    Hu3DMotionTimeSet(modelId, clawState->targetScale * Hu3DMotionMaxTimeGet(modelId));
+    ModelAnimationUpdate(modelId);
+    modelScale = 0.2f + (0.8f * clawState->motionFrame);
+    Hu3DModelScaleSet(clawObject->mdlId[3], 1.0f, modelScale, 1.0f);
+    Hu3DModelScaleSet(clawObject->mdlId[4], 1.0f, 1.0f / modelScale, 1.0f);
+    modelId = clawObject->mdlId[4];
+    Hu3DMotionTimeSet(modelId, clawState->velocityY * Hu3DMotionMaxTimeGet(modelId));
+    ModelAnimationUpdate(modelId);
+    ModelJointMatrixGet(clawObject->mdlId[1], "hook1", jointMatrix, 0);
+    ModelJointMatrixGet(clawObject->mdlId[2], "hook2", jointMatrix, 1);
+    ModelJointMatrixGet(clawObject->mdlId[3], "hook3", jointMatrix, 1);
+    MTXCopy(jointMatrix, baseJointMatrix);
+    clawState->velocityZ.x = jointMatrix[0][3];
+    clawState->velocityZ.y = jointMatrix[1][3];
+    clawState->velocityZ.z = jointMatrix[2][3];
 
-    for (var_r29 = 0; var_r29 < 0xC; var_r29++) {
-        MTXCopy(sp44, sp74);
-        fn_1_C878(arg0->mdlId[4], lbl_1_data_21C[var_r29], sp74, 1);
-        temp_r31->unkCC[var_r29] = temp_r31->unk3C[var_r29];
-        temp_r31->unk3C[var_r29].x = sp74[0][3];
-        temp_r31->unk3C[var_r29].y = sp74[1][3];
-        temp_r31->unk3C[var_r29].z = sp74[2][3];
+    for (pathIndex = 0; pathIndex < 0xC; pathIndex++) {
+        MTXCopy(baseJointMatrix, jointMatrix);
+        ModelJointMatrixGet(clawObject->mdlId[4], clawJointNames[pathIndex], jointMatrix, 1);
+        clawState->targetPositions[pathIndex] = clawState->playerPositions[pathIndex];
+        clawState->playerPositions[pathIndex].x = jointMatrix[0][3];
+        clawState->playerPositions[pathIndex].y = jointMatrix[1][3];
+        clawState->playerPositions[pathIndex].z = jointMatrix[2][3];
     }
-    if ((temp_r31->unk168 != -1) && (temp_r31->unk10 >= 6)) {
-        sp2C.x = 0.0f;
-        sp2C.y = temp_r31->unk174.y;
-        sp2C.z = 0.0f;
-        VECSubtract(&temp_r31->unk174, &sp2C, &sp20);
-        var_f31 = VECMag(&sp20);
-        if (var_f31 != 0.0f) {
-            VECNormalize(&sp20, &sp20);
-            VECScale(&sp20, &sp20, 0.9f * var_f31);
-            VECAdd(&sp2C, &sp20, &temp_r31->unk174);
+    if ((clawState->actionState != -1) && (clawState->motionTimer >= 6)) {
+        collisionCorrection.x = 0.0f;
+        collisionCorrection.y = clawState->collisionTimer.y;
+        collisionCorrection.z = 0.0f;
+        VECSubtract(&clawState->collisionTimer, &collisionCorrection, &collisionOffset);
+        motionValue = VECMag(&collisionOffset);
+        if (motionValue != 0.0f) {
+            VECNormalize(&collisionOffset, &collisionOffset);
+            VECScale(&collisionOffset, &collisionOffset, 0.9f * motionValue);
+            VECAdd(&collisionCorrection, &collisionOffset, &clawState->collisionTimer);
         }
-        VECAdd(&temp_r31->unk30, &temp_r31->unk174, &sp38);
-        fn_1_88E8(temp_r31->unk168, sp38.x, sp38.y, sp38.z);
+        VECAdd(&clawState->velocityZ, &clawState->collisionTimer, &clawPosition);
+        BallPositionSet(clawState->actionState, clawPosition.x, clawPosition.y, clawPosition.z);
     }
-    temp_r31->unk164 = 1;
+    clawState->isAnimating = 1;
 }
 
-void fn_1_AE58(OMOBJ *arg0)
+void ClawObjectStop(OMOBJ *clawObject)
 {
-    arg0->objFunc = NULL;
+    clawObject->objFunc = NULL;
 }
 
-f32 lbl_1_data_36C[4][2] = {
+f32 clawMotionFrameTimings[4][2] = {
     REFRESH_RATE_F * 0.5f, REFRESH_RATE_F * 0.4f,
     REFRESH_RATE_F * 0.4f, REFRESH_RATE_F * 0.3f,
     REFRESH_RATE_F * 0.2f, REFRESH_RATE_F * 0.1f,
     REFRESH_RATE_F * 0.1f, 0.0f
 };
 
-f32 lbl_1_data_38C[4][2] = { 0.2f, 0.15f, 0.15f, 0.1f, 0.1f, 0.05f, 0.05f, 0.0f };
+f32 clawMotionScales[4][2] = { 0.2f, 0.15f, 0.15f, 0.1f, 0.1f, 0.05f, 0.05f, 0.0f };
 
-void fn_1_AE64(OMOBJ *arg0)
+void ClawAnimationUpdate(OMOBJ *clawObject)
 {
-    M424DllClawStruct2 sp20[8];
-    M424DllClawStruct2 sp10;
-    s32 spC;
-    f32 var_f31;
-    f32 var_f29;
-    f32 temp_f28;
-    f32 temp_f27;
-    f32 temp_f26;
-    f32 var_f25;
-    f32 var_f24;
-    s32 temp_r24;
-    s32 temp_r23;
-    M424DllClawStruct *temp_r31;
-    Vec *var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
-    M424DllBallStruct2 *var_r26;
-    s32 var_r25;
+    M424ClawMotionState candidatePlayers[8];
+    M424ClawMotionState candidateSwap;
+    s32 candidateCount;
+    f32 playerAngle;
+    f32 normalizedDistance;
+    f32 distanceSquared;
+    f32 motionTimeStart;
+    f32 motionTimeEnd;
+    f32 animationDuration;
+    f32 scaleAdjustment;
+    s32 randomFrameOffset;
+    s32 randomScaleOffset;
+    M424ClawState *clawState;
+    Vec *ballPositionPointer;
+    s32 ballIndex;
+    s32 candidateIndex;
+    s32 comparisonIndex;
+    M424BallPhysicsState *ballPhysicsState;
+    s32 animationActive;
 
-    spC = 0;
-    temp_r31 = arg0->data;
-    var_r26 = &lbl_1_bss_60[0];
-    if (var_r26) {
-        temp_r31->unkC = 0;
-        temp_r31->unkA = 0;
-        switch (temp_r31->unk10) {
+    candidateCount = 0;
+    clawState = clawObject->data;
+    ballPhysicsState = &ballPhysicsStates[0];
+    if (ballPhysicsState) {
+        clawState->position = 0;
+        clawState->actionTimer = 0;
+        switch (clawState->motionTimer) {
             case 1:
-                if (temp_r31->unk188 == 0) {
-                    temp_r31->unk188 = 1;
-                    temp_r31->unk18C = -1;
-                    temp_r31->unk190 = 0;
-                    temp_r31->unk194 = 0;
-                    temp_r31->unk198 = 0;
-                    temp_r31->unk19C = 0;
-                    temp_r31->unk1A0 = 0;
-                    temp_r31->unk1A4 = 0;
-                    temp_r31->unk1A8 = 0.0f;
+                if (clawState->effectTimer == 0) {
+                    clawState->effectTimer = 1;
+                    clawState->animationFrame = -1;
+                    clawState->animationFrameIndex = 0;
+                    clawState->motionTimer = 0;
+                    clawState->turnState = 0;
+                    clawState->turnTimer = 0;
+                    clawState->playerIndex = 0;
+                    clawState->motionCharacterId = 0;
+                    clawState->clawFlags = 0.0f;
                 }
-                if (temp_r31->unk18C == -1) {
-                    for (var_r29 = 0, var_r28 = 0; var_r29 < lbl_1_bss_58; var_r29++, var_r26++) {
-                        if ((fn_1_897C(var_r29) != 0) && (fn_1_8950(var_r29) <= 2)) {
-                            var_r30 = fn_1_89D4(var_r29);
-                            var_f31 = atan2d(var_r30->x, var_r30->z);
-                            if (var_f31 > 180.0f) {
-                                var_f31 -= 360.0f;
+                if (clawState->animationFrame == -1) {
+                    for (ballIndex = 0, candidateIndex = 0; ballIndex < ballCount; ballIndex++, ballPhysicsState++) {
+                        if ((BallControllerStateGet(ballIndex) != 0) && (BallStateGet(ballIndex) <= 2)) {
+                            ballPosition = BallPositionPointerGet(ballIndex);
+                            playerAngle = atan2d(ballPosition->x, ballPosition->z);
+                            if (playerAngle > 180.0f) {
+                                playerAngle -= 360.0f;
                             }
-                            if (var_r28 < 8) {
-                                if (var_f31 >= -90.0f) {
-                                    if (var_f31 <= 45.0f) {
-                                        sp20[var_r28].unk0 = var_r29;
-                                        sp20[var_r28].unkC = var_f31;
-                                        sp20[var_r28].unk4 = var_r30->x;
-                                        sp20[var_r28].unk8 = var_r30->z;
-                                        var_r28++;
+                            if (candidateIndex < 8) {
+                                if (playerAngle >= -90.0f) {
+                                    if (playerAngle <= 45.0f) {
+                                        candidatePlayers[candidateIndex].state = ballIndex;
+                                        candidatePlayers[candidateIndex].position = playerAngle;
+                                        candidatePlayers[candidateIndex].elapsedFrames = ballPosition->x;
+                                        candidatePlayers[candidateIndex].velocity = ballPosition->z;
+                                        candidateIndex++;
                                     }
                                 }
                             }
                         }
                     }
-                    if (var_r28 != 0) {
-                        for (var_r29 = 0; var_r29 < (var_r28 - 1); var_r29++) {
-                            var_r27 = var_r29 + 1;
-                            for (; var_r27 < var_r28; var_r27++) {
-                                if (sp20[var_r29].unkC < sp20[var_r27].unkC) {
-                                    sp10 = sp20[var_r29];
-                                    sp20[var_r29] = sp20[var_r27];
-                                    sp20[var_r27] = sp10;
+                    if (candidateIndex != 0) {
+                        for (ballIndex = 0; ballIndex < (candidateIndex - 1); ballIndex++) {
+                            comparisonIndex = ballIndex + 1;
+                            for (; comparisonIndex < candidateIndex; comparisonIndex++) {
+                                if (candidatePlayers[ballIndex].position < candidatePlayers[comparisonIndex].position) {
+                                    candidateSwap = candidatePlayers[ballIndex];
+                                    candidatePlayers[ballIndex] = candidatePlayers[comparisonIndex];
+                                    candidatePlayers[comparisonIndex] = candidateSwap;
                                 }
                             }
                         }
-                        temp_r31->unk18C = sp20[0].unk0;
-                        temp_r31->unk1A8 = sp20[0].unkC;
-                        temp_r31->unk19C = 0;
-                        temp_r31->unk1A0 = 0;
-                        temp_r31->unk1A4 = 0;
-                        temp_r31->unk1AC = 0;
+                        clawState->animationFrame = candidatePlayers[0].state;
+                        clawState->clawFlags = candidatePlayers[0].position;
+                        clawState->turnTimer = 0;
+                        clawState->playerIndex = 0;
+                        clawState->motionCharacterId = 0;
+                        clawState->animationFrameCounter = 0;
                     }
                 }
-                if (temp_r31->unk18C != -1) {
-                    var_r30 = fn_1_89D4(temp_r31->unk18C);
-                    var_f31 = atan2d(var_r30->x, var_r30->z);
-                    if (var_f31 > 180.0f) {
-                        var_f31 -= 360.0f;
+                if (clawState->animationFrame != -1) {
+                    ballPosition = BallPositionPointerGet(clawState->animationFrame);
+                    playerAngle = atan2d(ballPosition->x, ballPosition->z);
+                    if (playerAngle > 180.0f) {
+                        playerAngle -= 360.0f;
                     }
-                    if (var_f31 >= 30.0f) {
-                        if (temp_r31->unk19C != 0) {
-                            temp_f27 = lbl_1_data_36C[temp_r31->unk8][0];
-                            temp_f26 = lbl_1_data_36C[temp_r31->unk8][1];
-                            temp_r24 = ((temp_f26 - temp_f27) * (temp_f27 * (0.007874016f * (frand() & 0x7F))));
-                            temp_f27 = lbl_1_data_38C[temp_r31->unk8][0];
-                            temp_f26 = lbl_1_data_38C[temp_r31->unk8][1];
-                            temp_r23 = ((temp_f26 - temp_f27) * (temp_f27 * (0.007874016f * (frand() & 0x7F))));
-                            temp_r31->unk190 = ((3.0f * temp_r31->unk1A4) + temp_r24);
-                            temp_f28 = (var_r30->x * var_r30->x) + (var_r30->z * var_r30->z);
-                            var_f29 = sqrtf(temp_f28);
-                            var_f29 = (var_f29 - 350.0f) / 250.0f + temp_r23;
-                            if (var_f29 < 0.0f) {
-                                var_f29 = 0.0f;
+                    if (playerAngle >= 30.0f) {
+                        if (clawState->turnTimer != 0) {
+                            motionTimeStart = clawMotionFrameTimings[clawState->velocity][0];
+                            motionTimeEnd = clawMotionFrameTimings[clawState->velocity][1];
+                            randomFrameOffset = ((motionTimeEnd - motionTimeStart) * (motionTimeStart * (0.007874016f * (frand() & 0x7F))));
+                            motionTimeStart = clawMotionScales[clawState->velocity][0];
+                            motionTimeEnd = clawMotionScales[clawState->velocity][1];
+                            randomScaleOffset = ((motionTimeEnd - motionTimeStart) * (motionTimeStart * (0.007874016f * (frand() & 0x7F))));
+                            clawState->animationFrameIndex = ((3.0f * clawState->motionCharacterId) + randomFrameOffset);
+                            distanceSquared = (ballPosition->x * ballPosition->x) + (ballPosition->z * ballPosition->z);
+                            normalizedDistance = sqrtf(distanceSquared);
+                            normalizedDistance = (normalizedDistance - 350.0f) / 250.0f + randomScaleOffset;
+                            if (normalizedDistance < 0.0f) {
+                                normalizedDistance = 0.0f;
                             }
-                            else if (var_f29 > 1.0f) {
-                                var_f29 = 1.0f;
+                            else if (normalizedDistance > 1.0f) {
+                                normalizedDistance = 1.0f;
                             }
-                            temp_r31->unk194 = (REFRESH_RATE_F * (1.0f - var_f29));
-                            var_f25 = (1.5f + (-1.5f * var_f29));
-                            temp_r31->unk190 -= (s32)(REFRESH_RATE_F * var_f25);
-                            var_f25 = (1.0f + (-1.1f * var_f29));
-                            temp_r31->unk198 = (REFRESH_RATE_F * var_f25);
-                            temp_r31->unk19C = 0;
-                            temp_r31->unk1A0 = 0;
-                            temp_r31->unk1AC = 0;
-                            temp_r31->unk1AC = (temp_r31->unk1AC + (REFRESH_RATE_F * (1.0f - var_f29)));
+                            clawState->animationDuration = (REFRESH_RATE_F * (1.0f - normalizedDistance));
+                            animationDuration = (1.5f + (-1.5f * normalizedDistance));
+                            clawState->animationFrameIndex -= (s32)(REFRESH_RATE_F * animationDuration);
+                            animationDuration = (1.0f + (-1.1f * normalizedDistance));
+                            clawState->turnState = (REFRESH_RATE_F * animationDuration);
+                            clawState->turnTimer = 0;
+                            clawState->playerIndex = 0;
+                            clawState->animationFrameCounter = 0;
+                            clawState->animationFrameCounter = (clawState->animationFrameCounter + (REFRESH_RATE_F * (1.0f - normalizedDistance)));
                         }
-                        if (++temp_r31->unk1AC >= (temp_r31->unk190 - temp_r31->unk198)) {
-                            temp_r31->unkA |= 0x100;
-                            temp_r31->unkC |= 0x100;
-                            temp_r31->unk1AC = 0;
+                        if (++clawState->animationFrameCounter >= (clawState->animationFrameIndex - clawState->turnState)) {
+                            clawState->actionTimer |= 0x100;
+                            clawState->position |= 0x100;
+                            clawState->animationFrameCounter = 0;
                             return;
                         }
                     }
                     else {
-                        if (var_f31 >= (15.0f + temp_r31->unk1A8)) {
-                            temp_r31->unk1A0++;
-                            temp_r31->unk1A8 = var_f31;
-                            temp_r31->unk1A4 = (temp_r31->unk19C / temp_r31->unk1A0);
+                        if (playerAngle >= (15.0f + clawState->clawFlags)) {
+                            clawState->playerIndex++;
+                            clawState->clawFlags = playerAngle;
+                            clawState->motionCharacterId = (clawState->turnTimer / clawState->playerIndex);
                             return;
                         }
-                        temp_r31->unk19C++;
+                        clawState->turnTimer++;
                         return;
                     }
                 }
                 break;
             case 2:
-                if (temp_r31->unk18C != -1) {
-                    var_r25 = 1;
-                    if (++temp_r31->unk1AC >= temp_r31->unk194) {
-                        var_r25 = 0;
+                if (clawState->animationFrame != -1) {
+                    animationActive = 1;
+                    if (++clawState->animationFrameCounter >= clawState->animationDuration) {
+                        animationActive = 0;
                     }
                 }
                 else {
-                    var_r25 = 0;
+                    animationActive = 0;
                 }
-                if (var_r25 != 0) {
-                    temp_r31->unkC |= 0x100;
+                if (animationActive != 0) {
+                    clawState->position |= 0x100;
                 }
-                temp_r31->unk188 = 0;
+                clawState->effectTimer = 0;
                 break;
         }
     }
 }
 
-u16 fn_1_B79C(f32 arg0, f32 arg1, f32 arg2)
+u16 ClawFallDurationFramesGet(f32 initialVelocity, f32 targetHeight, f32 gravityPerFrame)
 {
-    f32 var_f31;
-    f32 var_f3;
-    u16 var_r31;
+    f32 height;
+    u16 frameCount;
 
-    var_r31 = 0;
-    for (var_f31 = arg0; arg2 > 0.0f || var_f31 > arg1; var_r31++) {
-        var_f31 += arg2;
-        arg2 -= 39.2f / REFRESH_RATE_F;
+    frameCount = 0;
+    for (height = initialVelocity; gravityPerFrame > 0.0f || height > targetHeight; frameCount++) {
+        height += gravityPerFrame;
+        gravityPerFrame -= 39.2f / REFRESH_RATE_F;
     }
-    return var_r31;
+    return frameCount;
 }
 
-s32 fn_1_B804(void)
+s32 ClawMotionActive(void)
 {
-    M424DllClawStruct *temp_r31;
+    M424ClawState *clawState;
 
-    if (!lbl_1_bss_6D8) {
+    if (!clawObject) {
         return 0;
     }
-    if (!lbl_1_bss_6D8->data) {
+    if (!clawObject->data) {
         return 0;
     }
-    temp_r31 = lbl_1_bss_6D8->data;
-    if ((temp_r31->unk10 >= 1) && (temp_r31->unk10 < 6)) {
+    clawState = clawObject->data;
+    if ((clawState->motionTimer >= 1) && (clawState->motionTimer < 6)) {
         return 1;
     }
     return 0;
 }
 
-s32 fn_1_B888(void)
+s32 ClawPlayerThresholdReached(void)
 {
-    if (lbl_1_bss_6CC >= 3) {
+    if (clawPlayerCount >= 3) {
         return 1;
     }
     else {
@@ -854,199 +853,199 @@ s32 fn_1_B888(void)
     }
 }
 
-s32 fn_1_B8AC(void)
+s32 ClawMotionPhase10Reached(void)
 {
-    M424DllClawStruct *temp_r31;
+    M424ClawState *clawState;
 
-    if (!lbl_1_bss_6D8) {
+    if (!clawObject) {
         return 0;
     }
-    if (!lbl_1_bss_6D8->data) {
+    if (!clawObject->data) {
         return 0;
     }
 
-    temp_r31 = lbl_1_bss_6D8->data;
-    if (temp_r31->unk10 >= 10) {
+    clawState = clawObject->data;
+    if (clawState->motionTimer >= 10) {
         return 1;
     }
     return 0;
 }
 
-s32 fn_1_B924(void)
+s32 ClawMotionPhase13Reached(void)
 {
-    M424DllClawStruct *temp_r31;
+    M424ClawState *clawState;
 
-    if (!lbl_1_bss_6D8) {
+    if (!clawObject) {
         return 0;
     }
-    if (!lbl_1_bss_6D8->data) {
+    if (!clawObject->data) {
         return 0;
     }
 
-    temp_r31 = lbl_1_bss_6D8->data;
-    if (temp_r31->unk10 >= 13) {
+    clawState = clawObject->data;
+    if (clawState->motionTimer >= 13) {
         return 1;
     }
     return 0;
 }
 
-void fn_1_B99C(Vec *arg0, Vec *arg1, f32 arg8, Vec *arg2)
+void ClawPlayerPositionResolve(Vec *playerPosition, Vec *movement, f32 clawRadius, Vec *resolvedPosition)
 {
-    fn_1_B9E0(arg0, arg1, arg8, arg2, 0x10);
+    ClawPlayerCollisionResolve(playerPosition, movement, clawRadius, resolvedPosition, 0x10);
 }
 
-s32 fn_1_B9E0(Vec *arg0, Vec *arg1, f32 arg8, Vec *arg2, s32 arg3)
+s32 ClawPlayerCollisionResolve(Vec *playerPosition, Vec *movementDelta, f32 clawRadius, Vec *resolvedPosition, s32 recursionDepth)
 {
-    Vec sp60;
-    Vec sp54;
-    Vec sp48;
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    f32 temp_f30;
-    f32 var_f29;
-    f32 temp_f28;
-    f32 temp_f27;
-    f32 temp_f26;
-    f32 var_f25;
-    f32 var_f24;
-    f32 var_f23;
-    M424DllClawStruct *temp_r31;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r26;
-    OMOBJ *var_r24;
-    s32 var_r23;
+    Vec playerJointPosition;
+    Vec translatedTargetPosition;
+    Vec relativeMovement;
+    Vec projectedTargetPosition;
+    Vec separationVector;
+    Vec desiredPosition;
+    Vec collisionNormal;
+    Vec movementOffset;
+    f32 minimumDistance;
+    f32 distance;
+    f32 unusedFloat28;
+    f32 projectionFactor;
+    f32 segmentLengthSquared;
+    f32 unusedFloat25;
+    f32 dotProduct;
+    f32 horizontalDistance;
+    M424ClawState *clawState;
+    s32 jointIndex;
+    s32 collisionResolved;
+    s32 segmentCollisionResolved;
+    OMOBJ *clawGameObject;
+    s32 collisionAllowed;
 
-    var_r23 = 1;
-    var_r28 = 0;
-    var_r24 = lbl_1_bss_6D8;
-    temp_r31 = var_r24->data;
-    VECAdd(arg0, arg1, &sp24);
-    spC = *arg1;
-    *arg2 = *arg0;
-    temp_f30 = 5.0f + arg8;
-    if (temp_r31->unk164 == 0) {
+    collisionAllowed = 1;
+    collisionResolved = 0;
+    clawObject = clawObject;
+    clawState = clawObject->data;
+    VECAdd(playerPosition, movementDelta, &desiredPosition);
+    movementOffset = *movementDelta;
+    *resolvedPosition = *playerPosition;
+    minimumDistance = 5.0f + clawRadius;
+        if (clawState->isAnimating == 0) {
         return 0;
     }
-    switch (temp_r31->unk10) {
+    switch (clawState->motionTimer) {
         case 3:
-            for (var_r29 = 0; var_r29 < 0xC; var_r29++) {
-                if (var_r28 != 0) {
-                    sp24 = *arg2;
-                    VECSubtract(&sp24, arg0, &spC);
+            for (jointIndex = 0; jointIndex < 0xC; jointIndex++) {
+                if (collisionResolved != 0) {
+                    desiredPosition = *resolvedPosition;
+                    VECSubtract(&desiredPosition, playerPosition, &movementOffset);
                 }
-                VECSubtract(&sp24, &temp_r31->unk3C[var_r29], &sp18);
-                var_f29 = VECMag(&sp18);
-                if (var_f29 < temp_f30) {
-                    if (0.0f == var_f29) {
-                        var_f29 = temp_f30;
-                        sp18.x = 0.0f;
-                        sp18.y = 0.0f;
-                        sp18.z = 1.0f;
+                VECSubtract(&desiredPosition, &clawState->playerPositions[jointIndex], &collisionNormal);
+                distance = VECMag(&collisionNormal);
+                if (distance < minimumDistance) {
+                    if (0.0f == distance) {
+                        distance = minimumDistance;
+                        collisionNormal.x = 0.0f;
+                        collisionNormal.y = 0.0f;
+                        collisionNormal.z = 1.0f;
                     }
-                    var_f23 = sqrtf((sp18.x * sp18.x) + (sp18.z * sp18.z));
-                    if ((temp_r31->unk3C[var_r29].y > sp24.y) && (var_f23 < 17.599999999999998)) {
-                        temp_r31->unk15C = 1;
+                    horizontalDistance = sqrtf((collisionNormal.x * collisionNormal.x) + (collisionNormal.z * collisionNormal.z));
+                    if ((clawState->playerPositions[jointIndex].y > desiredPosition.y) && (horizontalDistance < 17.599999999999998)) {
+                        clawState->clawModel = 1;
                     }
                     else {
-                        VECNormalize(&sp18, &sp18);
-                        VECScale(&sp18, &sp18, temp_f30);
-                        VECAdd(&temp_r31->unk3C[var_r29], &sp18, arg2);
+                        VECNormalize(&collisionNormal, &collisionNormal);
+                        VECScale(&collisionNormal, &collisionNormal, minimumDistance);
+                        VECAdd(&clawState->playerPositions[jointIndex], &collisionNormal, resolvedPosition);
                     }
-                    var_r28 = 1;
+                    collisionResolved = 1;
                 }
             }
             break;
         default:
-            for (var_r29 = 0; var_r29 < 0xC; var_r29++) {
-                if (var_r28 != 0) {
-                    sp24 = *arg2;
-                    VECSubtract(&sp24, arg0, &spC);
+            for (jointIndex = 0; jointIndex < 0xC; jointIndex++) {
+                if (collisionResolved != 0) {
+                    desiredPosition = *resolvedPosition;
+                    VECSubtract(&desiredPosition, playerPosition, &movementOffset);
                 }
-                var_r26 = 0;
-                sp60 = temp_r31->unk3C[var_r29];
-                VECAdd(&temp_r31->unkCC[var_r29], &spC, &sp54);
-                VECSubtract(&sp60, &sp54, &sp18);
-                VECSubtract(&sp24, &sp54, &sp48);
-                temp_f26 = (sp18.z * sp18.z) + ((sp18.x * sp18.x) + (sp18.y * sp18.y));
-                if (temp_f26 != 0.0f) {
-                    var_f24 = (sp18.x * sp48.x) + (sp18.y * sp48.y) + (sp18.z * sp48.z);
-                    temp_f27 = var_f24 / temp_f26;
-                    if (temp_f27 >= 0.0f) {
-                        if (temp_f27 <= 1.0f) {
-                            VECScale(&sp18, &sp18, temp_f27);
-                            VECAdd(&sp54, &sp18, &sp3C);
-                            VECSubtract(&sp24, &sp3C, &sp30);
-                            var_f29 = VECMag(&sp30);
-                            if (var_f29 == 0.0f) {
-                                if (VECMag(&sp18) <= 0.0f) {
-                                    sp18.x = sp18.y = 0.0f;
-                                    sp18.z = 1.0f;
+                segmentCollisionResolved = 0;
+                playerJointPosition = clawState->playerPositions[jointIndex];
+                VECAdd(&clawState->targetPositions[jointIndex], &movementOffset, &translatedTargetPosition);
+                VECSubtract(&playerJointPosition, &translatedTargetPosition, &collisionNormal);
+                VECSubtract(&desiredPosition, &translatedTargetPosition, &relativeMovement);
+                segmentLengthSquared = (collisionNormal.z * collisionNormal.z) + ((collisionNormal.x * collisionNormal.x) + (collisionNormal.y * collisionNormal.y));
+                if (segmentLengthSquared != 0.0f) {
+                    dotProduct = (collisionNormal.x * relativeMovement.x) + (collisionNormal.y * relativeMovement.y) + (collisionNormal.z * relativeMovement.z);
+                    projectionFactor = dotProduct / segmentLengthSquared;
+                    if (projectionFactor >= 0.0f) {
+                        if (projectionFactor <= 1.0f) {
+                            VECScale(&collisionNormal, &collisionNormal, projectionFactor);
+                            VECAdd(&translatedTargetPosition, &collisionNormal, &projectedTargetPosition);
+                            VECSubtract(&desiredPosition, &projectedTargetPosition, &separationVector);
+                            distance = VECMag(&separationVector);
+                            if (distance == 0.0f) {
+                                if (VECMag(&collisionNormal) <= 0.0f) {
+                                    collisionNormal.x = collisionNormal.y = 0.0f;
+                                    collisionNormal.z = 1.0f;
                                 }
-                                VECNormalize(&sp18, &sp30);
-                                VECScale(&sp30, &sp30, temp_f30);
-                                VECAdd(&sp60, &sp30, arg2);
-                                var_r28 = 1;
-                                var_r26 = 1;
+                                VECNormalize(&collisionNormal, &separationVector);
+                                VECScale(&separationVector, &separationVector, minimumDistance);
+                                VECAdd(&playerJointPosition, &separationVector, resolvedPosition);
+                                collisionResolved = 1;
+                                segmentCollisionResolved = 1;
                             }
-                            else if (var_f29 < temp_f30) {
-                                if (VECMag(&sp30) <= 0.0f) {
+                            else if (distance < minimumDistance) {
+                                if (VECMag(&separationVector) <= 0.0f) {
 
-                                    sp30.x = sp30.y = 0.0f;
-                                    sp30.z = 1.0f;
+                                    separationVector.x = separationVector.y = 0.0f;
+                                    separationVector.z = 1.0f;
                                 }
-                                VECNormalize(&sp30, &sp30);
-                                VECScale(&sp30, &sp30, temp_f30);
-                                VECAdd(&sp3C, &sp30, arg2);
-                                var_r28 = 1;
-                                var_r26 = 1;
+                                VECNormalize(&separationVector, &separationVector);
+                                VECScale(&separationVector, &separationVector, minimumDistance);
+                                VECAdd(&projectedTargetPosition, &separationVector, resolvedPosition);
+                                collisionResolved = 1;
+                                segmentCollisionResolved = 1;
                             }
                         }
                     }
                 }
-                if (var_r26 == 0) {
-                    VECSubtract(&sp24, &sp60, &sp18);
-                    var_f29 = VECMag(&sp18);
-                    if (var_f29 < temp_f30) {
-                        if (var_f29 <= 0.0f) {
-                            sp18.x = sp18.y = 0.0f;
-                            sp18.z = 1.0f;
+                if (segmentCollisionResolved == 0) {
+                    VECSubtract(&desiredPosition, &playerJointPosition, &collisionNormal);
+                    distance = VECMag(&collisionNormal);
+                    if (distance < minimumDistance) {
+                        if (distance <= 0.0f) {
+                            collisionNormal.x = collisionNormal.y = 0.0f;
+                            collisionNormal.z = 1.0f;
                         }
-                        VECNormalize(&sp18, &sp18);
-                        VECScale(&sp18, &sp18, temp_f30);
-                        VECAdd(&temp_r31->unk3C[var_r29], &sp18, arg2);
-                        var_r28 = 1;
-                        var_r26 = 1;
+                        VECNormalize(&collisionNormal, &collisionNormal);
+                        VECScale(&collisionNormal, &collisionNormal, minimumDistance);
+                        VECAdd(&clawState->playerPositions[jointIndex], &collisionNormal, resolvedPosition);
+                        collisionResolved = 1;
+                        segmentCollisionResolved = 1;
                     }
                 }
-                if (var_r26 == 0) {
-                    VECSubtract(&sp24, &sp54, &sp18);
-                    var_f29 = VECMag(&sp18);
-                    if (var_f29 < temp_f30) {
-                        if (var_f29 <= 0.0f) {
-                            sp18.x = sp18.y = 0.0f;
-                            sp18.z = 1.0f;
+                if (segmentCollisionResolved == 0) {
+                    VECSubtract(&desiredPosition, &translatedTargetPosition, &collisionNormal);
+                    distance = VECMag(&collisionNormal);
+                    if (distance < minimumDistance) {
+                        if (distance <= 0.0f) {
+                            collisionNormal.x = collisionNormal.y = 0.0f;
+                            collisionNormal.z = 1.0f;
                         }
-                        VECNormalize(&sp18, &sp18);
-                        VECScale(&sp18, &sp18, temp_f30);
-                        VECAdd(&temp_r31->unk3C[var_r29], &sp18, arg2);
-                        var_r28 = 1;
-                        var_r26 = 1;
+                        VECNormalize(&collisionNormal, &collisionNormal);
+                        VECScale(&collisionNormal, &collisionNormal, minimumDistance);
+                        VECAdd(&clawState->playerPositions[jointIndex], &collisionNormal, resolvedPosition);
+                        collisionResolved = 1;
+                        segmentCollisionResolved = 1;
                     }
                 }
-                if ((lbl_1_data_2DC[var_r29] != 0) && (var_r26 == 0)) {
-                    var_r23 = 0;
+                if ((clawCollisionFlags[jointIndex] != 0) && (segmentCollisionResolved == 0)) {
+                    collisionAllowed = 0;
                 }
             }
-            if ((temp_r31->unk10 == 4) && (var_r23 != 0)) {
-                arg2->x = temp_r31->unk30.x;
-                arg2->y = arg0->y;
-                arg2->z = temp_r31->unk30.z;
-                arg3 = 0;
-                temp_r31->unk160 = 1;
+            if ((clawState->motionTimer == 4) && (collisionAllowed != 0)) {
+                resolvedPosition->x = clawState->velocityZ.x;
+                resolvedPosition->y = playerPosition->y;
+                resolvedPosition->z = clawState->velocityZ.z;
+                recursionDepth = 0;
+                clawState->shadowModel = 1;
             }
             break;
         case 0:
@@ -1055,302 +1054,302 @@ s32 fn_1_B9E0(Vec *arg0, Vec *arg1, f32 arg8, Vec *arg2, s32 arg3)
         case 9:
             break;
     }
-    if (var_r28 != 0) {
-        if (--arg3 > 0) {
-            sp24 = *arg2;
-            VECSubtract(&sp24, arg0, &spC);
-            if (fn_1_B9E0(arg0, &spC, arg8, &sp24, arg3) != 0) {
-                *arg2 = sp24;
+    if (collisionResolved != 0) {
+        if (--recursionDepth > 0) {
+            desiredPosition = *resolvedPosition;
+            VECSubtract(&desiredPosition, playerPosition, &movementOffset);
+            if (ClawPlayerCollisionResolve(playerPosition, &movementOffset, clawRadius, &desiredPosition, recursionDepth) != 0) {
+                *resolvedPosition = desiredPosition;
             }
         }
     }
 
-    (void)temp_f30; // @todo fix
-    (void)temp_f30;
-    return var_r28;
+    (void)minimumDistance; // @todo fix
+    (void)minimumDistance;
+    return collisionResolved;
 }
 
-s32 fn_1_C210(Vec *arg0)
+s32 ClawBallCollisionCheck(Vec *ballPosition)
 {
-    Vec sp1C;
-    Vec sp10;
-    f32 spC;
-    M424DllClawStruct *temp_r31;
-    OMOBJ *var_r30;
-    s32 var_r29;
+    Vec clawTipPosition;
+    Vec positionDelta;
+    f32 distance;
+    M424ClawState *clawState;
+    OMOBJ *clawObject;
+    s32 collisionDetected;
 
-    var_r29 = 0;
-    var_r30 = lbl_1_bss_6D8;
-    temp_r31 = var_r30->data;
-    if (temp_r31->unk164 == 0) {
+    collisionDetected = 0;
+    clawObject = clawObject;
+    clawState = clawObject->data;
+    if (clawState->isAnimating == 0) {
         return 0;
     }
-    switch (temp_r31->unk10) {
+    switch (clawState->motionTimer) {
         case 5:
-            sp1C.x = temp_r31->unk30.x;
-            sp1C.y = -120.00001f + temp_r31->unk30.y;
-            sp1C.z = temp_r31->unk30.z;
-            VECSubtract(arg0, &sp1C, &sp10);
-            if ((spC = VECMag(&sp10)) < 50.0f) {
-                var_r29 = 1;
+            clawTipPosition.x = clawState->velocityZ.x;
+            clawTipPosition.y = -120.00001f + clawState->velocityZ.y;
+            clawTipPosition.z = clawState->velocityZ.z;
+            VECSubtract(ballPosition, &clawTipPosition, &positionDelta);
+            if ((distance = VECMag(&positionDelta)) < 50.0f) {
+                collisionDetected = 1;
             }
     }
-    return var_r29;
+    return collisionDetected;
 }
 
-void fn_1_C2E0(s32 arg0)
+void ClawBallCollisionsUpdate(s32 unusedFlags)
 {
-    Vec sp4C;
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
-    Vec *spC;
-    M424DllBallStruct2 *temp_r27;
-    Vec *temp_r28;
-    M424DllClawStruct *temp_r31;
-    s32 var_r30;
-    s32 var_r26;
-    OMOBJ *var_r25;
+    Vec ballPosition;
+    Vec positionDelta;
+    Vec resolvedPosition;
+    Vec previousPosition;
+    Vec *ballVelocity;
+    M424BallPhysicsState *ballPhysicsState;
+    Vec *ballPosition;
+    M424ClawState *clawState;
+    s32 ballIndex;
+    s32 collisionRetryCount;
+    OMOBJ *clawObject;
 
     if ((u8)omPauseChk() != 0U)
         return;
 
-    var_r25 = lbl_1_bss_6D8;
-    if (lbl_1_bss_6D8) {
-        temp_r31 = var_r25->data;
-        if (temp_r31 && (temp_r31->unk164 != 0)) {
-            temp_r27 = &lbl_1_bss_60[0];
-            if (temp_r27) {
-                var_r26 = 0x10;
+    clawGameObject = clawObject;
+    if (clawGameObject) {
+        clawState = clawGameObject->data;
+        if (clawState && (clawState->isAnimating != 0)) {
+            ballPhysicsState = &ballPhysicsStates[0];
+            if (ballPhysicsState) {
+                collisionRetryCount = 0x10;
 
-                for (var_r30 = 0; var_r30 < lbl_1_bss_58; var_r30++) {
-                    temp_r27 = &lbl_1_bss_60[var_r30];
-                    if ((fn_1_8950(var_r30) == 3) || (fn_1_8950(var_r30) == 4))
+                for (ballIndex = 0; ballIndex < ballCount; ballIndex++) {
+                    ballPhysicsState = &ballPhysicsStates[ballIndex];
+                    if ((BallStateGet(ballIndex) == 3) || (BallStateGet(ballIndex) == 4))
                         continue;
-                    temp_r28 = fn_1_89D4(var_r30);
-                    spC = fn_1_8A00(var_r30);
-                    sp28 = *temp_r28;
-                    sp4C = temp_r27->unk60;
-                    VECSubtract(temp_r28, &sp4C, &sp40);
-                    if (fn_1_B9E0(&sp4C, &sp40, 100.0f, &sp34, 0x10) != 0) {
-                        *temp_r28 = sp34;
-                        sp4C = sp34;
-                        if ((temp_r27->unk4 < 3) && (fn_1_907C(&sp4C, &sp34) != 0)) {
-                            *temp_r28 = sp34;
-                            sp4C = sp34;
+                    ballPositionPointer = BallPositionPointerGet(ballIndex);
+                    ballVelocity = BallVelocityPointerGet(ballIndex);
+                    previousPosition = *ballPositionPointer;
+                    ballPosition = ballPhysicsState->currentPosition;
+                    VECSubtract(ballPositionPointer, &ballPosition, &positionDelta);
+                    if (ClawPlayerCollisionResolve(&ballPosition, &positionDelta, 100.0f, &resolvedPosition, 0x10) != 0) {
+                        *ballPositionPointer = resolvedPosition;
+                        ballPosition = resolvedPosition;
+                        if ((ballPhysicsState->controllerState < 3) && (BallPositionClamp(&ballPosition, &resolvedPosition) != 0)) {
+                            *ballPositionPointer = resolvedPosition;
+                            ballPosition = resolvedPosition;
                         }
-                        fn_1_C604(var_r30, 0x20);
-                        if ((sp28.y != sp4C.y) && (var_r30 != temp_r31->unk168) && (var_r30 != temp_r31->unk16C)) {
-                            temp_r28->y = sp28.y;
-                            sp4C.y = sp28.y;
-                            if (var_r26 > 0) {
-                                var_r30--;
-                                var_r26--;
+                        ClawBallCollisionApply(ballIndex, 0x20);
+                        if ((previousPosition.y != ballPosition.y) && (ballIndex != clawState->actionState) && (ballIndex != clawState->carriedBallIndex)) {
+                            ballPositionPointer->y = previousPosition.y;
+                            ballPosition.y = previousPosition.y;
+                            if (collisionRetryCount > 0) {
+                                ballIndex--;
+                                collisionRetryCount--;
                                 continue;
                             }
                         }
                     }
-                    if (temp_r31->unk168 == -1) {
-                        if (fn_1_C210(&sp4C) != 0) {
-                            temp_r31->unk168 = var_r30;
-                            temp_r31->unk170 = fn_1_897C(var_r30);
-                            VECSubtract(&sp4C, &temp_r31->unk30, &temp_r31->unk174);
-                            fn_1_88E8(temp_r31->unk168, sp4C.x, sp4C.y, sp4C.z);
+                    if (clawState->actionState == -1) {
+                        if (ClawBallCollisionCheck(&ballPosition) != 0) {
+                            clawState->actionState = ballIndex;
+                            clawState->ballControllerState = BallControllerStateGet(ballIndex);
+                            VECSubtract(&ballPosition, &clawState->velocityZ, &clawState->collisionTimer);
+                            BallPositionSet(clawState->actionState, ballPosition.x, ballPosition.y, ballPosition.z);
                         }
                     }
-                    var_r26 = 0x10;
+                    collisionRetryCount = 0x10;
                 }
             }
         }
     }
 }
 
-void fn_1_C604(s32 arg0, s32 arg1)
+void ClawBallCollisionApply(s32 ballIndex, s32 recursionDepth)
 {
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    Vec *var_r31;
-    f32 temp_f31;
-    f32 var_f30;
-    s32 var_r30; // ! - uninitialized
-    M424DllBallStruct2 *var_r28;
-    Vec *var_r27;
+    Vec ballPosition;
+    Vec otherBallPosition;
+    Vec separationVector;
+    Vec clampedPosition;
+    Vec *currentBallPositionPointer;
+    f32 separationScale;
+    f32 separationDistance;
+    s32 otherBallIndex; // ! - uninitialized
+    M424BallPhysicsState *otherBallPhysicsState;
+    Vec *otherBallPositionPointer;
 
 #ifdef __MWERKS__
-    M424DllBallStruct2 *sp8;
-    sp8 = &lbl_1_bss_60[var_r30];
+    M424BallPhysicsState *unusedPhysicsState;
+    unusedPhysicsState = &ballPhysicsStates[otherBallIndex];
 #endif
-    var_r27 = fn_1_89D4(arg0);
-    sp30 = *var_r27;
-    for (var_r30 = 0; var_r30 < lbl_1_bss_58; var_r30++) {
-        if ((var_r30 != arg0) && (fn_1_8950(var_r30) < 3)) {
-            var_r28 = &lbl_1_bss_60[var_r30];
-            var_r31 = fn_1_89D4(var_r30);
-            sp24 = *var_r31;
-            VECSubtract(&sp24, &sp30, &sp18);
-            var_f30 = VECMag(&sp18);
-            if (var_f30 < 200.0f) {
-                if (var_f30 > 0.0f) {
-                    temp_f31 = 1.0f / var_f30;
-                    sp18.x *= temp_f31;
-                    sp18.y *= temp_f31;
-                    sp18.z *= temp_f31;
+    currentBallPositionPointer = BallPositionPointerGet(ballIndex);
+    ballPosition = *currentBallPositionPointer;
+    for (otherBallIndex = 0; otherBallIndex < ballCount; otherBallIndex++) {
+        if ((otherBallIndex != ballIndex) && (BallStateGet(otherBallIndex) < 3)) {
+            otherBallPhysicsState = &ballPhysicsStates[otherBallIndex];
+            otherBallPositionPointer = BallPositionPointerGet(otherBallIndex);
+            otherBallPosition = *otherBallPositionPointer;
+            VECSubtract(&otherBallPosition, &ballPosition, &separationVector);
+            separationDistance = VECMag(&separationVector);
+            if (separationDistance < 200.0f) {
+                if (separationDistance > 0.0f) {
+                    separationScale = 1.0f / separationDistance;
+                    separationVector.x *= separationScale;
+                    separationVector.y *= separationScale;
+                    separationVector.z *= separationScale;
                 }
                 else {
-                    sp18.x = 0.0f;
-                    sp18.y = 0.0f;
-                    sp18.z = 1.0f;
+                    separationVector.x = 0.0f;
+                    separationVector.y = 0.0f;
+                    separationVector.z = 1.0f;
                 }
-                temp_f31 = 1.0f + (200.0f - var_f30);
-                sp24.x += (sp18.x * temp_f31);
-                sp24.z += (sp18.z * temp_f31);
-                var_r31->x = sp24.x;
-                var_r31->z = sp24.z;
-                if ((var_r28->unk4 < 3) && (fn_1_907C(&sp24, &spC) != 0)) {
-                    var_r31->x = sp24.x = spC.x;
-                    var_r31->z = sp24.z = spC.z;
+                separationScale = 1.0f + (200.0f - separationDistance);
+                otherBallPosition.x += (separationVector.x * separationScale);
+                otherBallPosition.z += (separationVector.z * separationScale);
+                otherBallPositionPointer->x = otherBallPosition.x;
+                otherBallPositionPointer->z = otherBallPosition.z;
+                if ((otherBallPhysicsState->controllerState < 3) && (BallPositionClamp(&otherBallPosition, &clampedPosition) != 0)) {
+                    otherBallPositionPointer->x = otherBallPosition.x = clampedPosition.x;
+                    otherBallPositionPointer->z = otherBallPosition.z = clampedPosition.z;
                 }
-                if (arg1 > 0) {
-                    arg1--;
-                    fn_1_C604(var_r30, arg1);
+                if (recursionDepth > 0) {
+                    recursionDepth--;
+                    ClawBallCollisionApply(otherBallIndex, recursionDepth);
                 }
             }
         }
     }
 }
 
-void fn_1_C854(void)
+void ClawBallCollisionCallback(void)
 {
-    fn_1_C2E0(0);
+    ClawBallCollisionsUpdate(0);
 }
 
-s32 fn_1_C878(s16 arg0, const char *arg1, Mtx arg2, s32 arg3)
+s32 ModelJointMatrixGet(s16 modelId, const char *jointName, Mtx jointMatrix, s32 includeModelTransform)
 {
-    Mtx sp44;
-    Mtx sp14;
-    HSFDATA *temp_r30;
-    HU3DMODEL *temp_r31;
+    Mtx modelMatrix;
+    Mtx rotationMatrix;
+    HSFDATA *modelData;
+    HU3DMODEL *model;
 
-    temp_r31 = &Hu3DData[arg0];
-    temp_r30 = temp_r31->hsf;
-    lbl_1_bss_6C8 = 0;
-    if (temp_r31->motId != -1) {
-        lbl_1_bss_6C4 = 1;
+    model = &Hu3DData[modelId];
+    modelData = model->hsf;
+    clawJointFound = 0;
+    if (model->motId != -1) {
+        useCurrentModelMotion = 1;
     }
     else {
-        lbl_1_bss_6C4 = 0;
+        useCurrentModelMotion = 0;
     }
-    mtxRot(sp14, temp_r31->rot.x, temp_r31->rot.y, temp_r31->rot.z);
-    MTXScale(sp44, temp_r31->scale.x, temp_r31->scale.y, temp_r31->scale.z);
-    MTXConcat(sp14, sp44, sp44);
-    mtxTransCat(sp44, temp_r31->pos.x, temp_r31->pos.y, temp_r31->pos.z);
-    if (arg3 != 0) {
-        MTXConcat(arg2, sp44, sp44);
+    mtxRot(rotationMatrix, model->rot.x, model->rot.y, model->rot.z);
+    MTXScale(modelMatrix, model->scale.x, model->scale.y, model->scale.z);
+    MTXConcat(rotationMatrix, modelMatrix, modelMatrix);
+    mtxTransCat(modelMatrix, model->pos.x, model->pos.y, model->pos.z);
+    if (includeModelTransform != 0) {
+        MTXConcat(jointMatrix, modelMatrix, modelMatrix);
     }
-    fn_1_C99C(temp_r30->root, sp44, arg1, arg2);
-    return lbl_1_bss_6C8;
+    ModelJointMatrixFindRecursive(modelData->root, modelMatrix, jointName, jointMatrix);
+    return clawJointFound;
 }
 
-void fn_1_C99C(HSFOBJECT *arg0, Mtx arg1, const char *arg2, Mtx arg3)
+void ModelJointMatrixFindRecursive(HSFOBJECT *jointObject, Mtx parentMatrix, const char *targetJointName, Mtx resultMatrix)
 {
-    Mtx spF8;
-    Mtx spC8;
-    Mtx sp98;
-    Mtx sp68;
-    Mtx sp38;
-    Mtx sp8;
-    HSFTRANSFORM *var_r31;
-    HSFTRANSFORM *var_r30;
-    HSFTRANSFORM *var_r29;
-    HSFOBJECT *temp_r28;
-    HSFOBJECT *temp_r27;
-    u32 var_r25;
-    u32 var_r24;
-    u32 var_r23;
+    Mtx jointWorldMatrix;
+    Mtx jointRotationMatrix;
+    Mtx childRotationMatrix;
+    Mtx childWorldMatrix;
+    Mtx grandchildRotationMatrix;
+    Mtx grandchildWorldMatrix;
+    HSFTRANSFORM *jointTransform;
+    HSFTRANSFORM *childTransform;
+    HSFTRANSFORM *grandchildTransform;
+    HSFOBJECT *childObject;
+    HSFOBJECT *grandchildObject;
+    u32 childIndex;
+    u32 grandchildIndex;
+    u32 descendantIndex;
 
-    if (lbl_1_bss_6C8 == 0) {
-        if (lbl_1_bss_6C4 != 0) {
-            var_r31 = &arg0->mesh.curr;
+    if (clawJointFound == 0) {
+        if (useCurrentModelMotion != 0) {
+            jointTransform = &jointObject->mesh.curr;
         }
         else {
-            var_r31 = &arg0->mesh.base;
+            jointTransform = &jointObject->mesh.base;
         }
-        if ((var_r31->scale.x <= 0.0f) && (var_r31->scale.y <= 0.0f) && (var_r31->scale.z <= 0.0f)) {
-            MTXCopy(arg1, spF8);
-            OSReport("OBJ MTX CHECK ERROR %s \n", arg0->name);
+        if ((jointTransform->scale.x <= 0.0f) && (jointTransform->scale.y <= 0.0f) && (jointTransform->scale.z <= 0.0f)) {
+            MTXCopy(parentMatrix, jointWorldMatrix);
+            OSReport("OBJ MTX CHECK ERROR %s \n", jointObject->name);
         }
         else {
-            mtxRot(spC8, var_r31->rot.x, var_r31->rot.y, var_r31->rot.z);
-            MTXScale(spF8, var_r31->scale.x, var_r31->scale.y, var_r31->scale.z);
-            MTXConcat(spC8, spF8, spF8);
-            mtxTransCat(spF8, var_r31->pos.x, var_r31->pos.y, var_r31->pos.z);
-            MTXConcat(arg1, spF8, spF8);
+            mtxRot(jointRotationMatrix, jointTransform->rot.x, jointTransform->rot.y, jointTransform->rot.z);
+            MTXScale(jointWorldMatrix, jointTransform->scale.x, jointTransform->scale.y, jointTransform->scale.z);
+            MTXConcat(jointRotationMatrix, jointWorldMatrix, jointWorldMatrix);
+            mtxTransCat(jointWorldMatrix, jointTransform->pos.x, jointTransform->pos.y, jointTransform->pos.z);
+            MTXConcat(parentMatrix, jointWorldMatrix, jointWorldMatrix);
         }
-        if (lbl_1_bss_6C0 != 0) {
-            OSReport("%s \n", arg0->name);
+        if (clawJointDebugEnabled != 0) {
+            OSReport("%s \n", jointObject->name);
         }
-        if (strcmp(arg2, arg0->name) == 0) {
-            MTXCopy(spF8, arg3);
-            lbl_1_bss_6C8 = 1;
+        if (strcmp(targetJointName, jointObject->name) == 0) {
+            MTXCopy(jointWorldMatrix, resultMatrix);
+            clawJointFound = 1;
         }
-        for (var_r25 = 0; var_r25 < arg0->mesh.childrenCount; var_r25++) {
-            temp_r28 = arg0->mesh.children[var_r25];
-            if (lbl_1_bss_6C8 == 0) {
-                if (lbl_1_bss_6C4 != 0) {
-                    var_r30 = &temp_r28->mesh.curr;
+        for (childIndex = 0; childIndex < jointObject->mesh.childrenCount; childIndex++) {
+            childObject = jointObject->mesh.children[childIndex];
+            if (clawJointFound == 0) {
+                if (useCurrentModelMotion != 0) {
+                    childTransform = &childObject->mesh.curr;
                 }
                 else {
-                    var_r30 = &temp_r28->mesh.base;
+                    childTransform = &childObject->mesh.base;
                 }
-                if ((var_r30->scale.x <= 0.0f) && (var_r30->scale.y <= 0.0f) && (var_r30->scale.z <= 0.0f)) {
-                    MTXCopy(spF8, sp68);
-                    OSReport("OBJ MTX CHECK ERROR %s \n", temp_r28->name);
+                if ((childTransform->scale.x <= 0.0f) && (childTransform->scale.y <= 0.0f) && (childTransform->scale.z <= 0.0f)) {
+                    MTXCopy(jointWorldMatrix, childWorldMatrix);
+                    OSReport("OBJ MTX CHECK ERROR %s \n", childObject->name);
                 }
                 else {
-                    mtxRot(sp98, var_r30->rot.x, var_r30->rot.y, var_r30->rot.z);
-                    MTXScale(sp68, var_r30->scale.x, var_r30->scale.y, var_r30->scale.z);
-                    MTXConcat(sp98, sp68, sp68);
-                    mtxTransCat(sp68, var_r30->pos.x, var_r30->pos.y, var_r30->pos.z);
-                    MTXConcat(spF8, sp68, sp68);
+                    mtxRot(childRotationMatrix, childTransform->rot.x, childTransform->rot.y, childTransform->rot.z);
+                    MTXScale(childWorldMatrix, childTransform->scale.x, childTransform->scale.y, childTransform->scale.z);
+                    MTXConcat(childRotationMatrix, childWorldMatrix, childWorldMatrix);
+                    mtxTransCat(childWorldMatrix, childTransform->pos.x, childTransform->pos.y, childTransform->pos.z);
+                    MTXConcat(jointWorldMatrix, childWorldMatrix, childWorldMatrix);
                 }
-                if (lbl_1_bss_6C0 != 0) {
-                    OSReport("%s \n", temp_r28->name);
+                if (clawJointDebugEnabled != 0) {
+                    OSReport("%s \n", childObject->name);
                 }
-                if (strcmp(arg2, temp_r28->name) == 0) {
-                    MTXCopy(sp68, arg3);
-                    lbl_1_bss_6C8 = 1;
+                if (strcmp(targetJointName, childObject->name) == 0) {
+                    MTXCopy(childWorldMatrix, resultMatrix);
+                    clawJointFound = 1;
                 }
-                for (var_r24 = 0; var_r24 < temp_r28->mesh.childrenCount; var_r24++) {
-                    temp_r27 = temp_r28->mesh.children[var_r24];
-                    if (lbl_1_bss_6C8 == 0) {
-                        if (lbl_1_bss_6C4 != 0) {
-                            var_r29 = &temp_r27->mesh.curr;
+                for (grandchildIndex = 0; grandchildIndex < childObject->mesh.childrenCount; grandchildIndex++) {
+                    grandchildObject = childObject->mesh.children[grandchildIndex];
+                    if (clawJointFound == 0) {
+                        if (useCurrentModelMotion != 0) {
+                            grandchildTransform = &grandchildObject->mesh.curr;
                         }
                         else {
-                            var_r29 = &temp_r27->mesh.base;
+                            grandchildTransform = &grandchildObject->mesh.base;
                         }
-                        if ((var_r29->scale.x <= 0.0f) && (var_r29->scale.y <= 0.0f) && (var_r29->scale.z <= 0.0f)) {
-                            MTXCopy(sp68, sp8);
-                            OSReport("OBJ MTX CHECK ERROR %s \n", temp_r27->name);
+                        if ((grandchildTransform->scale.x <= 0.0f) && (grandchildTransform->scale.y <= 0.0f) && (grandchildTransform->scale.z <= 0.0f)) {
+                            MTXCopy(childWorldMatrix, grandchildWorldMatrix);
+                            OSReport("OBJ MTX CHECK ERROR %s \n", grandchildObject->name);
                         }
                         else {
-                            mtxRot(sp38, var_r29->rot.x, var_r29->rot.y, var_r29->rot.z);
-                            MTXScale(sp8, var_r29->scale.x, var_r29->scale.y, var_r29->scale.z);
-                            MTXConcat(sp38, sp8, sp8);
-                            mtxTransCat(sp8, var_r29->pos.x, var_r29->pos.y, var_r29->pos.z);
-                            MTXConcat(sp68, sp8, sp8);
+                            mtxRot(grandchildRotationMatrix, grandchildTransform->rot.x, grandchildTransform->rot.y, grandchildTransform->rot.z);
+                            MTXScale(grandchildWorldMatrix, grandchildTransform->scale.x, grandchildTransform->scale.y, grandchildTransform->scale.z);
+                            MTXConcat(grandchildRotationMatrix, grandchildWorldMatrix, grandchildWorldMatrix);
+                            mtxTransCat(grandchildWorldMatrix, grandchildTransform->pos.x, grandchildTransform->pos.y, grandchildTransform->pos.z);
+                            MTXConcat(childWorldMatrix, grandchildWorldMatrix, grandchildWorldMatrix);
                         }
-                        if (lbl_1_bss_6C0 != 0) {
-                            OSReport("%s \n", temp_r27->name);
+                        if (clawJointDebugEnabled != 0) {
+                            OSReport("%s \n", grandchildObject->name);
                         }
-                        if (strcmp(arg2, temp_r27->name) == 0) {
-                            MTXCopy(sp8, arg3);
-                            lbl_1_bss_6C8 = 1;
+                        if (strcmp(targetJointName, grandchildObject->name) == 0) {
+                            MTXCopy(grandchildWorldMatrix, resultMatrix);
+                            clawJointFound = 1;
                         }
-                        for (var_r23 = 0; var_r23 < temp_r27->mesh.childrenCount; var_r23++) {
-                            fn_1_C99C(temp_r27->mesh.children[var_r23], sp8, arg2, arg3);
+                        for (descendantIndex = 0; descendantIndex < grandchildObject->mesh.childrenCount; descendantIndex++) {
+                            ModelJointMatrixFindRecursive(grandchildObject->mesh.children[descendantIndex], grandchildWorldMatrix, targetJointName, resultMatrix);
                         }
                     }
                 }
@@ -1359,67 +1358,67 @@ void fn_1_C99C(HSFOBJECT *arg0, Mtx arg1, const char *arg2, Mtx arg3)
     }
 }
 
-void fn_1_CE74(s32 arg0)
+void ModelAnimationUpdate(s32 modelId)
 {
-    HU3DMODEL *temp_r31;
+    HU3DMODEL *model;
 
-    temp_r31 = &Hu3DData[arg0];
-    if (temp_r31->motId != -1) {
-        Hu3DMotionExec(arg0, temp_r31->motId, temp_r31->motWork.time, 0);
+    model = &Hu3DData[modelId];
+    if (model->motId != -1) {
+        Hu3DMotionExec(modelId, model->motId, model->motWork.time, 0);
     }
-    if (temp_r31->motIdShift != -1) {
-        Hu3DSubMotionExec(arg0);
+    if (model->motIdShift != -1) {
+        Hu3DSubMotionExec(modelId);
     }
-    if (temp_r31->hsf->cenvNum != 0) {
-        EnvelopeProc(temp_r31->hsf);
+    if (model->hsf->cenvNum != 0) {
+        EnvelopeProc(model->hsf);
     }
 }
 
-void fn_1_CF00(HUPROCESS *arg0)
+void ClawSoundTimersInit(HUPROCESS *processManager)
 {
-    M424DllClawStruct3 *var_r31;
-    s32 var_r30;
+    M424ClawPlayerState *soundTimer;
+    s32 playerIndex;
 
-    omAddObjEx(arg0, 0x40, 0, 0, -1, fn_1_CF80);
-    var_r31 = &lbl_1_bss_640[0];
+    omAddObjEx(processManager, 0x40, 0, 0, -1, ClawSoundTimersUpdate);
+    soundTimer = &clawPlayerSoundTimers[0];
 
-    for (var_r30 = 0; var_r30 < 0x10; var_r30++, var_r31++) {
-        var_r31->unk0 = -1;
-        var_r31->unk4 = -1;
+    for (playerIndex = 0; playerIndex < 0x10; playerIndex++, soundTimer++) {
+        soundTimer->state = -1;
+        soundTimer->elapsedFrames = -1;
     }
 }
 
-void fn_1_CF80(OMOBJ *arg0)
+void ClawSoundTimersUpdate(OMOBJ *timerObject)
 {
-    M424DllClawStruct3 *var_r31;
-    s32 var_r30;
+    M424ClawPlayerState *soundTimer;
+    s32 playerIndex;
 
-    var_r31 = &lbl_1_bss_640[0];
-    for (var_r30 = 0; var_r30 < 0x10; var_r30++, var_r31++) {
-        if ((var_r31->unk0 >= 0) && (var_r31->unk4 > 0)) {
-            if (--var_r31->unk4 <= 0) {
-                HuAudFXPlay(var_r31->unk0);
-                var_r31->unk0 = -1;
-                var_r31->unk4 = -1;
+    soundTimer = &clawPlayerSoundTimers[0];
+    for (playerIndex = 0; playerIndex < 0x10; playerIndex++, soundTimer++) {
+        if ((soundTimer->state >= 0) && (soundTimer->elapsedFrames > 0)) {
+            if (--soundTimer->elapsedFrames <= 0) {
+                HuAudFXPlay(soundTimer->state);
+                soundTimer->state = -1;
+                soundTimer->elapsedFrames = -1;
             }
         }
     }
 }
 
-s32 fn_1_D010(s32 arg0, s32 arg1)
+s32 ClawSoundTimerStart(s32 soundId, s32 delayFrames)
 {
-    M424DllClawStruct3 *var_r31;
-    s32 var_r30;
+    M424ClawPlayerState *soundTimer;
+    s32 timerIndex;
 
-    var_r31 = &lbl_1_bss_640[0];
-    for (var_r30 = 0; var_r30 < 0x10; var_r30++, var_r31++) {
-        if (var_r31->unk0 == -1)
+    soundTimer = &clawPlayerSoundTimers[0];
+    for (timerIndex = 0; timerIndex < 0x10; timerIndex++, soundTimer++) {
+        if (soundTimer->state == -1)
             break;
     }
-    if (var_r30 >= 0x10) {
+    if (timerIndex >= 0x10) {
         return -1;
     }
-    var_r31->unk0 = arg0;
-    var_r31->unk4 = arg1;
-    return var_r30;
+    soundTimer->state = soundId;
+    soundTimer->elapsedFrames = delayFrames;
+    return timerIndex;
 }
