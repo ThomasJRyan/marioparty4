@@ -30,198 +30,198 @@ void HuSysVWaitSet(s16 vcount);
 #undef ABS
 #define ABS(x) ((0 > (x)) ? -(x) : (x))
 
-typedef struct unk_bss_204_struct {
-    /* 0x00 */ u16 unk00;
-    /* 0x02 */ s16 unk02;
-    /* 0x04 */ struct unk_bss_204_struct *unk04;
-    /* 0x08 */ struct unk_bss_204_struct *unk08;
-} UnkBss204Struct; // Size 0xC
+typedef struct ResourceValueEntry {
+    /* 0x00 */ u16 resourceId;
+    /* 0x02 */ s16 resourceValue;
+    /* 0x04 */ struct ResourceValueEntry *previousEntry;
+    /* 0x08 */ struct ResourceValueEntry *nextEntry;
+} ResourceValueEntry; // Size 0xC
 
-typedef struct unk_bss_1ec_struct {
-    /* 0x00 */ HU3DPARMANPARAM *unk00;
-    /* 0x04 */ s32 *unk04;
-    /* 0x08 */ s32 unk08;
-    /* 0x0C */ s32 unk0C;
-    /* 0x10 */ struct unk_bss_1ec_struct *unk10;
-    /* 0x14 */ struct unk_bss_1ec_struct *unk14;
-} UnkBss1ECStruct; // Size 0x18
-
-typedef struct {
-    /* 0x00 */ u32 unk00;
-    /* 0x04 */ s16 unk04;
-    /* 0x06 */ char unk06[2]; // padding?
-} UnkBss5CStruct; // Size 8
+typedef struct LinkedParticleBatch {
+    /* 0x00 */ HU3DPARMANPARAM *particleParameters;
+    /* 0x04 */ s32 *particleIds;
+    /* 0x08 */ s32 framesRemaining;
+    /* 0x0C */ s32 particleCount;
+    /* 0x10 */ struct LinkedParticleBatch *previousEntry;
+    /* 0x14 */ struct LinkedParticleBatch *nextEntry;
+} LinkedParticleBatch; // Size 0x18
 
 typedef struct {
-    /* 0x00 */ float unk00;
-    /* 0x04 */ float unk04;
-    /* 0x08 */ float unk08;
-    /* 0x0C */ float unk0C;
-    /* 0x10 */ float unk10;
-    /* 0x14 */ float unk14;
-    /* 0x18 */ float unk18;
-    /* 0x1C */ float unk1C;
-    /* 0x20 */ float unk20;
-    /* 0x24 */ float unk24;
-    /* 0x28 */ float unk28;
-    /* 0x2C */ float unk2C;
-    /* 0x30 */ float unk30;
-    /* 0x34 */ s32 unk34;
-    /* 0x38 */ s32 unk38;
-    /* 0x3C */ s32 unk3C;
-    /* 0x40 */ s32 unk40;
-    /* 0x44 */ s32 unk44;
-    /* 0x48 */ s32 unk48;
-    /* 0x4C */ s32 unk4C;
-    /* 0x50 */ s32 unk50;
-    /* 0x54 */ s32 unk54;
-    /* 0x58 */ s32 unk58;
-    /* 0x5C */ s32 unk5C;
-    /* 0x60 */ s32 unk60;
-} UnkFn27A8Struct; // Size 0x64
+    /* 0x00 */ u32 resourceFileId;
+    /* 0x04 */ s16 cachedModelId;
+    /* 0x06 */ char reservedBytes[2]; // padding?
+} CachedModelEntry; // Size 8
 
 typedef struct {
-    /* 0x00 */ float unk00;
-    /* 0x04 */ float unk04;
-    /* 0x08 */ float unk08;
-    /* 0x0C */ float unk0C;
-    /* 0x10 */ s32 unk10;
-} UnkData234Struct; // Size 0x14
+    /* 0x00 */ float startingRadius;
+    /* 0x04 */ float startingHeight;
+    /* 0x08 */ float heightVelocity;
+    /* 0x0C */ float currentMotionTime;
+    /* 0x10 */ float targetMotionTime;
+    /* 0x14 */ float motionHeightOffset;
+    /* 0x18 */ float playerAngle;
+    /* 0x1C */ float currentRadius;
+    /* 0x20 */ float radiusVelocity;
+    /* 0x24 */ float targetRadius;
+    /* 0x28 */ float playerHeight;
+    /* 0x2C */ float animationFrame;
+    /* 0x30 */ float stateTimer;
+    /* 0x34 */ s32 computerActionChance;
+    /* 0x38 */ s32 computerActionTimer;
+    /* 0x3C */ s32 computerActionInterval;
+    /* 0x40 */ s32 computerActionCounter;
+    /* 0x44 */ s32 lastEffectId;
+    /* 0x48 */ s32 effectPlayed;
+    /* 0x4C */ s32 playerState;
+    /* 0x50 */ s32 stateFrame;
+    /* 0x54 */ s32 playerIndex;
+    /* 0x58 */ s32 characterId;
+    /* 0x5C */ s32 controllerPort;
+    /* 0x60 */ s32 actionProgress;
+} PlayerActionWork; // Size 0x64
 
 typedef struct {
-    /* 0x00 */ float unk00;
-    /* 0x04 */ float unk04;
-    /* 0x08 */ float unk08;
-    /* 0x0C */ float unk0C;
-    /* 0x10 */ float unk10;
-    /* 0x14 */ float unk14;
-    /* 0x18 */ s32 unk18;
-} UnkFn6AB4Struct; // Size 0x1C
+    /* 0x00 */ float durationFrames;
+    /* 0x04 */ float motionFrame;
+    /* 0x08 */ float heightRatio;
+    /* 0x0C */ float motionRatio;
+    /* 0x10 */ s32 soundEffectId;
+} PlayerActionFrameData; // Size 0x14
 
 typedef struct {
-    /* 0x00 */ Vec unk00;
-    /* 0x0C */ float unk0C;
-    /* 0x10 */ float unk10;
-    /* 0x14 */ float unk14;
-    /* 0x18 */ float unk18;
-    /* 0x1C */ float unk1C;
-    /* 0x20 */ float unk20;
-    /* 0x24 */ Vec unk24;
-    /* 0x30 */ float unk30;
-    /* 0x34 */ float unk34;
-    /* 0x38 */ s32 unk38;
-} UnkFn70E4Struct; // Size 0x3C
+    /* 0x00 */ float positionX;
+    /* 0x04 */ float positionY;
+    /* 0x08 */ float positionZ;
+    /* 0x0C */ float rotationY;
+    /* 0x10 */ float verticalVelocity;
+    /* 0x14 */ float pauseTimer;
+    /* 0x18 */ s32 motionState;
+} PlayerEffectWork; // Size 0x1C
 
-static void fn_1_0(void);
-static void fn_1_24(u16 arg0, s16 arg1);
-static s16 fn_1_AC(s16 arg0);
-static void fn_1_150(void);
-static void fn_1_174(s16 arg0, HU3DPARMANPARAM *arg1, s32 arg2, s32 arg3, s32 arg4, Vec *arg5, u8 arg6);
-static void fn_1_2D8(void);
-static void fn_1_414(void);
-static s16 fn_1_46C(s32 arg0);
-static void fn_1_580(s32 *arg0, s32 arg1, s32 arg2);
-static void fn_1_798(s32 arg0);
-static void fn_1_9EC(void);
-static void fn_1_A40(void);
-static void fn_1_B4C(float arg0, s32 arg1);
-static void fn_1_11F4(float arg0, Vec *arg1, Vec *arg2, Vec *arg3);
-static void fn_1_1350(Vec *arg0, Vec *arg1, Vec *arg2);
-static s32 fn_1_13DC(float arg0, Vec *arg1);
-static void fn_1_1710(float arg0, Vec *arg1);
-static void fn_1_1A60(Vec *arg0, s16 arg1, Vec *arg2);
-static void fn_1_1D18(s16 arg0, char *arg1, Vec *arg2);
-static void fn_1_1D70(s16 arg0, char *arg1, Vec *arg2, Mtx arg3);
-static float fn_1_1E20(float arg0, float arg1, float arg2);
-static void fn_1_1F24(s32 arg0);
-static void fn_1_1F58(s32 arg0);
-static void fn_1_1FC4(Vec *arg0, float *arg1, s32 arg2, s32 arg3);
-static void fn_1_2454(void);
-static void fn_1_2744(s16 arg0, GXColor *arg1);
-static u16 fn_1_27A8(UnkFn27A8Struct *arg0);
-static void fn_1_2880(UnkFn27A8Struct *arg0, OMOBJ *arg1);
-static void fn_1_2970(UnkFn27A8Struct *arg0, OMOBJ *arg1, u8 arg2);
-static void fn_1_2B30(UnkFn27A8Struct *arg0, OMOBJ *arg1, OMOBJ *arg2);
-static u8 fn_1_2DBC(UnkFn27A8Struct *arg0, OMOBJ *arg1);
-static void fn_1_313C(UnkFn27A8Struct *arg0, OMOBJ *arg1);
-static void fn_1_3204(OMOBJ *arg0);
-static void fn_1_4190(float arg0);
-static void fn_1_4284(float arg0);
-static void fn_1_43D8(OMOBJ *arg0);
-static void fn_1_63C8(OMOBJ *arg0);
-static void fn_1_6858(OMOBJ *arg0);
-static void fn_1_685C(OMOBJ *arg0);
-static void fn_1_6AB4(OMOBJ *arg0);
-static void fn_1_6E64(OMOBJ *arg0);
-static void fn_1_7020(OMOBJ *arg0);
-static void fn_1_70E4(OMOBJ *arg0);
-static void fn_1_7950(OMOBJ *arg0);
-static void fn_1_7AEC(s32 arg0, Vec *arg1, Vec *arg2);
-static void fn_1_7D48(OMOBJ *arg0);
-static void fn_1_7D4C(OMOBJ *arg0);
-static void fn_1_7E80(OMOBJ *arg0);
-static void fn_1_7E84(OMOBJ *arg0);
-static void fn_1_8048(void);
-static void fn_1_8218(OMOBJ *arg0);
-static void fn_1_9058(OMOBJ *arg0);
-static void fn_1_9AF4(OMOBJ *arg0);
+typedef struct {
+    /* 0x00 */ Vec position;
+    /* 0x0C */ float rotationX;
+    /* 0x10 */ float rotationY;
+    /* 0x14 */ float rotationZ;
+    /* 0x18 */ float scaleX;
+    /* 0x1C */ float scaleY;
+    /* 0x20 */ float scaleZ;
+    /* 0x24 */ Vec velocity;
+    /* 0x30 */ float transparency;
+    /* 0x34 */ float transparencyDecay;
+    /* 0x38 */ s32 reuseDelay;
+} EffectObjectWork; // Size 0x3C
 
-static UnkBss204Struct lbl_1_bss_204;
-static UnkBss1ECStruct lbl_1_bss_1EC;
-static HUPROCESS *lbl_1_bss_1E8;
-static Vec lbl_1_bss_1DC;
-static Vec lbl_1_bss_1D0;
-static Vec lbl_1_bss_1C4;
-static Vec lbl_1_bss_1B8;
-static u32 lbl_1_bss_1B4;
-static s32 lbl_1_bss_1B0;
-static s32 lbl_1_bss_1AC;
-static s16 lbl_1_bss_1AA;
-static s16 lbl_1_bss_1A8;
-static s32 lbl_1_bss_1A4;
-static s32 lbl_1_bss_1A0;
-static float lbl_1_bss_19C;
-static s32 lbl_1_bss_15C[16];
-static UnkBss5CStruct lbl_1_bss_5C[32];
-static OMOBJ *lbl_1_bss_58;
-static OMOBJ **lbl_1_bss_54;
-static OMOBJ **lbl_1_bss_50;
-static OMOBJ **lbl_1_bss_4C;
-static OMOBJ **lbl_1_bss_48;
-static OMOBJ **lbl_1_bss_44;
-static OMOBJ **lbl_1_bss_40;
-static u8 lbl_1_bss_3C_unused[4];
-static float lbl_1_bss_38;
-static float lbl_1_bss_34;
-static float lbl_1_bss_30;
-static float lbl_1_bss_2C;
-static float lbl_1_bss_28;
-static s16 lbl_1_bss_26;
-static s16 lbl_1_bss_24;
-static s16 lbl_1_bss_16[7];
-static s16 lbl_1_bss_14;
-static s32 lbl_1_bss_10;
-static float lbl_1_bss_C;
-static float lbl_1_bss_8;
-static float lbl_1_bss_4;
-static u8 lbl_1_bss_0[4];
+static void InitializeResourceList(void);
+static void RegisterResourceValue(u16 resourceId, s16 resourceValue);
+static s16 TakeResourceValue(s16 resourceId);
+static void InitializeParticleList(void);
+static void CreateLinkedParticleBatch(s16 particleManagerId, HU3DPARMANPARAM *particleParameters, s32 renderLayer, s32 durationFrames, s32 particleCount, Vec *particlePositions, u8 blendMode);
+static void UpdateLinkedParticleBatches(void);
+static void ResetModelCache(void);
+static s16 CreateCachedModel(s32 resourceFileId);
+static void SetTimerDigits(s32 *spriteIds, s32 spriteOffset, s32 elapsedFrames);
+static void RecordFinalTime(s32 minigameRecordId);
+static void ShowTimerSprites(void);
+static void AnimateTimerPulse(void);
+static void CreateTimerSprites(float verticalPosition, s32 recordTimeFrames);
+static void InterpolateCameraVectors(float progress, Vec *startVector, Vec *endVector, Vec *resultVector);
+static void SetCameraPositionAndTarget(Vec *cameraPosition, Vec *cameraUp, Vec *cameraTarget);
+static s32 AnimateCameraTransition(float progress, Vec *cameraUp);
+static void SetCameraTransitionTarget(float progress, Vec *cameraUp);
+static void ProjectWorldPositionToScreen(Vec *worldPosition, s16 cameraMask, Vec *screenPosition);
+static void GetModelJointPosition(s16 modelId, char *jointName, Vec *jointPosition);
+static void GetModelJointTransform(s16 modelId, char *jointName, Vec *jointPosition, Mtx jointTransform);
+static float InterpolateAngle(float startAngle, float endAngle, float progress);
+static void PlayBackgroundSequence(s32 sequenceId);
+static void FadeBackgroundSequence(s32 fadeFrames);
+static void MoveCameraFromController(Vec *cameraPosition, float *cameraRotation, s32 controllerX, s32 controllerY);
+static void RegisterResourceValue54(void);
+static void CreateModelLight(s16 modelId, GXColor *lightColor);
+static u16 ChooseComputerPlayerAction(PlayerActionWork *playerWork);
+static void ResetPlayerActionState(PlayerActionWork *playerWork, OMOBJ *playerObject);
+static void UpdatePlayerStretchEffect(PlayerActionWork *playerWork, OMOBJ *playerObject, u8 actionComplete);
+static void BeginPlayerActionAnimation(PlayerActionWork *playerWork, OMOBJ *playerObject, OMOBJ *actionComplete);
+static u8 UpdatePlayerActionAnimation(PlayerActionWork *playerWork, OMOBJ *playerObject);
+static void UpdatePlayerIdlePose(PlayerActionWork *playerWork, OMOBJ *playerObject);
+static void UpdatePlayerAction(OMOBJ *playerObject);
+static void BeginPlayerJump(float motionFrame);
+static void BeginPlayerLand(float motionFrame);
+static void UpdatePlayerModel(OMOBJ *playerObject);
+static void CreatePlayerModel(OMOBJ *playerObject);
+static void HideShadowModel(OMOBJ *shadowObject);
+static void CreateShadowModel(OMOBJ *shadowObject);
+static void UpdatePlayerEffect(OMOBJ *effectObject);
+static void CreatePlayerEffect(OMOBJ *effectObject);
+static void DeleteEffectObject(OMOBJ *effectObject);
+static void UpdateEffectObject(OMOBJ *effectObject);
+static void CreateEffectModel(OMOBJ *effectObject);
+static void SpawnPlayerEffect(s32 effectId, Vec *effectPosition, Vec *effectVelocity);
+static void HideStageMarker(OMOBJ *markerObject);
+static void CreateStageMarker(OMOBJ *markerObject);
+static void HideStageProp(OMOBJ *propObject);
+static void CreateStageProp(OMOBJ *propObject);
+static void UpdateRotatingLight(void);
+static void UpdateMinigameSequence(OMOBJ *sequenceObject);
+static void CreateMinigameSequence(OMOBJ *sequenceObject);
+static void CleanupMinigame(OMOBJ *sequenceObject);
 
-static s16 lbl_1_data_0[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+static ResourceValueEntry resourceValueList;
+static LinkedParticleBatch activeParticleBatches;
+static HUPROCESS *minigameObjectManager;
+static Vec cameraStartPosition;
+static Vec cameraCurrentPosition;
+static Vec cameraStartTarget;
+static Vec cameraCurrentTarget;
+static u32 minigameFrameCounter;
+static s32 timerFrameCount;
+static s32 recordedTimeFrames;
+static s16 activeSequenceId;
+static s16 countdownSequenceId;
+static s32 backgroundSequenceId;
+static s32 cameraTransitionComplete;
+static float timerPulseAngle;
+static s32 timerSpriteIds[16];
+static CachedModelEntry modelCacheEntries[32];
+static OMOBJ *minigameSequenceObject;
+static OMOBJ **stageMarkerObjects;
+static OMOBJ **stagePropObjects;
+static OMOBJ **playerObjects;
+static OMOBJ **shadowObjects;
+static OMOBJ **playerEffectObjects;
+static OMOBJ **transientEffectObjects;
+static u8 unusedGlobalData[4];
+static float lightRotationAngle;
+static float lightRotationSpeed;
+static float sequenceModelTimer;
+static float cameraTransitionFrame;
+static float playerMotionRadius;
+static s16 winningPlayerIndex;
+static s16 activeEffectObjectCount;
+static s16 cachedEffectModelIds[7];
+static s16 globalLightId;
+static s32 debugModeEnabled;
+static float cameraControlVertical;
+static float cameraControlHorizontal;
+static float cameraControlDepth;
+static u8 unusedGlobalBytes[4];
 
-static Vec lbl_1_data_10 = { 0.0f, 2500.0f, 2200.0f };
-static Vec lbl_1_data_1C = { 0.0f, 1.0f, 0.0f };
-static Vec lbl_1_data_28 = { 0.0f, 388.0f, 0.0f };
-static Vec lbl_1_data_34 = { 0.0f, 2000.0f, 1000.0f };
-static Vec lbl_1_data_40 = { 0.0f, -2.0f, -1.0f };
-static GXColor lbl_1_data_4C = { 0xFF, 0xFF, 0xFF, 0xFF };
+static s16 characterModelIndices[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-static Vec lbl_1_data_50_unused = { 0.0f, -1.0f, 0.0f };
-static u8 lbl_1_data_5C_unused[] = { 0xFF, 0xFF, 0xFF, 0xFF };
+static Vec defaultCameraPosition = { 0.0f, 2500.0f, 2200.0f };
+static Vec worldUpVector = { 0.0f, 1.0f, 0.0f };
+static Vec defaultCameraTarget = { 0.0f, 388.0f, 0.0f };
+static Vec keyLightPosition = { 0.0f, 2000.0f, 1000.0f };
+static Vec keyLightDirection = { 0.0f, -2.0f, -1.0f };
+static GXColor whiteLightColor = { 0xFF, 0xFF, 0xFF, 0xFF };
 
-static Vec lbl_1_data_60 = { 0.0f, 4000.0f, 1000.0f };
-static Vec lbl_1_data_6C = { 0.0f, 0.0f, 0.0f };
+static Vec unusedStageDirection = { 0.0f, -1.0f, 0.0f };
+static u8 unusedColorBytes[] = { 0xFF, 0xFF, 0xFF, 0xFF };
 
-static s32 lbl_1_data_78[8][11] = { { DATA_MAKE_NUM(DATADIR_MARIOMOT, 0), DATA_MAKE_NUM(DATADIR_MARIOMOT, 2), DATA_MAKE_NUM(DATADIR_MARIOMOT, 28),
+static Vec shadowLightPosition = { 0.0f, 4000.0f, 1000.0f };
+static Vec shadowTargetPosition = { 0.0f, 0.0f, 0.0f };
+
+static s32 characterMotionResourceIds[8][11] = { { DATA_MAKE_NUM(DATADIR_MARIOMOT, 0), DATA_MAKE_NUM(DATADIR_MARIOMOT, 2), DATA_MAKE_NUM(DATADIR_MARIOMOT, 28),
                                         DATA_MAKE_NUM(DATADIR_M402, 16), DATA_MAKE_NUM(DATADIR_MARIOMOT, 62), DATA_MAKE_NUM(DATADIR_MARIOMOT, 3),
                                         DATA_MAKE_NUM(DATADIR_M402, 8), DATA_MAKE_NUM(DATADIR_M402, 0), DATA_MAKE_NUM(DATADIR_M402, 24),
                                         DATA_MAKE_NUM(DATADIR_MARIOMOT, 117), DATA_MAKE_NUM(DATADIR_MARIOMOT, 76) },
@@ -248,919 +248,919 @@ static s32 lbl_1_data_78[8][11] = { { DATA_MAKE_NUM(DATADIR_MARIOMOT, 0), DATA_M
         DATA_MAKE_NUM(DATADIR_M402, 7), DATA_MAKE_NUM(DATADIR_M402, 31), DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 117),
         DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 76) } };
 
-static s32 lbl_1_data_1D8[]
+static s32 stageMarkerModelFiles[]
     = { DATA_MAKE_NUM(DATADIR_M402, 38), DATA_MAKE_NUM(DATADIR_M402, 40), DATA_MAKE_NUM(DATADIR_M402, 37), DATA_MAKE_NUM(DATADIR_M402, 39) };
 
-static s32 lbl_1_data_1E8[] = { DATA_MAKE_NUM(DATADIR_M402, 41), DATA_MAKE_NUM(DATADIR_M402, 42), DATA_MAKE_NUM(DATADIR_M402, 43) };
+static s32 stagePropMotionFiles[] = { DATA_MAKE_NUM(DATADIR_M402, 41), DATA_MAKE_NUM(DATADIR_M402, 42), DATA_MAKE_NUM(DATADIR_M402, 43) };
 
-static s32 lbl_1_data_1F4 = DATA_MAKE_NUM(DATADIR_M402, 44);
+static s32 stagePropModelFile = DATA_MAKE_NUM(DATADIR_M402, 44);
 
-static s32 lbl_1_data_1F8[] = { DATA_MAKE_NUM(DATADIR_M402, 45), DATA_MAKE_NUM(DATADIR_M402, 46) };
+static s32 stagePropSecondaryMotions[] = { DATA_MAKE_NUM(DATADIR_M402, 45), DATA_MAKE_NUM(DATADIR_M402, 46) };
 
-static Vec lbl_1_data_200[] = { { 450.0f, 290.0f, 0.0f }, { -450.0f, 290.0f, 0.0f } };
+static Vec playerEffectSpawnPositions[] = { { 450.0f, 290.0f, 0.0f }, { -450.0f, 290.0f, 0.0f } };
 
-static s32 lbl_1_data_218[] = { DATA_MAKE_NUM(DATADIR_M402, 48), DATA_MAKE_NUM(DATADIR_M402, 50), DATA_MAKE_NUM(DATADIR_M402, 47),
+static s32 effectModelFiles[] = { DATA_MAKE_NUM(DATADIR_M402, 48), DATA_MAKE_NUM(DATADIR_M402, 50), DATA_MAKE_NUM(DATADIR_M402, 47),
     DATA_MAKE_NUM(DATADIR_M402, 49), DATA_MAKE_NUM(DATADIR_M402, 51), DATA_MAKE_NUM(DATADIR_M402, 52), DATA_MAKE_NUM(DATADIR_M402, 53) };
 
-static UnkData234Struct lbl_1_data_234[] = { { 0.0f, 0.0f, 0.0f, 0.0f, -1 }, { 2.0f, 2.0f, 0.1f, 0.125f, 0x514 }, { 2.0f, 2.0f, 0.2f, 0.25f, -1 },
+static PlayerActionFrameData playerActionFrameData[] = { { 0.0f, 0.0f, 0.0f, 0.0f, -1 }, { 2.0f, 2.0f, 0.1f, 0.125f, 0x514 }, { 2.0f, 2.0f, 0.2f, 0.25f, -1 },
     { 3.0f, 4.0f, 0.3f, 0.35f, 0x515 }, { 3.0f, 4.0f, 0.4f, 0.45f, -1 }, { 3.0f, 6.0f, 0.45f, 0.5125f, 0x516 }, { 3.0f, 6.0f, 0.5f, 0.575f, -1 },
     { 3.0f, 6.0f, 0.55f, 0.6375f, -1 }, { 3.0f, 6.0f, 0.6f, 0.7f, -1 }, { 4.0f, 8.0f, 0.65f, 0.75f, 0x517 }, { 4.0f, 8.0f, 0.7f, 0.8f, -1 },
     { 4.0f, 8.0f, 0.75f, 0.85f, -1 }, { 4.0f, 8.0f, 0.8f, 0.9f, -1 }, { 4.0f, 10.0f, 0.83f, 0.9166f, 0x518 }, { 4.0f, 10.0f, 0.86f, 0.9333f, -1 },
     { 4.0f, 10.0f, 0.9f, 0.95f, -1 }, { 4.0f, 10.0f, 0.93f, 0.9666f, -1 }, { 4.0f, 10.0f, 0.96f, 0.9833f, -1 }, { 4.0f, 10.0f, 1.0f, 1.0f, -1 },
     { 1.0f, 10.0f, 1.0f, 1.0f, -1 } };
 
-static s32 lbl_1_data_3C4[] = { 0x00000514, 0x00000515, 0x00000516, 0x00000517, 0x00000518 };
+static s32 playerActionSoundEffectIds[] = { 0x00000514, 0x00000515, 0x00000516, 0x00000517, 0x00000518 };
 
-static void fn_1_0(void)
+static void InitializeResourceList(void)
 {
-    lbl_1_bss_204.unk04 = NULL;
-    lbl_1_bss_204.unk08 = NULL;
+    resourceValueList.previousEntry = NULL;
+    resourceValueList.nextEntry = NULL;
 }
 
-static void fn_1_24(u16 arg0, s16 arg1)
+static void RegisterResourceValue(u16 resourceId, s16 resourceValue)
 {
-    UnkBss204Struct *temp_r31;
-    UnkBss204Struct *temp_r30;
-    UnkBss204Struct *temp_r29;
+    ResourceValueEntry *newEntry;
+    ResourceValueEntry *listHead;
+    ResourceValueEntry *previousFirstEntry;
 
-    temp_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*temp_r31), HU_MEMNUM_OVL);
-    temp_r31->unk00 = arg0;
-    temp_r31->unk02 = arg1;
-    temp_r30 = &lbl_1_bss_204;
-    temp_r29 = temp_r30->unk08;
-    temp_r30->unk08 = temp_r31;
-    if (NULL != temp_r29) {
-        temp_r29->unk04 = temp_r31;
+    newEntry = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*newEntry), HU_MEMNUM_OVL);
+    newEntry->resourceId = resourceId;
+    newEntry->resourceValue = resourceValue;
+    listHead = &resourceValueList;
+    previousFirstEntry = listHead->nextEntry;
+    listHead->nextEntry = newEntry;
+    if (NULL != previousFirstEntry) {
+        previousFirstEntry->previousEntry = newEntry;
     }
-    temp_r31->unk04 = temp_r30;
-    temp_r31->unk08 = temp_r29;
+    newEntry->previousEntry = listHead;
+    newEntry->nextEntry = previousFirstEntry;
 }
 
-static s16 fn_1_AC(s16 arg0)
+static s16 TakeResourceValue(s16 resourceId)
 {
-    UnkBss204Struct *var_r31;
-    UnkBss204Struct *temp_r29;
-    UnkBss204Struct *temp_r30;
-    s16 temp_r28;
+    ResourceValueEntry *entry;
+    ResourceValueEntry *previousEntry;
+    ResourceValueEntry *nextEntry;
+    s16 resourceValue;
 
-    var_r31 = lbl_1_bss_204.unk08;
-    while (NULL != var_r31) {
-        if (arg0 == var_r31->unk00) {
-            temp_r28 = var_r31->unk02;
-            temp_r29 = var_r31->unk04;
-            temp_r30 = var_r31->unk08;
-            temp_r29->unk08 = temp_r30;
-            if (NULL != temp_r30) {
-                temp_r30->unk04 = temp_r29;
+    entry = resourceValueList.nextEntry;
+    while (NULL != entry) {
+        if (resourceId == entry->resourceId) {
+            resourceValue = entry->resourceValue;
+            previousEntry = entry->previousEntry;
+            nextEntry = entry->nextEntry;
+            previousEntry->nextEntry = nextEntry;
+            if (NULL != nextEntry) {
+                nextEntry->previousEntry = previousEntry;
             }
-            HuMemDirectFree(var_r31);
-            return temp_r28;
+            HuMemDirectFree(entry);
+            return resourceValue;
         }
-        var_r31 = var_r31->unk08;
+        entry = entry->nextEntry;
     }
     return -1;
 }
 
-static void fn_1_150(void)
+static void InitializeParticleList(void)
 {
-    lbl_1_bss_1EC.unk10 = NULL;
-    lbl_1_bss_1EC.unk14 = NULL;
+    activeParticleBatches.previousEntry = NULL;
+    activeParticleBatches.nextEntry = NULL;
 }
 
-static void fn_1_174(s16 arg0, HU3DPARMANPARAM *arg1, s32 arg2, s32 arg3, s32 arg4, Vec *arg5, u8 arg6)
+static void CreateLinkedParticleBatch(s16 particleManagerId, HU3DPARMANPARAM *particleParameters, s32 renderLayer, s32 durationFrames, s32 particleCount, Vec *particlePositions, u8 blendMode)
 {
-    UnkBss1ECStruct *temp_r27;
-    UnkBss1ECStruct *var_r31;
-    UnkBss1ECStruct *temp_r28;
+    LinkedParticleBatch *listHead;
+    LinkedParticleBatch *particleEntry;
+    LinkedParticleBatch *previousFirstEntry;
     s32 i;
 
-    var_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*var_r31), HU_MEMNUM_OVL);
-    var_r31->unk00 = arg1;
-    var_r31->unk08 = arg3;
-    var_r31->unk0C = arg4;
-    var_r31->unk04 = HuMemDirectMallocNum(HEAP_HEAP, arg4 * sizeof(*var_r31->unk04), HU_MEMNUM_OVL);
-    for (i = 0; i < arg4; i++, arg5++) {
-        var_r31->unk04[i] = Hu3DParManLink(arg0, arg1);
-        if (var_r31->unk04[i] >= 0) {
-            Hu3DParManAttrReset(var_r31->unk04[i], 1);
-            Hu3DParManPosSet(var_r31->unk04[i], arg5->x, arg5->y, arg5->z);
-            Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(var_r31->unk04[i]), arg6);
-            Hu3DModelLayerSet(Hu3DParManModelIDGet(var_r31->unk04[i]), arg2);
+    particleEntry = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*particleEntry), HU_MEMNUM_OVL);
+    particleEntry->particleParameters = particleParameters;
+    particleEntry->framesRemaining = durationFrames;
+    particleEntry->particleCount = particleCount;
+    particleEntry->particleIds = HuMemDirectMallocNum(HEAP_HEAP, particleCount * sizeof(*particleEntry->particleIds), HU_MEMNUM_OVL);
+    for (i = 0; i < particleCount; i++, particlePositions++) {
+        particleEntry->particleIds[i] = Hu3DParManLink(particleManagerId, particleParameters);
+        if (particleEntry->particleIds[i] >= 0) {
+            Hu3DParManAttrReset(particleEntry->particleIds[i], 1);
+            Hu3DParManPosSet(particleEntry->particleIds[i], particlePositions->x, particlePositions->y, particlePositions->z);
+            Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(particleEntry->particleIds[i]), blendMode);
+            Hu3DModelLayerSet(Hu3DParManModelIDGet(particleEntry->particleIds[i]), renderLayer);
         }
     }
-    temp_r28 = &lbl_1_bss_1EC;
-    temp_r27 = temp_r28->unk14;
-    temp_r28->unk14 = var_r31;
-    if (NULL != temp_r27) {
-        temp_r27->unk10 = var_r31;
+    previousFirstEntry = &activeParticleBatches;
+    listHead = previousFirstEntry->nextEntry;
+    previousFirstEntry->nextEntry = particleEntry;
+    if (NULL != listHead) {
+        listHead->previousEntry = particleEntry;
     }
-    var_r31->unk10 = temp_r28;
-    var_r31->unk14 = temp_r27;
+    particleEntry->previousEntry = previousFirstEntry;
+    particleEntry->nextEntry = listHead;
 }
 
-static void fn_1_2D8(void)
+static void UpdateLinkedParticleBatches(void)
 {
-    UnkBss1ECStruct *var_r31;
-    UnkBss1ECStruct *temp_r28;
-    UnkBss1ECStruct *temp_r29;
+    LinkedParticleBatch *particleEntry;
+    LinkedParticleBatch *previousEntry;
+    LinkedParticleBatch *nextEntry;
     s32 i;
 
-    var_r31 = lbl_1_bss_1EC.unk14;
-    while (NULL != var_r31) {
-        var_r31->unk08--;
-        if (var_r31->unk08 == 0) {
-            for (i = 0; i < var_r31->unk0C; i++) {
-                if (var_r31->unk04[i] >= 0) {
-                    Hu3DParManAttrSet(var_r31->unk04[i], 1);
+    particleEntry = activeParticleBatches.nextEntry;
+    while (NULL != particleEntry) {
+        particleEntry->framesRemaining--;
+        if (particleEntry->framesRemaining == 0) {
+            for (i = 0; i < particleEntry->particleCount; i++) {
+                if (particleEntry->particleIds[i] >= 0) {
+                    Hu3DParManAttrSet(particleEntry->particleIds[i], 1);
                 }
             }
         }
-        temp_r28 = var_r31->unk10;
-        temp_r29 = var_r31->unk14;
-        if (-var_r31->unk00->maxTime > var_r31->unk08) {
-            for (i = 0; i < var_r31->unk0C; i++) {
-                if (var_r31->unk04[i] >= 0) {
-                    Hu3DParManKill(var_r31->unk04[i]);
+        previousEntry = particleEntry->previousEntry;
+        nextEntry = particleEntry->nextEntry;
+        if (-particleEntry->particleParameters->maxTime > particleEntry->framesRemaining) {
+            for (i = 0; i < particleEntry->particleCount; i++) {
+                if (particleEntry->particleIds[i] >= 0) {
+                    Hu3DParManKill(particleEntry->particleIds[i]);
                 }
             }
-            temp_r28->unk14 = temp_r29;
-            if (NULL != temp_r29) {
-                temp_r29->unk10 = temp_r28;
+            previousEntry->nextEntry = nextEntry;
+            if (NULL != nextEntry) {
+                nextEntry->previousEntry = previousEntry;
             }
-            HuMemDirectFree(var_r31->unk04);
-            HuMemDirectFree(var_r31);
+            HuMemDirectFree(particleEntry->particleIds);
+            HuMemDirectFree(particleEntry);
         }
-        var_r31 = temp_r29;
+        particleEntry = nextEntry;
     }
 }
 
-static void fn_1_414(void)
+static void ResetModelCache(void)
 {
     s32 i;
 
     for (i = 0; i < 32; i++) {
-        lbl_1_bss_5C[i].unk00 = 0;
-        lbl_1_bss_5C[i].unk04 = -1;
+        modelCacheEntries[i].resourceFileId = 0;
+        modelCacheEntries[i].cachedModelId = -1;
     }
 }
 
-static s16 fn_1_46C(s32 arg0)
+static s16 CreateCachedModel(s32 resourceFileId)
 {
     s32 i;
 
     for (i = 0; i < 32; i++) {
-        if (arg0 == lbl_1_bss_5C[i].unk00) {
-            return Hu3DModelLink(lbl_1_bss_5C[i].unk04);
+        if (resourceFileId == modelCacheEntries[i].resourceFileId) {
+            return Hu3DModelLink(modelCacheEntries[i].cachedModelId);
         }
     }
     for (i = 0; i < 32; i++) {
-        if (lbl_1_bss_5C[i].unk00 == 0) {
-            lbl_1_bss_5C[i].unk00 = arg0;
-            lbl_1_bss_5C[i].unk04 = Hu3DModelCreateFile(arg0);
-            return lbl_1_bss_5C[i].unk04;
+        if (modelCacheEntries[i].resourceFileId == 0) {
+            modelCacheEntries[i].resourceFileId = resourceFileId;
+            modelCacheEntries[i].cachedModelId = Hu3DModelCreateFile(resourceFileId);
+            return modelCacheEntries[i].cachedModelId;
         }
     }
-    return Hu3DModelCreateFile(arg0);
+    return Hu3DModelCreateFile(resourceFileId);
 }
 
-static void fn_1_580(s32 *arg0, s32 arg1, s32 arg2)
+static void SetTimerDigits(s32 *spriteIds, s32 spriteOffset, s32 elapsedFrames)
 {
-    s32 var_r30;
+    s32 digitValue;
 
-    espBankSet(arg0[arg1 + 1], 10);
-    espBankSet(arg0[arg1 + 4], 11);
-    if (600 * REFRESH_RATE <= arg2) {
-        arg2 = 600 * REFRESH_RATE - 1;
+    espBankSet(spriteIds[spriteOffset + 1], 10);
+    espBankSet(spriteIds[spriteOffset + 4], 11);
+    if (600 * REFRESH_RATE <= elapsedFrames) {
+        elapsedFrames = 600 * REFRESH_RATE - 1;
     }
-    var_r30 = arg2 / (60 * REFRESH_RATE);
-    arg2 -= var_r30 * (60 * REFRESH_RATE);
-    if (var_r30 > 9) {
-        var_r30 = 9;
+    digitValue = elapsedFrames / (60 * REFRESH_RATE);
+    elapsedFrames -= digitValue * (60 * REFRESH_RATE);
+    if (digitValue > 9) {
+        digitValue = 9;
     }
-    espBankSet(arg0[arg1], var_r30);
-    var_r30 = arg2 / REFRESH_RATE;
-    arg2 -= var_r30 * REFRESH_RATE;
-    espBankSet(arg0[arg1 + 2], var_r30 / 10);
-    espBankSet(arg0[arg1 + 3], var_r30 % 10);
-    var_r30 = 101.5f * arg2 / REFRESH_RATE;
-    espBankSet(arg0[arg1 + 5], var_r30 / 10);
-    espBankSet(arg0[arg1 + 6], var_r30 % 10);
+    espBankSet(spriteIds[spriteOffset], digitValue);
+    digitValue = elapsedFrames / REFRESH_RATE;
+    elapsedFrames -= digitValue * REFRESH_RATE;
+    espBankSet(spriteIds[spriteOffset + 2], digitValue / 10);
+    espBankSet(spriteIds[spriteOffset + 3], digitValue % 10);
+    digitValue = 101.5f * elapsedFrames / REFRESH_RATE;
+    espBankSet(spriteIds[spriteOffset + 5], digitValue / 10);
+    espBankSet(spriteIds[spriteOffset + 6], digitValue % 10);
 }
 
-static void fn_1_798(s32 arg0)
+static void RecordFinalTime(s32 minigameRecordId)
 {
-    lbl_1_bss_19C = 0.0f;
-    lbl_1_bss_1AC = lbl_1_bss_1B0;
-    GWMGRecordSet(arg0, lbl_1_bss_1AC);
-    fn_1_580(lbl_1_bss_15C, 7, lbl_1_bss_1B0);
+    timerPulseAngle = 0.0f;
+    recordedTimeFrames = timerFrameCount;
+    GWMGRecordSet(minigameRecordId, recordedTimeFrames);
+    SetTimerDigits(timerSpriteIds, 7, timerFrameCount);
 }
 
-static void fn_1_9EC(void)
+static void ShowTimerSprites(void)
 {
     s32 i;
 
     for (i = 0; i < 16; i++) {
-        espDispOn(lbl_1_bss_15C[i]);
+        espDispOn(timerSpriteIds[i]);
     }
 }
 
-static void fn_1_A40(void)
+static void AnimateTimerPulse(void)
 {
-    float temp_f31;
+    float pulseScale;
     s32 i;
 
-    if (0.0f <= lbl_1_bss_19C) {
-        lbl_1_bss_19C += 16.0f;
-        temp_f31 = 1.0 + 0.2f * sind(lbl_1_bss_19C);
+    if (0.0f <= timerPulseAngle) {
+        timerPulseAngle += 16.0f;
+        pulseScale = 1.0 + 0.2f * sind(timerPulseAngle);
         for (i = 7; i <= 14; i++) {
-            espScaleSet(lbl_1_bss_15C[i], temp_f31, temp_f31);
+            espScaleSet(timerSpriteIds[i], pulseScale, pulseScale);
         }
     }
 }
 
-static void fn_1_B4C(float arg0, s32 arg1)
+static void CreateTimerSprites(float verticalPosition, s32 recordTimeAssetId)
 {
-    float temp_f30;
-    float temp_f31;
+    float verticalPosition;
+    float horizontalPosition;
     s32 i;
 
-    temp_f31 = 288.0f;
-    temp_f30 = arg0;
-    lbl_1_bss_15C[15] = espEntry(arg1, 0, 0);
-    espTPLvlSet(lbl_1_bss_15C[15], 0.5f);
-    espColorSet(lbl_1_bss_15C[15], 0, 0, 0);
-    espPosSet(lbl_1_bss_15C[15], temp_f31, temp_f30);
-    temp_f31 = 248.0f;
-    temp_f30 = arg0 - 8.0f;
-    lbl_1_bss_15C[14] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 55), 0, 0);
-    espPosSet(lbl_1_bss_15C[14], temp_f31 - 18.0f, temp_f30);
+    horizontalPosition = 288.0f;
+    verticalPosition = verticalPosition;
+    timerSpriteIds[15] = espEntry(recordTimeAssetId, 0, 0);
+    espTPLvlSet(timerSpriteIds[15], 0.5f);
+    espColorSet(timerSpriteIds[15], 0, 0, 0);
+    espPosSet(timerSpriteIds[15], horizontalPosition, verticalPosition);
+    horizontalPosition = 248.0f;
+    verticalPosition = verticalPosition - 8.0f;
+    timerSpriteIds[14] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 55), 0, 0);
+    espPosSet(timerSpriteIds[14], horizontalPosition - 18.0f, verticalPosition);
     for (i = 7; i <= 13; i++) {
-        lbl_1_bss_15C[i] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 48), 0, 0);
-        espPosSet(lbl_1_bss_15C[i], temp_f31, temp_f30);
-        temp_f31 += 16.0f;
+        timerSpriteIds[i] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 48), 0, 0);
+        espPosSet(timerSpriteIds[i], horizontalPosition, verticalPosition);
+        horizontalPosition += 16.0f;
     }
-    fn_1_580(lbl_1_bss_15C, 7, lbl_1_bss_1AC);
-    temp_f31 = 248.0f;
-    temp_f30 = arg0 + 8.0f;
+    SetTimerDigits(timerSpriteIds, 7, recordedTimeFrames);
+    horizontalPosition = 248.0f;
+    verticalPosition = verticalPosition + 8.0f;
     for (i = 0; i <= 6; i++) {
-        lbl_1_bss_15C[i] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 49), 0, 0);
-        espPosSet(lbl_1_bss_15C[i], temp_f31, temp_f30);
-        temp_f31 += 16.0f;
+        timerSpriteIds[i] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 49), 0, 0);
+        espPosSet(timerSpriteIds[i], horizontalPosition, verticalPosition);
+        horizontalPosition += 16.0f;
     }
-    fn_1_580(lbl_1_bss_15C, 0, 0);
+    SetTimerDigits(timerSpriteIds, 0, 0);
     for (i = 0; i < 16; i++) {
-        espDrawNoSet(lbl_1_bss_15C[i], 0);
-        espDispOff(lbl_1_bss_15C[i]);
-        espAttrSet(lbl_1_bss_15C[i], HUSPR_ATTR_NOANIM);
-        espPriSet(lbl_1_bss_15C[i], 0x80 + i);
+        espDrawNoSet(timerSpriteIds[i], 0);
+        espDispOff(timerSpriteIds[i]);
+        espAttrSet(timerSpriteIds[i], HUSPR_ATTR_NOANIM);
+        espPriSet(timerSpriteIds[i], 0x80 + i);
     }
 }
 
-static void fn_1_11F4(float arg0, Vec *arg1, Vec *arg2, Vec *arg3)
+static void InterpolateCameraVectors(float progress, Vec *startVector, Vec *endVector, Vec *resultVector)
 {
-    float temp_f31;
+    float interpolationWeight;
 
-    if (1.0f < arg0) {
-        arg0 = 1.0f;
+    if (1.0f < progress) {
+        progress = 1.0f;
     }
-    temp_f31 = sind(90.0f * arg0) * sind(90.0f * arg0);
-    arg3->x = arg1->x + temp_f31 * (arg2->x - arg1->x);
-    arg3->y = arg1->y + temp_f31 * (arg2->y - arg1->y);
-    arg3->z = arg1->z + temp_f31 * (arg2->z - arg1->z);
+    interpolationWeight = sind(90.0f * progress) * sind(90.0f * progress);
+    resultVector->x = startVector->x + interpolationWeight * (endVector->x - startVector->x);
+    resultVector->y = startVector->y + interpolationWeight * (endVector->y - startVector->y);
+    resultVector->z = startVector->z + interpolationWeight * (endVector->z - startVector->z);
 }
 
-static void fn_1_1350(Vec *arg0, Vec *arg1, Vec *arg2)
+static void SetCameraPositionAndTarget(Vec *cameraPosition, Vec *cameraUp, Vec *cameraTarget)
 {
-    Hu3DCameraPosSetV(1, arg0, arg1, arg2);
-    lbl_1_bss_1DC = *arg0;
-    lbl_1_bss_1C4 = *arg2;
+    Hu3DCameraPosSetV(1, cameraPosition, cameraUp, cameraTarget);
+    cameraStartPosition = *cameraPosition;
+    cameraStartTarget = *cameraTarget;
 }
 
-static s32 fn_1_13DC(float arg0, Vec *arg1)
+static s32 AnimateCameraTransition(float progress, Vec *cameraUp)
 {
-    Vec sp18;
-    Vec spC;
+    Vec cameraPosition;
+    Vec cameraTarget;
 
-    fn_1_11F4(arg0, &lbl_1_bss_1DC, &lbl_1_bss_1D0, &sp18);
-    fn_1_11F4(arg0, &lbl_1_bss_1C4, &lbl_1_bss_1B8, &spC);
-    Hu3DCameraPosSetV(1, &sp18, arg1, &spC);
-    if (1.0f <= arg0) {
+    InterpolateCameraVectors(progress, &cameraStartPosition, &cameraCurrentPosition, &cameraPosition);
+    InterpolateCameraVectors(progress, &cameraStartTarget, &cameraCurrentTarget, &cameraTarget);
+    Hu3DCameraPosSetV(1, &cameraPosition, cameraUp, &cameraTarget);
+    if (1.0f <= progress) {
         return 1;
     }
     else {
-        lbl_1_bss_1A0 = 1;
+        cameraTransitionComplete = 1;
         return 0;
     }
 }
 
-static void fn_1_1710(float arg0, Vec *arg1)
+static void SetCameraTransitionTarget(float progress, Vec *cameraUp)
 {
-    Vec sp18;
-    Vec spC;
+    Vec cameraPosition;
+    Vec cameraTarget;
 
-    fn_1_11F4(arg0, &lbl_1_bss_1DC, &lbl_1_bss_1D0, &sp18);
-    fn_1_11F4(arg0, &lbl_1_bss_1C4, &lbl_1_bss_1B8, &spC);
-    fn_1_1350(&sp18, arg1, &spC);
-    lbl_1_bss_1A0 = 1;
+    InterpolateCameraVectors(progress, &cameraStartPosition, &cameraCurrentPosition, &cameraPosition);
+    InterpolateCameraVectors(progress, &cameraStartTarget, &cameraCurrentTarget, &cameraTarget);
+    SetCameraPositionAndTarget(&cameraPosition, cameraUp, &cameraTarget);
+    cameraTransitionComplete = 1;
 }
 
-static void fn_1_1A60(Vec *arg0, s16 arg1, Vec *arg2)
+static void ProjectWorldPositionToScreen(Vec *worldPosition, s16 cameraMask, Vec *screenPosition)
 {
-    Mtx sp1C;
-    Vec sp10;
-    float temp_f30;
-    float temp_f29;
-    float temp_f28;
-    float temp_f31;
-    HU3DCAMERA *temp_r31;
-    s32 i;
+    Mtx viewMatrix;
+    Vec viewSpacePosition;
+    float horizontalProjectionScale;
+    float verticalProjectionScale;
+    float viewportOriginX;
+    float viewportWidth;
+    HU3DCAMERA *camera;
+    s32 cameraIndex;
 
-    for (i = 0; i < 16; i++) {
-        if (arg1 & (1 << i)) {
+    for (cameraIndex = 0; cameraIndex < 16; cameraIndex++) {
+        if (cameraMask & (1 << cameraIndex)) {
             break;
         }
     }
-    temp_r31 = &Hu3DCamera[i];
-    C_MTXLookAt(sp1C, &temp_r31->pos, &temp_r31->up, &temp_r31->target);
-    MTXMultVec(sp1C, arg0, &sp10);
-    temp_f30 = sp10.z * (sind(temp_r31->fov / 2) / cosd(temp_r31->fov / 2)) * temp_r31->aspect;
-    temp_f29 = sp10.z * (sind(temp_r31->fov / 2) / cosd(temp_r31->fov / 2));
-    temp_f28 = 0.9f * temp_r31->viewportX;
-    temp_f31 = 0.9f * temp_r31->viewportW;
-    arg2->x = temp_f31 / 2 + sp10.x * ((temp_f31 / 2) / -temp_f30) + temp_f28;
-    arg2->y = temp_r31->viewportH / 2 + sp10.y * ((temp_r31->viewportH / 2) / temp_f29) + temp_r31->viewportY;
-    arg2->z = 0.0f;
+    camera = &Hu3DCamera[cameraIndex];
+    C_MTXLookAt(viewMatrix, &camera->pos, &camera->up, &camera->target);
+    MTXMultVec(viewMatrix, worldPosition, &viewSpacePosition);
+    horizontalProjectionScale = viewSpacePosition.z * (sind(camera->fov / 2) / cosd(camera->fov / 2)) * camera->aspect;
+    verticalProjectionScale = viewSpacePosition.z * (sind(camera->fov / 2) / cosd(camera->fov / 2));
+    viewportOriginX = 0.9f * camera->viewportX;
+    viewportWidth = 0.9f * camera->viewportW;
+    screenPosition->x = viewportWidth / 2 + viewSpacePosition.x * ((viewportWidth / 2) / -horizontalProjectionScale) + viewportOriginX;
+    screenPosition->y = camera->viewportH / 2 + viewSpacePosition.y * ((camera->viewportH / 2) / verticalProjectionScale) + camera->viewportY;
+    screenPosition->z = 0.0f;
 }
 
-static void fn_1_1D18(s16 arg0, char *arg1, Vec *arg2)
+static void GetModelJointPosition(s16 modelId, char *jointName, Vec *jointPosition)
 {
-    Mtx sp10;
+    Mtx modelObjectMatrix;
 
-    Hu3DModelObjMtxGet(arg0, arg1, sp10);
-    arg2->x = sp10[0][3];
-    arg2->y = sp10[1][3];
-    arg2->z = sp10[2][3];
+    Hu3DModelObjMtxGet(modelId, jointName, modelObjectMatrix);
+    jointPosition->x = modelObjectMatrix[0][3];
+    jointPosition->y = modelObjectMatrix[1][3];
+    jointPosition->z = modelObjectMatrix[2][3];
 }
 
-static void fn_1_1D70(s16 arg0, char *arg1, Vec *arg2, Mtx arg3)
+static void GetModelJointTransform(s16 modelId, char *jointName, Vec *jointPosition, Mtx jointTransform)
 {
-    Mtx spC;
-    HU3DMODEL *var_r30;
+    Mtx modelObjectMatrix;
+    HU3DMODEL *modelData;
 
-    var_r30 = &Hu3DData[arg0];
-    Hu3DModelObjMtxGet(arg0, arg1, spC);
-    MTXConcat(var_r30->mtx, spC, spC);
-    if (NULL != arg3) {
-        MTXCopy(spC, arg3);
+    modelData = &Hu3DData[modelId];
+    Hu3DModelObjMtxGet(modelId, jointName, modelObjectMatrix);
+    MTXConcat(modelData->mtx, modelObjectMatrix, modelObjectMatrix);
+    if (NULL != jointTransform) {
+        MTXCopy(modelObjectMatrix, jointTransform);
     }
-    arg2->x = spC[0][3];
-    arg2->y = spC[1][3];
-    arg2->z = spC[2][3];
+    jointPosition->x = modelObjectMatrix[0][3];
+    jointPosition->y = modelObjectMatrix[1][3];
+    jointPosition->z = modelObjectMatrix[2][3];
 }
 
-static float fn_1_1E20(float arg0, float arg1, float arg2)
+static float InterpolateAngle(float startAngle, float endAngle, float progress)
 {
-    float var_f31;
-    float var_f30;
+    float angleDifference;
+    float interpolatedAngle;
 
-    var_f31 = fmod(arg1 - arg0, 360.0);
-    if (0.0f > var_f31) {
-        var_f31 += 360.0f;
+    angleDifference = fmod(endAngle - startAngle, 360.0);
+    if (0.0f > angleDifference) {
+        angleDifference += 360.0f;
     }
-    if (180.0f < var_f31) {
-        var_f31 -= 360.0f;
+    if (180.0f < angleDifference) {
+        angleDifference -= 360.0f;
     }
-    var_f30 = fmod(arg0 + var_f31 * arg2, 360.0);
-    if (0.0f > var_f30) {
-        var_f30 += 360.0f;
+    interpolatedAngle = fmod(startAngle + angleDifference * progress, 360.0);
+    if (0.0f > interpolatedAngle) {
+        interpolatedAngle += 360.0f;
     }
-    return var_f30;
+    return interpolatedAngle;
 }
 
-static void fn_1_1F24(s32 arg0)
+static void PlayBackgroundSequence(s32 sequenceId)
 {
-    lbl_1_bss_1A4 = HuAudSeqPlay(arg0);
+    backgroundSequenceId = HuAudSeqPlay(sequenceId);
 }
 
-static void fn_1_1F58(s32 arg0)
+static void FadeBackgroundSequence(s32 fadeFrames)
 {
-    if (lbl_1_bss_1A4 >= 0) {
-        if (arg0 < 0) {
-            arg0 = 1000;
+    if (backgroundSequenceId >= 0) {
+        if (fadeFrames < 0) {
+            fadeFrames = 1000;
         }
-        HuAudSeqFadeOut(lbl_1_bss_1A4, arg0);
+        HuAudSeqFadeOut(backgroundSequenceId, fadeFrames);
     }
-    lbl_1_bss_1A4 = -1;
+    backgroundSequenceId = -1;
 }
 
-static void fn_1_1FC4(Vec *arg0, float *arg1, s32 arg2, s32 arg3)
+static void MoveCameraFromController(Vec *cameraPosition, float *cameraRotation, s32 controllerX, s32 controllerY)
 {
-    Vec sp18;
-    float var_f28;
-    s32 var_r30;
+    Vec movementVector;
+    float movementMagnitude;
+    s32 movementState;
 
-    sp18.x = 0.0f;
-    sp18.y = 0.0f;
-    sp18.z = 0.0f;
-    sp18.x = arg2 / 4.0f;
-    sp18.z = -(float)arg3 / 4.0f;
-    var_r30 = 0;
-    var_f28 = VECMagXZ(&sp18);
-    if (0.5f <= var_f28) {
-        if (10.0f <= var_f28) {
-            sp18.x /= var_f28;
-            sp18.z /= var_f28;
-            var_f28 = 10.0f;
-            sp18.x = 10.0f * sp18.x;
-            sp18.z = 10.0f * sp18.z;
+    movementVector.x = 0.0f;
+    movementVector.y = 0.0f;
+    movementVector.z = 0.0f;
+    movementVector.x = controllerX / 4.0f;
+    movementVector.z = -(float)controllerY / 4.0f;
+    movementState = 0;
+    movementMagnitude = VECMagXZ(&movementVector);
+    if (0.5f <= movementMagnitude) {
+        if (10.0f <= movementMagnitude) {
+            movementVector.x /= movementMagnitude;
+            movementVector.z /= movementMagnitude;
+            movementMagnitude = 10.0f;
+            movementVector.x = 10.0f * movementVector.x;
+            movementVector.z = 10.0f * movementVector.z;
         }
-        *arg1 = fn_1_1E20(*arg1, atan2d(sp18.x, sp18.z), 0.4f);
-        if (8.0f <= var_f28) {
-            var_r30 = 2;
+        *cameraRotation = InterpolateAngle(*cameraRotation, atan2d(movementVector.x, movementVector.z), 0.4f);
+        if (8.0f <= movementMagnitude) {
+            movementState = 2;
         }
         else {
-            var_r30 = 1;
+            movementState = 1;
         }
     }
-    VECAdd((Vec *)&arg0, &sp18, (Vec *)&arg0);
+    VECAdd((Vec *)&cameraPosition, &movementVector, (Vec *)&cameraPosition);
 }
 
 #ifdef __MWERKS__
 #include "src/REL/executor.c"
 #endif
 
-static void fn_1_2454(void)
+static void RegisterResourceValue54(void)
 {
     HuSysVWaitSet(1);
     if (HuPadBtnDown[0] & 0x400) {
-        lbl_1_bss_1B0 = -1;
+        timerFrameCount = -1;
     }
-    print8(24, 32, 1.5f, "%f COUNT:%d MES:%d WIN:%d", lbl_1_bss_38, lbl_1_bss_1B4, lbl_1_bss_1AA, lbl_1_bss_26);
-    print8(24, 48, 1.5f, "%f %f %f", lbl_1_bss_4, lbl_1_bss_C, lbl_1_bss_8);
+    print8(24, 32, 1.5f, "%f COUNT:%d MES:%d WIN:%d", lightRotationAngle, minigameFrameCounter, activeSequenceId, winningPlayerIndex);
+    print8(24, 48, 1.5f, "%f %f %f", cameraControlDepth, cameraControlVertical, cameraControlHorizontal);
     print8(24, 64, 1.5f, "%x %x", HuMemHeapSizeGet(HEAP_HEAP) - HuMemUsedMallocSizeGet(HEAP_HEAP),
         HuMemHeapSizeGet(HEAP_MODEL) - HuMemUsedMallocSizeGet(HEAP_MODEL));
-    lbl_1_bss_8 -= HuPadSubStkX[0] / 59.0f;
-    lbl_1_bss_C -= (HuPadSubStkY[0] / 59.0f) * 4.0f;
-    lbl_1_bss_4 -= (HuPadTrigL[0] / 150.0f) * 4.0f;
-    lbl_1_bss_4 += (HuPadTrigR[0] / 150.0f) * 4.0f;
+    cameraControlHorizontal -= HuPadSubStkX[0] / 59.0f;
+    cameraControlVertical -= (HuPadSubStkY[0] / 59.0f) * 4.0f;
+    cameraControlDepth -= (HuPadTrigL[0] / 150.0f) * 4.0f;
+    cameraControlDepth += (HuPadTrigR[0] / 150.0f) * 4.0f;
 }
 
-static void fn_1_2744(s16 arg0, GXColor *arg1)
+static void CreateModelLight(s16 modelId, GXColor *lightColor)
 {
-    s16 var_r30;
+    s16 lightId;
 
-    var_r30 = Hu3DLLightCreateV(arg0, &lbl_1_data_34, &lbl_1_data_40, arg1);
-    Hu3DLLightStaticSet(arg0, var_r30, 1);
+    lightId = Hu3DLLightCreateV(modelId, &keyLightPosition, &keyLightDirection, lightColor);
+    Hu3DLLightStaticSet(modelId, lightId, 1);
 }
 
-static u16 fn_1_27A8(UnkFn27A8Struct *arg0)
+static u16 ChooseComputerPlayerAction(PlayerActionWork *playerWork)
 {
-    u16 var_r30;
+    u16 lightId;
 
-    var_r30 = 0;
-    if (frandmod(arg0->unk34) == 0) {
-        var_r30 = 0x100;
+    lightId = 0;
+    if (frandmod(playerWork->computerActionChance) == 0) {
+        lightId = 0x100;
     }
-    if (--arg0->unk38 < 0) {
-        arg0->unk34 -= frandmod(3);
-        if (arg0->unk34 < 2) {
-            arg0->unk34 = 2;
+    if (--playerWork->computerActionTimer < 0) {
+        playerWork->computerActionChance -= frandmod(3);
+        if (playerWork->computerActionChance < 2) {
+            playerWork->computerActionChance = 2;
         }
-        arg0->unk38 = (arg0->unk3C >> 1) + frandmod(arg0->unk3C);
+        playerWork->computerActionTimer = (playerWork->computerActionInterval >> 1) + frandmod(playerWork->computerActionInterval);
     }
-    if (var_r30 == 0) {
-        if (++arg0->unk40 > 60) {
-            arg0->unk40 = 0;
-            var_r30 = 0x100;
+    if (lightId == 0) {
+        if (++playerWork->computerActionCounter > 60) {
+            playerWork->computerActionCounter = 0;
+            lightId = 0x100;
         }
     }
     else {
-        arg0->unk40 = 0;
+        playerWork->computerActionCounter = 0;
     }
-    return var_r30;
+    return lightId;
 }
 
-static void fn_1_2880(UnkFn27A8Struct *arg0, OMOBJ *arg1)
+static void ResetPlayerActionState(PlayerActionWork *playerWork, OMOBJ *playerObject)
 {
-    arg0->unk4C = 2016;
-    arg0->unk60 = 0;
-    arg0->unk2C = 0.0f;
-    arg0->unk30 = 0.0f;
-    arg0->unk1C = 670.0f;
-    arg0->unk20 = 0.0f;
-    arg0->unk24 = arg0->unk1C;
-    arg0->unk08 = 0.0f;
-    arg0->unk0C = 0.0f;
-    arg0->unk10 = arg0->unk0C;
-    Hu3DModelAttrReset(arg1->mdlId[0], HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrSet(arg1->mdlId[0], HU3D_MOTATTR_LOOP);
-    Hu3DMotionSet(arg1->mdlId[0], arg1->mtnId[0]);
+    playerWork->playerState = 2016;
+    playerWork->actionProgress = 0;
+    playerWork->animationFrame = 0.0f;
+    playerWork->stateTimer = 0.0f;
+    playerWork->currentRadius = 670.0f;
+    playerWork->radiusVelocity = 0.0f;
+    playerWork->targetRadius = playerWork->currentRadius;
+    playerWork->heightVelocity = 0.0f;
+    playerWork->currentMotionTime = 0.0f;
+    playerWork->targetMotionTime = playerWork->currentMotionTime;
+    Hu3DModelAttrReset(playerObject->mdlId[0], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrSet(playerObject->mdlId[0], HU3D_MOTATTR_LOOP);
+    Hu3DMotionSet(playerObject->mdlId[0], playerObject->mtnId[0]);
 }
 
-static void fn_1_2970(UnkFn27A8Struct *arg0, OMOBJ *arg1, u8 arg2)
+static void UpdatePlayerStretchEffect(PlayerActionWork *playerWork, OMOBJ *playerObject, u8 actionComplete)
 {
-    Vec sp18;
-    Vec spC;
-    float temp_f31;
+    Vec modelHookPosition;
+    Vec effectPosition;
+    float interpolationValue;
     s32 i;
 
-    fn_1_1D18(arg1->mdlId[0], "motionC-stretch", &sp18);
+    GetModelJointPosition(playerObject->mdlId[0], "motionC-stretch", &modelHookPosition);
     for (i = 0; i < 8; i++) {
-        temp_f31 = arg0->unk1C + 50.0f;
-        spC.x = 20.0f * frandf() - 10.0f;
-        spC.y = arg0->unk18;
-        spC.z = 20.0f;
-        if (arg2 != 0) {
-            spC.y += 180.0f;
-            spC.z = 10.0f;
+        interpolationValue = playerWork->currentRadius + 50.0f;
+        effectPosition.x = 20.0f * frandf() - 10.0f;
+        effectPosition.y = playerWork->playerAngle;
+        effectPosition.z = 20.0f;
+        if (actionComplete != 0) {
+            effectPosition.y += 180.0f;
+            effectPosition.z = 10.0f;
         }
-        temp_f31 = 3.0f * (30.0f * frandf() - 15.0f);
-        spC.y += temp_f31 + 10.0f * (0.0f > temp_f31 ? -1 : 1);
-        fn_1_7AEC(arg0->unk54, &sp18, &spC);
+        interpolationValue = 3.0f * (30.0f * frandf() - 15.0f);
+        effectPosition.y += interpolationValue + 10.0f * (0.0f > interpolationValue ? -1 : 1);
+        SpawnPlayerEffect(playerWork->playerIndex, &modelHookPosition, &effectPosition);
     }
 }
 
-static void fn_1_2B30(UnkFn27A8Struct *arg0, OMOBJ *arg1, OMOBJ *arg2)
+static void BeginPlayerActionAnimation(PlayerActionWork *playerWork, OMOBJ *playerObject, OMOBJ *opponentObject)
 {
-    arg0->unk50 = 0;
-    arg0->unk20 = (770.0f - arg0->unk1C) / (REFRESH_RATE * 0.3f);
-    arg0->unk0C = Hu3DMotionTimeGet(arg2->mdlId[0]);
-    Hu3DMotionTimeSet(lbl_1_bss_54[arg0->unk54]->mdlId[0], 0.0f);
-    Hu3DMotionSpeedSet(arg1->mdlId[0], 1.0f);
-    Hu3DModelAttrReset(arg1->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
-    Hu3DMotionShiftSet(arg1->mdlId[0], arg1->mtnId[7], 0.0f, 8.0f, HU3D_MOTATTR_NONE);
-    fn_1_2970(arg0, arg2, 1);
-    CharFXPlay(arg0->unk58, 0x123);
+    playerWork->stateFrame = 0;
+    playerWork->radiusVelocity = (770.0f - playerWork->currentRadius) / (REFRESH_RATE * 0.3f);
+    playerWork->currentMotionTime = Hu3DMotionTimeGet(opponentObject->mdlId[0]);
+    Hu3DMotionTimeSet(stageMarkerObjects[playerWork->playerIndex]->mdlId[0], 0.0f);
+    Hu3DMotionSpeedSet(playerObject->mdlId[0], 1.0f);
+    Hu3DModelAttrReset(playerObject->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
+    Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[7], 0.0f, 8.0f, HU3D_MOTATTR_NONE);
+    UpdatePlayerStretchEffect(playerWork, opponentObject, 1);
+    CharFXPlay(playerWork->characterId, 0x123);
 }
 
-static u8 fn_1_2DBC(UnkFn27A8Struct *arg0, OMOBJ *arg1)
+static u8 UpdatePlayerActionAnimation(PlayerActionWork *playerWork, OMOBJ *playerObject)
 {
-    Vec sp20;
-    float var_f30;
-    float var_f29;
+    Vec modelHookPosition;
+    float progressAngle;
+    float motionTime;
 
-    arg0->unk50++;
-    var_f30 = 90.0f * (arg0->unk50 / (VERSION_NTSC ? 18.0f : 15.000001f));
-    var_f29 = arg0->unk0C * (1.0 - sind(var_f30));
-    Hu3DMotionTimeSet(arg1->mdlId[0], var_f29);
-    fn_1_1D18(arg1->mdlId[0], "motionC-stretch", &sp20);
-    arg0->unk28 = sp20.y - arg0->unk14 + 388.0f;
-    arg0->unk1C += arg0->unk20;
-    if ((REFRESH_RATE * 0.3f) < arg0->unk50) {
-        arg0->unk20 = (670.0f - arg0->unk1C) / 20.0f;
-        Hu3DModelAttrReset(arg1->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
-        Hu3DMotionSet(arg1->mdlId[0], arg1->mtnId[2]);
-        Hu3DMotionTimeSet(arg1->mdlId[0], 20.0f);
-        omVibrate(arg0->unk54, 12, 4, 2);
+    playerWork->stateFrame++;
+    progressAngle = 90.0f * (playerWork->stateFrame / (VERSION_NTSC ? 18.0f : 15.000001f));
+    motionTime = playerWork->currentMotionTime * (1.0 - sind(progressAngle));
+    Hu3DMotionTimeSet(playerObject->mdlId[0], motionTime);
+    GetModelJointPosition(playerObject->mdlId[0], "motionC-stretch", &modelHookPosition);
+    playerWork->playerHeight = modelHookPosition.y - playerWork->motionHeightOffset + 388.0f;
+    playerWork->currentRadius += playerWork->radiusVelocity;
+    if ((REFRESH_RATE * 0.3f) < playerWork->stateFrame) {
+        playerWork->radiusVelocity = (670.0f - playerWork->currentRadius) / 20.0f;
+        Hu3DModelAttrReset(playerObject->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
+        Hu3DMotionSet(playerObject->mdlId[0], playerObject->mtnId[2]);
+        Hu3DMotionTimeSet(playerObject->mdlId[0], 20.0f);
+        omVibrate(playerWork->playerIndex, 12, 4, 2);
         HuAudFXPlay(0x50F);
-        fn_1_2970(arg0, arg1, 0);
+        UpdatePlayerStretchEffect(playerWork, playerObject, 0);
         return 1;
     }
     return 0;
 }
 
-static void fn_1_313C(UnkFn27A8Struct *arg0, OMOBJ *arg1)
+static void UpdatePlayerIdlePose(PlayerActionWork *playerWork, OMOBJ *playerObject)
 {
-    Vec sp8;
+    Vec modelHookPosition;
 
-    arg0->unk1C += arg0->unk20;
-    if (670.0f > arg0->unk1C) {
-        arg0->unk1C = 670.0f;
+    playerWork->currentRadius += playerWork->radiusVelocity;
+    if (670.0f > playerWork->currentRadius) {
+        playerWork->currentRadius = 670.0f;
     }
-    fn_1_1D18(arg1->mdlId[0], "motionC-stretch", &sp8);
-    arg0->unk28 = sp8.y - arg0->unk14 + 388.0f;
+    GetModelJointPosition(playerObject->mdlId[0], "motionC-stretch", &modelHookPosition);
+    playerWork->playerHeight = modelHookPosition.y - playerWork->motionHeightOffset + 388.0f;
 }
 
-static void fn_1_3204(OMOBJ *arg0)
+static void UpdatePlayerAction(OMOBJ *playerObject)
 {
-    Vec sp48;
-    Vec sp3C;
-    Vec sp24;
-    Vec spC;
-    float temp_f31;
-    UnkFn27A8Struct *temp_r31;
-    OMOBJ *temp_r29;
-    UnkData234Struct *temp_r28;
-    u16 var_r26;
+    Vec playerModelPosition;
+    Vec playerEffectPosition;
+    Vec opponentModelPosition;
+    Vec effectPosition;
+    float interpolationValue;
+    PlayerActionWork *playerWork;
+    OMOBJ *opponentObject;
+    PlayerActionFrameData *animationFrameData;
+    u16 buttonInput;
 
-    temp_r31 = arg0->data;
-    if (lbl_1_bss_58->work[0] == 1007) {
-        switch (temp_r31->unk4C) {
+    playerWork = playerObject->data;
+    if (minigameSequenceObject->work[0] == 1007) {
+        switch (playerWork->playerState) {
             case 2017:
-                temp_r31->unk4C = 2014;
+                playerWork->playerState = 2014;
                 break;
             case 2018:
-                temp_r31->unk4C = 2015;
+                playerWork->playerState = 2015;
                 break;
             default:
-                temp_r31->unk4C = 2010;
+                playerWork->playerState = 2010;
                 break;
         }
-        Hu3DMotionSpeedSet(arg0->mdlId[0], 1.0f);
-        if (lbl_1_bss_26 == temp_r31->unk54) {
-            GWPlayerCoinWinSet(temp_r31->unk54, 10);
+        Hu3DMotionSpeedSet(playerObject->mdlId[0], 1.0f);
+        if (winningPlayerIndex == playerWork->playerIndex) {
+            GWPlayerCoinWinSet(playerWork->playerIndex, 10);
         }
-        arg0->objFunc = fn_1_43D8;
+        playerObject->objFunc = UpdatePlayerModel;
         return;
     }
-    if (lbl_1_bss_58->work[0] == 1006) {
-        temp_r29 = lbl_1_bss_48[temp_r31->unk54];
-        if (temp_r31->unk60 < 19) {
-            if (GWPlayerCfg[temp_r31->unk54].iscom) {
-                var_r26 = fn_1_27A8(temp_r31);
+    if (minigameSequenceObject->work[0] == 1006) {
+        opponentObject = shadowObjects[playerWork->playerIndex];
+        if (playerWork->actionProgress < 19) {
+            if (GWPlayerCfg[playerWork->playerIndex].iscom) {
+                buttonInput = ChooseComputerPlayerAction(playerWork);
             }
             else {
-                var_r26 = HuPadBtnDown[temp_r31->unk5C];
+                buttonInput = HuPadBtnDown[playerWork->controllerPort];
             }
-            if (temp_r31->unk60 == 0) {
-                if (var_r26 & 0x100) {
-                    temp_r31->unk60 = 1;
-                    temp_r31->unk2C = 0.0f;
-                    temp_r31->unk30 = 0.0f;
-                    temp_r31->unk08 = 0.0f;
-                    temp_r31->unk0C = 0.0f;
-                    temp_r31->unk10 = temp_r31->unk0C;
-                    temp_r31->unk20 = 0.0f;
-                    temp_r31->unk24 = temp_r31->unk1C;
+            if (playerWork->actionProgress == 0) {
+                if (buttonInput & 0x100) {
+                    playerWork->actionProgress = 1;
+                    playerWork->animationFrame = 0.0f;
+                    playerWork->stateTimer = 0.0f;
+                    playerWork->heightVelocity = 0.0f;
+                    playerWork->currentMotionTime = 0.0f;
+                    playerWork->targetMotionTime = playerWork->currentMotionTime;
+                    playerWork->radiusVelocity = 0.0f;
+                    playerWork->targetRadius = playerWork->currentRadius;
                     HuAudFXPlay(0x50E);
-                    Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[5], 0.0f, 2.0f, HU3D_MOTATTR_LOOP);
+                    Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[5], 0.0f, 2.0f, HU3D_MOTATTR_LOOP);
                 }
             }
             else {
-                temp_r31->unk30 += 1.0f;
+                playerWork->stateTimer += 1.0f;
             }
-            switch (temp_r31->unk4C) {
+            switch (playerWork->playerState) {
                 case 2016:
-                    if (var_r26 & 0x100) {
-                        temp_r28 = &lbl_1_data_234[temp_r31->unk60];
-                        if (temp_r28->unk10 >= 0 && 0.0f == temp_r31->unk2C) {
-                            HuAudFXPlay(temp_r28->unk10);
+                    if (buttonInput & 0x100) {
+                        animationFrameData = &playerActionFrameData[playerWork->actionProgress];
+                        if (animationFrameData->soundEffectId >= 0 && 0.0f == playerWork->animationFrame) {
+                            HuAudFXPlay(animationFrameData->soundEffectId);
                         }
-                        temp_r31->unk2C += 1.0f;
-                        Hu3DMotionTimeSet(lbl_1_bss_54[temp_r31->unk54]->mdlId[0], temp_r28->unk04);
-                        temp_f31 = temp_r28->unk08 - temp_r28[-1].unk08;
-                        temp_f31 *= 1.0f - temp_r31->unk2C / temp_r28->unk00;
-                        temp_r31->unk24 = 670.0f - 450.0f * (temp_r28->unk08 - temp_f31);
-                        temp_f31 = temp_r28->unk0C - temp_r28[-1].unk0C;
-                        temp_f31 *= 1.0f - temp_r31->unk2C / temp_r28->unk00;
-                        temp_r31->unk10 = (temp_r28->unk0C - temp_f31) * Hu3DMotionMaxTimeGet(temp_r29->mdlId[0]);
-                        temp_f31 = temp_r31->unk60 / 20.0f;
-                        temp_r31->unk20 = temp_f31 * (temp_r31->unk24 - temp_r31->unk1C);
-                        temp_r31->unk08 = temp_f31 * (temp_r31->unk10 - temp_r31->unk0C);
-                        if (temp_r28->unk00 <= temp_r31->unk2C) {
-                            temp_r31->unk60++;
-                            if (temp_r31->unk60 == 3) {
-                                Hu3DMotionSpeedSet(arg0->mdlId[0], 0.83f);
-                                Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[6], 0.0f, 4.0f, HU3D_MOTATTR_LOOP);
+                        playerWork->animationFrame += 1.0f;
+                        Hu3DMotionTimeSet(stageMarkerObjects[playerWork->playerIndex]->mdlId[0], animationFrameData->motionFrame);
+                        interpolationValue = animationFrameData->heightRatio - animationFrameData[-1].heightRatio;
+                        interpolationValue *= 1.0f - playerWork->animationFrame / animationFrameData->durationFrames;
+                        playerWork->targetRadius = 670.0f - 450.0f * (animationFrameData->heightRatio - interpolationValue);
+                        interpolationValue = animationFrameData->motionRatio - animationFrameData[-1].motionRatio;
+                        interpolationValue *= 1.0f - playerWork->animationFrame / animationFrameData->durationFrames;
+                        playerWork->targetMotionTime = (animationFrameData->motionRatio - interpolationValue) * Hu3DMotionMaxTimeGet(opponentObject->mdlId[0]);
+                        interpolationValue = playerWork->actionProgress / 20.0f;
+                        playerWork->radiusVelocity = interpolationValue * (playerWork->targetRadius - playerWork->currentRadius);
+                        playerWork->heightVelocity = interpolationValue * (playerWork->targetMotionTime - playerWork->currentMotionTime);
+                        if (animationFrameData->durationFrames <= playerWork->animationFrame) {
+                            playerWork->actionProgress++;
+                            if (playerWork->actionProgress == 3) {
+                                Hu3DMotionSpeedSet(playerObject->mdlId[0], 0.83f);
+                                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[6], 0.0f, 4.0f, HU3D_MOTATTR_LOOP);
                             }
-                            if (temp_r31->unk60 == 9) {
-                                Hu3DMotionSpeedSet(arg0->mdlId[0], 1.0f);
+                            if (playerWork->actionProgress == 9) {
+                                Hu3DMotionSpeedSet(playerObject->mdlId[0], 1.0f);
                             }
-                            temp_r31->unk2C = 0.0f;
-                            temp_r31->unk30 = 0.0f;
-                            if (temp_r31->unk60 >= 19) {
-                                temp_r31->unk1C = temp_r31->unk24;
-                                temp_r31->unk20 = 0.0f;
-                                temp_r31->unk0C = temp_r31->unk10;
-                                temp_r31->unk08 = 0.0f;
-                                if (lbl_1_bss_26 < 0) {
-                                    lbl_1_bss_26 = temp_r31->unk54;
+                            playerWork->animationFrame = 0.0f;
+                            playerWork->stateTimer = 0.0f;
+                            if (playerWork->actionProgress >= 19) {
+                                playerWork->currentRadius = playerWork->targetRadius;
+                                playerWork->radiusVelocity = 0.0f;
+                                playerWork->currentMotionTime = playerWork->targetMotionTime;
+                                playerWork->heightVelocity = 0.0f;
+                                if (winningPlayerIndex < 0) {
+                                    winningPlayerIndex = playerWork->playerIndex;
                                 }
                                 else if (frandmod(100) > 50) {
-                                    lbl_1_bss_26 = temp_r31->unk54;
+                                    winningPlayerIndex = playerWork->playerIndex;
                                 }
                             }
                         }
                     }
-                    if (1.0f * REFRESH_RATE <= temp_r31->unk30) {
-                        temp_r31->unk4C = 2017;
-                        fn_1_2B30(temp_r31, arg0, temp_r29);
+                    if (1.0f * REFRESH_RATE <= playerWork->stateTimer) {
+                        playerWork->playerState = 2017;
+                        BeginPlayerActionAnimation(playerWork, playerObject, opponentObject);
                     }
                     else {
-                        if (temp_r31->unk1C > temp_r31->unk24) {
-                            temp_r31->unk1C += temp_r31->unk20;
-                            if (temp_r31->unk1C <= temp_r31->unk24) {
-                                temp_r31->unk1C = temp_r31->unk24;
+                        if (playerWork->currentRadius > playerWork->targetRadius) {
+                            playerWork->currentRadius += playerWork->radiusVelocity;
+                            if (playerWork->currentRadius <= playerWork->targetRadius) {
+                                playerWork->currentRadius = playerWork->targetRadius;
                             }
                         }
-                        if (temp_r31->unk0C < temp_r31->unk10) {
-                            temp_r31->unk0C += temp_r31->unk08;
-                            if (temp_r31->unk0C >= temp_r31->unk10) {
-                                temp_r31->unk0C = temp_r31->unk10;
+                        if (playerWork->currentMotionTime < playerWork->targetMotionTime) {
+                            playerWork->currentMotionTime += playerWork->heightVelocity;
+                            if (playerWork->currentMotionTime >= playerWork->targetMotionTime) {
+                                playerWork->currentMotionTime = playerWork->targetMotionTime;
                             }
                         }
-                        Hu3DMotionTimeSet(temp_r29->mdlId[0], temp_r31->unk0C);
+                        Hu3DMotionTimeSet(opponentObject->mdlId[0], playerWork->currentMotionTime);
                     }
                     break;
                 case 2017:
-                    if (fn_1_2DBC(temp_r31, temp_r29) != 0) {
-                        temp_r31->unk4C = 2018;
-                        temp_r31->unk50 = 2 * REFRESH_RATE;
+                    if (UpdatePlayerActionAnimation(playerWork, opponentObject) != 0) {
+                        playerWork->playerState = 2018;
+                        playerWork->stateFrame = 2 * REFRESH_RATE;
                     }
                     break;
                 case 2018:
-                    fn_1_313C(temp_r31, temp_r29);
-                    temp_r31->unk50 -= 1.0f;
-                    if (temp_r31->unk50 == 32) {
-                        Hu3DMotionSet(arg0->mdlId[0], arg0->mtnId[9]);
-                        Hu3DMotionShiftSet(temp_r29->mdlId[0], temp_r29->mtnId[1], 0.0f, 20.0f, HU3D_MOTATTR_PAUSE);
+                    UpdatePlayerIdlePose(playerWork, opponentObject);
+                    playerWork->stateFrame -= 1.0f;
+                    if (playerWork->stateFrame == 32) {
+                        Hu3DMotionSet(playerObject->mdlId[0], playerObject->mtnId[9]);
+                        Hu3DMotionShiftSet(opponentObject->mdlId[0], opponentObject->mtnId[1], 0.0f, 20.0f, HU3D_MOTATTR_PAUSE);
                     }
-                    if (0.0f > temp_r31->unk50) {
-                        fn_1_2880(temp_r31, arg0);
+                    if (0.0f > playerWork->stateFrame) {
+                        ResetPlayerActionState(playerWork, playerObject);
                     }
                     break;
                 default:
-                    OSReport("*** player mode error(%d)!!\n", temp_r31->unk4C);
+                    OSReport("*** player mode error(%d)!!\n", playerWork->playerState);
                     break;
             }
-            if (lbl_1_bss_28 < temp_r31->unk1C) {
-                lbl_1_bss_28 = temp_r31->unk1C;
+            if (playerMotionRadius < playerWork->currentRadius) {
+                playerMotionRadius = playerWork->currentRadius;
             }
-            omSetTra(arg0, temp_r31->unk1C * sind(180.0f + temp_r31->unk18), temp_r31->unk28, temp_r31->unk1C * cosd(180.0f + temp_r31->unk18));
+            omSetTra(playerObject, playerWork->currentRadius * sind(180.0f + playerWork->playerAngle), playerWork->playerHeight, playerWork->currentRadius * cosd(180.0f + playerWork->playerAngle));
         }
     }
 }
 
-static void fn_1_4190(float arg0)
+static void BeginPlayerJump(float motionFrame)
 {
-    Vec sp8;
+    Vec particlePosition;
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        sp8.x = 155.5 * sind(arg0);
-        sp8.y = 588.0f;
-        sp8.z = 155.5 * cosd(arg0);
-        fn_1_7AEC(5, &sp8, NULL);
-        arg0 += 90.0f;
+        particlePosition.x = 155.5 * sind(motionFrame);
+        particlePosition.y = 588.0f;
+        particlePosition.z = 155.5 * cosd(motionFrame);
+        SpawnPlayerEffect(5, &particlePosition, NULL);
+        motionFrame += 90.0f;
     }
 }
 
-static void fn_1_4284(float arg0)
+static void BeginPlayerLand(float motionFrame)
 {
-    Vec sp8;
+    Vec particlePosition;
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        sp8.x = 155.5 * sind(arg0);
-        sp8.y = 388.0f;
-        sp8.z = 155.5 * cosd(arg0);
-        sp8.x += 40.0f * frandf() - 20.0f;
-        sp8.z += 40.0f * frandf() - 20.0f;
-        fn_1_7AEC(4, &sp8, NULL);
-        arg0 += 90.0f;
+        particlePosition.x = 155.5 * sind(motionFrame);
+        particlePosition.y = 388.0f;
+        particlePosition.z = 155.5 * cosd(motionFrame);
+        particlePosition.x += 40.0f * frandf() - 20.0f;
+        particlePosition.z += 40.0f * frandf() - 20.0f;
+        SpawnPlayerEffect(4, &particlePosition, NULL);
+        motionFrame += 90.0f;
     }
 }
 
-static void fn_1_43D8(OMOBJ *arg0)
+static void UpdatePlayerModel(OMOBJ *playerObject)
 {
-    Vec spE8;
-    float temp_f31;
-    float temp_f23;
-    UnkFn27A8Struct *temp_r31;
-    OMOBJ *temp_r30;
-    s32 temp_r28;
+    Vec effectPosition;
+    float motionTime;
+    float rotationAngle;
+    PlayerActionWork *playerWork;
+    OMOBJ *playerObject;
+    s32 particleIndex;
 
-    temp_r31 = arg0->data;
-    temp_r30 = lbl_1_bss_48[temp_r31->unk54];
-    switch (temp_r31->unk4C) {
+    playerWork = playerObject->data;
+    playerObject = shadowObjects[playerWork->playerIndex];
+    switch (playerWork->playerState) {
         case 2000:
-            if (lbl_1_bss_58->work[0] == 1001) {
-                temp_r31->unk4C++;
-                Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[1], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+            if (minigameSequenceObject->work[0] == 1001) {
+                playerWork->playerState++;
+                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[1], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
             }
             break;
         case 2001:
-            temp_r31->unk1C -= 1.0f;
-            if (Hu3DMotionEndCheck(arg0->mdlId[0])) {
-                temp_r31->unk4C++;
-                temp_r31->unk08 = 0.0f;
-                temp_r31->unk04 = 2000.0f;
-                Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[2], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
-                Hu3DMotionSet(temp_r30->mdlId[0], temp_r30->mtnId[0]);
-                Hu3DModelAttrSet(temp_r30->mdlId[0], HU3D_MOTATTR_PAUSE);
-                Hu3DModelAttrReset(temp_r30->mdlId[0], HU3D_MOTATTR_LOOP);
-                Hu3DModelAttrReset(temp_r30->mdlId[0], HU3D_ATTR_DISPOFF);
+            playerWork->currentRadius -= 1.0f;
+            if (Hu3DMotionEndCheck(playerObject->mdlId[0])) {
+                playerWork->playerState++;
+                playerWork->heightVelocity = 0.0f;
+                playerWork->startingHeight = 2000.0f;
+                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[2], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+                Hu3DMotionSet(playerObject->mdlId[0], playerObject->mtnId[0]);
+                Hu3DModelAttrSet(playerObject->mdlId[0], HU3D_MOTATTR_PAUSE);
+                Hu3DModelAttrReset(playerObject->mdlId[0], HU3D_MOTATTR_LOOP);
+                Hu3DModelAttrReset(playerObject->mdlId[0], HU3D_ATTR_DISPOFF);
             }
             break;
         case 2002:
-            temp_r31->unk08 += 0.4f;
-            temp_r31->unk04 -= temp_r31->unk08;
-            if (temp_r31->unk48 != 0 && Hu3DMotionEndCheck(arg0->mdlId[0])) {
-                temp_r31->unk48 = 0;
-                CharFXPlay(temp_r31->unk58, 0x128);
+            playerWork->heightVelocity += 0.4f;
+            playerWork->startingHeight -= playerWork->heightVelocity;
+            if (playerWork->effectPlayed != 0 && Hu3DMotionEndCheck(playerObject->mdlId[0])) {
+                playerWork->effectPlayed = 0;
+                CharFXPlay(playerWork->characterId, 0x128);
             }
-            if (786.0f > temp_r31->unk04) {
-                temp_r31->unk4C++;
-                if (temp_r31->unk54 == 0) {
+            if (786.0f > playerWork->startingHeight) {
+                playerWork->playerState++;
+                if (playerWork->playerIndex == 0) {
                     HuAudFXPlay(0x50D);
                 }
-                Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
             }
             break;
         case 2003:
-            temp_r31->unk08 += 0.4f;
-            temp_r31->unk04 -= temp_r31->unk08;
-            if (536.0f > temp_r31->unk04) {
-                temp_r31->unk4C++;
-                temp_r31->unk50 = 0;
-                temp_r31->unk04 = 536.0f;
-                Hu3DModelAttrReset(temp_r30->mdlId[0], HU3D_MOTATTR_PAUSE);
-                spE8.x = temp_r31->unk00 * sind(180.0f + temp_r31->unk18);
-                spE8.y = temp_r31->unk04;
-                spE8.z = temp_r31->unk00 * cosd(180.0f + temp_r31->unk18);
-                fn_1_7AEC(6, &spE8, NULL);
-                omVibrate(temp_r31->unk54, 12, 0xC, 0);
+            playerWork->heightVelocity += 0.4f;
+            playerWork->startingHeight -= playerWork->heightVelocity;
+            if (536.0f > playerWork->startingHeight) {
+                playerWork->playerState++;
+                playerWork->stateFrame = 0;
+                playerWork->startingHeight = 536.0f;
+                Hu3DModelAttrReset(playerObject->mdlId[0], HU3D_MOTATTR_PAUSE);
+                effectPosition.x = playerWork->startingRadius * sind(180.0f + playerWork->playerAngle);
+                effectPosition.y = playerWork->startingHeight;
+                effectPosition.z = playerWork->startingRadius * cosd(180.0f + playerWork->playerAngle);
+                SpawnPlayerEffect(6, &effectPosition, NULL);
+                omVibrate(playerWork->playerIndex, 12, 0xC, 0);
             }
             break;
         case 2004:
-            temp_r31->unk50++;
-            if (70.0f < temp_r31->unk50) {
-                temp_r31->unk4C++;
-                Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[4], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+            playerWork->stateFrame++;
+            if (70.0f < playerWork->stateFrame) {
+                playerWork->playerState++;
+                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[4], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
             }
             break;
         case 2005:
-            temp_r31->unk50++;
-            if (130.0f == temp_r31->unk50) {
-                if (lbl_1_bss_10 != 0) {
-                    lbl_1_bss_10 = 0;
+            playerWork->stateFrame++;
+            if (130.0f == playerWork->stateFrame) {
+                if (debugModeEnabled != 0) {
+                    debugModeEnabled = 0;
                     HuAudFXPlay(0x510);
                 }
-                fn_1_2970(temp_r31, temp_r30, 0);
+                UpdatePlayerStretchEffect(playerWork, playerObject, 0);
             }
-            if (!Hu3DMotionEndCheck(arg0->mdlId[0])) {
-                temp_r31->unk1C -= 2.3f;
+            if (!Hu3DMotionEndCheck(playerObject->mdlId[0])) {
+                playerWork->currentRadius -= 2.3f;
             }
-            if (Hu3DMotionEndCheck(temp_r30->mdlId[0])) {
-                temp_r31->unk4C++;
-                temp_r31->unk50 = 0;
-                temp_r31->unk0C = 0.0f;
-                Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[5], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-                Hu3DMotionShiftSet(temp_r30->mdlId[0], temp_r30->mtnId[1], 0.0f, 10.0f, HU3D_MOTATTR_PAUSE);
+            if (Hu3DMotionEndCheck(playerObject->mdlId[0])) {
+                playerWork->playerState++;
+                playerWork->stateFrame = 0;
+                playerWork->currentMotionTime = 0.0f;
+                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[5], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[1], 0.0f, 10.0f, HU3D_MOTATTR_PAUSE);
             }
             break;
         case 2006:
-            if (temp_r31->unk50++ > 10) {
-                temp_r31->unk4C++;
+            if (playerWork->stateFrame++ > 10) {
+                playerWork->playerState++;
             }
-            fn_1_1D18(temp_r30->mdlId[0], "motionC-stretch", &spE8);
-            temp_r31->unk14 = spE8.y;
+            GetModelJointPosition(playerObject->mdlId[0], "motionC-stretch", &effectPosition);
+            playerWork->motionHeightOffset = effectPosition.y;
             break;
         case 2007:
-            temp_r31->unk1C -= 5.0f;
-            if (670.0f > temp_r31->unk1C) {
-                temp_f31 = (670.0f - temp_r31->unk1C) / 450.0f;
-                Hu3DMotionTimeSet(lbl_1_bss_54[temp_r31->unk54]->mdlId[0], 10.0f * temp_f31);
-                temp_r28 = (s32)(10.0f * temp_f31) >> 1;
-                if (temp_r28 < 5 && temp_r31->unk44 != lbl_1_data_3C4[temp_r28]) {
-                    temp_r31->unk44 = lbl_1_data_3C4[temp_r28];
-                    HuAudFXPlay(temp_r31->unk44);
+            playerWork->currentRadius -= 5.0f;
+            if (670.0f > playerWork->currentRadius) {
+                motionTime = (670.0f - playerWork->currentRadius) / 450.0f;
+                Hu3DMotionTimeSet(stageMarkerObjects[playerWork->playerIndex]->mdlId[0], 10.0f * motionTime);
+                particleIndex = (s32)(10.0f * motionTime) >> 1;
+                if (particleIndex < 5 && playerWork->lastEffectId != playerActionSoundEffectIds[particleIndex]) {
+                    playerWork->lastEffectId = playerActionSoundEffectIds[particleIndex];
+                    HuAudFXPlay(playerWork->lastEffectId);
                 }
             }
-            if (470.0f > temp_r31->unk1C) {
-                temp_r31->unk4C++;
-                temp_r31->unk1C = 470.0f;
-                fn_1_2B30(temp_r31, arg0, temp_r30);
+            if (470.0f > playerWork->currentRadius) {
+                playerWork->playerState++;
+                playerWork->currentRadius = 470.0f;
+                BeginPlayerActionAnimation(playerWork, playerObject, playerObject);
             }
             else {
-                temp_r31->unk0C += 0.7f;
-                Hu3DMotionTimeSet(temp_r30->mdlId[0], temp_r31->unk0C);
+                playerWork->currentMotionTime += 0.7f;
+                Hu3DMotionTimeSet(playerObject->mdlId[0], playerWork->currentMotionTime);
             }
             break;
         case 2008:
-            if (fn_1_2DBC(temp_r31, temp_r30) != 0) {
-                temp_r31->unk4C++;
-                temp_r31->unk50 = 2 * REFRESH_RATE;
+            if (UpdatePlayerActionAnimation(playerWork, playerObject) != 0) {
+                playerWork->playerState++;
+                playerWork->stateFrame = 2 * REFRESH_RATE;
             }
             break;
         case 2009:
-            fn_1_313C(temp_r31, temp_r30);
-            temp_r31->unk50 -= 1.0f;
-            if (temp_r31->unk50 == 32) {
-                Hu3DMotionSet(arg0->mdlId[0], arg0->mtnId[9]);
-                Hu3DMotionShiftSet(temp_r30->mdlId[0], temp_r30->mtnId[1], 0.0f, 20.0f, HU3D_MOTATTR_PAUSE);
+            UpdatePlayerIdlePose(playerWork, playerObject);
+            playerWork->stateFrame -= 1.0f;
+            if (playerWork->stateFrame == 32) {
+                Hu3DMotionSet(playerObject->mdlId[0], playerObject->mtnId[9]);
+                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[1], 0.0f, 20.0f, HU3D_MOTATTR_PAUSE);
             }
-            if (0.0f > temp_r31->unk50) {
-                lbl_1_bss_58->work[0]++;
-                fn_1_2880(temp_r31, arg0);
-                arg0->objFunc = fn_1_3204;
+            if (0.0f > playerWork->stateFrame) {
+                minigameSequenceObject->work[0]++;
+                ResetPlayerActionState(playerWork, playerObject);
+                playerObject->objFunc = UpdatePlayerAction;
             }
             break;
 
         case 2010:
-            if (temp_r31->unk54 == lbl_1_bss_26) {
-                temp_r31->unk4C = 2012;
-                temp_r31->unk20 = 10.5f;
-                Hu3DModelAttrReset(arg0->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
-                Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[8], 0.0f, 20.0f, HU3D_MOTATTR_NONE);
-                Hu3DModelAttrReset(temp_r30->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
-                Hu3DMotionShiftSet(temp_r30->mdlId[0], temp_r30->mtnId[2], 20.0f, 20.0f, HU3D_MOTATTR_NONE);
+            if (playerWork->playerIndex == winningPlayerIndex) {
+                playerWork->playerState = 2012;
+                playerWork->radiusVelocity = 10.5f;
+                Hu3DModelAttrReset(playerObject->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
+                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[8], 0.0f, 20.0f, HU3D_MOTATTR_NONE);
+                Hu3DModelAttrReset(playerObject->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
+                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[2], 20.0f, 20.0f, HU3D_MOTATTR_NONE);
                 HuAudFXPlay(0x513);
-                fn_1_4190(temp_r31->unk18);
+                BeginPlayerJump(playerWork->playerAngle);
             }
             else {
-                temp_r31->unk4C = 2014;
-                fn_1_2B30(temp_r31, arg0, temp_r30);
+                playerWork->playerState = 2014;
+                BeginPlayerActionAnimation(playerWork, playerObject, playerObject);
             }
             break;
 
@@ -1168,491 +1168,491 @@ static void fn_1_43D8(OMOBJ *arg0)
             break;
 
         case 2012:
-            temp_r31->unk1C -= temp_r31->unk20;
-            if (0.0f > temp_r31->unk1C) {
-                temp_r31->unk1C = 0.0f;
+            playerWork->currentRadius -= playerWork->radiusVelocity;
+            if (0.0f > playerWork->currentRadius) {
+                playerWork->currentRadius = 0.0f;
             }
-            temp_r31->unk20 -= 0.25f;
-            if (0.0f > temp_r31->unk20) {
-                temp_r31->unk4C++;
-                temp_r31->unk50 = 0;
-                Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[9], 0.0f, 20.0f, HU3D_MOTATTR_NONE);
+            playerWork->radiusVelocity -= 0.25f;
+            if (0.0f > playerWork->radiusVelocity) {
+                playerWork->playerState++;
+                playerWork->stateFrame = 0;
+                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[9], 0.0f, 20.0f, HU3D_MOTATTR_NONE);
             }
-            if (4.5f <= temp_r31->unk20) {
-                fn_1_4284(temp_r31->unk18);
+            if (4.5f <= playerWork->radiusVelocity) {
+                BeginPlayerLand(playerWork->playerAngle);
             }
             break;
         case 2013:
-            temp_r31->unk50++;
-            temp_f23 = 90.0f * (temp_r31->unk50 / 20.0f);
-            temp_f31 = sind(temp_f23) * sind(temp_f23);
-            if (180.0f > temp_r31->unk18) {
-                temp_r31->unk24 = temp_r31->unk18 + -temp_r31->unk18 * temp_f31;
+            playerWork->stateFrame++;
+            rotationAngle = 90.0f * (playerWork->stateFrame / 20.0f);
+            motionTime = sind(rotationAngle) * sind(rotationAngle);
+            if (180.0f > playerWork->playerAngle) {
+                playerWork->targetRadius = playerWork->playerAngle + -playerWork->playerAngle * motionTime;
             }
             else {
-                temp_r31->unk24 = temp_r31->unk18 + (360.0f - temp_r31->unk18) * temp_f31;
+                playerWork->targetRadius = playerWork->playerAngle + (360.0f - playerWork->playerAngle) * motionTime;
             }
-            omSetRot(arg0, 0.0f, temp_r31->unk24, 0.0f);
-            if (20.0f <= temp_r31->unk50) {
-                temp_r31->unk4C = 2011;
+            omSetRot(playerObject, 0.0f, playerWork->targetRadius, 0.0f);
+            if (20.0f <= playerWork->stateFrame) {
+                playerWork->playerState = 2011;
             }
             break;
         case 2014:
-            if (fn_1_2DBC(temp_r31, temp_r30) != 0) {
-                temp_r31->unk4C++;
-                temp_r31->unk50 = 2 * REFRESH_RATE;
+            if (UpdatePlayerActionAnimation(playerWork, playerObject) != 0) {
+                playerWork->playerState++;
+                playerWork->stateFrame = 2 * REFRESH_RATE;
             }
             break;
         case 2015:
-            fn_1_313C(temp_r31, temp_r30);
-            temp_r31->unk50 -= 1.0f;
-            if (temp_r31->unk50 == 32) {
-                Hu3DMotionSet(arg0->mdlId[0], arg0->mtnId[9]);
-                Hu3DMotionShiftSet(temp_r30->mdlId[0], temp_r30->mtnId[1], 0.0f, 20.0f, HU3D_MOTATTR_PAUSE);
+            UpdatePlayerIdlePose(playerWork, playerObject);
+            playerWork->stateFrame -= 1.0f;
+            if (playerWork->stateFrame == 32) {
+                Hu3DMotionSet(playerObject->mdlId[0], playerObject->mtnId[9]);
+                Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[1], 0.0f, 20.0f, HU3D_MOTATTR_PAUSE);
             }
-            if (0.0f > temp_r31->unk50) {
-                temp_r31->unk4C = 2011;
+            if (0.0f > playerWork->stateFrame) {
+                playerWork->playerState = 2011;
             }
             break;
         default:
-            OSReport("*** player mode error(%d)!!\n", temp_r31->unk4C);
+            OSReport("*** player mode error(%d)!!\n", playerWork->playerState);
             break;
     }
-    omSetTra(arg0, temp_r31->unk1C * sind(180.0f + temp_r31->unk18), temp_r31->unk28, temp_r31->unk1C * cosd(180.0f + temp_r31->unk18));
-    omSetTra(temp_r30, temp_r31->unk00 * sind(180.0f + temp_r31->unk18), temp_r31->unk04, temp_r31->unk00 * cosd(180.0f + temp_r31->unk18));
-    if (lbl_1_bss_58->work[0] < 1008 && temp_r31->unk54 == lbl_1_bss_26) {
-        lbl_1_bss_1B8.x = temp_r31->unk1C * sind(180.0f + temp_r31->unk18);
-        lbl_1_bss_1B8.y = 508.0f;
-        lbl_1_bss_1B8.z = temp_r31->unk1C * cosd(180.0f + temp_r31->unk18);
-        lbl_1_bss_1D0.x = lbl_1_bss_1B8.x;
-        lbl_1_bss_1D0.y = lbl_1_bss_1B8.y + 270.0f;
-        lbl_1_bss_1D0.z = lbl_1_bss_1B8.z + 850.0f;
+    omSetTra(playerObject, playerWork->currentRadius * sind(180.0f + playerWork->playerAngle), playerWork->playerHeight, playerWork->currentRadius * cosd(180.0f + playerWork->playerAngle));
+    omSetTra(playerObject, playerWork->startingRadius * sind(180.0f + playerWork->playerAngle), playerWork->startingHeight, playerWork->startingRadius * cosd(180.0f + playerWork->playerAngle));
+    if (minigameSequenceObject->work[0] < 1008 && playerWork->playerIndex == winningPlayerIndex) {
+        cameraCurrentTarget.x = playerWork->currentRadius * sind(180.0f + playerWork->playerAngle);
+        cameraCurrentTarget.y = 508.0f;
+        cameraCurrentTarget.z = playerWork->currentRadius * cosd(180.0f + playerWork->playerAngle);
+        cameraCurrentPosition.x = cameraCurrentTarget.x;
+        cameraCurrentPosition.y = cameraCurrentTarget.y + 270.0f;
+        cameraCurrentPosition.z = cameraCurrentTarget.z + 850.0f;
     }
 }
 
-static void fn_1_63C8(OMOBJ *arg0)
+static void CreatePlayerModel(OMOBJ *playerObject)
 {
-    UnkFn27A8Struct *temp_r31;
-    s16 temp_r28;
-    s16 var_r27;
+    PlayerActionWork *playerWork;
+    s16 modelId;
+    s16 lightId;
     s32 i;
 
-    temp_r31 = arg0->data;
-    temp_r31->unk54 = arg0->work[0];
-    temp_r31->unk58 = GWPlayerCfg[temp_r31->unk54].character;
-    temp_r31->unk5C = GWPlayerCfg[temp_r31->unk54].pad_idx;
-    temp_r31->unk4C = 2000;
-    temp_r31->unk60 = 0;
-    temp_r31->unk28 = 388.0f;
-    temp_r31->unk2C = 0.0f;
-    temp_r31->unk30 = 0.0f;
-    temp_r31->unk0C = 0.0f;
-    temp_r31->unk00 = 895.0f;
-    temp_r31->unk04 = 536.0f;
-    temp_r31->unk44 = -1;
-    temp_r31->unk48 = 1;
-    temp_r31->unk34 = 10;
-    temp_r31->unk38 = 10;
-    temp_r31->unk3C = 10;
-    temp_r31->unk40 = 60;
-    arg0->mdlId[0] = CharModelCreate(lbl_1_data_0[temp_r31->unk58], 4);
-    CharModelStepFxSet(lbl_1_data_0[temp_r31->unk58], 0);
+    playerWork = playerObject->data;
+    playerWork->playerIndex = playerObject->work[0];
+    playerWork->characterId = GWPlayerCfg[playerWork->playerIndex].character;
+    playerWork->controllerPort = GWPlayerCfg[playerWork->playerIndex].pad_idx;
+    playerWork->playerState = 2000;
+    playerWork->actionProgress = 0;
+    playerWork->playerHeight = 388.0f;
+    playerWork->animationFrame = 0.0f;
+    playerWork->stateTimer = 0.0f;
+    playerWork->currentMotionTime = 0.0f;
+    playerWork->startingRadius = 895.0f;
+    playerWork->startingHeight = 536.0f;
+    playerWork->lastEffectId = -1;
+    playerWork->effectPlayed = 1;
+    playerWork->computerActionChance = 10;
+    playerWork->computerActionTimer = 10;
+    playerWork->computerActionInterval = 10;
+    playerWork->computerActionCounter = 60;
+    playerObject->mdlId[0] = CharModelCreate(characterModelIndices[playerWork->characterId], 4);
+    CharModelStepFxSet(characterModelIndices[playerWork->characterId], 0);
     for (i = 0; i < 11; i++) {
-        arg0->mtnId[i] = CharMotionCreate(lbl_1_data_0[temp_r31->unk58], lbl_1_data_78[temp_r31->unk58][i]);
-        CharMotionSet(lbl_1_data_0[temp_r31->unk58], arg0->mtnId[i]);
+        playerObject->mtnId[i] = CharMotionCreate(characterModelIndices[playerWork->characterId], characterMotionResourceIds[playerWork->characterId][i]);
+        CharMotionSet(characterModelIndices[playerWork->characterId], playerObject->mtnId[i]);
     }
-    temp_r28 = arg0->mdlId[0];
-    var_r27 = Hu3DLLightCreateV(temp_r28, &lbl_1_data_34, &lbl_1_data_40, &lbl_1_data_4C);
-    Hu3DLLightStaticSet(temp_r28, var_r27, 1);
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_MOTATTR_LOOP);
-    Hu3DModelLayerSet(arg0->mdlId[0], 3);
-    Hu3DMotionSet(arg0->mdlId[0], arg0->mtnId[0]);
-    temp_r31->unk18 = 135.0f + 90.0f * temp_r31->unk54;
-    temp_r31->unk1C = 895.0f;
-    omSetTra(arg0, temp_r31->unk1C * sind(180.0f + temp_r31->unk18), temp_r31->unk28, temp_r31->unk1C * cosd(180.0f + temp_r31->unk18));
-    omSetRot(arg0, 0.0f, temp_r31->unk18, 0.0f);
-    Hu3DModelShadowSet(arg0->mdlId[0]);
-    Hu3DModelAttrReset(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    if (GWPlayerCfg[temp_r31->unk54].iscom) {
-        switch (GWPlayerCfg[temp_r31->unk54].diff) {
+    modelId = playerObject->mdlId[0];
+    lightId = Hu3DLLightCreateV(modelId, &keyLightPosition, &keyLightDirection, &whiteLightColor);
+    Hu3DLLightStaticSet(modelId, lightId, 1);
+    Hu3DModelAttrSet(playerObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(playerObject->mdlId[0], HU3D_MOTATTR_LOOP);
+    Hu3DModelLayerSet(playerObject->mdlId[0], 3);
+    Hu3DMotionSet(playerObject->mdlId[0], playerObject->mtnId[0]);
+    playerWork->playerAngle = 135.0f + 90.0f * playerWork->playerIndex;
+    playerWork->currentRadius = 895.0f;
+    omSetTra(playerObject, playerWork->currentRadius * sind(180.0f + playerWork->playerAngle), playerWork->playerHeight, playerWork->currentRadius * cosd(180.0f + playerWork->playerAngle));
+    omSetRot(playerObject, 0.0f, playerWork->playerAngle, 0.0f);
+    Hu3DModelShadowSet(playerObject->mdlId[0]);
+    Hu3DModelAttrReset(playerObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    if (GWPlayerCfg[playerWork->playerIndex].iscom) {
+        switch (GWPlayerCfg[playerWork->playerIndex].diff) {
             case 0:
-                temp_r31->unk34 = 26;
-                temp_r31->unk3C = 90;
+                playerWork->computerActionChance = 26;
+                playerWork->computerActionInterval = 90;
                 break;
             case 1:
-                temp_r31->unk34 = 24;
-                temp_r31->unk3C = 80;
+                playerWork->computerActionChance = 24;
+                playerWork->computerActionInterval = 80;
                 break;
             case 2:
-                temp_r31->unk34 = 22;
-                temp_r31->unk3C = 70;
+                playerWork->computerActionChance = 22;
+                playerWork->computerActionInterval = 70;
                 break;
             case 3:
             default:
-                temp_r31->unk34 = 18;
-                temp_r31->unk3C = 40;
+                playerWork->computerActionChance = 18;
+                playerWork->computerActionInterval = 40;
                 break;
         }
-        temp_r31->unk38 = (temp_r31->unk3C >> 1) + frandmod(temp_r31->unk3C);
+        playerWork->computerActionTimer = (playerWork->computerActionInterval >> 1) + frandmod(playerWork->computerActionInterval);
     }
-    CharMotionDataClose(lbl_1_data_0[temp_r31->unk58]);
-    arg0->objFunc = fn_1_43D8;
+    CharMotionDataClose(characterModelIndices[playerWork->characterId]);
+    playerObject->objFunc = UpdatePlayerModel;
 }
 
-static void fn_1_6858(OMOBJ *arg0) { }
+static void HideShadowModel(OMOBJ *shadowObject) { }
 
-static void fn_1_685C(OMOBJ *arg0)
+static void CreateShadowModel(OMOBJ *shadowObject)
 {
-    float temp_f31;
-    float temp_f29;
-    float temp_f30;
-    s32 temp_r29;
+    float playerAngle;
+    float playerHeight;
+    float playerRadius;
+    s32 playerIndex;
     s32 i;
 
-    temp_r29 = arg0->work[0];
-    arg0->mdlId[0] = Hu3DModelCreateFile(lbl_1_data_1D8[temp_r29]);
+    playerIndex = shadowObject->work[0];
+    shadowObject->mdlId[0] = Hu3DModelCreateFile(stageMarkerModelFiles[playerIndex]);
     for (i = 0; i < 3; i++) {
-        arg0->mtnId[i] = Hu3DJointMotionFile(arg0->mdlId[0], lbl_1_data_1E8[i]);
+        shadowObject->mtnId[i] = Hu3DJointMotionFile(shadowObject->mdlId[0], stagePropMotionFiles[i]);
     }
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_MOTATTR_PAUSE);
-    Hu3DModelLayerSet(arg0->mdlId[0], 4);
-    Hu3DMotionSet(arg0->mdlId[0], arg0->mtnId[0]);
-    temp_f31 = ((UnkFn27A8Struct *)lbl_1_bss_4C[temp_r29]->data)->unk18;
-    temp_f29 = ((UnkFn27A8Struct *)lbl_1_bss_4C[temp_r29]->data)->unk04;
-    temp_f30 = ((UnkFn27A8Struct *)lbl_1_bss_4C[temp_r29]->data)->unk00;
-    omSetTra(arg0, temp_f30 * sind(180.0f + temp_f31), temp_f29, temp_f30 * cosd(180.0f + temp_f31));
-    omSetRot(arg0, 0.0f, temp_f31, 0.0f);
-    Hu3DModelShadowSet(arg0->mdlId[0]);
-    arg0->objFunc = fn_1_6858;
+    Hu3DModelAttrSet(shadowObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(shadowObject->mdlId[0], HU3D_MOTATTR_PAUSE);
+    Hu3DModelLayerSet(shadowObject->mdlId[0], 4);
+    Hu3DMotionSet(shadowObject->mdlId[0], shadowObject->mtnId[0]);
+    playerAngle = ((PlayerActionWork *)playerObjects[playerIndex]->data)->playerAngle;
+    playerHeight = ((PlayerActionWork *)playerObjects[playerIndex]->data)->startingHeight;
+    playerRadius = ((PlayerActionWork *)playerObjects[playerIndex]->data)->startingRadius;
+    omSetTra(shadowObject, playerRadius * sind(180.0f + playerAngle), playerHeight, playerRadius * cosd(180.0f + playerAngle));
+    omSetRot(shadowObject, 0.0f, playerAngle, 0.0f);
+    Hu3DModelShadowSet(shadowObject->mdlId[0]);
+    shadowObject->objFunc = HideShadowModel;
 }
 
-static void fn_1_6AB4(OMOBJ *arg0)
+static void UpdatePlayerEffect(OMOBJ *effectObject)
 {
-    Vec *temp_r29;
-    UnkFn6AB4Struct *temp_r31;
-    float temp_f31;
+    Vec *basePosition;
+    PlayerEffectWork *effectWork;
+    float horizontalDistance;
 
-    temp_r29 = &lbl_1_data_200[arg0->work[0]];
-    temp_r31 = arg0->data;
-    switch (temp_r31->unk18) {
+    basePosition = &playerEffectSpawnPositions[effectObject->work[0]];
+    effectWork = effectObject->data;
+    switch (effectWork->motionState) {
         case 3000:
-            temp_r31->unk14 -= 1.0f;
-            if (0.0f > temp_r31->unk14 && frandmod(20) == 0) {
-                temp_r31->unk18 = 3001;
-                temp_r31->unk0C = 360.0f * frandf();
-                temp_r31->unk10 = 10.0f;
+            effectWork->pauseTimer -= 1.0f;
+            if (0.0f > effectWork->pauseTimer && frandmod(20) == 0) {
+                effectWork->motionState = 3001;
+                effectWork->rotationY = 360.0f * frandf();
+                effectWork->verticalVelocity = 10.0f;
                 HuAudFXPlay(0x512);
-                Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[0], 0.0f, 20.0f, HU3D_MOTATTR_NONE);
+                Hu3DMotionShiftSet(effectObject->mdlId[0], effectObject->mtnId[0], 0.0f, 20.0f, HU3D_MOTATTR_NONE);
             }
             break;
         case 3001:
-            temp_r31->unk00 += sind(temp_r31->unk0C);
-            temp_r31->unk08 += cosd(temp_r31->unk0C);
-            temp_f31 = temp_r31->unk00 - temp_r29->x;
-            if (50.0f < ABS(temp_f31)) {
-                temp_r31->unk00 = temp_r29->x + 50.0f * (0.0f > temp_f31 ? -1 : 1);
+            effectWork->positionX += sind(effectWork->rotationY);
+            effectWork->positionZ += cosd(effectWork->rotationY);
+            horizontalDistance = effectWork->positionX - basePosition->x;
+            if (50.0f < ABS(horizontalDistance)) {
+                effectWork->positionX = basePosition->x + 50.0f * (0.0f > horizontalDistance ? -1 : 1);
             }
-            temp_f31 = temp_r31->unk08 - temp_r29->z;
-            if (50.0f < ABS(temp_f31)) {
-                temp_r31->unk08 = temp_r29->z + 50.0f * (0.0f > temp_f31 ? -1 : 1);
+            horizontalDistance = effectWork->positionZ - basePosition->z;
+            if (50.0f < ABS(horizontalDistance)) {
+                effectWork->positionZ = basePosition->z + 50.0f * (0.0f > horizontalDistance ? -1 : 1);
             }
-            temp_r31->unk04 += temp_r31->unk10;
-            temp_r31->unk10 -= 0.5f;
-            if (temp_r29->y > temp_r31->unk04) {
-                temp_r31->unk18 = 3000;
-                temp_r31->unk14 = 20.0f;
-                temp_r31->unk04 = temp_r29->y;
-                Hu3DMotionShiftSet(arg0->mdlId[0], arg0->mtnId[1], 0.0f, 20.0f, HU3D_MOTATTR_NONE);
+            effectWork->positionY += effectWork->verticalVelocity;
+            effectWork->verticalVelocity -= 0.5f;
+            if (basePosition->y > effectWork->positionY) {
+                effectWork->motionState = 3000;
+                effectWork->pauseTimer = 20.0f;
+                effectWork->positionY = basePosition->y;
+                Hu3DMotionShiftSet(effectObject->mdlId[0], effectObject->mtnId[1], 0.0f, 20.0f, HU3D_MOTATTR_NONE);
             }
             break;
     }
-    omSetTra(arg0, temp_r31->unk00, temp_r31->unk04, temp_r31->unk08);
-    omSetRot(arg0, 0.0f, temp_r31->unk0C, 0.0f);
+    omSetTra(effectObject, effectWork->positionX, effectWork->positionY, effectWork->positionZ);
+    omSetRot(effectObject, 0.0f, effectWork->rotationY, 0.0f);
 }
 
-static void fn_1_6E64(OMOBJ *arg0)
+static void CreatePlayerEffect(OMOBJ *effectObject)
 {
-    Vec *temp_r29;
-    UnkFn6AB4Struct *temp_r30;
+    Vec *basePosition;
+    PlayerEffectWork *effectWork;
     s32 i;
 
-    temp_r29 = &lbl_1_data_200[arg0->work[0]];
-    temp_r30 = arg0->data;
-    arg0->mdlId[0] = Hu3DModelCreateFile(lbl_1_data_1F4);
+    basePosition = &playerEffectSpawnPositions[effectObject->work[0]];
+    effectWork = effectObject->data;
+    effectObject->mdlId[0] = Hu3DModelCreateFile(stagePropModelFile);
     for (i = 0; i < 2; i++) {
-        arg0->mtnId[i] = Hu3DJointMotionFile(arg0->mdlId[0], lbl_1_data_1F8[i]);
+        effectObject->mtnId[i] = Hu3DJointMotionFile(effectObject->mdlId[0], stagePropSecondaryMotions[i]);
     }
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    Hu3DModelLayerSet(arg0->mdlId[0], 5);
-    Hu3DMotionSet(arg0->mdlId[0], arg0->mtnId[1]);
-    temp_r30->unk18 = 3000;
-    temp_r30->unk14 = 0.0f;
-    temp_r30->unk00 = temp_r29->x;
-    temp_r30->unk04 = temp_r29->y;
-    temp_r30->unk08 = temp_r29->z;
-    temp_r30->unk0C = 360.0f * frandf();
-    omSetTra(arg0, temp_r30->unk00, temp_r30->unk04, temp_r30->unk08);
-    omSetRot(arg0, 0.0f, temp_r30->unk0C, 0.0f);
-    Hu3DModelShadowSet(arg0->mdlId[0]);
-    Hu3DModelAttrReset(arg0->mdlId[0], HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrReset(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    arg0->objFunc = fn_1_6AB4;
+    Hu3DModelAttrSet(effectObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    Hu3DModelLayerSet(effectObject->mdlId[0], 5);
+    Hu3DMotionSet(effectObject->mdlId[0], effectObject->mtnId[1]);
+    effectWork->motionState = 3000;
+    effectWork->pauseTimer = 0.0f;
+    effectWork->positionX = basePosition->x;
+    effectWork->positionY = basePosition->y;
+    effectWork->positionZ = basePosition->z;
+    effectWork->rotationY = 360.0f * frandf();
+    omSetTra(effectObject, effectWork->positionX, effectWork->positionY, effectWork->positionZ);
+    omSetRot(effectObject, 0.0f, effectWork->rotationY, 0.0f);
+    Hu3DModelShadowSet(effectObject->mdlId[0]);
+    Hu3DModelAttrReset(effectObject->mdlId[0], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrReset(effectObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    effectObject->objFunc = UpdatePlayerEffect;
 }
 
-static void fn_1_7020(OMOBJ *arg0)
+static void DeleteEffectObject(OMOBJ *effectObject)
 {
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    fn_1_24(arg0->work[0], arg0->mdlId[0]);
-    omDelObjEx(lbl_1_bss_1E8, arg0);
-    lbl_1_bss_24--;
+    Hu3DModelAttrSet(effectObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    RegisterResourceValue(effectObject->work[0], effectObject->mdlId[0]);
+    omDelObjEx(minigameObjectManager, effectObject);
+    activeEffectObjectCount--;
 }
 
-static void fn_1_70E4(OMOBJ *arg0)
+static void UpdateEffectObject(OMOBJ *effectObject)
 {
-    Mtx sp18;
-    Vec spC;
-    float var_f27;
-    float temp_f26;
-    float temp_f30;
-    float temp_f31;
-    UnkFn70E4Struct *temp_r31;
+    Mtx rotationMatrix;
+    Vec effectPosition;
+    float verticalSpeed;
+    float motionDuration;
+    float fadeDuration;
+    float fadeAmount;
+    EffectObjectWork *effectWork;
 
-    temp_r31 = arg0->data;
-    switch (arg0->work[0]) {
+    effectWork = effectObject->data;
+    switch (effectObject->work[0]) {
         case 0:
         case 1:
         case 2:
         case 3:
-            var_f27 = temp_r31->unk24.z;
-            spC.x = 0.0f;
-            spC.y = 0.0f;
-            spC.z = var_f27;
-            temp_r31->unk24.z *= 0.92f;
-            MTXIdentity(sp18);
-            mtxRot(sp18, temp_r31->unk24.x, temp_r31->unk24.y, 0.0f);
-            MTXMultVec(sp18, &spC, &spC);
-            VECAdd(&spC, &temp_r31->unk00, &temp_r31->unk00);
-            omSetTra(arg0, temp_r31->unk00.x, temp_r31->unk00.y, temp_r31->unk00.z);
-            Hu3DModelTPLvlSet(arg0->mdlId[0], temp_r31->unk30);
-            temp_r31->unk30 -= 0.02f;
-            if (0.1f > temp_r31->unk30) {
-                fn_1_7020(arg0);
+            verticalSpeed = effectWork->velocity.z;
+            effectPosition.x = 0.0f;
+            effectPosition.y = 0.0f;
+            effectPosition.z = verticalSpeed;
+            effectWork->velocity.z *= 0.92f;
+            MTXIdentity(rotationMatrix);
+            mtxRot(rotationMatrix, effectWork->velocity.x, effectWork->velocity.y, 0.0f);
+            MTXMultVec(rotationMatrix, &effectPosition, &effectPosition);
+            VECAdd(&effectPosition, &effectWork->position, &effectWork->position);
+            omSetTra(effectObject, effectWork->position.x, effectWork->position.y, effectWork->position.z);
+            Hu3DModelTPLvlSet(effectObject->mdlId[0], effectWork->transparency);
+            effectWork->transparency -= 0.02f;
+            if (0.1f > effectWork->transparency) {
+                DeleteEffectObject(effectObject);
             }
             break;
         case 4:
-            temp_r31->unk00.y += temp_r31->unk30;
-            if (390.0f >= temp_r31->unk00.y) {
-                temp_r31->unk00.y = 390.0f;
+            effectWork->position.y += effectWork->transparency;
+            if (390.0f >= effectWork->position.y) {
+                effectWork->position.y = 390.0f;
             }
-            omSetTra(arg0, temp_r31->unk00.x, temp_r31->unk00.y, temp_r31->unk00.z);
-            if (390.0f >= temp_r31->unk00.y) {
+            omSetTra(effectObject, effectWork->position.x, effectWork->position.y, effectWork->position.z);
+            if (390.0f >= effectWork->position.y) {
                 break;
             }
-            temp_r31->unk0C += 8.0f + frandmod(8);
-            temp_r31->unk10 += 8.0f + frandmod(8);
-            temp_r31->unk14 += 8.0f + frandmod(8);
-            omSetRot(arg0, temp_r31->unk0C, temp_r31->unk10, temp_r31->unk14);
-            if (0.0f < temp_r31->unk30) {
-                temp_r31->unk30 -= 0.3f;
+            effectWork->rotationX += 8.0f + frandmod(8);
+            effectWork->rotationY += 8.0f + frandmod(8);
+            effectWork->rotationZ += 8.0f + frandmod(8);
+            omSetRot(effectObject, effectWork->rotationX, effectWork->rotationY, effectWork->rotationZ);
+            if (0.0f < effectWork->transparency) {
+                effectWork->transparency -= 0.3f;
                 break;
             }
-            if (0.0f == temp_r31->unk34) {
-                temp_r31->unk34 = 0.003f + 0.006f * frandf();
+            if (0.0f == effectWork->transparencyDecay) {
+                effectWork->transparencyDecay = 0.003f + 0.006f * frandf();
             }
-            temp_r31->unk30 -= temp_r31->unk34;
-            temp_r31->unk00.x += temp_r31->unk24.x;
-            temp_r31->unk00.z += temp_r31->unk24.z;
-            if (!(lbl_1_bss_1B4 & 3)) {
-                temp_r31->unk24.x = 6.0f * frandf() - 3.0f;
-                temp_r31->unk24.z = 6.0f * frandf() - 3.0f;
+            effectWork->transparency -= effectWork->transparencyDecay;
+            effectWork->position.x += effectWork->velocity.x;
+            effectWork->position.z += effectWork->velocity.z;
+            if (!(minigameFrameCounter & 3)) {
+                effectWork->velocity.x = 6.0f * frandf() - 3.0f;
+                effectWork->velocity.z = 6.0f * frandf() - 3.0f;
             }
             break;
         case 5:
-            if (Hu3DMotionEndCheck(arg0->mdlId[0])) {
-                fn_1_7020(arg0);
+            if (Hu3DMotionEndCheck(effectObject->mdlId[0])) {
+                DeleteEffectObject(effectObject);
             }
             break;
         case 6:
-            spC = lbl_1_data_10;
-            temp_f26 = Hu3DMotionMaxTimeGet(arg0->mdlId[0]);
-            temp_f31 = 1.0f - Hu3DMotionTimeGet(arg0->mdlId[0]) / temp_f26;
-            spC.x += 100.0f * temp_f31 * frandf() * (frandmod(100) > 50 ? 1.0f : -1.0f);
-            spC.z += 100.0f * temp_f31 * frandf() * (frandmod(100) > 50 ? 1.0f : -1.0f);
-            Hu3DCameraPosSetV(1, &spC, &lbl_1_data_1C, &lbl_1_data_28);
-            lbl_1_bss_1DC = spC;
-            lbl_1_bss_1C4 = lbl_1_data_28;
-            temp_f30 = 0.5f * Hu3DMotionMaxTimeGet(arg0->mdlId[0]);
-            if (temp_f30 < Hu3DMotionTimeGet(arg0->mdlId[0])) {
-                temp_f31 = 1.0f - (Hu3DMotionTimeGet(arg0->mdlId[0]) - temp_f30) / temp_f30;
-                Hu3DModelTPLvlSet(arg0->mdlId[0], temp_f31);
-                temp_f31 = 1.0f - temp_f31;
-                omSetSca(arg0, temp_r31->unk18 + temp_f31, temp_r31->unk1C + temp_f31, temp_r31->unk20 + temp_f31);
+            effectPosition = defaultCameraPosition;
+            motionDuration = Hu3DMotionMaxTimeGet(effectObject->mdlId[0]);
+            fadeAmount = 1.0f - Hu3DMotionTimeGet(effectObject->mdlId[0]) / motionDuration;
+            effectPosition.x += 100.0f * fadeAmount * frandf() * (frandmod(100) > 50 ? 1.0f : -1.0f);
+            effectPosition.z += 100.0f * fadeAmount * frandf() * (frandmod(100) > 50 ? 1.0f : -1.0f);
+            Hu3DCameraPosSetV(1, &effectPosition, &worldUpVector, &defaultCameraTarget);
+            cameraStartPosition = effectPosition;
+            cameraStartTarget = defaultCameraTarget;
+            fadeDuration = 0.5f * Hu3DMotionMaxTimeGet(effectObject->mdlId[0]);
+            if (fadeDuration < Hu3DMotionTimeGet(effectObject->mdlId[0])) {
+                fadeAmount = 1.0f - (Hu3DMotionTimeGet(effectObject->mdlId[0]) - fadeDuration) / fadeDuration;
+                Hu3DModelTPLvlSet(effectObject->mdlId[0], fadeAmount);
+                fadeAmount = 1.0f - fadeAmount;
+                omSetSca(effectObject, effectWork->scaleX + fadeAmount, effectWork->scaleY + fadeAmount, effectWork->scaleZ + fadeAmount);
             }
-            if (Hu3DMotionEndCheck(arg0->mdlId[0])) {
-                Hu3DCameraPosSetV(1, &lbl_1_data_10, &lbl_1_data_1C, &lbl_1_data_28);
-                lbl_1_bss_1DC = lbl_1_data_10;
-                lbl_1_bss_1C4 = lbl_1_data_28;
-                fn_1_7020(arg0);
+            if (Hu3DMotionEndCheck(effectObject->mdlId[0])) {
+                Hu3DCameraPosSetV(1, &defaultCameraPosition, &worldUpVector, &defaultCameraTarget);
+                cameraStartPosition = defaultCameraPosition;
+                cameraStartTarget = defaultCameraTarget;
+                DeleteEffectObject(effectObject);
             }
             break;
         default:
-            OSReport("effect id error!!(%d)\n", arg0->work[0]);
+            OSReport("effect id error!!(%d)\n", effectObject->work[0]);
             break;
     }
 }
 
-static void fn_1_7950(OMOBJ *arg0)
+static void CreateEffectModel(OMOBJ *effectObject)
 {
-    UnkFn70E4Struct *temp_r30;
-    s16 var_r25;
+    EffectObjectWork *effectWork;
+    s16 cachedModelId;
 
-    temp_r30 = arg0->data;
-    temp_r30->unk38--;
-    if (temp_r30->unk38 <= 0) {
-        var_r25 = fn_1_AC(arg0->work[0]);
-        if (var_r25 < 0) {
-            arg0->mdlId[0] = Hu3DModelLink(lbl_1_bss_16[arg0->work[0]]);
+    effectWork = effectObject->data;
+    effectWork->reuseDelay--;
+    if (effectWork->reuseDelay <= 0) {
+        cachedModelId = TakeResourceValue(effectObject->work[0]);
+        if (cachedModelId < 0) {
+            effectObject->mdlId[0] = Hu3DModelLink(cachedEffectModelIds[effectObject->work[0]]);
         }
         else {
-            arg0->mdlId[0] = var_r25;
+            effectObject->mdlId[0] = cachedModelId;
         }
-        Hu3DMotionTimeSet(arg0->mdlId[0], 0.0f);
-        Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-        Hu3DModelLayerSet(arg0->mdlId[0], 2);
-        omSetTra(arg0, temp_r30->unk00.x, temp_r30->unk00.y, temp_r30->unk00.z);
-        omSetRot(arg0, temp_r30->unk0C, temp_r30->unk10, temp_r30->unk14);
-        omSetSca(arg0, temp_r30->unk18, temp_r30->unk1C, temp_r30->unk20);
-        Hu3DModelAttrReset(arg0->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
-        Hu3DModelAttrReset(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-        arg0->objFunc = fn_1_70E4;
+        Hu3DMotionTimeSet(effectObject->mdlId[0], 0.0f);
+        Hu3DModelAttrSet(effectObject->mdlId[0], HU3D_ATTR_DISPOFF);
+        Hu3DModelLayerSet(effectObject->mdlId[0], 2);
+        omSetTra(effectObject, effectWork->position.x, effectWork->position.y, effectWork->position.z);
+        omSetRot(effectObject, effectWork->rotationX, effectWork->rotationY, effectWork->rotationZ);
+        omSetSca(effectObject, effectWork->scaleX, effectWork->scaleY, effectWork->scaleZ);
+        Hu3DModelAttrReset(effectObject->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
+        Hu3DModelAttrReset(effectObject->mdlId[0], HU3D_ATTR_DISPOFF);
+        effectObject->objFunc = UpdateEffectObject;
     }
 }
 
-static void fn_1_7AEC(s32 arg0, Vec *arg1, Vec *arg2)
+static void SpawnPlayerEffect(s32 effectId, Vec *effectPosition, Vec *effectVelocity)
 {
-    OMOBJ *temp_r3;
-    UnkFn70E4Struct *temp_r31;
+    OMOBJ *effectObject;
+    EffectObjectWork *effectWork;
 
-    if (lbl_1_bss_24 < 300) {
-        lbl_1_bss_24++;
-        temp_r3 = omAddObjEx(lbl_1_bss_1E8, 105, 1, 1, 5, fn_1_7950);
-        temp_r3->work[0] = arg0;
-        temp_r3->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*temp_r31), HU_MEMNUM_OVL);
-        temp_r31 = temp_r3->data;
-        temp_r31->unk0C = 0.0f;
-        temp_r31->unk10 = 0.0f;
-        temp_r31->unk14 = 0.0f;
-        temp_r31->unk18 = 1.0f;
-        temp_r31->unk1C = 1.0f;
-        temp_r31->unk20 = 1.0f;
-        temp_r31->unk24.x = 0.0f;
-        temp_r31->unk24.y = 0.0f;
-        temp_r31->unk24.z = 0.0f;
-        temp_r31->unk00 = *arg1;
-        if (NULL != arg2) {
-            temp_r31->unk24 = *arg2;
+    if (activeEffectObjectCount < 300) {
+        activeEffectObjectCount++;
+        effectObject = omAddObjEx(minigameObjectManager, 105, 1, 1, 5, CreateEffectModel);
+        effectObject->work[0] = effectId;
+        effectObject->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*effectWork), HU_MEMNUM_OVL);
+        effectWork = effectObject->data;
+        effectWork->rotationX = 0.0f;
+        effectWork->rotationY = 0.0f;
+        effectWork->rotationZ = 0.0f;
+        effectWork->scaleX = 1.0f;
+        effectWork->scaleY = 1.0f;
+        effectWork->scaleZ = 1.0f;
+        effectWork->velocity.x = 0.0f;
+        effectWork->velocity.y = 0.0f;
+        effectWork->velocity.z = 0.0f;
+        effectWork->position = *effectPosition;
+        if (NULL != effectVelocity) {
+            effectWork->velocity = *effectVelocity;
         }
-        temp_r31->unk38 = frandmod(10);
-        switch (arg0) {
+        effectWork->reuseDelay = frandmod(10);
+        switch (effectId) {
             case 0:
             case 1:
             case 2:
             case 3:
-                temp_r31->unk30 = 1.0f;
+                effectWork->transparency = 1.0f;
                 break;
             case 4:
-                temp_r31->unk30 = 12.0f + 2.0f * frandf();
-                temp_r31->unk34 = 0.0f;
-                temp_r31->unk18 = 8.0f;
-                temp_r31->unk1C = 8.0f;
-                temp_r31->unk20 = 8.0f;
+                effectWork->transparency = 12.0f + 2.0f * frandf();
+                effectWork->transparencyDecay = 0.0f;
+                effectWork->scaleX = 8.0f;
+                effectWork->scaleY = 8.0f;
+                effectWork->scaleZ = 8.0f;
                 break;
             case 5:
-                temp_r31->unk18 = 4.0f;
-                temp_r31->unk1C = 4.0f;
-                temp_r31->unk20 = 4.0f;
+                effectWork->scaleX = 4.0f;
+                effectWork->scaleY = 4.0f;
+                effectWork->scaleZ = 4.0f;
                 break;
         }
     }
 }
 
-static void fn_1_7D48(OMOBJ *arg0) { }
+static void HideStageMarker(OMOBJ *markerObject) { }
 
-static void fn_1_7D4C(OMOBJ *arg0)
+static void CreateStageMarker(OMOBJ *markerObject)
 {
-    arg0->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M402, 35));
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_MOTATTR_PAUSE);
-    Hu3DModelLayerSet(arg0->mdlId[0], 0);
-    omSetTra(arg0, 0.0f, 0.0f, 0.0f);
-    omSetRot(arg0, 0.0f, 270.0f + 90.0f * arg0->work[0], 0.0f);
-    Hu3DModelShadowMapSet(arg0->mdlId[0]);
-    Hu3DModelAttrReset(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    arg0->objFunc = fn_1_7D48;
+    markerObject->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M402, 35));
+    Hu3DModelAttrSet(markerObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(markerObject->mdlId[0], HU3D_MOTATTR_PAUSE);
+    Hu3DModelLayerSet(markerObject->mdlId[0], 0);
+    omSetTra(markerObject, 0.0f, 0.0f, 0.0f);
+    omSetRot(markerObject, 0.0f, 270.0f + 90.0f * markerObject->work[0], 0.0f);
+    Hu3DModelShadowMapSet(markerObject->mdlId[0]);
+    Hu3DModelAttrReset(markerObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    markerObject->objFunc = HideStageMarker;
 }
 
-static void fn_1_7E80(OMOBJ *arg0) { }
+static void HideStageProp(OMOBJ *propObject) { }
 
-static void fn_1_7E84(OMOBJ *arg0)
+static void CreateStageProp(OMOBJ *propObject)
 {
-    float temp_f31;
+    float playerAngle;
 
-    arg0->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M402, 36));
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_MOTATTR_LOOP);
-    Hu3DModelAttrReset(arg0->mdlId[0], HU3D_MOTATTR_PAUSE);
-    Hu3DModelLayerSet(arg0->mdlId[0], 1);
-    temp_f31 = 135.0f + 90.0f * arg0->work[0];
-    omSetTra(arg0, 155.5 * sind(temp_f31), 0.0f, 155.5 * cosd(temp_f31));
-    omSetRot(arg0, 0.0f, 0.0f, 0.0f);
-    Hu3DModelAttrReset(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    arg0->objFunc = fn_1_7E80;
+    propObject->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M402, 36));
+    Hu3DModelAttrSet(propObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(propObject->mdlId[0], HU3D_MOTATTR_LOOP);
+    Hu3DModelAttrReset(propObject->mdlId[0], HU3D_MOTATTR_PAUSE);
+    Hu3DModelLayerSet(propObject->mdlId[0], 1);
+    playerAngle = 135.0f + 90.0f * propObject->work[0];
+    omSetTra(propObject, 155.5 * sind(playerAngle), 0.0f, 155.5 * cosd(playerAngle));
+    omSetRot(propObject, 0.0f, 0.0f, 0.0f);
+    Hu3DModelAttrReset(propObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    propObject->objFunc = HideStageProp;
 }
 
-static inline void fn_1_8048InlineFunc(Vec *arg0, float arg1, float arg2, float arg3)
+static inline void UpdateRotatingLightInline(Vec *lightDirection, float directionX, float directionY, float directionZ)
 {
-    arg0->x = arg1;
-    arg0->y = arg2;
-    arg0->z = arg3;
+    lightDirection->x = directionX;
+    lightDirection->y = directionY;
+    lightDirection->z = directionZ;
 }
 
-static void fn_1_8048(void)
+static void UpdateRotatingLight(void)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec lightPosition;
+    Vec lightDirection;
 
-    lbl_1_bss_38 += lbl_1_bss_34;
-    if (360.0f < lbl_1_bss_38) {
-        lbl_1_bss_34 -= 0.2f;
-        if (0.0f > lbl_1_bss_34) {
-            lbl_1_bss_34 = 0.0f;
+    lightRotationAngle += lightRotationSpeed;
+    if (360.0f < lightRotationAngle) {
+        lightRotationSpeed -= 0.2f;
+        if (0.0f > lightRotationSpeed) {
+            lightRotationSpeed = 0.0f;
         }
     }
-    sp14.x = 2000.0 * cosd(lbl_1_bss_38);
-    sp14.y = 2000.0 * sind(lbl_1_bss_38);
-    sp14.z = 0.0f;
-    fn_1_8048InlineFunc(&sp8, -sp14.x, -sp14.y, -sp14.z);
-    Hu3DGLightPosSetV(lbl_1_bss_14, &sp14, &sp8);
+    lightPosition.x = 2000.0 * cosd(lightRotationAngle);
+    lightPosition.y = 2000.0 * sind(lightRotationAngle);
+    lightPosition.z = 0.0f;
+    UpdateRotatingLightInline(&lightDirection, -lightPosition.x, -lightPosition.y, -lightPosition.z);
+    Hu3DGLightPosSetV(globalLightId, &lightPosition, &lightDirection);
 }
 
-static void fn_1_8218(OMOBJ *arg0)
+static void UpdateMinigameSequence(OMOBJ *sequenceObject)
 {
-    Vec sp38;
-    float temp_f26;
-    OMOBJ *temp_r30;
+    Vec cameraTarget;
+    float motionProgress;
+    OMOBJ *playerObject;
 
     if (omSysExitReq != 0) {
-        fn_1_1F58(-1);
+        FadeBackgroundSequence(-1);
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-        arg0->objFunc = fn_1_9AF4;
+        sequenceObject->objFunc = CleanupMinigame;
     }
-    lbl_1_bss_1B4++;
-    switch (arg0->work[0]) {
+    minigameFrameCounter++;
+    switch (sequenceObject->work[0]) {
         case 1000:
             if (WipeStatGet() == 0) {
-                arg0->work[0]++;
+                sequenceObject->work[0]++;
             }
             break;
         case 1001:
@@ -1661,233 +1661,233 @@ static void fn_1_8218(OMOBJ *arg0)
         case 1004:
             break;
         case 1005:
-            if (lbl_1_bss_1AA < 0) {
-                lbl_1_bss_1AA = MGSeqCreate(3, 0);
+            if (activeSequenceId < 0) {
+                activeSequenceId = MGSeqCreate(3, 0);
             }
             else {
-                if (lbl_1_bss_1A4 < 0 && (MGSeqStatGet(lbl_1_bss_1AA) & 0x10)) {
-                    lbl_1_bss_1A4 = HuAudSeqPlay(0x46);
+                if (backgroundSequenceId < 0 && (MGSeqStatGet(activeSequenceId) & 0x10)) {
+                    backgroundSequenceId = HuAudSeqPlay(0x46);
                 }
-                if (MGSeqStatGet(lbl_1_bss_1AA) == 0) {
-                    arg0->work[0]++;
-                    lbl_1_bss_1B0 = 30 * REFRESH_RATE;
-                    lbl_1_bss_1A8 = MGSeqCreate(1, lbl_1_bss_1B0 / REFRESH_RATE, -1, -1);
-                    lbl_1_bss_1AA = -1;
+                if (MGSeqStatGet(activeSequenceId) == 0) {
+                    sequenceObject->work[0]++;
+                    timerFrameCount = 30 * REFRESH_RATE;
+                    countdownSequenceId = MGSeqCreate(1, timerFrameCount / REFRESH_RATE, -1, -1);
+                    activeSequenceId = -1;
                 }
             }
             break;
         case 1006:
-            MGSeqParamSet(lbl_1_bss_1A8, 1, (lbl_1_bss_1B0 + REFRESH_RATE - 1) / REFRESH_RATE);
-            lbl_1_bss_1B0--;
-            if (lbl_1_bss_1B0 < 0 || lbl_1_bss_26 >= 0) {
-                lbl_1_bss_1B0 = 30 * REFRESH_RATE;
-                lbl_1_bss_2C = 0.0f;
-                arg0->work[0] = 1007;
+            MGSeqParamSet(countdownSequenceId, 1, (timerFrameCount + REFRESH_RATE - 1) / REFRESH_RATE);
+            timerFrameCount--;
+            if (timerFrameCount < 0 || winningPlayerIndex >= 0) {
+                timerFrameCount = 30 * REFRESH_RATE;
+                cameraTransitionFrame = 0.0f;
+                sequenceObject->work[0] = 1007;
             }
-            if (670.0f <= lbl_1_bss_28) {
-                lbl_1_bss_28 = 670.0f;
+            if (670.0f <= playerMotionRadius) {
+                playerMotionRadius = 670.0f;
             }
-            temp_f26 = 2.5f * (670.0f - lbl_1_bss_28);
-            sp38 = lbl_1_data_10;
-            sp38.y = lbl_1_bss_1DC.y + (lbl_1_data_10.y - temp_f26 - lbl_1_bss_1DC.y) / 3.0f;
-            sp38.z = lbl_1_bss_1DC.z + (lbl_1_data_10.z - temp_f26 - lbl_1_bss_1DC.z) / 3.0f;
-            fn_1_1350(&sp38, &lbl_1_data_1C, &lbl_1_data_28);
-            lbl_1_bss_28 = 0.0f;
+            motionProgress = 2.5f * (670.0f - playerMotionRadius);
+            cameraTarget = defaultCameraPosition;
+            cameraTarget.y = cameraStartPosition.y + (defaultCameraPosition.y - motionProgress - cameraStartPosition.y) / 3.0f;
+            cameraTarget.z = cameraStartPosition.z + (defaultCameraPosition.z - motionProgress - cameraStartPosition.z) / 3.0f;
+            SetCameraPositionAndTarget(&cameraTarget, &worldUpVector, &defaultCameraTarget);
+            playerMotionRadius = 0.0f;
             break;
         case 1007:
-            if (lbl_1_bss_1AA < 0) {
-                MGSeqParamSet(lbl_1_bss_1A8, 2, -1);
-                lbl_1_bss_1A8 = -1;
-                lbl_1_bss_1AA = MGSeqCreate(3, 1);
-                fn_1_1F58(100);
+            if (activeSequenceId < 0) {
+                MGSeqParamSet(countdownSequenceId, 2, -1);
+                countdownSequenceId = -1;
+                activeSequenceId = MGSeqCreate(3, 1);
+                FadeBackgroundSequence(100);
             }
             else {
-                lbl_1_bss_2C += 1.0f;
-                if (1.5f * REFRESH_RATE >= lbl_1_bss_2C) {
-                    fn_1_13DC(lbl_1_bss_2C / (1.5f * REFRESH_RATE), &lbl_1_data_1C);
+                cameraTransitionFrame += 1.0f;
+                if (1.5f * REFRESH_RATE >= cameraTransitionFrame) {
+                    AnimateCameraTransition(cameraTransitionFrame / (1.5f * REFRESH_RATE), &worldUpVector);
                 }
-                if (MGSeqStatGet(lbl_1_bss_1AA) == 0) {
-                    arg0->work[0]++;
-                    lbl_1_bss_1AA = -1;
-                    lbl_1_bss_2C = 0.0f;
+                if (MGSeqStatGet(activeSequenceId) == 0) {
+                    sequenceObject->work[0]++;
+                    activeSequenceId = -1;
+                    cameraTransitionFrame = 0.0f;
                 }
             }
             break;
         case 1008:
-            if (lbl_1_bss_1AA < 0) {
-                if (lbl_1_bss_26 < 0) {
-                    lbl_1_bss_1AA = MGSeqCreate(3, 2);
+            if (activeSequenceId < 0) {
+                if (winningPlayerIndex < 0) {
+                    activeSequenceId = MGSeqCreate(3, 2);
                     HuAudSStreamPlay(4);
                 }
                 else {
-                    lbl_1_bss_1AA = MGSeqCreate(5, 3, GWPlayerCfg[lbl_1_bss_26].character, -1, -1, -1);
-                    temp_r30 = lbl_1_bss_4C[lbl_1_bss_26];
-                    Hu3DMotionShiftSet(temp_r30->mdlId[0], temp_r30->mtnId[10], 0.0f, 20.0f, HU3D_MOTATTR_NONE);
+                    activeSequenceId = MGSeqCreate(5, 3, GWPlayerCfg[winningPlayerIndex].character, -1, -1, -1);
+                    playerObject = playerObjects[winningPlayerIndex];
+                    Hu3DMotionShiftSet(playerObject->mdlId[0], playerObject->mtnId[10], 0.0f, 20.0f, HU3D_MOTATTR_NONE);
                     HuAudSStreamPlay(1);
                 }
             }
             else {
-                lbl_1_bss_2C += 1.0f;
-                if (lbl_1_bss_26 >= 0 && 110.0f == lbl_1_bss_2C) {
-                    Hu3DModelAttrSet(arg0->mdlId[1], HU3D_ATTR_DISPOFF);
-                    Hu3DModelAttrReset(arg0->mdlId[2], HU3D_MOTATTR_PAUSE);
-                    Hu3DModelAttrReset(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
-                    Hu3DMotionTimeSet(arg0->mdlId[2], 0.0f);
-                    Hu3DMotionSpeedSet(arg0->mdlId[2], 3.0f);
+                cameraTransitionFrame += 1.0f;
+                if (winningPlayerIndex >= 0 && 110.0f == cameraTransitionFrame) {
+                    Hu3DModelAttrSet(sequenceObject->mdlId[1], HU3D_ATTR_DISPOFF);
+                    Hu3DModelAttrReset(sequenceObject->mdlId[2], HU3D_MOTATTR_PAUSE);
+                    Hu3DModelAttrReset(sequenceObject->mdlId[2], HU3D_ATTR_DISPOFF);
+                    Hu3DMotionTimeSet(sequenceObject->mdlId[2], 0.0f);
+                    Hu3DMotionSpeedSet(sequenceObject->mdlId[2], 3.0f);
                 }
-                if (210.0f < lbl_1_bss_2C && MGSeqStatGet(lbl_1_bss_1AA) == 0) {
-                    fn_1_1F58(-1);
-                    lbl_1_bss_1AA = -1;
+                if (210.0f < cameraTransitionFrame && MGSeqStatGet(activeSequenceId) == 0) {
+                    FadeBackgroundSequence(-1);
+                    activeSequenceId = -1;
                     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-                    arg0->objFunc = fn_1_9AF4;
+                    sequenceObject->objFunc = CleanupMinigame;
                 }
             }
             break;
         default:
-            OSReport("*** main mode error(%d)!!\n", arg0->work[0]);
+            OSReport("*** main mode error(%d)!!\n", sequenceObject->work[0]);
             break;
     }
-    lbl_1_bss_30 -= 1.0f;
-    if (0.0f == lbl_1_bss_30) {
-        Hu3DModelAttrSet(arg0->mdlId[1], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrReset(arg0->mdlId[2], HU3D_MOTATTR_PAUSE);
-        Hu3DModelAttrReset(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
-        Hu3DMotionTimeSet(arg0->mdlId[2], 0.0f);
-        Hu3DMotionSpeedSet(arg0->mdlId[2], 3.0f);
+    sequenceModelTimer -= 1.0f;
+    if (0.0f == sequenceModelTimer) {
+        Hu3DModelAttrSet(sequenceObject->mdlId[1], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(sequenceObject->mdlId[2], HU3D_MOTATTR_PAUSE);
+        Hu3DModelAttrReset(sequenceObject->mdlId[2], HU3D_ATTR_DISPOFF);
+        Hu3DMotionTimeSet(sequenceObject->mdlId[2], 0.0f);
+        Hu3DMotionSpeedSet(sequenceObject->mdlId[2], 3.0f);
     }
-    if (0.0f > lbl_1_bss_30) {
-        lbl_1_bss_30 = -1.0f;
-        fn_1_8048();
-        if (Hu3DMotionEndCheck(arg0->mdlId[2])) {
-            Hu3DModelAttrReset(arg0->mdlId[1], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
+    if (0.0f > sequenceModelTimer) {
+        sequenceModelTimer = -1.0f;
+        UpdateRotatingLight();
+        if (Hu3DMotionEndCheck(sequenceObject->mdlId[2])) {
+            Hu3DModelAttrReset(sequenceObject->mdlId[1], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(sequenceObject->mdlId[2], HU3D_ATTR_DISPOFF);
         }
     }
 }
 
-static void fn_1_9058(OMOBJ *arg0)
+static void CreateMinigameSequence(OMOBJ *sequenceObject)
 {
-    s16 temp_r29;
-    s16 temp_r28;
+    s16 opponentObject;
+    s16 animationFrameData;
     s32 i;
 
-    arg0->work[0] = 1000;
-    arg0->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M402, 32));
-    arg0->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M402, 33));
-    arg0->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M402, 34));
+    sequenceObject->work[0] = 1000;
+    sequenceObject->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M402, 32));
+    sequenceObject->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M402, 33));
+    sequenceObject->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M402, 34));
     for (i = 0; i < 3; i++) {
-        Hu3DModelAttrSet(arg0->mdlId[i], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(arg0->mdlId[i], HU3D_MOTATTR_PAUSE);
-        Hu3DModelLayerSet(arg0->mdlId[i], 0);
-        Hu3DModelPosSet(arg0->mdlId[i], 0.0f, 0.0f, 0.0f);
+        Hu3DModelAttrSet(sequenceObject->mdlId[i], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(sequenceObject->mdlId[i], HU3D_MOTATTR_PAUSE);
+        Hu3DModelLayerSet(sequenceObject->mdlId[i], 0);
+        Hu3DModelPosSet(sequenceObject->mdlId[i], 0.0f, 0.0f, 0.0f);
     }
-    Hu3DModelReflectTypeSet(arg0->mdlId[0], 3);
-    Hu3DModelReflectTypeSet(arg0->mdlId[1], 3);
-    Hu3DModelReflectTypeSet(arg0->mdlId[2], 3);
-    temp_r29 = arg0->mdlId[0];
-    temp_r28 = Hu3DLLightCreateV(temp_r29, &lbl_1_data_34, &lbl_1_data_40, &lbl_1_data_4C);
-    Hu3DLLightStaticSet(temp_r29, temp_r28, 1);
-    Hu3DModelAttrReset(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(arg0->mdlId[1], HU3D_ATTR_DISPOFF);
-    Hu3DModelShadowMapSet(arg0->mdlId[0]);
+    Hu3DModelReflectTypeSet(sequenceObject->mdlId[0], 3);
+    Hu3DModelReflectTypeSet(sequenceObject->mdlId[1], 3);
+    Hu3DModelReflectTypeSet(sequenceObject->mdlId[2], 3);
+    opponentObject = sequenceObject->mdlId[0];
+    animationFrameData = Hu3DLLightCreateV(opponentObject, &keyLightPosition, &keyLightDirection, &whiteLightColor);
+    Hu3DLLightStaticSet(opponentObject, animationFrameData, 1);
+    Hu3DModelAttrReset(sequenceObject->mdlId[0], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(sequenceObject->mdlId[1], HU3D_ATTR_DISPOFF);
+    Hu3DModelShadowMapSet(sequenceObject->mdlId[0]);
     HuAudFXPlay(0x519);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
-    arg0->objFunc = fn_1_8218;
+    sequenceObject->objFunc = UpdateMinigameSequence;
 }
 
 void ObjectSetup(void)
 {
-    Vec sp20;
-    OMOBJ *temp_r30;
+    Vec shadowDirection;
+    OMOBJ *createdObject;
     s32 i;
 
     OSReport("******* M402 ObjectSetup *********\n");
-    lbl_1_bss_1E8 = omInitObjMan(400, 0x2000);
-    omGameSysInit(lbl_1_bss_1E8);
-    lbl_1_bss_1B4 = 0;
-    lbl_1_bss_1AA = -1;
-    lbl_1_bss_1A8 = -1;
-    lbl_1_bss_26 = -1;
-    lbl_1_bss_1A4 = -1;
-    lbl_1_bss_10 = 1;
-    lbl_1_bss_8 = 0.0f;
-    lbl_1_bss_C = 2200.0f;
-    lbl_1_bss_4 = 2500.0f;
-    lbl_1_bss_1D0 = lbl_1_data_10;
-    lbl_1_bss_1B8 = lbl_1_data_28;
+    minigameObjectManager = omInitObjMan(400, 0x2000);
+    omGameSysInit(minigameObjectManager);
+    minigameFrameCounter = 0;
+    activeSequenceId = -1;
+    countdownSequenceId = -1;
+    winningPlayerIndex = -1;
+    backgroundSequenceId = -1;
+    debugModeEnabled = 1;
+    cameraControlHorizontal = 0.0f;
+    cameraControlVertical = 2200.0f;
+    cameraControlDepth = 2500.0f;
+    cameraCurrentPosition = defaultCameraPosition;
+    cameraCurrentTarget = defaultCameraTarget;
     Hu3DReflectNoSet(0);
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 30.0f, 20.0f, 20000.0f, 1.2f);
-    fn_1_1350(&lbl_1_data_10, &lbl_1_data_1C, &lbl_1_data_28);
-    lbl_1_bss_38 = 180.0f;
-    lbl_1_bss_34 = 4.0f;
-    lbl_1_bss_30 = 60.0f;
-    lbl_1_bss_14 = Hu3DGLightCreateV(&lbl_1_data_34, &lbl_1_data_40, &lbl_1_data_4C);
-    Hu3DGLightStaticSet(lbl_1_bss_14, 1);
-    fn_1_8048();
+    SetCameraPositionAndTarget(&defaultCameraPosition, &worldUpVector, &defaultCameraTarget);
+    lightRotationAngle = 180.0f;
+    lightRotationSpeed = 4.0f;
+    sequenceModelTimer = 60.0f;
+    globalLightId = Hu3DGLightCreateV(&keyLightPosition, &keyLightDirection, &whiteLightColor);
+    Hu3DGLightStaticSet(globalLightId, 1);
+    UpdateRotatingLight();
     Hu3DShadowCreate(30.0f, 20.0f, 20000.0f);
     Hu3DShadowTPLvlSet(0.5f);
-    VECNormalize(&lbl_1_data_60, &sp20);
-    Hu3DShadowPosSet(&lbl_1_data_60, &sp20, &lbl_1_data_6C);
-    omMakeGroupEx(lbl_1_bss_1E8, 0, 4);
-    lbl_1_bss_54 = omGetGroupMemberListEx(lbl_1_bss_1E8, 0);
+    VECNormalize(&shadowLightPosition, &shadowDirection);
+    Hu3DShadowPosSet(&shadowLightPosition, &shadowDirection, &shadowTargetPosition);
+    omMakeGroupEx(minigameObjectManager, 0, 4);
+    stageMarkerObjects = omGetGroupMemberListEx(minigameObjectManager, 0);
     for (i = 0; i < 4; i++) {
-        temp_r30 = omAddObjEx(lbl_1_bss_1E8, 100, 1, 0, 0, fn_1_7D4C);
-        temp_r30->work[0] = i;
+        createdObject = omAddObjEx(minigameObjectManager, 100, 1, 0, 0, CreateStageMarker);
+        createdObject->work[0] = i;
     }
-    omMakeGroupEx(lbl_1_bss_1E8, 1, 4);
-    lbl_1_bss_50 = omGetGroupMemberListEx(lbl_1_bss_1E8, 1);
+    omMakeGroupEx(minigameObjectManager, 1, 4);
+    stagePropObjects = omGetGroupMemberListEx(minigameObjectManager, 1);
     for (i = 0; i < 4; i++) {
-        temp_r30 = omAddObjEx(lbl_1_bss_1E8, 101, 1, 0, 1, fn_1_7E84);
-        temp_r30->work[0] = i;
+        createdObject = omAddObjEx(minigameObjectManager, 101, 1, 0, 1, CreateStageProp);
+        createdObject->work[0] = i;
     }
-    omMakeGroupEx(lbl_1_bss_1E8, 2, 4);
-    lbl_1_bss_4C = omGetGroupMemberListEx(lbl_1_bss_1E8, 2);
+    omMakeGroupEx(minigameObjectManager, 2, 4);
+    playerObjects = omGetGroupMemberListEx(minigameObjectManager, 2);
     for (i = 0; i < 4; i++) {
-        temp_r30 = omAddObjEx(lbl_1_bss_1E8, 102, 1, 11, 2, fn_1_63C8);
-        temp_r30->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkFn27A8Struct), HU_MEMNUM_OVL);
-        temp_r30->work[0] = i;
+        createdObject = omAddObjEx(minigameObjectManager, 102, 1, 11, 2, CreatePlayerModel);
+        createdObject->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PlayerActionWork), HU_MEMNUM_OVL);
+        createdObject->work[0] = i;
     }
-    omMakeGroupEx(lbl_1_bss_1E8, 3, 4);
-    lbl_1_bss_48 = omGetGroupMemberListEx(lbl_1_bss_1E8, 3);
+    omMakeGroupEx(minigameObjectManager, 3, 4);
+    shadowObjects = omGetGroupMemberListEx(minigameObjectManager, 3);
     for (i = 0; i < 4; i++) {
-        temp_r30 = omAddObjEx(lbl_1_bss_1E8, 103, 1, 3, 3, fn_1_685C);
-        temp_r30->work[0] = i;
+        createdObject = omAddObjEx(minigameObjectManager, 103, 1, 3, 3, CreateShadowModel);
+        createdObject->work[0] = i;
     }
-    omMakeGroupEx(lbl_1_bss_1E8, 4, 2);
-    lbl_1_bss_44 = omGetGroupMemberListEx(lbl_1_bss_1E8, 4);
+    omMakeGroupEx(minigameObjectManager, 4, 2);
+    playerEffectObjects = omGetGroupMemberListEx(minigameObjectManager, 4);
     for (i = 0; i < 2; i++) {
-        temp_r30 = omAddObjEx(lbl_1_bss_1E8, 104, 1, 2, 4, fn_1_6E64);
-        temp_r30->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkFn6AB4Struct), HU_MEMNUM_OVL);
-        temp_r30->work[0] = i;
+        createdObject = omAddObjEx(minigameObjectManager, 104, 1, 2, 4, CreatePlayerEffect);
+        createdObject->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PlayerEffectWork), HU_MEMNUM_OVL);
+        createdObject->work[0] = i;
     }
-    fn_1_0();
-    lbl_1_bss_24 = 0;
-    omMakeGroupEx(lbl_1_bss_1E8, 5, 300);
-    lbl_1_bss_40 = omGetGroupMemberListEx(lbl_1_bss_1E8, 5);
+    InitializeResourceList();
+    activeEffectObjectCount = 0;
+    omMakeGroupEx(minigameObjectManager, 5, 300);
+    transientEffectObjects = omGetGroupMemberListEx(minigameObjectManager, 5);
     for (i = 0; i < 7; i++) {
-        lbl_1_bss_16[i] = Hu3DModelCreateFile(lbl_1_data_218[i]);
-        Hu3DModelAttrSet(lbl_1_bss_16[i], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(lbl_1_bss_16[i], HU3D_MOTATTR_PAUSE);
+        cachedEffectModelIds[i] = Hu3DModelCreateFile(effectModelFiles[i]);
+        Hu3DModelAttrSet(cachedEffectModelIds[i], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(cachedEffectModelIds[i], HU3D_MOTATTR_PAUSE);
     }
-    lbl_1_bss_58 = omAddObjEx(lbl_1_bss_1E8, 106, 3, 1, -1, fn_1_9058);
+    minigameSequenceObject = omAddObjEx(minigameObjectManager, 106, 3, 1, -1, CreateMinigameSequence);
 }
 
-static void fn_1_9AF4(OMOBJ *arg0)
+static void CleanupMinigame(OMOBJ *sequenceObject)
 {
     s32 i;
 
     if (WipeStatGet() == 0) {
-        if (lbl_1_bss_1AA >= 0) {
-            MGSeqKill(lbl_1_bss_1AA);
+        if (activeSequenceId >= 0) {
+            MGSeqKill(activeSequenceId);
         }
-        if (lbl_1_bss_1A8 >= 0) {
-            MGSeqKill(lbl_1_bss_1A8);
+        if (countdownSequenceId >= 0) {
+            MGSeqKill(countdownSequenceId);
         }
         MGSeqKillAll();
         HuAudAllStop();
         for (i = 0; i < 4; i++) {
-            CharModelKill(lbl_1_data_0[GWPlayerCfg[i].character]);
+            CharModelKill(characterModelIndices[GWPlayerCfg[i].character]);
         }
         omOvlReturnEx(1, 1);
     }
