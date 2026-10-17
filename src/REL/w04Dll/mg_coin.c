@@ -18,53 +18,53 @@
 #include "game/board/player.h"
 #include "game/board/window.h"
 
-static void fn_1_CF8C(OMOBJ *arg0);
-static void fn_1_D0AC(void);
-static void fn_1_D0DC(void);
-static void fn_1_D174(OMOBJ *arg0);
-static void fn_1_D230(OMOBJ *arg0);
-static void fn_1_D2A4(OMOBJ *arg0);
-static void fn_1_D554(OMOBJ *arg0);
-static void fn_1_D6A8(OMOBJ *arg0);
-static void fn_1_D70C(OMOBJ *arg0);
-static void fn_1_D770(void);
-static void fn_1_E004(void);
-static void fn_1_E144(OMOBJ *arg0);
-static void fn_1_E18C(OMOBJ *arg0);
-static void fn_1_E374(OMOBJ *arg0);
-static void fn_1_E4C0(OMOBJ *arg0);
-static void fn_1_E6AC(OMOBJ *arg0);
-static s16 fn_1_E880(OMOBJ *arg0);
+static void UpdateW04CoinGameAudio(OMOBJ *coinObject);
+static void ExitW04CoinGame(void);
+static void CleanupW04CoinGameObjects(void);
+static void InitializeW04CoinObject(OMOBJ *coinObject);
+static void UpdateW04CoinGameMusic(OMOBJ *coinObject);
+static void AnimateW04CoinObject(OMOBJ *coinObject);
+static void SpinW04CoinObject(OMOBJ *coinObject);
+static void RestoreW04CoinObject(OMOBJ *coinObject);
+static void StartW04CoinCollection(OMOBJ *coinObject);
+static void RunW04CoinCollectionProcess(void);
+static void RunW04CoinRewardSequence(void);
+static void DestroyW04CoinGameObject(OMOBJ *coinObject);
+static void UpdateW04CoinGameObject(OMOBJ *coinObject);
+static void AnimateW04CoinReward(OMOBJ *coinObject);
+static void UpdateW04CoinRewardDisplay(OMOBJ *coinObject);
+static void FinishW04CoinRewardDisplay(OMOBJ *coinObject);
+static s16 GetW04CoinRewardIndex(OMOBJ *coinObject);
 
-static u16 lbl_1_bss_326;
-static s16 lbl_1_bss_324;
-static OMOBJ *lbl_1_bss_320;
-static OMOBJ *lbl_1_bss_31C;
-static OMOBJ *lbl_1_bss_318;
-static s16 lbl_1_bss_314;
-static Vec lbl_1_bss_308;
-static Vec lbl_1_bss_2FC;
-static s16 lbl_1_bss_2FA;
-static s16 lbl_1_bss_2F8;
-static s16 lbl_1_bss_2D0[20];
-static u16 lbl_1_bss_2C2[7];
-static u16 lbl_1_bss_2B4[7];
-static s32 lbl_1_bss_2B0;
+static u16 coinGameExitRequested;
+static s16 coinGamePlayer;
+static OMOBJ *coinGameAudioObject;
+static OMOBJ *coinGameSequenceObject;
+static OMOBJ *coinGameObject;
+static s16 coinRewardCount;
+static Vec coinGamePlayerPosition;
+static Vec coinDisplayPosition;
+static s16 coinMusicFadingOut;
+static s16 coinDisplayModelId;
+static s16 coinDisplayModelIds[20];
+static u16 coinSpaceFlags[7];
+static u16 coinSpaceOrder[7];
+static s32 coinSoundEffectId;
 
-static s32 lbl_1_data_588 = -1;
+static s32 coinMusicSequenceId = -1;
 
-static char *lbl_1_data_5BC[] = {
+static char *coinDisplayHookNames[] = {
     "pia1", "pia2", "pia3", "pia4",
     "pia5", "pia6", "pia7", "pia8",
     "pia9"
 };
 
-static u16 lbl_1_data_5E0[] = {
+static u16 coinSpaceFlagValues[] = {
     0x0100, 0x0200, 0x0040, 0x0020,
     0x0800, 0x0400, 0x0010
 };
 
-static s32 lbl_1_data_5F0[] = {
+static s32 coinRewardSoundIds[] = {
     0x0000046D,
     0x0000046E,
     0x0000046F,
@@ -75,412 +75,412 @@ static s32 lbl_1_data_5F0[] = {
     0x00000474
 };
 
-void fn_1_C7A0(void) {
-    BoardModelAttrSet(lbl_1_bss_14[7], 0x40000002);
+void W04CoinSetup(void) {
+    BoardModelAttrSet(w04BoardModelIds[7], 0x40000002);
 }
 
-void fn_1_C7D4(void) {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float temp_f30;
-    float var_f31;
-    float var_f29;
-    s16 temp_r30;
+void W04CoinGameEvent(void) {
+    Vec playerStartPosition;
+    Vec coinHookPosition;
+    Vec playerDestination;
+    Vec coinModelPosition;
+    Vec coinBoardPosition;
+    float jumpHeight;
+    float jumpFrame;
+    float distanceToLanding;
+    s16 randomSpaceIndex;
     s32 i;
 
-    BoardModelLayerSet(lbl_1_bss_14[9], 1);
-    lbl_1_bss_324 = GWSystem.player_curr;
-    lbl_1_data_588 = -1;
-    lbl_1_bss_2FA = 0;
+    BoardModelLayerSet(w04BoardModelIds[9], 1);
+    coinGamePlayer = GWSystem.player_curr;
+    coinMusicSequenceId = -1;
+    coinMusicFadingOut = 0;
     for (i = 0; i < 7; i++) {
-        lbl_1_bss_2B4[i] = 0;
+        coinSpaceOrder[i] = 0;
     }
     for (i = 0; i < 7; i++) {
         do {
-            temp_r30 = frandmod(7);
-        } while (lbl_1_bss_2B4[temp_r30] != 0);
-        lbl_1_bss_2B4[temp_r30] = i + 1;
-        lbl_1_bss_2C2[temp_r30] = lbl_1_data_5E0[i];
+            randomSpaceIndex = frandmod(7);
+        } while (coinSpaceOrder[randomSpaceIndex] != 0);
+        coinSpaceOrder[randomSpaceIndex] = i + 1;
+        coinSpaceFlags[randomSpaceIndex] = coinSpaceFlagValues[i];
     }
     for (i = 0; i < 7; i++) {
-        OSReport("%d: %d  %04X\n", i, lbl_1_bss_2B4[i], lbl_1_bss_2C2[i]);
+        OSReport("%d: %d  %04X\n", i, coinSpaceOrder[i], coinSpaceFlags[i]);
     }
-    lbl_1_bss_2F8 = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W04, 16), NULL, 0);
-    BoardModelVisibilitySet(lbl_1_bss_2F8, 0);
-    BoardModelAttrSet(lbl_1_bss_2F8, 0x40000002);
+    coinDisplayModelId = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W04, 16), NULL, 0);
+    BoardModelVisibilitySet(coinDisplayModelId, 0);
+    BoardModelAttrSet(coinDisplayModelId, 0x40000002);
     for (i = 0; i < 20; i++) {
-        lbl_1_bss_2D0[i] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 10), NULL, 1);
-        BoardModelVisibilitySet(lbl_1_bss_2D0[i], 0);
+        coinDisplayModelIds[i] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 10), NULL, 1);
+        BoardModelVisibilitySet(coinDisplayModelIds[i], 0);
     }
-    BoardPlayerMotBlendSet(lbl_1_bss_324, 0xB4, 0xF);
-    while (!BoardPlayerMotBlendCheck(lbl_1_bss_324)) {
+    BoardPlayerMotBlendSet(coinGamePlayer, 0xB4, 0xF);
+    while (!BoardPlayerMotBlendCheck(coinGamePlayer)) {
         HuPrcVSleep();
     }
     BoardWinCreate(2, MAKE_MESSID(32, 19), 3);
     BoardWinWait();
     BoardWinKill();
-    BoardPlayerPosGet(lbl_1_bss_324, &lbl_1_bss_308);
-    BoardModelPosGet(lbl_1_bss_14[9], &lbl_1_bss_2FC);
-    BoardPlayerPosGet(lbl_1_bss_324, &sp38);
-    Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_14[7]), lbl_1_data_5BC[0], &sp2C);
-    sp20 = sp2C;
-    sp20.z = sp38.z;
-    sp20.y = sp38.y;
-    BoardPlayerPosLerpStart(lbl_1_bss_324, &sp38, &sp20, 0x3C);
-    while (fn_1_1130(lbl_1_bss_14[9], 270.0f, 30.0f) == 0) {
+    BoardPlayerPosGet(coinGamePlayer, &coinGamePlayerPosition);
+    BoardModelPosGet(w04BoardModelIds[9], &coinDisplayPosition);
+    BoardPlayerPosGet(coinGamePlayer, &playerStartPosition);
+    Hu3DModelObjPosGet(BoardModelIDGet(w04BoardModelIds[7]), coinDisplayHookNames[0], &coinHookPosition);
+    playerDestination = coinHookPosition;
+    playerDestination.z = playerStartPosition.z;
+    playerDestination.y = playerStartPosition.y;
+    BoardPlayerPosLerpStart(coinGamePlayer, &playerStartPosition, &playerDestination, 0x3C);
+    while (W04ModelRotateYToAngle(w04BoardModelIds[9], 270.0f, 30.0f) == 0) {
         HuPrcVSleep();
     }
-    BoardModelPosGet(lbl_1_bss_14[9], &sp8);
-    sp14 = sp8;
-    sp14.x = sp2C.x;
-    VECSubtract(&sp14, &sp8, &sp38);
-    VECScale(&sp38, &sp38, 0.022727273f);
+    BoardModelPosGet(w04BoardModelIds[9], &coinBoardPosition);
+    coinModelPosition = coinBoardPosition;
+    coinModelPosition.x = coinHookPosition.x;
+    VECSubtract(&coinModelPosition, &coinBoardPosition, &playerStartPosition);
+    VECScale(&playerStartPosition, &playerStartPosition, 0.022727273f);
     for (i = 0; i < 44; i++) {
-        BoardModelPosGet(lbl_1_bss_14[9], &sp8);
-        VECAdd(&sp8, &sp38, &sp8);
-        BoardModelPosSetV(lbl_1_bss_14[9], &sp8);
+        BoardModelPosGet(w04BoardModelIds[9], &coinBoardPosition);
+        VECAdd(&coinBoardPosition, &playerStartPosition, &coinBoardPosition);
+        BoardModelPosSetV(w04BoardModelIds[9], &coinBoardPosition);
         HuPrcVSleep();
     }
-    BoardModelPosSetV(lbl_1_bss_14[9], &sp14);
-    while (fn_1_1130(lbl_1_bss_14[9], 0.0f, 30.0f) == 0) {
+    BoardModelPosSetV(w04BoardModelIds[9], &coinModelPosition);
+    while (W04ModelRotateYToAngle(w04BoardModelIds[9], 0.0f, 30.0f) == 0) {
         HuPrcVSleep();
     }
-    while (GWPlayer[lbl_1_bss_324].moving) {
+    while (GWPlayer[coinGamePlayer].moving) {
         HuPrcVSleep();
     }
-    BoardPlayerMotBlendSet(lbl_1_bss_324, 0xB4, 0xF);
-    while (!BoardPlayerMotBlendCheck(lbl_1_bss_324)) {
+    BoardPlayerMotBlendSet(coinGamePlayer, 0xB4, 0xF);
+    while (!BoardPlayerMotBlendCheck(coinGamePlayer)) {
         HuPrcVSleep();
     }
-    BoardPlayerMotionShiftSet(lbl_1_bss_324, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
-    var_f31 = 0.0f;
-    temp_f30 = 8.0f;
-    VECSubtract(&sp2C, &sp20, &sp38);
-    VECScale(&sp38, &sp38, 0.05f);
+    BoardPlayerMotionShiftSet(coinGamePlayer, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
+    jumpFrame = 0.0f;
+    jumpHeight = 8.0f;
+    VECSubtract(&coinHookPosition, &playerDestination, &playerStartPosition);
+    VECScale(&playerStartPosition, &playerStartPosition, 0.05f);
     while (TRUE) {
-        BoardPlayerPosGet(lbl_1_bss_324, &sp20);
-        sp38.y = temp_f30 - var_f31 * var_f31 * 0.25f * 0.075f;
-        var_f31 += 1.0f;
-        VECAdd(&sp38, &sp20, &sp20);
-        sp14 = sp2C;
-        sp14.y = sp20.y;
-        VECSubtract(&sp14, &sp20, &sp14);
-        var_f29 = VECMag(&sp14);
-        if (var_f29 <= 1.0f) {
-            sp38.x = sp38.z = 0.0f;
-            sp20.x = sp2C.x;
-            sp20.z = sp2C.z;
+        BoardPlayerPosGet(coinGamePlayer, &playerDestination);
+        playerStartPosition.y = jumpHeight - jumpFrame * jumpFrame * 0.25f * 0.075f;
+        jumpFrame += 1.0f;
+        VECAdd(&playerStartPosition, &playerDestination, &playerDestination);
+        coinModelPosition = coinHookPosition;
+        coinModelPosition.y = playerDestination.y;
+        VECSubtract(&coinModelPosition, &playerDestination, &coinModelPosition);
+        distanceToLanding = VECMag(&coinModelPosition);
+        if (distanceToLanding <= 1.0f) {
+            playerStartPosition.x = playerStartPosition.z = 0.0f;
+            playerDestination.x = coinHookPosition.x;
+            playerDestination.z = coinHookPosition.z;
         }
-        if (sp20.y <= sp2C.y && sp38.y < 0.0f) {
-            sp20.y = sp2C.y;
+        if (playerDestination.y <= coinHookPosition.y && playerStartPosition.y < 0.0f) {
+            playerDestination.y = coinHookPosition.y;
             break;
         }
-        BoardPlayerPosSetV(lbl_1_bss_324, &sp20);
+        BoardPlayerPosSetV(coinGamePlayer, &playerDestination);
         HuPrcVSleep();
     }
-    BoardPlayerPosSetV(lbl_1_bss_324, &sp20);
-    BoardPlayerMotBlendSet(lbl_1_bss_324, 0x5A, 0xF);
-    while (!BoardPlayerMotBlendCheck(lbl_1_bss_324)) {
+    BoardPlayerPosSetV(coinGamePlayer, &playerDestination);
+    BoardPlayerMotBlendSet(coinGamePlayer, 0x5A, 0xF);
+    while (!BoardPlayerMotBlendCheck(coinGamePlayer)) {
         HuPrcVSleep();
     }
     HuPrcSleep(60);
-    lbl_1_bss_320 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, fn_1_CF8C);
-    lbl_1_bss_318 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, fn_1_D174);
-    lbl_1_bss_31C = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, NULL);
-    lbl_1_bss_318->scale.x = 255.0f;
-    lbl_1_bss_314 = 0;
-    lbl_1_bss_326 = 0;
+    coinGameAudioObject = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, UpdateW04CoinGameAudio);
+    coinGameObject = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, InitializeW04CoinObject);
+    coinGameSequenceObject = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, NULL);
+    coinGameObject->scale.x = 255.0f;
+    coinRewardCount = 0;
+    coinGameExitRequested = 0;
 }
 
-static void fn_1_CF8C(OMOBJ *arg0) {
-    s32 spC;
+static void UpdateW04CoinGameAudio(OMOBJ *coinObject) {
+    s32 sequenceVolume;
 
-    if (lbl_1_data_588 != -1) {
-        spC = HuAudSeqMidiCtrlGet(lbl_1_data_588, 0, 1);
-        if (msmMusGetStatus(lbl_1_data_588) == 0) {
-            HuAudSeqFadeOut(lbl_1_data_588, 100);
-            lbl_1_bss_2FA = 1;
+    if (coinMusicSequenceId != -1) {
+        sequenceVolume = HuAudSeqMidiCtrlGet(coinMusicSequenceId, 0, 1);
+        if (msmMusGetStatus(coinMusicSequenceId) == 0) {
+            HuAudSeqFadeOut(coinMusicSequenceId, 100);
+            coinMusicFadingOut = 1;
         }
-        if (lbl_1_bss_2FA == 1 && msmMusGetStatus(lbl_1_data_588) == 0) {
-            lbl_1_data_588 = -1;
+        if (coinMusicFadingOut == 1 && msmMusGetStatus(coinMusicSequenceId) == 0) {
+            coinMusicSequenceId = -1;
             BoardAudSeqPause(0, 0, 1000);
             OSReport("BGM1 Restore\n");
         }
     }
-    if (lbl_1_bss_326 != 0 && BoardMGDoneFlagGet() == 1) {
-        fn_1_D0DC();
-        omDelObjEx(boardObjMan, arg0);
+    if (coinGameExitRequested != 0 && BoardMGDoneFlagGet() == 1) {
+        CleanupW04CoinGameObjects();
+        omDelObjEx(boardObjMan, coinObject);
     }
 }
 
-static void fn_1_D0AC(void) {
-    lbl_1_bss_326 = 1;
+static void ExitW04CoinGame(void) {
+    coinGameExitRequested = 1;
     BoardMGExit();
 }
 
-static void fn_1_D0DC(void) {
+static void CleanupW04CoinGameObjects(void) {
     s32 i;
 
-    omDelObjEx(boardObjMan, lbl_1_bss_31C);
-    BoardModelKill(lbl_1_bss_2F8);
+    omDelObjEx(boardObjMan, coinGameSequenceObject);
+    BoardModelKill(coinDisplayModelId);
     for (i = 0; i < 20; i++) {
-        BoardModelKill(lbl_1_bss_2D0[i]);
+        BoardModelKill(coinDisplayModelIds[i]);
     }
-    BoardModelLayerSet(lbl_1_bss_14[9], 0);
+    BoardModelLayerSet(w04BoardModelIds[9], 0);
     BoardMGDoneFlagSet(0);
 }
 
-static void fn_1_D174(OMOBJ *arg0) {
+static void InitializeW04CoinObject(OMOBJ *coinObject) {
     MSM_MUSPARAM musParam;
 
-    if (arg0->work[0] == 0) {
-        arg0->work[0] = MGSeqCreate(3, 0);
+    if (coinObject->work[0] == 0) {
+        coinObject->work[0] = MGSeqCreate(3, 0);
         BoardAudSeqPause(0, 1, 1000);
         return;
     }
-    if (MGSeqStatGet(arg0->work[0]) == 0) {
+    if (MGSeqStatGet(coinObject->work[0]) == 0) {
         musParam.flag = MSM_MUSPARAM_CHAN;
         musParam.fadeSpeed = 0;
         musParam.vol = 0x7F;
         musParam.chan = 1;
-        lbl_1_data_588 = msmMusPlay(0x1D, &musParam);
-        arg0->objFunc = fn_1_D230;
+        coinMusicSequenceId = msmMusPlay(0x1D, &musParam);
+        coinObject->objFunc = UpdateW04CoinGameMusic;
     }
 }
 
-static void fn_1_D230(OMOBJ *arg0) {
-    s32 temp_r3;
+static void UpdateW04CoinGameMusic(OMOBJ *coinObject) {
+    s32 midiControlValue;
 
-    temp_r3 = HuAudSeqMidiCtrlGet(lbl_1_data_588, 0, 1);
-    if (temp_r3 >= 10 && temp_r3 <= 19) {
-        arg0->work[1]++;
-        arg0->objFunc = fn_1_D2A4;
+    midiControlValue = HuAudSeqMidiCtrlGet(coinMusicSequenceId, 0, 1);
+    if (midiControlValue >= 10 && midiControlValue <= 19) {
+        coinObject->work[1]++;
+        coinObject->objFunc = AnimateW04CoinObject;
     }
 }
 
-static void fn_1_D2A4(OMOBJ *arg0) {
-    Vec sp18;
-    Vec spC;
-    float sp8;
-    HU3DMODEL *temp_r30;
-    s32 temp_r3;
+static void AnimateW04CoinObject(OMOBJ *coinObject) {
+    Vec coinHookPosition;
+    Vec coinModelPosition;
+    float boardRotation;
+    HU3DMODEL *coinModelData;
+    s32 midiControlValue;
 
-    temp_r30 = &Hu3DData[BoardModelIDGet(lbl_1_bss_2F8)];
-    sp8 = BoardModelRotYGet(lbl_1_bss_14[9]);
-    BoardModelPosGet(lbl_1_bss_14[9], &spC);
-    if (arg0->scale.x != 0.0f) {
-        arg0->scale.x -= 510.0f/REFRESH_RATE;
-        if (arg0->scale.x < 0.0f) {
-            arg0->scale.x = 0.0f;
+    coinModelData = &Hu3DData[BoardModelIDGet(coinDisplayModelId)];
+    boardRotation = BoardModelRotYGet(w04BoardModelIds[9]);
+    BoardModelPosGet(w04BoardModelIds[9], &coinModelPosition);
+    if (coinObject->scale.x != 0.0f) {
+        coinObject->scale.x -= 510.0f/REFRESH_RATE;
+        if (coinObject->scale.x < 0.0f) {
+            coinObject->scale.x = 0.0f;
         }
-        BoardModelAlphaSet(lbl_1_bss_14[9], arg0->scale.x);
+        BoardModelAlphaSet(w04BoardModelIds[9], coinObject->scale.x);
         return;
     }
-    temp_r3 = HuAudSeqMidiCtrlGet(lbl_1_data_588, 0, 1);
-    if (temp_r3 >= 20 && temp_r3 <= 29) {
-        Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_14[7]), lbl_1_data_5BC[arg0->work[1]], &sp18);
-        spC.x = sp18.x;
-        BoardModelPosSetV(lbl_1_bss_14[9], &spC);
-        arg0->objFunc = fn_1_D554;
-        if (arg0->work[1] < 8) {
-            BoardModelHookReset(lbl_1_bss_14[7]);
-            BoardModelVisibilitySet(lbl_1_bss_2F8, 1);
-            BoardModelMotionTimeSet(lbl_1_bss_2F8, lbl_1_bss_2B4[arg0->work[1] - 1]);
-            BoardModelHookSet(lbl_1_bss_14[7], lbl_1_data_5BC[arg0->work[1]], lbl_1_bss_2F8);
-            Hu3DMotionExec(BoardModelIDGet(lbl_1_bss_2F8), temp_r30->motId, temp_r30->motWork.time, 0);
+    midiControlValue = HuAudSeqMidiCtrlGet(coinMusicSequenceId, 0, 1);
+    if (midiControlValue >= 20 && midiControlValue <= 29) {
+        Hu3DModelObjPosGet(BoardModelIDGet(w04BoardModelIds[7]), coinDisplayHookNames[coinObject->work[1]], &coinHookPosition);
+        coinModelPosition.x = coinHookPosition.x;
+        BoardModelPosSetV(w04BoardModelIds[9], &coinModelPosition);
+        coinObject->objFunc = SpinW04CoinObject;
+        if (coinObject->work[1] < 8) {
+            BoardModelHookReset(w04BoardModelIds[7]);
+            BoardModelVisibilitySet(coinDisplayModelId, 1);
+            BoardModelMotionTimeSet(coinDisplayModelId, coinSpaceOrder[coinObject->work[1] - 1]);
+            BoardModelHookSet(w04BoardModelIds[7], coinDisplayHookNames[coinObject->work[1]], coinDisplayModelId);
+            Hu3DMotionExec(BoardModelIDGet(coinDisplayModelId), coinModelData->motId, coinModelData->motWork.time, 0);
         }
-        lbl_1_bss_31C->work[0] = 60;
-        lbl_1_bss_31C->mode = frandmod((REFRESH_RATE*2)/3) + (REFRESH_RATE/6);
-        lbl_1_bss_31C->work[1] = arg0->work[1];
-        lbl_1_bss_31C->objFunc = fn_1_E18C;
+        coinGameSequenceObject->work[0] = 60;
+        coinGameSequenceObject->mode = frandmod((REFRESH_RATE*2)/3) + (REFRESH_RATE/6);
+        coinGameSequenceObject->work[1] = coinObject->work[1];
+        coinGameSequenceObject->objFunc = UpdateW04CoinGameObject;
     }
 }
 
-static void fn_1_D554(OMOBJ *arg0) {
-    float sp8;
+static void SpinW04CoinObject(OMOBJ *coinObject) {
+    float boardRotation;
 
-    sp8 = BoardModelRotYGet(lbl_1_bss_14[9]);
-    arg0->scale.x += 510.0f/REFRESH_RATE;
-    if (arg0->scale.x > 255.0f) {
-        arg0->scale.x = 255.0f;
+    boardRotation = BoardModelRotYGet(w04BoardModelIds[9]);
+    coinObject->scale.x += 510.0f/REFRESH_RATE;
+    if (coinObject->scale.x > 255.0f) {
+        coinObject->scale.x = 255.0f;
     }
-    BoardModelAlphaSet(lbl_1_bss_14[9], arg0->scale.x);
-    if (arg0->scale.x == 255.0f) {
-        arg0->work[0] = 0;
-        lbl_1_bss_31C->work[1] = arg0->work[1];
-        arg0->scale.x = 255.0f;
-        BoardModelAlphaSet(lbl_1_bss_14[9], arg0->scale.x);
-        if (arg0->work[1] == 8) {
-            arg0->objFunc = fn_1_D70C;
-            lbl_1_bss_31C->work[2] = 1;
-            lbl_1_bss_31C->objFunc = fn_1_E374;
+    BoardModelAlphaSet(w04BoardModelIds[9], coinObject->scale.x);
+    if (coinObject->scale.x == 255.0f) {
+        coinObject->work[0] = 0;
+        coinGameSequenceObject->work[1] = coinObject->work[1];
+        coinObject->scale.x = 255.0f;
+        BoardModelAlphaSet(w04BoardModelIds[9], coinObject->scale.x);
+        if (coinObject->work[1] == 8) {
+            coinObject->objFunc = StartW04CoinCollection;
+            coinGameSequenceObject->work[2] = 1;
+            coinGameSequenceObject->objFunc = AnimateW04CoinReward;
         } else {
-            arg0->objFunc = fn_1_D6A8;
+            coinObject->objFunc = RestoreW04CoinObject;
         }
     }
 }
 
-static void fn_1_D6A8(OMOBJ *arg0) {
-    if (arg0->work[0] != 0) {
-        BoardModelHookReset(lbl_1_bss_14[7]);
-        BoardModelVisibilitySet(lbl_1_bss_2F8, 0);
-        arg0->objFunc = fn_1_D230;
+static void RestoreW04CoinObject(OMOBJ *coinObject) {
+    if (coinObject->work[0] != 0) {
+        BoardModelHookReset(w04BoardModelIds[7]);
+        BoardModelVisibilitySet(coinDisplayModelId, 0);
+        coinObject->objFunc = UpdateW04CoinGameMusic;
     }
 }
 
-static void fn_1_D70C(OMOBJ *arg0) {
-    HUPROCESS *var_r30;
+static void StartW04CoinCollection(OMOBJ *coinObject) {
+    HUPROCESS *process;
 
-    if (arg0->work[0] == 1) {
-        var_r30 = HuPrcCreate(fn_1_D770, 0x2004, 0x1800, 0);
-        var_r30->user_data = arg0;
-        arg0->objFunc = NULL;
+    if (coinObject->work[0] == 1) {
+        process = HuPrcCreate(RunW04CoinCollectionProcess, 0x2004, 0x1800, 0);
+        process->user_data = coinObject;
+        coinObject->objFunc = NULL;
     }
 }
 
-s16 lbl_1_data_62C[] = {
+s16 coinRewardCountByChoice[] = {
      1, 3, 5, 7, 10, 14, 18, 20
 };
 
-static void fn_1_D770(void) {
-    Vec sp114[20];
-    Vec sp24[20];
-    Vec sp18;
-    Vec spC;
-    float temp_f29;
-    float var_f30;
-    float var_f31;
-    char sp8[4];
-    HUPROCESS *temp_r3;
-    OMOBJ *var_r28;
-    s32 var_r29;
+static void RunW04CoinCollectionProcess(void) {
+    Vec coinParticlePositions[20];
+    Vec coinParticleRotations[20];
+    Vec playerPosition;
+    Vec coinParticleVelocity;
+    float coinParticleAge;
+    float coinParticleSpeed;
+    float coinParticleScale;
+    char coinCountText[4];
+    HUPROCESS *process;
+    OMOBJ *object;
+    s32 coinParticleCount;
     s32 i;
 
-    lbl_1_bss_314 = lbl_1_data_62C[lbl_1_bss_314 - 1];
-    sprintf(sp8, "%d", lbl_1_bss_314);
+    coinRewardCount = coinRewardCountByChoice[coinRewardCount - 1];
+    sprintf(coinCountText, "%d", coinRewardCount);
     BoardWinCreate(2, MAKE_MESSID(32, 20), 3);
-    BoardWinInsertMesSet(MAKE_MESSID_PTR(sp8), 0);
+    BoardWinInsertMesSet(MAKE_MESSID_PTR(coinCountText), 0);
     BoardWinWait();
     BoardWinKill();
-    BoardPlayerMotBlendSet(lbl_1_bss_324, 0, 0xF);
-    while (!BoardPlayerMotBlendCheck(lbl_1_bss_324)) {
+    BoardPlayerMotBlendSet(coinGamePlayer, 0, 0xF);
+    while (!BoardPlayerMotBlendCheck(coinGamePlayer)) {
         HuPrcVSleep();
     }
-    BoardPlayerPosGet(lbl_1_bss_324, &sp18);
-    for (i = 0; i < lbl_1_bss_314; i++) {
-        BoardModelVisibilitySet(lbl_1_bss_2D0[i], 1);
-        sp114[i] = sp18;
-        sp114[i].y += 800.0f + i * 120;
-        sp114[i].x += -25.0f + 50.0f * frand8() * 0.003921569f;
-        sp114[i].z += -25.0f + 50.0f * frand8() * 0.003921569f;
-        sp24[i].x = sp24[i].z = 0.0f;
-        sp24[i].y = 360.0f * frand8() * 0.003921569f;
-        BoardModelPosSetV(lbl_1_bss_2D0[i], &sp114[i]);
-        BoardModelRotSetV(lbl_1_bss_2D0[i], &sp24[i]);
+    BoardPlayerPosGet(coinGamePlayer, &playerPosition);
+    for (i = 0; i < coinRewardCount; i++) {
+        BoardModelVisibilitySet(coinDisplayModelIds[i], 1);
+        coinParticlePositions[i] = playerPosition;
+        coinParticlePositions[i].y += 800.0f + i * 120;
+        coinParticlePositions[i].x += -25.0f + 50.0f * frand8() * 0.003921569f;
+        coinParticlePositions[i].z += -25.0f + 50.0f * frand8() * 0.003921569f;
+        coinParticleRotations[i].x = coinParticleRotations[i].z = 0.0f;
+        coinParticleRotations[i].y = 360.0f * frand8() * 0.003921569f;
+        BoardModelPosSetV(coinDisplayModelIds[i], &coinParticlePositions[i]);
+        BoardModelRotSetV(coinDisplayModelIds[i], &coinParticleRotations[i]);
     }
-    var_f31 = -1.0f;
-    var_r29 = 0;
+    coinParticleScale = -1.0f;
+    coinParticleCount = 0;
     while (TRUE) {
-        for (i = 0; i < lbl_1_bss_314; i++) {
-            if (i < var_r29) {
+        for (i = 0; i < coinRewardCount; i++) {
+            if (i < coinParticleCount) {
                 continue;
             }
-            sp114[i].y += var_f31;
-            BoardModelPosSetV(lbl_1_bss_2D0[i], &sp114[i]);
-            sp24[i].y += 45.0f;
-            if (sp24[i].y >= 360.0f) {
-                sp24[i].y -= 360.0f;
+            coinParticlePositions[i].y += coinParticleScale;
+            BoardModelPosSetV(coinDisplayModelIds[i], &coinParticlePositions[i]);
+            coinParticleRotations[i].y += 45.0f;
+            if (coinParticleRotations[i].y >= 360.0f) {
+                coinParticleRotations[i].y -= 360.0f;
             }
-            BoardModelRotSetV(lbl_1_bss_2D0[i], &sp24[i]);
-            if (sp114[i].y <= sp18.y + 80.0f) {
-                spC = sp114[i];
-                CharEffectCoinGlowCreate(1, &spC);
-                BoardModelVisibilitySet(lbl_1_bss_2D0[i], 0);
-                var_r29 += 1;
-                BoardPlayerCoinsAdd(lbl_1_bss_324, 1);
+            BoardModelRotSetV(coinDisplayModelIds[i], &coinParticleRotations[i]);
+            if (coinParticlePositions[i].y <= playerPosition.y + 80.0f) {
+                coinParticleVelocity = coinParticlePositions[i];
+                CharEffectCoinGlowCreate(1, &coinParticleVelocity);
+                BoardModelVisibilitySet(coinDisplayModelIds[i], 0);
+                coinParticleCount += 1;
+                BoardPlayerCoinsAdd(coinGamePlayer, 1);
                 HuAudFXPlay(7);
-                omVibrate(lbl_1_bss_324, 12, 6, 6);
+                omVibrate(coinGamePlayer, 12, 6, 6);
             }
         }
-        var_f31 *= 1.05f;
-        if (var_f31 < -20.0f) {
-            var_f31 = -20.0f;
+        coinParticleScale *= 1.05f;
+        if (coinParticleScale < -20.0f) {
+            coinParticleScale = -20.0f;
         }
-        if (var_r29 == lbl_1_bss_314) {
-            BoardPlayerMotionShiftSet(lbl_1_bss_324, 7, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+        if (coinParticleCount == coinRewardCount) {
+            BoardPlayerMotionShiftSet(coinGamePlayer, 7, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
             break;
         }
         HuPrcVSleep();
     }
-    while (!BoardPlayerMotionEndCheck(lbl_1_bss_324)) {
+    while (!BoardPlayerMotionEndCheck(coinGamePlayer)) {
         HuPrcVSleep();
     }
     BoardWinCreate(2, MAKE_MESSID(32, 21), 3);
     BoardWinWait();
     BoardWinKill();
-    temp_r3 = HuPrcCreate(fn_1_E004, 0x2004, 0x1000, 0);
-    temp_r3->user_data = NULL;
-    BoardPlayerMotionShiftSet(lbl_1_bss_324, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
-    var_f30 = 0.0f;
-    temp_f29 = 8.0f;
-    lbl_1_bss_308.z = sp18.z + 100.0f;
-    lbl_1_bss_308.x = sp18.x + 50.0f;
-    VECSubtract(&lbl_1_bss_308, &sp18, &spC);
-    VECScale(&spC, &spC, 0.04f);
+    process = HuPrcCreate(RunW04CoinRewardSequence, 0x2004, 0x1000, 0);
+    process->user_data = NULL;
+    BoardPlayerMotionShiftSet(coinGamePlayer, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
+    coinParticleSpeed = 0.0f;
+    coinParticleAge = 8.0f;
+    coinGamePlayerPosition.z = playerPosition.z + 100.0f;
+    coinGamePlayerPosition.x = playerPosition.x + 50.0f;
+    VECSubtract(&coinGamePlayerPosition, &playerPosition, &coinParticleVelocity);
+    VECScale(&coinParticleVelocity, &coinParticleVelocity, 0.04f);
     while (TRUE) {
-        BoardPlayerPosGet(lbl_1_bss_324, &sp18);
-        spC.y = temp_f29 - var_f30 * var_f30 * 0.25f * 0.075f;
-        var_f30 += 1.0f;
-        VECAdd(&spC, &sp18, &sp18);
-        sp114[0] = lbl_1_bss_308;
-        sp114[0].y = sp18.y;
-        VECSubtract(&sp114[0], &sp18, &sp114[0]);
-        var_f31 = VECMag(&sp114[0]);
-        if (var_f31 <= 1.0f) {
-            spC.x = spC.z = 0.0f;
-            sp18.x = lbl_1_bss_308.x;
-            sp18.z = lbl_1_bss_308.z;
+        BoardPlayerPosGet(coinGamePlayer, &playerPosition);
+        coinParticleVelocity.y = coinParticleAge - coinParticleSpeed * coinParticleSpeed * 0.25f * 0.075f;
+        coinParticleSpeed += 1.0f;
+        VECAdd(&coinParticleVelocity, &playerPosition, &playerPosition);
+        coinParticlePositions[0] = coinGamePlayerPosition;
+        coinParticlePositions[0].y = playerPosition.y;
+        VECSubtract(&coinParticlePositions[0], &playerPosition, &coinParticlePositions[0]);
+        coinParticleScale = VECMag(&coinParticlePositions[0]);
+        if (coinParticleScale <= 1.0f) {
+            coinParticleVelocity.x = coinParticleVelocity.z = 0.0f;
+            playerPosition.x = coinGamePlayerPosition.x;
+            playerPosition.z = coinGamePlayerPosition.z;
         }
-        if (sp18.y <= lbl_1_bss_308.y && spC.y < 0.0f) {
-            sp18.y = lbl_1_bss_308.y;
+        if (playerPosition.y <= coinGamePlayerPosition.y && coinParticleVelocity.y < 0.0f) {
+            playerPosition.y = coinGamePlayerPosition.y;
             break;
         }
-        BoardPlayerPosSetV(lbl_1_bss_324, &sp18);
+        BoardPlayerPosSetV(coinGamePlayer, &playerPosition);
         HuPrcVSleep();
     }
-    BoardPlayerPosSetV(lbl_1_bss_324, &sp18);
-    omVibrate(lbl_1_bss_324, 12, 6, 6);
-    while (!temp_r3->user_data) {
+    BoardPlayerPosSetV(coinGamePlayer, &playerPosition);
+    omVibrate(coinGamePlayer, 12, 6, 6);
+    while (!process->user_data) {
         HuPrcVSleep();
     }
-    HuPrcKill(temp_r3);
-    var_r28 = HuPrcCurrentGet()->user_data;
-    var_r28->objFunc = fn_1_E144;
+    HuPrcKill(process);
+    object = HuPrcCurrentGet()->user_data;
+    object->objFunc = DestroyW04CoinGameObject;
     HuPrcEnd();
 }
 
-static void fn_1_E004(void) {
-    Vec sp14;
-    Vec sp8;
+static void RunW04CoinRewardSequence(void) {
+    Vec coinPosition;
+    Vec movementStep;
     s32 i;
 
-    while (fn_1_1130(lbl_1_bss_14[9], 90.0f, 30.0f) == 0) {
+    while (W04ModelRotateYToAngle(w04BoardModelIds[9], 90.0f, 30.0f) == 0) {
         HuPrcVSleep();
     }
-    BoardModelPosGet(lbl_1_bss_14[9], &sp14);
-    VECSubtract(&lbl_1_bss_2FC, &sp14, &sp8);
-    VECScale(&sp8, &sp8, 0.1f);
+    BoardModelPosGet(w04BoardModelIds[9], &coinPosition);
+    VECSubtract(&coinDisplayPosition, &coinPosition, &movementStep);
+    VECScale(&movementStep, &movementStep, 0.1f);
     for (i = 0; i < 10; i++) {
-        BoardModelPosGet(lbl_1_bss_14[9], &sp14);
-        VECAdd(&sp14, &sp8, &sp14);
-        BoardModelPosSetV(lbl_1_bss_14[9], &sp14);
+        BoardModelPosGet(w04BoardModelIds[9], &coinPosition);
+        VECAdd(&coinPosition, &movementStep, &coinPosition);
+        BoardModelPosSetV(w04BoardModelIds[9], &coinPosition);
         HuPrcVSleep();
     }
-    BoardModelPosSetV(lbl_1_bss_14[9], &lbl_1_bss_2FC);
-    while (fn_1_1130(lbl_1_bss_14[9], 0.0f, 30.0f) == 0) {
+    BoardModelPosSetV(w04BoardModelIds[9], &coinDisplayPosition);
+    while (W04ModelRotateYToAngle(w04BoardModelIds[9], 0.0f, 30.0f) == 0) {
         HuPrcVSleep();
     }
     HuPrcCurrentGet()->user_data = (void*) 1;
@@ -489,174 +489,174 @@ static void fn_1_E004(void) {
     }
 }
 
-static void fn_1_E144(OMOBJ *arg0) {
-    lbl_1_bss_326 = 1;
+static void DestroyW04CoinGameObject(OMOBJ *coinObject) {
+    coinGameExitRequested = 1;
     BoardMGExit();
-    omDelObjEx(boardObjMan, arg0);
+    omDelObjEx(boardObjMan, coinObject);
 }
 
-static void fn_1_E18C(OMOBJ *arg0) {
-    s32 var_r29;
-    s16 var_r28;
-    s16 var_r30;
+static void UpdateW04CoinGameObject(OMOBJ *coinObject) {
+    s32 midiControlValue;
+    s16 controllerPort;
+    s16 pressedButtons;
 
-    var_r29 = HuAudSeqMidiCtrlGet(lbl_1_data_588, 0, 1);
-    if (var_r29 >= 20 && var_r29 <= 29) {
-        var_r28 = GWPlayer[lbl_1_bss_324].port;
-        var_r30 = 0;
-        if (GWPlayer[lbl_1_bss_324].com) {
-            if (--arg0->mode == 0) {
-                var_r30 = fn_1_E880(arg0);
+    midiControlValue = HuAudSeqMidiCtrlGet(coinMusicSequenceId, 0, 1);
+    if (midiControlValue >= 20 && midiControlValue <= 29) {
+        controllerPort = GWPlayer[coinGamePlayer].port;
+        pressedButtons = 0;
+        if (GWPlayer[coinGamePlayer].com) {
+            if (--coinObject->mode == 0) {
+                pressedButtons = GetW04CoinRewardIndex(coinObject);
             }
         } else {
-            var_r30 = HuPadBtnDown[var_r28];
+            pressedButtons = HuPadBtnDown[controllerPort];
         }
-        if (var_r30 & 0xF70) {
-            if ((var_r30 & lbl_1_bss_2C2[arg0->work[1] - 1]) && !(var_r30 & ~lbl_1_bss_2C2[arg0->work[1] - 1])) {
-                arg0->work[2] = 1;
+        if (pressedButtons & 0xF70) {
+            if ((pressedButtons & coinSpaceFlags[coinObject->work[1] - 1]) && !(pressedButtons & ~coinSpaceFlags[coinObject->work[1] - 1])) {
+                coinObject->work[2] = 1;
             } else {
-                arg0->work[2] = 0;
+                coinObject->work[2] = 0;
             }
-            BoardModelVisibilitySet(lbl_1_bss_2F8, 0);
-            arg0->objFunc = fn_1_E374;
+            BoardModelVisibilitySet(coinDisplayModelId, 0);
+            coinObject->objFunc = AnimateW04CoinReward;
         }
     } else {
-        BoardModelVisibilitySet(lbl_1_bss_2F8, 0);
-        arg0->work[2] = 0;
-        arg0->objFunc = fn_1_E374;
-        lbl_1_bss_318->work[0] = 1;
-        fn_1_E374(arg0);
+        BoardModelVisibilitySet(coinDisplayModelId, 0);
+        coinObject->work[2] = 0;
+        coinObject->objFunc = AnimateW04CoinReward;
+        coinGameObject->work[0] = 1;
+        AnimateW04CoinReward(coinObject);
     }
 }
 
-static void fn_1_E374(OMOBJ *arg0) {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    s32 temp_r3;
+static void AnimateW04CoinReward(OMOBJ *coinObject) {
+    Vec playerPosition;
+    Vec coinHookPosition;
+    Vec coinVelocity;
+    s32 midiControlValue;
 
-    temp_r3 = HuAudSeqMidiCtrlGet(lbl_1_data_588, 0, 1);
-    if (temp_r3 >= 30 && temp_r3 <= 39) {
-        Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_14[7]), lbl_1_data_5BC[arg0->work[1]], &sp14);
-        BoardPlayerPosGet(lbl_1_bss_324, &sp20);
-        VECSubtract(&sp14, &sp20, &sp8);
-        VECScale(&sp8, &sp8, 0.04f);
-        arg0->trans.x = sp8.x;
-        arg0->trans.z = sp8.z;
-        arg0->trans.y = 5.0f;
-        arg0->rot.x = 0.0f;
-        arg0->scale.x = sp14.x;
-        arg0->scale.y = sp14.y;
-        arg0->scale.z = sp14.z;
-        BoardPlayerMotionShiftSet(lbl_1_bss_324, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
-        arg0->objFunc = fn_1_E4C0;
+    midiControlValue = HuAudSeqMidiCtrlGet(coinMusicSequenceId, 0, 1);
+    if (midiControlValue >= 30 && midiControlValue <= 39) {
+        Hu3DModelObjPosGet(BoardModelIDGet(w04BoardModelIds[7]), coinDisplayHookNames[coinObject->work[1]], &coinHookPosition);
+        BoardPlayerPosGet(coinGamePlayer, &playerPosition);
+        VECSubtract(&coinHookPosition, &playerPosition, &coinVelocity);
+        VECScale(&coinVelocity, &coinVelocity, 0.04f);
+        coinObject->trans.x = coinVelocity.x;
+        coinObject->trans.z = coinVelocity.z;
+        coinObject->trans.y = 5.0f;
+        coinObject->rot.x = 0.0f;
+        coinObject->scale.x = coinHookPosition.x;
+        coinObject->scale.y = coinHookPosition.y;
+        coinObject->scale.z = coinHookPosition.z;
+        BoardPlayerMotionShiftSet(coinGamePlayer, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
+        coinObject->objFunc = UpdateW04CoinRewardDisplay;
     }
 }
 
-static void fn_1_E4C0(OMOBJ *arg0) {
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
+static void UpdateW04CoinRewardDisplay(OMOBJ *coinObject) {
+    Vec playerPosition;
+    Vec coinOffset;
+    Vec coinDestination;
+    Vec updatedPlayerPosition;
+    float distanceToCoin;
 
-    BoardPlayerPosGet(lbl_1_bss_324, &sp2C);
-    sp14.x = arg0->scale.x;
-    sp14.y = arg0->scale.y;
-    sp14.z = arg0->scale.z;
-    sp20.x = arg0->trans.x;
-    sp20.z = arg0->trans.z;
-    sp20.y = arg0->trans.y - arg0->rot.x * arg0->rot.x * 0.25f * ((VERSION_PAL) ? 0.1125f : 0.075f);
-    arg0->rot.x += 1.0f;
-    VECAdd(&sp2C, &sp20, &sp2C);
-    sp8 = sp2C;
-    sp8.y = sp14.y;
-    VECSubtract(&sp14, &sp8, &sp8);
-    var_f31 = VECMag(&sp8);
-    if (var_f31 <= 1.0f) {
-        arg0->trans.x = arg0->trans.z = 0.0f;
-        sp2C.x = sp14.x;
-        sp2C.z = sp14.z;
+    BoardPlayerPosGet(coinGamePlayer, &playerPosition);
+    coinDestination.x = coinObject->scale.x;
+    coinDestination.y = coinObject->scale.y;
+    coinDestination.z = coinObject->scale.z;
+    coinOffset.x = coinObject->trans.x;
+    coinOffset.z = coinObject->trans.z;
+    coinOffset.y = coinObject->trans.y - coinObject->rot.x * coinObject->rot.x * 0.25f * ((VERSION_PAL) ? 0.1125f : 0.075f);
+    coinObject->rot.x += 1.0f;
+    VECAdd(&playerPosition, &coinOffset, &playerPosition);
+    updatedPlayerPosition = playerPosition;
+    updatedPlayerPosition.y = coinDestination.y;
+    VECSubtract(&coinDestination, &updatedPlayerPosition, &updatedPlayerPosition);
+    distanceToCoin = VECMag(&updatedPlayerPosition);
+    if (distanceToCoin <= 1.0f) {
+        coinObject->trans.x = coinObject->trans.z = 0.0f;
+        playerPosition.x = coinDestination.x;
+        playerPosition.z = coinDestination.z;
     }
-    if (sp2C.y <= sp14.y && sp20.y < 0.0f) {
-        sp2C.y = sp14.y;
-        BoardPlayerIdleSet(lbl_1_bss_324);
-        arg0->work[3] = 0;
-        if (arg0->work[2] != 0) {
-            arg0->objFunc = fn_1_E6AC;
+    if (playerPosition.y <= coinDestination.y && coinOffset.y < 0.0f) {
+        playerPosition.y = coinDestination.y;
+        BoardPlayerIdleSet(coinGamePlayer);
+        coinObject->work[3] = 0;
+        if (coinObject->work[2] != 0) {
+            coinObject->objFunc = FinishW04CoinRewardDisplay;
         } else {
-            lbl_1_bss_318->work[0] = 1;
+            coinGameObject->work[0] = 1;
             HuAudFXPlay(0x475);
-            arg0->objFunc = NULL;
+            coinObject->objFunc = NULL;
         }
     }
-    BoardPlayerPosSetV(lbl_1_bss_324, &sp2C);
+    BoardPlayerPosSetV(coinGamePlayer, &playerPosition);
 }
 
-static void fn_1_E6AC(OMOBJ *arg0) {
-    Vec sp8;
-    float var_f31;
+static void FinishW04CoinRewardDisplay(OMOBJ *coinObject) {
+    Vec coinHookPosition;
+    float motionTime;
 
-    if (arg0->work[3] == 0) {
-        lbl_1_bss_2B0 = -1;
-        var_f31 = 4.0f + 20.0f * (arg0->work[1] - 1);
-        BoardModelMotionTimeSet(lbl_1_bss_14[7], var_f31);
-        BoardModelAttrReset(lbl_1_bss_14[7], 0x40000002);
-        lbl_1_bss_314++;
-        arg0->work[3] = 1;
-        arg0->work[0] = 0x10;
-        lbl_1_bss_2B0 = HuAudFXPlay(lbl_1_data_5F0[arg0->work[1] - 1]);
+    if (coinObject->work[3] == 0) {
+        coinSoundEffectId = -1;
+        motionTime = 4.0f + 20.0f * (coinObject->work[1] - 1);
+        BoardModelMotionTimeSet(w04BoardModelIds[7], motionTime);
+        BoardModelAttrReset(w04BoardModelIds[7], 0x40000002);
+        coinRewardCount++;
+        coinObject->work[3] = 1;
+        coinObject->work[0] = 0x10;
+        coinSoundEffectId = HuAudFXPlay(coinRewardSoundIds[coinObject->work[1] - 1]);
     }
-    if (--arg0->work[0] != 0) {
-        Hu3DModelObjPosGet(BoardModelIDGet(lbl_1_bss_14[7]), lbl_1_data_5BC[arg0->work[1]], &sp8);
-        BoardPlayerPosSetV(lbl_1_bss_324, &sp8);
+    if (--coinObject->work[0] != 0) {
+        Hu3DModelObjPosGet(BoardModelIDGet(w04BoardModelIds[7]), coinDisplayHookNames[coinObject->work[1]], &coinHookPosition);
+        BoardPlayerPosSetV(coinGamePlayer, &coinHookPosition);
         return;
     }
-    if (lbl_1_bss_2B0 >= 0) {
-        HuAudFXStop(lbl_1_bss_2B0);
+    if (coinSoundEffectId >= 0) {
+        HuAudFXStop(coinSoundEffectId);
     }
-    lbl_1_bss_318->work[0] = 1;
-    BoardModelAttrSet(lbl_1_bss_14[7], 0x40000002);
-    arg0->objFunc = NULL;
+    coinGameObject->work[0] = 1;
+    BoardModelAttrSet(w04BoardModelIds[7], 0x40000002);
+    coinObject->objFunc = NULL;
 }
 
-static s16 fn_1_E880(OMOBJ *arg0) {
-    s16 temp_r28;
-    s16 var_r30;
-    s32 temp_r29;
+static s16 GetW04CoinRewardIndex(OMOBJ *coinObject) {
+    s16 playerDifficulty;
+    s16 rewardIndex;
+    s32 randomRoll;
 
-    temp_r28 = GWPlayer[lbl_1_bss_324].diff;
-    var_r30 = 0;
-    temp_r29 = frandmod(100);
-    switch (temp_r28) {
+    playerDifficulty = GWPlayer[coinGamePlayer].diff;
+    rewardIndex = 0;
+    randomRoll = frandmod(100);
+    switch (playerDifficulty) {
         case 0:
-            if (temp_r29 < 35) {
-                var_r30 = lbl_1_bss_2C2[arg0->work[1] - 1];
-            } else if (temp_r29 < 90) {
-                var_r30 = -1;
+            if (randomRoll < 35) {
+                rewardIndex = coinSpaceFlags[coinObject->work[1] - 1];
+            } else if (randomRoll < 90) {
+                rewardIndex = -1;
             } else {
-                arg0->mode = 100;
+                coinObject->mode = 100;
             }
             break;
         case 1:
-            if (temp_r29 < 55) {
-                var_r30 = lbl_1_bss_2C2[arg0->work[1] - 1];
-            } else if (temp_r29 < 90) {
-                var_r30 = -1;
+            if (randomRoll < 55) {
+                rewardIndex = coinSpaceFlags[coinObject->work[1] - 1];
+            } else if (randomRoll < 90) {
+                rewardIndex = -1;
             } else {
-                arg0->mode = 100;
+                coinObject->mode = 100;
             }
             break;
         case 2:
-            if (temp_r29 < 85) {
-                var_r30 = lbl_1_bss_2C2[arg0->work[1] - 1];
+            if (randomRoll < 85) {
+                rewardIndex = coinSpaceFlags[coinObject->work[1] - 1];
             } else {
-                var_r30 = -1;
+                rewardIndex = -1;
             }
             break;
         case 3:
-            var_r30 = lbl_1_bss_2C2[arg0->work[1] - 1];
+            rewardIndex = coinSpaceFlags[coinObject->work[1] - 1];
             break;
     }
-    return var_r30;
+    return rewardIndex;
 }

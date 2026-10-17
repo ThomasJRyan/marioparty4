@@ -15,76 +15,76 @@
 #include "dolphin.h"
 #include "ext_math.h"
 
-static void fn_1_17B4(s16 arg0, s16 arg1);
-static void fn_1_191C(void);
-static void fn_1_1B98(s16 arg0);
-static void fn_1_1C2C(void);
-static void fn_1_1E60(void);
-static void fn_1_2008(void);
-static void fn_1_2044(void);
+static void FadeW04BridgeRail(s16 reveal, s16 durationFrames);
+static void AnimateW04BridgeToggle(void);
+static void SetW04BridgeSpaceFlags(s16 bridgeIsOpen);
+static void UpdateW04BridgeModels(void);
+static void AnimateW04BridgeModel(void);
+static void CleanupW04BridgeModel(void);
+static void FinishW04BridgeEvent(void);
 
-static HUPROCESS *lbl_1_bss_3C[3];
-static HUPROCESS *lbl_1_bss_38;
+static HUPROCESS *bridgeVisualProcesses[3];
+static HUPROCESS *bridgeEventProcess;
 
-static s32 lbl_1_data_298[] = {
+static s32 bridgeModelResources[] = {
     DATA_MAKE_NUM(DATADIR_W04, 32),
     -1
 };
 
-void fn_1_12FC(void) {
-    Vec sp14;
-    Vec sp8;
-    s16 *temp_r3;
-    s32 var_r29;
+void W04BridgeSetup(void) {
+    Vec bridgePosition;
+    Vec modelScale;
+    s16 *bridgeProcessData;
+    s32 spaceFlagMask;
     s32 i;
 
-    sp8.x = sp8.y = sp8.z = 1.5f;
+    modelScale.x = modelScale.y = modelScale.z = 1.5f;
     for (i = 0; i < 3; i++) {
-        lbl_1_bss_3C[i] = HuPrcChildCreate(fn_1_1E60, 0x2003, 0x1000, 0, boardMainProc);
-        HuPrcDestructorSet2(lbl_1_bss_3C[i], fn_1_2008);
-        temp_r3 = HuMemDirectMallocNum(HEAP_HEAP, 5 * sizeof(s16), HU_MEMNUM_OVL);
-        lbl_1_bss_3C[i]->user_data = temp_r3;
-        temp_r3[0] = i;
-        temp_r3[1] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W04, 31), lbl_1_data_298, 1);
-        BoardModelScaleSetV(temp_r3[1], &sp8);
-        temp_r3[2] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W04, 33), NULL, 1);
-        BoardModelAttrSet(temp_r3[2], 0x40000001);
-        BoardModelHookSet(temp_r3[1], "itemhook_R", temp_r3[2]);
-        BoardModelMotionStart(temp_r3[1], 1, 0x40000001);
-        var_r29 = (0x8000 >> i);
-        var_r29 |= 0x1000;
-        temp_r3[3] = BoardSpaceFlagSearch(0, var_r29);
-        var_r29 = (0x8000 >> i);
-        var_r29 |= 0x800;
-        temp_r3[4] = BoardSpaceFlagSearch(0, var_r29);
-        BoardSpacePosGet(0, temp_r3[3], &sp14);
-        BoardModelPosSetV(temp_r3[1], &sp14);
+        bridgeVisualProcesses[i] = HuPrcChildCreate(AnimateW04BridgeModel, 0x2003, 0x1000, 0, boardMainProc);
+        HuPrcDestructorSet2(bridgeVisualProcesses[i], CleanupW04BridgeModel);
+        bridgeProcessData = HuMemDirectMallocNum(HEAP_HEAP, 5 * sizeof(s16), HU_MEMNUM_OVL);
+        bridgeVisualProcesses[i]->user_data = bridgeProcessData;
+        bridgeProcessData[0] = i;
+        bridgeProcessData[1] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W04, 31), bridgeModelResources, 1);
+        BoardModelScaleSetV(bridgeProcessData[1], &modelScale);
+        bridgeProcessData[2] = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W04, 33), NULL, 1);
+        BoardModelAttrSet(bridgeProcessData[2], 0x40000001);
+        BoardModelHookSet(bridgeProcessData[1], "itemhook_R", bridgeProcessData[2]);
+        BoardModelMotionStart(bridgeProcessData[1], 1, 0x40000001);
+        spaceFlagMask = (0x8000 >> i);
+        spaceFlagMask |= 0x1000;
+        bridgeProcessData[3] = BoardSpaceFlagSearch(0, spaceFlagMask);
+        spaceFlagMask = (0x8000 >> i);
+        spaceFlagMask |= 0x800;
+        bridgeProcessData[4] = BoardSpaceFlagSearch(0, spaceFlagMask);
+        BoardSpacePosGet(0, bridgeProcessData[3], &bridgePosition);
+        BoardModelPosSetV(bridgeProcessData[1], &bridgePosition);
     }
-    sp8.x = sp8.y = sp8.z = 2.0f;
-    BoardModelScaleSetV(lbl_1_bss_14[11], &sp8);
-    fn_1_1C2C();
-    if (lbl_1_bss_0->unk00 & 1) {
-        BoardModelMotionStartEndSet(lbl_1_bss_14[5], 0, 180);
-        BoardModelMotionTimeSet(lbl_1_bss_14[5], 108.0f);
-        fn_1_17B4(0, 1);
-        BoardModelAttrSet(lbl_1_bss_14[5], 0x40000002);
+    modelScale.x = modelScale.y = modelScale.z = 2.0f;
+    BoardModelScaleSetV(w04BoardModelIds[11], &modelScale);
+    UpdateW04BridgeModels();
+    if (w04BoardEventState->bridgeState & 1) {
+        BoardModelMotionStartEndSet(w04BoardModelIds[5], 0, 180);
+        BoardModelMotionTimeSet(w04BoardModelIds[5], 108.0f);
+        FadeW04BridgeRail(0, 1);
+        BoardModelAttrSet(w04BoardModelIds[5], 0x40000002);
         return;
     }
-    BoardModelAttrReset(lbl_1_bss_14[5], 0x40000002);
-    BoardModelMotionStartEndSet(lbl_1_bss_14[5], 0, 60);
-    BoardModelMotionTimeSet(lbl_1_bss_14[5], 0.0f);
-    fn_1_17B4(1, 1);
+    BoardModelAttrReset(w04BoardModelIds[5], 0x40000002);
+    BoardModelMotionStartEndSet(w04BoardModelIds[5], 0, 60);
+    BoardModelMotionTimeSet(w04BoardModelIds[5], 0.0f);
+    FadeW04BridgeRail(1, 1);
 }
 
-void fn_1_15C8(void) {
+void W04BridgeCleanup(void) {
     s32 i;
 
     for (i = 0; i < 3; i++) {
-        HuPrcKill(lbl_1_bss_3C[i]);
+        HuPrcKill(bridgeVisualProcesses[i]);
     }
 }
 
-static s32 lbl_1_data_2AC[8] = {
+static s32 bridgeToggleMotionIds[8] = {
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 28),
     DATA_MAKE_NUM(DATADIR_LUIGIMOT, 28),
     DATA_MAKE_NUM(DATADIR_PEACHMOT, 28),
@@ -95,220 +95,219 @@ static s32 lbl_1_data_2AC[8] = {
     DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 28)
 };
 
-void fn_1_1618(void) {
-    s32 temp_r31;
-    s16 temp_r30;
+void W04BridgeToggleEvent(void) {
+    s32 currentPlayer;
+    s16 playerMotionId;
 
-    temp_r31 = GWSystem.player_curr;
-    temp_r30 = BoardPlayerMotionCreate(temp_r31, lbl_1_data_2AC[GWPlayer[temp_r31].character]);
+    currentPlayer = GWSystem.player_curr;
+    playerMotionId = BoardPlayerMotionCreate(currentPlayer, bridgeToggleMotionIds[GWPlayer[currentPlayer].character]);
     BoardRollDispSet(0);
-    BoardPlayerMotBlendSet(temp_r31, 180, 15);
+    BoardPlayerMotBlendSet(currentPlayer, 180, 15);
     BoardCameraViewSet(2);
-    while (!BoardPlayerMotBlendCheck(temp_r31)) {
+    while (!BoardPlayerMotBlendCheck(currentPlayer)) {
         HuPrcVSleep();
     }
     BoardCameraMotionWait();
-    lbl_1_bss_0->unk00 ^= 1;
-    fn_1_191C();
-    fn_1_1C2C();
-    PlayerFXPlay(temp_r31, 0x128);
-    BoardPlayerMotionStart(temp_r31, temp_r30, 0);
-    while (!BoardPlayerMotionEndCheck(temp_r31)) {
+    w04BoardEventState->bridgeState ^= 1;
+    AnimateW04BridgeToggle();
+    UpdateW04BridgeModels();
+    PlayerFXPlay(currentPlayer, 0x128);
+    BoardPlayerMotionStart(currentPlayer, playerMotionId, 0);
+    while (!BoardPlayerMotionEndCheck(currentPlayer)) {
         HuPrcVSleep();
     }
     HuPrcSleep(30);
-    if (!(lbl_1_bss_0->unk00 & 1)) {
+    if (!(w04BoardEventState->bridgeState & 1)) {
         BoardWinCreate(2, MAKE_MESSID(32, 24), 11);
         BoardWinWait();
         BoardWinKill();
     }
-    BoardPlayerMotionShiftSet(temp_r31, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+    BoardPlayerMotionShiftSet(currentPlayer, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
     BoardCameraViewSet(1);
     BoardCameraMotionWait();
     BoardRollDispSet(1);
-    BoardPlayerMotionKill(temp_r31, temp_r30);
+    BoardPlayerMotionKill(currentPlayer, playerMotionId);
     HuPrcKill(NULL);
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-static void fn_1_17B4(s16 arg0, s16 arg1) {
-    float var_f30;
-    float var_f31;
+static void FadeW04BridgeRail(s16 reveal, s16 durationFrames) {
+    float alphaStep;
+    float railAlpha;
     s32 i;
 
-    if (arg0 != 0) {
-        var_f31 = 0.0f;
-        var_f30 = 255.0f / arg1;
+    if (reveal != 0) {
+        railAlpha = 0.0f;
+        alphaStep = 255.0f / durationFrames;
     } else {
-        var_f31 = 255.0f;
-        var_f30 = -255.0f / arg1;
+        railAlpha = 255.0f;
+        alphaStep = -255.0f / durationFrames;
     }
-    for (i = 0; i < arg1; i++) {
-        BoardModelAlphaSet(lbl_1_bss_14[11], var_f31);
-        var_f31 += var_f30;
+    for (i = 0; i < durationFrames; i++) {
+        BoardModelAlphaSet(w04BoardModelIds[11], railAlpha);
+        railAlpha += alphaStep;
         HuPrcVSleep();
     }
-    if (arg0 != 0) {
-        BoardModelAlphaSet(lbl_1_bss_14[11], 0xFF);
+    if (reveal != 0) {
+        BoardModelAlphaSet(w04BoardModelIds[11], 0xFF);
     } else {
-        BoardModelAlphaSet(lbl_1_bss_14[11], 0);
+        BoardModelAlphaSet(w04BoardModelIds[11], 0);
     }
 }
 
-static void fn_1_191C(void) {
-    float var_f31;
-    float temp_f29;
-    float var_f30;
-    float temp_f28;
-    s32 var_r31;
-    s32 var_r30;
+static void AnimateW04BridgeToggle(void) {
+    float closeRailAlpha;
+    float closeAlphaStep;
+    float openRailAlpha;
+    float openAlphaStep;
+    s32 frame;
 
     HuAudFXPlay(0x4B);
-    if (lbl_1_bss_0->unk00 & 1) {
+    if (w04BoardEventState->bridgeState & 1) {
         BoardWinCreate(2, MAKE_MESSID(32, 23), 11);
         BoardWinWait();
         BoardWinKill();
         omVibrate(GWSystem.player_curr, 12, 6, 6);
         HuAudFXPlay(0x45E);
-        BoardModelMotionStartEndSet(lbl_1_bss_14[5], 0, 180);
-        BoardModelMotionTimeSet(lbl_1_bss_14[5], 59.0f);
-        var_f31 = 255.0f;
-        temp_f29 = -5.1f;
-        for (var_r31 = 0; var_r31 < 50; var_r31++) {
-            BoardModelAlphaSet(lbl_1_bss_14[11], var_f31);
-            var_f31 += temp_f29;
+        BoardModelMotionStartEndSet(w04BoardModelIds[5], 0, 180);
+        BoardModelMotionTimeSet(w04BoardModelIds[5], 59.0f);
+        closeRailAlpha = 255.0f;
+        closeAlphaStep = -5.1f;
+        for (frame = 0; frame < 50; frame++) {
+            BoardModelAlphaSet(w04BoardModelIds[11], closeRailAlpha);
+            closeRailAlpha += closeAlphaStep;
             HuPrcVSleep();
         }
-        BoardModelAlphaSet(lbl_1_bss_14[11], 0);
-        BoardModelAttrSet(lbl_1_bss_14[5], 0x40000002);
+        BoardModelAlphaSet(w04BoardModelIds[11], 0);
+        BoardModelAttrSet(w04BoardModelIds[5], 0x40000002);
     } else {
         omVibrate(GWSystem.player_curr, 12, 6, 6);
         HuAudFXPlay(0x45D);
-        BoardModelAttrReset(lbl_1_bss_14[5], 0x40000002);
-        BoardModelMotionStartEndSet(lbl_1_bss_14[5], 0, 180);
-        BoardModelMotionTimeSet(lbl_1_bss_14[5], 110.0f);
-        var_f30 = 0.0f;
-        temp_f28 = 3.642857f;
-        for (var_r30 = 0; var_r30 < 70; var_r30++) {
-            BoardModelAlphaSet(lbl_1_bss_14[11], var_f30);
-            var_f30 += temp_f28;
+        BoardModelAttrReset(w04BoardModelIds[5], 0x40000002);
+        BoardModelMotionStartEndSet(w04BoardModelIds[5], 0, 180);
+        BoardModelMotionTimeSet(w04BoardModelIds[5], 110.0f);
+        openRailAlpha = 0.0f;
+        openAlphaStep = 3.642857f;
+        for (frame = 0; frame < 70; frame++) {
+            BoardModelAlphaSet(w04BoardModelIds[11], openRailAlpha);
+            openRailAlpha += openAlphaStep;
             HuPrcVSleep();
         }
-        BoardModelAlphaSet(lbl_1_bss_14[11], 0xFF);
-        BoardModelMotionStartEndSet(lbl_1_bss_14[5], 0, 60);
+        BoardModelAlphaSet(w04BoardModelIds[11], 0xFF);
+        BoardModelMotionStartEndSet(w04BoardModelIds[5], 0, 60);
     }
 }
 
-static void fn_1_1B98(s16 arg0) {
-    BoardSpace *temp_r3;
+static void SetW04BridgeSpaceFlags(s16 bridgeIsOpen) {
+    BoardSpace *boardSpace;
     s32 i;
 
     for (i = 0; i < BoardSpaceCountGet(0); i++) {
-        temp_r3 = BoardSpaceGet(0, i + 1);
-        if (temp_r3->flag & 0x20) {
-            if (arg0 != 0) {
-                temp_r3->flag |= 0x04000000;
+        boardSpace = BoardSpaceGet(0, i + 1);
+        if (boardSpace->flag & 0x20) {
+            if (bridgeIsOpen != 0) {
+                boardSpace->flag |= 0x04000000;
             } else {
-                temp_r3->flag &= ~0x04000000;
+                boardSpace->flag &= ~0x04000000;
             }
         }
     }
 }
 
-static void fn_1_1C2C(void) {
-    s16 *var_r28;
+static void UpdateW04BridgeModels(void) {
+    s16 *shortValues;
     s32 i;
 
-    if (lbl_1_bss_0->unk00 == 0) {
-        BoardModelMotionStartEndSet(lbl_1_bss_14[3], 0, 80);
-        BoardModelMotionTimeSet(lbl_1_bss_14[3], 0.0f);
-        BoardModelVisibilitySet(lbl_1_bss_14[0], 1);
-        BoardModelVisibilitySet(lbl_1_bss_14[1], 1);
-        BoardModelVisibilitySet(lbl_1_bss_14[2], 1);
-        fn_1_1B98(0);
+    if (w04BoardEventState->bridgeState == 0) {
+        BoardModelMotionStartEndSet(w04BoardModelIds[3], 0, 80);
+        BoardModelMotionTimeSet(w04BoardModelIds[3], 0.0f);
+        BoardModelVisibilitySet(w04BoardModelIds[0], 1);
+        BoardModelVisibilitySet(w04BoardModelIds[1], 1);
+        BoardModelVisibilitySet(w04BoardModelIds[2], 1);
+        SetW04BridgeSpaceFlags(0);
         for (i = 0; i < 3; i++) {
-            var_r28 = lbl_1_bss_3C[i]->user_data;
-            BoardModelMotionStartEndSet(var_r28[2], 0, 20);
+            shortValues = bridgeVisualProcesses[i]->user_data;
+            BoardModelMotionStartEndSet(shortValues[2], 0, 20);
         }
     } else {
-        BoardModelMotionStartEndSet(lbl_1_bss_14[3], 100, 100);
-        BoardModelMotionTimeSet(lbl_1_bss_14[3], 100.0f);
-        BoardModelVisibilitySet(lbl_1_bss_14[0], 0);
-        BoardModelVisibilitySet(lbl_1_bss_14[1], 0);
-        BoardModelVisibilitySet(lbl_1_bss_14[2], 0);
-        fn_1_1B98(1);
+        BoardModelMotionStartEndSet(w04BoardModelIds[3], 100, 100);
+        BoardModelMotionTimeSet(w04BoardModelIds[3], 100.0f);
+        BoardModelVisibilitySet(w04BoardModelIds[0], 0);
+        BoardModelVisibilitySet(w04BoardModelIds[1], 0);
+        BoardModelVisibilitySet(w04BoardModelIds[2], 0);
+        SetW04BridgeSpaceFlags(1);
         for (i = 0; i < 3; i++) {
-            var_r28 = lbl_1_bss_3C[i]->user_data;
-            BoardModelMotionStartEndSet(var_r28[2], 25, 25);
+            shortValues = bridgeVisualProcesses[i]->user_data;
+            BoardModelMotionStartEndSet(shortValues[2], 25, 25);
         }
     }
 }
 
-static void fn_1_1E60(void) {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float temp_f31;
-    s16 *temp_r31;
-    s16 var_r29;
-    s16 var_r28;
+static void AnimateW04BridgeModel(void) {
+    Vec movementStep;
+    Vec bridgePosition;
+    Vec nextSpacePosition;
+    float bridgeAngle;
+    s16 *shortValues;
+    s16 startSpace;
+    s16 endSpace;
     s16 i;
 
-    temp_r31 = HuPrcCurrentGet()->user_data;
-    var_r29 = temp_r31[3];
-    var_r28 = temp_r31[4];
+    shortValues = HuPrcCurrentGet()->user_data;
+    startSpace = shortValues[3];
+    endSpace = shortValues[4];
     while (TRUE) {
-        BoardSpacePosGet(0, var_r29, &sp14);
-        BoardSpacePosGet(0, var_r28, &sp8);
-        VECSubtract(&sp8, &sp14, &sp20);
-        VECScale(&sp20, &sp20, 0.008333334f);
-        temp_f31 = atan2d(sp8.x - sp14.x, sp8.z - sp14.z);
-        BoardModelPosGet(temp_r31[1], &sp14);
-        while (fn_1_1130(temp_r31[1], temp_f31, 2.5f) == 0) {
-            if (lbl_1_bss_0->unk00 == 0) {
-                BoardModelAlphaSet(temp_r31[1], 0xFF);
+        BoardSpacePosGet(0, startSpace, &bridgePosition);
+        BoardSpacePosGet(0, endSpace, &nextSpacePosition);
+        VECSubtract(&nextSpacePosition, &bridgePosition, &movementStep);
+        VECScale(&movementStep, &movementStep, 0.008333334f);
+        bridgeAngle = Atan2d(nextSpacePosition.x - bridgePosition.x, nextSpacePosition.z - bridgePosition.z);
+        BoardModelPosGet(shortValues[1], &bridgePosition);
+        while (W04ModelRotateYToAngle(shortValues[1], bridgeAngle, 2.5f) == 0) {
+            if (w04BoardEventState->bridgeState == 0) {
+                BoardModelAlphaSet(shortValues[1], 0xFF);
             } else {
-                BoardModelAlphaSet(temp_r31[1], 0);
+                BoardModelAlphaSet(shortValues[1], 0);
             }
             HuPrcVSleep();
         }
         for (i = 0; i < 120; i++) {
-            if (lbl_1_bss_0->unk00 == 0) {
-                BoardModelAlphaSet(temp_r31[1], 0xFF);
+            if (w04BoardEventState->bridgeState == 0) {
+                BoardModelAlphaSet(shortValues[1], 0xFF);
             } else {
-                BoardModelAlphaSet(temp_r31[1], 0);
+                BoardModelAlphaSet(shortValues[1], 0);
             }
-            VECAdd(&sp14, &sp20, &sp14);
-            BoardModelPosSetV(temp_r31[1], &sp14);
+            VECAdd(&bridgePosition, &movementStep, &bridgePosition);
+            BoardModelPosSetV(shortValues[1], &bridgePosition);
             HuPrcVSleep();
         }
-        i = var_r29;
-        var_r29 = var_r28;
-        var_r28 = i;
+        i = startSpace;
+        startSpace = endSpace;
+        endSpace = i;
     }
 }
 
-static void fn_1_2008(void) {
-    s16 *temp_r31;
+static void CleanupW04BridgeModel(void) {
+    s16 *shortValues;
 
-    temp_r31 = HuPrcCurrentGet()->user_data;
-    BoardModelKill(temp_r31[1]);
-    HuMemDirectFree(temp_r31);
+    shortValues = HuPrcCurrentGet()->user_data;
+    BoardModelKill(shortValues[1]);
+    HuMemDirectFree(shortValues);
 }
 
-static void fn_1_2044(void) {
-    lbl_1_bss_38 = NULL;
+static void FinishW04BridgeEvent(void) {
+    bridgeEventProcess = NULL;
 }
 
-void fn_1_2058(void) {
-    s32 sp8;
+void W04BridgeWalkEvent(void) {
+    s32 currentPlayerIndex;
 
-    sp8 = GWSystem.player_curr;
-    lbl_1_bss_38 = HuPrcChildCreate(fn_1_1618, 0x2003, 0x2000, 0, boardMainProc);
-    HuPrcDestructorSet2(lbl_1_bss_38, fn_1_2044);
-    while (lbl_1_bss_38) {
+    currentPlayerIndex = GWSystem.player_curr;
+    bridgeEventProcess = HuPrcChildCreate(W04BridgeToggleEvent, 0x2003, 0x2000, 0, boardMainProc);
+    HuPrcDestructorSet2(bridgeEventProcess, FinishW04BridgeEvent);
+    while (bridgeEventProcess) {
         HuPrcVSleep();
     }
 }
