@@ -3,10 +3,10 @@
 
 #include "game/object.h"
 
-void fn_1_32C4(HUPROCESS *objman);
-void fn_1_340C(void);
-s32 fn_1_6698(Vec *arg0, float arg1, float arg2, s32 arg3);
-float fn_1_687C(void);
-s32 fn_1_6CB0(Vec *arg0, float arg1);
+void StageObjectsCreate(HUPROCESS *objectManager);
+void StageObjectsDestroy(void);
+s32 SnowParticleSpawn(Vec *position, float horizontalSpeed, float depthSpeed, s32 lifetime);
+float PlatformHeightGet(void);
+s32 SnowmanParticleSpawn(Vec *position, float scale);
 
 #endif

@@ -23,216 +23,216 @@
 #include "game/hsfex.h"
 #endif
 
-typedef struct camera_view_params {
+typedef struct CameraViewParams {
     float zoom;
     Vec pos;
     Vec rot;
 } CameraViewParams;
 
-CameraViewParams lbl_1_data_0[2] = { { 500, { 0, 1000, 0 }, { 40, 0, 0 } }, { 1985, { 0, 300, 0 }, { -6, 0, 0 } } };
-Vec lbl_1_data_38 = { 700, 2500, -700 };
-Vec lbl_1_data_44 = { 0, 0, 0 };
-GXColor lbl_1_data_50 = { 255, 255, 255, 255 };
-Vec lbl_1_data_54 = { 200, 15000, -200 };
-Vec lbl_1_data_60 = { 0, 1, 0 };
+CameraViewParams cameraPresets[2] = { { 500, { 0, 1000, 0 }, { 40, 0, 0 } }, { 1985, { 0, 300, 0 }, { -6, 0, 0 } } };
+Vec lightPosition = { 700, 2500, -700 };
+Vec originPosition = { 0, 0, 0 };
+GXColor lightColor = { 255, 255, 255, 255 };
+Vec shadowPosition = { 200, 15000, -200 };
+Vec shadowDirection = { 0, 1, 0 };
 
-OMOBJ *lbl_1_bss_40;
-OMOBJ *lbl_1_bss_3C;
-OMOBJ *lbl_1_bss_38;
-s32 lbl_1_bss_34;
-s32 lbl_1_bss_30;
-s32 lbl_1_bss_2C;
-s32 lbl_1_bss_28;
-s16 lbl_1_bss_26;
-s16 lbl_1_bss_24;
-s16 lbl_1_bss_22;
-s16 lbl_1_bss_20;
-s16 lbl_1_bss_18[4];
-s16 lbl_1_bss_16;
-s16 lbl_1_bss_14;
+OMOBJ *overlayUpdateObject;
+OMOBJ *outOfViewObject;
+OMOBJ *mainSequenceObject;
+s32 mainState;
+s32 firstPlacePlayerIndex;
+s32 stateTimer;
+s32 nextPlayerIndex;
+s16 countdownValue;
+s16 countdownTickTimer;
+s16 currentPlace;
+s16 finishedPlayerCount;
+s16 finishedPlayerIndices[4];
+s16 playerStartTimer;
+s16 playerActionTimer;
 #if VERSION_PAL
-s32 lbl_1_bss_pal;
+s32 rumbleAllowed;
 #endif
-Vec lbl_1_bss_8;
-s16 lbl_1_bss_4;
-s32 lbl_1_bss_0;
+Vec lightDirection;
+s16 minigameSequenceId;
+s32 reservedState;
 
-void fn_1_330(OMOBJ *object);
-void fn_1_B94(HUPROCESS *objman);
-void fn_1_2A90(HUPROCESS *objman);
-s32 fn_1_3214(void);
+void MainStateUpdate(OMOBJ *object);
+void PlayersCreate(HUPROCESS *objectManager);
+void CameraCreate(HUPROCESS *objectManager);
+s32 RumbleEnabledGet(void);
 
 void ObjectSetup(void)
 {
-    HUPROCESS *objman;
+    HUPROCESS *objectManager;
     HU3DCAMERA *camera = &Hu3DCamera[0];
     s16 light;
     OSReport("******* M455ObjectSetup *********\n");
-    objman = omInitObjMan(50, 8192);
-    omGameSysInit(objman);
+    objectManager = omInitObjMan(50, 8192);
+    omGameSysInit(objectManager);
     Hu3DCameraCreate(HU3D_CAM0);
     Hu3DCameraPerspectiveSet(HU3D_CAM0, -1, 20, 25000, 1.2f);
     Hu3DCameraViewportSet(HU3D_CAM0, 0, 0, 640, 480, 0, 1);
-    lbl_1_bss_3C = omAddObjEx(objman, 32730, 0, 0, -1, omOutView);
-    lbl_1_bss_8.x = lbl_1_data_44.x - lbl_1_data_38.x;
-    lbl_1_bss_8.y = lbl_1_data_44.y - lbl_1_data_38.y;
-    lbl_1_bss_8.z = lbl_1_data_44.z - lbl_1_data_38.z;
-    VECNormalize(&lbl_1_bss_8, &lbl_1_bss_8);
-    light = Hu3DGLightCreateV(&lbl_1_data_38, &lbl_1_bss_8, &lbl_1_data_50);
+    outOfViewObject = omAddObjEx(objectManager, 32730, 0, 0, -1, omOutView);
+    lightDirection.x = originPosition.x - lightPosition.x;
+    lightDirection.y = originPosition.y - lightPosition.y;
+    lightDirection.z = originPosition.z - lightPosition.z;
+    VECNormalize(&lightDirection, &lightDirection);
+    light = Hu3DGLightCreateV(&lightPosition, &lightDirection, &lightColor);
     Hu3DGLightInfinitytSet(light);
     Hu3DGLightStaticSet(light, 1);
     Hu3DShadowCreate(10, camera->near, camera->far);
     Hu3DShadowTPLvlSet(0.7f);
-    Hu3DShadowPosSet(&lbl_1_data_54, &lbl_1_data_60, &lbl_1_data_44);
+    Hu3DShadowPosSet(&shadowPosition, &shadowDirection, &originPosition);
     HuAudSndGrpSet(77);
-    lbl_1_bss_38 = omAddObjEx(objman, 0, 0, 0, -1, fn_1_330);
-    fn_1_2A90(objman);
-    fn_1_B94(objman);
-    fn_1_32C4(objman);
+    mainSequenceObject = omAddObjEx(objectManager, 0, 0, 0, -1, MainStateUpdate);
+    CameraCreate(objectManager);
+    PlayersCreate(objectManager);
+    StageObjectsCreate(objectManager);
 }
 
-void fn_1_310(s32 arg0)
+void MainStateSet(s32 state)
 {
-    lbl_1_bss_34 = arg0;
+    mainState = state;
 }
 
-s32 fn_1_320(void)
+s32 MainStateGet(void)
 {
-    return lbl_1_bss_34;
+    return mainState;
 }
 
-void fn_1_478(OMOBJ *object);
+void MainSequenceUpdate(OMOBJ *object);
 
-void fn_1_330(OMOBJ *object)
+void MainStateUpdate(OMOBJ *object)
 {
     HU3DCAMERA *camera = &Hu3DCamera[0];
-    lbl_1_bss_34 = 0;
-    lbl_1_bss_2C = REFRESH_RATE;
-    lbl_1_bss_30 = -1;
-    lbl_1_bss_26 = 30;
-    lbl_1_bss_24 = REFRESH_RATE;
-    lbl_1_bss_22 = -1;
-    lbl_1_bss_20 = 0;
-    lbl_1_bss_16 = ((frand16() * (REFRESH_RATE_F * 4.5f)) / 65536.0f) + (REFRESH_RATE_F / 2);
+    mainState = 0;
+    stateTimer = REFRESH_RATE;
+    firstPlacePlayerIndex = -1;
+    countdownValue = 30;
+    countdownTickTimer = REFRESH_RATE;
+    currentPlace = -1;
+    finishedPlayerCount = 0;
+    playerStartTimer = ((frand16() * (REFRESH_RATE_F * 4.5f)) / 65536.0f) + (REFRESH_RATE_F / 2);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
     camera->fov = 30.0f;
-    object->objFunc = fn_1_478;
+    object->objFunc = MainSequenceUpdate;
 }
 
-void fn_1_B38(OMOBJ *object);
-void fn_1_C28(void);
-s32 fn_1_C90(void);
+void MainSequenceFinish(OMOBJ *object);
+void PlayersUpdate(void);
+s32 PlayersAllFinished(void);
 
-typedef struct m455_player {
-    u8 field0 : 1;
-    u8 field1 : 1;
-    u8 field2 : 1;
-    s16 unk2;
-    s16 unk4;
-    s8 unk6;
-    s8 unk7;
-    u16 unk8;
-    u16 unkA;
-    s32 unkC;
-    s16 unk10;
-    s16 unk12;
-    s16 unk14;
-    s16 unk16;
-    s32 unk18;
-    s32 unk1C;
-    u32 unk20;
-    s16 unk24;
-    s16 unk26;
-    s16 unk28;
-    s16 unk2A;
-    s16 unk2C;
-    s16 unk2E;
-    s16 unk30;
-    Vec unk34[2];
-    Vec unk4C;
-    s16 unk58;
-    s32 unk5C[4];
+typedef struct M455Player {
+    u8 hasHookedItem : 1;
+    u8 hasCompletedTurn : 1;
+    u8 hasPlayedImpactEffects : 1;
+    s16 playerIndex;
+    s16 controllerIndex;
+    s8 stickX;
+    s8 stickY;
+    u16 buttonsHeld;
+    u16 buttonsDown;
+    s32 rumbleEnabled;
+    s16 characterId;
+    s16 difficulty;
+    s16 playerGroup;
+    s16 turnState;
+    s32 reservedState;
+    s32 motionIndex;
+    u32 motionFlags;
+    s16 throwTimer;
+    s16 throwDuration;
+    s16 winningPlace;
+    s16 promptSprite;
+    s16 promptBlinkTimer;
+    s16 promptBlinkDuration;
+    s16 promptDisplayTime;
+    Vec hookVertices[2];
+    Vec hookStartPosition;
+    s16 startDelay;
+    s32 reservedValues[4];
 } M455Player;
 
-s16 lbl_1_data_90 = -1;
-s32 lbl_1_data_94 = -1;
-s32 lbl_1_data_98 = -1;
+s16 countdownTimerSequence = -1;
+s32 countdownMusicSequence = -1;
+s32 countdownSoundEffect = -1;
 
-void fn_1_478(OMOBJ *object)
+void MainSequenceUpdate(OMOBJ *object)
 {
     s32 i;
     OMOBJ **playerList;
     M455Player *player;
 
-    switch (fn_1_320()) {
+    switch (MainStateGet()) {
         case 0:
-            if (lbl_1_data_98 < 0) {
-                lbl_1_data_98 = HuAudFXPlay(1985);
+            if (countdownSoundEffect < 0) {
+                countdownSoundEffect = HuAudFXPlay(1985);
             }
-            if (--lbl_1_bss_2C == 0) {
-                fn_1_310(1);
-                lbl_1_bss_2C = REFRESH_RATE * 2;
+            if (--stateTimer == 0) {
+                MainStateSet(1);
+                stateTimer = REFRESH_RATE * 2;
             }
             break;
 
         case 1:
-            if (--lbl_1_bss_2C == 0) {
-                fn_1_310(2);
-                lbl_1_bss_4 = MGSeqStartCreate();
+            if (--stateTimer == 0) {
+                MainStateSet(2);
+                minigameSequenceId = MGSeqStartCreate();
             }
             break;
 
         case 2:
-            if (!MGSeqStatGet(lbl_1_bss_4)) {
-                fn_1_310(3);
+            if (!MGSeqStatGet(minigameSequenceId)) {
+                MainStateSet(3);
             }
-            if (lbl_1_data_94 < 0 && (MGSeqStatGet(lbl_1_bss_4) & 0x10)) {
-                lbl_1_data_94 = HuAudSeqPlay(60);
+            if (countdownMusicSequence < 0 && (MGSeqStatGet(minigameSequenceId) & 0x10)) {
+                countdownMusicSequence = HuAudSeqPlay(60);
             }
             break;
 
         case 3:
-            if (--lbl_1_bss_24 == 0) {
-                lbl_1_bss_26--;
-                if (lbl_1_data_90 >= 0) {
-                    MGSeqParamSet(lbl_1_data_90, 1, lbl_1_bss_26);
+            if (--countdownTickTimer == 0) {
+                countdownValue--;
+                if (countdownTimerSequence >= 0) {
+                    MGSeqParamSet(countdownTimerSequence, 1, countdownValue);
                 }
-                lbl_1_bss_24 = REFRESH_RATE;
-                if (lbl_1_bss_26 == 10) {
-                    lbl_1_data_90 = MGSeqTimerCreate(10);
+                countdownTickTimer = REFRESH_RATE;
+                if (countdownValue == 10) {
+                    countdownTimerSequence = MGSeqTimerCreate(10);
                 }
             }
-            if (lbl_1_bss_16 >= 0) {
-                lbl_1_bss_16--;
+            if (playerStartTimer >= 0) {
+                playerStartTimer--;
             }
-            if (lbl_1_bss_26 == 0 || fn_1_C90()) {
-                fn_1_310(4);
-                lbl_1_bss_4 = MGSeqFinishCreate();
-                HuAudSeqFadeOut(lbl_1_data_94, 100);
+            if (countdownValue == 0 || PlayersAllFinished()) {
+                MainStateSet(4);
+                minigameSequenceId = MGSeqFinishCreate();
+                HuAudSeqFadeOut(countdownMusicSequence, 100);
             }
             break;
 
         case 4:
-            if (lbl_1_data_90 >= 0) {
-                MGSeqParamSet(lbl_1_data_90, 2, -1);
-                lbl_1_data_90 = -1;
+            if (countdownTimerSequence >= 0) {
+                MGSeqParamSet(countdownTimerSequence, 2, -1);
+                countdownTimerSequence = -1;
             }
-            if (!MGSeqStatGet(lbl_1_bss_4)) {
-                fn_1_310(7);
-                lbl_1_bss_2C = REFRESH_RATE * 2;
+            if (!MGSeqStatGet(minigameSequenceId)) {
+                MainStateSet(7);
+                stateTimer = REFRESH_RATE * 2;
             }
             break;
 
         case 7:
-            if (--lbl_1_bss_2C == 0) {
-                fn_1_310(9);
-                if (lbl_1_bss_30 >= 0) {
+            if (--stateTimer == 0) {
+                MainStateSet(9);
+                if (firstPlacePlayerIndex >= 0) {
                     HuAudSStreamPlay(1);
                     playerList = omGetGroupMemberListEx(HuPrcCurrentGet(), 0);
                     for (i = 0; i < 4; i++) {
                         player = playerList[i]->data;
-                        if (player->unk28 < 0) {
-                            GWPlayerCoinWinSet(i, lbl_1_bss_22 + 1);
+                        if (player->winningPlace < 0) {
+                            GWPlayerCoinWinSet(i, currentPlace + 1);
                         }
                     }
                 }
@@ -242,75 +242,75 @@ void fn_1_478(OMOBJ *object)
                         GWPlayerCoinWinSet(i, 3);
                     }
                 }
-                lbl_1_bss_2C = REFRESH_RATE * 3.5;
+                stateTimer = REFRESH_RATE * 3.5;
             }
             break;
 
         case 9:
-            if (--lbl_1_bss_2C == 0) {
+            if (--stateTimer == 0) {
                 WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-                HuAudFXStop(lbl_1_data_98);
-                object->objFunc = fn_1_B38;
+                HuAudFXStop(countdownSoundEffect);
+                object->objFunc = MainSequenceFinish;
             }
             break;
     }
-    if (lbl_1_bss_20) {
-        if (lbl_1_bss_20 >= 2) {
+    if (finishedPlayerCount) {
+        if (finishedPlayerCount >= 2) {
             for (i = 0; i < 100; i++) {
-                s32 srcIdx = (frand8() * lbl_1_bss_20) >> 8;
-                s32 dstIdx = (frand8() * lbl_1_bss_20) >> 8;
-                s32 temp = lbl_1_bss_18[srcIdx];
-                lbl_1_bss_18[srcIdx] = lbl_1_bss_18[dstIdx];
-                lbl_1_bss_18[dstIdx] = temp;
+                s32 sourceIndex = (frand8() * finishedPlayerCount) >> 8;
+                s32 destinationIndex = (frand8() * finishedPlayerCount) >> 8;
+                s32 swappedPlayerIndex = finishedPlayerIndices[sourceIndex];
+                finishedPlayerIndices[sourceIndex] = finishedPlayerIndices[destinationIndex];
+                finishedPlayerIndices[destinationIndex] = swappedPlayerIndex;
             }
         }
         playerList = omGetGroupMemberListEx(HuPrcCurrentGet(), 0);
-        for (i = 0; i < lbl_1_bss_20; i++) {
-            lbl_1_bss_22++;
-            GWPlayerCoinWinSet(lbl_1_bss_18[i], lbl_1_bss_22);
-            player = playerList[lbl_1_bss_18[i]]->data;
-            player->unk28 = lbl_1_bss_22;
+        for (i = 0; i < finishedPlayerCount; i++) {
+            currentPlace++;
+            GWPlayerCoinWinSet(finishedPlayerIndices[i], currentPlace);
+            player = playerList[finishedPlayerIndices[i]]->data;
+            player->winningPlace = currentPlace;
         }
-        lbl_1_bss_20 = 0;
+        finishedPlayerCount = 0;
     }
     if (omSysExitReq && !WipeStatGet()) {
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-        object->objFunc = fn_1_B38;
+        object->objFunc = MainSequenceFinish;
     }
 }
 
-void fn_1_B38(OMOBJ *object)
+void MainSequenceFinish(OMOBJ *object)
 {
     if (WipeStatGet()) {
         return;
     }
-    fn_1_C28();
-    fn_1_340C();
+    PlayersUpdate();
+    StageObjectsDestroy();
     MGSeqKillAll();
     HuAudFadeOut(1);
     omOvlReturnEx(1, 1);
     OSReport("******* M455Exit *********\n");
 }
 
-void fn_1_D14(OMOBJ *object);
+void PlayerCreate(OMOBJ *object);
 
-void fn_1_B94(HUPROCESS *objman)
+void PlayersCreate(HUPROCESS *objectManager)
 {
     s32 i;
-    lbl_1_bss_28 = 0;
-    lbl_1_bss_14 = 3;
+    nextPlayerIndex = 0;
+    playerActionTimer = 3;
 #if VERSION_PAL
-    lbl_1_bss_pal = fn_1_3214();
+    rumbleAllowed = RumbleEnabledGet();
 #endif
-    omMakeGroupEx(objman, 0, 4);
+    omMakeGroupEx(objectManager, 0, 4);
     for (i = 0; i < 4; i++) {
-        omAddObjEx(objman, 5, 10, 50, 0, fn_1_D14);
+        omAddObjEx(objectManager, 5, 10, 50, 0, PlayerCreate);
     }
 }
 
-void fn_1_2010(OMOBJ *object);
+void PlayerDestroy(OMOBJ *object);
 
-void fn_1_C28(void)
+void PlayersUpdate(void)
 {
     s32 i;
     OMOBJ **playerList;
@@ -319,25 +319,25 @@ void fn_1_C28(void)
         return;
     }
     for (i = 0; i < 4; i++) {
-        fn_1_2010(playerList[i]);
+        PlayerDestroy(playerList[i]);
     }
 }
 
-s32 fn_1_C90(void)
+s32 PlayersAllFinished(void)
 {
     s32 i;
     OMOBJ **playerList;
     playerList = omGetGroupMemberListEx(HuPrcCurrentGet(), 0);
     for (i = 0; i < 4; i++) {
         M455Player *player = playerList[i]->data;
-        if (!player->field1) {
+        if (!player->hasCompletedTurn) {
             return 0;
         }
     }
     return 1;
 }
 
-u32 lbl_1_data_E0[5][2] = {
+u32 characterMotionIds[5][2] = {
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00),
     0,
     0x540024,
@@ -350,60 +350,60 @@ u32 lbl_1_data_E0[5][2] = {
     0,
 };
 
-Vec lbl_1_data_108[4] = {
+Vec playerStartPositions[4] = {
     { -300, 0, -100 },
     { -100, 0, -100 },
     { 100, 0, -100 },
     { 300, 0, -100 },
 };
 
-void fn_1_1444(OMOBJ *object);
+void PlayerUpdate(OMOBJ *object);
 
-void fn_1_2060(HU3DMODEL *arg0, Mtx arg1);
+void HookModelRender(HU3DMODEL *model, Mtx matrix);
 
-void fn_1_D14(OMOBJ *object)
+void PlayerCreate(OMOBJ *object)
 {
     M455Player *player;
-    s32 charNo;
+    s32 characterId;
     u32 i;
     player = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M455Player), HU_MEMNUM_OVL);
     object->data = player;
     memset(player, 0, sizeof(M455Player));
-    player->unk2 = lbl_1_bss_28++;
-    player->unk4 = GWPlayerCfg[player->unk2].pad_idx;
+    player->playerIndex = nextPlayerIndex++;
+    player->controllerIndex = GWPlayerCfg[player->playerIndex].pad_idx;
 #if VERSION_PAL
-    player->unkC = lbl_1_bss_pal;
+    player->rumbleEnabled = rumbleAllowed;
 #else
-    player->unkC = fn_1_3214();
+    player->rumbleEnabled = RumbleEnabledGet();
 #endif
-    charNo = GWPlayerCfg[player->unk2].character;
-    player->unk10 = charNo;
-    player->unk12 = GWPlayerCfg[player->unk2].diff;
-    player->unk14 = GWPlayerCfg[player->unk2].group;
-    object->mdlId[0] = CharModelCreate(charNo, 8);
+    characterId = GWPlayerCfg[player->playerIndex].character;
+    player->characterId = characterId;
+    player->difficulty = GWPlayerCfg[player->playerIndex].diff;
+    player->playerGroup = GWPlayerCfg[player->playerIndex].group;
+    object->mdlId[0] = CharModelCreate(characterId, 8);
     Hu3DModelShadowSet(object->mdlId[0]);
     Hu3DModelLayerSet(object->mdlId[0], 3);
     Hu3DModelCameraSet(object->mdlId[0], HU3D_CAM0);
     object->mdlId[1] = Hu3DModelCreateFile(0x540002);
     Hu3DModelHookSet(object->mdlId[0], "test11_tex_we-itemhook-r", object->mdlId[1]);
     Hu3DModelAttrSet(object->mdlId[1], HU3D_MOTATTR_SHAPE_PAUSE | HU3D_MOTATTR_PAUSE);
-    player->unk1C = 1;
+    player->motionIndex = 1;
     for (i = 0; i < 5; i++) {
-        if (lbl_1_data_E0[i][1] == 0) {
-            object->mtnId[i] = CharMotionCreate(player->unk10, lbl_1_data_E0[i][0]);
+        if (characterMotionIds[i][1] == 0) {
+            object->mtnId[i] = CharMotionCreate(player->characterId, characterMotionIds[i][0]);
         }
         else {
-            object->mtnId[i] = CharMotionCreate(player->unk10, player->unk10 + lbl_1_data_E0[i][0]);
+            object->mtnId[i] = CharMotionCreate(player->characterId, player->characterId + characterMotionIds[i][0]);
         }
     }
-    Hu3DMotionSet(object->mdlId[0], object->mtnId[player->unk1C]);
+    Hu3DMotionSet(object->mdlId[0], object->mtnId[player->motionIndex]);
     Hu3DModelAttrSet(object->mdlId[0], HU3D_MOTATTR_LOOP);
-    object->trans.x = lbl_1_data_108[player->unk2].x;
-    object->trans.y = lbl_1_data_108[player->unk2].y;
-    object->trans.z = lbl_1_data_108[player->unk2].z;
-    player->unk2A = espEntry(0x54000C, 0x8000, 0);
-    espDispOff(player->unk2A);
-    object->mdlId[3] = Hu3DHookFuncCreate(fn_1_2060);
+    object->trans.x = playerStartPositions[player->playerIndex].x;
+    object->trans.y = playerStartPositions[player->playerIndex].y;
+    object->trans.z = playerStartPositions[player->playerIndex].z;
+    player->promptSprite = espEntry(0x54000C, 0x8000, 0);
+    espDispOff(player->promptSprite);
+    object->mdlId[3] = Hu3DHookFuncCreate(HookModelRender);
     Hu3DModelLayerSet(object->mdlId[3], 3);
     Hu3DModelCameraSet(object->mdlId[3], HU3D_CAM0);
     Hu3DData[object->mdlId[3]].hookData = object;
@@ -415,194 +415,194 @@ void fn_1_D14(OMOBJ *object)
     Hu3DMotionSet(object->mdlId[4], i);
     Hu3DModelAttrSet(object->mdlId[4], HU3D_MOTATTR_LOOP);
     Hu3DModelAttrSet(object->mdlId[4], HU3D_MOTATTR_PAUSE);
-    player->unk4C.x = object->trans.x + (50.0f * ((((s32)frand() & 0x1FF) - 256.0f) / 256.0f));
-    player->unk4C.y = -200;
-    player->unk4C.z = -1500;
-    Hu3DModelPosSetV(object->mdlId[4], &player->unk4C);
+    player->hookStartPosition.x = object->trans.x + (50.0f * ((((s32)frand() & 0x1FF) - 256.0f) / 256.0f));
+    player->hookStartPosition.y = -200;
+    player->hookStartPosition.z = -1500;
+    Hu3DModelPosSetV(object->mdlId[4], &player->hookStartPosition);
     Hu3DModelAttrSet(object->mdlId[4], HU3D_ATTR_DISPOFF);
-    player->unk34[0].x = object->trans.x;
-    player->unk34[0].y = 0;
-    player->unk34[0].z = -500;
-    player->unk34[1].x = object->trans.x;
-    player->unk34[1].y = -200;
-    player->unk34[1].z = -1000;
-    CharModelDataClose(player->unk10);
+    player->hookVertices[0].x = object->trans.x;
+    player->hookVertices[0].y = 0;
+    player->hookVertices[0].z = -500;
+    player->hookVertices[1].x = object->trans.x;
+    player->hookVertices[1].y = -200;
+    player->hookVertices[1].z = -1000;
+    CharModelDataClose(player->characterId);
     object->rot.y = 180;
-    if (((s32)frand() & 0x1F) < 4 - player->unk12) {
-        player->unk58 = lbl_1_bss_16 - (REFRESH_RATE_F * (0.05f * (4 - player->unk12))) - ((frand8() / 256.0f) * (REFRESH_RATE_F / 10));
-        if (player->unk58 < 0) {
-            player->unk58 = 0;
+    if (((s32)frand() & 0x1F) < 4 - player->difficulty) {
+        player->startDelay = playerStartTimer - (REFRESH_RATE_F * (0.05f * (4 - player->difficulty))) - ((frand8() / 256.0f) * (REFRESH_RATE_F / 10));
+        if (player->startDelay < 0) {
+            player->startDelay = 0;
         }
     }
     else {
-        player->unk58 = lbl_1_bss_16 + (REFRESH_RATE_F * (0.1f * (4 - player->unk12))) + ((frand8() / 256.0f) * (REFRESH_RATE_F / 2)) + (REFRESH_RATE_F / 10);
+        player->startDelay = playerStartTimer + (REFRESH_RATE_F * (0.1f * (4 - player->difficulty))) + ((frand8() / 256.0f) * (REFRESH_RATE_F / 2)) + (REFRESH_RATE_F / 10);
     }
-    player->unk28 = -1;
-    object->objFunc = fn_1_1444;
+    player->winningPlace = -1;
+    object->objFunc = PlayerUpdate;
 }
 
-void fn_1_1400(OMOBJ *object)
+void PlayerTurnFinish(OMOBJ *object)
 {
     M455Player *player = object->data;
-    if (player->unk58 != 0) {
-        player->unk58--;
+    if (player->startDelay != 0) {
+        player->startDelay--;
     }
     else {
-        player->unkA |= PAD_BUTTON_A;
+        player->buttonsDown |= PAD_BUTTON_A;
     }
 }
 
-float lbl_1_data_154[4] = { -350, -170, 170, 350 };
+float playerLaneOffsets[4] = { -350, -170, 170, 350 };
 
-float lbl_1_data_164[3] = { 1.5f, 1.0f, 0.5f };
+float placeScaleFactors[3] = { 1.5f, 1.0f, 0.5f };
 
-float fn_1_2390(float arg0, float arg1, float arg2);
-s32 fn_1_24F0(Vec *arg0, Vec *arg1, float arg2);
+float AngleLerp(float startAngle, float endAngle, float weight);
+s32 QuadraticBezierVector(Vec *controlPoints, Vec *result, float progress);
 
-void fn_1_1444(OMOBJ *object)
+void PlayerUpdate(OMOBJ *object)
 {
-    M455Player *temp_r31;
-    s32 temp_r29;
-    u32 temp_r28;
-    Vec sp24[3];
-    Vec sp18;
-    Vec spC;
-    float temp_f31;
+    M455Player *player;
+    s32 motionIndex;
+    u32 motionAttributes;
+    Vec hookPath[3];
+    Vec worldPosition;
+    Vec hookDirection;
+    float animationProgress;
 
-    temp_r31 = object->data;
-    temp_r29 = temp_r31->unk1C;
-    temp_r28 = temp_r31->unk20;
-    object->trans.y = fn_1_687C();
-    if (fn_1_320() < 3) {
+    player = object->data;
+    motionIndex = player->motionIndex;
+    motionAttributes = player->motionFlags;
+    object->trans.y = PlatformHeightGet();
+    if (MainStateGet() < 3) {
         return;
     }
-    switch (temp_r31->unk16) {
+    switch (player->turnState) {
         case 0:
-            if (fn_1_320() == 4 || lbl_1_bss_14 == 0) {
-                temp_r31->field1 = 1;
-                temp_r31->unk16 = 2;
-                espDispOff(temp_r31->unk2A);
+            if (MainStateGet() == 4 || playerActionTimer == 0) {
+                player->hasCompletedTurn = 1;
+                player->turnState = 2;
+                espDispOff(player->promptSprite);
                 return;
             }
-            if (!GWPlayerCfg[temp_r31->unk2].iscom) {
-                temp_r31->unk6 = HuPadStkX[temp_r31->unk4];
-                temp_r31->unk7 = HuPadStkY[temp_r31->unk4];
-                temp_r31->unk8 = HuPadBtn[temp_r31->unk4];
-                temp_r31->unkA = HuPadBtnDown[temp_r31->unk4];
+            if (!GWPlayerCfg[player->playerIndex].iscom) {
+                player->stickX = HuPadStkX[player->controllerIndex];
+                player->stickY = HuPadStkY[player->controllerIndex];
+                player->buttonsHeld = HuPadBtn[player->controllerIndex];
+                player->buttonsDown = HuPadBtnDown[player->controllerIndex];
             }
             else {
-                temp_r31->unk8 = temp_r31->unkA = 0;
-                temp_r31->unk6 = temp_r31->unk7 = 0;
-                fn_1_1400(object);
+                player->buttonsHeld = player->buttonsDown = 0;
+                player->stickX = player->stickY = 0;
+                PlayerTurnFinish(object);
             }
-            if (lbl_1_bss_16 == 0) {
-                if (temp_r31->unkC) {
-                    omVibrate(temp_r31->unk2, 12, 12, 0);
+            if (playerStartTimer == 0) {
+                if (player->rumbleEnabled) {
+                    omVibrate(player->playerIndex, 12, 12, 0);
                 }
                 else {
-                    sp18.x = object->trans.x;
-                    sp18.y = object->trans.y + 300;
-                    sp18.z = object->trans.z;
-                    Hu3D3Dto2D(&sp18, HU3D_CAM0, &sp18);
-                    espPosSet(temp_r31->unk2A, sp18.x, sp18.y);
-                    espDispOn(temp_r31->unk2A);
-                    temp_r31->unk30 = 0;
+                    worldPosition.x = object->trans.x;
+                    worldPosition.y = object->trans.y + 300;
+                    worldPosition.z = object->trans.z;
+                    Hu3D3Dto2D(&worldPosition, HU3D_CAM0, &worldPosition);
+                    espPosSet(player->promptSprite, worldPosition.x, worldPosition.y);
+                    espDispOn(player->promptSprite);
+                    player->promptDisplayTime = 0;
                 }
-                temp_r31->unk2C = temp_r31->unk2E = REFRESH_RATE / 2;
+                player->promptBlinkTimer = player->promptBlinkDuration = REFRESH_RATE / 2;
             }
 
-            if (temp_r31->unkA & PAD_BUTTON_A) {
-                temp_r31->unk16 = 1;
-                temp_r31->unk24 = temp_r31->unk26 = REFRESH_RATE * 1.5;
-                temp_r31->unk2C = -1;
-                if (lbl_1_bss_16 <= 0) {
-                    lbl_1_bss_18[lbl_1_bss_20++] = temp_r31->unk2;
+            if (player->buttonsDown & PAD_BUTTON_A) {
+                player->turnState = 1;
+                player->throwTimer = player->throwDuration = REFRESH_RATE * 1.5;
+                player->promptBlinkTimer = -1;
+                if (playerStartTimer <= 0) {
+                    finishedPlayerIndices[finishedPlayerCount++] = player->playerIndex;
                 }
                 Hu3DModelAttrReset(object->mdlId[1], HU3D_MOTATTR_SHAPE_PAUSE | HU3D_MOTATTR_PAUSE);
                 Hu3DMotionSpeedSet(object->mdlId[1], 1.2f);
                 Hu3DMotionShapeSpeedSet(object->mdlId[1], 1.2f);
                 HuAudFXPlay(1986);
             }
-            temp_r29 = 1;
-            temp_r28 = HU3D_MOTATTR_LOOP;
+            motionIndex = 1;
+            motionAttributes = HU3D_MOTATTR_LOOP;
             break;
 
         case 1:
-            temp_r29 = 2;
-            temp_r28 = HU3D_MOTATTR_NONE;
-            if (!temp_r31->field0) {
-                if (temp_r31->unk28 >= 0 && temp_r31->unk28 < 3) {
-                    temp_r31->field0 = 1;
-                    if (temp_r31->unk28 == 0) {
-                        lbl_1_bss_30 = temp_r31->unk2;
+            motionIndex = 2;
+            motionAttributes = HU3D_MOTATTR_NONE;
+            if (!player->hasHookedItem) {
+                if (player->winningPlace >= 0 && player->winningPlace < 3) {
+                    player->hasHookedItem = 1;
+                    if (player->winningPlace == 0) {
+                        firstPlacePlayerIndex = player->playerIndex;
                     }
-                    temp_f31 = lbl_1_data_164[temp_r31->unk28];
-                    Hu3DModelScaleSet(object->mdlId[4], temp_f31, temp_f31, temp_f31);
+                    animationProgress = placeScaleFactors[player->winningPlace];
+                    Hu3DModelScaleSet(object->mdlId[4], animationProgress, animationProgress, animationProgress);
                     Hu3DModelAttrReset(object->mdlId[4], HU3D_ATTR_DISPOFF);
                 }
             }
-            temp_f31 = 1.0f - ((float)temp_r31->unk24 / temp_r31->unk26);
-            sp24[0].x = temp_r31->unk4C.x;
-            sp24[0].y = temp_r31->unk4C.y;
-            sp24[0].z = temp_r31->unk4C.z;
-            sp24[1].x = object->trans.x;
-            sp24[1].y = object->trans.y + 1500;
-            sp24[1].z = object->trans.z - 200;
-            sp24[2].x = lbl_1_data_154[temp_r31->unk2];
-            sp24[2].y = 0;
-            sp24[2].z = 150;
-            fn_1_24F0(sp24, &sp18, temp_f31);
-            VECSubtract(&sp18, &Hu3DData[object->mdlId[4]].pos, &spC);
-            Hu3DModelRotSet(object->mdlId[4], atan2d(-spC.y, VECMagXZ(&spC)), atan2d(spC.x, spC.z), 0);
-            Hu3DModelPosSetV(object->mdlId[4], &sp18);
-            if (sp18.y > 0.0f) {
-                if (!temp_r31->field2 && temp_r31->field0) {
-                    fn_1_6CB0(&sp18, -1);
-                    fn_1_6698(&sp18, -1, -1, -1);
-                    temp_r31->field2 = 1;
+            animationProgress = 1.0f - ((float)player->throwTimer / player->throwDuration);
+            hookPath[0].x = player->hookStartPosition.x;
+            hookPath[0].y = player->hookStartPosition.y;
+            hookPath[0].z = player->hookStartPosition.z;
+            hookPath[1].x = object->trans.x;
+            hookPath[1].y = object->trans.y + 1500;
+            hookPath[1].z = object->trans.z - 200;
+            hookPath[2].x = playerLaneOffsets[player->playerIndex];
+            hookPath[2].y = 0;
+            hookPath[2].z = 150;
+            QuadraticBezierVector(hookPath, &worldPosition, animationProgress);
+            VECSubtract(&worldPosition, &Hu3DData[object->mdlId[4]].pos, &hookDirection);
+            Hu3DModelRotSet(object->mdlId[4], atan2d(-hookDirection.y, VECMagXZ(&hookDirection)), atan2d(hookDirection.x, hookDirection.z), 0);
+            Hu3DModelPosSetV(object->mdlId[4], &worldPosition);
+            if (worldPosition.y > 0.0f) {
+                if (!player->hasPlayedImpactEffects && player->hasHookedItem) {
+                    SnowmanParticleSpawn(&worldPosition, -1);
+                    SnowParticleSpawn(&worldPosition, -1, -1, -1);
+                    player->hasPlayedImpactEffects = 1;
                 }
             }
-            temp_r31->unk34[0].x = temp_f31 * (2.0f * lbl_1_data_154[temp_r31->unk2]);
-            temp_r31->unk34[0].y = -200.0f + (-400.0f * temp_f31);
-            temp_r31->unk34[0].z = -500.0f + (-1500.0f * temp_f31);
-            temp_r31->unk34[1].x = temp_f31 * lbl_1_data_154[temp_r31->unk2];
-            temp_r31->unk34[1].y = -200.0f + (400.0f * temp_f31);
-            temp_r31->unk34[1].z = -1000.0f + (750.0f * temp_f31);
-            if (--temp_r31->unk24 == 0) {
-                temp_r31->unk16 = 2;
-                temp_r31->field1 = 1;
-                if (temp_r31->field0) {
+            player->hookVertices[0].x = animationProgress * (2.0f * playerLaneOffsets[player->playerIndex]);
+            player->hookVertices[0].y = -200.0f + (-400.0f * animationProgress);
+            player->hookVertices[0].z = -500.0f + (-1500.0f * animationProgress);
+            player->hookVertices[1].x = animationProgress * playerLaneOffsets[player->playerIndex];
+            player->hookVertices[1].y = -200.0f + (400.0f * animationProgress);
+            player->hookVertices[1].z = -1000.0f + (750.0f * animationProgress);
+            if (--player->throwTimer == 0) {
+                player->turnState = 2;
+                player->hasCompletedTurn = 1;
+                if (player->hasHookedItem) {
                     Hu3DModelAttrReset(object->mdlId[4], HU3D_MOTATTR_PAUSE);
                     Hu3DModelRotSet(object->mdlId[4], 0, 0, 0);
-                    lbl_1_bss_14--;
+                    playerActionTimer--;
                 }
             }
             break;
 
         case 2:
-            if (fn_1_320() == 7) {
-                temp_r31->unk16 = 3;
-                Hu3DModelObjPosGet(object->mdlId[0], "test11_tex_we-itemhook-r", &sp18);
-                CharEffectSmokeCreate(1, &sp18);
+            if (MainStateGet() == 7) {
+                player->turnState = 3;
+                Hu3DModelObjPosGet(object->mdlId[0], "test11_tex_we-itemhook-r", &worldPosition);
+                CharEffectSmokeCreate(1, &worldPosition);
                 Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
                 Hu3DModelAttrSet(object->mdlId[3], HU3D_ATTR_DISPOFF);
             }
             break;
 
         case 3:
-            if (fn_1_320() < 9) {
-                temp_r29 = 0;
-                temp_r28 = HU3D_MOTATTR_LOOP;
+            if (MainStateGet() < 9) {
+                motionIndex = 0;
+                motionAttributes = HU3D_MOTATTR_LOOP;
             }
             else {
-                object->rot.y = fn_1_2390(object->rot.y, 0, 0.2f);
-                if (temp_r31->unk2 == lbl_1_bss_30) {
-                    temp_r29 = 3;
-                    temp_r28 = HU3D_MOTATTR_NONE;
+                object->rot.y = AngleLerp(object->rot.y, 0, 0.2f);
+                if (player->playerIndex == firstPlacePlayerIndex) {
+                    motionIndex = 3;
+                    motionAttributes = HU3D_MOTATTR_NONE;
                 }
                 else {
-                    temp_r29 = 4;
-                    temp_r28 = HU3D_MOTATTR_NONE;
+                    motionIndex = 4;
+                    motionAttributes = HU3D_MOTATTR_NONE;
                 }
             }
             break;
@@ -610,39 +610,39 @@ void fn_1_1444(OMOBJ *object)
         default:
             break;
     }
-    if (temp_r31->unk2C) {
-        if (temp_r31->unk2C >= 0) {
-            temp_f31 = (0.5 * sind((90.0f * (float)temp_r31->unk2C) / (float)temp_r31->unk2E)) + 0.5;
-            espScaleSet(temp_r31->unk2A, temp_f31, temp_f31);
-            if (--temp_r31->unk2C == 0) {
-                temp_r31->unk2C = temp_r31->unk2E;
+    if (player->promptBlinkTimer) {
+        if (player->promptBlinkTimer >= 0) {
+            animationProgress = (0.5 * sind((90.0f * (float)player->promptBlinkTimer) / (float)player->promptBlinkDuration)) + 0.5;
+            espScaleSet(player->promptSprite, animationProgress, animationProgress);
+            if (--player->promptBlinkTimer == 0) {
+                player->promptBlinkTimer = player->promptBlinkDuration;
             }
-            temp_r31->unk30++;
+            player->promptDisplayTime++;
         }
         else {
-            if (temp_r31->unk30 > REFRESH_RATE_F / 2) {
-                espDispOff(temp_r31->unk2A);
-                temp_r31->unk2C = 0;
+            if (player->promptDisplayTime > REFRESH_RATE_F / 2) {
+                espDispOff(player->promptSprite);
+                player->promptBlinkTimer = 0;
             }
             else {
-                temp_r31->unk30++;
+                player->promptDisplayTime++;
             }
         }
     }
-    if (temp_r31->unk16 >= 2 && temp_r31->unk16 <= 3 && temp_r31->field0) {
+    if (player->turnState >= 2 && player->turnState <= 3 && player->hasHookedItem) {
         Hu3DData[object->mdlId[4]].rot.y += 2.0f;
         if (0.0f == Hu3DData[object->mdlId[4]].motWork.time) {
             HuAudFXPlay(1987);
         }
     }
-    if ((temp_r29 >= 0 && temp_r29 != temp_r31->unk1C) || temp_r28 != temp_r31->unk20) {
-        temp_r31->unk1C = temp_r29;
-        temp_r31->unk20 = temp_r28;
-        CharMotionShiftSet(temp_r31->unk10, object->mtnId[temp_r31->unk1C], 0, 8, temp_r28);
+    if ((motionIndex >= 0 && motionIndex != player->motionIndex) || motionAttributes != player->motionFlags) {
+        player->motionIndex = motionIndex;
+        player->motionFlags = motionAttributes;
+        CharMotionShiftSet(player->characterId, object->mtnId[player->motionIndex], 0, 8, motionAttributes);
     }
 }
 
-void fn_1_2010(OMOBJ *object)
+void PlayerDestroy(OMOBJ *object)
 {
     M455Player *player = object->data;
     if (object->data != NULL) {
@@ -651,11 +651,11 @@ void fn_1_2010(OMOBJ *object)
     }
 }
 
-GXColor lbl_1_data_170 = { 255, 255, 255, 255 };
+GXColor hookModelColor = { 255, 255, 255, 255 };
 
-void fn_1_27A0(Vec *arg0, Vec *arg1, float arg2);
+void CubicBezierVector(Vec *controlPoints, Vec *result, float progress);
 
-void fn_1_2060(HU3DMODEL *arg0, Mtx arg1)
+void HookModelRender(HU3DMODEL *model, Mtx matrix)
 {
     Vec vtxPos[4];
     Mtx mtxHook;
@@ -663,13 +663,13 @@ void fn_1_2060(HU3DMODEL *arg0, Mtx arg1)
     Vec pos;
     Vec itemHookPos;
     s32 i;
-    OMOBJ *object = arg0->hookData;
+    OMOBJ *object = model->hookData;
     M455Player *player = object->data;
     HU3DMODEL *modelPuku = &Hu3DData[object->mdlId[4]];
-    GXLoadPosMtxImm(arg1, GX_PNMTX0);
+    GXLoadPosMtxImm(matrix, GX_PNMTX0);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_CLAMP, GX_AF_NONE);
-    GXSetChanMatColor(GX_COLOR0A0, lbl_1_data_170);
+    GXSetChanMatColor(GX_COLOR0A0, hookModelColor);
     GXSetNumTexGens(0);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
@@ -683,11 +683,11 @@ void fn_1_2060(HU3DMODEL *arg0, Mtx arg1)
     Hu3DModelObjPosGet(object->mdlId[1], "hook", &pos);
     MTXMultVec(mtxHook, &pos, &vtxPos[0]);
     for (i = 0; i < 2; i++) {
-        vtxPos[i + 1].x = player->unk34[i].x;
-        vtxPos[i + 1].y = player->unk34[i].y;
-        vtxPos[i + 1].z = player->unk34[i].z;
+        vtxPos[i + 1].x = player->hookVertices[i].x;
+        vtxPos[i + 1].y = player->hookVertices[i].y;
+        vtxPos[i + 1].z = player->hookVertices[i].z;
     }
-    if (player->field0) {
+    if (player->hasHookedItem) {
         Mtx hookMtx;
         Vec hookPos;
         Hu3DModelObjMtxGet(object->mdlId[4], "itemhook_C", hookMtx);
@@ -703,96 +703,96 @@ void fn_1_2060(HU3DMODEL *arg0, Mtx arg1)
     }
     GXBegin(GX_LINESTRIP, GX_VTXFMT0, 20);
     for (i = 0; i < 20; i++) {
-        fn_1_27A0(vtxPos, &pos, i / 19.0f);
+        CubicBezierVector(vtxPos, &pos, i / 19.0f);
         GXPosition3f32(pos.x, pos.y, pos.z);
     }
     GXEnd();
 }
 
-float fn_1_2390(float arg0, float arg1, float arg2)
+float AngleLerp(float startAngle, float endAngle, float weight)
 {
-    float temp_f31 = fmod(arg1 - arg0, 360);
-    float temp_f30;
-    if (temp_f31 < 0) {
-        temp_f31 += 360.0f;
+    float angleDifference = fmod(endAngle - startAngle, 360);
+    float interpolatedAngle;
+    if (angleDifference < 0) {
+        angleDifference += 360.0f;
     }
-    if (temp_f31 > 180) {
-        temp_f31 -= 360.0f;
+    if (angleDifference > 180) {
+        angleDifference -= 360.0f;
     }
-    temp_f30 = fmod(arg0 + (arg2 * temp_f31), 360);
-    if (temp_f30 < 0) {
-        temp_f30 += 360.0f;
+    interpolatedAngle = fmod(startAngle + (weight * angleDifference), 360);
+    if (interpolatedAngle < 0) {
+        interpolatedAngle += 360.0f;
     }
-    return temp_f30;
+    return interpolatedAngle;
 }
 
-float fn_1_2494(float arg0, float arg1, float arg2, float arg3)
+float QuadraticBezier(float startPoint, float controlPoint, float endPoint, float progress)
 {
-    float temp_f31 = 1.0f - arg3;
-    return (arg0 * (temp_f31 * temp_f31)) + ((2.0f * temp_f31) * arg3 * arg1) + (arg2 * (arg3 * arg3));
+    float inverseProgress = 1.0f - progress;
+    return (startPoint * (inverseProgress * inverseProgress)) + ((2.0f * inverseProgress) * progress * controlPoint) + (endPoint * (progress * progress));
 }
 
-s32 fn_1_24F0(Vec *arg0, Vec *arg1, float arg2)
+s32 QuadraticBezierVector(Vec *controlPoints, Vec *result, float progress)
 {
-    arg1->x = fn_1_2494(arg0[0].x, arg0[1].x, arg0[2].x, arg2);
-    arg1->y = fn_1_2494(arg0[0].y, arg0[1].y, arg0[2].y, arg2);
-    arg1->z = fn_1_2494(arg0[0].z, arg0[1].z, arg0[2].z, arg2);
+    result->x = QuadraticBezier(controlPoints[0].x, controlPoints[1].x, controlPoints[2].x, progress);
+    result->y = QuadraticBezier(controlPoints[0].y, controlPoints[1].y, controlPoints[2].y, progress);
+    result->z = QuadraticBezier(controlPoints[0].z, controlPoints[1].z, controlPoints[2].z, progress);
 }
 
-float fn_1_26F8(float arg0, float arg1, float arg2, float arg3, float arg4)
+float CubicBezier(float progress, float startPoint, float controlPoint1, float controlPoint2, float endPoint)
 {
-    float temp_f31 = 1.0f - arg0;
-    float temp_f30 = temp_f31 * temp_f31;
-    float temp_f29 = temp_f31 * temp_f31 * temp_f31;
-    return (arg4 * (arg0 * (arg0 * arg0))) + ((arg3 * (arg0 * (3.0f * temp_f31 * arg0))) + ((temp_f29 * arg1) + (arg2 * (3.0f * temp_f30 * arg0))));
+    float inverseProgress = 1.0f - progress;
+    float inverseProgressSquared = inverseProgress * inverseProgress;
+    float inverseProgressCubed = inverseProgress * inverseProgress * inverseProgress;
+    return (endPoint * (progress * (progress * progress))) + ((controlPoint2 * (progress * (3.0f * inverseProgress * progress))) + ((inverseProgressCubed * startPoint) + (controlPoint1 * (3.0f * inverseProgressSquared * progress))));
 }
 
-void fn_1_27A0(Vec *arg0, Vec *arg1, float arg2)
+void CubicBezierVector(Vec *controlPoints, Vec *result, float progress)
 {
-    arg1->x = fn_1_26F8(arg2, arg0[0].x, arg0[1].x, arg0[2].x, arg0[3].x);
-    arg1->y = fn_1_26F8(arg2, arg0[0].y, arg0[1].y, arg0[2].y, arg0[3].y);
-    arg1->z = fn_1_26F8(arg2, arg0[0].z, arg0[1].z, arg0[2].z, arg0[3].z);
+    result->x = CubicBezier(progress, controlPoints[0].x, controlPoints[1].x, controlPoints[2].x, controlPoints[3].x);
+    result->y = CubicBezier(progress, controlPoints[0].y, controlPoints[1].y, controlPoints[2].y, controlPoints[3].y);
+    result->z = CubicBezier(progress, controlPoints[0].z, controlPoints[1].z, controlPoints[2].z, controlPoints[3].z);
 }
 
-float lbl_1_data_184[2] = {};
+float hookAnimationProgress[2] = {};
 
-void fn_1_2AF4(s32 arg0, s32 arg1, float arg2);
+void CameraInterpolate(s32 startPreset, s32 endPreset, float progress);
 
-void fn_1_2D44(OMOBJ *object);
+void CameraUpdate(OMOBJ *object);
 
-void fn_1_2A90(HUPROCESS *objman)
+void CameraCreate(HUPROCESS *objectManager)
 {
-    fn_1_2AF4(0, 0, 0);
-    lbl_1_bss_40 = omAddObjEx(objman, 10, 0, 0, -1, fn_1_2D44);
+    CameraInterpolate(0, 0, 0);
+    overlayUpdateObject = omAddObjEx(objectManager, 10, 0, 0, -1, CameraUpdate);
 }
 
-void fn_1_2AF4(s32 arg0, s32 arg1, float arg2)
+void CameraInterpolate(s32 startPreset, s32 endPreset, float progress)
 {
-    CZoom = lbl_1_data_0[arg0].zoom + (arg2 * (lbl_1_data_0[arg1].zoom - lbl_1_data_0[arg0].zoom));
-    Center.x = lbl_1_data_0[arg0].pos.x + (arg2 * (lbl_1_data_0[arg1].pos.x - lbl_1_data_0[arg0].pos.x));
-    Center.y = lbl_1_data_0[arg0].pos.y + (arg2 * (lbl_1_data_0[arg1].pos.y - lbl_1_data_0[arg0].pos.y));
-    Center.z = lbl_1_data_0[arg0].pos.z + (arg2 * (lbl_1_data_0[arg1].pos.z - lbl_1_data_0[arg0].pos.z));
-    CRot.x = lbl_1_data_0[arg0].rot.x + (arg2 * (lbl_1_data_0[arg1].rot.x - lbl_1_data_0[arg0].rot.x));
-    CRot.y = lbl_1_data_0[arg0].rot.y + (arg2 * (lbl_1_data_0[arg1].rot.y - lbl_1_data_0[arg0].rot.y));
-    CRot.z = lbl_1_data_0[arg0].rot.z + (arg2 * (lbl_1_data_0[arg1].rot.z - lbl_1_data_0[arg0].rot.z));
+    CZoom = cameraPresets[startPreset].zoom + (progress * (cameraPresets[endPreset].zoom - cameraPresets[startPreset].zoom));
+    Center.x = cameraPresets[startPreset].pos.x + (progress * (cameraPresets[endPreset].pos.x - cameraPresets[startPreset].pos.x));
+    Center.y = cameraPresets[startPreset].pos.y + (progress * (cameraPresets[endPreset].pos.y - cameraPresets[startPreset].pos.y));
+    Center.z = cameraPresets[startPreset].pos.z + (progress * (cameraPresets[endPreset].pos.z - cameraPresets[startPreset].pos.z));
+    CRot.x = cameraPresets[startPreset].rot.x + (progress * (cameraPresets[endPreset].rot.x - cameraPresets[startPreset].rot.x));
+    CRot.y = cameraPresets[startPreset].rot.y + (progress * (cameraPresets[endPreset].rot.y - cameraPresets[startPreset].rot.y));
+    CRot.z = cameraPresets[startPreset].rot.z + (progress * (cameraPresets[endPreset].rot.z - cameraPresets[startPreset].rot.z));
 }
 
-void fn_1_2D44(OMOBJ *object)
+void CameraUpdate(OMOBJ *object)
 {
     HU3DCAMERA *camera = &Hu3DCamera[0];
-    switch (fn_1_320()) {
+    switch (MainStateGet()) {
         case 1:
-            fn_1_2AF4(0, 1, sind(lbl_1_data_184[0] * 90.0f));
-            if (lbl_1_data_184[0] < 1.0f) {
-                lbl_1_data_184[0] += REFRESH_FREQ;
-                if (lbl_1_data_184[0] > 1.0f) {
-                    lbl_1_data_184[0] = 1.0f;
+            CameraInterpolate(0, 1, sind(hookAnimationProgress[0] * 90.0f));
+            if (hookAnimationProgress[0] < 1.0f) {
+                hookAnimationProgress[0] += REFRESH_FREQ;
+                if (hookAnimationProgress[0] > 1.0f) {
+                    hookAnimationProgress[0] = 1.0f;
                 }
             }
             break;
 
         case 6:
-            fn_1_2AF4(1, 1, 0);
+            CameraInterpolate(1, 1, 0);
             break;
 
         case 4:
@@ -802,14 +802,14 @@ void fn_1_2D44(OMOBJ *object)
     }
 }
 
-u32 lbl_1_data_18C[4] = { PAD_CHAN0_BIT, PAD_CHAN1_BIT, PAD_CHAN2_BIT, PAD_CHAN3_BIT };
-s32 fn_1_3214(void)
+u32 controllerRumbleFlags[4] = { PAD_CHAN0_BIT, PAD_CHAN1_BIT, PAD_CHAN2_BIT, PAD_CHAN3_BIT };
+s32 RumbleEnabledGet(void)
 {
     s32 rumble = HuPadRumbleGet();
     s32 i;
     for (i = 0; i < 4; i++) {
         if (!GWPlayerCfg[i].iscom) {
-            if ((rumble & lbl_1_data_18C[GWPlayerCfg[i].pad_idx]) == 0) {
+            if ((rumble & controllerRumbleFlags[GWPlayerCfg[i].pad_idx]) == 0) {
                 return 0;
             }
         }
@@ -817,4 +817,4 @@ s32 fn_1_3214(void)
     return GWGameStat.rumble;
 }
 
-float lbl_1_data_19C[] = { 0, 355, 0, 0, 0, 275, 128, 950, 6, 0, 0, 0, 190, 0, 550 };
+float hookParticleParameters[] = { 0, 355, 0, 0, 0, 275, 128, 950, 6, 0, 0, 0, 190, 0, 550 };
