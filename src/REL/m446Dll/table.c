@@ -4,316 +4,316 @@
 #include "game/pad.h"
 
 // bss
-unkStruct3 *lbl_1_bss_28;
+M446ListNode *m446TableListHead;
 
-s32 fn_1_3924(void)
+s32 M446TableInitialize(void)
 {
-    lbl_1_bss_28 = NULL;
+    m446TableListHead = NULL;
     return 1;
 }
 
-void fn_1_393C(void)
+void M446TablesUpdate(void)
 {
-    unkStruct3 *var_r31;
-    unkStruct6 *var_r30;
+    M446ListNode *listNode;
+    M446TableWork *tableWork2;
 
-    var_r31 = lbl_1_bss_28;
-    if (var_r31) {
+    listNode = m446TableListHead;
+    if (listNode) {
         do {
-            var_r30 = var_r31->unk0;
-            fn_1_3B4C(var_r30);
-            var_r31 = var_r31->unk8;
-        } while (var_r31);
+            tableWork2 = listNode->value;
+            M446TableDestroy(tableWork2);
+            listNode = listNode->next;
+        } while (listNode);
     }
 }
 
-void fn_1_3994(void)
+void M446TablesSync(void)
 {
-    unkStruct4 *sp8;
-    unkStruct3 *var_r31;
+    M446CardWork *cardWork;
+    M446ListNode *listNode;
 
-    var_r31 = lbl_1_bss_28;
-    if (var_r31) {
+    listNode = m446TableListHead;
+    if (listNode) {
         do {
-            sp8 = var_r31->unk0;
-            var_r31 = var_r31->unk8;
-        } while (var_r31);
+            cardWork = listNode->value;
+            listNode = listNode->next;
+        } while (listNode);
     }
 }
 
-unkStruct6 *fn_1_39D0(void)
+M446TableWork *M446TableCreate(void)
 {
-    s32 var_r30;
-    unkStruct3 *var_r29;
-    unkStruct6 *var_r31;
+    s32 playerIndex;
+    M446ListNode *listNode3;
+    M446TableWork *tableWork2;
 
-    var_r31 = HuMemDirectMallocNum(HEAP_HEAP, 0x70, HU_MEMNUM_OVL);
-    if (!var_r31) {
+    tableWork2 = HuMemDirectMallocNum(HEAP_HEAP, 0x70, HU_MEMNUM_OVL);
+    if (!tableWork2) {
         return NULL;
     }
-    var_r31->unk4 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M446, 0x05));
-    Hu3DModelAmbSet(var_r31->unk4, 0.0f, 0.0f, 0.0f);
-    Hu3DModelShadowMapSet(var_r31->unk4);
-    Hu3DModelLayerSet(var_r31->unk4, 0);
-    var_r31->unk0 = m446CursorCreate(0);
-    fn_1_7884(var_r31->unk0);
-    var_r31->unk60 = 10;
-    var_r31->unk5C = 0;
-    var_r31->unk6C = 0;
+    tableWork2->modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M446, 0x05));
+    Hu3DModelAmbSet(tableWork2->modelId, 0.0f, 0.0f, 0.0f);
+    Hu3DModelShadowMapSet(tableWork2->modelId);
+    Hu3DModelLayerSet(tableWork2->modelId, 0);
+    tableWork2->cursorWork = M446CursorCreate(0);
+    M446CursorActivate(tableWork2->cursorWork);
+    tableWork2->selectedCardIndex = 10;
+    tableWork2->cardCount = 0;
+    tableWork2->automaticSelectionActive = 0;
 
-    for (var_r30 = 0; var_r30 < 21; var_r30++) {
-        var_r31->unk8[var_r30] = NULL;
+    for (playerIndex = 0; playerIndex < 21; playerIndex++) {
+        tableWork2->cards[playerIndex] = NULL;
     }
-    fn_1_46AC(var_r31);
-    var_r29 = fn_1_1DF4(var_r31);
-    if (!var_r29) {
+    M446TableReserveSpaces(tableWork2);
+    listNode3 = M446ListNodeCreate(tableWork2);
+    if (!listNode3) {
         OSReport("[!] m446TableCreate ERROR...\n");
-        HuMemDirectFree(var_r31);
+        HuMemDirectFree(tableWork2);
         return NULL;
     }
-    if (lbl_1_bss_28) {
-        fn_1_1EC8(lbl_1_bss_28, var_r29);
+    if (m446TableListHead) {
+        M446ListAppend(m446TableListHead, listNode3);
     }
     else {
-        lbl_1_bss_28 = var_r29;
+        m446TableListHead = listNode3;
     }
-    return var_r31;
+    return tableWork2;
 }
 
-void fn_1_3B4C(unkStruct6 *arg0)
+void M446TableDestroy(M446TableWork *tableWork)
 {
-    unkStruct3 *var_r31;
+    M446ListNode *listNode2;
 
-    var_r31 = lbl_1_bss_28;
+    listNode2 = m446TableListHead;
     do {
-        if (arg0 == var_r31->unk0) {
-            if (var_r31 == lbl_1_bss_28) {
-                lbl_1_bss_28 = var_r31->unk8;
+        if (tableWork == listNode2->value) {
+            if (listNode2 == m446TableListHead) {
+                m446TableListHead = listNode2->next;
             }
-            fn_1_1F04(var_r31);
-            fn_1_1E5C(var_r31);
-            Hu3DModelKill(arg0->unk4);
-            fn_1_76E8(arg0->unk0);
-            HuMemDirectFree(arg0);
+            M446ListRemove(listNode2);
+            M446ListNodeDestroy(listNode2);
+            Hu3DModelKill(tableWork->modelId);
+            M446CursorDestroy(tableWork->cursorWork);
+            HuMemDirectFree(tableWork);
             return;
         }
-        var_r31 = var_r31->unk8;
-    } while (var_r31);
+        listNode2 = listNode2->next;
+    } while (listNode2);
 }
 
-s32 fn_1_3BF0(unkStruct6 *arg0, unkStruct4 *arg1, s32 arg2)
+s32 M446TableAddCard(M446TableWork *tableWork, M446CardWork *cardWork, s32 cardPlacementMode)
 {
-    Vec sp18;
-    Vec spC;
-    s32 temp_r29;
+    Vec offset;
+    Vec targetPosition;
+    s32 cardId;
 
-    if (arg0->unk5C >= 21) {
+    if (tableWork->cardCount >= 21) {
         return 0;
     }
     do {
-        temp_r29 = fn_1_38F0() % 21;
-    } while (arg0->unk8[temp_r29] != 0);
-    arg0->unk8[temp_r29] = arg1;
-    arg0->unk5C++;
-    sp18.x = -60.0f + (20.0f * (temp_r29 % 7));
-    sp18.y = 85.0f;
-    sp18.z = -20.0f + (20.0f * (temp_r29 / 7));
-    spC = arg1->unk34;
-    switch (arg2) {
+        cardId = M446RandomGet() % 21;
+    } while (tableWork->cards[cardId] != 0);
+    tableWork->cards[cardId] = cardWork;
+    tableWork->cardCount++;
+    offset.x = -60.0f + (20.0f * (cardId % 7));
+    offset.y = 85.0f;
+    offset.z = -20.0f + (20.0f * (cardId / 7));
+    targetPosition = cardWork->rotation;
+    switch (cardPlacementMode) {
         case 3:
         case 4:
-            spC.z = 720.0f;
-            arg1->unk34 = spC;
-            spC.z = 0.0f;
-            fn_1_27FC(arg1, &sp18, 0x3C);
-            fn_1_2928(arg1, &spC, 0x3C);
-            fn_1_29B4(arg1, 1.0f, 0x3C);
+            targetPosition.z = 720.0f;
+            cardWork->rotation = targetPosition;
+            targetPosition.z = 0.0f;
+            M446CardMoveTo(cardWork, &offset, 0x3C);
+            M446CardRotateTo(cardWork, &targetPosition, 0x3C);
+            M446CardScaleTo(cardWork, 1.0f, 0x3C);
             break;
         case 0:
-            spC.y = 0.0f;
-            arg1->unk10 = sp18;
-            arg1->unk34 = spC;
-            arg1->unk58 = 1.0f;
+            targetPosition.y = 0.0f;
+            cardWork->position = offset;
+            cardWork->rotation = targetPosition;
+            cardWork->scale = 1.0f;
             break;
         case 2:
             break;
         case 1:
-            spC.y = 0.0f;
-            fn_1_27FC(arg1, &sp18, 0x3C);
-            fn_1_2928(arg1, &spC, 0x3C);
+            targetPosition.y = 0.0f;
+            M446CardMoveTo(cardWork, &offset, 0x3C);
+            M446CardRotateTo(cardWork, &targetPosition, 0x3C);
             break;
     }
     return 1;
 }
 
-s32 fn_1_3EB4(unkStruct6 *arg0, unkStruct4 *arg1, s32 arg2)
+s32 M446TableRemoveCard(M446TableWork *tableWork, M446CardWork *cardWork, s32 cardRemovalMode)
 {
-    Vec spC;
-    s32 var_r31;
+    Vec targetPosition;
+    s32 loopIndex;
 
-    for (var_r31 = 0; var_r31 < 0x15; var_r31++) {
-        if (arg0->unk8[var_r31] == arg1) {
-            arg0->unk8[var_r31] = NULL;
-            arg0->unk5C--;
+    for (loopIndex = 0; loopIndex < 0x15; loopIndex++) {
+        if (tableWork->cards[loopIndex] == cardWork) {
+            tableWork->cards[loopIndex] = NULL;
+            tableWork->cardCount--;
             break;
         }
     }
-    if (var_r31 == 0x15) {
+    if (loopIndex == 0x15) {
         OSReport("m446TableRemoveCard ERROR...\n");
         return 0;
     }
-    switch (arg2) {
+    switch (cardRemovalMode) {
         case 3:
-            spC = arg1->unk10;
-            spC.y = 90.0f;
-            fn_1_272C(arg1);
-            fn_1_27FC(arg1, &spC, 0x1E);
-            fn_1_29B4(arg1, 1.5f, 0x1E);
+            targetPosition = cardWork->position;
+            targetPosition.y = 90.0f;
+            M446CardFlipDown(cardWork);
+            M446CardMoveTo(cardWork, &targetPosition, 0x1E);
+            M446CardScaleTo(cardWork, 1.5f, 0x1E);
             HuAudFXPlay(0x76C);
     }
     return 1;
 }
 
-s32 fn_1_3FD0(unkStruct6 *arg0, s32 arg1, unkStruct4 **arg2)
+s32 M446TableCardGet(M446TableWork *tableWork, s32 cardIndex, M446CardWork **cardOut)
 {
-    if ((arg1 < 0) || (arg1 >= 0x15)) {
+    if ((cardIndex < 0) || (cardIndex >= 0x15)) {
         return 0;
     }
-    *arg2 = arg0->unk8[arg1];
+    *cardOut = tableWork->cards[cardIndex];
     return 1;
 }
 
-void fn_1_4000(unkStruct6 *arg0, s32 arg1)
+void M446TableSelectionReset(M446TableWork *tableWork, s32 reverseOrder)
 {
-    s32 var_r31;
-    unkStruct4 *var_r30;
+    s32 loopIndex;
+    M446CardWork *cardWork;
 
-    for (var_r31 = 0; var_r31 < 21; var_r31++) {
-        if (arg1 != 0) {
-            var_r30 = arg0->unk8[20 - var_r31];
+    for (loopIndex = 0; loopIndex < 21; loopIndex++) {
+        if (reverseOrder != 0) {
+            cardWork = tableWork->cards[20 - loopIndex];
         }
         else {
-            var_r30 = arg0->unk8[var_r31];
+            cardWork = tableWork->cards[loopIndex];
         }
-        if ((var_r30) && (var_r30->unk64 == 0)) {
-            if (arg1 != 0) {
-                arg0->unk60 = (0x14 - var_r31);
+        if ((cardWork) && (cardWork->faceDown == 0)) {
+            if (reverseOrder != 0) {
+                tableWork->selectedCardIndex = (0x14 - loopIndex);
                 return;
             }
             else {
-                arg0->unk60 = var_r31;
+                tableWork->selectedCardIndex = loopIndex;
                 return;
             }
         }
     }
 }
 
-s32 fn_1_4088(unkStruct6 *arg0, u8 arg1, u8 arg2, s32 arg3, unkStruct4 **arg4, s32 arg5)
+s32 M446TableSelectionUpdate(M446TableWork *tableWork, u8 playerIndex, u8 controllerPort, s32 cursorMode, M446CardWork **cardOut, s32 selectionMode)
 {
-    Vec sp10;
-    s32 var_r28;
-    s32 var_r27;
-    unkStruct4 *temp_r26;
-    s32 var_r25;
-    s32 var_r24;
-    s32 var_r23;
-    s32 temp_r22;
-    s32 temp_r21;
+    Vec scaleVector;
+    s32 modelIndex;
+    s32 stateIndex;
+    M446CardWork *cardWork;
+    s32 cardCount;
+    s32 cardId;
+    s32 playerCount;
+    s32 cardIndex;
+    s32 spaceIndex;
 
-    var_r25 = 0;
-    var_r24 = 0;
-    var_r28 = 0;
-    var_r27 = 0;
-    var_r23 = 0;
-    *arg4 = NULL;
-    if (arg2 >= 4) {
-        if (arg0->unk6C == 0) {
-            arg0->unk64 = (s32)(fn_1_38F0() % 21);
+    cardCount = 0;
+    cardId = 0;
+    modelIndex = 0;
+    stateIndex = 0;
+    playerCount = 0;
+    *cardOut = NULL;
+    if (controllerPort >= 4) {
+        if (tableWork->automaticSelectionActive == 0) {
+            tableWork->automaticCardIndex = (s32)(M446RandomGet() % 21);
             do {
-                if (!(temp_r26 = arg0->unk8[arg0->unk64]) || temp_r26->unk64 != 0) {
-                    arg0->unk64 = ++arg0->unk64 % 21;
+                if (!(cardWork = tableWork->cards[tableWork->automaticCardIndex]) || cardWork->faceDown != 0) {
+                    tableWork->automaticCardIndex = ++tableWork->automaticCardIndex % 21;
                 }
                 else
                     break;
-                (void)temp_r26;
+                (void)cardWork;
             } while (TRUE);
-            arg0->unk6C = 1;
-            arg0->unk68 = 0x1E;
+            tableWork->automaticSelectionActive = 1;
+            tableWork->selectionDelay = 0x1E;
         }
-        if ((arg0->unk68 > 0) && (arg5 == 0)) {
-            arg0->unk68--;
+        if ((tableWork->selectionDelay > 0) && (selectionMode == 0)) {
+            tableWork->selectionDelay--;
         }
         else {
-            var_r28 = (arg0->unk64 / 7) < (arg0->unk60 / 7);
-            var_r27 = (arg0->unk64 / 7) > (arg0->unk60 / 7);
-            if ((var_r28 == 0) && (var_r27 == 0)) {
-                var_r25 = (arg0->unk64) < (arg0->unk60);
-                var_r24 = (arg0->unk64) > (arg0->unk60);
+            modelIndex = (tableWork->automaticCardIndex / 7) < (tableWork->selectedCardIndex / 7);
+            stateIndex = (tableWork->automaticCardIndex / 7) > (tableWork->selectedCardIndex / 7);
+            if ((modelIndex == 0) && (stateIndex == 0)) {
+                cardCount = (tableWork->automaticCardIndex) < (tableWork->selectedCardIndex);
+                cardId = (tableWork->automaticCardIndex) > (tableWork->selectedCardIndex);
             }
-            var_r23 = arg0->unk64 == arg0->unk60;
-            arg0->unk68 = 0x12;
+            playerCount = tableWork->automaticCardIndex == tableWork->selectedCardIndex;
+            tableWork->selectionDelay = 0x12;
         }
     }
-    else if (arg5 == 0) {
-        var_r25 = (HuPadDStkRep[arg2] & 1) != 0;
-        var_r24 = (HuPadDStkRep[arg2] & 2) != 0;
-        var_r28 = (HuPadDStkRep[arg2] & 8) != 0;
-        var_r27 = (HuPadDStkRep[arg2] & 4) != 0;
-        var_r23 = (HuPadBtnDown[arg2] & 0x100) != 0;
+    else if (selectionMode == 0) {
+        cardCount = (HuPadDStkRep[controllerPort] & 1) != 0;
+        cardId = (HuPadDStkRep[controllerPort] & 2) != 0;
+        modelIndex = (HuPadDStkRep[controllerPort] & 8) != 0;
+        stateIndex = (HuPadDStkRep[controllerPort] & 4) != 0;
+        playerCount = (HuPadBtnDown[controllerPort] & 0x100) != 0;
     }
-    if (var_r25 != 0) {
-        if ((arg0->unk60 % 7) == 0) {
-            arg0->unk60 = (arg0->unk60 + 6);
+    if (cardCount != 0) {
+        if ((tableWork->selectedCardIndex % 7) == 0) {
+            tableWork->selectedCardIndex = (tableWork->selectedCardIndex + 6);
         }
         else {
-            arg0->unk60 = (arg0->unk60 - 1);
+            tableWork->selectedCardIndex = (tableWork->selectedCardIndex - 1);
         }
         HuAudFXPlay(0);
     }
-    if (var_r24 != 0) {
-        if ((arg0->unk60 % 7) == 6) {
-            arg0->unk60 = (arg0->unk60 - 6);
+    if (cardId != 0) {
+        if ((tableWork->selectedCardIndex % 7) == 6) {
+            tableWork->selectedCardIndex = (tableWork->selectedCardIndex - 6);
         }
         else {
-            arg0->unk60 = (arg0->unk60 + 1);
+            tableWork->selectedCardIndex = (tableWork->selectedCardIndex + 1);
         }
         HuAudFXPlay(0);
     }
-    if (var_r28 != 0) {
-        if ((arg0->unk60 / 7) == 0) {
-            arg0->unk60 = (arg0->unk60 + 0xE);
+    if (modelIndex != 0) {
+        if ((tableWork->selectedCardIndex / 7) == 0) {
+            tableWork->selectedCardIndex = (tableWork->selectedCardIndex + 0xE);
         }
         else {
-            arg0->unk60 = (arg0->unk60 - 7);
+            tableWork->selectedCardIndex = (tableWork->selectedCardIndex - 7);
         }
         HuAudFXPlay(0);
     }
-    if (var_r27 != 0) {
-        if ((arg0->unk60 / 7) == 2) {
-            arg0->unk60 = (arg0->unk60 - 0xE);
+    if (stateIndex != 0) {
+        if ((tableWork->selectedCardIndex / 7) == 2) {
+            tableWork->selectedCardIndex = (tableWork->selectedCardIndex - 0xE);
         }
         else {
-            arg0->unk60 = (arg0->unk60 + 7);
+            tableWork->selectedCardIndex = (tableWork->selectedCardIndex + 7);
         }
         HuAudFXPlay(0);
     }
-    temp_r22 = arg0->unk60 % 7;
-    temp_r21 = arg0->unk60 / 7;
-    sp10.x = -60.0f + (20.0f * temp_r22);
-    sp10.y = 86.0f;
-    sp10.z = -20.0f + (20.0f * temp_r21);
-    arg0->unk0->unk20 = sp10;
-    if (arg0->unk0->field00_bit0 == 0) {
-        fn_1_77C8(arg0->unk0, arg1);
-        arg0->unk0->field00_bit2 = arg3;
+    cardIndex = tableWork->selectedCardIndex % 7;
+    spaceIndex = tableWork->selectedCardIndex / 7;
+    scaleVector.x = -60.0f + (20.0f * cardIndex);
+    scaleVector.y = 86.0f;
+    scaleVector.z = -20.0f + (20.0f * spaceIndex);
+    tableWork->cursorWork->position = scaleVector;
+    if (tableWork->cursorWork->cursorShown == 0) {
+        M446CursorPlayerSet(tableWork->cursorWork, playerIndex);
+        tableWork->cursorWork->reverseDirection = cursorMode;
     }
-    if ((var_r23 != 0) || (arg5 == 2)) {
-        *arg4 = arg0->unk8[((temp_r22 + (temp_r21 * 7)))];
-        if (*arg4) {
-            if ((*arg4)->unk64 == 0) {
+    if ((playerCount != 0) || (selectionMode == 2)) {
+        *cardOut = tableWork->cards[((cardIndex + (spaceIndex * 7)))];
+        if (*cardOut) {
+            if ((*cardOut)->faceDown == 0) {
                 HuAudFXPlay(0x76A);
-                fn_1_7884(arg0->unk0);
-                arg0->unk6C = 0;
+                M446CursorActivate(tableWork->cursorWork);
+                tableWork->automaticSelectionActive = 0;
                 return 1;
             }
             HuAudFXPlay(4);
@@ -325,49 +325,49 @@ s32 fn_1_4088(unkStruct6 *arg0, u8 arg1, u8 arg2, s32 arg3, unkStruct4 **arg4, s
     return 0;
 }
 
-void fn_1_46AC(unkStruct6 *arg0)
+void M446TableReserveSpaces(M446TableWork *tableWork)
 {
-    arg0->unk8[0] = (unkStruct4 *)-1;
-    arg0->unk8[6] = (unkStruct4 *)-1;
-    arg0->unk8[14] = (unkStruct4 *)-1;
-    arg0->unk8[20] = (unkStruct4 *)-1;
+    tableWork->cards[0] = (M446CardWork *)-1;
+    tableWork->cards[6] = (M446CardWork *)-1;
+    tableWork->cards[14] = (M446CardWork *)-1;
+    tableWork->cards[20] = (M446CardWork *)-1;
 }
 
-void fn_1_46D0(unkStruct6 *arg0)
+void M446TableClearReservedSpaces(M446TableWork *tableWork)
 {
-    s32 var_r31;
+    s32 loopIndex;
 
-    for (var_r31 = 0; var_r31 < 21; var_r31++) {
-        if (arg0->unk8[var_r31] == (unkStruct4 *)-1) {
-            arg0->unk8[var_r31] = 0;
+    for (loopIndex = 0; loopIndex < 21; loopIndex++) {
+        if (tableWork->cards[loopIndex] == (M446CardWork *)-1) {
+            tableWork->cards[loopIndex] = 0;
         }
     }
 }
 
-s32 fn_1_4720(unkStruct6 *arg0, s32 arg1)
+s32 M446TableCardCountByOwner(M446TableWork *tableWork, s32 ownerPlayerIndex)
 {
-    s32 var_r29;
-    s32 var_r30;
-    unkStruct4 *temp_r31;
+    s32 cardIndex;
+    s32 playerIndex;
+    M446CardWork *cardWork;
 
-    for (var_r29 = 0, var_r30 = 0; var_r30 < 21; var_r30++) {
-        temp_r31 = arg0->unk8[var_r30];
-        if ((temp_r31) && (temp_r31->unk64 == 0) && ((temp_r31->unk0 == arg1) || (arg1 == 5))) {
-            var_r29++;
+    for (cardIndex = 0, playerIndex = 0; playerIndex < 21; playerIndex++) {
+        cardWork = tableWork->cards[playerIndex];
+        if ((cardWork) && (cardWork->faceDown == 0) && ((cardWork->cardId == ownerPlayerIndex) || (ownerPlayerIndex == 5))) {
+            cardIndex++;
         }
     }
-    return var_r29;
+    return cardIndex;
 }
 
-void fn_1_4798(unkStruct6 *arg0)
+void M446TableRevealOwnerCards(M446TableWork *tableWork)
 {
-    unkStruct4 *temp_r31;
-    s32 var_r30;
+    M446CardWork *cardWork2;
+    s32 playerIndex;
 
-    for (var_r30 = 0; var_r30 < 0x15; var_r30++) {
-        temp_r31 = arg0->unk8[var_r30];
-        if (temp_r31 && (temp_r31->unk64 != 0)) {
-            fn_1_2794(temp_r31);
+    for (playerIndex = 0; playerIndex < 0x15; playerIndex++) {
+        cardWork2 = tableWork->cards[playerIndex];
+        if (cardWork2 && (cardWork2->faceDown != 0)) {
+            M446CardFlipUp(cardWork2);
         }
     }
 }

@@ -9,15 +9,15 @@
 #include "ext_math.h"
 
 // cursor.c
-extern unkStruct7 *m446CursorCreate(s32);
-extern void fn_1_76E8(unkStruct7 *);
-extern void fn_1_77C8(unkStruct7 *, u8);
+extern M446CursorWork *M446CursorCreate(s32 initialPlayerIndex);
+extern void M446CursorDestroy(M446CursorWork *cursorWork);
+extern void M446CursorPlayerSet(M446CursorWork *cursorWork, u8 cursorPlayer);
 
 // bss
-unkStruct3 *lbl_1_bss_30;
+M446ListNode *m446PlayerListHead;
 
 // data
-s32 lbl_1_data_228[9] = {
+s32 m446PlayerModelFiles[9] = {
     DATA_MAKE_NUM(DATADIR_M446, 10),
     DATA_MAKE_NUM(DATADIR_M446, 11),
     DATA_MAKE_NUM(DATADIR_M446, 12),
@@ -29,7 +29,7 @@ s32 lbl_1_data_228[9] = {
     DATA_MAKE_NUM(DATADIR_M446, 33),
 };
 
-s32 lbl_1_data_24C[9][4] = {
+s32 m446PlayerMotionFiles[9][4] = {
     {
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 0),
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 54),
@@ -85,783 +85,783 @@ s32 lbl_1_data_24C[9][4] = {
         DATA_MAKE_NUM(DATADIR_M446, 0x24),
     },
 };
-m446Func8 lbl_1_data_2DC[5] = { NULL, fn_1_5B48, fn_1_5C24, fn_1_5D00, fn_1_6074 };
+M446PlayerActionCallback m446PlayerStateUpdates[5] = { NULL, M446PlayerIdleUpdate, M446PlayerLookUpdate, M446PlayerMoveUpdate, M446PlayerCardReaction };
 
-s32 fn_1_480C(void)
+s32 M446PlayersInitialize(void)
 {
-    lbl_1_bss_30 = 0;
+    m446PlayerListHead = 0;
     return 1;
 }
 
-void fn_1_4824(void)
+void M446PlayersDestroy(void)
 {
-    unkStruct3 *var_r31;
-    void *var_r30;
+    M446ListNode *listNode;
+    void *playerIndex;
 
-    var_r31 = lbl_1_bss_30;
-    if (var_r31) {
+    listNode = m446PlayerListHead;
+    if (listNode) {
         do {
-            var_r30 = var_r31->unk0;
-            fn_1_509C(var_r30);
-            var_r31 = var_r31->unk8;
-        } while (var_r31);
+            playerIndex = listNode->value;
+            M446PlayerDestroy(playerIndex);
+            listNode = listNode->next;
+        } while (listNode);
     }
 }
 
-void fn_1_487C(void)
+void M446PlayersUpdate(void)
 {
-    f32 temp_f31;
-    unkStruct8 *temp_r31;
-    unkStruct3 *var_r30;
+    f32 distance;
+    M446PlayerWork *playerWork2;
+    M446ListNode *listNode;
 
-    var_r30 = lbl_1_bss_30;
-    if (var_r30) {
+    listNode = m446PlayerListHead;
+    if (listNode) {
         do {
-            temp_r31 = var_r30->unk0;
-            if (lbl_1_data_2DC[temp_r31->unk18]) {
-                lbl_1_data_2DC[temp_r31->unk18](temp_r31);
+            playerWork2 = listNode->value;
+            if (m446PlayerStateUpdates[playerWork2->actionState]) {
+                m446PlayerStateUpdates[playerWork2->actionState](playerWork2);
             }
-            if (temp_r31->unkB4 != 0) {
-                temp_f31 = sind(90.0f * temp_r31->unkC0);
-                temp_f31 *= temp_f31;
-                temp_r31->unk48.x = (temp_r31->unk9C.x + (temp_f31 * (temp_r31->unkA8.x - temp_r31->unk9C.x)));
-                temp_r31->unk48.y = (temp_r31->unk9C.y + (temp_f31 * (temp_r31->unkA8.y - temp_r31->unk9C.y)));
-                temp_r31->unk48.z = (temp_r31->unk9C.z + (temp_f31 * (temp_r31->unkA8.z - temp_r31->unk9C.z)));
-                temp_r31->unkC0 += temp_r31->unkC4;
-                if (temp_r31->unkC0 >= 1.0f) {
-                    temp_r31->unk48.x = temp_r31->unkA8.x;
-                    temp_r31->unk48.y = temp_r31->unkA8.y;
-                    temp_r31->unk48.z = temp_r31->unkA8.z;
-                    temp_r31->unkB4 = 0;
+            if (playerWork2->rotationAnimating != 0) {
+                distance = sind(90.0f * playerWork2->rotationProgress);
+                distance *= distance;
+                playerWork2->position.x = (playerWork2->rotationStart.x + (distance * (playerWork2->rotationTarget.x - playerWork2->rotationStart.x)));
+                playerWork2->position.y = (playerWork2->rotationStart.y + (distance * (playerWork2->rotationTarget.y - playerWork2->rotationStart.y)));
+                playerWork2->position.z = (playerWork2->rotationStart.z + (distance * (playerWork2->rotationTarget.z - playerWork2->rotationStart.z)));
+                playerWork2->rotationProgress += playerWork2->rotationStep;
+                if (playerWork2->rotationProgress >= 1.0f) {
+                    playerWork2->position.x = playerWork2->rotationTarget.x;
+                    playerWork2->position.y = playerWork2->rotationTarget.y;
+                    playerWork2->position.z = playerWork2->rotationTarget.z;
+                    playerWork2->rotationAnimating = 0;
                 }
             }
-            if (temp_r31->unk98 != 0) {
-                temp_f31 = sind(90.0f * temp_r31->unkB8);
-                temp_f31 *= temp_f31;
-                temp_r31->unk54.x = (temp_r31->unk80.x + (temp_f31 * (temp_r31->unk8C.x - temp_r31->unk80.x)));
-                temp_r31->unk54.y = (temp_r31->unk80.y + (temp_f31 * (temp_r31->unk8C.y - temp_r31->unk80.y)));
-                temp_r31->unk54.z = (temp_r31->unk80.z + (temp_f31 * (temp_r31->unk8C.z - temp_r31->unk80.z)));
-                temp_r31->unkB8 = (temp_r31->unkB8 + temp_r31->unkBC);
-                if (temp_r31->unkB8 >= 1.0f) {
-                    temp_r31->unk54.x = temp_r31->unk8C.x;
-                    temp_r31->unk54.y = temp_r31->unk8C.y;
-                    temp_r31->unk54.z = temp_r31->unk8C.z;
-                    temp_r31->unk98 = 0;
+            if (playerWork2->positionAnimating != 0) {
+                distance = sind(90.0f * playerWork2->positionProgress);
+                distance *= distance;
+                playerWork2->rotation.x = (playerWork2->positionStart.x + (distance * (playerWork2->positionTarget.x - playerWork2->positionStart.x)));
+                playerWork2->rotation.y = (playerWork2->positionStart.y + (distance * (playerWork2->positionTarget.y - playerWork2->positionStart.y)));
+                playerWork2->rotation.z = (playerWork2->positionStart.z + (distance * (playerWork2->positionTarget.z - playerWork2->positionStart.z)));
+                playerWork2->positionProgress = (playerWork2->positionProgress + playerWork2->positionStep);
+                if (playerWork2->positionProgress >= 1.0f) {
+                    playerWork2->rotation.x = playerWork2->positionTarget.x;
+                    playerWork2->rotation.y = playerWork2->positionTarget.y;
+                    playerWork2->rotation.z = playerWork2->positionTarget.z;
+                    playerWork2->positionAnimating = 0;
                 }
             }
-            fn_1_6578(temp_r31);
-            var_r30 = var_r30->unk8;
-        } while (var_r30);
+            M446PlayerRenderUpdate(playerWork2);
+            listNode = listNode->next;
+        } while (listNode);
     }
 }
 
-unkStruct8 *m446PlayerCreate(s32 arg0, unkStruct6 *arg1)
+M446PlayerWork *M446PlayerCreate(s32 configuredPlayerId, M446TableWork *tableWork)
 {
-    f32 var_f31;
-    s32 var_r27;
-    s32 var_r26;
-    s16 var_r25;
-    s16 var_r24;
-    unkStruct3 *var_r28;
-    s32 var_r30;
-    unkStruct8 *var_r31;
+    f32 movementAngle;
+    s32 stateIndex;
+    s32 counter;
+    s16 cardCount;
+    s16 cardId;
+    M446ListNode *listNode3;
+    s32 playerIndex;
+    M446PlayerWork *playerWork2;
 
-    var_r31 = HuMemDirectMallocNum(HEAP_HEAP, 0xCC, HU_MEMNUM_OVL);
-    if (!var_r31) {
+    playerWork2 = HuMemDirectMallocNum(HEAP_HEAP, 0xCC, HU_MEMNUM_OVL);
+    if (!playerWork2) {
         return NULL;
     }
-    var_r31->unk0 = arg0;
-    if (GWPlayerCfg[arg0].iscom != 0) {
-        var_r27 = 1;
+    playerWork2->playerIndex = configuredPlayerId;
+    if (GWPlayerCfg[playerIndex].iscom != 0) {
+        stateIndex = 1;
     }
     else {
-        var_r27 = 0;
+        stateIndex = 0;
     }
-    var_r31->unk68 = var_r27;
-    var_r31->unk4 = arg1;
-    if (GWPlayerCfg[arg0].character == 0xB) {
-        var_r26 = 1;
-    }
-    else {
-        var_r26 = 0;
-    }
-    var_r31->unk70 = var_r26;
-    if (var_r31->unk70 != 0) {
-        var_r25 = 8;
+    playerWork2->isComputer = stateIndex;
+    playerWork2->tableWork = tableWork;
+    if (GWPlayerCfg[playerIndex].character == 0xB) {
+        counter = 1;
     }
     else {
-        var_r25 = GWPlayerCfg[arg0].character;
+        counter = 0;
     }
-    var_r31->unk64 = var_r25;
-    if (var_r31->unk68 != 0) {
-        var_r24 = 4;
-    }
-    else {
-        var_r24 = GWPlayerCfg[arg0].pad_idx;
-    }
-    var_r31->unk66 = var_r24;
-    var_r31->unk65 = GWPlayerCfg[arg0].diff;
-    var_r31->unk6C = 0;
-    var_r31->unkC = 0;
-    var_r31->unk10 = 2;
-    var_r31->unk48.x = 0.0f;
-    if (var_r31->unk70 != 0) {
-        var_f31 = 70.0f;
+    playerWork2->usesCustomModel = counter;
+    if (playerWork2->usesCustomModel != 0) {
+        cardCount = 8;
     }
     else {
-        var_f31 = 0.0f;
+        cardCount = GWPlayerCfg[playerIndex].character;
     }
-    var_r31->unk48.y = var_f31;
-    var_r31->unk48.z = 0.0f;
-    var_r31->unk54.x = 0.0f;
-    var_r31->unk54.y = 0.0f;
-    var_r31->unk54.z = 0.0f;
-    var_r31->unk60 = 1.0f;
-    var_r31->unk38 = 0;
-    var_r31->unk24 = 0;
-    var_r31->unk74 = 0;
-    var_r31->unk18 = 0;
-    var_r31->unk1C = 0;
-    var_r31->unk98 = 0;
-    var_r31->unkB4 = 0;
+    playerWork2->characterId = cardCount;
+    if (playerWork2->isComputer != 0) {
+        cardId = 4;
+    }
+    else {
+        cardId = GWPlayerCfg[playerIndex].pad_idx;
+    }
+    playerWork2->controllerPort = cardId;
+    playerWork2->difficulty = GWPlayerCfg[playerIndex].diff;
+    playerWork2->selectionActive = 0;
+    playerWork2->handCardCount = 0;
+    playerWork2->selectedCardIndex = 2;
+    playerWork2->position.x = 0.0f;
+    if (playerWork2->usesCustomModel != 0) {
+        movementAngle = 70.0f;
+    }
+    else {
+        movementAngle = 0.0f;
+    }
+    playerWork2->position.y = movementAngle;
+    playerWork2->position.z = 0.0f;
+    playerWork2->rotation.x = 0.0f;
+    playerWork2->rotation.y = 0.0f;
+    playerWork2->rotation.z = 0.0f;
+    playerWork2->modelScale = 1.0f;
+    playerWork2->handCount = 0;
+    playerWork2->cardFlippedState = 0;
+    playerWork2->selectedHandIndex = 0;
+    playerWork2->actionState = 0;
+    playerWork2->actionSubstate = 0;
+    playerWork2->positionAnimating = 0;
+    playerWork2->rotationAnimating = 0;
 
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        var_r31->unk2C[var_r30] = NULL;
+    for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+        playerWork2->handCards[playerIndex] = NULL;
     }
-    var_r31->unk8 = m446CursorCreate(1);
-    if (!var_r31->unk8) {
-        HuMemDirectFree(var_r31);
+    playerWork2->cursorWork = M446CursorCreate(1);
+    if (!playerWork2->cursorWork) {
+        HuMemDirectFree(playerWork2);
         return NULL;
     }
-    fn_1_7884(var_r31->unk8);
-    switch (var_r31->unk0) {
+    M446CursorActivate(playerWork2->cursorWork);
+    switch (playerWork2->playerIndex) {
         case 0:
-            var_r31->unk48.z = 150.0f;
-            var_r31->unk54.y = 180.0f;
+            playerWork2->position.z = 150.0f;
+            playerWork2->rotation.y = 180.0f;
             break;
         case 1:
-            var_r31->unk48.z = -150.0f;
-            var_r31->unk54.y = 0.0f;
+            playerWork2->position.z = -150.0f;
+            playerWork2->rotation.y = 0.0f;
             break;
     }
-    if (var_r31->unk70 != 0) {
-        var_r31->unk3C[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M446, 0x20));
-        var_r31->unk3C[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M446, 0x21));
+    if (playerWork2->usesCustomModel != 0) {
+        playerWork2->modelIds[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M446, 0x20));
+        playerWork2->modelIds[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M446, 0x21));
     }
     else {
-        var_r31->unk3C[0] = CharModelCreate(var_r31->unk64, 2);
-        var_r31->unk3C[1] = Hu3DModelCreateFile(lbl_1_data_228[var_r31->unk64]);
+        playerWork2->modelIds[0] = CharModelCreate(playerWork2->characterId, 2);
+        playerWork2->modelIds[1] = Hu3DModelCreateFile(m446PlayerModelFiles[playerWork2->characterId]);
     }
-    Hu3DModelAmbSet(var_r31->unk3C[0], 0.0f, 0.0f, 0.0f);
-    Hu3DModelAmbSet(var_r31->unk3C[1], 0.0f, 0.0f, 0.0f);
-    Hu3DModelShadowSet(var_r31->unk3C[0]);
-    Hu3DModelShadowSet(var_r31->unk3C[1]);
-    Hu3DModelPosSet(var_r31->unk3C[1], 0.0f, 100.0f, 0.0f);
-    Hu3DModelAttrReset(var_r31->unk3C[1], HU3D_MOTATTR_LOOP);
-    Hu3DModelAttrSet(var_r31->unk3C[1], HU3D_ATTR_DISPOFF);
-    Hu3DModelPosSet(var_r31->unk3C[1], 2000.0f, 2000.0f, 2000.0f);
-    fn_1_637C(var_r31, 0);
+    Hu3DModelAmbSet(playerWork2->modelIds[0], 0.0f, 0.0f, 0.0f);
+    Hu3DModelAmbSet(playerWork2->modelIds[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelShadowSet(playerWork2->modelIds[0]);
+    Hu3DModelShadowSet(playerWork2->modelIds[1]);
+    Hu3DModelPosSet(playerWork2->modelIds[1], 0.0f, 100.0f, 0.0f);
+    Hu3DModelAttrReset(playerWork2->modelIds[1], HU3D_MOTATTR_LOOP);
+    Hu3DModelAttrSet(playerWork2->modelIds[1], HU3D_ATTR_DISPOFF);
+    Hu3DModelPosSet(playerWork2->modelIds[1], 2000.0f, 2000.0f, 2000.0f);
+    M446PlayerAnimationSet(playerWork2, 0);
 
-    for (var_r30 = 0; var_r30 < 4; var_r30++) {
-        if (var_r31->unk70 != 0) {
-            var_r31->unk40[var_r30] = Hu3DJointMotionFile(var_r31->unk3C[0], lbl_1_data_24C[var_r31->unk64][var_r30]);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        if (playerWork2->usesCustomModel != 0) {
+            playerWork2->motionIds[playerIndex] = Hu3DJointMotionFile(playerWork2->modelIds[0], m446PlayerMotionFiles[playerWork2->characterId][playerIndex]);
         }
         else {
-            var_r31->unk40[var_r30] = CharMotionCreate(var_r31->unk64, lbl_1_data_24C[var_r31->unk64][var_r30]);
+            playerWork2->motionIds[playerIndex] = CharMotionCreate(playerWork2->characterId, m446PlayerMotionFiles[playerWork2->characterId][playerIndex]);
         }
     }
-    if (var_r31->unk70 == 0) {
-        CharMotionDataClose(var_r31->unk64);
+    if (playerWork2->usesCustomModel == 0) {
+        CharMotionDataClose(playerWork2->characterId);
     }
-    if (var_r31->unk70 != 0) {
-        Hu3DMotionSet(var_r31->unk3C[0], var_r31->unk40[0]);
+    if (playerWork2->usesCustomModel != 0) {
+        Hu3DMotionSet(playerWork2->modelIds[0], playerWork2->motionIds[0]);
     }
     else {
-        CharMotionSet(var_r31->unk64, var_r31->unk40[0]);
+        CharMotionSet(playerWork2->characterId, playerWork2->motionIds[0]);
     }
-    Hu3DModelAttrSet(var_r31->unk3C[0], HU3D_MOTATTR_LOOP);
-    var_r28 = fn_1_1DF4(var_r31);
-    if (!var_r28) {
+    Hu3DModelAttrSet(playerWork2->modelIds[0], HU3D_MOTATTR_LOOP);
+    listNode3 = M446ListNodeCreate(playerWork2);
+    if (!listNode3) {
         OSReport("[!] m446PlayerCreate ERROR...\n");
-        HuMemDirectFree(var_r31);
+        HuMemDirectFree(playerWork2);
         return NULL;
     }
-    if (lbl_1_bss_30) {
-        fn_1_1EC8(lbl_1_bss_30, var_r28);
+    if (m446PlayerListHead) {
+        M446ListAppend(m446PlayerListHead, listNode3);
     }
     else {
-        lbl_1_bss_30 = var_r28;
+        m446PlayerListHead = listNode3;
     }
-    return var_r31;
+    return playerWork2;
 }
 
-void fn_1_509C(unkStruct8 *arg0)
+void M446PlayerDestroy(M446PlayerWork *playerWork)
 {
-    s32 var_r29;
-    unkStruct3 *var_r30;
+    s32 cardIndex;
+    M446ListNode *listNode2;
 
-    var_r30 = lbl_1_bss_30;
+    listNode2 = m446PlayerListHead;
 
     do {
-        if (arg0 == var_r30->unk0) {
-            if (var_r30 == lbl_1_bss_30) {
-                lbl_1_bss_30 = var_r30->unk8;
+        if (playerWork == listNode2->value) {
+            if (listNode2 == m446PlayerListHead) {
+                m446PlayerListHead = listNode2->next;
             }
-            fn_1_1F04(var_r30);
-            fn_1_1E5C(var_r30);
+            M446ListRemove(listNode2);
+            M446ListNodeDestroy(listNode2);
 
-            for (var_r29 = 0; var_r29 < 4; var_r29++) {
-                if (arg0->unk70 != 0) {
-                    Hu3DMotionKill(arg0->unk40[var_r29]);
+            for (cardIndex = 0; cardIndex < 4; cardIndex++) {
+                if (playerWork->usesCustomModel != 0) {
+                    Hu3DMotionKill(playerWork->motionIds[cardIndex]);
                 }
                 else {
-                    CharMotionKill(arg0->unk64, arg0->unk40[var_r29]);
+                    CharMotionKill(playerWork->characterId, playerWork->motionIds[cardIndex]);
                 }
             }
-            if (arg0->unk70 != 0) {
-                Hu3DModelKill(arg0->unk3C[0]);
-                Hu3DModelKill(arg0->unk3C[1]);
+            if (playerWork->usesCustomModel != 0) {
+                Hu3DModelKill(playerWork->modelIds[0]);
+                Hu3DModelKill(playerWork->modelIds[1]);
             }
             else {
-                CharModelKill(arg0->unk64);
-                Hu3DModelKill(arg0->unk3C[1]);
+                CharModelKill(playerWork->characterId);
+                Hu3DModelKill(playerWork->modelIds[1]);
             }
-            fn_1_76E8(arg0->unk8);
-            HuMemDirectFree(arg0);
+            M446CursorDestroy(playerWork->cursorWork);
+            HuMemDirectFree(playerWork);
             break;
         }
-        var_r30 = var_r30->unk8;
-    } while (var_r30);
+        listNode2 = listNode2->next;
+    } while (listNode2);
 }
 
-s32 m446PlayerAppendCard(unkStruct8 *arg0, unkStruct4 *arg1, s32 arg2)
+s32 M446PlayerAppendCard(M446PlayerWork *playerWork, M446CardWork *cardWork, s32 cardPlacementMode)
 {
-    Vec sp18;
-    Vec spC;
-    s32 temp_r0_2;
-    s32 temp_r28;
-    s32 temp_r27;
-    s32 var_r29;
+    Vec offset;
+    Vec targetPosition;
+    s32 result2;
+    s32 deckEntry;
+    s32 cursorWork;
+    s32 cardIndex;
 
-    if (arg0->unk38 >= 3) {
+    if (playerWork->handCount >= 3) {
         OSReport("m446PlayerAppendCard ERROR...\n");
         return 0;
     }
 
-    for (var_r29 = 0; var_r29 < 3; var_r29++) {
-        if (!arg0->unk2C[var_r29]) {
+    for (cardIndex = 0; cardIndex < 3; cardIndex++) {
+        if (!playerWork->handCards[cardIndex]) {
             break;
         }
     }
 
-    if (var_r29 == 3) {
+    if (cardIndex == 3) {
         OSReport("m446PlayerAppendCard ERROR...\n");
         return 0;
     }
-    arg0->unk2C[var_r29] = arg1;
-    arg0->unk38++;
-    sp18.y = 86.0f;
-    switch (arg0->unk0) {
+    playerWork->handCards[cardIndex] = cardWork;
+    playerWork->handCount++;
+    offset.y = 86.0f;
+    switch (playerWork->playerIndex) {
         case 0:
-            sp18.x = -30.0f + (30.0f * var_r29);
-            sp18.z = 45.0f;
+            offset.x = -30.0f + (30.0f * cardIndex);
+            offset.z = 45.0f;
             break;
         case 1:
-            sp18.x = 30.0f - (30.0f * var_r29);
-            sp18.z = -45.0f;
+            offset.x = 30.0f - (30.0f * cardIndex);
+            offset.z = -45.0f;
             break;
     }
 
-    spC = arg1->unk34;
-    switch (arg0->unk0) {
+    targetPosition = cardWork->rotation;
+    switch (playerWork->playerIndex) {
         case 0:
-            spC.y = 0.0f;
+            targetPosition.y = 0.0f;
             break;
         case 1:
-            spC.y = 180.0f;
+            targetPosition.y = 180.0f;
             break;
     }
-    switch (arg2) {
+    switch (cardPlacementMode) {
         case 0:
-            arg1->unk10 = sp18;
-            arg1->unk34 = spC;
-            arg1->unk58 = 1.5f;
-            fn_1_272C(arg1);
+            cardWork->position = offset;
+            cardWork->rotation = targetPosition;
+            cardWork->scale = 1.5f;
+            M446CardFlipDown(cardWork);
             break;
         case 1:
-            fn_1_27FC(arg1, &sp18, 0x3C);
-            fn_1_2928(arg1, &spC, 0x1E);
-            fn_1_29B4(arg1, 1.5f, 0x1E);
+            M446CardMoveTo(cardWork, &offset, 0x3C);
+            M446CardRotateTo(cardWork, &targetPosition, 0x1E);
+            M446CardScaleTo(cardWork, 1.5f, 0x1E);
             break;
         case 4:
-            fn_1_27FC(arg1, &sp18, 0x1E);
-            fn_1_2928(arg1, &spC, 0x1E);
-            fn_1_29B4(arg1, 1.5f, 0x1E);
+            M446CardMoveTo(cardWork, &offset, 0x1E);
+            M446CardRotateTo(cardWork, &targetPosition, 0x1E);
+            M446CardScaleTo(cardWork, 1.5f, 0x1E);
             break;
     }
-    temp_r28 = arg0->unk24;
-    temp_r27 = arg0->unk20;
-    fn_1_6620(arg0);
-    if ((arg0->unk24 != 0) && (temp_r28 == 0)) {
+    deckEntry = playerWork->cardFlippedState;
+    cursorWork = playerWork->cardMovementState;
+    M446PlayerShadowUpdate(playerWork);
+    if ((playerWork->cardFlippedState != 0) && (deckEntry == 0)) {
         HuAudFXPlay(0x76B);
-        fn_1_64BC(arg0, 1, 0x3C);
+        M446PlayerMotionSet(playerWork, 1, 0x3C);
     }
-    else if ((arg0->unk20 != 0) && (temp_r27 == 0)) {
+    else if ((playerWork->cardMovementState != 0) && (cursorWork == 0)) {
         HuAudFXPlay(0x76B);
-        fn_1_64BC(arg0, 0, 0x3C);
+        M446PlayerMotionSet(playerWork, 0, 0x3C);
     }
     return 1;
 }
 
-s32 m446PlayerRemoveCard(unkStruct8 *arg0, unkStruct4 *arg1, s32 arg2)
+s32 M446PlayerRemoveCard(M446PlayerWork *playerWork, M446CardWork *cardWork, s32 cardRemovalMode)
 {
-    Vec spC;
-    s32 var_r30;
+    Vec targetPosition;
+    s32 playerIndex;
 
-    if (arg0->unk38 <= 0) {
+    if (playerWork->handCount <= 0) {
         OSReport("m446PlayerRemoveCard ERROR...\n");
         return 0;
     }
 
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        if (arg0->unk2C[var_r30] == arg1) {
+    for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+        if (playerWork->handCards[playerIndex] == cardWork) {
             break;
         }
     }
-    if (var_r30 == 3) {
+    if (playerIndex == 3) {
         OSReport("m446PlayerRemoveCard ERROR...\n");
         return 0;
     }
-    arg0->unk2C[var_r30] = NULL;
-    arg0->unk38--;
-    fn_1_2A58(arg1);
-    fn_1_6620(arg0);
-    switch (arg2) {
+    playerWork->handCards[playerIndex] = NULL;
+    playerWork->handCount--;
+    M446CardFaceHide(cardWork);
+    M446PlayerShadowUpdate(playerWork);
+    switch (cardRemovalMode) {
         case 3:
-            spC = arg1->unk10;
-            spC.y = 86.0f;
-            spC.z = 0.0f;
-            fn_1_2890(arg1, &spC, 0x1E, 0x21);
-            fn_1_5E54(arg0, var_r30);
+            targetPosition = cardWork->position;
+            targetPosition.y = 86.0f;
+            targetPosition.z = 0.0f;
+            M446CardMoveToDelayed(cardWork, &targetPosition, 0x1E, 0x21);
+            M446PlayerEmotionSet(playerWork, playerIndex);
             break;
     }
     return 1;
 }
 
-s32 fn_1_5648(unkStruct8 *arg0, s32 arg1, unkStruct4 **arg2)
+s32 M446PlayerCardFind(M446PlayerWork *playerWork, s32 cardIndex, M446CardWork **cardOut)
 {
-    if ((arg1 < 0) || (arg1 >= 3)) {
+    if ((cardIndex < 0) || (cardIndex >= 3)) {
         return 0;
     }
-    *arg2 = arg0->unk2C[arg1];
+    *cardOut = playerWork->handCards[cardIndex];
     return 1;
 }
 
-s32 fn_1_5678(unkStruct8 *arg0, unkStruct4 **arg1, s32 arg2)
+s32 M446PlayerCardSelect(M446PlayerWork *playerWork, M446CardWork **cardOut, s32 selectionMode)
 {
-    s32 sp14[3];
-    Vec sp8;
-    s32 var_r28;
-    s32 var_r30;
-    s32 var_r25;
-    s32 var_r24;
-    s32 var_r27;
-    s32 var_r26;
-    unkStruct4 *var_r29;
+    s32 rotation[3];
+    Vec position;
+    s32 modelIndex;
+    s32 playerIndex;
+    s32 cardCount;
+    s32 cardId;
+    s32 stateIndex;
+    s32 counter;
+    M446CardWork *cardWork;
 
-    var_r27 = 0;
-    var_r26 = 0;
-    var_r25 = 0;
-    *arg1 = NULL;
-    if (arg0->unk68 != 0) {
-        if (arg0->unk6C == 0) {
-            if (arg0->unk20 != 0) {
-                var_r24 = fn_1_4720(arg0->unk4, arg0->unk28);
-                if (var_r24 >= 1) {
-                    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-                        var_r29 = arg0->unk2C[var_r30];
-                        if (var_r29->unk0 != arg0->unk28) {
-                            arg0->unk74 = var_r30;
+    stateIndex = 0;
+    counter = 0;
+    cardCount = 0;
+    *cardOut = NULL;
+    if (playerWork->isComputer != 0) {
+        if (playerWork->selectionActive == 0) {
+            if (playerWork->cardMovementState != 0) {
+                cardId = M446TableCardCountByOwner(playerWork->tableWork, playerWork->targetCardId);
+                if (cardId >= 1) {
+                    for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+                        cardWork = playerWork->handCards[playerIndex];
+                        if (cardWork->cardId != playerWork->targetCardId) {
+                            playerWork->selectedHandIndex = playerIndex;
                             break;
                         }
                     }
                 }
                 else {
-                    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-                        var_r29 = arg0->unk2C[var_r30];
-                        if (var_r29->unk0 != arg0->unk28) {
+                    for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+                        cardWork = playerWork->handCards[playerIndex];
+                        if (cardWork->cardId != playerWork->targetCardId) {
                             break;
                         }
                     }
 
-                    var_r24 = fn_1_4720(arg0->unk4, var_r29->unk0);
-                    if (var_r24 >= 2) {
-                        for (var_r30 = 0; var_r30 < 3; var_r30++) {
-                            var_r29 = arg0->unk2C[var_r30];
-                            if (var_r29->unk0 == arg0->unk28) {
-                                arg0->unk74 = var_r30;
+                    cardId = M446TableCardCountByOwner(playerWork->tableWork, cardWork->cardId);
+                    if (cardId >= 2) {
+                        for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+                            cardWork = playerWork->handCards[playerIndex];
+                            if (cardWork->cardId == playerWork->targetCardId) {
+                                playerWork->selectedHandIndex = playerIndex;
                                 break;
                             }
                         }
                     }
                     else {
-                        arg0->unk74 = (fn_1_38F0() % 3);
+                        playerWork->selectedHandIndex = (M446RandomGet() % 3);
                     }
                 }
             }
             else {
-                for (var_r30 = 0; var_r30 < 3; var_r30++) {
-                    var_r29 = arg0->unk2C[var_r30];
-                    sp14[var_r30] = fn_1_4720(arg0->unk4, var_r29->unk0);
+                for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+                    cardWork = playerWork->handCards[playerIndex];
+                    rotation[playerIndex] = M446TableCardCountByOwner(playerWork->tableWork, cardWork->cardId);
                 }
-                for (var_r28 = 0; var_r28 < 5; var_r28++) {
-                    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-                        if (var_r28 == sp14[var_r30]) {
+                for (modelIndex = 0; modelIndex < 5; modelIndex++) {
+                    for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+                        if (modelIndex == rotation[playerIndex]) {
                             break;
                         }
                     }
-                    if (var_r30 < 3) {
+                    if (playerIndex < 3) {
                         break;
                     }
                 }
-                if (var_r28 == 5) {
-                    arg0->unk74 = (fn_1_38F0() % 3);
+                if (modelIndex == 5) {
+                    playerWork->selectedHandIndex = (M446RandomGet() % 3);
                 }
                 else {
-                    arg0->unk74 = var_r30;
+                    playerWork->selectedHandIndex = playerIndex;
                 }
             }
-            arg0->unk6C = 1;
-            arg0->unk7C = 0x1E;
+            playerWork->selectionActive = 1;
+            playerWork->selectionDelay = 0x1E;
         }
-        if (arg0->unk7C > 0) {
-            arg0->unk7C--;
+        if (playerWork->selectionDelay > 0) {
+            playerWork->selectionDelay--;
         }
         else {
-            var_r27 = arg0->unk74 < arg0->unk10;
-            var_r26 = arg0->unk74 > arg0->unk10;
-            var_r25 = arg0->unk74 == arg0->unk10;
-            arg0->unk7C = 0x12;
+            stateIndex = playerWork->selectedHandIndex < playerWork->selectedCardIndex;
+            counter = playerWork->selectedHandIndex > playerWork->selectedCardIndex;
+            cardCount = playerWork->selectedHandIndex == playerWork->selectedCardIndex;
+            playerWork->selectionDelay = 0x12;
         }
     }
     else {
-        switch (arg0->unk0) {
+        switch (playerWork->playerIndex) {
             case 0:
-                var_r27 = (HuPadDStkRep[arg0->unk66] & 1) != 0;
-                var_r26 = (HuPadDStkRep[arg0->unk66] & 2) != 0;
+                stateIndex = (HuPadDStkRep[playerWork->controllerPort] & 1) != 0;
+                counter = (HuPadDStkRep[playerWork->controllerPort] & 2) != 0;
                 break;
             case 1:
-                var_r27 = (HuPadDStkRep[arg0->unk66] & 2) != 0;
-                var_r26 = (HuPadDStkRep[arg0->unk66] & 1) != 0;
+                stateIndex = (HuPadDStkRep[playerWork->controllerPort] & 2) != 0;
+                counter = (HuPadDStkRep[playerWork->controllerPort] & 1) != 0;
                 break;
         }
-        var_r25 = (HuPadBtnDown[arg0->unk66] & 0x100) != 0;
+        cardCount = (HuPadBtnDown[playerWork->controllerPort] & 0x100) != 0;
     }
-    if (arg2 == 0) {
-        if (var_r27 != 0) {
-            if (--arg0->unk10 < 0) {
-                arg0->unk10 = 2;
+    if (selectionMode == 0) {
+        if (stateIndex != 0) {
+            if (--playerWork->selectedCardIndex < 0) {
+                playerWork->selectedCardIndex = 2;
             }
             HuAudFXPlay(0);
         }
-        if (var_r26 != 0) {
-            if (++arg0->unk10 > 2) {
-                arg0->unk10 = 0;
+        if (counter != 0) {
+            if (++playerWork->selectedCardIndex > 2) {
+                playerWork->selectedCardIndex = 0;
             }
             HuAudFXPlay(0);
         }
     }
-    var_r29 = arg0->unk2C[arg0->unk10];
-    if (!var_r29) {
+    cardWork = playerWork->handCards[playerWork->selectedCardIndex];
+    if (!cardWork) {
         return 0;
     }
-    if (arg0->unk8->field00_bit0 == 0) {
-        fn_1_77C8(arg0->unk8, arg0->unk64);
+    if (playerWork->cursorWork->cursorShown == 0) {
+        M446CursorPlayerSet(playerWork->cursorWork, playerWork->characterId);
     }
-    sp8 = var_r29->unk10;
-    sp8.y++;
-    arg0->unk8->unk20 = sp8;
-    arg0->unk8->unk44 = 1.5f;
-    if ((var_r25 != 0) || (arg2 != 0)) {
+    position = cardWork->position;
+    position.y++;
+    playerWork->cursorWork->position = position;
+    playerWork->cursorWork->scale = 1.5f;
+    if ((cardCount != 0) || (selectionMode != 0)) {
         HuAudFXPlay(0x769);
-        *arg1 = var_r29;
-        fn_1_7884(arg0->unk8);
-        arg0->unk6C = 0;
+        *cardOut = cardWork;
+        M446CursorActivate(playerWork->cursorWork);
+        playerWork->selectionActive = 0;
         return 1;
     }
     return 0;
 }
 
-void fn_1_5B34(unkStruct8 *arg0)
+void M446PlayerIdleBegin(M446PlayerWork *playerWork)
 {
-    arg0->unk18 = 1;
-    arg0->unk1C = 0;
+    playerWork->actionState = 1;
+    playerWork->actionSubstate = 0;
 }
 
-static const s32 lbl_1_rodata_1C8[4] = { 0, 1, 2, 3 };
+static const s32 m446PlayerMotionIndices[4] = { 0, 1, 2, 3 };
 
-void fn_1_5B48(unkStruct8 *arg0)
+void M446PlayerIdleUpdate(M446PlayerWork *playerWork)
 {
-    switch (arg0->unk1C) {
+    switch (playerWork->actionSubstate) {
         case 0:
-            if (arg0->unk70 != 0) {
-                Hu3DMotionShiftSet(arg0->unk3C[0], arg0->unk40[2], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+            if (playerWork->usesCustomModel != 0) {
+                Hu3DMotionShiftSet(playerWork->modelIds[0], playerWork->motionIds[2], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
             }
             else {
-                CharMotionShiftSet(arg0->unk64, arg0->unk40[2], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+                CharMotionShiftSet(playerWork->characterId, playerWork->motionIds[2], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
             }
-            arg0->unk1C = 1;
+            playerWork->actionSubstate = 1;
             break;
         case 1:
-            if (Hu3DMotionEndCheck(arg0->unk3C[0]) != 0) {
-                arg0->unk18 = 0;
+            if (Hu3DMotionEndCheck(playerWork->modelIds[0]) != 0) {
+                playerWork->actionState = 0;
             }
     }
 }
 
-void fn_1_5C10(unkStruct8 *arg0)
+void M446PlayerLookBegin(M446PlayerWork *playerWork)
 {
-    arg0->unk18 = 2;
-    arg0->unk1C = 0;
+    playerWork->actionState = 2;
+    playerWork->actionSubstate = 0;
 }
 
-void fn_1_5C24(unkStruct8 *arg0)
+void M446PlayerLookUpdate(M446PlayerWork *playerWork)
 {
-    switch (arg0->unk1C) {
+    switch (playerWork->actionSubstate) {
         case 0:
-            if (arg0->unk70 != 0) {
-                Hu3DMotionShiftSet(arg0->unk3C[0], arg0->unk40[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+            if (playerWork->usesCustomModel != 0) {
+                Hu3DMotionShiftSet(playerWork->modelIds[0], playerWork->motionIds[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
             }
             else {
-                CharMotionShiftSet(arg0->unk64, arg0->unk40[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+                CharMotionShiftSet(playerWork->characterId, playerWork->motionIds[3], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
             }
-            arg0->unk1C = 1;
+            playerWork->actionSubstate = 1;
             break;
         case 1:
-            if (Hu3DMotionEndCheck(arg0->unk3C[0]) != 0) {
-                arg0->unk18 = 0;
+            if (Hu3DMotionEndCheck(playerWork->modelIds[0]) != 0) {
+                playerWork->actionState = 0;
             }
     }
 }
 
-void fn_1_5CEC(unkStruct8 *arg0)
+void M446PlayerMoveBegin(M446PlayerWork *playerWork)
 {
-    arg0->unk18 = 3;
-    arg0->unk1C = 0;
+    playerWork->actionState = 3;
+    playerWork->actionSubstate = 0;
 }
 
-void fn_1_5D00(unkStruct8 *arg0)
+void M446PlayerMoveUpdate(M446PlayerWork *playerWork)
 {
-    Vec sp8;
+    Vec position;
 
-    sp8 = arg0->unk54;
-    switch (arg0->unk1C) {
+    position = playerWork->rotation;
+    switch (playerWork->actionSubstate) {
         case 0:
-            Hu3DModelAmbSet(arg0->unk3C[0], 0.8f, 0.8f, 0.8f);
-            if (arg0->unk70 != 0) {
-                Hu3DMotionShiftSet(arg0->unk3C[0], arg0->unk40[1], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
+            Hu3DModelAmbSet(playerWork->modelIds[0], 0.8f, 0.8f, 0.8f);
+            if (playerWork->usesCustomModel != 0) {
+                Hu3DMotionShiftSet(playerWork->modelIds[0], playerWork->motionIds[1], 0.0f, 10.0f, HU3D_MOTATTR_NONE);
             }
             else {
-                CharMotionShiftSet(arg0->unk64, arg0->unk40[1], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
-                Hu3DMotionStartEndSet(arg0->unk3C[0], 0.0f, 59.0f);
+                CharMotionShiftSet(playerWork->characterId, playerWork->motionIds[1], 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
+                Hu3DMotionStartEndSet(playerWork->modelIds[0], 0.0f, 59.0f);
             }
-            sp8.y = 0.0f;
-            fn_1_6264(arg0, &sp8, 0x3C);
-            arg0->unk1C = 1;
-            arg0->unk14 = 0;
+            position.y = 0.0f;
+            M446PlayerPositionMove(playerWork, &position, 0x3C);
+            playerWork->actionSubstate = 1;
+            playerWork->actionTimer = 0;
             return;
         case 1:
-            if (arg0->unk98 == 0) {
-                arg0->unk18 = 0;
+            if (playerWork->positionAnimating == 0) {
+                playerWork->actionState = 0;
             }
     }
 }
 
-void fn_1_5E54(unkStruct8 *arg0, s32 arg1)
+void M446PlayerEmotionSet(M446PlayerWork *playerWork, s32 emotionId)
 {
-    Vec sp14;
-    Vec sp8;
-    f32 var_f31;
-    f32 var_f30;
-    f32 var_f29;
+    Vec rotation;
+    Vec position;
+    f32 movementAngle;
+    f32 movementMagnitude;
+    f32 positionYOffset;
 
-    if (arg0->unk70 != 0) {
-        var_f31 = 95.0f;
+    if (playerWork->usesCustomModel != 0) {
+        movementAngle = 95.0f;
     }
     else {
-        var_f31 = 80.0f;
+        movementAngle = 80.0f;
     }
-    sp14.y = var_f31;
+    rotation.y = movementAngle;
 
-    switch (arg0->unk0) {
+    switch (playerWork->playerIndex) {
         case 0:
-            sp14.x = -30.0f + (30.0f * arg1);
-            sp14.z = 105.0f;
-            sp8.x = 0.0f;
-            sp8.y = 90.0f;
-            sp8.z = 0.0f;
+            rotation.x = -30.0f + (30.0f * emotionId);
+            rotation.z = 105.0f;
+            position.x = 0.0f;
+            position.y = 90.0f;
+            position.z = 0.0f;
             break;
         case 1:
-            sp14.x = 30.0f - (30.0f * arg1);
-            if (arg0->unk70 != 0) {
-                var_f30 = 30.0f;
+            rotation.x = 30.0f - (30.0f * emotionId);
+            if (playerWork->usesCustomModel != 0) {
+                movementMagnitude = 30.0f;
             }
             else {
-                var_f30 = 55.0f;
+                movementMagnitude = 55.0f;
             }
-            sp14.z = -50.0f - var_f30;
-            sp8.x = 0.0f;
-            if (arg0->unk70 != 0) {
-                var_f29 = 180.0f;
+            rotation.z = -50.0f - movementMagnitude;
+            position.x = 0.0f;
+            if (playerWork->usesCustomModel != 0) {
+                positionYOffset = 180.0f;
             }
             else {
-                var_f29 = -90.0f;
+                positionYOffset = -90.0f;
             }
-            sp8.y = var_f29;
-            sp8.z = 0.0f;
+            position.y = positionYOffset;
+            position.z = 0.0f;
             break;
     }
-    arg0->unk48 = sp14;
-    arg0->unk54 = sp8;
-    arg0->unk18 = 4;
-    arg0->unk1C = 0;
+    playerWork->position = rotation;
+    playerWork->rotation = position;
+    playerWork->actionState = 4;
+    playerWork->actionSubstate = 0;
 }
 
-void fn_1_6074(unkStruct8 *arg0)
+void M446PlayerCardReaction(M446PlayerWork *playerWork)
 {
-    Vec sp8;
-    f32 var_f31;
-    f32 var_f30;
+    Vec position;
+    f32 movementAngle;
+    f32 movementMagnitude;
 
-    switch (arg0->unk1C) {
+    switch (playerWork->actionSubstate) {
         case 0:
-            arg0->unk1C = 1;
-            arg0->unk14 = 0;
+            playerWork->actionSubstate = 1;
+            playerWork->actionTimer = 0;
         case 1:
-            sp8 = arg0->unk48;
-            if (arg0->unk0 == 0) {
-                var_f31 = -25.0f;
+            position = playerWork->position;
+            if (playerWork->playerIndex == 0) {
+                movementAngle = -25.0f;
             }
             else {
-                var_f31 = 25.0f;
+                movementAngle = 25.0f;
             }
-            sp8.z += var_f31;
-            fn_1_62F0(arg0, &sp8, 0x1E);
+            position.z += movementAngle;
+            M446PlayerRotationMove(playerWork, &position, 0x1E);
 
-            arg0->unk1C = 2;
-            arg0->unk14 = 0;
+            playerWork->actionSubstate = 2;
+            playerWork->actionTimer = 0;
             break;
         case 2:
-            if (arg0->unk14++ < 0x1E)
+            if (playerWork->actionTimer++ < 0x1E)
                 break;
-            arg0->unk1C = 3;
+            playerWork->actionSubstate = 3;
         case 3:
-            Hu3DModelAttrSet(arg0->unk3C[1], HU3D_MOTATTR_LOOP);
-            arg0->unk1C = 4;
-            arg0->unk14 = 0;
+            Hu3DModelAttrSet(playerWork->modelIds[1], HU3D_MOTATTR_LOOP);
+            playerWork->actionSubstate = 4;
+            playerWork->actionTimer = 0;
             break;
         case 4:
-            if (arg0->unk14 == 1) {
-                Hu3DModelAttrReset(arg0->unk3C[1], HU3D_MOTATTR_LOOP);
+            if (playerWork->actionTimer == 1) {
+                Hu3DModelAttrReset(playerWork->modelIds[1], HU3D_MOTATTR_LOOP);
             }
-            if (arg0->unk14++ < 0x1E)
+            if (playerWork->actionTimer++ < 0x1E)
                 break;
-            arg0->unk1C = 5;
+            playerWork->actionSubstate = 5;
         case 5:
-            sp8 = arg0->unk48;
-            if (arg0->unk0 == 0) {
-                var_f30 = -50.0f;
+            position = playerWork->position;
+            if (playerWork->playerIndex == 0) {
+                movementMagnitude = -50.0f;
             }
             else {
-                var_f30 = 50.0f;
+                movementMagnitude = 50.0f;
             }
-            sp8.z -= var_f30;
-            fn_1_62F0(arg0, &sp8, 12);
-            arg0->unk1C = 6;
-            arg0->unk14 = 0;
+            position.z -= movementMagnitude;
+            M446PlayerRotationMove(playerWork, &position, 12);
+            playerWork->actionSubstate = 6;
+            playerWork->actionTimer = 0;
             break;
         case 6:
-            if (arg0->unk14++ >= 12) {
-                arg0->unk18 = 0;
+            if (playerWork->actionTimer++ >= 12) {
+                playerWork->actionState = 0;
             }
             break;
     }
 }
 
-void fn_1_6264(unkStruct8 *arg0, Vec *arg1, s32 arg2)
+void M446PlayerPositionMove(M446PlayerWork *playerWork, Vec *targetPosition, s32 durationFrames)
 {
-    arg0->unk8C = *arg1;
-    arg0->unk80 = arg0->unk54;
-    arg0->unkB8 = 0.0f;
-    arg0->unkBC = (1.0f / arg2);
-    arg0->unk98 = 1;
+    playerWork->positionTarget = *targetPosition;
+    playerWork->positionStart = playerWork->rotation;
+    playerWork->positionProgress = 0.0f;
+    playerWork->positionStep = (1.0f / durationFrames);
+    playerWork->positionAnimating = 1;
 }
 
-void fn_1_62F0(unkStruct8 *arg0, Vec *arg1, s32 arg2)
+void M446PlayerRotationMove(M446PlayerWork *playerWork, Vec *targetRotation, s32 durationFrames)
 {
-    arg0->unkA8 = *arg1;
-    arg0->unk9C = arg0->unk48;
-    arg0->unkC0 = 0.0f;
-    arg0->unkC4 = (1.0f / arg2);
-    arg0->unkB4 = 1;
+    playerWork->rotationTarget = *targetRotation;
+    playerWork->rotationStart = playerWork->position;
+    playerWork->rotationProgress = 0.0f;
+    playerWork->rotationStep = (1.0f / durationFrames);
+    playerWork->rotationAnimating = 1;
 }
 
-void fn_1_637C(unkStruct8 *arg0, s32 arg1)
+void M446PlayerAnimationSet(M446PlayerWork *playerWork, s32 animationId)
 {
-    f32 var_f31;
+    f32 movementAngle;
 
-    arg0->unkC8 = arg1;
-    switch (arg1) {
+    playerWork->animationId = animationId;
+    switch (animationId) {
         case 0:
-            Hu3DModelAttrReset(arg0->unk3C[0], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(arg0->unk3C[0], HU3D_MOTATTR_LOOP);
-            Hu3DModelAttrSet(arg0->unk3C[1], HU3D_ATTR_DISPOFF);
-            arg0->unk48.x = 0.0f;
-            if (arg0->unk70 != 0) {
-                var_f31 = 70.0f;
+            Hu3DModelAttrReset(playerWork->modelIds[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(playerWork->modelIds[0], HU3D_MOTATTR_LOOP);
+            Hu3DModelAttrSet(playerWork->modelIds[1], HU3D_ATTR_DISPOFF);
+            playerWork->position.x = 0.0f;
+            if (playerWork->usesCustomModel != 0) {
+                movementAngle = 70.0f;
             }
             else {
-                var_f31 = 0.0f;
+                movementAngle = 0.0f;
             }
-            arg0->unk48.y = var_f31;
-            switch (arg0->unk0) {
+            playerWork->position.y = movementAngle;
+            switch (playerWork->playerIndex) {
                 case 0:
-                    arg0->unk48.z = 150.0f;
-                    arg0->unk54.y = 180.0f;
+                    playerWork->position.z = 150.0f;
+                    playerWork->rotation.y = 180.0f;
                     return;
                 case 1:
-                    arg0->unk48.z = -150.0f;
-                    arg0->unk54.y = 0.0f;
+                    playerWork->position.z = -150.0f;
+                    playerWork->rotation.y = 0.0f;
                     return;
             }
             break;
         case 1:
-            Hu3DModelAttrReset(arg0->unk3C[1], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(arg0->unk3C[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrReset(playerWork->modelIds[1], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(playerWork->modelIds[0], HU3D_ATTR_DISPOFF);
             break;
     }
 }
 
-void fn_1_64BC(unkStruct8 *arg0, s32 arg1, s32 arg2)
+void M446PlayerMotionSet(M446PlayerWork *playerWork, s32 motionId, s32 vibrationStrength)
 {
-    if (arg0->unk70 == 0) {
-        switch (arg1) {
+    if (playerWork->usesCustomModel == 0) {
+        switch (motionId) {
             case 0:
-                omVibrate(arg0->unk0, arg2, 6, 6);
+                omVibrate(playerWork->playerIndex, vibrationStrength, 6, 6);
                 return;
             case 1:
-                omVibrate(arg0->unk0, arg2, 4, 2);
+                omVibrate(playerWork->playerIndex, vibrationStrength, 4, 2);
                 return;
             case 2:
-                omVibrate(arg0->unk0, arg2, 12, 0);
+                omVibrate(playerWork->playerIndex, vibrationStrength, 12, 0);
                 break;
         }
     }
 }
 
-static inline s32 unkStruct8UnkC8(unkStruct8 *arg0)
+static inline s32 M446PlayerMotionIsActive(M446PlayerWork *playerWork)
 {
-    if (arg0->unkC8 == 0) {
+    if (playerWork->animationId == 0) {
         return 0;
     }
     else {
@@ -869,57 +869,57 @@ static inline s32 unkStruct8UnkC8(unkStruct8 *arg0)
     }
 }
 
-void fn_1_6578(unkStruct8 *arg0)
+void M446PlayerRenderUpdate(M446PlayerWork *playerWork)
 {
-    s32 var_r30;
+    s32 playerIndex;
 
-    var_r30 = unkStruct8UnkC8(arg0);
-    Hu3DModelPosSet(arg0->unk3C[var_r30], arg0->unk48.x, arg0->unk48.y, arg0->unk48.z);
-    Hu3DModelRotSet(arg0->unk3C[var_r30], arg0->unk54.x, arg0->unk54.y, arg0->unk54.z);
-    Hu3DModelScaleSet(arg0->unk3C[var_r30], arg0->unk60, arg0->unk60, arg0->unk60);
+    playerIndex = M446PlayerMotionIsActive(playerWork);
+    Hu3DModelPosSet(playerWork->modelIds[playerIndex], playerWork->position.x, playerWork->position.y, playerWork->position.z);
+    Hu3DModelRotSet(playerWork->modelIds[playerIndex], playerWork->rotation.x, playerWork->rotation.y, playerWork->rotation.z);
+    Hu3DModelScaleSet(playerWork->modelIds[playerIndex], playerWork->modelScale, playerWork->modelScale, playerWork->modelScale);
 }
 
-void fn_1_6620(unkStruct8 *arg0)
+void M446PlayerShadowUpdate(M446PlayerWork *playerWork)
 {
-    s32 var_r26;
-    unkStruct4 *temp_r27;
-    unkStruct4 *temp_r30;
-    s32 var_r29;
-    s32 var_r28;
+    s32 counter;
+    M446CardWork *cursorWork;
+    M446CardWork *cardWork;
+    s32 cardIndex;
+    s32 modelIndex;
 
-    arg0->unk20 = 0;
-    arg0->unk24 = 0;
+    playerWork->cardMovementState = 0;
+    playerWork->cardFlippedState = 0;
 
-    for (var_r29 = 0; var_r29 < 3; var_r29++) {
-        temp_r30 = arg0->unk2C[var_r29];
-        if (temp_r30) {
-            fn_1_2A58(temp_r30);
+    for (cardIndex = 0; cardIndex < 3; cardIndex++) {
+        cardWork = playerWork->handCards[cardIndex];
+        if (cardWork) {
+            M446CardFaceHide(cardWork);
         }
     }
-    for (var_r29 = 0; var_r29 < 3; var_r29++) {
-        var_r26 = 0;
-        temp_r30 = arg0->unk2C[var_r29];
-        if (temp_r30) {
+    for (cardIndex = 0; cardIndex < 3; cardIndex++) {
+        counter = 0;
+        cardWork = playerWork->handCards[cardIndex];
+        if (cardWork) {
 
-            for (var_r28 = 0; var_r28 < 3; var_r28++) {
-                temp_r27 = arg0->unk2C[var_r28];
-                if ((var_r29 != var_r28) && (temp_r27) && (temp_r30->unk0 == temp_r27->unk0)) {
-                    var_r26++;
+            for (modelIndex = 0; modelIndex < 3; modelIndex++) {
+                cursorWork = playerWork->handCards[modelIndex];
+                if ((cardIndex != modelIndex) && (cursorWork) && (cardWork->cardId == cursorWork->cardId)) {
+                    counter++;
                 }
             }
-            if (var_r26 > 0) {
-                arg0->unk28 = temp_r30->unk0;
-                if (var_r26 == 1) {
-                    arg0->unk20 = 1;
+            if (counter > 0) {
+                playerWork->targetCardId = cardWork->cardId;
+                if (counter == 1) {
+                    playerWork->cardMovementState = 1;
                 }
-                else if (var_r26 == 2) {
-                    arg0->unk24 = 1;
+                else if (counter == 2) {
+                    playerWork->cardFlippedState = 1;
                 }
 
-                for (var_r28 = 0; var_r28 < 3; var_r28++) {
-                    temp_r27 = arg0->unk2C[var_r28];
-                    if ((temp_r27) && (temp_r30->unk0 == temp_r27->unk0)) {
-                        fn_1_2A1C(temp_r27);
+                for (modelIndex = 0; modelIndex < 3; modelIndex++) {
+                    cursorWork = playerWork->handCards[modelIndex];
+                    if ((cursorWork) && (cardWork->cardId == cursorWork->cardId)) {
+                        M446CardFaceShow(cursorWork);
                     }
                 }
                 break;

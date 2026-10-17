@@ -4,578 +4,578 @@
 #include "ext_math.h"
 
 // data
-m446Func4 lbl_1_data_150[3] = { NULL, fn_1_2AA8, fn_1_2DA8 };
-static const s32 lbl_1_rodata_58[5] = { 0x4D0001, 0x4D0002, 0x4D0003, 0x4D0004, 0x4D0000 };
-static const s32 lbl_1_rodata_6C[5] = { 0x4D001B, 0x4D001C, 0x4D001D, 0x4D001E, 0x4D001E };
+M446CardActionCallback m446CardStateUpdates[3] = { NULL, M446CardTurnUpdate, M446CardShuffleUpdate };
+static const s32 m446CardFaceModelFiles[5] = { 0x4D0001, 0x4D0002, 0x4D0003, 0x4D0004, 0x4D0000 };
+static const s32 m446CardBackModelFiles[5] = { 0x4D001B, 0x4D001C, 0x4D001D, 0x4D001E, 0x4D001E };
 
 // bss
-unkStruct3 *lbl_1_bss_18;
+M446ListNode *m446CardListHead;
 
-unkStruct2 *fn_1_1C64(s32 arg0)
+M446PointerList *M446PointerListCreate(s32 listCapacity)
 {
-    unkStruct2 *temp_r3;
+    M446PointerList *object;
 
-    temp_r3 = HuMemDirectMallocNum(HEAP_HEAP, 0xC, HU_MEMNUM_OVL);
-    if (!temp_r3) {
+    object = HuMemDirectMallocNum(HEAP_HEAP, 0xC, HU_MEMNUM_OVL);
+    if (!object) {
         return NULL;
     }
-    temp_r3->unk0 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * sizeof(void *), HU_MEMNUM_OVL);
-    if (!temp_r3->unk0) {
-        HuMemDirectFree(temp_r3);
+    object->items = HuMemDirectMallocNum(HEAP_HEAP, listCapacity * sizeof(void *), HU_MEMNUM_OVL);
+    if (!object->items) {
+        HuMemDirectFree(object);
         return NULL;
     }
-    temp_r3->unk4 = arg0;
-    temp_r3->unk8 = 0;
-    return temp_r3;
+    object->capacity = listCapacity;
+    object->count = 0;
+    return object;
 }
 
-void fn_1_1CF8(unkStruct2 *arg0)
+void M446PointerListDestroy(M446PointerList *pointerList)
 {
-    HuMemDirectFree(arg0->unk0);
-    HuMemDirectFree(arg0);
+    HuMemDirectFree(pointerList->items);
+    HuMemDirectFree(pointerList);
 }
 
-s32 fn_1_1D30(unkStruct2 *arg0, void *arg1)
+s32 M446PointerListAppend(M446PointerList *pointerList, void *item)
 {
-    if (arg0->unk4 <= arg0->unk8) {
+    if (pointerList->capacity <= pointerList->count) {
         return 0;
     }
     else {
-        arg0->unk0[arg0->unk8] = arg1;
-        arg0->unk8++;
+        pointerList->items[pointerList->count] = item;
+        pointerList->count++;
         return 1;
     }
 }
 
-s32 fn_1_1D6C(unkStruct2 *arg0, unkStruct4 **arg1)
+s32 M446PointerListPop(M446PointerList *pointerList, M446CardWork **cardOut)
 {
-    if (arg0->unk8 <= 0) {
+    if (pointerList->count <= 0) {
         return 0;
     }
     else {
-        arg0->unk8--;
-        *arg1 = arg0->unk0[arg0->unk8];
+        pointerList->count--;
+        *cardOut = pointerList->items[pointerList->count];
         return 1;
     }
 }
 
-s32 fn_1_1DA8(unkStruct2 *arg0, void **arg1)
+s32 M446PointerListPopValue(M446PointerList *pointerList, void **valueOut)
 {
-    if (arg0->unk8 <= 0) {
+    if (pointerList->count <= 0) {
         return 0;
     }
     else {
-        *arg1 = *(&arg0->unk0[arg0->unk8] - 1);
+        *valueOut = *(&pointerList->items[pointerList->count] - 1);
         return 1;
     }
 }
 
-BOOL fn_1_1DDC(unkStruct2 *arg0)
+BOOL M446PointerListIsEmpty(M446PointerList *pointerList)
 {
-    return arg0->unk8 == 0;
+    return pointerList->count == 0;
 }
 
-s32 fn_1_1DEC(unkStruct2 *arg0)
+s32 M446PointerListCount(M446PointerList *pointerList)
 {
-    return arg0->unk8;
+    return pointerList->count;
 }
 
-#pragma dont_inline on
+#pragma dontInline on
 
-unkStruct3 *fn_1_1DF4(void *arg0)
+M446ListNode *M446ListNodeCreate(void *value)
 {
-    unkStruct3 *temp_r3;
+    M446ListNode *object;
 
-    temp_r3 = HuMemDirectMallocNum(HEAP_HEAP, 0xC, HU_MEMNUM_OVL);
-    if (!temp_r3) {
+    object = HuMemDirectMallocNum(HEAP_HEAP, 0xC, HU_MEMNUM_OVL);
+    if (!object) {
         return NULL;
     }
-    temp_r3->unk4 = NULL;
-    temp_r3->unk8 = NULL;
-    temp_r3->unk0 = arg0;
-    return temp_r3;
+    object->previous = NULL;
+    object->next = NULL;
+    object->value = value;
+    return object;
 }
 
-void fn_1_1E5C(unkStruct3 *arg0)
+void M446ListNodeDestroy(M446ListNode *listNode)
 {
-    HuMemDirectFree(arg0);
+    HuMemDirectFree(listNode);
 }
 
-void fn_1_1E84(unkStruct3 **arg0)
+void M446ListDestroy(M446ListNode **listHead)
 {
-    unkStruct3 *temp = *arg0;
-    HuMemDirectFree(temp);
-    *arg0 = NULL;
+    M446ListNode *listNode = *listHead;
+    HuMemDirectFree(listNode);
+    *listHead = NULL;
 }
 
-void fn_1_1EC8(unkStruct3 *arg0, unkStruct3 *arg1)
+void M446ListAppend(M446ListNode *listNode, M446ListNode *listNode2)
 {
-    if (arg0) {
-        arg1->unk8 = arg0->unk8;
-        arg1->unk4 = arg0;
-        arg0->unk8 = arg1;
-        if (arg1->unk8) {
-            arg1->unk8->unk4 = arg1;
+    if (listNode) {
+        listNode2->next = listNode->next;
+        listNode2->previous = listNode;
+        listNode->next = listNode2;
+        if (listNode2->next) {
+            listNode2->next->previous = listNode2;
         }
     }
     else {
-        arg1->unk4 = arg1;
-        arg1->unk8 = arg1;
+        listNode2->previous = listNode2;
+        listNode2->next = listNode2;
     }
 }
 
-void fn_1_1F04(unkStruct3 *arg0)
+void M446ListRemove(M446ListNode *listNode)
 {
-    if (arg0->unk8) {
-        arg0->unk8->unk4 = arg0->unk4;
+    if (listNode->next) {
+        listNode->next->previous = listNode->previous;
     }
-    if (arg0->unk4) {
-        arg0->unk4->unk8 = arg0->unk8;
+    if (listNode->previous) {
+        listNode->previous->next = listNode->next;
     }
 }
 
-#pragma dont_inline reset
+#pragma dontInline reset
 
-void fn_1_1F38(u8 *arg0, u8 *arg1, s32 arg2)
+void M446BytesCopy(u8 *destination, u8 *source, s32 byteCount)
 {
-    u8 *var_r30 = arg0;
-    u8 *var_r31 = arg1;
-    if (arg2 <= 0) {
+    u8 *playerIndex = destination;
+    u8 *loopIndex = source;
+    if (byteCount <= 0) {
         return;
     }
-    while (arg2-- != 0) {
-        *var_r30 = *var_r31++;
-        *var_r30++;
+    while (byteCount-- != 0) {
+        *playerIndex = *loopIndex++;
+        *playerIndex++;
     }
 }
 
-void fn_1_1F84(u8 *arg0, s8 arg1, s32 arg2)
+void M446BytesFill(u8 *destination, s8 fillValue, s32 byteCount)
 {
-    u8 *var_r30 = arg0;
-    if (arg2 <= 0) {
+    u8 *playerIndex = destination;
+    if (byteCount <= 0) {
         return;
     }
-    while (arg2-- != 0) {
-        *var_r30 = arg1;
-        *var_r30++;
+    while (byteCount-- != 0) {
+        *playerIndex = fillValue;
+        *playerIndex++;
     }
 }
 
-void fn_1_1FC0(u8 *arg0, s32 arg1)
+void M446BytesClear(u8 *destination, s32 byteCount)
 {
-    u8 *var_r30 = arg0;
-    if (arg1 <= 0) {
+    u8 *playerIndex = destination;
+    if (byteCount <= 0) {
         return;
     }
-    while (arg1-- != 0) {
-        *var_r30 = 0;
-        *var_r30++;
+    while (byteCount-- != 0) {
+        *playerIndex = 0;
+        *playerIndex++;
     }
 }
 
-s32 fn_1_1FFC(s8 *arg0, s8 *arg1, s32 arg2)
+s32 M446SignedBytesCompare(s8 *leftBuffer, s8 *rightBuffer, s32 byteCount)
 {
-    s8 *var_r30 = arg0;
-    s8 *var_r31 = arg1;
+    s8 *playerIndex = leftBuffer;
+    s8 *loopIndex = rightBuffer;
 
-    if (arg2 <= 0) {
+    if (byteCount <= 0) {
         return 0;
     }
-    while (*var_r30 == *var_r31) {
-        var_r30++;
-        var_r31++;
+    while (*playerIndex == *loopIndex) {
+        playerIndex++;
+        loopIndex++;
     }
-    return *var_r30 - *var_r31;
+    return *playerIndex - *loopIndex;
 }
 
-s32 fn_1_2064(void)
+s32 M446CardInitialize(void)
 {
-    lbl_1_bss_18 = 0;
+    m446CardListHead = 0;
     return 1;
 }
 
-void fn_1_207C(void)
+void M446CardsDestroyAll(void)
 {
-    unkStruct4 *var_r30;
-    unkStruct3 *var_r31;
+    M446CardWork *cardWork2;
+    M446ListNode *listNode;
 #ifdef NON_MATCHING
-    unkStruct3 *temp;
+    M446ListNode *listNode2;
 #endif
 
-    var_r31 = lbl_1_bss_18;
-    if (var_r31) {
+    listNode = m446CardListHead;
+    if (listNode) {
         do {
-            var_r30 = var_r31->unk0;
+            cardWork2 = listNode->value;
 #ifdef NON_MATCHING
             // fixes use after free
-            temp = var_r31->unk8;
-            fn_1_2688(var_r30);
-            var_r31 = temp;
+            listNode2 = listNode->next;
+            M446CardDestroy(cardWork2);
+            listNode = listNode2;
 #else
-            fn_1_2688(var_r30);
-            var_r31 = var_r31->unk8;
+            M446CardDestroy(cardWork2);
+            listNode = listNode->next;
 #endif
-        } while (var_r31);
+        } while (listNode);
     }
 }
 
-void fn_1_20D4(void)
+void M446CardsUpdate(void)
 {
-    m446Func1 *temp_r4;
-    f32 temp_f31;
-    s32 temp_r5;
-    unkStruct4 *temp_r31;
-    unkStruct3 *var_r30;
+    M446FlowStateCallback *windowId;
+    f32 distance;
+    s32 messageId;
+    M446CardWork *cardWork2;
+    M446ListNode *listNode;
 
-    var_r30 = lbl_1_bss_18;
-    if (var_r30) {
+    listNode = m446CardListHead;
+    if (listNode) {
         do {
-            temp_r31 = var_r30->unk0;
-            if (lbl_1_data_150[temp_r31->unk4]) {
-                lbl_1_data_150[temp_r31->unk4](temp_r31);
+            cardWork2 = listNode->value;
+            if (m446CardStateUpdates[cardWork2->animationState]) {
+                m446CardStateUpdates[cardWork2->animationState](cardWork2);
             }
-            if (temp_r31->unk70 != 0) {
-                if (temp_r31->unk7C > 0) {
-                    temp_r31->unk7C--;
+            if (cardWork2->positionAnimating != 0) {
+                if (cardWork2->positionDelay > 0) {
+                    cardWork2->positionDelay--;
                 }
                 else {
-                    temp_f31 = sind(90.0f * temp_r31->unk80);
-                    temp_r31->unk10.x = temp_r31->unk1C.x + (temp_f31 * (temp_r31->unk28.x - temp_r31->unk1C.x));
-                    temp_r31->unk10.y = temp_r31->unk1C.y + (temp_f31 * (temp_r31->unk28.y - temp_r31->unk1C.y));
-                    temp_r31->unk10.z = temp_r31->unk1C.z + (temp_f31 * (temp_r31->unk28.z - temp_r31->unk1C.z));
-                    temp_r31->unk80 = temp_r31->unk80 + temp_r31->unk84;
-                    if (temp_r31->unk80 >= 1.0f) {
-                        temp_r31->unk10.x = temp_r31->unk28.x;
-                        temp_r31->unk10.y = temp_r31->unk28.y;
-                        temp_r31->unk10.z = temp_r31->unk28.z;
-                        temp_r31->unk70 = 0;
+                    distance = sind(90.0f * cardWork2->positionProgress);
+                    cardWork2->position.x = cardWork2->positionStart.x + (distance * (cardWork2->positionTarget.x - cardWork2->positionStart.x));
+                    cardWork2->position.y = cardWork2->positionStart.y + (distance * (cardWork2->positionTarget.y - cardWork2->positionStart.y));
+                    cardWork2->position.z = cardWork2->positionStart.z + (distance * (cardWork2->positionTarget.z - cardWork2->positionStart.z));
+                    cardWork2->positionProgress = cardWork2->positionProgress + cardWork2->positionStep;
+                    if (cardWork2->positionProgress >= 1.0f) {
+                        cardWork2->position.x = cardWork2->positionTarget.x;
+                        cardWork2->position.y = cardWork2->positionTarget.y;
+                        cardWork2->position.z = cardWork2->positionTarget.z;
+                        cardWork2->positionAnimating = 0;
                     }
                 }
             }
-            if (temp_r31->unk74 != 0) {
-                temp_f31 = sind(90.0f * temp_r31->unk88);
-                temp_r31->unk34.x = (temp_r31->unk40.x + (temp_f31 * (temp_r31->unk4C.x - temp_r31->unk40.x)));
-                temp_r31->unk34.y = (temp_r31->unk40.y + (temp_f31 * (temp_r31->unk4C.y - temp_r31->unk40.y)));
-                temp_r31->unk34.z = (temp_r31->unk40.z + (temp_f31 * (temp_r31->unk4C.z - temp_r31->unk40.z)));
-                temp_r31->unk88 = (temp_r31->unk88 + temp_r31->unk8C);
-                if (temp_r31->unk88 >= 1.0f) {
-                    temp_r31->unk34.x = temp_r31->unk4C.x;
-                    temp_r31->unk34.y = temp_r31->unk4C.y;
-                    temp_r31->unk34.z = temp_r31->unk4C.z;
-                    temp_r31->unk74 = 0;
+            if (cardWork2->rotationAnimating != 0) {
+                distance = sind(90.0f * cardWork2->rotationProgress);
+                cardWork2->rotation.x = (cardWork2->rotationStart.x + (distance * (cardWork2->rotationTarget.x - cardWork2->rotationStart.x)));
+                cardWork2->rotation.y = (cardWork2->rotationStart.y + (distance * (cardWork2->rotationTarget.y - cardWork2->rotationStart.y)));
+                cardWork2->rotation.z = (cardWork2->rotationStart.z + (distance * (cardWork2->rotationTarget.z - cardWork2->rotationStart.z)));
+                cardWork2->rotationProgress = (cardWork2->rotationProgress + cardWork2->rotationStep);
+                if (cardWork2->rotationProgress >= 1.0f) {
+                    cardWork2->rotation.x = cardWork2->rotationTarget.x;
+                    cardWork2->rotation.y = cardWork2->rotationTarget.y;
+                    cardWork2->rotation.z = cardWork2->rotationTarget.z;
+                    cardWork2->rotationAnimating = 0;
                 }
             }
-            if (temp_r31->unk78 != 0) {
-                temp_f31 = sind(90.0f * temp_r31->unk90);
-                temp_r31->unk58 = (temp_r31->unk5C + (temp_f31 * (temp_r31->unk60 - temp_r31->unk5C)));
-                temp_r31->unk90 = (temp_r31->unk90 + temp_r31->unk94);
-                if (temp_r31->unk90 >= 1.0f) {
-                    temp_r31->unk58 = temp_r31->unk60;
-                    temp_r31->unk78 = 0;
+            if (cardWork2->scaleAnimating != 0) {
+                distance = sind(90.0f * cardWork2->scaleProgress);
+                cardWork2->scale = (cardWork2->scaleStart + (distance * (cardWork2->scaleTarget - cardWork2->scaleStart)));
+                cardWork2->scaleProgress = (cardWork2->scaleProgress + cardWork2->scaleStep);
+                if (cardWork2->scaleProgress >= 1.0f) {
+                    cardWork2->scale = cardWork2->scaleTarget;
+                    cardWork2->scaleAnimating = 0;
                 }
             }
-            fn_1_2F64(temp_r31);
-            var_r30 = var_r30->unk8;
-        } while (var_r30);
+            M446CardRenderUpdate(cardWork2);
+            listNode = listNode->next;
+        } while (listNode);
     }
 }
 
-unkStruct4 *m446CardCreate(s32 arg0)
+M446CardWork *M446CardCreate(s32 cardId)
 {
-    unkStruct4 *temp_r31;
-    unkStruct3 *temp_r30;
+    M446CardWork *cardWork2;
+    M446ListNode *cardWork;
 
-    temp_r31 = HuMemDirectMallocNum(HEAP_HEAP, 0x98, HU_MEMNUM_OVL);
-    if (!temp_r31) {
+    cardWork2 = HuMemDirectMallocNum(HEAP_HEAP, 0x98, HU_MEMNUM_OVL);
+    if (!cardWork2) {
         OSReport("[!] m446CardCreate ERROR...\n");
         return NULL;
     }
-    temp_r31->unk0 = arg0;
-    temp_r31->unk4 = 0;
-    temp_r31->unk10.x = 0.0f;
-    temp_r31->unk10.y = 0.0f;
-    temp_r31->unk10.z = 0.0f;
-    temp_r31->unk34.x = 0.0f;
-    temp_r31->unk34.y = 0.0f;
-    temp_r31->unk34.z = 180.0f;
-    temp_r31->unk58 = 1.0f;
-    temp_r31->unk64 = 0;
-    temp_r31->unk68 = 1;
-    temp_r31->unk6C = 0;
-    temp_r31->unk70 = 0;
-    temp_r31->unk74 = 0;
-    temp_r31->unk78 = 0;
-    temp_r31->unk7C = 0;
-    temp_r31->unkA[0] = Hu3DModelCreateFile(lbl_1_rodata_58[arg0]);
-    Hu3DModelAmbSet(temp_r31->unkA[0], 0.0f, 0.0f, 0.0f);
-    Hu3DModelShadowSet(temp_r31->unkA[0]);
-    Hu3DModelLayerSet(temp_r31->unkA[0], 0);
-    temp_r31->unkA[1] = Hu3DModelCreateFile(lbl_1_rodata_6C[arg0]);
-    Hu3DModelAmbSet(temp_r31->unkA[1], 1.0f, 1.0f, 1.0f);
-    Hu3DModelAttrSet(temp_r31->unkA[1], HU3D_MOTATTR_LOOP);
-    Hu3DModelLayerSet(temp_r31->unkA[0], 0);
-    fn_1_2A58(temp_r31);
-    fn_1_2EC0(temp_r31, 1);
-    temp_r30 = fn_1_1DF4(temp_r31);
-    if (!temp_r30) {
+    cardWork2->cardId = cardId;
+    cardWork2->animationState = 0;
+    cardWork2->position.x = 0.0f;
+    cardWork2->position.y = 0.0f;
+    cardWork2->position.z = 0.0f;
+    cardWork2->rotation.x = 0.0f;
+    cardWork2->rotation.y = 0.0f;
+    cardWork2->rotation.z = 180.0f;
+    cardWork2->scale = 1.0f;
+    cardWork2->faceDown = 0;
+    cardWork2->selectionState = 1;
+    cardWork2->cardFaceVisible = 0;
+    cardWork2->positionAnimating = 0;
+    cardWork2->rotationAnimating = 0;
+    cardWork2->scaleAnimating = 0;
+    cardWork2->positionDelay = 0;
+    cardWork2->modelIds[0] = Hu3DModelCreateFile(m446CardFaceModelFiles[cardId]);
+    Hu3DModelAmbSet(cardWork2->modelIds[0], 0.0f, 0.0f, 0.0f);
+    Hu3DModelShadowSet(cardWork2->modelIds[0]);
+    Hu3DModelLayerSet(cardWork2->modelIds[0], 0);
+    cardWork2->modelIds[1] = Hu3DModelCreateFile(m446CardBackModelFiles[cardId]);
+    Hu3DModelAmbSet(cardWork2->modelIds[1], 1.0f, 1.0f, 1.0f);
+    Hu3DModelAttrSet(cardWork2->modelIds[1], HU3D_MOTATTR_LOOP);
+    Hu3DModelLayerSet(cardWork2->modelIds[0], 0);
+    M446CardFaceHide(cardWork2);
+    M446CardShadowSet(cardWork2, 1);
+    cardWork = M446ListNodeCreate(cardWork2);
+    if (!cardWork) {
         OSReport("[!] m446CardCreate ERROR...\n");
-        HuMemDirectFree(temp_r31);
+        HuMemDirectFree(cardWork2);
         return NULL;
     }
-    if (lbl_1_bss_18) {
-        fn_1_1EC8(lbl_1_bss_18, temp_r30);
+    if (m446CardListHead) {
+        M446ListAppend(m446CardListHead, cardWork);
     }
     else {
-        lbl_1_bss_18 = temp_r30;
+        m446CardListHead = cardWork;
     }
-    return temp_r31;
+    return cardWork2;
 }
 
-void fn_1_2688(unkStruct4 *arg0)
+void M446CardDestroy(M446CardWork *cardWork)
 {
-    unkStruct3 *var_r31 = lbl_1_bss_18;
+    M446ListNode *listNode2 = m446CardListHead;
     do {
-        if (arg0 == var_r31->unk0) {
-            if (var_r31 == lbl_1_bss_18) {
-                lbl_1_bss_18 = var_r31->unk8;
+        if (cardWork == listNode2->value) {
+            if (listNode2 == m446CardListHead) {
+                m446CardListHead = listNode2->next;
             }
-            fn_1_1F04(var_r31);
-            fn_1_1E5C(var_r31);
-            Hu3DModelKill(arg0->unkA[0]);
-            Hu3DModelKill(arg0->unkA[1]);
-            HuMemDirectFree(arg0);
+            M446ListRemove(listNode2);
+            M446ListNodeDestroy(listNode2);
+            Hu3DModelKill(cardWork->modelIds[0]);
+            Hu3DModelKill(cardWork->modelIds[1]);
+            HuMemDirectFree(cardWork);
             return;
         }
-        var_r31 = var_r31->unk8;
-    } while (var_r31);
+        listNode2 = listNode2->next;
+    } while (listNode2);
 }
 
-void fn_1_272C(unkStruct4 *arg0)
+void M446CardFlipDown(M446CardWork *cardWork)
 {
-    Vec sp8;
+    Vec position;
 
-    sp8 = arg0->unk34;
-    sp8.z = 0.0f;
-    arg0->unk64 = 1;
-    fn_1_2928(arg0, &sp8, 0x1E);
+    position = cardWork->rotation;
+    position.z = 0.0f;
+    cardWork->faceDown = 1;
+    M446CardRotateTo(cardWork, &position, 0x1E);
 }
 
-void fn_1_2794(unkStruct4 *arg0)
+void M446CardFlipUp(M446CardWork *cardWork)
 {
-    Vec sp8;
+    Vec position;
 
-    sp8 = arg0->unk34;
-    sp8.z = 180.0f;
-    arg0->unk64 = 0;
-    fn_1_2928(arg0, &sp8, 0x3C);
+    position = cardWork->rotation;
+    position.z = 180.0f;
+    cardWork->faceDown = 0;
+    M446CardRotateTo(cardWork, &position, 0x3C);
 }
 
-void fn_1_27FC(unkStruct4 *arg0, Vec *arg1, s32 arg2)
+void M446CardMoveTo(M446CardWork *cardWork, Vec *targetPosition, s32 durationFrames)
 {
-    arg0->unk7C = 0;
-    arg0->unk28 = *arg1;
-    arg0->unk1C = arg0->unk10;
-    arg0->unk80 = 0.0f;
-    arg0->unk84 = (1.0f / arg2);
-    arg0->unk70 = 1;
+    cardWork->positionDelay = 0;
+    cardWork->positionTarget = *targetPosition;
+    cardWork->positionStart = cardWork->position;
+    cardWork->positionProgress = 0.0f;
+    cardWork->positionStep = (1.0f / durationFrames);
+    cardWork->positionAnimating = 1;
 }
 
-void fn_1_2890(unkStruct4 *arg0, Vec *arg1, s32 arg2, s32 arg3)
+void M446CardMoveToDelayed(M446CardWork *cardWork, Vec *targetPosition, s32 durationFrames, s32 delayFrames)
 {
-    arg0->unk7C = 0;
-    arg0->unk28 = *arg1;
-    arg0->unk1C = arg0->unk10;
-    arg0->unk80 = 0.0f;
-    arg0->unk84 = (1.0f / arg2);
-    arg0->unk70 = 1;
-    arg0->unk7C = arg3;
+    cardWork->positionDelay = 0;
+    cardWork->positionTarget = *targetPosition;
+    cardWork->positionStart = cardWork->position;
+    cardWork->positionProgress = 0.0f;
+    cardWork->positionStep = (1.0f / durationFrames);
+    cardWork->positionAnimating = 1;
+    cardWork->positionDelay = delayFrames;
 }
 
-void fn_1_2928(unkStruct4 *arg0, Vec *arg1, s32 arg2)
+void M446CardRotateTo(M446CardWork *cardWork, Vec *targetRotation, s32 durationFrames)
 {
-    arg0->unk4C = *arg1;
-    arg0->unk40 = arg0->unk34;
-    arg0->unk88 = 0.0f;
-    arg0->unk8C = (1.0f / arg2);
-    arg0->unk74 = 1;
+    cardWork->rotationTarget = *targetRotation;
+    cardWork->rotationStart = cardWork->rotation;
+    cardWork->rotationProgress = 0.0f;
+    cardWork->rotationStep = (1.0f / durationFrames);
+    cardWork->rotationAnimating = 1;
 }
 
-void fn_1_29B4(unkStruct4 *arg0, f32 arg8, s32 arg1)
+void M446CardScaleTo(M446CardWork *cardWork, f32 targetScale, s32 durationFrames)
 {
-    arg0->unk60 = arg8;
-    arg0->unk5C = arg0->unk58;
-    arg0->unk90 = 0.0f;
-    arg0->unk94 = (1.0f / arg1);
-    arg0->unk78 = 1;
+    cardWork->scaleTarget = targetScale;
+    cardWork->scaleStart = cardWork->scale;
+    cardWork->scaleProgress = 0.0f;
+    cardWork->scaleStep = (1.0f / durationFrames);
+    cardWork->scaleAnimating = 1;
 }
 
-void fn_1_2A1C(unkStruct4 *arg0)
+void M446CardFaceShow(M446CardWork *cardWork)
 {
-    Hu3DModelAttrReset(arg0->unkA[1], HU3D_ATTR_DISPOFF);
-    arg0->unk6C = 1;
+    Hu3DModelAttrReset(cardWork->modelIds[1], HU3D_ATTR_DISPOFF);
+    cardWork->cardFaceVisible = 1;
 }
 
-void fn_1_2A58(unkStruct4 *arg0)
+void M446CardFaceHide(M446CardWork *cardWork)
 {
-    Hu3DModelAttrSet(arg0->unkA[1], HU3D_ATTR_DISPOFF);
-    arg0->unk6C = 0;
+    Hu3DModelAttrSet(cardWork->modelIds[1], HU3D_ATTR_DISPOFF);
+    cardWork->cardFaceVisible = 0;
 }
 
-void fn_1_2A94(unkStruct4 *arg0)
+void M446CardTurnBegin(M446CardWork *cardWork)
 {
-    arg0->unk4 = 1;
-    arg0->unk8 = 0;
+    cardWork->animationState = 1;
+    cardWork->animationSubstate = 0;
 }
 
-void fn_1_2AA8(unkStruct4 *arg0)
+void M446CardTurnUpdate(M446CardWork *cardWork)
 {
-    Vec sp8;
+    Vec position;
 
-    switch (arg0->unk8) {
+    switch (cardWork->animationSubstate) {
         case 0:
-            arg0->unk8 = 1;
-            Hu3DModelAttrReset(arg0->unkA[1], HU3D_ATTR_DISPOFF);
-            arg0->unk6C = 1;
-            arg0->unk8 = 1; // ?
+            cardWork->animationSubstate = 1;
+            Hu3DModelAttrReset(cardWork->modelIds[1], HU3D_ATTR_DISPOFF);
+            cardWork->cardFaceVisible = 1;
+            cardWork->animationSubstate = 1; // ?
         case 1:
-            arg0->unk60 = 2.5f;
-            arg0->unk5C = arg0->unk58;
-            arg0->unk90 = 0.0f;
-            arg0->unk94 = 0.055555556f;
-            arg0->unk78 = 1;
-            arg0->unk8 = 2; // ?????
+            cardWork->scaleTarget = 2.5f;
+            cardWork->scaleStart = cardWork->scale;
+            cardWork->scaleProgress = 0.0f;
+            cardWork->scaleStep = 0.055555556f;
+            cardWork->scaleAnimating = 1;
+            cardWork->animationSubstate = 2; // ?????
             break;
 
         case 2:
-            if (arg0->unk78 != 0)
+            if (cardWork->scaleAnimating != 0)
                 break;
-            arg0->unk8 = 3; // ??????????
+            cardWork->animationSubstate = 3; // ??????????
         case 3:
-            arg0->unk60 = 1.5f;
-            arg0->unk5C = arg0->unk58;
-            arg0->unk90 = 0.0f;
-            arg0->unk94 = 0.055555556f;
-            arg0->unk78 = 1;
-            arg0->unk8 = 4;
+            cardWork->scaleTarget = 1.5f;
+            cardWork->scaleStart = cardWork->scale;
+            cardWork->scaleProgress = 0.0f;
+            cardWork->scaleStep = 0.055555556f;
+            cardWork->scaleAnimating = 1;
+            cardWork->animationSubstate = 4;
             break;
 
         case 4:
-            if (arg0->unk78 != 0)
+            if (cardWork->scaleAnimating != 0)
                 break;
-            arg0->unk8 = 5;
+            cardWork->animationSubstate = 5;
         case 5:
-            arg0->unk60 = 2.5f;
-            arg0->unk5C = arg0->unk58;
-            arg0->unk90 = 0.0f;
-            arg0->unk94 = 0.055555556f;
-            arg0->unk78 = 1;
-            arg0->unk8 = 6;
+            cardWork->scaleTarget = 2.5f;
+            cardWork->scaleStart = cardWork->scale;
+            cardWork->scaleProgress = 0.0f;
+            cardWork->scaleStep = 0.055555556f;
+            cardWork->scaleAnimating = 1;
+            cardWork->animationSubstate = 6;
             break;
 
         case 6:
-            if (arg0->unk78 != 0)
+            if (cardWork->scaleAnimating != 0)
                 break;
-            arg0->unk8 = 8;
+            cardWork->animationSubstate = 8;
         case 7:
-            arg0->unk60 = 1.5f;
-            arg0->unk5C = arg0->unk58;
-            arg0->unk90 = 0.0f;
-            arg0->unk94 = 0.055555556f;
-            arg0->unk78 = 1;
-            arg0->unk8 = 8;
+            cardWork->scaleTarget = 1.5f;
+            cardWork->scaleStart = cardWork->scale;
+            cardWork->scaleProgress = 0.0f;
+            cardWork->scaleStep = 0.055555556f;
+            cardWork->scaleAnimating = 1;
+            cardWork->animationSubstate = 8;
         case 8:
-            if (arg0->unk78 != 0)
+            if (cardWork->scaleAnimating != 0)
                 break;
-            arg0->unk8 = 9;
+            cardWork->animationSubstate = 9;
         case 9:
-            sp8 = arg0->unk34;
-            sp8.y = 720.0f;
-            arg0->unk4C = sp8;
-            arg0->unk40 = arg0->unk34;
-            arg0->unk88 = 0.0f;
-            arg0->unk8C = 0.016666668f;
-            arg0->unk74 = 1;
-            arg0->unk60 = 0.0f;
-            arg0->unk5C = arg0->unk58;
-            arg0->unk90 = 0.0f;
-            arg0->unk94 = 0.016666668f;
-            arg0->unk78 = 1;
-            arg0->unk8 = 10;
+            position = cardWork->rotation;
+            position.y = 720.0f;
+            cardWork->rotationTarget = position;
+            cardWork->rotationStart = cardWork->rotation;
+            cardWork->rotationProgress = 0.0f;
+            cardWork->rotationStep = 0.016666668f;
+            cardWork->rotationAnimating = 1;
+            cardWork->scaleTarget = 0.0f;
+            cardWork->scaleStart = cardWork->scale;
+            cardWork->scaleProgress = 0.0f;
+            cardWork->scaleStep = 0.016666668f;
+            cardWork->scaleAnimating = 1;
+            cardWork->animationSubstate = 10;
             break;
         case 10:
-            if (arg0->unk78 != 0)
+            if (cardWork->scaleAnimating != 0)
                 break;
-            arg0->unk4 = 0;
-            arg0->unk8 = 0;
-            Hu3DModelAttrSet(arg0->unkA[1], HU3D_ATTR_DISPOFF);
-            arg0->unk6C = 0;
+            cardWork->animationState = 0;
+            cardWork->animationSubstate = 0;
+            Hu3DModelAttrSet(cardWork->modelIds[1], HU3D_ATTR_DISPOFF);
+            cardWork->cardFaceVisible = 0;
             return;
     }
 }
 
-void fn_1_2D94(unkStruct4 *arg0)
+void M446CardShuffleBegin(M446CardWork *cardWork)
 {
-    arg0->unk4 = 2;
-    arg0->unk8 = 0;
+    cardWork->animationState = 2;
+    cardWork->animationSubstate = 0;
 }
 
-void fn_1_2DA8(unkStruct4 *arg0)
+void M446CardShuffleUpdate(M446CardWork *cardWork)
 {
-    f32 var_f31;
-    f32 var_f30;
+    f32 movementAngle;
+    f32 movementMagnitude;
 
-    switch (arg0->unk8) {
+    switch (cardWork->animationSubstate) {
         case 0:
-            arg0->unk8 = 1;
+            cardWork->animationSubstate = 1;
         case 1:
-            if (arg0->unk78 == 0) {
-                var_f31 = arg0->unk58 + 0.25f;
-                arg0->unk60 = var_f31;
-                arg0->unk5C = arg0->unk58;
-                arg0->unk90 = 0.0f;
-                arg0->unk94 = 0.033333335f;
-                arg0->unk78 = 1;
-                arg0->unk8 = 2U;
+            if (cardWork->scaleAnimating == 0) {
+                movementAngle = cardWork->scale + 0.25f;
+                cardWork->scaleTarget = movementAngle;
+                cardWork->scaleStart = cardWork->scale;
+                cardWork->scaleProgress = 0.0f;
+                cardWork->scaleStep = 0.033333335f;
+                cardWork->scaleAnimating = 1;
+                cardWork->animationSubstate = 2U;
             }
             break;
         case 2:
-            if (arg0->unk78 == 0) {
-                var_f30 = arg0->unk58 - 0.25f;
-                arg0->unk60 = var_f30;
-                arg0->unk5C = arg0->unk58;
-                arg0->unk90 = 0.0f;
-                arg0->unk94 = 0.033333335f;
-                arg0->unk78 = 1;
-                arg0->unk8 = 1;
+            if (cardWork->scaleAnimating == 0) {
+                movementMagnitude = cardWork->scale - 0.25f;
+                cardWork->scaleTarget = movementMagnitude;
+                cardWork->scaleStart = cardWork->scale;
+                cardWork->scaleProgress = 0.0f;
+                cardWork->scaleStep = 0.033333335f;
+                cardWork->scaleAnimating = 1;
+                cardWork->animationSubstate = 1;
             }
             break;
     }
 }
 
-void fn_1_2EC0(unkStruct4 *arg0, s32 arg1)
+void M446CardShadowSet(M446CardWork *cardWork, s32 shadowEnabled)
 {
-    if (arg1 != 0) {
-        Hu3DModelShadowDispOn(arg0->unkA[0]);
-        Hu3DModelAmbSet(arg0->unkA[0], 0.0f, 0.0f, 0.0f);
+    if (shadowEnabled != 0) {
+        Hu3DModelShadowDispOn(cardWork->modelIds[0]);
+        Hu3DModelAmbSet(cardWork->modelIds[0], 0.0f, 0.0f, 0.0f);
         return;
     }
-    Hu3DModelShadowDispOff(arg0->unkA[0]);
-    Hu3DModelAmbSet(arg0->unkA[0], 1.0f, 1.0f, 1.0f);
+    Hu3DModelShadowDispOff(cardWork->modelIds[0]);
+    Hu3DModelAmbSet(cardWork->modelIds[0], 1.0f, 1.0f, 1.0f);
 }
 
-void fn_1_2F64(unkStruct4 *arg0)
+void M446CardRenderUpdate(M446CardWork *cardWork)
 {
-    if ((arg0->unk58 > 1.0f) || (arg0->unk58 < 1.0f)) {
-        Hu3DModelLayerSet(arg0->unkA[0], 1);
-        Hu3DModelLayerSet(arg0->unkA[1], 1);
+    if ((cardWork->scale > 1.0f) || (cardWork->scale < 1.0f)) {
+        Hu3DModelLayerSet(cardWork->modelIds[0], 1);
+        Hu3DModelLayerSet(cardWork->modelIds[1], 1);
     }
     else {
-        Hu3DModelLayerSet(arg0->unkA[0], 0);
-        Hu3DModelLayerSet(arg0->unkA[1], 0);
+        Hu3DModelLayerSet(cardWork->modelIds[0], 0);
+        Hu3DModelLayerSet(cardWork->modelIds[1], 0);
     }
-    Hu3DModelPosSet(arg0->unkA[0], arg0->unk10.x, arg0->unk10.y, arg0->unk10.z);
-    Hu3DModelPosSet(arg0->unkA[1], arg0->unk10.x, 0.1f + arg0->unk10.y, arg0->unk10.z);
-    Hu3DModelScaleSet(arg0->unkA[0], arg0->unk58, arg0->unk58, arg0->unk58);
-    Hu3DModelScaleSet(arg0->unkA[1], arg0->unk58, arg0->unk58, arg0->unk58);
-    Hu3DModelRotSet(arg0->unkA[0], arg0->unk34.x, arg0->unk34.y, arg0->unk34.z);
+    Hu3DModelPosSet(cardWork->modelIds[0], cardWork->position.x, cardWork->position.y, cardWork->position.z);
+    Hu3DModelPosSet(cardWork->modelIds[1], cardWork->position.x, 0.1f + cardWork->position.y, cardWork->position.z);
+    Hu3DModelScaleSet(cardWork->modelIds[0], cardWork->scale, cardWork->scale, cardWork->scale);
+    Hu3DModelScaleSet(cardWork->modelIds[1], cardWork->scale, cardWork->scale, cardWork->scale);
+    Hu3DModelRotSet(cardWork->modelIds[0], cardWork->rotation.x, cardWork->rotation.y, cardWork->rotation.z);
 }

@@ -12,710 +12,710 @@
 #include "version.h"
 
 // bss
-s32 lbl_1_bss_14;
-s32 lbl_1_bss_10;
-HUPROCESS *lbl_1_bss_C;
-OMOBJ *lbl_1_bss_8;
-s32 lbl_1_bss_4;
-unkStruct *lbl_1_bss_0;
+s32 m446FlowProcessActive;
+s32 m446ActivePlayerCount;
+HUPROCESS *m446ObjectProcessManager;
+OMOBJ *m446ObjectManager;
+s32 m446FlowManagerState;
+M446FlowWork *m446Flow;
 
 // data
-Vec lbl_1_data_0 = { 0.0f, 90.0f, 0.0f };
-Vec lbl_1_data_C = { -40.0f, 40.0f, 0.0f };
-f32 lbl_1_data_18 = 1260.0f;
-Vec lbl_1_data_1C = { 0.0f, 90.0f, 0.0f };
-Vec lbl_1_data_28 = { -90.0f, 0.0f, 0.0f };
-f32 lbl_1_data_34 = 260.0f;
-Vec lbl_1_data_38[2] = { { 0.0f, 100.0f, 120.0f }, { 0.0f, 100.0f, 120.0f } };
-Vec lbl_1_data_50[2] = { { -30.0f, 0.0f, 0.0f }, { -30.0f, 0.0f, 0.0f } };
-f32 lbl_1_data_68[2] = { 600.0f, 600.0f };
-s32 lbl_1_data_70[2][2] = { { 0x46, 0x1A4 }, { 0x1F4, 0x3C } };
+Vec m446CameraStartRotation = { 0.0f, 90.0f, 0.0f };
+Vec m446CameraTargetRotation = { -40.0f, 40.0f, 0.0f };
+f32 m446CameraStartDistanceValue = 1260.0f;
+Vec m446CameraAlternateStartRotation = { 0.0f, 90.0f, 0.0f };
+Vec m446CameraAlternateTargetRotation = { -90.0f, 0.0f, 0.0f };
+f32 m446CameraAlternateDistance = 260.0f;
+Vec m446CameraPlayerPosition[2] = { { 0.0f, 100.0f, 120.0f }, { 0.0f, 100.0f, 120.0f } };
+Vec m446CameraPlayerRotation[2] = { { -30.0f, 0.0f, 0.0f }, { -30.0f, 0.0f, 0.0f } };
+f32 m446CameraPlayerDistance[2] = { 600.0f, 600.0f };
+s32 m446MessagePositions[2][2] = { { 0x46, 0x1A4 }, { 0x1F4, 0x3C } };
 
 void ObjectSetup(void)
 {
-    lbl_1_bss_C = omInitObjMan(5, 0x2000);
-    omGameSysInit(lbl_1_bss_C);
-    lbl_1_bss_8 = omAddObjEx(lbl_1_bss_C, 0x3E8, 0x32U, 0x32U, 0, fn_1_13C);
-    omSetStatBit(lbl_1_bss_8, 0x100U);
-    lbl_1_bss_4 = 0;
+    m446ObjectProcessManager = omInitObjMan(5, 0x2000);
+    omGameSysInit(m446ObjectProcessManager);
+    m446ObjectManager = omAddObjEx(m446ObjectProcessManager, 0x3E8, 0x32U, 0x32U, 0, M446ObjectManagerUpdate);
+    omSetStatBit(m446ObjectManager, 0x100U);
+    m446FlowManagerState = 0;
 }
 
-void fn_1_13C(OMOBJ *arg0)
+void M446ObjectManagerUpdate(OMOBJ *objectEntry)
 {
-    switch (lbl_1_bss_4) {
+    switch (m446FlowManagerState) {
         case 0:
             HuWinInit(1);
             Hu3DLighInit();
-            fn_1_38E0(frand());
-            fn_1_6778();
-            fn_1_7BF0();
-            fn_1_2064();
-            fn_1_480C();
-            fn_1_3924();
-            fn_1_72E0();
-            lbl_1_bss_0 = m446FlowCreate();
-            lbl_1_bss_4 = 1;
+            M446RandomSeedSet(frand());
+            M446CameraInitialize();
+            M446StageInitialize();
+            M446CardInitialize();
+            M446PlayersInitialize();
+            M446TableInitialize();
+            M446CursorInitialize();
+            m446Flow = M446FlowCreate();
+            m446FlowManagerState = 1;
             break;
         case 1:
-            fn_1_4B4(lbl_1_bss_0);
-            fn_1_7C60();
-            fn_1_487C();
-            fn_1_3994();
-            fn_1_7350();
-            fn_1_20D4();
-            fn_1_68DC();
-            if (lbl_1_bss_0->unk0 != 5)
+            M446FlowStateUpdate(m446Flow);
+            M446StagesUpdate();
+            M446PlayersUpdate();
+            M446TablesSync();
+            M446CursorsUpdate();
+            M446CardsUpdate();
+            M446CameraUpdate();
+            if (m446Flow->flowState != 5)
                 break;
-            lbl_1_bss_4 = 3;
+            m446FlowManagerState = 3;
             WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
         case 2:
             break;
         case 3:
             if (WipeStatGet() == 0) {
-                lbl_1_bss_4 = 4;
+                m446FlowManagerState = 4;
             }
             break;
         case 4:
             HuAudFadeOut(0x64);
-            fn_1_3FC(lbl_1_bss_0);
-            fn_1_72F8();
-            fn_1_4824();
-            fn_1_393C();
-            fn_1_207C();
-            fn_1_7C08();
-            fn_1_68D8();
+            M446FlowDestroy(m446Flow);
+            M446CursorUpdate();
+            M446PlayersDestroy();
+            M446TablesUpdate();
+            M446CardsDestroyAll();
+            M446StageUpdate();
+            M446CameraTransitionStop();
             omOvlReturnEx(1, 1);
             break;
     }
 }
 
-unkStruct *m446FlowCreate(void)
+M446FlowWork *M446FlowCreate(void)
 {
-    s32 var_r30;
-    unkStruct *temp_r3;
+    s32 playerIndex;
+    M446FlowWork *object;
 
-    temp_r3 = HuMemDirectMallocNum(HEAP_HEAP, 0x9C, HU_MEMNUM_OVL);
-    if (temp_r3 == 0) {
+    object = HuMemDirectMallocNum(HEAP_HEAP, 0x9C, HU_MEMNUM_OVL);
+    if (object == 0) {
         OSReport("[!] m446FlowCreate() ERROR...\n");
         return NULL;
     }
-    temp_r3->unk4 = -1;
-    temp_r3->unk6 = -1;
-    temp_r3->unk1C = 0;
-    temp_r3->unk0 = 0;
-    temp_r3->unk10 = 0;
-    temp_r3->unk98 = NULL;
-    temp_r3->unk18 = -1;
+    object->resultSequenceId = -1;
+    object->messageSequenceId = -1;
+    object->currentPlayerIndex = 0;
+    object->flowState = 0;
+    object->stateStep = 0;
+    object->flowProcess = NULL;
+    object->audioSequenceId = -1;
 
-    for (var_r30 = 0; var_r30 < 23; var_r30++) {
-        temp_r3->unk38[var_r30] = 0;
+    for (playerIndex = 0; playerIndex < 23; playerIndex++) {
+        object->cardBuffer[playerIndex] = 0;
     }
-    temp_r3->unk24 = m446StageCreate();
-    temp_r3->unk20 = fn_1_39D0();
-    lbl_1_bss_10 = 0;
+    object->stageWork = M446StageCreate();
+    object->tableWork = M446TableCreate();
+    m446ActivePlayerCount = 0;
 
-    for (var_r30 = 0; var_r30 < 2; var_r30++) {
-        temp_r3->unk2C[var_r30] = m446PlayerCreate(var_r30, temp_r3->unk20);
-        if (temp_r3->unk2C[var_r30]->unk68 != 0) {
-            lbl_1_bss_10 += 1;
+    for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+        object->playerWorks[playerIndex] = M446PlayerCreate(playerIndex, object->tableWork);
+        if (object->playerWorks[playerIndex]->isComputer != 0) {
+            m446ActivePlayerCount += 1;
         }
     }
-    temp_r3->unk28 = fn_1_3064();
+    object->deckWork = M446DeckCreate();
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
-    return temp_r3;
+    return object;
 }
 
-void fn_1_3FC(unkStruct *arg0)
+void M446FlowDestroy(M446FlowWork *flowWork)
 {
-    s32 var_r30;
+    s32 playerIndex;
 
-    if (arg0->unk98) {
-        HuPrcKill(arg0->unk98);
+    if (flowWork->flowProcess) {
+        HuPrcKill(flowWork->flowProcess);
     }
-    if (arg0->unk4 == -1) {
-        fn_1_183C(arg0);
+    if (flowWork->resultSequenceId == -1) {
+        M446FlowResultCreate(flowWork);
     }
-    if (arg0->unk6 == -1) {
-        MGSeqParamSet(arg0->unk6, 2, -1);
+    if (flowWork->messageSequenceId == -1) {
+        MGSeqParamSet(flowWork->messageSequenceId, 2, -1);
     }
 
-    for (var_r30 = 0; var_r30 < 2; var_r30++) {
-        fn_1_509C(arg0->unk2C[var_r30]);
+    for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+        M446PlayerDestroy(flowWork->playerWorks[playerIndex]);
     }
-    fn_1_3B4C(arg0->unk20);
-    fn_1_3180(&arg0->unk28->unk0);
-    fn_1_83F0(arg0->unk24);
-    HuMemDirectFree(arg0);
+    M446TableDestroy(flowWork->tableWork);
+    M446DeckDestroy(&flowWork->deckWork->cards);
+    M446StageDestroy(flowWork->stageWork);
+    HuMemDirectFree(flowWork);
 }
 
-m446Func1 lbl_1_data_A0[5] = { fn_1_53C, fn_1_B78, fn_1_CA0, fn_1_C0C, fn_1_958 };
+M446FlowStateCallback m446FlowStateUpdates[5] = { M446FlowInitialize, M446FlowResolve, M446FlowFinishGame, M446FlowFinishTurn, M446FlowPlay };
 
-void fn_1_4B4(unkStruct *arg0)
+void M446FlowStateUpdate(M446FlowWork *flowWork)
 {
-    if (lbl_1_data_A0[arg0->unk0]) {
-        lbl_1_data_A0[arg0->unk0](arg0);
+    if (m446FlowStateUpdates[flowWork->flowState]) {
+        m446FlowStateUpdates[flowWork->flowState](flowWork);
     }
     if (omSysExitReq != 0) {
-        arg0->unk0 = 5;
+        flowWork->flowState = 5;
     }
 }
 
-void fn_1_53C(unkStruct *arg0)
+void M446FlowInitialize(M446FlowWork *flowWork)
 {
-    s32 var_r30;
-    s32 var_r29;
+    s32 playerIndex;
+    s32 cardIndex;
 
-    switch (arg0->unk10) {
+    switch (flowWork->stateStep) {
         case 0:
-            fn_1_6EA0(&lbl_1_data_0);
-            fn_1_6EC4(&lbl_1_data_C);
-            fn_1_6EE8(lbl_1_data_18);
-            arg0->unk10 = 1;
-            arg0->unk14 = 0;
+            M446CameraTargetSet(&m446CameraStartRotation);
+            M446CameraRotationSet(&m446CameraTargetRotation);
+            M446CameraDistanceSet(m446CameraStartDistanceValue);
+            flowWork->stateStep = 1;
+            flowWork->stateTimer = 0;
             HuAudFXPlay(0x773);
             break;
         case 1:
-            if (arg0->unk14 == 20) {
-                fn_1_84AC(arg0->unk24);
+            if (flowWork->stateTimer == 20) {
+                M446StageStart(flowWork->stageWork);
             }
-            if (arg0->unk14++ < 0xB4)
+            if (flowWork->stateTimer++ < 0xB4)
                 break;
-            arg0->unk18 = HuAudSeqPlay(0x3D);
-            if (arg0->unk2C[1]->unk64 == 8) {
-                arg0->unk10 = 2;
+            flowWork->audioSequenceId = HuAudSeqPlay(0x3D);
+            if (flowWork->playerWorks[1]->characterId == 8) {
+                flowWork->stateStep = 2;
             }
             else {
-                arg0->unk10 = 4;
+                flowWork->stateStep = 4;
             }
             break;
         case 2:
-            arg0->unk98 = HuPrcChildCreate(fn_1_19D4, 0x64, 0x2000, 0, lbl_1_bss_C);
-            lbl_1_bss_14 = 1;
-            arg0->unk10 = 3;
+            flowWork->flowProcess = HuPrcChildCreate(M446FlowProcess, 0x64, 0x2000, 0, m446ObjectProcessManager);
+            m446FlowProcessActive = 1;
+            flowWork->stateStep = 3;
             break;
         case 3:
-            if (lbl_1_bss_14 == 0) {
-                arg0->unk98 = NULL;
-                arg0->unk10 = 4;
+            if (m446FlowProcessActive == 0) {
+                flowWork->flowProcess = NULL;
+                flowWork->stateStep = 4;
             }
             break;
         case 4:
-            fn_1_6EF8(&lbl_1_data_1C, &lbl_1_data_28, &lbl_1_data_34, 0xB4);
-            arg0->unk10 = 5;
+            M446CameraTransitionBegin(&m446CameraAlternateStartRotation, &m446CameraAlternateTargetRotation, &m446CameraAlternateDistance, 0xB4);
+            flowWork->stateStep = 5;
             break;
         case 5:
-            if (fn_1_708C())
+            if (M446CameraTransitionIsActive())
                 break;
-            fn_1_860C(arg0->unk24);
-            for (var_r30 = 0; var_r30 < 2; var_r30++) {
-                fn_1_637C(arg0->unk2C[var_r30], 1);
+            M446StageRenderUpdate(flowWork->stageWork);
+            for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+                M446PlayerAnimationSet(flowWork->playerWorks[playerIndex], 1);
             }
-            arg0->unk10 = 6;
+            flowWork->stateStep = 6;
             break;
         case 6:
-            fn_1_31D8(&arg0->unk28->unk0, &arg0->unk38[0], &arg0->unk94, 1);
-            arg0->unk10 = 7;
-            arg0->unk14 = 0;
+            M446DeckFanOut(&flowWork->deckWork->cards, &flowWork->cardBuffer[0], &flowWork->cardBufferCount, 1);
+            flowWork->stateStep = 7;
+            flowWork->stateTimer = 0;
             break;
         case 7:
-            if (arg0->unk14++ < 0x78)
+            if (flowWork->stateTimer++ < 0x78)
                 break;
-            fn_1_34A0(arg0->unk28, &arg0->unk38[0], arg0->unk94, 1);
-            arg0->unk10 = 8;
-            arg0->unk14 = 0;
+            M446DeckDealCards(flowWork->deckWork, &flowWork->cardBuffer[0], flowWork->cardBufferCount, 1);
+            flowWork->stateStep = 8;
+            flowWork->stateTimer = 0;
             break;
         case 8:
-            if (arg0->unk14++ < 0x78)
+            if (flowWork->stateTimer++ < 0x78)
                 break;
 
-            for (var_r29 = 0; var_r29 < 2; var_r29++) {
-                for (var_r30 = 0; var_r30 < 3; var_r30++) {
-                    m446DeckPopCard(&arg0->unk28->unk0, &arg0->unk34);
-                    m446PlayerAppendCard(arg0->unk2C[var_r29], arg0->unk34, 1);
-                    fn_1_2EC0(arg0->unk34, 0);
+            for (cardIndex = 0; cardIndex < 2; cardIndex++) {
+                for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+                    M446DeckPopCard(&flowWork->deckWork->cards, &flowWork->selectedCard);
+                    M446PlayerAppendCard(flowWork->playerWorks[cardIndex], flowWork->selectedCard, 1);
+                    M446CardShadowSet(flowWork->selectedCard, 0);
                 }
             }
             HuAudFXPlay(0x767);
-            arg0->unk10 = 9;
+            flowWork->stateStep = 9;
             break;
         case 9:
-            if (arg0->unk34->unk70 != 0)
+            if (flowWork->selectedCard->positionAnimating != 0)
                 break;
-            if (arg0->unk34->unk78 != 0)
+            if (flowWork->selectedCard->scaleAnimating != 0)
                 break;
-            if (arg0->unk34->unk74 != 0)
+            if (flowWork->selectedCard->rotationAnimating != 0)
                 break;
-            if (arg0->unk34->unk4 != 0)
+            if (flowWork->selectedCard->animationState != 0)
                 break;
 
-            for (var_r29 = 0; var_r29 < 2; var_r29++) {
-                for (var_r30 = 0; var_r30 < 3; var_r30++) {
-                    fn_1_5648(arg0->unk2C[var_r29], var_r30, &arg0->unk34);
-                    fn_1_272C(arg0->unk34);
+            for (cardIndex = 0; cardIndex < 2; cardIndex++) {
+                for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+                    M446PlayerCardFind(flowWork->playerWorks[cardIndex], playerIndex, &flowWork->selectedCard);
+                    M446CardFlipDown(flowWork->selectedCard);
                 }
             }
-            arg0->unk10 = 10;
+            flowWork->stateStep = 10;
             break;
         case 10:
-            if (arg0->unk34->unk70 != 0)
+            if (flowWork->selectedCard->positionAnimating != 0)
                 break;
-            if (arg0->unk34->unk78 != 0)
+            if (flowWork->selectedCard->scaleAnimating != 0)
                 break;
-            if (arg0->unk34->unk74 != 0)
+            if (flowWork->selectedCard->rotationAnimating != 0)
                 break;
-            if (arg0->unk34->unk4 != 0)
+            if (flowWork->selectedCard->animationState != 0)
                 break;
-            fn_1_46AC(arg0->unk20);
+            M446TableReserveSpaces(flowWork->tableWork);
 
-            while (m446DeckPopCard(&arg0->unk28->unk0, &arg0->unk34) != 0) {
-                fn_1_3BF0(arg0->unk20, arg0->unk34, 1);
+            while (M446DeckPopCard(&flowWork->deckWork->cards, &flowWork->selectedCard) != 0) {
+                M446TableAddCard(flowWork->tableWork, flowWork->selectedCard, 1);
             }
-            fn_1_46D0(arg0->unk20);
-            if (arg0->unk18 != -1) {
-                HuAudSeqFadeOut(arg0->unk18, 0x7D0);
+            M446TableClearReservedSpaces(flowWork->tableWork);
+            if (flowWork->audioSequenceId != -1) {
+                HuAudSeqFadeOut(flowWork->audioSequenceId, 0x7D0);
             }
-            arg0->unk10 = 11;
-            arg0->unk14 = 0;
+            flowWork->stateStep = 11;
+            flowWork->stateTimer = 0;
             break;
         case 11:
-            if (arg0->unk14++ < 0x78)
+            if (flowWork->stateTimer++ < 0x78)
                 break;
-            arg0->unk0 = 1;
-            arg0->unk10 = 0;
+            flowWork->flowState = 1;
+            flowWork->stateStep = 0;
             break;
     }
 }
 
-void fn_1_958(unkStruct *arg0)
+void M446FlowPlay(M446FlowWork *flowWork)
 {
-    s32 temp_r3;
-    s32 temp_r3_2;
-    s32 temp_r3_3;
-    s32 var_r30;
+    s32 object;
+    s32 object2;
+    s32 object3;
+    s32 playerIndex;
 
-    switch (arg0->unk10) {
+    switch (flowWork->stateStep) {
         case 0:
-            for (var_r30 = 0; var_r30 < 2; var_r30++) {
-                fn_1_637C(arg0->unk2C[var_r30], 0);
+            for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+                M446PlayerAnimationSet(flowWork->playerWorks[playerIndex], 0);
             }
-            fn_1_6EF8(&lbl_1_data_38[arg0->unk1C], &lbl_1_data_50[arg0->unk1C], &lbl_1_data_68[arg0->unk1C], 0x4E);
-            arg0->unk10 = 1;
-            arg0->unk14 = 0;
+            M446CameraTransitionBegin(&m446CameraPlayerPosition[flowWork->currentPlayerIndex], &m446CameraPlayerRotation[flowWork->currentPlayerIndex], &m446CameraPlayerDistance[flowWork->currentPlayerIndex], 0x4E);
+            flowWork->stateStep = 1;
+            flowWork->stateTimer = 0;
             break;
         case 1:
-            if (arg0->unk14++ >= 0x1E) {
-                fn_1_5CEC(arg0->unk2C[0]);
-                arg0->unk10 = 2;
-                arg0->unk14 = 0;
+            if (flowWork->stateTimer++ >= 0x1E) {
+                M446PlayerMoveBegin(flowWork->playerWorks[0]);
+                flowWork->stateStep = 2;
+                flowWork->stateTimer = 0;
             }
             break;
         case 2:
-            if (arg0->unk14++ >= 0x36) {
-                if ((arg0->unk2C[0]->unk24 == 0) && (arg0->unk2C[1]->unk24 == 0)) {
-                    fn_1_5C10(arg0->unk2C[0]);
-                    if (arg0->unk2C[1]->unk64 == 8) {
-                        fn_1_5B34(arg0->unk2C[1]);
+            if (flowWork->stateTimer++ >= 0x36) {
+                if ((flowWork->playerWorks[0]->cardFlippedState == 0) && (flowWork->playerWorks[1]->cardFlippedState == 0)) {
+                    M446PlayerLookBegin(flowWork->playerWorks[0]);
+                    if (flowWork->playerWorks[1]->characterId == 8) {
+                        M446PlayerIdleBegin(flowWork->playerWorks[1]);
                         HuAudSStreamPlay(3);
                     }
                     else {
-                        fn_1_5C10(arg0->unk2C[1]);
+                        M446PlayerLookBegin(flowWork->playerWorks[1]);
                         HuAudSStreamPlay(4);
                     }
                 }
-                else if (arg0->unk2C[0]->unk24 != 0) {
-                    fn_1_5B34(arg0->unk2C[0]);
-                    fn_1_5C10(arg0->unk2C[1]);
+                else if (flowWork->playerWorks[0]->cardFlippedState != 0) {
+                    M446PlayerIdleBegin(flowWork->playerWorks[0]);
+                    M446PlayerLookBegin(flowWork->playerWorks[1]);
                     HuAudSStreamPlay(1);
                 }
-                else if (arg0->unk2C[1]->unk24 != 0) {
-                    fn_1_5B34(arg0->unk2C[1]);
-                    fn_1_5C10(arg0->unk2C[0]);
-                    if (arg0->unk2C[1]->unk64 == 8) {
+                else if (flowWork->playerWorks[1]->cardFlippedState != 0) {
+                    M446PlayerIdleBegin(flowWork->playerWorks[1]);
+                    M446PlayerLookBegin(flowWork->playerWorks[0]);
+                    if (flowWork->playerWorks[1]->characterId == 8) {
                         HuAudSStreamPlay(3);
                     }
                     else {
                         HuAudSStreamPlay(1);
                     }
                 }
-                arg0->unk10 = 3;
-                arg0->unk14 = 0;
+                flowWork->stateStep = 3;
+                flowWork->stateTimer = 0;
                 return;
             }
             break;
         case 3:
-            if (arg0->unk14++ >= 0xD2) {
-                arg0->unk0 = 5;
+            if (flowWork->stateTimer++ >= 0xD2) {
+                flowWork->flowState = 5;
             }
             break;
     }
 }
 
-void fn_1_B78(unkStruct *arg0)
+void M446FlowResolve(M446FlowWork *flowWork)
 {
-    switch (arg0->unk10) {
+    switch (flowWork->stateStep) {
         case 0:
-            arg0->unk18 = HuAudSeqPlay(0x3F);
-            fn_1_1874(arg0);
-            arg0->unk10 = 1;
-            arg0->unk14 = 0;
+            flowWork->audioSequenceId = HuAudSeqPlay(0x3F);
+            M446FlowResultDestroy(flowWork);
+            flowWork->stateStep = 1;
+            flowWork->stateTimer = 0;
             break;
         case 1:
-            if (!fn_1_17FC(arg0)) {
-                fn_1_183C(arg0);
-                arg0->unk0 = 2;
-                arg0->unk10 = 0;
+            if (!M446FlowPlayerCountGet(flowWork)) {
+                M446FlowResultCreate(flowWork);
+                flowWork->flowState = 2;
+                flowWork->stateStep = 0;
             }
             break;
     }
 }
 
-void fn_1_C0C(unkStruct *arg0)
+void M446FlowFinishTurn(M446FlowWork *flowWork)
 {
-    switch (arg0->unk10) {
+    switch (flowWork->stateStep) {
         case 0:
-            HuAudSeqFadeOut(arg0->unk18, 0x64);
-            fn_1_18B0(arg0);
-            arg0->unk10 = 1;
-            arg0->unk14 = 0;
+            HuAudSeqFadeOut(flowWork->audioSequenceId, 0x64);
+            M446FlowResultUpdate(flowWork);
+            flowWork->stateStep = 1;
+            flowWork->stateTimer = 0;
             break;
         case 1:
-            if (fn_1_17FC(arg0) == 0) {
-                fn_1_183C(arg0);
-                arg0->unk0 = 4;
-                arg0->unk10 = 0;
+            if (M446FlowPlayerCountGet(flowWork) == 0) {
+                M446FlowResultCreate(flowWork);
+                flowWork->flowState = 4;
+                flowWork->stateStep = 0;
             }
             break;
     }
 }
 
-void fn_1_CA0(unkStruct *arg0)
+void M446FlowFinishGame(M446FlowWork *flowWork)
 {
-    s32 var_r29;
-    unkStruct8 *var_r30;
+    s32 cardIndex;
+    M446PlayerWork *playerWork2;
 
-    var_r30 = arg0->unk2C[arg0->unk1C];
-    switch (arg0->unk10) {
+    playerWork2 = flowWork->playerWorks[flowWork->currentPlayerIndex];
+    switch (flowWork->stateStep) {
         case 0:
-            arg0->unk1C = 0;
-            arg0->unk10 = 1;
+            flowWork->currentPlayerIndex = 0;
+            flowWork->stateStep = 1;
             break;
         case 1:
-            arg0->unkC = REFRESH_RATE * 5;
-            arg0->unk6 = MGSeqCreate(1, arg0->unkC / REFRESH_RATE, -1, -1);
-            MGSeqPosSet(arg0->unk6, lbl_1_data_70[arg0->unk1C][0], lbl_1_data_70[arg0->unk1C][1]);
-            arg0->unk10 = 2;
+            flowWork->countdownFrames = REFRESH_RATE * 5;
+            flowWork->messageSequenceId = MGSeqCreate(1, flowWork->countdownFrames / REFRESH_RATE, -1, -1);
+            MGSeqPosSet(flowWork->messageSequenceId, m446MessagePositions[flowWork->currentPlayerIndex][0], m446MessagePositions[flowWork->currentPlayerIndex][1]);
+            flowWork->stateStep = 2;
         case 2:
-            if (fn_1_5678(var_r30, &arg0->unk34, 0) == 0) {
-                if ((--arg0->unkC % REFRESH_RATE) == 0) {
-                    MGSeqParamSet(arg0->unk6, 1, arg0->unkC / REFRESH_RATE);
+            if (M446PlayerCardSelect(playerWork2, &flowWork->selectedCard, 0) == 0) {
+                if ((--flowWork->countdownFrames % REFRESH_RATE) == 0) {
+                    MGSeqParamSet(flowWork->messageSequenceId, 1, flowWork->countdownFrames / REFRESH_RATE);
                 }
-                if (arg0->unkC == 0) {
-                    arg0->unk10 = 3;
-                    arg0->unk14 = 0;
+                if (flowWork->countdownFrames == 0) {
+                    flowWork->stateStep = 3;
+                    flowWork->stateTimer = 0;
                 }
             }
             else {
-                arg0->unk10 = 4;
+                flowWork->stateStep = 4;
             }
             break;
         case 3:
-            if (arg0->unk14++ >= 60) {
-                fn_1_5678(var_r30, &arg0->unk34, 1);
-                arg0->unk10 = 4;
+            if (flowWork->stateTimer++ >= 60) {
+                M446PlayerCardSelect(playerWork2, &flowWork->selectedCard, 0);
+                flowWork->stateStep = 4;
             }
             break;
         case 4:
-            MGSeqParamSet(arg0->unk6, 2, -1);
-            arg0->unk6 = -1;
-            m446PlayerRemoveCard(var_r30, arg0->unk34, 3);
-            arg0->unk10 = 5;
+            MGSeqParamSet(flowWork->messageSequenceId, 2, -1);
+            flowWork->messageSequenceId = -1;
+            M446PlayerRemoveCard(playerWork2, flowWork->selectedCard, 3);
+            flowWork->stateStep = 5;
             break;
         case 5:
-            if (arg0->unk34->unk70 == 0 && arg0->unk34->unk78 == 0 && arg0->unk34->unk74 == 0 && arg0->unk34->unk4 == 0) {
-                fn_1_3BF0(arg0->unk20, arg0->unk34, 4);
-                arg0->unk10 = 6;
+            if (flowWork->selectedCard->positionAnimating == 0 && flowWork->selectedCard->scaleAnimating == 0 && flowWork->selectedCard->rotationAnimating == 0 && flowWork->selectedCard->animationState == 0) {
+                M446TableAddCard(flowWork->tableWork, flowWork->selectedCard, 4);
+                flowWork->stateStep = 6;
             }
             break;
         case 6:
-            if (arg0->unk34->unk70 == 0 && arg0->unk34->unk78 == 0 && arg0->unk34->unk74 == 0 && arg0->unk34->unk4 == 0) {
-                fn_1_2EC0(arg0->unk34, 1);
-                arg0->unkC = REFRESH_RATE * 5;;
-                arg0->unk6 = MGSeqCreate(1, arg0->unkC / REFRESH_RATE, -1, -1);
-                MGSeqPosSet(arg0->unk6, lbl_1_data_70[arg0->unk1C][0], lbl_1_data_70[arg0->unk1C][1]);
-                fn_1_4000(arg0->unk20, arg0->unk1C == 1 >> 5);
-                arg0->unk10 = 7;
+            if (flowWork->selectedCard->positionAnimating == 0 && flowWork->selectedCard->scaleAnimating == 0 && flowWork->selectedCard->rotationAnimating == 0 && flowWork->selectedCard->animationState == 0) {
+                M446CardShadowSet(flowWork->selectedCard, 1);
+                flowWork->countdownFrames = REFRESH_RATE * 5;;
+                flowWork->messageSequenceId = MGSeqCreate(1, flowWork->countdownFrames / REFRESH_RATE, -1, -1);
+                MGSeqPosSet(flowWork->messageSequenceId, m446MessagePositions[flowWork->currentPlayerIndex][0], m446MessagePositions[flowWork->currentPlayerIndex][1]);
+                M446TableSelectionReset(flowWork->tableWork, flowWork->currentPlayerIndex == 1 >> 5);
+                flowWork->stateStep = 7;
             }
             else
                 break;
         case 7:
-            if (fn_1_4088(arg0->unk20, var_r30->unk64, var_r30->unk66, arg0->unk1C == 1, &arg0->unk34, 0) == 0) {
-                if ((--arg0->unkC % REFRESH_RATE) == 0) {
-                    MGSeqParamSet(arg0->unk6, 1, arg0->unkC / REFRESH_RATE);
+            if (M446TableSelectionUpdate(flowWork->tableWork, playerWork2->characterId, playerWork2->controllerPort, flowWork->currentPlayerIndex == 1, &flowWork->selectedCard, 0) == 0) {
+                if ((--flowWork->countdownFrames % REFRESH_RATE) == 0) {
+                    MGSeqParamSet(flowWork->messageSequenceId, 1, flowWork->countdownFrames / REFRESH_RATE);
                 }
-                if (arg0->unkC <= 0) {
-                    if (fn_1_4088(arg0->unk20, var_r30->unk64, var_r30->unk66, arg0->unk1C == 1, &arg0->unk34, 2) == 0) {
-                        fn_1_4000(arg0->unk20, arg0->unk1C == 1 >> 5);
-                        arg0->unk10 = 8;
-                        arg0->unk14 = 0;
+                if (flowWork->countdownFrames <= 0) {
+                    if (M446TableSelectionUpdate(flowWork->tableWork, playerWork2->characterId, playerWork2->controllerPort, flowWork->currentPlayerIndex == 1, &flowWork->selectedCard, 2) == 0) {
+                        M446TableSelectionReset(flowWork->tableWork, flowWork->currentPlayerIndex == 1 >> 5);
+                        flowWork->stateStep = 8;
+                        flowWork->stateTimer = 0;
                         break;
                     }
                 }
                 else
                     break;
             }
-            arg0->unk10 = 9;
+            flowWork->stateStep = 9;
             break;
         case 8:
-            fn_1_4088(arg0->unk20, var_r30->unk64, var_r30->unk66, arg0->unk1C == 1, &arg0->unk34, 1);
-            if (arg0->unk14++ >= 0x1E) {
-                fn_1_4088(arg0->unk20, var_r30->unk64, var_r30->unk66, arg0->unk1C == 1, &arg0->unk34, 2);
-                arg0->unk10 = 9;
+            M446TableSelectionUpdate(flowWork->tableWork, playerWork2->characterId, playerWork2->controllerPort, flowWork->currentPlayerIndex == 1, &flowWork->selectedCard, 1);
+            if (flowWork->stateTimer++ >= 0x1E) {
+                M446TableSelectionUpdate(flowWork->tableWork, playerWork2->characterId, playerWork2->controllerPort, flowWork->currentPlayerIndex == 1, &flowWork->selectedCard, 2);
+                flowWork->stateStep = 9;
             }
             break;
         case 9:
-            MGSeqParamSet(arg0->unk6, 2, -1);
-            arg0->unk6 = -1;
-            fn_1_2EC0(arg0->unk34, 0);
-            fn_1_3EB4(arg0->unk20, arg0->unk34, 3);
-            arg0->unk10 = 10;
+            MGSeqParamSet(flowWork->messageSequenceId, 2, -1);
+            flowWork->messageSequenceId = -1;
+            M446CardShadowSet(flowWork->selectedCard, 0);
+            M446TableRemoveCard(flowWork->tableWork, flowWork->selectedCard, 3);
+            flowWork->stateStep = 10;
             break;
         case 10:
-            if (arg0->unk34->unk70 == 0 && arg0->unk34->unk78 == 0 && arg0->unk34->unk74 == 0 && arg0->unk34->unk4 == 0) {
-                if (arg0->unk34->unk0 == 4) {
-                    arg0->unk10 = 13;
+            if (flowWork->selectedCard->positionAnimating == 0 && flowWork->selectedCard->scaleAnimating == 0 && flowWork->selectedCard->rotationAnimating == 0 && flowWork->selectedCard->animationState == 0) {
+                if (flowWork->selectedCard->cardId == 4) {
+                    flowWork->stateStep = 13;
                 }
                 else {
-                    m446PlayerAppendCard(var_r30, arg0->unk34, 4);
-                    arg0->unk10 = 11;
+                    M446PlayerAppendCard(playerWork2, flowWork->selectedCard, 4);
+                    flowWork->stateStep = 11;
                 }
             }
             break;
         case 11:
-            if (arg0->unk34->unk70 == 0 && arg0->unk34->unk78 == 0 && arg0->unk34->unk74 == 0 && arg0->unk34->unk4 == 0) {
-                if (var_r30->unk24 != 0) {
-                    arg0->unk10 = 24;
+            if (flowWork->selectedCard->positionAnimating == 0 && flowWork->selectedCard->scaleAnimating == 0 && flowWork->selectedCard->rotationAnimating == 0 && flowWork->selectedCard->animationState == 0) {
+                if (playerWork2->cardFlippedState != 0) {
+                    flowWork->stateStep = 24;
                 }
                 else {
-                    arg0->unk10 = 12;
+                    flowWork->stateStep = 12;
                 }
             }
             break;
         case 12:
-            if (fn_1_4720(arg0->unk20, 5) == 0) {
-                arg0->unk1C = 1;
-                arg0->unk10 = 25;
+            if (M446TableCardCountByOwner(flowWork->tableWork, 5) == 0) {
+                flowWork->currentPlayerIndex = 1;
+                flowWork->stateStep = 25;
                 break;
             }
-            else if (arg0->unk1C == 0) {
-                arg0->unk1C = 1;
+            else if (flowWork->currentPlayerIndex == 0) {
+                flowWork->currentPlayerIndex = 1;
             }
             else {
-                arg0->unk1C = 0;
+                flowWork->currentPlayerIndex = 0;
             }
-            arg0->unk10 = 1;
+            flowWork->stateStep = 1;
             break;
         case 13:
-            fn_1_64BC(var_r30, 0, 60);
+            M446PlayerMotionSet(playerWork2, 0, 60);
             HuAudFXPlay(0x4E);
-            arg0->unk10 = 14;
+            flowWork->stateStep = 14;
         case 14:
-            fn_1_2A94(arg0->unk34);
-            arg0->unk10 = 15;
+            M446CardTurnBegin(flowWork->selectedCard);
+            flowWork->stateStep = 15;
             break;
         case 15:
-            if (arg0->unk34->unk70 == 0 && arg0->unk34->unk78 == 0 && arg0->unk34->unk74 == 0 && arg0->unk34->unk4 == 0) {
-                fn_1_3EB4((unkStruct6 *)var_r30, arg0->unk34, 4);
-                fn_1_2688(arg0->unk34);
-                for (var_r29 = 0; var_r29 < 3; var_r29++) {
-                    fn_1_5648(var_r30, var_r29, &arg0->unk34);
-                    if (arg0->unk34) {
-                        m446PlayerRemoveCard(var_r30, arg0->unk34, 4);
-                        fn_1_3BF0(arg0->unk20, arg0->unk34, 3);
+            if (flowWork->selectedCard->positionAnimating == 0 && flowWork->selectedCard->scaleAnimating == 0 && flowWork->selectedCard->rotationAnimating == 0 && flowWork->selectedCard->animationState == 0) {
+                M446TableRemoveCard((M446TableWork *)playerWork2, flowWork->selectedCard, 4);
+                M446CardDestroy(flowWork->selectedCard);
+                for (cardIndex = 0; cardIndex < 3; cardIndex++) {
+                    M446PlayerCardFind(playerWork2, cardIndex, &flowWork->selectedCard);
+                    if (flowWork->selectedCard) {
+                        M446PlayerRemoveCard(playerWork2, flowWork->selectedCard, 4);
+                        M446TableAddCard(flowWork->tableWork, flowWork->selectedCard, 3);
                     }
                 }
 
-                arg0->unk10 = 16;
-                arg0->unk14 = 0;
+                flowWork->stateStep = 16;
+                flowWork->stateTimer = 0;
             }
             break;
         case 16:
-            if (arg0->unk14++ >= 60) {
-                for (var_r29 = 0; var_r29 < 21; var_r29++) {
-                    fn_1_3FD0(arg0->unk20, var_r29, &arg0->unk34);
-                    if (arg0->unk34) {
-                        fn_1_2794(arg0->unk34);
-                        fn_1_2EC0(arg0->unk34, 1);
+            if (flowWork->stateTimer++ >= 60) {
+                for (cardIndex = 0; cardIndex < 21; cardIndex++) {
+                    M446TableCardGet(flowWork->tableWork, cardIndex, &flowWork->selectedCard);
+                    if (flowWork->selectedCard) {
+                        M446CardFlipUp(flowWork->selectedCard);
+                        M446CardShadowSet(flowWork->selectedCard, 1);
                     }
                 }
-                arg0->unk10 = 17;
-                arg0->unk14 = 0;
+                flowWork->stateStep = 17;
+                flowWork->stateTimer = 0;
             }
             break;
         case 17:
-            if (arg0->unk14++ >= 60) {
-                for (var_r29 = 0; var_r29 < 21; var_r29++) {
-                    fn_1_3FD0(arg0->unk20, var_r29, &arg0->unk34);
-                    if (arg0->unk34) {
-                        fn_1_3EB4(arg0->unk20, arg0->unk34, 4);
-                        m446DeckPushCard(arg0->unk28, arg0->unk34, 2);
+            if (flowWork->stateTimer++ >= 60) {
+                for (cardIndex = 0; cardIndex < 21; cardIndex++) {
+                    M446TableCardGet(flowWork->tableWork, cardIndex, &flowWork->selectedCard);
+                    if (flowWork->selectedCard) {
+                        M446TableRemoveCard(flowWork->tableWork, flowWork->selectedCard, 4);
+                        M446DeckPushCard(flowWork->deckWork, flowWork->selectedCard, 2);
                     }
                 }
-                arg0->unk10 = 18;
-                arg0->unk14 = 0;
+                flowWork->stateStep = 18;
+                flowWork->stateTimer = 0;
             }
             break;
         case 18:
-            if (arg0->unk14++ >= 60) {
-                fn_1_31D8((unkStruct2 **)arg0->unk28, &arg0->unk38[0], &arg0->unk94, 1);
-                arg0->unk10 = 19;
-                arg0->unk14 = 0;
+            if (flowWork->stateTimer++ >= 60) {
+                M446DeckFanOut(&flowWork->deckWork->cards, &flowWork->cardBuffer[0], &flowWork->cardBufferCount, 1);
+                flowWork->stateStep = 19;
+                flowWork->stateTimer = 0;
             }
             break;
         case 19:
-            if (arg0->unk14++ >= 120) {
-                fn_1_34A0(arg0->unk28, &arg0->unk38[0], arg0->unk94, 1);
-                arg0->unk10 = 20;
-                arg0->unk14 = 0;
+            if (flowWork->stateTimer++ >= 120) {
+                M446DeckDealCards(flowWork->deckWork, &flowWork->cardBuffer[0], flowWork->cardBufferCount, 1);
+                flowWork->stateStep = 20;
+                flowWork->stateTimer = 0;
             }
             break;
         case 20:
-            if (arg0->unk14++ >= 120) {
-                for (var_r29 = 0; var_r29 < 3; var_r29++) {
-                    m446DeckPopCard((unkStruct2 **)arg0->unk28, &arg0->unk34);
-                    m446PlayerAppendCard(var_r30, arg0->unk34, 1);
-                    fn_1_2EC0(arg0->unk34, 0);
+            if (flowWork->stateTimer++ >= 120) {
+                for (cardIndex = 0; cardIndex < 3; cardIndex++) {
+                    M446DeckPopCard(&flowWork->deckWork->cards, &flowWork->selectedCard);
+                    M446PlayerAppendCard(playerWork2, flowWork->selectedCard, 1);
+                    M446CardShadowSet(flowWork->selectedCard, 0);
                 }
                 HuAudFXPlay(0x767);
-                arg0->unk10 = 21;
+                flowWork->stateStep = 21;
             }
             break;
         case 21:
-            if (arg0->unk34->unk70 == 0 && arg0->unk34->unk78 == 0 && arg0->unk34->unk74 == 0 && arg0->unk34->unk4 == 0) {
-                for (var_r29 = 0; var_r29 < 3; var_r29++) {
-                    fn_1_5648(var_r30, var_r29, &arg0->unk34);
-                    fn_1_272C(arg0->unk34);
+            if (flowWork->selectedCard->positionAnimating == 0 && flowWork->selectedCard->scaleAnimating == 0 && flowWork->selectedCard->rotationAnimating == 0 && flowWork->selectedCard->animationState == 0) {
+                for (cardIndex = 0; cardIndex < 3; cardIndex++) {
+                    M446PlayerCardFind(playerWork2, cardIndex, &flowWork->selectedCard);
+                    M446CardFlipDown(flowWork->selectedCard);
                 }
 
-                arg0->unk10 = 22;
+                flowWork->stateStep = 22;
             }
             break;
         case 22:
-            if (arg0->unk34->unk70 == 0 && arg0->unk34->unk78 == 0 && arg0->unk34->unk74 == 0 && arg0->unk34->unk4 == 0) {
-                fn_1_46AC(arg0->unk20);
+            if (flowWork->selectedCard->positionAnimating == 0 && flowWork->selectedCard->scaleAnimating == 0 && flowWork->selectedCard->rotationAnimating == 0 && flowWork->selectedCard->animationState == 0) {
+                M446TableReserveSpaces(flowWork->tableWork);
 
-                while (m446DeckPopCard((unkStruct2 **)arg0->unk28, &arg0->unk34)) {
-                    fn_1_3BF0(arg0->unk20, arg0->unk34, 1);
+                while (M446DeckPopCard(&flowWork->deckWork->cards, &flowWork->selectedCard)) {
+                    M446TableAddCard(flowWork->tableWork, flowWork->selectedCard, 1);
                 }
-                fn_1_46D0(arg0->unk20);
-                arg0->unk10 = 23;
-                arg0->unk14 = 0;
+                M446TableClearReservedSpaces(flowWork->tableWork);
+                flowWork->stateStep = 23;
+                flowWork->stateTimer = 0;
             }
             break;
         case 23:
-            if (arg0->unk14++ >= 120) {
-                arg0->unk10 = 12;
+            if (flowWork->stateTimer++ >= 120) {
+                flowWork->stateStep = 12;
             }
             break;
         case 24:
-            for (var_r29 = 0; var_r29 < 3; var_r29++) {
-                fn_1_5648(var_r30, var_r29, &arg0->unk34);
-                if (arg0->unk34) {
-                    fn_1_2D94(arg0->unk34);
+            for (cardIndex = 0; cardIndex < 3; cardIndex++) {
+                M446PlayerCardFind(playerWork2, cardIndex, &flowWork->selectedCard);
+                if (flowWork->selectedCard) {
+                    M446CardShuffleBegin(flowWork->selectedCard);
                 }
             }
-            GWPlayerCoinWinAdd(arg0->unk1C, 10);
+            GWPlayerCoinWinAdd(flowWork->currentPlayerIndex, 10);
         case 25:
-            arg0->unk0 = 3;
-            arg0->unk10 = 0;
+            flowWork->flowState = 3;
+            flowWork->stateStep = 0;
             break;
     }
 }
 
-s32 fn_1_17FC(unkStruct *arg0)
+s32 M446FlowPlayerCountGet(M446FlowWork *flowWork)
 {
-    return MGSeqStatGet(arg0->unk4) != 0;
+    return MGSeqStatGet(flowWork->resultSequenceId) != 0;
 }
 
-void fn_1_183C(unkStruct *arg0)
+void M446FlowResultCreate(M446FlowWork *flowWork)
 {
-    MGSeqKill(arg0->unk4);
-    arg0->unk4 = -1;
+    MGSeqKill(flowWork->resultSequenceId);
+    flowWork->resultSequenceId = -1;
 }
 
-void fn_1_1874(unkStruct *arg0)
+void M446FlowResultDestroy(M446FlowWork *flowWork)
 {
-    arg0->unk4 = MGSeqCreate(3, 0);
+    flowWork->resultSequenceId = MGSeqCreate(3, 0);
 }
 
-void fn_1_18B0(unkStruct *arg0)
+void M446FlowResultUpdate(M446FlowWork *flowWork)
 {
-    arg0->unk4 = MGSeqCreate(3, 1);
+    flowWork->resultSequenceId = MGSeqCreate(3, 1);
 }
 
-void fn_1_18EC(s16 arg0, s32 arg1)
+void M446MessageShow(s16 windowId, s32 waitFrames)
 {
     HuWinComKeyReset();
-    if (lbl_1_bss_10 == 2) {
-        HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, arg1);
+    if (m446ActivePlayerCount == 2) {
+        HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, waitFrames);
     }
-    winData[arg0].active_pad = 1;
-    HuWinMesWait(arg0);
+    winData[windowId].active_pad = 1;
+    HuWinMesWait(windowId);
 }
 
-s32 fn_1_1970(s16 arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 M446MessageWait(s16 windowId, s32 choiceCount, s32 cancelValue, s32 delayFrames)
 {
-    if (lbl_1_bss_10 == 2) {
-        HuPrcSleep(arg3);
-        return arg2;
+    if (m446ActivePlayerCount == 2) {
+        HuPrcSleep(delayFrames);
+        return cancelValue;
     }
     else {
-        return HuWinChoiceGet(arg0, arg1);
+        return HuWinChoiceGet(windowId, choiceCount);
     }
 }
 
-static const s32 lbl_1_rodata_18[12] = { MAKE_MESSID(0x18, 0x03), MAKE_MESSID(0x18, 0x04), MAKE_MESSID(0x18, 0x05), MAKE_MESSID(0x18, 0x06),
+static const s32 m446MessageIds[12] = { MAKE_MESSID(0x18, 0x03), MAKE_MESSID(0x18, 0x04), MAKE_MESSID(0x18, 0x05), MAKE_MESSID(0x18, 0x06),
     MAKE_MESSID(0x18, 0x07), MAKE_MESSID(0x18, 0x08), MAKE_MESSID(0x18, 0x09), MAKE_MESSID(0x18, 0x0A), MAKE_MESSID(0x18, 0x0B),
     MAKE_MESSID(0x18, 0x0C), MAKE_MESSID(0x18, 0x0D), 0 };
 
-void fn_1_19D4(void)
+void M446FlowProcess(void)
 {
-    s16 temp_r3;
-    s16 var_r30;
-    s32 temp_r0;
-    s32 var_r29;
-    u32 temp_r27;
+    s16 object;
+    s16 playerIndex;
+    s32 result;
+    s32 cardIndex;
+    u32 cursorWork;
 
-    temp_r3 = HuWinExCreateStyled(-10000.0f, 40.0f, 0x138, 0x78, -1, 1);
-    HuWinExAnimIn(temp_r3);
-    HuWinBGTPLvlSet(temp_r3, 0.8f);
-    HuWinMesSpeedSet(temp_r3, 1);
-    HuWinMesColSet(temp_r3, 0);
-    HuWinMesSet(temp_r3, MAKE_MESSID(0x18, 0x01));
-    fn_1_18EC(temp_r3, 0x3C);
-    if (lbl_1_bss_10 < 2) {
-        HuWinMesColSet(temp_r3, 0);
-        HuWinMesSet(temp_r3, MAKE_MESSID(0x18, 0x02));
-        var_r30 = fn_1_1970(temp_r3, 0, 1, 0x3C);
+    object = HuWinExCreateStyled(-10000.0f, 40.0f, 0x138, 0x78, -1, 1);
+    HuWinExAnimIn(object);
+    HuWinBGTPLvlSet(object, 0.8f);
+    HuWinMesSpeedSet(object, 1);
+    HuWinMesColSet(object, 0);
+    HuWinMesSet(object, MAKE_MESSID(0x18, 0x01));
+    M446MessageShow(object, 0x3C);
+    if (m446ActivePlayerCount < 2) {
+        HuWinMesColSet(object, 0);
+        HuWinMesSet(object, MAKE_MESSID(0x18, 0x02));
+        playerIndex = M446MessageWait(object, 0, 1, 0x3C);
     }
     else {
-        var_r30 = 1;
+        playerIndex = 1;
     }
-    if (var_r30 == 0) {
-        var_r29 = 0;
-        while ((temp_r27 = lbl_1_rodata_18[var_r29++]) != 0) {
-            HuWinMesColSet(temp_r3, 0);
-            HuWinMesSet(temp_r3, temp_r27);
-            fn_1_18EC(temp_r3, 0x3C);
+    if (playerIndex == 0) {
+        cardIndex = 0;
+        while ((cursorWork = m446MessageIds[cardIndex++]) != 0) {
+            HuWinMesColSet(object, 0);
+            HuWinMesSet(object, cursorWork);
+            M446MessageShow(object, 0x3C);
         }
     }
     else {
-        HuWinMesColSet(temp_r3, 0);
-        HuWinMesSet(temp_r3, MAKE_MESSID(0x18, 0x0D));
-        fn_1_18EC(temp_r3, 0x3C);
+        HuWinMesColSet(object, 0);
+        HuWinMesSet(object, MAKE_MESSID(0x18, 0x0D));
+        M446MessageShow(object, 0x3C);
     }
-    HuWinExAnimOut(temp_r3);
-    HuWinExCleanup(temp_r3);
-    lbl_1_bss_14 = 0;
+    HuWinExAnimOut(object);
+    HuWinExCleanup(object);
+    m446FlowProcessActive = 0;
     HuPrcEnd();
     while (1) {
         HuPrcVSleep();

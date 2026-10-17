@@ -4,169 +4,169 @@
 #include "ext_math.h"
 
 // bss
-u32 lbl_1_bss_20;
+u32 m446RandomSeed;
 
 // data
-static const s32 lbl_1_rodata_D0[5][2] = {
+static const s32 m446DeckCardCounts[5][2] = {
     {1, 5}, {0, 5}, {2, 5}, {3, 5}, {4, 3}
 };
 
-unkStruct5* fn_1_3064(void) {
-    unkStruct4* var_r27;
-    s32 var_r28;
-    s32 var_r29;
-    s32 var_r30;
-    unkStruct5* temp_r3;
+M446DeckWork* M446DeckCreate(void) {
+    M446CardWork* stateIndex;
+    s32 modelIndex;
+    s32 cardIndex;
+    s32 playerIndex;
+    M446DeckWork* object;
 
-    temp_r3 = HuMemDirectMallocNum(HEAP_HEAP, 0x10, HU_MEMNUM_OVL);
-    if (!temp_r3) {
+    object = HuMemDirectMallocNum(HEAP_HEAP, 0x10, HU_MEMNUM_OVL);
+    if (!object) {
         return NULL;
     }
-    temp_r3->unk0 = fn_1_1C64(0x17);
-    if (!temp_r3->unk0) {
-        HuMemDirectFree(temp_r3);
+    object->cards = M446PointerListCreate(0x17);
+    if (!object->cards) {
+        HuMemDirectFree(object);
         return NULL;
     }
-    temp_r3->unk4.x = 0.0f;
-    temp_r3->unk4.y = 85.0f;
-    temp_r3->unk4.z = 0.0f;
+    object->cardPosition.x = 0.0f;
+    object->cardPosition.y = 85.0f;
+    object->cardPosition.z = 0.0f;
     
-    for (var_r28 = 0, var_r30 = 0; var_r30 < 5; var_r30++) {
-        for (var_r29 = 0; var_r29 < lbl_1_rodata_D0[var_r30][1]; var_r29++, var_r28++) {
-            var_r27 = m446CardCreate(lbl_1_rodata_D0[var_r30][0]);
-            m446DeckPushCard(temp_r3, var_r27, 0);
+    for (modelIndex = 0, playerIndex = 0; playerIndex < 5; playerIndex++) {
+        for (cardIndex = 0; cardIndex < m446DeckCardCounts[playerIndex][1]; cardIndex++, modelIndex++) {
+            stateIndex = M446CardCreate(m446DeckCardCounts[playerIndex][0]);
+            M446DeckPushCard(object, stateIndex, 0);
         }
     }
-    return temp_r3;
+    return object;
 }
 
-void fn_1_3180(unkStruct2** arg0) {
-    unkStruct4* sp8;
+void M446DeckDestroy(M446PointerList** cardList) {
+    M446CardWork* cardWork2;
 
-    while (fn_1_1D6C(*arg0, &sp8) != 0) {
-        fn_1_2688(sp8);
+    while (M446PointerListPop(*cardList, &cardWork2) != 0) {
+        M446CardDestroy(cardWork2);
     }
-    fn_1_1CF8(*arg0);
-    HuMemDirectFree(arg0);
+    M446PointerListDestroy(*cardList);
+    HuMemDirectFree(cardList);
 }
 
-void fn_1_31D8(unkStruct2** arg0, unkStruct4** arg1, s32* arg2, s32 arg3) {
-    Vec sp10;
-    unkStruct4 *spC;
-    f32 var_f30;
-    f32 var_f31;
-    s32 var_r29;
-    s32 var_r31;
+void M446DeckFanOut(M446PointerList** cardList, M446CardWork** cardArray, s32* cardCountOut, s32 animateCards) {
+    Vec scaleVector;
+    M446CardWork *cardWork2;
+    f32 movementMagnitude;
+    f32 movementAngle;
+    s32 cardIndex;
+    s32 loopIndex;
     
     HuAudFXPlay(0x765);
-    var_f30 = 360.0f / fn_1_1DEC(*arg0);
-    if (fn_1_38F0() % 2 != 0) {
-        var_f30 = -var_f30;
+    movementMagnitude = 360.0f / M446PointerListCount(*cardList);
+    if (M446RandomGet() % 2 != 0) {
+        movementMagnitude = -movementMagnitude;
     }
     
-    var_f31 = fn_1_38F0() % 360;
-    var_r29 = 0;
-    var_r31 = 0;
-    while (fn_1_1D6C(*arg0, &spC) != 0) {
-        if (arg3 != 0) {
-            sp10 = spC->unk10;
-            sp10.x = ((25.0 * cosd(var_f31)) - (25.0 * sind(var_f31)));
-            sp10.z = ((25.0 * cosd(var_f31)) + (25.0 * sind(var_f31)));
-            sp10.y = 81.0f + (0.1f * var_r31);
-            fn_1_2890(spC, &sp10, 0x12, var_r29 += 3);
-            var_f31 += var_f30;
+    movementAngle = M446RandomGet() % 360;
+    cardIndex = 0;
+    loopIndex = 0;
+    while (M446PointerListPop(*cardList, &cardWork2) != 0) {
+        if (animateCards != 0) {
+            scaleVector = cardWork2->position;
+            scaleVector.x = ((25.0 * cosd(movementAngle)) - (25.0 * sind(movementAngle)));
+            scaleVector.z = ((25.0 * cosd(movementAngle)) + (25.0 * sind(movementAngle)));
+            scaleVector.y = 81.0f + (0.1f * loopIndex);
+            M446CardMoveToDelayed(cardWork2, &scaleVector, 0x12, cardIndex += 3);
+            movementAngle += movementMagnitude;
         }
-        arg1[var_r31++] = spC;
+        cardArray[loopIndex++] = cardWork2;
     }
-    *arg2 = var_r31;
+    *cardCountOut = loopIndex;
 }
 
-void fn_1_34A0(unkStruct5* arg0, unkStruct4** arg1, s32 arg2, s32 arg3) {
-    Vec sp10;
-    unkStruct4* spC;
-    s32 temp_r30;
-    s32 var_r22;
-    s32 var_r25;
-    s32 var_r24;
-    s32 temp_r23;
-    unkStruct2* temp_r28;
-    s32 var_r27;
+void M446DeckDealCards(M446DeckWork* deckWork, M446CardWork** cardsOut, s32 cardPoolSize, s32 dealMode) {
+    Vec scaleVector;
+    M446CardWork* cardWork2;
+    s32 cardWork;
+    s32 itemIndex;
+    s32 cardCount;
+    s32 cardId;
+    s32 controllerPort;
+    M446PointerList* deckEntry;
+    s32 stateIndex;
 
-    temp_r23 = arg2;
+    controllerPort = cardPoolSize;
     HuAudFXPlay(0x766);
-    temp_r28 = fn_1_1C64(6);
-    var_r27 = 0;
+    deckEntry = M446PointerListCreate(6);
+    stateIndex = 0;
     do {
         
         do {
-        temp_r30 = fn_1_38F0() % temp_r23;
-        spC = arg1[temp_r30];
-        } while (!spC);
+        cardWork = M446RandomGet() % controllerPort;
+        cardWork2 = cardsOut[cardWork];
+        } while (!cardWork2);
         
-        if (spC->unk0 != 4) {
-            if ((var_r27 % 3) == 0) {
-                var_r25 = spC->unk0;
-            } else if ((var_r27 % 3) == 1) {
-                var_r22 = spC->unk0;
-                if (spC->unk0 == var_r25) {
+        if (cardWork2->cardId != 4) {
+            if ((stateIndex % 3) == 0) {
+                cardCount = cardWork2->cardId;
+            } else if ((stateIndex % 3) == 1) {
+                itemIndex = cardWork2->cardId;
+                if (cardWork2->cardId == cardCount) {
                     continue;
                 }
-            } else if ((spC->unk0 == var_r25) || (spC->unk0 == var_r22)) continue;
-            arg1[temp_r30] = NULL;
-            fn_1_1D30(temp_r28, spC);
-            var_r27++;
+            } else if ((cardWork2->cardId == cardCount) || (cardWork2->cardId == itemIndex)) continue;
+            cardsOut[cardWork] = NULL;
+            M446PointerListAppend(deckEntry, cardWork2);
+            stateIndex++;
         }
-    } while (fn_1_1DEC(temp_r28) < 6);
-    var_r24 = 0;
+    } while (M446PointerListCount(deckEntry) < 6);
+    cardId = 0;
     do {
-        if (arg2 > 6) {
+        if (cardPoolSize > 6) {
             do {
-                temp_r30 = fn_1_38F0() % temp_r23;
-                spC = arg1[temp_r30];
-            } while (!spC);
-            arg1[temp_r30] = NULL;
+                cardWork = M446RandomGet() % controllerPort;
+                cardWork2 = cardsOut[cardWork];
+            } while (!cardWork2);
+            cardsOut[cardWork] = NULL;
         } else {
-            fn_1_1D6C(temp_r28, &spC);
+            M446PointerListPop(deckEntry, (void **)&cardWork2);
         }
-        fn_1_1D30(arg0->unk0, spC);
-        sp10 = arg0->unk4;
-        sp10.y += 0.5f * fn_1_1DEC(arg0->unk0);
-        if (arg3 != 0) {
-            fn_1_2890(spC, &sp10, 0x12, var_r24 += 3);
+        M446PointerListAppend(deckEntry, cardWork2);
+        scaleVector = deckWork->cardPosition;
+        scaleVector.y += 0.5f * M446PointerListCount(deckWork->cards);
+        if (dealMode != 0) {
+            M446CardMoveToDelayed(cardWork2, &scaleVector, 0x12, cardId += 3);
         } else {
-            spC->unk10 = sp10;
+            cardWork2->position = scaleVector;
         }
-        arg2--;
-    } while (arg2 != 0);
-    fn_1_1CF8(temp_r28);
+        cardPoolSize--;
+    } while (cardPoolSize != 0);
+    M446PointerListDestroy(deckEntry);
 }
 
-s32 m446DeckPushCard(unkStruct5* arg0, unkStruct4* arg1, s32 arg2) {
-    Vec sp18;
-    Vec spC;
+s32 M446DeckPushCard(M446DeckWork* deckWork, M446CardWork* cardWork, s32 placementMode) {
+    Vec offset;
+    Vec targetPosition;
     
-    if (fn_1_1D30(arg0->unk0, arg1) == 0) {
+    if (M446PointerListAppend(deckWork->cards, cardWork) == 0) {
         OSReport("[!] m446DeckPushCard ERROR...\n");
         return 0;
     }
-    sp18 = arg0->unk4;
-    sp18.y += 0.5f * fn_1_1DEC(arg0->unk0);
-    spC = arg1->unk34;
-    spC.y = 0.0f;
-    switch (arg2) {
+    offset = deckWork->cardPosition;
+    offset.y += 0.5f * M446PointerListCount(deckWork->cards);
+    targetPosition = cardWork->rotation;
+    targetPosition.y = 0.0f;
+    switch (placementMode) {
         case 2:
-            fn_1_27FC(arg1, &sp18, 0x3C);
-            fn_1_2928(arg1, &spC, 0x3C);
+            M446CardMoveTo(cardWork, &offset, 0x3C);
+            M446CardRotateTo(cardWork, &targetPosition, 0x3C);
             break;
         default:
-            arg1->unk10 = sp18;
-            arg1->unk34 = spC;
+            cardWork->position = offset;
+            cardWork->rotation = targetPosition;
     }
     return 1;
 }
 
-s32 m446DeckPopCard(unkStruct2** arg0, unkStruct4** arg1) {
-    if (fn_1_1D6C(*arg0, arg1) == 0) {
+s32 M446DeckPopCard(M446PointerList** cardList, M446CardWork** cardOut) {
+    if (M446PointerListPop(*cardList, cardOut) == 0) {
         OSReport("[!] m446DeckPopCard ERROR...\n");
         return 0;
     } else {
@@ -174,14 +174,14 @@ s32 m446DeckPopCard(unkStruct2** arg0, unkStruct4** arg1) {
     }
 }
 
-void fn_1_38B0(unkStruct2** arg0) {
-    fn_1_1DEC(*arg0);
+void M446DeckRefresh(M446PointerList** cardList) {
+    M446PointerListCount(*cardList);
 }
 
-void fn_1_38E0(u32 arg0) {
-    lbl_1_bss_20 = arg0;
+void M446RandomSeedSet(u32 randomSeed) {
+    m446RandomSeed = randomSeed;
 }
 
-s32 fn_1_38F0(void) {
-    return ((lbl_1_bss_20 = (lbl_1_bss_20 * 0x41C64E6D) + 0x3039) >> 16) % 32768;
+s32 M446RandomGet(void) {
+    return ((m446RandomSeed = (m446RandomSeed * 0x41C64E6D) + 0x3039) >> 16) % 32768;
 }
