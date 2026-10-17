@@ -16,15 +16,15 @@
 #include "game/objsub.h"
 #endif
 
-typedef struct struct_data0 {
-	s32 unk0;
-	s32 unk4;
-	s32 unk8;
-	s32 unkC;
-	s32 unk10;
-} StructData0;
+typedef struct StoryItemResourceEntry {
+	s32 dataNum;
+	s32 resourceMode;
+	s32 resourceState;
+	s32 resourceFlags;
+	s32 highlightName;
+} StoryItemResourceEntry;
 
-StructData0 lbl_1_data_0[] = {
+StoryItemResourceEntry storyItemResourceTable[] = {
 	{ DATA_MAKE_NUM(DATADIR_MSTORY4, 0x00), 0, 0, 0, 1 },
 	{ DATA_MAKE_NUM(DATADIR_MSTORY4, 0x01), 0, 0, 0, 1 },
 	{ DATA_MAKE_NUM(DATADIR_MSTORY4, 0x02), 0, 0, 0, 1 },
@@ -75,7 +75,7 @@ StructData0 lbl_1_data_0[] = {
 	{ DATA_MAKE_NUM(DATADIR_MSTORY4, 0x2F), 0, 0, 0, 1 },
 };
 
-char *lbl_1_data_430[] = {
+char *boardNameTable[] = {
 	"Map1:Fun Party",
 	"Map2:Exciting Party",
 	"Map3:Adventure Party",
@@ -84,7 +84,7 @@ char *lbl_1_data_430[] = {
 	"Map6:Bowser Party"
 };
 
-char *lbl_1_data_538[] = {
+char *storyEventNameTable[] = {
 #if VERSION_PAL
 	"(Map1-Map6) >>>> not event <<<<",
 #else
@@ -99,7 +99,7 @@ char *lbl_1_data_538[] = {
 };
 
 #if VERSION_PAL
-char *lbl_1_data_57C[] = {
+char *languageNameTable[] = {
 	"GERMANY",
 	"FRENCH",
 	"ITALY",
@@ -108,14 +108,14 @@ char *lbl_1_data_57C[] = {
 #endif
 
 #if VERSION_PAL
-s32 lbl_1_data_58C = 1;
+s32 selectedStoryEventIndex = 1;
 #endif
 
-s32 lbl_1_data_590[] = {
+s32 boardClearFlags[] = {
 	0, 0, 0, 0, 0, 0,
 };
 
-s32 lbl_1_data_5A8[] = {
+s32 boardDataDirectoryTable[] = {
 	DATADIR_W01,
 	DATADIR_W02,
 	DATADIR_W03,
@@ -129,24 +129,24 @@ s32 lbl_1_data_5A8[] = {
 
 #endif
 
-void fn_1_EC(void);
-void fn_1_12E8(void);
-void fn_1_13A0(void);
+void StoryMapEventSelectionProcess(void);
+void InitializeStorySelection(void);
+void ItemDebugSelectionProcess(void);
 
-s32 lbl_1_bss_14;
-s32 lbl_1_bss_10;
+s32 boardDataReadComplete;
+s32 selectedSubmenuItemIndex;
 #if VERSION_NTSC
-s32 lbl_1_bss_C;
+s32 selectedStoryEventIndex;
 #endif
-s32 lbl_1_bss_8;
-s32 lbl_1_bss_4;
-HUPROCESS *lbl_1_bss_0;
+s32 selectedBoardIndex;
+s32 selectionMode;
+HUPROCESS *storySelectionObjectManager;
 
-void fn_1_0(void)
+void LoadStoryBoardDataProcess(void)
 {
-	s32 status = HuDataDirReadAsync(DATADIR_BOARD);
-	if(status != -1) {
-		while(!HuDataGetAsyncStat(status)) {
+	s32 asyncReadStatus = HuDataDirReadAsync(DATADIR_BOARD);
+	if(asyncReadStatus != -1) {
+		while(!HuDataGetAsyncStat(asyncReadStatus)) {
 			HuPrcVSleep();
 		}
 	}
@@ -156,32 +156,32 @@ void fn_1_0(void)
 	}
 	HuDataDirClose(DATADIR_BOARD);
 	if(_CheckFlag(0x1000B)) {
-		status = HuDataDirReadAsync(DATADIR_W10);
+		asyncReadStatus = HuDataDirReadAsync(DATADIR_W10);
 	} else {
-		status = HuDataDirReadAsync(lbl_1_data_5A8[GWSystem.board]);
+		asyncReadStatus = HuDataDirReadAsync(boardDataDirectoryTable[GWSystem.board]);
 	}
-	if(status != -1) {
-		while(!HuDataGetAsyncStat(status)) {
+	if(asyncReadStatus != -1) {
+		while(!HuDataGetAsyncStat(asyncReadStatus)) {
 			HuPrcVSleep();
 		}
 	}
-	lbl_1_bss_14 = 1;
+	boardDataReadComplete = 1;
 	HuPrcEnd();
 	while(1) {
 		HuPrcVSleep();
 	}
 }
 
-void fn_1_EC(void)
+void StoryMapEventSelectionProcess(void)
 {
-	s32 i;
-	s32 x = 16;
-	s32 y = 40;
-	s32 row_h = 10;
-	s32 delay = 0;
-	float scale = 1.0f;
-	GXColor hilite = { 0, 0, 255, 128 };
-	OMOVL boardOvlTbl[] = {
+	s32 itemIndex;
+	s32 textLeft = 16;
+	s32 textTop = 40;
+	s32 textLineHeight = 10;
+	s32 inputRepeatDelay = 0;
+	float textScale = 1.0f;
+	GXColor selectionHighlightColor = { 0, 0, 255, 128 };
+	OMOVL boardOverlayTable[] = {
 		DLL_w01dll,
 		DLL_w02dll,
 		DLL_w03dll,
@@ -201,165 +201,160 @@ void fn_1_EC(void)
 	while(1) {
 		HuPrcVSleep();
 		fontcolor = FONT_COLOR_WHITE;
-		if(!lbl_1_bss_4) {
-			printWin(x,y+(row_h*(lbl_1_bss_8+2))-2, 400, 10*scale, &hilite);
+		if(!selectionMode) {
+			printWin(textLeft,textTop+(textLineHeight*(selectedBoardIndex+2))-2, 400, 10*textScale, &selectionHighlightColor);
 		}
-		print8(x, y, scale, "MAP NO");
-		print8(x, y+row_h, scale, "--------------------------------------------------");
-		for(i=0; i<6; i++) {
-			if(!lbl_1_bss_4) {
-				print8(x, y+(row_h*(i+2)), scale, "%s", lbl_1_data_430[i]);
-			} else if(lbl_1_bss_8 == i) {
-				print8(x, y+(row_h*(i+2)), scale, "%s", lbl_1_data_430[i]);
+		print8(textLeft, textTop, textScale, "MAP NO");
+		print8(textLeft, textTop+textLineHeight, textScale, "--------------------------------------------------");
+		for(itemIndex=0; itemIndex<6; itemIndex++) {
+			if(!selectionMode) {
+				print8(textLeft, textTop+(textLineHeight*(itemIndex+2)), textScale, "%s", boardNameTable[itemIndex]);
+			} else if(selectedBoardIndex == itemIndex) {
+				print8(textLeft, textTop+(textLineHeight*(itemIndex+2)), textScale, "%s", boardNameTable[itemIndex]);
 			}
 		}
-#if VERSION_PAL
-#define _VALUE lbl_1_data_58C
-#else
-#define _VALUE lbl_1_bss_C
-#endif
-		if(lbl_1_bss_4 == 1) {
-			printWin(x, y+(row_h*(_VALUE+12))-2, 400, 10*scale, &hilite);
+		if(selectionMode == 1) {
+			printWin(textLeft, textTop+(textLineHeight*(selectedStoryEventIndex+12))-2, 400, 10*textScale, &selectionHighlightColor);
 		}
-		print8(x, y+(row_h*10), scale, "EVENT NO");
-		print8(x, y+(row_h*11), scale, "--------------------------------------------------");
-		if(lbl_1_bss_8 == 5) {
-			for(i=0; i<7; i++) {
-				if(lbl_1_bss_4 <= 1) {
-					print8(x, y+(row_h*(i+12)), scale, "%s", lbl_1_data_538[i]);
-				} else if(_VALUE == i) {
-					print8(x, y+(row_h*(i+12)), scale, "%s", lbl_1_data_538[i]);
+		print8(textLeft, textTop+(textLineHeight*10), textScale, "EVENT NO");
+		print8(textLeft, textTop+(textLineHeight*11), textScale, "--------------------------------------------------");
+		if(selectedBoardIndex == 5) {
+			for(itemIndex=0; itemIndex<7; itemIndex++) {
+				if(selectionMode <= 1) {
+					print8(textLeft, textTop+(textLineHeight*(itemIndex+12)), textScale, "%s", storyEventNameTable[itemIndex]);
+				} else if(selectedStoryEventIndex == itemIndex) {
+					print8(textLeft, textTop+(textLineHeight*(itemIndex+12)), textScale, "%s", storyEventNameTable[itemIndex]);
 				}
 			}
 		} else {
-			for(i=0; i<5; i++) {
-				if(lbl_1_bss_4 <= 1) {
-					print8(x, y+(row_h*(i+12)), scale, "%s", lbl_1_data_538[i]);
-				} else if(_VALUE == i) {
-					print8(x, y+(row_h*(i+12)), scale, "%s", lbl_1_data_538[i]);
+			for(itemIndex=0; itemIndex<5; itemIndex++) {
+				if(selectionMode <= 1) {
+					print8(textLeft, textTop+(textLineHeight*(itemIndex+12)), textScale, "%s", storyEventNameTable[itemIndex]);
+				} else if(selectedStoryEventIndex == itemIndex) {
+					print8(textLeft, textTop+(textLineHeight*(itemIndex+12)), textScale, "%s", storyEventNameTable[itemIndex]);
 				}
 			}
 		}
-		if(lbl_1_bss_4 == 2) {
-			printWin(x, y+(row_h*(lbl_1_bss_10+23))-2, 400, 10*scale, &hilite);
+		if(selectionMode == 2) {
+			printWin(textLeft, textTop+(textLineHeight*(selectedSubmenuItemIndex+23))-2, 400, 10*textScale, &selectionHighlightColor);
 		}
 #if VERSION_PAL
-		print8(x, y+(row_h*21), scale, "LANGUAGE SELECT");
-		print8(x, y+(row_h*22), scale, "--------------------------------------------------");
-		for(i=0; i<4; i++) {
-			print8(x, y+(row_h*(i+23)), scale, "%s", lbl_1_data_57C[i]);
+		print8(textLeft, textTop+(textLineHeight*21), textScale, "LANGUAGE SELECT");
+		print8(textLeft, textTop+(textLineHeight*22), textScale, "--------------------------------------------------");
+		for(itemIndex=0; itemIndex<4; itemIndex++) {
+			print8(textLeft, textTop+(textLineHeight*(itemIndex+23)), textScale, "%s", languageNameTable[itemIndex]);
 		}
 #endif
 #if VERSION_NTSC
-		print8(x, y+(row_h*21), scale, "CLEAR FLAG");
-		print8(x, y+(row_h*22), scale, "--------------------------------------------------");
-		for(i=0; i<6; i++) {
-			if(!lbl_1_data_590[i]) {
-				print8(x, y+(row_h*(i+23)), scale, "FALSE - %s", lbl_1_data_430[i]);
+		print8(textLeft, textTop+(textLineHeight*21), textScale, "CLEAR FLAG");
+		print8(textLeft, textTop+(textLineHeight*22), textScale, "--------------------------------------------------");
+		for(itemIndex=0; itemIndex<6; itemIndex++) {
+			if(!boardClearFlags[itemIndex]) {
+				print8(textLeft, textTop+(textLineHeight*(itemIndex+23)), textScale, "FALSE - %s", boardNameTable[itemIndex]);
 			} else {
-				print8(x, y+(row_h*(i+23)), scale, "TRUE  - %s", lbl_1_data_430[i]);
+				print8(textLeft, textTop+(textLineHeight*(itemIndex+23)), textScale, "TRUE  - %s", boardNameTable[itemIndex]);
 			}
 		}
 #endif
-		if(delay <= 0) {
-			switch(lbl_1_bss_4) {
+		if(inputRepeatDelay <= 0) {
+			switch(selectionMode) {
 				case 0:
 					if(HuPadStkY[0] <= -30) {
-						lbl_1_bss_8++;
-						if(lbl_1_bss_8 > 5) {
-							lbl_1_bss_8 = 0;
+						selectedBoardIndex++;
+						if(selectedBoardIndex > 5) {
+							selectedBoardIndex = 0;
 						}
-						delay = 10;
+						inputRepeatDelay = 10;
 					} else if(HuPadStkY[0] >= 30) {
-						lbl_1_bss_8--;
-						if(lbl_1_bss_8 < 0) {
-							lbl_1_bss_8 = 5;
+						selectedBoardIndex--;
+						if(selectedBoardIndex < 0) {
+							selectedBoardIndex = 5;
 						}
-						delay = 10;
+						inputRepeatDelay = 10;
 					}
 					break;
 					
 				case 1:
-					if(lbl_1_bss_8 == 5) {
+					if(selectedBoardIndex == 5) {
 						if(HuPadStkY[0] >= 30) {
-							_VALUE--;
+							selectedStoryEventIndex--;
 #if VERSION_PAL
-							if(_VALUE < 1) {
+							if(selectedStoryEventIndex < 1) {
 #else
-							if(_VALUE < 0) {
+							if(selectedStoryEventIndex < 0) {
 #endif
-								_VALUE = 6;
+								selectedStoryEventIndex = 6;
 							}
-							delay = 10;
+							inputRepeatDelay = 10;
 						} else if(HuPadStkY[0] <= -30) {
-							_VALUE++;
-							if(_VALUE > 6) {
+							selectedStoryEventIndex++;
+							if(selectedStoryEventIndex > 6) {
 #if VERSION_PAL
-								_VALUE = 1;
+								selectedStoryEventIndex = 1;
 #else
-								_VALUE = 0;
+								selectedStoryEventIndex = 0;
 #endif
 							}
-							delay = 10;
+							inputRepeatDelay = 10;
 						}
 					} else {
 						if(HuPadStkY[0] >= 30) {
-							_VALUE--;
+							selectedStoryEventIndex--;
 #if VERSION_PAL
-							if(_VALUE < 1) {
+							if(selectedStoryEventIndex < 1) {
 #else
-							if(_VALUE < 0) {
+							if(selectedStoryEventIndex < 0) {
 #endif
-								_VALUE = 4;
+								selectedStoryEventIndex = 4;
 							}
-							delay = 10;
+							inputRepeatDelay = 10;
 						} else if(HuPadStkY[0] <= -30) {
-							_VALUE++;
-							if(_VALUE > 4) {
+							selectedStoryEventIndex++;
+							if(selectedStoryEventIndex > 4) {
 #if VERSION_PAL
-								_VALUE = 1;
+								selectedStoryEventIndex = 1;
 #else
-								_VALUE = 0;
+								selectedStoryEventIndex = 0;
 #endif
 							}
-							delay = 10;
+							inputRepeatDelay = 10;
 						}
 					}
 					break;
 				case 2:
 					if(HuPadStkY[0] >= 30) {
-						lbl_1_bss_10--;
-						if(lbl_1_bss_10 < 0) {
+						selectedSubmenuItemIndex--;
+						if(selectedSubmenuItemIndex < 0) {
 #if VERSION_PAL
-							lbl_1_bss_10 = 3;
+							selectedSubmenuItemIndex = 3;
 #else
-							lbl_1_bss_10 = 5;
+							selectedSubmenuItemIndex = 5;
 #endif
 						}
-						delay = 10;
+						inputRepeatDelay = 10;
 					} else if(HuPadStkY[0] <= -30) {
-						lbl_1_bss_10++;
+						selectedSubmenuItemIndex++;
 #if VERSION_PAL
-						if(lbl_1_bss_10 > 3) {
+						if(selectedSubmenuItemIndex > 3) {
 #else
-						if(lbl_1_bss_10 > 5) {
+						if(selectedSubmenuItemIndex > 5) {
 #endif
-							lbl_1_bss_10 = 0;
+							selectedSubmenuItemIndex = 0;
 						}
-						delay = 10;
+						inputRepeatDelay = 10;
 #if VERSION_NTSC
 					} else if(HuPadStkX[0] <= -30) {
-						lbl_1_data_590[lbl_1_bss_10]++;
-						if(lbl_1_data_590[lbl_1_bss_10] > 1) {
-							lbl_1_data_590[lbl_1_bss_10] = 0;
+						boardClearFlags[selectedSubmenuItemIndex]++;
+						if(boardClearFlags[selectedSubmenuItemIndex] > 1) {
+							boardClearFlags[selectedSubmenuItemIndex] = 0;
 						}
-						delay = 10;
+						inputRepeatDelay = 10;
 					} else if(HuPadStkX[0] >= 30) {
-						lbl_1_data_590[lbl_1_bss_10]--;
-						if(lbl_1_data_590[lbl_1_bss_10] < 0) {
-							lbl_1_data_590[lbl_1_bss_10] = 1;
+						boardClearFlags[selectedSubmenuItemIndex]--;
+						if(boardClearFlags[selectedSubmenuItemIndex] < 0) {
+							boardClearFlags[selectedSubmenuItemIndex] = 1;
 						}
-						delay = 10;
+						inputRepeatDelay = 10;
 #endif
 					}
 					break;
@@ -367,23 +362,23 @@ void fn_1_EC(void)
 				default:
 					break;
 			}
-			if(lbl_1_bss_8 != 5 && _VALUE > 4) {
-				_VALUE = 4;
+			if(selectedBoardIndex != 5 && selectedStoryEventIndex > 4) {
+				selectedStoryEventIndex = 4;
 			}
 			if(HuPadBtnDown[0] & PAD_BUTTON_A) {
-				lbl_1_bss_4++;
-				if(lbl_1_bss_4 == 3) {
+				selectionMode++;
+				if(selectionMode == 3) {
 					break;
 				}
 			} else if(HuPadBtnDown[0] & PAD_BUTTON_B) {
-				lbl_1_bss_4--;
-				if(lbl_1_bss_4 < 0) {
-					lbl_1_bss_4 = 0;
+				selectionMode--;
+				if(selectionMode < 0) {
+					selectionMode = 0;
 				}
 			}
 			
 		} else {
-			delay--;
+			inputRepeatDelay--;
 			continue;
 		}
 	}
@@ -395,41 +390,41 @@ void fn_1_EC(void)
 		}
 		HuPrcVSleep();
 	}
-	GWSystem.board = lbl_1_bss_8;
+	GWSystem.board = selectedBoardIndex;
 #if VERSION_NTSC
-	if(lbl_1_data_590[0] == 1 || lbl_1_bss_8 == 0 && lbl_1_bss_C == 1) {
+	if(boardClearFlags[0] == 1 || selectedBoardIndex == 0 && selectedStoryEventIndex == 1) {
 		_SetFlag(FLAG_ID_MAKE(0, 2));
 	} else {
 		_ClearFlag(FLAG_ID_MAKE(0, 2));
 	}
-	if(lbl_1_data_590[1] == 1 || lbl_1_bss_8 == 1 && lbl_1_bss_C == 1) {
+	if(boardClearFlags[1] == 1 || selectedBoardIndex == 1 && selectedStoryEventIndex == 1) {
 		_SetFlag(FLAG_ID_MAKE(0, 3));
 	} else {
 		_ClearFlag(FLAG_ID_MAKE(0, 3));
 	}
-	if(lbl_1_data_590[2] == 1 || lbl_1_bss_8 == 2 && lbl_1_bss_C == 1) {
+	if(boardClearFlags[2] == 1 || selectedBoardIndex == 2 && selectedStoryEventIndex == 1) {
 		_SetFlag(FLAG_ID_MAKE(0, 4));
 	} else {
 		_ClearFlag(FLAG_ID_MAKE(0, 4));
 	}
-	if(lbl_1_data_590[3] == 1 || lbl_1_bss_8 == 3 && lbl_1_bss_C == 1) {
+	if(boardClearFlags[3] == 1 || selectedBoardIndex == 3 && selectedStoryEventIndex == 1) {
 		_SetFlag(FLAG_ID_MAKE(0, 5));
 	} else {
 		_ClearFlag(FLAG_ID_MAKE(0, 5));
 	}
-	if(lbl_1_data_590[4] == 1 || lbl_1_bss_8 == 4 && lbl_1_bss_C == 1) {
+	if(boardClearFlags[4] == 1 || selectedBoardIndex == 4 && selectedStoryEventIndex == 1) {
 		_SetFlag(FLAG_ID_MAKE(0, 6));
 	} else {
 		_ClearFlag(FLAG_ID_MAKE(0, 6));
 	}
-	if(lbl_1_data_590[5] == 1 || lbl_1_bss_8 == 5 && lbl_1_bss_C == 1) {
+	if(boardClearFlags[5] == 1 || selectedBoardIndex == 5 && selectedStoryEventIndex == 1) {
 		_SetFlag(FLAG_ID_MAKE(0, 7));
 	} else {
 		_ClearFlag(FLAG_ID_MAKE(0, 7));
 	}
 #endif
 #if VERSION_PAL
-	switch (lbl_1_bss_10) {
+	switch (selectedSubmenuItemIndex) {
 		case 0:
 			GWGameStat.language = 2;
 			break;
@@ -449,21 +444,21 @@ void fn_1_EC(void)
 		_SetFlag(FLAG_ID_MAKE(0, 4));
 		_SetFlag(FLAG_ID_MAKE(0, 5));
 		_SetFlag(FLAG_ID_MAKE(0, 6));
-		switch(_VALUE) {
+		switch(selectedStoryEventIndex) {
 			case 0:
-				HuPrcChildCreate(fn_1_0, 100, 12288, 0, lbl_1_bss_0);
+				HuPrcChildCreate(LoadStoryBoardDataProcess, 100, 12288, 0, storySelectionObjectManager);
 				do {
 					HuPrcVSleep();
-				} while(lbl_1_bss_14 != 1);
+				} while(boardDataReadComplete != 1);
 				CharDataClose(-1);
 				CharMotionInit(GWPlayerCfg[0].character);
 				CharMotionInit(GWPlayerCfg[1].character);
 				CharMotionInit(GWPlayerCfg[2].character);
 				CharMotionInit(GWPlayerCfg[3].character);
 				{
-					OMOVLHIS *his = omOvlHisGet(0);
+					OMOVLHIS *overlayHistory = omOvlHisGet(0);
 					omOvlHisChg(0, DLL_mstory3dll, 0, 0);
-					omOvlCallEx(boardOvlTbl[GWSystem.board], 1, 0, 0);
+					omOvlCallEx(boardOverlayTable[GWSystem.board], 1, 0, 0);
 				}
 				break;
 				
@@ -494,21 +489,21 @@ void fn_1_EC(void)
 				break;
 		}
 	} else {
-		switch(_VALUE) {
+		switch(selectedStoryEventIndex) {
 			case 0:
-				HuPrcChildCreate(fn_1_0, 100, 12288, 0, lbl_1_bss_0);
+				HuPrcChildCreate(LoadStoryBoardDataProcess, 100, 12288, 0, storySelectionObjectManager);
 				do {
 					HuPrcVSleep();
-				} while(lbl_1_bss_14 != 1);
+				} while(boardDataReadComplete != 1);
 				CharDataClose(-1);
 				CharMotionInit(GWPlayerCfg[0].character);
 				CharMotionInit(GWPlayerCfg[1].character);
 				CharMotionInit(GWPlayerCfg[2].character);
 				CharMotionInit(GWPlayerCfg[3].character);
 				{
-					OMOVLHIS *his = omOvlHisGet(0);
+					OMOVLHIS *overlayHistory = omOvlHisGet(0);
 					omOvlHisChg(0, DLL_mstory3dll, 0, 0);
-					omOvlCallEx(boardOvlTbl[GWSystem.board], 1, 0, 0);
+					omOvlCallEx(boardOverlayTable[GWSystem.board], 1, 0, 0);
 				}
 				break;
 				
@@ -537,36 +532,36 @@ void fn_1_EC(void)
 	}
 }
 
-s32 _prolog(void) {
-    const VoidFunc* ctors = _ctors;
-    while (*ctors != 0) {
-        (**ctors)();
-        ctors++;
+s32 Prolog(void) {
+    const VoidFunc* constructorFunction = _ctors;
+    while (*constructorFunction != 0) {
+        (**constructorFunction)();
+        constructorFunction++;
     }
-    fn_1_12E8();
+    InitializeStorySelection();
     return 0;
 }
 
-void _epilog(void) {
-    const VoidFunc* dtors = _dtors;
-    while (*dtors != 0) {
-        (**dtors)();
-        dtors++;
+void Epilog(void) {
+    const VoidFunc* destructorFunction = _dtors;
+    while (*destructorFunction != 0) {
+        (**destructorFunction)();
+        destructorFunction++;
     }
 }
 
-void fn_1_12E8(void)
+void InitializeStorySelection(void)
 {
-	lbl_1_bss_0 = omInitObjMan(62, 8192);
-	omGameSysInit(lbl_1_bss_0);
+	storySelectionObjectManager = omInitObjMan(62, 8192);
+	omGameSysInit(storySelectionObjectManager);
 	if((HuPadBtn[0] & PAD_TRIGGER_L) && (HuPadBtn[0] & PAD_TRIGGER_R)) {
-		HuPrcChildCreate(fn_1_13A0, 2000, 12288, 0, HuPrcCurrentGet());
+		HuPrcChildCreate(ItemDebugSelectionProcess, 2000, 12288, 0, HuPrcCurrentGet());
 	} else {
-		HuPrcChildCreate(fn_1_EC, 2000, 12288, 0, HuPrcCurrentGet());
+		HuPrcChildCreate(StoryMapEventSelectionProcess, 2000, 12288, 0, HuPrcCurrentGet());
 	}
 }
 
-char *charNameTbl[] = {
+char *characterNameTable[] = {
 	"Mario",
 	"Luigi",
 	"Peach",
@@ -577,15 +572,15 @@ char *charNameTbl[] = {
 	"Waluigi"
 };
 
-void fn_1_13A0(void)
+void ItemDebugSelectionProcess(void)
 {
-	s32 itemno = 0;
-	s32 x = 16;
-	s32 y = 40;
-	s32 row_h = 15;
-	float scale = 1.5f;
-	float delay = 0;
-	GXColor hilite = { 0, 0, 255, 128 };
+	s32 selectedItemIndex = 0;
+	s32 textLeft = 16;
+	s32 textTop = 40;
+	s32 textLineHeight = 15;
+	float textScale = 1.5f;
+	float inputRepeatDelay = 0;
+	GXColor selectionHighlightColor = { 0, 0, 255, 128 };
 	CharDataClose(-1);
 	WipeColorSet(255, 255, 255);
 	WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
@@ -597,54 +592,54 @@ void fn_1_13A0(void)
 	}
 	while(1) {
 		HuPrcVSleep();
-		printWin(x, y+(row_h*3)-2, 400, 10*scale, &hilite);
-		print8(x, y, scale, "MpgcStory - ItemDebug");
-		print8(x, y+row_h, scale, "--------------------------------------------------");
-		if(itemno < 9) {
-			print8(x, y+(row_h*3), scale, "Item No    : 0%d", itemno+1);
+		printWin(textLeft, textTop+(textLineHeight*3)-2, 400, 10*textScale, &selectionHighlightColor);
+		print8(textLeft, textTop, textScale, "MpgcStory - ItemDebug");
+		print8(textLeft, textTop+textLineHeight, textScale, "--------------------------------------------------");
+		if(selectedItemIndex < 9) {
+			print8(textLeft, textTop+(textLineHeight*3), textScale, "Item No    : 0%d", selectedItemIndex+1);
 		} else {
-			print8(x, y+(row_h*3), scale, "Item No    : %d", itemno+1);
+			print8(textLeft, textTop+(textLineHeight*3), textScale, "Item No    : %d", selectedItemIndex+1);
 		}
-		print8(x, y+(row_h*5), scale, "Chara Name :");
+		print8(textLeft, textTop+(textLineHeight*5), textScale, "Chara Name :");
 		fontcolor = 13;
-		print8(x, y+(row_h*5), scale, "             %s", charNameTbl[itemno/6]);
+		print8(textLeft, textTop+(textLineHeight*5), textScale, "             %s", characterNameTable[selectedItemIndex/6]);
 		fontcolor = 15;
-		print8(x, y+(row_h*6), scale, "Item  Name :");
-		if(lbl_1_data_0[itemno].unk10 == 1) {
+		print8(textLeft, textTop+(textLineHeight*6), textScale, "Item  Name :");
+		if(storyItemResourceTable[selectedItemIndex].highlightName == 1) {
 			fontcolor = 13;
 		}
-		if(itemno < 9) {
-			print8(x, y+(row_h*6), scale, "             ys029a0%d.hsf", itemno+1);
+		if(selectedItemIndex < 9) {
+			print8(textLeft, textTop+(textLineHeight*6), textScale, "             ys029a0%d.hsf", selectedItemIndex+1);
 			fontcolor = 15;
 		} else {
-			print8(x, y+(row_h*6), scale, "             ys029a%d.hsf", itemno+1);
+			print8(textLeft, textTop+(textLineHeight*6), textScale, "             ys029a%d.hsf", selectedItemIndex+1);
 			fontcolor = 15;
 		}
-		if(delay  == 0.0f) {
+		if(inputRepeatDelay  == 0.0f) {
 			if(HuPadStkX[0] > 30) {
-				itemno++;
-				delay = 5;
+				selectedItemIndex++;
+				inputRepeatDelay = 5;
 			} else if(HuPadStkX[0] < -30) {
-				itemno--;
-				delay = 5;
+				selectedItemIndex--;
+				inputRepeatDelay = 5;
 			} else if(HuPadBtnDown[0] & PAD_TRIGGER_R) {
-				itemno += 6;
-				delay = 5;
+				selectedItemIndex += 6;
+				inputRepeatDelay = 5;
 			} else if(HuPadBtnDown[0] & PAD_TRIGGER_L) {
-				itemno -= 6;
-				delay = 5;
+				selectedItemIndex -= 6;
+				inputRepeatDelay = 5;
 			}
 			if(HuPadBtnDown[0] & PAD_BUTTON_A) {
 				break;
 			}
-			if(itemno >= 48) {
-				itemno -= 48;
+			if(selectedItemIndex >= 48) {
+				selectedItemIndex -= 48;
 			}
-			if(itemno <= -1) {
-				itemno += 48;
+			if(selectedItemIndex <= -1) {
+				selectedItemIndex += 48;
 			}
 		} else {
-			delay--;
+			inputRepeatDelay--;
 		}
 	}
 	WipeColorSet(255, 255, 255);
@@ -655,13 +650,13 @@ void fn_1_13A0(void)
 		}
 		HuPrcVSleep();
 	}
-	GWPlayerCfg[0].character = itemno/6;
+	GWPlayerCfg[0].character = selectedItemIndex/6;
 	{
-		s32 i;
-		for(i=1; i<4; i++) {
-			GWPlayerCfg[i].character = GWPlayerCfg[i-1].character+1;
-			if(GWPlayerCfg[i].character > CHARNO_MAX ) {
-				GWPlayerCfg[i].character = 0;
+		s32 playerIndex;
+		for(playerIndex=1; playerIndex<4; playerIndex++) {
+			GWPlayerCfg[playerIndex].character = GWPlayerCfg[playerIndex-1].character+1;
+			if(GWPlayerCfg[playerIndex].character > CHARNO_MAX ) {
+				GWPlayerCfg[playerIndex].character = 0;
 			}				
 		}
 		GWStoryCharSet(GWPlayerCfg[0].character);
@@ -673,7 +668,7 @@ void fn_1_13A0(void)
 		CharMotionInit(GWPlayerCfg[1].character);
 		CharMotionInit(GWPlayerCfg[2].character);
 		CharMotionInit(GWPlayerCfg[3].character);
-		GWSystem.board = itemno%6;
+		GWSystem.board = selectedItemIndex%6;
 		if(GWSystem.board != BOARD_ID_MAIN6) {
 			GWPlayerCoinWinSet(0, 10);
 			omOvlGotoEx(DLL_mstorydll, 1, 2, 9999);
