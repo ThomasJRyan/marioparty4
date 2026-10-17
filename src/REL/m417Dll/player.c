@@ -14,113 +14,113 @@
 #include "game/frand.h"
 #endif
 
-typedef struct UnkM417Struct8 {
-    /* 0x00 */ u16 unk_00;
-    /* 0x04 */ float unk_04;
-    /* 0x08 */ float unk_08;
-    /* 0x0C */ float unk_0C;
-    /* 0x10 */ u32 unk_10;
-} UnkM417Struct8; /* size = 0x14 */
+typedef struct PlayerSequenceEntry {
+    /* 0x00 */ u16 playerIndex;
+    /* 0x04 */ Float actionState;
+    /* 0x08 */ Float actionTimer;
+    /* 0x0C */ Float characterId;
+    /* 0x10 */ u32 playerFlags;
+} PlayerSequenceEntry; /* size = 0x14 */
 
-typedef struct UnkM417Struct10 {
-    /* 0x04 */ s32 unk_00;
-    /* 0x08 */ s32 unk_04;
-    /* 0x08 */ s32 unk_08;
-    /* 0x0C */ u32 unk_0C;
-    /* 0x10 */ u32 unk_10;
-    /* 0x14 */ s32 unk_14;
-    /* 0x18 */ s32 unk_18;
-    /* 0x1C */ s32 unk_1C;
-    /* 0x20 */ float unk_20;
-    /* 0x24 */ float unk_24;
-    /* 0x28 */ s32 unk_28;
-    /* 0x2C */ s32 unk_2C;
-    /* 0x30 */ s32 unk_30;
-    /* 0x34 */ s32 unk_34;
-    /* 0x38 */ s32 unk_38;
-    /* 0x3C */ s32 unk_3C;
-    /* 0x40 */ s32 unk_40;
-    /* 0x44 */ s32 unk_44;
-    /* 0x48 */ s32 unk_48;
-    /* 0x4C */ s32 unk_4C;
-    /* 0x50 */ u16 unk_50;
-    /* 0x52 */ char unk52[2];
-    /* 0x54 */ s32 unk_54;
-    /* 0x58 */ char unk58[4];
-    /* 0x5C */ s16 unk_5C;
-    /* 0x5E */ char unk5E[6];
-    /* 0x64 */ float unk_64;
-    /* 0x68 */ float unk_68;
-    /* 0x6C */ float unk_6C;
-    /* 0x70 */ float unk_70;
-    /* 0x74 */ float unk_74;
-    /* 0x78 */ s32 unk_78;
-    /* 0x7C */ float unk_7C;
-    /* 0x80 */ u32 unk_80;
-    /* 0x84 */ u32 unk_84;
-    /* 0x88 */ float unk_88;
-    /* 0x8C */ float unk_8C;
-    /* 0x90 */ u32 unk_90;
-    /* 0x94 */ char unk94[4];
-    /* 0x98 */ float unk_98;
-    /* 0x9C */ s32 unk_9C;
-    /* 0xA0 */ s32 unk_A0;
-    /* 0xA4 */ u32 unk_A4;
-    /* 0xA8 */ u32 unk_A8;
-    /* 0xAC */ float unk_AC;
-    /* 0xB0 */ float unk_B0;
-    /* 0xB4 */ Vec unk_B4;
-    /* 0xC0 */ u32 unk_C0;
-    /* 0xC4 */ u32 unk_C4;
-    /* 0xC8 */ Vec unk_C8;
-    /* 0xD4 */ Vec unk_D4;
-    /* 0xE0 */ Vec unk_E0;
-    /* 0xEC */ Vec unk_EC;
-    /* 0xF8 */ Vec unk_F8;
-    /* 0x104 */ Vec unk_104;
-    /* 0x110 */ Vec unk_110;
-    /* 0x11C */ Quaternion unk_11C;
-    /* 0x12C */ float unk_12C;
-    /* 0x130 */ float unk_130;
-    /* 0x134 */ float unk_134;
-    /* 0x138 */ float unk_138;
-    /* 0x13C */ float unk_13C;
-    /* 0x140 */ float unk_140;
-    /* 0x144 */ float unk_144;
-    /* 0x148 */ float unk_148;
-    /* 0x14C */ Vec unk_14C;
-    /* 0x158 */ char unk_158[0xC];
-    /* 0x164 */ Quaternion unk_164;
-    /* 0x174 */ Quaternion unk_174;
-    /* 0x184 */ Quaternion unk_184;
-    /* 0x194 */ Quaternion unk_194;
-    /* 0x1A4 */ Quaternion unk_1A4;
-    /* 0x1B4 */ Quaternion unk_1B4;
-    /* 0x1C4 */ Mtx unk_1C4;
-    /* 0x1F4 */ Mtx unk_1F4;
-    /* 0x224 */ Mtx unk_224;
-    /* 0x254 */ Vec unk_254[16]; // maybe less
-} UnkM417Struct10; /* size = 0x314 */
+typedef struct MinigamePlayerState {
+    /* 0x04 */ s32 playerIndex;
+    /* 0x04 */ s32 actionState;
+    /* 0x08 */ s32 actionTimer;
+    /* 0x0C */ u32 characterId;
+    /* 0x10 */ u32 controllerButtons;
+    /* 0x14 */ s32 movementState;
+    /* 0x18 */ s32 animationState;
+    /* 0x1C */ s32 triggerButtonState;
+    /* 0x20 */ Float movementSpeed;
+    /* 0x24 */ Float movementAcceleration;
+    /* 0x28 */ s32 movementTimer;
+    /* 0x2C */ s32 motionEnabled;
+    /* 0x30 */ s32 motionState;
+    /* 0x34 */ s32 motionTimer;
+    /* 0x38 */ s32 effectState;
+    /* 0x3C */ s32 effectTimer;
+    /* 0x40 */ s32 actionIndex;
+    /* 0x44 */ s32 isComputer;
+    /* 0x48 */ s32 controllerPort;
+    /* 0x4C */ s32 computerActionActive;
+    /* 0x50 */ u16 playerActionState;
+    /* 0x52 */ char reservedPlayerData[2];
+    /* 0x54 */ s32 characterState;
+    /* 0x58 */ char reservedMotionData[4];
+    /* 0x5C */ s16 characterMotionId;
+    /* 0x5E */ char reservedCharacterData[6];
+    /* 0x64 */ Float runSpeed;
+    /* 0x68 */ Float walkSpeed;
+    /* 0x6C */ Float jumpSpeed;
+    /* 0x70 */ Float fallSpeed;
+    /* 0x74 */ Float difficultyScale;
+    /* 0x78 */ s32 reservedMovementFlags;
+    /* 0x7C */ Float gravity;
+    /* 0x80 */ u32 computerActionTimer;
+    /* 0x84 */ u32 computerMovementTimer;
+    /* 0x88 */ Float rotationSpeed;
+    /* 0x8C */ Float movementScale;
+    /* 0x90 */ u32 computerRestTimer;
+    /* 0x94 */ char reservedAnimationData[4];
+    /* 0x98 */ Float animationSpeed;
+    /* 0x9C */ s32 fallSoundEffectId;
+    /* 0xA0 */ s32 motionFrame;
+    /* 0xA4 */ u32 motionTransitionTimer;
+    /* 0xA8 */ u32 modelFlags;
+    /* 0xAC */ Float animationFrame;
+    /* 0xB0 */ Float waterSplashTimer;
+    /* 0xB4 */ Vec spawnPosition;
+    /* 0xC0 */ u32 actionFrameCounter;
+    /* 0xC4 */ u32 actionFrameSync;
+    /* 0xC8 */ Vec position;
+    /* 0xD4 */ Vec targetPosition;
+    /* 0xE0 */ Vec previousPosition;
+    /* 0xEC */ Vec velocity;
+    /* 0xF8 */ Vec movementTarget;
+    /* 0x104 */ Vec movementStart;
+    /* 0x110 */ Vec movementDelta;
+    /* 0x11C */ Quaternion facingRotation;
+    /* 0x12C */ Float turnAngle;
+    /* 0x130 */ Float movementAngle;
+    /* 0x134 */ Float movementDistance;
+    /* 0x138 */ Float turnSpeed;
+    /* 0x13C */ Float motionSpeed;
+    /* 0x140 */ Float jumpHeight;
+    /* 0x144 */ Float fallDistance;
+    /* 0x148 */ Float groundHeight;
+    /* 0x14C */ Vec movementVector;
+    /* 0x158 */ char reservedTransformData[0xC];
+    /* 0x164 */ Quaternion startRotation;
+    /* 0x174 */ Quaternion targetRotation;
+    /* 0x184 */ Quaternion currentRotation;
+    /* 0x194 */ Quaternion previousRotation;
+    /* 0x1A4 */ Quaternion movementRotation;
+    /* 0x1B4 */ Quaternion turnRotation;
+    /* 0x1C4 */ Mtx modelMatrix;
+    /* 0x1F4 */ Mtx previousModelMatrix;
+    /* 0x224 */ Mtx targetModelMatrix;
+    /* 0x254 */ Vec playerPathPoints[16]; // maybe less
+} MinigamePlayerState; /* size = 0x314 */
 
-void fn_1_7C8C(OMOBJ *object);
-void fn_1_82FC(OMOBJ *object);
-void fn_1_86E8(OMOBJ *object);
-void fn_1_8B0C(OMOBJ *object);
-void fn_1_8D30(OMOBJ *object);
-void fn_1_8E44(OMOBJ *object);
-void fn_1_91E0(OMOBJ *object);
-void fn_1_9298(OMOBJ *object);
-void fn_1_9A1C(OMOBJ *object);
-void fn_1_9C14(OMOBJ *object);
-void fn_1_9FF0(OMOBJ *object);
-void fn_1_AD24(OMOBJ *object);
-void fn_1_ADC4(OMOBJ *object);
-void fn_1_B2C0(OMOBJ *object);
-void fn_1_B8A0(OMOBJ *object, u32 arg1);
-s32 fn_1_BA2C(OMOBJ *object);
-void fn_1_BC70(float arg8, float arg9, Quaternion *arg0);
+void InitializePlayerObject(OMOBJ *object);
+void UpdateHumanPlayer(OMOBJ *object);
+void UpdateComputerPlayer(OMOBJ *object);
+void UpdatePlayerActionState(OMOBJ *object);
+void UpdatePlayerReactionState(OMOBJ *object);
+void UpdatePlayerFallState(OMOBJ *object);
+void UpdatePlayerMovement(OMOBJ *object);
+void UpdatePlayerInput(OMOBJ *object);
+void UpdatePlayerAction(OMOBJ *object);
+void UpdatePlayerAnimation(OMOBJ *object);
+void UpdatePlayerPhysics(OMOBJ *object);
+void UpdatePlayerModels(OMOBJ *object);
+void UpdateComputerMovementTarget(OMOBJ *object);
+void UpdateComputerActionTiming(OMOBJ *object);
+void SetPlayerMotion(OMOBJ *object, u32 motionIndex);
+s32 IsPlayerMotionFinished(OMOBJ *object);
+void SetQuaternionFromAngles(Float rotationAngle, Float rotationScale, Quaternion *rotation);
 
-s32 lbl_1_data_50[][2] = {
+s32 playerModelFiles[][2] = {
     { DATA_MAKE_NUM(DATADIR_M417, 1), DATA_MAKE_NUM(DATADIR_M417, 6) },
     { DATA_MAKE_NUM(DATADIR_M417, 1), DATA_MAKE_NUM(DATADIR_M417, 7) },
     { DATA_MAKE_NUM(DATADIR_M417, 1), DATA_MAKE_NUM(DATADIR_M417, 8) },
@@ -131,7 +131,7 @@ s32 lbl_1_data_50[][2] = {
     { DATA_MAKE_NUM(DATADIR_M417, 1), DATA_MAKE_NUM(DATADIR_M417, 13) },
 };
 
-u32 lbl_1_data_90[11][3] = {
+u32 playerMotionFiles[11][3] = {
     { 0, 1, 1 },
     { 23, 1, 1 },
     { 24, 1, 1 },
@@ -145,7 +145,7 @@ u32 lbl_1_data_90[11][3] = {
     { 9, 0, 1 },
 };
 
-UnkM417Struct8 lbl_1_data_114[11] = {
+PlayerSequenceEntry playerMotionSettings[11] = {
     { 0, 0.2f, 0.0f, -1.0f, HU3D_MOTATTR_LOOP },
     { 1, 0.2f, 0.0f, -1.0f, HU3D_MOTATTR_NONE },
     { 2, 0.2f, 0.0f, -1.0f, HU3D_MOTATTR_NONE },
@@ -159,1135 +159,1135 @@ UnkM417Struct8 lbl_1_data_114[11] = {
     { 10, 0.0f, 0.0f, -1.0f, HU3D_MOTATTR_NONE },
 };
 
-s32 lbl_1_bss_8AC; // unused
-s32 lbl_1_bss_8A8; // unused
-OMOBJ *lbl_1_bss_898[4];
-u32 lbl_1_bss_888[4];
-u32 lbl_1_bss_884;
-u32 lbl_1_bss_880;
+s32 playerObject; // unused
+s32 resultsSequenceId; // unused
+OMOBJ *playerObjects[4];
+u32 playerCharacterTypes[4];
+u32 lastComputerPlayerIndex;
+u32 computerActionTimer;
 
-void fn_1_7A34(HUPROCESS *arg0)
+void CreatePlayerObjects(HUPROCESS *objectManager)
 {
-    u32 sp18[4];
-    u32 sp8[4];
+    u32 playerGroups[4];
+    u32 playerIndicesByGroup[4];
 
-    s16 var_r31;
-    s16 var_r30;
-    s32 var_r29;
-    OMOBJ *var_r28;
+    s16 playerIndex;
+    s16 nextPlayerIndex;
+    s32 swapValue;
+    OMOBJ *playerObject;
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        sp18[var_r31] = GWPlayerCfg[var_r31].group;
-        sp8[var_r31] = var_r31;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerGroups[playerIndex] = GWPlayerCfg[playerIndex].group;
+        playerIndicesByGroup[playerIndex] = playerIndex;
     }
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        for (var_r30 = var_r31 + 1; var_r30 < 4; var_r30++) {
-            if (sp18[var_r31] > sp18[var_r30]) {
-                var_r29 = sp18[var_r31];
-                sp18[var_r31] = sp18[var_r30];
-                sp18[var_r30] = var_r29;
-                var_r29 = sp8[var_r31];
-                sp8[var_r31] = sp8[var_r30];
-                sp8[var_r30] = var_r29;
+    for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+        for (nextPlayerIndex = playerIndex + 1; nextPlayerIndex < 4; nextPlayerIndex++) {
+            if (playerGroups[playerIndex] > playerGroups[nextPlayerIndex]) {
+                swapValue = playerGroups[playerIndex];
+                playerGroups[playerIndex] = playerGroups[nextPlayerIndex];
+                playerGroups[nextPlayerIndex] = swapValue;
+                swapValue = playerIndicesByGroup[playerIndex];
+                playerIndicesByGroup[playerIndex] = playerIndicesByGroup[nextPlayerIndex];
+                playerIndicesByGroup[nextPlayerIndex] = swapValue;
             }
         }
     }
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_888[sp8[var_r31]] = var_r31;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerCharacterTypes[playerIndicesByGroup[playerIndex]] = playerIndex;
     }
-    omMakeGroupEx(arg0, 0, 4);
-    omGetGroupMemberListEx(arg0, 0);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        var_r28 = lbl_1_bss_898[var_r31] = omAddObjEx(arg0, 40, 2, 11, 0, fn_1_7C8C);
-        var_r28->work[0] = var_r31;
+    omMakeGroupEx(objectManager, 0, 4);
+    omGetGroupMemberListEx(objectManager, 0);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerObject = playerObjects[playerIndex] = omAddObjEx(objectManager, 40, 2, 11, 0, InitializePlayerObject);
+        playerObject->work[0] = playerIndex;
     }
-    lbl_1_bss_880 = lbl_1_bss_884 = 0;
+    computerActionTimer = lastComputerPlayerIndex = 0;
 }
 
-void fn_1_7C68(void)
+void DestroyPlayerObjects(void)
 {
     CharModelKill(-1);
 }
 
-void fn_1_7C8C(OMOBJ *object)
+void InitializePlayerObject(OMOBJ *playerObject)
 {
-    s32 sp8;
+    s32 initialActionState;
 
-    UnkM417Struct10 *var_r31;
-    s32 var_r29;
-    s32 var_r28;
-    u32 var_r27;
-    u32 var_r26;
+    MinigamePlayerState *playerState;
+    s32 fallSoundEffectId;
+    s32 characterIndex;
+    u32 usesAlternateModel;
+    u32 playerConfigIndex;
 
-    float sp44[4] = { 0.25f, 0.5f, 0.75f, 1.0f };
-    float sp34[4] = { 0.0f, 650.0f, 650.0f, 650.0f };
-    float sp24[4] = { 180.0f, 180.0f, 300.0f, 60.0f };
+    Float difficultyScales[4] = { 0.25f, 0.5f, 0.75f, 1.0f };
+    Float spawnDistances[4] = { 0.0f, 650.0f, 650.0f, 650.0f };
+    Float spawnAngles[4] = { 180.0f, 180.0f, 300.0f, 60.0f };
 
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM417Struct10), HU_MEMNUM_OVL);
-    var_r31 = object->data;
-    memset(var_r31, 0, sizeof(UnkM417Struct10));
-    object->stat |= 256;
-    var_r26 = object->work[0];
-    var_r28 = GWPlayerCfg[var_r26].character;
-    var_r31->unk_00 = var_r28;
-    sp8 = var_r31->unk_04 = 0;
-    var_r31->unk_0C = lbl_1_bss_888[object->work[0]];
-    var_r27 = 0;
-    if (var_r31->unk_0C) {
-        var_r27++;
+    playerObject->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(MinigamePlayerState), HU_MEMNUM_OVL);
+    playerState = playerObject->data;
+    memset(playerState, 0, sizeof(MinigamePlayerState));
+    playerObject->stat |= 256;
+    playerConfigIndex = playerObject->work[0];
+    characterIndex = GWPlayerCfg[playerConfigIndex].character;
+    playerState->playerIndex = characterIndex;
+    initialActionState = playerState->actionState = 0;
+    playerState->characterId = playerCharacterTypes[playerObject->work[0]];
+    usesAlternateModel = 0;
+    if (playerState->characterId) {
+        usesAlternateModel++;
     }
-    fn_1_2808(object->work[0], var_r31->unk_0C, var_r31->unk_00);
-    var_r31->unk_74 = sp44[GWPlayerCfg[var_r26].diff & 3];
-    var_r31->unk_44 = GWPlayerCfg[object->work[0]].iscom;
-    object->mdlId[0] = CharModelCreate(var_r28, 4);
-    Hu3DModelLayerSet(object->mdlId[0], 4);
-    Hu3DModelShadowSet(object->mdlId[0]);
-    for (var_r29 = 0; var_r29 < 11; var_r29++) {
-        if (lbl_1_data_90[var_r29][var_r27 + 1]) {
-            if (lbl_1_data_90[var_r29][0] < 65536) {
-                object->mtnId[var_r29] = CharMotionCreate(var_r28, lbl_1_data_90[var_r29][0]);
+    SetPlayerResult(playerObject->work[0], playerState->characterId, playerState->playerIndex);
+    playerState->difficultyScale = difficultyScales[GWPlayerCfg[playerConfigIndex].diff & 3];
+    playerState->isComputer = GWPlayerCfg[playerObject->work[0]].iscom;
+    playerObject->mdlId[0] = CharModelCreate(characterIndex, 4);
+    Hu3DModelLayerSet(playerObject->mdlId[0], 4);
+    Hu3DModelShadowSet(playerObject->mdlId[0]);
+    for (motionIndex = 0; motionIndex < 11; motionIndex++) {
+        if (playerMotionFiles[motionIndex][usesAlternateModel + 1]) {
+            if (playerMotionFiles[motionIndex][0] < 65536) {
+                playerObject->mtnId[motionIndex] = CharMotionCreate(characterIndex, playerMotionFiles[motionIndex][0]);
             }
             else {
-                object->mtnId[var_r29] = Hu3DJointMotionFile(object->mdlId[0], var_r28 + lbl_1_data_90[var_r29][0]);
+                playerObject->mtnId[motionIndex] = Hu3DJointMotionFile(playerObject->mdlId[0], characterIndex + playerMotionFiles[motionIndex][0]);
             }
         }
     }
-    CharMotionDataClose(var_r28);
-    object->mdlId[1] = Hu3DModelCreateFile(lbl_1_data_50[var_r28][var_r27]);
-    Hu3DModelShadowMapSet(object->mdlId[1]);
+    CharMotionDataClose(characterIndex);
+    playerObject->mdlId[1] = Hu3DModelCreateFile(playerModelFiles[characterIndex][usesAlternateModel]);
+    Hu3DModelShadowMapSet(playerObject->mdlId[1]);
 
-    var_r31->unk_B4.x = sp24[var_r31->unk_0C];
-    var_r31->unk_B4.y = 0.0f;
-    var_r31->unk_B4.z = sp34[var_r31->unk_0C];
+    playerState->spawnPosition.x = spawnAngles[playerState->characterId];
+    playerState->spawnPosition.y = 0.0f;
+    playerState->spawnPosition.z = spawnDistances[playerState->characterId];
 
-    object->trans.x = var_r31->unk_C8.x = var_r31->unk_B4.z * sind(var_r31->unk_B4.x);
-    object->trans.y = var_r31->unk_C8.y = 0.0f;
-    object->trans.z = var_r31->unk_C8.z = var_r31->unk_B4.z * cosd(var_r31->unk_B4.x);
+    playerObject->trans.x = playerState->position.x = playerState->spawnPosition.z * sind(playerState->spawnPosition.x);
+    playerObject->trans.y = playerState->position.y = 0.0f;
+    playerObject->trans.z = playerState->position.z = playerState->spawnPosition.z * cosd(playerState->spawnPosition.x);
 
-    var_r31->unk_D4 = var_r31->unk_C8;
-    var_r31->unk_F8 = var_r31->unk_C8;
-    var_r31->unk_104 = var_r31->unk_F8;
+    playerState->targetPosition = playerState->position;
+    playerState->movementTarget = playerState->position;
+    playerState->movementStart = playerState->movementTarget;
 
-    var_r31->unk_64 = var_r31->unk_68 = var_r31->unk_B4.x - 180.0f;
-    var_r31->unk_6C = 0.0f;
-    var_r31->unk_70 = 0.02f;
-    if (var_r31->unk_0C) {
-        Vec sp18 = { 0.0f, 1.0f, 0.0f };
-        MTXRotAxisRad(var_r31->unk_1C4, &sp18, 0.017453292f * var_r31->unk_64);
+    playerState->runSpeed = playerState->walkSpeed = playerState->spawnPosition.x - 180.0f;
+    playerState->jumpSpeed = 0.0f;
+    playerState->fallSpeed = 0.02f;
+    if (playerState->characterId) {
+        Vec worldUp = { 0.0f, 1.0f, 0.0f };
+        MTXRotAxisRad(playerState->modelMatrix, &worldUp, 0.017453292f * playerState->runSpeed);
     }
     else {
-        Vec spC = { 0.0f, 1.0f, 0.0f };
-        MTXIdentity(var_r31->unk_1C4);
-        C_QUATRotAxisRad(&var_r31->unk_184, &spC, 0.0f);
-        var_r31->unk_194 = var_r31->unk_184;
-        QUATInverse(&var_r31->unk_194, &var_r31->unk_1A4);
-        var_r31->unk_1B4 = var_r31->unk_1A4;
-        var_r31->unk_164 = var_r31->unk_194;
-        var_r31->unk_174 = var_r31->unk_194;
-        var_r31->unk_144 = 1.0f;
-        var_r31->unk_D4.z += 50.0f;
+        Vec worldUpAxis = { 0.0f, 1.0f, 0.0f };
+        MTXIdentity(playerState->modelMatrix);
+        C_QUATRotAxisRad(&playerState->currentRotation, &worldUpAxis, 0.0f);
+        playerState->previousRotation = playerState->currentRotation;
+        QUATInverse(&playerState->previousRotation, &playerState->movementRotation);
+        playerState->turnRotation = playerState->movementRotation;
+        playerState->startRotation = playerState->previousRotation;
+        playerState->targetRotation = playerState->previousRotation;
+        playerState->fallDistance = 1.0f;
+        playerState->targetPosition.z += 50.0f;
     }
-    MTXInverse(var_r31->unk_1C4, var_r31->unk_1F4);
-    MTXCopy(var_r31->unk_1F4, var_r31->unk_224);
-    var_r31->unk_134 = var_r31->unk_138 = 0.0f;
-    var_r31->unk_12C = 1.0f;
-    var_r31->unk_08 = -1;
-    fn_1_B8A0(object, 0);
-    var_r31->unk_78 = 0;
-    var_r31->unk_9C = -1;
-    lbl_1_bss_884 = object->work[0];
-    lbl_1_bss_880 = REFRESH_RATE_F * (4.0f + (0.002f * frandmod(1000)));
-    var_r31->unk_28 = 1;
-    var_r31->unk_50 = 0;
-    if (!var_r27) {
-        object->objFunc = fn_1_82FC;
+    MTXInverse(playerState->modelMatrix, playerState->previousModelMatrix);
+    MTXCopy(playerState->previousModelMatrix, playerState->targetModelMatrix);
+    playerState->movementDistance = playerState->turnSpeed = 0.0f;
+    playerState->turnAngle = 1.0f;
+    playerState->actionTimer = -1;
+    SetPlayerMotion(playerObject, 0);
+    playerState->reservedMovementFlags = 0;
+    playerState->fallSoundEffectId = -1;
+    lastComputerPlayerIndex = playerObject->work[0];
+    computerActionTimer = REFRESH_RATE_F * (4.0f + (0.002f * frandmod(1000)));
+    playerState->movementTimer = 1;
+    playerState->playerActionState = 0;
+    if (!usesAlternateModel) {
+        playerObject->objFunc = UpdateHumanPlayer;
         return;
     }
-    var_r31->unk_2C = 1;
-    object->objFunc = fn_1_86E8;
+    playerState->motionEnabled = 1;
+    playerObject->objFunc = UpdateComputerPlayer;
 }
 
-void fn_1_82FC(OMOBJ *object)
+void UpdateHumanPlayer(OMOBJ *playerObject)
 {
-    float var_f31;
-    float var_f30;
-    double var_f29;
-    float var_f28;
+    Float stickX;
+    Float stickY;
+    double unusedInputValue;
+    Float unusedMovementValue;
 
-    UnkM417Struct10 *var_r31;
-    s32 var_r29;
+    MinigamePlayerState *playerState;
+    s32 inputComplete;
 
-    var_r31 = object->data;
-    var_r29 = 0;
-    var_r31->unk_10 = var_r31->unk_18 = 0;
-    var_r31->unk_14 = 0;
-    var_r31->unk_20 = 0.0f;
-    var_r31->unk_24 = 0.0f;
-    if (fn_1_26F8() == 2) {
-        if (var_r31->unk_44) {
-            fn_1_ADC4(object);
+    playerState = playerObject->data;
+    inputComplete = 0;
+    playerState->controllerButtons = playerState->animationState = 0;
+    playerState->movementState = 0;
+    playerState->movementSpeed = 0.0f;
+    playerState->movementAcceleration = 0.0f;
+    if (getSequenceState() == 2) {
+        if (playerState->isComputer) {
+            UpdateComputerMovementTarget(playerObject);
         }
         else {
-            var_r31->unk_14 = HuPadBtn[GWPlayerCfg[object->work[0]].pad_idx];
-            var_r31->unk_10 = HuPadBtnDown[GWPlayerCfg[object->work[0]].pad_idx];
-            var_f31 = HuPadStkX[GWPlayerCfg[object->work[0]].pad_idx];
-            var_f30 = -HuPadStkY[GWPlayerCfg[object->work[0]].pad_idx];
-            var_r31->unk_20 = atan2d(var_f31, var_f30);
-            var_r31->unk_24 = 0.013888889f * sqrtf((var_f31 * var_f31) + (var_f30 * var_f30));
-            if (var_r31->unk_24 > 1.0f) {
-                var_r31->unk_24 = 1.0f;
+            playerState->movementState = HuPadBtn[GWPlayerCfg[playerObject->work[0]].pad_idx];
+            playerState->controllerButtons = HuPadBtnDown[GWPlayerCfg[playerObject->work[0]].pad_idx];
+            stickX = HuPadStkX[GWPlayerCfg[playerObject->work[0]].pad_idx];
+            stickY = -HuPadStkY[GWPlayerCfg[playerObject->work[0]].pad_idx];
+            playerState->movementSpeed = atan2d(stickX, stickY);
+            playerState->movementAcceleration = 0.013888889f * sqrtf((stickX * stickX) + (stickY * stickY));
+            if (playerState->movementAcceleration > 1.0f) {
+                playerState->movementAcceleration = 1.0f;
             }
         }
     }
-    if ((s32)var_r31->unk_50 != 0) {
-        (void)var_r29;
+    if ((s32)playerState->controllerButtons != 0) {
+        (void)inputComplete;
     }
     else {
-        var_r29 = 1;
+        inputComplete = 1;
     }
-    fn_1_9FF0(object);
-    fn_1_9C14(object);
-    fn_1_91E0(object);
-    fn_1_AD24(object);
-    if (fn_1_26F8() == 3) {
-        if (var_r29 && fn_1_27D0()) {
-            var_r31->unk_50 = 0;
-            object->objFunc = fn_1_8B0C;
+    UpdatePlayerPhysics(playerObject);
+    UpdatePlayerAnimation(playerObject);
+    UpdatePlayerMovement(playerObject);
+    UpdatePlayerModels(playerObject);
+    if (getSequenceState() == 3) {
+        if (inputComplete && isResultSequenceFinished()) {
+            playerState->controllerButtons = 0;
+            playerObject->objFunc = UpdatePlayerActionState;
         }
     }
-    else if (var_r31->unk_3C) {
-        var_r31->unk_40 = 1;
-        fn_1_2728(2);
-        var_r31->unk_50 = 0;
-        object->objFunc = fn_1_8E44;
+    else if (playerState->effectTimer) {
+        playerState->actionIndex = 1;
+        SetMinigameMode(2);
+        playerState->controllerButtons = 0;
+        playerObject->objFunc = UpdatePlayerFallState;
     }
 }
 
-void fn_1_86E8(OMOBJ *object)
+void UpdateComputerPlayer(OMOBJ *playerObject)
 {
-    float var_f31;
-    float var_f30;
-    double var_f29;
-    float var_f28;
+    Float stickX;
+    Float stickY;
+    double unusedInputValue;
+    Float unusedMovementValue;
 
-    UnkM417Struct10 *var_r31;
-    s32 var_r29;
-    s32 var_r28;
+    MinigamePlayerState *playerState;
+    s32 actionComplete;
+    s32 previousTriggerState;
 
-    var_r31 = object->data;
-    var_r29 = 0;
-    var_r31->unk_10 = var_r31->unk_18 = 0;
-    var_r31->unk_14 = 0;
-    var_r31->unk_20 = 0.0f;
-    var_r31->unk_24 = 0.0f;
-    if (fn_1_26F8() == 2) {
-        if (var_r31->unk_44 != 0) {
-            var_r31->unk_1C = 0;
-            fn_1_B2C0(object);
+    playerState = playerObject->data;
+    actionComplete = 0;
+    playerState->controllerButtons = playerState->animationState = 0;
+    playerState->movementState = 0;
+    playerState->movementSpeed = 0.0f;
+    playerState->movementAcceleration = 0.0f;
+    if (getSequenceState() == 2) {
+        if (playerState->isComputer != 0) {
+            playerState->triggerButtonState = 0;
+            UpdateComputerActionTiming(playerObject);
         }
         else {
-            var_r31->unk_14 = HuPadBtn[GWPlayerCfg[object->work[0]].pad_idx];
-            var_r31->unk_10 = HuPadBtnDown[GWPlayerCfg[object->work[0]].pad_idx];
-            var_f31 = HuPadStkX[GWPlayerCfg[object->work[0]].pad_idx];
-            var_f30 = -HuPadStkY[GWPlayerCfg[object->work[0]].pad_idx];
-            var_r31->unk_20 = atan2d(var_f31, var_f30);
-            var_r31->unk_24 = 0.013888889f * sqrtf((var_f31 * var_f31) + (var_f30 * var_f30));
-            if (var_r31->unk_24 > 1.0f) {
-                var_r31->unk_24 = 1.0f;
+            playerState->movementState = HuPadBtn[GWPlayerCfg[playerObject->work[0]].pad_idx];
+            playerState->controllerButtons = HuPadBtnDown[GWPlayerCfg[playerObject->work[0]].pad_idx];
+            stickX = HuPadStkX[GWPlayerCfg[playerObject->work[0]].pad_idx];
+            stickY = -HuPadStkY[GWPlayerCfg[playerObject->work[0]].pad_idx];
+            playerState->movementSpeed = atan2d(stickX, stickY);
+            playerState->movementAcceleration = 0.013888889f * sqrtf((stickX * stickX) + (stickY * stickY));
+            if (playerState->movementAcceleration > 1.0f) {
+                playerState->movementAcceleration = 1.0f;
             }
-            var_r28 = var_r31->unk_1C;
-            var_r31->unk_1C = 0;
-            if (HuPadTrigL[GWPlayerCfg[object->work[0]].pad_idx] > 80) {
-                var_r31->unk_1C = 1;
+            previousTriggerState = playerState->triggerButtonState;
+            playerState->triggerButtonState = 0;
+            if (HuPadTrigL[GWPlayerCfg[playerObject->work[0]].pad_idx] > 80) {
+                playerState->triggerButtonState = 1;
             }
-            var_r31->unk_18 = var_r31->unk_1C & ~var_r28;
+            playerState->animationState = playerState->triggerButtonState & ~previousTriggerState;
         }
     }
-    fn_1_9298(object);
-    if ((s32)var_r31->unk_50 != 0) {
-        (void)var_r29;
+    UpdatePlayerInput(playerObject);
+    if ((s32)playerState->controllerButtons != 0) {
+        (void)actionComplete;
     }
-    else if (var_r31->unk_2C) {
-        var_r29 = 1;
+    else if (playerState->motionEnabled) {
+        actionComplete = 1;
     }
-    fn_1_91E0(object);
-    fn_1_AD24(object);
-    if (fn_1_26F8() == 3 && var_r29 && fn_1_27D0()) {
-        fn_1_2770(object->work[0]);
-        var_r31->unk_50 = 0;
-        object->objFunc = fn_1_8D30;
+    UpdatePlayerMovement(playerObject);
+    UpdatePlayerModels(playerObject);
+    if (getSequenceState() == 3 && actionComplete && isResultSequenceFinished()) {
+        MarkPlayerItemCollected(playerObject->work[0]);
+        playerState->controllerButtons = 0;
+        playerObject->objFunc = UpdatePlayerReactionState;
     }
 }
 
-void fn_1_8B0C(OMOBJ *object)
+void UpdatePlayerActionState(OMOBJ *playerObject)
 {
-    Vec sp8;
+    Vec horizontalVelocity;
 
-    float var_f31;
+    Float horizontalSpeed;
 
-    UnkM417Struct10 *var_r31;
+    MinigamePlayerState *playerState;
 
-    var_r31 = object->data;
-    var_r31->unk_10 = var_r31->unk_18 = 0;
-    var_r31->unk_14 = 0;
-    var_r31->unk_20 = 0.0f;
-    var_r31->unk_24 = 0.0f;
+    playerState = playerObject->data;
+    playerState->playerActionState = playerState->animationState = 0;
+    playerState->movementState = 0;
+    playerState->movementSpeed = 0.0f;
+    playerState->movementAcceleration = 0.0f;
 
-    switch (var_r31->unk_50) {
+    switch (playerState->playerActionState) {
         case 0:
-            sp8 = var_r31->unk_EC;
-            sp8.y = 0.0f;
-            var_f31 = VECMag(&sp8);
-            if (var_f31 > 30.000002f) {
-                var_r31->unk_20 = atan2d(-sp8.x, -sp8.z);
-                var_r31->unk_24 = 0.01f * var_f31;
-                if (var_r31->unk_24 > 1.0f) {
-                    var_r31->unk_24 = 1.0f;
+            horizontalVelocity = playerState->velocity;
+            horizontalVelocity.y = 0.0f;
+            horizontalSpeed = VECMag(&horizontalVelocity);
+            if (horizontalSpeed > 30.000002f) {
+                playerState->movementSpeed = atan2d(-horizontalVelocity.x, -horizontalVelocity.z);
+                playerState->movementAcceleration = 0.01f * horizontalSpeed;
+                if (playerState->movementAcceleration > 1.0f) {
+                    playerState->movementAcceleration = 1.0f;
                 }
             }
             else {
-                var_r31->unk_20 = 0.0f;
-                var_r31->unk_24 = 0.01f;
-                fn_1_2770(object->work[0]);
-                var_r31->unk_50++;
+                playerState->movementSpeed = 0.0f;
+                playerState->movementAcceleration = 0.01f;
+                MarkPlayerItemCollected(playerObject->work[0]);
+                playerState->playerActionState++;
             }
             break;
         case 1:
-            if (fn_1_2710() == 1) {
-                var_r31->unk_28 = 0;
-                if (fn_1_2740(object->work[0]) >= 0) {
-                    fn_1_B8A0(object, 1);
+            if (getResultState() == 1) {
+                playerState->movementTimer = 0;
+                if (getPlayerWinSequence(playerObject->work[0]) >= 0) {
+                    SetPlayerMotion(playerObject, 1);
                 }
                 else {
-                    fn_1_B8A0(object, 2);
+                    SetPlayerMotion(playerObject, 2);
                 }
-                var_r31->unk_50++;
+                playerState->playerActionState++;
             }
             break;
         case 2:
-            if (fn_1_BA2C(object)) {
-                fn_1_27A0(object->work[0]);
+            if (IsPlayerMotionFinished(playerObject)) {
+                MarkPlayerScore(playerObject->work[0]);
             }
             break;
     }
-    fn_1_9FF0(object);
-    fn_1_9C14(object);
-    fn_1_91E0(object);
-    fn_1_AD24(object);
+    UpdatePlayerPhysics(playerObject);
+    UpdatePlayerAnimation(playerObject);
+    UpdatePlayerMovement(playerObject);
+    UpdatePlayerModels(playerObject);
 }
 
-void fn_1_8D30(OMOBJ *object)
+void UpdatePlayerReactionState(OMOBJ *playerObject)
 {
-    UnkM417Struct10 *var_r31;
+    MinigamePlayerState *playerState;
 
-    var_r31 = object->data;
-    var_r31->unk_10 = var_r31->unk_18 = 0;
-    var_r31->unk_14 = 0;
-    var_r31->unk_20 = 0.0f;
-    var_r31->unk_24 = 0.0f;
-    switch (var_r31->unk_50) {
+    playerState = playerObject->data;
+    playerState->playerActionState = playerState->animationState = 0;
+    playerState->movementState = 0;
+    playerState->movementSpeed = 0.0f;
+    playerState->movementAcceleration = 0.0f;
+    switch (playerState->playerActionState) {
         case 0:
-            if (fn_1_2710() == 1) {
-                var_r31->unk_28 = 0;
-                if (fn_1_2740(object->work[0]) >= 0) {
-                    var_r31->unk_68 = 0.0f;
-                    fn_1_B8A0(object, 1);
+            if (getResultState() == 1) {
+                playerState->movementTimer = 0;
+                if (getPlayerWinSequence(playerObject->work[0]) >= 0) {
+                    playerState->walkSpeed = 0.0f;
+                    SetPlayerMotion(playerObject, 1);
                 }
                 else {
-                    fn_1_B8A0(object, 2);
+                    SetPlayerMotion(playerObject, 2);
                 }
-                var_r31->unk_50++;
+                playerState->playerActionState++;
             }
             break;
         case 1:
-            if (fn_1_BA2C(object)) {
-                fn_1_27A0(object->work[0]);
+            if (IsPlayerMotionFinished(playerObject)) {
+                MarkPlayerScore(playerObject->work[0]);
             }
             break;
     }
-    fn_1_9298(object);
-    fn_1_91E0(object);
-    fn_1_AD24(object);
+    UpdatePlayerInput(playerObject);
+    UpdatePlayerMovement(playerObject);
+    UpdatePlayerModels(playerObject);
 }
 
-void fn_1_8E44(OMOBJ *object)
+void UpdatePlayerFallState(OMOBJ *playerObject)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec recoveryPosition;
+    Vec fallDirection;
 
-    float var_f31;
+    Float waterHeight;
 
-    UnkM417Struct10 *var_r31;
+    MinigamePlayerState *playerState;
 
-    var_r31 = object->data;
-    var_r31->unk_10 = var_r31->unk_18 = 0;
-    var_r31->unk_14 = 0;
-    var_r31->unk_20 = 0.0f;
-    var_r31->unk_24 = 0.0f;
-    switch (var_r31->unk_50) {
+    playerState = playerObject->data;
+    playerState->playerActionState = playerState->animationState = 0;
+    playerState->movementState = 0;
+    playerState->movementSpeed = 0.0f;
+    playerState->movementAcceleration = 0.0f;
+    switch (playerState->playerActionState) {
         case 0:
-            sp8 = var_r31->unk_14C;
-            sp8.y = 0.0f;
-            if (VECMag(&sp8) > 0.0f) {
-                VECNormalize(&sp8, &sp8);
+            fallDirection = playerState->movementVector;
+            fallDirection.y = 0.0f;
+            if (VECMag(&fallDirection) > 0.0f) {
+                VECNormalize(&fallDirection, &fallDirection);
             }
             else {
-                sp8.x = 1.0f;
-                sp8.z = 0.0f;
+                fallDirection.x = 1.0f;
+                fallDirection.z = 0.0f;
             }
-            var_r31->unk_68 = atan2d(-sp8.x, -sp8.z);
-            VECScale(&sp8, &var_r31->unk_E0, REFRESH_FREQ * 100.0f);
-            fn_1_B8A0(object, 5);
-            Hu3DModelLayerSet(object->mdlId[0], 0);
-            Hu3DModelShadowReset(object->mdlId[0]);
-            var_r31->unk_50++;
+            playerState->walkSpeed = atan2d(-fallDirection.x, -fallDirection.z);
+            VECScale(&fallDirection, &playerState->previousPosition, REFRESH_FREQ * 100.0f);
+            SetPlayerMotion(playerObject, 5);
+            Hu3DModelLayerSet(playerObject->mdlId[0], 0);
+            Hu3DModelShadowReset(playerObject->mdlId[0]);
+            playerState->playerActionState++;
 
         case 1:
 #if VERSION_PAL
-            var_r31->unk_E0.y += -1.176f;
+            playerState->previousPosition.y += -1.176f;
 #else
-            var_r31->unk_E0.y += -0.8166667f;
+            playerState->previousPosition.y += -0.8166667f;
 #endif
-            if ((var_r31->unk_D4.y < -50.0f) && (var_r31->unk_9C < 0)) {
-                var_r31->unk_9C = HuAudFXPlay(1483);
+            if ((playerState->targetPosition.y < -50.0f) && (playerState->fallSoundEffectId < 0)) {
+                playerState->fallSoundEffectId = HuAudFXPlay(1483);
             }
-            if (var_r31->unk_D4.y < -300.0f) {
-                sp8 = var_r31->unk_D4;
-                sp8.y = 0.0f;
-                if (VECMag(&sp8) > 0.0f) {
-                    VECNormalize(&sp8, &sp8);
+            if (playerState->targetPosition.y < -300.0f) {
+                fallDirection = playerState->targetPosition;
+                fallDirection.y = 0.0f;
+                if (VECMag(&fallDirection) > 0.0f) {
+                    VECNormalize(&fallDirection, &fallDirection);
                 }
                 else {
-                    sp8.x = 0.0f;
-                    sp8.z = 1.0f;
+                    fallDirection.x = 0.0f;
+                    fallDirection.z = 1.0f;
                 }
-                VECScale(&sp8, &sp14, 250.0f);
-                sp14.y = -100.0f;
-                VECSubtract(&sp14, &var_r31->unk_D4, &sp8);
-                VECScale(&sp8, &var_r31->unk_E0, REFRESH_FREQ);
-                fn_1_B8A0(object, 6);
-                var_r31->unk_50++;
+                VECScale(&fallDirection, &recoveryPosition, 250.0f);
+                recoveryPosition.y = -100.0f;
+                VECSubtract(&recoveryPosition, &playerState->targetPosition, &fallDirection);
+                VECScale(&fallDirection, &playerState->previousPosition, REFRESH_FREQ);
+                SetPlayerMotion(playerObject, 6);
+                playerState->playerActionState++;
             }
             break;
         case 2:
-            if (-100.0f > var_r31->unk_D4.y) {
+            if (-100.0f > playerState->targetPosition.y) {
                 break;
             }
-            var_r31->unk_E0.x = var_r31->unk_E0.y = var_r31->unk_E0.z = 0.0f;
-            fn_1_2770(object->work[0]);
-            fn_1_27A0(object->work[0]);
-            var_r31->unk_50++;
+            playerState->previousPosition.x = playerState->previousPosition.y = playerState->previousPosition.z = 0.0f;
+            MarkPlayerItemCollected(playerObject->work[0]);
+            MarkPlayerScore(playerObject->work[0]);
+            playerState->playerActionState++;
         case 3:
-            var_f31 = fn_1_78BC(var_r31->unk_D4.x, var_r31->unk_D4.y, var_r31->unk_D4.z);
-            var_r31->unk_D4.y += (0.1f * ((var_f31 - 80.0f) - var_r31->unk_D4.y));
+            waterHeight = getWaterHeightAtPosition(playerState->targetPosition.x, playerState->targetPosition.y, playerState->targetPosition.z);
+            playerState->targetPosition.y += (0.1f * ((waterHeight - 80.0f) - playerState->targetPosition.y));
 
             break;
     }
-    VECAdd(&var_r31->unk_D4, &var_r31->unk_E0, &var_r31->unk_D4);
-    fn_1_9FF0(object);
-    fn_1_91E0(object);
-    fn_1_AD24(object);
+    VECAdd(&playerState->targetPosition, &playerState->previousPosition, &playerState->targetPosition);
+    UpdatePlayerPhysics(playerObject);
+    UpdatePlayerMovement(playerObject);
+    UpdatePlayerModels(playerObject);
 }
 
-void fn_1_91E0(OMOBJ *object)
+void UpdatePlayerMovement(OMOBJ *playerObject)
 {
-    UnkM417Struct10 *var_r31;
+    MinigamePlayerState *playerState;
 
-    var_r31 = object->data;
-    var_r31->unk_5C++;
-    var_r31->unk_54++;
-    object->trans.x = var_r31->unk_C8.x;
-    object->trans.y = var_r31->unk_C8.y;
-    object->trans.z = var_r31->unk_C8.z;
-    var_r31->unk_6C += var_r31->unk_70;
-    if (var_r31->unk_6C > 0.45f) {
-        var_r31->unk_6C = 0.45f;
+    playerState = playerObject->data;
+    playerState->characterMotionId++;
+    playerState->characterState++;
+    playerObject->trans.x = playerState->position.x;
+    playerObject->trans.y = playerState->position.y;
+    playerObject->trans.z = playerState->position.z;
+    playerState->jumpSpeed += playerState->fallSpeed;
+    if (playerState->jumpSpeed > 0.45f) {
+        playerState->jumpSpeed = 0.45f;
     }
-    var_r31->unk_64 = fn_1_2F08(var_r31->unk_64, var_r31->unk_68, var_r31->unk_6C);
-    object->rot.y = var_r31->unk_64;
+    playerState->runSpeed = interpolateAngle(playerState->runSpeed, playerState->walkSpeed, playerState->jumpSpeed);
+    playerObject->rot.y = playerState->runSpeed;
 }
 
-void fn_1_9298(OMOBJ *object)
+void UpdatePlayerInput(OMOBJ *playerObject)
 {
-    Vec sp20;
-    Vec sp14;
+    Vec playerForward;
+    Vec movementDirection;
 
-    float var_f31;
+    Float waterHeight;
 
-    UnkM417Struct10 *var_r31;
+    MinigamePlayerState *playerState;
 
-    var_r31 = object->data;
+    playerState = playerObject->data;
     {
-        Vec sp8 = { 0.0f, 1.0f, 0.0f };
-        fn_1_9A1C(object);
-        var_f31 = fn_1_78BC(var_r31->unk_F8.x, var_r31->unk_F8.y, var_r31->unk_F8.z);
-        var_r31->unk_F8.y += (0.2f * (var_f31 - var_r31->unk_F8.y));
-        var_f31 = 0.0f;
-        if (var_r31->unk_24 > 0.05f && var_r31->unk_2C) {
-            sp20.x = sind(90.0f + var_r31->unk_B4.x);
-            sp20.y = 0.0f;
-            sp20.z = cosd(90.0f + var_r31->unk_B4.x);
-            sp14.x = sind(var_r31->unk_20);
-            sp14.y = 0.0f;
-            sp14.z = cosd(var_r31->unk_20);
-            var_f31 = VECDotProduct(&sp20, &sp14);
-            var_f31 *= REFRESH_FREQ * (30.0f * var_r31->unk_24);
+        Vec worldUp = { 0.0f, 1.0f, 0.0f };
+        UpdatePlayerAction(playerObject);
+        waterHeight = getWaterHeightAtPosition(playerState->movementTarget.x, playerState->movementTarget.y, playerState->movementTarget.z);
+        playerState->movementTarget.y += (0.2f * (waterHeight - playerState->movementTarget.y));
+        waterHeight = 0.0f;
+        if (playerState->movementAcceleration > 0.05f && playerState->motionEnabled) {
+            playerForward.x = sind(90.0f + playerState->spawnPosition.x);
+            playerForward.y = 0.0f;
+            playerForward.z = cosd(90.0f + playerState->spawnPosition.x);
+            movementDirection.x = sind(playerState->movementSpeed);
+            movementDirection.y = 0.0f;
+            movementDirection.z = cosd(playerState->movementSpeed);
+            waterHeight = VECDotProduct(&playerForward, &movementDirection);
+            waterHeight *= REFRESH_FREQ * (30.0f * playerState->movementAcceleration);
         }
-        var_r31->unk_B4.y += (0.1f * (var_f31 - var_r31->unk_B4.y));
-        var_r31->unk_B4.x += var_r31->unk_B4.y;
-        if (var_r31->unk_B4.x >= 360.0f) {
-            var_r31->unk_B4.x -= 360.0f;
+        playerState->spawnPosition.y += (0.1f * (waterHeight - playerState->spawnPosition.y));
+        playerState->spawnPosition.x += playerState->spawnPosition.y;
+        if (playerState->spawnPosition.x >= 360.0f) {
+            playerState->spawnPosition.x -= 360.0f;
         }
-        else if (var_r31->unk_B4.x < 0.0f) {
-            var_r31->unk_B4.x += 360.0f;
+        else if (playerState->spawnPosition.x < 0.0f) {
+            playerState->spawnPosition.x += 360.0f;
         }
-        MTXRotAxisRad(var_r31->unk_1C4, &sp8, 0.017453292f * var_r31->unk_B4.x);
+        MTXRotAxisRad(playerState->modelMatrix, &worldUp, 0.017453292f * playerState->spawnPosition.x);
     }
-    object->rot.y = var_r31->unk_68 = var_r31->unk_B4.x - 180.0f;
-    object->trans.x = var_r31->unk_D4.x = var_r31->unk_F8.x = var_r31->unk_C8.x = var_r31->unk_B4.z * sind(var_r31->unk_B4.x);
-    object->trans.z = var_r31->unk_D4.z = var_r31->unk_F8.z = var_r31->unk_C8.z = var_r31->unk_B4.z * cosd(var_r31->unk_B4.x);
-    if (var_r31->unk_10 & 256) {
-        var_r31->unk_A8 = VERSION_PAL ? 7 : 9;
+    playerObject->rot.y = playerState->walkSpeed = playerState->spawnPosition.x - 180.0f;
+    playerObject->trans.x = playerState->targetPosition.x = playerState->movementTarget.x = playerState->position.x = playerState->spawnPosition.z * sind(playerState->spawnPosition.x);
+    playerObject->trans.z = playerState->targetPosition.z = playerState->movementTarget.z = playerState->position.z = playerState->spawnPosition.z * cosd(playerState->spawnPosition.x);
+    if (playerState->controllerButtons & 256) {
+        playerState->modelFlags = VERSION_PAL ? 7 : 9;
     }
-    if (var_r31->unk_A8) {
-        var_r31->unk_A8--;
+    if (playerState->modelFlags) {
+        playerState->modelFlags--;
     }
-    switch (var_r31->unk_A0) {
+    switch (playerState->motionFrame) {
         case 0:
-            var_r31->unk_2C = 1;
-            var_r31->unk_34 = 0;
-            if (var_r31->unk_28) {
-                fn_1_B8A0(object, 0);
-                if (var_r31->unk_A8) {
-                    var_r31->unk_2C = 0;
-                    var_r31->unk_38 = 0;
-                    fn_1_B8A0(object, 7);
-                    var_r31->unk_A4 = VERSION_PAL ? 8 : 9;
-                    var_r31->unk_A0++;
+            playerState->motionEnabled = 1;
+            playerState->motionTimer = 0;
+            if (playerState->movementTimer) {
+                SetPlayerMotion(playerObject, 0);
+                if (playerState->modelFlags) {
+                    playerState->motionEnabled = 0;
+                    playerState->effectState = 0;
+                    SetPlayerMotion(playerObject, 7);
+                    playerState->motionTransitionTimer = VERSION_PAL ? 8 : 9;
+                    playerState->motionFrame++;
                 }
             }
             break;
         case 1:
-            var_r31->unk_A4--;
-            if (!var_r31->unk_A4) {
-                var_r31->unk_30 = 1;
-                fn_1_BC70(400.0f, 0.3f, &var_r31->unk_11C);
-                var_r31->unk_E0.y = REFRESH_FREQ * var_r31->unk_11C.z;
-                var_r31->unk_AC = 0.0f;
-                var_r31->unk_A0++;
+            playerState->motionTransitionTimer--;
+            if (!playerState->motionTransitionTimer) {
+                playerState->motionState = 1;
+                SetQuaternionFromAngles(400.0f, 0.3f, &playerState->facingRotation);
+                playerState->previousPosition.y = REFRESH_FREQ * playerState->facingRotation.z;
+                playerState->animationFrame = 0.0f;
+                playerState->motionFrame++;
             }
             break;
         case 2:
-            if (var_r31->unk_E0.y >= 0.0f) {
-                var_r31->unk_AC += REFRESH_FREQ;
+            if (playerState->previousPosition.y >= 0.0f) {
+                playerState->animationFrame += REFRESH_FREQ;
             }
             else {
-                var_r31->unk_AC -= REFRESH_FREQ;
+                playerState->animationFrame -= REFRESH_FREQ;
             }
-            var_r31->unk_34 = 0;
-            var_r31->unk_B0 = 0.0f;
-            var_f31 = var_r31->unk_AC - 0.060000002f;
-            if (var_f31 > 0.0f) {
-                var_r31->unk_34 = 1;
-                var_f31 = var_f31 * (VERSION_PAL ? 4.7619047f : 9.009008f);
-                if (var_f31 > 1.0f) {
-                    var_f31 = 1.0f;
+            playerState->motionTimer = 0;
+            playerState->waterSplashTimer = 0.0f;
+            waterHeight = playerState->animationFrame - 0.060000002f;
+            if (waterHeight > 0.0f) {
+                playerState->motionTimer = 1;
+                waterHeight = waterHeight * (VERSION_PAL ? 4.7619047f : 9.009008f);
+                if (waterHeight > 1.0f) {
+                    waterHeight = 1.0f;
                 }
-                var_r31->unk_B0 = var_f31;
+                playerState->waterSplashTimer = waterHeight;
             }
-            if (var_r31->unk_34 && var_r31->unk_10 & 320) {
-                var_r31->unk_34 = 0;
-                var_r31->unk_38 = 1;
-                var_r31->unk_E0.y = 0.0f;
-                fn_1_B8A0(object, 9);
-                var_r31->unk_A0++;
+            if (playerState->motionTimer && playerState->controllerButtons & 320) {
+                playerState->motionTimer = 0;
+                playerState->effectState = 1;
+                playerState->previousPosition.y = 0.0f;
+                SetPlayerMotion(playerObject, 9);
+                playerState->motionFrame++;
             }
             else {
-                var_r31->unk_E0.y += (REFRESH_FREQ * (REFRESH_FREQ * var_r31->unk_11C.w));
-                var_r31->unk_D4.y += var_r31->unk_E0.y;
-                if (var_r31->unk_D4.y <= var_r31->unk_F8.y) {
-                    var_r31->unk_30 = 0;
-                    var_r31->unk_34 = 0;
-                    var_r31->unk_E0.y = 0.0f;
-                    var_r31->unk_D4.y = var_r31->unk_F8.y;
-                    var_r31->unk_A0 = 0;
+                playerState->previousPosition.y += (REFRESH_FREQ * (REFRESH_FREQ * playerState->facingRotation.w));
+                playerState->targetPosition.y += playerState->previousPosition.y;
+                if (playerState->targetPosition.y <= playerState->movementTarget.y) {
+                    playerState->motionState = 0;
+                    playerState->motionTimer = 0;
+                    playerState->previousPosition.y = 0.0f;
+                    playerState->targetPosition.y = playerState->movementTarget.y;
+                    playerState->motionFrame = 0;
                 }
             }
             break;
         case 3:
-            if (fn_1_BA2C(object)) {
-                var_r31->unk_A0++;
+            if (IsPlayerMotionFinished(playerObject)) {
+                playerState->motionFrame++;
             }
             break;
         case 4:
-            var_r31->unk_E0.y += (REFRESH_FREQ * (REFRESH_FREQ * var_r31->unk_11C.w));
-            var_r31->unk_D4.y += +var_r31->unk_E0.y;
-            if (var_r31->unk_D4.y <= var_r31->unk_F8.y) {
-                fn_1_7510(var_r31->unk_F8.x, 0.0f, var_r31->unk_F8.z, var_r31->unk_B0);
-                HuAudFXEmiterPlay(1482, &var_r31->unk_D4);
-                omVibrate(object->work[0], 12, 4, 2);
-                var_r31->unk_30 = 0;
-                var_r31->unk_E0.y = 0.0f;
-                var_r31->unk_D4.y = var_r31->unk_F8.y;
-                fn_1_B8A0(object, 10);
-                var_r31->unk_A0 = var_r31->unk_A0 + 1;
+            playerState->previousPosition.y += (REFRESH_FREQ * (REFRESH_FREQ * playerState->facingRotation.w));
+            playerState->targetPosition.y += +playerState->previousPosition.y;
+            if (playerState->targetPosition.y <= playerState->movementTarget.y) {
+                SetWaterWave(playerState->movementTarget.x, 0.0f, playerState->movementTarget.z, playerState->waterSplashTimer);
+                HuAudFXEmiterPlay(1482, &playerState->targetPosition);
+                omVibrate(playerObject->work[0], 12, 4, 2);
+                playerState->motionState = 0;
+                playerState->previousPosition.y = 0.0f;
+                playerState->targetPosition.y = playerState->movementTarget.y;
+                SetPlayerMotion(playerObject, 10);
+                playerState->motionFrame = playerState->motionFrame + 1;
             }
             break;
         case 5:
-            if (fn_1_BA2C(object) != 0) {
-                var_r31->unk_38 = 0;
-                var_r31->unk_A0 = 0;
+            if (IsPlayerMotionFinished(playerObject) != 0) {
+                playerState->effectState = 0;
+                playerState->motionFrame = 0;
             }
             break;
     }
-    if (!var_r31->unk_30) {
-        var_r31->unk_D4.y = var_r31->unk_F8.y;
+    if (!playerState->motionState) {
+        playerState->targetPosition.y = playerState->movementTarget.y;
     }
 }
 
-void fn_1_9A1C(OMOBJ *object)
+void UpdatePlayerAction(OMOBJ *playerObject)
 {
-    float var_f31;
-    float var_f30;
+    Float angleDifference;
+    Float separationAngle;
 
-    s32 var_r31;
-    UnkM417Struct10 *var_r30;
-    UnkM417Struct10 *var_r29;
-    UnkM417Struct10 *var_r28;
-    s32 var_r27;
+    s32 playerIndex;
+    MinigamePlayerState *playerState;
+    MinigamePlayerState *otherPlayerState;
+    MinigamePlayerState *targetPlayerState;
+    s32 otherPlayerIndex;
 
-    var_r30 = object->data;
-    var_r30->unk_C0++;
-    if (((UnkM417Struct10 *)lbl_1_bss_898[0]->data)->unk_C4 == var_r30->unk_C0) {
+    playerState = playerObject->data;
+    playerState->actionFrameCounter++;
+    if (((MinigamePlayerState *)playerObjects[0]->data)->actionFrameSync == playerState->actionFrameCounter) {
         return;
     }
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        ((UnkM417Struct10 *)lbl_1_bss_898[var_r31]->data)->unk_C4 = var_r30->unk_C0;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        ((MinigamePlayerState *)playerObjects[playerIndex]->data)->actionFrameSync = playerState->actionFrameCounter;
     }
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        var_r29 = lbl_1_bss_898[var_r31]->data;
-        if (!var_r29->unk_0C) {
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        otherPlayerState = playerObjects[playerIndex]->data;
+        if (!otherPlayerState->characterId) {
             continue;
         }
-        for (var_r27 = 0; var_r27 < 4; var_r27++) {
-            if (var_r31 == var_r27) {
+        for (otherPlayerIndex = 0; otherPlayerIndex < 4; otherPlayerIndex++) {
+            if (playerIndex == otherPlayerIndex) {
                 continue;
             }
-            var_r28 = lbl_1_bss_898[var_r27]->data;
-            if (!var_r28->unk_0C) {
+            targetPlayerState = playerObjects[otherPlayerIndex]->data;
+            if (!targetPlayerState->characterId) {
                 continue;
             }
-            var_f31 = fn_1_3024(var_r29->unk_B4.x, var_r28->unk_B4.x);
-            if (fabs(var_f31) > 23.0) {
+            angleDifference = angleDifference(otherPlayerState->spawnPosition.x, targetPlayerState->spawnPosition.x);
+            if (fabs(angleDifference) > 23.0) {
                 continue;
             }
-            if (var_f31 == 0.0f) {
-                var_f30 = 11.5f;
+            if (angleDifference == 0.0f) {
+                separationAngle = 11.5f;
             }
             else {
-                var_f30 = 23.0 - fabs(var_f31);
-                var_f30 = (0.5f * var_f30) * (var_f31 / fabs(var_f31));
+                separationAngle = 23.0 - fabs(angleDifference);
+                separationAngle = (0.5f * separationAngle) * (angleDifference / fabs(angleDifference));
             }
-            var_r29->unk_B4.x -= var_f30;
-            var_r28->unk_B4.x += var_f30;
+            otherPlayerState->spawnPosition.x -= separationAngle;
+            targetPlayerState->spawnPosition.x += separationAngle;
         }
     }
 }
 
-void fn_1_9C14(OMOBJ *object)
+void UpdatePlayerAnimation(OMOBJ *playerObject)
 {
-    Qtrn sp28;
-    Vec sp1C;
-    Vec sp10;
-    float spC;
-    float sp8;
+    Qtrn normalizedRotation;
+    Vec relativeMovement;
+    Vec horizontalMovement;
+    Float movementAngle;
+    Float horizontalSpeed;
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    Float movementDistance;
+    Float motionBlendThreshold;
+    Float motionPlaybackSpeed;
 
-    UnkM417Struct10 *var_r31;
+    MinigamePlayerState *playerState;
 
-    var_r31 = object->data;
-    if (var_r31->unk_24 > 0.0f) {
-        var_r31->unk_68 = var_r31->unk_20;
+    playerState = playerObject->data;
+    if (playerState->movementAcceleration > 0.0f) {
+        playerState->walkSpeed = playerState->movementSpeed;
     }
-    if (var_r31->unk_24 > 0.05f) {
-        var_r31->unk_E0.x = (1.0 * REFRESH_FREQ) * (500.0 * (var_r31->unk_24 * sind(var_r31->unk_20)));
-        var_r31->unk_E0.z = (1.0 * REFRESH_FREQ) * (500.0 * (var_r31->unk_24 * cosd(var_r31->unk_20)));
-        var_r31->unk_6C = 0.2f;
-        var_r31->unk_70 = 0.0f;
-        if (CharMotionShiftIDGet(var_r31->unk_00) < 0) {
-            var_f30 = 0.5f;
-            if (var_r31->unk_08 == 4) {
-                var_f30 = 0.45f;
+    if (playerState->movementAcceleration > 0.05f) {
+        playerState->previousPosition.x = (1.0 * REFRESH_FREQ) * (500.0 * (playerState->movementAcceleration * sind(playerState->movementSpeed)));
+        playerState->previousPosition.z = (1.0 * REFRESH_FREQ) * (500.0 * (playerState->movementAcceleration * cosd(playerState->movementSpeed)));
+        playerState->jumpSpeed = 0.2f;
+        playerState->fallSpeed = 0.0f;
+        if (CharMotionShiftIDGet(playerState->playerIndex) < 0) {
+            motionBlendThreshold = 0.5f;
+            if (playerState->actionTimer == 4) {
+                motionBlendThreshold = 0.45f;
             }
-            if (var_r31->unk_24 > var_f30) {
-                fn_1_B8A0(object, 4);
-                var_f29 = var_r31->unk_24;
+            if (playerState->movementAcceleration > motionBlendThreshold) {
+                SetPlayerMotion(playerObject, 4);
+                motionPlaybackSpeed = playerState->movementAcceleration;
             }
             else {
-                fn_1_B8A0(object, 3);
-                var_f29 = (var_r31->unk_24 / var_f30);
+                SetPlayerMotion(playerObject, 3);
+                motionPlaybackSpeed = (playerState->movementAcceleration / motionBlendThreshold);
             }
 #if VERSION_PAL
-            var_f29 *= 1.2f;
+            motionPlaybackSpeed *= 1.2f;
 #endif
-            CharMotionSpeedSet(var_r31->unk_00, var_f29);
+            CharMotionSpeedSet(playerState->playerIndex, motionPlaybackSpeed);
         }
     }
     else {
-        var_r31->unk_E0.x = var_r31->unk_E0.y = var_r31->unk_E0.z = 0.0f;
-        if (var_r31->unk_28 && CharMotionShiftIDGet(var_r31->unk_00) < 0) {
-            fn_1_B8A0(object, 0);
+        playerState->previousPosition.x = playerState->previousPosition.y = playerState->previousPosition.z = 0.0f;
+        if (playerState->movementTimer && CharMotionShiftIDGet(playerState->playerIndex) < 0) {
+            SetPlayerMotion(playerObject, 0);
         }
     }
-    VECSubtract(&var_r31->unk_D4, &var_r31->unk_104, &sp1C);
-    if (fn_1_26F8() == 2) {
-        sp1C.y += -350.0f * REFRESH_FREQ * var_r31->unk_148;
+    VECSubtract(&playerState->targetPosition, &playerState->movementStart, &relativeMovement);
+    if (getSequenceState() == 2) {
+        relativeMovement.y += -350.0f * REFRESH_FREQ * playerState->groundHeight;
     }
-    MTXMultVec(var_r31->unk_224, &sp1C, &sp1C);
-    VECAdd(&sp1C, &var_r31->unk_E0, &sp1C);
-    sp10 = sp1C;
-    sp10.y = 0.0f;
-    var_f31 = sp8 = VECMag(&sp10);
-    if (var_f31 > 150.0f) {
-        var_f31 = 150.0f / var_f31;
-        sp1C.x = sp1C.x * var_f31;
-        sp1C.z *= var_f31;
+    MTXMultVec(playerState->targetModelMatrix, &relativeMovement, &relativeMovement);
+    VECAdd(&relativeMovement, &playerState->previousPosition, &relativeMovement);
+    horizontalMovement = relativeMovement;
+    horizontalMovement.y = 0.0f;
+    movementDistance = horizontalSpeed = VECMag(&horizontalMovement);
+    if (movementDistance > 150.0f) {
+        movementDistance = 150.0f / movementDistance;
+        relativeMovement.x = relativeMovement.x * movementDistance;
+        relativeMovement.z *= movementDistance;
     }
-    sp1C.y = 80.0f;
-    var_r31->unk_EC = sp1C;
-    spC = atan2d(sp1C.x, sp1C.z);
-    MTXMultVec(var_r31->unk_1C4, &sp1C, &sp1C);
-    VECAdd(&sp1C, &var_r31->unk_F8, &var_r31->unk_D4);
-    if (var_r31->unk_13C >= 0.95f) {
-        var_r31->unk_3C = 1;
+    relativeMovement.y = 80.0f;
+    playerState->velocity = relativeMovement;
+    movementAngle = atan2d(relativeMovement.x, relativeMovement.z);
+    MTXMultVec(playerState->modelMatrix, &relativeMovement, &relativeMovement);
+    VECAdd(&relativeMovement, &playerState->movementTarget, &playerState->targetPosition);
+    if (playerState->motionSpeed >= 0.95f) {
+        playerState->effectTimer = 1;
         return;
     }
-    QUATNormalize(&var_r31->unk_194, &sp28);
-    if (sp28.w < cosd(25)) {
-        var_r31->unk_3C = 1;
+    QUATNormalize(&playerState->previousRotation, &normalizedRotation);
+    if (normalizedRotation.w < cosd(25)) {
+        playerState->effectTimer = 1;
     }
 }
 
-void fn_1_9FF0(OMOBJ *object)
+void UpdatePlayerPhysics(OMOBJ *playerObject)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
-    float var_f25;
-    float var_f24;
-    float var_f23;
+    Float waterHeight;
+    Float waveLift;
+    Float rotationProgress;
+    Float rotationPhase;
+    Float unusedRotationPhase;
+    Float normalizedPhase;
+    Float phaseFraction;
+    Float turnPhase;
+    Float turnFraction;
 
-    UnkM417Struct10 *var_r31;
-    s32 var_r30;
-    UnkM417Struct2 *var_r29;
-    s32 var_r28;
+    MinigamePlayerState *playerState;
+    s32 pathPointIndex;
+    WaterContactInfo *waterContact;
+    s32 contactIndex;
 
-    var_r31 = object->data;
+    playerState = playerObject->data;
     {
-        Quaternion sp3C;
-        Quaternion sp2C = { 0.0f, 0.0f, 0.0f, 1.0f };
-        Vec sp20;
-        Vec sp14;
-        Vec sp8 = { 0.0f, 0.0f, 0.0f };
+        Quaternion actionRotation;
+        Quaternion combinedRotation = { 0.0f, 0.0f, 0.0f, 1.0f };
+        Vec movementVelocity;
+        Vec movementCorrection;
+        Vec rotationAxis = { 0.0f, 0.0f, 0.0f };
 
-        if (fn_1_26F8() == 2) {
-            var_r31->unk_148 += VERSION_PAL ? 0.0013333333f : 0.0011111111f;
-            if (var_r31->unk_148 > 1.0f) {
-                var_r31->unk_148 = 1.0f;
+        if (getSequenceState() == 2) {
+            playerState->groundHeight += VERSION_PAL ? 0.0013333333f : 0.0011111111f;
+            if (playerState->groundHeight > 1.0f) {
+                playerState->groundHeight = 1.0f;
             }
         }
-        var_r31->unk_1B4 = var_r31->unk_1A4;
-        MTXCopy(var_r31->unk_1F4, var_r31->unk_224);
-        var_r31->unk_104 = var_r31->unk_F8;
-        var_f31 = fn_1_75BC();
-        for (var_r30 = 0; var_r30 < 8; var_r30++) {
-            var_f29 = 45.0f * var_r30;
-            var_f31 += fn_1_78BC(0.5 * (150.0 * sind(var_f29)), 0.0f, 0.5 * (150.0 * cosd(var_f29)));
+        playerState->turnRotation = playerState->movementRotation;
+        MTXCopy(playerState->previousModelMatrix, playerState->targetModelMatrix);
+        playerState->movementStart = playerState->movementTarget;
+        waterHeight = getWaterHeight();
+        for (pathPointIndex = 0; pathPointIndex < 8; pathPointIndex++) {
+            rotationProgress = 45.0f * pathPointIndex;
+            waterHeight += getWaterHeightAtPosition(0.5 * (150.0 * sind(rotationProgress)), 0.0f, 0.5 * (150.0 * cosd(rotationProgress)));
         }
-        var_f31 *= 0.11111111f;
-        var_r31->unk_F8.y = var_r31->unk_F8.y + var_r31->unk_98;
-        if (var_f31 > var_r31->unk_F8.y || (!var_r31->unk_30 && fn_1_26F8() != 2)) {
+        waterHeight *= 0.11111111f;
+        playerState->movementTarget.y = playerState->movementTarget.y + playerState->animationSpeed;
+        if (waterHeight > playerState->movementTarget.y || (!playerState->motionState && getSequenceState() != 2)) {
 #if VERSION_PAL
-            var_r31->unk_F8.y = var_r31->unk_F8.y + (0.16666667f * (var_f31 - var_r31->unk_F8.y));
+            playerState->movementTarget.y = playerState->movementTarget.y + (0.16666667f * (waterHeight - playerState->movementTarget.y));
 #else
-            var_r31->unk_F8.y = var_r31->unk_F8.y + (0.1388889f * (var_f31 - var_r31->unk_F8.y));
+            playerState->movementTarget.y = playerState->movementTarget.y + (0.1388889f * (waterHeight - playerState->movementTarget.y));
 #endif
-            var_r31->unk_98 = var_r31->unk_F8.y - var_r31->unk_104.y;
-            var_r31->unk_98 += -980.0f * REFRESH_FREQ * REFRESH_FREQ;
-            var_r31->unk_30 = 0;
+            playerState->animationSpeed = playerState->movementTarget.y - playerState->movementStart.y;
+            playerState->animationSpeed += -980.0f * REFRESH_FREQ * REFRESH_FREQ;
+            playerState->motionState = 0;
         }
         else {
-            var_r31->unk_98 = var_r31->unk_F8.y - var_r31->unk_104.y;
-            var_r31->unk_98 += VERSION_PAL ? -1.176f : -0.8166667f;
-            var_r31->unk_30 = 1;
+            playerState->animationSpeed = playerState->movementTarget.y - playerState->movementStart.y;
+            playerState->animationSpeed += VERSION_PAL ? -1.176f : -0.8166667f;
+            playerState->motionState = 1;
         }
-        if (var_r31->unk_40) {
-            var_r31->unk_12C += REFRESH_FREQ;
-            if (var_r31->unk_12C > 2.0f) {
-                var_r31->unk_12C = 2.0f;
+        if (playerState->actionIndex) {
+            playerState->turnAngle += REFRESH_FREQ;
+            if (playerState->turnAngle > 2.0f) {
+                playerState->turnAngle = 2.0f;
             }
         }
-        var_r31->unk_130 += REFRESH_FREQ;
-        var_f28 = 0.1f * var_r31->unk_130;
-        var_f26 = fmod(var_f28, 1.0);
-        var_f25 = var_f26;
-        var_r31->unk_134 = 360.0f * var_f25;
-        var_f27 = var_r31->unk_130;
-        var_f24 = fmod(var_f27, 1.0);
-        var_f23 = var_f24;
-        var_r31->unk_138 = 0.04712389037013054 * sind((360.0f * var_f23));
+        playerState->movementAngle += REFRESH_FREQ;
+        rotationPhase = 0.1f * playerState->movementAngle;
+        normalizedPhase = fmod(rotationPhase, 1.0);
+        phaseFraction = normalizedPhase;
+        playerState->movementDistance = 360.0f * phaseFraction;
+        unusedRotationPhase = playerState->movementAngle;
+        turnPhase = fmod(unusedRotationPhase, 1.0);
+        turnFraction = turnPhase;
+        playerState->turnSpeed = 0.04712389037013054 * sind((360.0f * turnFraction));
 
-        sp8.x = sind(var_r31->unk_134);
-        sp8.y = 0.0f;
-        sp8.z = cosd(var_r31->unk_134);
-        C_QUATRotAxisRad(&var_r31->unk_164, &sp8, var_r31->unk_138 * var_r31->unk_12C);
-        if (!var_r31->unk_40) {
-            sp20 = var_r31->unk_EC;
-            sp20.y = 0.0f;
-            var_f31 = (2.0f / 300.0f) * VECMag(&sp20);
-            if (var_f31 <= 0.0f) {
-                var_f31 = 0.0f;
-                sp8.x = 1.0f;
-                sp8.y = sp8.z = 0.0f;
+        rotationAxis.x = sind(playerState->movementDistance);
+        rotationAxis.y = 0.0f;
+        rotationAxis.z = cosd(playerState->movementDistance);
+        C_QUATRotAxisRad(&playerState->startRotation, &rotationAxis, playerState->turnSpeed * playerState->turnAngle);
+        if (!playerState->actionIndex) {
+            movementVelocity = playerState->velocity;
+            movementVelocity.y = 0.0f;
+            waterHeight = (2.0f / 300.0f) * VECMag(&movementVelocity);
+            if (waterHeight <= 0.0f) {
+                waterHeight = 0.0f;
+                rotationAxis.x = 1.0f;
+                rotationAxis.y = rotationAxis.z = 0.0f;
             }
             else {
-                if (var_f31 > 1.0f) {
-                    var_f31 = 1.0f;
+                if (waterHeight > 1.0f) {
+                    waterHeight = 1.0f;
                 }
-                sp8.x = sp20.z;
-                sp8.y = 0.0f;
-                sp8.z = -sp20.x;
+                rotationAxis.x = movementVelocity.z;
+                rotationAxis.y = 0.0f;
+                rotationAxis.z = -movementVelocity.x;
             }
-            C_QUATRotAxisRad(&var_r31->unk_174, &sp8, 0.09424778f * var_f31);
-            if (!var_r31->unk_30 && !var_r31->unk_40) {
-                for (var_r29 = fn_1_7A28(); var_r29->unk_00 > -2; var_r29++) {
-                    if (var_r29->unk_00 >= 0 && var_r29->unk_00 < 16) {
-                        var_r28 = var_r29->unk_00;
-                        var_f31 = var_r29->unk_08 * var_r29->unk_0C;
-                        if (var_r31->unk_254[var_r28].y <= var_f31) {
-                            var_r31->unk_254[var_r28].y += VERSION_PAL ? 0.05333333f : 0.044444446f;
-                            var_r31->unk_254[var_r28].x = var_r29->unk_04;
+            C_QUATRotAxisRad(&playerState->targetRotation, &rotationAxis, 0.09424778f * waterHeight);
+            if (!playerState->motionState && !playerState->actionIndex) {
+                for (waterContact = GetWaterContactInfo(); waterContact->playerIndex > -2; waterContact++) {
+                    if (waterContact->playerIndex >= 0 && waterContact->playerIndex < 16) {
+                        contactIndex = waterContact->playerIndex;
+                        waterHeight = waterContact->actionTimer * waterContact->characterId;
+                        if (playerState->playerPathPoints[contactIndex].y <= waterHeight) {
+                            playerState->playerPathPoints[contactIndex].y += VERSION_PAL ? 0.05333333f : 0.044444446f;
+                            playerState->playerPathPoints[contactIndex].x = waterContact->actionState;
                         }
-                        if (fn_1_26F8() == 2 && var_r31->unk_254[var_r28].z <= var_f31) {
-                            var_r31->unk_254[var_r28].z += VERSION_PAL ? 0.10666666f : 0.08888889f;
+                        if (getSequenceState() == 2 && playerState->playerPathPoints[contactIndex].z <= waterHeight) {
+                            playerState->playerPathPoints[contactIndex].z += VERSION_PAL ? 0.10666666f : 0.08888889f;
                         }
                     }
                 }
             }
         }
-        sp2C.w = 1.0f;
-        sp2C.x = sp2C.y = sp2C.z = 0.0f;
+        combinedRotation.w = 1.0f;
+        combinedRotation.x = combinedRotation.y = combinedRotation.z = 0.0f;
 
-        sp20.x = sp20.y = sp20.z = 0.0f;
+        movementVelocity.x = movementVelocity.y = movementVelocity.z = 0.0f;
 
-        var_f30 = 0.0f;
-        for (var_r30 = 0; var_r30 < 16; var_r30++) {
-            if (var_r31->unk_254[var_r30].z > 0.0f) {
-                var_f30 += 0.5f * var_r31->unk_254[var_r30].z;
-                if (var_r31->unk_30 == 0) {
-                    var_r31->unk_254[var_r30].z -= REFRESH_FREQ;
-                    if (var_r31->unk_254[var_r30].z < 0.0f) {
-                        var_r31->unk_254[var_r30].z = 0.0f;
+        waveLift = 0.0f;
+        for (pathPointIndex = 0; pathPointIndex < 16; pathPointIndex++) {
+            if (playerState->playerPathPoints[pathPointIndex].z > 0.0f) {
+                waveLift += 0.5f * playerState->playerPathPoints[pathPointIndex].z;
+                if (playerState->motionState == 0) {
+                    playerState->playerPathPoints[pathPointIndex].z -= REFRESH_FREQ;
+                    if (playerState->playerPathPoints[pathPointIndex].z < 0.0f) {
+                        playerState->playerPathPoints[pathPointIndex].z = 0.0f;
                     }
                 }
             }
-            if (var_r31->unk_254[var_r30].y > 0.0f) {
-                sp20.x += var_r31->unk_254[var_r30].y * sind(var_r31->unk_254[var_r30].x);
-                sp20.z += var_r31->unk_254[var_r30].y * cosd(var_r31->unk_254[var_r30].x);
-                var_r31->unk_254[var_r30].y -= VERSION_PAL ? 0.015384615f : 0.012820514f;
-                if (var_r31->unk_254[var_r30].y < 0.0f) {
-                    var_r31->unk_254[var_r30].y = 0.0f;
+            if (playerState->playerPathPoints[pathPointIndex].y > 0.0f) {
+                movementVelocity.x += playerState->playerPathPoints[pathPointIndex].y * sind(playerState->playerPathPoints[pathPointIndex].x);
+                movementVelocity.z += playerState->playerPathPoints[pathPointIndex].y * cosd(playerState->playerPathPoints[pathPointIndex].x);
+                playerState->playerPathPoints[pathPointIndex].y -= VERSION_PAL ? 0.015384615f : 0.012820514f;
+                if (playerState->playerPathPoints[pathPointIndex].y < 0.0f) {
+                    playerState->playerPathPoints[pathPointIndex].y = 0.0f;
                 }
             }
         }
-        if (var_f30 > 1.0f) {
-            var_f30 = 1.0f;
+        if (waveLift > 1.0f) {
+            waveLift = 1.0f;
         }
-        var_f30 *= REFRESH_FREQ;
-        var_f30 *= var_r31->unk_148;
-        var_r31->unk_144 = var_r31->unk_144 + (0.1f * (var_f30 - var_r31->unk_144));
-        var_f31 = 90.0 + (atan2d(sp20.x, sp20.z));
-        sp8.x = sind(var_f31);
-        sp8.y = 0.0f;
-        sp8.z = cosd(var_f31);
-        var_f29 = VECMag(&sp20);
-        if (var_f29 > 0.5f) {
-            var_f29 = 0.5f;
+        waveLift *= REFRESH_FREQ;
+        waveLift *= playerState->groundHeight;
+        playerState->fallDistance = playerState->fallDistance + (0.1f * (waveLift - playerState->fallDistance));
+        waterHeight = 90.0 + (atan2d(movementVelocity.x, movementVelocity.z));
+        rotationAxis.x = sind(waterHeight);
+        rotationAxis.y = 0.0f;
+        rotationAxis.z = cosd(waterHeight);
+        rotationProgress = VECMag(&movementVelocity);
+        if (rotationProgress > 0.5f) {
+            rotationProgress = 0.5f;
         }
-        C_QUATRotAxisRad(&sp2C, &sp8, 3.1415927f * var_f29 * 0.18f);
-        if (!var_r31->unk_40) {
-            if (fn_1_26F8() == 2) {
-                sp20 = var_r31->unk_EC;
-                sp20.y = 0.0f;
-                var_f31 = VECMag(&sp20);
-                var_f29 = 0.006666667f * var_f31;
-                if (var_f31 > 0.0f) {
-                    VECNormalize(&sp20, &sp20);
+        C_QUATRotAxisRad(&combinedRotation, &rotationAxis, 3.1415927f * rotationProgress * 0.18f);
+        if (!playerState->actionIndex) {
+            if (getSequenceState() == 2) {
+                movementVelocity = playerState->velocity;
+                movementVelocity.y = 0.0f;
+                waterHeight = VECMag(&movementVelocity);
+                rotationProgress = 0.006666667f * waterHeight;
+                if (waterHeight > 0.0f) {
+                    VECNormalize(&movementVelocity, &movementVelocity);
                 }
-                VECSubtract(&sp20, &var_r31->unk_14C, &sp14);
-                if (VECMag(&sp14)) {
-                    VECNormalize(&sp14, &sp14);
+                VECSubtract(&movementVelocity, &playerState->movementVector, &movementCorrection);
+                if (VECMag(&movementCorrection)) {
+                    VECNormalize(&movementCorrection, &movementCorrection);
                 }
-                VECScale(&sp14, &sp14, ((REFRESH_FREQ * 0.2f) * var_f29) + var_r31->unk_144);
-                VECAdd(&var_r31->unk_14C, &sp14, &var_r31->unk_14C);
+                VECScale(&movementCorrection, &movementCorrection, ((REFRESH_FREQ * 0.2f) * rotationProgress) + playerState->fallDistance);
+                VECAdd(&playerState->movementVector, &movementCorrection, &playerState->movementVector);
             }
             else {
-                VECScale(&var_r31->unk_14C, &var_r31->unk_14C, 0.98f);
+                VECScale(&playerState->movementVector, &playerState->movementVector, 0.98f);
             }
-            var_r31->unk_14C.y = 0.0f;
-            var_f31 = VECMag(&var_r31->unk_14C);
-            if (var_f31 > 1.0f) {
-                var_f31 = 1.0f / var_f31;
-                var_r31->unk_14C.x *= var_f31;
-                var_r31->unk_14C.z *= var_f31;
-                var_f31 = 1.0f;
+            playerState->movementVector.y = 0.0f;
+            waterHeight = VECMag(&playerState->movementVector);
+            if (waterHeight > 1.0f) {
+                waterHeight = 1.0f / waterHeight;
+                playerState->movementVector.x *= waterHeight;
+                playerState->movementVector.z *= waterHeight;
+                waterHeight = 1.0f;
             }
-            var_r31->unk_13C = var_f31;
-            var_r31->unk_140 = atan2d(var_r31->unk_14C.x, var_r31->unk_14C.z);
-            if (var_f31 > 0.0f) {
-                sp8.x = var_r31->unk_14C.z;
-                sp8.y = 0.0f;
-                sp8.z = -var_r31->unk_14C.x;
+            playerState->motionSpeed = waterHeight;
+            playerState->jumpHeight = atan2d(playerState->movementVector.x, playerState->movementVector.z);
+            if (waterHeight > 0.0f) {
+                rotationAxis.x = playerState->movementVector.z;
+                rotationAxis.y = 0.0f;
+                rotationAxis.z = -playerState->movementVector.x;
             }
             else {
-                sp8.x = 1.0f;
-                sp8.y = sp8.z = 0.0f;
+                rotationAxis.x = 1.0f;
+                rotationAxis.y = rotationAxis.z = 0.0f;
             }
-            C_QUATRotAxisRad(&var_r31->unk_184, &sp8, 0.9424779f * var_f31);
+            C_QUATRotAxisRad(&playerState->currentRotation, &rotationAxis, 0.9424779f * waterHeight);
         }
         else {
-            sp8.x = var_r31->unk_14C.z;
-            sp8.y = 0.0f;
-            sp8.z = -var_r31->unk_14C.x;
-            C_QUATRotAxisRad(&sp3C, &sp8, M_PI);
-            C_QUATSlerp(&var_r31->unk_184, &sp3C, &var_r31->unk_184, (5.0f / 3.0f) * REFRESH_FREQ);
+            rotationAxis.x = playerState->movementVector.z;
+            rotationAxis.y = 0.0f;
+            rotationAxis.z = -playerState->movementVector.x;
+            C_QUATRotAxisRad(&actionRotation, &rotationAxis, M_PI);
+            C_QUATSlerp(&playerState->currentRotation, &actionRotation, &playerState->currentRotation, (5.0f / 3.0f) * REFRESH_FREQ);
         }
-        QUATMultiply(&var_r31->unk_174, &var_r31->unk_184, &var_r31->unk_194);
-        QUATMultiply(&var_r31->unk_164, &var_r31->unk_194, &var_r31->unk_194);
-        QUATMultiply(&sp2C, &var_r31->unk_194, &var_r31->unk_194);
-        MTXQuat(var_r31->unk_1C4, &var_r31->unk_194);
-        MTXInverse(var_r31->unk_1C4, var_r31->unk_1F4);
-        QUATInverse(&var_r31->unk_194, &var_r31->unk_1A4);
+        QUATMultiply(&playerState->targetRotation, &playerState->currentRotation, &playerState->previousRotation);
+        QUATMultiply(&playerState->startRotation, &playerState->previousRotation, &playerState->previousRotation);
+        QUATMultiply(&combinedRotation, &playerState->previousRotation, &playerState->previousRotation);
+        MTXQuat(playerState->modelMatrix, &playerState->previousRotation);
+        MTXInverse(playerState->modelMatrix, playerState->previousModelMatrix);
+        QUATInverse(&playerState->previousRotation, &playerState->movementRotation);
     }
 }
 
-void fn_1_AD24(OMOBJ *object)
+void UpdatePlayerModels(OMOBJ *playerObject)
 {
-    UnkM417Struct10 *var_r30;
+    MinigamePlayerState *playerState;
 
-    var_r30 = object->data;
-    Hu3DModelPosSetV(object->mdlId[0], &var_r30->unk_D4);
-    Hu3DModelRotSet(object->mdlId[0], 0.0f, var_r30->unk_64, 0.0f);
-    Hu3DModelPosSetV(object->mdlId[1], &var_r30->unk_F8);
-    MTXCopy(var_r30->unk_1C4, Hu3DData[object->mdlId[1]].mtx);
+    playerState = playerObject->data;
+    Hu3DModelPosSetV(playerObject->mdlId[0], &playerState->targetPosition);
+    Hu3DModelRotSet(playerObject->mdlId[0], 0.0f, playerState->runSpeed, 0.0f);
+    Hu3DModelPosSetV(playerObject->mdlId[1], &playerState->movementTarget);
+    MTXCopy(playerState->modelMatrix, Hu3DData[playerObject->mdlId[1]].mtx);
 }
 
-void fn_1_ADC4(OMOBJ *object)
+void UpdateComputerMovementTarget(OMOBJ *playerObject)
 {
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
+    Vec desiredMovement;
+    Vec currentMovement;
+    Vec movementDifference;
 
-    float var_f31;
-    float var_f30;
+    Float movementDistance;
+    Float movementBlend;
 
-    UnkM417Struct10 *var_r31;
-    s32 var_r30;
-    s32 var_r29;
+    MinigamePlayerState *playerState;
+    s32 useStrictThreshold;
+    s32 thresholdIndex;
 
-    var_r31 = object->data;
+    playerState = playerObject->data;
     {
-        float sp8[2] = { 30.000002f, 80.0f };
+        Float distanceThreshold[2] = { 30.000002f, 80.0f };
 
-        if (!var_r31->unk_84) {
-            sp28 = var_r31->unk_14C;
-            sp28.y = 0.0f;
-            var_f31 = 0.75f + (2.5f * (var_r31->unk_74 * var_r31->unk_74));
-            VECScale(&sp28, &sp28, 150.0f * -var_f31);
-            var_f31 = VECMag(&sp28);
-            if (var_f31 > 150.0f) {
-                var_f31 = 150.0f / var_f31;
-                sp28.x *= var_f31;
-                sp28.z *= var_f31;
+        if (!playerState->computerMovementTimer) {
+            desiredMovement = playerState->movementVector;
+            desiredMovement.y = 0.0f;
+            movementDistance = 0.75f + (2.5f * (playerState->difficultyScale * playerState->difficultyScale));
+            VECScale(&desiredMovement, &desiredMovement, 150.0f * -movementDistance);
+            movementDistance = VECMag(&desiredMovement);
+            if (movementDistance > 150.0f) {
+                movementDistance = 150.0f / movementDistance;
+                desiredMovement.x *= movementDistance;
+                desiredMovement.z *= movementDistance;
             }
-            sp28.x += (100.0 * ((0.9f - (0.3f * var_r31->unk_74)) * ((0.002 * (float)frandmod(1000)) - 1.0)));
-            sp28.z += (100.0 * ((0.9f - (0.3f * var_r31->unk_74)) * ((0.002 * (float)frandmod(1000)) - 1.0)));
-            sp1C = var_r31->unk_110;
-            sp1C.y = 0.0f;
-            VECSubtract(&sp28, &sp1C, &sp10);
-            var_f31 = VECMag(&sp10);
-            if (var_f31 > (100.0f * (1.2f - (0.3f * var_r31->unk_74)))) {
-                var_r31->unk_110 = sp28;
+            desiredMovement.x += (100.0 * ((0.9f - (0.3f * playerState->difficultyScale)) * ((0.002 * (Float)frandmod(1000)) - 1.0)));
+            desiredMovement.z += (100.0 * ((0.9f - (0.3f * playerState->difficultyScale)) * ((0.002 * (Float)frandmod(1000)) - 1.0)));
+            currentMovement = playerState->movementDelta;
+            currentMovement.y = 0.0f;
+            VECSubtract(&desiredMovement, &currentMovement, &movementDifference);
+            movementDistance = VECMag(&movementDifference);
+            if (movementDistance > (100.0f * (1.2f - (0.3f * playerState->difficultyScale)))) {
+                playerState->movementDelta = desiredMovement;
             }
-            var_r31->unk_84 = REFRESH_RATE_F * ((0.23f - (0.04f * var_r31->unk_74)) + (0.001f * ((0.4f - (0.15f * var_r31->unk_74)) * frandmod(1000))));
+            playerState->computerMovementTimer = REFRESH_RATE_F * ((0.23f - (0.04f * playerState->difficultyScale)) + (0.001f * ((0.4f - (0.15f * playerState->difficultyScale)) * frandmod(1000))));
         }
         else {
-            var_r31->unk_84--;
+            playerState->computerMovementTimer--;
         }
-        sp28 = var_r31->unk_110;
-        sp28.y = 0.0f;
-        sp1C = var_r31->unk_EC;
-        sp1C.y = 0.0f;
-        VECSubtract(&sp28, &sp1C, &sp10);
-        var_f31 = VECMag(&sp10);
-        if (var_r31->unk_48) {
-            var_r30 = 1;
+        desiredMovement = playerState->movementDelta;
+        desiredMovement.y = 0.0f;
+        currentMovement = playerState->velocity;
+        currentMovement.y = 0.0f;
+        VECSubtract(&desiredMovement, &currentMovement, &movementDifference);
+        movementDistance = VECMag(&movementDifference);
+        if (playerState->controllerPort) {
+            useStrictThreshold = 1;
         }
         else {
-            var_r30 = 0;
+            useStrictThreshold = 0;
         }
-        var_r29 = var_r30;
-        if (var_f31 > sp8[var_r29]) {
-            var_r31->unk_48 = 0;
-            var_r31->unk_20 = fn_1_2F08(var_r31->unk_64, atan2d(sp10.x, sp10.z), 0.5f);
-            var_f30 = 0.014285714f * var_f31;
-            if (var_f30 > 1.0f) {
-                var_f30 = 1.0f;
+        thresholdIndex = useStrictThreshold;
+        if (movementDistance > distanceThreshold[thresholdIndex]) {
+            playerState->controllerPort = 0;
+            playerState->movementSpeed = interpolateAngle(playerState->runSpeed, atan2d(movementDifference.x, movementDifference.z), 0.5f);
+            movementBlend = 0.014285714f * movementDistance;
+            if (movementBlend > 1.0f) {
+                movementBlend = 1.0f;
             }
-            var_r31->unk_24 = var_f30;
+            playerState->movementAcceleration = movementBlend;
             return;
         }
-        var_r31->unk_48 = 1;
-        var_r31->unk_110 = var_r31->unk_EC;
+        playerState->controllerPort = 1;
+        playerState->movementDelta = playerState->velocity;
     }
 }
 
-void fn_1_B2C0(OMOBJ *object)
+void UpdateComputerActionTiming(OMOBJ *playerObject)
 {
-    UnkM417Struct10 *var_r31;
-    s32 var_r29;
+    MinigamePlayerState *playerState;
+    s32 startActionDelay;
 
-    var_r31 = object->data;
-    var_r29 = 0;
-    if (var_r31->unk_90) {
-        var_r31->unk_90--;
+    playerState = playerObject->data;
+    startActionDelay = 0;
+    if (playerState->computerRestTimer) {
+        playerState->computerRestTimer--;
     }
     else {
-        var_r31->unk_88 = 1.0f;
+        playerState->rotationSpeed = 1.0f;
         if (frandmod(1000) < 500) {
-            var_r31->unk_88 = -1.0f;
+            playerState->rotationSpeed = -1.0f;
         }
-        var_r31->unk_8C = 0.001f * frandmod(1000);
-        var_r31->unk_90 = (VERSION_PAL ? 0.125f : 0.15f) * frandmod(1000);
+        playerState->movementScale = 0.001f * frandmod(1000);
+        playerState->computerRestTimer = (VERSION_PAL ? 0.125f : 0.15f) * frandmod(1000);
     }
-    var_r31->unk_20 = var_r31->unk_B4.x + (90.0f * var_r31->unk_88);
-    var_r31->unk_24 = 0.5f + (0.5f * var_r31->unk_74);
-    if (lbl_1_bss_884 >= object->work[0]) {
-        if (lbl_1_bss_880) {
-            lbl_1_bss_880--;
+    playerState->movementSpeed = playerState->spawnPosition.x + (90.0f * playerState->rotationSpeed);
+    playerState->movementAcceleration = 0.5f + (0.5f * playerState->difficultyScale);
+    if (lastComputerPlayerIndex >= playerObject->work[0]) {
+        if (computerActionTimer) {
+            computerActionTimer--;
         }
         else {
-            lbl_1_bss_880 = REFRESH_RATE_F * (8.0f + (0.004f * frandmod(1000)));
+            computerActionTimer = REFRESH_RATE_F * (8.0f + (0.004f * frandmod(1000)));
         }
     }
-    lbl_1_bss_884 = object->work[0];
-    if (var_r31->unk_2C) {
-        if (!var_r31->unk_4C && lbl_1_bss_880 < REFRESH_RATE_F * 2.2f && lbl_1_bss_880 > REFRESH_RATE_F / 2) {
-            var_r31->unk_80 = 0;
-            var_r29 = 1;
+    lastComputerPlayerIndex = playerObject->work[0];
+    if (playerState->motionEnabled) {
+        if (!playerState->computerActionActive && computerActionTimer < REFRESH_RATE_F * 2.2f && computerActionTimer > REFRESH_RATE_F / 2) {
+            playerState->computerActionTimer = 0;
+            startActionDelay = 1;
         }
-        if (!var_r31->unk_80) {
-            if (var_r29) {
-                var_r31->unk_80 = lbl_1_bss_880;
-                var_r31->unk_80 -= (REFRESH_RATE_F * (0.16f + (0.6f * (0.1f + (0.5f * var_r31->unk_74)))));
-                var_r31->unk_4C = 1;
-                if (var_r31->unk_80 > REFRESH_RATE_F * 4) {
-                    var_r31->unk_80 = 1;
+        if (!playerState->computerActionTimer) {
+            if (startActionDelay) {
+                playerState->computerActionTimer = computerActionTimer;
+                playerState->computerActionTimer -= (REFRESH_RATE_F * (0.16f + (0.6f * (0.1f + (0.5f * playerState->difficultyScale)))));
+                playerState->computerActionActive = 1;
+                if (playerState->computerActionTimer > REFRESH_RATE_F * 4) {
+                    playerState->computerActionTimer = 1;
                 }
             }
             else {
-                var_r31->unk_80 = REFRESH_RATE_F * (0.00080000004f * ((1.05f - var_r31->unk_74) * frandmod(1000)));
-                var_r31->unk_80 += (var_r31->unk_8C * ((REFRESH_RATE_F / 2) + ((REFRESH_RATE_F / 2000) * frandmod(1000))));
+                playerState->computerActionTimer = REFRESH_RATE_F * (0.00080000004f * ((1.05f - playerState->difficultyScale) * frandmod(1000)));
+                playerState->computerActionTimer += (playerState->movementScale * ((REFRESH_RATE_F / 2) + ((REFRESH_RATE_F / 2000) * frandmod(1000))));
             }
         }
         else {
-            var_r31->unk_80--;
-            if (!var_r31->unk_80) {
-                var_r31->unk_10 |= 256;
-                var_r31->unk_7C = (0.5f * var_r31->unk_74) + (((1.2f * var_r31->unk_74) / 1000.0f) * frandmod(1000));
-                if (var_r31->unk_7C < 0.25f) {
-                    var_r31->unk_7C = 0.25f;
+            playerState->computerActionTimer--;
+            if (!playerState->computerActionTimer) {
+                playerState->controllerButtons |= 256;
+                playerState->gravity = (0.5f * playerState->difficultyScale) + (((1.2f * playerState->difficultyScale) / 1000.0f) * frandmod(1000));
+                if (playerState->gravity < 0.25f) {
+                    playerState->gravity = 0.25f;
                 }
-                if (var_r31->unk_4C) {
-                    var_r31->unk_7C = 0.0f;
+                if (playerState->computerActionActive) {
+                    playerState->gravity = 0.0f;
                 }
-                var_r31->unk_4C = 0;
+                playerState->computerActionActive = 0;
             }
         }
     }
-    if (var_r31->unk_34 && ((var_r31->unk_E0.y < 0.0f && var_r31->unk_B0 < var_r31->unk_7C) || !lbl_1_bss_880)) {
-        var_r31->unk_10 |= 256;
+    if (playerState->motionTimer && ((playerState->previousPosition.y < 0.0f && playerState->waterSplashTimer < playerState->gravity) || !computerActionTimer)) {
+        playerState->controllerButtons |= 256;
     }
 }
 
-void fn_1_B8A0(OMOBJ *object, u32 arg1)
+void SetPlayerMotion(OMOBJ *playerObject, u32 motionIndex)
 {
-    float var_f31;
+    Float motionBlendDuration;
 
-    UnkM417Struct10 *var_r30;
+    MinigamePlayerState *playerState;
 
-    var_r30 = object->data;
-    if (var_r30->unk_08 != arg1 && arg1 < 11) {
-        var_f31 = REFRESH_RATE_F * lbl_1_data_114[arg1].unk_04;
-        if (var_r30->unk_08 < 0) {
-            var_f31 = 0.0f;
+    playerState = playerObject->data;
+    if (playerState->actionTimer != motionIndex && motionIndex < 11) {
+        motionBlendDuration = REFRESH_RATE_F * playerMotionSettings[motionIndex].actionState;
+        if (playerState->actionTimer < 0) {
+            motionBlendDuration = 0.0f;
         }
-        var_r30->unk_08 = arg1;
+        playerState->actionTimer = motionIndex;
         CharMotionShiftSet(
-            var_r30->unk_00,
-            object->mtnId[lbl_1_data_114[arg1].unk_00],
-            REFRESH_RATE_F * lbl_1_data_114[arg1].unk_08,
-            var_f31,
-            lbl_1_data_114[arg1].unk_10
+            playerState->playerIndex,
+            playerObject->mtnId[playerMotionSettings[motionIndex].playerIndex],
+            REFRESH_RATE_F * playerMotionSettings[motionIndex].actionTimer,
+            motionBlendDuration,
+            playerMotionSettings[motionIndex].playerFlags
         );
-        if (lbl_1_data_114[arg1].unk_0C >= 0.0f) {
+        if (playerMotionSettings[motionIndex].characterId >= 0.0f) {
             Hu3DMotionShiftStartEndSet(
-                *object->mdlId,
-                REFRESH_RATE_F * lbl_1_data_114[arg1].unk_08,
-                REFRESH_RATE_F * lbl_1_data_114[arg1].unk_0C
+                *playerObject->mdlId,
+                REFRESH_RATE_F * playerMotionSettings[motionIndex].actionTimer,
+                REFRESH_RATE_F * playerMotionSettings[motionIndex].characterId
             );
         }
 #if VERSION_PAL
-        CharMotionSpeedSet(var_r30->unk_00, 1.2f);
+        CharMotionSpeedSet(playerState->playerIndex, 1.2f);
 #endif
     }
 }
 
-s32 fn_1_BA2C(OMOBJ *object)
+s32 IsPlayerMotionFinished(OMOBJ *object)
 {
-    UnkM417Struct10 *var_r31;
-    s32 var_r30;
+    MinigamePlayerState *playerState;
+    s32 motionFinished;
 
-    var_r31 = object->data;
-    var_r30 = 0;
-    if (CharMotionEndCheck(var_r31->unk_00) && CharMotionShiftIDGet(var_r31->unk_00) < 0) {
-        var_r30 = 1;
+    playerState = object->data;
+    motionFinished = 0;
+    if (CharMotionEndCheck(playerState->playerIndex) && CharMotionShiftIDGet(playerState->playerIndex) < 0) {
+        motionFinished = 1;
     }
-    return var_r30;
+    return motionFinished;
 }
 
-s32 fn_1_BAA0(OMOBJ *object, u32 arg1)
+s32 SetPlayerMotionIfFinished(OMOBJ *playerObject, u32 motionIndex)
 {
-    s32 var_r27;
+    s32 motionWasSet;
 
-    var_r27 = 0;
-    if (fn_1_BA2C(object)) {
-        fn_1_B8A0(object, arg1);
-        var_r27 = 1;
+    motionWasSet = 0;
+    if (IsPlayerMotionFinished(playerObject)) {
+        SetPlayerMotion(playerObject, motionIndex);
+        motionWasSet = 1;
     }
-    return var_r27;
+    return motionWasSet;
 }
 
-void fn_1_BC70(float arg8, float arg9, Quaternion *arg0)
+void SetQuaternionFromAngles(Float rotationAngle, Float rotationScale, Quaternion *rotation)
 {
-    arg0->x = arg9;
-    arg0->y = arg8;
-    arg0->w = (2.0f * -arg8) / (arg9 * arg9);
-    arg0->z = -arg0->w * arg9;
+    rotation->x = rotationScale;
+    rotation->y = rotationAngle;
+    rotation->w = (2.0f * -rotationAngle) / (rotationScale * rotationScale);
+    rotation->z = -rotation->w * rotationScale;
 }

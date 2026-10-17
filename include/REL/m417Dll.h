@@ -4,33 +4,33 @@
 #include "game/object.h"
 #include "game/process.h"
 
-typedef struct UnkM417Struct2 {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ float unk_04;
-    /* 0x08 */ float unk_08;
-    /* 0x0C */ float unk_0C;
-} UnkM417Struct2; /* size = 0x10 */
+typedef struct WaterContactInfo {
+    /* 0x00 */ s32 waterContactIndex;
+    /* 0x04 */ float waterHeight;
+    /* 0x08 */ float waveAngle;
+    /* 0x0C */ float waveStrength;
+} WaterContactInfo; /* size = 0x10 */
 
-void fn_1_5B0(OMOBJ *object);
-void fn_1_800(OMOBJ *object);
-u32 fn_1_26F8(void);
-u32 fn_1_2710(void);
-void fn_1_2728(u32 arg0);
-s32 fn_1_2740(s32 arg0);
-void fn_1_2770(s32 arg0);
-void fn_1_27A0(s32 arg0);
-s32 fn_1_27D0(void);
-void fn_1_2808(s32 arg0, s32 arg1, s32 arg2);
-float fn_1_2F08(float arg8, float arg9, float argA);
-float fn_1_3024(float arg8, float arg9);
-void fn_1_3274(HUPROCESS *arg0);
-void fn_1_33B4(void);
-void fn_1_7510(float arg8, float arg9, float argA, float argB);
-float fn_1_75BC(void);
-float fn_1_78BC(float arg8, float arg9, float argA);
-UnkM417Struct2 *fn_1_7A28(void);
-void fn_1_7A34(HUPROCESS *arg0);
-OMOBJFUNC fn_1_BCAC(HUPROCESS *arg0);
-OMOBJFUNC fn_1_C658(HUPROCESS *arg0, OMOBJ *object);
+void UpdateMinigameFrame(OMOBJ *object);
+void AdvanceMinigameState(OMOBJ *object);
+u32 GetSequenceState(void);
+u32 GetResultState(void);
+void SetMinigameMode(u32 mode);
+s32 GetPlayerWinSequence(s32 playerIndex);
+void MarkPlayerItemCollected(s32 playerIndex);
+void MarkPlayerScore(s32 playerIndex);
+s32 IsResultSequenceFinished(void);
+void SetPlayerResult(s32 playerIndex, s32 result, s32 coinResult);
+float InterpolateAngle(float startAngle, float targetAngle, float blendFactor);
+float AngleDifference(float startAngle, float targetAngle);
+void CreateWaterObjects(HUPROCESS *objectManager);
+void DestroyWaterObjects(void);
+void SetWaterWave(float worldX, float worldY, float worldZ, float waveStrength);
+float GetWaterHeight(void);
+float GetWaterHeightAtPosition(float worldX, float worldY, float worldZ);
+WaterContactInfo *getWaterContactInfo(void);
+void CreatePlayerObjects(HUPROCESS *objectManager);
+OMOBJFUNC StartIntroCameraSequence(HUPROCESS *objectManager);
+OMOBJFUNC StartResultsSequence(HUPROCESS *objectManager, OMOBJ *minigameObject);
 
 #endif

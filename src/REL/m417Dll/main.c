@@ -10,222 +10,222 @@
 #include "version.h"
 #include <string.h>
 
-typedef struct UnkM417Struct {
-    /* 0x00 */ u32 unk_00;
-    /* 0x04 */ u32 unk_04;
-    /* 0x08 */ s32 unk_08;
-    /* 0x0C */ s32 unk_0C;
-    /* 0x10 */ s32 unk_10;
-    /* 0x14 */ s32 unk_14;
-    /* 0x18 */ s32 unk_18;
-    /* 0x1C */ u32 unk_1C;
-    /* 0x20 */ u32 unk_20;
-    /* 0x24 */ s32 unk_24;
-    /* 0x28 */ s32 unk_28;
-    /* 0x2C */ s32 unk_2C[4];
-    /* 0x3C */ s32 unk_3C[4];
-    /* 0x4C */ s32 unk_4C[4];
-    /* 0x5C */ u32 unk_5C;
-    /* 0x60 */ u32 unk_60;
-    /* 0x64 */ s32 unk_64;
-} UnkM417Struct; /* size = 0x68 */
+typedef struct MinigameRuntimeState {
+    /* 0x00 */ u32 minigameState;
+    /* 0x04 */ u32 elapsedFrames;
+    /* 0x08 */ s32 exitRequested;
+    /* 0x0C */ s32 winnerIndex;
+    /* 0x10 */ s32 introTimer;
+    /* 0x14 */ s32 sequenceState;
+    /* 0x18 */ s32 sequenceTimer;
+    /* 0x1C */ u32 sequenceFlags;
+    /* 0x20 */ u32 timerFrame;
+    /* 0x24 */ s32 resultState;
+    /* 0x28 */ s32 resultTimer;
+    /* 0x2C */ s32 playerResults[4];
+    /* 0x3C */ s32 playerCoinResults[4];
+    /* 0x4C */ s32 playerWinSequences[4];
+    /* 0x5C */ u32 minigameMode;
+    /* 0x60 */ u32 collectedItemFlags;
+    /* 0x64 */ s32 playerScoreFlags;
+} MinigameRuntimeState; /* size = 0x68 */
 
-void fn_1_4D8(OMOBJ *object);
-void fn_1_990(OMOBJ *object);
-void fn_1_EA8(OMOBJ *object);
-void fn_1_13DC(OMOBJ *object);
-void fn_1_17C0(OMOBJ *object);
-void fn_1_1CA8(OMOBJ *object);
-void fn_1_2158(OMOBJ *object);
-s32 fn_1_27D0(void);
+void InitializeMinigameObject(OMOBJ *object);
+void MinigameObjectUpdate(OMOBJ *object);
+void FinishMinigameTransition(OMOBJ *object);
+void CompleteMinigameExit(OMOBJ *object);
+void RunIntroSequence(OMOBJ *object);
+void RunCountdownSequence(OMOBJ *object);
+void RunResultSequence(OMOBJ *object);
+s32 IsResultSequenceFinished(void);
 
-Vec lbl_1_data_0 = { 100.0f, 800.0f, -100.0f };
-Vec lbl_1_data_C = { 0.3f, -0.8f, 0.3f };
-Vec lbl_1_data_18 = { 10.0f, 45.0f, 1000.0f };
-GXColor lbl_1_data_24 = { 255, 255, 255, 255 };
-Vec lbl_1_data_28 = { 50.0f, 150000.0f, 50.0f };
-Vec lbl_1_data_34 = { 0.0f, 1.0f, 0.0f };
-Vec lbl_1_data_40 = { 0.0f, 0.0f, 0.0f };
+Vec directionalLightPosition = { 100.0f, 800.0f, -100.0f };
+Vec directionalLightColor = { 0.3f, -0.8f, 0.3f };
+Vec cameraLightRotation = { 10.0f, 45.0f, 1000.0f };
+GXColor directionalLightTint = { 255, 255, 255, 255 };
+Vec shadowCameraPosition = { 50.0f, 150000.0f, 50.0f };
+Vec shadowCameraUp = { 0.0f, 1.0f, 0.0f };
+Vec shadowCameraTarget = { 0.0f, 0.0f, 0.0f };
 
-HUPROCESS *lbl_1_bss_20;
-OMOBJ *lbl_1_bss_1C;
-OMOBJ *lbl_1_bss_18;
-s16 lbl_1_bss_14;
-s16 lbl_1_bss_12;
-s16 lbl_1_bss_10;
-s16 lbl_1_bss_8[4];
-s32 lbl_1_bss_4;
-s32 lbl_1_bss_0;
+HUPROCESS *minigameSequence;
+OMOBJ *minigameObject;
+OMOBJ *viewObject;
+s16 resultSequenceId;
+s16 introSequenceId;
+s16 itemSequenceId;
+s16 globalLightIds[4];
+s32 backgroundSequenceId;
+s32 streamedMusicId;
 
 void ObjectSetup(void)
 {
-    Mtx sp38;
-    Vec sp2C = { 0.0f, 0.0f, 0.0f };
-    Vec sp20 = { 0.0f, 0.0f, -1.0f };
-    Vec sp14;
-    Vec sp8;
+    Mtx lightRotationMatrix;
+    Vec listenerPosition = { 0.0f, 0.0f, 0.0f };
+    Vec listenerDirection = { 0.0f, 0.0f, -1.0f };
+    Vec lightTarget;
+    Vec lightPosition;
 
-    HUPROCESS *var_r31;
-    HU3DLIGHT *var_r30;
+    HUPROCESS *objectManager;
+    HU3DLIGHT *directionalLight;
 
     HuAudSndGrpSet(42);
-    HuAudFXListnerSetEX(&sp2C, &sp20, 10000.0f, 1000.0f, 0.0f, 300.0f, 300.0f);
-    lbl_1_bss_4 = lbl_1_bss_0 = -1;
-    lbl_1_bss_14 = -1;
-    lbl_1_bss_8[0] = Hu3DGLightCreateV(&lbl_1_data_0, &lbl_1_data_C, &lbl_1_data_24);
-    Hu3DGLightInfinitytSet(lbl_1_bss_8[0]);
-    var_r30 = &Hu3DGlobalLight[lbl_1_bss_8[0]];
-    var_r30->type |= 32768;
-    lbl_1_data_18.x = 20.0f;
-    lbl_1_data_18.y = 45.0f;
-    lbl_1_data_18.z = 1000.0f;
-    sp14.x = sp14.y = sp14.z = 0.0f;
-    sp8.x = sp8.z = 0.0f;
-    sp8.y = lbl_1_data_18.z;
-    mtxRot(sp38, lbl_1_data_18.x, lbl_1_data_18.y, 0.0f);
-    MTXMultVec(sp38, &sp8, &sp8);
-    Hu3DGLightPosAimSetV(lbl_1_bss_8[0], &sp8, &sp14);
-    lbl_1_data_28.x = 200.0f;
-    lbl_1_data_28.y = 3000.0f;
-    lbl_1_data_28.z = 100.0f;
-    lbl_1_data_34.x = 0.0f;
-    lbl_1_data_34.y = 1.0f;
-    lbl_1_data_34.z = 0.0f;
-    lbl_1_data_40.x = 0.0f;
-    lbl_1_data_40.y = 0.0f;
-    lbl_1_data_40.z = 0.0f;
+    HuAudFXListnerSetEX(&listenerPosition, &listenerDirection, 10000.0f, 1000.0f, 0.0f, 300.0f, 300.0f);
+    backgroundSequenceId = streamedMusicId = -1;
+    resultSequenceId = -1;
+    globalLightIds[0] = Hu3DGLightCreateV(&directionalLightPosition, &directionalLightColor, &directionalLightTint);
+    Hu3DGLightInfinitytSet(globalLightIds[0]);
+    directionalLight = &Hu3DGlobalLight[globalLightIds[0]];
+    directionalLight->type |= 32768;
+    cameraLightRotation.x = 20.0f;
+    cameraLightRotation.y = 45.0f;
+    cameraLightRotation.z = 1000.0f;
+    lightTarget.x = lightTarget.y = lightTarget.z = 0.0f;
+    lightPosition.x = lightPosition.z = 0.0f;
+    lightPosition.y = cameraLightRotation.z;
+    mtxRot(lightRotationMatrix, cameraLightRotation.x, cameraLightRotation.y, 0.0f);
+    MTXMultVec(lightRotationMatrix, &lightPosition, &lightPosition);
+    Hu3DGLightPosAimSetV(globalLightIds[0], &lightPosition, &lightTarget);
+    shadowCameraPosition.x = 200.0f;
+    shadowCameraPosition.y = 3000.0f;
+    shadowCameraPosition.z = 100.0f;
+    shadowCameraUp.x = 0.0f;
+    shadowCameraUp.y = 1.0f;
+    shadowCameraUp.z = 0.0f;
+    shadowCameraTarget.x = 0.0f;
+    shadowCameraTarget.y = 0.0f;
+    shadowCameraTarget.z = 0.0f;
     Hu3DShadowCreate(30.0f, 20.0f, 25000.0f);
     Hu3DShadowTPLvlSet(0.625f);
-    Hu3DShadowPosSet(&lbl_1_data_28, &lbl_1_data_34, &lbl_1_data_40);
-    var_r31 = omInitObjMan(50, 8192);
-    lbl_1_bss_20 = var_r31;
-    omGameSysInit(var_r31);
-    lbl_1_bss_12 = lbl_1_bss_10 = -1;
+    Hu3DShadowPosSet(&shadowCameraPosition, &shadowCameraUp, &shadowCameraTarget);
+    objectManager = omInitObjMan(50, 8192);
+    minigameSequence = objectManager;
+    omGameSysInit(objectManager);
+    introSequenceId = itemSequenceId = -1;
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, -1.0f, 5.0f, 5000.0f, 1.2f);
-    lbl_1_bss_18 = omAddObjEx(var_r31, 32730, 0, 0, -1, omOutView);
-    lbl_1_bss_1C = omAddObjEx(var_r31, 10, 0, 0, -1, fn_1_4D8);
-    fn_1_3274(var_r31);
-    fn_1_7A34(var_r31);
+    viewObject = omAddObjEx(objectManager, 32730, 0, 0, -1, omOutView);
+    minigameObject = omAddObjEx(objectManager, 10, 0, 0, -1, InitializeMinigameObject);
+    CreateWaterObjects(objectManager);
+    CreatePlayerObjects(objectManager);
 }
 
-void fn_1_4D8(OMOBJ *object)
+void InitializeMinigameObject(OMOBJ *object)
 {
-    UnkM417Struct *var_r31;
+    MinigameRuntimeState *minigameState;
 
     object->data = HuMemDirectMallocNum(HEAP_HEAP, 0x68, 268435456);
-    var_r31 = object->data;
-    memset(var_r31, 0, 0x68);
-    var_r31->unk_00 = 0;
-    var_r31->unk_04 = 0;
-    var_r31->unk_0C = 0;
-    var_r31->unk_10 = 0;
-    var_r31->unk_14 = 0;
-    var_r31->unk_18 = 0;
-    var_r31->unk_24 = 0;
-    var_r31->unk_28 = 0;
-    var_r31->unk_08 = 0;
-    var_r31->unk_5C = 3;
-    var_r31->unk_4C[0] = var_r31->unk_4C[1] = var_r31->unk_4C[2] = var_r31->unk_4C[3] = -1;
-    var_r31->unk_60 = 0;
-    var_r31->unk_64 = 0;
-    object->objFunc = fn_1_990;
+    minigameState = object->data;
+    memset(minigameState, 0, 0x68);
+    minigameState->minigameState = 0;
+    minigameState->elapsedFrames = 0;
+    minigameState->winnerIndex = 0;
+    minigameState->introTimer = 0;
+    minigameState->sequenceState = 0;
+    minigameState->sequenceTimer = 0;
+    minigameState->resultState = 0;
+    minigameState->resultTimer = 0;
+    minigameState->exitRequested = 0;
+    minigameState->minigameMode = 3;
+    minigameState->playerWinSequences[0] = minigameState->playerWinSequences[1] = minigameState->playerWinSequences[2] = minigameState->playerWinSequences[3] = -1;
+    minigameState->collectedItemFlags = 0;
+    minigameState->playerScoreFlags = 0;
+    object->objFunc = MinigameObjectUpdate;
 }
 
-void fn_1_5B0(OMOBJ *object)
+void UpdateMinigameFrame(OMOBJ *object)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec cameraPosition;
+    Vec cameraDirection;
 
-    UnkM417Struct *var_r31;
+    MinigameRuntimeState *minigameState;
 
-    var_r31 = object->data;
-    var_r31->unk_04++;
-    var_r31->unk_10++;
-    var_r31->unk_18++;
-    var_r31->unk_28++;
-    sp8.x = -(sind(CRot.y) * cosd(CRot.x));
-    sp8.y = -(-sind(CRot.x));
-    sp8.z = -(cosd(CRot.y) * cosd(CRot.x));
-    sp14.x = Center.x - (sp8.x * CZoom);
-    sp14.y = Center.y - (sp8.y * CZoom);
-    sp14.z = Center.z - (sp8.z * CZoom);
-    HuAudFXListnerUpdate(&sp14, &sp8);
-    if (omSysExitReq && (var_r31->unk_00 != 5)) {
-        var_r31->unk_00 = 4;
-        fn_1_800(object);
+    minigameState = object->data;
+    minigameState->elapsedFrames++;
+    minigameState->introTimer++;
+    minigameState->sequenceTimer++;
+    minigameState->resultTimer++;
+    cameraDirection.x = -(sind(CRot.y) * cosd(CRot.x));
+    cameraDirection.y = -(-sind(CRot.x));
+    cameraDirection.z = -(cosd(CRot.y) * cosd(CRot.x));
+    cameraPosition.x = Center.x - (cameraDirection.x * CZoom);
+    cameraPosition.y = Center.y - (cameraDirection.y * CZoom);
+    cameraPosition.z = Center.z - (cameraDirection.z * CZoom);
+    HuAudFXListnerUpdate(&cameraPosition, &cameraDirection);
+    if (omSysExitReq && (minigameState->minigameState != 5)) {
+        minigameState->minigameState = 4;
+        AdvanceMinigameState(object);
     }
 }
 
-void fn_1_800(OMOBJ *object)
+void AdvanceMinigameState(OMOBJ *object)
 {
-    UnkM417Struct *var_r31;
+    MinigameRuntimeState *minigameState;
 
-    var_r31 = object->data;
-    if (var_r31->unk_08) {
+    minigameState = object->data;
+    if (minigameState->exitRequested) {
         return;
     }
-    switch (var_r31->unk_00) {
+    switch (minigameState->minigameState) {
         case 0:
             WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
             Hu3DCameraPerspectiveSet(1, 35.0f, 5.0f, 5000.0f, 1.2f);
-            var_r31->unk_00 = 1;
-            var_r31->unk_10 = 0;
-            object->objFunc = fn_1_BCAC(lbl_1_bss_20);
+            minigameState->minigameState = 1;
+            minigameState->introTimer = 0;
+            object->objFunc = startIntroCameraSequence(minigameSequence);
             break;
         case 1:
-            var_r31->unk_00 = 2;
-            var_r31->unk_18 = 0;
-            object->objFunc = fn_1_17C0;
+            minigameState->minigameState = 2;
+            minigameState->sequenceTimer = 0;
+            object->objFunc = RunIntroSequence;
             break;
         case 2:
-            if (lbl_1_bss_0 < 0) {
-                lbl_1_bss_0 = HuAudSStreamPlay(1);
+            if (streamedMusicId < 0) {
+                streamedMusicId = HuAudSStreamPlay(1);
             }
-            var_r31->unk_00 = 3;
-            var_r31->unk_28 = 0;
-            object->objFunc = fn_1_C658(lbl_1_bss_20, object);
+            minigameState->minigameState = 3;
+            minigameState->resultTimer = 0;
+            object->objFunc = startResultsSequence(minigameSequence, object);
             break;
         case 3:
         case 4:
-            var_r31->unk_08 = 1;
-            var_r31->unk_00 = 5;
-            object->objFunc = fn_1_EA8;
+            minigameState->exitRequested = 1;
+            minigameState->minigameState = 5;
+            object->objFunc = FinishMinigameTransition;
             break;
         case 5:
         default:
-            var_r31->unk_00 = 5;
-            object->objFunc = fn_1_13DC;
+            minigameState->minigameState = 5;
+            object->objFunc = CompleteMinigameExit;
             break;
     }
-    var_r31->unk_04 = 0;
+    minigameState->elapsedFrames = 0;
 }
 
-void fn_1_990(OMOBJ *object)
+void MinigameObjectUpdate(OMOBJ *object)
 {
-    fn_1_5B0(object);
-    fn_1_800(object);
+    UpdateMinigameFrame(object);
+    AdvanceMinigameState(object);
 }
 
-void fn_1_EA8(OMOBJ *object)
+void FinishMinigameTransition(OMOBJ *object)
 {
-    UnkM417Struct *var_r27;
+    MinigameRuntimeState *minigameState;
 
-    var_r27 = object->data;
+    minigameState = object->data;
 
-    fn_1_5B0(object);
+    UpdateMinigameFrame(object);
     if (!WipeStatGet()) {
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-        var_r27->unk_08 = 0;
-        fn_1_800(object);
+        minigameState->exitRequested = 0;
+        AdvanceMinigameState(object);
     }
 }
 
-void fn_1_13DC(OMOBJ *object)
+void CompleteMinigameExit(OMOBJ *object)
 {
-    fn_1_5B0(object);
+    UpdateMinigameFrame(object);
     if (!WipeStatGet()) {
-        fn_1_33B4();
+        DestroyWaterObjects();
         CharModelKill(-1);
         MGSeqKillAll();
         HuAudFadeOut(1);
@@ -233,33 +233,33 @@ void fn_1_13DC(OMOBJ *object)
     }
 }
 
-void fn_1_17C0(OMOBJ *object)
+void RunIntroSequence(OMOBJ *object)
 {
-    s16 sp8; // ! - uninitialized
+    s16 introSequenceId; // ! - uninitialized
 
-    UnkM417Struct *var_r30;
+    MinigameRuntimeState *minigameState;
 
-    var_r30 = object->data;
-    fn_1_5B0(object);
+    minigameState = object->data;
+    UpdateMinigameFrame(object);
 
-    switch (var_r30->unk_14) {
+    switch (minigameState->sequenceState) {
         case 0:
-            var_r30->unk_1C = 30;
-            var_r30->unk_20 = REFRESH_RATE;
-            lbl_1_bss_12 = MGSeqCreate(3, 0);
-            MGSeqPosSet(sp8, 320.0f, 240.0f);
-            var_r30->unk_14 = 1;
-            var_r30->unk_18 = 0;
+            minigameState->sequenceFlags = 30;
+            minigameState->timerFrame = REFRESH_RATE;
+            introSequenceId = MGSeqCreate(3, 0);
+            MGSeqPosSet(introSequenceId, 320.0f, 240.0f);
+            minigameState->sequenceState = 1;
+            minigameState->sequenceTimer = 0;
             break;
         case 1:
-            if (lbl_1_bss_4 < 0 && MGSeqStatGet(lbl_1_bss_12) & 16) {
-                lbl_1_bss_4 = HuAudSeqPlay(72);
+            if (backgroundSequenceId < 0 && MGSeqStatGet(introSequenceId) & 16) {
+                backgroundSequenceId = HuAudSeqPlay(72);
             }
-            if (!MGSeqStatGet(lbl_1_bss_12) && !var_r30->unk_08) {
-                lbl_1_bss_14 = MGSeqCreate(1, var_r30->unk_1C, -1, -1);
-                var_r30->unk_14 = 2;
-                var_r30->unk_18 = 0;
-                object->objFunc = fn_1_1CA8;
+            if (!MGSeqStatGet(introSequenceId) && !minigameState->exitRequested) {
+                resultSequenceId = MGSeqCreate(1, minigameState->sequenceFlags, -1, -1);
+                minigameState->sequenceState = 2;
+                minigameState->sequenceTimer = 0;
+                object->objFunc = RunCountdownSequence;
             }
             break;
         default:
@@ -267,236 +267,236 @@ void fn_1_17C0(OMOBJ *object)
     }
 }
 
-void fn_1_1CA8(OMOBJ *object)
+void RunCountdownSequence(OMOBJ *object)
 {
-    UnkM417Struct *var_r30;
-    s32 var_r27;
+    MinigameRuntimeState *minigameState;
+    s32 sequenceFinished;
 
-    var_r30 = object->data;
-    var_r27 = 0;
-    fn_1_5B0(object);
+    minigameState = object->data;
+    sequenceFinished = 0;
+    UpdateMinigameFrame(object);
 
-    if (--var_r30->unk_20 == 0) {
-        var_r30->unk_20 = REFRESH_RATE;
-        var_r30->unk_1C--;
-        if (var_r30->unk_1C == 0) {
-            var_r27 = 1;
+    if (--minigameState->timerFrame == 0) {
+        minigameState->timerFrame = REFRESH_RATE;
+        minigameState->sequenceFlags--;
+        if (minigameState->sequenceFlags == 0) {
+            sequenceFinished = 1;
         }
     }
-    if (var_r30->unk_5C != 3) {
-        var_r27 = 1;
+    if (minigameState->minigameMode != 3) {
+        sequenceFinished = 1;
     }
-    if (var_r27) {
-        if (var_r30->unk_5C == 3) {
-            var_r30->unk_5C = 1;
+    if (sequenceFinished) {
+        if (minigameState->minigameMode == 3) {
+            minigameState->minigameMode = 1;
         }
-        lbl_1_bss_10 = MGSeqCreate(3, 1);
-        MGSeqPosSet(lbl_1_bss_10, 320.0f, 240.0f);
-        HuAudSeqFadeOut(lbl_1_bss_4, 100);
-        var_r30->unk_14 = 3;
-        var_r30->unk_18 = 0;
-        if (var_r30->unk_08 == 0) {
-            object->objFunc = fn_1_2158;
+        itemSequenceId = MGSeqCreate(3, 1);
+        MGSeqPosSet(itemSequenceId, 320.0f, 240.0f);
+        HuAudSeqFadeOut(backgroundSequenceId, 100);
+        minigameState->sequenceState = 3;
+        minigameState->sequenceTimer = 0;
+        if (minigameState->exitRequested == 0) {
+            object->objFunc = RunResultSequence;
         }
     }
-    MGSeqParamSet(lbl_1_bss_14, 1, var_r30->unk_1C);
+    MGSeqParamSet(resultSequenceId, 1, minigameState->sequenceFlags);
 }
 
-void fn_1_2158(OMOBJ *object)
+void RunResultSequence(OMOBJ *object)
 {
-    UnkM417Struct *var_r27;
+    MinigameRuntimeState *minigameState;
 
-    var_r27 = object->data;
-    if (lbl_1_bss_14 >= 0) {
-        MGSeqParamSet(lbl_1_bss_14, 2, -1);
-        lbl_1_bss_14 = -1;
+    minigameState = object->data;
+    if (resultSequenceId >= 0) {
+        MGSeqParamSet(resultSequenceId, 2, -1);
+        resultSequenceId = -1;
     }
-    fn_1_5B0(object);
-    if (fn_1_27D0() && var_r27->unk_60 == 4369) {
-        var_r27->unk_14 = 4;
-        var_r27->unk_18 = 0;
-        fn_1_800(object);
+    UpdateMinigameFrame(object);
+    if (IsResultSequenceFinished() && minigameState->collectedItemFlags == 4369) {
+        minigameState->sequenceState = 4;
+        minigameState->sequenceTimer = 0;
+        AdvanceMinigameState(object);
     }
 }
 
-u32 fn_1_26C8(void)
+u32 GetMinigameState(void)
 {
-    return ((UnkM417Struct *)lbl_1_bss_1C->data)->unk_00;
+    return ((MinigameRuntimeState *)minigameObject->data)->minigameState;
 }
 
-s32 fn_1_26E0(void)
+s32 GetWinnerIndex(void)
 {
-    return ((UnkM417Struct *)lbl_1_bss_1C->data)->unk_0C;
+    return ((MinigameRuntimeState *)minigameObject->data)->winnerIndex;
 }
 
-u32 fn_1_26F8(void)
+u32 GetSequenceState(void)
 {
-    return ((UnkM417Struct *)lbl_1_bss_1C->data)->unk_14;
+    return ((MinigameRuntimeState *)minigameObject->data)->sequenceState;
 }
 
-u32 fn_1_2710(void)
+u32 GetResultState(void)
 {
-    return ((UnkM417Struct *)lbl_1_bss_1C->data)->unk_24;
+    return ((MinigameRuntimeState *)minigameObject->data)->resultState;
 }
 
-void fn_1_2728(u32 arg0)
+void SetMinigameMode(u32 mode)
 {
-    ((UnkM417Struct *)lbl_1_bss_1C->data)->unk_5C = arg0;
+    ((MinigameRuntimeState *)minigameObject->data)->minigameMode = mode;
 }
 
-s32 fn_1_2740(s32 arg0)
+s32 GetPlayerWinSequence(s32 playerIndex)
 {
-    UnkM417Struct *var_r31;
+    MinigameRuntimeState *minigameState;
 
-    var_r31 = lbl_1_bss_1C->data;
-    return var_r31->unk_4C[arg0];
+    minigameState = minigameObject->data;
+    return minigameState->playerWinSequences[playerIndex];
 }
 
-void fn_1_2770(s32 arg0)
+void MarkPlayerItemCollected(s32 playerIndex)
 {
-    ((UnkM417Struct *)lbl_1_bss_1C->data)->unk_60 |= (1 << ((arg0 & 3) * 4));
+    ((MinigameRuntimeState *)minigameObject->data)->collectedItemFlags |= (1 << ((playerIndex & 3) * 4));
 }
 
-void fn_1_27A0(s32 arg0)
+void MarkPlayerScore(s32 playerIndex)
 {
-    ((UnkM417Struct *)lbl_1_bss_1C->data)->unk_64 |= (1 << ((arg0 & 3) * 4));
+    ((MinigameRuntimeState *)minigameObject->data)->playerScoreFlags |= (1 << ((playerIndex & 3) * 4));
 }
 
-s32 fn_1_27D0(void)
+s32 IsResultSequenceFinished(void)
 {
-    return !MGSeqStatGet(lbl_1_bss_10);
+    return !MGSeqStatGet(itemSequenceId);
 }
 
-void fn_1_2808(s32 arg0, s32 arg1, s32 arg2)
+void SetPlayerResult(s32 playerIndex, s32 result, s32 coinResult)
 {
-    UnkM417Struct *var_r31;
+    MinigameRuntimeState *minigameState;
 
-    var_r31 = lbl_1_bss_1C->data;
-    arg0 &= 3;
-    var_r31->unk_2C[arg0] = arg1;
-    var_r31->unk_3C[arg0] = arg2;
+    minigameState = minigameObject->data;
+    playerIndex &= 3;
+    minigameState->playerResults[playerIndex] = result;
+    minigameState->playerCoinResults[playerIndex] = coinResult;
 }
 
-void fn_1_2848(Vec *arg0, Vec *arg1)
+void SetCameraBetweenPoints(Vec *cameraStart, Vec *cameraTarget)
 {
-    Vec sp10;
+    Vec cameraDelta;
 
-    float var_f29;
-    float var_f28;
+    Float horizontalDistanceSquared;
+    Float distanceSquared;
 
-    sp10.x = arg1->x - arg0->x;
-    sp10.y = arg1->y - arg0->y;
-    sp10.z = arg1->z - arg0->z;
+    cameraDelta.x = cameraTarget->x - cameraStart->x;
+    cameraDelta.y = cameraTarget->y - cameraStart->y;
+    cameraDelta.z = cameraTarget->z - cameraStart->z;
 
-    Center.x = arg1->x;
-    Center.y = arg1->y;
-    Center.z = arg1->z;
+    Center.x = cameraTarget->x;
+    Center.y = cameraTarget->y;
+    Center.z = cameraTarget->z;
 
-    var_f29 = (sp10.x * sp10.x) + (sp10.z * sp10.z);
-    CRot.x = atan2d(sp10.y, sqrtf(var_f29));
-    CRot.y = atan2d(-sp10.x, -sp10.z);
+    horizontalDistanceSquared = (cameraDelta.x * cameraDelta.x) + (cameraDelta.z * cameraDelta.z);
+    CRot.x = atan2d(cameraDelta.y, sqrtf(horizontalDistanceSquared));
+    CRot.y = atan2d(-cameraDelta.x, -cameraDelta.z);
     CRot.z = 0.0f;
 
-    var_f28 = (sp10.z * sp10.z) + ((sp10.x * sp10.x) + (sp10.y * sp10.y));
-    CZoom = sqrtf(var_f28);
+    distanceSquared = (cameraDelta.z * cameraDelta.z) + ((cameraDelta.x * cameraDelta.x) + (cameraDelta.y * cameraDelta.y));
+    CZoom = sqrtf(distanceSquared);
 }
 
-void fn_1_2B90(float arg8, float arg9, float argA, float argB, float argC, float argD)
+void SetCameraBetweenPositions(Float startX, Float startY, Float startZ, Float targetX, Float targetY, Float targetZ)
 {
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
+    Vec cameraStart;
+    Vec cameraTarget;
+    Vec cameraDelta;
 
-    float var_f29;
-    float var_f28;
+    Float horizontalDistanceSquared;
+    Float distanceSquared;
 
-    sp40.x = arg8;
-    sp40.y = arg9;
-    sp40.z = argA;
+    cameraStart.x = startX;
+    cameraStart.y = startY;
+    cameraStart.z = startZ;
 
-    sp34.x = argB;
-    sp34.y = argC;
-    sp34.z = argD;
+    cameraTarget.x = targetX;
+    cameraTarget.y = targetY;
+    cameraTarget.z = targetZ;
 
-    sp28.x = sp34.x - sp40.x;
-    sp28.y = sp34.y - sp40.y;
-    sp28.z = sp34.z - sp40.z;
+    cameraDelta.x = cameraTarget.x - cameraStart.x;
+    cameraDelta.y = cameraTarget.y - cameraStart.y;
+    cameraDelta.z = cameraTarget.z - cameraStart.z;
 
-    Center.x = sp34.x;
-    Center.y = sp34.y;
-    Center.z = sp34.z;
+    Center.x = cameraTarget.x;
+    Center.y = cameraTarget.y;
+    Center.z = cameraTarget.z;
 
-    var_f29 = (sp28.x * sp28.x) + (sp28.z * sp28.z);
-    CRot.x = atan2d(sp28.y, sqrtf(var_f29));
-    CRot.y = atan2d(-sp28.x, -sp28.z);
+    horizontalDistanceSquared = (cameraDelta.x * cameraDelta.x) + (cameraDelta.z * cameraDelta.z);
+    CRot.x = atan2d(cameraDelta.y, sqrtf(horizontalDistanceSquared));
+    CRot.y = atan2d(-cameraDelta.x, -cameraDelta.z);
     CRot.z = 0.0f;
 
-    var_f28 = (sp28.z * sp28.z) + ((sp28.x * sp28.x) + (sp28.y * sp28.y));
-    CZoom = sqrtf(var_f28);
+    distanceSquared = (cameraDelta.z * cameraDelta.z) + ((cameraDelta.x * cameraDelta.x) + (cameraDelta.y * cameraDelta.y));
+    CZoom = sqrtf(distanceSquared);
 }
 
-float fn_1_2F08(float arg8, float arg9, float argA)
+Float InterpolateAngle(Float startAngle, Float targetAngle, Float interpolationFactor)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    Float normalizedAngleDifference;
+    Float angleDifference;
+    Float interpolatedAngle;
 
-    var_f30 = fmod(arg9 - arg8, 360.0);
-    var_f31 = var_f30;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    angleDifference = fmod(targetAngle - startAngle, 360.0);
+    normalizedAngleDifference = angleDifference;
+    if (normalizedAngleDifference < 0.0f) {
+        normalizedAngleDifference += 360.0f;
     }
-    if (var_f31 > 180.0f) {
-        var_f31 -= 360.0f;
+    if (normalizedAngleDifference > 180.0f) {
+        normalizedAngleDifference -= 360.0f;
     }
-    var_f29 = fmod(arg8 + (argA * var_f31), 360.0);
-    var_f31 = var_f29;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    interpolatedAngle = fmod(startAngle + (interpolationFactor * normalizedAngleDifference), 360.0);
+    normalizedAngleDifference = interpolatedAngle;
+    if (normalizedAngleDifference < 0.0f) {
+        normalizedAngleDifference += 360.0f;
     }
-    return var_f31;
+    return normalizedAngleDifference;
 }
 
-float fn_1_3024(float arg8, float arg9)
+Float AngleDifference(Float startAngle, Float targetAngle)
 {
-    float var_f31;
-    float var_f30;
+    Float normalizedAngleDifference;
+    Float angleDifference;
 
-    var_f30 = fmod(arg9 - arg8, 360.0);
-    var_f31 = var_f30;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    angleDifference = fmod(targetAngle - startAngle, 360.0);
+    normalizedAngleDifference = angleDifference;
+    if (normalizedAngleDifference < 0.0f) {
+        normalizedAngleDifference += 360.0f;
     }
-    if (var_f31 > 180.0f) {
-        var_f31 -= 360.0f;
+    if (normalizedAngleDifference > 180.0f) {
+        normalizedAngleDifference -= 360.0f;
     }
-    return var_f31;
+    return normalizedAngleDifference;
 }
 
-void fn_1_30D8(float *arg1, float *arg2, float *arg3, float *arg4)
+void ClearVectorComponents(Float *unusedOutput, Float *xOutput, Float *yOutput, Float *zOutput)
 {
-    *arg2 = *arg3 = *arg4 = 0.0f;
-    *arg2 = *arg3 = *arg4 = 0.0f;
+    *xOutput = *yOutput = *zOutput = 0.0f;
+    *xOutput = *yOutput = *zOutput = 0.0f;
 }
 
-void fn_1_310C(float arg8, float arg9, float argA, float *arg0, float *arg1, float *arg2)
+void RotateVectorComponents(Float xRotation, Float yRotation, Float zRotation, Float *rotatedX, Float *rotatedY, Float *rotatedZ)
 {
-    Mtx sp38;
-    Mtx sp8;
+    Mtx rotationMatrix;
+    Mtx axisRotationMatrix;
 
-    if (arg8 != 0.0f) {
-        MTXRotRad(sp38, 88, 0.017453292f * arg8);
+    if (xRotation != 0.0f) {
+        MTXRotRad(rotationMatrix, 88, 0.017453292f * xRotation);
     }
     else {
-        MTXIdentity(sp38);
+        MTXIdentity(rotationMatrix);
     }
-    if (arg9 != 0.0f) {
-        MTXRotRad(sp8, 89, 0.017453292f * arg9);
-        MTXConcat(sp38, sp8, sp38);
+    if (yRotation != 0.0f) {
+        MTXRotRad(axisRotationMatrix, 89, 0.017453292f * yRotation);
+        MTXConcat(rotationMatrix, axisRotationMatrix, rotationMatrix);
     }
-    if (argA != 0.0f) {
-        MTXRotRad(sp8, 90, 0.017453292f * argA);
-        MTXConcat(sp38, sp8, sp38);
+    if (zRotation != 0.0f) {
+        MTXRotRad(axisRotationMatrix, 90, 0.017453292f * zRotation);
+        MTXConcat(rotationMatrix, axisRotationMatrix, rotationMatrix);
     }
-    fn_1_30D8(NULL, arg0, arg1, arg2);
+    ClearVectorComponents(NULL, rotatedX, rotatedY, rotatedZ);
 }
