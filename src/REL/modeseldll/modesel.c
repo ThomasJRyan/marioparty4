@@ -15,131 +15,131 @@
 #include "game/thpmain.h"
 #endif
 
-s16 lbl_1_data_80[] = { 16, 17, 18, 19, 20, 21 };
+s16 specialModeModelIndices[] = { 16, 17, 18, 19, 20, 21 };
 
-s32 lbl_1_data_8C[] = { DATA_MAKE_NUM(DATADIR_MODESEL, 0x30), DATA_MAKE_NUM(DATADIR_MODESEL, 0x32), DATA_MAKE_NUM(DATADIR_MODESEL, 0x34),
+s32 specialModeSelectedAnimations[] = { DATA_MAKE_NUM(DATADIR_MODESEL, 0x30), DATA_MAKE_NUM(DATADIR_MODESEL, 0x32), DATA_MAKE_NUM(DATADIR_MODESEL, 0x34),
     DATA_MAKE_NUM(DATADIR_MODESEL, 0x36), DATA_MAKE_NUM(DATADIR_MODESEL, 0x38), DATA_MAKE_NUM(DATADIR_MODESEL, 0x3A) };
 
-s32 lbl_1_data_A4[] = { DATA_MAKE_NUM(DATADIR_MODESEL, 0x31), DATA_MAKE_NUM(DATADIR_MODESEL, 0x33), DATA_MAKE_NUM(DATADIR_MODESEL, 0x35),
+s32 specialModeUnselectedAnimations[] = { DATA_MAKE_NUM(DATADIR_MODESEL, 0x31), DATA_MAKE_NUM(DATADIR_MODESEL, 0x33), DATA_MAKE_NUM(DATADIR_MODESEL, 0x35),
     DATA_MAKE_NUM(DATADIR_MODESEL, 0x37), DATA_MAKE_NUM(DATADIR_MODESEL, 0x39), DATA_MAKE_NUM(DATADIR_MODESEL, 0x3B) };
 
-u32 lbl_1_data_BC[] = { MAKE_MESSID(17, 1), MAKE_MESSID(17, 2), MAKE_MESSID(17, 3), MAKE_MESSID(17, 4), MAKE_MESSID(17, 5), MAKE_MESSID(17, 6) };
+u32 specialModeDescriptionMessages[] = { MAKE_MESSID(17, 1), MAKE_MESSID(17, 2), MAKE_MESSID(17, 3), MAKE_MESSID(17, 4), MAKE_MESSID(17, 5), MAKE_MESSID(17, 6) };
 
-s16 lbl_1_bss_82;
-s16 lbl_1_bss_80;
+s16 modeDescriptionWindowId;
+s16 selectedSpecialMode;
 
-void fn_1_3668(void);
+void InitializeModeSelectionShadow(void);
 
 // Scratch is at https://decomp.me/scratch/iirXp
 // Register allocation issues at line 180 with load of 1.0 double constant
-s32 fn_1_2490(void)
+s32 SelectSpecialMode(void)
 {
-    float sp10[2];
-    float sp8[2];
-    float temp_f31;
-    float temp_f30;
-    s16 temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s32 temp_r25;
-    WindowData *temp_r24;
-    ANIMDATA *temp_r23;
-    ANIMDATA *temp_r22;
-    s16 temp_r21;
-    fn_1_3668();
-    fn_1_1EC0(1);
-    temp_r25 = HuAudFXPlay(2094);
+    float descriptionWindowDimensions[2];
+    float specialModeWindowDimensions[2];
+    float entranceProgress;
+    float movieScrollSpeed;
+    s16 animationFrame;
+    s16 selectionChange;
+    s16 specialModeWindowId;
+    s16 modeIndex;
+    s16 movieSpriteGroup;
+    s16 previousModeIndex;
+    s32 introSoundHandle;
+    WindowData *descriptionWindowData;
+    ANIMDATA *selectedModeAnimation;
+    ANIMDATA *unselectedModeAnimation;
+    s16 movieSpriteId;
+    InitializeModeSelectionShadow();
+    SetModeSelectionCamera(1);
+    introSoundHandle = HuAudFXPlay(2094);
     if (omovlevtno) {
         WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 30);
     }
-    for (temp_r31 = 0; temp_r31 <= 20; temp_r31++) {
-        temp_f31 = 1.0 - sind(90.0 * (temp_r31 / 20.0));
-        Hu3DModelPosSet(lbl_1_bss_19A[14], 0, -50.0f + (200.0f * temp_f31), 0);
-        Hu3DModelPosSet(lbl_1_bss_19A[15], 0, -50.0f + (200.0f * temp_f31), 0);
+    for (animationFrame = 0; animationFrame <= 20; animationFrame++) {
+        entranceProgress = 1.0 - sind(90.0 * (animationFrame / 20.0));
+        Hu3DModelPosSet(modeSelectModelIds[14], 0, -50.0f + (200.0f * entranceProgress), 0);
+        Hu3DModelPosSet(modeSelectModelIds[15], 0, -50.0f + (200.0f * entranceProgress), 0);
         HuPrcVSleep();
     }
     HuPrcSleep(20);
-    Hu3DModelAttrReset(lbl_1_bss_19A[14], HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrReset(lbl_1_bss_19A[15], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrReset(modeSelectModelIds[14], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrReset(modeSelectModelIds[15], HU3D_MOTATTR_PAUSE);
     HuAudFXPlay(2093);
     HuPrcSleep(120);
     HuAudFXPlay(2095);
-    for (temp_r31 = 0; temp_r31 <= 30; temp_r31++) {
-        temp_f31 = temp_r31 / 30.0;
-        Hu3DModelPosSet(lbl_1_bss_19A[14], 0, -50.0f - (20.0f * temp_f31), 0);
+    for (animationFrame = 0; animationFrame <= 30; animationFrame++) {
+        entranceProgress = animationFrame / 30.0;
+        Hu3DModelPosSet(modeSelectModelIds[14], 0, -50.0f - (20.0f * entranceProgress), 0);
         HuPrcVSleep();
     }
-    HuWinMesMaxSizeBetGet(sp10, MAKE_MESSID(0x11, 0x00), MAKE_MESSID(0x11, 0x06));
-    lbl_1_bss_82 = HuWinExCreateStyled(-10000, 432 - sp10[1], sp10[0], sp10[1], -1, 0);
-    HuWinMesSpeedSet(lbl_1_bss_82, 0);
-    temp_r24 = &winData[lbl_1_bss_82];
-    temp_r24->active_pad = 1;
-    HuWinExAnimIn(lbl_1_bss_82);
-    HuWinMesSet(lbl_1_bss_82, MAKE_MESSID(0x11, 0x00));
-    HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(0x1A, 0x20));
-    temp_r29 = HuWinCreate(-10000, 8 + (432 - sp10[1] - sp8[1]), sp8[0], sp8[1], 0);
-    HuWinMesSpeedSet(temp_r29, 0);
-    HuWinBGTPLvlSet(temp_r29, 0);
-    HuWinMesSet(temp_r29, MAKE_MESSID(0x1A, 0x20));
-    HuWinDispOff(temp_r29);
-    while (!Hu3DMotionEndCheck(lbl_1_bss_19A[15])) {
+    HuWinMesMaxSizeBetGet(descriptionWindowDimensions, MAKE_MESSID(0x11, 0x00), MAKE_MESSID(0x11, 0x06));
+    modeDescriptionWindowId = HuWinExCreateStyled(-10000, 432 - descriptionWindowDimensions[1], descriptionWindowDimensions[0], descriptionWindowDimensions[1], -1, 0);
+    HuWinMesSpeedSet(modeDescriptionWindowId, 0);
+    descriptionWindowData = &winData[modeDescriptionWindowId];
+    descriptionWindowData->active_pad = 1;
+    HuWinExAnimIn(modeDescriptionWindowId);
+    HuWinMesSet(modeDescriptionWindowId, MAKE_MESSID(0x11, 0x00));
+    HuWinMesMaxSizeGet(1, specialModeWindowDimensions, MAKE_MESSID(0x1A, 0x20));
+    specialModeWindowId = HuWinCreate(-10000, 8 + (432 - descriptionWindowDimensions[1] - specialModeWindowDimensions[1]), specialModeWindowDimensions[0], specialModeWindowDimensions[1], 0);
+    HuWinMesSpeedSet(specialModeWindowId, 0);
+    HuWinBGTPLvlSet(specialModeWindowId, 0);
+    HuWinMesSet(specialModeWindowId, MAKE_MESSID(0x1A, 0x20));
+    HuWinDispOff(specialModeWindowId);
+    while (!Hu3DMotionEndCheck(modeSelectModelIds[15])) {
         HuPrcVSleep();
     }
-    Hu3DModelAttrSet(lbl_1_bss_19A[15], HU3D_ATTR_DISPOFF);
-    for (temp_r31 = 0; temp_r31 < 6; temp_r31++) {
-        Hu3DModelAttrReset(lbl_1_bss_19A[lbl_1_data_80[temp_r31]], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(lbl_1_bss_19A[lbl_1_data_80[temp_r31]], HU3D_MOTATTR_PAUSE);
-        Hu3DMotionTimeSet(lbl_1_bss_19A[lbl_1_data_80[temp_r31]], 0);
-        Hu3DModelPosSet(lbl_1_bss_19A[lbl_1_data_80[temp_r31]], 0, -50, 0);
+    Hu3DModelAttrSet(modeSelectModelIds[15], HU3D_ATTR_DISPOFF);
+    for (animationFrame = 0; animationFrame < 6; animationFrame++) {
+        Hu3DModelAttrReset(modeSelectModelIds[specialModeModelIndices[animationFrame]], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(modeSelectModelIds[specialModeModelIndices[animationFrame]], HU3D_MOTATTR_PAUSE);
+        Hu3DMotionTimeSet(modeSelectModelIds[specialModeModelIndices[animationFrame]], 0);
+        Hu3DModelPosSet(modeSelectModelIds[specialModeModelIndices[animationFrame]], 0, -50, 0);
     }
-    HuWinMesWait(lbl_1_bss_82);
+    HuWinMesWait(modeDescriptionWindowId);
 
-    temp_r26 = lbl_1_bss_80 = 0;
-    espAttrReset(lbl_1_bss_152[10], HUSPR_ATTR_DISPOFF);
-    espBankSet(lbl_1_bss_152[10], 0);
-    for (temp_r31 = 0; temp_r31 <= 10; temp_r31++) {
-        temp_f31 = temp_r31 / 10.0f;
-        Hu3DModelPosSet(lbl_1_bss_19A[lbl_1_data_80[lbl_1_bss_80]], 0, -50, 50.0 * sind(90.0f * temp_f31));
-        espPosSet(lbl_1_bss_152[10], 288.0, -50.0 + (106.0 * sind(90.0f * temp_f31)));
+    previousModeIndex = selectedSpecialMode = 0;
+    espAttrReset(modeSelectSpriteIds[10], HUSPR_ATTR_DISPOFF);
+    espBankSet(modeSelectSpriteIds[10], 0);
+    for (animationFrame = 0; animationFrame <= 10; animationFrame++) {
+        entranceProgress = animationFrame / 10.0f;
+        Hu3DModelPosSet(modeSelectModelIds[specialModeModelIndices[selectedSpecialMode]], 0, -50, 50.0 * sind(90.0f * entranceProgress));
+        espPosSet(modeSelectSpriteIds[10], 288.0, -50.0 + (106.0 * sind(90.0f * entranceProgress)));
         HuPrcVSleep();
     }
-    HuWinMesSet(lbl_1_bss_82, lbl_1_data_BC[lbl_1_bss_80]);
-    HuWinDispOn(temp_r29);
+    HuWinMesSet(modeDescriptionWindowId, specialModeDescriptionMessages[selectedSpecialMode]);
+    HuWinDispOn(specialModeWindowId);
     while (1) {
-        temp_r30 = 0;
+        selectionChange = 0;
         if (HuPadDStkRep[0] & PAD_BUTTON_LEFT) {
-            temp_r30 = -1;
+            selectionChange = -1;
         }
         else if (HuPadDStkRep[0] & PAD_BUTTON_RIGHT) {
-            temp_r30 = 1;
+            selectionChange = 1;
         }
-        if (temp_r30) {
-            if (lbl_1_bss_80 + temp_r30 < 0) {
-                lbl_1_bss_80 = 0;
+        if (selectionChange) {
+            if (selectedSpecialMode + selectionChange < 0) {
+                selectedSpecialMode = 0;
             }
-            else if (lbl_1_bss_80 + temp_r30 >= 6) {
-                lbl_1_bss_80 = 5;
+            else if (selectedSpecialMode + selectionChange >= 6) {
+                selectedSpecialMode = 5;
             }
             else {
-                lbl_1_bss_80 += temp_r30;
+                selectedSpecialMode += selectionChange;
             }
-            if (temp_r26 != lbl_1_bss_80) {
+            if (previousModeIndex != selectedSpecialMode) {
                 HuAudFXPlay(0);
-                for (temp_r31 = 0; temp_r31 <= 10; temp_r31++) {
-                    temp_f31 = temp_r31 / 10.0f;
-                    Hu3DModelPosSet(lbl_1_bss_19A[lbl_1_data_80[temp_r26]], 0, -50, 50.0 * cosd(90.0f * temp_f31));
-                    Hu3DModelPosSet(lbl_1_bss_19A[lbl_1_data_80[lbl_1_bss_80]], 0, -50, 50.0 * sind(90.0f * temp_f31));
-                    espPosSet(lbl_1_bss_152[10], 288.0, -50.0 + (106.0 * (1.0 - sind(180.0f * temp_f31))));
-                    if (temp_r31 == 5) {
-                        espBankSet(lbl_1_bss_152[10], lbl_1_bss_80);
+                for (animationFrame = 0; animationFrame <= 10; animationFrame++) {
+                    entranceProgress = animationFrame / 10.0f;
+                    Hu3DModelPosSet(modeSelectModelIds[specialModeModelIndices[previousModeIndex]], 0, -50, 50.0 * cosd(90.0f * entranceProgress));
+                    Hu3DModelPosSet(modeSelectModelIds[specialModeModelIndices[selectedSpecialMode]], 0, -50, 50.0 * sind(90.0f * entranceProgress));
+                    espPosSet(modeSelectSpriteIds[10], 288.0, -50.0 + (106.0 * (1.0 - sind(180.0f * entranceProgress))));
+                    if (animationFrame == 5) {
+                        espBankSet(modeSelectSpriteIds[10], selectedSpecialMode);
                     }
                     HuPrcVSleep();
                 }
-                temp_r26 = lbl_1_bss_80;
-                HuWinMesSet(lbl_1_bss_82, lbl_1_data_BC[lbl_1_bss_80]);
+                previousModeIndex = selectedSpecialMode;
+                HuWinMesSet(modeDescriptionWindowId, specialModeDescriptionMessages[selectedSpecialMode]);
             }
         }
         if (HuPadBtnDown[0] & PAD_BUTTON_A) {
@@ -148,7 +148,7 @@ s32 fn_1_2490(void)
         }
         else if (HuPadBtnDown[0] & PAD_BUTTON_B) {
             HuAudFXPlay(3);
-            HuAudFXStop(temp_r25);
+            HuAudFXStop(introSoundHandle);
             return -1;
         }
         else {
@@ -156,58 +156,58 @@ s32 fn_1_2490(void)
             continue;
         }
     }
-    Hu3DModelAttrReset(lbl_1_bss_19A[lbl_1_data_80[lbl_1_bss_80]], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrReset(modeSelectModelIds[specialModeModelIndices[selectedSpecialMode]], HU3D_MOTATTR_PAUSE);
     HuAudSeqAllFadeOut(1000);
-    for (temp_r31 = 0; temp_r31 <= 20; temp_r31++) {
-        temp_f31 = temp_r31 / 20.0f;
-        for (temp_r28 = 0; temp_r28 < 6; temp_r28++) {
-            if (temp_r28 != lbl_1_bss_80) {
-                Hu3DModelPosSet(lbl_1_bss_19A[lbl_1_data_80[temp_r28]], 0, -50 - (300.0 * (1.0 - cosd(90.0f * temp_f31))), 0);
-                espPosSet(lbl_1_bss_152[10], 288.0, -50.0 + (106.0 * (cosd(90.0f * temp_f31))));
+    for (animationFrame = 0; animationFrame <= 20; animationFrame++) {
+        entranceProgress = animationFrame / 20.0f;
+        for (modeIndex = 0; modeIndex < 6; modeIndex++) {
+            if (modeIndex != selectedSpecialMode) {
+                Hu3DModelPosSet(modeSelectModelIds[specialModeModelIndices[modeIndex]], 0, -50 - (300.0 * (1.0 - cosd(90.0f * entranceProgress))), 0);
+                espPosSet(modeSelectSpriteIds[10], 288.0, -50.0 + (106.0 * (cosd(90.0f * entranceProgress))));
             }
         }
         HuPrcVSleep();
     }
-    HuWinKill(temp_r29);
-    HuWinExAnimOut(lbl_1_bss_82);
-    HuAudFXStop(temp_r25);
-    temp_r27 = HuSprGrpCreate(1);
-    temp_r21 = HuTHPSprCreateVol("movie/opmov_c00.thp", 0, 3000, 90.0);
-    HuSprGrpMemberSet(temp_r27, 0, temp_r21);
-    HuSprPosSet(temp_r27, 0, 288.0f, 240.0f);
-    HuSprDrawNoSet(temp_r27, 0, 127);
+    HuWinKill(specialModeWindowId);
+    HuWinExAnimOut(modeDescriptionWindowId);
+    HuAudFXStop(introSoundHandle);
+    movieSpriteGroup = HuSprGrpCreate(1);
+    movieSpriteId = HuTHPSprCreateVol("movie/opmov_c00.thp", 0, 3000, 90.0);
+    HuSprGrpMemberSet(movieSpriteGroup, 0, movieSpriteId);
+    HuSprPosSet(movieSpriteGroup, 0, 288.0f, 240.0f);
+    HuSprDrawNoSet(movieSpriteGroup, 0, 127);
     HuPrcSleep(2);
-    espAttrSet(lbl_1_bss_152[9], HUSPR_ATTR_DISPOFF);
-    for (temp_r31 = 0; temp_r31 <= 10; temp_r31++) {
-        temp_f31 = temp_r31 / 10.0;
-        Hu3DModelPosSet(lbl_1_bss_19A[14], 0, -70.0f - (100.0f * temp_f31), 0);
+    espAttrSet(modeSelectSpriteIds[9], HUSPR_ATTR_DISPOFF);
+    for (animationFrame = 0; animationFrame <= 10; animationFrame++) {
+        entranceProgress = animationFrame / 10.0;
+        Hu3DModelPosSet(modeSelectModelIds[14], 0, -70.0f - (100.0f * entranceProgress), 0);
         HuPrcVSleep();
     }
-    temp_r23 = HuSprAnimRead(HuDataReadNum(lbl_1_data_8C[lbl_1_bss_80], HU_MEMNUM_OVL));
-    temp_r22 = HuSprAnimRead(HuDataReadNum(lbl_1_data_A4[lbl_1_bss_80], HU_MEMNUM_OVL));
-    Hu3DAnimCreate(temp_r23, lbl_1_bss_19A[22], "ys002_a1");
-    Hu3DAnimCreate(temp_r22, lbl_1_bss_19A[22], "ys002_a2");
-    Hu3DModelAttrSet(lbl_1_bss_19A[lbl_1_data_80[lbl_1_bss_80]], HU3D_ATTR_DISPOFF);
-    Hu3DMotionTimeSet(lbl_1_bss_19A[22], 0);
-    Hu3DModelAttrReset(lbl_1_bss_19A[22], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_19A[22], HU3D_MOTATTR_PAUSE);
-    Hu3DModelPosSet(lbl_1_bss_19A[22], 0, 27, 50);
-    Hu3DModelScaleSet(lbl_1_bss_19A[22], 1.0f, 1.063f, 1.0f);
-    for (temp_r31 = 1; temp_r31 <= 20; temp_r31++) {
-        temp_f31 = temp_r31 / 20.0;
-        Hu3DModelPosSet(lbl_1_bss_19A[22], 0, 27.0 - (60.0 * sind(90.0f * temp_f31)), 50);
+    selectedModeAnimation = HuSprAnimRead(HuDataReadNum(specialModeSelectedAnimations[selectedSpecialMode], HU_MEMNUM_OVL));
+    unselectedModeAnimation = HuSprAnimRead(HuDataReadNum(specialModeUnselectedAnimations[selectedSpecialMode], HU_MEMNUM_OVL));
+    Hu3DAnimCreate(selectedModeAnimation, modeSelectModelIds[22], "ys002_a1");
+    Hu3DAnimCreate(unselectedModeAnimation, modeSelectModelIds[22], "ys002_a2");
+    Hu3DModelAttrSet(modeSelectModelIds[specialModeModelIndices[selectedSpecialMode]], HU3D_ATTR_DISPOFF);
+    Hu3DMotionTimeSet(modeSelectModelIds[22], 0);
+    Hu3DModelAttrReset(modeSelectModelIds[22], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(modeSelectModelIds[22], HU3D_MOTATTR_PAUSE);
+    Hu3DModelPosSet(modeSelectModelIds[22], 0, 27, 50);
+    Hu3DModelScaleSet(modeSelectModelIds[22], 1.0f, 1.063f, 1.0f);
+    for (animationFrame = 1; animationFrame <= 20; animationFrame++) {
+        entranceProgress = animationFrame / 20.0;
+        Hu3DModelPosSet(modeSelectModelIds[22], 0, 27.0 - (60.0 * sind(90.0f * entranceProgress)), 50);
         HuPrcVSleep();
     }
     HuPrcSleep(90);
     Hu3DFogSet(3000, 8000, 255, 255, 255);
-    Hu3DModelAttrReset(lbl_1_bss_19A[22], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrReset(modeSelectModelIds[22], HU3D_MOTATTR_PAUSE);
     HuPrcSleep(60);
-    temp_f31 = 0;
-    temp_f30 = 5;
+    entranceProgress = 0;
+    movieScrollSpeed = 5;
     while (!HuTHPEndCheck()) {
-        Hu3DModelPosSet(lbl_1_bss_19A[22], 0, -33.0f + (temp_f31 / 30.0f), 50.0f - temp_f31);
-        temp_f31 += temp_f30;
-        temp_f30 += 5.0f;
+        Hu3DModelPosSet(modeSelectModelIds[22], 0, -33.0f + (entranceProgress / 30.0f), 50.0f - entranceProgress);
+        entranceProgress += movieScrollSpeed;
+        movieScrollSpeed += 5.0f;
         HuPrcVSleep();
     }
     _ClearFlag(FLAG_ID_MAKE(1, 11));
@@ -221,30 +221,30 @@ s32 fn_1_2490(void)
         HuPrcVSleep();
     }
     HuTHPClose();
-    HuSprGrpKill(temp_r27);
-    return lbl_1_bss_80;
+    HuSprGrpKill(movieSpriteGroup);
+    return selectedSpecialMode;
 }
 
-void fn_1_3668(void)
+void InitializeModeSelectionShadow(void)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+    Vec shadowPosition;
+    Vec shadowTarget;
+    Vec shadowUp;
     Hu3DShadowCreate(20, 100, 5000);
     Hu3DShadowTPLvlSet(0.3f);
     Hu3DShadowSizeSet(192);
-    sp14.x = sp14.y = sp14.z = 0;
-    sp20.x = 0;
-    sp20.z = 300;
-    sp20.y = 400;
-    sp8.x = 0;
-    sp8.y = 1;
-    sp8.z = 0;
-    Hu3DShadowPosSet(&sp20, &sp8, &sp14);
-    Hu3DModelAttrReset(lbl_1_bss_19A[15], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_19A[15], HU3D_MOTATTR_PAUSE);
-    Hu3DMotionTimeSet(lbl_1_bss_19A[15], 0);
-    Hu3DModelAttrReset(lbl_1_bss_19A[14], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_19A[14], HU3D_MOTATTR_PAUSE);
-    Hu3DMotionTimeSet(lbl_1_bss_19A[14], 0);
+    shadowTarget.x = shadowTarget.y = shadowTarget.z = 0;
+    shadowPosition.x = 0;
+    shadowPosition.z = 300;
+    shadowPosition.y = 400;
+    shadowUp.x = 0;
+    shadowUp.y = 1;
+    shadowUp.z = 0;
+    Hu3DShadowPosSet(&shadowPosition, &shadowUp, &shadowTarget);
+    Hu3DModelAttrReset(modeSelectModelIds[15], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(modeSelectModelIds[15], HU3D_MOTATTR_PAUSE);
+    Hu3DMotionTimeSet(modeSelectModelIds[15], 0);
+    Hu3DModelAttrReset(modeSelectModelIds[14], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(modeSelectModelIds[14], HU3D_MOTATTR_PAUSE);
+    Hu3DMotionTimeSet(modeSelectModelIds[14], 0);
 }
