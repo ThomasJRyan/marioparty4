@@ -7,90 +7,90 @@
 #include "dolphin/types.h"
 
 typedef struct {
-    /* 0x00 */ void (*unk00)(void);
-    /* 0x04 */ void (*unk04)(void);
-    /* 0x08 */ Vec unk08;
-    /* 0x14 */ float unk14;
-    /* 0x18 */ float unk18;
-    /* 0x1C */ float unk1C;
-    /* 0x20 */ Vec unk20;
-    /* 0x2C */ float unk2C;
-    /* 0x30 */ float unk30;
-    /* 0x34 */ float unk34;
-    /* 0x38 */ float unk38;
-    /* 0x3C */ float unk3C;
-    /* 0x40 */ s32 unk40;
-} StructBss4; // Size 0x44
+    /* 0x00 */ void (*transitionCallback)(void);
+    /* 0x04 */ void (*completionCallback)(void);
+    /* 0x08 */ Vec centerPosition;
+    /* 0x14 */ float targetCenterX;
+    /* 0x18 */ float targetCenterY;
+    /* 0x1C */ float targetCenterZ;
+    /* 0x20 */ Vec rotation;
+    /* 0x2C */ float targetRotationX;
+    /* 0x30 */ float targetRotationY;
+    /* 0x34 */ float targetRotationZ;
+    /* 0x38 */ float zoom;
+    /* 0x3C */ float targetZoom;
+    /* 0x40 */ s32 transitionFrame;
+} StoryCameraTransitionState; // Size 0x44
 
 typedef struct {
-    /* 0x00 */ s32 unk00;
-    /* 0x04 */ s32 unk04;
-    /* 0x08 */ s32 unk08;
-    /* 0x0C */ s32 unk0C;
-    /* 0x10 */ s32 unk10;
-    /* 0x14 */ s32 unk14;
-    /* 0x18 */ s32 unk18;
-    /* 0x1C */ char unk1C[0x18];
-} StructFn352C; // Size 0x34
+    /* 0x00 */ s32 playerIndex;
+    /* 0x04 */ s32 group;
+    /* 0x08 */ s32 isComputer;
+    /* 0x0C */ s32 difficulty;
+    /* 0x10 */ s32 characterId;
+    /* 0x14 */ s32 controllerPort;
+    /* 0x18 */ s32 resultValue;
+    /* 0x1C */ char unreferencedPlayerResultData[0x18];
+} StoryPlayerResult; // Size 0x34
 
 typedef struct {
-    /* 0x00 */ OMOBJ* unk00;
-    /* 0x04 */ void (*unk04)(OMOBJ*, ...);
-    /* 0x08 */ s32 unk08;
-    /* 0x0C */ s32 unk0C;
-    /* 0x10 */ char unk10[0x18];
-} StructBss19C; // Size 0x28
+    /* 0x00 */ OMOBJ* object;
+    /* 0x04 */ void (*callback)(OMOBJ*, ...);
+    /* 0x08 */ s32 animationPhase;
+    /* 0x0C */ s32 verticalVelocity;
+    /* 0x10 */ char unreferencedProcessData[0x18];
+} StoryProcessTaskState; // Size 0x28
 
 // main.c
-float fn_1_828(float arg0, float arg1, float arg2, float arg3);
-float fn_1_870(float arg0, float arg1, float arg2, float arg3);
-float fn_1_948(float arg0, float arg1, float arg2, float arg3);
-float fn_1_ACC(float arg0, float arg1, float arg2, float arg3);
-void fn_1_B8C(void);
-void fn_1_BAC(s32 arg0);
-void fn_1_BF4(void);
-s32 fn_1_1834(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void fn_1_1A64(s32 arg0);
-void fn_1_1ACC(s32 arg0, s32 arg1);
-BOOL fn_1_1B78(s32 arg0, s32 arg1);
-BOOL fn_1_1C34(s32 arg0);
-void fn_1_1CE8(s32 arg0, s32 arg1);
-void fn_1_1D1C(s32 arg0, s32 arg1, s32 arg2);
-void fn_1_1DCC(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void fn_1_2224(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3);
-void fn_1_2710(void (*arg0)(void));
-void fn_1_27E8(HUPROCESS* arg0, void (*arg1)(void));
-void fn_1_2908(OMOBJ* arg0, s32 arg1, Vec arg2, float arg3, float arg4, float arg5);
-void fn_1_2CB0(OMOBJ* arg0, s32 arg1, Vec arg2, float arg3, float arg4, float arg5);
-void fn_1_352C(StructFn352C* arg0, s32 arg1);
-s32 fn_1_3618(s32 arg0);
-void fn_1_3704(void);
-void fn_1_3804(StructBss4* arg0);
-void fn_1_3ABC(StructBss4* arg0, float arg1);
-void fn_1_51D0(StructBss4* arg0, StructBss4* arg1, float arg2, float arg3, float arg4);
-void fn_1_61E8(StructBss4* arg0, StructBss4* arg1, float arg2, float arg3, float arg4);
-void fn_1_6C1C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-s32 fn_1_6EB8(s32 arg0, s32 arg1);
-void fn_1_7028(s32 arg0);
+float InterpolateLinear(float startValue, float endValue, float elapsedFrames, float durationFrames);
+float InterpolateCosineEaseOut(float startValue, float endValue, float elapsedFrames, float durationFrames);
+float InterpolateSineEaseOut(float startValue, float endValue, float elapsedFrames, float durationFrames);
+float InterpolateSineCycle(float startValue, float endValue, float elapsedFrames, float durationFrames);
+void WaitOneFrame(void);
+void WaitFrames(s32 waitFrames);
+void InitializeStoryWindows(void);
+s32 CreateCenteredStoryWindow(s32 windowXMode, s32 windowYMode, s32 windowColumnCount, s32 windowRowCount, s32 activePlayerIndex);
+void CloseCenteredStoryWindow(s32 windowId);
+void WaitForStoryMessage(s32 windowId, s32 waitFrames);
+BOOL WaitForStoryChoice(s32 windowId, s32 choiceIndex);
+BOOL WaitForFirstStoryChoice(s32 windowId);
+void SetStoryMessage(s32 windowId, s32 messageId);
+void InsertStoryMessage(s32 windowId, s32 messageId, s32 choiceIndex);
+void SetObjectMotion(OMOBJ* object, s32 modelSlot, s32 motionSlot, s32 blendFrames, s32 motionMode);
+void WaitForObjectMotionEnd(OMOBJ* object, s32 modelSlot, s32 motionSlot, s32 sleepFrames);
+void SetStoryCameraCallback(void (*callback)(void));
+void InitializeStoryCamera(HUPROCESS* process, void (*callback)(void));
+s32 CreateStoryChoiceWindow(s32 messageId, s32 playerIndex);
+void AnimateCharacterPosition(OMOBJ* object, s32 characterIndex, Vec targetPosition, float motionSpeedParameter, float motionDurationParameter, float motionFlags);
+void AnimateCharacterRotation(OMOBJ* object, s32 characterIndex, Vec destinationPosition, float targetHeadingDegrees, float turnParameter, float turnDurationFrames);
+void CapturePlayerResult(StoryPlayerResult* playerResult, s32 playerOrderIndex);
+s32 CreateStoryLighting(s32 lightIntensity);
+void CreateStoryShadow(void);
+void CaptureCameraStartState(StoryCameraTransitionState* cameraState);
+void InterpolateCameraCenterSine(StoryCameraTransitionState* cameraState, float smoothingWeight);
+void InterpolateCameraTransition(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, float elapsedFrames, float durationFrames, float secondaryDurationFrames);
+void InterpolateCameraTransitionEaseOut(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, float elapsedFrames, float durationFrames, float secondaryDurationFrames);
+void DisplayStoryMessagePages(s32 windowId, s32 messageId, s32 choiceIndex, s32 waitFrames);
+void CloseStoryChoiceWindow(s32 windowId);
 
 // board_clear.c
-void fn_1_79B8(HUPROCESS* arg0, s32 arg1, s32 arg2);
+void StartBoardClearResult(HUPROCESS* resultProcess, s32 boardId, s32 winningPlayerIndex);
 
 // board_miss.c
-void fn_1_ACFC(HUPROCESS* arg0, s32 arg1, s32 arg2);
+void StartBoardMissResult(HUPROCESS* resultProcess, s32 boardId, s32 winningPlayerIndex);
 
 // mg_clear.c
-void fn_1_E710(HUPROCESS* arg0, s32 arg1, s32 arg2);
+void StartMinigameClearResult(HUPROCESS* resultProcess, s32 boardId, s32 winningPlayerIndex);
 
 // mg_miss.c
-void fn_1_11624(HUPROCESS* arg0, s32 arg1, s32 arg2);
+void StartMinigameMissResult(HUPROCESS* resultProcess, s32 boardId, s32 winningPlayerIndex);
 
 // save.c
-void fn_1_14150(HUPROCESS* arg0);
+void StartStorySaveSequence(HUPROCESS* process);
 
-extern s32 lbl_1_bss_68;
-extern s32 lbl_1_bss_58[];
-extern StructBss4 lbl_1_bss_4;
-extern s32 lbl_1_data_0[][4];
+extern s32 currentStorySoundEffectId;
+extern s32 storySequenceIds[];
+extern StoryCameraTransitionState storyCameraState;
+extern s32 storyEventSoundEffectIds[][4];
 
 #endif

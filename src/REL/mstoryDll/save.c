@@ -9,45 +9,45 @@
 #include "game/window.h"
 #include "game/wipe.h"
 
-s32 lbl_1_bss_8BC;
-HUPROCESS *lbl_1_bss_8B8;
+s32 saveProcessComplete;
+HUPROCESS *storySaveProcess;
 
-s32 fn_1_13B48(s32 arg0)
+s32 IsBoardStoryFlagSet(s32 boardId)
 {
-    if (arg0 == 0 && _CheckFlag(FLAG_ID_MAKE(0, 2))) {
+    if (boardId == 0 && _CheckFlag(FLAG_ID_MAKE(0, 2))) {
         return 1;
     }
-    if (arg0 == 1 && _CheckFlag(FLAG_ID_MAKE(0, 3))) {
+    if (boardId == 1 && _CheckFlag(FLAG_ID_MAKE(0, 3))) {
         return 1;
     }
-    if (arg0 == 2 && _CheckFlag(FLAG_ID_MAKE(0, 4))) {
+    if (boardId == 2 && _CheckFlag(FLAG_ID_MAKE(0, 4))) {
         return 1;
     }
-    if (arg0 == 3 && _CheckFlag(FLAG_ID_MAKE(0, 5))) {
+    if (boardId == 3 && _CheckFlag(FLAG_ID_MAKE(0, 5))) {
         return 1;
     }
-    if (arg0 == 4 && _CheckFlag(FLAG_ID_MAKE(0, 6))) {
+    if (boardId == 4 && _CheckFlag(FLAG_ID_MAKE(0, 6))) {
         return 1;
     }
-    if (arg0 == 5 && _CheckFlag(FLAG_ID_MAKE(0, 7))) {
+    if (boardId == 5 && _CheckFlag(FLAG_ID_MAKE(0, 7))) {
         return 1;
     }
     return 0;
 }
 
-void fn_1_13C34(void)
+Void ShowStorySavePrompt(Void)
 {
-    float sp8[2];
-    s32 temp_r30;
-    s32 var_r29;
-    s32 var_r31;
+    float savePromptDimensions[2];
+    s32 saveChoice;
+    s32 saveNoticeSpriteId;
+    s32 saveWindowId;
 
-    temp_r30 = 1;
+    saveChoice = 1;
     Hu3DAllKill();
     HuSprClose();
     HuSprInit();
     if (SLSaveFlagGet() == 0) {
-        lbl_1_bss_8BC = 1;
+        saveProcessComplete = 1;
         HuPrcEnd();
         while (TRUE) {
             HuPrcVSleep();
@@ -55,25 +55,25 @@ void fn_1_13C34(void)
     }
     espInit();
     HuPrcVSleep();
-    var_r29 = espEntry(DATA_MAKE_NUM(DATADIR_WIN, 32), 5000, 0);
-    espPosSet(var_r29, 288.0f, 240.0f);
-    espAttrReset(var_r29, 4);
+    saveNoticeSpriteId = espEntry(DATA_MAKE_NUM(DATADIR_WIN, 32), 5000, 0);
+    espPosSet(saveNoticeSpriteId, 288.0f, 240.0f);
+    espAttrReset(saveNoticeSpriteId, 4);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 20);
     while (WipeStatGet() != 0) {
         HuPrcVSleep();
     }
     if (SLSaveFlagGet() == 1) {
         HuWinInit(1);
-        HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(30, 22));
-        var_r31 = HuWinExCreateStyled(-10000.0f, 150.0f, sp8[0], sp8[1], -1, 2);
-        winData[var_r31].active_pad = 1;
-        HuWinAttrSet(var_r31, 0x10);
-        HuWinExAnimIn(var_r31);
-        HuWinMesSet(var_r31, MAKE_MESSID(30, 22));
-        temp_r30 = HuWinChoiceGet(var_r31, 0);
-        HuWinExAnimOut(var_r31);
-        HuWinExCleanup(var_r31);
-        if (SLSaveFlagGet() == 1 && temp_r30 == 0) {
+        HuWinMesMaxSizeGet(1, savePromptDimensions, MAKE_MESSID(30, 22));
+        saveWindowId = HuWinExCreateStyled(-10000.0f, 150.0f, savePromptDimensions[0], savePromptDimensions[1], -1, 2);
+        winData[saveWindowId].active_pad = 1;
+        HuWinAttrSet(saveWindowId, 0x10);
+        HuWinExAnimIn(saveWindowId);
+        HuWinMesSet(saveWindowId, MAKE_MESSID(30, 22));
+        saveChoice = HuWinChoiceGet(saveWindowId, 0);
+        HuWinExAnimOut(saveWindowId);
+        HuWinExCleanup(saveWindowId);
+        if (SLSaveFlagGet() == 1 && saveChoice == 0) {
 #if VERSION_REV1 || VERSION_REV2
             GWGameStat.story_continue = 1;
 #endif
@@ -86,33 +86,33 @@ void fn_1_13C34(void)
     while (WipeStatGet() != 0) {
         HuPrcVSleep();
     }
-    lbl_1_bss_8BC = 1;
+    saveProcessComplete = 1;
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_13E2C(void)
+Void SelectNextStoryOverlay(Void)
 {
     _SetFlag(9);
     if (_CheckFlag(FLAG_ID_MAKE(0, 2)) && _CheckFlag(FLAG_ID_MAKE(0, 3)) && _CheckFlag(FLAG_ID_MAKE(0, 4)) && _CheckFlag(FLAG_ID_MAKE(0, 5))
         && _CheckFlag(FLAG_ID_MAKE(0, 6))) {
         OSReport(
-            "########## Next to MapSelect Event 11 -> MapNo:%d, MapFlg:%d, MgFlg:%d\n", GWSystem.board, fn_1_13B48(GWSystem.board), _CheckFlag(9));
-        HuPrcChildCreate(fn_1_13C34, 100, 0x2000, 0, HuPrcCurrentGet());
+            "########## Next to MapSelect Event 11 -> MapNo:%d, MapFlg:%d, MgFlg:%d\n", GWSystem.board, IsBoardStoryFlagSet(GWSystem.board), _CheckFlag(9));
+        HuPrcChildCreate(ShowStorySavePrompt, 100, 0x2000, 0, HuPrcCurrentGet());
         do {
-            fn_1_B8C();
-        } while (lbl_1_bss_8BC != 1);
+            WaitOneFrame();
+        } while (saveProcessComplete != 1);
         omOvlGotoEx(DLL_mstory2dll, 1, 0, 0);
     }
     else {
         OSReport(
-            "########## Next to MapSelect Event 11 -> MapNo:%d, MapFlg:%d, MgFlg:%d\n", GWSystem.board, fn_1_13B48(GWSystem.board), _CheckFlag(9));
-        HuPrcChildCreate(fn_1_13C34, 100, 0x2000, 0, HuPrcCurrentGet());
+            "########## Next to MapSelect Event 11 -> MapNo:%d, MapFlg:%d, MgFlg:%d\n", GWSystem.board, IsBoardStoryFlagSet(GWSystem.board), _CheckFlag(9));
+        HuPrcChildCreate(ShowStorySavePrompt, 100, 0x2000, 0, HuPrcCurrentGet());
         do {
-            fn_1_B8C();
-        } while (lbl_1_bss_8BC != 1);
+            WaitOneFrame();
+        } while (saveProcessComplete != 1);
         omOvlGotoEx(DLL_mentdll, 1, 10, 0);
     }
     HuPrcEnd();
@@ -121,8 +121,8 @@ void fn_1_13E2C(void)
     }
 }
 
-void fn_1_14150(HUPROCESS *arg0)
+Void StartStorySaveSequence(HUPROCESS *process)
 {
-    lbl_1_bss_8B8 = arg0;
-    HuPrcChildCreate(fn_1_13E2C, 100, 0x2000, 0, HuPrcCurrentGet());
+    storySaveProcess = process;
+    HuPrcChildCreate(SelectNextStoryOverlay, 100, 0x2000, 0, HuPrcCurrentGet());
 }

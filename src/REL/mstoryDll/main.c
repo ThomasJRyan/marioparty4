@@ -14,14 +14,14 @@
 
 #include "ext_math.h"
 
-char lbl_1_bss_6C[0x3C]; // unused
-s32 lbl_1_bss_68;
-s32 lbl_1_bss_58[4];
-char lbl_1_bss_48[0x10]; // unused
-StructBss4 lbl_1_bss_4;
-HUPROCESS* lbl_1_bss_0;
+char unusedStoryDebugPadding[0x3C]; // unused
+s32 currentStorySoundEffectId;
+s32 storySequenceIds[4];
+char unusedStoryStatePadding[0x10]; // unused
+StoryCameraTransitionState storyCameraState;
+HUPROCESS* storyObjectManager;
 
-s32 lbl_1_data_0[][4] = {
+s32 storyEventSoundEffectIds[][4] = {
     { 0x37, 0x38, 0x36, 0x39 },
     { 0x43, 0x45, 0x44, 0x43 },
     { 0x40, 0x42, 0x41, 0x40 },
@@ -30,116 +30,116 @@ s32 lbl_1_data_0[][4] = {
     { 0x3E, 0x3F, 0x3E, 0x3E }
 };
 
-char* lbl_1_data_100[] = {
+char* storyEventMenuLabels[] = {
     "S-2 : NORMAL STORY - BOARD CLEAR EVENT",
     "S-3 : NORMAL STORY - BOARD MISS EVENT",
     "S-4 : NORMAL STORY - MINIGAME CLEAR EVENT",
     "S-5 : NORMAL STORY - MINIGAME MISS EVENT"
 };
 
-void fn_1_0(OMOBJ* arg0) {
+Void FinishStoryMenuExit(OMOBJ* object) {
     if (WipeStatGet() == 0) {
-        arg0->objFunc = NULL;
+        object->objFunc = NULL;
         omOvlReturnEx(1, 1);
     }
 }
 
-void fn_1_4C(OMOBJ* arg0) {
+Void HandleStoryMenuExitRequest(OMOBJ* object) {
     if (omSysExitReq != 0) {
-        arg0->objFunc = fn_1_0;
+        object->objFunc = FinishStoryMenuExit;
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
     }
 }
 
-void fn_1_A4(void) {
-    s32 sp14;
-    s32 var_r30;
-    s32 var_r31;
-    s32 sp10;
-    s32 spC;
-    s32 sp8;
+Void SelectStoryEvent(Void) {
+    s32 unreferencedMenuState;
+    s32 selectedEventIndex;
+    s32 selectedBoardIndex;
+    s32 unreferencedMenuFlagA;
+    s32 unreferencedMenuFlagB;
+    s32 unreferencedMenuFlagC;
     s32 i;
 
-    sp14 = 0;
-    var_r30 = 0;
-    var_r31 = 0;
-    sp10 = 1;
-    spC = 1;
-    sp8 = 1;
-    omAddObjEx(lbl_1_bss_0, 0x2000, 0, 0, -1, fn_1_4C);
+    unreferencedMenuState = 0;
+    selectedEventIndex = 0;
+    selectedBoardIndex = 0;
+    unreferencedMenuFlagA = 1;
+    unreferencedMenuFlagB = 1;
+    unreferencedMenuFlagC = 1;
+    omAddObjEx(storyObjectManager, 0x2000, 0, 0, -1, HandleStoryMenuExitRequest);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
     while (TRUE) {
         if (WipeStatGet() == 0) {
             break;
         }
-        fn_1_B8C();
+        WaitOneFrame();
     }
     while (TRUE) {
         if (HuPadBtnDown[0] & PAD_BUTTON_A) {
             break;
         }
         if ((HuPadBtnDown[0] & PAD_BUTTON_DOWN) || HuPadStkY[0] >= 30) {
-            var_r30++;
-            if (var_r30 >= 4) {
-                var_r30 = 0;
+            selectedEventIndex++;
+            if (selectedEventIndex >= 4) {
+                selectedEventIndex = 0;
             }
-            fn_1_BAC(5);
+            WaitFrames(5);
         }
         if ((HuPadBtnDown[0] & PAD_BUTTON_UP) || HuPadStkY[0] <= -30) {
-            var_r30--;
-            if (var_r30 < 0) {
-                var_r30 = 3;
+            selectedEventIndex--;
+            if (selectedEventIndex < 0) {
+                selectedEventIndex = 3;
             }
-            fn_1_BAC(5);
+            WaitFrames(5);
         }
         if (HuPadBtnDown[0] & PAD_BUTTON_RIGHT) {
-            var_r31++;
-            if (var_r31 > 4) {
-                var_r31 = 0;
+            selectedBoardIndex++;
+            if (selectedBoardIndex > 4) {
+                selectedBoardIndex = 0;
             }
         }
         if (HuPadBtnDown[0] & PAD_BUTTON_LEFT) {
-            var_r31--;
-            if (var_r31 < 0) {
-                var_r31 = 4;
+            selectedBoardIndex--;
+            if (selectedBoardIndex < 0) {
+                selectedBoardIndex = 4;
             }
         }
         fontcolor = FONT_COLOR_WHITE;
         print8(24, 100, 1.5f, ">>>>> MPGC STORY 1 - EVENT SELECT <<<<<");
-        print8(24, 130, 1.5f, "MAP NUMBER : %d", var_r31 + 1);
+        print8(24, 130, 1.5f, "MAP NUMBER : %d", selectedBoardIndex + 1);
         for (i = 0; i < 4; i++) {
             fontcolor = FONT_COLOR_WHITE;
-            if (var_r30 == i) {
+            if (selectedEventIndex == i) {
                 fontcolor = FONT_COLOR_CYAN;
             }
-            print8(24, 160 + i * 15, 1.5f, "%s", lbl_1_data_100[i]);
+            print8(24, 160 + i * 15, 1.5f, "%s", storyEventMenuLabels[i]);
         }
-        fn_1_B8C();
+        WaitOneFrame();
     }
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
     while (TRUE) {
         if (WipeStatGet() == 0) {
             break;
         }
-        fn_1_B8C();
+        WaitOneFrame();
     }
-    GWSystem.board = var_r31;
-    switch (var_r30) {
+    GWSystem.board = selectedBoardIndex;
+    switch (selectedEventIndex) {
         case 0:
-            fn_1_79B8(lbl_1_bss_0, var_r31, 0);
+            StartBoardClearResult(storyObjectManager, selectedBoardIndex, 0);
             break;
         case 1:
-            fn_1_ACFC(lbl_1_bss_0, var_r31, 0);
+            StartBoardMissResult(storyObjectManager, selectedBoardIndex, 0);
             break;
         case 2:
-            fn_1_E710(lbl_1_bss_0, var_r31, 0);
+            StartMinigameClearResult(storyObjectManager, selectedBoardIndex, 0);
             break;
         case 3:
-            fn_1_11624(lbl_1_bss_0, var_r31, 0);
+            StartMinigameMissResult(storyObjectManager, selectedBoardIndex, 0);
             break;
     }
     while (TRUE) {
-        fn_1_B8C();
+        WaitOneFrame();
     }
 }
 
@@ -147,10 +147,10 @@ void fn_1_A4(void) {
 #include "src/REL/executor.c"
 #endif
 
-void fn_1_488(void) {
+Void InitializeStoryOverlay(Void) {
     s32 i;
 
-    lbl_1_bss_0 = omInitObjMan(62, 0x2000);
+    storyObjectManager = omInitObjMan(62, 0x2000);
     switch (omovlevtno) {
         case 0:
             for (i = 0; i < 4; i++) {
@@ -158,7 +158,7 @@ void fn_1_488(void) {
                     break;
                 }
             }
-            fn_1_79B8(lbl_1_bss_0, GWSystem.board, i);
+            StartBoardClearResult(storyObjectManager, GWSystem.board, i);
             break;
         case 1:
             for (i = 0; i < 4; i++) {
@@ -166,593 +166,597 @@ void fn_1_488(void) {
                     break;
                 }
             }
-            fn_1_ACFC(lbl_1_bss_0, GWSystem.board, i);
+            StartBoardMissResult(storyObjectManager, GWSystem.board, i);
             break;
         case 2:
             if (GWPlayerCoinWinGet(0) >= 10) {
-                fn_1_E710(lbl_1_bss_0, GWSystem.board, 0);
+                StartMinigameClearResult(storyObjectManager, GWSystem.board, 0);
             } else {
-                fn_1_11624(lbl_1_bss_0, GWSystem.board, 0);
+                StartMinigameMissResult(storyObjectManager, GWSystem.board, 0);
             }
             break;
         case 20:
-            fn_1_14150(lbl_1_bss_0);
+            StartStorySaveSequence(storyObjectManager);
             break;
     }
 }
 
-void ObjectSetup(void) {
-    fn_1_488();
+Void ObjectSetup(Void) {
+    InitializeStoryOverlay();
 }
 
-float fn_1_828(float arg0, float arg1, float arg2, float arg3) {
-    if (arg3 <= arg2) {
-        return arg1;
+float InterpolateLinear(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (durationFrames <= elapsedFrames) {
+        return endValue;
     }
-    return arg0 + (arg2 / arg3) * (arg1 - arg0);
+    return startValue + (elapsedFrames / durationFrames) * (endValue - startValue);
 }
 
-float fn_1_850(float arg0, float arg1, float arg2) {
-    return (arg1 + arg0 * (arg2 - 1.0f)) / arg2;
+float InterpolateWeightedAverage(float startValue, float endValue, float elapsedFrames) {
+    return (endValue + startValue * (elapsedFrames - 1.0f)) / elapsedFrames;
 }
 
-float fn_1_870(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+float InterpolateCosineEaseOut(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return endValue;
     }
-    return arg0 + (arg1 - arg0) * (1.0 - cosd((90.0f / arg3) * arg2));
+    return startValue + (endValue - startValue) * (1.0 - cosd((90.0f / durationFrames) * elapsedFrames));
 }
 
-float fn_1_948(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+float InterpolateSineEaseOut(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return endValue;
     }
-    return arg0 + (arg1 - arg0) * sind((90.0f / arg3) * arg2);
+    return startValue + (endValue - startValue) * sind((90.0f / durationFrames) * elapsedFrames);
 }
 
-float fn_1_A10(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg0;
+float InterpolateSinePulse(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return startValue;
     }
-    return arg0 + (arg1 - arg0) * sind((180.0f / arg3) * arg2);
+    return startValue + (endValue - startValue) * sind((180.0f / durationFrames) * elapsedFrames);
 }
 
-float fn_1_ACC(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg0;
+float InterpolateSineCycle(float startValue, float endValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return startValue;
     }
-    return arg0 + (arg1 - arg0) * sind((360.0f / arg3) * arg2);
+    return startValue + (endValue - startValue) * sind((360.0f / durationFrames) * elapsedFrames);
 }
 
-void fn_1_B88(void) {
+Void NoopCallback(Void) {
 }
 
-void fn_1_B8C(void) {
+Void WaitOneFrame(Void) {
     HuPrcVSleep();
 }
 
-void fn_1_BAC(s32 arg0) {
-    HuPrcSleep(arg0);
+Void WaitFrames(s32 waitFrames) {
+    HuPrcSleep(waitFrames);
 }
 
-void fn_1_BD4(void) {
+Void EndCurrentProcess(Void) {
     HuPrcEnd();
 }
 
-void fn_1_BF4(void) {
+Void InitializeStoryWindows(Void) {
     HuWinInit(1);
 }
 
-void fn_1_C18(void) {
+Void CloseAllStoryWindows(Void) {
     HuWinAllKill();
 }
 
-void fn_1_C38(s32 arg0, float arg1, float arg2, s32 arg3) {
-    WindowData* temp_r29;
-    float temp_f29;
-    float temp_f28;
-    float temp_f25;
-    float temp_f24;
-    float temp_f31;
-    float temp_f27;
-    float temp_f30;
-    float temp_f26;
-    float var_f23;
-    float var_f22;
-    float var_f21;
-    float var_f20;
+Void AnimateStoryWindow(s32 windowId, float originRatioX, float originRatioY, s32 openWindow) {
+    WindowData* windowData;
+    float windowOriginX;
+    float windowOriginY;
+    float windowWidth;
+    float windowHeight;
+    float openingPositionX;
+    float openingScaleX;
+    float openingPositionY;
+    float openingScaleY;
+    float animatedPositionX;
+    float animatedPositionY;
+    float animatedScaleX;
+    float animatedScaleY;
     s32 i;
 
-    temp_r29 = &winData[arg0];
-    temp_f29 = temp_r29->pos_x;
-    temp_f28 = temp_r29->pos_y;
-    temp_f25 = temp_r29->w;
-    temp_f24 = temp_r29->h;
-    temp_f31 = temp_f29 + temp_f25 * arg1;
-    temp_f27 = 4.0f / temp_f25;
-    if (temp_f31 + 4.0f - (temp_f29 + temp_f25) >= 0.0f) {
-        temp_f31 = (temp_f29 + temp_f25) - 4.0f;
-    } else if (temp_f29 - (temp_f31 - 2.0f) >= 0.0f) {
-        temp_f31 = temp_f29;
+    windowData = &winData[windowId];
+    windowOriginX = windowData->pos_x;
+    windowOriginY = windowData->pos_y;
+    windowWidth = windowData->w;
+    windowHeight = windowData->h;
+    openingPositionX = windowOriginX + windowWidth * originRatioX;
+    openingScaleX = 4.0f / windowWidth;
+    if (openingPositionX + 4.0f - (windowOriginX + windowWidth) >= 0.0f) {
+        openingPositionX = (windowOriginX + windowWidth) - 4.0f;
+    } else if (windowOriginX - (openingPositionX - 2.0f) >= 0.0f) {
+        openingPositionX = windowOriginX;
     } else {
-        temp_f31 -= 2.0f;
+        openingPositionX -= 2.0f;
     }
-    temp_f30 = temp_f28 + temp_f24 * arg2;
-    temp_f26 = 4.0f / temp_f24;
-    if (temp_f30 + 4.0f - (temp_f28 + temp_f24) >= 0.0f) {
-        temp_f30 = (temp_f28 + temp_f24) - 4.0f;
-    } else if (temp_f28 - (temp_f30 - 2.0f) >= 0.0f) {
-        temp_f30 = temp_f28;
+    openingPositionY = windowOriginY + windowHeight * originRatioY;
+    openingScaleY = 4.0f / windowHeight;
+    if (openingPositionY + 4.0f - (windowOriginY + windowHeight) >= 0.0f) {
+        openingPositionY = (windowOriginY + windowHeight) - 4.0f;
+    } else if (windowOriginY - (openingPositionY - 2.0f) >= 0.0f) {
+        openingPositionY = windowOriginY;
     } else {
-        temp_f30 -= 2.0f;
+        openingPositionY -= 2.0f;
     }
-    if (arg3 != 0) {
-        HuWinPosSet(arg0, temp_f31, temp_f30);
-        HuWinScaleSet(arg0, temp_f27, temp_f26);
-        var_f23 = temp_f31;
-        var_f21 = temp_f27;
-        var_f22 = temp_f30;
-        var_f20 = temp_f26;
+    if (openWindow != 0) {
+        HuWinPosSet(windowId, openingPositionX, openingPositionY);
+        HuWinScaleSet(windowId, openingScaleX, openingScaleY);
+        animatedPositionX = openingPositionX;
+        animatedScaleX = openingScaleX;
+        animatedPositionY = openingPositionY;
+        animatedScaleY = openingScaleY;
     } else {
-        HuWinPosSet(arg0, temp_f29, temp_f28);
-        HuWinScaleSet(arg0, 1.0f, 1.0f);
-        var_f23 = temp_f29;
-        var_f21 = 1.0f;
-        var_f22 = temp_f28;
-        var_f20 = 1.0f;
+        HuWinPosSet(windowId, windowOriginX, windowOriginY);
+        HuWinScaleSet(windowId, 1.0f, 1.0f);
+        animatedPositionX = windowOriginX;
+        animatedScaleX = 1.0f;
+        animatedPositionY = windowOriginY;
+        animatedScaleY = 1.0f;
     }
-    HuWinDispOn(arg0);
+    HuWinDispOn(windowId);
     for (i = 0; i <= 15; i++) {
         HuPrcVSleep();
-        if (arg3 != 0) {
+        if (openWindow != 0) {
             if (i <= 10) {
-                var_f23 = fn_1_948(temp_f31, temp_f29, i, 10.0f);
-                var_f21 = fn_1_948(temp_f27, 1.0f, i, 10.0f);;
+                animatedPositionX = InterpolateSineEaseOut(openingPositionX, windowOriginX, i, 10.0f);
+                animatedScaleX = InterpolateSineEaseOut(openingScaleX, 1.0f, i, 10.0f);;
             } else {
-                var_f22 = fn_1_948(temp_f30, temp_f28, i - 10, 5.0f);
-                var_f20 = fn_1_948(temp_f26, 1.0f, i - 10, 5.0f);
+                animatedPositionY = InterpolateSineEaseOut(openingPositionY, windowOriginY, i - 10, 5.0f);
+                animatedScaleY = InterpolateSineEaseOut(openingScaleY, 1.0f, i - 10, 5.0f);
             }
         } else {
             if (i <= 10) {
-                var_f22 = fn_1_948(temp_f28, temp_f30, i, 10.0f);
-                var_f20 = fn_1_948(1.0f, temp_f26, i, 10.0f);
+                animatedPositionY = InterpolateSineEaseOut(windowOriginY, openingPositionY, i, 10.0f);
+                animatedScaleY = InterpolateSineEaseOut(1.0f, openingScaleY, i, 10.0f);
             } else {
-                var_f23 = fn_1_948(temp_f29, temp_f31, i - 10, 5.0f);
-                var_f21 = fn_1_948(1.0f, temp_f27, i - 10, 5.0f);
+                animatedPositionX = InterpolateSineEaseOut(windowOriginX, openingPositionX, i - 10, 5.0f);
+                animatedScaleX = InterpolateSineEaseOut(1.0f, openingScaleX, i - 10, 5.0f);
             }
         }
-        HuWinPosSet(arg0, var_f23, var_f22);
-        HuWinScaleSet(arg0, var_f21, var_f20);
+        HuWinPosSet(windowId, animatedPositionX, animatedPositionY);
+        HuWinScaleSet(windowId, animatedScaleX, animatedScaleY);
     }
-    if (arg3 != 0) {
-        HuWinPosSet(arg0, temp_f29, temp_f28);
-        HuWinScaleSet(arg0, 1.0f, 1.0f);
+    if (openWindow != 0) {
+        HuWinPosSet(windowId, windowOriginX, windowOriginY);
+        HuWinScaleSet(windowId, 1.0f, 1.0f);
     } else {
-        HuWinPosSet(arg0, temp_f31, temp_f30);
-        HuWinScaleSet(arg0, temp_f27, temp_f26);
+        HuWinPosSet(windowId, openingPositionX, openingPositionY);
+        HuWinScaleSet(windowId, openingScaleX, openingScaleY);
     }
     HuPrcVSleep();
 }
 
-s32 fn_1_1680(s32 arg0, s32 arg1, s32 arg2, s32 arg3, float arg4, float arg5, s32 arg6) {
-    s32 temp_r31;
+s32 CreateStoryWindow(s32 windowXMode, s32 windowYMode, s32 windowColumnCount, s32 windowRowCount, float animationOriginX, float animationOriginY, s32 activePlayerIndex) {
+    s32 windowX;
+    s32 windowY;
+    s32 windowId;
 
-    arg2 = arg2 * 21 + 16;
-    arg3 = arg3 * 26 + 16;
-    if (arg0 == 0) {
-        arg0 = 550 - arg2;
+    windowColumnCount = windowColumnCount * 21 + 16;
+    windowRowCount = windowRowCount * 26 + 16;
+    if (windowXMode == 0) {
+        windowX = 550 - windowColumnCount;
     } else {
-        arg0 = 1.0f + (576.0f - arg2) / 2.0f;
+        windowX = 1.0f + (576.0f - windowColumnCount) / 2.0f;
     }
-    if (arg1 == 0) {
-        arg1 = 430 - arg3;
-    }
-    temp_r31 = HuWinExCreateStyled(arg0, arg1, arg2, arg3, -1, 1);
-    if (arg6 != -1) {
-        arg6 = GWPlayerCfg[arg6].pad_idx;
-        winData[temp_r31].active_pad = 1;
+    if (windowYMode == 0) {
+        windowY = 430 - windowRowCount;
     } else {
-        winData[temp_r31].active_pad = 0xF;
+        windowY = windowYMode;
     }
-    HuWinMesPalSet(temp_r31, 7, 0, 0, 0);
-    fn_1_C38(temp_r31, arg4, arg5, 1);
-    return temp_r31;
+    windowId = HuWinExCreateStyled(windowX, windowY, windowColumnCount, windowRowCount, -1, 1);
+    if (activePlayerIndex != -1) {
+        activePlayerIndex = GWPlayerCfg[activePlayerIndex].pad_idx;
+        winData[windowId].active_pad = 1;
+    } else {
+        winData[windowId].active_pad = 0xF;
+    }
+    HuWinMesPalSet(windowId, 7, 0, 0, 0);
+    AnimateStoryWindow(windowId, animationOriginX, animationOriginY, 1);
+    return windowId;
 }
 
-s32 fn_1_1834(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    return fn_1_1680(arg0, arg1, arg2, arg3, 0.5f, 0.5f, arg4);
+s32 CreateCenteredStoryWindow(s32 windowXMode, s32 windowYMode, s32 windowColumnCount, s32 windowRowCount, s32 activePlayerIndex) {
+    return CreateStoryWindow(windowXMode, windowYMode, windowColumnCount, windowRowCount, 0.5f, 0.5f, activePlayerIndex);
 }
 
-void fn_1_1A04(s32 arg0, float arg1, float arg2) {
-    HuWinMesSet(arg0, MAKE_MESSID(37, 4));
+Void CloseStoryWindowAt(s32 windowId, float originRatioX, float originRatioY) {
+    HuWinMesSet(windowId, MAKE_MESSID(37, 4));
     HuPrcVSleep();
-    fn_1_C38(arg0, arg1, arg2, 0);
-    HuWinExCleanup(arg0);
+    AnimateStoryWindow(windowId, originRatioX, originRatioY, 0);
+    HuWinExCleanup(windowId);
 }
 
-void fn_1_1A64(s32 arg0) {
-    fn_1_1A04(arg0, 0.5f, 0.5f);
+Void CloseCenteredStoryWindow(s32 windowId) {
+    CloseStoryWindowAt(windowId, 0.5f, 0.5f);
 }
 
-void fn_1_1ACC(s32 arg0, s32 arg1) {
+Void WaitForStoryMessage(s32 windowId, s32 waitFrames) {
     s32 i;
 
-    if (arg1 > 0) {
-        HuPrcSleep(arg1);
+    if (waitFrames > 0) {
+        HuPrcSleep(waitFrames);
         return;
     }
     HuWinComKeyReset();
-    if (winData[arg0].active_pad == 0xF) {
+    if (winData[windowId].active_pad == 0xF) {
         for (i = 0; i < 10; i++) {
             HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, GWMessDelayGet());
         }
     }
-    HuWinMesWait(arg0);
+    HuWinMesWait(windowId);
     HuWinComKeyReset();
 }
 
-BOOL fn_1_1B78(s32 arg0, s32 arg1) {
-    s32 var_r31;
+BOOL WaitForStoryChoice(s32 windowId, s32 choiceIndex) {
+    s32 choiceAccepted;
     s32 i;
 
     HuWinComKeyReset();
-    if (winData[arg0].active_pad == 0xF) {
+    if (winData[windowId].active_pad == 0xF) {
         for (i = 0; i < 10; i++) {
             HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, GWMessDelayGet());
         }
     }
-    var_r31 = HuWinChoiceGet(arg0, arg1);
+    choiceAccepted = HuWinChoiceGet(windowId, choiceIndex);
     HuWinComKeyReset();
-    if (var_r31 != 0) {
-        var_r31 = FALSE;
+    if (choiceAccepted != 0) {
+        choiceAccepted = FALSE;
     } else {
-        var_r31 = TRUE;
+        choiceAccepted = TRUE;
     }
-    return var_r31;
+    return choiceAccepted;
 }
 
-BOOL fn_1_1C34(s32 arg0) {
-    return fn_1_1B78(arg0, 0);
+BOOL WaitForFirstStoryChoice(s32 windowId) {
+    return WaitForStoryChoice(windowId, 0);
 }
 
-void fn_1_1CE8(s32 arg0, s32 arg1) {
-    HuWinMesSet(arg0, arg1);
+Void SetStoryMessage(s32 windowId, s32 messageId) {
+    HuWinMesSet(windowId, messageId);
 }
 
-void fn_1_1D1C(s32 arg0, s32 arg1, s32 arg2) {
-    HuWinInsertMesSet(arg0, arg1, arg2);
+Void InsertStoryMessage(s32 windowId, s32 messageId, s32 choiceIndex) {
+    HuWinInsertMesSet(windowId, messageId, choiceIndex);
 }
 
-void fn_1_1D5C(s16 arg0) {
-    HU3DMODEL* var_r28;
-    HSFMATERIAL* var_r31;
-    HSFDATA* temp_r30;
-    s16 var_r27;
+Void EnableModelVertexMode(s16 objectIndex) {
+    HU3DMODEL* modelData;
+    HSFMATERIAL* material;
+    HSFDATA* modelHierarchy;
+    s16 materialCount;
     s32 i;
 
-    var_r28 = &Hu3DData[arg0];
-    temp_r30 = var_r28->hsf;
-    var_r27 = temp_r30->materialNum;
-    var_r31 = temp_r30->material;
-    for (i = 0; i < var_r27; var_r31++, i++) {
-        var_r31->vtxMode = 1;
+    modelData = &Hu3DData[objectIndex];
+    modelHierarchy = modelData->hsf;
+    materialCount = modelHierarchy->materialNum;
+    material = modelHierarchy->material;
+    for (i = 0; i < materialCount; material++, i++) {
+        material->vtxMode = 1;
     }
 }
 
-void fn_1_1DCC(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    switch (arg4) {
+Void SetObjectMotion(OMOBJ* object, s32 modelSlot, s32 motionSlot, s32 blendFrames, s32 motionMode) {
+    switch (motionMode) {
         case 0:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_NONE);
+            Hu3DMotionShiftSet(object->mdlId[modelSlot], object->mtnId[motionSlot], 0.0f, blendFrames, HU3D_MOTATTR_NONE);
             break;
         case 1:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_LOOP);
+            Hu3DMotionShiftSet(object->mdlId[modelSlot], object->mtnId[motionSlot], 0.0f, blendFrames, HU3D_MOTATTR_LOOP);
             break;
         case 2:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_PAUSE);
+            Hu3DMotionShiftSet(object->mdlId[modelSlot], object->mtnId[motionSlot], 0.0f, blendFrames, HU3D_MOTATTR_PAUSE);
             break;
     }
 }
 
-void fn_1_1F44(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    if (arg0->mtnId[arg2] == Hu3DMotionIDGet(arg0->mdlId[arg1])) {
+Void SetObjectMotionIfChanged(OMOBJ* object, s32 modelSlot, s32 motionSlot, s32 blendFrames, s32 motionMode) {
+    if (object->mtnId[motionSlot] == Hu3DMotionIDGet(object->mdlId[modelSlot])) {
         return;
     }
-    if (arg0->mtnId[arg2] == Hu3DMotionShiftIDGet(arg0->mdlId[arg1])) {
+    if (object->mtnId[motionSlot] == Hu3DMotionShiftIDGet(object->mdlId[modelSlot])) {
         return;
     }
-    fn_1_1F44(arg0, arg1, arg2, arg3, arg4);
+    SetObjectMotionIfChanged(object, modelSlot, motionSlot, blendFrames, motionMode);
 }
 
-void fn_1_2224(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3) {
-    HuPrcSleep(arg3 + 1);
+Void WaitForObjectMotionEnd(OMOBJ* object, s32 modelSlot, s32 motionSlot, s32 sleepFrames) {
+    HuPrcSleep(sleepFrames + 1);
     do {
         HuPrcVSleep();
-    } while (arg0->mtnId[arg2] != Hu3DMotionIDGet(arg0->mdlId[arg1]) || !Hu3DMotionEndCheck(arg0->mdlId[arg1]));
+    } while (object->mtnId[motionSlot] != Hu3DMotionIDGet(object->mdlId[modelSlot]) || !Hu3DMotionEndCheck(object->mdlId[modelSlot]));
 }
 
-s32 fn_1_22B4(s32 arg0) {
+s32 FindPlayerIndexByGroup(s32 groupId) {
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        if (arg0 == GWPlayerCfg[i].group) {
+        if (groupId == GWPlayerCfg[i].group) {
             break;
         }
     }
     return i;
 }
 
-void fn_1_22FC(s32 arg0, s32 arg1) {
+Void WaitForControllerButton(s32 controllerPort, s32 buttonMask) {
     while (TRUE) {
-        if (arg1 & HuPadBtnDown[arg0]) {
+        if (buttonMask & HuPadBtnDown[controllerPort]) {
             break;
         }
         HuPrcVSleep();
     }
 }
 
-void fn_1_2350(void) {
-    StructBss4* var_r31;
+Void UpdateStoryDebugCamera(Void) {
+    StoryCameraTransitionState* cameraSettings;
 
-    var_r31 = &lbl_1_bss_4;
+    cameraSettings = &storyCameraState;
     if (HuPadBtn[0] & PAD_BUTTON_B) {
         if (HuPadBtn[0] & PAD_TRIGGER_R) {
-            var_r31->unk08.z -= HuPadStkY[0] / 10.0f;
+            cameraSettings->centerPosition.z -= HuPadStkY[0] / 10.0f;
         } else {
-            var_r31->unk08.x += HuPadStkX[0] / 10.0f;
-            var_r31->unk08.y += HuPadStkY[0] / 10.0f;
+            cameraSettings->centerPosition.x += HuPadStkX[0] / 10.0f;
+            cameraSettings->centerPosition.y += HuPadStkY[0] / 10.0f;
         }
     }
     if (HuPadBtn[0] & PAD_BUTTON_Y) {
-        var_r31->unk20.x -= HuPadStkY[0] / 100.0f;
-        var_r31->unk20.y += HuPadStkX[0] / 100.0f;
-        if (var_r31->unk20.x < 0.0f) {
-            var_r31->unk20.x += 360.0f;
+        cameraSettings->rotation.x -= HuPadStkY[0] / 100.0f;
+        cameraSettings->rotation.y += HuPadStkX[0] / 100.0f;
+        if (cameraSettings->rotation.x < 0.0f) {
+            cameraSettings->rotation.x += 360.0f;
         }
-        if (var_r31->unk20.x >= 360.0f) {
-            var_r31->unk20.x -= 360.0f;
+        if (cameraSettings->rotation.x >= 360.0f) {
+            cameraSettings->rotation.x -= 360.0f;
         }
-        if (var_r31->unk20.y < 0.0f) {
-            var_r31->unk20.y += 360.0f;
+        if (cameraSettings->rotation.y < 0.0f) {
+            cameraSettings->rotation.y += 360.0f;
         }
-        if (var_r31->unk20.y >= 360.0f) {
-            var_r31->unk20.y -= 360.0f;
+        if (cameraSettings->rotation.y >= 360.0f) {
+            cameraSettings->rotation.y -= 360.0f;
         }
     }
     if (HuPadBtn[0] & PAD_BUTTON_X) {
-        var_r31->unk38 -= HuPadStkY[0] / 10.0f;
+        cameraSettings->zoom -= HuPadStkY[0] / 10.0f;
     }
-    print8(24, 40, 1.5f, "CENTER : %.2f, %.2f, %.2f", var_r31->unk08.x, var_r31->unk08.y, var_r31->unk08.z);
-    print8(24, 55, 1.5f, "ROT    : %.2f, %.2f, %.2f", var_r31->unk20.x, var_r31->unk20.y, var_r31->unk20.z);
-    print8(24, 70, 1.5f, "ZOOM   : %.2f", var_r31->unk38);
+    print8(24, 40, 1.5f, "CENTER : %.2f, %.2f, %.2f", cameraSettings->centerPosition.x, cameraSettings->centerPosition.y, cameraSettings->centerPosition.z);
+    print8(24, 55, 1.5f, "ROT    : %.2f, %.2f, %.2f", cameraSettings->rotation.x, cameraSettings->rotation.y, cameraSettings->rotation.z);
+    print8(24, 70, 1.5f, "ZOOM   : %.2f", cameraSettings->zoom);
 }
 
-void fn_1_2710(void (*arg0)(void)) {
-    lbl_1_bss_4.unk00 = arg0;
+Void SetStoryCameraCallback(Void (*callback)(Void)) {
+    storyCameraState.transitionCallback = callback;
 }
 
-void fn_1_2720(void (*arg0)(void)) {
-    lbl_1_bss_4.unk04 = arg0;
+Void SetStoryCameraInputCallback(Void (*callback)(Void)) {
+    storyCameraState.completionCallback = callback;
 }
 
-void fn_1_2730(OMOBJ* arg0) {
-    StructBss4* var_r31;
+Void UpdateStoryCamera(OMOBJ* object) {
+    StoryCameraTransitionState* cameraSettings;
 
-    var_r31 = &lbl_1_bss_4;
-    if (var_r31->unk00 != NULL) {
-        var_r31->unk00();
+    cameraSettings = &storyCameraState;
+    if (cameraSettings->transitionCallback != NULL) {
+        cameraSettings->transitionCallback();
     }
-    Center.x = var_r31->unk08.x;
-    Center.y = var_r31->unk08.y;
-    Center.z = var_r31->unk08.z;
-    CRot.x = var_r31->unk20.x;
-    CRot.y = var_r31->unk20.y;
-    CRot.z = var_r31->unk20.z;
-    CZoom = var_r31->unk38;
+    Center.x = cameraSettings->centerPosition.x;
+    Center.y = cameraSettings->centerPosition.y;
+    Center.z = cameraSettings->centerPosition.z;
+    CRot.x = cameraSettings->rotation.x;
+    CRot.y = cameraSettings->rotation.y;
+    CRot.z = cameraSettings->rotation.z;
+    CZoom = cameraSettings->zoom;
 }
 
-void fn_1_27E8(HUPROCESS* arg0, void (*arg1)(void)) {
+Void InitializeStoryCamera(HUPROCESS* process, Void (*callback)(Void)) {
     Hu3DCameraCreate(1);
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 42.0f, 0.1f, 10000.0f, 1.2f);
-    lbl_1_bss_4.unk00 = arg1;
-    lbl_1_bss_4.unk04 = fn_1_2350;
-    omAddObjEx(arg0, 0x7FDA, 0, 0, -1, omOutView);
-    omAddObjEx(arg0, 0x7FD9, 0, 0, -1, fn_1_2730);
+    storyCameraState.transitionCallback = callback;
+    storyCameraState.completionCallback = UpdateStoryDebugCamera;
+    omAddObjEx(process, 0x7FDA, 0, 0, -1, omOutView);
+    omAddObjEx(process, 0x7FD9, 0, 0, -1, UpdateStoryCamera);
 }
 
-void fn_1_2908(OMOBJ* arg0, s32 arg1, Vec arg2, float arg3, float arg4, float arg5) {
-    Vec sp4C;
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
-    float sp24;
-    float sp20;
-    float sp1C;
-    s32 sp18;
-    s32 sp14;
-    float var_f31;
+Void AnimateCharacterPosition(OMOBJ* object, s32 characterIndex, Vec targetPosition, float motionSpeedParameter, float motionDurationParameter, float motionFlags) {
+    Vec modelPosition;
+    Vec startingModelPosition;
+    Vec unreferencedTargetPositionCopy;
+    Vec modelRotation;
+    float unreferencedMotionParameter;
+    float unreferencedMotionParameterFloat;
+    float unreferencedMotionParameterPadding;
+    s32 unreferencedMotionParameterFrames;
+    s32 unreferencedMotionParameterFlags;
+    float verticalVelocity;
 
-    sp40.x = Hu3DData[arg0->mdlId[arg1]].pos.x;
-    sp4C.y = sp40.y = Hu3DData[arg0->mdlId[arg1]].pos.y;
-    sp40.z = Hu3DData[arg0->mdlId[arg1]].pos.z;
-    sp34.x = arg2.x;
-    sp34.y = arg2.y;
-    sp34.z = arg2.z;
-    sp18 = arg4;
-    sp28.x = Hu3DData[arg0->mdlId[arg1]].rot.x;
-    sp28.y = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    sp28.z = Hu3DData[arg0->mdlId[arg1]].rot.z;
-    sp1C = 0.0f;
-    sp20 = arg3;
-    sp24 = 0.0f;
-    sp14 = arg5;
-    var_f31 = -1.1025f;
-    Hu3DMotionShiftSet(arg0->mdlId[1], arg0->mtnId[3], 0.0f, 5.0f, 0U);
+    startingModelPosition.x = Hu3DData[object->mdlId[characterIndex]].pos.x;
+    modelPosition.y = startingModelPosition.y = Hu3DData[object->mdlId[characterIndex]].pos.y;
+    startingModelPosition.z = Hu3DData[object->mdlId[characterIndex]].pos.z;
+    unreferencedTargetPositionCopy.x = targetPosition.x;
+    unreferencedTargetPositionCopy.y = targetPosition.y;
+    unreferencedTargetPositionCopy.z = targetPosition.z;
+    unreferencedMotionParameterFrames = motionDurationParameter;
+    modelRotation.x = Hu3DData[object->mdlId[characterIndex]].rot.x;
+    modelRotation.y = Hu3DData[object->mdlId[characterIndex]].rot.y;
+    modelRotation.z = Hu3DData[object->mdlId[characterIndex]].rot.z;
+    unreferencedMotionParameterPadding = 0.0f;
+    unreferencedMotionParameterFloat = motionSpeedParameter;
+    unreferencedMotionParameter = 0.0f;
+    unreferencedMotionParameterFlags = motionFlags;
+    verticalVelocity = -1.1025f;
+    Hu3DMotionShiftSet(object->mdlId[1], object->mtnId[3], 0.0f, 5.0f, 0U);
     HuPrcSleep(10);
     while (TRUE) {
-        if (var_f31 >= 1.7f) {
-            var_f31 = 1.7f;
+        if (verticalVelocity >= 1.7f) {
+            verticalVelocity = 1.7f;
         }
-        sp4C.y += var_f31 * var_f31 * (var_f31 >= 0.0f ? -17.5f : 17.5f);
-        if (sp4C.y <= 0.0f && var_f31 > 0.0f) {
-            sp4C.y = 0.0f;
+        modelPosition.y += verticalVelocity * verticalVelocity * (verticalVelocity >= 0.0f ? -17.5f : 17.5f);
+        if (modelPosition.y <= 0.0f && verticalVelocity > 0.0f) {
+            modelPosition.y = 0.0f;
         }
-        sp4C.x = sp40.x += 6.0 * sind(sp28.y);
-        sp4C.z = sp40.z += 6.0 * cosd(sp28.y);
-        Hu3DModelPosSet(arg0->mdlId[1], sp4C.x, sp4C.y, sp4C.z);
-        Hu3DModelRotSet(arg0->mdlId[1], sp28.x, sp28.y, sp28.z);
+        modelPosition.x = startingModelPosition.x += 6.0 * sind(modelRotation.y);
+        modelPosition.z = startingModelPosition.z += 6.0 * cosd(modelRotation.y);
+        Hu3DModelPosSet(object->mdlId[1], modelPosition.x, modelPosition.y, modelPosition.z);
+        Hu3DModelRotSet(object->mdlId[1], modelRotation.x, modelRotation.y, modelRotation.z);
         HuPrcVSleep();
-        if (sp4C.y <= arg2.y && var_f31 > 0.0f) {
+        if (modelPosition.y <= targetPosition.y && verticalVelocity > 0.0f) {
             break;
         }
-        var_f31 += 0.11f;
+        verticalVelocity += 0.11f;
     }
 }
 
-void fn_1_2CB0(OMOBJ* arg0, s32 arg1, Vec arg2, float arg3, float arg4, float arg5) {
-    Vec sp54;
-    Vec sp48;
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    s32 sp14;
-    s32 temp_r27;
-    s32 var_r26;
-    s32 var_r25;
-    s32 var_r24;
-    s32 var_r23;
+Void AnimateCharacterRotation(OMOBJ* object, s32 characterIndex, Vec destinationPosition, float targetHeadingDegrees, float turnParameter, float turnDurationFrames) {
+    Vec nextModelPosition;
+    Vec currentModelPosition;
+    Vec targetPosition;
+    Vec targetHeading;
+    Vec modelRotation;
+    Vec targetRotation;
+    s32 unreferencedTurnParameter;
+    s32 turnDuration;
+    s32 reachedTargetX;
+    s32 reachedTargetZ;
+    s32 targetIsPositiveX;
+    s32 targetIsPositiveZ;
     s32 i;
 
-    var_r26 = 0;
-    var_r25 = 0;
-    sp48.x = Hu3DData[arg0->mdlId[arg1]].pos.x;
-    sp48.y = Hu3DData[arg0->mdlId[arg1]].pos.y;
-    sp48.z = Hu3DData[arg0->mdlId[arg1]].pos.z;
-    sp3C.x = arg2.x;
-    sp3C.y = arg2.y;
-    sp3C.z = arg2.z;
-    sp14 = arg4;
-    sp24.x = Hu3DData[arg0->mdlId[arg1]].rot.x;
-    sp24.y = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    sp24.z = Hu3DData[arg0->mdlId[arg1]].rot.z;
-    sp18.x = 0.0f;
-    sp18.y = arg3;
-    sp18.z = 0.0f;
-    if (sp3C.x - sp48.x >= 0.0f) {
-        var_r24 = 1;
+    reachedTargetX = 0;
+    reachedTargetZ = 0;
+    currentModelPosition.x = Hu3DData[object->mdlId[characterIndex]].pos.x;
+    currentModelPosition.y = Hu3DData[object->mdlId[characterIndex]].pos.y;
+    currentModelPosition.z = Hu3DData[object->mdlId[characterIndex]].pos.z;
+    targetPosition.x = destinationPosition.x;
+    targetPosition.y = destinationPosition.y;
+    targetPosition.z = destinationPosition.z;
+    unreferencedTurnParameter = turnParameter;
+    modelRotation.x = Hu3DData[object->mdlId[characterIndex]].rot.x;
+    modelRotation.y = Hu3DData[object->mdlId[characterIndex]].rot.y;
+    modelRotation.z = Hu3DData[object->mdlId[characterIndex]].rot.z;
+    targetRotation.x = 0.0f;
+    targetRotation.y = targetHeadingDegrees;
+    targetRotation.z = 0.0f;
+    if (targetPosition.x - currentModelPosition.x >= 0.0f) {
+        targetIsPositiveX = 1;
     } else {
-        var_r24 = 0;
+        targetIsPositiveX = 0;
     }
-    if (sp3C.z - sp48.z >= 0.0f) {
-        var_r23 = 1;
+    if (targetPosition.z - currentModelPosition.z >= 0.0f) {
+        targetIsPositiveZ = 1;
     } else {
-        var_r23 = 0;
+        targetIsPositiveZ = 0;
     }
-    temp_r27 = arg5;
+    turnDuration = turnDurationFrames;
     do {
-        sp30.y = -(atan2d(sp3C.z - sp48.z, sp3C.x - sp48.x) - 90.0);
-        if (sp30.y < 0.0f) {
-            sp30.y += 360.0f;
-        } else if (sp30.y >= 360.0f) {
-            sp30.y -= 360.0f;
+        targetHeading.y = -(atan2d(targetPosition.z - currentModelPosition.z, targetPosition.x - currentModelPosition.x) - 90.0);
+        if (targetHeading.y < 0.0f) {
+            targetHeading.y += 360.0f;
+        } else if (targetHeading.y >= 360.0f) {
+            targetHeading.y -= 360.0f;
         }
-        if (sp30.y >= 180.0f) {
-            if (sp24.y - sp30.y >= 180.0f) {
-                sp24.y -= 360.0f;
+        if (targetHeading.y >= 180.0f) {
+            if (modelRotation.y - targetHeading.y >= 180.0f) {
+                modelRotation.y -= 360.0f;
             }
-            if (sp24.y - sp30.y < -180.0f) {
-                sp24.y += 360.0f;
+            if (modelRotation.y - targetHeading.y < -180.0f) {
+                modelRotation.y += 360.0f;
             }
         } else {
-            if (sp24.y - sp30.y > 180.0f) {
-                sp24.y -= 360.0f;
+            if (modelRotation.y - targetHeading.y > 180.0f) {
+                modelRotation.y -= 360.0f;
             }
-            if (sp24.y - sp30.y <= -180.0f) {
-                sp24.y += 360.0f;
+            if (modelRotation.y - targetHeading.y <= -180.0f) {
+                modelRotation.y += 360.0f;
             }
         }
-        sp54.x = sp48.x += 6.0 * sind(sp30.y);
-        sp54.z = sp48.z += 6.0 * cosd(sp30.y);
-        if (var_r24 != 0) {
-            if (sp48.x >= sp3C.x) {
-                sp54.x = sp48.x = sp3C.x;
-                var_r26 = 1;
+        nextModelPosition.x = currentModelPosition.x += 6.0 * sind(targetHeading.y);
+        nextModelPosition.z = currentModelPosition.z += 6.0 * cosd(targetHeading.y);
+        if (targetIsPositiveX != 0) {
+            if (currentModelPosition.x >= targetPosition.x) {
+                nextModelPosition.x = currentModelPosition.x = targetPosition.x;
+                reachedTargetX = 1;
             }
         } else {
-            if (sp48.x <= sp3C.x) {
-                sp54.x = sp48.x = sp3C.x;
-                var_r26 = 1;
+            if (currentModelPosition.x <= targetPosition.x) {
+                nextModelPosition.x = currentModelPosition.x = targetPosition.x;
+                reachedTargetX = 1;
             }
         }
-        if (var_r23 != 0) {
-            if (sp48.z >= sp3C.z) {
-                sp54.z = sp48.z = sp3C.z;
-                var_r25 = 1;
+        if (targetIsPositiveZ != 0) {
+            if (currentModelPosition.z >= targetPosition.z) {
+                nextModelPosition.z = currentModelPosition.z = targetPosition.z;
+                reachedTargetZ = 1;
             }
         } else {
-            if (sp48.z <= sp3C.z) {
-                sp54.z = sp48.z = sp3C.z;
-                var_r25 = 1;
+            if (currentModelPosition.z <= targetPosition.z) {
+                nextModelPosition.z = currentModelPosition.z = targetPosition.z;
+                reachedTargetZ = 1;
             }
         }
-        sp24.y = fn_1_850(sp24.y, sp30.y, 10.0f);
-        Hu3DModelPosSet(arg0->mdlId[1], sp54.x, sp48.y, sp54.z);
-        Hu3DModelRotSet(arg0->mdlId[1], sp24.x, sp24.y, sp24.z);
+        modelRotation.y = InterpolateWeightedAverage(modelRotation.y, targetHeading.y, 10.0f);
+        Hu3DModelPosSet(object->mdlId[1], nextModelPosition.x, currentModelPosition.y, nextModelPosition.z);
+        Hu3DModelRotSet(object->mdlId[1], modelRotation.x, modelRotation.y, modelRotation.z);
         HuPrcVSleep();
-    } while (var_r25 != 1 || var_r26 != 1);
-    sp24.y = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    for (i = 0; i <= temp_r27; i++) {
-        if (sp18.y >= 180.0f) {
-            if (sp24.y - sp18.y >= 180.0f) {
-                sp24.y -= 360.0f;
+    } while (reachedTargetZ != 1 || reachedTargetX != 1);
+    modelRotation.y = Hu3DData[object->mdlId[characterIndex]].rot.y;
+    for (i = 0; i <= turnDuration; i++) {
+        if (targetRotation.y >= 180.0f) {
+            if (modelRotation.y - targetRotation.y >= 180.0f) {
+                modelRotation.y -= 360.0f;
             }
-            if (sp24.y - sp18.y < -180.0f) {
-                sp24.y += 360.0f;
+            if (modelRotation.y - targetRotation.y < -180.0f) {
+                modelRotation.y += 360.0f;
             }
         } else {
-            if (sp24.y - sp18.y > 180.0f) {
-                sp24.y -= 360.0f;
+            if (modelRotation.y - targetRotation.y > 180.0f) {
+                modelRotation.y -= 360.0f;
             }
-            if (sp24.y - sp18.y <= -180.0f) {
-                sp24.y += 360.0f;
+            if (modelRotation.y - targetRotation.y <= -180.0f) {
+                modelRotation.y += 360.0f;
             }
         }
-        sp24.y = fn_1_828(sp24.y, sp18.y, i, temp_r27);
-        Hu3DModelRotSet(arg0->mdlId[1], sp24.x, sp24.y, sp24.z);
+        modelRotation.y = InterpolateLinear(modelRotation.y, targetRotation.y, i, turnDuration);
+        Hu3DModelRotSet(object->mdlId[1], modelRotation.x, modelRotation.y, modelRotation.z);
         HuPrcVSleep();
     }
 }
 
-void fn_1_34A4(s16 arg0) {
-    HU3DMODEL* var_r28;
-    HSFDATA* temp_r30;
-    HSFMATERIAL* var_r31;
-    s16 var_r27;
+Void SetModelMaterialWhite(s16 objectIndex) {
+    HU3DMODEL* modelData;
+    HSFDATA* modelHierarchy;
+    HSFMATERIAL* material;
+    s16 materialCount;
     s32 i;
 
-    var_r28 = &Hu3DData[arg0];
-    temp_r30 = var_r28->hsf;
-    var_r27 = temp_r30->materialNum;
-    var_r31 = temp_r30->material;
-    for (i = 0; i < var_r27; var_r31++, i++) {
-        var_r31->vtxMode = 1;
-        var_r31->litColor[0] = 0xFF;
-        var_r31->litColor[1] = 0xFF;
-        var_r31->litColor[2] = 0xFF;
+    modelData = &Hu3DData[objectIndex];
+    modelHierarchy = modelData->hsf;
+    materialCount = modelHierarchy->materialNum;
+    material = modelHierarchy->material;
+    for (i = 0; i < materialCount; material++, i++) {
+        material->vtxMode = 1;
+        material->litColor[0] = 0xFF;
+        material->litColor[1] = 0xFF;
+        material->litColor[2] = 0xFF;
     }
 }
 
-void fn_1_352C(StructFn352C* arg0, s32 arg1) {
-    arg0->unk00 = arg1;
-    arg0->unk04 = GWPlayerCfg[arg0->unk00].group;
-    arg0->unk08 = GWPlayerCfg[arg0->unk00].iscom;
-    arg0->unk0C = GWPlayerCfg[arg0->unk00].diff;
-    arg0->unk10 = GWPlayerCfg[arg0->unk00].character;
-    arg0->unk14 = GWPlayerCfg[arg0->unk00].pad_idx;
+Void CapturePlayerResult(StoryPlayerResult* playerResult, s32 playerOrderIndex) {
+    playerResult->playerIndex = playerOrderIndex;
+    playerResult->group = GWPlayerCfg[playerResult->playerIndex].group;
+    playerResult->isComputer = GWPlayerCfg[playerResult->playerIndex].iscom;
+    playerResult->difficulty = GWPlayerCfg[playerResult->playerIndex].diff;
+    playerResult->characterId = GWPlayerCfg[playerResult->playerIndex].character;
+    playerResult->controllerPort = GWPlayerCfg[playerResult->playerIndex].pad_idx;
 }
 
-s32 fn_1_35C0(void) {
+s32 FindFirstHumanPlayer(Void) {
     s32 i;
 
     for (i = 0; i < 4; i++) {
@@ -766,254 +770,254 @@ s32 fn_1_35C0(void) {
     return i;
 }
 
-s32 fn_1_3618(s32 arg0) {
-    s32 temp_r3 = 0;
+s32 CreateStoryLighting(s32 lightIntensity) {
+    s32 lightId = 0;
 
-    temp_r3 = Hu3DGLightCreate(0.0f, 700.0f, 1200.0f, 0.0f, -1.0f, 0.0f, arg0, arg0, arg0);
-    Hu3DGLightPosAimSet(temp_r3, 0.0f, 700.0f, 1200.0f, 0.0f, 0.0f, 640.0f);
-    Hu3DGLightInfinitytSet(temp_r3);
-    return temp_r3;
+    lightId = Hu3DGLightCreate(0.0f, 700.0f, 1200.0f, 0.0f, -1.0f, 0.0f, lightIntensity, lightIntensity, lightIntensity);
+    Hu3DGLightPosAimSet(lightId, 0.0f, 700.0f, 1200.0f, 0.0f, 0.0f, 640.0f);
+    Hu3DGLightInfinitytSet(lightId);
+    return lightId;
 }
 
-void fn_1_3704(void) {
-    Vec sp20 = { 0.0f, 3000.0f, 800.0f };
-    Vec sp14 = { 0.0f, 0.0f, 640.0f };
-    Vec sp8 = { 0.0f, 1.0f, 0.0f };
+Void CreateStoryShadow(Void) {
+    Vec shadowCameraPosition = { 0.0f, 3000.0f, 800.0f };
+    Vec shadowLookAtPosition = { 0.0f, 0.0f, 640.0f };
+    Vec shadowUpDirection = { 0.0f, 1.0f, 0.0f };
 
     Hu3DShadowCreate(45.0f, 2000.0f, 25000.0f);
     Hu3DShadowTPLvlSet(0.8f);
-    Hu3DShadowPosSet(&sp20, &sp8, &sp14);
+    Hu3DShadowPosSet(&shadowCameraPosition, &shadowUpDirection, &shadowLookAtPosition);
 }
 
-void fn_1_37C8(StructBss4* arg0) {
-    arg0->unk08.x = arg0->unk14;
-    arg0->unk08.y = arg0->unk18;
-    arg0->unk08.z = arg0->unk1C;
-    arg0->unk20.x = arg0->unk2C;
-    arg0->unk20.y = arg0->unk30;
-    arg0->unk20.z = arg0->unk34;
-    arg0->unk38 = arg0->unk3C;
+Void SetCameraToTarget(StoryCameraTransitionState* cameraState) {
+    cameraState->centerPosition.x = cameraState->targetCenterX;
+    cameraState->centerPosition.y = cameraState->targetCenterY;
+    cameraState->centerPosition.z = cameraState->targetCenterZ;
+    cameraState->rotation.x = cameraState->targetRotationX;
+    cameraState->rotation.y = cameraState->targetRotationY;
+    cameraState->rotation.z = cameraState->targetRotationZ;
+    cameraState->zoom = cameraState->targetZoom;
 }
 
-void fn_1_3804(StructBss4* arg0) {
-    arg0->unk40 = 0;
-    arg0->unk14 = arg0->unk08.x;
-    arg0->unk18 = arg0->unk08.y;
-    arg0->unk1C = arg0->unk08.z;
-    arg0->unk2C = arg0->unk20.x;
-    arg0->unk30 = arg0->unk20.y;
-    arg0->unk34 = arg0->unk20.z;
-    arg0->unk3C = arg0->unk38;
+Void CaptureCameraStartState(StoryCameraTransitionState* cameraState) {
+    cameraState->transitionFrame = 0;
+    cameraState->targetCenterX = cameraState->centerPosition.x;
+    cameraState->targetCenterY = cameraState->centerPosition.y;
+    cameraState->targetCenterZ = cameraState->centerPosition.z;
+    cameraState->targetRotationX = cameraState->rotation.x;
+    cameraState->targetRotationY = cameraState->rotation.y;
+    cameraState->targetRotationZ = cameraState->rotation.z;
+    cameraState->targetZoom = cameraState->zoom;
 }
 
-void fn_1_3848(StructBss4* arg0, StructBss4* arg1, s32 arg2, float arg3) {
-    arg0->unk08.x = fn_1_850(arg0->unk08.x, arg1->unk14, arg3);
-    arg0->unk08.y = fn_1_850(arg0->unk08.y, arg1->unk18, arg3);
-    arg0->unk08.z = fn_1_850(arg0->unk08.z, arg1->unk1C, arg3);
-    arg0->unk20.x = fn_1_850(arg0->unk20.x, arg1->unk2C, arg3);
-    arg0->unk20.y = fn_1_850(arg0->unk20.y, arg1->unk30, arg3);
-    arg0->unk20.z = fn_1_850(arg0->unk20.z, arg1->unk34, arg3);
-    if (arg2 != 0) {
-        arg0->unk38 = fn_1_850(arg0->unk38, arg1->unk3C, arg3);
+Void InterpolateCameraCenter(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, s32 includeZoom, float smoothingWeight) {
+    cameraState->centerPosition.x = InterpolateWeightedAverage(cameraState->centerPosition.x, targetCameraState->targetCenterX, smoothingWeight);
+    cameraState->centerPosition.y = InterpolateWeightedAverage(cameraState->centerPosition.y, targetCameraState->targetCenterY, smoothingWeight);
+    cameraState->centerPosition.z = InterpolateWeightedAverage(cameraState->centerPosition.z, targetCameraState->targetCenterZ, smoothingWeight);
+    cameraState->rotation.x = InterpolateWeightedAverage(cameraState->rotation.x, targetCameraState->targetRotationX, smoothingWeight);
+    cameraState->rotation.y = InterpolateWeightedAverage(cameraState->rotation.y, targetCameraState->targetRotationY, smoothingWeight);
+    cameraState->rotation.z = InterpolateWeightedAverage(cameraState->rotation.z, targetCameraState->targetRotationZ, smoothingWeight);
+    if (includeZoom != 0) {
+        cameraState->zoom = InterpolateWeightedAverage(cameraState->zoom, targetCameraState->targetZoom, smoothingWeight);
     }
 }
 
-void fn_1_3ABC(StructBss4* arg0, float arg1) {
-    fn_1_3848(arg0, arg0, 1, arg1);
+Void InterpolateCameraCenterSine(StoryCameraTransitionState* cameraState, float smoothingWeight) {
+    InterpolateCameraCenter(cameraState, cameraState, 1, smoothingWeight);
 }
 
-void fn_1_3D28(StructBss4* arg0, float arg1) {
-    fn_1_3848(arg0, arg0, 0, arg1);
+Void InterpolateCameraCenterCosine(StoryCameraTransitionState* cameraState, float smoothingWeight) {
+    InterpolateCameraCenter(cameraState, cameraState, 0, smoothingWeight);
 }
 
-void fn_1_3F54(StructBss4* arg0, StructBss4* arg1, float arg2, float arg3) {
-    arg1->unk14 = fn_1_828(arg0->unk14, arg1->unk08.x, arg2, arg3);
-    arg1->unk18 = fn_1_828(arg0->unk18, arg1->unk08.y, arg2, arg3);
-    arg1->unk1C = fn_1_828(arg0->unk1C, arg1->unk08.z, arg2, arg3);
-    arg1->unk2C = fn_1_828(arg0->unk2C, arg1->unk20.x, arg2, arg3);
-    arg1->unk30 = fn_1_828(arg0->unk30, arg1->unk20.y, arg2, arg3);
-    arg1->unk34 = fn_1_828(arg0->unk34, arg1->unk20.z, arg2, arg3);
-    arg1->unk3C = fn_1_828(arg0->unk3C, arg1->unk38, arg2, arg3);
+Void InterpolateCameraRotation(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    targetCameraState->targetCenterX = InterpolateLinear(cameraState->targetCenterX, targetCameraState->centerPosition.x, elapsedFrames, durationFrames);
+    targetCameraState->targetCenterY = InterpolateLinear(cameraState->targetCenterY, targetCameraState->centerPosition.y, elapsedFrames, durationFrames);
+    targetCameraState->targetCenterZ = InterpolateLinear(cameraState->targetCenterZ, targetCameraState->centerPosition.z, elapsedFrames, durationFrames);
+    targetCameraState->targetRotationX = InterpolateLinear(cameraState->targetRotationX, targetCameraState->rotation.x, elapsedFrames, durationFrames);
+    targetCameraState->targetRotationY = InterpolateLinear(cameraState->targetRotationY, targetCameraState->rotation.y, elapsedFrames, durationFrames);
+    targetCameraState->targetRotationZ = InterpolateLinear(cameraState->targetRotationZ, targetCameraState->rotation.z, elapsedFrames, durationFrames);
+    targetCameraState->targetZoom = InterpolateLinear(cameraState->targetZoom, targetCameraState->zoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_41D0(StructBss4* arg0, StructBss4* arg1, float arg2, float arg3) {
-    fn_1_3F54(arg0, arg1, arg2, arg3);
-    arg0->unk08.x = arg1->unk14;
-    arg0->unk08.y = arg1->unk18;
-    arg0->unk08.z = arg1->unk1C;
-    arg0->unk20.x = arg1->unk2C;
-    arg0->unk20.y = arg1->unk30;
-    arg0->unk20.z = arg1->unk34;
-    arg0->unk38 = arg1->unk3C;
+Void InterpolateCameraRotationSine(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    InterpolateCameraRotation(cameraState, targetCameraState, elapsedFrames, durationFrames);
+    cameraState->centerPosition.x = targetCameraState->targetCenterX;
+    cameraState->centerPosition.y = targetCameraState->targetCenterY;
+    cameraState->centerPosition.z = targetCameraState->targetCenterZ;
+    cameraState->rotation.x = targetCameraState->targetRotationX;
+    cameraState->rotation.y = targetCameraState->targetRotationY;
+    cameraState->rotation.z = targetCameraState->targetRotationZ;
+    cameraState->zoom = targetCameraState->targetZoom;
 }
 
-void fn_1_4484(StructBss4* arg0, StructBss4* arg1, float arg2, float arg3, float arg4) {
-    fn_1_3F54(arg0, arg1, arg2, arg3);
-    fn_1_3848(arg0, arg1, 1, arg4);
+Void InterpolateCameraRotationCosine(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, float elapsedFrames, float durationFrames, float secondaryDurationFrames) {
+    InterpolateCameraRotation(cameraState, targetCameraState, elapsedFrames, durationFrames);
+    InterpolateCameraCenter(cameraState, targetCameraState, 1, secondaryDurationFrames);
 }
 
-void fn_1_48F0(StructBss4* arg0, StructBss4* arg1, float arg2, float arg3) {
-    arg1->unk14 = fn_1_948(arg0->unk14, arg1->unk08.x, arg2, arg3);
-    arg1->unk18 = fn_1_948(arg0->unk18, arg1->unk08.y, arg2, arg3);
-    arg1->unk1C = fn_1_948(arg0->unk1C, arg1->unk08.z, arg2, arg3);
-    arg1->unk2C = fn_1_948(arg0->unk2C, arg1->unk20.x, arg2, arg3);
-    arg1->unk30 = fn_1_948(arg0->unk30, arg1->unk20.y, arg2, arg3);
-    arg1->unk34 = fn_1_948(arg0->unk34, arg1->unk20.z, arg2, arg3);
-    arg1->unk3C = fn_1_948(arg0->unk3C, arg1->unk38, arg2, arg3);
+Void InterpolateCameraZoom(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    targetCameraState->targetCenterX = InterpolateSineEaseOut(cameraState->targetCenterX, targetCameraState->centerPosition.x, elapsedFrames, durationFrames);
+    targetCameraState->targetCenterY = InterpolateSineEaseOut(cameraState->targetCenterY, targetCameraState->centerPosition.y, elapsedFrames, durationFrames);
+    targetCameraState->targetCenterZ = InterpolateSineEaseOut(cameraState->targetCenterZ, targetCameraState->centerPosition.z, elapsedFrames, durationFrames);
+    targetCameraState->targetRotationX = InterpolateSineEaseOut(cameraState->targetRotationX, targetCameraState->rotation.x, elapsedFrames, durationFrames);
+    targetCameraState->targetRotationY = InterpolateSineEaseOut(cameraState->targetRotationY, targetCameraState->rotation.y, elapsedFrames, durationFrames);
+    targetCameraState->targetRotationZ = InterpolateSineEaseOut(cameraState->targetRotationZ, targetCameraState->rotation.z, elapsedFrames, durationFrames);
+    targetCameraState->targetZoom = InterpolateSineEaseOut(cameraState->targetZoom, targetCameraState->zoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_4D44(StructBss4* arg0, StructBss4* arg1, float arg2, float arg3) {
-    fn_1_48F0(arg0, arg1, arg2, arg3);
-    arg0->unk08.x = arg1->unk14;
-    arg0->unk08.y = arg1->unk18;
-    arg0->unk08.z = arg1->unk1C;
-    arg0->unk20.x = arg1->unk2C;
-    arg0->unk20.y = arg1->unk30;
-    arg0->unk20.z = arg1->unk34;
-    arg0->unk38 = arg1->unk3C;
+Void InterpolateCameraZoomSine(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    InterpolateCameraZoom(cameraState, targetCameraState, elapsedFrames, durationFrames);
+    cameraState->centerPosition.x = targetCameraState->targetCenterX;
+    cameraState->centerPosition.y = targetCameraState->targetCenterY;
+    cameraState->centerPosition.z = targetCameraState->targetCenterZ;
+    cameraState->rotation.x = targetCameraState->targetRotationX;
+    cameraState->rotation.y = targetCameraState->targetRotationY;
+    cameraState->rotation.z = targetCameraState->targetRotationZ;
+    cameraState->zoom = targetCameraState->targetZoom;
 }
 
-void fn_1_51D0(StructBss4* arg0, StructBss4* arg1, float arg2, float arg3, float arg4) {
-    fn_1_48F0(arg0, arg1, arg2, arg3);
-    fn_1_3848(arg0, arg1, 1, arg4);
+Void InterpolateCameraTransition(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, float elapsedFrames, float durationFrames, float secondaryDurationFrames) {
+    InterpolateCameraZoom(cameraState, targetCameraState, elapsedFrames, durationFrames);
+    InterpolateCameraCenter(cameraState, targetCameraState, 1, secondaryDurationFrames);
 }
 
-void fn_1_5828(StructBss4* arg0, StructBss4* arg1, float arg2, float arg3) {
-    arg1->unk14 = fn_1_870(arg0->unk14, arg1->unk08.x, arg2, arg3);
-    arg1->unk18 = fn_1_870(arg0->unk18, arg1->unk08.y, arg2, arg3);
-    arg1->unk1C = fn_1_870(arg0->unk1C, arg1->unk08.z, arg2, arg3);
-    arg1->unk2C = fn_1_870(arg0->unk2C, arg1->unk20.x, arg2, arg3);
-    arg1->unk30 = fn_1_870(arg0->unk30, arg1->unk20.y, arg2, arg3);
-    arg1->unk34 = fn_1_870(arg0->unk34, arg1->unk20.z, arg2, arg3);
-    arg1->unk3C = fn_1_870(arg0->unk3C, arg1->unk38, arg2, arg3);
+Void InterpolateCameraTransitionSine(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    targetCameraState->targetCenterX = InterpolateCosineEaseOut(cameraState->targetCenterX, targetCameraState->centerPosition.x, elapsedFrames, durationFrames);
+    targetCameraState->targetCenterY = InterpolateCosineEaseOut(cameraState->targetCenterY, targetCameraState->centerPosition.y, elapsedFrames, durationFrames);
+    targetCameraState->targetCenterZ = InterpolateCosineEaseOut(cameraState->targetCenterZ, targetCameraState->centerPosition.z, elapsedFrames, durationFrames);
+    targetCameraState->targetRotationX = InterpolateCosineEaseOut(cameraState->targetRotationX, targetCameraState->rotation.x, elapsedFrames, durationFrames);
+    targetCameraState->targetRotationY = InterpolateCosineEaseOut(cameraState->targetRotationY, targetCameraState->rotation.y, elapsedFrames, durationFrames);
+    targetCameraState->targetRotationZ = InterpolateCosineEaseOut(cameraState->targetRotationZ, targetCameraState->rotation.z, elapsedFrames, durationFrames);
+    targetCameraState->targetZoom = InterpolateCosineEaseOut(cameraState->targetZoom, targetCameraState->zoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_5CEC(StructBss4* arg0, StructBss4* arg1, float arg2, float arg3) {
-    fn_1_5828(arg0, arg1, arg2, arg3);
-    arg0->unk08.x = arg1->unk14;
-    arg0->unk08.y = arg1->unk18;
-    arg0->unk08.z = arg1->unk1C;
-    arg0->unk20.x = arg1->unk2C;
-    arg0->unk20.y = arg1->unk30;
-    arg0->unk20.z = arg1->unk34;
-    arg0->unk38 = arg1->unk3C;
+Void InterpolateCameraTransitionCosine(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    InterpolateCameraTransitionSine(cameraState, targetCameraState, elapsedFrames, durationFrames);
+    cameraState->centerPosition.x = targetCameraState->targetCenterX;
+    cameraState->centerPosition.y = targetCameraState->targetCenterY;
+    cameraState->centerPosition.z = targetCameraState->targetCenterZ;
+    cameraState->rotation.x = targetCameraState->targetRotationX;
+    cameraState->rotation.y = targetCameraState->targetRotationY;
+    cameraState->rotation.z = targetCameraState->targetRotationZ;
+    cameraState->zoom = targetCameraState->targetZoom;
 }
 
-void fn_1_61E8(StructBss4* arg0, StructBss4* arg1, float arg2, float arg3, float arg4) {
-    fn_1_5828(arg0, arg1, arg2, arg3);
-    fn_1_3848(arg0, arg1, 1, arg4);
+Void InterpolateCameraTransitionEaseOut(StoryCameraTransitionState* cameraState, StoryCameraTransitionState* targetCameraState, float elapsedFrames, float durationFrames, float secondaryDurationFrames) {
+    InterpolateCameraTransitionSine(cameraState, targetCameraState, elapsedFrames, durationFrames);
+    InterpolateCameraCenter(cameraState, targetCameraState, 1, secondaryDurationFrames);
 }
 
-void fn_1_68B0(OMOBJ* arg0) {
-    s32 var_r30;
+Void CreateStoryStageModels(OMOBJ* object) {
+    s32 nextMotionIndex;
 
-    if (arg0->work[0] == 0 && arg0->work[2] != 0) {
-        arg0->work[2]--;
+    if (object->work[0] == 0 && object->work[2] != 0) {
+        object->work[2]--;
         return;
     }
-    if (arg0->work[2] == 0 && Hu3DMotionEndCheck(arg0->mdlId[1])) {
-        var_r30 = arg0->work[1];
-        Hu3DMotionShiftSet(arg0->mdlId[1], arg0->mtnId[var_r30], 0.0f, 15.0f, 0x40000001U);
-        arg0->work[0] = arg0->work[1] = arg0->work[2] = 0;
+    if (object->work[2] == 0 && Hu3DMotionEndCheck(object->mdlId[1])) {
+        nextMotionIndex = object->work[1];
+        Hu3DMotionShiftSet(object->mdlId[1], object->mtnId[nextMotionIndex], 0.0f, 15.0f, 0x40000001U);
+        object->work[0] = object->work[1] = object->work[2] = 0;
     }
 }
 
-void fn_1_6974(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    fn_1_1DCC(arg0, 1, arg1, arg3, arg4);
-    if (arg4 == 0) {
-        arg0->work[0] = 1;
-        arg0->work[1] = arg2;
-        arg0->work[2] = arg3 + 1;
+Void SetObjectMotionAndWait(OMOBJ* object, s32 motionIndex, s32 blendFrames, s32 loopMode, s32 initialDelayFrames) {
+    SetObjectMotion(object, 1, motionIndex, loopMode, initialDelayFrames);
+    if (initialDelayFrames == 0) {
+        object->work[0] = 1;
+        object->work[1] = blendFrames;
+        object->work[2] = loopMode + 1;
     }
 }
 
-void fn_1_6AFC(s32 arg0, s32 arg1) {
-    HuWinMesSet(arg0, arg1);
+Void SetStoryWindowMessage(s32 windowId, s32 messageId) {
+    HuWinMesSet(windowId, messageId);
 }
 
-void fn_1_6B30(s32 arg0, s32 arg1, s32 arg2) {
-    HuWinInsertMesSet(arg0, arg1, arg2);
+Void InsertStoryWindowMessage(s32 windowId, s32 messageId, s32 choiceIndex) {
+    HuWinInsertMesSet(windowId, messageId, choiceIndex);
 }
 
-void fn_1_6B70(s32 arg0, s32 arg1) {
-    fn_1_1ACC(arg0, arg1);
+Void WaitForStoryWindow(s32 windowId, s32 messageId) {
+    WaitForStoryMessage(windowId, messageId);
 }
 
-void fn_1_6C1C(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
-    s32 temp_r28 = 0;
-    s32 var_r29 = 0;
+Void DisplayStoryMessagePages(s32 windowId, s32 messageId, s32 choiceIndex, s32 waitFrames) {
+    s32 messagePageCount = 0;
+    s32 pageWaitState = 0;
     s32 i;
 
-    temp_r28 = HuWinKeyWaitNumGet(arg1);
-    if (arg2 == -1 || arg2 >= temp_r28 - 1) {
-        arg2 = temp_r28 - 1;
+    messagePageCount = HuWinKeyWaitNumGet(messageId);
+    if (choiceIndex == -1 || choiceIndex >= messagePageCount - 1) {
+        choiceIndex = messagePageCount - 1;
     }
     HuWinComKeyReset();
-    if (winData[arg0].active_pad == 0xF) {
+    if (winData[windowId].active_pad == 0xF) {
         for (i = 0; i < 10; i++) {
             HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, GWMessDelayGet());
         }
     }
-    HuWinMesSet(arg0, arg1);
-    for (i = 0; i < temp_r28; i++) {
-        var_r29 = 0;
+    HuWinMesSet(windowId, messageId);
+    for (i = 0; i < messagePageCount; i++) {
+        pageWaitState = 0;
         do {
             HuPrcVSleep();
-        } while (HuWinStatGet(arg0) != 1);
-        if (i == arg2) {
-            HuWinAttrSet(arg0, 0x400);
-            var_r29 = 1;
+        } while (HuWinStatGet(windowId) != 1);
+        if (i == choiceIndex) {
+            HuWinAttrSet(windowId, 0x400);
+            pageWaitState = 1;
         }
         while (TRUE) {
             HuPrcVSleep();
-            if (var_r29 != 0) {
-                if (var_r29 == 1 && HuWinStatGet(arg0) != 1) {
-                    var_r29 = 2;
-                } else if (var_r29 == 2) {
-                    HuPrcSleep(arg3);
-                    HuWinAttrReset(arg0, 0x400);
-                    HuWinKeyWaitEntry(arg0);
+            if (pageWaitState != 0) {
+                if (pageWaitState == 1 && HuWinStatGet(windowId) != 1) {
+                    pageWaitState = 2;
+                } else if (pageWaitState == 2) {
+                    HuPrcSleep(waitFrames);
+                    HuWinAttrReset(windowId, 0x400);
+                    HuWinKeyWaitEntry(windowId);
                     break;
                 }
-            } else if (HuWinStatGet(arg0) != 1) {
+            } else if (HuWinStatGet(windowId) != 1) {
                 break;
             }
         }
     }
-    fn_1_1ACC(arg0, 0);
-    HuWinMesSet(arg0, MAKE_MESSID(37, 4));
+    WaitForStoryMessage(windowId, 0);
+    HuWinMesSet(windowId, MAKE_MESSID(37, 4));
     HuWinComKeyReset();
 }
 
-BOOL fn_1_6E04(s32 arg0) {
-    return fn_1_1B78(arg0, 0);
+BOOL WaitForFirstStoryChoice(s32 windowId) {
+    return WaitForStoryChoice(windowId, 0);
 }
 
-s32 fn_1_6EB8(s32 arg0, s32 arg1) {
-    float spC[2];
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    s32 var_r31;
+s32 CreateStoryChoiceWindow(s32 messageId, s32 playerIndex) {
+    float messageSize[2];
+    float messageWidth;
+    float messageHeight;
+    float windowPositionX;
+    float windowPositionY;
+    s32 windowId;
 
-    HuWinMesMaxSizeGet(1, spC, arg0);
-    var_f31 = spC[0];
-    var_f30 = spC[1];
-    var_f29 = 550.0f - var_f31;
-    var_f28 = 430.0f - var_f30;
-    var_r31 = HuWinExCreateStyled(var_f29, var_f28, var_f31, var_f30, -1, 1);
-    if (arg1 != -1) {
-        arg1 = GWPlayerCfg[arg1].pad_idx;
-        winData[var_r31].active_pad = 1;
+    HuWinMesMaxSizeGet(1, messageSize, messageId);
+    messageWidth = messageSize[0];
+    messageHeight = messageSize[1];
+    windowPositionX = 550.0f - messageWidth;
+    windowPositionY = 430.0f - messageHeight;
+    windowId = HuWinExCreateStyled(windowPositionX, windowPositionY, messageWidth, messageHeight, -1, 1);
+    if (playerIndex != -1) {
+        playerIndex = GWPlayerCfg[playerIndex].pad_idx;
+        winData[windowId].active_pad = 1;
     } else {
-        winData[var_r31].active_pad = 0xF;
+        winData[windowId].active_pad = 0xF;
     }
-    HuWinMesPalSet(var_r31, 7, 0, 0, 0);
-    fn_1_C38(var_r31, 0.5f, 0.5f, 1);
-    return var_r31;
+    HuWinMesPalSet(windowId, 7, 0, 0, 0);
+    AnimateStoryWindow(windowId, 0.5f, 0.5f, 1);
+    return windowId;
 }
 
-void fn_1_7028(s32 arg0) {
-    fn_1_1A04(arg0, 0.5f, 0.5f);
+Void CloseStoryChoiceWindow(s32 windowId) {
+    CloseStoryWindowAt(windowId, 0.5f, 0.5f);
 }
