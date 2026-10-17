@@ -4,87 +4,87 @@
 #include "game/esprite.h"
 #endif
 
-s16 stageMdlId[32];
-s16 stageMotId[32];
-s16 stageSprId[33];
-s16 lbl_1_bss_1A18;
+s16 resultStageModelIds[32];
+s16 resultStageMotionIds[32];
+s16 resultStageSpriteIds[33];
+s16 unreferencedResultDatalistValue;
 
-void StageModelCreate(StageModel *model_list)
+void StageModelCreate(ResultStageModel *modelEntries)
 {
-	StageModel *list;
-	s16 i;
-	s16 model;
-	s16 clear_i;
-	HU3DMODEL *model_ptr;
-	void *data;
-	list = model_list;
-	for(clear_i=0; clear_i<32; clear_i++) {
-		stageMdlId[clear_i] = stageMotId[clear_i] = -1;
+	ResultStageModel *currentModelEntry;
+	s16 entryIndex;
+	s16 createdModelId;
+	s16 entryClearIndex;
+	HU3DMODEL *createdModelData;
+	void *modelData;
+	currentModelEntry = modelEntries;
+	for(entryClearIndex=0; entryClearIndex<32; entryClearIndex++) {
+		resultStageModelIds[entryClearIndex] = resultStageMotionIds[entryClearIndex] = -1;
 	}
-	for(i=0; list->datanum != DATA_NUM_LISTEND; list++, i++) {
-		if(list->type == 0) {
-			data = HuDataSelHeapReadNum(list->datanum, HU_MEMNUM_OVL, HEAP_MODEL);
-			model = Hu3DModelCreate(data);
-			stageMdlId[i] = model;
-			Hu3DModelAttrSet(model, list->attr);
-			Hu3DModelPosSetV(model, &list->pos);
-			Hu3DModelRotSetV(model, &list->rot);
-			Hu3DModelScaleSetV(model, &list->scale);
-			model_ptr = &Hu3DData[model];
-			if(model_ptr->motId != -1) {
-				stageMotId[i] = model_ptr->motId;
+	for(entryIndex=0; currentModelEntry->dataNumber != DATA_NUM_LISTEND; currentModelEntry++, entryIndex++) {
+		if(currentModelEntry->modelType == 0) {
+			modelData = HuDataSelHeapReadNum(currentModelEntry->dataNumber, HU_MEMNUM_OVL, HEAP_MODEL);
+			createdModelId = Hu3DModelCreate(modelData);
+			resultStageModelIds[entryIndex] = createdModelId;
+			Hu3DModelAttrSet(createdModelId, currentModelEntry->attributes);
+			Hu3DModelPosSetV(createdModelId, &currentModelEntry->pos);
+			Hu3DModelRotSetV(createdModelId, &currentModelEntry->rot);
+			Hu3DModelScaleSetV(createdModelId, &currentModelEntry->scale);
+			createdModelData = &Hu3DData[createdModelId];
+			if(createdModelData->motId != -1) {
+				resultStageMotionIds[entryIndex] = createdModelData->motId;
 			}
-		} else if(list->type == 1) {
-			data = HuDataSelHeapReadNum(list->datanum, HU_MEMNUM_OVL, HEAP_MODEL);
-			stageMotId[i] = Hu3DJointMotion(stageMdlId[list->mot_link], data);
+		} else if(currentModelEntry->modelType == 1) {
+			modelData = HuDataSelHeapReadNum(currentModelEntry->dataNumber, HU_MEMNUM_OVL, HEAP_MODEL);
+			resultStageMotionIds[entryIndex] = Hu3DJointMotion(resultStageModelIds[currentModelEntry->motionLinkIndex], modelData);
 			
 		}
-		(void)i;
+		(void)entryIndex;
 	}
-	list = model_list;
-	for(i=0; list->datanum != DATA_NUM_LISTEND; list++, i++) {
-		if(list->type == 2) {
-			model = Hu3DModelLink(stageMdlId[list->link]);
-			stageMdlId[i] = model;
-			Hu3DModelAttrSet(model, list->attr);
-			Hu3DModelPosSetV(model, &list->pos);
-			Hu3DModelRotSetV(model, &list->rot);
-			Hu3DModelScaleSetV(model, &list->scale);
+	currentModelEntry = modelEntries;
+	for(entryIndex=0; currentModelEntry->dataNumber != DATA_NUM_LISTEND; currentModelEntry++, entryIndex++) {
+		if(currentModelEntry->modelType == 2) {
+			createdModelId = Hu3DModelLink(resultStageModelIds[currentModelEntry->linkedModelIndex]);
+			resultStageModelIds[entryIndex] = createdModelId;
+			Hu3DModelAttrSet(createdModelId, currentModelEntry->attributes);
+			Hu3DModelPosSetV(createdModelId, &currentModelEntry->pos);
+			Hu3DModelRotSetV(createdModelId, &currentModelEntry->rot);
+			Hu3DModelScaleSetV(createdModelId, &currentModelEntry->scale);
 		}
-		if(list->mot_link != -1) {
-			Hu3DMotionSet(stageMdlId[i], stageMotId[list->mot_link]);
+		if(currentModelEntry->motionLinkIndex != -1) {
+			Hu3DMotionSet(resultStageModelIds[entryIndex], resultStageMotionIds[currentModelEntry->motionLinkIndex]);
 		}
-		(void)i;
+		(void)entryIndex;
 	}
 }
 
-void StageSpriteCreate(StageSprite *sprite_list)
+void StageSpriteCreate(ResultStageSprite *spriteEntries)
 {
-	StageSprite *list;
-	s16 sprite;
-	s16 clear_i;
-	s16 i;
-	list = sprite_list;
-	for(clear_i=0; clear_i<32; clear_i++) {
-		stageSprId[clear_i] = -1;
+	ResultStageSprite *currentSpriteEntry;
+	s16 createdSpriteId;
+	s16 entryClearIndex;
+	s16 entryIndex;
+	currentSpriteEntry = spriteEntries;
+	for(entryClearIndex=0; entryClearIndex<32; entryClearIndex++) {
+		resultStageSpriteIds[entryClearIndex] = -1;
 	}
-	for(i=0; list->datanum; i++, list++) {
-		sprite = espEntry(list->datanum, 100, 0);
-		stageSprId[i] = sprite;
-		espPosSet(sprite, list->x, list->y);
-		espColorSet(sprite, list->color.r, list->color.g, list->color.b);
-		espTPLvlSet(sprite, list->color.a/255.0f);
-		espPriSet(sprite, list->prio);
-		espAttrSet(sprite, list->attr);
+	for(entryIndex=0; currentSpriteEntry->dataNumber; entryIndex++, currentSpriteEntry++) {
+		createdSpriteId = espEntry(currentSpriteEntry->dataNumber, 100, 0);
+		resultStageSpriteIds[entryIndex] = createdSpriteId;
+		espPosSet(createdSpriteId, currentSpriteEntry->x, currentSpriteEntry->y);
+		espColorSet(createdSpriteId, currentSpriteEntry->color.r, currentSpriteEntry->color.g, currentSpriteEntry->color.b);
+		espTPLvlSet(createdSpriteId, currentSpriteEntry->color.a/255.0f);
+		espPriSet(createdSpriteId, currentSpriteEntry->priority);
+		espAttrSet(createdSpriteId, currentSpriteEntry->attributes);
 	}
 }
 
 void StageSpriteKill(void)
 {
-	s16 i;
-	for(i=0; i<32; i++) {
-		if(stageSprId[i] != -1) {
-			espKill(stageSprId[i]);
+	s16 spriteIndex;
+	for(spriteIndex=0; spriteIndex<32; spriteIndex++) {
+		if(resultStageSpriteIds[spriteIndex] != -1) {
+			espKill(resultStageSpriteIds[spriteIndex]);
 		}
 	}
 }

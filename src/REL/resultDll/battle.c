@@ -26,7 +26,7 @@
 
 #define COIN_EFFECT_MAX 180
 
-static StageModel resultBattleModel[] = { { DATA_MAKE_NUM(DATADIR_RESULT, 0x08), 0, 0, -1, -1, { -300, 0, 0 }, { 0, 0, 0 }, { 0.9f, 0.9f, 0.9f } },
+static ResultStageModel resultBattleModel[] = { { DATA_MAKE_NUM(DATADIR_RESULT, 0x08), 0, 0, -1, -1, { -300, 0, 0 }, { 0, 0, 0 }, { 0.9f, 0.9f, 0.9f } },
     { DATA_MAKE_NUM(DATADIR_RESULT, 0x09), 0, 0, -1, -1, { -100, 0, 0 }, { 0, 0, 0 }, { 0.9f, 0.9f, 0.9f } },
     { DATA_MAKE_NUM(DATADIR_RESULT, 0x0A), 0, 0, -1, -1, { 100, 0, 0 }, { 0, 0, 0 }, { 0.9f, 0.9f, 0.9f } },
     { DATA_MAKE_NUM(DATADIR_RESULT, 0x0A), 0, 0, -1, -1, { 300, 0, 0 }, { 0, 0, 0 }, { 0.9f, 0.9f, 0.9f } },
@@ -39,7 +39,7 @@ static StageModel resultBattleModel[] = { { DATA_MAKE_NUM(DATADIR_RESULT, 0x08),
     { DATA_MAKE_NUM(DATADIR_RESULT, 0x0F), 0x40000002, 0, -1, -1, { 5000, 0, 0 }, { 0, 0, 0 }, { 2.0f, 2.0f, 2.0f } },
     { -1, 0, 0, -1, -1, { 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 } } };
 
-static StageSprite resultBattleSprite[] = {
+static ResultStageSprite resultBattleSprite[] = {
     { DATA_MAKE_NUM(DATADIR_RESULT, 0x43), 0, 10, 288, 240, { 255, 255, 255, 255 } },
     { 0, 0, 0, 0, 0, { 0, 0, 0, 0 } },
 };
@@ -80,7 +80,7 @@ static s16 resultStatPosTbl[] = {
 
 static Vec playerPosTbl[] = { { -300, 270, 0 }, { -100, 180, 500 }, { 100, 90, 500 }, { 300, 0, 500 } };
 
-s16 lbl_1_data_820[] = { -284, 148, -84, 233, 116, 318, 316, 403 };
+s16 unreferencedResultBattlePositionData[] = { -284, 148, -84, 233, 116, 318, 316, 403 };
 
 static s32 bomheiCubeMdlTbl[] = { DATA_MAKE_NUM(DATADIR_RESULT, 0x08), DATA_MAKE_NUM(DATADIR_RESULT, 0x09), DATA_MAKE_NUM(DATADIR_RESULT, 0x0A),
     DATA_MAKE_NUM(DATADIR_RESULT, 0x0A) };
@@ -93,7 +93,7 @@ static float coinBlankYOfs[] = { 140, 160, 180, 150, 150, 120, 180, 210 };
 
 static s16 coinNumXOfs[] = { 8, 0, -8 };
 
-typedef struct CoinEffect_s {
+typedef struct ResultCoinEffect {
     s16 playerNo;
     s16 rank;
     Vec pos;
@@ -101,7 +101,7 @@ typedef struct CoinEffect_s {
     float velY;
 } CoinEffect;
 
-u8 lbl_1_bss_19F8[32];
+u8 unreferencedResultBattleBuffer[32];
 static s16 resultBattleOrder[4];
 static s16 resultBattleRank[4];
 static s16 coinNumGrpId[4];
@@ -109,7 +109,7 @@ static s16 coinNumSprId[4][5];
 static s16 resultBattleCharMdl[4];
 static s16 resultBattleCharMot[4][4];
 static s16 coinEffectMdlId[COIN_EFFECT_MAX];
-s16 lbl_1_bss_181C[6];
+s16 unreferencedResultBattleValues[6];
 static s16 resultBattleEffParManId[4];
 static CoinEffect coinEffectData[COIN_EFFECT_MAX];
 static s32 resultBattleSkipF;
@@ -193,10 +193,10 @@ void ResultBattleMain(void)
 
 static void ResultBattleIdle(void)
 {
-    Vec temp;
-    temp.z = 0.0f;
-    temp.y = 0.0f;
-    temp.x = 0.0f;
+    Vec unusedResultBattleIdleVector;
+    unusedResultBattleIdleVector.z = 0.0f;
+    unusedResultBattleIdleVector.y = 0.0f;
+    unusedResultBattleIdleVector.x = 0.0f;
     while (1) {
         if (((HuPadBtn[0] | HuPadBtn[1] | HuPadBtn[2] | HuPadBtn[3]) & 0x100) != 0 || resultBattleSkipF != 0) {
             resultFastF = 1;
@@ -209,7 +209,7 @@ static void ResultBattleIdle(void)
 }
 
 static void ResultBattleCoinAddShow(void);
-static void ResultBattleCoinAddNumSet(s16 grpId, s16 value);
+static void ResultBattleCoinAddNumSet(s16 grpId, s16 displayedValue);
 static void ResultBattleOrderSet(void);
 static void CoinEffectInit(void);
 static void CoinEffectAdd(s16 playerNo);
@@ -254,16 +254,16 @@ static void ResultBattleCreate(void)
     ResultCoinNumGet(coinNum);
     coinNum[resultBonusPlayer] += coinNum[4];
     for (i = 0; i < 4; i++) {
-        resultBattleModel[i].datanum = bomheiCubeMdlTbl[resultBattleRank[i]];
+        resultBattleModel[i].dataNumber = bomheiCubeMdlTbl[resultBattleRank[i]];
         if (resultBattleRank[i] == 3) {
             resultBattleModel[i].attr = 1;
         }
     }
     StageModelCreate(resultBattleModel);
     StageSpriteCreate(resultBattleSprite);
-    espDrawNoSet(stageSprId[0], 127);
+    espDrawNoSet(resultStageSpriteIds[0], 127);
     for (i = 0; i < 4; i++) {
-        Hu3DModelShadowSet(stageMdlId[i]);
+        Hu3DModelShadowSet(resultStageModelIds[i]);
     }
     for (i = 0; i < 4; i++) {
         anim = HuSprAnimRead(HuDataReadNum(resultBattleRank[i] + DATA_MAKE_NUM(DATADIR_RESULT, 0x44), HU_MEMNUM_OVL));
@@ -273,9 +273,9 @@ static void ResultBattleCreate(void)
         else {
             anim2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x48), HU_MEMNUM_OVL));
         }
-        Hu3DAnimCreate(anim, stageMdlId[i + 4], "ys22_a0");
-        Hu3DAnimCreate(anim2, stageMdlId[i + 4], "ys22_a1");
-        Hu3DModelAttrSet(stageMdlId[i + 4], HU3D_MOTATTR_PAUSE);
+        Hu3DAnimCreate(anim, resultStageModelIds[i + 4], "ys22_a0");
+        Hu3DAnimCreate(anim2, resultStageModelIds[i + 4], "ys22_a1");
+        Hu3DModelAttrSet(resultStageModelIds[i + 4], HU3D_MOTATTR_PAUSE);
     }
     anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x3D), HU_MEMNUM_OVL));
     anim2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x3B), HU_MEMNUM_OVL));
@@ -311,9 +311,9 @@ static void ResultBattleCreate(void)
         HuSprGrpScaleSet(coinNumGrpId[i], 0, 0);
     }
     (void)anim3;
-    Hu3DMotionSet(stageMdlId[8], stageMotId[9]);
-    Hu3DModelAttrSet(stageMdlId[8], HU3D_MOTATTR_LOOP);
-    Hu3DModelShadowSet(stageMdlId[8]);
+    Hu3DMotionSet(resultStageModelIds[8], resultStageMotionIds[9]);
+    Hu3DModelAttrSet(resultStageModelIds[8], HU3D_MOTATTR_LOOP);
+    Hu3DModelShadowSet(resultStageModelIds[8]);
     for (i = 0; i < COIN_EFFECT_MAX; i++) {
         if (i == 0) {
             coinEffectMdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_RESULT, 0x0C));
@@ -356,21 +356,21 @@ static void ResultBattleStatAdd(void)
 {
     s16 i;
     s16 time;
-    s16 done_cnt;
-    float pos_y;
+    s16 doneCnt;
+    float posY;
     s16 coinNum[5];
     s16 delay[4];
     ResultCoinNumGet(coinNum);
     for (time = 0; time <= 5; time++) {
-        pos_y = ((5 - time) * 50) + 580;
+        posY = ((5 - time) * 50) + 580;
         for (i = 0; i < 4; i++) {
-            Hu3DModelPosSet(stageMdlId[i + 4], playerPosTbl[i].x, pos_y, 0);
+            Hu3DModelPosSet(resultStageModelIds[i + 4], playerPosTbl[i].x, posY, 0);
         }
         HuPrcVSleep();
     }
     for (i = 0; i < 4; i++) {
-        Hu3DModelAttrReset(stageMdlId[i + 4], HU3D_MOTATTR_PAUSE);
-        Hu3DMotionSpeedSet(stageMdlId[i + 4], 1.5f);
+        Hu3DModelAttrReset(resultStageModelIds[i + 4], HU3D_MOTATTR_PAUSE);
+        Hu3DMotionSpeedSet(resultStageModelIds[i + 4], 1.5f);
     }
     HuPrcSleep(35);
     for (i = 0; i < 4; i++) {
@@ -384,14 +384,14 @@ static void ResultBattleStatAdd(void)
         Hu3DParManPosSet(resultBattleEffParManId[i], playerPosTbl[i].x, 610.0f, 0.0f);
     }
     while (1) {
-        for (i = done_cnt = 0; i < 4; i++) {
+        for (i = doneCnt = 0; i < 4; i++) {
             if (delay[i]) {
                 delay[i]--;
                 continue;
             }
             if (coinNum[resultBattleOrder[i]] <= 0) {
                 Hu3DParManAttrSet(resultBattleEffParManId[i], 1);
-                done_cnt++;
+                doneCnt++;
             }
             else {
                 CoinEffectAdd(i);
@@ -414,34 +414,34 @@ static void ResultBattleStatAdd(void)
                 }
             }
         }
-        if (done_cnt == 4) {
+        if (doneCnt == 4) {
             break;
         }
         HuPrcVSleep();
     }
     if (coinNum[4]) {
         HuPrcSleep(20);
-        Hu3DModelRotSet(stageMdlId[8], 0, -90, 0);
-        Hu3DModelScaleSet(stageMdlId[8], 0.8f, 0.8f, 0.8f);
-        Hu3DMotionSpeedSet(stageMdlId[8], 2.0f);
+        Hu3DModelRotSet(resultStageModelIds[8], 0, -90, 0);
+        Hu3DModelScaleSet(resultStageModelIds[8], 0.8f, 0.8f, 0.8f);
+        Hu3DMotionSpeedSet(resultStageModelIds[8], 2.0f);
         for (i = 0; i <= 40; i++) {
-            Hu3DModelPosSet(stageMdlId[8], 500.0f * (1.0f - (i / 40.0f)), 0, 100.0f);
+            Hu3DModelPosSet(resultStageModelIds[8], 500.0f * (1.0f - (i / 40.0f)), 0, 100.0f);
             HuPrcVSleep();
         }
         HuAudFXPlay(828);
-        Hu3DModelAttrReset(stageMdlId[10], HU3D_MOTATTR_PAUSE);
-        Hu3DModelPosSet(stageMdlId[10], 0, 0, 200);
-        for (i = 0; i < Hu3DMotionMaxTimeGet(stageMdlId[10]); i++) {
+        Hu3DModelAttrReset(resultStageModelIds[10], HU3D_MOTATTR_PAUSE);
+        Hu3DModelPosSet(resultStageModelIds[10], 0, 0, 200);
+        for (i = 0; i < Hu3DMotionMaxTimeGet(resultStageModelIds[10]); i++) {
             if (i > 10) {
-                Hu3DModelAttrSet(stageMdlId[8], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrSet(resultStageModelIds[8], HU3D_ATTR_DISPOFF);
             }
             Center.x = cameraShakeOfs[(i / 2) & 0x7].x;
             Center.y = 330.0f + cameraShakeOfs[(i / 2) & 0x7].y;
             Center.z = cameraShakeOfs[(i / 2) & 0x7].z;
-            espPosSet(stageSprId[0], 288.0f + cameraShakeOfs[(i / 2) & 0x7].x, 240.0f - cameraShakeOfs[(i / 2) & 0x7].y);
+            espPosSet(resultStageSpriteIds[0], 288.0f + cameraShakeOfs[(i / 2) & 0x7].x, 240.0f - cameraShakeOfs[(i / 2) & 0x7].y);
             HuPrcVSleep();
         }
-        espPosSet(stageSprId[0], 288.0, 240.0);
+        espPosSet(resultStageSpriteIds[0], 288.0, 240.0);
         Center.x = 0;
         Center.y = 330;
         Center.z = 0;
@@ -521,26 +521,26 @@ static void ResultBattleCoinAddShow(void)
     }
 }
 
-static void ResultBattleCoinAddNumSet(s16 grpId, s16 value)
+static void ResultBattleCoinAddNumSet(s16 grpId, s16 displayedValue)
 {
     s16 no;
     s16 bank;
     no = 2;
-    bank = value / 100;
+    bank = displayedValue / 100;
     if (bank != 0) {
         HuSprBankSet(grpId, no, bank);
         HuSprAttrReset(grpId, no, 4);
         no++;
     }
-    value -= bank * 100;
-    bank = value / 10;
+    displayedValue -= bank * 100;
+    bank = displayedValue / 10;
     if (bank != 0 || no == 3) {
         HuSprBankSet(grpId, no, bank);
         HuSprAttrReset(grpId, no, 4);
         no++;
     }
-    value -= bank * 10;
-    HuSprBankSet(grpId, no, value);
+    displayedValue -= bank * 10;
+    HuSprBankSet(grpId, no, displayedValue);
     HuSprAttrReset(grpId, no, 4);
     no++;
     for (bank = no; bank < 5; bank++) {
@@ -559,13 +559,13 @@ static void ResultBattleOrderSet(void)
     for (j = 1; j < 4; j++) {
         for (i = 0; i < 4 - j; i++) {
             if (resultBattleRank[i] > resultBattleRank[i + 1]) {
-                s16 temp;
-                temp = resultBattleRank[i];
+                s16 swappedRankOrOrder;
+                swappedRankOrOrder = resultBattleRank[i];
                 resultBattleRank[i] = resultBattleRank[i + 1];
-                resultBattleRank[i + 1] = temp;
-                temp = resultBattleOrder[i];
+                resultBattleRank[i + 1] = swappedRankOrOrder;
+                swappedRankOrOrder = resultBattleOrder[i];
                 resultBattleOrder[i] = resultBattleOrder[i + 1];
-                resultBattleOrder[i + 1] = temp;
+                resultBattleOrder[i + 1] = swappedRankOrOrder;
             }
         }
     }
@@ -642,7 +642,7 @@ static void CoinEffectMain(void)
 
 static void ResultShadowDraw(struct Hu3DModel_s *model, Mtx matrix)
 {
-    s32 sp8 = 0;
+    s32 unreferencedShadowValue = 0;
     GXTexObj tex;
     Mtx final;
     Mtx invCamera;
