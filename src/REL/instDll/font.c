@@ -355,7 +355,7 @@ static s32 FontCharFile[0xC6] = {
 #endif
 };
 
-s32 FontCreate(SeqWork *work, char *mess, s16 jp_flag)
+s32 FontCreate(SeqWork *work, char *mess, s16 jpFlag)
 {
     char *str;
     s16 len;

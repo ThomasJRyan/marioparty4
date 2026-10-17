@@ -23,7 +23,7 @@
 
 static s16 instMode = 1;
 
-static OMOBJ *lbl_1_bss_60;
+static OMOBJ *unusedMenuObjectPointer;
 static OMOBJ *outViewObj;
 HUPROCESS *objman;
 Vec cameraRot[2];
@@ -81,27 +81,27 @@ void ObjectSetup(void)
     his = omOvlHisGet(0);
     omOvlHisChg(0, DLL_resultdll, his->evtno, his->stat);
     if (omovlevtno == 0 && mgInfoTbl[instMgNo].ovl == DLL_m430dll) {
-        s32 team_cnt[2];
-        s32 team_players[2][2];
-        team_cnt[0] = team_cnt[1] = 0;
+        s32 teamCnt[2];
+        s32 teamPlayers[2][2];
+        teamCnt[0] = teamCnt[1] = 0;
         for (i = 0; i < 4; i++) {
-            team_players[GWPlayerCfg[i].group][team_cnt[GWPlayerCfg[i].group]++] = i;
+            teamPlayers[GWPlayerCfg[i].group][teamCnt[GWPlayerCfg[i].group]++] = i;
         }
         if (frandBool()) {
-            GWPlayerCfg[team_players[0][0]].group = 0;
-            GWPlayerCfg[team_players[0][1]].group = 1;
+            GWPlayerCfg[teamPlayers[0][0]].group = 0;
+            GWPlayerCfg[teamPlayers[0][1]].group = 1;
         }
         else {
-            GWPlayerCfg[team_players[0][0]].group = 1;
-            GWPlayerCfg[team_players[0][1]].group = 0;
+            GWPlayerCfg[teamPlayers[0][0]].group = 1;
+            GWPlayerCfg[teamPlayers[0][1]].group = 0;
         }
         if (frandBool()) {
-            GWPlayerCfg[team_players[1][0]].group = 2;
-            GWPlayerCfg[team_players[1][1]].group = 3;
+            GWPlayerCfg[teamPlayers[1][0]].group = 2;
+            GWPlayerCfg[teamPlayers[1][1]].group = 3;
         }
         else {
-            GWPlayerCfg[team_players[1][0]].group = 3;
-            GWPlayerCfg[team_players[1][1]].group = 2;
+            GWPlayerCfg[teamPlayers[1][0]].group = 3;
+            GWPlayerCfg[teamPlayers[1][1]].group = 2;
         }
     }
     if (mgInfoTbl[instMgNo].type == 3 || mgInfoTbl[instMgNo].type == 5 || mgInfoTbl[instMgNo].type == 6
@@ -622,7 +622,7 @@ static void InstWinMain(void)
     s16 winId;
     s16 win2Id;
     s16 j;
-    s16 insert_idx;
+    s16 insertIdx;
     s16 trigR;
     s16 groupCnt[4];
     s16 charTbl[4][4];
@@ -648,10 +648,10 @@ static void InstWinMain(void)
         charTbl[GWPlayerCfg[i].group][groupCnt[GWPlayerCfg[i].group]] = GWPlayerCfg[i].character;
         groupCnt[GWPlayerCfg[i].group]++;
     }
-    for (i = insert_idx = 0; i < 4; i++) {
+    for (i = insertIdx = 0; i < 4; i++) {
         for (j = 0; j < groupCnt[i]; j++) {
-            HuWinInsertMesSet(winId, charTbl[i][j], (s16)insert_idx);
-            insert_idx++;
+            HuWinInsertMesSet(winId, charTbl[i][j], (s16)insertIdx);
+            insertIdx++;
         }
     }
     while (instMode != 2) {
@@ -741,8 +741,8 @@ static void InstNameMain(void)
     s16 startSprId;
     s16 practiceSprId;
 
-    s16 spC[2];
-    s16 sp10[4];
+    s16 nameLineWidths[2];
+    s16 introWindowIds[4];
     SeqWork work;
     prevPage = 0;
     for (i = 0; i < 16; i++) {
@@ -760,7 +760,7 @@ static void InstNameMain(void)
             *mes = 0;
             FontCreate(&work, mesWord, (LanguageNo == 0) ? 1 : 0);
             HuSprGrpPosSet(work.spr_grp[mesSpaceNum], 288.0f, 240.0f);
-            spC[mesSpaceNum] = work.alt_word_len;
+            nameLineWidths[mesSpaceNum] = work.alt_word_len;
             mesSpaceNum++;
             if (i) {
                 break;
@@ -772,14 +772,14 @@ static void InstNameMain(void)
     }
     #if VERSION_NTSC
     if (mesSpaceNum == 1) {
-        nameW = spC[0];
+        nameW = nameLineWidths[0];
         nameAnim = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_INST, 18));
         nameX = ((576.0f - nameW) - 24.0f) - 16.0f + 227;
         nameY = 78;
         nameScaleY = 0.5f;
     }
     else {
-        nameW = (spC[0] > spC[1]) ? spC[0] : spC[1];
+        nameW = (nameLineWidths[0] > nameLineWidths[1]) ? nameLineWidths[0] : nameLineWidths[1];
         nameAnim = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_INST, 15));
         
         nameX = ((576.0f - nameW) - 24.0f) - 16.0f + 172.0f;
@@ -788,14 +788,14 @@ static void InstNameMain(void)
     }
     #else
     if (mesSpaceNum == 1) {
-        nameW = spC[0];
+        nameW = nameLineWidths[0];
         nameAnim = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_INST, 18));
         nameX = ((576.0f - nameW) - 24.0f) - 16.0f + 235;
         nameY = 78;
         nameScaleY = 0.5f;
     }
     else {
-        nameW = (spC[0] > spC[1]) ? spC[0] : spC[1];
+        nameW = (nameLineWidths[0] > nameLineWidths[1]) ? nameLineWidths[0] : nameLineWidths[1];
         nameAnim = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_INST, 15));
         
         nameX = ((576.0f - nameW) - 24.0f) - 16.0f + 235;
@@ -818,25 +818,25 @@ static void InstNameMain(void)
     HuSprGrpMemberSet(startGrpId, 0, startSprId);
     HuSprGrpPosSet(startGrpId, 1000, 186);
     HuSprPriSet(startGrpId, 0, 1000);
-    sp10[0] = HuWinCreate(1000, 186, 456, 42, 0);
-    HuWinMesSet(sp10[0], MAKE_MESSID(0x24, instMesOfs));
-    HuWinBGTPLvlSet(sp10[0], 0.0f);
+    introWindowIds[0] = HuWinCreate(1000, 186, 456, 42, 0);
+    HuWinMesSet(introWindowIds[0], MAKE_MESSID(0x24, instMesOfs));
+    HuWinBGTPLvlSet(introWindowIds[0], 0.0f);
     nameAnim = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_INST, 17));
     practiceGrpId = HuSprGrpCreate(1);
     practiceSprId = HuSprCreate(nameAnim, 0, 0);
     HuSprGrpMemberSet(practiceGrpId, 0, practiceSprId);
     HuSprGrpPosSet(practiceGrpId, 1000, 242);
     HuSprPriSet(practiceGrpId, 0, 1000);
-    sp10[1] = HuWinCreate(1000, 242, 456, 42, 0);
-    HuWinMesSet(sp10[1], instMesOfs + MAKE_MESSID(0x24, 0x01));
-    HuWinBGTPLvlSet(sp10[1], 0.0f);
+    introWindowIds[1] = HuWinCreate(1000, 242, 456, 42, 0);
+    HuWinMesSet(introWindowIds[1], instMesOfs + MAKE_MESSID(0x24, 0x01));
+    HuWinBGTPLvlSet(introWindowIds[1], 0.0f);
     nameAnim = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_INST, 18));
-    sp10[2] = HuWinCreate(1000, 292, 456, 42, 0);
-    HuWinMesSet(sp10[2], instMesOfs + MAKE_MESSID(0x24, 0x02));
-    HuWinBGTPLvlSet(sp10[2], 0.0f);
-    HuWinMesSpeedSet(sp10[2], 0);
-    i = HuWinAnimSet(sp10[2], nameAnim, 0, WIN_ANIM_OFS, 18);
-    HuWinSprPriSet(sp10[2], i, 1000);
+    introWindowIds[2] = HuWinCreate(1000, 292, 456, 42, 0);
+    HuWinMesSet(introWindowIds[2], instMesOfs + MAKE_MESSID(0x24, 0x02));
+    HuWinBGTPLvlSet(introWindowIds[2], 0.0f);
+    HuWinMesSpeedSet(introWindowIds[2], 0);
+    i = HuWinAnimSet(introWindowIds[2], nameAnim, 0, WIN_ANIM_OFS, 18);
+    HuWinSprPriSet(introWindowIds[2], i, 1000);
     rulesWinId = HuWinCreate(1000, 292, 456, 42, 0);
     HuWinBGTPLvlSet(rulesWinId, 0.0f);
     HuWinMesSpeedSet(rulesWinId, 0);
@@ -873,9 +873,9 @@ static void InstNameMain(void)
                 HuSprGrpPosSet(startGrpId, posX, 186.0f);
                 posX = 300.0 * cosd(4.5f * t) + (instNamePosTbl[2] - 88.0f);
                 #if VERSION_NTSC
-                HuWinPosSet(sp10[0], 16.0f + posX, 168.0f);
+                HuWinPosSet(introWindowIds[0], 16.0f + posX, 168.0f);
                 #else
-                HuWinPosSet(sp10[0], 8.0f + posX, 168.0f);
+                HuWinPosSet(introWindowIds[0], 8.0f + posX, 168.0f);
                 #endif
             }
         }
@@ -886,9 +886,9 @@ static void InstNameMain(void)
                 HuSprGrpPosSet(practiceGrpId, posX, 242.0f);
                 posX = 300.0 * cosd(4.5f * t) + (instNamePosTbl[4] - 100.0f);
                 #if VERSION_NTSC
-                HuWinPosSet(sp10[1], 16.0f + posX, 224.0f);
+                HuWinPosSet(introWindowIds[1], 16.0f + posX, 224.0f);
                 #else
-                HuWinPosSet(sp10[1], 8.0f + posX, 224.0f);
+                HuWinPosSet(introWindowIds[1], 8.0f + posX, 224.0f);
                 #endif
             }
         }
@@ -896,7 +896,7 @@ static void InstNameMain(void)
         if (t > 0.0f) {
             if (t <= 20.0f) {
                 posX = 300.0 * cosd(4.5f * t) + (instNamePosTbl[6] - (WIN_ANIM_OFS+16));
-                HuWinPosSet(sp10[2], 16.0f + posX, 274.0f);
+                HuWinPosSet(introWindowIds[2], 16.0f + posX, 274.0f);
             }
         }
         HuPrcVSleep();
@@ -908,14 +908,14 @@ static void InstNameMain(void)
             prevPage = instPage;
             if (instPage == 1) {
                 if (mgInfoTbl[instMgNo].inst_mess[2]) {
-                    HuWinMesSet(sp10[2], MAKE_MESSID(0x24, 0x02) + instMesOfs + instPage);
+                    HuWinMesSet(introWindowIds[2], MAKE_MESSID(0x24, 0x02) + instMesOfs + instPage);
                 }
                 else {
-                    HuWinMesSet(sp10[2], MAKE_MESSID(0x24, 0x06) + instMesOfs);
+                    HuWinMesSet(introWindowIds[2], MAKE_MESSID(0x24, 0x06) + instMesOfs);
                 }
             }
             else {
-                HuWinMesSet(sp10[2], MAKE_MESSID(0x24, 0x02) + instMesOfs + instPage);
+                HuWinMesSet(introWindowIds[2], MAKE_MESSID(0x24, 0x02) + instMesOfs + instPage);
             }
             for (i = 0; i <= 10; i++) {
                 #if VERSION_NTSC
@@ -939,17 +939,17 @@ static void InstNameMain(void)
         posX = instNamePosTbl[2] + (300.0f * t);
         HuSprGrpPosSet(startGrpId, posX, 186.0f);
         posX = (instNamePosTbl[2] - 88.0f) + (300.0f * t);
-        HuWinPosSet(sp10[0], 16.0f + posX, 168);
+        HuWinPosSet(introWindowIds[0], 16.0f + posX, 168);
         posX = instNamePosTbl[4] + (300.0f * t);
         HuSprGrpPosSet(practiceGrpId, posX, 242.0f);
         posX = (instNamePosTbl[4] - 100.0f) + (300.0f * t);
-        HuWinPosSet(sp10[1], 16.0f + posX, 224);
+        HuWinPosSet(introWindowIds[1], 16.0f + posX, 224);
         #if VERSION_NTSC
         posX = (instNamePosTbl[6] - 184.0f) + (400.0f * t);
         #else
         posX = (instNamePosTbl[6] - 235.0f) + (400.0f * t);
         #endif
-        HuWinPosSet(sp10[2], 16.0f + posX, 274);
+        HuWinPosSet(introWindowIds[2], 16.0f + posX, 274);
         HuPrcVSleep();
     }
     MGSeqSprKill(&work);
@@ -1043,7 +1043,7 @@ static void CameraDebug(OMOBJ *object)
     }
 }
 
-static float lbl_1_data_148 = 842;
+static float unusedTimingConstant = 842;
 static float instPicRadius = 34;
 
 static void InstPicDraw(HU3DMODEL *model, Mtx mtx)
