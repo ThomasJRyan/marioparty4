@@ -11,217 +11,217 @@
 extern u8 texMtxTbl[];
 
 // PROTO
-void fn_1_E790(M438UnkStruct2*);
-void fn_1_F538(HU3DMODEL*, Mtx);
-void fn_1_FAB8(M438UnkStruct*);
-void fn_1_FD40(M438UnkStruct2*);
-void fn_1_10F0C(s16);
-s32 fn_1_110B4(s16, u8, s16);
+void RenderParticleSystem(M438ParticleSystem*);
+void RenderParticleSystemsHook(HU3DMODEL*, Mtx);
+void BuildFireMaterialDisplayList(M438FireMaterial*);
+void UpdateParticleSystem(M438ParticleSystem*);
+void ReleaseParticleAnimation(s16);
+s32 AssignAnimationToMaterial(s16, u8, s16);
 
-void fn_1_E658(s16 arg0, s16 arg1) {
-    M438UnkStruct2* var_r29;
-    s32 var_r31;
-    M438UnkStruct3* var_r30;
+void InitializeFireManager(s16 particleSystemCapacity, s16 animationCapacity) {
+    M438ParticleSystem* particleSystem;
+    s32 particleSystemIndex;
+    M438ParticleAnimation* particleAnimation;
 
-    lbl_1_bss_DE4.unk_34 = Hu3DHookFuncCreate(fn_1_F538);
-    Hu3DModelLayerSet(lbl_1_bss_DE4.unk_34, 6);
-    lbl_1_bss_DE4.unk_30 = arg0;
-    var_r29 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * sizeof(M438UnkStruct2), 0x10000000);
-    lbl_1_bss_DE4.unk_40 = var_r29;
-    lbl_1_bss_DE4.unk_32 = arg1;
-    var_r30 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(M438UnkStruct3), 0x10000000);
-    lbl_1_bss_DE4.unk_3C = var_r30;
+    fireManager.hookModelId = Hu3DHookFuncCreate(RenderParticleSystemsHook);
+    Hu3DModelLayerSet(fireManager.hookModelId, 6);
+    fireManager.particleSystemCapacity = particleSystemCapacity;
+    particleSystem = HuMemDirectMallocNum(HEAP_HEAP, particleSystemCapacity * sizeof(M438ParticleSystem), 0x10000000);
+    fireManager.particleSystems = particleSystem;
+    fireManager.animationCapacity = animationCapacity;
+    particleAnimation = HuMemDirectMallocNum(HEAP_HEAP, animationCapacity * sizeof(M438ParticleAnimation), 0x10000000);
+    fireManager.animations = particleAnimation;
     
-    for (var_r31 = 0; var_r31 < arg0; var_r31++, var_r29++) {
-        var_r29->unk_08 = 0;
+    for (particleSystemIndex = 0; particleSystemIndex < particleSystemCapacity; particleSystemIndex++, particleSystem++) {
+        particleSystem->stateFlags = 0;
     }
     
-    for (var_r31 = 0; var_r31 < arg1; var_r31++, var_r30++) {
-        var_r30->unk_06 = 0;
-        var_r30->unk_08 = 0;
+    for (particleSystemIndex = 0; particleSystemIndex < animationCapacity; particleSystemIndex++, particleAnimation++) {
+        particleAnimation->referenceCount = 0;
+        particleAnimation->resourceId = 0;
     }
-    lbl_1_bss_DE4.unk_36 = lbl_1_bss_DE4.unk_38 = lbl_1_bss_DE4.unk_3A = 0;
+    fireManager.activeParticleSystemId = fireManager.activeMaterialIndex = fireManager.activeTextureSlot = 0;
 }
 
-void fn_1_E790(M438UnkStruct2* arg0) {
-    HU3DMODEL sp120;
-    Mtx spF0;
-    Mtx spC0;
-    Mtx sp90;
-    Mtx sp60;
-    Mtx sp30;
-    GXColor sp2C;
-    s16 sp8;
-    M438UnkStruct* var_r31;
-    s16 var_r29;
-    s16 var_r28;
-    s32 var_r27;
-    M438UnkStruct3* temp_r26;
-    s32 var_r25;
-    s32 var_r24;
-    s16 temp_r23;
-    s32 var_r22;
-    s32 var_r21;
-    s32 var_r20;
-    s32 var_r19;
+void RenderParticleSystem(M438ParticleSystem* particleSystem) {
+    HU3DMODEL lightModel;
+    Mtx particlePositionMatrix;
+    Mtx cameraPositionMatrix;
+    Mtx scratchMatrix;
+    Mtx rotationMatrix;
+    Mtx textureMatrix;
+    GXColor tevColor;
+    s16 unreferencedTevScratch;
+    M438FireMaterial* material;
+    s16 tevStageCount;
+    s16 texCoordCount;
+    s32 textureMap;
+    M438ParticleAnimation* particleAnimation;
+    s32 colorSource;
+    s32 materialIndex;
+    s16 lightSetIndex;
+    s32 textureMatrixId;
+    s32 bumpTextureMatrixId;
+    s32 shadowTextureMatrixId;
+    s32 projectedTextureMatrixId;
 
-    mtxRot(sp60, arg0->unk_18.x, arg0->unk_18.y, arg0->unk_18.z);
-    PSMTXScale(sp90, arg0->unk_24.x, arg0->unk_24.y, arg0->unk_24.z);
-    PSMTXConcat(sp60, sp90, sp90);
-    mtxTransCat(sp90, arg0->unk_0C.x, arg0->unk_0C.y, arg0->unk_0C.z);
-    PSMTXConcat(Hu3DCameraMtx, sp90, spC0);
-    var_r29 = 0;
-    var_r28 = 0;
-    sp8 = 0;
-    for (var_r27 = GX_TEXMAP0; var_r27 < arg0->unk_04; var_r27++) {
-        if (arg0->unk_34[var_r27] != 0) {
-            temp_r26 = &lbl_1_bss_DE4.unk_3C[arg0->unk_34[var_r27]];
-            PSMTXCopy(temp_r26->unk_18, sp30);
-            mtxTransCat(sp30, temp_r26->unk_0C.x, temp_r26->unk_0C.y, temp_r26->unk_0C.z);
-            switch (temp_r26->unk_04) {
+    mtxRot(rotationMatrix, particleSystem->rotation.x, particleSystem->rotation.y, particleSystem->rotation.z);
+    PSMTXScale(scratchMatrix, particleSystem->scale.x, particleSystem->scale.y, particleSystem->scale.z);
+    PSMTXConcat(rotationMatrix, scratchMatrix, scratchMatrix);
+    mtxTransCat(scratchMatrix, particleSystem->position.x, particleSystem->position.y, particleSystem->position.z);
+    PSMTXConcat(Hu3DCameraMtx, scratchMatrix, cameraPositionMatrix);
+    tevStageCount = 0;
+    texCoordCount = 0;
+    unreferencedTevScratch = 0;
+    for (textureMap = GX_TEXMAP0; textureMap < particleSystem->animationSlotCount; textureMap++) {
+        if (particleSystem->animationIds[textureMap] != 0) {
+            particleAnimation = &fireManager.animations[particleSystem->animationIds[textureMap]];
+            PSMTXCopy(particleAnimation->textureMatrix, textureMatrix);
+            mtxTransCat(textureMatrix, particleAnimation->position.x, particleAnimation->position.y, particleAnimation->position.z);
+            switch (particleAnimation->textureMappingMode) {
                 case 0:
-                    GXLoadTexMtxImm(sp30, texMtxTbl[var_r28], GX_MTX2x4);
-                    var_r22 = texMtxTbl[var_r28];
-                    GXSetTexCoordGen2(var_r28, GX_TG_MTX2x4, var_r27 + 4, var_r22, 0, 0x7D);
-                    GXSetTevOrder(var_r29, var_r28, var_r27, GX_COLOR0A0);
-                    if (var_r27 == GX_TEXMAP0) {
-                        if ((temp_r26->unk_00->bmp->dataFmt == 7) || (temp_r26->unk_00->bmp->dataFmt == 8)) {
-                            GXSetTevColor(GX_TEVREG2, temp_r26->unk_48);
-                            GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_C2, GX_CC_RASC, GX_CC_ZERO);
+                    GXLoadTexMtxImm(textureMatrix, texMtxTbl[texCoordCount], GX_MTX2x4);
+                    textureMatrixId = texMtxTbl[texCoordCount];
+                    GXSetTexCoordGen2(texCoordCount, GX_TG_MTX2x4, textureMap + 4, textureMatrixId, 0, 0x7D);
+                    GXSetTevOrder(tevStageCount, texCoordCount, textureMap, GX_COLOR0A0);
+                    if (textureMap == GX_TEXMAP0) {
+                        if ((particleAnimation->animationData->bmp->dataFmt == 7) || (particleAnimation->animationData->bmp->dataFmt == 8)) {
+                            GXSetTevColor(GX_TEVREG2, particleAnimation->tintColor);
+                            GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_C2, GX_CC_RASC, GX_CC_ZERO);
                         } else {
-                            GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
+                            GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
                         }
-                        GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_TEXA, GX_CA_RASA, GX_CA_ZERO);
+                        GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_TEXA, GX_CA_RASA, GX_CA_ZERO);
                     } else {
-                        sp2C.a = temp_r26->unk_48.a;
-                        GXSetTevColor(GX_TEVREG2, sp2C);
-                        GXSetTevColorIn(var_r29, GX_CC_CPREV, GX_CC_TEXC, GX_CC_A2, GX_CC_ZERO);
-                        GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
+                        tevColor.a = particleAnimation->tintColor.a;
+                        GXSetTevColor(GX_TEVREG2, tevColor);
+                        GXSetTevColorIn(tevStageCount, GX_CC_CPREV, GX_CC_TEXC, GX_CC_A2, GX_CC_ZERO);
+                        GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
                     }
-                    GXSetTevColorOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
                     break;
                 case 1:
-                    GXLoadTexMtxImm(sp30, texMtxTbl[var_r28], GX_MTX2x4);
-                    var_r21 = texMtxTbl[var_r28];
-                    GXSetTexCoordGen2(var_r28, GX_TG_MTX2x4, var_r27 + 4, var_r21, 0, 0x7D);
-                    GXSetTevOrder(var_r29, var_r28, var_r27, GX_COLOR0A0);
-                    GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXA, GX_CC_ZERO);
-                    GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
-                    GXSetTevColorOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXLoadTexMtxImm(textureMatrix, texMtxTbl[texCoordCount], GX_MTX2x4);
+                    bumpTextureMatrixId = texMtxTbl[texCoordCount];
+                    GXSetTexCoordGen2(texCoordCount, GX_TG_MTX2x4, textureMap + 4, bumpTextureMatrixId, 0, 0x7D);
+                    GXSetTevOrder(tevStageCount, texCoordCount, textureMap, GX_COLOR0A0);
+                    GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXA, GX_CC_ZERO);
+                    GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
                     break;
                 case 2:
-                    sp2C.a = 0xE0;
-                    GXSetTevColor(GX_TEVREG1, sp2C);
-                    GXSetTexCoordGen2(var_r28 + 1, GX_TG_BUMP0, var_r28, 0x3C, 0, 0x7D);
-                    GXSetTevOrder(var_r29, var_r28, var_r27, GX_COLOR0A0);
-                    GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_RASC);
-                    GXSetTevColorOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
-                    var_r29++;
-                    GXSetTevOrder(var_r29, var_r28 + 1, GX_TEXMAP0, GX_COLOR0A0);
-                    GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_CPREV);
-                    GXSetTevColorOp(var_r29, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
+                    tevColor.a = 0xE0;
+                    GXSetTevColor(GX_TEVREG1, tevColor);
+                    GXSetTexCoordGen2(texCoordCount + 1, GX_TG_BUMP0, texCoordCount, 0x3C, 0, 0x7D);
+                    GXSetTevOrder(tevStageCount, texCoordCount, textureMap, GX_COLOR0A0);
+                    GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_RASC);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
+                    tevStageCount++;
+                    GXSetTevOrder(tevStageCount, texCoordCount + 1, GX_TEXMAP0, GX_COLOR0A0);
+                    GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_CPREV);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
                     break;
                 case 3:
-                    var_r28--;
-                    GXLoadTexMtxImm(sp30, texMtxTbl[var_r28], GX_MTX2x4);
-                    var_r20 = texMtxTbl[var_r28];
-                    GXSetTexCoordGen2(var_r28, GX_TG_MTX2x4, var_r27 + 4, var_r20, 0, 0x7D);
-                    GXSetTevOrder(var_r29, var_r28, var_r27, GX_COLOR0A0);
-                    GXSetTevColorIn(var_r29, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXC, GX_CC_ZERO);
-                    GXSetTevColorOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    var_r28++;
+                    texCoordCount--;
+                    GXLoadTexMtxImm(textureMatrix, texMtxTbl[texCoordCount], GX_MTX2x4);
+                    shadowTextureMatrixId = texMtxTbl[texCoordCount];
+                    GXSetTexCoordGen2(texCoordCount, GX_TG_MTX2x4, textureMap + 4, shadowTextureMatrixId, 0, 0x7D);
+                    GXSetTevOrder(tevStageCount, texCoordCount, textureMap, GX_COLOR0A0);
+                    GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXC, GX_CC_ZERO);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    texCoordCount++;
                     break;
                 case 4:
-                    mtxRot(sp60, arg0->unk_18.x, arg0->unk_18.y, arg0->unk_18.z);
-                    PSMTXScale(sp90, arg0->unk_24.x, arg0->unk_24.y, arg0->unk_24.z);
-                    PSMTXConcat(sp60, sp90, sp90);
-                    mtxTransCat(sp90, arg0->unk_0C.x, arg0->unk_0C.y, arg0->unk_0C.z);
-                    PSMTXConcat(Hu3DCameraMtx, sp90, sp30);
-                    PSMTXInverse(Hu3DCameraMtx, sp60);
-                    PSMTXConcat(sp60, sp30, sp60);
-                    PSMTXConcat(Hu3DShadowData.projMtx, Hu3DShadowData.lookAtMtx, sp90);
-                    PSMTXConcat(sp90, sp60, sp30);
-                    GXLoadTexMtxImm(sp30, texMtxTbl[var_r28], GX_MTX3x4);
-                    var_r19 = texMtxTbl[var_r28];
-                    GXSetTexCoordGen2(var_r28, GX_TG_MTX3x4, GX_TG_POS, var_r19, 0, 0x7D);
-                    GXSetTevOrder(var_r29, var_r28, var_r27, GX_COLOR0A0);
-                    if (var_r27 == GX_TEXMAP0) {
-                        GXSetTevColorIn(var_r29, GX_CC_ONE, GX_CC_ZERO, GX_CC_TEXC, GX_CC_ZERO);
-                        GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
+                    mtxRot(rotationMatrix, particleSystem->rotation.x, particleSystem->rotation.y, particleSystem->rotation.z);
+                    PSMTXScale(scratchMatrix, particleSystem->scale.x, particleSystem->scale.y, particleSystem->scale.z);
+                    PSMTXConcat(rotationMatrix, scratchMatrix, scratchMatrix);
+                    mtxTransCat(scratchMatrix, particleSystem->position.x, particleSystem->position.y, particleSystem->position.z);
+                    PSMTXConcat(Hu3DCameraMtx, scratchMatrix, textureMatrix);
+                    PSMTXInverse(Hu3DCameraMtx, rotationMatrix);
+                    PSMTXConcat(rotationMatrix, textureMatrix, rotationMatrix);
+                    PSMTXConcat(Hu3DShadowData.projMtx, Hu3DShadowData.lookAtMtx, scratchMatrix);
+                    PSMTXConcat(scratchMatrix, rotationMatrix, textureMatrix);
+                    GXLoadTexMtxImm(textureMatrix, texMtxTbl[texCoordCount], GX_MTX3x4);
+                    projectedTextureMatrixId = texMtxTbl[texCoordCount];
+                    GXSetTexCoordGen2(texCoordCount, GX_TG_MTX3x4, GX_TG_POS, projectedTextureMatrixId, 0, 0x7D);
+                    GXSetTevOrder(tevStageCount, texCoordCount, textureMap, GX_COLOR0A0);
+                    if (textureMap == GX_TEXMAP0) {
+                        GXSetTevColorIn(tevStageCount, GX_CC_ONE, GX_CC_ZERO, GX_CC_TEXC, GX_CC_ZERO);
+                        GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
                     } else {
-                        GXSetTevColorIn(var_r29, GX_CC_CPREV, GX_CC_ZERO, GX_CC_TEXC, GX_CC_ZERO);
-                        GXSetTevAlphaIn(var_r29, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_APREV);
+                        GXSetTevColorIn(tevStageCount, GX_CC_CPREV, GX_CC_ZERO, GX_CC_TEXC, GX_CC_ZERO);
+                        GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_APREV);
                     }
-                    GXSetTevColorOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
-                    GXSetTevAlphaOp(var_r29, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
+                    GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 1, GX_TEVPREV);
+                    GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, 0, GX_TEVPREV);
                     break;
             }
-            var_r29++;
-            var_r28++;
-            if (temp_r26->unk_4D != 0) {
-                HuSprTexLoad(temp_r26->unk_00, 0, var_r27, 1, 1, 1);
+            tevStageCount++;
+            texCoordCount++;
+            if (particleAnimation->isTiled != 0) {
+                HuSprTexLoad(particleAnimation->animationData, 0, textureMap, 1, 1, 1);
             } else {
-                HuSprTexLoad(temp_r26->unk_00, 0, var_r27, 0, 0, 1);
+                HuSprTexLoad(particleAnimation->animationData, 0, textureMap, 0, 0, 1);
             }
         }
     }
-    GXSetNumTevStages((s16)var_r29);
-    GXSetNumTexGens((s16)var_r28);
-    var_r31 = arg0->unk_3C;
-    for (var_r24 = 0; var_r24 < arg0->unk_02; var_r24++, var_r31++) {
-        if ((var_r31->unk_38 != 0) && ((var_r31->unk_38 & 4) == 0)) {
-            switch (var_r31->unk_30) {
+    GXSetNumTevStages((s16)tevStageCount);
+    GXSetNumTexGens((s16)texCoordCount);
+    material = particleSystem->materials;
+    for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+        if ((material->stateFlags != 0) && ((material->stateFlags & 4) == 0)) {
+            switch (material->enabled) {
                 case 0:
-                    mtxRot(sp60, var_r31->unk_0C.x, var_r31->unk_0C.y, var_r31->unk_0C.z);
-                    if (var_r31->unk_31 == 2) {
-                        PSMTXConcat(lbl_1_bss_DE4.unk_00, sp60, sp60);
-                    } else if (var_r31->unk_31 == 1) {
-                        PSMTXRotRad(sp90, 0x59, MTXDegToRad(CRot.y));
-                        PSMTXConcat(sp90, sp60, sp60);
+                    mtxRot(rotationMatrix, material->rotation.x, material->rotation.y, material->rotation.z);
+                    if (material->textureCoordinateCount == 2) {
+                        PSMTXConcat(fireManager.inverseCameraMatrix, rotationMatrix, rotationMatrix);
+                    } else if (material->textureCoordinateCount == 1) {
+                        PSMTXRotRad(scratchMatrix, 0x59, MTXDegToRad(CRot.y));
+                        PSMTXConcat(scratchMatrix, rotationMatrix, rotationMatrix);
                     }
-                    PSMTXScale(sp90, var_r31->unk_18.x, var_r31->unk_18.y, var_r31->unk_18.z);
-                    PSMTXTrans(sp30, var_r31->unk_24.x, var_r31->unk_24.y, var_r31->unk_24.z);
-                    PSMTXConcat(sp90, sp30, sp90);
-                    PSMTXConcat(sp60, sp90, sp90);
-                    mtxTransCat(sp90, var_r31->unk_00.x, var_r31->unk_00.y, var_r31->unk_00.z);
-                    PSMTXConcat(Hu3DCameraMtx, sp90, spF0);
+                    PSMTXScale(scratchMatrix, material->scale.x, material->scale.y, material->scale.z);
+                    PSMTXTrans(textureMatrix, material->secondaryScale.x, material->secondaryScale.y, material->secondaryScale.z);
+                    PSMTXConcat(scratchMatrix, textureMatrix, scratchMatrix);
+                    PSMTXConcat(rotationMatrix, scratchMatrix, scratchMatrix);
+                    mtxTransCat(scratchMatrix, material->position.x, material->position.y, material->position.z);
+                    PSMTXConcat(Hu3DCameraMtx, scratchMatrix, particlePositionMatrix);
                     break;
                 case 1:
-                    mtxRot(sp60, var_r31->unk_0C.x, var_r31->unk_0C.y, var_r31->unk_0C.z);
-                    if (var_r31->unk_31 == 2) {
-                        if (HmfInverseMtxF3X3(spC0, sp90) == 0) {
-                            PSMTXIdentity(sp90);
+                    mtxRot(rotationMatrix, material->rotation.x, material->rotation.y, material->rotation.z);
+                    if (material->textureCoordinateCount == 2) {
+                        if (HmfInverseMtxF3X3(cameraPositionMatrix, scratchMatrix) == 0) {
+                            PSMTXIdentity(scratchMatrix);
                         }
-                        PSMTXConcat(sp90, sp60, sp60);
-                    } else if (var_r31->unk_31 == 1) {
-                        PSMTXRotRad(sp90, 0x59, MTXDegToRad(CRot.y));
-                        PSMTXConcat(sp90, sp60, sp60);
+                        PSMTXConcat(scratchMatrix, rotationMatrix, rotationMatrix);
+                    } else if (material->textureCoordinateCount == 1) {
+                        PSMTXRotRad(scratchMatrix, 0x59, MTXDegToRad(CRot.y));
+                        PSMTXConcat(scratchMatrix, rotationMatrix, rotationMatrix);
                     }
-                    PSMTXScale(sp90, var_r31->unk_18.x, var_r31->unk_18.y, var_r31->unk_18.z);
-                    PSMTXTrans(sp30, var_r31->unk_24.x, var_r31->unk_24.y, var_r31->unk_24.z);
-                    PSMTXConcat(sp90, sp30, sp90);
-                    PSMTXConcat(sp60, sp90, sp90);
-                    mtxTransCat(sp90, var_r31->unk_00.x, var_r31->unk_00.y, var_r31->unk_00.z);
-                    PSMTXConcat(spC0, sp90, spF0);
+                    PSMTXScale(scratchMatrix, material->scale.x, material->scale.y, material->scale.z);
+                    PSMTXTrans(textureMatrix, material->secondaryScale.x, material->secondaryScale.y, material->secondaryScale.z);
+                    PSMTXConcat(scratchMatrix, textureMatrix, scratchMatrix);
+                    PSMTXConcat(rotationMatrix, scratchMatrix, scratchMatrix);
+                    mtxTransCat(scratchMatrix, material->position.x, material->position.y, material->position.z);
+                    PSMTXConcat(cameraPositionMatrix, scratchMatrix, particlePositionMatrix);
                     break;
             }
-            GXLoadPosMtxImm(spF0, 0);
-            PSMTXInverse(spF0, sp90);
-            PSMTXTranspose(sp90, sp60);
-            GXLoadNrmMtxImm(sp60, 0);
-            GXSetChanAmbColor(GX_COLOR0A0, var_r31->unk_50);
-            GXSetChanMatColor(GX_COLOR0A0, var_r31->unk_54);
+            GXLoadPosMtxImm(particlePositionMatrix, 0);
+            PSMTXInverse(particlePositionMatrix, scratchMatrix);
+            PSMTXTranspose(scratchMatrix, rotationMatrix);
+            GXLoadNrmMtxImm(rotationMatrix, 0);
+            GXSetChanAmbColor(GX_COLOR0A0, material->baseColor);
+            GXSetChanMatColor(GX_COLOR0A0, material->modulationColor);
             GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
             GXSetZCompLoc(0);
-            switch (var_r31->unk_33) {
+            switch (material->blendMode) {
                 case 0:
                     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
                     break;
@@ -232,1327 +232,1326 @@ void fn_1_E790(M438UnkStruct2* arg0) {
                     GXSetBlendMode(GX_BM_BLEND, GX_BL_ZERO, GX_BL_INVDSTCLR, GX_LO_NOOP);
                     break;
             }
-            if ((var_r31->unk_38 & 0x10) != 0) {
+            if ((material->stateFlags & 0x10) != 0) {
                 GXSetZMode(0, GX_LEQUAL, 1);
             } else {
                 GXSetZMode(1, GX_LEQUAL, 0);
             }
-            sp120.attr = 0;
-            temp_r23 = Hu3DLightSet(&sp120, &Hu3DCameraMtx, &Hu3DCameraMtxXPose, 0.0f);
+            lightModel.attr = 0;
+            lightSetIndex = Hu3DLightSet(&lightModel, &Hu3DCameraMtx, &Hu3DCameraMtxXPose, 0.0f);
             GXSetNumChans(1);
-            if ((var_r31->unk_38 & 8) != 0) {
-                var_r25 = GX_SRC_VTX;
+            if ((material->stateFlags & 8) != 0) {
+                colorSource = GX_SRC_VTX;
             } else {
-                var_r25 = GX_SRC_REG;
+                colorSource = GX_SRC_REG;
             }
-            switch (var_r31->unk_32) {
+            switch (material->animationMode) {
                 case 0:
-                    GXSetChanCtrl(GX_COLOR0A0, 0, GX_SRC_REG, var_r25, 0, GX_DF_CLAMP, GX_AF_NONE);
+                    GXSetChanCtrl(GX_COLOR0A0, 0, GX_SRC_REG, colorSource, 0, GX_DF_CLAMP, GX_AF_NONE);
                     break;
                 case 1:
-                    GXSetChanCtrl(GX_COLOR0A0, 1, GX_SRC_REG, var_r25, temp_r23, GX_DF_CLAMP, GX_AF_SPOT);
+                    GXSetChanCtrl(GX_COLOR0A0, 1, GX_SRC_REG, colorSource, lightSetIndex, GX_DF_CLAMP, GX_AF_SPOT);
                     break;
                 case 2:
-                    GXSetChanCtrl(GX_COLOR0A0, 1, GX_SRC_REG, var_r25, temp_r23, GX_DF_CLAMP, GX_AF_SPEC);
+                    GXSetChanCtrl(GX_COLOR0A0, 1, GX_SRC_REG, colorSource, lightSetIndex, GX_DF_CLAMP, GX_AF_SPEC);
                     break;
             }
             GXClearVtxDesc();
             GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
             GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_RGBA6, 0);
-            GXSetArray(GX_VA_POS, var_r31->unk_44, 12);
+            GXSetArray(GX_VA_POS, material->vertexCoordinates, 12);
             GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
             GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-            GXSetArray(GX_VA_CLR0, var_r31->unk_48, 4);
-            for (var_r27 = 0; var_r27 < var_r31->unk_34; var_r27++) {
-                GXSetVtxDesc(var_r27 + GX_VA_TEX0, GX_INDEX16);
-                GXSetVtxAttrFmt(GX_VTXFMT0, var_r27 + GX_VA_TEX0, GX_TEX_ST, GX_RGBA6, 0);
-                GXSetArray(var_r27 + GX_VA_TEX0, &var_r31->unk_58[var_r27].unk_04, 8);
+            GXSetArray(GX_VA_CLR0, material->vertexColors, 4);
+            for (textureMap = 0; textureMap < material->textureSlotCount; textureMap++) {
+                GXSetVtxDesc(textureMap + GX_VA_TEX0, GX_INDEX16);
+                GXSetVtxAttrFmt(GX_VTXFMT0, textureMap + GX_VA_TEX0, GX_TEX_ST, GX_RGBA6, 0);
+                GXSetArray(textureMap + GX_VA_TEX0, &material->animationTracks[textureMap].topLeftU, 8);
             }
             GXSetVtxDesc(GX_VA_NRM, GX_INDEX16);
             GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_NRM, GX_NRM_XYZ, GX_RGBA6, 0U);
-            GXSetArray(GX_VA_NRM, var_r31->unk_4C, 12);
-            GXCallDisplayList(var_r31->unk_40, var_r31->unk_3C);
+            GXSetArray(GX_VA_NRM, material->vertexNormals, 12);
+            GXCallDisplayList(material->displayList, material->displayListSize);
         }
     }
 }
 
-void fn_1_F538(HU3DMODEL* arg0, Mtx arg1) {
-    Mtx sp38;
-    Mtx sp8;
-    M438UnkStruct2* var_r31;
-    s32 var_r30;
+void RenderParticleSystemsHook(HU3DMODEL* model, Mtx matrix) {
+    Mtx inversePositionMatrix;
+    Mtx normalMatrix;
+    M438ParticleSystem* particleSystem;
+    s32 particleSystemIndex;
 
-    var_r31 = lbl_1_bss_DE4.unk_40;
-    GXLoadPosMtxImm(arg1, 0);
-    PSMTXInverse(arg1, sp38);
-    PSMTXTranspose(sp38, sp8);
-    GXLoadNrmMtxImm(sp8, 0);
-    HmfInverseMtxF3X3(Hu3DCameraMtx, lbl_1_bss_DE4.unk_00);
+    particleSystem = fireManager.particleSystems;
+    GXLoadPosMtxImm(matrix, 0);
+    PSMTXInverse(matrix, inversePositionMatrix);
+    PSMTXTranspose(inversePositionMatrix, normalMatrix);
+    GXLoadNrmMtxImm(normalMatrix, 0);
+    HmfInverseMtxF3X3(Hu3DCameraMtx, fireManager.inverseCameraMatrix);
     
-    for (var_r30 = 0; var_r30 < lbl_1_bss_DE4.unk_30; var_r30++, var_r31++) {
-        if ((var_r31->unk_08 != 0) && ((var_r31->unk_08 & 2) != 0) && ((var_r31->unk_08 & 4) == 0)) {
+    for (particleSystemIndex = 0; particleSystemIndex < fireManager.particleSystemCapacity; particleSystemIndex++, particleSystem++) {
+        if ((particleSystem->stateFlags != 0) && ((particleSystem->stateFlags & 2) != 0) && ((particleSystem->stateFlags & 4) == 0)) {
             if ((u8)omPauseChk() == 0) {
-                if (var_r31->unk_30) {
-                    var_r31->unk_30(var_r31);
+                if (particleSystem->updateCallback) {
+                    particleSystem->updateCallback(particleSystem);
                 }
-                if (var_r31->unk_08 == 0) continue;
-                fn_1_FD40(var_r31);
-                if (var_r31->unk_08 == 0) continue;
+                if (particleSystem->stateFlags == 0) continue;
+                UpdateParticleSystem(particleSystem);
+                if (particleSystem->stateFlags == 0) continue;
             }
-            fn_1_E790(var_r31);
+            RenderParticleSystem(particleSystem);
         }
     }
 }
 
-M438UnkStruct2* fn_1_F664(s16 arg0) {
-    return &lbl_1_bss_DE4.unk_40[arg0];
+M438ParticleSystem* GetParticleSystem(s16 particleSystemId) {
+    return &fireManager.particleSystems[particleSystemId];
 }
 
-M438UnkStruct* fn_1_F680(s16 arg0, s16 arg1) {
-    return &lbl_1_bss_DE4.unk_40[arg0].unk_3C[arg1];
+M438FireMaterial* GetFireMaterial(s16 particleSystemId, s16 materialIndex) {
+    return &fireManager.particleSystems[particleSystemId].materials[materialIndex];
 }
 
-M438UnkStruct3* fn_1_F6AC(s16 arg0) {
-    return &lbl_1_bss_DE4.unk_3C[arg0];
+M438ParticleAnimation* GetParticleAnimation(s16 animationId) {
+    return &fireManager.animations[animationId];
 }
 
-void fn_1_F6C8(M438FireStruct** arg0, s16 arg1, f32 arg8, f32 arg9) {
-    s32 var_r30;
-    M438FireStruct* var_r31;
+void CreateFireQuadVertices(M438FireQuadVertices** vertices, s16 vertexCount, f32 width, f32 height) {
+    s32 vertexIndex;
+    M438FireQuadVertices* value2;
 
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(M438FireStruct), 0x10000000);
+    value2 = *vertices = HuMemDirectMallocNum(HEAP_HEAP, vertexCount * sizeof(M438FireQuadVertices), 0x10000000);
     
-    for (var_r30 = 0; var_r30 < arg1; var_r31++, var_r30++) {
-        var_r31->unk0.x  = (-0.5f * arg8);
-        var_r31->unk0.y  = (0.5f * arg9);
-        var_r31->unk0.z  = 0.0f;
-        var_r31->unkC.x  = (0.5f * arg8);
-        var_r31->unkC.y  = (0.5f * arg9);
-        var_r31->unkC.z  = 0.0f;
-        var_r31->unk18.x = (0.5f * arg8);
-        var_r31->unk18.y = (-0.5f * arg9);
-        var_r31->unk18.z = 0.0f;
-        var_r31->unk24.x = (-0.5f * arg8);
-        var_r31->unk24.y = (-0.5f * arg9);
-        var_r31->unk24.z = 0.0f;
+    for (vertexIndex = 0; vertexIndex < vertexCount; value2++, vertexIndex++) {
+        value2->topLeft.x  = (-0.5f * width);
+        value2->topLeft.y  = (0.5f * height);
+        value2->topLeft.z  = 0.0f;
+        value2->topRight.x  = (0.5f * width);
+        value2->topRight.y  = (0.5f * height);
+        value2->topRight.z  = 0.0f;
+        value2->bottomRight.x = (0.5f * width);
+        value2->bottomRight.y = (-0.5f * height);
+        value2->bottomRight.z = 0.0f;
+        value2->bottomLeft.x = (-0.5f * width);
+        value2->bottomLeft.y = (-0.5f * height);
+        value2->bottomLeft.z = 0.0f;
     }
 }
 
-void fn_1_F84C(M438FireStruct** arg0, s16 arg1, Vec* arg2) {
-    Vec* var_r31;
-    s32 var_r29;
-    s32 var_r28;
+void CopyFireQuadVertices(M438FireQuadVertices** outputArray, s16 vertexArray, Vec* sourceValues) {
+    Vec* vector2;
+    s32 quadIndex;
+    s32 quadVertexIndex;
 
-    var_r31 = (Vec*)*arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(M438FireStruct), 0x10000000);
+    vector2 = (Vec*)*outputArray = HuMemDirectMallocNum(HEAP_HEAP, vertexArray * sizeof(M438FireQuadVertices), 0x10000000);
     
-    for (var_r29 = 0; var_r29 < arg1; var_r29++) {
-        for (var_r28 = 0; var_r28 < 4; var_r31++, arg2++, var_r28++) {
-            var_r31->x = arg2->x;
-            var_r31->y = arg2->y;
-            var_r31->z = arg2->z;
+    for (quadIndex = 0; quadIndex < vertexArray; quadIndex++) {
+        for (quadVertexIndex = 0; quadVertexIndex < 4; vector2++, sourceValues++, quadVertexIndex++) {
+            vector2->x = sourceValues->x;
+            vector2->y = sourceValues->y;
+            vector2->z = sourceValues->z;
         }
     }
 }
 
-void fn_1_F8EC(M438FireStruct2** arg0, s16 arg1, GXColor* arg2) {
-    GXColor* var_r31;
-    s32 var_r29;
-    s32 var_r28;
+void CopyFireQuadColors(M438FireQuadColors** outputArray, s16 colorArray, GXColor* sourceColors) {
+    GXColor* color2;
+    s32 quadIndex;
+    s32 quadVertexIndex;
 
-    var_r31 = (GXColor*)*arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(M438FireStruct2), 0x10000000U);
+    color2 = (GXColor*)*outputArray = HuMemDirectMallocNum(HEAP_HEAP, colorArray * sizeof(M438FireQuadColors), 0x10000000U);
     
-    for (var_r29 = 0; var_r29 < arg1; var_r29++) {
-        for (var_r28 = 0; var_r28 < 4; var_r31++, arg2++, var_r28++) {
-            var_r31->r = arg2->r;
-            var_r31->g = arg2->g;
-            var_r31->b = arg2->b;
-            var_r31->a = arg2->a;
+    for (quadIndex = 0; quadIndex < colorArray; quadIndex++) {
+        for (quadVertexIndex = 0; quadVertexIndex < 4; color2++, sourceColors++, quadVertexIndex++) {
+            color2->r = sourceColors->r;
+            color2->g = sourceColors->g;
+            color2->b = sourceColors->b;
+            color2->a = sourceColors->a;
         }
     }
 }
 
-void fn_1_F994(Vec** arg0, s16 arg1, Vec* arg2) {
-    s32 var_r29;
-    Vec* var_r31;
+void CopyFireQuadNormals(Vec** normalArrayOut, s16 normalCount, Vec* sourceNormals) {
+    s32 vectorIndex;
+    Vec* destinationVector;
     
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(Vec), 0x10000000);
+    destinationVector = *normalArrayOut = HuMemDirectMallocNum(HEAP_HEAP, normalCount * sizeof(Vec), 0x10000000);
     
-    for (var_r29 = 0; var_r29 < arg1; var_r31++, arg2++, var_r29++) {
-        var_r31->x = arg2->x;
-        var_r31->y = arg2->y;
-        var_r31->z = arg2->z;
+    for (vectorIndex = 0; vectorIndex < normalCount; destinationVector++, sourceNormals++, vectorIndex++) {
+        destinationVector->x = sourceNormals->x;
+        destinationVector->y = sourceNormals->y;
+        destinationVector->z = sourceNormals->z;
     }
 }
 
-void fn_1_FA20(M438FireStruct3** arg0, s16 arg1, HuVec2f* arg2) {
-    HuVec2f* var_r31;
-    s32 var_r29;
-    s32 var_r28;
+void CopyFireQuadUvs(M438FireQuadTextureCoordinates** outputArray, s16 textureCoordinateArray, HuVec2f* sourceValues) {
+    HuVec2f* vector2;
+    s32 quadIndex;
+    s32 quadVertexIndex;
     
-    var_r31 = (HuVec2f*)*arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(M438FireStruct3), 0x10000000);
+    vector2 = (HuVec2f*)*outputArray = HuMemDirectMallocNum(HEAP_HEAP, textureCoordinateArray * sizeof(M438FireQuadTextureCoordinates), 0x10000000);
     
-    for (var_r29 = 0; var_r29 < arg1; var_r29++) {
-        for (var_r28 = 0; var_r28 < 4; var_r31++, arg2++, var_r28++) {
-            var_r31->x = arg2->x;
-            var_r31->y = arg2->y;
+    for (quadIndex = 0; quadIndex < textureCoordinateArray; quadIndex++) {
+        for (quadVertexIndex = 0; quadVertexIndex < 4; vector2++, sourceValues++, quadVertexIndex++) {
+            vector2->x = sourceValues->x;
+            vector2->y = sourceValues->y;
         }
     }
 }
 
-void fn_1_FAB8(M438UnkStruct* arg0) {
-    Vec sp1C[4] = {
+void BuildFireMaterialDisplayList(M438FireMaterial* material) {
+    Vec vector[4] = {
         { -50.0f,  50.0f, 0.0f },
         {  50.0f,  50.0f, 0.0f },
         {  50.0f, -50.0f, 0.0f },
         { -50.0f, -50.0f, 0.0f }
     };
-    GXColor spC[4] = {
+    GXColor color[4] = {
         { 0xFF, 0xFF, 0xFF, 0xFF },
         { 0xFF, 0xFF, 0xFF, 0xFF },
         { 0xFF, 0xFF, 0xFF, 0xFF },
         { 0xFF, 0xFF, 0xFF, 0xFF }
     };
     
-    void* sp8;
-    s32 var_r31;
-    s32 var_r29;
-    void* temp_r28;
+    void* buffer;
+    s32 vertexIndex;
+    s32 textureCoordinateIndex;
+    void* buffer2;
     
     
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        arg0->unk_44[var_r31] = sp1C[var_r31];
+    for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+        material->vertexCoordinates[vertexIndex] = vector[vertexIndex];
     }
     
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        arg0->unk_48[var_r31] = spC[var_r31];
+    for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+        material->vertexColors[vertexIndex] = color[vertexIndex];
     }
-    arg0->unk_4C->x = 0.0f;
-    arg0->unk_4C->y = 0.0f;
-    arg0->unk_4C->z = 1.0f;
-    temp_r28 = arg0->unk_40;
-    sp8 = temp_r28;
-    GXBeginDisplayList(temp_r28, 0x100);
+    material->vertexNormals->x = 0.0f;
+    material->vertexNormals->y = 0.0f;
+    material->vertexNormals->z = 1.0f;
+    buffer2 = material->displayList;
+    buffer = buffer2;
+    GXBeginDisplayList(buffer2, 0x100);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        GXPosition1x16(var_r31);
+    for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+        GXPosition1x16(vertexIndex);
         GXColor1x16(0);
-        GXNormal1x16(var_r31);
-        for (var_r29 = 0; var_r29 < arg0->unk_34; var_r29++) {
-            GXTexCoord1x16(var_r31);
+        GXNormal1x16(vertexIndex);
+        for (textureCoordinateIndex = 0; textureCoordinateIndex < material->textureSlotCount; textureCoordinateIndex++) {
+            GXTexCoord1x16(vertexIndex);
         }
     }
-    arg0->unk_3C = GXEndDisplayList();
+    material->displayListSize = GXEndDisplayList();
 }
 
-void fn_1_FD40(M438UnkStruct2* arg0) {
-    M438UnkStruct* var_r28;
-    M438UnkStruct3* temp_r30;
-    M438UnkSubStruct* var_r31;
-    s32 temp_r0;
-    s32 var_r25;
-    s32 var_r26;
-    s32 var_r27;
+void UpdateParticleSystem(M438ParticleSystem* particleSystem) {
+    M438FireMaterial* material;
+    M438ParticleAnimation* particleAnimation;
+    M438ParticleAnimationTrack* animationTrack;
+    s32 completedLayerCount;
+    s32 materialIndex;
+    s32 textureLayerIndex;
 
-    var_r27 = 0;
+    completedLayerCount = 0;
     
-    var_r28 = arg0->unk_3C;
-    for (var_r25 = 0; var_r25 < arg0->unk_02; var_r25++, var_r28++) {
-        if ((var_r28->unk_38 & 4) != 0) {
-            var_r27++;
+    material = particleSystem->materials;
+    for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+        if ((material->stateFlags & 4) != 0) {
+            completedLayerCount++;
         } else {
-            var_r31 = var_r28->unk_58;
-            for (var_r26 = 0; var_r26 < var_r28->unk_34; var_r26++, var_r31++) {
-                temp_r30 = &lbl_1_bss_DE4.unk_3C[arg0->unk_34[var_r26]];
-                var_r31->unk_24 &= ~4;
-                switch (var_r31->unk_24 & 0xF) {
+            animationTrack = material->animationTracks;
+            for (textureLayerIndex = 0; textureLayerIndex < material->textureSlotCount; textureLayerIndex++, animationTrack++) {
+                particleAnimation = &fireManager.animations[particleSystem->animationIds[textureLayerIndex]];
+                animationTrack->playbackFlags &= ~4;
+                switch (animationTrack->playbackFlags & 0xF) {
                     case 1:
-                        var_r31->unk_2C += var_r31->unk_28;
-                        if (var_r31->unk_2C >= 1.0f) {
-                            var_r31->unk_00++;
-                            var_r31->unk_2C -= 1.0f;
+                        animationTrack->frameAccumulator += animationTrack->frameStep;
+                        if (animationTrack->frameAccumulator >= 1.0f) {
+                            animationTrack->frameIndex++;
+                            animationTrack->frameAccumulator -= 1.0f;
                         }
                         break;
                     case 2:
-                        var_r31->unk_2C += var_r31->unk_28;
-                        if (var_r31->unk_2C >= 1.0f) {
-                            var_r31->unk_00 -= 1;
-                            var_r31->unk_2C -= 1.0f;
+                        animationTrack->frameAccumulator += animationTrack->frameStep;
+                        if (animationTrack->frameAccumulator >= 1.0f) {
+                            animationTrack->frameIndex -= 1;
+                            animationTrack->frameAccumulator -= 1.0f;
                         }
                         break;
                 }
-                if (var_r31->unk_00 >= temp_r30->unk_4C) {
-                    if ((var_r31->unk_24 & 0x10) != 0) {
-                        var_r31->unk_24 |= 8;
-                        var_r31->unk_00 -= 1;
-                    } else if ((var_r31->unk_24 & 0x40) != 0) {
-                        var_r31->unk_24 = (var_r31->unk_24 & 0xF0) | 2;
-                        var_r31->unk_00 -= 2;
-                    } else if ((var_r31->unk_24 & 0x20) != 0) {
-                        var_r31->unk_00 = 0;
+                if (animationTrack->frameIndex >= particleAnimation->rowsPerFrame) {
+                    if ((animationTrack->playbackFlags & 0x10) != 0) {
+                        animationTrack->playbackFlags |= 8;
+                        animationTrack->frameIndex -= 1;
+                    } else if ((animationTrack->playbackFlags & 0x40) != 0) {
+                        animationTrack->playbackFlags = (animationTrack->playbackFlags & 0xF0) | 2;
+                        animationTrack->frameIndex -= 2;
+                    } else if ((animationTrack->playbackFlags & 0x20) != 0) {
+                        animationTrack->frameIndex = 0;
                     }
-                    var_r31->unk_24 |= 4;
-                } else if (var_r31->unk_00 < 0) {
-                    if ((var_r31->unk_24 & 0x10) != 0) {
-                        var_r31->unk_24 |= 8;
-                        var_r31->unk_00 = 0;
-                    } else if ((var_r31->unk_24 & 0x20) != 0) {
-                        if ((var_r31->unk_24 & 0x40) != 0) {
-                            var_r31->unk_24 = (var_r31->unk_24 & 0xF0) | 1;
-                            var_r31->unk_00 = 1;
+                    animationTrack->playbackFlags |= 4;
+                } else if (animationTrack->frameIndex < 0) {
+                    if ((animationTrack->playbackFlags & 0x10) != 0) {
+                        animationTrack->playbackFlags |= 8;
+                        animationTrack->frameIndex = 0;
+                    } else if ((animationTrack->playbackFlags & 0x20) != 0) {
+                        if ((animationTrack->playbackFlags & 0x40) != 0) {
+                            animationTrack->playbackFlags = (animationTrack->playbackFlags & 0xF0) | 1;
+                            animationTrack->frameIndex = 1;
                         } else {
-                            var_r31->unk_00 = temp_r30->unk_4C - 1;
+                            animationTrack->frameIndex = particleAnimation->rowsPerFrame - 1;
                         }
-                    } else if ((var_r31->unk_24 & 0x40) != 0) {
-                        var_r31->unk_24 |= 8;
-                        var_r31->unk_00 = 0;
+                    } else if ((animationTrack->playbackFlags & 0x40) != 0) {
+                        animationTrack->playbackFlags |= 8;
+                        animationTrack->frameIndex = 0;
                     }
-                    var_r31->unk_24 |= 4;
+                    animationTrack->playbackFlags |= 4;
                 } else {
-                    var_r31->unk_24 &= ~8;
+                    animationTrack->playbackFlags &= ~8;
                 }
-                if (var_r31->unk_00 != var_r31->unk_01) {
-                    var_r31->unk_08 = (var_r31->unk_00 * temp_r30->unk_58);
-                    var_r31->unk_10 = (var_r31->unk_00 * temp_r30->unk_58);
-                    var_r31->unk_18 = ((var_r31->unk_00 + 1) * temp_r30->unk_58);
-                    var_r31->unk_20 = ((var_r31->unk_00 + 1) * temp_r30->unk_58);
-                    if ((var_r31->unk_00 + 1) < temp_r30->unk_4C) {
-                        var_r31->unk_18 -= temp_r30->unk_60;
-                        var_r31->unk_20 -= temp_r30->unk_60;
+                if (animationTrack->frameIndex != animationTrack->previousFrameIndex) {
+                    animationTrack->topLeftV = (animationTrack->frameIndex * particleAnimation->textureScaleY);
+                    animationTrack->topRightV = (animationTrack->frameIndex * particleAnimation->textureScaleY);
+                    animationTrack->bottomRightV = ((animationTrack->frameIndex + 1) * particleAnimation->textureScaleY);
+                    animationTrack->bottomLeftV = ((animationTrack->frameIndex + 1) * particleAnimation->textureScaleY);
+                    if ((animationTrack->frameIndex + 1) < particleAnimation->rowsPerFrame) {
+                        animationTrack->bottomRightV -= particleAnimation->inverseTextureHeight;
+                        animationTrack->bottomLeftV -= particleAnimation->inverseTextureHeight;
                     }
-                    var_r31->unk_01 = var_r31->unk_00;
-                    DCFlushRangeNoSync(&var_r31->unk_04, 0x20);
+                    animationTrack->previousFrameIndex = animationTrack->frameIndex;
+                    DCFlushRangeNoSync(&animationTrack->topLeftU, 0x20);
                 }
-                if ((var_r31->unk_24 & 8) != 0) {
-                    if ((var_r28->unk_38 & 0x40000000) != 0) {
-                        var_r28->unk_38 |= 4;
-                        if ((var_r31->unk_24 & 0x40) == 0) {
-                            if (var_r31->unk_00 <= 0) {
-                                var_r31->unk_00 = temp_r30->unk_4C;
+                if ((animationTrack->playbackFlags & 8) != 0) {
+                    if ((material->stateFlags & 0x40000000) != 0) {
+                        material->stateFlags |= 4;
+                        if ((animationTrack->playbackFlags & 0x40) == 0) {
+                            if (animationTrack->frameIndex <= 0) {
+                                animationTrack->frameIndex = particleAnimation->rowsPerFrame;
                             } else {
-                                var_r31->unk_00 = 0;
+                                animationTrack->frameIndex = 0;
                             }
                         }
-                    } else if ((var_r28->unk_38 & 0x80000000) != 0) {
-                        fn_1_107BC(arg0->unk_00);
+                    } else if ((material->stateFlags & 0x80000000) != 0) {
+                        DestroyParticleSystem(particleSystem->systemId);
                     }
-                    var_r27++;
+                    completedLayerCount++;
                 }
             }
         }
     }
-    if (var_r27 >= arg0->unk_02) {
-        if ((arg0->unk_08 & 0x40000000) != 0) {
-            arg0->unk_08 |= 4;
-        } else if ((arg0->unk_08 & 0x80000000) != 0) {
-            fn_1_107BC(arg0->unk_00);
+    if (completedLayerCount >= particleSystem->materialCount) {
+        if ((particleSystem->stateFlags & 0x40000000) != 0) {
+            particleSystem->stateFlags |= 4;
+        } else if ((particleSystem->stateFlags & 0x80000000) != 0) {
+            DestroyParticleSystem(particleSystem->systemId);
         }
     }
     PPCSync();
 }
 
-s16 fn_1_10258(u8 arg0, u8 arg1) {
-    M438UnkStruct* var_r30;
-    M438UnkStruct2* var_r31;
-    s32 var_r29;
-    s32 var_r28;
-    void* temp_r25;
+s16 CreateParticleSystem(u8 materialCount, u8 animationSlotCount) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    s32 systemIndex;
+    s32 animationSlotIndex;
+    void* buffer;
 
-    var_r31 = &lbl_1_bss_DE4.unk_40[1];
+    particleSystem = &fireManager.particleSystems[1];
     
-    for (var_r29 = 1; var_r29 < lbl_1_bss_DE4.unk_30; var_r29++, var_r31++) {
-        if (var_r31->unk_08 == 0) break;
+    for (systemIndex = 1; systemIndex < fireManager.particleSystemCapacity; systemIndex++, particleSystem++) {
+        if (particleSystem->stateFlags == 0) break;
     }
-    if (var_r29 == lbl_1_bss_DE4.unk_30) {
+    if (systemIndex == fireManager.particleSystemCapacity) {
         OSReport("OVER BILL\n");
         return 0;
     }
-    var_r31->unk_00 = var_r29;
-    var_r31->unk_08 = 1;
-    var_r31->unk_30 = NULL;
-    var_r31->unk_02 = arg0;
-    var_r31->unk_04 = arg1;
-    var_r30 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * 0x98, 0x10000000);
-    var_r31->unk_3C = var_r30;
-    var_r31->unk_34 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * 2, 0x10000000);
-    var_r31->unk_48 = 0;
-    var_r31->unk_4C = HuMemDirectMallocNum(HEAP_HEAP, arg0 << 8, 0x10000000);
-    var_r31->unk_50 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * 0x30, 0x10000000);
-    var_r31->unk_54 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * 0x10, 0x10000000);
-    var_r31->unk_58 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * 0xC, 0x10000000);
-    var_r31->unk_5C = HuMemDirectMallocNum(HEAP_HEAP, arg1 * (arg0 * 0x30), 0x10000000);
-    DCFlushRangeNoSync(var_r31->unk_4C, arg0 << 8);
-    var_r31->unk_0C.x = var_r31->unk_0C.y = var_r31->unk_0C.z = 0.0f;
-    var_r31->unk_18.x = var_r31->unk_18.y = var_r31->unk_18.z = 0.0f;
-    var_r31->unk_24.x = var_r31->unk_24.y = var_r31->unk_24.z = 1.0f;
-    var_r31->unk_70.x = var_r31->unk_70.y = var_r31->unk_70.z = 0.0f;
-    var_r31->unk_64.x = var_r31->unk_64.y = var_r31->unk_64.z = 0.0f;
-    var_r31->unk_60 = 0;
+    particleSystem->systemId = systemIndex;
+    particleSystem->stateFlags = 1;
+    particleSystem->updateCallback = NULL;
+    particleSystem->materialCount = materialCount;
+    particleSystem->animationSlotCount = animationSlotCount;
+    material = HuMemDirectMallocNum(HEAP_HEAP, materialCount * 0x98, 0x10000000);
+    particleSystem->materials = material;
+    particleSystem->animationIds = HuMemDirectMallocNum(HEAP_HEAP, animationSlotCount * 2, 0x10000000);
+    particleSystem->displayListSize = 0;
+    particleSystem->displayList = HuMemDirectMallocNum(HEAP_HEAP, materialCount << 8, 0x10000000);
+    particleSystem->vertexBuffer = HuMemDirectMallocNum(HEAP_HEAP, materialCount * 0x30, 0x10000000);
+    particleSystem->colorBuffer = HuMemDirectMallocNum(HEAP_HEAP, materialCount * 0x10, 0x10000000);
+    particleSystem->normalBuffer = HuMemDirectMallocNum(HEAP_HEAP, materialCount * 0xC, 0x10000000);
+    particleSystem->animationTracks = HuMemDirectMallocNum(HEAP_HEAP, animationSlotCount * (materialCount * 0x30), 0x10000000);
+    DCFlushRangeNoSync(particleSystem->displayList, materialCount << 8);
+    particleSystem->position.x = particleSystem->position.y = particleSystem->position.z = 0.0f;
+    particleSystem->rotation.x = particleSystem->rotation.y = particleSystem->rotation.z = 0.0f;
+    particleSystem->scale.x = particleSystem->scale.y = particleSystem->scale.z = 1.0f;
+    particleSystem->textureRotation.x = particleSystem->textureRotation.y = particleSystem->textureRotation.z = 0.0f;
+    particleSystem->textureOffset.x = particleSystem->textureOffset.y = particleSystem->textureOffset.z = 0.0f;
+    particleSystem->coordinateFlags = 0;
     
-    for (var_r29 = 0; var_r29 < 0x20; var_r29++) {
-        var_r31->unk_7Ca[var_r29] = 0;
+    for (systemIndex = 0; systemIndex < 0x20; systemIndex++) {
+        particleSystem->animationFrameData[systemIndex] = 0;
     }
     
-    for (var_r29 = 0; var_r29 < arg1; var_r29++) {
-        var_r31->unk_34[var_r29] = 0;
+    for (systemIndex = 0; systemIndex < animationSlotCount; systemIndex++) {
+        particleSystem->animationIds[systemIndex] = 0;
     }
     
-    for (var_r29 = 0; var_r29 < arg0; var_r29++, var_r30++) {
-        var_r30->unk_38 = 1;
-        var_r30->unk_34 = arg1;
-        var_r30->unk_30 = 0;
-        var_r30->unk_31 = 2;
-        var_r30->unk_32 = 0;
-        var_r30->unk_33 = 0;
-        var_r30->unk_50.r = var_r30->unk_50.g = var_r30->unk_50.b = 0;
-        var_r30->unk_50.a = 0xFF;
-        var_r30->unk_54.r = var_r30->unk_54.g = var_r30->unk_54.b = 0xFF;
-        var_r30->unk_54.a = 0xFF;
-        var_r30->unk_58 = &var_r31->unk_5C[var_r29 * arg1];
+    for (systemIndex = 0; systemIndex < materialCount; systemIndex++, material++) {
+        material->stateFlags = 1;
+        material->textureSlotCount = animationSlotCount;
+        material->enabled = 0;
+        material->textureCoordinateCount = 2;
+        material->animationMode = 0;
+        material->blendMode = 0;
+        material->baseColor.r = material->baseColor.g = material->baseColor.b = 0;
+        material->baseColor.a = 0xFF;
+        material->modulationColor.r = material->modulationColor.g = material->modulationColor.b = 0xFF;
+        material->modulationColor.a = 0xFF;
+        material->animationTracks = &particleSystem->animationTracks[systemIndex * animationSlotCount];
         
-        for (var_r28 = 0; var_r28 < arg1; var_r28++) {
-            var_r30->unk_58[var_r28].unk_00 = var_r30->unk_58[var_r28].unk_01 = 0;
-            var_r30->unk_58[var_r28].unk_28 = 1.0f;
-            var_r30->unk_58[var_r28].unk_2C = 0.0f;
+        for (animationSlotIndex = 0; animationSlotIndex < animationSlotCount; animationSlotIndex++) {
+            material->animationTracks[animationSlotIndex].frameIndex = material->animationTracks[animationSlotIndex].previousFrameIndex = 0;
+            material->animationTracks[animationSlotIndex].frameStep = 1.0f;
+            material->animationTracks[animationSlotIndex].frameAccumulator = 0.0f;
         }
-        var_r30->unk_00.x = var_r30->unk_00.y = var_r30->unk_00.z = 0.0f;
-        var_r30->unk_0C.x = var_r30->unk_0C.y = var_r30->unk_0C.z = 0.0f;
-        var_r30->unk_18.x = var_r30->unk_18.y = var_r30->unk_18.z = 1.0f;
-        var_r30->unk_6C.x = var_r30->unk_6C.y = var_r30->unk_6C.z = 0.0f;
-        var_r30->unk_24.x = var_r30->unk_24.y = var_r30->unk_24.z = 0.0f;
-        var_r30->unk_60.x = var_r30->unk_60.y = var_r30->unk_60.z = 0.0f;
-        var_r30->unk_5C = 0;
+        material->position.x = material->position.y = material->position.z = 0.0f;
+        material->rotation.x = material->rotation.y = material->rotation.z = 0.0f;
+        material->scale.x = material->scale.y = material->scale.z = 1.0f;
+        material->particleOffset.x = material->particleOffset.y = material->particleOffset.z = 0.0f;
+        material->secondaryScale.x = material->secondaryScale.y = material->secondaryScale.z = 0.0f;
+        material->textureOffset.x = material->textureOffset.y = material->textureOffset.z = 0.0f;
+        material->renderFlags = 0;
         
-        for (var_r28 = 0; var_r28 < 0x10; var_r28++) {
-            var_r30->unk_78[var_r28] = 0;
+        for (animationSlotIndex = 0; animationSlotIndex < 0x10; animationSlotIndex++) {
+            material->animationFrameData[animationSlotIndex] = 0;
         }
-        var_r30->unk_44 = &var_r31->unk_50[var_r29 * 4];
-        var_r30->unk_48 = &var_r31->unk_54[var_r29 * 4];
-        var_r30->unk_4C = &var_r31->unk_58[var_r29];
-        var_r30->unk_40 = ((char*)var_r31->unk_4C) + var_r31->unk_48;
-        fn_1_FAB8(var_r30);
-        var_r31->unk_48 += var_r30->unk_3C;
+        material->vertexCoordinates = &particleSystem->vertexBuffer[systemIndex * 4];
+        material->vertexColors = &particleSystem->colorBuffer[systemIndex * 4];
+        material->vertexNormals = &particleSystem->normalBuffer[systemIndex];
+        material->displayList = ((char*)particleSystem->displayList) + particleSystem->displayListSize;
+        BuildFireMaterialDisplayList(material);
+        particleSystem->displayListSize += material->displayListSize;
     }
-    temp_r25 = var_r31->unk_4C;
-    var_r31->unk_4C = HuMemDirectMallocNum(HEAP_HEAP, var_r31->unk_48, 0x10000000);
-    memcpy(var_r31->unk_4C, temp_r25, var_r31->unk_48);
-    HuMemDirectFree(temp_r25);
-    DCFlushRangeNoSync(var_r31->unk_50, arg0 * 0x30);
-    DCFlushRangeNoSync(var_r31->unk_54, arg0 * 0x10);
-    DCFlushRangeNoSync(var_r31->unk_58, arg0 * 0xC);
-    DCFlushRangeNoSync(var_r31->unk_4C, var_r31->unk_48);
-    var_r30 = var_r31->unk_3C;
-    var_r31->unk_48 = 0;
+    buffer = particleSystem->displayList;
+    particleSystem->displayList = HuMemDirectMallocNum(HEAP_HEAP, particleSystem->displayListSize, 0x10000000);
+    memcpy(particleSystem->displayList, buffer, particleSystem->displayListSize);
+    HuMemDirectFree(buffer);
+    DCFlushRangeNoSync(particleSystem->vertexBuffer, materialCount * 0x30);
+    DCFlushRangeNoSync(particleSystem->colorBuffer, materialCount * 0x10);
+    DCFlushRangeNoSync(particleSystem->normalBuffer, materialCount * 0xC);
+    DCFlushRangeNoSync(particleSystem->displayList, particleSystem->displayListSize);
+    material = particleSystem->materials;
+    particleSystem->displayListSize = 0;
     
-    for (var_r29 = 0; var_r29 < arg0; var_r29++, var_r30++) {
-        var_r30->unk_40 = ((char*)var_r31->unk_4C) + var_r31->unk_48;
-        var_r31->unk_48 += var_r30->unk_3C;
+    for (systemIndex = 0; systemIndex < materialCount; systemIndex++, material++) {
+        material->displayList = ((char*)particleSystem->displayList) + particleSystem->displayListSize;
+        particleSystem->displayListSize += material->displayListSize;
     }
-    lbl_1_bss_DE4.unk_36 = var_r31->unk_00;
-    lbl_1_bss_DE4.unk_38 = 0;
-    lbl_1_bss_DE4.unk_3A = 0;
+    fireManager.activeParticleSystemId = particleSystem->systemId;
+    fireManager.activeMaterialIndex = 0;
+    fireManager.activeTextureSlot = 0;
     PPCSync();
-    return var_r31->unk_00;
+    return particleSystem->systemId;
 }
 
-void fn_1_107BC(s16 arg0) {
-    M438UnkStruct2* temp_r31;
-    s32 var_r30;
+void DestroyParticleSystem(s16 particleSystemId) {
+    M438ParticleSystem* particleSystem;
+    s32 textureSlotIndex;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if ((u32) temp_r31->unk_08 != 0) {
-            if (temp_r31->unk_50 != NULL) {
-                HuMemDirectFree(temp_r31->unk_50);
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if ((u32) particleSystem->stateFlags != 0) {
+            if (particleSystem->vertexBuffer != NULL) {
+                HuMemDirectFree(particleSystem->vertexBuffer);
             }
-            if (temp_r31->unk_54 != NULL) {
-                HuMemDirectFree(temp_r31->unk_54);
+            if (particleSystem->colorBuffer != NULL) {
+                HuMemDirectFree(particleSystem->colorBuffer);
             }
-            if (temp_r31->unk_58 != NULL) {
-                HuMemDirectFree(temp_r31->unk_58);
+            if (particleSystem->normalBuffer != NULL) {
+                HuMemDirectFree(particleSystem->normalBuffer);
             }
-            if (temp_r31->unk_4C != NULL) {
-                HuMemDirectFree(temp_r31->unk_4C);
+            if (particleSystem->displayList != NULL) {
+                HuMemDirectFree(particleSystem->displayList);
             }
-            if (temp_r31->unk_5C != NULL) {
-                HuMemDirectFree(temp_r31->unk_5C);
+            if (particleSystem->animationTracks != NULL) {
+                HuMemDirectFree(particleSystem->animationTracks);
             }
             
-            for (var_r30 = 0; var_r30 < temp_r31->unk_04; var_r30++) {
-                fn_1_10F0C(temp_r31->unk_34[var_r30]);
+            for (textureSlotIndex = 0; textureSlotIndex < particleSystem->animationSlotCount; textureSlotIndex++) {
+                ReleaseParticleAnimation(particleSystem->animationIds[textureSlotIndex]);
             }
-            HuMemDirectFree(temp_r31->unk_3C);
-            HuMemDirectFree(temp_r31->unk_34);
-            temp_r31->unk_08 = 0;
-            temp_r31->unk_00 = 0;
+            HuMemDirectFree(particleSystem->materials);
+            HuMemDirectFree(particleSystem->animationIds);
+            particleSystem->stateFlags = 0;
+            particleSystem->systemId = 0;
         }
     }
 }
 
-void fn_1_108E4(s16 arg0, s16 arg1, u8 arg2) {
-    lbl_1_bss_DE4.unk_36 = arg0;
-    lbl_1_bss_DE4.unk_38 = arg1;
-    lbl_1_bss_DE4.unk_3A = arg2;
+void SelectParticleMaterial(s16 particleSystemId, s16 materialIndex, u8 textureSlotIndex) {
+    fireManager.activeParticleSystemId = particleSystemId;
+    fireManager.activeMaterialIndex = materialIndex;
+    fireManager.activeTextureSlot = textureSlotIndex;
 }
 
 #include "game/sprite.h"
 
-s16 fn_1_10910(u32 arg0, s16 arg1, s16 arg2) {
-    f32 var_f31;
-    f32 var_f30;
-    ANIMDATA* var_r30;
-    M438UnkStruct3* var_r31;
-    s32 var_r29;
+s16 LoadParticleAnimation(u32 resourceId, s16 columnCount, s16 rowCount) {
+    f32 textureScaleX;
+    f32 textureScaleY;
+    ANIMDATA* animationData;
+    M438ParticleAnimation* particleAnimation;
+    s32 animationIndex;
 
-    var_r31 = &lbl_1_bss_DE4.unk_3C[1];
-    for (var_r29 = 1; var_r29 < lbl_1_bss_DE4.unk_32; var_r29++, var_r31++) {
-        if ((var_r31->unk_06 != 0) && (var_r31->unk_08 == arg0)) break;
+    particleAnimation = &fireManager.animations[1];
+    for (animationIndex = 1; animationIndex < fireManager.animationCapacity; animationIndex++, particleAnimation++) {
+        if ((particleAnimation->referenceCount != 0) && (particleAnimation->resourceId == resourceId)) break;
     }
-    if (var_r29 < lbl_1_bss_DE4.unk_32) {
-        var_r31->unk_06++;
-        return var_r29;
+    if (animationIndex < fireManager.animationCapacity) {
+        particleAnimation->referenceCount++;
+        return animationIndex;
     }
     
-    var_r31 = &lbl_1_bss_DE4.unk_3C[1];
-    for (var_r29 = 1; var_r29 < lbl_1_bss_DE4.unk_32; var_r29++, var_r31++) {
-        if (var_r31->unk_06 == 0) break;
+    particleAnimation = &fireManager.animations[1];
+    for (animationIndex = 1; animationIndex < fireManager.animationCapacity; animationIndex++, particleAnimation++) {
+        if (particleAnimation->referenceCount == 0) break;
     }
-    var_r31->unk_08 = arg0;
-    var_r31->unk_06 = 1;
-    if (((arg0 & 0xFFFF0000) + 0x10000) == 0) {
-        var_r30 = HuSprAnimMake(arg1, arg2, 2);
-        var_r30->bmp->data = HuMemDirectMallocNum(HEAP_HEAP, arg2 * (arg1 * 2), 0x10000000);
-        arg1 = arg2 = 0;
+    particleAnimation->resourceId = resourceId;
+    particleAnimation->referenceCount = 1;
+    if (((resourceId & 0xFFFF0000) + 0x10000) == 0) {
+        animationData = HuSprAnimMake(columnCount, rowCount, 2);
+        animationData->bmp->data = HuMemDirectMallocNum(HEAP_HEAP, rowCount * (columnCount * 2), 0x10000000);
+        columnCount = rowCount = 0;
     } else {
-        var_r30 = HuSprAnimRead(HuDataReadNum(arg0, 0x10000000));
+        animationData = HuSprAnimRead(HuDataReadNum(resourceId, 0x10000000));
     }
-    if ((arg1 == 0) || (arg2 == 0)) {
-        arg1 = var_r30->bmp->sizeX;
-        arg2 = var_r30->bmp->sizeY;
-        var_f31 = var_f30 = 1.0f;
+    if ((columnCount == 0) || (rowCount == 0)) {
+        columnCount = animationData->bmp->sizeX;
+        rowCount = animationData->bmp->sizeY;
+        textureScaleX = textureScaleY = 1.0f;
     } else {
-        var_f31 = arg1 / (f32)var_r30->bmp->sizeX;
-        var_f30 = arg2 / (f32)var_r30->bmp->sizeY;
+        textureScaleX = columnCount / (f32)animationData->bmp->sizeX;
+        textureScaleY = rowCount / (f32)animationData->bmp->sizeY;
     }
-    var_r31->unk_00 = var_r30;
-    var_r31->unk_4E = arg1;
-    var_r31->unk_50 = arg2;
-    var_r31->unk_54 = var_f31;
-    var_r31->unk_58 = var_f30;
-    var_r31->unk_5C = 1.0f / var_r30->bmp->sizeX;
-    var_r31->unk_60 = 1.0f / var_r30->bmp->sizeY;
-    var_r31->unk_04 = 0;
-    var_r31->unk_4C = var_r30->bmp->sizeY / arg2;
-    if (var_r31->unk_4C < 1) {
-        var_r31->unk_4C = 1;
+    particleAnimation->animationData = animationData;
+    particleAnimation->frameWidth = columnCount;
+    particleAnimation->frameHeight = rowCount;
+    particleAnimation->textureScaleX = textureScaleX;
+    particleAnimation->textureScaleY = textureScaleY;
+    particleAnimation->inverseTextureWidth = 1.0f / animationData->bmp->sizeX;
+    particleAnimation->inverseTextureHeight = 1.0f / animationData->bmp->sizeY;
+    particleAnimation->textureMappingMode = 0;
+    particleAnimation->rowsPerFrame = animationData->bmp->sizeY / rowCount;
+    if (particleAnimation->rowsPerFrame < 1) {
+        particleAnimation->rowsPerFrame = 1;
     }
-    var_r31->unk_4D = 0;
-    if ((arg1 > var_r30->bmp->sizeX) || (arg2 > var_r30->bmp->sizeY)) {
-        var_r31->unk_4D = 1;
+    particleAnimation->isTiled = 0;
+    if ((columnCount > animationData->bmp->sizeX) || (rowCount > animationData->bmp->sizeY)) {
+        particleAnimation->isTiled = 1;
     }
-    var_r31->unk_48.r = var_r31->unk_48.g = var_r31->unk_48.b = 0xFF;
-    var_r31->unk_48.a = 0xFF;
-    PSMTXIdentity(var_r31->unk_18);
-    var_r31->unk_0C.x = var_r31->unk_0C.y = var_r31->unk_0C.z = 0.0f;
-    return var_r29;
+    particleAnimation->tintColor.r = particleAnimation->tintColor.g = particleAnimation->tintColor.b = 0xFF;
+    particleAnimation->tintColor.a = 0xFF;
+    PSMTXIdentity(particleAnimation->textureMatrix);
+    particleAnimation->position.x = particleAnimation->position.y = particleAnimation->position.z = 0.0f;
+    return animationIndex;
 }
 
-void fn_1_10CB8(s16 arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, s16 arg5) {
-    f32 var_f31;
-    f32 var_f30;
-    M438UnkStruct3* temp_r31;
-    ANIMDATA* temp_r30;
+void CreateParticleAnimation(s16 animationId, s16 resourceId, s16 columnCount, s16 rowCount, s16 textureWidth, s16 textureHeight) {
+    f32 textureScaleX;
+    f32 textureScaleY;
+    M438ParticleAnimation* particleAnimation;
+    ANIMDATA* animationData;
 
-    temp_r31 = &lbl_1_bss_DE4.unk_3C[arg0];
-    HuSprAnimKill(temp_r31->unk_00);
-    temp_r31->unk_08 |= 0xFFFF0000;
-    temp_r30 = HuSprAnimMake(arg2, arg3, arg1);
-    temp_r30->bmp->data = HuMemDirectMallocNum(HEAP_HEAP, arg3 * (temp_r30->bmp->pixSize * arg2), 0x10000000U);
-    var_f31 = arg4 / (f32) temp_r30->bmp->sizeX;
-    var_f30 = arg5 / (f32) temp_r30->bmp->sizeY;
-    temp_r31->unk_00 = temp_r30;
-    temp_r31->unk_4E = arg2;
-    temp_r31->unk_50 = arg3;
-    temp_r31->unk_54 = var_f31;
-    temp_r31->unk_58 = var_f30;
-    temp_r31->unk_5C = 1.0f / (f32) temp_r30->bmp->sizeX;
-    temp_r31->unk_60 = 1.0f / (f32) temp_r30->bmp->sizeY;
-    temp_r31->unk_04 = 0;
-    temp_r31->unk_4C = temp_r30->bmp->sizeY / arg5;
-    temp_r31->unk_4D = 0;
-    temp_r31->unk_48.r = temp_r31->unk_48.g = temp_r31->unk_48.b = 0xFF;
-    temp_r31->unk_48.a = 0xFF;
+    particleAnimation = &fireManager.animations[animationId];
+    HuSprAnimKill(particleAnimation->animationData);
+    particleAnimation->resourceId |= 0xFFFF0000;
+    animationData = HuSprAnimMake(columnCount, rowCount, resourceId);
+    animationData->bmp->data = HuMemDirectMallocNum(HEAP_HEAP, rowCount * (animationData->bmp->pixSize * columnCount), 0x10000000U);
+    textureScaleX = textureWidth / (f32) animationData->bmp->sizeX;
+    textureScaleY = textureHeight / (f32) animationData->bmp->sizeY;
+    particleAnimation->animationData = animationData;
+    particleAnimation->frameWidth = columnCount;
+    particleAnimation->frameHeight = rowCount;
+    particleAnimation->textureScaleX = textureScaleX;
+    particleAnimation->textureScaleY = textureScaleY;
+    particleAnimation->inverseTextureWidth = 1.0f / (f32) animationData->bmp->sizeX;
+    particleAnimation->inverseTextureHeight = 1.0f / (f32) animationData->bmp->sizeY;
+    particleAnimation->textureMappingMode = 0;
+    particleAnimation->rowsPerFrame = animationData->bmp->sizeY / textureHeight;
+    particleAnimation->isTiled = 0;
+    particleAnimation->tintColor.r = particleAnimation->tintColor.g = particleAnimation->tintColor.b = 0xFF;
+    particleAnimation->tintColor.a = 0xFF;
 }
 
-void fn_1_10F0C(s16 arg0) {
-    M438UnkStruct3* temp_r31;
+void ReleaseParticleAnimation(s16 animationId) {
+    M438ParticleAnimation* particleAnimation;
 
-    temp_r31 = &lbl_1_bss_DE4.unk_3C[arg0];
-    if (temp_r31->unk_08 != 0) {
-        if (temp_r31->unk_06 != 0) {
-            temp_r31->unk_06 -= 1;
+    particleAnimation = &fireManager.animations[animationId];
+    if (particleAnimation->resourceId != 0) {
+        if (particleAnimation->referenceCount != 0) {
+            particleAnimation->referenceCount -= 1;
         }
-        if (temp_r31->unk_06 == 0) {
-            HuSprAnimKill(temp_r31->unk_00);
-            temp_r31->unk_08 = 0;
+        if (particleAnimation->referenceCount == 0) {
+            HuSprAnimKill(particleAnimation->animationData);
+            particleAnimation->resourceId = 0;
         }
     }
 }
 
-u8 fn_1_10F8C(s16 arg0, u8 arg1, u32 arg2, s16 arg3, s16 arg4) {
-    s32 var_r31;
+u8 LoadAnimationToTextureSlot(s16 particleSystemId, u8 textureSlotIndex, u32 resourceId, s16 columnCount, s16 rowCount) {
+    s32 animationIndex;
 
-    if (arg0 == 0) return 0;
+    if (particleSystemId == 0) return 0;
     
-    var_r31 = fn_1_10910(arg2, arg3, arg4);
-    if (var_r31 == 0) return 0;
+    animationIndex = LoadParticleAnimation(resourceId, columnCount, rowCount);
+    if (animationIndex == 0) return 0;
     
-    fn_1_110B4(arg0, arg1, var_r31);
-    return var_r31;
+    AssignAnimationToMaterial(particleSystemId, textureSlotIndex, animationIndex);
+    return animationIndex;
 }
 
-u8 fn_1_11018(s16 arg0, u8 arg1, u32 arg2) {
-    u8 var_r31;
+u8 LoadAnimationToTextureSlotDefaultSize(s16 particleSystemId, u8 textureSlotIndex, u32 resourceId) {
+    u8 animationIndex;
 
-    var_r31 = fn_1_10F8C(arg0, arg1, arg2, 0, 0);
+    animationIndex = LoadAnimationToTextureSlot(particleSystemId, textureSlotIndex, resourceId, 0, 0);
     
-    return var_r31;
+    return animationIndex;
 }
 
-s32 fn_1_110B4(s16 arg0, u8 arg1, s16 arg2) {
-    M438UnkStruct* var_r29;
-    M438UnkStruct2* temp_r28;
-    M438UnkStruct3* temp_r30;
-    M438UnkSubStruct* temp_r31;
-    s32 var_r26;
+s32 AssignAnimationToMaterial(s16 particleSystemId, u8 textureSlotIndex, s16 animationId) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    M438ParticleAnimation* particleAnimation;
+    M438ParticleAnimationTrack* animationTrack;
+    s32 materialIndex;
 
-    if (arg2 == 0) {
+    if (animationId == 0) {
         return 0;
     }
-    if (arg0 == 0) {
+    if (particleSystemId == 0) {
         return 0;
     }
-    temp_r28 = &lbl_1_bss_DE4.unk_40[arg0];
-    temp_r28->unk_08 |= 2;
-    if (arg2 == temp_r28->unk_34[arg1]) {
+    particleSystem = &fireManager.particleSystems[particleSystemId];
+    particleSystem->stateFlags |= 2;
+    if (animationId == particleSystem->animationIds[textureSlotIndex]) {
         return 1;
     }
-    temp_r28->unk_34[arg1] = arg2;
-    temp_r30 = &lbl_1_bss_DE4.unk_3C[arg2];
+    particleSystem->animationIds[textureSlotIndex] = animationId;
+    particleAnimation = &fireManager.animations[animationId];
     
-    var_r29 = temp_r28->unk_3C;
-    for (var_r26 = 0; var_r26 < temp_r28->unk_02; var_r26++, var_r29++) {
-        if (arg1 == 0) {
-            var_r29->unk_44[0].x = -0.5f * temp_r30->unk_4E;
-            var_r29->unk_44[0].y = 0.5f * temp_r30->unk_50;
-            var_r29->unk_44[1].x = (0.5f * temp_r30->unk_4E);
-            var_r29->unk_44[1].y = (0.5f * temp_r30->unk_50);
-            var_r29->unk_44[2].x = (0.5f * temp_r30->unk_4E);
-            var_r29->unk_44[2].y = (-0.5f * temp_r30->unk_50);
-            var_r29->unk_44[3].x = (-0.5f * temp_r30->unk_4E);
-            var_r29->unk_44[3].y = (-0.5f * temp_r30->unk_50);
-            var_r29->unk_44[0].z = var_r29->unk_44[1].z = var_r29->unk_44[2].z = var_r29->unk_44[3].z = 0.0f;
+    material = particleSystem->materials;
+    for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+        if (textureSlotIndex == 0) {
+            material->vertexCoordinates[0].x = -0.5f * particleAnimation->frameWidth;
+            material->vertexCoordinates[0].y = 0.5f * particleAnimation->frameHeight;
+            material->vertexCoordinates[1].x = (0.5f * particleAnimation->frameWidth);
+            material->vertexCoordinates[1].y = (0.5f * particleAnimation->frameHeight);
+            material->vertexCoordinates[2].x = (0.5f * particleAnimation->frameWidth);
+            material->vertexCoordinates[2].y = (-0.5f * particleAnimation->frameHeight);
+            material->vertexCoordinates[3].x = (-0.5f * particleAnimation->frameWidth);
+            material->vertexCoordinates[3].y = (-0.5f * particleAnimation->frameHeight);
+            material->vertexCoordinates[0].z = material->vertexCoordinates[1].z = material->vertexCoordinates[2].z = material->vertexCoordinates[3].z = 0.0f;
         }
-        temp_r31 = &var_r29->unk_58[arg1];
-        temp_r31->unk_24 = 0;
-        temp_r31->unk_00 = temp_r31->unk_01 = 0;
-        temp_r31->unk_28 = 1.0f;
-        temp_r31->unk_2C = 0.0f;
-        temp_r31->unk_04 = temp_r31->unk_00 * temp_r30->unk_54;
-        temp_r31->unk_08 = temp_r31->unk_00 * temp_r30->unk_58;
-        temp_r31->unk_0C = (temp_r31->unk_00 + 1) * temp_r30->unk_54;
-        temp_r31->unk_10 = temp_r31->unk_00 * temp_r30->unk_58;
-        temp_r31->unk_14 = (temp_r31->unk_00 + 1) * temp_r30->unk_54;
-        temp_r31->unk_18 = (temp_r31->unk_00 + 1) * temp_r30->unk_58;
-        temp_r31->unk_1C = (temp_r31->unk_00 * temp_r30->unk_54);
-        temp_r31->unk_20 = (temp_r31->unk_00 + 1) * temp_r30->unk_58;
-        if ((temp_r31->unk_00 + 1) < temp_r30->unk_4C) {
-            temp_r31->unk_18 -= temp_r30->unk_60;
-            temp_r31->unk_20 -= temp_r30->unk_60;
+        animationTrack = &material->animationTracks[textureSlotIndex];
+        animationTrack->playbackFlags = 0;
+        animationTrack->frameIndex = animationTrack->previousFrameIndex = 0;
+        animationTrack->frameStep = 1.0f;
+        animationTrack->frameAccumulator = 0.0f;
+        animationTrack->topLeftU = animationTrack->frameIndex * particleAnimation->textureScaleX;
+        animationTrack->topLeftV = animationTrack->frameIndex * particleAnimation->textureScaleY;
+        animationTrack->topRightU = (animationTrack->frameIndex + 1) * particleAnimation->textureScaleX;
+        animationTrack->topRightV = animationTrack->frameIndex * particleAnimation->textureScaleY;
+        animationTrack->bottomRightU = (animationTrack->frameIndex + 1) * particleAnimation->textureScaleX;
+        animationTrack->bottomRightV = (animationTrack->frameIndex + 1) * particleAnimation->textureScaleY;
+        animationTrack->bottomLeftU = (animationTrack->frameIndex * particleAnimation->textureScaleX);
+        animationTrack->bottomLeftV = (animationTrack->frameIndex + 1) * particleAnimation->textureScaleY;
+        if ((animationTrack->frameIndex + 1) < particleAnimation->rowsPerFrame) {
+            animationTrack->bottomRightV -= particleAnimation->inverseTextureHeight;
+            animationTrack->bottomLeftV -= particleAnimation->inverseTextureHeight;
         }
-        DCFlushRangeNoSync(&temp_r31->unk_04, 0x20);
+        DCFlushRangeNoSync(&animationTrack->topLeftU, 0x20);
     }
-    lbl_1_bss_DE4.unk_36 = arg0;
-    lbl_1_bss_DE4.unk_3A = arg1;
+    fireManager.activeParticleSystemId = particleSystemId;
+    fireManager.activeTextureSlot = textureSlotIndex;
     PPCSync();
     return 1;
 }
 
-void fn_1_11658(void) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct3* temp_r30;
-    M438UnkStruct3* temp_r29;
-    s32 var_r28;
-    s32 var_r27;
-    s16 var_r26;
+void ShutdownFireManager(void) {
+    M438ParticleSystem* particleSystem;
+    M438ParticleAnimation* particleAnimation2;
+    M438ParticleAnimation* particleAnimation;
+    s32 particleSystemIndex;
+    s32 textureLayerIndex;
+    s16 animationIndex;
 
-    for (var_r28 = 1; var_r28 < lbl_1_bss_DE4.unk_30; var_r28++) {
-        if ((s16)var_r28 != 0) {
-            temp_r31 = &lbl_1_bss_DE4.unk_40[(s16)var_r28];
-            if (temp_r31->unk_08 != 0) {
-                if (temp_r31->unk_50 != NULL) {
-                    HuMemDirectFree(temp_r31->unk_50);
+    for (particleSystemIndex = 1; particleSystemIndex < fireManager.particleSystemCapacity; particleSystemIndex++) {
+        if ((s16)particleSystemIndex != 0) {
+            particleSystem = &fireManager.particleSystems[(s16)particleSystemIndex];
+            if (particleSystem->stateFlags != 0) {
+                if (particleSystem->vertexBuffer != NULL) {
+                    HuMemDirectFree(particleSystem->vertexBuffer);
                 }
-                if (temp_r31->unk_54 != NULL) {
-                    HuMemDirectFree(temp_r31->unk_54);
+                if (particleSystem->colorBuffer != NULL) {
+                    HuMemDirectFree(particleSystem->colorBuffer);
                 }
-                if (temp_r31->unk_58 != NULL) {
-                    HuMemDirectFree(temp_r31->unk_58);
+                if (particleSystem->normalBuffer != NULL) {
+                    HuMemDirectFree(particleSystem->normalBuffer);
                 }
-                if (temp_r31->unk_4C != NULL) {
-                    HuMemDirectFree(temp_r31->unk_4C);
+                if (particleSystem->displayList != NULL) {
+                    HuMemDirectFree(particleSystem->displayList);
                 }
-                if (temp_r31->unk_5C != NULL) {
-                    HuMemDirectFree(temp_r31->unk_5C);
+                if (particleSystem->animationTracks != NULL) {
+                    HuMemDirectFree(particleSystem->animationTracks);
                 }
                 
-                for (var_r27 = 0; var_r27 < temp_r31->unk_04; var_r27++) {
-                    var_r26 = temp_r31->unk_34[var_r27];
-                    temp_r29 = &lbl_1_bss_DE4.unk_3C[var_r26];
-                    if (temp_r29->unk_08 != 0) {
-                        if (temp_r29->unk_06 != 0) {
-                            temp_r29->unk_06 -= 1;
+                for (textureLayerIndex = 0; textureLayerIndex < particleSystem->animationSlotCount; textureLayerIndex++) {
+                    animationIndex = particleSystem->animationIds[textureLayerIndex];
+                    particleAnimation = &fireManager.animations[animationIndex];
+                    if (particleAnimation->resourceId != 0) {
+                        if (particleAnimation->referenceCount != 0) {
+                            particleAnimation->referenceCount -= 1;
                         }
-                        if (temp_r29->unk_06 == 0) {
-                            HuSprAnimKill(temp_r29->unk_00);
-                            temp_r29->unk_08 = 0;
+                        if (particleAnimation->referenceCount == 0) {
+                            HuSprAnimKill(particleAnimation->animationData);
+                            particleAnimation->resourceId = 0;
                         }
                     }
                 }
-                HuMemDirectFree(temp_r31->unk_3C);
-                HuMemDirectFree(temp_r31->unk_34);
-                temp_r31->unk_08 = 0;
-                temp_r31->unk_00 = 0;
+                HuMemDirectFree(particleSystem->materials);
+                HuMemDirectFree(particleSystem->animationIds);
+                particleSystem->stateFlags = 0;
+                particleSystem->systemId = 0;
             }
         }
     }
     
-    for (var_r28 = 1; var_r28 < lbl_1_bss_DE4.unk_32; var_r28++) {
-        temp_r30 = &lbl_1_bss_DE4.unk_3C[(s16)var_r28];
-        if (temp_r30->unk_08 != 0U) {
-            if (temp_r30->unk_06 != 0) {
-                temp_r30->unk_06 -= 1;
+    for (particleSystemIndex = 1; particleSystemIndex < fireManager.animationCapacity; particleSystemIndex++) {
+        particleAnimation2 = &fireManager.animations[(s16)particleSystemIndex];
+        if (particleAnimation2->resourceId != 0U) {
+            if (particleAnimation2->referenceCount != 0) {
+                particleAnimation2->referenceCount -= 1;
             }
-            if (temp_r30->unk_06 == 0) {
-                HuSprAnimKill(temp_r30->unk_00);
-                temp_r30->unk_08 = 0;
+            if (particleAnimation2->referenceCount == 0) {
+                HuSprAnimKill(particleAnimation2->animationData);
+                particleAnimation2->resourceId = 0;
             }
         }
     }
-    HuMemDirectFree(lbl_1_bss_DE4.unk_40);
-    HuMemDirectFree(lbl_1_bss_DE4.unk_3C);
-    Hu3DModelKill(lbl_1_bss_DE4.unk_34);
+    HuMemDirectFree(fireManager.particleSystems);
+    HuMemDirectFree(fireManager.animations);
+    Hu3DModelKill(fireManager.hookModelId);
 }
 
-void fn_1_11890(s16 arg0, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct2* temp_r31;
+void SetParticleSystemPosition(s16 particleSystemId, f32 x, f32 y, f32 z) {
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        temp_r31->unk_0C.x = arg8;
-        temp_r31->unk_0C.y = arg9;
-        temp_r31->unk_0C.z = argA;
-        if (temp_r31->unk_02 == 1) {
-            temp_r31->unk_3C->unk_00 = temp_r31->unk_0C;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        particleSystem->position.x = x;
+        particleSystem->position.y = y;
+        particleSystem->position.z = z;
+        if (particleSystem->materialCount == 1) {
+            particleSystem->materials->position = particleSystem->position;
         }
     }
 }
 
-void fn_1_118FC(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* temp_r31;
-    M438UnkStruct2* temp_r30;
+void SetMaterialPosition(s16 particleSystemId, s16 materialIndex, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r30->unk_02 > arg1) {
-            temp_r31 = &temp_r30->unk_3C[arg1];
-            temp_r31->unk_00.x = arg8;
-            temp_r31->unk_00.y = arg9;
-            temp_r31->unk_00.z = argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->position.x = x;
+            material->position.y = y;
+            material->position.z = z;
         }
     }
 }
 
-void fn_1_1196C(s16 arg0, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* var_r31;
-    M438UnkStruct2* temp_r30;
-    s32 var_r29;
+void SetAllMaterialPositions(s16 particleSystemId, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r31 = temp_r30->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r30->unk_02; var_r29++, var_r31++) {
-            var_r31->unk_00.x = arg8;
-            var_r31->unk_00.y = arg9;
-            var_r31->unk_00.z = argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->position.x = x;
+            material->position.y = y;
+            material->position.z = z;
         }
     }
 }
 
-void fn_1_119E0(s16 arg0, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct2* temp_r31;
+void TranslateParticleSystem(s16 particleSystemId, f32 x, f32 y, f32 z) {
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        temp_r31->unk_0C.x += arg8;
-        temp_r31->unk_0C.y += arg9;
-        temp_r31->unk_0C.z += argA;
-        if (temp_r31->unk_02 == 1) {
-            temp_r31->unk_3C->unk_00 = temp_r31->unk_0C;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        particleSystem->position.x += x;
+        particleSystem->position.y += y;
+        particleSystem->position.z += z;
+        if (particleSystem->materialCount == 1) {
+            particleSystem->materials->position = particleSystem->position;
         }
     }
 }
 
-void fn_1_11A64(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* temp_r31;
-    M438UnkStruct2* temp_r30;
+void TranslateMaterial(s16 particleSystemId, s16 materialIndex, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r30->unk_02 > arg1) {
-            temp_r31 = &temp_r30->unk_3C[arg1];
-            temp_r31->unk_00.x += arg8;
-            temp_r31->unk_00.y += arg9;
-            temp_r31->unk_00.z += argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->position.x += x;
+            material->position.y += y;
+            material->position.z += z;
         }
     }
 }
 
-void fn_1_11AEC(s16 arg0, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* var_r31;
-    M438UnkStruct2* temp_r30;
-    s32 var_r29;
+void TranslateAllMaterials(s16 particleSystemId, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r31 = temp_r30->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r30->unk_02; var_r29++, var_r31++) {
-            var_r31->unk_00.x += arg8;
-            var_r31->unk_00.y += arg9;
-            var_r31->unk_00.z += argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->position.x += x;
+            material->position.y += y;
+            material->position.z += z;
         }
     }
 }
 
-void fn_1_11B78(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* temp_r31;
-    M438UnkStruct2* temp_r30;
+void SetMaterialSecondaryScale(s16 particleSystemId, s16 materialIndex, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r30->unk_02 > arg1) {
-            temp_r31 = &temp_r30->unk_3C[arg1];
-            temp_r31->unk_24.x = arg8;
-            temp_r31->unk_24.y = arg9;
-            temp_r31->unk_24.z = argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->secondaryScale.x = x;
+            material->secondaryScale.y = y;
+            material->secondaryScale.z = z;
         }
     }
 }
 
-void fn_1_11BE8(s16 arg0, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* var_r31;
-    M438UnkStruct2* temp_r30;
-    s32 var_r29;
+void SetAllMaterialSecondaryScales(s16 particleSystemId, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r31 = temp_r30->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r30->unk_02; var_r29++, var_r31++) {
-            var_r31->unk_24.x = arg8;
-            var_r31->unk_24.y = arg9;
-            var_r31->unk_24.z = argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->secondaryScale.x = x;
+            material->secondaryScale.y = y;
+            material->secondaryScale.z = z;
         }
     }
 }
 
-void fn_1_11C5C(s16 arg0, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct2* temp_r31;
+void SetParticleSystemTextureRotation(s16 particleSystemId, f32 x, f32 y, f32 z) {
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        temp_r31->unk_70.x = arg8;
-        temp_r31->unk_70.y = arg9;
-        temp_r31->unk_70.z = argA;
-        if (temp_r31->unk_02 == 1) {
-            temp_r31->unk_3C->unk_6C = temp_r31->unk_70;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        particleSystem->textureRotation.x = x;
+        particleSystem->textureRotation.y = y;
+        particleSystem->textureRotation.z = z;
+        if (particleSystem->materialCount == 1) {
+            particleSystem->materials->particleOffset = particleSystem->textureRotation;
         }
     }
 }
 
-void fn_1_11CC8(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* temp_r31;
-    M438UnkStruct2* temp_r30;
+void SetMaterialTextureRotation(s16 particleSystemId, s16 materialIndex, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r30->unk_02 > arg1) {
-            temp_r31 = &temp_r30->unk_3C[arg1];
-            temp_r31->unk_6C.x = arg8;
-            temp_r31->unk_6C.y = arg9;
-            temp_r31->unk_6C.z = argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->particleOffset.x = x;
+            material->particleOffset.y = y;
+            material->particleOffset.z = z;
         }
     }
 }
 
-void fn_1_11D38(s16 arg0, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* var_r31;
-    M438UnkStruct2* temp_r30;
-    s32 var_r29;
+void SetAllMaterialTextureRotations(s16 particleSystemId, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r31 = temp_r30->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r30->unk_02; var_r29++, var_r31++) {
-            var_r31->unk_6C.x = arg8;
-            var_r31->unk_6C.y = arg9;
-            var_r31->unk_6C.z = argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->particleOffset.x = x;
+            material->particleOffset.y = y;
+            material->particleOffset.z = z;
         }
     }
 }
 
-void fn_1_11DAC(s16 arg0, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct2* temp_r31;
+void SetParticleSystemRotation(s16 particleSystemId, f32 x, f32 y, f32 z) {
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        temp_r31->unk_18.x = arg8;
-        temp_r31->unk_18.y = arg9;
-        temp_r31->unk_18.z = argA;
-        if (temp_r31->unk_02 == 1) {
-            temp_r31->unk_3C->unk_0C = temp_r31->unk_18;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        particleSystem->rotation.x = x;
+        particleSystem->rotation.y = y;
+        particleSystem->rotation.z = z;
+        if (particleSystem->materialCount == 1) {
+            particleSystem->materials->rotation = particleSystem->rotation;
         }
     }
 }
 
-void fn_1_11E18(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* temp_r31;
-    M438UnkStruct2* temp_r30;
+void SetMaterialRotation(s16 particleSystemId, s16 materialIndex, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r30->unk_02 > arg1) {
-            temp_r31 = &temp_r30->unk_3C[arg1];
-            temp_r31->unk_0C.x = arg8;
-            temp_r31->unk_0C.y = arg9;
-            temp_r31->unk_0C.z = argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->rotation.x = x;
+            material->rotation.y = y;
+            material->rotation.z = z;
         }
     }
 }
 
-void fn_1_11E88(s16 arg0, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* var_r31;
-    M438UnkStruct2* temp_r30;
-    s32 var_r29;
+void SetAllMaterialRotations(s16 particleSystemId, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r31 = temp_r30->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r30->unk_02; var_r29++, var_r31++) {
-            var_r31->unk_0C.x = arg8;
-            var_r31->unk_0C.y = arg9;
-            var_r31->unk_0C.z = argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->rotation.x = x;
+            material->rotation.y = y;
+            material->rotation.z = z;
         }
     }
 }
 
-void fn_1_11EFC(s16 arg0, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct2* temp_r31;
+void SetParticleSystemScale(s16 particleSystemId, f32 x, f32 y, f32 z) {
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        temp_r31->unk_24.x = arg8;
-        temp_r31->unk_24.y = arg9;
-        temp_r31->unk_24.z = argA;
-        if (temp_r31->unk_02 == 1) {
-            temp_r31->unk_3C->unk_18 = temp_r31->unk_24;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        particleSystem->scale.x = x;
+        particleSystem->scale.y = y;
+        particleSystem->scale.z = z;
+        if (particleSystem->materialCount == 1) {
+            particleSystem->materials->scale = particleSystem->scale;
         }
     }
 }
 
-void fn_1_11F68(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* temp_r31;
-    M438UnkStruct2* temp_r30;
+void SetMaterialScale(s16 particleSystemId, s16 materialIndex, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r30->unk_02 > arg1) {
-            temp_r31 = &temp_r30->unk_3C[arg1];
-            temp_r31->unk_18.x = arg8;
-            temp_r31->unk_18.y = arg9;
-            temp_r31->unk_18.z = argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->scale.x = x;
+            material->scale.y = y;
+            material->scale.z = z;
         }
     }
 }
 
-void fn_1_11FD8(s16 arg0, f32 arg8, f32 arg9, f32 argA) {
-    M438UnkStruct* var_r31;
-    M438UnkStruct2* temp_r30;
-    s32 var_r29;
+void SetAllMaterialScales(s16 particleSystemId, f32 x, f32 y, f32 z) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r31 = temp_r30->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r30->unk_02; var_r29++, var_r31++) {
-            var_r31->unk_18.x = arg8;
-            var_r31->unk_18.y = arg9;
-            var_r31->unk_18.z = argA;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->scale.x = x;
+            material->scale.y = y;
+            material->scale.z = z;
         }
     }
 }
 
-void fn_1_1204C(s16 arg0, s32 arg1) {
-    M438UnkStruct2* temp_r31;
+void EnableParticleSystemFlags(s16 particleSystemId, s32 flags) {
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        temp_r31->unk_08 |= arg1;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        particleSystem->stateFlags |= flags;
     }
 }
 
-void fn_1_12090(s16 arg0, s16 arg1, s32 arg2) {
-    M438UnkStruct* temp_r30;
-    M438UnkStruct2* temp_r31;
+void EnableMaterialFlags(s16 particleSystemId, s16 materialIndex, s32 flags) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r31->unk_02 > arg1) {
-            temp_r30 = &temp_r31->unk_3C[arg1];
-            temp_r30->unk_38 |= arg2;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->stateFlags |= flags;
         }
     }
 }
 
-void fn_1_12100(s16 arg0, s32 arg1) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
-    s32 var_r29;
+void EnableAllMaterialFlags(s16 particleSystemId, s32 flags) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r30 = temp_r31->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r31->unk_02; var_r29++, var_r30++) {
-            var_r30->unk_38 |= arg1;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->stateFlags |= flags;
         }
     }
 }
 
-void fn_1_12174(s16 arg0, u32 arg1) {
-    M438UnkStruct2* temp_r31;
+void ClearParticleSystemFlags(s16 particleSystemId, u32 flags) {
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        temp_r31->unk_08 &= ~arg1;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        particleSystem->stateFlags &= ~flags;
     }
 }
 
-void fn_1_121B8(s16 arg0, s16 arg1, u32 arg2) {
-    M438UnkStruct* temp_r30;
-    M438UnkStruct2* temp_r31;
+void ClearMaterialFlags(s16 particleSystemId, s16 materialIndex, u32 flags) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if ((s16) temp_r31->unk_02 > arg1) {
-            temp_r30 = &temp_r31->unk_3C[arg1];
-            temp_r30->unk_38 &= ~arg2;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if ((s16) particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->stateFlags &= ~flags;
         }
     }
 }
 
-void fn_1_12228(s16 arg0, u32 arg1) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
-    s32 var_r29;
+void ClearAllMaterialFlags(s16 particleSystemId, u32 flags) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r30 = temp_r31->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r31->unk_02; var_r29++, var_r30++) {
-            var_r30->unk_38 &= ~arg1;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->stateFlags &= ~flags;
         }
     }
 }
 
-s32 fn_1_1229C(s16 arg0, s32 arg1) {
-    M438UnkStruct2* var_r31;
+s32 ParticleSystemHasFlags(s16 particleSystemId, s32 flags) {
+    M438ParticleSystem* particleSystem;
     
-    if (arg0 == 0) {
+    if (particleSystemId == 0) {
         return 0;
     }
 
-    var_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-    if ((var_r31->unk_08 & arg1) != 0) {
+    particleSystem = &fireManager.particleSystems[particleSystemId];
+    if ((particleSystem->stateFlags & flags) != 0) {
         return 1;
     }
     return 0;
 }
 
-s16 fn_1_122F8(s16 arg0, s16 arg1, s32 arg2) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
+s16 MaterialHasFlags(s16 particleSystemId, s16 materialIndex, s32 flags) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r31->unk_02 > arg1) {
-            var_r30 = &temp_r31->unk_3C[arg1];
-            if ((var_r30->unk_38 & arg2) != 0) {
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            if ((material->stateFlags & flags) != 0) {
                 return 1;
             }
-            arg0 = 0;
+            particleSystemId = 0;
         }
     }
-    return arg0;
+    return particleSystemId;
 }
 
-void fn_1_12378(s16 arg0, s16 arg1, u8 arg2, u8 arg3, u8 arg4, u8 arg5) {
-    M438UnkStruct* temp_r31;
-    M438UnkStruct2* temp_r30;
+void SetMaterialColor(s16 particleSystemId, s16 materialIndex, u8 red, u8 green, u8 blue, u8 alpha) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r30->unk_02 > arg1) {
-            temp_r31 = &temp_r30->unk_3C[arg1];
-            temp_r31->unk_54.r = arg2;
-            temp_r31->unk_54.g = arg3;
-            temp_r31->unk_54.b = arg4;
-            temp_r31->unk_54.a = arg5;
-        }
-    }
-}
-
-void fn_1_123EC(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4) {
-    M438UnkStruct* var_r31;
-    M438UnkStruct2* temp_r30;
-    s32 var_r29;
-
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r31 = temp_r30->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r30->unk_02; var_r29++, var_r31++) {
-            var_r31->unk_54.r = arg1;
-            var_r31->unk_54.g = arg2;
-            var_r31->unk_54.b = arg3;
-            var_r31->unk_54.a = arg4;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->modulationColor.r = red;
+            material->modulationColor.g = green;
+            material->modulationColor.b = blue;
+            material->modulationColor.a = alpha;
         }
     }
 }
 
-void fn_1_12464(s16 arg0, s16 arg1, u8 arg2) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
+void SetAllMaterialColors(s16 particleSystemId, u8 red, u8 green, u8 blue, u8 alpha) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r31->unk_02 > arg1) {
-            var_r30 = &temp_r31->unk_3C[arg1];
-            var_r30->unk_30 = arg2;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->modulationColor.r = red;
+            material->modulationColor.g = green;
+            material->modulationColor.b = blue;
+            material->modulationColor.a = alpha;
         }
     }
 }
 
-void fn_1_124CC(s16 arg0, u8 arg1) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
-    s32 var_r29;
+void SetMaterialEnabled(s16 particleSystemId, s16 materialIndex, u8 enabled) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r30 = temp_r31->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r31->unk_02; var_r29++, var_r30++) {
-            var_r30->unk_30 = arg1;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->enabled = enabled;
         }
     }
 }
 
-void fn_1_12538(s16 arg0, s16 arg1, u8 arg2) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
+void SetAllMaterialsEnabled(s16 particleSystemId, u8 enabled) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r31->unk_02 > arg1) {
-            var_r30 = &temp_r31->unk_3C[arg1];
-            var_r30->unk_31 = arg2;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->enabled = enabled;
         }
     }
 }
 
-void fn_1_125A0(s16 arg0, u8 arg1) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
-    s32 var_r29;
+void SetMaterialTextureCoordinateCount(s16 particleSystemId, s16 materialIndex, u8 coordinateCount) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r30 = temp_r31->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r31->unk_02; var_r29++, var_r30++) {
-            var_r30->unk_31 = arg1;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->textureCoordinateCount = coordinateCount;
         }
     }
 }
 
-void fn_1_1260C(s16 arg0, s16 arg1, u8 arg2) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
+void SetAllMaterialTextureCoordinateCounts(s16 particleSystemId, u8 coordinateCount) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r31->unk_02 > arg1) {
-            var_r30 = &temp_r31->unk_3C[arg1];
-            var_r30->unk_33 = arg2;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->textureCoordinateCount = coordinateCount;
         }
     }
 }
 
-void fn_1_12674(s16 arg0, u8 arg1) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
-    s32 var_r29;
+void SetMaterialTextureMode(s16 particleSystemId, s16 materialIndex, u8 textureMode) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r30 = temp_r31->unk_3C;
-        for (var_r29 = 0; var_r29 < temp_r31->unk_02; var_r29++, var_r30++) {
-            var_r30->unk_33 = arg1;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->blendMode = textureMode;
         }
     }
 }
 
-void fn_1_126E0(s16 arg0, s16 arg1, u8 arg2) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
+void SetAllMaterialTextureModes(s16 particleSystemId, u8 textureMode) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
+    s32 materialIndex;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r31->unk_02 > arg1) {
-            var_r30 = &temp_r31->unk_3C[arg1];
-            var_r30->unk_58[0].unk_24 = arg2;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            material->blendMode = textureMode;
         }
     }
 }
 
-void fn_1_1274C(s16 arg0, s16 arg1, u8 arg2, u8 arg3) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
+void SetMaterialDefaultAnimationFlags(s16 particleSystemId, s16 materialIndex, u8 animationFlags) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r31->unk_02 > arg1) {
-            var_r30 = &temp_r31->unk_3C[arg1];
-            var_r30->unk_58[arg2].unk_24 = arg3;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->animationTracks[0].playbackFlags = animationFlags;
         }
     }
 }
 
-void fn_1_127C4(s16 arg0, u8 arg1) {
-    M438UnkStruct* var_r31;
-    M438UnkStruct2* temp_r29;
-    s32 var_r28;
-    s32 var_r30;
+void SetMaterialAnimationFlags(s16 particleSystemId, s16 materialIndex, u8 textureSlotIndex, u8 animationFlags) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
 
-    if (arg0 != 0) {
-        temp_r29 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r31 = (M438UnkStruct*)&temp_r29->unk_3C; //! bug
-        for (var_r28 = 0; var_r28 < temp_r29->unk_02; var_r28++, var_r31++) {
-            for (var_r30 = 0; var_r30 < var_r31->unk_34; var_r30++) {
-                var_r31->unk_58[var_r30].unk_24 = arg1;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->animationTracks[textureSlotIndex].playbackFlags = animationFlags;
+        }
+    }
+}
+
+void SetAllMaterialAnimationFlags(s16 particleSystemId, u8 animationFlags) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    s32 materialIndex;
+    s32 textureLayerIndex;
+
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = (M438FireMaterial*)&particleSystem->materials; //! bug
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            for (textureLayerIndex = 0; textureLayerIndex < material->textureSlotCount; textureLayerIndex++) {
+                material->animationTracks[textureLayerIndex].playbackFlags = animationFlags;
             }
         }
     }
 }
 
-void fn_1_1285C(s16 arg0, s16 arg1, f32 arg8) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
+void SetMaterialDefaultAnimationSpeed(s16 particleSystemId, s16 materialIndex, f32 x) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r31->unk_02 > arg1) {
-            var_r30 = &temp_r31->unk_3C[arg1];
-            var_r30->unk_58[0].unk_28 = arg8;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->animationTracks[0].frameStep = x;
         }
     }
 }
 
-void fn_1_128C8(s16 arg0, s16 arg1, u8 arg2, f32 arg8) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
+void SetMaterialAnimationSpeed(s16 particleSystemId, s16 materialIndex, u8 textureSlotIndex, f32 x) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r31->unk_02 > arg1) {
-            var_r30 = &temp_r31->unk_3C[arg1];
-            var_r30->unk_58[arg2].unk_28 = arg8;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->animationTracks[textureSlotIndex].frameStep = x;
         }
     }
 }
 
-void fn_1_12940(s16 arg0, f32 arg8) {
-    M438UnkStruct* var_r31;
-    M438UnkStruct2* temp_r30;
-    s32 var_r28;
-    s32 var_r29;
+void SetAllMaterialAnimationSpeeds(s16 particleSystemId, f32 x) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    s32 materialIndex;
+    s32 textureLayerIndex;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r31 = temp_r30->unk_3C;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
         
-        for (var_r28 = 0; var_r28 < temp_r30->unk_02; var_r28++, var_r31++) {
-            for (var_r29 = 0; var_r29 < var_r31->unk_34; var_r29++) {
-                var_r31->unk_58[var_r29].unk_28 = arg8;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            for (textureLayerIndex = 0; textureLayerIndex < material->textureSlotCount; textureLayerIndex++) {
+                material->animationTracks[textureLayerIndex].frameStep = x;
             }
         }
     }
 }
 
-void fn_1_129D8(s16 arg0, s16 arg1, u8 arg2) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
+void SetMaterialDefaultAnimationFrame(s16 particleSystemId, s16 materialIndex, u8 animationFrame) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r31->unk_02 > arg1) {
-            var_r30 = &temp_r31->unk_3C[arg1];
-            var_r30->unk_58[0].unk_00 = arg2;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->animationTracks[0].frameIndex = animationFrame;
         }
     }
 }
 
-void fn_1_12A48(s16 arg0, s16 arg1, u8 arg2, u8 arg3) {
-    M438UnkStruct2* temp_r31;
-    M438UnkStruct* var_r30;
+void SetMaterialAnimationFrame(s16 particleSystemId, s16 materialIndex, u8 textureSlotIndex, u8 animationFrame) {
+    M438ParticleSystem* particleSystem;
+    M438FireMaterial* material;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_DE4.unk_40[arg0];
-        if (temp_r31->unk_02 > arg1) {
-            var_r30 = &temp_r31->unk_3C[arg1];
-            var_r30->unk_58[arg2].unk_00 = arg3;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        if (particleSystem->materialCount > materialIndex) {
+            material = &particleSystem->materials[materialIndex];
+            material->animationTracks[textureSlotIndex].frameIndex = animationFrame;
         }
     }
 }
 
-void fn_1_12AC0(s16 arg0, u8 arg1) {
-    M438UnkStruct* var_r31;
-    M438UnkStruct2* temp_r30;
-    s32 var_r28;
-    s32 var_r29;
+void SetAllMaterialAnimationFrames(s16 particleSystemId, u8 animationFrame) {
+    M438FireMaterial* material;
+    M438ParticleSystem* particleSystem;
+    s32 materialIndex;
+    s32 textureLayerIndex;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_DE4.unk_40[arg0];
-        var_r31 = temp_r30->unk_3C;
+    if (particleSystemId != 0) {
+        particleSystem = &fireManager.particleSystems[particleSystemId];
+        material = particleSystem->materials;
         
-        for (var_r28 = 0; var_r28 < temp_r30->unk_02; var_r28++, var_r31++) {
-            for (var_r29 = 0; var_r29 < var_r31->unk_34; var_r29++) {
-                var_r31->unk_58[var_r29].unk_00 = arg1;
+        for (materialIndex = 0; materialIndex < particleSystem->materialCount; materialIndex++, material++) {
+            for (textureLayerIndex = 0; textureLayerIndex < material->textureSlotCount; textureLayerIndex++) {
+                material->animationTracks[textureLayerIndex].frameIndex = animationFrame;
             }
         }
     }
 }
 
-void fn_1_12B58(s16 arg0, u8 arg1) {
-    M438UnkStruct3* var_r31;
+void SetParticleAnimationTextureMode(s16 animationId, u8 textureMode) {
+    M438ParticleAnimation* particleAnimation;
     
-    if (arg0 != 0) {
-        var_r31 = &lbl_1_bss_DE4.unk_3C[arg0];
-        var_r31->unk_04 = arg1;
+    if (animationId != 0) {
+        particleAnimation = &fireManager.animations[animationId];
+        particleAnimation->textureMappingMode = textureMode;
     }
 }
