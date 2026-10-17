@@ -24,263 +24,263 @@
 #include "game/frand.h"
 #endif
 
-typedef struct M433PlayerWork {
-    s32 unk_00;
-    s32 unk_04;
-    s32 unk_08;
-    s32 unk_0C;
-    u32 unk_10;
-    u32 unk_14;
-    u32 unk_18;
-    u32 unk_1C;
-    s32 unk_20;
-    float unk_24;
-    float unk_28;
-    s32 unk_2C;
-    s32 unk_30;
-    s32 unk_34;
-    s32 unk_38;
-    s32 unk_3C;
-    s32 unk_40;
-    s32 unk_44;
-    s32 unk_48;
-    s32 unk_4C;
-    char unk50[4];
-    s32 unk_54;
-    s32 unk_58;
-    s32 unk_5C;
-    s32 unk_60;
-    s32 unk_64;
-    s32 unk_68;
-    s32 unk_6C;
-    s32 unk_70;
-    u32 unk_74;
-    u32 unk_78;
-    u32 unk_7C;
-    u32 unk_80;
-    u32 unk_84;
-    u32 unk_88;
-    s32 unk_8C;
-    u32 unk_90;
-    char unk94[4];
-    float unk_98;
-    s16 unk_9C;
-    char unk9E[6];
-    float unk_A4;
-    float unk_A8;
-    float unk_AC;
-    float unk_B0;
-    float unk_B4;
-    float unk_B8;
-    float unk_BC;
-    float unk_C0;
-    char unkC4[8];
-    u32 unk_CC;
-    u32 unk_D0;
-    u32 unk_D4;
-    u32 unk_D8;
-    float unk_DC;
-    float unk_E0;
-    s32 unk_E4;
-    s32 unk_E8;
-    s32 unk_EC;
-    s32 unk_F0;
-    s32 unk_F4;
-    u32 unk_F8;
-    Vec unk_FC;
-    Vec unk_108;
-    Vec unk_114;
-    float unk_120;
-    float unk_124;
-    Vec unk_128;
-    Vec unk_134;
-    Vec unk_140;
-    OMOBJ *unk_14C;
-} M433PlayerWork; /* size = 0x150 */
+typedef struct M433PlayerState {
+    s32 characterId;
+    s32 npcModelIndex;
+    s32 unusedPlayerState08;
+    s32 actionCounter;
+    u32 playerFlags10;
+    u32 teamIndex;
+    u32 playerSide;
+    u32 pressedButtons;
+    s32 heldButtons;
+    float stickMagnitude;
+    float stickAngle;
+    s32 isCpu;
+    s32 isPlaying;
+    s32 hasActiveAction;
+    s32 actionSubstate;
+    s32 actionFlags;
+    s32 actionCooldownActive;
+    s32 opponentTargetingState;
+    s32 opponentRecentState;
+    s32 isHighBallContact;
+    char reservedPlayerPadding50[4];
+    s32 movementLockActive;
+    s32 isItemCrossingNearPlayer;
+    s32 canContactBall;
+    s32 hasContactedBall;
+    s32 contactFollowThroughActive;
+    s32 attackReady;
+    s32 defenseActive;
+    s32 previousGamePhase;
+    u32 playerActionState;
+    u32 stateFlags78;
+    u32 stateFlags7C;
+    u32 stateFlags80;
+    u32 escapeState;
+    u32 framesInAction;
+    s32 actionFrame;
+    u32 aiActionFlags;
+    char reservedPlayerPadding94[4];
+    float lastBallContactTime;
+    s16 playerState9C;
+    char reservedPlayerPadding9E[6];
+    float currentRotation;
+    float targetRotation;
+    float rotationStep;
+    float rotationAcceleration;
+    float modelScale;
+    float modelScaleTarget;
+    float modelRotation;
+    float aiDifficulty;
+    char reservedPlayerPaddingC4[8];
+    u32 aiReactionDelay;
+    u32 aiReactionTimer;
+    u32 aiActionThreshold;
+    u32 aiActionCount;
+    float aiTargetAngle;
+    float aiTargetSpeed;
+    s32 aiTargetFlag;
+    s32 aiTargetMode;
+    s32 aiPreviousTargetMode;
+    s32 aiActionMode;
+    s32 aiDecisionState;
+    u32 aiDecisionFlags;
+    Vec retreatPosition;
+    Vec aiTargetPosition;
+    Vec ballTargetPosition;
+    float characterSkill;
+    float aiMovementSpeed;
+    Vec position;
+    Vec velocity;
+    Vec movementTarget;
+    OMOBJ *opponentObject;
+} M433PlayerState; /* size = 0x150 */
 
-typedef struct M433PlayerWork2Sub {
-    float unk_00;
-    float unk_04;
-    float unk_08;
-    float unk_0C;
-    float unk_10;
-    float unk_14;
-    float unk_18;
-    float unk_1C;
-    float unk_20;
-    float unk_24;
-    float unk_28;
-    Vec unk_2C;
-    Vec unk_38;
-} M433PlayerWork2Sub; /* size = 0x44 */
+typedef struct M433ItemTrajectory {
+    float flightDuration;
+    float elapsedTime;
+    float floorCrossingTime;
+    float floorHeightThreshold;
+    float horizontalDistance;
+    float horizontalVelocity;
+    float horizontalAcceleration;
+    float verticalDisplacement;
+    float verticalVelocity;
+    float verticalAcceleration;
+    float trajectoryScale;
+    Vec startPosition;
+    Vec targetPosition;
+} M433ItemTrajectory; /* size = 0x44 */
 
-typedef struct M433PlayerWork2 {
-    s32 unk_00;
-    s32 unk_04;
-    s32 unk_08;
-    s32 unk_0C;
-    s32 unk_10;
-    char unk14[4];
-    u16 unk_18;
-    char unk1A[0x16];
-    Vec unk_30;
-    Vec unk_3C;
-    float unk_48;
-    Vec unk_4C;
-    char unk58[0x14];
-    u32 unk_6C;
-    s32 unk_70;
-    s32 unk_74;
-    u32 unk_78;
-    float unk_7C[2];
-    float unk_84[2];
-    s32 unk_8C;
-    u32 unk_90;
-    u32 unk_94;
-    s32 unk_98;
-    float unk_9C;
-    float unk_A0;
-    float unk_A4;
-    float unk_A8;
-    Vec unk_AC;
-    float unk_B8;
-    Vec unk_BC;
-    Mtx unk_C8;
-    M433PlayerWork2Sub unk_F8;
-} M433PlayerWork2; /* size = 0x13C */
+typedef struct M433ItemManagerState {
+    s32 playerVisualMode;
+    s32 itemCollected;
+    s32 itemActionState;
+    s32 itemOutcome;
+    s32 itemActive;
+    char reservedItemPadding14[4];
+    u16 playerSide;
+    char reservedItemPadding1A[0x16];
+    Vec position;
+    Vec targetPosition;
+    float elapsedTime;
+    Vec itemStartPosition;
+    char reservedItemPadding58[0x14];
+    u32 itemType;
+    s32 itemAction;
+    s32 itemSubAction;
+    u32 itemAnimationActive;
+    float itemScaleTargets[2];
+    float itemScale[2];
+    s32 itemModelState;
+    u32 itemEffectState;
+    u32 itemSpinState;
+    s32 itemSpinScale;
+    float itemScaleFactor;
+    float itemScaleTarget;
+    float itemWorldOffset;
+    float itemSpinSpeed;
+    Vec itemPosition;
+    float spinAngle;
+    Vec spinAxis;
+    Mtx rotationMatrix;
+    M433ItemTrajectory itemPhysics;
+} M433ItemManagerState; /* size = 0x13C */
 
-typedef struct M433PlayerWork3Sub {
-    s16 unk_00;
-    s16 unk_02[5];
-} M433PlayerWork3Sub; /* size = 0xC */
+typedef struct M433PlayerScoreDisplay {
+    s16 score;
+    s16 digitSpriteIds[5];
+} M433PlayerScoreDisplay; /* size = 0xC */
 
-typedef struct M433PlayerWork3Sub2Sub {
-    s16 unk_00[2];
-    float unk_04[2];
-    float unk_0C;
-    float unk_10;
-    float unk_14;
-    float unk_18;
-    float unk_1C;
-    float unk_20;
-    float unk_24;
-    float unk_28;
-} M433PlayerWork3Sub2Sub; /* size 0x2C */
+typedef struct M433ScoreAnimationState {
+    s16 digitSpriteIds[2];
+    float digitXOffsets[2];
+    float displayX;
+    float displayY;
+    float xVelocity;
+    float yVelocity;
+    float horizontalScale;
+    float verticalScale;
+    float opacity;
+    float rotation;
+} M433ScoreAnimationState; /* size 0x2C */
 
-typedef struct M433PlayerWork3Sub2Sub2 {
-    s32 unk_00[2];
-    char unk08[8];
-} M433PlayerWork3Sub2Sub2; /* size 0x10 */
+typedef struct M433ScoreSpriteRow {
+    s32 scoreSpriteIds[2];
+    char reservedScoreSpritePadding[8];
+} M433ScoreSpriteRow; /* size 0x10 */
 
-typedef struct M433PlayerWork3Sub2 {
-    s32 unk_00;
-    u32 unk_04;
-    u32 unk_08;
-    s32 unk_0C;
-    s32 unk_10;
-    s32 unk_14[2];
-    u32 unk_1C;
-    M433PlayerWork3Sub2Sub unk_20[4];
-    M433PlayerWork3Sub2Sub2 unk_D0[3][0x14];
-    M433PlayerWork3Sub2Sub2 unk_490;
-} M433PlayerWork3Sub2; /* size = 0x4A0 */
+typedef struct M433ScoreboardState {
+    s32 animationState;
+    u32 animationFrame;
+    u32 animationTimer;
+    s32 previousScore;
+    s32 previousOpponentScore;
+    s32 currentScores[2];
+    u32 servingPlayer;
+    M433ScoreAnimationState scoreAnimations[4];
+    M433ScoreSpriteRow scoreSpriteRows[3][0x14];
+    M433ScoreSpriteRow finalScoreSprites;
+} M433ScoreboardState; /* size = 0x4A0 */
 
-typedef struct M433PlayerWork3 {
+typedef struct M433GameEventState {
     u32 uGameEvent;
     s32 sWinGrp;
     u32 uServeGrp;
     u32 uPointGrp;
     u32 auServeCel[2];
     u32 auEvents[2];
-    u32 unk_20[2];
-    u32 unk_28;
-    s32 unk_2C;
-    s32 unk_30;
+    u32 playerPoints[2];
+    u32 eventFrames;
+    s32 pointScored;
+    s32 ballInPlay;
     u32 uContactCnt;
     s32 sGroundGrp;
     u32 uContactGrp;
     u32 uContactCel;
     u32 uTargetGrp;
-    u32 unk_48;
-    M433PlayerWork3Sub unk_4C[2];
-    M433PlayerWork3Sub2 unk_64;
-} M433PlayerWork3; /* size = 0x504 */
+    u32 contactElapsedFrames;
+    M433PlayerScoreDisplay scoreboardPlayers[2];
+    M433ScoreboardState scoreboardAnimation;
+} M433GameEventState; /* size = 0x504 */
 
-typedef struct M433DllPlayerData24CStruct {
-    /* 0x00 */ u16 unk_00;
-    /* 0x04 */ float unk_04;
-    /* 0x08 */ float unk_08;
-    /* 0x0C */ float unk_0C;
-    /* 0x10 */ u32 unk_10;
-} M433DllPlayerData24CStruct; /* size = 0x14 */
+typedef struct M433PlayerMotionTransition {
+    /* 0x00 */ u16 motionIndex;
+    /* 0x04 */ float transitionDuration;
+    /* 0x08 */ float motionStartTime;
+    /* 0x0C */ float motionEndTime;
+    /* 0x10 */ u32 motionAttributes;
+} M433PlayerMotionTransition; /* size = 0x14 */
 
-typedef struct M433DllPlayerData794Struct {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ s32 unk_08;
-} M433DllPlayerData794Struct; /* size = 0x0C */
+typedef struct M433ItemActionProperties {
+    /* 0x00 */ s32 startsContactEvent;
+    /* 0x04 */ s32 switchesTargetGroup;
+    /* 0x08 */ s32 countsContact;
+} M433ItemActionProperties; /* size = 0x0C */
 
-void fn_1_10130(Vec *arg0, u32 arg1);
-void fn_1_10260(float arg8, float arg9, u32 arg0, u32 arg1, Vec *arg2);
-s32 fn_1_10614(Vec *arg0);
-void fn_1_1070C(void);
-u32 fn_1_10740(Vec *arg0);
-u32 fn_1_107B0(Vec *arg0);
-float fn_1_10848(void);
-u32 fn_1_108C4(void);
-u32 fn_1_10900(void);
-float fn_1_10B20(float arg8, Vec *arg0);
-s32 fn_1_10D24(Vec *arg0);
-u32 fn_1_10EA4(void);
-u32 fn_1_10ECC(u32 arg0);
-s32 fn_1_10F00(u32 arg0);
-u32 fn_1_10F38(u32 arg0);
-s32 fn_1_10F6C(u32 arg0);
-u32 fn_1_10FDC(void);
-s32 fn_1_11004(u32 arg0, s32 arg1);
-s32 fn_1_11060(u32 arg0);
-float fn_1_11130(Vec *arg0, Vec *arg1, Vec *arg2, Vec *arg3);
-void fn_1_5B98(OMOBJ *object);
-void fn_1_6070(OMOBJ *object);
-void fn_1_60C0(OMOBJ *object);
-void fn_1_682C(OMOBJ *object);
-void fn_1_722C(OMOBJ *object);
-void fn_1_74D4(OMOBJ *object);
-void fn_1_8408(OMOBJ *object);
-void fn_1_873C(OMOBJ *object);
-s32 fn_1_8938(u32 arg0, Vec *arg1);
-void fn_1_8BD0(OMOBJ *object);
-void fn_1_8F80(OMOBJ *object);
-void fn_1_9688(OMOBJ *object);
-void fn_1_A618(OMOBJ *object);
-void fn_1_AB88(OMOBJ *object);
-void fn_1_B194(OMOBJ *object);
-void fn_1_B4D4(OMOBJ *object, u32 arg1);
-s32 fn_1_B6E0(OMOBJ *object);
-s32 fn_1_B7AC(OMOBJ *object);
-s32 fn_1_BAE0(OMOBJ *object, u32 arg1);
-void fn_1_BD48(OMOBJ *object);
-void fn_1_C240(OMOBJ *object);
-void fn_1_C6AC(OMOBJ *object);
-s32 fn_1_C6B0(OMOBJ *object);
-void fn_1_CB98(OMOBJ *object);
-void fn_1_CDB8(M433PlayerWork2Sub *arg0, Vec *arg1, Vec *arg2, u32 arg3, float arg8);
-void fn_1_D180(M433PlayerWork2Sub *arg0);
-void fn_1_D338(M433PlayerWork2Sub *arg0);
-s32 fn_1_D4E0(M433PlayerWork2Sub *arg0, Vec *arg1, Vec *arg2, float arg8);
-void fn_1_D6A8(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
-void fn_1_D888(Vec *arg0, float arg8);
-void fn_1_DD70(Vec *arg0);
-void fn_1_DE28(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
-void fn_1_DF44(OMOBJ *object);
-void fn_1_E11C(OMOBJ *object);
-void fn_1_E5C0(M433PlayerWork3Sub *arg0, M433PlayerWork3Sub2 *arg1);
-void fn_1_ECFC(M433PlayerWork3Sub *arg0, M433PlayerWork3Sub2 *arg1);
-void fn_1_FE64(M433PlayerWork3Sub2 *arg0, s32 arg1, s32 arg2, u32 arg3);
-void fn_1_FE8C(Vec *arg0, u32 arg1, u32 arg2, s32 arg3);
+void ClampPlayerPosition(Vec *position, u32 playerSide);
+void UpdateItemMotion(float playerSpeed, float depthDifference, u32 playerSide, u32 playImpactSound, Vec *itemPosition);
+s32 NormalizeItemPosition(Vec *normalizedPosition);
+void ResetItemState(void);
+u32 GetItemTargetPosition(Vec *targetPosition);
+u32 GetItemPosition(Vec *itemPosition);
+float GetItemVerticalSpeed(void);
+u32 GetItemState(void);
+u32 GetItemAction(void);
+float UpdateItemFlightPosition(float elapsedTimeDelta, Vec *itemPosition);
+s32 GetItemSoundPosition(Vec *soundPosition);
+u32 GetActiveContactGroup(void);
+u32 GetPlayerGamePhase(u32 teamIndex);
+s32 IsPlayerServing(u32 teamIndex);
+u32 GetPlayerServeCell(u32 teamIndex);
+s32 IsPlayerContacting(u32 teamIndex);
+u32 GetPlayerPointGroup(void);
+s32 IsPlayerContact(u32 teamIndex, s32 contactCell);
+s32 IsPlayerContactGroup(u32 teamIndex);
+float FindClosestPointOnSegments(Vec *firstSegmentStart, Vec *firstSegmentEnd, Vec *secondSegmentStart, Vec *secondSegmentEnd);
+void InitializePlayerObject(OMOBJ *object);
+void InitializePlayerAnimation(OMOBJ *object);
+void UpdatePlayerObject(OMOBJ *object);
+void UpdatePlayerAction(OMOBJ *object);
+void UpdatePlayerAnimation(OMOBJ *object);
+void UpdatePlayerMovement(OMOBJ *object);
+void UpdatePlayerCollision(OMOBJ *object);
+void UpdatePlayerScoring(OMOBJ *object);
+s32 GetPlayerTargetPosition(u32 teamIndex, Vec *targetPosition);
+void UpdatePlayerAi(OMOBJ *object);
+void UpdatePlayerActionState(OMOBJ *object);
+void UpdatePlayerModel(OMOBJ *object);
+void UpdatePlayerContact(OMOBJ *object);
+void UpdatePlayerResponse(OMOBJ *object);
+void UpdatePlayerState(OMOBJ *object);
+void SetPlayerAnimation(OMOBJ *object, u32 animationIndex);
+s32 GetPlayerState(OMOBJ *object);
+s32 GetPlayerActionState(OMOBJ *object);
+s32 CheckPlayerAction(OMOBJ *object, u32 actionIndex);
+void UpdatePlayerManager(OMOBJ *object);
+void UpdatePlayerEvents(OMOBJ *object);
+void InitializePlayerEffects(OMOBJ *object);
+s32 UpdatePlayerEffects(OMOBJ *object);
+void UpdateItemObject(OMOBJ *object);
+void InitializeItemTrajectory(M433ItemTrajectory *trajectory, Vec *startPosition, Vec *targetPosition, u32 itemType, float playerSpeed);
+void UpdateItemTrajectory(M433ItemTrajectory *trajectory);
+void ResetItemTrajectory(M433ItemTrajectory *trajectory);
+s32 CalculateItemTrajectory(M433ItemTrajectory *trajectory, Vec *itemPosition, Vec *positionDelta, float elapsedTime);
+void UpdateItemParticles(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void ApproachVector(Vec *position, float approachFactor);
+void ClampItemPosition(Vec *itemPosition);
+void UpdateItemEffectParticles(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void InitializeGameStateObject(OMOBJ *object);
+void UpdateGameStateObject(OMOBJ *object);
+void InitializeContactEvents(M433PlayerScoreDisplay *scoreboardPlayers, M433ScoreboardState *scoreboardAnimation);
+void UpdateContactState(M433PlayerScoreDisplay *scoreboardPlayers, M433ScoreboardState *scoreboardAnimation);
+void SetPlayerScoreState(M433ScoreboardState *scoreboardAnimation, s32 playerScore, s32 opponentScore, u32 servingPlayer);
+void SetPlayerItemState(Vec *itemPosition, u32 itemType, u32 contactGroup, s32 contactCell);
 
-s32 lbl_1_data_C8[6] = { 0, 1, 2, 3, 4, 5 };
-float lbl_1_data_E0[0xE] = {
+s32 playerOrderIndexes[6] = { 0, 1, 2, 3, 4, 5 };
+float characterModelHeights[0xE] = {
     130.0f,
     130.0f,
     160.0f,
@@ -296,7 +296,7 @@ float lbl_1_data_E0[0xE] = {
     120.00001f,
     130.0f,
 };
-float lbl_1_data_118[0xE] = {
+float characterSkillValues[0xE] = {
     50.0f,
     50.0f,
     50.0f,
@@ -312,7 +312,7 @@ float lbl_1_data_118[0xE] = {
     50.0f,
     50.0f,
 };
-s32 lbl_1_data_150[6][2] = {
+s32 characterSoundEffects[6][2] = {
     { 0x3A, 0x3B },
     { 0x36, 0x38 },
     { 0x40, 0x42 },
@@ -320,7 +320,7 @@ s32 lbl_1_data_150[6][2] = {
     { 0x46, 0x48 },
     { 0x3E, 0x3F },
 };
-s32 lbl_1_data_180[0x11] = {
+s32 npcCharacterModelFiles[0x11] = {
     DATA_MAKE_NUM(DATADIR_M433, 97),
     DATA_MAKE_NUM(DATADIR_M433, 98),
     DATA_MAKE_NUM(DATADIR_M433, 99),
@@ -339,7 +339,7 @@ s32 lbl_1_data_180[0x11] = {
     0,
     0,
 };
-u32 lbl_1_data_1C4[0x11] = {
+u32 characterMotionOffsets[0x11] = {
     0,
     2,
     3,
@@ -358,7 +358,7 @@ u32 lbl_1_data_1C4[0x11] = {
     0x48,
     0x49,
 };
-s32 lbl_1_data_208[0x11] = {
+s32 npcMotionOffsets[0x11] = {
     DATA_MAKE_NUM(DATADIR_M433, 0x67),
     DATA_MAKE_NUM(DATADIR_M433, 0x6D),
     DATA_MAKE_NUM(DATADIR_M433, 0x73),
@@ -377,7 +377,7 @@ s32 lbl_1_data_208[0x11] = {
     DATA_MAKE_NUM(DATADIR_M433, 0xBB),
     DATA_MAKE_NUM(DATADIR_M433, 0xC7),
 };
-M433DllPlayerData24CStruct lbl_1_data_24C[0x15] = {
+M433PlayerMotionTransition playerMotionTransitions[0x15] = {
     { 0, 0.2f, 0.0f, -1.0f, 0x40000001 },
     { 1, 0.2f, 0.0f, -1.0f, 0x40000001 },
     { 2, 0.2f, 0.0f, -1.0f, 0x40000001 },
@@ -400,7 +400,7 @@ M433DllPlayerData24CStruct lbl_1_data_24C[0x15] = {
     { 0xF, 0.2f, 0.0f, -1.0f, 0 },
     { 0x10, 0.2f, 0.0f, -1.0f, 0 },
 };
-u32 lbl_1_data_3F0[0xE] = {
+u32 characterAiPriorities[0xE] = {
     0x32,
     0x32,
     0x3C,
@@ -417,474 +417,474 @@ u32 lbl_1_data_3F0[0xE] = {
     0x32,
 };
 
-// M433PlayerWork
-OMOBJ *lbl_1_bss_7D0[5];
-// M433PlayerWork2
-OMOBJ *lbl_1_bss_7CC;
-// M433PlayerWork3
-OMOBJ *lbl_1_bss_7C8;
-u32 lbl_1_bss_7B8[4];
+// M433PlayerState
+OMOBJ *playerObjects[5];
+// M433ItemManagerState
+OMOBJ *itemManagerObject;
+// M433GameEventState
+OMOBJ *gameEventObject;
+u32 playerOrderBySide[4];
 
-void fn_1_5904(HUPROCESS *process)
+void InitializePlayerObjects(HUPROCESS *process)
 {
-    u32 sp18[4];
-    s32 sp8[4];
+    u32 characterModels[4];
+    s32 initialPositions[4];
 
-    s16 var_r31;
-    s16 var_r30;
-    u32 var_r28;
-    OMOBJ *var_r27;
+    s16 playerIndex;
+    s16 opponentIndex;
+    u32 playerObject;
+    OMOBJ *characterId;
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        sp18[var_r31] = GWPlayerCfg[var_r31].group;
-        sp8[var_r31] = var_r31;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        characterModels[playerIndex] = GWPlayerCfg[playerIndex].group;
+        initialPositions[playerIndex] = playerIndex;
     }
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        for (var_r30 = var_r31 + 1; var_r30 < 4; var_r30++) {
-            if (sp18[var_r31] > sp18[var_r30]) {
-                var_r28 = sp18[var_r31];
-                sp18[var_r31] = sp18[var_r30];
-                sp18[var_r30] = var_r28;
-                var_r28 = sp8[var_r31];
-                sp8[var_r31] = sp8[var_r30];
-                sp8[var_r30] = var_r28;
+    for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+        for (opponentIndex = playerIndex + 1; opponentIndex < 4; opponentIndex++) {
+            if (characterModels[playerIndex] > characterModels[opponentIndex]) {
+                playerObject = characterModels[playerIndex];
+                characterModels[playerIndex] = characterModels[opponentIndex];
+                characterModels[opponentIndex] = playerObject;
+                playerObject = initialPositions[playerIndex];
+                initialPositions[playerIndex] = initialPositions[opponentIndex];
+                initialPositions[opponentIndex] = playerObject;
             }
         }
     }
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_7B8[sp8[var_r31]] = var_r31;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerOrderBySide[initialPositions[playerIndex]] = playerIndex;
     }
-    lbl_1_bss_7C8 = omAddObjEx(process, 0x14, 0, 0, 0, fn_1_DF44);
-    lbl_1_bss_7CC = omAddObjEx(process, 0x15, 0x1F, 0, 0, fn_1_BD48);
+    gameEventObject = omAddObjEx(process, 0x14, 0, 0, 0, InitializeGameStateObject);
+    itemManagerObject = omAddObjEx(process, 0x15, 0x1F, 0, 0, UpdatePlayerManager);
     omMakeGroupEx(process, 0, 4);
     omGetGroupMemberListEx(process, 0);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        var_r27 = lbl_1_bss_7D0[var_r31] = omAddObjEx(process, 0x28, 2, 0x11, 0, fn_1_5B98);
-        var_r27->work[0] = var_r31;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        characterId = playerObjects[playerIndex] = omAddObjEx(process, 0x28, 2, 0x11, 0, InitializePlayerObject);
+        characterId->work[0] = playerIndex;
     }
 }
 
-void fn_1_5B74(void)
+void CleanupPlayerObjects(void)
 {
     CharModelKill(-1);
 }
 
-void fn_1_5B98(OMOBJ *object)
+void InitializePlayerObject(OMOBJ *object)
 {
-    s32 sp8;
-    M433PlayerWork *work;
-    s16 var_r29;
-    u32 var_r28;
-    s32 var_r27;
+    s32 unusedPlayerStateValue;
+    M433PlayerState *work;
+    s16 motionIndex;
+    u32 characterId;
+    s32 playerIndex;
 
-    float spC[4] = { 0.25f, 0.5f, 0.75f, 1.0f };
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M433PlayerWork), HU_MEMNUM_OVL);
+    float aiDifficultyByLevel[4] = { 0.25f, 0.5f, 0.75f, 1.0f };
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M433PlayerState), HU_MEMNUM_OVL);
     work = object->data;
-    memset(work, 0, sizeof(M433PlayerWork));
-    var_r27 = object->work[0];
-    var_r28 = GWPlayerCfg[var_r27].character;
-    work->unk_00 = var_r28;
-    work->unk_04 = -1;
-    if (var_r28 >= 8) {
-        work->unk_04 = var_r28 - 8;
+    memset(work, 0, sizeof(M433PlayerState));
+    playerIndex = object->work[0];
+    characterId = GWPlayerCfg[playerIndex].character;
+    work->characterId = characterId;
+    work->npcModelIndex = -1;
+    if (characterId >= 8) {
+        work->npcModelIndex = characterId - 8;
     }
-    sp8 = work->unk_08 = 0;
-    work->unk_14 = (lbl_1_bss_7B8[object->work[0]] >> 1) & 1;
-    work->unk_18 = lbl_1_bss_7B8[object->work[0]] & 1;
-    for (var_r29 = 0; var_r29 < 4; var_r29++) {
-        if ((var_r29 != object->work[0]) && (work->unk_14 == ((lbl_1_bss_7B8[var_r29] >> 1) & 1))) {
+    unusedPlayerStateValue = work->unusedPlayerState08 = 0;
+    work->teamIndex = (playerOrderBySide[object->work[0]] >> 1) & 1;
+    work->playerSide = playerOrderBySide[object->work[0]] & 1;
+    for (motionIndex = 0; motionIndex < 4; motionIndex++) {
+        if ((motionIndex != object->work[0]) && (work->teamIndex == ((playerOrderBySide[motionIndex] >> 1) & 1))) {
             break;
         }
     }
-    work->unk_14C = lbl_1_bss_7D0[var_r29];
-    work->unk_C0 = spC[GWPlayerCfg[var_r27].diff & 3];
-    work->unk_2C = GWPlayerCfg[object->work[0]].iscom;
-    if (work->unk_04 < 0) {
-        object->mdlId[0] = CharModelCreate(var_r28, 4);
-        CharModelStepFxSet(var_r28, 2);
+    work->opponentObject = playerObjects[motionIndex];
+    work->aiDifficulty = aiDifficultyByLevel[GWPlayerCfg[playerIndex].diff & 3];
+    work->isCpu = GWPlayerCfg[object->work[0]].iscom;
+    if (work->npcModelIndex < 0) {
+        object->mdlId[0] = CharModelCreate(characterId, 4);
+        CharModelStepFxSet(characterId, 2);
     }
     else {
-        object->mdlId[0] = Hu3DModelCreateFile(lbl_1_data_180[work->unk_04]);
+        object->mdlId[0] = Hu3DModelCreateFile(npcCharacterModelFiles[work->npcModelIndex]);
     }
     Hu3DModelShadowSet(object->mdlId[0]);
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 8));
     Hu3DModelLayerSet(object->mdlId[1], 1);
-    for (var_r29 = 0; var_r29 < 0x11; var_r29++) {
-        if (work->unk_04 < 0) {
-            if (lbl_1_data_1C4[var_r29] < 0x10000) {
-                object->mtnId[var_r29] = CharMotionCreate(var_r28, lbl_1_data_1C4[var_r29]);
+    for (motionIndex = 0; motionIndex < 0x11; motionIndex++) {
+        if (work->npcModelIndex < 0) {
+            if (characterMotionOffsets[motionIndex] < 0x10000) {
+                object->mtnId[motionIndex] = CharMotionCreate(characterId, characterMotionOffsets[motionIndex]);
             }
             else {
-                object->mtnId[var_r29] = Hu3DJointMotionFile(object->mdlId[0], var_r28 + lbl_1_data_1C4[var_r29]);
+                object->mtnId[motionIndex] = Hu3DJointMotionFile(object->mdlId[0], characterId + characterMotionOffsets[motionIndex]);
             }
         }
         else {
-            object->mtnId[var_r29] = Hu3DJointMotionFile(object->mdlId[0], work->unk_04 + lbl_1_data_208[var_r29]);
+            object->mtnId[motionIndex] = Hu3DJointMotionFile(object->mdlId[0], work->npcModelIndex + npcMotionOffsets[motionIndex]);
         }
     }
-    if (work->unk_04 < 0) {
-        CharMotionVoiceOnSet(var_r28, object->mtnId[16], 0);
-        CharMotionDataClose(var_r28);
+    if (work->npcModelIndex < 0) {
+        CharMotionVoiceOnSet(characterId, object->mtnId[16], 0);
+        CharMotionDataClose(characterId);
     }
     else {
         CharNpcDustVoiceOffSet(object->mdlId[0], object->mtnId[1], 0);
         CharNpcDustVoiceOffSet(object->mdlId[0], object->mtnId[2], 1);
     }
-    object->trans.x = work->unk_128.x = (0.4f * (700.0f * (object->work[0] + 1))) - 700.0f;
-    object->trans.y = work->unk_128.y = 0.0f;
-    object->trans.z = work->unk_128.z = 0.0f;
-    work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
-    work->unk_A4 = work->unk_A8 = 0.0f;
-    work->unk_AC = 0.0f;
-    work->unk_B0 = 0.02f;
-    work->unk_120 = lbl_1_data_118[var_r28];
-    work->unk_0C = -1;
-    work->unk_70 = -1;
-    fn_1_B4D4(object, 0);
-    work->unk_74 = 0;
-    object->objFunc = fn_1_6070;
+    object->trans.x = work->position.x = (0.4f * (700.0f * (object->work[0] + 1))) - 700.0f;
+    object->trans.y = work->position.y = 0.0f;
+    object->trans.z = work->position.z = 0.0f;
+    work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
+    work->currentRotation = work->targetRotation = 0.0f;
+    work->rotationStep = 0.0f;
+    work->rotationAcceleration = 0.02f;
+    work->characterSkill = characterSkillValues[characterId];
+    work->actionCounter = -1;
+    work->previousGamePhase = -1;
+    SetPlayerAnimation(object, 0);
+    work->playerActionState = 0;
+    object->objFunc = InitializePlayerAnimation;
 }
 
-void fn_1_6070(OMOBJ *object)
+void InitializePlayerAnimation(OMOBJ *object)
 {
-    M433PlayerWork *work = object->data;
-    fn_1_722C(object);
-    work->unk_74 = 0;
-    object->objFunc = fn_1_60C0;
+    M433PlayerState *work = object->data;
+    UpdatePlayerAnimation(object);
+    work->playerActionState = 0;
+    object->objFunc = UpdatePlayerObject;
 }
 
-void fn_1_60C0(OMOBJ *object)
+void UpdatePlayerObject(OMOBJ *object)
 {
-    Vec spC;
-    float var_f31;
-    float var_f30;
+    Vec opponentPosition;
+    float stickX;
+    float stickY;
 
-    M433PlayerWork *work = object->data;
-    s32 var_r29 = 0;
-    M433PlayerWork *var_r28 = work->unk_14C->data;
-    work->unk_1C = 0;
-    work->unk_20 = 0;
-    work->unk_28 = 0.0f;
-    work->unk_24 = 0.0f;
-    if ((work->unk_30 == 0) && (work->unk_70 != fn_1_10ECC(work->unk_14))) {
-        work->unk_70 = fn_1_10ECC(work->unk_14);
-        switch (fn_1_10ECC(work->unk_14)) {
+    M433PlayerState *work = object->data;
+    s32 shouldEndSelection = 0;
+    M433PlayerState *opponent = work->opponentObject->data;
+    work->pressedButtons = 0;
+    work->heldButtons = 0;
+    work->stickAngle = 0.0f;
+    work->stickMagnitude = 0.0f;
+    if ((work->isPlaying == 0) && (work->previousGamePhase != GetPlayerGamePhase(work->teamIndex))) {
+        work->previousGamePhase = GetPlayerGamePhase(work->teamIndex);
+        switch (GetPlayerGamePhase(work->teamIndex)) {
             case 0:
-                work->unk_6C = 0;
-                work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
-                work->unk_74 = 0;
-                work->unk_38 = 0;
-                work->unk_3C = work->unk_40 = 0;
-                work->unk_128.y = 0.0f;
-                if (work->unk_18 == fn_1_10F38(work->unk_14)) {
-                    if (fn_1_10F00(work->unk_14) != 0) {
-                        work->unk_128.z = 0.0f;
-                        work->unk_128.x = 840.00006f;
-                        work->unk_74 = 1;
-                        work->unk_38 = 1;
+                work->defenseActive = 0;
+                work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
+                work->playerActionState = 0;
+                work->actionSubstate = 0;
+                work->actionFlags = work->actionCooldownActive = 0;
+                work->position.y = 0.0f;
+                if (work->playerSide == GetPlayerServeCell(work->teamIndex)) {
+                    if (IsPlayerServing(work->teamIndex) != 0) {
+                        work->position.z = 0.0f;
+                        work->position.x = 840.00006f;
+                        work->playerActionState = 1;
+                        work->actionSubstate = 1;
                     }
                     else {
-                        work->unk_128.z = 140.0f;
-                        work->unk_128.x = 540.2f;
+                        work->position.z = 140.0f;
+                        work->position.x = 540.2f;
                     }
                 }
                 else {
-                    work->unk_128.z = -140.0f;
-                    work->unk_128.x = 385.1f;
+                    work->position.z = -140.0f;
+                    work->position.x = 385.1f;
                 }
-                work->unk_A4 = work->unk_A8 = -90.0f;
-                work->unk_AC = 1.0f;
-                work->unk_B0 = 1.0f;
-                if (work->unk_14 == 0) {
-                    work->unk_128.x *= -1.0f;
-                    work->unk_A4 = work->unk_A8 = 90.0f;
+                work->currentRotation = work->targetRotation = -90.0f;
+                work->rotationStep = 1.0f;
+                work->rotationAcceleration = 1.0f;
+                if (work->teamIndex == 0) {
+                    work->position.x *= -1.0f;
+                    work->currentRotation = work->targetRotation = 90.0f;
                 }
-                work->unk_0C = -1;
-                work->unk_34 = 1;
-                work->unk_88 = work->unk_8C = 0;
-                work->unk_7C = work->unk_78 = work->unk_80 = 0;
+                work->actionCounter = -1;
+                work->hasActiveAction = 1;
+                work->framesInAction = work->actionFrame = 0;
+                work->stateFlags7C = work->stateFlags78 = work->stateFlags80 = 0;
                 break;
             case 1:
             case 2:
-                if (work->unk_74 == 1) {
-                    work->unk_34 = 0;
+                if (work->playerActionState == 1) {
+                    work->hasActiveAction = 0;
                 };
                 break;
             case 3:
-                work->unk_74 = 2;
-                work->unk_7C = work->unk_78 = work->unk_80 = 0;
-                work->unk_34 = 0;
+                work->playerActionState = 2;
+                work->stateFlags7C = work->stateFlags78 = work->stateFlags80 = 0;
+                work->hasActiveAction = 0;
                 break;
             case 4:
             case 5:
-                work->unk_74 = 3;
+                work->playerActionState = 3;
                 break;
             case 6:
             case 7:
-                if (fn_1_10F6C(work->unk_14) != 0) {
-                    fn_1_B4D4(object, 0x13);
-                    if (work->unk_04 >= 0) {
-                        HuAudFXPlay(lbl_1_data_150[work->unk_04][0]);
+                if (IsPlayerContacting(work->teamIndex) != 0) {
+                    SetPlayerAnimation(object, 0x13);
+                    if (work->npcModelIndex >= 0) {
+                        HuAudFXPlay(characterSoundEffects[work->npcModelIndex][0]);
                     }
-                    VECSubtract(&var_r28->unk_128, &work->unk_128, &spC);
-                    work->unk_A8 = atan2d(spC.x, spC.z);
-                    work->unk_AC = 0.15f;
-                    work->unk_B0 = 0.0f;
+                    VECSubtract(&opponent->position, &work->position, &opponentPosition);
+                    work->targetRotation = atan2d(opponentPosition.x, opponentPosition.z);
+                    work->rotationStep = 0.15f;
+                    work->rotationAcceleration = 0.0f;
                 }
                 else {
-                    fn_1_B4D4(object, 0x14);
+                    SetPlayerAnimation(object, 0x14);
                 }
-                work->unk_74 = 4;
+                work->playerActionState = 4;
                 break;
             default:
                 break;
         }
     }
-    if (fn_1_216C() == 2) {
-        if (work->unk_2C != 0) {
-            fn_1_74D4(object);
+    if (getRoundIntroState() == 2) {
+        if (work->isCpu != 0) {
+            UpdatePlayerMovement(object);
         }
         else {
-            work->unk_20 = HuPadBtn[GWPlayerCfg[object->work[0]].pad_idx];
-            work->unk_1C = HuPadBtnDown[GWPlayerCfg[object->work[0]].pad_idx];
-            var_f31 = HuPadStkX[GWPlayerCfg[object->work[0]].pad_idx];
-            var_f30 = -HuPadStkY[GWPlayerCfg[object->work[0]].pad_idx];
-            work->unk_28 = atan2d(var_f31, var_f30);
-            work->unk_24 = 0.013888889f * sqrtf((var_f31 * var_f31) + (var_f30 * var_f30));
-            if (work->unk_24 > 1.0f) {
-                work->unk_24 = 1.0f;
+            work->heldButtons = HuPadBtn[GWPlayerCfg[object->work[0]].pad_idx];
+            work->pressedButtons = HuPadBtnDown[GWPlayerCfg[object->work[0]].pad_idx];
+            stickX = HuPadStkX[GWPlayerCfg[object->work[0]].pad_idx];
+            stickY = -HuPadStkY[GWPlayerCfg[object->work[0]].pad_idx];
+            work->stickAngle = atan2d(stickX, stickY);
+            work->stickMagnitude = 0.013888889f * sqrtf((stickX * stickX) + (stickY * stickY));
+            if (work->stickMagnitude > 1.0f) {
+                work->stickMagnitude = 1.0f;
             }
         }
     }
-    switch (work->unk_74) {
+    switch (work->playerActionState) {
         case 0:
-            fn_1_B4D4(object, 0);
-            var_r29 = 1;
+            SetPlayerAnimation(object, 0);
+            shouldEndSelection = 1;
             break;
         case 1:
-            fn_1_8F80(object);
+            UpdatePlayerActionState(object);
             break;
         case 2:
-            fn_1_8BD0(object);
-            fn_1_AB88(object);
-            fn_1_9688(object);
+            UpdatePlayerAi(object);
+            UpdatePlayerResponse(object);
+            UpdatePlayerModel(object);
             break;
         case 3:
-            fn_1_8BD0(object);
-            fn_1_A618(object);
-            fn_1_9688(object);
+            UpdatePlayerAi(object);
+            UpdatePlayerContact(object);
+            UpdatePlayerModel(object);
             break;
         case 4:
-            work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
-            work->unk_30 = 0;
-            if (fn_1_B6E0(object) != 0) {
-                work->unk_30 = 0;
-                work->unk_74 = 0;
+            work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
+            work->isPlaying = 0;
+            if (GetPlayerState(object) != 0) {
+                work->isPlaying = 0;
+                work->playerActionState = 0;
             }
             break;
     }
-    VECAdd(&work->unk_128, &work->unk_134, &work->unk_128);
-    if (fn_1_10ECC(work->unk_14) >= 2) {
-        fn_1_B194(object);
+    VECAdd(&work->position, &work->velocity, &work->position);
+    if (GetPlayerGamePhase(work->teamIndex) >= 2) {
+        UpdatePlayerState(object);
     }
-    fn_1_722C(object);
-    if ((fn_1_216C() == 3) && (var_r29 != 0)) {
-        work->unk_74 = 0;
-        object->objFunc = fn_1_682C;
+    UpdatePlayerAnimation(object);
+    if ((getRoundIntroState() == 3) && (shouldEndSelection != 0)) {
+        work->playerActionState = 0;
+        object->objFunc = UpdatePlayerAction;
     }
 }
 
-void fn_1_682C(OMOBJ *object)
+void UpdatePlayerAction(OMOBJ *object)
 {
-    Vec sp1C;
-    Vec sp10;
-    float sp8[2];
-    float var_f31;
-    M433PlayerWork *var_r30;
-    M433PlayerWork *var_r29;
-    M433PlayerWork *var_r27;
-    Vec *var_r26;
-    s32 var_r25;
-    M433PlayerWork *var_r24;
-    s32 var_r23;
+    Vec cameraTarget;
+    Vec movementDelta;
+    float candidateDistances[2];
+    float distanceToTarget;
+    M433PlayerState *candidatePlayer;
+    M433PlayerState *otherPlayer;
+    M433PlayerState *opponent;
+    Vec *targetPoints;
+    s32 targetIndex;
+    M433PlayerState *temporaryPlayer;
+    s32 shouldEscape;
 
-    M433PlayerWork *work = object->data;
+    M433PlayerState *work = object->data;
     {
-        Vec sp40[2] = { { 130.0f, 0.0f, -50.0f }, { 250.0f, 0.0f, 50.0f } };
-        Vec sp28[2] = { { 150.0f, 0.0f, 100.0f }, { 300.0f, 0.0f, -100.0f } };
-        var_r27 = work->unk_14C->data;
-        VECAdd(&work->unk_128, &work->unk_134, &work->unk_128);
-        fn_1_B194(object);
-        fn_1_722C(object);
-        switch (work->unk_74) {
+        Vec primaryEscapeTargets[2] = { { 130.0f, 0.0f, -50.0f }, { 250.0f, 0.0f, 50.0f } };
+        Vec alternateEscapeTargets[2] = { { 150.0f, 0.0f, 100.0f }, { 300.0f, 0.0f, -100.0f } };
+        opponent = work->opponentObject->data;
+        VECAdd(&work->position, &work->velocity, &work->position);
+        UpdatePlayerState(object);
+        UpdatePlayerAnimation(object);
+        switch (work->playerActionState) {
             case 0:
-                fn_1_B4D4(object, 0);
-                if (fn_1_2244() != 0) {
-                    if (work->unk_18 == 0) {
-                        var_r23 = 1;
-                        if (work->unk_14 == 0) {
-                            sp40[0].x *= -1.0f;
-                            sp40[1].x *= -1.0f;
-                            sp28[0].x *= -1.0f;
-                            sp28[1].x *= -1.0f;
+                SetPlayerAnimation(object, 0);
+                if (isOutroSequenceFinished() != 0) {
+                    if (work->playerSide == 0) {
+                        shouldEscape = 1;
+                        if (work->teamIndex == 0) {
+                            primaryEscapeTargets[0].x *= -1.0f;
+                            primaryEscapeTargets[1].x *= -1.0f;
+                            alternateEscapeTargets[0].x *= -1.0f;
+                            alternateEscapeTargets[1].x *= -1.0f;
                         }
-                        var_r30 = work;
-                        var_r29 = var_r27;
-                        var_r26 = sp40;
-                        work->unk_84 = var_r27->unk_84 = 0;
-                        if (lbl_1_data_3F0[var_r30->unk_00] != lbl_1_data_3F0[var_r29->unk_00]) {
-                            if (lbl_1_data_3F0[var_r30->unk_00] < lbl_1_data_3F0[var_r29->unk_00]) {
-                                var_r24 = var_r30;
-                                var_r30 = var_r29;
-                                var_r29 = var_r24;
+                        candidatePlayer = work;
+                        otherPlayer = opponent;
+                        targetPoints = primaryEscapeTargets;
+                        work->escapeState = opponent->escapeState = 0;
+                        if (characterAiPriorities[candidatePlayer->characterId] != characterAiPriorities[otherPlayer->characterId]) {
+                            if (characterAiPriorities[candidatePlayer->characterId] < characterAiPriorities[otherPlayer->characterId]) {
+                                temporaryPlayer = candidatePlayer;
+                                candidatePlayer = otherPlayer;
+                                otherPlayer = temporaryPlayer;
                             }
-                            var_f31 = fn_1_11130(&var_r30->unk_128, &sp40[0], &var_r29->unk_128, &sp40[1]);
-                            sp8[0] = 0.8f * (var_r30->unk_120 + var_r29->unk_120);
-                            if (var_f31 < sp8[0]) {
-                                var_r26 = sp28;
-                                work->unk_84 = var_r27->unk_84 = 1;
+                            distanceToTarget = FindClosestPointOnSegments(&candidatePlayer->position, &primaryEscapeTargets[0], &otherPlayer->position, &primaryEscapeTargets[1]);
+                            candidateDistances[0] = 0.8f * (candidatePlayer->characterSkill + otherPlayer->characterSkill);
+                            if (distanceToTarget < candidateDistances[0]) {
+                                targetPoints = alternateEscapeTargets;
+                                work->escapeState = opponent->escapeState = 1;
                                 OSReport("Escape!\n");
                             }
                             else {
-                                var_r23 = 0;
+                                shouldEscape = 0;
                                 OSReport("Direct!\n");
                             }
                         }
-                        if (var_r23 != 0) {
-                            var_r30 = work;
-                            var_r29 = var_r27;
-                            for (var_r25 = 0; var_r25 < 2; var_r25++) {
-                                sp8[var_r25] = fn_1_11130(&var_r30->unk_128, &var_r26[var_r25 & 1], &var_r29->unk_128, &var_r26[(var_r25 + 1) & 1]);
+                        if (shouldEscape != 0) {
+                            candidatePlayer = work;
+                            otherPlayer = opponent;
+                            for (targetIndex = 0; targetIndex < 2; targetIndex++) {
+                                candidateDistances[targetIndex] = FindClosestPointOnSegments(&candidatePlayer->position, &targetPoints[targetIndex & 1], &otherPlayer->position, &targetPoints[(targetIndex + 1) & 1]);
                             }
-                            if (sp8[0] < sp8[1]) {
-                                var_r24 = var_r30;
-                                var_r30 = var_r29;
-                                var_r29 = var_r24;
+                            if (candidateDistances[0] < candidateDistances[1]) {
+                                temporaryPlayer = candidatePlayer;
+                                candidatePlayer = otherPlayer;
+                                otherPlayer = temporaryPlayer;
                             }
                         }
-                        var_r30->unk_140 = var_r26[0];
-                        var_r30->unk_140.z -= var_r30->unk_120;
-                        var_r29->unk_140 = var_r26[1];
+                        candidatePlayer->movementTarget = targetPoints[0];
+                        candidatePlayer->movementTarget.z -= candidatePlayer->characterSkill;
+                        otherPlayer->movementTarget = targetPoints[1];
                     }
-                    work->unk_30 = work->unk_60 = work->unk_34 = 0;
-                    if (work->unk_84 != 0) {
-                        work->unk_74++;
+                    work->isPlaying = work->hasContactedBall = work->hasActiveAction = 0;
+                    if (work->escapeState != 0) {
+                        work->playerActionState++;
                     }
                     else {
-                        work->unk_74 += 2;
+                        work->playerActionState += 2;
                     }
-                    work->unk_88 = 0;
+                    work->framesInAction = 0;
                     break;
                 }
                 break;
             case 1:
-                if (work->unk_84 == 1) {
-                    VECSubtract(&work->unk_140, &work->unk_128, &sp10);
-                    sp10.y = 0.0f;
-                    var_f31 = VECMag(&sp10);
-                    if (var_f31 < 20.0f) {
-                        var_f31 = 0.01f;
-                        work->unk_84++;
+                if (work->escapeState == 1) {
+                    VECSubtract(&work->movementTarget, &work->position, &movementDelta);
+                    movementDelta.y = 0.0f;
+                    distanceToTarget = VECMag(&movementDelta);
+                    if (distanceToTarget < 20.0f) {
+                        distanceToTarget = 0.01f;
+                        work->escapeState++;
                     }
                     else {
-                        if (VECMag(&sp10) >= 100.0f) {
-                            var_f31 = 100.0f;
+                        if (VECMag(&movementDelta) >= 100.0f) {
+                            distanceToTarget = 100.0f;
                         }
-                        var_f31 = 0.2f + (0.008f * var_f31);
+                        distanceToTarget = 0.2f + (0.008f * distanceToTarget);
                     }
-                    work->unk_28 = 180.0 * (atan2(sp10.x, sp10.z) / 3.141592653589793);
-                    work->unk_24 = var_f31;
-                    fn_1_8BD0(object);
+                    work->stickAngle = 180.0 * (atan2(movementDelta.x, movementDelta.z) / 3.141592653589793);
+                    work->stickMagnitude = distanceToTarget;
+                    UpdatePlayerAi(object);
                 }
-                else if (work->unk_84 == 2) {
-                    fn_1_BAE0(object, 0);
-                    if ((work->unk_18 == 0) && (var_r27->unk_84 != 0)) {
-                        if (work->unk_14 == 0) {
-                            sp40[0].x *= -1.0f;
-                            sp40[1].x *= -1.0f;
+                else if (work->escapeState == 2) {
+                    CheckPlayerAction(object, 0);
+                    if ((work->playerSide == 0) && (opponent->escapeState != 0)) {
+                        if (work->teamIndex == 0) {
+                            primaryEscapeTargets[0].x *= -1.0f;
+                            primaryEscapeTargets[1].x *= -1.0f;
                         }
-                        var_r30 = work;
-                        var_r29 = var_r27;
-                        if (lbl_1_data_3F0[var_r30->unk_00] < lbl_1_data_3F0[var_r29->unk_00]) {
-                            var_r24 = var_r30;
-                            var_r30 = var_r29;
-                            var_r29 = var_r24;
+                        candidatePlayer = work;
+                        otherPlayer = opponent;
+                        if (characterAiPriorities[candidatePlayer->characterId] < characterAiPriorities[otherPlayer->characterId]) {
+                            temporaryPlayer = candidatePlayer;
+                            candidatePlayer = otherPlayer;
+                            otherPlayer = temporaryPlayer;
                         }
-                        var_r30->unk_140 = sp40[0];
-                        var_r30->unk_140.z -= var_r30->unk_120;
-                        var_r29->unk_140 = sp40[1];
-                        work->unk_84 = var_r27->unk_84 = 3;
+                        candidatePlayer->movementTarget = primaryEscapeTargets[0];
+                        candidatePlayer->movementTarget.z -= candidatePlayer->characterSkill;
+                        otherPlayer->movementTarget = primaryEscapeTargets[1];
+                        work->escapeState = opponent->escapeState = 3;
                     }
                 }
-                if (work->unk_84 == 3) {
-                    work->unk_74++;
-                    work->unk_88 = 0;
+                if (work->escapeState == 3) {
+                    work->playerActionState++;
+                    work->framesInAction = 0;
                     return;
                 }
                 break;
             case 2:
-                VECSubtract(&work->unk_140, &work->unk_128, &sp10);
-                sp10.y = 0.0f;
-                var_f31 = VECMag(&sp10);
-                if (var_f31 < 10.0f) {
-                    var_f31 = 0.01f;
+                VECSubtract(&work->movementTarget, &work->position, &movementDelta);
+                movementDelta.y = 0.0f;
+                distanceToTarget = VECMag(&movementDelta);
+                if (distanceToTarget < 10.0f) {
+                    distanceToTarget = 0.01f;
                 }
                 else {
-                    if (VECMag(&sp10) >= 100.0f) {
-                        var_f31 = 100.0f;
+                    if (VECMag(&movementDelta) >= 100.0f) {
+                        distanceToTarget = 100.0f;
                     }
-                    var_f31 = 0.2f + (0.008f * var_f31);
+                    distanceToTarget = 0.2f + (0.008f * distanceToTarget);
                 }
-                work->unk_28 = atan2d(sp10.x, sp10.z);
-                work->unk_24 = var_f31;
-                fn_1_8BD0(object);
-                if ((work->unk_24 < 0.02f) || (work->unk_88 > (REFRESH_RATE*5.0f))) {
-                    work->unk_A8 = 0.0f;
-                    work->unk_AC = 0.15f;
-                    work->unk_B0 = 0.0f;
-                    work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
-                    fn_1_21E4(object->work[0]);
-                    work->unk_74++;
+                work->stickAngle = atan2d(movementDelta.x, movementDelta.z);
+                work->stickMagnitude = distanceToTarget;
+                UpdatePlayerAi(object);
+                if ((work->stickMagnitude < 0.02f) || (work->framesInAction > (REFRESH_RATE*5.0f))) {
+                    work->targetRotation = 0.0f;
+                    work->rotationStep = 0.15f;
+                    work->rotationAcceleration = 0.0f;
+                    work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
+                    SetPlayerResultFlag(object->work[0]);
+                    work->playerActionState++;
                     return;
                 }
                 break;
             case 3:
-                if (fn_1_2184() == 1) {
-                    if (fn_1_10FA4(work->unk_14) != 0) {
-                        fn_1_B4D4(object, 0x11);
-                        if (work->unk_04 >= 0) {
-                            HuAudFXPlay(lbl_1_data_150[work->unk_04][0]);
+                if (getResultsSequenceState() == 1) {
+                    if (IsPlayerWinner(work->teamIndex) != 0) {
+                        SetPlayerAnimation(object, 0x11);
+                        if (work->npcModelIndex >= 0) {
+                            HuAudFXPlay(characterSoundEffects[work->npcModelIndex][0]);
                         }
                     }
                     else {
-                        fn_1_B4D4(object, 0x12);
-                        if (work->unk_04 >= 0) {
-                            HuAudFXPlay(lbl_1_data_150[work->unk_04][1]);
+                        SetPlayerAnimation(object, 0x12);
+                        if (work->npcModelIndex >= 0) {
+                            HuAudFXPlay(characterSoundEffects[work->npcModelIndex][1]);
                         }
                     }
-                    work->unk_74++;
+                    work->playerActionState++;
                     return;
                 }
-                fn_1_BAE0(object, 0);
+                CheckPlayerAction(object, 0);
                 return;
             case 4:
-                if (fn_1_10FA4(work->unk_14) != 0) {
-                    sp1C.x = Center.x + (CZoom * (sind(CRot.y) * cosd(CRot.x)));
-                    sp1C.y = Center.y + (CZoom * -sind(CRot.x));
-                    sp1C.z = Center.z + (CZoom * (cosd(CRot.y) * cosd(CRot.x)));
-                    VECSubtract(&sp1C, &work->unk_128, &sp10);
-                    work->unk_A8 = atan2d(sp10.x, sp10.z);
+                if (IsPlayerWinner(work->teamIndex) != 0) {
+                    cameraTarget.x = Center.x + (CZoom * (sind(CRot.y) * cosd(CRot.x)));
+                    cameraTarget.y = Center.y + (CZoom * -sind(CRot.x));
+                    cameraTarget.z = Center.z + (CZoom * (cosd(CRot.y) * cosd(CRot.x)));
+                    VECSubtract(&cameraTarget, &work->position, &movementDelta);
+                    work->targetRotation = atan2d(movementDelta.x, movementDelta.z);
                 }
-                if (fn_1_B6E0(object) != 0) {
-                    fn_1_2214(object->work[0]);
-                    work->unk_74++;
+                if (GetPlayerState(object) != 0) {
+                    SetTeamResultFlag(object->work[0]);
+                    work->playerActionState++;
                 }
                 break;
         }
     }
 }
 
-char *lbl_1_data_450[6] = {
+char *itemHookJointNames[6] = {
     "itemhook_R",
     "itemhook_r",
     "itemhook_R",
@@ -892,8 +892,8 @@ char *lbl_1_data_450[6] = {
     "itemhook_r",
     "itemhook_r",
 };
-s32 lbl_1_data_468[9] = { 0, 0, 1, 1, 1, 1, 1, 0, 1 };
-float lbl_1_data_48C[0x12] = {
+s32 itemSideBySideFlags[9] = { 0, 0, 1, 1, 1, 1, 1, 0, 1 };
+float itemSpinSpeeds[0x12] = {
     0.0f,
     (40.0f*(1.0f/REFRESH_RATE)),
     (130.0f*(1.0f/REFRESH_RATE)),
@@ -913,7 +913,7 @@ float lbl_1_data_48C[0x12] = {
     0.0f,
     1e-45f,
 };
-Vec lbl_1_data_4D4[9] = {
+Vec itemTrajectoryParameters[9] = {
     { 0.0f, 0.0f, 1.0f },
     { 0.0f, 1.5f, 1.0f },
     { 236.5f, 0.0f, 1300.0f },
@@ -924,275 +924,275 @@ Vec lbl_1_data_4D4[9] = {
     { 0.0f, 1.2f, 1.0f },
     { 0.0f, 0.8f, 1.0f },
 };
-float lbl_1_data_540[9] = { 1.0f, 1.0f, 3.0f, 1.0f, 1.0f, 4.0f, 2.0f, 1.0f, 1.0f };
+float itemTrajectoryScales[9] = { 1.0f, 1.0f, 3.0f, 1.0f, 1.0f, 4.0f, 2.0f, 1.0f, 1.0f };
 
-void fn_1_722C(OMOBJ *object)
+void UpdatePlayerAnimation(OMOBJ *object)
 {
-    Vec sp8;
+    Vec screenPosition;
 
-    M433PlayerWork *work = object->data;
-    work->unk_9C++;
-    work->unk_88++;
-    object->trans.x = work->unk_128.x;
-    object->trans.y = work->unk_128.y;
-    object->trans.z = work->unk_128.z;
-    work->unk_AC = work->unk_AC + work->unk_B0;
-    if (work->unk_AC > 0.45f) {
-        work->unk_AC = 0.45f;
+    M433PlayerState *work = object->data;
+    work->playerState9C++;
+    work->framesInAction++;
+    object->trans.x = work->position.x;
+    object->trans.y = work->position.y;
+    object->trans.z = work->position.z;
+    work->rotationStep = work->rotationStep + work->rotationAcceleration;
+    if (work->rotationStep > 0.45f) {
+        work->rotationStep = 0.45f;
     }
-    work->unk_A4 = fn_1_26C4(work->unk_A4, work->unk_A8, work->unk_AC);
-    object->rot.y = work->unk_A4;
-    Hu3DModelPosSet(object->mdlId[1], work->unk_128.x, 11.0f, work->unk_128.z);
-    work->unk_BC += (1.0f/REFRESH_RATE)*180.0f;
-    if (work->unk_BC >= 360.0f) {
-        work->unk_BC -= 360.0f;
+    work->currentRotation = interpolateAngle(work->currentRotation, work->targetRotation, work->rotationStep);
+    object->rot.y = work->currentRotation;
+    Hu3DModelPosSet(object->mdlId[1], work->position.x, 11.0f, work->position.z);
+    work->modelRotation += (1.0f/REFRESH_RATE)*180.0f;
+    if (work->modelRotation >= 360.0f) {
+        work->modelRotation -= 360.0f;
     }
-    Hu3DModelRotSet(object->mdlId[1], 0.0f, work->unk_BC, 0.0f);
-    work->unk_B8 = 0.0f;
-    if (fn_1_216C() == 2) {
-        if (((fn_1_10EA4() == 4) || (fn_1_10EA4() == 3)) && (work->unk_14 == fn_1_10740(&sp8)) && (fn_1_10FDC() != 0) && (fn_1_10FDC() < 3)
-            && (work->unk_60 == 0) && (fn_1_11004(work->unk_14, work->unk_18) != 0)) {
-            work->unk_B8 = 1.0f;
+    Hu3DModelRotSet(object->mdlId[1], 0.0f, work->modelRotation, 0.0f);
+    work->modelScaleTarget = 0.0f;
+    if (getRoundIntroState() == 2) {
+        if (((GetActiveContactGroup() == 4) || (GetActiveContactGroup() == 3)) && (work->teamIndex == GetItemTargetPosition(&screenPosition)) && (GetPlayerPointGroup() != 0) && (GetPlayerPointGroup() < 3)
+            && (work->hasContactedBall == 0) && (IsPlayerContact(work->teamIndex, work->playerSide) != 0)) {
+            work->modelScaleTarget = 1.0f;
         }
-        if (work->unk_74 == 1) {
-            work->unk_B8 = 1.0f;
+        if (work->playerActionState == 1) {
+            work->modelScaleTarget = 1.0f;
         }
     }
-    work->unk_B4 += 0.1f * (work->unk_B8 - work->unk_B4);
-    Hu3DModelScaleSet(object->mdlId[1], work->unk_B4, 1.0f, work->unk_B4);
-    if ((work->unk_B8 <= 0.0f) && (work->unk_B4 < 0.1f)) {
+    work->modelScale += 0.1f * (work->modelScaleTarget - work->modelScale);
+    Hu3DModelScaleSet(object->mdlId[1], work->modelScale, 1.0f, work->modelScale);
+    if ((work->modelScaleTarget <= 0.0f) && (work->modelScale < 0.1f)) {
         Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
-        work->unk_B4 = 0.0f;
+        work->modelScale = 0.0f;
         return;
     }
     Hu3DModelAttrReset(object->mdlId[1], HU3D_ATTR_DISPOFF);
 }
 
-void fn_1_74D4(OMOBJ *object)
+void UpdatePlayerMovement(OMOBJ *object)
 {
-    Vec sp1C;
-    Vec sp10;
-    M433PlayerWork *spC;
-    float var_f31;
+    Vec ballPosition;
+    Vec movementDelta;
+    M433PlayerState *opponent;
+    float distanceToTarget;
 
-    M433PlayerWork *work = object->data;
-    s32 var_r29 = 1;
-    s32 sp8 = 0;
-    spC = work->unk_14C->data;
-    switch (work->unk_74) {
+    M433PlayerState *work = object->data;
+    s32 shouldContinueAi = 1;
+    s32 inputState = 0;
+    opponent = work->opponentObject->data;
+    switch (work->playerActionState) {
         case 0:
-            work->unk_6C = 0;
-            fn_1_873C(object);
+            work->defenseActive = 0;
+            UpdatePlayerScoring(object);
             break;
         case 1:
-            if (work->unk_3C != 0) {
-                work->unk_1C = work->unk_1C | 0x100;
-                work->unk_DC = frandmod(0x168);
-                work->unk_E0 = 0.3f + (0.00040000002f * (work->unk_C0 * frandmod(0x3E8)));
-                work->unk_E4 = 0;
-                if (frandmod(0x3E8) > (300.0f + (500.0f * work->unk_C0))) {
-                    work->unk_E4 = 1;
+            if (work->actionFlags != 0) {
+                work->pressedButtons = work->pressedButtons | 0x100;
+                work->aiTargetAngle = frandmod(0x168);
+                work->aiTargetSpeed = 0.3f + (0.00040000002f * (work->aiDifficulty * frandmod(0x3E8)));
+                work->aiTargetFlag = 0;
+                if (frandmod(0x3E8) > (300.0f + (500.0f * work->aiDifficulty))) {
+                    work->aiTargetFlag = 1;
                 }
             }
-            if (fn_1_10614(&sp1C) != 0) {
-                if (work->unk_E4 != 0) {
-                    if ((fabs(sp1C.z) > 1.100000023841858) || (sp1C.x > 1.1f)) {
-                        work->unk_E0 = 0.0f;
+            if (NormalizeItemPosition(&ballPosition) != 0) {
+                if (work->aiTargetFlag != 0) {
+                    if ((fabs(ballPosition.z) > 1.100000023841858) || (ballPosition.x > 1.1f)) {
+                        work->aiTargetSpeed = 0.0f;
                     }
                 }
                 else {
-                    if ((fabs(sp1C.z) > 0.949999988079071) || (sp1C.x > 0.95f)) {
-                        work->unk_E0 = 0.0f;
+                    if ((fabs(ballPosition.z) > 0.949999988079071) || (ballPosition.x > 0.95f)) {
+                        work->aiTargetSpeed = 0.0f;
                     }
                 }
             }
-            work->unk_28 = work->unk_DC;
-            work->unk_24 = work->unk_E0;
-            if (work->unk_40 != 0) {
-                if (work->unk_D0++ >= work->unk_CC) {
-                    work->unk_1C = work->unk_1C | 0x100;
+            work->stickAngle = work->aiTargetAngle;
+            work->stickMagnitude = work->aiTargetSpeed;
+            if (work->actionCooldownActive != 0) {
+                if (work->aiReactionTimer++ >= work->aiReactionDelay) {
+                    work->pressedButtons = work->pressedButtons | 0x100;
                 }
             }
-            else if (work->unk_60 != 0) {
-                work->unk_CC = ((REFRESH_RATE * (0.35f * work->unk_C0)) / 1000.0f) * frandmod(0x3E8);
-                work->unk_D0 = 0;
+            else if (work->hasContactedBall != 0) {
+                work->aiReactionDelay = ((REFRESH_RATE * (0.35f * work->aiDifficulty)) / 1000.0f) * frandmod(0x3E8);
+                work->aiReactionTimer = 0;
             }
-            fn_1_873C(object);
+            UpdatePlayerScoring(object);
             break;
         case 2:
-            work->unk_F0 = 0;
-            if (frandmod(0x3E8) < (300.0f * work->unk_C0)) {
-                work->unk_F0 = 1;
+            work->aiActionMode = 0;
+            if (frandmod(0x3E8) < (300.0f * work->aiDifficulty)) {
+                work->aiActionMode = 1;
             }
-            fn_1_8408(object);
-            if (work->unk_F4 != 0) {
-                if (fn_1_10EA4() == 2) {
-                    work->unk_F4 = 0;
-                    work->unk_F8 = 0;
+            UpdatePlayerCollision(object);
+            if (work->aiDecisionState != 0) {
+                if (GetActiveContactGroup() == 2) {
+                    work->aiDecisionState = 0;
+                    work->aiDecisionFlags = 0;
                 }
-                if (work->unk_14 == fn_1_107B0(&sp1C)) {
-                    work->unk_D8++;
+                if (work->teamIndex == GetItemPosition(&ballPosition)) {
+                    work->aiActionCount++;
                 }
-                if ((work->unk_14 == fn_1_107B0(&sp1C)) && (work->unk_F8 == 0)) {
-                    fn_1_10B20(0.9f, &work->unk_108);
-                    work->unk_108.x = 115.0f;
-                    if (work->unk_14 == 0) {
-                        work->unk_108.x *= -1.0f;
+                if ((work->teamIndex == GetItemPosition(&ballPosition)) && (work->aiDecisionFlags == 0)) {
+                    UpdateItemFlightPosition(0.9f, &work->aiTargetPosition);
+                    work->aiTargetPosition.x = 115.0f;
+                    if (work->teamIndex == 0) {
+                        work->aiTargetPosition.x *= -1.0f;
                     }
-                    work->unk_F8++;
+                    work->aiDecisionFlags++;
                 }
-                if (work->unk_F8 == 1) {
-                    if ((work->unk_D8 >= (0.5f * work->unk_D4)) && (fn_1_10D24(&work->unk_108) != 0)) {
-                        work->unk_108.x = 115.0f;
-                        if (work->unk_14 == 0) {
-                            work->unk_108.x *= -1.0f;
+                if (work->aiDecisionFlags == 1) {
+                    if ((work->aiActionCount >= (0.5f * work->aiActionThreshold)) && (GetItemSoundPosition(&work->aiTargetPosition) != 0)) {
+                        work->aiTargetPosition.x = 115.0f;
+                        if (work->teamIndex == 0) {
+                            work->aiTargetPosition.x *= -1.0f;
                         }
-                        work->unk_F8++;
+                        work->aiDecisionFlags++;
                     }
                 }
-                else if ((work->unk_F8 == 2) && ((work->unk_D8 >= work->unk_D4) || (work->unk_14 == fn_1_10740(&sp1C)))) {
-                    work->unk_1C = work->unk_1C | 0x200;
-                    work->unk_F4 = 0;
-                    work->unk_F8 = 0;
+                else if ((work->aiDecisionFlags == 2) && ((work->aiActionCount >= work->aiActionThreshold) || (work->teamIndex == GetItemTargetPosition(&ballPosition)))) {
+                    work->pressedButtons = work->pressedButtons | 0x200;
+                    work->aiDecisionState = 0;
+                    work->aiDecisionFlags = 0;
                 }
             }
-            if ((work->unk_14 == fn_1_107B0(&sp1C)) && (fn_1_10900() >= (REFRESH_RATE * (0.8f - (0.4f * work->unk_C0)))) && (work->unk_6C != 0)) {
-                VECSubtract(&sp1C, &work->unk_128, &sp10);
-                sp10.y = 0.0f;
-                var_f31 = VECMag(&sp10);
-                if (VECMag(&sp10) >= 20.0f) {
-                    if (var_f31 >= 50.0f) {
-                        var_f31 = 50.0f;
+            if ((work->teamIndex == GetItemPosition(&ballPosition)) && (GetItemAction() >= (REFRESH_RATE * (0.8f - (0.4f * work->aiDifficulty)))) && (work->defenseActive != 0)) {
+                VECSubtract(&ballPosition, &work->position, &movementDelta);
+                movementDelta.y = 0.0f;
+                distanceToTarget = VECMag(&movementDelta);
+                if (VECMag(&movementDelta) >= 20.0f) {
+                    if (distanceToTarget >= 50.0f) {
+                        distanceToTarget = 50.0f;
                     }
-                    work->unk_28 = atan2d(sp10.x, sp10.z);
-                    work->unk_24 = var_f31 / 50.0f;
+                    work->stickAngle = atan2d(movementDelta.x, movementDelta.z);
+                    work->stickMagnitude = distanceToTarget / 50.0f;
                 }
-                if ((fn_1_10848() < (0.8f - (0.6f * work->unk_C0))) && ((work->unk_44 != 0) || ((work->unk_48 != 0) && (work->unk_EC != 0)))) {
-                    work->unk_1C = work->unk_1C | 0x100;
+                if ((GetItemVerticalSpeed() < (0.8f - (0.6f * work->aiDifficulty))) && ((work->opponentTargetingState != 0) || ((work->opponentRecentState != 0) && (work->aiPreviousTargetMode != 0)))) {
+                    work->pressedButtons = work->pressedButtons | 0x100;
                 }
-                var_r29 = 0;
+                shouldContinueAi = 0;
             }
-            if (work->unk_F8 != 0) {
-                VECSubtract(&work->unk_108, &work->unk_128, &sp10);
-                sp10.y = 0.0f;
-                var_f31 = VECMag(&sp10);
-                if (var_f31 >= 10.0f) {
-                    if (var_f31 >= 50.0f) {
-                        var_f31 = 50.0f;
+            if (work->aiDecisionFlags != 0) {
+                VECSubtract(&work->aiTargetPosition, &work->position, &movementDelta);
+                movementDelta.y = 0.0f;
+                distanceToTarget = VECMag(&movementDelta);
+                if (distanceToTarget >= 10.0f) {
+                    if (distanceToTarget >= 50.0f) {
+                        distanceToTarget = 50.0f;
                     }
-                    work->unk_28 = atan2d(sp10.x, sp10.z);
-                    work->unk_24 = var_f31 / 50.0f;
+                    work->stickAngle = atan2d(movementDelta.x, movementDelta.z);
+                    work->stickMagnitude = distanceToTarget / 50.0f;
                 }
                 else {
-                    work->unk_28 = 90.0f;
-                    if (work->unk_14 != 0) {
-                        work->unk_28 *= -1.0f;
+                    work->stickAngle = 90.0f;
+                    if (work->teamIndex != 0) {
+                        work->stickAngle *= -1.0f;
                     }
-                    work->unk_24 = 0.01f;
+                    work->stickMagnitude = 0.01f;
                 }
-                var_r29 = 0;
+                shouldContinueAi = 0;
             }
-            if (var_r29 != 0) {
-                VECSubtract(&work->unk_FC, &work->unk_128, &sp10);
-                sp10.y = 0.0f;
-                var_f31 = VECMag(&sp10);
-                var_f31 -= 100.0f * (1.25f * (2.0f - work->unk_C0));
-                if (var_f31 >= 10.0f) {
-                    if (var_f31 >= 70.0f) {
-                        var_f31 = 70.0f;
+            if (shouldContinueAi != 0) {
+                VECSubtract(&work->retreatPosition, &work->position, &movementDelta);
+                movementDelta.y = 0.0f;
+                distanceToTarget = VECMag(&movementDelta);
+                distanceToTarget -= 100.0f * (1.25f * (2.0f - work->aiDifficulty));
+                if (distanceToTarget >= 10.0f) {
+                    if (distanceToTarget >= 70.0f) {
+                        distanceToTarget = 70.0f;
                     }
-                    work->unk_28 = atan2d(sp10.x, sp10.z);
-                    work->unk_24 = var_f31 / 70.0f;
+                    work->stickAngle = atan2d(movementDelta.x, movementDelta.z);
+                    work->stickMagnitude = distanceToTarget / 70.0f;
                     break;
                 }
-                work->unk_28 = 90.0f;
-                if (work->unk_14 != 0) {
-                    work->unk_28 *= -1.0f;
+                work->stickAngle = 90.0f;
+                if (work->teamIndex != 0) {
+                    work->stickAngle *= -1.0f;
                     break;
                 }
             }
             break;
         case 3:
-            fn_1_8408(object);
-            fn_1_873C(object);
-            if (work->unk_14 == fn_1_10740(&sp1C)) {
-                if (work->unk_68 == 0) {
-                    if (fn_1_11004(work->unk_14, work->unk_18) != 0) {
-                        VECSubtract(&sp1C, &work->unk_128, &sp10);
-                        sp10.y = 0.0f;
-                        var_f31 = VECMag(&sp10);
-                        if (var_f31 >= 30.000002f) {
-                            if (var_f31 >= 70.0f) {
-                                var_f31 = 70.0f;
+            UpdatePlayerCollision(object);
+            UpdatePlayerScoring(object);
+            if (work->teamIndex == GetItemTargetPosition(&ballPosition)) {
+                if (work->attackReady == 0) {
+                    if (IsPlayerContact(work->teamIndex, work->playerSide) != 0) {
+                        VECSubtract(&ballPosition, &work->position, &movementDelta);
+                        movementDelta.y = 0.0f;
+                        distanceToTarget = VECMag(&movementDelta);
+                        if (distanceToTarget >= 30.000002f) {
+                            if (distanceToTarget >= 70.0f) {
+                                distanceToTarget = 70.0f;
                             }
-                            work->unk_24 = var_f31 / 70.0f;
-                            work->unk_28 = atan2d(sp10.x, sp10.z);
+                            work->stickMagnitude = distanceToTarget / 70.0f;
+                            work->stickAngle = atan2d(movementDelta.x, movementDelta.z);
                         }
                     }
-                    if ((((work->unk_6C == 0) && (fn_1_10EA4() == 3) && (work->unk_F0 != 0)) || ((work->unk_6C != 0) && (fn_1_10EA4() == 4)))
-                        && (work->unk_5C != 0)) {
-                        work->unk_1C = work->unk_1C | 0x200;
-                        work->unk_E8 = 0;
-                        if (frandmod(0x3E8) < (s32)(300.0f * (work->unk_C0 - 0.4f))) {
-                            work->unk_E8 = fn_1_8938(work->unk_14, &work->unk_114);
-                            work->unk_DC = 0.0f;
-                            work->unk_E0 = 0.0f;
-                            work->unk_E4 = 0;
+                    if ((((work->defenseActive == 0) && (GetActiveContactGroup() == 3) && (work->aiActionMode != 0)) || ((work->defenseActive != 0) && (GetActiveContactGroup() == 4)))
+                        && (work->canContactBall != 0)) {
+                        work->pressedButtons = work->pressedButtons | 0x200;
+                        work->aiTargetMode = 0;
+                        if (frandmod(0x3E8) < (s32)(300.0f * (work->aiDifficulty - 0.4f))) {
+                            work->aiTargetMode = GetPlayerTargetPosition(work->teamIndex, &work->ballTargetPosition);
+                            work->aiTargetAngle = 0.0f;
+                            work->aiTargetSpeed = 0.0f;
+                            work->aiTargetFlag = 0;
                         }
-                        if (work->unk_E8 == 0) {
-                            work->unk_DC = frandmod(0x168);
-                            work->unk_E0 = 0.3f + (0.00040000002f * (work->unk_C0 * frandmod(0x3E8)));
-                            work->unk_E4 = 0;
-                            if (frandmod(0x3E8) > (300.0f + (500.0f * work->unk_C0))) {
-                                work->unk_E4 = 1;
+                        if (work->aiTargetMode == 0) {
+                            work->aiTargetAngle = frandmod(0x168);
+                            work->aiTargetSpeed = 0.3f + (0.00040000002f * (work->aiDifficulty * frandmod(0x3E8)));
+                            work->aiTargetFlag = 0;
+                            if (frandmod(0x3E8) > (300.0f + (500.0f * work->aiDifficulty))) {
+                                work->aiTargetFlag = 1;
                             }
                         }
                     }
-                    if ((work->unk_4C != 0) || (work->unk_44 != 0) || (work->unk_48 != 0)) {
-                        work->unk_1C = work->unk_1C | 0x100;
+                    if ((work->isHighBallContact != 0) || (work->opponentTargetingState != 0) || (work->opponentRecentState != 0)) {
+                        work->pressedButtons = work->pressedButtons | 0x100;
                         break;
                     }
                 }
                 else {
-                    if (fn_1_10614(&sp1C) != 0) {
-                        if (work->unk_E8 != 0) {
-                            VECSubtract(&work->unk_114, &sp1C, &sp10);
-                            sp10.y = 0.0f;
-                            var_f31 = VECMag(&sp10);
-                            if (var_f31 < 0.05f) {
-                                work->unk_DC = 0.0f;
-                                work->unk_E0 = 0.0f;
+                    if (NormalizeItemPosition(&ballPosition) != 0) {
+                        if (work->aiTargetMode != 0) {
+                            VECSubtract(&work->ballTargetPosition, &ballPosition, &movementDelta);
+                            movementDelta.y = 0.0f;
+                            distanceToTarget = VECMag(&movementDelta);
+                            if (distanceToTarget < 0.05f) {
+                                work->aiTargetAngle = 0.0f;
+                                work->aiTargetSpeed = 0.0f;
                             }
                             else {
-                                if (work->unk_14 != 0) {
-                                    sp10.x *= -1.0f;
+                                if (work->teamIndex != 0) {
+                                    movementDelta.x *= -1.0f;
                                 }
-                                work->unk_DC = atan2d(sp10.x, sp10.z);
-                                work->unk_E0 = 1.0f;
+                                work->aiTargetAngle = atan2d(movementDelta.x, movementDelta.z);
+                                work->aiTargetSpeed = 1.0f;
                             }
                         }
-                        if (work->unk_E4 != 0) {
-                            if ((fabs(sp1C.z) > 1.100000023841858) || (sp1C.x > 1.1f)) {
-                                work->unk_E0 = 0.0f;
+                        if (work->aiTargetFlag != 0) {
+                            if ((fabs(ballPosition.z) > 1.100000023841858) || (ballPosition.x > 1.1f)) {
+                                work->aiTargetSpeed = 0.0f;
                             }
                         }
                         else {
-                            if ((fabs(sp1C.z) > 0.949999988079071) || (sp1C.x > 0.95f)) {
-                                work->unk_E0 = 0.0f;
+                            if ((fabs(ballPosition.z) > 0.949999988079071) || (ballPosition.x > 0.95f)) {
+                                work->aiTargetSpeed = 0.0f;
                             }
                         }
                     }
-                    work->unk_28 = work->unk_DC;
-                    work->unk_24 = work->unk_E0;
-                    if (work->unk_54 != 0) {
-                        if (work->unk_D0++ >= work->unk_CC) {
-                            work->unk_1C |= 0x100;
+                    work->stickAngle = work->aiTargetAngle;
+                    work->stickMagnitude = work->aiTargetSpeed;
+                    if (work->movementLockActive != 0) {
+                        if (work->aiReactionTimer++ >= work->aiReactionDelay) {
+                            work->pressedButtons |= 0x100;
                             break;
                         }
                     }
                     else {
-                        work->unk_CC = ((REFRESH_RATE * (0.35f * work->unk_C0)) / 1000.0f) * frandmod(0x3E8);
-                        work->unk_D0 = 0;
+                        work->aiReactionDelay = ((REFRESH_RATE * (0.35f * work->aiDifficulty)) / 1000.0f) * frandmod(0x3E8);
+                        work->aiReactionTimer = 0;
                     }
                 }
             }
@@ -1200,951 +1200,951 @@ void fn_1_74D4(OMOBJ *object)
     }
 }
 
-void fn_1_8408(OMOBJ *object)
+void UpdatePlayerCollision(OMOBJ *object)
 {
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
+    Vec ballPosition;
+    Vec playerDelta;
+    float playerDistance;
+    float opponentDistance;
 
-    M433PlayerWork *work = object->data;
-    M433PlayerWork *var_r30 = work->unk_14C->data;
+    M433PlayerState *work = object->data;
+    M433PlayerState *opponent = work->opponentObject->data;
 
-    if (var_r30->unk_2C == 0) {
-        var_r30->unk_C0 = work->unk_C0 - 0.1f;
+    if (opponent->isCpu == 0) {
+        opponent->aiDifficulty = work->aiDifficulty - 0.1f;
     }
-    if ((work->unk_14 == fn_1_107B0(&sp14)) && (fn_1_108C4() >= (REFRESH_RATE/5.0f))) {
-        if (((var_r30->unk_6C == 0) && (work->unk_6C == 0)) || (fn_1_108C4() < 0x3E8)) {
-            if ((work->unk_30 == 0) || (var_r30->unk_30 == 0)) {
-                VECSubtract(&sp14, &work->unk_128, &sp8);
-                sp8.y = 0.0f;
-                var_f31 = VECMag(&sp8) - (100.0f * (2.0f * work->unk_C0));
-                VECSubtract(&sp14, &var_r30->unk_128, &sp8);
-                sp8.y = 0.0f;
-                var_f30 = VECMag(&sp8) - (100.0f * (2.0f * var_r30->unk_C0));
-                if ((work->unk_30 != 0) || (work->unk_60 != 0)) {
-                    var_f31 = 2000.0f;
+    if ((work->teamIndex == GetItemPosition(&ballPosition)) && (GetItemState() >= (REFRESH_RATE/5.0f))) {
+        if (((opponent->defenseActive == 0) && (work->defenseActive == 0)) || (GetItemState() < 0x3E8)) {
+            if ((work->isPlaying == 0) || (opponent->isPlaying == 0)) {
+                VECSubtract(&ballPosition, &work->position, &playerDelta);
+                playerDelta.y = 0.0f;
+                playerDistance = VECMag(&playerDelta) - (100.0f * (2.0f * work->aiDifficulty));
+                VECSubtract(&ballPosition, &opponent->position, &playerDelta);
+                playerDelta.y = 0.0f;
+                opponentDistance = VECMag(&playerDelta) - (100.0f * (2.0f * opponent->aiDifficulty));
+                if ((work->isPlaying != 0) || (work->hasContactedBall != 0)) {
+                    playerDistance = 2000.0f;
                 }
-                if ((var_r30->unk_30 != 0) || (var_r30->unk_60 != 0)) {
-                    var_f30 = 2000.0f;
+                if ((opponent->isPlaying != 0) || (opponent->hasContactedBall != 0)) {
+                    opponentDistance = 2000.0f;
                 }
-                if (var_f31 >= 300.0f) {
-                    var_r30->unk_F4 = 0;
+                if (playerDistance >= 300.0f) {
+                    opponent->aiDecisionState = 0;
                 }
-                if (var_f30 >= 300.0f) {
-                    work->unk_F4 = 0;
+                if (opponentDistance >= 300.0f) {
+                    work->aiDecisionState = 0;
                 }
-                if (work->unk_F4 != 0) {
-                    var_f31 += 300.0f;
+                if (work->aiDecisionState != 0) {
+                    playerDistance += 300.0f;
                 }
-                if (var_r30->unk_F4 != 0) {
-                    var_f30 += 300.0f;
+                if (opponent->aiDecisionState != 0) {
+                    opponentDistance += 300.0f;
                 }
-                var_r30->unk_6C = work->unk_6C = 0;
-                if (var_f31 <= var_f30) {
-                    work->unk_6C = 1;
-                    work->unk_F4 = 0;
+                opponent->defenseActive = work->defenseActive = 0;
+                if (playerDistance <= opponentDistance) {
+                    work->defenseActive = 1;
+                    work->aiDecisionState = 0;
                 }
                 else {
-                    var_r30->unk_6C = 1;
-                    var_r30->unk_F4 = 0;
+                    opponent->defenseActive = 1;
+                    opponent->aiDecisionState = 0;
                 }
-                if (work->unk_F4 == 0) {
-                    work->unk_F8 = 0;
+                if (work->aiDecisionState == 0) {
+                    work->aiDecisionFlags = 0;
                 }
-                if (var_r30->unk_F4 == 0) {
-                    var_r30->unk_F8 = 0;
+                if (opponent->aiDecisionState == 0) {
+                    opponent->aiDecisionFlags = 0;
                 }
             }
         }
-        else if (fn_1_10FDC() == 1) {
-            work->unk_6C = fn_1_11004(work->unk_14, work->unk_18) == 0;
-            var_r30->unk_6C = work->unk_6C == 0;
+        else if (GetPlayerPointGroup() == 1) {
+            work->defenseActive = IsPlayerContact(work->teamIndex, work->playerSide) == 0;
+            opponent->defenseActive = work->defenseActive == 0;
         }
     }
-    else if (work->unk_14 != fn_1_10740(&sp14)) {
-        var_r30->unk_6C = work->unk_6C = 0;
+    else if (work->teamIndex != GetItemTargetPosition(&ballPosition)) {
+        opponent->defenseActive = work->defenseActive = 0;
     }
 }
 
-void fn_1_873C(OMOBJ *object)
+void UpdatePlayerScoring(OMOBJ *object)
 {
-    M433PlayerWork *work = object->data;
-    work->unk_EC = 0;
-    if (frandmod(0x3E8) < (600.0f * work->unk_C0)) {
-        work->unk_EC = 1;
+    M433PlayerState *work = object->data;
+    work->aiPreviousTargetMode = 0;
+    if (frandmod(0x3E8) < (600.0f * work->aiDifficulty)) {
+        work->aiPreviousTargetMode = 1;
     }
-    work->unk_F4 = 0;
-    work->unk_F8 = 0;
-    if ((work->unk_18 != fn_1_10F38(work->unk_14)) && (work->unk_74 != 0) && (frandmod(0x3E8) < (500.0f * work->unk_C0))) {
-        work->unk_F4 = 1;
-        work->unk_D4 = ((REFRESH_RATE * (0.5f * work->unk_C0)) / 1000.0f) * frandmod(0x3E8);
-        work->unk_D8 = 0;
+    work->aiDecisionState = 0;
+    work->aiDecisionFlags = 0;
+    if ((work->playerSide != GetPlayerServeCell(work->teamIndex)) && (work->playerActionState != 0) && (frandmod(0x3E8) < (500.0f * work->aiDifficulty))) {
+        work->aiDecisionState = 1;
+        work->aiActionThreshold = ((REFRESH_RATE * (0.5f * work->aiDifficulty)) / 1000.0f) * frandmod(0x3E8);
+        work->aiActionCount = 0;
     }
-    if (work->unk_18 == fn_1_10F38(work->unk_14)) {
-        work->unk_FC.z = 140.0f;
-        work->unk_FC.x = 540.2f;
+    if (work->playerSide == GetPlayerServeCell(work->teamIndex)) {
+        work->retreatPosition.z = 140.0f;
+        work->retreatPosition.x = 540.2f;
     }
     else {
-        work->unk_FC.z = -140.0f;
-        work->unk_FC.x = 300.5f;
+        work->retreatPosition.z = -140.0f;
+        work->retreatPosition.x = 300.5f;
     }
-    if (work->unk_14 == 0) {
-        work->unk_FC.x *= -1.0f;
+    if (work->teamIndex == 0) {
+        work->retreatPosition.x *= -1.0f;
     }
 }
 
-s32 fn_1_8938(u32 var_r27, Vec *var_r29)
+s32 GetPlayerTargetPosition(u32 teamIndex, Vec *targetPosition)
 {
-    Vec sp2C[2];
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    u32 var_r31;
-    u32 var_r30;
+    Vec candidatePositions[2];
+    Vec playerDelta;
+    Vec targetPosition;
+    Vec opponentDelta;
+    float targetDistance;
+    float opponentDistance;
+    float candidateAngle;
+    float candidateScore;
+    u32 candidateIndex;
+    u32 selectedCandidate;
 
-    for (var_r31 = 0, var_r30 = 0; (var_r30 < 4) && (var_r31 < 2); var_r30++) {
-        M433PlayerWork *work = lbl_1_bss_7D0[var_r30]->data;
-        if (work->unk_14 != var_r27) {
-            sp2C[var_r31] = work->unk_128;
-            sp2C[var_r31].y = 0.0f;
-            var_r31++;
+    for (candidateIndex = 0, selectedCandidate = 0; (selectedCandidate < 4) && (candidateIndex < 2); selectedCandidate++) {
+        M433PlayerState *work = playerObjects[selectedCandidate]->data;
+        if (work->teamIndex != teamIndex) {
+            candidatePositions[candidateIndex] = work->position;
+            candidatePositions[candidateIndex].y = 0.0f;
+            candidateIndex++;
         }
     }
-    if (var_r31 < 2) {
+    if (candidateIndex < 2) {
         return 0;
     }
-    if (var_r27 == 1) {
-        sp2C[0].x *= -1.0f;
-        sp2C[1].x *= -1.0f;
+    if (teamIndex == 1) {
+        candidatePositions[0].x *= -1.0f;
+        candidatePositions[1].x *= -1.0f;
     }
-    var_f29 = 47.0f;
-    var_f28 = 70.0f;
-    var_f30 = -1.0f;
-    sp14.z = -350.0f;
-    sp14.y = 0.0f;
-    for (var_r30 = 0; var_r30 <= 0xA; var_r30++) {
-        sp14.x = 230.0f;
-        for (var_r31 = 0; var_r31 <= 0xA; var_r31++) {
-            VECSubtract(&sp14, &sp2C[0], &sp20);
-            var_f31 = VECMag(&sp20);
-            VECSubtract(&sp14, &sp2C[1], &sp20);
-            var_f31 *= VECMag(&sp20);
-            if (var_f31 > var_f30) {
-                var_f30 = var_f31;
-                sp8 = sp14;
+    candidateAngle = 47.0f;
+    candidateScore = 70.0f;
+    opponentDistance = -1.0f;
+    targetPosition.z = -350.0f;
+    targetPosition.y = 0.0f;
+    for (selectedCandidate = 0; selectedCandidate <= 0xA; selectedCandidate++) {
+        targetPosition.x = 230.0f;
+        for (candidateIndex = 0; candidateIndex <= 0xA; candidateIndex++) {
+            VECSubtract(&targetPosition, &candidatePositions[0], &playerDelta);
+            targetDistance = VECMag(&playerDelta);
+            VECSubtract(&targetPosition, &candidatePositions[1], &playerDelta);
+            targetDistance *= VECMag(&playerDelta);
+            if (targetDistance > opponentDistance) {
+                opponentDistance = targetDistance;
+                opponentDelta = targetPosition;
             }
-            sp14.x += var_f29;
+            targetPosition.x += candidateAngle;
         }
-        sp14.z += var_f28;
+        targetPosition.z += candidateScore;
     }
-    *var_r29 = sp8;
-    var_r29->x -= 465.0f;
-    var_r29->x *= 0.004255319f;
-    var_r29->z *= 0.0028571428f;
+    *targetPosition = opponentDelta;
+    targetPosition->x -= 465.0f;
+    targetPosition->x *= 0.004255319f;
+    targetPosition->z *= 0.0028571428f;
     return 1;
 }
 
-void fn_1_8BD0(OMOBJ *object)
+void UpdatePlayerAi(OMOBJ *object)
 {
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
+    Vec targetPosition;
+    Vec movementDelta;
+    float distanceToTarget;
+    float movementSpeed;
 
-    M433PlayerWork *work = object->data;
-    s32 var_r29 = 1;
-    if ((work->unk_30 == 0) && (work->unk_60 == 0)) {
-        if ((work->unk_24 > 0.0f) && (work->unk_34 == 0)) {
-            work->unk_A8 = work->unk_28;
+    M433PlayerState *work = object->data;
+    s32 movementState = 1;
+    if ((work->isPlaying == 0) && (work->hasContactedBall == 0)) {
+        if ((work->stickMagnitude > 0.0f) && (work->hasActiveAction == 0)) {
+            work->targetRotation = work->stickAngle;
         }
-        if ((work->unk_24 > 0.05f) && (work->unk_34 == 0)) {
-            work->unk_134.x = (1.0f/REFRESH_RATE) * (550.0 * (work->unk_24 * sind(work->unk_28)));
-            work->unk_134.z = (1.0f/REFRESH_RATE) * (550.0 * (work->unk_24 * cosd(work->unk_28)));
-            if (work->unk_2C != 0) {
-                work->unk_AC = 0.1f;
+        if ((work->stickMagnitude > 0.05f) && (work->hasActiveAction == 0)) {
+            work->velocity.x = (1.0f/REFRESH_RATE) * (550.0 * (work->stickMagnitude * sind(work->stickAngle)));
+            work->velocity.z = (1.0f/REFRESH_RATE) * (550.0 * (work->stickMagnitude * cosd(work->stickAngle)));
+            if (work->isCpu != 0) {
+                work->rotationStep = 0.1f;
             }
             else {
-                work->unk_AC = 0.2f;
+                work->rotationStep = 0.2f;
             }
-            work->unk_B0 = 0.0f;
-            if (fn_1_B7AC(object) != 0) {
-                var_f30 = 0.5f;
-                if (work->unk_0C == 2) {
-                    var_f30 = 0.45f;
+            work->rotationAcceleration = 0.0f;
+            if (GetPlayerActionState(object) != 0) {
+                movementSpeed = 0.5f;
+                if (work->actionCounter == 2) {
+                    movementSpeed = 0.45f;
                 }
-                if (work->unk_24 > var_f30) {
-                    fn_1_B4D4(object, 2);
-                    var_f31 = work->unk_24;
+                if (work->stickMagnitude > movementSpeed) {
+                    SetPlayerAnimation(object, 2);
+                    distanceToTarget = work->stickMagnitude;
                 }
                 else {
-                    fn_1_B4D4(object, 1);
-                    var_f31 = work->unk_24 / var_f30;
+                    SetPlayerAnimation(object, 1);
+                    distanceToTarget = work->stickMagnitude / movementSpeed;
                 }
-                if (work->unk_04 < 0) {
-                    CharMotionSpeedSet(work->unk_00, var_f31);
+                if (work->npcModelIndex < 0) {
+                    CharMotionSpeedSet(work->characterId, distanceToTarget);
                 }
                 else {
-                    Hu3DMotionSpeedSet(object->mdlId[0], var_f31);
+                    Hu3DMotionSpeedSet(object->mdlId[0], distanceToTarget);
                 }
             }
-            if ((work->unk_24 > 0.5f) && (((work->unk_88 + 0xF) & 0xF) == 0)) {
-                fn_1_D888(&work->unk_128, 0.2f);
+            if ((work->stickMagnitude > 0.5f) && (((work->framesInAction + 0xF) & 0xF) == 0)) {
+                ApproachVector(&work->position, 0.2f);
             }
         }
         else {
-            work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
-            if ((work->unk_5C != 0) && (fn_1_10FDC() >= 2)) {
-                fn_1_B4D4(object, 0x10);
+            work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
+            if ((work->canContactBall != 0) && (GetPlayerPointGroup() >= 2)) {
+                SetPlayerAnimation(object, 0x10);
             }
-            else if (work->unk_4C != 0) {
-                fn_1_B4D4(object, 0xF);
+            else if (work->isHighBallContact != 0) {
+                SetPlayerAnimation(object, 0xF);
             }
-            else if (work->unk_44 != 0) {
-                fn_1_B4D4(object, 0xE);
+            else if (work->opponentTargetingState != 0) {
+                SetPlayerAnimation(object, 0xE);
             }
             else {
-                fn_1_BAE0(object, 0);
+                CheckPlayerAction(object, 0);
             }
-            if ((var_r29 != 0) && (work->unk_24 == 0.0f)) {
-                fn_1_10B20(0.0f, &sp14);
-                VECSubtract(&sp14, &work->unk_128, &sp8);
-                work->unk_A8 = atan2d(sp8.x, sp8.z);
-                work->unk_AC = 0.1f;
-                work->unk_B0 = 0.0f;
+            if ((movementState != 0) && (work->stickMagnitude == 0.0f)) {
+                UpdateItemFlightPosition(0.0f, &targetPosition);
+                VECSubtract(&targetPosition, &work->position, &movementDelta);
+                work->targetRotation = atan2d(movementDelta.x, movementDelta.z);
+                work->rotationStep = 0.1f;
+                work->rotationAcceleration = 0.0f;
             }
         }
     }
 }
 
-void fn_1_8F80(OMOBJ *object)
+void UpdatePlayerActionState(OMOBJ *object)
 {
-    Vec sp1C;
-    Vec sp10;
-    float var_f31;
-    float var_f30;
+    Vec targetPosition;
+    Vec movementDelta;
+    float distanceToTarget;
+    float movementSpeed;
 
-    M433PlayerWork *work = object->data;
-    s32 var_r29 = work->unk_40;
+    M433PlayerState *work = object->data;
+    s32 movementState = work->actionCooldownActive;
     {
-        s32 sp8[2] = { 0x6A4, 0x6A5 };
-        work->unk_3C = 0;
-        work->unk_40 = 0;
-        if (work->unk_04 < 0) {
-            char *var_r28 = CharModelItemHookGet(work->unk_00, 4, 0);
-            Hu3DModelObjPosGet(object->mdlId[0], var_r28, &sp10);
+        s32 actionSoundEffectIds[2] = { 0x6A4, 0x6A5 };
+        work->actionFlags = 0;
+        work->actionCooldownActive = 0;
+        if (work->npcModelIndex < 0) {
+            char *itemHookName = CharModelItemHookGet(work->characterId, 4, 0);
+            Hu3DModelObjPosGet(object->mdlId[0], itemHookName, &movementDelta);
         }
         else {
-            Hu3DModelObjPosGet(object->mdlId[0], lbl_1_data_450[work->unk_04], &sp10);
+            Hu3DModelObjPosGet(object->mdlId[0], itemHookJointNames[work->npcModelIndex], &movementDelta);
         }
-        switch (work->unk_8C) {
+        switch (work->actionFrame) {
             case 0:
-                work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
-                work->unk_8C++;
-                work->unk_88 = 0;
+                work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
+                work->actionFrame++;
+                work->framesInAction = 0;
 
             case 1:
-                work->unk_30 = 0;
-                work->unk_38 = 1;
-                fn_1_B4D4(object, 3);
-                fn_1_FE8C(&sp10, 0, work->unk_14, work->unk_18);
-                if (fn_1_10ECC(work->unk_14) != 1) {
-                    work->unk_88 = 0;
+                work->isPlaying = 0;
+                work->actionSubstate = 1;
+                SetPlayerAnimation(object, 3);
+                SetPlayerItemState(&movementDelta, 0, work->teamIndex, work->playerSide);
+                if (GetPlayerGamePhase(work->teamIndex) != 1) {
+                    work->framesInAction = 0;
                     break;
                 }
-                if (work->unk_34 == 0) {
-                    work->unk_3C = 1;
-                    if ((work->unk_1C & 0x100) || (work->unk_88 > (REFRESH_RATE*5.0f))) {
-                        fn_1_B4D4(object, 4);
-                        work->unk_30 = 1;
-                        work->unk_8C++;
-                        work->unk_88 = 0;
+                if (work->hasActiveAction == 0) {
+                    work->actionFlags = 1;
+                    if ((work->pressedButtons & 0x100) || (work->framesInAction > (REFRESH_RATE*5.0f))) {
+                        SetPlayerAnimation(object, 4);
+                        work->isPlaying = 1;
+                        work->actionFrame++;
+                        work->framesInAction = 0;
                     }
                 }
                 break;
             case 2:
-                if (work->unk_60 == 0) {
-                    work->unk_134.x = (100.0f*(1.0f/REFRESH_RATE)) * (2.0 * sind((10.0f + (((1800.0f/REFRESH_RATE)/7) * work->unk_88))));
-                    if (work->unk_14 != 0) {
-                        work->unk_134.x *= -1.0f;
+                if (work->hasContactedBall == 0) {
+                    work->velocity.x = (100.0f*(1.0f/REFRESH_RATE)) * (2.0 * sind((10.0f + (((1800.0f/REFRESH_RATE)/7) * work->framesInAction))));
+                    if (work->teamIndex != 0) {
+                        work->velocity.x *= -1.0f;
                     }
                 }
-                if ((work->unk_88 >= (REFRESH_RATE*0.15f)) && (work->unk_38 != 0)) {
-                    if (work->unk_14 != 0) {
-                        var_f30 = -1.0f;
+                if ((work->framesInAction >= (REFRESH_RATE*0.15f)) && (work->actionSubstate != 0)) {
+                    if (work->teamIndex != 0) {
+                        movementSpeed = -1.0f;
                     }
                     else {
-                        var_f30 = 1.0f;
+                        movementSpeed = 1.0f;
                     }
-                    sp1C.x = object->trans.x + (250.0f * var_f30);
-                    sp1C.y = 80.0f + object->trans.y;
-                    sp1C.z = sp10.z;
-                    fn_1_FE8C(&sp1C, 1, work->unk_14, work->unk_18);
-                    work->unk_38 = 0;
+                    targetPosition.x = object->trans.x + (250.0f * movementSpeed);
+                    targetPosition.y = 80.0f + object->trans.y;
+                    targetPosition.z = movementDelta.z;
+                    SetPlayerItemState(&targetPosition, 1, work->teamIndex, work->playerSide);
+                    work->actionSubstate = 0;
                 }
-                else if (work->unk_88 >= ((REFRESH_RATE*28.0f)/60.0f)) {
-                    var_f31 = 0.5f;
-                    work->unk_124 = (2.0f * -(350.0f - lbl_1_data_E0[work->unk_00])) / (var_f31 * var_f31);
-                    work->unk_134.y = (1.0f/REFRESH_RATE) * (-work->unk_124 * var_f31);
-                    work->unk_60 = 1;
-                    work->unk_8C++;
-                    work->unk_88 = 0;
-                    fn_1_D888(&work->unk_128, 0.5f);
+                else if (work->framesInAction >= ((REFRESH_RATE*28.0f)/60.0f)) {
+                    distanceToTarget = 0.5f;
+                    work->aiMovementSpeed = (2.0f * -(350.0f - characterModelHeights[work->characterId])) / (distanceToTarget * distanceToTarget);
+                    work->velocity.y = (1.0f/REFRESH_RATE) * (-work->aiMovementSpeed * distanceToTarget);
+                    work->hasContactedBall = 1;
+                    work->actionFrame++;
+                    work->framesInAction = 0;
+                    ApproachVector(&work->position, 0.5f);
                 }
-                if (work->unk_38 == 0) {
-                    fn_1_10260(work->unk_28, work->unk_24, work->unk_14, 0, &sp1C);
+                if (work->actionSubstate == 0) {
+                    UpdateItemMotion(work->stickAngle, work->stickMagnitude, work->teamIndex, 0, &targetPosition);
                     break;
                 }
-                fn_1_FE8C(&sp10, 0, work->unk_14, work->unk_18);
+                SetPlayerItemState(&movementDelta, 0, work->teamIndex, work->playerSide);
                 break;
             case 3:
-                work->unk_134.y += (1.0f/REFRESH_RATE) * ((1.0f/REFRESH_RATE) * work->unk_124);
-                if ((work->unk_88 > (REFRESH_RATE*0.45f)) && (work->unk_88 < (REFRESH_RATE*0.85f))) {
-                    work->unk_40 = 1;
+                work->velocity.y += (1.0f/REFRESH_RATE) * ((1.0f/REFRESH_RATE) * work->aiMovementSpeed);
+                if ((work->framesInAction > (REFRESH_RATE*0.45f)) && (work->framesInAction < (REFRESH_RATE*0.85f))) {
+                    work->actionCooldownActive = 1;
                 }
-                fn_1_10260(work->unk_28, work->unk_24, work->unk_14, work->unk_40, &sp1C);
-                if (((work->unk_40 != 0) && ((work->unk_1C & 0x100) != 0)) || ((work->unk_40 == 0) && (var_r29 != 0))) {
-                    fn_1_B4D4(object, 5);
-                    if (work->unk_40 == 0) {
-                        fn_1_1070C();
+                UpdateItemMotion(work->stickAngle, work->stickMagnitude, work->teamIndex, work->actionCooldownActive, &targetPosition);
+                if (((work->actionCooldownActive != 0) && ((work->pressedButtons & 0x100) != 0)) || ((work->actionCooldownActive == 0) && (movementState != 0))) {
+                    SetPlayerAnimation(object, 5);
+                    if (work->actionCooldownActive == 0) {
+                        ResetItemState();
                     }
-                    fn_1_FE8C(&sp1C, 2, work->unk_14, work->unk_18);
-                    work->unk_40 = 0;
-                    work->unk_8C = 5;
-                    work->unk_88 = 0;
-                    HuAudFXPlay(sp8[work->unk_14]);
+                    SetPlayerItemState(&targetPosition, 2, work->teamIndex, work->playerSide);
+                    work->actionCooldownActive = 0;
+                    work->actionFrame = 5;
+                    work->framesInAction = 0;
+                    HuAudFXPlay(actionSoundEffectIds[work->teamIndex]);
                 }
                 break;
             case 4:
-                if (work->unk_88 >= (REFRESH_RATE/5.0f)) {
-                    work->unk_60 = 0;
-                    work->unk_8C = 1;
-                    work->unk_88 = 0;
+                if (work->framesInAction >= (REFRESH_RATE/5.0f)) {
+                    work->hasContactedBall = 0;
+                    work->actionFrame = 1;
+                    work->framesInAction = 0;
                 }
                 break;
             case 5:
-                work->unk_134.y += (1.0f/REFRESH_RATE) * ((1.0f/REFRESH_RATE) * work->unk_124);
-                if (work->unk_128.y <= 0.0f) {
-                    work->unk_60 = 0;
-                    fn_1_D888(&work->unk_128, 0.5f);
-                    work->unk_30 = 0;
-                    work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
+                work->velocity.y += (1.0f/REFRESH_RATE) * ((1.0f/REFRESH_RATE) * work->aiMovementSpeed);
+                if (work->position.y <= 0.0f) {
+                    work->hasContactedBall = 0;
+                    ApproachVector(&work->position, 0.5f);
+                    work->isPlaying = 0;
+                    work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
                 }
                 break;
         }
     }
 }
 
-void fn_1_9688(OMOBJ *object)
+void UpdatePlayerModel(OMOBJ *object)
 {
-    Vec sp2C;
-    Vec sp20;
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    Vec playerPosition;
+    Vec targetPosition;
+    float targetDistance;
+    float directionX;
+    float directionZ;
 
-    M433PlayerWork *work = object->data;
-    s32 sp38[3][3] = { { 3, 4, 6 }, { 3, 4, 6 }, { 3, 4, 7 } };
-    s32 sp18[2] = { 0x6AD, 0x6AE };
-    s32 sp10[2] = { 0x6A6, 0x6A7 };
-    s32 sp8[2] = { 0x6AA, 0x6AB };
-    M433PlayerWork *var_r29 = work->unk_14C->data;
+    M433PlayerState *work = object->data;
+    s32 itemTypesByPointGroup[3][3] = { { 3, 4, 6 }, { 3, 4, 6 }, { 3, 4, 7 } };
+    s32 secondaryItemSoundEffects[2] = { 0x6AD, 0x6AE };
+    s32 itemSoundEffects[2] = { 0x6A6, 0x6A7 };
+    s32 contactSoundEffects[2] = { 0x6AA, 0x6AB };
+    M433PlayerState *playerState = work->opponentObject->data;
 
-    work->unk_4C = 0;
-    work->unk_44 = 0;
-    work->unk_48 = 0;
-    if (work->unk_60 == 0) {
-        switch (work->unk_7C) {
+    work->isHighBallContact = 0;
+    work->opponentTargetingState = 0;
+    work->opponentRecentState = 0;
+    if (work->hasContactedBall == 0) {
+        switch (work->stateFlags7C) {
             case 0:
-                if ((work->unk_7C == 0) && (work->unk_78 == 0) && (work->unk_80 == 0)
-                    && (work->unk_30 = 0, work->unk_64 = 0, ((work->unk_34 == 0) != 0)) && (work->unk_14 == fn_1_10740(&sp2C))
-                    && (fn_1_11004(work->unk_14, work->unk_18) != 0) && (fn_1_10FDC() < 3)) {
-                    work->unk_140 = sp2C;
-                    var_f31 = fn_1_10848();
-                    if ((var_f31 <= 0.8f) && (var_f31 >= 0.02f) && (var_r29->unk_64 == 0)) {
-                        VECSubtract(&sp2C, &work->unk_128, &sp20);
-                        sp20.y = 0.0f;
-                        var_f30 = VECMag(&sp20);
-                        work->unk_98 = var_f30;
-                        if (var_f30 <= 200.0f) {
-                            if ((var_f31 >= 0.2f) && (var_f30 <= 70.0f) && (var_f31 >= (0.2f + (0.001f * var_f30))) && (fn_1_10FDC() >= 1)) {
-                                work->unk_4C = 1;
+                if ((work->stateFlags7C == 0) && (work->stateFlags78 == 0) && (work->stateFlags80 == 0)
+                    && (work->isPlaying = 0, work->contactFollowThroughActive = 0, ((work->hasActiveAction == 0) != 0)) && (work->teamIndex == GetItemTargetPosition(&playerPosition))
+                    && (IsPlayerContact(work->teamIndex, work->playerSide) != 0) && (GetPlayerPointGroup() < 3)) {
+                    work->movementTarget = playerPosition;
+                    targetDistance = GetItemVerticalSpeed();
+                    if ((targetDistance <= 0.8f) && (targetDistance >= 0.02f) && (playerState->contactFollowThroughActive == 0)) {
+                        VECSubtract(&playerPosition, &work->position, &targetPosition);
+                        targetPosition.y = 0.0f;
+                        directionX = VECMag(&targetPosition);
+                        work->lastBallContactTime = directionX;
+                        if (directionX <= 200.0f) {
+                            if ((targetDistance >= 0.2f) && (directionX <= 70.0f) && (targetDistance >= (0.2f + (0.001f * directionX))) && (GetPlayerPointGroup() >= 1)) {
+                                work->isHighBallContact = 1;
                             }
-                            if ((var_f31 >= 0.02f) && (var_f30 <= 100.0f) && (var_f31 >= (0.02f + (0.001f * var_f30)))) {
-                                work->unk_44 = 1;
+                            if ((targetDistance >= 0.02f) && (directionX <= 100.0f) && (targetDistance >= (0.02f + (0.001f * directionX)))) {
+                                work->opponentTargetingState = 1;
                             }
-                            if ((var_f31 >= 0.1f) && (var_f31 <= 0.3f) && (var_f30 > 100.0f) && (var_f30 <= 200.0f)
-                                && (var_f31 >= (0.1f + (0.0002f * (var_f30 - 100.0f))))) {
-                                work->unk_48 = 1;
+                            if ((targetDistance >= 0.1f) && (targetDistance <= 0.3f) && (directionX > 100.0f) && (directionX <= 200.0f)
+                                && (targetDistance >= (0.1f + (0.0002f * (directionX - 100.0f))))) {
+                                work->opponentRecentState = 1;
                             }
                         }
                     }
-                    if ((work->unk_1C & 0x100) != 0) {
-                        work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
-                        if (work->unk_4C != 0) {
-                            work->unk_7C = 1;
-                            var_f31 -= 0.12f;
-                            work->unk_98 *= 0.014285714f;
-                            fn_1_B4D4(object, 0xF);
-                            fn_1_10B20(0.0f, &sp2C);
+                    if ((work->pressedButtons & 0x100) != 0) {
+                        work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
+                        if (work->isHighBallContact != 0) {
+                            work->stateFlags7C = 1;
+                            targetDistance -= 0.12f;
+                            work->lastBallContactTime *= 0.014285714f;
+                            SetPlayerAnimation(object, 0xF);
+                            UpdateItemFlightPosition(0.0f, &playerPosition);
                         }
-                        else if (work->unk_44 != 0) {
-                            work->unk_7C = 2;
-                            var_f31 -= 0.03f;
-                            work->unk_98 *= 0.01f;
-                            fn_1_B4D4(object, 0xE);
-                            fn_1_10B20(0.0f, &sp2C);
+                        else if (work->opponentTargetingState != 0) {
+                            work->stateFlags7C = 2;
+                            targetDistance -= 0.03f;
+                            work->lastBallContactTime *= 0.01f;
+                            SetPlayerAnimation(object, 0xE);
+                            UpdateItemFlightPosition(0.0f, &playerPosition);
                         }
-                        else if (work->unk_48 != 0) {
-                            work->unk_7C = 3;
-                            var_f31 -= 0.03f;
-                            work->unk_98 *= 0.005f;
-                            fn_1_B4D4(object, 7);
-                            fn_1_D888(&work->unk_128, 0.75f);
-                            HuAudFXPlay(sp8[work->unk_14]);
+                        else if (work->opponentRecentState != 0) {
+                            work->stateFlags7C = 3;
+                            targetDistance -= 0.03f;
+                            work->lastBallContactTime *= 0.005f;
+                            SetPlayerAnimation(object, 7);
+                            ApproachVector(&work->position, 0.75f);
+                            HuAudFXPlay(contactSoundEffects[work->teamIndex]);
                         }
                         else {
-                            if (fn_1_10FDC() >= 1) {
-                                fn_1_B4D4(object, 9);
+                            if (GetPlayerPointGroup() >= 1) {
+                                SetPlayerAnimation(object, 9);
                             }
                             else {
-                                fn_1_B4D4(object, 6);
+                                SetPlayerAnimation(object, 6);
                             }
-                            work->unk_7C = 4;
+                            work->stateFlags7C = 4;
                         }
-                        if (work->unk_7C < 4) {
-                            work->unk_64 = 1;
-                            if (var_f31 < 0.0f) {
-                                var_f31 = 0.0f;
+                        if (work->stateFlags7C < 4) {
+                            work->contactFollowThroughActive = 1;
+                            if (targetDistance < 0.0f) {
+                                targetDistance = 0.0f;
                             }
-                            work->unk_90 = REFRESH_RATE * var_f31;
+                            work->aiActionFlags = REFRESH_RATE * targetDistance;
                         }
-                        VECSubtract(&sp2C, &work->unk_128, &sp20);
-                        work->unk_A8 = atan2d(sp20.x, sp20.z);
-                        work->unk_AC = 0.2f;
-                        work->unk_B0 = 0.0f;
-                        work->unk_30 = 1;
-                        work->unk_88 = 0;
+                        VECSubtract(&playerPosition, &work->position, &targetPosition);
+                        work->targetRotation = atan2d(targetPosition.x, targetPosition.z);
+                        work->rotationStep = 0.2f;
+                        work->rotationAcceleration = 0.0f;
+                        work->isPlaying = 1;
+                        work->framesInAction = 0;
                     }
                 }
                 break;
             case 1:
-                if (work->unk_88 >= work->unk_90) {
-                    if (work->unk_64 != 0) {
-                        if (fn_1_10FDC() >= 2) {
-                            sp2C.x = 350.0f;
-                            sp2C.y = 11.0f;
-                            sp2C.z = 0.0f;
-                            if (work->unk_14 != 0) {
-                                sp2C.x *= -1.0f;
+                if (work->framesInAction >= work->aiActionFlags) {
+                    if (work->contactFollowThroughActive != 0) {
+                        if (GetPlayerPointGroup() >= 2) {
+                            playerPosition.x = 350.0f;
+                            playerPosition.y = 11.0f;
+                            playerPosition.z = 0.0f;
+                            if (work->teamIndex != 0) {
+                                playerPosition.x *= -1.0f;
                             }
                         }
                         else {
-                            sp2C = var_r29->unk_128;
-                            sp2C.y = 11.0f;
-                            sp2C.x *= 0.5f;
+                            playerPosition = playerState->position;
+                            playerPosition.y = 11.0f;
+                            playerPosition.x *= 0.5f;
                         }
-                        var_f29 = frandmod(0x168);
-                        var_f30 = 200.0f * work->unk_98;
-                        sp2C.x += var_f30 * sind(var_f29);
-                        sp2C.z += var_f30 * cosd(var_f29);
-                        if (fn_1_10FDC() < 2) {
-                            fn_1_10130(&sp2C, work->unk_14);
+                        directionZ = frandmod(0x168);
+                        directionX = 200.0f * work->lastBallContactTime;
+                        playerPosition.x += directionX * sind(directionZ);
+                        playerPosition.z += directionX * cosd(directionZ);
+                        if (GetPlayerPointGroup() < 2) {
+                            ClampPlayerPosition(&playerPosition, work->teamIndex);
                         }
-                        fn_1_FE8C(&sp2C, sp38[0][fn_1_10FDC()], work->unk_14, work->unk_18);
-                        fn_1_D888(&work->unk_128, 0.0f);
-                        HuAudFXPlay(sp10[work->unk_14]);
+                        SetPlayerItemState(&playerPosition, itemTypesByPointGroup[0][GetPlayerPointGroup()], work->teamIndex, work->playerSide);
+                        ApproachVector(&work->position, 0.0f);
+                        HuAudFXPlay(itemSoundEffects[work->teamIndex]);
                     }
-                    work->unk_64 = 0;
-                    fn_1_B4D4(object, 9);
-                    VECSubtract(&sp2C, &work->unk_128, &sp20);
-                    work->unk_A8 = atan2d(sp20.x, sp20.z);
-                    work->unk_AC = 0.1f;
-                    work->unk_90 = 0x186A0;
-                    work->unk_88 = 0;
+                    work->contactFollowThroughActive = 0;
+                    SetPlayerAnimation(object, 9);
+                    VECSubtract(&playerPosition, &work->position, &targetPosition);
+                    work->targetRotation = atan2d(targetPosition.x, targetPosition.z);
+                    work->rotationStep = 0.1f;
+                    work->aiActionFlags = 0x186A0;
+                    work->framesInAction = 0;
                     break;
                 }
-                if (work->unk_90 < 0x2710) {
-                    work->unk_134.x = 0.07f * (work->unk_140.x - work->unk_128.x);
-                    work->unk_134.z = 0.07f * (work->unk_140.z - work->unk_128.z);
-                    if (work->unk_64 == 0) {
-                        work->unk_90 = 0;
+                if (work->aiActionFlags < 0x2710) {
+                    work->velocity.x = 0.07f * (work->movementTarget.x - work->position.x);
+                    work->velocity.z = 0.07f * (work->movementTarget.z - work->position.z);
+                    if (work->contactFollowThroughActive == 0) {
+                        work->aiActionFlags = 0;
                     }
                 }
                 else {
-                    work->unk_134.x *= 0.7f;
-                    work->unk_134.z *= 0.7f;
-                    if (fn_1_B6E0(object) != 0) {
-                        work->unk_7C = 0;
+                    work->velocity.x *= 0.7f;
+                    work->velocity.z *= 0.7f;
+                    if (GetPlayerState(object) != 0) {
+                        work->stateFlags7C = 0;
                     }
                 }
                 break;
             case 2:
-                if (work->unk_88 >= work->unk_90) {
-                    if (work->unk_64 != 0) {
-                        switch (fn_1_10FDC()) {
+                if (work->framesInAction >= work->aiActionFlags) {
+                    if (work->contactFollowThroughActive != 0) {
+                        switch (GetPlayerPointGroup()) {
                             case 0:
-                                sp2C = var_r29->unk_128;
-                                sp2C.y = 11.0f;
+                                playerPosition = playerState->position;
+                                playerPosition.y = 11.0f;
                                 break;
                             case 1:
-                                sp2C = var_r29->unk_128;
-                                sp2C.y = 11.0f;
-                                sp2C.x *= 0.5f;
+                                playerPosition = playerState->position;
+                                playerPosition.y = 11.0f;
+                                playerPosition.x *= 0.5f;
                                 break;
                             case 2:
                             default:
-                                sp2C.x = 350.0f;
-                                sp2C.y = 11.0f;
-                                sp2C.z = 0.0f;
-                                if (work->unk_14 != 0) {
-                                    sp2C.x *= -1.0f;
+                                playerPosition.x = 350.0f;
+                                playerPosition.y = 11.0f;
+                                playerPosition.z = 0.0f;
+                                if (work->teamIndex != 0) {
+                                    playerPosition.x *= -1.0f;
                                 }
                                 break;
                         }
-                        var_f29 = frandmod(0x168);
-                        var_f30 = 200.0f * work->unk_98;
-                        sp2C.x += var_f30 * sind(var_f29);
-                        sp2C.z += var_f30 * cosd(var_f29);
-                        if (fn_1_10FDC() < 2) {
-                            fn_1_10130(&sp2C, work->unk_14);
+                        directionZ = frandmod(0x168);
+                        directionX = 200.0f * work->lastBallContactTime;
+                        playerPosition.x += directionX * sind(directionZ);
+                        playerPosition.z += directionX * cosd(directionZ);
+                        if (GetPlayerPointGroup() < 2) {
+                            ClampPlayerPosition(&playerPosition, work->teamIndex);
                         }
-                        fn_1_FE8C(&sp2C, sp38[1][fn_1_10FDC()], work->unk_14, work->unk_18);
-                        fn_1_D888(&work->unk_128, 0.0f);
-                        if (fn_1_10FDC() < 1) {
-                            HuAudFXPlay(sp18[work->unk_14]);
+                        SetPlayerItemState(&playerPosition, itemTypesByPointGroup[1][GetPlayerPointGroup()], work->teamIndex, work->playerSide);
+                        ApproachVector(&work->position, 0.0f);
+                        if (GetPlayerPointGroup() < 1) {
+                            HuAudFXPlay(secondaryItemSoundEffects[work->teamIndex]);
                         }
                         else {
-                            HuAudFXPlay(sp10[work->unk_14]);
+                            HuAudFXPlay(itemSoundEffects[work->teamIndex]);
                         }
                     }
-                    work->unk_64 = 0;
-                    fn_1_B4D4(object, 6);
-                    VECSubtract(&sp2C, &work->unk_128, &sp20);
-                    work->unk_A8 = atan2d(sp20.x, sp20.z);
-                    work->unk_AC = 0.1f;
-                    work->unk_90 = 0x186A0;
-                    work->unk_88 = 0;
+                    work->contactFollowThroughActive = 0;
+                    SetPlayerAnimation(object, 6);
+                    VECSubtract(&playerPosition, &work->position, &targetPosition);
+                    work->targetRotation = atan2d(targetPosition.x, targetPosition.z);
+                    work->rotationStep = 0.1f;
+                    work->aiActionFlags = 0x186A0;
+                    work->framesInAction = 0;
                     break;
                 }
-                if (work->unk_90 < 0x2710) {
-                    work->unk_134.x = 0.07f * (work->unk_140.x - work->unk_128.x);
-                    work->unk_134.z = 0.07f * (work->unk_140.z - work->unk_128.z);
-                    if (work->unk_64 == 0) {
-                        work->unk_90 = 0;
+                if (work->aiActionFlags < 0x2710) {
+                    work->velocity.x = 0.07f * (work->movementTarget.x - work->position.x);
+                    work->velocity.z = 0.07f * (work->movementTarget.z - work->position.z);
+                    if (work->contactFollowThroughActive == 0) {
+                        work->aiActionFlags = 0;
                         break;
                     }
                 }
                 else {
-                    work->unk_134.x *= 0.7f;
-                    work->unk_134.z *= 0.7f;
-                    if (fn_1_B6E0(object) != 0) {
-                        work->unk_7C = 0;
+                    work->velocity.x *= 0.7f;
+                    work->velocity.z *= 0.7f;
+                    if (GetPlayerState(object) != 0) {
+                        work->stateFlags7C = 0;
                         break;
                     }
                 }
                 break;
             case 3:
-                if (work->unk_88 >= work->unk_90) {
-                    if (work->unk_64 != 0) {
-                        sp2C = work->unk_128;
-                        sp2C.y = 11.0f;
-                        VECSubtract(&var_r29->unk_128, &work->unk_128, &sp20);
-                        var_f29 = 180.0 + (atan2d(sp20.x, sp20.z));
-                        var_f29 += frandmod(0xB4) - 90.0f;
-                        var_f30 = 200.0f * work->unk_98;
-                        sp2C.x += var_f30 * sind(var_f29);
-                        sp2C.z += var_f30 * cosd(var_f29);
-                        fn_1_10130(&sp2C, work->unk_14);
-                        fn_1_FE8C(&sp2C, sp38[2][fn_1_10FDC()], work->unk_14, work->unk_18);
-                        if (fn_1_10FDC() < 1) {
-                            HuAudFXPlay(sp18[work->unk_14]);
+                if (work->framesInAction >= work->aiActionFlags) {
+                    if (work->contactFollowThroughActive != 0) {
+                        playerPosition = work->position;
+                        playerPosition.y = 11.0f;
+                        VECSubtract(&playerState->position, &work->position, &targetPosition);
+                        directionZ = 180.0 + (atan2d(targetPosition.x, targetPosition.z));
+                        directionZ += frandmod(0xB4) - 90.0f;
+                        directionX = 200.0f * work->lastBallContactTime;
+                        playerPosition.x += directionX * sind(directionZ);
+                        playerPosition.z += directionX * cosd(directionZ);
+                        ClampPlayerPosition(&playerPosition, work->teamIndex);
+                        SetPlayerItemState(&playerPosition, itemTypesByPointGroup[2][GetPlayerPointGroup()], work->teamIndex, work->playerSide);
+                        if (GetPlayerPointGroup() < 1) {
+                            HuAudFXPlay(secondaryItemSoundEffects[work->teamIndex]);
                         }
                         else {
-                            HuAudFXPlay(sp10[work->unk_14]);
+                            HuAudFXPlay(itemSoundEffects[work->teamIndex]);
                         }
                     }
-                    work->unk_64 = 0;
-                    work->unk_90 = 0x186A0;
-                    work->unk_88 = 0;
-                    fn_1_D888(&work->unk_128, 1.3f);
+                    work->contactFollowThroughActive = 0;
+                    work->aiActionFlags = 0x186A0;
+                    work->framesInAction = 0;
+                    ApproachVector(&work->position, 1.3f);
                     break;
                 }
-                if (work->unk_90 < 0x2710) {
-                    work->unk_134.x = 0.15f * (work->unk_140.x - work->unk_128.x);
-                    work->unk_134.z = 0.15f * (work->unk_140.z - work->unk_128.z);
+                if (work->aiActionFlags < 0x2710) {
+                    work->velocity.x = 0.15f * (work->movementTarget.x - work->position.x);
+                    work->velocity.z = 0.15f * (work->movementTarget.z - work->position.z);
                     break;
                 }
-                work->unk_134.x *= 0.95f;
-                work->unk_134.z *= 0.95f;
-                if (fn_1_B6E0(object) != 0) {
-                    fn_1_B4D4(object, 8);
-                    work->unk_7C = 4;
+                work->velocity.x *= 0.95f;
+                work->velocity.z *= 0.95f;
+                if (GetPlayerState(object) != 0) {
+                    SetPlayerAnimation(object, 8);
+                    work->stateFlags7C = 4;
                 }
                 break;
             case 4:
-                work->unk_134.x *= 0.95f;
-                work->unk_134.z *= 0.95f;
-                if (fn_1_B6E0(object) != 0) {
-                    work->unk_7C = 0;
+                work->velocity.x *= 0.95f;
+                work->velocity.z *= 0.95f;
+                if (GetPlayerState(object) != 0) {
+                    work->stateFlags7C = 0;
                 }
                 break;
         }
     }
 }
 
-void fn_1_A618(OMOBJ *object)
+void UpdatePlayerContact(OMOBJ *object)
 {
-    Vec sp20;
-    Vec sp14;
-    M433PlayerWork *sp8;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    M433PlayerWork *work = object->data;
-    s32 spC[2] = { 0x6A8, 0x6A9 };
-    sp8 = work->unk_14C->data;
-    work->unk_54 = 0;
-    work->unk_5C = 0;
-    switch (work->unk_80) {
+    Vec targetPosition;
+    Vec playerPosition;
+    M433PlayerState *movementDelta;
+    float targetDistance;
+    float movementSpeed;
+    float targetAngle;
+    M433PlayerState *work = object->data;
+    s32 contactSoundEffects[2] = { 0x6A8, 0x6A9 };
+    movementDelta = work->opponentObject->data;
+    work->movementLockActive = 0;
+    work->canContactBall = 0;
+    switch (work->stateFlags80) {
         case 0:
-            if ((work->unk_7C == 0) && (work->unk_78 == 0) && (work->unk_80 == 0) && (work->unk_30 = 0, work->unk_68 = 0, ((work->unk_34 == 0) != 0))
-                && (fn_1_11004(work->unk_14, work->unk_18) != 0) && (fn_1_10FDC() < 3) && (work->unk_14 == fn_1_10740(&sp20))) {
-                VECSubtract(&sp20, &work->unk_128, &sp14);
-                sp14.y = 0.0f;
-                if (!(VECMag(&sp14) > 500.0f)) {
-                    fn_1_10B20(0.5f, &sp20);
-                    sp20.y -= lbl_1_data_E0[work->unk_00];
-                    VECSubtract(&sp20, &work->unk_128, &sp14);
-                    sp14.y = 0.0f;
-                    if ((VECMag(&sp14) < 200.0f) && (sp20.y >= 50.0f)) {
-                        work->unk_5C = 1;
+            if ((work->stateFlags7C == 0) && (work->stateFlags78 == 0) && (work->stateFlags80 == 0) && (work->isPlaying = 0, work->attackReady = 0, ((work->hasActiveAction == 0) != 0))
+                && (IsPlayerContact(work->teamIndex, work->playerSide) != 0) && (GetPlayerPointGroup() < 3) && (work->teamIndex == GetItemTargetPosition(&targetPosition))) {
+                VECSubtract(&targetPosition, &work->position, &playerPosition);
+                playerPosition.y = 0.0f;
+                if (!(VECMag(&playerPosition) > 500.0f)) {
+                    UpdateItemFlightPosition(0.5f, &targetPosition);
+                    targetPosition.y -= characterModelHeights[work->characterId];
+                    VECSubtract(&targetPosition, &work->position, &playerPosition);
+                    playerPosition.y = 0.0f;
+                    if ((VECMag(&playerPosition) < 200.0f) && (targetPosition.y >= 50.0f)) {
+                        work->canContactBall = 1;
                     }
-                    if (((work->unk_1C & 0x200) != 0) && (work->unk_5C != 0)) {
-                        work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
-                        fn_1_B4D4(object, 0xA);
-                        work->unk_80 = 1;
-                        work->unk_88 = 0;
-                        work->unk_30 = 1;
-                        if (work->unk_5C != 0) {
-                            var_f30 = 0.5f;
-                            work->unk_124 = (2.0f * -sp20.y) / (var_f30 * var_f30);
-                            work->unk_134.y = (1.0f/REFRESH_RATE) * (-work->unk_124 * var_f30);
-                            VECSubtract(&sp20, &work->unk_128, &sp14);
-                            sp14.y = 0.0f;
-                            work->unk_134.x = (1.0f/REFRESH_RATE) * (sp14.x / 0.5f);
-                            work->unk_134.z = (1.0f/REFRESH_RATE) * (sp14.z / 0.5f);
-                            if (work->unk_14 != 0) {
-                                var_f29 = -90.0f;
+                    if (((work->pressedButtons & 0x200) != 0) && (work->canContactBall != 0)) {
+                        work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
+                        SetPlayerAnimation(object, 0xA);
+                        work->stateFlags80 = 1;
+                        work->framesInAction = 0;
+                        work->isPlaying = 1;
+                        if (work->canContactBall != 0) {
+                            movementSpeed = 0.5f;
+                            work->aiMovementSpeed = (2.0f * -targetPosition.y) / (movementSpeed * movementSpeed);
+                            work->velocity.y = (1.0f/REFRESH_RATE) * (-work->aiMovementSpeed * movementSpeed);
+                            VECSubtract(&targetPosition, &work->position, &playerPosition);
+                            playerPosition.y = 0.0f;
+                            work->velocity.x = (1.0f/REFRESH_RATE) * (playerPosition.x / 0.5f);
+                            work->velocity.z = (1.0f/REFRESH_RATE) * (playerPosition.z / 0.5f);
+                            if (work->teamIndex != 0) {
+                                targetAngle = -90.0f;
                             }
                             else {
-                                var_f29 = 90.0f;
+                                targetAngle = 90.0f;
                             }
-                            work->unk_A8 = var_f29;
-                            work->unk_AC = 0.2f;
-                            work->unk_B0 = 0.0f;
-                            work->unk_68 = 1;
+                            work->targetRotation = targetAngle;
+                            work->rotationStep = 0.2f;
+                            work->rotationAcceleration = 0.0f;
+                            work->attackReady = 1;
                         }
                         else {
-                            work->unk_134.y = 890.0f*(1.0f/REFRESH_RATE);
+                            work->velocity.y = 890.0f*(1.0f/REFRESH_RATE);
                         }
-                        work->unk_60 = 1;
-                        fn_1_D888(&work->unk_128, 0.75f);
+                        work->hasContactedBall = 1;
+                        ApproachVector(&work->position, 0.75f);
                     }
                 }
             }
             break;
         case 1:
-            work->unk_134.y += (1.0f/REFRESH_RATE) * ((1.0f/REFRESH_RATE) * work->unk_124);
-            if (work->unk_68 != 0) {
-                var_f31 = ((1.0f/REFRESH_RATE) * work->unk_88) - 0.35f;
-                if ((var_f31 >= 0.0f) && (var_f31 < 0.4)) {
-                    work->unk_54 = 1;
-                    if ((work->unk_1C & 0x100) != 0) {
-                        fn_1_B4D4(object, 0xB);
-                        fn_1_10260(work->unk_28, work->unk_24, work->unk_14, work->unk_54, &sp20);
-                        fn_1_FE8C(&sp20, 5, work->unk_14, work->unk_18);
-                        work->unk_68 = 0;
-                        work->unk_54 = 0;
-                        HuAudFXPlay(spC[work->unk_14]);
+            work->velocity.y += (1.0f/REFRESH_RATE) * ((1.0f/REFRESH_RATE) * work->aiMovementSpeed);
+            if (work->attackReady != 0) {
+                targetDistance = ((1.0f/REFRESH_RATE) * work->framesInAction) - 0.35f;
+                if ((targetDistance >= 0.0f) && (targetDistance < 0.4)) {
+                    work->movementLockActive = 1;
+                    if ((work->pressedButtons & 0x100) != 0) {
+                        SetPlayerAnimation(object, 0xB);
+                        UpdateItemMotion(work->stickAngle, work->stickMagnitude, work->teamIndex, work->movementLockActive, &targetPosition);
+                        SetPlayerItemState(&targetPosition, 5, work->teamIndex, work->playerSide);
+                        work->attackReady = 0;
+                        work->movementLockActive = 0;
+                        HuAudFXPlay(contactSoundEffects[work->teamIndex]);
                     }
                 }
-                else if (var_f31 > 0.0f) {
-                    work->unk_68 = 0;
-                    work->unk_54 = 0;
+                else if (targetDistance > 0.0f) {
+                    work->attackReady = 0;
+                    work->movementLockActive = 0;
                 }
-                fn_1_10260(work->unk_28, work->unk_24, work->unk_14, work->unk_54, &sp20);
+                UpdateItemMotion(work->stickAngle, work->stickMagnitude, work->teamIndex, work->movementLockActive, &targetPosition);
             }
-            if (work->unk_128.y <= 0.0f) {
-                fn_1_D888(&work->unk_128, 0.75f);
-                work->unk_30 = 0;
-                work->unk_80 = 0;
-                work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
-                work->unk_60 = 0;
-                work->unk_68 = 0;
+            if (work->position.y <= 0.0f) {
+                ApproachVector(&work->position, 0.75f);
+                work->isPlaying = 0;
+                work->stateFlags80 = 0;
+                work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
+                work->hasContactedBall = 0;
+                work->attackReady = 0;
             }
             break;
     }
 }
 
-void fn_1_AB88(OMOBJ *object)
+void UpdatePlayerResponse(OMOBJ *object)
 {
-    Vec sp1C;
-    Vec sp10;
-    float var_f29;
-    float var_f28;
+    Vec targetPosition;
+    Vec movementDelta;
+    float playerSpeed;
+    float opponentSpeed;
 
-    M433PlayerWork *work = object->data;
-    s32 var_r30 = 0;
-    s32 sp8[2] = { 0x6A8, 0x6A9 };
-    M433PlayerWork *var_r28 = work->unk_14C->data;
+    M433PlayerState *work = object->data;
+    s32 player = 0;
+    s32 soundIds[2] = { 0x6A8, 0x6A9 };
+    M433PlayerState *opponent = work->opponentObject->data;
 
-    work->unk_58 = 0;
-    switch (work->unk_78) {
+    work->isItemCrossingNearPlayer = 0;
+    switch (work->playerActionState) {
         case 0:
-            if ((work->unk_7C == 0) && (work->unk_78 == 0) && (work->unk_80 == 0) && (work->unk_30 = 0, work->unk_68 = 0, ((work->unk_34 == 0) != 0))
-                && (work->unk_14 == fn_1_107B0(&sp1C)) && (fn_1_11060(work->unk_14) == 0)) {
-                float var_f31 = work->unk_128.x;
-                float var_f30;
-                if (work->unk_14 == 0) {
-                    var_f31 *= -1.0f;
+            if ((work->stateFlags7C == 0) && (work->playerActionState == 0) && (work->stateFlags80 == 0) && (work->isPlaying = 0, work->attackReady = 0, ((work->hasActiveAction == 0) != 0))
+                && (work->teamIndex == GetItemPosition(&targetPosition)) && (IsPlayerContactGroup(work->teamIndex) == 0)) {
+                float playerX = work->position.x;
+                float depthDifference;
+                if (work->teamIndex == 0) {
+                    playerX *= -1.0f;
                 }
-                if (!(var_f31 > 230.0f) && (fn_1_10EA4() != 2)) {
-                    if (fn_1_10D24(&sp1C) != 0) {
-                        var_r30 = 1;
+                if (!(playerX > 230.0f) && (GetActiveContactGroup() != 2)) {
+                    if (GetItemSoundPosition(&targetPosition) != 0) {
+                        player = 1;
                     }
-                    if (var_r30 != 0) {
-                        var_f31 = sp1C.z - work->unk_128.z;
-                        if (var_f31 > 100.0f) {
-                            var_f31 = 100.0f;
+                    if (player != 0) {
+                        playerX = targetPosition.z - work->position.z;
+                        if (playerX > 100.0f) {
+                            playerX = 100.0f;
                         }
-                        else if (var_f31 < -100.0f) {
-                            var_f31 = -100.0f;
+                        else if (playerX < -100.0f) {
+                            playerX = -100.0f;
                         }
                         else {
-                            work->unk_58 = 1;
+                            work->isItemCrossingNearPlayer = 1;
                         }
                     }
-                    if ((work->unk_1C & 0x200) != 0) {
-                        work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
-                        fn_1_B4D4(object, 0xA);
-                        work->unk_78 = 1;
-                        work->unk_88 = 0;
-                        work->unk_30 = 1;
-                        if (work->unk_14 != 0) {
-                            var_f28 = -90.0f;
+                    if ((work->pressedButtons & 0x200) != 0) {
+                        work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
+                        SetPlayerAnimation(object, 0xA);
+                        work->playerActionState = 1;
+                        work->framesInAction = 0;
+                        work->position = 1;
+                        if (work->teamIndex != 0) {
+                            opponentSpeed = -90.0f;
                         }
                         else {
-                            var_f28 = 90.0f;
+                            opponentSpeed = 90.0f;
                         }
-                        work->unk_A8 = var_f28;
-                        work->unk_AC = 0.2f;
-                        work->unk_B0 = 0.0f;
-                        fn_1_D888(&work->unk_128, 0.75f);
-                        var_f30 = 0.5f;
-                        work->unk_124 = (2.0f * -(350.0f - lbl_1_data_E0[work->unk_00])) / (var_f30 * var_f30);
-                        work->unk_134.y = (1.0f/REFRESH_RATE) * (-work->unk_124 * var_f30);
-                        work->unk_134.x = (1.0f/REFRESH_RATE) * (-work->unk_128.x / 0.75f);
-                        if (var_r30 != 0) {
-                            work->unk_134.z = (1.0f/REFRESH_RATE) * (var_f31 / 0.5f);
+                        work->itemSpinSpeed = opponentSpeed;
+                        work->itemPosition = 0.2f;
+                        work->rotationAcceleration = 0.0f;
+                        ApproachVector(&work->position, 0.75f);
+                        depthDifference = 0.5f;
+                        work->aiMovementSpeed = (2.0f * -(350.0f - characterModelHeights[work->playerVisualMode])) / (depthDifference * depthDifference);
+                        work->velocity.y = (1.0f/REFRESH_RATE) * (-work->aiMovementSpeed * depthDifference);
+                        work->velocity.x = (1.0f/REFRESH_RATE) * (-work->position.x / 0.75f);
+                        if (player != 0) {
+                            work->velocity.z = (1.0f/REFRESH_RATE) * (playerX / 0.5f);
                         }
-                        work->unk_60 = 1;
-                        work->unk_58 = 0;
+                        work->hasContactedBall = 1;
+                        work->isItemCrossingNearPlayer = 0;
                     }
                 }
             }
             break;
         case 1:
-            work->unk_134.y += (1.0f/REFRESH_RATE) * ((1.0f/REFRESH_RATE) * work->unk_124);
-            if ((work->unk_14 == fn_1_10740(&sp1C)) && (fn_1_10FDC() == 0)) {
-                fn_1_10B20(0.0f, &sp1C);
+            work->velocity.y += (1.0f/REFRESH_RATE) * ((1.0f/REFRESH_RATE) * work->aiMovementSpeed);
+            if ((work->teamIndex == GetItemTargetPosition(&targetPosition)) && (GetPlayerPointGroup() == 0)) {
+                UpdateItemFlightPosition(0.0f, &targetPosition);
                 #if VERSION_NTSC
-                if ((sp1C.x * work->unk_128.x) > 0.0f) {
+                if ((targetPosition.x * work->position.x) > 0.0f) {
                 #else
-                if ((sp1C.x * work->unk_128.x) > 0.0f && sp1C.y > 100) {
+                if ((targetPosition.x * work->position.x) > 0.0f && targetPosition.y > 100) {
                 #endif
-                    sp1C.y = work->unk_128.y;
-                    VECSubtract(&sp1C, &work->unk_128, &sp10);
-                    if (VECMag(&sp10) < 60.000004f) {
+                    targetPosition.y = work->position.y;
+                    VECSubtract(&targetPosition, &work->position, &movementDelta);
+                    if (VECMag(&movementDelta) < 60.000004f) {
                         if (frandmod(0x64) < 0x1E) {
-                            fn_1_10740(&sp1C);
-                            sp1C.x *= -0.5f;
-                            fn_1_FE8C(&sp1C, 5, work->unk_14, work->unk_18);
-                            HuAudFXPlay(sp8[work->unk_14]);
+                            GetItemTargetPosition(&targetPosition);
+                            targetPosition.x *= -0.5f;
+                            SetPlayerItemState(&targetPosition, 5, work->teamIndex, work->playerSide);
+                            HuAudFXPlay(soundIds[work->teamIndex]);
                         }
                         else {
-                            fn_1_10740(&sp1C);
-                            var_f29 = frandmod(0x168);
-                            sp1C.x += 100.0 * (2.0 * sind(var_f29));
-                            sp1C.z += 100.0 * (2.0 * cosd(var_f29));
-                            fn_1_10130(&sp1C, work->unk_14);
-                            fn_1_FE8C(&sp1C, 8, work->unk_14, work->unk_18);
-                            HuAudFXPlay(sp8[work->unk_14]);
+                            GetItemTargetPosition(&targetPosition);
+                            playerSpeed = frandmod(0x168);
+                            targetPosition.x += 100.0 * (2.0 * sind(playerSpeed));
+                            targetPosition.z += 100.0 * (2.0 * cosd(playerSpeed));
+                            ClampPlayerPosition(&targetPosition, work->teamIndex);
+                            SetPlayerItemState(&targetPosition, 8, work->teamIndex, work->playerSide);
+                            HuAudFXPlay(soundIds[work->teamIndex]);
                         }
-                        fn_1_B4D4(object, 0xD);
-                        var_r28->unk_64 = 0;
+                        SetPlayerAnimation(object, 0xD);
+                        opponent->contactFollowThroughActive = 0;
                     }
                 }
             }
-            if (work->unk_128.y <= 0.0f) {
-                fn_1_D888(&work->unk_128, 0.75f);
-                work->unk_30 = 0;
-                work->unk_78 = 0;
-                work->unk_134.x = work->unk_134.y = work->unk_134.z = 0.0f;
-                work->unk_60 = 0;
+            if (work->position.y <= 0.0f) {
+                ApproachVector(&work->position, 0.75f);
+                work->isPlaying = 0;
+                work->playerActionState = 0;
+                work->velocity.x = work->velocity.y = work->velocity.z = 0.0f;
+                work->hasContactedBall = 0;
             }
             break;
     }
 }
 
-void fn_1_B194(OMOBJ *object)
+void UpdatePlayerState(OMOBJ *object)
 {
-    Vec sp8;
-    float var_f31;
-    M433PlayerWork *var_r31;
-    M433PlayerWork *var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
+    Vec separationVector;
+    float playerDistance;
+    M433PlayerState *player;
+    M433PlayerState *player;
+    s32 playerIndex;
+    s32 opponentIndex;
+    s32 teamIndex;
 
-    for (var_r27 = 0; var_r27 < 2; var_r27++) {
-        for (var_r29 = 0; var_r29 < 4; var_r29++) {
-            var_r31 = lbl_1_bss_7D0[var_r29]->data;
-            for (var_r28 = 0; var_r28 < 4; var_r28++) {
-                if (var_r29 != var_r28) {
-                    var_r30 = lbl_1_bss_7D0[var_r28]->data;
-                    VECSubtract(&var_r31->unk_128, &var_r30->unk_128, &sp8);
-                    sp8.y = 0.0f;
-                    var_f31 = VECMag(&sp8);
-                    if (var_f31 < (var_r31->unk_120 + var_r30->unk_120)) {
-                        if (var_f31 > 0.0f) {
-                            var_f31 = 0.5f * ((var_r31->unk_120 + var_r30->unk_120) - var_f31);
+    for (teamIndex = 0; teamIndex < 2; teamIndex++) {
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            player = playerObjects[playerIndex]->data;
+            for (opponentIndex = 0; opponentIndex < 4; opponentIndex++) {
+                if (playerIndex != opponentIndex) {
+                    player = playerObjects[opponentIndex]->data;
+                    VECSubtract(&player->position, &player->position, &separationVector);
+                    separationVector.y = 0.0f;
+                    playerDistance = VECMag(&separationVector);
+                    if (playerDistance < (player->characterSkill + player->characterSkill)) {
+                        if (playerDistance > 0.0f) {
+                            playerDistance = 0.5f * ((player->characterSkill + player->characterSkill) - playerDistance);
                         }
                         else {
-                            var_f31 = 0.5f * (var_r31->unk_120 + var_r30->unk_120);
-                            sp8.x = frandmod(0x3E8) - 0x1F4;
-                            sp8.z = frandmod(0x3E8) - 0x1F4;
+                            playerDistance = 0.5f * (player->characterSkill + player->characterSkill);
+                            separationVector.x = frandmod(0x3E8) - 0x1F4;
+                            separationVector.z = frandmod(0x3E8) - 0x1F4;
                         }
-                        VECNormalize(&sp8, &sp8);
-                        VECScale(&sp8, &sp8, var_f31);
-                        VECAdd(&var_r31->unk_128, &sp8, &var_r31->unk_128);
-                        VECSubtract(&var_r30->unk_128, &sp8, &var_r30->unk_128);
+                        VECNormalize(&separationVector, &separationVector);
+                        VECScale(&separationVector, &separationVector, playerDistance);
+                        VECAdd(&player->position, &separationVector, &player->position);
+                        VECSubtract(&player->position, &separationVector, &player->position);
                     }
                 }
             }
-            if (var_r31->unk_128.y < 0.0f) {
-                var_r31->unk_128.y = 0.0f;
+            if (player->position.y < 0.0f) {
+                player->position.y = 0.0f;
             }
-            if ((var_r31->unk_128.z - var_r31->unk_120) < -500.0f) {
-                var_r31->unk_128.z = -500.0f + var_r31->unk_120;
+            if ((player->position.z - player->characterSkill) < -500.0f) {
+                player->position.z = -500.0f + player->characterSkill;
             }
-            else if ((var_r31->unk_128.z + var_r31->unk_120) > 500.0f) {
-                var_r31->unk_128.z = 500.0f - var_r31->unk_120;
+            else if ((player->position.z + player->characterSkill) > 500.0f) {
+                player->position.z = 500.0f - player->characterSkill;
             }
-            if (var_r31->unk_14 == 0) {
-                var_r31->unk_128.x *= -1.0f;
+            if (player->teamIndex == 0) {
+                player->position.x *= -1.0f;
             }
-            if ((var_r31->unk_128.x - var_r31->unk_120) < 20.0f) {
-                var_r31->unk_128.x = 20.0f + var_r31->unk_120;
+            if ((player->position.x - player->characterSkill) < 20.0f) {
+                player->position.x = 20.0f + player->characterSkill;
             }
-            else if ((60.000004f + var_r31->unk_128.x) > 800.0f) {
-                var_r31->unk_128.x = 740.0f;
+            else if ((60.000004f + player->position.x) > 800.0f) {
+                player->position.x = 740.0f;
             }
-            if (var_r31->unk_14 == 0) {
-                var_r31->unk_128.x *= -1.0f;
+            if (player->teamIndex == 0) {
+                player->position.x *= -1.0f;
             }
         }
     }
 }
 
-void fn_1_B4D4(OMOBJ *object, u32 arg1)
+void SetPlayerAnimation(OMOBJ *object, u32 animationIndex)
 {
-    M433PlayerWork *work = object->data;
-    if ((work->unk_0C != arg1) && (arg1 < 0x15)) {
-        float var_f31 = REFRESH_RATE * lbl_1_data_24C[arg1].unk_04;
-        if (work->unk_0C < 0) {
-            var_f31 = 0.0f;
+    M433PlayerState *work = object->data;
+    if ((work->itemOutcome != animationIndex) && (animationIndex < 0x15)) {
+        float playerX = REFRESH_RATE * playerMotionTransitions[animationIndex].transitionDuration;
+        if (work->itemOutcome < 0) {
+            playerX = 0.0f;
         }
-        work->unk_0C = arg1;
-        if (work->unk_04 < 0) {
+        work->itemOutcome = animationIndex;
+        if (work->itemCollected < 0) {
             CharMotionShiftSet(
-                work->unk_00, object->mtnId[lbl_1_data_24C[arg1].unk_00], REFRESH_RATE * lbl_1_data_24C[arg1].unk_08, var_f31, lbl_1_data_24C[arg1].unk_10);
+                work->playerVisualMode, object->mtnId[playerMotionTransitions[animationIndex].motionIndex], REFRESH_RATE * playerMotionTransitions[animationIndex].motionStartTime, playerX, playerMotionTransitions[animationIndex].motionAttributes);
         }
         else {
-            Hu3DMotionShiftSet(object->mdlId[0], object->mtnId[lbl_1_data_24C[arg1].unk_00], REFRESH_RATE * lbl_1_data_24C[arg1].unk_08, var_f31,
-                lbl_1_data_24C[arg1].unk_10);
+            Hu3DMotionShiftSet(object->mdlId[0], object->mtnId[playerMotionTransitions[animationIndex].motionIndex], REFRESH_RATE * playerMotionTransitions[animationIndex].motionStartTime, playerX,
+                playerMotionTransitions[animationIndex].motionAttributes);
         }
-        if (lbl_1_data_24C[arg1].unk_0C >= 0.0f) {
-            Hu3DMotionShiftStartEndSet(object->mdlId[0], REFRESH_RATE * lbl_1_data_24C[arg1].unk_08, REFRESH_RATE * lbl_1_data_24C[arg1].unk_0C);
+        if (playerMotionTransitions[animationIndex].motionEndTime >= 0.0f) {
+            Hu3DMotionShiftStartEndSet(object->mdlId[0], REFRESH_RATE * playerMotionTransitions[animationIndex].motionStartTime, REFRESH_RATE * playerMotionTransitions[animationIndex].motionEndTime);
         }
-        work->unk_10 = 0;
+        work->itemActive = 0;
     }
 }
 
-s32 fn_1_B6E0(OMOBJ *object)
+s32 GetPlayerState(OMOBJ *object)
 {
-    M433PlayerWork *work = object->data;
-    s32 var_r29 = 0;
-    if (work->unk_04 < 0) {
-        if (((CharMotionEndCheck(work->unk_00) != 0) || (work->unk_10 != 0)) && (CharMotionShiftIDGet(work->unk_00) < 0)) {
-            var_r29 = 1;
+    M433PlayerState *work = object->data;
+    s32 motionFinished = 0;
+    if (work->itemCollected < 0) {
+        if (((CharMotionEndCheck(work->playerVisualMode) != 0) || (work->itemActive != 0)) && (CharMotionShiftIDGet(work->playerVisualMode) < 0)) {
+            motionFinished = 1;
         }
     }
-    else if (((Hu3DMotionEndCheck(object->mdlId[0]) != 0) || (work->unk_10 != 0)) && (Hu3DMotionShiftIDGet(object->mdlId[0]) < 0)) {
-        var_r29 = 1;
+    else if (((Hu3DMotionEndCheck(object->mdlId[0]) != 0) || (work->itemActive != 0)) && (Hu3DMotionShiftIDGet(object->mdlId[0]) < 0)) {
+        motionFinished = 1;
     }
-    return var_r29;
+    return motionFinished;
 }
 
-s32 fn_1_B7AC(OMOBJ *object)
+s32 GetPlayerActionState(OMOBJ *object)
 {
-    M433PlayerWork *work = object->data;
-    s32 var_r30 = 0;
-    if (work->unk_04 < 0) {
-        if (CharMotionShiftIDGet(work->unk_00) < 0) {
-            var_r30 = 1;
+    M433PlayerState *work = object->data;
+    s32 player = 0;
+    if (work->itemCollected < 0) {
+        if (CharMotionShiftIDGet(work->playerVisualMode) < 0) {
+            player = 1;
         }
     }
     else if (Hu3DMotionShiftIDGet(object->mdlId[0]) < 0) {
-        var_r30 = 1;
+        player = 1;
     }
-    return var_r30;
+    return player;
 }
 
-s32 fn_1_B838(OMOBJ *object, u32 arg1)
+s32 CheckPlayerState(OMOBJ *object, u32 stateIndex)
 {
-    s32 var_r26 = 0;
-    if (fn_1_B6E0(object)) {
-        fn_1_B4D4(object, arg1);
-        var_r26 = 1;
+    s32 motionStarted = 0;
+    if (GetPlayerState(object)) {
+        SetPlayerAnimation(object, stateIndex);
+        motionStarted = 1;
     }
-    return var_r26;
+    return motionStarted;
 }
 
-s32 fn_1_BAE0(OMOBJ *object, u32 arg1)
+s32 CheckPlayerAction(OMOBJ *object, u32 actionIndex)
 {
-    s32 var_r26 = 0;
-    if (fn_1_B7AC(object)) {
-        fn_1_B4D4(object, arg1);
-        var_r26 = 1;
+    s32 motionStarted = 0;
+    if (GetPlayerActionState(object)) {
+        SetPlayerAnimation(object, actionIndex);
+        motionStarted = 1;
     }
-    return var_r26;
+    return motionStarted;
 }
 
-void fn_1_BD48(OMOBJ *object)
+void UpdatePlayerManager(OMOBJ *object)
 {
-    M433PlayerWork2 *work;
-    s32 var_r29;
-    s32 var_r28;
-    HU3DPARTICLEDATA *var_r27;
+    M433ItemManagerState *work;
+    s32 particleIndex;
+    s32 opponent;
+    HU3DPARTICLEDATA *particleData;
 
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M433PlayerWork2), HU_MEMNUM_OVL);
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M433ItemManagerState), HU_MEMNUM_OVL);
     work = object->data;
-    memset(work, 0, sizeof(M433PlayerWork2));
+    memset(work, 0, sizeof(M433ItemManagerState));
     object->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 0));
     Hu3DModelShadowSet(object->mdlId[0]);
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 4));
@@ -2163,550 +2163,550 @@ void fn_1_BD48(OMOBJ *object)
     Hu3DModelAttrSet(object->mdlId[7], HU3D_ATTR_DISPOFF);
     Hu3DModelScaleSet(object->mdlId[7], 0.75f, 0.75f, 0.75f);
     Hu3DModelLayerSet(object->mdlId[7], 2);
-    var_r28 = Hu3DParticleCreate(HuSprAnimRead(HuDataReadNum(0x120002, HU_MEMNUM_OVL)), 1);
-    object->mdlId[8] = var_r28;
-    Hu3DModelLayerSet(var_r28, 2);
-    Hu3DParticleHookSet(var_r28, fn_1_DE28);
-    Hu3DModelAttrSet(var_r28, HU3D_ATTR_DISPOFF);
-    var_r28 = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M433, 9)), 0xC8);
-    object->mdlId[5] = var_r28;
-    Hu3DModelLayerSet(var_r28, 2);
-    Hu3DParticleHookSet(var_r28, fn_1_D6A8);
-    for (var_r27 = ((HU3DPARTICLE *)Hu3DData[var_r28].hookData)->data, var_r29 = 0; var_r29 < 0xC8; var_r29++, var_r27++) {
-        var_r27->scale = 0.0f;
-        var_r27->color.a = 0;
-        var_r27->time = 0;
+    opponent = Hu3DParticleCreate(HuSprAnimRead(HuDataReadNum(0x120002, HU_MEMNUM_OVL)), 1);
+    object->mdlId[8] = opponent;
+    Hu3DModelLayerSet(opponent, 2);
+    Hu3DParticleHookSet(opponent, UpdateItemEffectParticles);
+    Hu3DModelAttrSet(opponent, HU3D_ATTR_DISPOFF);
+    opponent = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M433, 9)), 0xC8);
+    object->mdlId[5] = opponent;
+    Hu3DModelLayerSet(opponent, 2);
+    Hu3DParticleHookSet(opponent, UpdateItemParticles);
+    for (particleData = ((HU3DPARTICLE *)Hu3DData[opponent].hookData)->data, particleIndex = 0; particleIndex < 0xC8; particleIndex++, particleData++) {
+        particleData->scale = 0.0f;
+        particleData->color.a = 0;
+        particleData->time = 0;
     }
     object->mdlId[9] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 2));
     Hu3DModelScaleSet(object->mdlId[9], 1.05f, 1.05f, 1.05f);
     Hu3DModelAttrSet(object->mdlId[9], HU3D_ATTR_DISPOFF);
     Hu3DModelLayerSet(object->mdlId[9], 1);
     Hu3DModelShadowSet(object->mdlId[9]);
-    for (var_r29 = 1; var_r29 < 0x15; var_r29++) {
-        if (var_r29 == 0xA) {
-            object->mdlId[var_r29 + 9] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 1));
+    for (particleIndex = 1; particleIndex < 0x15; particleIndex++) {
+        if (particleIndex == 0xA) {
+            object->mdlId[particleIndex + 9] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 1));
         }
         else {
-            object->mdlId[var_r29 + 9] = Hu3DModelLink(object->mdlId[9]);
-            Hu3DModelLayerSet(object->mdlId[var_r29 + 9], 1);
+            object->mdlId[particleIndex + 9] = Hu3DModelLink(object->mdlId[9]);
+            Hu3DModelLayerSet(object->mdlId[particleIndex + 9], 1);
         }
-        Hu3DModelShadowSet(object->mdlId[var_r29 + 9]);
-        Hu3DModelScaleSet(object->mdlId[var_r29 + 9], 1.05f, 1.05f, 1.05f);
-        Hu3DModelAttrSet(object->mdlId[var_r29 + 9], HU3D_ATTR_DISPOFF);
+        Hu3DModelShadowSet(object->mdlId[particleIndex + 9]);
+        Hu3DModelScaleSet(object->mdlId[particleIndex + 9], 1.05f, 1.05f, 1.05f);
+        Hu3DModelAttrSet(object->mdlId[particleIndex + 9], HU3D_ATTR_DISPOFF);
     }
-    object->trans.x = work->unk_30.x = 0.0f;
-    object->trans.y = work->unk_30.y = 0.0f;
-    object->trans.z = work->unk_30.z = 0.0f;
-    work->unk_B8 = 0.0f;
-    work->unk_BC.x = work->unk_BC.y = 0.0f;
-    work->unk_BC.z = 1.0f;
-    MTXIdentity(work->unk_C8);
-    work->unk_18 = 0;
-    object->objFunc = fn_1_C240;
+    object->trans.x = work->position.x = 0.0f;
+    object->trans.y = work->position.y = 0.0f;
+    object->trans.z = work->position.z = 0.0f;
+    work->spinAngle = 0.0f;
+    work->spinAxis.x = work->spinAxis.y = 0.0f;
+    work->spinAxis.z = 1.0f;
+    MTXIdentity(work->rotationMatrix);
+    work->playerSide = 0;
+    object->objFunc = UpdatePlayerEvents;
 }
 
-void fn_1_C240(OMOBJ *object)
+void UpdatePlayerEvents(OMOBJ *object)
 {
-    s32 var_r29;
+    s32 modelIndex;
 
-    M433PlayerWork2 *work = object->data;
-    s32 sp8 = 0;
-    work->unk_00 = 0;
-    switch (work->unk_18) {
+    M433ItemManagerState *work = object->data;
+    s32 unusedInitializationValue = 0;
+    work->playerVisualMode = 0;
+    switch (work->playerSide) {
         case 0:
-            work->unk_04 = 1;
+            work->itemCollected = 1;
             break;
         case 1:
-            work->unk_B8 = 0.0f;
-            work->unk_BC.x = work->unk_BC.y = 0.0f;
-            work->unk_BC.z = 1.0f;
-            MTXIdentity(work->unk_C8);
-            work->unk_00 = 1;
+            work->spinAngle = 0.0f;
+            work->spinAxis.x = work->spinAxis.y = 0.0f;
+            work->spinAxis.z = 1.0f;
+            MTXIdentity(work->rotationMatrix);
+            work->playerVisualMode = 1;
             break;
         case 10:
-            work->unk_00 = 1;
+            work->playerVisualMode = 1;
             break;
     }
-    work->unk_8C++;
-    if (work->unk_90 != 0) {
-        work->unk_A0 = 1.0f;
-        if (work->unk_94 == 2) {
-            work->unk_A4 += 720.0f*(1.0f/REFRESH_RATE);
-            if (work->unk_A4 >= 360.0f) {
-                work->unk_A4 -= 360.0f;
+    work->itemModelState++;
+    if (work->itemEffectState != 0) {
+        work->itemScaleTarget = 1.0f;
+        if (work->itemSpinState == 2) {
+            work->itemWorldOffset += 720.0f*(1.0f/REFRESH_RATE);
+            if (work->itemWorldOffset >= 360.0f) {
+                work->itemWorldOffset -= 360.0f;
             }
-            work->unk_A0 = 1.5f;
-            work->unk_A8 += 0.9f*(1.0f/REFRESH_RATE);
+            work->itemScaleTarget = 1.5f;
+            work->itemSpinSpeed += 0.9f*(1.0f/REFRESH_RATE);
             Hu3DMotionSpeedSet(object->mdlId[3], 2.5f);
         }
         else {
             Hu3DMotionTimeSet(object->mdlId[3], 0.0f);
             Hu3DMotionSpeedSet(object->mdlId[3], 0.0f);
         }
-        Hu3DModelRotSet(object->mdlId[3], 0.0f, work->unk_A4, 0.0f);
+        Hu3DModelRotSet(object->mdlId[3], 0.0f, work->itemWorldOffset, 0.0f);
         Hu3DModelAttrReset(object->mdlId[3], HU3D_ATTR_DISPOFF);
-        Hu3DModelPosSet(object->mdlId[3], work->unk_AC.x, 3.0f + work->unk_AC.y, work->unk_AC.z);
-        work->unk_98++;
-        work->unk_90 = 0;
+        Hu3DModelPosSet(object->mdlId[3], work->itemPosition.x, 3.0f + work->itemPosition.y, work->itemPosition.z);
+        work->itemSpinScale++;
+        work->itemEffectState = 0;
     }
-    else if (work->unk_94 != 0) {
-        work->unk_94 = 0;
-        work->unk_A0 = 0.0f;
+    else if (work->itemSpinState != 0) {
+        work->itemSpinState = 0;
+        work->itemScaleTarget = 0.0f;
     }
-    work->unk_9C = work->unk_9C + (0.2f * (work->unk_A0 - work->unk_9C));
-    Hu3DModelScaleSet(object->mdlId[3], work->unk_9C, 1.0f, work->unk_9C);
-    if ((work->unk_A0 <= 0.0f) && (work->unk_9C < 0.1f)) {
+    work->itemScaleFactor = work->itemScaleFactor + (0.2f * (work->itemScaleTarget - work->itemScaleFactor));
+    Hu3DModelScaleSet(object->mdlId[3], work->itemScaleFactor, 1.0f, work->itemScaleFactor);
+    if ((work->itemScaleTarget <= 0.0f) && (work->itemScaleFactor < 0.1f)) {
         Hu3DModelAttrSet(object->mdlId[3], HU3D_ATTR_DISPOFF);
-        work->unk_9C = 0.0f;
+        work->itemScaleFactor = 0.0f;
     }
-    for (var_r29 = 0; var_r29 < 2; var_r29++) {
-        work->unk_7C[var_r29] += (0.3f * (work->unk_84[var_r29] - work->unk_7C[var_r29]));
-        if (work->unk_84[var_r29] > 0.0f) {
-            Hu3DModelAttrReset(object->mdlId[var_r29 + 1], HU3D_ATTR_DISPOFF);
+    for (modelIndex = 0; modelIndex < 2; modelIndex++) {
+        work->stateFlags7C[modelIndex] += (0.3f * (work->itemScale[modelIndex] - work->stateFlags7C[modelIndex]));
+        if (work->itemScale[modelIndex] > 0.0f) {
+            Hu3DModelAttrReset(object->mdlId[modelIndex + 1], HU3D_ATTR_DISPOFF);
         }
-        else if (work->unk_7C[var_r29] < 0.1f) {
-            Hu3DModelAttrSet(object->mdlId[var_r29 + 1], HU3D_ATTR_DISPOFF);
+        else if (work->stateFlags7C[modelIndex] < 0.1f) {
+            Hu3DModelAttrSet(object->mdlId[modelIndex + 1], HU3D_ATTR_DISPOFF);
         }
-        Hu3DModelScaleSet(object->mdlId[var_r29 + 1], work->unk_7C[var_r29], 1.0f, work->unk_7C[var_r29]);
+        Hu3DModelScaleSet(object->mdlId[modelIndex + 1], work->stateFlags7C[modelIndex], 1.0f, work->stateFlags7C[modelIndex]);
     }
-    fn_1_C6B0(object);
-    fn_1_CB98(object);
-    object->trans.x = work->unk_30.x;
-    object->trans.y = work->unk_30.y;
-    object->trans.z = work->unk_30.z;
-    if ((fn_1_216C() >= 3) && (work->unk_04 != 0) && (fn_1_2244() != 0)) {
-        fn_1_DD70(&work->unk_30);
+    UpdatePlayerEffects(object);
+    UpdateItemObject(object);
+    object->trans.x = work->position.x;
+    object->trans.y = work->position.y;
+    object->trans.z = work->position.z;
+    if ((getRoundIntroState() >= 3) && (work->itemCollected != 0) && (isOutroSequenceFinished() != 0)) {
+        ClampItemPosition(&work->position);
         Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
-        object->objFunc = fn_1_C6AC;
+        object->objFunc = InitializePlayerEffects;
     }
 }
 
-void fn_1_C6AC(OMOBJ *object) { }
+void InitializePlayerEffects(OMOBJ *object) { }
 
-s32 fn_1_C6B0(OMOBJ *object)
+s32 UpdatePlayerEffects(OMOBJ *object)
 {
-    Mtx sp14;
-    Vec sp8;
-    M433PlayerWork3 *var_r29;
-    s32 var_r28;
+    Mtx rotationMatrix;
+    Vec movementDelta;
+    M433GameEventState *gameEventState;
+    s32 opponentIndex;
 
-    M433PlayerWork2 *work = object->data;
-    if ((work->unk_00 == 0) && (work->unk_04 == 0) && (work->unk_08 == 0)) {
-        if (work->unk_10 == 0) {
-            fn_1_CDB8(&work->unk_F8, &work->unk_30, &work->unk_3C, work->unk_6C, work->unk_A8);
-            fn_1_D338(&work->unk_F8);
-            fn_1_D180(&work->unk_F8);
-            work->unk_B8 = work->unk_A8 * (8.0f * lbl_1_data_48C[work->unk_6C]);
-            VECSubtract(&work->unk_3C, &work->unk_30, &sp8);
-            sp8.y = 0.0f;
-            if (VECMag(&sp8) <= 0.0f) {
-                work->unk_BC.x = work->unk_BC.y = 0.0f;
-                work->unk_BC.z = 1.0f;
+    M433ItemManagerState *work = object->data;
+    if ((work->playerVisualMode == 0) && (work->itemCollected == 0) && (work->itemActionState == 0)) {
+        if (work->itemActive == 0) {
+            InitializeItemTrajectory(&work->itemPhysics, &work->position, &work->targetPosition, work->itemType, work->itemSpinSpeed);
+            ResetItemTrajectory(&work->itemPhysics);
+            UpdateItemTrajectory(&work->itemPhysics);
+            work->spinAngle = work->itemSpinSpeed * (8.0f * itemSpinSpeeds[work->itemType]);
+            VECSubtract(&work->targetPosition, &work->position, &movementDelta);
+            movementDelta.y = 0.0f;
+            if (VECMag(&movementDelta) <= 0.0f) {
+                work->spinAxis.x = work->spinAxis.y = 0.0f;
+                work->spinAxis.z = 1.0f;
             }
             else {
-                VECNormalize(&sp8, &sp8);
-                work->unk_BC.x = -sp8.z;
-                work->unk_BC.y = 0.0f;
-                work->unk_BC.z = sp8.x;
+                VECNormalize(&movementDelta, &movementDelta);
+                work->spinAxis.x = -movementDelta.z;
+                work->spinAxis.y = 0.0f;
+                work->spinAxis.z = movementDelta.x;
             }
-            work->unk_48 = 0.0f;
-            var_r28 = 0;
-            if (work->unk_84[0] > 0.0f) {
-                var_r28++;
+            work->elapsedTime = 0.0f;
+            opponentIndex = 0;
+            if (work->itemScale[0] > 0.0f) {
+                opponentIndex++;
             }
-            Hu3DModelPosSet(object->mdlId[var_r28 + 1], work->unk_F8.unk_38.x, 3.0f + work->unk_F8.unk_38.y, work->unk_F8.unk_38.z);
-            if (work->unk_9C <= 0.0f) {
+            Hu3DModelPosSet(object->mdlId[opponentIndex + 1], work->itemPhysics.targetPosition.x, 3.0f + work->itemPhysics.targetPosition.y, work->itemPhysics.targetPosition.z);
+            if (work->itemScaleFactor <= 0.0f) {
                 #if VERSION_NTSC
-                work->unk_8C = 9;
+                work->itemModelState = 9;
                 #else
-                work->unk_8C = 7;
+                work->itemModelState = 7;
                 #endif
             }
-            if (lbl_1_data_468[work->unk_6C] != 0) {
-                work->unk_84[var_r28] = 1.0f;
+            if (itemSideBySideFlags[work->itemType] != 0) {
+                work->itemScale[opponentIndex] = 1.0f;
             }
-            work->unk_84[1 - var_r28] = 0.0f;
+            work->itemScale[1 - opponentIndex] = 0.0f;
         }
-        work->unk_10 = 1;
-        if (work->unk_B8 != 0.0f) {
-            MTXRotAxisRad(sp14, &work->unk_BC, 0.017453292f * work->unk_B8);
-            MTXConcat(sp14, work->unk_C8, work->unk_C8);
-            MTXCopy(work->unk_C8, Hu3DData[object->mdlId[0]].mtx);
+        work->itemActive = 1;
+        if (work->spinAngle != 0.0f) {
+            MTXRotAxisRad(rotationMatrix, &work->spinAxis, 0.017453292f * work->spinAngle);
+            MTXConcat(rotationMatrix, work->rotationMatrix, work->rotationMatrix);
+            MTXCopy(work->rotationMatrix, Hu3DData[object->mdlId[0]].mtx);
         }
-        work->unk_48 += (1.0f/REFRESH_RATE);
-        work->unk_08 = fn_1_D4E0(&work->unk_F8, &work->unk_30, &work->unk_4C, work->unk_48);
-        if (work->unk_08 != 0) {
-            work->unk_84[0] = work->unk_84[1] = 0.0f;
-            if (work->unk_30.y <= 12.0f) {
-                var_r29 = lbl_1_bss_7C8->data;
-                work->unk_78 = 0;
-                Hu3DModelPosSetV(object->mdlId[4], &work->unk_30);
+        work->elapsedTime += (1.0f/REFRESH_RATE);
+        work->itemActionState = CalculateItemTrajectory(&work->itemPhysics, &work->position, &work->itemStartPosition, work->elapsedTime);
+        if (work->itemActionState != 0) {
+            work->itemScale[0] = work->itemScale[1] = 0.0f;
+            if (work->position.y <= 12.0f) {
+                gameEventState = gameEventObject->data;
+                work->playerActionState = 0;
+                Hu3DModelPosSetV(object->mdlId[4], &work->position);
                 Hu3DMotionTimeSet(object->mdlId[4], 0.0f);
-                if ((work->unk_6C == 5) || (work->unk_6C == 2)) {
+                if ((work->itemType == 5) || (work->itemType == 2)) {
                     Hu3DMotionSpeedSet(object->mdlId[4], 1.5f);
-                    fn_1_D888(&work->unk_30, 1.0f);
+                    ApproachVector(&work->position, 1.0f);
                 }
                 else {
                     Hu3DMotionSpeedSet(object->mdlId[4], 1.0f);
-                    fn_1_D888(&work->unk_30, 0.5f);
-                    work->unk_30.y += 11.0f;
+                    ApproachVector(&work->position, 0.5f);
+                    work->position.y += 11.0f;
                 }
-                work->unk_6C = 0;
-                work->unk_04 = 1;
-                var_r29->unk_2C = 1;
-                var_r29->sGroundGrp = -1;
-                if (fabs(work->unk_30.z) < 350.0) {
-                    if (fabs(work->unk_30.x) < 700.0) {
-                        var_r29->sGroundGrp = 0;
-                        if (work->unk_30.x >= 0.0f) {
-                            var_r29->sGroundGrp = 1;
+                work->itemType = 0;
+                work->itemCollected = 1;
+                gameEventState->pointScored = 1;
+                gameEventState->sGroundGrp = -1;
+                if (fabs(work->position.z) < 350.0) {
+                    if (fabs(work->position.x) < 700.0) {
+                        gameEventState->sGroundGrp = 0;
+                        if (work->position.x >= 0.0f) {
+                            gameEventState->sGroundGrp = 1;
                         }
                     }
                 }
                 #if VERSION_PAL
-                for(var_r28=0; var_r28<4; var_r28++) {
-                    omObjGetDataAs(lbl_1_bss_7D0[var_r28], M433PlayerWork)->unk_64 = 0;
+                for(opponentIndex=0; opponentIndex<4; opponentIndex++) {
+                    omObjGetDataAs(playerObjects[opponentIndex], M433PlayerState)->contactFollowThroughActive = 0;
                 }
                 #endif
             }
         }
     }
     else {
-        work->unk_10 = 0;
+        work->itemActive = 0;
     }
-    return work->unk_08;
+    return work->itemActionState;
 }
 
-void fn_1_CB98(OMOBJ *object)
+void UpdateItemObject(OMOBJ *object)
 {
-    Mtx sp50;
-    Mtx sp20;
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    s32 var_r29;
+    Mtx particleMatrix;
+    Mtx particlePosition;
+    Vec particleVelocity;
+    Vec particleDirection;
+    float particleSpeed;
+    float particleScale;
+    float playerSpeed;
+    float opponentSpeed;
+    s32 particleIndex;
 
-    M433PlayerWork2 *work = object->data;
-    if (work->unk_78 != 0) {
+    M433ItemManagerState *work = object->data;
+    if (work->playerActionState != 0) {
         Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
-        var_f30 = work->unk_F8.unk_04;
-        var_f29 = var_f30;
-        var_f31 = var_f29 - ((1.2f/REFRESH_RATE) * work->unk_A8);
-        if (var_f31 < 0.0f) {
-            var_f31 = 0.0f;
+        particleScale = work->itemPhysics.elapsedTime;
+        playerSpeed = particleScale;
+        particleSpeed = playerSpeed - ((1.2f/REFRESH_RATE) * work->itemSpinSpeed);
+        if (particleSpeed < 0.0f) {
+            particleSpeed = 0.0f;
         }
-        var_f31 = (var_f30 - var_f31) / 21.0f;
-        MTXCopy(work->unk_C8, sp20);
-        var_f28 = (work->unk_B8 * (1.2f * work->unk_A8)) / 21.0f;
-        MTXRotAxisRad(sp50, &work->unk_BC, MTXDegToRad(-var_f28));
-        for (var_r29 = 0; var_r29 < 0x15; var_r29++) {
-            Hu3DModelAttrReset(object->mdlId[var_r29 + 9], HU3D_ATTR_DISPOFF);
-            fn_1_D4E0(&work->unk_F8, &sp14, &sp8, var_f30);
-            Hu3DModelPosSetV(object->mdlId[var_r29 + 9], &sp14);
-            MTXCopy(sp20, Hu3DData[object->mdlId[var_r29 + 9]].mtx);
-            MTXConcat(sp50, sp20, sp20);
-            var_f30 -= var_f31;
+        particleSpeed = (particleScale - particleSpeed) / 21.0f;
+        MTXCopy(work->rotationMatrix, particlePosition);
+        opponentSpeed = (work->spinAngle * (1.2f * work->itemSpinSpeed)) / 21.0f;
+        MTXRotAxisRad(particleMatrix, &work->spinAxis, MTXDegToRad(-opponentSpeed));
+        for (particleIndex = 0; particleIndex < 0x15; particleIndex++) {
+            Hu3DModelAttrReset(object->mdlId[particleIndex + 9], HU3D_ATTR_DISPOFF);
+            CalculateItemTrajectory(&work->itemPhysics, &particleVelocity, &particleDirection, particleScale);
+            Hu3DModelPosSetV(object->mdlId[particleIndex + 9], &particleVelocity);
+            MTXCopy(particlePosition, Hu3DData[object->mdlId[particleIndex + 9]].mtx);
+            MTXConcat(particleMatrix, particlePosition, particlePosition);
+            particleScale -= particleSpeed;
         }
-        work->unk_F8.unk_04 = var_f29;
+        work->itemPhysics.elapsedTime = playerSpeed;
         return;
     }
     Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
-    for (var_r29 = 0; var_r29 < 0x15; var_r29++) {
-        Hu3DModelAttrSet(object->mdlId[var_r29 + 9], HU3D_ATTR_DISPOFF);
+    for (particleIndex = 0; particleIndex < 0x15; particleIndex++) {
+        Hu3DModelAttrSet(object->mdlId[particleIndex + 9], HU3D_ATTR_DISPOFF);
     }
 }
 
-void fn_1_CDB8(M433PlayerWork2Sub *arg0, Vec *arg1, Vec *arg2, u32 arg3, float arg8)
+void InitializeItemTrajectory(M433ItemTrajectory *trajectory, Vec *startPosition, Vec *targetPosition, u32 itemType, float playerSpeed)
 {
-    Vec sp18;
-    Vec spC;
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    Vec segmentDelta;
+    Vec floorImpactPosition;
+    float flightDuration;
+    float segmentDistance;
+    float playerSpeed;
 
-    arg0->unk_0C = 0.0f;
-    arg0->unk_08 = 0.0f;
-    var_f31 = lbl_1_data_4D4[arg3].y;
-    arg0->unk_00 = var_f31;
-    if (arg0->unk_00 <= 0.0f) {
-        if (((arg2->x * arg1->x) < 0.0f) && (arg1->x != 0.0f) && (lbl_1_data_4D4[arg3].x > 0.0f)) {
-            arg0->unk_0C = lbl_1_data_4D4[arg3].x;
-            arg0->unk_08 = fabs(arg1->x / (arg2->x - arg1->x));
-            var_f29 = arg1->y + (arg0->unk_08 * (arg2->y - arg1->y));
-            if (var_f29 < arg0->unk_0C) {
-                spC.x = arg1->x + (arg0->unk_08 * (arg2->x - arg1->x));
-                spC.y = arg0->unk_0C;
-                spC.z = arg1->z + (arg0->unk_08 * (arg2->z - arg1->z));
-                VECSubtract(arg2, &spC, &sp18);
-                var_f30 = VECMag(&sp18);
-                VECSubtract(&spC, arg1, &sp18);
-                var_f30 += VECMag(&sp18);
+    trajectory->floorHeightThreshold = 0.0f;
+    trajectory->floorCrossingTime = 0.0f;
+    flightDuration = itemTrajectoryParameters[itemType].y;
+    trajectory->flightDuration = flightDuration;
+    if (trajectory->flightDuration <= 0.0f) {
+        if (((targetPosition->x * startPosition->x) < 0.0f) && (startPosition->x != 0.0f) && (itemTrajectoryParameters[itemType].x > 0.0f)) {
+            trajectory->floorHeightThreshold = itemTrajectoryParameters[itemType].x;
+            trajectory->floorCrossingTime = fabs(startPosition->x / (targetPosition->x - startPosition->x));
+            playerSpeed = startPosition->y + (trajectory->floorCrossingTime * (targetPosition->y - startPosition->y));
+            if (playerSpeed < trajectory->floorHeightThreshold) {
+                floorImpactPosition.x = startPosition->x + (trajectory->floorCrossingTime * (targetPosition->x - startPosition->x));
+                floorImpactPosition.y = trajectory->floorHeightThreshold;
+                floorImpactPosition.z = startPosition->z + (trajectory->floorCrossingTime * (targetPosition->z - startPosition->z));
+                VECSubtract(targetPosition, &floorImpactPosition, &segmentDelta);
+                segmentDistance = VECMag(&segmentDelta);
+                VECSubtract(&floorImpactPosition, startPosition, &segmentDelta);
+                segmentDistance += VECMag(&segmentDelta);
             }
             else {
-                VECSubtract(arg2, arg1, &sp18);
-                var_f30 = VECMag(&sp18);
+                VECSubtract(targetPosition, startPosition, &segmentDelta);
+                segmentDistance = VECMag(&segmentDelta);
             }
         }
         else {
-            VECSubtract(arg2, arg1, &sp18);
-            var_f30 = VECMag(&sp18);
+            VECSubtract(targetPosition, startPosition, &segmentDelta);
+            segmentDistance = VECMag(&segmentDelta);
         }
-        var_f31 = var_f30 / (arg8 * lbl_1_data_4D4[arg3].z);
-        arg0->unk_00 = var_f31;
+        flightDuration = segmentDistance / (playerSpeed * itemTrajectoryParameters[itemType].z);
+        trajectory->flightDuration = flightDuration;
     }
-    arg0->unk_04 = 0.0f;
-    arg0->unk_2C = *arg1;
-    arg0->unk_38 = *arg2;
-    arg0->unk_1C = arg2->y - arg1->y;
-    arg0->unk_24 = -980.0f;
-    VECSubtract(arg2, arg1, &sp18);
-    sp18.y = 0.0f;
-    arg0->unk_10 = VECMag(&sp18);
-    arg0->unk_18 = 0.0f;
-    if (var_f31 > 0.0f) {
-        arg0->unk_20 = (arg0->unk_1C - (0.5f * (-980.0f * (var_f31 * var_f31)))) / var_f31;
-        arg0->unk_14 = arg0->unk_10 / var_f31;
+    trajectory->elapsedTime = 0.0f;
+    trajectory->startPosition = *startPosition;
+    trajectory->targetPosition = *targetPosition;
+    trajectory->verticalDisplacement = targetPosition->y - startPosition->y;
+    trajectory->verticalAcceleration = -980.0f;
+    VECSubtract(targetPosition, startPosition, &segmentDelta);
+    segmentDelta.y = 0.0f;
+    trajectory->horizontalDistance = VECMag(&segmentDelta);
+    trajectory->horizontalAcceleration = 0.0f;
+    if (flightDuration > 0.0f) {
+        trajectory->verticalVelocity = (trajectory->verticalDisplacement - (0.5f * (-980.0f * (flightDuration * flightDuration)))) / flightDuration;
+        trajectory->horizontalVelocity = trajectory->horizontalDistance / flightDuration;
     }
     else {
-        arg0->unk_20 = arg0->unk_1C;
-        arg0->unk_14 = arg0->unk_10;
+        trajectory->verticalVelocity = trajectory->verticalDisplacement;
+        trajectory->horizontalVelocity = trajectory->horizontalDistance;
     }
-    arg0->unk_28 = lbl_1_data_540[arg3];
+    trajectory->trajectoryScale = itemTrajectoryScales[itemType];
 }
 
-void fn_1_D180(M433PlayerWork2Sub *arg0)
+void UpdateItemTrajectory(M433ItemTrajectory *trajectory)
 {
-    float sp8;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
-    float var_f25;
-    s32 var_r31;
+    float horizontalSpeed;
+    float durationEstimate;
+    float inverseDuration;
+    float playerSpeed;
+    float opponentSpeed;
+    float upperDurationBound;
+    float initialVerticalSpeed;
+    float estimatedHeight;
+    s32 refinementStep;
 
-    if (!(arg0->unk_0C <= 0.0f)) {
-        var_f31 = arg0->unk_00;
-        var_f28 = arg0->unk_00;
-        var_f27 = 10.0f * arg0->unk_00;
-        for (var_r31 = 0; var_r31 < 0x10; var_r31++) {
-            var_f30 = 1.0f / var_f31;
-            sp8 = arg0->unk_10 * var_f30;
-            var_f26 = (arg0->unk_1C * var_f30) - (0.5f * arg0->unk_24 * var_f31);
-            var_f29 = arg0->unk_08 * var_f31;
-            var_f25 = arg0->unk_2C.y + ((var_f29 * (0.5f * arg0->unk_24 * var_f29)) + (var_f26 * var_f29));
-            if (arg0->unk_0C > var_f25) {
-                var_f28 = var_f31;
+    if (!(trajectory->floorHeightThreshold <= 0.0f)) {
+        durationEstimate = trajectory->flightDuration;
+        opponentSpeed = trajectory->flightDuration;
+        upperDurationBound = 10.0f * trajectory->flightDuration;
+        for (refinementStep = 0; refinementStep < 0x10; refinementStep++) {
+            inverseDuration = 1.0f / durationEstimate;
+            horizontalSpeed = trajectory->horizontalDistance * inverseDuration;
+            initialVerticalSpeed = (trajectory->verticalDisplacement * inverseDuration) - (0.5f * trajectory->verticalAcceleration * durationEstimate);
+            playerSpeed = trajectory->floorCrossingTime * durationEstimate;
+            estimatedHeight = trajectory->startPosition.y + ((playerSpeed * (0.5f * trajectory->verticalAcceleration * playerSpeed)) + (initialVerticalSpeed * playerSpeed));
+            if (trajectory->floorHeightThreshold > estimatedHeight) {
+                opponentSpeed = durationEstimate;
             }
             else {
-                var_f27 = var_f31;
+                upperDurationBound = durationEstimate;
             }
-            var_f31 = 0.5f * (var_f28 + var_f27);
+            durationEstimate = 0.5f * (opponentSpeed + upperDurationBound);
         }
-        var_f30 = 1.0f / var_f31;
-        arg0->unk_00 = var_f31;
-        arg0->unk_14 = arg0->unk_10 * var_f30;
-        arg0->unk_20 = (arg0->unk_1C * var_f30) - (0.5f * arg0->unk_24 * var_f31);
+        inverseDuration = 1.0f / durationEstimate;
+        trajectory->flightDuration = durationEstimate;
+        trajectory->horizontalVelocity = trajectory->horizontalDistance * inverseDuration;
+        trajectory->verticalVelocity = (trajectory->verticalDisplacement * inverseDuration) - (0.5f * trajectory->verticalAcceleration * durationEstimate);
     }
 }
 
-void fn_1_D338(M433PlayerWork2Sub *arg0)
+void ResetItemTrajectory(M433ItemTrajectory *trajectory)
 {
-    float sp8;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
-    float var_f25;
-    s32 var_r31;
+    float horizontalSpeed;
+    float gravityEstimate;
+    float inverseDuration;
+    float playerSpeed;
+    float opponentSpeed;
+    float upperGravityBound;
+    float initialVerticalSpeed;
+    float estimatedHeight;
+    s32 refinementStep;
 
-    if (!(arg0->unk_0C <= 0.0f)) {
-        var_f29 = arg0->unk_08 * arg0->unk_00;
-        var_f30 = 1.0f / arg0->unk_00;
-        var_f31 = arg0->unk_24;
-        var_f28 = arg0->unk_24;
-        var_f27 = arg0->unk_24 * arg0->unk_28;
-        for (var_r31 = 0; var_r31 < 0x10; var_r31++) {
-            sp8 = arg0->unk_10 * var_f30;
-            var_f26 = (arg0->unk_1C * var_f30) - (0.5f * var_f31 * arg0->unk_00);
-            var_f25 = arg0->unk_2C.y + ((var_f29 * (0.5f * var_f31 * var_f29)) + (var_f26 * var_f29));
-            if (arg0->unk_0C > var_f25) {
-                var_f28 = var_f31;
+    if (!(trajectory->floorHeightThreshold <= 0.0f)) {
+        playerSpeed = trajectory->floorCrossingTime * trajectory->flightDuration;
+        inverseDuration = 1.0f / trajectory->flightDuration;
+        gravityEstimate = trajectory->verticalAcceleration;
+        opponentSpeed = trajectory->verticalAcceleration;
+        upperGravityBound = trajectory->verticalAcceleration * trajectory->trajectoryScale;
+        for (refinementStep = 0; refinementStep < 0x10; refinementStep++) {
+            horizontalSpeed = trajectory->horizontalDistance * inverseDuration;
+            initialVerticalSpeed = (trajectory->verticalDisplacement * inverseDuration) - (0.5f * gravityEstimate * trajectory->flightDuration);
+            estimatedHeight = trajectory->startPosition.y + ((playerSpeed * (0.5f * gravityEstimate * playerSpeed)) + (initialVerticalSpeed * playerSpeed));
+            if (trajectory->floorHeightThreshold > estimatedHeight) {
+                opponentSpeed = gravityEstimate;
             }
             else {
-                var_f27 = var_f31;
+                upperGravityBound = gravityEstimate;
             }
-            var_f31 = 0.5f * (var_f28 + var_f27);
+            gravityEstimate = 0.5f * (opponentSpeed + upperGravityBound);
         }
-        arg0->unk_24 = var_f31;
-        arg0->unk_14 = arg0->unk_10 * var_f30;
-        arg0->unk_20 = (arg0->unk_1C * var_f30) - (0.5f * arg0->unk_24 * arg0->unk_00);
+        trajectory->verticalAcceleration = gravityEstimate;
+        trajectory->horizontalVelocity = trajectory->horizontalDistance * inverseDuration;
+        trajectory->verticalVelocity = (trajectory->verticalDisplacement * inverseDuration) - (0.5f * trajectory->verticalAcceleration * trajectory->flightDuration);
     }
 }
 
-s32 fn_1_D4E0(M433PlayerWork2Sub *arg0, Vec *arg1, Vec *arg2, float arg8)
+s32 CalculateItemTrajectory(M433ItemTrajectory *trajectory, Vec *itemPosition, Vec *positionDelta, float elapsedTime)
 {
-    Vec sp18;
-    Vec spC;
-    float var_f30;
-    float var_f29;
+    Vec previousPosition;
+    Vec horizontalDirection;
+    float horizontalDisplacement;
+    float playerSpeed;
 
-    if (arg8 < 0.0f) {
-        arg8 = 0.0f;
+    if (elapsedTime < 0.0f) {
+        elapsedTime = 0.0f;
     }
-    if (arg8 > arg0->unk_00) {
-        arg8 = arg0->unk_00;
+    if (elapsedTime > trajectory->flightDuration) {
+        elapsedTime = trajectory->flightDuration;
     }
-    arg0->unk_04 = arg8;
-    if (arg0->unk_10 > 0.0f) {
-        VECSubtract(&arg0->unk_38, &arg0->unk_2C, &spC);
-        spC.y = 0.0f;
-        VECNormalize(&spC, &spC);
+    trajectory->elapsedTime = elapsedTime;
+    if (trajectory->horizontalDistance > 0.0f) {
+        VECSubtract(&trajectory->targetPosition, &trajectory->startPosition, &horizontalDirection);
+        horizontalDirection.y = 0.0f;
+        VECNormalize(&horizontalDirection, &horizontalDirection);
     }
     else {
-        spC.x = spC.y = spC.z = 0.0f;
+        horizontalDirection.x = horizontalDirection.y = horizontalDirection.z = 0.0f;
     }
-    sp18 = *arg1;
-    var_f30 = (arg8 * (0.5f * arg0->unk_18 * arg8)) + (arg0->unk_14 * arg8);
-    var_f29 = (arg8 * (0.5f * arg0->unk_24 * arg8)) + (arg0->unk_20 * arg8);
-    arg1->x = arg0->unk_2C.x + (spC.x * var_f30);
-    arg1->y = arg0->unk_2C.y + var_f29;
-    arg1->z = arg0->unk_2C.z + (spC.z * var_f30);
-    VECSubtract(arg1, &sp18, arg2);
-    if (arg8 >= arg0->unk_00) {
+    previousPosition = *itemPosition;
+    horizontalDisplacement = (elapsedTime * (0.5f * trajectory->horizontalAcceleration * elapsedTime)) + (trajectory->horizontalVelocity * elapsedTime);
+    playerSpeed = (elapsedTime * (0.5f * trajectory->verticalAcceleration * elapsedTime)) + (trajectory->verticalVelocity * elapsedTime);
+    itemPosition->x = trajectory->startPosition.x + (horizontalDirection.x * horizontalDisplacement);
+    itemPosition->y = trajectory->startPosition.y + playerSpeed;
+    itemPosition->z = trajectory->startPosition.z + (horizontalDirection.z * horizontalDisplacement);
+    VECSubtract(itemPosition, &previousPosition, positionDelta);
+    if (elapsedTime >= trajectory->flightDuration) {
         return 1;
     }
     return 0;
 }
 
-void fn_1_D6A8(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateItemParticles(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    HU3DPARTICLEDATA *var_r31;
-    s32 var_r29;
+    HU3DPARTICLEDATA *particleData;
+    s32 particleIndex;
 
-    for (var_r31 = particle->data, var_r29 = 0; var_r29 < particle->maxCnt; var_r29++, var_r31++) {
-        if (var_r31->time != 0) {
-            VECAdd(&var_r31->pos, &var_r31->vel, &var_r31->pos);
-            var_r31->vel.x *= 0.92f;
-            var_r31->vel.z *= 0.92f;
-            var_r31->vel.y += -980.0f*(1.0f/REFRESH_RATE)*(1.0f/REFRESH_RATE);
-            var_r31->scale += 2.0f;
-            var_r31->color.a *= 0.99f;
-            if (var_r31->time < (REFRESH_RATE*0.4f)) {
-                var_r31->color.a = 0.9f * var_r31->color.a;
+    for (particleData = particle->data, particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+        if (particleData->time != 0) {
+            VECAdd(&particleData->pos, &particleData->vel, &particleData->pos);
+            particleData->vel.x *= 0.92f;
+            particleData->vel.z *= 0.92f;
+            particleData->vel.y += -980.0f*(1.0f/REFRESH_RATE)*(1.0f/REFRESH_RATE);
+            particleData->scale += 2.0f;
+            particleData->color.a *= 0.99f;
+            if (particleData->time < (REFRESH_RATE*0.4f)) {
+                particleData->color.a = 0.9f * particleData->color.a;
             }
-            if (--var_r31->time == 0) {
-                var_r31->time = 0;
-                var_r31->scale = 0.0f;
-                var_r31->color.a = 0;
+            if (--particleData->time == 0) {
+                particleData->time = 0;
+                particleData->scale = 0.0f;
+                particleData->color.a = 0;
             }
         }
     }
     DCStoreRange(particle->data, particle->maxCnt * 0x44);
 }
 
-void fn_1_D888(Vec *arg0, float arg8)
+void ApproachVector(Vec *position, float approachFactor)
 {
-    Vec sp8;
-    float var_f31;
-    float var_f30;
-    HU3DPARTICLEDATA *var_r31;
-    s32 var_r29;
-    u32 var_r28;
+    Vec movementDelta;
+    float movementLength;
+    float movementScale;
+    HU3DPARTICLEDATA *playerState;
+    s32 movementIndex;
+    u32 opponent;
 
-    var_r31 = ((HU3DPARTICLE *)Hu3DData[lbl_1_bss_7CC->mdlId[5]].hookData)->data;
-    var_r28 = 3.0f + (12.0f * arg8);
-    for (var_r29 = 0; var_r29 < 0xC8; var_r29++, var_r31++) {
-        if (var_r31->time == 0) {
-            var_r31->time = REFRESH_RATE * (0.6f + (0.0006f * frandmod(0x3E8)));
-            var_f30 = frandmod(0x168);
-            sp8.x = sind(var_f30);
-            sp8.y = 0.0f;
-            sp8.z = cosd(var_f30);
-            var_f31 = 0.030000001f * frandmod(0x3E8);
-            var_r31->pos.x = arg0->x + (sp8.x * var_f31);
-            var_r31->pos.y = 10.0f + (arg0->y + (0.030000001f * frandmod(0x3E8)));
-            var_r31->pos.z = arg0->z + (sp8.z * var_f31);
-            var_f31 = (50.0f*(1.0f/REFRESH_RATE)) + ((0.1f/REFRESH_RATE) * frandmod(0x3E8));
-            var_f31 *= 1.0f + arg8;
-            var_r31->vel.x = sp8.x * var_f31;
-            var_r31->vel.z = sp8.z * var_f31;
-            var_r31->vel.y = ((0.3f*100)*(1.0f/REFRESH_RATE)) + ((0.07f*(1.0f/REFRESH_RATE)) * frandmod(0x3E8));
-            var_r31->vel.y *= (1.0f + arg8);
-            var_r31->zRot = frandmod(0x168);
-            var_r31->scale = 60.0f + frandmod(0x1E);
-            var_r31->color.a = frandmod(0x64) + 0x78;
-            var_f31 = 0.001f * frandmod(0x3E8);
-            var_r31->color.r = 235.0f + (20.0f * var_f31);
-            var_r31->color.g = 180.0f + (75.0f * var_f31);
-            var_r31->color.b = 155.0f + (100.0f * var_f31);
-            if (--var_r28 < 1) {
+    playerState = ((HU3DPARTICLE *)Hu3DData[itemManagerObject->mdlId[5]].hookData)->data;
+    opponent = 3.0f + (12.0f * approachFactor);
+    for (movementIndex = 0; movementIndex < 0xC8; movementIndex++, playerState++) {
+        if (playerState->time == 0) {
+            playerState->time = REFRESH_RATE * (0.6f + (0.0006f * frandmod(0x3E8)));
+            movementScale = frandmod(0x168);
+            movementDelta.x = sind(movementScale);
+            movementDelta.y = 0.0f;
+            movementDelta.z = cosd(movementScale);
+            movementLength = 0.030000001f * frandmod(0x3E8);
+            playerState->pos.x = position->x + (movementDelta.x * movementLength);
+            playerState->pos.y = 10.0f + (position->y + (0.030000001f * frandmod(0x3E8)));
+            playerState->pos.z = position->z + (movementDelta.z * movementLength);
+            movementLength = (50.0f*(1.0f/REFRESH_RATE)) + ((0.1f/REFRESH_RATE) * frandmod(0x3E8));
+            movementLength *= 1.0f + approachFactor;
+            playerState->vel.x = movementDelta.x * movementLength;
+            playerState->vel.z = movementDelta.z * movementLength;
+            playerState->vel.y = ((0.3f*100)*(1.0f/REFRESH_RATE)) + ((0.07f*(1.0f/REFRESH_RATE)) * frandmod(0x3E8));
+            playerState->vel.y *= (1.0f + approachFactor);
+            playerState->zRot = frandmod(0x168);
+            playerState->scale = 60.0f + frandmod(0x1E);
+            playerState->color.a = frandmod(0x64) + 0x78;
+            movementLength = 0.001f * frandmod(0x3E8);
+            playerState->color.r = 235.0f + (20.0f * movementLength);
+            playerState->color.g = 180.0f + (75.0f * movementLength);
+            playerState->color.b = 155.0f + (100.0f * movementLength);
+            if (--opponent < 1) {
                 break;
             }
         }
     }
 }
 
-void fn_1_DD70(Vec *arg0)
+void ClampItemPosition(Vec *itemPosition)
 {
-    HU3DPARTICLEDATA *var_r30;
+    HU3DPARTICLEDATA *player;
 
-    HU3DPARTICLE *var_r31 = Hu3DData[lbl_1_bss_7CC->mdlId[8]].hookData;
-    Hu3DModelAttrReset(lbl_1_bss_7CC->mdlId[8], HU3D_ATTR_DISPOFF);
-    var_r30 = var_r31->data;
-    var_r31->dataCnt = 0;
-    var_r31->emitCnt = REFRESH_RATE;
-    var_r30->scale = 100.0f;
-    var_r30->pos = *arg0;
+    HU3DPARTICLE *playerState = Hu3DData[itemManagerObject->mdlId[8]].hookData;
+    Hu3DModelAttrReset(itemManagerObject->mdlId[8], HU3D_ATTR_DISPOFF);
+    player = playerState->data;
+    playerState->dataCnt = 0;
+    playerState->emitCnt = REFRESH_RATE;
+    player->scale = 100.0f;
+    player->pos = *itemPosition;
 }
 
-void fn_1_DE28(HU3DMODEL *var_r27, HU3DPARTICLE *var_r31, Mtx matrix)
+void UpdateItemEffectParticles(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    HU3DPARTICLEDATA *var_r30;
-    s32 var_r29;
-    s8 var_r28;
+    HU3DPARTICLEDATA *player;
+    s32 particleIndex;
+    s8 opponent;
 
-    if (var_r31->dataCnt == 0) {
-        var_r31->dataCnt = 1;
-        for (var_r30 = (HU3DPARTICLEDATA *)&var_r31->data, var_r29 = 0; var_r29 < var_r31->maxCnt; var_r29++, var_r30++) {
-            var_r30->scale = 0.0f;
+    if (particle->dataCnt == 0) {
+        particle->dataCnt = 1;
+        for (player = (HU3DPARTICLEDATA *)&particle->data, particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, player++) {
+            player->scale = 0.0f;
         }
     }
-    var_r28 = (1.0f/REFRESH_RATE) * (var_r31->emitCnt * 0xFF);
-    for (var_r30 = var_r31->data, var_r29 = 0; var_r29 < var_r31->maxCnt; var_r29++, var_r30++) {
-        var_r30->color.a = var_r28;
+    opponent = (1.0f/REFRESH_RATE) * (particle->emitCnt * 0xFF);
+    for (player = particle->data, particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, player++) {
+        player->color.a = opponent;
     }
-    if (--var_r31->emitCnt == 0) {
-        var_r27->attr |= 1;
+    if (--particle->emitCnt == 0) {
+        model->attr |= 1;
     }
-    DCStoreRange(var_r31->data, var_r31->maxCnt * sizeof(HU3DPARTICLEDATA));
+    DCStoreRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-void fn_1_DF44(OMOBJ *object)
+void InitializeGameStateObject(OMOBJ *object)
 {
-    M433PlayerWork3 *work;
+    M433GameEventState *work;
 
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M433PlayerWork3), HU_MEMNUM_OVL);
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M433GameEventState), HU_MEMNUM_OVL);
     work = object->data;
-    memset(work, 0, sizeof(M433PlayerWork3));
+    memset(work, 0, sizeof(M433GameEventState));
     work->uGameEvent = 0;
     work->sWinGrp = -1;
     work->uServeGrp = 0;
     work->auEvents[0] = work->auEvents[1] = 0;
-    work->unk_2C = work->unk_30 = 0;
-    fn_1_E5C0(work->unk_4C, &work->unk_64);
-    object->objFunc = fn_1_E11C;
+    work->pointScored = work->isPlaying = 0;
+    InitializeContactEvents(work->itemStartPosition, &work->scoreboardAnimation);
+    object->objFunc = UpdateGameStateObject;
 }
 
-void fn_1_DFE4(OMOBJ *var_r30)
+void InitializePlayerItemState(OMOBJ *player)
 {
-    M433PlayerWork3 *work = var_r30->data;
+    M433GameEventState *work = player->data;
     OSReport("\n");
     OSReport("uGameEvent       %d\n", work->uGameEvent);
     OSReport("sWinGrp          %d\n", work->sWinGrp);
@@ -2722,72 +2722,72 @@ void fn_1_DFE4(OMOBJ *var_r30)
     OSReport("\n");
 }
 
-void fn_1_E11C(OMOBJ *object)
+void UpdateGameStateObject(OMOBJ *object)
 {
-    s32 spC[4];
-    u32 var_r30;
-    s32 var_r29;
-    s32 var_r27;
-    s16 var_r26;
-    s16 var_r25;
+    s32 playerResults[4];
+    u32 player;
+    s32 animationIndex;
+    s32 winnerCount;
+    s16 playerIndex;
+    s16 targetTeam;
 
-    M433PlayerWork3 *work = object->data;
-    s32 sp8 = 0;
-    s32 var_r28 = 0;
-    work->unk_28++;
-    work->unk_4C[0].unk_00 = work->unk_20[0];
-    work->unk_4C[1].unk_00 = work->unk_20[1];
-    if (fn_1_216C() >= 2) {
-        fn_1_ECFC(work->unk_4C, &work->unk_64);
+    M433GameEventState *work = object->data;
+    s32 hasScored = 0;
+    s32 opponent = 0;
+    work->eventFrames++;
+    work->itemStartPosition[0].flightDuration = work->playerPoints[0];
+    work->itemStartPosition[1].flightDuration = work->playerPoints[1];
+    if (getRoundIntroState() >= 2) {
+        UpdateContactState(work->itemStartPosition, &work->scoreboardAnimation);
     }
     switch (work->uGameEvent) {
         case 0:
             work->uContactCnt = 0;
             work->uContactCel = -1;
-            if (work->unk_28 == (REFRESH_RATE/5)) {
-                fn_1_58D8(1);
+            if (work->eventFrames == (REFRESH_RATE/5)) {
+                SetMapMotion(1);
             }
-            if ((work->unk_28 >= (REFRESH_RATE/2.0f)) && (fn_1_216C() >= 2)) {
+            if ((work->eventFrames >= (REFRESH_RATE/2.0f)) && (getRoundIntroState() >= 2)) {
                 work->uGameEvent = 1;
-                work->unk_28 = 0;
+                work->eventFrames = 0;
                 work->auEvents[0] = work->auEvents[1] = 1;
             }
             break;
         case 1:
-            if (work->unk_30 != 0) {
-                work->unk_48 = 0;
+            if (work->position != 0) {
+                work->elapsedTime = 0;
                 work->uContactCel = -1;
                 work->uContactCnt = 0;
                 work->uGameEvent = 2;
-                work->unk_28 = 0;
+                work->eventFrames = 0;
                 work->auEvents[0] = work->auEvents[1] = 3;
                 if (work->uTargetGrp != 0) {
-                    var_r26 = 5;
+                    playerIndex = 5;
                 }
                 else {
-                    var_r26 = 6;
+                    playerIndex = 6;
                 }
-                fn_1_58D8(var_r26);
+                SetMapMotion(playerIndex);
             }
             break;
         case 2:
         case 5:
-            if (work->unk_30 != 0) {
+            if (work->position != 0) {
                 if (work->uContactCnt != 0) {
-                    work->unk_48++;
+                    work->elapsedTime++;
                     work->uGameEvent = 3;
                     work->auEvents[work->uContactGrp] = 4;
-                    if ((work->unk_48 >= 6) && ((work->unk_48 % 3) == 0)) {
-                        fn_1_58D8(3);
+                    if ((work->elapsedTime >= 6) && ((work->elapsedTime % 3) == 0)) {
+                        SetMapMotion(3);
                     }
                 }
-                work->unk_28 = 0;
+                work->eventFrames = 0;
             }
-            var_r28 = 1;
+            opponent = 1;
             break;
         case 3:
         case 4:
-            if (work->unk_30 != 0) {
+            if (work->position != 0) {
                 if (work->uContactGrp == work->uTargetGrp) {
                     work->uGameEvent = 4;
                     work->auEvents[work->uContactGrp] = 5;
@@ -2798,79 +2798,79 @@ void fn_1_E11C(OMOBJ *object)
                     work->uGameEvent = 5;
                     work->auEvents[work->uContactGrp] = 3;
                     if (work->uTargetGrp != 0) {
-                        var_r25 = 5;
+                        targetTeam = 5;
                     }
                     else {
-                        var_r25 = 6;
+                        targetTeam = 6;
                     }
-                    fn_1_58D8(var_r25);
+                    SetMapMotion(targetTeam);
                 }
-                work->unk_28 = 0;
+                work->eventFrames = 0;
             }
-            var_r28 = 1;
+            opponent = 1;
             break;
         case 6:
-            if (work->unk_28 >= (REFRESH_RATE*2.0f)) {
+            if (work->eventFrames >= (REFRESH_RATE*2.0f)) {
                 work->uGameEvent = 0;
-                work->unk_28 = 0;
+                work->eventFrames = 0;
                 work->auEvents[0] = work->auEvents[1] = 0;
             }
             break;
         case 7:
             break;
     }
-    if ((work->unk_2C != 0) && (var_r28 != 0)) {
+    if ((work->pointScored != 0) && (opponent != 0)) {
         if (work->sGroundGrp >= 0) {
-            var_r30 = 1 - work->sGroundGrp;
-            fn_1_58D8(1);
+            player = 1 - work->sGroundGrp;
+            SetMapMotion(1);
         }
         else {
-            var_r30 = 1 - work->uContactGrp;
-            fn_1_58D8(2);
+            player = 1 - work->uContactGrp;
+            SetMapMotion(2);
         }
-        work->uPointGrp = var_r30;
-        work->unk_20[var_r30]++;
-        if (work->uServeGrp != var_r30) {
-            work->uServeGrp = var_r30;
+        work->uPointGrp = player;
+        work->playerPoints[player]++;
+        if (work->uServeGrp != player) {
+            work->uServeGrp = player;
             work->auServeCel[work->uServeGrp] = 1 - work->auServeCel[work->uServeGrp];
         }
-        if (work->unk_20[var_r30] >= 5) {
-            work->sWinGrp = var_r30;
+        if (work->playerPoints[player] >= 5) {
+            work->sWinGrp = player;
             work->uGameEvent = 7;
             work->auEvents[0] = work->auEvents[1] = 7;
-            var_r27 = 0;
-            for (var_r29 = 0; var_r29 < 4; var_r29++) {
-                spC[var_r29] = -1;
-                if (work->sWinGrp == omObjGetDataAs(lbl_1_bss_7D0[var_r29], M433PlayerWork)->unk_14) {
-                    spC[var_r27++] = lbl_1_bss_7D0[var_r29]->work[0];
+            winnerCount = 0;
+            for (animationIndex = 0; animationIndex < 4; animationIndex++) {
+                playerResults[animationIndex] = -1;
+                if (work->sWinGrp == omObjGetDataAs(playerObjects[animationIndex], M433PlayerState)->teamIndex) {
+                    playerResults[winnerCount++] = playerObjects[animationIndex]->work[0];
                 }
             }
-            fn_1_219C(1, spC[0], spC[1]);
-            fn_1_21E4(4);
+            SetRoundResultAndPlayers(1, playerResults[0], playerResults[1]);
+            SetPlayerResultFlag(4);
         }
         else {
             work->uGameEvent = 6;
             work->auEvents[0] = work->auEvents[1] = 6;
-            fn_1_FE64(&work->unk_64, work->unk_20[0], work->unk_20[1], var_r30);
+            SetPlayerScoreState(&work->scoreboardAnimation, work->playerPoints[0], work->playerPoints[1], player);
             HuAudFXPlay(0x16);
         }
-        work->unk_28 = 0;
+        work->eventFrames = 0;
     }
-    work->unk_2C = 0;
-    work->unk_30 = 0;
+    work->pointScored = 0;
+    work->isPlaying = 0;
 }
 
-u16 lbl_1_data_674[6] = { 0, 1, 2, 3, 3, 0 };
-s32 lbl_1_data_680[2] = { 0x61001E, 0x61001F };
-Vec2f lbl_1_data_688[5] = {
+u16 scoreDisplayPlayerOrder[6] = { 0, 1, 2, 3, 3, 0 };
+s32 scoreSequenceIds[2] = { 0x61001E, 0x61001F };
+Vec2f scoreDigitOffsets[5] = {
     { 0.0f, 0.0f },
     { 0.0f, 0.0f },
     { -23.0f, 0.0f },
     { 1.0f, 0.0f },
     { 21.0f, 0.0f },
 };
-Vec2f lbl_1_data_6B0[2] = { { 72.0f, 56.0f }, { 504.0f, 56.0f } };
-s32 lbl_1_data_6C0[0xB][4] = {
+Vec2f scoreDisplayOrigins[2] = { { 72.0f, 56.0f }, { 504.0f, 56.0f } };
+s32 scoreDigitSpriteIds[0xB][4] = {
     { 0x13000B, 0, 0, 0 },
     { 0x13000C, 0, 0, 0 },
     { 0x13000D, 0, 0, 0 },
@@ -2883,8 +2883,8 @@ s32 lbl_1_data_6C0[0xB][4] = {
     { 0x130014, 0, 0, 0 },
     { 0x130099, 0, 0, 0 },
 };
-s32 lbl_1_data_770[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-M433DllPlayerData794Struct lbl_1_data_794[9] = {
+s32 itemHorizontalVelocities[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+M433ItemActionProperties itemActionProperties[9] = {
     { 0, 0, 0 },
     { 0, 0, 0 },
     { 1, 1, 0 },
@@ -2895,700 +2895,700 @@ M433DllPlayerData794Struct lbl_1_data_794[9] = {
     { 1, 0, 1 },
     { 1, 0, 1 },
 };
-u32 lbl_1_data_800[9] = { 0, 1, 2, 1, 1, 2, 1, 1, 1 };
+u32 itemActionStateMap[9] = { 0, 1, 2, 1, 1, 2, 1, 1, 1 };
 
-void fn_1_E5C0(M433PlayerWork3Sub *arg0, M433PlayerWork3Sub2 *arg1)
+void InitializeContactEvents(M433PlayerScoreDisplay *scoreboardPlayers, M433ScoreboardState *scoreboardAnimation)
 {
-    s32 var_r31;
-    s32 var_r28;
-    s32 var_r27;
+    s32 digitIndex;
+    s32 opponent;
+    s32 spriteType;
 
-    for (var_r28 = 0; var_r28 < 2; var_r28++, arg0++) {
-        for (var_r31 = 0; (u32)var_r31 < 5; var_r31++) {
-            switch (lbl_1_data_674[var_r31]) {
+    for (opponent = 0; opponent < 2; opponent++, scoreboardPlayers++) {
+        for (digitIndex = 0; (u32)digitIndex < 5; digitIndex++) {
+            switch (scoreDisplayPlayerOrder[digitIndex]) {
                 case 0:
-                    arg0->unk_02[var_r31] = espEntry(lbl_1_data_680[var_r28], 1, 0);
-                    espPriSet(arg0->unk_02[var_r31], 0x100);
+                    scoreboardPlayers->digitSpriteIds[digitIndex] = espEntry(scoreSequenceIds[opponent], 1, 0);
+                    espPriSet(scoreboardPlayers->digitSpriteIds[digitIndex], 0x100);
                     break;
                 case 1:
-                    arg0->unk_02[var_r31] = espEntry(0x610020, 1, 0);
-                    espPriSet(arg0->unk_02[var_r31], 0x101);
-                    espColorSet(arg0->unk_02[var_r31], 0, 0, 0);
-                    espTPLvlSet(arg0->unk_02[var_r31], 0.5);
+                    scoreboardPlayers->digitSpriteIds[digitIndex] = espEntry(0x610020, 1, 0);
+                    espPriSet(scoreboardPlayers->digitSpriteIds[digitIndex], 0x101);
+                    espColorSet(scoreboardPlayers->digitSpriteIds[digitIndex], 0, 0, 0);
+                    espTPLvlSet(scoreboardPlayers->digitSpriteIds[digitIndex], 0.5);
                     break;
                 case 2:
-                    arg0->unk_02[var_r31] = espEntry(DATA_MAKE_NUM(DATADIR_M433, 10), 1, 0);
-                    espPriSet(arg0->unk_02[var_r31], 0xFF);
+                    scoreboardPlayers->digitSpriteIds[digitIndex] = espEntry(DATA_MAKE_NUM(DATADIR_M433, 10), 1, 0);
+                    espPriSet(scoreboardPlayers->digitSpriteIds[digitIndex], 0xFF);
                     break;
                 case 3:
-                    arg0->unk_02[var_r31] = espEntry(0x610033, 1, 0);
-                    espPriSet(arg0->unk_02[var_r31], 0xFF);
+                    scoreboardPlayers->digitSpriteIds[digitIndex] = espEntry(0x610033, 1, 0);
+                    espPriSet(scoreboardPlayers->digitSpriteIds[digitIndex], 0xFF);
                     break;
             }
-            espDispOff(arg0->unk_02[var_r31]);
-            espDrawNoSet(arg0->unk_02[var_r31], 0);
-            espAttrSet(arg0->unk_02[var_r31], HUSPR_ATTR_NOANIM);
-            espAttrSet(arg0->unk_02[var_r31], HUSPR_ATTR_LINEAR);
+            espDispOff(scoreboardPlayers->digitSpriteIds[digitIndex]);
+            espDrawNoSet(scoreboardPlayers->digitSpriteIds[digitIndex], 0);
+            espAttrSet(scoreboardPlayers->digitSpriteIds[digitIndex], HUSPR_ATTR_NOANIM);
+            espAttrSet(scoreboardPlayers->digitSpriteIds[digitIndex], HUSPR_ATTR_LINEAR);
             espPosSet(
-                arg0->unk_02[var_r31], lbl_1_data_6B0[var_r28].x + lbl_1_data_688[var_r31].x, lbl_1_data_6B0[var_r28].y + lbl_1_data_688[var_r31].y);
+                scoreboardPlayers->digitSpriteIds[digitIndex], scoreDisplayOrigins[opponent].x + scoreDigitOffsets[digitIndex].x, scoreDisplayOrigins[opponent].y + scoreDigitOffsets[digitIndex].y);
         }
     }
     HuDataDirClose(0x610000);
-    for (var_r28 = 0; var_r28 < 3; var_r28++) {
-        for (var_r31 = 0; var_r31 < 0x14; var_r31++) {
-            for (var_r27 = 0; var_r27 < 2; var_r27++) {
-                if (lbl_1_data_6C0[var_r31 % 10][var_r27] != 0) {
-                    arg1->unk_D0[var_r28][var_r31].unk_00[var_r27] = espEntry(lbl_1_data_6C0[var_r31 % 10][var_r27], 2, 0);
-                    espAttrSet(arg1->unk_D0[var_r28][var_r31].unk_00[var_r27], HUSPR_ATTR_LINEAR);
-                    espDispOff(arg1->unk_D0[var_r28][var_r31].unk_00[var_r27]);
+    for (opponent = 0; opponent < 3; opponent++) {
+        for (digitIndex = 0; digitIndex < 0x14; digitIndex++) {
+            for (spriteType = 0; spriteType < 2; spriteType++) {
+                if (scoreDigitSpriteIds[digitIndex % 10][spriteType] != 0) {
+                    scoreboardAnimation->scoreSpriteRows[opponent][digitIndex].animationState[spriteType] = espEntry(scoreDigitSpriteIds[digitIndex % 10][spriteType], 2, 0);
+                    espAttrSet(scoreboardAnimation->scoreSpriteRows[opponent][digitIndex].animationState[spriteType], HUSPR_ATTR_LINEAR);
+                    espDispOff(scoreboardAnimation->scoreSpriteRows[opponent][digitIndex].animationState[spriteType]);
                 }
                 else {
-                    arg1->unk_D0[var_r28][var_r31].unk_00[var_r27] = -1;
+                    scoreboardAnimation->scoreSpriteRows[opponent][digitIndex].animationState[spriteType] = -1;
                 }
             }
         }
     }
-    for (var_r27 = 0; var_r27 < 2; var_r27++) {
-        if (lbl_1_data_6C0[10][var_r27] != 0) {
-            arg1->unk_490.unk_00[var_r27] = espEntry(lbl_1_data_6C0[10][var_r27], 2, 0);
-            espAttrSet(arg1->unk_490.unk_00[var_r27], HUSPR_ATTR_LINEAR);
-            espDispOff(arg1->unk_490.unk_00[var_r27]);
+    for (spriteType = 0; spriteType < 2; spriteType++) {
+        if (scoreDigitSpriteIds[10][spriteType] != 0) {
+            scoreboardAnimation->finalScoreSprites.animationState[spriteType] = espEntry(scoreDigitSpriteIds[10][spriteType], 2, 0);
+            espAttrSet(scoreboardAnimation->finalScoreSprites.animationState[spriteType], HUSPR_ATTR_LINEAR);
+            espDispOff(scoreboardAnimation->finalScoreSprites.animationState[spriteType]);
         }
         else {
-            arg1->unk_490.unk_00[var_r27] = -1;
+            scoreboardAnimation->finalScoreSprites.animationState[spriteType] = -1;
         }
     }
-    for (var_r28 = 0; var_r28 < 2; var_r28++) {
-        arg1->unk_20[var_r28].unk_00[0] = -1;
-        arg1->unk_20[var_r28].unk_00[1] = -1;
+    for (opponent = 0; opponent < 2; opponent++) {
+        scoreboardAnimation->scoreAnimations[opponent].animationState[0] = -1;
+        scoreboardAnimation->scoreAnimations[opponent].animationState[1] = -1;
     }
-    arg1->unk_20[2].unk_00[0] = -1;
-    arg1->unk_20[2].unk_00[1] = -1;
-    arg1->unk_20[3].unk_00[0] = -1;
-    arg1->unk_20[3].unk_00[1] = -1;
-    HuDataDirClose(lbl_1_data_6C0[0][0]);
+    scoreboardAnimation->scoreAnimations[2].animationState[0] = -1;
+    scoreboardAnimation->scoreAnimations[2].animationState[1] = -1;
+    scoreboardAnimation->scoreAnimations[3].animationState[0] = -1;
+    scoreboardAnimation->scoreAnimations[3].animationState[1] = -1;
+    HuDataDirClose(scoreDigitSpriteIds[0][0]);
 }
 
-void fn_1_EA8C(M433PlayerWork3Sub2Sub *var_r31)
+void UpdateContactScale(M433ScoreAnimationState *scoreAnimation)
 {
-    float var_f31;
-    float var_f30;
-    s32 var_r30;
+    float horizontalOffset;
+    float verticalOffset;
+    s32 player;
 
-    for (var_r30 = 0; var_r30 < 2; var_r30++) {
-        if (var_r31->unk_00[var_r30] >= 0) {
-            espDispOn(var_r31->unk_00[var_r30]);
-            var_f31 = (var_r31->unk_04[var_r30] * var_r31->unk_1C) * cosd(var_r31->unk_28);
-            var_f30 = (var_r31->unk_04[var_r30] * var_r31->unk_1C) * sind(var_r31->unk_28);
-            espPosSet(var_r31->unk_00[var_r30], var_r31->unk_0C + var_f31, var_r31->unk_10 + var_f30);
-            espZRotSet(var_r31->unk_00[var_r30], var_r31->unk_28);
-            espScaleSet(var_r31->unk_00[var_r30], var_r31->unk_1C, var_r31->unk_20);
-            espTPLvlSet(var_r31->unk_00[var_r30], var_r31->unk_24);
+    for (player = 0; player < 2; player++) {
+        if (scoreAnimation->digitSpriteIds[player] >= 0) {
+            espDispOn(scoreAnimation->digitSpriteIds[player]);
+            horizontalOffset = (scoreAnimation->digitXOffsets[player] * scoreAnimation->horizontalScale) * cosd(scoreAnimation->rotation);
+            verticalOffset = (scoreAnimation->digitXOffsets[player] * scoreAnimation->horizontalScale) * sind(scoreAnimation->rotation);
+            espPosSet(scoreAnimation->digitSpriteIds[player], scoreAnimation->displayX + horizontalOffset, scoreAnimation->displayY + verticalOffset);
+            espZRotSet(scoreAnimation->digitSpriteIds[player], scoreAnimation->rotation);
+            espScaleSet(scoreAnimation->digitSpriteIds[player], scoreAnimation->horizontalScale, scoreAnimation->verticalScale);
+            espTPLvlSet(scoreAnimation->digitSpriteIds[player], scoreAnimation->opacity);
         }
     }
 }
 
-void fn_1_EBE4(M433PlayerWork3Sub2Sub2 *arg0, M433PlayerWork3Sub2Sub *arg1, u32 arg2)
+void UpdateContactEvent(M433ScoreSpriteRow *scoreSpriteRows, M433ScoreAnimationState *scoreAnimation, u32 scoreValue)
 {
-    u32 var_r31;
-    u32 var_r30;
+    u32 scoreDigitIndex;
+    u32 player;
 
-    var_r31 = arg2 % 10;
-    var_r30 = arg2 / 10;
-    if (var_r30 == 0) {
-        arg1->unk_00[0] = arg0[var_r31].unk_00[0];
-        arg1->unk_00[1] = -1;
-        arg1->unk_04[0] = 0.0f;
+    scoreDigitIndex = scoreValue % 10;
+    player = scoreValue / 10;
+    if (player == 0) {
+        scoreAnimation->digitSpriteIds[0] = scoreSpriteRows[scoreDigitIndex].scoreSpriteIds[0];
+        scoreAnimation->digitSpriteIds[1] = -1;
+        scoreAnimation->digitXOffsets[0] = 0.0f;
     }
     else {
-        arg1->unk_00[0] = arg0[var_r30 + 0xA].unk_00[0];
-        arg1->unk_00[1] = arg0[var_r31].unk_00[0];
-        arg1->unk_04[0] = -23.039999f;
-        arg1->unk_04[1] = 23.039999f;
+        scoreAnimation->digitSpriteIds[0] = scoreSpriteRows[player + 0xA].scoreSpriteIds[0];
+        scoreAnimation->digitSpriteIds[1] = scoreSpriteRows[scoreDigitIndex].scoreSpriteIds[0];
+        scoreAnimation->digitXOffsets[0] = -23.039999f;
+        scoreAnimation->digitXOffsets[1] = 23.039999f;
     }
-    arg1->unk_0C = arg1->unk_10 = 0.0f;
-    arg1->unk_14 = arg1->unk_18 = 0.0f;
-    arg1->unk_1C = arg1->unk_20 = 1.5f;
-    arg1->unk_24 = 1.0f;
-    arg1->unk_28 = 0.0f;
+    scoreAnimation->displayX = scoreAnimation->displayY = 0.0f;
+    scoreAnimation->xVelocity = scoreAnimation->yVelocity = 0.0f;
+    scoreAnimation->horizontalScale = scoreAnimation->verticalScale = 1.5f;
+    scoreAnimation->opacity = 1.0f;
+    scoreAnimation->rotation = 0.0f;
 }
 
-void fn_1_ECFC(M433PlayerWork3Sub *arg0, M433PlayerWork3Sub2 *arg1)
+void UpdateContactState(M433PlayerScoreDisplay *scoreboardPlayers, M433ScoreboardState *scoreboardAnimation)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    M433PlayerWork3Sub2Sub *var_r30;
-    M433PlayerWork3Sub2Sub2 *var_r29;
-    s32 var_r28;
-    s32 var_r22;
+    float scoreOpacity;
+    float scorePosition;
+    float playerSpeed;
+    float opponentSpeed;
+    M433ScoreAnimationState *player;
+    M433ScoreSpriteRow *scoreSprite;
+    s32 opponent;
+    s32 digitIndex;
 
-    for (var_r28 = 0; var_r28 < 2; var_r28++, arg0++) {
-        for (var_r22 = 0; var_r22 < 5; var_r22++) {
-            espDispOn(arg0->unk_02[var_r22]);
+    for (opponent = 0; opponent < 2; opponent++, scoreboardPlayers++) {
+        for (digitIndex = 0; digitIndex < 5; digitIndex++) {
+            espDispOn(scoreboardPlayers->digitSpriteIds[digitIndex]);
         }
-        espBankSet(arg0->unk_02[3], arg0->unk_00 / 10);
-        espBankSet(arg0->unk_02[4], arg0->unk_00 % 10);
+        espBankSet(scoreboardPlayers->digitSpriteIds[3], scoreboardPlayers->score / 10);
+        espBankSet(scoreboardPlayers->digitSpriteIds[4], scoreboardPlayers->score % 10);
     }
-    var_f28 = 864.0f/(REFRESH_RATE*5);
-    if (arg1->unk_1C == 0) {
-        var_r30 = arg1->unk_20;
+    opponentSpeed = 864.0f/(REFRESH_RATE*5);
+    if (scoreboardAnimation->servingPlayer == 0) {
+        player = scoreboardAnimation->scoreAnimations;
     }
     else {
-        var_r30 = &arg1->unk_20[1];
-        var_f28 *= -1.0f;
+        player = &scoreboardAnimation->scoreAnimations[1];
+        opponentSpeed *= -1.0f;
     }
-    switch (arg1->unk_00) {
+    switch (scoreboardAnimation->animationState) {
         case 0:
             break;
         case 1:
-            fn_1_EBE4(&arg1->unk_D0[0][0], &arg1->unk_20[0], arg1->unk_0C);
-            fn_1_EBE4(&arg1->unk_D0[1][0], &arg1->unk_20[1], arg1->unk_10);
-            fn_1_EBE4(&arg1->unk_490, &arg1->unk_20[2], 0);
-            fn_1_EBE4(&arg1->unk_D0[2][0], &arg1->unk_20[3], arg1->unk_14[arg1->unk_1C]);
+            UpdateContactEvent(&scoreboardAnimation->scoreSpriteRows[0][0], &scoreboardAnimation->scoreAnimations[0], scoreboardAnimation->previousScore);
+            UpdateContactEvent(&scoreboardAnimation->scoreSpriteRows[1][0], &scoreboardAnimation->scoreAnimations[1], scoreboardAnimation->previousOpponentScore);
+            UpdateContactEvent(&scoreboardAnimation->finalScoreSprites, &scoreboardAnimation->scoreAnimations[2], 0);
+            UpdateContactEvent(&scoreboardAnimation->scoreSpriteRows[2][0], &scoreboardAnimation->scoreAnimations[3], scoreboardAnimation->currentScores[scoreboardAnimation->servingPlayer]);
 
-            var_f30 = -48.0f;
-            arg1->unk_20[0].unk_0C = 172.8f;
-            arg1->unk_20[0].unk_10 = 360.0f - var_f30;
-            arg1->unk_20[1].unk_0C = 403.19998f;
-            arg1->unk_20[1].unk_10 = 360.0f - var_f30;
-            arg1->unk_20[2].unk_0C = 288.0f;
-            arg1->unk_20[2].unk_10 = 360.0f - var_f30;
-            arg1->unk_20[0].unk_24 = arg1->unk_20[1].unk_24 = arg1->unk_20[2].unk_24 = 0.0f;
-            var_f30 = var_f30 / (REFRESH_RATE*(1.0f/3.125f));
-            arg1->unk_20[0].unk_18 = var_f30;
-            arg1->unk_20[1].unk_18 = var_f30;
-            arg1->unk_20[2].unk_18 = var_f30;
-            arg1->unk_20[3].unk_0C = 806.39996f;
-            arg1->unk_20[3].unk_10 = 144.0f;
-            arg1->unk_20[3].unk_1C += 0.5f;
-            arg1->unk_20[3].unk_20 -= 0.5f;
-            arg1->unk_20[3].unk_14 = (403.19998f - arg1->unk_20[3].unk_0C) / (REFRESH_RATE*0.4f);
-            arg1->unk_20[3].unk_18 = (360.0f - arg1->unk_20[3].unk_10) / (REFRESH_RATE*0.4f);
-            if (arg1->unk_1C == 0) {
-                arg1->unk_20[3].unk_0C = -230.40001f;
-                arg1->unk_20[3].unk_14 *= -1.0f;
+            scorePosition = -48.0f;
+            scoreboardAnimation->scoreAnimations[0].displayX = 172.8f;
+            scoreboardAnimation->scoreAnimations[0].displayY = 360.0f - scorePosition;
+            scoreboardAnimation->scoreAnimations[1].displayX = 403.19998f;
+            scoreboardAnimation->scoreAnimations[1].displayY = 360.0f - scorePosition;
+            scoreboardAnimation->scoreAnimations[2].displayX = 288.0f;
+            scoreboardAnimation->scoreAnimations[2].displayY = 360.0f - scorePosition;
+            scoreboardAnimation->scoreAnimations[0].opacity = scoreboardAnimation->scoreAnimations[1].opacity = scoreboardAnimation->scoreAnimations[2].opacity = 0.0f;
+            scorePosition = scorePosition / (REFRESH_RATE*(1.0f/3.125f));
+            scoreboardAnimation->scoreAnimations[0].yVelocity = scorePosition;
+            scoreboardAnimation->scoreAnimations[1].yVelocity = scorePosition;
+            scoreboardAnimation->scoreAnimations[2].yVelocity = scorePosition;
+            scoreboardAnimation->scoreAnimations[3].displayX = 806.39996f;
+            scoreboardAnimation->scoreAnimations[3].displayY = 144.0f;
+            scoreboardAnimation->scoreAnimations[3].horizontalScale += 0.5f;
+            scoreboardAnimation->scoreAnimations[3].verticalScale -= 0.5f;
+            scoreboardAnimation->scoreAnimations[3].xVelocity = (403.19998f - scoreboardAnimation->scoreAnimations[3].displayX) / (REFRESH_RATE*0.4f);
+            scoreboardAnimation->scoreAnimations[3].yVelocity = (360.0f - scoreboardAnimation->scoreAnimations[3].displayY) / (REFRESH_RATE*0.4f);
+            if (scoreboardAnimation->servingPlayer == 0) {
+                scoreboardAnimation->scoreAnimations[3].displayX = -230.40001f;
+                scoreboardAnimation->scoreAnimations[3].xVelocity *= -1.0f;
             }
-            arg1->unk_00++;
-            arg1->unk_04 = 0;
+            scoreboardAnimation->animationState++;
+            scoreboardAnimation->animationFrame = 0;
             break;
         case 2:
-            var_f31 = arg1->unk_20[0].unk_24;
-            var_f31 += ((10.0f/3.0f)/REFRESH_RATE);
-            if (var_f31 > 0.95f) {
-                var_f31 = 1.0f;
+            scoreOpacity = scoreboardAnimation->scoreAnimations[0].opacity;
+            scoreOpacity += ((10.0f/3.0f)/REFRESH_RATE);
+            if (scoreOpacity > 0.95f) {
+                scoreOpacity = 1.0f;
             }
-            arg1->unk_20[2].unk_24 = var_f31;
-            arg1->unk_20[1].unk_24 = var_f31;
-            arg1->unk_20[0].unk_24 = var_f31;
-            arg1->unk_20[0].unk_10 += arg1->unk_20[0].unk_18;
-            arg1->unk_20[1].unk_10 += arg1->unk_20[1].unk_18;
-            arg1->unk_20[2].unk_10 += arg1->unk_20[2].unk_18;
-            arg1->unk_20[3].unk_0C += arg1->unk_20[3].unk_14;
-            arg1->unk_20[3].unk_10 += arg1->unk_20[3].unk_18;
-            if (arg1->unk_04 >= (REFRESH_RATE*(1.0f/3.125f))) {
-                var_r30->unk_14 = var_f28;
-                var_r30->unk_18 = (-384.0f/REFRESH_RATE)*2.5f;
-                arg1->unk_00++;
-                arg1->unk_08 = 0;
+            scoreboardAnimation->scoreAnimations[2].opacity = scoreOpacity;
+            scoreboardAnimation->scoreAnimations[1].opacity = scoreOpacity;
+            scoreboardAnimation->scoreAnimations[0].opacity = scoreOpacity;
+            scoreboardAnimation->scoreAnimations[0].displayY += scoreboardAnimation->scoreAnimations[0].yVelocity;
+            scoreboardAnimation->scoreAnimations[1].displayY += scoreboardAnimation->scoreAnimations[1].yVelocity;
+            scoreboardAnimation->scoreAnimations[2].displayY += scoreboardAnimation->scoreAnimations[2].yVelocity;
+            scoreboardAnimation->scoreAnimations[3].displayX += scoreboardAnimation->scoreAnimations[3].xVelocity;
+            scoreboardAnimation->scoreAnimations[3].displayY += scoreboardAnimation->scoreAnimations[3].yVelocity;
+            if (scoreboardAnimation->animationFrame >= (REFRESH_RATE*(1.0f/3.125f))) {
+                player->xVelocity = opponentSpeed;
+                player->yVelocity = (-384.0f/REFRESH_RATE)*2.5f;
+                scoreboardAnimation->animationState++;
+                scoreboardAnimation->animationTimer = 0;
             }
             break;
         case 3:
-            if (arg1->unk_04 <= (REFRESH_RATE*0.4f)) {
-                arg1->unk_20[3].unk_0C += arg1->unk_20[3].unk_14;
-                arg1->unk_20[3].unk_10 += arg1->unk_20[3].unk_18;
+            if (scoreboardAnimation->animationFrame <= (REFRESH_RATE*0.4f)) {
+                scoreboardAnimation->scoreAnimations[3].displayX += scoreboardAnimation->scoreAnimations[3].xVelocity;
+                scoreboardAnimation->scoreAnimations[3].displayY += scoreboardAnimation->scoreAnimations[3].yVelocity;
             }
-            if (arg1->unk_08 < (REFRESH_RATE*0.4f)) {
-                arg1->unk_08++;
-                var_f31 = (2025.0f/REFRESH_RATE) * arg1->unk_08;
-                var_f29 = (2.5f/REFRESH_RATE) * arg1->unk_08;
-                var_f29 = 0.5f * (1.0f - (var_f29 * var_f29));
-                if (arg1->unk_08 == (REFRESH_RATE*0.4f)) {
-                    var_f29 = 0.0f;
+            if (scoreboardAnimation->animationTimer < (REFRESH_RATE*0.4f)) {
+                scoreboardAnimation->animationTimer++;
+                scoreOpacity = (2025.0f/REFRESH_RATE) * scoreboardAnimation->animationTimer;
+                playerSpeed = (2.5f/REFRESH_RATE) * scoreboardAnimation->animationTimer;
+                playerSpeed = 0.5f * (1.0f - (playerSpeed * playerSpeed));
+                if (scoreboardAnimation->animationTimer == (REFRESH_RATE*0.4f)) {
+                    playerSpeed = 0.0f;
                 }
-                arg1->unk_20[3].unk_1C = 1.5 + (var_f29 * cosd(var_f31));
-                arg1->unk_20[3].unk_20 = 1.5 + (var_f29 * sind((var_f31 - 90.0f)));
+                scoreboardAnimation->scoreAnimations[3].horizontalScale = 1.5 + (playerSpeed * cosd(scoreOpacity));
+                scoreboardAnimation->scoreAnimations[3].verticalScale = 1.5 + (playerSpeed * sind((scoreOpacity - 90.0f)));
             }
-            var_r30->unk_1C = arg1->unk_20[3].unk_20;
-            var_r30->unk_20 = arg1->unk_20[3].unk_1C;
-            var_r30->unk_0C += var_r30->unk_14;
-            var_r30->unk_10 += var_r30->unk_18;
-            var_r30->unk_18 += 2880.0f*(1.0f/REFRESH_RATE)*(1.0f/REFRESH_RATE);
-            var_r30->unk_28 += 500.0f*(1.0f/REFRESH_RATE);
-            var_r30->unk_24 -= 1.07f*(1.0f/REFRESH_RATE);
-            if (var_r30->unk_24 < 0.0f) {
-                var_r30->unk_24 = 0.0f;
+            player->horizontalScale = scoreboardAnimation->scoreAnimations[3].verticalScale;
+            player->verticalScale = scoreboardAnimation->scoreAnimations[3].horizontalScale;
+            player->displayX += player->xVelocity;
+            player->displayY += player->yVelocity;
+            player->yVelocity += 2880.0f*(1.0f/REFRESH_RATE)*(1.0f/REFRESH_RATE);
+            player->rotation += 500.0f*(1.0f/REFRESH_RATE);
+            player->opacity -= 1.07f*(1.0f/REFRESH_RATE);
+            if (player->opacity < 0.0f) {
+                player->opacity = 0.0f;
             }
-            if (fn_1_10EA4() == 0) {
-                arg1->unk_00++;
-                arg1->unk_04 = 0;
+            if (GetActiveContactGroup() == 0) {
+                scoreboardAnimation->animationState++;
+                scoreboardAnimation->animationFrame = 0;
             }
             break;
         case 4:
-            var_f31 = arg1->unk_20[3].unk_24;
-            var_f31 -= ((10.0f/3.0f)/REFRESH_RATE);
-            if (var_f31 < 0.05f) {
-                var_f31 = 0.0f;
-                arg1->unk_00++;
-                arg1->unk_04 = 0;
+            scoreOpacity = scoreboardAnimation->scoreAnimations[3].opacity;
+            scoreOpacity -= ((10.0f/3.0f)/REFRESH_RATE);
+            if (scoreOpacity < 0.05f) {
+                scoreOpacity = 0.0f;
+                scoreboardAnimation->animationState++;
+                scoreboardAnimation->animationFrame = 0;
             }
-            arg1->unk_20[3].unk_24 = var_f31;
-            arg1->unk_20[2].unk_24 = var_f31;
-            arg1->unk_20[1].unk_24 = var_f31;
-            arg1->unk_20[0].unk_24 = var_f31;
+            scoreboardAnimation->scoreAnimations[3].opacity = scoreOpacity;
+            scoreboardAnimation->scoreAnimations[2].opacity = scoreOpacity;
+            scoreboardAnimation->scoreAnimations[1].opacity = scoreOpacity;
+            scoreboardAnimation->scoreAnimations[0].opacity = scoreOpacity;
             break;
         default:
-            for (var_r28 = 0; var_r28 < 2; var_r28++) {
-                arg1->unk_20[var_r28].unk_00[0] = -1;
-                arg1->unk_20[var_r28].unk_00[1] = -1;
+            for (opponent = 0; opponent < 2; opponent++) {
+                scoreboardAnimation->scoreAnimations[opponent].digitSpriteIds[0] = -1;
+                scoreboardAnimation->scoreAnimations[opponent].digitSpriteIds[1] = -1;
             }
-            arg1->unk_20[2].unk_00[0] = -1;
-            arg1->unk_20[2].unk_00[1] = -1;
-            arg1->unk_20[3].unk_00[0] = -1;
-            arg1->unk_20[3].unk_00[1] = -1;
-            arg1->unk_00 = 0;
+            scoreboardAnimation->scoreAnimations[2].digitSpriteIds[0] = -1;
+            scoreboardAnimation->scoreAnimations[2].digitSpriteIds[1] = -1;
+            scoreboardAnimation->scoreAnimations[3].digitSpriteIds[0] = -1;
+            scoreboardAnimation->scoreAnimations[3].digitSpriteIds[1] = -1;
+            scoreboardAnimation->animationState = 0;
             break;
     }
-    for (var_r28 = 0; var_r28 < 3; var_r28++) {
-        var_r29 = &arg1->unk_D0[var_r28][0];
-        for (var_r22 = 0; var_r22 < 0x14; var_r22++, var_r29++) {
-            if (var_r29->unk_00[0] >= 0) {
-                espDispOff(var_r29->unk_00[0]);
+    for (opponent = 0; opponent < 3; opponent++) {
+        scoreSprite = &scoreboardAnimation->scoreSpriteRows[opponent][0];
+        for (digitIndex = 0; digitIndex < 0x14; digitIndex++, scoreSprite++) {
+            if (scoreSprite->scoreSpriteIds[0] >= 0) {
+                espDispOff(scoreSprite->scoreSpriteIds[0]);
             }
-            if (var_r29->unk_00[1] >= 0) {
-                espDispOff(var_r29->unk_00[1]);
-            }
-        }
-    }
-    var_r29 = &arg1->unk_490;
-    if (var_r29->unk_00[0] >= 0) {
-        espDispOff(var_r29->unk_00[0]);
-    }
-    if (var_r29->unk_00[1] >= 0) {
-        espDispOff(var_r29->unk_00[1]);
-    }
-    fn_1_EA8C(&arg1->unk_20[0]);
-    fn_1_EA8C(&arg1->unk_20[1]);
-    fn_1_EA8C(&arg1->unk_20[2]);
-    fn_1_EA8C(&arg1->unk_20[3]);
-    arg1->unk_04++;
-}
-
-void fn_1_FE64(M433PlayerWork3Sub2 *arg0, s32 arg1, s32 arg2, u32 arg3)
-{
-    arg0->unk_00 = 1;
-    arg0->unk_0C = arg0->unk_14[0];
-    arg0->unk_10 = arg0->unk_14[1];
-    arg0->unk_14[0] = arg1;
-    arg0->unk_14[1] = arg2;
-    arg0->unk_1C = arg3;
-}
-
-void fn_1_FE8C(Vec *arg0, u32 arg1, u32 arg2, s32 arg3)
-{
-    M433PlayerWork2 *var_r31 = lbl_1_bss_7CC->data;
-    var_r31->unk_18 = 0;
-    if (arg1 < 9) {
-        var_r31->unk_18 = lbl_1_data_770[arg1];
-        if (lbl_1_data_794[arg1].unk_00 != 0) {
-            M433PlayerWork3 *var_r30 = lbl_1_bss_7C8->data;
-            var_r30->unk_30 = 1;
-            var_r30->uContactGrp = arg2;
-            var_r30->uContactCel = arg3;
-            var_r30->uTargetGrp = arg2;
-            if (lbl_1_data_794[arg1].unk_04 != 0) {
-                var_r30->uTargetGrp = 1 - var_r30->uTargetGrp;
-            }
-            if (lbl_1_data_794[arg1].unk_08 != 0) {
-                var_r30->uContactCnt++;
+            if (scoreSprite->scoreSpriteIds[1] >= 0) {
+                espDispOff(scoreSprite->scoreSpriteIds[1]);
             }
         }
     }
-    if (arg1 == 5) {
-        s32 var_r28 = 6;
-        if (var_r31->unk_6C == 5) {
-            var_r28++;
+    scoreSprite = &scoreboardAnimation->finalScoreSprites;
+    if (scoreSprite->scoreSpriteIds[0] >= 0) {
+        espDispOff(scoreSprite->scoreSpriteIds[0]);
+    }
+    if (scoreSprite->scoreSpriteIds[1] >= 0) {
+        espDispOff(scoreSprite->scoreSpriteIds[1]);
+    }
+    UpdateContactScale(&scoreboardAnimation->scoreAnimations[0]);
+    UpdateContactScale(&scoreboardAnimation->scoreAnimations[1]);
+    UpdateContactScale(&scoreboardAnimation->scoreAnimations[2]);
+    UpdateContactScale(&scoreboardAnimation->scoreAnimations[3]);
+    scoreboardAnimation->animationFrame++;
+}
+
+void SetPlayerScoreState(M433ScoreboardState *scoreboardAnimation, s32 playerScore, s32 opponentScore, u32 servingPlayer)
+{
+    scoreboardAnimation->animationState = 1;
+    scoreboardAnimation->previousScore = scoreboardAnimation->currentScores[0];
+    scoreboardAnimation->previousOpponentScore = scoreboardAnimation->currentScores[1];
+    scoreboardAnimation->currentScores[0] = playerScore;
+    scoreboardAnimation->currentScores[1] = opponentScore;
+    scoreboardAnimation->servingPlayer = servingPlayer;
+}
+
+void SetPlayerItemState(Vec *itemPosition, u32 itemType, u32 contactGroup, s32 contactCell)
+{
+    M433ItemManagerState *gameState = itemManagerObject->data;
+    gameState->horizontalVelocity = 0;
+    if (itemType < 9) {
+        gameState->horizontalVelocity = itemHorizontalVelocities[itemType];
+        if (itemActionProperties[itemType].startsContactEvent != 0) {
+            M433GameEventState *player = gameEventObject->data;
+            player->position = 1;
+            player->uContactGrp = contactGroup;
+            player->uContactCel = contactCell;
+            player->uTargetGrp = contactGroup;
+            if (itemActionProperties[itemType].switchesTargetGroup != 0) {
+                player->uTargetGrp = 1 - player->uTargetGrp;
+            }
+            if (itemActionProperties[itemType].countsContact != 0) {
+                player->uContactCnt++;
+            }
         }
-        Hu3DModelPosSetV(lbl_1_bss_7CC->mdlId[var_r28], &var_r31->unk_30);
-        Hu3DModelAttrReset(lbl_1_bss_7CC->mdlId[var_r28], HU3D_ATTR_DISPOFF);
-        Hu3DMotionTimeSet(lbl_1_bss_7CC->mdlId[var_r28], 0.0f);
-        Hu3DMotionShapeTimeSet(lbl_1_bss_7CC->mdlId[var_r28], 0.0f);
     }
-    else if (arg1 != 2) {
-        var_r31->unk_A8 = 1.0f;
-    }
-    var_r31->unk_0C = 1;
-    var_r31->unk_10 = 0;
-    var_r31->unk_04 = 0;
-    var_r31->unk_08 = 0;
-    var_r31->unk_6C = arg1;
-    var_r31->unk_70 = arg2;
-    var_r31->unk_74 = arg3;
-    if (lbl_1_data_800[arg1] != 0) {
-        var_r31->unk_78 = lbl_1_data_800[arg1];
-    }
-    else if (var_r31->unk_78 != 0) {
-        var_r31->unk_78--;
-    }
-    var_r31->unk_3C = *arg0;
-    if (arg1 == 0) {
-        var_r31->unk_30 = var_r31->unk_3C;
-    }
-    var_r31->unk_F8.unk_00 = 1.0f;
-    var_r31->unk_F8.unk_00 = 0.0f;
-}
-
-void fn_1_10130(Vec *arg0, u32 arg1)
-{
-    float var_f31 = 44.0f;
-    if ((arg0->z - var_f31) < -500.0f) {
-        arg0->z = -500.0f + var_f31;
-    }
-    else if ((arg0->z + var_f31) > 500.0f) {
-        arg0->z = 500.0f - var_f31;
-    }
-    if (arg1 == 0) {
-        arg0->x *= -1.0f;
-    }
-    if ((arg0->x - var_f31) < 20.0f) {
-        arg0->x = 20.0f + var_f31;
-    }
-    else if ((arg0->x + var_f31) > 800.0f) {
-        arg0->x = 800.0f - var_f31;
-    }
-    if (arg1 == 0) {
-        arg0->x *= -1.0f;
-    }
-}
-
-void fn_1_10260(float var_f29, float var_f30, u32 var_r30, u32 sp8, Vec *var_r29)
-{
-    M433PlayerWork2 *var_r31 = lbl_1_bss_7CC->data;
-    if (var_f30 > 1.0f) {
-        var_f30 = 1.0f;
-    }
-    if (var_r31->unk_94 == 0) {
-        var_r31->unk_AC.x = 465.0f;
-        var_r31->unk_AC.y = 11.0f;
-        var_r31->unk_AC.z = 0.0f;
-        if (var_r30 != 0) {
-            var_r31->unk_AC.x *= -1.0f;
+    if (itemType == 5) {
+        s32 opponent = 6;
+        if (gameState->itemType == 5) {
+            opponent++;
         }
-        var_r31->unk_94 = 1;
-        var_r31->unk_98 = 0;
-        var_r31->unk_A4 = 0.0f;
-        var_r31->unk_8C = 0;
-        var_r31->unk_A8 = 1.0f;
+        Hu3DModelPosSetV(itemManagerObject->mdlId[opponent], &gameState->position);
+        Hu3DModelAttrReset(itemManagerObject->mdlId[opponent], HU3D_ATTR_DISPOFF);
+        Hu3DMotionTimeSet(itemManagerObject->mdlId[opponent], 0.0f);
+        Hu3DMotionShapeTimeSet(itemManagerObject->mdlId[opponent], 0.0f);
     }
-    if (sp8 != 0) {
-        var_r31->unk_94 = 2;
-        var_f30 *= 1.5f;
+    else if (itemType != 2) {
+        gameState->itemSpinSpeed = 1.0f;
     }
-    var_r31->unk_90 = 1;
-    var_r31->unk_AC.x += (1.0f/REFRESH_RATE) * (800.0 * (var_f30 * sind(var_f29)));
-    var_r31->unk_AC.z += (1.0f/REFRESH_RATE) * (800.0 * (var_f30 * cosd(var_f29)));
-    if (var_r30 != 0) {
-        var_r31->unk_AC.x *= -1.0f;
+    gameState->itemOutcome = 1;
+    gameState->horizontalAcceleration = 0;
+    gameState->elapsedTime = 0;
+    gameState->itemActionState = 0;
+    gameState->itemType = itemType;
+    gameState->itemAction = contactGroup;
+    gameState->itemSubAction = contactCell;
+    if (itemActionStateMap[itemType] != 0) {
+        gameState->playerActionState = itemActionStateMap[itemType];
     }
-    if (var_r31->unk_AC.x < 230.0f) {
-        var_r31->unk_AC.x = 230.0f;
+    else if (gameState->playerActionState != 0) {
+        gameState->playerActionState--;
     }
-    if (var_r30 != 0) {
-        var_r31->unk_AC.x *= -1.0f;
+    gameState->targetPosition = *itemPosition;
+    if (itemType == 0) {
+        gameState->position = gameState->targetPosition;
     }
-    fn_1_10130(&var_r31->unk_AC, 1 - var_r30);
-    *var_r29 = var_r31->unk_AC;
+    gameState->itemPhysics.flightDuration = 1.0f;
+    gameState->itemPhysics.flightDuration = 0.0f;
 }
 
-s32 fn_1_10614(Vec *arg0)
+void ClampPlayerPosition(Vec *position, u32 playerSide)
 {
-    M433PlayerWork2 *work = lbl_1_bss_7CC->data;
+    float edgeClearance = 44.0f;
+    if ((position->z - edgeClearance) < -500.0f) {
+        position->z = -500.0f + edgeClearance;
+    }
+    else if ((position->z + edgeClearance) > 500.0f) {
+        position->z = 500.0f - edgeClearance;
+    }
+    if (playerSide == 0) {
+        position->x *= -1.0f;
+    }
+    if ((position->x - edgeClearance) < 20.0f) {
+        position->x = 20.0f + edgeClearance;
+    }
+    else if ((position->x + edgeClearance) > 800.0f) {
+        position->x = 800.0f - edgeClearance;
+    }
+    if (playerSide == 0) {
+        position->x *= -1.0f;
+    }
+}
 
-    arg0->x = arg0->y = arg0->z = 0.0f;
-    if (work->unk_94 == 0) {
+void UpdateItemMotion(float playerSpeed, float depthDifference, u32 playerSide, u32 playImpactSound, Vec *itemPosition)
+{
+    M433ItemManagerState *itemState = itemManagerObject->data;
+    if (depthDifference > 1.0f) {
+        depthDifference = 1.0f;
+    }
+    if (itemState->itemSpinState == 0) {
+        itemState->itemPosition.x = 465.0f;
+        itemState->itemPosition.y = 11.0f;
+        itemState->itemPosition.z = 0.0f;
+        if (playerSide != 0) {
+            itemState->itemPosition.x *= -1.0f;
+        }
+        itemState->itemSpinState = 1;
+        itemState->itemSpinScale = 0;
+        itemState->itemWorldOffset = 0.0f;
+        itemState->itemModelState = 0;
+        itemState->itemSpinSpeed = 1.0f;
+    }
+    if (playImpactSound != 0) {
+        itemState->itemSpinState = 2;
+        depthDifference *= 1.5f;
+    }
+    itemState->itemEffectState = 1;
+    itemState->itemPosition.x += (1.0f/REFRESH_RATE) * (800.0 * (depthDifference * sind(playerSpeed)));
+    itemState->itemPosition.z += (1.0f/REFRESH_RATE) * (800.0 * (depthDifference * cosd(playerSpeed)));
+    if (playerSide != 0) {
+        itemState->itemPosition.x *= -1.0f;
+    }
+    if (itemState->itemPosition.x < 230.0f) {
+        itemState->itemPosition.x = 230.0f;
+    }
+    if (playerSide != 0) {
+        itemState->itemPosition.x *= -1.0f;
+    }
+    ClampPlayerPosition(&itemState->itemPosition, 1 - playerSide);
+    *itemPosition = itemState->itemPosition;
+}
+
+s32 NormalizeItemPosition(Vec *normalizedPosition)
+{
+    M433ItemManagerState *work = itemManagerObject->data;
+
+    normalizedPosition->x = normalizedPosition->y = normalizedPosition->z = 0.0f;
+    if (work->itemSpinState == 0) {
         return 0;
     }
-    *arg0 = work->unk_AC;
-    arg0->x = fabs(arg0->x);
-    arg0->x -= 465.0f;
-    arg0->x *= 0.004255319f;
-    arg0->z *= 0.0028571428f;
+    *normalizedPosition = work->itemPosition;
+    normalizedPosition->x = fabs(normalizedPosition->x);
+    normalizedPosition->x -= 465.0f;
+    normalizedPosition->x *= 0.004255319f;
+    normalizedPosition->z *= 0.0028571428f;
     return 1;
 }
 
-void fn_1_1070C(void)
+void ResetItemState(void)
 {
-    M433PlayerWork2 *work = lbl_1_bss_7CC->data;
-    work->unk_A8 = 1.0f;
+    M433ItemManagerState *work = itemManagerObject->data;
+    work->itemSpinSpeed = 1.0f;
 }
 
-u32 fn_1_10740(Vec *arg0)
+u32 GetItemTargetPosition(Vec *targetPosition)
 {
-    u32 var_r30;
-    M433PlayerWork2 *work = lbl_1_bss_7CC->data;
-    *arg0 = work->unk_3C;
-    if (work->unk_3C.x >= 0.0f) {
-        var_r30 = 1;
+    u32 player;
+    M433ItemManagerState *work = itemManagerObject->data;
+    *targetPosition = work->targetPosition;
+    if (work->targetPosition.x >= 0.0f) {
+        player = 1;
     }
     else {
-        var_r30 = 0;
+        player = 0;
     }
-    return var_r30;
+    return player;
 }
 
-u32 fn_1_107B0(Vec *arg0)
+u32 GetItemPosition(Vec *itemPosition)
 {
-    u32 var_r30;
-    M433PlayerWork2 *var_r31 = lbl_1_bss_7CC->data;
-    if (var_r31->unk_94 != 0) {
-        *arg0 = var_r31->unk_AC;
+    u32 player;
+    M433ItemManagerState *itemState = itemManagerObject->data;
+    if (itemState->itemSpinState != 0) {
+        *itemPosition = itemState->itemPosition;
     }
     else {
-        *arg0 = var_r31->unk_3C;
+        *itemPosition = itemState->targetPosition;
     }
-    if (arg0->x >= 0.0f) {
-        var_r30 = 1;
+    if (itemPosition->x >= 0.0f) {
+        player = 1;
     }
     else {
-        var_r30 = 0;
+        player = 0;
     }
-    return var_r30;
+    return player;
 }
 
-float fn_1_10848(void)
+float GetItemVerticalSpeed(void)
 {
-    M433PlayerWork2 *var_r31 = lbl_1_bss_7CC->data;
-    return var_r31->unk_F8.unk_00 - var_r31->unk_F8.unk_04;
+    M433ItemManagerState *itemState = itemManagerObject->data;
+    return itemState->itemPhysics.flightDuration - itemState->itemPhysics.elapsedTime;
 }
 
-float fn_1_10878(void)
+float GetItemVerticalOffset(void)
 {
-    M433PlayerWork2 *var_r31 = lbl_1_bss_7CC->data;
-    if (var_r31->unk_94 != 0) {
+    M433ItemManagerState *itemState = itemManagerObject->data;
+    if (itemState->itemSpinState != 0) {
         return 1.5f;
     }
-    return var_r31->unk_F8.unk_00 - var_r31->unk_F8.unk_04;
+    return itemState->itemPhysics.flightDuration - itemState->itemPhysics.elapsedTime;
 }
 
-u32 fn_1_108C4(void)
+u32 GetItemState(void)
 {
-    M433PlayerWork2 *var_r31 = lbl_1_bss_7CC->data;
-    if (var_r31->unk_94 != 0) {
-        return var_r31->unk_98;
+    M433ItemManagerState *itemState = itemManagerObject->data;
+    if (itemState->itemSpinState != 0) {
+        return itemState->itemSpinScale;
     }
     return 0x2710;
 }
 
-u32 fn_1_10900(void)
+u32 GetItemAction(void)
 {
-    M433PlayerWork2 *var_r31 = lbl_1_bss_7CC->data;
-    return var_r31->unk_8C;
+    M433ItemManagerState *itemState = itemManagerObject->data;
+    return itemState->itemModelState;
 }
 
-float fn_1_10928(float arg8)
+float CalculateItemFlightTime(float targetHeight)
 {
-    float var_f30;
-    float var_f28;
-    float var_f26;
-    M433PlayerWork2Sub *var_r31;
-    M433PlayerWork2 *var_r30;
+    float verticalTravelTime;
+    float inverseGravity;
+    float heightAtInitialVelocity;
+    M433ItemTrajectory *physics;
+    M433ItemManagerState *itemState;
 
-    var_r30 = lbl_1_bss_7CC->data;
-    var_r31 = &var_r30->unk_F8;
-    var_f28 = 1.0f / var_r31->unk_24;
-    var_f30 = -var_r31->unk_20 * var_f28;
-    var_f26 = var_r31->unk_2C.y + ((var_f30 * (0.5f * var_r31->unk_24 * var_f30)) + (var_r31->unk_20 * var_f30));
-    if (arg8 > (var_f26)) {
+    itemState = itemManagerObject->data;
+    physics = &itemState->itemPhysics;
+    inverseGravity = 1.0f / physics->verticalAcceleration;
+    verticalTravelTime = -physics->verticalVelocity * inverseGravity;
+    heightAtInitialVelocity = physics->startPosition.y + ((verticalTravelTime * (0.5f * physics->verticalAcceleration * verticalTravelTime)) + (physics->verticalVelocity * verticalTravelTime));
+    if (targetHeight > (heightAtInitialVelocity)) {
         return -1.0f;
     }
-    var_f30 = var_f28 * (-var_r31->unk_20 - sqrtf((var_r31->unk_20 * var_r31->unk_20) - (2.0f * var_r31->unk_24 * (var_r31->unk_2C.y - arg8))));
-    var_f30 -= var_r31->unk_04;
-    return var_f30;
+    verticalTravelTime = inverseGravity * (-physics->verticalVelocity - sqrtf((physics->verticalVelocity * physics->verticalVelocity) - (2.0f * physics->verticalAcceleration * (physics->startPosition.y - targetHeight))));
+    verticalTravelTime -= physics->elapsedTime;
+    return verticalTravelTime;
 }
 
-float fn_1_10B20(float arg8, Vec *arg0)
+float UpdateItemFlightPosition(float elapsedTimeDelta, Vec *itemPosition)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    M433PlayerWork2Sub *var_r31;
-    M433PlayerWork2 *var_r29;
+    Vec positionDelta;
+    Vec horizontalDirection;
+    Vec previousPosition;
+    float newElapsedTime;
+    float previousElapsedTime;
+    float horizontalDisplacement;
+    float verticalDisplacement;
+    M433ItemTrajectory *physics;
+    M433ItemManagerState *itemState;
 
-    var_r29 = lbl_1_bss_7CC->data;
-    var_r31 = &var_r29->unk_F8;
-    var_f30 = var_r31->unk_04;
-    var_f31 = var_f30 + arg8;
-    if (var_f31 < 0.0f) {
-        var_f31 = 0.0f;
+    itemState = itemManagerObject->data;
+    physics = &itemState->itemPhysics;
+    previousElapsedTime = physics->elapsedTime;
+    newElapsedTime = previousElapsedTime + elapsedTimeDelta;
+    if (newElapsedTime < 0.0f) {
+        newElapsedTime = 0.0f;
     }
-    if (var_f31 > var_r31->unk_00) {
-        var_f31 = var_r31->unk_00;
+    if (newElapsedTime > physics->flightDuration) {
+        newElapsedTime = physics->flightDuration;
     }
-    var_r31->unk_04 = var_f31;
-    if (var_r31->unk_10 > 0.0f) {
-        VECSubtract(&var_r31->unk_38, &var_r31->unk_2C, &sp14);
-        sp14.y = 0.0f;
-        VECNormalize(&sp14, &sp14);
+    physics->elapsedTime = newElapsedTime;
+    if (physics->horizontalAcceleration > 0.0f) {
+        VECSubtract(&physics->targetPosition, &physics->startPosition, &horizontalDirection);
+        horizontalDirection.y = 0.0f;
+        VECNormalize(&horizontalDirection, &horizontalDirection);
     }
     else {
-        sp14.x = sp14.y = sp14.z = 0.0f;
+        horizontalDirection.x = horizontalDirection.y = horizontalDirection.z = 0.0f;
     }
-    sp8 = *arg0;
-    var_f29 = (var_f31 * (0.5f * var_r31->unk_18 * var_f31)) + (var_r31->unk_14 * var_f31);
-    var_f28 = (var_f31 * (0.5f * var_r31->unk_24 * var_f31)) + (var_r31->unk_20 * var_f31);
-    arg0->x = var_r31->unk_2C.x + (sp14.x * var_f29);
-    arg0->y = var_r31->unk_2C.y + var_f28;
-    arg0->z = var_r31->unk_2C.z + (sp14.z * var_f29);
-    VECSubtract(arg0, &sp8, &sp20);
-    var_f31 >= var_r31->unk_00;
-    var_r31->unk_04 = var_f30;
-    return var_f30 + arg8;
+    previousPosition = *itemPosition;
+    horizontalDisplacement = (newElapsedTime * (0.5f * physics->horizontalVelocity * newElapsedTime)) + (physics->horizontalVelocity * newElapsedTime);
+    verticalDisplacement = (newElapsedTime * (0.5f * physics->verticalAcceleration * newElapsedTime)) + (physics->verticalVelocity * newElapsedTime);
+    itemPosition->x = physics->startPosition.x + (horizontalDirection.x * horizontalDisplacement);
+    itemPosition->y = physics->startPosition.y + verticalDisplacement;
+    itemPosition->z = physics->startPosition.z + (horizontalDirection.z * horizontalDisplacement);
+    VECSubtract(itemPosition, &previousPosition, &positionDelta);
+    newElapsedTime >= physics->flightDuration;
+    physics->elapsedTime = previousElapsedTime;
+    return previousElapsedTime + elapsedTimeDelta;
 }
 
-static inline float fn_1_10D24_inline(Vec *arg0)
+static inline float GetItemSoundPositionInline(Vec *soundPosition)
 {
-    M433PlayerWork2 *var_r31 = lbl_1_bss_7CC->data;
-    if (var_r31->unk_94 != 0) {
-        *arg0 = var_r31->unk_AC;
+    M433ItemManagerState *itemState = itemManagerObject->data;
+    if (itemState->itemSpinState != 0) {
+        *soundPosition = itemState->itemPosition;
     }
     else {
-        *arg0 = var_r31->unk_3C;
+        *soundPosition = itemState->targetPosition;
     }
 }
 
-s32 fn_1_10D24(Vec *sp8)
+s32 GetItemSoundPosition(Vec *soundIds)
 {
-    Vec sp18;
-    Vec spC;
-    float var_f31;
-    float var_f30;
-    M433PlayerWork2 *var_r31;
-    M433PlayerWork2 *var_r30;
+    Vec crossingDelta;
+    Vec targetPosition;
+    float crossingRatio;
+    float unusedInitializationValue;
+    M433ItemManagerState *itemState;
+    M433ItemManagerState *unusedItemState;
 
-    var_r31 = lbl_1_bss_7CC->data;
-    fn_1_10D24_inline(&spC);
-    VECSubtract(&spC, &var_r31->unk_30, &sp18);
-    if ((spC.x * var_r31->unk_30.x) >= 0.0f) {
+    itemState = itemManagerObject->data;
+    GetItemSoundPositionInline(&targetPosition);
+    VECSubtract(&targetPosition, &itemState->position, &crossingDelta);
+    if ((targetPosition.x * itemState->position.x) >= 0.0f) {
         return 0;
     }
-    if ((var_r31->unk_30.x == 0.0f) || (sp18.x == 0.0f)) {
+    if ((itemState->position.x == 0.0f) || (crossingDelta.x == 0.0f)) {
         return 0;
     }
-    var_f31 = fabs(var_r31->unk_30.x / sp18.x);
-    VECScale(&sp18, &sp18, var_f31);
-    VECAdd(&var_r31->unk_30, &sp18, sp8);
+    crossingRatio = fabs(itemState->position.x / crossingDelta.x);
+    VECScale(&crossingDelta, &crossingDelta, crossingRatio);
+    VECAdd(&itemState->position, &crossingDelta, soundIds);
     return 1;
 }
 
-u32 fn_1_10EA4(void)
+u32 GetActiveContactGroup(void)
 {
-    M433PlayerWork3 *var_r31 = lbl_1_bss_7C8->data;
-    return var_r31->uGameEvent;
+    M433GameEventState *gameState = gameEventObject->data;
+    return gameState->uGameEvent;
 }
 
-u32 fn_1_10ECC(u32 arg0)
+u32 GetPlayerGamePhase(u32 teamIndex)
 {
-    M433PlayerWork3 *work = lbl_1_bss_7C8->data;
-    return work->auEvents[arg0 & 1];
+    M433GameEventState *work = gameEventObject->data;
+    return work->auEvents[teamIndex & 1];
 }
 
-s32 fn_1_10F00(u32 arg0)
+s32 IsPlayerServing(u32 teamIndex)
 {
-    M433PlayerWork3 *var_r31 = lbl_1_bss_7C8->data;
-    return var_r31->uServeGrp == (arg0 & 1);
+    M433GameEventState *gameState = gameEventObject->data;
+    return gameState->uServeGrp == (teamIndex & 1);
 }
 
-u32 fn_1_10F38(u32 arg0)
+u32 GetPlayerServeCell(u32 teamIndex)
 {
-    M433PlayerWork3 *var_r31 = lbl_1_bss_7C8->data;
-    return var_r31->auServeCel[arg0 & 1];
+    M433GameEventState *gameState = gameEventObject->data;
+    return gameState->auServeCel[teamIndex & 1];
 }
 
-s32 fn_1_10F6C(u32 arg0)
+s32 IsPlayerContacting(u32 teamIndex)
 {
-    M433PlayerWork3 *work = lbl_1_bss_7C8->data;
-    return work->uPointGrp == (arg0 & 1);
+    M433GameEventState *work = gameEventObject->data;
+    return work->uPointGrp == (teamIndex & 1);
 }
 
-s32 fn_1_10FA4(s32 arg0)
+s32 IsPlayerWinner(s32 teamIndex)
 {
-    M433PlayerWork3 *work = lbl_1_bss_7C8->data;
-    return work->sWinGrp == (arg0 & 1);
+    M433GameEventState *work = gameEventObject->data;
+    return work->sWinGrp == (teamIndex & 1);
 }
 
-u32 fn_1_10FDC(void)
+u32 GetPlayerPointGroup(void)
 {
-    M433PlayerWork3 *var_r31 = lbl_1_bss_7C8->data;
-    return var_r31->uContactCnt;
+    M433GameEventState *gameState = gameEventObject->data;
+    return gameState->uContactCnt;
 }
 
-s32 fn_1_11004(u32 arg0, s32 arg1)
+s32 IsPlayerContact(u32 teamIndex, s32 contactCell)
 {
-    M433PlayerWork3 *work = lbl_1_bss_7C8->data;
-    return !((work->uContactGrp == (arg0 & 1)) && (work->uContactCel == (arg1 & 1)));
+    M433GameEventState *work = gameEventObject->data;
+    return !((work->uContactGrp == (teamIndex & 1)) && (work->uContactCel == (contactCell & 1)));
 }
 
-s32 fn_1_11060(u32 arg0)
+s32 IsPlayerContactGroup(u32 teamIndex)
 {
-    M433PlayerWork3 *work = lbl_1_bss_7C8->data;
-    return work->uContactGrp == (arg0 & 1);
+    M433GameEventState *work = gameEventObject->data;
+    return work->uContactGrp == (teamIndex & 1);
 }
 
-float fn_1_11098(Vec *arg0, Vec *arg1, Vec *arg2)
+float ProjectPointOntoLine(Vec *lineStart, Vec *lineEnd, Vec *point)
 {
-    Vec sp10;
-    float var_f31;
-    float var_f30;
+    Vec movementDelta;
+    float projectionNumerator;
+    float negativeLineLengthSquared;
 
-    VECSubtract(arg1, arg0, &sp10);
-    var_f31 = VECDotProduct(&sp10, arg2);
-    var_f30 = -VECSquareMag(arg2);
-    if (var_f30 != 0.0f) {
-        var_f31 /= var_f30;
+    VECSubtract(lineEnd, lineStart, &movementDelta);
+    projectionNumerator = VECDotProduct(&movementDelta, point);
+    negativeLineLengthSquared = -VECSquareMag(point);
+    if (negativeLineLengthSquared != 0.0f) {
+        projectionNumerator /= negativeLineLengthSquared;
     }
-    return var_f31;
+    return projectionNumerator;
 }
 
-float fn_1_11130(Vec *arg0, Vec *arg1, Vec *arg2, Vec *arg3)
+float FindClosestPointOnSegments(Vec *firstSegmentStart, Vec *firstSegmentEnd, Vec *secondSegmentStart, Vec *secondSegmentEnd)
 {
-    Vec sp34;
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
+    Vec closestPoint;
+    Vec firstLineDirection;
+    Vec targetPosition;
+    Vec movementDelta;
+    float firstLineParameter;
+    float secondLineParameter;
+    float closestPointDistance;
+    float lineSeparation;
 
-    VECSubtract(arg1, arg0, &sp28);
-    VECSubtract(arg3, arg2, &sp1C);
-    VECSubtract(&sp28, &sp1C, &sp28);
-    if (VECMag(&sp28) <= 0.0f) {
-        sp34 = *arg0;
+    VECSubtract(firstSegmentEnd, firstSegmentStart, &firstLineDirection);
+    VECSubtract(secondSegmentEnd, secondSegmentStart, &targetPosition);
+    VECSubtract(&firstLineDirection, &targetPosition, &firstLineDirection);
+    if (VECMag(&firstLineDirection) <= 0.0f) {
+        closestPoint = *firstSegmentStart;
     }
     else {
-        VECSubtract(arg0, arg2, &sp10);
-        var_f30 = VECDotProduct(&sp10, &sp28);
-        var_f29 = -VECSquareMag(&sp28);
-        if (var_f29 != 0.0f) {
-            var_f30 /= var_f29;
+        VECSubtract(firstSegmentStart, secondSegmentStart, &movementDelta);
+        secondLineParameter = VECDotProduct(&movementDelta, &firstLineDirection);
+        closestPointDistance = -VECSquareMag(&firstLineDirection);
+        if (closestPointDistance != 0.0f) {
+            secondLineParameter /= closestPointDistance;
         }
-        var_f28 = var_f30;
-        var_f31 = var_f28;
-        if (var_f31 < 0.0f) {
-            var_f31 = 0.0f;
+        lineSeparation = secondLineParameter;
+        firstLineParameter = lineSeparation;
+        if (firstLineParameter < 0.0f) {
+            firstLineParameter = 0.0f;
         }
-        else if (var_f31 > 1.0f) {
-            var_f31 = 1.0f;
+        else if (firstLineParameter > 1.0f) {
+            firstLineParameter = 1.0f;
         }
-        VECScale(&sp28, &sp1C, var_f31);
-        VECAdd(arg0, &sp1C, &sp34);
+        VECScale(&firstLineDirection, &targetPosition, firstLineParameter);
+        VECAdd(firstSegmentStart, &targetPosition, &closestPoint);
     }
-    VECSubtract(arg2, &sp34, &sp28);
-    return VECMag(&sp28);
+    VECSubtract(secondSegmentStart, &closestPoint, &firstLineDirection);
+    return VECMag(&firstLineDirection);
 }

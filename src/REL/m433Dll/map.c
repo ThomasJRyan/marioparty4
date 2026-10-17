@@ -19,127 +19,127 @@
 
 #include "REL/m433Dll.h"
 
-typedef struct M433DllBss38Struct {
-    /* 0x00 */ u8 unk_00;
-    /* 0x01 */ char unk01[2];
-    /* 0x03 */ u8 unk_03;
-    /* 0x04 */ u8 unk_04;
-    /* 0x05 */ char unk05[3];
-    /* 0x08 */ float unk_08;
-    /* 0x0C */ Vec unk_0C;
-    /* 0x18 */ Vec unk_18;
-    /* 0x24 */ Vec unk_24;
-    /* 0x30 */ Vec unk_30;
-    /* 0x3C */ char unk3C[0xC];
-    /* 0x48 */ Vec unk_48;
+typedef struct M433FallingObjectState {
+    /* 0x00 */ u8 modelId;
+    /* 0x01 */ char reservedModelPadding01[2];
+    /* 0x03 */ u8 motionState;
+    /* 0x04 */ u8 objectState;
+    /* 0x05 */ char reservedModelPadding05[3];
+    /* 0x08 */ float movementSpeed;
+    /* 0x0C */ Vec position;
+    /* 0x18 */ Vec rotation;
+    /* 0x24 */ Vec scale;
+    /* 0x30 */ Vec spawnPosition;
+    /* 0x3C */ char reservedMotionPadding3C[0xC];
+    /* 0x48 */ Vec velocity;
     union {
         struct {
-            /* 0x54 */ float unk_54;
-            /* 0x58 */ float unk_58;
-            char unk5C[4];
-            /* 0x60 */ float unk_60;
+            /* 0x54 */ float angularVelocity;
+            /* 0x58 */ float rotationAngle;
+            char reservedRotationPadding5C[4];
+            /* 0x60 */ float baseMovementSpeed;
         };
         struct {
-            /* 0x54 */ s16 unk_54_s16[0x20];
+            /* 0x54 */ s16 motionTimers[0x20];
         };
     };
-} M433DllBss38Struct; /* size = 0x94 */
+} M433FallingObjectState; /* size = 0x94 */
 
-typedef struct M433DllMapWork {
-    char unk00;
-    u8 unk_01;
-    u8 unk_02;
-    char unk03;
-    u8 unk_04;
-    char unk08[4];
-    Vec unk_0C;
-    Vec unk_18;
-    char unk24[0xC];
-    Vec unk_30;
-    Vec unk_3C;
-    char unk48[0xC];
-    s16 unk_54;
-    char unk56[0x3E];
-} M433DllMapWork; /* size 0x94 */
+typedef struct M433MapCameraTransitionState {
+    char cameraTransitionState;
+    u8 requestedCameraState;
+    u8 previousCameraState;
+    char reservedCameraFlag;
+    u8 cameraTransitionFrame;
+    char reservedCameraPadding08[4];
+    Vec cameraPosition;
+    Vec cameraRotation;
+    char reservedCameraPadding24[0xC];
+    Vec targetCameraPosition;
+    Vec targetCameraRotation;
+    char reservedCameraPadding48[0xC];
+    s16 cameraTransitionDuration;
+    char reservedCameraPadding56[0x3E];
+} M433MapCameraTransitionState; /* size 0x94 */
 
-typedef struct M433DllMapWork2 {
-    u8 unk_00;
-    Vec unk_04;
-    Vec unk_10;
-    Vec unk_1C;
-    Vec unk_28;
-    Vec unk_34;
-    Vec unk_40;
-    char unk4C[0xE4];
-    float unk_130;
-    float unk_134;
-    float unk_138;
-    char unk13C[4];
-    float unk_140;
-    float unk_144;
-    float unk_148;
-    float unk_14C[3];
-    float unk_158[3];
-    float unk_164[3];
-    float unk_170[3];
-    float unk_17C[3];
-    u16 unk_188[3];
-} M433DllMapWork2; /* size 0x190 */
+typedef struct M433CameraManagerState {
+    u8 cameraMode;
+    Vec cameraPosition;
+    Vec cameraRotation;
+    Vec cameraStartPosition;
+    Vec cameraStartRotation;
+    Vec cameraEndPosition;
+    Vec cameraEndRotation;
+    char reservedCameraPadding4C[0xE4];
+    float cameraZoom;
+    float cameraStartZoom;
+    float cameraEndZoom;
+    char reservedCameraPadding13C[4];
+    float cameraTransitionSpeed;
+    float cameraTransitionDuration;
+    float cameraTransitionRemaining;
+    float cameraShakeAmplitude[3];
+    float cameraShakeDamping[3];
+    float cameraShakePhase[3];
+    float cameraShakeSpeed[3];
+    float cameraShakeOffset[3];
+    u16 cameraShakeFrames[3];
+} M433CameraManagerState; /* size 0x190 */
 
-typedef struct M433DllUnkStruct {
-    s16 unk_00;
-    s16 unk_02;
-    s16 unk_04;
-    char unk06[0x42];
-} M433DllUnkStruct; /* size 0x48 */
+typedef struct M433MapParticleState {
+    s16 particleModelId;
+    s16 particleState;
+    s16 particleLifetime;
+    char reservedParticlePadding06[0x42];
+} M433MapParticleState; /* size 0x48 */
 
-void fn_1_2AC4(OMOBJ *object);
-void fn_1_2CE0(OMOBJ *object);
-void fn_1_32CC(OMOBJ *object);
-void fn_1_39AC(OMOBJ *object);
-void fn_1_3C1C(OMOBJ *object);
-s16 fn_1_3E5C(s32 arg0, s16 arg1, HU3DPARTICLEHOOK arg2);
-void fn_1_3F14(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
-void fn_1_4A94(OMOBJ *object);
-void fn_1_4BA0(OMOBJ *object);
-void fn_1_4ED4(float arg8, Vec *arg0, Vec *arg1, float arg9);
-void fn_1_5068(void);
-void *fn_1_50A8(s32 arg0);
-void fn_1_51DC(void);
-s32 fn_1_5260(void);
-float fn_1_52B4(float arg8, float arg9, float argA);
-void fn_1_541C(Mtx arg0, float arg8, float arg9, float argA);
-void fn_1_553C(Mtx arg0, Vec *arg1);
-extern s32 lbl_1_bss_34;
+void UpdateMapCameraTransition(OMOBJ *object);
+void InitializeFallingMapObjects(OMOBJ *object);
+void UpdateFallingMapObjects(OMOBJ *object);
+void InitializeMapCamera(OMOBJ *object);
+void UpdateMapCamera(OMOBJ *object);
+s16 CreateMapParticleEmitter(s32 particleResourceId, s16 particleCount, HU3DPARTICLEHOOK particleUpdateCallback);
+void UpdateMapParticles(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void InitializeCameraManager(OMOBJ *object);
+void UpdateCameraManager(OMOBJ *object);
+void SetCameraTransition(float transitionDuration, Vec *targetPosition, Vec *targetRotation, float targetZoom);
+void InitializeMapAllocationPool(void);
+void *AllocateMapWork(s32 allocationSize);
+void CleanupMapAllocationPool(void);
+s32 GetRandomMapValue(void);
+float ApproachFloat(float currentAngle, float targetAngle, float interpolationFactor);
+void BuildRotationMatrix(Mtx rotationMatrix, float xRotation, float yRotation, float zRotation);
+void RotateVector(Mtx rotationMatrix, Vec *rotation);
+extern s32 useInitialMapMotion;
 
-OMOBJ *lbl_1_bss_7B0;
-OMOBJ *lbl_1_bss_7AC;
-OMOBJ *lbl_1_bss_7A8;
-void *lbl_1_bss_728[0x20];
-M433DllBss38Struct lbl_1_bss_38[0xC];
+OMOBJ *cameraManagerObject;
+OMOBJ *fallingObjectsObject;
+OMOBJ *mapCameraObject;
+void *mapWorkAllocations[0x20];
+M433FallingObjectState fallingObjectStates[0xC];
 
-void fn_1_2894(HUPROCESS *process)
+void InitializeMapObjects(HUPROCESS *process)
 {
-    s32 var_r31;
-    s32 var_r29;
+    s32 randomEffectIndex;
+    s32 initialEffectCount;
 
-    lbl_1_bss_34 = 1;
-    lbl_1_bss_7AC = omAddObjEx(process, 0x1E, 8, 0, -1, fn_1_2CE0);
-    lbl_1_bss_7A8 = omAddObjEx(process, 0x1F, 3, 6, -1, fn_1_39AC);
-    lbl_1_bss_7B0 = omAddObjEx(process, 0x1D, 1, 0, -1, fn_1_4A94);
-    var_r29 = frand() & 0x1F;
-    for (var_r31 = 0; var_r31 < var_r29; var_r31++) {
-        fn_1_5260();
+    useInitialMapMotion = 1;
+    fallingObjectsObject = omAddObjEx(process, 0x1E, 8, 0, -1, InitializeFallingMapObjects);
+    mapCameraObject = omAddObjEx(process, 0x1F, 3, 6, -1, InitializeMapCamera);
+    cameraManagerObject = omAddObjEx(process, 0x1D, 1, 0, -1, InitializeCameraManager);
+    initialEffectCount = frand() & 0x1F;
+    for (randomEffectIndex = 0; randomEffectIndex < initialEffectCount; randomEffectIndex++) {
+        GetRandomMapValue();
     }
-    fn_1_5068();
+    InitializeMapAllocationPool();
 }
 
-void fn_1_2984(void)
+void CleanupMapObjects(void)
 {
-    fn_1_51DC();
+    CleanupMapAllocationPool();
 }
 
-OMOBJFUNC fn_1_29A4(HUPROCESS *process, OMOBJ *object)
+OMOBJFUNC CreateMapCameraCallback(HUPROCESS *process, OMOBJ *object)
 {
     M433DllWork *work = object->data;
     CRot.x = 54.3f;
@@ -149,50 +149,50 @@ OMOBJFUNC fn_1_29A4(HUPROCESS *process, OMOBJ *object)
     Center.y = 885.0f;
     Center.z = -900.3f;
     CZoom = 1100.0f;
-    fn_1_4ED4(0.0f, &Center, &CRot, CZoom);
+    SetCameraTransition(0.0f, &Center, &CRot, CZoom);
     object->work[0] = 0xB4;
-    work->unk_0C = 1;
-    return fn_1_2AC4;
+    work->roundResultState = 1;
+    return UpdateMapCameraTransition;
 }
 
-void fn_1_2AC4(OMOBJ *object)
+void UpdateMapCameraTransition(OMOBJ *object)
 {
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
+    Vec cameraPosition;
+    Vec cameraRotation;
+    float cameraZoom;
     M433DllWork *work = object->data;
 
-    fn_1_584(object);
+    UpdateMinigameFrameCounters(object);
     if (object->work[0] == 120.0f) {
-        sp14.x = 0.0f;
-        sp14.y = -10.0f;
-        sp14.z = -207.5f;
-        sp8.x = -26.5f;
-        sp8.y = 0.0f;
-        sp8.z = 0.0f;
-        var_f31 = 1400.0f;
-        fn_1_4ED4(90.0f, &sp14, &sp8, var_f31);
+        cameraPosition.x = 0.0f;
+        cameraPosition.y = -10.0f;
+        cameraPosition.z = -207.5f;
+        cameraRotation.x = -26.5f;
+        cameraRotation.y = 0.0f;
+        cameraRotation.z = 0.0f;
+        cameraZoom = 1400.0f;
+        SetCameraTransition(90.0f, &cameraPosition, &cameraRotation, cameraZoom);
     }
     if (object->work[0] == 48.0f) {
-        sp14.x = 0.0f;
-        sp14.y = 200.0f;
-        sp14.z = 0.0f;
-        sp8.x = -30.0f;
-        sp8.y = 0.0f;
-        sp8.z = 0.0f;
-        var_f31 = 1900.0f;
-        fn_1_4ED4(object->work[0], &sp14, &sp8, var_f31);
+        cameraPosition.x = 0.0f;
+        cameraPosition.y = 200.0f;
+        cameraPosition.z = 0.0f;
+        cameraRotation.x = -30.0f;
+        cameraRotation.y = 0.0f;
+        cameraRotation.z = 0.0f;
+        cameraZoom = 1900.0f;
+        SetCameraTransition(object->work[0], &cameraPosition, &cameraRotation, cameraZoom);
     }
     if (--object->work[0] == 0) {
-        work->unk_0C = 2;
-        fn_1_618(object);
-        lbl_1_bss_7B0->objFunc = NULL;
+        work->roundResultState = 2;
+        AdvanceMinigameState(object);
+        cameraManagerObject->objFunc = NULL;
     }
 }
 
-void fn_1_2CE0(OMOBJ *object)
+void InitializeFallingMapObjects(OMOBJ *object)
 {
-    Vec sp8[0x10] = {
+    Vec objectSpawnPositions[0x10] = {
         { 475.0f, 800.0f, -1400.0f },
         { -300.0f, 700.0f, -1400.0f },
         { 300.0f, 875.0f, -1450.0f },
@@ -210,256 +210,256 @@ void fn_1_2CE0(OMOBJ *object)
         { 300.0f, 700.0f, -1400.0f },
         { -300.0f, 875.0f, -1450.0f },
     };
-    M433DllBss38Struct *var_r31;
-    s32 var_r30;
-    M433DllUnkStruct *var_r28;
+    M433FallingObjectState *fallingObjectState;
+    s32 modelId;
+    M433MapParticleState *particleState;
     s32 i;
-    s32 var_r26;
+    s32 spawnIndex;
 
-    var_r30 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 0xCD));
-    object->mdlId[0] = var_r30;
-    var_r30 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 0xCE));
-    object->mdlId[1] = var_r30;
-    Hu3DModelAttrSet(var_r30, HU3D_MOTATTR_LOOP);
-    Hu3DMotionSpeedSet(var_r30, 0.5f);
-    var_r30 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 0xCF));
-    object->mdlId[2] = var_r30;
-    Hu3DModelAttrSet(var_r30, HU3D_MOTATTR_LOOP);
-    var_r30 = fn_1_3E5C(DATA_MAKE_NUM(DATADIR_M425, 0x05), 1, fn_1_3F14);
-    object->mdlId[3] = var_r30;
-    Hu3DParticleBlendModeSet(var_r30, 1);
-    Hu3DModelLayerSet(var_r30, 6);
-    var_r28 = ((HU3DPARTICLE *)Hu3DData[var_r30].hookData)->work;
-    var_r28->unk_02 = 0;
+    modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 0xCD));
+    object->mdlId[0] = modelId;
+    modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 0xCE));
+    object->mdlId[1] = modelId;
+    Hu3DModelAttrSet(modelId, HU3D_MOTATTR_LOOP);
+    Hu3DMotionSpeedSet(modelId, 0.5f);
+    modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 0xCF));
+    object->mdlId[2] = modelId;
+    Hu3DModelAttrSet(modelId, HU3D_MOTATTR_LOOP);
+    modelId = CreateMapParticleEmitter(DATA_MAKE_NUM(DATADIR_M425, 0x05), 1, UpdateMapParticles);
+    object->mdlId[3] = modelId;
+    Hu3DParticleBlendModeSet(modelId, 1);
+    Hu3DModelLayerSet(modelId, 6);
+    particleState = ((HU3DPARTICLE *)Hu3DData[modelId].hookData)->work;
+    particleState->particleState = 0;
     HuDataDirClose(DATA_MAKE_NUM(DATADIR_M425, 0x05));
-    var_r30 = fn_1_3E5C(DATA_MAKE_NUM(DATADIR_M433, 0xD3), 0xA, fn_1_3F14);
-    object->mdlId[4] = var_r30;
-    Hu3DParticleBlendModeSet(var_r30, 1);
-    Hu3DModelLayerSet(var_r30, 6);
-    var_r28 = ((HU3DPARTICLE *)Hu3DData[var_r30].hookData)->work;
-    var_r28->unk_02 = 1;
-    var_r30 = fn_1_3E5C(DATA_MAKE_NUM(DATADIR_M433, 0xD2), 4, fn_1_3F14);
-    object->mdlId[5] = var_r30;
-    Hu3DParticleBlendModeSet(var_r30, 1);
-    Hu3DModelLayerSet(var_r30, 6);
-    var_r28 = ((HU3DPARTICLE *)Hu3DData[var_r30].hookData)->work;
-    var_r28->unk_02 = 2;
-    var_r30 = fn_1_3E5C(DATA_MAKE_NUM(DATADIR_M433, 0xD1), 6, fn_1_3F14);
-    object->mdlId[6] = var_r30;
-    Hu3DParticleBlendModeSet(var_r30, 1);
-    Hu3DModelLayerSet(var_r30, 6);
-    var_r28 = ((HU3DPARTICLE *)Hu3DData[var_r30].hookData)->work;
-    var_r28->unk_02 = 3;
+    modelId = CreateMapParticleEmitter(DATA_MAKE_NUM(DATADIR_M433, 0xD3), 0xA, UpdateMapParticles);
+    object->mdlId[4] = modelId;
+    Hu3DParticleBlendModeSet(modelId, 1);
+    Hu3DModelLayerSet(modelId, 6);
+    particleState = ((HU3DPARTICLE *)Hu3DData[modelId].hookData)->work;
+    particleState->particleState = 1;
+    modelId = CreateMapParticleEmitter(DATA_MAKE_NUM(DATADIR_M433, 0xD2), 4, UpdateMapParticles);
+    object->mdlId[5] = modelId;
+    Hu3DParticleBlendModeSet(modelId, 1);
+    Hu3DModelLayerSet(modelId, 6);
+    particleState = ((HU3DPARTICLE *)Hu3DData[modelId].hookData)->work;
+    particleState->particleState = 2;
+    modelId = CreateMapParticleEmitter(DATA_MAKE_NUM(DATADIR_M433, 0xD1), 6, UpdateMapParticles);
+    object->mdlId[6] = modelId;
+    Hu3DParticleBlendModeSet(modelId, 1);
+    Hu3DModelLayerSet(modelId, 6);
+    particleState = ((HU3DPARTICLE *)Hu3DData[modelId].hookData)->work;
+    particleState->particleState = 3;
     for (i = 0; i < 0xC; i++) {
-        var_r31 = &lbl_1_bss_38[i];
-        var_r30 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M425, 0x02));
-        var_r31->unk_00 = var_r30;
-        var_r31->unk_0C.x = sp8[i].x;
-        var_r31->unk_0C.y = sp8[i].y - 300.0f;
-        var_r31->unk_0C.z = 800.0f + sp8[i].z;
-        Hu3DModelPosSet(var_r30, var_r31->unk_0C.x, var_r31->unk_0C.y, var_r31->unk_0C.z);
-        Hu3DMotionSpeedSet(var_r30, 6.0f);
-        var_r31->unk_03 = var_r31->unk_04 = 0;
-        var_r31->unk_18.x = var_r31->unk_18.y = var_r31->unk_18.z = 0.0f;
-        var_r31->unk_24.x = var_r31->unk_24.y = var_r31->unk_24.z = 1.0f;
-        var_r31->unk_48.x = var_r31->unk_48.y = var_r31->unk_48.z = 0.0f;
-        var_r31->unk_30.x = var_r31->unk_0C.x;
-        var_r31->unk_30.y = var_r31->unk_0C.y;
-        var_r31->unk_30.z = var_r31->unk_0C.z;
+        fallingObjectState = &fallingObjectStates[i];
+        modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M425, 0x02));
+        fallingObjectState->modelId = modelId;
+        fallingObjectState->position.x = objectSpawnPositions[i].x;
+        fallingObjectState->position.y = objectSpawnPositions[i].y - 300.0f;
+        fallingObjectState->position.z = 800.0f + objectSpawnPositions[i].z;
+        Hu3DModelPosSet(modelId, fallingObjectState->position.x, fallingObjectState->position.y, fallingObjectState->position.z);
+        Hu3DMotionSpeedSet(modelId, 6.0f);
+        fallingObjectState->motionState = fallingObjectState->objectState = 0;
+        fallingObjectState->rotation.x = fallingObjectState->rotation.y = fallingObjectState->rotation.z = 0.0f;
+        fallingObjectState->scale.x = fallingObjectState->scale.y = fallingObjectState->scale.z = 1.0f;
+        fallingObjectState->velocity.x = fallingObjectState->velocity.y = fallingObjectState->velocity.z = 0.0f;
+        fallingObjectState->spawnPosition.x = fallingObjectState->position.x;
+        fallingObjectState->spawnPosition.y = fallingObjectState->position.y;
+        fallingObjectState->spawnPosition.z = fallingObjectState->position.z;
         if ((i & 1) != 0) {
-            var_r31->unk_18.y = 90.0f;
-            var_r31->unk_0C.y += 650.0;
-            var_r31->unk_0C.x -= 1000.0 + (200.0f * ((fn_1_5260() - 0x8000) / 32768.0f));
+            fallingObjectState->rotation.y = 90.0f;
+            fallingObjectState->position.y += 650.0;
+            fallingObjectState->position.x -= 1000.0 + (200.0f * ((GetRandomMapValue() - 0x8000) / 32768.0f));
         }
         else {
-            var_r31->unk_18.y = 90.0f;
-            var_r31->unk_0C.x += 200.0f * ((fn_1_5260() - 0x8000) / 32768.0f);
+            fallingObjectState->rotation.y = 90.0f;
+            fallingObjectState->position.x += 200.0f * ((GetRandomMapValue() - 0x8000) / 32768.0f);
         }
-        var_r31->unk_18.y += 10.0f * ((fn_1_5260() - 0x8000) / 32768.0f);
-        var_r31->unk_0C.z = var_r31->unk_0C.z - 400.0;
-        var_r31->unk_08 = 100.0f * (0.1f + (0.02f * (fn_1_5260() / 65536.0f)));
-        for (var_r26 = 0; var_r26 < 0x20; var_r26++) {
-            var_r31->unk_54_s16[var_r26] = 0;
+        fallingObjectState->rotation.y += 10.0f * ((GetRandomMapValue() - 0x8000) / 32768.0f);
+        fallingObjectState->position.z = fallingObjectState->position.z - 400.0;
+        fallingObjectState->movementSpeed = 100.0f * (0.1f + (0.02f * (GetRandomMapValue() / 65536.0f)));
+        for (spawnIndex = 0; spawnIndex < 0x20; spawnIndex++) {
+            fallingObjectState->motionTimers[spawnIndex] = 0;
         }
-        var_r31->unk_60 = var_r31->unk_08;
+        fallingObjectState->baseMovementSpeed = fallingObjectState->movementSpeed;
     }
     HuDataDirClose(DATA_MAKE_NUM(DATADIR_M425, 0x02));
     HuAudFXPlayVol(0x6A3, 0x41);
-    object->objFunc = fn_1_32CC;
+    object->objFunc = UpdateFallingMapObjects;
 }
 
-void fn_1_32CC(OMOBJ *object)
+void UpdateFallingMapObjects(OMOBJ *object)
 {
-    Mtx sp14;
-    Vec sp8;
-    M433DllBss38Struct *var_r31;
+    Mtx rotationMatrix;
+    Vec rotation;
+    M433FallingObjectState *fallingObjectState;
     s32 i;
 
     for (i = 0; i < 0xC; i++) {
-        var_r31 = &lbl_1_bss_38[i];
-        switch (var_r31->unk_04) {
+        fallingObjectState = &fallingObjectStates[i];
+        switch (fallingObjectState->objectState) {
             case 0:
-                if (var_r31->unk_08 < var_r31->unk_60) {
-                    var_r31->unk_08 += 0.4f;
+                if (fallingObjectState->movementSpeed < fallingObjectState->baseMovementSpeed) {
+                    fallingObjectState->movementSpeed += 0.4f;
                 }
-                if ((s32)(64.0f * (fn_1_5260() / 65536.0f)) == 0) {
-                    Hu3DMotionTimeSet(var_r31->unk_00, 0.0f);
+                if ((s32)(64.0f * (GetRandomMapValue() / 65536.0f)) == 0) {
+                    Hu3DMotionTimeSet(fallingObjectState->modelId, 0.0f);
                 }
-                if (Hu3DMotionEndCheck(var_r31->unk_00) != 0) {
-                    var_r31->unk_48.y = -3.8933334f;
+                if (Hu3DMotionEndCheck(fallingObjectState->modelId) != 0) {
+                    fallingObjectState->velocity.y = -3.8933334f;
                 }
                 else {
-                    var_r31->unk_48.y = -1.2166667f;
+                    fallingObjectState->velocity.y = -1.2166667f;
                 }
-                var_r31->unk_54 += 0.1f * ((fn_1_5260() - 0x8000) / 32768.0f);
-                var_r31->unk_58 += var_r31->unk_54;
-                if (var_r31->unk_58 > 180.0f) {
-                    var_r31->unk_58 -= 180.0f;
+                fallingObjectState->angularVelocity += 0.1f * ((GetRandomMapValue() - 0x8000) / 32768.0f);
+                fallingObjectState->rotationAngle += fallingObjectState->angularVelocity;
+                if (fallingObjectState->rotationAngle > 180.0f) {
+                    fallingObjectState->rotationAngle -= 180.0f;
                 }
-                if (var_r31->unk_58 < -180.0f) {
-                    var_r31->unk_58 += 180.0f;
+                if (fallingObjectState->rotationAngle < -180.0f) {
+                    fallingObjectState->rotationAngle += 180.0f;
                 }
-                var_r31->unk_18.x = -30.0 * sind(var_r31->unk_58) * sind(var_r31->unk_18.y);
-                var_r31->unk_18.z = -30.0 * sind(var_r31->unk_58) * cosd(var_r31->unk_18.y);
-                if (var_r31->unk_0C.y <= 500.0f || fabs(var_r31->unk_0C.x) > 1600.0) {
-                    var_r31->unk_48.y = 0.0f;
-                    var_r31->unk_54_s16[6] = 0xB4;
-                    var_r31->unk_08 *= 0.75f;
-                    var_r31->unk_04++;
+                fallingObjectState->rotation.x = -30.0 * sind(fallingObjectState->rotationAngle) * sind(fallingObjectState->rotation.y);
+                fallingObjectState->rotation.z = -30.0 * sind(fallingObjectState->rotationAngle) * cosd(fallingObjectState->rotation.y);
+                if (fallingObjectState->position.y <= 500.0f || fabs(fallingObjectState->position.x) > 1600.0) {
+                    fallingObjectState->velocity.y = 0.0f;
+                    fallingObjectState->motionTimers[6] = 0xB4;
+                    fallingObjectState->movementSpeed *= 0.75f;
+                    fallingObjectState->objectState++;
                 }
                 break;
             case 1:
-                var_r31->unk_18.y += 1.0f;
-                var_r31->unk_18.x = 0.0f;
-                var_r31->unk_18.z = 60.0 * sind(var_r31->unk_54_s16[6]) * cosd(var_r31->unk_18.y);
-                if (--var_r31->unk_54_s16[6] == 0) {
-                    Hu3DModelAttrSet(var_r31->unk_00, HU3D_MOTATTR_LOOP);
-                    Hu3DMotionSpeedSet(var_r31->unk_00, 6.0f);
-                    var_r31->unk_48.y = 4.866667f;
-                    var_r31->unk_04++;
+                fallingObjectState->rotation.y += 1.0f;
+                fallingObjectState->rotation.x = 0.0f;
+                fallingObjectState->rotation.z = 60.0 * sind(fallingObjectState->motionTimers[6]) * cosd(fallingObjectState->rotation.y);
+                if (--fallingObjectState->motionTimers[6] == 0) {
+                    Hu3DModelAttrSet(fallingObjectState->modelId, HU3D_MOTATTR_LOOP);
+                    Hu3DMotionSpeedSet(fallingObjectState->modelId, 6.0f);
+                    fallingObjectState->velocity.y = 4.866667f;
+                    fallingObjectState->objectState++;
                 }
                 break;
             case 2:
-                if (var_r31->unk_08 > 4.0f) {
-                    var_r31->unk_08 -= 0.1f;
-                    var_r31->unk_48.y += 0.73f;
+                if (fallingObjectState->movementSpeed > 4.0f) {
+                    fallingObjectState->movementSpeed -= 0.1f;
+                    fallingObjectState->velocity.y += 0.73f;
                 }
-                var_r31->unk_48.y += -0.5475f;
-                if (var_r31->unk_48.y < 0.0f) {
-                    Hu3DModelAttrReset(var_r31->unk_00, HU3D_MOTATTR_LOOP);
-                    Hu3DMotionSpeedSet(var_r31->unk_00, 2.0f);
-                    var_r31->unk_60 = 100.0f * (0.1f + (0.02f * (fn_1_5260() / 65536.0f)));
-                    var_r31->unk_04 = 0;
+                fallingObjectState->velocity.y += -0.5475f;
+                if (fallingObjectState->velocity.y < 0.0f) {
+                    Hu3DModelAttrReset(fallingObjectState->modelId, HU3D_MOTATTR_LOOP);
+                    Hu3DMotionSpeedSet(fallingObjectState->modelId, 2.0f);
+                    fallingObjectState->baseMovementSpeed = 100.0f * (0.1f + (0.02f * (GetRandomMapValue() / 65536.0f)));
+                    fallingObjectState->objectState = 0;
                 }
                 break;
         }
-        var_r31->unk_48.x = var_r31->unk_08 * sind(var_r31->unk_18.y);
-        var_r31->unk_48.z = var_r31->unk_08 * cosd(var_r31->unk_18.y);
-        var_r31->unk_0C.x += var_r31->unk_48.x;
-        var_r31->unk_0C.y += var_r31->unk_48.y;
-        var_r31->unk_0C.z += var_r31->unk_48.z;
-        if (var_r31->unk_0C.z >= -500.0f) {
-            var_r31->unk_0C.z = -500.0f;
+        fallingObjectState->velocity.x = fallingObjectState->movementSpeed * sind(fallingObjectState->rotation.y);
+        fallingObjectState->velocity.z = fallingObjectState->movementSpeed * cosd(fallingObjectState->rotation.y);
+        fallingObjectState->position.x += fallingObjectState->velocity.x;
+        fallingObjectState->position.y += fallingObjectState->velocity.y;
+        fallingObjectState->position.z += fallingObjectState->velocity.z;
+        if (fallingObjectState->position.z >= -500.0f) {
+            fallingObjectState->position.z = -500.0f;
         }
-        Hu3DModelPosSet(var_r31->unk_00, var_r31->unk_0C.x, var_r31->unk_0C.y, var_r31->unk_0C.z);
-        fn_1_541C(sp14, var_r31->unk_18.x, -var_r31->unk_18.y, var_r31->unk_18.z);
-        fn_1_553C(sp14, &sp8);
-        Hu3DModelRotSetV(var_r31->unk_00, &sp8);
+        Hu3DModelPosSet(fallingObjectState->modelId, fallingObjectState->position.x, fallingObjectState->position.y, fallingObjectState->position.z);
+        BuildRotationMatrix(rotationMatrix, fallingObjectState->rotation.x, -fallingObjectState->rotation.y, fallingObjectState->rotation.z);
+        RotateVector(rotationMatrix, &rotation);
+        Hu3DModelRotSetV(fallingObjectState->modelId, &rotation);
     }
 }
 
-void fn_1_39AC(OMOBJ *object)
+void InitializeMapCamera(OMOBJ *object)
 {
-    s32 var_r29;
-    s32 var_r28;
+    s32 mapState;
+    s32 currentMotion;
 
-    s32 sp18[4] = { 0x004000D4, 0x004000D5, 0x004000D6, 0x004000D7 };
-    s32 sp8[4] = { 0x0040000C, 0x00400010, 0x0040000F, 0x0040000E };
-    M433DllMapWork *work = fn_1_50A8(sizeof(M433DllMapWork));
+    s32 mapMotionIds[4] = { 0x004000D4, 0x004000D5, 0x004000D6, 0x004000D7 };
+    s32 mapModelIds[4] = { 0x0040000C, 0x00400010, 0x0040000F, 0x0040000E };
+    M433MapCameraTransitionState *work = AllocateMapWork(sizeof(M433MapCameraTransitionState));
     object->data = work;
-    if (lbl_1_bss_34 != 0) {
-        var_r28 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 0x0B));
+    if (useInitialMapMotion != 0) {
+        currentMotion = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 0x0B));
     }
     else {
-        var_r28 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 0x62));
+        currentMotion = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M433, 0x62));
     }
-    object->mdlId[0] = var_r28;
-    for (var_r29 = 0; var_r29 < 4; var_r29++) {
-        if (lbl_1_bss_34 != 0) {
-            object->mtnId[var_r29] = Hu3DJointMotionFile(var_r28, sp8[var_r29]);
+    object->mdlId[0] = currentMotion;
+    for (mapState = 0; mapState < 4; mapState++) {
+        if (useInitialMapMotion != 0) {
+            object->mtnId[mapState] = Hu3DJointMotionFile(currentMotion, mapModelIds[mapState]);
         }
         else {
-            object->mtnId[var_r29] = Hu3DJointMotionFile(var_r28, sp18[var_r29]);
+            object->mtnId[mapState] = Hu3DJointMotionFile(currentMotion, mapMotionIds[mapState]);
         }
     }
-    Hu3DMotionSet(var_r28, object->mtnId[0]);
-    Hu3DModelAttrSet(var_r28, HU3D_MOTATTR_LOOP);
-    work->unk_01 = work->unk_02 = 0;
-    work->unk_04 = 0;
-    work->unk_54 = 0;
-    work->unk_0C.x = 0.0f;
-    work->unk_0C.y = 180.0f;
-    work->unk_0C.z = -490.0f;
-    work->unk_30 = work->unk_0C;
-    work->unk_18.x = work->unk_18.y = work->unk_18.z = 0.0f;
-    work->unk_3C = work->unk_18;
-    omSetTra(object, work->unk_0C.x, work->unk_0C.y, work->unk_0C.z);
-    omSetRot(object, work->unk_18.x, work->unk_18.y, work->unk_18.z);
-    object->objFunc = fn_1_3C1C;
+    Hu3DMotionSet(currentMotion, object->mtnId[0]);
+    Hu3DModelAttrSet(currentMotion, HU3D_MOTATTR_LOOP);
+    work->requestedCameraState = work->previousCameraState = 0;
+    work->cameraTransitionFrame = 0;
+    work->cameraTransitionDuration = 0;
+    work->cameraPosition.x = 0.0f;
+    work->cameraPosition.y = 180.0f;
+    work->cameraPosition.z = -490.0f;
+    work->targetCameraPosition = work->cameraPosition;
+    work->cameraRotation.x = work->cameraRotation.y = work->cameraRotation.z = 0.0f;
+    work->targetCameraRotation = work->cameraRotation;
+    omSetTra(object, work->cameraPosition.x, work->cameraPosition.y, work->cameraPosition.z);
+    omSetRot(object, work->cameraRotation.x, work->cameraRotation.y, work->cameraRotation.z);
+    object->objFunc = UpdateMapCamera;
 }
 
-void fn_1_3C1C(OMOBJ *object)
+void UpdateMapCamera(OMOBJ *object)
 {
-    M433DllMapWork *work;
-    s32 var_r29;
-    s32 var_r28;
+    M433MapCameraTransitionState *work;
+    s32 particleState;
+    s32 particleIndex;
 
     work = object->data;
-    var_r28 = object->mdlId[0];
-    switch (work->unk_04) {
+    particleIndex = object->mdlId[0];
+    switch (work->cameraTransitionFrame) {
         case 0:
-            work->unk_01 = 0;
-            var_r29 = 0x40000001;
+            work->requestedCameraState = 0;
+            particleState = 0x40000001;
             break;
         case 1:
-            work->unk_3C.y = 0.0f;
-            work->unk_01 = 1;
-            var_r29 = 0x40000001;
-            if (work->unk_54++ >= 0x5A) {
-                work->unk_54 = 0;
-                work->unk_04 = 0;
+            work->targetCameraRotation.y = 0.0f;
+            work->requestedCameraState = 1;
+            particleState = 0x40000001;
+            if (work->cameraTransitionDuration++ >= 0x5A) {
+                work->cameraTransitionDuration = 0;
+                work->cameraTransitionFrame = 0;
             }
             break;
         case 2:
-            work->unk_3C.y = 0.0f;
-            work->unk_01 = 2;
-            var_r29 = 0;
-            if (Hu3DMotionEndCheck(var_r28) != 0) {
-                work->unk_04 = 0;
+            work->targetCameraRotation.y = 0.0f;
+            work->requestedCameraState = 2;
+            particleState = 0;
+            if (Hu3DMotionEndCheck(particleIndex) != 0) {
+                work->cameraTransitionFrame = 0;
             }
             break;
         case 3:
-            work->unk_3C.y = 0.0f;
-            work->unk_01 = 3;
-            var_r29 = 0x40000001;
+            work->targetCameraRotation.y = 0.0f;
+            work->requestedCameraState = 3;
+            particleState = 0x40000001;
             break;
         case 4:
-            work->unk_3C.y = 0.0f;
-            work->unk_04 = 0;
+            work->targetCameraRotation.y = 0.0f;
+            work->cameraTransitionFrame = 0;
             break;
         case 5:
-            work->unk_3C.y = 50.0f;
-            work->unk_04 = 0;
+            work->targetCameraRotation.y = 50.0f;
+            work->cameraTransitionFrame = 0;
             break;
         case 6:
-            work->unk_3C.y = -50.0f;
-            work->unk_04 = 0;
+            work->targetCameraRotation.y = -50.0f;
+            work->cameraTransitionFrame = 0;
             break;
     }
-    if (work->unk_01 != work->unk_02) {
-        work->unk_02 = work->unk_01;
-        Hu3DMotionShiftSet(var_r28, object->mtnId[work->unk_01], 0.0f, 8.0f, var_r29);
-        switch (work->unk_01) {
+    if (work->requestedCameraState != work->previousCameraState) {
+        work->previousCameraState = work->requestedCameraState;
+        Hu3DMotionShiftSet(particleIndex, object->mtnId[work->requestedCameraState], 0.0f, 8.0f, particleState);
+        switch (work->requestedCameraState) {
             case 1:
                 HuAudFXPlay(0x43);
                 break;
@@ -468,357 +468,357 @@ void fn_1_3C1C(OMOBJ *object)
                 break;
         }
     }
-    work->unk_18.y = fn_1_52B4(work->unk_18.y, work->unk_3C.y, 0.9f);
-    omSetTra(object, work->unk_0C.x, work->unk_0C.y, work->unk_0C.z);
-    omSetRot(object, work->unk_18.x, work->unk_18.y, work->unk_18.z);
+    work->cameraRotation.y = ApproachFloat(work->cameraRotation.y, work->targetCameraRotation.y, 0.9f);
+    omSetTra(object, work->cameraPosition.x, work->cameraPosition.y, work->cameraPosition.z);
+    omSetRot(object, work->cameraRotation.x, work->cameraRotation.y, work->cameraRotation.z);
 }
 
-s16 fn_1_3E5C(s32 sp8, s16 spC, HU3DPARTICLEHOOK sp10)
+s16 CreateMapParticleEmitter(s32 resourceId, s16 particleCount, HU3DPARTICLEHOOK particleUpdateCallback)
 {
-    M433DllUnkStruct *var_r31;
-    s32 var_r30;
-    HU3DPARTICLE *var_r29;
-    ANIMDATA *var_r28;
+    M433MapParticleState *particleState;
+    s32 particleModelId;
+    HU3DPARTICLE *particleData;
+    ANIMDATA *particleAnimation;
 
-    var_r28 = HuSprAnimRead(HuDataReadNum(sp8, HU_MEMNUM_OVL));
-    var_r30 = Hu3DParticleCreate(var_r28, spC);
-    Hu3DParticleHookSet(var_r30, sp10);
-    var_r29 = Hu3DData[var_r30].hookData;
-    var_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M433DllUnkStruct), HU_MEMNUM_OVL);
-    var_r29->work = var_r31;
-    var_r31->unk_00 = var_r30;
-    var_r31->unk_04 = 0;
-    return var_r30;
+    particleAnimation = HuSprAnimRead(HuDataReadNum(resourceId, HU_MEMNUM_OVL));
+    particleModelId = Hu3DParticleCreate(particleAnimation, particleCount);
+    Hu3DParticleHookSet(particleModelId, particleUpdateCallback);
+    particleData = Hu3DData[particleModelId].hookData;
+    particleState = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M433MapParticleState), HU_MEMNUM_OVL);
+    particleData->work = particleState;
+    particleState->particleModelId = particleModelId;
+    particleState->particleLifetime = 0;
+    return particleModelId;
 }
 
-void fn_1_3F14(HU3DMODEL *model, HU3DPARTICLE *var_r30, Mtx matrix)
+void UpdateMapParticles(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    float var_f29;
-    float var_f26;
-    float var_f25;
-    float var_f24;
-    HU3DPARTICLEDATA *var_r31;
-    s32 var_r28;
-    float sp54[4] = { 1000.0f, 200.0f, 600.0f, 1200.0f };
-    float sp44[4] = { 1.0f, 0.6f, 0.3f, 0.425f };
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    s16 sp8 = 0;
-    M433DllUnkStruct *var_r29 = var_r30->work;
-    switch (var_r29->unk_04) {
+    float directionLength;
+    float particleDistance;
+    float normalizedParticleDistance;
+    float distancePerParticle;
+    HU3DPARTICLEDATA *particleData;
+    s32 particleIndex;
+    float particleScaleByType[4] = { 1000.0f, 200.0f, 600.0f, 1200.0f };
+    float particleOpacityByType[4] = { 1.0f, 0.6f, 0.3f, 0.425f };
+    Vec particlePosition;
+    Vec particleVelocity;
+    Vec particleAcceleration;
+    Vec normalizedDirection;
+    s16 unusedParticleValue = 0;
+    M433MapParticleState *particleState = particle->work;
+    switch (particleState->particleLifetime) {
         case 0:
-            var_r30->dataCnt = 0x54;
-            var_r31 = var_r30->data;
-            if (var_r29->unk_02 != 0) {
-                sp14.x = 0.0f;
-                sp14.y = -4700.0f;
-                sp14.z = 4450.0f;
-                var_f29 = 1.0f / sqrtf((sp14.z * sp14.z) + ((sp14.x * sp14.x) + (sp14.y * sp14.y)));
-                sp14.x *= var_f29;
-                sp14.y *= var_f29;
-                sp14.z *= var_f29;
-                var_f24 = 4000.0f / var_r30->maxCnt;
-                for (var_r28 = 0; var_r28 < var_r30->maxCnt; var_r28++, var_r31++) {
-                    var_f26 = 500.0f + ((var_f24 * var_r28) + (0.25f * var_f24 * (fn_1_5260() / 65536.0f)));
-                    var_f25 = var_f26 / 4000.0f;
-                    var_r31->accel.x = var_f26;
-                    var_r31->pos.x = var_f26 * sp14.x;
-                    var_r31->pos.y = 5500.0f + (var_f26 * sp14.y);
-                    var_r31->pos.z = -3950.0f + (var_f26 * sp14.z);
-                    var_r31->scale = (0.3f + (0.7f * (var_f25 * var_f25))) * (sp54[var_r29->unk_02] * (0.7f + (0.3f * (fn_1_5260() / 65536.0f))));
-                    var_r31->color.r = (s32)(160.0f * (fn_1_5260() / 65536.0f)) + 0x20;
-                    var_r31->color.g = (s32)(96.0f * (fn_1_5260() / 65536.0f)) + 0x20;
-                    var_r31->color.b = (s32)(128.0f * (fn_1_5260() / 65536.0f)) + 0x20;
-                    var_r31->color.a = ((1.0 - (0.4 * var_f25)) * (255.0f * sp44[var_r29->unk_02])) - (s32)(16.0f * (fn_1_5260() / 65536.0f));
+            particle->dataCnt = 0x54;
+            particleData = particle->data;
+            if (particleState->particleState != 0) {
+                normalizedDirection.x = 0.0f;
+                normalizedDirection.y = -4700.0f;
+                normalizedDirection.z = 4450.0f;
+                directionLength = 1.0f / sqrtf((normalizedDirection.z * normalizedDirection.z) + ((normalizedDirection.x * normalizedDirection.x) + (normalizedDirection.y * normalizedDirection.y)));
+                normalizedDirection.x *= directionLength;
+                normalizedDirection.y *= directionLength;
+                normalizedDirection.z *= directionLength;
+                distancePerParticle = 4000.0f / particle->maxCnt;
+                for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                    particleDistance = 500.0f + ((distancePerParticle * particleIndex) + (0.25f * distancePerParticle * (GetRandomMapValue() / 65536.0f)));
+                    normalizedParticleDistance = particleDistance / 4000.0f;
+                    particleData->accel.x = particleDistance;
+                    particleData->pos.x = particleDistance * normalizedDirection.x;
+                    particleData->pos.y = 5500.0f + (particleDistance * normalizedDirection.y);
+                    particleData->pos.z = -3950.0f + (particleDistance * normalizedDirection.z);
+                    particleData->scale = (0.3f + (0.7f * (normalizedParticleDistance * normalizedParticleDistance))) * (particleScaleByType[particleState->particleState] * (0.7f + (0.3f * (GetRandomMapValue() / 65536.0f))));
+                    particleData->color.r = (s32)(160.0f * (GetRandomMapValue() / 65536.0f)) + 0x20;
+                    particleData->color.g = (s32)(96.0f * (GetRandomMapValue() / 65536.0f)) + 0x20;
+                    particleData->color.b = (s32)(128.0f * (GetRandomMapValue() / 65536.0f)) + 0x20;
+                    particleData->color.a = ((1.0 - (0.4 * normalizedParticleDistance)) * (255.0f * particleOpacityByType[particleState->particleState])) - (s32)(16.0f * (GetRandomMapValue() / 65536.0f));
                 }
-                var_r29->unk_04++;
+                particleState->particleLifetime++;
             }
             else {
-                var_r31->pos.x = 0.0f;
-                var_r31->pos.y = 5500.0f;
-                var_r31->pos.z = -3950.0f;
-                var_r31->scale = 1000.0f;
+                particleData->pos.x = 0.0f;
+                particleData->pos.y = 5500.0f;
+                particleData->pos.z = -3950.0f;
+                particleData->scale = 1000.0f;
             }
             break;
         case 1:
-            sp38.x = sind(CRot.y) * cosd(CRot.x);
-            sp38.y = -sind(CRot.x);
-            sp38.z = cosd(CRot.y) * cosd(CRot.x);
-            sp2C.x = -(Center.x + (1.25f * (sp38.x * CZoom)));
-            sp2C.y = 5500.0f - (Center.y + (sp38.y * CZoom));
-            sp2C.z = -3950.0f - (Center.z + (1.25f * (sp38.z * CZoom)));
-            var_f29 = 1.0f / sqrtf((sp2C.z * sp2C.z) + ((sp2C.x * sp2C.x) + (sp2C.y * sp2C.y)));
-            sp2C.x *= var_f29;
-            sp2C.y *= var_f29;
-            sp2C.z *= var_f29;
-            var_f29 = -((-sp2C.z * -sp38.z) + ((-sp2C.x * -sp38.x) + (-sp2C.y * -sp38.y)));
-            sp20.x = -sp38.x + (-2.0f * sp2C.x * var_f29);
-            sp20.y = -sp38.y + (-2.0f * sp2C.y * var_f29);
-            sp20.z = -sp38.z + (-2.0f * sp2C.z * var_f29);
-            for (var_r31 = var_r30->data, var_r28 = 0; var_r28 < var_r30->maxCnt; var_r28++, var_r31++) {
-                var_r31->pos.x = sp20.x * var_r31->accel.x;
-                var_r31->pos.y = 5500.0f + (sp20.y * var_r31->accel.x);
-                var_r31->pos.z = -3950.0f + (sp20.z * var_r31->accel.x);
-                if (var_r30->dataCnt < 0xA) {
-                    var_r31->color.a *= 0.8f;
+            particlePosition.x = sind(CRot.y) * cosd(CRot.x);
+            particlePosition.y = -sind(CRot.x);
+            particlePosition.z = cosd(CRot.y) * cosd(CRot.x);
+            particleVelocity.x = -(Center.x + (1.25f * (particlePosition.x * CZoom)));
+            particleVelocity.y = 5500.0f - (Center.y + (particlePosition.y * CZoom));
+            particleVelocity.z = -3950.0f - (Center.z + (1.25f * (particlePosition.z * CZoom)));
+            directionLength = 1.0f / sqrtf((particleVelocity.z * particleVelocity.z) + ((particleVelocity.x * particleVelocity.x) + (particleVelocity.y * particleVelocity.y)));
+            particleVelocity.x *= directionLength;
+            particleVelocity.y *= directionLength;
+            particleVelocity.z *= directionLength;
+            directionLength = -((-particleVelocity.z * -particlePosition.z) + ((-particleVelocity.x * -particlePosition.x) + (-particleVelocity.y * -particlePosition.y)));
+            particleAcceleration.x = -particlePosition.x + (-2.0f * particleVelocity.x * directionLength);
+            particleAcceleration.y = -particlePosition.y + (-2.0f * particleVelocity.y * directionLength);
+            particleAcceleration.z = -particlePosition.z + (-2.0f * particleVelocity.z * directionLength);
+            for (particleData = particle->data, particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                particleData->pos.x = particleAcceleration.x * particleData->accel.x;
+                particleData->pos.y = 5500.0f + (particleAcceleration.y * particleData->accel.x);
+                particleData->pos.z = -3950.0f + (particleAcceleration.z * particleData->accel.x);
+                if (particle->dataCnt < 0xA) {
+                    particleData->color.a *= 0.8f;
                 }
             }
-            var_r30->dataCnt--;
-            if (var_r30->dataCnt == 0) {
-                Hu3DModelAttrReset(var_r29->unk_00, HU3D_ATTR_PARTICLE_KILL);
-                Hu3DModelKill(var_r29->unk_00);
+            particle->dataCnt--;
+            if (particle->dataCnt == 0) {
+                Hu3DModelAttrReset(particleState->particleModelId, HU3D_ATTR_PARTICLE_KILL);
+                Hu3DModelKill(particleState->particleModelId);
                 return;
             }
             break;
     }
-    DCFlushRange(var_r30->data, var_r30->maxCnt * sizeof(HU3DPARTICLEDATA));
+    DCFlushRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-void fn_1_4A94(OMOBJ *var_r30)
+void InitializeCameraManager(OMOBJ *object)
 {
-    M433DllMapWork2 *work = fn_1_50A8(sizeof(M433DllMapWork2));
-    var_r30->data = work;
-    work->unk_148 = work->unk_144 = 0.0f;
-    work->unk_140 = 1.0f;
-    work->unk_10.x = work->unk_28.x = -30.0f;
-    work->unk_10.y = work->unk_28.y = 0.0f;
-    work->unk_10.z = work->unk_28.z = 0.0f;
-    work->unk_04.x = work->unk_1C.x = 0.0f;
-    work->unk_04.y = work->unk_1C.y = 200.0f;
-    work->unk_04.z = work->unk_1C.z = 0.0f;
-    work->unk_130 = work->unk_134 = 1900.0f;
-    work->unk_188[0] = work->unk_188[1] = work->unk_188[2] = 0;
-    var_r30->objFunc = fn_1_4BA0;
+    M433CameraManagerState *work = AllocateMapWork(sizeof(M433CameraManagerState));
+    object->data = work;
+    work->cameraTransitionRemaining = work->cameraTransitionDuration = 0.0f;
+    work->cameraTransitionSpeed = 1.0f;
+    work->cameraRotation.x = work->cameraStartRotation.x = -30.0f;
+    work->cameraRotation.y = work->cameraStartRotation.y = 0.0f;
+    work->cameraRotation.z = work->cameraStartRotation.z = 0.0f;
+    work->cameraPosition.x = work->cameraStartPosition.x = 0.0f;
+    work->cameraPosition.y = work->cameraStartPosition.y = 200.0f;
+    work->cameraPosition.z = work->cameraStartPosition.z = 0.0f;
+    work->cameraZoom = work->cameraStartZoom = 1900.0f;
+    work->cameraShakeFrames[0] = work->cameraShakeFrames[1] = work->cameraShakeFrames[2] = 0;
+    object->objFunc = UpdateCameraManager;
 }
 
-void fn_1_4BA0(OMOBJ *object)
+void UpdateCameraManager(OMOBJ *object)
 {
-    float var_f31;
-    s32 var_r30;
-    M433DllMapWork2 *work = object->data;
-    if (work->unk_148 > 0.0f) {
-        work->unk_148 = work->unk_148 - work->unk_140;
-        var_f31 = (work->unk_144 - work->unk_148) / work->unk_144;
-        var_f31 = sind((90.0f * var_f31));
-        if (work->unk_00 == 0) {
-            work->unk_04.x = work->unk_1C.x + (var_f31 * (work->unk_34.x - work->unk_1C.x));
-            work->unk_04.y = work->unk_1C.y + (var_f31 * (work->unk_34.y - work->unk_1C.y));
-            work->unk_04.z = work->unk_1C.z + (var_f31 * (work->unk_34.z - work->unk_1C.z));
-            work->unk_10.x = work->unk_28.x + (var_f31 * (work->unk_40.x - work->unk_28.x));
-            work->unk_10.y = work->unk_28.y + (var_f31 * (work->unk_40.y - work->unk_28.y));
-            work->unk_10.z = work->unk_28.z + (var_f31 * (work->unk_40.z - work->unk_28.z));
-            work->unk_130 = work->unk_134 + (var_f31 * (work->unk_138 - work->unk_134));
+    float transitionProgress;
+    s32 cameraAxis;
+    M433CameraManagerState *work = object->data;
+    if (work->cameraTransitionRemaining > 0.0f) {
+        work->cameraTransitionRemaining = work->cameraTransitionRemaining - work->cameraTransitionSpeed;
+        transitionProgress = (work->cameraTransitionDuration - work->cameraTransitionRemaining) / work->cameraTransitionDuration;
+        transitionProgress = sind((90.0f * transitionProgress));
+        if (work->cameraMode == 0) {
+            work->cameraPosition.x = work->cameraStartPosition.x + (transitionProgress * (work->cameraEndPosition.x - work->cameraStartPosition.x));
+            work->cameraPosition.y = work->cameraStartPosition.y + (transitionProgress * (work->cameraEndPosition.y - work->cameraStartPosition.y));
+            work->cameraPosition.z = work->cameraStartPosition.z + (transitionProgress * (work->cameraEndPosition.z - work->cameraStartPosition.z));
+            work->cameraRotation.x = work->cameraStartRotation.x + (transitionProgress * (work->cameraEndRotation.x - work->cameraStartRotation.x));
+            work->cameraRotation.y = work->cameraStartRotation.y + (transitionProgress * (work->cameraEndRotation.y - work->cameraStartRotation.y));
+            work->cameraRotation.z = work->cameraStartRotation.z + (transitionProgress * (work->cameraEndRotation.z - work->cameraStartRotation.z));
+            work->cameraZoom = work->cameraStartZoom + (transitionProgress * (work->cameraEndZoom - work->cameraStartZoom));
         }
     }
-    CRot.x = work->unk_10.x;
-    CRot.y = work->unk_10.y;
-    CRot.z = work->unk_10.z;
-    Center.x = work->unk_04.x;
-    Center.y = work->unk_04.y;
-    Center.z = work->unk_04.z;
-    CZoom = work->unk_130;
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        work->unk_17C[var_r30] = 0.0f;
-        if (work->unk_188[var_r30] != 0) {
-            work->unk_17C[var_r30] = work->unk_14C[var_r30] * sind(work->unk_164[var_r30]);
-            work->unk_164[var_r30] += work->unk_170[var_r30];
-            work->unk_14C[var_r30] *= work->unk_158[var_r30];
-            work->unk_188[var_r30] -= 1;
+    CRot.x = work->cameraRotation.x;
+    CRot.y = work->cameraRotation.y;
+    CRot.z = work->cameraRotation.z;
+    Center.x = work->cameraPosition.x;
+    Center.y = work->cameraPosition.y;
+    Center.z = work->cameraPosition.z;
+    CZoom = work->cameraZoom;
+    for (cameraAxis = 0; cameraAxis < 3; cameraAxis++) {
+        work->cameraShakeOffset[cameraAxis] = 0.0f;
+        if (work->cameraShakeFrames[cameraAxis] != 0) {
+            work->cameraShakeOffset[cameraAxis] = work->cameraShakeAmplitude[cameraAxis] * sind(work->cameraShakePhase[cameraAxis]);
+            work->cameraShakePhase[cameraAxis] += work->cameraShakeSpeed[cameraAxis];
+            work->cameraShakeAmplitude[cameraAxis] *= work->cameraShakeDamping[cameraAxis];
+            work->cameraShakeFrames[cameraAxis] -= 1;
         }
     }
-    Center.x += work->unk_17C[0];
-    Center.y += work->unk_17C[1];
-    Center.z += work->unk_17C[2];
+    Center.x += work->cameraShakeOffset[0];
+    Center.y += work->cameraShakeOffset[1];
+    Center.z += work->cameraShakeOffset[2];
 }
 
-void fn_1_4ED4(float arg8, Vec *arg0, Vec *arg1, float arg9)
+void SetCameraTransition(float transitionDuration, Vec *targetPosition, Vec *targetRotation, float targetZoom)
 {
-    M433DllMapWork2 *work = lbl_1_bss_7B0->data;
-    work->unk_00 = 0;
-    work->unk_144 = arg8;
-    work->unk_148 = arg8;
-    if (arg8 == 0.0f) {
-        work->unk_04.x = arg0->x;
-        work->unk_04.y = arg0->y;
-        work->unk_04.z = arg0->z;
-        work->unk_10.x = arg1->x;
-        work->unk_10.y = arg1->y;
-        work->unk_10.z = arg1->z;
-        work->unk_130 = arg9;
+    M433CameraManagerState *work = cameraManagerObject->data;
+    work->cameraMode = 0;
+    work->cameraTransitionDuration = transitionDuration;
+    work->cameraTransitionRemaining = transitionDuration;
+    if (transitionDuration == 0.0f) {
+        work->cameraPosition.x = targetPosition->x;
+        work->cameraPosition.y = targetPosition->y;
+        work->cameraPosition.z = targetPosition->z;
+        work->cameraRotation.x = targetRotation->x;
+        work->cameraRotation.y = targetRotation->y;
+        work->cameraRotation.z = targetRotation->z;
+        work->cameraZoom = targetZoom;
         return;
     }
-    work->unk_1C = work->unk_04;
-    work->unk_34.x = arg0->x;
-    work->unk_34.y = arg0->y;
-    work->unk_34.z = arg0->z;
-    work->unk_28 = work->unk_10;
-    work->unk_40.x = arg1->x;
-    work->unk_40.y = arg1->y;
-    work->unk_40.z = arg1->z;
-    work->unk_134 = work->unk_130;
-    work->unk_138 = arg9;
+    work->cameraStartPosition = work->cameraPosition;
+    work->cameraEndPosition.x = targetPosition->x;
+    work->cameraEndPosition.y = targetPosition->y;
+    work->cameraEndPosition.z = targetPosition->z;
+    work->cameraStartRotation = work->cameraRotation;
+    work->cameraEndRotation.x = targetRotation->x;
+    work->cameraEndRotation.y = targetRotation->y;
+    work->cameraEndRotation.z = targetRotation->z;
+    work->cameraStartZoom = work->cameraZoom;
+    work->cameraEndZoom = targetZoom;
 }
 
-void fn_1_4FC0(float arg8)
+void SetCameraTransitionSpeed(float transitionSpeed)
 {
-    M433DllMapWork2 *var_r31 = lbl_1_bss_7B0->data;
-    var_r31->unk_140 = arg8;
+    M433CameraManagerState *cameraState = cameraManagerObject->data;
+    cameraState->cameraTransitionSpeed = transitionSpeed;
 }
 
-void fn_1_4FE8(u8 arg0, u16 arg1, float arg8, float arg9, float argA)
+void SetCameraShake(u8 shakeIndex, u16 shakeDuration, float shakeAmplitude, float shakeDamping, float shakeSpeed)
 {
-    M433DllMapWork2 *var_r31 = lbl_1_bss_7B0->data;
-    var_r31->unk_188[arg0] = arg1;
-    var_r31->unk_14C[arg0] = arg8;
-    var_r31->unk_158[arg0] = arg9;
-    var_r31->unk_170[arg0] = argA;
-    var_r31->unk_164[arg0] = 90.0f;
+    M433CameraManagerState *cameraState = cameraManagerObject->data;
+    cameraState->cameraShakeFrames[shakeIndex] = shakeDuration;
+    cameraState->cameraShakeAmplitude[shakeIndex] = shakeAmplitude;
+    cameraState->cameraShakeDamping[shakeIndex] = shakeDamping;
+    cameraState->cameraShakeSpeed[shakeIndex] = shakeSpeed;
+    cameraState->cameraShakePhase[shakeIndex] = 90.0f;
 }
 
-void fn_1_5068(void)
+void InitializeMapAllocationPool(void)
 {
     s32 i;
     for (i = 0; i < 0x20; i++) {
-        lbl_1_bss_728[i] = NULL;
+        mapWorkAllocations[i] = NULL;
     }
 }
 
-void *fn_1_50A8(s32 arg0)
+void *AllocateMapWork(s32 allocationSize)
 {
     s32 i;
 
     for (i = 0; i < 0x20; i++) {
-        if (!lbl_1_bss_728[i]) {
+        if (!mapWorkAllocations[i]) {
             break;
         }
     }
     if (i == 0x20) {
         return NULL;
     }
-    lbl_1_bss_728[i] = HuMemDirectMallocNum(HEAP_HEAP, arg0, HU_MEMNUM_OVL);
-    return lbl_1_bss_728[i];
+    mapWorkAllocations[i] = HuMemDirectMallocNum(HEAP_HEAP, allocationSize, HU_MEMNUM_OVL);
+    return mapWorkAllocations[i];
 }
 
-void fn_1_5148(u32 sp8)
+void FreeMapWork(u32 allocationAddress)
 {
     s32 i;
 
     for (i = 0; i < 0x20; i++) {
-        if (lbl_1_bss_728[i] == (void *)sp8) {
+        if (mapWorkAllocations[i] == (void *)allocationAddress) {
             break;
         }
     }
     if (i != 0x20) {
-        HuMemDirectFree(lbl_1_bss_728[i]);
-        lbl_1_bss_728[i] = NULL;
+        HuMemDirectFree(mapWorkAllocations[i]);
+        mapWorkAllocations[i] = NULL;
     }
 }
 
-void fn_1_51DC(void)
+void CleanupMapAllocationPool(void)
 {
     s32 i;
 
     for (i = 0; i < 0x20; i++) {
-        if (lbl_1_bss_728[i]) {
-            HuMemDirectFree(lbl_1_bss_728[i]);
-            lbl_1_bss_728[i] = NULL;
+        if (mapWorkAllocations[i]) {
+            HuMemDirectFree(mapWorkAllocations[i]);
+            mapWorkAllocations[i] = NULL;
         }
     }
 }
 
-u32 lbl_1_data_C4 = 0x41C64E6D;
+u32 randomNumberSeed = 0x41C64E6D;
 
-s32 fn_1_5260(void)
+s32 GetRandomMapValue(void)
 {
-    lbl_1_data_C4 *= 0x41C64E6D;
-    lbl_1_data_C4 += 0x3039;
-    return lbl_1_data_C4 >> 0x10;
+    randomNumberSeed *= 0x41C64E6D;
+    randomNumberSeed += 0x3039;
+    return randomNumberSeed >> 0x10;
 }
 
-float fn_1_52B4(float arg8, float arg9, float argA)
+float ApproachFloat(float currentAngle, float targetAngle, float interpolationFactor)
 {
-    float var_f31;
+    float angleDifference;
 
-    if (arg8 > 180.0f) {
-        arg8 -= 360.0f;
+    if (currentAngle > 180.0f) {
+        currentAngle -= 360.0f;
     }
-    else if (arg8 <= -180.0f) {
-        arg8 += 360.0f;
+    else if (currentAngle <= -180.0f) {
+        currentAngle += 360.0f;
     }
-    if (arg9 > 180.0f) {
-        arg9 -= 360.0f;
+    if (targetAngle > 180.0f) {
+        targetAngle -= 360.0f;
     }
-    else if (arg9 <= -180.0f) {
-        arg9 += 360.0f;
+    else if (targetAngle <= -180.0f) {
+        targetAngle += 360.0f;
     }
-    var_f31 = arg8 - arg9;
-    if (var_f31 > 180.0f) {
-        var_f31 -= 360.0f;
+    angleDifference = currentAngle - targetAngle;
+    if (angleDifference > 180.0f) {
+        angleDifference -= 360.0f;
     }
-    else if (var_f31 <= -180.0f) {
-        var_f31 += 360.0f;
+    else if (angleDifference <= -180.0f) {
+        angleDifference += 360.0f;
     }
-    arg8 = arg9 + (var_f31 * argA);
-    if (arg8 > 180.0f) {
-        return arg8 - 360.0f;
+    currentAngle = targetAngle + (angleDifference * interpolationFactor);
+    if (currentAngle > 180.0f) {
+        return currentAngle - 360.0f;
     }
-    if (arg8 <= -180.0f) {
-        arg8 += 360.0f;
+    if (currentAngle <= -180.0f) {
+        currentAngle += 360.0f;
     }
-    return arg8;
+    return currentAngle;
 }
 
-void fn_1_541C(Mtx arg0, float arg8, float arg9, float argA)
+void BuildRotationMatrix(Mtx rotationMatrix, float xRotation, float yRotation, float zRotation)
 {
-    Mtx sp38;
-    Mtx sp8;
+    Mtx xRotationMatrix;
+    Mtx yRotationMatrix;
 
-    if (argA != 0.0f) {
-        MTXRotRad(arg0, 0x5A, MTXDegToRad(argA));
+    if (zRotation != 0.0f) {
+        MTXRotRad(rotationMatrix, 0x5A, MTXDegToRad(zRotation));
     }
     else {
-        MTXIdentity(arg0);
+        MTXIdentity(rotationMatrix);
     }
-    if (arg8 != 0.0f) {
-        MTXRotRad(sp38, 0x58, MTXDegToRad(arg8));
-        MTXConcat(sp38, arg0, arg0);
+    if (xRotation != 0.0f) {
+        MTXRotRad(xRotationMatrix, 0x58, MTXDegToRad(xRotation));
+        MTXConcat(xRotationMatrix, rotationMatrix, rotationMatrix);
     }
-    if (arg9 != 0.0f) {
-        MTXRotRad(sp8, 0x59, MTXDegToRad(arg9));
-        MTXConcat(sp8, arg0, arg0);
-    }
-}
-
-void fn_1_553C(Mtx arg0, Vec *arg1)
-{
-    float var_f29;
-    float var_f28;
-
-    arg1->x = atan2d(arg0[1][2], arg0[2][2]);
-    if (arg1->x < 0.0f) {
-        arg1->x += 360.0f;
-    }
-    arg1->z = atan2d(arg0[0][1], arg0[0][0]);
-    if (arg1->z < 0.0f) {
-        arg1->z += 360.0f;
-    }
-    var_f29 = -arg0[0][2];
-    var_f28 = sqrtf((1.0 - (var_f29 * var_f29)) < 0.0 ? (-(1.0 - (var_f29 * var_f29))) : (1.0 - (var_f29 * var_f29)));
-    if ((arg1->x > 90.0f) && (arg1->x < 270.0f) && (arg1->z > 90.0f) && (arg1->z < 270.0f)) {
-        arg1->x = fmod(180.0f + arg1->x, 360.0);
-        arg1->z = fmod(180.0f + arg1->z, 360.0);
-        var_f28 = -var_f28;
-    }
-    arg1->y = atan2d(var_f29, var_f28);
-    if (arg1->y < 0.0f) {
-        arg1->y += 360.0f;
+    if (yRotation != 0.0f) {
+        MTXRotRad(yRotationMatrix, 0x59, MTXDegToRad(yRotation));
+        MTXConcat(yRotationMatrix, rotationMatrix, rotationMatrix);
     }
 }
 
-void fn_1_58D8(s32 arg0)
+void RotateVector(Mtx rotationMatrix, Vec *rotation)
 {
-    M433DllMapWork *work = lbl_1_bss_7A8->data;
-    work->unk_04 = arg0;
+    float sinePitch;
+    float cosinePitch;
+
+    rotation->x = atan2d(rotationMatrix[1][2], rotationMatrix[2][2]);
+    if (rotation->x < 0.0f) {
+        rotation->x += 360.0f;
+    }
+    rotation->z = atan2d(rotationMatrix[0][1], rotationMatrix[0][0]);
+    if (rotation->z < 0.0f) {
+        rotation->z += 360.0f;
+    }
+    sinePitch = -rotationMatrix[0][2];
+    cosinePitch = sqrtf((1.0 - (sinePitch * sinePitch)) < 0.0 ? (-(1.0 - (sinePitch * sinePitch))) : (1.0 - (sinePitch * sinePitch)));
+    if ((rotation->x > 90.0f) && (rotation->x < 270.0f) && (rotation->z > 90.0f) && (rotation->z < 270.0f)) {
+        rotation->x = fmod(180.0f + rotation->x, 360.0);
+        rotation->z = fmod(180.0f + rotation->z, 360.0);
+        cosinePitch = -cosinePitch;
+    }
+    rotation->y = atan2d(sinePitch, cosinePitch);
+    if (rotation->y < 0.0f) {
+        rotation->y += 360.0f;
+    }
+}
+
+void SetMapMotion(s32 transitionFrame)
+{
+    M433MapCameraTransitionState *work = mapCameraObject->data;
+    work->cameraTransitionFrame = transitionFrame;
 }

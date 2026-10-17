@@ -4,40 +4,40 @@
 #include "game/object.h"
 
 typedef struct M433DllWork {
-    u32 unk_00;
-    s32 unk_04;
-    s32 unk_08;
-    s32 unk_0C;
-    s32 unk_10;
-    s32 unk_14;
-    s32 unk_18;
-    u32 unk_1C;
-    u32 unk_20;
-    s32 unk_24;
-    u32 unk_28;
-    s32 unk_2C[2];
-    u32 unk_34;
-    s32 unk_38;
-    s32 unk_3C;
+    u32 minigameState;
+    s32 frameCounter;
+    s32 exitRequested;
+    s32 roundResultState;
+    s32 introFrameCounter;
+    s32 introState;
+    s32 introTimer;
+    u32 roundsRemaining;
+    u32 roundTimer;
+    s32 resultsState;
+    u32 resultsTimer;
+    s32 winningPlayerIndices[2];
+    u32 roundResult;
+    s32 playerResultFlags;
+    s32 teamResultFlags;
 } M433DllWork; /* size = 0x40 */
 
-void fn_1_584(OMOBJ *object);
-void fn_1_618(OMOBJ *object);
-u32 fn_1_216C(void);
-u32 fn_1_2184(void);
-void fn_1_219C(s32 arg0, s32 arg1, s32 arg2);
-void fn_1_21E4(s32 arg0);
-void fn_1_2214(s32 arg0);
-s32 fn_1_2244(void);
-float fn_1_26C4(float arg8, float arg9, float argA);
+void UpdateMinigameFrameCounters(OMOBJ *object);
+void AdvanceMinigameState(OMOBJ *object);
+u32 GetRoundIntroState(void);
+u32 GetResultsSequenceState(void);
+void SetRoundResultAndPlayers(s32 roundResult, s32 firstWinningPlayer, s32 secondWinningPlayer);
+void SetPlayerResultFlag(s32 playerIndex);
+void SetTeamResultFlag(s32 teamIndex);
+s32 IsOutroSequenceFinished(void);
+float InterpolateAngle(float currentAngle, float targetAngle, float interpolationFactor);
 
-void fn_1_2894(HUPROCESS *process);
-void fn_1_2984(void);
-OMOBJFUNC fn_1_29A4(HUPROCESS *process, OMOBJ *object);
-void fn_1_58D8(s32);
+void InitializeMapObjects(HUPROCESS *process);
+void CleanupMapObjects(void);
+OMOBJFUNC CreateMapCameraCallback(HUPROCESS *process, OMOBJ *object);
+void SetMapMotion(s32 transitionFrame);
 
-void fn_1_5904(HUPROCESS *process);
-void fn_1_5B74(void);
-s32 fn_1_10FA4(s32 arg0);
+void InitializePlayerObjects(HUPROCESS *process);
+void CleanupPlayerObjects(void);
+s32 IsPlayerWinner(s32 teamIndex);
 
 #endif
