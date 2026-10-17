@@ -12,516 +12,516 @@
 #include "game/frand.h"
 #endif
 
-s16 lbl_1_bss_3A4;
-s32 lbl_1_bss_3A0;
-s16 lbl_1_bss_396[4];
-s16 lbl_1_bss_394;
-s16 lbl_1_bss_38C[4];
-s16 lbl_1_bss_38A;
-s16 lbl_1_bss_388;
+s16 battleInstructionWindow;
+s32 battleSelectionState;
+s16 battlePlayerChoices[4];
+s16 battleStarSelection;
+s16 battlePlayerStarCounts[4];
+s16 battleStarSpriteGroup;
+s16 battleSelectionSpriteGroup;
 
-s16 lbl_1_data_148 = -1;
+s16 battleMessageWindow = -1;
 
-void fn_1_FF5C(void);
-s32 fn_1_1129C(void);
-s32 fn_1_11E68(void);
-void fn_1_1222C(void);
-void fn_1_2783C(s16 evtno);
+void CreateBattleSelectionSprites(void);
+s32 RunBattlePlayerSetup(void);
+s32 RunBattleStarSetup(void);
+void InitializeBattlePlayerModels(void);
+void ExitMinigameMode(s16 modeType);
 
-s32 fn_1_E72C(void)
+s32 RunBattleMinigameSelection(void)
 {
-    s16 temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    s32 temp_r26;
-    HU3DMODEL *temp_r25;
-    float temp_f31;
-    float temp_f30;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    temp_r29 = 0;
-    fn_1_279FC(0);
-    fn_1_FF5C();
+    s16 animationFrame;
+    s16 playerIndex;
+    s16 selectedMode;
+    s16 selectionDelta;
+    s16 choiceResult;
+    s32 asyncReadHandle;
+    HU3DMODEL *modelWork;
+    float animationProgress;
+    float rotationAngle;
+    Vec modelPosition;
+    Vec targetPosition;
+    Vec transitionPosition;
+    selectedMode = 0;
+    BuildMinigameTypeLists(0);
+    CreateBattleSelectionSprites();
     if (mgModeEvtNo == 3) {
         mgTypeCurr = mgInfoTbl[GWSystem.mg_next].type;
         if (mgTypeCurr >= 4) {
             mgTypeCurr = 3;
         }
-        HuSprGrpPosSet(lbl_1_bss_388, 288, 240);
-        HuSprGrpDrawNoSet(lbl_1_bss_388, 64);
-        Hu3DModelPosSet(lbl_1_bss_2C80[5], -350, 0, 680);
-        Hu3DModelRotSet(lbl_1_bss_2C80[5], 0, 20, 0);
-        fn_1_27418();
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            Hu3DModelPosSet(lbl_1_bss_2C14[temp_r31], (temp_r31 * 130) - 195, 0, 750);
-            Hu3DMotionSet(lbl_1_bss_2C14[temp_r31], lbl_1_bss_2BC4[temp_r31][0]);
-            Hu3DModelAttrSet(lbl_1_bss_2C14[temp_r31], HU3D_MOTATTR_LOOP);
+        HuSprGrpPosSet(battleSelectionSpriteGroup, 288, 240);
+        HuSprGrpDrawNoSet(battleSelectionSpriteGroup, 64);
+        Hu3DModelPosSet(mgModeModelIds[5], -350, 0, 680);
+        Hu3DModelRotSet(mgModeModelIds[5], 0, 20, 0);
+        CreatePlayerCharacterModels();
+        for (animationFrame = 0; animationFrame < 4; animationFrame++) {
+            Hu3DModelPosSet(playerModelIdsByGroup[animationFrame], (animationFrame * 130) - 195, 0, 750);
+            Hu3DMotionSet(playerModelIdsByGroup[animationFrame], playerMotionIdsByGroup[animationFrame][0]);
+            Hu3DModelAttrSet(playerModelIdsByGroup[animationFrame], HU3D_MOTATTR_LOOP);
         }
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            HuSprAttrSet(lbl_1_bss_388, (temp_r31 * 2) + 2, HUSPR_ATTR_DISPOFF);
-            HuSprAttrSet(lbl_1_bss_388, (temp_r31 * 2) + 3, HUSPR_ATTR_DISPOFF);
+        for (animationFrame = 0; animationFrame < 4; animationFrame++) {
+            HuSprAttrSet(battleSelectionSpriteGroup, (animationFrame * 2) + 2, HUSPR_ATTR_DISPOFF);
+            HuSprAttrSet(battleSelectionSpriteGroup, (animationFrame * 2) + 3, HUSPR_ATTR_DISPOFF);
         }
-        HuSprAttrReset(lbl_1_bss_388, mgTypeCurr + 19, HUSPR_ATTR_DISPOFF);
-        HuSprPosSet(lbl_1_bss_388, mgTypeCurr + 19, 0, -155);
-        HuSprPosSet(lbl_1_bss_388, 1, 0, -180);
+        HuSprAttrReset(battleSelectionSpriteGroup, mgTypeCurr + 19, HUSPR_ATTR_DISPOFF);
+        HuSprPosSet(battleSelectionSpriteGroup, mgTypeCurr + 19, 0, -155);
+        HuSprPosSet(battleSelectionSpriteGroup, 1, 0, -180);
         WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 30);
-        if (fn_1_1129C() && !fn_1_11E68()) {
+        if (RunBattlePlayerSetup() && !RunBattleStarSetup()) {
             return 1;
         }
     }
     else {
         CharModelDataClose(-1);
         if (HuDataReadChk(DATADIR_INSTPIC) == -1) {
-            temp_r26 = HuDataDirReadAsync(DATADIR_INSTPIC);
+            asyncReadHandle = HuDataDirReadAsync(DATADIR_INSTPIC);
         }
         else {
-            temp_r26 = -1;
+            asyncReadHandle = -1;
         }
-        for (temp_r31 = 0; temp_r31 <= 60; temp_r31++) {
-            if (temp_r31 <= 50) {
-                temp_f31 = temp_r31 / 50.0;
-                HuSprGrpPosSet(lbl_1_bss_388, 288, -400.0 + (656.0 * sind(temp_f31 * 90.0f)));
+        for (animationFrame = 0; animationFrame <= 60; animationFrame++) {
+            if (animationFrame <= 50) {
+                animationProgress = animationFrame / 50.0;
+                HuSprGrpPosSet(battleSelectionSpriteGroup, 288, -400.0 + (656.0 * sind(animationProgress * 90.0f)));
             }
             else {
-                temp_f31 = (temp_r31 - 50) / 10.0;
-                HuSprGrpPosSet(lbl_1_bss_388, 288, 240.0 + (16.0 * cosd(temp_f31 * 90.0f)));
+                animationProgress = (animationFrame - 50) / 10.0;
+                HuSprGrpPosSet(battleSelectionSpriteGroup, 288, 240.0 + (16.0 * cosd(animationProgress * 90.0f)));
             }
             HuPrcVSleep();
         }
         #if VERSION_PAL
-        if(lbl_1_data_148 == -1) {
-            lbl_1_data_148 = fn_1_2530C(0, 0, 0);
-            HuWinMesSpeedSet(lbl_1_data_148, 1);
-            fn_1_25838(lbl_1_data_148, 0x390001, -1, -1);
+        if(battleMessageWindow == -1) {
+            battleMessageWindow = CreateStandardMessageWindow(0, 0, 0);
+            HuWinMesSpeedSet(battleMessageWindow, 1);
+            ShowMessageAndWait(windowId, 0x390001, -1, -1);
         }
         #endif
-        for (temp_r31 = 0; temp_r31 <= 5; temp_r31++) {
-            for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-                if (temp_r30 != temp_r29) {
-                    HuSprTPLvlSet(lbl_1_bss_388, (temp_r30 * 2) + 2, 1 - (temp_r31 / 5.0));
+        for (animationFrame = 0; animationFrame <= 5; animationFrame++) {
+            for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                if (playerIndex != selectedMode) {
+                    HuSprTPLvlSet(battleSelectionSpriteGroup, (playerIndex * 2) + 2, 1 - (animationFrame / 5.0));
                 }
             }
             HuPrcVSleep();
         }
-        if (temp_r26 != -1) {
-            while (!HuDataGetAsyncStat(temp_r26)) {
+        if (asyncReadHandle != -1) {
+            while (!HuDataGetAsyncStat(asyncReadHandle)) {
                 HuPrcVSleep();
             }
         }
-    repeat_mode:
-        if (lbl_1_bss_20AA == 0) {
-            HuPrcChildCreate(fn_1_27080, 100, 12288, 0, objman);
-            lbl_1_bss_20AA = 1;
+    repeatMode:
+        if (characterAssetsLoaded == 0) {
+            HuPrcChildCreate(LoadMinigameCharacterAssets, 100, 12288, 0, objman);
+            characterAssetsLoaded = 1;
         }
-        lbl_1_bss_3A4 = fn_1_25CA8(0x1A0020);
+        battleInstructionWindow = CreateCenteredMessageWindow(0x1A0020);
         #if VERSION_NTSC
-        if (lbl_1_data_148 == -1) {
-            lbl_1_data_148 = fn_1_2530C(0, 0, 0);
+        if (battleMessageWindow == -1) {
+            battleMessageWindow = CreateStandardMessageWindow(0, 0, 0);
         }
-        HuWinMesSpeedSet(lbl_1_data_148, 1);
-        fn_1_25838(lbl_1_data_148, 0x28000F, -1, -1);
+        HuWinMesSpeedSet(battleMessageWindow, 1);
+        ShowMessageAndWait(windowId, 0x28000F, -1, -1);
         #else
-        if(lbl_1_data_148 == -1) {
-            lbl_1_data_148 = fn_1_2530C(0, 0, 0);
-            HuWinMesSpeedSet(lbl_1_data_148, 1);
-            fn_1_25838(lbl_1_data_148, 0x390001, -1, -1);
+        if(battleMessageWindow == -1) {
+            battleMessageWindow = CreateStandardMessageWindow(0, 0, 0);
+            HuWinMesSpeedSet(battleMessageWindow, 1);
+            ShowMessageAndWait(windowId, 0x390001, -1, -1);
         }
-        fn_1_25838(lbl_1_data_148, 0x390002+temp_r29, -1, -999);
+        ShowMessageAndWait(windowId, 0x390002+messageId, -1, -999);
         #endif
         while (1) {
-            temp_r28 = 0;
-            if ((HuPadDStkRep[0] & PAD_BUTTON_UP) && temp_r29 > 0) {
-                temp_r28 = -1;
+            selectionDelta = 0;
+            if ((HuPadDStkRep[0] & PAD_BUTTON_UP) && selectedMode > 0) {
+                selectionDelta = -1;
             }
-            else if ((HuPadDStkRep[0] & PAD_BUTTON_DOWN) && temp_r29 < 3) {
-                temp_r28 = 1;
+            else if ((HuPadDStkRep[0] & PAD_BUTTON_DOWN) && selectedMode < 3) {
+                selectionDelta = 1;
             }
-            if (temp_r28 != 0) {
-                HuSprAttrReset(lbl_1_bss_388, (temp_r29 * 2) + 3, HUSPR_ATTR_DISPOFF);
-                for (temp_r31 = 0; temp_r31 <= 10; temp_r31++) {
-                    HuSprTPLvlSet(lbl_1_bss_388, (temp_r29 * 2) + 2, 1 - (temp_r31 / 10.0));
-                    if (temp_r31 == 5) {
+            if (selectionDelta != 0) {
+                HuSprAttrReset(battleSelectionSpriteGroup, (selectedMode * 2) + 3, HUSPR_ATTR_DISPOFF);
+                for (animationFrame = 0; animationFrame <= 10; animationFrame++) {
+                    HuSprTPLvlSet(battleSelectionSpriteGroup, (selectedMode * 2) + 2, 1 - (animationFrame / 10.0));
+                    if (animationFrame == 5) {
                         HuAudFXPlay(0);
-                        HuSprTPLvlSet(lbl_1_bss_388, ((temp_r29 + temp_r28) * 2) + 2, 1);
-                        HuSprAttrReset(lbl_1_bss_388, ((temp_r29 + temp_r28) * 2) + 2, HUSPR_ATTR_DISPOFF);
+                        HuSprTPLvlSet(battleSelectionSpriteGroup, ((selectedMode + selectionDelta) * 2) + 2, 1);
+                        HuSprAttrReset(battleSelectionSpriteGroup, ((selectedMode + selectionDelta) * 2) + 2, HUSPR_ATTR_DISPOFF);
                         #if VERSION_PAL
-                        fn_1_25838(lbl_1_data_148, 0x390002+temp_r29+temp_r28, -1, -999);
+                        ShowMessageAndWait(windowId, 0x390002+selectedMode+messageId, -1, -999);
                         #endif
                     }
                     HuPrcVSleep();
                 }
-                temp_r29 += temp_r28;
+                selectedMode += selectionDelta;
             }
             if (HuPadBtnDown[0] & PAD_BUTTON_B) {
                 HuAudFXPlay(3);
-                fn_1_25E74(lbl_1_bss_3A4);
-                fn_1_25584(lbl_1_data_148);
-                lbl_1_data_148 = -1;
-                for (temp_r31 = 0; temp_r31 <= 60; temp_r31++) {
-                    if (temp_r31 <= 10) {
-                        temp_f31 = temp_r31 / 10.0;
-                        HuSprGrpPosSet(lbl_1_bss_388, 288, 240.0 + (16.0 * sind(temp_f31 * 90.0f)));
+                CloseCenteredMessageWindow(windowId);
+                CloseStandardMessageWindow(windowId);
+                battleMessageWindow = -1;
+                for (animationFrame = 0; animationFrame <= 60; animationFrame++) {
+                    if (animationFrame <= 10) {
+                        animationProgress = animationFrame / 10.0;
+                        HuSprGrpPosSet(battleSelectionSpriteGroup, 288, 240.0 + (16.0 * sind(animationProgress * 90.0f)));
                     }
                     else {
-                        temp_f31 = (temp_r31 - 10) / 50.0;
-                        HuSprGrpPosSet(lbl_1_bss_388, 288, -400.0 + (656.0 * cosd(temp_f31 * 90.0f)));
+                        animationProgress = (animationFrame - 10) / 50.0;
+                        HuSprGrpPosSet(battleSelectionSpriteGroup, 288, -400.0 + (656.0 * cosd(animationProgress * 90.0f)));
                     }
                     HuPrcVSleep();
                 }
-                HuSprGrpKill(lbl_1_bss_388);
-                lbl_1_bss_388 = 0;
+                HuSprGrpKill(battleSelectionSpriteGroup);
+                battleSelectionSpriteGroup = 0;
                 return 0;
             }
             if (HuPadBtnDown[0] & PAD_BUTTON_A) {
                 HuAudFXPlay(1);
-                if (lbl_1_bss_20AC[lbl_1_data_A2[temp_r29]]) {
+                if (availableMinigameCountByType[freePlaySelectionOrder[selectedMode]]) {
                     break;
                 }
-                fn_1_25838(lbl_1_data_148, 0x28002E, -1, -1);
-                fn_1_25838(lbl_1_data_148, 0x28000F, -1, -1);
+                ShowMessageAndWait(windowId, 0x28002E, -1, -1);
+                ShowMessageAndWait(windowId, 0x28000F, -1, -1);
                 continue;
             }
             HuPrcVSleep();
         }
-        fn_1_25E74(lbl_1_bss_3A4);
-        fn_1_25584(lbl_1_data_148);
-        lbl_1_data_148 = lbl_1_bss_3A4 = -1;
-        mgTypeCurr = temp_r29;
-        if (temp_r29 == 1 || temp_r29 == 2) {
-            if (fn_1_C0C8(1) == 0) {
-                goto repeat_mode;
+        CloseCenteredMessageWindow(windowId);
+        CloseStandardMessageWindow(windowId);
+        battleMessageWindow = battleInstructionWindow = -1;
+        mgTypeCurr = selectedMode;
+        if (selectedMode == 1 || selectedMode == 2) {
+            if (CheckFreePlaySelection(1) == 0) {
+                goto repeatMode;
             }
         }
         else {
-            for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                GWPlayerCfg[temp_r31].group = temp_r31;
+            for (animationFrame = 0; animationFrame < 4; animationFrame++) {
+                GWPlayerCfg[animationFrame].group = animationFrame;
             }
         }
-        for (temp_r31 = 0; temp_r31 <= 10; temp_r31++) {
-            for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-                HuSprTPLvlSet(lbl_1_bss_388, (temp_r30 * 2) + 3, 1 - (temp_r31 / 10.0));
+        for (animationFrame = 0; animationFrame <= 10; animationFrame++) {
+            for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                HuSprTPLvlSet(battleSelectionSpriteGroup, (playerIndex * 2) + 3, 1 - (animationFrame / 10.0));
             }
             HuPrcVSleep();
         }
-        Hu3DMotionTimeSet(lbl_1_bss_2C80[5], 0);
+        Hu3DMotionTimeSet(mgModeModelIds[5], 0);
         HuPrcVSleep();
-        temp_r28 = (temp_r29 * 40) - 110;
-        temp_r25 = &Hu3DData[lbl_1_bss_2C80[5]];
-        sp20 = temp_r25->pos;
-        sp14.x = -350;
-        sp14.y = 0;
-        sp14.z = 680;
-        VECSubtract(&sp14, &sp20, &sp14);
-        temp_f30 = (180 + atan2d(sp14.z, sp14.x)) - 360;
-        Hu3DMotionShiftSet(lbl_1_bss_2C80[5], lbl_1_bss_2C66[7], 0, 8, HU3D_MOTATTR_LOOP);
-        for (temp_r31 = 0; temp_r31 <= 30; temp_r31++) {
-            if (temp_r31 <= 20) {
-                temp_f31 = temp_r31 / 20.0;
-                HuSprPosSet(lbl_1_bss_388, (temp_r29 * 2) + 2, 0, (sind(temp_f31 * 90.0f) * (-150 - temp_r28)) + temp_r28);
+        selectionDelta = (selectedMode * 40) - 110;
+        modelWork = &Hu3DData[mgModeModelIds[5]];
+        modelPosition = modelWork->pos;
+        targetPosition.x = -350;
+        targetPosition.y = 0;
+        targetPosition.z = 680;
+        VECSubtract(&targetPosition, &modelPosition, &targetPosition);
+        rotationAngle = (180 + atan2d(targetPosition.z, targetPosition.x)) - 360;
+        Hu3DMotionShiftSet(mgModeModelIds[5], mgModeMotionIds[7], 0, 8, HU3D_MOTATTR_LOOP);
+        for (animationFrame = 0; animationFrame <= 30; animationFrame++) {
+            if (animationFrame <= 20) {
+                animationProgress = animationFrame / 20.0;
+                HuSprPosSet(battleSelectionSpriteGroup, (selectedMode * 2) + 2, 0, (sind(animationProgress * 90.0f) * (-150 - selectionDelta)) + selectionDelta);
             }
-            temp_f31 = temp_r31 / 30.0;
-            VECScale(&sp14, &sp8, temp_f31);
-            VECAdd(&sp20, &sp8, &sp8);
-            Hu3DModelPosSetV(lbl_1_bss_2C80[5], &sp8);
-            if (temp_r31 <= 10) {
-                temp_f31 = temp_r31 / 10.0;
-                Hu3DModelRotSet(lbl_1_bss_2C80[5], 0, temp_f30 * temp_f31, 0);
+            animationProgress = animationFrame / 30.0;
+            VECScale(&targetPosition, &transitionPosition, animationProgress);
+            VECAdd(&modelPosition, &transitionPosition, &transitionPosition);
+            Hu3DModelPosSetV(mgModeModelIds[5], &transitionPosition);
+            if (animationFrame <= 10) {
+                animationProgress = animationFrame / 10.0;
+                Hu3DModelRotSet(mgModeModelIds[5], 0, rotationAngle * animationProgress, 0);
             }
             HuPrcVSleep();
         }
-        HuSprGrpDrawNoSet(lbl_1_bss_388, 64);
-        Hu3DMotionShiftSet(lbl_1_bss_2C80[5], lbl_1_bss_2C66[6], 0, 8, HU3D_MOTATTR_LOOP);
-        for (temp_r31 = 0; temp_r31 <= 10; temp_r31++) {
-            temp_f31 = temp_r31 / 10.0;
-            Hu3DModelRotSet(lbl_1_bss_2C80[5], 0, temp_f30 + ((20 - temp_f30) * temp_f31), 0);
+        HuSprGrpDrawNoSet(battleSelectionSpriteGroup, 64);
+        Hu3DMotionShiftSet(mgModeModelIds[5], mgModeMotionIds[6], 0, 8, HU3D_MOTATTR_LOOP);
+        for (animationFrame = 0; animationFrame <= 10; animationFrame++) {
+            animationProgress = animationFrame / 10.0;
+            Hu3DModelRotSet(mgModeModelIds[5], 0, rotationAngle + ((20 - rotationAngle) * animationProgress), 0);
             HuPrcVSleep();
         }
-        while (lbl_1_bss_20AA) {
+        while (characterAssetsLoaded) {
             HuPrcVSleep();
         }
-        Hu3DMotionTimeSet(lbl_1_bss_2C80[5], 0);
+        Hu3DMotionTimeSet(mgModeModelIds[5], 0);
         HuPrcVSleep();
-        fn_1_27418();
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            CharMotionSet(lbl_1_bss_2C24[temp_r31], lbl_1_bss_2BC4[temp_r31][2]);
-            Hu3DModelAttrSet(lbl_1_bss_2C14[temp_r31], HU3D_MOTATTR_LOOP);
-            Hu3DModelRotSet(lbl_1_bss_2C14[temp_r31], 0, -90, 0);
+        CreatePlayerCharacterModels();
+        for (animationFrame = 0; animationFrame < 4; animationFrame++) {
+            CharMotionSet(playerCharacterIdsByGroup[animationFrame], playerMotionIdsByGroup[animationFrame][2]);
+            Hu3DModelAttrSet(playerModelIdsByGroup[animationFrame], HU3D_MOTATTR_LOOP);
+            Hu3DModelRotSet(playerModelIdsByGroup[animationFrame], 0, -90, 0);
         }
-        for (temp_r31 = 0; temp_r31 <= 30; temp_r31++) {
-            temp_f31 = temp_r31 / 30.0f;
-            for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-                Hu3DModelPosSet(lbl_1_bss_2C14[temp_r30],
-                    (sind(temp_f31 * 90.0f) * (((temp_r30 * 130) - 195) - ((temp_r30 * 130) + 400))) + ((temp_r30 * 130) + 400), 0, 750);
-                if ((temp_r31 + (temp_r30 * 2)) % 5 == 0) {
-                    HuAudFXPlay(GWPlayerCfg[temp_r30].character + 213);
+        for (animationFrame = 0; animationFrame <= 30; animationFrame++) {
+            animationProgress = animationFrame / 30.0f;
+            for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                Hu3DModelPosSet(playerModelIdsByGroup[playerIndex],
+                    (sind(animationProgress * 90.0f) * (((playerIndex * 130) - 195) - ((playerIndex * 130) + 400))) + ((playerIndex * 130) + 400), 0, 750);
+                if ((animationFrame + (playerIndex * 2)) % 5 == 0) {
+                    HuAudFXPlay(GWPlayerCfg[playerIndex].character + 213);
                 }
             }
             HuPrcVSleep();
         }
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            Hu3DMotionShiftSet(lbl_1_bss_2C14[temp_r31], lbl_1_bss_2BC4[temp_r31][0], 0, 10, HU3D_MOTATTR_LOOP);
+        for (animationFrame = 0; animationFrame < 4; animationFrame++) {
+            Hu3DMotionShiftSet(playerModelIdsByGroup[animationFrame], playerMotionIdsByGroup[animationFrame][0], 0, 10, HU3D_MOTATTR_LOOP);
         }
-        for (temp_r31 = 0; temp_r31 <= 10; temp_r31++) {
-            temp_f31 = temp_r31 / 10.0f;
-            for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-                Hu3DModelRotSet(lbl_1_bss_2C14[temp_r30], 0, -90.0 * (1.0 - temp_f31), 0);
+        for (animationFrame = 0; animationFrame <= 10; animationFrame++) {
+            animationProgress = animationFrame / 10.0f;
+            for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                Hu3DModelRotSet(playerModelIdsByGroup[playerIndex], 0, -90.0 * (1.0 - animationProgress), 0);
             }
             HuPrcVSleep();
         }
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            mgBattleStar[temp_r31] = 0;
+        for (animationFrame = 0; animationFrame < 4; animationFrame++) {
+            mgBattleStar[animationFrame] = 0;
         }
     }
-    if (lbl_1_data_148 == -1) {
-        lbl_1_data_148 = fn_1_2530C(0, 0, 0);
+    if (battleMessageWindow == -1) {
+        battleMessageWindow = CreateStandardMessageWindow(0, 0, 0);
     }
-    fn_1_25838(lbl_1_data_148, 0x280010, -1, -1);
-    HuSprTPLvlSet(lbl_1_bss_388, 10, 1);
-    for (temp_r30 = 0; temp_r30 < 35;) {
-        for (temp_r31 = 0; temp_r31 < lbl_1_bss_20AC[lbl_1_data_A2[mgTypeCurr]]; temp_r31++) {
-            fn_1_271B4(lbl_1_bss_20C0[lbl_1_data_A2[mgTypeCurr]][temp_r31], 288, 210);
+    ShowMessageAndWait(windowId, 0x280010, -1, -1);
+    HuSprTPLvlSet(battleSelectionSpriteGroup, 10, 1);
+    for (playerIndex = 0; playerIndex < 35;) {
+        for (animationFrame = 0; animationFrame < availableMinigameCountByType[freePlaySelectionOrder[mgTypeCurr]]; animationFrame++) {
+            SetMinigamePreviewSprite(availableMinigameIdsByType[freePlaySelectionOrder[mgTypeCurr]][animationFrame], 288, 210);
             HuAudFXPlay(855);
             HuPrcSleep(3);
-            temp_r30++;
-            if (temp_r30 >= 35) {
+            playerIndex++;
+            if (playerIndex >= 35) {
                 break;
             }
         }
     }
     HuAudFXPlay(870);
-    lbl_1_bss_2E4 = lbl_1_bss_20C0[lbl_1_data_A2[mgTypeCurr]][frandmod(lbl_1_bss_20AC[lbl_1_data_A2[mgTypeCurr]])];
-    fn_1_271B4(lbl_1_bss_2E4, 288, 210);
-    HuWinAttrSet(lbl_1_data_148, 0x10);
-    HuWinInsertMesSet(lbl_1_data_148, mgInfoTbl[lbl_1_bss_2E4].name_mess, 0);
-    fn_1_25838(lbl_1_data_148, 0x280011, -1, -1);
-repeat_mess:
-    fn_1_25838(lbl_1_data_148, 0x280029, -1, -1);
-    temp_r27 = HuWinChoiceGet(lbl_1_data_148, 0);
-    if (temp_r27 == 0) {
+    freePlayWindowState = availableMinigameIdsByType[freePlaySelectionOrder[mgTypeCurr]][frandmod(availableMinigameCountByType[freePlaySelectionOrder[mgTypeCurr]])];
+    SetMinigamePreviewSprite(spriteGroupId, 288, 210);
+    HuWinAttrSet(battleMessageWindow, 0x10);
+    HuWinInsertMesSet(battleMessageWindow, mgInfoTbl[freePlayWindowState].name_mess, 0);
+    ShowMessageAndWait(windowId, 0x280011, -1, -1);
+repeatMess:
+    ShowMessageAndWait(windowId, 0x280029, -1, -1);
+    choiceResult = HuWinChoiceGet(battleMessageWindow, 0);
+    if (choiceResult == 0) {
         _ClearFlag(11);
     }
-    else if (temp_r27 == 1) {
-        HuWinInsertMesSet(lbl_1_data_148, MAKE_MESSID(0x28, 39), 0);
-        fn_1_25838(lbl_1_data_148, 0x280026, -1, -1);
-        temp_r27 = HuWinChoiceGet(lbl_1_data_148, 1);
-        if (temp_r27 == 1) {
-            goto repeat_mess;
+    else if (choiceResult == 1) {
+        HuWinInsertMesSet(battleMessageWindow, MAKE_MESSID(0x28, 39), 0);
+        ShowMessageAndWait(windowId, 0x280026, -1, -1);
+        choiceResult = HuWinChoiceGet(battleMessageWindow, 1);
+        if (choiceResult == 1) {
+            goto repeatMess;
         }
-        fn_1_271B4(-1, 0, 0);
-        for (temp_r31 = 1; temp_r31 <= 10; temp_r31++) {
-            HuSprTPLvlSet(lbl_1_bss_388, 10, 1 - (temp_r31 / 10.0));
+        SetMinigamePreviewSprite(-1, 0, 0);
+        for (animationFrame = 1; animationFrame <= 10; animationFrame++) {
+            HuSprTPLvlSet(battleSelectionSpriteGroup, 10, 1 - (animationFrame / 10.0));
             HuPrcVSleep();
         }
-        fn_1_25584(lbl_1_data_148);
-        lbl_1_data_148 = lbl_1_bss_3A4 = -1;
-        fn_1_1222C();
+        CloseStandardMessageWindow(windowId);
+        battleMessageWindow = battleInstructionWindow = -1;
+        InitializeBattlePlayerModels();
         return 1;
     }
     else {
         _SetFlag(11);
     }
-    GWSystem.mg_next = lbl_1_bss_2E4;
+    GWSystem.mg_next = freePlayWindowState;
     HuDataDirClose(DATADIR_INSTPIC);
-    fn_1_2783C(3);
+    ExitMinigameMode(3);
     while (1) {
         HuPrcVSleep();
     }
 }
 
-s16 lbl_1_data_14A[4] = { 0, 2, 1, 3 };
-GXColor lbl_1_data_152[4] = {
+s16 battlePlayerDisplayOrder[4] = { 0, 2, 1, 3 };
+GXColor battleStarCountOptions[4] = {
     { 255, 64, 64, 255 },
     { 128, 255, 128, 255 },
     { 128, 255, 255, 255 },
     { 255, 255, 128, 255 },
 };
 
-void fn_1_FF5C(void)
+void CreateBattleSelectionSprites(void)
 {
-    s16 temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    ANIMDATA *temp_r28;
-    s16 temp_r27;
-    ANIMDATA *temp_r26;
-    if (lbl_1_bss_388 == 0) {
-        temp_r30 = HuSprGrpCreate(23);
-        lbl_1_bss_388 = temp_r30;
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 125), HU_MEMNUM_OVL));
-        temp_r29 = HuSprCreate(temp_r28, 200, 0);
-        HuSprGrpMemberSet(temp_r30, 0, temp_r29);
-        HuSprTPLvlSet(temp_r30, 0, 0.8f);
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 54), HU_MEMNUM_OVL));
+    s16 playerIndex;
+    s16 spriteGroupId;
+    s16 spriteId;
+    ANIMDATA *spriteAnimation;
+    s16 starCountFrame;
+    ANIMDATA *starGlowAnimation;
+    if (battleSelectionSpriteGroup == 0) {
+        spriteGroupId = HuSprGrpCreate(23);
+        battleSelectionSpriteGroup = spriteGroupId;
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 125), HU_MEMNUM_OVL));
+        spriteId = HuSprCreate(spriteAnimation, 200, 0);
+        HuSprGrpMemberSet(spriteGroupId, 0, spriteId);
+        HuSprTPLvlSet(spriteGroupId, 0, 0.8f);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 54), HU_MEMNUM_OVL));
         if (mgBattleStarMax == 3) {
-            temp_r27 = 0;
+            starCountFrame = 0;
         }
         else if (mgBattleStarMax == 5) {
-            temp_r27 = 1;
+            starCountFrame = 1;
         }
         else {
-            temp_r27 = 2;
+            starCountFrame = 2;
         }
-        temp_r29 = HuSprCreate(temp_r28, 190, temp_r27);
-        HuSprGrpMemberSet(temp_r30, 1, temp_r29);
-        HuSprPosSet(temp_r30, 1, 0, -180);
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 55) + (lbl_1_data_14A[temp_r31] * 3), HU_MEMNUM_OVL));
-            temp_r29 = HuSprCreate(temp_r28, 190, 0);
-            HuSprGrpMemberSet(temp_r30, (2 * temp_r31) + 2, temp_r29);
-            HuSprPosSet(temp_r30, (2 * temp_r31) + 2, 0, (temp_r31 * 40) - 110);
-            temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 56) + (lbl_1_data_14A[temp_r31] * 3), HU_MEMNUM_OVL));
-            temp_r29 = HuSprCreate(temp_r28, 195, 0);
-            HuSprGrpMemberSet(temp_r30, (2 * temp_r31) + 3, temp_r29);
-            HuSprPosSet(temp_r30, (2 * temp_r31) + 3, 0, (temp_r31 * 40) - 110);
-            temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 57) + (lbl_1_data_14A[temp_r31] * 3), HU_MEMNUM_OVL));
-            temp_r29 = HuSprCreate(temp_r28, 195, 0);
-            HuSprGrpMemberSet(temp_r30, temp_r31 + 19, temp_r29);
+        spriteId = HuSprCreate(spriteAnimation, 190, starCountFrame);
+        HuSprGrpMemberSet(spriteGroupId, 1, spriteId);
+        HuSprPosSet(spriteGroupId, 1, 0, -180);
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 55) + (battlePlayerDisplayOrder[playerIndex] * 3), HU_MEMNUM_OVL));
+            spriteId = HuSprCreate(spriteAnimation, 190, 0);
+            HuSprGrpMemberSet(spriteGroupId, (2 * playerIndex) + 2, spriteId);
+            HuSprPosSet(spriteGroupId, (2 * playerIndex) + 2, 0, (playerIndex * 40) - 110);
+            spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 56) + (battlePlayerDisplayOrder[playerIndex] * 3), HU_MEMNUM_OVL));
+            spriteId = HuSprCreate(spriteAnimation, 195, 0);
+            HuSprGrpMemberSet(spriteGroupId, (2 * playerIndex) + 3, spriteId);
+            HuSprPosSet(spriteGroupId, (2 * playerIndex) + 3, 0, (playerIndex * 40) - 110);
+            spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 57) + (battlePlayerDisplayOrder[playerIndex] * 3), HU_MEMNUM_OVL));
+            spriteId = HuSprCreate(spriteAnimation, 195, 0);
+            HuSprGrpMemberSet(spriteGroupId, playerIndex + 19, spriteId);
         }
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 37), HU_MEMNUM_OVL));
-        temp_r29 = HuSprCreate(temp_r28, 195, 0);
-        HuSprGrpMemberSet(temp_r30, 10, temp_r29);
-        HuSprPosSet(temp_r30, 10, 0, -32);
-        HuSprScaleSet(temp_r30, 10, 0.9f, 0.9f);
-        HuSprTPLvlSet(temp_r30, 10, 0);
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 101), HU_MEMNUM_OVL));
-        temp_r26 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 102), HU_MEMNUM_OVL));
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            temp_r29 = HuSprCreate(temp_r28, 180, temp_r31);
-            HuSprGrpMemberSet(temp_r30, (temp_r31 * 2) + 11, temp_r29);
-            HuSprPosSet(temp_r30, (temp_r31 * 2) + 11, ((temp_r31 % 2) * 350) - 175, ((temp_r31 / 2) * 220) - 180);
-            temp_r29 = HuSprCreate(temp_r26, 190, temp_r31);
-            HuSprGrpMemberSet(temp_r30, (temp_r31 * 2) + 12, temp_r29);
-            HuSprTPLvlSet(temp_r30, (temp_r31 * 2) + 12, 0.5f);
-            HuSprPosSet(temp_r30, (temp_r31 * 2) + 12, ((temp_r31 % 2) * 350) - 175, ((temp_r31 / 2) * 220) - 172);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 37), HU_MEMNUM_OVL));
+        spriteId = HuSprCreate(spriteAnimation, 195, 0);
+        HuSprGrpMemberSet(spriteGroupId, 10, spriteId);
+        HuSprPosSet(spriteGroupId, 10, 0, -32);
+        HuSprScaleSet(spriteGroupId, 10, 0.9f, 0.9f);
+        HuSprTPLvlSet(spriteGroupId, 10, 0);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 101), HU_MEMNUM_OVL));
+        starGlowAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 102), HU_MEMNUM_OVL));
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            spriteId = HuSprCreate(spriteAnimation, 180, playerIndex);
+            HuSprGrpMemberSet(spriteGroupId, (playerIndex * 2) + 11, spriteId);
+            HuSprPosSet(spriteGroupId, (playerIndex * 2) + 11, ((playerIndex % 2) * 350) - 175, ((playerIndex / 2) * 220) - 180);
+            spriteId = HuSprCreate(starGlowAnimation, 190, playerIndex);
+            HuSprGrpMemberSet(spriteGroupId, (playerIndex * 2) + 12, spriteId);
+            HuSprTPLvlSet(spriteGroupId, (playerIndex * 2) + 12, 0.5f);
+            HuSprPosSet(spriteGroupId, (playerIndex * 2) + 12, ((playerIndex % 2) * 350) - 175, ((playerIndex / 2) * 220) - 172);
         }
     }
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        HuSprTPLvlSet(lbl_1_bss_388, (temp_r31 * 2) + 2, 1);
-        HuSprAttrSet(lbl_1_bss_388, temp_r31 + 19, HUSPR_ATTR_DISPOFF);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        HuSprTPLvlSet(battleSelectionSpriteGroup, (playerIndex * 2) + 2, 1);
+        HuSprAttrSet(battleSelectionSpriteGroup, playerIndex + 19, HUSPR_ATTR_DISPOFF);
     }
-    HuSprGrpDrawNoSet(lbl_1_bss_388, 0);
+    HuSprGrpDrawNoSet(battleSelectionSpriteGroup, 0);
 }
 
-void fn_1_10564(void)
+void DestroyBattleSelectionSprites(void)
 {
-    s16 temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s16 temp_r25;
-    ANIMDATA *temp_r24;
-    s16 temp_r23;
-    ANIMDATA *temp_r22;
-    s16 sp8[4];
+    s16 playerIndex;
+    s16 starDisplayGroup;
+    s16 starIndex;
+    s16 starGridLeft;
+    s16 spriteId;
+    s16 starGridTop;
+    s16 starCountFrame;
+    ANIMDATA *playerSpriteAnimation;
+    s16 playerSpriteId;
+    ANIMDATA *starSpriteAnimation;
+    s16 unreferencedPlayerIndexScratch[4];
     if (mgBattleStarMax == 3) {
-        temp_r25 = 0;
+        starCountFrame = 0;
     }
     else if (mgBattleStarMax == 5) {
-        temp_r25 = 1;
+        starCountFrame = 1;
     }
     else {
-        temp_r25 = 2;
+        starCountFrame = 2;
     }
-    temp_r30 = HuSprGrpCreate(35);
-    lbl_1_bss_38A = temp_r30;
-    temp_r24 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 70) + temp_r25, HU_MEMNUM_OVL));
-    temp_r27 = HuSprCreate(temp_r24, 195, 0);
-    HuSprGrpMemberSet(temp_r30, 33, temp_r27);
-    HuSprAttrSet(temp_r30, 33, HUSPR_ATTR_DISPOFF);
-    temp_r27 = HuSprCreate(temp_r24, 195, 0);
-    HuSprGrpMemberSet(temp_r30, 34, temp_r27);
-    HuSprAttrSet(temp_r30, 34, HUSPR_ATTR_DISPOFF);
-    temp_r22 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 73), HU_MEMNUM_OVL));
-    temp_r28 = -(((mgBattleStarMax + 1) * 42) / 2) + 20;
-    temp_r26 = -64;
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        temp_r24 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 74) + lbl_1_bss_2C24[temp_r31], HU_MEMNUM_OVL));
-        temp_r27 = HuSprCreate(temp_r24, 190, 0);
-        HuSprGrpMemberSet(temp_r30, (temp_r31 * 8) + 0, temp_r27);
-        HuSprPosSet(temp_r30, (temp_r31 * 8) + 0, temp_r28, temp_r26 + (temp_r31 * 42));
-        for (temp_r29 = 0; temp_r29 < 7; temp_r29++) {
-            temp_r27 = HuSprCreate(temp_r22, 190, 0);
-            HuSprGrpMemberSet(temp_r30, 1 + (temp_r31 * 8) + temp_r29, temp_r27);
-            HuSprPosSet(temp_r30, 1 + (temp_r31 * 8) + temp_r29, 42 + temp_r28 + (temp_r29 * 42), temp_r26 + (temp_r31 * 42));
-            if (mgBattleStar[lbl_1_bss_2C1C[temp_r31]] <= temp_r29) {
-                HuSprScaleSet(temp_r30, 1 + (temp_r31 * 8) + temp_r29, 0, 0);
+    starDisplayGroup = HuSprGrpCreate(35);
+    battleStarSpriteGroup = starDisplayGroup;
+    playerSpriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 70) + starCountFrame, HU_MEMNUM_OVL));
+    spriteId = HuSprCreate(playerSpriteAnimation, 195, 0);
+    HuSprGrpMemberSet(starDisplayGroup, 33, spriteId);
+    HuSprAttrSet(starDisplayGroup, 33, HUSPR_ATTR_DISPOFF);
+    spriteId = HuSprCreate(playerSpriteAnimation, 195, 0);
+    HuSprGrpMemberSet(starDisplayGroup, 34, spriteId);
+    HuSprAttrSet(starDisplayGroup, 34, HUSPR_ATTR_DISPOFF);
+    starSpriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 73), HU_MEMNUM_OVL));
+    starGridLeft = -(((mgBattleStarMax + 1) * 42) / 2) + 20;
+    starGridTop = -64;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerSpriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 74) + playerCharacterIdsByGroup[playerIndex], HU_MEMNUM_OVL));
+        spriteId = HuSprCreate(playerSpriteAnimation, 190, 0);
+        HuSprGrpMemberSet(starDisplayGroup, (playerIndex * 8) + 0, spriteId);
+        HuSprPosSet(starDisplayGroup, (playerIndex * 8) + 0, starGridLeft, starGridTop + (playerIndex * 42));
+        for (starIndex = 0; starIndex < 7; starIndex++) {
+            spriteId = HuSprCreate(starSpriteAnimation, 190, 0);
+            HuSprGrpMemberSet(starDisplayGroup, 1 + (playerIndex * 8) + starIndex, spriteId);
+            HuSprPosSet(starDisplayGroup, 1 + (playerIndex * 8) + starIndex, 42 + starGridLeft + (starIndex * 42), starGridTop + (playerIndex * 42));
+            if (mgBattleStar[playerOrderByGroup[playerIndex]] <= starIndex) {
+                HuSprScaleSet(starDisplayGroup, 1 + (playerIndex * 8) + starIndex, 0, 0);
             }
             else {
-                HuSprScaleSet(temp_r30, 1 + (temp_r31 * 8) + temp_r29, 1, 1);
+                HuSprScaleSet(starDisplayGroup, 1 + (playerIndex * 8) + starIndex, 1, 1);
             }
             if (mgTypeCurr == 1) {
-                if (temp_r31 > 2) {
-                    HuSprAttrSet(temp_r30, 1 + (temp_r31 * 8) + temp_r29, HUSPR_ATTR_DISPOFF);
+                if (playerIndex > 2) {
+                    HuSprAttrSet(starDisplayGroup, 1 + (playerIndex * 8) + starIndex, HUSPR_ATTR_DISPOFF);
                 }
-                if (temp_r31 == 1) {
-                    HuSprPosSet(temp_r30, 1 + (temp_r31 * 8) + temp_r29, 42 + temp_r28 + (temp_r29 * 42), temp_r26 + 84);
+                if (playerIndex == 1) {
+                    HuSprPosSet(starDisplayGroup, 1 + (playerIndex * 8) + starIndex, 42 + starGridLeft + (starIndex * 42), starGridTop + 84);
                 }
             }
             else if (mgTypeCurr == 2) {
-                if (temp_r31 % 2 == 1) {
-                    HuSprAttrSet(temp_r30, 1 + (temp_r31 * 8) + temp_r29, HUSPR_ATTR_DISPOFF);
+                if (playerIndex % 2 == 1) {
+                    HuSprAttrSet(starDisplayGroup, 1 + (playerIndex * 8) + starIndex, HUSPR_ATTR_DISPOFF);
                 }
-                if (temp_r31 == 0) {
-                    HuSprPosSet(temp_r30, 1 + (temp_r31 * 8) + temp_r29, 42 + temp_r28 + (temp_r29 * 42), temp_r26 + 21);
+                if (playerIndex == 0) {
+                    HuSprPosSet(starDisplayGroup, 1 + (playerIndex * 8) + starIndex, 42 + starGridLeft + (starIndex * 42), starGridTop + 21);
                 }
-                if (temp_r31 == 2) {
-                    HuSprPosSet(temp_r30, 1 + (temp_r31 * 8) + temp_r29, 42 + temp_r28 + (temp_r29 * 42), temp_r26 + 105);
+                if (playerIndex == 2) {
+                    HuSprPosSet(starDisplayGroup, 1 + (playerIndex * 8) + starIndex, 42 + starGridLeft + (starIndex * 42), starGridTop + 105);
                 }
             }
         }
     }
-    temp_r28 = -(((mgBattleStarMax + 1) * 42) / 2) + 22;
-    if (temp_r25 == 0) {
-        temp_r28 += 63;
+    starGridLeft = -(((mgBattleStarMax + 1) * 42) / 2) + 22;
+    if (starCountFrame == 0) {
+        starGridLeft += 63;
     }
-    else if (temp_r25 == 1) {
-        temp_r28 += 105;
+    else if (starCountFrame == 1) {
+        starGridLeft += 105;
     }
     else {
-        temp_r28 += 146;
+        starGridLeft += 146;
     }
     if (mgTypeCurr == 1) {
-        HuSprPosSet(temp_r30, 33, temp_r28 + 21, temp_r26 + 63);
-        HuSprAttrReset(temp_r30, 33, HUSPR_ATTR_DISPOFF);
-        HuSprPosSet(temp_r30, 34, temp_r28 + 21, temp_r26 + 105);
-        HuSprAttrReset(temp_r30, 34, HUSPR_ATTR_DISPOFF);
+        HuSprPosSet(starDisplayGroup, 33, starGridLeft + 21, starGridTop + 63);
+        HuSprAttrReset(starDisplayGroup, 33, HUSPR_ATTR_DISPOFF);
+        HuSprPosSet(starDisplayGroup, 34, starGridLeft + 21, starGridTop + 105);
+        HuSprAttrReset(starDisplayGroup, 34, HUSPR_ATTR_DISPOFF);
     }
     else if (mgTypeCurr == 2) {
-        HuSprPosSet(temp_r30, 33, temp_r28 + 21, temp_r26 + 21);
-        HuSprAttrReset(temp_r30, 33, HUSPR_ATTR_DISPOFF);
-        HuSprPosSet(temp_r30, 34, temp_r28 + 21, temp_r26 + 105);
-        HuSprAttrReset(temp_r30, 34, HUSPR_ATTR_DISPOFF);
+        HuSprPosSet(starDisplayGroup, 33, starGridLeft + 21, starGridTop + 21);
+        HuSprAttrReset(starDisplayGroup, 33, HUSPR_ATTR_DISPOFF);
+        HuSprPosSet(starDisplayGroup, 34, starGridLeft + 21, starGridTop + 105);
+        HuSprAttrReset(starDisplayGroup, 34, HUSPR_ATTR_DISPOFF);
     }
-    temp_r24 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 67) + temp_r25, HU_MEMNUM_OVL));
-    temp_r27 = HuSprCreate(temp_r24, 200, 0);
-    HuSprGrpMemberSet(temp_r30, 32, temp_r27);
-    HuSprGrpPosSet(temp_r30, 288, 185);
-    HuSprGrpDrawNoSet(temp_r30, 64);
-    HuSprGrpScaleSet(temp_r30, 1, 0);
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        lbl_1_bss_38C[temp_r31] = 0;
+    playerSpriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 67) + starCountFrame, HU_MEMNUM_OVL));
+    spriteId = HuSprCreate(playerSpriteAnimation, 200, 0);
+    HuSprGrpMemberSet(starDisplayGroup, 32, spriteId);
+    HuSprGrpPosSet(starDisplayGroup, 288, 185);
+    HuSprGrpDrawNoSet(starDisplayGroup, 64);
+    HuSprGrpScaleSet(starDisplayGroup, 1, 0);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        battlePlayerStarCounts[playerIndex] = 0;
     }
     switch (mgTypeCurr) {
         case 0:
-            temp_r23 = -1;
-            for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                sp8[temp_r31] = GWPlayerCoinWinGet(temp_r31) + GWPlayerCoinCollectGet(temp_r31);
-                if (temp_r23 < sp8[temp_r31]) {
-                    temp_r23 = sp8[temp_r31];
+            playerSpriteId = -1;
+            for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                unreferencedPlayerIndexScratch[playerIndex] = GWPlayerCoinWinGet(playerIndex) + GWPlayerCoinCollectGet(playerIndex);
+                if (playerSpriteId < unreferencedPlayerIndexScratch[playerIndex]) {
+                    playerSpriteId = unreferencedPlayerIndexScratch[playerIndex];
                 }
             }
-            lbl_1_bss_394 = 0;
-            if (temp_r23 != 0) {
-                for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                    if (temp_r23 == sp8[temp_r31]) {
-                        lbl_1_bss_396[lbl_1_bss_394] = temp_r31;
-                        lbl_1_bss_38C[temp_r31] = 1;
-                        lbl_1_bss_394++;
+            battleStarSelection = 0;
+            if (playerSpriteId != 0) {
+                for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                    if (playerSpriteId == unreferencedPlayerIndexScratch[playerIndex]) {
+                        battlePlayerChoices[battleStarSelection] = playerIndex;
+                        battlePlayerStarCounts[playerIndex] = 1;
+                        battleStarSelection++;
                     }
                 }
             }
@@ -529,46 +529,46 @@ void fn_1_10564(void)
 
         case 1:
         case 2:
-            sp8[0] = sp8[1] = 0;
-            for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                sp8[GWPlayerCfg[temp_r31].group] += GWPlayerCoinWinGet(temp_r31) + GWPlayerCoinCollectGet(temp_r31);
+            unreferencedPlayerIndexScratch[0] = unreferencedPlayerIndexScratch[1] = 0;
+            for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                unreferencedPlayerIndexScratch[GWPlayerCfg[playerIndex].group] += GWPlayerCoinWinGet(playerIndex) + GWPlayerCoinCollectGet(playerIndex);
             }
             if (mgInfoTbl[GWSystem.mg_next].ovl == DLL_m422dll) {
-                sp8[1] /= 3;
+                unreferencedPlayerIndexScratch[1] /= 3;
             }
-            lbl_1_bss_394 = 0;
-            if (sp8[0] != 0 || sp8[1] != 0) {
-                if (sp8[0] != sp8[1]) {
-                    if (sp8[0] > sp8[1]) {
-                        temp_r29 = 0;
+            battleStarSelection = 0;
+            if (unreferencedPlayerIndexScratch[0] != 0 || unreferencedPlayerIndexScratch[1] != 0) {
+                if (unreferencedPlayerIndexScratch[0] != unreferencedPlayerIndexScratch[1]) {
+                    if (unreferencedPlayerIndexScratch[0] > unreferencedPlayerIndexScratch[1]) {
+                        starIndex = 0;
                     }
                     else {
-                        temp_r29 = 1;
+                        starIndex = 1;
                     }
-                    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                        if (temp_r29 == GWPlayerCfg[lbl_1_bss_2C1C[temp_r31]].group) {
-                            lbl_1_bss_396[lbl_1_bss_394] = temp_r31;
-                            lbl_1_bss_38C[temp_r31] = 1;
-                            lbl_1_bss_394++;
+                    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                        if (starIndex == GWPlayerCfg[playerOrderByGroup[playerIndex]].group) {
+                            battlePlayerChoices[battleStarSelection] = playerIndex;
+                            battlePlayerStarCounts[playerIndex] = 1;
+                            battleStarSelection++;
                         }
                     }
                 }
                 else {
-                    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                        lbl_1_bss_396[lbl_1_bss_394] = temp_r31;
-                        lbl_1_bss_38C[temp_r31] = 1;
-                        lbl_1_bss_394++;
+                    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                        battlePlayerChoices[battleStarSelection] = playerIndex;
+                        battlePlayerStarCounts[playerIndex] = 1;
+                        battleStarSelection++;
                     }
                 }
             }
             break;
 
         case 3:
-            for (temp_r31 = lbl_1_bss_394 = 0; temp_r31 < 4; temp_r31++) {
-                if (!GWPlayerCoinWinGet(lbl_1_bss_2C1C[temp_r31])) {
-                    lbl_1_bss_396[lbl_1_bss_394] = temp_r31;
-                    lbl_1_bss_38C[temp_r31] = 1;
-                    lbl_1_bss_394++;
+            for (playerIndex = battleStarSelection = 0; playerIndex < 4; playerIndex++) {
+                if (!GWPlayerCoinWinGet(playerOrderByGroup[playerIndex])) {
+                    battlePlayerChoices[battleStarSelection] = playerIndex;
+                    battlePlayerStarCounts[playerIndex] = 1;
+                    battleStarSelection++;
                 }
             }
             break;
@@ -578,120 +578,120 @@ void fn_1_10564(void)
     }
 }
 
-void fn_1_12B64(s16 arg0);
+void ShowBattlePlayerStatus(s16 playerIndex);
 
-s32 fn_1_1129C(void)
+s32 RunBattlePlayerSetup(void)
 {
-    s16 temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    float temp_f31;
+    s16 animationFrame;
+    s16 playerIndex;
+    s16 winningPlayerCount;
+    s16 playerIndex;
+    float scaleProgress;
 
-    s16 sp18[4];
-    s16 sp10[4];
-    s16 sp8[4];
+    s16 winningPlayerIndices[4];
+    s16 reachedStarGoal[4];
+    s16 winnerCharacterIds[4];
 
-    HuSprTPLvlSet(lbl_1_bss_388, 10, 0);
+    HuSprTPLvlSet(battleSelectionSpriteGroup, 10, 0);
     while (WipeStatGet()) {
         HuPrcVSleep();
     }
-    fn_1_10564();
-    for (temp_r31 = 0; temp_r31 <= 30; temp_r31++) {
-        if (temp_r31 <= 20) {
-            temp_f31 = temp_r31 / 20.0f;
-            HuSprGrpScaleSet(lbl_1_bss_38A, 1, 1.1 * sind(temp_f31 * 90.0f));
+    DestroyBattleSelectionSprites();
+    for (animationFrame = 0; animationFrame <= 30; animationFrame++) {
+        if (animationFrame <= 20) {
+            scaleProgress = animationFrame / 20.0f;
+            HuSprGrpScaleSet(battleStarSpriteGroup, 1, 1.1 * sind(scaleProgress * 90.0f));
         }
         else {
-            temp_f31 = (temp_r31 - 20) / 10.0f;
-            HuSprGrpScaleSet(lbl_1_bss_38A, 1, 1.0 + (0.1 * cosd(temp_f31 * 90.0f)));
+            scaleProgress = (animationFrame - 20) / 10.0f;
+            HuSprGrpScaleSet(battleStarSpriteGroup, 1, 1.0 + (0.1 * cosd(scaleProgress * 90.0f)));
         }
         HuPrcVSleep();
     }
     HuPrcSleep(30);
-    if (lbl_1_data_148 == -1) {
-        lbl_1_data_148 = fn_1_2530C(0, 0, 0);
+    if (battleMessageWindow == -1) {
+        battleMessageWindow = CreateStandardMessageWindow(0, 0, 0);
     }
-    if (lbl_1_bss_394) {
-        for (temp_r31 = 0; temp_r31 < lbl_1_bss_394; temp_r31++) {
-            HuWinInsertMesSet(lbl_1_data_148, lbl_1_bss_2C24[lbl_1_bss_396[temp_r31]], (s32)temp_r31);
+    if (battleStarSelection) {
+        for (animationFrame = 0; animationFrame < battleStarSelection; animationFrame++) {
+            HuWinInsertMesSet(battleMessageWindow, playerCharacterIdsByGroup[battlePlayerChoices[animationFrame]], (s32)animationFrame);
         }
-        if (lbl_1_bss_394 == 1) {
-            fn_1_25838(lbl_1_data_148, 0x280012, -1, -1);
+        if (battleStarSelection == 1) {
+            ShowMessageAndWait(windowId, 0x280012, -1, -1);
         }
-        else if (lbl_1_bss_394 == 2) {
-            fn_1_25838(lbl_1_data_148, 0x28001F, -1, -1);
+        else if (battleStarSelection == 2) {
+            ShowMessageAndWait(windowId, 0x28001F, -1, -1);
         }
-        else if (lbl_1_bss_394 == 3) {
-            fn_1_25838(lbl_1_data_148, 0x280020, -1, -1);
+        else if (battleStarSelection == 3) {
+            ShowMessageAndWait(windowId, 0x280020, -1, -1);
         }
-        else if (lbl_1_bss_394 == 4) {
-            fn_1_25838(lbl_1_data_148, 0x280021, -1, -1);
+        else if (battleStarSelection == 4) {
+            ShowMessageAndWait(windowId, 0x280021, -1, -1);
         }
         HuAudFXPlay(825);
         HuAudFXPlay(826);
-        for (temp_r31 = 0; temp_r31 <= 30; temp_r31++) {
-            temp_f31 = (1 - sind((temp_r31 / 30.0f) * 90.0f)) + 1;
-            for (temp_r30 = 0; temp_r30 < lbl_1_bss_394; temp_r30++) {
-                temp_r28 = lbl_1_bss_396[temp_r30];
-                HuSprScaleSet(lbl_1_bss_38A, 1 + (temp_r28 * 8) + mgBattleStar[lbl_1_bss_2C1C[temp_r28]], temp_f31, temp_f31);
+        for (animationFrame = 0; animationFrame <= 30; animationFrame++) {
+            scaleProgress = (1 - sind((animationFrame / 30.0f) * 90.0f)) + 1;
+            for (playerIndex = 0; playerIndex < battleStarSelection; playerIndex++) {
+                playerIndex = battlePlayerChoices[playerIndex];
+                HuSprScaleSet(battleStarSpriteGroup, 1 + (playerIndex * 8) + mgBattleStar[playerOrderByGroup[playerIndex]], scaleProgress, scaleProgress);
             }
-            if (temp_r31 == 10) {
-                for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-                    if (lbl_1_bss_38C[temp_r30]) {
-                        Hu3DMotionShiftSet(lbl_1_bss_2C14[temp_r30], lbl_1_bss_2BC4[temp_r30][3], 0, 5, HU3D_MOTATTR_NONE);
+            if (animationFrame == 10) {
+                for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                    if (battlePlayerStarCounts[playerIndex]) {
+                        Hu3DMotionShiftSet(playerModelIdsByGroup[playerIndex], playerMotionIdsByGroup[playerIndex][3], 0, 5, HU3D_MOTATTR_NONE);
                     }
                     else {
-                        Hu3DMotionShiftSet(lbl_1_bss_2C14[temp_r30], lbl_1_bss_2BC4[temp_r30][4], 0, 5, HU3D_MOTATTR_NONE);
+                        Hu3DMotionShiftSet(playerModelIdsByGroup[playerIndex], playerMotionIdsByGroup[playerIndex][4], 0, 5, HU3D_MOTATTR_NONE);
                     }
                 }
             }
             HuPrcVSleep();
         }
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            sp10[temp_r31] = 0;
+        for (animationFrame = 0; animationFrame < 4; animationFrame++) {
+            reachedStarGoal[animationFrame] = 0;
         }
-        for (temp_r30 = temp_r29 = 0; temp_r30 < lbl_1_bss_394; temp_r30++) {
-            mgBattleStar[lbl_1_bss_2C1C[lbl_1_bss_396[temp_r30]]]++;
-            if (mgBattleStar[lbl_1_bss_2C1C[lbl_1_bss_396[temp_r30]]] >= mgBattleStarMax) {
-                sp18[temp_r29] = lbl_1_bss_396[temp_r30];
-                sp10[lbl_1_bss_396[temp_r30]] = 1;
-                temp_r29++;
+        for (playerIndex = winningPlayerCount = 0; playerIndex < battleStarSelection; playerIndex++) {
+            mgBattleStar[playerOrderByGroup[battlePlayerChoices[playerIndex]]]++;
+            if (mgBattleStar[playerOrderByGroup[battlePlayerChoices[playerIndex]]] >= mgBattleStarMax) {
+                winningPlayerIndices[winningPlayerCount] = battlePlayerChoices[playerIndex];
+                reachedStarGoal[battlePlayerChoices[playerIndex]] = 1;
+                winningPlayerCount++;
             }
         }
-        if (temp_r29 != 0) {
-            for (temp_r31 = 0; temp_r31 < temp_r29; temp_r31++) {
-                HuWinInsertMesSet(lbl_1_data_148, lbl_1_bss_2C24[sp18[temp_r31]], (s32)temp_r31);
+        if (winningPlayerCount != 0) {
+            for (animationFrame = 0; animationFrame < winningPlayerCount; animationFrame++) {
+                HuWinInsertMesSet(battleMessageWindow, playerCharacterIdsByGroup[winningPlayerIndices[animationFrame]], (s32)animationFrame);
             }
-            if (temp_r29 == 1) {
-                fn_1_25838(lbl_1_data_148, 0x280014, -1, -1);
+            if (winningPlayerCount == 1) {
+                ShowMessageAndWait(windowId, 0x280014, -1, -1);
             }
-            else if (temp_r29 == 2) {
-                fn_1_25838(lbl_1_data_148, 0x280022, -1, -1);
+            else if (winningPlayerCount == 2) {
+                ShowMessageAndWait(windowId, 0x280022, -1, -1);
             }
-            else if (temp_r29 == 3) {
-                fn_1_25838(lbl_1_data_148, 0x280023, -1, -1);
+            else if (winningPlayerCount == 3) {
+                ShowMessageAndWait(windowId, 0x280023, -1, -1);
             }
-            else if (temp_r29 == 4) {
-                fn_1_25838(lbl_1_data_148, 0x280024, -1, -1);
+            else if (winningPlayerCount == 4) {
+                ShowMessageAndWait(windowId, 0x280024, -1, -1);
             }
-            for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-                if (temp_r31 < temp_r29) {
-                    sp8[temp_r31] = lbl_1_bss_2C24[sp18[temp_r31]];
+            for (animationFrame = 0; animationFrame < 4; animationFrame++) {
+                if (animationFrame < winningPlayerCount) {
+                    winnerCharacterIds[animationFrame] = playerCharacterIdsByGroup[winningPlayerIndices[animationFrame]];
                 }
                 else {
-                    sp8[temp_r31] = -1;
+                    winnerCharacterIds[animationFrame] = -1;
                 }
             }
-            MGSeqAltWinCreate(sp8[0], sp8[1], sp8[2], sp8[3]);
+            MGSeqAltWinCreate(winnerCharacterIds[0], winnerCharacterIds[1], winnerCharacterIds[2], winnerCharacterIds[3]);
             HuAudFXPlay(2175);
-            for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-                if (sp10[temp_r30]) {
-                    Hu3DMotionShiftSet(lbl_1_bss_2C14[temp_r30], lbl_1_bss_2BC4[temp_r30][5], 0, 5, HU3D_MOTATTR_NONE);
-                    fn_1_12B64(temp_r30);
+            for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                if (reachedStarGoal[playerIndex]) {
+                    Hu3DMotionShiftSet(playerModelIdsByGroup[playerIndex], playerMotionIdsByGroup[playerIndex][5], 0, 5, HU3D_MOTATTR_NONE);
+                    ShowBattlePlayerStatus(playerIndex);
                 }
                 else {
-                    Hu3DMotionShiftSet(lbl_1_bss_2C14[temp_r30], lbl_1_bss_2BC4[temp_r30][6], 0, 5, HU3D_MOTATTR_NONE);
+                    Hu3DMotionShiftSet(playerModelIdsByGroup[playerIndex], playerMotionIdsByGroup[playerIndex][6], 0, 5, HU3D_MOTATTR_NONE);
                 }
             }
             HuPrcSleep(120);
@@ -699,75 +699,75 @@ s32 fn_1_1129C(void)
         }
         else {
             HuPrcSleep(30);
-            for (temp_r30 = 0; temp_r30 < 4; temp_r30++) {
-                Hu3DMotionShiftSet(lbl_1_bss_2C14[temp_r30], lbl_1_bss_2BC4[temp_r30][0], 0, 5, HU3D_MOTATTR_LOOP);
+            for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                Hu3DMotionShiftSet(playerModelIdsByGroup[playerIndex], playerMotionIdsByGroup[playerIndex][0], 0, 5, HU3D_MOTATTR_LOOP);
             }
             HuPrcSleep(30);
         }
     }
     else {
-        fn_1_25838(lbl_1_data_148, 0x280013, -1, -1);
+        ShowMessageAndWait(windowId, 0x280013, -1, -1);
     }
-    for (temp_r31 = 0; temp_r31 <= 30; temp_r31++) {
-        if (temp_r31 <= 10) {
-            temp_f31 = temp_r31 / 10.0f;
-            HuSprGrpScaleSet(lbl_1_bss_38A, 1, 1.0 + (0.1 * sind(temp_f31 * 90.0f)));
+    for (animationFrame = 0; animationFrame <= 30; animationFrame++) {
+        if (animationFrame <= 10) {
+            scaleProgress = animationFrame / 10.0f;
+            HuSprGrpScaleSet(battleStarSpriteGroup, 1, 1.0 + (0.1 * sind(scaleProgress * 90.0f)));
         }
         else {
-            temp_f31 = (temp_r31 - 10) / 20.0f;
-            HuSprGrpScaleSet(lbl_1_bss_38A, 1, 1.1 * cosd(temp_f31 * 90.0f));
+            scaleProgress = (animationFrame - 10) / 20.0f;
+            HuSprGrpScaleSet(battleStarSpriteGroup, 1, 1.1 * cosd(scaleProgress * 90.0f));
         }
         HuPrcVSleep();
     }
     return 0;
 }
 
-s32 fn_1_11E68(void)
+s32 RunBattleStarSetup(void)
 {
     s16 choice;
-    fn_1_25838(lbl_1_data_148, 0x28000C, -1, -1);
-    HuWinAttrSet(lbl_1_data_148, 0x10);
-    choice = HuWinChoiceGet(lbl_1_data_148, 1);
-    lbl_1_bss_3A0 = 0;
-    fn_1_25584(lbl_1_data_148);
-    lbl_1_data_148 = -1;
+    ShowMessageAndWait(windowId, 0x28000C, -1, -1);
+    HuWinAttrSet(battleMessageWindow, 0x10);
+    choice = HuWinChoiceGet(battleMessageWindow, 1);
+    battleSelectionState = 0;
+    CloseStandardMessageWindow(windowId);
+    battleMessageWindow = -1;
     if (choice == 0) {
         s16 i;
         s16 j;
         float weight;
         for (i = 0; i < 4; i++) {
-            Hu3DMotionShiftSet(lbl_1_bss_2C14[i], lbl_1_bss_2BC4[i][0], 0, 10, HU3D_MOTATTR_LOOP);
+            Hu3DMotionShiftSet(playerModelIdsByGroup[i], playerMotionIdsByGroup[i][0], 0, 10, HU3D_MOTATTR_LOOP);
         }
         for (i = 0; i <= 20; i++) {
             weight = i / 20.0f;
-            HuSprGrpScaleSet(lbl_1_bss_38A, 1, cosd(weight * 90.0f));
+            HuSprGrpScaleSet(battleStarSpriteGroup, 1, cosd(weight * 90.0f));
             HuPrcVSleep();
         }
         for (i = 0; i < 4; i++) {
             mgBattleStar[i] = 0;
             for (j = 0; j < 7; j++) {
-                HuSprScaleSet(lbl_1_bss_38A, j + (i * 8) + 1, 0, 0);
+                HuSprScaleSet(battleStarSpriteGroup, j + (i * 8) + 1, 0, 0);
             }
         }
         for (i = 0; i <= 20; i++) {
             weight = i / 20.0f;
-            HuSprGrpScaleSet(lbl_1_bss_38A, 1, sind(weight * 90.0f));
+            HuSprGrpScaleSet(battleStarSpriteGroup, 1, sind(weight * 90.0f));
             HuPrcVSleep();
         }
         for (i = 0; i <= 20; i++) {
             weight = i / 20.0f;
-            HuSprGrpScaleSet(lbl_1_bss_38A, 1, cosd(weight * 90.0f));
+            HuSprGrpScaleSet(battleStarSpriteGroup, 1, cosd(weight * 90.0f));
             HuPrcVSleep();
         }
         return 1;
     }
     else {
-        fn_1_1222C();
+        InitializeBattlePlayerModels();
         return 0;
     }
 }
 
-void fn_1_1222C(void)
+void InitializeBattlePlayerModels(void)
 {
     s16 i;
     s16 j;
@@ -779,9 +779,9 @@ void fn_1_1222C(void)
     Vec posEnd;
     Vec posModel;
     for (i = 0; i < 4; i++) {
-        Hu3DMotionShiftSet(lbl_1_bss_2C14[i], lbl_1_bss_2BC4[i][2], 0, 10, HU3D_MOTATTR_LOOP);
+        Hu3DMotionShiftSet(playerModelIdsByGroup[i], playerMotionIdsByGroup[i][2], 0, 10, HU3D_MOTATTR_LOOP);
     }
-    model = &Hu3DData[lbl_1_bss_2C80[5]];
+    model = &Hu3DData[mgModeModelIds[5]];
     pos = model->pos;
     posEnd.x = 0;
     posEnd.y = 0;
@@ -792,173 +792,173 @@ void fn_1_1222C(void)
         for (j = 0; j < 4; j++) {
             if (i <= 10) {
                 weight = i / 10.0;
-                Hu3DModelRotSet(lbl_1_bss_2C14[j], 0, weight * 90.0f, 0);
+                Hu3DModelRotSet(playerModelIdsByGroup[j], 0, weight * 90.0f, 0);
             }
             weight = i / 30.0;
-            Hu3DModelPosSet(lbl_1_bss_2C14[j], ((j * 130) - 195) + ((1 - cosd(weight * 90.0f)) * 700.0), 0, 750);
+            Hu3DModelPosSet(playerModelIdsByGroup[j], ((j * 130) - 195) + ((1 - cosd(weight * 90.0f)) * 700.0), 0, 750);
             if ((i + (j * 2)) % 5 == 0) {
                 HuAudFXPlay(GWPlayerCfg[j].character + 213);
             }
         }
         if (i == 20) {
-            Hu3DMotionShiftSet(lbl_1_bss_2C80[5], lbl_1_bss_2C66[7], 0, 8, HU3D_MOTATTR_LOOP);
+            Hu3DMotionShiftSet(mgModeModelIds[5], mgModeMotionIds[7], 0, 8, HU3D_MOTATTR_LOOP);
         }
         if (i >= 20) {
             weight = (i - 20) / 10.0;
-            Hu3DModelRotSet(lbl_1_bss_2C80[5], 0, 20.0f + ((angle - 20.0f) * weight), 0);
+            Hu3DModelRotSet(mgModeModelIds[5], 0, 20.0f + ((angle - 20.0f) * weight), 0);
         }
         HuPrcVSleep();
     }
     for (i = 0; i < 4; i++) {
-        Hu3DMotionShiftSet(lbl_1_bss_2C14[i], lbl_1_bss_2BC4[i][0], 0, 10, HU3D_MOTATTR_LOOP);
+        Hu3DMotionShiftSet(playerModelIdsByGroup[i], playerMotionIdsByGroup[i][0], 0, 10, HU3D_MOTATTR_LOOP);
     }
     for (i = 0; i <= 30; i++) {
         weight = i / 30.0;
         VECScale(&posEnd, &posModel, weight);
         VECAdd(&pos, &posModel, &posModel);
-        Hu3DModelPosSetV(lbl_1_bss_2C80[5], &posModel);
+        Hu3DModelPosSetV(mgModeModelIds[5], &posModel);
         HuPrcVSleep();
     }
-    Hu3DMotionShiftSet(lbl_1_bss_2C80[5], lbl_1_bss_2C66[6], 0, 10, HU3D_MOTATTR_LOOP);
+    Hu3DMotionShiftSet(mgModeModelIds[5], mgModeMotionIds[6], 0, 10, HU3D_MOTATTR_LOOP);
     for (i = 0; i <= 10; i++) {
         weight = 1.0 - (i / 10.0);
-        Hu3DModelRotSet(lbl_1_bss_2C80[5], 0, angle * weight, 0);
+        Hu3DModelRotSet(mgModeModelIds[5], 0, angle * weight, 0);
         HuPrcVSleep();
     }
     for (i = 0; i <= 60; i++) {
         if (i <= 10) {
             weight = i / 10.0;
-            HuSprGrpPosSet(lbl_1_bss_388, 288, 240.0 + (16.0 * sind(weight * 90.0f)));
-            if (lbl_1_bss_38A) {
-                HuSprGrpPosSet(lbl_1_bss_38A, 288, 185.0 + (16.0 * sind(weight * 90.0f)));
+            HuSprGrpPosSet(battleSelectionSpriteGroup, 288, 240.0 + (16.0 * sind(weight * 90.0f)));
+            if (battleStarSpriteGroup) {
+                HuSprGrpPosSet(battleStarSpriteGroup, 288, 185.0 + (16.0 * sind(weight * 90.0f)));
             }
         }
         else {
             weight = (i - 10) / 50.0;
             weight = (1 - cosd(weight * 90.0f)) * 400;
-            HuSprGrpPosSet(lbl_1_bss_388, 288, 256 - weight);
-            if (lbl_1_bss_38A) {
-                HuSprGrpPosSet(lbl_1_bss_38A, 288, 201 - weight);
+            HuSprGrpPosSet(battleSelectionSpriteGroup, 288, 256 - weight);
+            if (battleStarSpriteGroup) {
+                HuSprGrpPosSet(battleStarSpriteGroup, 288, 201 - weight);
             }
         }
 
         HuPrcVSleep();
     }
     HuDataDirClose(DATADIR_INSTPIC);
-    if (lbl_1_bss_388) {
-        HuSprGrpKill(lbl_1_bss_388);
+    if (battleSelectionSpriteGroup) {
+        HuSprGrpKill(battleSelectionSpriteGroup);
     }
-    if (lbl_1_bss_38A) {
-        HuSprGrpKill(lbl_1_bss_38A);
+    if (battleStarSpriteGroup) {
+        HuSprGrpKill(battleStarSpriteGroup);
     }
-    lbl_1_bss_388 = lbl_1_bss_38A = 0;
+    battleSelectionSpriteGroup = battleStarSpriteGroup = 0;
     for (i = 0; i < 4; i++) {
         CharModelKill(GWPlayerCfg[i].character);
     }
 }
 
-void fn_1_12BEC(void);
+void HideBattlePlayerStatus(void);
 
-void fn_1_12B64(s16 arg0)
+void ShowBattlePlayerStatus(s16 playerIndex)
 {
     HUPROCESS *process;
     s32 *data;
-    process = HuPrcChildCreate(fn_1_12BEC, 100, 12288, 0, objman);
+    process = HuPrcChildCreate(HideBattlePlayerStatus, 100, 12288, 0, objman);
     data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(s32), HU_MEMNUM_OVL);
     process->user_data = data;
-    *data = arg0;
-    lbl_1_bss_3A0 = 1;
+    *data = playerIndex;
+    battleSelectionState = 1;
     (void)process;
 }
 
-void fn_1_12BEC(void)
+void HideBattlePlayerStatus(void)
 {
-    s16 temp_r31;
-    HU3DMODEL *temp_r30;
-    HSFMATERIAL *temp_r29;
-    s32 *temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s16 temp_r25;
-    s16 temp_r24;
-    s16 temp_r23;
-    s16 temp_r22;
-    HUPROCESS *temp_r21;
-    float temp_f31;
-    Vec sp44[30];
-    s16 sp8[30];
+    s16 particleIndex;
+    HU3DMODEL *particleModel;
+    HSFMATERIAL *material;
+    s32 *playerIndexData;
+    s16 starModelId;
+    s16 particleModelId;
+    s16 starFadeFrame;
+    s16 materialIndex;
+    s16 particleHorizontalOffset;
+    s16 inactiveParticleCount;
+    HUPROCESS *particleProcess;
+    float starFadeScale;
+    Vec particleVelocity[30];
+    s16 particleModelIds[30];
 
-    temp_r21 = HuPrcCurrentGet();
-    temp_r28 = temp_r21->user_data;
-    temp_r27 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MGMODE, 82));
-    Hu3DModelLayerSet(temp_r27, 3);
-    Hu3DModelPosSet(temp_r27, (*temp_r28 * 130) - 195, 300, 750);
-    Hu3DModelScaleSet(temp_r27, 0.8f, 0.8f, 0.8f);
-    for (temp_r31 = 0; temp_r31 < 30; temp_r31++) {
-        if (temp_r31 < 4) {
-            temp_r26 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MGMODE, 83));
-            sp8[temp_r31] = temp_r26;
-            temp_r30 = &Hu3DData[temp_r26];
-            temp_r29 = temp_r30->hsf->material;
-            for (temp_r24 = 0; temp_r24 < temp_r30->hsf->materialNum; temp_r24++, temp_r29++) {
-                temp_r29->color[0] = lbl_1_data_152[temp_r31].r;
-                temp_r29->color[1] = lbl_1_data_152[temp_r31].g;
-                temp_r29->color[2] = lbl_1_data_152[temp_r31].b;
-                temp_r29->litColor[0] = lbl_1_data_152[temp_r31].r;
-                temp_r29->litColor[1] = lbl_1_data_152[temp_r31].g;
-                temp_r29->litColor[2] = lbl_1_data_152[temp_r31].b;
+    particleProcess = HuPrcCurrentGet();
+    playerIndexData = particleProcess->user_data;
+    starModelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MGMODE, 82));
+    Hu3DModelLayerSet(starModelId, 3);
+    Hu3DModelPosSet(starModelId, (*playerIndexData * 130) - 195, 300, 750);
+    Hu3DModelScaleSet(starModelId, 0.8f, 0.8f, 0.8f);
+    for (particleIndex = 0; particleIndex < 30; particleIndex++) {
+        if (particleIndex < 4) {
+            particleModelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MGMODE, 83));
+            particleModelIds[particleIndex] = particleModelId;
+            particleModel = &Hu3DData[particleModelId];
+            material = particleModel->hsf->material;
+            for (materialIndex = 0; materialIndex < particleModel->hsf->materialNum; materialIndex++, material++) {
+                material->color[0] = battleStarCountOptions[particleIndex].r;
+                material->color[1] = battleStarCountOptions[particleIndex].g;
+                material->color[2] = battleStarCountOptions[particleIndex].b;
+                material->litColor[0] = battleStarCountOptions[particleIndex].r;
+                material->litColor[1] = battleStarCountOptions[particleIndex].g;
+                material->litColor[2] = battleStarCountOptions[particleIndex].b;
             }
         }
         else {
-            temp_r26 = Hu3DModelLink(sp8[temp_r31 % 4]);
-            sp8[temp_r31] = temp_r26;
+            particleModelId = Hu3DModelLink(particleModelIds[particleIndex % 4]);
+            particleModelIds[particleIndex] = particleModelId;
         }
-        Hu3DModelPosSet(temp_r26, (frandmod(50) - 220 + (*temp_r28 * 130)), (temp_r31 * 12) + 350, 750);
-        Hu3DModelScaleSet(temp_r26, 2.0f, 2.0f, 2.0f);
-        Hu3DModelAttrSet(temp_r26, HU3D_ATTR_DISPOFF);
-        Hu3DModelLayerSet(temp_r26, 3);
-        sp44[temp_r31].x = (float)(frandmod(50) - 25) * 0.05;
-        sp44[temp_r31].z = (float)(frandmod(50) - 25) * 0.05;
+        Hu3DModelPosSet(particleModelId, (frandmod(50) - 220 + (*playerIndexData * 130)), (particleIndex * 12) + 350, 750);
+        Hu3DModelScaleSet(particleModelId, 2.0f, 2.0f, 2.0f);
+        Hu3DModelAttrSet(particleModelId, HU3D_ATTR_DISPOFF);
+        Hu3DModelLayerSet(particleModelId, 3);
+        particleVelocity[particleIndex].x = (float)(frandmod(50) - 25) * 0.05;
+        particleVelocity[particleIndex].z = (float)(frandmod(50) - 25) * 0.05;
     }
     HuPrcSleep(45);
-    temp_r25 = 0;
+    starFadeFrame = 0;
     while (1) {
-        for (temp_r31 = temp_r22 = 0; temp_r31 < 30; temp_r31++) {
-            temp_r30 = &Hu3DData[sp8[temp_r31]];
-            if (temp_r30->pos.y > 350.0f) {
-                Hu3DModelAttrSet(sp8[temp_r31], HU3D_ATTR_DISPOFF);
+        for (particleIndex = inactiveParticleCount = 0; particleIndex < 30; particleIndex++) {
+            particleModel = &Hu3DData[particleModelIds[particleIndex]];
+            if (particleModel->pos.y > 350.0f) {
+                Hu3DModelAttrSet(particleModelIds[particleIndex], HU3D_ATTR_DISPOFF);
             }
             else {
-                Hu3DModelAttrReset(sp8[temp_r31], HU3D_ATTR_DISPOFF);
-                temp_r30->pos.x += sp44[temp_r31].x;
-                temp_r30->pos.z += sp44[temp_r31].z;
+                Hu3DModelAttrReset(particleModelIds[particleIndex], HU3D_ATTR_DISPOFF);
+                particleModel->pos.x += particleVelocity[particleIndex].x;
+                particleModel->pos.z += particleVelocity[particleIndex].z;
             }
-            temp_r30->pos.y -= 3.0f;
-            temp_r30->rot.x += ((temp_r31 % 3) + 1) * 5;
-            temp_r30->rot.y += ((temp_r31 % 5) + 1) * 5;
-            if (temp_r30->pos.y < 0.0f) {
-                if (lbl_1_bss_3A0 == 0) {
-                    Hu3DModelAttrSet(sp8[temp_r31], HU3D_ATTR_DISPOFF);
-                    temp_r22++;
+            particleModel->pos.y -= 3.0f;
+            particleModel->rot.x += ((particleIndex % 3) + 1) * 5;
+            particleModel->rot.y += ((particleIndex % 5) + 1) * 5;
+            if (particleModel->pos.y < 0.0f) {
+                if (battleSelectionState == 0) {
+                    Hu3DModelAttrSet(particleModelIds[particleIndex], HU3D_ATTR_DISPOFF);
+                    inactiveParticleCount++;
                 }
                 else {
-                    temp_r30->pos.y = 350;
-                    temp_r23 = frandmod(50) - 25;
-                    temp_r30->pos.x = (-195 + (*temp_r28 * 130)) + temp_r23;
-                    temp_r30->pos.z = 750;
-                    sp44[temp_r31].x = ((float)frandmod(50) * 0.02) * ((temp_r23 < 0) ? -1 : (temp_r23 > 0) ? 1 : 0);
-                    sp44[temp_r31].z = (float)(frandmod(50) - 25) * 0.05;
+                    particleModel->pos.y = 350;
+                    particleHorizontalOffset = frandmod(50) - 25;
+                    particleModel->pos.x = (-195 + (*playerIndexData * 130)) + particleHorizontalOffset;
+                    particleModel->pos.z = 750;
+                    particleVelocity[particleIndex].x = ((float)frandmod(50) * 0.02) * ((particleHorizontalOffset < 0) ? -1 : (particleHorizontalOffset > 0) ? 1 : 0);
+                    particleVelocity[particleIndex].z = (float)(frandmod(50) - 25) * 0.05;
                 }
             }
         }
-        if (lbl_1_bss_3A0 || temp_r22 != 30) {
-            if (lbl_1_bss_3A0 == 0 && temp_r25 <= 10) {
-                temp_f31 = 1 - sind((temp_r25 / 10.0) * 90.0);
-                if (0.0 == temp_f31) {
-                    Hu3DModelAttrSet(temp_r27, HU3D_ATTR_DISPOFF);
+        if (battleSelectionState || inactiveParticleCount != 30) {
+            if (battleSelectionState == 0 && starFadeFrame <= 10) {
+                starFadeScale = 1 - sind((starFadeFrame / 10.0) * 90.0);
+                if (0.0 == starFadeScale) {
+                    Hu3DModelAttrSet(starModelId, HU3D_ATTR_DISPOFF);
                 }
-                Hu3DModelScaleSet(temp_r27, temp_f31, 1, 1);
-                temp_r25++;
+                Hu3DModelScaleSet(starModelId, starFadeScale, 1, 1);
+                starFadeFrame++;
             }
             HuPrcVSleep();
         }
@@ -966,11 +966,11 @@ void fn_1_12BEC(void)
             break;
         }
     }
-    (void)temp_r28;
-    (void)temp_r28;
-    (void)temp_r27;
-    (void)temp_r27;
-    Hu3DModelKill(temp_r27);
+    (void)playerIndexData;
+    (void)playerIndexData;
+    (void)starModelId;
+    (void)starModelId;
+    Hu3DModelKill(starModelId);
     HuPrcVSleep();
     HuPrcEnd();
     while (1) {

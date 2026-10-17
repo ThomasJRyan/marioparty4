@@ -9,38 +9,38 @@
 
 #include "ext_math.h"
 
-void fn_1_DE3C(void);
-void fn_1_DFB8(void);
-void fn_1_E02C(float x, float y, s16 recordNo);
+void CreateRecordDisplayWindows(void);
+void DestroyRecordDisplayWindows(void);
+void ShowMinigameRecord(float startValue, float targetValue, s16 x);
 
-static s16 lbl_1_bss_37C[6];
-static s16 lbl_1_bss_370[6];
+static s16 recordWindows[6];
+static s16 recordSpriteGroups[6];
 
 s16 mgRecordIdxTbl[6][3] = { 0, 2, 13, 1, 0, 15, 2, 1, 35, 3, 2, 40, 5, 1, 51, 10, 1, 62 };
 
-void fn_1_D8D0(void)
+void ShowMinigameRecords(void)
 {
     s16 i;
     float weight;
-    fn_1_DE3C();
-    espAttrReset(lbl_1_bss_2C2C[3], HUSPR_ATTR_DISPOFF);
-    espTPLvlSet(lbl_1_bss_2C2C[3], 0);
+    CreateRecordDisplayWindows();
+    espAttrReset(mgModeSpriteIds[3], HUSPR_ATTR_DISPOFF);
+    espTPLvlSet(mgModeSpriteIds[3], 0);
     for (i = 0; i <= 20; i++) {
-        espTPLvlSet(lbl_1_bss_2C2C[3], i / 20.0);
+        espTPLvlSet(mgModeSpriteIds[3], i / 20.0);
         HuPrcVSleep();
     }
     for (i = 0; i <= 20; i++) {
         weight = i / 20.0;
-        espAttrReset(lbl_1_bss_2C2C[27], HUSPR_ATTR_DISPOFF);
-        espPosSet(lbl_1_bss_2C2C[27], 288, -100.0 + (164.0 * sind(weight * 90.0f)));
-        espAttrReset(lbl_1_bss_2C2C[28], HUSPR_ATTR_DISPOFF);
-        espTPLvlSet(lbl_1_bss_2C2C[28], weight);
-        espAttrReset(lbl_1_bss_2C2C[20], HUSPR_ATTR_DISPOFF);
-        espPosSet(lbl_1_bss_2C2C[20], ((1 - sind(weight * 90.0f)) * 400) + 288, 424);
+        espAttrReset(mgModeSpriteIds[27], HUSPR_ATTR_DISPOFF);
+        espPosSet(mgModeSpriteIds[27], 288, -100.0 + (164.0 * sind(weight * 90.0f)));
+        espAttrReset(mgModeSpriteIds[28], HUSPR_ATTR_DISPOFF);
+        espTPLvlSet(mgModeSpriteIds[28], weight);
+        espAttrReset(mgModeSpriteIds[20], HUSPR_ATTR_DISPOFF);
+        espPosSet(mgModeSpriteIds[20], ((1 - sind(weight * 90.0f)) * 400) + 288, 424);
         HuPrcVSleep();
     }
     for (i = 0; i < 6; i++) {
-        fn_1_E02C(288, (i * 42) + 150.0f, i);
+        ShowMinigameRecord(288, (i * 42) + 150.0f, x);
         HuPrcVSleep();
     }
     while (1) {
@@ -51,80 +51,80 @@ void fn_1_D8D0(void)
     }
     HuAudFXPlay(3);
     for (i = 0; i < 6; i++) {
-        fn_1_E02C(1288, 0, i);
+        ShowMinigameRecord(1288, 0, x);
         HuPrcVSleep();
     }
-    fn_1_DFB8();
+    DestroyRecordDisplayWindows();
     for (i = 0; i <= 20; i++) {
         weight = i / 20.0;
-        espAttrReset(lbl_1_bss_2C2C[27], HUSPR_ATTR_DISPOFF);
-        espPosSet(lbl_1_bss_2C2C[27], 288, -100.0 + (164.0 * cosd(weight * 90.0f)));
-        espAttrReset(lbl_1_bss_2C2C[28], HUSPR_ATTR_DISPOFF);
-        espTPLvlSet(lbl_1_bss_2C2C[28], 1.0 - weight);
-        espAttrReset(lbl_1_bss_2C2C[20], HUSPR_ATTR_DISPOFF);
-        espPosSet(lbl_1_bss_2C2C[20], ((1 - cosd(weight * 90.0f)) * 400) + 288, 424);
+        espAttrReset(mgModeSpriteIds[27], HUSPR_ATTR_DISPOFF);
+        espPosSet(mgModeSpriteIds[27], 288, -100.0 + (164.0 * cosd(weight * 90.0f)));
+        espAttrReset(mgModeSpriteIds[28], HUSPR_ATTR_DISPOFF);
+        espTPLvlSet(mgModeSpriteIds[28], 1.0 - weight);
+        espAttrReset(mgModeSpriteIds[20], HUSPR_ATTR_DISPOFF);
+        espPosSet(mgModeSpriteIds[20], ((1 - cosd(weight * 90.0f)) * 400) + 288, 424);
         HuPrcVSleep();
     }
     for (i = 0; i <= 10; i++) {
-        espTPLvlSet(lbl_1_bss_2C2C[3], 1 - (i / 10.0));
+        espTPLvlSet(mgModeSpriteIds[3], 1 - (i / 10.0));
         HuPrcVSleep();
     }
 }
 
-void fn_1_DE3C(void)
+void CreateRecordDisplayWindows(void)
 {
     ANIMDATA *numAnim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 53), HU_MEMNUM_OVL));
     s16 i;
     for (i = 0; i < 6; i++) {
         s16 window = HuWinCreate(0, (i * 24), 268, 32, 0);
         s16 j;
-        lbl_1_bss_37C[i] = window;
+        recordWindows[i] = window;
         HuWinBGTPLvlSet(window, 0);
         HuWinMesSpeedSet(window, 0);
         HuWinDispOff(window);
-        lbl_1_bss_370[i] = HuSprGrpCreate(8);
+        recordSpriteGroups[i] = HuSprGrpCreate(8);
         for (j = 0; j < 8; j++) {
             s16 sprite = HuSprCreate(numAnim, 10, 0);
-            HuSprGrpMemberSet(lbl_1_bss_370[i], j, sprite);
+            HuSprGrpMemberSet(recordSpriteGroups[i], j, sprite);
             (void)sprite;
-            HuSprAttrSet(lbl_1_bss_370[i], j, HUSPR_ATTR_DISPOFF);
+            HuSprAttrSet(recordSpriteGroups[i], j, HUSPR_ATTR_DISPOFF);
         }
     }
 }
 
-void fn_1_DFB8(void)
+void DestroyRecordDisplayWindows(void)
 {
     s16 i;
     for (i = 0; i < 6; i++) {
-        HuWinKill(lbl_1_bss_37C[i]);
-        HuSprGrpKill(lbl_1_bss_370[i]);
+        HuWinKill(recordWindows[i]);
+        HuSprGrpKill(recordSpriteGroups[i]);
     }
 }
 
-void fn_1_E02C(float x, float y, s16 recordNo)
+void ShowMinigameRecord(float startValue, float targetValue, s16 x)
 {
-    s32 sprGrpId = lbl_1_bss_370[recordNo];
-    s32 value = GWMGRecordGet(mgRecordIdxTbl[recordNo][0]);
+    s32 sprGrpId = recordSpriteGroups[x];
+    s32 value = GWMGRecordGet(mgRecordIdxTbl[x][0]);
     s32 i;
     s16 mgNo;
     float xOfs;
 
-    if (mgRecordIdxTbl[recordNo][2] != -1) {
-        mgNo = omMgIndexGet(mgRecordIdxTbl[recordNo][2]);
+    if (mgRecordIdxTbl[x][2] != -1) {
+        mgNo = omMgIndexGet(mgRecordIdxTbl[x][2]);
         if (!GWMGAvailGet(mgNo + 401)) {
             mgNo = -1;
         }
         else {
-            HuWinMesSet(lbl_1_bss_37C[recordNo], mgInfoTbl[mgNo].name_mess);
+            HuWinMesSet(recordWindows[x], mgInfoTbl[mgNo].name_mess);
         }
     }
     else {
         mgNo = -1;
     }
-    HuWinDispOn(lbl_1_bss_37C[recordNo]);
-    HuWinPosSet(lbl_1_bss_37C[recordNo], x - 220, y - 24);
+    HuWinDispOn(recordWindows[x]);
+    HuWinPosSet(recordWindows[x], startValue - 220, targetValue - 24);
     if (mgNo == -1) {
-        HuWinMesSet(lbl_1_bss_37C[recordNo], MAKE_MESSID(35, 0));
+        HuWinMesSet(recordWindows[x], MAKE_MESSID(35, 0));
         for (i = 0; i < 8; i++) {
             HuSprBankSet(sprGrpId, i, 0);
             HuSprPosSet(sprGrpId, i, i * 16, 0);
@@ -135,7 +135,7 @@ void fn_1_E02C(float x, float y, s16 recordNo)
     else {
         s32 memberNum;
         s32 digitValue;
-        if (mgRecordIdxTbl[recordNo][1] == 0) {
+        if (mgRecordIdxTbl[x][1] == 0) {
             memberNum = 0;
             if (value > 9999) {
                 value = 9999;
@@ -195,7 +195,7 @@ void fn_1_E02C(float x, float y, s16 recordNo)
             HuSprBankSet(sprGrpId, memberNum, 12);
             yOfs[memberNum] = -2;
             memberNum++;
-            if (mgRecordIdxTbl[recordNo][1] == 2) {
+            if (mgRecordIdxTbl[x][1] == 2) {
                 value = (float)value * (203.0 / (REFRESH_RATE*2));
             }
             else {
@@ -216,5 +216,5 @@ void fn_1_E02C(float x, float y, s16 recordNo)
             xOfs = memberNum * 16;
         }
     }
-    HuSprGrpPosSet(sprGrpId, 8 + ((210 + x) - xOfs), y);
+    HuSprGrpPosSet(sprGrpId, 8 + ((210 + startValue) - xOfs), targetValue);
 }

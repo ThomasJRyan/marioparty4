@@ -4,7 +4,7 @@
 #include "game/esprite.h"
 #endif
 
-DataListModel lbl_1_data_490[] = {
+DataListModel mgModeModelDataList[] = {
     { DATA_MAKE_NUM(DATADIR_MGMODE, 0x00), 0, 0, -1, -1, { 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 } },
     { DATA_MAKE_NUM(DATADIR_MGMODE, 0x01), 0x40000001, 0, -1, -1, { 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 } },
     { DATA_MAKE_NUM(DATADIR_MGMODE, 0x02), 0, 0, -1, -1, { 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 } },
@@ -21,7 +21,7 @@ DataListModel lbl_1_data_490[] = {
     { -1, 0, 0, -1, -1, { 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 } },
 };
 
-DataListSprite lbl_1_data_768[] = {
+DataListSprite mgModeSpriteDataList[] = {
     { DATA_MAKE_NUM(DATADIR_MGMODE, 0x0C), 0, 10, 288, -200, { 255, 255, 255, 255 } },
     { DATA_MAKE_NUM(DATADIR_MGMODE, 0x09), 0, 10, 288, -200, { 255, 255, 255, 255 } },
     { DATA_MAKE_NUM(DATADIR_MGMODE, 0x0A), 0, 10, 288, -200, { 255, 255, 255, 255 } },
@@ -54,68 +54,68 @@ DataListSprite lbl_1_data_768[] = {
     { 0, 0, 0, 0, 0, { 0, 0, 0, 0 } },
 };
 
-void fn_1_267E8(DataListModel *model_list)
+void CreateDataListModels(DataListModel *modelList)
 {
     DataListModel *list;
     s16 i;
     s16 model;
-    s16 clear_i;
-    HU3DMODEL *model_ptr;
+    s16 clearI;
+    HU3DMODEL *modelPtr;
     void *data;
-    list = model_list;
-    for (clear_i = 0; clear_i < 13; clear_i++) {
-        lbl_1_bss_2C80[clear_i] = lbl_1_bss_2C66[clear_i] = -1;
+    list = modelList;
+    for (clearI = 0; clearI < 13; clearI++) {
+        mgModeModelIds[clearI] = mgModeMotionIds[clearI] = -1;
     }
     for (i = 0; list->datanum != DATA_NUM_LISTEND; list++, i++) {
         if (list->type == 0) {
             data = HuDataSelHeapReadNum(list->datanum, HU_MEMNUM_OVL, HEAP_MODEL);
             model = Hu3DModelCreate(data);
-            lbl_1_bss_2C80[i] = model;
+            mgModeModelIds[i] = model;
             Hu3DModelAttrSet(model, list->attr);
             Hu3DModelPosSetV(model, &list->pos);
             Hu3DModelRotSetV(model, &list->rot);
             Hu3DModelScaleSetV(model, &list->scale);
-            model_ptr = &Hu3DData[model];
-            if (model_ptr->motId != -1) {
-                lbl_1_bss_2C66[i] = model_ptr->motId;
+            modelPtr = &Hu3DData[model];
+            if (modelPtr->motId != -1) {
+                mgModeMotionIds[i] = modelPtr->motId;
             }
         }
         else if (list->type == 1) {
             data = HuDataSelHeapReadNum(list->datanum, HU_MEMNUM_OVL, HEAP_MODEL);
-            lbl_1_bss_2C66[i] = Hu3DJointMotion(lbl_1_bss_2C80[list->mot_link], data);
+            mgModeMotionIds[i] = Hu3DJointMotion(mgModeModelIds[list->motLink], data);
         }
         (void)i;
     }
-    list = model_list;
+    list = modelList;
     for (i = 0; list->datanum != DATA_NUM_LISTEND; list++, i++) {
         if (list->type == 2) {
-            model = Hu3DModelLink(lbl_1_bss_2C80[list->link]);
-            lbl_1_bss_2C80[i] = model;
+            model = Hu3DModelLink(mgModeModelIds[list->link]);
+            mgModeModelIds[i] = model;
             Hu3DModelAttrSet(model, list->attr);
             Hu3DModelPosSetV(model, &list->pos);
             Hu3DModelRotSetV(model, &list->rot);
             Hu3DModelScaleSetV(model, &list->scale);
         }
-        if (list->type == 0 && list->mot_link != -1) {
-            Hu3DMotionSet(lbl_1_bss_2C80[i], lbl_1_bss_2C66[list->mot_link]);
+        if (list->type == 0 && list->motLink != -1) {
+            Hu3DMotionSet(mgModeModelIds[i], mgModeMotionIds[list->motLink]);
         }
         (void)i;
     }
 }
 
-void fn_1_26A78(DataListSprite *sprite_list)
+void CreateDataListSprites(DataListSprite *spriteList)
 {
     DataListSprite *list;
     s16 sprite;
-    s16 clear_i;
+    s16 clearI;
     s16 i;
-    list = sprite_list;
-    for (clear_i = 0; clear_i < 29; clear_i++) {
-        lbl_1_bss_2C2C[clear_i] = -1;
+    list = spriteList;
+    for (clearI = 0; clearI < 29; clearI++) {
+        mgModeSpriteIds[clearI] = -1;
     }
     for (i = 0; list->datanum; i++, list++) {
         sprite = espEntry(list->datanum, 100, 0);
-        lbl_1_bss_2C2C[i] = sprite;
+        mgModeSpriteIds[i] = sprite;
         espPosSet(sprite, list->x, list->y);
         espColorSet(sprite, list->color.r, list->color.g, list->color.b);
         espTPLvlSet(sprite, list->color.a / 255.0f);
@@ -124,12 +124,12 @@ void fn_1_26A78(DataListSprite *sprite_list)
     }
 }
 
-void fn_1_26BB0(void)
+void DestroyDataListSprites(void)
 {
     s16 i;
     for (i = 0; i < 29; i++) {
-        if (lbl_1_bss_2C2C[i] != -1) {
-            espKill(lbl_1_bss_2C2C[i]);
+        if (mgModeSpriteIds[i] != -1) {
+            espKill(mgModeSpriteIds[i]);
         }
     }
 }

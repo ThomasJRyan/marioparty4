@@ -9,21 +9,21 @@
 
 #include "math.h"
 
-s16 lbl_1_bss_2C80[13];
-s16 lbl_1_bss_2C66[13];
-s16 lbl_1_bss_2C2C[29];
-s16 lbl_1_bss_2C24[4];
-s16 lbl_1_bss_2C1C[4];
-s16 lbl_1_bss_2C14[4];
-s16 lbl_1_bss_2BC4[4][10];
-s16 lbl_1_bss_264C[10][70];
-s16 lbl_1_bss_2638[10];
-s16 lbl_1_bss_20C0[10][70];
-s16 lbl_1_bss_20AC[10];
-s16 lbl_1_bss_20AA;
-s16 lbl_1_bss_20A8;
+s16 mgModeModelIds[13];
+s16 mgModeMotionIds[13];
+s16 mgModeSpriteIds[29];
+s16 playerCharacterIdsByGroup[4];
+s16 playerOrderByGroup[4];
+s16 playerModelIdsByGroup[4];
+s16 playerMotionIdsByGroup[4][10];
+s16 minigameIdsByType[10][70];
+s16 minigameCountByType[10];
+s16 availableMinigameIdsByType[10][70];
+s16 availableMinigameCountByType[10];
+s16 characterAssetsLoaded;
+s16 minigameAssetLoadStatus;
 
-s32 lbl_1_data_9C0[8] = {
+s32 characterMotionDirectories[8] = {
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00),
     DATA_MAKE_NUM(DATADIR_LUIGIMOT, 0x00),
     DATA_MAKE_NUM(DATADIR_PEACHMOT, 0x00),
@@ -34,7 +34,7 @@ s32 lbl_1_data_9C0[8] = {
     DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 0x00),
 };
 
-s32 lbl_1_data_9E0[8] = {
+s32 characterModelDirectories[8] = {
     DATADIR_MARIOMDL1,
     DATADIR_LUIGIMDL1,
     DATADIR_PEACHMDL1,
@@ -45,16 +45,16 @@ s32 lbl_1_data_9E0[8] = {
     DATADIR_WALUIGIMDL1,
 };
 
-s16 lbl_1_data_A00 = -1;
+s16 minigamePreviewSpriteGroup = -1;
 
-void fn_1_26C54(s16 layer);
+void DrawMinigameBackground(s16 minigameIndex);
 
-void fn_1_26C28(void)
+void InstallMinigameBackgroundDrawHook(void)
 {
-    Hu3DLayerHookSet(2, fn_1_26C54);
+    Hu3DLayerHookSet(2, DrawMinigameBackground);
 }
 
-void fn_1_26C54(s16 layer)
+void DrawMinigameBackground(s16 minigameIndex)
 {
     Mtx44 proj;
     Mtx modelview;
@@ -97,14 +97,14 @@ void fn_1_26C54(s16 layer)
     GXEnd();
 }
 
-void fn_1_27080(void)
+void LoadMinigameCharacterAssets(void)
 {
     s16 i;
     s32 status;
     CharModelDataClose(-1);
     CharDataClose(-1);
     for (i = 0; i < 4; i++) {
-        status = HuDataDirReadAsync(lbl_1_data_9C0[GWPlayerCfg[i].character]);
+        status = HuDataDirReadAsync(characterMotionDirectories[GWPlayerCfg[i].character]);
         if (status != -1) {
             while (!HuDataGetAsyncStat(status)) {
                 HuPrcVSleep();
@@ -113,103 +113,103 @@ void fn_1_27080(void)
         CharMotionInit(GWPlayerCfg[i].character);
     }
     for (i = 0; i < 2; i++) {
-        status = HuDataDirReadAsync(lbl_1_data_9E0[GWPlayerCfg[i].character]);
+        status = HuDataDirReadAsync(characterModelDirectories[GWPlayerCfg[i].character]);
         if (status != -1) {
             while (!HuDataGetAsyncStat(status)) {
                 HuPrcVSleep();
             }
         }
     }
-    lbl_1_bss_20AA = 0;
+    characterAssetsLoaded = 0;
     HuPrcEnd();
     while (1) {
         HuPrcVSleep();
     }
 }
 
-s16 fn_1_271B4(s16 mgNo, s16 x, s16 y)
+s16 SetMinigamePreviewSprite(s16 spriteGroupId, s16 spriteIndex, s16 x)
 {
     s16 time;
     ANIMDATA *anim;
     s16 sprite;
     s32 mgpic;
-    if (mgNo == -1) {
-        if (lbl_1_data_A00 == -1) {
+    if (spriteGroupId == -1) {
+        if (minigamePreviewSpriteGroup == -1) {
             return;
         }
         for (time = 0; time <= 10; time++) {
-            HuSprGrpTPLvlSet(lbl_1_data_A00, 1.0 - (time / 10.0));
+            HuSprGrpTPLvlSet(minigamePreviewSpriteGroup, 1.0 - (time / 10.0));
             HuPrcVSleep();
         }
-        HuSprGrpKill(lbl_1_data_A00);
-        lbl_1_data_A00 = -1;
+        HuSprGrpKill(minigamePreviewSpriteGroup);
+        minigamePreviewSpriteGroup = -1;
         return;
     }
 
-    if (lbl_1_data_A00 != -1) {
-        HuSprGrpKill(lbl_1_data_A00);
+    if (minigamePreviewSpriteGroup != -1) {
+        HuSprGrpKill(minigamePreviewSpriteGroup);
     }
-    lbl_1_data_A00 = HuSprGrpCreate(1);
-    mgpic = mgInfoTbl[mgNo].mg_pic[0];
-    if (GWMGAvailGet(mgNo + 401)) {
+    minigamePreviewSpriteGroup = HuSprGrpCreate(1);
+    mgpic = mgInfoTbl[spriteGroupId].mg_pic[0];
+    if (GWMGAvailGet(spriteGroupId + 401)) {
         anim = HuSprAnimReadFile(mgpic);
     }
     else {
         anim = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MGMODE, 0x2C));
     }
     sprite = HuSprCreate(anim, 100, 0);
-    HuSprGrpMemberSet(lbl_1_data_A00, 0, sprite);
-    HuSprGrpPosSet(lbl_1_data_A00, x, y);
-    HuSprGrpScaleSet(lbl_1_data_A00, 0.55f, 0.55f);
-    HuSprGrpDrawNoSet(lbl_1_data_A00, 64);
-    return lbl_1_data_A00;
+    HuSprGrpMemberSet(minigamePreviewSpriteGroup, 0, sprite);
+    HuSprGrpPosSet(minigamePreviewSpriteGroup, spriteIndex, x);
+    HuSprGrpScaleSet(minigamePreviewSpriteGroup, 0.55f, 0.55f);
+    HuSprGrpDrawNoSet(minigamePreviewSpriteGroup, 64);
+    return minigamePreviewSpriteGroup;
 }
 
-void fn_1_27418(void)
+void CreatePlayerCharacterModels(void)
 {
     s16 i;
     s16 j;
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_2C1C[i] = i;
+        playerOrderByGroup[i] = i;
     }
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 3 - i; j++) {
-            if (GWPlayerCfg[lbl_1_bss_2C1C[j]].group > GWPlayerCfg[lbl_1_bss_2C1C[j + 1]].group) {
-                s16 temp = lbl_1_bss_2C1C[j];
-                lbl_1_bss_2C1C[j] = lbl_1_bss_2C1C[j + 1];
-                lbl_1_bss_2C1C[j + 1] = temp;
+            if (GWPlayerCfg[playerOrderByGroup[j]].group > GWPlayerCfg[playerOrderByGroup[j + 1]].group) {
+                s16 swappedPlayerOrder = playerOrderByGroup[j];
+                playerOrderByGroup[j] = playerOrderByGroup[j + 1];
+                playerOrderByGroup[j + 1] = swappedPlayerOrder;
             }
         }
     }
     for (i = 0; i < 4; i++) {
         s16 charNo;
-        lbl_1_bss_2C24[i] = charNo = GWPlayerCfg[lbl_1_bss_2C1C[i]].character;
-        lbl_1_bss_2C14[i] = CharModelCreate(charNo, 2);
-        lbl_1_bss_2BC4[i][0] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00));
-        lbl_1_bss_2BC4[i][1] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02));
-        lbl_1_bss_2BC4[i][2] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x03));
-        lbl_1_bss_2BC4[i][3] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x48));
-        lbl_1_bss_2BC4[i][4] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x49));
-        lbl_1_bss_2BC4[i][5] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x17));
-        lbl_1_bss_2BC4[i][6] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x18));
-        CharMotionVoiceOnSet(GWPlayerCfg[lbl_1_bss_2C1C[i]].character, lbl_1_bss_2BC4[i][1], 0);
-        CharMotionVoiceOnSet(GWPlayerCfg[lbl_1_bss_2C1C[i]].character, lbl_1_bss_2BC4[i][2], 0);
-        Hu3DModelPosSet(lbl_1_bss_2C14[i], 600, 0, 800);
-        Hu3DModelLayerSet(lbl_1_bss_2C14[i], 3);
+        playerCharacterIdsByGroup[i] = charNo = GWPlayerCfg[playerOrderByGroup[i]].character;
+        playerModelIdsByGroup[i] = CharModelCreate(charNo, 2);
+        playerMotionIdsByGroup[i][0] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00));
+        playerMotionIdsByGroup[i][1] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02));
+        playerMotionIdsByGroup[i][2] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x03));
+        playerMotionIdsByGroup[i][3] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x48));
+        playerMotionIdsByGroup[i][4] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x49));
+        playerMotionIdsByGroup[i][5] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x17));
+        playerMotionIdsByGroup[i][6] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x18));
+        CharMotionVoiceOnSet(GWPlayerCfg[playerOrderByGroup[i]].character, playerMotionIdsByGroup[i][1], 0);
+        CharMotionVoiceOnSet(GWPlayerCfg[playerOrderByGroup[i]].character, playerMotionIdsByGroup[i][2], 0);
+        Hu3DModelPosSet(playerModelIdsByGroup[i], 600, 0, 800);
+        Hu3DModelLayerSet(playerModelIdsByGroup[i], 3);
         CharModelDataClose(charNo);
-        Hu3DModelShadowSet(lbl_1_bss_2C14[i]);
+        Hu3DModelShadowSet(playerModelIdsByGroup[i]);
     }
 }
 
-void fn_1_2783C(s16 evtno)
+void ExitMinigameMode(s16 modeType)
 {
     s16 i;
     OMOVLHIS *his;
     for (i = 0; i < 4; i++) {
-        GWPlayerCfg[i].character = lbl_1_bss_8.unk24[i].unk68;
-        GWPlayerCfg[i].iscom = lbl_1_bss_8.unk24[i].unk60;
-        GWPlayerCfg[i].pad_idx = lbl_1_bss_8.unk24[i].unk6C;
-        GWPlayerCfg[i].diff = lbl_1_bss_8.unk24[i].unk64;
+        GWPlayerCfg[i].character = minigameSharedState.playerStates[i].character;
+        GWPlayerCfg[i].iscom = minigameSharedState.playerStates[i].isComputer;
+        GWPlayerCfg[i].pad_idx = minigameSharedState.playerStates[i].controllerPort;
+        GWPlayerCfg[i].diff = minigameSharedState.playerStates[i].difficulty;
     }
     WipeColorSet(255, 255, 255);
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
@@ -223,55 +223,55 @@ void fn_1_2783C(s16 evtno)
     }
     HuAudSndCharGrpSet(-1);
     his = omOvlHisGet(0);
-    omOvlHisChg(0, DLL_mgmodedll, evtno, his->stat);
+    omOvlHisChg(0, DLL_mgmodedll, modeType, his->stat);
     omOvlCallEx(DLL_instdll, 1, 0, 0);
     while (1) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_279FC(s32 coinSkipF)
+void BuildMinigameTypeLists(s32 modeType)
 {
     s16 i;
     s16 mgNum;
     for (mgNum = 0; mgInfoTbl[mgNum].ovl != 65535; mgNum++)
         ;
     for (i = 0; i < 9; i++) {
-        lbl_1_bss_2638[i] = lbl_1_bss_20AC[i] = 0;
+        minigameCountByType[i] = availableMinigameCountByType[i] = 0;
     }
     for (i = 0; i < mgNum; i++) {
         s16 type = mgInfoTbl[i].type;
         if (type >= 0 && type < 9) {
-            if (coinSkipF) {
+            if (modeType) {
                 s16 ovl = mgInfoTbl[i].ovl;
                 if (ovl == DLL_m408dll || ovl == DLL_m422dll || ovl == DLL_m430dll) {
                     continue;
                 }
             }
-            lbl_1_bss_264C[type][lbl_1_bss_2638[type]] = i;
-            lbl_1_bss_2638[type]++;
+            minigameIdsByType[type][minigameCountByType[type]] = i;
+            minigameCountByType[type]++;
             if (GWMGAvailGet(i + 401)) {
-                lbl_1_bss_20C0[type][lbl_1_bss_20AC[type]] = i;
-                lbl_1_bss_20AC[type]++;
+                availableMinigameIdsByType[type][availableMinigameCountByType[type]] = i;
+                availableMinigameCountByType[type]++;
             }
         }
     }
 }
 
-void fn_1_27C0C(s16 type)
+void SelectMinigameType(s16 modeType)
 {
     s16 i;
     s16 j;
     for (i = 0; i < 256;) {
-        for (j = 0; j < lbl_1_bss_20AC[type]; j++, i++) {
+        for (j = 0; j < availableMinigameCountByType[modeType]; j++, i++) {
             if (i > 256) {
                 break;
             }
-            mgIndexList[i] = lbl_1_bss_20C0[type][j];
+            mgIndexList[i] = availableMinigameIdsByType[modeType][j];
         }
     }
     for (i = 0; i < 256; i++) {
         mgIndexList[i];
     }
-    lbl_801D3E94 = 0;
+    lbl801D3E94 = 0;
 }

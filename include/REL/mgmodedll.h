@@ -10,18 +10,18 @@
 #include "game/sprite.h"
 #include "game/window.h"
 
-typedef struct datalist_model {
+typedef struct DataListModel {
     s32 datanum;
     u32 attr;
     s16 type;
     s16 link;
-    s16 mot_link;
+    s16 motLink;
     Vec pos;
     Vec rot;
     Vec scale;
 } DataListModel; // Size 0x34
 
-typedef struct datalist_sprite {
+typedef struct DataListSprite {
     u32 datanum;
     s16 attr;
     s16 prio;
@@ -30,85 +30,85 @@ typedef struct datalist_sprite {
     GXColor color;
 } DataListSprite; // Size 0x14
 
-typedef struct struct_bss8_24 {
-    OMOBJ *unk0;
-    void (*unk4)(OMOBJ *, ...);
-    u8 unk8[0x50];
-    s32 unk58;
-    s32 unk5C;
-    s32 unk60;
-    s32 unk64;
-    s32 unk68;
-    s32 unk6C;
-    s32 unk70[4];
-    s32 unk80[4];
-} StructBss8_24; // Size 0x90
+typedef struct MinigamePlayerState {
+    OMOBJ *object;
+    void (*updateCallback)(OMOBJ *, ...);
+    u8 unreferencedPadding[0x50];
+    s32 playerIndex;
+    s32 team;
+    s32 isComputer;
+    s32 difficulty;
+    s32 character;
+    s32 controllerPort;
+    s32 selectionFlags[4];
+    s32 selectionValues[4];
+} MinigamePlayerState; // Size 0x90
 
-typedef struct struct_bss8 {
-    s32 unk0;
-    s32 unk4;
-    s32 unk8;
-    s32 unkC;
-    s32 unk10;
-    s32 unk14;
-    s32 unk18;
-    s32 unk1C;
-    s32 unk20;
-    StructBss8_24 unk24[4];
-} StructBss8; // Size 0x264
+typedef struct MinigameSharedState {
+    s32 boardModelId;
+    s32 boardMotionId;
+    s32 selectionModelMotionId;
+    s32 modeModelId;
+    s32 modeModelMotionId;
+    s32 victoryMotionId;
+    s32 alternateModeMotionId;
+    s32 modeSelectionType;
+    s32 battleStarMaximum;
+    MinigamePlayerState playerStates[4];
+} MinigameSharedState; // Size 0x264
 
-extern s16 lbl_1_bss_2C80[13];
-extern s16 lbl_1_bss_2C66[13];
-extern s16 lbl_1_bss_2C2C[29];
-extern s16 lbl_1_bss_2C24[4];
-extern s16 lbl_1_bss_2C1C[4];
-extern s16 lbl_1_bss_2C14[4];
-extern s16 lbl_1_bss_2BC4[4][10];
+extern s16 mgModeModelIds[13];
+extern s16 mgModeMotionIds[13];
+extern s16 mgModeSpriteIds[29];
+extern s16 playerCharacterIdsByGroup[4];
+extern s16 playerOrderByGroup[4];
+extern s16 playerModelIdsByGroup[4];
+extern s16 playerMotionIdsByGroup[4][10];
 
-extern s16 lbl_1_bss_264C[10][70];
-extern s16 lbl_1_bss_2638[10];
-extern s16 lbl_1_bss_20C0[10][70];
-extern s16 lbl_1_bss_20AC[10];
-extern s16 lbl_1_bss_20AA;
+extern s16 minigameIdsByType[10][70];
+extern s16 minigameCountByType[10];
+extern s16 availableMinigameIdsByType[10][70];
+extern s16 availableMinigameCountByType[10];
+extern s16 characterAssetsLoaded;
 
 extern HUPROCESS *objman;
 
-extern s16 lbl_1_bss_2E4;
+extern s16 freePlayWindowState;
 
-extern s16 lbl_1_bss_2A6;
-extern s16 lbl_1_bss_2A4;
+extern s16 freePlayModeType;
+extern s16 freePlayModeSelection;
 
-extern StructBss8 lbl_1_bss_8;
+extern MinigameSharedState minigameSharedState;
 extern s16 mgModeEvtNo;
 
-extern s16 lbl_1_data_A2[];
-extern DataListModel lbl_1_data_490[];
-extern DataListSprite lbl_1_data_768[];
+extern s16 freePlaySelectionOrder[];
+extern DataListModel mgModeModelDataList[];
+extern DataListSprite mgModeSpriteDataList[];
 
-s32 fn_1_6D28(void);
-s32 fn_1_C0C8(s32 arg0);
-void fn_1_D8D0(void);
-s32 fn_1_E72C(void);
-s32 fn_1_13418(void);
+s32 runFreePlaySelection(void);
+s32 checkFreePlaySelection(s32 value);
+void showMinigameRecords(void);
+s32 runBattleMinigameSelection(void);
+s32 runTicTacToeMinigame(void);
 
-void fn_1_18DF8(HUPROCESS *arg0, StructBss8 *arg1);
+void initializeMinigameMenuObjects(HUPROCESS *processManager, MinigameSharedState *sharedState);
 
-void fn_1_19018(void);
-s32 fn_1_194C8(s32 arg0);
+void playMinigameModeOpening(void);
+s32 runMinigameModeSelection(s32 modeType);
 
-s32 fn_1_2530C(s32 arg0, s32 arg1, s32 arg2);
-void fn_1_25584(s32 arg0);
-void fn_1_25838(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-s32 fn_1_2592C(s32 arg0, s32 arg1, s32 arg2);
-s32 fn_1_25CA8(s32 arg0);
-void fn_1_25E74(s32 arg0);
+s32 createStandardMessageWindow(s32 windowId, s32 messageId, s32 choiceIndex);
+void closeStandardMessageWindow(s32 windowId);
+void showMessageAndWait(s32 windowId, s32 messageId, s32 choiceIndex, s32 waitFrames);
+s32 showMessageChoiceWindow(s32 windowId, s32 messageId, s32 choiceIndex);
+s32 createCenteredMessageWindow(s32 windowId);
+void closeCenteredMessageWindow(s32 windowId);
 
-void fn_1_267E8(DataListModel *model_list);
-void fn_1_26A78(DataListSprite *sprite_list);
-void fn_1_26C28(void);
-void fn_1_27080(void);
-s16 fn_1_271B4(s16 mgNo, s16 x, s16 y);
-void fn_1_27418(void);
-void fn_1_279FC(s32 coinSkipF);
+void createDataListModels(DataListModel *modelList);
+void createDataListSprites(DataListSprite *spriteList);
+void installMinigameBackgroundDrawHook(void);
+void loadMinigameCharacterAssets(void);
+s16 setMinigamePreviewSprite(s16 spriteGroupId, s16 spriteIndex, s16 x);
+void createPlayerCharacterModels(void);
+void buildMinigameTypeLists(s32 modeType);
 
 #endif

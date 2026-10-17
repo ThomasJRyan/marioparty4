@@ -20,35 +20,35 @@
 #include "game/hsfex.h"
 #endif
 
-typedef struct camera_view_params {
+typedef struct CameraViewParams {
     Vec rot;
     Vec pos;
     float zoom;
 } CameraViewParams;
 
-CameraViewParams lbl_1_data_0[1] = { { { -5, 0, 0 }, { 0, 125, 0 }, 1750 } };
+CameraViewParams modeCameraPresets[1] = { { { -5, 0, 0 }, { 0, 125, 0 }, 1750 } };
 
 OMOBJ *outViewObj;
 HUPROCESS *objman;
-s32 lbl_1_bss_2D4;
-s32 lbl_1_bss_2D0;
-s16 lbl_1_bss_2CE;
-s16 lbl_1_bss_2CC;
-Vec lbl_1_bss_2C0;
-Vec lbl_1_bss_2B4;
-float lbl_1_bss_2B0;
-s16 lbl_1_bss_2A8[4];
-s16 lbl_1_bss_2A6;
-s16 lbl_1_bss_2A4;
-Vec lbl_1_bss_28C[2];
-Vec lbl_1_bss_274[2];
-float lbl_1_bss_26C[2];
-StructBss8 lbl_1_bss_8;
+s32 modeSelectionState;
+s32 modeSelectionActive;
+s16 modeSelectionMessageWindow;
+s16 modeSelectionInstructionWindow;
+Vec modeCameraRotation;
+Vec modeCameraPosition;
+float modeCameraZoom;
+s16 modeSelectionResults[4];
+s16 freePlayModeType;
+s16 freePlayModeSelection;
+Vec modeCameraRotationTargets[2];
+Vec modeCameraPositionTargets[2];
+float modeCameraZoomTargets[2];
+MinigameSharedState minigameSharedState;
 s16 mgModeEvtNo;
-s32 lbl_1_bss_0;
+s32 modeSelectionReservedState;
 
-void fn_1_464(void);
-void fn_1_54F4(void);
+void RunMinigameModeTask(void);
+void UpdateModeSelectionCamera(void);
 
 void ObjectSetup(void)
 {
@@ -56,17 +56,17 @@ void ObjectSetup(void)
 
     OSReport("******* MG ObjectSetup *********\n");
     objman = omInitObjMan(50, 8192);
-    lbl_1_bss_28C[0].x = -70;
-    lbl_1_bss_28C[0].y = 0;
-    lbl_1_bss_28C[0].z = 0;
-    lbl_1_bss_274[0].x = 0;
-    lbl_1_bss_274[0].y = 130;
-    lbl_1_bss_274[0].z = -186;
-    lbl_1_bss_26C[0] = 1360;
-    lbl_1_bss_2C0 = lbl_1_bss_28C[0];
-    lbl_1_bss_2B4 = lbl_1_bss_274[0];
-    lbl_1_bss_2B0 = lbl_1_bss_26C[0];
-    lbl_1_bss_2D0 = 0;
+    modeCameraRotationTargets[0].x = -70;
+    modeCameraRotationTargets[0].y = 0;
+    modeCameraRotationTargets[0].z = 0;
+    modeCameraPositionTargets[0].x = 0;
+    modeCameraPositionTargets[0].y = 130;
+    modeCameraPositionTargets[0].z = -186;
+    modeCameraZoomTargets[0] = 1360;
+    modeCameraRotation = modeCameraRotationTargets[0];
+    modeCameraPosition = modeCameraPositionTargets[0];
+    modeCameraZoom = modeCameraZoomTargets[0];
+    modeSelectionActive = 0;
     _ClearFlag(0x10000);
     _ClearFlag(0x10008);
     GWSystem.mg_type = -1;
@@ -75,7 +75,7 @@ void ObjectSetup(void)
     if (mgModeEvtNo == 0) {
         mgGameStatBackup = GWGameStat;
     }
-    lbl_1_bss_2CE = -1;
+    modeSelectionMessageWindow = -1;
     mgBoardHostEnableF = 1;
     mgPracticeEnableF = 0;
     Hu3DCameraCreate(1);
@@ -83,33 +83,33 @@ void ObjectSetup(void)
     Hu3DCameraViewportSet(1, 0, 0, 640, 480, 0, 1);
     glight = Hu3DGLightCreate(0, 100, 1000, 0, -0.5, -1, 255, 255, 255);
     Hu3DGLightInfinitytSet(glight);
-    HuPrcChildCreate(fn_1_464, 100, 12288, 0, objman);
-    HuPrcChildCreate(fn_1_54F4, 200, 4096, 0, objman);
+    HuPrcChildCreate(RunMinigameModeTask, 100, 12288, 0, objman);
+    HuPrcChildCreate(UpdateModeSelectionCamera, 200, 4096, 0, objman);
     outViewObj = omAddObjEx(objman, 32730, 0, 0, -1, omOutView);
     Hu3DBGColorSet(0, 0, 0);
     HuWinInit(1);
-    fn_1_279FC(0);
+    BuildMinigameTypeLists(0);
 }
 
-void fn_1_52DC(void);
+void InitializeModeSelectionModels(void);
 
-void fn_1_6F8(void);
+void RunModeSelectionMenu(void);
 
-void fn_1_464(void)
+void RunMinigameModeTask(void)
 {
     s16 i;
-    fn_1_52DC();
+    InitializeModeSelectionModels();
     if (mgModeEvtNo == 0) {
         HuAudSStreamPlay(12);
-        fn_1_19018();
+        PlayMinigameModeOpening();
     }
     else {
         HuAudSeqPlay(44);
         for (i = 0; i < 4; i++) {
-            lbl_1_bss_8.unk24[i].unk68 = GWPlayerCfg[i].character;
-            lbl_1_bss_8.unk24[i].unk60 = GWPlayerCfg[i].iscom;
-            lbl_1_bss_8.unk24[i].unk6C = GWPlayerCfg[i].pad_idx;
-            lbl_1_bss_8.unk24[i].unk64 = GWPlayerCfg[i].diff;
+            minigameSharedState.playerStates[i].character = GWPlayerCfg[i].character;
+            minigameSharedState.playerStates[i].isComputer = GWPlayerCfg[i].iscom;
+            minigameSharedState.playerStates[i].controllerPort = GWPlayerCfg[i].pad_idx;
+            minigameSharedState.playerStates[i].difficulty = GWPlayerCfg[i].diff;
         }
         CZoom = 1600;
         Center.x = Center.z = 0;
@@ -117,112 +117,112 @@ void fn_1_464(void)
         CRot.x = 0;
         CRot.y = CRot.z = 0;
         if (mgModeEvtNo == 1 || mgModeEvtNo == 2 || mgModeEvtNo == 3 || mgModeEvtNo == 4) {
-            Hu3DModelPosSet(lbl_1_bss_2C80[5], 0, 0, 640);
-            Hu3DMotionSet(lbl_1_bss_2C80[5], lbl_1_bss_2C66[6]);
-            Hu3DModelAttrSet(lbl_1_bss_2C80[5], HU3D_MOTATTR_LOOP);
+            Hu3DModelPosSet(mgModeModelIds[5], 0, 0, 640);
+            Hu3DMotionSet(mgModeModelIds[5], mgModeMotionIds[6]);
+            Hu3DModelAttrSet(mgModeModelIds[5], HU3D_MOTATTR_LOOP);
             HuPrcVSleep();
         }
     }
-    fn_1_6F8();
-    fn_1_2592C(0x1E0035, 3, 0);
-    fn_1_25584(lbl_1_bss_2CE);
+    RunModeSelectionMenu();
+    ShowMessageChoiceWindow(0x1E0035, 3, 0);
+    CloseStandardMessageWindow(windowId);
     while (1) {
         HuPrcVSleep();
     }
 }
 
-Vec lbl_1_data_40[4] = {
+Vec modeCameraOffsetPresets[4] = {
     { 108, 190, 0 },
     { 228, 190, 0 },
     { 348, 190, 0 },
     { 468, 190, 0 },
 };
 
-void fn_1_DF0(void);
-void fn_1_38D8(void);
-void fn_1_4010(void);
+void ShowModeSelectionSubmenu(void);
+void ShowModeSelectionHelp(void);
+void HideModeSelectionHelp(void);
 
-s32 fn_1_487C(void);
-void fn_1_4ADC(void);
+s32 GetSelectedMode(void);
+void ApplySelectedMode(void);
 
-void fn_1_6F8(void)
+void RunModeSelectionMenu(void)
 {
     s16 i;
     s16 time;
     if (mgModeEvtNo == 1 || mgModeEvtNo == 2 || mgModeEvtNo == 3 || mgModeEvtNo == 4) {
-        lbl_1_bss_2A6 = 0;
+        freePlayModeType = 0;
         goto freeplay;
     }
-    Hu3DModelAttrSet(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE);
-    Hu3DMotionTimeSet(lbl_1_bss_2C80[9], 0);
+    Hu3DModelAttrSet(mgModeModelIds[9], HU3D_MOTATTR_PAUSE);
+    Hu3DMotionTimeSet(mgModeModelIds[9], 0);
     for (time = 0; time <= 30; time++) {
         for (i = 0; i < 4; i++) {
             if (time > i * 2 && time < (i * 2) + 20) {
                 float weight = (time - (i * 2)) / 20.0;
-                Vec pos2D = lbl_1_data_40[i];
+                Vec pos2D = modeCameraOffsetPresets[i];
                 Vec pos3D;
                 pos2D.z = 800;
                 pos2D.y -= (1.0 - sind(weight * 90.0f)) * 300.0;
                 Hu3D2Dto3D(&pos2D, 1, &pos3D);
                 pos3D.z -= 50.0f;
-                Hu3DModelPosSetV(lbl_1_bss_2C80[i + 9], &pos3D);
-                Hu3DModelAttrReset(lbl_1_bss_2C80[i + 9], HU3D_ATTR_DISPOFF);
+                Hu3DModelPosSetV(mgModeModelIds[i + 9], &pos3D);
+                Hu3DModelAttrReset(mgModeModelIds[i + 9], HU3D_ATTR_DISPOFF);
             }
         }
         HuPrcVSleep();
     }
     while (1) {
-        if (lbl_1_bss_2CE == -1) {
-            lbl_1_bss_2CE = fn_1_2530C(0, 0, 0);
+        if (modeSelectionMessageWindow == -1) {
+            modeSelectionMessageWindow = CreateStandardMessageWindow(0, 0, 0);
         }
-        HuWinPushKeySet(lbl_1_bss_2CE, PAD_BUTTON_A | PAD_BUTTON_B);
-        HuWinMesSpeedSet(lbl_1_bss_2CE, 1);
+        HuWinPushKeySet(modeSelectionMessageWindow, PAD_BUTTON_A | PAD_BUTTON_B);
+        HuWinMesSpeedSet(modeSelectionMessageWindow, 1);
         HuAudFXPlay(68);
-        fn_1_25838(lbl_1_bss_2CE, 0x280001, -1, -1);
-        lbl_1_bss_2CC = fn_1_25CA8(0x280018);
-        lbl_1_bss_2A6 = 0;
-        espPosSet(lbl_1_bss_2C2C[0], -20 + lbl_1_data_40[lbl_1_bss_2A6].x, -10 + lbl_1_data_40[lbl_1_bss_2A6].y);
-        espAttrReset(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
-        HuWinMesSpeedSet(lbl_1_bss_2CE, 0);
-        fn_1_25838(lbl_1_bss_2CE, lbl_1_bss_2A6 + 0x280002, -1, -999);
+        ShowMessageAndWait(windowId, 0x280001, -1, -1);
+        modeSelectionInstructionWindow = CreateCenteredMessageWindow(0x280018);
+        freePlayModeType = 0;
+        espPosSet(mgModeSpriteIds[0], -20 + modeCameraOffsetPresets[freePlayModeType].x, -10 + modeCameraOffsetPresets[freePlayModeType].y);
+        espAttrReset(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
+        HuWinMesSpeedSet(modeSelectionMessageWindow, 0);
+        ShowMessageAndWait(windowId, freePlayModeType + 0x280002, -1, -999);
         while (1) {
             s16 delta = 0;
-            if ((HuPadDStkRep[0] & PAD_BUTTON_LEFT) && lbl_1_bss_2A6 > 0) {
+            if ((HuPadDStkRep[0] & PAD_BUTTON_LEFT) && freePlayModeType > 0) {
                 delta = -1;
             }
-            else if ((HuPadDStkRep[0] & PAD_BUTTON_RIGHT) && lbl_1_bss_2A6 < 3) {
+            else if ((HuPadDStkRep[0] & PAD_BUTTON_RIGHT) && freePlayModeType < 3) {
                 delta = 1;
             }
             if (delta != 0) {
                 HuAudFXPlay(0);
-                lbl_1_bss_2A6 += delta;
-                espPosSet(lbl_1_bss_2C2C[0], -20 + lbl_1_data_40[lbl_1_bss_2A6].x, -10 + lbl_1_data_40[lbl_1_bss_2A6].y);
-                fn_1_25838(lbl_1_bss_2CE, lbl_1_bss_2A6 + 0x280002, -1, -999);
+                freePlayModeType += delta;
+                espPosSet(mgModeSpriteIds[0], -20 + modeCameraOffsetPresets[freePlayModeType].x, -10 + modeCameraOffsetPresets[freePlayModeType].y);
+                ShowMessageAndWait(windowId, freePlayModeType + 0x280002, -1, -999);
             }
             if (HuPadBtnDown[0] & PAD_BUTTON_A) {
                 HuAudFXPlay(2);
-                if (lbl_1_bss_2A6 != 2) {
+                if (freePlayModeType != 2) {
                     break;
                 }
-                if (fn_1_487C() == 0) {
+                if (GetSelectedMode() == 0) {
                     continue;
                 }
                 break;
             }
             if (HuPadBtnDown[0] & PAD_BUTTON_B) {
                 s16 choice;
-                espAttrSet(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
-                fn_1_25838(lbl_1_bss_2CE, 0x280006, -1, -1);
-                choice = HuWinChoiceGet(lbl_1_bss_2CE, 1);
+                espAttrSet(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
+                ShowMessageAndWait(windowId, 0x280006, -1, -1);
+                choice = HuWinChoiceGet(modeSelectionMessageWindow, 1);
                 if (choice != 0) {
-                    fn_1_25838(lbl_1_bss_2CE, lbl_1_bss_2A6 + 0x280002, -1, -999);
-                    espAttrReset(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
+                    ShowMessageAndWait(windowId, freePlayModeType + 0x280002, -1, -999);
+                    espAttrReset(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
                     continue;
                 }
                 else {
-                    fn_1_25E74(lbl_1_bss_2CC);
-                    fn_1_25584(lbl_1_bss_2CE);
-                    lbl_1_bss_2D0 = 1;
+                    CloseCenteredMessageWindow(windowId);
+                    CloseStandardMessageWindow(windowId);
+                    modeSelectionActive = 1;
                     while (1) {
                         HuPrcVSleep();
                     }
@@ -230,31 +230,31 @@ void fn_1_6F8(void)
             }
             HuPrcVSleep();
         }
-        fn_1_25E74(lbl_1_bss_2CC);
+        CloseCenteredMessageWindow(windowId);
         mgModeEvtNo = 0;
-        espAttrSet(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
-        if (lbl_1_bss_2A6 == 0) {
+        espAttrSet(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
+        if (freePlayModeType == 0) {
         freeplay:
-            fn_1_DF0();
+            ShowModeSelectionSubmenu();
         }
-        else if (lbl_1_bss_2A6 == 1) {
-            fn_1_38D8();
+        else if (freePlayModeType == 1) {
+            ShowModeSelectionHelp();
         }
-        else if (lbl_1_bss_2A6 == 2) {
-            fn_1_4010();
+        else if (freePlayModeType == 2) {
+            HideModeSelectionHelp();
         }
-        else if (lbl_1_bss_2A6 == 3) {
-            fn_1_4ADC();
+        else if (freePlayModeType == 3) {
+            ApplySelectedMode();
         }
     }
 }
 
-s32 fn_1_1B0C(void);
-s32 fn_1_21C4(void);
-s32 fn_1_2940(void);
-s32 fn_1_3150(void);
+s32 SelectFreePlayMode(void);
+s32 SelectTeamPlayMode(void);
+s32 SelectBattleMode(void);
+s32 SelectBingoMode(void);
 
-void fn_1_DF0(void)
+void ShowModeSelectionSubmenu(void)
 {
     s16 exitF = 0;
     s16 time;
@@ -267,19 +267,19 @@ void fn_1_DF0(void)
     float weight;
 
     if (mgModeEvtNo == 1) {
-        lbl_1_bss_2A4 = 0;
+        freePlayModeSelection = 0;
         goto freeplay;
     }
     if (mgModeEvtNo == 2) {
-        lbl_1_bss_2A4 = 1;
+        freePlayModeSelection = 1;
         goto teamplay;
     }
     if (mgModeEvtNo == 3) {
-        lbl_1_bss_2A4 = 2;
+        freePlayModeSelection = 2;
         goto battle;
     }
     if (mgModeEvtNo == 4) {
-        lbl_1_bss_2A4 = 3;
+        freePlayModeSelection = 3;
         goto tictactoe;
     }
     pos2D.x = 168;
@@ -287,7 +287,7 @@ void fn_1_DF0(void)
     pos2D.z = 800;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50;
-    modelP = &Hu3DData[lbl_1_bss_2C80[9]];
+    modelP = &Hu3DData[mgModeModelIds[9]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
     for (time = 0; time <= 30; time++) {
@@ -295,74 +295,74 @@ void fn_1_DF0(void)
             if (time > i * 2 && time < (i * 2) + 10) {
                 Vec pos;
                 weight = (time - (i * 2)) / 10.0;
-                pos = lbl_1_data_40[i];
+                pos = modeCameraOffsetPresets[i];
                 pos.z = 800;
                 pos.x += (1.0 - cosd(weight * 90.0f)) * 500.0;
                 Hu3D2Dto3D(&pos, 1, &pos3D);
                 pos3D.z -= 50.0f;
-                Hu3DModelPosSetV(lbl_1_bss_2C80[i + 9], &pos3D);
-                Hu3DModelAttrReset(lbl_1_bss_2C80[i + 9], HU3D_ATTR_DISPOFF);
+                Hu3DModelPosSetV(mgModeModelIds[i + 9], &pos3D);
+                Hu3DModelAttrReset(mgModeModelIds[i + 9], HU3D_ATTR_DISPOFF);
             }
         }
         if (time > 10) {
             weight = (time - 10) / 20.0;
             VECScale(&pos2D, &pos3D, sind(weight * 90.0f));
             VECAdd(&posModel, &pos3D, &pos3D);
-            Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
+            Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
         }
         if (time == 20) {
             HuAudFXPlay(2173);
-            Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV);
+            Hu3DModelAttrReset(mgModeModelIds[9], HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV);
         }
         HuPrcVSleep();
     }
-    while (Hu3DMotionEndCheck(lbl_1_bss_2C80[9]) == 0) {
+    while (Hu3DMotionEndCheck(mgModeModelIds[9]) == 0) {
         HuPrcVSleep();
     }
     while (1) {
-        HuWinMesSpeedSet(lbl_1_bss_2CE, 1);
+        HuWinMesSpeedSet(modeSelectionMessageWindow, 1);
         HuAudFXPlay(68);
-        fn_1_25838(lbl_1_bss_2CE, 0x280007, -1, -1);
-        lbl_1_bss_2CC = fn_1_25CA8(0x1A0020);
-        fn_1_25838(lbl_1_bss_2CE, 0x280008, -1, -999);
-        espAttrReset(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
-        lbl_1_bss_2A4 = 0;
-        espPosSet(lbl_1_bss_2C2C[0], -20 + (168.0f + (lbl_1_bss_2A4 * 80)), 180);
+        ShowMessageAndWait(windowId, 0x280007, -1, -1);
+        modeSelectionInstructionWindow = CreateCenteredMessageWindow(0x1A0020);
+        ShowMessageAndWait(windowId, 0x280008, -1, -999);
+        espAttrReset(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
+        freePlayModeSelection = 0;
+        espPosSet(mgModeSpriteIds[0], -20 + (168.0f + (freePlayModeSelection * 80)), 180);
         while (1) {
             s16 delta = 0;
-            if ((HuPadDStkRep[0] & PAD_BUTTON_LEFT) && lbl_1_bss_2A4 > 0) {
+            if ((HuPadDStkRep[0] & PAD_BUTTON_LEFT) && freePlayModeSelection > 0) {
                 delta = -1;
             }
-            else if ((HuPadDStkRep[0] & PAD_BUTTON_RIGHT) && lbl_1_bss_2A4 < 3) {
+            else if ((HuPadDStkRep[0] & PAD_BUTTON_RIGHT) && freePlayModeSelection < 3) {
                 delta = 1;
             }
             if (delta != 0) {
                 HuAudFXPlay(0);
-                lbl_1_bss_2A4 += delta;
-                espPosSet(lbl_1_bss_2C2C[0], -20 + (168.0f + (lbl_1_bss_2A4 * 80)), 180);
-                fn_1_25838(lbl_1_bss_2CE, lbl_1_bss_2A4 + 0x280008, -1, -999);
+                freePlayModeSelection += delta;
+                espPosSet(mgModeSpriteIds[0], -20 + (168.0f + (freePlayModeSelection * 80)), 180);
+                ShowMessageAndWait(windowId, freePlayModeSelection + 0x280008, -1, -999);
             }
             if (HuPadBtnDown[0] & PAD_BUTTON_A) {
                 HuAudFXPlay(2);
-                if (lbl_1_bss_2A4 == 0 && lbl_1_bss_20AC[0] == 0 && lbl_1_bss_20AC[1] == 0 && lbl_1_bss_20AC[2] == 0 && lbl_1_bss_20AC[3] == 0
-                    && lbl_1_bss_20AC[4] == 0) {
-                    fn_1_25838(lbl_1_bss_2CE, 0x280031, -1, -1);
-                    fn_1_25838(lbl_1_bss_2CE, lbl_1_bss_2A4 + 0x280008, -1, -999);
+                if (freePlayModeSelection == 0 && availableMinigameCountByType[0] == 0 && availableMinigameCountByType[1] == 0 && availableMinigameCountByType[2] == 0 && availableMinigameCountByType[3] == 0
+                    && availableMinigameCountByType[4] == 0) {
+                    ShowMessageAndWait(windowId, 0x280031, -1, -1);
+                    ShowMessageAndWait(windowId, freePlayModeSelection + 0x280008, -1, -999);
                     continue;
                 }
-                if (lbl_1_bss_2A4 == 2 && lbl_1_bss_20AC[0] == 0 && lbl_1_bss_20AC[1] == 0 && lbl_1_bss_20AC[2] == 0 && lbl_1_bss_20AC[4] == 0) {
-                    fn_1_25838(lbl_1_bss_2CE, 0x280033, -1, -1);
-                    fn_1_25838(lbl_1_bss_2CE, lbl_1_bss_2A4 + 0x280008, -1, -999);
+                if (freePlayModeSelection == 2 && availableMinigameCountByType[0] == 0 && availableMinigameCountByType[1] == 0 && availableMinigameCountByType[2] == 0 && availableMinigameCountByType[4] == 0) {
+                    ShowMessageAndWait(windowId, 0x280033, -1, -1);
+                    ShowMessageAndWait(windowId, freePlayModeSelection + 0x280008, -1, -999);
                     continue;
                 }
-                if ((lbl_1_bss_2A4 == 1 || lbl_1_bss_2A4 == 3) && lbl_1_bss_20AC[2] == 0) {
-                    if (lbl_1_bss_2A4 == 1) {
-                        fn_1_25838(lbl_1_bss_2CE, 0x280032, -1, -1);
+                if ((freePlayModeSelection == 1 || freePlayModeSelection == 3) && availableMinigameCountByType[2] == 0) {
+                    if (freePlayModeSelection == 1) {
+                        ShowMessageAndWait(windowId, 0x280032, -1, -1);
                     }
                     else {
-                        fn_1_25838(lbl_1_bss_2CE, 0x28002F, -1, -1);
+                        ShowMessageAndWait(windowId, 0x28002F, -1, -1);
                     }
-                    fn_1_25838(lbl_1_bss_2CE, lbl_1_bss_2A4 + 0x280008, -1, -999);
+                    ShowMessageAndWait(windowId, freePlayModeSelection + 0x280008, -1, -999);
                     continue;
                 }
                 break;
@@ -374,73 +374,73 @@ void fn_1_DF0(void)
             }
             HuPrcVSleep();
         }
-        fn_1_25E74(lbl_1_bss_2CC);
+        CloseCenteredMessageWindow(windowId);
         if (exitF != 0) {
             break;
         }
-        if (lbl_1_bss_2A4 == 0) {
+        if (freePlayModeSelection == 0) {
         freeplay:
-            fn_1_1B0C();
+            SelectFreePlayMode();
         }
-        else if (lbl_1_bss_2A4 == 1) {
+        else if (freePlayModeSelection == 1) {
         teamplay:
-            fn_1_21C4();
+            SelectTeamPlayMode();
         }
-        else if (lbl_1_bss_2A4 == 2) {
+        else if (freePlayModeSelection == 2) {
         battle:
-            fn_1_2940();
+            SelectBattleMode();
         }
-        else if (lbl_1_bss_2A4 == 3) {
+        else if (freePlayModeSelection == 3) {
         tictactoe:
-            fn_1_3150();
+            SelectBingoMode();
         }
-        if (lbl_1_bss_2CE == -1) {
-            lbl_1_bss_2CE = fn_1_2530C(0, 0, 0);
+        if (modeSelectionMessageWindow == -1) {
+            modeSelectionMessageWindow = CreateStandardMessageWindow(0, 0, 0);
         }
-        HuWinPushKeySet(lbl_1_bss_2CE, PAD_BUTTON_A | PAD_BUTTON_B);
+        HuWinPushKeySet(modeSelectionMessageWindow, PAD_BUTTON_A | PAD_BUTTON_B);
     }
     mgModeEvtNo = 0;
-    pos2D = lbl_1_data_40[0];
+    pos2D = modeCameraOffsetPresets[0];
     pos2D.z = 800;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50;
-    modelP = &Hu3DData[lbl_1_bss_2C80[9]];
+    modelP = &Hu3DData[mgModeModelIds[9]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
-    Hu3DModelAttrSet(lbl_1_bss_2C80[9], HU3D_MOTATTR_REV);
-    espAttrSet(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mgModeModelIds[9], HU3D_MOTATTR_REV);
+    espAttrSet(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
     HuAudFXPlay(2174);
     for (time = 0; time <= 20; time++) {
         VECScale(&pos2D, &pos3D, sind(time * 4.5));
         VECAdd(&posModel, &pos3D, &pos3D);
-        Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
+        Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
         HuPrcVSleep();
     }
     for (time = 0; time <= 20; time++) {
         for (i = 1; i < 4; i++) {
             if (time > i * 2 && time < (i * 2) + 10) {
                 weight = (time - (i * 2)) / 10.0;
-                pos2D = lbl_1_data_40[i];
+                pos2D = modeCameraOffsetPresets[i];
                 pos2D.z = 800;
                 pos2D.x += (1.0 - sind(weight * 90.0f)) * 500.0;
                 Hu3D2Dto3D(&pos2D, 1, &pos3D);
                 pos3D.z -= 50.0f;
-                Hu3DModelPosSetV(lbl_1_bss_2C80[i + 9], &pos3D);
-                Hu3DModelAttrReset(lbl_1_bss_2C80[i + 9], HU3D_ATTR_DISPOFF);
+                Hu3DModelPosSetV(mgModeModelIds[i + 9], &pos3D);
+                Hu3DModelAttrReset(mgModeModelIds[i + 9], HU3D_ATTR_DISPOFF);
             }
         }
         HuPrcVSleep();
     }
 }
 
-s32 fn_1_1B0C(void)
+s32 SelectFreePlayMode(void)
 {
     Vec pos2D;
     Vec posModel;
     Vec pos3D;
     s16 i;
     HU3DMODEL *modelP;
-    s16 temp_r29 = 0;
+    s16 characterSelectMode = 0;
 
     if (mgModeEvtNo == 1) {
         pos2D.x = 60;
@@ -448,18 +448,18 @@ s32 fn_1_1B0C(void)
         pos2D.z = 1000;
         Hu3D2Dto3D(&pos2D, 1, &pos3D);
         pos3D.z -= 50.0f;
-        Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-        Hu3DModelRotSet(lbl_1_bss_2C80[9], -90, 0, 0);
-        Hu3DModelAttrSet(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE);
-        Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_ATTR_DISPOFF);
+        Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+        Hu3DModelRotSet(mgModeModelIds[9], -90, 0, 0);
+        Hu3DModelAttrSet(mgModeModelIds[9], HU3D_MOTATTR_PAUSE);
+        Hu3DModelAttrReset(mgModeModelIds[9], HU3D_ATTR_DISPOFF);
     }
     else {
-        Hu3DModelAttrSet(lbl_1_bss_2C80[9], HU3D_MOTATTR_REV);
-        Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE);
-        espAttrSet(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
-        fn_1_25E74(lbl_1_bss_2CC);
-        fn_1_25584(lbl_1_bss_2CE);
-        lbl_1_bss_2CE = lbl_1_bss_2CC = -1;
+        Hu3DModelAttrSet(mgModeModelIds[9], HU3D_MOTATTR_REV);
+        Hu3DModelAttrReset(mgModeModelIds[9], HU3D_MOTATTR_PAUSE);
+        espAttrSet(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
+        CloseCenteredMessageWindow(windowId);
+        CloseStandardMessageWindow(windowId);
+        modeSelectionMessageWindow = modeSelectionInstructionWindow = -1;
         HuAudFXPlay(2174);
         HuPrcSleep(40);
         pos2D.x = 60;
@@ -467,32 +467,32 @@ s32 fn_1_1B0C(void)
         pos2D.z = 1000;
         Hu3D2Dto3D(&pos2D, 1, &pos3D);
         pos3D.z -= 50.0f;
-        modelP = &Hu3DData[lbl_1_bss_2C80[9]];
+        modelP = &Hu3DData[mgModeModelIds[9]];
         posModel = modelP->pos;
         VECSubtract(&pos3D, &posModel, &pos2D);
         for (i = 0; i <= 20; i++) {
             VECScale(&pos2D, &pos3D, sind(i * 4.5));
             VECAdd(&posModel, &pos3D, &pos3D);
-            Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-            Hu3DModelRotSet(lbl_1_bss_2C80[9], -90.0 * (i / 20.0), 0, 0);
+            Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+            Hu3DModelRotSet(mgModeModelIds[9], -90.0 * (i / 20.0), 0, 0);
             HuPrcVSleep();
         }
-        while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
+        while (!Hu3DMotionEndCheck(mgModeModelIds[9])) {
             HuPrcVSleep();
         }
     charsel:
-        if (fn_1_194C8(temp_r29) == 0) {
+        if (RunMinigameModeSelection(characterSelectMode) == 0) {
             goto exit;
         }
-        temp_r29 = 4;
+        characterSelectMode = 4;
         for (i = 0; i < 4; i++) {
-            GWPlayerCfg[i].character = lbl_1_bss_8.unk24[i].unk68;
-            GWPlayerCfg[i].iscom = lbl_1_bss_8.unk24[i].unk60;
-            GWPlayerCfg[i].diff = lbl_1_bss_8.unk24[i].unk64;
+            GWPlayerCfg[i].character = minigameSharedState.playerStates[i].character;
+            GWPlayerCfg[i].iscom = minigameSharedState.playerStates[i].isComputer;
+            GWPlayerCfg[i].diff = minigameSharedState.playerStates[i].difficulty;
         }
     }
     mgPracticeEnableF = 1;
-    if (fn_1_6D28()) {
+    if (RunFreePlaySelection()) {
         mgModeEvtNo = 0;
         goto charsel;
     }
@@ -504,51 +504,51 @@ exit:
     pos2D.z = 800;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50;
-    modelP = &Hu3DData[lbl_1_bss_2C80[9]];
+    modelP = &Hu3DData[mgModeModelIds[9]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
-    Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV);
+    Hu3DModelAttrReset(mgModeModelIds[9], HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV);
     for (i = 0; i <= 20; i++) {
         if (i == 10) {
             HuAudFXPlay(2173);
         }
         VECScale(&pos2D, &pos3D, sind(i * 4.5));
         VECAdd(&posModel, &pos3D, &pos3D);
-        Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-        Hu3DModelRotSet(lbl_1_bss_2C80[9], -90.0 * (1 - (i / 20.0)), 0, 0);
+        Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+        Hu3DModelRotSet(mgModeModelIds[9], -90.0 * (1 - (i / 20.0)), 0, 0);
         HuPrcVSleep();
     }
-    while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
+    while (!Hu3DMotionEndCheck(mgModeModelIds[9])) {
         HuPrcVSleep();
     }
 }
 
-s32 fn_1_21C4(void)
+s32 SelectTeamPlayMode(void)
 {
     Vec pos2D;
     Vec posModel;
     Vec pos3D;
     s16 i;
     HU3DMODEL *modelP;
-    s16 temp_r29 = 1;
+    s16 characterSelectMode = 1;
     if (mgModeEvtNo == 2) {
         pos2D.x = 60;
         pos2D.y = 70;
         pos2D.z = 1000;
         Hu3D2Dto3D(&pos2D, 1, &pos3D);
         pos3D.z -= 50.0f;
-        Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-        Hu3DModelRotSet(lbl_1_bss_2C80[9], 0, -90, 90);
-        Hu3DModelAttrSet(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE);
-        Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_ATTR_DISPOFF);
+        Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+        Hu3DModelRotSet(mgModeModelIds[9], 0, -90, 90);
+        Hu3DModelAttrSet(mgModeModelIds[9], HU3D_MOTATTR_PAUSE);
+        Hu3DModelAttrReset(mgModeModelIds[9], HU3D_ATTR_DISPOFF);
     }
     else {
-        Hu3DModelAttrSet(lbl_1_bss_2C80[9], HU3D_MOTATTR_REV);
-        Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE);
-        espAttrSet(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
-        fn_1_25E74(lbl_1_bss_2CC);
-        fn_1_25584(lbl_1_bss_2CE);
-        lbl_1_bss_2CE = lbl_1_bss_2CC = -1;
+        Hu3DModelAttrSet(mgModeModelIds[9], HU3D_MOTATTR_REV);
+        Hu3DModelAttrReset(mgModeModelIds[9], HU3D_MOTATTR_PAUSE);
+        espAttrSet(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
+        CloseCenteredMessageWindow(windowId);
+        CloseStandardMessageWindow(windowId);
+        modeSelectionMessageWindow = modeSelectionInstructionWindow = -1;
         HuAudFXPlay(2174);
         HuPrcSleep(40);
         pos2D.x = 60;
@@ -556,33 +556,33 @@ s32 fn_1_21C4(void)
         pos2D.z = 1000;
         Hu3D2Dto3D(&pos2D, 1, &pos3D);
         pos3D.z -= 50.0f;
-        modelP = &Hu3DData[lbl_1_bss_2C80[9]];
+        modelP = &Hu3DData[mgModeModelIds[9]];
         posModel = modelP->pos;
         VECSubtract(&pos3D, &posModel, &pos2D);
         for (i = 0; i <= 20; i++) {
             VECScale(&pos2D, &pos3D, sind(i * 4.5));
             VECAdd(&posModel, &pos3D, &pos3D);
-            Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-            Hu3DModelRotSet(lbl_1_bss_2C80[9], 0, -90.0 * (i / 20.0), 90.0 * (i / 20.0));
+            Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+            Hu3DModelRotSet(mgModeModelIds[9], 0, -90.0 * (i / 20.0), 90.0 * (i / 20.0));
             HuPrcVSleep();
         }
-        while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
+        while (!Hu3DMotionEndCheck(mgModeModelIds[9])) {
             HuPrcVSleep();
         }
     charsel:
-        if (fn_1_194C8(temp_r29) == 0) {
+        if (RunMinigameModeSelection(characterSelectMode) == 0) {
             goto exit;
         }
-        temp_r29 = 4;
+        characterSelectMode = 4;
         for (i = 0; i < 4; i++) {
-            GWPlayerCfg[i].character = lbl_1_bss_8.unk24[i].unk68;
-            GWPlayerCfg[i].group = lbl_1_bss_8.unk24[i].unk5C;
-            GWPlayerCfg[i].diff = lbl_1_bss_8.unk24[i].unk64;
-            GWPlayerCfg[i].iscom = lbl_1_bss_8.unk24[i].unk60;
+            GWPlayerCfg[i].character = minigameSharedState.playerStates[i].character;
+            GWPlayerCfg[i].group = minigameSharedState.playerStates[i].team;
+            GWPlayerCfg[i].diff = minigameSharedState.playerStates[i].difficulty;
+            GWPlayerCfg[i].iscom = minigameSharedState.playerStates[i].isComputer;
         }
     }
     mgPracticeEnableF = 1;
-    if (fn_1_6D28()) {
+    if (RunFreePlaySelection()) {
         mgModeEvtNo = 0;
         goto charsel;
     }
@@ -594,35 +594,35 @@ exit:
     pos2D.z = 800;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50;
-    modelP = &Hu3DData[lbl_1_bss_2C80[9]];
+    modelP = &Hu3DData[mgModeModelIds[9]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
-    Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV);
+    Hu3DModelAttrReset(mgModeModelIds[9], HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV);
     for (i = 0; i <= 20; i++) {
         if (i == 10) {
             HuAudFXPlay(2173);
         }
         VECScale(&pos2D, &pos3D, sind(i * 4.5));
         VECAdd(&posModel, &pos3D, &pos3D);
-        Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-        Hu3DModelRotSet(lbl_1_bss_2C80[9], 0, -90.0 * (1.0 - (i / 20.0)), 90.0 * (1.0 - (i / 20.0)));
+        Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+        Hu3DModelRotSet(mgModeModelIds[9], 0, -90.0 * (1.0 - (i / 20.0)), 90.0 * (1.0 - (i / 20.0)));
         HuPrcVSleep();
     }
-    while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
+    while (!Hu3DMotionEndCheck(mgModeModelIds[9])) {
         HuPrcVSleep();
     }
 }
 
-s32 fn_1_2940(void)
+s32 SelectBattleMode(void)
 {
     Vec pos2D;
     Vec posModel;
     Vec pos3D;
-    s16 temp_r29 = 2;
+    s16 characterSelectMode = 2;
     s16 i;
     HU3DMODEL *modelP;
     for (i = 0; i < 4; i++) {
-        Hu3DModelLayerSet(lbl_1_bss_2C80[i + 9], 2);
+        Hu3DModelLayerSet(mgModeModelIds[i + 9], 2);
     }
     if (mgModeEvtNo == 3) {
         OSReport("Eliminate Play STart\n");
@@ -631,18 +631,18 @@ s32 fn_1_2940(void)
         pos2D.z = 1000;
         Hu3D2Dto3D(&pos2D, 1, &pos3D);
         pos3D.z -= 50.0f;
-        Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-        Hu3DModelRotSet(lbl_1_bss_2C80[9], -90, 180, 0);
-        Hu3DModelAttrSet(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE);
-        Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_ATTR_DISPOFF);
+        Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+        Hu3DModelRotSet(mgModeModelIds[9], -90, 180, 0);
+        Hu3DModelAttrSet(mgModeModelIds[9], HU3D_MOTATTR_PAUSE);
+        Hu3DModelAttrReset(mgModeModelIds[9], HU3D_ATTR_DISPOFF);
     }
     else {
-        Hu3DModelAttrSet(lbl_1_bss_2C80[9], HU3D_MOTATTR_REV);
-        Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE);
-        espAttrSet(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
-        fn_1_25E74(lbl_1_bss_2CC);
-        fn_1_25584(lbl_1_bss_2CE);
-        lbl_1_bss_2CE = lbl_1_bss_2CC = -1;
+        Hu3DModelAttrSet(mgModeModelIds[9], HU3D_MOTATTR_REV);
+        Hu3DModelAttrReset(mgModeModelIds[9], HU3D_MOTATTR_PAUSE);
+        espAttrSet(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
+        CloseCenteredMessageWindow(windowId);
+        CloseStandardMessageWindow(windowId);
+        modeSelectionMessageWindow = modeSelectionInstructionWindow = -1;
         HuAudFXPlay(2174);
         HuPrcSleep(40);
         pos2D.x = 50;
@@ -650,41 +650,41 @@ s32 fn_1_2940(void)
         pos2D.z = 1000;
         Hu3D2Dto3D(&pos2D, 1, &pos3D);
         pos3D.z -= 50.0f;
-        modelP = &Hu3DData[lbl_1_bss_2C80[9]];
+        modelP = &Hu3DData[mgModeModelIds[9]];
         posModel = modelP->pos;
         VECSubtract(&pos3D, &posModel, &pos2D);
         for (i = 0; i <= 20; i++) {
             VECScale(&pos2D, &pos3D, sind(i * 4.5));
             VECAdd(&posModel, &pos3D, &pos3D);
-            Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-            Hu3DModelRotSet(lbl_1_bss_2C80[9], 90.0 * -(i / 20.0), 180.0 * (i / 20.0), 0);
+            Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+            Hu3DModelRotSet(mgModeModelIds[9], 90.0 * -(i / 20.0), 180.0 * (i / 20.0), 0);
             HuPrcVSleep();
         }
-        while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
+        while (!Hu3DMotionEndCheck(mgModeModelIds[9])) {
             HuPrcVSleep();
         }
     charsel:
-        if (fn_1_194C8(temp_r29) == 0) {
+        if (RunMinigameModeSelection(characterSelectMode) == 0) {
             goto exit;
         }
-        temp_r29 = 4;
+        characterSelectMode = 4;
         for (i = 0; i < 4; i++) {
-            GWPlayerCfg[i].character = lbl_1_bss_8.unk24[i].unk68;
-            GWPlayerCfg[i].group = lbl_1_bss_8.unk24[i].unk5C;
-            GWPlayerCfg[i].iscom = lbl_1_bss_8.unk24[i].unk60;
-            GWPlayerCfg[i].diff = lbl_1_bss_8.unk24[i].unk64;
+            GWPlayerCfg[i].character = minigameSharedState.playerStates[i].character;
+            GWPlayerCfg[i].group = minigameSharedState.playerStates[i].team;
+            GWPlayerCfg[i].iscom = minigameSharedState.playerStates[i].isComputer;
+            GWPlayerCfg[i].diff = minigameSharedState.playerStates[i].difficulty;
         }
-        mgBattleStarMax = lbl_1_bss_8.unk20;
+        mgBattleStarMax = minigameSharedState.battleStarMaximum;
     }
 
-    if (fn_1_E72C() == 0) {
+    if (RunBattleMinigameSelection() == 0) {
         mgModeEvtNo = 0;
         goto charsel;
     }
 exit:
     HuDataDirClose(DATADIR_INSTPIC);
     for (i = 0; i < 4; i++) {
-        Hu3DModelLayerSet(lbl_1_bss_2C80[i + 9], 3);
+        Hu3DModelLayerSet(mgModeModelIds[i + 9], 3);
     }
     mgModeEvtNo = 0;
     pos2D.x = 168;
@@ -692,51 +692,51 @@ exit:
     pos2D.z = 800;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50;
-    modelP = &Hu3DData[lbl_1_bss_2C80[9]];
+    modelP = &Hu3DData[mgModeModelIds[9]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
-    Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV);
+    Hu3DModelAttrReset(mgModeModelIds[9], HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV);
     for (i = 0; i <= 20; i++) {
         if (i == 10) {
             HuAudFXPlay(2173);
         }
         VECScale(&pos2D, &pos3D, sind(i * 4.5));
         VECAdd(&posModel, &pos3D, &pos3D);
-        Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-        Hu3DModelRotSet(lbl_1_bss_2C80[9], 90.0 * -(1 - (i / 20.0)), 180.0 * (1 - (i / 20.0)), 0);
+        Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+        Hu3DModelRotSet(mgModeModelIds[9], 90.0 * -(1 - (i / 20.0)), 180.0 * (1 - (i / 20.0)), 0);
         HuPrcVSleep();
     }
-    while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
+    while (!Hu3DMotionEndCheck(mgModeModelIds[9])) {
         HuPrcVSleep();
     }
 }
 
-s32 fn_1_3150(void)
+s32 SelectBingoMode(void)
 {
     Vec pos2D;
     Vec posModel;
     Vec pos3D;
     s16 i;
     HU3DMODEL *modelP;
-    s16 temp_r29 = 1;
+    s16 characterSelectMode = 1;
     if (mgModeEvtNo == 4) {
         pos2D.x = 60;
         pos2D.y = 70;
         pos2D.z = 1000;
         Hu3D2Dto3D(&pos2D, 1, &pos3D);
         pos3D.z -= 50.0f;
-        Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-        Hu3DModelRotSet(lbl_1_bss_2C80[9], -90, 90, 0);
-        Hu3DModelAttrSet(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE);
-        Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_ATTR_DISPOFF);
+        Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+        Hu3DModelRotSet(mgModeModelIds[9], -90, 90, 0);
+        Hu3DModelAttrSet(mgModeModelIds[9], HU3D_MOTATTR_PAUSE);
+        Hu3DModelAttrReset(mgModeModelIds[9], HU3D_ATTR_DISPOFF);
     }
     else {
-        Hu3DModelAttrSet(lbl_1_bss_2C80[9], HU3D_MOTATTR_REV);
-        Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE);
-        espAttrSet(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
-        fn_1_25E74(lbl_1_bss_2CC);
-        fn_1_25584(lbl_1_bss_2CE);
-        lbl_1_bss_2CE = lbl_1_bss_2CC = -1;
+        Hu3DModelAttrSet(mgModeModelIds[9], HU3D_MOTATTR_REV);
+        Hu3DModelAttrReset(mgModeModelIds[9], HU3D_MOTATTR_PAUSE);
+        espAttrSet(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
+        CloseCenteredMessageWindow(windowId);
+        CloseStandardMessageWindow(windowId);
+        modeSelectionMessageWindow = modeSelectionInstructionWindow = -1;
         HuAudFXPlay(2174);
         HuPrcSleep(40);
         pos2D.x = 60;
@@ -744,34 +744,34 @@ s32 fn_1_3150(void)
         pos2D.z = 1000;
         Hu3D2Dto3D(&pos2D, 1, &pos3D);
         pos3D.z -= 50.0f;
-        modelP = &Hu3DData[lbl_1_bss_2C80[9]];
+        modelP = &Hu3DData[mgModeModelIds[9]];
         posModel = modelP->pos;
         VECSubtract(&pos3D, &posModel, &pos2D);
         for (i = 0; i <= 20; i++) {
             VECScale(&pos2D, &pos3D, sind(i * 4.5));
             VECAdd(&posModel, &pos3D, &pos3D);
-            Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-            Hu3DModelRotSet(lbl_1_bss_2C80[9], 90.0 * -(i / 20.0), 90.0 * (i / 20.0), 0);
+            Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+            Hu3DModelRotSet(mgModeModelIds[9], 90.0 * -(i / 20.0), 90.0 * (i / 20.0), 0);
             HuPrcVSleep();
         }
-        while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
+        while (!Hu3DMotionEndCheck(mgModeModelIds[9])) {
             HuPrcVSleep();
         }
     charsel:
-        if (fn_1_194C8(temp_r29) == 0) {
+        if (RunMinigameModeSelection(characterSelectMode) == 0) {
             goto exit;
         }
-        temp_r29 = 4;
+        characterSelectMode = 4;
         for (i = 0; i < 4; i++) {
-            GWPlayerCfg[i].character = lbl_1_bss_8.unk24[i].unk68;
-            GWPlayerCfg[i].group = lbl_1_bss_8.unk24[i].unk5C;
-            GWPlayerCfg[i].iscom = lbl_1_bss_8.unk24[i].unk60;
-            GWPlayerCfg[i].diff = lbl_1_bss_8.unk24[i].unk64;
+            GWPlayerCfg[i].character = minigameSharedState.playerStates[i].character;
+            GWPlayerCfg[i].group = minigameSharedState.playerStates[i].team;
+            GWPlayerCfg[i].iscom = minigameSharedState.playerStates[i].isComputer;
+            GWPlayerCfg[i].diff = minigameSharedState.playerStates[i].difficulty;
         }
-        mgBattleStarMax = lbl_1_bss_8.unk20;
+        mgBattleStarMax = minigameSharedState.battleStarMaximum;
     }
 
-    if (fn_1_13418() == 0) {
+    if (RunTicTacToeMinigame() == 0) {
         mgModeEvtNo = 0;
         goto charsel;
     }
@@ -783,46 +783,46 @@ exit:
     pos2D.z = 800;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50;
-    modelP = &Hu3DData[lbl_1_bss_2C80[9]];
+    modelP = &Hu3DData[mgModeModelIds[9]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
-    Hu3DModelAttrReset(lbl_1_bss_2C80[9], HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV);
+    Hu3DModelAttrReset(mgModeModelIds[9], HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV);
     for (i = 0; i <= 20; i++) {
         if (i == 10) {
             HuAudFXPlay(2173);
         }
         VECScale(&pos2D, &pos3D, sind(i * 4.5));
         VECAdd(&posModel, &pos3D, &pos3D);
-        Hu3DModelPosSetV(lbl_1_bss_2C80[9], &pos3D);
-        Hu3DModelRotSet(lbl_1_bss_2C80[9], 90.0 * -(1 - (i / 20.0)), 90.0 * (1 - (i / 20.0)), 0);
+        Hu3DModelPosSetV(mgModeModelIds[9], &pos3D);
+        Hu3DModelRotSet(mgModeModelIds[9], 90.0 * -(1 - (i / 20.0)), 90.0 * (1 - (i / 20.0)), 0);
         HuPrcVSleep();
     }
-    while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
+    while (!Hu3DMotionEndCheck(mgModeModelIds[9])) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_38D8(void)
+void ShowModeSelectionHelp(void)
 {
     Vec pos2D;
     Vec pos3D;
     Vec posModel;
 
-    s16 sp8 = 0;
+    s16 unreferencedCountScratch = 0;
     s16 time;
     s16 i;
     float weight;
     HU3DMODEL *modelP;
 
-    fn_1_25E74(lbl_1_bss_2CC);
-    fn_1_25584(lbl_1_bss_2CE);
-    lbl_1_bss_2CE = lbl_1_bss_2CC = -1;
+    CloseCenteredMessageWindow(windowId);
+    CloseStandardMessageWindow(windowId);
+    modeSelectionMessageWindow = modeSelectionInstructionWindow = -1;
     pos2D.x = 60;
     pos2D.y = 70;
     pos2D.z = 1000;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50.0f;
-    modelP = &Hu3DData[lbl_1_bss_2C80[10]];
+    modelP = &Hu3DData[mgModeModelIds[10]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
     for (time = 0; time <= 30; time++) {
@@ -833,36 +833,36 @@ void fn_1_38D8(void)
             if (time > i * 2 && time < (i * 2) + 10) {
                 Vec posBox;
                 weight = (time - (i * 2)) / 10.0;
-                posBox = lbl_1_data_40[i];
+                posBox = modeCameraOffsetPresets[i];
                 posBox.z = 800;
                 posBox.x += ((i < 2) ? -1 : 1) * (500.0 * (1.0 - cosd(90.0f * weight)));
                 Hu3D2Dto3D(&posBox, 1, &pos3D);
                 pos3D.z -= 50.0f;
-                Hu3DModelPosSetV(lbl_1_bss_2C80[i + 9], &pos3D);
-                Hu3DModelAttrReset(lbl_1_bss_2C80[i + 9], HU3D_ATTR_DISPOFF);
+                Hu3DModelPosSetV(mgModeModelIds[i + 9], &pos3D);
+                Hu3DModelAttrReset(mgModeModelIds[i + 9], HU3D_ATTR_DISPOFF);
             }
         }
         if (time > 10) {
             weight = (time - 10) / 20.0;
             VECScale(&pos2D, &pos3D, sind(weight * 90.0f));
             VECAdd(&posModel, &pos3D, &pos3D);
-            Hu3DModelPosSetV(lbl_1_bss_2C80[10], &pos3D);
+            Hu3DModelPosSetV(mgModeModelIds[10], &pos3D);
         }
         HuPrcVSleep();
     }
-    fn_1_6D28();
-    pos2D = lbl_1_data_40[1];
+    RunFreePlaySelection();
+    pos2D = modeCameraOffsetPresets[1];
     pos2D.z = 800;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50.0f;
-    modelP = &Hu3DData[lbl_1_bss_2C80[10]];
+    modelP = &Hu3DData[mgModeModelIds[10]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
-    espAttrSet(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
+    espAttrSet(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
     for (time = 0; time <= 20; time++) {
         VECScale(&pos2D, &pos3D, sind(time * 4.5));
         VECAdd(&posModel, &pos3D, &pos3D);
-        Hu3DModelPosSetV(lbl_1_bss_2C80[10], &pos3D);
+        Hu3DModelPosSetV(mgModeModelIds[10], &pos3D);
         HuPrcVSleep();
     }
     for (time = 0; time <= 20; time++) {
@@ -872,40 +872,40 @@ void fn_1_38D8(void)
             }
             if (time > i * 2 && time < (i * 2) + 10) {
                 weight = (time - (i * 2)) / 10.0;
-                pos2D = lbl_1_data_40[i];
+                pos2D = modeCameraOffsetPresets[i];
                 pos2D.z = 800;
                 pos2D.x += ((i < 2) ? -1 : 1) * ((1.0 - sind(weight * 90.0f)) * 500.0);
                 Hu3D2Dto3D(&pos2D, 1, &pos3D);
                 pos3D.z -= 50.0f;
-                Hu3DModelPosSetV(lbl_1_bss_2C80[i + 9], &pos3D);
-                Hu3DModelAttrReset(lbl_1_bss_2C80[i + 9], HU3D_ATTR_DISPOFF);
+                Hu3DModelPosSetV(mgModeModelIds[i + 9], &pos3D);
+                Hu3DModelAttrReset(mgModeModelIds[i + 9], HU3D_ATTR_DISPOFF);
             }
         }
         HuPrcVSleep();
     }
 }
 
-void fn_1_4010(void)
+void HideModeSelectionHelp(void)
 {
     Vec pos2D;
     Vec pos3D;
     Vec posModel;
 
-    s16 spA[4];
-    s16 sp8 = 0;
+    s16 customBoardEntryCounts[4];
+    s16 unreferencedCountScratch = 0;
     s16 time;
     s16 i;
     float weight;
     HU3DMODEL *modelP;
-    fn_1_25E74(lbl_1_bss_2CC);
-    fn_1_25584(lbl_1_bss_2CE);
-    lbl_1_bss_2CE = lbl_1_bss_2CC = -1;
+    CloseCenteredMessageWindow(windowId);
+    CloseStandardMessageWindow(windowId);
+    modeSelectionMessageWindow = modeSelectionInstructionWindow = -1;
     pos2D.x = 60;
     pos2D.y = 70;
     pos2D.z = 1000;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50.0f;
-    modelP = &Hu3DData[lbl_1_bss_2C80[11]];
+    modelP = &Hu3DData[mgModeModelIds[11]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
     for (time = 0; time <= 30; time++) {
@@ -916,50 +916,50 @@ void fn_1_4010(void)
             if (time > i * 2 && time < (i * 2) + 10) {
                 Vec posBox;
                 weight = (time - (i * 2)) / 10.0;
-                posBox = lbl_1_data_40[i];
+                posBox = modeCameraOffsetPresets[i];
                 posBox.z = 800;
                 posBox.x += ((i < 3) ? -1 : 1) * (500.0 * (1.0 - cosd(90.0f * weight)));
                 Hu3D2Dto3D(&posBox, 1, &pos3D);
                 pos3D.z -= 50.0f;
-                Hu3DModelPosSetV(lbl_1_bss_2C80[i + 9], &pos3D);
-                Hu3DModelAttrReset(lbl_1_bss_2C80[i + 9], HU3D_ATTR_DISPOFF);
+                Hu3DModelPosSetV(mgModeModelIds[i + 9], &pos3D);
+                Hu3DModelAttrReset(mgModeModelIds[i + 9], HU3D_ATTR_DISPOFF);
             }
         }
         if (time > 10) {
             weight = (time - 10) / 20.0;
             VECScale(&pos2D, &pos3D, sind(weight * 90.0f));
             VECAdd(&posModel, &pos3D, &pos3D);
-            Hu3DModelPosSetV(lbl_1_bss_2C80[11], &pos3D);
+            Hu3DModelPosSetV(mgModeModelIds[11], &pos3D);
         }
         HuPrcVSleep();
     }
-    fn_1_6D28();
+    RunFreePlaySelection();
     for (i = 0; i < 4; i++) {
-        spA[i] = 0;
-        for (time = 0; time < lbl_1_bss_20AC[lbl_1_data_A2[i]]; time++) {
-            if (GWMGCustomGet(lbl_1_bss_20C0[lbl_1_data_A2[i]][time] + 401)) {
-                spA[i]++;
+        customBoardEntryCounts[i] = 0;
+        for (time = 0; time < availableMinigameCountByType[freePlaySelectionOrder[i]]; time++) {
+            if (GWMGCustomGet(availableMinigameIdsByType[freePlaySelectionOrder[i]][time] + 401)) {
+                customBoardEntryCounts[i]++;
             }
         }
     }
-    if (spA[0] >= 4 && spA[1] >= 3 && spA[2] >= 3 && spA[3] >= 2) {
+    if (customBoardEntryCounts[0] >= 4 && customBoardEntryCounts[1] >= 3 && customBoardEntryCounts[2] >= 3 && customBoardEntryCounts[3] >= 2) {
         GWGameStat.customPackEnable = 1;
     }
     else {
         GWGameStat.customPackEnable = 0;
     }
-    pos2D = lbl_1_data_40[2];
+    pos2D = modeCameraOffsetPresets[2];
     pos2D.z = 800;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50.0f;
-    modelP = &Hu3DData[lbl_1_bss_2C80[11]];
+    modelP = &Hu3DData[mgModeModelIds[11]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
-    espAttrSet(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
+    espAttrSet(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
     for (time = 0; time <= 20; time++) {
         VECScale(&pos2D, &pos3D, sind(time * 4.5));
         VECAdd(&posModel, &pos3D, &pos3D);
-        Hu3DModelPosSetV(lbl_1_bss_2C80[11], &pos3D);
+        Hu3DModelPosSetV(mgModeModelIds[11], &pos3D);
         HuPrcVSleep();
     }
     for (time = 0; time <= 20; time++) {
@@ -969,20 +969,20 @@ void fn_1_4010(void)
             }
             if (time > i * 2 && time < (i * 2) + 10) {
                 weight = (time - (i * 2)) / 10.0;
-                pos2D = lbl_1_data_40[i];
+                pos2D = modeCameraOffsetPresets[i];
                 pos2D.z = 800;
                 pos2D.x += ((i < 3) ? -1 : 1) * ((1.0 - sind(weight * 90.0f)) * 500.0);
                 Hu3D2Dto3D(&pos2D, 1, &pos3D);
                 pos3D.z -= 50.0f;
-                Hu3DModelPosSetV(lbl_1_bss_2C80[i + 9], &pos3D);
-                Hu3DModelAttrReset(lbl_1_bss_2C80[i + 9], HU3D_ATTR_DISPOFF);
+                Hu3DModelPosSetV(mgModeModelIds[i + 9], &pos3D);
+                Hu3DModelAttrReset(mgModeModelIds[i + 9], HU3D_ATTR_DISPOFF);
             }
         }
         HuPrcVSleep();
     }
 }
 
-s32 fn_1_487C(void)
+s32 GetSelectedMode(void)
 {
     s16 i;
     char str[4][6];
@@ -993,64 +993,64 @@ s32 fn_1_487C(void)
             "0"
             "\x1E\x08");
     }
-    if (lbl_1_bss_20AC[0] >= 4 && lbl_1_bss_20AC[1] >= 3 && lbl_1_bss_20AC[2] >= 3 && lbl_1_bss_20AC[4] >= 2) {
+    if (availableMinigameCountByType[0] >= 4 && availableMinigameCountByType[1] >= 3 && availableMinigameCountByType[2] >= 3 && availableMinigameCountByType[4] >= 2) {
         return 1;
     }
-    if (lbl_1_bss_20AC[0] >= 4) {
+    if (availableMinigameCountByType[0] >= 4) {
         str[0][1] = 5;
     }
     else {
-        str[0][2] = '4' - lbl_1_bss_20AC[0];
+        str[0][2] = '4' - availableMinigameCountByType[0];
     }
-    HuWinInsertMesSet(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[0][0]), 0);
-    if (lbl_1_bss_20AC[1] >= 3) {
+    HuWinInsertMesSet(modeSelectionMessageWindow, MAKE_MESSID_PTR(&str[0][0]), 0);
+    if (availableMinigameCountByType[1] >= 3) {
         str[1][1] = 5;
     }
     else {
-        str[1][2] = '3' - lbl_1_bss_20AC[1];
+        str[1][2] = '3' - availableMinigameCountByType[1];
     }
-    HuWinInsertMesSet(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[1][0]), 1);
-    if (lbl_1_bss_20AC[2] >= 3) {
+    HuWinInsertMesSet(modeSelectionMessageWindow, MAKE_MESSID_PTR(&str[1][0]), 1);
+    if (availableMinigameCountByType[2] >= 3) {
         str[2][1] = 5;
     }
     else {
-        str[2][2] = '3' - lbl_1_bss_20AC[2];
+        str[2][2] = '3' - availableMinigameCountByType[2];
     }
-    HuWinInsertMesSet(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[2][0]), 2);
-    if (lbl_1_bss_20AC[4] >= 2) {
+    HuWinInsertMesSet(modeSelectionMessageWindow, MAKE_MESSID_PTR(&str[2][0]), 2);
+    if (availableMinigameCountByType[4] >= 2) {
         str[3][1] = 5;
     }
     else {
-        str[3][2] = '2' - lbl_1_bss_20AC[4];
+        str[3][2] = '2' - availableMinigameCountByType[4];
     }
-    HuWinInsertMesSet(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[3][0]), 3);
-    fn_1_25838(lbl_1_bss_2CE, 0x28002A, -1, -1);
-    fn_1_25838(lbl_1_bss_2CE, 0x28002B, -1, -1);
-    fn_1_25838(lbl_1_bss_2CE, 0x280002 + lbl_1_bss_2A6, -1, -999);
+    HuWinInsertMesSet(modeSelectionMessageWindow, MAKE_MESSID_PTR(&str[3][0]), 3);
+    ShowMessageAndWait(windowId, 0x28002A, -1, -1);
+    ShowMessageAndWait(windowId, 0x28002B, -1, -1);
+    ShowMessageAndWait(windowId, 0x280002 + messageId, -1, -999);
     return 0;
 }
 
-void fn_1_4ADC(void)
+void ApplySelectedMode(void)
 {
     Vec pos2D;
     Vec pos3D;
     Vec posModel;
 
-    s16 spA[4];
-    s16 sp8 = 0;
+    s16 customBoardEntryCounts[4];
+    s16 unreferencedCountScratch = 0;
     s16 time;
     s16 i;
     float weight;
     HU3DMODEL *modelP;
-    fn_1_25E74(lbl_1_bss_2CC);
-    fn_1_25584(lbl_1_bss_2CE);
-    lbl_1_bss_2CE = lbl_1_bss_2CC = -1;
+    CloseCenteredMessageWindow(windowId);
+    CloseStandardMessageWindow(windowId);
+    modeSelectionMessageWindow = modeSelectionInstructionWindow = -1;
     pos2D.x = 50;
     pos2D.y = 64;
     pos2D.z = 1000;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50.0f;
-    modelP = &Hu3DData[lbl_1_bss_2C80[11]];
+    modelP = &Hu3DData[mgModeModelIds[11]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
     for (time = 0; time <= 30; time++) {
@@ -1061,40 +1061,40 @@ void fn_1_4ADC(void)
             if (time > i * 2 && time < (i * 2) + 10) {
                 Vec posBox;
                 weight = (time - (i * 2)) / 10.0;
-                posBox = lbl_1_data_40[i];
+                posBox = modeCameraOffsetPresets[i];
                 posBox.z = 800;
                 posBox.x += ((i < 3) ? -1 : 1) * (500.0 * (1.0 - cosd(90.0f * weight)));
                 Hu3D2Dto3D(&posBox, 1, &pos3D);
                 pos3D.z -= 50.0f;
-                Hu3DModelPosSetV(lbl_1_bss_2C80[i + 9], &pos3D);
-                Hu3DModelAttrReset(lbl_1_bss_2C80[i + 9], HU3D_ATTR_DISPOFF);
+                Hu3DModelPosSetV(mgModeModelIds[i + 9], &pos3D);
+                Hu3DModelAttrReset(mgModeModelIds[i + 9], HU3D_ATTR_DISPOFF);
             }
         }
         if (time > 10) {
             weight = (time - 10) / 20.0;
             VECScale(&pos2D, &pos3D, sind(weight * 90.0f));
             VECAdd(&posModel, &pos3D, &pos3D);
-            Hu3DModelPosSetV(lbl_1_bss_2C80[12], &pos3D);
+            Hu3DModelPosSetV(mgModeModelIds[12], &pos3D);
             weight = (1.0 - (weight * 0.1));
-            Hu3DModelScaleSet(lbl_1_bss_2C80[12], weight, weight, weight);
+            Hu3DModelScaleSet(mgModeModelIds[12], weight, weight, weight);
         }
         HuPrcVSleep();
     }
-    fn_1_D8D0();
-    pos2D = lbl_1_data_40[3];
+    ShowMinigameRecords();
+    pos2D = modeCameraOffsetPresets[3];
     pos2D.z = 800;
     Hu3D2Dto3D(&pos2D, 1, &pos3D);
     pos3D.z -= 50.0f;
-    modelP = &Hu3DData[lbl_1_bss_2C80[12]];
+    modelP = &Hu3DData[mgModeModelIds[12]];
     posModel = modelP->pos;
     VECSubtract(&pos3D, &posModel, &pos2D);
-    espAttrSet(lbl_1_bss_2C2C[0], HUSPR_ATTR_DISPOFF);
+    espAttrSet(mgModeSpriteIds[0], HUSPR_ATTR_DISPOFF);
     for (time = 0; time <= 20; time++) {
         VECScale(&pos2D, &pos3D, sind(time * 4.5));
         VECAdd(&posModel, &pos3D, &pos3D);
-        Hu3DModelPosSetV(lbl_1_bss_2C80[12], &pos3D);
+        Hu3DModelPosSetV(mgModeModelIds[12], &pos3D);
         weight = 1.0 - (0.1 * (1.0 - (time / 20.0)));
-        Hu3DModelScaleSet(lbl_1_bss_2C80[12], weight, weight, weight);
+        Hu3DModelScaleSet(mgModeModelIds[12], weight, weight, weight);
         HuPrcVSleep();
     }
     for (time = 0; time <= 20; time++) {
@@ -1104,60 +1104,60 @@ void fn_1_4ADC(void)
             }
             if (time > i * 2 && time < (i * 2) + 10) {
                 weight = (time - (i * 2)) / 10.0;
-                pos2D = lbl_1_data_40[i];
+                pos2D = modeCameraOffsetPresets[i];
                 pos2D.z = 800;
                 pos2D.x += ((i < 3) ? -1 : 1) * ((1.0 - sind(weight * 90.0f)) * 500.0);
                 Hu3D2Dto3D(&pos2D, 1, &pos3D);
                 pos3D.z -= 50.0f;
-                Hu3DModelPosSetV(lbl_1_bss_2C80[i + 9], &pos3D);
-                Hu3DModelAttrReset(lbl_1_bss_2C80[i + 9], HU3D_ATTR_DISPOFF);
+                Hu3DModelPosSetV(mgModeModelIds[i + 9], &pos3D);
+                Hu3DModelAttrReset(mgModeModelIds[i + 9], HU3D_ATTR_DISPOFF);
             }
         }
         HuPrcVSleep();
     }
 }
 
-void fn_1_65EC(void);
+void SetModeSelectionCamera(void);
 
-void fn_1_52DC(void)
+void InitializeModeSelectionModels(void)
 {
     s16 i;
-    fn_1_65EC();
-    fn_1_267E8(lbl_1_data_490);
-    fn_1_26A78(lbl_1_data_768);
-    Hu3DMotionSet(lbl_1_bss_2C80[2], lbl_1_bss_2C66[4]);
-    Hu3DMotionTimeSet(lbl_1_bss_2C80[0], 0);
-    Hu3DModelAttrSet(lbl_1_bss_2C80[0], HU3D_MOTATTR_PAUSE);
+    SetModeSelectionCamera();
+    CreateDataListModels(modelList);
+    CreateDataListSprites(spriteList);
+    Hu3DMotionSet(mgModeModelIds[2], mgModeMotionIds[4]);
+    Hu3DMotionTimeSet(mgModeModelIds[0], 0);
+    Hu3DModelAttrSet(mgModeModelIds[0], HU3D_MOTATTR_PAUSE);
     HuSprExecLayerSet(64, 3);
-    espDrawNoSet(lbl_1_bss_2C2C[3], 64);
+    espDrawNoSet(mgModeSpriteIds[3], 64);
     for (i = 0; i < 4; i++) {
-        Hu3DModelLayerSet(lbl_1_bss_2C80[i + 9], 3);
+        Hu3DModelLayerSet(mgModeModelIds[i + 9], 3);
     }
-    fn_1_26C28();
-    espDrawNoSet(lbl_1_bss_2C2C[28], 64);
-    Hu3DModelPosSet(lbl_1_bss_2C80[5], 0, 0, 500);
-    lbl_1_bss_8.unk0 = lbl_1_bss_2C80[2];
-    lbl_1_bss_8.unk8 = lbl_1_bss_2C66[4];
-    lbl_1_bss_8.unk4 = lbl_1_bss_2C66[3];
-    lbl_1_bss_8.unkC = lbl_1_bss_2C80[5];
-    lbl_1_bss_8.unk10 = lbl_1_bss_2C66[6];
-    lbl_1_bss_8.unk14 = lbl_1_bss_2C66[7];
-    lbl_1_bss_8.unk18 = lbl_1_bss_2C66[6];
-    fn_1_18DF8(objman, &lbl_1_bss_8);
-    Hu3DModelShadowSet(lbl_1_bss_2C80[5]);
+    InstallMinigameBackgroundDrawHook();
+    espDrawNoSet(mgModeSpriteIds[28], 64);
+    Hu3DModelPosSet(mgModeModelIds[5], 0, 0, 500);
+    minigameSharedState.boardModelId = mgModeModelIds[2];
+    minigameSharedState.selectionModelMotionId = mgModeMotionIds[4];
+    minigameSharedState.boardMotionId = mgModeMotionIds[3];
+    minigameSharedState.modeModelId = mgModeModelIds[5];
+    minigameSharedState.modeModelMotionId = mgModeMotionIds[6];
+    minigameSharedState.victoryMotionId = mgModeMotionIds[7];
+    minigameSharedState.alternateModeMotionId = mgModeMotionIds[6];
+    InitializeMinigameMenuObjects(processManager, &sharedState);
+    Hu3DModelShadowSet(mgModeModelIds[5]);
     #if VERSION_NTSC
-    Hu3DModelShadowMapSet(lbl_1_bss_2C80[0]);
+    Hu3DModelShadowMapSet(mgModeModelIds[0]);
     #else
-    Hu3DModelShadowMapObjSet(lbl_1_bss_2C80[0], "base_fix9-base");
+    Hu3DModelShadowMapObjSet(mgModeModelIds[0], "base_fix9-base");
     #endif
 }
 
-void fn_1_6C18(void);
+void UpdateModeSelectionCameraPosition(void);
 
-void fn_1_54F4(void)
+void UpdateModeSelectionCamera(void)
 {
     while (1) {
-        if (lbl_1_bss_2D0) {
+        if (modeSelectionActive) {
             break;
         }
         if (omSysExitReq) {
@@ -1173,109 +1173,109 @@ void fn_1_54F4(void)
     }
     HuDataDirClose(DATADIR_INSTPIC);
     if (memcmp(&mgGameStatBackup, &GWGameStat, sizeof(GWGameStat))) {
-        fn_1_6C18();
+        UpdateModeSelectionCameraPosition();
     }
     BoardStatusKill();
     omOvlReturnEx(1, 1);
     HuPrcEnd();
 }
 
-static u16 lbl_1_data_8C[2] = { 1, 2 };
+static u16 modeCameraIds[2] = { 1, 2 };
 
-void fn_1_55C0(OMOBJ *object)
+void UpdateModeSelectionObject(OMOBJ *object)
 {
     s16 i;
     for (i = 0; i < 1; i++) {
         Vec pos, target, up;
         float x, y, z;
 
-        x = lbl_1_bss_28C[i].x;
-        y = lbl_1_bss_28C[i].y;
-        z = lbl_1_bss_28C[i].z;
+        x = modeCameraRotationTargets[i].x;
+        y = modeCameraRotationTargets[i].y;
+        z = modeCameraRotationTargets[i].z;
 
-        pos.x = (((sind(y) * cosd(x)) * lbl_1_bss_26C[i]) + lbl_1_bss_274[i].x);
-        pos.y = (-sind(x) * lbl_1_bss_26C[i]) + lbl_1_bss_274[i].y;
-        pos.z = ((cosd(y) * cosd(x)) * lbl_1_bss_26C[i]) + lbl_1_bss_274[i].z;
-        target.x = lbl_1_bss_274[i].x;
-        target.y = lbl_1_bss_274[i].y;
-        target.z = lbl_1_bss_274[i].z;
+        pos.x = (((sind(y) * cosd(x)) * modeCameraZoomTargets[i]) + modeCameraPositionTargets[i].x);
+        pos.y = (-sind(x) * modeCameraZoomTargets[i]) + modeCameraPositionTargets[i].y;
+        pos.z = ((cosd(y) * cosd(x)) * modeCameraZoomTargets[i]) + modeCameraPositionTargets[i].z;
+        target.x = modeCameraPositionTargets[i].x;
+        target.y = modeCameraPositionTargets[i].y;
+        target.z = modeCameraPositionTargets[i].z;
         up.x = sind(y) * sind(x);
         up.y = cosd(x);
         up.z = cosd(y) * sind(x);
-        Hu3DCameraPosSet(lbl_1_data_8C[i], pos.x, pos.y, pos.z, up.x, up.y, up.z, target.x, target.y, target.z);
+        Hu3DCameraPosSet(modeCameraIds[i], pos.x, pos.y, pos.z, up.x, up.y, up.z, target.x, target.y, target.z);
     }
 }
 
-void fn_1_66B0(void);
+void ResetModeSelectionCamera(void);
 
-void fn_1_5974(OMOBJ *object)
+void AnimateModeSelectionObject(OMOBJ *object)
 {
     Vec pos;
     Vec offset;
     Vec dir;
-    Vec y_offset;
+    Vec yOffset;
 
-    f32 z_rot;
-    s8 stick_pos;
+    f32 zRot;
+    s8 stickPos;
     if (HuPadBtnDown[0] & PAD_BUTTON_Y) {
-        lbl_1_bss_0 = (lbl_1_bss_0) ? 0 : 1;
+        modeSelectionReservedState = (modeSelectionReservedState) ? 0 : 1;
     }
-    if (lbl_1_bss_0 == 0) {
-        fn_1_66B0();
+    if (modeSelectionReservedState == 0) {
+        ResetModeSelectionCamera();
         return;
     }
-    lbl_1_bss_28C[0].y += 0.1f * HuPadStkX[0];
-    lbl_1_bss_28C[0].x += 0.1f * HuPadStkY[0];
-    lbl_1_bss_26C[0] += HuPadTrigL[0] / 2;
-    lbl_1_bss_26C[0] -= HuPadTrigR[0] / 2;
+    modeCameraRotationTargets[0].y += 0.1f * HuPadStkX[0];
+    modeCameraRotationTargets[0].x += 0.1f * HuPadStkY[0];
+    modeCameraZoomTargets[0] += HuPadTrigL[0] / 2;
+    modeCameraZoomTargets[0] -= HuPadTrigR[0] / 2;
     if (HuPadBtnDown[0] & PAD_BUTTON_B) {
-        OSReport("%f,%f,%f\n", lbl_1_bss_28C[0].x, lbl_1_bss_28C[0].y, lbl_1_bss_28C[0].z);
-        OSReport("%f,%f,%f\n", lbl_1_bss_274[0].x, lbl_1_bss_274[0].y, lbl_1_bss_274[0].z);
-        OSReport("%f\n", lbl_1_bss_26C[0]);
+        OSReport("%f,%f,%f\n", modeCameraRotationTargets[0].x, modeCameraRotationTargets[0].y, modeCameraRotationTargets[0].z);
+        OSReport("%f,%f,%f\n", modeCameraPositionTargets[0].x, modeCameraPositionTargets[0].y, modeCameraPositionTargets[0].z);
+        OSReport("%f\n", modeCameraZoomTargets[0]);
     }
-    if (lbl_1_bss_26C[0] < 100.0f) {
-        lbl_1_bss_26C[0] = 100.0f;
+    if (modeCameraZoomTargets[0] < 100.0f) {
+        modeCameraZoomTargets[0] = 100.0f;
     }
-    pos.x = lbl_1_bss_274[0].x + (lbl_1_bss_26C[0] * (sind(lbl_1_bss_28C[0].y) * cosd(lbl_1_bss_28C[0].x)));
-    pos.y = (lbl_1_bss_274[0].y + (lbl_1_bss_26C[0] * -sind(lbl_1_bss_28C[0].x)));
-    pos.z = (lbl_1_bss_274[0].z + (lbl_1_bss_26C[0] * (cosd(lbl_1_bss_28C[0].y) * cosd(lbl_1_bss_28C[0].x))));
-    offset.x = lbl_1_bss_274[0].x - pos.x;
-    offset.y = lbl_1_bss_274[0].y - pos.y;
-    offset.z = lbl_1_bss_274[0].z - pos.z;
-    dir.x = (sind(lbl_1_bss_28C[0].y) * sind(lbl_1_bss_28C[0].x));
-    dir.y = cosd(lbl_1_bss_28C[0].x);
-    dir.z = (cosd(lbl_1_bss_28C[0].y) * sind(lbl_1_bss_28C[0].x));
-    z_rot = lbl_1_bss_28C[0].z;
-    y_offset.x = dir.x * (offset.x * offset.x + (1.0f - offset.x * offset.x) * cosd(z_rot))
-        + dir.y * (offset.x * offset.y * (1.0f - cosd(z_rot)) - offset.z * sind(z_rot))
-        + dir.z * (offset.x * offset.z * (1.0f - cosd(z_rot)) + offset.y * sind(z_rot));
+    pos.x = modeCameraPositionTargets[0].x + (modeCameraZoomTargets[0] * (sind(modeCameraRotationTargets[0].y) * cosd(modeCameraRotationTargets[0].x)));
+    pos.y = (modeCameraPositionTargets[0].y + (modeCameraZoomTargets[0] * -sind(modeCameraRotationTargets[0].x)));
+    pos.z = (modeCameraPositionTargets[0].z + (modeCameraZoomTargets[0] * (cosd(modeCameraRotationTargets[0].y) * cosd(modeCameraRotationTargets[0].x))));
+    offset.x = modeCameraPositionTargets[0].x - pos.x;
+    offset.y = modeCameraPositionTargets[0].y - pos.y;
+    offset.z = modeCameraPositionTargets[0].z - pos.z;
+    dir.x = (sind(modeCameraRotationTargets[0].y) * sind(modeCameraRotationTargets[0].x));
+    dir.y = cosd(modeCameraRotationTargets[0].x);
+    dir.z = (cosd(modeCameraRotationTargets[0].y) * sind(modeCameraRotationTargets[0].x));
+    zRot = modeCameraRotationTargets[0].z;
+    yOffset.x = dir.x * (offset.x * offset.x + (1.0f - offset.x * offset.x) * cosd(zRot))
+        + dir.y * (offset.x * offset.y * (1.0f - cosd(zRot)) - offset.z * sind(zRot))
+        + dir.z * (offset.x * offset.z * (1.0f - cosd(zRot)) + offset.y * sind(zRot));
 
-    y_offset.y = dir.y * (offset.y * offset.y + (1.0f - offset.y * offset.y) * cosd(z_rot))
-        + dir.x * (offset.x * offset.y * (1.0f - cosd(z_rot)) + offset.z * sind(z_rot))
-        + dir.z * (offset.y * offset.z * (1.0f - cosd(z_rot)) - offset.x * sind(z_rot));
+    yOffset.y = dir.y * (offset.y * offset.y + (1.0f - offset.y * offset.y) * cosd(zRot))
+        + dir.x * (offset.x * offset.y * (1.0f - cosd(zRot)) + offset.z * sind(zRot))
+        + dir.z * (offset.y * offset.z * (1.0f - cosd(zRot)) - offset.x * sind(zRot));
 
-    y_offset.z = dir.z * (offset.z * offset.z + (1.0f - offset.z * offset.z) * cosd(z_rot))
-        + (dir.x * (offset.x * offset.z * (1.0 - cosd(z_rot)) - offset.y * sind(z_rot))
-            + dir.y * (offset.y * offset.z * (1.0 - cosd(z_rot)) + offset.x * sind(z_rot)));
+    yOffset.z = dir.z * (offset.z * offset.z + (1.0f - offset.z * offset.z) * cosd(zRot))
+        + (dir.x * (offset.x * offset.z * (1.0 - cosd(zRot)) - offset.y * sind(zRot))
+            + dir.y * (offset.y * offset.z * (1.0 - cosd(zRot)) + offset.x * sind(zRot)));
 
     VECCrossProduct(&dir, &offset, &offset);
     VECNormalize(&offset, &offset);
-    stick_pos = (HuPadSubStkX[0] & 0xF8);
-    if (stick_pos != 0) {
-        lbl_1_bss_274[0].x += 0.05f * (offset.x * stick_pos);
-        lbl_1_bss_274[0].y += 0.05f * (offset.y * stick_pos);
-        lbl_1_bss_274[0].z += 0.05f * (offset.z * stick_pos);
+    stickPos = (HuPadSubStkX[0] & 0xF8);
+    if (stickPos != 0) {
+        modeCameraPositionTargets[0].x += 0.05f * (offset.x * stickPos);
+        modeCameraPositionTargets[0].y += 0.05f * (offset.y * stickPos);
+        modeCameraPositionTargets[0].z += 0.05f * (offset.z * stickPos);
     }
-    VECNormalize(&y_offset, &offset);
-    stick_pos = -(HuPadSubStkY[0] & 0xF8);
-    if (stick_pos != 0) {
-        lbl_1_bss_274[0].x += 0.05f * (offset.x * stick_pos);
-        lbl_1_bss_274[0].y += 0.05f * (offset.y * stick_pos);
-        lbl_1_bss_274[0].z += 0.05f * (offset.z * stick_pos);
+    VECNormalize(&yOffset, &offset);
+    stickPos = -(HuPadSubStkY[0] & 0xF8);
+    if (stickPos != 0) {
+        modeCameraPositionTargets[0].x += 0.05f * (offset.x * stickPos);
+        modeCameraPositionTargets[0].y += 0.05f * (offset.y * stickPos);
+        modeCameraPositionTargets[0].z += 0.05f * (offset.z * stickPos);
     }
 }
 
-void fn_1_65EC(void)
+void SetModeSelectionCamera(void)
 {
     Vec pos = { 0, 3000, 800 };
     Vec target = { 0, 0, 640 };
@@ -1285,61 +1285,61 @@ void fn_1_65EC(void)
     Hu3DShadowPosSet(&pos, &up, &target);
 }
 
-void fn_1_66B0(void)
+void ResetModeSelectionCamera(void)
 {
     Vec deltaVec;
     float delta;
 
-    if (lbl_1_bss_2D0) {
+    if (modeSelectionActive) {
         return;
     }
-    VECSubtract(&lbl_1_bss_2C0, &lbl_1_bss_28C[0], &deltaVec);
+    VECSubtract(&modeCameraRotation, &modeCameraRotationTargets[0], &deltaVec);
     if (VECMag(&deltaVec) > 0.2) {
         VECScale(&deltaVec, &deltaVec, 0.05f);
-        VECAdd(&lbl_1_bss_28C[0], &deltaVec, &lbl_1_bss_28C[0]);
+        VECAdd(&modeCameraRotationTargets[0], &deltaVec, &modeCameraRotationTargets[0]);
     }
     else {
-        lbl_1_bss_28C[0] = lbl_1_bss_2C0;
+        modeCameraRotationTargets[0] = modeCameraRotation;
     }
-    VECSubtract(&lbl_1_bss_2B4, &lbl_1_bss_274[0], &deltaVec);
+    VECSubtract(&modeCameraPosition, &modeCameraPositionTargets[0], &deltaVec);
     if (VECMag(&deltaVec) > 0.2) {
         VECScale(&deltaVec, &deltaVec, 0.05f);
-        VECAdd(&lbl_1_bss_274[0], &deltaVec, &lbl_1_bss_274[0]);
+        VECAdd(&modeCameraPositionTargets[0], &deltaVec, &modeCameraPositionTargets[0]);
     }
     else {
-        lbl_1_bss_274[0] = lbl_1_bss_2B4;
+        modeCameraPositionTargets[0] = modeCameraPosition;
     }
-    delta = lbl_1_bss_2B0 - lbl_1_bss_26C[0];
+    delta = modeCameraZoom - modeCameraZoomTargets[0];
     if (sqrtf(delta * delta) > 0.2) {
         delta *= 0.05f;
-        lbl_1_bss_26C[0] += delta;
+        modeCameraZoomTargets[0] += delta;
     }
     else {
-        lbl_1_bss_26C[0] = lbl_1_bss_2B0;
+        modeCameraZoomTargets[0] = modeCameraZoom;
     }
 }
 
-void fn_1_6974(s16 arg0)
+void SetModeSelectionCursor(s16 modeType)
 {
-    lbl_1_bss_2C0 = lbl_1_data_0[arg0].rot;
-    lbl_1_bss_2B4 = lbl_1_data_0[arg0].pos;
-    lbl_1_bss_2B0 = lbl_1_data_0[arg0].zoom;
+    modeCameraRotation = modeCameraPresets[modeType].rot;
+    modeCameraPosition = modeCameraPresets[modeType].pos;
+    modeCameraZoom = modeCameraPresets[modeType].zoom;
 }
 
-void fn_1_6A04(s16 arg0)
+void SetModeSelectionAnimation(s16 modeType)
 {
-    lbl_1_bss_2C0 = lbl_1_bss_28C[0] = lbl_1_data_0[arg0].rot;
-    lbl_1_bss_2B4 = lbl_1_bss_274[0] = lbl_1_data_0[arg0].pos;
-    lbl_1_bss_2B0 = lbl_1_bss_26C[0] = lbl_1_data_0[arg0].zoom;
+    modeCameraRotation = modeCameraRotationTargets[0] = modeCameraPresets[modeType].rot;
+    modeCameraPosition = modeCameraPositionTargets[0] = modeCameraPresets[modeType].pos;
+    modeCameraZoom = modeCameraZoomTargets[0] = modeCameraPresets[modeType].zoom;
 }
 
-float fn_1_6AF0(void)
+float GetModeSelectionCameraZoom(void)
 {
-    float delta = lbl_1_bss_2B0 - lbl_1_bss_26C[0];
+    float delta = modeCameraZoom - modeCameraZoomTargets[0];
     return sqrtf(delta * delta);
 }
 
-void fn_1_6C18(void)
+void UpdateModeSelectionCameraPosition(void)
 {
     s16 sprite;
     if (!SLSaveFlagGet()) {

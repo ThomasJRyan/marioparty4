@@ -14,488 +14,488 @@
 
 #include "ext_math.h"
 
-s16 lbl_1_bss_3B8;
-s16 lbl_1_bss_3B4[2];
-s16 lbl_1_bss_3B0[2];
-s16 lbl_1_bss_3AC[2];
-s16 lbl_1_bss_3AA;
-s16 lbl_1_bss_3A8;
+s16 ticTacToeWindow;
+s16 ticTacToeCursorPositions[2];
+s16 ticTacToePreviousCursorPositions[2];
+s16 ticTacToeCursorTimers[2];
+s16 ticTacToeStatusSpriteGroup;
+s16 ticTacToeBoardSpriteGroup;
 
-s16 lbl_1_data_168 = -1;
-s16 lbl_1_data_16A[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 3, 6, 1, 4, 7, 2, 5, 8, 0, 4, 8, 2, 4, 6 };
+s16 ticTacToeMessageWindow = -1;
+s16 ticTacToeWinningLines[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 3, 6, 1, 4, 7, 2, 5, 8, 0, 4, 8, 2, 4, 6 };
 
-float lbl_1_data_19C[4] = { -80, -38, 38, 80 };
+float ticTacToePlayerPositions[4] = { -80, -38, 38, 80 };
 
-s16 lbl_1_data_1AC[8] = { 4, 4, 4, 4, 0, 2, 6, 8 };
+s16 ticTacToeCenterCells[8] = { 4, 4, 4, 4, 0, 2, 6, 8 };
 
-void fn_1_2783C(s16 evtno);
+void ExitMinigameMode(s16 modeType);
 
-void fn_1_14CFC(void);
-s32 fn_1_15E98(s16 arg0, s32 arg1);
+void CreateTicTacToeInterface(void);
+s32 ProcessTicTacToeMove(s16 playerIndex, s32 inputEnabled);
 
-void fn_1_16438(void);
-s32 fn_1_16B30(void);
-void fn_1_17A5C(void);
-void fn_1_17BE0(void);
+void ExitTicTacToeMinigame(void);
+s32 ShowTicTacToeInstructions(void);
+void StartTicTacToeRound(void);
+void AnimateTicTacToeBoard(void);
 
-s32 fn_1_13418(void)
+s32 RunTicTacToeMinigame(void)
 {
-    s16 temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    HU3DMODEL *temp_r27;
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    s16 sp8[2];
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
+    s16 animationFrame;
+    s16 gridRow;
+    s16 choiceResult;
+    s16 gridColumn;
+    HU3DMODEL *modelWork;
+    Vec modelPosition;
+    Vec targetPosition;
+    Vec transitionPosition;
+    s16 playerMoveResult[2];
+    float animationProgress;
+    float rotationProgress;
+    float modelRotation;
 
-    fn_1_279FC(0);
+    BuildMinigameTypeLists(0);
     if (mgModeEvtNo != 4) {
-        for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-            for (temp_r30 = 0; temp_r30 < 3; temp_r30++) {
-                mgTicTacToeGrid[temp_r31][temp_r30] = 0;
+        for (animationFrame = 0; animationFrame < 3; animationFrame++) {
+            for (gridRow = 0; gridRow < 3; gridRow++) {
+                mgTicTacToeGrid[animationFrame][gridRow] = 0;
             }
         }
     }
-    fn_1_14CFC();
+    CreateTicTacToeInterface();
     if (mgModeEvtNo == 4) {
-        HuSprGrpPosSet(lbl_1_bss_3A8, 288, 240);
-        HuSprGrpPosSet(lbl_1_bss_3AA, 450, 65);
-        Hu3DModelPosSet(lbl_1_bss_2C80[5], -300, 0, 680);
-        Hu3DModelRotSet(lbl_1_bss_2C80[5], 0, 20, 0);
+        HuSprGrpPosSet(ticTacToeBoardSpriteGroup, 288, 240);
+        HuSprGrpPosSet(ticTacToeStatusSpriteGroup, 450, 65);
+        Hu3DModelPosSet(mgModeModelIds[5], -300, 0, 680);
+        Hu3DModelRotSet(mgModeModelIds[5], 0, 20, 0);
         WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 30);
         while (WipeStatGet()) {
             HuPrcVSleep();
         }
-        if (fn_1_16B30()) {
-            if (lbl_1_data_168 == -1) {
-                lbl_1_data_168 = fn_1_2530C(0, 0, 0);
+        if (ShowTicTacToeInstructions()) {
+            if (ticTacToeMessageWindow == -1) {
+                ticTacToeMessageWindow = CreateStandardMessageWindow(0, 0, 0);
             }
-            HuWinAttrSet(lbl_1_data_168, 16);
-            fn_1_25838(lbl_1_data_168, 0x28000C, -1, -1);
-            temp_r29 = HuWinChoiceGet(lbl_1_data_168, 1);
-            if (temp_r29 == 0) {
-                fn_1_17A5C();
+            HuWinAttrSet(ticTacToeMessageWindow, 16);
+            ShowMessageAndWait(windowId, 0x28000C, -1, -1);
+            choiceResult = HuWinChoiceGet(ticTacToeMessageWindow, 1);
+            if (choiceResult == 0) {
+                StartTicTacToeRound();
             }
             else {
-                fn_1_16438();
+                ExitTicTacToeMinigame();
                 return 0;
             }
         }
     }
     else {
-        temp_r27 = &Hu3DData[lbl_1_bss_2C80[5]];
-        sp24 = temp_r27->pos;
-        sp18.x = -300;
-        sp18.y = 0;
-        sp18.z = 680;
-        VECSubtract(&sp18, &sp24, &sp18);
-        temp_f29 = (180 + atan2d(sp18.z, sp18.x)) - 360;
-        for (temp_r31 = 0; temp_r31 <= 60; temp_r31++) {
-            if (temp_r31 <= 50) {
-                temp_f31 = 1.0 - sind((temp_r31 / 50.0) * 90.0);
-                HuSprGrpPosSet(lbl_1_bss_3A8, 288, 256 + (-400 * temp_f31));
+        modelWork = &Hu3DData[mgModeModelIds[5]];
+        modelPosition = modelWork->pos;
+        targetPosition.x = -300;
+        targetPosition.y = 0;
+        targetPosition.z = 680;
+        VECSubtract(&targetPosition, &modelPosition, &targetPosition);
+        modelRotation = (180 + atan2d(targetPosition.z, targetPosition.x)) - 360;
+        for (animationFrame = 0; animationFrame <= 60; animationFrame++) {
+            if (animationFrame <= 50) {
+                animationProgress = 1.0 - sind((animationFrame / 50.0) * 90.0);
+                HuSprGrpPosSet(ticTacToeBoardSpriteGroup, 288, 256 + (-400 * animationProgress));
             }
             else {
-                temp_f31 = cosd(((temp_r31 - 50.0) / 10.0) * 90.0);
-                HuSprGrpPosSet(lbl_1_bss_3A8, 288, 240 + (16 * temp_f31));
+                animationProgress = cosd(((animationFrame - 50.0) / 10.0) * 90.0);
+                HuSprGrpPosSet(ticTacToeBoardSpriteGroup, 288, 240 + (16 * animationProgress));
             }
-            if (temp_r31 > 20 && temp_r31 <= 50) {
-                temp_f31 = 1.0 - sind(((temp_r31 - 20) / 30.0) * 90.0);
-                HuSprGrpPosSet(lbl_1_bss_3AA, 434 + (400 * temp_f31), 65);
+            if (animationFrame > 20 && animationFrame <= 50) {
+                animationProgress = 1.0 - sind(((animationFrame - 20) / 30.0) * 90.0);
+                HuSprGrpPosSet(ticTacToeStatusSpriteGroup, 434 + (400 * animationProgress), 65);
             }
-            else if (temp_r31 > 50) {
-                temp_f31 = cosd(((temp_r31 - 50.0) / 10.0) * 90.0);
-                HuSprGrpPosSet(lbl_1_bss_3AA, 450 + (-16 * temp_f31), 65);
+            else if (animationFrame > 50) {
+                animationProgress = cosd(((animationFrame - 50.0) / 10.0) * 90.0);
+                HuSprGrpPosSet(ticTacToeStatusSpriteGroup, 450 + (-16 * animationProgress), 65);
             }
-            if (temp_r31 == 30) {
-                Hu3DMotionShiftSet(lbl_1_bss_2C80[5], lbl_1_bss_2C66[7], 0, 8, HU3D_MOTATTR_LOOP);
+            if (animationFrame == 30) {
+                Hu3DMotionShiftSet(mgModeModelIds[5], mgModeMotionIds[7], 0, 8, HU3D_MOTATTR_LOOP);
             }
-            if (temp_r31 > 30) {
-                temp_f31 = (temp_r31 - 30.0) / 30.0;
-                VECScale(&sp18, &spC, temp_f31);
-                VECAdd(&sp24, &spC, &spC);
-                Hu3DModelPosSetV(lbl_1_bss_2C80[5], &spC);
-                if (temp_r31 <= 40) {
-                    temp_f31 = (temp_r31 - 20) / 10.0;
-                    Hu3DModelRotSet(lbl_1_bss_2C80[5], 0, temp_f29 * temp_f31, 0);
+            if (animationFrame > 30) {
+                animationProgress = (animationFrame - 30.0) / 30.0;
+                VECScale(&targetPosition, &transitionPosition, animationProgress);
+                VECAdd(&modelPosition, &transitionPosition, &transitionPosition);
+                Hu3DModelPosSetV(mgModeModelIds[5], &transitionPosition);
+                if (animationFrame <= 40) {
+                    animationProgress = (animationFrame - 20) / 10.0;
+                    Hu3DModelRotSet(mgModeModelIds[5], 0, modelRotation * animationProgress, 0);
                 }
             }
             HuPrcVSleep();
         }
-        Hu3DMotionShiftSet(lbl_1_bss_2C80[5], lbl_1_bss_2C66[6], 0, 8, HU3D_MOTATTR_LOOP);
-        for (temp_r31 = 0; temp_r31 <= 10; temp_r31++) {
-            temp_f31 = temp_r31 / 10.0;
-            Hu3DModelRotSet(lbl_1_bss_2C80[5], 0, temp_f29 + ((20.0f - temp_f29) * temp_f31), 0);
+        Hu3DMotionShiftSet(mgModeModelIds[5], mgModeMotionIds[6], 0, 8, HU3D_MOTATTR_LOOP);
+        for (animationFrame = 0; animationFrame <= 10; animationFrame++) {
+            animationProgress = animationFrame / 10.0;
+            Hu3DModelRotSet(mgModeModelIds[5], 0, modelRotation + ((20.0f - modelRotation) * animationProgress), 0);
             HuPrcVSleep();
         }
-        for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-            for (temp_r30 = 0; temp_r30 < 3; temp_r30++) {
-                mgTicTacToeGrid[temp_r31][temp_r30] = 0;
+        for (animationFrame = 0; animationFrame < 3; animationFrame++) {
+            for (gridRow = 0; gridRow < 3; gridRow++) {
+                mgTicTacToeGrid[animationFrame][gridRow] = 0;
             }
         }
     }
-    lbl_1_bss_3B8 = fn_1_25CA8(0x280019);
-    if (lbl_1_data_168 == -1) {
-        lbl_1_data_168 = fn_1_2530C(0, 0, 0);
+    ticTacToeWindow = CreateCenteredMessageWindow(0x280019);
+    if (ticTacToeMessageWindow == -1) {
+        ticTacToeMessageWindow = CreateStandardMessageWindow(0, 0, 0);
     }
-    fn_1_25838(lbl_1_data_168, 0x280015, -1, -1);
-    lbl_1_bss_3B4[0] = 0;
-    lbl_1_bss_3B4[1] = 2;
-    fn_1_17BE0();
-    lbl_1_bss_3AC[0] = lbl_1_bss_3AC[1] = 30;
-    HuSprAttrReset(lbl_1_bss_3A8, 12, HUSPR_ATTR_DISPOFF);
-    HuSprTPLvlSet(lbl_1_bss_3A8, 12, 0.5f);
-    HuSprAttrReset(lbl_1_bss_3A8, 13, HUSPR_ATTR_DISPOFF);
-    HuSprTPLvlSet(lbl_1_bss_3A8, 13, 0.5f);
-    temp_f30 = 0;
-    sp8[0] = sp8[1] = 0;
-    for (temp_r31 = 0; temp_r31 < 9; temp_r31++) {
-        mgTicTacToeGrid[temp_r31 % 3][temp_r31 / 3] &= 0x3;
+    ShowMessageAndWait(windowId, 0x280015, -1, -1);
+    ticTacToeCursorPositions[0] = 0;
+    ticTacToeCursorPositions[1] = 2;
+    AnimateTicTacToeBoard();
+    ticTacToeCursorTimers[0] = ticTacToeCursorTimers[1] = 30;
+    HuSprAttrReset(ticTacToeBoardSpriteGroup, 12, HUSPR_ATTR_DISPOFF);
+    HuSprTPLvlSet(ticTacToeBoardSpriteGroup, 12, 0.5f);
+    HuSprAttrReset(ticTacToeBoardSpriteGroup, 13, HUSPR_ATTR_DISPOFF);
+    HuSprTPLvlSet(ticTacToeBoardSpriteGroup, 13, 0.5f);
+    rotationProgress = 0;
+    playerMoveResult[0] = playerMoveResult[1] = 0;
+    for (animationFrame = 0; animationFrame < 9; animationFrame++) {
+        mgTicTacToeGrid[animationFrame % 3][animationFrame / 3] &= 0x3;
     }
     while (1) {
-        for (temp_r31 = 0; temp_r31 < 2; temp_r31++) {
-            if (sp8[temp_r31] == 0) {
-                sp8[temp_r31] = fn_1_15E98(temp_r31, 1);
-                if (sp8[temp_r31] == -1) {
-                    sp8[temp_r31] = 0;
-                    goto else_case;
+        for (animationFrame = 0; animationFrame < 2; animationFrame++) {
+            if (playerMoveResult[animationFrame] == 0) {
+                playerMoveResult[animationFrame] = ProcessTicTacToeMove(playerIndex, 1);
+                if (playerMoveResult[animationFrame] == -1) {
+                    playerMoveResult[animationFrame] = 0;
+                    goto elseCase;
                 }
-                else if (sp8[temp_r31] == 1) {
-                    HuSprAttrSet(lbl_1_bss_3A8, temp_r31 + 12, HUSPR_ATTR_DISPOFF);
-                    HuSprAttrReset(lbl_1_bss_3A8, temp_r31 + 14, HUSPR_ATTR_DISPOFF);
-                    if (lbl_1_bss_3B4[0] != lbl_1_bss_3B4[1]) {
+                else if (playerMoveResult[animationFrame] == 1) {
+                    HuSprAttrSet(ticTacToeBoardSpriteGroup, animationFrame + 12, HUSPR_ATTR_DISPOFF);
+                    HuSprAttrReset(ticTacToeBoardSpriteGroup, animationFrame + 14, HUSPR_ATTR_DISPOFF);
+                    if (ticTacToeCursorPositions[0] != ticTacToeCursorPositions[1]) {
                         HuSprPosSet(
-                            lbl_1_bss_3A8, temp_r31 + 14, ((lbl_1_bss_3B4[temp_r31] % 3) * 56) - 56, ((lbl_1_bss_3B4[temp_r31] / 3) * 56) - 56);
+                            ticTacToeBoardSpriteGroup, animationFrame + 14, ((ticTacToeCursorPositions[animationFrame] % 3) * 56) - 56, ((ticTacToeCursorPositions[animationFrame] / 3) * 56) - 56);
                     }
                     else {
-                        HuSprPosSet(lbl_1_bss_3A8, temp_r31 + 14, ((lbl_1_bss_3B4[temp_r31] % 3) * 56) - 60 + (temp_r31 * 8),
-                            ((lbl_1_bss_3B4[temp_r31] / 3) * 56) - 56);
+                        HuSprPosSet(ticTacToeBoardSpriteGroup, animationFrame + 14, ((ticTacToeCursorPositions[animationFrame] % 3) * 56) - 60 + (animationFrame * 8),
+                            ((ticTacToeCursorPositions[animationFrame] / 3) * 56) - 56);
                     }
                 }
                 else {
-                else_case:
-                    if (lbl_1_bss_3B4[0] != lbl_1_bss_3B4[1]) {
+                elseCase:
+                    if (ticTacToeCursorPositions[0] != ticTacToeCursorPositions[1]) {
                         HuSprPosSet(
-                            lbl_1_bss_3A8, temp_r31 + 12, ((lbl_1_bss_3B4[temp_r31] % 3) * 56) - 56, ((lbl_1_bss_3B4[temp_r31] / 3) * 56) - 56);
+                            ticTacToeBoardSpriteGroup, animationFrame + 12, ((ticTacToeCursorPositions[animationFrame] % 3) * 56) - 56, ((ticTacToeCursorPositions[animationFrame] / 3) * 56) - 56);
                     }
                     else {
-                        HuSprPosSet(lbl_1_bss_3A8, temp_r31 + 12, ((lbl_1_bss_3B4[temp_r31] % 3) * 56) - 60 + (temp_r31 * 8),
-                            ((lbl_1_bss_3B4[temp_r31] / 3) * 56) - 56);
+                        HuSprPosSet(ticTacToeBoardSpriteGroup, animationFrame + 12, ((ticTacToeCursorPositions[animationFrame] % 3) * 56) - 60 + (animationFrame * 8),
+                            ((ticTacToeCursorPositions[animationFrame] / 3) * 56) - 56);
                     }
-                    HuSprTPLvlSet(lbl_1_bss_3A8, temp_r31 + 12, 0.7 + (0.2 * sind(temp_f30 + (temp_r31 * 180))));
-                    HuSprPriSet(lbl_1_bss_3A8, temp_r31 + 12, 150);
+                    HuSprTPLvlSet(ticTacToeBoardSpriteGroup, animationFrame + 12, 0.7 + (0.2 * sind(rotationProgress + (animationFrame * 180))));
+                    HuSprPriSet(ticTacToeBoardSpriteGroup, animationFrame + 12, 150);
                 }
             }
             else {
-                sp8[temp_r31] = fn_1_15E98(temp_r31, 0);
-                if (sp8[temp_r31] == -1) {
-                    sp8[temp_r31] = 0;
-                    HuSprAttrReset(lbl_1_bss_3A8, temp_r31 + 12, HUSPR_ATTR_DISPOFF);
-                    HuSprAttrSet(lbl_1_bss_3A8, temp_r31 + 14, HUSPR_ATTR_DISPOFF);
-                    if (lbl_1_bss_3B4[0] != lbl_1_bss_3B4[1]) {
+                playerMoveResult[animationFrame] = ProcessTicTacToeMove(playerIndex, 0);
+                if (playerMoveResult[animationFrame] == -1) {
+                    playerMoveResult[animationFrame] = 0;
+                    HuSprAttrReset(ticTacToeBoardSpriteGroup, animationFrame + 12, HUSPR_ATTR_DISPOFF);
+                    HuSprAttrSet(ticTacToeBoardSpriteGroup, animationFrame + 14, HUSPR_ATTR_DISPOFF);
+                    if (ticTacToeCursorPositions[0] != ticTacToeCursorPositions[1]) {
                         HuSprPosSet(
-                            lbl_1_bss_3A8, temp_r31 + 12, ((lbl_1_bss_3B4[temp_r31] % 3) * 56) - 56, ((lbl_1_bss_3B4[temp_r31] / 3) * 56) - 56);
+                            ticTacToeBoardSpriteGroup, animationFrame + 12, ((ticTacToeCursorPositions[animationFrame] % 3) * 56) - 56, ((ticTacToeCursorPositions[animationFrame] / 3) * 56) - 56);
                     }
                     else {
-                        HuSprPosSet(lbl_1_bss_3A8, temp_r31 + 12, ((lbl_1_bss_3B4[temp_r31] % 3) * 56) - 60 + (temp_r31 * 8),
-                            ((lbl_1_bss_3B4[temp_r31] / 3) * 56) - 56);
+                        HuSprPosSet(ticTacToeBoardSpriteGroup, animationFrame + 12, ((ticTacToeCursorPositions[animationFrame] % 3) * 56) - 60 + (animationFrame * 8),
+                            ((ticTacToeCursorPositions[animationFrame] / 3) * 56) - 56);
                     }
                 }
                 else {
-                    HuSprTPLvlSet(lbl_1_bss_3A8, temp_r31 + 12, 1.0f);
-                    HuSprPriSet(lbl_1_bss_3A8, temp_r31 + 12, temp_r31 + 180);
-                    if (lbl_1_bss_3B4[0] != lbl_1_bss_3B4[1]) {
+                    HuSprTPLvlSet(ticTacToeBoardSpriteGroup, animationFrame + 12, 1.0f);
+                    HuSprPriSet(ticTacToeBoardSpriteGroup, animationFrame + 12, animationFrame + 180);
+                    if (ticTacToeCursorPositions[0] != ticTacToeCursorPositions[1]) {
                         HuSprPosSet(
-                            lbl_1_bss_3A8, temp_r31 + 14, ((lbl_1_bss_3B4[temp_r31] % 3) * 56) - 56, ((lbl_1_bss_3B4[temp_r31] / 3) * 56) - 56);
+                            ticTacToeBoardSpriteGroup, animationFrame + 14, ((ticTacToeCursorPositions[animationFrame] % 3) * 56) - 56, ((ticTacToeCursorPositions[animationFrame] / 3) * 56) - 56);
                     }
                     else {
-                        HuSprPosSet(lbl_1_bss_3A8, temp_r31 + 14, ((lbl_1_bss_3B4[temp_r31] % 3) * 56) - 60 + (temp_r31 * 8),
-                            ((lbl_1_bss_3B4[temp_r31] / 3) * 56) - 56);
+                        HuSprPosSet(ticTacToeBoardSpriteGroup, animationFrame + 14, ((ticTacToeCursorPositions[animationFrame] % 3) * 56) - 60 + (animationFrame * 8),
+                            ((ticTacToeCursorPositions[animationFrame] / 3) * 56) - 56);
                     }
                 }
             }
         }
-        if (sp8[0] == 1 && sp8[1] == 1) {
-            HuSprTPLvlSet(lbl_1_bss_3A8, 12, 1.0f);
-            HuSprTPLvlSet(lbl_1_bss_3A8, 13, 1.0f);
+        if (playerMoveResult[0] == 1 && playerMoveResult[1] == 1) {
+            HuSprTPLvlSet(ticTacToeBoardSpriteGroup, 12, 1.0f);
+            HuSprTPLvlSet(ticTacToeBoardSpriteGroup, 13, 1.0f);
             break;
         }
         else {
-            temp_f30 += 10.0f;
-            if (temp_f30 > 360.0f) {
-                temp_f30 -= 360.0f;
+            rotationProgress += 10.0f;
+            if (rotationProgress > 360.0f) {
+                rotationProgress -= 360.0f;
             }
             HuPrcVSleep();
         }
     }
-    fn_1_25E74(lbl_1_bss_3B8);
-    lbl_1_bss_3B8 = -1;
-    fn_1_25838(lbl_1_data_168, 0x280010, -1, -1);
-    HuSprTPLvlSet(lbl_1_bss_3A8, 24, 1.0f);
+    CloseCenteredMessageWindow(windowId);
+    ticTacToeWindow = -1;
+    ShowMessageAndWait(windowId, 0x280010, -1, -1);
+    HuSprTPLvlSet(ticTacToeBoardSpriteGroup, 24, 1.0f);
     mgTypeCurr = 2;
-    for (temp_r30 = 0; temp_r30 < 35;) {
-        for (temp_r31 = 0; temp_r31 < lbl_1_bss_20AC[lbl_1_data_A2[mgTypeCurr]]; temp_r31++) {
-            temp_r28 = fn_1_271B4(lbl_1_bss_20C0[lbl_1_data_A2[mgTypeCurr]][temp_r31], 288, 240);
-            HuSprGrpDrawNoSet(temp_r28, 0);
+    for (gridRow = 0; gridRow < 35;) {
+        for (animationFrame = 0; animationFrame < availableMinigameCountByType[freePlaySelectionOrder[mgTypeCurr]]; animationFrame++) {
+            gridColumn = SetMinigamePreviewSprite(availableMinigameIdsByType[freePlaySelectionOrder[mgTypeCurr]][animationFrame], 288, 240);
+            HuSprGrpDrawNoSet(gridColumn, 0);
             HuAudFXPlay(855);
             HuPrcSleep(3);
-            temp_r30++;
-            if (temp_r30 >= 35) {
+            gridRow++;
+            if (gridRow >= 35) {
                 break;
             }
         }
     }
     HuAudFXPlay(870);
-    lbl_1_bss_2E4 = lbl_1_bss_20C0[lbl_1_data_A2[mgTypeCurr]][frandmod(lbl_1_bss_20AC[lbl_1_data_A2[mgTypeCurr]])];
-    temp_r28 = fn_1_271B4(lbl_1_bss_2E4, 288, 240);
-    HuSprGrpDrawNoSet(temp_r28, 0);
-    HuWinInsertMesSet(lbl_1_data_168, mgInfoTbl[lbl_1_bss_2E4].name_mess, 0);
-    HuWinAttrSet(lbl_1_data_168, 16);
-    fn_1_25838(lbl_1_data_168, 0x280011, -1, -1);
-repeat_mess:
-    fn_1_25838(lbl_1_data_168, 0x280029, -1, -1);
-    temp_r29 = HuWinChoiceGet(lbl_1_data_168, 0);
-    if (temp_r29 == 0) {
+    freePlayWindowState = availableMinigameIdsByType[freePlaySelectionOrder[mgTypeCurr]][frandmod(availableMinigameCountByType[freePlaySelectionOrder[mgTypeCurr]])];
+    gridColumn = SetMinigamePreviewSprite(spriteGroupId, 288, 240);
+    HuSprGrpDrawNoSet(gridColumn, 0);
+    HuWinInsertMesSet(ticTacToeMessageWindow, mgInfoTbl[freePlayWindowState].name_mess, 0);
+    HuWinAttrSet(ticTacToeMessageWindow, 16);
+    ShowMessageAndWait(windowId, 0x280011, -1, -1);
+repeatMess:
+    ShowMessageAndWait(windowId, 0x280029, -1, -1);
+    choiceResult = HuWinChoiceGet(ticTacToeMessageWindow, 0);
+    if (choiceResult == 0) {
         _ClearFlag(11);
     }
-    else if (temp_r29 == 1) {
-        HuWinInsertMesSet(lbl_1_data_168, MAKE_MESSID(0x28, 40), 0);
-        fn_1_25838(lbl_1_data_168, 0x280026, -1, -1);
-        temp_r29 = HuWinChoiceGet(lbl_1_data_168, 1);
-        if (temp_r29 == 1) {
-            goto repeat_mess;
+    else if (choiceResult == 1) {
+        HuWinInsertMesSet(ticTacToeMessageWindow, MAKE_MESSID(0x28, 40), 0);
+        ShowMessageAndWait(windowId, 0x280026, -1, -1);
+        choiceResult = HuWinChoiceGet(ticTacToeMessageWindow, 1);
+        if (choiceResult == 1) {
+            goto repeatMess;
         }
-        fn_1_271B4(-1, 0, 0);
-        for (temp_r31 = 1; temp_r31 <= 10; temp_r31++) {
-            HuSprTPLvlSet(lbl_1_bss_3A8, 24, 1 - (temp_r31 / 10.0));
+        SetMinigamePreviewSprite(-1, 0, 0);
+        for (animationFrame = 1; animationFrame <= 10; animationFrame++) {
+            HuSprTPLvlSet(ticTacToeBoardSpriteGroup, 24, 1 - (animationFrame / 10.0));
             HuPrcVSleep();
         }
 
-        fn_1_16438();
+        ExitTicTacToeMinigame();
         return 1;
     }
     else {
         _SetFlag(11);
     }
-    GWSystem.mg_next = lbl_1_bss_2E4;
+    GWSystem.mg_next = freePlayWindowState;
     HuDataDirClose(DATADIR_INSTPIC);
-    fn_1_2783C(4);
+    ExitMinigameMode(4);
     while (1) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_14CFC(void)
+void CreateTicTacToeInterface(void)
 {
-    s16 temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    ANIMDATA *temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s16 temp_r25;
-    s16 temp_r24;
-    ANIMDATA *temp_r23;
-    ANIMDATA *temp_r22;
-    s16 temp_r21;
-    s16 temp_r20;
-    s16 sp8;
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        lbl_1_bss_2C1C[temp_r31] = temp_r31;
+    s16 playerIndex;
+    s16 spriteGroupId;
+    s16 spriteId;
+    ANIMDATA *spriteAnimation;
+    s16 occupiedCellSpriteCount;
+    s16 gridOffsetX;
+    s16 gridOffsetY;
+    s16 cellFlags;
+    ANIMDATA *markAnimation;
+    ANIMDATA *characterSpriteAnimation;
+    s16 playerStatusAnimation;
+    s16 characterId;
+    s16 isComputerControlled;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerOrderByGroup[playerIndex] = playerIndex;
     }
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        for (temp_r27 = 0; temp_r27 < 3 - temp_r31; temp_r27++) {
-            if (GWPlayerCfg[lbl_1_bss_2C1C[temp_r27]].group > GWPlayerCfg[lbl_1_bss_2C1C[temp_r27 + 1]].group) {
-                temp_r24 = lbl_1_bss_2C1C[temp_r27];
-                lbl_1_bss_2C1C[temp_r27] = lbl_1_bss_2C1C[temp_r27 + 1];
-                lbl_1_bss_2C1C[temp_r27 + 1] = temp_r24;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        for (occupiedCellSpriteCount = 0; occupiedCellSpriteCount < 3 - playerIndex; occupiedCellSpriteCount++) {
+            if (GWPlayerCfg[playerOrderByGroup[occupiedCellSpriteCount]].group > GWPlayerCfg[playerOrderByGroup[occupiedCellSpriteCount + 1]].group) {
+                cellFlags = playerOrderByGroup[occupiedCellSpriteCount];
+                playerOrderByGroup[occupiedCellSpriteCount] = playerOrderByGroup[occupiedCellSpriteCount + 1];
+                playerOrderByGroup[occupiedCellSpriteCount + 1] = cellFlags;
             }
         }
     }
-    if (lbl_1_bss_3A8 == 0) {
+    if (ticTacToeBoardSpriteGroup == 0) {
 
-        lbl_1_bss_3A8 = temp_r30 = HuSprGrpCreate(25);
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 84), HU_MEMNUM_OVL));
-        temp_r29 = HuSprCreate(temp_r28, 200, 0);
-        HuSprGrpMemberSet(temp_r30, 0, temp_r29);
-        HuSprTPLvlSet(temp_r30, 0, 0.8f);
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 85), HU_MEMNUM_OVL));
-        temp_r29 = HuSprCreate(temp_r28, 190, 0);
-        HuSprGrpMemberSet(temp_r30, 1, temp_r29);
-        HuSprPosSet(temp_r30, 1, 0, -110);
-        temp_r26 = 0;
-        temp_r25 = 0;
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 86), HU_MEMNUM_OVL));
-        temp_r29 = HuSprCreate(temp_r28, 190, 0);
-        HuSprGrpMemberSet(temp_r30, 2, temp_r29);
-        HuSprPosSet(temp_r30, 2, temp_r26, temp_r25);
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 87), HU_MEMNUM_OVL));
-        temp_r22 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 88), HU_MEMNUM_OVL));
-        for (temp_r31 = temp_r27 = 0; temp_r31 < 9; temp_r31++) {
-            if (mgTicTacToeGrid[temp_r31 % 3][temp_r31 / 3] & 0xF) {
-                temp_r24 = mgTicTacToeGrid[temp_r31 % 3][temp_r31 / 3];
-                if (temp_r24 & 0x4) {
-                    temp_r23 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 91), HU_MEMNUM_OVL));
-                    temp_r29 = HuSprCreate(temp_r23, 180, 0);
-                    HuSprGrpMemberSet(temp_r30, 14, temp_r29);
-                    if (temp_r24 & 0x8) {
-                        HuSprPosSet(temp_r30, 14, temp_r26 + ((temp_r31 % 3) * 56) - 60, temp_r25 + ((temp_r31 / 3) * 56) - 56);
+        ticTacToeBoardSpriteGroup = spriteGroupId = HuSprGrpCreate(25);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 84), HU_MEMNUM_OVL));
+        spriteId = HuSprCreate(spriteAnimation, 200, 0);
+        HuSprGrpMemberSet(spriteGroupId, 0, spriteId);
+        HuSprTPLvlSet(spriteGroupId, 0, 0.8f);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 85), HU_MEMNUM_OVL));
+        spriteId = HuSprCreate(spriteAnimation, 190, 0);
+        HuSprGrpMemberSet(spriteGroupId, 1, spriteId);
+        HuSprPosSet(spriteGroupId, 1, 0, -110);
+        gridOffsetX = 0;
+        gridOffsetY = 0;
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 86), HU_MEMNUM_OVL));
+        spriteId = HuSprCreate(spriteAnimation, 190, 0);
+        HuSprGrpMemberSet(spriteGroupId, 2, spriteId);
+        HuSprPosSet(spriteGroupId, 2, gridOffsetX, gridOffsetY);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 87), HU_MEMNUM_OVL));
+        characterSpriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 88), HU_MEMNUM_OVL));
+        for (playerIndex = occupiedCellSpriteCount = 0; playerIndex < 9; playerIndex++) {
+            if (mgTicTacToeGrid[playerIndex % 3][playerIndex / 3] & 0xF) {
+                cellFlags = mgTicTacToeGrid[playerIndex % 3][playerIndex / 3];
+                if (cellFlags & 0x4) {
+                    markAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 91), HU_MEMNUM_OVL));
+                    spriteId = HuSprCreate(markAnimation, 180, 0);
+                    HuSprGrpMemberSet(spriteGroupId, 14, spriteId);
+                    if (cellFlags & 0x8) {
+                        HuSprPosSet(spriteGroupId, 14, gridOffsetX + ((playerIndex % 3) * 56) - 60, gridOffsetY + ((playerIndex / 3) * 56) - 56);
                     }
                     else {
-                        HuSprPosSet(temp_r30, 14, temp_r26 + ((temp_r31 % 3) * 56) - 56, temp_r25 + ((temp_r31 / 3) * 56) - 56);
+                        HuSprPosSet(spriteGroupId, 14, gridOffsetX + ((playerIndex % 3) * 56) - 56, gridOffsetY + ((playerIndex / 3) * 56) - 56);
                     }
-                    temp_r27++;
+                    occupiedCellSpriteCount++;
                 }
-                if (temp_r24 & 0x8) {
-                    temp_r23 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 92), HU_MEMNUM_OVL));
-                    temp_r29 = HuSprCreate(temp_r23, 180, 0);
-                    HuSprGrpMemberSet(temp_r30, 15, temp_r29);
-                    if (temp_r24 & 0x4) {
-                        HuSprPosSet(temp_r30, 15, temp_r26 + ((temp_r31 % 3) * 56) - 48, temp_r25 + ((temp_r31 / 3) * 56) - 56);
+                if (cellFlags & 0x8) {
+                    markAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 92), HU_MEMNUM_OVL));
+                    spriteId = HuSprCreate(markAnimation, 180, 0);
+                    HuSprGrpMemberSet(spriteGroupId, 15, spriteId);
+                    if (cellFlags & 0x4) {
+                        HuSprPosSet(spriteGroupId, 15, gridOffsetX + ((playerIndex % 3) * 56) - 48, gridOffsetY + ((playerIndex / 3) * 56) - 56);
                     }
                     else {
-                        HuSprPosSet(temp_r30, 15, temp_r26 + ((temp_r31 % 3) * 56) - 56, temp_r25 + ((temp_r31 / 3) * 56) - 56);
+                        HuSprPosSet(spriteGroupId, 15, gridOffsetX + ((playerIndex % 3) * 56) - 56, gridOffsetY + ((playerIndex / 3) * 56) - 56);
                     }
-                    temp_r27++;
+                    occupiedCellSpriteCount++;
                 }
-                if (temp_r24 & 0x3) {
-                    if (mgTicTacToeGrid[temp_r31 % 3][temp_r31 / 3] & 0x1) {
-                        temp_r29 = HuSprCreate(temp_r28, 180, 0);
+                if (cellFlags & 0x3) {
+                    if (mgTicTacToeGrid[playerIndex % 3][playerIndex / 3] & 0x1) {
+                        spriteId = HuSprCreate(spriteAnimation, 180, 0);
                     }
                     else {
-                        temp_r29 = HuSprCreate(temp_r22, 180, 0);
+                        spriteId = HuSprCreate(characterSpriteAnimation, 180, 0);
                     }
-                    HuSprGrpMemberSet(temp_r30, temp_r31 + 3, temp_r29);
-                    HuSprPosSet(temp_r30, temp_r31 + 3, temp_r26 + ((temp_r31 % 3) * 56) - 56, temp_r25 + ((temp_r31 / 3) * 56) - 56);
+                    HuSprGrpMemberSet(spriteGroupId, playerIndex + 3, spriteId);
+                    HuSprPosSet(spriteGroupId, playerIndex + 3, gridOffsetX + ((playerIndex % 3) * 56) - 56, gridOffsetY + ((playerIndex / 3) * 56) - 56);
                 }
             }
         }
-        if (temp_r27 == 0) {
-            temp_r23 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 91), HU_MEMNUM_OVL));
-            temp_r29 = HuSprCreate(temp_r23, 150, 0);
-            HuSprGrpMemberSet(temp_r30, 14, temp_r29);
-            HuSprPosSet(temp_r30, 14, temp_r26 + ((temp_r31 % 3) * 56) - 56, temp_r25 + ((temp_r31 / 3) * 56) - 56);
-            HuSprAttrSet(temp_r30, 14, HUSPR_ATTR_DISPOFF);
-            temp_r23 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 92), HU_MEMNUM_OVL));
-            temp_r29 = HuSprCreate(temp_r23, 150, 0);
-            HuSprGrpMemberSet(temp_r30, 15, temp_r29);
-            HuSprPosSet(temp_r30, 15, temp_r26 + ((temp_r31 % 3) * 56) - 56, temp_r25 + ((temp_r31 / 3) * 56) - 56);
-            HuSprAttrSet(temp_r30, 15, HUSPR_ATTR_DISPOFF);
+        if (occupiedCellSpriteCount == 0) {
+            markAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 91), HU_MEMNUM_OVL));
+            spriteId = HuSprCreate(markAnimation, 150, 0);
+            HuSprGrpMemberSet(spriteGroupId, 14, spriteId);
+            HuSprPosSet(spriteGroupId, 14, gridOffsetX + ((playerIndex % 3) * 56) - 56, gridOffsetY + ((playerIndex / 3) * 56) - 56);
+            HuSprAttrSet(spriteGroupId, 14, HUSPR_ATTR_DISPOFF);
+            markAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 92), HU_MEMNUM_OVL));
+            spriteId = HuSprCreate(markAnimation, 150, 0);
+            HuSprGrpMemberSet(spriteGroupId, 15, spriteId);
+            HuSprPosSet(spriteGroupId, 15, gridOffsetX + ((playerIndex % 3) * 56) - 56, gridOffsetY + ((playerIndex / 3) * 56) - 56);
+            HuSprAttrSet(spriteGroupId, 15, HUSPR_ATTR_DISPOFF);
         }
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 89), HU_MEMNUM_OVL));
-        temp_r29 = HuSprCreate(temp_r28, 150, 0);
-        HuSprGrpMemberSet(temp_r30, 12, temp_r29);
-        HuSprAttrSet(temp_r30, 12, HUSPR_ATTR_DISPOFF);
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 90), HU_MEMNUM_OVL));
-        temp_r29 = HuSprCreate(temp_r28, 150, 0);
-        HuSprGrpMemberSet(temp_r30, 13, temp_r29);
-        HuSprAttrSet(temp_r30, 13, HUSPR_ATTR_DISPOFF);
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 101), HU_MEMNUM_OVL));
-        temp_r22 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 102), HU_MEMNUM_OVL));
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            temp_r29 = HuSprCreate(temp_r28, 130, temp_r31);
-            HuSprGrpMemberSet(temp_r30, (temp_r31 * 2) + 16, temp_r29);
-            HuSprPosSet(temp_r30, (temp_r31 * 2) + 16, ((temp_r31 % 2) * 314) - 155, ((temp_r31 / 2) * 185) - 110);
-            temp_r29 = HuSprCreate(temp_r22, 135, temp_r31);
-            HuSprGrpMemberSet(temp_r30, (temp_r31 * 2) + 17, temp_r29);
-            HuSprTPLvlSet(temp_r30, (temp_r31 * 2) + 17, 0.5f);
-            HuSprPosSet(temp_r30, (temp_r31 * 2) + 17, ((temp_r31 % 2) * 314) - 155, ((temp_r31 / 2) * 185) - 102);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 89), HU_MEMNUM_OVL));
+        spriteId = HuSprCreate(spriteAnimation, 150, 0);
+        HuSprGrpMemberSet(spriteGroupId, 12, spriteId);
+        HuSprAttrSet(spriteGroupId, 12, HUSPR_ATTR_DISPOFF);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 90), HU_MEMNUM_OVL));
+        spriteId = HuSprCreate(spriteAnimation, 150, 0);
+        HuSprGrpMemberSet(spriteGroupId, 13, spriteId);
+        HuSprAttrSet(spriteGroupId, 13, HUSPR_ATTR_DISPOFF);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 101), HU_MEMNUM_OVL));
+        characterSpriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 102), HU_MEMNUM_OVL));
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            spriteId = HuSprCreate(spriteAnimation, 130, playerIndex);
+            HuSprGrpMemberSet(spriteGroupId, (playerIndex * 2) + 16, spriteId);
+            HuSprPosSet(spriteGroupId, (playerIndex * 2) + 16, ((playerIndex % 2) * 314) - 155, ((playerIndex / 2) * 185) - 110);
+            spriteId = HuSprCreate(characterSpriteAnimation, 135, playerIndex);
+            HuSprGrpMemberSet(spriteGroupId, (playerIndex * 2) + 17, spriteId);
+            HuSprTPLvlSet(spriteGroupId, (playerIndex * 2) + 17, 0.5f);
+            HuSprPosSet(spriteGroupId, (playerIndex * 2) + 17, ((playerIndex % 2) * 314) - 155, ((playerIndex / 2) * 185) - 102);
         }
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 37), HU_MEMNUM_OVL));
-        temp_r29 = HuSprCreate(temp_r28, 150, 0);
-        HuSprGrpMemberSet(temp_r30, 24, temp_r29);
-        HuSprPosSet(temp_r30, 24, 0, 0);
-        HuSprScaleSet(temp_r30, 24, 0.9f, 0.9f);
-        HuSprTPLvlSet(temp_r30, 24, 0);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 37), HU_MEMNUM_OVL));
+        spriteId = HuSprCreate(spriteAnimation, 150, 0);
+        HuSprGrpMemberSet(spriteGroupId, 24, spriteId);
+        HuSprPosSet(spriteGroupId, 24, 0, 0);
+        HuSprScaleSet(spriteGroupId, 24, 0.9f, 0.9f);
+        HuSprTPLvlSet(spriteGroupId, 24, 0);
     }
-    if (lbl_1_bss_3AA == 0) {
+    if (ticTacToeStatusSpriteGroup == 0) {
 
-        lbl_1_bss_3AA = temp_r30 = HuSprGrpCreate(10);
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 15), HU_MEMNUM_OVL));
-        temp_r29 = HuSprCreate(temp_r28, 200, 0);
-        HuSprGrpMemberSet(temp_r30, 0, temp_r29);
-        HuSprTPLvlSet(temp_r30, 0, 0.8f);
-        temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 25), HU_MEMNUM_OVL));
-        temp_r29 = HuSprCreate(temp_r28, 190, 0);
-        HuSprGrpMemberSet(temp_r30, 1, temp_r29);
-        HuSprPosSet(temp_r30, 1, 0, 0);
-        for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-            temp_r20 = lbl_1_bss_2C24[temp_r31] = GWPlayerCfg[lbl_1_bss_2C1C[temp_r31]].character;
-            temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 16) + temp_r20, HU_MEMNUM_OVL));
-            temp_r29 = HuSprCreate(temp_r28, 190, 0);
-            HuSprGrpMemberSet(temp_r30, (temp_r31 * 2) + 2, temp_r29);
-            HuSprPosSet(temp_r30, (temp_r31 * 2) + 2, lbl_1_data_19C[temp_r31], 0);
-            if (sp8 = GWPlayerCfg[lbl_1_bss_2C1C[temp_r31]].iscom) {
-                temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 39), HU_MEMNUM_OVL));
-                temp_r21 = GWPlayerCfg[lbl_1_bss_2C1C[temp_r31]].diff;
+        ticTacToeStatusSpriteGroup = spriteGroupId = HuSprGrpCreate(10);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 15), HU_MEMNUM_OVL));
+        spriteId = HuSprCreate(spriteAnimation, 200, 0);
+        HuSprGrpMemberSet(spriteGroupId, 0, spriteId);
+        HuSprTPLvlSet(spriteGroupId, 0, 0.8f);
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 25), HU_MEMNUM_OVL));
+        spriteId = HuSprCreate(spriteAnimation, 190, 0);
+        HuSprGrpMemberSet(spriteGroupId, 1, spriteId);
+        HuSprPosSet(spriteGroupId, 1, 0, 0);
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            characterId = playerCharacterIdsByGroup[playerIndex] = GWPlayerCfg[playerOrderByGroup[playerIndex]].character;
+            spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 16) + characterId, HU_MEMNUM_OVL));
+            spriteId = HuSprCreate(spriteAnimation, 190, 0);
+            HuSprGrpMemberSet(spriteGroupId, (playerIndex * 2) + 2, spriteId);
+            HuSprPosSet(spriteGroupId, (playerIndex * 2) + 2, ticTacToePlayerPositions[playerIndex], 0);
+            if (isComputerControlled = GWPlayerCfg[playerOrderByGroup[playerIndex]].iscom) {
+                spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 39), HU_MEMNUM_OVL));
+                playerStatusAnimation = GWPlayerCfg[playerOrderByGroup[playerIndex]].diff;
             }
             else {
-                temp_r28 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 38), HU_MEMNUM_OVL));
-                temp_r21 = GWPlayerCfg[lbl_1_bss_2C1C[temp_r31]].pad_idx;
+                spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 38), HU_MEMNUM_OVL));
+                playerStatusAnimation = GWPlayerCfg[playerOrderByGroup[playerIndex]].pad_idx;
             }
-            temp_r29 = HuSprCreate(temp_r28, 180, temp_r21);
-            HuSprGrpMemberSet(temp_r30, (temp_r31 * 2) + 3, temp_r29);
-            HuSprPosSet(temp_r30, (temp_r31 * 2) + 3, lbl_1_data_19C[temp_r31], 24);
+            spriteId = HuSprCreate(spriteAnimation, 180, playerStatusAnimation);
+            HuSprGrpMemberSet(spriteGroupId, (playerIndex * 2) + 3, spriteId);
+            HuSprPosSet(spriteGroupId, (playerIndex * 2) + 3, ticTacToePlayerPositions[playerIndex], 24);
         }
-        HuSprGrpPosSet(temp_r30, 800, 240);
+        HuSprGrpPosSet(spriteGroupId, 800, 240);
     }
 }
 
-s32 fn_1_15E98(s16 arg0, s32 arg1)
+s32 ProcessTicTacToeMove(s16 playerIndex, s32 inputEnabled)
 {
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s16 temp_r25;
-    s16 temp_r24;
-    s16 temp_r23;
-    temp_r28 = 4;
-    for (temp_r27 = 0; temp_r27 < 4; temp_r27++) {
-        if (arg0 == GWPlayerCfg[temp_r27].group && GWPlayerCfg[temp_r27].iscom == 0 && temp_r28 > GWPlayerCfg[temp_r27].pad_idx) {
-            temp_r28 = GWPlayerCfg[temp_r27].pad_idx;
+    s16 cursorColumn;
+    s16 cursorRow;
+    s16 controllerPort;
+    s16 playerIndex;
+    s16 moveColumnDelta;
+    s16 moveRowDelta;
+    s16 currentColumn;
+    s16 currentRow;
+    controllerPort = 4;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        if (playerIndex == GWPlayerCfg[playerIndex].group && GWPlayerCfg[playerIndex].iscom == 0 && controllerPort > GWPlayerCfg[playerIndex].pad_idx) {
+            controllerPort = GWPlayerCfg[playerIndex].pad_idx;
         }
     }
-    if (temp_r28 == 4) {
-        if (arg1 == 0) {
+    if (controllerPort == 4) {
+        if (inputEnabled == 0) {
             return 1;
         }
-        temp_r30 = lbl_1_bss_3B4[arg0] % 3;
-        temp_r29 = lbl_1_bss_3B4[arg0] / 3;
-        temp_r24 = lbl_1_bss_3B0[arg0] % 3;
-        temp_r23 = lbl_1_bss_3B0[arg0] / 3;
-        if (--lbl_1_bss_3AC[arg0] != 0) {
+        cursorColumn = ticTacToeCursorPositions[playerIndex] % 3;
+        cursorRow = ticTacToeCursorPositions[playerIndex] / 3;
+        currentColumn = ticTacToePreviousCursorPositions[playerIndex] % 3;
+        currentRow = ticTacToePreviousCursorPositions[playerIndex] / 3;
+        if (--ticTacToeCursorTimers[playerIndex] != 0) {
             return 0;
         }
-        if (temp_r30 == temp_r24 && temp_r29 == temp_r23) {
+        if (cursorColumn == currentColumn && cursorRow == currentRow) {
             HuAudFXPlay(1);
-            mgTicTacToeGrid[temp_r24][temp_r23] |= 4 << arg0;
+            mgTicTacToeGrid[currentColumn][currentRow] |= 4 << playerIndex;
             return 1;
         }
         else {
-            lbl_1_bss_3AC[arg0] = 30;
-            temp_r26 = (temp_r24 - temp_r30 < 0) ? -1 : (temp_r24 - temp_r30 > 0) ? 1 : 0;
-            temp_r25 = (temp_r23 - temp_r29 < 0) ? -1 : (temp_r23 - temp_r29 > 0) ? 1 : 0;
-            lbl_1_bss_3B4[arg0] = temp_r30 + temp_r26 + ((temp_r29 + temp_r25) * 3);
+            ticTacToeCursorTimers[playerIndex] = 30;
+            moveColumnDelta = (currentColumn - cursorColumn < 0) ? -1 : (currentColumn - cursorColumn > 0) ? 1 : 0;
+            moveRowDelta = (currentRow - cursorRow < 0) ? -1 : (currentRow - cursorRow > 0) ? 1 : 0;
+            ticTacToeCursorPositions[playerIndex] = cursorColumn + moveColumnDelta + ((cursorRow + moveRowDelta) * 3);
             HuAudFXPlay(0);
             return 0;
         }
     }
     else {
-        temp_r30 = lbl_1_bss_3B4[arg0] % 3;
-        temp_r29 = lbl_1_bss_3B4[arg0] / 3;
-        if (arg1 == 0) {
+        cursorColumn = ticTacToeCursorPositions[playerIndex] % 3;
+        cursorRow = ticTacToeCursorPositions[playerIndex] / 3;
+        if (inputEnabled == 0) {
             return 1;
         }
-        if (HuPadBtnDown[temp_r28] & PAD_BUTTON_A) {
-            if ((mgTicTacToeGrid[temp_r30][temp_r29] & 0x3) == 0) {
-                mgTicTacToeGrid[temp_r30][temp_r29] |= 4 << arg0;
+        if (HuPadBtnDown[controllerPort] & PAD_BUTTON_A) {
+            if ((mgTicTacToeGrid[cursorColumn][cursorRow] & 0x3) == 0) {
+                mgTicTacToeGrid[cursorColumn][cursorRow] |= 4 << playerIndex;
                 HuAudFXPlay(1);
                 return 1;
             }
@@ -503,263 +503,263 @@ s32 fn_1_15E98(s16 arg0, s32 arg1)
                 HuAudFXPlay(4);
             }
         }
-        if (HuPadDStkRep[temp_r28] == 0) {
+        if (HuPadDStkRep[controllerPort] == 0) {
             return 0;
         }
-        temp_r26 = temp_r25 = 0;
-        if ((HuPadDStkRep[temp_r28] & PAD_BUTTON_LEFT) && temp_r30 > 0) {
-            temp_r26 = -1;
+        moveColumnDelta = moveRowDelta = 0;
+        if ((HuPadDStkRep[controllerPort] & PAD_BUTTON_LEFT) && cursorColumn > 0) {
+            moveColumnDelta = -1;
         }
-        else if ((HuPadDStkRep[temp_r28] & PAD_BUTTON_RIGHT) && temp_r30 < 2) {
-            temp_r26 = 1;
+        else if ((HuPadDStkRep[controllerPort] & PAD_BUTTON_RIGHT) && cursorColumn < 2) {
+            moveColumnDelta = 1;
         }
-        if ((HuPadDStkRep[temp_r28] & PAD_BUTTON_UP) && temp_r29 > 0) {
-            temp_r25 = -1;
+        if ((HuPadDStkRep[controllerPort] & PAD_BUTTON_UP) && cursorRow > 0) {
+            moveRowDelta = -1;
         }
-        else if ((HuPadDStkRep[temp_r28] & PAD_BUTTON_DOWN) && temp_r29 < 2) {
-            temp_r25 = 1;
+        else if ((HuPadDStkRep[controllerPort] & PAD_BUTTON_DOWN) && cursorRow < 2) {
+            moveRowDelta = 1;
         }
-        if (temp_r26 || temp_r25) {
+        if (moveColumnDelta || moveRowDelta) {
             HuAudFXPlay(0);
         }
-        lbl_1_bss_3B4[arg0] = temp_r30 + temp_r26 + ((temp_r29 + temp_r25) * 3);
+        ticTacToeCursorPositions[playerIndex] = cursorColumn + moveColumnDelta + ((cursorRow + moveRowDelta) * 3);
         return 0;
     }
 }
 
-void fn_1_16438(void)
+void ExitTicTacToeMinigame(void)
 {
-    s16 temp_r31;
-    HU3DMODEL *temp_r30;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    float temp_f31;
-    float temp_f30;
+    s16 animationFrame;
+    HU3DMODEL *modelWork;
+    Vec modelPosition;
+    Vec targetPosition;
+    Vec transitionPosition;
+    float animationProgress;
+    float rotationProgress;
 
-    fn_1_25E74(lbl_1_bss_3B8);
-    fn_1_25584(lbl_1_data_168);
-    lbl_1_data_168 = lbl_1_bss_3B8 = -1;
-    temp_r30 = &Hu3DData[lbl_1_bss_2C80[5]];
-    sp20 = temp_r30->pos;
-    sp14.x = 0;
-    sp14.y = 0;
-    sp14.z = 640;
-    VECSubtract(&sp14, &sp20, &sp14);
-    temp_f30 = 180 + atan2d(sp14.z, sp14.x);
-    for (temp_r31 = 0; temp_r31 <= 60; temp_r31++) {
-        if (temp_r31 <= 10) {
-            temp_f31 = sind((temp_r31 / 10.0) * 90.0);
-            HuSprGrpPosSet(lbl_1_bss_3A8, 288, 240 + (16 * temp_f31));
+    CloseCenteredMessageWindow(windowId);
+    CloseStandardMessageWindow(windowId);
+    ticTacToeMessageWindow = ticTacToeWindow = -1;
+    modelWork = &Hu3DData[mgModeModelIds[5]];
+    modelPosition = modelWork->pos;
+    targetPosition.x = 0;
+    targetPosition.y = 0;
+    targetPosition.z = 640;
+    VECSubtract(&targetPosition, &modelPosition, &targetPosition);
+    rotationProgress = 180 + atan2d(targetPosition.z, targetPosition.x);
+    for (animationFrame = 0; animationFrame <= 60; animationFrame++) {
+        if (animationFrame <= 10) {
+            animationProgress = sind((animationFrame / 10.0) * 90.0);
+            HuSprGrpPosSet(ticTacToeBoardSpriteGroup, 288, 240 + (16 * animationProgress));
         }
         else {
-            temp_f31 = 1.0 - cosd(((temp_r31 - 10.0) / 50.0) * 90.0);
-            HuSprGrpPosSet(lbl_1_bss_3A8, 288, 256 + (-400 * temp_f31));
+            animationProgress = 1.0 - cosd(((animationFrame - 10.0) / 50.0) * 90.0);
+            HuSprGrpPosSet(ticTacToeBoardSpriteGroup, 288, 256 + (-400 * animationProgress));
         }
-        if (temp_r31 <= 10) {
-            temp_f31 = sind((temp_r31 / 10.0) * 90.0);
-            HuSprGrpPosSet(lbl_1_bss_3AA, 450 + (-16 * temp_f31), 65);
+        if (animationFrame <= 10) {
+            animationProgress = sind((animationFrame / 10.0) * 90.0);
+            HuSprGrpPosSet(ticTacToeStatusSpriteGroup, 450 + (-16 * animationProgress), 65);
         }
-        else if (temp_r31 < 30) {
-            temp_f31 = 1 - cosd(((temp_r31 - 10.0) / 20.0) * 90.0);
-            HuSprGrpPosSet(lbl_1_bss_3AA, 434 + (400 * temp_f31), 65);
+        else if (animationFrame < 30) {
+            animationProgress = 1 - cosd(((animationFrame - 10.0) / 20.0) * 90.0);
+            HuSprGrpPosSet(ticTacToeStatusSpriteGroup, 434 + (400 * animationProgress), 65);
         }
-        if (temp_r31 == 29) {
-            Hu3DMotionTimeSet(lbl_1_bss_2C80[5], 0);
+        if (animationFrame == 29) {
+            Hu3DMotionTimeSet(mgModeModelIds[5], 0);
         }
-        if (temp_r31 == 30) {
-            Hu3DMotionShiftSet(lbl_1_bss_2C80[5], lbl_1_bss_2C66[7], 0, 8, HU3D_MOTATTR_LOOP);
+        if (animationFrame == 30) {
+            Hu3DMotionShiftSet(mgModeModelIds[5], mgModeMotionIds[7], 0, 8, HU3D_MOTATTR_LOOP);
         }
-        if (temp_r31 > 30) {
-            temp_f31 = (temp_r31 - 30.0) / 30.0;
-            VECScale(&sp14, &sp8, temp_f31);
-            VECAdd(&sp20, &sp8, &sp8);
-            Hu3DModelPosSetV(lbl_1_bss_2C80[5], &sp8);
-            if (temp_r31 <= 40) {
-                temp_f31 = (temp_r31 - 30) / 10.0;
-                Hu3DModelRotSet(lbl_1_bss_2C80[5], 0, temp_f30 * temp_f31, 0);
+        if (animationFrame > 30) {
+            animationProgress = (animationFrame - 30.0) / 30.0;
+            VECScale(&targetPosition, &transitionPosition, animationProgress);
+            VECAdd(&modelPosition, &transitionPosition, &transitionPosition);
+            Hu3DModelPosSetV(mgModeModelIds[5], &transitionPosition);
+            if (animationFrame <= 40) {
+                animationProgress = (animationFrame - 30) / 10.0;
+                Hu3DModelRotSet(mgModeModelIds[5], 0, rotationProgress * animationProgress, 0);
             }
         }
         HuPrcVSleep();
     }
-    Hu3DMotionShiftSet(lbl_1_bss_2C80[5], lbl_1_bss_2C66[6], 0, 8, HU3D_MOTATTR_LOOP);
-    for (temp_r31 = 0; temp_r31 <= 10; temp_r31++) {
-        temp_f31 = 1.0 - (temp_r31 / 10.0);
-        Hu3DModelRotSet(lbl_1_bss_2C80[5], 0, temp_f31 * temp_f30, 0);
+    Hu3DMotionShiftSet(mgModeModelIds[5], mgModeMotionIds[6], 0, 8, HU3D_MOTATTR_LOOP);
+    for (animationFrame = 0; animationFrame <= 10; animationFrame++) {
+        animationProgress = 1.0 - (animationFrame / 10.0);
+        Hu3DModelRotSet(mgModeModelIds[5], 0, animationProgress * rotationProgress, 0);
         HuPrcVSleep();
     }
-    HuSprGrpKill(lbl_1_bss_3A8);
-    lbl_1_bss_3A8 = 0;
-    HuSprGrpKill(lbl_1_bss_3AA);
-    lbl_1_bss_3AA = 0;
+    HuSprGrpKill(ticTacToeBoardSpriteGroup);
+    ticTacToeBoardSpriteGroup = 0;
+    HuSprGrpKill(ticTacToeStatusSpriteGroup);
+    ticTacToeStatusSpriteGroup = 0;
 }
 
-s32 fn_1_16B30(void)
+s32 ShowTicTacToeInstructions(void)
 {
-    s16 temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s16 temp_r25;
-    s16 temp_r24;
-    ANIMDATA *temp_r23;
-    s16 temp_r22;
-    s16 temp_r21;
-    s16 temp_r20;
-    float temp_f31;
+    s16 animationFrame;
+    s16 playerIndex;
+    s16 winningCell;
+    s16 winningPlayer;
+    s16 winningLineCount;
+    s16 effectSpriteId;
+    s16 winningLineGroup;
+    s16 spriteId;
+    ANIMDATA *winningLineAnimation;
+    s16 playerIndex;
+    s16 row;
+    s16 cellFlags;
+    float fadeProgress;
 
-    s16 sp22[9];
-    s16 sp1E[2];
-    s16 sp1A[2];
-    s16 sp16[2];
-    s16 sp12[2];
-    char spE[2][2];
+    s16 winningCells[9];
+    s16 winningCellByPlayer[2];
+    s16 playerMoveCounts[2];
+    s16 groupCoinTotals[2];
+    s16 groupHasCoinLead[2];
+    char scoreStrings[2][2];
 
-    for (temp_r31 = 0; temp_r31 < 9; temp_r31++) {
-        if (mgTicTacToeGrid[temp_r31 % 3][temp_r31 / 3] & 0x4) {
-            sp1E[0] = temp_r31;
+    for (animationFrame = 0; animationFrame < 9; animationFrame++) {
+        if (mgTicTacToeGrid[animationFrame % 3][animationFrame / 3] & 0x4) {
+            winningCellByPlayer[0] = animationFrame;
         }
-        if (mgTicTacToeGrid[temp_r31 % 3][temp_r31 / 3] & 0x8) {
-            sp1E[1] = temp_r31;
+        if (mgTicTacToeGrid[animationFrame % 3][animationFrame / 3] & 0x8) {
+            winningCellByPlayer[1] = animationFrame;
         }
     }
     HuPrcSleep(60);
-    sp16[0] = sp16[1] = 0;
-    for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
-        sp16[temp_r31 / 2] += GWPlayerCoinWinGet(lbl_1_bss_2C1C[temp_r31]) + GWPlayerCoinCollectGet(lbl_1_bss_2C1C[temp_r31]);
+    groupCoinTotals[0] = groupCoinTotals[1] = 0;
+    for (animationFrame = 0; animationFrame < 4; animationFrame++) {
+        groupCoinTotals[animationFrame / 2] += GWPlayerCoinWinGet(playerOrderByGroup[animationFrame]) + GWPlayerCoinCollectGet(playerOrderByGroup[animationFrame]);
     }
-    sp12[0] = sp12[1] = 0;
-    if (sp16[0] != sp16[1]) {
-        if (sp16[0] > sp16[1]) {
-            sp12[0] = 1;
+    groupHasCoinLead[0] = groupHasCoinLead[1] = 0;
+    if (groupCoinTotals[0] != groupCoinTotals[1]) {
+        if (groupCoinTotals[0] > groupCoinTotals[1]) {
+            groupHasCoinLead[0] = 1;
         }
         else {
-            sp12[1] = 1;
+            groupHasCoinLead[1] = 1;
         }
     }
-    for (temp_r30 = 0, temp_r28 = -1; temp_r30 < 2; temp_r30++) {
-        temp_r22 = sp1E[temp_r30] % 3;
-        temp_r21 = sp1E[temp_r30] / 3;
-        if (sp12[temp_r30] != 0) {
-            mgTicTacToeGrid[temp_r22][temp_r21] = (1 << temp_r30);
-            temp_r28 = temp_r30;
+    for (playerIndex = 0, winningPlayer = -1; playerIndex < 2; playerIndex++) {
+        playerIndex = winningCellByPlayer[playerIndex] % 3;
+        row = winningCellByPlayer[playerIndex] / 3;
+        if (groupHasCoinLead[playerIndex] != 0) {
+            mgTicTacToeGrid[playerIndex][row] = (1 << playerIndex);
+            winningPlayer = playerIndex;
         }
         else {
-            mgTicTacToeGrid[temp_r22][temp_r21] &= ~(4 << temp_r30);
+            mgTicTacToeGrid[playerIndex][row] &= ~(4 << playerIndex);
         }
     }
-    if (lbl_1_data_168 == -1) {
-        lbl_1_data_168 = fn_1_2530C(0, 0, 0);
+    if (ticTacToeMessageWindow == -1) {
+        ticTacToeMessageWindow = CreateStandardMessageWindow(0, 0, 0);
     }
-    if (temp_r28 != -1) {
-        HuWinInsertMesSet(lbl_1_data_168, lbl_1_bss_2C24[temp_r28 * 2], 0);
-        HuWinInsertMesSet(lbl_1_data_168, lbl_1_bss_2C24[(temp_r28 * 2) + 1], 1);
-        fn_1_25838(lbl_1_data_168, 0x280016, -1, -1);
+    if (winningPlayer != -1) {
+        HuWinInsertMesSet(ticTacToeMessageWindow, playerCharacterIdsByGroup[winningPlayer * 2], 0);
+        HuWinInsertMesSet(ticTacToeMessageWindow, playerCharacterIdsByGroup[(winningPlayer * 2) + 1], 1);
+        ShowMessageAndWait(windowId, 0x280016, -1, -1);
     }
     else {
-        fn_1_25838(lbl_1_data_168, 0x280013, -1, -1);
+        ShowMessageAndWait(windowId, 0x280013, -1, -1);
     }
-    temp_r26 = espEntry(0x62005D, 100, 0);
-    espColorSet(temp_r26, 255, 255, 192);
-    espAttrSet(temp_r26, HUSPR_ATTR_ADDCOL | HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LOOP);
-    for (temp_r31 = 0; temp_r31 <= 30; temp_r31++) {
-        for (temp_r30 = 0; temp_r30 < 2; temp_r30++) {
-            if (sp12[temp_r30]) {
-                if (temp_r31 == 0) {
-                    temp_r23 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 87) + temp_r30, HU_MEMNUM_OVL));
-                    temp_r24 = HuSprCreate(temp_r23, 170, 0);
-                    HuSprGrpMemberSet(lbl_1_bss_3A8, sp1E[temp_r30] + 3, temp_r24);
-                    HuSprPosSet(lbl_1_bss_3A8, sp1E[temp_r30] + 3, ((sp1E[temp_r30] % 3) * 56) - 56, ((sp1E[temp_r30] / 3) * 56) - 56);
-                    HuSprAttrSet(lbl_1_bss_3A8, sp1E[temp_r30] + 3, HUSPR_ATTR_DISPOFF);
-                    espAttrReset(temp_r26, HUSPR_ATTR_DISPOFF);
-                    espPosSet(temp_r26, (((sp1E[temp_r30] % 3) * 56) + 288.0f) - 56, ((sp1E[temp_r30] / 3) * 56) + 184);
+    effectSpriteId = espEntry(0x62005D, 100, 0);
+    espColorSet(effectSpriteId, 255, 255, 192);
+    espAttrSet(effectSpriteId, HUSPR_ATTR_ADDCOL | HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LOOP);
+    for (animationFrame = 0; animationFrame <= 30; animationFrame++) {
+        for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+            if (groupHasCoinLead[playerIndex]) {
+                if (animationFrame == 0) {
+                    winningLineAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 87) + playerIndex, HU_MEMNUM_OVL));
+                    spriteId = HuSprCreate(winningLineAnimation, 170, 0);
+                    HuSprGrpMemberSet(ticTacToeBoardSpriteGroup, winningCellByPlayer[playerIndex] + 3, spriteId);
+                    HuSprPosSet(ticTacToeBoardSpriteGroup, winningCellByPlayer[playerIndex] + 3, ((winningCellByPlayer[playerIndex] % 3) * 56) - 56, ((winningCellByPlayer[playerIndex] / 3) * 56) - 56);
+                    HuSprAttrSet(ticTacToeBoardSpriteGroup, winningCellByPlayer[playerIndex] + 3, HUSPR_ATTR_DISPOFF);
+                    espAttrReset(effectSpriteId, HUSPR_ATTR_DISPOFF);
+                    espPosSet(effectSpriteId, (((winningCellByPlayer[playerIndex] % 3) * 56) + 288.0f) - 56, ((winningCellByPlayer[playerIndex] / 3) * 56) + 184);
                     HuAudFXPlay(825);
                     HuAudFXPlay(826);
                 }
-                if (temp_r31 == 8) {
-                    HuSprAttrReset(lbl_1_bss_3A8, sp1E[temp_r30] + 3, HUSPR_ATTR_DISPOFF);
+                if (animationFrame == 8) {
+                    HuSprAttrReset(ticTacToeBoardSpriteGroup, winningCellByPlayer[playerIndex] + 3, HUSPR_ATTR_DISPOFF);
                 }
-                if (temp_r31 == 14) {
-                    espKill(temp_r26);
+                if (animationFrame == 14) {
+                    espKill(effectSpriteId);
                 }
             }
             else {
-                temp_f31 = 1 - (temp_r31 / 30.0);
-                HuSprTPLvlSet(lbl_1_bss_3A8, temp_r30 + 14, temp_f31);
+                fadeProgress = 1 - (animationFrame / 30.0);
+                HuSprTPLvlSet(ticTacToeBoardSpriteGroup, playerIndex + 14, fadeProgress);
             }
         }
         HuPrcVSleep();
     }
-    HuSprAttrSet(lbl_1_bss_3A8, 14, HUSPR_ATTR_DISPOFF);
-    HuSprTPLvlSet(lbl_1_bss_3A8, 14, 1.0f);
-    HuSprAttrSet(lbl_1_bss_3A8, 15, HUSPR_ATTR_DISPOFF);
-    HuSprTPLvlSet(lbl_1_bss_3A8, 15, 1.0f);
-    for (temp_r31 = 0; temp_r31 < 9; temp_r31++) {
-        sp22[temp_r31] = 0;
+    HuSprAttrSet(ticTacToeBoardSpriteGroup, 14, HUSPR_ATTR_DISPOFF);
+    HuSprTPLvlSet(ticTacToeBoardSpriteGroup, 14, 1.0f);
+    HuSprAttrSet(ticTacToeBoardSpriteGroup, 15, HUSPR_ATTR_DISPOFF);
+    HuSprTPLvlSet(ticTacToeBoardSpriteGroup, 15, 1.0f);
+    for (animationFrame = 0; animationFrame < 9; animationFrame++) {
+        winningCells[animationFrame] = 0;
     }
-    temp_r27 = 0;
-    for (temp_r30 = 0; temp_r30 < 2; temp_r30++) {
-        for (temp_r31 = 0; temp_r31 < 8; temp_r31++) {
-            temp_r29 = lbl_1_data_16A[temp_r31 * 3];
-            if ((1 << temp_r30) & mgTicTacToeGrid[temp_r29 % 3][temp_r29 / 3]) {
-                temp_r29 = lbl_1_data_16A[(temp_r31 * 3) + 1];
-                if ((1 << temp_r30) & mgTicTacToeGrid[temp_r29 % 3][temp_r29 / 3]) {
-                    temp_r29 = lbl_1_data_16A[(temp_r31 * 3) + 2];
-                    if ((1 << temp_r30) & mgTicTacToeGrid[temp_r29 % 3][temp_r29 / 3]) {
-                        temp_r29 = lbl_1_data_16A[temp_r31 * 3];
-                        if (sp22[temp_r29] == 0) {
-                            sp22[temp_r29]++;
-                            temp_r27++;
+    winningLineCount = 0;
+    for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+        for (animationFrame = 0; animationFrame < 8; animationFrame++) {
+            winningCell = ticTacToeWinningLines[animationFrame * 3];
+            if ((1 << playerIndex) & mgTicTacToeGrid[winningCell % 3][winningCell / 3]) {
+                winningCell = ticTacToeWinningLines[(animationFrame * 3) + 1];
+                if ((1 << playerIndex) & mgTicTacToeGrid[winningCell % 3][winningCell / 3]) {
+                    winningCell = ticTacToeWinningLines[(animationFrame * 3) + 2];
+                    if ((1 << playerIndex) & mgTicTacToeGrid[winningCell % 3][winningCell / 3]) {
+                        winningCell = ticTacToeWinningLines[animationFrame * 3];
+                        if (winningCells[winningCell] == 0) {
+                            winningCells[winningCell]++;
+                            winningLineCount++;
                         }
-                        temp_r29 = lbl_1_data_16A[(temp_r31 * 3) + 1];
-                        if (sp22[temp_r29] == 0) {
-                            sp22[temp_r29]++;
-                            temp_r27++;
+                        winningCell = ticTacToeWinningLines[(animationFrame * 3) + 1];
+                        if (winningCells[winningCell] == 0) {
+                            winningCells[winningCell]++;
+                            winningLineCount++;
                         }
-                        temp_r29 = lbl_1_data_16A[(temp_r31 * 3) + 2];
-                        if (sp22[temp_r29] == 0) {
-                            sp22[temp_r29]++;
-                            temp_r27++;
+                        winningCell = ticTacToeWinningLines[(animationFrame * 3) + 2];
+                        if (winningCells[winningCell] == 0) {
+                            winningCells[winningCell]++;
+                            winningLineCount++;
                         }
                     }
                 }
             }
         }
     }
-    if (temp_r27 == 0) {
-        sp1A[0] = sp1A[1] = 0;
-        for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
-            for (temp_r30 = 0; temp_r30 < 3; temp_r30++) {
-                temp_r20 = mgTicTacToeGrid[temp_r31][temp_r30];
-                if (temp_r20 & 0x1) {
-                    sp1A[0]++;
+    if (winningLineCount == 0) {
+        playerMoveCounts[0] = playerMoveCounts[1] = 0;
+        for (animationFrame = 0; animationFrame < 3; animationFrame++) {
+            for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+                cellFlags = mgTicTacToeGrid[animationFrame][playerIndex];
+                if (cellFlags & 0x1) {
+                    playerMoveCounts[0]++;
                 }
-                if (temp_r20 & 0x2) {
-                    sp1A[1]++;
+                if (cellFlags & 0x2) {
+                    playerMoveCounts[1]++;
                 }
             }
         }
-        if (sp1A[0] + sp1A[1] >= 9) {
-            for (temp_r31 = 0; temp_r31 < 2; temp_r31++) {
-                spE[temp_r31][0] = sp1A[temp_r31] + '0';
-                spE[temp_r31][1] = 0;
-                HuWinInsertMesSet(lbl_1_data_168, MAKE_MESSID_PTR(&spE[temp_r31][0]), (s32)temp_r31);
+        if (playerMoveCounts[0] + playerMoveCounts[1] >= 9) {
+            for (animationFrame = 0; animationFrame < 2; animationFrame++) {
+                scoreStrings[animationFrame][0] = playerMoveCounts[animationFrame] + '0';
+                scoreStrings[animationFrame][1] = 0;
+                HuWinInsertMesSet(ticTacToeMessageWindow, MAKE_MESSID_PTR(&scoreStrings[animationFrame][0]), (s32)animationFrame);
             }
-            if (sp1A[0] > sp1A[1]) {
-                temp_r28 = 0;
+            if (playerMoveCounts[0] > playerMoveCounts[1]) {
+                winningPlayer = 0;
             }
             else {
-                temp_r28 = 1;
+                winningPlayer = 1;
             }
             HuPrcSleep(30);
             HuAudFXPlay(2175);
-            HuWinInsertMesSet(lbl_1_data_168, lbl_1_bss_2C24[(temp_r28 * 2) + 0], 2);
-            HuWinInsertMesSet(lbl_1_data_168, lbl_1_bss_2C24[(temp_r28 * 2) + 1], 3);
-            fn_1_25838(lbl_1_data_168, 0x280025, -1, -1);
-            fn_1_25584(lbl_1_data_168);
-            lbl_1_data_168 = -1;
+            HuWinInsertMesSet(ticTacToeMessageWindow, playerCharacterIdsByGroup[(winningPlayer * 2) + 0], 2);
+            HuWinInsertMesSet(ticTacToeMessageWindow, playerCharacterIdsByGroup[(winningPlayer * 2) + 1], 3);
+            ShowMessageAndWait(windowId, 0x280025, -1, -1);
+            CloseStandardMessageWindow(windowId);
+            ticTacToeMessageWindow = -1;
             return 1;
         }
         else {
@@ -767,33 +767,33 @@ s32 fn_1_16B30(void)
         }
     }
     else {
-        temp_r23 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 93), HU_MEMNUM_OVL));
-        temp_r25 = HuSprGrpCreate(temp_r27);
-        for (temp_r30 = temp_r31 = 0; temp_r30 < 9; temp_r30++) {
-            if (sp22[temp_r30] == 0) {
+        winningLineAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 93), HU_MEMNUM_OVL));
+        winningLineGroup = HuSprGrpCreate(winningLineCount);
+        for (playerIndex = animationFrame = 0; playerIndex < 9; playerIndex++) {
+            if (winningCells[playerIndex] == 0) {
                 continue;
             }
-            temp_r24 = HuSprCreate(temp_r23, 100, 0);
-            HuSprGrpMemberSet(temp_r25, temp_r31, temp_r24);
-            HuSprPosSet(temp_r25, temp_r31, (((temp_r30 % 3) * 56) + 288.0f) - 56, ((temp_r30 / 3) * 56) + 184);
-            HuSprAttrSet(temp_r25, temp_r31, HUSPR_ATTR_LOOP);
-            temp_r31++;
+            spriteId = HuSprCreate(winningLineAnimation, 100, 0);
+            HuSprGrpMemberSet(winningLineGroup, animationFrame, spriteId);
+            HuSprPosSet(winningLineGroup, animationFrame, (((playerIndex % 3) * 56) + 288.0f) - 56, ((playerIndex / 3) * 56) + 184);
+            HuSprAttrSet(winningLineGroup, animationFrame, HUSPR_ATTR_LOOP);
+            animationFrame++;
         }
         HuPrcSleep(14);
-        HuSprGrpKill(temp_r25);
+        HuSprGrpKill(winningLineGroup);
         HuAudFXPlay(2175);
-        HuWinInsertMesSet(lbl_1_data_168, lbl_1_bss_2C24[(temp_r28 * 2) + 0], 0);
-        HuWinInsertMesSet(lbl_1_data_168, lbl_1_bss_2C24[(temp_r28 * 2) + 1], 1);
-        fn_1_25838(lbl_1_data_168, 0x280017, -1, -1);
-        fn_1_25584(lbl_1_data_168);
-        lbl_1_data_168 = -1;
+        HuWinInsertMesSet(ticTacToeMessageWindow, playerCharacterIdsByGroup[(winningPlayer * 2) + 0], 0);
+        HuWinInsertMesSet(ticTacToeMessageWindow, playerCharacterIdsByGroup[(winningPlayer * 2) + 1], 1);
+        ShowMessageAndWait(windowId, 0x280017, -1, -1);
+        CloseStandardMessageWindow(windowId);
+        ticTacToeMessageWindow = -1;
         return 1;
     }
 }
 
-void fn_1_17A5C(void)
+void StartTicTacToeRound(void)
 {
-    HUSPRGRP *gp = &HuSprGrpData[lbl_1_bss_3A8];
+    HUSPRGRP *gp = &HuSprGrpData[ticTacToeBoardSpriteGroup];
     s16 j;
     s16 i;
     for (j = 0; j <= 30; j++) {
@@ -812,178 +812,178 @@ void fn_1_17A5C(void)
     }
 }
 
-void fn_1_17BE0(void)
+void AnimateTicTacToeBoard(void)
 {
-    s16 temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s16 temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s16 temp_r25;
-    s16 temp_r24;
-    s16 temp_r23;
-    s16 temp_r22;
-    s16 temp_r21;
+    s16 lineIndex;
+    s16 candidateCell;
+    s16 comparisonPlayer;
+    s16 matchingMarkCount;
+    s16 adjacentCellCount;
+    s16 playerIndex;
+    s16 emptyCell;
+    s16 ownedCellCount;
+    s16 moveSearchCount;
+    s16 nearbyCellSearch;
+    s16 emptyCellCount;
 
-    s16 sp2A[9];
-    s16 sp18[9];
-    s16 sp8[8];
-    for (temp_r26 = 0; temp_r26 < 2; temp_r26++) {
-        for (temp_r31 = 0; temp_r31 < 8; temp_r31++) {
-            temp_r28 = 0;
-            temp_r25 = -1;
-            temp_r30 = lbl_1_data_16A[(temp_r31 * 3) + 0];
-            if ((1 << temp_r26) & mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3]) {
-                temp_r28++;
+    s16 ownedCells[9];
+    s16 emptyCells[9];
+    s16 adjacentEmptyCells[8];
+    for (playerIndex = 0; playerIndex < 2; playerIndex++) {
+        for (lineIndex = 0; lineIndex < 8; lineIndex++) {
+            matchingMarkCount = 0;
+            emptyCell = -1;
+            candidateCell = ticTacToeWinningLines[(lineIndex * 3) + 0];
+            if ((1 << playerIndex) & mgTicTacToeGrid[candidateCell % 3][candidateCell / 3]) {
+                matchingMarkCount++;
             }
-            else if ((mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3] & 0x3) == 0) {
-                temp_r25 = temp_r30;
+            else if ((mgTicTacToeGrid[candidateCell % 3][candidateCell / 3] & 0x3) == 0) {
+                emptyCell = candidateCell;
             }
-            temp_r30 = lbl_1_data_16A[(temp_r31 * 3) + 1];
-            if ((1 << temp_r26) & mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3]) {
-                temp_r28++;
+            candidateCell = ticTacToeWinningLines[(lineIndex * 3) + 1];
+            if ((1 << playerIndex) & mgTicTacToeGrid[candidateCell % 3][candidateCell / 3]) {
+                matchingMarkCount++;
             }
-            else if ((mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3] & 0x3) == 0) {
-                temp_r25 = temp_r30;
+            else if ((mgTicTacToeGrid[candidateCell % 3][candidateCell / 3] & 0x3) == 0) {
+                emptyCell = candidateCell;
             }
-            temp_r30 = lbl_1_data_16A[(temp_r31 * 3) + 2];
-            if ((1 << temp_r26) & mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3]) {
-                temp_r28++;
+            candidateCell = ticTacToeWinningLines[(lineIndex * 3) + 2];
+            if ((1 << playerIndex) & mgTicTacToeGrid[candidateCell % 3][candidateCell / 3]) {
+                matchingMarkCount++;
             }
-            else if ((mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3] & 0x3) == 0) {
-                temp_r25 = temp_r30;
+            else if ((mgTicTacToeGrid[candidateCell % 3][candidateCell / 3] & 0x3) == 0) {
+                emptyCell = candidateCell;
             }
-            if (temp_r28 == 2 && temp_r25 != -1) {
-                OSReport("%d:LEACH\n", temp_r26);
-                lbl_1_bss_3B0[temp_r26] = temp_r25;
+            if (matchingMarkCount == 2 && emptyCell != -1) {
+                OSReport("%d:LEACH\n", playerIndex);
+                ticTacToePreviousCursorPositions[playerIndex] = emptyCell;
                 break;
             }
         }
-        if (temp_r31 != 8) {
+        if (lineIndex != 8) {
             continue;
         }
         if (frandmod(5) != 0) {
-            temp_r29 = temp_r26 ^ 1;
-            for (temp_r31 = 0; temp_r31 < 8; temp_r31++) {
-                temp_r28 = 0;
-                temp_r25 = -1;
-                temp_r30 = lbl_1_data_16A[(temp_r31 * 3) + 0];
-                if ((1 << temp_r29) & mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3]) {
-                    temp_r28++;
+            comparisonPlayer = playerIndex ^ 1;
+            for (lineIndex = 0; lineIndex < 8; lineIndex++) {
+                matchingMarkCount = 0;
+                emptyCell = -1;
+                candidateCell = ticTacToeWinningLines[(lineIndex * 3) + 0];
+                if ((1 << comparisonPlayer) & mgTicTacToeGrid[candidateCell % 3][candidateCell / 3]) {
+                    matchingMarkCount++;
                 }
-                else if ((mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3] & 0x3) == 0) {
-                    temp_r25 = temp_r30;
+                else if ((mgTicTacToeGrid[candidateCell % 3][candidateCell / 3] & 0x3) == 0) {
+                    emptyCell = candidateCell;
                 }
-                temp_r30 = lbl_1_data_16A[(temp_r31 * 3) + 1];
-                if ((1 << temp_r29) & mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3]) {
-                    temp_r28++;
+                candidateCell = ticTacToeWinningLines[(lineIndex * 3) + 1];
+                if ((1 << comparisonPlayer) & mgTicTacToeGrid[candidateCell % 3][candidateCell / 3]) {
+                    matchingMarkCount++;
                 }
-                else if ((mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3] & 0x3) == 0) {
-                    temp_r25 = temp_r30;
+                else if ((mgTicTacToeGrid[candidateCell % 3][candidateCell / 3] & 0x3) == 0) {
+                    emptyCell = candidateCell;
                 }
-                temp_r30 = lbl_1_data_16A[(temp_r31 * 3) + 2];
-                if ((1 << temp_r29) & mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3]) {
-                    temp_r28++;
+                candidateCell = ticTacToeWinningLines[(lineIndex * 3) + 2];
+                if ((1 << comparisonPlayer) & mgTicTacToeGrid[candidateCell % 3][candidateCell / 3]) {
+                    matchingMarkCount++;
                 }
-                else if ((mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3] & 0x3) == 0) {
-                    temp_r25 = temp_r30;
+                else if ((mgTicTacToeGrid[candidateCell % 3][candidateCell / 3] & 0x3) == 0) {
+                    emptyCell = candidateCell;
                 }
-                if (temp_r28 == 2 && temp_r25 != -1) {
-                    lbl_1_bss_3B0[temp_r26] = temp_r25;
+                if (matchingMarkCount == 2 && emptyCell != -1) {
+                    ticTacToePreviousCursorPositions[playerIndex] = emptyCell;
                     break;
                 }
             }
-            if (temp_r31 != 8) {
+            if (lineIndex != 8) {
                 continue;
             }
         }
-        for (temp_r31 = temp_r24 = temp_r21 = 0; temp_r31 < 9; temp_r31++) {
-            if ((1 << temp_r26) & mgTicTacToeGrid[temp_r31 % 3][temp_r31 / 3]) {
-                sp2A[temp_r24] = temp_r31;
-                temp_r24++;
+        for (lineIndex = ownedCellCount = emptyCellCount = 0; lineIndex < 9; lineIndex++) {
+            if ((1 << playerIndex) & mgTicTacToeGrid[lineIndex % 3][lineIndex / 3]) {
+                ownedCells[ownedCellCount] = lineIndex;
+                ownedCellCount++;
             }
-            else if ((mgTicTacToeGrid[temp_r31 % 3][temp_r31 / 3] & 0x3) == 0) {
-                sp18[temp_r21++] = temp_r31;
+            else if ((mgTicTacToeGrid[lineIndex % 3][lineIndex / 3] & 0x3) == 0) {
+                emptyCells[emptyCellCount++] = lineIndex;
             }
         }
-        if (temp_r24 == 0) {
-            OSReport("%d:KOMA None\n", temp_r26);
-            for (temp_r31 = 0; temp_r31 < 50; temp_r31++) {
-                temp_r30 = lbl_1_data_1AC[frandmod(8)];
-                if ((mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3] & 0x3) == 0) {
-                    lbl_1_bss_3B0[temp_r26] = temp_r30;
+        if (ownedCellCount == 0) {
+            OSReport("%d:KOMA None\n", playerIndex);
+            for (lineIndex = 0; lineIndex < 50; lineIndex++) {
+                candidateCell = ticTacToeCenterCells[frandmod(8)];
+                if ((mgTicTacToeGrid[candidateCell % 3][candidateCell / 3] & 0x3) == 0) {
+                    ticTacToePreviousCursorPositions[playerIndex] = candidateCell;
                     break;
                 }
             }
-            if (temp_r31 == 50) {
-                lbl_1_bss_3B0[temp_r26] = sp18[frandmod(temp_r21)];
+            if (lineIndex == 50) {
+                ticTacToePreviousCursorPositions[playerIndex] = emptyCells[frandmod(emptyCellCount)];
             }
         }
         else {
-            for (temp_r22 = 0; temp_r22 < 50; temp_r22++) {
-                temp_r29 = sp2A[frandmod(temp_r24)];
-                temp_r27 = 0;
-                if ((temp_r29 % 3) != 0 && (mgTicTacToeGrid[(temp_r29 - 1) % 3][temp_r29 / 3] & 0x3) == 0) {
-                    sp8[temp_r27++] = temp_r29 - 1;
+            for (nearbyCellSearch = 0; nearbyCellSearch < 50; nearbyCellSearch++) {
+                comparisonPlayer = ownedCells[frandmod(ownedCellCount)];
+                adjacentCellCount = 0;
+                if ((comparisonPlayer % 3) != 0 && (mgTicTacToeGrid[(comparisonPlayer - 1) % 3][comparisonPlayer / 3] & 0x3) == 0) {
+                    adjacentEmptyCells[adjacentCellCount++] = comparisonPlayer - 1;
                 }
-                if ((temp_r29 % 3) != 2 && (mgTicTacToeGrid[(temp_r29 + 1) % 3][temp_r29 / 3] & 0x3) == 0) {
-                    sp8[temp_r27++] = temp_r29 + 1;
+                if ((comparisonPlayer % 3) != 2 && (mgTicTacToeGrid[(comparisonPlayer + 1) % 3][comparisonPlayer / 3] & 0x3) == 0) {
+                    adjacentEmptyCells[adjacentCellCount++] = comparisonPlayer + 1;
                 }
-                if ((temp_r29 / 3) != 0 && (mgTicTacToeGrid[temp_r29 % 3][(temp_r29 - 3) / 3] & 0x3) == 0) {
-                    sp8[temp_r27++] = temp_r29 - 3;
+                if ((comparisonPlayer / 3) != 0 && (mgTicTacToeGrid[comparisonPlayer % 3][(comparisonPlayer - 3) / 3] & 0x3) == 0) {
+                    adjacentEmptyCells[adjacentCellCount++] = comparisonPlayer - 3;
                 }
-                if ((temp_r29 / 3) != 2 && (mgTicTacToeGrid[temp_r29 % 3][(temp_r29 + 3) / 3] & 0x3) == 0) {
-                    sp8[temp_r27++] = temp_r29 + 3;
+                if ((comparisonPlayer / 3) != 2 && (mgTicTacToeGrid[comparisonPlayer % 3][(comparisonPlayer + 3) / 3] & 0x3) == 0) {
+                    adjacentEmptyCells[adjacentCellCount++] = comparisonPlayer + 3;
                 }
-                if ((temp_r29 % 3) != 0 && (temp_r29 / 3) != 0 && (mgTicTacToeGrid[(temp_r29 - 4) % 3][(temp_r29 - 4) / 3] & 0x3) == 0) {
-                    sp8[temp_r27++] = temp_r29 - 4;
+                if ((comparisonPlayer % 3) != 0 && (comparisonPlayer / 3) != 0 && (mgTicTacToeGrid[(comparisonPlayer - 4) % 3][(comparisonPlayer - 4) / 3] & 0x3) == 0) {
+                    adjacentEmptyCells[adjacentCellCount++] = comparisonPlayer - 4;
                 }
-                if ((temp_r29 % 3) != 2 && (temp_r29 / 3) != 0 && (mgTicTacToeGrid[(temp_r29 - 2) % 3][(temp_r29 - 2) / 3] & 0x3) == 0) {
-                    sp8[temp_r27++] = temp_r29 - 2;
+                if ((comparisonPlayer % 3) != 2 && (comparisonPlayer / 3) != 0 && (mgTicTacToeGrid[(comparisonPlayer - 2) % 3][(comparisonPlayer - 2) / 3] & 0x3) == 0) {
+                    adjacentEmptyCells[adjacentCellCount++] = comparisonPlayer - 2;
                 }
-                if ((temp_r29 % 3) != 0 && (temp_r29 / 3) != 2 && (mgTicTacToeGrid[(temp_r29 + 2) % 3][(temp_r29 + 2) / 3] & 0x3) == 0) {
-                    sp8[temp_r27++] = temp_r29 + 2;
+                if ((comparisonPlayer % 3) != 0 && (comparisonPlayer / 3) != 2 && (mgTicTacToeGrid[(comparisonPlayer + 2) % 3][(comparisonPlayer + 2) / 3] & 0x3) == 0) {
+                    adjacentEmptyCells[adjacentCellCount++] = comparisonPlayer + 2;
                 }
-                if ((temp_r29 % 3) != 2 && (temp_r29 / 3) != 2 && (mgTicTacToeGrid[(temp_r29 + 4) % 3][(temp_r29 + 4) / 3] & 0x3) == 0) {
-                    sp8[temp_r27++] = temp_r29 + 4;
+                if ((comparisonPlayer % 3) != 2 && (comparisonPlayer / 3) != 2 && (mgTicTacToeGrid[(comparisonPlayer + 4) % 3][(comparisonPlayer + 4) / 3] & 0x3) == 0) {
+                    adjacentEmptyCells[adjacentCellCount++] = comparisonPlayer + 4;
                 }
-                if (temp_r27 != 0) {
-                    temp_r23 = sp8[frandmod(temp_r27)];
-                    for (temp_r31 = 0; temp_r31 < 8; temp_r31++) {
-                        temp_r28 = 0;
-                        if (temp_r29 == lbl_1_data_16A[(temp_r31 * 3) + 0] || temp_r29 == lbl_1_data_16A[(temp_r31 * 3) + 1]
-                            || temp_r29 == lbl_1_data_16A[(temp_r31 * 3) + 2]) {
-                            temp_r28++;
+                if (adjacentCellCount != 0) {
+                    moveSearchCount = adjacentEmptyCells[frandmod(adjacentCellCount)];
+                    for (lineIndex = 0; lineIndex < 8; lineIndex++) {
+                        matchingMarkCount = 0;
+                        if (comparisonPlayer == ticTacToeWinningLines[(lineIndex * 3) + 0] || comparisonPlayer == ticTacToeWinningLines[(lineIndex * 3) + 1]
+                            || comparisonPlayer == ticTacToeWinningLines[(lineIndex * 3) + 2]) {
+                            matchingMarkCount++;
                         }
-                        if (temp_r23 == lbl_1_data_16A[(temp_r31 * 3) + 0] || temp_r23 == lbl_1_data_16A[(temp_r31 * 3) + 1]
-                            || temp_r23 == lbl_1_data_16A[(temp_r31 * 3) + 2]) {
-                            temp_r28++;
+                        if (moveSearchCount == ticTacToeWinningLines[(lineIndex * 3) + 0] || moveSearchCount == ticTacToeWinningLines[(lineIndex * 3) + 1]
+                            || moveSearchCount == ticTacToeWinningLines[(lineIndex * 3) + 2]) {
+                            matchingMarkCount++;
                         }
-                        if (temp_r28 == 2) {
-                            for (temp_r28 = 0; temp_r28 < 3; temp_r28++) {
-                                if (temp_r29 != lbl_1_data_16A[(temp_r31 * 3) + temp_r28] && temp_r23 != lbl_1_data_16A[(temp_r31 * 3) + temp_r28]) {
+                        if (matchingMarkCount == 2) {
+                            for (matchingMarkCount = 0; matchingMarkCount < 3; matchingMarkCount++) {
+                                if (comparisonPlayer != ticTacToeWinningLines[(lineIndex * 3) + matchingMarkCount] && moveSearchCount != ticTacToeWinningLines[(lineIndex * 3) + matchingMarkCount]) {
                                     break;
                                 }
                             }
-                            temp_r30 = lbl_1_data_16A[(temp_r31 * 3) + temp_r28];
-                            if (mgTicTacToeGrid[temp_r30 % 3][temp_r30 / 3] & 0x3) {
-                                temp_r30 = -1;
+                            candidateCell = ticTacToeWinningLines[(lineIndex * 3) + matchingMarkCount];
+                            if (mgTicTacToeGrid[candidateCell % 3][candidateCell / 3] & 0x3) {
+                                candidateCell = -1;
                             }
                             break;
                         }
                     }
-                    if (temp_r31 == 8 || temp_r30 < 0) {
+                    if (lineIndex == 8 || candidateCell < 0) {
                         continue;
                     }
-                    lbl_1_bss_3B0[temp_r26] = temp_r23;
+                    ticTacToePreviousCursorPositions[playerIndex] = moveSearchCount;
                     break;
                 }
             }
-            if (temp_r22 == 50) {
-                lbl_1_bss_3B0[temp_r26] = sp18[frandmod(temp_r21)];
+            if (nearbyCellSearch == 50) {
+                ticTacToePreviousCursorPositions[playerIndex] = emptyCells[frandmod(emptyCellCount)];
             }
         }
     }
-    OSReport("com %d,%d\n", lbl_1_bss_3B0[0], lbl_1_bss_3B0[1]);
+    OSReport("com %d,%d\n", ticTacToePreviousCursorPositions[0], ticTacToePreviousCursorPositions[1]);
 }
