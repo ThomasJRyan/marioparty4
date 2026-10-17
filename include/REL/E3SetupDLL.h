@@ -9,47 +9,47 @@ typedef struct e3pad {
 	u16 btn;
 	u16 btnDown;
 	u16 enable;
-	u16 unk6;
+	u16 reserved_06;
 } E3Pad;
 
-typedef struct mgInterface {
-	/* 0x00 */ ANIMDATA *unk_00[2];
-	/* 0x08 */ s32 unk08[5];
-	/* 0x1C */ s16 group;
-	/* 0x1E */ s16 group2;
-	/* 0x20 */ s32 unk20[3];
-	/* 0x2C */ s16 unk_2C;
-	/* 0x30 */ s32 unk30;
-} mgInterface;
+typedef struct mg_interface_work {
+	/* 0x00 */ ANIMDATA *animations[2];
+	/* 0x08 */ s32 reserved_08[5];
+	/* 0x1C */ s16 title_sprite_group;
+	/* 0x1E */ s16 prompt_sprite_group;
+	/* 0x20 */ s32 reserved_20[3];
+	/* 0x2C */ s16 press_start_window;
+	/* 0x30 */ s32 reserved_30;
+} MGInterfaceWork;
 
-typedef struct mgPic {
-	/* 0x00 */ ANIMDATA *unk_00[2];
-	/* 0x08 */ s32 unk08[9];
-	/* 0x2C */ s16 unk_2C;
-	/* 0x2E */ s32 unk2E[4];
-	/* 0x40 */ s16 unk_40;
-	/* 0x44 */ s32 unk44[2];
-	/* 0x4C */ s32 unk_4C;
-	/* 0x50 */ s32 unk50;
-} mgPic;
+typedef struct mg_picture_work {
+	/* 0x00 */ ANIMDATA *animations[2];
+	/* 0x08 */ s32 reserved_08[9];
+	/* 0x2C */ s16 reserved_2C;
+	/* 0x2E */ s32 reserved_2E[4];
+	/* 0x40 */ s16 sprite_group;
+	/* 0x44 */ s32 reserved_44[2];
+	/* 0x4C */ s32 reserved_4C;
+	/* 0x50 */ s32 reserved_50;
+} MGPictureWork;
 
-typedef struct mgSelect {
-	/* 0x00 */ ANIMDATA *unk_00[4];
-	/* 0x10 */ s32 unk10[3];
-	/* 0x1C */ s16 unk_1C;
-	/* 0x1E */ s16 unk_1E;
-	/* 0x20 */ s16 unk_20;
-	/* 0x22 */ s16 unk22;
-	/* 0x24 */ s32 unk24[2];
-	/* 0x2C */ s16 unk_2C;
-	/* 0x2E */ s16 unk_2E[4];
-	/* 0x36 */ s16 unk36;
-	/* 0x38 */ s16 unk_38[4];
-	/* 0x40 */ s16 unk40;
-	/* 0x42 */ s16 unk_42;
-	/* 0x44 */ s16 unk_44;
-	/* 0x46 */ s16 unk_46;
-} mgSelect;
+typedef struct mg_select_work {
+	/* 0x00 */ ANIMDATA *animations[4];
+	/* 0x10 */ s32 reserved_10[3];
+	/* 0x1C */ s16 cursor_sprite_group;
+	/* 0x1E */ s16 previous_arrow_group;
+	/* 0x20 */ s16 next_arrow_group;
+	/* 0x22 */ s16 reserved_22;
+	/* 0x24 */ s32 reserved_24[2];
+	/* 0x2C */ s16 reserved_2C;
+	/* 0x2E */ s16 minigame_windows[4];
+	/* 0x36 */ s16 reserved_36;
+	/* 0x38 */ s16 minigame_window_positions[4];
+	/* 0x40 */ s16 reserved_40;
+	/* 0x42 */ s16 selected_window_position;
+	/* 0x44 */ s16 selected_minigame_index;
+	/* 0x46 */ s16 previous_minigame_index;
+} MGSelectWork;
 
 extern E3Pad e3PadData[4];
 extern s16 e3PadCtrl;

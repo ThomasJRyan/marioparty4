@@ -31,7 +31,7 @@ s16 e3PadCtrl;
 s16 e3ConfigPlayerCnt;
 static s32 e3EvtNo;
 s32 e3ExitEnableF;
-s32 lbl_2_bss_B0;
+s32 e3MenuExitState;
 OMOVL e3NextOvl;
 s32 e3NextEvent;
 u32 e3ExitMode;
@@ -41,23 +41,23 @@ OMOBJ *e3MenuMainObj;
 OMOBJ *e3ViewObj;
 OMOBJ *e3OvlWatchObj;
 static OMOBJ *cameraObj;
-static OMOBJ *lbl_2_bss_84[2];
+static OMOBJ *e3MenuObjects[2];
 static OMOBJ *configModeObj[4];
 OMOBJ *e3BGObj;
-OMOBJ *lbl_2_bss_6C;
+OMOBJ *e3ConfigObject;
 static s16 lightE3;
-s16 lbl_2_bss_62[4];
-s16 lbl_2_bss_60;
-Vec lbl_2_bss_54;
-Vec lbl_2_bss_48;
-float lbl_2_bss_44;
-s16 lbl_2_bss_40;
-s32 lbl_2_bss_3C;
-s16 lbl_2_bss_3A;
-s16 lbl_2_bss_38;
-s16 lbl_2_bss_36;
-s16 lbl_2_bss_34;
-s16 lbl_2_bss_2A[5];
+s16 e3PlayerSprites[4];
+s16 e3PlayerSpriteGroup;
+Vec e3CameraCenter;
+Vec e3CameraTarget;
+float e3CameraZoom;
+s16 e3CameraState;
+s32 e3MenuSelection;
+s16 e3MenuSelectionPrevious;
+s16 e3MenuFrame;
+s16 e3MenuDelay;
+s16 e3MenuDirection;
+s16 e3MenuItemState[5];
 static s16 repBtn;
 
 static Vec shadowPos = {
@@ -72,7 +72,7 @@ static Vec shadowUp = {
 	0, 0, -1
 };
 
-Vec lbl_2_data_274[] = {
+Vec e3ShadowVertices[] = {
 	477.5, 500, -425,
 	-477.5, 500, -425,
 	477.5, 500, 425,
@@ -108,7 +108,7 @@ void ObjectSetup(void)
 	e3EvtNo = omovlevtno;
 	HuAudSndGrpSetSet(0);
 	e3ExitEnableF = 0;
-	lbl_2_bss_B0 = 0;
+	e3MenuExitState = 0;
 	e3PadCtrl = 0;
 	e3NextOvl = 0;
 	e3NextEvent = 0;
@@ -209,18 +209,18 @@ void E3MainInit(void)
 void E3LightInit(void)
 {
 	s32 i;
-	lightE3 = lbl_2_bss_60 = -1;
+	lightE3 = e3PlayerSpriteGroup = -1;
 	for(i=0; i<4; i++) {
-		lbl_2_bss_62[i] = -1;
+		e3PlayerSprites[i] = -1;
 	}
-	lbl_2_bss_54.x = 0;
-	lbl_2_bss_54.y = 1500;
-	lbl_2_bss_54.z = 0;
-	lbl_2_bss_48.x = 0;
-	lbl_2_bss_48.y = -1;
-	lbl_2_bss_48.z = 0;
-	lbl_2_bss_44 = 26;
-	lbl_2_bss_40 = 4;
+	e3CameraCenter.x = 0;
+	e3CameraCenter.y = 1500;
+	e3CameraCenter.z = 0;
+	e3CameraTarget.x = 0;
+	e3CameraTarget.y = -1;
+	e3CameraTarget.z = 0;
+	e3CameraZoom = 26;
+	e3CameraState = 4;
 	lightE3 = Hu3DGLightCreate(0, 1500, 0, 0, -1, 0, 255, 255, 255);
 	Hu3DGLightStaticSet(lightE3, 1);
 	Hu3DGLightInfinitytSet(lightE3);
@@ -228,31 +228,31 @@ void E3LightInit(void)
 
 static float GetStickX(s8 value)
 {
-	float new_value;
+	float newValue;
 	if(value > 69) {
 		value = 69;
 	} else if(value < -69) {
 		value = -69;
 	}
-	new_value = value;
-	new_value /= 69;
-	return new_value;
+	newValue = value;
+	newValue /= 69;
+	return newValue;
 }
 
 static s16 GetStickY(s8 value)
 {
-	float new_value;
+	float newValue;
 	if(value > 69) {
 		value = 69;
 	} else if(value < -69) {
 		value = -69;
 	}
-	new_value = value;
-	new_value *= 255.0f/69;
-	return new_value;
+	newValue = value;
+	newValue *= 255.0f/69;
+	return newValue;
 }
 
-static u16 GetBtn(s16 player)
+static u16 GetPlayerButtons(s16 player)
 {
 	u16 value;
 	if(repBtn) {
@@ -265,7 +265,7 @@ static u16 GetBtn(s16 player)
 	return value;
 }
 
-static u16 GetBtnDown(u16 button, u16 buttonLast)
+static u16 GetNewlyPressedButtons(u16 button, u16 buttonLast)
 {
 	u16 down = PADButtonUp(button, buttonLast);
 	return down;
@@ -275,7 +275,7 @@ u16 E3PadUpdate(s16 player, E3Pad *pad)
 {
 	pad->enable = HuPadStatGet(player);
 	if(!pad->enable) {
-		u16 btn = GetBtn(player);
+		u16 btn = GetPlayerButtons(player);
 		pad->btnDown = PADButtonUp(btn, pad->btn);
 		pad->btn = btn;
 	} else {
@@ -297,23 +297,23 @@ s16 E3PadRead(void)
 	return players;
 }
 
-float MotionMaxTimeGet(s16 arg0)
+float MotionMaxTimeGet(s16 modelIndex)
 {
-    HU3DMOTION *temp_r31 = &Hu3DMotion[arg0];
-    HSFMOTION *temp_r30;
-    s16 temp_r29;
+    HU3DMOTION *motionData = &Hu3DMotion[modelIndex];
+    HSFMOTION *motionResource;
+    s16 maximumMotionTime;
 
-    temp_r30 = temp_r31->hsf->motion;
-    temp_r29 = temp_r30->maxTime;
-    return temp_r29;
+    motionResource = motionData->hsf->motion;
+    maximumMotionTime = motionResource->maxTime;
+    return maximumMotionTime;
 }
 
 
-float MotionShiftTimeGet(s16 arg0)
+float MotionShiftTimeGet(s16 modelIndex)
 {
-    HU3DMODEL *temp_r31 = &Hu3DData[arg0];
+    HU3DMODEL *modelData = &Hu3DData[modelIndex];
 
-    return temp_r31->motShiftWork.time;
+    return modelData->motShiftWork.time;
 }
 
 static void UpdateMenuControl(OMOBJ *object);
@@ -321,10 +321,10 @@ static void UpdateMenuControl(OMOBJ *object);
 static void InitMenuControl(OMOBJ *object)
 {
 	HuAudSeqPlay(43);
-	lbl_2_bss_3C = 0;
-	lbl_2_bss_3A = -1;
-	lbl_2_bss_36 = 30;
-	lbl_2_bss_34 = 0;
+	e3MenuSelection = 0;
+	e3MenuSelectionPrevious = -1;
+	e3MenuDelay = 30;
+	e3MenuDirection = 0;
 	object->objFunc = UpdateMenuControl;
 	worstVcount = 0;
 	object->work[0] = 0;
@@ -436,7 +436,7 @@ void E3OvlWatchInit(OMOBJ *object)
 	}
 }
 
-typedef struct e3_player_cnt_work {
+typedef struct E3PlayerCntWork {
 	ANIMDATA *frame[3];
 	ANIMDATA *arrow;
 	ANIMDATA *arrowHilite;
@@ -444,14 +444,14 @@ typedef struct e3_player_cnt_work {
 	s16 frameGroup;
 	s16 arrowGroupL;
 	s16 arrowGroupR;
-	s16 unk22[6];
+	s16 reserved22[6];
 	s16 winHeader;
 	s16 winPlayer;
 	s16 playerCnt;
 	s16 playerCntOld;
 } E3PlayerCntWork;
 
-static s16 lbl_2_data_31E[] = {
+static s16 playerCountSpriteIds[] = {
 	35, 38, 41, 44
 };
 
@@ -640,13 +640,13 @@ static void InitPlayerCnt(OMOBJ *object)
 	(void)object;
 }
 
-typedef struct e3_char_sel_work {
+typedef struct E3CharSelWork {
 	ANIMDATA *anims[24];
 	s16 frameGroup;
 	s16 charGroup;
 	s16 cursorGroup;
 	s16 hiliteGroup;
-	s16 unk68[6];
+	s16 reserved68[6];
 	s16 cursorPos[4];
 	s16 cursorStat[4];
 	s16 currPlayer;
@@ -723,204 +723,204 @@ static void UpdateCharSelCursor(OMOBJ *object, s32 backF)
 
 static s32 UpdateCharSelPlayerCursor(OMOBJ *object)
 {
-	E3CharSelWork *temp_r31;
-	s32 temp_r30;
-	s16 temp_r29;
-	s32 temp_r28;
-	s16 temp_r27;
-	s32 temp_r26;
-	s16 temp_r25;
-	s16 temp_r24;
-	s16 temp_r23;
-	s32 temp_r22;
-	s16 temp_r21;
-	s16 temp_r20;
-	s16 temp_r19;
-	s16 temp_r18;
-	s16 sp8[8];
-	temp_r31 = object->data;
-	temp_r22 = 0;
-	temp_r23 = playerCntTbl[configE3.playerCnt];
-	temp_r24 = 0;
-	temp_r20 = 0;
-	for(temp_r30=0; temp_r30 < temp_r23; temp_r30++) {
-		temp_r19 = configE3.port[temp_r30];
-		if(e3PadData[temp_r19].enable) {
-			if(temp_r31->cursorStat[temp_r30] == 0) {
-				temp_r31->cursorStat[temp_r30] = 1;
+	E3CharSelWork *charSelectWork;
+	s32 playerIndex;
+	s16 candidatePosition;
+	s32 characterIndex;
+	s16 availableCount;
+	s32 otherPlayerIndex;
+	s16 buttonInput;
+	s16 readyPlayerCount;
+	s16 playerCount;
+	s32 result;
+	s16 candidateTotal;
+	s16 cancelSelection;
+	s16 playerPort;
+	s16 previousPosition;
+	s16 availableCharacterIndices[8];
+	charSelectWork = object->data;
+	result = 0;
+	playerCount = playerCntTbl[configE3.playerCnt];
+	readyPlayerCount = 0;
+	cancelSelection = 0;
+	for(playerIndex=0; playerIndex < playerCount; playerIndex++) {
+		playerPort = configE3.port[playerIndex];
+		if(e3PadData[playerPort].enable) {
+			if(charSelectWork->cursorStat[playerIndex] == 0) {
+				charSelectWork->cursorStat[playerIndex] = 1;
 			}
-			temp_r24++;
+			readyPlayerCount++;
 			continue;
 		}
-		temp_r25 = e3PadData[temp_r19].btnDown;
-		if(temp_r25 & PAD_BUTTON_A) {
+		buttonInput = e3PadData[playerPort].btnDown;
+		if(buttonInput & PAD_BUTTON_A) {
 			HuAudFXPlay(1);
-			temp_r28 = charTbl[temp_r31->cursorPos[temp_r30]];
-			HuAudFXPlay(charComSfxTbl[temp_r28]);
-			temp_r31->cursorStat[temp_r30] = 1;
-		} else if(temp_r25 & PAD_BUTTON_B) {
+			characterIndex = charTbl[charSelectWork->cursorPos[playerIndex]];
+			HuAudFXPlay(charComSfxTbl[characterIndex]);
+			charSelectWork->cursorStat[playerIndex] = 1;
+		} else if(buttonInput & PAD_BUTTON_B) {
 			HuAudFXPlay(3);
-			if(temp_r30 == e3PadCtrl && temp_r31->cursorStat[temp_r30] == 0) {
-				temp_r20 = 1;
+			if(playerIndex == e3PadCtrl && charSelectWork->cursorStat[playerIndex] == 0) {
+				cancelSelection = 1;
 			}
-			temp_r31->cursorStat[temp_r30] = 0;
+			charSelectWork->cursorStat[playerIndex] = 0;
 		}
-		if(temp_r31->cursorStat[temp_r30] != 0) {
-			temp_r24++;
+		if(charSelectWork->cursorStat[playerIndex] != 0) {
+			readyPlayerCount++;
 			continue;
 		}
-		if(temp_r25 & (PAD_BUTTON_LEFT|PAD_BUTTON_RIGHT)) {
-			temp_r27 = 0;
-			for(temp_r28=0; temp_r28<8; temp_r28++) {
-				if(charTbl[temp_r28] >= 0) {
-					if(temp_r28 == temp_r31->cursorPos[temp_r30]) {
-						temp_r29 = temp_r27;
-						sp8[temp_r27++] = temp_r28;
+		if(buttonInput & (PAD_BUTTON_LEFT|PAD_BUTTON_RIGHT)) {
+			availableCount = 0;
+			for(characterIndex=0; characterIndex<8; characterIndex++) {
+				if(charTbl[characterIndex] >= 0) {
+					if(characterIndex == charSelectWork->cursorPos[playerIndex]) {
+						candidatePosition = availableCount;
+						availableCharacterIndices[availableCount++] = characterIndex;
 					} else {
-						for(temp_r26=0; temp_r26<temp_r23; temp_r26++) {
-							if(temp_r30 == temp_r26) {
+						for(otherPlayerIndex=0; otherPlayerIndex<playerCount; otherPlayerIndex++) {
+							if(playerIndex == otherPlayerIndex) {
 								continue;
 							}
-							if(temp_r31->cursorPos[temp_r26] == temp_r28) {
+							if(charSelectWork->cursorPos[otherPlayerIndex] == characterIndex) {
 								break;
 							}
 						}
-						if(temp_r26 >= temp_r23) {
-							sp8[temp_r27++] = temp_r28;
+						if(otherPlayerIndex >= playerCount) {
+							availableCharacterIndices[availableCount++] = characterIndex;
 						}
 					}
 				}
 			}
-			sp8[temp_r27] = -1;
-			temp_r21 = temp_r27;
-			temp_r18 = temp_r29;
-			if(temp_r21 > 1) {
-				if(temp_r25 & PAD_BUTTON_LEFT) {
+			availableCharacterIndices[availableCount] = -1;
+			candidateTotal = availableCount;
+			previousPosition = candidatePosition;
+			if(candidateTotal > 1) {
+				if(buttonInput & PAD_BUTTON_LEFT) {
 					HuAudFXPlay(26);
-					temp_r29--;
-					if(temp_r29 < 0) {
-						temp_r29 = temp_r21-1;
+					candidatePosition--;
+					if(candidatePosition < 0) {
+						candidatePosition = candidateTotal-1;
 					}
-				} else if(temp_r25 & PAD_BUTTON_RIGHT) {
+				} else if(buttonInput & PAD_BUTTON_RIGHT) {
 					HuAudFXPlay(26);
-					temp_r29++;
-					if(temp_r29 >= temp_r21) {
-						temp_r29 = 0;
+					candidatePosition++;
+					if(candidatePosition >= candidateTotal) {
+						candidatePosition = 0;
 					}
 				}
-				if(temp_r18 != temp_r29) {
-					temp_r31->cursorPos[temp_r30] = sp8[temp_r29];
+				if(previousPosition != candidatePosition) {
+					charSelectWork->cursorPos[playerIndex] = availableCharacterIndices[candidatePosition];
 				}
 			}
 		}
 	}
-	if(temp_r24 >= temp_r23) {
-		temp_r22 = 1;
+	if(readyPlayerCount >= playerCount) {
+		result = 1;
 	}
-	if(temp_r20) {
-		temp_r22 = -1;
+	if(cancelSelection) {
+		result = -1;
 	}
-	return temp_r22;
+	return result;
 }
 
 static s32 UpdateCharSelComCursor(OMOBJ *object)
 {
-	E3CharSelWork *temp_r31;
-	s16 temp_r30;
-	s16 temp_r29;
-	s32 temp_r28;
-	s32 temp_r27;
-	s16 temp_r26;
-	s16 temp_r25;
-	s32 temp_r24;
-	s16 temp_r23;
-	s16 temp_r22;
-	s32 temp_r21;
-	s16 temp_r20;
-	s16 temp_r19;
-	s16 sp8[8];
-	temp_r31 = object->data;
-	temp_r21 = 0;
-	temp_r20 = playerCntTbl[configE3.playerCnt];
-	temp_r19 = 4-temp_r20;
-	temp_r30 = temp_r20+temp_r31->currPlayer-1;
-	temp_r31->cursorStat[temp_r30] = 1;
-	temp_r26 = temp_r31->cursorPos[temp_r30];
-	for(temp_r28=0; temp_r28<temp_r30; temp_r28++) {
-		if(temp_r31->cursorPos[temp_r28] == temp_r26) {
+	E3CharSelWork *charSelectWork;
+	s16 playerIndex;
+	s16 candidatePosition;
+	s32 otherPlayerIndex;
+	s32 characterIndex;
+	s16 selectedCharacter;
+	s16 availableCount;
+	s32 otherPlayerIndex;
+	s16 buttonInput;
+	s16 candidateTotal;
+	s32 result;
+	s16 humanPlayerCount;
+	s16 computerPlayerCount;
+	s16 availableCharacterIndices[8];
+	charSelectWork = object->data;
+	result = 0;
+	humanPlayerCount = playerCntTbl[configE3.playerCnt];
+	computerPlayerCount = 4-humanPlayerCount;
+	playerIndex = humanPlayerCount+charSelectWork->currPlayer-1;
+	charSelectWork->cursorStat[playerIndex] = 1;
+	selectedCharacter = charSelectWork->cursorPos[playerIndex];
+	for(otherPlayerIndex=0; otherPlayerIndex<playerIndex; otherPlayerIndex++) {
+		if(charSelectWork->cursorPos[otherPlayerIndex] == selectedCharacter) {
 			break;
 		}
 	}
-	if(temp_r28<temp_r30) {
-		temp_r26 = -1;
+	if(otherPlayerIndex<playerIndex) {
+		selectedCharacter = -1;
 	}
-	temp_r25 = 0;
-	for(temp_r27=0; temp_r27<8; temp_r27++) {
-		if(charTbl[temp_r27] >= 0) {
-			if(temp_r27 == temp_r26) {
-				temp_r29 = temp_r25;
-				sp8[temp_r25++] = temp_r27;
+	availableCount = 0;
+	for(characterIndex=0; characterIndex<8; characterIndex++) {
+		if(charTbl[characterIndex] >= 0) {
+			if(characterIndex == selectedCharacter) {
+				candidatePosition = availableCount;
+				availableCharacterIndices[availableCount++] = characterIndex;
 			} else {
-				for(temp_r24=0; temp_r24<temp_r30; temp_r24++) {
-					if(temp_r31->cursorPos[temp_r24] == temp_r27) {
+				for(otherPlayerIndex=0; otherPlayerIndex<playerIndex; otherPlayerIndex++) {
+					if(charSelectWork->cursorPos[otherPlayerIndex] == characterIndex) {
 						break;
 					}
 				}
-				if(temp_r24 >= temp_r30) {
-					sp8[temp_r25++] = temp_r27;
+				if(otherPlayerIndex >= playerIndex) {
+					availableCharacterIndices[availableCount++] = characterIndex;
 				}
 			}
 		}
 	}
-	temp_r22 = temp_r25;
-	if(temp_r26 < 0) {
-		temp_r29 = 0;
-		temp_r31->cursorPos[temp_r30] = sp8[temp_r29];
+	candidateTotal = availableCount;
+	if(selectedCharacter < 0) {
+		candidatePosition = 0;
+		charSelectWork->cursorPos[playerIndex] = availableCharacterIndices[candidatePosition];
 	}
-	temp_r23 = e3PadData[e3PadCtrl].btnDown;
-	if(temp_r23 & PAD_BUTTON_A) {
+	buttonInput = e3PadData[e3PadCtrl].btnDown;
+	if(buttonInput & PAD_BUTTON_A) {
 		HuAudFXPlay(1);
-		HuAudFXPlay(charComSfxTbl[charTbl[temp_r31->cursorPos[temp_r30]]]);
-		temp_r31->cursorStat[temp_r30] = 3;
-		if(temp_r31->currPlayer >= temp_r19) {
-			temp_r21 = 1;
+		HuAudFXPlay(charComSfxTbl[charTbl[charSelectWork->cursorPos[playerIndex]]]);
+		charSelectWork->cursorStat[playerIndex] = 3;
+		if(charSelectWork->currPlayer >= computerPlayerCount) {
+			result = 1;
 		} else {
-			temp_r31->currPlayer++;
+			charSelectWork->currPlayer++;
 		}
-	} else if(temp_r23 & PAD_BUTTON_B) {
+	} else if(buttonInput & PAD_BUTTON_B) {
 		HuAudFXPlay(3);
-		temp_r31->cursorStat[temp_r30] = 0;
-		temp_r31->currPlayer--;
-		if(temp_r31->currPlayer != 0) {
-			temp_r30--;
-			temp_r31->cursorStat[temp_r30] = 1;
+		charSelectWork->cursorStat[playerIndex] = 0;
+		charSelectWork->currPlayer--;
+		if(charSelectWork->currPlayer != 0) {
+			playerIndex--;
+			charSelectWork->cursorStat[playerIndex] = 1;
 		} else {
-			for(temp_r28=0; temp_r28<4; temp_r28++) {
-				temp_r31->cursorStat[temp_r28] = 0;
+			for(otherPlayerIndex=0; otherPlayerIndex<4; otherPlayerIndex++) {
+				charSelectWork->cursorStat[otherPlayerIndex] = 0;
 			}
 		}
-	} else if(temp_r23 & (PAD_BUTTON_LEFT|PAD_BUTTON_RIGHT)) {
-		temp_r26 = temp_r29;
-		if(temp_r22 > 1) {
-			if(temp_r23 & PAD_BUTTON_LEFT) {
+	} else if(buttonInput & (PAD_BUTTON_LEFT|PAD_BUTTON_RIGHT)) {
+		selectedCharacter = candidatePosition;
+		if(candidateTotal > 1) {
+			if(buttonInput & PAD_BUTTON_LEFT) {
 				HuAudFXPlay(26);
-				temp_r29--;
-				if(temp_r29 < 0) {
-					temp_r29 = temp_r22-1;
+				candidatePosition--;
+				if(candidatePosition < 0) {
+					candidatePosition = candidateTotal-1;
 				}
-			} else if(temp_r23 & PAD_BUTTON_RIGHT) {
+			} else if(buttonInput & PAD_BUTTON_RIGHT) {
 				HuAudFXPlay(26);
-				temp_r29++;
-				if(temp_r29 >= temp_r22) {
-					temp_r29 = 0;
+				candidatePosition++;
+				if(candidatePosition >= candidateTotal) {
+					candidatePosition = 0;
 				}
 			}
-			if(temp_r26 != temp_r29) {
-				temp_r31->cursorPos[temp_r28] = sp8[temp_r29];
+			if(selectedCharacter != candidatePosition) {
+				charSelectWork->cursorPos[otherPlayerIndex] = availableCharacterIndices[candidatePosition];
 			}
 		}
 	}
-	return temp_r21;
+	return result;
 }
 
 static s32 CheckCharSel(OMOBJ *object)
@@ -1130,7 +1130,7 @@ static void InitCharSel(OMOBJ *object)
 	object->objFunc = UpdateCharSel;
 }
 
-typedef struct e3_rumble_cfg_work {
+typedef struct E3RumbleCfgWork {
 	ANIMDATA *frame[3];
 	ANIMDATA *arrow;
 	ANIMDATA *arrowHilite;
@@ -1138,7 +1138,7 @@ typedef struct e3_rumble_cfg_work {
 	s16 frameGroup;
 	s16 arrowGroupL;
 	s16 arrowGroupR;
-	s16 unk22[6];
+	s16 reserved22[6];
 	s16 winHeader;
 	s16 winValue;
 	s16 rumbleVal;
@@ -1311,7 +1311,7 @@ static void InitRumbleCfg(OMOBJ *object)
 	(void)object;
 }
 
-typedef struct e3_mode_sel_work {
+typedef struct E3ModeSelWork {
 	ANIMDATA *frame[7];
 	Vec2f winSizeMode;
 	Vec2f winSizeBoard;
@@ -1319,7 +1319,7 @@ typedef struct e3_mode_sel_work {
 	s16 arrowGroupL;
 	s16 arrowGroupR;
 	s16 cursorGroup;
-	s16 unk34[6];
+	s16 reserved34[6];
 	s16 winMode;
 	s16 winBoard;
 	s16 mode;
@@ -1538,12 +1538,12 @@ static void InitModeSel(OMOBJ *object)
 #define E3_BG_TILE_ROW 5
 #define E3_BG_MAX_TILE (E3_BG_TILE_COL*E3_BG_TILE_ROW)
 
-typedef struct e3_bg_tile {
+typedef struct E3BgTile {
 	Vec2f pos;
 	s16 sprite;
 } E3BGTile;
 
-typedef struct e3_bg_work {
+typedef struct E3BgWork {
 	ANIMDATA *anim;
 	s16 group;
 	E3BGTile tiles[E3_BG_MAX_TILE];
@@ -1575,7 +1575,7 @@ void E3BGCreate(OMOBJ *object)
 {
 	E3BGTile *tile;
 	E3BGWork *work;
-	s32 tile_idx;
+	s32 tileIdx;
 	s16 group;
 	s16 col;
 	s16 row;
@@ -1592,19 +1592,19 @@ void E3BGCreate(OMOBJ *object)
 	anim = HuSprAnimRead(HuDataReadNum(0, HU_MEMNUM_OVL));
 	work->anim =anim;
 	tile = &work->tiles[0];
-	tile_idx = 0;
+	tileIdx = 0;
 	y = E3_BG_TILE_H/2;
 	for(row=0; row<E3_BG_TILE_ROW; row++) {
 		x = E3_BG_TILE_W/2;
 		for(col=0; col<E3_BG_TILE_COL; col++) {
 			sprite = HuSprCreate(anim, -1, 0);
-			HuSprGrpMemberSet(group, tile_idx, sprite);
-			HuSprPosSet(group, tile_idx, x, y);
+			HuSprGrpMemberSet(group, tileIdx, sprite);
+			HuSprPosSet(group, tileIdx, x, y);
 			tile->sprite = sprite;
 			tile->pos.x = x;
 			tile->pos.y = y;
 			tile++;
-			tile_idx++;
+			tileIdx++;
 			x += E3_BG_TILE_W;
 		}
 		y += E3_BG_TILE_H;
@@ -1616,7 +1616,7 @@ void E3BGCreate(OMOBJ *object)
 	object->objFunc = E3BGUpdate;
 }
 
-typedef struct camera_view_params {
+typedef struct CameraViewParams {
 	Vec rot;
 	Vec pos;
 	float zoom;
@@ -1682,24 +1682,24 @@ static void UpdateCamera(OMOBJ *object)
 	}
 }
 
-Vec lbl_2_data_478[] = {
+Vec cameraPositionsModeA[] = {
 	-90, 0, 2990,
 	-42, -57, 2488,
 	9999, 9999, 9999
 };
 
-Vec lbl_2_data_49C[] = {
+Vec cameraPositionsModeB[] = {
 	-42, -57, 2488,
 	-13, -1025, 2350,
 	9999, 9999, 9999
 };
 
-struct unkstruct_4C0 {
-	Vec *unk0;
-	float unk4;
+struct CameraTransitionPath {
+	Vec *cameraPositions;
+	float cameraTransitionTime;
 };
 
-struct unkstruct_4C0 lbl_2_data_4C0[] = {
-	lbl_2_data_478, 60,
-	lbl_2_data_49C, 60
+struct CameraTransitionPath cameraTransitionPaths[] = {
+	cameraPositionsModeA, 60,
+	cameraPositionsModeB, 60
 };

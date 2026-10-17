@@ -16,19 +16,19 @@
 void HuSysVWaitSet(s16 vcount);
 #endif
 
-static s16 mgDefault;
+static s16 defaultMinigameIndex;
 static OMOBJ *mgInterfaceObj;
 static OMOBJ *mgSelectObj;
 static OMOBJ *mgPicObj;
 
-s32 lbl_2_bss_14;
-s16 lbl_2_bss_10;
-s16 lbl_2_bss_E;
-s16 lbl_2_bss_C;
-s16 lbl_2_bss_A;
-static s16 lbl_2_bss_0[5];
+s32 minigameSelectionState;
+s16 minigameSelectionTimer;
+s16 minigameSelectionFrame;
+s16 minigameSelectionDelay;
+s16 minigameSelectionIndex;
+static s16 minigameSelectionHistory[5];
 
-float lbl_2_data_0[] = { 0, 12000, 0, 0, 0, 0, 0, 0, -1 };
+float e3CameraPosition[] = { 0, 12000, 0, 0, 0, 0, 0, 0, -1 };
 
 static void StartMGSelect(OMOBJ *object);
 static void UpdatePad(OMOBJ *object);
@@ -37,25 +37,25 @@ static void CreateMGPic(OMOBJ *object);
 static void UpdateMGInterface(OMOBJ *object);
 static void CreateMGInterface(OMOBJ *object);
 
-void E3MGSelectInit()
+void E3MGSelectInit(void)
 {
-    s32 var_r29;
-    s32 var_r30;
-    HUPROCESS *var_r31;
+    s32 controllerPort;
+    s32 connectedPlayerCount;
+    HUPROCESS *objectManager;
 
-    for (var_r29 = 0, var_r30 = 0; var_r29 < 4; var_r29++) {
-        if (HuPadStatGet(var_r29) == 0) {
-            var_r30++;
+    for (controllerPort = 0, connectedPlayerCount = 0; controllerPort < 4; controllerPort++) {
+        if (HuPadStatGet(controllerPort) == 0) {
+            connectedPlayerCount++;
         }
     }
-    e3ConfigPlayerCnt = var_r30;
-    if (var_r30 <= 0) {
+    e3ConfigPlayerCnt = connectedPlayerCount;
+    if (connectedPlayerCount <= 0) {
         OSReport("No pad detected\n");
-        var_r30++;
+        connectedPlayerCount++;
     }
-    mgDefault = 0;
+    defaultMinigameIndex = 0;
     HuSysVWaitSet(1);
-    var_r31 = omInitObjMan(0x50, 0x2000);
+    objectManager = omInitObjMan(0x50, 0x2000);
     HuWinInit(1);
     CRot.x = -4.0f;
     CRot.y = 0.0f;
@@ -67,21 +67,21 @@ void E3MGSelectInit()
     e3CameraFov = 40.0f;
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, e3CameraFov, 100.0f, 25000.0f, 4.0f / 3.0f);
-    e3ViewObj = omAddObjEx(var_r31, 32730, 0, 0, -1, omOutView);
-    e3OvlWatchObj = omAddObjEx(var_r31, 200, 0, 0, -1, E3OvlWatchInit);
-    e3MenuMainObj = omAddObjEx(var_r31, 10, 0, 0, -1, StartMGSelect);
-    e3BGObj = omAddObjEx(var_r31, 0x14, 0, 0, -1, E3BGCreate);
-    mgInterfaceObj = omAddObjEx(var_r31, 20, 0, 0, -1, CreateMGInterface);
-    mgSelectObj = omAddObjEx(var_r31, 30, 0, 0, -1, CreateMGSelect);
-    mgPicObj = omAddObjEx(var_r31, 31, 0, 0, -1, CreateMGPic);
-    mgPicObj->work[0] = mgDefault;
+    e3ViewObj = omAddObjEx(objectManager, 32730, 0, 0, -1, omOutView);
+    e3OvlWatchObj = omAddObjEx(objectManager, 200, 0, 0, -1, E3OvlWatchInit);
+    e3MenuMainObj = omAddObjEx(objectManager, 10, 0, 0, -1, StartMGSelect);
+    e3BGObj = omAddObjEx(objectManager, 0x14, 0, 0, -1, E3BGCreate);
+    mgInterfaceObj = omAddObjEx(objectManager, 20, 0, 0, -1, CreateMGInterface);
+    mgSelectObj = omAddObjEx(objectManager, 30, 0, 0, -1, CreateMGSelect);
+    mgPicObj = omAddObjEx(objectManager, 31, 0, 0, -1, CreateMGPic);
+    mgPicObj->work[0] = defaultMinigameIndex;
     E3LightInit();
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
 }
 
-s16 lbl_2_data_36[] = { 0x0023, 0x0026, 0x0029, 0x002C };
+s16 e3OverlayMessageIds[] = { 0x0023, 0x0026, 0x0029, 0x002C };
 
-static s16 mgOvlTbl[] = {
+static s16 minigameOverlayIds[] = {
     11,
     12,
     15,
@@ -97,9 +97,9 @@ static s16 mgOvlTbl[] = {
     46,
 };
 
-static s16 mgIdTbl[] = { 403, 404, 407, 410, 412, 415, 418, 419, 425, 426, 431, 436, 438, 0 };
+static s16 minigameIds[] = { 403, 404, 407, 410, 412, 415, 418, 419, 425, 426, 431, 436, 438, 0 };
 
-static s32 mgNameTbl[] = {
+static s32 minigameMessageIds[] = {
     MAKE_MESSID(0x17, 0x03),
     MAKE_MESSID(0x17, 0x04),
     MAKE_MESSID(0x17, 0x07),
@@ -115,47 +115,47 @@ static s32 mgNameTbl[] = {
     MAKE_MESSID(0x17, 0x26),
 };
 
-char lbl_2_data_A8[] = "\013TEST MINIGAME NAME01\n      test";
-char lbl_2_data_C9[] = "\013TEST MINIGAME NAME02";
-char lbl_2_data_DF[] = "\013TEST MINIGAME NAME03";
-char lbl_2_data_F5[] = "\013TEST MINIGAME NAME04";
-char lbl_2_data_10B[] = "\013TEST NAME05";
-char lbl_2_data_118[] = "\013TEST MINIGAME NAME06";
-char lbl_2_data_12E[] = "\013TEST NAME07";
-char lbl_2_data_13B[] = "\013TEST MINIGAME NAME08";
-char lbl_2_data_151[] = "\013TEST MINIGAME NAME09";
-char lbl_2_data_167[] = "\013TEST MINIGAME NAME10";
-char lbl_2_data_17D[] = "\013TEST MINIGAME NAME11";
-char lbl_2_data_193[] = "\013TEST MINIGAME NAME12";
-char lbl_2_data_1A9[] = "\013TEST MINIGAME NAME13";
+char testMinigameName01[] = "\013TEST MINIGAME NAME01\n      test";
+char testMinigameName02[] = "\013TEST MINIGAME NAME02";
+char testMinigameName03[] = "\013TEST MINIGAME NAME03";
+char testMinigameName04[] = "\013TEST MINIGAME NAME04";
+char testMinigameName05[] = "\013TEST NAME05";
+char testMinigameName06[] = "\013TEST MINIGAME NAME06";
+char testMinigameName07[] = "\013TEST NAME07";
+char testMinigameName08[] = "\013TEST MINIGAME NAME08";
+char testMinigameName09[] = "\013TEST MINIGAME NAME09";
+char testMinigameName10[] = "\013TEST MINIGAME NAME10";
+char testMinigameName11[] = "\013TEST MINIGAME NAME11";
+char testMinigameName12[] = "\013TEST MINIGAME NAME12";
+char testMinigameName13[] = "\013TEST MINIGAME NAME13";
 
-static char *mgNameTestTbl[] = {
-    lbl_2_data_A8,
-    lbl_2_data_C9,
-    lbl_2_data_DF,
-    lbl_2_data_F5,
-    lbl_2_data_10B,
-    lbl_2_data_118,
-    lbl_2_data_12E,
-    lbl_2_data_13B,
-    lbl_2_data_151,
-    lbl_2_data_167,
-    lbl_2_data_17D,
-    lbl_2_data_193,
-    lbl_2_data_1A9,
+static char *testMinigameNames[] = {
+    testMinigameName01,
+    testMinigameName02,
+    testMinigameName03,
+    testMinigameName04,
+    testMinigameName05,
+    testMinigameName06,
+    testMinigameName07,
+    testMinigameName08,
+    testMinigameName09,
+    testMinigameName10,
+    testMinigameName11,
+    testMinigameName12,
+    testMinigameName13,
 };
 
-static float cursorYOfsTbl[] = { -100.0f, -50.0f, 0.0f, 50.0f, 100.0f };
+static float minigameWindowYOffsets[] = { -100.0f, -50.0f, 0.0f, 50.0f, 100.0f };
 
-static s32 mgPicTbl[] = { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52 };
+static s32 minigamePictureDataIds[] = { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52 };
 
 static void StartMGSelect(OMOBJ *object)
 {
     HuAudSeqPlay(0x2B);
-    lbl_2_bss_14 = 0;
-    lbl_2_bss_10 = -1;
-    lbl_2_bss_C = 0x1E;
-    lbl_2_bss_A = 0;
+    minigameSelectionState = 0;
+    minigameSelectionTimer = -1;
+    minigameSelectionDelay = 0x1E;
+    minigameSelectionIndex = 0;
     object->objFunc = UpdatePad;
     worstVcount = 0;
     object->work[0] = 0;
@@ -180,76 +180,76 @@ static void UpdatePad(OMOBJ *object)
 
 static void UpdateMGSelect(OMOBJ *object)
 {
-    mgSelect *var_r31;
-    s32 var_r30;
-    u32 var_r28;
-    s16 var_r27;
-    s16 var_r26;
-    s16 var_r25;
-    s16 var_r24;
-    u16 var_r23;
-    s16 var_r22;
-    s32 var_r21;
-    float sp8[2];
+    MGSelectWork *selectionWork;
+    s32 minigameInfoIndex;
+    u32 overlayId;
+    s16 selectionDelta;
+    s16 windowIndex;
+    s16 nextWindowPosition;
+    s16 previousWindowPosition;
+    u16 buttonInput;
+    s16 windowId;
+    s32 minigameId;
+    float messageSize[2];
 
-    var_r31 = object->data;
-    var_r23 = e3PadData[e3PadCtrl].btnDown;
+    selectionWork = object->data;
+    buttonInput = e3PadData[e3PadCtrl].btnDown;
     if (object->work[3] != 0) {
-        if ((var_r23 & 0x1100) != 0) {
+        if ((buttonInput & 0x1100) != 0) {
             HuAudFXPlay(1);
-            mgDefault = var_r31->unk_44;
-            var_r21 = mgIdTbl[var_r31->unk_44];
-            GWMGAvailSet(var_r21);
-            GWSystem.mg_next = var_r21 - 401;
+            defaultMinigameIndex = selectionWork->selectedMinigameIndex;
+            minigameId = minigameIds[selectionWork->selectedMinigameIndex];
+            GWMGAvailSet(minigameId);
+            GWSystem.mg_next = minigameId - 401;
             e3NextOvl = 3;
             e3NextEvent = 0;
             e3ExitMode = 2;
             e3ExitEnableF = 1;
-            var_r28 = mgOvlTbl[var_r31->unk_44];
+            overlayId = minigameOverlayIds[selectionWork->selectedMinigameIndex];
 
-            for (var_r30 = 0; var_r30 < 50; var_r30++) {
-                if (var_r28 == mgInfoTbl[var_r30].ovl) {
+            for (minigameInfoIndex = 0; minigameInfoIndex < 50; minigameInfoIndex++) {
+                if (overlayId == mgInfoTbl[minigameInfoIndex].ovl) {
                     break;
                 }
             }
-            if (var_r30 >= 50) {
+            if (minigameInfoIndex >= 50) {
                 e3ExitMode = 0;
                 e3NextOvl = 0;
             };
-            switch (mgInfoTbl[var_r30].type) {
+            switch (mgInfoTbl[minigameInfoIndex].type) {
             case 0:
             case 3:
             case 4:
             case 5:
             case 6:
-                for (var_r30 = 0; var_r30 < 4; var_r30++) {
-                    GWPlayerCfg[var_r30].group = var_r30;
+                for (minigameInfoIndex = 0; minigameInfoIndex < 4; minigameInfoIndex++) {
+                    GWPlayerCfg[minigameInfoIndex].group = minigameInfoIndex;
                 }
                 break;
             case 1:
-                var_r28 = frand();
-                var_r28 &= 3;
-                for (var_r30 = 0; var_r30 < 4; var_r30++) {
-                    if (var_r28 == var_r30) {
-                        GWPlayerCfg[var_r30].group = 0;
+                overlayId = frand();
+                overlayId &= 3;
+                for (minigameInfoIndex = 0; minigameInfoIndex < 4; minigameInfoIndex++) {
+                    if (overlayId == minigameInfoIndex) {
+                        GWPlayerCfg[minigameInfoIndex].group = 0;
                     } else {
-                        GWPlayerCfg[var_r30].group = 1;
+                        GWPlayerCfg[minigameInfoIndex].group = 1;
                     }
                 }
                 break;
             case 2:
-                for (var_r30 = 0; var_r30 < 2; var_r30++) {
-                    GWPlayerCfg[var_r30].group = 0;
+                for (minigameInfoIndex = 0; minigameInfoIndex < 2; minigameInfoIndex++) {
+                    GWPlayerCfg[minigameInfoIndex].group = 0;
                 }
-                for (var_r30 = 2; var_r30 < 4; var_r30++) {
-                    GWPlayerCfg[var_r30].group = 1;
+                for (minigameInfoIndex = 2; minigameInfoIndex < 4; minigameInfoIndex++) {
+                    GWPlayerCfg[minigameInfoIndex].group = 1;
                 }
                 break;
             }
             object->work[3] = 0;
             return;
         }
-        if ((var_r23 & 0x200) != 0) {
+        if ((buttonInput & 0x200) != 0) {
             HuAudFXPlay(3);
             e3ExitMode = 0;
             e3NextOvl = 0;
@@ -259,57 +259,57 @@ static void UpdateMGSelect(OMOBJ *object)
             return;
         }
         if (object->work[3] != 0) {
-            if ((var_r23 & 8) != 0) {
+            if ((buttonInput & 8) != 0) {
                 HuAudFXPlay(0);
-                var_r31->unk_44--;
-                if (var_r31->unk_44 < 0) {
-                    var_r31->unk_44 = 0xC;
+                selectionWork->selectedMinigameIndex--;
+                if (selectionWork->selectedMinigameIndex < 0) {
+                    selectionWork->selectedMinigameIndex = 0xC;
                 }
-            } else if ((var_r23 & 4) != 0) {
+            } else if ((buttonInput & 4) != 0) {
                 HuAudFXPlay(0);
-                var_r31->unk_44++;
-                if (var_r31->unk_44 >= 13) {
-                    var_r31->unk_44 = 0;
+                selectionWork->selectedMinigameIndex++;
+                if (selectionWork->selectedMinigameIndex >= 13) {
+                    selectionWork->selectedMinigameIndex = 0;
                 }
             }
-            if (var_r31->unk_46 != var_r31->unk_44) {
-                mgPicObj->work[0] = var_r31->unk_44;
-                var_r27 = var_r31->unk_44 - var_r31->unk_46;
-                if ((var_r27 > 1) || (var_r27 < -1)) {
-                    if (var_r27 < 0) {
-                        var_r27 = 1;
+            if (selectionWork->previousMinigameIndex != selectionWork->selectedMinigameIndex) {
+                mgPicObj->work[0] = selectionWork->selectedMinigameIndex;
+                selectionDelta = selectionWork->selectedMinigameIndex - selectionWork->previousMinigameIndex;
+                if ((selectionDelta > 1) || (selectionDelta < -1)) {
+                    if (selectionDelta < 0) {
+                        selectionDelta = 1;
                     } else {
-                        var_r27 = -1;
+                        selectionDelta = -1;
                     }
                 }
-                var_r25 = var_r31->unk_42 + var_r27;
-                if ((var_r25 < 0) || (var_r25 >= 5)) {
-                    for (var_r30 = 0; var_r30 < 5; var_r30++) {
-                        var_r22 = var_r31->unk_2E[var_r30];
-                        var_r26 = var_r31->unk_38[var_r30];
-                        var_r24 = var_r26 - var_r27;
-                        if ((var_r24 < 0) || (var_r24 >= 5)) {
-                            var_r28 = mgNameTbl[var_r31->unk_44];
+                nextWindowPosition = selectionWork->selectedWindowPosition + selectionDelta;
+                if ((nextWindowPosition < 0) || (nextWindowPosition >= 5)) {
+                    for (minigameInfoIndex = 0; minigameInfoIndex < 5; minigameInfoIndex++) {
+                        windowId = selectionWork->minigameWindows[minigameInfoIndex];
+                        windowIndex = selectionWork->minigameWindowPositions[minigameInfoIndex];
+                        previousWindowPosition = windowIndex - selectionDelta;
+                        if ((previousWindowPosition < 0) || (previousWindowPosition >= 5)) {
+                            overlayId = minigameMessageIds[selectionWork->selectedMinigameIndex];
                             HuWinMesSizeCancelCRSet(1);
-                            HuWinMesMaxSizeGet(1, sp8, var_r28);
-                            HuWinCenterPosSet(var_r22, (296.0f - sp8[0]) / -2.0f, (68.0f - sp8[1]) / -2.0f);
-                            HuWinMesSet(var_r22, var_r28);
-                            if (var_r24 < 0) {
-                                var_r26 = 4;
+                            HuWinMesMaxSizeGet(1, messageSize, overlayId);
+                            HuWinCenterPosSet(windowId, (296.0f - messageSize[0]) / -2.0f, (68.0f - messageSize[1]) / -2.0f);
+                            HuWinMesSet(windowId, overlayId);
+                            if (previousWindowPosition < 0) {
+                                windowIndex = 4;
                             } else {
-                                var_r26 = 0;
+                                windowIndex = 0;
                             }
                         } else {
-                            var_r26 = var_r24;
+                            windowIndex = previousWindowPosition;
                         }
-                        HuWinPosSet(var_r22, 36.0f, 237.0f + cursorYOfsTbl[var_r26]);
-                        var_r31->unk_38[var_r30] = var_r26;
+                        HuWinPosSet(windowId, 36.0f, 237.0f + minigameWindowYOffsets[windowIndex]);
+                        selectionWork->minigameWindowPositions[minigameInfoIndex] = windowIndex;
                     }
                 } else {
-                    var_r31->unk_42 = var_r25;
-                    HuSprPosSet(var_r31->unk_1C, 1, 0.0f, cursorYOfsTbl[var_r25]);
+                    selectionWork->selectedWindowPosition = nextWindowPosition;
+                    HuSprPosSet(selectionWork->cursorSpriteGroup, 1, 0.0f, minigameWindowYOffsets[nextWindowPosition]);
                 }
-                var_r31->unk_46 = var_r31->unk_44;
+                selectionWork->previousMinigameIndex = selectionWork->selectedMinigameIndex;
             }
         }
     }
@@ -317,97 +317,97 @@ static void UpdateMGSelect(OMOBJ *object)
 
 static void CreateMGSelect(OMOBJ *object)
 {
-    mgSelect *temp_r31;
-    s16 temp_r30;
-    s16 temp_r29;
-    s32 var_r28;
-    s16 var_r26;
+    MGSelectWork *selectionWork;
+    s16 spriteGroup;
+    s16 spriteId;
+    s32 minigameIndex;
+    s16 selectedMinigame;
     s16 index2;
-    u32 temp_r22;
-    s32 temp_r21;
-    ANIMDATA *temp_r25;
-    ANIMDATA *temp_r23;
-    float sp8[2];
+    u32 messageId;
+    s32 minigameId;
+    ANIMDATA *spriteAnimation;
+    ANIMDATA *alternateSpriteAnimation;
+    float messageSize[2];
 
     omSetStatBit(object, OM_STAT_MODELPAUSE);
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(mgSelect), HU_MEMNUM_OVL);
-    temp_r31 = object->data;
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(MGSelectWork), HU_MEMNUM_OVL);
+    selectionWork = object->data;
     index2 = 0;
-    temp_r30 = HuSprGrpCreate(3);
-    temp_r31->unk_1C = temp_r30;
-    HuSprGrpPosSet(temp_r30, 174.0f, 271.0f);
-    temp_r25 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x21), HU_MEMNUM_OVL));
-    temp_r31->unk_00[index2] = temp_r25;
-    temp_r29 = HuSprCreate(temp_r25, 0x7540, 0);
-    HuSprGrpMemberSet(temp_r30, index2, temp_r29);
+    spriteGroup = HuSprGrpCreate(3);
+    selectionWork->cursorSpriteGroup = spriteGroup;
+    HuSprGrpPosSet(spriteGroup, 174.0f, 271.0f);
+    spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x21), HU_MEMNUM_OVL));
+    selectionWork->animations[index2] = spriteAnimation;
+    spriteId = HuSprCreate(spriteAnimation, 0x7540, 0);
+    HuSprGrpMemberSet(spriteGroup, index2, spriteId);
     index2++;
-    temp_r25 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x27), HU_MEMNUM_OVL));
-    temp_r31->unk_00[index2] = temp_r25;
-    temp_r29 = HuSprCreate(temp_r25, 0x64, 0);
-    HuSprGrpMemberSet(temp_r30, index2, temp_r29);
-    HuSprScaleSet(temp_r30, index2, 1.1f, 1.0f);
-    HuSprTPLvlSet(temp_r30, index2, 0.5f);
-    temp_r31->unk_42 = 0;
-    HuSprPosSet(temp_r30, index2, 0.0f, cursorYOfsTbl[temp_r31->unk_42]);
+    spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x27), HU_MEMNUM_OVL));
+    selectionWork->animations[index2] = spriteAnimation;
+    spriteId = HuSprCreate(spriteAnimation, 0x64, 0);
+    HuSprGrpMemberSet(spriteGroup, index2, spriteId);
+    HuSprScaleSet(spriteGroup, index2, 1.1f, 1.0f);
+    HuSprTPLvlSet(spriteGroup, index2, 0.5f);
+    selectionWork->selectedWindowPosition = 0;
+    HuSprPosSet(spriteGroup, index2, 0.0f, minigameWindowYOffsets[selectionWork->selectedWindowPosition]);
     index2++;
-    temp_r25 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x35), HU_MEMNUM_OVL));
-    temp_r31->unk_00[index2++] = temp_r25;
-    temp_r23 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x36), HU_MEMNUM_OVL));
-    temp_r31->unk_00[index2++] = temp_r23;
-    temp_r30 = HuSprGrpCreate(2);
-    temp_r31->unk_1E = temp_r30;
-    HuSprGrpPosSet(temp_r30, 174.0f, 128.0f);
-    temp_r29 = HuSprCreate(temp_r25, 4, 0);
-    HuSprGrpMemberSet(temp_r30, 0, temp_r29);
-    temp_r29 = HuSprCreate(temp_r23, 6, 0);
-    HuSprGrpMemberSet(temp_r30, 1, temp_r29);
-    HuSprTPLvlSet(temp_r30, 1, 0.7f);
-    HuSprPosSet(temp_r30, 1, 0.0f, -4.0f);
-    temp_r30 = HuSprGrpCreate(2);
-    temp_r31->unk_20 = temp_r30;
-    HuSprGrpPosSet(temp_r30, 174.0f, 414.0f);
-    temp_r29 = HuSprCreate(temp_r25, 4, 1);
-    HuSprGrpMemberSet(temp_r30, 0, temp_r29);
-    temp_r29 = HuSprCreate(temp_r23, 6, 1);
-    HuSprGrpMemberSet(temp_r30, 1, temp_r29);
-    HuSprTPLvlSet(temp_r30, 1, 0.7f);
-    HuSprPosSet(temp_r30, 1, 0.0f, -4.0f);
+    spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x35), HU_MEMNUM_OVL));
+    selectionWork->animations[index2++] = spriteAnimation;
+    alternateSpriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x36), HU_MEMNUM_OVL));
+    selectionWork->animations[index2++] = alternateSpriteAnimation;
+    spriteGroup = HuSprGrpCreate(2);
+    selectionWork->previousArrowGroup = spriteGroup;
+    HuSprGrpPosSet(spriteGroup, 174.0f, 128.0f);
+    spriteId = HuSprCreate(spriteAnimation, 4, 0);
+    HuSprGrpMemberSet(spriteGroup, 0, spriteId);
+    spriteId = HuSprCreate(alternateSpriteAnimation, 6, 0);
+    HuSprGrpMemberSet(spriteGroup, 1, spriteId);
+    HuSprTPLvlSet(spriteGroup, 1, 0.7f);
+    HuSprPosSet(spriteGroup, 1, 0.0f, -4.0f);
+    spriteGroup = HuSprGrpCreate(2);
+    selectionWork->nextArrowGroup = spriteGroup;
+    HuSprGrpPosSet(spriteGroup, 174.0f, 414.0f);
+    spriteId = HuSprCreate(spriteAnimation, 4, 1);
+    HuSprGrpMemberSet(spriteGroup, 0, spriteId);
+    spriteId = HuSprCreate(alternateSpriteAnimation, 6, 1);
+    HuSprGrpMemberSet(spriteGroup, 1, spriteId);
+    HuSprTPLvlSet(spriteGroup, 1, 0.7f);
+    HuSprPosSet(spriteGroup, 1, 0.0f, -4.0f);
 
-    temp_r21 = GWSystem.mg_next + 401;
-    var_r26 = temp_r21;
-    for (var_r28 = 0; var_r28 < 13;) {
-        if (var_r26 != mgIdTbl[var_r28]) {
-            var_r28++;
+    minigameId = GWSystem.mg_next + 401;
+    selectedMinigame = minigameId;
+    for (minigameIndex = 0; minigameIndex < 13;) {
+        if (selectedMinigame != minigameIds[minigameIndex]) {
+            minigameIndex++;
         } else {
             break;
         }
     }
-    if (var_r28 >= 13) {
-        var_r28 = 0;
+    if (minigameIndex >= 13) {
+        minigameIndex = 0;
     }
-    mgDefault = var_r28;
-    var_r26 = mgDefault;
-    mgPicObj->work[0] = var_r26;
-    temp_r31->unk_44 = var_r26;
-    temp_r31->unk_46 = var_r26;
+    defaultMinigameIndex = minigameIndex;
+    selectedMinigame = defaultMinigameIndex;
+    mgPicObj->work[0] = selectedMinigame;
+    selectionWork->selectedMinigameIndex = selectedMinigame;
+    selectionWork->previousMinigameIndex = selectedMinigame;
 
-    for (var_r28 = 0; var_r28 < 5;) {
-        if (var_r26 >= 13) {
-            var_r26 = 0;
+    for (minigameIndex = 0; minigameIndex < 5;) {
+        if (selectedMinigame >= 13) {
+            selectedMinigame = 0;
         }
-        temp_r29 = HuWinCreate(36.0f, 237.0f + cursorYOfsTbl[var_r28], 0x128, 0x44, 0x4E20);
-        temp_r31->unk_2E[var_r28] = temp_r29;
-        temp_r31->unk_38[var_r28] = var_r28;
-        HuWinBGTPLvlSet(temp_r29, 0.0f);
-        HuWinMesSpeedSet(temp_r29, 0);
-        temp_r22 = mgNameTbl[var_r26];
-        HuWinAttrSet(temp_r29, 0x100);
+        spriteId = HuWinCreate(36.0f, 237.0f + minigameWindowYOffsets[minigameIndex], 0x128, 0x44, 0x4E20);
+        selectionWork->minigameWindows[minigameIndex] = spriteId;
+        selectionWork->minigameWindowPositions[minigameIndex] = minigameIndex;
+        HuWinBGTPLvlSet(spriteId, 0.0f);
+        HuWinMesSpeedSet(spriteId, 0);
+        messageId = minigameMessageIds[selectedMinigame];
+        HuWinAttrSet(spriteId, 0x100);
         HuWinMesSizeCancelCRSet(1);
-        HuWinMesMaxSizeGet(1, sp8, temp_r22);
-        HuWinCenterPosSet(temp_r29, (296.0f - sp8[0]) / -2.0f, (68.0f - sp8[1]) / -2.0f);
-        HuWinMesSet(temp_r29, temp_r22);
-        var_r28++;
-        var_r26++;
+        HuWinMesMaxSizeGet(1, messageSize, messageId);
+        HuWinCenterPosSet(spriteId, (296.0f - messageSize[0]) / -2.0f, (68.0f - messageSize[1]) / -2.0f);
+        HuWinMesSet(spriteId, messageId);
+        minigameIndex++;
+        selectedMinigame++;
     }
     object->work[3] = 1;
     object->objFunc = UpdateMGSelect;
@@ -415,89 +415,89 @@ static void CreateMGSelect(OMOBJ *object)
 
 static void UpdateMGPic(OMOBJ *object)
 {
-    mgPic *temp_r30 = (mgPic *)object->data;
-    s16 temp_r29;
+    MGPictureWork *pictureWork = (MGPictureWork *)object->data;
+    s16 spriteGroup;
 
     if (object->work[1] != object->work[0]) {
-        temp_r29 = temp_r30->unk_40;
-        HuSprAttrSet(temp_r29, object->work[1], HUSPR_ATTR_DISPOFF);
-        HuSprAttrReset(temp_r29, object->work[0], HUSPR_ATTR_DISPOFF);
+        spriteGroup = pictureWork->spriteGroup;
+        HuSprAttrSet(spriteGroup, object->work[1], HUSPR_ATTR_DISPOFF);
+        HuSprAttrReset(spriteGroup, object->work[0], HUSPR_ATTR_DISPOFF);
         object->work[1] = object->work[0];
     }
 }
 
 static void CreateMGPic(OMOBJ *object)
 {
-    mgPic *temp_r28;
-    ANIMDATA *temp_r3_2;
-    s16 temp_r3;
-    s32 var_r30;
+    MGPictureWork *pictureWork;
+    ANIMDATA *spriteAnimation;
+    s16 spriteGroup;
+    s32 minigameIndex;
     s32 index;
     s16 index2;
     s16 group;
 
     omSetStatBit(object, OM_STAT_MODELPAUSE);
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(mgPic), HU_MEMNUM_OVL);
-    temp_r28 = object->data;
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(MGPictureWork), HU_MEMNUM_OVL);
+    pictureWork = object->data;
     index2 = 0;
-    temp_r3 = HuSprGrpCreate(14);
-    temp_r28->unk_40 = temp_r3;
-    HuSprGrpPosSet(temp_r3, 444.0f, 228.0f);
+    spriteGroup = HuSprGrpCreate(14);
+    pictureWork->spriteGroup = spriteGroup;
+    HuSprGrpPosSet(spriteGroup, 444.0f, 228.0f);
 
-    for (var_r30 = 0; var_r30 < 13; var_r30++) {
-        temp_r3_2 = HuSprAnimRead(HuDataReadNum(mgPicTbl[var_r30], HU_MEMNUM_OVL));
-        temp_r28->unk_00[var_r30] = temp_r3_2;
-        group = HuSprCreate(temp_r3_2, 0x2710, 0);
-        HuSprGrpMemberSet(temp_r3, var_r30, group);
-        HuSprScaleSet(temp_r3, var_r30, 0.6f, 0.6f);
-        HuSprAttrSet(temp_r3, var_r30, 4);
+    for (minigameIndex = 0; minigameIndex < 13; minigameIndex++) {
+        spriteAnimation = HuSprAnimRead(HuDataReadNum(minigamePictureDataIds[minigameIndex], HU_MEMNUM_OVL));
+        pictureWork->animations[minigameIndex] = spriteAnimation;
+        group = HuSprCreate(spriteAnimation, 0x2710, 0);
+        HuSprGrpMemberSet(spriteGroup, minigameIndex, group);
+        HuSprScaleSet(spriteGroup, minigameIndex, 0.6f, 0.6f);
+        HuSprAttrSet(spriteGroup, minigameIndex, 4);
     }
-    index2 = var_r30;
-    temp_r3_2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x22), HU_MEMNUM_OVL));
-    temp_r28->unk_00[index2] = temp_r3_2;
-    group = HuSprCreate(temp_r3_2, 0x7540, 0);
-    HuSprGrpMemberSet(temp_r3, index2, group);
-    HuSprTPLvlSet(temp_r3, index2, 0.7f);
+    index2 = minigameIndex;
+    spriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x22), HU_MEMNUM_OVL));
+    pictureWork->animations[index2] = spriteAnimation;
+    group = HuSprCreate(spriteAnimation, 0x7540, 0);
+    HuSprGrpMemberSet(spriteGroup, index2, group);
+    HuSprTPLvlSet(spriteGroup, index2, 0.7f);
     index2++;
     object->work[1] = object->work[0];
-    HuSprAttrReset(temp_r3, object->work[1], HUSPR_ATTR_DISPOFF);
+    HuSprAttrReset(spriteGroup, object->work[1], HUSPR_ATTR_DISPOFF);
     object->objFunc = UpdateMGPic;
 }
 
-static void UpdateMGInterface(OMOBJ *object) { void *sp8 = object->data; }
+static void UpdateMGInterface(OMOBJ *object) { void *interfaceData = object->data; }
 
 static void CreateMGInterface(OMOBJ *object)
 {
-    mgInterface *unkStruct;
+    MGInterfaceWork *interfaceWork;
     s16 index;
     s16 group;
     s16 index2;
-    ANIMDATA *temp_r3_2;
-    float sp8[2];
+    ANIMDATA *interfaceSpriteAnimation;
+    float messageSize[2];
 
     omSetStatBit(object, OM_STAT_MODELPAUSE);
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(mgInterface), HU_MEMNUM_OVL);
-    unkStruct = object->data;
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(MGInterfaceWork), HU_MEMNUM_OVL);
+    interfaceWork = object->data;
     index2 = 0;
     group = HuSprGrpCreate(1);
-    unkStruct->group = group;
+    interfaceWork->titleSpriteGroup = group;
     HuSprGrpPosSet(group, 288.0f, 64.0f);
-    temp_r3_2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x24), HU_MEMNUM_OVL));
-    unkStruct->unk_00[index2] = temp_r3_2;
-    index = HuSprCreate(temp_r3_2, 0x2710, 0);
+    interfaceSpriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x24), HU_MEMNUM_OVL));
+    interfaceWork->animations[index2] = interfaceSpriteAnimation;
+    index = HuSprCreate(interfaceSpriteAnimation, 0x2710, 0);
     HuSprGrpMemberSet(group, 0, index);
     index2++;
     group = HuSprGrpCreate(1);
-    unkStruct->group2 = group;
+    interfaceWork->promptSpriteGroup = group;
     HuSprGrpPosSet(group, 444.0f, 384.0f);
-    temp_r3_2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x23), HU_MEMNUM_OVL));
-    unkStruct->unk_00[index2] = temp_r3_2;
-    index = HuSprCreate(temp_r3_2, 0x271A, 0);
+    interfaceSpriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_E3SETUP, 0x23), HU_MEMNUM_OVL));
+    interfaceWork->animations[index2] = interfaceSpriteAnimation;
+    index = HuSprCreate(interfaceSpriteAnimation, 0x271A, 0);
     HuSprGrpMemberSet(group, 0, index);
     index2++;
-    HuWinMesMaxSizeGet(1, sp8, "\013\016\r PRESS START");
-    index = HuWinCreate(340.0f, 362.0f, sp8[0], sp8[1], 0);
-    unkStruct->unk_2C = index;
+    HuWinMesMaxSizeGet(1, messageSize, "\013\016\r PRESS START");
+    index = HuWinCreate(340.0f, 362.0f, messageSize[0], messageSize[1], 0);
+    interfaceWork->pressStartWindow = index;
     HuWinMesColSet(index, 0);
     HuWinBGTPLvlSet(index, 0.0f);
     HuWinMesSpeedSet(index, 0);
