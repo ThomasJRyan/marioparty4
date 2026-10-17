@@ -11,30 +11,30 @@
 #include "game/audio.h"
 #endif
 
-s32 lbl_1_data_0 = 100;
+s32 overlayDefaultValue = 100;
 #if VERSION_NTSC
-s32 lbl_1_bss_0[192];
+s32 unusedOverlayBuffer[192];
 #endif
 
-void fn_1_0(void)
+void SafInit(void)
 {
 
 }
 
-void safMarioEyeDim(s16 id)
+void SafMarioEyeDim(s16 modelIndex)
 {
-	HU3DMODEL *model = &Hu3DData[id];
-	HSFDATA *hsf = model->hsf;
-	HSFMATERIAL *material = hsf->material;
-	s16 i, j;
-	for(i=0; i<hsf->materialNum; i++, material++) {
-		for(j=0; j<material->attrNum; j++) {
-			HSFATTRIBUTE *attr = &hsf->attribute[material->attr[j]];
-			if(strcmp(attr->bitmap->name, "s3c000m1_eyes") == 0 || strcmp(attr->bitmap->name, "mario_eyes") == 0) {
+	HU3DMODEL *model = &Hu3DData[modelIndex];
+	HSFDATA *modelData = model->hsf;
+	HSFMATERIAL *material = modelData->material;
+	s16 materialIndex, materialAttributeIndex;
+	for(materialIndex=0; materialIndex<modelData->materialNum; materialIndex++, material++) {
+		for(materialAttributeIndex=0; materialAttributeIndex<material->attrNum; materialAttributeIndex++) {
+			HSFATTRIBUTE *attribute = &modelData->attribute[material->attr[materialAttributeIndex]];
+			if(strcmp(attribute->bitmap->name, "s3c000m1_eyes") == 0 || strcmp(attribute->bitmap->name, "mario_eyes") == 0) {
 				break;
 			}
 		}
-		if(j == material->attrNum) {
+		if(materialAttributeIndex == material->attrNum) {
 			material->color[0] *= 0.6f;
 			material->color[1] *= 0.3f;
 			material->color[2] *= 0.3f;
@@ -45,27 +45,27 @@ void safMarioEyeDim(s16 id)
 	}
 }
 
-void safSaveTest(void)
+void SafSaveTest(void)
 {
-	OSTick time_write;
-	OSTick time_read;
+	OSTick timeWrite;
+	OSTick timeRead;
 	s16 character = GWPlayerCfg[0].character;
 	SLLoad();
-	time_write = time_read = 0;
+	timeWrite = timeRead = 0;
 	while(1) {
-		print8(16, 420, 1.5f, "READ  TIME %d", OSTicksToMilliseconds(time_read));
-		print8(16, 430, 1.5f, "WRITE TIME %d", OSTicksToMilliseconds(time_write));
+		print8(16, 420, 1.5f, "READ  TIME %d", OSTicksToMilliseconds(timeRead));
+		print8(16, 430, 1.5f, "WRITE TIME %d", OSTicksToMilliseconds(timeWrite));
 		HuPrcVSleep();
 		if(HuPadBtnDown[0] & PAD_BUTTON_Y) {
 			CharFXStop(character, 282);
-			time_write = OSGetTick();
+			timeWrite = OSGetTick();
 			SLSave();
-			time_write = OSGetTick()-time_write;
+			timeWrite = OSGetTick()-timeWrite;
 		}
 		if(HuPadBtnDown[0] & PAD_BUTTON_X) {
-			time_read = OSGetTick();
+			timeRead = OSGetTick();
 			SLLoad();
-			time_read = OSGetTick()-time_read;
+			timeRead = OSGetTick()-timeRead;
 		}
 	}
 }
