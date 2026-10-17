@@ -3,182 +3,182 @@
 
 #include "REL/m442Dll.h"
 
-s32 fn_1_9520(s32 arg0);
-void fn_1_9550(OMOBJ *object);
-void fn_1_970C(void);
-void fn_1_9784(void);
-void fn_1_980C(void);
+s32 SetScoreDisplayState(s32 displayMode);
+void UpdateScoreDisplay(OMOBJ *object);
+void HideScoreDigits(void);
+void ShowScoreDigits(void);
+void AnimateHighScore(void);
 
-typedef void (*M442ScoreFunc)(void);
+typedef void (*M442ScoreUpdateFunc)(void);
 
-M442ScoreFunc lbl_1_data_268[3] = { fn_1_970C, fn_1_9784, fn_1_980C };
+M442ScoreUpdateFunc scoreDisplayModeCallbacks[3] = { HideScoreDigits, ShowScoreDigits, AnimateHighScore };
 
-HUPROCESS *lbl_1_bss_11F4C;
-OMOBJ *lbl_1_bss_11F48;
+HUPROCESS *scoreProcess;
+OMOBJ *scoreDisplayObject;
 
-typedef struct M442ScoreWork {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ s16 unk_08;
-    /* 0x0A */ s16 unk_0A;
-    /* 0x0C */ s16 unk_0C[6];
-    /* 0x18 */ s16 unk_18;
-    /* 0x1A */ s16 unk_1A;
-    /* 0x0E */ s32 unk_1C;
-    /* 0x20 */ float unk_20;
-} M442ScoreWork; /* size = 0x24 */
+typedef struct M442ScoreDisplayWork {
+    /* 0x00 */ s32 displayMode;
+    /* 0x04 */ s32 modeInitialized;
+    /* 0x08 */ s16 bestScore;
+    /* 0x0A */ s16 currentScore;
+    /* 0x0C */ s16 scoreDigitSprites[6];
+    /* 0x18 */ s16 scoreLabelSprite;
+    /* 0x1A */ s16 scoreIconSprite;
+    /* 0x1C */ s32 pulseGrowing;
+    /* 0x20 */ Float pulseScale;
+} M442ScoreDisplayWork; /* size = 0x24 */
 
-s32 fn_1_91AC(HUPROCESS *arg0, s16 arg1)
+s32 InitializeScoreDisplay(HUPROCESS *process, s16 bestScore)
 {
-    M442ScoreWork *var_r31;
-    u32 var_r30;
+    M442ScoreDisplayWork *scoreWork;
+    u32 spriteIndex;
 
-    lbl_1_bss_11F4C = arg0;
-    lbl_1_bss_11F48 = omAddObjEx(lbl_1_bss_11F4C, 0x800, 0, 0, 7, fn_1_9550);
-    lbl_1_bss_11F48->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M442ScoreWork), HU_MEMNUM_OVL);
-    var_r31 = lbl_1_bss_11F48->data;
-    var_r31->unk_08 = arg1;
-    var_r31->unk_0A = 0;
-    var_r31->unk_18 = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x23), 2, 0);
-    espTPLvlSet(var_r31->unk_18, 0.5f);
-    espPosSet(var_r31->unk_18, 508.0f, 64.0f);
-    espColorSet(var_r31->unk_18, 0, 0, 0);
-    var_r31->unk_1A = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x37), 1, 0);
-    espPosSet(var_r31->unk_1A, 480.0f, 56.0f);
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        var_r31->unk_0C[var_r30] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x30), 0, 0);
-        espPosSet(var_r31->unk_0C[var_r30], (var_r30 * 0x10) + 0x1F4, 56.0f);
-        espDispOff(var_r31->unk_0C[var_r30]);
+    scoreProcess = process;
+    scoreDisplayObject = omAddObjEx(scoreProcess, 0x800, 0, 0, 7, UpdateScoreDisplay);
+    scoreDisplayObject->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M442ScoreDisplayWork), HU_MEMNUM_OVL);
+    scoreWork = scoreDisplayObject->data;
+    scoreWork->bestScore = bestScore;
+    scoreWork->currentScore = 0;
+    scoreWork->scoreLabelSprite = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x23), 2, 0);
+    espTPLvlSet(scoreWork->scoreLabelSprite, 0.5f);
+    espPosSet(scoreWork->scoreLabelSprite, 508.0f, 64.0f);
+    espColorSet(scoreWork->scoreLabelSprite, 0, 0, 0);
+    scoreWork->scoreIconSprite = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x37), 1, 0);
+    espPosSet(scoreWork->scoreIconSprite, 480.0f, 56.0f);
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        scoreWork->scoreDigitSprites[spriteIndex] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x30), 0, 0);
+        espPosSet(scoreWork->scoreDigitSprites[spriteIndex], (spriteIndex * 0x10) + 0x1F4, 56.0f);
+        espDispOff(scoreWork->scoreDigitSprites[spriteIndex]);
     }
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        var_r31->unk_0C[var_r30 + 3] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x31), 1, 0);
-        espPosSet(var_r31->unk_0C[var_r30 + 3], (var_r30 * 0x10) + 0x1F4, 74.0f);
+    for (spriteIndex = 0; spriteIndex < 3; spriteIndex++) {
+        scoreWork->scoreDigitSprites[spriteIndex + 3] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 0x31), 1, 0);
+        espPosSet(scoreWork->scoreDigitSprites[spriteIndex + 3], (spriteIndex * 0x10) + 0x1F4, 74.0f);
     }
-    for (var_r30 = 0; var_r30 < 8; var_r30++) {
-        espDispOff(var_r31->unk_0C[var_r30]);
+    for (spriteIndex = 0; spriteIndex < 8; spriteIndex++) {
+        espDispOff(scoreWork->scoreDigitSprites[spriteIndex]);
     }
     HuDataDirClose(DATADIR_MGCONST);
-    return fn_1_9520(0);
+    return SetScoreDisplayState(0);
 }
 
-void fn_1_9438(void)
+void DestroyScoreDisplay(void)
 {
-    s32 var_r31;
-    M442ScoreWork *var_r30;
+    s32 spriteIndex;
+    M442ScoreDisplayWork *scoreWork;
 
-    var_r30 = lbl_1_bss_11F48->data;
-    for (var_r31 = 0; var_r31 < 8; var_r31++) {
-        espKill(var_r30->unk_0C[var_r31]);
+    scoreWork = scoreDisplayObject->data;
+    for (spriteIndex = 0; spriteIndex < 8; spriteIndex++) {
+        espKill(scoreWork->scoreDigitSprites[spriteIndex]);
     }
-    HuMemDirectFree(lbl_1_bss_11F48->data);
+    HuMemDirectFree(scoreDisplayObject->data);
 }
 
-void fn_1_94AC(s32 arg0)
+void SetScoreDisplayMode(s32 mode)
 {
-    switch (arg0) {
+    switch (mode) {
         case 0:
-            fn_1_9520(1);
+            SetScoreDisplayState(1);
             break;
         case 1:
-            fn_1_9520(2);
+            SetScoreDisplayState(2);
             break;
         default:
             break;
     }
 }
 
-void fn_1_94FC(void)
+void HideScoreDisplay(void)
 {
-    fn_1_9520(0);
+    SetScoreDisplayState(0);
 }
 
-s32 fn_1_9520(s32 arg0)
+s32 SetScoreDisplayState(s32 displayMode)
 {
-    M442ScoreWork *var_r31;
+    M442ScoreDisplayWork *scoreWork;
 
-    var_r31 = lbl_1_bss_11F48->data;
-    var_r31->unk_00 = arg0;
-    var_r31->unk_04 = 0;
+    scoreWork = scoreDisplayObject->data;
+    scoreWork->displayMode = displayMode;
+    scoreWork->modeInitialized = 0;
 }
 
-void fn_1_9550(OMOBJ *arg0)
+void UpdateScoreDisplay(OMOBJ *object)
 {
-    s16 temp_r31;
-    M442ScoreWork* temp_r30;
+    s16 displayedScore;
+    M442ScoreDisplayWork* scoreWork;
 
-    temp_r30 = lbl_1_bss_11F48->data;
-    lbl_1_data_268[temp_r30->unk_00]();
-    temp_r31 = temp_r30->unk_08;
-    espBankSet(temp_r30->unk_0C[0], temp_r31 / 100);
-    temp_r31 = (temp_r31 - ((temp_r31 / 100) * 100));
-    espBankSet(temp_r30->unk_0C[1], (temp_r31 / 10));
-    temp_r31 =  (temp_r31 - ((temp_r31 / 10) * 10));
-    espBankSet(temp_r30->unk_0C[2], temp_r31);
-    temp_r31 = temp_r30->unk_0A;
-    espBankSet(temp_r30->unk_0C[3], (temp_r31 / 100));
-    temp_r31 = (temp_r31 - ((temp_r31 / 100) * 100));
-    espBankSet(temp_r30->unk_0C[4],  (temp_r31 / 10));
-    temp_r31 = (temp_r31 - ((temp_r31 / 10) * 10));
-    espBankSet(temp_r30->unk_0C[5], temp_r31);
+    scoreWork = scoreDisplayObject->data;
+    scoreDisplayModeCallbacks[scoreWork->displayMode]();
+    displayedScore = scoreWork->bestScore;
+    espBankSet(scoreWork->scoreDigitSprites[0], displayedScore / 100);
+    displayedScore = (displayedScore - ((displayedScore / 100) * 100));
+    espBankSet(scoreWork->scoreDigitSprites[1], (displayedScore / 10));
+    displayedScore =  (displayedScore - ((displayedScore / 10) * 10));
+    espBankSet(scoreWork->scoreDigitSprites[2], displayedScore);
+    displayedScore = scoreWork->currentScore;
+    espBankSet(scoreWork->scoreDigitSprites[3], (displayedScore / 100));
+    displayedScore = (displayedScore - ((displayedScore / 100) * 100));
+    espBankSet(scoreWork->scoreDigitSprites[4],  (displayedScore / 10));
+    displayedScore = (displayedScore - ((displayedScore / 10) * 10));
+    espBankSet(scoreWork->scoreDigitSprites[5], displayedScore);
 }
 
-void fn_1_970C(void)
+void HideScoreDigits(void)
 {
-    M442ScoreWork *var_r31;
-    s32 var_r30;
+    M442ScoreDisplayWork *scoreWork;
+    s32 spriteIndex;
 
-    var_r31 = lbl_1_bss_11F48->data;
-    if (var_r31->unk_04 == 0) {
-        for (var_r30 = 0; var_r30 < 8; var_r30++) {
-            espDispOff(var_r31->unk_0C[var_r30]);
+    scoreWork = scoreDisplayObject->data;
+    if (scoreWork->modeInitialized == 0) {
+        for (spriteIndex = 0; spriteIndex < 8; spriteIndex++) {
+            espDispOff(scoreWork->scoreDigitSprites[spriteIndex]);
         }
-        var_r31->unk_04++;
+        scoreWork->modeInitialized++;
     }
 }
 
-void fn_1_9784(void)
+void ShowScoreDigits(void)
 {
-    s16 var_r30;
-    M442ScoreWork *var_r31;
+    s16 spriteIndex;
+    M442ScoreDisplayWork *scoreWork;
 
-    var_r31 = lbl_1_bss_11F48->data;
-    if (var_r31->unk_04 == 0) {
-        for (var_r30 = 0; var_r30 < 8; var_r30++) {
-            espDispOn(var_r31->unk_0C[var_r30]);
+    scoreWork = scoreDisplayObject->data;
+    if (scoreWork->modeInitialized == 0) {
+        for (spriteIndex = 0; spriteIndex < 8; spriteIndex++) {
+            espDispOn(scoreWork->scoreDigitSprites[spriteIndex]);
         }
-        var_r31->unk_04++;
+        scoreWork->modeInitialized++;
     }
-    var_r31->unk_0A = fn_1_90EC();
+    scoreWork->currentScore = getFinalScore();
 }
 
-void fn_1_980C(void)
+void AnimateHighScore(void)
 {
-    M442ScoreWork *var_r31;
-    s32 var_r30;
+    M442ScoreDisplayWork *scoreWork;
+    s32 spriteIndex;
 
-    var_r31 = lbl_1_bss_11F48->data;
-    if (var_r31->unk_04 == 0) {
-        var_r31->unk_1C = 0;
-        var_r31->unk_20 = 1.0f;
-        if (var_r31->unk_0A > var_r31->unk_08) {
-            var_r31->unk_08 = var_r31->unk_0A;
+    scoreWork = scoreDisplayObject->data;
+    if (scoreWork->modeInitialized == 0) {
+        scoreWork->pulseGrowing = 0;
+        scoreWork->pulseScale = 1.0f;
+        if (scoreWork->currentScore > scoreWork->bestScore) {
+            scoreWork->bestScore = scoreWork->currentScore;
         }
-        var_r31->unk_04++;
+        scoreWork->modeInitialized++;
     }
-    if (var_r31->unk_1C == 0) {
-        if ((var_r31->unk_20 += 0.02f) >= 1.2f) {
-            var_r31->unk_20 = 1.2f;
-            var_r31->unk_1C = 1;
+    if (scoreWork->pulseGrowing == 0) {
+        if ((scoreWork->pulseScale += 0.02f) >= 1.2f) {
+            scoreWork->pulseScale = 1.2f;
+            scoreWork->pulseGrowing = 1;
         }
     }
     else {
-        if ((var_r31->unk_20 -= 0.04f) <= 1.0f) {
-            var_r31->unk_20 = 1.0f;
-            var_r31->unk_1C = 0;
+        if ((scoreWork->pulseScale -= 0.04f) <= 1.0f) {
+            scoreWork->pulseScale = 1.0f;
+            scoreWork->pulseGrowing = 0;
         }
     }
-    for (var_r30 = 0; var_r30 <= 2; var_r30++) {
-        espScaleSet(var_r31->unk_0C[var_r30], var_r31->unk_20, var_r31->unk_20);
+    for (spriteIndex = 0; spriteIndex <= 2; spriteIndex++) {
+        espScaleSet(scoreWork->scoreDigitSprites[spriteIndex], scoreWork->pulseScale, scoreWork->pulseScale);
     }
-    espScaleSet(var_r31->unk_1A, var_r31->unk_20, var_r31->unk_20);
+    espScaleSet(scoreWork->scoreIconSprite, scoreWork->pulseScale, scoreWork->pulseScale);
 }
