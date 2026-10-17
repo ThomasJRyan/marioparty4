@@ -46,7 +46,7 @@ static char *extCharNameTbl[7] = {
 
 void ObjectSetup(void)
 {
-    HUPROCESS *sp8 = omInitObjMan(0x32, 0x2000);
+    HUPROCESS *objectManager = omInitObjMan(0x32, 0x2000);
     Hu3DBGColorSet(0, 0, 0);
     HuPrcChildCreate(SubchrMain, 4096, 12288, 0, HuPrcCurrentGet());
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
@@ -66,14 +66,14 @@ static u16 GetBtns(void)
 static void SubchrMain()
 {
     int character[4];
-    int ext_character[4];
-    int i, cursor_pos;
+    int extCharacter[4];
+    int i, cursorPos;
     for(i=0; i<4; i++) {
         character[i] = GWPlayerCfg[i].character;
-        ext_character[i] = 0;
+        extCharacter[i] = 0;
         dirPlayer[i] = 0;
     }
-    cursor_pos = 0;
+    cursorPos = 0;
     while(1) {
         int y, x;
         u16 btns;
@@ -84,21 +84,21 @@ static void SubchrMain()
         for(i=0; i<4; i++, y += 16) {
             fontcolor = FONT_COLOR_GREEN;
             print8(x, y, 2.0f, playerNumTbl[i]);
-            if(i == cursor_pos) {
+            if(i == cursorPos) {
                 fontcolor = FONT_COLOR_CYAN;
             } else {
                 fontcolor = FONT_COLOR_GREEN;
             }
-            if(ext_character[i] != 0) {
-                print8(x+200, y, 2.0f, extCharNameTbl[ext_character[i]]);
+            if(extCharacter[i] != 0) {
+                print8(x+200, y, 2.0f, extCharNameTbl[extCharacter[i]]);
             } else {
                 print8(x+200, y, 2.0f, charNameTbl[character[i]]);
             }
         }
         if(GetBtns() & PAD_BUTTON_START) {
             for(i=0; i<4; i++) {
-                if(ext_character[i] != 0) {
-                    GWPlayerCfg[i].character = ext_character[i]+7;
+                if(extCharacter[i] != 0) {
+                    GWPlayerCfg[i].character = extCharacter[i]+7;
                 }
             }
             HuAudFadeOut(30);
@@ -112,13 +112,13 @@ static void SubchrMain()
         } else {
             if(GetBtns() & PAD_BUTTON_LEFT) {
                 do {
-                    ext_character[cursor_pos]--;
-                    if(ext_character[cursor_pos] < 0) {
-                        ext_character[cursor_pos] = 6;
+                    extCharacter[cursorPos]--;
+                    if(extCharacter[cursorPos] < 0) {
+                        extCharacter[cursorPos] = 6;
                     }
                     for(i=0; i<4; i++) {
-                        if(cursor_pos != i) {
-                            if(ext_character[cursor_pos] == ext_character[i] && ext_character[cursor_pos] != 0) {
+                        if(cursorPos != i) {
+                            if(extCharacter[cursorPos] == extCharacter[i] && extCharacter[cursorPos] != 0) {
                                 break;
                             }
                         }
@@ -127,13 +127,13 @@ static void SubchrMain()
             }
             if(GetBtns() & PAD_BUTTON_RIGHT) {
                 do {
-                    ext_character[cursor_pos]++;
-                    if(ext_character[cursor_pos] > 6) {
-                        ext_character[cursor_pos] = 0;
+                    extCharacter[cursorPos]++;
+                    if(extCharacter[cursorPos] > 6) {
+                        extCharacter[cursorPos] = 0;
                     }
                     for(i=0; i<4; i++) {
-                        if(cursor_pos != i) {
-                            if(ext_character[cursor_pos] == ext_character[i] && ext_character[cursor_pos] != 0) {
+                        if(cursorPos != i) {
+                            if(extCharacter[cursorPos] == extCharacter[i] && extCharacter[cursorPos] != 0) {
                                 break;
                             }
                         }
@@ -141,16 +141,16 @@ static void SubchrMain()
                 } while(i < 4);
             }
             if(GetBtns() & PAD_BUTTON_DOWN) {
-                cursor_pos++;
+                cursorPos++;
             }
             if(GetBtns() & PAD_BUTTON_UP) {
-                cursor_pos--;
+                cursorPos--;
             }
-            if(cursor_pos < 0) {
-                cursor_pos = 3;
+            if(cursorPos < 0) {
+                cursorPos = 3;
             }
-            if(cursor_pos > 3) {
-                cursor_pos = 0;
+            if(cursorPos > 3) {
+                cursorPos = 0;
             }
             if(GetBtns() & PAD_BUTTON_B) {
                 HuAudFadeOut(30);
