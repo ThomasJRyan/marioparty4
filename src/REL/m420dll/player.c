@@ -9,55 +9,55 @@
 
 #include "REL/m420dll.h"
 
-typedef void (*M420DllUnkFunc)(M420DllPlayerStruct *);
+typedef void (*M420DllPlayerActionFunc)(M420DllPlayerStruct *);
 
-typedef struct M420DllUnkStruct2 {
-    /* 0x00 */ s32 unk_00;
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ s32 unk_08;
-    /* 0x0C */ s32 unk_0C;
-    /* 0x10 */ s32 unk_10;
-    /* 0x14 */ s32 unk_14;
-    /* 0x18 */ s32 unk_18;
-    /* 0x1C */ s32 unk_1C;
-} M420DllUnkStruct2; /* size = 0x20 */
+typedef struct M420DllPlayerConfig {
+    /* 0x00 */ s32 initialWaitFrames;
+    /* 0x04 */ s32 initialWaitVariance;
+    /* 0x08 */ s32 aiActionDelayFrames;
+    /* 0x0C */ s32 aiActionDelayVariance;
+    /* 0x10 */ s32 eventDelayFrames;
+    /* 0x14 */ s32 eventDelayVariance;
+    /* 0x18 */ s32 configuredActionCount;
+    /* 0x1C */ s32 actionFlags;
+} M420DllPlayerConfig; /* size = 0x20 */
 
-void fn_1_1F14(void);
-void fn_1_1F54(M420DllPlayerStruct *arg0);
-void fn_1_1F94(M420DllPlayerStruct *arg0);
-void fn_1_200C(M420DllPlayerStruct *arg0);
-void fn_1_20EC(M420DllPlayerStruct *arg0);
-void fn_1_211C(M420DllPlayerStruct *arg0);
-void fn_1_2174(M420DllPlayerStruct *arg0);
-void fn_1_2260(M420DllPlayerStruct *arg0);
-void fn_1_22CC(M420DllPlayerStruct *arg0);
-void fn_1_276C(M420DllPlayerStruct *arg0);
-void fn_1_2CE0(M420DllPlayerStruct *arg0);
-void fn_1_2D7C(M420DllPlayerStruct *arg0);
-void fn_1_2EA8(M420DllPlayerStruct *arg0);
-void fn_1_3098(M420DllPlayerStruct *arg0);
-void fn_1_326C(M420DllPlayerStruct *arg0);
-void fn_1_3450(M420DllPlayerStruct *arg0);
-s32 fn_1_34AC(M420DllPlayerStruct *arg0);
-void fn_1_355C(M420DllPlayerStruct *arg0);
-void fn_1_36E4(M420DllPlayerStruct *arg0);
-void fn_1_374C(M420DllPlayerStruct *arg0);
-void fn_1_378C(M420DllPlayerStruct *arg0);
-void fn_1_3854(void);
-void fn_1_3970(M420DllPlayerStruct *arg0);
-void fn_1_3F94(M420DllPlayerStruct *arg0);
-void fn_1_4294(M420DllPlayerStruct *arg0);
-void fn_1_4574(M420DllPlayerStruct *arg0);
-void fn_1_476C(M420DllPlayerStruct *arg0);
+void UpdatePlayerProcess(void);
+void CreatePlayerModel(M420DllPlayerStruct *player);
+void LoadPlayerMotions(M420DllPlayerStruct *player);
+void CreatePlayerEffectSprites(M420DllPlayerStruct *player);
+void DestroyPlayerModel(M420DllPlayerStruct *player);
+void DestroyPlayerMotions(M420DllPlayerStruct *player);
+void DestroyPlayerEffectSprites(M420DllPlayerStruct *player);
+void WaitForPlayerActionChange(M420DllPlayerStruct *player);
+void HandlePlayerIdle(M420DllPlayerStruct *player);
+void HandlePlayerAction(M420DllPlayerStruct *player);
+void HandlePlayerWin(M420DllPlayerStruct *player);
+void HandlePlayerCelebration(M420DllPlayerStruct *player);
+void HandlePlayerMovement(M420DllPlayerStruct *player);
+void HandlePlayerEffect(M420DllPlayerStruct *player);
+void UpdatePlayerEffectSprites(M420DllPlayerStruct *player);
+void HidePlayerEffectSprites(M420DllPlayerStruct *player);
+s32 GetPlayerInputState(M420DllPlayerStruct *player);
+void UpdatePlayerModel(M420DllPlayerStruct *player);
+void AttachPlayerItemHook(M420DllPlayerStruct *player);
+void DetachPlayerItemHook(M420DllPlayerStruct *player);
+void SpawnPlayerItem(M420DllPlayerStruct *player);
+void AnimatePlayerItemSpawn(void);
+void HandlePlayerItemAction(M420DllPlayerStruct *player);
+void HandlePlayerItemResult(M420DllPlayerStruct *player);
+void HandlePlayerItemReturn(M420DllPlayerStruct *player);
+void HandlePlayerItemSuccess(M420DllPlayerStruct *player);
+void HandlePlayerItemFailure(M420DllPlayerStruct *player);
 
-M420DllUnkStruct2 lbl_1_data_50[4] = {
+M420DllPlayerConfig playerConfigTable[4] = {
     { 0x19, 0x01, 0x2A, 0x08, 0x2D, 0x10, 0x01, 0x01 },
     { 0x19, 0x01, 0x22, 0x06, 0x22, 0x0C, 0x01, 0x01 },
     { 0x19, 0x01, 0x1B, 0x05, 0x14, 0x0A, 0x01, 0x01 },
     { 0x19, 0x01, 0x14, 0x04, 0x0A, 0x08, 0x01, 0x01 },
 };
 
-static const s32 lbl_1_rodata_F8[8][0xB] = {
+static const s32 characterMotionDataIds[8][0xB] = {
     {
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00),
         DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x17),
@@ -163,200 +163,200 @@ static const s32 lbl_1_rodata_F8[8][0xB] = {
         0x330022,
     },
 };
-static const Vec lbl_1_rodata_258[4][2] = {
+static const Vec playerFormationPoses[4][2] = {
     { { -372.0f, 300.0f, -220.0f }, { 0.0f, 50.0f, 0.0f } },
     { { 435.0f, 300.0f, -260.0f }, { 0.0f, 140.0f, 0.0f } },
     { { 315.0f, 300.0f, -153.0f }, { 0.0f, 140.0f, 0.0f } },
     { { 195.0f, 300.0f, -46.0f }, { 0.0f, 140.0f, 0.0f } },
 };
 
-M420DllPlayerStruct *fn_1_1B8C(s32 arg0, s32 arg1)
+M420DllPlayerStruct *CreatePlayer(s32 playerIndex, s32 formationIndex)
 {
-    M420DllPlayerStruct *var_r31;
-    s32 var_r30;
+    M420DllPlayerStruct *stateValue;
+    s32 spriteIndex;
 
-    var_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M420DllPlayerStruct), HU_MEMNUM_OVL);
-    if (!var_r31) {
+    stateValue = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M420DllPlayerStruct), HU_MEMNUM_OVL);
+    if (!stateValue) {
         OSReport("M420PlayerCreate ERROR...\n");
         return NULL;
     }
-    var_r31->unk_04 = arg0;
-    var_r31->unk_4C = arg1;
-    var_r31->unk_08 = GWPlayerCfg[arg0].diff;
-    var_r31->unk_00_field0 = GWPlayerCfg[arg0].iscom;
-    var_r31->unk_0A = GWPlayerCfg[arg0].character;
-    var_r31->unk_0C = GWPlayerCfg[arg0].pad_idx;
-    var_r31->unk_10 = lbl_1_rodata_258[arg1][0];
-    var_r31->unk_1C = lbl_1_rodata_258[arg1][1];
-    var_r31->unk_48 = 0;
-    var_r31->unk_50 = 0;
-    var_r31->unk_00_field2 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_E8 = NULL;
-    for (var_r30 = 0; var_r30 < 0xA; var_r30++) {
-        var_r31->unk_84[var_r30] = 7;
+    stateValue->playerIndex = playerIndex;
+    stateValue->formationIndex = formationIndex;
+    stateValue->difficulty = GWPlayerCfg[playerIndex].diff;
+    stateValue->isComputerControlled = GWPlayerCfg[playerIndex].iscom;
+    stateValue->characterId = GWPlayerCfg[playerIndex].character;
+    stateValue->controllerPort = GWPlayerCfg[playerIndex].pad_idx;
+    stateValue->position = playerFormationPoses[formationIndex][0];
+    stateValue->rotation = playerFormationPoses[formationIndex][1];
+    stateValue->actionState = 0;
+    stateValue->actionProgress = 0;
+    stateValue->rotationTransitionActive = 0;
+    stateValue->itemHookAttached = 0;
+    stateValue->linkedPlayer = NULL;
+    for (spriteIndex = 0; spriteIndex < 0xA; spriteIndex++) {
+        stateValue->effectSpriteFrames[spriteIndex] = 7;
     }
-    fn_1_1F54(var_r31);
-    fn_1_1F94(var_r31);
+    CreatePlayerModel(stateValue);
+    LoadPlayerMotions(stateValue);
 
-    switch (arg1) {
+    switch (formationIndex) {
         case 0:
-            if (var_r31->unk_0A == 5) {
-                CharMotionSet(var_r31->unk_0A, var_r31->unk_AE[0xA]);
-                Hu3DMotionStartEndSet(var_r31->unk_AC, 0.0f, 1.0f);
-                Hu3DMotionTimeSet(var_r31->unk_AC, 0.0f);
+            if (stateValue->characterId == 5) {
+                CharMotionSet(stateValue->characterId, stateValue->characterMotionIds[0xA]);
+                Hu3DMotionStartEndSet(stateValue->characterModelId, 0.0f, 1.0f);
+                Hu3DMotionTimeSet(stateValue->characterModelId, 0.0f);
             }
             else {
-                CharMotionSet(var_r31->unk_0A, var_r31->unk_AE[0]);
+                CharMotionSet(stateValue->characterId, stateValue->characterMotionIds[0]);
             }
             break;
         case 1:
         case 2:
         case 3:
-            var_r31->unk_1C.y = 0.0f;
-            CharMotionSet(var_r31->unk_0A, var_r31->unk_AE[0]);
+            stateValue->rotation.y = 0.0f;
+            CharMotionSet(stateValue->characterId, stateValue->characterMotionIds[0]);
             break;
         default:
             break;
     }
 
-    CharMotionDataClose(var_r31->unk_0A);
-    fn_1_200C(var_r31);
-    var_r31->unk_40 = HuPrcChildCreate(fn_1_1F14, 0x64, 0x5000, 0, lbl_1_bss_4);
-    var_r31->unk_40->user_data = var_r31;
-    return var_r31;
+    CharMotionDataClose(stateValue->characterId);
+    CreatePlayerEffectSprites(stateValue);
+    stateValue->playerProcess = HuPrcChildCreate(UpdatePlayerProcess, 0x64, 0x5000, 0, minigameObjectManager);
+    stateValue->playerProcess->user_data = stateValue;
+    return stateValue;
 }
 
-void fn_1_1E14(M420DllPlayerStruct *arg0)
+void DestroyPlayer(M420DllPlayerStruct *player)
 {
-    fn_1_2174(arg0);
-    fn_1_211C(arg0);
-    fn_1_20EC(arg0);
-    HuPrcKill(arg0->unk_40);
-    HuMemDirectFree(arg0);
+    DestroyPlayerEffectSprites(player);
+    DestroyPlayerMotions(player);
+    DestroyPlayerModel(player);
+    HuPrcKill(player->playerProcess);
+    HuMemDirectFree(player);
 }
 
-void fn_1_1E64(M420DllPlayerStruct *arg0, s32 arg1, s32 arg2)
+void VibratePlayerController(M420DllPlayerStruct *player, s32 vibrationMode, s32 durationFrames)
 {
-    switch (arg1) {
+    switch (vibrationMode) {
         case 0:
-            omVibrate(arg0->unk_04, arg2, 6, 6);
+            omVibrate(player->playerIndex, durationFrames, 6, 6);
             break;
         case 1:
-            omVibrate(arg0->unk_04, arg2, 4, 2);
+            omVibrate(player->playerIndex, durationFrames, 4, 2);
             break;
         case 2:
-            omVibrate(arg0->unk_04, arg2, 0xC, 0);
+            omVibrate(player->playerIndex, durationFrames, 0xC, 0);
             break;
     }
 }
 
-M420DllUnkFunc lbl_1_data_EC[0xC] = {
-    fn_1_2260,
-    fn_1_22CC,
-    fn_1_2D7C,
-    fn_1_276C,
-    fn_1_2CE0,
-    fn_1_2EA8,
-    fn_1_2260,
-    fn_1_4574,
-    fn_1_476C,
-    fn_1_3F94,
-    fn_1_4294,
-    fn_1_3970,
+M420DllPlayerActionFunc playerActionCallbacks[0xC] = {
+    WaitForPlayerActionChange,
+    HandlePlayerIdle,
+    HandlePlayerCelebration,
+    HandlePlayerAction,
+    HandlePlayerWin,
+    HandlePlayerMovement,
+    WaitForPlayerActionChange,
+    HandlePlayerItemSuccess,
+    HandlePlayerItemFailure,
+    HandlePlayerItemResult,
+    HandlePlayerItemReturn,
+    HandlePlayerItemAction,
 };
 
-void fn_1_1F14(void)
+void UpdatePlayerProcess(void)
 {
-    M420DllPlayerStruct *var_r31 = HuPrcCurrentGet()->user_data;
+    M420DllPlayerStruct *player = HuPrcCurrentGet()->user_data;
     while (TRUE) {
-        lbl_1_data_EC[var_r31->unk_48](var_r31);
+        playerActionCallbacks[player->actionState](player);
     }
 }
 
-void fn_1_1F54(M420DllPlayerStruct *arg0)
+void CreatePlayerModel(M420DllPlayerStruct *player)
 {
-    arg0->unk_AC = CharModelCreate(arg0->unk_0A, 2);
-    Hu3DModelShadowSet(arg0->unk_AC);
+    player->characterModelId = CharModelCreate(player->characterId, 2);
+    Hu3DModelShadowSet(player->characterModelId);
 }
 
-void fn_1_1F94(M420DllPlayerStruct *arg0)
+void LoadPlayerMotions(M420DllPlayerStruct *player)
 {
-    s32 var_r31;
+    s32 motionIndex;
 
-    for (var_r31 = 0; var_r31 < 0xB; var_r31++) {
-        arg0->unk_AE[var_r31] = CharMotionCreate(arg0->unk_0A, lbl_1_rodata_F8[arg0->unk_0A][var_r31]);
+    for (motionIndex = 0; motionIndex < 0xB; motionIndex++) {
+        player->characterMotionIds[motionIndex] = CharMotionCreate(player->characterId, characterMotionDataIds[player->characterId][motionIndex]);
     }
 }
 
-void fn_1_200C(M420DllPlayerStruct *arg0)
+void CreatePlayerEffectSprites(M420DllPlayerStruct *player)
 {
-    s32 var_r30;
+    s32 spriteIndex;
 
-    for (var_r30 = 0; var_r30 <= 9; var_r30++) {
-        arg0->unk_C4[var_r30] = espEntry(0x330018, 0, 0);
-        espDispOff(arg0->unk_C4[var_r30]);
+    for (spriteIndex = 0; spriteIndex <= 9; spriteIndex++) {
+        player->effectSpriteIds[spriteIndex] = espEntry(0x330018, 0, 0);
+        espDispOff(player->effectSpriteIds[spriteIndex]);
     }
-    switch (arg0->unk_4C) {
+    switch (player->formationIndex) {
         case 0:
-            arg0->unk_D8 = espEntry(0x330019, 1, 0);
+            player->statusSpriteId = espEntry(0x330019, 1, 0);
             break;
         case 1:
         case 2:
         case 3:
-            arg0->unk_D8 = espEntry(0x33001A, 1, 0);
+            player->statusSpriteId = espEntry(0x33001A, 1, 0);
             break;
         default:
             break;
     }
-    espDispOff(arg0->unk_D8);
-    espTPLvlSet(arg0->unk_D8, 0.8f);
+    espDispOff(player->statusSpriteId);
+    espTPLvlSet(player->statusSpriteId, 0.8f);
 }
 
-void fn_1_20EC(M420DllPlayerStruct *arg0)
+void DestroyPlayerModel(M420DllPlayerStruct *player)
 {
-    CharModelKill(arg0->unk_0A);
+    CharModelKill(player->characterId);
 }
 
-void fn_1_211C(M420DllPlayerStruct *arg0)
+void DestroyPlayerMotions(M420DllPlayerStruct *player)
 {
-    s32 var_r31;
+    s32 motionIndex;
 
-    for (var_r31 = 0; var_r31 < 0xB; var_r31++) {
-        CharMotionKill(arg0->unk_0A, arg0->unk_AE[var_r31]);
+    for (motionIndex = 0; motionIndex < 0xB; motionIndex++) {
+        CharMotionKill(player->characterId, player->characterMotionIds[motionIndex]);
     }
 }
 
-void fn_1_2174(M420DllPlayerStruct *arg0)
+void DestroyPlayerEffectSprites(M420DllPlayerStruct *player)
 {
-    s32 var_r31;
+    s32 spriteIndex;
 
-    for (var_r31 = 0; var_r31 < 0xB; var_r31++) {
-        espKill(arg0->unk_C4[var_r31]);
+    for (spriteIndex = 0; spriteIndex < 0xB; spriteIndex++) {
+        espKill(player->effectSpriteIds[spriteIndex]);
     }
 }
 
-void fn_1_21C8(M420DllPlayerStruct *arg0, Vec *arg1, s32 arg2, s32 arg3)
+void AnimatePlayerRotation(M420DllPlayerStruct *player, Vec *targetRotation, s32 durationFrames, s32 easingMode)
 {
-    arg0->unk_34 = *arg1;
-    arg0->unk_28 = arg0->unk_1C;
-    arg0->unk_DC = 0.0f;
-    arg0->unk_E0 = 1.0f / arg2;
-    arg0->unk_E4 = arg3;
-    arg0->unk_00_field2 = 1;
+    player->rotationTarget = *targetRotation;
+    player->rotationStart = player->rotation;
+    player->rotationProgress = 0.0f;
+    player->rotationProgressStep = 1.0f / durationFrames;
+    player->rotationEasingMode = easingMode;
+    player->rotationTransitionActive = 1;
 }
 
-void fn_1_2260(M420DllPlayerStruct *arg0)
+void WaitForPlayerActionChange(M420DllPlayerStruct *player)
 {
-    s32 var_r30;
-    s32 var_r29;
+    s32 playerIndex;
+    s32 stateValue;
 
     while (TRUE) {
-        for (var_r30 = 0; var_r30 < 1; var_r30++) {
-            fn_1_355C(arg0);
-            var_r29 = arg0->unk_48;
+        for (playerIndex = 0; playerIndex < 1; playerIndex++) {
+            UpdatePlayerModel(player);
+            stateValue = player->actionState;
             HuPrcVSleep();
-            if (arg0->unk_48 != var_r29) {
+            if (player->actionState != stateValue) {
                 return;
             }
         }
@@ -368,365 +368,365 @@ void fn_1_2260(M420DllPlayerStruct *arg0)
         s32 time;                                                                                                                                    \
         s32 mode;                                                                                                                                    \
         for (time = 0; time < maxTime; time++) {                                                                                                     \
-            fn_1_355C(arg0);                                                                                                                         \
-            mode = arg0->unk_48;                                                                                                                     \
+            UpdatePlayerModel(player);                                                                                                                         \
+            mode = player->actionState;                                                                                                                     \
             HuPrcVSleep();                                                                                                                           \
-            if (arg0->unk_48 != mode) {                                                                                                              \
+            if (player->actionState != mode) {                                                                                                              \
                 return;                                                                                                                              \
             }                                                                                                                                        \
         }                                                                                                                                            \
     } while (0)
 
-void fn_1_22CC(M420DllPlayerStruct *arg0)
+void HandlePlayerIdle(M420DllPlayerStruct *player)
 {
-    float var_f31;
-    float var_f30;
-    M420DllUnkStruct2 *var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r26;
-    s32 var_r23;
-    s32 var_r21;
-    s32 var_r18;
+    float secondaryFrameProgress;
+    float frameProgress;
+    M420DllPlayerConfig *stateValue;
+    s32 result;
+    s32 playerIndex;
+    s32 fourthStateValue;
+    s32 tertiaryStateValue;
+    s32 secondaryStateValue;
+    s32 stateValue;
 
-    var_r30 = &lbl_1_data_50[arg0->unk_08];
-    fn_1_3098(arg0);
-    CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[8], 0.0f, 10.0f, 0x40000001);
-    arg0->unk_50 = 0;
-    arg0->unk_58 = var_r30->unk_00 + (fn_1_8944() % var_r30->unk_04);
+    stateValue = &playerConfigTable[player->difficulty];
+    HandlePlayerEffect(player);
+    CharMotionShiftSet(player->characterId, player->characterMotionIds[8], 0.0f, 10.0f, 0x40000001);
+    player->actionProgress = 0;
+    player->actionDelay = stateValue->initialWaitFrames + (getRandomInteger() % stateValue->initialWaitVariance);
 
-    while (arg0->unk_50 < 6) {
-        fn_1_326C(arg0);
+    while (player->actionProgress < 6) {
+        UpdatePlayerEffectSprites(player);
         do {
-            if (arg0->unk_00_field0 == 0) {
-                var_r29 = fn_1_34AC(arg0);
+            if (player->isComputerControlled == 0) {
+                result = GetPlayerInputState(player);
             }
-            else if (arg0->unk_58 > 0) {
-                arg0->unk_58--;
-                var_r29 = 0;
+            else if (player->actionDelay > 0) {
+                player->actionDelay--;
+                result = 0;
             }
-            else if ((fn_1_8944() % 30) != 0) {
-                var_r29 = 1;
-                arg0->unk_58 = (var_r30->unk_08 - (var_r30->unk_0C / 2)) + (fn_1_8944() % var_r30->unk_0C);
+            else if ((getRandomInteger() % 30) != 0) {
+                result = 1;
+                player->actionDelay = (stateValue->aiActionDelayFrames - (stateValue->aiActionDelayVariance / 2)) + (getRandomInteger() % stateValue->aiActionDelayVariance);
             }
             else {
-                var_r29 = 2;
-                arg0->unk_58 = (var_r30->unk_08 - (var_r30->unk_0C / 2)) + (fn_1_8944() % var_r30->unk_0C);
+                result = 2;
+                player->actionDelay = (stateValue->aiActionDelayFrames - (stateValue->aiActionDelayVariance / 2)) + (getRandomInteger() % stateValue->aiActionDelayVariance);
             }
-            switch (var_r29) {
+            switch (result) {
                 case 0:
-                    WAITMODECHG(arg0, 1);
+                    WAITMODECHG(player, 1);
                     break;
                 case 1:
-                    var_f31 = 5.0f * arg0->unk_50;
-                    var_f30 = 5.0f + var_f31;
-                    CharMotionSet(arg0->unk_0A, arg0->unk_AE[5]);
-                    Hu3DMotionStartEndSet(arg0->unk_AC, var_f31, var_f30);
-                    Hu3DMotionTimeSet(arg0->unk_AC, var_f31);
-                    Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_PAUSE);
-                    Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_LOOP);
-                    Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_REV);
-                    arg0->unk_5C[arg0->unk_50++] = 1;
+                    secondaryFrameProgress = 5.0f * player->actionProgress;
+                    frameProgress = 5.0f + secondaryFrameProgress;
+                    CharMotionSet(player->characterId, player->characterMotionIds[5]);
+                    Hu3DMotionStartEndSet(player->characterModelId, secondaryFrameProgress, frameProgress);
+                    Hu3DMotionTimeSet(player->characterModelId, secondaryFrameProgress);
+                    Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_PAUSE);
+                    Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_LOOP);
+                    Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_REV);
+                    player->activeEffectSprites[player->actionProgress++] = 1;
                     HuAudFXPlay(0x5F4);
-                    fn_1_60F0();
-                    WAITMODECHG(arg0, 5);
+                    AdvanceRoundCounter();
+                    WAITMODECHG(player, 5);
                     break;
                 case 2:
-                    if (arg0->unk_50 <= 0) {
-                        WAITMODECHG(arg0, 1);
+                    if (player->actionProgress <= 0) {
+                        WAITMODECHG(player, 1);
                     }
                     else {
-                        Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_PAUSE);
-                        Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_LOOP);
-                        Hu3DModelAttrSet(arg0->unk_AC, HU3D_MOTATTR_REV);
-                        fn_1_63EC();
-                        while (!Hu3DMotionEndCheck(arg0->unk_AC))
-                            WAITMODECHG(arg0, 1);
-                        for (var_r28 = 0; var_r28 < 0xA; var_r28++) {
-                            arg0->unk_5C[var_r28] = 0;
+                        Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_PAUSE);
+                        Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_LOOP);
+                        Hu3DModelAttrSet(player->characterModelId, HU3D_MOTATTR_REV);
+                        FinishRoundCounter();
+                        while (!Hu3DMotionEndCheck(player->characterModelId))
+                            WAITMODECHG(player, 1);
+                        for (playerIndex = 0; playerIndex < 0xA; playerIndex++) {
+                            player->activeEffectSprites[playerIndex] = 0;
                         }
-                        arg0->unk_50 = 0;
-                        var_f31 = 0.0f;
-                        var_f30 = 0.0f;
-                        CharMotionSet(arg0->unk_0A, arg0->unk_AE[5]);
-                        Hu3DMotionStartEndSet(arg0->unk_AC, var_f31, var_f30);
-                        Hu3DMotionTimeSet(arg0->unk_AC, var_f31);
-                        Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_LOOP);
+                        player->actionProgress = 0;
+                        secondaryFrameProgress = 0.0f;
+                        frameProgress = 0.0f;
+                        CharMotionSet(player->characterId, player->characterMotionIds[5]);
+                        Hu3DMotionStartEndSet(player->characterModelId, secondaryFrameProgress, frameProgress);
+                        Hu3DMotionTimeSet(player->characterModelId, secondaryFrameProgress);
+                        Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_LOOP);
                     }
                     break;
                 default:
                     break;
             }
-        } while (var_r29 == 0);
+        } while (result == 0);
     }
-    fn_1_326C(arg0);
-    WAITMODECHG(arg0, 5);
-    fn_1_3450(arg0);
-    arg0->unk_48 = 2;
+    UpdatePlayerEffectSprites(player);
+    WAITMODECHG(player, 5);
+    HidePlayerEffectSprites(player);
+    player->actionState = 2;
 }
 
-void fn_1_276C(M420DllPlayerStruct *arg0)
+void HandlePlayerAction(M420DllPlayerStruct *player)
 {
-    s32 sp8[4];
+    s32 selectedPlayerSlots[4];
 
-    float var_f31;
-    float var_f30;
+    float secondaryFrameProgress;
+    float frameProgress;
 
-    s32 var_r30;
-    M420DllUnkStruct2 *var_r29;
-    s32 var_r28;
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r25;
-    s32 var_r24;
-    s32 var_r23;
-    s32 var_r22;
-    s32 var_r21;
-    s32 var_r20;
-    s32 var_r19;
-    s32 var_r18;
-    s32 var_r17;
+    s32 result;
+    M420DllPlayerConfig *stateValue;
+    s32 stateValue;
+    s32 stateValue;
+    s32 stateValue;
+    s32 stateValue;
+    s32 eighthStateValue;
+    s32 seventhStateValue;
+    s32 sixthStateValue;
+    s32 fifthStateValue;
+    s32 fourthStateValue;
+    s32 tertiaryStateValue;
+    s32 secondaryStateValue;
+    s32 stateValue;
 
-    var_r29 = &lbl_1_data_50[arg0->unk_08];
-    if (arg0->unk_4C == 1) {
+    stateValue = &playerConfigTable[player->difficulty];
+    if (player->formationIndex == 1) {
         HuAudFXPlay(0x5F1);
-        fn_1_669C(1);
-        fn_1_6554();
-        WAITMODECHG(arg0, 15);
-        CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[7], 0.0f, 6.0f, 0);
-        WAITMODECHG(arg0, 6);
-        fn_1_669C(0);
-        fn_1_36E4(arg0);
+        SetMapMarkerLighting(1);
+        ShowMapMarker();
+        WAITMODECHG(player, 15);
+        CharMotionShiftSet(player->characterId, player->characterMotionIds[7], 0.0f, 6.0f, 0);
+        WAITMODECHG(player, 6);
+        SetMapMarkerLighting(0);
+        AttachPlayerItemHook(player);
         HuAudFXPlay(0x5F2);
     }
-    fn_1_3098(arg0);
-    arg0->unk_50 = 0;
-    arg0->unk_58 = var_r29->unk_10 + (fn_1_8944() % var_r29->unk_14);
-    while (arg0->unk_50 < 1) {
-        fn_1_326C(arg0);
+    HandlePlayerEffect(player);
+    player->actionProgress = 0;
+    player->actionDelay = stateValue->eventDelayFrames + (getRandomInteger() % stateValue->eventDelayVariance);
+    while (player->actionProgress < 1) {
+        UpdatePlayerEffectSprites(player);
         do {
-            if (arg0->unk_00_field0 == 0) {
-                var_r30 = fn_1_34AC(arg0);
+            if (player->isComputerControlled == 0) {
+                result = GetPlayerInputState(player);
             }
-            else if (arg0->unk_58 > 0) {
-                arg0->unk_58--;
-                var_r30 = 0;
+            else if (player->actionDelay > 0) {
+                player->actionDelay--;
+                result = 0;
             }
-            else if (fn_1_8944() % 30) {
-                var_r30 = 1;
+            else if (getRandomInteger() % 30) {
+                result = 1;
             }
             else {
-                var_r30 = 2;
+                result = 2;
             }
-            switch (var_r30) {
+            switch (result) {
                 case 0:
-                    WAITMODECHG(arg0, 1);
+                    WAITMODECHG(player, 1);
                     break;
 
                 case 1:
-                    if (arg0->unk_4C != 1) {
-                        CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[7], 0.0f, 6.0f, 0);
-                        WAITMODECHG(arg0, 6);
-                        fn_1_374C(arg0->unk_E8);
-                        fn_1_36E4(arg0);
+                    if (player->formationIndex != 1) {
+                        CharMotionShiftSet(player->characterId, player->characterMotionIds[7], 0.0f, 6.0f, 0);
+                        WAITMODECHG(player, 6);
+                        DetachPlayerItemHook(player->linkedPlayer);
+                        AttachPlayerItemHook(player);
                         HuAudFXPlay(0x5F2);
                     }
-                    arg0->unk_5C[arg0->unk_50++] = 1;
-                    switch (arg0->unk_4C) {
+                    player->activeEffectSprites[player->actionProgress++] = 1;
+                    switch (player->formationIndex) {
                         case 1:
                         case 2:
-                            var_f31 = 0.0f;
-                            var_f30 = 34.0f;
-                            CharMotionSet(arg0->unk_0A, arg0->unk_AE[4]);
-                            Hu3DMotionStartEndSet(arg0->unk_AC, var_f31, var_f30);
-                            Hu3DMotionTimeSet(arg0->unk_AC, var_f31);
-                            Hu3DMotionSpeedSet(arg0->unk_AC, 2.0f);
+                            secondaryFrameProgress = 0.0f;
+                            frameProgress = 34.0f;
+                            CharMotionSet(player->characterId, player->characterMotionIds[4]);
+                            Hu3DMotionStartEndSet(player->characterModelId, secondaryFrameProgress, frameProgress);
+                            Hu3DMotionTimeSet(player->characterModelId, secondaryFrameProgress);
+                            Hu3DMotionSpeedSet(player->characterModelId, 2.0f);
                             break;
 
                         case 3:
-                            arg0->unk_48 = 5;
+                            player->actionState = 5;
                             return;
                     }
                     break;
 
                 case 2:
-                    switch (arg0->unk_4C) {
+                    switch (player->formationIndex) {
                         case 1:
-                            var_f31 = 0.0f;
-                            var_f30 = 10.0f;
-                            CharMotionSet(arg0->unk_0A, arg0->unk_AE[4]);
-                            Hu3DMotionStartEndSet(arg0->unk_AC, var_f31, var_f30);
-                            Hu3DMotionTimeSet(arg0->unk_AC, var_f31);
-                            Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_PAUSE);
-                            WAITMODECHG(arg0, 30);
-                            var_f31 = 60.0f;
-                            var_f30 = 70.0f;
-                            CharMotionSet(arg0->unk_0A, arg0->unk_AE[4]);
-                            Hu3DMotionStartEndSet(arg0->unk_AC, var_f31, var_f30);
-                            Hu3DMotionTimeSet(arg0->unk_AC, var_f31);
-                            Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_PAUSE);
-                            WAITMODECHG(arg0, 30);
+                            secondaryFrameProgress = 0.0f;
+                            frameProgress = 10.0f;
+                            CharMotionSet(player->characterId, player->characterMotionIds[4]);
+                            Hu3DMotionStartEndSet(player->characterModelId, secondaryFrameProgress, frameProgress);
+                            Hu3DMotionTimeSet(player->characterModelId, secondaryFrameProgress);
+                            Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_PAUSE);
+                            WAITMODECHG(player, 30);
+                            secondaryFrameProgress = 60.0f;
+                            frameProgress = 70.0f;
+                            CharMotionSet(player->characterId, player->characterMotionIds[4]);
+                            Hu3DMotionStartEndSet(player->characterModelId, secondaryFrameProgress, frameProgress);
+                            Hu3DMotionTimeSet(player->characterModelId, secondaryFrameProgress);
+                            Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_PAUSE);
+                            WAITMODECHG(player, 30);
                             break;
 
                         case 2:
                         case 3:
-                            CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[9], 0.0f, 2.0f, 0);
-                            WAITMODECHG(arg0, 60);
-                            CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[0], 0.0f, 8.0f, 0);
+                            CharMotionShiftSet(player->characterId, player->characterMotionIds[9], 0.0f, 2.0f, 0);
+                            WAITMODECHG(player, 60);
+                            CharMotionShiftSet(player->characterId, player->characterMotionIds[0], 0.0f, 8.0f, 0);
                             break;
                     }
                     break;
             }
-        } while (var_r30 == 0);
+        } while (result == 0);
     }
-    fn_1_326C(arg0);
-    WAITMODECHG(arg0, 18);
-    fn_1_3450(arg0);
-    arg0->unk_48 = 6;
+    UpdatePlayerEffectSprites(player);
+    WAITMODECHG(player, 18);
+    HidePlayerEffectSprites(player);
+    player->actionState = 6;
 }
 
-void fn_1_2CE0(M420DllPlayerStruct *arg0)
+void HandlePlayerWin(M420DllPlayerStruct *player)
 {
-    CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[0], 0.0f, 30.0f, 0x40000001);
+    CharMotionShiftSet(player->characterId, player->characterMotionIds[0], 0.0f, 30.0f, 0x40000001);
 
-    WAITMODECHG(arg0, 35);
-    arg0->unk_48 = 0;
+    WAITMODECHG(player, 35);
+    player->actionState = 0;
 }
 
-void fn_1_2D7C(M420DllPlayerStruct *arg0)
+void HandlePlayerCelebration(M420DllPlayerStruct *player)
 {
-    float var_f31;
-    float var_f30;
-    s32 var_r30;
-    s32 var_r29;
+    float secondaryFrameProgress;
+    float frameProgress;
+    s32 playerIndex;
+    s32 stateValue;
 
-    var_f30 = 0.0f;
-    var_f31 = 30.0f;
-    Hu3DMotionStartEndSet(arg0->unk_AC, var_f30, var_f31);
-    Hu3DMotionTimeSet(arg0->unk_AC, var_f31);
-    Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_LOOP);
-    Hu3DModelAttrSet(arg0->unk_AC, HU3D_MOTATTR_REV);
+    frameProgress = 0.0f;
+    secondaryFrameProgress = 30.0f;
+    Hu3DMotionStartEndSet(player->characterModelId, frameProgress, secondaryFrameProgress);
+    Hu3DMotionTimeSet(player->characterModelId, secondaryFrameProgress);
+    Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_LOOP);
+    Hu3DModelAttrSet(player->characterModelId, HU3D_MOTATTR_REV);
     HuAudFXPlay(0x5F6);
-    fn_1_6268();
-    fn_1_5AA8(0, 22.5f);
-    fn_1_1E64(arg0, 1, 0x1E);
-    // fn_1_2260?
-    for (var_r30 = 0; var_r30 < 0x1E; var_r30++) {
-        fn_1_355C(arg0);
-        var_r29 = arg0->unk_48;
+    ResetRoundCounter();
+    AdvanceMapReveal(0, 22.5f);
+    VibratePlayerController(player, 1, 0x1E);
+    // wait_for_player_action_change?
+    for (playerIndex = 0; playerIndex < 0x1E; playerIndex++) {
+        UpdatePlayerModel(player);
+        stateValue = player->actionState;
         HuPrcVSleep();
-        if (arg0->unk_48 != var_r29) {
+        if (player->actionState != stateValue) {
             return;
         }
     }
-    arg0->unk_48 = 0;
+    player->actionState = 0;
 }
 
-void fn_1_2EA8(M420DllPlayerStruct *arg0)
+void HandlePlayerMovement(M420DllPlayerStruct *player)
 {
-    s16 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r25;
-    s32 var_r24;
-    s32 var_r23;
-    s32 var_r22;
+    s16 playerIndex;
+    s32 stateValue;
+    s32 stateValue;
+    s32 stateValue;
+    s32 stateValue;
+    s32 stateValue;
+    s32 stateValue;
+    s32 stateValue;
+    s32 eighthStateValue;
 
-    fn_1_326C(arg0);
-    CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[3], 0.0f, 1.0f, 0);
-    var_r30 = fn_1_6660();
+    UpdatePlayerEffectSprites(player);
+    CharMotionShiftSet(player->characterId, player->characterMotionIds[3], 0.0f, 1.0f, 0);
+    playerIndex = getMapMarkerModel();
 
-    Hu3DModelAttrReset(var_r30, HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrSet(var_r30, HU3D_MOTATTR_LOOP);
-    Hu3DMotionTimeSet(var_r30, 0.0f);
+    Hu3DModelAttrReset(playerIndex, HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrSet(playerIndex, HU3D_MOTATTR_LOOP);
+    Hu3DMotionTimeSet(playerIndex, 0.0f);
     {
-        s32 var_r30;
-        s32 var_r29;
-        for (var_r30 = 0; var_r30 < 24; var_r30++) {
-            fn_1_355C(arg0);
-            var_r29 = arg0->unk_48;
+        s32 playerIndex;
+        s32 stateValue;
+        for (playerIndex = 0; playerIndex < 24; playerIndex++) {
+            UpdatePlayerModel(player);
+            stateValue = player->actionState;
             HuPrcVSleep();
-            if (arg0->unk_48 != var_r29) {
+            if (player->actionState != stateValue) {
                 return;
             }
         }
     }
     HuAudFXPlay(0x5F7);
-    fn_1_636C();
-    fn_1_1E64(arg0, 1, 0x1E);
-    Hu3DModelAttrSet(var_r30, HU3D_MOTATTR_PAUSE);
-    fn_1_5AA8(1, 22.5f);
+    ResetMapMotion();
+    VibratePlayerController(player, 1, 0x1E);
+    Hu3DModelAttrSet(playerIndex, HU3D_MOTATTR_PAUSE);
+    AdvanceMapReveal(1, 22.5f);
     {
-        s32 var_r30;
-        s32 var_r29;
-        for (var_r30 = 0; var_r30 < 20; var_r30++) {
-            fn_1_355C(arg0);
-            var_r29 = arg0->unk_48;
+        s32 playerIndex;
+        s32 stateValue;
+        for (playerIndex = 0; playerIndex < 20; playerIndex++) {
+            UpdatePlayerModel(player);
+            stateValue = player->actionState;
             HuPrcVSleep();
-            if (arg0->unk_48 != var_r29) {
+            if (player->actionState != stateValue) {
                 return;
             }
         }
     }
     HuAudFXPlay(0x5F8);
-    fn_1_3450(arg0);
-    fn_1_378C(arg0);
+    HidePlayerEffectSprites(player);
+    SpawnPlayerItem(player);
     {
-        s32 var_r30;
-        s32 var_r29;
-        for (var_r30 = 0; var_r30 < 20; var_r30++) {
-            fn_1_355C(arg0);
-            var_r29 = arg0->unk_48;
+        s32 playerIndex;
+        s32 stateValue;
+        for (playerIndex = 0; playerIndex < 20; playerIndex++) {
+            UpdatePlayerModel(player);
+            stateValue = player->actionState;
             HuPrcVSleep();
-            if (arg0->unk_48 != var_r29) {
+            if (player->actionState != stateValue) {
                 return;
             }
         }
     }
-    CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[0], 0.0f, 30.0f, 0x40000001);
+    CharMotionShiftSet(player->characterId, player->characterMotionIds[0], 0.0f, 30.0f, 0x40000001);
     {
-        s32 var_r30;
-        s32 var_r29;
-        for (var_r30 = 0; var_r30 < 25; var_r30++) {
-            fn_1_355C(arg0);
-            var_r29 = arg0->unk_48;
+        s32 playerIndex;
+        s32 stateValue;
+        for (playerIndex = 0; playerIndex < 25; playerIndex++) {
+            UpdatePlayerModel(player);
+            stateValue = player->actionState;
             HuPrcVSleep();
-            if (arg0->unk_48 != var_r29) {
+            if (player->actionState != stateValue) {
                 return;
             }
         }
     }
-    arg0->unk_48 = 6;
+    player->actionState = 6;
 }
 
-void fn_1_3098(M420DllPlayerStruct *arg0)
+void HandlePlayerEffect(M420DllPlayerStruct *player)
 {
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
+    s32 playerIndex;
+    s32 spriteIndex;
+    s32 result;
 
-    for (var_r30 = 0; var_r30 < 0xA; var_r30++) {
-        arg0->unk_5C[var_r30] = 0;
+    for (playerIndex = 0; playerIndex < 0xA; playerIndex++) {
+        player->activeEffectSprites[playerIndex] = 0;
     }
-    arg0->unk_50 = 0;
-    switch (arg0->unk_4C) {
+    player->actionProgress = 0;
+    switch (player->formationIndex) {
         case 0:
-            for (var_r29 = 0; var_r29 < 6;) {
-                arg0->unk_84[var_r29] = fn_1_8944() % 7;
-                if (arg0->unk_84[var_r29] == 6) {
-                    arg0->unk_84[var_r29] = 0;
+            for (spriteIndex = 0; spriteIndex < 6;) {
+                player->effectSpriteFrames[spriteIndex] = getRandomInteger() % 7;
+                if (player->effectSpriteFrames[spriteIndex] == 6) {
+                    player->effectSpriteFrames[spriteIndex] = 0;
                 }
-                if ((var_r29 <= 0) || (arg0->unk_84[var_r29] != arg0->unk_84[var_r29 - 1])) {
-                    for (var_r30 = 0, var_r28 = 0; var_r30 < var_r29; var_r30++) {
-                        if (arg0->unk_84[var_r29] == arg0->unk_84[var_r30]) {
-                            var_r28++;
+                if ((spriteIndex <= 0) || (player->effectSpriteFrames[spriteIndex] != player->effectSpriteFrames[spriteIndex - 1])) {
+                    for (playerIndex = 0, result = 0; playerIndex < spriteIndex; playerIndex++) {
+                        if (player->effectSpriteFrames[spriteIndex] == player->effectSpriteFrames[playerIndex]) {
+                            result++;
                         }
                     }
-                    if (var_r28 < 2) {
-                        var_r29++;
+                    if (result < 2) {
+                        spriteIndex++;
                     }
                 }
             }
@@ -734,13 +734,13 @@ void fn_1_3098(M420DllPlayerStruct *arg0)
         case 1:
         case 2:
         case 3:
-            for (var_r30 = 0; var_r30 < 0xA; var_r30++) {
-                arg0->unk_84[1] = arg0->unk_84[0];
-                arg0->unk_84[0] = fn_1_8944() % 7;
-                if (arg0->unk_84[0] == 6) {
-                    arg0->unk_84[0] = 0;
+            for (playerIndex = 0; playerIndex < 0xA; playerIndex++) {
+                player->effectSpriteFrames[1] = player->effectSpriteFrames[0];
+                player->effectSpriteFrames[0] = getRandomInteger() % 7;
+                if (player->effectSpriteFrames[0] == 6) {
+                    player->effectSpriteFrames[0] = 0;
                 }
-                if (arg0->unk_84[0] != arg0->unk_84[1]) {
+                if (player->effectSpriteFrames[0] != player->effectSpriteFrames[1]) {
                     break;
                 }
             }
@@ -750,282 +750,282 @@ void fn_1_3098(M420DllPlayerStruct *arg0)
     }
 }
 
-static const s32 lbl_1_rodata_2F8[4] = { 6, 1, 1, 1 };
+static const s32 playerEffectSpriteCounts[4] = { 6, 1, 1, 1 };
 
-void fn_1_326C(M420DllPlayerStruct *arg0)
+void UpdatePlayerEffectSprites(M420DllPlayerStruct *player)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec secondaryPositionVector;
+    Vec positionVector;
 
-    s32 var_r30;
-    s16 var_r29;
-    s32 var_r28;
-    s32 var_r26;
+    s32 spriteIndex;
+    s16 tertiaryStateValue;
+    s32 secondaryStateValue;
+    s32 stateValue;
 
-    sp14 = arg0->unk_10;
-    sp14.y += 300.0f;
-    Hu3D3Dto2D(&sp14, 1, &sp8);
+    secondaryPositionVector = player->position;
+    secondaryPositionVector.y += 300.0f;
+    Hu3D3Dto2D(&secondaryPositionVector, 1, &positionVector);
 
-    var_r26 = arg0->unk_4C == 0 ? -6 : 0;
-    espPosSet(arg0->unk_D8, sp8.x + var_r26, 6.0f + sp8.y);
-    espDispOn(arg0->unk_D8);
-    var_r28 = lbl_1_rodata_2F8[arg0->unk_4C];
-    sp8.x -= (var_r28 / 2) * 0x1E;
-    for (var_r30 = 0; var_r30 < var_r28; var_r30++) {
-        var_r29 = arg0->unk_C4[var_r30];
-        if (arg0->unk_5C[var_r30] != 0) {
-            espBankSet(var_r29, arg0->unk_84[var_r30] + 7);
+    stateValue = player->formationIndex == 0 ? -6 : 0;
+    espPosSet(player->statusSpriteId, positionVector.x + stateValue, 6.0f + positionVector.y);
+    espDispOn(player->statusSpriteId);
+    secondaryStateValue = playerEffectSpriteCounts[player->formationIndex];
+    positionVector.x -= (secondaryStateValue / 2) * 0x1E;
+    for (spriteIndex = 0; spriteIndex < secondaryStateValue; spriteIndex++) {
+        tertiaryStateValue = player->effectSpriteIds[spriteIndex];
+        if (player->activeEffectSprites[spriteIndex] != 0) {
+            espBankSet(tertiaryStateValue, player->effectSpriteFrames[spriteIndex] + 7);
         }
         else {
-            espBankSet(var_r29, arg0->unk_84[var_r30]);
+            espBankSet(tertiaryStateValue, player->effectSpriteFrames[spriteIndex]);
         }
-        espPosSet(var_r29, sp8.x + var_r30 * 0x20, sp8.y);
-        espDispOn(var_r29);
+        espPosSet(tertiaryStateValue, positionVector.x + spriteIndex * 0x20, positionVector.y);
+        espDispOn(tertiaryStateValue);
     }
 }
 
-void fn_1_3450(M420DllPlayerStruct *arg0)
+void HidePlayerEffectSprites(M420DllPlayerStruct *player)
 {
-    s32 var_r31;
+    s32 spriteIndex;
 
-    for (var_r31 = 0; var_r31 < 0xA; var_r31++) {
-        espDispOff(arg0->unk_C4[var_r31]);
+    for (spriteIndex = 0; spriteIndex < 0xA; spriteIndex++) {
+        espDispOff(player->effectSpriteIds[spriteIndex]);
     }
-    espDispOff(arg0->unk_D8);
+    espDispOff(player->statusSpriteId);
 }
 
-static const s32 lbl_1_rodata_30C[7] = { 0x100, 0x200, 0x40, 0x20, 0x800, 0x400, 0x10 };
+static const s32 controllerButtonMasks[7] = { 0x100, 0x200, 0x40, 0x20, 0x800, 0x400, 0x10 };
 
-s32 fn_1_34AC(M420DllPlayerStruct *arg0)
+s32 GetPlayerInputState(M420DllPlayerStruct *player)
 {
-    s32 var_r31;
-    u16 var_r30;
-    u16 var_r29;
+    s32 result;
+    u16 secondaryStateValue;
+    u16 stateValue;
 
-    var_r31 = 0;
-    var_r30 = HuPadBtnDown[arg0->unk_0C] & 0xF60;
-    var_r29 = lbl_1_rodata_30C[arg0->unk_84[arg0->unk_50]];
-    if (var_r30 != 0) {
-        var_r31 = 2;
+    result = 0;
+    secondaryStateValue = HuPadBtnDown[player->controllerPort] & 0xF60;
+    stateValue = controllerButtonMasks[player->effectSpriteFrames[player->actionProgress]];
+    if (secondaryStateValue != 0) {
+        result = 2;
     }
-    if (((var_r30 & var_r29) != 0) && ((var_r30 & ~var_r29) == 0)) {
-        var_r31 = 1;
+    if (((secondaryStateValue & stateValue) != 0) && ((secondaryStateValue & ~stateValue) == 0)) {
+        result = 1;
     }
-    return var_r31;
+    return result;
 }
 
-void fn_1_355C(M420DllPlayerStruct *arg0)
+void UpdatePlayerModel(M420DllPlayerStruct *player)
 {
-    float var_f31;
+    float interpolationFactor;
 
-    arg0 = HuPrcCurrentGet()->user_data;
-    Hu3DModelPosSet(arg0->unk_AC, arg0->unk_10.x, arg0->unk_10.y, arg0->unk_10.z);
-    if (arg0->unk_00_field2) {
-        switch (arg0->unk_E4) {
+    player = HuPrcCurrentGet()->user_data;
+    Hu3DModelPosSet(player->characterModelId, player->position.x, player->position.y, player->position.z);
+    if (player->rotationTransitionActive) {
+        switch (player->rotationEasingMode) {
             case 0:
-                var_f31 = arg0->unk_DC;
+                interpolationFactor = player->rotationProgress;
                 break;
             case 1:
-                var_f31 = sind((90.0f * arg0->unk_DC));
-                var_f31 *= var_f31;
+                interpolationFactor = sind((90.0f * player->rotationProgress));
+                interpolationFactor *= interpolationFactor;
                 break;
         }
-        arg0->unk_1C.x = arg0->unk_28.x + (var_f31 * (arg0->unk_34.x - arg0->unk_28.x));
-        arg0->unk_1C.y = arg0->unk_28.y + (var_f31 * (arg0->unk_34.y - arg0->unk_28.y));
-        arg0->unk_1C.z = arg0->unk_28.z + (var_f31 * (arg0->unk_34.z - arg0->unk_28.z));
-        if ((arg0->unk_DC += arg0->unk_E0) >= 1.0f) {
-            arg0->unk_1C = arg0->unk_34;
-            arg0->unk_00_field2 = 0;
+        player->rotation.x = player->rotationStart.x + (interpolationFactor * (player->rotationTarget.x - player->rotationStart.x));
+        player->rotation.y = player->rotationStart.y + (interpolationFactor * (player->rotationTarget.y - player->rotationStart.y));
+        player->rotation.z = player->rotationStart.z + (interpolationFactor * (player->rotationTarget.z - player->rotationStart.z));
+        if ((player->rotationProgress += player->rotationProgressStep) >= 1.0f) {
+            player->rotation = player->rotationTarget;
+            player->rotationTransitionActive = 0;
         }
     }
-    Hu3DModelRotSet(arg0->unk_AC, arg0->unk_1C.x, arg0->unk_1C.y, arg0->unk_1C.z);
+    Hu3DModelRotSet(player->characterModelId, player->rotation.x, player->rotation.y, player->rotation.z);
 }
 
-void fn_1_36E4(M420DllPlayerStruct *arg0)
+void AttachPlayerItemHook(M420DllPlayerStruct *player)
 {
-    Hu3DModelHookSet(arg0->unk_AC, "test11_tex_we-itemhook-r", fn_1_6660());
-    arg0->unk_00_field1 = 1;
-    fn_1_1E64(arg0, 1, 0x14);
+    Hu3DModelHookSet(player->characterModelId, "test11_tex_we-itemhook-r", getMapMarkerModel());
+    player->itemHookAttached = 1;
+    VibratePlayerController(player, 1, 0x14);
 }
 
-void fn_1_374C(M420DllPlayerStruct *arg0)
+void DetachPlayerItemHook(M420DllPlayerStruct *player)
 {
-    Hu3DModelHookReset(arg0->unk_AC);
-    arg0->unk_00_field1 = 0;
+    Hu3DModelHookReset(player->characterModelId);
+    player->itemHookAttached = 0;
 }
 
-void fn_1_378C(M420DllPlayerStruct *arg0)
+void SpawnPlayerItem(M420DllPlayerStruct *player)
 {
-    Mtx sp20;
-    Vec sp14;
-    Vec sp8;
+    Mtx modelMatrix;
+    Vec secondaryPositionVector;
+    Vec positionVector;
 
-    if (arg0->unk_00_field1) {
-        Hu3DModelObjMtxGet(arg0->unk_AC, "test11_tex_we-itemhook-r", sp20);
-        Hu3DModelHookObjReset(arg0->unk_AC, "test11_tex_we-itemhook-r");
-        Hu3DMtxTransGet(sp20, &sp14);
-        Hu3DMtxRotGet(sp20, &sp8);
-        Hu3DModelPosSetV(fn_1_6660(), &sp14);
-        Hu3DModelRotSetV(fn_1_6660(), &sp8);
+    if (player->itemHookAttached) {
+        Hu3DModelObjMtxGet(player->characterModelId, "test11_tex_we-itemhook-r", modelMatrix);
+        Hu3DModelHookObjReset(player->characterModelId, "test11_tex_we-itemhook-r");
+        Hu3DMtxTransGet(modelMatrix, &secondaryPositionVector);
+        Hu3DMtxRotGet(modelMatrix, &positionVector);
+        Hu3DModelPosSetV(getMapMarkerModel(), &secondaryPositionVector);
+        Hu3DModelRotSetV(getMapMarkerModel(), &positionVector);
     }
-    HuPrcChildCreate(fn_1_3854, 0x64, 0x2000, 0, lbl_1_bss_4);
-    arg0->unk_00_field1 = 0;
+    HuPrcChildCreate(AnimatePlayerItemSpawn, 0x64, 0x2000, 0, minigameObjectManager);
+    player->itemHookAttached = 0;
 }
 
-char lbl_1_data_135[1] = { 0 };
+char emptyModelObjectName[1] = { 0 };
 
-void fn_1_3854(void)
+void AnimatePlayerItemSpawn(void)
 {
-    Mtx sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+    Mtx modelMatrix;
+    Vec secondaryTransformVector;
+    Vec secondaryTransformVector;
+    Vec transformVector;
 
-    float var_f31;
-    s16 var_r31;
+    float interpolationFactor;
+    s16 stateValue;
 
-    var_r31 = fn_1_6660();
-    Hu3DModelObjMtxGet(var_r31, lbl_1_data_135, sp2C);
-    Hu3DMtxRotGet(sp2C, &sp8);
-    Hu3DMtxTransGet(sp2C, &sp20);
-    var_f31 = 0.0f;
+    stateValue = getMapMarkerModel();
+    Hu3DModelObjMtxGet(stateValue, emptyModelObjectName, modelMatrix);
+    Hu3DMtxRotGet(modelMatrix, &transformVector);
+    Hu3DMtxTransGet(modelMatrix, &secondaryTransformVector);
+    interpolationFactor = 0.0f;
 
-    while (var_f31 < 1.0f) {
-        sp14.x = cosd((90.0f * var_f31));
-        sp14.y = sp14.z = sp14.x;
-        Hu3DModelScaleSet(var_r31, sp14.x, sp14.y, sp14.z);
-        var_f31 += 0.05f;
+    while (interpolationFactor < 1.0f) {
+        secondaryTransformVector.x = cosd((90.0f * interpolationFactor));
+        secondaryTransformVector.y = secondaryTransformVector.z = secondaryTransformVector.x;
+        Hu3DModelScaleSet(stateValue, secondaryTransformVector.x, secondaryTransformVector.y, secondaryTransformVector.z);
+        interpolationFactor += 0.05f;
         HuPrcVSleep();
     }
-    fn_1_6728();
-    sp14.x = sp14.y = sp14.z = 1.0f;
-    Hu3DModelScaleSet(var_r31, sp14.x, sp14.y, sp14.z);
+    HideMapMarker();
+    secondaryTransformVector.x = secondaryTransformVector.y = secondaryTransformVector.z = 1.0f;
+    Hu3DModelScaleSet(stateValue, secondaryTransformVector.x, secondaryTransformVector.y, secondaryTransformVector.z);
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_3970(M420DllPlayerStruct *arg0)
+void HandlePlayerItemAction(M420DllPlayerStruct *player)
 {
-    Vec sp38;
+    Vec transformVector;
 
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r25;
-    s32 var_r24;
+    s32 secondaryPlayerIndex;
+    s32 playerIndex;
+    s32 secondaryStateValue;
+    s32 stateValue;
 
-    if (arg0->unk_00_field1) {
-        fn_1_378C(arg0);
+    if (player->itemHookAttached) {
+        SpawnPlayerItem(player);
     }
-    else if (arg0->unk_4C == 1) {
-        fn_1_378C(arg0);
+    else if (player->formationIndex == 1) {
+        SpawnPlayerItem(player);
     }
-    fn_1_3450(arg0);
-    if (arg0->unk_4C == 0) {
-        Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_PAUSE);
-        Hu3DModelAttrReset(arg0->unk_AC, HU3D_MOTATTR_LOOP);
-        Hu3DModelAttrSet(arg0->unk_AC, HU3D_MOTATTR_REV);
-        fn_1_63EC();
-        CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[6], 0.0f, 32.0f, 0);
-        Hu3DMotionShiftStartEndSet(arg0->unk_AC, 0.0f, 59.0f);
-        sp38 = arg0->unk_1C;
-        sp38.y = 0.0f;
-        fn_1_21C8(arg0, &sp38, 60, 1);
+    HidePlayerEffectSprites(player);
+    if (player->formationIndex == 0) {
+        Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_PAUSE);
+        Hu3DModelAttrReset(player->characterModelId, HU3D_MOTATTR_LOOP);
+        Hu3DModelAttrSet(player->characterModelId, HU3D_MOTATTR_REV);
+        FinishRoundCounter();
+        CharMotionShiftSet(player->characterId, player->characterMotionIds[6], 0.0f, 32.0f, 0);
+        Hu3DMotionShiftStartEndSet(player->characterModelId, 0.0f, 59.0f);
+        transformVector = player->rotation;
+        transformVector.y = 0.0f;
+        AnimatePlayerRotation(player, &transformVector, 60, 1);
     }
-    for (var_r27 = 0; var_r27 < 0x3C; var_r27++) {
-        fn_1_355C(arg0);
-        var_r25 = arg0->unk_48;
+    for (secondaryPlayerIndex = 0; secondaryPlayerIndex < 0x3C; secondaryPlayerIndex++) {
+        UpdatePlayerModel(player);
+        secondaryStateValue = player->actionState;
         HuPrcVSleep();
-        if (arg0->unk_48 != var_r25) {
+        if (player->actionState != secondaryStateValue) {
             return;
         }
     }
-    CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[0], 0.0f, 16.0f, 0);
-    for (var_r26 = 0; var_r26 < 0x3C; var_r26++) {
-        fn_1_355C(arg0);
-        var_r24 = arg0->unk_48;
+    CharMotionShiftSet(player->characterId, player->characterMotionIds[0], 0.0f, 16.0f, 0);
+    for (playerIndex = 0; playerIndex < 0x3C; playerIndex++) {
+        UpdatePlayerModel(player);
+        stateValue = player->actionState;
         HuPrcVSleep();
-        if (arg0->unk_48 != var_r24) {
+        if (player->actionState != stateValue) {
             return;
         }
     }
-    arg0->unk_48 = 0;
+    player->actionState = 0;
 }
 
-void fn_1_3F94(M420DllPlayerStruct *arg0)
+void HandlePlayerItemResult(M420DllPlayerStruct *player)
 {
-    Vec sp8;
-    s32 var_r29;
-    s32 var_r28;
+    Vec transformVector;
+    s32 stateValue;
+    s32 playerIndex;
 
-    if (arg0->unk_4C != 0) {
-        CharMotionSet(arg0->unk_0A, arg0->unk_AE[6]);
-        Hu3DMotionStartEndSet(arg0->unk_AC, 60.0f, 119.0f);
-        Hu3DMotionTimeSet(arg0->unk_AC, 60.0f);
-        sp8 = arg0->unk_1C;
-        sp8.y = lbl_1_rodata_258[arg0->unk_4C][1].y;
-        fn_1_21C8(arg0, &sp8, 60, 1);
-        while (arg0->unk_00_field2 != 0) {
-            for (var_r28 = 0; var_r28 < 1; var_r28++) {
-                fn_1_355C(arg0);
-                var_r29 = arg0->unk_48;
+    if (player->formationIndex != 0) {
+        CharMotionSet(player->characterId, player->characterMotionIds[6]);
+        Hu3DMotionStartEndSet(player->characterModelId, 60.0f, 119.0f);
+        Hu3DMotionTimeSet(player->characterModelId, 60.0f);
+        transformVector = player->rotation;
+        transformVector.y = playerFormationPoses[player->formationIndex][1].y;
+        AnimatePlayerRotation(player, &transformVector, 60, 1);
+        while (player->rotationTransitionActive != 0) {
+            for (playerIndex = 0; playerIndex < 1; playerIndex++) {
+                UpdatePlayerModel(player);
+                stateValue = player->actionState;
                 HuPrcVSleep();
-                if (arg0->unk_48 != var_r29) {
+                if (player->actionState != stateValue) {
                     return;
                 }
             }
         }
-        CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[0], 0.0f, 4.0f, 0);
+        CharMotionShiftSet(player->characterId, player->characterMotionIds[0], 0.0f, 4.0f, 0);
     }
-    arg0->unk_48 = 0;
+    player->actionState = 0;
 }
 
-void fn_1_4294(M420DllPlayerStruct *arg0)
+void HandlePlayerItemReturn(M420DllPlayerStruct *player)
 {
-    Vec sp8;
-    s32 var_r29;
-    s32 var_r28;
+    Vec transformVector;
+    s32 stateValue;
+    s32 playerIndex;
 
-    if (arg0->unk_4C != 0) {
-        CharMotionSet(arg0->unk_0A, arg0->unk_AE[6]);
-        Hu3DMotionStartEndSet(arg0->unk_AC, 0.0f, 59.0f);
-        sp8 = arg0->unk_1C;
-        sp8.y = 0.0f;
-        fn_1_21C8(arg0, &sp8, 60, 1);
-        while (arg0->unk_00_field2 != 0) {
-            for (var_r28 = 0; var_r28 < 1; var_r28++) {
-                fn_1_355C(arg0);
-                var_r29 = arg0->unk_48;
+    if (player->formationIndex != 0) {
+        CharMotionSet(player->characterId, player->characterMotionIds[6]);
+        Hu3DMotionStartEndSet(player->characterModelId, 0.0f, 59.0f);
+        transformVector = player->rotation;
+        transformVector.y = 0.0f;
+        AnimatePlayerRotation(player, &transformVector, 60, 1);
+        while (player->rotationTransitionActive != 0) {
+            for (playerIndex = 0; playerIndex < 1; playerIndex++) {
+                UpdatePlayerModel(player);
+                stateValue = player->actionState;
                 HuPrcVSleep();
-                if (arg0->unk_48 != var_r29) {
+                if (player->actionState != stateValue) {
                     return;
                 }
             }
         }
-        CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[0], 0.0f, 8.0f, 0);
+        CharMotionShiftSet(player->characterId, player->characterMotionIds[0], 0.0f, 8.0f, 0);
     }
-    arg0->unk_48 = 0;
+    player->actionState = 0;
 }
 
-void fn_1_4574(M420DllPlayerStruct *arg0)
+void HandlePlayerItemSuccess(M420DllPlayerStruct *player)
 {
-    float var_f31;
-    M420DllPlayerStruct *var_r31;
-    s32 var_r29;
-    s32 var_r28;
+    float frameProgress;
+    M420DllPlayerStruct *player;
+    s32 secondaryStateValue;
+    s32 stateValue;
 
-    CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[1], 0.0f, 4.0f, 0);
-    fn_1_2260(arg0);
+    CharMotionShiftSet(player->characterId, player->characterMotionIds[1], 0.0f, 4.0f, 0);
+    WaitForPlayerActionChange(player);
 }
 
-void fn_1_476C(M420DllPlayerStruct *arg0)
+void HandlePlayerItemFailure(M420DllPlayerStruct *player)
 {
-    float var_f31;
-    M420DllPlayerStruct *var_r31;
-    s32 var_r29;
-    s32 var_r28;
+    float frameProgress;
+    M420DllPlayerStruct *player;
+    s32 secondaryStateValue;
+    s32 stateValue;
 
-    CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[2], 0.0f, 4.0f, 0);
-    fn_1_2260(arg0);
+    CharMotionShiftSet(player->characterId, player->characterMotionIds[2], 0.0f, 4.0f, 0);
+    WaitForPlayerActionChange(player);
 }

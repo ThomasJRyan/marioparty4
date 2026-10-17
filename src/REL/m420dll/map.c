@@ -7,84 +7,84 @@
 #include "game/audio.h"
 #endif
 
-typedef struct M420DllUnkMapStruct2 {
+typedef struct M420DllMapObject {
     /* 0x00 */ struct {
-        s8 unk_00_field0 : 1;
-        s8 unk_00_field1 : 1;
-        s8 unk_00_field2 : 1;
-        s8 unk_00_field3 : 1;
-        s8 unk_00_field4 : 1;
-        s8 unk_00_field5 : 1;
-        s8 unk_00_field6 : 1;
-        s8 unk_00_field7 : 1;
+        s8 isVisible : 1;
+        s8 isAnimated : 1;
+        s8 isAttached : 1;
+        s8 useLighting : 1;
+        s8 isTransparent : 1;
+        s8 isWater : 1;
+        s8 isActive : 1;
+        s8 isShadowEnabled : 1;
     };
-    /* 0x04 */ s16 unk_02;
-    /* 0x04 */ Vec unk_04;
-    /* 0x10 */ Vec unk_10;
-    /* 0x1C */ Vec unk_1C;
-    /* 0x28 */ Vec unk_28;
-    /* 0x34 */ Vec unk_34;
-    /* 0x40 */ Vec unk_40;
-    /* 0x4C */ Vec unk_4C;
-    /* 0x58 */ Vec unk_58;
-    /* 0x64 */ Vec unk_64;
-    /* 0x70 */ float unk_70;
-    /* 0x74 */ float unk_74;
-    /* 0x78 */ s32 unk_78;
-    /* 0x7C */ float unk_7C;
-    /* 0x80 */ float unk_80;
-    /* 0x84 */ s32 unk_84;
-    /* 0x88 */ float unk_88;
-    /* 0x8C */ float unk_8C;
-    /* 0x90 */ s32 unk_90;
-} M420DllUnkMapStruct2; /* size = 0x94 */
+    /* 0x04 */ s16 mapVariant;
+    /* 0x04 */ Vec mapEffects;
+    /* 0x10 */ Vec mapTextures;
+    /* 0x1C */ Vec mapScale;
+    /* 0x28 */ Vec mapOffsetY;
+    /* 0x34 */ Vec startingRotation;
+    /* 0x40 */ Vec targetRotation;
+    /* 0x4C */ Vec targetScale;
+    /* 0x58 */ Vec animationPosition;
+    /* 0x64 */ Vec animationRotation;
+    /* 0x70 */ float animationFrame;
+    /* 0x74 */ float animationSpeed;
+    /* 0x78 */ s32 positionEasingMode;
+    /* 0x7C */ float animationTimer;
+    /* 0x80 */ float animationProgress;
+    /* 0x84 */ s32 effectState;
+    /* 0x88 */ float effectTimer;
+    /* 0x8C */ float effectScale;
+    /* 0x90 */ s32 effectFlags;
+} M420DllMapObject; /* size = 0x94 */
 
-typedef struct M420DllUnkMapStruct {
-    /* 0x00 */ M420DllUnkMapStruct2 *unk_00;
-    /* 0x04 */ M420DllUnkMapStruct2 *unk_04;
-    /* 0x08 */ M420DllUnkMapStruct2 *unk_08;
-    /* 0x0C */ M420DllUnkMapStruct2 *unk_0C;
-    /* 0x10 */ M420DllUnkMapStruct2 *unk_10;
-    /* 0x14 */ s32 unk_14;
-    /* 0x18 */ char pad_18[4];
-    /* 0x1C */ float unk_1C;
-    /* 0x20 */ float unk_20;
-    /* 0x24 */ float unk_24;
-    /* 0x28 */ float unk_28;
-    /* 0x2C */ float unk_2C;
-    /* 0x30 */ s32 unk_30;
-    /* 0x34 */ s32 unk_34;
-    /* 0x38 */ s32 unk_38;
-    /* 0x3C */ s32 unk_3C;
-} M420DllUnkMapStruct; /* size = 0x40 */
+typedef struct M420DllMapEffect {
+    /* 0x00 */ M420DllMapObject *mapObjects;
+    /* 0x04 */ M420DllMapObject *mapEffects;
+    /* 0x08 */ M420DllMapObject *mapAnimations;
+    /* 0x0C */ M420DllMapObject *mapLights;
+    /* 0x10 */ M420DllMapObject *mapTextures;
+    /* 0x14 */ s32 mapObjectCount;
+    /* 0x18 */ char pad18[4];
+    /* 0x1C */ float mapScale;
+    /* 0x20 */ float mapRotation;
+    /* 0x24 */ float mapOffsetX;
+    /* 0x28 */ float mapOffsetY;
+    /* 0x2C */ float mapOffsetZ;
+    /* 0x30 */ s32 mapState;
+    /* 0x34 */ s32 animationState;
+    /* 0x38 */ s32 effectState;
+    /* 0x3C */ s32 mapFlags;
+} M420DllMapEffect; /* size = 0x40 */
 
-typedef struct M420DllUnkMapStruct3 {
-    /* 0x00 */ Vec unk_00;
-    /* 0x0C */ Vec unk_0C;
-    /* 0x18 */ GXColor unk_18;
-} M420DllUnkMapStruct3; /* size = 0x1C */
+typedef struct M420DllMapLightConfig {
+    /* 0x00 */ Vec mapObjects;
+    /* 0x0C */ Vec mapLights;
+    /* 0x18 */ GXColor mapTintColor;
+} M420DllMapLightConfig; /* size = 0x1C */
 
-s32 fn_1_5A7C(s32 arg0);
-void fn_1_6820(void);
-void fn_1_6884(void);
-void fn_1_6950(void);
-void fn_1_6D0C(void);
-void fn_1_6D5C(void);
-void fn_1_6DF0(M420DllUnkMapStruct2 *arg0);
-void fn_1_7230(M420DllUnkMapStruct2 *arg0, Vec *arg1, s32 arg2, s32 arg3);
-void fn_1_7704(void);
-void fn_1_7E24(void);
-void fn_1_8240(void);
-void fn_1_8414(void);
+s32 MapEventIsRunning(s32 eventIndex);
+void UpdateRoundCounterProcess(void);
+void UpdateMapObjectsProcess(void);
+void LoadMapModels(void);
+void UnloadMapModels(void);
+void InitializeMapLighting(void);
+void UpdateMapObjectTransform(M420DllMapObject *mapObject);
+void AnimateMapObjectPosition(M420DllMapObject *mapObject, Vec *targetPosition, s32 durationFrames, s32 easingMode);
+void RunMapEventIntro(void);
+void RunMapEventMiddle(void);
+void RunMapEventFinale(void);
+void RunMapEventCleanup(void);
 
-M420DllUnkMapStruct3 lbl_1_data_138 = {
+M420DllMapLightConfig mapLightConfig = {
     { 1000.0f, 2000.0f, 0.0f },
     { -0.5f, -0.5f, -0.5f },
     { 0xFF, 0xFF, 0xFF, 0xFF },
 };
-void (*lbl_1_data_154[4])() = { fn_1_7704, fn_1_7E24, fn_1_8240, fn_1_8414 };
+void (*mapEventCallbacks[4])() = { RunMapEventIntro, RunMapEventMiddle, RunMapEventFinale, RunMapEventCleanup };
 
-static const s32 lbl_1_rodata_360[0x1B] = {
+static const s32 mapModelDataIds[0x1B] = {
     DATA_MAKE_NUM(DATADIR_M420, 0x00),
     DATA_MAKE_NUM(DATADIR_M420, 0x14),
     DATA_MAKE_NUM(DATADIR_M420, 0x07),
@@ -114,411 +114,411 @@ static const s32 lbl_1_rodata_360[0x1B] = {
     DATA_MAKE_NUM(DATADIR_M420, 0x13),
 };
 
-HUPROCESS *lbl_1_bss_A40;
-HUPROCESS *lbl_1_bss_A3C;
-HUPROCESS *lbl_1_bss_A2C[4];
-s32 lbl_1_bss_A28;
-s16 lbl_1_bss_9F0[0x1C];
-s16 lbl_1_bss_9EE;
-s16 lbl_1_bss_9EC;
-M420DllUnkMapStruct2 lbl_1_bss_140[15];
-struct M420DllUnkMapStruct lbl_1_bss_C0[2];
-s32 lbl_1_bss_BC;
-s32 lbl_1_bss_B8;
-s32 lbl_1_bss_B4;
-s32 lbl_1_bss_B0;
+HUPROCESS *roundCounterProcess;
+HUPROCESS *mapUpdateProcess;
+HUPROCESS *mapEventProcesses[4];
+s32 mapEventState;
+s16 mapModelIds[0x1C];
+s16 mapGlobalLightId;
+s16 mapLightId;
+M420DllMapObject mapObjects[15];
+struct M420DllMapEffect mapEffects[2];
+s32 roundCounterValue;
+s32 roundCounterTimer;
+s32 mapRoundIndex;
+s32 mapRevealComplete;
 
-s32 fn_1_4964(void)
+s32 InitializeMapSystem(void)
 {
-    M420DllUnkMapStruct2 *var_r31;
-    M420DllUnkMapStruct *var_r30;
-    s32 var_r29;
+    M420DllMapObject *mapObject;
+    M420DllMapEffect *mapEffect;
+    s32 eventIndex;
 
-    lbl_1_bss_A40 = HuPrcChildCreate(fn_1_6820, 0x3E9, 0x4000, 0, lbl_1_bss_4);
-    lbl_1_bss_A3C = HuPrcChildCreate(fn_1_6884, 0x3EA, 0x4000, 0, lbl_1_bss_4);
-    for (var_r29 = 0; var_r29 < 4; var_r29++) {
-        lbl_1_bss_A2C[var_r29] = NULL;
+    roundCounterProcess = HuPrcChildCreate(UpdateRoundCounterProcess, 0x3E9, 0x4000, 0, minigameObjectManager);
+    mapUpdateProcess = HuPrcChildCreate(UpdateMapObjectsProcess, 0x3EA, 0x4000, 0, minigameObjectManager);
+    for (eventIndex = 0; eventIndex < 4; eventIndex++) {
+        mapEventProcesses[eventIndex] = NULL;
     }
-    lbl_1_bss_A28 = 0;
-    fn_1_6D5C();
-    fn_1_6950();
+    mapEventState = 0;
+    InitializeMapLighting();
+    LoadMapModels();
 
-    var_r31 = lbl_1_bss_140;
-    var_r31->unk_02 = lbl_1_bss_9F0[1];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 0.0f;
-    var_r31->unk_04.y = 1000.0f;
-    var_r31->unk_04.z = 0.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = mapObjects;
+    mapObject->mapVariant = mapModelIds[1];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 0.0f;
+    mapObject->mapEffects.y = 1000.0f;
+    mapObject->mapEffects.z = 0.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[1];
-    var_r31->unk_02 = lbl_1_bss_9F0[0xA];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 0.0f;
-    var_r31->unk_04.y = 0.0f;
-    var_r31->unk_04.z = 0.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[1];
+    mapObject->mapVariant = mapModelIds[0xA];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 0.0f;
+    mapObject->mapEffects.y = 0.0f;
+    mapObject->mapEffects.z = 0.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[2];
-    var_r31->unk_02 = lbl_1_bss_9F0[0xC];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 0.0f;
-    var_r31->unk_04.y = 0.0f;
-    var_r31->unk_04.z = 0.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[2];
+    mapObject->mapVariant = mapModelIds[0xC];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 0.0f;
+    mapObject->mapEffects.y = 0.0f;
+    mapObject->mapEffects.z = 0.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[3];
-    var_r31->unk_02 = lbl_1_bss_9F0[0xB];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 0.0f;
-    var_r31->unk_04.y = 0.0f;
-    var_r31->unk_04.z = 0.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[3];
+    mapObject->mapVariant = mapModelIds[0xB];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 0.0f;
+    mapObject->mapEffects.y = 0.0f;
+    mapObject->mapEffects.z = 0.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[4];
-    var_r31->unk_02 = lbl_1_bss_9F0[0xD];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = -220.0f;
-    var_r31->unk_04.y = -60.0f;
-    var_r31->unk_04.z = 170.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[4];
+    mapObject->mapVariant = mapModelIds[0xD];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = -220.0f;
+    mapObject->mapEffects.y = -60.0f;
+    mapObject->mapEffects.z = 170.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[9];
-    var_r31->unk_02 = lbl_1_bss_9F0[0x17];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = -170.0f;
-    var_r31->unk_04.y = 0.0f;
-    var_r31->unk_04.z = 170.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[9];
+    mapObject->mapVariant = mapModelIds[0x17];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = -170.0f;
+    mapObject->mapEffects.y = 0.0f;
+    mapObject->mapEffects.z = 170.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[11];
-    var_r31->unk_02 = lbl_1_bss_9F0[0x19];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = -160.0f;
-    var_r31->unk_04.y = 0.0f;
-    var_r31->unk_04.z = 220.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[11];
+    mapObject->mapVariant = mapModelIds[0x19];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = -160.0f;
+    mapObject->mapEffects.y = 0.0f;
+    mapObject->mapEffects.z = 220.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[6];
-    var_r31->unk_02 = lbl_1_bss_9F0[0x11];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 0.0f;
-    var_r31->unk_04.y = -65.0f;
-    var_r31->unk_04.z = 0.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[6];
+    mapObject->mapVariant = mapModelIds[0x11];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 0.0f;
+    mapObject->mapEffects.y = -65.0f;
+    mapObject->mapEffects.z = 0.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[5];
-    var_r31->unk_02 = lbl_1_bss_9F0[0xE];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 220.0f;
-    var_r31->unk_04.y = -60.0f;
-    var_r31->unk_04.z = 170.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[5];
+    mapObject->mapVariant = mapModelIds[0xE];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 220.0f;
+    mapObject->mapEffects.y = -60.0f;
+    mapObject->mapEffects.z = 170.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[10];
-    var_r31->unk_02 = lbl_1_bss_9F0[0x18];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 190.0f;
-    var_r31->unk_04.y = 0.0f;
-    var_r31->unk_04.z = 170.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[10];
+    mapObject->mapVariant = mapModelIds[0x18];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 190.0f;
+    mapObject->mapEffects.y = 0.0f;
+    mapObject->mapEffects.z = 170.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[12];
-    var_r31->unk_02 = lbl_1_bss_9F0[0x1A];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 185.0f;
-    var_r31->unk_04.y = 0.0f;
-    var_r31->unk_04.z = 220.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[12];
+    mapObject->mapVariant = mapModelIds[0x1A];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 185.0f;
+    mapObject->mapEffects.y = 0.0f;
+    mapObject->mapEffects.z = 220.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[7];
-    var_r31->unk_02 = lbl_1_bss_9F0[0x12];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 0.0f;
-    var_r31->unk_04.y = -65.0f;
-    var_r31->unk_04.z = 0.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[7];
+    mapObject->mapVariant = mapModelIds[0x12];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 0.0f;
+    mapObject->mapEffects.y = -65.0f;
+    mapObject->mapEffects.z = 0.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[8];
-    var_r31->unk_02 = lbl_1_bss_9F0[0x13];
-    var_r31->unk_00_field3 = 1;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 0.0f;
-    var_r31->unk_04.y = 300.0f;
-    var_r31->unk_04.z = 0.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[8];
+    mapObject->mapVariant = mapModelIds[0x13];
+    mapObject->useLighting = 1;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 0.0f;
+    mapObject->mapEffects.y = 300.0f;
+    mapObject->mapEffects.z = 0.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[13];
-    var_r31->unk_02 = lbl_1_bss_9F0[3];
-    var_r31->unk_00_field3 = 0;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 0.0f;
-    var_r31->unk_04.y = 0.0f;
-    var_r31->unk_04.z = 0.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[13];
+    mapObject->mapVariant = mapModelIds[3];
+    mapObject->useLighting = 0;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 0.0f;
+    mapObject->mapEffects.y = 0.0f;
+    mapObject->mapEffects.z = 0.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    var_r31 = &lbl_1_bss_140[14];
-    var_r31->unk_02 = lbl_1_bss_9F0[2];
-    var_r31->unk_00_field3 = 0;
-    var_r31->unk_00_field0 = 0;
-    var_r31->unk_00_field1 = 0;
-    var_r31->unk_04.x = 0.0f;
-    var_r31->unk_04.y = 0.0f;
-    var_r31->unk_04.z = 0.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    var_r31->unk_4C.x = 1.0f;
-    var_r31->unk_4C.y = 1.0f;
-    var_r31->unk_4C.z = 1.0f;
-    fn_1_6DF0(var_r31);
+    mapObject = &mapObjects[14];
+    mapObject->mapVariant = mapModelIds[2];
+    mapObject->useLighting = 0;
+    mapObject->isVisible = 0;
+    mapObject->isAnimated = 0;
+    mapObject->mapEffects.x = 0.0f;
+    mapObject->mapEffects.y = 0.0f;
+    mapObject->mapEffects.z = 0.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    mapObject->targetScale.x = 1.0f;
+    mapObject->targetScale.y = 1.0f;
+    mapObject->targetScale.z = 1.0f;
+    UpdateMapObjectTransform(mapObject);
 
-    for (var_r29 = 0; var_r29 < 2; var_r29++) {
-        var_r30 = &lbl_1_bss_C0[var_r29];
-        var_r30->unk_14 = var_r29;
-        var_r30->unk_1C = 20.0f;
-        var_r30->unk_20 = 0.0f;
-        var_r30->unk_2C = 0.0f;
-        var_r30->unk_24 = 0.2f;
-        var_r30->unk_28 = 0.1f;
-        var_r30->unk_38 = 0;
-        var_r30->unk_3C = 0;
-        var_r30->unk_30 = 1;
-        var_r30->unk_00 = &lbl_1_bss_140[var_r29 + 13];
-        var_r30->unk_04 = &lbl_1_bss_140[var_r29 + 4];
-        var_r30->unk_08 = &lbl_1_bss_140[var_r29 + 6];
-        var_r30->unk_0C = &lbl_1_bss_140[var_r29 + 9];
-        var_r30->unk_10 = &lbl_1_bss_140[var_r29 + 11];
+    for (eventIndex = 0; eventIndex < 2; eventIndex++) {
+        mapEffect = &mapEffects[eventIndex];
+        mapEffect->mapObjectCount = eventIndex;
+        mapEffect->mapScale = 20.0f;
+        mapEffect->mapRotation = 0.0f;
+        mapEffect->mapOffsetZ = 0.0f;
+        mapEffect->mapOffsetX = 0.2f;
+        mapEffect->mapOffsetY = 0.1f;
+        mapEffect->effectState = 0;
+        mapEffect->mapFlags = 0;
+        mapEffect->mapState = 1;
+        mapEffect->mapObjects = &mapObjects[eventIndex + 13];
+        mapEffect->mapEffects = &mapObjects[eventIndex + 4];
+        mapEffect->mapAnimations = &mapObjects[eventIndex + 6];
+        mapEffect->mapLights = &mapObjects[eventIndex + 9];
+        mapEffect->mapTextures = &mapObjects[eventIndex + 11];
     }
-    lbl_1_bss_B8 = 0;
-    lbl_1_bss_B4 = 0;
-    lbl_1_bss_B0 = 0;
-    fn_1_6728();
+    roundCounterTimer = 0;
+    mapRoundIndex = 0;
+    mapRevealComplete = 0;
+    HideMapMarker();
 
     {
-        Vec sp14 = { 0.0f, 0.0f, 0.0f };
-        Vec sp8 = { 0.0f, 0.0f, -1.0f };
-        HuAudFXListnerSetEX(&sp14, &sp8, 3000.0, 1000.0, 100.0, 300.0, 300.0);
+        Vec secondaryTransformVector = { 0.0f, 0.0f, 0.0f };
+        Vec transformVector = { 0.0f, 0.0f, -1.0f };
+        HuAudFXListnerSetEX(&secondaryTransformVector, &transformVector, 3000.0, 1000.0, 100.0, 300.0, 300.0);
         HuAudFXPlay(0x5F0);
     }
     return 1;
 }
 
-void fn_1_596C(void)
+void ShutdownMapSystem(void)
 {
-    HUPROCESS *var_r30;
-    s32 var_r31;
+    HUPROCESS *process;
+    s32 eventIndex;
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        var_r30 = lbl_1_bss_A2C[var_r31];
-        if (var_r30) {
-            HuPrcKill(var_r30);
+    for (eventIndex = 0; eventIndex < 4; eventIndex++) {
+        process = mapEventProcesses[eventIndex];
+        if (process) {
+            HuPrcKill(process);
         }
     }
-    fn_1_6D0C();
-    HuPrcKill(lbl_1_bss_A3C);
-    HuPrcKill(lbl_1_bss_A40);
+    UnloadMapModels();
+    HuPrcKill(mapUpdateProcess);
+    HuPrcKill(roundCounterProcess);
 }
 
-s32 fn_1_59F4(s32 arg0)
+s32 StartMapEvent(s32 eventIndex)
 {
-    if (fn_1_5A7C(arg0) != 0) {
+    if (MapEventIsRunning(eventIndex) != 0) {
         return 0;
     }
-    lbl_1_bss_A2C[arg0] = HuPrcChildCreate(lbl_1_data_154[arg0], 0x3ED, 0x5000, 0, lbl_1_bss_4);
+    mapEventProcesses[eventIndex] = HuPrcChildCreate(mapEventCallbacks[eventIndex], 0x3ED, 0x5000, 0, minigameObjectManager);
     return 1;
 }
 
-s32 fn_1_5A7C(s32 arg0)
+s32 MapEventIsRunning(s32 eventIndex)
 {
-    return lbl_1_bss_A2C[arg0] != NULL;
+    return mapEventProcesses[eventIndex] != NULL;
 }
 
-s32 fn_1_5AA8(s32 arg0, float arg1)
+s32 AdvanceMapReveal(s32 effectIndex, float scaleStep)
 {
-    M420DllUnkMapStruct *var_r31;
-    s32 var_r29;
-    s32 var_r30;
+    M420DllMapEffect *mapEffect;
+    s32 secondaryModelIndex;
+    s32 modelIndex;
 
-    var_r31 = &lbl_1_bss_C0[arg0];
-    if ((var_r31->unk_1C += arg1) >= 200.0f) {
-        var_r31->unk_1C = 200.0f;
+    mapEffect = &mapEffects[effectIndex];
+    if ((mapEffect->mapScale += scaleStep) >= 200.0f) {
+        mapEffect->mapScale = 200.0f;
     }
-    var_r31->unk_38 = 1;
-    var_r31->unk_30 = (s32)(200.0f - var_r31->unk_1C) / 10.0f;
-    switch (arg0) {
+    mapEffect->effectState = 1;
+    mapEffect->mapState = (s32)(200.0f - mapEffect->mapScale) / 10.0f;
+    switch (effectIndex) {
         case 0:
-            var_r29 = 3;
-            var_r30 = 0x15;
+            secondaryModelIndex = 3;
+            modelIndex = 0x15;
             break;
         case 1:
-            var_r29 = 2;
-            var_r30 = 0x16;
+            secondaryModelIndex = 2;
+            modelIndex = 0x16;
             break;
     }
-    if (var_r31->unk_1C >= 200.0f) {
-        if (lbl_1_bss_B0 == 0) {
-            var_r31->unk_3C = 1;
-            Hu3DMotionTimeSet(lbl_1_bss_9F0[var_r30], 0.0f);
-            Hu3DModelAttrReset(lbl_1_bss_9F0[var_r30], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(lbl_1_bss_9F0[var_r30], HU3D_MOTATTR_LOOP);
-            Hu3DModelAttrSet(lbl_1_bss_9F0[var_r29], HU3D_ATTR_DISPOFF);
+    if (mapEffect->mapScale >= 200.0f) {
+        if (mapRevealComplete == 0) {
+            mapEffect->mapFlags = 1;
+            Hu3DMotionTimeSet(mapModelIds[modelIndex], 0.0f);
+            Hu3DModelAttrReset(mapModelIds[modelIndex], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(mapModelIds[modelIndex], HU3D_MOTATTR_LOOP);
+            Hu3DModelAttrSet(mapModelIds[secondaryModelIndex], HU3D_ATTR_DISPOFF);
         }
         return 1;
     }
     return 0;
 }
 
-void fn_1_5C8C(M420DllUnkMapStruct *arg0)
+void UpdateMapEffect(M420DllMapEffect *mapEffect)
 {
-    Vec sp8;
+    Vec transformVector;
 
-    if (arg0->unk_38 != 0) {
-        if (arg0->unk_30 > 0) {
-            arg0->unk_30--;
+    if (mapEffect->effectState != 0) {
+        if (mapEffect->mapState > 0) {
+            mapEffect->mapState--;
         }
-        if (arg0->unk_30 <= 0) {
-            sp8 = arg0->unk_04->unk_04;
-            sp8.y = -60.0f + arg0->unk_1C;
-            fn_1_7230(arg0->unk_04, &sp8, 0x1E, 0);
+        if (mapEffect->mapState <= 0) {
+            transformVector = mapEffect->mapEffects->mapEffects;
+            transformVector.y = -60.0f + mapEffect->mapScale;
+            AnimateMapObjectPosition(mapEffect->mapEffects, &transformVector, 0x1E, 0);
 
-            sp8 = arg0->unk_08->unk_04;
-            sp8.y = -65.0f + arg0->unk_1C;
-            fn_1_7230(arg0->unk_08, &sp8, 0x1E, 0);
+            transformVector = mapEffect->mapAnimations->mapEffects;
+            transformVector.y = -65.0f + mapEffect->mapScale;
+            AnimateMapObjectPosition(mapEffect->mapAnimations, &transformVector, 0x1E, 0);
 
-            sp8 = arg0->unk_0C->unk_04;
-            sp8.y = 40.0f + arg0->unk_1C;
-            fn_1_7230(arg0->unk_0C, &sp8, 0x1E, 1);
+            transformVector = mapEffect->mapLights->mapEffects;
+            transformVector.y = 40.0f + mapEffect->mapScale;
+            AnimateMapObjectPosition(mapEffect->mapLights, &transformVector, 0x1E, 1);
 
-            Hu3DMotionTimeSet(arg0->unk_0C->unk_02, 0.0f);
-            Hu3DModelAttrReset(arg0->unk_0C->unk_02, HU3D_ATTR_DISPOFF);
+            Hu3DMotionTimeSet(mapEffect->mapLights->mapVariant, 0.0f);
+            Hu3DModelAttrReset(mapEffect->mapLights->mapVariant, HU3D_ATTR_DISPOFF);
 
-            sp8 = arg0->unk_10->unk_04;
-            sp8.y = -50.0f + arg0->unk_1C;
-            fn_1_7230(arg0->unk_10, &sp8, 0x1E, 1);
+            transformVector = mapEffect->mapTextures->mapEffects;
+            transformVector.y = -50.0f + mapEffect->mapScale;
+            AnimateMapObjectPosition(mapEffect->mapTextures, &transformVector, 0x1E, 1);
 
-            Hu3DMotionTimeSet(arg0->unk_10->unk_02, 0.0f);
-            Hu3DModelAttrReset(arg0->unk_10->unk_02, HU3D_ATTR_DISPOFF);
-            Hu3DMotionStartEndSet(arg0->unk_00->unk_02, 0.0f, 30.0f);
-            Hu3DMotionTimeSet(arg0->unk_00->unk_02, 0.0f);
-            Hu3DModelAttrReset(arg0->unk_00->unk_02, HU3D_MOTATTR_PAUSE);
-            Hu3DModelAttrReset(arg0->unk_00->unk_02, HU3D_MOTATTR_LOOP);
-            arg0->unk_34 = 3;
-            arg0->unk_38 = 0;
-            arg0->unk_24 = 0.8f;
-            arg0->unk_28 = 0.3f;
-            arg0->unk_2C = 0.0f;
-            if (arg0->unk_14 == 0) {
+            Hu3DMotionTimeSet(mapEffect->mapTextures->mapVariant, 0.0f);
+            Hu3DModelAttrReset(mapEffect->mapTextures->mapVariant, HU3D_ATTR_DISPOFF);
+            Hu3DMotionStartEndSet(mapEffect->mapObjects->mapVariant, 0.0f, 30.0f);
+            Hu3DMotionTimeSet(mapEffect->mapObjects->mapVariant, 0.0f);
+            Hu3DModelAttrReset(mapEffect->mapObjects->mapVariant, HU3D_MOTATTR_PAUSE);
+            Hu3DModelAttrReset(mapEffect->mapObjects->mapVariant, HU3D_MOTATTR_LOOP);
+            mapEffect->animationState = 3;
+            mapEffect->effectState = 0;
+            mapEffect->mapOffsetX = 0.8f;
+            mapEffect->mapOffsetY = 0.3f;
+            mapEffect->mapOffsetZ = 0.0f;
+            if (mapEffect->mapObjectCount == 0) {
                 HuAudFXPlay(0x5F7);
             }
             else {
@@ -526,458 +526,458 @@ void fn_1_5C8C(M420DllUnkMapStruct *arg0)
             }
         }
     }
-    if ((Hu3DMotionEndCheck(arg0->unk_00->unk_02) != 0) && (arg0->unk_34 > 0)) {
-        if (--arg0->unk_34 > 0) {
-            Hu3DMotionTimeSet(arg0->unk_00->unk_02, 0.0f);
+    if ((Hu3DMotionEndCheck(mapEffect->mapObjects->mapVariant) != 0) && (mapEffect->animationState > 0)) {
+        if (--mapEffect->animationState > 0) {
+            Hu3DMotionTimeSet(mapEffect->mapObjects->mapVariant, 0.0f);
         }
         else {
-            Hu3DMotionStartEndSet(arg0->unk_00->unk_02, 0.0f, 1.0f);
-            Hu3DMotionTimeSet(arg0->unk_00->unk_02, 0.0f);
-            Hu3DModelAttrSet(arg0->unk_00->unk_02, HU3D_MOTATTR_PAUSE);
+            Hu3DMotionStartEndSet(mapEffect->mapObjects->mapVariant, 0.0f, 1.0f);
+            Hu3DMotionTimeSet(mapEffect->mapObjects->mapVariant, 0.0f);
+            Hu3DModelAttrSet(mapEffect->mapObjects->mapVariant, HU3D_MOTATTR_PAUSE);
         }
     }
-    if (arg0->unk_24 > 0.2f) {
-        if ((arg0->unk_24 -= 0.005f) <= 0.2f) {
-            arg0->unk_24 = 0.2f;
+    if (mapEffect->mapOffsetX > 0.2f) {
+        if ((mapEffect->mapOffsetX -= 0.005f) <= 0.2f) {
+            mapEffect->mapOffsetX = 0.2f;
         }
     }
-    arg0->unk_04->unk_28.y += arg0->unk_24;
-    if (arg0->unk_28 > 0.05f) {
-        if ((arg0->unk_28 -= 0.003f) <= 0.05f) {
-            arg0->unk_28 = 0.05f;
+    mapEffect->mapEffects->mapOffsetY.y += mapEffect->mapOffsetX;
+    if (mapEffect->mapOffsetY > 0.05f) {
+        if ((mapEffect->mapOffsetY -= 0.003f) <= 0.05f) {
+            mapEffect->mapOffsetY = 0.05f;
         }
     }
-    arg0->unk_04->unk_4C.y = 1.0 + (arg0->unk_28 * sind((90.0f * arg0->unk_2C)));
-    arg0->unk_2C += 0.02f;
+    mapEffect->mapEffects->targetScale.y = 1.0 + (mapEffect->mapOffsetY * sind((90.0f * mapEffect->mapOffsetZ)));
+    mapEffect->mapOffsetZ += 0.02f;
 }
 
-s32 fn_1_60F0(void)
+s32 AdvanceRoundCounter(void)
 {
-    float var_f31;
-    float var_f30;
-    s32 var_r31;
+    float secondaryFrameProgress;
+    float frameProgress;
+    s32 result;
 
-    if (lbl_1_bss_BC >= 6) {
+    if (roundCounterValue >= 6) {
         return 1;
     }
-    var_f31 = 5.0f * (6 - lbl_1_bss_BC);
-    var_f30 = var_f31 - 5.0f;
-    Hu3DMotionStartEndSet(lbl_1_bss_9F0[0xF], var_f30, var_f31);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[0xF], var_f31);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_LOOP);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_REV);
-    lbl_1_bss_B8 = 5;
-    lbl_1_bss_BC += 1;
-    if (lbl_1_bss_BC == 6) {
-        var_r31 = 1;
+    secondaryFrameProgress = 5.0f * (6 - roundCounterValue);
+    frameProgress = secondaryFrameProgress - 5.0f;
+    Hu3DMotionStartEndSet(mapModelIds[0xF], frameProgress, secondaryFrameProgress);
+    Hu3DMotionTimeSet(mapModelIds[0xF], secondaryFrameProgress);
+    Hu3DModelAttrReset(mapModelIds[0xF], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrReset(mapModelIds[0xF], HU3D_MOTATTR_LOOP);
+    Hu3DModelAttrSet(mapModelIds[0xF], HU3D_MOTATTR_REV);
+    roundCounterTimer = 5;
+    roundCounterValue += 1;
+    if (roundCounterValue == 6) {
+        result = 1;
     }
     else {
-        var_r31 = 0;
+        result = 0;
     }
-    return var_r31;
+    return result;
 }
 
-void fn_1_6268(void)
+void ResetRoundCounter(void)
 {
-    float var_f31 = 0.0f;
-    float var_f30 = 30.0f;
+    float secondaryFrameProgress = 0.0f;
+    float frameProgress = 30.0f;
 
-    Hu3DMotionStartEndSet(lbl_1_bss_9F0[0xF], var_f31, var_f30);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[0xF], var_f31);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_LOOP);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_REV);
-    Hu3DMotionStartEndSet(lbl_1_bss_9F0[0x10], var_f31, var_f30);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[0x10], var_f31);
-    lbl_1_bss_BC = 0;
+    Hu3DMotionStartEndSet(mapModelIds[0xF], secondaryFrameProgress, frameProgress);
+    Hu3DMotionTimeSet(mapModelIds[0xF], secondaryFrameProgress);
+    Hu3DModelAttrReset(mapModelIds[0xF], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrReset(mapModelIds[0xF], HU3D_MOTATTR_LOOP);
+    Hu3DModelAttrReset(mapModelIds[0xF], HU3D_MOTATTR_REV);
+    Hu3DMotionStartEndSet(mapModelIds[0x10], secondaryFrameProgress, frameProgress);
+    Hu3DMotionTimeSet(mapModelIds[0x10], secondaryFrameProgress);
+    roundCounterValue = 0;
 }
 
-void fn_1_636C(void)
+void ResetMapMotion(void)
 {
-    float var_f31 = 0.0f;
-    float var_f30 = 30.0f;
+    float secondaryFrameProgress = 0.0f;
+    float frameProgress = 30.0f;
 
-    Hu3DMotionStartEndSet(lbl_1_bss_9F0[0x14], var_f31, var_f30);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[0x14], var_f31);
+    Hu3DMotionStartEndSet(mapModelIds[0x14], secondaryFrameProgress, frameProgress);
+    Hu3DMotionTimeSet(mapModelIds[0x14], secondaryFrameProgress);
 }
 
-void fn_1_63EC(void)
+void FinishRoundCounter(void)
 {
-    float var_f31 = 5.0f * (6 - lbl_1_bss_BC);
-    float var_f30 = 30.0f;
+    float secondaryFrameProgress = 5.0f * (6 - roundCounterValue);
+    float frameProgress = 30.0f;
 
-    Hu3DMotionStartEndSet(lbl_1_bss_9F0[0xF], var_f31, var_f30);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[0xF], var_f31);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_LOOP);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_REV);
-    lbl_1_bss_BC = 0;
-    lbl_1_bss_B8 = 0;
+    Hu3DMotionStartEndSet(mapModelIds[0xF], secondaryFrameProgress, frameProgress);
+    Hu3DMotionTimeSet(mapModelIds[0xF], secondaryFrameProgress);
+    Hu3DModelAttrReset(mapModelIds[0xF], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrReset(mapModelIds[0xF], HU3D_MOTATTR_LOOP);
+    Hu3DModelAttrReset(mapModelIds[0xF], HU3D_MOTATTR_REV);
+    roundCounterValue = 0;
+    roundCounterTimer = 0;
 }
 
-s32 fn_1_650C(void)
+s32 RoundCounterIsFinished(void)
 {
-    s32 var_r31 = 0;
+    s32 result = 0;
 
-    if ((lbl_1_bss_BC == 6) && (lbl_1_bss_B8 == 0)) {
-        var_r31 = 1;
+    if ((roundCounterValue == 6) && (roundCounterTimer == 0)) {
+        result = 1;
     }
-    return var_r31;
+    return result;
 }
 
-void fn_1_6554(void)
+void ShowMapMarker(void)
 {
-    Vec sp8;
-    M420DllUnkMapStruct2 *var_r31;
+    Vec transformVector;
+    M420DllMapObject *mapObject;
 
-    var_r31 = &lbl_1_bss_140[8];
-    var_r31->unk_04.x = 480.0f;
-    var_r31->unk_04.y = 800.0f;
-    var_r31->unk_04.z = -314.0f;
-    var_r31->unk_28.x = 0.0f;
-    var_r31->unk_28.y = 0.0f;
-    var_r31->unk_28.z = 0.0f;
-    fn_1_6DF0(var_r31);
-    sp8.x = 480.0f;
-    sp8.y = 370.0f;
-    sp8.z = -314.0f;
-    Hu3DModelAttrReset(var_r31->unk_02, HU3D_ATTR_DISPOFF);
-    fn_1_7230(var_r31, &sp8, 0x14, 0);
-    Hu3DMotionTimeSet(fn_1_6660(), 0.0f);
-    Hu3DModelAttrSet(fn_1_6660(), HU3D_MOTATTR_PAUSE);
+    mapObject = &mapObjects[8];
+    mapObject->mapEffects.x = 480.0f;
+    mapObject->mapEffects.y = 800.0f;
+    mapObject->mapEffects.z = -314.0f;
+    mapObject->mapOffsetY.x = 0.0f;
+    mapObject->mapOffsetY.y = 0.0f;
+    mapObject->mapOffsetY.z = 0.0f;
+    UpdateMapObjectTransform(mapObject);
+    transformVector.x = 480.0f;
+    transformVector.y = 370.0f;
+    transformVector.z = -314.0f;
+    Hu3DModelAttrReset(mapObject->mapVariant, HU3D_ATTR_DISPOFF);
+    AnimateMapObjectPosition(mapObject, &transformVector, 0x14, 0);
+    Hu3DMotionTimeSet(GetMapMarkerModel(), 0.0f);
+    Hu3DModelAttrSet(GetMapMarkerModel(), HU3D_MOTATTR_PAUSE);
 }
 
-s16 fn_1_6660(void)
+s16 GetMapMarkerModel(void)
 {
-    return lbl_1_bss_140[8].unk_02;
+    return mapObjects[8].mapVariant;
 }
 
-s32 fn_1_6670(void)
+s32 MapMarkerIsVisible(void)
 {
-    M420DllUnkMapStruct2 *var_r31 = &lbl_1_bss_140[8];
-    return var_r31->unk_00_field0;
+    M420DllMapObject *mapObject = &mapObjects[8];
+    return mapObject->isVisible;
 }
 
-void fn_1_669C(s32 arg0)
+void SetMapMarkerLighting(s32 enabled)
 {
-    M420DllUnkMapStruct2 *var_r31 = &lbl_1_bss_140[8];
-    if (arg0 == 0) {
-        var_r31->unk_04.x = 0.0f;
-        var_r31->unk_04.y = 0.0f;
-        var_r31->unk_04.z = 0.0f;
-        fn_1_6DF0(var_r31);
+    M420DllMapObject *mapObject = &mapObjects[8];
+    if (enabled == 0) {
+        mapObject->mapEffects.x = 0.0f;
+        mapObject->mapEffects.y = 0.0f;
+        mapObject->mapEffects.z = 0.0f;
+        UpdateMapObjectTransform(mapObject);
     }
-    var_r31->unk_00_field3 = arg0;
+    mapObject->useLighting = enabled;
 }
 
-void fn_1_6728(void)
+void HideMapMarker(void)
 {
-    M420DllUnkMapStruct2 *var_r31 = &lbl_1_bss_140[8];
-    var_r31->unk_04.x = 0.0f;
-    var_r31->unk_04.y = 1000.0f;
-    var_r31->unk_04.z = 0.0f;
-    fn_1_6DF0(var_r31);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0x13], HU3D_ATTR_DISPOFF);
+    M420DllMapObject *mapObject = &mapObjects[8];
+    mapObject->mapEffects.x = 0.0f;
+    mapObject->mapEffects.y = 1000.0f;
+    mapObject->mapEffects.z = 0.0f;
+    UpdateMapObjectTransform(mapObject);
+    Hu3DModelAttrSet(mapModelIds[0x13], HU3D_ATTR_DISPOFF);
 }
 
-s32 fn_1_67A4(s32 arg0)
+s32 MapRevealIsFinished(s32 effectIndex)
 {
-    M420DllUnkMapStruct *var_r31 = &lbl_1_bss_C0[arg0];
-    return var_r31->unk_1C >= 200.0f;
+    M420DllMapEffect *mapEffect = &mapEffects[effectIndex];
+    return mapEffect->mapScale >= 200.0f;
 }
 
-s32 fn_1_67E8(s32 arg0)
+s32 GetMapEffectFlags(s32 effectIndex)
 {
-    M420DllUnkMapStruct *var_r31 = &lbl_1_bss_C0[arg0];
-    return var_r31->unk_3C;
+    M420DllMapEffect *mapEffect = &mapEffects[effectIndex];
+    return mapEffect->mapFlags;
 }
 
-s32 fn_1_6810(void)
+s32 GetMapRoundIndex(void)
 {
-    return lbl_1_bss_B4;
+    return mapRoundIndex;
 }
 
-void fn_1_6820(void)
+void UpdateRoundCounterProcess(void)
 {
     while (TRUE) {
-        if (lbl_1_bss_B8 > 0) {
-            if (--lbl_1_bss_B8 <= 0) {
-                Hu3DModelAttrSet(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_PAUSE);
+        if (roundCounterTimer > 0) {
+            if (--roundCounterTimer <= 0) {
+                Hu3DModelAttrSet(mapModelIds[0xF], HU3D_MOTATTR_PAUSE);
             }
         }
         HuPrcVSleep();
     }
 }
 
-void fn_1_6884(void)
+void UpdateMapObjectsProcess(void)
 {
-    s32 var_r31;
-    M420DllUnkMapStruct *var_r30;
-    M420DllUnkMapStruct *var_r29;
+    s32 mapObjectIndex;
+    M420DllMapEffect *secondaryMapEffect;
+    M420DllMapEffect *mapEffect;
 
     while (TRUE) {
-        for (var_r31 = 0; var_r31 < 0xF; var_r31++) {
-            fn_1_6DF0(&lbl_1_bss_140[var_r31]);
+        for (mapObjectIndex = 0; mapObjectIndex < 0xF; mapObjectIndex++) {
+            UpdateMapObjectTransform(&mapObjects[mapObjectIndex]);
         }
-        for (var_r31 = 0; var_r31 < 2; var_r31++) {
-            fn_1_5C8C(&lbl_1_bss_C0[var_r31]);
+        for (mapObjectIndex = 0; mapObjectIndex < 2; mapObjectIndex++) {
+            UpdateMapEffect(&mapEffects[mapObjectIndex]);
         }
-        var_r30 = lbl_1_bss_C0;
-        if ((var_r30->unk_1C >= 200.0f) || (var_r29 = &lbl_1_bss_C0[1], var_r29->unk_1C >= 200.0f)) {
-            lbl_1_bss_B0 = 1;
+        secondaryMapEffect = mapEffects;
+        if ((secondaryMapEffect->mapScale >= 200.0f) || (mapEffect = &mapEffects[1], mapEffect->mapScale >= 200.0f)) {
+            mapRevealComplete = 1;
         }
         HuPrcVSleep();
     }
 }
 
-void fn_1_6950(void)
+void LoadMapModels(void)
 {
-    s32 var_r31;
+    s32 modelIndex;
 
-    for (var_r31 = 0; var_r31 < 0x1B; var_r31++) {
-        lbl_1_bss_9F0[var_r31] = Hu3DModelCreateFile(lbl_1_rodata_360[var_r31]);
+    for (modelIndex = 0; modelIndex < 0x1B; modelIndex++) {
+        mapModelIds[modelIndex] = Hu3DModelCreateFile(mapModelDataIds[modelIndex]);
     }
-    Hu3DModelAttrSet(lbl_1_bss_9F0[1], HU3D_MOTATTR_LOOP);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0xA], HU3D_MOTATTR_LOOP);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[3], HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[2], HU3D_MOTATTR_PAUSE);
-    Hu3DModelPosSet(lbl_1_bss_9F0[0xF], -219.0f, 300.0f, -92.0f);
-    Hu3DModelRotSet(lbl_1_bss_9F0[0xF], 0.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(lbl_1_bss_9F0[0x10], 0.0f, 0.0f, 0.0f);
-    Hu3DModelShadowMapSet(lbl_1_bss_9F0[0]);
-    Hu3DModelShadowMapSet(lbl_1_bss_9F0[0xD]);
-    Hu3DModelShadowMapSet(lbl_1_bss_9F0[0xE]);
-    Hu3DModelShadowSet(lbl_1_bss_9F0[0xF]);
-    Hu3DModelShadowSet(lbl_1_bss_9F0[1]);
-    Hu3DModelShadowSet(lbl_1_bss_9F0[0xA]);
-    Hu3DModelShadowSet(lbl_1_bss_9F0[0xB]);
-    Hu3DModelShadowSet(lbl_1_bss_9F0[0x10]);
-    Hu3DModelShadowSet(lbl_1_bss_9F0[0x14]);
-    Hu3DModelShadowSet(lbl_1_bss_9F0[0x13]);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[4], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[5], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[6], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[7], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[8], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[9], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0xB], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0xC], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0x15], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0x16], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0x17], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0x18], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0x19], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0x1A], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_PAUSE);
-    Hu3DMotionStartEndSet(lbl_1_bss_9F0[0xF], 30.0f, 30.0f);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[0xF], 30.0f);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[0xF], HU3D_MOTATTR_PAUSE);
-    Hu3DModelHookSet(lbl_1_bss_9F0[1], "itemhook_sao", lbl_1_bss_9F0[0xA]);
+    Hu3DModelAttrSet(mapModelIds[1], HU3D_MOTATTR_LOOP);
+    Hu3DModelAttrSet(mapModelIds[0xA], HU3D_MOTATTR_LOOP);
+    Hu3DModelAttrSet(mapModelIds[3], HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrSet(mapModelIds[2], HU3D_MOTATTR_PAUSE);
+    Hu3DModelPosSet(mapModelIds[0xF], -219.0f, 300.0f, -92.0f);
+    Hu3DModelRotSet(mapModelIds[0xF], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(mapModelIds[0x10], 0.0f, 0.0f, 0.0f);
+    Hu3DModelShadowMapSet(mapModelIds[0]);
+    Hu3DModelShadowMapSet(mapModelIds[0xD]);
+    Hu3DModelShadowMapSet(mapModelIds[0xE]);
+    Hu3DModelShadowSet(mapModelIds[0xF]);
+    Hu3DModelShadowSet(mapModelIds[1]);
+    Hu3DModelShadowSet(mapModelIds[0xA]);
+    Hu3DModelShadowSet(mapModelIds[0xB]);
+    Hu3DModelShadowSet(mapModelIds[0x10]);
+    Hu3DModelShadowSet(mapModelIds[0x14]);
+    Hu3DModelShadowSet(mapModelIds[0x13]);
+    Hu3DModelAttrSet(mapModelIds[4], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[5], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[6], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[7], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[8], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[9], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[0xB], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[0xC], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[0x15], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[0x16], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[0x17], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[0x18], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[0x19], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[0x1A], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[0xF], HU3D_MOTATTR_PAUSE);
+    Hu3DMotionStartEndSet(mapModelIds[0xF], 30.0f, 30.0f);
+    Hu3DMotionTimeSet(mapModelIds[0xF], 30.0f);
+    Hu3DModelAttrSet(mapModelIds[0xF], HU3D_MOTATTR_PAUSE);
+    Hu3DModelHookSet(mapModelIds[1], "itemhook_sao", mapModelIds[0xA]);
 }
 
-void fn_1_6D0C(void)
+void UnloadMapModels(void)
 {
-    s32 var_r31;
+    s32 modelIndex;
 
-    for (var_r31 = 0; var_r31 < 0x1B; var_r31++) {
-        Hu3DModelKill(lbl_1_bss_9F0[var_r31]);
+    for (modelIndex = 0; modelIndex < 0x1B; modelIndex++) {
+        Hu3DModelKill(mapModelIds[modelIndex]);
     }
 }
 
-void fn_1_6D5C(void)
+void InitializeMapLighting(void)
 {
-    HU3DLIGHT *var_r31;
+    HU3DLIGHT *globalLight;
 
     Hu3DLighInit();
-    lbl_1_bss_9EC = Hu3DGLightCreateV(&lbl_1_data_138.unk_00, &lbl_1_data_138.unk_0C, &lbl_1_data_138.unk_18);
-    Hu3DGLightInfinitytSet(lbl_1_bss_9EC);
-    var_r31 = &Hu3DGlobalLight[lbl_1_bss_9EC];
-    var_r31->type |= 0x8000;
+    mapLightId = Hu3DGLightCreateV(&mapLightConfig.mapObjects, &mapLightConfig.mapLights, &mapLightConfig.mapTintColor);
+    Hu3DGLightInfinitytSet(mapLightId);
+    globalLight = &Hu3DGlobalLight[mapLightId];
+    globalLight->type |= 0x8000;
 }
 
-void fn_1_6DF0(M420DllUnkMapStruct2 *arg0)
+void UpdateMapObjectTransform(M420DllMapObject *mapObject)
 {
-    float var_f31;
+    float interpolationFactor;
 
-    if (arg0->unk_00_field3) {
-        if (arg0->unk_00_field0) {
-            switch (arg0->unk_78) {
+    if (mapObject->useLighting) {
+        if (mapObject->isVisible) {
+            switch (mapObject->positionEasingMode) {
                 case 0:
-                    var_f31 = arg0->unk_70;
+                    interpolationFactor = mapObject->animationFrame;
                     break;
                 case 1:
-                    var_f31 = sind((90.0f * arg0->unk_70));
-                    var_f31 *= var_f31;
+                    interpolationFactor = sind((90.0f * mapObject->animationFrame));
+                    interpolationFactor *= interpolationFactor;
                     break;
                 case 2:
-                    var_f31 = sind((90.0f * arg0->unk_70));
-                    var_f31 *= var_f31 * var_f31;
+                    interpolationFactor = sind((90.0f * mapObject->animationFrame));
+                    interpolationFactor *= interpolationFactor * interpolationFactor;
                     break;
             }
-            arg0->unk_04.x = arg0->unk_10.x + (var_f31 * (arg0->unk_1C.x - arg0->unk_10.x));
-            arg0->unk_04.y = arg0->unk_10.y + (var_f31 * (arg0->unk_1C.y - arg0->unk_10.y));
-            arg0->unk_04.z = arg0->unk_10.z + (var_f31 * (arg0->unk_1C.z - arg0->unk_10.z));
-            if ((arg0->unk_70 += arg0->unk_74) >= 1.0f) {
-                arg0->unk_04 = arg0->unk_1C;
-                arg0->unk_00_field0 = 0;
+            mapObject->mapEffects.x = mapObject->mapTextures.x + (interpolationFactor * (mapObject->mapScale.x - mapObject->mapTextures.x));
+            mapObject->mapEffects.y = mapObject->mapTextures.y + (interpolationFactor * (mapObject->mapScale.y - mapObject->mapTextures.y));
+            mapObject->mapEffects.z = mapObject->mapTextures.z + (interpolationFactor * (mapObject->mapScale.z - mapObject->mapTextures.z));
+            if ((mapObject->animationFrame += mapObject->animationSpeed) >= 1.0f) {
+                mapObject->mapEffects = mapObject->mapScale;
+                mapObject->isVisible = 0;
             }
         }
-        Hu3DModelPosSet(arg0->unk_02, arg0->unk_04.x, arg0->unk_04.y, arg0->unk_04.z);
-        if (arg0->unk_00_field1) {
-            switch (arg0->unk_84) {
+        Hu3DModelPosSet(mapObject->mapVariant, mapObject->mapEffects.x, mapObject->mapEffects.y, mapObject->mapEffects.z);
+        if (mapObject->isAnimated) {
+            switch (mapObject->effectState) {
                 case 0:
-                    var_f31 = arg0->unk_7C;
+                    interpolationFactor = mapObject->animationTimer;
                     break;
                 case 1:
-                    var_f31 = sind((90.0f * arg0->unk_7C));
-                    var_f31 *= var_f31;
+                    interpolationFactor = sind((90.0f * mapObject->animationTimer));
+                    interpolationFactor *= interpolationFactor;
                     break;
             }
-            arg0->unk_28.x = arg0->unk_34.x + (var_f31 * (arg0->unk_40.x - arg0->unk_34.x));
-            arg0->unk_28.y = arg0->unk_34.y + (var_f31 * (arg0->unk_40.y - arg0->unk_34.y));
-            arg0->unk_28.z = arg0->unk_34.z + (var_f31 * (arg0->unk_40.z - arg0->unk_34.z));
-            if ((arg0->unk_7C += arg0->unk_80) >= 1.0f) {
-                arg0->unk_28 = arg0->unk_40;
-                arg0->unk_00_field1 = 0;
+            mapObject->mapOffsetY.x = mapObject->startingRotation.x + (interpolationFactor * (mapObject->targetRotation.x - mapObject->startingRotation.x));
+            mapObject->mapOffsetY.y = mapObject->startingRotation.y + (interpolationFactor * (mapObject->targetRotation.y - mapObject->startingRotation.y));
+            mapObject->mapOffsetY.z = mapObject->startingRotation.z + (interpolationFactor * (mapObject->targetRotation.z - mapObject->startingRotation.z));
+            if ((mapObject->animationTimer += mapObject->animationProgress) >= 1.0f) {
+                mapObject->mapOffsetY = mapObject->targetRotation;
+                mapObject->isAnimated = 0;
             }
         }
-        Hu3DModelRotSet(arg0->unk_02, arg0->unk_28.x, arg0->unk_28.y, arg0->unk_28.z);
-        if (arg0->unk_00_field2) {
-            switch (arg0->unk_90) {
+        Hu3DModelRotSet(mapObject->mapVariant, mapObject->mapOffsetY.x, mapObject->mapOffsetY.y, mapObject->mapOffsetY.z);
+        if (mapObject->isAttached) {
+            switch (mapObject->effectFlags) {
                 case 0:
-                    var_f31 = arg0->unk_88;
+                    interpolationFactor = mapObject->effectTimer;
                     break;
                 case 1:
-                    var_f31 = sind((90.0f * arg0->unk_88));
-                    var_f31 *= var_f31;
+                    interpolationFactor = sind((90.0f * mapObject->effectTimer));
+                    interpolationFactor *= interpolationFactor;
                     break;
             }
-            arg0->unk_4C.x = arg0->unk_58.x + (var_f31 * (arg0->unk_64.x - arg0->unk_58.x));
-            arg0->unk_4C.y = arg0->unk_58.y + (var_f31 * (arg0->unk_64.y - arg0->unk_58.y));
-            arg0->unk_4C.z = arg0->unk_58.z + (var_f31 * (arg0->unk_64.z - arg0->unk_58.z));
-            if ((arg0->unk_88 += arg0->unk_8C) >= 1.0f) {
-                arg0->unk_4C = arg0->unk_64;
-                arg0->unk_00_field2 = 0;
+            mapObject->targetScale.x = mapObject->animationPosition.x + (interpolationFactor * (mapObject->animationRotation.x - mapObject->animationPosition.x));
+            mapObject->targetScale.y = mapObject->animationPosition.y + (interpolationFactor * (mapObject->animationRotation.y - mapObject->animationPosition.y));
+            mapObject->targetScale.z = mapObject->animationPosition.z + (interpolationFactor * (mapObject->animationRotation.z - mapObject->animationPosition.z));
+            if ((mapObject->effectTimer += mapObject->effectScale) >= 1.0f) {
+                mapObject->targetScale = mapObject->animationRotation;
+                mapObject->isAttached = 0;
             }
         }
-        Hu3DModelScaleSet(arg0->unk_02, arg0->unk_4C.x, arg0->unk_4C.y, arg0->unk_4C.z);
+        Hu3DModelScaleSet(mapObject->mapVariant, mapObject->targetScale.x, mapObject->targetScale.y, mapObject->targetScale.z);
     }
 }
 
-void fn_1_7230(M420DllUnkMapStruct2 *arg0, Vec *arg1, s32 arg2, s32 arg3)
+void AnimateMapObjectPosition(M420DllMapObject *mapObject, Vec *targetPosition, s32 durationFrames, s32 easingMode)
 {
-    arg0->unk_1C = *arg1;
-    arg0->unk_10 = arg0->unk_04;
-    arg0->unk_70 = 0.0f;
-    arg0->unk_74 = 1.0f / arg2;
-    arg0->unk_78 = arg3;
-    arg0->unk_00_field0 = 1;
+    mapObject->mapScale = *targetPosition;
+    mapObject->mapTextures = mapObject->mapEffects;
+    mapObject->animationFrame = 0.0f;
+    mapObject->animationSpeed = 1.0f / durationFrames;
+    mapObject->positionEasingMode = easingMode;
+    mapObject->isVisible = 1;
 }
 
-void fn_1_72C8(M420DllUnkMapStruct2 *arg0, Vec *arg1, s32 arg2, s32 arg3)
+void AnimateMapObjectRotation(M420DllMapObject *mapObject, Vec *targetRotation, s32 durationFrames, s32 easingMode)
 {
-    arg0->unk_40 = *arg1;
-    arg0->unk_34 = arg0->unk_28;
-    arg0->unk_7C = 0.0f;
-    arg0->unk_80 = 1.0f / arg2;
-    arg0->unk_84 = arg3;
-    arg0->unk_00_field1 = 1;
+    mapObject->targetRotation = *targetRotation;
+    mapObject->startingRotation = mapObject->mapOffsetY;
+    mapObject->animationTimer = 0.0f;
+    mapObject->animationProgress = 1.0f / durationFrames;
+    mapObject->effectState = easingMode;
+    mapObject->isAnimated = 1;
 }
 
-void fn_1_7360(M420DllUnkMapStruct2 *arg0, Vec *arg1, s32 arg2, s32 arg3)
+void AnimateMapObjectScale(M420DllMapObject *mapObject, Vec *targetScale, s32 durationFrames, s32 easingMode)
 {
-    arg0->unk_64 = *arg1;
-    arg0->unk_58 = arg0->unk_4C;
-    arg0->unk_88 = 0.0f;
-    arg0->unk_8C = 1.0f / arg2;
-    arg0->unk_90 = arg3;
-    arg0->unk_00_field2 = 1;
+    mapObject->animationRotation = *targetScale;
+    mapObject->animationPosition = mapObject->targetScale;
+    mapObject->effectTimer = 0.0f;
+    mapObject->effectScale = 1.0f / durationFrames;
+    mapObject->effectFlags = easingMode;
+    mapObject->isAttached = 1;
 }
 
-float fn_1_73F8(float arg8)
+float EvaluateSplineWeight(float curvePosition)
 {
-    float var_f31;
-    float var_f30;
+    float frameProgress;
+    float secondaryFrameProgress;
 
-    if (arg8 < 0.0f) {
-        arg8 = -arg8;
+    if (curvePosition < 0.0f) {
+        curvePosition = -curvePosition;
     }
-    if (arg8 < 1.0f) {
-        var_f31 = (4.0f + ((arg8 * (3.0f * arg8 * arg8)) - (6.0f * arg8 * arg8))) / 6.0f;
+    if (curvePosition < 1.0f) {
+        frameProgress = (4.0f + ((curvePosition * (3.0f * curvePosition * curvePosition)) - (6.0f * curvePosition * curvePosition))) / 6.0f;
     }
-    else if (arg8 < 2.0f) {
-        var_f30 = arg8 - 2.0f;
-        var_f31 = (var_f30 * (-var_f30 * var_f30)) / 6.0f;
+    else if (curvePosition < 2.0f) {
+        secondaryFrameProgress = curvePosition - 2.0f;
+        frameProgress = (secondaryFrameProgress * (-secondaryFrameProgress * secondaryFrameProgress)) / 6.0f;
     }
     else {
-        var_f31 = 0.0f;
+        frameProgress = 0.0f;
     }
-    return var_f31;
+    return frameProgress;
 }
 
-void fn_1_74F8(float *arg0, float *arg1, float *arg2, float *arg3, float arg8)
+void EvaluateSplinePosition(float *controlPoint0, float *controlPoint1, float *controlPoint2, float *controlPoint3, float curvePosition)
 {
-    float var_f30;
-    float var_f29;
-    float var_f26;
+    float secondaryFrameProgress;
+    float secondaryFrameProgress;
+    float frameProgress;
 
-    s32 var_r31;
-    s32 var_r30;
-    s32 var_r29;
+    s32 loopIndex;
+    s32 result;
+    s32 stateValue;
 
-    var_r29 = 0xB;
-    var_f30 = 0.0f;
-    var_f29 = 0.0f;
-    for (var_r31 = -2; var_r31 <= var_r29 + 2; var_r31++) {
-        var_r30 = var_r31;
-        if (var_r31 < 0) {
-            var_r30 = 0;
+    stateValue = 0xB;
+    secondaryFrameProgress = 0.0f;
+    secondaryFrameProgress = 0.0f;
+    for (loopIndex = -2; loopIndex <= stateValue + 2; loopIndex++) {
+        result = loopIndex;
+        if (loopIndex < 0) {
+            result = 0;
         }
-        if (var_r31 > var_r29) {
-            var_r30 = var_r29;
+        if (loopIndex > stateValue) {
+            result = stateValue;
         }
-        var_f26 = fn_1_73F8(arg8 - var_r31);
-        var_f30 += var_f26 * arg0[var_r30];
-        var_f29 += var_f26 * arg1[var_r30];
+        frameProgress = EvaluateSplineWeight(curvePosition - loopIndex);
+        secondaryFrameProgress += frameProgress * controlPoint0[result];
+        secondaryFrameProgress += frameProgress * controlPoint1[result];
     }
-    *arg2 = var_f30;
-    *arg3 = var_f29;
+    *controlPoint2 = secondaryFrameProgress;
+    *controlPoint3 = secondaryFrameProgress;
 }
 
-void fn_1_7704(void)
+void RunMapEventIntro(void)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+    Vec secondaryTransformVector;
+    Vec secondaryTransformVector;
+    Vec transformVector;
 
-    M420DllUnkMapStruct2 *var_r31;
-    s32 var_r29;
-    s32 var_r28;
+    M420DllMapObject *mapObject;
+    s32 mapObjectIndex;
+    s32 result;
 
-    var_r28 = 0;
-    var_r31 = &lbl_1_bss_140[0];
-    sp20.x = 0.0f;
-    sp20.y = 1000.0f;
-    sp20.z = 0.0f;
+    result = 0;
+    mapObject = &mapObjects[0];
+    secondaryTransformVector.x = 0.0f;
+    secondaryTransformVector.y = 1000.0f;
+    secondaryTransformVector.z = 0.0f;
 
-    sp14.x = 0.0f;
-    sp14.y = 0.0f;
-    sp14.z = 0.0f;
+    secondaryTransformVector.x = 0.0f;
+    secondaryTransformVector.y = 0.0f;
+    secondaryTransformVector.z = 0.0f;
 
-    sp8.x = 1.0f;
-    sp8.y = 1.0f;
-    sp8.z = 1.0f;
+    transformVector.x = 1.0f;
+    transformVector.y = 1.0f;
+    transformVector.z = 1.0f;
 
-    fn_1_7230(var_r31, &sp20, 1, 0);
-    fn_1_72C8(var_r31, &sp14, 1, 0);
-    var_r28 = HuAudFXEmiterPlay(0x5EF, &sp20);
-    sp20.y = 750.0f;
-    fn_1_7230(var_r31, &sp20, 80, 1);
+    AnimateMapObjectPosition(mapObject, &secondaryTransformVector, 1, 0);
+    AnimateMapObjectRotation(mapObject, &secondaryTransformVector, 1, 0);
+    result = HuAudFXEmiterPlay(0x5EF, &secondaryTransformVector);
+    secondaryTransformVector.y = 750.0f;
+    AnimateMapObjectPosition(mapObject, &secondaryTransformVector, 80, 1);
     HuPrcSleep(0x50);
     {
-        float var_f30;
-        float sp5C[12] = {
+        float splineParameter;
+        float splineControlPointsX[12] = {
             0.0f,
             50.0f,
             300.0f,
@@ -991,7 +991,7 @@ void fn_1_7704(void)
             -100.0f,
             0.0f,
         };
-        float sp2C[12] = {
+        float splineControlPointsY[12] = {
             750.0f,
             700.0f,
             600.0f,
@@ -1005,213 +1005,213 @@ void fn_1_7704(void)
             600.0f,
             900.0f,
         };
-        float var_f24 = 0.050000004f;
-        for (var_f30 = -1.0f; var_f30 < 12.0f; var_f30 += var_f24) {
-            fn_1_74F8(sp5C, sp2C, &sp20.x, &sp20.y, var_f30);
-            fn_1_7230(var_r31, &sp20, 1, 0);
-            HuAudFXEmiterUpDate(var_r28, &sp20);
+        float splineStep = 0.050000004f;
+        for (splineParameter = -1.0f; splineParameter < 12.0f; splineParameter += splineStep) {
+            EvaluateSplinePosition(splineControlPointsX, splineControlPointsY, &secondaryTransformVector.x, &secondaryTransformVector.y, splineParameter);
+            AnimateMapObjectPosition(mapObject, &secondaryTransformVector, 1, 0);
+            HuAudFXEmiterUpDate(result, &secondaryTransformVector);
             HuPrcVSleep();
         }
     }
-    for (var_r29 = 0; var_r29 < 0x1E; var_r29++) {
-        Hu3DModelTPLvlSet(lbl_1_bss_9F0[1], 1.0f - (0.033333335f * var_r29));
-        Hu3DModelTPLvlSet(lbl_1_bss_9F0[0xA], 1.0f - (0.033333335f * var_r29));
-        HuAudFXEmiterUpDate(var_r28, &sp20);
+    for (mapObjectIndex = 0; mapObjectIndex < 0x1E; mapObjectIndex++) {
+        Hu3DModelTPLvlSet(mapModelIds[1], 1.0f - (0.033333335f * mapObjectIndex));
+        Hu3DModelTPLvlSet(mapModelIds[0xA], 1.0f - (0.033333335f * mapObjectIndex));
+        HuAudFXEmiterUpDate(result, &secondaryTransformVector);
         HuPrcSleep(1);
     }
-    HuAudFXStop(var_r28);
-    sp20.x = 1000.0f;
-    sp20.y = 0.0f;
-    sp20.z = 0.0f;
-    fn_1_7230(var_r31, &sp20, 1, 0);
+    HuAudFXStop(result);
+    secondaryTransformVector.x = 1000.0f;
+    secondaryTransformVector.y = 0.0f;
+    secondaryTransformVector.z = 0.0f;
+    AnimateMapObjectPosition(mapObject, &secondaryTransformVector, 1, 0);
     HuPrcSleep(1);
-    Hu3DModelTPLvlSet(lbl_1_bss_9F0[1], 1.0f);
-    Hu3DModelTPLvlSet(lbl_1_bss_9F0[0xA], 1.0f);
-    *lbl_1_bss_A2C = NULL;
+    Hu3DModelTPLvlSet(mapModelIds[1], 1.0f);
+    Hu3DModelTPLvlSet(mapModelIds[0xA], 1.0f);
+    *mapEventProcesses = NULL;
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_7E24(void)
+void RunMapEventMiddle(void)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
+    float secondaryInterpolationFactor;
+    float secondaryInterpolationFactor;
+    float secondaryInterpolationFactor;
+    float secondaryInterpolationFactor;
+    float secondaryInterpolationFactor;
+    float interpolationFactor;
 
-    M420DllUnkMapStruct2 *var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    M420DllUnkMapStruct *var_r27;
-    s32 var_r26;
-    s32 var_r25;
+    M420DllMapObject *mapObject;
+    s32 tertiaryResult;
+    s32 secondaryResult;
+    s32 result;
+    M420DllMapEffect *mapEffect;
+    s32 secondaryStateValue;
+    s32 stateValue;
 
-    var_r31 = &lbl_1_bss_140[0];
+    mapObject = &mapObjects[0];
     {
-        Vec sp8 = { 0.0f, 0.0f, 0.0f };
-        var_f29 = 800.0f;
-        var_f28 = 10.0f;
-        var_r29 = 0;
-        var_r28 = 0;
-        var_r30 = 0;
-        var_r31->unk_28.x = 0.0f;
-        var_r31->unk_28.y = 0.0f;
-        var_r31->unk_28.z = 0.0f;
-        var_f31 = 0.0f;
-        var_f26 = 0.005f;
-        var_r27 = &lbl_1_bss_C0[1];
-        var_r26 = var_r27->unk_3C;
-        var_r25 = var_r26;
-        if (var_r25 != 0) {
-            var_f27 = 220.0f;
+        Vec transformVector = { 0.0f, 0.0f, 0.0f };
+        secondaryInterpolationFactor = 800.0f;
+        secondaryInterpolationFactor = 10.0f;
+        secondaryResult = 0;
+        result = 0;
+        tertiaryResult = 0;
+        mapObject->mapOffsetY.x = 0.0f;
+        mapObject->mapOffsetY.y = 0.0f;
+        mapObject->mapOffsetY.z = 0.0f;
+        secondaryInterpolationFactor = 0.0f;
+        interpolationFactor = 0.005f;
+        mapEffect = &mapEffects[1];
+        secondaryStateValue = mapEffect->mapFlags;
+        stateValue = secondaryStateValue;
+        if (stateValue != 0) {
+            secondaryInterpolationFactor = 220.0f;
         }
         else {
-            var_f27 = -220.0f;
+            secondaryInterpolationFactor = -220.0f;
         }
 
-        for (var_f30 = var_f27; var_f31 < 1.0f; var_f31 += var_f26) {
-            sp8.x = (var_f29 * cosd((-180.0f * var_f31))) - (var_f28 * sind((-180.0f * var_f31)));
-            sp8.y = 1200.0 + ((var_f28 * cosd((-180.0f * var_f31))) + (var_f29 * sind((-180.0f * var_f31))));
-            sp8.z = 0.0f;
-            if (var_f31 <= 0.0f) {
-                var_r30 = HuAudFXEmiterPlay(0x5EF, &sp8);
+        for (secondaryInterpolationFactor = secondaryInterpolationFactor; secondaryInterpolationFactor < 1.0f; secondaryInterpolationFactor += interpolationFactor) {
+            transformVector.x = (secondaryInterpolationFactor * cosd((-180.0f * secondaryInterpolationFactor))) - (secondaryInterpolationFactor * sind((-180.0f * secondaryInterpolationFactor)));
+            transformVector.y = 1200.0 + ((secondaryInterpolationFactor * cosd((-180.0f * secondaryInterpolationFactor))) + (secondaryInterpolationFactor * sind((-180.0f * secondaryInterpolationFactor))));
+            transformVector.z = 0.0f;
+            if (secondaryInterpolationFactor <= 0.0f) {
+                tertiaryResult = HuAudFXEmiterPlay(0x5EF, &transformVector);
             }
-            if ((sp8.x < (200.0f + var_f30)) && (var_r28 == 0)) {
-                Hu3DModelHookReset(lbl_1_bss_9F0[1]);
-                Hu3DModelAttrSet(lbl_1_bss_9F0[0xA], HU3D_ATTR_DISPOFF);
-                Hu3DModelHookSet(lbl_1_bss_9F0[1], "itemhook_sao", lbl_1_bss_9F0[0xC]);
-                Hu3DModelAttrReset(lbl_1_bss_9F0[0xC], HU3D_ATTR_DISPOFF);
-                Hu3DMotionTimeSet(lbl_1_bss_9F0[0xC], 0.0f);
-                var_r28 = 1;
+            if ((transformVector.x < (200.0f + secondaryInterpolationFactor)) && (result == 0)) {
+                Hu3DModelHookReset(mapModelIds[1]);
+                Hu3DModelAttrSet(mapModelIds[0xA], HU3D_ATTR_DISPOFF);
+                Hu3DModelHookSet(mapModelIds[1], "itemhook_sao", mapModelIds[0xC]);
+                Hu3DModelAttrReset(mapModelIds[0xC], HU3D_ATTR_DISPOFF);
+                Hu3DMotionTimeSet(mapModelIds[0xC], 0.0f);
+                result = 1;
             }
-            if ((sp8.x < var_f30) && (var_r29 == 0)) {
-                sp8.x = var_f30;
-                if (lbl_1_bss_A2C[3] == NULL) {
-                    lbl_1_bss_A2C[3] = HuPrcChildCreate(lbl_1_data_154[3], 0x3ED, 0x5000, 0, lbl_1_bss_4);
+            if ((transformVector.x < secondaryInterpolationFactor) && (secondaryResult == 0)) {
+                transformVector.x = secondaryInterpolationFactor;
+                if (mapEventProcesses[3] == NULL) {
+                    mapEventProcesses[3] = HuPrcChildCreate(mapEventCallbacks[3], 0x3ED, 0x5000, 0, minigameObjectManager);
                 }
-                var_r29 = 1;
+                secondaryResult = 1;
             }
-            fn_1_7230(var_r31, &sp8, 1, 0);
-            HuAudFXEmiterUpDate(var_r30, &sp8);
+            AnimateMapObjectPosition(mapObject, &transformVector, 1, 0);
+            HuAudFXEmiterUpDate(tertiaryResult, &transformVector);
             HuPrcVSleep();
         }
     }
-    HuAudFXStop(var_r30);
-    lbl_1_bss_A2C[1] = NULL;
+    HuAudFXStop(tertiaryResult);
+    mapEventProcesses[1] = NULL;
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_8240(void)
+void RunMapEventFinale(void)
 {
-    Hu3DModelAttrReset(lbl_1_bss_9F0[4], HU3D_ATTR_DISPOFF);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[4], 0.0f);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[6], HU3D_ATTR_DISPOFF);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[6], 0.0f);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[8], HU3D_ATTR_DISPOFF);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[8], 0.0f);
+    Hu3DModelAttrReset(mapModelIds[4], HU3D_ATTR_DISPOFF);
+    Hu3DMotionTimeSet(mapModelIds[4], 0.0f);
+    Hu3DModelAttrReset(mapModelIds[6], HU3D_ATTR_DISPOFF);
+    Hu3DMotionTimeSet(mapModelIds[6], 0.0f);
+    Hu3DModelAttrReset(mapModelIds[8], HU3D_ATTR_DISPOFF);
+    Hu3DMotionTimeSet(mapModelIds[8], 0.0f);
     HuPrcSleep(0x78);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[4], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[6], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[8], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[5], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[5], HU3D_MOTATTR_LOOP);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[5], 0.0f);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[7], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[7], HU3D_MOTATTR_LOOP);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[7], 0.0f);
-    Hu3DModelAttrReset(lbl_1_bss_9F0[9], HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrSet(lbl_1_bss_9F0[9], HU3D_MOTATTR_LOOP);
-    Hu3DMotionTimeSet(lbl_1_bss_9F0[9], 0.0f);
-    lbl_1_bss_A2C[2] = NULL;
+    Hu3DModelAttrSet(mapModelIds[4], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[6], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[8], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(mapModelIds[5], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[5], HU3D_MOTATTR_LOOP);
+    Hu3DMotionTimeSet(mapModelIds[5], 0.0f);
+    Hu3DModelAttrReset(mapModelIds[7], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[7], HU3D_MOTATTR_LOOP);
+    Hu3DMotionTimeSet(mapModelIds[7], 0.0f);
+    Hu3DModelAttrReset(mapModelIds[9], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(mapModelIds[9], HU3D_MOTATTR_LOOP);
+    Hu3DMotionTimeSet(mapModelIds[9], 0.0f);
+    mapEventProcesses[2] = NULL;
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_8414(void)
+void RunMapEventCleanup(void)
 {
-    Vec sp14;
-    Vec sp8;
+    Vec secondaryTransformVector;
+    Vec transformVector;
 
-    float var_f31;
-    float var_f30;
+    float secondaryFrameProgress;
+    float frameProgress;
 
-    M420DllUnkMapStruct2 *var_r31;
-    M420DllUnkMapStruct *var_r30;
-    M420DllUnkMapStruct2 *var_r29;
-    M420DllUnkMapStruct2 *var_r28;
-    M420DllUnkMapStruct2 *var_r27;
-    M420DllUnkMapStruct2 *var_r26;
-    s32 var_r25;
+    M420DllMapObject *secondaryMapObject;
+    M420DllMapEffect *mapEffect;
+    M420DllMapObject *secondaryMapObject;
+    M420DllMapObject *secondaryMapObject;
+    M420DllMapObject *secondaryMapObject;
+    M420DllMapObject *mapObject;
+    s32 effectIndex;
 
-    var_r31 = &lbl_1_bss_140[2];
-    var_r27 = &lbl_1_bss_140[3];
-    var_r26 = &lbl_1_bss_140[0];
-    Hu3DModelHookReset(lbl_1_bss_9F0[1]);
-    var_r31->unk_04 = var_r26->unk_04;
-    var_r31->unk_04.y -= 100.0f;
-    var_r31->unk_04.z += 148.0f;
-    fn_1_6DF0(var_r31);
+    secondaryMapObject = &mapObjects[2];
+    secondaryMapObject = &mapObjects[3];
+    mapObject = &mapObjects[0];
+    Hu3DModelHookReset(mapModelIds[1]);
+    secondaryMapObject->mapEffects = mapObject->mapEffects;
+    secondaryMapObject->mapEffects.y -= 100.0f;
+    secondaryMapObject->mapEffects.z += 148.0f;
+    UpdateMapObjectTransform(secondaryMapObject);
 
-    sp14 = var_r31->unk_04;
-    sp14.y = 80.0f;
-    sp14.z = 170.0f;
+    secondaryTransformVector = secondaryMapObject->mapEffects;
+    secondaryTransformVector.y = 80.0f;
+    secondaryTransformVector.z = 170.0f;
 
-    sp8 = var_r31->unk_28;
-    sp8.x += 45.0f;
+    transformVector = secondaryMapObject->mapOffsetY;
+    transformVector.x += 45.0f;
 
-    fn_1_7230(var_r31, &sp14, 30, 0);
-    fn_1_72C8(var_r31, &sp8, 30, 0);
+    AnimateMapObjectPosition(secondaryMapObject, &secondaryTransformVector, 30, 0);
+    AnimateMapObjectRotation(secondaryMapObject, &transformVector, 30, 0);
     HuPrcSleep(0xA);
     HuAudFXPlay(0x5F5);
-    var_r25 = fn_1_67A4(0) != 0 ? 0 : 1;
-    var_r30 = &lbl_1_bss_C0[var_r25];
-    if (var_r25 == 0) {
-        var_f30 = -220.0f;
+    effectIndex = MapRevealIsFinished(0) != 0 ? 0 : 1;
+    mapEffect = &mapEffects[effectIndex];
+    if (effectIndex == 0) {
+        frameProgress = -220.0f;
     }
     else {
-        var_f30 = 220.0f;
+        frameProgress = 220.0f;
     }
-    var_f31 = var_f30;
+    secondaryFrameProgress = frameProgress;
 
-    sp14 = var_r30->unk_0C->unk_04;
-    sp14.y = 40.0f + var_r30->unk_1C;
-    sp14.x = var_f31;
+    secondaryTransformVector = mapEffect->mapLights->mapEffects;
+    secondaryTransformVector.y = 40.0f + mapEffect->mapScale;
+    secondaryTransformVector.x = secondaryFrameProgress;
 
-    var_r29 = var_r30->unk_0C;
-    fn_1_7230(var_r29, &sp14, 30, 1);
+    secondaryMapObject = mapEffect->mapLights;
+    AnimateMapObjectPosition(secondaryMapObject, &secondaryTransformVector, 30, 1);
 
-    Hu3DMotionTimeSet(var_r30->unk_0C->unk_02, 0.0f);
-    Hu3DModelAttrReset(var_r30->unk_0C->unk_02, HU3D_ATTR_DISPOFF);
-    sp14 = var_r30->unk_10->unk_04;
-    sp14.y = -50.0f + var_r30->unk_1C;
-    sp14.x = var_f31;
-    var_r28 = var_r30->unk_10;
-    fn_1_7230(var_r28, &sp14, 30, 1);
-    Hu3DMotionTimeSet(var_r30->unk_10->unk_02, 0.0f);
-    Hu3DModelAttrReset(var_r30->unk_10->unk_02, HU3D_ATTR_DISPOFF);
+    Hu3DMotionTimeSet(mapEffect->mapLights->mapVariant, 0.0f);
+    Hu3DModelAttrReset(mapEffect->mapLights->mapVariant, HU3D_ATTR_DISPOFF);
+    secondaryTransformVector = mapEffect->mapTextures->mapEffects;
+    secondaryTransformVector.y = -50.0f + mapEffect->mapScale;
+    secondaryTransformVector.x = secondaryFrameProgress;
+    secondaryMapObject = mapEffect->mapTextures;
+    AnimateMapObjectPosition(secondaryMapObject, &secondaryTransformVector, 30, 1);
+    Hu3DMotionTimeSet(mapEffect->mapTextures->mapVariant, 0.0f);
+    Hu3DModelAttrReset(mapEffect->mapTextures->mapVariant, HU3D_ATTR_DISPOFF);
     HuPrcSleep(5);
-    lbl_1_bss_B4 = 1;
-    sp8.x = 0.0f;
-    fn_1_72C8(var_r31, &sp8, 15, 1);
+    mapRoundIndex = 1;
+    transformVector.x = 0.0f;
+    AnimateMapObjectRotation(secondaryMapObject, &transformVector, 15, 1);
     HuPrcSleep(0xF);
-    var_r27->unk_04 = var_r31->unk_04;
-    Hu3DModelAttrSet(var_r31->unk_02, HU3D_ATTR_DISPOFF);
-    Hu3DModelAttrReset(var_r27->unk_02, HU3D_ATTR_DISPOFF);
-    Hu3DMotionTimeSet(var_r27->unk_02, 0.0f);
-    Hu3DModelAttrReset(var_r27->unk_02, HU3D_MOTATTR_PAUSE);
-    Hu3DModelAttrSet(var_r27->unk_02, HU3D_MOTATTR_LOOP);
+    secondaryMapObject->mapEffects = secondaryMapObject->mapEffects;
+    Hu3DModelAttrSet(secondaryMapObject->mapVariant, HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrReset(secondaryMapObject->mapVariant, HU3D_ATTR_DISPOFF);
+    Hu3DMotionTimeSet(secondaryMapObject->mapVariant, 0.0f);
+    Hu3DModelAttrReset(secondaryMapObject->mapVariant, HU3D_MOTATTR_PAUSE);
+    Hu3DModelAttrSet(secondaryMapObject->mapVariant, HU3D_MOTATTR_LOOP);
     HuPrcSleep(0x78);
-    lbl_1_bss_A2C[3] = NULL;
+    mapEventProcesses[3] = NULL;
     HuPrcEnd();
 
     while (TRUE) {

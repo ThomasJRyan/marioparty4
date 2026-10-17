@@ -10,135 +10,135 @@
 
 #include "REL/m420dll.h"
 
-HUPROCESS *lbl_1_bss_A8;
-M420DllUnkStruct lbl_1_bss_8C;
-M420DllUnkStruct lbl_1_bss_70;
-M420DllUnkStruct lbl_1_bss_54;
-s32 lbl_1_bss_50;
-s32 lbl_1_bss_4C;
-s32 lbl_1_bss_48;
-float lbl_1_bss_44;
-float lbl_1_bss_40;
-float lbl_1_bss_3C;
-float lbl_1_bss_38;
-float lbl_1_bss_34;
-float lbl_1_bss_30;
+HUPROCESS *cameraProcess;
+M420DllCameraPose cameraPose;
+M420DllCameraPose cameraStartPose;
+M420DllCameraPose cameraTargetPose;
+s32 cameraPositionTransitionActive;
+s32 cameraAngleTransitionActive;
+s32 cameraZoomTransitionActive;
+float cameraPositionTransitionProgress;
+float cameraAngleTransitionProgress;
+float cameraZoomTransitionProgress;
+float cameraPositionTransitionStep;
+float cameraAngleTransitionStep;
+float cameraZoomTransitionStep;
 
-s32 fn_1_D98(void)
+s32 InitializeCamera(void)
 {
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 30.0f, 10.0f, 8000.0f, 1.2f);
-    lbl_1_bss_8C.unk_00.x = 0.0f;
-    lbl_1_bss_8C.unk_00.y = 0.0f;
-    lbl_1_bss_8C.unk_00.z = 0.0f;
-    lbl_1_bss_8C.unk_0C.x = -10.0f;
-    lbl_1_bss_8C.unk_0C.y = 0.0f;
-    lbl_1_bss_8C.unk_0C.z = 0.0f;
-    lbl_1_bss_8C.unk_18 = 1000.0f;
-    lbl_1_bss_50 = 0;
-    lbl_1_bss_4C = 0;
-    lbl_1_bss_48 = 0;
-    lbl_1_bss_A8 = HuPrcChildCreate(fn_1_1184, 0x1F4, 0x2000, 0, lbl_1_bss_4);
+    cameraPose.lookAtPosition.x = 0.0f;
+    cameraPose.lookAtPosition.y = 0.0f;
+    cameraPose.lookAtPosition.z = 0.0f;
+    cameraPose.cameraAngles.x = -10.0f;
+    cameraPose.cameraAngles.y = 0.0f;
+    cameraPose.cameraAngles.z = 0.0f;
+    cameraPose.cameraDistance = 1000.0f;
+    cameraPositionTransitionActive = 0;
+    cameraAngleTransitionActive = 0;
+    cameraZoomTransitionActive = 0;
+    cameraProcess = HuPrcChildCreate(UpdateCamera, 0x1F4, 0x2000, 0, minigameObjectManager);
     return 1;
 }
 
-void fn_1_F48(void)
+void ShutdownCamera(void)
 {
-    HuPrcKill(lbl_1_bss_A8);
+    HuPrcKill(cameraProcess);
 }
 
-void fn_1_F74(const Vec *arg0, s32 arg1)
+void AnimateCameraTarget(const Vec *targetPosition, s32 durationFrames)
 {
-    lbl_1_bss_54.unk_00 = *arg0;
-    lbl_1_bss_70.unk_00 = lbl_1_bss_8C.unk_00;
-    lbl_1_bss_44 = 0.0f;
-    lbl_1_bss_38 = 1.0f / arg1;
-    lbl_1_bss_50 = 1;
+    cameraTargetPose.lookAtPosition = *targetPosition;
+    cameraStartPose.lookAtPosition = cameraPose.lookAtPosition;
+    cameraPositionTransitionProgress = 0.0f;
+    cameraPositionTransitionStep = 1.0f / durationFrames;
+    cameraPositionTransitionActive = 1;
 }
 
-void fn_1_1030(const Vec *arg0, s32 arg1)
+void AnimateCameraAngles(const Vec *targetAngles, s32 durationFrames)
 {
-    lbl_1_bss_54.unk_0C = *arg0;
-    lbl_1_bss_70.unk_0C = lbl_1_bss_8C.unk_0C;
-    lbl_1_bss_40 = 0.0f;
-    lbl_1_bss_34 = 1.0f / arg1;
-    lbl_1_bss_4C = 1;
+    cameraTargetPose.cameraAngles = *targetAngles;
+    cameraStartPose.cameraAngles = cameraPose.cameraAngles;
+    cameraAngleTransitionProgress = 0.0f;
+    cameraAngleTransitionStep = 1.0f / durationFrames;
+    cameraAngleTransitionActive = 1;
 }
 
-void fn_1_10EC(float arg8, s32 arg0)
+void AnimateCameraZoom(float targetDistance, s32 durationFrames)
 {
-    lbl_1_bss_54.unk_18 = arg8;
-    lbl_1_bss_70.unk_18 = lbl_1_bss_8C.unk_18;
-    lbl_1_bss_3C = 0.0f;
-    lbl_1_bss_30 = 1.0f / arg0;
-    lbl_1_bss_48 = 1;
+    cameraTargetPose.cameraDistance = targetDistance;
+    cameraStartPose.cameraDistance = cameraPose.cameraDistance;
+    cameraZoomTransitionProgress = 0.0f;
+    cameraZoomTransitionStep = 1.0f / durationFrames;
+    cameraZoomTransitionActive = 1;
 }
 
-void fn_1_1184(void)
+void UpdateCamera(void)
 {
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
-    float var_f31;
+    Vec secondaryPositionVector;
+    Vec positionVector;
+    Vec positionVector;
+    float interpolationFactor;
 
     while (TRUE) {
-        if (lbl_1_bss_50 != 0) {
-            var_f31 = sind((90.0f * lbl_1_bss_44));
-            var_f31 *= var_f31;
-            lbl_1_bss_8C.unk_00.x = lbl_1_bss_70.unk_00.x + (var_f31 * (lbl_1_bss_54.unk_00.x - lbl_1_bss_70.unk_00.x));
-            lbl_1_bss_8C.unk_00.y = lbl_1_bss_70.unk_00.y + (var_f31 * (lbl_1_bss_54.unk_00.y - lbl_1_bss_70.unk_00.y));
-            lbl_1_bss_8C.unk_00.z = lbl_1_bss_70.unk_00.z + (var_f31 * (lbl_1_bss_54.unk_00.z - lbl_1_bss_70.unk_00.z));
-            if ((lbl_1_bss_44 += lbl_1_bss_38) >= 1.0f) {
-                lbl_1_bss_8C.unk_00 = lbl_1_bss_54.unk_00;
-                lbl_1_bss_50 = 0;
+        if (cameraPositionTransitionActive != 0) {
+            interpolationFactor = sind((90.0f * cameraPositionTransitionProgress));
+            interpolationFactor *= interpolationFactor;
+            cameraPose.lookAtPosition.x = cameraStartPose.lookAtPosition.x + (interpolationFactor * (cameraTargetPose.lookAtPosition.x - cameraStartPose.lookAtPosition.x));
+            cameraPose.lookAtPosition.y = cameraStartPose.lookAtPosition.y + (interpolationFactor * (cameraTargetPose.lookAtPosition.y - cameraStartPose.lookAtPosition.y));
+            cameraPose.lookAtPosition.z = cameraStartPose.lookAtPosition.z + (interpolationFactor * (cameraTargetPose.lookAtPosition.z - cameraStartPose.lookAtPosition.z));
+            if ((cameraPositionTransitionProgress += cameraPositionTransitionStep) >= 1.0f) {
+                cameraPose.lookAtPosition = cameraTargetPose.lookAtPosition;
+                cameraPositionTransitionActive = 0;
             }
         }
-        if (lbl_1_bss_4C != 0) {
-            var_f31 = sind((90.0f * lbl_1_bss_40));
-            var_f31 *= var_f31;
-            lbl_1_bss_8C.unk_0C.x = lbl_1_bss_70.unk_0C.x + (var_f31 * (lbl_1_bss_54.unk_0C.x - lbl_1_bss_70.unk_0C.x));
-            lbl_1_bss_8C.unk_0C.y = lbl_1_bss_70.unk_0C.y + (var_f31 * (lbl_1_bss_54.unk_0C.y - lbl_1_bss_70.unk_0C.y));
-            lbl_1_bss_8C.unk_0C.z = lbl_1_bss_70.unk_0C.z + (var_f31 * (lbl_1_bss_54.unk_0C.z - lbl_1_bss_70.unk_0C.z));
-            if ((lbl_1_bss_40 += lbl_1_bss_34) >= 1.0f) {
-                lbl_1_bss_8C.unk_0C = lbl_1_bss_54.unk_0C;
-                lbl_1_bss_4C = 0;
+        if (cameraAngleTransitionActive != 0) {
+            interpolationFactor = sind((90.0f * cameraAngleTransitionProgress));
+            interpolationFactor *= interpolationFactor;
+            cameraPose.cameraAngles.x = cameraStartPose.cameraAngles.x + (interpolationFactor * (cameraTargetPose.cameraAngles.x - cameraStartPose.cameraAngles.x));
+            cameraPose.cameraAngles.y = cameraStartPose.cameraAngles.y + (interpolationFactor * (cameraTargetPose.cameraAngles.y - cameraStartPose.cameraAngles.y));
+            cameraPose.cameraAngles.z = cameraStartPose.cameraAngles.z + (interpolationFactor * (cameraTargetPose.cameraAngles.z - cameraStartPose.cameraAngles.z));
+            if ((cameraAngleTransitionProgress += cameraAngleTransitionStep) >= 1.0f) {
+                cameraPose.cameraAngles = cameraTargetPose.cameraAngles;
+                cameraAngleTransitionActive = 0;
             }
         }
-        if (lbl_1_bss_48 != 0) {
-            var_f31 = sind((90.0f * lbl_1_bss_3C));
-            var_f31 *= var_f31;
-            lbl_1_bss_8C.unk_18 = lbl_1_bss_70.unk_18 + (var_f31 * (lbl_1_bss_54.unk_18 - lbl_1_bss_70.unk_18));
-            if ((lbl_1_bss_3C += lbl_1_bss_30) >= 1.0f) {
-                lbl_1_bss_8C.unk_18 = lbl_1_bss_54.unk_18;
-                lbl_1_bss_48 = 0;
+        if (cameraZoomTransitionActive != 0) {
+            interpolationFactor = sind((90.0f * cameraZoomTransitionProgress));
+            interpolationFactor *= interpolationFactor;
+            cameraPose.cameraDistance = cameraStartPose.cameraDistance + (interpolationFactor * (cameraTargetPose.cameraDistance - cameraStartPose.cameraDistance));
+            if ((cameraZoomTransitionProgress += cameraZoomTransitionStep) >= 1.0f) {
+                cameraPose.cameraDistance = cameraTargetPose.cameraDistance;
+                cameraZoomTransitionActive = 0;
             }
         }
-        sp28.x = lbl_1_bss_8C.unk_00.x + (lbl_1_bss_8C.unk_18 * (sind(lbl_1_bss_8C.unk_0C.y) * cosd(lbl_1_bss_8C.unk_0C.x)));
-        sp28.y = lbl_1_bss_8C.unk_00.y + (lbl_1_bss_8C.unk_18 * -sind(lbl_1_bss_8C.unk_0C.x));
-        sp28.z = lbl_1_bss_8C.unk_00.z + (lbl_1_bss_8C.unk_18 * (cosd(lbl_1_bss_8C.unk_0C.y) * cosd(lbl_1_bss_8C.unk_0C.x)));
-        sp10.x = sind(lbl_1_bss_8C.unk_0C.y) * sind(lbl_1_bss_8C.unk_0C.x);
-        sp10.y = cosd(lbl_1_bss_8C.unk_0C.x);
-        sp10.z = cosd(lbl_1_bss_8C.unk_0C.y) * sind(lbl_1_bss_8C.unk_0C.x);
-        sp1C = lbl_1_bss_8C.unk_00;
+        secondaryPositionVector.x = cameraPose.lookAtPosition.x + (cameraPose.cameraDistance * (sind(cameraPose.cameraAngles.y) * cosd(cameraPose.cameraAngles.x)));
+        secondaryPositionVector.y = cameraPose.lookAtPosition.y + (cameraPose.cameraDistance * -sind(cameraPose.cameraAngles.x));
+        secondaryPositionVector.z = cameraPose.lookAtPosition.z + (cameraPose.cameraDistance * (cosd(cameraPose.cameraAngles.y) * cosd(cameraPose.cameraAngles.x)));
+        positionVector.x = sind(cameraPose.cameraAngles.y) * sind(cameraPose.cameraAngles.x);
+        positionVector.y = cosd(cameraPose.cameraAngles.x);
+        positionVector.z = cosd(cameraPose.cameraAngles.y) * sind(cameraPose.cameraAngles.x);
+        temporaryValues = cameraPose.lookAtPosition;
 
-        Hu3DCameraPosSet(1, sp28.x, sp28.y, sp28.z, sp10.x, sp10.y, sp10.z, sp1C.x, sp1C.y, sp1C.z);
+        Hu3DCameraPosSet(1, secondaryPositionVector.x, secondaryPositionVector.y, secondaryPositionVector.z, positionVector.x, positionVector.y, positionVector.z, temporaryValues.x, temporaryValues.y, temporaryValues.z);
         HuPrcVSleep();
     }
 }
 
-void fn_1_189C(void)
+void UpdateCameraFromController(void)
 {
-    lbl_1_bss_8C.unk_00.x += (0.02f * *HuPadStkX);
-    lbl_1_bss_8C.unk_00.y += (0.02f * *HuPadStkY);
-    lbl_1_bss_8C.unk_0C.y -= (0.02f * *HuPadSubStkX);
-    lbl_1_bss_8C.unk_0C.x += (0.02f * *HuPadSubStkY);
-    lbl_1_bss_8C.unk_18 += (0.02f * *HuPadTrigL);
-    lbl_1_bss_8C.unk_18 -= (0.02f * *HuPadTrigR);
+    cameraPose.lookAtPosition.x += (0.02f * *HuPadStkX);
+    cameraPose.lookAtPosition.y += (0.02f * *HuPadStkY);
+    cameraPose.cameraAngles.y -= (0.02f * *HuPadSubStkX);
+    cameraPose.cameraAngles.x += (0.02f * *HuPadSubStkY);
+    cameraPose.cameraDistance += (0.02f * *HuPadTrigL);
+    cameraPose.cameraDistance -= (0.02f * *HuPadTrigR);
 }
 
-void fn_1_1AB0(void)
+void DrawCameraDebugText(void)
 {
-    print8(0x20, 0x84, 1.5f, "LOOKAT : x=%.2f y=%.2f z=%.2f", lbl_1_bss_8C.unk_00.x, lbl_1_bss_8C.unk_00.y, lbl_1_bss_8C.unk_00.z);
-    print8(0x20, 0x94, 1.5f, "ANGLE  : x=%.2f y=%.2f z=%.2f", lbl_1_bss_8C.unk_0C.x, lbl_1_bss_8C.unk_0C.y, lbl_1_bss_8C.unk_0C.z);
-    print8(0x20, 0xA4, 1.5f, "ZOOM   : x=%.2f", lbl_1_bss_8C.unk_18);
+    print8(0x20, 0x84, 1.5f, "LOOKAT : x=%.2f y=%.2f z=%.2f", cameraPose.lookAtPosition.x, cameraPose.lookAtPosition.y, cameraPose.lookAtPosition.z);
+    print8(0x20, 0x94, 1.5f, "ANGLE  : x=%.2f y=%.2f z=%.2f", cameraPose.cameraAngles.x, cameraPose.cameraAngles.y, cameraPose.cameraAngles.z);
+    print8(0x20, 0xA4, 1.5f, "ZOOM   : x=%.2f", cameraPose.cameraDistance);
 }

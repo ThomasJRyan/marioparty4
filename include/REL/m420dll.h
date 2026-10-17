@@ -3,66 +3,66 @@
 
 #include "game/object.h"
 
-typedef struct M420DllUnkStruct {
-    /* 0x00 */ Vec unk_00;
-    /* 0x0C */ Vec unk_0C;
-    /* 0x18 */ float unk_18;
-} M420DllUnkStruct; /* size = 0x1C */ // same as in m447dll/camera.c
+typedef struct M420DllCameraPose {
+    /* 0x00 */ Vec lookAtPosition;
+    /* 0x0C */ Vec cameraAngles;
+    /* 0x18 */ float cameraDistance;
+} M420DllCameraPose; /* size = 0x1C */ // same as in m447dll/camera.c
 
 typedef struct M420DllPlayerStruct {
     /* 0x00 */ struct {
-        s8 unk_00_field0 : 1;
-        s8 unk_00_field1 : 1;
-        s8 unk_00_field2 : 1;
+        s8 isComputerControlled : 1;
+        s8 itemHookAttached : 1;
+        s8 rotationTransitionActive : 1;
     };
-    /* 0x04 */ s32 unk_04;
-    /* 0x08 */ u8 unk_08;
-    /* 0x0A */ s16 unk_0A;
-    /* 0x0C */ u8 unk_0C;
-    /* 0x10 */ Vec unk_10;
-    /* 0x1C */ Vec unk_1C;
-    /* 0x28 */ Vec unk_28;
-    /* 0x34 */ Vec unk_34;
-    /* 0x40 */ HUPROCESS *unk_40;
-    /* 0x44 */ char unk44[4];
-    /* 0x48 */ s32 unk_48;
-    /* 0x4C */ s32 unk_4C;
-    /* 0x50 */ s16 unk_50;
-    /* 0x52 */ char unk52[6];
-    /* 0x58 */ s32 unk_58;
-    /* 0x5C */ s32 unk_5C[0xA];
-    /* 0x84 */ s32 unk_84[0xA];
-    /* 0xAC */ s16 unk_AC;
-    /* 0xAE */ s16 unk_AE[0xB];
-    /* 0xC4 */ s16 unk_C4[0xA];
-    /* 0xD8 */ s16 unk_D8;
-    /* 0xDC */ float unk_DC;
-    /* 0xE0 */ float unk_E0;
-    /* 0xE4 */ s32 unk_E4;
-    /* 0xE8 */ struct M420DllPlayerStruct *unk_E8;
+    /* 0x04 */ s32 playerIndex;
+    /* 0x08 */ u8 difficulty;
+    /* 0x0A */ s16 characterId;
+    /* 0x0C */ u8 controllerPort;
+    /* 0x10 */ Vec position;
+    /* 0x1C */ Vec rotation;
+    /* 0x28 */ Vec rotationStart;
+    /* 0x34 */ Vec rotationTarget;
+    /* 0x40 */ HUPROCESS *playerProcess;
+    /* 0x44 */ char reservedPlayerData[4];
+    /* 0x48 */ s32 actionState;
+    /* 0x4C */ s32 formationIndex;
+    /* 0x50 */ s16 actionProgress;
+    /* 0x52 */ char reservedAnimationData[6];
+    /* 0x58 */ s32 actionDelay;
+    /* 0x5C */ s32 activeEffectSprites[0xA];
+    /* 0x84 */ s32 effectSpriteFrames[0xA];
+    /* 0xAC */ s16 characterModelId;
+    /* 0xAE */ s16 characterMotionIds[0xB];
+    /* 0xC4 */ s16 effectSpriteIds[0xA];
+    /* 0xD8 */ s16 statusSpriteId;
+    /* 0xDC */ float rotationProgress;
+    /* 0xE0 */ float rotationProgressStep;
+    /* 0xE4 */ s32 rotationEasingMode;
+    /* 0xE8 */ struct M420DllPlayerStruct *linkedPlayer;
 } M420DllPlayerStruct; /* size = 0xEC */
 
-void fn_1_1184(void);
+void UpdateCamera(void);
 
-s32 fn_1_4964(void);
-void fn_1_596C(void);
-s32 fn_1_59F4(s32);
-s32 fn_1_5AA8(s32 arg0, float arg1);
-s32 fn_1_60F0(void);
-void fn_1_6268(void);
-void fn_1_636C(void);
-void fn_1_63EC(void);
-void fn_1_6554(void);
-s16 fn_1_6660(void);
-void fn_1_669C(s32 arg0);
-void fn_1_6728(void);
-s32 fn_1_67E8(s32);
-s32 fn_1_6810(void);
-void fn_1_8934(void);
-s32 fn_1_8944(void);
-M420DllPlayerStruct *fn_1_1B8C(s32, s32);
-void fn_1_1E14(M420DllPlayerStruct *);
+s32 InitializeMapSystem(void);
+void ShutdownMapSystem(void);
+s32 StartMapEvent(s32);
+s32 AdvanceMapReveal(s32 effectIndex, float scaleStep);
+s32 AdvanceRoundCounter(void);
+void ResetRoundCounter(void);
+void ResetMapMotion(void);
+void FinishRoundCounter(void);
+void ShowMapMarker(void);
+s16 GetMapMarkerModel(void);
+void SetMapMarkerLighting(s32 enabled);
+void HideMapMarker(void);
+s32 GetMapEffectFlags(s32);
+s32 GetMapRoundIndex(void);
+void InitializeRandomGenerator(void);
+s32 GetRandomInteger(void);
+M420DllPlayerStruct *createPlayer(s32, s32);
+void DestroyPlayer(M420DllPlayerStruct *);
 
-extern HUPROCESS *lbl_1_bss_4;
+extern HUPROCESS *minigameObjectManager;
 
 #endif
