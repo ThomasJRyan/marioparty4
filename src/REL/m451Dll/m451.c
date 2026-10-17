@@ -21,65 +21,65 @@
 #include "game/hsfex.h"
 #endif
 
-typedef struct bss_348_data {
-    s16 unk0[5];
-    s16 unkA;
-    s16 unkC[20];
-    s32 unk34;
-    s32 unk38;
-    s32 unk3C;
-    s32 unk40;
-    s32 unk44;
-    float unk48[9];
-    HSFOBJECT *unk6C[40];
-    HSFOBJECT *unk10C[40];
-    HSFOBJECT *unk1AC[40];
-    HSFTRANSFORM unk24C[40];
-    u32 unk7EC[2];
-    s8 unk7F4;
-    s8 unk7F5;
-    s8 unk7F6;
-    s8 unk7F7;
-    u16 unk7F8;
-    s16 unk7FA[5];
-    s32 unk804;
-    s32 unk808;
-} Bss348Data;
+typedef struct PuzzlePlayerState {
+    s16 modelIds[5];
+    s16 spriteGroupId;
+    s16 reservedPlayerValues[20];
+    s32 playerIndex;
+    s32 cameraIndex;
+    s32 controllerIndex;
+    s32 playerState;
+    s32 movementPhase;
+    float cursorState[9];
+    HSFOBJECT *pieceModels[40];
+    HSFOBJECT *overlayModels[40];
+    HSFOBJECT *characterModels[40];
+    HSFTRANSFORM pieceTransforms[40];
+    u32 reservedFlags[2];
+    s8 stickX;
+    s8 stickY;
+    s8 triggerRight;
+    s8 triggerLeft;
+    u16 buttonDown;
+    s16 reservedInputValues[5];
+    s32 selectedPieceIndex;
+    s32 computerTurnTimer;
+} PuzzlePlayerState;
 
-typedef struct camera_view_params {
+typedef struct CameraViewParams {
     Vec rot;
     Vec pos;
     float zoom;
-} CameraViewParams;
+} PuzzleCameraPreset;
 
-s16 lbl_1_bss_CB4;
-s16 lbl_1_bss_CB0[2];
-s16 lbl_1_bss_CAE;
-s16 lbl_1_bss_CAC;
-s32 lbl_1_bss_CA8;
-s32 lbl_1_bss_CA4;
-s32 lbl_1_bss_C04[40];
-s32 lbl_1_bss_B64[40];
-s32 lbl_1_bss_B60;
-s32 lbl_1_bss_B5C;
-s32 lbl_1_bss_B58;
-s32 lbl_1_bss_B54;
-Bss348Data lbl_1_bss_348[1];
-s32 lbl_1_bss_C[207];
-OMOBJ *lbl_1_bss_8;
-HUPROCESS *lbl_1_bss_4[1];
-s32 lbl_1_bss_0;
+s16 directionalLightId;
+s16 reservedModelIds[2];
+s16 timerSpriteGroupId;
+s16 reservedSpriteGroupId;
+s32 puzzleGamePhase;
+s32 winningPlayerIndex;
+s32 shuffledPieceOrder[40];
+s32 pieceRotationQuarters[40];
+s32 puzzleMode;
+s32 puzzlePresetIndex;
+s32 puzzlePieceCount;
+s32 reservedPuzzleValue;
+PuzzlePlayerState puzzlePlayerState[1];
+s32 reservedScratchValues[207];
+OMOBJ *multiViewObject;
+HUPROCESS *puzzlePlayerProcesses[1];
+s32 reservedGlobalValue;
 
-CameraViewParams lbl_1_data_0[3]
+PuzzleCameraPreset puzzleCameraPresets[3]
     = { { { -64, 0, 0 }, { 0, 0, 0 }, 5000 }, { { -9.5, 0, 0 }, { 0, 0, -510 }, 1860 }, { { -5, 0, 0 }, { 0, 0, -2870 }, 5060 } };
 
-s32 lbl_1_data_54[3] = { DATA_MAKE_NUM(DATADIR_M451, 0x01), DATA_MAKE_NUM(DATADIR_M451, 0x02), DATA_MAKE_NUM(DATADIR_M451, 0x03) };
+s32 puzzleModelDataIds[3] = { DATA_MAKE_NUM(DATADIR_M451, 0x01), DATA_MAKE_NUM(DATADIR_M451, 0x02), DATA_MAKE_NUM(DATADIR_M451, 0x03) };
 
-s32 lbl_1_data_60[3] = { DATA_MAKE_NUM(DATADIR_M451, 0x05), DATA_MAKE_NUM(DATADIR_M451, 0x06), DATA_MAKE_NUM(DATADIR_M451, 0x07) };
+s32 puzzleAnimationDataIds[3] = { DATA_MAKE_NUM(DATADIR_M451, 0x05), DATA_MAKE_NUM(DATADIR_M451, 0x06), DATA_MAKE_NUM(DATADIR_M451, 0x07) };
 
-char *lbl_1_data_78[3] = { "puzzle00", "puzzle00", "puzzle00" };
+char *puzzleAnimationNames[3] = { "puzzle00", "puzzle00", "puzzle00" };
 
-char *lbl_1_data_464[3][40] = {
+char *puzzlePieceModelNames[3][40] = {
     {
         "puzzle2001",
         "puzzle2002",
@@ -178,7 +178,7 @@ char *lbl_1_data_464[3][40] = {
     },
 };
 
-s32 lbl_1_data_644[] = {
+s32 characterModelAndMotionDataIds[] = {
     0,
     1,
     2,
@@ -214,47 +214,47 @@ s32 lbl_1_data_644[] = {
     DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 0x00),
 };
 
-s32 lbl_1_data_6C8[] = { 6, 7, 8 };
+s32 puzzleRecordIds[] = { 6, 7, 8 };
 
-float lbl_1_data_6D4[][2] = { -52, -9, 53, -8, 35, -8, 23, -8, 9, -8, -9, -8, -17, -8, -31, -8, 53, 8, 35, 8, 23, 8, 9, 8, -9, 8, -17, 8, -31, 8 };
+float timerDigitPositions[][2] = { -52, -9, 53, -8, 35, -8, 23, -8, 9, -8, -9, -8, -17, -8, -31, -8, 53, 8, 35, 8, 23, 8, 9, 8, -9, 8, -17, 8, -31, 8 };
 
-s32 lbl_1_data_74C[] = { REFRESH_RATE * 60, REFRESH_RATE * 120, REFRESH_RATE * 180 };
+s32 puzzleCompletionTimeLimits[] = { REFRESH_RATE * 60, REFRESH_RATE * 120, REFRESH_RATE * 180 };
 
-s32 lbl_1_data_758[] = { 58, 54, 48 };
+s32 puzzleRewardIds[] = { 58, 54, 48 };
 
-void fn_1_7BC(void);
-void fn_1_B2C(void);
-void fn_1_48C4(void);
+void PauseSceneVisibilityUpdate(void);
+void PuzzleSceneSetup(void);
+void PuzzleGameTask(void);
 
 void ObjectSetup(void)
 {
-    Vec pos;
-    Vec up;
-    Vec target;
-    s32 i;
-    HUPROCESS *objman;
-    s32 type;
-    type = GWSystem.mg_type;
-    lbl_1_bss_B60 = type;
-    if (type == -1) {
-        lbl_1_bss_B60 = frandmod(3);
+    Vec shadowPosition;
+    Vec shadowUpDirection;
+    Vec shadowTarget;
+    s32 cameraIndex;
+    HUPROCESS *objectManager;
+    s32 selectedPuzzleMode;
+    selectedPuzzleMode = GWSystem.mg_type;
+    puzzleMode = selectedPuzzleMode;
+    if (selectedPuzzleMode == -1) {
+        puzzleMode = frandmod(3);
     }
-    lbl_1_bss_B5C = lbl_1_bss_B60;
-    switch (lbl_1_bss_B5C) {
+    puzzlePresetIndex = puzzleMode;
+    switch (puzzlePresetIndex) {
         case 0:
-            lbl_1_bss_B58 = 20;
+            puzzlePieceCount = 20;
             break;
 
         case 1:
-            lbl_1_bss_B58 = 30;
+            puzzlePieceCount = 30;
             break;
 
         default:
-            lbl_1_bss_B58 = 40;
+            puzzlePieceCount = 40;
             break;
     }
-    objman = omInitObjMan(50, 8192);
-    omGameSysInit(objman);
+    objectManager = omInitObjMan(50, 8192);
+    omGameSysInit(objectManager);
     Hu3DCameraCreate(3);
     Hu3DCameraPerspectiveSet(1, 15, 20, 25000, 1.2);
     Hu3DCameraPerspectiveSet(2, 15, 20, 25000, 1.2);
@@ -262,69 +262,69 @@ void ObjectSetup(void)
     Hu3DCameraViewportSet(2, 0, 0, 640, 480, 0, 1);
     Hu3DCameraScissorSet(1, 0, 0, 320, 240);
     Hu3DCameraScissorSet(2, 0, 0, 640, 480);
-    lbl_1_bss_8 = omAddObjEx(objman, 32730, 0, 0, -1, omOutViewMulti);
-    lbl_1_bss_8->work[0] = 2;
-    for (i = 0; i < 1; i++) {
-        CRotM[i].x = lbl_1_data_0[lbl_1_bss_B60].rot.x;
-        CRotM[i].y = lbl_1_data_0[lbl_1_bss_B60].rot.y;
-        CRotM[i].z = lbl_1_data_0[lbl_1_bss_B60].rot.z;
-        CenterM[i].x = lbl_1_data_0[lbl_1_bss_B60].pos.x;
-        CenterM[i].y = lbl_1_data_0[lbl_1_bss_B60].pos.y;
-        CenterM[i].z = lbl_1_data_0[lbl_1_bss_B60].pos.z;
-        CZoomM[i] = lbl_1_data_0[lbl_1_bss_B60].zoom;
+    multiViewObject = omAddObjEx(objectManager, 32730, 0, 0, -1, omOutViewMulti);
+    multiViewObject->work[0] = 2;
+    for (cameraIndex = 0; cameraIndex < 1; cameraIndex++) {
+        CRotM[cameraIndex].x = puzzleCameraPresets[puzzleMode].rot.x;
+        CRotM[cameraIndex].y = puzzleCameraPresets[puzzleMode].rot.y;
+        CRotM[cameraIndex].z = puzzleCameraPresets[puzzleMode].rot.z;
+        CenterM[cameraIndex].x = puzzleCameraPresets[puzzleMode].pos.x;
+        CenterM[cameraIndex].y = puzzleCameraPresets[puzzleMode].pos.y;
+        CenterM[cameraIndex].z = puzzleCameraPresets[puzzleMode].pos.z;
+        CZoomM[cameraIndex] = puzzleCameraPresets[puzzleMode].zoom;
     }
-    for (i = 1; i < lbl_1_bss_8->work[0]; i++) {
-        CRotM[i].x = 0;
-        CRotM[i].y = 0;
-        CRotM[i].z = 0;
-        CenterM[i].x = 0;
-        CenterM[i].y = 10;
-        CenterM[i].z = 0;
-        CZoomM[i] = 1900;
+    for (cameraIndex = 1; cameraIndex < multiViewObject->work[0]; cameraIndex++) {
+        CRotM[cameraIndex].x = 0;
+        CRotM[cameraIndex].y = 0;
+        CRotM[cameraIndex].z = 0;
+        CenterM[cameraIndex].x = 0;
+        CenterM[cameraIndex].y = 10;
+        CenterM[cameraIndex].z = 0;
+        CZoomM[cameraIndex] = 1900;
     }
     Hu3DLighInit();
-    lbl_1_bss_CB4 = Hu3DGLightCreate(10000, 0, 10000, -1, 0, -1, 255, 255, 255);
-    Hu3DGLightPosAimSet(lbl_1_bss_CB4, 0, 6796.88f, 9706.95f, 0, 0, 0);
-    Hu3DGLightInfinitytSet(lbl_1_bss_CB4);
-    pos.x = -1800;
-    pos.y = 3600;
-    pos.z = 0;
-    up.x = up.z = 0;
-    up.y = 1;
-    target.x = -100;
-    target.y = 0;
-    target.z = 0;
+    directionalLightId = Hu3DGLightCreate(10000, 0, 10000, -1, 0, -1, 255, 255, 255);
+    Hu3DGLightPosAimSet(directionalLightId, 0, 6796.88f, 9706.95f, 0, 0, 0);
+    Hu3DGLightInfinitytSet(directionalLightId);
+    shadowPosition.x = -1800;
+    shadowPosition.y = 3600;
+    shadowPosition.z = 0;
+    shadowUpDirection.x = shadowUpDirection.z = 0;
+    shadowUpDirection.y = 1;
+    shadowTarget.x = -100;
+    shadowTarget.y = 0;
+    shadowTarget.z = 0;
     Hu3DShadowCreate(30, 20, 10000);
     Hu3DShadowTPLvlSet(0.4f);
-    Hu3DShadowPosSet(&pos, &up, &target);
+    Hu3DShadowPosSet(&shadowPosition, &shadowUpDirection, &shadowTarget);
     Hu3DBGColorSet(0, 0, 0);
-    fn_1_B2C();
-    HuPrcSetStat(HuPrcChildCreate(fn_1_7BC, 4096, 4096, 0, HuPrcCurrentGet()), 12);
-    HuPrcChildCreate(fn_1_48C4, 4096, 8192, 0, HuPrcCurrentGet());
+    PuzzleSceneSetup();
+    HuPrcSetStat(HuPrcChildCreate(PauseSceneVisibilityUpdate, 4096, 4096, 0, HuPrcCurrentGet()), 12);
+    HuPrcChildCreate(PuzzleGameTask, 4096, 8192, 0, HuPrcCurrentGet());
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
 }
 
-void fn_1_7BC(void)
+void PauseSceneVisibilityUpdate(void)
 {
-    Bss348Data *data = &lbl_1_bss_348[0];
+    PuzzlePlayerState *playerState = &puzzlePlayerState[0];
     while (1) {
         if (omPauseChk()) {
-            Hu3DModelAttrSet(data->unk0[0], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(data->unk0[1], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(data->unk0[2], HU3D_ATTR_DISPOFF);
-            HuSprAttrSet(data->unkA, 0, HUSPR_ATTR_DISPOFF);
+            Hu3DModelAttrSet(data->modelIds[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(data->modelIds[1], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(data->modelIds[2], HU3D_ATTR_DISPOFF);
+            HuSprAttrSet(data->spriteGroupId, 0, HUSPR_ATTR_DISPOFF);
         }
         else {
-            Hu3DModelAttrReset(data->unk0[0], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrReset(data->unk0[1], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrReset(data->unk0[2], HU3D_ATTR_DISPOFF);
-            HuSprAttrReset(data->unkA, 0, HUSPR_ATTR_DISPOFF);
+            Hu3DModelAttrReset(data->modelIds[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrReset(data->modelIds[1], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrReset(data->modelIds[2], HU3D_ATTR_DISPOFF);
+            HuSprAttrReset(data->spriteGroupId, 0, HUSPR_ATTR_DISPOFF);
         }
         HuPrcVSleep();
     }
 }
 
-void fn_1_858(void)
+void TimerDigitPulseTask(void)
 {
     s32 i;
     float angle = 0;
@@ -333,643 +333,643 @@ void fn_1_858(void)
         angle += 16.0f;
         scale = (0.2f * sind(angle)) + 1.0;
         for (i = 0; i < 8; i++) {
-            HuSprScaleSet(lbl_1_bss_CAE, i + 1, scale, scale);
+            HuSprScaleSet(timerSpriteGroupId, i + 1, scale, scale);
         }
         HuPrcVSleep();
     }
 }
 
-void fn_1_918(s16 group, s16 base_member, u32 value, s32 state)
+void TimerDigitsSet(s16 digitSpriteGroup, s16 firstDigitSpriteIndex, u32 elapsedFrames, s32 displayState)
 {
-    s32 member;
-    u32 time[3];
-    if (state != 2) {
-        time[0] = (value % REFRESH_RATE);
-        value = (value - time[0]) / REFRESH_RATE;
-        time[0] = 100.0f * (time[0] / REFRESH_RATE_F);
-        time[1] = value % 60;
-        value = (value - time[1]) / 60;
-        time[2] = value;
+    s32 firstSpriteMember;
+    u32 elapsedTimeDigits[3];
+    if (displayState != 2) {
+        elapsedTimeDigits[0] = (elapsedFrames % REFRESH_RATE);
+        elapsedFrames = (elapsedFrames - elapsedTimeDigits[0]) / REFRESH_RATE;
+        elapsedTimeDigits[0] = 100.0f * (elapsedTimeDigits[0] / REFRESH_RATE_F);
+        elapsedTimeDigits[1] = elapsedFrames % 60;
+        elapsedFrames = (elapsedFrames - elapsedTimeDigits[1]) / 60;
+        elapsedTimeDigits[2] = elapsedFrames;
     }
     else {
-        time[0] = 99;
-        time[1] = 59;
-        time[2] = 9;
+        elapsedTimeDigits[0] = 99;
+        elapsedTimeDigits[1] = 59;
+        elapsedTimeDigits[2] = 9;
     }
-    member = base_member;
-    if (state != 0) {
-        member += 7;
+    firstSpriteMember = firstDigitSpriteIndex;
+    if (displayState != 0) {
+        firstSpriteMember += 7;
     }
-    HuSprBankSet(group, member, time[0] % 10);
-    HuSprBankSet(group, member + 1, time[0] / 10);
-    HuSprBankSet(group, member + 3, time[1] % 10);
-    HuSprBankSet(group, member + 4, time[1] / 10);
-    HuSprBankSet(group, member + 6, time[2] % 10);
+    HuSprBankSet(digitSpriteGroup, firstSpriteMember, elapsedTimeDigits[0] % 10);
+    HuSprBankSet(digitSpriteGroup, firstSpriteMember + 1, elapsedTimeDigits[0] / 10);
+    HuSprBankSet(digitSpriteGroup, firstSpriteMember + 3, elapsedTimeDigits[1] % 10);
+    HuSprBankSet(digitSpriteGroup, firstSpriteMember + 4, elapsedTimeDigits[1] / 10);
+    HuSprBankSet(digitSpriteGroup, firstSpriteMember + 6, elapsedTimeDigits[2] % 10);
 }
 
-void fn_1_1B64(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
-void fn_1_37C4(void);
-void fn_1_4864(void);
+void PuzzleParticleUpdate(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void PuzzlePlayerTask(void);
+void PuzzlePlayerSetupTask(void);
 
-void fn_1_B2C(void)
+void PuzzleSceneSetup(void)
 {
-    Bss348Data *temp_r31;
-    s32 temp_r30;
-    void *temp_r29;
-    s32 temp_r28;
-    HSFTRANSFORM *temp_r27;
-    s16 temp_r26;
-    HSFTRANSFORM *temp_r25;
-    HUPROCESS *temp_r18;
-    s32 temp_r17;
-    ANIMDATA *sp2C[4];
-    s32 sp10;
-    ANIMDATA *spC;
-    ANIMDATA *sp8;
+    PuzzlePlayerState *playerState;
+    s32 playerIndex;
+    void *assetData;
+    s32 pieceIndex;
+    HSFTRANSFORM *pieceTransform;
+    s16 createdResourceId;
+    HSFTRANSFORM *savedPieceTransform;
+    HUPROCESS *playerProcess;
+    s32 savedPieceOrder;
+    ANIMDATA *timerDigitAnimations[4];
+    s32 randomSwapIndex;
+    ANIMDATA *characterSpriteAnimation;
+    ANIMDATA *particleAnimation;
     HuAudSndGrpSet(36);
-    for (temp_r30 = 0; temp_r30 < 1; temp_r30++) {
-        temp_r31 = &lbl_1_bss_348[temp_r30];
-        temp_r31->unk34 = temp_r30;
-        temp_r31->unk3C = GWPlayerCfg[temp_r30].pad_idx;
-        temp_r31->unk38 = temp_r30 + 1;
-        temp_r31->unk44 = 0;
-        temp_r31->unk804 = -1;
-        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_54[lbl_1_bss_B5C], HU_MEMNUM_OVL, HEAP_MODEL);
-        temp_r31->unk0[0] = Hu3DModelCreate(temp_r29);
-        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_60[lbl_1_bss_B60], HU_MEMNUM_OVL, HEAP_MODEL);
-        Hu3DAnimCreate(temp_r29, temp_r31->unk0[0], lbl_1_data_78[lbl_1_bss_B5C]);
-        Hu3DModelCameraSet(temp_r31->unk0[0], 1 << temp_r31->unk38);
-        Hu3DModelPosSet(temp_r31->unk0[0], 0, 0, 0);
-        Hu3DModelRotSet(temp_r31->unk0[0], 0, 0, 0);
-        Hu3DModelAttrSet(temp_r31->unk0[0], HU3D_ATTR_NOCULL);
-        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_54[lbl_1_bss_B5C], HU_MEMNUM_OVL, HEAP_MODEL);
-        temp_r31->unk0[1] = Hu3DModelCreate(temp_r29);
-        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0D), HU_MEMNUM_OVL, HEAP_MODEL);
-        Hu3DAnimCreate(temp_r29, temp_r31->unk0[1], lbl_1_data_78[lbl_1_bss_B5C]);
-        Hu3DModelCameraSet(temp_r31->unk0[1], 1 << temp_r31->unk38);
-        Hu3DModelPosSet(temp_r31->unk0[1], 0, 0, 0);
-        Hu3DModelRotSet(temp_r31->unk0[1], 0, 0, 0);
-        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_54[lbl_1_bss_B5C], HU_MEMNUM_OVL, HEAP_MODEL);
-        temp_r31->unk0[2] = Hu3DModelCreate(temp_r29);
-        Hu3DModelCameraSet(temp_r31->unk0[2], 1 << temp_r31->unk38);
-        Hu3DModelPosSet(temp_r31->unk0[2], 0, 0, 0);
-        Hu3DModelRotSet(temp_r31->unk0[2], 0, 0, 0);
-        Hu3DModelTPLvlSet(temp_r31->unk0[2], 128);
-        Hu3DModelAttrSet(temp_r31->unk0[2], HU3D_ATTR_NOCULL);
-        for (temp_r28 = 0; temp_r28 < lbl_1_bss_B58; temp_r28++) {
-            temp_r31->unk6C[temp_r28] = Hu3DModelObjPtrGet(temp_r31->unk0[0], lbl_1_data_464[lbl_1_bss_B5C][temp_r28]);
-            if (!temp_r31->unk6C[temp_r28]) {
-                OSReport("PeaceNo %d\n", lbl_1_bss_B5C);
-                OSReport("objname %s\n", lbl_1_data_464[lbl_1_bss_B5C][temp_r28]);
+    for (playerIndex = 0; playerIndex < 1; playerIndex++) {
+        playerState = &puzzlePlayerState[playerIndex];
+        playerState->playerIndex = playerIndex;
+        playerState->controllerIndex = GWPlayerCfg[playerIndex].pad_idx;
+        playerState->cameraIndex = playerIndex + 1;
+        playerState->movementPhase = 0;
+        playerState->selectedPieceIndex = -1;
+        assetData = HuDataSelHeapReadNum(puzzleModelDataIds[puzzlePresetIndex], HU_MEMNUM_OVL, HEAP_MODEL);
+        playerState->modelIds[0] = Hu3DModelCreate(assetData);
+        assetData = HuDataSelHeapReadNum(puzzleAnimationDataIds[puzzleMode], HU_MEMNUM_OVL, HEAP_MODEL);
+        Hu3DAnimCreate(assetData, playerState->modelIds[0], puzzleAnimationNames[puzzlePresetIndex]);
+        Hu3DModelCameraSet(playerState->modelIds[0], 1 << playerState->cameraIndex);
+        Hu3DModelPosSet(playerState->modelIds[0], 0, 0, 0);
+        Hu3DModelRotSet(playerState->modelIds[0], 0, 0, 0);
+        Hu3DModelAttrSet(playerState->modelIds[0], HU3D_ATTR_NOCULL);
+        assetData = HuDataSelHeapReadNum(puzzleModelDataIds[puzzlePresetIndex], HU_MEMNUM_OVL, HEAP_MODEL);
+        playerState->modelIds[1] = Hu3DModelCreate(assetData);
+        assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0D), HU_MEMNUM_OVL, HEAP_MODEL);
+        Hu3DAnimCreate(assetData, playerState->modelIds[1], puzzleAnimationNames[puzzlePresetIndex]);
+        Hu3DModelCameraSet(playerState->modelIds[1], 1 << playerState->cameraIndex);
+        Hu3DModelPosSet(playerState->modelIds[1], 0, 0, 0);
+        Hu3DModelRotSet(playerState->modelIds[1], 0, 0, 0);
+        assetData = HuDataSelHeapReadNum(puzzleModelDataIds[puzzlePresetIndex], HU_MEMNUM_OVL, HEAP_MODEL);
+        playerState->modelIds[2] = Hu3DModelCreate(assetData);
+        Hu3DModelCameraSet(playerState->modelIds[2], 1 << playerState->cameraIndex);
+        Hu3DModelPosSet(playerState->modelIds[2], 0, 0, 0);
+        Hu3DModelRotSet(playerState->modelIds[2], 0, 0, 0);
+        Hu3DModelTPLvlSet(playerState->modelIds[2], 128);
+        Hu3DModelAttrSet(playerState->modelIds[2], HU3D_ATTR_NOCULL);
+        for (pieceIndex = 0; pieceIndex < puzzlePieceCount; pieceIndex++) {
+            playerState->pieceModels[pieceIndex] = Hu3DModelObjPtrGet(playerState->modelIds[0], puzzlePieceModelNames[puzzlePresetIndex][pieceIndex]);
+            if (!playerState->pieceModels[pieceIndex]) {
+                OSReport("PeaceNo %d\n", puzzlePresetIndex);
+                OSReport("objname %s\n", puzzlePieceModelNames[puzzlePresetIndex][pieceIndex]);
                 OSPanic("m451.c", 543, "ObjPtr1");
             }
-            temp_r25 = &temp_r31->unk24C[temp_r28];
-            temp_r27 = &temp_r31->unk6C[temp_r28]->mesh.base;
-            temp_r27->pos.z += -10;
-            temp_r25->pos.x = temp_r27->pos.x;
-            temp_r25->pos.y = temp_r27->pos.y;
-            temp_r25->pos.z = temp_r27->pos.z;
-            temp_r25->rot.x = temp_r27->rot.x;
-            temp_r25->rot.y = temp_r27->rot.y;
-            temp_r25->rot.z = temp_r27->rot.z;
-            temp_r25->scale.x = temp_r27->scale.x;
-            temp_r25->scale.y = temp_r27->scale.y;
-            temp_r25->scale.z = temp_r27->scale.z;
-            temp_r31->unk10C[temp_r28] = Hu3DModelObjPtrGet(temp_r31->unk0[2], lbl_1_data_464[lbl_1_bss_B5C][temp_r28]);
-            if (!temp_r31->unk10C[temp_r28]) {
-                OSReport("objname %s\n", lbl_1_data_464[lbl_1_bss_B5C][temp_r28]);
+            savedPieceTransform = &playerState->pieceTransforms[pieceIndex];
+            pieceTransform = &playerState->pieceModels[pieceIndex]->mesh.base;
+            pieceTransform->pos.z += -10;
+            savedPieceTransform->pos.x = pieceTransform->pos.x;
+            savedPieceTransform->pos.y = pieceTransform->pos.y;
+            savedPieceTransform->pos.z = pieceTransform->pos.z;
+            savedPieceTransform->rot.x = pieceTransform->rot.x;
+            savedPieceTransform->rot.y = pieceTransform->rot.y;
+            savedPieceTransform->rot.z = pieceTransform->rot.z;
+            savedPieceTransform->scale.x = pieceTransform->scale.x;
+            savedPieceTransform->scale.y = pieceTransform->scale.y;
+            savedPieceTransform->scale.z = pieceTransform->scale.z;
+            playerState->overlayModels[pieceIndex] = Hu3DModelObjPtrGet(playerState->modelIds[2], puzzlePieceModelNames[puzzlePresetIndex][pieceIndex]);
+            if (!playerState->overlayModels[pieceIndex]) {
+                OSReport("objname %s\n", puzzlePieceModelNames[puzzlePresetIndex][pieceIndex]);
                 OSPanic("m451.c", 555, "ObjPtr2");
             }
-            temp_r31->unk1AC[temp_r28] = Hu3DModelObjPtrGet(temp_r31->unk0[1], lbl_1_data_464[lbl_1_bss_B5C][temp_r28]);
-            if (!temp_r31->unk1AC[temp_r28]) {
-                OSReport("objname %s\n", lbl_1_data_464[lbl_1_bss_B5C][temp_r28]);
+            playerState->characterModels[pieceIndex] = Hu3DModelObjPtrGet(playerState->modelIds[1], puzzlePieceModelNames[puzzlePresetIndex][pieceIndex]);
+            if (!playerState->characterModels[pieceIndex]) {
+                OSReport("objname %s\n", puzzlePieceModelNames[puzzlePresetIndex][pieceIndex]);
                 OSPanic("m451.c", 561, "ObjPtr3");
             }
         }
-        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x00), HU_MEMNUM_OVL, HEAP_MODEL);
-        temp_r26 = Hu3DModelCreate(temp_r29);
-        Hu3DModelCameraSet(temp_r26, 1 << temp_r31->unk38);
-        Hu3DModelPosSet(temp_r26, 0, 0, 0);
-        Hu3DModelRotSet(temp_r26, 0, 0, 0);
-        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x04), HU_MEMNUM_OVL, HEAP_MODEL);
-        temp_r31->unk0[4] = Hu3DModelCreate(temp_r29);
-        Hu3DModelCameraSet(temp_r31->unk0[4], 1 << temp_r31->unk38);
-        Hu3DModelPosSet(temp_r31->unk0[4], 0, 0, 0);
-        Hu3DModelRotSet(temp_r31->unk0[4], 0, 0, 0);
-        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x08) + lbl_1_bss_B5C, HU_MEMNUM_OVL, HEAP_MODEL);
-        Hu3DAnimCreate(temp_r29, temp_r31->unk0[4], "s3puzzle00");
-        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x38) + GWPlayerCfg[temp_r30].character, HU_MEMNUM_OVL, HEAP_MODEL);
-        spC = HuSprAnimRead(temp_r29);
-        temp_r26 = HuSprCreate(spC, 16384, 0);
-        temp_r31->unkA = HuSprGrpCreate(1);
-        HuSprGrpMemberSet(temp_r31->unkA, 0, temp_r26);
-        HuSprAttrSet(temp_r31->unkA, 0, 7);
-        sp8 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0C), HU_MEMNUM_OVL));
-        temp_r26 = Hu3DParticleCreate(sp8, 100);
-        Hu3DModelPosSet(temp_r26, 0, 0, 0);
-        Hu3DModelScaleSet(temp_r26, 1, 1, 1);
-        Hu3DModelLayerSet(temp_r26, 1);
-        Hu3DParticleHookSet(temp_r26, fn_1_1B64);
-        Hu3DModelCameraSet(temp_r26, 1 << temp_r31->unk38);
-        temp_r18 = HuPrcChildCreate(fn_1_37C4, 8192, 12288, 0, HuPrcCurrentGet());
-        temp_r18->user_data = temp_r31;
-        lbl_1_bss_4[temp_r30] = temp_r18;
+        assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x00), HU_MEMNUM_OVL, HEAP_MODEL);
+        createdResourceId = Hu3DModelCreate(assetData);
+        Hu3DModelCameraSet(createdResourceId, 1 << playerState->cameraIndex);
+        Hu3DModelPosSet(createdResourceId, 0, 0, 0);
+        Hu3DModelRotSet(createdResourceId, 0, 0, 0);
+        assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x04), HU_MEMNUM_OVL, HEAP_MODEL);
+        playerState->modelIds[4] = Hu3DModelCreate(assetData);
+        Hu3DModelCameraSet(playerState->modelIds[4], 1 << playerState->cameraIndex);
+        Hu3DModelPosSet(playerState->modelIds[4], 0, 0, 0);
+        Hu3DModelRotSet(playerState->modelIds[4], 0, 0, 0);
+        assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x08) + puzzlePresetIndex, HU_MEMNUM_OVL, HEAP_MODEL);
+        Hu3DAnimCreate(assetData, playerState->modelIds[4], "s3puzzle00");
+        assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x38) + GWPlayerCfg[playerIndex].character, HU_MEMNUM_OVL, HEAP_MODEL);
+        characterSpriteAnimation = HuSprAnimRead(assetData);
+        createdResourceId = HuSprCreate(characterSpriteAnimation, 16384, 0);
+        playerState->spriteGroupId = HuSprGrpCreate(1);
+        HuSprGrpMemberSet(playerState->spriteGroupId, 0, createdResourceId);
+        HuSprAttrSet(playerState->spriteGroupId, 0, 7);
+        particleAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0C), HU_MEMNUM_OVL));
+        createdResourceId = Hu3DParticleCreate(particleAnimation, 100);
+        Hu3DModelPosSet(createdResourceId, 0, 0, 0);
+        Hu3DModelScaleSet(createdResourceId, 1, 1, 1);
+        Hu3DModelLayerSet(createdResourceId, 1);
+        Hu3DParticleHookSet(createdResourceId, PuzzleParticleUpdate);
+        Hu3DModelCameraSet(createdResourceId, 1 << playerState->cameraIndex);
+        playerProcess = HuPrcChildCreate(PuzzlePlayerTask, 8192, 12288, 0, HuPrcCurrentGet());
+        playerProcess->user_data = playerState;
+        puzzlePlayerProcesses[playerIndex] = playerProcess;
     }
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x30), HU_MEMNUM_OVL, HEAP_MODEL);
-    sp2C[0] = HuSprAnimRead(temp_r29);
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x31), HU_MEMNUM_OVL, HEAP_MODEL);
-    sp2C[1] = HuSprAnimRead(temp_r29);
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x37), HU_MEMNUM_OVL, HEAP_MODEL);
-    sp2C[2] = HuSprAnimRead(temp_r29);
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0B), HU_MEMNUM_OVL, HEAP_MODEL);
-    sp2C[3] = HuSprAnimRead(temp_r29);
-    lbl_1_bss_CAE = HuSprGrpCreate(16);
-    temp_r26 = HuSprCreate(sp2C[3], 16385, 0);
-    HuSprGrpMemberSet(lbl_1_bss_CAE, 0, temp_r26);
-    HuSprPosSet(lbl_1_bss_CAE, 0, 0, 0);
-    HuSprTPLvlSet(lbl_1_bss_CAE, 0, 0.5f);
-    HuSprColorSet(lbl_1_bss_CAE, 0, 0, 0, 0);
-    for (temp_r30 = 0; temp_r30 < 14; temp_r30++) {
-        if (temp_r30 >= 7) {
-            temp_r26 = HuSprCreate(sp2C[1], 16384, 0);
+    assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x30), HU_MEMNUM_OVL, HEAP_MODEL);
+    timerDigitAnimations[0] = HuSprAnimRead(assetData);
+    assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x31), HU_MEMNUM_OVL, HEAP_MODEL);
+    timerDigitAnimations[1] = HuSprAnimRead(assetData);
+    assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x37), HU_MEMNUM_OVL, HEAP_MODEL);
+    timerDigitAnimations[2] = HuSprAnimRead(assetData);
+    assetData = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0B), HU_MEMNUM_OVL, HEAP_MODEL);
+    timerDigitAnimations[3] = HuSprAnimRead(assetData);
+    timerSpriteGroupId = HuSprGrpCreate(16);
+    createdResourceId = HuSprCreate(timerDigitAnimations[3], 16385, 0);
+    HuSprGrpMemberSet(timerSpriteGroupId, 0, createdResourceId);
+    HuSprPosSet(timerSpriteGroupId, 0, 0, 0);
+    HuSprTPLvlSet(timerSpriteGroupId, 0, 0.5f);
+    HuSprColorSet(timerSpriteGroupId, 0, 0, 0, 0);
+    for (playerIndex = 0; playerIndex < 14; playerIndex++) {
+        if (playerIndex >= 7) {
+            createdResourceId = HuSprCreate(timerDigitAnimations[1], 16384, 0);
         }
         else {
-            temp_r26 = HuSprCreate(sp2C[0], 16384, 0);
+            createdResourceId = HuSprCreate(timerDigitAnimations[0], 16384, 0);
         }
-        HuSprGrpMemberSet(lbl_1_bss_CAE, temp_r30 + 2, temp_r26);
-        HuSprPosSet(lbl_1_bss_CAE, temp_r30 + 2, lbl_1_data_6D4[temp_r30 + 1][0], lbl_1_data_6D4[temp_r30 + 1][1]);
-        temp_r28 = 0;
-        if (temp_r30 == 2 || temp_r30 == 9) {
-            temp_r28 = 11;
+        HuSprGrpMemberSet(timerSpriteGroupId, playerIndex + 2, createdResourceId);
+        HuSprPosSet(timerSpriteGroupId, playerIndex + 2, timerDigitPositions[playerIndex + 1][0], timerDigitPositions[playerIndex + 1][1]);
+        pieceIndex = 0;
+        if (playerIndex == 2 || playerIndex == 9) {
+            pieceIndex = 11;
         }
-        if (temp_r30 == 5 || temp_r30 == 12) {
-            temp_r28 = 10;
+        if (playerIndex == 5 || playerIndex == 12) {
+            pieceIndex = 10;
         }
-        HuSprBankSet(lbl_1_bss_CAE, temp_r30 + 2, temp_r28);
+        HuSprBankSet(timerSpriteGroupId, playerIndex + 2, pieceIndex);
     }
-    temp_r26 = HuSprCreate(sp2C[2], 16384, 0);
-    HuSprGrpMemberSet(lbl_1_bss_CAE, 1, temp_r26);
-    HuSprPosSet(lbl_1_bss_CAE, 1, lbl_1_data_6D4[0][0], lbl_1_data_6D4[0][1]);
-    HuSprGrpPosSet(lbl_1_bss_CAE, 280, 61);
-    fn_1_918(lbl_1_bss_CAE, 2, GWMGRecordGet(lbl_1_data_6C8[lbl_1_bss_B5C]), 0);
-    fn_1_918(lbl_1_bss_CAE, 2, 0, 1);
-    for (temp_r30 = 0; temp_r30 < lbl_1_bss_B58; temp_r30++) {
-        lbl_1_bss_C04[temp_r30] = temp_r30;
-        lbl_1_bss_B64[temp_r30] = frandmod(4);
+    createdResourceId = HuSprCreate(timerDigitAnimations[2], 16384, 0);
+    HuSprGrpMemberSet(timerSpriteGroupId, 1, createdResourceId);
+    HuSprPosSet(timerSpriteGroupId, 1, timerDigitPositions[0][0], timerDigitPositions[0][1]);
+    HuSprGrpPosSet(timerSpriteGroupId, 280, 61);
+    TimerDigitsSet(timerSpriteGroupId, 2, GWMGRecordGet(puzzleRecordIds[puzzlePresetIndex]), 0);
+    TimerDigitsSet(timerSpriteGroupId, 2, 0, 1);
+    for (playerIndex = 0; playerIndex < puzzlePieceCount; playerIndex++) {
+        shuffledPieceOrder[playerIndex] = playerIndex;
+        pieceRotationQuarters[playerIndex] = frandmod(4);
     }
-    for (temp_r30 = 0; temp_r30 < 50; temp_r30++) {
-        temp_r28 = frandmod(lbl_1_bss_B58);
-        temp_r17 = frandmod(lbl_1_bss_B58);
-        sp10 = lbl_1_bss_C04[temp_r28];
-        lbl_1_bss_C04[temp_r28] = lbl_1_bss_C04[temp_r17];
-        lbl_1_bss_C04[temp_r17] = sp10;
+    for (playerIndex = 0; playerIndex < 50; playerIndex++) {
+        pieceIndex = frandmod(puzzlePieceCount);
+        randomSwapIndex = frandmod(puzzlePieceCount);
+        savedPieceOrder = shuffledPieceOrder[pieceIndex];
+        shuffledPieceOrder[pieceIndex] = shuffledPieceOrder[randomSwapIndex];
+        shuffledPieceOrder[randomSwapIndex] = savedPieceOrder;
     }
-    HuPrcChildCreate(fn_1_4864, 4096, 4096, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(PuzzlePlayerSetupTask, 4096, 4096, 0, HuPrcCurrentGet());
 }
 
-void fn_1_1B64(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void PuzzleParticleUpdate(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    float temp_f28;
+    float particleAngle;
+    float particleAngleStep;
+    float particleSpeed;
+    float ringRadius;
 
-    HU3DPARTICLEDATA *temp_r31;
-    s16 temp_r29;
-    Bss348Data *temp_r28;
-    s16 temp_r27;
-    s16 temp_r26;
-    s32 temp_r25;
+    HU3DPARTICLEDATA *particleData;
+    s16 particleIndex;
+    PuzzlePlayerState *playerState;
+    s16 burstRingIndex;
+    s16 particleStep;
+    s32 particleAlpha;
 
     if (particle->count == 0) {
-        temp_r31 = particle->data;
-        for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r31++) {
-            temp_r31->accel.x = temp_r31->scale = 0;
-            temp_r31->color.r = 255;
-            temp_r31->color.g = 255;
-            temp_r31->color.b = 0;
+        particleData = particle->data;
+        for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+            particleData->accel.x = particleData->scale = 0;
+            particleData->color.r = 255;
+            particleData->color.g = 255;
+            particleData->color.b = 0;
         }
     }
-    temp_r31 = particle->data;
-    temp_r28 = &lbl_1_bss_348[0];
-    if (temp_r28->unk44 == 1) {
-        for (temp_r27 = 0; temp_r27 < 4; temp_r27++) {
-            temp_f28 = 1.0f;
-            for (temp_r26 = 0, temp_f30 = 0; temp_r26 < 24; temp_r26++, temp_f30 += 15.0f) {
-                for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r31++) {
-                    if (0.0f == temp_r31->accel.x) {
+    particleData = particle->data;
+    playerState = &puzzlePlayerState[0];
+    if (playerState->movementPhase == 1) {
+        for (burstRingIndex = 0; burstRingIndex < 4; burstRingIndex++) {
+            ringRadius = 1.0f;
+            for (particleStep = 0, particleAngleStep = 0; particleStep < 24; particleStep++, particleAngleStep += 15.0f) {
+                for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+                    if (0.0f == particleData->accel.x) {
                         break;
                     }
                 }
-                if (temp_r29 == particle->maxCnt) {
+                if (particleIndex == particle->maxCnt) {
                     break;
                 }
-                temp_f31 = temp_f30;
-                temp_f29 = temp_f28 + (5.0f * frandf());
-                temp_r31->pos.x = temp_r28->unk48[7] + ((temp_r27 * 10.0f) * sind(temp_f31));
-                temp_r31->pos.y = temp_r28->unk48[8] + ((temp_r27 * 10.0f) * cosd(temp_f31));
-                temp_r31->pos.z = 50;
-                temp_r31->vel.x = temp_f29 * sind(temp_f31);
-                temp_r31->vel.y = temp_f29 * cosd(temp_f31);
-                temp_r31->vel.z = 0;
-                temp_r31->accel.x = 30.0f;
-                temp_r31->accel.y = 360.0f * frandf();
-                temp_r31->accel.z = 225;
-                temp_r31->scale = (5.0f * frandf()) + 25.0f;
-                temp_r31->color.r = 255;
-                temp_r31->color.g = 255;
-                temp_r31->color.b = 0;
-                temp_r31->color.a = 255;
+                particleAngle = particleAngleStep;
+                particleSpeed = ringRadius + (5.0f * frandf());
+                particleData->pos.x = playerState->cursorState[7] + ((burstRingIndex * 10.0f) * sind(particleAngle));
+                particleData->pos.y = playerState->cursorState[8] + ((burstRingIndex * 10.0f) * cosd(particleAngle));
+                particleData->pos.z = 50;
+                particleData->vel.x = particleSpeed * sind(particleAngle);
+                particleData->vel.y = particleSpeed * cosd(particleAngle);
+                particleData->vel.z = 0;
+                particleData->accel.x = 30.0f;
+                particleData->accel.y = 360.0f * frandf();
+                particleData->accel.z = 225;
+                particleData->scale = (5.0f * frandf()) + 25.0f;
+                particleData->color.r = 255;
+                particleData->color.g = 255;
+                particleData->color.b = 0;
+                particleData->color.a = 255;
             }
         }
-        temp_r28->unk44++;
+        playerState->movementPhase++;
         DCStoreRangeNoSync(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
     }
-    temp_r31 = particle->data;
-    for (temp_r29 = 0; temp_r29 < particle->maxCnt; temp_r29++, temp_r31++) {
-        if (0.0f == temp_r31->accel.x) {
+    particleData = particle->data;
+    for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+        if (0.0f == particleData->accel.x) {
             continue;
         }
-        VECAdd(&temp_r31->vel, &temp_r31->pos, &temp_r31->pos);
-        temp_r31->vel.x *= 0.95f;
-        temp_r31->vel.y *= 0.95f;
-        temp_r31->accel.y += 20.0f;
-        if (temp_r31->accel.y >= 180.0f && temp_r31->accel.y < 200.0f) {
-            temp_r31->accel.z *= 0.4f;
+        VECAdd(&particleData->vel, &particleData->pos, &particleData->pos);
+        particleData->vel.x *= 0.95f;
+        particleData->vel.y *= 0.95f;
+        particleData->accel.y += 20.0f;
+        if (particleData->accel.y >= 180.0f && particleData->accel.y < 200.0f) {
+            particleData->accel.z *= 0.4f;
         }
-        if (temp_r31->accel.y >= 360.0f && temp_r31->accel.y < 380.0f) {
-            temp_r31->accel.z *= 0.4f;
+        if (particleData->accel.y >= 360.0f && particleData->accel.y < 380.0f) {
+            particleData->accel.z *= 0.4f;
         }
-        if (temp_r31->accel.y >= 360.0f) {
-            temp_r31->accel.y -= 360.0f;
+        if (particleData->accel.y >= 360.0f) {
+            particleData->accel.y -= 360.0f;
         }
-        temp_r25 = (30.0 * sind(temp_r31->accel.y)) + temp_r31->accel.z;
-        if (temp_r25 < 0) {
-            temp_r25 = 0;
-            temp_r31->accel.x = 0;
+        particleAlpha = (30.0 * sind(particleData->accel.y)) + particleData->accel.z;
+        if (particleAlpha < 0) {
+            particleAlpha = 0;
+            particleData->accel.x = 0;
         }
-        temp_r31->color.a = temp_r25;
-        if (0.0f == temp_r31->accel.x) {
-            temp_r31->scale = 0;
+        particleData->color.a = particleAlpha;
+        if (0.0f == particleData->accel.x) {
+            particleData->scale = 0;
         }
     }
     PPCSync();
 }
 
-s8 fn_1_20FC(s32 arg0, s32 arg1)
+s8 PlayerStickValueGet(s32 playerIndex, s32 verticalAxis)
 {
-    Bss348Data *temp_r31 = &lbl_1_bss_348[arg0];
-    s8 temp_r30;
-    s8 temp_r29;
-    s8 temp_r28;
-    if (!GWPlayerCfg[arg0].iscom) {
-        if (arg1) {
-            temp_r29 = temp_r30 = HuPadStkY[temp_r31->unk3C];
+    PuzzlePlayerState *playerState = &puzzlePlayerState[playerIndex];
+    s8 stickValue;
+    s8 hardwareStickValue;
+    s8 simulatedStickValue;
+    if (!GWPlayerCfg[playerIndex].iscom) {
+        if (verticalAxis) {
+            hardwareStickValue = stickValue = HuPadStkY[playerState->controllerIndex];
         }
         else {
-            temp_r29 = temp_r30 = HuPadStkX[temp_r31->unk3C];
+            hardwareStickValue = stickValue = HuPadStkX[playerState->controllerIndex];
         }
-        (void)temp_r29;
+        (void)hardwareStickValue;
     }
     else {
-        if (arg1) {
-            temp_r28 = temp_r30 = temp_r31->unk7F5;
+        if (verticalAxis) {
+            simulatedStickValue = stickValue = playerState->stickY;
         }
         else {
-            temp_r28 = temp_r30 = temp_r31->unk7F4;
+            simulatedStickValue = stickValue = playerState->stickX;
         }
     }
-    return temp_r30;
+    return stickValue;
 }
 
-u8 fn_1_21B4(s32 arg0, s32 arg1)
+u8 PlayerTriggerValueGet(s32 playerIndex, s32 rightTrigger)
 {
-    Bss348Data *temp_r31 = &lbl_1_bss_348[arg0];
-    s8 temp_r30;
-    s8 temp_r29;
-    s8 temp_r28;
-    if (!GWPlayerCfg[arg0].iscom) {
-        if (arg1) {
-            temp_r29 = temp_r30 = HuPadTrigR[temp_r31->unk3C];
+    PuzzlePlayerState *playerState = &puzzlePlayerState[playerIndex];
+    s8 triggerValue;
+    s8 hardwareTriggerValue;
+    s8 simulatedTriggerValue;
+    if (!GWPlayerCfg[playerIndex].iscom) {
+        if (rightTrigger) {
+            hardwareTriggerValue = triggerValue = HuPadTrigR[playerState->controllerIndex];
         }
         else {
-            temp_r29 = temp_r30 = HuPadTrigL[temp_r31->unk3C];
+            hardwareTriggerValue = triggerValue = HuPadTrigL[playerState->controllerIndex];
         }
-        (void)temp_r29;
+        (void)hardwareTriggerValue;
     }
     else {
-        if (arg1) {
-            temp_r28 = temp_r30 = temp_r31->unk7F6;
+        if (rightTrigger) {
+            simulatedTriggerValue = triggerValue = playerState->triggerRight;
         }
         else {
-            temp_r28 = temp_r30 = temp_r31->unk7F7;
+            simulatedTriggerValue = triggerValue = playerState->triggerLeft;
         }
     }
-    return temp_r30;
+    return triggerValue;
 }
 
-static inline s8 fn_1_20FC_inline(s32 arg0, s32 arg1)
+static inline s8 PlayerStickValueGetInline(s32 playerIndex, s32 verticalAxis)
 {
-    Bss348Data *temp_r31 = &lbl_1_bss_348[arg0];
-    s8 temp_r30;
-    if (!GWPlayerCfg[arg0].iscom) {
-        if (arg1) {
-            temp_r30 = HuPadStkY[temp_r31->unk3C];
+    PuzzlePlayerState *playerState = &puzzlePlayerState[playerIndex];
+    s8 stickValue;
+    if (!GWPlayerCfg[playerIndex].iscom) {
+        if (verticalAxis) {
+            stickValue = HuPadStkY[playerState->controllerIndex];
         }
         else {
-            temp_r30 = HuPadStkX[temp_r31->unk3C];
-        }
-    }
-    else {
-        if (arg1) {
-            temp_r30 = temp_r31->unk7F5;
-        }
-        else {
-            temp_r30 = temp_r31->unk7F4;
-        }
-    }
-    return temp_r30;
-}
-
-static inline u8 fn_1_21B4_inline(s32 arg0, s32 arg1)
-{
-    Bss348Data *temp_r31 = &lbl_1_bss_348[arg0];
-    s8 temp_r30;
-    if (!GWPlayerCfg[arg0].iscom) {
-        if (arg1) {
-            temp_r30 = HuPadTrigR[temp_r31->unk3C];
-        }
-        else {
-            temp_r30 = HuPadTrigL[temp_r31->unk3C];
+            stickValue = HuPadStkX[playerState->controllerIndex];
         }
     }
     else {
-        if (arg1) {
-            temp_r30 = temp_r31->unk7F6;
+        if (verticalAxis) {
+            stickValue = playerState->stickY;
         }
         else {
-            temp_r30 = temp_r31->unk7F7;
+            stickValue = playerState->stickX;
         }
     }
-    return temp_r30;
+    return stickValue;
 }
 
-u16 fn_1_2274(s32 arg0)
+static inline u8 PlayerTriggerValueGetInline(s32 playerIndex, s32 rightTrigger)
 {
-    Bss348Data *temp_r31 = &lbl_1_bss_348[arg0];
-    u16 temp_r30;
-
-    // Hacks to stop spilling in fn_1_37C4
-    (void)temp_r31;
-    (void)temp_r31;
-    (void)temp_r31;
-    (void)temp_r31;
-
-    if (!GWPlayerCfg[arg0].iscom) {
-        temp_r30 = HuPadBtnDown[temp_r31->unk3C];
+    PuzzlePlayerState *playerState = &puzzlePlayerState[playerIndex];
+    s8 triggerValue;
+    if (!GWPlayerCfg[playerIndex].iscom) {
+        if (rightTrigger) {
+            triggerValue = HuPadTrigR[playerState->controllerIndex];
+        }
+        else {
+            triggerValue = HuPadTrigL[playerState->controllerIndex];
+        }
     }
     else {
-        temp_r30 = temp_r31->unk7F8;
+        if (rightTrigger) {
+            triggerValue = playerState->triggerRight;
+        }
+        else {
+            triggerValue = playerState->triggerLeft;
+        }
     }
-    return temp_r30;
+    return triggerValue;
 }
 
-void fn_1_22E0(Bss348Data *arg0, s32 arg1)
+u16 PlayerButtonsDownGet(s32 playerIndex)
 {
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    float temp_f28;
-    float temp_f27;
+    PuzzlePlayerState *playerState = &puzzlePlayerState[playerIndex];
+    u16 buttonsDown;
 
-    Vec *temp_r31;
-    Vec *temp_r29;
-    Vec *temp_r28;
-    s32 temp_r27;
-    Vec *temp_r26;
-    s32 temp_r25;
+    // Hacks to stop spilling in PuzzlePlayerTask
+    (void)playerState;
+    (void)playerState;
+    (void)playerState;
+    (void)playerState;
 
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    temp_r31 = &arg0->unk6C[arg1]->mesh.base.pos;
-    temp_r26 = &arg0->unk10C[arg1]->mesh.base.pos;
-    temp_r28 = &arg0->unk1AC[arg1]->mesh.base.pos;
-    temp_r29 = &arg0->unk24C[arg1].pos;
-    temp_f29 = (temp_r29->x - temp_r31->x) / 15.0f;
-    temp_f27 = (temp_r29->z - temp_r31->z) / 30.0f;
-    temp_f28 = (temp_r29->y - temp_r31->y) / 15.0f;
-    temp_f31 = 20;
-    temp_f30 = -20;
-    HuSprAttrSet(arg0->unkA, 0, 64);
-    omVibrate(arg0->unk34, 12, 6, 6);
-    temp_r25 = 0;
-    for (temp_r27 = 0; temp_r27 < 30; temp_r27++) {
-        temp_r31->z += temp_f27;
-        temp_r28->z = temp_r26->z = temp_r31->z - 5.0f;
-        if (temp_r27 < 15) {
-            temp_r31->x += temp_f29;
-            temp_r31->y += temp_f28;
-            temp_r28->x = temp_r31->x;
-            temp_r28->y = temp_r31->y;
-            sp2C.x = 30.0f + temp_r31->x;
-            sp2C.z = 50.0f;
-            sp2C.y = -30.0f + temp_r31->y;
-            Hu3D3Dto2D(&sp2C, (1 << arg0->unk38), &sp20);
-            HuSprGrpPosSet(arg0->unkA, sp20.x, sp20.y);
+    if (!GWPlayerCfg[playerIndex].iscom) {
+        buttonsDown = HuPadBtnDown[playerState->controllerIndex];
+    }
+    else {
+        buttonsDown = playerState->buttonDown;
+    }
+    return buttonsDown;
+}
+
+void PuzzlePiecePlaceTask(PuzzlePlayerState *playerState, s32 pieceIndex)
+{
+    float overlayOffsetX;
+    float overlayOffsetY;
+    float pieceStepX;
+    float pieceStepY;
+    float pieceStepZ;
+
+    Vec *piecePosition;
+    Vec *targetPosition;
+    Vec *characterPosition;
+    s32 animationFrame;
+    Vec *overlayPosition;
+    s32 overlayAlpha;
+
+    Vec screenPosition3D;
+    Vec screenPosition2D;
+    Vec finalScreenPosition3D;
+    Vec finalScreenPosition2D;
+    piecePosition = &playerState->pieceModels[pieceIndex]->mesh.base.pos;
+    overlayPosition = &playerState->overlayModels[pieceIndex]->mesh.base.pos;
+    characterPosition = &playerState->characterModels[pieceIndex]->mesh.base.pos;
+    targetPosition = &playerState->pieceTransforms[pieceIndex].pos;
+    pieceStepX = (targetPosition->x - piecePosition->x) / 15.0f;
+    pieceStepZ = (targetPosition->z - piecePosition->z) / 30.0f;
+    pieceStepY = (targetPosition->y - piecePosition->y) / 15.0f;
+    overlayOffsetX = 20;
+    overlayOffsetY = -20;
+    HuSprAttrSet(playerState->spriteGroupId, 0, 64);
+    omVibrate(playerState->playerIndex, 12, 6, 6);
+    overlayAlpha = 0;
+    for (animationFrame = 0; animationFrame < 30; animationFrame++) {
+        piecePosition->z += pieceStepZ;
+        characterPosition->z = overlayPosition->z = piecePosition->z - 5.0f;
+        if (animationFrame < 15) {
+            piecePosition->x += pieceStepX;
+            piecePosition->y += pieceStepY;
+            characterPosition->x = piecePosition->x;
+            characterPosition->y = piecePosition->y;
+            screenPosition3D.x = 30.0f + piecePosition->x;
+            screenPosition3D.z = 50.0f;
+            screenPosition3D.y = -30.0f + piecePosition->y;
+            Hu3D3Dto2D(&screenPosition3D, (1 << playerState->cameraIndex), &screenPosition2D);
+            HuSprGrpPosSet(playerState->spriteGroupId, screenPosition2D.x, screenPosition2D.y);
         }
-        temp_r26->x = temp_r31->x + temp_f31;
-        temp_r26->y = temp_r31->y + temp_f30;
-        temp_f31 -= (4.0f / 7.0f);
-        temp_f30 -= (-4.0f / 7.0f);
-        temp_r28->z += 10.0f;
-        if (temp_r27 < 14) {
-            temp_r25 += 17;
+        overlayPosition->x = piecePosition->x + overlayOffsetX;
+        overlayPosition->y = piecePosition->y + overlayOffsetY;
+        overlayOffsetX -= (4.0f / 7.0f);
+        overlayOffsetY -= (-4.0f / 7.0f);
+        characterPosition->z += 10.0f;
+        if (animationFrame < 14) {
+            overlayAlpha += 17;
         }
-        else if (temp_r27 < 28) {
-            temp_r25 -= 17;
+        else if (animationFrame < 28) {
+            overlayAlpha -= 17;
         }
-        Hu3DModelTPLvlSet(arg0->unk0[1], 255 - temp_r25);
+        Hu3DModelTPLvlSet(playerState->modelIds[1], 255 - overlayAlpha);
         HuPrcVSleep();
     }
-    temp_r31->x = temp_r29->x;
-    temp_r31->y = temp_r29->y;
-    temp_r31->z = temp_r29->z;
-    sp14.x = 30.0f + temp_r31->x;
-    sp14.z = 50;
-    sp14.y = -30.0f + temp_r31->y;
-    Hu3D3Dto2D(&sp14, (1 << arg0->unk38), &sp8);
-    HuSprGrpPosSet(arg0->unkA, sp8.x, sp8.y);
-    temp_r28->x = 5000;
+    piecePosition->x = targetPosition->x;
+    piecePosition->y = targetPosition->y;
+    piecePosition->z = targetPosition->z;
+    finalScreenPosition3D.x = 30.0f + piecePosition->x;
+    finalScreenPosition3D.z = 50;
+    finalScreenPosition3D.y = -30.0f + piecePosition->y;
+    Hu3D3Dto2D(&finalScreenPosition3D, (1 << playerState->cameraIndex), &finalScreenPosition2D);
+    HuSprGrpPosSet(playerState->spriteGroupId, finalScreenPosition2D.x, finalScreenPosition2D.y);
+    characterPosition->x = 5000;
 }
 
-void fn_1_263C(Bss348Data *arg0, s32 arg1)
+void PuzzlePiecePulseTask(PuzzlePlayerState *playerState, s32 pieceIndex)
 {
-    HSFTRANSFORM *temp_r31;
-    HSFTRANSFORM *temp_r30;
-    HSFTRANSFORM *temp_r29;
-    float temp_f31;
-    temp_r31 = &arg0->unk6C[arg1]->mesh.base;
-    temp_r29 = &arg0->unk10C[arg1]->mesh.base;
-    temp_r30 = &arg0->unk24C[arg1];
-    for (temp_f31 = 0; temp_f31 < 180; temp_f31 += 10) {
-        temp_r31->scale.x = (temp_r30->scale.x * 0.8f) + (0.2f * (temp_r30->scale.x * (1.0 - sind(temp_f31))));
-        temp_r31->scale.y = (temp_r30->scale.y * 0.8f) + (0.2f * (temp_r30->scale.y * (1.0 - sind(temp_f31))));
-        temp_r31->scale.z = (temp_r30->scale.z * 0.8f) + (0.2f * (temp_r30->scale.z * (1.0 - sind(temp_f31))));
-        temp_r29->scale.x = temp_r31->scale.x;
-        temp_r29->scale.y = temp_r31->scale.y;
-        temp_r29->scale.z = 0.8f * temp_r31->scale.z;
+    HSFTRANSFORM *pieceTransform;
+    HSFTRANSFORM *savedTransform;
+    HSFTRANSFORM *overlayTransform;
+    float pulseAngle;
+    pieceTransform = &playerState->pieceModels[pieceIndex]->mesh.base;
+    overlayTransform = &playerState->overlayModels[pieceIndex]->mesh.base;
+    savedTransform = &playerState->pieceTransforms[pieceIndex];
+    for (pulseAngle = 0; pulseAngle < 180; pulseAngle += 10) {
+        pieceTransform->scale.x = (savedTransform->scale.x * 0.8f) + (0.2f * (savedTransform->scale.x * (1.0 - sind(pulseAngle))));
+        pieceTransform->scale.y = (savedTransform->scale.y * 0.8f) + (0.2f * (savedTransform->scale.y * (1.0 - sind(pulseAngle))));
+        pieceTransform->scale.z = (savedTransform->scale.z * 0.8f) + (0.2f * (savedTransform->scale.z * (1.0 - sind(pulseAngle))));
+        overlayTransform->scale.x = pieceTransform->scale.x;
+        overlayTransform->scale.y = pieceTransform->scale.y;
+        overlayTransform->scale.z = 0.8f * pieceTransform->scale.z;
         HuPrcVSleep();
     }
-    for (temp_f31 = 180; temp_f31 < 360; temp_f31 += 20) {
-        temp_r31->scale.x = (temp_r30->scale.x * 0.9f) + (0.1f * (temp_r30->scale.x * (1.0 - sind(temp_f31))));
-        temp_r31->scale.y = (temp_r30->scale.y * 0.9f) + (0.1f * (temp_r30->scale.y * (1.0 - sind(temp_f31))));
-        temp_r31->scale.z = (temp_r30->scale.z * 0.9f) + (0.1f * (temp_r30->scale.z * (1.0 - sind(temp_f31))));
-        temp_r29->scale.x = temp_r31->scale.x;
-        temp_r29->scale.y = temp_r31->scale.y;
-        temp_r29->scale.z = 0.8f * temp_r31->scale.z;
+    for (pulseAngle = 180; pulseAngle < 360; pulseAngle += 20) {
+        pieceTransform->scale.x = (savedTransform->scale.x * 0.9f) + (0.1f * (savedTransform->scale.x * (1.0 - sind(pulseAngle))));
+        pieceTransform->scale.y = (savedTransform->scale.y * 0.9f) + (0.1f * (savedTransform->scale.y * (1.0 - sind(pulseAngle))));
+        pieceTransform->scale.z = (savedTransform->scale.z * 0.9f) + (0.1f * (savedTransform->scale.z * (1.0 - sind(pulseAngle))));
+        overlayTransform->scale.x = pieceTransform->scale.x;
+        overlayTransform->scale.y = pieceTransform->scale.y;
+        overlayTransform->scale.z = 0.8f * pieceTransform->scale.z;
         HuPrcVSleep();
     }
-    temp_r31->scale.x = temp_r30->scale.x;
-    temp_r31->scale.y = temp_r30->scale.y;
-    temp_r31->scale.z = temp_r30->scale.z;
-    temp_r29->scale.x = temp_r31->scale.x;
-    temp_r29->scale.y = temp_r31->scale.y;
-    temp_r29->scale.z = 0.8f * temp_r31->scale.z;
+    pieceTransform->scale.x = savedTransform->scale.x;
+    pieceTransform->scale.y = savedTransform->scale.y;
+    pieceTransform->scale.z = savedTransform->scale.z;
+    overlayTransform->scale.x = pieceTransform->scale.x;
+    overlayTransform->scale.y = pieceTransform->scale.y;
+    overlayTransform->scale.z = 0.8f * pieceTransform->scale.z;
 }
 
-void fn_1_2A34(Bss348Data *arg0, s32 arg1, s32 arg2)
+void PuzzlePieceAppearTask(PuzzlePlayerState *playerState, s32 pieceIndex, s32 pieceOrderIndex)
 {
-    HSFTRANSFORM *temp_r31;
-    HSFTRANSFORM *temp_r30;
-    s32 temp_r28;
+    HSFTRANSFORM *pieceTransform;
+    HSFTRANSFORM *overlayTransform;
+    s32 frameIndex;
 
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    float temp_f28;
+    float scaleProgress;
+    float pieceScaleX;
+    float pieceScaleY;
+    float pieceScaleZ;
 
-    temp_r31 = &arg0->unk6C[arg1]->mesh.base;
-    temp_r30 = &arg0->unk10C[arg1]->mesh.base;
-    temp_f30 = temp_r31->scale.x;
-    temp_f29 = temp_r31->scale.y;
-    temp_f28 = temp_r31->scale.z;
-    temp_r31->scale.x = temp_r31->scale.y = temp_r31->scale.z = 0;
-    temp_r30->scale.x = temp_r30->scale.y = temp_r30->scale.z = 0;
-    for (temp_r28 = 0, temp_f31 = 0; temp_r28 < 30; temp_r28++, temp_f31 += (1.0f / 30.0f)) {
-        temp_r31->scale.x += temp_f30 / 30.0f;
-        temp_r31->scale.y += temp_f29 / 30.0f;
-        temp_r31->scale.z += temp_f28 / 30.0f;
-        temp_r30->scale.x = temp_r31->scale.x;
-        temp_r30->scale.y = temp_r31->scale.y;
-        temp_r30->scale.z = 0.8f * temp_r31->scale.z;
-        if (arg2 == 0) {
-            HuSprGrpScaleSet(arg0->unkA, temp_f31, temp_f31);
+    pieceTransform = &playerState->pieceModels[pieceIndex]->mesh.base;
+    overlayTransform = &playerState->overlayModels[pieceIndex]->mesh.base;
+    pieceScaleX = pieceTransform->scale.x;
+    pieceScaleY = pieceTransform->scale.y;
+    pieceScaleZ = pieceTransform->scale.z;
+    pieceTransform->scale.x = pieceTransform->scale.y = pieceTransform->scale.z = 0;
+    overlayTransform->scale.x = overlayTransform->scale.y = overlayTransform->scale.z = 0;
+    for (frameIndex = 0, scaleProgress = 0; frameIndex < 30; frameIndex++, scaleProgress += (1.0f / 30.0f)) {
+        pieceTransform->scale.x += pieceScaleX / 30.0f;
+        pieceTransform->scale.y += pieceScaleY / 30.0f;
+        pieceTransform->scale.z += pieceScaleZ / 30.0f;
+        overlayTransform->scale.x = pieceTransform->scale.x;
+        overlayTransform->scale.y = pieceTransform->scale.y;
+        overlayTransform->scale.z = 0.8f * pieceTransform->scale.z;
+        if (pieceOrderIndex == 0) {
+            HuSprGrpScaleSet(playerState->spriteGroupId, scaleProgress, scaleProgress);
         }
         HuPrcVSleep();
     }
-    temp_r31->scale.x = temp_f30;
-    temp_r31->scale.y = temp_f29;
-    temp_r31->scale.z = temp_f28;
-    temp_r30->scale.x = temp_r31->scale.x;
-    temp_r30->scale.y = temp_r31->scale.y;
-    temp_r30->scale.z = 0.8f * temp_r31->scale.z;
-    if (arg2 == 0) {
-        HuSprAttrReset(arg0->unkA, 0, HUSPR_ATTR_NOANIM);
-        HuSprGrpScaleSet(arg0->unkA, 1, 1);
+    pieceTransform->scale.x = pieceScaleX;
+    pieceTransform->scale.y = pieceScaleY;
+    pieceTransform->scale.z = pieceScaleZ;
+    overlayTransform->scale.x = pieceTransform->scale.x;
+    overlayTransform->scale.y = pieceTransform->scale.y;
+    overlayTransform->scale.z = 0.8f * pieceTransform->scale.z;
+    if (pieceOrderIndex == 0) {
+        HuSprAttrReset(playerState->spriteGroupId, 0, HUSPR_ATTR_NOANIM);
+        HuSprGrpScaleSet(playerState->spriteGroupId, 1, 1);
     }
     else {
-        HuSprAttrReset(arg0->unkA, 0, HUSPR_ATTR_REVERSE);
+        HuSprAttrReset(playerState->spriteGroupId, 0, HUSPR_ATTR_REVERSE);
     }
 }
 
-typedef struct work_2C50 {
-    Bss348Data *unk0;
-    s32 unk4;
-    s32 unk8;
-    s32 *unkC;
-} Work2C50;
+typedef struct PieceRotationTask {
+    PuzzlePlayerState *playerData;
+    s32 pieceIndex;
+    s32 rotateClockwise;
+    s32 *rotationComplete;
+} PieceRotationTask;
 
-void fn_1_2C50(void)
+void PuzzlePieceRotateTask(void)
 {
-    HSFTRANSFORM *temp_r31;
-    Work2C50 *temp_r30;
-    s32 temp_r29;
-    HSFTRANSFORM *temp_r28;
-    s32 temp_r27;
+    HSFTRANSFORM *pieceTransform;
+    PieceRotationTask *rotationTask;
+    s32 animationFrame;
+    HSFTRANSFORM *characterTransform;
+    s32 frameCount;
 
-    float temp_f31;
-    float temp_f30;
-    float temp_f29;
-    temp_r30 = HuPrcCurrentGet()->user_data;
-    temp_r31 = &temp_r30->unk0->unk6C[temp_r30->unk4]->mesh.base;
-    temp_r28 = &temp_r30->unk0->unk10C[temp_r30->unk4]->mesh.base;
+    float rotationProgress;
+    float targetRotation;
+    float initialRotation;
+    rotationTask = HuPrcCurrentGet()->user_data;
+    pieceTransform = &rotationTask->playerData->pieceModels[rotationTask->pieceIndex]->mesh.base;
+    characterTransform = &rotationTask->playerData->characterModels[rotationTask->pieceIndex]->mesh.base;
     HuAudFXPlay(1401);
-    if (temp_r30->unk8) {
-        temp_f30 = temp_r31->rot.z + 90.0f;
+    if (rotationTask->rotateClockwise) {
+        targetRotation = pieceTransform->rot.z + 90.0f;
     }
     else {
-        temp_f30 = temp_r31->rot.z - 90.0f;
+        targetRotation = pieceTransform->rot.z - 90.0f;
     }
-    if (temp_f30 >= 360.0f) {
-        temp_f30 -= 360.0f;
+    if (targetRotation >= 360.0f) {
+        targetRotation -= 360.0f;
     }
-    if (temp_f30 < 0.0f) {
-        temp_f30 += 360.0f;
+    if (targetRotation < 0.0f) {
+        targetRotation += 360.0f;
     }
-    temp_f29 = temp_r31->rot.z;
-    temp_f31 = 0;
-    for (temp_r29 = 0, temp_r27 = 15; temp_r29 < temp_r27; temp_r29++) {
-        if (temp_r30->unk8) {
-            temp_r31->rot.z = temp_f29 + (100.0 * sind(temp_f31));
+    initialRotation = pieceTransform->rot.z;
+    rotationProgress = 0;
+    for (animationFrame = 0, frameCount = 15; animationFrame < frameCount; animationFrame++) {
+        if (rotationTask->rotateClockwise) {
+            pieceTransform->rot.z = initialRotation + (100.0 * sind(rotationProgress));
         }
         else {
-            temp_r31->rot.z = temp_f29 - (100.0 * sind(temp_f31));
+            pieceTransform->rot.z = initialRotation - (100.0 * sind(rotationProgress));
         }
-        temp_r28->rot.z = temp_r31->rot.z;
-        temp_f31 += 6.0f;
+        characterTransform->rot.z = pieceTransform->rot.z;
+        rotationProgress += 6.0f;
         HuPrcVSleep();
     }
-    temp_f31 = 90.0f;
-    for (temp_r29 = 0, temp_r27 = 3; temp_r29 < temp_r27; temp_r29++) {
-        temp_f31 -= (25.0f / 3.0f);
-        if (temp_r30->unk8) {
-            temp_r31->rot.z = temp_f29 + (100.0 * sind(temp_f31));
+    rotationProgress = 90.0f;
+    for (animationFrame = 0, frameCount = 3; animationFrame < frameCount; animationFrame++) {
+        rotationProgress -= (25.0f / 3.0f);
+        if (rotationTask->rotateClockwise) {
+            pieceTransform->rot.z = initialRotation + (100.0 * sind(rotationProgress));
         }
         else {
-            temp_r31->rot.z = temp_f29 - (100.0 * sind(temp_f31));
+            pieceTransform->rot.z = initialRotation - (100.0 * sind(rotationProgress));
         }
-        temp_r28->rot.z = temp_r31->rot.z;
+        characterTransform->rot.z = pieceTransform->rot.z;
         HuPrcVSleep();
     }
-    temp_r31->rot.z = temp_r28->rot.z = temp_f30;
-    *temp_r30->unkC = 0;
+    pieceTransform->rot.z = characterTransform->rot.z = targetRotation;
+    *rotationTask->rotationComplete = 0;
     HuPrcKill(HuPrcCurrentGet());
     while (1) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_2F08(void)
+void PuzzleConfettiParticleTask(void)
 {
-    Vec *temp_r31 = HuPrcCurrentGet()->user_data;
-    float temp_f31;
-    float temp_f30;
+    Vec *particlePosition = HuPrcCurrentGet()->user_data;
+    float verticalSpeed;
+    float horizontalSpeed;
     HuPrcSleep(frandmod(REFRESH_RATE / 2.5));
-    temp_f30 = temp_r31->x / 100.0f;
-    temp_f31 = -7.0f;
+    horizontalSpeed = particlePosition->x / 100.0f;
+    verticalSpeed = -7.0f;
     while (1) {
-        temp_r31->y -= temp_f31;
-        if (temp_r31->y < -500.0f) {
+        particlePosition->y -= verticalSpeed;
+        if (particlePosition->y < -500.0f) {
             break;
         }
-        temp_f31 += 0.5f;
-        if (temp_f31 > 20.0f) {
-            temp_f31 = 20.0f;
+        verticalSpeed += 0.5f;
+        if (verticalSpeed > 20.0f) {
+            verticalSpeed = 20.0f;
         }
-        temp_r31->x += temp_f30;
-        temp_r31->z += 10.0f;
+        particlePosition->x += horizontalSpeed;
+        particlePosition->z += 10.0f;
         HuPrcVSleep();
     }
     HuPrcKill(HuPrcCurrentGet());
@@ -978,341 +978,341 @@ void fn_1_2F08(void)
     }
 }
 
-void fn_1_2FEC(Bss348Data *arg0, s32 arg1)
+void PuzzlePieceCursorClamp(PuzzlePlayerState *playerState, s32 pieceIndex)
 {
-    Vec *temp_r31 = &arg0->unk6C[arg1]->mesh.base.pos;
-    if (temp_r31->x > 230.0f) {
-        temp_r31->x = 230.0f;
+    Vec *piecePosition = &playerState->pieceModels[pieceIndex]->mesh.base.pos;
+    if (piecePosition->x > 230.0f) {
+        piecePosition->x = 230.0f;
     }
-    if (temp_r31->x < -230.0f) {
-        temp_r31->x = -230.0f;
+    if (piecePosition->x < -230.0f) {
+        piecePosition->x = -230.0f;
     }
-    if (temp_r31->y > 170.0f) {
-        temp_r31->y = 170.0f;
+    if (piecePosition->y > 170.0f) {
+        piecePosition->y = 170.0f;
     }
-    if (temp_r31->y < -170.0f) {
-        temp_r31->y = -170.0f;
+    if (piecePosition->y < -170.0f) {
+        piecePosition->y = -170.0f;
     }
 }
 
-void fn_1_30B0(s32 arg0, s32 arg1)
+void ComputerPlayerDelay(s32 playerIndex, s32 delayFrames)
 {
-    switch (GWPlayerCfg[arg0].diff) {
+    switch (GWPlayerCfg[playerIndex].diff) {
         case 0:
-            arg1 *= 8;
+            delayFrames *= 8;
             break;
 
         case 1:
-            arg1 *= 4;
+            delayFrames *= 4;
             break;
 
         case 2:
-            arg1 *= 2;
+            delayFrames *= 2;
             break;
     }
-    if (arg1 <= 1) {
+    if (delayFrames <= 1) {
         HuPrcVSleep();
     }
     else {
-        HuPrcSleep(frandmod(arg1 / 2) + arg1);
+        HuPrcSleep(frandmod(delayFrames / 2) + delayFrames);
     }
 }
 
-void fn_1_3154(Bss348Data *arg0, s32 arg1, s32 arg2)
+void ComputerPlayerInputUpdate(PuzzlePlayerState *playerState, s32 pieceIndex, s32 pieceOrderIndex)
 {
-    HSFTRANSFORM *temp_r30;
-    s32 temp_r29;
-    HSFTRANSFORM *temp_r25;
-    s32 temp_r23;
-    float temp_f29;
-    Vec sp24;
-    Vec sp18;
-    Vec spC;
-    arg1 = lbl_1_bss_C04[arg2];
-    temp_r30 = &arg0->unk6C[arg1]->mesh.base;
-    arg0->unk7F4 = arg0->unk7F5 = 0;
-    arg0->unk7F7 = arg0->unk7F6 = 0;
-    arg0->unk7F8 = 0;
-    switch (GWPlayerCfg[arg0->unk34].diff) {
+    HSFTRANSFORM *pieceTransform;
+    s32 selectionChance;
+    HSFTRANSFORM *targetTransform;
+    s32 randomPieceOffset;
+    float cursorAngle;
+    Vec targetPosition;
+    Vec piecePosition;
+    Vec cursorDelta;
+    pieceIndex = shuffledPieceOrder[pieceOrderIndex];
+    pieceTransform = &playerState->pieceModels[pieceIndex]->mesh.base;
+    playerState->stickX = playerState->stickY = 0;
+    playerState->triggerLeft = playerState->triggerRight = 0;
+    playerState->buttonDown = 0;
+    switch (GWPlayerCfg[playerState->playerIndex].diff) {
         case 0:
-            temp_r29 = (arg2 * 2) + 60;
+            selectionChance = (pieceOrderIndex * 2) + 60;
             break;
 
         case 1:
-            temp_r29 = arg2 + 80;
+            selectionChance = pieceOrderIndex + 80;
             break;
 
         case 2:
-            temp_r29 = arg2 + 90;
+            selectionChance = pieceOrderIndex + 90;
             break;
 
         default:
-            temp_r29 = arg2 + 95;
+            selectionChance = pieceOrderIndex + 95;
             break;
     }
-    if (temp_r29 > 100) {
-        temp_r29 = 100;
+    if (selectionChance > 100) {
+        selectionChance = 100;
     }
-    if (arg0->unk804 == -1) {
-        if (frandmod(100) < temp_r29 || lbl_1_bss_B58 == arg2 + 1) {
-            arg0->unk804 = arg1;
+    if (playerState->selectedPieceIndex == -1) {
+        if (frandmod(100) < selectionChance || puzzlePieceCount == pieceOrderIndex + 1) {
+            playerState->selectedPieceIndex = pieceIndex;
         }
         else {
-            temp_r23 = frandmod(lbl_1_bss_B58 - arg2);
-            arg0->unk804 = lbl_1_bss_C04[arg2 + temp_r23];
+            randomPieceOffset = frandmod(puzzlePieceCount - pieceOrderIndex);
+            playerState->selectedPieceIndex = shuffledPieceOrder[pieceOrderIndex + randomPieceOffset];
         }
-        arg0->unk808 = -1;
-        if (GWPlayerCfg[arg0->unk34].diff == 2 || GWPlayerCfg[arg0->unk34].diff == 3) {
-            if (frandmod(100) < temp_r29 || lbl_1_bss_B58 == arg2 + 1) {
-                arg0->unk808 = 10;
+        playerState->computerTurnTimer = -1;
+        if (GWPlayerCfg[playerState->playerIndex].diff == 2 || GWPlayerCfg[playerState->playerIndex].diff == 3) {
+            if (frandmod(100) < selectionChance || puzzlePieceCount == pieceOrderIndex + 1) {
+                playerState->computerTurnTimer = 10;
             }
         }
-        fn_1_30B0(arg0->unk34, 10);
+        ComputerPlayerDelay(playerState->playerIndex, 10);
     }
-    temp_r25 = &arg0->unk24C[arg0->unk804];
-    HuSetVecF(&sp24, temp_r25->pos.x, temp_r25->pos.y, 0.0);
-    HuSetVecF(&sp18, temp_r30->pos.x, temp_r30->pos.y, 0.0);
-    HuSubVecF(&spC, &sp24, &sp18);
-    if (VECMagXY(&spC) >= 40.0f) {
-        temp_f29 = atan2d(spC.x, spC.y);
-        arg0->unk7F4 = 50 * sind(temp_f29);
-        arg0->unk7F5 = 50 * cosd(temp_f29);
-        if (arg0->unk808 >= 0 && arg0->unk808-- == 0 && temp_r30->rot.z != 0.0f) {
-            arg0->unk808 = 10;
-            if (0.0f == (temp_r30->rot.z - 90.0f)) {
-                arg0->unk7F6 = 50;
+    targetTransform = &playerState->pieceTransforms[playerState->selectedPieceIndex];
+    HuSetVecF(&targetPosition, targetTransform->pos.x, targetTransform->pos.y, 0.0);
+    HuSetVecF(&piecePosition, pieceTransform->pos.x, pieceTransform->pos.y, 0.0);
+    HuSubVecF(&cursorDelta, &targetPosition, &piecePosition);
+    if (VECMagXY(&cursorDelta) >= 40.0f) {
+        cursorAngle = atan2d(cursorDelta.x, cursorDelta.y);
+        playerState->stickX = 50 * sind(cursorAngle);
+        playerState->stickY = 50 * cosd(cursorAngle);
+        if (playerState->computerTurnTimer >= 0 && playerState->computerTurnTimer-- == 0 && pieceTransform->rot.z != 0.0f) {
+            playerState->computerTurnTimer = 10;
+            if (0.0f == (pieceTransform->rot.z - 90.0f)) {
+                playerState->triggerRight = 50;
             }
             else {
-                arg0->unk7F7 = 50;
+                playerState->triggerLeft = 50;
             }
         }
     }
     else {
-        fn_1_30B0(arg0->unk34, 1);
-        if (frandmod(100) < temp_r29 || lbl_1_bss_B58 == arg2 + 1) {
-            if (0.0f != temp_r30->rot.z) {
-                if (0.0f == (temp_r30->rot.z - 90.0f)) {
-                    arg0->unk7F6 = 50;
+        ComputerPlayerDelay(playerState->playerIndex, 1);
+        if (frandmod(100) < selectionChance || puzzlePieceCount == pieceOrderIndex + 1) {
+            if (0.0f != pieceTransform->rot.z) {
+                if (0.0f == (pieceTransform->rot.z - 90.0f)) {
+                    playerState->triggerRight = 50;
                 }
                 else {
-                    arg0->unk7F7 = 50;
+                    playerState->triggerLeft = 50;
                 }
             }
             else {
-                arg0->unk7F8 = PAD_BUTTON_A;
-                arg0->unk804 = -1;
+                playerState->buttonDown = PAD_BUTTON_A;
+                playerState->selectedPieceIndex = -1;
             }
         }
         else {
             switch (frandmod(3)) {
                 case 0:
-                    arg0->unk7F6 = 50;
+                    playerState->triggerRight = 50;
                     break;
 
                 case 1:
-                    arg0->unk7F6 = 50;
+                    playerState->triggerRight = 50;
                     break;
 
                 default:
-                    arg0->unk7F8 = PAD_BUTTON_A;
-                    arg0->unk804 = -1;
+                    playerState->buttonDown = PAD_BUTTON_A;
+                    playerState->selectedPieceIndex = -1;
                     break;
             }
-            if (frandmod(100) < temp_r29) {
-                arg0->unk804 = -1;
+            if (frandmod(100) < selectionChance) {
+                playerState->selectedPieceIndex = -1;
             }
         }
     }
 }
 
-void fn_1_37C4(void)
+void PuzzlePlayerTask(void)
 {
-    Bss348Data *temp_r31;
-    HSFTRANSFORM *temp_r30;
-    s32 temp_r29;
-    HSFTRANSFORM *temp_r28;
-    s32 temp_r26;
-    HSFTRANSFORM *temp_r25;
-    HUPROCESS *temp_r24;
-    s32 temp_r23;
-    Vec spCC;
-    Vec spC0;
-    Vec spB4;
-    Work2C50 spA4;
-    Vec sp98;
-    Vec sp8C;
-    Vec sp80;
-    Vec sp74;
-    s32 sp70;
-    s32 sp58;
-    s32 sp48;
-    float temp_f27;
-    float temp_f26;
+    PuzzlePlayerState *playerState;
+    HSFTRANSFORM *pieceTransform;
+    s32 pieceOrderIndex;
+    HSFTRANSFORM *overlayTransform;
+    s32 pieceIndex;
+    HSFTRANSFORM *targetTransform;
+    HUPROCESS *childProcess;
+    s32 rotationDirection;
+    Vec targetPosition;
+    Vec piecePosition;
+    Vec cursorDelta;
+    PieceRotationTask rotationTask;
+    Vec cursorPosition3D;
+    Vec cursorPosition2D;
+    Vec updatedCursorPosition3D;
+    Vec updatedCursorPosition2D;
+    s32 rotationInProgress;
+    s32 unusedPlayerWorkValueA;
+    s32 unusedPlayerWorkValueB;
+    float pieceDistance;
+    float pieceAngle;
 
-    temp_r31 = HuPrcCurrentGet()->user_data;
-    temp_r31->unk40 = 0;
-    for (temp_r29 = 0; temp_r29 < lbl_1_bss_B58; temp_r29++) {
-        temp_r30 = &temp_r31->unk10C[temp_r29]->mesh.base;
-        temp_r30->pos.x = 5000;
-        temp_r30 = &temp_r31->unk1AC[temp_r29]->mesh.base;
-        temp_r30->pos.x = 5000;
+    playerState = HuPrcCurrentGet()->user_data;
+    playerState->playerState = 0;
+    for (pieceOrderIndex = 0; pieceOrderIndex < puzzlePieceCount; pieceOrderIndex++) {
+        pieceTransform = &playerState->overlayModels[pieceOrderIndex]->mesh.base;
+        pieceTransform->pos.x = 5000;
+        pieceTransform = &playerState->characterModels[pieceOrderIndex]->mesh.base;
+        pieceTransform->pos.x = 5000;
     }
-    while (lbl_1_bss_CA8 == 0) {
+    while (puzzleGamePhase == 0) {
         HuPrcVSleep();
     }
     HuPrcSleep(REFRESH_RATE * 3);
     HuAudFXPlay(1391);
-    for (temp_r29 = 0; temp_r29 < lbl_1_bss_B58; temp_r29++) {
-        temp_r30 = &temp_r31->unk6C[temp_r29]->mesh.base;
-        temp_f26 = atan2d(temp_r30->pos.x, temp_r30->pos.y);
-        temp_f27 = VECMagXY(&temp_r30->pos);
-        temp_f27 *= 1.05f;
-        temp_r30->pos.x = temp_f27 * sind(temp_f26);
-        temp_r30->pos.y = temp_f27 * cosd(temp_f26);
+    for (pieceOrderIndex = 0; pieceOrderIndex < puzzlePieceCount; pieceOrderIndex++) {
+        pieceTransform = &playerState->pieceModels[pieceOrderIndex]->mesh.base;
+        pieceAngle = atan2d(pieceTransform->pos.x, pieceTransform->pos.y);
+        pieceDistance = VECMagXY(&pieceTransform->pos);
+        pieceDistance *= 1.05f;
+        pieceTransform->pos.x = pieceDistance * sind(pieceAngle);
+        pieceTransform->pos.y = pieceDistance * cosd(pieceAngle);
     }
-    omVibrate(temp_r31->unk34, 12, 6, 6);
+    omVibrate(playerState->playerIndex, 12, 6, 6);
     HuPrcSleep(30);
     HuAudFXPlay(1387);
-    for (temp_r29 = 0; temp_r29 < lbl_1_bss_B58; temp_r29++) {
-        temp_r24 = HuPrcChildCreate(fn_1_2F08, 8192, 4096, 0, HuPrcCurrentGet());
-        temp_r30 = &temp_r31->unk6C[temp_r29]->mesh.base;
-        temp_r24->user_data = temp_r30;
+    for (pieceOrderIndex = 0; pieceOrderIndex < puzzlePieceCount; pieceOrderIndex++) {
+        childProcess = HuPrcChildCreate(PuzzleConfettiParticleTask, 8192, 4096, 0, HuPrcCurrentGet());
+        pieceTransform = &playerState->pieceModels[pieceOrderIndex]->mesh.base;
+        childProcess->user_data = pieceTransform;
     }
     HuPrcSleep(120);
-    lbl_1_bss_CA8 = 2;
-    for (temp_r29 = 0; temp_r29 < lbl_1_bss_B58; temp_r29++) {
-        sp70 = 0;
-        temp_r31->unk44 = 0;
-        temp_r31->unk804 = -1;
-        temp_r26 = lbl_1_bss_C04[temp_r29];
-        temp_r30 = &temp_r31->unk6C[temp_r26]->mesh.base;
-        temp_r28 = &temp_r31->unk10C[temp_r26]->mesh.base;
-        if (temp_r29 != 0) {
-            temp_r25 = &temp_r31->unk24C[lbl_1_bss_C04[temp_r29 - 1]];
-            temp_r30->pos.x = temp_r25->pos.x;
-            temp_r30->pos.y = temp_r25->pos.y;
-            temp_r28->pos.x = 20 + temp_r30->pos.x;
-            temp_r28->pos.y = -20 + temp_r30->pos.y;
+    puzzleGamePhase = 2;
+    for (pieceOrderIndex = 0; pieceOrderIndex < puzzlePieceCount; pieceOrderIndex++) {
+        rotationInProgress = 0;
+        playerState->movementPhase = 0;
+        playerState->selectedPieceIndex = -1;
+        pieceIndex = shuffledPieceOrder[pieceOrderIndex];
+        pieceTransform = &playerState->pieceModels[pieceIndex]->mesh.base;
+        overlayTransform = &playerState->overlayModels[pieceIndex]->mesh.base;
+        if (pieceOrderIndex != 0) {
+            targetTransform = &playerState->pieceTransforms[shuffledPieceOrder[pieceOrderIndex - 1]];
+            pieceTransform->pos.x = targetTransform->pos.x;
+            pieceTransform->pos.y = targetTransform->pos.y;
+            overlayTransform->pos.x = 20 + pieceTransform->pos.x;
+            overlayTransform->pos.y = -20 + pieceTransform->pos.y;
         }
         else {
-            temp_r30->pos.x = temp_r30->pos.y = 0;
-            temp_r28->pos.x = 20 + temp_r30->pos.x;
-            temp_r28->pos.y = -20 + temp_r30->pos.y;
-            sp98.x = temp_r30->pos.x + 30;
-            sp98.z = 50;
-            sp98.y = -30 + temp_r30->pos.y;
-            Hu3D3Dto2D(&sp98, (1 << temp_r31->unk38), &sp8C);
-            HuSprGrpPosSet(temp_r31->unkA, sp8C.x, sp8C.y);
-            HuSprAttrReset(temp_r31->unkA, 0, HUSPR_ATTR_DISPOFF);
+            pieceTransform->pos.x = pieceTransform->pos.y = 0;
+            overlayTransform->pos.x = 20 + pieceTransform->pos.x;
+            overlayTransform->pos.y = -20 + pieceTransform->pos.y;
+            cursorPosition3D.x = pieceTransform->pos.x + 30;
+            cursorPosition3D.z = 50;
+            cursorPosition3D.y = -30 + pieceTransform->pos.y;
+            Hu3D3Dto2D(&cursorPosition3D, (1 << playerState->cameraIndex), &cursorPosition2D);
+            HuSprGrpPosSet(playerState->spriteGroupId, cursorPosition2D.x, cursorPosition2D.y);
+            HuSprAttrReset(playerState->spriteGroupId, 0, HUSPR_ATTR_DISPOFF);
         }
-        temp_r30->pos.z = 50;
-        temp_r28->pos.z = temp_r30->pos.z - 5;
-        temp_r30->rot.z = temp_r28->rot.z = 90.0f * lbl_1_bss_B64[temp_r29];
-        fn_1_2A34(temp_r31, temp_r26, temp_r29);
-        if (temp_r29 == 0) {
-            while (lbl_1_bss_CA8 != 3) {
+        pieceTransform->pos.z = 50;
+        overlayTransform->pos.z = pieceTransform->pos.z - 5;
+        pieceTransform->rot.z = overlayTransform->rot.z = 90.0f * pieceRotationQuarters[pieceOrderIndex];
+        PuzzlePieceAppearTask(playerState, pieceIndex, pieceOrderIndex);
+        if (pieceOrderIndex == 0) {
+            while (puzzleGamePhase != 3) {
                 HuPrcVSleep();
             }
         }
         while (1) {
-            if (GWPlayerCfg[temp_r31->unk34].iscom == 1) {
-                fn_1_3154(temp_r31, temp_r26, temp_r29);
+            if (GWPlayerCfg[playerState->playerIndex].iscom == 1) {
+                ComputerPlayerInputUpdate(playerState, pieceIndex, pieceOrderIndex);
             }
-            if (!sp70) {
-                temp_r23 = -1;
-                if (fn_1_21B4_inline(temp_r31->unk34, 0) > 20) {
-                    temp_r23 = 1;
+            if (!rotationInProgress) {
+                rotationDirection = -1;
+                if (PlayerTriggerValueGetInline(playerState->playerIndex, 0) > 20) {
+                    rotationDirection = 1;
                 }
-                if (fn_1_21B4_inline(temp_r31->unk34, 1) > 20) {
-                    temp_r23 = 0;
+                if (PlayerTriggerValueGetInline(playerState->playerIndex, 1) > 20) {
+                    rotationDirection = 0;
                 }
-                if (temp_r23 != -1) {
-                    sp70 = 1;
-                    temp_r24 = HuPrcChildCreate(fn_1_2C50, 8192, 8192, 0, HuPrcCurrentGet());
-                    temp_r24->user_data = &spA4;
-                    spA4.unk0 = temp_r31;
-                    spA4.unk4 = temp_r26;
-                    spA4.unk8 = temp_r23;
-                    spA4.unkC = &sp70;
+                if (rotationDirection != -1) {
+                    rotationInProgress = 1;
+                    childProcess = HuPrcChildCreate(PuzzlePieceRotateTask, 8192, 8192, 0, HuPrcCurrentGet());
+                    childProcess->user_data = &rotationTask;
+                    rotationTask.playerData = playerState;
+                    rotationTask.pieceIndex = pieceIndex;
+                    rotationTask.rotateClockwise = rotationDirection;
+                    rotationTask.rotationComplete = &rotationInProgress;
                 }
             }
-            if ((fn_1_2274(temp_r31->unk34) & PAD_BUTTON_A) && !sp70) {
-                if (0.0f == temp_r30->rot.z) {
-                    temp_r25 = &temp_r31->unk24C[temp_r26];
-                    HuSetVecF(&spCC, temp_r25->pos.x, temp_r25->pos.y, 0.0f);
-                    HuSetVecF(&spC0, temp_r30->pos.x, temp_r30->pos.y, 0.0f);
-                    HuSubVecF(&spB4, &spCC, &spC0);
-                    if (VECMagXY(&spB4) < 40.0f) {
+            if ((PlayerButtonsDownGet(playerState->playerIndex) & PAD_BUTTON_A) && !rotationInProgress) {
+                if (0.0f == pieceTransform->rot.z) {
+                    targetTransform = &playerState->pieceTransforms[pieceIndex];
+                    HuSetVecF(&targetPosition, targetTransform->pos.x, targetTransform->pos.y, 0.0f);
+                    HuSetVecF(&piecePosition, pieceTransform->pos.x, pieceTransform->pos.y, 0.0f);
+                    HuSubVecF(&cursorDelta, &targetPosition, &piecePosition);
+                    if (VECMagXY(&cursorDelta) < 40.0f) {
                         HuAudFXPlay(1402);
-                        temp_r31->unk44 = 1;
-                        temp_r31->unk48[7] = temp_r30->pos.x;
-                        temp_r31->unk48[8] = temp_r30->pos.y;
-                        fn_1_22E0(temp_r31, temp_r26);
+                        playerState->movementPhase = 1;
+                        playerState->cursorState[7] = pieceTransform->pos.x;
+                        playerState->cursorState[8] = pieceTransform->pos.y;
+                        PuzzlePiecePlaceTask(playerState, pieceIndex);
                         goto end;
                     }
                 }
-                fn_1_263C(temp_r31, temp_r26);
+                PuzzlePiecePulseTask(playerState, pieceIndex);
             }
-            temp_r31->unk48[6] = -1.0f;
-            if (ABS_INV(fn_1_20FC_inline(temp_r31->unk34, 0)) > 20 || ABS_INV(fn_1_20FC_inline(temp_r31->unk34, 1)) > 20) {
-                temp_r31->unk48[6] = atan2d(fn_1_20FC_inline(temp_r31->unk34, 0), fn_1_20FC_inline(temp_r31->unk34, 1));
+            playerState->cursorState[6] = -1.0f;
+            if (ABS_INV(PlayerStickValueGetInline(playerState->playerIndex, 0)) > 20 || ABS_INV(PlayerStickValueGetInline(playerState->playerIndex, 1)) > 20) {
+                playerState->cursorState[6] = atan2d(PlayerStickValueGetInline(playerState->playerIndex, 0), PlayerStickValueGetInline(playerState->playerIndex, 1));
             }
-            if (-1.0f != temp_r31->unk48[6]) {
-                temp_r30->pos.x += 5.0f * sind(temp_r31->unk48[6]);
-                temp_r30->pos.y += 5.0f * cosd(temp_r31->unk48[6]);
-                fn_1_2FEC(temp_r31, temp_r26);
-                temp_r28->pos.x = 20.0f + temp_r30->pos.x;
-                temp_r28->pos.y = -20.0f + temp_r30->pos.y;
-                sp80.x = 30.0f + temp_r30->pos.x;
-                sp80.z = 50;
-                sp80.y = -30.0f + temp_r30->pos.y;
-                Hu3D3Dto2D(&sp80, (1 << temp_r31->unk38), &sp74);
-                HuSprGrpPosSet(temp_r31->unkA, sp74.x, sp74.y);
+            if (-1.0f != playerState->cursorState[6]) {
+                pieceTransform->pos.x += 5.0f * sind(playerState->cursorState[6]);
+                pieceTransform->pos.y += 5.0f * cosd(playerState->cursorState[6]);
+                PuzzlePieceCursorClamp(playerState, pieceIndex);
+                overlayTransform->pos.x = 20.0f + pieceTransform->pos.x;
+                overlayTransform->pos.y = -20.0f + pieceTransform->pos.y;
+                updatedCursorPosition3D.x = 30.0f + pieceTransform->pos.x;
+                updatedCursorPosition3D.z = 50;
+                updatedCursorPosition3D.y = -30.0f + pieceTransform->pos.y;
+                Hu3D3Dto2D(&updatedCursorPosition3D, (1 << playerState->cameraIndex), &updatedCursorPosition2D);
+                HuSprGrpPosSet(playerState->spriteGroupId, updatedCursorPosition2D.x, updatedCursorPosition2D.y);
             }
             HuPrcVSleep();
         }
 
     end:
-        (void)temp_r31;
+        (void)playerState;
     }
-    temp_r31->unk40 = 4;
+    playerState->playerState = 4;
     // Hacks to Stop Spilling
-    (void)temp_r26;
-    (void)temp_r26;
-    (void)temp_r24;
-    (void)temp_r24;
-    (void)temp_r24;
-    (void)temp_r23;
-    (void)temp_r23;
-    (void)temp_r23;
-    (void)temp_r23;
+    (void)pieceIndex;
+    (void)pieceIndex;
+    (void)childProcess;
+    (void)childProcess;
+    (void)childProcess;
+    (void)rotationDirection;
+    (void)rotationDirection;
+    (void)rotationDirection;
+    (void)rotationDirection;
     while (1) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_4768(s32 arg0)
+void PuzzlePlayerSpriteFadeTask(s32 playerSlot)
 {
-    float temp_f31;
-    s32 temp_r31;
-    s32 temp_r30;
-    Bss348Data *spC = &lbl_1_bss_348[arg0];
-    Bss348Data *temp_r29;
+    float spriteScale;
+    s32 fadeFrame;
+    s32 playerIndex;
+    PuzzlePlayerState *activePlayerState = &puzzlePlayerState[playerSlot];
+    PuzzlePlayerState *playerState;
 
-    for (temp_r31 = 0, temp_f31 = 1; temp_r31 < 15; temp_r31++) {
-        temp_f31 -= (1.0f / 15.0f);
-        for (temp_r30 = 0; temp_r30 < 1; temp_r30++) {
-            temp_r29 = &lbl_1_bss_348[temp_r30];
-            HuSprGrpScaleSet(temp_r29->unkA, temp_f31, temp_f31);
+    for (fadeFrame = 0, spriteScale = 1; fadeFrame < 15; fadeFrame++) {
+        spriteScale -= (1.0f / 15.0f);
+        for (playerIndex = 0; playerIndex < 1; playerIndex++) {
+            playerState = &puzzlePlayerState[playerIndex];
+            HuSprGrpScaleSet(playerState->spriteGroupId, spriteScale, spriteScale);
         }
         HuPrcVSleep();
     }
-    for (temp_r31 = 0; temp_r31 < 1; temp_r31++) {
-        HuSprAttrSet(lbl_1_bss_348[temp_r31].unkA, 0, HUSPR_ATTR_DISPOFF);
+    for (fadeFrame = 0; fadeFrame < 1; fadeFrame++) {
+        HuSprAttrSet(puzzlePlayerState[fadeFrame].spriteGroupId, 0, HUSPR_ATTR_DISPOFF);
     }
 }
 
-void fn_1_4864(void)
+void PuzzlePlayerSetupTask(void)
 {
     while (1) {
         if (omSysExitReq == 1) {
@@ -1329,81 +1329,81 @@ void fn_1_4864(void)
     }
 }
 
-void fn_1_48C4(void)
+void PuzzleGameTask(void)
 {
-    u32 temp_r31;
-    s32 temp_r30;
-    s32 temp_r29;
-    s16 temp_r21;
-    s32 sp14;
-    s32 sp10;
+    u32 elapsedFrames;
+    s32 playerIndex;
+    s32 winnerIndex;
+    s16 sequenceId;
+    s32 completedPlayerCount;
+    s32 musicSequenceId;
 
-    lbl_1_bss_CA8 = 0;
-    temp_r31 = 0;
-    lbl_1_bss_CA8 = 1;
-    while (lbl_1_bss_CA8 == 1) {
+    puzzleGamePhase = 0;
+    elapsedFrames = 0;
+    puzzleGamePhase = 1;
+    while (puzzleGamePhase == 1) {
         HuPrcVSleep();
     }
-    sp10 = HuAudSeqPlay(69);
-    temp_r21 = MGSeqStartCreate();
-    while (MGSeqStatGet(temp_r21)) {
+    musicSequenceId = HuAudSeqPlay(69);
+    sequenceId = MGSeqStartCreate();
+    while (MGSeqStatGet(sequenceId)) {
         HuPrcVSleep();
     }
-    lbl_1_bss_CA8 = 3;
+    puzzleGamePhase = 3;
     while (1) {
-        for (temp_r30 = 0, sp14 = 0; temp_r30 < 1; temp_r30++) {
-            if (lbl_1_bss_348[temp_r30].unk40 == 4) {
-                temp_r29 = temp_r30;
-                sp14++;
+        for (playerIndex = 0, completedPlayerCount = 0; playerIndex < 1; playerIndex++) {
+            if (puzzlePlayerState[playerIndex].playerState == 4) {
+                winnerIndex = playerIndex;
+                completedPlayerCount++;
             }
         }
-        if (sp14 != 0) {
+        if (completedPlayerCount != 0) {
             break;
         }
-        temp_r31++;
-        fn_1_918(lbl_1_bss_CAE, 2, temp_r31, 1);
-        if (temp_r31 >= REFRESH_RATE * 600 - 1) {
-            temp_r29 = -1;
+        elapsedFrames++;
+        TimerDigitsSet(timerSpriteGroupId, 2, elapsedFrames, 1);
+        if (elapsedFrames >= REFRESH_RATE * 600 - 1) {
+            winnerIndex = -1;
             break;
         }
         HuPrcVSleep();
     }
-    if (temp_r29 == -1) {
-        fn_1_918(lbl_1_bss_CAE, 2, 0, 2);
+    if (winnerIndex == -1) {
+        TimerDigitsSet(timerSpriteGroupId, 2, 0, 2);
     }
-    HuAudSeqFadeOut(sp10, 100);
-    for (temp_r30 = 0; temp_r30 < 1; temp_r30++) {
-        HuPrcKill(lbl_1_bss_4[temp_r30]);
+    HuAudSeqFadeOut(musicSequenceId, 100);
+    for (playerIndex = 0; playerIndex < 1; playerIndex++) {
+        HuPrcKill(puzzlePlayerProcesses[playerIndex]);
     }
-    temp_r21 = MGSeqFinishCreate();
-    while (MGSeqStatGet(temp_r21)) {
+    sequenceId = MGSeqFinishCreate();
+    while (MGSeqStatGet(sequenceId)) {
         HuPrcVSleep();
     }
-    if (temp_r29 == -1 || temp_r31 >= GWMGRecordGet(lbl_1_data_6C8[lbl_1_bss_B5C])) {
-        if (temp_r29 != -1) {
+    if (winnerIndex == -1 || elapsedFrames >= GWMGRecordGet(puzzleRecordIds[puzzlePresetIndex])) {
+        if (winnerIndex != -1) {
             HuAudSStreamPlay(1);
         }
         else {
             HuAudSStreamPlay(4);
         }
     }
-    if (temp_r29 != -1) {
-        lbl_1_bss_CA8 = 4;
-        lbl_1_bss_CA4 = temp_r29;
-        fn_1_4768(temp_r29);
+    if (winnerIndex != -1) {
+        puzzleGamePhase = 4;
+        winningPlayerIndex = winnerIndex;
+        PuzzlePlayerSpriteFadeTask(winnerIndex);
     }
-    mgRecordExtra = temp_r31;
-    if (temp_r29 != -1) {
-        if (lbl_1_data_74C[lbl_1_bss_B5C] >= temp_r31) {
-            GWGameStat.present[lbl_1_data_758[lbl_1_bss_B5C]] = 1;
-            OSReport("time %d no %d\n", lbl_1_data_74C[lbl_1_bss_B5C], lbl_1_data_758[lbl_1_bss_B5C]);
+    mgRecordExtra = elapsedFrames;
+    if (winnerIndex != -1) {
+        if (puzzleCompletionTimeLimits[puzzlePresetIndex] >= elapsedFrames) {
+            GWGameStat.present[puzzleRewardIds[puzzlePresetIndex]] = 1;
+            OSReport("time %d no %d\n", puzzleCompletionTimeLimits[puzzlePresetIndex], puzzleRewardIds[puzzlePresetIndex]);
         }
-        if (temp_r31 < GWMGRecordGet(lbl_1_data_6C8[lbl_1_bss_B5C])) {
-            GWMGRecordSet(lbl_1_data_6C8[lbl_1_bss_B5C], temp_r31);
-            temp_r21 = MGSeqRecordCreate(temp_r31);
-            HuPrcChildCreate(fn_1_858, 4096, 4096, 0, HuPrcCurrentGet());
-            fn_1_918(lbl_1_bss_CAE, 2, temp_r31, 0);
-            while (MGSeqStatGet(temp_r21)) {
+        if (elapsedFrames < GWMGRecordGet(puzzleRecordIds[puzzlePresetIndex])) {
+            GWMGRecordSet(puzzleRecordIds[puzzlePresetIndex], elapsedFrames);
+            sequenceId = MGSeqRecordCreate(elapsedFrames);
+            HuPrcChildCreate(TimerDigitPulseTask, 4096, 4096, 0, HuPrcCurrentGet());
+            TimerDigitsSet(timerSpriteGroupId, 2, elapsedFrames, 0);
+            while (MGSeqStatGet(sequenceId)) {
                 HuPrcVSleep();
             }
             HuAudSStreamPlay(1);
