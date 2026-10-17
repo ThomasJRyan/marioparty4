@@ -4,1089 +4,1089 @@
 #include "game/hu3d.h"
 #include "game/sprite.h"
 
-void fn_1_BF88(s16 arg0, s16 arg1)
+void InitializeCursorEffectSystem(s16 effectCapacity, s16 modelCapacity)
 {
-    s32 var_r31;
-    s32 var_r31_2;
-    unkStruct8 *var_r29;
-    unkStruct9Sub *var_r30;
+    s32 resourceIndex;
+    s32 modelIndex;
+    CursorEffectWork *effectWork;
+    CursorEffectModelWork *effectModel;
 
-    lbl_1_bss_F0.unk4 = Hu3DHookFuncCreate(fn_1_CB98);
-    Hu3DModelLayerSet(lbl_1_bss_F0.unk4, 6);
-    lbl_1_bss_F0.unk0 = arg0;
-    var_r29 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * sizeof(unkStruct8), HU_MEMNUM_OVL);
-    lbl_1_bss_F0.unk10 = var_r29;
-    lbl_1_bss_F0.unk2 = arg1;
-    var_r30 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(unkStruct9Sub), HU_MEMNUM_OVL);
-    lbl_1_bss_F0.unkC = var_r30;
+    cursorEffectSystem.drawHookId = Hu3DHookFuncCreate(DrawCursorEffectModel);
+    Hu3DModelLayerSet(cursorEffectSystem.drawHookId, 6);
+    cursorEffectSystem.effectCapacity = effectCapacity;
+    effectWork = HuMemDirectMallocNum(HEAP_HEAP, effectCapacity * sizeof(CursorEffectWork), HU_MEMNUM_OVL);
+    cursorEffectSystem.effects = effectWork;
+    cursorEffectSystem.modelCapacity = modelCapacity;
+    effectModel = HuMemDirectMallocNum(HEAP_HEAP, modelCapacity * sizeof(CursorEffectModelWork), HU_MEMNUM_OVL);
+    cursorEffectSystem.effectModels = effectModel;
 
-    for (var_r31 = 0; var_r31 < arg0; var_r31++, var_r29++) {
-        var_r29->unk8 = 0;
+    for (resourceIndex = 0; resourceIndex < effectCapacity; resourceIndex++, effectWork++) {
+        effectWork->effectAttributes = 0;
     }
 
-    for (var_r31 = 0; var_r31 < arg1; var_r31++, var_r30++) {
-        var_r30->unk6 = 0;
-        var_r30->unk8 = 0;
+    for (resourceIndex = 0; resourceIndex < modelCapacity; resourceIndex++, effectModel++) {
+        effectModel->isActive = 0;
+        effectModel->textureId = 0;
     }
 
-    lbl_1_bss_F0.unk6 = lbl_1_bss_F0.unk8 = lbl_1_bss_F0.unkA = 0;
+    cursorEffectSystem.activeEffectId = cursorEffectSystem.activeModelId = cursorEffectSystem.activeLayerId = 0;
 }
 
-void fn_1_C0C0(void)
+void CleanupCursorEffectSystem(void)
 {
-    s32 var_r31;
+    s32 resourceIndex;
 
-    for (var_r31 = 1; var_r31 < lbl_1_bss_F0.unk0; var_r31++) {
-        fn_1_DDB8(var_r31);
+    for (resourceIndex = 1; resourceIndex < cursorEffectSystem.effectCapacity; resourceIndex++) {
+        DestroyCursorEffect(resourceIndex);
     }
 
-    for (var_r31 = 1; var_r31 < lbl_1_bss_F0.unk2; var_r31++) {
-        fn_1_E228(var_r31);
+    for (resourceIndex = 1; resourceIndex < cursorEffectSystem.modelCapacity; resourceIndex++) {
+        DestroyCursorEffectTexture(resourceIndex);
     }
-    HuMemDirectFree(lbl_1_bss_F0.unk10);
-    HuMemDirectFree(lbl_1_bss_F0.unkC);
-    Hu3DModelKill(lbl_1_bss_F0.unk4);
+    HuMemDirectFree(cursorEffectSystem.effects);
+    HuMemDirectFree(cursorEffectSystem.effectModels);
+    Hu3DModelKill(cursorEffectSystem.drawHookId);
 }
 
 extern u8 texMtxTbl[];
 
-void fn_1_C164(unkStruct8 *arg0)
+void DrawCursorEffects(CursorEffectWork *effect)
 {
-    HU3DMODEL spEC;
-    Mtx spBC;
-    Mtx sp8C;
-    Mtx sp5C;
-    Mtx sp2C;
-    GXColor sp28;
-    s16 sp8;
-    GXColorSrc var_r25;
-    s32 var_r26;
-    s16 temp_r23;
-    unkStruct9Sub *temp_r28;
-    s16 var_r27;
-    s16 var_r30;
-    s32 var_r24;
-    s32 var_r22;
-    s32 var_r21;
-    s32 var_r20;
-    unkStruct8Sub *var_r31;
+    HU3DMODEL renderModel;
+    Mtx layerModelMatrix;
+    Mtx cameraEffectMatrix;
+    Mtx workingMatrix;
+    Mtx rotationMatrix;
+    GXColor tevColor;
+    s16 textureCoordinate;
+    GXColorSrc lightColorSource;
+    s32 textureLayerIndex;
+    s16 lightId;
+    CursorEffectModelWork *effectModel;
+    s16 texcoordIndex;
+    s16 tevStageCount;
+    s32 effectLayerIndex;
+    s32 textureMatrixId;
+    s32 textureMatrixId2;
+    s32 textureMatrixId3;
+    CursorEffectLayerWork *effectLayer;
 
-    mtxRot(sp2C, arg0->unk18.x, arg0->unk18.y, arg0->unk18.z);
-    MTXScale(sp5C, arg0->unk24.x, arg0->unk24.y, arg0->unk24.z);
-    MTXConcat(sp2C, sp5C, sp5C);
-    mtxTransCat(sp5C, arg0->unkC.x, arg0->unkC.y, arg0->unkC.z);
-    MTXConcat(Hu3DCameraMtx, sp5C, sp8C);
-    var_r30 = 0;
-    var_r27 = 0;
-    sp8 = 0;
+    mtxRot(rotationMatrix, effect->rotation.x, effect->rotation.y, effect->rotation.z);
+    MTXScale(workingMatrix, effect->scale.x, effect->scale.y, effect->scale.z);
+    MTXConcat(rotationMatrix, workingMatrix, workingMatrix);
+    mtxTransCat(workingMatrix, effect->position.x, effect->position.y, effect->position.z);
+    MTXConcat(Hu3DCameraMtx, workingMatrix, cameraEffectMatrix);
+    tevStageCount = 0;
+    texcoordIndex = 0;
+    textureCoordinate = 0;
 
-    for (var_r26 = GX_TEXMAP0; var_r26 < arg0->unk4; var_r26++) {
-        temp_r28 = &lbl_1_bss_F0.unkC[arg0->unk34[var_r26]];
-        MTXRotRad(temp_r28->unk18, 0x5A, 0.0f);
-        mtxTransCat(temp_r28->unk18, temp_r28->unkC.x, temp_r28->unkC.y, temp_r28->unkC.z);
-        switch (temp_r28->unk4) {
+    for (textureLayerIndex = GX_TEXMAP0; textureLayerIndex < effect->textureLayerCount; textureLayerIndex++) {
+        effectModel = &cursorEffectSystem.effectModels[effect->layerModelIds[textureLayerIndex]];
+        MTXRotRad(effectModel->transform, 0x5A, 0.0f);
+        mtxTransCat(effectModel->transform, effectModel->position.x, effectModel->position.y, effectModel->position.z);
+        switch (effectModel->modelIndex) {
             case 0:
-                GXLoadTexMtxImm(temp_r28->unk18, texMtxTbl[var_r27], GX_MTX2x4);
-                var_r22 = texMtxTbl[var_r27];
-                GXSetTexCoordGen2(var_r27, GX_TG_MTX2x4, var_r26 + GX_TG_TEX0, var_r22, GX_FALSE, 0x7D);
-                GXSetTevOrder(var_r30, var_r27, var_r26, GX_COLOR0A0);
-                if (var_r26 == GX_TEXMAP0) {
-                    if ((temp_r28->unk0->bmp->dataFmt == 7) || (temp_r28->unk0->bmp->dataFmt == 8)) {
-                        GXSetTevColor(GX_TEVREG2, temp_r28->unk48);
-                        GXSetTevColorIn(var_r30, GX_CC_ZERO, GX_CC_C2, GX_CC_RASC, GX_CC_ZERO);
+                GXLoadTexMtxImm(effectModel->transform, texMtxTbl[texcoordIndex], GX_MTX2x4);
+                textureMatrixId = texMtxTbl[texcoordIndex];
+                GXSetTexCoordGen2(texcoordIndex, GX_TG_MTX2x4, textureLayerIndex + GX_TG_TEX0, textureMatrixId, GX_FALSE, 0x7D);
+                GXSetTevOrder(tevStageCount, texcoordIndex, textureLayerIndex, GX_COLOR0A0);
+                if (textureLayerIndex == GX_TEXMAP0) {
+                    if ((effectModel->spriteData->bmp->dataFmt == 7) || (effectModel->spriteData->bmp->dataFmt == 8)) {
+                        GXSetTevColor(GX_TEVREG2, effectModel->color);
+                        GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_C2, GX_CC_RASC, GX_CC_ZERO);
                     }
                     else {
-                        GXSetTevColorIn(var_r30, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
+                        GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
                     }
-                    GXSetTevAlphaIn(var_r30, GX_CA_ZERO, GX_CA_TEXA, GX_CA_RASA, GX_CA_ZERO);
+                    GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_TEXA, GX_CA_RASA, GX_CA_ZERO);
                 }
                 else {
-                    sp28.a = temp_r28->unk48.a;
-                    GXSetTevColor(GX_TEVREG2, sp28);
-                    GXSetTevColorIn(var_r30, GX_CC_CPREV, GX_CC_TEXC, GX_CC_A2, GX_CC_ZERO);
-                    GXSetTevAlphaIn(var_r30, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
+                    tevColor.a = effectModel->color.a;
+                    GXSetTevColor(GX_TEVREG2, tevColor);
+                    GXSetTevColorIn(tevStageCount, GX_CC_CPREV, GX_CC_TEXC, GX_CC_A2, GX_CC_ZERO);
+                    GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
                 }
-                GXSetTevColorOp(var_r30, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-                GXSetTevAlphaOp(var_r30, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
                 break;
             case 1:
-                GXLoadTexMtxImm(temp_r28->unk18, texMtxTbl[var_r27], GX_MTX2x4);
-                var_r21 = texMtxTbl[var_r27];
-                GXSetTexCoordGen2(var_r27, GX_TG_MTX2x4, var_r26 + GX_TG_TEX0, var_r21, GX_FALSE, 0x7D);
-                GXSetTevOrder(var_r30, var_r27, var_r26, GX_COLOR0A0);
-                GXSetTevColorIn(var_r30, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXA, GX_CC_ZERO);
-                GXSetTevAlphaIn(var_r30, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
-                GXSetTevColorOp(var_r30, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-                GXSetTevAlphaOp(var_r30, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                GXLoadTexMtxImm(effectModel->transform, texMtxTbl[texcoordIndex], GX_MTX2x4);
+                textureMatrixId2 = texMtxTbl[texcoordIndex];
+                GXSetTexCoordGen2(texcoordIndex, GX_TG_MTX2x4, textureLayerIndex + GX_TG_TEX0, textureMatrixId2, GX_FALSE, 0x7D);
+                GXSetTevOrder(tevStageCount, texcoordIndex, textureLayerIndex, GX_COLOR0A0);
+                GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXA, GX_CC_ZERO);
+                GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_TEXA, GX_CA_APREV, GX_CA_ZERO);
+                GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
                 break;
             case 2:
-                sp28.a = 0xE0;
-                GXSetTevColor(GX_TEVREG1, sp28);
-                GXSetTexCoordGen2(var_r27 + GX_TEXCOORD1, GX_TG_BUMP0, var_r27, 0x3C, GX_FALSE, 0x7D);
-                GXSetTevOrder(var_r30, var_r27, var_r26, GX_COLOR0A0);
-                GXSetTevColorIn(var_r30, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_RASC);
-                GXSetTevColorOp(var_r30, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-                GXSetTevAlphaIn(var_r30, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
-                GXSetTevAlphaOp(var_r30, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-                var_r30++;
-                GXSetTevOrder(var_r30, var_r27 + GX_TEXCOORD1, GX_TEXMAP0, GX_COLOR0A0);
-                GXSetTevColorIn(var_r30, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_CPREV);
-                GXSetTevColorOp(var_r30, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-                GXSetTevAlphaIn(var_r30, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
-                GXSetTevAlphaOp(var_r30, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+                tevColor.a = 0xE0;
+                GXSetTevColor(GX_TEVREG1, tevColor);
+                GXSetTexCoordGen2(texcoordIndex + GX_TEXCOORD1, GX_TG_BUMP0, texcoordIndex, 0x3C, GX_FALSE, 0x7D);
+                GXSetTevOrder(tevStageCount, texcoordIndex, textureLayerIndex, GX_COLOR0A0);
+                GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_RASC);
+                GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
+                GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+                tevStageCount++;
+                GXSetTevOrder(tevStageCount, texcoordIndex + GX_TEXCOORD1, GX_TEXMAP0, GX_COLOR0A0);
+                GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_TEXC, GX_CC_A1, GX_CC_CPREV);
+                GXSetTevColorOp(tevStageCount, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
+                GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
                 break;
             case 3:
-                var_r27--;
-                GXLoadTexMtxImm(temp_r28->unk18, texMtxTbl[var_r27], GX_MTX2x4);
-                var_r20 = texMtxTbl[var_r27];
-                GXSetTexCoordGen2(var_r27, GX_TG_MTX2x4, var_r26 + GX_TG_TEX0, var_r20, GX_FALSE, 0x7D);
-                GXSetTevOrder(var_r30, var_r27, var_r26, GX_COLOR0A0);
-                GXSetTevColorIn(var_r30, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXC, GX_CC_ZERO);
-                GXSetTevColorOp(var_r30, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-                GXSetTevAlphaIn(var_r30, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
-                GXSetTevAlphaOp(var_r30, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-                var_r27++;
+                texcoordIndex--;
+                GXLoadTexMtxImm(effectModel->transform, texMtxTbl[texcoordIndex], GX_MTX2x4);
+                textureMatrixId3 = texMtxTbl[texcoordIndex];
+                GXSetTexCoordGen2(texcoordIndex, GX_TG_MTX2x4, textureLayerIndex + GX_TG_TEX0, textureMatrixId3, GX_FALSE, 0x7D);
+                GXSetTevOrder(tevStageCount, texcoordIndex, textureLayerIndex, GX_COLOR0A0);
+                GXSetTevColorIn(tevStageCount, GX_CC_ZERO, GX_CC_CPREV, GX_CC_TEXC, GX_CC_ZERO);
+                GXSetTevColorOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                GXSetTevAlphaIn(tevStageCount, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
+                GXSetTevAlphaOp(tevStageCount, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+                texcoordIndex++;
                 break;
         }
-        var_r30++;
-        var_r27++;
-        HuSprTexLoad(temp_r28->unk0, 0, var_r26, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+        tevStageCount++;
+        texcoordIndex++;
+        HuSprTexLoad(effectModel->spriteData, 0, textureLayerIndex, GX_REPEAT, GX_REPEAT, GX_LINEAR);
     }
-    GXSetNumTevStages((s32)var_r30);
-    GXSetNumTexGens((s32)var_r27);
-    var_r31 = arg0->unk3C;
+    GXSetNumTevStages((s32)tevStageCount);
+    GXSetNumTexGens((s32)texcoordIndex);
+    effectLayer = effect->layers;
 
-    for (var_r24 = 0; var_r24 < arg0->unk2; var_r24++, var_r31++) {
-        if ((var_r31->unk34 != 0) && ((var_r31->unk34 & 4) == 0)) {
-            switch (var_r31->unk30) {
+    for (effectLayerIndex = 0; effectLayerIndex < effect->layerCount; effectLayerIndex++, effectLayer++) {
+        if ((effectLayer->layerAttributes != 0) && ((effectLayer->layerAttributes & 4) == 0)) {
+            switch (effectLayer->layerFlags) {
                 case 0:
-                    mtxRot(sp2C, var_r31->unkC.x, var_r31->unkC.y, var_r31->unkC.z);
-                    MTXIdentity(sp5C);
-                    HmfInverseMtxF3X3(Hu3DCameraMtx, sp5C);
-                    MTXConcat(sp5C, sp2C, sp2C);
-                    MTXScale(sp5C, var_r31->unk18.x, var_r31->unk18.y, var_r31->unk18.z);
-                    MTXConcat(sp2C, sp5C, sp5C);
-                    mtxTransCat(sp5C, var_r31->unk0.x, var_r31->unk0.y, var_r31->unk0.z);
-                    MTXConcat(Hu3DCameraMtx, sp5C, spBC);
+                    mtxRot(rotationMatrix, effectLayer->position.x, effectLayer->position.y, effectLayer->position.z);
+                    MTXIdentity(workingMatrix);
+                    HmfInverseMtxF3X3(Hu3DCameraMtx, workingMatrix);
+                    MTXConcat(workingMatrix, rotationMatrix, rotationMatrix);
+                    MTXScale(workingMatrix, effectLayer->scale.x, effectLayer->scale.y, effectLayer->scale.z);
+                    MTXConcat(rotationMatrix, workingMatrix, workingMatrix);
+                    mtxTransCat(workingMatrix, effectLayer->startPosition.x, effectLayer->startPosition.y, effectLayer->startPosition.z);
+                    MTXConcat(Hu3DCameraMtx, workingMatrix, layerModelMatrix);
                     break;
                 case 1:
-                    MTXCopy(sp8C, sp2C);
-                    mtxRotCat(sp2C, var_r31->unkC.x, var_r31->unkC.y, var_r31->unkC.z);
-                    MTXScale(sp5C, var_r31->unk18.x, var_r31->unk18.y, var_r31->unk18.z);
-                    MTXConcat(sp2C, sp5C, sp5C);
-                    mtxTransCat(sp5C, var_r31->unk0.x, var_r31->unk0.y, var_r31->unk0.z);
-                    MTXCopy(sp5C, spBC);
+                    MTXCopy(cameraEffectMatrix, rotationMatrix);
+                    mtxRotCat(rotationMatrix, effectLayer->position.x, effectLayer->position.y, effectLayer->position.z);
+                    MTXScale(workingMatrix, effectLayer->scale.x, effectLayer->scale.y, effectLayer->scale.z);
+                    MTXConcat(rotationMatrix, workingMatrix, workingMatrix);
+                    mtxTransCat(workingMatrix, effectLayer->startPosition.x, effectLayer->startPosition.y, effectLayer->startPosition.z);
+                    MTXCopy(workingMatrix, layerModelMatrix);
                     break;
             }
-            GXLoadPosMtxImm(spBC, 0);
-            MTXInverse(spBC, sp5C);
-            MTXTranspose(sp5C, sp2C);
-            GXLoadNrmMtxImm(sp2C, 0);
-            GXSetChanAmbColor(GX_COLOR0A0, var_r31->unk4C);
-            GXSetChanMatColor(GX_COLOR0A0, var_r31->unk50);
+            GXLoadPosMtxImm(layerModelMatrix, 0);
+            MTXInverse(layerModelMatrix, workingMatrix);
+            MTXTranspose(workingMatrix, rotationMatrix);
+            GXLoadNrmMtxImm(rotationMatrix, 0);
+            GXSetChanAmbColor(GX_COLOR0A0, effectLayer->primaryColor);
+            GXSetChanMatColor(GX_COLOR0A0, effectLayer->secondaryColor);
             GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
-            if ((var_r31->unk34 & 0x10) != 0) {
+            if ((effectLayer->layerAttributes & 0x10) != 0) {
                 GXSetZMode(GX_FALSE, GX_LEQUAL, GX_TRUE);
             }
             else {
                 GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
             }
-            spEC.attr = 0;
-            temp_r23 = Hu3DLightSet(&spEC, &Hu3DCameraMtx, &Hu3DCameraMtxXPose, 0.0f);
+            renderModel.attr = 0;
+            lightId = Hu3DLightSet(&renderModel, &Hu3DCameraMtx, &Hu3DCameraMtxXPose, 0.0f);
             GXSetNumChans(1);
-            if ((var_r31->unk34 & 8) != 0) {
-                var_r25 = GX_SRC_VTX;
+            if ((effectLayer->layerAttributes & 8) != 0) {
+                lightColorSource = GX_SRC_VTX;
             }
             else {
-                var_r25 = GX_SRC_REG;
+                lightColorSource = GX_SRC_REG;
             }
-            switch (var_r31->unk31) {
+            switch (effectLayer->layerState) {
                 case 0:
-                    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, var_r25, 0, GX_DF_CLAMP, GX_AF_NONE);
+                    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, lightColorSource, 0, GX_DF_CLAMP, GX_AF_NONE);
                     break;
                 case 1:
-                    GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, var_r25, temp_r23, GX_DF_CLAMP, GX_AF_SPOT);
+                    GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, lightColorSource, lightId, GX_DF_CLAMP, GX_AF_SPOT);
                     break;
                 case 2:
-                    GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, var_r25, temp_r23, GX_DF_CLAMP, GX_AF_SPEC);
+                    GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, lightColorSource, lightId, GX_DF_CLAMP, GX_AF_SPEC);
                     break;
             }
             GXClearVtxDesc();
             GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
             GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-            GXSetArray(GX_VA_POS, var_r31->unk40, 12);
+            GXSetArray(GX_VA_POS, effectLayer->texcoordArray, 12);
             GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
             GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-            GXSetArray(GX_VA_CLR0, var_r31->unk44, 4);
-            for (var_r26 = 0; var_r26 < var_r31->unk32; var_r26++) {
-                GXSetVtxDesc(var_r26 + GX_VA_TEX0, GX_INDEX16);
-                GXSetVtxAttrFmt(GX_VTXFMT0, var_r26 + GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-                GXSetArray(var_r26 + GX_VA_TEX0, var_r31->unk54[var_r26].unk4, 8);
+            GXSetArray(GX_VA_CLR0, effectLayer->colorArray, 4);
+            for (textureLayerIndex = 0; textureLayerIndex < effectLayer->quadCount; textureLayerIndex++) {
+                GXSetVtxDesc(textureLayerIndex + GX_VA_TEX0, GX_INDEX16);
+                GXSetVtxAttrFmt(GX_VTXFMT0, textureLayerIndex + GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+                GXSetArray(textureLayerIndex + GX_VA_TEX0, effectLayer->colorKeys[textureLayerIndex].colorValues, 8);
             }
             GXSetVtxDesc(GX_VA_NRM, GX_INDEX16);
             GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_NRM, GX_NRM_XYZ, GX_F32, 0);
-            GXSetArray(GX_VA_NRM, var_r31->unk48, 12);
-            GXCallDisplayList(var_r31->unk3C, var_r31->unk38);
+            GXSetArray(GX_VA_NRM, effectLayer->normalVector, 12);
+            GXCallDisplayList(effectLayer->vertexArray, effectLayer->displayListSize);
         }
     }
 }
 
-void fn_1_CB98(HU3DMODEL *model, Mtx matrix)
+void DrawCursorEffectModel(HU3DMODEL *model, Mtx matrix)
 {
-    Mtx sp38;
-    Mtx sp8;
-    s32 var_r30;
-    unkStruct8 *var_r31;
+    Mtx inverseMatrix;
+    Mtx normalMatrix;
+    s32 effectIndex;
+    CursorEffectWork *effect;
 
-    var_r31 = lbl_1_bss_F0.unk10;
+    effect = cursorEffectSystem.effects;
     GXLoadPosMtxImm(matrix, 0);
-    MTXInverse(matrix, sp38);
-    MTXTranspose(sp38, sp8);
-    GXLoadNrmMtxImm(sp8, 0);
+    MTXInverse(matrix, inverseMatrix);
+    MTXTranspose(inverseMatrix, normalMatrix);
+    GXLoadNrmMtxImm(normalMatrix, 0);
 
-    for (var_r30 = 0; var_r30 < lbl_1_bss_F0.unk0; var_r30++, var_r31++) {
-        if ((var_r31->unk8 == 0) || ((var_r31->unk8 & 2) == 0) || ((var_r31->unk8 & 4) != 0)) {
+    for (effectIndex = 0; effectIndex < cursorEffectSystem.effectCapacity; effectIndex++, effect++) {
+        if ((effect->effectAttributes == 0) || ((effect->effectAttributes & 2) == 0) || ((effect->effectAttributes & 4) != 0)) {
             continue;
         }
         if (omPauseChk() == 0) {
-            if (var_r31->unk30) {
-                var_r31->unk30(var_r31);
+            if (effect->drawCallback) {
+                effect->drawCallback(effect);
             }
-            if (var_r31->unk8 == 0)
+            if (effect->effectAttributes == 0)
                 continue;
-            fn_1_D430(var_r31);
-            if (var_r31->unk8 == 0)
+            UpdateCursorEffect(effect);
+            if (effect->effectAttributes == 0)
                 continue;
         }
-        fn_1_C164(var_r31);
+        DrawCursorEffects(effect);
     }
 }
 
-unkStruct8 *fn_1_CCB0(s16 idx)
+CursorEffectWork *GetCursorEffect(s16 idx)
 {
-    return &lbl_1_bss_F0.unk10[idx];
+    return &cursorEffectSystem.effects[idx];
 }
 
-unkStruct8Sub *fn_1_CCCC(s16 arg0, s16 arg1)
+CursorEffectLayerWork *GetCursorEffectLayer(s16 effectId, s16 layerIndex)
 {
-    return &lbl_1_bss_F0.unk10[arg0].unk3C[arg1];
+    return &cursorEffectSystem.effects[effectId].layers[layerIndex];
 }
 
-void fn_1_CCF8(unkStruct11 **arg0, s16 arg1, f32 arg8, f32 arg9)
+void AllocateQuadVertices(CursorEffectQuad **quadArray, s16 quadCount, F32 quadWidth, F32 quadHeight)
 {
-    s32 var_r30;
-    unkStruct11 *var_r31;
+    s32 quadIndex;
+    CursorEffectQuad *quad;
 
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(unkStruct11), HU_MEMNUM_OVL);
+    quad = *quadArray = HuMemDirectMallocNum(HEAP_HEAP, quadCount * sizeof(CursorEffectQuad), HU_MEMNUM_OVL);
 
-    for (var_r30 = 0; var_r30 < arg1; var_r31++, var_r30++) {
-        var_r31->unk0.x = (-0.5f * arg8);
-        var_r31->unk0.y = (0.5f * arg9);
-        var_r31->unk0.z = 0.0f;
-        var_r31->unkC.x = (0.5f * arg8);
-        var_r31->unkC.y = (0.5f * arg9);
-        var_r31->unkC.z = 0.0f;
-        var_r31->unk18.x = (0.5f * arg8);
-        var_r31->unk18.y = (-0.5f * arg9);
-        var_r31->unk18.z = 0.0f;
-        var_r31->unk24.x = (-0.5f * arg8);
-        var_r31->unk24.y = (-0.5f * arg9);
-        var_r31->unk24.z = 0.0f;
+    for (quadIndex = 0; quadIndex < quadCount; quad++, quadIndex++) {
+        quad->topLeft.x = (-0.5f * quadWidth);
+        quad->topLeft.y = (0.5f * quadHeight);
+        quad->topLeft.z = 0.0f;
+        quad->topRight.x = (0.5f * quadWidth);
+        quad->topRight.y = (0.5f * quadHeight);
+        quad->topRight.z = 0.0f;
+        quad->bottomRight.x = (0.5f * quadWidth);
+        quad->bottomRight.y = (-0.5f * quadHeight);
+        quad->bottomRight.z = 0.0f;
+        quad->bottomLeft.x = (-0.5f * quadWidth);
+        quad->bottomLeft.y = (-0.5f * quadHeight);
+        quad->bottomLeft.z = 0.0f;
     }
 }
 
-void fn_1_CE7C(Vec **arg0, s16 arg1, Vec *arg2)
+void AllocateVectorArray(Vec **vectorArray, s16 vectorCount, Vec *sourceVectors)
 {
-    s32 var_r29;
-    s32 var_r28;
-    Vec *var_r31;
+    s32 arrayIndex;
+    s32 vectorIndex;
+    Vec *destinationVector;
 
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(Vec[4]), HU_MEMNUM_OVL);
+    destinationVector = *vectorArray = HuMemDirectMallocNum(HEAP_HEAP, vectorCount * sizeof(Vec[4]), HU_MEMNUM_OVL);
 
-    for (var_r29 = 0; var_r29 < arg1; var_r29++) {
-        for (var_r28 = 0; var_r28 < 4; var_r31++, arg2++, var_r28++) {
-            var_r31->x = arg2->x;
-            var_r31->y = arg2->y;
-            var_r31->z = arg2->z;
+    for (arrayIndex = 0; arrayIndex < vectorCount; arrayIndex++) {
+        for (vectorIndex = 0; vectorIndex < 4; destinationVector++, sourceVectors++, vectorIndex++) {
+            destinationVector->x = sourceVectors->x;
+            destinationVector->y = sourceVectors->y;
+            destinationVector->z = sourceVectors->z;
         }
     }
 }
 
-void fn_1_CF1C(GXColor **arg0, s16 arg1, GXColor *arg2)
+void AllocateColorArray(GXColor **colorArray, s16 colorCount, GXColor *sourceColors)
 {
-    s32 var_r29;
-    s32 var_r28;
-    GXColor *var_r31;
+    s32 arrayIndex;
+    s32 colorIndex;
+    GXColor *destinationColor;
 
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(GXColor[4]), HU_MEMNUM_OVL);
+    destinationColor = *colorArray = HuMemDirectMallocNum(HEAP_HEAP, colorCount * sizeof(GXColor[4]), HU_MEMNUM_OVL);
 
-    for (var_r29 = 0; var_r29 < arg1; var_r29++) {
-        for (var_r28 = 0; var_r28 < 4; var_r31++, arg2++, var_r28++) {
-            var_r31->r = arg2->r;
-            var_r31->g = arg2->g;
-            var_r31->b = arg2->b;
-            var_r31->a = arg2->a;
+    for (arrayIndex = 0; arrayIndex < colorCount; arrayIndex++) {
+        for (colorIndex = 0; colorIndex < 4; destinationColor++, sourceColors++, colorIndex++) {
+            destinationColor->r = sourceColors->r;
+            destinationColor->g = sourceColors->g;
+            destinationColor->b = sourceColors->b;
+            destinationColor->a = sourceColors->a;
         }
     }
 }
 
-void fn_1_CFC4(Vec **arg0, s16 arg1, Vec *arg2)
+void AllocatePositionArray(Vec **positionArray, s16 positionCount, Vec *sourcePositions)
 {
-    s32 var_r29;
-    Vec *var_r31;
+    s32 positionIndex;
+    Vec *destinationPosition;
 
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(Vec), HU_MEMNUM_OVL);
+    destinationPosition = *positionArray = HuMemDirectMallocNum(HEAP_HEAP, positionCount * sizeof(Vec), HU_MEMNUM_OVL);
 
-    for (var_r29 = 0; var_r29 < arg1; var_r31++, arg2++, var_r29++) {
-        var_r31->x = arg2->x;
-        var_r31->y = arg2->y;
-        var_r31->z = arg2->z;
+    for (positionIndex = 0; positionIndex < positionCount; destinationPosition++, sourcePositions++, positionIndex++) {
+        destinationPosition->x = sourcePositions->x;
+        destinationPosition->y = sourcePositions->y;
+        destinationPosition->z = sourcePositions->z;
     }
 }
 
-void fn_1_D050(HuVec2f **arg0, s16 arg1, HuVec2f *arg2)
+void AllocateScreenVectorArray(HuVec2f **screenVectorArray, s16 vectorCount, HuVec2f *sourceVectors)
 {
-    s32 var_r28;
-    s32 var_r29;
-    HuVec2f *var_r31;
+    s32 arrayIndex;
+    s32 vectorIndex;
+    HuVec2f *destinationVector;
 
-    var_r31 = *arg0 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(HuVec2f[4]), HU_MEMNUM_OVL);
+    destinationVector = *screenVectorArray = HuMemDirectMallocNum(HEAP_HEAP, vectorCount * sizeof(HuVec2f[4]), HU_MEMNUM_OVL);
 
-    for (var_r28 = 0; var_r28 < arg1; var_r28++) {
-        for (var_r29 = 0; var_r29 < 4; var_r31++, arg2++, var_r29++) {
-            var_r31->x = arg2->x;
-            var_r31->y = arg2->y;
+    for (arrayIndex = 0; arrayIndex < vectorCount; arrayIndex++) {
+        for (vectorIndex = 0; vectorIndex < 4; destinationVector++, sourceVectors++, vectorIndex++) {
+            destinationVector->x = sourceVectors->x;
+            destinationVector->y = sourceVectors->y;
         }
     }
 }
 
-void fn_1_D0E8(unkStruct8Sub *arg0)
+void InitializeCursorEffectLayer(CursorEffectLayerWork *layerWork)
 {
-    Vec sp18[4] = { { -50.0f, 50.0f, 0.0f }, { 50.0f, 50.0f, 0.0f }, { 50.0f, -50.0f, 0.0f }, { -50.0f, -50.0f, 0.0f } };
-    GXColor sp8[4] = { { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF } };
-    s32 var_r26;
-    s32 var_r25;
-    void *temp_r3_3;
+    Vec defaultQuadPositions[4] = { { -50.0f, 50.0f, 0.0f }, { 50.0f, 50.0f, 0.0f }, { 50.0f, -50.0f, 0.0f }, { -50.0f, -50.0f, 0.0f } };
+    GXColor defaultQuadColors[4] = { { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF }, { 0xFF, 0xFF, 0xFF, 0xFF } };
+    s32 vertexIndex;
+    s32 quadIndex;
+    void *displayListBuffer;
 
-    if (arg0->unk40 != NULL) {
-        HuMemDirectFree(arg0->unk40);
+    if (layerWork->texcoordArray != NULL) {
+        HuMemDirectFree(layerWork->texcoordArray);
     }
-    fn_1_CE7C((Vec **)&arg0->unk40, 1, &sp18[0]);
-    if (arg0->unk44 != NULL) {
-        HuMemDirectFree(arg0->unk44);
+    AllocateVectorArray((Vec **)&layerWork->texcoordArray, 1, &defaultQuadPositions[0]);
+    if (layerWork->colorArray != NULL) {
+        HuMemDirectFree(layerWork->colorArray);
     }
-    fn_1_CF1C((GXColor **)&arg0->unk44, 1, &sp8[0]);
-    if (arg0->unk48 != NULL) {
-        HuMemDirectFree(arg0->unk48);
+    AllocateColorArray((GXColor **)&layerWork->colorArray, 1, &defaultQuadColors[0]);
+    if (layerWork->normalVector != NULL) {
+        HuMemDirectFree(layerWork->normalVector);
     }
-    arg0->unk48 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(Vec), HU_MEMNUM_OVL);
-    arg0->unk48->x = 0.0f;
-    arg0->unk48->y = 0.0f;
-    arg0->unk48->z = 1.0f;
-    if (arg0->unk3C != NULL) {
-        HuMemDirectFree(arg0->unk3C);
+    layerWork->normalVector = HuMemDirectMallocNum(HEAP_HEAP, sizeof(Vec), HU_MEMNUM_OVL);
+    layerWork->normalVector->x = 0.0f;
+    layerWork->normalVector->y = 0.0f;
+    layerWork->normalVector->z = 1.0f;
+    if (layerWork->vertexArray != NULL) {
+        HuMemDirectFree(layerWork->vertexArray);
     }
-    temp_r3_3 = HuMemDirectMallocNum(HEAP_HEAP, 0x1000, HU_MEMNUM_OVL);
-    arg0->unk3C = temp_r3_3;
-    DCFlushRange(arg0->unk3C, 0x1000);
-    GXBeginDisplayList(temp_r3_3, 0x1000);
+    displayListBuffer = HuMemDirectMallocNum(HEAP_HEAP, 0x1000, HU_MEMNUM_OVL);
+    layerWork->vertexArray = displayListBuffer;
+    DCFlushRange(layerWork->vertexArray, 0x1000);
+    GXBeginDisplayList(displayListBuffer, 0x1000);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
 
-    for (var_r26 = 0; var_r26 < 4; var_r26++) {
-        GXPosition1x16(var_r26);
+    for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+        GXPosition1x16(vertexIndex);
         GXColor1x16(0);
-        GXNormal1x16(var_r26);
+        GXNormal1x16(vertexIndex);
 
-        for (var_r25 = 0; var_r25 < arg0->unk32; var_r25++) {
-            GXTexCoord1x16(var_r26);
+        for (quadIndex = 0; quadIndex < layerWork->quadCount; quadIndex++) {
+            GXTexCoord1x16(vertexIndex);
         }
     }
-    arg0->unk38 = GXEndDisplayList();
+    layerWork->displayListSize = GXEndDisplayList();
 }
 
-void fn_1_D430(unkStruct8 *arg0)
+void UpdateCursorEffect(CursorEffectWork *effect)
 {
-    s32 var_r25;
-    s32 var_r26;
-    s32 var_r27;
-    unkStruct8Sub *var_r28;
-    unkStruct12 *var_r31;
-    unkStruct9Sub *temp_r30;
+    s32 layerIndex;
+    s32 quadIndex;
+    s32 activeLayerCount;
+    CursorEffectLayerWork *layerWork;
+    CursorEffectColorKey *colorKey;
+    CursorEffectModelWork *effectModel;
 
-    var_r27 = 0;
-    var_r28 = arg0->unk3C;
+    activeLayerCount = 0;
+    layerWork = effect->layers;
 
-    for (var_r25 = 0; var_r25 < arg0->unk2; var_r25++, var_r28++) {
-        if ((var_r28->unk34 & 4) != 0) {
-            var_r27++;
+    for (layerIndex = 0; layerIndex < effect->layerCount; layerIndex++, layerWork++) {
+        if ((layerWork->layerAttributes & 4) != 0) {
+            activeLayerCount++;
         }
         else {
-            var_r31 = var_r28->unk54;
+            colorKey = layerWork->colorKeys;
 
-            for (var_r26 = 0; var_r26 < var_r28->unk32; var_r26++, var_r31++) {
-                temp_r30 = &lbl_1_bss_F0.unkC[arg0->unk34[var_r26]];
-                var_r31->unk8 &= ~4;
-                switch (var_r31->unk8 & 0xF) {
+            for (quadIndex = 0; quadIndex < layerWork->quadCount; quadIndex++, colorKey++) {
+                effectModel = &cursorEffectSystem.effectModels[effect->layerModelIds[quadIndex]];
+                colorKey->keyCount &= ~4;
+                switch (colorKey->keyCount & 0xF) {
                     case 1:
-                        var_r31->unk10 += var_r31->unkC;
-                        if (var_r31->unk10 >= 1.0f) {
-                            var_r31->unk0++;
-                            var_r31->unk10--;
+                        colorKey->keyEndTime += colorKey->keyStartTime;
+                        if (colorKey->keyEndTime >= 1.0f) {
+                            colorKey->keyType++;
+                            colorKey->keyEndTime--;
                         }
                         break;
                     case 2:
-                        var_r31->unk10 += var_r31->unkC;
-                        if (var_r31->unk10 >= 1.0f) {
-                            var_r31->unk0--;
-                            var_r31->unk10--;
+                        colorKey->keyEndTime += colorKey->keyStartTime;
+                        if (colorKey->keyEndTime >= 1.0f) {
+                            colorKey->keyType--;
+                            colorKey->keyEndTime--;
                         }
                         break;
                 }
-                if (var_r31->unk0 >= temp_r30->unk4C) {
-                    if ((var_r31->unk8 & 0x10) != 0) {
-                        var_r31->unk8 |= 8;
-                        var_r31->unk0--;
+                if (colorKey->keyType >= effectModel->alpha) {
+                    if ((colorKey->keyCount & 0x10) != 0) {
+                        colorKey->keyCount |= 8;
+                        colorKey->keyType--;
                     }
-                    else if ((var_r31->unk8 & 0x40) != 0) {
-                        var_r31->unk8 = (var_r31->unk8 & 0xF0) | 2;
-                        var_r31->unk0 -= 2;
+                    else if ((colorKey->keyCount & 0x40) != 0) {
+                        colorKey->keyCount = (colorKey->keyCount & 0xF0) | 2;
+                        colorKey->keyType -= 2;
                     }
-                    else if ((var_r31->unk8 & 0x20) != 0) {
-                        var_r31->unk0 = 0;
+                    else if ((colorKey->keyCount & 0x20) != 0) {
+                        colorKey->keyType = 0;
                     }
-                    var_r31->unk8 |= 4;
+                    colorKey->keyCount |= 4;
                 }
-                else if (var_r31->unk0 < 0) {
-                    if ((var_r31->unk8 & 0x10) != 0) {
-                        var_r31->unk8 |= 8;
-                        var_r31->unk0 = 0;
+                else if (colorKey->keyType < 0) {
+                    if ((colorKey->keyCount & 0x10) != 0) {
+                        colorKey->keyCount |= 8;
+                        colorKey->keyType = 0;
                     }
-                    else if ((var_r31->unk8 & 0x20) != 0) {
-                        if ((var_r31->unk8 & 0x40) != 0) {
-                            var_r31->unk8 = ((var_r31->unk8 & 0xF0) | 1);
-                            var_r31->unk0 = 1U;
+                    else if ((colorKey->keyCount & 0x20) != 0) {
+                        if ((colorKey->keyCount & 0x40) != 0) {
+                            colorKey->keyCount = ((colorKey->keyCount & 0xF0) | 1);
+                            colorKey->keyType = 1U;
                         }
                         else {
-                            var_r31->unk0 = (temp_r30->unk4C - 1);
+                            colorKey->keyType = (effectModel->alpha - 1);
                         }
                     }
-                    else if ((var_r31->unk8 & 0x40) != 0) {
-                        var_r31->unk8 |= 8;
-                        var_r31->unk0 = 0;
+                    else if ((colorKey->keyCount & 0x40) != 0) {
+                        colorKey->keyCount |= 8;
+                        colorKey->keyType = 0;
                     }
-                    var_r31->unk8 |= 4;
+                    colorKey->keyCount |= 4;
                 }
                 else {
-                    var_r31->unk8 &= ~8;
+                    colorKey->keyCount &= ~8;
                 }
-                if (var_r31->unk0 != var_r31->unk1) {
-                    var_r31->unk4[0].x = (var_r31->unk0 * temp_r30->unk54);
-                    var_r31->unk4[0].y = (var_r31->unk0 * temp_r30->unk58);
-                    var_r31->unk4[1].x = ((var_r31->unk0 + 1) * temp_r30->unk54);
-                    var_r31->unk4[1].y = (var_r31->unk0 * temp_r30->unk58);
-                    var_r31->unk4[2].x = ((var_r31->unk0 + 1) * temp_r30->unk54);
-                    var_r31->unk4[2].y = ((var_r31->unk0 + 1) * temp_r30->unk58);
-                    var_r31->unk4[3].x = (var_r31->unk0 * temp_r30->unk54);
-                    var_r31->unk4[3].y = ((var_r31->unk0 + 1) * temp_r30->unk58);
-                    if ((var_r31->unk0 + 1) < temp_r30->unk4C) {
-                        var_r31->unk4[2].y -= temp_r30->unk60;
-                        var_r31->unk4[3].y -= temp_r30->unk60;
+                if (colorKey->keyType != colorKey->keyFlags) {
+                    colorKey->colorValues[0].x = (colorKey->keyType * effectModel->textureScaleX);
+                    colorKey->colorValues[0].y = (colorKey->keyType * effectModel->textureScaleY);
+                    colorKey->colorValues[1].x = ((colorKey->keyType + 1) * effectModel->textureScaleX);
+                    colorKey->colorValues[1].y = (colorKey->keyType * effectModel->textureScaleY);
+                    colorKey->colorValues[2].x = ((colorKey->keyType + 1) * effectModel->textureScaleX);
+                    colorKey->colorValues[2].y = ((colorKey->keyType + 1) * effectModel->textureScaleY);
+                    colorKey->colorValues[3].x = (colorKey->keyType * effectModel->textureScaleX);
+                    colorKey->colorValues[3].y = ((colorKey->keyType + 1) * effectModel->textureScaleY);
+                    if ((colorKey->keyType + 1) < effectModel->alpha) {
+                        colorKey->colorValues[2].y -= effectModel->textureOffsetY;
+                        colorKey->colorValues[3].y -= effectModel->textureOffsetY;
                     }
-                    var_r31->unk1 = var_r31->unk0;
+                    colorKey->keyFlags = colorKey->keyType;
                 }
-                if ((var_r31->unk8 & 8) != 0) {
-                    if ((var_r28->unk34 & 0x40000000) != 0) {
-                        var_r28->unk34 |= 4;
-                        if ((var_r31->unk8 & 0x40) == 0) {
-                            if (var_r31->unk0 <= 0) {
-                                var_r31->unk0 = temp_r30->unk4C;
+                if ((colorKey->keyCount & 8) != 0) {
+                    if ((layerWork->layerAttributes & 0x40000000) != 0) {
+                        layerWork->layerAttributes |= 4;
+                        if ((colorKey->keyCount & 0x40) == 0) {
+                            if (colorKey->keyType <= 0) {
+                                colorKey->keyType = effectModel->alpha;
                             }
                             else {
-                                var_r31->unk0 = 0U;
+                                colorKey->keyType = 0U;
                             }
                         }
                     }
-                    else if ((var_r28->unk34 & 0x80000000) != 0) {
-                        fn_1_DDB8(arg0->unk0);
+                    else if ((layerWork->layerAttributes & 0x80000000) != 0) {
+                        DestroyCursorEffect(effect->effectIndex);
                     }
-                    var_r27++;
+                    activeLayerCount++;
                 }
             }
         }
     }
-    if (var_r27 >= arg0->unk2) {
-        if ((arg0->unk8 & 0x40000000) != 0) {
-            arg0->unk8 |= 4;
+    if (activeLayerCount >= effect->layerCount) {
+        if ((effect->effectAttributes & 0x40000000) != 0) {
+            effect->effectAttributes |= 4;
             return;
         }
-        if ((arg0->unk8 & 0x80000000) != 0) {
-            fn_1_DDB8(arg0->unk0);
+        if ((effect->effectAttributes & 0x80000000) != 0) {
+            DestroyCursorEffect(effect->effectIndex);
         }
     }
 }
 
-s16 fn_1_DA48(u8 arg0, u8 arg1)
+s16 CreateCursorEffect(u8 layerCount, u8 textureLayerCount)
 {
-    s32 var_r29;
-    s32 var_r28;
-    unkStruct8 *var_r30;
-    unkStruct8Sub *var_r31;
+    s32 modelIndex;
+    s32 layerIndex;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    var_r30 = &lbl_1_bss_F0.unk10[1];
+    effectWork = &cursorEffectSystem.effects[1];
 
-    for (var_r29 = 1; var_r29 < lbl_1_bss_F0.unk0; var_r29++, var_r30++) {
-        if (var_r30->unk8 == 0)
+    for (modelIndex = 1; modelIndex < cursorEffectSystem.effectCapacity; modelIndex++, effectWork++) {
+        if (effectWork->effectAttributes == 0)
             break;
     }
 
-    if (var_r29 == lbl_1_bss_F0.unk0)
+    if (modelIndex == cursorEffectSystem.effectCapacity)
         return 0;
 
-    var_r30->unk0 = var_r29;
-    var_r30->unk8 = 1;
-    var_r30->unk30 = NULL;
-    var_r30->unk2 = arg0;
-    var_r30->unk4 = arg1;
-    var_r31 = HuMemDirectMallocNum(HEAP_HEAP, arg0 * sizeof(unkStruct8Sub), HU_MEMNUM_OVL);
-    var_r30->unk3C = var_r31;
-    var_r30->unk34 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(s16), HU_MEMNUM_OVL);
-    var_r30->unkC.x = var_r30->unkC.y = var_r30->unkC.z = 0.0f;
-    var_r30->unk18.x = var_r30->unk18.y = var_r30->unk18.z = 0.0f;
-    var_r30->unk24.x = var_r30->unk24.y = var_r30->unk24.z = 1.0f;
-    var_r30->unk54.x = var_r30->unk54.y = var_r30->unk54.z = 0.0f;
-    var_r30->unk48.x = var_r30->unk48.y = var_r30->unk48.z = 0.0f;
+    effectWork->effectIndex = modelIndex;
+    effectWork->effectAttributes = 1;
+    effectWork->drawCallback = NULL;
+    effectWork->layerCount = layerCount;
+    effectWork->textureLayerCount = textureLayerCount;
+    layerWork = HuMemDirectMallocNum(HEAP_HEAP, layerCount * sizeof(CursorEffectLayerWork), HU_MEMNUM_OVL);
+    effectWork->layers = layerWork;
+    effectWork->layerModelIds = HuMemDirectMallocNum(HEAP_HEAP, textureLayerCount * sizeof(s16), HU_MEMNUM_OVL);
+    effectWork->position.x = effectWork->position.y = effectWork->position.z = 0.0f;
+    effectWork->rotation.x = effectWork->rotation.y = effectWork->rotation.z = 0.0f;
+    effectWork->scale.x = effectWork->scale.y = effectWork->scale.z = 1.0f;
+    effectWork->targetPosition.x = effectWork->targetPosition.y = effectWork->targetPosition.z = 0.0f;
+    effectWork->originPosition.x = effectWork->originPosition.y = effectWork->originPosition.z = 0.0f;
 
-    for (var_r29 = 0; var_r29 < 0x20; var_r29++) {
-        var_r30->unk60[var_r29] = 0;
+    for (modelIndex = 0; modelIndex < 0x20; modelIndex++) {
+        effectWork->layerState[modelIndex] = 0;
     }
-    for (var_r29 = 0; var_r29 < arg1; var_r29++) {
-        var_r30->unk34[var_r29] = 0;
+    for (modelIndex = 0; modelIndex < textureLayerCount; modelIndex++) {
+        effectWork->layerModelIds[modelIndex] = 0;
     }
 
-    for (var_r29 = 0; var_r29 < arg0; var_r29++, var_r31++) {
-        var_r31->unk34 = 1;
-        var_r31->unk32 = arg1;
-        var_r31->unk30 = 0;
-        var_r31->unk31 = 0;
-        var_r31->unk4C.r = var_r31->unk4C.g = var_r31->unk4C.b = 0;
-        var_r31->unk4C.a = 0xFF;
-        var_r31->unk50.r = var_r31->unk50.g = var_r31->unk50.b = 0xFF;
-        var_r31->unk50.a = 0xFF;
-        var_r31->unk54 = HuMemDirectMallocNum(HEAP_HEAP, arg1 * sizeof(unkStruct12), HU_MEMNUM_OVL);
+    for (modelIndex = 0; modelIndex < layerCount; modelIndex++, layerWork++) {
+        layerWork->layerAttributes = 1;
+        layerWork->quadCount = textureLayerCount;
+        layerWork->layerFlags = 0;
+        layerWork->layerState = 0;
+        layerWork->primaryColor.r = layerWork->primaryColor.g = layerWork->primaryColor.b = 0;
+        layerWork->primaryColor.a = 0xFF;
+        layerWork->secondaryColor.r = layerWork->secondaryColor.g = layerWork->secondaryColor.b = 0xFF;
+        layerWork->secondaryColor.a = 0xFF;
+        layerWork->colorKeys = HuMemDirectMallocNum(HEAP_HEAP, textureLayerCount * sizeof(CursorEffectColorKey), HU_MEMNUM_OVL);
 
-        for (var_r28 = 0; var_r28 < arg1; var_r28++) {
-            var_r31->unk54[var_r28].unk0 = var_r31->unk54[var_r28].unk1 = 0;
-            var_r31->unk54[var_r28].unk4 = NULL;
-            var_r31->unk54[var_r28].unkC = 1.0f;
-            var_r31->unk54[var_r28].unk10 = 0.0f;
+        for (layerIndex = 0; layerIndex < textureLayerCount; layerIndex++) {
+            layerWork->colorKeys[layerIndex].keyType = layerWork->colorKeys[layerIndex].keyFlags = 0;
+            layerWork->colorKeys[layerIndex].colorValues = NULL;
+            layerWork->colorKeys[layerIndex].keyStartTime = 1.0f;
+            layerWork->colorKeys[layerIndex].keyEndTime = 0.0f;
         }
-        var_r31->unk0.x = var_r31->unk0.y = var_r31->unk0.z = 0.0f;
-        var_r31->unkC.x = var_r31->unkC.y = var_r31->unkC.z = 0.0f;
-        var_r31->unk18.x = var_r31->unk18.y = var_r31->unk18.z = 1.0f;
-        var_r31->unk64.x = var_r31->unk64.y = var_r31->unk64.z = 0.0f;
-        var_r31->unk58.x = var_r31->unk58.y = var_r31->unk58.z = 0.0f;
+        layerWork->startPosition.x = layerWork->startPosition.y = layerWork->startPosition.z = 0.0f;
+        layerWork->position.x = layerWork->position.y = layerWork->position.z = 0.0f;
+        layerWork->scale.x = layerWork->scale.y = layerWork->scale.z = 1.0f;
+        layerWork->scaleDelta.x = layerWork->scaleDelta.y = layerWork->scaleDelta.z = 0.0f;
+        layerWork->positionDelta.x = layerWork->positionDelta.y = layerWork->positionDelta.z = 0.0f;
 
-        for (var_r28 = 0; var_r28 < 0x10; var_r28++) {
-            var_r31->unk70[var_r28] = 0;
+        for (layerIndex = 0; layerIndex < 0x10; layerIndex++) {
+            layerWork->animationState[layerIndex] = 0;
         }
-        var_r31->unk40 = var_r31->unk44 = var_r31->unk48 = NULL;
-        var_r31->unk3C = NULL;
-        fn_1_D0E8(var_r31);
+        layerWork->texcoordArray = layerWork->colorArray = layerWork->normalVector = NULL;
+        layerWork->vertexArray = NULL;
+        InitializeCursorEffectLayer(layerWork);
     }
-    return var_r30->unk0;
+    return effectWork->effectIndex;
 }
 
-void fn_1_DDB8(s16 arg0)
+void DestroyCursorEffect(s16 effectId)
 {
-    unkStruct12 *var_r28;
-    s32 var_r29;
-    unkStruct8 *temp_r30;
-    unkStruct8Sub *var_r31;
+    CursorEffectColorKey *colorKey;
+    s32 modelIndex;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r30->unk8 != 0) {
-            var_r31 = temp_r30->unk3C;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->effectAttributes != 0) {
+            layerWork = effectWork->layers;
 
-            for (var_r29 = 0; var_r29 < temp_r30->unk2; var_r29++, var_r31++) {
-                if (var_r31->unk40 != NULL) {
-                    HuMemDirectFree(var_r31->unk40);
+            for (modelIndex = 0; modelIndex < effectWork->layerCount; modelIndex++, layerWork++) {
+                if (layerWork->texcoordArray != NULL) {
+                    HuMemDirectFree(layerWork->texcoordArray);
                 }
-                if (var_r31->unk44 != NULL) {
-                    HuMemDirectFree(var_r31->unk44);
+                if (layerWork->colorArray != NULL) {
+                    HuMemDirectFree(layerWork->colorArray);
                 }
-                if (var_r31->unk48 != NULL) {
-                    HuMemDirectFree(var_r31->unk48);
+                if (layerWork->normalVector != NULL) {
+                    HuMemDirectFree(layerWork->normalVector);
                 }
-                if (var_r31->unk3C != NULL) {
-                    HuMemDirectFree(var_r31->unk3C);
+                if (layerWork->vertexArray != NULL) {
+                    HuMemDirectFree(layerWork->vertexArray);
                 }
-                var_r28 = var_r31->unk54;
-                HuMemDirectFree(var_r28->unk4);
-                HuMemDirectFree(var_r31->unk54);
+                colorKey = layerWork->colorKeys;
+                HuMemDirectFree(colorKey->colorValues);
+                HuMemDirectFree(layerWork->colorKeys);
             }
 
-            for (var_r29 = 0; var_r29 < temp_r30->unk4; var_r29++) {
-                fn_1_E228(temp_r30->unk34[var_r29]);
+            for (modelIndex = 0; modelIndex < effectWork->textureLayerCount; modelIndex++) {
+                DestroyCursorEffectTexture(effectWork->layerModelIds[modelIndex]);
             }
-            HuMemDirectFree(temp_r30->unk3C);
-            HuMemDirectFree(temp_r30->unk34);
-            temp_r30->unk8 = 0;
-            temp_r30->unk0 = 0;
+            HuMemDirectFree(effectWork->layers);
+            HuMemDirectFree(effectWork->layerModelIds);
+            effectWork->effectAttributes = 0;
+            effectWork->effectIndex = 0;
         }
     }
 }
 
-void fn_1_DEF4(s16 arg0, s16 arg1, u8 arg2)
+void SetCursorEffectLayer(s16 effectId, s16 modelIndex, u8 layerIndex)
 {
-    lbl_1_bss_F0.unk6 = arg0;
-    lbl_1_bss_F0.unk8 = arg1;
-    lbl_1_bss_F0.unkA = arg2;
+    cursorEffectSystem.activeEffectId = effectId;
+    cursorEffectSystem.activeModelId = modelIndex;
+    cursorEffectSystem.activeLayerId = layerIndex;
 }
 
-s16 fn_1_DF20(u32 arg0, s16 arg1, s16 arg2)
+s16 CreateCursorEffectTexture(u32 textureAssetId, s16 textureWidth, s16 textureHeight)
 {
-    ANIMDATA *temp_r30;
-    f32 var_f31;
-    f32 var_f30;
-    s32 var_r29;
-    unkStruct9Sub *var_r31;
+    ANIMDATA *textureAnimation;
+    F32 textureScaleY;
+    F32 textureScaleX;
+    s32 textureIndex;
+    CursorEffectModelWork *effectModel;
 
-    var_r31 = &lbl_1_bss_F0.unkC[1];
+    effectModel = &cursorEffectSystem.effectModels[1];
 
-    for (var_r29 = 1; var_r29 < lbl_1_bss_F0.unk2; var_r29++, var_r31++) {
-        if ((var_r31->unk6 != 0) && (var_r31->unk8 == arg0))
+    for (textureIndex = 1; textureIndex < cursorEffectSystem.modelCapacity; textureIndex++, effectModel++) {
+        if ((effectModel->isActive != 0) && (effectModel->textureId == textureAssetId))
             break;
     }
-    if (var_r29 < lbl_1_bss_F0.unk2) {
-        var_r31->unk6++;
-        return var_r29;
+    if (textureIndex < cursorEffectSystem.modelCapacity) {
+        effectModel->isActive++;
+        return textureIndex;
     }
-    var_r31 = &lbl_1_bss_F0.unkC[1];
+    effectModel = &cursorEffectSystem.effectModels[1];
 
-    for (var_r29 = 1; var_r29 < lbl_1_bss_F0.unk2; var_r29++, var_r31++) {
-        if (var_r31->unk6 == 0)
+    for (textureIndex = 1; textureIndex < cursorEffectSystem.modelCapacity; textureIndex++, effectModel++) {
+        if (effectModel->isActive == 0)
             break;
     }
-    var_r31->unk8 = arg0;
-    var_r31->unk6 = 1;
-    temp_r30 = HuSprAnimRead(HuDataReadNum(arg0, HU_MEMNUM_OVL));
-    if ((arg1 == 0) || (arg2 == 0)) {
-        arg1 = temp_r30->bmp->sizeX;
-        arg2 = temp_r30->bmp->sizeY;
-        var_f31 = var_f30 = 1.0f;
+    effectModel->textureId = textureAssetId;
+    effectModel->isActive = 1;
+    textureAnimation = HuSprAnimRead(HuDataReadNum(textureAssetId, HU_MEMNUM_OVL));
+    if ((textureWidth == 0) || (textureHeight == 0)) {
+        textureWidth = textureAnimation->bmp->sizeX;
+        textureHeight = textureAnimation->bmp->sizeY;
+        textureScaleY = textureScaleX = 1.0f;
     }
     else {
-        var_f31 = arg1 / (f32)temp_r30->bmp->sizeX;
-        var_f30 = arg2 / (f32)temp_r30->bmp->sizeY;
+        textureScaleY = textureWidth / (F32)textureAnimation->bmp->sizeX;
+        textureScaleX = textureHeight / (F32)textureAnimation->bmp->sizeY;
     }
-    var_r31->unk0 = temp_r30;
-    var_r31->unk4E = arg1;
-    var_r31->unk50 = arg2;
-    var_r31->unk54 = var_f31;
-    var_r31->unk58 = var_f30;
-    var_r31->unk5C = (1.0f / temp_r30->bmp->sizeX);
-    var_r31->unk60 = 1.0f / temp_r30->bmp->sizeY;
-    var_r31->unk4 = 0;
-    var_r31->unk4C = (temp_r30->bmp->sizeY / arg2);
-    var_r31->unk48.r = var_r31->unk48.g = var_r31->unk48.b = 0xFF;
-    var_r31->unk48.a = 0xFF;
-    MTXIdentity(var_r31->unk18);
-    var_r31->unkC.x = var_r31->unkC.y = var_r31->unkC.z = 0.0f;
-    return var_r29;
+    effectModel->spriteData = textureAnimation;
+    effectModel->tileWidth = textureWidth;
+    effectModel->tileHeight = textureHeight;
+    effectModel->textureScaleX = textureScaleY;
+    effectModel->textureScaleY = textureScaleX;
+    effectModel->textureOffsetX = (1.0f / textureAnimation->bmp->sizeX);
+    effectModel->textureOffsetY = 1.0f / textureAnimation->bmp->sizeY;
+    effectModel->modelIndex = 0;
+    effectModel->alpha = (textureAnimation->bmp->sizeY / textureHeight);
+    effectModel->color.r = effectModel->color.g = effectModel->color.b = 0xFF;
+    effectModel->color.a = 0xFF;
+    MTXIdentity(effectModel->transform);
+    effectModel->position.x = effectModel->position.y = effectModel->position.z = 0.0f;
+    return textureIndex;
 }
 
-void fn_1_E228(s16 arg0)
+void DestroyCursorEffectTexture(s16 textureId)
 {
-    unkStruct9Sub *temp_r31;
+    CursorEffectModelWork *effectModel;
 
-    temp_r31 = &lbl_1_bss_F0.unkC[arg0];
-    if (temp_r31->unk8 != 0) {
-        if (temp_r31->unk6 != 0) {
-            temp_r31->unk6 -= 1;
+    effectModel = &cursorEffectSystem.effectModels[textureId];
+    if (effectModel->textureId != 0) {
+        if (effectModel->isActive != 0) {
+            effectModel->isActive -= 1;
         }
-        if (temp_r31->unk6 == 0) {
-            HuSprAnimKill(temp_r31->unk0);
-            temp_r31->unk8 = 0;
+        if (effectModel->isActive == 0) {
+            HuSprAnimKill(effectModel->spriteData);
+            effectModel->textureId = 0;
         }
     }
 }
 
-s32 fn_1_E2A8(s16 arg0, u8 arg1, u32 arg2, s16 arg3, s16 arg4)
+s32 CreateCursorEffectSprite(s16 effectId, u8 textureLayerIndex, u32 spriteAssetId, s16 spriteWidth, s16 spriteHeight)
 {
-    f32 temp_f31;
-    f32 temp_f30;
-    s32 var_r26;
-    s32 var_r25;
-    s32 var_r24;
-    unkStruct12 *temp_r31;
-    unkStruct8 *temp_r27;
-    unkStruct8Sub *var_r28;
-    unkStruct9Sub *temp_r30;
-    unkStruct11 *var_r29;
+    F32 textureScaleY;
+    F32 textureScaleX;
+    s32 layerIndex;
+    s32 textureIndex;
+    s32 textureModelId;
+    CursorEffectColorKey *colorKey;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
+    CursorEffectModelWork *textureWork;
+    CursorEffectQuad *quad;
 
-    if (arg0 == 0) {
+    if (effectId == 0) {
         return 0;
     }
-    temp_r27 = &lbl_1_bss_F0.unk10[arg0];
-    var_r24 = fn_1_DF20(arg2, arg3, arg4);
-    if (var_r24 == 0) {
+    effectWork = &cursorEffectSystem.effects[effectId];
+    textureModelId = CreateCursorEffectTexture(spriteAssetId, spriteWidth, spriteHeight);
+    if (textureModelId == 0) {
         return 0;
     }
-    temp_r27->unk8 |= 2;
-    temp_r27->unk34[arg1] = var_r24;
-    temp_r30 = &lbl_1_bss_F0.unkC[var_r24];
-    var_r28 = temp_r27->unk3C;
+    effectWork->effectAttributes |= 2;
+    effectWork->layerModelIds[textureLayerIndex] = textureModelId;
+    textureWork = &cursorEffectSystem.effectModels[textureModelId];
+    layerWork = effectWork->layers;
 
-    for (var_r26 = 0; var_r26 < temp_r27->unk2; var_r26++, var_r28++) {
-        if (arg1 == 0) {
-            if (var_r28->unk40) {
-                HuMemDirectFree(var_r28->unk40);
+    for (layerIndex = 0; layerIndex < effectWork->layerCount; layerIndex++, layerWork++) {
+        if (textureLayerIndex == 0) {
+            if (layerWork->texcoordArray) {
+                HuMemDirectFree(layerWork->texcoordArray);
             }
-            temp_f30 = temp_r30->unk50;
-            temp_f31 = temp_r30->unk4E;
-            var_r29 = var_r28->unk40 = HuMemDirectMallocNum(HEAP_HEAP, 0x30, HU_MEMNUM_OVL);
+            textureScaleX = textureWork->tileHeight;
+            textureScaleY = textureWork->tileWidth;
+            quad = layerWork->texcoordArray = HuMemDirectMallocNum(HEAP_HEAP, 0x30, HU_MEMNUM_OVL);
 
-            for (var_r25 = 0; var_r25 < 1; var_r29++, var_r25++) {
-                var_r29->unk0.x = (-0.5f * temp_f31);
-                var_r29->unk0.y = (0.5f * temp_f30);
-                var_r29->unk0.z = 0.0f;
-                var_r29->unkC.x = (0.5f * temp_f31);
-                var_r29->unkC.y = (0.5f * temp_f30);
-                var_r29->unkC.z = 0.0f;
-                var_r29->unk18.x = (0.5f * temp_f31);
-                var_r29->unk18.y = (-0.5f * temp_f30);
-                var_r29->unk18.z = 0.0f;
-                var_r29->unk24.x = (-0.5f * temp_f31);
-                var_r29->unk24.y = (-0.5f * temp_f30);
-                var_r29->unk24.z = 0.0f;
+            for (textureIndex = 0; textureIndex < 1; quad++, textureIndex++) {
+                quad->topLeft.x = (-0.5f * textureScaleY);
+                quad->topLeft.y = (0.5f * textureScaleX);
+                quad->topLeft.z = 0.0f;
+                quad->topRight.x = (0.5f * textureScaleY);
+                quad->topRight.y = (0.5f * textureScaleX);
+                quad->topRight.z = 0.0f;
+                quad->bottomRight.x = (0.5f * textureScaleY);
+                quad->bottomRight.y = (-0.5f * textureScaleX);
+                quad->bottomRight.z = 0.0f;
+                quad->bottomLeft.x = (-0.5f * textureScaleY);
+                quad->bottomLeft.y = (-0.5f * textureScaleX);
+                quad->bottomLeft.z = 0.0f;
             }
         }
-        temp_r31 = &var_r28->unk54[arg1];
-        temp_r31->unk8 = 0;
-        temp_r31->unk0 = temp_r31->unk1 = 0;
-        temp_r31->unkC = 1.0f;
-        temp_r31->unk10 = 0.0f;
-        if (temp_r31->unk4 == NULL) {
-            temp_r31->unk4 = HuMemDirectMallocNum(HEAP_HEAP, 0x20, HU_MEMNUM_OVL);
+        colorKey = &layerWork->colorKeys[textureLayerIndex];
+        colorKey->keyCount = 0;
+        colorKey->keyType = colorKey->keyFlags = 0;
+        colorKey->keyStartTime = 1.0f;
+        colorKey->keyEndTime = 0.0f;
+        if (colorKey->colorValues == NULL) {
+            colorKey->colorValues = HuMemDirectMallocNum(HEAP_HEAP, 0x20, HU_MEMNUM_OVL);
         }
-        temp_r31->unk4[0].x = temp_r31->unk0 * temp_r30->unk54;
-        temp_r31->unk4[0].y = temp_r31->unk0 * temp_r30->unk58;
-        temp_r31->unk4[1].x = ((temp_r31->unk0 + 1) * temp_r30->unk54);
-        temp_r31->unk4[1].y = (temp_r31->unk0 * temp_r30->unk58);
-        temp_r31->unk4[2].x = ((temp_r31->unk0 + 1) * temp_r30->unk54);
-        temp_r31->unk4[2].y = ((temp_r31->unk0 + 1) * temp_r30->unk58);
-        temp_r31->unk4[3].x = (temp_r31->unk0 * temp_r30->unk54);
-        temp_r31->unk4[3].y = ((temp_r31->unk0 + 1) * temp_r30->unk58);
-        if ((temp_r31->unk0 + 1) < temp_r30->unk4C) {
-            temp_r31->unk4[2].y -= temp_r30->unk60;
-            temp_r31->unk4[3].y -= temp_r30->unk60;
+        colorKey->colorValues[0].x = colorKey->keyType * textureWork->textureScaleX;
+        colorKey->colorValues[0].y = colorKey->keyType * textureWork->textureScaleY;
+        colorKey->colorValues[1].x = ((colorKey->keyType + 1) * textureWork->textureScaleX);
+        colorKey->colorValues[1].y = (colorKey->keyType * textureWork->textureScaleY);
+        colorKey->colorValues[2].x = ((colorKey->keyType + 1) * textureWork->textureScaleX);
+        colorKey->colorValues[2].y = ((colorKey->keyType + 1) * textureWork->textureScaleY);
+        colorKey->colorValues[3].x = (colorKey->keyType * textureWork->textureScaleX);
+        colorKey->colorValues[3].y = ((colorKey->keyType + 1) * textureWork->textureScaleY);
+        if ((colorKey->keyType + 1) < textureWork->alpha) {
+            colorKey->colorValues[2].y -= textureWork->textureOffsetY;
+            colorKey->colorValues[3].y -= textureWork->textureOffsetY;
         }
     }
     return 1;
 }
 
-s32 fn_1_E7C8(s16 arg0, u8 arg1, u32 arg2)
+s32 CreateCursorEffectSpriteSimple(s16 effectId, u8 layerIndex, u32 spriteAssetId)
 {
-    s32 var_r31;
+    s32 spriteId;
 
-    var_r31 = fn_1_E2A8(arg0, arg1, arg2, 0, 0);
-    return var_r31;
+    spriteId = CreateCursorEffectSprite(effectId, layerIndex, spriteAssetId, 0, 0);
+    return spriteId;
 }
 
-void fn_1_E818(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void SetCursorEffectPosition(s16 effectId, F32 positionX, F32 positionY, F32 positionZ)
 {
-    unkStruct8 *temp_r31;
+    CursorEffectWork *effectWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        temp_r31->unkC.x = arg8;
-        temp_r31->unkC.y = arg9;
-        temp_r31->unkC.z = argA;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        effectWork->position.x = positionX;
+        effectWork->position.y = positionY;
+        effectWork->position.z = positionZ;
     }
 }
 
-void fn_1_E85C(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA)
+void SetCursorEffectPositionAtLayer(s16 effectId, s16 layerIndex, F32 positionX, F32 positionY, F32 positionZ)
 {
-    unkStruct8 *temp_r30;
-    unkStruct8Sub *temp_r31;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r30->unk2 > arg1) {
-            temp_r31 = &temp_r30->unk3C[arg1];
-            temp_r31->unk0.x = arg8;
-            temp_r31->unk0.y = arg9;
-            temp_r31->unk0.z = argA;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->startPosition.x = positionX;
+            layerWork->startPosition.y = positionY;
+            layerWork->startPosition.z = positionZ;
         }
     }
 }
 
-void fn_1_E8CC(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void SetCursorEffectPositionImmediate(s16 effectId, F32 positionX, F32 positionY, F32 positionZ)
 {
-    s32 var_r29;
-    unkStruct8 *temp_r30;
-    unkStruct8Sub *var_r31;
+    s32 layerIndex;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_F0.unk10[arg0];
-        var_r31 = temp_r30->unk3C;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        layerWork = effectWork->layers;
 
-        for (var_r29 = 0; var_r29 < temp_r30->unk2; var_r29++, var_r31++) {
-            var_r31->unk0.x = arg8;
-            var_r31->unk0.y = arg9;
-            var_r31->unk0.z = argA;
+        for (layerIndex = 0; layerIndex < effectWork->layerCount; layerIndex++, layerWork++) {
+            layerWork->startPosition.x = positionX;
+            layerWork->startPosition.y = positionY;
+            layerWork->startPosition.z = positionZ;
         }
     }
 }
 
-void fn_1_E940(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void MoveCursorEffectPosition(s16 effectId, F32 positionX, F32 positionY, F32 positionZ)
 {
-    unkStruct8 *temp_r31;
+    CursorEffectWork *effectWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        temp_r31->unkC.x += arg8;
-        temp_r31->unkC.y += arg9;
-        temp_r31->unkC.z += argA;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        effectWork->position.x += positionX;
+        effectWork->position.y += positionY;
+        effectWork->position.z += positionZ;
     }
 }
 
-void fn_1_E99C(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA)
+void MoveCursorEffectPositionAtLayer(s16 effectId, s16 layerIndex, F32 positionX, F32 positionY, F32 positionZ)
 {
-    unkStruct8 *temp_r30;
-    unkStruct8Sub *temp_r31;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r30->unk2 > arg1) {
-            temp_r31 = &temp_r30->unk3C[arg1];
-            temp_r31->unk0.x += arg8;
-            temp_r31->unk0.y += arg9;
-            temp_r31->unk0.z += argA;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->startPosition.x += positionX;
+            layerWork->startPosition.y += positionY;
+            layerWork->startPosition.z += positionZ;
         }
     }
 }
 
-void fn_1_EA24(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void MoveCursorEffectPositionImmediate(s16 effectId, F32 positionX, F32 positionY, F32 positionZ)
 {
-    s32 var_r29;
-    unkStruct8 *temp_r30;
-    unkStruct8Sub *var_r31;
+    s32 layerIndex;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_F0.unk10[arg0];
-        var_r31 = temp_r30->unk3C;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        layerWork = effectWork->layers;
 
-        for (var_r29 = 0; var_r29 < temp_r30->unk2; var_r29++, var_r31++) {
-            var_r31->unk0.x += arg8;
-            var_r31->unk0.y += arg9;
-            var_r31->unk0.z += argA;
+        for (layerIndex = 0; layerIndex < effectWork->layerCount; layerIndex++, layerWork++) {
+            layerWork->startPosition.x += positionX;
+            layerWork->startPosition.y += positionY;
+            layerWork->startPosition.z += positionZ;
         }
     }
 }
 
-void fn_1_EAB0(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void SetCursorEffectScale(s16 effectId, F32 scaleX, F32 scaleY, F32 scaleZ)
 {
-    unkStruct8 *temp_r31;
+    CursorEffectWork *effectWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        temp_r31->unk18.x = arg8;
-        temp_r31->unk18.y = arg9;
-        temp_r31->unk18.z = argA;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        effectWork->rotation.x = scaleX;
+        effectWork->rotation.y = scaleY;
+        effectWork->rotation.z = scaleZ;
     }
 }
 
-void fn_1_EAF4(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA)
+void SetCursorEffectScaleAtLayer(s16 effectId, s16 layerIndex, F32 scaleX, F32 scaleY, F32 scaleZ)
 {
-    unkStruct8 *temp_r30;
-    unkStruct8Sub *temp_r31;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r30->unk2 > arg1) {
-            temp_r31 = &temp_r30->unk3C[arg1];
-            temp_r31->unkC.x = arg8;
-            temp_r31->unkC.y = arg9;
-            temp_r31->unkC.z = argA;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->position.x = scaleX;
+            layerWork->position.y = scaleY;
+            layerWork->position.z = scaleZ;
         }
     }
 }
 
-void fn_1_EB64(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void SetCursorEffectScaleImmediate(s16 effectId, F32 scaleX, F32 scaleY, F32 scaleZ)
 {
-    s32 var_r29;
-    unkStruct8 *temp_r30;
-    unkStruct8Sub *var_r31;
+    s32 layerIndex;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_F0.unk10[arg0];
-        var_r31 = temp_r30->unk3C;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        layerWork = effectWork->layers;
 
-        for (var_r29 = 0; var_r29 < temp_r30->unk2; var_r29++, var_r31++) {
-            var_r31->unkC.x = arg8;
-            var_r31->unkC.y = arg9;
-            var_r31->unkC.z = argA;
+        for (layerIndex = 0; layerIndex < effectWork->layerCount; layerIndex++, layerWork++) {
+            layerWork->position.x = scaleX;
+            layerWork->position.y = scaleY;
+            layerWork->position.z = scaleZ;
         }
     }
 }
 
-void fn_1_EBD8(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void SetCursorEffectDepth(s16 effectId, F32 depthX, F32 depthY, F32 depthZ)
 {
-    unkStruct8 *temp_r31;
+    CursorEffectWork *effectWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        temp_r31->unk24.x = arg8;
-        temp_r31->unk24.y = arg9;
-        temp_r31->unk24.z = argA;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        effectWork->scale.x = depthX;
+        effectWork->scale.y = depthY;
+        effectWork->scale.z = depthZ;
     }
 }
 
-void fn_1_EC1C(s16 arg0, s16 arg1, f32 arg8, f32 arg9, f32 argA)
+void SetCursorEffectDepthAtLayer(s16 effectId, s16 layerIndex, F32 depthX, F32 depthY, F32 depthZ)
 {
-    unkStruct8 *temp_r30;
-    unkStruct8Sub *temp_r31;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r30->unk2 > arg1) {
-            temp_r31 = &temp_r30->unk3C[arg1];
-            temp_r31->unk18.x = arg8;
-            temp_r31->unk18.y = arg9;
-            temp_r31->unk18.z = argA;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->scale.x = depthX;
+            layerWork->scale.y = depthY;
+            layerWork->scale.z = depthZ;
         }
     }
 }
 
-void fn_1_EC8C(s16 arg0, f32 arg8, f32 arg9, f32 argA)
+void SetCursorEffectDepthImmediate(s16 effectId, F32 depthX, F32 depthY, F32 depthZ)
 {
-    s32 var_r29;
-    unkStruct8 *temp_r30;
-    unkStruct8Sub *var_r31;
+    s32 layerIndex;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_F0.unk10[arg0];
-        var_r31 = temp_r30->unk3C;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        layerWork = effectWork->layers;
 
-        for (var_r29 = 0; var_r29 < temp_r30->unk2; var_r29++, var_r31++) {
-            var_r31->unk18.x = arg8;
-            var_r31->unk18.y = arg9;
-            var_r31->unk18.z = argA;
+        for (layerIndex = 0; layerIndex < effectWork->layerCount; layerIndex++, layerWork++) {
+            layerWork->scale.x = depthX;
+            layerWork->scale.y = depthY;
+            layerWork->scale.z = depthZ;
         }
     }
 }
 
-void fn_1_ED00(s16 arg0, s32 arg1)
+void SetCursorEffectFlags(s16 effectId, s32 attributeFlags)
 {
-    unkStruct8 *temp_r31;
+    CursorEffectWork *effectWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        temp_r31->unk8 |= arg1;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        effectWork->effectAttributes |= attributeFlags;
     }
 }
 
-void fn_1_ED44(s16 arg0, s16 arg1, s32 arg2)
+void SetCursorEffectLayerFlags(s16 effectId, s16 layerIndex, s32 layerFlags)
 {
-    unkStruct8 *temp_r31;
-    unkStruct8Sub *temp_r30;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r31->unk2 > arg1) {
-            temp_r30 = &temp_r31->unk3C[arg1];
-            temp_r30->unk34 |= arg2;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->layerAttributes |= layerFlags;
         }
     }
 }
 
-void fn_1_EDB4(s16 arg0, s32 arg1)
+void SetCursorEffectAllFlags(s16 effectId, s32 layerFlags)
 {
-    s32 var_r30;
-    unkStruct8 *temp_r31;
-    unkStruct8Sub *temp_r29;
+    s32 layerIndex;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        temp_r29 = temp_r31->unk3C;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        layerWork = effectWork->layers;
 
-        for (var_r30 = 0; var_r30 < temp_r31->unk2; var_r30++) {
-            temp_r29->unk34 |= arg1;
+        for (layerIndex = 0; layerIndex < effectWork->layerCount; layerIndex++) {
+            layerWork->layerAttributes |= layerFlags;
         }
     }
 }
 
-void fn_1_EE24(s16 arg0, u32 arg1)
+void SetCursorEffectAttribute(s16 effectId, u32 attributeMask)
 {
-    unkStruct8 *temp_r31;
+    CursorEffectWork *effectWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        temp_r31->unk8 &= ~arg1;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        effectWork->effectAttributes &= ~attributeMask;
     }
 }
 
-void fn_1_EE68(s16 arg0, s16 arg1, u32 arg2)
+void SetCursorEffectLayerAttribute(s16 effectId, s16 layerIndex, u32 layerFlags)
 {
-    unkStruct8 *temp_r31;
-    unkStruct8Sub *temp_r30;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r31->unk2 > arg1) {
-            temp_r30 = &temp_r31->unk3C[arg1];
-            temp_r30->unk34 &= ~arg2;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->layerAttributes &= ~layerFlags;
         }
     }
 }
 
-void fn_1_EED8(s16 arg0, u32 arg1)
+void SetCursorEffectAllAttributes(s16 effectId, u32 layerAttributes)
 {
-    s32 var_r30;
-    unkStruct8 *temp_r31;
-    unkStruct8Sub *temp_r29;
+    s32 layerIndex;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        temp_r29 = temp_r31->unk3C;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        layerWork = effectWork->layers;
 
-        for (var_r30 = 0; var_r30 < temp_r31->unk2; var_r30++) {
-            temp_r29->unk34 &= ~arg1;
+        for (layerIndex = 0; layerIndex < effectWork->layerCount; layerIndex++) {
+            layerWork->layerAttributes &= ~layerAttributes;
         }
     }
 }
 
-s32 fn_1_EF48(s16 arg0, s32 arg1)
+s32 CheckCursorEffectFlags(s16 effectId, s32 attributeFlags)
 {
-    unkStruct8 *var_r31;
+    CursorEffectWork *effectWork;
 
-    if (arg0 == 0) {
+    if (effectId == 0) {
         return 0;
     }
 
-    var_r31 = &lbl_1_bss_F0.unk10[arg0];
-    if ((var_r31->unk8 & arg1) != 0) {
+    effectWork = &cursorEffectSystem.effects[effectId];
+    if ((effectWork->effectAttributes & attributeFlags) != 0) {
         return 1;
     }
     return 0;
 }
 
-s32 fn_1_EFA4(s16 arg0, s16 arg1, s32 arg2)
+s32 CheckCursorEffectLayerFlags(s16 effectId, s16 layerIndex, s32 layerFlags)
 {
-    unkStruct8Sub *var_r30;
-    unkStruct8 *temp_r31;
+    CursorEffectLayerWork *layerWork;
+    CursorEffectWork *effectWork;
 
-    if (arg0 == 0)
+    if (effectId == 0)
         return;
 
-    temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-    if (temp_r31->unk2 <= arg1)
+    effectWork = &cursorEffectSystem.effects[effectId];
+    if (effectWork->layerCount <= layerIndex)
         return;
 
-    var_r30 = &temp_r31->unk3C[arg1];
-    if ((var_r30->unk34 & arg2) != 0) {
+    layerWork = &effectWork->layers[layerIndex];
+    if ((layerWork->layerAttributes & layerFlags) != 0) {
         return 1;
     }
     else {
@@ -1094,178 +1094,178 @@ s32 fn_1_EFA4(s16 arg0, s16 arg1, s32 arg2)
     }
 }
 
-void fn_1_F024(s16 arg0, s16 arg1, u8 arg2, u8 arg3, u8 arg4, u8 arg5)
+void SetCursorEffectColorAtLayer(s16 effectId, s16 layerIndex, u8 red, u8 green, u8 blue, u8 alpha)
 {
-    unkStruct8 *temp_r30;
-    unkStruct8Sub *temp_r31;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r30->unk2 > arg1) {
-            temp_r31 = &temp_r30->unk3C[arg1];
-            temp_r31->unk50.r = arg2;
-            temp_r31->unk50.g = arg3;
-            temp_r31->unk50.b = arg4;
-            temp_r31->unk50.a = arg5;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->secondaryColor.r = red;
+            layerWork->secondaryColor.g = green;
+            layerWork->secondaryColor.b = blue;
+            layerWork->secondaryColor.a = alpha;
         }
     }
 }
 
-void fn_1_F098(s16 arg0, u8 arg1, u8 arg2, u8 arg3, u8 arg4)
+void SetCursorEffectColor(s16 effectId, u8 red, u8 green, u8 blue, u8 alpha)
 {
-    s32 var_r29;
-    unkStruct8 *temp_r30;
-    unkStruct8Sub *var_r31;
+    s32 effectIndex;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r30 = &lbl_1_bss_F0.unk10[arg0];
-        var_r31 = temp_r30->unk3C;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        layerWork = effectWork->layers;
 
-        for (var_r29 = 0; var_r29 < temp_r30->unk2; var_r29++, var_r31++) {
-            var_r31->unk50.r = arg1;
-            var_r31->unk50.g = arg2;
-            var_r31->unk50.b = arg3;
-            var_r31->unk50.a = arg4;
+        for (effectIndex = 0; effectIndex < effectWork->layerCount; effectIndex++, layerWork++) {
+            layerWork->secondaryColor.r = red;
+            layerWork->secondaryColor.g = green;
+            layerWork->secondaryColor.b = blue;
+            layerWork->secondaryColor.a = alpha;
         }
     }
 }
 
-void fn_1_F110(s16 arg0, s16 arg1, u8 arg2)
+void SetCursorEffectLayerAlpha(s16 effectId, s16 layerIndex, u8 alpha)
 {
-    unkStruct8 *temp_r31;
-    unkStruct8Sub *var_r30;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54->unk8 = arg2;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->colorKeys->keyCount = alpha;
         }
     }
 }
 
-void fn_1_F17C(s16 arg0, s16 arg1, u8 arg2, u8 arg3)
+void SetCursorEffectSubLayerAlpha(s16 effectId, s16 layerIndex, u8 keyIndex, u8 alpha)
 {
-    unkStruct8 *temp_r31;
-    unkStruct8Sub *var_r30;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54[arg2].unk8 = arg3;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->colorKeys[keyIndex].keyCount = alpha;
         }
     }
 }
 
-void fn_1_F1F4(s16 arg0, u8 arg1)
+void SetCursorEffectAllAlpha(s16 effectId, u8 alpha)
 {
-    s32 var_r28;
-    s32 var_r30;
-    unkStruct8 *temp_r29;
-    unkStruct8Sub *var_r31;
+    s32 layerIndex;
+    s32 keyIndex;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r29 = &lbl_1_bss_F0.unk10[arg0];
-        var_r31 = (unkStruct8Sub *)(&temp_r29->unk3C); //! BAD WHY
-        (void)temp_r29;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        layerWork = (CursorEffectLayerWork *)(&effectWork->layers); //! BAD WHY
+        (void)effectWork;
 
-        for (var_r28 = 0; var_r28 < temp_r29->unk2; var_r28++, var_r31++) {
-            for (var_r30 = 0; var_r30 < var_r31->unk32; var_r30++) {
-                var_r31->unk54[var_r30].unk8 = arg1;
+        for (layerIndex = 0; layerIndex < effectWork->layerCount; layerIndex++) {
+            for (keyIndex = 0; keyIndex < layerWork->quadCount; keyIndex++) {
+                layerWork->colorKeys[keyIndex].keyCount = alpha;
             }
         }
     }
 }
 
-void fn_1_F28C(s16 arg0, s16 arg1, f32 arg8)
+void SetCursorEffectLayerOpacity(s16 effectId, s16 layerIndex, F32 opacity)
 {
-    unkStruct8 *temp_r31;
-    unkStruct8Sub *var_r30;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54->unkC = arg8;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->colorKeys->keyStartTime = opacity;
         }
     }
 }
 
-void fn_1_F2F8(s16 arg0, s16 arg1, u8 arg2, f32 arg8)
+void SetCursorEffectSubLayerOpacity(s16 effectId, s16 layerIndex, u8 subLayerIndex, F32 opacity)
 {
-    unkStruct8 *temp_r31;
-    unkStruct8Sub *var_r30;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54[arg2].unkC = arg8;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->colorKeys[subLayerIndex].keyStartTime = opacity;
         }
     }
 }
 
-void fn_1_F370(s16 arg0, f32 arg8)
+void SetCursorEffectAllOpacity(s16 effectId, F32 opacity)
 {
-    unkStruct8 *temp_r31;
-    s32 var_r29;
-    s32 var_r30;
-    unkStruct8Sub *volatile sp8;
+    CursorEffectWork *effectWork;
+    s32 layerIndex;
+    s32 keyIndex;
+    CursorEffectLayerWork *volatile layerCursor;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        sp8 = &temp_r31->unk3C[0];
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        layerCursor = &effectWork->layers[0];
 
-        for (var_r29 = 0; var_r29 < temp_r31->unk2; var_r29++) {
-            for (var_r30 = 0; var_r30 < sp8->unk32; var_r30++) {
-                sp8->unk54[var_r30].unkC = arg8;
+        for (layerIndex = 0; layerIndex < effectWork->layerCount; layerIndex++) {
+            for (keyIndex = 0; keyIndex < layerCursor->quadCount; keyIndex++) {
+                layerCursor->colorKeys[keyIndex].keyStartTime = opacity;
             }
         }
     }
 }
 
-void fn_1_F408(s16 arg0, s16 arg1, u8 arg2)
+void SetCursorEffectLayerPriority(s16 effectId, s16 layerIndex, u8 priority)
 {
-    unkStruct8 *temp_r31;
-    unkStruct8Sub *var_r30;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54->unk0 = arg2;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->colorKeys->keyType = priority;
         }
     }
 }
 
-void fn_1_F478(s16 arg0, s16 arg1, u8 arg2, u8 arg3)
+void SetCursorEffectSubLayerPriority(s16 effectId, s16 layerIndex, u8 keyIndex, u8 priority)
 {
-    unkStruct8 *temp_r31;
-    unkStruct8Sub *var_r30;
+    CursorEffectWork *effectWork;
+    CursorEffectLayerWork *layerWork;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        if (temp_r31->unk2 > arg1) {
-            var_r30 = &temp_r31->unk3C[arg1];
-            var_r30->unk54[arg2].unk0 = arg3;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        if (effectWork->layerCount > layerIndex) {
+            layerWork = &effectWork->layers[layerIndex];
+            layerWork->colorKeys[keyIndex].keyType = priority;
         }
     }
 }
 
-void fn_1_F4F0(s16 arg0, u8 arg1)
+void SetCursorEffectAllPriority(s16 effectId, u8 priority)
 {
-    unkStruct8Sub *volatile sp8;
-    s32 var_r29;
-    unkStruct8 *temp_r31;
-    s32 var_r30;
+    CursorEffectLayerWork *volatile layerCursor;
+    s32 layerIndex;
+    CursorEffectWork *effectWork;
+    s32 keyIndex;
 
-    if (arg0 != 0) {
-        temp_r31 = &lbl_1_bss_F0.unk10[arg0];
-        sp8 = temp_r31->unk3C;
-        for (var_r29 = 0; var_r29 < temp_r31->unk2; var_r29++) {
-            for (var_r30 = 0; var_r30 < sp8->unk32; var_r30++) {
-                sp8->unk54[var_r30].unk0 = arg1;
+    if (effectId != 0) {
+        effectWork = &cursorEffectSystem.effects[effectId];
+        layerCursor = effectWork->layers;
+        for (layerIndex = 0; layerIndex < effectWork->layerCount; layerIndex++) {
+            for (keyIndex = 0; keyIndex < layerCursor->quadCount; keyIndex++) {
+                layerCursor->colorKeys[keyIndex].keyType = priority;
             }
         }
     }
