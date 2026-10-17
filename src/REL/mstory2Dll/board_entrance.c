@@ -15,329 +15,329 @@
 #include "game/wipe.h"
 
 typedef struct {
-    /* 0x000 */ s32 unk00;
-    /* 0x004 */ s32 unk04;
-    /* 0x008 */ s32 unk08;
-    /* 0x00C */ s32 unk0C;
-    /* 0x010 */ s32 unk10;
-    /* 0x014 */ s32 unk14;
-    /* 0x018 */ char unk18[0x18];
-    /* 0x030 */ StructFn357C unk30[4];
-    /* 0x100 */ float unk100;
-} StructBss194; // Size 0x104
+    /* 0x000 */ s32 selectedPlayerIndex;
+    /* 0x004 */ s32 activeWindowId;
+    /* 0x008 */ s32 eventWindowId;
+    /* 0x00C */ s32 activePadIndex;
+    /* 0x010 */ s32 playerOrderCount;
+    /* 0x014 */ s32 reserved14;
+    /* 0x018 */ char reserved18[0x18];
+    /* 0x030 */ StoryPlayerConfig playerInfo[4];
+    /* 0x100 */ float verticalOffset;
+} BoardEntranceState; // Size 0x104
 
-StructBss194 lbl_1_bss_194;
-StructBss16C lbl_1_bss_16C;
-StructBss16C lbl_1_bss_144;
-StructBss16C lbl_1_bss_11C;
-StructBss16C lbl_1_bss_F4;
-StructBss16C lbl_1_bss_CC;
-HUPROCESS *lbl_1_bss_C8;
-s32 lbl_1_bss_88[16];
-s32 lbl_1_bss_78[4];
+BoardEntranceState boardEntranceState;
+StoryObjectProcessState boardEntranceMainProcess;
+StoryObjectProcessState boardEntranceMapProcess;
+StoryObjectProcessState boardEntrancePlayerProcess;
+StoryObjectProcessState boardEntranceSubProcess;
+StoryObjectProcessState boardEntranceKoopaProcess;
+HUPROCESS *boardEntranceProcess;
+s32 boardEntranceMessageIds[16];
+s32 boardEntranceSequenceIds[4];
 
-u32 lbl_1_data_3A0[11]
+u32 boardEntranceWindowFlags[11]
     = { 0x00250000, 0x00250000, 0x00250000, 0x00250000, 0x00250000, 0x00250000, 0x00250000, 0x00250000, 0x00250000, 0x00250000, 0x00250000 };
 
-s32 lbl_1_data_3CC[2][2] = { 20, 70, 1, 1 };
+s32 boardEntranceMotionCueFrames[2][2] = { 20, 70, 1, 1 };
 
-s32 lbl_1_data_3DC = -1;
-s32 lbl_1_data_3E0[2] = { -1, -1 };
+s32 boardEntranceMotionId = -1;
+s32 boardEntranceCueMotionIds[2] = { -1, -1 };
 
-void fn_1_9768(void);
-void fn_1_9A10(void);
-void fn_1_9BD4(s32 arg0);
-void fn_1_9ECC(OMOBJ *arg0, StructBss16C *arg1);
-void fn_1_9FDC(void);
-void fn_1_A4A8(OMOBJ *arg0, StructBss16C *arg1);
-void fn_1_A58C(void);
-void fn_1_AB10(OMOBJ *arg0, StructBss16C *arg1);
+Void RunBoardEntranceMainProcess(Void);
+Void RunBoardEntranceMapProcess(Void);
+Void PrepareBoardEntrancePlayers(s32 selectedPlayerIndex);
+Void AnimateBoardEntrancePlayer(OMOBJ *object, StoryObjectProcessState *processState);
+Void RunBoardEntrancePlayerProcess(Void);
+Void AnimateBoardEntranceProp(OMOBJ *object, StoryObjectProcessState *processState);
+Void RunBoardEntrancePropProcess(Void);
+Void AnimateBoardEntranceKoopa(OMOBJ *object, StoryObjectProcessState *processState);
 
-void fn_1_AE5C(void);
-void fn_1_B1C0(void);
-void fn_1_B24C(void);
+Void RunBoardEntranceKoopaProcess(Void);
+Void HandleBoardEntranceProcessEnd(Void);
+Void UpdateBoardEntranceCamera(Void);
 
-void fn_1_7DB0(void)
+Void WaitForBoardEntranceMotionCues(Void)
 {
     int i;
     while (1) {
         do {
             HuPrcVSleep();
-        } while (lbl_1_data_3DC == -1 || lbl_1_data_3E0[0] == -1 || lbl_1_data_3E0[1] == -1 || lbl_1_data_3E0[0] != Hu3DMotionIDGet(lbl_1_data_3DC));
+        } while (boardEntranceMotionId == -1 || boardEntranceCueMotionIds[0] == -1 || boardEntranceCueMotionIds[1] == -1 || boardEntranceCueMotionIds[0] != Hu3DMotionIDGet(boardEntranceMotionId));
         for (i = 0; i < 2; i++) {
-            if (lbl_1_data_3CC[1][i] != -1) {
-                if (Hu3DMotionTimeGet(lbl_1_data_3DC) >= lbl_1_data_3CC[0][i]) {
-                    OSReport("KE-System  TIME:%d\n", lbl_1_data_3CC[0][i]);
+            if (boardEntranceMotionCueFrames[1][i] != -1) {
+                if (Hu3DMotionTimeGet(boardEntranceMotionId) >= boardEntranceMotionCueFrames[0][i]) {
+                    OSReport("KE-System  TIME:%d\n", boardEntranceMotionCueFrames[0][i]);
                     HuAudFXPlay(81);
-                    lbl_1_data_3CC[1][i] = -1;
+                    boardEntranceMotionCueFrames[1][i] = -1;
                 }
             }
         }
-        if (Hu3DMotionTimeGet(lbl_1_data_3DC) <= 10) {
+        if (Hu3DMotionTimeGet(boardEntranceMotionId) <= 10) {
             for (i = 0; i < 2; i++) {
-                lbl_1_data_3CC[1][i] = 1;
+                boardEntranceMotionCueFrames[1][i] = 1;
             }
         }
     }
 }
 
-void fn_1_7F54(HUPROCESS *arg0, s32 arg1)
+Void StartBoardEntranceEvent(HUPROCESS *parentProcess, s32 activePadIndex)
 {
-    lbl_1_bss_C8 = arg0;
-    lbl_1_bss_194.unk0C = arg1;
-    fn_1_C30();
-    fn_1_3668(255);
-    fn_1_2828(lbl_1_bss_C8, fn_1_B1C0);
-    fn_1_3754();
-    fn_1_9BD4(arg1);
-    HuPrcChildCreate(fn_1_9FDC, 100, 8192, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(fn_1_9A10, 100, 8192, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(fn_1_A58C, 100, 8192, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(fn_1_AE5C, 100, 8192, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(fn_1_9768, 100, 8192, 0, HuPrcCurrentGet());
+    boardEntranceProcess = parentProcess;
+    boardEntranceState.activePadIndex = activePadIndex;
+    InitializeWindowSystem();
+    CreateStoryDirectionalLight(255);
+    InitializeStoryCamera(boardEntranceProcess, HandleBoardEntranceProcessEnd);
+    CreateStoryShadow();
+    PrepareBoardEntrancePlayers(activePadIndex);
+    HuPrcChildCreate(RunBoardEntrancePlayerProcess, 100, 8192, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(RunBoardEntranceMapProcess, 100, 8192, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(RunBoardEntrancePropProcess, 100, 8192, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(RunBoardEntranceKoopaProcess, 100, 8192, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(RunBoardEntranceMainProcess, 100, 8192, 0, HuPrcCurrentGet());
 }
 
-void fn_1_806C(OMOBJ *object)
+Void UpdateBoardEntranceMotion(OMOBJ *object)
 {
     if (object->work[2]) {
         object->work[2]--;
         return;
     }
     if (object->work[2] == 0 && Hu3DMotionEndCheck(object->mdlId[1])) {
-        fn_1_1DFC(object, 1, object->work[1], 15, 1);
+        ShiftObjectMotion(object, 1, object->work[1], 15, 1);
         object->work[0] = object->work[1] = object->work[2] = 0;
     }
 }
 
-void fn_1_80F8(void)
+Void DisplayBoardEntranceDebugStatus(Void)
 {
     int posX = 16;
     int posY = 40;
     GXColor winColor = { 0, 0, 128, 128 };
     int i;
     while (1) {
-        fn_1_BC8();
+        WaitOneFrame();
         fontcolor = FONT_COLOR_WHITE;
         printWin(posX, posY, 220, 130, &winColor);
-        if (lbl_1_bss_16C.unk04 == NULL) {
+        if (boardEntranceMainProcess.updateCallback == NULL) {
             print8(posX, posY, 1, "PROC_MAIN   -> FALSE");
         }
         else {
             print8(posX, posY, 1, "PROC_MAIN   -> TRUE");
         }
-        if (lbl_1_bss_144.unk04 == NULL) {
+        if (boardEntranceMapProcess.updateCallback == NULL) {
             print8(posX, posY + 10, 1, "PROC_MAP    -> FALSE");
         }
         else {
             print8(posX, posY + 10, 1, "PROC_MAP    -> TRUE");
         }
-        if (lbl_1_bss_11C.unk04 == NULL) {
+        if (boardEntrancePlayerProcess.updateCallback == NULL) {
             print8(posX, posY + 20, 1, "PROC_PLAYER -> FALSE");
         }
         else {
             print8(posX, posY + 20, 1, "PROC_PLAYER -> TRUE");
         }
-        if (lbl_1_bss_F4.unk04 == NULL) {
+        if (boardEntranceSubProcess.updateCallback == NULL) {
             print8(posX, posY + 30, 1, "PROC_SUB    -> FALSE");
         }
         else {
             print8(posX, posY + 30, 1, "PROC_SUB    -> TRUE");
         }
-        if (lbl_1_bss_CC.unk04 == NULL) {
+        if (boardEntranceKoopaProcess.updateCallback == NULL) {
             print8(posX, posY + 40, 1, "PROC_KOOPA  -> FALSE");
         }
         else {
             print8(posX, posY + 40, 1, "PROC_KOOPA  -> TRUE");
         }
 
-        print8(posX, posY + 60, 1, "P:%d W:%d", lbl_1_bss_194.unk00, lbl_1_bss_194.unk0C);
+        print8(posX, posY + 60, 1, "P:%d W:%d", boardEntranceState.selectedPlayerIndex, boardEntranceState.activePadIndex);
         print8(posX, posY + 80, 1, "NO) IDX:GRP:COM:DIF:PAD:CHR");
         for (i = 0; i < 4; i++) {
-            print8(posX, posY + 90 + (i * 10), 1, "%2d) %3d:%3d:%3d:%3d:%3d:%3d", i, lbl_1_bss_194.unk30[i].unk00, lbl_1_bss_194.unk30[i].unk04,
-                lbl_1_bss_194.unk30[i].unk08, lbl_1_bss_194.unk30[i].unk0C, lbl_1_bss_194.unk30[i].unk14, lbl_1_bss_194.unk30[i].unk10);
+            print8(posX, posY + 90 + (i * 10), 1, "%2d) %3d:%3d:%3d:%3d:%3d:%3d", i, boardEntranceState.playerInfo[i].playerIndex, boardEntranceState.playerInfo[i].group,
+                boardEntranceState.playerInfo[i].isComputer, boardEntranceState.playerInfo[i].difficulty, boardEntranceState.playerInfo[i].padIndex, boardEntranceState.playerInfo[i].characterId);
         }
         if (HuPadBtnDown[0] & PAD_BUTTON_X) {
-            fn_1_7384(lbl_1_bss_11C.unk00->mdlId[1], lbl_1_bss_194.unk30[lbl_1_bss_194.unk00].unk10, 30, 120, TRUE);
+            AnimateCharacterMeshOffset(boardEntrancePlayerProcess.object->mdlId[1], boardEntranceState.playerInfo[boardEntranceState.selectedPlayerIndex].characterId, 30, 120, TRUE);
         }
         else if (HuPadBtnDown[0] & PAD_BUTTON_Y) {
-            fn_1_7384(lbl_1_bss_11C.unk00->mdlId[1], lbl_1_bss_194.unk30[lbl_1_bss_194.unk00].unk10, 30, 120, FALSE);
+            AnimateCharacterMeshOffset(boardEntrancePlayerProcess.object->mdlId[1], boardEntranceState.playerInfo[boardEntranceState.selectedPlayerIndex].characterId, 30, 120, FALSE);
         }
     }
 }
 
-void fn_1_8580(void)
+Void BeginBoardEntranceScene(Void)
 {
-    lbl_1_bss_78[0] = HuAudSeqPlay(51);
+    boardEntranceSequenceIds[0] = HuAudSeqPlay(51);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
     do {
-        fn_1_BC8();
+        WaitOneFrame();
     } while (WipeStatGet());
-    fn_1_BE8(60);
+    WaitFrames(60);
 }
 
-void fn_1_85DC(void)
+Void PlayBoardEntranceIntroduction(Void)
 {
-    fn_1_1DFC(lbl_1_bss_144.unk00, 2, 3, 0, 0);
-    fn_1_2264(lbl_1_bss_144.unk00, 2, 3, 0);
-    lbl_1_bss_11C.unk04 = (void *)fn_1_9ECC;
-    lbl_1_bss_F4.unk04 = (void *)fn_1_A4A8;
-    fn_1_3854(&lbl_1_bss_24);
-    fn_1_2750(fn_1_B24C);
-    fn_1_BE8(30);
-    fn_1_1DFC(lbl_1_bss_144.unk00, 2, 2, 0, 0);
+    ShiftObjectMotion(boardEntranceMapProcess.object, 2, 3, 0, 0);
+    WaitForObjectMotionEnd(boardEntranceMapProcess.object, 2, 3, 0);
+    boardEntrancePlayerProcess.updateCallback = (Void *)AnimateBoardEntrancePlayer;
+    boardEntranceSubProcess.updateCallback = (Void *)AnimateBoardEntranceProp;
+    CaptureCameraMotionStart(&storyCameraState);
+    SetCameraUpdateCallback(UpdateBoardEntranceCamera);
+    WaitFrames(30);
+    ShiftObjectMotion(boardEntranceMapProcess.object, 2, 2, 0, 0);
     do {
-        fn_1_BC8();
-    } while (lbl_1_bss_11C.unk04 != NULL);
+        WaitOneFrame();
+    } while (boardEntrancePlayerProcess.updateCallback != NULL);
     do {
-        fn_1_BC8();
-    } while (lbl_1_bss_F4.unk04 != NULL);
-    lbl_1_bss_194.unk04 = fn_1_185C(1, 0, 21, 2, lbl_1_bss_194.unk0C);
-    HuAudFXPlay(lbl_1_data_0[0][2]);
-    fn_1_1DFC(lbl_1_bss_F4.unk00, 1, 3, 5, 1);
-    fn_1_1D18(lbl_1_bss_194.unk04, 0x1F0000);
-    fn_1_1AFC(lbl_1_bss_194.unk04, -1);
-    fn_1_1D18(lbl_1_bss_194.unk04, 0x1F0001);
-    fn_1_1AFC(lbl_1_bss_194.unk04, -1);
-    fn_1_1D18(lbl_1_bss_194.unk04, 0x250004);
-    fn_1_1DFC(lbl_1_bss_F4.unk00, 1, 1, 5, 1);
-    fn_1_1A94(lbl_1_bss_194.unk04);
-    fn_1_BE8(15);
+        WaitOneFrame();
+    } while (boardEntranceSubProcess.updateCallback != NULL);
+    boardEntranceState.activeWindowId = CreateCenteredMessageWindow(1, 0, 21, 2, boardEntranceState.activePadIndex);
+    HuAudFXPlay(storyAudioCueIds[0][2]);
+    ShiftObjectMotion(boardEntranceSubProcess.object, 1, 3, 5, 1);
+    SetWindowMessage(boardEntranceState.activeWindowId, 0x1F0000);
+    WaitForWindowMessage(boardEntranceState.activeWindowId, -1);
+    SetWindowMessage(boardEntranceState.activeWindowId, 0x1F0001);
+    WaitForWindowMessage(boardEntranceState.activeWindowId, -1);
+    SetWindowMessage(boardEntranceState.activeWindowId, 0x250004);
+    ShiftObjectMotion(boardEntranceSubProcess.object, 1, 1, 5, 1);
+    CloseCenteredMessageWindow(boardEntranceState.activeWindowId);
+    WaitFrames(15);
 }
 
-void fn_1_87D4(void)
+Void AnimateBoardEntranceArrival(Void)
 {
     int i;
-    float speed;
-    HuAudSeqFadeOut(lbl_1_bss_78[0], 500);
+    float cameraMoveSpeed;
+    HuAudSeqFadeOut(boardEntranceSequenceIds[0], 500);
     HuAudFXPlay(153);
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 2, 0, 0);
-    fn_1_BC8();
-    Hu3DMotionTimeSet(lbl_1_bss_CC.unk00->mdlId[1], 100);
-    Hu3DModelAttrReset(lbl_1_bss_CC.unk00->mdlId[1], 1);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 2, 0, 0);
+    WaitOneFrame();
+    Hu3DMotionTimeSet(boardEntranceKoopaProcess.object->mdlId[1], 100);
+    Hu3DModelAttrReset(boardEntranceKoopaProcess.object->mdlId[1], 1);
     while (1) {
-        fn_1_BC8();
-        if (Hu3DMotionTimeGet(lbl_1_bss_CC.unk00->mdlId[1]) >= 132) {
+        WaitOneFrame();
+        if (Hu3DMotionTimeGet(boardEntranceKoopaProcess.object->mdlId[1]) >= 132) {
             break;
         }
     }
-    fn_1_1DFC(lbl_1_bss_F4.unk00, 1, 4, 0, 0);
-    fn_1_BC8();
+    ShiftObjectMotion(boardEntranceSubProcess.object, 1, 4, 0, 0);
+    WaitOneFrame();
     while (1) {
-        fn_1_BC8();
-        if (Hu3DMotionTimeGet(lbl_1_bss_F4.unk00->mdlId[1]) >= 5) {
+        WaitOneFrame();
+        if (Hu3DMotionTimeGet(boardEntranceSubProcess.object->mdlId[1]) >= 5) {
             break;
         }
     }
-    Hu3DMotionSpeedSet(lbl_1_bss_F4.unk00->mdlId[1], 0);
-    Hu3DData[lbl_1_bss_F4.unk00->mdlId[1]].rot.y = 0;
-    fn_1_67D8(lbl_1_bss_11C.unk00, 3, 1, 5, 0);
+    Hu3DMotionSpeedSet(boardEntranceSubProcess.object->mdlId[1], 0);
+    Hu3DData[boardEntranceSubProcess.object->mdlId[1]].rot.y = 0;
+    SetObjectMotionTransition(boardEntrancePlayerProcess.object, 3, 1, 5, 0);
     HuAudFXPlay(156);
-    omVibrate(lbl_1_bss_194.unk0C, 45, 12, 0);
-    speed = 50;
+    omVibrate(boardEntranceState.activePadIndex, 45, 12, 0);
+    cameraMoveSpeed = 50;
     for (i = 0; i < 60; i++) {
-        float weight = fn_1_B08(0, speed, i % 15, 15);
-        speed = fn_1_88C(speed, 0, 30);
-        lbl_1_bss_194.unk100 = fn_1_88C(lbl_1_bss_194.unk100, weight, 5);
-        fn_1_BC8();
+        float cameraOffsetStep = InterpolateSineCycle(0, cameraMoveSpeed, i % 15, 15);
+        cameraMoveSpeed = InterpolateWeightedAverage(cameraMoveSpeed, 0, 30);
+        boardEntranceState.verticalOffset = InterpolateWeightedAverage(boardEntranceState.verticalOffset, cameraOffsetStep, 5);
+        WaitOneFrame();
     }
-    lbl_1_bss_194.unk100 = 0;
+    boardEntranceState.verticalOffset = 0;
 }
 
-void fn_1_8ABC(void)
+Void ShowBoardEntranceWelcome(Void)
 {
-    fn_1_7384(lbl_1_bss_11C.unk00->mdlId[1], lbl_1_bss_194.unk30[lbl_1_bss_194.unk00].unk10, 1, 20, 1);
-    lbl_1_bss_78[1] = HuAudSeqPlay(6);
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 3, 10, 0);
-    fn_1_BE8(30);
-    lbl_1_bss_194.unk04 = fn_1_185C(1, 0, 21, 2, lbl_1_bss_194.unk0C);
-    HuAudFXPlay(lbl_1_data_0[6][0]);
-    HuWinAttrSet(lbl_1_bss_194.unk04, 0x400);
-    HuWinMesSet(lbl_1_bss_194.unk04, 0x1F0002);
-    fn_1_2264(lbl_1_bss_CC.unk00, 1, 3, 10);
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 3, 10, 0);
-    fn_1_BE8(45);
-    HuAudFXPlay(lbl_1_data_0[6][0]);
-    fn_1_2264(lbl_1_bss_CC.unk00, 1, 3, 10);
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 1, 10, 1);
-    HuWinAttrReset(lbl_1_bss_194.unk04, 0x400);
-    HuWinKeyWaitEntry(lbl_1_bss_194.unk04);
-    fn_1_BC8();
-    fn_1_1AFC(lbl_1_bss_194.unk04, -1);
-    HuAudFXPlay(lbl_1_data_0[6][2]);
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 4, 10, 1);
-    fn_1_1D18(lbl_1_bss_194.unk04, 0x1F0003);
-    fn_1_1AFC(lbl_1_bss_194.unk04, -1);
-    fn_1_1D18(lbl_1_bss_194.unk04, 0x250004);
-    fn_1_1A94(lbl_1_bss_194.unk04);
-    fn_1_BE8(30);
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 1, 30, 1);
-    fn_1_BE8(60);
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 5, 10, 0);
-    fn_1_BE8(25);
+    AnimateCharacterMeshOffset(boardEntrancePlayerProcess.object->mdlId[1], boardEntranceState.playerInfo[boardEntranceState.selectedPlayerIndex].characterId, 1, 20, 1);
+    boardEntranceSequenceIds[1] = HuAudSeqPlay(6);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 3, 10, 0);
+    WaitFrames(30);
+    boardEntranceState.activeWindowId = CreateCenteredMessageWindow(1, 0, 21, 2, boardEntranceState.activePadIndex);
+    HuAudFXPlay(storyAudioCueIds[6][0]);
+    HuWinAttrSet(boardEntranceState.activeWindowId, 0x400);
+    HuWinMesSet(boardEntranceState.activeWindowId, 0x1F0002);
+    WaitForObjectMotionEnd(boardEntranceKoopaProcess.object, 1, 3, 10);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 3, 10, 0);
+    WaitFrames(45);
+    HuAudFXPlay(storyAudioCueIds[6][0]);
+    WaitForObjectMotionEnd(boardEntranceKoopaProcess.object, 1, 3, 10);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 1, 10, 1);
+    HuWinAttrReset(boardEntranceState.activeWindowId, 0x400);
+    HuWinKeyWaitEntry(boardEntranceState.activeWindowId);
+    WaitOneFrame();
+    WaitForWindowMessage(boardEntranceState.activeWindowId, -1);
+    HuAudFXPlay(storyAudioCueIds[6][2]);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 4, 10, 1);
+    SetWindowMessage(boardEntranceState.activeWindowId, 0x1F0003);
+    WaitForWindowMessage(boardEntranceState.activeWindowId, -1);
+    SetWindowMessage(boardEntranceState.activeWindowId, 0x250004);
+    CloseCenteredMessageWindow(boardEntranceState.activeWindowId);
+    WaitFrames(30);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 1, 30, 1);
+    WaitFrames(60);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 5, 10, 0);
+    WaitFrames(25);
     HuAudFXPlay(81);
-    fn_1_BE8(20);
-    lbl_1_bss_194.unk04 = fn_1_185C(1, 0, 21, 2, lbl_1_bss_194.unk0C);
-    HuAudFXPlay(lbl_1_data_0[6][2]);
-    fn_1_1D4C(lbl_1_bss_194.unk04, lbl_1_bss_194.unk30[lbl_1_bss_194.unk00].unk10, 0);
-    fn_1_1D18(lbl_1_bss_194.unk04, 0x1F0004);
-    fn_1_1AFC(lbl_1_bss_194.unk04, -1);
-    fn_1_1D18(lbl_1_bss_194.unk04, 0x1F0005);
-    fn_1_1AFC(lbl_1_bss_194.unk04, -1);
-    fn_1_1D18(lbl_1_bss_194.unk04, 0x250004);
-    fn_1_1A94(lbl_1_bss_194.unk04);
-    fn_1_67D8(lbl_1_bss_11C.unk00, 7, 8, 10, 0);
-    fn_1_7384(lbl_1_bss_11C.unk00->mdlId[1], lbl_1_bss_194.unk30[lbl_1_bss_194.unk00].unk10, 3, 5, 0);
-    fn_1_BE8(90);
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 3, 30, 0);
-    fn_1_BE8(30);
-    lbl_1_bss_194.unk04 = fn_1_185C(1, 0, 21, 2, lbl_1_bss_194.unk0C);
-    HuAudFXPlay(lbl_1_data_0[6][0]);
-    HuWinAttrSet(lbl_1_bss_194.unk04, 0x400);
-    HuWinMesSet(lbl_1_bss_194.unk04, 0x1F0002);
-    fn_1_2264(lbl_1_bss_CC.unk00, 1, 3, 10);
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 1, 10, 1);
-    HuWinAttrReset(lbl_1_bss_194.unk04, 0x400);
-    HuWinKeyWaitEntry(lbl_1_bss_194.unk04);
-    fn_1_BC8();
-    fn_1_1AFC(lbl_1_bss_194.unk04, -1);
-    fn_1_1D18(lbl_1_bss_194.unk04, 0x250004);
-    fn_1_1A94(lbl_1_bss_194.unk04);
+    WaitFrames(20);
+    boardEntranceState.activeWindowId = CreateCenteredMessageWindow(1, 0, 21, 2, boardEntranceState.activePadIndex);
+    HuAudFXPlay(storyAudioCueIds[6][2]);
+    InsertWindowMessage(boardEntranceState.activeWindowId, boardEntranceState.playerInfo[boardEntranceState.selectedPlayerIndex].characterId, 0);
+    SetWindowMessage(boardEntranceState.activeWindowId, 0x1F0004);
+    WaitForWindowMessage(boardEntranceState.activeWindowId, -1);
+    SetWindowMessage(boardEntranceState.activeWindowId, 0x1F0005);
+    WaitForWindowMessage(boardEntranceState.activeWindowId, -1);
+    SetWindowMessage(boardEntranceState.activeWindowId, 0x250004);
+    CloseCenteredMessageWindow(boardEntranceState.activeWindowId);
+    SetObjectMotionTransition(boardEntrancePlayerProcess.object, 7, 8, 10, 0);
+    AnimateCharacterMeshOffset(boardEntrancePlayerProcess.object->mdlId[1], boardEntranceState.playerInfo[boardEntranceState.selectedPlayerIndex].characterId, 3, 5, 0);
+    WaitFrames(90);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 3, 30, 0);
+    WaitFrames(30);
+    boardEntranceState.activeWindowId = CreateCenteredMessageWindow(1, 0, 21, 2, boardEntranceState.activePadIndex);
+    HuAudFXPlay(storyAudioCueIds[6][0]);
+    HuWinAttrSet(boardEntranceState.activeWindowId, 0x400);
+    HuWinMesSet(boardEntranceState.activeWindowId, 0x1F0002);
+    WaitForObjectMotionEnd(boardEntranceKoopaProcess.object, 1, 3, 10);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 1, 10, 1);
+    HuWinAttrReset(boardEntranceState.activeWindowId, 0x400);
+    HuWinKeyWaitEntry(boardEntranceState.activeWindowId);
+    WaitOneFrame();
+    WaitForWindowMessage(boardEntranceState.activeWindowId, -1);
+    SetWindowMessage(boardEntranceState.activeWindowId, 0x250004);
+    CloseCenteredMessageWindow(boardEntranceState.activeWindowId);
 }
 
-void fn_1_9034(void)
+Void ShowBoardEntranceNextMessage(Void)
 {
-    fn_1_BE8(60);
-    lbl_1_bss_CC.unk04 = (void *)fn_1_AB10;
-    lbl_1_bss_194.unk04 = fn_1_185C(1, 0, 21, 2, lbl_1_bss_194.unk0C);
-    HuAudFXPlay(lbl_1_data_0[6][1]);
-    fn_1_1D18(lbl_1_bss_194.unk04, 0x1F0007);
-    fn_1_1AFC(lbl_1_bss_194.unk04, -1);
-    fn_1_1A94(lbl_1_bss_194.unk04);
+    WaitFrames(60);
+    boardEntranceKoopaProcess.updateCallback = (Void *)AnimateBoardEntranceKoopa;
+    boardEntranceState.activeWindowId = CreateCenteredMessageWindow(1, 0, 21, 2, boardEntranceState.activePadIndex);
+    HuAudFXPlay(storyAudioCueIds[6][1]);
+    SetWindowMessage(boardEntranceState.activeWindowId, 0x1F0007);
+    WaitForWindowMessage(boardEntranceState.activeWindowId, -1);
+    CloseCenteredMessageWindow(boardEntranceState.activeWindowId);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_CC.unk04 == NULL) {
+        WaitOneFrame();
+        if (boardEntranceKoopaProcess.updateCallback == NULL) {
             break;
         }
     }
     HuAudFXPlay(149);
-    Hu3DMotionSpeedSet(lbl_1_bss_F4.unk00->mdlId[1], 1);
-    fn_1_BC8();
-    fn_1_2264(lbl_1_bss_F4.unk00, 1, 4, 0);
-    lbl_1_bss_88[0] = HuAudFXPlay(98);
-    HuAudFXPlay(lbl_1_data_0[0][1]);
-    fn_1_1DFC(lbl_1_bss_F4.unk00, 1, 5, 15, 1);
-    fn_1_BE8(60);
+    Hu3DMotionSpeedSet(boardEntranceSubProcess.object->mdlId[1], 1);
+    WaitOneFrame();
+    WaitForObjectMotionEnd(boardEntranceSubProcess.object, 1, 4, 0);
+    boardEntranceMessageIds[0] = HuAudFXPlay(98);
+    HuAudFXPlay(storyAudioCueIds[0][1]);
+    ShiftObjectMotion(boardEntranceSubProcess.object, 1, 5, 15, 1);
+    WaitFrames(60);
 }
 
-void fn_1_9198(void)
+Void FinishBoardEntranceSequence(Void)
 {
-    fn_1_BE8(60);
-    HuAudSeqFadeOut(lbl_1_bss_78[0], 1000);
-    HuAudFXFadeOut(lbl_1_bss_88[0], 1000);
+    WaitFrames(60);
+    HuAudSeqFadeOut(boardEntranceSequenceIds[0], 1000);
+    HuAudFXFadeOut(boardEntranceMessageIds[0], 1000);
     WipeColorSet(0, 0, 0);
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
     while (1) {
-        fn_1_BC8();
+        WaitOneFrame();
         if (!WipeStatGet()) {
             break;
         }
@@ -345,145 +345,145 @@ void fn_1_9198(void)
     CharModelKill(-1);
     HuAudFadeOut(1);
     GWPlayerCfg[0].group = 0;
-    GWPlayerCfg[0].character = lbl_1_bss_194.unk30[lbl_1_bss_194.unk00].unk10;
-    GWPlayerCfg[0].pad_idx = lbl_1_bss_194.unk30[lbl_1_bss_194.unk00].unk14;
+    GWPlayerCfg[0].character = boardEntranceState.playerInfo[boardEntranceState.selectedPlayerIndex].characterId;
+    GWPlayerCfg[0].pad_idx = boardEntranceState.playerInfo[boardEntranceState.selectedPlayerIndex].padIndex;
     GWPlayerCfg[0].iscom = FALSE;
     omOvlGotoEx(DLL_mentdll, 1, 11, 0);
 }
 
-void fn_1_92BC(OMOBJ *arg0, StructBss16C *arg1)
+Void RunBoardEntranceSequence(OMOBJ *object, StoryObjectProcessState *processState)
 {
-    int temp = 0;
-    fn_1_8580();
-    fn_1_85DC();
-    fn_1_87D4();
-    fn_1_8ABC();
-    fn_1_9034();
-    fn_1_9198();
-    arg1->unk04 = NULL;
+    int unusedInliningGuard = 0;
+    BeginBoardEntranceScene();
+    PlayBoardEntranceIntroduction();
+    AnimateBoardEntranceArrival();
+    ShowBoardEntranceWelcome();
+    ShowBoardEntranceNextMessage();
+    FinishBoardEntranceSequence();
+    processState->updateCallback = NULL;
 }
 
-void fn_1_9768(void)
+Void RunBoardEntranceMainProcess(Void)
 {
-    OMOBJ *obj;
-    lbl_1_bss_16C.unk00 = obj = omAddObjEx(lbl_1_bss_C8, 256, 16, 16, -1, NULL);
-    lbl_1_bss_16C.unk04 = (void *)fn_1_92BC;
-    lbl_1_bss_16C.unk00->data = &lbl_1_bss_16C;
+    OMOBJ *object;
+    boardEntranceMainProcess.object = object = omAddObjEx(boardEntranceProcess, 256, 16, 16, -1, NULL);
+    boardEntranceMainProcess.updateCallback = (Void *)RunBoardEntranceSequence;
+    boardEntranceMainProcess.object->data = &boardEntranceMainProcess;
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_16C.unk04 != NULL) {
-            lbl_1_bss_16C.unk04(obj, &lbl_1_bss_16C);
+        WaitOneFrame();
+        if (boardEntranceMainProcess.updateCallback != NULL) {
+            boardEntranceMainProcess.updateCallback(object, &boardEntranceMainProcess);
         }
     }
 }
 
-void fn_1_981C(OMOBJ *object)
+Void CreateBoardEntranceMapObject(OMOBJ *object)
 {
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY2, 0x50));
     object->mtnId[0] = Hu3DMotionIDGet(object->mdlId[1]);
-    fn_1_1DFC(object, 1, 0, 0, 2);
+    ShiftObjectMotion(object, 1, 0, 0, 2);
     Hu3DModelShadowMapObjSet(object->mdlId[1], "base_fix9-base");
     object->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY2, 0x53));
     object->mtnId[2] = Hu3DJointMotionFile(object->mdlId[2], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x54));
     object->mtnId[3] = Hu3DJointMotionFile(object->mdlId[2], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x55));
-    fn_1_1DFC(object, 2, 3, 0, 2);
+    ShiftObjectMotion(object, 2, 3, 0, 2);
     object->mdlId[4] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY2, 0x51));
 }
 
-void fn_1_9954(OMOBJ *arg0, StructBss16C *arg1)
+Void AnimateBoardEntranceMapObject(OMOBJ *object, StoryObjectProcessState *processState)
 {
-    Hu3DData[arg0->mdlId[5]].pos.y = fn_1_B08(125, 130, arg1->unk08++, 360);
-    if (arg1->unk08 >= 360) {
-        arg1->unk08 = 0;
+    Hu3DData[object->mdlId[5]].pos.y = InterpolateSineCycle(125, 130, processState->animationFrame++, 360);
+    if (processState->animationFrame >= 360) {
+        processState->animationFrame = 0;
     }
 }
 
-void fn_1_9A10(void)
+Void RunBoardEntranceMapProcess(Void)
 {
-    OMOBJ *obj;
-    lbl_1_bss_144.unk00 = obj = omAddObjEx(lbl_1_bss_C8, 256, 16, 16, -1, NULL);
-    lbl_1_bss_144.unk04 = (void *)fn_1_9954;
-    lbl_1_bss_144.unk00->data = &lbl_1_bss_144;
-    fn_1_981C(obj);
+    OMOBJ *object;
+    boardEntranceMapProcess.object = object = omAddObjEx(boardEntranceProcess, 256, 16, 16, -1, NULL);
+    boardEntranceMapProcess.updateCallback = (Void *)AnimateBoardEntranceMapObject;
+    boardEntranceMapProcess.object->data = &boardEntranceMapProcess;
+    CreateBoardEntranceMapObject(object);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_144.unk04 != NULL) {
-            lbl_1_bss_144.unk04(obj, &lbl_1_bss_144);
+        WaitOneFrame();
+        if (boardEntranceMapProcess.updateCallback != NULL) {
+            boardEntranceMapProcess.updateCallback(object, &boardEntranceMapProcess);
         }
     }
 }
 
-void fn_1_9BD4(s32 arg0)
+Void PrepareBoardEntrancePlayers(s32 selectedPlayerIndex)
 {
     int i;
-    int order[4];
-    order[0] = 0;
+    int playerOrder[4];
+    playerOrder[0] = 0;
     for (i = 1; i < 4; i++) {
-        order[i] = order[i - 1] + 1;
-        if (order[i] >= 4) {
-            order[i] = 0;
+        playerOrder[i] = playerOrder[i - 1] + 1;
+        if (playerOrder[i] >= 4) {
+            playerOrder[i] = 0;
         }
-        if (arg0 == order[i]) {
-            lbl_1_bss_194.unk00 = i;
+        if (selectedPlayerIndex == playerOrder[i]) {
+            boardEntranceState.selectedPlayerIndex = i;
         }
     }
     for (i = 0; i < 4; i++) {
-        fn_1_357C(&lbl_1_bss_194.unk30[i], order[i]);
+        ReadStoryPlayerConfig(&boardEntranceState.playerInfo[i], playerOrder[i]);
     }
 }
 
-void fn_1_9CB8(OMOBJ *object)
+Void CreateBoardEntrancePlayerModel(OMOBJ *object)
 {
-    int charNo = lbl_1_bss_194.unk30[lbl_1_bss_194.unk00].unk10;
-    object->mdlId[1] = CharModelCreate(charNo, 1);
-    object->mtnId[1] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00));
-    object->mtnId[2] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x35));
-    object->mtnId[3] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x18) + charNo);
-    object->mtnId[7] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x48) + charNo);
-    object->mtnId[8] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x40) + charNo);
-    object->mtnId[9] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x20) + charNo);
-    object->mtnId[10] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x12));
-    CharMotionDataClose(charNo);
+    int characterId = boardEntranceState.playerInfo[boardEntranceState.selectedPlayerIndex].characterId;
+    object->mdlId[1] = CharModelCreate(characterId, 1);
+    object->mtnId[1] = CharMotionCreate(characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00));
+    object->mtnId[2] = CharMotionCreate(characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x35));
+    object->mtnId[3] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x18) + characterId);
+    object->mtnId[7] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x48) + characterId);
+    object->mtnId[8] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x40) + characterId);
+    object->mtnId[9] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x20) + characterId);
+    object->mtnId[10] = CharMotionCreate(characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x12));
+    CharMotionDataClose(characterId);
     Hu3DModelPosSet(object->mdlId[1], 120, 0, 800);
     Hu3DModelRotSet(object->mdlId[1], 0, -135, 0);
     Hu3DModelScaleSet(object->mdlId[1], 1, 1, 1);
     Hu3DModelShadowSet(object->mdlId[1]);
-    fn_1_1DFC(object, 1, 1, 0, 1);
+    ShiftObjectMotion(object, 1, 1, 0, 1);
 }
 
-void fn_1_9ECC(OMOBJ *arg0, StructBss16C *arg1)
+Void AnimateBoardEntrancePlayer(OMOBJ *object, StoryObjectProcessState *processState)
 {
     int i;
-    fn_1_1DFC(arg0, 1, 2, 0, 0);
-    fn_1_BC8();
-    Hu3DMotionTimeSet(arg0->mdlId[1], 60);
+    ShiftObjectMotion(object, 1, 2, 0, 0);
+    WaitOneFrame();
+    Hu3DMotionTimeSet(object->mdlId[1], 60);
     for (i = 0; i < 60; i++) {
-        fn_1_BC8();
-        Hu3DData[arg0->mdlId[1]].rot.y = fn_1_864(-135, -90, i, 60);
+        WaitOneFrame();
+        Hu3DData[object->mdlId[1]].rot.y = InterpolateLinear(-135, -90, i, 60);
     }
-    fn_1_1DFC(arg0, 1, 1, 15, 1);
-    arg1->unk04 = NULL;
+    ShiftObjectMotion(object, 1, 1, 15, 1);
+    processState->updateCallback = NULL;
 }
 
-void fn_1_9FDC(void)
+Void RunBoardEntrancePlayerProcess(Void)
 {
-    OMOBJ *obj;
-    lbl_1_bss_11C.unk00 = obj = omAddObjEx(lbl_1_bss_C8, 256, 16, 16, -1, NULL);
-    lbl_1_bss_11C.unk04 = NULL;
-    lbl_1_bss_11C.unk00->data = &lbl_1_bss_11C;
-    fn_1_9CB8(obj);
+    OMOBJ *object;
+    boardEntrancePlayerProcess.object = object = omAddObjEx(boardEntranceProcess, 256, 16, 16, -1, NULL);
+    boardEntrancePlayerProcess.updateCallback = NULL;
+    boardEntrancePlayerProcess.object->data = &boardEntrancePlayerProcess;
+    CreateBoardEntrancePlayerModel(object);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_11C.unk04 != NULL) {
-            lbl_1_bss_11C.unk04(obj, &lbl_1_bss_11C);
+        WaitOneFrame();
+        if (boardEntrancePlayerProcess.updateCallback != NULL) {
+            boardEntrancePlayerProcess.updateCallback(object, &boardEntrancePlayerProcess);
         }
-        if (obj->work[0]) {
-            fn_1_6704(obj);
+        if (object->work[0]) {
+            UpdateObjectMotionTransition(object);
         }
     }
 }
 
-void fn_1_A288(OMOBJ *object)
+Void CreateBoardEntranceProp(OMOBJ *object)
 {
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY2, VERSION_NTSC ? 0x72 : 0x73));
     object->mtnId[1] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, VERSION_NTSC ? 0x73 : 0x74));
@@ -496,38 +496,38 @@ void fn_1_A288(OMOBJ *object)
     Hu3DModelRotSet(object->mdlId[1], 0, 0, 0);
     Hu3DModelScaleSet(object->mdlId[1], 1, 1, 1);
     Hu3DModelShadowSet(object->mdlId[1]);
-    fn_1_1DFC(object, 1, 6, 0, 1);
+    ShiftObjectMotion(object, 1, 6, 0, 1);
     CharNpcDustSet(object->mdlId[1], object->mtnId[2], 1, 9);
 }
 
-void fn_1_A4A8(OMOBJ *arg0, StructBss16C *arg1)
+Void AnimateBoardEntranceProp(OMOBJ *object, StoryObjectProcessState *processState)
 {
     Vec pos = { -120, 0, 800 };
-    fn_1_1DFC(arg0, 1, 2, 15, 1);
-    fn_1_2D00(arg0, 1, pos, 90, 45, 10);
-    fn_1_1DFC(arg0, 1, 1, 15, 1);
-    arg1->unk04 = NULL;
+    ShiftObjectMotion(object, 1, 2, 15, 1);
+    MoveModelToPosition(object, 1, pos, 90, 45, 10);
+    ShiftObjectMotion(object, 1, 1, 15, 1);
+    processState->updateCallback = NULL;
 }
 
-void fn_1_A58C(void)
+Void RunBoardEntrancePropProcess(Void)
 {
-    OMOBJ *obj;
-    lbl_1_bss_F4.unk00 = obj = omAddObjEx(lbl_1_bss_C8, 256, 16, 16, -1, NULL);
-    lbl_1_bss_F4.unk04 = NULL;
-    lbl_1_bss_F4.unk00->data = &lbl_1_bss_F4;
-    fn_1_A288(obj);
+    OMOBJ *object;
+    boardEntranceSubProcess.object = object = omAddObjEx(boardEntranceProcess, 256, 16, 16, -1, NULL);
+    boardEntranceSubProcess.updateCallback = NULL;
+    boardEntranceSubProcess.object->data = &boardEntranceSubProcess;
+    CreateBoardEntranceProp(object);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_F4.unk04 != NULL) {
-            lbl_1_bss_F4.unk04(obj, &lbl_1_bss_F4);
+        WaitOneFrame();
+        if (boardEntranceSubProcess.updateCallback != NULL) {
+            boardEntranceSubProcess.updateCallback(object, &boardEntranceSubProcess);
         }
-        if (obj->work[0]) {
-            fn_1_6704(obj);
+        if (object->work[0]) {
+            UpdateObjectMotionTransition(object);
         }
     }
 }
 
-void fn_1_A848(OMOBJ *object)
+Void CreateBoardEntranceKoopa(OMOBJ *object)
 {
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY2, VERSION_NTSC ? 0x62 : 0x66));
     object->mtnId[1] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, VERSION_NTSC ? 0x63 : 0x67));
@@ -543,89 +543,89 @@ void fn_1_A848(OMOBJ *object)
     Hu3DModelScaleSet(object->mdlId[1], 1, 1, 1);
     Hu3DModelAttrSet(object->mdlId[1], 1);
     Hu3DModelShadowSet(object->mdlId[1]);
-    fn_1_1DFC(object, 1, 1, 0, 1);
-    lbl_1_data_3DC = object->mdlId[1];
-    lbl_1_data_3E0[0] = object->mtnId[7];
-    lbl_1_data_3E0[1] = object->mtnId[8];
-    HuPrcChildCreate(fn_1_7DB0, 100, 8192, 0, HuPrcCurrentGet());
+    ShiftObjectMotion(object, 1, 1, 0, 1);
+    boardEntranceMotionId = object->mdlId[1];
+    boardEntranceCueMotionIds[0] = object->mtnId[7];
+    boardEntranceCueMotionIds[1] = object->mtnId[8];
+    HuPrcChildCreate(WaitForBoardEntranceMotionCues, 100, 8192, 0, HuPrcCurrentGet());
 }
 
-void fn_1_AB10(OMOBJ *arg0, StructBss16C *arg1)
+Void AnimateBoardEntranceKoopa(OMOBJ *object, StoryObjectProcessState *processState)
 {
     int i;
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 8, 15, 1);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 8, 15, 1);
     for (i = 0; i < 30; i++) {
-        fn_1_BC8();
-        Hu3DData[lbl_1_bss_CC.unk00->mdlId[1]].pos.x = fn_1_864(-120, -60, i, 30);
+        WaitOneFrame();
+        Hu3DData[boardEntranceKoopaProcess.object->mdlId[1]].pos.x = InterpolateLinear(-120, -60, i, 30);
     }
-    fn_1_1DFC(lbl_1_bss_11C.unk00, 1, 9, 15, 0);
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 6, 15, 0);
-    fn_1_2264(lbl_1_bss_CC.unk00, 1, 6, 15);
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 7, 15, 1);
-    fn_1_1DFC(lbl_1_bss_11C.unk00, 1, 10, 15, 1);
+    ShiftObjectMotion(boardEntrancePlayerProcess.object, 1, 9, 15, 0);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 6, 15, 0);
+    WaitForObjectMotionEnd(boardEntranceKoopaProcess.object, 1, 6, 15);
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 7, 15, 1);
+    ShiftObjectMotion(boardEntrancePlayerProcess.object, 1, 10, 15, 1);
     for (i = 0; i < 240; i++) {
-        fn_1_BC8();
-        Hu3DData[lbl_1_bss_CC.unk00->mdlId[1]].pos.x = fn_1_864(-60, 540, i, 180);
-        Hu3DData[lbl_1_bss_11C.unk00->mdlId[1]].pos.x = fn_1_864(120, 840, i, 180);
+        WaitOneFrame();
+        Hu3DData[boardEntranceKoopaProcess.object->mdlId[1]].pos.x = InterpolateLinear(-60, 540, i, 180);
+        Hu3DData[boardEntrancePlayerProcess.object->mdlId[1]].pos.x = InterpolateLinear(120, 840, i, 180);
     }
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, 1, 15, 1);
-    arg1->unk04 = NULL;
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, 1, 15, 1);
+    processState->updateCallback = NULL;
 }
 
-void fn_1_ADB0(int arg0, int arg1, int arg2, int arg3, int arg4)
+Void SetBoardEntranceKoopaMotion(int motionIndex, int motionSlot, int blendFrames, int loopMode, int motionFlags)
 {
-    fn_1_1DFC(lbl_1_bss_CC.unk00, 1, arg0, arg2, arg3);
-    if (arg3 == 1) {
-        arg4 = 0;
+    ShiftObjectMotion(boardEntranceKoopaProcess.object, 1, motionIndex, blendFrames, loopMode);
+    if (loopMode == 1) {
+        motionFlags = 0;
     }
-    lbl_1_bss_CC.unk00->work[0] = arg4;
-    lbl_1_bss_CC.unk00->work[1] = arg1;
-    lbl_1_bss_CC.unk00->work[2] = arg2 + 1;
+    boardEntranceKoopaProcess.object->work[0] = motionFlags;
+    boardEntranceKoopaProcess.object->work[1] = motionSlot;
+    boardEntranceKoopaProcess.object->work[2] = blendFrames + 1;
 }
 
-void fn_1_AE5C(void)
+Void RunBoardEntranceKoopaProcess(Void)
 {
-    OMOBJ *obj;
-    lbl_1_bss_CC.unk00 = obj = omAddObjEx(lbl_1_bss_C8, 256, 16, 16, -1, NULL);
-    lbl_1_bss_CC.unk04 = NULL;
-    lbl_1_bss_CC.unk00->data = &lbl_1_bss_CC;
-    fn_1_A848(obj);
+    OMOBJ *object;
+    boardEntranceKoopaProcess.object = object = omAddObjEx(boardEntranceProcess, 256, 16, 16, -1, NULL);
+    boardEntranceKoopaProcess.updateCallback = NULL;
+    boardEntranceKoopaProcess.object->data = &boardEntranceKoopaProcess;
+    CreateBoardEntranceKoopa(object);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_CC.unk04 != NULL) {
-            lbl_1_bss_CC.unk04(obj, &lbl_1_bss_CC);
+        WaitOneFrame();
+        if (boardEntranceKoopaProcess.updateCallback != NULL) {
+            boardEntranceKoopaProcess.updateCallback(object, &boardEntranceKoopaProcess);
         }
-        if (obj->work[0]) {
-            fn_1_6704(obj);
+        if (object->work[0]) {
+            UpdateObjectMotionTransition(object);
         }
     }
 }
 
-void fn_1_B1C0(void)
+Void HandleBoardEntranceProcessEnd(Void)
 {
-    StructBss24 *work = &lbl_1_bss_24;
-    work->unk08.x = 0;
-    work->unk08.y = 125;
-    work->unk08.z = 0;
-    work->unk20.x = -4.9f;
-    work->unk20.y = 0;
-    work->unk20.z = 0;
-    work->unk38 = 1750;
+    StoryCameraMotionState *work = &storyCameraState;
+    work->cameraCenter.x = 0;
+    work->cameraCenter.y = 125;
+    work->cameraCenter.z = 0;
+    work->cameraRotation.x = -4.9f;
+    work->cameraRotation.y = 0;
+    work->cameraRotation.z = 0;
+    work->cameraZoom = 1750;
 }
 
-void fn_1_B24C(void)
+Void UpdateBoardEntranceCamera(Void)
 {
-    StructBss24 *work = &lbl_1_bss_24;
-    StructBss24 temp;
-    temp.unk08.x = 0;
-    temp.unk08.y = 100;
-    temp.unk08.z = 0;
-    temp.unk20.x = 0;
-    temp.unk20.y = 0;
-    temp.unk20.z = 0;
-    temp.unk38 = 1400;
-    fn_1_42A0(work, &temp, work->unk40++, 60, 10);
-    if (0.0f != lbl_1_bss_194.unk100) {
-        work->unk08.y = 100 + lbl_1_bss_194.unk100;
+    StoryCameraMotionState *work = &storyCameraState;
+    StoryCameraMotionState targetCameraState;
+    targetCameraState.cameraCenter.x = 0;
+    targetCameraState.cameraCenter.y = 100;
+    targetCameraState.cameraCenter.z = 0;
+    targetCameraState.cameraRotation.x = 0;
+    targetCameraState.cameraRotation.y = 0;
+    targetCameraState.cameraRotation.z = 0;
+    targetCameraState.cameraZoom = 1400;
+    EaseCameraMotionLinear(work, &targetCameraState, work->animationFrame++, 60, 10);
+    if (0.0f != boardEntranceState.verticalOffset) {
+        work->cameraCenter.y = 100 + boardEntranceState.verticalOffset;
     }
 }

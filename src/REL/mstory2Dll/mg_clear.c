@@ -21,15 +21,15 @@
 #endif
 
 
-typedef struct struct_data850 {
-    s32 unk0;
-    s32 unk4;
-    s32 unk8;
-    s32 unkC;
-    s32 unk10;
-} StructData850;
+typedef struct StructData850 {
+    s32 dataNum;
+    s32 resourceMode;
+    s32 resourceState;
+    s32 resourceFlags;
+    s32 highlightName;
+} StoryCharacterResource;
 
-StructData850 lbl_1_data_850[] = {
+StoryCharacterResource storyCharacterResources[] = {
     { DATA_MAKE_NUM(DATADIR_MSTORY4, 0x00), 0, 0, 0, 1 },
     { DATA_MAKE_NUM(DATADIR_MSTORY4, 0x01), 0, 0, 0, 1 },
     { DATA_MAKE_NUM(DATADIR_MSTORY4, 0x02), 0, 0, 0, 1 },
@@ -80,346 +80,346 @@ StructData850 lbl_1_data_850[] = {
     { DATA_MAKE_NUM(DATADIR_MSTORY4, 0x2F), 0, 0, 0, 1 },
 };
 
-s32 lbl_1_data_C10[2][2] = { 20, 70, 1, 1 };
-s32 lbl_1_data_C20 = -1;
-s32 lbl_1_data_C24[2] = { -1, -1 };
+s32 minigameClearMotionCueFrames[2][2] = { 20, 70, 1, 1 };
+s32 minigameClearMotionId = -1;
+s32 minigameClearCueMotionIds[2] = { -1, -1 };
 
 typedef struct {
-    /* 0x000 */ s32 unk00;
-    /* 0x004 */ s32 unk04;
-    /* 0x008 */ s32 unk08;
-    /* 0x00C */ s32 unk0C;
-    /* 0x010 */ s32 unk10;
-    /* 0x014 */ s32 unk14;
-    /* 0x018 */ char unk18[0x18];
-    /* 0x030 */ StructFn357C unk30[4];
-    /* 0x100 */ s32 unk100;
-} StructBss860; // Size 0x104
+    /* 0x000 */ s32 selectedPlayerIndex;
+    /* 0x004 */ s32 activeWindowId;
+    /* 0x008 */ s32 eventWindowId;
+    /* 0x00C */ s32 activePadIndex;
+    /* 0x010 */ s32 playerOrderCount;
+    /* 0x014 */ s32 reserved14;
+    /* 0x018 */ char reserved18[0x18];
+    /* 0x030 */ StoryPlayerConfig playerInfo[4];
+    /* 0x100 */ s32 verticalOffset;
+} MinigameClearState; // Size 0x104
 
-StructBss860 lbl_1_bss_860;
-StructBss16C lbl_1_bss_838;
-StructBss16C lbl_1_bss_810;
-StructBss16C lbl_1_bss_7E8;
-StructBss16C lbl_1_bss_7C0;
-StructBss16C lbl_1_bss_798;
-BOOL lbl_1_bss_794;
-HUPROCESS *lbl_1_bss_790;
+MinigameClearState minigameClearState;
+StoryObjectProcessState minigameClearMainProcess;
+StoryObjectProcessState minigameClearRewardProcess;
+StoryObjectProcessState minigameClearMapProcess;
+StoryObjectProcessState minigameClearKoopaProcess;
+StoryObjectProcessState minigameClearCharacterProcess;
+BOOL minigameClearResourcesReady;
+HUPROCESS *minigameClearProcess;
 
-void fn_1_13BB8(void);
-void fn_1_13FB4(OMOBJ *arg0, StructBss16C *arg1);
-void fn_1_140A0(OMOBJ *arg0, StructBss16C *arg1);
-void fn_1_1449C(void);
-void fn_1_14A9C(int arg0, int arg1, int arg2, int arg3, int arg4);
-void fn_1_14B48(OMOBJ *arg0, StructBss16C *arg1);
-void fn_1_14C40(void);
-void fn_1_15134(int arg0, int arg1, int arg2, int arg3, int arg4);
-void fn_1_151E0(OMOBJ *arg0, StructBss16C *arg1);
-void fn_1_152C4(OMOBJ *arg0, StructBss16C *arg1);
-void fn_1_153A8(void);
-void fn_1_15668(int arg0);
-void fn_1_159F0(void);
-void fn_1_15CDC(void);
-void fn_1_15D68(void);
-void fn_1_15E58(void);
-void fn_1_15F70(void);
+Void RunMinigameClearPlayerProcess(Void);
+Void AnimateMinigameClearReward(OMOBJ *object, StoryObjectProcessState *processState);
+Void MoveMinigameClearReward(OMOBJ *object, StoryObjectProcessState *processState);
+Void RunMinigameClearItemProcess(Void);
+Void SetMinigameClearMapMotion(int motionIndex, int motionSlot, int blendFrames, int loopMode, int motionFlags);
+Void AnimateMinigameClearMapObject(OMOBJ *object, StoryObjectProcessState *processState);
+Void RunMinigameClearMapProcess(Void);
+Void SetMinigameClearKoopaMotion(int motionIndex, int motionSlot, int blendFrames, int loopMode, int motionFlags);
+Void AnimateMinigameClearKoopa(OMOBJ *object, StoryObjectProcessState *processState);
+Void AnimateMinigameClearKoopaExit(OMOBJ *object, StoryObjectProcessState *processState);
+Void RunMinigameClearKoopaProcess(Void);
+Void PrepareMinigameClearPlayers(int selectedPlayerIndex);
+Void RunMinigameClearPlayerModelProcess(Void);
+Void UpdateMinigameClearCamera(Void);
+Void InterpolateMinigameClearCamera(Void);
+Void AnimateMinigameClearCamera(Void);
+Void FinishMinigameClearCamera(Void);
 
-void fn_1_123C8(void)
+Void WaitForMinigameClearMotionCues(Void)
 {
     int i;
     while (1) {
         do {
             HuPrcVSleep();
-        } while (lbl_1_data_C20 == -1 || lbl_1_data_C24[0] == -1 || lbl_1_data_C24[1] == -1 || lbl_1_data_C24[0] != Hu3DMotionIDGet(lbl_1_data_C20));
+        } while (minigameClearMotionId == -1 || minigameClearCueMotionIds[0] == -1 || minigameClearCueMotionIds[1] == -1 || minigameClearCueMotionIds[0] != Hu3DMotionIDGet(minigameClearMotionId));
         for (i = 0; i < 2; i++) {
-            if (lbl_1_data_C10[1][i] != -1) {
-                if (Hu3DMotionTimeGet(lbl_1_data_C20) >= lbl_1_data_C10[0][i]) {
-                    OSReport("KE-System  TIME:%d\n", lbl_1_data_C10[0][i]);
+            if (minigameClearMotionCueFrames[1][i] != -1) {
+                if (Hu3DMotionTimeGet(minigameClearMotionId) >= minigameClearMotionCueFrames[0][i]) {
+                    OSReport("KE-System  TIME:%d\n", minigameClearMotionCueFrames[0][i]);
                     HuAudFXPlay(81);
-                    lbl_1_data_C10[1][i] = -1;
+                    minigameClearMotionCueFrames[1][i] = -1;
                 }
             }
         }
-        if (Hu3DMotionTimeGet(lbl_1_data_C20) <= 10) {
+        if (Hu3DMotionTimeGet(minigameClearMotionId) <= 10) {
             for (i = 0; i < 2; i++) {
-                lbl_1_data_C10[1][i] = 1;
+                minigameClearMotionCueFrames[1][i] = 1;
             }
         }
     }
 }
 
-void fn_1_1256C(HUPROCESS *arg0, s32 arg1)
+Void StartMinigameClearEvent(HUPROCESS *parentProcess, s32 activePadIndex)
 {
-    lbl_1_bss_790 = arg0;
-    lbl_1_bss_860.unk0C = arg1;
-    fn_1_C30();
-    lbl_1_bss_860.unk100 = fn_1_3668(255);
-    fn_1_2828(lbl_1_bss_790, fn_1_15CDC);
-    fn_1_3754();
-    fn_1_15668(arg1);
-    HuPrcChildCreate(fn_1_1449C, 100, 8192, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(fn_1_14C40, 100, 8192, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(fn_1_153A8, 100, 8192, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(fn_1_159F0, 100, 8192, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(fn_1_13BB8, 100, 8192, 0, HuPrcCurrentGet());
+    minigameClearProcess = parentProcess;
+    minigameClearState.activePadIndex = activePadIndex;
+    InitializeWindowSystem();
+    minigameClearState.verticalOffset = CreateStoryDirectionalLight(255);
+    InitializeStoryCamera(minigameClearProcess, UpdateMinigameClearCamera);
+    CreateStoryShadow();
+    PrepareMinigameClearPlayers(activePadIndex);
+    HuPrcChildCreate(RunMinigameClearItemProcess, 100, 8192, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(RunMinigameClearMapProcess, 100, 8192, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(RunMinigameClearKoopaProcess, 100, 8192, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(RunMinigameClearPlayerModelProcess, 100, 8192, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(RunMinigameClearPlayerProcess, 100, 8192, 0, HuPrcCurrentGet());
 }
 
-void fn_1_12690(OMOBJ *object)
+Void UpdateMinigameClearObjectMotion(OMOBJ *object)
 {
     if (object->work[2]) {
         object->work[2]--;
         return;
     }
     if (object->work[2] == 0 && Hu3DMotionEndCheck(object->mdlId[1])) {
-        fn_1_1DFC(object, 1, object->work[1], 15, 1);
+        ShiftObjectMotion(object, 1, object->work[1], 15, 1);
         object->work[0] = object->work[1] = object->work[2] = 0;
     }
 }
 
-void fn_1_1271C(void)
+Void DisplayMinigameClearDebugStatus(Void)
 {
     int posX = 16;
     int posY = 40;
     GXColor winColor = { 0, 0, 128, 128 };
     int i;
     while (1) {
-        fn_1_BC8();
+        WaitOneFrame();
         printWin(posX, posY, 220, 130, &winColor);
-        if (lbl_1_bss_838.unk04 == NULL) {
+        if (minigameClearMainProcess.updateCallback == NULL) {
             print8(posX, posY, 1, "PROC_MAIN   -> FALSE");
         }
         else {
             print8(posX, posY, 1, "PROC_MAIN   -> TRUE");
         }
-        if (lbl_1_bss_810.unk04 == NULL) {
+        if (minigameClearRewardProcess.updateCallback == NULL) {
             print8(posX, posY + 10, 1, "PROC_MAP    -> FALSE");
         }
         else {
             print8(posX, posY + 10, 1, "PROC_MAP    -> TRUE");
         }
-        if (lbl_1_bss_7E8.unk04 == NULL) {
+        if (minigameClearMapProcess.updateCallback == NULL) {
             print8(posX, posY + 20, 1, "PROC_KOOPA  -> FALSE");
         }
         else {
             print8(posX, posY + 20, 1, "PROC_KOOPA  -> TRUE");
         }
-        if (lbl_1_bss_7C0.unk04 == NULL) {
+        if (minigameClearKoopaProcess.updateCallback == NULL) {
             print8(posX, posY + 30, 1, "PROC_MKOOPA -> FALSE");
         }
         else {
             print8(posX, posY + 30, 1, "PROC_MKOOPA -> TRUE");
         }
-        if (lbl_1_bss_798.unk04 == NULL) {
+        if (minigameClearCharacterProcess.updateCallback == NULL) {
             print8(posX, posY + 40, 1, "PROC_PLAYER -> FALSE");
         }
         else {
             print8(posX, posY + 40, 1, "PROC_PLAYER -> TRUE");
         }
-        print8(posX, posY + 60, 1, "P:%d W:%d", lbl_1_bss_860.unk00, lbl_1_bss_860.unk0C);
+        print8(posX, posY + 60, 1, "P:%d W:%d", minigameClearState.selectedPlayerIndex, minigameClearState.activePadIndex);
         print8(posX, posY + 80, 1, "NO) IDX:GRP:COM:DIF:PAD:CHR");
         for (i = 0; i < 4; i++) {
-            print8(posX, posY + 90 + (i * 10), 1, "%2d) %3d:%3d:%3d:%3d:%3d:%3d", i, lbl_1_bss_860.unk30[i].unk00, lbl_1_bss_860.unk30[i].unk04,
-                lbl_1_bss_860.unk30[i].unk08, lbl_1_bss_860.unk30[i].unk0C, lbl_1_bss_860.unk30[i].unk14, lbl_1_bss_860.unk30[i].unk10);
+            print8(posX, posY + 90 + (i * 10), 1, "%2d) %3d:%3d:%3d:%3d:%3d:%3d", i, minigameClearState.playerInfo[i].playerIndex, minigameClearState.playerInfo[i].group,
+                minigameClearState.playerInfo[i].isComputer, minigameClearState.playerInfo[i].difficulty, minigameClearState.playerInfo[i].padIndex, minigameClearState.playerInfo[i].highlightName);
         }
     }
 }
 
-void fn_1_12AC8(void)
+Void BeginMinigameClearScene(Void)
 {
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
     do {
-        fn_1_BC8();
+        WaitOneFrame();
     } while (WipeStatGet());
-    fn_1_BE8(30);
+    WaitFrames(30);
 }
 
-void fn_1_12B10(void)
+Void WaitForMinigameClearAnimations(Void)
 {
-    lbl_1_bss_860.unk04 = fn_1_185C(1, 0, 21, 2, lbl_1_bss_860.unk0C);
-    HuAudFXPlay(lbl_1_data_0[6][1]);
-    fn_1_14A9C(4, 1, 15, 0, 1);
-    fn_1_1D4C(lbl_1_bss_860.unk04, lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10, 0);
-    fn_1_6D78(lbl_1_bss_860.unk04, 0x1F0014, 0, lbl_1_bss_7E8.unk00->mdlId[1]);
-    HuAudFXPlay(lbl_1_data_0[6][2]);
-    fn_1_1DFC(lbl_1_bss_7E8.unk00, 1, 5, 10, 1);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x1F0015);
-    fn_1_1AFC(lbl_1_bss_860.unk04, -1);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x250004);
-    fn_1_15134(1, -1, 15, 1, 0);
-    fn_1_1A94(lbl_1_bss_860.unk04);
-    lbl_1_bss_7E8.unk04 = (void *)fn_1_14B48;
-    fn_1_BE8(60);
-    fn_1_1DFC(lbl_1_bss_798.unk00, 1, 4, 15, 0);
-    fn_1_BE8(16);
+    minigameClearState.activeWindowId = CreateCenteredMessageWindow(1, 0, 21, 2, minigameClearState.activePadIndex);
+    HuAudFXPlay(storyAudioCueIds[6][1]);
+    SetMinigameClearMapMotion(4, 1, 15, 0, 1);
+    InsertWindowMessage(minigameClearState.activeWindowId, minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName, 0);
+    WaitForWindowMessageAndMotionSimple(minigameClearState.activeWindowId, 0x1F0014, 0, minigameClearMapProcess.object->mdlId[1]);
+    HuAudFXPlay(storyAudioCueIds[6][2]);
+    ShiftObjectMotion(minigameClearMapProcess.object, 1, 5, 10, 1);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x1F0015);
+    WaitForWindowMessage(minigameClearState.activeWindowId, -1);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x250004);
+    SetMinigameClearKoopaMotion(1, -1, 15, 1, 0);
+    CloseCenteredMessageWindow(minigameClearState.activeWindowId);
+    minigameClearMapProcess.updateCallback = (Void *)AnimateMinigameClearMapObject;
+    WaitFrames(60);
+    ShiftObjectMotion(minigameClearCharacterProcess.object, 1, 4, 15, 0);
+    WaitFrames(16);
     while (1) {
-        fn_1_BC8();
-        if (Hu3DMotionTimeGet(lbl_1_bss_798.unk00->mdlId[1]) >= 20) {
+        WaitOneFrame();
+        if (Hu3DMotionTimeGet(minigameClearCharacterProcess.object->mdlId[1]) >= 20) {
             break;
         }
     }
-    Hu3DMotionSpeedSet(lbl_1_bss_798.unk00->mdlId[1], 0);
+    Hu3DMotionSpeedSet(minigameClearCharacterProcess.object->mdlId[1], 0);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_7E8.unk04 == NULL) {
+        WaitOneFrame();
+        if (minigameClearMapProcess.updateCallback == NULL) {
             break;
         }
     }
-    fn_1_BE8(30);
-    fn_1_3854(&lbl_1_bss_24);
-    fn_1_2750(fn_1_15D68);
-    lbl_1_bss_7C0.unk04 = (void *)fn_1_152C4;
-    fn_1_BE8(80);
-    Hu3DMotionSpeedSet(lbl_1_bss_798.unk00->mdlId[1], 1);
-    fn_1_1DFC(lbl_1_bss_798.unk00, 1, 1, 15, 1);
+    WaitFrames(30);
+    CaptureCameraMotionStart(&storyCameraState);
+    SetCameraUpdateCallback(InterpolateMinigameClearCamera);
+    minigameClearKoopaProcess.updateCallback = (Void *)AnimateMinigameClearKoopaExit;
+    WaitFrames(80);
+    Hu3DMotionSpeedSet(minigameClearCharacterProcess.object->mdlId[1], 1);
+    ShiftObjectMotion(minigameClearCharacterProcess.object, 1, 1, 15, 1);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_7C0.unk04 == NULL) {
+        WaitOneFrame();
+        if (minigameClearKoopaProcess.updateCallback == NULL) {
             break;
         }
     }
 }
 
-void fn_1_12DD4(void)
+Void RunMinigameClearSequence(Void)
 {
-    lbl_1_bss_860.unk04 = fn_1_185C(1, 0, 21, 2, lbl_1_bss_860.unk0C);
-    lbl_1_bss_78[0] = HuAudSeqPlay(56);
-    HuAudFXPlay(lbl_1_data_0[5][0]);
-    fn_1_1DFC(lbl_1_bss_7C0.unk00, 1, 4, 15, 0);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x1F0016);
-    fn_1_1AFC(lbl_1_bss_860.unk04, -1);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x250004);
-    HuAudFXPlay(lbl_1_data_0[5][0]);
-    fn_1_1DFC(lbl_1_bss_7C0.unk00, 1, 3, 15, 1);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x1F0017);
-    fn_1_1AFC(lbl_1_bss_860.unk04, -1);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x250004);
-    HuAudFXPlay(lbl_1_data_0[5][0]);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x1F0018);
-    fn_1_1AFC(lbl_1_bss_860.unk04, -1);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x250004);
-    fn_1_1DFC(lbl_1_bss_7C0.unk00, 1, 1, 15, 1);
-    fn_1_1A94(lbl_1_bss_860.unk04);
-    fn_1_BE8(60);
-    lbl_1_bss_860.unk04 = fn_1_185C(1, 0, 21, 2, lbl_1_bss_860.unk0C);
-    HuAudFXPlay(lbl_1_data_0[5][0]);
-    fn_1_1DFC(lbl_1_bss_7C0.unk00, 1, 3, 15, 1);
-    fn_1_1D4C(lbl_1_bss_860.unk04, lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10, 0);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x1F0019);
-    fn_1_1AFC(lbl_1_bss_860.unk04, -1);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x250004);
-    HuAudFXPlay(lbl_1_data_0[5][1]);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x1F001A);
-    fn_1_1AFC(lbl_1_bss_860.unk04, -1);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x250004);
-    lbl_1_bss_7C0.unk04 = (void *)fn_1_151E0;
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x1F001B);
-    fn_1_1AFC(lbl_1_bss_860.unk04, -1);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x250004);
-    fn_1_1A94(lbl_1_bss_860.unk04);
+    minigameClearState.activeWindowId = CreateCenteredMessageWindow(1, 0, 21, 2, minigameClearState.activePadIndex);
+    storyAudioSequenceIds[0] = HuAudSeqPlay(56);
+    HuAudFXPlay(storyAudioCueIds[5][0]);
+    ShiftObjectMotion(minigameClearKoopaProcess.object, 1, 4, 15, 0);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x1F0016);
+    WaitForWindowMessage(minigameClearState.activeWindowId, -1);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x250004);
+    HuAudFXPlay(storyAudioCueIds[5][0]);
+    ShiftObjectMotion(minigameClearKoopaProcess.object, 1, 3, 15, 1);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x1F0017);
+    WaitForWindowMessage(minigameClearState.activeWindowId, -1);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x250004);
+    HuAudFXPlay(storyAudioCueIds[5][0]);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x1F0018);
+    WaitForWindowMessage(minigameClearState.activeWindowId, -1);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x250004);
+    ShiftObjectMotion(minigameClearKoopaProcess.object, 1, 1, 15, 1);
+    CloseCenteredMessageWindow(minigameClearState.activeWindowId);
+    WaitFrames(60);
+    minigameClearState.activeWindowId = CreateCenteredMessageWindow(1, 0, 21, 2, minigameClearState.activePadIndex);
+    HuAudFXPlay(storyAudioCueIds[5][0]);
+    ShiftObjectMotion(minigameClearKoopaProcess.object, 1, 3, 15, 1);
+    InsertWindowMessage(minigameClearState.activeWindowId, minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName, 0);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x1F0019);
+    WaitForWindowMessage(minigameClearState.activeWindowId, -1);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x250004);
+    HuAudFXPlay(storyAudioCueIds[5][1]);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x1F001A);
+    WaitForWindowMessage(minigameClearState.activeWindowId, -1);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x250004);
+    minigameClearKoopaProcess.updateCallback = (Void *)AnimateMinigameClearKoopa;
+    SetWindowMessage(minigameClearState.activeWindowId, 0x1F001B);
+    WaitForWindowMessage(minigameClearState.activeWindowId, -1);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x250004);
+    CloseCenteredMessageWindow(minigameClearState.activeWindowId);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_7C0.unk04 == NULL) {
+        WaitOneFrame();
+        if (minigameClearKoopaProcess.updateCallback == NULL) {
             break;
         }
     }
 }
 
-void fn_1_13150(OMOBJ *arg0, StructBss16C *arg1)
+Void AnimateMinigameClearPlayer(OMOBJ *object, StoryObjectProcessState *processState)
 {
     int streamNo = HuAudSStreamPlay(7);
     while (1) {
-        fn_1_BC8();
+        WaitOneFrame();
         if (HuAudSStreamStatGet(streamNo) == 0) {
             break;
         }
     }
-    HuAudSeqPause(lbl_1_bss_78[0], 0, 1000);
-    arg1->unk04 = NULL;
+    HuAudSeqPause(storyAudioSequenceIds[0], 0, 1000);
+    processState->updateCallback = NULL;
 }
 
-void fn_1_131C0(OMOBJ *arg0, StructBss16C *arg1)
+Void AnimateMinigameClearItem(OMOBJ *object, StoryObjectProcessState *processState)
 {
-    int presentSe = (lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10 * 6) + 5;
-    fn_1_BE8(150);
+    int presentSe = (minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName * 6) + 5;
+    WaitFrames(150);
     OSReport("########## PRESENT_SE : %d\n", presentSe);
     HuAudFXPlay(presentSe + 2260);
-    fn_1_1DFC(lbl_1_bss_810.unk00, 7, 7, 1, 0);
-    arg1->unk04 = NULL;
+    ShiftObjectMotion(minigameClearRewardProcess.object, 7, 7, 1, 0);
+    processState->updateCallback = NULL;
 }
 
-void fn_1_13264(void)
+Void ShowMinigameClearReward(Void)
 {
     int i;
-    fn_1_1DFC(lbl_1_bss_798.unk00, 1, 2, 15, 1);
+    ShiftObjectMotion(minigameClearCharacterProcess.object, 1, 2, 15, 1);
     for (i = 0; i < 30; i++) {
-        fn_1_BC8();
-        if (lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10 != 5) {
-            Hu3DData[lbl_1_bss_798.unk00->mdlId[1]].pos.x = fn_1_864(120, 80, i, 30);
+        WaitOneFrame();
+        if (minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName != 5) {
+            Hu3DData[minigameClearCharacterProcess.object->mdlId[1]].pos.x = InterpolateLinear(120, 80, i, 30);
         }
-        Hu3DData[lbl_1_bss_798.unk00->mdlId[1]].rot.y = fn_1_864(-60, -90, i, 30);
+        Hu3DData[minigameClearCharacterProcess.object->mdlId[1]].rot.y = InterpolateLinear(-60, -90, i, 30);
     }
-    fn_1_1DFC(lbl_1_bss_798.unk00, 1, 5, 5, 0);
-    fn_1_BE8(10);
+    ShiftObjectMotion(minigameClearCharacterProcess.object, 1, 5, 5, 0);
+    WaitFrames(10);
     while (1) {
-        fn_1_BC8();
-        if (Hu3DMotionTimeGet(lbl_1_bss_798.unk00->mdlId[1]) >= 30) {
+        WaitOneFrame();
+        if (Hu3DMotionTimeGet(minigameClearCharacterProcess.object->mdlId[1]) >= 30) {
             break;
         }
     }
-    Hu3DModelPosSet(lbl_1_bss_810.unk00->mdlId[5], 0, 0, 0);
+    Hu3DModelPosSet(minigameClearRewardProcess.object->mdlId[5], 0, 0, 0);
     Hu3DModelHookSet(
-        lbl_1_bss_798.unk00->mdlId[1], CharModelItemHookGet(lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10, 1, 1), lbl_1_bss_810.unk00->mdlId[5]);
-    fn_1_BE8(60);
-    lbl_1_bss_810.unk04 = (void *)fn_1_13FB4;
+        minigameClearCharacterProcess.object->mdlId[1], CharModelItemHookGet(minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName, 1, 1), minigameClearRewardProcess.object->mdlId[5]);
+    WaitFrames(60);
+    minigameClearRewardProcess.updateCallback = (Void *)AnimateMinigameClearReward;
     HuAudFXPlay(163);
-    CharFXPlay(lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10, 296);
-    fn_1_1DFC(lbl_1_bss_810.unk00, 6, 6, 0, 0);
-    Hu3DModelAttrReset(lbl_1_bss_810.unk00->mdlId[6], 1);
-    Hu3DModelAttrSet(lbl_1_bss_810.unk00->mdlId[5], 1);
-    fn_1_1DFC(lbl_1_bss_798.unk00, 1, 6, 5, 0);
-    HuAudSeqPause(lbl_1_bss_78[0], 1, 1000);
+    CharFXPlay(minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName, 296);
+    ShiftObjectMotion(minigameClearRewardProcess.object, 6, 6, 0, 0);
+    Hu3DModelAttrReset(minigameClearRewardProcess.object->mdlId[6], 1);
+    Hu3DModelAttrSet(minigameClearRewardProcess.object->mdlId[5], 1);
+    ShiftObjectMotion(minigameClearCharacterProcess.object, 1, 6, 5, 0);
+    HuAudSeqPause(storyAudioSequenceIds[0], 1, 1000);
     WipeColorSet(255, 255, 255);
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
     while (1) {
-        fn_1_BC8();
+        WaitOneFrame();
         if (!WipeStatGet()) {
             break;
         }
     }
-    Hu3DMotionSpeedSet(lbl_1_bss_798.unk00->mdlId[1], 0);
-    Hu3DMotionTimeSet(lbl_1_bss_798.unk00->mdlId[1], 50);
-    Hu3DModelAttrReset(lbl_1_bss_810.unk00->mdlId[7], 1);
-    Hu3DModelAttrReset(lbl_1_bss_810.unk00->mdlId[8], 1);
-    fn_1_1DFC(lbl_1_bss_810.unk00, 8, 8, 0, 1);
-    fn_1_BE8(30);
+    Hu3DMotionSpeedSet(minigameClearCharacterProcess.object->mdlId[1], 0);
+    Hu3DMotionTimeSet(minigameClearCharacterProcess.object->mdlId[1], 50);
+    Hu3DModelAttrReset(minigameClearRewardProcess.object->mdlId[7], 1);
+    Hu3DModelAttrReset(minigameClearRewardProcess.object->mdlId[8], 1);
+    ShiftObjectMotion(minigameClearRewardProcess.object, 8, 8, 0, 1);
+    WaitFrames(30);
     HuAudFXPlay(169);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
     while (1) {
-        fn_1_BC8();
+        WaitOneFrame();
         if (!WipeStatGet()) {
             break;
         }
     }
-    fn_1_3854(&lbl_1_bss_24);
-    fn_1_2750(fn_1_15F70);
-    fn_1_BE8(60);
-    lbl_1_bss_798.unk04 = (void *)fn_1_131C0;
-    lbl_1_bss_860.unk04 = fn_1_185C(1, 0, 21, 2, lbl_1_bss_860.unk0C);
-    lbl_1_bss_7C0.unk04 = (void *)fn_1_13150;
-    fn_1_1D4C(lbl_1_bss_860.unk04, (lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10 * 6) + 0x32000B, 0);
-    fn_1_6DBC(lbl_1_bss_860.unk04, 0x320086, 0, 300);
-    fn_1_1D18(lbl_1_bss_860.unk04, 0x250004);
-    fn_1_1A94(lbl_1_bss_860.unk04);
-    fn_1_3854(&lbl_1_bss_24);
-    fn_1_2750(fn_1_15E58);
-    lbl_1_bss_810.unk04 = (void *)fn_1_140A0;
-    fn_1_BE8(30);
-    Hu3DMotionSpeedSet(lbl_1_bss_798.unk00->mdlId[1], 0.1f);
-    fn_1_BE8(180);
+    CaptureCameraMotionStart(&storyCameraState);
+    SetCameraUpdateCallback(FinishMinigameClearCamera);
+    WaitFrames(60);
+    minigameClearCharacterProcess.updateCallback = (Void *)AnimateMinigameClearItem;
+    minigameClearState.activeWindowId = CreateCenteredMessageWindow(1, 0, 21, 2, minigameClearState.activePadIndex);
+    minigameClearKoopaProcess.updateCallback = (Void *)AnimateMinigameClearPlayer;
+    InsertWindowMessage(minigameClearState.activeWindowId, (minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName * 6) + 0x32000B, 0);
+    WaitForWindowMessageDuration(minigameClearState.activeWindowId, 0x320086, 0, 300);
+    SetWindowMessage(minigameClearState.activeWindowId, 0x250004);
+    CloseCenteredMessageWindow(minigameClearState.activeWindowId);
+    CaptureCameraMotionStart(&storyCameraState);
+    SetCameraUpdateCallback(AnimateMinigameClearCamera);
+    minigameClearRewardProcess.updateCallback = (Void *)MoveMinigameClearReward;
+    WaitFrames(30);
+    Hu3DMotionSpeedSet(minigameClearCharacterProcess.object->mdlId[1], 0.1f);
+    WaitFrames(180);
     WipeColorSet(0, 0, 0);
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
 }
 
-void fn_1_13828(void)
+Void PrepareMinigameClearTransition(Void)
 {
     Hu3DAllKill();
     HuSprClose();
@@ -428,7 +428,7 @@ void fn_1_13828(void)
     while (WipeStatGet() != 0) {
         HuPrcVSleep();
     }
-    fn_1_BE8(60);
+    WaitFrames(60);
     SLCommonSet();
     SLSaveBoardStory();
     if (SLSaveFlagGet() == 1) {
@@ -438,77 +438,77 @@ void fn_1_13828(void)
     while (WipeStatGet() != 0) {
         HuPrcVSleep();
     }
-    lbl_1_bss_794 = TRUE;
+    minigameClearResourcesReady = TRUE;
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_138CC(void)
+Void FinishMinigameClearEvent(Void)
 {
-    OMOVLHIS *var_r31;
+    OMOVLHIS *overlayHistory;
 
     msmSeStopAll(FALSE, 1000);
     do {
-        fn_1_BC8();
+        WaitOneFrame();
     } while (WipeStatGet() != 0);
     CharModelKill(-1);
     HuAudFXAllStop();
     HuAudSStreamAllStop();
     GWMGAvailSet(omMgIndexGet(58) + 401);
-    GWGameStat.present[lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10 * 6 + 5] = 1;
-    OSReport("########## PRESENTFLG CHR:%d, MAP:5, PRESENT:%d\n", lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10,
-        lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10 * 6 + 5);
-    var_r31 = omOvlHisGet(0);
-    omOvlHisChg(0, DLL_mstory2dll, 20, var_r31->stat);
-    omOvlCallEx(DLL_present, 1, lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10 * 6 + 5 + 1, 0);
+    GWGameStat.present[minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName * 6 + 5] = 1;
+    OSReport("########## PRESENTFLG CHR:%d, MAP:5, PRESENT:%d\n", minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName,
+        minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName * 6 + 5);
+    overlayHistory = omOvlHisGet(0);
+    omOvlHisChg(0, DLL_mstory2dll, 20, overlayHistory->stat);
+    omOvlCallEx(DLL_present, 1, minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName * 6 + 5 + 1, 0);
 }
 
-void fn_1_13A18(OMOBJ *arg0, StructBss16C *arg1)
+Void UpdateMinigameClearPlayer(OMOBJ *object, StoryObjectProcessState *processState)
 {
-    int temp = 0;
-    fn_1_12AC8();
-    fn_1_12B10();
-    fn_1_12DD4();
-    fn_1_13264();
-    fn_1_138CC();
-    arg1->unk04 = 0;
+    int unusedInliningGuard = 0;
+    BeginMinigameClearScene();
+    WaitForMinigameClearAnimations();
+    RunMinigameClearSequence();
+    ShowMinigameClearReward();
+    FinishMinigameClearEvent();
+    processState->updateCallback = 0;
 }
 
-void fn_1_13BB8(void)
+Void RunMinigameClearPlayerProcess(Void)
 {
-    OMOBJ *obj;
-    lbl_1_bss_838.unk00 = obj = omAddObjEx(lbl_1_bss_790, 256, 16, 16, -1, NULL);
-    lbl_1_bss_838.unk04 = (void *)fn_1_13A18;
-    lbl_1_bss_838.unk00->data = &lbl_1_bss_838;
+    OMOBJ *object;
+    minigameClearMainProcess.object = object = omAddObjEx(minigameClearProcess, 256, 16, 16, -1, NULL);
+    minigameClearMainProcess.updateCallback = (Void *)UpdateMinigameClearPlayer;
+    minigameClearMainProcess.object->data = &minigameClearMainProcess;
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_838.unk04 != NULL) {
-            lbl_1_bss_838.unk04(obj, &lbl_1_bss_838);
+        WaitOneFrame();
+        if (minigameClearMainProcess.updateCallback != NULL) {
+            minigameClearMainProcess.updateCallback(object, &minigameClearMainProcess);
         }
     }
 }
 
-void fn_1_13C6C(OMOBJ *object)
+Void CreateMinigameClearRewardModel(OMOBJ *object)
 {
-    s32 charNo;
-    charNo = lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10;
-    object->mdlId[7] = Hu3DModelCreateFile(lbl_1_data_850[charNo * 6 + 5].unk0);
+    s32 characterId;
+    characterId = minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName;
+    object->mdlId[7] = Hu3DModelCreateFile(storyCharacterResources[characterId * 6 + 5].dataNum);
     object->mtnId[7] = Hu3DMotionIDGet(object->mdlId[7]);
     Hu3DModelPosSet(object->mdlId[7], 0, 180, 825);
     Hu3DModelAttrSet(object->mdlId[7], 1);
     Hu3DModelShadowSet(object->mdlId[7]);
-    fn_1_1DFC(object, 7, 7, 0, 2);
+    ShiftObjectMotion(object, 7, 7, 0, 2);
     HuDataDirClose(DATADIR_MSTORY4);
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY2, 0x52));
     object->mtnId[1] = Hu3DMotionIDGet(object->mdlId[1]);
     Hu3DModelShadowMapObjSet(object->mdlId[1], "base_story-base");
-    fn_1_1DFC(object, 1, 1, 0, 1);
+    ShiftObjectMotion(object, 1, 1, 0, 1);
     object->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY2, 0x53));
     object->mtnId[2] = Hu3DJointMotionFile(object->mdlId[2], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x54));
     object->mtnId[3] = Hu3DJointMotionFile(object->mdlId[2], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x55));
-    fn_1_1DFC(object, 2, 3, 0, 2);
+    ShiftObjectMotion(object, 2, 3, 0, 2);
     object->mdlId[5] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY2, 0x5B));
     Hu3DModelPosSet(object->mdlId[5], 0, 125, 800);
     Hu3DModelAttrSet(object->mdlId[5], 1);
@@ -517,78 +517,78 @@ void fn_1_13C6C(OMOBJ *object)
     object->mtnId[6] = Hu3DMotionIDGet(object->mdlId[6]);
     Hu3DModelPosSet(object->mdlId[6], 25, 125, 900);
     Hu3DModelAttrSet(object->mdlId[6], 1);
-    fn_1_1DFC(object, 6, 6, 0, 2);
+    ShiftObjectMotion(object, 6, 6, 0, 2);
     object->mdlId[8] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY2, 0x5F));
     object->mtnId[8] = Hu3DMotionIDGet(object->mdlId[8]);
     Hu3DModelAttrSet(object->mdlId[8], 1);
-    fn_1_1DFC(object, 8, 8, 0, 1);
+    ShiftObjectMotion(object, 8, 8, 0, 1);
 }
 
-void fn_1_13FB4(OMOBJ *arg0, StructBss16C *arg1)
+Void AnimateMinigameClearReward(OMOBJ *object, StoryObjectProcessState *processState)
 {
     Mtx matrix;
-    Hu3DData[arg0->mdlId[7]].pos.y = fn_1_B08(180, 185, arg1->unk08++, 360);
-    Hu3DModelObjMtxGet(arg0->mdlId[7], "effect", matrix);
-    Hu3DModelPosSet(arg0->mdlId[8], matrix[0][3], matrix[1][3], matrix[2][3]);
-    if (arg1->unk08 >= 360) {
-        arg1->unk08 = 0;
+    Hu3DData[object->mdlId[7]].pos.y = InterpolateSineCycle(180, 185, processState->animationFrame++, 360);
+    Hu3DModelObjMtxGet(object->mdlId[7], "effect", matrix);
+    Hu3DModelPosSet(object->mdlId[8], matrix[0][3], matrix[1][3], matrix[2][3]);
+    if (processState->animationFrame >= 360) {
+        processState->animationFrame = 0;
     }
 }
 
-void fn_1_140A0(OMOBJ *arg0, StructBss16C *arg1)
+Void MoveMinigameClearReward(OMOBJ *object, StoryObjectProcessState *processState)
 {
     Mtx matrix;
-    Hu3DData[arg0->mdlId[7]].pos.y += arg1->unk0C / 100.0f;
-    Hu3DModelObjMtxGet(arg0->mdlId[7], "effect", matrix);
-    Hu3DModelPosSet(arg0->mdlId[8], matrix[0][3], matrix[1][3], matrix[2][3]);
-    arg1->unk0C += 2;
+    Hu3DData[object->mdlId[7]].pos.y += processState->auxiliaryValue / 100.0f;
+    Hu3DModelObjMtxGet(object->mdlId[7], "effect", matrix);
+    Hu3DModelPosSet(object->mdlId[8], matrix[0][3], matrix[1][3], matrix[2][3]);
+    processState->auxiliaryValue += 2;
 }
 
-void fn_1_1416C(OMOBJ *arg0, StructBss16C *arg1)
+Void AnimateMinigameClearItemOrbit(OMOBJ *object, StoryObjectProcessState *processState)
 {
     int i;
     Vec pos;
     float rotY;
-    Hu3DModelPosSet(arg0->mdlId[5], -180, 100, 800);
-    Hu3DModelRotSet(arg0->mdlId[5], 0, 0, 0);
-    Hu3DModelAttrReset(arg0->mdlId[5], 1);
+    Hu3DModelPosSet(object->mdlId[5], -180, 100, 800);
+    Hu3DModelRotSet(object->mdlId[5], 0, 0, 0);
+    Hu3DModelAttrReset(object->mdlId[5], 1);
     for (i = 0; i < 60; i++) {
-        fn_1_BC8();
+        WaitOneFrame();
         if (i == 30) {
             HuAudFXPlay(151);
         }
         if (i <= 30) {
-            pos.y = fn_1_A4C(0, 100, i + 30, 60);
-            pos.x = fn_1_864(-180, -45, i, 30);
-            rotY = fn_1_984(0, -90, i, 30);
+            pos.y = InterpolateSinePulse(0, 100, i + 30, 60);
+            pos.x = InterpolateLinear(-180, -45, i, 30);
+            rotY = InterpolateSineEaseIn(0, -90, i, 30);
         }
         else {
-            pos.x = fn_1_864(-45, 0, i - 30, 30);
-            pos.y = fn_1_A4C(0, 25, i - 30, 30);
-            rotY = fn_1_984(-90, -360, i - 30, 30);
+            pos.x = InterpolateLinear(-45, 0, i - 30, 30);
+            pos.y = InterpolateSinePulse(0, 25, i - 30, 30);
+            rotY = InterpolateSineEaseIn(-90, -360, i - 30, 30);
         }
-        Hu3DModelPosSet(arg0->mdlId[5], pos.x, pos.y, 800);
-        Hu3DModelRotSet(arg0->mdlId[5], 0, rotY, 0);
+        Hu3DModelPosSet(object->mdlId[5], pos.x, pos.y, 800);
+        Hu3DModelRotSet(object->mdlId[5], 0, rotY, 0);
     }
-    arg1->unk04 = NULL;
+    processState->updateCallback = NULL;
 }
 
-void fn_1_1449C(void)
+Void RunMinigameClearItemProcess(Void)
 {
-    OMOBJ *obj;
-    lbl_1_bss_810.unk00 = obj = omAddObjEx(lbl_1_bss_790, 256, 16, 16, -1, NULL);
-    lbl_1_bss_810.unk04 = NULL;
-    lbl_1_bss_810.unk00->data = &lbl_1_bss_810;
-    fn_1_13C6C(obj);
+    OMOBJ *object;
+    minigameClearRewardProcess.object = object = omAddObjEx(minigameClearProcess, 256, 16, 16, -1, NULL);
+    minigameClearRewardProcess.updateCallback = NULL;
+    minigameClearRewardProcess.object->data = &minigameClearRewardProcess;
+    CreateMinigameClearRewardModel(object);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_810.unk04 != NULL) {
-            lbl_1_bss_810.unk04(obj, &lbl_1_bss_810);
+        WaitOneFrame();
+        if (minigameClearRewardProcess.updateCallback != NULL) {
+            minigameClearRewardProcess.updateCallback(object, &minigameClearRewardProcess);
         }
     }
 }
 
-void fn_1_14868(OMOBJ *object)
+Void CreateMinigameClearMapObject(OMOBJ *object)
 {
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY2, VERSION_NTSC ? 0x62 : 0x66));
     object->mtnId[1] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, VERSION_NTSC ? 0x63 : 0x67));
@@ -600,59 +600,59 @@ void fn_1_14868(OMOBJ *object)
     Hu3DModelRotSet(object->mdlId[1], 0, 60, 0);
     Hu3DModelScaleSet(object->mdlId[1], 1, 1, 1);
     Hu3DModelShadowSet(object->mdlId[1]);
-    fn_1_1DFC(object, 1, 3, 0, 1);
-    lbl_1_data_C20 = object->mdlId[1];
-    lbl_1_data_C24[0] = object->mtnId[2];
-    lbl_1_data_C24[1] = object->mtnId[2];
-    HuPrcChildCreate(fn_1_123C8, 100, 8192, 0, HuPrcCurrentGet());
+    ShiftObjectMotion(object, 1, 3, 0, 1);
+    minigameClearMotionId = object->mdlId[1];
+    minigameClearCueMotionIds[0] = object->mtnId[2];
+    minigameClearCueMotionIds[1] = object->mtnId[2];
+    HuPrcChildCreate(WaitForMinigameClearMotionCues, 100, 8192, 0, HuPrcCurrentGet());
 }
 
-void fn_1_14A9C(int arg0, int arg1, int arg2, int arg3, int arg4)
+Void SetMinigameClearMapMotion(int motionIndex, int motionSlot, int blendFrames, int loopMode, int motionFlags)
 {
-    fn_1_1DFC(lbl_1_bss_7E8.unk00, 1, arg0, arg2, arg3);
-    if (arg3 == 1) {
-        arg4 = 0;
+    ShiftObjectMotion(minigameClearMapProcess.object, 1, motionIndex, blendFrames, loopMode);
+    if (loopMode == 1) {
+        motionFlags = 0;
     }
-    lbl_1_bss_7E8.unk00->work[0] = arg4;
-    lbl_1_bss_7E8.unk00->work[1] = arg1;
-    lbl_1_bss_7E8.unk00->work[2] = arg2 + 1;
+    minigameClearMapProcess.object->work[0] = motionFlags;
+    minigameClearMapProcess.object->work[1] = motionSlot;
+    minigameClearMapProcess.object->work[2] = blendFrames + 1;
 }
 
-void fn_1_14B48(OMOBJ *arg0, StructBss16C *arg1)
+Void AnimateMinigameClearMapObject(OMOBJ *object, StoryObjectProcessState *processState)
 {
     Vec pos = { -1000, 0, 810 };
-    lbl_1_bss_810.unk04 = (void *)fn_1_1416C;
-    fn_1_1DFC(arg0, 1, 2, 15, 1);
-    fn_1_2D00(arg0, 1, pos, -1, 45, 10);
-    fn_1_1DFC(arg0, 1, 1, 15, 1);
-    arg1->unk04 = NULL;
+    minigameClearRewardProcess.updateCallback = (Void *)AnimateMinigameClearItemOrbit;
+    ShiftObjectMotion(object, 1, 2, 15, 1);
+    MoveModelToPosition(object, 1, pos, -1, 45, 10);
+    ShiftObjectMotion(object, 1, 1, 15, 1);
+    processState->updateCallback = NULL;
 }
 
-void fn_1_14C40(void)
+Void RunMinigameClearMapProcess(Void)
 {
-    OMOBJ *obj;
-    lbl_1_bss_7E8.unk00 = obj = omAddObjEx(lbl_1_bss_790, 256, 16, 16, -1, NULL);
-    lbl_1_bss_7E8.unk04 = NULL;
-    lbl_1_bss_7E8.unk00->data = &lbl_1_bss_810;
-    fn_1_14868(obj);
+    OMOBJ *object;
+    minigameClearMapProcess.object = object = omAddObjEx(minigameClearProcess, 256, 16, 16, -1, NULL);
+    minigameClearMapProcess.updateCallback = NULL;
+    minigameClearMapProcess.object->data = &minigameClearRewardProcess;
+    CreateMinigameClearMapObject(object);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_7E8.unk04 != NULL) {
-            lbl_1_bss_7E8.unk04(obj, &lbl_1_bss_7E8);
+        WaitOneFrame();
+        if (minigameClearMapProcess.updateCallback != NULL) {
+            minigameClearMapProcess.updateCallback(object, &minigameClearMapProcess);
         }
-        if (obj->work[0]) {
-            if (obj->work[2]) {
-                obj->work[2]--;
+        if (object->work[0]) {
+            if (object->work[2]) {
+                object->work[2]--;
             }
-            else if (obj->work[2] == 0 && Hu3DMotionEndCheck(obj->mdlId[1])) {
-                fn_1_1DFC(obj, 1, obj->work[1], 15, 1);
-                obj->work[0] = obj->work[1] = obj->work[2] = 0;
+            else if (object->work[2] == 0 && Hu3DMotionEndCheck(object->mdlId[1])) {
+                ShiftObjectMotion(object, 1, object->work[1], 15, 1);
+                object->work[0] = object->work[1] = object->work[2] = 0;
             }
         }
     }
 }
 
-void fn_1_14F6C(OMOBJ *object)
+Void CreateMinigameClearKoopaObject(OMOBJ *object)
 {
     object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY2, VERSION_NTSC ? 0x7D : 0x7B));
     object->mtnId[1] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, VERSION_NTSC ? 0x7E : 0x7C));
@@ -663,184 +663,184 @@ void fn_1_14F6C(OMOBJ *object)
     Hu3DModelRotSet(object->mdlId[1], 0, 60, 0);
     Hu3DModelScaleSet(object->mdlId[1], 1, 1, 1);
     Hu3DModelShadowSet(object->mdlId[1]);
-    fn_1_1DFC(object, 1, 1, 0, 1);
+    ShiftObjectMotion(object, 1, 1, 0, 1);
     CharNpcDustSet(object->mdlId[1], object->mtnId[2], 1, 13);
 }
 
-void fn_1_15134(int arg0, int arg1, int arg2, int arg3, int arg4)
+Void SetMinigameClearKoopaMotion(int motionIndex, int motionSlot, int blendFrames, int loopMode, int motionFlags)
 {
-    fn_1_1DFC(lbl_1_bss_7C0.unk00, 1, arg0, arg2, arg3);
-    if (arg3 == 1) {
-        arg4 = 0;
+    ShiftObjectMotion(minigameClearKoopaProcess.object, 1, motionIndex, blendFrames, loopMode);
+    if (loopMode == 1) {
+        motionFlags = 0;
     }
-    lbl_1_bss_7C0.unk00->work[0] = arg4;
-    lbl_1_bss_7C0.unk00->work[1] = arg1;
-    lbl_1_bss_7C0.unk00->work[2] = arg2 + 1;
+    minigameClearKoopaProcess.object->work[0] = motionFlags;
+    minigameClearKoopaProcess.object->work[1] = motionSlot;
+    minigameClearKoopaProcess.object->work[2] = blendFrames + 1;
 }
 
-void fn_1_151E0(OMOBJ *arg0, StructBss16C *arg1)
+Void AnimateMinigameClearKoopa(OMOBJ *object, StoryObjectProcessState *processState)
 {
     Vec pos = { -800, 0, 800 };
-    fn_1_1DFC(arg0, 1, 2, 15, 1);
-    fn_1_2D00(arg0, 1, pos, 60, 60, 10);
-    fn_1_1DFC(arg0, 1, 1, 15, 1);
-    arg1->unk04 = NULL;
+    ShiftObjectMotion(object, 1, 2, 15, 1);
+    MoveModelToPosition(object, 1, pos, 60, 60, 10);
+    ShiftObjectMotion(object, 1, 1, 15, 1);
+    processState->updateCallback = NULL;
 }
 
-void fn_1_152C4(OMOBJ *arg0, StructBss16C *arg1)
+Void AnimateMinigameClearKoopaExit(OMOBJ *object, StoryObjectProcessState *processState)
 {
     Vec pos = { -120, 0, 800 };
-    fn_1_1DFC(arg0, 1, 2, 15, 1);
-    fn_1_2D00(arg0, 1, pos, 60, 60, 10);
-    fn_1_1DFC(arg0, 1, 1, 15, 1);
-    arg1->unk04 = NULL;
+    ShiftObjectMotion(object, 1, 2, 15, 1);
+    MoveModelToPosition(object, 1, pos, 60, 60, 10);
+    ShiftObjectMotion(object, 1, 1, 15, 1);
+    processState->updateCallback = NULL;
 }
 
-void fn_1_153A8(void)
+Void RunMinigameClearKoopaProcess(Void)
 {
-    OMOBJ *obj;
-    lbl_1_bss_7C0.unk00 = obj = omAddObjEx(lbl_1_bss_790, 256, 16, 16, -1, NULL);
-    lbl_1_bss_7C0.unk04 = NULL;
-    lbl_1_bss_7C0.unk00->data = &lbl_1_bss_7C0;
-    fn_1_14F6C(obj);
+    OMOBJ *object;
+    minigameClearKoopaProcess.object = object = omAddObjEx(minigameClearProcess, 256, 16, 16, -1, NULL);
+    minigameClearKoopaProcess.updateCallback = NULL;
+    minigameClearKoopaProcess.object->data = &minigameClearKoopaProcess;
+    CreateMinigameClearKoopaObject(object);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_7C0.unk04 != NULL) {
-            lbl_1_bss_7C0.unk04(obj, &lbl_1_bss_7C0);
+        WaitOneFrame();
+        if (minigameClearKoopaProcess.updateCallback != NULL) {
+            minigameClearKoopaProcess.updateCallback(object, &minigameClearKoopaProcess);
         }
-        if (obj->work[0]) {
-            if (obj->work[2]) {
-                obj->work[2]--;
+        if (object->work[0]) {
+            if (object->work[2]) {
+                object->work[2]--;
             }
-            else if (obj->work[2] == 0 && Hu3DMotionEndCheck(obj->mdlId[1])) {
-                fn_1_1DFC(obj, 1, obj->work[1], 15, 1);
-                obj->work[0] = obj->work[1] = obj->work[2] = 0;
+            else if (object->work[2] == 0 && Hu3DMotionEndCheck(object->mdlId[1])) {
+                ShiftObjectMotion(object, 1, object->work[1], 15, 1);
+                object->work[0] = object->work[1] = object->work[2] = 0;
             }
         }
     }
 }
 
-void fn_1_15668(int arg0)
+Void PrepareMinigameClearPlayers(int selectedPlayerIndex)
 {
     int i;
-    int order[4];
-    order[0] = 0;
+    int playerOrder[4];
+    playerOrder[0] = 0;
     for (i = 1; i < 4; i++) {
-        order[i] = order[i - 1] + 1;
-        if (order[i] >= 4) {
-            order[i] = 0;
+        playerOrder[i] = playerOrder[i - 1] + 1;
+        if (playerOrder[i] >= 4) {
+            playerOrder[i] = 0;
         }
-        if (arg0 == order[i]) {
-            lbl_1_bss_860.unk00 = i;
+        if (selectedPlayerIndex == playerOrder[i]) {
+            minigameClearState.selectedPlayerIndex = i;
         }
     }
     for (i = 0; i < 4; i++) {
-        fn_1_357C(&lbl_1_bss_860.unk30[i], order[i]);
+        ReadStoryPlayerConfig(&minigameClearState.playerInfo[i], playerOrder[i]);
     }
 }
 
-void fn_1_1574C(OMOBJ *object)
+Void CreateMinigameClearPlayerModel(OMOBJ *object)
 {
-    int charNo = lbl_1_bss_860.unk30[lbl_1_bss_860.unk00].unk10;
-    object->mdlId[1] = CharModelCreate(charNo, 1);
-    object->mtnId[1] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00));
-    object->mtnId[2] = CharMotionCreate(charNo, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02));
-    object->mtnId[3] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x28) + charNo);
-    object->mtnId[4] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x30) + charNo);
-    object->mtnId[5] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x38) + charNo);
-    object->mtnId[6] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x00) + charNo);
-    CharMotionDataClose(charNo);
+    int characterId = minigameClearState.playerInfo[minigameClearState.selectedPlayerIndex].highlightName;
+    object->mdlId[1] = CharModelCreate(characterId, 1);
+    object->mtnId[1] = CharMotionCreate(characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00));
+    object->mtnId[2] = CharMotionCreate(characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02));
+    object->mtnId[3] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x28) + characterId);
+    object->mtnId[4] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x30) + characterId);
+    object->mtnId[5] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x38) + characterId);
+    object->mtnId[6] = Hu3DJointMotionFile(object->mdlId[1], DATA_MAKE_NUM(DATADIR_MSTORY2, 0x00) + characterId);
+    CharMotionDataClose(characterId);
     Hu3DModelPosSet(object->mdlId[1], 120, 0, 800);
     Hu3DModelRotSet(object->mdlId[1], 0, -60, 0);
     Hu3DModelScaleSet(object->mdlId[1], 1, 1, 1);
     Hu3DModelShadowSet(object->mdlId[1]);
-    fn_1_1DFC(object, 1, 3, 0, 1);
+    ShiftObjectMotion(object, 1, 3, 0, 1);
 }
 
-void fn_1_15944(int arg0, int arg1, int arg2, int arg3, int arg4)
+Void SetMinigameClearPlayerMotion(int motionIndex, int motionSlot, int blendFrames, int loopMode, int motionFlags)
 {
-    fn_1_1DFC(lbl_1_bss_798.unk00, 1, arg0, arg2, arg3);
-    if (arg3 == 1) {
-        arg4 = 0;
+    ShiftObjectMotion(minigameClearCharacterProcess.object, 1, motionIndex, blendFrames, loopMode);
+    if (loopMode == 1) {
+        motionFlags = 0;
     }
-    lbl_1_bss_798.unk00->work[0] = arg4;
-    lbl_1_bss_798.unk00->work[1] = arg1;
-    lbl_1_bss_798.unk00->work[2] = arg2 + 1;
+    minigameClearCharacterProcess.object->work[0] = motionFlags;
+    minigameClearCharacterProcess.object->work[1] = motionSlot;
+    minigameClearCharacterProcess.object->work[2] = blendFrames + 1;
 }
 
-void fn_1_159F0(void)
+Void RunMinigameClearPlayerModelProcess(Void)
 {
-    OMOBJ *obj;
-    lbl_1_bss_798.unk00 = obj = omAddObjEx(lbl_1_bss_790, 256, 16, 16, -1, NULL);
-    lbl_1_bss_798.unk04 = NULL;
-    lbl_1_bss_798.unk00->data = &lbl_1_bss_798;
-    fn_1_1574C(obj);
+    OMOBJ *object;
+    minigameClearCharacterProcess.object = object = omAddObjEx(minigameClearProcess, 256, 16, 16, -1, NULL);
+    minigameClearCharacterProcess.updateCallback = NULL;
+    minigameClearCharacterProcess.object->data = &minigameClearCharacterProcess;
+    CreateMinigameClearPlayerModel(object);
     while (1) {
-        fn_1_BC8();
-        if (lbl_1_bss_798.unk04 != NULL) {
-            lbl_1_bss_798.unk04(obj, &lbl_1_bss_798);
+        WaitOneFrame();
+        if (minigameClearCharacterProcess.updateCallback != NULL) {
+            minigameClearCharacterProcess.updateCallback(object, &minigameClearCharacterProcess);
         }
-        if (obj->work[0]) {
-            if (obj->work[2]) {
-                obj->work[2]--;
+        if (object->work[0]) {
+            if (object->work[2]) {
+                object->work[2]--;
             }
-            else if (obj->work[2] == 0 && Hu3DMotionEndCheck(obj->mdlId[1])) {
-                fn_1_1DFC(obj, 1, obj->work[1], 15, 1);
-                obj->work[0] = obj->work[1] = obj->work[2] = 0;
+            else if (object->work[2] == 0 && Hu3DMotionEndCheck(object->mdlId[1])) {
+                ShiftObjectMotion(object, 1, object->work[1], 15, 1);
+                object->work[0] = object->work[1] = object->work[2] = 0;
             }
         }
     }
 }
 
-void fn_1_15CDC(void)
+Void UpdateMinigameClearCamera(Void)
 {
-    StructBss24 *work = &lbl_1_bss_24;
-    work->unk08.x = 0;
-    work->unk08.y = 125;
-    work->unk08.z = 0;
-    work->unk20.x = -5;
-    work->unk20.y = 0;
-    work->unk20.z = 0;
-    work->unk38 = 1750;
+    StoryCameraMotionState *work = &storyCameraState;
+    work->cameraCenter.x = 0;
+    work->cameraCenter.y = 125;
+    work->cameraCenter.z = 0;
+    work->cameraRotation.x = -5;
+    work->cameraRotation.y = 0;
+    work->cameraRotation.z = 0;
+    work->cameraZoom = 1750;
 }
 
-void fn_1_15D68(void)
+Void InterpolateMinigameClearCamera(Void)
 {
-    StructBss24 *work = &lbl_1_bss_24;
-    StructBss24 temp;
-    temp.unk08.x = 0;
-    temp.unk08.y = 100;
-    temp.unk08.z = 0;
-    temp.unk20.x = 0;
-    temp.unk20.y = 0;
-    temp.unk20.z = 0;
-    temp.unk38 = 1400;
-    fn_1_4FEC(work, &temp, work->unk40++, 120, 10);
+    StoryCameraMotionState *work = &storyCameraState;
+    StoryCameraMotionState targetCameraState;
+    targetCameraState.cameraCenter.x = 0;
+    targetCameraState.cameraCenter.y = 100;
+    targetCameraState.cameraCenter.z = 0;
+    targetCameraState.cameraRotation.x = 0;
+    targetCameraState.cameraRotation.y = 0;
+    targetCameraState.cameraRotation.z = 0;
+    targetCameraState.cameraZoom = 1400;
+    EaseCameraMotionSineIn(work, &targetCameraState, work->animationFrame++, 120, 10);
 }
 
-void fn_1_15E58(void)
+Void AnimateMinigameClearCamera(Void)
 {
-    StructBss24 *work = &lbl_1_bss_24;
-    work->unk14 = 0;
-    work->unk18 = Hu3DData[lbl_1_bss_810.unk00->mdlId[7]].pos.y;
-    work->unk1C = 0;
-    work->unk2C = 0;
-    work->unk30 = 0;
-    work->unk34 = 0;
-    work->unk3C = fn_1_864(1200, 1400, work->unk40++, 240);
-    fn_1_3B04(work, 30);
+    StoryCameraMotionState *work = &storyCameraState;
+    work->startCenterX = 0;
+    work->startCenterY = Hu3DData[minigameClearRewardProcess.object->mdlId[7]].pos.y;
+    work->startCenterZ = 0;
+    work->startRotationX = 0;
+    work->startRotationY = 0;
+    work->startRotationZ = 0;
+    work->startZoom = InterpolateLinear(1200, 1400, work->animationFrame++, 240);
+    EaseCameraMotionInPlace(work, 30);
 }
 
-void fn_1_15F70(void)
+Void FinishMinigameClearCamera(Void)
 {
-    StructBss24 *work = &lbl_1_bss_24;
-    StructBss24 temp;
-    temp.unk08.x = 0;
-    temp.unk08.y = 160;
-    temp.unk08.z = 0;
-    temp.unk20.x = 0;
-    temp.unk20.y = 0;
-    temp.unk20.z = 0;
-    temp.unk38 = 1200;
-    fn_1_6004(work, &temp, work->unk40++, 10, 5);
+    StoryCameraMotionState *work = &storyCameraState;
+    StoryCameraMotionState targetCameraState;
+    targetCameraState.cameraCenter.x = 0;
+    targetCameraState.cameraCenter.y = 160;
+    targetCameraState.cameraCenter.z = 0;
+    targetCameraState.cameraRotation.x = 0;
+    targetCameraState.cameraRotation.y = 0;
+    targetCameraState.cameraRotation.z = 0;
+    targetCameraState.cameraZoom = 1200;
+    EaseCameraMotionCosine(work, &targetCameraState, work->animationFrame++, 10, 5);
 }

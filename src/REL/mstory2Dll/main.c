@@ -16,12 +16,12 @@
 
 #include "ext_math.h"
 
-s32 lbl_1_bss_68[3]; // unused
-StructBss24 lbl_1_bss_24;
-s32 lbl_1_bss_4[8];
-HUPROCESS* lbl_1_bss_0;
+s32 unreferencedStoryState[3]; // unused
+StoryCameraMotionState storyCameraState;
+s32 unreferencedStoryScratch[8];
+HUPROCESS* storyObjectManager;
 
-s32 lbl_1_data_0[][4] = {
+s32 storyAudioCueIds[][4] = {
     { 0x37, 0x38, 0x36, 0x39 },
     { 0x43, 0x45, 0x44, 0x43 },
     { 0x40, 0x42, 0x41, 0x40 },
@@ -31,7 +31,7 @@ s32 lbl_1_data_0[][4] = {
     {0x3A, 0x3B, 0x3C, 0xFFFFFFFF}
 };
 
-char* lbl_1_data_144[] = {
+char* storyEventMenuLabels[] = {
     "K-1 : KOOPA STORY - BOARD ENTRANCE EVENT",
     "K-3 : KOOPA STORY - BOARD CLEAR EVENT",
     "K-4 : KOOPA STORY - BOARD MISS EVENT",
@@ -40,98 +40,98 @@ char* lbl_1_data_144[] = {
     "--- : ENDING"
 };
 
-void fn_1_0(OMOBJ* arg0) {
+Void ReturnOverlayAfterWipe(OMOBJ* object) {
     if (WipeStatGet() == 0) {
-        arg0->objFunc = NULL;
+        object->objFunc = NULL;
         omOvlReturnEx(1, 1);
     }
 }
 
-void fn_1_4C(OMOBJ* arg0) {
+Void HandleOverlayExitRequest(OMOBJ* object) {
     if (omSysExitReq != 0) {
-        arg0->objFunc = fn_1_0;
+        object->objFunc = ReturnOverlayAfterWipe;
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
     }
 }
 
-void fn_1_A4(void) {
-    s32 sp14;
-    s32 var_r30;
-    s32 var_r31;
-    s32 sp10;
-    s32 spC;
-    s32 sp8;
+Void RunStoryEventSelection(Void) {
+    s32 unreferencedLocal14;
+    s32 selectedEventIndex;
+    s32 unreferencedLocalRegister;
+    s32 unreferencedLocal10;
+    s32 unreferencedLocalC;
+    s32 unreferencedLocal8;
     s32 i;
 
-    var_r30 = 0;
-    omAddObjEx(lbl_1_bss_0, 0x2000, 0, 0, -1, fn_1_4C);
+    selectedEventIndex = 0;
+    omAddObjEx(storyObjectManager, 0x2000, 0, 0, -1, HandleOverlayExitRequest);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
     while (TRUE) {
         if (WipeStatGet() == 0) {
             break;
         }
-        fn_1_BC8();
+        WaitOneFrame();
     }
     while (TRUE) {
         if (HuPadBtnDown[0] & PAD_BUTTON_A) {
             break;
         }
         if (HuPadStkY[0] <= -30) {
-            fn_1_BE8(5);
-            var_r30++;
-            if (var_r30 >= 6) {
-                var_r30 = 0;
+            WaitFrames(5);
+            selectedEventIndex++;
+            if (selectedEventIndex >= 6) {
+                selectedEventIndex = 0;
             }
             
         }
         if (HuPadStkY[0] >= 30) {
-            fn_1_BE8(5);
-            var_r30--;
-            if (var_r30 < 0) {
-                var_r30 = 5;
+            WaitFrames(5);
+            selectedEventIndex--;
+            if (selectedEventIndex < 0) {
+                selectedEventIndex = 5;
             }
         }
         fontcolor = FONT_COLOR_WHITE;
         print8(24, 100, 1.5f, ">>>>> MPGC STORY 2 - EVENT SELECT <<<<<");
         for (i = 0; i < 6; i++) {
             fontcolor = FONT_COLOR_WHITE;
-            if (var_r30 == i) {
+            if (selectedEventIndex == i) {
                 fontcolor = FONT_COLOR_CYAN;
             }
-            print8(24, 130 + i * 15, 1.5f, "%s", lbl_1_data_144[i]);
+            print8(24, 130 + i * 15, 1.5f, "%s", storyEventMenuLabels[i]);
         }
-        fn_1_BC8();
+        WaitOneFrame();
     }
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
     while (TRUE) {
         if (WipeStatGet() == 0) {
             break;
         }
-        fn_1_BC8();
+        WaitOneFrame();
     }
     GWSystem.board = 5;
-    switch (var_r30) {
+    switch (selectedEventIndex) {
         case 0:
-            fn_1_7F54(lbl_1_bss_0, 0);
+            StartBoardEntranceEvent(storyObjectManager, 0);
             break;
         case 1:
-            fn_1_B3E4(lbl_1_bss_0, 0);
+            StartBoardClearEvent(storyObjectManager, 0);
             break;
         case 2:
-            fn_1_EA2C(lbl_1_bss_0, 0);
+            StartBoardMissEvent(storyObjectManager, 0);
             break;
         case 3:
-            fn_1_1256C(lbl_1_bss_0, 0);
+            StartMinigameClearEvent(storyObjectManager, 0);
             break;
         case 4:
-            fn_1_16060(lbl_1_bss_0, 0);
+            StartMinigameMissEvent(storyObjectManager, 0);
             break;
         case 5:
-            fn_1_188F0(lbl_1_bss_0, 0);
+            StartStoryEnding(storyObjectManager, 0);
             break;
     }
     while (TRUE) {
-        fn_1_BC8();
+        WaitOneFrame();
     }
 }
 
@@ -139,7 +139,7 @@ void fn_1_A4(void) {
 #include "src/REL/executor.c"
 #endif
 
-void fn_1_3E4(void)
+Void PlayStoryEndingMovie(Void)
 {
     int gid = HuSprGrpCreate(1);
     int sprid = HuTHPSprCreate("movie/endmov_ma0.thp", FALSE, 10);
@@ -163,17 +163,17 @@ void fn_1_3E4(void)
     HuPrcVSleep();
     HuSprGrpKill(gid);
     while(1) {
-        fn_1_BC8();
+        WaitOneFrame();
     }
 }
 
-void fn_1_4F4(void) {
+Void InitializeStoryOverlay(Void) {
     s32 i;
 
-    lbl_1_bss_0 = omInitObjMan(62, 0x2000);
+    storyObjectManager = omInitObjMan(62, 0x2000);
     switch (omovlevtno) {
         case 0:
-            fn_1_7F54(lbl_1_bss_0, 0);
+            StartBoardEntranceEvent(storyObjectManager, 0);
             break;
             
         case 1:
@@ -182,7 +182,7 @@ void fn_1_4F4(void) {
                     break;
                 }
             }
-            fn_1_B3E4(lbl_1_bss_0, i);
+            StartBoardClearEvent(storyObjectManager, i);
             break;
         case 2:
             for (i = 0; i < 4; i++) {
@@ -190,599 +190,599 @@ void fn_1_4F4(void) {
                     break;
                 }
             }
-            fn_1_EA2C(lbl_1_bss_0, i);
+            StartBoardMissEvent(storyObjectManager, i);
             break;
         case 3:
             if (GWPlayerCoinWinGet(0) >= 10) {
-                fn_1_1256C(lbl_1_bss_0, 0);
+                StartMinigameClearEvent(storyObjectManager, 0);
             } else {
-                fn_1_16060(lbl_1_bss_0, 0);
+                StartMinigameMissEvent(storyObjectManager, 0);
             }
             break;
         case 4:
-            fn_1_188F0(lbl_1_bss_0, 0);
+            StartStoryEnding(storyObjectManager, 0);
             break;
             
         case 20:
-            fn_1_1B90C(lbl_1_bss_0);
+            StartStorySaveProcess(storyObjectManager);
             break;
     }
 }
 
-void ObjectSetup(void) {
-    fn_1_4F4();
+Void ObjectSetup(Void) {
+    InitializeStoryOverlay();
 }
 
-float fn_1_864(float arg0, float arg1, float arg2, float arg3) {
-    if (arg3 <= arg2) {
-        return arg1;
+float InterpolateLinear(float startValue, float targetValue, float elapsedFrames, float durationFrames) {
+    if (durationFrames <= elapsedFrames) {
+        return targetValue;
     }
-    return arg0 + (arg2 / arg3) * (arg1 - arg0);
+    return startValue + (elapsedFrames / durationFrames) * (targetValue - startValue);
 }
 
-float fn_1_88C(float arg0, float arg1, float arg2) {
-    return (arg1 + arg0 * (arg2 - 1.0f)) / arg2;
+float InterpolateWeightedAverage(float currentValue, float targetValue, float sampleCount) {
+    return (targetValue + currentValue * (sampleCount - 1.0f)) / sampleCount;
 }
 
-float fn_1_8AC(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+float InterpolateCosineEaseOut(float startValue, float targetValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return targetValue;
     }
-    return arg0 + (arg1 - arg0) * (1.0 - cosd((90.0f / arg3) * arg2));
+    return startValue + (targetValue - startValue) * (1.0 - cosd((90.0f / durationFrames) * elapsedFrames));
 }
 
-float fn_1_984(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg1;
+float InterpolateSineEaseIn(float startValue, float targetValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return targetValue;
     }
-    return arg0 + (arg1 - arg0) * sind((90.0f / arg3) * arg2);
+    return startValue + (targetValue - startValue) * sind((90.0f / durationFrames) * elapsedFrames);
 }
 
-float fn_1_A4C(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg0;
+float InterpolateSinePulse(float startValue, float targetValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return startValue;
     }
-    return arg0 + (arg1 - arg0) * sind((180.0f / arg3) * arg2);
+    return startValue + (targetValue - startValue) * sind((180.0f / durationFrames) * elapsedFrames);
 }
 
-float fn_1_B08(float arg0, float arg1, float arg2, float arg3) {
-    if (arg2 >= arg3) {
-        return arg0;
+float InterpolateSineCycle(float startValue, float targetValue, float elapsedFrames, float durationFrames) {
+    if (elapsedFrames >= durationFrames) {
+        return startValue;
     }
-    return arg0 + (arg1 - arg0) * sind((360.0f / arg3) * arg2);
+    return startValue + (targetValue - startValue) * sind((360.0f / durationFrames) * elapsedFrames);
 }
 
-void fn_1_BC4(void) {
+Void StoryNoOpCallback(Void) {
 }
 
-void fn_1_BC8(void) {
+Void WaitOneFrame(Void) {
     HuPrcVSleep();
 }
 
-void fn_1_BE8(s32 arg0) {
-    HuPrcSleep(arg0);
+Void WaitFrames(s32 frameCount) {
+    HuPrcSleep(frameCount);
 }
 
-void fn_1_C10(void) {
+Void EndCurrentProcess(Void) {
     HuPrcEnd();
 }
 
-void fn_1_C30(void) {
+Void InitializeWindowSystem(Void) {
     HuWinInit(1);
 }
 
-void fn_1_C54(void) {
+Void StoryNoOpCallback2(Void) {
 }
 
-void fn_1_C58(s32 arg0, float arg1, float arg2, s32 arg3) {
-    WindowData* temp_r29;
-    float temp_f29;
-    float temp_f28;
-    float temp_f25;
-    float temp_f24;
-    float temp_f31;
-    float temp_f27;
-    float temp_f30;
-    float temp_f26;
-    float var_f23;
-    float var_f22;
-    float var_f21;
-    float var_f20;
+Void AnimateWindowSlide(s32 windowId, float horizontalAnchor, float verticalAnchor, s32 opening) {
+    WindowData* windowData;
+    float windowLeft;
+    float windowTop;
+    float windowWidth;
+    float windowHeight;
+    float targetLeft;
+    float targetScaleX;
+    float targetTop;
+    float targetScaleY;
+    float currentLeft;
+    float currentTop;
+    float currentScaleX;
+    float currentScaleY;
     s32 i;
 
-    temp_r29 = &winData[arg0];
-    temp_f29 = temp_r29->pos_x;
-    temp_f28 = temp_r29->pos_y;
-    temp_f25 = temp_r29->w;
-    temp_f24 = temp_r29->h;
-    temp_f31 = temp_f29 + temp_f25 * arg1;
-    temp_f27 = 4.0f / temp_f25;
-    if (temp_f31 + 4.0f - (temp_f29 + temp_f25) >= 0.0f) {
-        temp_f31 = (temp_f29 + temp_f25) - 4.0f;
-    } else if (temp_f29 - (temp_f31 - 2.0f) >= 0.0f) {
-        temp_f31 = temp_f29;
+    windowData = &winData[windowId];
+    windowLeft = windowData->pos_x;
+    windowTop = windowData->pos_y;
+    windowWidth = windowData->w;
+    windowHeight = windowData->h;
+    targetLeft = windowLeft + windowWidth * horizontalAnchor;
+    targetScaleX = 4.0f / windowWidth;
+    if (targetLeft + 4.0f - (windowLeft + windowWidth) >= 0.0f) {
+        targetLeft = (windowLeft + windowWidth) - 4.0f;
+    } else if (windowLeft - (targetLeft - 2.0f) >= 0.0f) {
+        targetLeft = windowLeft;
     } else {
-        temp_f31 -= 2.0f;
+        targetLeft -= 2.0f;
     }
-    temp_f30 = temp_f28 + temp_f24 * arg2;
-    temp_f26 = 4.0f / temp_f24;
-    if (temp_f30 + 4.0f - (temp_f28 + temp_f24) >= 0.0f) {
-        temp_f30 = (temp_f28 + temp_f24) - 4.0f;
-    } else if (temp_f28 - (temp_f30 - 2.0f) >= 0.0f) {
-        temp_f30 = temp_f28;
+    targetTop = windowTop + windowHeight * verticalAnchor;
+    targetScaleY = 4.0f / windowHeight;
+    if (targetTop + 4.0f - (windowTop + windowHeight) >= 0.0f) {
+        targetTop = (windowTop + windowHeight) - 4.0f;
+    } else if (windowTop - (targetTop - 2.0f) >= 0.0f) {
+        targetTop = windowTop;
     } else {
-        temp_f30 -= 2.0f;
+        targetTop -= 2.0f;
     }
-    if (arg3 != 0) {
-        HuWinPosSet(arg0, temp_f31, temp_f30);
-        HuWinScaleSet(arg0, temp_f27, temp_f26);
-        var_f23 = temp_f31;
-        var_f21 = temp_f27;
-        var_f22 = temp_f30;
-        var_f20 = temp_f26;
+    if (opening != 0) {
+        HuWinPosSet(windowId, targetLeft, targetTop);
+        HuWinScaleSet(windowId, targetScaleX, targetScaleY);
+        currentLeft = targetLeft;
+        currentScaleX = targetScaleX;
+        currentTop = targetTop;
+        currentScaleY = targetScaleY;
     } else {
-        HuWinPosSet(arg0, temp_f29, temp_f28);
-        HuWinScaleSet(arg0, 1.0f, 1.0f);
-        var_f23 = temp_f29;
-        var_f21 = 1.0f;
-        var_f22 = temp_f28;
-        var_f20 = 1.0f;
+        HuWinPosSet(windowId, windowLeft, windowTop);
+        HuWinScaleSet(windowId, 1.0f, 1.0f);
+        currentLeft = windowLeft;
+        currentScaleX = 1.0f;
+        currentTop = windowTop;
+        currentScaleY = 1.0f;
     }
-    HuWinDispOn(arg0);
+    HuWinDispOn(windowId);
     for (i = 0; i <= 15; i++) {
         HuPrcVSleep();
-        if (arg3 != 0) {
+        if (opening != 0) {
             if (i <= 10) {
-                var_f23 = fn_1_984(temp_f31, temp_f29, i, 10.0f);
-                var_f21 = fn_1_984(temp_f27, 1.0f, i, 10.0f);;
+                currentLeft = InterpolateSineEaseIn(targetLeft, windowLeft, i, 10.0f);
+                currentScaleX = InterpolateSineEaseIn(targetScaleX, 1.0f, i, 10.0f);;
             } else {
-                var_f22 = fn_1_984(temp_f30, temp_f28, i - 10, 5.0f);
-                var_f20 = fn_1_984(temp_f26, 1.0f, i - 10, 5.0f);
+                currentTop = InterpolateSineEaseIn(targetTop, windowTop, i - 10, 5.0f);
+                currentScaleY = InterpolateSineEaseIn(targetScaleY, 1.0f, i - 10, 5.0f);
             }
         } else {
             if (i <= 10) {
-                var_f22 = fn_1_984(temp_f28, temp_f30, i, 10.0f);
-                var_f20 = fn_1_984(1.0f, temp_f26, i, 10.0f);
+                currentTop = InterpolateSineEaseIn(windowTop, targetTop, i, 10.0f);
+                currentScaleY = InterpolateSineEaseIn(1.0f, targetScaleY, i, 10.0f);
             } else {
-                var_f23 = fn_1_984(temp_f29, temp_f31, i - 10, 5.0f);
-                var_f21 = fn_1_984(1.0f, temp_f27, i - 10, 5.0f);
+                currentLeft = InterpolateSineEaseIn(windowLeft, targetLeft, i - 10, 5.0f);
+                currentScaleX = InterpolateSineEaseIn(1.0f, targetScaleX, i - 10, 5.0f);
             }
         }
-        HuWinPosSet(arg0, var_f23, var_f22);
-        HuWinScaleSet(arg0, var_f21, var_f20);
+        HuWinPosSet(windowId, currentLeft, currentTop);
+        HuWinScaleSet(windowId, currentScaleX, currentScaleY);
     }
-    if (arg3 != 0) {
-        HuWinPosSet(arg0, temp_f29, temp_f28);
-        HuWinScaleSet(arg0, 1.0f, 1.0f);
+    if (opening != 0) {
+        HuWinPosSet(windowId, windowLeft, windowTop);
+        HuWinScaleSet(windowId, 1.0f, 1.0f);
     } else {
-        HuWinPosSet(arg0, temp_f31, temp_f30);
-        HuWinScaleSet(arg0, temp_f27, temp_f26);
+        HuWinPosSet(windowId, targetLeft, targetTop);
+        HuWinScaleSet(windowId, targetScaleX, targetScaleY);
     }
     HuPrcVSleep();
 }
 
-s32 fn_1_16A0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, float arg4, float arg5, s32 arg6) {
-    s32 temp_r31;
+s32 CreateMessageWindowAt(s32 left, s32 top, s32 widthCells, s32 heightCells, float horizontalAnchor, float verticalAnchor, s32 padPlayerIndex) {
+    s32 windowId;
 
-    arg2 = arg2 * 21 + 16;
-    arg3 = arg3 * 26 + 16;
-    if (arg0 == 0) {
-        arg0 = 550 - arg2;
+    widthCells = widthCells * 21 + 16;
+    heightCells = heightCells * 26 + 16;
+    if (left == 0) {
+        left = 550 - widthCells;
     } else {
-        arg0 = 1.0f + (576.0f - arg2) / 2.0f;
+        left = 1.0f + (576.0f - widthCells) / 2.0f;
     }
-    if (arg1 == 0) {
-        arg1 = 430 - arg3;
+    if (top == 0) {
+        top = 430 - heightCells;
     }
-    temp_r31 = HuWinExCreateStyled(arg0, arg1, arg2, arg3, -1, 1);
-    HuWinMesPalSet(temp_r31, 7, 0, 0, 0);
-    if (arg6 != -1) {
-        arg6 = GWPlayerCfg[arg6].pad_idx;
-        winData[temp_r31].active_pad = (1 << arg6);
+    windowId = HuWinExCreateStyled(left, top, widthCells, heightCells, -1, 1);
+    HuWinMesPalSet(windowId, 7, 0, 0, 0);
+    if (padPlayerIndex != -1) {
+        padPlayerIndex = GWPlayerCfg[padPlayerIndex].pad_idx;
+        winData[windowId].active_pad = (1 << padPlayerIndex);
     } else {
-        winData[temp_r31].active_pad = 0xF;
+        winData[windowId].active_pad = 0xF;
     }
     
-    fn_1_C58(temp_r31, arg4, arg5, 1);
-    return temp_r31;
+    AnimateWindowSlide(windowId, horizontalAnchor, verticalAnchor, 1);
+    return windowId;
 }
 
-s32 fn_1_185C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    return fn_1_16A0(arg0, arg1, arg2, arg3, 0.5f, 0.5f, arg4);
+s32 CreateCenteredMessageWindow(s32 left, s32 top, s32 widthCells, s32 heightCells, s32 padPlayerIndex) {
+    return CreateMessageWindowAt(left, top, widthCells, heightCells, 0.5f, 0.5f, padPlayerIndex);
 }
 
-void fn_1_1A34(s32 arg0, float arg1, float arg2) {
-    HuWinMesSet(arg0, MAKE_MESSID(37, 4));
+Void CloseMessageWindowAtAnchor(s32 windowId, float horizontalAnchor, float verticalAnchor) {
+    HuWinMesSet(windowId, MAKE_MESSID(37, 4));
     HuPrcVSleep();
-    fn_1_C58(arg0, arg1, arg2, 0);
-    HuWinExCleanup(arg0);
+    AnimateWindowSlide(windowId, horizontalAnchor, verticalAnchor, 0);
+    HuWinExCleanup(windowId);
 }
 
-void fn_1_1A94(s32 arg0) {
-    fn_1_1A34(arg0, 0.5f, 0.5f);
+Void CloseCenteredMessageWindow(s32 windowId) {
+    CloseMessageWindowAtAnchor(windowId, 0.5f, 0.5f);
 }
 
-void fn_1_1AFC(s32 arg0, s32 arg1) {
+Void WaitForWindowMessage(s32 windowId, s32 delayFrames) {
     s32 i;
 
-    if (arg1 > 0) {
-        HuPrcSleep(arg1);
+    if (delayFrames > 0) {
+        HuPrcSleep(delayFrames);
         return;
     }
     HuWinComKeyReset();
-    if (winData[arg0].active_pad == 0xF) {
+    if (winData[windowId].active_pad == 0xF) {
         for (i = 0; i < 10; i++) {
             HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, GWMessDelayGet());
         }
     }
-    HuWinMesWait(arg0);
+    HuWinMesWait(windowId);
     HuWinComKeyReset();
 }
 
-BOOL fn_1_1BA8(s32 arg0, s32 arg1) {
-    s32 var_r31;
+BOOL GetWindowChoice(s32 windowId, s32 defaultChoice) {
+    s32 choice;
     s32 i;
 
     HuWinComKeyReset();
-    if (winData[arg0].active_pad == 0xF) {
+    if (winData[windowId].active_pad == 0xF) {
         for (i = 0; i < 10; i++) {
             HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, GWMessDelayGet());
         }
     }
-    var_r31 = HuWinChoiceGet(arg0, arg1);
+    choice = HuWinChoiceGet(windowId, defaultChoice);
     HuWinComKeyReset();
-    if (var_r31 != 0) {
-        var_r31 = FALSE;
+    if (choice != 0) {
+        choice = FALSE;
     } else {
-        var_r31 = TRUE;
+        choice = TRUE;
     }
-    return var_r31;
+    return choice;
 }
 
-BOOL fn_1_1C64(s32 arg0) {
-    return fn_1_1BA8(arg0, 0);
+BOOL GetDefaultWindowChoice(s32 windowId) {
+    return GetWindowChoice(windowId, 0);
 }
 
-void fn_1_1D18(s32 arg0, s32 arg1) {
-    HuWinMesSet(arg0, arg1);
+Void SetWindowMessage(s32 windowId, s32 messageId) {
+    HuWinMesSet(windowId, messageId);
 }
 
-void fn_1_1D4C(s32 arg0, s32 arg1, s32 arg2) {
-    HuWinInsertMesSet(arg0, arg1, arg2);
+Void InsertWindowMessage(s32 windowId, s32 messageId, s32 insertIndex) {
+    HuWinInsertMesSet(windowId, messageId, insertIndex);
 }
 
-void fn_1_1D8C(s16 arg0) {
-    HU3DMODEL* var_r28;
-    HSFMATERIAL* var_r31;
-    HSFDATA* temp_r30;
-    s16 var_r27;
+Void SetModelMaterialsOpaque(s16 modelId) {
+    HU3DMODEL* model;
+    HSFMATERIAL* material;
+    HSFDATA* modelData;
+    s16 materialCount;
     s32 i;
 
-    var_r28 = &Hu3DData[arg0];
-    temp_r30 = var_r28->hsf;
-    var_r27 = temp_r30->materialNum;
-    var_r31 = temp_r30->material;
-    for (i = 0; i < var_r27; var_r31++, i++) {
-        var_r31->vtxMode = 1;
+    model = &Hu3DData[modelId];
+    modelData = model->hsf;
+    materialCount = modelData->materialNum;
+    material = modelData->material;
+    for (i = 0; i < materialCount; material++, i++) {
+        material->vtxMode = 1;
     }
 }
 
-void fn_1_1DFC(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    switch (arg4) {
+Void ShiftObjectMotion(OMOBJ* object, s32 modelSlot, s32 motionSlot, s32 blendFrames, s32 motionFlags) {
+    switch (motionFlags) {
         case 0:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_NONE);
+            Hu3DMotionShiftSet(object->mdlId[modelSlot], object->mtnId[motionSlot], 0.0f, blendFrames, HU3D_MOTATTR_NONE);
             break;
         case 1:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_LOOP);
+            Hu3DMotionShiftSet(object->mdlId[modelSlot], object->mtnId[motionSlot], 0.0f, blendFrames, HU3D_MOTATTR_LOOP);
             break;
         case 2:
-            Hu3DMotionShiftSet(arg0->mdlId[arg1], arg0->mtnId[arg2], 0.0f, arg3, HU3D_MOTATTR_PAUSE);
+            Hu3DMotionShiftSet(object->mdlId[modelSlot], object->mtnId[motionSlot], 0.0f, blendFrames, HU3D_MOTATTR_PAUSE);
             break;
     }
-    arg0->work[0] = arg0->work[1] = arg0->work[2] = 0;
+    object->work[0] = object->work[1] = object->work[2] = 0;
 }
 
-void fn_1_1F84(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    if (arg0->mtnId[arg2] == Hu3DMotionIDGet(arg0->mdlId[arg1])) {
+Void WaitForObjectMotionChange(OMOBJ* object, s32 modelSlot, s32 motionSlot, s32 blendFrames, s32 motionFlags) {
+    if (object->mtnId[motionSlot] == Hu3DMotionIDGet(object->mdlId[modelSlot])) {
         return;
     }
-    if (arg0->mtnId[arg2] == Hu3DMotionShiftIDGet(arg0->mdlId[arg1])) {
+    if (object->mtnId[motionSlot] == Hu3DMotionShiftIDGet(object->mdlId[modelSlot])) {
         return;
     }
-    fn_1_1F84(arg0, arg1, arg2, arg3, arg4);
+    WaitForObjectMotionChange(object, modelSlot, motionSlot, blendFrames, motionFlags);
 }
 
-void fn_1_2264(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3) {
-    HuPrcSleep(arg3 + 1);
+Void WaitForObjectMotionEnd(OMOBJ* object, s32 modelSlot, s32 motionSlot, s32 initialDelayFrames) {
+    HuPrcSleep(initialDelayFrames + 1);
     do {
         HuPrcVSleep();
-    } while (arg0->mtnId[arg2] != Hu3DMotionIDGet(arg0->mdlId[arg1]) || !Hu3DMotionEndCheck(arg0->mdlId[arg1]));
+    } while (object->mtnId[motionSlot] != Hu3DMotionIDGet(object->mdlId[modelSlot]) || !Hu3DMotionEndCheck(object->mdlId[modelSlot]));
 }
 
-s32 fn_1_22F4(s32 arg0) {
+s32 FindFirstPlayerInGroup(s32 playerGroup) {
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        if (arg0 == GWPlayerCfg[i].group) {
+        if (playerGroup == GWPlayerCfg[i].group) {
             break;
         }
     }
     return i;
 }
 
-void fn_1_233C(s32 arg0, s32 arg1) {
+Void WaitForPadButton(s32 padIndex, s32 buttonMask) {
     while (TRUE) {
-        if (arg1 & HuPadBtnDown[arg0]) {
+        if (buttonMask & HuPadBtnDown[padIndex]) {
             break;
         }
         HuPrcVSleep();
     }
 }
 
-void fn_1_2390(void) {
-    StructBss24* var_r31;
+Void UpdateDebugCamera(Void) {
+    StoryCameraMotionState* cameraState;
 
-    var_r31 = &lbl_1_bss_24;
+    cameraState = &storyCameraState;
     if (HuPadBtn[0] & PAD_BUTTON_B) {
         if (HuPadBtn[0] & PAD_TRIGGER_R) {
-            var_r31->unk08.z -= HuPadStkY[0] / 10.0f;
+            cameraState->cameraCenter.z -= HuPadStkY[0] / 10.0f;
         } else {
-            var_r31->unk08.x += HuPadStkX[0] / 10.0f;
-            var_r31->unk08.y += HuPadStkY[0] / 10.0f;
+            cameraState->cameraCenter.x += HuPadStkX[0] / 10.0f;
+            cameraState->cameraCenter.y += HuPadStkY[0] / 10.0f;
         }
     }
     if (HuPadBtn[0] & PAD_BUTTON_Y) {
-        var_r31->unk20.x -= HuPadStkY[0] / 100.0f;
-        var_r31->unk20.y += HuPadStkX[0] / 100.0f;
-        if (var_r31->unk20.x < 0.0f) {
-            var_r31->unk20.x += 360.0f;
+        cameraState->cameraRotation.x -= HuPadStkY[0] / 100.0f;
+        cameraState->cameraRotation.y += HuPadStkX[0] / 100.0f;
+        if (cameraState->cameraRotation.x < 0.0f) {
+            cameraState->cameraRotation.x += 360.0f;
         }
-        if (var_r31->unk20.x >= 360.0f) {
-            var_r31->unk20.x -= 360.0f;
+        if (cameraState->cameraRotation.x >= 360.0f) {
+            cameraState->cameraRotation.x -= 360.0f;
         }
-        if (var_r31->unk20.y < 0.0f) {
-            var_r31->unk20.y += 360.0f;
+        if (cameraState->cameraRotation.y < 0.0f) {
+            cameraState->cameraRotation.y += 360.0f;
         }
-        if (var_r31->unk20.y >= 360.0f) {
-            var_r31->unk20.y -= 360.0f;
+        if (cameraState->cameraRotation.y >= 360.0f) {
+            cameraState->cameraRotation.y -= 360.0f;
         }
     }
     if (HuPadBtn[0] & PAD_BUTTON_X) {
-        var_r31->unk38 -= HuPadStkY[0] / 10.0f;
+        cameraState->cameraZoom -= HuPadStkY[0] / 10.0f;
     }
-    print8(24, 40, 1.5f, "CENTER : %.2f, %.2f, %.2f", var_r31->unk08.x, var_r31->unk08.y, var_r31->unk08.z);
-    print8(24, 55, 1.5f, "ROT    : %.2f, %.2f, %.2f", var_r31->unk20.x, var_r31->unk20.y, var_r31->unk20.z);
-    print8(24, 70, 1.5f, "ZOOM   : %.2f", var_r31->unk38);
+    print8(24, 40, 1.5f, "CENTER : %.2f, %.2f, %.2f", cameraState->cameraCenter.x, cameraState->cameraCenter.y, cameraState->cameraCenter.z);
+    print8(24, 55, 1.5f, "ROT    : %.2f, %.2f, %.2f", cameraState->cameraRotation.x, cameraState->cameraRotation.y, cameraState->cameraRotation.z);
+    print8(24, 70, 1.5f, "ZOOM   : %.2f", cameraState->cameraZoom);
 }
 
-void fn_1_2750(void (*arg0)(void)) {
-    lbl_1_bss_24.unk00 = arg0;
+Void SetCameraUpdateCallback(Void (*callback)(Void)) {
+    storyCameraState.cameraUpdateCallback = callback;
 }
 
-void fn_1_2760(void (*arg0)(void)) {
-    lbl_1_bss_24.unk04 = arg0;
+Void SetCameraResetCallback(Void (*callback)(Void)) {
+    storyCameraState.cameraResetCallback = callback;
 }
 
-void fn_1_2770(OMOBJ* arg0) {
-    StructBss24* var_r31;
+Void ApplyStoryCamera(OMOBJ* object) {
+    StoryCameraMotionState* cameraState;
 
-    var_r31 = &lbl_1_bss_24;
-    if (var_r31->unk00 != NULL) {
-        var_r31->unk00();
+    cameraState = &storyCameraState;
+    if (cameraState->cameraUpdateCallback != NULL) {
+        cameraState->cameraUpdateCallback();
     }
-    Center.x = var_r31->unk08.x;
-    Center.y = var_r31->unk08.y;
-    Center.z = var_r31->unk08.z;
-    CRot.x = var_r31->unk20.x;
-    CRot.y = var_r31->unk20.y;
-    CRot.z = var_r31->unk20.z;
-    CZoom = var_r31->unk38;
+    Center.x = cameraState->cameraCenter.x;
+    Center.y = cameraState->cameraCenter.y;
+    Center.z = cameraState->cameraCenter.z;
+    CRot.x = cameraState->cameraRotation.x;
+    CRot.y = cameraState->cameraRotation.y;
+    CRot.z = cameraState->cameraRotation.z;
+    CZoom = cameraState->cameraZoom;
 }
 
-void fn_1_2828(HUPROCESS* arg0, void (*arg1)(void)) {
+Void InitializeStoryCamera(HUPROCESS* parentProcess, Void (*cameraUpdateCallback)(Void)) {
     Hu3DCameraCreate(1);
     Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 42.0f, 0.1f, 10000.0f, 1.2f);
-    lbl_1_bss_24.unk00 = arg1;
-    lbl_1_bss_24.unk04 = fn_1_2390;
-    omAddObjEx(arg0, 0x7FDA, 0, 0, -1, omOutView);
-    omAddObjEx(arg0, 0x7FD9, 0, 0, -1, fn_1_2770);
+    storyCameraState.cameraUpdateCallback = cameraUpdateCallback;
+    storyCameraState.cameraResetCallback = UpdateDebugCamera;
+    omAddObjEx(parentProcess, 0x7FDA, 0, 0, -1, omOutView);
+    omAddObjEx(parentProcess, 0x7FD9, 0, 0, -1, ApplyStoryCamera);
 }
 
-void fn_1_2948(OMOBJ* arg0, s32 arg1, Vec arg2, float arg3, float arg4, float arg5) {
-    Vec sp4C;
-    Vec sp40;
-    Vec sp34;
-    Vec sp28;
-    float sp24;
-    float sp20;
-    float sp1C;
-    s32 sp18;
-    s32 sp14;
-    float var_f31;
+Void MoveModelWithJump(OMOBJ* object, s32 modelSlot, Vec targetPosition, float rotationDegrees, float initialWaitFrames, float landingWaitFrames) {
+    Vec movingPosition;
+    Vec currentPosition;
+    Vec targetPosition;
+    Vec modelRotation;
+    float unreferencedLocal24;
+    float unreferencedLocal20;
+    float unreferencedLocal1C;
+    s32 unreferencedLocal18;
+    s32 unreferencedLocal14;
+    float verticalVelocity;
 
-    sp40.x = Hu3DData[arg0->mdlId[arg1]].pos.x;
-    sp4C.y = sp40.y = Hu3DData[arg0->mdlId[arg1]].pos.y;
-    sp40.z = Hu3DData[arg0->mdlId[arg1]].pos.z;
-    sp34.x = arg2.x;
-    sp34.y = arg2.y;
-    sp34.z = arg2.z;
-    sp18 = arg4;
-    sp28.x = Hu3DData[arg0->mdlId[arg1]].rot.x;
-    sp28.y = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    sp28.z = Hu3DData[arg0->mdlId[arg1]].rot.z;
-    sp1C = 0.0f;
-    sp20 = arg3;
-    sp24 = 0.0f;
-    sp14 = arg5;
-    var_f31 = -1.1025f;
-    Hu3DMotionShiftSet(arg0->mdlId[1], arg0->mtnId[3], 0.0f, 5.0f, 0U);
-    arg0->work[0] = arg0->work[1] = arg0->work[2] = 0;
+    currentPosition.x = Hu3DData[object->mdlId[modelSlot]].pos.x;
+    movingPosition.y = currentPosition.y = Hu3DData[object->mdlId[modelSlot]].pos.y;
+    currentPosition.z = Hu3DData[object->mdlId[modelSlot]].pos.z;
+    targetPosition.x = targetPosition.x;
+    targetPosition.y = targetPosition.y;
+    targetPosition.z = targetPosition.z;
+    unreferencedLocal18 = initialWaitFrames;
+    modelRotation.x = Hu3DData[object->mdlId[modelSlot]].rot.x;
+    modelRotation.y = Hu3DData[object->mdlId[modelSlot]].rot.y;
+    modelRotation.z = Hu3DData[object->mdlId[modelSlot]].rot.z;
+    unreferencedLocal1C = 0.0f;
+    unreferencedLocal20 = rotationDegrees;
+    unreferencedLocal24 = 0.0f;
+    unreferencedLocal14 = landingWaitFrames;
+    verticalVelocity = -1.1025f;
+    Hu3DMotionShiftSet(object->mdlId[1], object->mtnId[3], 0.0f, 5.0f, 0U);
+    object->work[0] = object->work[1] = object->work[2] = 0;
     HuPrcSleep(10);
     while (TRUE) {
-        if (var_f31 >= 1.7f) {
-            var_f31 = 1.7f;
+        if (verticalVelocity >= 1.7f) {
+            verticalVelocity = 1.7f;
         }
-        sp4C.y += var_f31 * var_f31 * (var_f31 >= 0.0f ? -17.5f : 17.5f);
-        if (sp4C.y <= 0.0f && var_f31 > 0.0f) {
-            sp4C.y = 0.0f;
+        movingPosition.y += verticalVelocity * verticalVelocity * (verticalVelocity >= 0.0f ? -17.5f : 17.5f);
+        if (movingPosition.y <= 0.0f && verticalVelocity > 0.0f) {
+            movingPosition.y = 0.0f;
         }
-        sp4C.x = sp40.x += 6.0 * sind(sp28.y);
-        sp4C.z = sp40.z += 6.0 * cosd(sp28.y);
-        Hu3DModelPosSet(arg0->mdlId[1], sp4C.x, sp4C.y, sp4C.z);
-        Hu3DModelRotSet(arg0->mdlId[1], sp28.x, sp28.y, sp28.z);
+        movingPosition.x = currentPosition.x += 6.0 * sind(modelRotation.y);
+        movingPosition.z = currentPosition.z += 6.0 * cosd(modelRotation.y);
+        Hu3DModelPosSet(object->mdlId[1], movingPosition.x, movingPosition.y, movingPosition.z);
+        Hu3DModelRotSet(object->mdlId[1], modelRotation.x, modelRotation.y, modelRotation.z);
         HuPrcVSleep();
-        if (sp4C.y <= arg2.y && var_f31 > 0.0f) {
+        if (movingPosition.y <= targetPosition.y && verticalVelocity > 0.0f) {
             break;
         }
-        var_f31 += 0.11f;
+        verticalVelocity += 0.11f;
     }
 }
 
-void fn_1_2D00(OMOBJ* arg0, s32 arg1, Vec arg2, float arg3, float arg4, float arg5) {
-    Vec sp54;
-    Vec sp48;
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
-    Vec sp18;
-    s32 sp14;
-    s32 temp_r27;
-    s32 var_r26;
-    s32 var_r25;
-    s32 var_r24;
-    s32 var_r23;
+Void MoveModelToPosition(OMOBJ* object, s32 modelSlot, Vec targetPosition, float rotationDegrees, float rotationDuration, float finalDuration) {
+    Vec movingPosition;
+    Vec currentPosition;
+    Vec targetPosition;
+    Vec targetHeading;
+    Vec modelRotation;
+    Vec targetRotation;
+    s32 unreferencedLocal14;
+    s32 rotationDuration;
+    s32 reachedTargetX;
+    s32 reachedTargetZ;
+    s32 movingTowardTargetX;
+    s32 movingTowardTargetZ;
     s32 i;
 
-    var_r26 = 0;
-    var_r25 = 0;
-    sp48.x = Hu3DData[arg0->mdlId[arg1]].pos.x;
-    sp48.y = Hu3DData[arg0->mdlId[arg1]].pos.y;
-    sp48.z = Hu3DData[arg0->mdlId[arg1]].pos.z;
-    sp3C.x = arg2.x;
-    sp3C.y = arg2.y;
-    sp3C.z = arg2.z;
-    sp14 = arg4;
-    sp24.x = Hu3DData[arg0->mdlId[arg1]].rot.x;
-    sp24.y = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    sp24.z = Hu3DData[arg0->mdlId[arg1]].rot.z;
-    sp18.x = 0.0f;
-    sp18.y = arg3;
-    sp18.z = 0.0f;
-    if (sp3C.x - sp48.x >= 0.0f) {
-        var_r24 = 1;
+    reachedTargetX = 0;
+    reachedTargetZ = 0;
+    currentPosition.x = Hu3DData[object->mdlId[modelSlot]].pos.x;
+    currentPosition.y = Hu3DData[object->mdlId[modelSlot]].pos.y;
+    currentPosition.z = Hu3DData[object->mdlId[modelSlot]].pos.z;
+    targetPosition.x = targetPosition.x;
+    targetPosition.y = targetPosition.y;
+    targetPosition.z = targetPosition.z;
+    unreferencedLocal14 = rotationDuration;
+    modelRotation.x = Hu3DData[object->mdlId[modelSlot]].rot.x;
+    modelRotation.y = Hu3DData[object->mdlId[modelSlot]].rot.y;
+    modelRotation.z = Hu3DData[object->mdlId[modelSlot]].rot.z;
+    targetRotation.x = 0.0f;
+    targetRotation.y = rotationDegrees;
+    targetRotation.z = 0.0f;
+    if (targetPosition.x - currentPosition.x >= 0.0f) {
+        movingTowardTargetX = 1;
     } else {
-        var_r24 = 0;
+        movingTowardTargetX = 0;
     }
-    if (sp3C.z - sp48.z >= 0.0f) {
-        var_r23 = 1;
+    if (targetPosition.z - currentPosition.z >= 0.0f) {
+        movingTowardTargetZ = 1;
     } else {
-        var_r23 = 0;
+        movingTowardTargetZ = 0;
     }
-    temp_r27 = arg5;
+    rotationDuration = finalDuration;
     do {
-        sp30.y = -(atan2d(sp3C.z - sp48.z, sp3C.x - sp48.x) - 90.0);
-        if (sp30.y < 0.0f) {
-            sp30.y += 360.0f;
-        } else if (sp30.y >= 360.0f) {
-            sp30.y -= 360.0f;
+        targetHeading.y = -(atan2d(targetPosition.z - currentPosition.z, targetPosition.x - currentPosition.x) - 90.0);
+        if (targetHeading.y < 0.0f) {
+            targetHeading.y += 360.0f;
+        } else if (targetHeading.y >= 360.0f) {
+            targetHeading.y -= 360.0f;
         }
-        if (sp30.y >= 180.0f) {
-            if (sp24.y - sp30.y >= 180.0f) {
-                sp24.y -= 360.0f;
+        if (targetHeading.y >= 180.0f) {
+            if (modelRotation.y - targetHeading.y >= 180.0f) {
+                modelRotation.y -= 360.0f;
             }
-            if (sp24.y - sp30.y < -180.0f) {
-                sp24.y += 360.0f;
+            if (modelRotation.y - targetHeading.y < -180.0f) {
+                modelRotation.y += 360.0f;
             }
         } else {
-            if (sp24.y - sp30.y > 180.0f) {
-                sp24.y -= 360.0f;
+            if (modelRotation.y - targetHeading.y > 180.0f) {
+                modelRotation.y -= 360.0f;
             }
-            if (sp24.y - sp30.y <= -180.0f) {
-                sp24.y += 360.0f;
+            if (modelRotation.y - targetHeading.y <= -180.0f) {
+                modelRotation.y += 360.0f;
             }
         }
-        sp54.x = sp48.x += 6.0 * sind(sp30.y);
-        sp54.z = sp48.z += 6.0 * cosd(sp30.y);
-        if (var_r24 != 0) {
-            if (sp48.x >= sp3C.x) {
-                sp54.x = sp48.x = sp3C.x;
-                var_r26 = 1;
+        movingPosition.x = currentPosition.x += 6.0 * sind(targetHeading.y);
+        movingPosition.z = currentPosition.z += 6.0 * cosd(targetHeading.y);
+        if (movingTowardTargetX != 0) {
+            if (currentPosition.x >= targetPosition.x) {
+                movingPosition.x = currentPosition.x = targetPosition.x;
+                reachedTargetX = 1;
             }
         } else {
-            if (sp48.x <= sp3C.x) {
-                sp54.x = sp48.x = sp3C.x;
-                var_r26 = 1;
+            if (currentPosition.x <= targetPosition.x) {
+                movingPosition.x = currentPosition.x = targetPosition.x;
+                reachedTargetX = 1;
             }
         }
-        if (var_r23 != 0) {
-            if (sp48.z >= sp3C.z) {
-                sp54.z = sp48.z = sp3C.z;
-                var_r25 = 1;
+        if (movingTowardTargetZ != 0) {
+            if (currentPosition.z >= targetPosition.z) {
+                movingPosition.z = currentPosition.z = targetPosition.z;
+                reachedTargetZ = 1;
             }
         } else {
-            if (sp48.z <= sp3C.z) {
-                sp54.z = sp48.z = sp3C.z;
-                var_r25 = 1;
+            if (currentPosition.z <= targetPosition.z) {
+                movingPosition.z = currentPosition.z = targetPosition.z;
+                reachedTargetZ = 1;
             }
         }
-        sp24.y = fn_1_88C(sp24.y, sp30.y, 10.0f);
-        Hu3DModelPosSet(arg0->mdlId[1], sp54.x, sp48.y, sp54.z);
-        Hu3DModelRotSet(arg0->mdlId[1], sp24.x, sp24.y, sp24.z);
+        modelRotation.y = InterpolateWeightedAverage(modelRotation.y, targetHeading.y, 10.0f);
+        Hu3DModelPosSet(object->mdlId[1], movingPosition.x, currentPosition.y, movingPosition.z);
+        Hu3DModelRotSet(object->mdlId[1], modelRotation.x, modelRotation.y, modelRotation.z);
         HuPrcVSleep();
-    } while (var_r25 != 1 || var_r26 != 1);
-    sp24.y = Hu3DData[arg0->mdlId[arg1]].rot.y;
-    for (i = 0; i <= temp_r27; i++) {
-        if (sp18.y >= 180.0f) {
-            if (sp24.y - sp18.y >= 180.0f) {
-                sp24.y -= 360.0f;
+    } while (reachedTargetZ != 1 || reachedTargetX != 1);
+    modelRotation.y = Hu3DData[object->mdlId[modelSlot]].rot.y;
+    for (i = 0; i <= rotationDuration; i++) {
+        if (targetRotation.y >= 180.0f) {
+            if (modelRotation.y - targetRotation.y >= 180.0f) {
+                modelRotation.y -= 360.0f;
             }
-            if (sp24.y - sp18.y < -180.0f) {
-                sp24.y += 360.0f;
+            if (modelRotation.y - targetRotation.y < -180.0f) {
+                modelRotation.y += 360.0f;
             }
         } else {
-            if (sp24.y - sp18.y > 180.0f) {
-                sp24.y -= 360.0f;
+            if (modelRotation.y - targetRotation.y > 180.0f) {
+                modelRotation.y -= 360.0f;
             }
-            if (sp24.y - sp18.y <= -180.0f) {
-                sp24.y += 360.0f;
+            if (modelRotation.y - targetRotation.y <= -180.0f) {
+                modelRotation.y += 360.0f;
             }
         }
-        sp24.y = fn_1_864(sp24.y, sp18.y, i, temp_r27);
-        Hu3DModelRotSet(arg0->mdlId[1], sp24.x, sp24.y, sp24.z);
+        modelRotation.y = InterpolateLinear(modelRotation.y, targetRotation.y, i, rotationDuration);
+        Hu3DModelRotSet(object->mdlId[1], modelRotation.x, modelRotation.y, modelRotation.z);
         HuPrcVSleep();
     }
 }
 
-void fn_1_34F4(s16 arg0) {
-    HU3DMODEL* var_r28;
-    HSFDATA* temp_r30;
-    HSFMATERIAL* var_r31;
-    s16 var_r27;
+Void SetModelMaterialsWhite(s16 modelId) {
+    HU3DMODEL* model;
+    HSFDATA* modelData;
+    HSFMATERIAL* material;
+    s16 materialCount;
     s32 i;
 
-    var_r28 = &Hu3DData[arg0];
-    temp_r30 = var_r28->hsf;
-    var_r27 = temp_r30->materialNum;
-    var_r31 = temp_r30->material;
-    for (i = 0; i < var_r27; var_r31++, i++) {
-        var_r31->vtxMode = 1;
-        var_r31->litColor[0] = 0xFF;
-        var_r31->litColor[1] = 0xFF;
-        var_r31->litColor[2] = 0xFF;
+    model = &Hu3DData[modelId];
+    modelData = model->hsf;
+    materialCount = modelData->materialNum;
+    material = modelData->material;
+    for (i = 0; i < materialCount; material++, i++) {
+        material->vtxMode = 1;
+        material->litColor[0] = 0xFF;
+        material->litColor[1] = 0xFF;
+        material->litColor[2] = 0xFF;
     }
 }
 
-void fn_1_357C(StructFn357C* arg0, s32 arg1) {
-    arg0->unk00 = arg1;
-    arg0->unk04 = GWPlayerCfg[arg0->unk00].group;
-    arg0->unk08 = GWPlayerCfg[arg0->unk00].iscom;
-    arg0->unk0C = GWPlayerCfg[arg0->unk00].diff;
-    arg0->unk10 = GWPlayerCfg[arg0->unk00].character;
-    arg0->unk14 = GWPlayerCfg[arg0->unk00].pad_idx;
+Void ReadStoryPlayerConfig(StoryPlayerConfig* playerConfig, s32 playerIndex) {
+    playerConfig->playerIndex = playerIndex;
+    playerConfig->group = GWPlayerCfg[playerConfig->playerIndex].group;
+    playerConfig->isComputer = GWPlayerCfg[playerConfig->playerIndex].iscom;
+    playerConfig->difficulty = GWPlayerCfg[playerConfig->playerIndex].diff;
+    playerConfig->characterId = GWPlayerCfg[playerConfig->playerIndex].character;
+    playerConfig->padIndex = GWPlayerCfg[playerConfig->playerIndex].pad_idx;
 }
 
-s32 fn_1_3610(void) {
+s32 FindFirstHumanPlayer(Void) {
     s32 i;
 
     for (i = 0; i < 4; i++) {
@@ -796,347 +796,347 @@ s32 fn_1_3610(void) {
     return i;
 }
 
-s32 fn_1_3668(s32 arg0) {
-    s32 temp_r3 = 0;
+s32 CreateStoryDirectionalLight(s32 lightIntensity) {
+    s32 lightId = 0;
 
-    temp_r3 = Hu3DGLightCreate(0.0f, 700.0f, 1200.0f, 0.0f, -1.0f, 0.0f, arg0, arg0, arg0);
-    Hu3DGLightPosAimSet(temp_r3, 0.0f, 700.0f, 1200.0f, 0.0f, 0.0f, 640.0f);
-    Hu3DGLightInfinitytSet(temp_r3);
-    return temp_r3;
+    lightId = Hu3DGLightCreate(0.0f, 700.0f, 1200.0f, 0.0f, -1.0f, 0.0f, lightIntensity, lightIntensity, lightIntensity);
+    Hu3DGLightPosAimSet(lightId, 0.0f, 700.0f, 1200.0f, 0.0f, 0.0f, 640.0f);
+    Hu3DGLightInfinitytSet(lightId);
+    return lightId;
 }
 
-void fn_1_3754(void) {
-    Vec sp20 = { 0.0f, 3000.0f, 800.0f };
-    Vec sp14 = { 0.0f, 0.0f, 640.0f };
-    Vec sp8 = { 0.0f, 1.0f, 0.0f };
+Void CreateStoryShadow(Void) {
+    Vec shadowPosition = { 0.0f, 3000.0f, 800.0f };
+    Vec shadowTarget = { 0.0f, 0.0f, 640.0f };
+    Vec shadowUp = { 0.0f, 1.0f, 0.0f };
 
     Hu3DShadowCreate(45.0f, 2000.0f, 25000.0f);
     Hu3DShadowTPLvlSet(0.8f);
-    Hu3DShadowPosSet(&sp20, &sp8, &sp14);
+    Hu3DShadowPosSet(&shadowPosition, &shadowUp, &shadowTarget);
 }
 
-void fn_1_3818(StructBss24* arg0) {
-    arg0->unk08.x = arg0->unk14;
-    arg0->unk08.y = arg0->unk18;
-    arg0->unk08.z = arg0->unk1C;
-    arg0->unk20.x = arg0->unk2C;
-    arg0->unk20.y = arg0->unk30;
-    arg0->unk20.z = arg0->unk34;
-    arg0->unk38 = arg0->unk3C;
+Void ApplyCameraMotionTargets(StoryCameraMotionState* cameraState) {
+    cameraState->cameraCenter.x = cameraState->startCenterX;
+    cameraState->cameraCenter.y = cameraState->startCenterY;
+    cameraState->cameraCenter.z = cameraState->startCenterZ;
+    cameraState->cameraRotation.x = cameraState->startRotationX;
+    cameraState->cameraRotation.y = cameraState->startRotationY;
+    cameraState->cameraRotation.z = cameraState->startRotationZ;
+    cameraState->cameraZoom = cameraState->startZoom;
 }
 
-void fn_1_3854(StructBss24* arg0) {
-    arg0->unk40 = 0;
-    arg0->unk14 = arg0->unk08.x;
-    arg0->unk18 = arg0->unk08.y;
-    arg0->unk1C = arg0->unk08.z;
-    arg0->unk2C = arg0->unk20.x;
-    arg0->unk30 = arg0->unk20.y;
-    arg0->unk34 = arg0->unk20.z;
-    arg0->unk3C = arg0->unk38;
+Void CaptureCameraMotionStart(StoryCameraMotionState* cameraState) {
+    cameraState->animationFrame = 0;
+    cameraState->startCenterX = cameraState->cameraCenter.x;
+    cameraState->startCenterY = cameraState->cameraCenter.y;
+    cameraState->startCenterZ = cameraState->cameraCenter.z;
+    cameraState->startRotationX = cameraState->cameraRotation.x;
+    cameraState->startRotationY = cameraState->cameraRotation.y;
+    cameraState->startRotationZ = cameraState->cameraRotation.z;
+    cameraState->startZoom = cameraState->cameraZoom;
 }
 
-void fn_1_3898(StructBss24* arg0, StructBss24* arg1, float arg3) {
-    arg0->unk08.x = fn_1_88C(arg0->unk08.x, arg1->unk14, arg3);
-    arg0->unk08.y = fn_1_88C(arg0->unk08.y, arg1->unk18, arg3);
-    arg0->unk08.z = fn_1_88C(arg0->unk08.z, arg1->unk1C, arg3);
-    arg0->unk20.x = fn_1_88C(arg0->unk20.x, arg1->unk2C, arg3);
-    arg0->unk20.y = fn_1_88C(arg0->unk20.y, arg1->unk30, arg3);
-    arg0->unk20.z = fn_1_88C(arg0->unk20.z, arg1->unk34, arg3);
-    arg0->unk38 = fn_1_88C(arg0->unk38, arg1->unk3C, arg3);
+Void EaseCameraMotionWeighted(StoryCameraMotionState* cameraState, StoryCameraMotionState* targetCameraState, float smoothingFactor) {
+    cameraState->cameraCenter.x = InterpolateWeightedAverage(cameraState->cameraCenter.x, targetCameraState->startCenterX, smoothingFactor);
+    cameraState->cameraCenter.y = InterpolateWeightedAverage(cameraState->cameraCenter.y, targetCameraState->startCenterY, smoothingFactor);
+    cameraState->cameraCenter.z = InterpolateWeightedAverage(cameraState->cameraCenter.z, targetCameraState->startCenterZ, smoothingFactor);
+    cameraState->cameraRotation.x = InterpolateWeightedAverage(cameraState->cameraRotation.x, targetCameraState->startRotationX, smoothingFactor);
+    cameraState->cameraRotation.y = InterpolateWeightedAverage(cameraState->cameraRotation.y, targetCameraState->startRotationY, smoothingFactor);
+    cameraState->cameraRotation.z = InterpolateWeightedAverage(cameraState->cameraRotation.z, targetCameraState->startRotationZ, smoothingFactor);
+    cameraState->cameraZoom = InterpolateWeightedAverage(cameraState->cameraZoom, targetCameraState->startZoom, smoothingFactor);
 }
 
-void fn_1_3B04(StructBss24* arg0, float arg1) {
-    fn_1_3898(arg0, arg0, arg1);
+Void EaseCameraMotionInPlace(StoryCameraMotionState* cameraState, float smoothingFrames) {
+    EaseCameraMotionWeighted(cameraState, cameraState, smoothingFrames);
 }
 
-void fn_1_3D70(StructBss24* arg0, StructBss24* arg1, float arg2, float arg3) {
-    arg1->unk14 = fn_1_864(arg0->unk14, arg1->unk08.x, arg2, arg3);
-    arg1->unk18 = fn_1_864(arg0->unk18, arg1->unk08.y, arg2, arg3);
-    arg1->unk1C = fn_1_864(arg0->unk1C, arg1->unk08.z, arg2, arg3);
-    arg1->unk2C = fn_1_864(arg0->unk2C, arg1->unk20.x, arg2, arg3);
-    arg1->unk30 = fn_1_864(arg0->unk30, arg1->unk20.y, arg2, arg3);
-    arg1->unk34 = fn_1_864(arg0->unk34, arg1->unk20.z, arg2, arg3);
-    arg1->unk3C = fn_1_864(arg0->unk3C, arg1->unk38, arg2, arg3);
+Void InterpolateCameraMotionLinear(StoryCameraMotionState* sourceCameraState, StoryCameraMotionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    targetCameraState->startCenterX = InterpolateLinear(sourceCameraState->startCenterX, targetCameraState->cameraCenter.x, elapsedFrames, durationFrames);
+    targetCameraState->startCenterY = InterpolateLinear(sourceCameraState->startCenterY, targetCameraState->cameraCenter.y, elapsedFrames, durationFrames);
+    targetCameraState->startCenterZ = InterpolateLinear(sourceCameraState->startCenterZ, targetCameraState->cameraCenter.z, elapsedFrames, durationFrames);
+    targetCameraState->startRotationX = InterpolateLinear(sourceCameraState->startRotationX, targetCameraState->cameraRotation.x, elapsedFrames, durationFrames);
+    targetCameraState->startRotationY = InterpolateLinear(sourceCameraState->startRotationY, targetCameraState->cameraRotation.y, elapsedFrames, durationFrames);
+    targetCameraState->startRotationZ = InterpolateLinear(sourceCameraState->startRotationZ, targetCameraState->cameraRotation.z, elapsedFrames, durationFrames);
+    targetCameraState->startZoom = InterpolateLinear(sourceCameraState->startZoom, targetCameraState->cameraZoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_3FEC(StructBss24* arg0, StructBss24* arg1, float arg2, float arg3) {
-    fn_1_3D70(arg0, arg1, arg2, arg3);
-    arg0->unk08.x = arg1->unk14;
-    arg0->unk08.y = arg1->unk18;
-    arg0->unk08.z = arg1->unk1C;
-    arg0->unk20.x = arg1->unk2C;
-    arg0->unk20.y = arg1->unk30;
-    arg0->unk20.z = arg1->unk34;
-    arg0->unk38 = arg1->unk3C;
+Void UpdateCameraMotionLinear(StoryCameraMotionState* sourceCameraState, StoryCameraMotionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    InterpolateCameraMotionLinear(sourceCameraState, targetCameraState, elapsedFrames, durationFrames);
+    sourceCameraState->cameraCenter.x = targetCameraState->startCenterX;
+    sourceCameraState->cameraCenter.y = targetCameraState->startCenterY;
+    sourceCameraState->cameraCenter.z = targetCameraState->startCenterZ;
+    sourceCameraState->cameraRotation.x = targetCameraState->startRotationX;
+    sourceCameraState->cameraRotation.y = targetCameraState->startRotationY;
+    sourceCameraState->cameraRotation.z = targetCameraState->startRotationZ;
+    sourceCameraState->cameraZoom = targetCameraState->startZoom;
 }
 
-void fn_1_42A0(StructBss24* arg0, StructBss24* arg1, float arg2, float arg3, float arg4) {
-    fn_1_3D70(arg0, arg1, arg2, arg3);
-    fn_1_3898(arg0, arg1, arg4);
+Void EaseCameraMotionLinear(StoryCameraMotionState* sourceCameraState, StoryCameraMotionState* targetCameraState, float elapsedFrames, float durationFrames, float smoothingFrames) {
+    InterpolateCameraMotionLinear(sourceCameraState, targetCameraState, elapsedFrames, durationFrames);
+    EaseCameraMotionWeighted(sourceCameraState, targetCameraState, smoothingFrames);
 }
 
-void fn_1_470C(StructBss24* arg0, StructBss24* arg1, float arg2, float arg3) {
-    arg1->unk14 = fn_1_984(arg0->unk14, arg1->unk08.x, arg2, arg3);
-    arg1->unk18 = fn_1_984(arg0->unk18, arg1->unk08.y, arg2, arg3);
-    arg1->unk1C = fn_1_984(arg0->unk1C, arg1->unk08.z, arg2, arg3);
-    arg1->unk2C = fn_1_984(arg0->unk2C, arg1->unk20.x, arg2, arg3);
-    arg1->unk30 = fn_1_984(arg0->unk30, arg1->unk20.y, arg2, arg3);
-    arg1->unk34 = fn_1_984(arg0->unk34, arg1->unk20.z, arg2, arg3);
-    arg1->unk3C = fn_1_984(arg0->unk3C, arg1->unk38, arg2, arg3);
+Void InterpolateCameraMotionSineIn(StoryCameraMotionState* sourceCameraState, StoryCameraMotionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    targetCameraState->startCenterX = InterpolateSineEaseIn(sourceCameraState->startCenterX, targetCameraState->cameraCenter.x, elapsedFrames, durationFrames);
+    targetCameraState->startCenterY = InterpolateSineEaseIn(sourceCameraState->startCenterY, targetCameraState->cameraCenter.y, elapsedFrames, durationFrames);
+    targetCameraState->startCenterZ = InterpolateSineEaseIn(sourceCameraState->startCenterZ, targetCameraState->cameraCenter.z, elapsedFrames, durationFrames);
+    targetCameraState->startRotationX = InterpolateSineEaseIn(sourceCameraState->startRotationX, targetCameraState->cameraRotation.x, elapsedFrames, durationFrames);
+    targetCameraState->startRotationY = InterpolateSineEaseIn(sourceCameraState->startRotationY, targetCameraState->cameraRotation.y, elapsedFrames, durationFrames);
+    targetCameraState->startRotationZ = InterpolateSineEaseIn(sourceCameraState->startRotationZ, targetCameraState->cameraRotation.z, elapsedFrames, durationFrames);
+    targetCameraState->startZoom = InterpolateSineEaseIn(sourceCameraState->startZoom, targetCameraState->cameraZoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_4B60(StructBss24* arg0, StructBss24* arg1, float arg2, float arg3) {
-    fn_1_470C(arg0, arg1, arg2, arg3);
-    arg0->unk08.x = arg1->unk14;
-    arg0->unk08.y = arg1->unk18;
-    arg0->unk08.z = arg1->unk1C;
-    arg0->unk20.x = arg1->unk2C;
-    arg0->unk20.y = arg1->unk30;
-    arg0->unk20.z = arg1->unk34;
-    arg0->unk38 = arg1->unk3C;
+Void UpdateCameraMotionSineIn(StoryCameraMotionState* sourceCameraState, StoryCameraMotionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    InterpolateCameraMotionSineIn(sourceCameraState, targetCameraState, elapsedFrames, durationFrames);
+    sourceCameraState->cameraCenter.x = targetCameraState->startCenterX;
+    sourceCameraState->cameraCenter.y = targetCameraState->startCenterY;
+    sourceCameraState->cameraCenter.z = targetCameraState->startCenterZ;
+    sourceCameraState->cameraRotation.x = targetCameraState->startRotationX;
+    sourceCameraState->cameraRotation.y = targetCameraState->startRotationY;
+    sourceCameraState->cameraRotation.z = targetCameraState->startRotationZ;
+    sourceCameraState->cameraZoom = targetCameraState->startZoom;
 }
 
-void fn_1_4FEC(StructBss24* arg0, StructBss24* arg1, float arg2, float arg3, float arg4) {
-    fn_1_470C(arg0, arg1, arg2, arg3);
-    fn_1_3898(arg0, arg1, arg4);
+Void EaseCameraMotionSineIn(StoryCameraMotionState* sourceCameraState, StoryCameraMotionState* targetCameraState, float elapsedFrames, float durationFrames, float smoothingFrames) {
+    InterpolateCameraMotionSineIn(sourceCameraState, targetCameraState, elapsedFrames, durationFrames);
+    EaseCameraMotionWeighted(sourceCameraState, targetCameraState, smoothingFrames);
 }
 
-void fn_1_5644(StructBss24* arg0, StructBss24* arg1, float arg2, float arg3) {
-    arg1->unk14 = fn_1_8AC(arg0->unk14, arg1->unk08.x, arg2, arg3);
-    arg1->unk18 = fn_1_8AC(arg0->unk18, arg1->unk08.y, arg2, arg3);
-    arg1->unk1C = fn_1_8AC(arg0->unk1C, arg1->unk08.z, arg2, arg3);
-    arg1->unk2C = fn_1_8AC(arg0->unk2C, arg1->unk20.x, arg2, arg3);
-    arg1->unk30 = fn_1_8AC(arg0->unk30, arg1->unk20.y, arg2, arg3);
-    arg1->unk34 = fn_1_8AC(arg0->unk34, arg1->unk20.z, arg2, arg3);
-    arg1->unk3C = fn_1_8AC(arg0->unk3C, arg1->unk38, arg2, arg3);
+Void InterpolateCameraMotionCosine(StoryCameraMotionState* sourceCameraState, StoryCameraMotionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    targetCameraState->startCenterX = InterpolateCosineEaseOut(sourceCameraState->startCenterX, targetCameraState->cameraCenter.x, elapsedFrames, durationFrames);
+    targetCameraState->startCenterY = InterpolateCosineEaseOut(sourceCameraState->startCenterY, targetCameraState->cameraCenter.y, elapsedFrames, durationFrames);
+    targetCameraState->startCenterZ = InterpolateCosineEaseOut(sourceCameraState->startCenterZ, targetCameraState->cameraCenter.z, elapsedFrames, durationFrames);
+    targetCameraState->startRotationX = InterpolateCosineEaseOut(sourceCameraState->startRotationX, targetCameraState->cameraRotation.x, elapsedFrames, durationFrames);
+    targetCameraState->startRotationY = InterpolateCosineEaseOut(sourceCameraState->startRotationY, targetCameraState->cameraRotation.y, elapsedFrames, durationFrames);
+    targetCameraState->startRotationZ = InterpolateCosineEaseOut(sourceCameraState->startRotationZ, targetCameraState->cameraRotation.z, elapsedFrames, durationFrames);
+    targetCameraState->startZoom = InterpolateCosineEaseOut(sourceCameraState->startZoom, targetCameraState->cameraZoom, elapsedFrames, durationFrames);
 }
 
-void fn_1_5B08(StructBss24* arg0, StructBss24* arg1, float arg2, float arg3) {
-    fn_1_5644(arg0, arg1, arg2, arg3);
-    arg0->unk08.x = arg1->unk14;
-    arg0->unk08.y = arg1->unk18;
-    arg0->unk08.z = arg1->unk1C;
-    arg0->unk20.x = arg1->unk2C;
-    arg0->unk20.y = arg1->unk30;
-    arg0->unk20.z = arg1->unk34;
-    arg0->unk38 = arg1->unk3C;
+Void UpdateCameraMotionCosine(StoryCameraMotionState* sourceCameraState, StoryCameraMotionState* targetCameraState, float elapsedFrames, float durationFrames) {
+    InterpolateCameraMotionCosine(sourceCameraState, targetCameraState, elapsedFrames, durationFrames);
+    sourceCameraState->cameraCenter.x = targetCameraState->startCenterX;
+    sourceCameraState->cameraCenter.y = targetCameraState->startCenterY;
+    sourceCameraState->cameraCenter.z = targetCameraState->startCenterZ;
+    sourceCameraState->cameraRotation.x = targetCameraState->startRotationX;
+    sourceCameraState->cameraRotation.y = targetCameraState->startRotationY;
+    sourceCameraState->cameraRotation.z = targetCameraState->startRotationZ;
+    sourceCameraState->cameraZoom = targetCameraState->startZoom;
 }
 
-void fn_1_6004(StructBss24* arg0, StructBss24* arg1, float arg2, float arg3, float arg4) {
-    fn_1_5644(arg0, arg1, arg2, arg3);
-    fn_1_3898(arg0, arg1, arg4);
+Void EaseCameraMotionCosine(StoryCameraMotionState* sourceCameraState, StoryCameraMotionState* targetCameraState, float elapsedFrames, float durationFrames, float smoothingFrames) {
+    InterpolateCameraMotionCosine(sourceCameraState, targetCameraState, elapsedFrames, durationFrames);
+    EaseCameraMotionWeighted(sourceCameraState, targetCameraState, smoothingFrames);
 }
 
-int fn_1_66CC(int modelId)
+int GetModelMotionDuration(int modelId)
 {
     return Hu3DMotionMaxTimeGet(modelId);
 }
 
-void fn_1_6704(OMOBJ* arg0) {
-    s32 var_r30;
-    if(arg0->work[0] == 0) {
+Void UpdateObjectMotionTransition(OMOBJ* object) {
+    s32 motionIndex;
+    if(object->work[0] == 0) {
         return;
     }
-    if (arg0->work[2] != 0) {
-        arg0->work[2]--;
+    if (object->work[2] != 0) {
+        object->work[2]--;
         return;
     }
-    if (arg0->work[2] == 0 && Hu3DMotionEndCheck(arg0->mdlId[1])) {
-        var_r30 = arg0->work[1];
-        Hu3DMotionShiftSet(arg0->mdlId[1], arg0->mtnId[var_r30], 0.0f, 15.0f, 0x40000001U);
-        arg0->work[0] = arg0->work[1] = arg0->work[2] = 0;
-        arg0->work[0] = arg0->work[1] = arg0->work[2] = 0;
+    if (object->work[2] == 0 && Hu3DMotionEndCheck(object->mdlId[1])) {
+        motionIndex = object->work[1];
+        Hu3DMotionShiftSet(object->mdlId[1], object->mtnId[motionIndex], 0.0f, 15.0f, 0x40000001U);
+        object->work[0] = object->work[1] = object->work[2] = 0;
+        object->work[0] = object->work[1] = object->work[2] = 0;
     }
 }
 
-void fn_1_67D8(OMOBJ* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    fn_1_1DFC(arg0, 1, arg1, arg3, arg4);
-    if (arg4 == 0) {
-        arg0->work[0] = 1;
-        arg0->work[1] = arg2;
-        arg0->work[2] = arg3 + 1;
+Void SetObjectMotionTransition(OMOBJ* object, s32 motionSlot, s32 nextMotionSlot, s32 blendFrames, s32 motionFlags) {
+    ShiftObjectMotion(object, 1, motionSlot, blendFrames, motionFlags);
+    if (motionFlags == 0) {
+        object->work[0] = 1;
+        object->work[1] = nextMotionSlot;
+        object->work[2] = blendFrames + 1;
     }
 }
 
-void fn_1_6970(s32 arg0, s32 arg1) {
-    HuWinMesSet(arg0, arg1);
+Void SetWindowMessageDirect(s32 windowId, s32 messageId) {
+    HuWinMesSet(windowId, messageId);
 }
 
-void fn_1_69A4(s32 arg0, s32 arg1, s32 arg2) {
-    HuWinInsertMesSet(arg0, arg1, arg2);
+Void InsertWindowMessageDirect(s32 windowId, s32 messageId, s32 insertIndex) {
+    HuWinInsertMesSet(windowId, messageId, insertIndex);
 }
 
-void fn_1_69E4(s32 arg0, s32 arg1) {
-    fn_1_1AFC(arg0, arg1);
+Void WaitForWindowMessageDirect(s32 windowId, s32 delayFrames) {
+    WaitForWindowMessage(windowId, delayFrames);
 }
 
-void fn_1_6A90(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    s32 var_r27 = 0;
-    s32 var_r29 = 0;
-    s32 var_r23 = 0;
-    s32 var_r26;
+Void WaitForWindowMessageAndMotion(s32 windowId, s32 messageId, s32 highlightKeyIndex, s32 modelId, s32 nextMotionId) {
+    s32 keyMessageCount = 0;
+    s32 highlightState = 0;
+    s32 resetMessageAfterMotion = 0;
+    s32 motionWaitFrames;
     s32 i;
-    if(arg2 == -1) {
-        var_r23 = 1;
-        arg2 = 0;
+    if(highlightKeyIndex == -1) {
+        resetMessageAfterMotion = 1;
+        highlightKeyIndex = 0;
     }
-    HuWinMesSet(arg0, arg1);
-    var_r27 = HuWinKeyWaitNumGet(arg1);
-    if (arg2 == -1 || arg2 >= var_r27 - 1) {
-        arg2 = var_r27 - 1;
+    HuWinMesSet(windowId, messageId);
+    keyMessageCount = HuWinKeyWaitNumGet(messageId);
+    if (highlightKeyIndex == -1 || highlightKeyIndex >= keyMessageCount - 1) {
+        highlightKeyIndex = keyMessageCount - 1;
     }
     HuWinComKeyReset();
-    if (winData[arg0].active_pad == 0xF) {
+    if (winData[windowId].active_pad == 0xF) {
         for (i = 0; i < 10; i++) {
             HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, GWMessDelayGet());
         }
     }
-    HuWinMesSet(arg0, arg1);
-    for (i = 0; i < var_r27; i++) {
-        var_r29 = 0;
+    HuWinMesSet(windowId, messageId);
+    for (i = 0; i < keyMessageCount; i++) {
+        highlightState = 0;
         do {
             HuPrcVSleep();
-        } while (HuWinStatGet(arg0) != 1);
+        } while (HuWinStatGet(windowId) != 1);
 
-        if (i == arg2) {
-            HuWinAttrSet(arg0, 0x400);
-            var_r29 = 1;
+        if (i == highlightKeyIndex) {
+            HuWinAttrSet(windowId, 0x400);
+            highlightState = 1;
         }
         while (TRUE) {
             HuPrcVSleep();
-            if (var_r29 != 0) {
-                if (var_r29 == 1 && HuWinStatGet(arg0) != 1) {
-                    var_r29 = 2;
-                } else if (var_r29 == 2) {
-                    if(arg3 != -1) {
-                        if(arg4 != -1) {
+            if (highlightState != 0) {
+                if (highlightState == 1 && HuWinStatGet(windowId) != 1) {
+                    highlightState = 2;
+                } else if (highlightState == 2) {
+                    if(modelId != -1) {
+                        if(nextMotionId != -1) {
                             i=0;
                             do {
                                 HuPrcVSleep();
                                 if(i++ == 25) {
-                                    HuAudFXPlay(lbl_1_data_0[6][0]);
+                                    HuAudFXPlay(storyAudioCueIds[6][0]);
                                 }
-                            } while(!Hu3DMotionEndCheck(arg3));
-                            Hu3DMotionShiftSet(arg3, arg4, 0, 1, 0);
+                            } while(!Hu3DMotionEndCheck(modelId));
+                            Hu3DMotionShiftSet(modelId, nextMotionId, 0, 1, 0);
                             HuPrcSleep(15);
                         }
-                        var_r26 = fn_1_66CC(arg3)-15;
-                        if(var_r23 == 1) {
-                            for(i=0; i<var_r26; i++) {
+                        motionWaitFrames = GetModelMotionDuration(modelId)-15;
+                        if(resetMessageAfterMotion == 1) {
+                            for(i=0; i<motionWaitFrames; i++) {
                                 HuPrcVSleep();
                                 if(i == 25) {
-                                    HuAudFXPlay(lbl_1_data_0[6][0]);
+                                    HuAudFXPlay(storyAudioCueIds[6][0]);
                                 }
                             }
                         } else {
-                            if(var_r26 > 0) {
-                                HuPrcSleep(var_r26);
+                            if(motionWaitFrames > 0) {
+                                HuPrcSleep(motionWaitFrames);
                             }
                         }
                     } else {
                         HuPrcSleep(60);
                     }
-                    HuWinAttrReset(arg0, 0x400);
-                    HuWinKeyWaitEntry(arg0);
+                    HuWinAttrReset(windowId, 0x400);
+                    HuWinKeyWaitEntry(windowId);
                     break;
                 }
-            } else if (HuWinStatGet(arg0) != 1) {
+            } else if (HuWinStatGet(windowId) != 1) {
                 break;
             }
         }
     }
-    fn_1_1AFC(arg0, 0);
-    HuWinMesSet(arg0, MAKE_MESSID(37, 4));
+    WaitForWindowMessage(windowId, 0);
+    HuWinMesSet(windowId, MAKE_MESSID(37, 4));
     HuWinComKeyReset();
 }
 
-void fn_1_6D78(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+Void WaitForWindowMessageAndMotionSimple(s32 windowId, s32 messageId, s32 highlightKeyIndex, s32 modelId)
 {
-    fn_1_6A90(arg0, arg1, arg2, arg3, -1);
+    WaitForWindowMessageAndMotion(windowId, messageId, highlightKeyIndex, modelId, -1);
 }
 
-void fn_1_6DBC(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
-    s32 temp_r28 = 0;
-    s32 var_r29 = 0;
+Void WaitForWindowMessageDuration(s32 windowId, s32 messageId, s32 highlightKeyIndex, s32 delayFrames) {
+    s32 keyMessageCount = 0;
+    s32 highlightState = 0;
     s32 i;
     
-    HuWinMesSet(arg0, arg1);
-    temp_r28 = HuWinKeyWaitNumGet(arg1);
-    if (arg2 == -1 || arg2 >= temp_r28 - 1) {
-        arg2 = temp_r28 - 1;
+    HuWinMesSet(windowId, messageId);
+    keyMessageCount = HuWinKeyWaitNumGet(messageId);
+    if (highlightKeyIndex == -1 || highlightKeyIndex >= keyMessageCount - 1) {
+        highlightKeyIndex = keyMessageCount - 1;
     }
     HuWinComKeyReset();
-    if (winData[arg0].active_pad == 0xF) {
+    if (winData[windowId].active_pad == 0xF) {
         for (i = 0; i < 10; i++) {
             HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, GWMessDelayGet());
         }
     }
-    HuWinMesSet(arg0, arg1);
-    for (i = 0; i < temp_r28; i++) {
-        var_r29 = 0;
+    HuWinMesSet(windowId, messageId);
+    for (i = 0; i < keyMessageCount; i++) {
+        highlightState = 0;
         do {
             HuPrcVSleep();
-        } while (HuWinStatGet(arg0) != 1);
-        if (i == arg2) {
-            HuWinAttrSet(arg0, 0x400);
-            var_r29 = 1;
+        } while (HuWinStatGet(windowId) != 1);
+        if (i == highlightKeyIndex) {
+            HuWinAttrSet(windowId, 0x400);
+            highlightState = 1;
         }
         while (TRUE) {
             HuPrcVSleep();
-            if (var_r29 != 0) {
-                if (var_r29 == 1 && HuWinStatGet(arg0) != 1) {
-                    var_r29 = 2;
-                } else if (var_r29 == 2) {
-                    HuPrcSleep(arg3);
-                    HuWinAttrReset(arg0, 0x400);
-                    HuWinKeyWaitEntry(arg0);
+            if (highlightState != 0) {
+                if (highlightState == 1 && HuWinStatGet(windowId) != 1) {
+                    highlightState = 2;
+                } else if (highlightState == 2) {
+                    HuPrcSleep(delayFrames);
+                    HuWinAttrReset(windowId, 0x400);
+                    HuWinKeyWaitEntry(windowId);
                     break;
                 }
-            } else if (HuWinStatGet(arg0) != 1) {
+            } else if (HuWinStatGet(windowId) != 1) {
                 break;
             }
         }
     }
-    fn_1_1AFC(arg0, 0);
-    HuWinMesSet(arg0, MAKE_MESSID(37, 4));
+    WaitForWindowMessage(windowId, 0);
+    HuWinMesSet(windowId, MAKE_MESSID(37, 4));
     HuWinComKeyReset();
 }
 
-BOOL fn_1_6FB0(s32 arg0) {
-    return fn_1_1BA8(arg0, 0);
+BOOL GetWindowChoiceDefault(s32 windowId) {
+    return GetWindowChoice(windowId, 0);
 }
 
-s32 fn_1_7064(s32 arg0, s32 arg1) {
-    float spC[2];
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    s32 var_r31;
+s32 CreateAutoSizedMessageWindow(s32 messageId, s32 padPlayerIndex) {
+    float messageSize[2];
+    float windowWidth;
+    float windowHeight;
+    float windowLeft;
+    float windowTop;
+    s32 windowId;
 
-    HuWinMesMaxSizeGet(1, spC, arg0);
-    var_f31 = spC[0];
-    var_f30 = spC[1];
-    var_f29 = 550.0f - var_f31;
-    var_f28 = 430.0f - var_f30;
-    var_r31 = HuWinExCreateStyled(var_f29, var_f28, var_f31, var_f30, -1, 1);
-    if (arg1 != -1) {
-        arg1 = GWPlayerCfg[arg1].pad_idx;
-        winData[var_r31].active_pad = (1 << arg1);
+    HuWinMesMaxSizeGet(1, messageSize, messageId);
+    windowWidth = messageSize[0];
+    windowHeight = messageSize[1];
+    windowLeft = 550.0f - windowWidth;
+    windowTop = 430.0f - windowHeight;
+    windowId = HuWinExCreateStyled(windowLeft, windowTop, windowWidth, windowHeight, -1, 1);
+    if (padPlayerIndex != -1) {
+        padPlayerIndex = GWPlayerCfg[padPlayerIndex].pad_idx;
+        winData[windowId].active_pad = (1 << padPlayerIndex);
     } else {
-        winData[var_r31].active_pad = 0xF;
+        winData[windowId].active_pad = 0xF;
     }
-    HuWinMesPalSet(var_r31, 7, 0, 0, 0);
-    fn_1_C58(var_r31, 0.5f, 0.5f, 1);
-    return var_r31;
+    HuWinMesPalSet(windowId, 7, 0, 0, 0);
+    AnimateWindowSlide(windowId, 0.5f, 0.5f, 1);
+    return windowId;
 }
 
-void fn_1_71DC(s32 arg0) {
-    fn_1_1A34(arg0, 0.5f, 0.5f);
+Void CloseAutoSizedMessageWindow(s32 windowId) {
+    CloseMessageWindowAtAnchor(windowId, 0.5f, 0.5f);
 }
 
-char *lbl_1_data_308[8] = {
+char *characterModelNodeNames[8] = {
     "c000m1-ske_head",
     "c001m1-ske_head",
     "c002m1-ske_head",
@@ -1147,7 +1147,7 @@ char *lbl_1_data_308[8] = {
     "c007m1-ske_head"
 };
 
-s32 lbl_1_data_328[8][2] = {
+s32 characterMeshTransformFlags[8][2] = {
     0x200, 0,
     0x200, 0,
     0x200, 0,
@@ -1158,7 +1158,7 @@ s32 lbl_1_data_328[8][2] = {
     0x200, 0,
 };
 
-float lbl_1_data_368[8] = {
+float characterMeshOffsetValues[8] = {
     194,
     191,
     87.2,
@@ -1169,77 +1169,77 @@ float lbl_1_data_368[8] = {
     64.5
 };
 
-void fn_1_7244(s16 modelId, char *objName, u32 constFlags, float ofs)
+Void ApplyModelObjectTransform(s16 modelId, char *objectName, u32 constFlags, float offset)
 {
-    HSFOBJECT *obj = Hu3DModelObjPtrGet(modelId, objName);
+    HSFOBJECT *object = Hu3DModelObjPtrGet(modelId, objectName);
     HSFCONSTDATA *constData;
-    if(!obj->constData) {
-        constData = ObjConstantMake(obj, Hu3DData[modelId].mallocNo);
+    if(!object->constData) {
+        constData = ObjConstantMake(object, Hu3DData[modelId].mallocNo);
     } else {
-        constData = obj->constData;
+        constData = object->constData;
     }
     constData->attr |= constFlags;
     if(constFlags & 0x10) {
-        obj->mesh.curr.pos.x += ofs;
+        object->mesh.curr.pos.x += offset;
     }
     if(constFlags & 0x20) {
-        obj->mesh.curr.pos.y += ofs;
+        object->mesh.curr.pos.y += offset;
     }
     if(constFlags & 0x40) {
-        obj->mesh.curr.pos.z += ofs;
+        object->mesh.curr.pos.z += offset;
     }
     if(constFlags & 0x80) {
-        obj->mesh.curr.rot.x += ofs;
+        object->mesh.curr.rot.x += offset;
     }
     if(constFlags & 0x100) {
-        obj->mesh.curr.rot.y += ofs;
+        object->mesh.curr.rot.y += offset;
     }
     if(constFlags & 0x200) {
-        obj->mesh.curr.rot.z += ofs;
+        object->mesh.curr.rot.z += offset;
     }
 }
 
-void fn_1_7384(int modelId, int charNo, float ofs, s32 maxTime, BOOL flag)
+Void AnimateCharacterMeshOffset(int modelId, int characterId, float offset, s32 frameCount, BOOL moveOutward)
 {
-    float var_f31 = 0;
-    float var_f30 = ofs;
+    float currentOffset = 0;
+    float targetOffset = offset;
     s32 i;
-    if(charNo == 7) {
-        var_f30 *= 2.5f;
+    if(characterId == 7) {
+        targetOffset *= 2.5f;
     }
-    if(lbl_1_data_328[charNo][1] == 0) {
-        var_f30 *= -1;
+    if(characterMeshTransformFlags[characterId][1] == 0) {
+        targetOffset *= -1;
     }
-    if(flag) {
-        for(i=0; i<maxTime; i++) {
+    if(moveOutward) {
+        for(i=0; i<frameCount; i++) {
             HuPrcVSleep();
-            var_f31 = fn_1_864(0, var_f30, i, maxTime);
-            fn_1_7244(modelId, lbl_1_data_308[charNo], lbl_1_data_328[charNo][0], var_f31);
-            if(charNo == 2) {
-                fn_1_7244(modelId, "c002m1-ske_hair1", lbl_1_data_328[charNo][0], -var_f31);
-            } else if(charNo == 6) {
+            currentOffset = InterpolateLinear(0, targetOffset, i, frameCount);
+            ApplyModelObjectTransform(modelId, characterModelNodeNames[characterId], characterMeshTransformFlags[characterId][0], currentOffset);
+            if(characterId == 2) {
+                ApplyModelObjectTransform(modelId, "c002m1-ske_hair1", characterMeshTransformFlags[characterId][0], -currentOffset);
+            } else if(characterId == 6) {
                 
             }
         }
-        fn_1_7244(modelId, lbl_1_data_308[charNo], lbl_1_data_328[charNo][0], var_f30);
-        if(charNo == 2) {
-            fn_1_7244(modelId, "c002m1-ske_hair1", lbl_1_data_328[charNo][0], -var_f30);
+        ApplyModelObjectTransform(modelId, characterModelNodeNames[characterId], characterMeshTransformFlags[characterId][0], targetOffset);
+        if(characterId == 2) {
+            ApplyModelObjectTransform(modelId, "c002m1-ske_hair1", characterMeshTransformFlags[characterId][0], -targetOffset);
         }
         OSReport("\n");
     } else {
-        for(i=0; i<maxTime; i++) {
+        for(i=0; i<frameCount; i++) {
             HuPrcVSleep();
-            var_f31 = fn_1_864(0, var_f30, i, maxTime);
-            fn_1_7244(modelId, lbl_1_data_308[charNo], lbl_1_data_328[charNo][0], -var_f31);
-            if(charNo == 2) {
-                fn_1_7244(modelId, "c002m1-ske_hair1", lbl_1_data_328[charNo][0], var_f31);
-            } else if(charNo == 6) {
+            currentOffset = InterpolateLinear(0, targetOffset, i, frameCount);
+            ApplyModelObjectTransform(modelId, characterModelNodeNames[characterId], characterMeshTransformFlags[characterId][0], -currentOffset);
+            if(characterId == 2) {
+                ApplyModelObjectTransform(modelId, "c002m1-ske_hair1", characterMeshTransformFlags[characterId][0], currentOffset);
+            } else if(characterId == 6) {
                 
             }
         }
-        Hu3DMotionNoMotReset(modelId, lbl_1_data_308[charNo], lbl_1_data_328[charNo][0]);
-        if(charNo == 2) {
-            Hu3DMotionNoMotReset(modelId, "c002m1-ske_hair1", lbl_1_data_328[charNo][0]);
+        Hu3DMotionNoMotReset(modelId, characterModelNodeNames[characterId], characterMeshTransformFlags[characterId][0]);
+        if(characterId == 2) {
+            Hu3DMotionNoMotReset(modelId, "c002m1-ske_hair1", characterMeshTransformFlags[characterId][0]);
         }
     }
 }
