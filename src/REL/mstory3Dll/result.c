@@ -20,403 +20,403 @@
 #include "game/window.h"
 #include "game/wipe.h"
 
-extern s32 rand8(void);
+extern s32 rand8(Void);
 
 typedef struct {
-    /* 0x00 */ s32 unk00;
-    /* 0x04 */ s32 unk04;
-    /* 0x08 */ s32 unk08;
-    /* 0x0C */ s32 unk0C;
-    /* 0x10 */ s32 unk10;
-    /* 0x14 */ s32 unk14;
-    /* 0x18 */ s32 unk18;
-    /* 0x1C */ char unk1C[0x18];
-    /* 0x34 */ s32 unk34[4][2];
-    /* 0x54 */ s32 unk54;
-    /* 0x58 */ char unk58[4];
-    /* 0x5C */ s32 unk5C;
-    /* 0x60 */ char unk60[4];
-    /* 0x64 */ s32 unk64;
-    /* 0x68 */ char unk68[4];
-    /* 0x6C */ s32 unk6C;
-    /* 0x70 */ char unk70[4];
-    /* 0x74 */ s32 unk74;
-    /* 0x78 */ char unk78[4];
-    /* 0x7C */ s32 unk7C;
-    /* 0x80 */ char unk80[4];
-    /* 0x84 */ s32 unk84;
-    /* 0x88 */ char unk88[4];
-    /* 0x8C */ s32 unk8C;
-    /* 0x90 */ char unk90[4];
-} StructUnk38Bss1A0C; // Size 0x94
+    /* 0x00 */ s32 playerIndex;
+    /* 0x04 */ s32 team;
+    /* 0x08 */ s32 isComputer;
+    /* 0x0C */ s32 difficulty;
+    /* 0x10 */ s32 characterId;
+    /* 0x14 */ s32 controllerPort;
+    /* 0x18 */ s32 rank;
+    /* 0x1C */ char unreferencedPlayerRecordPadding[0x18];
+    /* 0x34 */ s32 minigameResults[4][2];
+    /* 0x54 */ s32 blueSpaceCount;
+    /* 0x58 */ char unreferencedBlueSpaceCountPadding[4];
+    /* 0x5C */ s32 redSpaceCount;
+    /* 0x60 */ char unreferencedRedSpaceCountPadding[4];
+    /* 0x64 */ s32 questionSpaceCount;
+    /* 0x68 */ char unreferencedQuestionSpaceCountPadding[4];
+    /* 0x6C */ s32 fortuneSpaceCount;
+    /* 0x70 */ char unreferencedFortuneSpaceCountPadding[4];
+    /* 0x74 */ s32 bowserSpaceCount;
+    /* 0x78 */ char unreferencedBowserSpaceCountPadding[4];
+    /* 0x7C */ s32 battleSpaceCount;
+    /* 0x80 */ char unreferencedBattleSpaceCountPadding[4];
+    /* 0x84 */ s32 mushroomSpaceCount;
+    /* 0x88 */ char unreferencedMushroomSpaceCountPadding[4];
+    /* 0x8C */ s32 warpSpaceCount;
+    /* 0x90 */ char unreferencedWarpSpaceCountPadding[4];
+} StoryResultPlayerStats; // Size 0x94
 
 typedef struct {
-    /* 0x000 */ s32 unk00;
-    /* 0x004 */ s32 unk04;
-    /* 0x008 */ s32 unk08;
-    /* 0x00C */ s32 unk0C;
-    /* 0x010 */ s32 unk10;
-    /* 0x014 */ s32 unk14;
-    /* 0x018 */ s32 unk18;
-    /* 0x01C */ char unk1C[8];
-    /* 0x024 */ s32 unk24;
-    /* 0x028 */ char unk28[0x10];
-    /* 0x038 */ StructUnk38Bss1A0C unk38[4];
-    /* 0x288 */ Vec unk288[5];
-    /* 0x2C4 */ s32 unk2C4;
-    /* 0x2C8 */ s32 unk2C8;
-    /* 0x2CC */ s32 unk2CC;
-    /* 0x2D0 */ s32 unk2D0;
-    /* 0x2D4 */ s32 unk2D4;
-} StructBss1A0C; // Size 0x2D8
+    /* 0x000 */ s32 boardId;
+    /* 0x004 */ s32 currentPlayerIndex;
+    /* 0x008 */ s32 turnCount;
+    /* 0x00C */ s32 messageWindowId;
+    /* 0x010 */ s32 selectionMessageId;
+    /* 0x014 */ s32 winnerPlayerIndex;
+    /* 0x018 */ s32 playerRecordCount;
+    /* 0x01C */ char unreferencedResultStatePadding[8];
+    /* 0x024 */ s32 selectionRepeatTimer;
+    /* 0x028 */ char unreferencedResultStatePadding28[0x10];
+    /* 0x038 */ StoryResultPlayerStats playerResults[4];
+    /* 0x288 */ Vec playerModelPositions[5];
+    /* 0x2C4 */ s32 recordScrollOffset;
+    /* 0x2C8 */ s32 selectedRecordPage;
+    /* 0x2CC */ s32 teamMode;
+    /* 0x2D0 */ s32 winningTeam;
+    /* 0x2D4 */ s32 resultMode;
+} StoryResultState; // Size 0x2D8
 
-void fn_1_15C0C(void);
-void fn_1_16ED4(void);
-void fn_1_18080(void);
-void fn_1_184E8(void);
-void fn_1_18558(void);
-void fn_1_18F98(void);
-void fn_1_19144(void);
-void fn_1_19214(void);
-void fn_1_194A0(void);
-void fn_1_197B4(s32 arg0);
-void fn_1_1C2F4(void);
-void fn_1_1C460(void);
-void fn_1_1CA98(void);
-void fn_1_1CB7C(void);
-void fn_1_1CC5C(void);
-void fn_1_1CD60(void);
-void fn_1_1D63C(void);
-void fn_1_1D77C(void);
-void fn_1_1D964(void);
-void fn_1_1DA64(void);
-void fn_1_1DAAC(void);
-void fn_1_1DE4C(void);
+Void Story3LoadResultRecordSprites(Void);
+Void Story3ArrangeResultPlayers(Void);
+Void Story3CreateResultTitleObject(Void);
+Void Story3ShowPlayerModels(Void);
+Void Story3HidePlayerModels(Void);
+Void Story3UpdateRecordPageRows(Void);
+Void Story3HideRecordRowSprites(Void);
+Void Story3CreateRecordPageObject(Void);
+Void Story3FindHighestMinigameScore(Void);
+Void Story3SortPlayersByRank(s32 playerCount);
+Void Story3PositionPlayerModels(Void);
+Void Story3PositionPlayerSprites(Void);
+Void Story3ShowRecordSprites(Void);
+Void Story3HideRecordSprites(Void);
+Void Story3AddPlayerRecord(Void);
+Void Story3StartCharacterModelMotion(Void);
+Void Story3ShowResultPlayerModels(Void);
+Void Story3HideResultPlayerModels(Void);
+Void Story3ShowBoardFlag(Void);
+Void Story3HideBoardFlag(Void);
+Void Story3CreateBoardFlagObject(Void);
+Void Story3ResetResultCamera(Void);
 
-StructBss1A0C lbl_1_bss_1A0C;
-StructBss1530 lbl_1_bss_19E4;
-StructBss1530 lbl_1_bss_19BC;
-StructBss1530 lbl_1_bss_1994;
-StructBss1530 lbl_1_bss_18F4[4];
-ANIMDATA* lbl_1_bss_18EC[2];
-ANIMDATA* lbl_1_bss_18E4[2];
-ANIMDATA* lbl_1_bss_18D8[3];
-s32 lbl_1_bss_18D4;
-HUPROCESS* lbl_1_bss_18D0;
+StoryResultState resultState;
+StorySequenceProcessState savePromptProcessState;
+StorySequenceProcessState recordPageProcessState;
+StorySequenceProcessState playerModelProcessState;
+StorySequenceProcessState playerRecordProcessStates[4];
+ANIMDATA* recordStarAnimations[2];
+ANIMDATA* recordMedalAnimations[2];
+ANIMDATA* resultDecorationAnimations[3];
+s32 resultSelectionState;
+HUPROCESS* resultProcess;
 
-void fn_1_157F0(HUPROCESS* arg0, s32 arg1, s32 arg2, s32 arg3) {
-    s32 var_r31;
+Void Story3StartBoardResult(HUPROCESS* objectManager, s32 count, s32 mode, s32 mode3) {
+    s32 playerIndex;
 
-    lbl_1_bss_18D0 = arg0;
-    lbl_1_bss_1A0C.unk00 = arg1;
-    lbl_1_bss_1A0C.unk08 = GWSystem.max_turn;
-    arg3 = lbl_1_bss_1A0C.unk14 = fn_1_373C();
-    lbl_1_bss_1A0C.unk2D4 = arg2;
-    lbl_1_bss_1A0C.unk2CC = GWSystem.team;
+    resultProcess = objectManager;
+    resultState.boardId = count;
+    resultState.turnCount = GWSystem.max_turn;
+    mode3 = resultState.winnerPlayerIndex = story3FindFirstHumanPlayer();
+    resultState.resultMode = mode;
+    resultState.teamMode = GWSystem.team;
     if (_CheckFlag(FLAG_ID_MAKE(1, 29))) {
-        lbl_1_bss_1A0C.unk2D0 = 0;
+        resultState.winningTeam = 0;
     } else {
-        lbl_1_bss_1A0C.unk2D0 = 1;
+        resultState.winningTeam = 1;
     }
-    fn_1_9A0();
-    fn_1_37C8(0xFF);
-    fn_1_290C(lbl_1_bss_18D0, fn_1_1DE4C);
-    fn_1_15C0C();
-    fn_1_197B4(arg3);
-    fn_1_194A0();
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        HuPrcChildCreate(fn_1_1CC5C, 100, 0x2000, 0, HuPrcCurrentGet());
+    Story3InitializeWindows();
+    Story3CreateGlobalLight(0xFF);
+    Story3InitializeResultCamera(resultProcess, Story3ResetResultCamera);
+    Story3LoadResultRecordSprites();
+    Story3SortPlayersByRank(mode3);
+    Story3FindHighestMinigameScore();
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        HuPrcChildCreate(Story3AddPlayerRecord, 100, 0x2000, 0, HuPrcCurrentGet());
     }
-    HuPrcChildCreate(fn_1_19214, 100, 0x2000, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(fn_1_1DAAC, 100, 0x2000, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(fn_1_18080, 90, 0x2000, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(Story3CreateRecordPageObject, 100, 0x2000, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(Story3CreateBoardFlagObject, 100, 0x2000, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(Story3CreateResultTitleObject, 90, 0x2000, 0, HuPrcCurrentGet());
 }
 
-void fn_1_159A4(void) {
-    s32 var_r29;
-    s32 var_r30;
+Void Story3CollectPlayerResults(Void) {
+    s32 handicapAdjustedStars;
+    s32 handicapAdjustedMaxStars;
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        var_r29 = GWPlayer[i].stars - GWPlayerHandicapGet(i);
-        if (var_r29 <= 0) {
-            var_r29 = 0;
+        handicapAdjustedStars = GWPlayer[i].stars - GWPlayerHandicapGet(i);
+        if (handicapAdjustedStars <= 0) {
+            handicapAdjustedStars = 0;
         }
-        GWTotalStarsAdd(var_r29);
+        GWTotalStarsAdd(handicapAdjustedStars);
     }
-    GWBoardPlayCountAdd(lbl_1_bss_1A0C.unk00, 1);
-    if (lbl_1_bss_1A0C.unk2CC == 1) {
-        if (lbl_1_bss_1A0C.unk38[0].unk08 == 0) {
-            GWBoardWinCountInc(lbl_1_bss_1A0C.unk38[0].unk10, lbl_1_bss_1A0C.unk00);
+    GWBoardPlayCountAdd(resultState.boardId, 1);
+    if (resultState.teamMode == 1) {
+        if (resultState.playerResults[0].isComputer == 0) {
+            GWBoardWinCountInc(resultState.playerResults[0].characterId, resultState.boardId);
         }
-        if (lbl_1_bss_1A0C.unk38[1].unk08 == 0) {
-            GWBoardWinCountInc(lbl_1_bss_1A0C.unk38[1].unk10, lbl_1_bss_1A0C.unk00);
+        if (resultState.playerResults[1].isComputer == 0) {
+            GWBoardWinCountInc(resultState.playerResults[1].characterId, resultState.boardId);
         }
-    } else if (lbl_1_bss_1A0C.unk38[0].unk08 == 0) {
-        GWBoardWinCountInc(lbl_1_bss_1A0C.unk38[0].unk10, lbl_1_bss_1A0C.unk00);
-    }
-    for (i = 0; i < 4; i++) {
-        var_r30 = GWPlayer[i].stars_max - GWPlayerHandicapGet(i);
-        if (var_r30 <= 0) {
-            var_r30 = 0;
-        }
-        if (GWBoardMaxStarsGet(lbl_1_bss_1A0C.unk00) <= var_r30 && !GWPlayer[i].com) {
-            GWBoardMaxStarsSet(lbl_1_bss_1A0C.unk00, var_r30);
-        }
+    } else if (resultState.playerResults[0].isComputer == 0) {
+        GWBoardWinCountInc(resultState.playerResults[0].characterId, resultState.boardId);
     }
     for (i = 0; i < 4; i++) {
-        if (GWBoardMaxCoinsGet(lbl_1_bss_1A0C.unk00) <= GWPlayer[i].coins_max && !GWPlayer[i].com) {
-            GWBoardMaxCoinsSet(lbl_1_bss_1A0C.unk00, GWPlayer[i].coins_max);
+        handicapAdjustedMaxStars = GWPlayer[i].stars_max - GWPlayerHandicapGet(i);
+        if (handicapAdjustedMaxStars <= 0) {
+            handicapAdjustedMaxStars = 0;
+        }
+        if (GWBoardMaxStarsGet(resultState.boardId) <= handicapAdjustedMaxStars && !GWPlayer[i].com) {
+            GWBoardMaxStarsSet(resultState.boardId, handicapAdjustedMaxStars);
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (GWBoardMaxCoinsGet(resultState.boardId) <= GWPlayer[i].coins_max && !GWPlayer[i].com) {
+            GWBoardMaxCoinsSet(resultState.boardId, GWPlayer[i].coins_max);
         }
     }
 }
 
-void fn_1_15C0C(void) {
-    lbl_1_bss_18EC[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 95), HU_MEMNUM_OVL));
-    lbl_1_bss_18EC[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 96), HU_MEMNUM_OVL));
-    lbl_1_bss_18D8[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 93), HU_MEMNUM_OVL));
-    lbl_1_bss_18D8[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 94), HU_MEMNUM_OVL));
-    lbl_1_bss_18D8[2] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 97), HU_MEMNUM_OVL));
-    lbl_1_bss_18E4[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 136), HU_MEMNUM_OVL));
-    lbl_1_bss_18E4[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 137), HU_MEMNUM_OVL));
+Void Story3LoadResultRecordSprites(Void) {
+    recordStarAnimations[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 95), HU_MEMNUM_OVL));
+    recordStarAnimations[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 96), HU_MEMNUM_OVL));
+    resultDecorationAnimations[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 93), HU_MEMNUM_OVL));
+    resultDecorationAnimations[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 94), HU_MEMNUM_OVL));
+    resultDecorationAnimations[2] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 97), HU_MEMNUM_OVL));
+    recordMedalAnimations[0] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 136), HU_MEMNUM_OVL));
+    recordMedalAnimations[1] = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 137), HU_MEMNUM_OVL));
 }
 
-void fn_1_15D08(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5) {
-    HuSprPosSet(arg0, arg1, arg2 + arg4 / 2, arg3 + arg5 / 2);
+Void Story3PositionCenteredSprite(s32 spriteGroupId, s32 spriteIndex, s32 leftX, s32 topY, s32 width, s32 height) {
+    HuSprPosSet(spriteGroupId, spriteIndex, leftX + width / 2, topY + height / 2);
 }
 
-void fn_1_15DC8(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7) {
-    s32 var_r31;
-    s32 temp_r28;
+Void Story3DrawNumberSprites(s32 spriteGroupId, s32 firstSpriteIndex, s32 value, s32 leftX, s32 topY, s32 digitWidth, s32 digitHeight, s32 minimumDigits) {
+    s32 digitCount;
+    s32 digitValue;
 
-    var_r31 = 0;
-    if (arg7 < 2) {
-        if ((temp_r28 = arg2 / 100) == 0) {
-            if (arg7 != 0) {
-                var_r31++;
+    digitCount = 0;
+    if (minimumDigits < 2) {
+        if ((digitValue = value / 100) == 0) {
+            if (minimumDigits != 0) {
+                digitCount++;
             }
-            HuSprBankSet(arg0, arg1, temp_r28);
-            fn_1_15D08(arg0, arg1, -1000, -1000, arg5, arg6);
+            HuSprBankSet(spriteGroupId, firstSpriteIndex, digitValue);
+            Story3PositionCenteredSprite(spriteGroupId, firstSpriteIndex, -1000, -1000, digitWidth, digitHeight);
         } else {
-            HuSprBankSet(arg0, arg1, temp_r28);
-            fn_1_15D08(arg0, arg1, arg3 + arg5 * var_r31, arg4, arg5, arg6);
-            var_r31++;
+            HuSprBankSet(spriteGroupId, firstSpriteIndex, digitValue);
+            Story3PositionCenteredSprite(spriteGroupId, firstSpriteIndex, leftX + digitWidth * digitCount, topY, digitWidth, digitHeight);
+            digitCount++;
         }
     } else {
-        arg1--;
+        firstSpriteIndex--;
     }
-    if ((temp_r28 = (arg2 % 100) / 10) == 0 && arg2 / 100 == 0) {
-        if (arg7 != 0) {
-            var_r31++;
+    if ((digitValue = (value % 100) / 10) == 0 && value / 100 == 0) {
+        if (minimumDigits != 0) {
+            digitCount++;
         }
-        HuSprBankSet(arg0, arg1 + 1, temp_r28);
-        fn_1_15D08(arg0, arg1 + 1, -1000, -1000, arg5, arg6);
+        HuSprBankSet(spriteGroupId, firstSpriteIndex + 1, digitValue);
+        Story3PositionCenteredSprite(spriteGroupId, firstSpriteIndex + 1, -1000, -1000, digitWidth, digitHeight);
     } else {
-        HuSprBankSet(arg0, arg1 + 1, temp_r28);
-        fn_1_15D08(arg0, arg1 + 1, arg3 + arg5 * var_r31, arg4, arg5, arg6);
-        var_r31++;
+        HuSprBankSet(spriteGroupId, firstSpriteIndex + 1, digitValue);
+        Story3PositionCenteredSprite(spriteGroupId, firstSpriteIndex + 1, leftX + digitWidth * digitCount, topY, digitWidth, digitHeight);
+        digitCount++;
     }
-    temp_r28 = arg2 % 10;
-    HuSprBankSet(arg0, arg1 + 2, temp_r28);
-    fn_1_15D08(arg0, arg1 + 2, arg3 + arg5 * var_r31, arg4, arg5, arg6);
-    var_r31++;
+    digitValue = value % 10;
+    HuSprBankSet(spriteGroupId, firstSpriteIndex + 2, digitValue);
+    Story3PositionCenteredSprite(spriteGroupId, firstSpriteIndex + 2, leftX + digitWidth * digitCount, topY, digitWidth, digitHeight);
+    digitCount++;
 }
 
-void fn_1_161B8(void) {
-    s32 var_r30 = 16;
-    s32 var_r29 = 40;
-    s32 var_r28 = 0;
-    GXColor sp10 = { 0x00, 0x00, 0x80, 0x80 };
+Void Story3DrawResultDebugOverlay(Void) {
+    s32 debugWindowX = 16;
+    s32 debugWindowY = 40;
+    s32 debugOverlayEnabled = 0;
+    GXColor debugWindowBackgroundColor = { 0x00, 0x00, 0x80, 0x80 };
     s32 i;
 
     while (TRUE) {
-        fn_1_938();
+        Story3SleepOneFrame();
         if (HuPadBtnDown[0] & PAD_TRIGGER_R) {
-            var_r28++;
-            var_r28 %= 2;
+            debugOverlayEnabled++;
+            debugOverlayEnabled %= 2;
         }
-        if (var_r28 == 0) {
+        if (debugOverlayEnabled == 0) {
             continue;
         }
-        printWin(var_r30, var_r29, 220, 150, &sp10);
-        if (lbl_1_bss_19E4.unk04 == NULL) {
-            print8(var_r30, var_r29, 1.0f, "PROC_MAIN    -> FALSE");
+        printWin(debugWindowX, debugWindowY, 220, 150, &debugWindowBackgroundColor);
+        if (savePromptProcessState.callback == NULL) {
+            print8(debugWindowX, debugWindowY, 1.0f, "PROC_MAIN    -> FALSE");
         } else {
-            print8(var_r30, var_r29, 1.0f, "PROC_MAIN    -> TRUE");
+            print8(debugWindowX, debugWindowY, 1.0f, "PROC_MAIN    -> TRUE");
         }
-        if (lbl_1_bss_19BC.unk04 == NULL) {
-            print8(var_r30, var_r29 + 10, 1.0f, "PROC_MAP     -> FALSE");
+        if (recordPageProcessState.callback == NULL) {
+            print8(debugWindowX, debugWindowY + 10, 1.0f, "PROC_MAP     -> FALSE");
         } else {
-            print8(var_r30, var_r29 + 10, 1.0f, "PROC_MAP     -> TRUE");
+            print8(debugWindowX, debugWindowY + 10, 1.0f, "PROC_MAP     -> TRUE");
         }
-        if (lbl_1_bss_1994.unk04 == NULL) {
-            print8(var_r30, var_r29 + 20, 1.0f, "PROC_SUB     -> FALSE");
+        if (playerModelProcessState.callback == NULL) {
+            print8(debugWindowX, debugWindowY + 20, 1.0f, "PROC_SUB     -> FALSE");
         } else {
-            print8(var_r30, var_r29 + 20, 1.0f, "PROC_SUB     -> TRUE");
+            print8(debugWindowX, debugWindowY + 20, 1.0f, "PROC_SUB     -> TRUE");
         }
         for (i = 0; i < 4; i++) {
-            if (lbl_1_bss_18F4[i].unk04 == NULL) {
-                print8(var_r30, var_r29 + 30 + i * 10, 1.0f, "PROC_PLAYER%d -> FALSE", i);
+            if (playerRecordProcessStates[i].callback == NULL) {
+                print8(debugWindowX, debugWindowY + 30 + i * 10, 1.0f, "PROC_PLAYER%d -> FALSE", i);
             } else {
-                print8(var_r30, var_r29 + 30 + i * 10, 1.0f, "PROC_PLAYER%d -> TRUE", i);
+                print8(debugWindowX, debugWindowY + 30 + i * 10, 1.0f, "PROC_PLAYER%d -> TRUE", i);
             }
         }
-        print8(var_r30, var_r29 + 80, 1.0f, "M:%d P:%d W:%d", lbl_1_bss_1A0C.unk00, lbl_1_bss_1A0C.unk04, lbl_1_bss_1A0C.unk14);
-        print8(var_r30, var_r29 + 100, 1.0f, "NO) IDX:GRP:COM:DIF:PAD:CHR");
+        print8(debugWindowX, debugWindowY + 80, 1.0f, "M:%d P:%d W:%d", resultState.boardId, resultState.currentPlayerIndex, resultState.winnerPlayerIndex);
+        print8(debugWindowX, debugWindowY + 100, 1.0f, "NO) IDX:GRP:COM:DIF:PAD:CHR");
         for (i = 0; i < 4; i++) {
-            print8(var_r30, var_r29 + 110 + i * 10, 1.0f, "%2d) %3d:%3d:%3d:%3d:%3d:%3d", i,
-                lbl_1_bss_1A0C.unk38[i].unk00, lbl_1_bss_1A0C.unk38[i].unk04, lbl_1_bss_1A0C.unk38[i].unk08,
-                lbl_1_bss_1A0C.unk38[i].unk0C, lbl_1_bss_1A0C.unk38[i].unk14, lbl_1_bss_1A0C.unk38[i].unk10);
+            print8(debugWindowX, debugWindowY + 110 + i * 10, 1.0f, "%2d) %3d:%3d:%3d:%3d:%3d:%3d", i,
+                resultState.playerResults[i].playerIndex, resultState.playerResults[i].team, resultState.playerResults[i].isComputer,
+                resultState.playerResults[i].difficulty, resultState.playerResults[i].controllerPort, resultState.playerResults[i].characterId);
         }
     }
 }
 
-void fn_1_16574(void) {
-    fn_1_958(30);
-    fn_1_16ED4();
+Void Story3BeginResultSequence(Void) {
+    Story3SleepFrames(30);
+    Story3ArrangeResultPlayers();
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
     do {
-        fn_1_938();
+        Story3SleepOneFrame();
     } while (WipeStatGet() != 0);
-    fn_1_958(60);
+    Story3SleepFrames(60);
 }
 
-void fn_1_165C8(void) {
-    s32 sp8[5];
+Void Story3WaitForPlayerArrivals(Void) {
+    s32 playerArrivalStates[5];
     s32 i;
 
     for (i = 0; i < 5; i++) {
-        sp8[i] = 0;
-        fn_1_1E28(lbl_1_bss_1994.unk00, i * 3 + 1, i * 3 + 2, 0, 1);
-        Hu3DData[lbl_1_bss_1994.unk00->mdlId[i * 3 + 1]].rot.y = -90.0f;
+        playerArrivalStates[i] = 0;
+        Story3SetModelMotion(playerModelProcessState.object, i * 3 + 1, i * 3 + 2, 0, 1);
+        Hu3DData[playerModelProcessState.object->mdlId[i * 3 + 1]].rot.y = -90.0f;
     }
     do {
-        fn_1_938();
+        Story3SleepOneFrame();
         for (i = 0; i < 5; i++) {
-            if (sp8[i] == 0) {
-                lbl_1_bss_1A0C.unk288[i].x -= 5.0f;
+            if (playerArrivalStates[i] == 0) {
+                resultState.playerModelPositions[i].x -= 5.0f;
                 if (i == 0) {
-                    if (lbl_1_bss_1A0C.unk288[i].x <= -175.0f) {
-                        sp8[i] = 1;
-                        lbl_1_bss_1A0C.unk288[i].x = -175.0f;
-                        fn_1_1E28(lbl_1_bss_1994.unk00, i * 3 + 1, i * 3 + 1, 15, 1);
+                    if (resultState.playerModelPositions[i].x <= -175.0f) {
+                        playerArrivalStates[i] = 1;
+                        resultState.playerModelPositions[i].x = -175.0f;
+                        Story3SetModelMotion(playerModelProcessState.object, i * 3 + 1, i * 3 + 1, 15, 1);
                     }
                 } else {
-                    if (lbl_1_bss_1A0C.unk288[i].x <= -240.0f) {
-                        sp8[i] = 1;
-                        lbl_1_bss_1A0C.unk288[i].x = -240.0f;
-                        fn_1_1E28(lbl_1_bss_1994.unk00, i * 3 + 1, i * 3 + 1, 15, 1);
+                    if (resultState.playerModelPositions[i].x <= -240.0f) {
+                        playerArrivalStates[i] = 1;
+                        resultState.playerModelPositions[i].x = -240.0f;
+                        Story3SetModelMotion(playerModelProcessState.object, i * 3 + 1, i * 3 + 1, 15, 1);
                     }
                 }
-            } else if (sp8[i] == 1) {
-                Hu3DData[lbl_1_bss_1994.unk00->mdlId[i * 3 + 1]].rot.y = fn_1_5FC(Hu3DData[lbl_1_bss_1994.unk00->mdlId[i * 3 + 1]].rot.y, 17.5f, 10.0f);
-                if (Hu3DData[lbl_1_bss_1994.unk00->mdlId[i * 3 + 1]].rot.y >= 14.9f) {
-                    sp8[i] = 2;
+            } else if (playerArrivalStates[i] == 1) {
+                Hu3DData[playerModelProcessState.object->mdlId[i * 3 + 1]].rot.y = interpolateSmoothAverage(Hu3DData[playerModelProcessState.object->mdlId[i * 3 + 1]].rot.y, 17.5f, 10.0f);
+                if (Hu3DData[playerModelProcessState.object->mdlId[i * 3 + 1]].rot.y >= 14.9f) {
+                    playerArrivalStates[i] = 2;
                 }
             }
         }
         for (i = 0; i < 5; i++) {
-            if (sp8[i] != 2) {
+            if (playerArrivalStates[i] != 2) {
                 break;
             }
         }
     } while (i != 5);
-    lbl_1_bss_1A0C.unk0C = fn_1_1834(MAKE_MESSID(38, 12), 0);
+    resultState.messageWindowId = story3CreateDataWindow(MAKE_MESSID(38, 12), 0);
 }
 
-s32 fn_1_16924(void) {
-    s32 var_r31;
-    s32 var_r30;
+s32 Story3WaitForResultInput(Void) {
+    s32 skipResultSequence;
+    s32 inputWaitFrames;
 
-    var_r31 = 0;
-    var_r30 = 0;
+    skipResultSequence = 0;
+    inputWaitFrames = 0;
     while (TRUE) {
-        fn_1_938();
-        if (lbl_1_bss_1A0C.unk14 != -1) {
-            if (HuPadBtnDown[lbl_1_bss_1A0C.unk38[lbl_1_bss_1A0C.unk04].unk14] & PAD_BUTTON_A) {
+        Story3SleepOneFrame();
+        if (resultState.winnerPlayerIndex != -1) {
+            if (HuPadBtnDown[resultState.playerResults[resultState.currentPlayerIndex].controllerPort] & PAD_BUTTON_A) {
                 HuAudFXPlay(0x1C);
                 break;
-            } else if (HuPadBtnDown[lbl_1_bss_1A0C.unk38[lbl_1_bss_1A0C.unk04].unk14] & PAD_BUTTON_MENU) {
+            } else if (HuPadBtnDown[resultState.playerResults[resultState.currentPlayerIndex].controllerPort] & PAD_BUTTON_MENU) {
                 HuAudFXPlay(1);
-                var_r31 = 1;
+                skipResultSequence = 1;
                 break;
             }
-        } else if (var_r30++ >= 300) {
-            var_r31 = 1;
+        } else if (inputWaitFrames++ >= 300) {
+            skipResultSequence = 1;
             break;
         }
     }
-    if (var_r31 == 0) {
+    if (skipResultSequence == 0) {
         WipeColorSet(0xFF, 0xFF, 0xFF);
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_CROSS, 1);
         while (TRUE) {
             if (WipeStatGet() == 0) {
                 break;
             }
-            fn_1_938();
+            Story3SleepOneFrame();
         }
-        fn_1_1A24(lbl_1_bss_1A0C.unk0C);
-        fn_1_1C460();
-        fn_1_1CA98();
-        fn_1_18558();
-        fn_1_18F98();
-        fn_1_1D77C();
-        fn_1_1D964();
+        Story3CleanupWindow(resultState.messageWindowId);
+        Story3PositionPlayerSprites();
+        Story3ShowRecordSprites();
+        Story3HidePlayerModels();
+        Story3UpdateRecordPageRows();
+        Story3HideResultPlayerModels();
+        Story3ShowBoardFlag();
         WipeColorSet(0xFF, 0xFF, 0xFF);
         WipeCreate(WIPE_MODE_IN, WIPE_TYPE_CROSS, -1);
         while (TRUE) {
             if (WipeStatGet() == 0) {
                 break;
             }
-            fn_1_938();
+            Story3SleepOneFrame();
         }
-        lbl_1_bss_1A0C.unk10 = fn_1_1834(-1, 1);
+        resultState.selectionMessageId = story3CreateDataWindow(-1, 1);
     }
 }
 
-void fn_1_16AD4(void) {
-    lbl_1_bss_1A0C.unk24 = 1;
-    fn_1_1D44(lbl_1_bss_1A0C.unk10, MAKE_MESSID(38, lbl_1_bss_1A0C.unk2C8));
+Void Story3UpdateRecordPageMessage(Void) {
+    resultState.selectionRepeatTimer = 1;
+    Story3SetWindowMessage(resultState.selectionMessageId, MAKE_MESSID(38, resultState.selectedRecordPage));
     while (TRUE) {
-        fn_1_938();
-        if (lbl_1_bss_1A0C.unk24++ > 5 && (HuPadBtnDown[lbl_1_bss_1A0C.unk38[lbl_1_bss_1A0C.unk04].unk14] & PAD_BUTTON_B)) {
+        Story3SleepOneFrame();
+        if (resultState.selectionRepeatTimer++ > 5 && (HuPadBtnDown[resultState.playerResults[resultState.currentPlayerIndex].controllerPort] & PAD_BUTTON_B)) {
             HuAudFXPlay(3);
             break;
         }
-        if (HuPadStkX[lbl_1_bss_1A0C.unk38[lbl_1_bss_1A0C.unk04].unk14] >= 5 || (HuPadBtn[lbl_1_bss_1A0C.unk38[lbl_1_bss_1A0C.unk04].unk14] & PAD_BUTTON_RIGHT)) {
-            if (lbl_1_bss_1A0C.unk2C8 != 11) {
-                lbl_1_bss_1A0C.unk24 = 0;
+        if (HuPadStkX[resultState.playerResults[resultState.currentPlayerIndex].controllerPort] >= 5 || (HuPadBtn[resultState.playerResults[resultState.currentPlayerIndex].controllerPort] & PAD_BUTTON_RIGHT)) {
+            if (resultState.selectedRecordPage != 11) {
+                resultState.selectionRepeatTimer = 0;
             }
-            lbl_1_bss_1A0C.unk2C4++;
-            if (lbl_1_bss_1A0C.unk2C4 >= 6) {
-                lbl_1_bss_1A0C.unk2C4 = 5;
+            resultState.recordScrollOffset++;
+            if (resultState.recordScrollOffset >= 6) {
+                resultState.recordScrollOffset = 5;
             }
-            lbl_1_bss_1A0C.unk2C8++;
-            if (lbl_1_bss_1A0C.unk2C8 >= 12) {
-                lbl_1_bss_1A0C.unk2C8 = 11;
+            resultState.selectedRecordPage++;
+            if (resultState.selectedRecordPage >= 12) {
+                resultState.selectedRecordPage = 11;
             } else {
-                fn_1_1CD60();
-                fn_1_1D44(lbl_1_bss_1A0C.unk10, MAKE_MESSID(38, lbl_1_bss_1A0C.unk2C8));
+                Story3StartCharacterModelMotion();
+                Story3SetWindowMessage(resultState.selectionMessageId, MAKE_MESSID(38, resultState.selectedRecordPage));
                 HuAudFXPlay(0);
-                fn_1_958(10);
+                Story3SleepFrames(10);
             }
         }
-        if (HuPadStkX[lbl_1_bss_1A0C.unk38[lbl_1_bss_1A0C.unk04].unk14] <= -5 || (HuPadBtn[lbl_1_bss_1A0C.unk38[lbl_1_bss_1A0C.unk04].unk14] & PAD_BUTTON_LEFT)) {
-            if (lbl_1_bss_1A0C.unk2C8 != 0) {
-                lbl_1_bss_1A0C.unk24 = 0;
+        if (HuPadStkX[resultState.playerResults[resultState.currentPlayerIndex].controllerPort] <= -5 || (HuPadBtn[resultState.playerResults[resultState.currentPlayerIndex].controllerPort] & PAD_BUTTON_LEFT)) {
+            if (resultState.selectedRecordPage != 0) {
+                resultState.selectionRepeatTimer = 0;
             }
-            lbl_1_bss_1A0C.unk2C4--;
-            if (lbl_1_bss_1A0C.unk2C4 < 0) {
-                lbl_1_bss_1A0C.unk2C4 = 0;
+            resultState.recordScrollOffset--;
+            if (resultState.recordScrollOffset < 0) {
+                resultState.recordScrollOffset = 0;
             }
-            lbl_1_bss_1A0C.unk2C8--;
-            if (lbl_1_bss_1A0C.unk2C8 < 0) {
-                lbl_1_bss_1A0C.unk2C8 = 0;
+            resultState.selectedRecordPage--;
+            if (resultState.selectedRecordPage < 0) {
+                resultState.selectedRecordPage = 0;
             } else {
-                fn_1_1CD60();
-                fn_1_1D44(lbl_1_bss_1A0C.unk10, MAKE_MESSID(38, lbl_1_bss_1A0C.unk2C8));
+                Story3StartCharacterModelMotion();
+                Story3SetWindowMessage(resultState.selectionMessageId, MAKE_MESSID(38, resultState.selectedRecordPage));
                 HuAudFXPlay(0);
-                fn_1_958(10);
+                Story3SleepFrames(10);
             }
         }
     }
@@ -426,66 +426,66 @@ void fn_1_16AD4(void) {
         if (WipeStatGet() == 0) {
             break;
         }
-        fn_1_938();
+        Story3SleepOneFrame();
     }
-    fn_1_1A24(lbl_1_bss_1A0C.unk10);
-    fn_1_1CB7C();
-    fn_1_1C2F4();
-    fn_1_19144();
-    fn_1_184E8();
-    fn_1_1DA64();
-    fn_1_1D63C();
+    Story3CleanupWindow(resultState.selectionMessageId);
+    Story3HideRecordSprites();
+    Story3PositionPlayerModels();
+    Story3HideRecordRowSprites();
+    Story3ShowPlayerModels();
+    Story3HideBoardFlag();
+    Story3ShowResultPlayerModels();
     WipeColorSet(0xFF, 0xFF, 0xFF);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_CROSS, -1);
     while (TRUE) {
         if (WipeStatGet() == 0) {
             break;
         }
-        fn_1_938();
+        Story3SleepOneFrame();
     }
-    lbl_1_bss_1A0C.unk0C = fn_1_1834(MAKE_MESSID(38, 12), 0);
+    resultState.messageWindowId = story3CreateDataWindow(MAKE_MESSID(38, 12), 0);
 }
 
-void fn_1_16ED4(void) {
-    s32 var_r30;
+Void Story3ArrangeResultPlayers(Void) {
+    s32 teamPlayerLayoutIndex;
     s32 i;
 
     for (i = 0; i < 5; i++) {
         if (i == 0) {
-            lbl_1_bss_1A0C.unk288[i].x = 1800.0f;
-            lbl_1_bss_1A0C.unk288[i].y = 157.5f;
-        } else if (lbl_1_bss_1A0C.unk2CC == 1) {
+            resultState.playerModelPositions[i].x = 1800.0f;
+            resultState.playerModelPositions[i].y = 157.5f;
+        } else if (resultState.teamMode == 1) {
             if (i <= 2) {
-                var_r30 = 0;
+                teamPlayerLayoutIndex = 0;
             } else {
-                var_r30 = 2;
+                teamPlayerLayoutIndex = 2;
             }
-            lbl_1_bss_1A0C.unk288[i].x = 900.0f - 100.0f * var_r30;
-            lbl_1_bss_1A0C.unk288[i].y = 75.0f - 82.5f * (i - 1);
+            resultState.playerModelPositions[i].x = 900.0f - 100.0f * teamPlayerLayoutIndex;
+            resultState.playerModelPositions[i].y = 75.0f - 82.5f * (i - 1);
         } else {
-            lbl_1_bss_1A0C.unk288[i].x = 900.0f - 100.0f * i;
-            lbl_1_bss_1A0C.unk288[i].y = 75.0f - 82.5f * (i - 1);
+            resultState.playerModelPositions[i].x = 900.0f - 100.0f * i;
+            resultState.playerModelPositions[i].y = 75.0f - 82.5f * (i - 1);
         }
     }
-    lbl_1_bss_1A0C.unk2C4 = 0;
-    lbl_1_bss_1A0C.unk2C8 = 0;
-    fn_1_1CB7C();
-    fn_1_1C2F4();
-    fn_1_19144();
-    fn_1_184E8();
-    fn_1_1DA64();
-    fn_1_1D63C();
+    resultState.recordScrollOffset = 0;
+    resultState.selectedRecordPage = 0;
+    Story3HideRecordSprites();
+    Story3PositionPlayerModels();
+    Story3HideRecordRowSprites();
+    Story3ShowPlayerModels();
+    Story3HideBoardFlag();
+    Story3ShowResultPlayerModels();
 }
 
-void fn_1_1712C(void) {
-    s32 temp_r3;
+Void Story3CleanupBeforeSave(Void) {
+    s32 saveNoticeSpriteId;
 
     Hu3DAllKill();
     HuSprClose();
     HuSprInit();
     if (SLSaveFlagGet() == 0) {
         saveExecF = 0;
-        lbl_1_bss_18D4 = 1;
+        resultSelectionState = 1;
         HuPrcEnd();
         while (TRUE) {
             HuPrcVSleep();
@@ -493,14 +493,14 @@ void fn_1_1712C(void) {
     }
     espInit();
     HuPrcVSleep();
-    temp_r3 = espEntry(DATA_MAKE_NUM(DATADIR_WIN, 32), 5000, 0);
-    espPosSet(temp_r3, 288.0f, 240.0f);
-    espAttrReset(temp_r3, 4);
+    saveNoticeSpriteId = espEntry(DATA_MAKE_NUM(DATADIR_WIN, 32), 5000, 0);
+    espPosSet(saveNoticeSpriteId, 288.0f, 240.0f);
+    espAttrReset(saveNoticeSpriteId, 4);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 20);
     while (WipeStatGet() != 0) {
         HuPrcVSleep();
     }
-    fn_1_159A4();
+    Story3CollectPlayerResults();
     if (saveExecF == 1) {
         GWGameStat.party_continue = 0;
     }
@@ -513,24 +513,24 @@ void fn_1_1712C(void) {
     while (WipeStatGet() != 0) {
         HuPrcVSleep();
     }
-    lbl_1_bss_18D4 = 1;
+    resultSelectionState = 1;
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_1728C(void) {
-    float sp8[2];
-    s32 temp_r30 = 1;
-    s32 var_r29;
-    s32 var_r31;
+Void Story3ShowSavePrompt(Void) {
+    float savePromptDimensions[2];
+    s32 saveChoice = 1;
+    s32 saveNoticeSpriteId;
+    s32 savePromptWindowId;
 
     Hu3DAllKill();
     HuSprClose();
     HuSprInit();
     if (SLSaveFlagGet() == 0) {
-        lbl_1_bss_18D4 = 1;
+        resultSelectionState = 1;
         HuPrcEnd();
         while (TRUE) {
             HuPrcVSleep();
@@ -538,24 +538,24 @@ void fn_1_1728C(void) {
     }
     espInit();
     HuPrcVSleep();
-    espPosSet(var_r29 = espEntry(DATA_MAKE_NUM(DATADIR_WIN, 32), 5000, 0), 288.0f, 240.0f);
-    espAttrReset(var_r29, HUSPR_ATTR_DISPOFF);
+    espPosSet(saveNoticeSpriteId = espEntry(DATA_MAKE_NUM(DATADIR_WIN, 32), 5000, 0), 288.0f, 240.0f);
+    espAttrReset(saveNoticeSpriteId, HUSPR_ATTR_DISPOFF);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 20);
     while (WipeStatGet() != 0) {
         HuPrcVSleep();
     }
     if (SLSaveFlagGet() == 1) {
         HuWinInit(1);
-        HuWinMesMaxSizeGet(1, sp8, MAKE_MESSID(30, 22));
-        var_r31 = HuWinExCreateStyled(-10000.0f, 150.0f, sp8[0], sp8[1], -1, 2);
-        winData[var_r31].active_pad = 1;
-        HuWinAttrSet(var_r31, 0x10);
-        HuWinExAnimIn(var_r31);
-        HuWinMesSet(var_r31, MAKE_MESSID(30, 22));
-        temp_r30 = HuWinChoiceGet(var_r31, 0);
-        HuWinExAnimOut(var_r31);
-        HuWinExCleanup(var_r31);
-        if (SLSaveFlagGet() == 1 && temp_r30 == 0) {
+        HuWinMesMaxSizeGet(1, savePromptDimensions, MAKE_MESSID(30, 22));
+        savePromptWindowId = HuWinExCreateStyled(-10000.0f, 150.0f, savePromptDimensions[0], savePromptDimensions[1], -1, 2);
+        winData[savePromptWindowId].active_pad = 1;
+        HuWinAttrSet(savePromptWindowId, 0x10);
+        HuWinExAnimIn(savePromptWindowId);
+        HuWinMesSet(savePromptWindowId, MAKE_MESSID(30, 22));
+        saveChoice = HuWinChoiceGet(savePromptWindowId, 0);
+        HuWinExAnimOut(savePromptWindowId);
+        HuWinExCleanup(savePromptWindowId);
+        if (SLSaveFlagGet() == 1 && saveChoice == 0) {
 #if VERSION_REV1 || VERSION_REV2
             GWGameStat.story_continue = 1;
 #endif
@@ -568,125 +568,125 @@ void fn_1_1728C(void) {
     while (WipeStatGet() != 0) {
         HuPrcVSleep();
     }
-    lbl_1_bss_18D4 = 1;
+    resultSelectionState = 1;
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-s32 fn_1_17484(s32 arg0) {
-    if (arg0 == 0 && _CheckFlag(FLAG_ID_MAKE(0, 2))) {
+s32 Story3IsBoardClearUnlocked(s32 boardId) {
+    if (boardId == 0 && _CheckFlag(FLAG_ID_MAKE(0, 2))) {
          return 1;
     }
-    if (arg0 == 1 && _CheckFlag(FLAG_ID_MAKE(0, 3))) {
+    if (boardId == 1 && _CheckFlag(FLAG_ID_MAKE(0, 3))) {
         return 1;
     }
-    if (arg0 == 2 && _CheckFlag(FLAG_ID_MAKE(0, 4))) {
+    if (boardId == 2 && _CheckFlag(FLAG_ID_MAKE(0, 4))) {
         return 1;
     }
-    if (arg0 == 3 && _CheckFlag(FLAG_ID_MAKE(0, 5))) {
+    if (boardId == 3 && _CheckFlag(FLAG_ID_MAKE(0, 5))) {
         return 1;
     }
-    if (arg0 == 4 && _CheckFlag(FLAG_ID_MAKE(0, 6))) {
+    if (boardId == 4 && _CheckFlag(FLAG_ID_MAKE(0, 6))) {
         return 1;
     }
-    if (arg0 == 5 && _CheckFlag(FLAG_ID_MAKE(0, 7))) {
+    if (boardId == 5 && _CheckFlag(FLAG_ID_MAKE(0, 7))) {
         return 1;
     }
     return 0;
 }
 
-void fn_1_17570(void) {
-    s32 var_r30;
+Void Story3UnlockBoardClearEvents(Void) {
+    s32 boardClearEventUnlocked;
     s32 i;
 
-    var_r30 = 0;
+    boardClearEventUnlocked = 0;
     WipeColorSet(0, 0, 0);
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
     do {
-        fn_1_938();
+        Story3SleepOneFrame();
     } while (WipeStatGet() != 0);
     CharModelKill(-1);
     HuAudSeqAllFadeOut(1000);
     HuAudSStreamAllFadeOut(1000);
-    lbl_1_bss_19E4.unk04 = NULL;
-    lbl_1_bss_19BC.unk04 = NULL;
-    lbl_1_bss_1994.unk04 = NULL;
+    savePromptProcessState.callback = NULL;
+    recordPageProcessState.callback = NULL;
+    playerModelProcessState.callback = NULL;
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_18F4[i].unk04 = NULL;
+        playerRecordProcessStates[i].callback = NULL;
     }
     if (GWPartyGet() == 1) {
-        HuPrcChildCreate(fn_1_1712C, 100, 0x2000, 0, HuPrcCurrentGet());
+        HuPrcChildCreate(Story3CleanupBeforeSave, 100, 0x2000, 0, HuPrcCurrentGet());
         do {
-            fn_1_938();
-        } while (lbl_1_bss_18D4 != 1);
-        fn_1_958(30);
+            Story3SleepOneFrame();
+        } while (resultSelectionState != 1);
+        Story3SleepFrames(30);
         omOvlReturnEx(1, 1);
     } else {
-        fn_1_159A4();
+        Story3CollectPlayerResults();
         for (i = 0; i < 4; i++) {
-            if (lbl_1_bss_1A0C.unk38[i].unk10 != GWStoryCharGet()) {
+            if (resultState.playerResults[i].characterId != GWStoryCharGet()) {
                 continue;
             }
             _SetFlag(9);
-            switch (lbl_1_bss_1A0C.unk00) {
+            switch (resultState.boardId) {
                 case 0:
                     if (_CheckFlag(2) == 0) {
                         _SetFlag(2);
-                        var_r30 = 1;
+                        boardClearEventUnlocked = 1;
                     }
                     break;
                 case 1:
                     if (_CheckFlag(3) == 0) {
                         _SetFlag(3);
-                        var_r30 = 1;
+                        boardClearEventUnlocked = 1;
                     }
                     break;
                 case 2:
                     if (_CheckFlag(4) == 0) {
                         _SetFlag(4);
-                        var_r30 = 1;
+                        boardClearEventUnlocked = 1;
                     }
                     break;
                 case 3:
                     if (_CheckFlag(5) == 0) {
                         _SetFlag(5);
-                        var_r30 = 1;
+                        boardClearEventUnlocked = 1;
                     }
                     break;
                 case 4:
                     if (_CheckFlag(6) == 0) {
                         _SetFlag(6);
-                        var_r30 = 1;
+                        boardClearEventUnlocked = 1;
                     }
                     break;
                 case 5:
                     if (_CheckFlag(7) == 0) {
                         _SetFlag(7);
-                        var_r30 = 1;
+                        boardClearEventUnlocked = 1;
                     }
                     break;
             }
-            if (var_r30 == 1) {
-                if (lbl_1_bss_1A0C.unk38[i].unk18 == 0) {
-                    if (lbl_1_bss_1A0C.unk00 == 5) {
+            if (boardClearEventUnlocked == 1) {
+                if (resultState.playerResults[i].rank == 0) {
+                    if (resultState.boardId == 5) {
                         GWGameStat.open_w06 = 1;
                     }
                     _ClearFlag(9);
                     OSReport("########## Next to BoardClear Event 10 -> MapNo:%d, MapFlg:%d, MgFlg:%d\n", GWSystem.board, _CheckFlag(2), _CheckFlag(9));
-                    fn_1_958(120);
-                    HuPrcChildCreate(fn_1_1728C, 100, 0x2000, 0, HuPrcCurrentGet());
+                    Story3SleepFrames(120);
+                    HuPrcChildCreate(Story3ShowSavePrompt, 100, 0x2000, 0, HuPrcCurrentGet());
                     do {
-                        fn_1_938();
-                    } while (lbl_1_bss_18D4 != 1);
-                    if (lbl_1_bss_1A0C.unk00 != 5) {
+                        Story3SleepOneFrame();
+                    } while (resultSelectionState != 1);
+                    if (resultState.boardId != 5) {
                         omOvlGotoEx(DLL_mstorydll, 1, 0, 0);
                     } else {
                         omOvlGotoEx(DLL_mstory2dll, 1, 1, 0);
                     }
                 } else {
-                    switch (lbl_1_bss_1A0C.unk00) {
+                    switch (resultState.boardId) {
                         case 0:
                             _ClearFlag(2);
                             break;
@@ -706,13 +706,13 @@ void fn_1_17570(void) {
                             _ClearFlag(7);
                             break;
                     }
-                    OSReport("########## Next to BoardMiss Event 01 -> MapNo:%d, MapFlg:%d, MgFlg:%d\n", GWSystem.board, fn_1_17484(GWSystem.board), _CheckFlag(9));
-                    fn_1_958(120);
-                    HuPrcChildCreate(fn_1_1728C, 100, 0x2000, 0, HuPrcCurrentGet());
+                    OSReport("########## Next to BoardMiss Event 01 -> MapNo:%d, MapFlg:%d, MgFlg:%d\n", GWSystem.board, Story3IsBoardClearUnlocked(GWSystem.board), _CheckFlag(9));
+                    Story3SleepFrames(120);
+                    HuPrcChildCreate(Story3ShowSavePrompt, 100, 0x2000, 0, HuPrcCurrentGet());
                     do {
-                        fn_1_938();
-                    } while (lbl_1_bss_18D4 != 1);
-                    if (lbl_1_bss_1A0C.unk00 != 5) {
+                        Story3SleepOneFrame();
+                    } while (resultSelectionState != 1);
+                    if (resultState.boardId != 5) {
                         omOvlGotoEx(DLL_mstorydll, 1, 1, 0);
                     } else {
                         omOvlGotoEx(DLL_mstory2dll, 1, 2, 0);
@@ -720,8 +720,8 @@ void fn_1_17570(void) {
                 }
             } else {
                 GWPlayerCfg->group = 0;
-                GWPlayerCfg->character = lbl_1_bss_1A0C.unk38[lbl_1_bss_1A0C.unk04].unk10;
-                GWPlayerCfg->pad_idx = lbl_1_bss_1A0C.unk38[lbl_1_bss_1A0C.unk04].unk14;
+                GWPlayerCfg->character = resultState.playerResults[resultState.currentPlayerIndex].characterId;
+                GWPlayerCfg->pad_idx = resultState.playerResults[resultState.currentPlayerIndex].controllerPort;
                 GWPlayerCfg->iscom = 0;
                 for (i = 0; i < 4; i++) {
                     GWPlayer[i].character = GWPlayerCfg[i].character;
@@ -729,63 +729,63 @@ void fn_1_17570(void) {
                     GWPlayer[i].com = GWPlayerCfg[i].iscom;
                     GWPlayer[i].team = GWPlayerCfg[i].group;
                 }
-                OSReport("########## Next to MapSelect Event 11 -> MapNo:%d, MapFlg:%d, MgFlg:%d\n", GWSystem.board, fn_1_17484(GWSystem.board), _CheckFlag(9));
-                fn_1_958(120);
-                HuPrcChildCreate(fn_1_1728C, 100, 0x2000, 0, HuPrcCurrentGet());
+                OSReport("########## Next to MapSelect Event 11 -> MapNo:%d, MapFlg:%d, MgFlg:%d\n", GWSystem.board, Story3IsBoardClearUnlocked(GWSystem.board), _CheckFlag(9));
+                Story3SleepFrames(120);
+                HuPrcChildCreate(Story3ShowSavePrompt, 100, 0x2000, 0, HuPrcCurrentGet());
                 do {
-                    fn_1_938();
-                } while (lbl_1_bss_18D4 != 1);
+                    Story3SleepOneFrame();
+                } while (resultSelectionState != 1);
                 omOvlGotoEx(DLL_mentdll, 1, 10, 0);
             }
         }
     }
     while (TRUE) {
-        fn_1_938();
+        Story3SleepOneFrame();
     }
 }
 
-void fn_1_17DC0(OMOBJ* arg0, StructBss1530* arg1) {
-    fn_1_16574();
-    fn_1_165C8();
+Void Story3RunResultScreen(OMOBJ* object, StorySequenceProcessState* processState) {
+    Story3BeginResultSequence();
+    Story3WaitForPlayerArrivals();
     while (TRUE) {
-        fn_1_938();
-        if (fn_1_16924() != 0) {
+        Story3SleepOneFrame();
+        if (Story3WaitForResultInput() != 0) {
             break;
         }
-        fn_1_16AD4();
+        Story3UpdateRecordPageMessage();
     }
-    fn_1_17570();
-    arg1->unk04 = 0;
+    Story3UnlockBoardClearEvents();
+    processState->callback = 0;
 }
 
-void fn_1_18080(void) {
-    OMOBJ* temp_r3;
+Void Story3CreateResultTitleObject(Void) {
+    OMOBJ* createdResultObject;
 
-    temp_r3 = omAddObjEx(lbl_1_bss_18D0, 0x100, 0x10, 0x10, -1, NULL);
-    lbl_1_bss_19E4.unk00 = temp_r3;
-    lbl_1_bss_19E4.unk04 = (void*) fn_1_17DC0;
+    createdResultObject = omAddObjEx(resultProcess, 0x100, 0x10, 0x10, -1, NULL);
+    savePromptProcessState.object = createdResultObject;
+    savePromptProcessState.callback = (Void*) Story3RunResultScreen;
     while (TRUE) {
-        fn_1_938();
-        if (lbl_1_bss_19E4.unk04 != NULL) {
-            lbl_1_bss_19E4.unk04(temp_r3, &lbl_1_bss_19E4);
+        Story3SleepOneFrame();
+        if (savePromptProcessState.callback != NULL) {
+            savePromptProcessState.callback(createdResultObject, &savePromptProcessState);
         }
     }
 }
 
-void fn_1_1811C(OMOBJ* arg0, s32 arg1) {
-    s32 var_r29;
+Void Story3UpdateResultTitleSprite(OMOBJ* object, s32 count) {
+    s32 titleSpriteId;
     s32 i;
 
-    arg0->work[0] = HuSprGrpCreate(1);
-    var_r29 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 75) + arg1, HU_MEMNUM_OVL)), 1000, 0);
-    HuSprGrpMemberSet(arg0->work[0], 0, var_r29);
-    // TODO: figure out the actual args of this fn_1_15D08 call.
-    // It will match as long as the values (arg2 + arg4 / 2) and (arg3 + arg5 / 2) are preserved.
-    fn_1_15D08(arg0->work[0], 0, 288, 240, 0, 0);
-    HuSprGrpPosSet(arg0->work[0], 0.0f, 0.0f);
-    HuSprGrpDrawNoSet(arg0->work[0], 0x7F);
+    object->work[0] = HuSprGrpCreate(1);
+    titleSpriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 75) + count, HU_MEMNUM_OVL)), 1000, 0);
+    HuSprGrpMemberSet(object->work[0], 0, titleSpriteId);
+    // TODO: figure out the actual args of this story3_position_centered_sprite call.
+    // It will match as long as the values (leftX + width / 2) and (topY + height / 2) are preserved.
+    Story3PositionCenteredSprite(object->work[0], 0, 288, 240, 0, 0);
+    HuSprGrpPosSet(object->work[0], 0.0f, 0.0f);
+    HuSprGrpDrawNoSet(object->work[0], 0x7F);
     {
-        s32 spC[] = {
+        s32 resultModelDataIds[] = {
             DATA_MAKE_NUM(DATADIR_MSTORY3, 104),
             DATA_MAKE_NUM(DATADIR_MSTORY3, 105),
             DATA_MAKE_NUM(DATADIR_MSTORY3, 106),
@@ -796,676 +796,676 @@ void fn_1_1811C(OMOBJ* arg0, s32 arg1) {
         };
 
         for (i = 0; i < 7; i++) {
-            arg0->mdlId[i + 1] = Hu3DModelCreateFile(spC[i]);
-            Hu3DModelPosSet(arg0->mdlId[i + 1], -122.5 + 42.5 * i, 185.0f, -10.0f);
-            Hu3DModelRotSet(arg0->mdlId[i + 1], 0.0f, 1980.0f, 0.0f);
+            object->mdlId[i + 1] = Hu3DModelCreateFile(resultModelDataIds[i]);
+            Hu3DModelPosSet(object->mdlId[i + 1], -122.5 + 42.5 * i, 185.0f, -10.0f);
+            Hu3DModelRotSet(object->mdlId[i + 1], 0.0f, 1980.0f, 0.0f);
         }
     }
 }
 
-void fn_1_18334(OMOBJ* arg0, s32* arg1) {
-    s32 sp8 = 0;
+Void Story3AnimatePlayerRotation(OMOBJ* object, s32* count) {
+    s32 playerRotationStage = 0;
     s32 i;
 
     for (i = 0; i < 7; i++) {
-        if (arg1[2] == 0 && Hu3DData[arg0->mdlId[i + 1]].pos.x >= lbl_1_bss_1A0C.unk288[0].x) {
-            Hu3DData[arg0->mdlId[i + 1]].rot.y = fn_1_5FC(Hu3DData[arg0->mdlId[i + 1]].rot.y, 0.0f, 20.0f);
-        } else if (arg1[2] == 1 && Hu3DData[arg0->mdlId[i + 1]].pos.x <= lbl_1_bss_1A0C.unk288[0].x) {
-            Hu3DData[arg0->mdlId[i + 1]].rot.y = fn_1_5FC(Hu3DData[arg0->mdlId[i + 1]].rot.y, 1980.0f, 20.0f);
+        if (count[2] == 0 && Hu3DData[object->mdlId[i + 1]].pos.x >= resultState.playerModelPositions[0].x) {
+            Hu3DData[object->mdlId[i + 1]].rot.y = interpolateSmoothAverage(Hu3DData[object->mdlId[i + 1]].rot.y, 0.0f, 20.0f);
+        } else if (count[2] == 1 && Hu3DData[object->mdlId[i + 1]].pos.x <= resultState.playerModelPositions[0].x) {
+            Hu3DData[object->mdlId[i + 1]].rot.y = interpolateSmoothAverage(Hu3DData[object->mdlId[i + 1]].rot.y, 1980.0f, 20.0f);
         }
     }
 }
 
-void fn_1_184E8(void) {
+Void Story3ShowPlayerModels(Void) {
     s32 i;
 
     for (i = 0; i < 7; i++) {
-        Hu3DModelAttrReset(lbl_1_bss_19BC.unk00->mdlId[i + 1], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(recordPageProcessState.object->mdlId[i + 1], HU3D_ATTR_DISPOFF);
     }
-    lbl_1_bss_19BC.unk04 = (void*) fn_1_18334;
+    recordPageProcessState.callback = (Void*) Story3AnimatePlayerRotation;
 }
 
-void fn_1_18558(void) {
+Void Story3HidePlayerModels(Void) {
     s32 i;
 
     for (i = 0; i < 7; i++) {
-        Hu3DModelAttrSet(lbl_1_bss_19BC.unk00->mdlId[i + 1], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(recordPageProcessState.object->mdlId[i + 1], HU3D_ATTR_DISPOFF);
     }
     for (i = 0; i < 7; i++) {
-        if (lbl_1_bss_19BC.unk08 != 0) {
-            Hu3DData[lbl_1_bss_19BC.unk00->mdlId[i + 1]].rot.y = 1980.0f;
+        if (recordPageProcessState.workValue0 != 0) {
+            Hu3DData[recordPageProcessState.object->mdlId[i + 1]].rot.y = 1980.0f;
         } else {
-            Hu3DData[lbl_1_bss_19BC.unk00->mdlId[i + 1]].rot.y = 0.0f;
+            Hu3DData[recordPageProcessState.object->mdlId[i + 1]].rot.y = 0.0f;
         }
     }
-    lbl_1_bss_19BC.unk04 = NULL;
+    recordPageProcessState.callback = NULL;
 }
 
-void fn_1_18668(OMOBJ* arg0, s32 arg1) {
-    s32 var_r30;
+Void Story3CreateResultRecordSprites(OMOBJ* object, s32 count) {
+    s32 spriteId;
     s32 i;
 
-    // TODO: figure out the actual args of fn_1_15D08 calls.
-    // It will match as long as the values (arg2 + arg4 / 2) and (arg3 + arg5 / 2) are preserved.
-    arg0->work[1] = HuSprGrpCreate(8);
-    var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 116), HU_MEMNUM_OVL)), 900, 0);
-    HuSprGrpMemberSet(arg0->work[1], 0, var_r30);
-    fn_1_15D08(arg0->work[1], 0, 368, 171, 0, 0);
-    var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 117), HU_MEMNUM_OVL)), 600, 0);
-    HuSprGrpMemberSet(arg0->work[1], 1, var_r30);
-    fn_1_15D08(arg0->work[1], 1, 292, 168, 0, 0);
-    var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 118), HU_MEMNUM_OVL)), 500, 0);
-    HuSprGrpMemberSet(arg0->work[1], 2, var_r30);
-    fn_1_15D08(arg0->work[1], 2, 292, 168, 0, 0);
-    var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 119), HU_MEMNUM_OVL)), 500, 0);
-    HuSprGrpMemberSet(arg0->work[1], 3, var_r30);
-    fn_1_15D08(arg0->work[1], 3, 292, 168, 0, 0);
-    var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(arg1 + DATA_MAKE_NUM(DATADIR_MSTORY3, 110), HU_MEMNUM_OVL)), 500, 0);
-    HuSprGrpMemberSet(arg0->work[1], 4, var_r30);
-    fn_1_15D08(arg0->work[1], 4, 96, 53, 0, 0);
-    var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 138), HU_MEMNUM_OVL)), 500, 0);
-    HuSprGrpMemberSet(arg0->work[1], 5, var_r30);
-    fn_1_15D08(arg0->work[1], 5, 407, 37, 0, 0);
+    // TODO: figure out the actual args of story3_position_centered_sprite calls.
+    // It will match as long as the values (leftX + width / 2) and (topY + height / 2) are preserved.
+    object->work[1] = HuSprGrpCreate(8);
+    spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 116), HU_MEMNUM_OVL)), 900, 0);
+    HuSprGrpMemberSet(object->work[1], 0, spriteId);
+    Story3PositionCenteredSprite(object->work[1], 0, 368, 171, 0, 0);
+    spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 117), HU_MEMNUM_OVL)), 600, 0);
+    HuSprGrpMemberSet(object->work[1], 1, spriteId);
+    Story3PositionCenteredSprite(object->work[1], 1, 292, 168, 0, 0);
+    spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 118), HU_MEMNUM_OVL)), 500, 0);
+    HuSprGrpMemberSet(object->work[1], 2, spriteId);
+    Story3PositionCenteredSprite(object->work[1], 2, 292, 168, 0, 0);
+    spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 119), HU_MEMNUM_OVL)), 500, 0);
+    HuSprGrpMemberSet(object->work[1], 3, spriteId);
+    Story3PositionCenteredSprite(object->work[1], 3, 292, 168, 0, 0);
+    spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(count + DATA_MAKE_NUM(DATADIR_MSTORY3, 110), HU_MEMNUM_OVL)), 500, 0);
+    HuSprGrpMemberSet(object->work[1], 4, spriteId);
+    Story3PositionCenteredSprite(object->work[1], 4, 96, 53, 0, 0);
+    spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 138), HU_MEMNUM_OVL)), 500, 0);
+    HuSprGrpMemberSet(object->work[1], 5, spriteId);
+    Story3PositionCenteredSprite(object->work[1], 5, 407, 37, 0, 0);
     for (i = 0; i < 2; i++) {
-        var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 139), HU_MEMNUM_OVL)), 500, 0);
-        HuSprGrpMemberSet(arg0->work[1], i + 6, var_r30);
+        spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 139), HU_MEMNUM_OVL)), 500, 0);
+        HuSprGrpMemberSet(object->work[1], i + 6, spriteId);
     }
-    // TODO: figure out the actual value of arg7. It will match as long as arg7 >= 2.
-    fn_1_15DC8(arg0->work[1], 6, lbl_1_bss_1A0C.unk08, 293, 19, 36, 36, 2);
-    arg0->work[2] = HuSprGrpCreate(2);
-    var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 120), HU_MEMNUM_OVL)), 800, 0);
-    HuSprGrpMemberSet(arg0->work[2], 0, var_r30);
-    fn_1_15D08(arg0->work[2], 0, 34, 119, 0, 0);
-    var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 121), HU_MEMNUM_OVL)), 400, 0);
-    HuSprGrpMemberSet(arg0->work[2], 1, var_r30);
-    fn_1_15D08(arg0->work[2], 1, 36, 121, 0, 0);
-    arg0->work[3] = HuSprGrpCreate(12);
+    // TODO: figure out the exact minimum digit count. The code uses this value as a minimum when deciding whether to show leading zeroes.
+    Story3DrawNumberSprites(object->work[1], 6, resultState.turnCount, 293, 19, 36, 36, 2);
+    object->work[2] = HuSprGrpCreate(2);
+    spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 120), HU_MEMNUM_OVL)), 800, 0);
+    HuSprGrpMemberSet(object->work[2], 0, spriteId);
+    Story3PositionCenteredSprite(object->work[2], 0, 34, 119, 0, 0);
+    spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 121), HU_MEMNUM_OVL)), 400, 0);
+    HuSprGrpMemberSet(object->work[2], 1, spriteId);
+    Story3PositionCenteredSprite(object->work[2], 1, 36, 121, 0, 0);
+    object->work[3] = HuSprGrpCreate(12);
     for (i = 0; i < 12; i++) {
-        var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(i + DATA_MAKE_NUM(DATADIR_MSTORY3, 124), HU_MEMNUM_OVL)), 700, 0);
-        HuSprGrpMemberSet(arg0->work[3], i, var_r30);
-        fn_1_15D08(arg0->work[3], i, i * 66, 16, 58, 0);
+        spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(i + DATA_MAKE_NUM(DATADIR_MSTORY3, 124), HU_MEMNUM_OVL)), 700, 0);
+        HuSprGrpMemberSet(object->work[3], i, spriteId);
+        Story3PositionCenteredSprite(object->work[3], i, i * 66, 16, 58, 0);
     }
-    HuSprGrpPosSet(arg0->work[2], 164 + lbl_1_bss_1A0C.unk2C4 * 66, 78.0f);
-    HuSprGrpDrawNoSet(arg0->work[1], 0x7F);
-    HuSprGrpDrawNoSet(arg0->work[2], 0x7F);
-    HuSprGrpDrawNoSet(arg0->work[3], 0x7F);
+    HuSprGrpPosSet(object->work[2], 164 + resultState.recordScrollOffset * 66, 78.0f);
+    HuSprGrpDrawNoSet(object->work[1], 0x7F);
+    HuSprGrpDrawNoSet(object->work[2], 0x7F);
+    HuSprGrpDrawNoSet(object->work[3], 0x7F);
 }
 
-void fn_1_18CFC(OMOBJ* arg0) {
-    float temp_f31;
-    float var_f30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r30;
+Void Story3UpdateRecordPageSelection(OMOBJ* object) {
+    float selectionBarX;
+    float targetSelectionBarX;
+    s32 visibleSelectionIndex;
+    s32 visiblePageStart;
+    s32 recordRowIndex;
 
-    var_r28 = lbl_1_bss_1A0C.unk2C8 - lbl_1_bss_1A0C.unk2C4;
-    if (var_r28 < 0) {
-        var_r28 = 0;
+    visiblePageStart = resultState.selectedRecordPage - resultState.recordScrollOffset;
+    if (visiblePageStart < 0) {
+        visiblePageStart = 0;
     }
-    temp_f31 = HuSprGrpData[arg0->work[2]].pos.x;
-    var_f30 = 164 + lbl_1_bss_1A0C.unk2C4 * 66;
-    temp_f31 = fn_1_5FC(temp_f31, var_f30, 2.0f);
-    HuSprGrpPosSet(arg0->work[1], -5.0f, 25.0f);
-    HuSprGrpPosSet(arg0->work[2], temp_f31, 78.0f);
-    HuSprGrpPosSet(arg0->work[3], 169 - var_r28 * 66, 82.0f);
-    for (var_r30 = 0; var_r30 < 12; var_r30++) {
-        if (var_r30 < var_r28 || var_r30 > var_r28 + 5) {
-            HuSprAttrSet(arg0->work[3], var_r30, HUSPR_ATTR_DISPOFF);
+    selectionBarX = HuSprGrpData[object->work[2]].pos.x;
+    targetSelectionBarX = 164 + resultState.recordScrollOffset * 66;
+    selectionBarX = interpolateSmoothAverage(selectionBarX, targetSelectionBarX, 2.0f);
+    HuSprGrpPosSet(object->work[1], -5.0f, 25.0f);
+    HuSprGrpPosSet(object->work[2], selectionBarX, 78.0f);
+    HuSprGrpPosSet(object->work[3], 169 - visiblePageStart * 66, 82.0f);
+    for (recordRowIndex = 0; recordRowIndex < 12; recordRowIndex++) {
+        if (recordRowIndex < visiblePageStart || recordRowIndex > visiblePageStart + 5) {
+            HuSprAttrSet(object->work[3], recordRowIndex, HUSPR_ATTR_DISPOFF);
         } else {
-            HuSprAttrReset(arg0->work[3], var_r30, HUSPR_ATTR_DISPOFF);
+            HuSprAttrReset(object->work[3], recordRowIndex, HUSPR_ATTR_DISPOFF);
         }
     }
-    var_r29 = lbl_1_bss_1A0C.unk2C8 - lbl_1_bss_1A0C.unk2C4;
-    if (var_r29 < 0) {
-        var_r29 = 0;
+    visibleSelectionIndex = resultState.selectedRecordPage - resultState.recordScrollOffset;
+    if (visibleSelectionIndex < 0) {
+        visibleSelectionIndex = 0;
     }
-    if (var_r29 == 0) {
-        HuSprBankSet(lbl_1_bss_19BC.unk00->work[1], 2, 2);
-    } else if (var_r29 == 1) {
-        HuSprBankSet(lbl_1_bss_19BC.unk00->work[1], 2, 0);
+    if (visibleSelectionIndex == 0) {
+        HuSprBankSet(recordPageProcessState.object->work[1], 2, 2);
+    } else if (visibleSelectionIndex == 1) {
+        HuSprBankSet(recordPageProcessState.object->work[1], 2, 0);
     }
-    if (var_r29 == 6) {
-        HuSprBankSet(lbl_1_bss_19BC.unk00->work[1], 3, 2);
-    } else if (var_r29 == 5) {
-        HuSprBankSet(lbl_1_bss_19BC.unk00->work[1], 3, 0);
+    if (visibleSelectionIndex == 6) {
+        HuSprBankSet(recordPageProcessState.object->work[1], 3, 2);
+    } else if (visibleSelectionIndex == 5) {
+        HuSprBankSet(recordPageProcessState.object->work[1], 3, 0);
     }
 }
 
-void fn_1_18F98(void) {
-    s32 var_r30;
+Void Story3UpdateRecordPageRows(Void) {
+    s32 visiblePageStart;
     s32 i;
 
     for (i = 0; i < 8; i++) {
-        HuSprAttrReset(lbl_1_bss_19BC.unk00->work[1], i, HUSPR_ATTR_DISPOFF);
+        HuSprAttrReset(recordPageProcessState.object->work[1], i, HUSPR_ATTR_DISPOFF);
     }
     for (i = 0; i < 2; i++) {
-        HuSprAttrReset(lbl_1_bss_19BC.unk00->work[2], i, HUSPR_ATTR_DISPOFF);
+        HuSprAttrReset(recordPageProcessState.object->work[2], i, HUSPR_ATTR_DISPOFF);
     }
     for (i = 0; i < 12; i++) {
-        HuSprAttrReset(lbl_1_bss_19BC.unk00->work[3], i, HUSPR_ATTR_DISPOFF);
+        HuSprAttrReset(recordPageProcessState.object->work[3], i, HUSPR_ATTR_DISPOFF);
     }
-    var_r30 = lbl_1_bss_1A0C.unk2C8 - lbl_1_bss_1A0C.unk2C4;
-    if (var_r30 < 0) {
-        var_r30 = 0;
+    visiblePageStart = resultState.selectedRecordPage - resultState.recordScrollOffset;
+    if (visiblePageStart < 0) {
+        visiblePageStart = 0;
     }
-    if (var_r30 == 0) {
-        HuSprBankSet(lbl_1_bss_19BC.unk00->work[1], 2, 2);
-    } else if (var_r30 == 1) {
-        HuSprBankSet(lbl_1_bss_19BC.unk00->work[1], 2, 0);
+    if (visiblePageStart == 0) {
+        HuSprBankSet(recordPageProcessState.object->work[1], 2, 2);
+    } else if (visiblePageStart == 1) {
+        HuSprBankSet(recordPageProcessState.object->work[1], 2, 0);
     }
-    if (var_r30 == 6) {
-        HuSprBankSet(lbl_1_bss_19BC.unk00->work[1], 3, 2);
-    } else if (var_r30 == 5) {
-        HuSprBankSet(lbl_1_bss_19BC.unk00->work[1], 3, 0);
+    if (visiblePageStart == 6) {
+        HuSprBankSet(recordPageProcessState.object->work[1], 3, 2);
+    } else if (visiblePageStart == 5) {
+        HuSprBankSet(recordPageProcessState.object->work[1], 3, 0);
     }
-    lbl_1_bss_19BC.unk04 = (void*) fn_1_18CFC;
+    recordPageProcessState.callback = (Void*) Story3UpdateRecordPageSelection;
 }
 
-void fn_1_19144(void) {
+Void Story3HideRecordRowSprites(Void) {
     s32 i;
 
     for (i = 0; i < 8; i++) {
-        HuSprAttrSet(lbl_1_bss_19BC.unk00->work[1], i, HUSPR_ATTR_DISPOFF);
+        HuSprAttrSet(recordPageProcessState.object->work[1], i, HUSPR_ATTR_DISPOFF);
     }
     for (i = 0; i < 2; i++) {
-        HuSprAttrSet(lbl_1_bss_19BC.unk00->work[2], i, HUSPR_ATTR_DISPOFF);
+        HuSprAttrSet(recordPageProcessState.object->work[2], i, HUSPR_ATTR_DISPOFF);
     }
     for (i = 0; i < 12; i++) {
-        HuSprAttrSet(lbl_1_bss_19BC.unk00->work[3], i, HUSPR_ATTR_DISPOFF);
+        HuSprAttrSet(recordPageProcessState.object->work[3], i, HUSPR_ATTR_DISPOFF);
     }
-    lbl_1_bss_19BC.unk04 = NULL;
+    recordPageProcessState.callback = NULL;
 }
 
-void fn_1_19214(void) {
-    OMOBJ* temp_r3;
+Void Story3CreateRecordPageObject(Void) {
+    OMOBJ* createdResultObject;
 
-    temp_r3 = omAddObjEx(lbl_1_bss_18D0, 0x100, 0x10, 0x10, -1, NULL);
-    lbl_1_bss_19BC.unk00 = temp_r3;
-    lbl_1_bss_19BC.unk04 = NULL;
-    fn_1_1811C(temp_r3, lbl_1_bss_1A0C.unk00);
-    fn_1_18668(temp_r3, lbl_1_bss_1A0C.unk00);
+    createdResultObject = omAddObjEx(resultProcess, 0x100, 0x10, 0x10, -1, NULL);
+    recordPageProcessState.object = createdResultObject;
+    recordPageProcessState.callback = NULL;
+    Story3UpdateResultTitleSprite(createdResultObject, resultState.boardId);
+    Story3CreateResultRecordSprites(createdResultObject, resultState.boardId);
     while (TRUE) {
-        fn_1_938();
-        if (lbl_1_bss_19BC.unk04 != NULL) {
-            lbl_1_bss_19BC.unk04(temp_r3, &lbl_1_bss_19BC);
+        Story3SleepOneFrame();
+        if (recordPageProcessState.callback != NULL) {
+            recordPageProcessState.callback(createdResultObject, &recordPageProcessState);
         }
     }
 }
 
-void fn_1_194A0(void) {
-    s32 var_r29;
+Void Story3FindHighestMinigameScore(Void) {
+    s32 highestMinigameScore;
     s32 i;
     s32 j;
 
     for (i = 0; i < 12; i++) {
-        var_r29 = 0;
+        highestMinigameScore = 0;
         for (j = 0; j < 4; j++) {
-            if (var_r29 <= lbl_1_bss_1A0C.unk38[j].unk34[i][0]) {
-                var_r29 = lbl_1_bss_1A0C.unk38[j].unk34[i][0];
+            if (highestMinigameScore <= resultState.playerResults[j].minigameResults[i][0]) {
+                highestMinigameScore = resultState.playerResults[j].minigameResults[i][0];
             }
         }
-        if (var_r29 > 0) {
+        if (highestMinigameScore > 0) {
             for (j = 0; j < 4; j++) {
-                if (var_r29 == lbl_1_bss_1A0C.unk38[j].unk34[i][0]) {
-                    lbl_1_bss_1A0C.unk38[j].unk34[i][1] = 1;
+                if (highestMinigameScore == resultState.playerResults[j].minigameResults[i][0]) {
+                    resultState.playerResults[j].minigameResults[i][1] = 1;
                 }
             }
         }
     }
 }
 
-void fn_1_19590(StructUnk38Bss1A0C* arg0, s32 arg1, s32 arg2) {
-    arg0->unk00 = arg1;
-    arg0->unk04 = GWPlayerCfg[arg0->unk00].group;
-    arg0->unk08 = GWPlayerCfg[arg0->unk00].iscom;
-    arg0->unk0C = GWPlayerCfg[arg0->unk00].diff;
-    arg0->unk10 = GWPlayerCfg[arg0->unk00].character;
-    arg0->unk14 = GWPlayerCfg[arg0->unk00].pad_idx;
-    arg0->unk18 = GWPlayer[arg0->unk00].rank;
-    arg0->unk34[0][0] = GWPlayer[arg0->unk00].stars;
-    arg0->unk34[1][0] = GWPlayer[arg0->unk00].coins;
-    arg0->unk34[2][0] = GWPlayer[arg0->unk00].coins_mg;
-    arg0->unk34[3][0] = GWPlayer[arg0->unk00].coins_max;
-    arg0->unk54 = GWPlayer[arg0->unk00].blue_count;
-    arg0->unk5C = GWPlayer[arg0->unk00].red_count;
-    arg0->unk64 = GWPlayer[arg0->unk00].question_count;
-    arg0->unk6C = GWPlayer[arg0->unk00].fortune_count;
-    arg0->unk74 = GWPlayer[arg0->unk00].bowser_count;
-    arg0->unk7C = GWPlayer[arg0->unk00].battle_count;
-    arg0->unk84 = GWPlayer[arg0->unk00].mushroom_count;
-    arg0->unk8C = GWPlayer[arg0->unk00].warp_count;
+Void Story3CopyResultPlayerStats(StoryResultPlayerStats* playerResult, s32 count, s32 mode) {
+    playerResult->playerIndex = count;
+    playerResult->team = GWPlayerCfg[playerResult->playerIndex].group;
+    playerResult->isComputer = GWPlayerCfg[playerResult->playerIndex].iscom;
+    playerResult->difficulty = GWPlayerCfg[playerResult->playerIndex].diff;
+    playerResult->characterId = GWPlayerCfg[playerResult->playerIndex].character;
+    playerResult->controllerPort = GWPlayerCfg[playerResult->playerIndex].pad_idx;
+    playerResult->rank = GWPlayer[playerResult->playerIndex].rank;
+    playerResult->minigameResults[0][0] = GWPlayer[playerResult->playerIndex].stars;
+    playerResult->minigameResults[1][0] = GWPlayer[playerResult->playerIndex].coins;
+    playerResult->minigameResults[2][0] = GWPlayer[playerResult->playerIndex].coins_mg;
+    playerResult->minigameResults[3][0] = GWPlayer[playerResult->playerIndex].coins_max;
+    playerResult->blueSpaceCount = GWPlayer[playerResult->playerIndex].blue_count;
+    playerResult->redSpaceCount = GWPlayer[playerResult->playerIndex].red_count;
+    playerResult->questionSpaceCount = GWPlayer[playerResult->playerIndex].question_count;
+    playerResult->fortuneSpaceCount = GWPlayer[playerResult->playerIndex].fortune_count;
+    playerResult->bowserSpaceCount = GWPlayer[playerResult->playerIndex].bowser_count;
+    playerResult->battleSpaceCount = GWPlayer[playerResult->playerIndex].battle_count;
+    playerResult->mushroomSpaceCount = GWPlayer[playerResult->playerIndex].mushroom_count;
+    playerResult->warpSpaceCount = GWPlayer[playerResult->playerIndex].warp_count;
 }
 
-void fn_1_197B4(s32 arg0) {
-    s32 sp74[4][2];
-    s32 sp54[4][2];
-    s32 sp44[4];
-    s32 sp34[4];
-    s32 sp24[4];
-    s32 var_r28;
-    s32 var_r29;
+Void Story3SortPlayersByRank(s32 playerCount) {
+    s32 playersSortedByRank[4][2];
+    s32 rankedPlayersBeforeTeamSort[4][2];
+    s32 playerIndicesByRank[4];
+    s32 playerRanks[4];
+    s32 playerTeams[4];
+    s32 sortedPlayerCount;
+    s32 teamSortOrder;
     s32 j;
     s32 i;
 
-    var_r28 = 0;
-    sp44[0] = 0;
+    sortedPlayerCount = 0;
+    playerIndicesByRank[0] = 0;
     for (i = 1; i < 4; i++) {
-        sp44[i] = sp44[i - 1] + 1;
-        if (sp44[i] >= 4) {
-            sp44[i] = 0;
+        playerIndicesByRank[i] = playerIndicesByRank[i - 1] + 1;
+        if (playerIndicesByRank[i] >= 4) {
+            playerIndicesByRank[i] = 0;
         }
     }
     for (i = 0; i < 4; i++) {
-        sp34[i] = GWPlayer[sp44[i]].rank;
+        playerRanks[i] = GWPlayer[playerIndicesByRank[i]].rank;
     }
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            if (i == sp34[j]) {
-                sp74[var_r28][0] = sp44[j];
-                sp74[var_r28][1] = sp34[j];
-                var_r28++;
+            if (i == playerRanks[j]) {
+                playersSortedByRank[sortedPlayerCount][0] = playerIndicesByRank[j];
+                playersSortedByRank[sortedPlayerCount][1] = playerRanks[j];
+                sortedPlayerCount++;
             }
         }
     }
-    if (lbl_1_bss_1A0C.unk2CC == 1) {
-        var_r29 = lbl_1_bss_1A0C.unk2D0;
+    if (resultState.teamMode == 1) {
+        teamSortOrder = resultState.winningTeam;
         for (i = 0; i < 4; i++) {
-            sp24[0] = GWPlayer[sp74[0][0]].team;
-            sp24[1] = GWPlayer[sp74[1][0]].team;
-            sp24[2] = GWPlayer[sp74[2][0]].team;
-            sp24[3] = GWPlayer[sp74[3][0]].team;
-            sp54[i][0] = sp74[i][0];
-            sp54[i][1] = sp74[i][1];
+            playerTeams[0] = GWPlayer[playersSortedByRank[0][0]].team;
+            playerTeams[1] = GWPlayer[playersSortedByRank[1][0]].team;
+            playerTeams[2] = GWPlayer[playersSortedByRank[2][0]].team;
+            playerTeams[3] = GWPlayer[playersSortedByRank[3][0]].team;
+            rankedPlayersBeforeTeamSort[i][0] = playersSortedByRank[i][0];
+            rankedPlayersBeforeTeamSort[i][1] = playersSortedByRank[i][1];
         }
-        OSReport("########## Sort Start WIN:%d  IDX (%d,%d,%d), (%d,%d,%d), (%d,%d,%d), (%d,%d,%d)\n", var_r29,
-            sp24[0], sp74[0][0], sp74[0][1], sp24[1], sp74[1][0], sp74[1][1],
-            sp24[2], sp74[2][0], sp74[2][1], sp24[3], sp74[3][0], sp74[3][1]);
+        OSReport("########## Sort Start WIN:%d  IDX (%d,%d,%d), (%d,%d,%d), (%d,%d,%d), (%d,%d,%d)\n", teamSortOrder,
+            playerTeams[0], playersSortedByRank[0][0], playersSortedByRank[0][1], playerTeams[1], playersSortedByRank[1][0], playersSortedByRank[1][1],
+            playerTeams[2], playersSortedByRank[2][0], playersSortedByRank[2][1], playerTeams[3], playersSortedByRank[3][0], playersSortedByRank[3][1]);
         for (i = 0; i < 4; i++) {
             for (j = 0; j < 4; j++) {
-                if (sp24[j] != -1 && var_r29 == sp24[j]) {
-                    sp24[j] = -1;
-                    sp74[i][0] = sp54[j][0];
-                    sp74[i][1] = sp54[j][1];
+                if (playerTeams[j] != -1 && teamSortOrder == playerTeams[j]) {
+                    playerTeams[j] = -1;
+                    playersSortedByRank[i][0] = rankedPlayersBeforeTeamSort[j][0];
+                    playersSortedByRank[i][1] = rankedPlayersBeforeTeamSort[j][1];
                     break;
                 }
             }
             if (i == 1) {
-                var_r29++;
-                var_r29 %= 2;
+                teamSortOrder++;
+                teamSortOrder %= 2;
             }
         }
-        OSReport("########## Sort End WIN:%d  IDX %d, %d, %d, %d\n", var_r29, sp74[0][0], sp74[1][0], sp74[2][0], sp74[3][0]);
-        OSReport("########## Sort End RANK %d, %d, %d, %d,\n", sp74[0][1], sp74[1][1], sp74[2][1], sp74[3][1]);
+        OSReport("########## Sort End WIN:%d  IDX %d, %d, %d, %d\n", teamSortOrder, playersSortedByRank[0][0], playersSortedByRank[1][0], playersSortedByRank[2][0], playersSortedByRank[3][0]);
+        OSReport("########## Sort End RANK %d, %d, %d, %d,\n", playersSortedByRank[0][1], playersSortedByRank[1][1], playersSortedByRank[2][1], playersSortedByRank[3][1]);
     }
     for (i = 0; i < 4; i++) {
-        fn_1_19590(&lbl_1_bss_1A0C.unk38[i], sp74[i][0], sp74[i][1]);
-        if (arg0 == sp74[i][0]) {
-            lbl_1_bss_1A0C.unk04 = i;
+        Story3CopyResultPlayerStats(&resultState.playerResults[i], playersSortedByRank[i][0], playersSortedByRank[i][1]);
+        if (playerCount == playersSortedByRank[i][0]) {
+            resultState.currentPlayerIndex = i;
         }
     }
 }
 
-void fn_1_1A008(OMOBJ* arg0, s32 arg1) {
-    s32 spDC;
-    s32 spD8;
-    s32 spD4;
-    s32 spD0;
-    s32 spCC;
-    s32 spC8;
-    StructUnk38Bss1A0C* temp_r27;
-    s32 var_r30;
-    s32 var_r29;
-    s32 var_r28;
+Void Story3CalculateTeamMinigameScores(OMOBJ* object, s32 count) {
+    s32 teamOneMinigameScore;
+    s32 teamTwoMinigameScore;
+    s32 modelVariant;
+    s32 teamHeaderY;
+    s32 teamScoreY;
+    s32 teamSecondScoreY;
+    StoryResultPlayerStats* playerResult;
+    s32 spriteId;
+    s32 teamMinigameScore;
+    s32 scoreDigitIndex;
 
-    // TODO: figure out the actual args of fn_1_15D08 calls.
-    // It will match as long as the values (arg2 + arg4 / 2) and (arg3 + arg5 / 2) are preserved.
-    temp_r27 = &lbl_1_bss_1A0C.unk38[arg1];
-    if (lbl_1_bss_1A0C.unk2CC == 1) {
-        spD4 = lbl_1_bss_1A0C.unk2D0;
-        if (arg1 > 1) {
-            spD4++;
-            spD4 %= 2;
+    // TODO: figure out the actual args of story3_position_centered_sprite calls.
+    // It will match as long as the values (leftX + width / 2) and (topY + height / 2) are preserved.
+    playerResult = &resultState.playerResults[count];
+    if (resultState.teamMode == 1) {
+        modelVariant = resultState.winningTeam;
+        if (count > 1) {
+            modelVariant++;
+            modelVariant %= 2;
         }
-        arg0->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 140) + spD4);
-        arg0->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 142) + spD4);
-        arg0->mtnId[2] = Hu3DMotionIDGet(arg0->mdlId[2]);
-        if (arg1 <= 1) {
-            spD4 = 0;
+        object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 140) + modelVariant);
+        object->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 142) + modelVariant);
+        object->mtnId[2] = Hu3DMotionIDGet(object->mdlId[2]);
+        if (count <= 1) {
+            modelVariant = 0;
         } else {
-            spD4 = 1;
+            modelVariant = 1;
         }
-        arg0->mdlId[3] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 100) + spD4);
-        Hu3DModelHookSet(arg0->mdlId[1], "results_flag04-hook_cubes", arg0->mdlId[3]);
+        object->mdlId[3] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 100) + modelVariant);
+        Hu3DModelHookSet(object->mdlId[1], "results_flag04-hook_cubes", object->mdlId[3]);
     } else {
-        arg0->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 98));
-        arg0->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 99));
-        arg0->mtnId[2] = Hu3DMotionIDGet(arg0->mdlId[2]);
-        arg0->mdlId[3] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 100) + temp_r27->unk18);
-        Hu3DModelHookSet(arg0->mdlId[1], "results_flag04-hook_cubes", arg0->mdlId[3]);
+        object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 98));
+        object->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 99));
+        object->mtnId[2] = Hu3DMotionIDGet(object->mdlId[2]);
+        object->mdlId[3] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 100) + playerResult->rank);
+        Hu3DModelHookSet(object->mdlId[1], "results_flag04-hook_cubes", object->mdlId[3]);
     }
-    arg0->work[0] = HuSprGrpCreate(12);
-    if (lbl_1_bss_1A0C.unk2CC == 1) {
-        spD0 = 35;
-        spCC = 10;
-        spC8 = 65;
-        if (arg1 <= 1) {
-            var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 81), HU_MEMNUM_OVL)), 900, 0);
+    object->work[0] = HuSprGrpCreate(12);
+    if (resultState.teamMode == 1) {
+        teamHeaderY = 35;
+        teamScoreY = 10;
+        teamSecondScoreY = 65;
+        if (count <= 1) {
+            spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 81), HU_MEMNUM_OVL)), 900, 0);
         } else {
-            var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 82), HU_MEMNUM_OVL)), 900, 0);
+            spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 82), HU_MEMNUM_OVL)), 900, 0);
         }
-        HuSprGrpMemberSet(arg0->work[0], 0, var_r30);
-        fn_1_15D08(arg0->work[0], 0, 40, spD0 + 36, 0, 0);
-        var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 85) + temp_r27->unk10, HU_MEMNUM_OVL)), 900, 0);
-        HuSprGrpMemberSet(arg0->work[0], 1, var_r30);
-        if (arg1 % 2 == 0) {
-            fn_1_15D08(arg0->work[0], 1, 119, spD0 + 34, 0, 0);
+        HuSprGrpMemberSet(object->work[0], 0, spriteId);
+        Story3PositionCenteredSprite(object->work[0], 0, 40, teamHeaderY + 36, 0, 0);
+        spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 85) + playerResult->characterId, HU_MEMNUM_OVL)), 900, 0);
+        HuSprGrpMemberSet(object->work[0], 1, spriteId);
+        if (count % 2 == 0) {
+            Story3PositionCenteredSprite(object->work[0], 1, 119, teamHeaderY + 34, 0, 0);
         } else {
-            fn_1_15D08(arg0->work[0], 1, 189, -spD0 + 24, 0, 0);
+            Story3PositionCenteredSprite(object->work[0], 1, 189, -teamHeaderY + 24, 0, 0);
         }
-        var_r30 = HuSprCreate(lbl_1_bss_18D8[0], 900, 0);
-        HuSprGrpMemberSet(arg0->work[0], 2, var_r30);
-        fn_1_15D08(arg0->work[0], 2, 262, spCC + 29, 0, 0);
-        var_r30 = HuSprCreate(lbl_1_bss_18D8[2], 900, 0);
-        HuSprGrpMemberSet(arg0->work[0], 3, var_r30);
-        fn_1_15D08(arg0->work[0], 3, 312, spCC + 29, 0, 0);
-        for (var_r28 = 0; var_r28 < 3; var_r28++) {
-            spDC = lbl_1_bss_1A0C.unk38[0].unk34[0][0] + lbl_1_bss_1A0C.unk38[1].unk34[0][0];
-            spD8 = lbl_1_bss_1A0C.unk38[2].unk34[0][0] + lbl_1_bss_1A0C.unk38[3].unk34[0][0];
-            if (arg1 <= 1) {
-                if (spDC >= spD8) {
-                    var_r30 = HuSprCreate(lbl_1_bss_18EC[1], 900, 0);
+        spriteId = HuSprCreate(resultDecorationAnimations[0], 900, 0);
+        HuSprGrpMemberSet(object->work[0], 2, spriteId);
+        Story3PositionCenteredSprite(object->work[0], 2, 262, teamScoreY + 29, 0, 0);
+        spriteId = HuSprCreate(resultDecorationAnimations[2], 900, 0);
+        HuSprGrpMemberSet(object->work[0], 3, spriteId);
+        Story3PositionCenteredSprite(object->work[0], 3, 312, teamScoreY + 29, 0, 0);
+        for (scoreDigitIndex = 0; scoreDigitIndex < 3; scoreDigitIndex++) {
+            teamOneMinigameScore = resultState.playerResults[0].minigameResults[0][0] + resultState.playerResults[1].minigameResults[0][0];
+            teamTwoMinigameScore = resultState.playerResults[2].minigameResults[0][0] + resultState.playerResults[3].minigameResults[0][0];
+            if (count <= 1) {
+                if (teamOneMinigameScore >= teamTwoMinigameScore) {
+                    spriteId = HuSprCreate(recordStarAnimations[1], 900, 0);
                 } else {
-                    var_r30 = HuSprCreate(lbl_1_bss_18EC[0], 900, 0);
+                    spriteId = HuSprCreate(recordStarAnimations[0], 900, 0);
                 }
             } else {
-                if (spDC <= spD8) {
-                    var_r30 = HuSprCreate(lbl_1_bss_18EC[1], 900, 0);
+                if (teamOneMinigameScore <= teamTwoMinigameScore) {
+                    spriteId = HuSprCreate(recordStarAnimations[1], 900, 0);
                 } else {
-                    var_r30 = HuSprCreate(lbl_1_bss_18EC[0], 900, 0);
+                    spriteId = HuSprCreate(recordStarAnimations[0], 900, 0);
                 }
             }
-            HuSprGrpMemberSet(arg0->work[0], var_r28 + 4, var_r30);
+            HuSprGrpMemberSet(object->work[0], scoreDigitIndex + 4, spriteId);
         }
-        if (arg1 <= 1) {
-            var_r29 = lbl_1_bss_1A0C.unk38[0].unk34[0][0] + lbl_1_bss_1A0C.unk38[1].unk34[0][0];
-            if (var_r29 >= 999) {
-                var_r29 = 999;
+        if (count <= 1) {
+            teamMinigameScore = resultState.playerResults[0].minigameResults[0][0] + resultState.playerResults[1].minigameResults[0][0];
+            if (teamMinigameScore >= 999) {
+                teamMinigameScore = 999;
             }
-            fn_1_15DC8(arg0->work[0], 4, var_r29, 340, spCC + 11, 26, 36, 0);
+            Story3DrawNumberSprites(object->work[0], 4, teamMinigameScore, 340, teamScoreY + 11, 26, 36, 0);
         } else {
-            var_r29 = lbl_1_bss_1A0C.unk38[2].unk34[0][0] + lbl_1_bss_1A0C.unk38[3].unk34[0][0];
-            if (var_r29 >= 999) {
-                var_r29 = 999;
+            teamMinigameScore = resultState.playerResults[2].minigameResults[0][0] + resultState.playerResults[3].minigameResults[0][0];
+            if (teamMinigameScore >= 999) {
+                teamMinigameScore = 999;
             }
-            fn_1_15DC8(arg0->work[0], 4, var_r29, 340, spCC + 11, 26, 36, 0);
+            Story3DrawNumberSprites(object->work[0], 4, teamMinigameScore, 340, teamScoreY + 11, 26, 36, 0);
         }
-        var_r30 = HuSprCreate(lbl_1_bss_18D8[1], 900, 0);
-        HuSprGrpMemberSet(arg0->work[0], 7, var_r30);
-        fn_1_15D08(arg0->work[0], 7, 262, spC8 + 29, 0, 0);
-        var_r30 = HuSprCreate(lbl_1_bss_18D8[2], 900, 0);
-        HuSprGrpMemberSet(arg0->work[0], 8, var_r30);
-        fn_1_15D08(arg0->work[0], 8, 312, spC8 + 29, 0, 0);
-        for (var_r28 = 0; var_r28 < 3; var_r28++) {
-            spDC = lbl_1_bss_1A0C.unk38[0].unk34[1][0] + lbl_1_bss_1A0C.unk38[1].unk34[1][0];
-            spD8 = lbl_1_bss_1A0C.unk38[2].unk34[1][0] + lbl_1_bss_1A0C.unk38[3].unk34[1][0];
-            if (arg1 <= 1) {
-                if (spDC >= spD8) {
-                    var_r30 = HuSprCreate(lbl_1_bss_18EC[1], 900, 0);
+        spriteId = HuSprCreate(resultDecorationAnimations[1], 900, 0);
+        HuSprGrpMemberSet(object->work[0], 7, spriteId);
+        Story3PositionCenteredSprite(object->work[0], 7, 262, teamSecondScoreY + 29, 0, 0);
+        spriteId = HuSprCreate(resultDecorationAnimations[2], 900, 0);
+        HuSprGrpMemberSet(object->work[0], 8, spriteId);
+        Story3PositionCenteredSprite(object->work[0], 8, 312, teamSecondScoreY + 29, 0, 0);
+        for (scoreDigitIndex = 0; scoreDigitIndex < 3; scoreDigitIndex++) {
+            teamOneMinigameScore = resultState.playerResults[0].minigameResults[1][0] + resultState.playerResults[1].minigameResults[1][0];
+            teamTwoMinigameScore = resultState.playerResults[2].minigameResults[1][0] + resultState.playerResults[3].minigameResults[1][0];
+            if (count <= 1) {
+                if (teamOneMinigameScore >= teamTwoMinigameScore) {
+                    spriteId = HuSprCreate(recordStarAnimations[1], 900, 0);
                 } else {
-                    var_r30 = HuSprCreate(lbl_1_bss_18EC[0], 900, 0);
+                    spriteId = HuSprCreate(recordStarAnimations[0], 900, 0);
                 }
             } else {
-                if (spDC <= spD8) {
-                    var_r30 = HuSprCreate(lbl_1_bss_18EC[1], 900, 0);
+                if (teamOneMinigameScore <= teamTwoMinigameScore) {
+                    spriteId = HuSprCreate(recordStarAnimations[1], 900, 0);
                 } else {
-                    var_r30 = HuSprCreate(lbl_1_bss_18EC[0], 900, 0);
+                    spriteId = HuSprCreate(recordStarAnimations[0], 900, 0);
                 }
             }
-            HuSprGrpMemberSet(arg0->work[0], var_r28 + 9, var_r30);
+            HuSprGrpMemberSet(object->work[0], scoreDigitIndex + 9, spriteId);
         }
-        if (arg1 <= 1) {
-            var_r29 = lbl_1_bss_1A0C.unk38[0].unk34[1][0] + lbl_1_bss_1A0C.unk38[1].unk34[1][0];
-            if (var_r29 >= 999) {
-                var_r29 = 999;
+        if (count <= 1) {
+            teamMinigameScore = resultState.playerResults[0].minigameResults[1][0] + resultState.playerResults[1].minigameResults[1][0];
+            if (teamMinigameScore >= 999) {
+                teamMinigameScore = 999;
             }
-            fn_1_15DC8(arg0->work[0], 9, var_r29, 340, spC8 + 11, 26, 36, 0);
+            Story3DrawNumberSprites(object->work[0], 9, teamMinigameScore, 340, teamSecondScoreY + 11, 26, 36, 0);
         } else {
-            var_r29 = lbl_1_bss_1A0C.unk38[2].unk34[1][0] + lbl_1_bss_1A0C.unk38[3].unk34[1][0];
-            if (var_r29 >= 999) {
-                var_r29 = 999;
+            teamMinigameScore = resultState.playerResults[2].minigameResults[1][0] + resultState.playerResults[3].minigameResults[1][0];
+            if (teamMinigameScore >= 999) {
+                teamMinigameScore = 999;
             }
-            fn_1_15DC8(arg0->work[0], 9, var_r29, 340, spC8 + 11, 26, 36, 0);
+            Story3DrawNumberSprites(object->work[0], 9, teamMinigameScore, 340, teamSecondScoreY + 11, 26, 36, 0);
         }
     } else {
-        var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 81) + temp_r27->unk18, HU_MEMNUM_OVL)), 900, 0);
-        HuSprGrpMemberSet(arg0->work[0], 0, var_r30);
-        fn_1_15D08(arg0->work[0], 0, 25, 37, 0, 0);
-        var_r30 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 85) + temp_r27->unk10, HU_MEMNUM_OVL)), 900, 0);
-        HuSprGrpMemberSet(arg0->work[0], 1, var_r30);
-        fn_1_15D08(arg0->work[0], 1, 87, 29, 0, 0);
-        var_r30 = HuSprCreate(lbl_1_bss_18D8[0], 900, 0);
-        HuSprGrpMemberSet(arg0->work[0], 2, var_r30);
-        fn_1_15D08(arg0->work[0], 2, 144, 29, 0, 0);
-        var_r30 = HuSprCreate(lbl_1_bss_18D8[2], 900, 0);
-        HuSprGrpMemberSet(arg0->work[0], 3, var_r30);
-        fn_1_15D08(arg0->work[0], 3, 178, 29, 0, 0);
-        for (var_r28 = 0; var_r28 < 3; var_r28++) {
-            var_r30 = HuSprCreate(lbl_1_bss_18EC[temp_r27->unk34[0][1]], 900, 0);
-            HuSprGrpMemberSet(arg0->work[0], (var_r28 + 4), var_r30);
+        spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 81) + playerResult->rank, HU_MEMNUM_OVL)), 900, 0);
+        HuSprGrpMemberSet(object->work[0], 0, spriteId);
+        Story3PositionCenteredSprite(object->work[0], 0, 25, 37, 0, 0);
+        spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 85) + playerResult->characterId, HU_MEMNUM_OVL)), 900, 0);
+        HuSprGrpMemberSet(object->work[0], 1, spriteId);
+        Story3PositionCenteredSprite(object->work[0], 1, 87, 29, 0, 0);
+        spriteId = HuSprCreate(resultDecorationAnimations[0], 900, 0);
+        HuSprGrpMemberSet(object->work[0], 2, spriteId);
+        Story3PositionCenteredSprite(object->work[0], 2, 144, 29, 0, 0);
+        spriteId = HuSprCreate(resultDecorationAnimations[2], 900, 0);
+        HuSprGrpMemberSet(object->work[0], 3, spriteId);
+        Story3PositionCenteredSprite(object->work[0], 3, 178, 29, 0, 0);
+        for (scoreDigitIndex = 0; scoreDigitIndex < 3; scoreDigitIndex++) {
+            spriteId = HuSprCreate(recordStarAnimations[playerResult->minigameResults[0][1]], 900, 0);
+            HuSprGrpMemberSet(object->work[0], (scoreDigitIndex + 4), spriteId);
         }
-        fn_1_15DC8(arg0->work[0], 4, temp_r27->unk34[0][0], 190, 11, 26, 36, 0);
-        var_r30 = HuSprCreate(lbl_1_bss_18D8[1], 900, 0);
-        HuSprGrpMemberSet(arg0->work[0], 7, var_r30);
-        fn_1_15D08(arg0->work[0], 7, 304, 29, 0, 0);
-        var_r30 = HuSprCreate(lbl_1_bss_18D8[2], 900, 0);
-        HuSprGrpMemberSet(arg0->work[0], 8, var_r30);
-        fn_1_15D08(arg0->work[0], 8, 338, 29, 0, 0);
-        for (var_r28 = 0; var_r28 < 3; var_r28++) {
-            var_r30 = HuSprCreate(lbl_1_bss_18EC[temp_r27->unk34[1][1]], 900, 0);
-            HuSprGrpMemberSet(arg0->work[0], var_r28 + 9, var_r30);
+        Story3DrawNumberSprites(object->work[0], 4, playerResult->minigameResults[0][0], 190, 11, 26, 36, 0);
+        spriteId = HuSprCreate(resultDecorationAnimations[1], 900, 0);
+        HuSprGrpMemberSet(object->work[0], 7, spriteId);
+        Story3PositionCenteredSprite(object->work[0], 7, 304, 29, 0, 0);
+        spriteId = HuSprCreate(resultDecorationAnimations[2], 900, 0);
+        HuSprGrpMemberSet(object->work[0], 8, spriteId);
+        Story3PositionCenteredSprite(object->work[0], 8, 338, 29, 0, 0);
+        for (scoreDigitIndex = 0; scoreDigitIndex < 3; scoreDigitIndex++) {
+            spriteId = HuSprCreate(recordStarAnimations[playerResult->minigameResults[1][1]], 900, 0);
+            HuSprGrpMemberSet(object->work[0], scoreDigitIndex + 9, spriteId);
         }
-        fn_1_15DC8(arg0->work[0], 9, temp_r27->unk34[1][0], 350, 11, 26, 36, 0);
+        Story3DrawNumberSprites(object->work[0], 9, playerResult->minigameResults[1][0], 350, 11, 26, 36, 0);
     }
-    lbl_1_bss_18F4[var_r28].unk14 = 1000 + rand8() * 5;
+    playerRecordProcessStates[scoreDigitIndex].spriteId = 1000 + rand8() * 5;
 }
 
-void fn_1_1BEFC(OMOBJ* arg0, StructBss1530* arg1) {
-    Mtx sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
-    s32 var_r29;
+Void Story3RotateResultBoardFlag(OMOBJ* object, StorySequenceProcessState* processState) {
+    Mtx flagModelMatrix;
+    Vec flagScreenPosition;
+    Vec flagScreenCoordinates;
+    Vec flagWorldPosition;
+    s32 spriteIndex;
 
-    if (lbl_1_bss_1A0C.unk2CC == 1) {
-        if (arg1->unk08 % 2 == 1) {
-            Hu3DModelAttrSet(arg0->mdlId[1], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(arg0->mdlId[3], HU3D_ATTR_DISPOFF);
-            for (var_r29 = 0; var_r29 < 12; var_r29++) {
-                HuSprAttrSet(arg0->work[0], var_r29, 4);
+    if (resultState.teamMode == 1) {
+        if (processState->workValue0 % 2 == 1) {
+            Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(object->mdlId[2], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(object->mdlId[3], HU3D_ATTR_DISPOFF);
+            for (spriteIndex = 0; spriteIndex < 12; spriteIndex++) {
+                HuSprAttrSet(object->work[0], spriteIndex, 4);
             }
         }
-        HuSprAttrReset(arg0->work[0], 1, HUSPR_ATTR_DISPOFF);
-        Hu3DModelPosSet(arg0->mdlId[1], lbl_1_bss_1A0C.unk288[arg1->unk08 + 1].x + 15.0f, lbl_1_bss_1A0C.unk288[arg1->unk08 + 1].y + 25.0f - 35.0f, lbl_1_bss_1A0C.unk288[arg1->unk08 + 1].z);
+        HuSprAttrReset(object->work[0], 1, HUSPR_ATTR_DISPOFF);
+        Hu3DModelPosSet(object->mdlId[1], resultState.playerModelPositions[processState->workValue0 + 1].x + 15.0f, resultState.playerModelPositions[processState->workValue0 + 1].y + 25.0f - 35.0f, resultState.playerModelPositions[processState->workValue0 + 1].z);
     } else {
-        Hu3DModelPosSet(arg0->mdlId[1], lbl_1_bss_1A0C.unk288[arg1->unk08 + 1].x + 15.0f, lbl_1_bss_1A0C.unk288[arg1->unk08 + 1].y + 25.0f, lbl_1_bss_1A0C.unk288[arg1->unk08 + 1].z);
+        Hu3DModelPosSet(object->mdlId[1], resultState.playerModelPositions[processState->workValue0 + 1].x + 15.0f, resultState.playerModelPositions[processState->workValue0 + 1].y + 25.0f, resultState.playerModelPositions[processState->workValue0 + 1].z);
     }
-    if (Hu3DData[arg0->mdlId[1]].pos.x <= -195.0f) {
-        Hu3DData[arg0->mdlId[1]].pos.x = -195.0f;
+    if (Hu3DData[object->mdlId[1]].pos.x <= -195.0f) {
+        Hu3DData[object->mdlId[1]].pos.x = -195.0f;
     }
-    Hu3DModelObjMtxGet(arg0->mdlId[1], "results_flag04-hook_flag", sp2C);
-    Hu3DModelPosSet(arg0->mdlId[2], sp2C[0][3], sp2C[1][3], sp2C[2][3]);
-    if (arg1->unk0C++ >= arg1->unk14) {
-        arg1->unk0C = 0;
-        arg1->unk14 = rand8() * 5 + 1000;
-        fn_1_1E28(arg0, 2, 2, 0, 0);
+    Hu3DModelObjMtxGet(object->mdlId[1], "results_flag04-hook_flag", flagModelMatrix);
+    Hu3DModelPosSet(object->mdlId[2], flagModelMatrix[0][3], flagModelMatrix[1][3], flagModelMatrix[2][3]);
+    if (processState->processState++ >= processState->spriteId) {
+        processState->processState = 0;
+        processState->spriteId = rand8() * 5 + 1000;
+        Story3SetModelMotion(object, 2, 2, 0, 0);
     }
-    Hu3DModelRotSet(arg0->mdlId[3], 0.0f, arg1->unk10 += 3, 0.0f);
-    if (arg1->unk10 >= 360) {
-        arg1->unk10 -= 360;
+    Hu3DModelRotSet(object->mdlId[3], 0.0f, processState->workValue2 += 3, 0.0f);
+    if (processState->workValue2 >= 360) {
+        processState->workValue2 -= 360;
     }
-    sp8.x = Hu3DData[arg0->mdlId[1]].pos.x;
-    sp8.y = lbl_1_bss_1A0C.unk288[arg1->unk08 + 1].y + 25.0f;
-    sp8.z = Hu3DData[arg0->mdlId[1]].pos.z;
-    sp20.x = sp8.x + 24.0f;
-    sp20.y = sp8.y + 40.0f;
-    sp20.z = sp8.z;
-    Hu3D3Dto2D(&sp20, 1, &sp14);
-    HuSprGrpPosSet(arg0->work[0], sp14.x, sp14.y);
+    flagWorldPosition.x = Hu3DData[object->mdlId[1]].pos.x;
+    flagWorldPosition.y = resultState.playerModelPositions[processState->workValue0 + 1].y + 25.0f;
+    flagWorldPosition.z = Hu3DData[object->mdlId[1]].pos.z;
+    flagScreenPosition.x = flagWorldPosition.x + 24.0f;
+    flagScreenPosition.y = flagWorldPosition.y + 40.0f;
+    flagScreenPosition.z = flagWorldPosition.z;
+    Hu3D3Dto2D(&flagScreenPosition, 1, &flagScreenCoordinates);
+    HuSprGrpPosSet(object->work[0], flagScreenCoordinates.x, flagScreenCoordinates.y);
 }
 
-void fn_1_1C2F4(void) {
-    s32 var_r30;
-    s32 var_r31;
+Void Story3PositionPlayerModels(Void) {
+    s32 playerIndex;
+    s32 modelIndex;
 
-    for (var_r30 = 0; var_r30 < 4; var_r30++) {
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            Hu3DModelAttrReset(lbl_1_bss_18F4[var_r30].unk00->mdlId[var_r31 + 1], HU3D_ATTR_DISPOFF);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        for (modelIndex = 0; modelIndex < 3; modelIndex++) {
+            Hu3DModelAttrReset(playerRecordProcessStates[playerIndex].object->mdlId[modelIndex + 1], HU3D_ATTR_DISPOFF);
         }
-        if (lbl_1_bss_1A0C.unk2CC == 1) {
-            if (var_r30 % 2 == 0) {
-                for (var_r31 = 0; var_r31 < 12; var_r31++) {
-                    HuSprAttrReset(lbl_1_bss_18F4[var_r30].unk00->work[0], var_r31, HUSPR_ATTR_DISPOFF);
+        if (resultState.teamMode == 1) {
+            if (playerIndex % 2 == 0) {
+                for (modelIndex = 0; modelIndex < 12; modelIndex++) {
+                    HuSprAttrReset(playerRecordProcessStates[playerIndex].object->work[0], modelIndex, HUSPR_ATTR_DISPOFF);
                 }
             }
-            HuSprAttrReset(lbl_1_bss_18F4[var_r30].unk00->work[0], 1, HUSPR_ATTR_DISPOFF);
+            HuSprAttrReset(playerRecordProcessStates[playerIndex].object->work[0], 1, HUSPR_ATTR_DISPOFF);
         } else {
-            for (var_r31 = 0; var_r31 < 12; var_r31++) {
-                HuSprAttrReset(lbl_1_bss_18F4[var_r30].unk00->work[0], var_r31, HUSPR_ATTR_DISPOFF);
+            for (modelIndex = 0; modelIndex < 12; modelIndex++) {
+                HuSprAttrReset(playerRecordProcessStates[playerIndex].object->work[0], modelIndex, HUSPR_ATTR_DISPOFF);
             }
         }
-        lbl_1_bss_18F4[var_r30].unk04 = (void*) fn_1_1BEFC;
+        playerRecordProcessStates[playerIndex].callback = (Void*) Story3RotateResultBoardFlag;
     }
 }
 
-void fn_1_1C460(void) {
-    s32 var_r30;
-    s32 var_r31;
+Void Story3PositionPlayerSprites(Void) {
+    s32 playerIndex;
+    s32 modelOrSpriteIndex;
 
-    for (var_r30 = 0; var_r30 < 4; var_r30++) {
-        for (var_r31 = 0; var_r31 < 3; var_r31++) {
-            Hu3DModelAttrSet(lbl_1_bss_18F4[var_r30].unk00->mdlId[var_r31 + 1], HU3D_ATTR_DISPOFF);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        for (modelOrSpriteIndex = 0; modelOrSpriteIndex < 3; modelOrSpriteIndex++) {
+            Hu3DModelAttrSet(playerRecordProcessStates[playerIndex].object->mdlId[modelOrSpriteIndex + 1], HU3D_ATTR_DISPOFF);
         }
-        for (var_r31 = 0; var_r31 < 12; var_r31++) {
-            HuSprAttrSet(lbl_1_bss_18F4[var_r30].unk00->work[0], var_r31, HUSPR_ATTR_DISPOFF);
+        for (modelOrSpriteIndex = 0; modelOrSpriteIndex < 12; modelOrSpriteIndex++) {
+            HuSprAttrSet(playerRecordProcessStates[playerIndex].object->work[0], modelOrSpriteIndex, HUSPR_ATTR_DISPOFF);
         }
-        lbl_1_bss_18F4[var_r30].unk04 = NULL;
+        playerRecordProcessStates[playerIndex].callback = NULL;
     }
 }
 
-void fn_1_1C534(OMOBJ* arg0, s32 arg1) {
-    StructUnk38Bss1A0C* temp_r25;
-    s32 var_r22;
+Void Story3CreatePlayerRecordSprites(OMOBJ* object, s32 count) {
+    StoryResultPlayerStats* playerResult;
+    s32 spriteId;
     s32 i;
     s32 j;
 
-    temp_r25 = &lbl_1_bss_1A0C.unk38[arg1];
-    arg0->work[1] = HuSprGrpCreate(1);
-    var_r22 = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 122), HU_MEMNUM_OVL)), 700, 0);
-    HuSprGrpMemberSet(arg0->work[1], 0, var_r22);
-    HuSprBankSet(arg0->work[1], 0, temp_r25->unk10);
-    // TODO: figure out the actual args of this fn_1_15D08 call.
-    // It will match as long as the values (arg2 + arg4 / 2) and (arg3 + arg5 / 2) are preserved. 
-    fn_1_15D08(arg0->work[1], 0, 66, 21, 0, 0);
-    arg0->work[2] = HuSprGrpCreate(0x24);
+    playerResult = &resultState.playerResults[count];
+    object->work[1] = HuSprGrpCreate(1);
+    spriteId = HuSprCreate(HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MSTORY3, 122), HU_MEMNUM_OVL)), 700, 0);
+    HuSprGrpMemberSet(object->work[1], 0, spriteId);
+    HuSprBankSet(object->work[1], 0, playerResult->characterId);
+    // TODO: figure out the actual args of this story3_position_centered_sprite call.
+    // It will match as long as the values (leftX + width / 2) and (topY + height / 2) are preserved.
+    Story3PositionCenteredSprite(object->work[1], 0, 66, 21, 0, 0);
+    object->work[2] = HuSprGrpCreate(0x24);
     for (i = 0; i < 12; i++) {
         for (j = 0; j < 3; j++) {
-            var_r22 = HuSprCreate(lbl_1_bss_18E4[temp_r25->unk34[i][1]], 700, 0);
-            HuSprGrpMemberSet(arg0->work[2], j + i * 3, var_r22);
+            spriteId = HuSprCreate(recordMedalAnimations[playerResult->minigameResults[i][1]], 700, 0);
+            HuSprGrpMemberSet(object->work[2], j + i * 3, spriteId);
         }
-        fn_1_15DC8(arg0->work[2], i * 3, temp_r25->unk34[i][0], i * 66, 0, 20, 32, 1);
+        Story3DrawNumberSprites(object->work[2], i * 3, playerResult->minigameResults[i][0], i * 66, 0, 20, 32, 1);
     }
-    HuSprGrpDrawNoSet(arg0->work[1], 0x7F);
-    HuSprGrpDrawNoSet(arg0->work[2], 0x7F);
+    HuSprGrpDrawNoSet(object->work[1], 0x7F);
+    HuSprGrpDrawNoSet(object->work[2], 0x7F);
 }
 
-void fn_1_1C914(OMOBJ* arg0, StructBss1530* arg1) {
+Void Story3UpdateRecordList(OMOBJ* object, StorySequenceProcessState* processState) {
     s32 i;
     s32 j;
-    s32 var_r28;
+    s32 visiblePageStart;
 
-    var_r28 = lbl_1_bss_1A0C.unk2C8 - lbl_1_bss_1A0C.unk2C4;
-    if (var_r28 < 0) {
-        var_r28 = 0;
+    visiblePageStart = resultState.selectedRecordPage - resultState.recordScrollOffset;
+    if (visiblePageStart < 0) {
+        visiblePageStart = 0;
     }
-    HuSprGrpPosSet(arg0->work[1], 17.0f, arg1->unk08 * 48 + 118);
-    HuSprGrpPosSet(arg0->work[2], 169 - var_r28 * 66, arg1->unk08 * 48 + 123);
+    HuSprGrpPosSet(object->work[1], 17.0f, processState->workValue0 * 48 + 118);
+    HuSprGrpPosSet(object->work[2], 169 - visiblePageStart * 66, processState->workValue0 * 48 + 123);
     for (i = 0; i < 12; i++) {
         for (j = 0; j < 3; j++) {
-            if (i < var_r28 || i > var_r28 + 5) {
-                HuSprAttrSet(arg0->work[2], j + i * 3, HUSPR_ATTR_DISPOFF);
+            if (i < visiblePageStart || i > visiblePageStart + 5) {
+                HuSprAttrSet(object->work[2], j + i * 3, HUSPR_ATTR_DISPOFF);
             } else {
-                HuSprAttrReset(arg0->work[2], j + i * 3, HUSPR_ATTR_DISPOFF);
+                HuSprAttrReset(object->work[2], j + i * 3, HUSPR_ATTR_DISPOFF);
             }
         }
     }
 }
 
-void fn_1_1CA98(void) {
+Void Story3ShowRecordSprites(Void) {
     s32 i, j, k;
 
     for (i = 0; i < 4; i++) {
-        HuSprAttrReset(lbl_1_bss_18F4[i].unk00->work[1], 0, HUSPR_ATTR_DISPOFF);
+        HuSprAttrReset(playerRecordProcessStates[i].object->work[1], 0, HUSPR_ATTR_DISPOFF);
         for (j = 0; j < 12; j++) {
             for (k = 0; k < 3; k++) {
-                HuSprAttrReset(lbl_1_bss_18F4[i].unk00->work[2], k + j * 3, HUSPR_ATTR_DISPOFF);
+                HuSprAttrReset(playerRecordProcessStates[i].object->work[2], k + j * 3, HUSPR_ATTR_DISPOFF);
             }
         }
-        lbl_1_bss_18F4[i].unk04 = (void*) fn_1_1C914;
+        playerRecordProcessStates[i].callback = (Void*) Story3UpdateRecordList;
     }
 }
 
-void fn_1_1CB7C(void) {
+Void Story3HideRecordSprites(Void) {
     s32 i, j, k;
 
     for (i = 0; i < 4; i++) {
-        HuSprAttrSet(lbl_1_bss_18F4[i].unk00->work[1], 0, HUSPR_ATTR_DISPOFF);
+        HuSprAttrSet(playerRecordProcessStates[i].object->work[1], 0, HUSPR_ATTR_DISPOFF);
         for (j = 0; j < 12; j++) {
             for (k = 0; k < 3; k++) {
-                HuSprAttrSet(lbl_1_bss_18F4[i].unk00->work[2], k + j * 3, HUSPR_ATTR_DISPOFF);
+                HuSprAttrSet(playerRecordProcessStates[i].object->work[2], k + j * 3, HUSPR_ATTR_DISPOFF);
             }
         }
-        lbl_1_bss_18F4[i].unk04 = NULL;
+        playerRecordProcessStates[i].callback = NULL;
     }
 }
 
-void fn_1_1CC5C(void) {
-    OMOBJ* temp_r3;
-    s32 temp_r31;
+Void Story3AddPlayerRecord(Void) {
+    OMOBJ* playerObject;
+    s32 playerIndex;
 
-    temp_r31 = lbl_1_bss_1A0C.unk18++;
-    temp_r3 = omAddObjEx(lbl_1_bss_18D0, 0x100, 0x10, 0x10, -1, NULL);
-    lbl_1_bss_18F4[temp_r31].unk00 = temp_r3;
-    lbl_1_bss_18F4[temp_r31].unk04 = NULL;
-    lbl_1_bss_18F4[temp_r31].unk08 = temp_r31;
-    fn_1_1A008(temp_r3, temp_r31);
-    fn_1_1C534(temp_r3, temp_r31);
+    playerIndex = resultState.playerRecordCount++;
+    playerObject = omAddObjEx(resultProcess, 0x100, 0x10, 0x10, -1, NULL);
+    playerRecordProcessStates[playerIndex].object = playerObject;
+    playerRecordProcessStates[playerIndex].callback = NULL;
+    playerRecordProcessStates[playerIndex].workValue0 = playerIndex;
+    Story3CalculateTeamMinigameScores(playerObject, playerIndex);
+    Story3CreatePlayerRecordSprites(playerObject, playerIndex);
     while (TRUE) {
-        fn_1_938();
-        if (lbl_1_bss_18F4[temp_r31].unk04 != NULL) {
-            lbl_1_bss_18F4[temp_r31].unk04(temp_r3, &lbl_1_bss_18F4[temp_r31]);
+        Story3SleepOneFrame();
+        if (playerRecordProcessStates[playerIndex].callback != NULL) {
+            playerRecordProcessStates[playerIndex].callback(playerObject, &playerRecordProcessStates[playerIndex]);
         }
     }
 }
 
-void fn_1_1CD60(void) {
-    if (lbl_1_bss_1994.unk00->work[0] != 1) {
-        fn_1_1E28(lbl_1_bss_1994.unk00, 4, 6, 15, 0);
-        lbl_1_bss_1994.unk00->work[0] = 1;
-        lbl_1_bss_1994.unk00->work[1] = 4;
-        lbl_1_bss_1994.unk00->work[2] = 16;
+Void Story3StartCharacterModelMotion(Void) {
+    if (playerModelProcessState.object->work[0] != 1) {
+        Story3SetModelMotion(playerModelProcessState.object, 4, 6, 15, 0);
+        playerModelProcessState.object->work[0] = 1;
+        playerModelProcessState.object->work[1] = 4;
+        playerModelProcessState.object->work[2] = 16;
     }
 }
 
-void fn_1_1CDF0(OMOBJ* arg0) {
-    s32 sp20[] = {
+Void Story3LoadResultCharacterModels(OMOBJ* object) {
+    s32 characterModelDataIds[] = {
         DATA_MAKE_NUM(DATADIR_MSTORY3, 46),
         DATA_MAKE_NUM(DATADIR_MSTORY3, 40),
         DATA_MAKE_NUM(DATADIR_MSTORY3, 52),
         DATA_MAKE_NUM(DATADIR_MSTORY3, 58),
         DATA_MAKE_NUM(DATADIR_MSTORY3, 64)
     };
-    s32 sp34[][3] = {
+    s32 characterMotionDataIds[][3] = {
         { DATA_MAKE_NUM(DATADIR_MSTORY3, 47), DATA_MAKE_NUM(DATADIR_MSTORY3, 48), DATA_MAKE_NUM(DATADIR_MSTORY3, 49) },
         { DATA_MAKE_NUM(DATADIR_MSTORY3, 41), DATA_MAKE_NUM(DATADIR_MSTORY3, 42), DATA_MAKE_NUM(DATADIR_MSTORY3, 43) },
         { DATA_MAKE_NUM(DATADIR_MSTORY3, 53), DATA_MAKE_NUM(DATADIR_MSTORY3, 54), DATA_MAKE_NUM(DATADIR_MSTORY3, 55) },
@@ -1475,153 +1475,153 @@ void fn_1_1CDF0(OMOBJ* arg0) {
     s32 i;
 
     for (i = 0; i < 5; i++) {
-        arg0->mdlId[i * 3 + 1] = Hu3DModelCreateFile(sp20[i]);
-        arg0->mtnId[i * 3 + 1] = Hu3DJointMotionFile(arg0->mdlId[i * 3 + 1], sp34[i][0]);
-        arg0->mtnId[i * 3 + 2] = Hu3DJointMotionFile(arg0->mdlId[i * 3 + 1], sp34[i][1]);
-        arg0->mtnId[i * 3 + 3] = Hu3DJointMotionFile(arg0->mdlId[i * 3 + 1], sp34[i][2]);
-        Hu3DModelRotSet(arg0->mdlId[i * 3 + 1], 17.5f, 0.0f, 0.0f);
-        Hu3DModelScaleSet(arg0->mdlId[i * 3 + 1], 0.575f, 0.575f, 0.575f);
-        fn_1_1E28(arg0, i * 3 + 1, i * 3 + 1, 0, 1);
+        object->mdlId[i * 3 + 1] = Hu3DModelCreateFile(characterModelDataIds[i]);
+        object->mtnId[i * 3 + 1] = Hu3DJointMotionFile(object->mdlId[i * 3 + 1], characterMotionDataIds[i][0]);
+        object->mtnId[i * 3 + 2] = Hu3DJointMotionFile(object->mdlId[i * 3 + 1], characterMotionDataIds[i][1]);
+        object->mtnId[i * 3 + 3] = Hu3DJointMotionFile(object->mdlId[i * 3 + 1], characterMotionDataIds[i][2]);
+        Hu3DModelRotSet(object->mdlId[i * 3 + 1], 17.5f, 0.0f, 0.0f);
+        Hu3DModelScaleSet(object->mdlId[i * 3 + 1], 0.575f, 0.575f, 0.575f);
+        Story3SetModelMotion(object, i * 3 + 1, i * 3 + 1, 0, 1);
         {
-            s32 sp8[] = { 9, 14, 10, 11, 12, 13 };
+            s32 characterDustEffectIds[] = { 9, 14, 10, 11, 12, 13 };
 
             if (i != 3) {
-                CharNpcDustSet(arg0->mdlId[i * 3 + 1], arg0->mtnId[i * 3 + 2], 1, sp8[i]);
-                CharModelFxFlagSet(sp8[i], 0);
+                CharNpcDustSet(object->mdlId[i * 3 + 1], object->mtnId[i * 3 + 2], 1, characterDustEffectIds[i]);
+                CharModelFxFlagSet(characterDustEffectIds[i], 0);
             }
         }
     }
 }
 
-void fn_1_1D124(OMOBJ* arg0, StructBss1530* arg1) {
+Void Story3UpdatePlayerModelPositions(OMOBJ* object, StorySequenceProcessState* processState) {
     s32 i;
 
     for (i = 0; i < 5; i++) {
-        Hu3DModelPosSet(arg0->mdlId[i * 3 + 1], lbl_1_bss_1A0C.unk288[i].x, lbl_1_bss_1A0C.unk288[i].y, lbl_1_bss_1A0C.unk288[i].z);
+        Hu3DModelPosSet(object->mdlId[i * 3 + 1], resultState.playerModelPositions[i].x, resultState.playerModelPositions[i].y, resultState.playerModelPositions[i].z);
         if (i == 3) {
-            Hu3DData[arg0->mdlId[i * 3 + 1]].pos.y += 20.0f;
+            Hu3DData[object->mdlId[i * 3 + 1]].pos.y += 20.0f;
         }
     }
-    if (arg1->unk08++ >= 3000) {
-        arg1->unk08 = 0;
-        arg1->unk0C = 1;
-        lbl_1_bss_19BC.unk08++;
-        lbl_1_bss_19BC.unk08 %= 2;
-        fn_1_1E28(lbl_1_bss_1994.unk00, 1, 2, 15, 1);
+    if (processState->workValue0++ >= 3000) {
+        processState->workValue0 = 0;
+        processState->processState = 1;
+        recordPageProcessState.workValue0++;
+        recordPageProcessState.workValue0 %= 2;
+        Story3SetModelMotion(playerModelProcessState.object, 1, 2, 15, 1);
     }
-    if (arg1->unk0C == 1) {
-        lbl_1_bss_1A0C.unk288[0].x += -5.0f + 10.0f * lbl_1_bss_19BC.unk08;
-        if (lbl_1_bss_19BC.unk08 != 0) {
-            Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y = fn_1_5FC(Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y, 90.0f, 5.0f);
-            if (lbl_1_bss_1A0C.unk288[0].x >= 185.0f) {
-                arg1->unk0C = 2;
-                lbl_1_bss_1A0C.unk288[0].x = 185.0f;
-                fn_1_1E28(lbl_1_bss_1994.unk00, 1, 1, 15, 1);
+    if (processState->processState == 1) {
+        resultState.playerModelPositions[0].x += -5.0f + 10.0f * recordPageProcessState.workValue0;
+        if (recordPageProcessState.workValue0 != 0) {
+            Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y = interpolateSmoothAverage(Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y, 90.0f, 5.0f);
+            if (resultState.playerModelPositions[0].x >= 185.0f) {
+                processState->processState = 2;
+                resultState.playerModelPositions[0].x = 185.0f;
+                Story3SetModelMotion(playerModelProcessState.object, 1, 1, 15, 1);
             }
         } else {
-            Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y = fn_1_5FC(Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y, -90.0f, 5.0f);
-            if (lbl_1_bss_1A0C.unk288[0].x <= -175.0f) {
-                arg1->unk0C = 2;
-                lbl_1_bss_1A0C.unk288[0].x = -175.0f;
-                fn_1_1E28(lbl_1_bss_1994.unk00, 1, 1, 15, 1);
+            Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y = interpolateSmoothAverage(Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y, -90.0f, 5.0f);
+            if (resultState.playerModelPositions[0].x <= -175.0f) {
+                processState->processState = 2;
+                resultState.playerModelPositions[0].x = -175.0f;
+                Story3SetModelMotion(playerModelProcessState.object, 1, 1, 15, 1);
             }
         }
-    } else if (arg1->unk0C == 2) {
-        if (lbl_1_bss_19BC.unk08 != 0) {
-            Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y = fn_1_5FC(Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y, -15.0f, 15.0f);
-            if (Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y <= -14.9f) {
-                arg1->unk0C = 0;
+    } else if (processState->processState == 2) {
+        if (recordPageProcessState.workValue0 != 0) {
+            Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y = interpolateSmoothAverage(Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y, -15.0f, 15.0f);
+            if (Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y <= -14.9f) {
+                processState->processState = 0;
             }
         } else {
-            Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y = fn_1_5FC(Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y, 15.0f, 15.0f);
-            if (Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y >= 14.9f) {
-                arg1->unk0C = 0;
+            Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y = interpolateSmoothAverage(Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y, 15.0f, 15.0f);
+            if (Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y >= 14.9f) {
+                processState->processState = 0;
             }
         }
     }
 }
 
-void fn_1_1D63C(void) {
+Void Story3ShowResultPlayerModels(Void) {
     s32 i;
 
     for (i = 0; i < 5; i++) {
-        Hu3DModelAttrReset(lbl_1_bss_1994.unk00->mdlId[(i * 3) + 1], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(playerModelProcessState.object->mdlId[(i * 3) + 1], HU3D_ATTR_DISPOFF);
     }
-    Hu3DModelRotSet(lbl_1_bss_1994.unk00->mdlId[4], 17.5f, 15.0f, 0.0f);
-    Hu3DModelScaleSet(lbl_1_bss_1994.unk00->mdlId[4], 0.575f, 0.575f, 0.575f);
-    fn_1_1E28(lbl_1_bss_1994.unk00, 4, 4, 0, 1);
-    lbl_1_bss_1994.unk00->work[0] = lbl_1_bss_1994.unk00->work[1] = lbl_1_bss_1994.unk00->work[2] = 0;
-    lbl_1_bss_1994.unk04 = (void*) fn_1_1D124;
+    Hu3DModelRotSet(playerModelProcessState.object->mdlId[4], 17.5f, 15.0f, 0.0f);
+    Hu3DModelScaleSet(playerModelProcessState.object->mdlId[4], 0.575f, 0.575f, 0.575f);
+    Story3SetModelMotion(playerModelProcessState.object, 4, 4, 0, 1);
+    playerModelProcessState.object->work[0] = playerModelProcessState.object->work[1] = playerModelProcessState.object->work[2] = 0;
+    playerModelProcessState.callback = (Void*) Story3UpdatePlayerModelPositions;
 }
 
-void fn_1_1D77C(void) {
+Void Story3HideResultPlayerModels(Void) {
     s32 i;
 
     for (i = 0; i < 5; i++) {
-        Hu3DModelAttrSet(lbl_1_bss_1994.unk00->mdlId[i * 3 + 1], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(playerModelProcessState.object->mdlId[i * 3 + 1], HU3D_ATTR_DISPOFF);
     }
-    fn_1_1E28(lbl_1_bss_1994.unk00, 1, 1, 0, 1);
-    if (lbl_1_bss_19BC.unk08 != 0) {
-        lbl_1_bss_1A0C.unk288[0].x = 185.0f;
-        Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y = -15.0f;
+    Story3SetModelMotion(playerModelProcessState.object, 1, 1, 0, 1);
+    if (recordPageProcessState.workValue0 != 0) {
+        resultState.playerModelPositions[0].x = 185.0f;
+        Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y = -15.0f;
     } else {
-        lbl_1_bss_1A0C.unk288[0].x = -175.0f;
-        Hu3DData[lbl_1_bss_1994.unk00->mdlId[1]].rot.y = 15.0f;
+        resultState.playerModelPositions[0].x = -175.0f;
+        Hu3DData[playerModelProcessState.object->mdlId[1]].rot.y = 15.0f;
     }
-    lbl_1_bss_1994.unk0C = 0;
-    lbl_1_bss_1994.unk04 = NULL;
+    playerModelProcessState.processState = 0;
+    playerModelProcessState.callback = NULL;
 }
 
-void fn_1_1D8CC(OMOBJ* arg0, StructBss1530* arg1) {
-    if (arg0->work[0] != 0) {
-        if (arg0->work[2] != 0) {
-            arg0->work[2]--;
+Void Story3UpdateFlagAnimation(OMOBJ* object, StorySequenceProcessState* processState) {
+    if (object->work[0] != 0) {
+        if (object->work[2] != 0) {
+            object->work[2]--;
             return;
         }
-        if (arg0->work[2] == 0 && Hu3DMotionEndCheck(arg0->mdlId[4])) {
-            fn_1_1E28(arg0, 4, arg0->work[1], 15, 1);
-            arg0->work[0] = arg0->work[1] = arg0->work[2] = 0;
+        if (object->work[2] == 0 && Hu3DMotionEndCheck(object->mdlId[4])) {
+            Story3SetModelMotion(object, 4, object->work[1], 15, 1);
+            object->work[0] = object->work[1] = object->work[2] = 0;
         }
     }
 }
 
-void fn_1_1D964(void) {
-    Hu3DModelAttrReset(lbl_1_bss_1994.unk00->mdlId[4], HU3D_ATTR_DISPOFF);
-    Hu3DModelPosSet(lbl_1_bss_1994.unk00->mdlId[4], -185.0f, -225.0f, 0.0f);
-    Hu3DModelRotSet(lbl_1_bss_1994.unk00->mdlId[4], 0.0f, 15.0f, 0.0f);
-    Hu3DModelScaleSet(lbl_1_bss_1994.unk00->mdlId[4], 1.0f, 1.0f, 1.0f);
-    lbl_1_bss_1994.unk04 = (void*) fn_1_1D8CC;
+Void Story3ShowBoardFlag(Void) {
+    Hu3DModelAttrReset(playerModelProcessState.object->mdlId[4], HU3D_ATTR_DISPOFF);
+    Hu3DModelPosSet(playerModelProcessState.object->mdlId[4], -185.0f, -225.0f, 0.0f);
+    Hu3DModelRotSet(playerModelProcessState.object->mdlId[4], 0.0f, 15.0f, 0.0f);
+    Hu3DModelScaleSet(playerModelProcessState.object->mdlId[4], 1.0f, 1.0f, 1.0f);
+    playerModelProcessState.callback = (Void*) Story3UpdateFlagAnimation;
 }
 
-void fn_1_1DA64(void) {
-    Hu3DModelAttrSet(lbl_1_bss_1994.unk00->mdlId[4], HU3D_ATTR_DISPOFF);
-    lbl_1_bss_1994.unk04 = NULL;
+Void Story3HideBoardFlag(Void) {
+    Hu3DModelAttrSet(playerModelProcessState.object->mdlId[4], HU3D_ATTR_DISPOFF);
+    playerModelProcessState.callback = NULL;
 }
 
-void fn_1_1DAAC(void) {
-    OMOBJ* temp_r3;
+Void Story3CreateBoardFlagObject(Void) {
+    OMOBJ* createdResultObject;
 
-    temp_r3 = omAddObjEx(lbl_1_bss_18D0, 0x100, 0x10, 0x10, -1, NULL);
-    lbl_1_bss_1994.unk00 = temp_r3;
-    lbl_1_bss_1994.unk04 = NULL;
-    fn_1_1CDF0(temp_r3);
+    createdResultObject = omAddObjEx(resultProcess, 0x100, 0x10, 0x10, -1, NULL);
+    playerModelProcessState.object = createdResultObject;
+    playerModelProcessState.callback = NULL;
+    Story3LoadResultCharacterModels(createdResultObject);
     while (TRUE) {
-        fn_1_938();
-        if (lbl_1_bss_1994.unk04 != NULL) {
-            lbl_1_bss_1994.unk04(temp_r3, &lbl_1_bss_1994);
+        Story3SleepOneFrame();
+        if (playerModelProcessState.callback != NULL) {
+            playerModelProcessState.callback(createdResultObject, &playerModelProcessState);
         }
     }
 }
 
-void fn_1_1DE4C(void) {
-    StructBss4* var_r31;
+Void Story3ResetResultCamera(Void) {
+    StoryCameraState* resultCameraState;
 
-    var_r31 = &lbl_1_bss_4;
-    var_r31->unk08.x = 0.0f;
-    var_r31->unk08.y = 0.0f;
-    var_r31->unk08.z = 0.0f;
-    var_r31->unk20.x = 0.0f;
-    var_r31->unk20.y = 0.0f;
-    var_r31->unk20.z = 0.0f;
-    var_r31->unk38 = 650.0f;
+    resultCameraState = &storyCameraState;
+    resultCameraState->cameraCenter.x = 0.0f;
+    resultCameraState->cameraCenter.y = 0.0f;
+    resultCameraState->cameraCenter.z = 0.0f;
+    resultCameraState->cameraRotation.x = 0.0f;
+    resultCameraState->cameraRotation.y = 0.0f;
+    resultCameraState->cameraRotation.z = 0.0f;
+    resultCameraState->cameraZoom = 650.0f;
 }

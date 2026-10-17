@@ -23,125 +23,125 @@
 #include "ext_math.h"
 
 #ifndef __MWERKS__
-extern s32 rand8(void);
+extern s32 rand8(Void);
 
-void fn_1_1DED8(s32 arg0, Vec* arg1, Vec* arg2, s16 arg3);
-void fn_1_1E0F4(void);
+Void Story3CreateParticleTextEffect(s32 animationFileId, Vec* emissionOrigin, Vec* destinationCenter, s16 lifetimeFrames);
+Void Story3MarkParticleTextEffectReady(Void);
 #endif
 
 typedef struct {
-    /* 0x00 */ s32 unk00;
-    /* 0x04 */ s32 unk04;
-    /* 0x08 */ char unk08[0xC];
-} StructUnk24Bss1580; // Size 0x14
+    /* 0x00 */ s32 firstLightId;
+    /* 0x04 */ s32 secondLightId;
+    /* 0x08 */ char unreferencedAnimationProcessPadding[0xC];
+} PlayerLightState; // Size 0x14
 
 typedef struct {
-    /* 0x00 */ StructFn352C unk00;
-    /* 0x34 */ char unk34[0x60];
-} StructUnkC4Bss1580; // Size 0x94
+    /* 0x00 */ StoryPlayerStats playerStats;
+    /* 0x34 */ char unreferencedPlayerResultPadding[0x60];
+} PlayerSequenceResult; // Size 0x94
 
 typedef struct {
-    /* 0x000 */ s32 unk00;
-    /* 0x004 */ s32 unk04;
-    /* 0x008 */ s32 unk08;
-    /* 0x00C */ s32 unk0C;
-    /* 0x010 */ s32 unk10;
-    /* 0x014 */ s32 unk14;
-    /* 0x018 */ s32 unk18;
-    /* 0x01C */ s32 unk1C;
-    /* 0x020 */ s32 unk20;
-    /* 0x024 */ StructUnk24Bss1580 unk24[4];
-    /* 0x074 */ char unk74[0x50];
-    /* 0x0C4 */ StructUnkC4Bss1580 unkC4[4];
-    /* 0x314 */ s32 unk314;
-    /* 0x318 */ char unk318[0xC];
-    /* 0x324 */ s32 unk324;
-    /* 0x328 */ char unk328[0xC];
-    /* 0x334 */ s32 unk334[1]; // array length unknown
-    /* 0x338 */ char unk338[0xC];
-    /* 0x344 */ s32 unk344;
-    /* 0x348 */ s32 unk348;
-    /* 0x34C */ char unk34C[4];
-} StructBss1580; // Size 0x350
+    /* 0x000 */ s32 boardId;
+    /* 0x004 */ s32 bonusStarMode;
+    /* 0x008 */ s32 sequenceVariant;
+    /* 0x00C */ s32 currentPlayerIndex;
+    /* 0x010 */ s32 audioSequenceId;
+    /* 0x014 */ s32 winningPlayerIndex;
+    /* 0x018 */ s32 sequenceState;
+    /* 0x01C */ s32 globalLightId;
+    /* 0x020 */ s32 globalLightBrightness;
+    /* 0x024 */ PlayerLightState playerLights[4];
+    /* 0x074 */ char unreferencedSequencePadding74[0x50];
+    /* 0x0C4 */ PlayerSequenceResult playerResults[4];
+    /* 0x314 */ s32 playerObjectCount;
+    /* 0x318 */ char unreferencedSequencePadding318[0xC];
+    /* 0x324 */ s32 sequenceProgress;
+    /* 0x328 */ char unreferencedSequencePadding328[0xC];
+    /* 0x334 */ s32 playerParticleManagers[4];
+    /* 0x338 */ char unreferencedSequencePadding338[0xC];
+    /* 0x344 */ s32 teamMode;
+    /* 0x348 */ s32 winningTeam;
+    /* 0x34C */ char unreferencedSequencePadding[4];
+} StoryResultSequenceState; // Size 0x350
 
 typedef struct {
-    /* 0x00 */ s32 unk00;
-    /* 0x04 */ s32 unk04;
-    /* 0x08 */ s32 unk08;
-    /* 0x0C */ char unk0C[4];
-    /* 0x10 */ float unk10;
-    /* 0x14 */ float unk14;
-    /* 0x18 */ float unk18;
-    /* 0x1C */ char unk1C[4];
-    /* 0x20 */ float unk20;
-    /* 0x24 */ float unk24;
-    /* 0x28 */ float unk28;
-    /* 0x2C */ float unk2C;
-    /* 0x30 */ float unk30;
-    /* 0x34 */ float unk34;
-} StructBssC8; // Size 0x38
+    /* 0x00 */ s32 animationState;
+    /* 0x04 */ s32 framesUntilNextBurst;
+    /* 0x08 */ s32 animationFrame;
+    /* 0x0C */ char unreferencedParticlePadding[4];
+    /* 0x10 */ float rotationVelocityX;
+    /* 0x14 */ float rotationVelocityY;
+    /* 0x18 */ float rotationVelocityZ;
+    /* 0x1C */ char unreferencedParticlePadding2[4];
+    /* 0x20 */ float horizontalDriftVelocity;
+    /* 0x24 */ float verticalDriftVelocity;
+    /* 0x28 */ float depthDriftVelocity;
+    /* 0x2C */ float targetX;
+    /* 0x30 */ float targetY;
+    /* 0x34 */ float targetZ;
+} ResultParticleMotionState; // Size 0x38
 
-void fn_1_7E88(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void fn_1_82E0(void);
-s32 fn_1_B670(void);
-void fn_1_D48C(void);
-void fn_1_D718(OMOBJ* arg0);
-void fn_1_D7D8(OMOBJ* arg0);
-void fn_1_FE80(void);
-void fn_1_FF7C(s32 arg0);
-void fn_1_1036C(OMOBJ* arg0);
-void fn_1_10D74(OMOBJ* arg0);
-void fn_1_11794(OMOBJ* arg0);
-void fn_1_11834(OMOBJ* arg0);
-void fn_1_123D8(OMOBJ* arg0);
-void fn_1_1241C(OMOBJ* arg0);
-void fn_1_12420(OMOBJ* arg0);
-void fn_1_12A98(s32 arg0);
-void fn_1_12C08(s32 arg0);
-void fn_1_12DAC(void);
-void fn_1_13908(void);
-void fn_1_130A8(void);
-void fn_1_1317C(void);
-void fn_1_13A38(OMOBJ* arg0);
-void fn_1_13A3C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void fn_1_13C78(s32 arg0, s32 arg1, s32 arg2);
-void fn_1_13D38(s32 arg0, s32 arg1, s32 arg2);
-void fn_1_140A0(void);
-void fn_1_15450(s32 arg0);
+Void Story3UpdatePlayerResultLighting(s32 playerLightHandle, s32 targetAlpha, s32 frame, s32 duration, s32 playerIndex);
+Void Story3ResetSequenceCamera(Void);
+s32 Story3DetermineWinningTeam(Void);
+Void Story3CreateResultLogoObject(Void);
+Void Story3UpdateResultAmbientLight(OMOBJ* object);
+Void Story3AnimateResultLogos(OMOBJ* object);
+Void Story3CreateResultObjects(Void);
+Void Story3SortPlayersForPresentation(s32 playerCount);
+Void Story3AnimatePlayerMedal(OMOBJ* object);
+Void Story3AnimateTeamMedal(OMOBJ* object);
+Void Story3AwardPlayerStar(OMOBJ* object);
+Void Story3AnimateAwardedStarParticles(OMOBJ* object);
+Void Story3FinishPlayerResultProcess(OMOBJ* object);
+Void Story3NoopResultCallback(OMOBJ* object);
+Void Story3UpdatePlayerRankMarker(OMOBJ* object);
+Void Story3FindTopMinigameScores(s32 playerIndex);
+Void Story3FindTiedMinigameScores(s32 playerIndex);
+Void Story3SortPlayersByMinigameScore(Void);
+Void Story3CreatePlayerResultObject(Void);
+Void Story3CountFirstPlacePlayers(Void);
+Void Story3CalculatePlayerMinigameScores(Void);
+Void Story3NoopSequenceCallback(OMOBJ* object);
+Void Story3ShowResultMessageSequence(s32 windowId, s32 messageId, s32 mode, s32 mode3);
+Void Story3ShowBoardResultMessage(s32 windowId, s32 messageId, s32 mode);
+Void Story3InsertCharacterNameMessage(s32 windowId, s32 messageId, s32 mode);
+Void Story3CreateSharedSequenceObject(Void);
+Void Story3StartPlayerPresentationProcess(s32 playerIndex);
 
-StructBss1580 lbl_1_bss_1580;
-StructBss1530 lbl_1_bss_1558;
-StructBss1530 lbl_1_bss_1530;
-StructBss1530 lbl_1_bss_1490[4];
-StructBss1530 lbl_1_bss_1468;
-s32 lbl_1_bss_1458[4];
-s32 lbl_1_bss_1448[4];
-s32 lbl_1_bss_1438[4];
-s32 lbl_1_bss_1428[4];
-float lbl_1_bss_1424;
-s32 lbl_1_bss_1420;
-float lbl_1_bss_1408[3][2];
-StructBssC8 lbl_1_bss_C8[88];
-float lbl_1_bss_C4;
-float lbl_1_bss_C0;
-float lbl_1_bss_BC;
-s32 lbl_1_bss_B8;
-s32 lbl_1_bss_B4;
-float lbl_1_bss_B0;
-float lbl_1_bss_AC;
-HUPROCESS* lbl_1_bss_A8;
-s32 lbl_1_bss_68[16];
-u8 lbl_1_bss_5C[0xC]; // unused
-s32 lbl_1_bss_58;
+StoryResultSequenceState resultSequenceState;
+StorySequenceProcessState resultProcessCallbackState;
+StorySequenceProcessState sequenceCallbackState;
+StorySequenceProcessState playerSequenceProcessStates[4];
+StorySequenceProcessState sharedSequenceProcessState;
+s32 sequencePlayerCountAndWinner[4];
+s32 playerSequenceOrder[4];
+s32 playerSequenceResultIndices[4];
+s32 playerSequenceScoreOrder[4];
+float cameraFocusCenterX;
+s32 audioSequenceMode;
+float logoRotationState[3][2];
+ResultParticleMotionState resultParticleMotionStates[88];
+float logoFadeAlpha;
+float particleEffectEnabled;
+float particleEffectCenterX;
+s32 resultAnimationFrame;
+s32 cameraTargetCharacterId;
+float resultAnimationActive;
+float playerModelVerticalOffset;
+HUPROCESS* resultObjectManager;
+s32 resultSoundEffectIds[16];
+u8 unreferencedResultSequenceData[0xC]; // unused
+s32 resultAudioSequenceId;
 
-Vec lbl_1_data_130[] = {
+Vec playerModelPositions[] = {
     { -300.0f, 0.0f, 460.0f },
     { -100.0f, 0.0f, 460.0f },
     {  100.0f, 0.0f, 460.0f },
     {  300.0f, 0.0f, 460.0f }
 };
 
-HU3DPARMANPARAM lbl_1_data_160 = {
+HU3DPARMANPARAM starParticleParams = {
     60, { 0, 0 },
     1000.0f, 0.0f, 180.0f,
     { 0.0f, -0.009f, 0.0f },
@@ -160,7 +160,7 @@ HU3DPARMANPARAM lbl_1_data_160 = {
     }
 };
 
-HU3DPARMANPARAM lbl_1_data_1B0 = {
+HU3DPARMANPARAM glowParticleParams = {
     60, { 0, 0 },
     1000.0f, 0.0f, 180.0f,
     { 0.0f, -0.009f, 0.0f },
@@ -179,7 +179,7 @@ HU3DPARMANPARAM lbl_1_data_1B0 = {
     }
 };
 
-HU3DPARMANPARAM lbl_1_data_200 = {
+HU3DPARMANPARAM scoreParticleParams = {
     500, { 0, 0 },
     0.25f, 0.0f, 30.0f,
     { 0.0f, -0.009f, 0.001f },
@@ -198,403 +198,404 @@ HU3DPARMANPARAM lbl_1_data_200 = {
     }
 };
 
-void fn_1_6E34(HUPROCESS* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    s32 var_r31;
 
-    lbl_1_bss_A8 = arg0;
-    lbl_1_bss_1580.unk00 = arg1;
-    lbl_1_bss_1580.unk04 = arg2;
-    if (arg3 == 1) {
-        lbl_1_bss_1580.unk08 = 0;
+Void Story3InitializeResultSequence(HUPROCESS* objectManager, s32 boardId, s32 bonusStarMode, s32 sequenceVariant, s32 playerPresentationMode) {
+    s32 playerIndex;
+
+    resultObjectManager = objectManager;
+    resultSequenceState.boardId = boardId;
+    resultSequenceState.bonusStarMode = bonusStarMode;
+    if (sequenceVariant == 1) {
+        resultSequenceState.sequenceVariant = 0;
     } else {
-        lbl_1_bss_1580.unk08 = 1;
-        lbl_1_bss_1580.unk04 = 1;
+        resultSequenceState.sequenceVariant = 1;
+        resultSequenceState.bonusStarMode = 1;
     }
-    lbl_1_bss_1580.unk14 = fn_1_36E4();
-    lbl_1_bss_1580.unk344 = GWSystem.team;
+    resultSequenceState.winningPlayerIndex = story3CountHumanPlayers();
+    resultSequenceState.teamMode = GWSystem.team;
     _ClearFlag(FLAG_ID_MAKE(1, 29));
-    lbl_1_bss_1580.unk348 = -1;
-    fn_1_9A0();
-    fn_1_290C(lbl_1_bss_A8, fn_1_82E0);
-    lbl_1_bss_1580.unk1C = fn_1_37C8(lbl_1_bss_1580.unk20 = 0xFF);
-    fn_1_FF7C(arg4);
-    fn_1_38B4();
-    fn_1_12DAC();
-    HuPrcChildCreate(fn_1_FE80, 100, 0x2000, 0, HuPrcCurrentGet());
-    HuPrcChildCreate(fn_1_140A0, 100, 0x2000, 0, HuPrcCurrentGet());
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        HuPrcChildCreate(fn_1_13908, 200, 0x2000, 0, HuPrcCurrentGet());
+    resultSequenceState.winningTeam = -1;
+    Story3InitializeWindows();
+    Story3InitializeResultCamera(resultObjectManager, Story3ResetSequenceCamera);
+    resultSequenceState.globalLightId = story3CreateGlobalLight(resultSequenceState.globalLightBrightness = 0xFF);
+    Story3SortPlayersForPresentation(playerPresentationMode);
+    Story3SetDefaultCamera();
+    Story3SortPlayersByMinigameScore();
+    HuPrcChildCreate(Story3CreateResultObjects, 100, 0x2000, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(Story3CreateSharedSequenceObject, 100, 0x2000, 0, HuPrcCurrentGet());
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        HuPrcChildCreate(Story3CreatePlayerResultObject, 200, 0x2000, 0, HuPrcCurrentGet());
     }
-    HuPrcChildCreate(fn_1_D48C, 100, 0x2000, 0, HuPrcCurrentGet());
+    HuPrcChildCreate(Story3CreateResultLogoObject, 100, 0x2000, 0, HuPrcCurrentGet());
 }
 
-void fn_1_7004(s32 arg0, s32 arg1, s32 arg2) {
-    s32 sp1C[4];
-    s32 spC[4];
-    s32 temp_r27;
-    s32 var_r26;
-    s32 var_r30;
-    s32 var_r31;
 
-    temp_r27 = lbl_1_bss_1580.unk20;
-    var_r26 = arg0;
-    lbl_1_bss_1530.unk04 = (void*) fn_1_D718;
-    for (var_r30 = 0; var_r30 < 4; var_r30++) {
-        lbl_1_bss_1490[var_r30].unk04 = (void*) fn_1_1241C;
+
+Void Story3SetPlayerResultLights(s32 targetBrightness, s32 animationDuration, s32 updatePlayerLights) {
+    s32 playerLightHandles[4];
+    s32 playerLightAlphas[4];
+    s32 initialBrightness;
+    s32 animationFrame;
+    s32 playerIndex;
+
+    initialBrightness = resultSequenceState.globalLightBrightness;
+    sequenceCallbackState.callback = (Void*) Story3UpdateResultAmbientLight;
+    for (animationFrame = 0; animationFrame < 4; animationFrame++) {
+        playerSequenceProcessStates[animationFrame].callback = (Void*) Story3NoopResultCallback;
     }
-    lbl_1_bss_1468.unk04 = (void*) fn_1_13A38;
-    if (arg2 != 0) {
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            sp1C[var_r31] = lbl_1_bss_1490[var_r31].unk00->work[0];
-            spC[var_r31] = 0xFF;
+    sharedSequenceProcessState.callback = (Void*) Story3NoopSequenceCallback;
+    if (updatePlayerLights != 0) {
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            playerLightHandles[playerIndex] = playerSequenceProcessStates[playerIndex].object->work[0];
+            playerLightAlphas[playerIndex] = 0xFF;
         }
     }
-    for (var_r30 = 0; var_r30 < arg1; var_r30++) {
-        fn_1_938();
-        lbl_1_bss_1580.unk20 = fn_1_5D4(temp_r27, var_r26, var_r30, arg1);
-        Hu3DGLightColorSet(lbl_1_bss_1580.unk1C, lbl_1_bss_1580.unk20, lbl_1_bss_1580.unk20, lbl_1_bss_1580.unk20, 0xFF);
-        if (arg2 != 0) {
-            for (var_r31 = 0; var_r31 < 4; var_r31++) {
-                fn_1_7E88(sp1C[var_r31], spC[var_r31], var_r30, arg1, var_r31);
+    for (animationFrame = 0; animationFrame < animationDuration; animationFrame++) {
+        Story3SleepOneFrame();
+        resultSequenceState.globalLightBrightness = interpolateLinearOverTime(initialBrightness, targetBrightness, animationFrame, animationDuration);
+        Hu3DGLightColorSet(resultSequenceState.globalLightId, resultSequenceState.globalLightBrightness, resultSequenceState.globalLightBrightness, resultSequenceState.globalLightBrightness, 0xFF);
+        if (updatePlayerLights != 0) {
+            for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                Story3UpdatePlayerResultLighting(playerLightHandles[playerIndex], playerLightAlphas[playerIndex], animationFrame, animationDuration, playerIndex);
             }
         }
     }
-    if (arg2 != 0) {
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            lbl_1_bss_1490[var_r31].unk00->work[0] = 0;
-            lbl_1_bss_1490[var_r31].unk00->work[1] = 0;
-            Hu3DModelAttrSet(lbl_1_bss_1490[var_r31].unk00->mdlId[6], 1);
-            Hu3DLLightColorSet(lbl_1_bss_1490[var_r31].unk00->mdlId[1], lbl_1_bss_1580.unk24[var_r31].unk00, 0, 0, 0, 0xFF);
-            Hu3DLLightColorSet(lbl_1_bss_1490[var_r31].unk00->mdlId[2], lbl_1_bss_1580.unk24[var_r31].unk04, 0, 0, 0, 0xFF);
+    if (updatePlayerLights != 0) {
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            playerSequenceProcessStates[playerIndex].object->work[0] = 0;
+            playerSequenceProcessStates[playerIndex].object->work[1] = 0;
+            Hu3DModelAttrSet(playerSequenceProcessStates[playerIndex].object->mdlId[6], 1);
+            Hu3DLLightColorSet(playerSequenceProcessStates[playerIndex].object->mdlId[1], resultSequenceState.playerLights[playerIndex].firstLightId, 0, 0, 0, 0xFF);
+            Hu3DLLightColorSet(playerSequenceProcessStates[playerIndex].object->mdlId[2], resultSequenceState.playerLights[playerIndex].secondLightId, 0, 0, 0, 0xFF);
         }
     }
-    lbl_1_bss_1530.unk04 = NULL;
-    for (var_r30 = 0; var_r30 < 4; var_r30++) {
-        lbl_1_bss_1490[var_r30].unk04 = NULL;
+    sequenceCallbackState.callback = NULL;
+    for (animationFrame = 0; animationFrame < 4; animationFrame++) {
+        playerSequenceProcessStates[animationFrame].callback = NULL;
     }
-    lbl_1_bss_1468.unk04 = NULL;
+    sharedSequenceProcessState.callback = NULL;
 }
 
-void fn_1_7398(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
-    float temp_f31;
-    float temp_f30;
-    s32 sp10;
-    s32 spC;
-    s32 temp_r29;
-    s32 var_r28;
+Void Story3AnimatePairGlow(s32 index, s32 count, s32 mode, s32 option) {
+    float glowScale;
+    float glowAlpha;
+    s32 initialGlow;
+    s32 initialBrightness;
+    s32 lightBrightness;
+    s32 animationFrame;
 
-    sp10 = lbl_1_bss_1490[arg2].unk00->work[0];
-    spC = arg0;
-    Hu3DModelPosSet(lbl_1_bss_1490[arg2].unk00->mdlId[6], lbl_1_data_130[arg2].x, 500.0f + lbl_1_data_130[arg2].y + lbl_1_bss_AC, lbl_1_data_130[arg2].z + 0.1f * lbl_1_bss_AC);
-    Hu3DModelScaleSet(lbl_1_bss_1490[arg2].unk00->mdlId[6], 0.0f, 1.25f, 0.0f);
-    Hu3DModelTPLvlSet(lbl_1_bss_1490[arg2].unk00->mdlId[6], 0.0f);
-    Hu3DModelAttrReset(lbl_1_bss_1490[arg2].unk00->mdlId[6], 1);
-    Hu3DModelPosSet(lbl_1_bss_1490[arg3].unk00->mdlId[6], lbl_1_data_130[arg3].x, 500.0f + lbl_1_data_130[arg3].y + lbl_1_bss_AC, lbl_1_data_130[arg3].z + 0.1f * lbl_1_bss_AC);
-    Hu3DModelScaleSet(lbl_1_bss_1490[arg3].unk00->mdlId[6], 0.0f, 1.25f, 0.0f);
-    Hu3DModelTPLvlSet(lbl_1_bss_1490[arg3].unk00->mdlId[6], 0.0f);
-    Hu3DModelAttrReset(lbl_1_bss_1490[arg3].unk00->mdlId[6], 1);
-    for (var_r28 = 0; var_r28 <= arg1; var_r28++) {
-        fn_1_938();
-        temp_f31 = fn_1_6F4(0.0f, 1.5f, var_r28, arg1);
-        temp_f30 = fn_1_6F4(0.0f, 0.5f, var_r28, arg1);
-        temp_r29 = fn_1_6F4(0.0f, 128.0f, var_r28, arg1);
-        Hu3DModelScaleSet(lbl_1_bss_1490[arg2].unk00->mdlId[6], temp_f31, 1.25f, temp_f31);
-        Hu3DModelTPLvlSet(lbl_1_bss_1490[arg2].unk00->mdlId[6], temp_f30);
-        Hu3DModelScaleSet(lbl_1_bss_1490[arg3].unk00->mdlId[6], temp_f31, 1.25f, temp_f31);
-        Hu3DModelTPLvlSet(lbl_1_bss_1490[arg3].unk00->mdlId[6], temp_f30);
-        Hu3DLLightColorSet(lbl_1_bss_1490[arg2].unk00->mdlId[1], lbl_1_bss_1580.unk24[arg2].unk00, temp_r29, temp_r29, temp_r29, 0xFF);
-        Hu3DLLightColorSet(lbl_1_bss_1490[arg2].unk00->mdlId[2], lbl_1_bss_1580.unk24[arg2].unk04, temp_r29, temp_r29, temp_r29, 0xFF);
-        Hu3DLLightColorSet(lbl_1_bss_1490[arg3].unk00->mdlId[1], lbl_1_bss_1580.unk24[arg3].unk00, temp_r29, temp_r29, temp_r29, 0xFF);
-        Hu3DLLightColorSet(lbl_1_bss_1490[arg3].unk00->mdlId[2], lbl_1_bss_1580.unk24[arg3].unk04, temp_r29, temp_r29, temp_r29, 0xFF);
+    initialGlow = playerSequenceProcessStates[mode].object->work[0];
+    initialBrightness = index;
+    Hu3DModelPosSet(playerSequenceProcessStates[mode].object->mdlId[6], playerModelPositions[mode].x, 500.0f + playerModelPositions[mode].y + playerModelVerticalOffset, playerModelPositions[mode].z + 0.1f * playerModelVerticalOffset);
+    Hu3DModelScaleSet(playerSequenceProcessStates[mode].object->mdlId[6], 0.0f, 1.25f, 0.0f);
+    Hu3DModelTPLvlSet(playerSequenceProcessStates[mode].object->mdlId[6], 0.0f);
+    Hu3DModelAttrReset(playerSequenceProcessStates[mode].object->mdlId[6], 1);
+    Hu3DModelPosSet(playerSequenceProcessStates[option].object->mdlId[6], playerModelPositions[option].x, 500.0f + playerModelPositions[option].y + playerModelVerticalOffset, playerModelPositions[option].z + 0.1f * playerModelVerticalOffset);
+    Hu3DModelScaleSet(playerSequenceProcessStates[option].object->mdlId[6], 0.0f, 1.25f, 0.0f);
+    Hu3DModelTPLvlSet(playerSequenceProcessStates[option].object->mdlId[6], 0.0f);
+    Hu3DModelAttrReset(playerSequenceProcessStates[option].object->mdlId[6], 1);
+    for (animationFrame = 0; animationFrame <= count; animationFrame++) {
+        Story3SleepOneFrame();
+        glowScale = interpolateSineEaseIn(0.0f, 1.5f, animationFrame, count);
+        glowAlpha = interpolateSineEaseIn(0.0f, 0.5f, animationFrame, count);
+        lightBrightness = interpolateSineEaseIn(0.0f, 128.0f, animationFrame, count);
+        Hu3DModelScaleSet(playerSequenceProcessStates[mode].object->mdlId[6], glowScale, 1.25f, glowScale);
+        Hu3DModelTPLvlSet(playerSequenceProcessStates[mode].object->mdlId[6], glowAlpha);
+        Hu3DModelScaleSet(playerSequenceProcessStates[option].object->mdlId[6], glowScale, 1.25f, glowScale);
+        Hu3DModelTPLvlSet(playerSequenceProcessStates[option].object->mdlId[6], glowAlpha);
+        Hu3DLLightColorSet(playerSequenceProcessStates[mode].object->mdlId[1], resultSequenceState.playerLights[mode].firstLightId, lightBrightness, lightBrightness, lightBrightness, 0xFF);
+        Hu3DLLightColorSet(playerSequenceProcessStates[mode].object->mdlId[2], resultSequenceState.playerLights[mode].secondLightId, lightBrightness, lightBrightness, lightBrightness, 0xFF);
+        Hu3DLLightColorSet(playerSequenceProcessStates[option].object->mdlId[1], resultSequenceState.playerLights[option].firstLightId, lightBrightness, lightBrightness, lightBrightness, 0xFF);
+        Hu3DLLightColorSet(playerSequenceProcessStates[option].object->mdlId[2], resultSequenceState.playerLights[option].secondLightId, lightBrightness, lightBrightness, lightBrightness, 0xFF);
     }
-    lbl_1_bss_1490[arg2].unk00->work[1] = 1;
-    lbl_1_bss_1490[arg3].unk00->work[1] = 1;
+    playerSequenceProcessStates[mode].object->work[1] = 1;
+    playerSequenceProcessStates[option].object->work[1] = 1;
 }
 
-void fn_1_79D8(s32 arg0, s32 arg1, s32 arg2) {
-    float temp_f31;
-    float temp_f30;
-    s32 temp_r27;
-    s32 var_r26;
-    s32 temp_r29;
-    s32 var_r30;
+Void Story3AnimatePlayerGlow(s32 playerIndex, s32 count, s32 mode) {
+    float glowScale;
+    float glowAlpha;
+    s32 initialGlow;
+    s32 targetGlow;
+    s32 lightBrightness;
+    s32 animationFrame;
 
-    temp_r27 = lbl_1_bss_1490[arg2].unk00->work[0];
-    var_r26 = arg0;
-    Hu3DModelPosSet(lbl_1_bss_1490[arg2].unk00->mdlId[6], lbl_1_data_130[arg2].x, 500.0f + lbl_1_data_130[arg2].y + lbl_1_bss_AC, lbl_1_data_130[arg2].z + 0.1f * lbl_1_bss_AC);
-    Hu3DModelScaleSet(lbl_1_bss_1490[arg2].unk00->mdlId[6], 0.0f, 1.25f, 0.0f);
-    Hu3DModelTPLvlSet(lbl_1_bss_1490[arg2].unk00->mdlId[6], 0.0f);
-    Hu3DModelAttrReset(lbl_1_bss_1490[arg2].unk00->mdlId[6], 1);
-    for (var_r30 = 0; var_r30 <= arg1; var_r30++) {
-        fn_1_938();
-        lbl_1_bss_1490[arg2].unk00->work[0] = fn_1_6F4(temp_r27, var_r26, var_r30, arg1);
-        temp_f31 = fn_1_6F4(0.0f, 1.5f, var_r30, arg1);
-        temp_f30 = fn_1_6F4(0.0f, 0.5f, var_r30, arg1);
-        temp_r29 = fn_1_6F4(0.0f, 128.0f, var_r30, arg1);
-        Hu3DModelScaleSet(lbl_1_bss_1490[arg2].unk00->mdlId[6], temp_f31, 1.25f, temp_f31);
-        Hu3DModelTPLvlSet(lbl_1_bss_1490[arg2].unk00->mdlId[6], temp_f30);
-        Hu3DLLightColorSet(lbl_1_bss_1490[arg2].unk00->mdlId[1], lbl_1_bss_1580.unk24[arg2].unk00, temp_r29, temp_r29, temp_r29, 0xFF);
-        Hu3DLLightColorSet(lbl_1_bss_1490[arg2].unk00->mdlId[2], lbl_1_bss_1580.unk24[arg2].unk04, temp_r29, temp_r29, temp_r29, 0xFF);
+    initialGlow = playerSequenceProcessStates[mode].object->work[0];
+    targetGlow = playerIndex;
+    Hu3DModelPosSet(playerSequenceProcessStates[mode].object->mdlId[6], playerModelPositions[mode].x, 500.0f + playerModelPositions[mode].y + playerModelVerticalOffset, playerModelPositions[mode].z + 0.1f * playerModelVerticalOffset);
+    Hu3DModelScaleSet(playerSequenceProcessStates[mode].object->mdlId[6], 0.0f, 1.25f, 0.0f);
+    Hu3DModelTPLvlSet(playerSequenceProcessStates[mode].object->mdlId[6], 0.0f);
+    Hu3DModelAttrReset(playerSequenceProcessStates[mode].object->mdlId[6], 1);
+    for (animationFrame = 0; animationFrame <= count; animationFrame++) {
+        Story3SleepOneFrame();
+        playerSequenceProcessStates[mode].object->work[0] = interpolateSineEaseIn(initialGlow, targetGlow, animationFrame, count);
+        glowScale = interpolateSineEaseIn(0.0f, 1.5f, animationFrame, count);
+        glowAlpha = interpolateSineEaseIn(0.0f, 0.5f, animationFrame, count);
+        lightBrightness = interpolateSineEaseIn(0.0f, 128.0f, animationFrame, count);
+        Hu3DModelScaleSet(playerSequenceProcessStates[mode].object->mdlId[6], glowScale, 1.25f, glowScale);
+        Hu3DModelTPLvlSet(playerSequenceProcessStates[mode].object->mdlId[6], glowAlpha);
+        Hu3DLLightColorSet(playerSequenceProcessStates[mode].object->mdlId[1], resultSequenceState.playerLights[mode].firstLightId, lightBrightness, lightBrightness, lightBrightness, 0xFF);
+        Hu3DLLightColorSet(playerSequenceProcessStates[mode].object->mdlId[2], resultSequenceState.playerLights[mode].secondLightId, lightBrightness, lightBrightness, lightBrightness, 0xFF);
     }
-    lbl_1_bss_1490[arg2].unk00->work[1] = 1;
+    playerSequenceProcessStates[mode].object->work[1] = 1;
 }
 
-void fn_1_7E88(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    float var_f31;
-    s32 temp_r31;
+Void Story3UpdatePlayerResultLighting(s32 playerLightHandle, s32 targetAlpha, s32 frame, s32 duration, s32 playerIndex) {
+    float glowAlpha;
+    s32 lightBrightness;
 
-    if (lbl_1_bss_1490[arg4].unk00->work[1] != 0) {
-        lbl_1_bss_1490[arg4].unk00->work[0] = fn_1_5D4(arg0, arg1, arg2, arg3);
-        var_f31 = fn_1_5D4(0.5f, 0.0f, arg2, arg3);
-        Hu3DModelTPLvlSet(lbl_1_bss_1490[arg4].unk00->mdlId[6], var_f31);
-        temp_r31 = fn_1_5D4(128.0f, 0.0f, arg2, arg3);
-        Hu3DLLightColorSet(lbl_1_bss_1490[arg4].unk00->mdlId[1], lbl_1_bss_1580.unk24[arg4].unk00, temp_r31, temp_r31, temp_r31, 0xFF);
-        Hu3DLLightColorSet(lbl_1_bss_1490[arg4].unk00->mdlId[2], lbl_1_bss_1580.unk24[arg4].unk04, temp_r31, temp_r31, temp_r31, 0xFF);
+    if (playerSequenceProcessStates[playerIndex].object->work[1] != 0) {
+        playerSequenceProcessStates[playerIndex].object->work[0] = interpolateLinearOverTime(playerLightHandle, targetAlpha, frame, duration);
+        glowAlpha = interpolateLinearOverTime(0.5f, 0.0f, frame, duration);
+        Hu3DModelTPLvlSet(playerSequenceProcessStates[playerIndex].object->mdlId[6], glowAlpha);
+        lightBrightness = interpolateLinearOverTime(128.0f, 0.0f, frame, duration);
+        Hu3DLLightColorSet(playerSequenceProcessStates[playerIndex].object->mdlId[1], resultSequenceState.playerLights[playerIndex].firstLightId, lightBrightness, lightBrightness, lightBrightness, 0xFF);
+        Hu3DLLightColorSet(playerSequenceProcessStates[playerIndex].object->mdlId[2], resultSequenceState.playerLights[playerIndex].secondLightId, lightBrightness, lightBrightness, lightBrightness, 0xFF);
     }
 }
 
-s32 fn_1_814C(s32 arg0) {
-    s32 var_r31;
+s32 Story3CreateParticleManager(s32 particleIndex) {
+    s32 particleManagerId;
 
-    if (arg0 == 0) {
-        var_r31 = Hu3DParManCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 1)), 100, &lbl_1_data_160);
-    } else if (arg0 == 1) {
-        var_r31 = Hu3DParManCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 1)), 500, &lbl_1_data_1B0);
-    } else if (arg0 == 2) {
-        var_r31 = Hu3DParManCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 1)), 250, &lbl_1_data_200);
+    if (particleIndex == 0) {
+        particleManagerId = Hu3DParManCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 1)), 100, &starParticleParams);
+    } else if (particleIndex == 1) {
+        particleManagerId = Hu3DParManCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 1)), 500, &glowParticleParams);
+    } else if (particleIndex == 2) {
+        particleManagerId = Hu3DParManCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 1)), 250, &scoreParticleParams);
     }
-    if (arg0 != 2) {
-        Hu3DParManTimeLimitSet(var_r31, 60);
-        Hu3DParManAttrSet(var_r31, 4 | 0x40);
-        Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(var_r31), 1);
+    if (particleIndex != 2) {
+        Hu3DParManTimeLimitSet(particleManagerId, 60);
+        Hu3DParManAttrSet(particleManagerId, 4 | 0x40);
+        Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(particleManagerId), 1);
     } else {
-        Hu3DParManAttrSet(var_r31, 4 | 0x40);
+        Hu3DParManAttrSet(particleManagerId, 4 | 0x40);
     }
-    return var_r31;
+    return particleManagerId;
 }
 
-s32 fn_1_8264(void) {
-    return fn_1_814C(0);
+s32 Story3CreateStandardParticleManager(Void) {
+    return Story3CreateParticleManager(0);
 }
 
-void fn_1_82E0(void) {
-    StructBss4* var_r31;
+Void Story3ResetSequenceCamera(Void) {
+    StoryCameraState* cameraState;
 
-    var_r31 = &lbl_1_bss_4;
-    var_r31->unk08.x = 0.0f;
-    var_r31->unk08.y = 125.0f;
-    var_r31->unk08.z = 0.0f;
-    var_r31->unk20.x = -5.0f;
-    var_r31->unk20.y = 0.0f;
-    var_r31->unk20.z = 0.0f;
-    var_r31->unk38 = 1750.0f;
+    cameraState = &storyCameraState;
+    cameraState->cameraCenter.x = 0.0f;
+    cameraState->cameraCenter.y = 125.0f;
+    cameraState->cameraCenter.z = 0.0f;
+    cameraState->cameraRotation.x = -5.0f;
+    cameraState->cameraRotation.y = 0.0f;
+    cameraState->cameraRotation.z = 0.0f;
+    cameraState->cameraZoom = 1750.0f;
 }
 
-void fn_1_836C(void) {
-    StructBss4* var_r31;
-    StructBss4 sp8;
+Void Story3AimResultCamera(Void) {
+    StoryCameraState* cameraState;
+    StoryCameraState cameraTarget;
 
-    var_r31 = &lbl_1_bss_4;
-    sp8.unk08.x = 0.0f;
-    sp8.unk08.y = 170.0f;
-    sp8.unk08.z = 0.0f;
-    sp8.unk20.x = -5.0f;
-    sp8.unk20.y = 0.0f;
-    sp8.unk20.z = 0.0f;
-    sp8.unk38 = 1700.0f;
-    fn_1_514C(var_r31, &sp8, var_r31->unk40++, 60.0f, 30.0f);
+    cameraState = &storyCameraState;
+    cameraTarget.cameraCenter.x = 0.0f;
+    cameraTarget.cameraCenter.y = 170.0f;
+    cameraTarget.cameraCenter.z = 0.0f;
+    cameraTarget.cameraRotation.x = -5.0f;
+    cameraTarget.cameraRotation.y = 0.0f;
+    cameraTarget.cameraRotation.z = 0.0f;
+    cameraTarget.cameraZoom = 1700.0f;
+    Story3EaseAndSmoothCamera(cameraState, &cameraTarget, cameraState->cameraMotionFrame++, 60.0f, 30.0f);
 }
 
-void fn_1_845C(void) {
-    StructBss4* var_r31 = &lbl_1_bss_4;
-    StructBss4 sp28;
-    float sp8[] = {
+Void Story3FocusCameraOnPlayer(Void) {
+    StoryCameraState* cameraState = &storyCameraState;
+    StoryCameraState cameraTarget;
+    float playerCameraHeights[] = {
         530.0f, 530.0f, 540.0f, 530.0f,
         530.0f, 580.0f, 540.0f, 630.0f
     };
 
-    if (lbl_1_bss_1580.unk344 == 1) {
-        if (lbl_1_bss_1580.unk348 == 0) {
-            sp28.unk08.x = 100.0f + Hu3DData[lbl_1_bss_1490[0].unk00->mdlId[1]].pos.x;
+    if (resultSequenceState.teamMode == 1) {
+        if (resultSequenceState.winningTeam == 0) {
+            cameraTarget.cameraCenter.x = 100.0f + Hu3DData[playerSequenceProcessStates[0].object->mdlId[1]].pos.x;
         } else {
-            sp28.unk08.x = 100.0f + Hu3DData[lbl_1_bss_1490[2].unk00->mdlId[1]].pos.x;
+            cameraTarget.cameraCenter.x = 100.0f + Hu3DData[playerSequenceProcessStates[2].object->mdlId[1]].pos.x;
         }
     } else {
-        sp28.unk08.x = Hu3DData[lbl_1_bss_1490[lbl_1_bss_1458[1]].unk00->mdlId[1]].pos.x;
-        lbl_1_bss_B4 = lbl_1_bss_1580.unkC4[lbl_1_bss_1458[1]].unk00.unk10;
+        cameraTarget.cameraCenter.x = Hu3DData[playerSequenceProcessStates[sequencePlayerCountAndWinner[1]].object->mdlId[1]].pos.x;
+        cameraTargetCharacterId = resultSequenceState.playerResults[sequencePlayerCountAndWinner[1]].playerStats.characterId;
     }
-    if (lbl_1_bss_1580.unk344 == 1) {
-        sp28.unk08.y = 570.0f;
-        sp28.unk08.z = -700.0f;
-        sp28.unk20.x = 15.0f;
-        sp28.unk20.y = 0.0f;
-        sp28.unk20.z = 0.0f;
-        sp28.unk38 = 1750.0f;
-        fn_1_4CC0(var_r31, &sp28, var_r31->unk40++, 120.0f);
+    if (resultSequenceState.teamMode == 1) {
+        cameraTarget.cameraCenter.y = 570.0f;
+        cameraTarget.cameraCenter.z = -700.0f;
+        cameraTarget.cameraRotation.x = 15.0f;
+        cameraTarget.cameraRotation.y = 0.0f;
+        cameraTarget.cameraRotation.z = 0.0f;
+        cameraTarget.cameraZoom = 1750.0f;
+        Story3HandleSystemExitC0(cameraState, &cameraTarget, cameraState->cameraMotionFrame++, 120.0f);
     } else {
-        sp28.unk08.y = sp8[lbl_1_bss_B4];
-        sp28.unk08.z = -700.0f;
-        sp28.unk20.x = 15.0f;
-        sp28.unk20.y = 0.0f;
-        sp28.unk20.z = 0.0f;
-        sp28.unk38 = 1600.0f;
-        fn_1_4CC0(var_r31, &sp28, var_r31->unk40++, 120.0f);
+        cameraTarget.cameraCenter.y = playerCameraHeights[cameraTargetCharacterId];
+        cameraTarget.cameraCenter.z = -700.0f;
+        cameraTarget.cameraRotation.x = 15.0f;
+        cameraTarget.cameraRotation.y = 0.0f;
+        cameraTarget.cameraRotation.z = 0.0f;
+        cameraTarget.cameraZoom = 1600.0f;
+        Story3HandleSystemExitC0(cameraState, &cameraTarget, cameraState->cameraMotionFrame++, 120.0f);
     }
 }
 
-void fn_1_8758(void) {
-    StructBss4* var_r31;
-    StructBss4 sp8;
+Void Story3TransitionCameraToResult(Void) {
+    StoryCameraState* cameraState;
+    StoryCameraState cameraTarget;
 
-    var_r31 = &lbl_1_bss_4;
-    sp8.unk08.x = lbl_1_bss_1424;
-    sp8.unk08.y = 125.0f;
-    sp8.unk08.z = 0.0f;
-    sp8.unk20.x = -5.0f;
-    sp8.unk20.y = 0.0f;
-    sp8.unk20.z = 0.0f;
-    sp8.unk38 = 1250.0f;
-    sp8.unk38 = 1350.0f;
-    fn_1_514C(var_r31, &sp8, var_r31->unk40++, 10.0f, 5.0f);
+    cameraState = &storyCameraState;
+    cameraTarget.cameraCenter.x = cameraFocusCenterX;
+    cameraTarget.cameraCenter.y = 125.0f;
+    cameraTarget.cameraCenter.z = 0.0f;
+    cameraTarget.cameraRotation.x = -5.0f;
+    cameraTarget.cameraRotation.y = 0.0f;
+    cameraTarget.cameraRotation.z = 0.0f;
+    cameraTarget.cameraZoom = 1250.0f;
+    cameraTarget.cameraZoom = 1350.0f;
+    Story3EaseAndSmoothCamera(cameraState, &cameraTarget, cameraState->cameraMotionFrame++, 10.0f, 5.0f);
 }
 
-void fn_1_8858(void) {
-    StructBss4* var_r31;
-    StructBss4 sp8;
+Void Story3TransitionCameraToTeam(Void) {
+    StoryCameraState* cameraState;
+    StoryCameraState cameraTarget;
 
-    var_r31 = &lbl_1_bss_4;
-    sp8.unk08.x = 0.0f;
-    sp8.unk08.y = 170.0f;
-    sp8.unk08.z = 0.0f;
-    sp8.unk20.x = -5.0f;
-    sp8.unk20.y = 0.0f;
-    sp8.unk20.z = 0.0f;
-    sp8.unk38 = 1700.0f;
-    fn_1_514C(var_r31, &sp8, var_r31->unk40++, 30.0f, 10.0f);
+    cameraState = &storyCameraState;
+    cameraTarget.cameraCenter.x = 0.0f;
+    cameraTarget.cameraCenter.y = 170.0f;
+    cameraTarget.cameraCenter.z = 0.0f;
+    cameraTarget.cameraRotation.x = -5.0f;
+    cameraTarget.cameraRotation.y = 0.0f;
+    cameraTarget.cameraRotation.z = 0.0f;
+    cameraTarget.cameraZoom = 1700.0f;
+    Story3EaseAndSmoothCamera(cameraState, &cameraTarget, cameraState->cameraMotionFrame++, 30.0f, 10.0f);
 }
 
-void fn_1_8948(void) {
-    StructBss4* var_r31;
-    StructBss4 sp8;
+Void Story3TransitionCameraToWinner(Void) {
+    StoryCameraState* cameraState;
+    StoryCameraState cameraTarget;
 
-    var_r31 = &lbl_1_bss_4;
-    sp8.unk08.x = 300.0f;
-    sp8.unk08.y = 100.0f;
-    sp8.unk08.z = 0.0f;
-    sp8.unk20.x = -5.0f;
-    sp8.unk20.y = 0.0f;
-    sp8.unk20.z = 0.0f;
-    sp8.unk38 = 1000.0f;
-    fn_1_4400(var_r31, &sp8, var_r31->unk40++, 60.0f, 10.0f);
+    cameraState = &storyCameraState;
+    cameraTarget.cameraCenter.x = 300.0f;
+    cameraTarget.cameraCenter.y = 100.0f;
+    cameraTarget.cameraCenter.z = 0.0f;
+    cameraTarget.cameraRotation.x = -5.0f;
+    cameraTarget.cameraRotation.y = 0.0f;
+    cameraTarget.cameraRotation.z = 0.0f;
+    cameraTarget.cameraZoom = 1000.0f;
+    Story3LerpAndSmoothCamera(cameraState, &cameraTarget, cameraState->cameraMotionFrame++, 60.0f, 10.0f);
 }
 
-void fn_1_8A38(void) {
-    StructBss4* var_r31;
-    StructBss4 sp8;
+Void Story3TransitionCameraToPlayers(Void) {
+    StoryCameraState* cameraState;
+    StoryCameraState cameraTarget;
 
-    var_r31 = &lbl_1_bss_4;
-    sp8.unk08.x = -300.0f;
-    sp8.unk08.y = 100.0f;
-    sp8.unk08.z = 0.0f;
-    sp8.unk20.x = -5.0f;
-    sp8.unk20.y = 0.0f;
-    sp8.unk20.z = 0.0f;
-    sp8.unk38 = 1000.0f;
-    fn_1_4400(var_r31, &sp8, var_r31->unk40++, 180.0f, 10.0f);
+    cameraState = &storyCameraState;
+    cameraTarget.cameraCenter.x = -300.0f;
+    cameraTarget.cameraCenter.y = 100.0f;
+    cameraTarget.cameraCenter.z = 0.0f;
+    cameraTarget.cameraRotation.x = -5.0f;
+    cameraTarget.cameraRotation.y = 0.0f;
+    cameraTarget.cameraRotation.z = 0.0f;
+    cameraTarget.cameraZoom = 1000.0f;
+    Story3LerpAndSmoothCamera(cameraState, &cameraTarget, cameraState->cameraMotionFrame++, 180.0f, 10.0f);
 }
 
-void fn_1_8B28(void) {
-    StructBss4* var_r31;
-    StructBss4 sp8;
+Void Story3TransitionCameraToBoard(Void) {
+    StoryCameraState* cameraState;
+    StoryCameraState cameraTarget;
 
-    var_r31 = &lbl_1_bss_4;
-    sp8.unk08.x = 0.0f;
-    sp8.unk08.y = 170.0f;
-    sp8.unk08.z = 0.0f;
-    sp8.unk20.x = -5.0f;
-    sp8.unk20.y = 0.0f;
-    sp8.unk20.z = 0.0f;
-    sp8.unk38 = 1700.0f;
-    fn_1_4400(var_r31, &sp8, var_r31->unk40++, 120.0f, 10.0f);
+    cameraState = &storyCameraState;
+    cameraTarget.cameraCenter.x = 0.0f;
+    cameraTarget.cameraCenter.y = 170.0f;
+    cameraTarget.cameraCenter.z = 0.0f;
+    cameraTarget.cameraRotation.x = -5.0f;
+    cameraTarget.cameraRotation.y = 0.0f;
+    cameraTarget.cameraRotation.z = 0.0f;
+    cameraTarget.cameraZoom = 1700.0f;
+    Story3LerpAndSmoothCamera(cameraState, &cameraTarget, cameraState->cameraMotionFrame++, 120.0f, 10.0f);
 }
 
-void fn_1_8C18(void) {
-    fn_1_39B4(&lbl_1_bss_4);
-    fn_1_2834(fn_1_8948);
-    fn_1_958(120);
-    fn_1_39B4(&lbl_1_bss_4);
-    fn_1_2834(fn_1_8A38);
-    fn_1_958(210);
-    fn_1_39B4(&lbl_1_bss_4);
-    fn_1_2834(fn_1_8B28);
-    fn_1_958(120);
+Void Story3StartResultCameraMotion(Void) {
+    Story3ResetCameraTarget(&storyCameraState);
+    Story3SetCameraCallback(Story3TransitionCameraToWinner);
+    Story3SleepFrames(120);
+    Story3ResetCameraTarget(&storyCameraState);
+    Story3SetCameraCallback(Story3TransitionCameraToPlayers);
+    Story3SleepFrames(210);
+    Story3ResetCameraTarget(&storyCameraState);
+    Story3SetCameraCallback(Story3TransitionCameraToBoard);
+    Story3SleepFrames(120);
 }
 
-void fn_1_8C94(void) {
-    s32 var_r30 = 16;
-    s32 var_r29 = 40;
-    s32 var_r28 = 0;
-    GXColor sp10 = { 0x00, 0x00, 0x80, 0x80 };
-    s32 var_r31;
+Void Story3DrawCameraDebugOverlay(Void) {
+    s32 debugWindowX = 16;
+    s32 debugWindowY = 40;
+    s32 debugOverlayEnabled = 0;
+    GXColor debugWindowColor = { 0x00, 0x00, 0x80, 0x80 };
+    s32 playerIndex;
 
     while (TRUE) {
-        fn_1_938();
+        Story3SleepOneFrame();
         if (HuPadBtnDown[0] & PAD_TRIGGER_R) {
-            var_r28++;
-            var_r28 %= 2;
+            debugOverlayEnabled++;
+            debugOverlayEnabled %= 2;
         }
-        if (var_r28 == 0) {
+        if (debugOverlayEnabled == 0) {
             continue;
         }
-        printWin(var_r30, var_r29, 220, 200, &sp10);
-        if (lbl_1_bss_1558.unk04 == NULL) {
-            print8(var_r30, var_r29, 1.0f, "PROC_MAIN    -> FALSE");
+        printWin(debugWindowX, debugWindowY, 220, 200, &debugWindowColor);
+        if (resultProcessCallbackState.callback == NULL) {
+            print8(debugWindowX, debugWindowY, 1.0f, "PROC_MAIN    -> FALSE");
         } else {
-            print8(var_r30, var_r29, 1.0f, "PROC_MAIN    -> TRUE");
+            print8(debugWindowX, debugWindowY, 1.0f, "PROC_MAIN    -> TRUE");
         }
-        if (lbl_1_bss_1530.unk04 == NULL) {
-            print8(var_r30, var_r29 + 10, 1.0f, "PROC_MAP     -> FALSE");
+        if (sequenceCallbackState.callback == NULL) {
+            print8(debugWindowX, debugWindowY + 10, 1.0f, "PROC_MAP     -> FALSE");
         } else {
-            print8(var_r30, var_r29 + 10, 1.0f, "PROC_MAP     -> TRUE");
+            print8(debugWindowX, debugWindowY + 10, 1.0f, "PROC_MAP     -> TRUE");
         }
-        if (lbl_1_bss_1468.unk04 == NULL) {
-            print8(var_r30, var_r29 + 20, 1.0f, "PROC_SUB     -> FALSE");
+        if (sharedSequenceProcessState.callback == NULL) {
+            print8(debugWindowX, debugWindowY + 20, 1.0f, "PROC_SUB     -> FALSE");
         } else {
-            print8(var_r30, var_r29 + 20, 1.0f, "PROC_SUB     -> TRUE");
+            print8(debugWindowX, debugWindowY + 20, 1.0f, "PROC_SUB     -> TRUE");
         }
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            if (lbl_1_bss_1490[var_r31].unk04 == NULL) {
-                print8(var_r30, var_r29 + 30 + var_r31 * 10, 1.0f, "PROC_PLAYER%d -> FALSE", var_r31);
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            if (playerSequenceProcessStates[playerIndex].callback == NULL) {
+                print8(debugWindowX, debugWindowY + 30 + playerIndex * 10, 1.0f, "PROC_PLAYER%d -> FALSE", playerIndex);
             } else {
-                print8(var_r30, var_r29 + 30 + var_r31 * 10, 1.0f, "PROC_PLAYER%d -> TRUE", var_r31);
+                print8(debugWindowX, debugWindowY + 30 + playerIndex * 10, 1.0f, "PROC_PLAYER%d -> TRUE", playerIndex);
             }
         }
-        print8(var_r30, var_r29 + 80, 1.0f, "M:%d P:%d W:%d", lbl_1_bss_1580.unk00, lbl_1_bss_1580.unk0C, lbl_1_bss_1580.unk14);
-        print8(var_r30, var_r29 + 100, 1.0f, "NO) IDX:GRP:COM:DIF:PAD:CHR");
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            print8(var_r30, var_r29 + 110 + var_r31 * 10, 1.0f, "%2d) %3d:%3d:%3d:%3d:%3d:%3d", var_r31,
-                lbl_1_bss_1580.unkC4[var_r31].unk00.unk00, lbl_1_bss_1580.unkC4[var_r31].unk00.unk04, lbl_1_bss_1580.unkC4[var_r31].unk00.unk08,
-                lbl_1_bss_1580.unkC4[var_r31].unk00.unk0C, lbl_1_bss_1580.unkC4[var_r31].unk00.unk14, lbl_1_bss_1580.unkC4[var_r31].unk00.unk10);
+        print8(debugWindowX, debugWindowY + 80, 1.0f, "M:%d P:%d W:%d", resultSequenceState.boardId, resultSequenceState.currentPlayerIndex, resultSequenceState.winningPlayerIndex);
+        print8(debugWindowX, debugWindowY + 100, 1.0f, "NO) IDX:GRP:COM:DIF:PAD:CHR");
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            print8(debugWindowX, debugWindowY + 110 + playerIndex * 10, 1.0f, "%2d) %3d:%3d:%3d:%3d:%3d:%3d", playerIndex,
+                resultSequenceState.playerResults[playerIndex].playerStats.playerIndex, resultSequenceState.playerResults[playerIndex].playerStats.team, resultSequenceState.playerResults[playerIndex].playerStats.isComputer,
+                resultSequenceState.playerResults[playerIndex].playerStats.difficulty, resultSequenceState.playerResults[playerIndex].playerStats.controllerPort, resultSequenceState.playerResults[playerIndex].playerStats.characterId);
         }
-        print8(var_r30, var_r29 + 150, 1.0f, "NO) RNK:STA:COI:MGS:COS:HAS");
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            print8(var_r30, var_r29 + 160 + var_r31 * 10, 1.0f, "%2d) %3d:%3d:%3d:%3d:%3d:%3d", var_r31,
-                lbl_1_bss_1580.unkC4[var_r31].unk00.unk18, lbl_1_bss_1580.unkC4[var_r31].unk00.unk20, lbl_1_bss_1580.unkC4[var_r31].unk00.unk1C,
-                lbl_1_bss_1580.unkC4[var_r31].unk00.unk24, lbl_1_bss_1580.unkC4[var_r31].unk00.unk28, lbl_1_bss_1580.unkC4[var_r31].unk00.unk2C);
+        print8(debugWindowX, debugWindowY + 150, 1.0f, "NO) RNK:STA:COI:MGS:COS:HAS");
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            print8(debugWindowX, debugWindowY + 160 + playerIndex * 10, 1.0f, "%2d) %3d:%3d:%3d:%3d:%3d:%3d", playerIndex,
+                resultSequenceState.playerResults[playerIndex].playerStats.rank, resultSequenceState.playerResults[playerIndex].playerStats.stars, resultSequenceState.playerResults[playerIndex].playerStats.coins,
+                resultSequenceState.playerResults[playerIndex].playerStats.minigameCoins, resultSequenceState.playerResults[playerIndex].playerStats.maxCoins, resultSequenceState.playerResults[playerIndex].playerStats.questionSpaces);
         }
     }
 }
 
-void fn_1_9140(void) {
+Void Story3FadeOutResultScene(Void) {
     WipeColorSet(0xFF, 0xFF, 0xFF);
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
     while (TRUE) {
         if (WipeStatGet() == 0) {
             break;
         }
-        fn_1_938();
+        Story3SleepOneFrame();
     }
-    fn_1_9C4();
+    Story3KillAllWindows();
     CharModelKill(-1);
     MGSeqKillAll();
     HuAudSStreamAllStop();
@@ -602,1887 +603,1887 @@ void fn_1_9140(void) {
     omOvlGotoEx(DLL_mstory3dll, 1, 1, 0);
 }
 
-void fn_1_91C8(void) {
-    lbl_1_bss_58 = HuAudSeqPlay(0x31);
+Void Story3StartResultAudio(Void) {
+    resultAudioSequenceId = HuAudSeqPlay(0x31);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, -1);
     while (TRUE) {
         if (WipeStatGet() == 0) {
             break;
         }
-        fn_1_938();
+        Story3SleepOneFrame();
     }
 }
 
-void fn_1_9220(void) {
-    Vec sp14 = { -320.0f, 0.0f, 910.0f };
+Void Story3BeginWinnerPresentation(Void) {
+    Vec cameraFocusOffset = { -320.0f, 0.0f, 910.0f };
 
-    fn_1_958(60);
-    lbl_1_bss_1580.unk10 = fn_1_1624(1, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][0]);
-    fn_1_13C78(lbl_1_bss_1580.unk10, 0, 3);
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    fn_1_39B4(&lbl_1_bss_4);
-    fn_1_2834(fn_1_836C);
-    fn_1_1E28(lbl_1_bss_1530.unk00, 2, 2, 0, 0);
-    fn_1_1E28(lbl_1_bss_1468.unk00, 1, 2, 15, 1);
-    fn_1_2DD4(lbl_1_bss_1468.unk00, 1, sp14, 30.0f, 60.0f, 10.0f);
-    fn_1_1E28(lbl_1_bss_1468.unk00, 1, 1, 15, 1);
-    fn_1_2280(lbl_1_bss_1530.unk00, 2, 2, 0);
+    Story3SleepFrames(60);
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(1, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][0]);
+    Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0, 3);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    Story3ResetCameraTarget(&storyCameraState);
+    Story3SetCameraCallback(Story3AimResultCamera);
+    Story3SetModelMotion(sequenceCallbackState.object, 2, 2, 0, 0);
+    Story3SetModelMotion(sharedSequenceProcessState.object, 1, 2, 15, 1);
+    Story3UpdateObjectTransform(sharedSequenceProcessState.object, 1, cameraFocusOffset, 30.0f, 60.0f, 10.0f);
+    Story3SetModelMotion(sharedSequenceProcessState.object, 1, 1, 15, 1);
+    Story3WaitForModelMotionEnd(sequenceCallbackState.object, 2, 2, 0);
 }
 
-void fn_1_93D0(OMOBJ* arg0) {
-    StructBss1530* temp_r31;
+Void Story3UpdateMainResultProcess(OMOBJ* object) {
+    StorySequenceProcessState* sequenceProcessState;
 
-    temp_r31 = arg0->data;
-    lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][2]);
-    fn_1_13A3C(lbl_1_bss_1580.unk10, 1, -1, 3);
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    temp_r31->unk04 = 0;
+    sequenceProcessState = object->data;
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][2]);
+    Story3ShowResultMessageSequence(resultSequenceState.audioSequenceId, 1, -1, 3);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    sequenceProcessState->callback = 0;
 }
 
-void fn_1_9488(void) {
-    s32 var_r31;
+Void Story3RunPlayerResultSequence(Void) {
+    s32 playerIndex;
 
-    lbl_1_bss_1530.unk04 = (void*) fn_1_93D0;
+    sequenceCallbackState.callback = (Void*) Story3UpdateMainResultProcess;
     do {
-        fn_1_938();
-    } while (lbl_1_bss_1580.unk18 != 99);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_1490[var_r31].unk04 = (void*) fn_1_1036C;
-        lbl_1_bss_1490[var_r31].unk18 = lbl_1_bss_1490[var_r31].unk1C = 0;
+        Story3SleepOneFrame();
+    } while (resultSequenceState.sequenceState != 99);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerSequenceProcessStates[playerIndex].callback = (Void*) Story3AnimatePlayerMedal;
+        playerSequenceProcessStates[playerIndex].callbackState = playerSequenceProcessStates[playerIndex].callbackResultState = 0;
     }
-    fn_1_12A98(0);
-    for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-        if (lbl_1_bss_1580.unkC4[lbl_1_bss_1448[var_r31]].unk00.unk20 != 0) {
-            lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk1C = 1;
+    Story3FindTopMinigameScores(0);
+    for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+        if (resultSequenceState.playerResults[playerSequenceOrder[playerIndex]].playerStats.stars != 0) {
+            playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callbackResultState = 1;
         }
     }
     HuAudFXPlay(0xB9);
     do {
-        fn_1_938();
-    } while (lbl_1_bss_1530.unk04 != NULL);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_1490[var_r31].unk18 = 1;
+        Story3SleepOneFrame();
+    } while (sequenceCallbackState.callback != NULL);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerSequenceProcessStates[playerIndex].callbackState = 1;
     }
     do {
-        fn_1_938();
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            if (lbl_1_bss_1490[var_r31].unk18 != 2) {
+        Story3SleepOneFrame();
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            if (playerSequenceProcessStates[playerIndex].callbackState != 2) {
                 break;
             }
         }
-    } while (var_r31 < 4);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_1490[var_r31].unk18 = 3;
+    } while (playerIndex < 4);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerSequenceProcessStates[playerIndex].callbackState = 3;
     }
     do {
-        fn_1_938();
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            if (lbl_1_bss_1490[var_r31].unk04 != NULL) {
+        Story3SleepOneFrame();
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            if (playerSequenceProcessStates[playerIndex].callback != NULL) {
                 break;
             }
         }
-    } while (var_r31 < 4);
+    } while (playerIndex < 4);
 }
 
-void fn_1_96B0(OMOBJ* arg0) {
-    StructBss1530* temp_r31;
+Void Story3UpdateTeamResultProcess(OMOBJ* object) {
+    StorySequenceProcessState* sequenceProcessState;
 
-    temp_r31 = arg0->data;
-    lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][2]);
-    fn_1_13A3C(lbl_1_bss_1580.unk10, 2, -1, 3);
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    temp_r31->unk04 = 0;
+    sequenceProcessState = object->data;
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][2]);
+    Story3ShowResultMessageSequence(resultSequenceState.audioSequenceId, 2, -1, 3);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    sequenceProcessState->callback = 0;
 }
 
-void fn_1_9768(void) {
-    s32 var_r31;
+Void Story3RunTeamResultSequence(Void) {
+    s32 playerIndex;
 
-    lbl_1_bss_1530.unk04 = (void*) fn_1_96B0;
+    sequenceCallbackState.callback = (Void*) Story3UpdateTeamResultProcess;
     do {
-        fn_1_938();
-    } while (lbl_1_bss_1580.unk18 != 99);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_1490[var_r31].unk04 = (void*) fn_1_10D74;
-        lbl_1_bss_1490[var_r31].unk18 = lbl_1_bss_1490[var_r31].unk1C = 0;
+        Story3SleepOneFrame();
+    } while (resultSequenceState.sequenceState != 99);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerSequenceProcessStates[playerIndex].callback = (Void*) Story3AnimateTeamMedal;
+        playerSequenceProcessStates[playerIndex].callbackState = playerSequenceProcessStates[playerIndex].callbackResultState = 0;
     }
-    fn_1_12A98(1);
-    for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-        if (lbl_1_bss_1580.unkC4[lbl_1_bss_1448[var_r31]].unk00.unk1C != 0) {
-            lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk1C = 1;
+    Story3FindTopMinigameScores(1);
+    for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+        if (resultSequenceState.playerResults[playerSequenceOrder[playerIndex]].playerStats.coins != 0) {
+            playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callbackResultState = 1;
         }
     }
     HuAudFXPlay(0xB8);
     do {
-        fn_1_938();
-    } while (lbl_1_bss_1530.unk04 != NULL);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_1490[var_r31].unk18 = 1;
+        Story3SleepOneFrame();
+    } while (sequenceCallbackState.callback != NULL);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerSequenceProcessStates[playerIndex].callbackState = 1;
     }
     do {
-        fn_1_938();
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            if (lbl_1_bss_1490[var_r31].unk18 != 2) {
+        Story3SleepOneFrame();
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            if (playerSequenceProcessStates[playerIndex].callbackState != 2) {
                 break;
             }
         }
-    } while (var_r31 < 4);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_1490[var_r31].unk18 = 3;
+    } while (playerIndex < 4);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerSequenceProcessStates[playerIndex].callbackState = 3;
     }
     do {
-        fn_1_938();
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            if (lbl_1_bss_1490[var_r31].unk04 != NULL) {
+        Story3SleepOneFrame();
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            if (playerSequenceProcessStates[playerIndex].callback != NULL) {
                 break;
             }
         }
-    } while (var_r31 < 4);
+    } while (playerIndex < 4);
 }
 
-void fn_1_9990(OMOBJ* arg0) {
-    StructBss1530* temp_r31;
+Void Story3UpdatePlayerArrivalProcess(OMOBJ* object) {
+    StorySequenceProcessState* sequenceProcessState;
 
-    temp_r31 = arg0->data;
+    sequenceProcessState = object->data;
     HuAudFXPlay(0x9A);
-    fn_1_13A3C(lbl_1_bss_1580.unk10, lbl_1_bss_1420, -1, 4);
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    temp_r31->unk04 = 0;
+    Story3ShowResultMessageSequence(resultSequenceState.audioSequenceId, audioSequenceMode, -1, 4);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    sequenceProcessState->callback = 0;
 }
 
-void fn_1_9A08(OMOBJ* arg0) {
-    StructBss1530* temp_r31;
+Void Story3UpdateResultTransitionProcess(OMOBJ* object) {
+    StorySequenceProcessState* sequenceProcessState;
 
-    temp_r31 = arg0->data;
-    fn_1_958(60);
-    HuAudSeqPause(lbl_1_bss_58, 0, 1000);
-    temp_r31->unk04 = 0;
+    sequenceProcessState = object->data;
+    Story3SleepFrames(60);
+    HuAudSeqPause(resultAudioSequenceId, 0, 1000);
+    sequenceProcessState->callback = 0;
 }
 
-void fn_1_9A64(s32 arg0) {
-    s32 var_r28;
-    s32 var_r27;
-    s32 var_r30;
-    s32 var_r31;
+Void Story3SortPlayersByScreenPosition(s32 playerCount) {
+    s32 leftmostPlayerIndex;
+    s32 rightmostPlayerIndex;
+    s32 rankedPlayerIndex;
+    s32 playerIndex;
 
-    var_r28 = 9999;
-    var_r27 = -1;
-    lbl_1_bss_1420 = arg0;
-    lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][2]);
-    fn_1_13C78(lbl_1_bss_1580.unk10, arg0 * 3 + 3, 3);
-    fn_1_12C08(arg0);
-    lbl_1_bss_1424 = 0.0f;
-    switch (lbl_1_bss_1458[0]) {
+    leftmostPlayerIndex = 9999;
+    rightmostPlayerIndex = -1;
+    audioSequenceMode = playerCount;
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][2]);
+    Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, playerCount * 3 + 3, 3);
+    Story3FindTiedMinigameScores(playerCount);
+    cameraFocusCenterX = 0.0f;
+    switch (sequencePlayerCountAndWinner[0]) {
         case 1:
-            lbl_1_bss_1424 = lbl_1_data_130[lbl_1_bss_1448[0]].x;
+            cameraFocusCenterX = playerModelPositions[playerSequenceOrder[0]].x;
             break;
         case 2:
-            lbl_1_bss_1424 = (lbl_1_data_130[lbl_1_bss_1448[0]].x + lbl_1_data_130[lbl_1_bss_1448[1]].x) / 2;
-            fn_1_13C78(lbl_1_bss_1580.unk10, arg0 * 3 + 4, 3);
+            cameraFocusCenterX = (playerModelPositions[playerSequenceOrder[0]].x + playerModelPositions[playerSequenceOrder[1]].x) / 2;
+            Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, playerCount * 3 + 4, 3);
             break;
         case 3:
-            for (var_r31 = 0; var_r31 < 3; var_r31++) {
-                if (var_r28 >= lbl_1_bss_1448[var_r31]) {
-                    var_r28 = lbl_1_bss_1448[var_r31];
+            for (playerIndex = 0; playerIndex < 3; playerIndex++) {
+                if (leftmostPlayerIndex >= playerSequenceOrder[playerIndex]) {
+                    leftmostPlayerIndex = playerSequenceOrder[playerIndex];
                 }
-                if (var_r27 <= lbl_1_bss_1448[var_r31]) {
-                    var_r27 = lbl_1_bss_1448[var_r31];
+                if (rightmostPlayerIndex <= playerSequenceOrder[playerIndex]) {
+                    rightmostPlayerIndex = playerSequenceOrder[playerIndex];
                 }
             }
-            lbl_1_bss_1424 = (lbl_1_data_130[var_r27].x + lbl_1_data_130[var_r28].x) / 2;
-            fn_1_13C78(lbl_1_bss_1580.unk10, arg0 * 3 + 5, 3);
+            cameraFocusCenterX = (playerModelPositions[rightmostPlayerIndex].x + playerModelPositions[leftmostPlayerIndex].x) / 2;
+            Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, playerCount * 3 + 5, 3);
             break;
         case 4:
             break;
     }
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    HuAudSeqPause(lbl_1_bss_58, 1, 1000);
-    lbl_1_bss_68[0] = HuAudFXPlay(0x9E);
-    fn_1_7004(0x40, 30, 0);
-    fn_1_958(60);
-    if (lbl_1_bss_1458[0] < 4) {
-        fn_1_39B4(&lbl_1_bss_4);
-        fn_1_2834(fn_1_8758);
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            for (var_r30 = 0; var_r30 < 4; var_r30++) {
-                if (var_r31 == lbl_1_bss_1448[var_r30]) {
-                    lbl_1_bss_1490[var_r31].unk04 = (void*) fn_1_11834;
-                    lbl_1_bss_1490[var_r31].unk18 = 0;
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    HuAudSeqPause(resultAudioSequenceId, 1, 1000);
+    resultSoundEffectIds[0] = HuAudFXPlay(0x9E);
+    Story3SetPlayerResultLights(0x40, 30, 0);
+    Story3SleepFrames(60);
+    if (sequencePlayerCountAndWinner[0] < 4) {
+        Story3ResetCameraTarget(&storyCameraState);
+        Story3SetCameraCallback(Story3TransitionCameraToResult);
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            for (rankedPlayerIndex = 0; rankedPlayerIndex < 4; rankedPlayerIndex++) {
+                if (playerIndex == playerSequenceOrder[rankedPlayerIndex]) {
+                    playerSequenceProcessStates[playerIndex].callback = (Void*) Story3AnimateAwardedStarParticles;
+                    playerSequenceProcessStates[playerIndex].callbackState = 0;
                     break;
                 }
             }
-            if (var_r30 == 4) {
-                lbl_1_bss_1490[var_r31].unk04 = (void*) fn_1_11794;
-                lbl_1_bss_1490[var_r31].unk18 = 0;
+            if (rankedPlayerIndex == 4) {
+                playerSequenceProcessStates[playerIndex].callback = (Void*) Story3AwardPlayerStar;
+                playerSequenceProcessStates[playerIndex].callbackState = 0;
             }
         }
     } else {
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            lbl_1_bss_1490[var_r31].unk04 = (void*) fn_1_11794;
-            lbl_1_bss_1490[var_r31].unk18 = 0;
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            playerSequenceProcessStates[playerIndex].callback = (Void*) Story3AwardPlayerStar;
+            playerSequenceProcessStates[playerIndex].callbackState = 0;
         }
     }
-    if (lbl_1_bss_1458[0] != 4) {
-        lbl_1_bss_1580.unk10 = fn_1_1624(1, 0, 21, 2, lbl_1_bss_1580.unk14);
+    if (sequencePlayerCountAndWinner[0] != 4) {
+        resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(1, 0, 21, 2, resultSequenceState.winningPlayerIndex);
     } else {
-        lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
+        resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
     }
-    if (lbl_1_bss_1458[0] <= 3) {
+    if (sequencePlayerCountAndWinner[0] <= 3) {
         HuAudFXPlay(0x9F);
     }
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][2]);
-    switch (lbl_1_bss_1458[0]) {
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][2]);
+    switch (sequencePlayerCountAndWinner[0]) {
         case 1:
-            fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1448[0], 0);
-            lbl_1_bss_1420 = 12;
-            lbl_1_bss_1530.unk04 = (void*) fn_1_9990;
-            lbl_1_bss_1468.unk04 = (void*) fn_1_9A08;
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, playerSequenceOrder[0], 0);
+            audioSequenceMode = 12;
+            sequenceCallbackState.callback = (Void*) Story3UpdatePlayerArrivalProcess;
+            sharedSequenceProcessState.callback = (Void*) Story3UpdateResultTransitionProcess;
             break;
         case 2:
-            fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1448[0], 0);
-            fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1448[1], 1);
-            lbl_1_bss_1420 = 13;
-            lbl_1_bss_1530.unk04 = (void*) fn_1_9990;
-            lbl_1_bss_1468.unk04 = (void*) fn_1_9A08;
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, playerSequenceOrder[0], 0);
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, playerSequenceOrder[1], 1);
+            audioSequenceMode = 13;
+            sequenceCallbackState.callback = (Void*) Story3UpdatePlayerArrivalProcess;
+            sharedSequenceProcessState.callback = (Void*) Story3UpdateResultTransitionProcess;
             break;
         case 3:
-            fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1448[0], 0);
-            fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1448[1], 1);
-            fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1448[2], 2);
-            lbl_1_bss_1420 = 14;
-            lbl_1_bss_1530.unk04 = (void*) fn_1_9990;
-            lbl_1_bss_1468.unk04 = (void*) fn_1_9A08;
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, playerSequenceOrder[0], 0);
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, playerSequenceOrder[1], 1);
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, playerSequenceOrder[2], 2);
+            audioSequenceMode = 14;
+            sequenceCallbackState.callback = (Void*) Story3UpdatePlayerArrivalProcess;
+            sharedSequenceProcessState.callback = (Void*) Story3UpdateResultTransitionProcess;
             break;
         case 4:
-            HuAudFXFadeOut(lbl_1_bss_68[0], 500);
-            lbl_1_bss_1468.unk04 = (void*) fn_1_9A08;
-            if (lbl_1_bss_1580.unkC4[lbl_1_bss_1448[0]].unk00.unk2C == 0 && arg0 == 2) {
-                fn_1_13C78(lbl_1_bss_1580.unk10, 26, 3);
+            HuAudFXFadeOut(resultSoundEffectIds[0], 500);
+            sharedSequenceProcessState.callback = (Void*) Story3UpdateResultTransitionProcess;
+            if (resultSequenceState.playerResults[playerSequenceOrder[0]].playerStats.questionSpaces == 0 && playerCount == 2) {
+                Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 26, 3);
             } else {
-                fn_1_13C78(lbl_1_bss_1580.unk10, 15, 3);
+                Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 15, 3);
             }
-            fn_1_1AB0(lbl_1_bss_1580.unk10);
+            Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
             break;
     }
-    for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-        lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk18 = 1;
+    for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+        playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callbackState = 1;
     }
     do {
-        fn_1_938();
-        for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-            if (lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk04 != NULL) {
+        Story3SleepOneFrame();
+        for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+            if (playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callback != NULL) {
                 break;
             }
         }
-    } while (var_r31 < lbl_1_bss_1458[0]);
-    lbl_1_bss_1580.unk18 = 1;
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        Hu3DModelAttrReset(lbl_1_bss_1490[var_r31].unk00->mdlId[1], HU3D_MOTATTR_PAUSE);
+    } while (playerIndex < sequencePlayerCountAndWinner[0]);
+    resultSequenceState.sequenceState = 1;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        Hu3DModelAttrReset(playerSequenceProcessStates[playerIndex].object->mdlId[1], HU3D_MOTATTR_PAUSE);
     }
-    fn_1_958(10);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        fn_1_1E28(lbl_1_bss_1490[var_r31].unk00, 1, 1, 15, 1);
+    Story3SleepFrames(10);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        Story3SetModelMotion(playerSequenceProcessStates[playerIndex].object, 1, 1, 15, 1);
     }
     do {
-        fn_1_938();
-    } while (lbl_1_bss_1530.unk04 != NULL);
-    fn_1_12DAC();
-    HuAudSeqPause(lbl_1_bss_58, 0, 1000);
-    fn_1_39B4(&lbl_1_bss_4);
-    fn_1_2834(fn_1_8858);
-    fn_1_7004(0xFF, 30, 1);
-    fn_1_958(60);
+        Story3SleepOneFrame();
+    } while (sequenceCallbackState.callback != NULL);
+    Story3SortPlayersByMinigameScore();
+    HuAudSeqPause(resultAudioSequenceId, 0, 1000);
+    Story3ResetCameraTarget(&storyCameraState);
+    Story3SetCameraCallback(Story3TransitionCameraToTeam);
+    Story3SetPlayerResultLights(0xFF, 30, 1);
+    Story3SleepFrames(60);
 }
 
-s32 fn_1_A314(void) {
-    s32 var_r31 = 0;
+s32 Story3PresentIndividualWinner(Void) {
+    s32 winningTeam = 0;
 
-    lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][2]);
-    fn_1_13C78(lbl_1_bss_1580.unk10, 0x10, 3);
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    fn_1_12DAC();
-    fn_1_130A8();
-    if (lbl_1_bss_1580.unk344 == 1) {
-        var_r31 = fn_1_B670();
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][2]);
+    Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x10, 3);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    Story3SortPlayersByMinigameScore();
+    Story3CountFirstPlacePlayers();
+    if (resultSequenceState.teamMode == 1) {
+        winningTeam = Story3DetermineWinningTeam();
     }
-    if (var_r31 != -1 && lbl_1_bss_1458[0] <= 1) {
-        HuAudSeqFadeOut(lbl_1_bss_58, 1000);
+    if (winningTeam != -1 && sequencePlayerCountAndWinner[0] <= 1) {
+        HuAudSeqFadeOut(resultAudioSequenceId, 1000);
     } else {
-        HuAudSeqPause(lbl_1_bss_58, 1, 1000);
+        HuAudSeqPause(resultAudioSequenceId, 1, 1000);
     }
-    lbl_1_bss_68[0] = HuAudFXPlay(0x9E);
-    lbl_1_bss_B0 = 1.0f;
-    lbl_1_bss_1530.unk04 = (void*) fn_1_D7D8;
-    fn_1_7004(0x40, 30, 0);
-    fn_1_8C18();
-    lbl_1_bss_AC = 125.0f;
-    return var_r31;
+    resultSoundEffectIds[0] = HuAudFXPlay(0x9E);
+    resultAnimationActive = 1.0f;
+    sequenceCallbackState.callback = (Void*) Story3AnimateResultLogos;
+    Story3SetPlayerResultLights(0x40, 30, 0);
+    Story3StartResultCameraMotion();
+    playerModelVerticalOffset = 125.0f;
+    return winningTeam;
 }
 
-void fn_1_A4F0(void) {
-    s32 var_r31;
+Void Story3FinishIndividualWinnerPresentation(Void) {
+    s32 playerIndex;
 
-    HuAudSeqPause(lbl_1_bss_58, 0, 1000);
-    HuAudFXFadeOut(lbl_1_bss_68[0], 1000);
-    lbl_1_bss_B0 = 0.0f;
-    fn_1_7004(0xFF, 30, 1);
-    fn_1_958(60);
-    lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][1]);
-    fn_1_13C78(lbl_1_bss_1580.unk10, 0x11, 3);
-    switch (lbl_1_bss_1458[0]) {
+    HuAudSeqPause(resultAudioSequenceId, 0, 1000);
+    HuAudFXFadeOut(resultSoundEffectIds[0], 1000);
+    resultAnimationActive = 0.0f;
+    Story3SetPlayerResultLights(0xFF, 30, 1);
+    Story3SleepFrames(60);
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][1]);
+    Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x11, 3);
+    switch (sequencePlayerCountAndWinner[0]) {
         case 1:
             break;
         case 2:
-            fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1448[0], 0);
-            fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1448[1], 1);
-            fn_1_13C78(lbl_1_bss_1580.unk10, 13, 3);
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, playerSequenceOrder[0], 0);
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, playerSequenceOrder[1], 1);
+            Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 13, 3);
             break;
         case 3:
-            fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1448[0], 0);
-            fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1448[1], 1);
-            fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1448[2], 2);
-            fn_1_13C78(lbl_1_bss_1580.unk10, 14, 3);
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, playerSequenceOrder[0], 0);
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, playerSequenceOrder[1], 1);
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, playerSequenceOrder[2], 2);
+            Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 14, 3);
             break;
         case 4:
-            fn_1_13C78(lbl_1_bss_1580.unk10, 0x12, 3);
+            Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x12, 3);
             break;
     }
-    fn_1_13C78(lbl_1_bss_1580.unk10, 0x13, 3);
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_1438[var_r31] = lbl_1_bss_1428[var_r31] = -1;
+    Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x13, 3);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerSequenceResultIndices[playerIndex] = playerSequenceScoreOrder[playerIndex] = -1;
     }
-    for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-        lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk04 = (void*) fn_1_123D8;
-        lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk18 = 0;
+    for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+        playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callback = (Void*) Story3FinishPlayerResultProcess;
+        playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callbackState = 0;
     }
     do {
-        fn_1_938();
-        for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-            if (lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk18 != 1) {
+        Story3SleepOneFrame();
+        for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+            if (playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callbackState != 1) {
                 break;
             }
         }
-    } while (var_r31 < lbl_1_bss_1458[0]);
-    for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-        lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk18 = 2;
+    } while (playerIndex < sequencePlayerCountAndWinner[0]);
+    for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+        playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callbackState = 2;
     }
-    fn_1_958(0x96);
-    fn_1_1317C();
-    lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][2]);
-    fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1458[1], 0);
-    fn_1_13C78(lbl_1_bss_1580.unk10, 0x14, 3);
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-        if (lbl_1_bss_1458[1] == lbl_1_bss_1448[var_r31]) {
-            fn_1_1E28(lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk00, 1, 14, 15, 0);
+    Story3SleepFrames(0x96);
+    Story3CalculatePlayerMinigameScores();
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][2]);
+    Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, sequencePlayerCountAndWinner[1], 0);
+    Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x14, 3);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+        if (sequencePlayerCountAndWinner[1] == playerSequenceOrder[playerIndex]) {
+            Story3SetModelMotion(playerSequenceProcessStates[playerSequenceOrder[playerIndex]].object, 1, 14, 15, 0);
         } else {
-            fn_1_1E28(lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk00, 1, 15, 15, 0);
+            Story3SetModelMotion(playerSequenceProcessStates[playerSequenceOrder[playerIndex]].object, 1, 15, 15, 0);
         }
     }
-    fn_1_958(0x23);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        fn_1_1E28(lbl_1_bss_1490[var_r31].unk00, 1, 1, 15, 1);
+    Story3SleepFrames(0x23);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        Story3SetModelMotion(playerSequenceProcessStates[playerIndex].object, 1, 1, 15, 1);
     }
-    fn_1_958(0x55);
-    lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][3]);
-    fn_1_13C78(lbl_1_bss_1580.unk10, 0x15, 3);
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        fn_1_1E28(lbl_1_bss_1490[var_r31].unk00, 1, 1, 15, 1);
+    Story3SleepFrames(0x55);
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][3]);
+    Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x15, 3);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        Story3SetModelMotion(playerSequenceProcessStates[playerIndex].object, 1, 1, 15, 1);
     }
-    HuAudSeqFadeOut(lbl_1_bss_58, 1000);
-    lbl_1_bss_68[0] = HuAudFXPlay(0x9E);
-    lbl_1_bss_B0 = 1.0f;
-    fn_1_7004(0x40, 30, 0);
-    fn_1_8C18();
+    HuAudSeqFadeOut(resultAudioSequenceId, 1000);
+    resultSoundEffectIds[0] = HuAudFXPlay(0x9E);
+    resultAnimationActive = 1.0f;
+    Story3SetPlayerResultLights(0x40, 30, 0);
+    Story3StartResultCameraMotion();
 }
 
-void fn_1_ABAC(void) {
-    s32 var_r31;
+Void Story3PresentTeamWinners(Void) {
+    s32 playerIndex;
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_1490[var_r31].unk04 = (void*) fn_1_12420;
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerSequenceProcessStates[playerIndex].callback = (Void*) Story3UpdatePlayerRankMarker;
     }
     do {
-        fn_1_938();
-        for (var_r31 = 0; var_r31 < 4; var_r31++) {
-            if (lbl_1_bss_1490[var_r31].unk04 != NULL) {
+        Story3SleepOneFrame();
+        for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+            if (playerSequenceProcessStates[playerIndex].callback != NULL) {
                 break;
             }
         }
-    } while (var_r31 < 4);
-    lbl_1_bss_B0 = 0.0f;
-    fn_1_958(15);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (lbl_1_bss_1580.unkC4[var_r31].unk00.unk18 == 1) {
+    } while (playerIndex < 4);
+    resultAnimationActive = 0.0f;
+    Story3SleepFrames(15);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        if (resultSequenceState.playerResults[playerIndex].playerStats.rank == 1) {
             break;
         }
     }
-    if (lbl_1_bss_1580.unk344 == 1) {
-        if (lbl_1_bss_1580.unk348 == 0) {
-            fn_1_7398(0xFF, 5, 0, 1);
+    if (resultSequenceState.teamMode == 1) {
+        if (resultSequenceState.winningTeam == 0) {
+            Story3AnimatePairGlow(0xFF, 5, 0, 1);
         } else {
-            fn_1_7398(0xFF, 5, 2, 3);
+            Story3AnimatePairGlow(0xFF, 5, 2, 3);
         }
     } else {
-        fn_1_79D8(0xFF, 5.0f, var_r31);
+        Story3AnimatePlayerGlow(0xFF, 5.0f, playerIndex);
     }
     HuAudFXPlay(0x9F);
     HuAudSeqPlay(0x32);
-    fn_1_958(30);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        if (lbl_1_bss_1580.unk344 == 1) {
-            if (lbl_1_bss_1580.unk348 == 0) {
-                CharMotionVoiceOnSet(lbl_1_bss_1580.unkC4[0].unk00.unk10, lbl_1_bss_1490[0].unk00->mtnId[3], 0);
-                CharMotionVoiceOnSet(lbl_1_bss_1580.unkC4[1].unk00.unk10, lbl_1_bss_1490[1].unk00->mtnId[3], 0);
-                CharMotionVoiceOnSet(lbl_1_bss_1580.unkC4[2].unk00.unk10, lbl_1_bss_1490[2].unk00->mtnId[4], 0);
-                CharMotionVoiceOnSet(lbl_1_bss_1580.unkC4[3].unk00.unk10, lbl_1_bss_1490[3].unk00->mtnId[4], 0);
-                fn_1_1E28(lbl_1_bss_1490[0].unk00, 1, 3, 15, 0);
-                fn_1_1E28(lbl_1_bss_1490[1].unk00, 1, 3, 15, 0);
-                fn_1_1E28(lbl_1_bss_1490[2].unk00, 1, 4, 15, 0);
-                fn_1_1E28(lbl_1_bss_1490[3].unk00, 1, 4, 15, 0);
-                lbl_1_bss_1580.unk0C = 0;
+    Story3SleepFrames(30);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        if (resultSequenceState.teamMode == 1) {
+            if (resultSequenceState.winningTeam == 0) {
+                CharMotionVoiceOnSet(resultSequenceState.playerResults[0].playerStats.characterId, playerSequenceProcessStates[0].object->mtnId[3], 0);
+                CharMotionVoiceOnSet(resultSequenceState.playerResults[1].playerStats.characterId, playerSequenceProcessStates[1].object->mtnId[3], 0);
+                CharMotionVoiceOnSet(resultSequenceState.playerResults[2].playerStats.characterId, playerSequenceProcessStates[2].object->mtnId[4], 0);
+                CharMotionVoiceOnSet(resultSequenceState.playerResults[3].playerStats.characterId, playerSequenceProcessStates[3].object->mtnId[4], 0);
+                Story3SetModelMotion(playerSequenceProcessStates[0].object, 1, 3, 15, 0);
+                Story3SetModelMotion(playerSequenceProcessStates[1].object, 1, 3, 15, 0);
+                Story3SetModelMotion(playerSequenceProcessStates[2].object, 1, 4, 15, 0);
+                Story3SetModelMotion(playerSequenceProcessStates[3].object, 1, 4, 15, 0);
+                resultSequenceState.currentPlayerIndex = 0;
             } else {
-                CharMotionVoiceOnSet(lbl_1_bss_1580.unkC4[0].unk00.unk10, lbl_1_bss_1490[0].unk00->mtnId[4], 0);
-                CharMotionVoiceOnSet(lbl_1_bss_1580.unkC4[1].unk00.unk10, lbl_1_bss_1490[1].unk00->mtnId[4], 0);
-                CharMotionVoiceOnSet(lbl_1_bss_1580.unkC4[2].unk00.unk10, lbl_1_bss_1490[2].unk00->mtnId[3], 0);
-                CharMotionVoiceOnSet(lbl_1_bss_1580.unkC4[3].unk00.unk10, lbl_1_bss_1490[3].unk00->mtnId[3], 0);
-                fn_1_1E28(lbl_1_bss_1490[0].unk00, 1, 4, 15, 0);
-                fn_1_1E28(lbl_1_bss_1490[1].unk00, 1, 4, 15, 0);
-                fn_1_1E28(lbl_1_bss_1490[2].unk00, 1, 3, 15, 0);
-                fn_1_1E28(lbl_1_bss_1490[3].unk00, 1, 3, 15, 0);
-                lbl_1_bss_1580.unk0C = 2;
+                CharMotionVoiceOnSet(resultSequenceState.playerResults[0].playerStats.characterId, playerSequenceProcessStates[0].object->mtnId[4], 0);
+                CharMotionVoiceOnSet(resultSequenceState.playerResults[1].playerStats.characterId, playerSequenceProcessStates[1].object->mtnId[4], 0);
+                CharMotionVoiceOnSet(resultSequenceState.playerResults[2].playerStats.characterId, playerSequenceProcessStates[2].object->mtnId[3], 0);
+                CharMotionVoiceOnSet(resultSequenceState.playerResults[3].playerStats.characterId, playerSequenceProcessStates[3].object->mtnId[3], 0);
+                Story3SetModelMotion(playerSequenceProcessStates[0].object, 1, 4, 15, 0);
+                Story3SetModelMotion(playerSequenceProcessStates[1].object, 1, 4, 15, 0);
+                Story3SetModelMotion(playerSequenceProcessStates[2].object, 1, 3, 15, 0);
+                Story3SetModelMotion(playerSequenceProcessStates[3].object, 1, 3, 15, 0);
+                resultSequenceState.currentPlayerIndex = 2;
             }
-        } else if (lbl_1_bss_1580.unkC4[var_r31].unk00.unk18 == 1) {
-            CharMotionVoiceOnSet(lbl_1_bss_1580.unkC4[var_r31].unk00.unk10, lbl_1_bss_1490[var_r31].unk00->mtnId[3], 0);
-            fn_1_1E28(lbl_1_bss_1490[var_r31].unk00, 1, 3, 15, 0);
-            lbl_1_bss_1580.unk0C = var_r31;
+        } else if (resultSequenceState.playerResults[playerIndex].playerStats.rank == 1) {
+            CharMotionVoiceOnSet(resultSequenceState.playerResults[playerIndex].playerStats.characterId, playerSequenceProcessStates[playerIndex].object->mtnId[3], 0);
+            Story3SetModelMotion(playerSequenceProcessStates[playerIndex].object, 1, 3, 15, 0);
+            resultSequenceState.currentPlayerIndex = playerIndex;
         } else {
-            CharMotionVoiceOnSet(lbl_1_bss_1580.unkC4[var_r31].unk00.unk10, lbl_1_bss_1490[var_r31].unk00->mtnId[4], 0);
-            fn_1_1E28(lbl_1_bss_1490[var_r31].unk00, 1, 4, 15, 0);
+            CharMotionVoiceOnSet(resultSequenceState.playerResults[playerIndex].playerStats.characterId, playerSequenceProcessStates[playerIndex].object->mtnId[4], 0);
+            Story3SetModelMotion(playerSequenceProcessStates[playerIndex].object, 1, 4, 15, 0);
         }
-        GWPlayer[lbl_1_bss_1580.unkC4[var_r31].unk00.unk00].rank = lbl_1_bss_1580.unkC4[var_r31].unk00.unk18 - 1;
+        GWPlayer[resultSequenceState.playerResults[playerIndex].playerStats.playerIndex].rank = resultSequenceState.playerResults[playerIndex].playerStats.rank - 1;
     }
-    lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][2]);
-    if (lbl_1_bss_1580.unk344 == 1) {
-        if (lbl_1_bss_1580.unk348 == 0) {
-            fn_1_13D38(lbl_1_bss_1580.unk10, 0, 0);
-            fn_1_13D38(lbl_1_bss_1580.unk10, 1, 1);
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][2]);
+    if (resultSequenceState.teamMode == 1) {
+        if (resultSequenceState.winningTeam == 0) {
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, 0, 0);
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, 1, 1);
             _SetFlag(FLAG_ID_MAKE(1, 29));
         } else {
-            fn_1_13D38(lbl_1_bss_1580.unk10, 2, 0);
-            fn_1_13D38(lbl_1_bss_1580.unk10, 3, 1);
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, 2, 0);
+            Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, 3, 1);
         }
-        fn_1_13C78(lbl_1_bss_1580.unk10, 0x19, 5);
+        Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x19, 5);
     } else {
-        fn_1_13D38(lbl_1_bss_1580.unk10, lbl_1_bss_1458[1], 0);
-        fn_1_13C78(lbl_1_bss_1580.unk10, 0x16, 5);
+        Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, sequencePlayerCountAndWinner[1], 0);
+        Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x16, 5);
     }
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
 }
 
-s32 fn_1_B670(void) {
-    s32 var_r31;
-    s32 temp_r30;
-    s32 temp_r29;
-    s32 temp_r28;
-    s32 temp_r27;
+s32 Story3DetermineWinningTeam(Void) {
+    s32 winningTeam;
+    s32 teamZeroStars;
+    s32 teamOneStars;
+    s32 teamZeroCoins;
+    s32 teamOneCoins;
 
-    var_r31 = 1;
-    temp_r30 = lbl_1_bss_1580.unkC4[0].unk00.unk20 + lbl_1_bss_1580.unkC4[1].unk00.unk20;
-    temp_r29 = lbl_1_bss_1580.unkC4[2].unk00.unk20 + lbl_1_bss_1580.unkC4[3].unk00.unk20;
-    temp_r28 = lbl_1_bss_1580.unkC4[0].unk00.unk1C + lbl_1_bss_1580.unkC4[1].unk00.unk1C;
-    temp_r27 = lbl_1_bss_1580.unkC4[2].unk00.unk1C + lbl_1_bss_1580.unkC4[3].unk00.unk1C;
-    if (temp_r30 > temp_r29) {
-        lbl_1_bss_1580.unk348 = 0;
-    } else if (temp_r30 < temp_r29) {
-        lbl_1_bss_1580.unk348 = 1;
-    } else if (temp_r28 > temp_r27) {
-        lbl_1_bss_1580.unk348 = 0;
-    } else if (temp_r28 < temp_r27) {
-        lbl_1_bss_1580.unk348 = 1;
+    winningTeam = 1;
+    teamZeroStars = resultSequenceState.playerResults[0].playerStats.stars + resultSequenceState.playerResults[1].playerStats.stars;
+    teamOneStars = resultSequenceState.playerResults[2].playerStats.stars + resultSequenceState.playerResults[3].playerStats.stars;
+    teamZeroCoins = resultSequenceState.playerResults[0].playerStats.coins + resultSequenceState.playerResults[1].playerStats.coins;
+    teamOneCoins = resultSequenceState.playerResults[2].playerStats.coins + resultSequenceState.playerResults[3].playerStats.coins;
+    if (teamZeroStars > teamOneStars) {
+        resultSequenceState.winningTeam = 0;
+    } else if (teamZeroStars < teamOneStars) {
+        resultSequenceState.winningTeam = 1;
+    } else if (teamZeroCoins > teamOneCoins) {
+        resultSequenceState.winningTeam = 0;
+    } else if (teamZeroCoins < teamOneCoins) {
+        resultSequenceState.winningTeam = 1;
     } else {
-        var_r31 = -1;
+        winningTeam = -1;
     }
-    return var_r31;
+    return winningTeam;
 }
 
-void fn_1_B788(void) {
-    s32 var_r31;
+Void Story3FinishTeamWinnerPresentation(Void) {
+    s32 playerIndex;
 
-    HuAudSeqPause(lbl_1_bss_58, 0, 1000);
-    HuAudFXFadeOut(lbl_1_bss_68[0], 1000);
-    lbl_1_bss_B0 = 0.0f;
-    fn_1_7004(0xFF, 30, 1);
-    fn_1_958(60);
-    lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][1]);
-    fn_1_13C78(lbl_1_bss_1580.unk10, 0x17, 3);
-    fn_1_13C78(lbl_1_bss_1580.unk10, 0x13, 3);
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_1438[var_r31] = lbl_1_bss_1428[var_r31] = -1;
+    HuAudSeqPause(resultAudioSequenceId, 0, 1000);
+    HuAudFXFadeOut(resultSoundEffectIds[0], 1000);
+    resultAnimationActive = 0.0f;
+    Story3SetPlayerResultLights(0xFF, 30, 1);
+    Story3SleepFrames(60);
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][1]);
+    Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x17, 3);
+    Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x13, 3);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        playerSequenceResultIndices[playerIndex] = playerSequenceScoreOrder[playerIndex] = -1;
     }
-    lbl_1_bss_1458[0] = 2;
-    lbl_1_bss_1448[0] = 0;
-    lbl_1_bss_1448[1] = 2;
-    for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-        lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk04 = (void*) fn_1_123D8;
-        lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk18 = 0;
+    sequencePlayerCountAndWinner[0] = 2;
+    playerSequenceOrder[0] = 0;
+    playerSequenceOrder[1] = 2;
+    for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+        playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callback = (Void*) Story3FinishPlayerResultProcess;
+        playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callbackState = 0;
     }
     do {
-        fn_1_938();
-        for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-            if (lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk18 != 1) {
+        Story3SleepOneFrame();
+        for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+            if (playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callbackState != 1) {
                 break;
             }
         }
-    } while (var_r31 < lbl_1_bss_1458[0]);
-    for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-        lbl_1_bss_1490[lbl_1_bss_1448[var_r31]].unk18 = 2;
+    } while (playerIndex < sequencePlayerCountAndWinner[0]);
+    for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+        playerSequenceProcessStates[playerSequenceOrder[playerIndex]].callbackState = 2;
     }
-    fn_1_958(150);
-    if (lbl_1_bss_1428[0] > lbl_1_bss_1428[2]) {
-        lbl_1_bss_1580.unk348 = 0;
+    Story3SleepFrames(150);
+    if (playerSequenceScoreOrder[0] > playerSequenceScoreOrder[2]) {
+        resultSequenceState.winningTeam = 0;
     } else {
-        lbl_1_bss_1580.unk348 = 1;
+        resultSequenceState.winningTeam = 1;
     }
-    lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][2]);
-    if (lbl_1_bss_1580.unk348 == 0) {
-        fn_1_13D38(lbl_1_bss_1580.unk10, 0, 0);
-        fn_1_13D38(lbl_1_bss_1580.unk10, 1, 1);
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][2]);
+    if (resultSequenceState.winningTeam == 0) {
+        Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, 0, 0);
+        Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, 1, 1);
     } else {
-        fn_1_13D38(lbl_1_bss_1580.unk10, 2, 0);
-        fn_1_13D38(lbl_1_bss_1580.unk10, 3, 1);
+        Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, 2, 0);
+        Story3InsertCharacterNameMessage(resultSequenceState.audioSequenceId, 3, 1);
     }
-    fn_1_13C78(lbl_1_bss_1580.unk10, 0x18, 3);
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    for (var_r31 = 0; var_r31 < lbl_1_bss_1458[0]; var_r31++) {
-        if (lbl_1_bss_1580.unk348 == 0) {
-            fn_1_1E28(lbl_1_bss_1490[0].unk00, 1, 14, 15, 0);
-            fn_1_1E28(lbl_1_bss_1490[1].unk00, 1, 14, 15, 0);
-            fn_1_1E28(lbl_1_bss_1490[2].unk00, 1, 15, 15, 0);
-            fn_1_1E28(lbl_1_bss_1490[3].unk00, 1, 15, 15, 0);
+    Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x18, 3);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    for (playerIndex = 0; playerIndex < sequencePlayerCountAndWinner[0]; playerIndex++) {
+        if (resultSequenceState.winningTeam == 0) {
+            Story3SetModelMotion(playerSequenceProcessStates[0].object, 1, 14, 15, 0);
+            Story3SetModelMotion(playerSequenceProcessStates[1].object, 1, 14, 15, 0);
+            Story3SetModelMotion(playerSequenceProcessStates[2].object, 1, 15, 15, 0);
+            Story3SetModelMotion(playerSequenceProcessStates[3].object, 1, 15, 15, 0);
         } else {
-            fn_1_1E28(lbl_1_bss_1490[0].unk00, 1, 15, 15, 0);
-            fn_1_1E28(lbl_1_bss_1490[1].unk00, 1, 15, 15, 0);
-            fn_1_1E28(lbl_1_bss_1490[2].unk00, 1, 14, 15, 0);
-            fn_1_1E28(lbl_1_bss_1490[3].unk00, 1, 14, 15, 0);
+            Story3SetModelMotion(playerSequenceProcessStates[0].object, 1, 15, 15, 0);
+            Story3SetModelMotion(playerSequenceProcessStates[1].object, 1, 15, 15, 0);
+            Story3SetModelMotion(playerSequenceProcessStates[2].object, 1, 14, 15, 0);
+            Story3SetModelMotion(playerSequenceProcessStates[3].object, 1, 14, 15, 0);
         }
     }
-    fn_1_958(35);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        fn_1_1E28(lbl_1_bss_1490[var_r31].unk00, 1, 1, 15, 1);
+    Story3SleepFrames(35);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        Story3SetModelMotion(playerSequenceProcessStates[playerIndex].object, 1, 1, 15, 1);
     }
-    fn_1_958(85);
-    lbl_1_bss_1580.unk10 = fn_1_1624(0, 0, 21, 2, lbl_1_bss_1580.unk14);
-    HuAudFXPlay(lbl_1_data_0[lbl_1_bss_1580.unk00][3]);
-    fn_1_13C78(lbl_1_bss_1580.unk10, 0x15, 3);
-    fn_1_1AB0(lbl_1_bss_1580.unk10);
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        fn_1_1E28(lbl_1_bss_1490[var_r31].unk00, 1, 1, 15, 1);
+    Story3SleepFrames(85);
+    resultSequenceState.audioSequenceId = story3CreateStandardMessageWindow(0, 0, 21, 2, resultSequenceState.winningPlayerIndex);
+    HuAudFXPlay(recordMessageIdTable[resultSequenceState.boardId][3]);
+    Story3ShowBoardResultMessage(resultSequenceState.audioSequenceId, 0x15, 3);
+    Story3ShowCenteredMessage(resultSequenceState.audioSequenceId);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        Story3SetModelMotion(playerSequenceProcessStates[playerIndex].object, 1, 1, 15, 1);
     }
-    HuAudSeqFadeOut(lbl_1_bss_58, 1000);
-    lbl_1_bss_68[0] = HuAudFXPlay(0x9E);
-    lbl_1_bss_B0 = 1.0f;
-    fn_1_7004(0x40, 30, 0);
-    fn_1_8C18();
+    HuAudSeqFadeOut(resultAudioSequenceId, 1000);
+    resultSoundEffectIds[0] = HuAudFXPlay(0x9E);
+    resultAnimationActive = 1.0f;
+    Story3SetPlayerResultLights(0x40, 30, 0);
+    Story3StartResultCameraMotion();
 }
 
-void fn_1_BE5C(void) {
-    float var_f31;
+Void Story3BobWinnerModel(Void) {
+    float modelBobOffset;
 
-    var_f31 = fn_1_878(0.0f, 0.1f, lbl_1_bss_B8, 180.0f);
-    Hu3DData[lbl_1_bss_1530.unk00->mdlId[20]].pos.y += var_f31;
-    lbl_1_bss_B8++;
-    if (lbl_1_bss_B8 >= 180) {
-        lbl_1_bss_B8 -= 180;
-    }
-}
-
-void fn_1_BF60(void) {
-    float temp_f1;
-
-    temp_f1 = fn_1_878(1.0f, 1.1f, lbl_1_bss_B8, 60.0f);
-    Hu3DModelScaleSet(lbl_1_bss_1530.unk00->mdlId[23], temp_f1, temp_f1, 1.0f);
-    lbl_1_bss_B8++;
-    if (lbl_1_bss_B8 >= 60) {
-        lbl_1_bss_B8 -= 60;
+    modelBobOffset = interpolateSinePulse(0.0f, 0.1f, resultAnimationFrame, 180.0f);
+    Hu3DData[sequenceCallbackState.object->mdlId[20]].pos.y += modelBobOffset;
+    resultAnimationFrame++;
+    if (resultAnimationFrame >= 180) {
+        resultAnimationFrame -= 180;
     }
 }
 
-s32 lbl_1_data_364 = -1;
-s32 lbl_1_data_368 = -1; // unused
+Void Story3PulseWinnerModelScale(Void) {
+    float winnerModelScale;
 
-void fn_1_C060(float arg8) {
-    float sp20[] = {
+    winnerModelScale = interpolateSinePulse(1.0f, 1.1f, resultAnimationFrame, 60.0f);
+    Hu3DModelScaleSet(sequenceCallbackState.object->mdlId[23], winnerModelScale, winnerModelScale, 1.0f);
+    resultAnimationFrame++;
+    if (resultAnimationFrame >= 60) {
+        resultAnimationFrame -= 60;
+    }
+}
+
+s32 winnerParticleManagerId = -1;
+s32 unreferencedLogoData = -1; // unused
+
+Void Story3MoveCameraToWinner(float startValue) {
+    float playerCameraHeights[] = {
         50.0f, 50.0f, 60.0f,  50.0f,
         50.0f, 80.0f, 60.0f, 120.0f
     };
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
-    float temp_f29;
-    float var_f28;
-    float temp_f27;
-    float var_f26;
-    s32 var_r31;
+    Vec winnerStartPosition;
+    Vec winnerTargetPosition;
+    float winnerScreenX;
+    float winnerHeight;
+    float winnerRotation;
+    float winnerAlpha;
+    float winnerScale;
+    float winnerDepth;
+    s32 animationFrame;
 
-    lbl_1_bss_BC = arg8;
-    fn_1_938();
-    var_f31 = arg8;
-    var_f30 = 0.0f;
-    temp_f29 = 3600.0f;
-    Hu3DModelPosSet(lbl_1_bss_1530.unk00->mdlId[20], var_f31, 1000.0f, 460.0f);
-    Hu3DModelScaleSet(lbl_1_bss_1530.unk00->mdlId[20], 0.5f, 0.5f, 0.5f);
-    Hu3DModelAttrReset(lbl_1_bss_1530.unk00->mdlId[20], HU3D_ATTR_DISPOFF);
-    fn_1_1E28(lbl_1_bss_1530.unk00, 20, 20, 0, 2);
-    Hu3DModelPosSet(lbl_1_bss_1530.unk00->mdlId[21], var_f31, 1000.0f, 460.0f);
-    Hu3DModelScaleSet(lbl_1_bss_1530.unk00->mdlId[21], 0.5f, 0.5f, 0.5f);
-    fn_1_1E28(lbl_1_bss_1530.unk00, 21, 21, 0, 2);
-    Hu3DModelPosSet(lbl_1_bss_1530.unk00->mdlId[22], var_f31, 1000.0f, 460.0f);
-    Hu3DModelScaleSet(lbl_1_bss_1530.unk00->mdlId[22], 0.5f, 0.5f, 0.5f);
-    Hu3DMotionShapeSpeedSet(lbl_1_bss_1530.unk00->mdlId[22], 2.0f);
-    Hu3DMotionSpeedSet(lbl_1_bss_1530.unk00->mdlId[22], 2.0f);
-    Hu3DMotionShiftSpeedSet(lbl_1_bss_1530.unk00->mdlId[22], 2.0f);
-    fn_1_1E28(lbl_1_bss_1530.unk00, 22, 22, 0, 2);
-    Hu3DModelScaleSet(lbl_1_bss_1530.unk00->mdlId[23], 0.0f, 0.0f, 1.0f);
-    Hu3DModelAttrSet(lbl_1_bss_1530.unk00->mdlId[23], HU3D_ATTR_DISPOFF);
-    fn_1_958(60);
-    fn_1_39B4(&lbl_1_bss_4);
-    fn_1_2834(fn_1_845C);
-    for (var_r31 = 0; var_r31 <= 120; var_r31++) {
-        fn_1_938();
-        if (lbl_1_bss_1580.unk344 == 0) {
-            var_f30 = fn_1_6F4(1000.0f, 250.0f + sp20[lbl_1_bss_1580.unkC4[lbl_1_bss_1458[1]].unk00.unk10], var_r31, 120.0f);
+    particleEffectCenterX = startValue;
+    Story3SleepOneFrame();
+    winnerScreenX = startValue;
+    winnerHeight = 0.0f;
+    winnerRotation = 3600.0f;
+    Hu3DModelPosSet(sequenceCallbackState.object->mdlId[20], winnerScreenX, 1000.0f, 460.0f);
+    Hu3DModelScaleSet(sequenceCallbackState.object->mdlId[20], 0.5f, 0.5f, 0.5f);
+    Hu3DModelAttrReset(sequenceCallbackState.object->mdlId[20], HU3D_ATTR_DISPOFF);
+    Story3SetModelMotion(sequenceCallbackState.object, 20, 20, 0, 2);
+    Hu3DModelPosSet(sequenceCallbackState.object->mdlId[21], winnerScreenX, 1000.0f, 460.0f);
+    Hu3DModelScaleSet(sequenceCallbackState.object->mdlId[21], 0.5f, 0.5f, 0.5f);
+    Story3SetModelMotion(sequenceCallbackState.object, 21, 21, 0, 2);
+    Hu3DModelPosSet(sequenceCallbackState.object->mdlId[22], winnerScreenX, 1000.0f, 460.0f);
+    Hu3DModelScaleSet(sequenceCallbackState.object->mdlId[22], 0.5f, 0.5f, 0.5f);
+    Hu3DMotionShapeSpeedSet(sequenceCallbackState.object->mdlId[22], 2.0f);
+    Hu3DMotionSpeedSet(sequenceCallbackState.object->mdlId[22], 2.0f);
+    Hu3DMotionShiftSpeedSet(sequenceCallbackState.object->mdlId[22], 2.0f);
+    Story3SetModelMotion(sequenceCallbackState.object, 22, 22, 0, 2);
+    Hu3DModelScaleSet(sequenceCallbackState.object->mdlId[23], 0.0f, 0.0f, 1.0f);
+    Hu3DModelAttrSet(sequenceCallbackState.object->mdlId[23], HU3D_ATTR_DISPOFF);
+    Story3SleepFrames(60);
+    Story3ResetCameraTarget(&storyCameraState);
+    Story3SetCameraCallback(Story3FocusCameraOnPlayer);
+    for (animationFrame = 0; animationFrame <= 120; animationFrame++) {
+        Story3SleepOneFrame();
+        if (resultSequenceState.teamMode == 0) {
+            winnerHeight = interpolateSineEaseIn(1000.0f, 250.0f + playerCameraHeights[resultSequenceState.playerResults[sequencePlayerCountAndWinner[1]].playerStats.characterId], animationFrame, 120.0f);
         } else {
-            var_f30 = fn_1_6F4(1000.0f, 350.0f, var_r31, 120.0f);
+            winnerHeight = interpolateSineEaseIn(1000.0f, 350.0f, animationFrame, 120.0f);
         }
-        temp_f29 = fn_1_6F4(1800.0f, 0.0f, var_r31, 120.0f);
-        var_f28 = fn_1_6F4(1.0f, 0.0f, var_r31, 120.0f);
-        Hu3DModelPosSet(lbl_1_bss_1530.unk00->mdlId[20], var_f31, var_f30, 460.0f);
-        Hu3DModelRotSet(lbl_1_bss_1530.unk00->mdlId[20], 0.0f, temp_f29, 0.0f);
+        winnerRotation = interpolateSineEaseIn(1800.0f, 0.0f, animationFrame, 120.0f);
+        winnerAlpha = interpolateSineEaseIn(1.0f, 0.0f, animationFrame, 120.0f);
+        Hu3DModelPosSet(sequenceCallbackState.object->mdlId[20], winnerScreenX, winnerHeight, 460.0f);
+        Hu3DModelRotSet(sequenceCallbackState.object->mdlId[20], 0.0f, winnerRotation, 0.0f);
     }
-    lbl_1_bss_1530.unk04 = (void*) fn_1_BE5C;
-    fn_1_958(30);
-    fn_1_1E28(lbl_1_bss_1530.unk00, 20, 20, 0, 0);
-    fn_1_958(30);
+    sequenceCallbackState.callback = (Void*) Story3BobWinnerModel;
+    Story3SleepFrames(30);
+    Story3SetModelMotion(sequenceCallbackState.object, 20, 20, 0, 0);
+    Story3SleepFrames(30);
     HuAudFXPlay(0x33B);
-    fn_1_958(30);
-    Hu3DModelPosSet(lbl_1_bss_1530.unk00->mdlId[22], var_f31, Hu3DData[lbl_1_bss_1530.unk00->mdlId[20]].pos.y - 10.0f, 460.0f);
-    Hu3DModelAttrReset(lbl_1_bss_1530.unk00->mdlId[22], HU3D_ATTR_DISPOFF);
-    fn_1_1E28(lbl_1_bss_1530.unk00, 22, 22, 0, 0);
-    sp14.x = var_f31;
-    sp14.y = Hu3DData[lbl_1_bss_1530.unk00->mdlId[20]].pos.y;
-    sp14.z = 460.0f;
-    sp8.x = 288.0f;
-    sp8.y = 100.0f;
-    sp8.z = 500.0f;
-    fn_1_1DED8(DATA_MAKE_NUM(DATADIR_MSTORY3, 0), &sp14, &sp8, 100);
-    fn_1_1E0F4();
-    fn_1_958(15);
-    if (lbl_1_bss_1580.unk344 == 1) {
-        if (lbl_1_bss_1580.unk348 == 0) {
-            CharFXPlay(lbl_1_bss_1580.unkC4[0].unk00.unk10, 0x12B);
-            CharFXPlay(lbl_1_bss_1580.unkC4[1].unk00.unk10, 0x12B);
+    Story3SleepFrames(30);
+    Hu3DModelPosSet(sequenceCallbackState.object->mdlId[22], winnerScreenX, Hu3DData[sequenceCallbackState.object->mdlId[20]].pos.y - 10.0f, 460.0f);
+    Hu3DModelAttrReset(sequenceCallbackState.object->mdlId[22], HU3D_ATTR_DISPOFF);
+    Story3SetModelMotion(sequenceCallbackState.object, 22, 22, 0, 0);
+    winnerStartPosition.x = winnerScreenX;
+    winnerStartPosition.y = Hu3DData[sequenceCallbackState.object->mdlId[20]].pos.y;
+    winnerStartPosition.z = 460.0f;
+    winnerTargetPosition.x = 288.0f;
+    winnerTargetPosition.y = 100.0f;
+    winnerTargetPosition.z = 500.0f;
+    Story3CreateParticleTextEffect(DATA_MAKE_NUM(DATADIR_MSTORY3, 0), &winnerStartPosition, &winnerTargetPosition, 100);
+    Story3MarkParticleTextEffectReady();
+    Story3SleepFrames(15);
+    if (resultSequenceState.teamMode == 1) {
+        if (resultSequenceState.winningTeam == 0) {
+            CharFXPlay(resultSequenceState.playerResults[0].playerStats.characterId, 0x12B);
+            CharFXPlay(resultSequenceState.playerResults[1].playerStats.characterId, 0x12B);
         } else {
-            CharFXPlay(lbl_1_bss_1580.unkC4[2].unk00.unk10, 0x12B);
-            CharFXPlay(lbl_1_bss_1580.unkC4[3].unk00.unk10, 0x12B);
+            CharFXPlay(resultSequenceState.playerResults[2].playerStats.characterId, 0x12B);
+            CharFXPlay(resultSequenceState.playerResults[3].playerStats.characterId, 0x12B);
         }
     } else {
-        CharFXPlay(lbl_1_bss_1580.unkC4[lbl_1_bss_1458[1]].unk00.unk10, 0x12B);
+        CharFXPlay(resultSequenceState.playerResults[sequencePlayerCountAndWinner[1]].playerStats.characterId, 0x12B);
     }
     HuAudFXPlay(0xBA);
     HuAudFXPlay(0x9A);
-    Hu3DModelPosSet(lbl_1_bss_1530.unk00->mdlId[21], var_f31, Hu3DData[lbl_1_bss_1530.unk00->mdlId[20]].pos.y, 510.0f);
-    Hu3DModelAttrReset(lbl_1_bss_1530.unk00->mdlId[21], HU3D_ATTR_DISPOFF);
-    fn_1_1E28(lbl_1_bss_1530.unk00, 21, 21, 0, 0);
-    fn_1_958(5);
-    lbl_1_data_364 = fn_1_814C(1);
-    Hu3DParManPosSet(lbl_1_data_364, var_f31, Hu3DData[lbl_1_bss_1530.unk00->mdlId[21]].pos.y, 510.0f);
-    Hu3DModelAttrSet(lbl_1_bss_1530.unk00->mdlId[20], HU3D_ATTR_DISPOFF);
-    lbl_1_bss_C0 = 1.0f;
-    for (var_r31 = 0; var_r31 <= 30; var_r31++) {
-        fn_1_938();
-        temp_f27 = fn_1_5D4(0.0f, 1.0f, var_r31, 30.0f);
-        var_f30 = fn_1_5D4(0.0f, 75.0f, var_r31, 30.0f);
-        var_f26 = fn_1_5D4(550.0f, 640.0f, var_r31, 30.0f);
-        Hu3DModelPosSet(lbl_1_bss_1530.unk00->mdlId[23], var_f31, Hu3DData[lbl_1_bss_1530.unk00->mdlId[20]].pos.y - var_f30, var_f26);
-        Hu3DModelScaleSet(lbl_1_bss_1530.unk00->mdlId[23], temp_f27, temp_f27, 1.0f);
-        var_f28 = fn_1_5D4(1.0f, 0.0f, var_r31, 30.0f);
-        Hu3DModelTPLvlSet(lbl_1_bss_1530.unk00->mdlId[22], var_f28);
+    Hu3DModelPosSet(sequenceCallbackState.object->mdlId[21], winnerScreenX, Hu3DData[sequenceCallbackState.object->mdlId[20]].pos.y, 510.0f);
+    Hu3DModelAttrReset(sequenceCallbackState.object->mdlId[21], HU3D_ATTR_DISPOFF);
+    Story3SetModelMotion(sequenceCallbackState.object, 21, 21, 0, 0);
+    Story3SleepFrames(5);
+    winnerParticleManagerId = Story3CreateParticleManager(1);
+    Hu3DParManPosSet(winnerParticleManagerId, winnerScreenX, Hu3DData[sequenceCallbackState.object->mdlId[21]].pos.y, 510.0f);
+    Hu3DModelAttrSet(sequenceCallbackState.object->mdlId[20], HU3D_ATTR_DISPOFF);
+    particleEffectEnabled = 1.0f;
+    for (animationFrame = 0; animationFrame <= 30; animationFrame++) {
+        Story3SleepOneFrame();
+        winnerScale = interpolateLinearOverTime(0.0f, 1.0f, animationFrame, 30.0f);
+        winnerHeight = interpolateLinearOverTime(0.0f, 75.0f, animationFrame, 30.0f);
+        winnerDepth = interpolateLinearOverTime(550.0f, 640.0f, animationFrame, 30.0f);
+        Hu3DModelPosSet(sequenceCallbackState.object->mdlId[23], winnerScreenX, Hu3DData[sequenceCallbackState.object->mdlId[20]].pos.y - winnerHeight, winnerDepth);
+        Hu3DModelScaleSet(sequenceCallbackState.object->mdlId[23], winnerScale, winnerScale, 1.0f);
+        winnerAlpha = interpolateLinearOverTime(1.0f, 0.0f, animationFrame, 30.0f);
+        Hu3DModelTPLvlSet(sequenceCallbackState.object->mdlId[22], winnerAlpha);
     }
-    lbl_1_bss_B8 = 0;
-    lbl_1_bss_1530.unk04 = (void*) fn_1_BF60;
-    fn_1_958(30);
-    Hu3DParManKill(lbl_1_data_364);
-    lbl_1_data_364 = -1;
-    fn_1_958(240);
-    fn_1_1834(MAKE_MESSID(36, 7), 0);
-    if (lbl_1_bss_1580.unk344 == 1) {
-        if (lbl_1_bss_1580.unk348 == 0) {
-            if (lbl_1_bss_1580.unkC4[0].unk00.unk08 == 1 && lbl_1_bss_1580.unkC4[1].unk00.unk08 == 1) {
-                fn_1_958(30);
+    resultAnimationFrame = 0;
+    sequenceCallbackState.callback = (Void*) Story3PulseWinnerModelScale;
+    Story3SleepFrames(30);
+    Hu3DParManKill(winnerParticleManagerId);
+    winnerParticleManagerId = -1;
+    Story3SleepFrames(240);
+    Story3CreateDataWindow(MAKE_MESSID(36, 7), 0);
+    if (resultSequenceState.teamMode == 1) {
+        if (resultSequenceState.winningTeam == 0) {
+            if (resultSequenceState.playerResults[0].playerStats.isComputer == 1 && resultSequenceState.playerResults[1].playerStats.isComputer == 1) {
+                Story3SleepFrames(30);
             } else {
                 while (TRUE) {
-                    fn_1_938();
-                    if (lbl_1_bss_1580.unkC4[0].unk00.unk08 == 0 && (HuPadBtnDown[lbl_1_bss_1580.unkC4[0].unk00.unk14] & PAD_BUTTON_A)) {
+                    Story3SleepOneFrame();
+                    if (resultSequenceState.playerResults[0].playerStats.isComputer == 0 && (HuPadBtnDown[resultSequenceState.playerResults[0].playerStats.controllerPort] & PAD_BUTTON_A)) {
                         break;
                     }
-                    if (lbl_1_bss_1580.unkC4[1].unk00.unk08 == 0 && (HuPadBtnDown[lbl_1_bss_1580.unkC4[1].unk00.unk14] & PAD_BUTTON_A)) {
+                    if (resultSequenceState.playerResults[1].playerStats.isComputer == 0 && (HuPadBtnDown[resultSequenceState.playerResults[1].playerStats.controllerPort] & PAD_BUTTON_A)) {
                         break;
                     }
                 }
             }
         } else {
-            if (lbl_1_bss_1580.unkC4[2].unk00.unk08 == 1 && lbl_1_bss_1580.unkC4[3].unk00.unk08 == 1) {
-                fn_1_958(30);
+            if (resultSequenceState.playerResults[2].playerStats.isComputer == 1 && resultSequenceState.playerResults[3].playerStats.isComputer == 1) {
+                Story3SleepFrames(30);
             } else {
                 while (TRUE) {
-                    fn_1_938();
-                    if (lbl_1_bss_1580.unkC4[0].unk00.unk08 == 0 && (HuPadBtnDown[lbl_1_bss_1580.unkC4[0].unk00.unk14] & PAD_BUTTON_A)) {
+                    Story3SleepOneFrame();
+                    if (resultSequenceState.playerResults[0].playerStats.isComputer == 0 && (HuPadBtnDown[resultSequenceState.playerResults[0].playerStats.controllerPort] & PAD_BUTTON_A)) {
                         break;
                     }
-                    if (lbl_1_bss_1580.unkC4[1].unk00.unk08 == 0 && (HuPadBtnDown[lbl_1_bss_1580.unkC4[1].unk00.unk14] & PAD_BUTTON_A)) {
+                    if (resultSequenceState.playerResults[1].playerStats.isComputer == 0 && (HuPadBtnDown[resultSequenceState.playerResults[1].playerStats.controllerPort] & PAD_BUTTON_A)) {
                         break;
                     }
                 }
             }
         }
-    } else if (lbl_1_bss_1580.unk08 == 0) {
-        if (lbl_1_bss_1580.unkC4[lbl_1_bss_1580.unk0C].unk00.unk08 != 1) {
-            fn_1_2420(lbl_1_bss_1580.unkC4[lbl_1_bss_1580.unk0C].unk00.unk14, PAD_BUTTON_A);
+    } else if (resultSequenceState.sequenceVariant == 0) {
+        if (resultSequenceState.playerResults[resultSequenceState.currentPlayerIndex].playerStats.isComputer != 1) {
+            Story3WaitForControllerButton(resultSequenceState.playerResults[resultSequenceState.currentPlayerIndex].playerStats.controllerPort, PAD_BUTTON_A);
         } else {
-            fn_1_958(30);
+            Story3SleepFrames(30);
         }
     } else {
-        fn_1_2420(0, PAD_BUTTON_A);
+        Story3WaitForControllerButton(0, PAD_BUTTON_A);
     }
     HuAudFXPlay(0x1C);
 }
 
-void fn_1_CE6C(OMOBJ* arg0) {
-    StructBss1530* sp8 = arg0->data;
-    s32 var_r31;
+Void Story3RunWinnerPresentation(OMOBJ* object) {
+    StorySequenceProcessState* resultProcessState = object->data;
+    s32 winningTeam;
 
-    fn_1_91C8();
-    fn_1_9220();
-    fn_1_9488();
-    fn_1_9768();
-    if (lbl_1_bss_1580.unk04 != 0) {
-        fn_1_9A64(0);
-        fn_1_9A64(1);
-        fn_1_9A64(2);
+    Story3StartResultAudio();
+    Story3BeginWinnerPresentation();
+    Story3RunPlayerResultSequence();
+    Story3RunTeamResultSequence();
+    if (resultSequenceState.bonusStarMode != 0) {
+        Story3SortPlayersByScreenPosition(0);
+        Story3SortPlayersByScreenPosition(1);
+        Story3SortPlayersByScreenPosition(2);
     }
-    var_r31 = fn_1_A314();
-    if (lbl_1_bss_1580.unk344 == 1) {
-        if (var_r31 == -1) {
-            fn_1_B788();
+    winningTeam = Story3PresentIndividualWinner();
+    if (resultSequenceState.teamMode == 1) {
+        if (winningTeam == -1) {
+            Story3FinishTeamWinnerPresentation();
         }
-    } else if (lbl_1_bss_1458[0] > 1) {
-        fn_1_A4F0();
+    } else if (sequencePlayerCountAndWinner[0] > 1) {
+        Story3FinishIndividualWinnerPresentation();
     }
-    fn_1_ABAC();
-    if (lbl_1_bss_1580.unk344 == 1) {
-        if (lbl_1_bss_1580.unk348 == 0) {
-            fn_1_C060(lbl_1_data_130[0].x + 100.0f);
+    Story3PresentTeamWinners();
+    if (resultSequenceState.teamMode == 1) {
+        if (resultSequenceState.winningTeam == 0) {
+            Story3MoveCameraToWinner(playerModelPositions[0].x + 100.0f);
         } else {
-            fn_1_C060(lbl_1_data_130[2].x + 100.0f);
+            Story3MoveCameraToWinner(playerModelPositions[2].x + 100.0f);
         }
     } else {
-        fn_1_C060(lbl_1_data_130[lbl_1_bss_1458[1]].x);
+        Story3MoveCameraToWinner(playerModelPositions[sequencePlayerCountAndWinner[1]].x);
     }
-    fn_1_958(60);
-    fn_1_9140();
+    Story3SleepFrames(60);
+    Story3FadeOutResultScene();
 }
 
-void fn_1_D48C(void) {
-    OMOBJ* temp_r3;
+Void Story3CreateResultLogoObject(Void) {
+    OMOBJ* createdResultObject;
 
-    temp_r3 = omAddObjEx(lbl_1_bss_A8, 0x100, 16, 16, -1, NULL);
-    lbl_1_bss_1558.unk00 = temp_r3;
-    lbl_1_bss_1558.unk04 = (void*) fn_1_CE6C;
-    lbl_1_bss_1558.unk00->data = &lbl_1_bss_1558;
+    createdResultObject = omAddObjEx(resultObjectManager, 0x100, 16, 16, -1, NULL);
+    resultProcessCallbackState.object = createdResultObject;
+    resultProcessCallbackState.callback = (Void*) Story3RunWinnerPresentation;
+    resultProcessCallbackState.object->data = &resultProcessCallbackState;
     while (TRUE) {
-        fn_1_938();
-        if (lbl_1_bss_1558.unk04 != NULL) {
-            lbl_1_bss_1558.unk04(temp_r3);
+        Story3SleepOneFrame();
+        if (resultProcessCallbackState.callback != NULL) {
+            resultProcessCallbackState.callback(createdResultObject);
         }
     }
 }
 
-void fn_1_D538(OMOBJ* arg0) {
-    float sp8;
-    float var_f30;
-    float var_f31;
-    StructBss1530* temp_r31;
-    s32 var_r30;
-    s32 var_r29;
+Void Story3AnimateResultLogoScale(OMOBJ* object) {
+    float minimumLogoScale;
+    float logoScale;
+    float maximumLogoScale;
+    StorySequenceProcessState* processState;
+    s32 animationFrame;
+    s32 pulseFrame;
 
-    temp_r31 = arg0->data;
-    var_f31 = 1.75f;
-    sp8 = 0.5f;
-    var_r29 = 0;
+    processState = object->data;
+    maximumLogoScale = 1.75f;
+    minimumLogoScale = 0.5f;
+    pulseFrame = 0;
     HuAudFXPlay(0xBA);
     HuAudFXPlay(0x9A);
-    lbl_1_bss_1580.unk324 = 1;
-    espDispOn(temp_r31->unk14);
-    espScaleSet(temp_r31->unk14, 0.0f, 0.0f);
-    for (var_r30 = 0; var_r30 < 120; var_r30++) {
-        fn_1_938();
-        if (var_r30 < 60) {
-            var_f30 = fn_1_6F4(0.0f, 1.75f, var_r30, 60.0f);
+    resultSequenceState.sequenceProgress = 1;
+    espDispOn(processState->spriteId);
+    espScaleSet(processState->spriteId, 0.0f, 0.0f);
+    for (animationFrame = 0; animationFrame < 120; animationFrame++) {
+        Story3SleepOneFrame();
+        if (animationFrame < 60) {
+            logoScale = interpolateSineEaseIn(0.0f, 1.75f, animationFrame, 60.0f);
         } else {
-            var_f30 = fn_1_7BC(var_f31, 1.0f, var_r29, 15.0f);
-            var_r29++;
-            if (var_r29 == 15) {
-                if (var_f31 > 1.25f) {
-                    var_f31 -= 0.1f;
+            logoScale = interpolateSineEaseOut(maximumLogoScale, 1.0f, pulseFrame, 15.0f);
+            pulseFrame++;
+            if (pulseFrame == 15) {
+                if (maximumLogoScale > 1.25f) {
+                    maximumLogoScale -= 0.1f;
                 }
-                var_r29 = 0;
+                pulseFrame = 0;
             }
         }
-        espScaleSet(temp_r31->unk14, var_f30, var_f30);
+        espScaleSet(processState->spriteId, logoScale, logoScale);
     }
-    temp_r31->unk04 = 0;
+    processState->callback = 0;
 }
 
-void fn_1_D718(OMOBJ* arg0) {
-    float temp_f31;
+Void Story3UpdateResultAmbientLight(OMOBJ* object) {
+    float ambientLightIntensity;
 
-    temp_f31 = lbl_1_bss_1580.unk20 / 255.0f;
-    Hu3DModelAmbSet(arg0->mdlId[1], temp_f31, temp_f31, temp_f31);
-    Hu3DModelAmbSet(arg0->mdlId[2], temp_f31, temp_f31, temp_f31);
-    Hu3DModelAmbSet(arg0->mdlId[3], temp_f31, temp_f31, temp_f31);
+    ambientLightIntensity = resultSequenceState.globalLightBrightness / 255.0f;
+    Hu3DModelAmbSet(object->mdlId[1], ambientLightIntensity, ambientLightIntensity, ambientLightIntensity);
+    Hu3DModelAmbSet(object->mdlId[2], ambientLightIntensity, ambientLightIntensity, ambientLightIntensity);
+    Hu3DModelAmbSet(object->mdlId[3], ambientLightIntensity, ambientLightIntensity, ambientLightIntensity);
 }
 
-float lbl_1_data_36C[] = { 0.0f, 120.0f, 240.0f };
+float logoRotationSpeeds[] = { 0.0f, 120.0f, 240.0f };
 
-void fn_1_D7D8(OMOBJ* arg0) {
-    s32 var_r30;
+Void Story3AnimateResultLogos(OMOBJ* object) {
+    s32 logoModelIndex;
 
-    if (lbl_1_bss_B0 == 1.0f) {
-        Hu3DModelAttrReset(arg0->mdlId[4], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrReset(arg0->mdlId[5], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrReset(arg0->mdlId[6], HU3D_ATTR_DISPOFF);
-        lbl_1_bss_C4 += 0.033333335f;
-        if (lbl_1_bss_C4 >= 0.5f) {
-            lbl_1_bss_C4 = 0.5f;
+    if (resultAnimationActive == 1.0f) {
+        Hu3DModelAttrReset(object->mdlId[4], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(object->mdlId[5], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrReset(object->mdlId[6], HU3D_ATTR_DISPOFF);
+        logoFadeAlpha += 0.033333335f;
+        if (logoFadeAlpha >= 0.5f) {
+            logoFadeAlpha = 0.5f;
         }
     } else {
-        if (lbl_1_bss_B0 == 0.0f) {
-            lbl_1_bss_C4 -= 0.033333335f;
-            if (lbl_1_bss_C4 <= 0.0f) {
-                lbl_1_bss_C4 = 0.0f;
-                Hu3DModelAttrSet(arg0->mdlId[4], HU3D_ATTR_DISPOFF);
-                Hu3DModelAttrSet(arg0->mdlId[5], HU3D_ATTR_DISPOFF);
-                Hu3DModelAttrSet(arg0->mdlId[6], HU3D_ATTR_DISPOFF);
+        if (resultAnimationActive == 0.0f) {
+            logoFadeAlpha -= 0.033333335f;
+            if (logoFadeAlpha <= 0.0f) {
+                logoFadeAlpha = 0.0f;
+                Hu3DModelAttrSet(object->mdlId[4], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrSet(object->mdlId[5], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrSet(object->mdlId[6], HU3D_ATTR_DISPOFF);
                 return;
             }
         } else {
-            Hu3DModelAttrSet(arg0->mdlId[4], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(arg0->mdlId[5], HU3D_ATTR_DISPOFF);
-            Hu3DModelAttrSet(arg0->mdlId[6], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(object->mdlId[4], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(object->mdlId[5], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(object->mdlId[6], HU3D_ATTR_DISPOFF);
             return;
         }
     }
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        Hu3DModelTPLvlSet(arg0->mdlId[var_r30 + 4], lbl_1_bss_C4);
-        Hu3DModelRotSet(arg0->mdlId[var_r30 + 4], 0.0f, 0.0f, lbl_1_bss_1408[var_r30][1]);
-        lbl_1_bss_1408[var_r30][0] = 10.0 * cosd(11.0f * lbl_1_data_36C[var_r30]);
-        lbl_1_bss_1408[var_r30][1] = 30.0 * sind(8.0f * lbl_1_data_36C[var_r30]);
-        if ((lbl_1_data_36C[var_r30] += 0.4f) >= 360.0f) {
-            lbl_1_data_36C[var_r30] -= 360.0f;
+    for (logoModelIndex = 0; logoModelIndex < 3; logoModelIndex++) {
+        Hu3DModelTPLvlSet(object->mdlId[logoModelIndex + 4], logoFadeAlpha);
+        Hu3DModelRotSet(object->mdlId[logoModelIndex + 4], 0.0f, 0.0f, logoRotationState[logoModelIndex][1]);
+        logoRotationState[logoModelIndex][0] = 10.0 * cosd(11.0f * logoRotationSpeeds[logoModelIndex]);
+        logoRotationState[logoModelIndex][1] = 30.0 * sind(8.0f * logoRotationSpeeds[logoModelIndex]);
+        if ((logoRotationSpeeds[logoModelIndex] += 0.4f) >= 360.0f) {
+            logoRotationSpeeds[logoModelIndex] -= 360.0f;
         }
     }
 }
 
-void fn_1_DB68(OMOBJ* arg0, s32 arg1, s32 arg2) {
-    s32 sp8[] = { DATA_MAKE_NUM(DATADIR_MSTORY3, 6), DATA_MAKE_NUM(DATADIR_MSTORY3, 5) };
-    s32 var_r30;
+Void Story3LoadStoryResultModels(OMOBJ* object, s32 count, s32 mode) {
+    s32 storyModelDataIds[] = { DATA_MAKE_NUM(DATADIR_MSTORY3, 6), DATA_MAKE_NUM(DATADIR_MSTORY3, 5) };
+    s32 modelIndex;
 
-    if (arg2 < 5) {
-        arg0->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 4));
-        arg0->mtnId[0] = Hu3DMotionIDGet(arg0->mdlId[1]);
-        fn_1_1E28(arg0, 1, 0, 0, 2);
-        arg0->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 8));
-        arg0->mdlId[3] = Hu3DModelCreateFile(sp8[arg1]);
-        arg0->mtnId[3] = Hu3DMotionIDGet(arg0->mdlId[3]);
-        fn_1_1E28(arg0, 3, 3, 0, 1);
-        Hu3DModelShadowMapObjSet(arg0->mdlId[1], "base_fix9-base");
+    if (mode < 5) {
+        object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 4));
+        object->mtnId[0] = Hu3DMotionIDGet(object->mdlId[1]);
+        Story3SetModelMotion(object, 1, 0, 0, 2);
+        object->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 8));
+        object->mdlId[3] = Hu3DModelCreateFile(storyModelDataIds[count]);
+        object->mtnId[3] = Hu3DMotionIDGet(object->mdlId[3]);
+        Story3SetModelMotion(object, 3, 3, 0, 1);
+        Hu3DModelShadowMapObjSet(object->mdlId[1], "base_fix9-base");
     } else {
-        arg0->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 7));
-        arg0->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 8));
-        arg0->mdlId[3] = Hu3DModelCreateFile(sp8[arg1]);
-        Hu3DModelAttrSet(arg0->mdlId[3], HU3D_ATTR_DISPOFF);
-        arg0->mtnId[3] = Hu3DMotionIDGet(arg0->mdlId[1]);
-        fn_1_1E28(arg0, 1, 3, 0, 1);
-        Hu3DModelShadowMapObjSet(arg0->mdlId[1], "base_story-base");
+        object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 7));
+        object->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 8));
+        object->mdlId[3] = Hu3DModelCreateFile(storyModelDataIds[count]);
+        Hu3DModelAttrSet(object->mdlId[3], HU3D_ATTR_DISPOFF);
+        object->mtnId[3] = Hu3DMotionIDGet(object->mdlId[1]);
+        Story3SetModelMotion(object, 1, 3, 0, 1);
+        Hu3DModelShadowMapObjSet(object->mdlId[1], "base_story-base");
     }
-    for (var_r30 = 4; var_r30 < 7; var_r30++) {
-        arg0->mdlId[var_r30] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 11));
-        Hu3DModelTPLvlSet(arg0->mdlId[var_r30], 0.0f);
-        Hu3DModelPosSet(arg0->mdlId[var_r30], -200.0f + 200.0f * (var_r30 - 4), 750.0f, 500.0f);
-        Hu3DModelScaleSet(arg0->mdlId[var_r30], 1.25f, 2.0f, 1.25f);
-        Hu3DModelAttrSet(arg0->mdlId[var_r30], HU3D_ATTR_DISPOFF);
+    for (modelIndex = 4; modelIndex < 7; modelIndex++) {
+        object->mdlId[modelIndex] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 11));
+        Hu3DModelTPLvlSet(object->mdlId[modelIndex], 0.0f);
+        Hu3DModelPosSet(object->mdlId[modelIndex], -200.0f + 200.0f * (modelIndex - 4), 750.0f, 500.0f);
+        Hu3DModelScaleSet(object->mdlId[modelIndex], 1.25f, 2.0f, 1.25f);
+        Hu3DModelAttrSet(object->mdlId[modelIndex], HU3D_ATTR_DISPOFF);
     }
-    arg0->mtnId[1] = Hu3DJointMotionFile(arg0->mdlId[2], DATA_MAKE_NUM(DATADIR_MSTORY3, 9));
-    arg0->mtnId[2] = Hu3DJointMotionFile(arg0->mdlId[2], DATA_MAKE_NUM(DATADIR_MSTORY3, 10));
-    lbl_1_bss_1530.unk14 = espEntry(DATA_MAKE_NUM(DATADIR_MSTORY3, 30), 0, 0);
-    espPosSet(lbl_1_bss_1530.unk14, 288.0f, 110.0f);
-    espDispOff(lbl_1_bss_1530.unk14);
-    fn_1_1E28(arg0, 2, 2, 0, 2);
-    fn_1_35C8(arg0->mdlId[1]);
-    fn_1_35C8(arg0->mdlId[2]);
-    fn_1_35C8(arg0->mdlId[3]);
-    arg0->mdlId[20] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 31) + arg2);
-    arg0->mtnId[20] = Hu3DMotionIDGet(arg0->mdlId[20]);
-    Hu3DModelPosSet(arg0->mdlId[20], 0.0f, 0.0f, 0.0f);
-    Hu3DModelAttrSet(arg0->mdlId[20], HU3D_ATTR_DISPOFF);
-    fn_1_1E28(arg0, 20, 20, 0, 2);
-    arg0->mdlId[21] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 37));
-    arg0->mtnId[21] = Hu3DMotionIDGet(arg0->mdlId[21]);
-    Hu3DModelPosSet(arg0->mdlId[21], 0.0f, 0.0f, 0.0f);
-    Hu3DModelAttrSet(arg0->mdlId[21], HU3D_ATTR_DISPOFF);
-    fn_1_1E28(arg0, 21, 21, 0, 2);
-    arg0->mdlId[22] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 38));
-    arg0->mtnId[22] = Hu3DMotionIDGet(arg0->mdlId[22]);
-    Hu3DModelPosSet(arg0->mdlId[22], 0.0f, 0.0f, 0.0f);
-    Hu3DModelAttrSet(arg0->mdlId[22], HU3D_ATTR_DISPOFF);
-    fn_1_1E28(arg0, 22, 22, 0, 2);
-    arg0->mdlId[23] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 39));
-    Hu3DModelPosSet(arg0->mdlId[23], 0.0f, 0.0f, 0.0f);
-    Hu3DModelAttrSet(arg0->mdlId[23], HU3D_ATTR_DISPOFF);
+    object->mtnId[1] = Hu3DJointMotionFile(object->mdlId[2], DATA_MAKE_NUM(DATADIR_MSTORY3, 9));
+    object->mtnId[2] = Hu3DJointMotionFile(object->mdlId[2], DATA_MAKE_NUM(DATADIR_MSTORY3, 10));
+    sequenceCallbackState.spriteId = espEntry(DATA_MAKE_NUM(DATADIR_MSTORY3, 30), 0, 0);
+    espPosSet(sequenceCallbackState.spriteId, 288.0f, 110.0f);
+    espDispOff(sequenceCallbackState.spriteId);
+    Story3SetModelMotion(object, 2, 2, 0, 2);
+    Story3ConfigureModelMaterials(object->mdlId[1]);
+    Story3ConfigureModelMaterials(object->mdlId[2]);
+    Story3ConfigureModelMaterials(object->mdlId[3]);
+    object->mdlId[20] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 31) + mode);
+    object->mtnId[20] = Hu3DMotionIDGet(object->mdlId[20]);
+    Hu3DModelPosSet(object->mdlId[20], 0.0f, 0.0f, 0.0f);
+    Hu3DModelAttrSet(object->mdlId[20], HU3D_ATTR_DISPOFF);
+    Story3SetModelMotion(object, 20, 20, 0, 2);
+    object->mdlId[21] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 37));
+    object->mtnId[21] = Hu3DMotionIDGet(object->mdlId[21]);
+    Hu3DModelPosSet(object->mdlId[21], 0.0f, 0.0f, 0.0f);
+    Hu3DModelAttrSet(object->mdlId[21], HU3D_ATTR_DISPOFF);
+    Story3SetModelMotion(object, 21, 21, 0, 2);
+    object->mdlId[22] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 38));
+    object->mtnId[22] = Hu3DMotionIDGet(object->mdlId[22]);
+    Hu3DModelPosSet(object->mdlId[22], 0.0f, 0.0f, 0.0f);
+    Hu3DModelAttrSet(object->mdlId[22], HU3D_ATTR_DISPOFF);
+    Story3SetModelMotion(object, 22, 22, 0, 2);
+    object->mdlId[23] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 39));
+    Hu3DModelPosSet(object->mdlId[23], 0.0f, 0.0f, 0.0f);
+    Hu3DModelAttrSet(object->mdlId[23], HU3D_ATTR_DISPOFF);
 }
 
-void fn_1_E160(OMOBJ* arg0) {
-    s32 var_r28;
-    s32 var_r29;
-    s32 var_r31;
+Void Story3ConfigureResultParticles(OMOBJ* object) {
+    s32 ambientColorChoice;
+    s32 randomPositionOffset;
+    s32 particleModelIndex;
 
-    if (lbl_1_bss_C0 == 0.0f) {
+    if (particleEffectEnabled == 0.0f) {
         return;
     }
-    Hu3DGLightColorSet(lbl_1_bss_1580.unk1C, lbl_1_bss_1580.unk20, lbl_1_bss_1580.unk20, lbl_1_bss_1580.unk20, 0xFF);
-    lbl_1_bss_1580.unk20++;
-    if (lbl_1_bss_1580.unk20 >= 128) {
-        lbl_1_bss_1580.unk20 = 128;
+    Hu3DGLightColorSet(resultSequenceState.globalLightId, resultSequenceState.globalLightBrightness, resultSequenceState.globalLightBrightness, resultSequenceState.globalLightBrightness, 0xFF);
+    resultSequenceState.globalLightBrightness++;
+    if (resultSequenceState.globalLightBrightness >= 128) {
+        resultSequenceState.globalLightBrightness = 128;
     }
-    for (var_r31 = 1; var_r31 < 80; var_r31++) {
-        switch (lbl_1_bss_C8[var_r31].unk00) {
+    for (particleModelIndex = 1; particleModelIndex < 80; particleModelIndex++) {
+        switch (resultParticleMotionStates[particleModelIndex].animationState) {
             case 0:
-                lbl_1_bss_C8[var_r31].unk30 = Hu3DData[arg0->mdlId[var_r31]].pos.y = 450.0f + rand8() % 150;
-                lbl_1_bss_C8[var_r31].unk00 = 1;
+                resultParticleMotionStates[particleModelIndex].targetY = Hu3DData[object->mdlId[particleModelIndex]].pos.y = 450.0f + rand8() % 150;
+                resultParticleMotionStates[particleModelIndex].animationState = 1;
                 break;
             case 3:
-                lbl_1_bss_C8[var_r31].unk30 = Hu3DData[arg0->mdlId[var_r31]].pos.y = 500.0f;
+                resultParticleMotionStates[particleModelIndex].targetY = Hu3DData[object->mdlId[particleModelIndex]].pos.y = 500.0f;
                 /* fallthrough */
             case 1:
-                if (var_r31 % 3 != 0) {
-                    var_r28 = rand8() % 4;
+                if (particleModelIndex % 3 != 0) {
+                    ambientColorChoice = rand8() % 4;
                 } else {
-                    var_r28 = 5;
+                    ambientColorChoice = 5;
                 }
-                switch (var_r28) {
+                switch (ambientColorChoice) {
                     case 0:
-                        Hu3DModelAmbSet(arg0->mdlId[var_r31], 1.0f, 1.0f, 1.0f);
+                        Hu3DModelAmbSet(object->mdlId[particleModelIndex], 1.0f, 1.0f, 1.0f);
                         break;
                     case 1:
-                        Hu3DModelAmbSet(arg0->mdlId[var_r31], 1.0f, 0.0f, 0.0f);
+                        Hu3DModelAmbSet(object->mdlId[particleModelIndex], 1.0f, 0.0f, 0.0f);
                         break;
                     case 2:
-                        Hu3DModelAmbSet(arg0->mdlId[var_r31], 0.0f, 1.0f, 0.0f);
+                        Hu3DModelAmbSet(object->mdlId[particleModelIndex], 0.0f, 1.0f, 0.0f);
                         break;
                     case 3:
-                        Hu3DModelAmbSet(arg0->mdlId[var_r31], 0.0f, 0.0f, 1.0f);
+                        Hu3DModelAmbSet(object->mdlId[particleModelIndex], 0.0f, 0.0f, 1.0f);
                         break;
                     case 5:
                         break;
                 }
-                Hu3DModelAttrReset(arg0->mdlId[var_r31], HU3D_ATTR_DISPOFF);
-                if (lbl_1_bss_1580.unk344 == 0) {
-                    lbl_1_bss_C8[var_r31].unk2C = Hu3DData[arg0->mdlId[var_r31]].pos.x = -50.0f + lbl_1_bss_BC + rand8() % 100;
+                Hu3DModelAttrReset(object->mdlId[particleModelIndex], HU3D_ATTR_DISPOFF);
+                if (resultSequenceState.teamMode == 0) {
+                    resultParticleMotionStates[particleModelIndex].targetX = Hu3DData[object->mdlId[particleModelIndex]].pos.x = -50.0f + particleEffectCenterX + rand8() % 100;
                 } else {
-                    lbl_1_bss_C8[var_r31].unk2C = Hu3DData[arg0->mdlId[var_r31]].pos.x = -100.0f + lbl_1_bss_BC + rand8() % 200;
+                    resultParticleMotionStates[particleModelIndex].targetX = Hu3DData[object->mdlId[particleModelIndex]].pos.x = -100.0f + particleEffectCenterX + rand8() % 200;
                 }
-                lbl_1_bss_C8[var_r31].unk34 = Hu3DData[arg0->mdlId[var_r31]].pos.z = 460.0f;
-                Hu3DData[arg0->mdlId[var_r31]].rot.x = rand8();
-                Hu3DData[arg0->mdlId[var_r31]].rot.y = rand8();
-                Hu3DData[arg0->mdlId[var_r31]].rot.z = rand8();
-                lbl_1_bss_C8[var_r31].unk20 = (rand8() % 50 + -1.0f) / 100.0f;
-                if (var_r31 % 2 == 0) {
-                    lbl_1_bss_C8[var_r31].unk20 *= -1.0f;
+                resultParticleMotionStates[particleModelIndex].targetZ = Hu3DData[object->mdlId[particleModelIndex]].pos.z = 460.0f;
+                Hu3DData[object->mdlId[particleModelIndex]].rot.x = rand8();
+                Hu3DData[object->mdlId[particleModelIndex]].rot.y = rand8();
+                Hu3DData[object->mdlId[particleModelIndex]].rot.z = rand8();
+                resultParticleMotionStates[particleModelIndex].horizontalDriftVelocity = (rand8() % 50 + -1.0f) / 100.0f;
+                if (particleModelIndex % 2 == 0) {
+                    resultParticleMotionStates[particleModelIndex].horizontalDriftVelocity *= -1.0f;
                 }
-                lbl_1_bss_C8[var_r31].unk24 = ((rand8() % 100 + 100) / 100.0f) * -1.0f;
-                lbl_1_bss_C8[var_r31].unk28 = (rand8() % 100 - 1) / 100;
-                lbl_1_bss_C8[var_r31].unk10 = (rand8() % 100 - 50) / 5;
-                lbl_1_bss_C8[var_r31].unk14 = (rand8() % 100 - 50) / 5;
-                lbl_1_bss_C8[var_r31].unk18 = (rand8() % 100 - 50) / 5;
-                lbl_1_bss_C8[var_r31].unk00 = 2;
+                resultParticleMotionStates[particleModelIndex].verticalDriftVelocity = ((rand8() % 100 + 100) / 100.0f) * -1.0f;
+                resultParticleMotionStates[particleModelIndex].depthDriftVelocity = (rand8() % 100 - 1) / 100;
+                resultParticleMotionStates[particleModelIndex].rotationVelocityX = (rand8() % 100 - 50) / 5;
+                resultParticleMotionStates[particleModelIndex].rotationVelocityY = (rand8() % 100 - 50) / 5;
+                resultParticleMotionStates[particleModelIndex].rotationVelocityZ = (rand8() % 100 - 50) / 5;
+                resultParticleMotionStates[particleModelIndex].animationState = 2;
                 break;
             case 2:
-                if (lbl_1_bss_C8[var_r31].unk04-- <= 0) {
-                    lbl_1_bss_C8[var_r31].unk04 = rand8() % 30 + 30;
-                    lbl_1_bss_C8[var_r31].unk20 = (rand8() % 50 + -1.0f) / 100.0f;
-                    if (var_r31 % 2 == 0) {
-                        lbl_1_bss_C8[var_r31].unk20 *= -1.0f;
+                if (resultParticleMotionStates[particleModelIndex].framesUntilNextBurst-- <= 0) {
+                    resultParticleMotionStates[particleModelIndex].framesUntilNextBurst = rand8() % 30 + 30;
+                    resultParticleMotionStates[particleModelIndex].horizontalDriftVelocity = (rand8() % 50 + -1.0f) / 100.0f;
+                    if (particleModelIndex % 2 == 0) {
+                        resultParticleMotionStates[particleModelIndex].horizontalDriftVelocity *= -1.0f;
                     }
-                    lbl_1_bss_C8[var_r31].unk24 = ((rand8() % 100 + 100) / 100.0f) *-1.0f;
-                    lbl_1_bss_C8[var_r31].unk28 = (rand8() % 100 - 1) / 100;
-                    lbl_1_bss_C8[var_r31].unk10 = (rand8() % 100 - 50) / 5;
-                    lbl_1_bss_C8[var_r31].unk14 = (rand8() % 100 - 50) / 5;
-                    lbl_1_bss_C8[var_r31].unk18 = (rand8() % 100 - 50) / 5;
+                    resultParticleMotionStates[particleModelIndex].verticalDriftVelocity = ((rand8() % 100 + 100) / 100.0f) *-1.0f;
+                    resultParticleMotionStates[particleModelIndex].depthDriftVelocity = (rand8() % 100 - 1) / 100;
+                    resultParticleMotionStates[particleModelIndex].rotationVelocityX = (rand8() % 100 - 50) / 5;
+                    resultParticleMotionStates[particleModelIndex].rotationVelocityY = (rand8() % 100 - 50) / 5;
+                    resultParticleMotionStates[particleModelIndex].rotationVelocityZ = (rand8() % 100 - 50) / 5;
                 }
-                lbl_1_bss_C8[var_r31].unk2C += lbl_1_bss_C8[var_r31].unk20;
-                lbl_1_bss_C8[var_r31].unk30 += lbl_1_bss_C8[var_r31].unk24;
-                lbl_1_bss_C8[var_r31].unk34 += lbl_1_bss_C8[var_r31].unk28;
-                Hu3DData[arg0->mdlId[var_r31]].rot.x += lbl_1_bss_C8[var_r31].unk10;
-                Hu3DData[arg0->mdlId[var_r31]].rot.y += lbl_1_bss_C8[var_r31].unk14;
-                Hu3DData[arg0->mdlId[var_r31]].rot.z += lbl_1_bss_C8[var_r31].unk18;
-                if (Hu3DData[arg0->mdlId[var_r31]].pos.y <= 0.0f) {
-                    lbl_1_bss_C8[var_r31].unk00 = 3;
+                resultParticleMotionStates[particleModelIndex].targetX += resultParticleMotionStates[particleModelIndex].horizontalDriftVelocity;
+                resultParticleMotionStates[particleModelIndex].targetY += resultParticleMotionStates[particleModelIndex].verticalDriftVelocity;
+                resultParticleMotionStates[particleModelIndex].targetZ += resultParticleMotionStates[particleModelIndex].depthDriftVelocity;
+                Hu3DData[object->mdlId[particleModelIndex]].rot.x += resultParticleMotionStates[particleModelIndex].rotationVelocityX;
+                Hu3DData[object->mdlId[particleModelIndex]].rot.y += resultParticleMotionStates[particleModelIndex].rotationVelocityY;
+                Hu3DData[object->mdlId[particleModelIndex]].rot.z += resultParticleMotionStates[particleModelIndex].rotationVelocityZ;
+                if (Hu3DData[object->mdlId[particleModelIndex]].pos.y <= 0.0f) {
+                    resultParticleMotionStates[particleModelIndex].animationState = 3;
                 }
                 break;
             case 10:
-                Hu3DModelAttrReset(arg0->mdlId[var_r31], HU3D_ATTR_DISPOFF);
-                if (var_r31 % 3 != 0) {
-                    var_r28 = rand8() % 4;
+                Hu3DModelAttrReset(object->mdlId[particleModelIndex], HU3D_ATTR_DISPOFF);
+                if (particleModelIndex % 3 != 0) {
+                    ambientColorChoice = rand8() % 4;
                 } else {
-                    var_r28 = 5;
+                    ambientColorChoice = 5;
                 }
-                switch (var_r28) {
+                switch (ambientColorChoice) {
                     case 0:
-                        Hu3DModelAmbSet(arg0->mdlId[var_r31], 1.0f, 1.0f, 1.0f);
+                        Hu3DModelAmbSet(object->mdlId[particleModelIndex], 1.0f, 1.0f, 1.0f);
                         break;
                     case 1:
-                        Hu3DModelAmbSet(arg0->mdlId[var_r31], 1.0f, 0.0f, 0.0f);
+                        Hu3DModelAmbSet(object->mdlId[particleModelIndex], 1.0f, 0.0f, 0.0f);
                         break;
                     case 2:
-                        Hu3DModelAmbSet(arg0->mdlId[var_r31], 0.0f, 1.0f, 0.0f);
+                        Hu3DModelAmbSet(object->mdlId[particleModelIndex], 0.0f, 1.0f, 0.0f);
                         break;
                     case 3:
-                        Hu3DModelAmbSet(arg0->mdlId[var_r31], 0.0f, 0.0f, 1.0f);
+                        Hu3DModelAmbSet(object->mdlId[particleModelIndex], 0.0f, 0.0f, 1.0f);
                         break;
                     case 5:
                         break;
                 }
-                lbl_1_bss_C8[var_r31].unk2C = Hu3DData[arg0->mdlId[var_r31]].pos.x = lbl_1_bss_BC;
-                lbl_1_bss_C8[var_r31].unk30 = Hu3DData[arg0->mdlId[var_r31]].pos.y = 375.0f;
-                lbl_1_bss_C8[var_r31].unk34 = Hu3DData[arg0->mdlId[var_r31]].pos.z = 460.0f;
-                var_r29 = rand8();
+                resultParticleMotionStates[particleModelIndex].targetX = Hu3DData[object->mdlId[particleModelIndex]].pos.x = particleEffectCenterX;
+                resultParticleMotionStates[particleModelIndex].targetY = Hu3DData[object->mdlId[particleModelIndex]].pos.y = 375.0f;
+                resultParticleMotionStates[particleModelIndex].targetZ = Hu3DData[object->mdlId[particleModelIndex]].pos.z = 460.0f;
+                randomPositionOffset = rand8();
                 if (rand8() % 2 == 0) {
-                    var_r29 *= -1;
+                    randomPositionOffset *= -1;
                 }
-                lbl_1_bss_C8[var_r31].unk2C += var_r29;
-                var_r29 = rand8();
+                resultParticleMotionStates[particleModelIndex].targetX += randomPositionOffset;
+                randomPositionOffset = rand8();
                 if (rand8() % 2 == 0) {
-                    var_r29 *= -1;
+                    randomPositionOffset *= -1;
                 }
-                lbl_1_bss_C8[var_r31].unk30 += var_r29;
-                var_r29 = rand8() % 50;
+                resultParticleMotionStates[particleModelIndex].targetY += randomPositionOffset;
+                randomPositionOffset = rand8() % 50;
                 if (rand8() % 2 == 0) {
-                    var_r29 *= -1;
+                    randomPositionOffset *= -1;
                 }
-                lbl_1_bss_C8[var_r31].unk34 += var_r29;
-                lbl_1_bss_C8[var_r31].unk20 = (rand8() % 50 + -1.0f) / 100.0f;
-                if (var_r31 % 2 == 0) {
-                    lbl_1_bss_C8[var_r31].unk20 *= -1.0f;
+                resultParticleMotionStates[particleModelIndex].targetZ += randomPositionOffset;
+                resultParticleMotionStates[particleModelIndex].horizontalDriftVelocity = (rand8() % 50 + -1.0f) / 100.0f;
+                if (particleModelIndex % 2 == 0) {
+                    resultParticleMotionStates[particleModelIndex].horizontalDriftVelocity *= -1.0f;
                 }
-                lbl_1_bss_C8[var_r31].unk24 = ((rand8() % 100 + 100) / 100.0f) * -1.0f;
-                lbl_1_bss_C8[var_r31].unk28 = (rand8() % 100 - 1) / 100;
-                lbl_1_bss_C8[var_r31].unk10 = (rand8() % 100 - 50) / 5;
-                lbl_1_bss_C8[var_r31].unk14 = (rand8() % 100 - 50) / 5;
-                lbl_1_bss_C8[var_r31].unk18 = (rand8() % 100 - 50) / 5;
-                lbl_1_bss_C8[var_r31].unk08 = 0;
-                lbl_1_bss_C8[var_r31].unk04 = rand8() % 30 + 30;
-                lbl_1_bss_C8[var_r31].unk00 = 11;
+                resultParticleMotionStates[particleModelIndex].verticalDriftVelocity = ((rand8() % 100 + 100) / 100.0f) * -1.0f;
+                resultParticleMotionStates[particleModelIndex].depthDriftVelocity = (rand8() % 100 - 1) / 100;
+                resultParticleMotionStates[particleModelIndex].rotationVelocityX = (rand8() % 100 - 50) / 5;
+                resultParticleMotionStates[particleModelIndex].rotationVelocityY = (rand8() % 100 - 50) / 5;
+                resultParticleMotionStates[particleModelIndex].rotationVelocityZ = (rand8() % 100 - 50) / 5;
+                resultParticleMotionStates[particleModelIndex].animationFrame = 0;
+                resultParticleMotionStates[particleModelIndex].framesUntilNextBurst = rand8() % 30 + 30;
+                resultParticleMotionStates[particleModelIndex].animationState = 11;
                 break;
             case 11:
-                if (lbl_1_bss_C8[var_r31].unk04-- <= 0) {
-                    lbl_1_bss_C8[var_r31].unk04 = rand8() % 30 + 30;
-                    lbl_1_bss_C8[var_r31].unk20 = (rand8() % 50 + -1.0f) / 100.0f;
-                    if (var_r31 % 2 == 0) {
-                        lbl_1_bss_C8[var_r31].unk20 *= -1.0f;
+                if (resultParticleMotionStates[particleModelIndex].framesUntilNextBurst-- <= 0) {
+                    resultParticleMotionStates[particleModelIndex].framesUntilNextBurst = rand8() % 30 + 30;
+                    resultParticleMotionStates[particleModelIndex].horizontalDriftVelocity = (rand8() % 50 + -1.0f) / 100.0f;
+                    if (particleModelIndex % 2 == 0) {
+                        resultParticleMotionStates[particleModelIndex].horizontalDriftVelocity *= -1.0f;
                     }
-                    lbl_1_bss_C8[var_r31].unk24 = ((rand8() % 100 + 100) / 100.0f) * -1.0f;
-                    lbl_1_bss_C8[var_r31].unk28 = (rand8() % 100 - 1) / 100;
-                    lbl_1_bss_C8[var_r31].unk10 = (rand8() % 100 - 50) / 5;
-                    lbl_1_bss_C8[var_r31].unk14 = (rand8() % 100 - 50) / 5;
-                    lbl_1_bss_C8[var_r31].unk18 = (rand8() % 100 - 50) / 5;
+                    resultParticleMotionStates[particleModelIndex].verticalDriftVelocity = ((rand8() % 100 + 100) / 100.0f) * -1.0f;
+                    resultParticleMotionStates[particleModelIndex].depthDriftVelocity = (rand8() % 100 - 1) / 100;
+                    resultParticleMotionStates[particleModelIndex].rotationVelocityX = (rand8() % 100 - 50) / 5;
+                    resultParticleMotionStates[particleModelIndex].rotationVelocityY = (rand8() % 100 - 50) / 5;
+                    resultParticleMotionStates[particleModelIndex].rotationVelocityZ = (rand8() % 100 - 50) / 5;
                 }
-                lbl_1_bss_C8[var_r31].unk2C += lbl_1_bss_C8[var_r31].unk20;
-                lbl_1_bss_C8[var_r31].unk30 += lbl_1_bss_C8[var_r31].unk24 / 2;
-                lbl_1_bss_C8[var_r31].unk34 += lbl_1_bss_C8[var_r31].unk28;
-                Hu3DData[arg0->mdlId[var_r31]].rot.x += lbl_1_bss_C8[var_r31].unk10;
-                Hu3DData[arg0->mdlId[var_r31]].rot.y += lbl_1_bss_C8[var_r31].unk14;
-                Hu3DData[arg0->mdlId[var_r31]].rot.z += lbl_1_bss_C8[var_r31].unk18;
-                if (lbl_1_bss_C8[var_r31].unk08++ >= 50) {
-                    lbl_1_bss_C8[var_r31].unk00 = 2;
+                resultParticleMotionStates[particleModelIndex].targetX += resultParticleMotionStates[particleModelIndex].horizontalDriftVelocity;
+                resultParticleMotionStates[particleModelIndex].targetY += resultParticleMotionStates[particleModelIndex].verticalDriftVelocity / 2;
+                resultParticleMotionStates[particleModelIndex].targetZ += resultParticleMotionStates[particleModelIndex].depthDriftVelocity;
+                Hu3DData[object->mdlId[particleModelIndex]].rot.x += resultParticleMotionStates[particleModelIndex].rotationVelocityX;
+                Hu3DData[object->mdlId[particleModelIndex]].rot.y += resultParticleMotionStates[particleModelIndex].rotationVelocityY;
+                Hu3DData[object->mdlId[particleModelIndex]].rot.z += resultParticleMotionStates[particleModelIndex].rotationVelocityZ;
+                if (resultParticleMotionStates[particleModelIndex].animationFrame++ >= 50) {
+                    resultParticleMotionStates[particleModelIndex].animationState = 2;
                 }
                 break;
         }
-        Hu3DData[arg0->mdlId[var_r31]].pos.x = fn_1_5FC(Hu3DData[arg0->mdlId[var_r31]].pos.x, lbl_1_bss_C8[var_r31].unk2C, 30.0f);
-        Hu3DData[arg0->mdlId[var_r31]].pos.y = fn_1_5FC(Hu3DData[arg0->mdlId[var_r31]].pos.y, lbl_1_bss_C8[var_r31].unk30, 30.0f);
-        Hu3DData[arg0->mdlId[var_r31]].pos.z = fn_1_5FC(Hu3DData[arg0->mdlId[var_r31]].pos.z, lbl_1_bss_C8[var_r31].unk34, 30.0f);
+        Hu3DData[object->mdlId[particleModelIndex]].pos.x = interpolateSmoothAverage(Hu3DData[object->mdlId[particleModelIndex]].pos.x, resultParticleMotionStates[particleModelIndex].targetX, 30.0f);
+        Hu3DData[object->mdlId[particleModelIndex]].pos.y = interpolateSmoothAverage(Hu3DData[object->mdlId[particleModelIndex]].pos.y, resultParticleMotionStates[particleModelIndex].targetY, 30.0f);
+        Hu3DData[object->mdlId[particleModelIndex]].pos.z = interpolateSmoothAverage(Hu3DData[object->mdlId[particleModelIndex]].pos.z, resultParticleMotionStates[particleModelIndex].targetZ, 30.0f);
     }
 }
 
-void fn_1_FD30(OMOBJ* arg0) {
-    s32 var_r30;
+Void Story3CreateResultParticleModels(OMOBJ* object) {
+    s32 particleModelIndex;
 
-    arg0->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 17));
-    arg0->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 18));
-    Hu3DModelAttrSet(arg0->mdlId[0], HU3D_ATTR_DISPOFF);
-    for (var_r30 = 2; var_r30 < 80; var_r30++) {
-        if (var_r30 % 3 == 0) {
-            arg0->mdlId[var_r30] = Hu3DModelLink(arg0->mdlId[1]);
+    object->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 17));
+    object->mdlId[1] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 18));
+    Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
+    for (particleModelIndex = 2; particleModelIndex < 80; particleModelIndex++) {
+        if (particleModelIndex % 3 == 0) {
+            object->mdlId[particleModelIndex] = Hu3DModelLink(object->mdlId[1]);
         } else {
-            arg0->mdlId[var_r30] = Hu3DModelLink(arg0->mdlId[0]);
+            object->mdlId[particleModelIndex] = Hu3DModelLink(object->mdlId[0]);
         }
-        Hu3DModelAttrSet(arg0->mdlId[var_r30], HU3D_ATTR_DISPOFF);
-        lbl_1_bss_C8[var_r30].unk04 = lbl_1_bss_C8[var_r30].unk08 = 0;
-        lbl_1_bss_C8[var_r30].unk00 = 10;
+        Hu3DModelAttrSet(object->mdlId[particleModelIndex], HU3D_ATTR_DISPOFF);
+        resultParticleMotionStates[particleModelIndex].framesUntilNextBurst = resultParticleMotionStates[particleModelIndex].animationFrame = 0;
+        resultParticleMotionStates[particleModelIndex].animationState = 10;
     }
-    arg0->objFunc = fn_1_E160;
+    object->objFunc = Story3ConfigureResultParticles;
 }
 
-void fn_1_FE80(void) {
-    OMOBJ* temp_r31;
-    OMOBJ* sp8;
+Void Story3CreateResultObjects(Void) {
+    OMOBJ* resultObject;
+    OMOBJ* particleObject;
 
-    temp_r31 = omAddObjEx(lbl_1_bss_A8, 0x100, 0x20, 0x20, -1, NULL);
-    sp8 = omAddObjEx(lbl_1_bss_A8, 0x100, 0x80, 0, -1, fn_1_FD30);
-    lbl_1_bss_1530.unk00 = temp_r31;
-    lbl_1_bss_1530.unk04 = NULL;
-    lbl_1_bss_1530.unk00->data = &lbl_1_bss_1530;
-    fn_1_DB68(temp_r31, lbl_1_bss_1580.unk08, lbl_1_bss_1580.unk00);
+    resultObject = omAddObjEx(resultObjectManager, 0x100, 0x20, 0x20, -1, NULL);
+    particleObject = omAddObjEx(resultObjectManager, 0x100, 0x80, 0, -1, Story3CreateResultParticleModels);
+    sequenceCallbackState.object = resultObject;
+    sequenceCallbackState.callback = NULL;
+    sequenceCallbackState.object->data = &sequenceCallbackState;
+    Story3LoadStoryResultModels(resultObject, resultSequenceState.sequenceVariant, resultSequenceState.boardId);
     while (TRUE) {
-        fn_1_938();
-        if (lbl_1_bss_1530.unk04 != NULL) {
-            lbl_1_bss_1530.unk04(temp_r31);
+        Story3SleepOneFrame();
+        if (sequenceCallbackState.callback != NULL) {
+            sequenceCallbackState.callback(resultObject);
         }
-        fn_1_D7D8(temp_r31);
+        Story3AnimateResultLogos(resultObject);
     }
 }
 
-void fn_1_FF7C(s32 arg0) {
-    s32 sp30[4];
-    s32 sp20[4];
-    s32 sp10[4];
+Void Story3SortPlayersForPresentation(s32 playerCount) {
+    s32 playersByRank[4];
+    s32 originalPlayerOrder[4];
+    s32 playerTeams[4];
     s32 i, j;
-    s32 var_r29;
+    s32 teamSortOrder;
 
-    sp30[0] = 0;
+    playersByRank[0] = 0;
     for (i = 1; i < 4; i++) {
-        sp30[i] = sp30[i - 1] + 1;
-        if (sp30[i] >= 4) {
-            sp30[i] = 0;
+        playersByRank[i] = playersByRank[i - 1] + 1;
+        if (playersByRank[i] >= 4) {
+            playersByRank[i] = 0;
         }
-        if (arg0 == sp30[i]) {
-            lbl_1_bss_1580.unk0C = i;
+        if (playerCount == playersByRank[i]) {
+            resultSequenceState.currentPlayerIndex = i;
         }
     }
-    if (lbl_1_bss_1580.unk08 != 0) {
-        lbl_1_bss_1580.unk14 = arg0;
+    if (resultSequenceState.sequenceVariant != 0) {
+        resultSequenceState.winningPlayerIndex = playerCount;
     }
-    if (lbl_1_bss_1580.unk344 == 1) {
-        var_r29 = 0;
+    if (resultSequenceState.teamMode == 1) {
+        teamSortOrder = 0;
         for (i = 0; i < 4; i++) {
-            sp10[0] = GWPlayer[sp30[0]].team;
-            sp10[1] = GWPlayer[sp30[1]].team;
-            sp10[2] = GWPlayer[sp30[2]].team;
-            sp10[3] = GWPlayer[sp30[3]].team;
-            sp20[i] = sp30[i];
+            playerTeams[0] = GWPlayer[playersByRank[0]].team;
+            playerTeams[1] = GWPlayer[playersByRank[1]].team;
+            playerTeams[2] = GWPlayer[playersByRank[2]].team;
+            playerTeams[3] = GWPlayer[playersByRank[3]].team;
+            originalPlayerOrder[i] = playersByRank[i];
         }
         OSReport("########## Sort Start WIN:%d  IDX (%d,%d), (%d,%d), (%d,%d), (%d,%d)\n",
-            var_r29, sp10[0], sp30[0], sp10[1], sp30[1], sp10[2], sp30[2], sp10[3], sp30[3]);
+            teamSortOrder, playerTeams[0], playersByRank[0], playerTeams[1], playersByRank[1], playerTeams[2], playersByRank[2], playerTeams[3], playersByRank[3]);
         for (i = 0; i < 4; i++) {
             for (j = 0; j < 4; j++) {
-                if (sp10[j] != -1 && var_r29 == sp10[j]) {
-                    sp10[j] = -1;
-                    sp30[i] = sp20[j];
+                if (playerTeams[j] != -1 && teamSortOrder == playerTeams[j]) {
+                    playerTeams[j] = -1;
+                    playersByRank[i] = originalPlayerOrder[j];
                     break;
                 }
             }
             if (i == 1) {
-                var_r29++;
-                var_r29 %= 2;
+                teamSortOrder++;
+                teamSortOrder %= 2;
             }
         }
-        OSReport("########## Sort End WIN:%d  IDX %d, %d, %d, %d\n", var_r29, sp30[0], sp30[1], sp30[2], sp30[3]);
+        OSReport("########## Sort End WIN:%d  IDX %d, %d, %d, %d\n", teamSortOrder, playersByRank[0], playersByRank[1], playersByRank[2], playersByRank[3]);
     }
     for (i = 0; i < 4; i++) {
-        fn_1_3650(&lbl_1_bss_1580.unkC4[i].unk00, sp30[i]);
+        Story3CopyPlayerStats(&resultSequenceState.playerResults[i].playerStats, playersByRank[i]);
     }
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_1580.unkC4[i].unk00.unk1C = GWPlayer[sp30[i]].coins;
-        lbl_1_bss_1580.unkC4[i].unk00.unk20 = GWPlayer[sp30[i]].stars;
-        lbl_1_bss_1580.unkC4[i].unk00.unk24 = GWPlayer[sp30[i]].coins_mg;
-        lbl_1_bss_1580.unkC4[i].unk00.unk28 = GWPlayer[sp30[i]].coins_max;
-        lbl_1_bss_1580.unkC4[i].unk00.unk2C = GWPlayer[sp30[i]].question_count;
+        resultSequenceState.playerResults[i].playerStats.coins = GWPlayer[playersByRank[i]].coins;
+        resultSequenceState.playerResults[i].playerStats.stars = GWPlayer[playersByRank[i]].stars;
+        resultSequenceState.playerResults[i].playerStats.minigameCoins = GWPlayer[playersByRank[i]].coins_mg;
+        resultSequenceState.playerResults[i].playerStats.maxCoins = GWPlayer[playersByRank[i]].coins_max;
+        resultSequenceState.playerResults[i].playerStats.questionSpaces = GWPlayer[playersByRank[i]].question_count;
     }
 }
 
-void fn_1_1036C(OMOBJ* arg0) {
-    float var_f29;
-    float var_f30;
-    float temp_f31;
-    s32 temp_r25;
-    s32 var_r26;
-    s32 var_r27 = 3;
-    StructBss1530* temp_r30 = arg0->data;
-    char* sp98[][3] = {
+Void Story3AnimatePlayerMedal(OMOBJ* object) {
+    float medalHeight;
+    float medalRotation;
+    float medalScale;
+    s32 scoreDigit;
+    s32 celebrationFrame;
+    s32 scoreDigitCount = 3;
+    StorySequenceProcessState* playerProcessState = object->data;
+    char* medalAttachmentNames[][3] = {
         { "submit07-star_null3", "submit07-star_null1", "submit07-star_null1" },
         { "submit07-star_null4", "submit07-star_null2", "submit07-star_null1" },
         { "submit07-star_null5", "submit07-star_null3", "submit07-star_null1" }
     };
-    Mtx sp68;
-    Mtx sp38;
-    Mtx sp8;
-    s32 var_r28;
-    s32 var_r29;
+    Mtx medalMatrix;
+    Mtx medalMatrix;
+    Mtx medalMatrix;
+    s32 animationFrame;
+    s32 medalIndex;
 
-    Hu3DModelPosSet(arg0->mdlId[3], lbl_1_data_130[temp_r30->unk08].x, 100.0f, lbl_1_data_130[temp_r30->unk08].z - 20.0f);
-    Hu3DModelRotSet(arg0->mdlId[3], 0.0f, 0.0f, 0.0f);
-    Hu3DModelScaleSet(arg0->mdlId[3], 0.0f, 0.0f, 0.0f);
-    if ((temp_r25 = lbl_1_bss_1580.unkC4[temp_r30->unk08].unk00.unk20 / 100) == 0) {
-        var_r27 = 2;
+    Hu3DModelPosSet(object->mdlId[3], playerModelPositions[playerProcessState->isComputer].x, 100.0f, playerModelPositions[playerProcessState->isComputer].z - 20.0f);
+    Hu3DModelRotSet(object->mdlId[3], 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(object->mdlId[3], 0.0f, 0.0f, 0.0f);
+    if ((scoreDigit = resultSequenceState.playerResults[playerProcessState->isComputer].playerStats.stars / 100) == 0) {
+        scoreDigitCount = 2;
     } else {
-        Hu3DMotionTimeSet(arg0->mdlId[9], (temp_r25 + 1) % 10);
+        Hu3DMotionTimeSet(object->mdlId[9], (scoreDigit + 1) % 10);
     }
-    if ((temp_r25 = (lbl_1_bss_1580.unkC4[temp_r30->unk08].unk00.unk20 % 100) / 10) == 0 && var_r27 == 2) {
-        var_r27 = 1;
+    if ((scoreDigit = (resultSequenceState.playerResults[playerProcessState->isComputer].playerStats.stars % 100) / 10) == 0 && scoreDigitCount == 2) {
+        scoreDigitCount = 1;
     } else {
-        Hu3DMotionTimeSet(arg0->mdlId[8], (temp_r25 + 1) % 10);
+        Hu3DMotionTimeSet(object->mdlId[8], (scoreDigit + 1) % 10);
     }
-    temp_r25 = lbl_1_bss_1580.unkC4[temp_r30->unk08].unk00.unk20 % 10;
-    Hu3DMotionTimeSet(arg0->mdlId[7], (temp_r25 + 1) % 10);
-    Hu3DModelAttrReset(arg0->mdlId[3], HU3D_ATTR_DISPOFF);
-    for (var_r28 = 0; var_r28 < 90; var_r28++) {
-        fn_1_938();
-        var_f29 = fn_1_6F4(100.0f, 300.0f, var_r28, 90.0f);
-        var_f30 = fn_1_6F4(0.0f, 1080.0f, var_r28, 90.0f);
-        temp_f31 = fn_1_6F4(0.0f, 0.75f, var_r28, 90.0f);
-        Hu3DModelPosSet(arg0->mdlId[3], lbl_1_data_130[temp_r30->unk08].x, var_f29, lbl_1_data_130[temp_r30->unk08].z - 20.0f);
-        Hu3DModelRotSet(arg0->mdlId[3], 0.0f, var_f30, 0.0f);
-        Hu3DModelScaleSet(arg0->mdlId[3], temp_f31, temp_f31, temp_f31);
-        for (var_r29 = 0; var_r29 < var_r27; var_r29++) {
-            if (var_f30 >= 900.0f) {
-                Hu3DModelAttrReset(arg0->mdlId[var_r29 + 7], HU3D_ATTR_DISPOFF);
+    scoreDigit = resultSequenceState.playerResults[playerProcessState->isComputer].playerStats.stars % 10;
+    Hu3DMotionTimeSet(object->mdlId[7], (scoreDigit + 1) % 10);
+    Hu3DModelAttrReset(object->mdlId[3], HU3D_ATTR_DISPOFF);
+    for (animationFrame = 0; animationFrame < 90; animationFrame++) {
+        Story3SleepOneFrame();
+        medalHeight = interpolateSineEaseIn(100.0f, 300.0f, animationFrame, 90.0f);
+        medalRotation = interpolateSineEaseIn(0.0f, 1080.0f, animationFrame, 90.0f);
+        medalScale = interpolateSineEaseIn(0.0f, 0.75f, animationFrame, 90.0f);
+        Hu3DModelPosSet(object->mdlId[3], playerModelPositions[playerProcessState->isComputer].x, medalHeight, playerModelPositions[playerProcessState->isComputer].z - 20.0f);
+        Hu3DModelRotSet(object->mdlId[3], 0.0f, medalRotation, 0.0f);
+        Hu3DModelScaleSet(object->mdlId[3], medalScale, medalScale, medalScale);
+        for (medalIndex = 0; medalIndex < scoreDigitCount; medalIndex++) {
+            if (medalRotation >= 900.0f) {
+                Hu3DModelAttrReset(object->mdlId[medalIndex + 7], HU3D_ATTR_DISPOFF);
             }
-            Hu3DModelObjMtxGet(arg0->mdlId[3], sp98[var_r27 - 1][var_r29], sp68);
-            Hu3DModelPosSet(arg0->mdlId[var_r29 + 7], sp68[0][3], sp68[1][3], sp68[2][3]);
-            Hu3DModelRotSet(arg0->mdlId[var_r29 + 7], 0.0f, var_f30, 0.0f);
-            Hu3DModelScaleSet(arg0->mdlId[var_r29 + 7], temp_f31, temp_f31, temp_f31);
+            Hu3DModelObjMtxGet(object->mdlId[3], medalAttachmentNames[scoreDigitCount - 1][medalIndex], medalMatrix);
+            Hu3DModelPosSet(object->mdlId[medalIndex + 7], medalMatrix[0][3], medalMatrix[1][3], medalMatrix[2][3]);
+            Hu3DModelRotSet(object->mdlId[medalIndex + 7], 0.0f, medalRotation, 0.0f);
+            Hu3DModelScaleSet(object->mdlId[medalIndex + 7], medalScale, medalScale, medalScale);
         }
     }
-    var_r28 = var_r29 = var_r26 = 0;
-    if (temp_r30->unk1C == 1) {
-        fn_1_1E28(arg0, 1, 14, 5, 0);
+    animationFrame = medalIndex = celebrationFrame = 0;
+    if (playerProcessState->coins == 1) {
+        Story3SetModelMotion(object, 1, 14, 5, 0);
     } else {
-        fn_1_1E28(arg0, 1, 15, 5, 0);
+        Story3SetModelMotion(object, 1, 15, 5, 0);
     }
     do {
-        fn_1_938();
-        if (temp_r30->unk1C == 1) {
-            temp_f31 = fn_1_878(0.75f, 1.0f, var_r26, 30.0f);
-            if (var_r26++ >= 29) {
-                var_r26 = 0;
+        Story3SleepOneFrame();
+        if (playerProcessState->coins == 1) {
+            medalScale = interpolateSinePulse(0.75f, 1.0f, celebrationFrame, 30.0f);
+            if (celebrationFrame++ >= 29) {
+                celebrationFrame = 0;
             }
-            Hu3DModelScaleSet(arg0->mdlId[3], temp_f31, temp_f31, temp_f31);
-            for (var_r29 = 0; var_r29 < var_r27; var_r29++) {
-                Hu3DModelObjMtxGet(arg0->mdlId[3], sp98[var_r27 - 1][var_r29], sp38);
-                Hu3DModelPosSet(arg0->mdlId[var_r29 + 7], sp38[0][3], sp38[1][3], sp38[2][3]);
-                Hu3DModelRotSet(arg0->mdlId[var_r29 + 7], 0.0f, var_f30, 0.0f);
-                Hu3DModelScaleSet(arg0->mdlId[var_r29 + 7], temp_f31, temp_f31, temp_f31);
+            Hu3DModelScaleSet(object->mdlId[3], medalScale, medalScale, medalScale);
+            for (medalIndex = 0; medalIndex < scoreDigitCount; medalIndex++) {
+                Hu3DModelObjMtxGet(object->mdlId[3], medalAttachmentNames[scoreDigitCount - 1][medalIndex], medalMatrix);
+                Hu3DModelPosSet(object->mdlId[medalIndex + 7], medalMatrix[0][3], medalMatrix[1][3], medalMatrix[2][3]);
+                Hu3DModelRotSet(object->mdlId[medalIndex + 7], 0.0f, medalRotation, 0.0f);
+                Hu3DModelScaleSet(object->mdlId[medalIndex + 7], medalScale, medalScale, medalScale);
             }
         }
-        if (var_r28 == 60) {
-            fn_1_1E28(arg0, 1, 1, 15, 1);
+        if (animationFrame == 60) {
+            Story3SetModelMotion(object, 1, 1, 15, 1);
         }
-        if (var_r28 == 120) {
-            lbl_1_bss_1580.unk18 = 1;
+        if (animationFrame == 120) {
+            resultSequenceState.sequenceState = 1;
         }
-        if (var_r28++ >= 120 && (var_r26 == 0 || var_r26 == 15) && temp_r30->unk18 == 1) {
-            temp_r30->unk18 = 2;
+        if (animationFrame++ >= 120 && (celebrationFrame == 0 || celebrationFrame == 15) && playerProcessState->rank == 1) {
+            playerProcessState->rank = 2;
         }
-    } while (temp_r30->unk18 != 3);
+    } while (playerProcessState->rank != 3);
     HuAudFXPlay(0xBB);
-    for (var_r28 = 0; var_r28 < 60; var_r28++) {
-        fn_1_938();
-        if (var_r28 > 30) {
-            var_f29 = fn_1_61C(300.0f, 600.0f, var_r28 - 30, 30.0f);
+    for (animationFrame = 0; animationFrame < 60; animationFrame++) {
+        Story3SleepOneFrame();
+        if (animationFrame > 30) {
+            medalHeight = interpolateCosineEaseOut(300.0f, 600.0f, animationFrame - 30, 30.0f);
         }
-        var_f30 = fn_1_61C(0.0f, 360.0f, var_r28, 60.0f);
-        Hu3DModelPosSet(arg0->mdlId[3], lbl_1_data_130[temp_r30->unk08].x, var_f29, lbl_1_data_130[temp_r30->unk08].z - 20.0f);
-        Hu3DModelRotSet(arg0->mdlId[3], 0.0f, var_f30, 0.0f);
-        for (var_r29 = 0; var_r29 < var_r27; var_r29++) {
-            if (var_f30 >= 180.0f) {
-                Hu3DModelAttrSet(arg0->mdlId[var_r29 + 7], HU3D_ATTR_DISPOFF);
+        medalRotation = interpolateCosineEaseOut(0.0f, 360.0f, animationFrame, 60.0f);
+        Hu3DModelPosSet(object->mdlId[3], playerModelPositions[playerProcessState->isComputer].x, medalHeight, playerModelPositions[playerProcessState->isComputer].z - 20.0f);
+        Hu3DModelRotSet(object->mdlId[3], 0.0f, medalRotation, 0.0f);
+        for (medalIndex = 0; medalIndex < scoreDigitCount; medalIndex++) {
+            if (medalRotation >= 180.0f) {
+                Hu3DModelAttrSet(object->mdlId[medalIndex + 7], HU3D_ATTR_DISPOFF);
             }
-            Hu3DModelObjMtxGet(arg0->mdlId[3], sp98[var_r27 - 1][var_r29], sp8);
-            Hu3DModelPosSet(arg0->mdlId[var_r29 + 7], sp8[0][3], sp8[1][3], sp8[2][3]);
-            Hu3DModelRotSet(arg0->mdlId[var_r29 + 7], 0.0f, var_f30, 0.0f);
+            Hu3DModelObjMtxGet(object->mdlId[3], medalAttachmentNames[scoreDigitCount - 1][medalIndex], medalMatrix);
+            Hu3DModelPosSet(object->mdlId[medalIndex + 7], medalMatrix[0][3], medalMatrix[1][3], medalMatrix[2][3]);
+            Hu3DModelRotSet(object->mdlId[medalIndex + 7], 0.0f, medalRotation, 0.0f);
         }
     }
-    Hu3DModelAttrSet(arg0->mdlId[3], HU3D_ATTR_DISPOFF);
-    for (var_r28 = 0; var_r28 < 3; var_r28++) {
-        Hu3DModelAttrSet(arg0->mdlId[var_r28 + 7], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(object->mdlId[3], HU3D_ATTR_DISPOFF);
+    for (animationFrame = 0; animationFrame < 3; animationFrame++) {
+        Hu3DModelAttrSet(object->mdlId[animationFrame + 7], HU3D_ATTR_DISPOFF);
     }
-    temp_r30->unk04 = 0;
+    playerProcessState->team = 0;
 }
 
-void fn_1_10D74(OMOBJ* arg0) {
-    float var_f29;
-    float var_f30;
-    float temp_f31;
-    s32 temp_r25;
-    s32 var_r26;
-    s32 var_r27 = 3;
-    StructBss1530* temp_r30 = arg0->data;
-    char* sp98[][3] = {
+Void Story3AnimateTeamMedal(OMOBJ* object) {
+    float medalHeight;
+    float medalRotation;
+    float medalScale;
+    s32 scoreDigit;
+    s32 celebrationFrame;
+    s32 scoreDigitCount = 3;
+    StorySequenceProcessState* playerProcessState = object->data;
+    char* medalAttachmentNames[][3] = {
         { "coin-coin-null3", "coin-coin_null1", "coin-coin-null1" },
         { "coin-coin-null4", "coin-coin-null2", "coin-coin-null1" },
         { "coin-coin-null5", "coin-coin-null3", "coin-coin-null1" }
     };
-    Mtx sp68;
-    Mtx sp38;
-    Mtx sp8;
-    s32 var_r28;
-    s32 var_r29;
+    Mtx medalMatrix;
+    Mtx medalMatrix;
+    Mtx medalMatrix;
+    s32 animationFrame;
+    s32 medalIndex;
 
-    Hu3DModelPosSet(arg0->mdlId[4], lbl_1_data_130[temp_r30->unk08].x, 100.0f, lbl_1_data_130[temp_r30->unk08].z - 20.0f);
-    Hu3DModelRotSet(arg0->mdlId[4], 0.0f, 0.0f, 0.0f);
-    Hu3DModelScaleSet(arg0->mdlId[4], 0.0f, 0.0f, 0.0f);
-    if ((temp_r25 = lbl_1_bss_1580.unkC4[temp_r30->unk08].unk00.unk1C / 100) == 0) {
-        var_r27 = 2;
+    Hu3DModelPosSet(object->mdlId[4], playerModelPositions[playerProcessState->isComputer].x, 100.0f, playerModelPositions[playerProcessState->isComputer].z - 20.0f);
+    Hu3DModelRotSet(object->mdlId[4], 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(object->mdlId[4], 0.0f, 0.0f, 0.0f);
+    if ((scoreDigit = resultSequenceState.playerResults[playerProcessState->isComputer].playerStats.coins / 100) == 0) {
+        scoreDigitCount = 2;
     } else {
-        Hu3DMotionTimeSet(arg0->mdlId[9], (temp_r25 + 1) % 10);
+        Hu3DMotionTimeSet(object->mdlId[9], (scoreDigit + 1) % 10);
     }
-    if ((temp_r25 = (lbl_1_bss_1580.unkC4[temp_r30->unk08].unk00.unk1C % 100) / 10) == 0 && var_r27 == 2) {
-        var_r27 = 1;
+    if ((scoreDigit = (resultSequenceState.playerResults[playerProcessState->isComputer].playerStats.coins % 100) / 10) == 0 && scoreDigitCount == 2) {
+        scoreDigitCount = 1;
     } else {
-        Hu3DMotionTimeSet(arg0->mdlId[8], (temp_r25 + 1) % 10);
+        Hu3DMotionTimeSet(object->mdlId[8], (scoreDigit + 1) % 10);
     }
-    temp_r25 = lbl_1_bss_1580.unkC4[temp_r30->unk08].unk00.unk1C % 10;
-    Hu3DMotionTimeSet(arg0->mdlId[7], (temp_r25 + 1) % 10);
-    Hu3DModelAttrReset(arg0->mdlId[4], HU3D_ATTR_DISPOFF);
-    for (var_r28 = 0; var_r28 < 90; var_r28++) {
-        fn_1_938();
-        var_f29 = fn_1_6F4(100.0f, 300.0f, var_r28, 90.0f);
-        var_f30 = fn_1_6F4(0.0f, 1080.0f, var_r28, 90.0f);
-        temp_f31 = fn_1_6F4(0.0f, 0.75f, var_r28, 90.0f);
-        Hu3DModelPosSet(arg0->mdlId[4], lbl_1_data_130[temp_r30->unk08].x, var_f29, lbl_1_data_130[temp_r30->unk08].z - 20.0f);
-        Hu3DModelRotSet(arg0->mdlId[4], 0.0f, var_f30, 0.0f);
-        Hu3DModelScaleSet(arg0->mdlId[4], temp_f31, temp_f31, temp_f31);
-        for (var_r29 = 0; var_r29 < var_r27; var_r29++) {
-            if (var_f30 >= 900.0f) {
-                Hu3DModelAttrReset(arg0->mdlId[var_r29 + 7], HU3D_ATTR_DISPOFF);
+    scoreDigit = resultSequenceState.playerResults[playerProcessState->isComputer].playerStats.coins % 10;
+    Hu3DMotionTimeSet(object->mdlId[7], (scoreDigit + 1) % 10);
+    Hu3DModelAttrReset(object->mdlId[4], HU3D_ATTR_DISPOFF);
+    for (animationFrame = 0; animationFrame < 90; animationFrame++) {
+        Story3SleepOneFrame();
+        medalHeight = interpolateSineEaseIn(100.0f, 300.0f, animationFrame, 90.0f);
+        medalRotation = interpolateSineEaseIn(0.0f, 1080.0f, animationFrame, 90.0f);
+        medalScale = interpolateSineEaseIn(0.0f, 0.75f, animationFrame, 90.0f);
+        Hu3DModelPosSet(object->mdlId[4], playerModelPositions[playerProcessState->isComputer].x, medalHeight, playerModelPositions[playerProcessState->isComputer].z - 20.0f);
+        Hu3DModelRotSet(object->mdlId[4], 0.0f, medalRotation, 0.0f);
+        Hu3DModelScaleSet(object->mdlId[4], medalScale, medalScale, medalScale);
+        for (medalIndex = 0; medalIndex < scoreDigitCount; medalIndex++) {
+            if (medalRotation >= 900.0f) {
+                Hu3DModelAttrReset(object->mdlId[medalIndex + 7], HU3D_ATTR_DISPOFF);
             }
-            Hu3DModelObjMtxGet(arg0->mdlId[4], sp98[var_r27 - 1][var_r29], sp68);
-            Hu3DModelPosSet(arg0->mdlId[var_r29 + 7], sp68[0][3], sp68[1][3], sp68[2][3]);
-            Hu3DModelRotSet(arg0->mdlId[var_r29 + 7], 0.0f, var_f30, 0.0f);
-            Hu3DModelScaleSet(arg0->mdlId[var_r29 + 7], temp_f31, temp_f31, temp_f31);
+            Hu3DModelObjMtxGet(object->mdlId[4], medalAttachmentNames[scoreDigitCount - 1][medalIndex], medalMatrix);
+            Hu3DModelPosSet(object->mdlId[medalIndex + 7], medalMatrix[0][3], medalMatrix[1][3], medalMatrix[2][3]);
+            Hu3DModelRotSet(object->mdlId[medalIndex + 7], 0.0f, medalRotation, 0.0f);
+            Hu3DModelScaleSet(object->mdlId[medalIndex + 7], medalScale, medalScale, medalScale);
         }
     }
-    var_r28 = var_r29 = var_r26 = 0;
-    if (temp_r30->unk1C == 1) {
-        fn_1_1E28(arg0, 1, 14, 5, 0);
+    animationFrame = medalIndex = celebrationFrame = 0;
+    if (playerProcessState->coins == 1) {
+        Story3SetModelMotion(object, 1, 14, 5, 0);
     } else {
-        fn_1_1E28(arg0, 1, 15, 5, 0);
+        Story3SetModelMotion(object, 1, 15, 5, 0);
     }
     do {
-        fn_1_938();
-        if (temp_r30->unk1C == 1) {
-            temp_f31 = fn_1_878(0.75f, 1.0f, var_r26, 30.0f);
-            if (var_r26++ >= 29) {
-                var_r26 = 0;
+        Story3SleepOneFrame();
+        if (playerProcessState->coins == 1) {
+            medalScale = interpolateSinePulse(0.75f, 1.0f, celebrationFrame, 30.0f);
+            if (celebrationFrame++ >= 29) {
+                celebrationFrame = 0;
             }
-            Hu3DModelScaleSet(arg0->mdlId[4], temp_f31, temp_f31, temp_f31);
-            for (var_r29 = 0; var_r29 < var_r27; var_r29++) {
-                Hu3DModelObjMtxGet(arg0->mdlId[4], sp98[var_r27 - 1][var_r29], sp38);
-                Hu3DModelPosSet(arg0->mdlId[var_r29 + 7], sp38[0][3], sp38[1][3], sp38[2][3]);
-                Hu3DModelRotSet(arg0->mdlId[var_r29 + 7], 0.0f, var_f30, 0.0f);
-                Hu3DModelScaleSet(arg0->mdlId[var_r29 + 7], temp_f31, temp_f31, temp_f31);
+            Hu3DModelScaleSet(object->mdlId[4], medalScale, medalScale, medalScale);
+            for (medalIndex = 0; medalIndex < scoreDigitCount; medalIndex++) {
+                Hu3DModelObjMtxGet(object->mdlId[4], medalAttachmentNames[scoreDigitCount - 1][medalIndex], medalMatrix);
+                Hu3DModelPosSet(object->mdlId[medalIndex + 7], medalMatrix[0][3], medalMatrix[1][3], medalMatrix[2][3]);
+                Hu3DModelRotSet(object->mdlId[medalIndex + 7], 0.0f, medalRotation, 0.0f);
+                Hu3DModelScaleSet(object->mdlId[medalIndex + 7], medalScale, medalScale, medalScale);
             }
         }
-        if (var_r28 == 60) {
-            fn_1_1E28(arg0, 1, 1, 15, 1);
+        if (animationFrame == 60) {
+            Story3SetModelMotion(object, 1, 1, 15, 1);
         }
-        if (var_r28 == 120) {
-            lbl_1_bss_1580.unk18 = 1;
+        if (animationFrame == 120) {
+            resultSequenceState.sequenceState = 1;
         }
-        if (var_r28++ >= 120 && (var_r26 == 0 || var_r26 == 15) && temp_r30->unk18 == 1) {
-            temp_r30->unk18 = 2;
+        if (animationFrame++ >= 120 && (celebrationFrame == 0 || celebrationFrame == 15) && playerProcessState->rank == 1) {
+            playerProcessState->rank = 2;
         }
-    } while (temp_r30->unk18 != 3);
-    fn_1_1E28(arg0, 1, 1, 15, 1);
+    } while (playerProcessState->rank != 3);
+    Story3SetModelMotion(object, 1, 1, 15, 1);
     HuAudFXPlay(0xBC);
-    for (var_r28 = 0; var_r28 < 60; var_r28++) {
-        fn_1_938();
-        if (var_r28 > 30) {
-            var_f29 = fn_1_61C(300.0f, 600.0f, var_r28 - 30, 30.0f);
+    for (animationFrame = 0; animationFrame < 60; animationFrame++) {
+        Story3SleepOneFrame();
+        if (animationFrame > 30) {
+            medalHeight = interpolateCosineEaseOut(300.0f, 600.0f, animationFrame - 30, 30.0f);
         }
-        var_f30 = fn_1_61C(0.0f, 360.0f, var_r28, 60.0f);
-        Hu3DModelPosSet(arg0->mdlId[4], lbl_1_data_130[temp_r30->unk08].x, var_f29, lbl_1_data_130[temp_r30->unk08].z - 20.0f);
-        Hu3DModelRotSet(arg0->mdlId[4], 0.0f, var_f30, 0.0f);
-        for (var_r29 = 0; var_r29 < var_r27; var_r29++) {
-            if (var_f30 >= 180.0f) {
-                Hu3DModelAttrSet(arg0->mdlId[var_r29 + 7], HU3D_ATTR_DISPOFF);
+        medalRotation = interpolateCosineEaseOut(0.0f, 360.0f, animationFrame, 60.0f);
+        Hu3DModelPosSet(object->mdlId[4], playerModelPositions[playerProcessState->isComputer].x, medalHeight, playerModelPositions[playerProcessState->isComputer].z - 20.0f);
+        Hu3DModelRotSet(object->mdlId[4], 0.0f, medalRotation, 0.0f);
+        for (medalIndex = 0; medalIndex < scoreDigitCount; medalIndex++) {
+            if (medalRotation >= 180.0f) {
+                Hu3DModelAttrSet(object->mdlId[medalIndex + 7], HU3D_ATTR_DISPOFF);
             }
-            Hu3DModelObjMtxGet(arg0->mdlId[4], sp98[var_r27 - 1][var_r29], sp8);
-            Hu3DModelPosSet(arg0->mdlId[var_r29 + 7], sp8[0][3], sp8[1][3], sp8[2][3]);
-            Hu3DModelRotSet(arg0->mdlId[var_r29 + 7], 0.0f, var_f30, 0.0f);
+            Hu3DModelObjMtxGet(object->mdlId[4], medalAttachmentNames[scoreDigitCount - 1][medalIndex], medalMatrix);
+            Hu3DModelPosSet(object->mdlId[medalIndex + 7], medalMatrix[0][3], medalMatrix[1][3], medalMatrix[2][3]);
+            Hu3DModelRotSet(object->mdlId[medalIndex + 7], 0.0f, medalRotation, 0.0f);
         }
     }
-    Hu3DModelAttrSet(arg0->mdlId[4], HU3D_ATTR_DISPOFF);
-    for (var_r28 = 0; var_r28 < 3; var_r28++) {
-        Hu3DModelAttrSet(arg0->mdlId[var_r28 + 7], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(object->mdlId[4], HU3D_ATTR_DISPOFF);
+    for (animationFrame = 0; animationFrame < 3; animationFrame++) {
+        Hu3DModelAttrSet(object->mdlId[animationFrame + 7], HU3D_ATTR_DISPOFF);
     }
-    temp_r30->unk04 = 0;
+    playerProcessState->team = 0;
 }
 
-void fn_1_11794(OMOBJ* arg0) {
-    StructBss1530* temp_r30;
+Void Story3AwardPlayerStar(OMOBJ* object) {
+    StorySequenceProcessState* playerProcessState;
 
-    temp_r30 = arg0->data;
-    fn_1_958(25);
-    fn_1_1E28(arg0, 1, 15, 5, 0);
-    fn_1_958(10);
+    playerProcessState = object->data;
+    Story3SleepFrames(25);
+    Story3SetModelMotion(object, 1, 15, 5, 0);
+    Story3SleepFrames(10);
     while (TRUE) {
-        fn_1_938();
-        if (Hu3DMotionTimeGet(arg0->mdlId[1]) >= 40.0f) {
+        Story3SleepOneFrame();
+        if (Hu3DMotionTimeGet(object->mdlId[1]) >= 40.0f) {
             break;
         }
     }
-    Hu3DModelAttrSet(arg0->mdlId[1], HU3D_MOTATTR_PAUSE);
-    temp_r30->unk04 = 0;
+    Hu3DModelAttrSet(object->mdlId[1], HU3D_MOTATTR_PAUSE);
+    playerProcessState->team = 0;
 }
 
-void fn_1_11834(OMOBJ* arg0) {
-    float var_f31;
-    float var_f30;
-    float temp_f26;
-    float temp_f27;
-    float temp_f25;
-    float temp_f29;
-    float temp_f28;
-    StructBss1530* temp_r31;
-    s32 temp_r29;
-    s32 var_r24;
-    s32 temp_r23;
-    s32 var_r27;
-    s32 temp_r25;
-    s32 var_r28;
+Void Story3AnimateAwardedStarParticles(OMOBJ* object) {
+    float particleScale;
+    float particleSpin;
+    float initialParticleHeight;
+    float playerModelScale;
+    float lightAlpha;
+    float starY;
+    float starRotation;
+    StorySequenceProcessState* playerProcessState;
+    s32 playerIndex;
+    s32 lightBrightness;
+    s32 initialLightBrightness;
+    s32 animationFrame;
+    s32 lightColor;
+    s32 starAnimationFrame;
 
-    var_f30 = 0.0f;
-    temp_r31 = arg0->data;
-    temp_r29 = temp_r31->unk08;
-    temp_r23 = lbl_1_bss_1490[temp_r29].unk00->work[0];
-    var_r24 = 0xFF;
-    Hu3DModelPosSet(lbl_1_bss_1490[temp_r29].unk00->mdlId[6], lbl_1_data_130[temp_r29].x, 500.0f + lbl_1_data_130[temp_r29].y + lbl_1_bss_AC, lbl_1_data_130[temp_r29].z + 0.1f * lbl_1_bss_AC);
-    Hu3DModelScaleSet(lbl_1_bss_1490[temp_r29].unk00->mdlId[6], 0.0f, 1.25f, 0.0f);
-    Hu3DModelTPLvlSet(lbl_1_bss_1490[temp_r29].unk00->mdlId[6], 0.0f);
-    Hu3DModelAttrReset(lbl_1_bss_1490[temp_r29].unk00->mdlId[6], HU3D_ATTR_DISPOFF);
-    for (var_r27 = 0; var_r27 <= 5; var_r27++) {
-        fn_1_938();
-        lbl_1_bss_1490[temp_r29].unk00->work[0] = fn_1_6F4(temp_r23, var_r24, var_r27, 5.0f);
-        temp_f27 = fn_1_6F4(0.0f, 1.5f, var_r27, 5.0f);
-        temp_f25 = fn_1_6F4(0.0f, 0.5f, var_r27, 5.0f);
-        temp_r25 = fn_1_6F4(0.0f, 128.0f, var_r27, 5.0f);
-        Hu3DModelScaleSet(lbl_1_bss_1490[temp_r29].unk00->mdlId[6], temp_f27, 1.25f, temp_f27);
-        Hu3DModelTPLvlSet(lbl_1_bss_1490[temp_r29].unk00->mdlId[6], temp_f25);
-        Hu3DLLightColorSet(lbl_1_bss_1490[temp_r29].unk00->mdlId[1], lbl_1_bss_1580.unk24[temp_r29].unk00, temp_r25, temp_r25, temp_r25, 0xFF);
-        Hu3DLLightColorSet(lbl_1_bss_1490[temp_r29].unk00->mdlId[2], lbl_1_bss_1580.unk24[temp_r29].unk04, temp_r25, temp_r25, temp_r25, 0xFF);
+    particleSpin = 0.0f;
+    playerProcessState = object->data;
+    playerIndex = playerProcessState->workValue0;
+    initialLightBrightness = playerSequenceProcessStates[playerIndex].object->work[0];
+    lightBrightness = 0xFF;
+    Hu3DModelPosSet(playerSequenceProcessStates[playerIndex].object->mdlId[6], playerModelPositions[playerIndex].x, 500.0f + playerModelPositions[playerIndex].y + playerModelVerticalOffset, playerModelPositions[playerIndex].z + 0.1f * playerModelVerticalOffset);
+    Hu3DModelScaleSet(playerSequenceProcessStates[playerIndex].object->mdlId[6], 0.0f, 1.25f, 0.0f);
+    Hu3DModelTPLvlSet(playerSequenceProcessStates[playerIndex].object->mdlId[6], 0.0f);
+    Hu3DModelAttrReset(playerSequenceProcessStates[playerIndex].object->mdlId[6], HU3D_ATTR_DISPOFF);
+    for (animationFrame = 0; animationFrame <= 5; animationFrame++) {
+        Story3SleepOneFrame();
+        playerSequenceProcessStates[playerIndex].object->work[0] = interpolateSineEaseIn(initialLightBrightness, lightBrightness, animationFrame, 5.0f);
+        playerModelScale = interpolateSineEaseIn(0.0f, 1.5f, animationFrame, 5.0f);
+        lightAlpha = interpolateSineEaseIn(0.0f, 0.5f, animationFrame, 5.0f);
+        lightColor = interpolateSineEaseIn(0.0f, 128.0f, animationFrame, 5.0f);
+        Hu3DModelScaleSet(playerSequenceProcessStates[playerIndex].object->mdlId[6], playerModelScale, 1.25f, playerModelScale);
+        Hu3DModelTPLvlSet(playerSequenceProcessStates[playerIndex].object->mdlId[6], lightAlpha);
+        Hu3DLLightColorSet(playerSequenceProcessStates[playerIndex].object->mdlId[1], resultSequenceState.playerLights[playerIndex].firstLightId, lightColor, lightColor, lightColor, 0xFF);
+        Hu3DLLightColorSet(playerSequenceProcessStates[playerIndex].object->mdlId[2], resultSequenceState.playerLights[playerIndex].secondLightId, lightColor, lightColor, lightColor, 0xFF);
     }
-    lbl_1_bss_1490[temp_r29].unk00->work[1] = 1;
-    fn_1_958(20);
-    fn_1_1E28(arg0, 1, 3, 15, 0);
-    fn_1_2310(arg0, 1, 3, 15);
+    playerSequenceProcessStates[playerIndex].object->work[1] = 1;
+    Story3SleepFrames(20);
+    Story3SetModelMotion(object, 1, 3, 15, 0);
+    Story3WaitForModelMotionNearEnd(object, 1, 3, 15);
     do {
-        fn_1_938();
-    } while (temp_r31->unk18 == 0);
-    Hu3DModelPosSet(arg0->mdlId[5], lbl_1_data_130[temp_r31->unk08].x, 300.0f, lbl_1_data_130[temp_r31->unk08].z - 50.0f);
-    Hu3DModelRotSet(arg0->mdlId[5], 0.0f, 0.0f, 0.0f);
-    Hu3DModelScaleSet(arg0->mdlId[5], 0.0f, 0.0f, 0.0f);
-    Hu3DModelAttrReset(arg0->mdlId[5], HU3D_ATTR_DISPOFF);
+        Story3SleepOneFrame();
+    } while (playerProcessState->callbackState == 0);
+    Hu3DModelPosSet(object->mdlId[5], playerModelPositions[playerProcessState->workValue0].x, 300.0f, playerModelPositions[playerProcessState->workValue0].z - 50.0f);
+    Hu3DModelRotSet(object->mdlId[5], 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(object->mdlId[5], 0.0f, 0.0f, 0.0f);
+    Hu3DModelAttrReset(object->mdlId[5], HU3D_ATTR_DISPOFF);
     HuAudFXPlay(0x338);
-    for (var_r28 = 0; var_r28 < 60; var_r28++) {
-        fn_1_938();
-        temp_f29 = 10.0 + 10.0 * sind(var_f30);
-        temp_f28 = 10.0 * sind(2.0f * var_f30);
-        if (var_r28 < 10) {
-            var_f31 = fn_1_61C(0.0f, 1.0f, var_r28, 10.0f);
+    for (starAnimationFrame = 0; starAnimationFrame < 60; starAnimationFrame++) {
+        Story3SleepOneFrame();
+        starY = 10.0 + 10.0 * sind(particleSpin);
+        starRotation = 10.0 * sind(2.0f * particleSpin);
+        if (starAnimationFrame < 10) {
+            particleScale = interpolateCosineEaseOut(0.0f, 1.0f, starAnimationFrame, 10.0f);
         } else {
-            var_f31 = fn_1_61C(1.0f, 0.5f, var_r28 - 10, 5.0f);
+            particleScale = interpolateCosineEaseOut(1.0f, 0.5f, starAnimationFrame - 10, 5.0f);
         }
-        if (var_r28 == 10) {
-            lbl_1_bss_1580.unk334[temp_r31->unk08] = fn_1_8264();
-            Hu3DParManPosSet(lbl_1_bss_1580.unk334[temp_r31->unk08], lbl_1_data_130[temp_r31->unk08].x, 300.0f + temp_f29, lbl_1_data_130[temp_r31->unk08].z);
+        if (starAnimationFrame == 10) {
+            resultSequenceState.playerParticleManagers[playerProcessState->workValue0] = Story3CreateStandardParticleManager();
+            Hu3DParManPosSet(resultSequenceState.playerParticleManagers[playerProcessState->workValue0], playerModelPositions[playerProcessState->workValue0].x, 300.0f + starY, playerModelPositions[playerProcessState->workValue0].z);
         }
-        if ((var_f30 += 2.0f) >= 360.0f) {
-            var_f30 -= 360.0f;
+        if ((particleSpin += 2.0f) >= 360.0f) {
+            particleSpin -= 360.0f;
         }
-        Hu3DModelPosSet(arg0->mdlId[5], lbl_1_data_130[temp_r31->unk08].x, 300.0f + temp_f29, lbl_1_data_130[temp_r31->unk08].z - 50.0f);
-        Hu3DModelRotSet(arg0->mdlId[5], 0.0f, temp_f28, 0.0f);
-        Hu3DModelScaleSet(arg0->mdlId[5], var_f31, var_f31, var_f31);
+        Hu3DModelPosSet(object->mdlId[5], playerModelPositions[playerProcessState->workValue0].x, 300.0f + starY, playerModelPositions[playerProcessState->workValue0].z - 50.0f);
+        Hu3DModelRotSet(object->mdlId[5], 0.0f, starRotation, 0.0f);
+        Hu3DModelScaleSet(object->mdlId[5], particleScale, particleScale, particleScale);
     }
-    Hu3DParManKill(lbl_1_bss_1580.unk334[temp_r31->unk08]);
-    lbl_1_bss_1580.unk334[temp_r31->unk08] = -1;
-    temp_f29 = Hu3DData[arg0->mdlId[5]].pos.y;
-    temp_f26 = temp_f29;
-    temp_f28 = Hu3DData[arg0->mdlId[5]].rot.y;
-    var_f31 = 0.5f;
-    var_f30 = 0.0f;
-    for (var_r28 = 0; var_r28 < 90; var_r28++) {
-        fn_1_938();
-        if (var_r28 == 45) {
+    Hu3DParManKill(resultSequenceState.playerParticleManagers[playerProcessState->workValue0]);
+    resultSequenceState.playerParticleManagers[playerProcessState->workValue0] = -1;
+    starY = Hu3DData[object->mdlId[5]].pos.y;
+    initialParticleHeight = starY;
+    starRotation = Hu3DData[object->mdlId[5]].rot.y;
+    particleScale = 0.5f;
+    particleSpin = 0.0f;
+    for (starAnimationFrame = 0; starAnimationFrame < 90; starAnimationFrame++) {
+        Story3SleepOneFrame();
+        if (starAnimationFrame == 45) {
             HuAudFXPlay(0x339);
         }
-        if (var_r28 > 45) {
-            temp_f29 = fn_1_61C(temp_f26, 100.0f, var_r28 - 45, 45.0f);
-            var_f31 = fn_1_61C(0.5f, 0.0f, var_r28 - 45, 45.0f);
+        if (starAnimationFrame > 45) {
+            starY = interpolateCosineEaseOut(initialParticleHeight, 100.0f, starAnimationFrame - 45, 45.0f);
+            particleScale = interpolateCosineEaseOut(0.5f, 0.0f, starAnimationFrame - 45, 45.0f);
         }
-        temp_f28 += var_f30 += 0.25f;
-        Hu3DModelPosSet(arg0->mdlId[5], lbl_1_data_130[temp_r31->unk08].x, temp_f29, lbl_1_data_130[temp_r31->unk08].z - 50.0f);
-        Hu3DModelRotSet(arg0->mdlId[5], 0.0f, temp_f28, 0.0f);
-        Hu3DModelScaleSet(arg0->mdlId[5], var_f31, var_f31, var_f31);
+        starRotation += particleSpin += 0.25f;
+        Hu3DModelPosSet(object->mdlId[5], playerModelPositions[playerProcessState->workValue0].x, starY, playerModelPositions[playerProcessState->workValue0].z - 50.0f);
+        Hu3DModelRotSet(object->mdlId[5], 0.0f, starRotation, 0.0f);
+        Hu3DModelScaleSet(object->mdlId[5], particleScale, particleScale, particleScale);
     }
-    Hu3DModelAttrSet(arg0->mdlId[5], HU3D_ATTR_DISPOFF);
+    Hu3DModelAttrSet(object->mdlId[5], HU3D_ATTR_DISPOFF);
     HuAudFXPlay(8);
-    lbl_1_bss_1580.unkC4[temp_r31->unk08].unk00.unk20++;
-    GWPlayer[lbl_1_bss_1580.unkC4[temp_r31->unk08].unk00.unk00].stars++;
-    if (GWPlayer[lbl_1_bss_1580.unkC4[temp_r31->unk08].unk00.unk00].stars >= 999) {
-        GWPlayer[lbl_1_bss_1580.unkC4[temp_r31->unk08].unk00.unk00].stars = 999;
+    resultSequenceState.playerResults[playerProcessState->workValue0].playerStats.stars++;
+    GWPlayer[resultSequenceState.playerResults[playerProcessState->workValue0].playerStats.playerIndex].stars++;
+    if (GWPlayer[resultSequenceState.playerResults[playerProcessState->workValue0].playerStats.playerIndex].stars >= 999) {
+        GWPlayer[resultSequenceState.playerResults[playerProcessState->workValue0].playerStats.playerIndex].stars = 999;
     }
-    temp_r31->unk04 = 0;
+    playerProcessState->callback = 0;
 }
 
-void fn_1_123D8(OMOBJ* arg0) {
-    StructBss1530* temp_r31;
+Void Story3FinishPlayerResultProcess(OMOBJ* object) {
+    StorySequenceProcessState* playerProcessState;
 
-    temp_r31 = arg0->data;
-    fn_1_15450(temp_r31->unk08);
-    temp_r31->unk04 = 0;
+    playerProcessState = object->data;
+    Story3StartPlayerPresentationProcess(playerProcessState->workValue0);
+    playerProcessState->callback = 0;
 }
 
-void fn_1_1241C(OMOBJ* arg0) {
+Void Story3NoopResultCallback(OMOBJ* object) {
 }
 
-void fn_1_12420(OMOBJ* arg0) {
-    float sp8[] = { 0.0f, -30.0f, -60.0f, -90.0f };
-    float temp_f31;
-    StructBss1530* temp_r31;
-    s32 var_r27;
-    s32 var_r29;
-    s32 var_r28;
+Void Story3UpdatePlayerRankMarker(OMOBJ* object) {
+    float rankMarkerHeights[] = { 0.0f, -30.0f, -60.0f, -90.0f };
+    float rankMarkerY;
+    StorySequenceProcessState* playerProcessState;
+    s32 winningTeamFirstPlayer;
+    s32 rankIndex;
+    s32 animationFrame;
 
-    temp_r31 = arg0->data;
-    if (lbl_1_bss_1580.unk344 == 1) {
-        var_r27 = 0;
-        if (lbl_1_bss_1580.unk348 == 1) {
-            var_r27 = 2;
+    playerProcessState = object->data;
+    if (resultSequenceState.teamMode == 1) {
+        winningTeamFirstPlayer = 0;
+        if (resultSequenceState.winningTeam == 1) {
+            winningTeamFirstPlayer = 2;
         }
-        if ((lbl_1_bss_1580.unk348 == 0 && temp_r31->unk08 <= 1) || (lbl_1_bss_1580.unk348 == 1 && temp_r31->unk08 >= 2)) {
-            Hu3DModelPosSet(arg0->mdlId[2], 100.0f + lbl_1_data_130[temp_r31->unk08].x, -90.0f, lbl_1_data_130[temp_r31->unk08].z);
-            fn_1_958(90);
-            if (temp_r31->unk08 == var_r27) {
-                Hu3DModelAttrReset(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
+        if ((resultSequenceState.winningTeam == 0 && playerProcessState->workValue0 <= 1) || (resultSequenceState.winningTeam == 1 && playerProcessState->workValue0 >= 2)) {
+            Hu3DModelPosSet(object->mdlId[2], 100.0f + playerModelPositions[playerProcessState->workValue0].x, -90.0f, playerModelPositions[playerProcessState->workValue0].z);
+            Story3SleepFrames(90);
+            if (playerProcessState->workValue0 == winningTeamFirstPlayer) {
+                Hu3DModelAttrReset(object->mdlId[2], HU3D_ATTR_DISPOFF);
             }
-            if (arg0->work[0] == 0) {
+            if (object->work[0] == 0) {
                 HuAudFXPlay(0xA8);
             }
-            for (var_r28 = 0; var_r28 <= 30; var_r28++) {
-                fn_1_938();
-                temp_f31 = fn_1_6F4(-90.0f, 0.0f, var_r28, 30.0f);
-                Hu3DModelPosSet(arg0->mdlId[1], lbl_1_data_130[temp_r31->unk08].x, 90.0f + temp_f31, lbl_1_data_130[temp_r31->unk08].z - 20.0f);
-                Hu3DModelPosSet(arg0->mdlId[2], 100.0f + lbl_1_data_130[temp_r31->unk08].x, temp_f31, lbl_1_data_130[temp_r31->unk08].z - 20.0f);
+            for (animationFrame = 0; animationFrame <= 30; animationFrame++) {
+                Story3SleepOneFrame();
+                rankMarkerY = interpolateSineEaseIn(-90.0f, 0.0f, animationFrame, 30.0f);
+                Hu3DModelPosSet(object->mdlId[1], playerModelPositions[playerProcessState->workValue0].x, 90.0f + rankMarkerY, playerModelPositions[playerProcessState->workValue0].z - 20.0f);
+                Hu3DModelPosSet(object->mdlId[2], 100.0f + playerModelPositions[playerProcessState->workValue0].x, rankMarkerY, playerModelPositions[playerProcessState->workValue0].z - 20.0f);
             }
         }
     } else {
-        Hu3DModelPosSet(arg0->mdlId[2], lbl_1_data_130[temp_r31->unk08].x, -90.0f, lbl_1_data_130[temp_r31->unk08].z);
-        if (lbl_1_bss_1580.unkC4[temp_r31->unk08].unk00.unk18 != 4) {
+        Hu3DModelPosSet(object->mdlId[2], playerModelPositions[playerProcessState->workValue0].x, -90.0f, playerModelPositions[playerProcessState->workValue0].z);
+        if (resultSequenceState.playerResults[playerProcessState->workValue0].playerStats.rank != 4) {
         }
-        for (var_r29 = 0; var_r29 < 4; var_r29++) {
-            if (arg0->work[0] == 0 && var_r29 >= 1) {
-                HuAudFXPlay(0xA5 + var_r29);
+        for (rankIndex = 0; rankIndex < 4; rankIndex++) {
+            if (object->work[0] == 0 && rankIndex >= 1) {
+                HuAudFXPlay(0xA5 + rankIndex);
             }
-            if (var_r29 != 3) {
-                for (var_r28 = 0; var_r28 < 30; var_r28++) {
-                    fn_1_938();
-                    if (sp8[lbl_1_bss_1580.unkC4[temp_r31->unk08].unk00.unk18 - 1] >= sp8[3 - var_r29] && 4 - var_r29 < 4) {
-                        temp_f31 = fn_1_6F4(sp8[4 - var_r29], sp8[3 - var_r29], var_r28, 30.0f);
-                        if (var_r29 == 1) {
-                            Hu3DModelAttrReset(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
+            if (rankIndex != 3) {
+                for (animationFrame = 0; animationFrame < 30; animationFrame++) {
+                    Story3SleepOneFrame();
+                    if (rankMarkerHeights[resultSequenceState.playerResults[playerProcessState->workValue0].playerStats.rank - 1] >= rankMarkerHeights[3 - rankIndex] && 4 - rankIndex < 4) {
+                        rankMarkerY = interpolateSineEaseIn(rankMarkerHeights[4 - rankIndex], rankMarkerHeights[3 - rankIndex], animationFrame, 30.0f);
+                        if (rankIndex == 1) {
+                            Hu3DModelAttrReset(object->mdlId[2], HU3D_ATTR_DISPOFF);
                         }
-                        Hu3DModelPosSet(arg0->mdlId[1], lbl_1_data_130[temp_r31->unk08].x, 90.0f + temp_f31, lbl_1_data_130[temp_r31->unk08].z - 20.0f);
-                        Hu3DModelPosSet(arg0->mdlId[2], lbl_1_data_130[temp_r31->unk08].x, temp_f31, lbl_1_data_130[temp_r31->unk08].z - 20.0f);
+                        Hu3DModelPosSet(object->mdlId[1], playerModelPositions[playerProcessState->workValue0].x, 90.0f + rankMarkerY, playerModelPositions[playerProcessState->workValue0].z - 20.0f);
+                        Hu3DModelPosSet(object->mdlId[2], playerModelPositions[playerProcessState->workValue0].x, rankMarkerY, playerModelPositions[playerProcessState->workValue0].z - 20.0f);
                     }
                 }
             } else {
-                for (var_r28 = 0; var_r28 < 10; var_r28++) {
-                    fn_1_938();
-                    if ((sp8[lbl_1_bss_1580.unkC4[temp_r31->unk08].unk00.unk18 - 1] >= sp8[3 - var_r29]) && ((4 - var_r29) < 4)) {
-                        temp_f31 = fn_1_6F4(sp8[4 - var_r29], sp8[3 - var_r29], var_r28, 10.0f);
-                        if (var_r29 == 1) {
-                            Hu3DModelAttrReset(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
+                for (animationFrame = 0; animationFrame < 10; animationFrame++) {
+                    Story3SleepOneFrame();
+                    if ((rankMarkerHeights[resultSequenceState.playerResults[playerProcessState->workValue0].playerStats.rank - 1] >= rankMarkerHeights[3 - rankIndex]) && ((4 - rankIndex) < 4)) {
+                        rankMarkerY = interpolateSineEaseIn(rankMarkerHeights[4 - rankIndex], rankMarkerHeights[3 - rankIndex], animationFrame, 10.0f);
+                        if (rankIndex == 1) {
+                            Hu3DModelAttrReset(object->mdlId[2], HU3D_ATTR_DISPOFF);
                         }
-                        Hu3DModelPosSet(arg0->mdlId[1], lbl_1_data_130[temp_r31->unk08].x, 90.0f + temp_f31, lbl_1_data_130[temp_r31->unk08].z - 20.0f);
-                        Hu3DModelPosSet(arg0->mdlId[2], lbl_1_data_130[temp_r31->unk08].x, temp_f31, lbl_1_data_130[temp_r31->unk08].z - 20.0f);
+                        Hu3DModelPosSet(object->mdlId[1], playerModelPositions[playerProcessState->workValue0].x, 90.0f + rankMarkerY, playerModelPositions[playerProcessState->workValue0].z - 20.0f);
+                        Hu3DModelPosSet(object->mdlId[2], playerModelPositions[playerProcessState->workValue0].x, rankMarkerY, playerModelPositions[playerProcessState->workValue0].z - 20.0f);
                     }
                 }
             }
-            if (var_r29 == 2) {
-                fn_1_958(120);
-            } else if (var_r29 != 3) {
-                fn_1_958(60);
+            if (rankIndex == 2) {
+                Story3SleepFrames(120);
+            } else if (rankIndex != 3) {
+                Story3SleepFrames(60);
             }
         }
     }
-    temp_r31->unk04 = 0;
+    playerProcessState->callback = 0;
 }
 
-void fn_1_12A98(s32 arg0) {
-    s32 sp8[4];
-    s32 var_r29;
-    s32 var_r30;
+Void Story3FindTopMinigameScores(s32 playerIndex) {
+    s32 playerScores[4];
+    s32 tiedPlayerCount;
+    s32 highestScore;
     s32 i;
 
-    var_r29 = 0;
-    var_r30 = -1;
+    tiedPlayerCount = 0;
+    highestScore = -1;
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_1458[i] = lbl_1_bss_1448[i] = 0;
+        sequencePlayerCountAndWinner[i] = playerSequenceOrder[i] = 0;
     }
     for (i = 0; i < 4; i++) {
-        switch (arg0) {
+        switch (playerIndex) {
             case 0:
-                sp8[i] = lbl_1_bss_1580.unkC4[i].unk00.unk20;
+                playerScores[i] = resultSequenceState.playerResults[i].playerStats.stars;
                 break;
             case 1:
-                sp8[i] = lbl_1_bss_1580.unkC4[i].unk00.unk1C;
+                playerScores[i] = resultSequenceState.playerResults[i].playerStats.coins;
                 break;
         }
     }
     for (i = 0; i < 4; i++) {
-        if (var_r30 <= sp8[i]) {
-            var_r30 = sp8[i];
+        if (highestScore <= playerScores[i]) {
+            highestScore = playerScores[i];
         }
     }
     for (i = 0; i < 4; i++) {
-        if (var_r30 == sp8[i]) {
-            lbl_1_bss_1458[0]++;
-            lbl_1_bss_1448[var_r29++] = i;
+        if (highestScore == playerScores[i]) {
+            sequencePlayerCountAndWinner[0]++;
+            playerSequenceOrder[tiedPlayerCount++] = i;
         }
     }
 }
 
-void fn_1_12C08(s32 arg0) {
-    s32 sp8[4];
-    s32 var_r29;
-    s32 var_r30;
+Void Story3FindTiedMinigameScores(s32 playerIndex) {
+    s32 playerScores[4];
+    s32 tiedPlayerCount;
+    s32 highestScore;
     s32 i;
 
-    var_r29 = 0;
-    var_r30 = -1;
+    tiedPlayerCount = 0;
+    highestScore = -1;
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_1458[i] = 0;
-        lbl_1_bss_1448[i] = -1;
+        sequencePlayerCountAndWinner[i] = 0;
+        playerSequenceOrder[i] = -1;
     }
     for (i = 0; i < 4; i++) {
-        switch (arg0) {
+        switch (playerIndex) {
             case 0:
-                sp8[i] = lbl_1_bss_1580.unkC4[i].unk00.unk24;
+                playerScores[i] = resultSequenceState.playerResults[i].playerStats.minigameCoins;
                 break;
             case 1:
-                sp8[i] = lbl_1_bss_1580.unkC4[i].unk00.unk28;
+                playerScores[i] = resultSequenceState.playerResults[i].playerStats.maxCoins;
                 break;
             case 2:
-                sp8[i] = lbl_1_bss_1580.unkC4[i].unk00.unk2C;
+                playerScores[i] = resultSequenceState.playerResults[i].playerStats.questionSpaces;
                 break;
         }
     }
     for (i = 0; i < 4; i++) {
-        if (var_r30 <= sp8[i]) {
-            var_r30 = sp8[i];
+        if (highestScore <= playerScores[i]) {
+            highestScore = playerScores[i];
         }
     }
     for (i = 0; i < 4; i++) {
-        if (var_r30 == sp8[i]) {
-            lbl_1_bss_1458[0]++;
-            lbl_1_bss_1448[var_r29++] = i;
+        if (highestScore == playerScores[i]) {
+            sequencePlayerCountAndWinner[0]++;
+            playerSequenceOrder[tiedPlayerCount++] = i;
         }
     }
 }
 
-void fn_1_12DAC(void) {
-    s32 sp8[4];
-    s32 var_r29;
+Void Story3SortPlayersByMinigameScore(Void) {
+    s32 playerOrderByScore[4];
+    s32 playerIndexSwap;
     s32 i;
     s32 j;
 
     for (i = 0; i < 4; i++) {
-        sp8[i] = i;
+        playerOrderByScore[i] = i;
     }
     for (i = 0; i < 4; i++) {
         for (j = i; j < 4; j++) {
-            if (lbl_1_bss_1580.unkC4[sp8[j]].unk00.unk20 >= lbl_1_bss_1580.unkC4[sp8[i]].unk00.unk20) {
-                var_r29 = sp8[i];
-                sp8[i] = sp8[j];
-                sp8[j] = var_r29;
+            if (resultSequenceState.playerResults[playerOrderByScore[j]].playerStats.stars >= resultSequenceState.playerResults[playerOrderByScore[i]].playerStats.stars) {
+                playerIndexSwap = playerOrderByScore[i];
+                playerOrderByScore[i] = playerOrderByScore[j];
+                playerOrderByScore[j] = playerIndexSwap;
             }
         }
     }
     for (i = 0; i < 4; i++) {
         for (j = i; j < 4; j++) {
-            if ((lbl_1_bss_1580.unkC4[sp8[j]].unk00.unk20 == lbl_1_bss_1580.unkC4[sp8[i]].unk00.unk20) && (lbl_1_bss_1580.unkC4[sp8[j]].unk00.unk1C >= lbl_1_bss_1580.unkC4[sp8[i]].unk00.unk1C)) {
-                var_r29 = sp8[i];
-                sp8[i] = sp8[j];
-                sp8[j] = var_r29;
+            if ((resultSequenceState.playerResults[playerOrderByScore[j]].playerStats.stars == resultSequenceState.playerResults[playerOrderByScore[i]].playerStats.stars) && (resultSequenceState.playerResults[playerOrderByScore[j]].playerStats.coins >= resultSequenceState.playerResults[playerOrderByScore[i]].playerStats.coins)) {
+                playerIndexSwap = playerOrderByScore[i];
+                playerOrderByScore[i] = playerOrderByScore[j];
+                playerOrderByScore[j] = playerIndexSwap;
             }
         }
     }
-    lbl_1_bss_1580.unkC4[sp8[0]].unk00.unk18 = j = 1;
+    resultSequenceState.playerResults[playerOrderByScore[0]].playerStats.rank = j = 1;
     for (i = 1; i < 4; i++) {
         j++;
-        lbl_1_bss_1580.unkC4[sp8[i]].unk00.unk18 = j;
-        if ((lbl_1_bss_1580.unkC4[sp8[i]].unk00.unk20 == lbl_1_bss_1580.unkC4[sp8[i - 1]].unk00.unk20) && (lbl_1_bss_1580.unkC4[sp8[i]].unk00.unk1C == lbl_1_bss_1580.unkC4[sp8[i - 1]].unk00.unk1C)) {
-            lbl_1_bss_1580.unkC4[sp8[i]].unk00.unk18 = lbl_1_bss_1580.unkC4[sp8[i - 1]].unk00.unk18;
+        resultSequenceState.playerResults[playerOrderByScore[i]].playerStats.rank = j;
+        if ((resultSequenceState.playerResults[playerOrderByScore[i]].playerStats.stars == resultSequenceState.playerResults[playerOrderByScore[i - 1]].playerStats.stars) && (resultSequenceState.playerResults[playerOrderByScore[i]].playerStats.coins == resultSequenceState.playerResults[playerOrderByScore[i - 1]].playerStats.coins)) {
+            resultSequenceState.playerResults[playerOrderByScore[i]].playerStats.rank = resultSequenceState.playerResults[playerOrderByScore[i - 1]].playerStats.rank;
         }
     }
 }
 
-void fn_1_130A8(void) {
-    s32 var_r30;
+Void Story3CountFirstPlacePlayers(Void) {
+    s32 firstPlacePlayerCount;
     s32 i;
 
-    var_r30 = 0;
+    firstPlacePlayerCount = 0;
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_1458[i] = lbl_1_bss_1448[i] = 0;
+        sequencePlayerCountAndWinner[i] = playerSequenceOrder[i] = 0;
     }
     for (i = 0; i < 4; i++) {
-        if (lbl_1_bss_1580.unkC4[i].unk00.unk18 == 1) {
-            lbl_1_bss_1458[0]++;
-            lbl_1_bss_1448[var_r30++] = i;
-            lbl_1_bss_1458[1] = i;
+        if (resultSequenceState.playerResults[i].playerStats.rank == 1) {
+            sequencePlayerCountAndWinner[0]++;
+            playerSequenceOrder[firstPlacePlayerCount++] = i;
+            sequencePlayerCountAndWinner[1] = i;
         }
     }
 }
 
-void fn_1_1317C(void) {
-    s32 sp8[4];
-    s32 var_r30;
+Void Story3CalculatePlayerMinigameScores(Void) {
+    s32 playerMinigameScores[4];
+    s32 highestMinigameScore;
     s32 i;
 
-    var_r30 = -1;
+    highestMinigameScore = -1;
     for (i = 0; i < 4; i++) {
-        sp8[i] = lbl_1_bss_1428[i];
+        playerMinigameScores[i] = playerSequenceScoreOrder[i];
     }
     for (i = 0; i < 4; i++) {
-        if (var_r30 <= sp8[i]) {
-            var_r30 = sp8[i];
+        if (highestMinigameScore <= playerMinigameScores[i]) {
+            highestMinigameScore = playerMinigameScores[i];
         }
     }
     for (i = 0; i < 4; i++) {
-        if (var_r30 == sp8[i]) {
-            lbl_1_bss_1458[1] = i;
+        if (highestMinigameScore == playerMinigameScores[i]) {
+            sequencePlayerCountAndWinner[1] = i;
         }
     }
-    for (i = 0; i < lbl_1_bss_1458[0]; i++) {
-        if (lbl_1_bss_1458[1] != lbl_1_bss_1448[i]) {
-            lbl_1_bss_1580.unkC4[lbl_1_bss_1448[i]].unk00.unk18 = 2;
+    for (i = 0; i < sequencePlayerCountAndWinner[0]; i++) {
+        if (sequencePlayerCountAndWinner[1] != playerSequenceOrder[i]) {
+            resultSequenceState.playerResults[playerSequenceOrder[i]].playerStats.rank = 2;
         }
     }
 }
 
-void fn_1_132AC(OMOBJ* arg0, s32 arg1) {
-    StructFn352C* temp_r30;
-    s32 var_r28;
+Void Story3SetupPlayerResultModels(OMOBJ* object, s32 count) {
+    StoryPlayerStats* playerStats;
+    s32 teamModelVariant;
 
-    temp_r30 = &lbl_1_bss_1580.unkC4[arg1].unk00;
-    arg0->mdlId[1] = CharModelCreate(temp_r30->unk10, 4);
-    arg0->mtnId[1] = CharMotionCreate(temp_r30->unk10, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0));
-    arg0->mtnId[2] = CharMotionCreate(temp_r30->unk10, DATA_MAKE_NUM(DATADIR_MARIOMOT, 72));
-    arg0->mtnId[5] = CharMotionCreate(temp_r30->unk10, DATA_MAKE_NUM(DATADIR_MARIOMOT, 47));
-    arg0->mtnId[3] = CharMotionCreate(temp_r30->unk10, DATA_MAKE_NUM(DATADIR_MARIOMOT, 23));
-    arg0->mtnId[4] = CharMotionCreate(temp_r30->unk10, DATA_MAKE_NUM(DATADIR_MARIOMOT, 24));
-    arg0->mtnId[14] = CharMotionCreate(temp_r30->unk10, DATA_MAKE_NUM(DATADIR_MARIOMOT, 72));
-    arg0->mtnId[15] = CharMotionCreate(temp_r30->unk10, DATA_MAKE_NUM(DATADIR_MARIOMOT, 73));
-    CharMotionDataClose(temp_r30->unk10);
-    Hu3DModelPosSet(arg0->mdlId[1], lbl_1_data_130[arg1].x, lbl_1_data_130[arg1].y, lbl_1_data_130[arg1].z - 20.0f);
-    Hu3DModelRotSet(arg0->mdlId[1], 0.0f, 0.0f, 0.0f);
-    Hu3DModelScaleSet(arg0->mdlId[1], 1.0f, 1.0f, 1.0f);
-    Hu3DModelShadowSet(arg0->mdlId[1]);
-    fn_1_1E28(arg0, 1, 1, 0, 1);
-    if (lbl_1_bss_1580.unk344 == 1) {
-        var_r28 = 0;
-        if (arg1 > 1) {
-            var_r28 = 1;
+    playerStats = &resultSequenceState.playerResults[count].playerStats;
+    object->mdlId[1] = CharModelCreate(playerStats->characterId, 4);
+    object->mtnId[1] = CharMotionCreate(playerStats->characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 0));
+    object->mtnId[2] = CharMotionCreate(playerStats->characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 72));
+    object->mtnId[5] = CharMotionCreate(playerStats->characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 47));
+    object->mtnId[3] = CharMotionCreate(playerStats->characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 23));
+    object->mtnId[4] = CharMotionCreate(playerStats->characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 24));
+    object->mtnId[14] = CharMotionCreate(playerStats->characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 72));
+    object->mtnId[15] = CharMotionCreate(playerStats->characterId, DATA_MAKE_NUM(DATADIR_MARIOMOT, 73));
+    CharMotionDataClose(playerStats->characterId);
+    Hu3DModelPosSet(object->mdlId[1], playerModelPositions[count].x, playerModelPositions[count].y, playerModelPositions[count].z - 20.0f);
+    Hu3DModelRotSet(object->mdlId[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(object->mdlId[1], 1.0f, 1.0f, 1.0f);
+    Hu3DModelShadowSet(object->mdlId[1]);
+    Story3SetModelMotion(object, 1, 1, 0, 1);
+    if (resultSequenceState.teamMode == 1) {
+        teamModelVariant = 0;
+        if (count > 1) {
+            teamModelVariant = 1;
         }
-        arg0->mdlId[2] = Hu3DModelCreateFile(var_r28 + DATA_MAKE_NUM(DATADIR_MSTORY3, 144));
-        Hu3DModelAttrSet(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
-        Hu3DModelScaleSet(arg0->mdlId[2], 1.25f, 1.0f, 1.5f);
-        Hu3DModelShadowMapSet(arg0->mdlId[2]);
+        object->mdlId[2] = Hu3DModelCreateFile(teamModelVariant + DATA_MAKE_NUM(DATADIR_MSTORY3, 144));
+        Hu3DModelAttrSet(object->mdlId[2], HU3D_ATTR_DISPOFF);
+        Hu3DModelScaleSet(object->mdlId[2], 1.25f, 1.0f, 1.5f);
+        Hu3DModelShadowMapSet(object->mdlId[2]);
     } else {
-        arg0->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 12));
-        Hu3DModelScaleSet(arg0->mdlId[2], 1.5f, 1.0f, 1.5f);
-        Hu3DModelAttrSet(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
-        Hu3DModelShadowMapSet(arg0->mdlId[2]);
+        object->mdlId[2] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 12));
+        Hu3DModelScaleSet(object->mdlId[2], 1.5f, 1.0f, 1.5f);
+        Hu3DModelAttrSet(object->mdlId[2], HU3D_ATTR_DISPOFF);
+        Hu3DModelShadowMapSet(object->mdlId[2]);
     }
-    arg0->mdlId[3] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 14));
-    Hu3DModelAttrSet(arg0->mdlId[3], HU3D_ATTR_DISPOFF);
-    arg0->mdlId[4] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 15));
-    Hu3DModelAttrSet(arg0->mdlId[4], HU3D_ATTR_DISPOFF);
-    arg0->mdlId[5] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 13));
-    Hu3DModelAttrSet(arg0->mdlId[5], HU3D_ATTR_DISPOFF);
-    arg0->mdlId[6] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 11));
-    Hu3DModelAttrSet(arg0->mdlId[6], HU3D_ATTR_DISPOFF);
-    for (arg1 = 0; arg1 < 3; arg1++) {
-        arg0->mdlId[arg1 + 7] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 16));
-        Hu3DModelAttrSet(arg0->mdlId[arg1 + 7], HU3D_ATTR_DISPOFF);
-        Hu3DMotionSpeedSet(arg0->mdlId[arg1 + 7], 0.0f);
+    object->mdlId[3] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 14));
+    Hu3DModelAttrSet(object->mdlId[3], HU3D_ATTR_DISPOFF);
+    object->mdlId[4] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 15));
+    Hu3DModelAttrSet(object->mdlId[4], HU3D_ATTR_DISPOFF);
+    object->mdlId[5] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 13));
+    Hu3DModelAttrSet(object->mdlId[5], HU3D_ATTR_DISPOFF);
+    object->mdlId[6] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 11));
+    Hu3DModelAttrSet(object->mdlId[6], HU3D_ATTR_DISPOFF);
+    for (count = 0; count < 3; count++) {
+        object->mdlId[count + 7] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 16));
+        Hu3DModelAttrSet(object->mdlId[count + 7], HU3D_ATTR_DISPOFF);
+        Hu3DMotionSpeedSet(object->mdlId[count + 7], 0.0f);
     }
-    lbl_1_bss_1580.unk24[arg1].unk00 = Hu3DLLightCreate(arg0->mdlId[1], 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-    Hu3DLLightInfinitytSet(arg0->mdlId[1], lbl_1_bss_1580.unk24[arg1].unk00);
-    Hu3DLLightPosAimSet(arg0->mdlId[1], lbl_1_bss_1580.unk24[arg1].unk00, 0.0f, 700.0f, 1200.0f, 0.0f, 0.0f, 640.0f);
-    lbl_1_bss_1580.unk24[arg1].unk04 = Hu3DLLightCreate(arg0->mdlId[2], 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-    Hu3DLLightInfinitytSet(arg0->mdlId[2], lbl_1_bss_1580.unk24[arg1].unk04);
-    Hu3DLLightPosAimSet(arg0->mdlId[2], lbl_1_bss_1580.unk24[arg1].unk04, 0.0f, 700.0f, 1200.0f, 0.0f, 0.0f, 640.0f);
+    resultSequenceState.playerLights[count].firstLightId = Hu3DLLightCreate(object->mdlId[1], 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0);
+    Hu3DLLightInfinitytSet(object->mdlId[1], resultSequenceState.playerLights[count].firstLightId);
+    Hu3DLLightPosAimSet(object->mdlId[1], resultSequenceState.playerLights[count].firstLightId, 0.0f, 700.0f, 1200.0f, 0.0f, 0.0f, 640.0f);
+    resultSequenceState.playerLights[count].secondLightId = Hu3DLLightCreate(object->mdlId[2], 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0);
+    Hu3DLLightInfinitytSet(object->mdlId[2], resultSequenceState.playerLights[count].secondLightId);
+    Hu3DLLightPosAimSet(object->mdlId[2], resultSequenceState.playerLights[count].secondLightId, 0.0f, 700.0f, 1200.0f, 0.0f, 0.0f, 640.0f);
 }
 
-void fn_1_13908(void) {
-    OMOBJ* var_r30;
-    s32 temp_r31;
+Void Story3CreatePlayerResultObject(Void) {
+    OMOBJ* playerObject;
+    s32 playerIndex;
 
-    temp_r31 = lbl_1_bss_1580.unk314++;
-    var_r30 = omAddObjEx(lbl_1_bss_A8, 0x100, 0x10, 0x10, -1, NULL);
-    lbl_1_bss_1490[temp_r31].unk00 = var_r30;
-    lbl_1_bss_1490[temp_r31].unk04 = NULL;
-    lbl_1_bss_1490[temp_r31].unk08 = temp_r31;
-    lbl_1_bss_1490[temp_r31].unk00->data = &lbl_1_bss_1490[temp_r31];
-    fn_1_132AC(lbl_1_bss_1490[temp_r31].unk00, temp_r31);
+    playerIndex = resultSequenceState.playerObjectCount++;
+    playerObject = omAddObjEx(resultObjectManager, 0x100, 0x10, 0x10, -1, NULL);
+    playerSequenceProcessStates[playerIndex].object = playerObject;
+    playerSequenceProcessStates[playerIndex].callback = NULL;
+    playerSequenceProcessStates[playerIndex].workValue0 = playerIndex;
+    playerSequenceProcessStates[playerIndex].object->data = &playerSequenceProcessStates[playerIndex];
+    Story3SetupPlayerResultModels(playerSequenceProcessStates[playerIndex].object, playerIndex);
     while (TRUE) {
-        fn_1_938();
-        if (lbl_1_bss_1490[temp_r31].unk04 != NULL) {
-            lbl_1_bss_1490[temp_r31].unk04(lbl_1_bss_1490[temp_r31].unk00);
+        Story3SleepOneFrame();
+        if (playerSequenceProcessStates[playerIndex].callback != NULL) {
+            playerSequenceProcessStates[playerIndex].callback(playerSequenceProcessStates[playerIndex].object);
         }
     }
 }
 
-void fn_1_13A38(OMOBJ* arg0) {
+Void Story3NoopSequenceCallback(OMOBJ* object) {
 }
 
-s32 lbl_1_data_504[][27] = {
+s32 resultMessageIds[][27] = {
     {
         MAKE_MESSID(37, 0x00), MAKE_MESSID(37, 0x01), MAKE_MESSID(37, 0x02),
         MAKE_MESSID(37, 0x03), MAKE_MESSID(37, 0x05), MAKE_MESSID(37, 0x06),
@@ -2551,79 +2552,79 @@ s32 lbl_1_data_504[][27] = {
     }
 };
 
-void fn_1_13A3C(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
-    s32 var_r29 = 0;
-    s32 temp_r28 = 0;
+Void Story3ShowResultMessageSequence(s32 windowId, s32 messageId, s32 mode, s32 mode3) {
+    s32 waitForWindowState = 0;
+    s32 messageLineCount = 0;
     s32 i;
 
-    lbl_1_bss_1580.unk18 = 0;
-    fn_1_1E28(lbl_1_bss_1468.unk00, 1, arg3, 15, 1);
-    temp_r28 = (s16) HuWinKeyWaitNumGet(lbl_1_data_504[lbl_1_bss_1580.unk00][arg1]);
-    if (arg2 == -1) {
-        arg2 = temp_r28 - 1;
+    resultSequenceState.sequenceState = 0;
+    Story3SetModelMotion(sharedSequenceProcessState.object, 1, mode3, 15, 1);
+    messageLineCount = (s16) HuWinKeyWaitNumGet(resultMessageIds[resultSequenceState.boardId][messageId]);
+    if (mode == -1) {
+        mode = messageLineCount - 1;
     }
     HuWinComKeyReset();
-    if (lbl_1_bss_1580.unk14 == -1) {
+    if (resultSequenceState.winningPlayerIndex == -1) {
         for (i = 0; i < 10; i++) {
             HuWinComKeyWait(0x100, 0x100, 0x100, 0x100, GWMessDelayGet());
         }
     }
-    HuWinMesSet(arg0, lbl_1_data_504[lbl_1_bss_1580.unk00][arg1]);
-    for (i = 0; i < temp_r28; i++) {
-        var_r29 = 0;
+    HuWinMesSet(windowId, resultMessageIds[resultSequenceState.boardId][messageId]);
+    for (i = 0; i < messageLineCount; i++) {
+        waitForWindowState = 0;
         do {
             HuPrcVSleep();
-        } while (HuWinStatGet(arg0) != 1);
-        if (i == arg2) {
-            HuWinAttrSet(arg0, 0x400);
-            var_r29 = 1;
-            lbl_1_bss_1580.unk18 = 99;
+        } while (HuWinStatGet(windowId) != 1);
+        if (i == mode) {
+            HuWinAttrSet(windowId, 0x400);
+            waitForWindowState = 1;
+            resultSequenceState.sequenceState = 99;
         }
         while (TRUE) {
             HuPrcVSleep();
-            if (var_r29 != 0) {
-                if (var_r29 == 1) {
-                    if (HuWinStatGet(arg0) != 1) {
-                        var_r29 = 2;
+            if (waitForWindowState != 0) {
+                if (waitForWindowState == 1) {
+                    if (HuWinStatGet(windowId) != 1) {
+                        waitForWindowState = 2;
                         continue;
                     }
                 }
-                if (var_r29 == 2) {
+                if (waitForWindowState == 2) {
                     do {
-                        fn_1_938();
-                    } while (lbl_1_bss_1580.unk18 != 1);
-                    HuWinAttrReset(arg0, 0x400);
-                    HuWinKeyWaitEntry(arg0);
+                        Story3SleepOneFrame();
+                    } while (resultSequenceState.sequenceState != 1);
+                    HuWinAttrReset(windowId, 0x400);
+                    HuWinKeyWaitEntry(windowId);
                     break;
                 }
-            } else if (HuWinStatGet(arg0) != 1) {
+            } else if (HuWinStatGet(windowId) != 1) {
                 break;
             }
         }
     }
-    fn_1_1B18(arg0, -1);
-    fn_1_1D44(arg0, MAKE_MESSID(37, 4));
+    Story3DisplayMessageAndWait(windowId, -1);
+    Story3SetWindowMessage(windowId, MAKE_MESSID(37, 4));
     HuWinComKeyReset();
-    fn_1_1E28(lbl_1_bss_1468.unk00, 1, 1, 15, 1);
+    Story3SetModelMotion(sharedSequenceProcessState.object, 1, 1, 15, 1);
 }
 
-void fn_1_13C78(s32 arg0, s32 arg1, s32 arg2) {
-    fn_1_1E28(lbl_1_bss_1468.unk00, 1, arg2, 15, 1);
-    fn_1_1D44(arg0, lbl_1_data_504[lbl_1_bss_1580.unk00][arg1]);
-    fn_1_1B18(arg0, -1);
-    fn_1_1D44(arg0, MAKE_MESSID(37, 4));
-    fn_1_1E28(lbl_1_bss_1468.unk00, 1, 1, 15, 1);
+Void Story3ShowBoardResultMessage(s32 windowId, s32 messageId, s32 mode) {
+    Story3SetModelMotion(sharedSequenceProcessState.object, 1, mode, 15, 1);
+    Story3SetWindowMessage(windowId, resultMessageIds[resultSequenceState.boardId][messageId]);
+    Story3DisplayMessageAndWait(windowId, -1);
+    Story3SetWindowMessage(windowId, MAKE_MESSID(37, 4));
+    Story3SetModelMotion(sharedSequenceProcessState.object, 1, 1, 15, 1);
 }
 
-void fn_1_13D38(s32 arg0, s32 arg1, s32 arg2) {
-    s32 var_r31;
+Void Story3InsertCharacterNameMessage(s32 windowId, s32 messageId, s32 mode) {
+    s32 characterId;
 
-    var_r31 = lbl_1_bss_1580.unkC4[arg1].unk00.unk10;
-    HuWinInsertMesSet(arg0, var_r31, arg2);
+    characterId = resultSequenceState.playerResults[messageId].playerStats.characterId;
+    HuWinInsertMesSet(windowId, characterId, mode);
 }
 
-void fn_1_13D98(OMOBJ* arg0, s32 arg1) {
-    s32 sp20[] = {
+Void Story3LoadPlayerResultModels(OMOBJ* object, s32 count) {
+    s32 characterModelDataIds[] = {
         DATA_MAKE_NUM(DATADIR_MSTORY3, 40),
         DATA_MAKE_NUM(DATADIR_MSTORY3, 46),
         DATA_MAKE_NUM(DATADIR_MSTORY3, 52),
@@ -2631,7 +2632,7 @@ void fn_1_13D98(OMOBJ* arg0, s32 arg1) {
         DATA_MAKE_NUM(DATADIR_MSTORY3, 64),
         DATA_MAKE_NUM(DATADIR_MSTORY3, 70)
     };
-    s32 sp38[][5] = {
+    s32 characterMotionDataIds[][5] = {
         { DATA_MAKE_NUM(DATADIR_MSTORY3, 0x29), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x2A), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x2B), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x2C), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x2D) },
         { DATA_MAKE_NUM(DATADIR_MSTORY3, 0x2F), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x30), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x31), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x32), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x33) },
         { DATA_MAKE_NUM(DATADIR_MSTORY3, 0x35), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x36), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x37), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x38), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x39) },
@@ -2640,76 +2641,76 @@ void fn_1_13D98(OMOBJ* arg0, s32 arg1) {
         { DATA_MAKE_NUM(DATADIR_MSTORY3, 0x47), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x48), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x49), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x4A), DATA_MAKE_NUM(DATADIR_MSTORY3, 0x4A) }
     };
 
-    arg0->mdlId[1] = Hu3DModelCreateFile(sp20[arg1]);
-    arg0->mtnId[1] = Hu3DJointMotionFile(arg0->mdlId[1], sp38[arg1][0]);
-    arg0->mtnId[2] = Hu3DJointMotionFile(arg0->mdlId[1], sp38[arg1][1]);
-    arg0->mtnId[3] = Hu3DJointMotionFile(arg0->mdlId[1], sp38[arg1][2]);
-    arg0->mtnId[4] = Hu3DJointMotionFile(arg0->mdlId[1], sp38[arg1][3]);
-    arg0->mtnId[5] = Hu3DJointMotionFile(arg0->mdlId[1], sp38[arg1][4]);
-    Hu3DModelPosSet(arg0->mdlId[1], 0.0f, 0.0f, 670.0f);
-    Hu3DModelRotSet(arg0->mdlId[1], 0.0f, 0.0f, 0.0f);
-    Hu3DModelScaleSet(arg0->mdlId[1], 1.0f, 1.0f, 1.0f);
-    if (arg1 == 3) {
-        Hu3DData[arg0->mdlId[1]].pos.y = 50.0f;
+    object->mdlId[1] = Hu3DModelCreateFile(characterModelDataIds[count]);
+    object->mtnId[1] = Hu3DJointMotionFile(object->mdlId[1], characterMotionDataIds[count][0]);
+    object->mtnId[2] = Hu3DJointMotionFile(object->mdlId[1], characterMotionDataIds[count][1]);
+    object->mtnId[3] = Hu3DJointMotionFile(object->mdlId[1], characterMotionDataIds[count][2]);
+    object->mtnId[4] = Hu3DJointMotionFile(object->mdlId[1], characterMotionDataIds[count][3]);
+    object->mtnId[5] = Hu3DJointMotionFile(object->mdlId[1], characterMotionDataIds[count][4]);
+    Hu3DModelPosSet(object->mdlId[1], 0.0f, 0.0f, 670.0f);
+    Hu3DModelRotSet(object->mdlId[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelScaleSet(object->mdlId[1], 1.0f, 1.0f, 1.0f);
+    if (count == 3) {
+        Hu3DData[object->mdlId[1]].pos.y = 50.0f;
     }
-    Hu3DModelShadowSet(arg0->mdlId[1]);
-    fn_1_1E28(arg0, 1, 1, 0, 1);
+    Hu3DModelShadowSet(object->mdlId[1]);
+    Story3SetModelMotion(object, 1, 1, 0, 1);
     {
-        s32 sp8[] = { 9, 14, 10, 11, 12, 13 };
+        s32 characterDustEffectIds[] = { 9, 14, 10, 11, 12, 13 };
 
-        if (arg1 != 3) {
-            CharNpcDustSet(arg0->mdlId[1], arg0->mtnId[2], 1, sp8[arg1]);
+        if (count != 3) {
+            CharNpcDustSet(object->mdlId[1], object->mtnId[2], 1, characterDustEffectIds[count]);
         }
     }
 }
 
-void fn_1_140A0(void) {
-    OMOBJ* temp_r3;
+Void Story3CreateSharedSequenceObject(Void) {
+    OMOBJ* createdResultObject;
 
-    temp_r3 = omAddObjEx(lbl_1_bss_A8, 0x100, 0x10, 0x10, -1, NULL);
-    lbl_1_bss_1468.unk00 = temp_r3;
-    lbl_1_bss_1468.unk04 = NULL;
-    lbl_1_bss_1468.unk00->data = &lbl_1_bss_1468;
-    fn_1_13D98(temp_r3, lbl_1_bss_1580.unk00);
+    createdResultObject = omAddObjEx(resultObjectManager, 0x100, 0x10, 0x10, -1, NULL);
+    sharedSequenceProcessState.object = createdResultObject;
+    sharedSequenceProcessState.callback = NULL;
+    sharedSequenceProcessState.object->data = &sharedSequenceProcessState;
+    Story3LoadPlayerResultModels(createdResultObject, resultSequenceState.boardId);
     while (TRUE) {
-        fn_1_938();
-        if (lbl_1_bss_1468.unk04 != NULL) {
-            lbl_1_bss_1468.unk04(temp_r3);
+        Story3SleepOneFrame();
+        if (sharedSequenceProcessState.callback != NULL) {
+            sharedSequenceProcessState.callback(createdResultObject);
         }
     }
 }
 
-void fn_1_1442C(s32 arg0) {
-    s32 var_r31;
+Void Story3WaitForPlayerConfirmation(s32 playerIndex) {
+    s32 remainingWaitFrames;
 
-    var_r31 = -1;
-    if (GWPlayerCfg[lbl_1_bss_1580.unkC4[arg0].unk00.unk00].iscom) {
-        var_r31 = rand8() % 120 + 60;
+    remainingWaitFrames = -1;
+    if (GWPlayerCfg[resultSequenceState.playerResults[playerIndex].playerStats.playerIndex].iscom) {
+        remainingWaitFrames = rand8() % 120 + 60;
     }
     do {
-        fn_1_938();
-        if (!GWPlayerCfg[lbl_1_bss_1580.unkC4[arg0].unk00.unk00].iscom && (HuPadBtnDown[GWPlayerCfg[lbl_1_bss_1580.unkC4[arg0].unk00.unk00].pad_idx] & PAD_BUTTON_A)) {
+        Story3SleepOneFrame();
+        if (!GWPlayerCfg[resultSequenceState.playerResults[playerIndex].playerStats.playerIndex].iscom && (HuPadBtnDown[GWPlayerCfg[resultSequenceState.playerResults[playerIndex].playerStats.playerIndex].pad_idx] & PAD_BUTTON_A)) {
             break;
         }
-    } while (var_r31-- != 0);
-    fn_1_1E28(lbl_1_bss_1490[arg0].unk00, 1, 5, 15, 0);
+    } while (remainingWaitFrames-- != 0);
+    Story3SetModelMotion(playerSequenceProcessStates[playerIndex].object, 1, 5, 15, 0);
 }
 
-void fn_1_1456C(s32 arg0) {
+Void Story3WaitForPlayerMotionEnd(s32 playerIndex) {
     while (TRUE) {
-        fn_1_938();
-        if (lbl_1_bss_1490[arg0].unk00->mtnId[5] != Hu3DMotionShiftIDGet(lbl_1_bss_1490[arg0].unk00->mdlId[1])
-            && lbl_1_bss_1490[arg0].unk00->mtnId[5] == Hu3DMotionIDGet(lbl_1_bss_1490[arg0].unk00->mdlId[1])
-            && Hu3DMotionTimeGet(lbl_1_bss_1490[arg0].unk00->mdlId[1]) >= 27.0f)
+        Story3SleepOneFrame();
+        if (playerSequenceProcessStates[playerIndex].object->mtnId[5] != Hu3DMotionShiftIDGet(playerSequenceProcessStates[playerIndex].object->mdlId[1])
+            && playerSequenceProcessStates[playerIndex].object->mtnId[5] == Hu3DMotionIDGet(playerSequenceProcessStates[playerIndex].object->mdlId[1])
+            && Hu3DMotionTimeGet(playerSequenceProcessStates[playerIndex].object->mdlId[1]) >= 27.0f)
         {
             break;
         }
     }
-    HuAudFXStop(lbl_1_bss_68[arg0 + 1]);
+    HuAudFXStop(resultSoundEffectIds[playerIndex + 1]);
     HuAudFXPlay(0x303);
 }
 
-HU3DPARMANPARAM lbl_1_data_78C = {
+HU3DPARMANPARAM resultParticleParams = {
     60, { 0, 0 },
     1000.0f, 0.0f, 180.0f,
     { 0.0f, 0.0f, 0.0f },
@@ -2728,163 +2729,163 @@ HU3DPARMANPARAM lbl_1_data_78C = {
     }
 };
 
-s32 fn_1_14684(void) {
-    s32 temp_r3;
+s32 Story3CreateScoreParticleEffect(Void) {
+    s32 particleManagerId;
 
-    temp_r3 = Hu3DParManCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 1)), 250, &lbl_1_data_78C);
-    Hu3DParManTimeLimitSet(temp_r3, 60);
-    Hu3DParManAttrSet(temp_r3, 4 | 0x40);
-    Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(temp_r3), 1);
-    return temp_r3;
+    particleManagerId = Hu3DParManCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_EFFECT, 1)), 250, &resultParticleParams);
+    Hu3DParManTimeLimitSet(particleManagerId, 60);
+    Hu3DParManAttrSet(particleManagerId, 4 | 0x40);
+    Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(particleManagerId), 1);
+    return particleManagerId;
 }
 
-void fn_1_14700(OMOBJ* arg0) {
-    Hu3DModelKill(arg0->mdlId[0]);
-    omDelObjEx(lbl_1_bss_A8, arg0);
+Void Story3DestroyResultObject(OMOBJ* object) {
+    Hu3DModelKill(object->mdlId[0]);
+    omDelObjEx(resultObjectManager, object);
 }
 
-void fn_1_14748(OMOBJ* arg0) {
-    float temp_f31;
-    s32 sp8[3];
-    s32 temp_r27;
-    s32 var_r26;
-    s32 var_r30;
-    s32 temp_r25;
-    s32 var_r29;
+Void Story3AnimatePlayerScoreDisplay(OMOBJ* object) {
+    float modelFadeAlpha;
+    s32 otherPlayerScores[3];
+    s32 newMinigameScore;
+    s32 playerScoreIndex;
+    s32 currentMinigameScore;
+    s32 previousMinigameScore;
+    s32 playerIndex;
 
-    switch (arg0->work[1]) {
+    switch (object->work[1]) {
         case 0:
-            if (arg0->work[2] >= 1080) {
-                arg0->work[1] = 1;
-                arg0->rot.y = 0.0f;
-                arg0->scale.x = arg0->scale.y = arg0->scale.z = 1.0f;
-                arg0->work[2] = arg0->work[3] = 0;
-                lbl_1_bss_68[arg0->work[0] + 1] = HuAudFXPlay(0x300);
+            if (object->work[2] >= 1080) {
+                object->work[1] = 1;
+                object->rot.y = 0.0f;
+                object->scale.x = object->scale.y = object->scale.z = 1.0f;
+                object->work[2] = object->work[3] = 0;
+                resultSoundEffectIds[object->work[0] + 1] = HuAudFXPlay(0x300);
             } else {
-                arg0->rot.y = arg0->work[2] % 360;
-                arg0->work[2] += 25;
-                if (arg0->work[3] < 180) {
-                    arg0->scale.x = sind(arg0->work[3] % 180);
-                    arg0->work[3] += 6;
+                object->rot.y = object->work[2] % 360;
+                object->work[2] += 25;
+                if (object->work[3] < 180) {
+                    object->scale.x = sind(object->work[3] % 180);
+                    object->work[3] += 6;
                 } else {
-                    arg0->scale.x = 1.0 + 0.5 * sind(arg0->work[3] % 180);
-                    arg0->work[3] += 18;
+                    object->scale.x = 1.0 + 0.5 * sind(object->work[3] % 180);
+                    object->work[3] += 18;
                 }
-                arg0->scale.y = arg0->scale.z = arg0->scale.x;
-                if (arg0->work[3] > 360) {
-                    arg0->work[3] = 360;
+                object->scale.y = object->scale.z = object->scale.x;
+                if (object->work[3] > 360) {
+                    object->work[3] = 360;
                 }
             }
             break;
         case 1:
-            if (arg0->work[2] >= 40) {
-                arg0->work[1] = 2;
+            if (object->work[2] >= 40) {
+                object->work[1] = 2;
             }
             /* fallthrough */
         case 2:
-            arg0->trans.y += 0.2f * sind(arg0->work[2]);
-            if ((arg0->work[2] += 4) > 360) {
-                arg0->work[2] -= 360;
+            object->trans.y += 0.2f * sind(object->work[2]);
+            if ((object->work[2] += 4) > 360) {
+                object->work[2] -= 360;
             }
             break;
         case 3:
-            if (arg0->work[3]++ >= 8) {
-                arg0->work[1] = 4;
-                arg0->work[3] = 0;
-                Hu3DModelAttrSet(arg0->mdlId[0], 1);
+            if (object->work[3]++ >= 8) {
+                object->work[1] = 4;
+                object->work[3] = 0;
+                Hu3DModelAttrSet(object->mdlId[0], 1);
             } else {
-                temp_f31 = fn_1_5D4(1.0f, 0.0f, arg0->work[3], 8.0f);
-                if (arg0->work[3] == 1) {
-                    arg0->work[2] = fn_1_14684();
-                    Hu3DParManPosSet(arg0->work[2], arg0->trans.x, 275.0f, arg0->trans.z);
+                modelFadeAlpha = interpolateLinearOverTime(1.0f, 0.0f, object->work[3], 8.0f);
+                if (object->work[3] == 1) {
+                    object->work[2] = Story3CreateScoreParticleEffect();
+                    Hu3DParManPosSet(object->work[2], object->trans.x, 275.0f, object->trans.z);
                 }
-                arg0->trans.y = 250.0f + fn_1_5D4(0.0f, 25.0f, arg0->work[3], 4.0f);
-                arg0->scale.x = 1.0f + 0.5f * (1.0f - temp_f31);
-                arg0->scale.y = arg0->scale.z = arg0->scale.x;
-                Hu3DModelTPLvlSet(arg0->mdlId[0], temp_f31);
+                object->trans.y = 250.0f + interpolateLinearOverTime(0.0f, 25.0f, object->work[3], 4.0f);
+                object->scale.x = 1.0f + 0.5f * (1.0f - modelFadeAlpha);
+                object->scale.y = object->scale.z = object->scale.x;
+                Hu3DModelTPLvlSet(object->mdlId[0], modelFadeAlpha);
             }
             break;
         case 4:
-            if (arg0->work[3]++ >= 60) {
-                Hu3DParManKill(arg0->work[2]);
-                arg0->work[2] = -1;
-                arg0->objFunc = NULL;
+            if (object->work[3]++ >= 60) {
+                Hu3DParManKill(object->work[2]);
+                object->work[2] = -1;
+                object->objFunc = NULL;
             }
             break;
     }
-    if (arg0->work[1] >= 3) {
-        var_r26 = 0;
-        if (lbl_1_bss_1428[arg0->work[0]] == -1) {
-            var_r30 = lbl_1_bss_1438[arg0->work[0]];
-            for (var_r29 = 0; var_r29 < 4; var_r29++) {
-                if (var_r29 != arg0->work[0]) {
-                    sp8[var_r26++] = lbl_1_bss_1428[var_r29];
+    if (object->work[1] >= 3) {
+        playerScoreIndex = 0;
+        if (playerSequenceScoreOrder[object->work[0]] == -1) {
+            currentMinigameScore = playerSequenceResultIndices[object->work[0]];
+            for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+                if (playerIndex != object->work[0]) {
+                    otherPlayerScores[playerScoreIndex++] = playerSequenceScoreOrder[playerIndex];
                 }
             }
             while (TRUE) {
-                if (var_r30 != sp8[0] && var_r30 != sp8[1] && var_r30 != sp8[2]) {
-                    lbl_1_bss_1428[arg0->work[0]] = var_r30;
+                if (currentMinigameScore != otherPlayerScores[0] && currentMinigameScore != otherPlayerScores[1] && currentMinigameScore != otherPlayerScores[2]) {
+                    playerSequenceScoreOrder[object->work[0]] = currentMinigameScore;
                     break;
                 }
-                var_r30 = rand8() % 10 + 1;
+                currentMinigameScore = rand8() % 10 + 1;
             }
-            Hu3DMotionTimeSet(arg0->mdlId[0], lbl_1_bss_1428[arg0->work[0]] - 1 + 0.5f);
+            Hu3DMotionTimeSet(object->mdlId[0], playerSequenceScoreOrder[object->work[0]] - 1 + 0.5f);
         }
     } else {
-        temp_r25 = lbl_1_bss_1438[arg0->work[0]] - 1;
+        previousMinigameScore = playerSequenceResultIndices[object->work[0]] - 1;
         do {
-            temp_r27 = rand8() % 10;
-        } while (temp_r25 == temp_r27);
-        lbl_1_bss_1438[arg0->work[0]] = temp_r27 + 1;
-        Hu3DMotionTimeSet(arg0->mdlId[0], temp_r27 + 0.5f);
+            newMinigameScore = rand8() % 10;
+        } while (previousMinigameScore == newMinigameScore);
+        playerSequenceResultIndices[object->work[0]] = newMinigameScore + 1;
+        Hu3DMotionTimeSet(object->mdlId[0], newMinigameScore + 0.5f);
     }
 }
 
-void fn_1_14E6C(OMOBJ* arg0) {
-    s32 temp_r30;
+Void Story3CreatePlayerMedalObject(OMOBJ* object) {
+    s32 playerIndex;
 
-    temp_r30 = arg0->work[0];
-    arg0->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 19));
-    omSetTra(arg0, lbl_1_data_130[temp_r30].x, 250.0f, lbl_1_data_130[temp_r30].z);
-    omSetRot(arg0, 0.0f, 0.0f, 0.0f);
-    omSetSca(arg0, 0.0f, 0.0f, 0.0f);
-    Hu3DMotionSpeedSet(arg0->mdlId[0], 0.0f);
+    playerIndex = object->work[0];
+    object->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_MSTORY3, 19));
+    omSetTra(object, playerModelPositions[playerIndex].x, 250.0f, playerModelPositions[playerIndex].z);
+    omSetRot(object, 0.0f, 0.0f, 0.0f);
+    omSetSca(object, 0.0f, 0.0f, 0.0f);
+    Hu3DMotionSpeedSet(object->mdlId[0], 0.0f);
     HuAudFXPlay(0x302);
-    arg0->objFunc = fn_1_14748;
+    object->objFunc = Story3AnimatePlayerScoreDisplay;
 }
 
-void fn_1_14F80(OMOBJ* arg0) {
-    Hu3DModelKill(arg0->mdlId[1]);
-    Hu3DModelKill(arg0->mdlId[2]);
-    omDelObjEx(lbl_1_bss_A8, arg0);
+Void Story3DestroyMedalObject(OMOBJ* object) {
+    Hu3DModelKill(object->mdlId[1]);
+    Hu3DModelKill(object->mdlId[2]);
+    omDelObjEx(resultObjectManager, object);
 }
 
-void fn_1_14FD4(OMOBJ* arg0) {
-    s32 temp_r29;
-    s32 var_r30;
+Void Story3SetupPlayerMedalModels(OMOBJ* object) {
+    s32 playerIndex;
+    s32 modelIndex;
 
-    temp_r29 = arg0->work[0];
-    for (var_r30 = 1; var_r30 < 3; var_r30++) {
-        if (arg0->work[3] <= 40) {
-            Hu3DData[arg0->mdlId[var_r30]].rot.y = fn_1_6F4(0.0f, 360.0f, arg0->work[3], 40.0f);
+    playerIndex = object->work[0];
+    for (modelIndex = 1; modelIndex < 3; modelIndex++) {
+        if (object->work[3] <= 40) {
+            Hu3DData[object->mdlId[modelIndex]].rot.y = interpolateSineEaseIn(0.0f, 360.0f, object->work[3], 40.0f);
         } else {
-            Hu3DData[arg0->mdlId[var_r30]].rot.y = fn_1_61C(360.0f, 0.0f, arg0->work[3] - 40, 20.0f);
+            Hu3DData[object->mdlId[modelIndex]].rot.y = interpolateCosineEaseOut(360.0f, 0.0f, object->work[3] - 40, 20.0f);
         }
-        if (arg0->work[1] / 10 == 0) {
-            Hu3DData[arg0->mdlId[var_r30]].pos.x = lbl_1_data_130[temp_r29].x;
+        if (object->work[1] / 10 == 0) {
+            Hu3DData[object->mdlId[modelIndex]].pos.x = playerModelPositions[playerIndex].x;
         } else {
-            Hu3DData[arg0->mdlId[var_r30]].pos.x = lbl_1_data_130[temp_r29].x + fn_1_5D4(0.0f, 40.0f + -80.0f * (var_r30 - 1), arg0->work[3], 20.0f);
+            Hu3DData[object->mdlId[modelIndex]].pos.x = playerModelPositions[playerIndex].x + interpolateLinearOverTime(0.0f, 40.0f + -80.0f * (modelIndex - 1), object->work[3], 20.0f);
         }
-        Hu3DData[arg0->mdlId[var_r30]].pos.y = 275.0f + fn_1_5D4(0.0f, 50.0f, arg0->work[3], 20.0f);
-        Hu3DData[arg0->mdlId[var_r30]].pos.z = lbl_1_data_130[temp_r29].z;
+        Hu3DData[object->mdlId[modelIndex]].pos.y = 275.0f + interpolateLinearOverTime(0.0f, 50.0f, object->work[3], 20.0f);
+        Hu3DData[object->mdlId[modelIndex]].pos.z = playerModelPositions[playerIndex].z;
     }
-    if (arg0->work[3]++ >= 60) {
-        arg0->objFunc = NULL;
+    if (object->work[3]++ >= 60) {
+        object->objFunc = NULL;
     }
 }
 
-void fn_1_152F0(OMOBJ* arg0) {
-    s32 sp8[] = {
+Void Story3CreateTeamMedalModels(OMOBJ* object) {
+    s32 teamMedalModelDataIds[] = {
         DATA_MAKE_NUM(DATADIR_MSTORY3, 20),
         DATA_MAKE_NUM(DATADIR_MSTORY3, 21),
         DATA_MAKE_NUM(DATADIR_MSTORY3, 22),
@@ -2897,42 +2898,42 @@ void fn_1_152F0(OMOBJ* arg0) {
         DATA_MAKE_NUM(DATADIR_MSTORY3, 29)
     };
 
-    arg0->mdlId[1] = Hu3DModelCreateFile(sp8[arg0->work[1] % 10]);
-    arg0->mdlId[2] = Hu3DModelCreateFile(sp8[arg0->work[1] / 10]);
-    Hu3DMotionSpeedSet(arg0->mdlId[1], 0.0f);
-    Hu3DMotionSpeedSet(arg0->mdlId[2], 0.0f);
-    if (arg0->work[1] / 10 == 0) {
-        Hu3DModelAttrSet(arg0->mdlId[2], HU3D_ATTR_DISPOFF);
+    object->mdlId[1] = Hu3DModelCreateFile(teamMedalModelDataIds[object->work[1] % 10]);
+    object->mdlId[2] = Hu3DModelCreateFile(teamMedalModelDataIds[object->work[1] / 10]);
+    Hu3DMotionSpeedSet(object->mdlId[1], 0.0f);
+    Hu3DMotionSpeedSet(object->mdlId[2], 0.0f);
+    if (object->work[1] / 10 == 0) {
+        Hu3DModelAttrSet(object->mdlId[2], HU3D_ATTR_DISPOFF);
     }
-    arg0->objFunc = fn_1_14FD4;
+    object->objFunc = Story3SetupPlayerMedalModels;
 }
 
-void fn_1_15450(s32 arg0) {
-    OMOBJ* temp_r3;
-    OMOBJ* temp_r3_2;
+Void Story3StartPlayerPresentationProcess(s32 playerIndex) {
+    OMOBJ* createdResultObject;
+    OMOBJ* teamMedalObject;
 
-    temp_r3 = omAddObjEx(lbl_1_bss_A8, 0x2000, 0x10, 0x10, -1, fn_1_14E6C);
-    temp_r3->work[0] = arg0;
+    createdResultObject = omAddObjEx(resultObjectManager, 0x2000, 0x10, 0x10, -1, Story3CreatePlayerMedalObject);
+    createdResultObject->work[0] = playerIndex;
     do {
-        fn_1_938();
-    } while (temp_r3->work[1] != 2);
-    fn_1_1442C(arg0);
-    fn_1_1456C(arg0);
-    temp_r3->work[1] = 3;
-    fn_1_938();
-    temp_r3_2 = omAddObjEx(lbl_1_bss_A8, 0x2000, 0x10, 0x10, -1, fn_1_152F0);
-    temp_r3_2->work[0] = arg0;
-    temp_r3_2->work[1] = lbl_1_bss_1428[arg0];
-    fn_1_958(10);
-    fn_1_1E28(lbl_1_bss_1490[arg0].unk00, 1, 1, 15, 1);
+        Story3SleepOneFrame();
+    } while (createdResultObject->work[1] != 2);
+    Story3WaitForPlayerConfirmation(playerIndex);
+    Story3WaitForPlayerMotionEnd(playerIndex);
+    createdResultObject->work[1] = 3;
+    Story3SleepOneFrame();
+    teamMedalObject = omAddObjEx(resultObjectManager, 0x2000, 0x10, 0x10, -1, Story3CreateTeamMedalModels);
+    teamMedalObject->work[0] = playerIndex;
+    teamMedalObject->work[1] = playerSequenceScoreOrder[playerIndex];
+    Story3SleepFrames(10);
+    Story3SetModelMotion(playerSequenceProcessStates[playerIndex].object, 1, 1, 15, 1);
     do {
-        fn_1_938();
-    } while (temp_r3_2->objFunc);
-    lbl_1_bss_1490[arg0].unk18 = 1;
+        Story3SleepOneFrame();
+    } while (teamMedalObject->objFunc);
+    playerSequenceProcessStates[playerIndex].callbackState = 1;
     do {
-        fn_1_938();
-    } while (lbl_1_bss_1490[arg0].unk18 != 2);
-    fn_1_958(150);
-    fn_1_14700(temp_r3);
-    fn_1_14F80(temp_r3_2);
+        Story3SleepOneFrame();
+    } while (playerSequenceProcessStates[playerIndex].callbackState != 2);
+    Story3SleepFrames(150);
+    Story3DestroyResultObject(createdResultObject);
+    Story3DestroyMedalObject(teamMedalObject);
 }

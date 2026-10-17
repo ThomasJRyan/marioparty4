@@ -15,311 +15,311 @@
 #define frand8() (((s32)frand() & 0xFF))
 
 typedef struct {
-    /* 0x00 */ Vec* unk00;
-    /* 0x04 */ Vec unk04;
-    /* 0x10 */ Vec unk10;
-    /* 0x1C */ u16 unk1C;
-    /* 0x1E */ u16 unk1E;
-    /* 0x20 */ u16 unk20;
-    /* 0x22 */ s16 unk22;
-    /* 0x24 */ float unk24;
-    /* 0x28 */ ANIMDATA* unk28;
-} StructBss1CF8; // Size 0x2C
+    /* 0x00 */ Vec* destinationPositions;
+    /* 0x04 */ Vec emissionOrigin;
+    /* 0x10 */ Vec destinationCenter;
+    /* 0x1C */ u16 textureWidth;
+    /* 0x1E */ u16 textureHeight;
+    /* 0x20 */ u16 particleCount;
+    /* 0x22 */ s16 particleModelId;
+    /* 0x24 */ float particleLifetimeFrames;
+    /* 0x28 */ ANIMDATA* sourceAnimation;
+} ParticleTextEffectConfig; // Size 0x2C
 
 typedef struct {
-    /* 0x00 */ s16 unk00;
-    /* 0x02 */ char unk02[0x1A];
-    /* 0x1C */ StructBss1CF8* unk1C;
-} StructFn1E13C; // Size unknown
+    /* 0x00 */ s16 completionState;
+    /* 0x02 */ char unreferencedParticleProcessPadding[0x1A];
+    /* 0x1C */ ParticleTextEffectConfig* effectConfig;
+} ParticleTextEffectProcessState; // Size 0x20
 
-void fn_1_1E13C(s32 arg0, s32 arg1, StructBss1CF8* arg2, Vec* arg3);
-void fn_1_1E558(void);
-void fn_1_1E820(HU3DMODEL* model, HU3DPARTICLE* particle, Mtx matrix);
+Void Story3InitializeParticleTextBitmap(s32 animationFileId, s32 bitmapDataId, ParticleTextEffectConfig* effectConfig, Vec* destinationCenter);
+Void Story3RunParticleTextEffect(Void);
+Void Story3UpdateParticleTextParticles(HU3DMODEL* model, HU3DPARTICLE* particle, Mtx matrix);
 
-StructBss1CF8 lbl_1_bss_1CF8[2];
-s32 lbl_1_bss_1CF4;
-s32 lbl_1_bss_1CF0;
-s32 lbl_1_bss_1CEC;
-s16 lbl_1_bss_1CE8;
+ParticleTextEffectConfig particleTextEffectConfigs[2];
+s32 particleTextEffectInitialized;
+s32 particleTextEffectComplete;
+s32 particleTextEffectStopping;
+s16 particleTextSpriteGroup;
 
-void fn_1_1DED8(s32 arg0, Vec* arg1, Vec* arg2, s16 arg3) {
-    ANIMDATA* temp_r28;
-    s16 var_r27;
+Void Story3CreateParticleTextEffect(s32 animationFileId, Vec* emissionOrigin, Vec* destinationCenter, s16 lifetimeFrames) {
+    ANIMDATA* spriteAnimation;
+    s16 spriteId;
 
-    fn_1_1E13C(arg0 + 1, arg0 + 3, &lbl_1_bss_1CF8[0], arg2);
-    lbl_1_bss_1CF8[0].unk04 = *arg1;
-    lbl_1_bss_1CF8[0].unk24 = arg3 - 20;
-    fn_1_1E13C(arg0 + 2, arg0 + 3, &lbl_1_bss_1CF8[1], arg2);
-    lbl_1_bss_1CF8[1].unk04 = *arg1;
-    lbl_1_bss_1CF8[1].unk24 = arg3 - 20;
-    temp_r28 = HuSprAnimReadFile(arg0);
-    lbl_1_bss_1CE8 = HuSprGrpCreate(1);
-    var_r27 = HuSprCreate(temp_r28, 0, 0);
-    HuSprGrpMemberSet(lbl_1_bss_1CE8, 0, var_r27);
-    HuSprPosSet(lbl_1_bss_1CE8, 0, arg2->x, arg2->y);
-    HuSprTPLvlSet(lbl_1_bss_1CE8, 0, 0.0f);
-    HuSprAttrSet(lbl_1_bss_1CE8, 0, 8);
-    HuPrcChildCreate(fn_1_1E558, 100, 0x2000, 0, HuPrcCurrentGet());
-    lbl_1_bss_1CF4 = 0;
-    lbl_1_bss_1CF0 = 0;
-    lbl_1_bss_1CEC = 0;
+    Story3InitializeParticleTextBitmap(animationFileId + 1, animationFileId + 3, &particleTextEffectConfigs[0], destinationCenter);
+    particleTextEffectConfigs[0].emissionOrigin = *emissionOrigin;
+    particleTextEffectConfigs[0].particleLifetimeFrames = lifetimeFrames - 20;
+    Story3InitializeParticleTextBitmap(animationFileId + 2, animationFileId + 3, &particleTextEffectConfigs[1], destinationCenter);
+    particleTextEffectConfigs[1].emissionOrigin = *emissionOrigin;
+    particleTextEffectConfigs[1].particleLifetimeFrames = lifetimeFrames - 20;
+    spriteAnimation = HuSprAnimReadFile(animationFileId);
+    particleTextSpriteGroup = HuSprGrpCreate(1);
+    spriteId = HuSprCreate(spriteAnimation, 0, 0);
+    HuSprGrpMemberSet(particleTextSpriteGroup, 0, spriteId);
+    HuSprPosSet(particleTextSpriteGroup, 0, destinationCenter->x, destinationCenter->y);
+    HuSprTPLvlSet(particleTextSpriteGroup, 0, 0.0f);
+    HuSprAttrSet(particleTextSpriteGroup, 0, 8);
+    HuPrcChildCreate(Story3RunParticleTextEffect, 100, 0x2000, 0, HuPrcCurrentGet());
+    particleTextEffectInitialized = 0;
+    particleTextEffectComplete = 0;
+    particleTextEffectStopping = 0;
 }
 
-void fn_1_1E0F4(void) {
-    lbl_1_bss_1CF4 = 1;
+Void Story3MarkParticleTextEffectReady(Void) {
+    particleTextEffectInitialized = 1;
 }
 
-s32 fn_1_1E108(void) {
-    return lbl_1_bss_1CF0;
+s32 Story3IsParticleTextEffectComplete(Void) {
+    return particleTextEffectComplete;
 }
 
-void fn_1_1E118(void) {
-    lbl_1_bss_1CEC = 1;
+Void Story3StopParticleTextEffect(Void) {
+    particleTextEffectStopping = 1;
 }
 
-s32 fn_1_1E12C(void) {
-    return lbl_1_bss_1CE8;
+s32 Story3GetParticleTextSpriteGroup(Void) {
+    return particleTextSpriteGroup;
 }
 
-void fn_1_1E13C(s32 arg0, s32 arg1, StructBss1CF8* arg2, Vec* arg3) {
-    Vec sp14;
-    ANIMBMP* temp_r31;
-    s32 sp10;
-    s32 var_r27;
-    s32 var_r26;
-    u16* var_r25;
-    ANIMDATA* var_r24;
-    Vec* var_r22;
-    StructFn1E13C* temp_r23;
-    s16 var_r29;
-    s16 var_r28;
+Void Story3InitializeParticleTextBitmap(s32 animationFileId, s32 bitmapDataId, ParticleTextEffectConfig* effectConfig, Vec* destinationCenter) {
+    Vec pixelPosition;
+    ANIMBMP* bitmapData;
+    s32 bitmapPixelCount;
+    s32 particleModelId;
+    s32 opaquePixelCount;
+    u16* bitmapPixel;
+    ANIMDATA* bitmapAnimation;
+    Vec* destinationPosition;
+    ParticleTextEffectProcessState* particleHookData;
+    s16 pixelColumn;
+    s16 pixelRow;
 
-    var_r24 = HuSprAnimReadFile(arg0);
-    arg2->unk28 = var_r24;
-    temp_r31 = var_r24->bmp;
-    sp10 = temp_r31->sizeX * temp_r31->sizeY;
-    var_r25 = temp_r31->data;
-    for (var_r28 = var_r26 = 0; var_r28 < temp_r31->sizeY; var_r28 += 2) {
-        for (var_r29 = 0; var_r29 < temp_r31->sizeX; var_r29 += 2) {
-            var_r25 = (u16*) temp_r31->data + ((var_r28 % 4) * 4 + (var_r28 / 4) * temp_r31->sizeX * 4 + (var_r29 / 4) * 16 + var_r29 % 4);
-            if (*var_r25 != 0x8000) {
-                var_r26++;
+    bitmapAnimation = HuSprAnimReadFile(animationFileId);
+    effectConfig->sourceAnimation = bitmapAnimation;
+    bitmapData = bitmapAnimation->bmp;
+    bitmapPixelCount = bitmapData->sizeX * bitmapData->sizeY;
+    bitmapPixel = bitmapData->data;
+    for (pixelRow = opaquePixelCount = 0; pixelRow < bitmapData->sizeY; pixelRow += 2) {
+        for (pixelColumn = 0; pixelColumn < bitmapData->sizeX; pixelColumn += 2) {
+            bitmapPixel = (u16*) bitmapData->data + ((pixelRow % 4) * 4 + (pixelRow / 4) * bitmapData->sizeX * 4 + (pixelColumn / 4) * 16 + pixelColumn % 4);
+            if (*bitmapPixel != 0x8000) {
+                opaquePixelCount++;
             }
         }
     }
-    arg2->unk20 = var_r26;
-    var_r22 = arg2->unk00 = HuMemDirectMallocNum(HEAP_HEAP, var_r26 * sizeof(*var_r22), HU_MEMNUM_OVL);
-    arg2->unk1C = temp_r31->sizeX;
-    arg2->unk1E = temp_r31->sizeY;
-    Hu3D2Dto3D(arg3, 1, &arg2->unk10);
-    for (var_r28 = 0; var_r28 < temp_r31->sizeY; var_r28 += 2) {
-        for (var_r29 = 0; var_r29 < temp_r31->sizeX; var_r29 += 2) {
-            var_r25 = (u16*) temp_r31->data + ((var_r28 % 4) * 4 + (var_r28 / 4) * temp_r31->sizeX * 4 + (var_r29 / 4) * 16 + var_r29 % 4);
-            if (*var_r25 != 0x8000) {
-                sp14 = *arg3;
-                sp14.x = sp14.x + var_r29 - temp_r31->sizeX / 2;
-                sp14.y = sp14.y + var_r28 - temp_r31->sizeY / 2;
-                Hu3D2Dto3D(&sp14, 1, var_r22);
-                var_r22++;
+    effectConfig->particleCount = opaquePixelCount;
+    destinationPosition = effectConfig->destinationPositions = HuMemDirectMallocNum(HEAP_HEAP, opaquePixelCount * sizeof(*destinationPosition), HU_MEMNUM_OVL);
+    effectConfig->textureWidth = bitmapData->sizeX;
+    effectConfig->textureHeight = bitmapData->sizeY;
+    Hu3D2Dto3D(destinationCenter, 1, &effectConfig->destinationCenter);
+    for (pixelRow = 0; pixelRow < bitmapData->sizeY; pixelRow += 2) {
+        for (pixelColumn = 0; pixelColumn < bitmapData->sizeX; pixelColumn += 2) {
+            bitmapPixel = (u16*) bitmapData->data + ((pixelRow % 4) * 4 + (pixelRow / 4) * bitmapData->sizeX * 4 + (pixelColumn / 4) * 16 + pixelColumn % 4);
+            if (*bitmapPixel != 0x8000) {
+                pixelPosition = *destinationCenter;
+                pixelPosition.x = pixelPosition.x + pixelColumn - bitmapData->sizeX / 2;
+                pixelPosition.y = pixelPosition.y + pixelRow - bitmapData->sizeY / 2;
+                Hu3D2Dto3D(&pixelPosition, 1, destinationPosition);
+                destinationPosition++;
             }
         }
     }
-    HuSprAnimKill(var_r24);
-    var_r24 = HuSprAnimRead(HuDataRead(arg1));
-    var_r27 = Hu3DParticleCreate(var_r24, var_r26);
-    arg2->unk22 = var_r27;
-    Hu3DModelPosSet(var_r27, 0.0f, 0.0f, 0.0f);
-    Hu3DModelLayerSet(var_r27, 1);
-    Hu3DParticleColSet(var_r27, 0xFF, 0xFF, 0xA);
-    Hu3DParticleScaleSet(var_r27, 20.0f);
-    Hu3DParticleHookSet(var_r27, fn_1_1E820);
-    Hu3DParticleBlendModeSet(var_r27, 1);
-    Hu3DParticleAttrSet(var_r27, 2);
-    temp_r23 = Hu3DData[var_r27].hookData;
-    temp_r23->unk1C = arg2;
-    temp_r23->unk00 = 0;
-    OSReport("Particle Count %d\n", var_r26);
+    HuSprAnimKill(bitmapAnimation);
+    bitmapAnimation = HuSprAnimRead(HuDataRead(bitmapDataId));
+    particleModelId = Hu3DParticleCreate(bitmapAnimation, opaquePixelCount);
+    effectConfig->particleModelId = particleModelId;
+    Hu3DModelPosSet(particleModelId, 0.0f, 0.0f, 0.0f);
+    Hu3DModelLayerSet(particleModelId, 1);
+    Hu3DParticleColSet(particleModelId, 0xFF, 0xFF, 0xA);
+    Hu3DParticleScaleSet(particleModelId, 20.0f);
+    Hu3DParticleHookSet(particleModelId, Story3UpdateParticleTextParticles);
+    Hu3DParticleBlendModeSet(particleModelId, 1);
+    Hu3DParticleAttrSet(particleModelId, 2);
+    particleHookData = Hu3DData[particleModelId].hookData;
+    particleHookData->effectConfig = effectConfig;
+    particleHookData->completionState = 0;
+    OSReport("Particle Count %d\n", opaquePixelCount);
 }
 
-void fn_1_1E558(void) {
-    float var_f31;
-    float var_f30;
-    float temp_f29;
-    s16* temp_r30;
-    s16* temp_r29;
+Void Story3RunParticleTextEffect(Void) {
+    float pulseAngle;
+    float pulseAngularSpeed;
+    float spriteAlpha;
+    s16* firstParticleHookState;
+    s16* secondParticleHookState;
     s16 i;
 
-    var_f31 = 0.0f;
-    var_f30 = 0.0f;
-    while (lbl_1_bss_1CF4 == 0) {
+    pulseAngle = 0.0f;
+    pulseAngularSpeed = 0.0f;
+    while (particleTextEffectInitialized == 0) {
         HuPrcVSleep();
     }
-    Hu3DParticleAttrReset(lbl_1_bss_1CF8->unk22, 2);
+    Hu3DParticleAttrReset(particleTextEffectConfigs->particleModelId, 2);
     HuPrcSleep(20);
-    Hu3DParticleAttrReset(lbl_1_bss_1CF8[1].unk22, 2);
-    temp_r30 = Hu3DData[lbl_1_bss_1CF8[0].unk22].hookData;
-    temp_r29 = Hu3DData[lbl_1_bss_1CF8[1].unk22].hookData;
-    while (*temp_r30 == 0 || *temp_r29 == 0) {
+    Hu3DParticleAttrReset(particleTextEffectConfigs[1].particleModelId, 2);
+    firstParticleHookState = Hu3DData[particleTextEffectConfigs[0].particleModelId].hookData;
+    secondParticleHookState = Hu3DData[particleTextEffectConfigs[1].particleModelId].hookData;
+    while (*firstParticleHookState == 0 || *secondParticleHookState == 0) {
         HuPrcVSleep();
     }
     for (i = 0; i <= 20; i++) {
-        temp_f29 = i / 20.0f;
-        HuSprTPLvlSet(lbl_1_bss_1CE8, 0, temp_f29);
+        spriteAlpha = i / 20.0f;
+        HuSprTPLvlSet(particleTextSpriteGroup, 0, spriteAlpha);
         HuPrcVSleep();
     }
     OSReport("Finish\n");
     for (i = 0; i < 2; i++) {
-        Hu3DModelKill(lbl_1_bss_1CF8[i].unk22);
-        HuSprAnimKill(lbl_1_bss_1CF8[i].unk28);
+        Hu3DModelKill(particleTextEffectConfigs[i].particleModelId);
+        HuSprAnimKill(particleTextEffectConfigs[i].sourceAnimation);
     }
-    lbl_1_bss_1CF0 = 1;
+    particleTextEffectComplete = 1;
     while (TRUE) {
-        if (lbl_1_bss_1CEC != 0) {
+        if (particleTextEffectStopping != 0) {
             break;
         }
-        var_f31 += var_f30;
-        if (var_f31 > 360.0f) {
-            var_f31 -= 360.0f;
+        pulseAngle += pulseAngularSpeed;
+        if (pulseAngle > 360.0f) {
+            pulseAngle -= 360.0f;
         }
-        var_f30 += 0.5;
-        if (var_f30 > 10.0f) {
-            var_f30 = 10.0f;
+        pulseAngularSpeed += 0.5;
+        if (pulseAngularSpeed > 10.0f) {
+            pulseAngularSpeed = 10.0f;
         }
-        temp_f29 = 1.0 + 0.25 * sind(var_f31);
-        HuSprScaleSet(lbl_1_bss_1CE8, 0, temp_f29, temp_f29);
+        spriteAlpha = 1.0 + 0.25 * sind(pulseAngle);
+        HuSprScaleSet(particleTextSpriteGroup, 0, spriteAlpha, spriteAlpha);
         HuPrcVSleep();
     }
-    HuSprGrpKill(lbl_1_bss_1CE8);
+    HuSprGrpKill(particleTextSpriteGroup);
     HuPrcEnd();
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-void fn_1_1E820(HU3DMODEL* model, HU3DPARTICLE* particle, Mtx matrix) {
-    Vec sp8;
-    float temp_f30;
-    float temp_f31;
-    s16 var_r22;
-    s16 var_r29;
-    StructBss1CF8* temp_r28;
-    HU3DPARTICLEDATA* var_r31;
-    s16 var_r27;
-    s16 temp_r25;
-    s16 temp_r24;
-    s16 temp_r21;
-    s16 temp_r26;
-    s16 temp_r20;
-    s16 var_r23;
+Void Story3UpdateParticleTextParticles(HU3DMODEL* model, HU3DPARTICLE* particle, Mtx matrix) {
+    Vec particleDelta;
+    float particleJitter;
+    float travelSpeed;
+    s16 spawnIndex;
+    s16 particleIndex;
+    ParticleTextEffectConfig* effectConfig;
+    HU3DPARTICLEDATA* particleData;
+    s16 colorChannel;
+    s16 greenChannel;
+    s16 blueChannel;
+    s16 travelFrames;
+    s16 accelerationFrames;
+    s16 coastFrames;
+    s16 arrivedParticleCount;
 
-    temp_r28 = particle->work;
+    effectConfig = particle->work;
     if (particle->count == 0) {
-        var_r31 = particle->data;
-        for (var_r29 = 0; var_r29 < particle->maxCnt; var_r29++, var_r31++) {
-            var_r31->scale = 0.0f;
+        particleData = particle->data;
+        for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+            particleData->scale = 0.0f;
         }
     }
     if (particle->attr & 2) {
         return;
     }
-    temp_r21 = temp_r28->unk24 - (temp_r28->unk24 / 5.0f);
-    temp_r26 = temp_r21 / 2;
-    temp_r20 = temp_r21 - temp_r26;
-    PSVECSubtract(&temp_r28->unk04, &temp_r28->unk10, &sp8);
-    temp_f31 = PSVECMag(&sp8) / temp_r20;
-    for (var_r22 = 0; var_r22 < particle->maxCnt / (temp_r28->unk24 / 5.0f); var_r22++) {
-        var_r31 = particle->data;
-        for (var_r29 = 0; var_r29 < particle->maxCnt; var_r29++, var_r31++) {
-            if (!var_r31->scale) {
+    travelFrames = effectConfig->particleLifetimeFrames - (effectConfig->particleLifetimeFrames / 5.0f);
+    accelerationFrames = travelFrames / 2;
+    coastFrames = travelFrames - accelerationFrames;
+    PSVECSubtract(&effectConfig->emissionOrigin, &effectConfig->destinationCenter, &particleDelta);
+    travelSpeed = PSVECMag(&particleDelta) / coastFrames;
+    for (spawnIndex = 0; spawnIndex < particle->maxCnt / (effectConfig->particleLifetimeFrames / 5.0f); spawnIndex++) {
+        particleData = particle->data;
+        for (particleIndex = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+            if (!particleData->scale) {
                 break;
             }
         }
-        if (var_r29 == particle->maxCnt) {
+        if (particleIndex == particle->maxCnt) {
             break;
         }
-        var_r31->pos = temp_r28->unk04;
-        var_r27 = (frand8() * 360) >> 8;
-        temp_f30 = 0.2 * frand5();
-        var_r31->vel.x = temp_f30 * sind(var_r27);
-        var_r31->vel.y = 0.1 * (frand5() + 100);
-        var_r31->vel.z = temp_f30 * cosd(var_r27);
-        var_r31->color.r = 0xF0;
-        var_r31->color.g = 0x80;
-        var_r31->color.b = 0x60;
-        var_r31->scale = 10.0f;
-        var_r31->time = 0;
-        var_r31->parManId = 0;
-        var_r31->accel.x = frandmod(360);
+        particleData->pos = effectConfig->emissionOrigin;
+        colorChannel = (frand8() * 360) >> 8;
+        particleJitter = 0.2 * frand5();
+        particleData->vel.x = particleJitter * sind(colorChannel);
+        particleData->vel.y = 0.1 * (frand5() + 100);
+        particleData->vel.z = particleJitter * cosd(colorChannel);
+        particleData->color.r = 0xF0;
+        particleData->color.g = 0x80;
+        particleData->color.b = 0x60;
+        particleData->scale = 10.0f;
+        particleData->time = 0;
+        particleData->parManId = 0;
+        particleData->accel.x = frandmod(360);
     }
-    var_r31 = particle->data;
-    for (var_r29 = var_r23 = 0; var_r29 < particle->maxCnt; var_r29++, var_r31++) {
-        if (!var_r31->scale) {
+    particleData = particle->data;
+    for (particleIndex = arrivedParticleCount = 0; particleIndex < particle->maxCnt; particleIndex++, particleData++) {
+        if (!particleData->scale) {
             continue;
         }
-        if (var_r31->time == 0) {
-            PSVECAdd(&var_r31->vel, &var_r31->pos, &var_r31->pos);
-            var_r31->vel.x *= 0.999f;
-            var_r31->vel.y -= 0.5f;
-            var_r31->vel.z *= 0.999f;
-            if (var_r31->parManId > temp_r26 - (temp_r26 / 5.0)) {
-                PSVECScale(&var_r31->vel, &var_r31->vel, 1.0 - ((var_r31->parManId - (temp_r26 - temp_r26 / 5.0)) / (temp_r26 / 5.0)));
+        if (particleData->time == 0) {
+            PSVECAdd(&particleData->vel, &particleData->pos, &particleData->pos);
+            particleData->vel.x *= 0.999f;
+            particleData->vel.y -= 0.5f;
+            particleData->vel.z *= 0.999f;
+            if (particleData->parManId > accelerationFrames - (accelerationFrames / 5.0)) {
+                PSVECScale(&particleData->vel, &particleData->vel, 1.0 - ((particleData->parManId - (accelerationFrames - accelerationFrames / 5.0)) / (accelerationFrames / 5.0)));
             }
-            if (var_r31->parManId == temp_r26) {
-                var_r31->time++;
+            if (particleData->parManId == accelerationFrames) {
+                particleData->time++;
             }
-            if (var_r31->pos.y <= 0.0f) {
-                var_r31->vel.y = 0.5f * -var_r31->vel.y;
-                var_r31->pos.y = 0.0f;
+            if (particleData->pos.y <= 0.0f) {
+                particleData->vel.y = 0.5f * -particleData->vel.y;
+                particleData->pos.y = 0.0f;
             }
-        } else if (var_r31->time == 1) {
-            sp8 = temp_r28->unk00[var_r29];
-            PSVECSubtract(&sp8, &var_r31->pos, &sp8);
-            if (PSVECMag(&sp8) <= 1.0 + temp_f31) {
-                var_r23++;
-                var_r31->pos = temp_r28->unk00[var_r29];
-                var_r31->time++;
+        } else if (particleData->time == 1) {
+            particleDelta = effectConfig->destinationPositions[particleIndex];
+            PSVECSubtract(&particleDelta, &particleData->pos, &particleDelta);
+            if (PSVECMag(&particleDelta) <= 1.0 + travelSpeed) {
+                arrivedParticleCount++;
+                particleData->pos = effectConfig->destinationPositions[particleIndex];
+                particleData->time++;
                 continue;
             }
-            PSVECNormalize(&sp8, &sp8);
-            var_r31->vel.x = sp8.x * temp_f31 + sind(var_r31->accel.x);
-            var_r31->vel.y = sp8.y * temp_f31;
-            var_r31->vel.z = sp8.z * temp_f31;
-            PSVECAdd(&var_r31->vel, &var_r31->pos, &var_r31->pos);
-            var_r31->accel.x += 20.0f;
+            PSVECNormalize(&particleDelta, &particleDelta);
+            particleData->vel.x = particleDelta.x * travelSpeed + sind(particleData->accel.x);
+            particleData->vel.y = particleDelta.y * travelSpeed;
+            particleData->vel.z = particleDelta.z * travelSpeed;
+            PSVECAdd(&particleData->vel, &particleData->pos, &particleData->pos);
+            particleData->accel.x += 20.0f;
         } else {
-            var_r23++;
+            arrivedParticleCount++;
         }
-        if (var_r31->time >= 1) {
-            var_r27 = var_r31->color.r;
-            var_r27 += (var_r27 - 0xFF) / 20;
-            if (var_r27 > 0xFF) {
-                var_r31->color.r = 0xFF;
+        if (particleData->time >= 1) {
+            colorChannel = particleData->color.r;
+            colorChannel += (colorChannel - 0xFF) / 20;
+            if (colorChannel > 0xFF) {
+                particleData->color.r = 0xFF;
             } else {
-                var_r31->color.r = var_r27;
+                particleData->color.r = colorChannel;
             }
-            temp_r25 = var_r31->color.g;
-            temp_r25 += (temp_r25 - 0xFF) / 20;
-            if (temp_r25 > 0xFF) {
-                var_r31->color.g = 0xFF;
+            greenChannel = particleData->color.g;
+            greenChannel += (greenChannel - 0xFF) / 20;
+            if (greenChannel > 0xFF) {
+                particleData->color.g = 0xFF;
             } else {
-                var_r31->color.g = temp_r25;
+                particleData->color.g = greenChannel;
             }
-            temp_r24 = var_r31->color.b;
-            temp_r24 += (temp_r24 - 0x80) / 20;
-            if (temp_r24 > 0x80) {
-                var_r31->color.b = 0x80;
+            blueChannel = particleData->color.b;
+            blueChannel += (blueChannel - 0x80) / 20;
+            if (blueChannel > 0x80) {
+                particleData->color.b = 0x80;
             } else {
-                var_r31->color.b = temp_r24;
+                particleData->color.b = blueChannel;
             }
         }
-        var_r31->scale -= 0.2f;
-        if (var_r31->scale < 5.0f) {
-            var_r31->scale = 5.0f;
+        particleData->scale -= 0.2f;
+        if (particleData->scale < 5.0f) {
+            particleData->scale = 5.0f;
         }
-        var_r31->parManId++;
+        particleData->parManId++;
     }
     DCStoreRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
-    if (var_r23 >= particle->maxCnt) {
+    if (arrivedParticleCount >= particle->maxCnt) {
         particle->dataCnt++;
     }
 }
