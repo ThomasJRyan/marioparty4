@@ -17,647 +17,647 @@
 #endif
 
 typedef struct M421DllWork {
-    u32 unk_00;
-    s32 unk_04;
-    s32 unk_08;
-    u32 unk_0C;
-    s32 unk_10;
-    u32 unk_14;
-    u32 unk_18;
-    u32 unk_1C;
-    u32 unk_20;
-    u32 unk24;
-    u32 unk_28;
-    u32 unk_2C;
-    s32 unk_30[4];
-    s32 unk_40[4];
-    s32 unk_50[4];
-    u32 unk_60;
-    u32 unk_64;
-    u32 unk_68;
-    u32 unk_6C;
-    s32 unk_70;
+    u32 flowState;
+    s32 flowTimer;
+    s32 skipIntro;
+    u32 cameraMode;
+    s32 introTimer;
+    u32 resultState;
+    u32 resultTimer;
+    u32 resultCountdown;
+    u32 countdownFrame;
+    u32 reserved24;
+    u32 exitState;
+    u32 exitTimer;
+    s32 playerOrder[4];
+    s32 playerStatus[4];
+    s32 winnerPlayerIds[4];
+    u32 playerResultFlags;
+    u32 resultMode;
+    u32 playerReadyFlags;
+    u32 playerConfirmFlags;
+    s32 playerExitFlags;
 } M421DllWork; /* size = 0x74 */
 
-void fn_1_10EC(OMOBJ *object);
-void fn_1_142C(OMOBJ *object);
-void fn_1_1850(OMOBJ *object);
-void fn_1_1C90(OMOBJ *object);
-OMOBJFUNC fn_1_213C(HUPROCESS *process, OMOBJ *object);
-void fn_1_21AC(OMOBJ *object);
-OMOBJFUNC fn_1_2A28(HUPROCESS *process, OMOBJ *object);
-void fn_1_2BB8(OMOBJ *object);
-void fn_1_3020(HUPROCESS *process);
-void fn_1_30D0(OMOBJ *object);
-void fn_1_3334(OMOBJ *object);
-void fn_1_335C(OMOBJ *object);
-void fn_1_38FC(HU3DMODEL *model, Mtx mtx);
-void fn_1_3B50(u32 arg0);
-M421DllCameraStruct *fn_1_3B78(s32 arg0);
-M421DllCameraStruct *fn_1_3CB0(u32 arg0);
-float fn_1_4478(float arg8, float arg9, float argA);
-void fn_1_4A0(OMOBJ *object);
-void fn_1_784(OMOBJ *object);
-void fn_1_8B8(OMOBJ *object);
-void fn_1_CBC(OMOBJ *object);
+void MinigamePlayCallback(OMOBJ *object);
+void MinigameResultCallback(OMOBJ *object);
+void MinigameCountdownCallback(OMOBJ *object);
+void MinigameResultWaitCallback(OMOBJ *object);
+OMOBJFUNC StartCameraIntro(HUPROCESS *process, OMOBJ *object);
+void UpdateCameraIntro(OMOBJ *object);
+OMOBJFUNC StartResultsCamera(HUPROCESS *process, OMOBJ *object);
+void UpdateResultsCamera(OMOBJ *object);
+void CreateCameraManager(HUPROCESS *process);
+void InitializeCameras(OMOBJ *object);
+void UpdateCameraLayoutCallback(OMOBJ *object);
+void UpdateCameraLayout(OMOBJ *object);
+void DrawCameraBackground(HU3DMODEL *model, Mtx mtx);
+void SetCameraViewMode(u32 cameraIndex);
+M421DllCameraStruct *GetCameraForViewFlag(s32 cameraIndex);
+M421DllCameraStruct *GetCameraByIndex(u32 cameraIndex);
+float InterpolateAngle(float currentAngle, float targetAngle, float interpolation);
+void CreateMinigameWork(OMOBJ *object);
+void AdvanceMinigameFlow(OMOBJ *object);
+void MinigameMainCallback(OMOBJ *object);
+void MinigameExitCallback(OMOBJ *object);
 
-Vec lbl_1_data_0 = { 100.0f, 800.0f, -100.0f };
-Vec lbl_1_data_C = { 0.3f, -0.8f, 0.3f };
-Vec lbl_1_data_18 = { 10.0f, 45.0f, 3500.0f };
-GXColor lbl_1_data_24 = { 0xFF, 0xFF, 0xFF, 0xFF };
-Vec lbl_1_data_28 = { 50.0f, 150000.0f, 50.0f };
-Vec lbl_1_data_34 = { 0.0f, 1.0f, 0.0f };
-Vec lbl_1_data_40 = { 0.0f, 0.0f, 0.0f };
-Vec lbl_1_data_4C[3] = {
+Vec keyLightPosition = { 100.0f, 800.0f, -100.0f };
+Vec keyLightDirection = { 0.3f, -0.8f, 0.3f };
+Vec shadowLightRotation = { 10.0f, 45.0f, 3500.0f };
+GXColor keyLightColor = { 0xFF, 0xFF, 0xFF, 0xFF };
+Vec shadowPosition = { 50.0f, 150000.0f, 50.0f };
+Vec shadowUpDirection = { 0.0f, 1.0f, 0.0f };
+Vec shadowTarget = { 0.0f, 0.0f, 0.0f };
+Vec cameraIntroPositions[3] = {
     { 0.0f, 200.0f, -50.0f },
     { 0.0f, 200.0f, -50.0f },
     { 0.0f, 200.0f, -50.0f },
 };
-Vec lbl_1_data_70[3] = {
+Vec cameraIntroTargets[3] = {
     { -37.5f, 0.0f, 1500.0f },
     { -37.5f, 0.0f, 1500.0f },
     { -37.5f, 0.0f, 2300.0f },
 };
-s32 lbl_1_data_94[3] = { REFRESH_RATE * 4, REFRESH_RATE / 2, 0 };
-GXColor lbl_1_data_A0 = { 0, 0, 0, 0 };
+s32 cameraIntroDurations[3] = { REFRESH_RATE * 4, REFRESH_RATE / 2, 0 };
+GXColor transparentBlack = { 0, 0, 0, 0 };
 
-HUPROCESS *lbl_1_bss_28;
-OMOBJ *lbl_1_bss_24;
-OMOBJ *lbl_1_bss_20;
+HUPROCESS *objectManager;
+OMOBJ *minigameObject;
+OMOBJ *cameraOutputObject;
 // M421DllCameraStruct
-OMOBJ *lbl_1_bss_1C;
-s16 lbl_1_bss_18;
-s16 lbl_1_bss_12[3];
-s16 lbl_1_bss_10;
-s16 lbl_1_bss_E;
-s16 lbl_1_bss_C;
-s32 lbl_1_bss_8;
-s32 lbl_1_bss_4;
-s32 lbl_1_bss_0;
+OMOBJ *cameraManagerObject;
+s16 resultSequenceId;
+s16 globalLightIds[3];
+s16 countdownSequenceId;
+s16 introSequenceId;
+s16 winnerSequenceId;
+s32 cameraShakeTimer;
+s32 backgroundMusicSequenceId;
+s32 resultsMusicStreamId;
 
 void ObjectSetup(void)
 {
-    Mtx sp2C;
-    Vec sp20 = { 0.0f, 0.0f, 0.0f };
-    Vec sp14 = { 0.0f, 0.0f, -1.0f };
-    Vec sp8;
+    Mtx lightRotationMatrix;
+    Vec listenerPosition = { 0.0f, 0.0f, 0.0f };
+    Vec listenerForward = { 0.0f, 0.0f, -1.0f };
+    Vec lightPosition;
     HUPROCESS *process;
     HU3DLIGHT *lightData;
 
-    lbl_1_bss_8 = 0;
+    cameraShakeTimer = 0;
     HuAudSndGrpSet(0x2E);
     HuAudFXListnerSetEX(
-        &sp20, &sp14,
+        &listenerPosition, &listenerForward,
         11200.0f, (VERSION_PAL ? 4280.0f : 4166.6665f),
         0.0f, 300.0f, 0.0f
     );
-    lbl_1_bss_4 = lbl_1_bss_0 = -1;
-    lbl_1_bss_18 = -1;
-    lbl_1_data_28.x = 200.0f;
-    lbl_1_data_28.y = 1200.0f;
-    lbl_1_data_28.z = 160.0f;
-    lbl_1_data_34.x = 0.0f;
-    lbl_1_data_34.y = 1.0f;
-    lbl_1_data_34.z = 0.0f;
-    lbl_1_data_40.x = 0.0f;
-    lbl_1_data_40.y = 0.0f;
-    lbl_1_data_40.z = 0.0f;
+    backgroundMusicSequenceId = resultsMusicStreamId = -1;
+    resultSequenceId = -1;
+    shadowPosition.x = 200.0f;
+    shadowPosition.y = 1200.0f;
+    shadowPosition.z = 160.0f;
+    shadowUpDirection.x = 0.0f;
+    shadowUpDirection.y = 1.0f;
+    shadowUpDirection.z = 0.0f;
+    shadowTarget.x = 0.0f;
+    shadowTarget.y = 0.0f;
+    shadowTarget.z = 0.0f;
     Hu3DShadowCreate(22.0f, 20.0f, 25000.0f);
     Hu3DShadowTPLvlSet(0.625f);
-    Hu3DShadowPosSet(&lbl_1_data_28, &lbl_1_data_34, &lbl_1_data_40);
-    lbl_1_bss_12[0] = Hu3DGLightCreateV(&lbl_1_data_0, &lbl_1_data_C, &lbl_1_data_24);
-    Hu3DGLightInfinitytSet(lbl_1_bss_12[0]);
-    lightData = &Hu3DGlobalLight[lbl_1_bss_12[0]];
+    Hu3DShadowPosSet(&shadowPosition, &shadowUpDirection, &shadowTarget);
+    globalLightIds[0] = Hu3DGLightCreateV(&keyLightPosition, &keyLightDirection, &keyLightColor);
+    Hu3DGLightInfinitytSet(globalLightIds[0]);
+    lightData = &Hu3DGlobalLight[globalLightIds[0]];
     lightData->type |= 0x8000;
-    lbl_1_data_18.x = 1.0f;
-    lbl_1_data_18.y = 0.0f;
-    lbl_1_data_18.z = 4200.0f;
-    sp8.x = sp8.z = 0.0f;
-    sp8.y = lbl_1_data_18.z;
-    mtxRot(sp2C, lbl_1_data_18.x, lbl_1_data_18.y, 0.0f);
-    MTXMultVec(sp2C, &sp8, &lbl_1_data_28);
-    Hu3DGLightPosAimSetV(lbl_1_bss_12[0], &lbl_1_data_28, &lbl_1_data_40);
-    Hu3DShadowPosSet(&lbl_1_data_28, &lbl_1_data_34, &lbl_1_data_40);
-    lbl_1_bss_10 = lbl_1_bss_E = lbl_1_bss_C = -1;
+    shadowLightRotation.x = 1.0f;
+    shadowLightRotation.y = 0.0f;
+    shadowLightRotation.z = 4200.0f;
+    lightPosition.x = lightPosition.z = 0.0f;
+    lightPosition.y = shadowLightRotation.z;
+    mtxRot(lightRotationMatrix, shadowLightRotation.x, shadowLightRotation.y, 0.0f);
+    MTXMultVec(lightRotationMatrix, &lightPosition, &shadowPosition);
+    Hu3DGLightPosAimSetV(globalLightIds[0], &shadowPosition, &shadowTarget);
+    Hu3DShadowPosSet(&shadowPosition, &shadowUpDirection, &shadowTarget);
+    countdownSequenceId = introSequenceId = winnerSequenceId = -1;
     process = omInitObjMan(0x32, 0x2000);
-    lbl_1_bss_28 = process;
+    objectManager = process;
     omGameSysInit(process);
-    fn_1_3020(process);
-    lbl_1_bss_24 = omAddObjEx(process, 0xA, 0, 0, -1, fn_1_4A0);
-    fn_1_B15C(process);
-    fn_1_4648(process);
+    CreateCameraManager(process);
+    minigameObject = omAddObjEx(process, 0xA, 0, 0, -1, CreateMinigameWork);
+    CreateHost(process);
+    CreatePlayers(process);
 }
 
-void fn_1_4A0(OMOBJ *object)
+void CreateMinigameWork(OMOBJ *object)
 {
     M421DllWork *work;
 
     object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M421DllWork), HU_MEMNUM_OVL);
     work = object->data;
     memset(work, 0, sizeof(M421DllWork));
-    work->unk_00 = 0;
-    work->unk_04 = 0;
-    work->unk_0C = 0;
-    work->unk_10 = 0;
-    work->unk_14 = 0;
-    work->unk_18 = 0;
-    work->unk_28 = 0;
-    work->unk_2C = 0;
-    work->unk_08 = 0;
-    work->unk_64 = 2;
-    work->unk_50[0] = work->unk_50[1] = work->unk_50[2] = work->unk_50[3] = -1;
-    work->unk_68 = 0;
-    work->unk_70 = 0;
-    object->objFunc = fn_1_8B8;
+    work->flowState = 0;
+    work->flowTimer = 0;
+    work->cameraMode = 0;
+    work->introTimer = 0;
+    work->resultState = 0;
+    work->resultTimer = 0;
+    work->exitState = 0;
+    work->exitTimer = 0;
+    work->skipIntro = 0;
+    work->resultMode = 2;
+    work->winnerPlayerIds[0] = work->winnerPlayerIds[1] = work->winnerPlayerIds[2] = work->winnerPlayerIds[3] = -1;
+    work->playerReadyFlags = 0;
+    work->playerExitFlags = 0;
+    object->objFunc = MinigameMainCallback;
 }
 
-void fn_1_578(OMOBJ *object)
+void UpdateMinigame(OMOBJ *object)
 {
-    Vec sp14;
-    Vec sp8;
-    M421DllCameraStruct *var_r31;
+    Vec listenerPosition;
+    Vec listenerDirection;
+    M421DllCameraStruct *cameraWork;
 
     M421DllWork *work = object->data;
-    work->unk_04++;
-    work->unk_10++;
-    work->unk_18++;
-    work->unk_2C++;
-    if ((omSysExitReq != 0) && (work->unk_00 != 5)) {
-        work->unk_00 = 4;
-        fn_1_784(object);
+    work->flowTimer++;
+    work->introTimer++;
+    work->resultTimer++;
+    work->exitTimer++;
+    if ((omSysExitReq != 0) && (work->flowState != 5)) {
+        work->flowState = 4;
+        AdvanceMinigameFlow(object);
     }
-    var_r31 = fn_1_3B78(1);
-    sp8.x = -(sind(var_r31->unk_28.y) * cosd(var_r31->unk_28.x));
-    sp8.y = -(-sind(var_r31->unk_28.x));
-    sp8.z = -(cosd(var_r31->unk_28.y) * cosd(var_r31->unk_28.x));
-    sp14.x = var_r31->unk_1C.x - (sp8.x * var_r31->unk_34);
-    sp14.y = var_r31->unk_1C.y - (sp8.y * var_r31->unk_34);
-    sp14.z = var_r31->unk_1C.z - (sp8.z * var_r31->unk_34);
-    HuAudFXListnerUpdate(&sp14, &sp8);
+    cameraWork = GetCameraForViewFlag(1);
+    listenerDirection.x = -(sind(cameraWork->rotation.y) * cosd(cameraWork->rotation.x));
+    listenerDirection.y = -(-sind(cameraWork->rotation.x));
+    listenerDirection.z = -(cosd(cameraWork->rotation.y) * cosd(cameraWork->rotation.x));
+    listenerPosition.x = cameraWork->lookAtTarget.x - (listenerDirection.x * cameraWork->zoomDistance);
+    listenerPosition.y = cameraWork->lookAtTarget.y - (listenerDirection.y * cameraWork->zoomDistance);
+    listenerPosition.z = cameraWork->lookAtTarget.z - (listenerDirection.z * cameraWork->zoomDistance);
+    HuAudFXListnerUpdate(&listenerPosition, &listenerDirection);
 }
 
-void fn_1_784(OMOBJ *object)
+void AdvanceMinigameFlow(OMOBJ *object)
 {
     M421DllWork *work = object->data;
 
-    if (work->unk_08 == 0) {
-        switch (work->unk_00) {
+    if (work->skipIntro == 0) {
+        switch (work->flowState) {
             case 0:
                 WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 0x3C);
-                work->unk_00 = 1;
-                work->unk_10 = 0;
-                object->objFunc = fn_1_213C(lbl_1_bss_28, object);
+                work->flowState = 1;
+                work->introTimer = 0;
+                object->objFunc = StartCameraIntro(objectManager, object);
                 break;
             case 1:
-                work->unk_00 = 2;
-                work->unk_18 = 0;
-                object->objFunc = fn_1_142C;
+                work->flowState = 2;
+                work->resultTimer = 0;
+                object->objFunc = MinigameResultCallback;
                 break;
             case 2:
-                work->unk_00 = 3;
-                work->unk_2C = 0;
-                object->objFunc = fn_1_2A28(lbl_1_bss_28, object);
+                work->flowState = 3;
+                work->exitTimer = 0;
+                object->objFunc = StartResultsCamera(objectManager, object);
                 break;
             case 3:
             case 4:
-                work->unk_08 = 1;
-                work->unk_00 = 5;
-                object->objFunc = fn_1_CBC;
+                work->skipIntro = 1;
+                work->flowState = 5;
+                object->objFunc = MinigameExitCallback;
                 break;
             case 5:
             default:
-                work->unk_00 = 5;
-                object->objFunc = fn_1_10EC;
+                work->flowState = 5;
+                object->objFunc = MinigamePlayCallback;
         }
-        work->unk_04 = 0;
+        work->flowTimer = 0;
     }
 }
 
-void fn_1_8B8(OMOBJ *object)
+void MinigameMainCallback(OMOBJ *object)
 {
-    fn_1_578(object);
-    fn_1_784(object);
+    UpdateMinigame(object);
+    AdvanceMinigameFlow(object);
 }
 
-void fn_1_CBC(OMOBJ *object)
+void MinigameExitCallback(OMOBJ *object)
 {
     M421DllWork *work = object->data;
-    fn_1_578(object);
+    UpdateMinigame(object);
     if (WipeStatGet() == 0) {
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 0x3C);
-        work->unk_08 = 0;
-        fn_1_784(object);
+        work->skipIntro = 0;
+        AdvanceMinigameFlow(object);
     }
 }
 
-void fn_1_10EC(OMOBJ *object)
+void MinigamePlayCallback(OMOBJ *object)
 {
-    fn_1_578(object);
+    UpdateMinigame(object);
     if (WipeStatGet() == 0) {
-        fn_1_48B0();
-        fn_1_B1BC();
+        ResetPlayerMotion();
+        EmptyHostCallback();
         MGSeqKillAll();
         HuAudFadeOut(1);
         omOvlReturnEx(1, 1);
     }
 }
 
-void fn_1_142C(OMOBJ *object)
+void MinigameResultCallback(OMOBJ *object)
 {
     M421DllWork *work = object->data;
-    fn_1_578(object);
-    switch (work->unk_14) {
+    UpdateMinigame(object);
+    switch (work->resultState) {
         case 0:
-            work->unk_1C = 0x2D;
-            work->unk_20 = REFRESH_RATE;
-            lbl_1_bss_10 = MGSeqCreate(3, 0);
-            MGSeqPosSet(lbl_1_bss_10, 320.0f, 240.0f);
-            lbl_1_bss_18 = -1;
-            work->unk_14 = 1;
-            work->unk_18 = 0;
+            work->resultCountdown = 0x2D;
+            work->countdownFrame = REFRESH_RATE;
+            countdownSequenceId = MGSeqCreate(3, 0);
+            MGSeqPosSet(countdownSequenceId, 320.0f, 240.0f);
+            resultSequenceId = -1;
+            work->resultState = 1;
+            work->resultTimer = 0;
             break;
         case 1:
-            if ((lbl_1_bss_4 < 0) && ((MGSeqStatGet(lbl_1_bss_10) & 0x10) != 0)) {
-                lbl_1_bss_4 = HuAudSeqPlay(0x48);
+            if ((backgroundMusicSequenceId < 0) && ((MGSeqStatGet(countdownSequenceId) & 0x10) != 0)) {
+                backgroundMusicSequenceId = HuAudSeqPlay(0x48);
             }
-            if (MGSeqStatGet(lbl_1_bss_10) == 0 && (work->unk_08 == 0)) {
-                work->unk_14 = 2;
-                work->unk_18 = 0;
-                object->objFunc = fn_1_1850;
+            if (MGSeqStatGet(countdownSequenceId) == 0 && (work->skipIntro == 0)) {
+                work->resultState = 2;
+                work->resultTimer = 0;
+                object->objFunc = MinigameCountdownCallback;
             }
             break;
     }
 }
 
-void fn_1_1850(OMOBJ *object)
+void MinigameCountdownCallback(OMOBJ *object)
 {
     M421DllWork *work = object->data;
-    s32 var_r26 = 0;
-    fn_1_578(object);
-    if (--work->unk_20 == 0) {
-        work->unk_20 = REFRESH_RATE;
-        work->unk_1C--;
-        if ((work->unk_1C == 0) && (work->unk_64 == 2)) {
-            work->unk_64 = 1;
-            var_r26 = 1;
+    s32 resultReady = 0;
+    UpdateMinigame(object);
+    if (--work->countdownFrame == 0) {
+        work->countdownFrame = REFRESH_RATE;
+        work->resultCountdown--;
+        if ((work->resultCountdown == 0) && (work->resultMode == 2)) {
+            work->resultMode = 1;
+            resultReady = 1;
         }
     }
-    if (lbl_1_bss_18 < 0) {
-        lbl_1_bss_18 = MGSeqCreate(1, work->unk_1C, -1, -1);
+    if (resultSequenceId < 0) {
+        resultSequenceId = MGSeqCreate(1, work->resultCountdown, -1, -1);
     }
-    MGSeqParamSet(lbl_1_bss_18, 1, work->unk_1C);
-    if (work->unk_64 != 2) {
-        var_r26 = 1;
+    MGSeqParamSet(resultSequenceId, 1, work->resultCountdown);
+    if (work->resultMode != 2) {
+        resultReady = 1;
     }
-    if (var_r26 != 0) {
-        lbl_1_bss_E = MGSeqCreate(3, 1);
-        MGSeqPosSet(lbl_1_bss_E, 320.0f, 240.0f);
-        HuAudSeqFadeOut(lbl_1_bss_4, 0x64);
-        work->unk_14 = 3;
-        work->unk_18 = 0;
-        if (work->unk_08 == 0) {
-            object->objFunc = fn_1_1C90;
+    if (resultReady != 0) {
+        introSequenceId = MGSeqCreate(3, 1);
+        MGSeqPosSet(introSequenceId, 320.0f, 240.0f);
+        HuAudSeqFadeOut(backgroundMusicSequenceId, 0x64);
+        work->resultState = 3;
+        work->resultTimer = 0;
+        if (work->skipIntro == 0) {
+            object->objFunc = MinigameResultWaitCallback;
         }
     }
 }
 
-void fn_1_1C90(OMOBJ *object)
+void MinigameResultWaitCallback(OMOBJ *object)
 {
     M421DllWork *work = object->data;
-    s32 var_r25 = 0;
-    if (lbl_1_bss_18 >= 0) {
-        MGSeqParamSet(lbl_1_bss_18, 2, -1);
-        lbl_1_bss_18 = -1;
+    s32 resultReady = 0;
+    if (resultSequenceId >= 0) {
+        MGSeqParamSet(resultSequenceId, 2, -1);
+        resultSequenceId = -1;
     }
-    fn_1_578(object);
-    if (work->unk_14 == 3) {
-        var_r25 = 1;
-        if ((MGSeqStatGet(lbl_1_bss_E) == 0) && (work->unk_68 == 0x1111) && (var_r25 != 0)) {
-            work->unk_14 = 4;
-            work->unk_18 = 0;
+    UpdateMinigame(object);
+    if (work->resultState == 3) {
+        resultReady = 1;
+        if ((MGSeqStatGet(introSequenceId) == 0) && (work->playerReadyFlags == 0x1111) && (resultReady != 0)) {
+            work->resultState = 4;
+            work->resultTimer = 0;
         }
     }
     else {
-        work->unk_14 = 5;
-        work->unk_18 = 0;
-        fn_1_784(object);
+        work->resultState = 5;
+        work->resultTimer = 0;
+        AdvanceMinigameFlow(object);
     }
 }
 
-OMOBJFUNC fn_1_213C(HUPROCESS *process, OMOBJ *object)
+OMOBJFUNC StartCameraIntro(HUPROCESS *process, OMOBJ *object)
 {
-    M421DllCameraStruct *var_r31;
+    M421DllCameraStruct *cameraWork;
 
     object->work[0] = object->work[1] = 0;
-    fn_1_3B50(1);
-    var_r31 = fn_1_3CB0(0);
-    var_r31->unk_84 = 1.0f;
-    var_r31->unk_94 = 0;
-    return fn_1_21AC;
+    SetCameraViewMode(1);
+    cameraWork = GetCameraByIndex(0);
+    cameraWork->shakeIntensity = 1.0f;
+    cameraWork->shakeTimer = 0;
+    return UpdateCameraIntro;
 }
 
-void fn_1_21AC(OMOBJ *object)
+void UpdateCameraIntro(OMOBJ *object)
 {
-    Vec sp20;
-    float var_f31;
-    M421DllCameraStruct *var_r30;
+    Vec cameraPosition;
+    float transitionProgress;
+    M421DllCameraStruct *cameraWork;
     M421DllWork *work;
 
     work = object->data;
-    fn_1_578(object);
-    work->unk_0C = 1;
+    UpdateMinigame(object);
+    work->cameraMode = 1;
     object->work[0]++;
-    var_f31 = (float)object->work[0] / lbl_1_data_94[object->work[1]];
-    VECSubtract(&lbl_1_data_4C[object->work[1] + 1], &lbl_1_data_4C[object->work[1]], &sp20);
-    VECScale(&sp20, &sp20, var_f31);
-    VECAdd(&lbl_1_data_4C[object->work[1]], &sp20, &sp20);
-    Center.x = sp20.x;
-    Center.y = sp20.y;
-    Center.z = sp20.z;
-    VECSubtract(&lbl_1_data_70[object->work[1] + 1], &lbl_1_data_70[object->work[1]], &sp20);
-    VECScale(&sp20, &sp20, var_f31);
-    VECAdd(&lbl_1_data_70[object->work[1]], &sp20, &sp20);
-    CRot.x = sp20.x;
-    CRot.y = sp20.y;
+    transitionProgress = (float)object->work[0] / cameraIntroDurations[object->work[1]];
+    VECSubtract(&cameraIntroPositions[object->work[1] + 1], &cameraIntroPositions[object->work[1]], &cameraPosition);
+    VECScale(&cameraPosition, &cameraPosition, transitionProgress);
+    VECAdd(&cameraIntroPositions[object->work[1]], &cameraPosition, &cameraPosition);
+    Center.x = cameraPosition.x;
+    Center.y = cameraPosition.y;
+    Center.z = cameraPosition.z;
+    VECSubtract(&cameraIntroTargets[object->work[1] + 1], &cameraIntroTargets[object->work[1]], &cameraPosition);
+    VECScale(&cameraPosition, &cameraPosition, transitionProgress);
+    VECAdd(&cameraIntroTargets[object->work[1]], &cameraPosition, &cameraPosition);
+    CRot.x = cameraPosition.x;
+    CRot.y = cameraPosition.y;
     CRot.z = 0.0f;
-    CZoom = sp20.z;
-    var_r30 = fn_1_3CB0(0);
-    var_r30->unk_1C = Center;
-    var_r30->unk_28 = CRot;
-    var_r30->unk_34 = CZoom;
-    var_r30->unk_94++;
-    if (var_r30->unk_94 > REFRESH_RATE_F * 3) {
-        var_r30->unk_84 -= 1.5f * REFRESH_FREQ;
-        if (var_r30->unk_84 < 0.0f) {
-            var_r30->unk_84 = 0.0f;
+    CZoom = cameraPosition.z;
+    cameraWork = GetCameraByIndex(0);
+    cameraWork->lookAtTarget = Center;
+    cameraWork->rotation = CRot;
+    cameraWork->zoomDistance = CZoom;
+    cameraWork->shakeTimer++;
+    if (cameraWork->shakeTimer > REFRESH_RATE_F * 3) {
+        cameraWork->shakeIntensity -= 1.5f * REFRESH_FREQ;
+        if (cameraWork->shakeIntensity < 0.0f) {
+            cameraWork->shakeIntensity = 0.0f;
         }
-        var_r30->unk_1C.x += var_r30->unk_84 * ((0.02f * frandmod(0x3E8)) - 10.0f);
-        var_r30->unk_1C.y += var_r30->unk_84 * ((0.02f * frandmod(0x3E8)) - 10.0f);
-        var_r30->unk_1C.z += var_r30->unk_84 * ((0.02f * frandmod(0x3E8)) - 10.0f);
+        cameraWork->lookAtTarget.x += cameraWork->shakeIntensity * ((0.02f * frandmod(0x3E8)) - 10.0f);
+        cameraWork->lookAtTarget.y += cameraWork->shakeIntensity * ((0.02f * frandmod(0x3E8)) - 10.0f);
+        cameraWork->lookAtTarget.z += cameraWork->shakeIntensity * ((0.02f * frandmod(0x3E8)) - 10.0f);
     }
-    if (var_f31 >= 1.0f) {
+    if (transitionProgress >= 1.0f) {
         object->work[0] = 0;
         object->work[1]++;
-        if (lbl_1_data_94[object->work[1]] == 0) {
-            work->unk_0C = 2;
-            fn_1_784(object);
+        if (cameraIntroDurations[object->work[1]] == 0) {
+            work->cameraMode = 2;
+            AdvanceMinigameFlow(object);
         }
     }
 }
 
-OMOBJFUNC fn_1_2A28(HUPROCESS *process, OMOBJ *object)
+OMOBJFUNC StartResultsCamera(HUPROCESS *process, OMOBJ *object)
 {
-    M421DllCameraStruct *var_r31;
-    s32 var_r30;
-    M421DllWork *var_r29;
-    s32 var_r28;
+    M421DllCameraStruct *cameraWork;
+    s32 playerIndex;
+    M421DllWork *resultWork;
+    s32 awardWinners;
 
-    var_r29 = object->data;
-    var_r28 = 1;
-    var_r31 = fn_1_3CB0(0);
-    if (var_r29->unk_64 == 1) {
-        var_r28 = 0;
+    resultWork = object->data;
+    awardWinners = 1;
+    cameraWork = GetCameraByIndex(0);
+    if (resultWork->resultMode == 1) {
+        awardWinners = 0;
     }
-    for (var_r30 = 0; var_r30 < 4; var_r30++) {
-        var_r29->unk_50[var_r30] = -1;
-        if ((var_r29->unk_40[var_r30] == 0) == var_r28) {
-            var_r29->unk_50[var_r30] = var_r29->unk_30[var_r30];
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        resultWork->winnerPlayerIds[playerIndex] = -1;
+        if ((resultWork->playerStatus[playerIndex] == 0) == awardWinners) {
+            resultWork->winnerPlayerIds[playerIndex] = resultWork->playerOrder[playerIndex];
         }
     }
-    for (var_r30 = 0; var_r30 < 4; var_r30++) {
-        if (var_r29->unk_50[var_r30] >= 0) {
-            GWPlayerCoinWinAdd(var_r30, 10);
+    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+        if (resultWork->winnerPlayerIds[playerIndex] >= 0) {
+            GWPlayerCoinWinAdd(playerIndex, 10);
         }
     }
-    var_r31->unk_54 = 0.0f;
-    var_r31->unk_58 = 150.0f;
-    var_r31->unk_5C = 0.0f;
-    var_r31->unk_60 = -30.0f;
-    var_r31->unk_64 = 0.0f;
-    var_r31->unk_68 = 1000.0f;
-    var_r31->unk_84 = 0.0f;
-    return fn_1_2BB8;
+    cameraWork->targetPositionX = 0.0f;
+    cameraWork->targetPositionY = 150.0f;
+    cameraWork->targetPositionZ = 0.0f;
+    cameraWork->targetPitch = -30.0f;
+    cameraWork->targetYaw = 0.0f;
+    cameraWork->targetZoom = 1000.0f;
+    cameraWork->shakeIntensity = 0.0f;
+    return UpdateResultsCamera;
 }
 
-void fn_1_2BB8(OMOBJ *var_r29)
+void UpdateResultsCamera(OMOBJ *object)
 {
-    M421DllCameraStruct *var_r31;
-    M421DllWork *var_r28;
+    M421DllCameraStruct *cameraWork;
+    M421DllWork *resultWork;
 
-    var_r28 = var_r29->data;
-    var_r31 = fn_1_3CB0(0);
-    fn_1_578(var_r29);
-    var_r31->unk_84 += REFRESH_FREQ * 0.1f;
-    if (var_r31->unk_84 > 0.1f) {
-        var_r31->unk_84 = 0.1f;
+    resultWork = object->data;
+    cameraWork = GetCameraByIndex(0);
+    UpdateMinigame(object);
+    cameraWork->shakeIntensity += REFRESH_FREQ * 0.1f;
+    if (cameraWork->shakeIntensity > 0.1f) {
+        cameraWork->shakeIntensity = 0.1f;
     }
-    var_r31->unk_1C.y += var_r31->unk_84 * (var_r31->unk_58 - var_r31->unk_1C.y);
-    var_r31->unk_1C.z += var_r31->unk_84 * (var_r31->unk_5C - var_r31->unk_1C.z);
-    var_r31->unk_28.x = fn_1_4478(var_r31->unk_28.x, var_r31->unk_60, var_r31->unk_84);
-    var_r31->unk_34 += var_r31->unk_84 * (var_r31->unk_68 - var_r31->unk_34);
-    if (var_r28->unk_6C == 0x1111) {
-        var_r28->unk_28 = 1;
-        if (lbl_1_bss_0 < 0) {
-            lbl_1_bss_0 = HuAudSStreamPlay(1);
+    cameraWork->lookAtTarget.y += cameraWork->shakeIntensity * (cameraWork->targetPositionY - cameraWork->lookAtTarget.y);
+    cameraWork->lookAtTarget.z += cameraWork->shakeIntensity * (cameraWork->targetPositionZ - cameraWork->lookAtTarget.z);
+    cameraWork->rotation.x = InterpolateAngle(cameraWork->rotation.x, cameraWork->targetPitch, cameraWork->shakeIntensity);
+    cameraWork->zoomDistance += cameraWork->shakeIntensity * (cameraWork->targetZoom - cameraWork->zoomDistance);
+    if (resultWork->playerConfirmFlags == 0x1111) {
+        resultWork->exitState = 1;
+        if (resultsMusicStreamId < 0) {
+            resultsMusicStreamId = HuAudSStreamPlay(1);
         }
-        if (lbl_1_bss_C < 0) {
-            lbl_1_bss_C = MGSeqCreate(5, 3, var_r28->unk_50[0], var_r28->unk_50[1], var_r28->unk_50[2], var_r28->unk_50[3]);
+        if (winnerSequenceId < 0) {
+            winnerSequenceId = MGSeqCreate(5, 3, resultWork->winnerPlayerIds[0], resultWork->winnerPlayerIds[1], resultWork->winnerPlayerIds[2], resultWork->winnerPlayerIds[3]);
             return;
         }
-        if ((MGSeqStatGet(lbl_1_bss_C) == 0) && (var_r28->unk_2C >= REFRESH_RATE_F * 3.5f)) {
-            var_r28->unk_28 = 2;
-            fn_1_784(var_r29);
+        if ((MGSeqStatGet(winnerSequenceId) == 0) && (resultWork->exitTimer >= REFRESH_RATE_F * 3.5f)) {
+            resultWork->exitState = 2;
+            AdvanceMinigameFlow(object);
         }
     }
 }
 
-void fn_1_3020(HUPROCESS *process)
+void CreateCameraManager(HUPROCESS *process)
 {
     Hu3DCameraCreate(0x1F);
-    lbl_1_bss_20 = omAddObjEx(process, 0x7FDA, 0, 0, -1, omOutViewMulti);
-    lbl_1_bss_20->work[0] = 5;
-    lbl_1_bss_1C = omAddObjEx(process, 0xC, 1, 0, -1, fn_1_30D0);
-    lbl_1_bss_1C->work[0] = 0;
+    cameraOutputObject = omAddObjEx(process, 0x7FDA, 0, 0, -1, omOutViewMulti);
+    cameraOutputObject->work[0] = 5;
+    cameraManagerObject = omAddObjEx(process, 0xC, 1, 0, -1, InitializeCameras);
+    cameraManagerObject->work[0] = 0;
 }
 
-void fn_1_30D0(OMOBJ *object)
+void InitializeCameras(OMOBJ *object)
 {
-    UnkM421DllStruct sp1C[5] = {
+    M421DllViewport viewportLayouts[5] = {
         { 320.0f, 240.0f, 640.0f, 480.0f },
         { 160.0f, 120.0f, 320.0f, 240.0f },
         { 160.0f, 360.0f, 320.0f, 240.0f },
         { 480.0f, 120.0f, 320.0f, 240.0f },
         { 480.0f, 360.0f, 320.0f, 240.0f },
     };
-    s32 sp8[5] = { 1, 2, 4, 8, 16 };
-    M421DllCameraStruct *var_r31;
-    s32 var_r29;
-    M421DllCameraStruct *var_r28;
+    s32 cameraFlags[5] = { 1, 2, 4, 8, 16 };
+    M421DllCameraStruct *cameraWork;
+    s32 cameraIndex;
+    M421DllCameraStruct *cameraWorkArray;
 
     object->data = HuMemDirectMallocNum(HEAP_HEAP, 10 * sizeof(M421DllCameraStruct), HU_MEMNUM_OVL);
-    var_r28 = object->data;
-    memset(var_r28, 0, 10 * sizeof(M421DllCameraStruct));
-    object->mdlId[0] = Hu3DHookFuncCreate(fn_1_38FC);
+    cameraWorkArray = object->data;
+    memset(cameraWorkArray, 0, 10 * sizeof(M421DllCameraStruct));
+    object->mdlId[0] = Hu3DHookFuncCreate(DrawCameraBackground);
     Hu3DModelLayerSet(object->mdlId[0], 0);
     Hu3DModelCameraSet(object->mdlId[0], 0x1E);
-    for (var_r31 = var_r28, var_r29 = 0; var_r29 < 5; var_r29++, var_r31++) {
-        var_r31->unk_00 = 1;
-        var_r31->unk_04 = var_r29 * 0x64;
-        var_r31->unk_10 = 41.5f;
-        var_r31->unk_14 = 100.0f;
-        var_r31->unk_18 = 5500.0f;
-        var_r31->unk_1C.x = 0.0f;
-        var_r31->unk_1C.y = 0.0f;
-        var_r31->unk_1C.z = 0.0f;
-        var_r31->unk_28.x = -15.0f;
-        var_r31->unk_28.y = 0.0f;
-        var_r31->unk_28.z = 0.0f;
-        var_r31->unk_34 = 1000.0f;
-        var_r31->unk_40 = 1.0f;
-        var_r31->unk_44.unk_00 = sp1C[var_r29].unk_00;
-        var_r31->unk_44.unk_04 = sp1C[var_r29].unk_04;
-        var_r31->unk_44.unk_08 = sp1C[var_r29].unk_08;
-        var_r31->unk_44.unk_0C = sp1C[var_r29].unk_0C;
-        var_r31->unk_3C = var_r31->unk_0C = sp8[var_r29];
-        var_r31->unk_08 = var_r29;
-        var_r31->unk_38 = var_r29;
+    for (cameraWork = cameraWorkArray, cameraIndex = 0; cameraIndex < 5; cameraIndex++, cameraWork++) {
+        cameraWork->isActive = 1;
+        cameraWork->sortPriority = cameraIndex * 0x64;
+        cameraWork->fieldOfView = 41.5f;
+        cameraWork->nearClip = 100.0f;
+        cameraWork->farClip = 5500.0f;
+        cameraWork->lookAtTarget.x = 0.0f;
+        cameraWork->lookAtTarget.y = 0.0f;
+        cameraWork->lookAtTarget.z = 0.0f;
+        cameraWork->rotation.x = -15.0f;
+        cameraWork->rotation.y = 0.0f;
+        cameraWork->rotation.z = 0.0f;
+        cameraWork->zoomDistance = 1000.0f;
+        cameraWork->viewportScale = 1.0f;
+        cameraWork->viewport.centerX = viewportLayouts[cameraIndex].centerX;
+        cameraWork->viewport.centerY = viewportLayouts[cameraIndex].centerY;
+        cameraWork->viewport.width = viewportLayouts[cameraIndex].width;
+        cameraWork->viewport.height = viewportLayouts[cameraIndex].height;
+        cameraWork->cameraId = cameraWork->viewFlags = cameraFlags[cameraIndex];
+        cameraWork->viewIndex = cameraIndex;
+        cameraWork->outputCameraIndex = cameraIndex;
     }
     object->work[1] = 0;
     object->work[0]++;
-    fn_1_335C(object);
-    object->objFunc = fn_1_3334;
+    UpdateCameraLayout(object);
+    object->objFunc = UpdateCameraLayoutCallback;
 }
 
-void fn_1_3334(OMOBJ *object)
+void UpdateCameraLayoutCallback(OMOBJ *object)
 {
-    fn_1_335C(object);
+    UpdateCameraLayout(object);
 }
 
-void fn_1_335C(OMOBJ *object)
+void UpdateCameraLayout(OMOBJ *object)
 {
-    float var_f31;
-    M421DllCameraStruct *var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    M421DllCameraStruct *var_r27;
-    u32 var_r26;
-    u32 var_r25;
-    s32 var_r24;
-    u32 var_r23;
-    u32 var_r22;
-    u32 var_r21;
+    float aspectRatio;
+    M421DllCameraStruct *cameraWork;
+    s32 cameraIndex;
+    s32 splitIndex;
+    M421DllCameraStruct *cameraWorkArray;
+    u32 activeViewFlags;
+    u32 sortValue;
+    s32 layoutMode;
+    u32 scissorTop;
+    u32 scissorWidth;
+    u32 scissorHeight;
 
-    var_r27 = object->data;
+    cameraWorkArray = object->data;
     {
-        s32 sp40[4] = { 2, 4, 8, 16 };
-        u32 sp30[4];
-        s32 sp20[4];
-        float sp10[4];
-        float sp8[2];
-        var_r24 = 0;
-        var_r26 = 0;
-        memcpy(&var_r27[5], var_r27, 5 * sizeof(M421DllCameraStruct));
+        s32 layoutPriority[4] = { 2, 4, 8, 16 };
+        u32 layoutSortValues[4];
+        s32 layoutOrder[4];
+        float viewport[4];
+        float scissorSize[2];
+        layoutMode = 0;
+        activeViewFlags = 0;
+        memcpy(&cameraWorkArray[5], cameraWorkArray, 5 * sizeof(M421DllCameraStruct));
         switch (object->work[1]) {
             case 0:
                 break;
             case 1:
-                var_r26 |= 1;
+                activeViewFlags |= 1;
                 break;
             case 2:
-                var_r26 |= 1;
+                activeViewFlags |= 1;
             case 3:
-                var_r24 = 1;
+                layoutMode = 1;
             case 4:
-                var_r26 |= 0x1E;
+                activeViewFlags |= 0x1E;
                 break;
         }
-        if (var_r24 != 0) {
+        if (layoutMode != 0) {
             Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
         }
         else {
             Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
         }
-        for (var_r30 = 0; var_r30 < 4; var_r30++) {
-            sp30[var_r30] = var_r27[var_r30 + 6].unk_04;
-            sp20[var_r30] = var_r30;
+        for (cameraIndex = 0; cameraIndex < 4; cameraIndex++) {
+            layoutSortValues[cameraIndex] = cameraWorkArray[cameraIndex + 6].sortPriority;
+            layoutOrder[cameraIndex] = cameraIndex;
         }
-        for (var_r30 = 0; var_r30 < 3; var_r30++) {
-            for (var_r29 = var_r30 + 1; var_r29 < 4; var_r29++) {
-                if ((var_r30 != var_r29) && (sp30[var_r30] > sp30[var_r29])) {
-                    var_r25 = sp30[var_r30];
-                    sp30[var_r30] = sp30[var_r29];
-                    sp30[var_r29] = var_r25;
-                    var_r25 = sp20[var_r30];
-                    sp20[var_r30] = sp20[var_r29];
-                    sp20[var_r29] = var_r25;
+        for (cameraIndex = 0; cameraIndex < 3; cameraIndex++) {
+            for (splitIndex = cameraIndex + 1; splitIndex < 4; splitIndex++) {
+                if ((cameraIndex != splitIndex) && (layoutSortValues[cameraIndex] > layoutSortValues[splitIndex])) {
+                    sortValue = layoutSortValues[cameraIndex];
+                    layoutSortValues[cameraIndex] = layoutSortValues[splitIndex];
+                    layoutSortValues[splitIndex] = sortValue;
+                    sortValue = layoutOrder[cameraIndex];
+                    layoutOrder[cameraIndex] = layoutOrder[splitIndex];
+                    layoutOrder[splitIndex] = sortValue;
                 }
             }
         }
-        for (var_r30 = 0; var_r30 < 4; var_r30++) {
-            var_r27[sp20[var_r30] + 6].unk_3C = sp40[var_r30];
-            var_r27[sp20[var_r30] + 6].unk_38 = var_r30 + 1;
+        for (cameraIndex = 0; cameraIndex < 4; cameraIndex++) {
+            cameraWorkArray[layoutOrder[cameraIndex] + 6].cameraId = layoutPriority[cameraIndex];
+            cameraWorkArray[layoutOrder[cameraIndex] + 6].outputCameraIndex = cameraIndex + 1;
         }
 
-        for (var_r31 = &var_r27[5], var_r30 = 0; var_r30 < 5; var_r30++, var_r31++) {
-            if ((var_r31->unk_00 == 0) || ((var_r26 & var_r31->unk_0C) == 0)) {
-                Hu3DCamera[var_r31->unk_38].fov = -1.0f;
+        for (cameraWork = &cameraWorkArray[5], cameraIndex = 0; cameraIndex < 5; cameraIndex++, cameraWork++) {
+            if ((cameraWork->isActive == 0) || ((activeViewFlags & cameraWork->viewFlags) == 0)) {
+                Hu3DCamera[cameraWork->outputCameraIndex].fov = -1.0f;
             }
             else {
-                var_f31 = 1.2f * ((var_r31->unk_44.unk_08 / 640.0f) / (var_r31->unk_44.unk_0C / 480.0f));
-                sp10[2] = var_r31->unk_44.unk_08 * var_r31->unk_40;
-                sp10[3] = var_r31->unk_44.unk_0C * var_r31->unk_40;
-                Hu3DCameraPerspectiveSet(var_r31->unk_3C, var_r31->unk_10, var_r31->unk_14, var_r31->unk_18, var_f31);
-                Hu3DCameraViewportSet(var_r31->unk_3C, var_r31->unk_44.unk_00 - (0.5f * sp10[2]), var_r31->unk_44.unk_04 - (0.5f * sp10[3]), sp10[2],
-                    sp10[3], 0.0f, 1.0f);
-                sp10[0] = var_r31->unk_44.unk_00 - (0.5f * sp10[2]);
-                sp10[1] = var_r31->unk_44.unk_04 - (0.5f * sp10[3]);
-                sp8[0] = var_r31->unk_44.unk_00 + (0.5f * sp10[2]);
-                sp8[1] = var_r31->unk_44.unk_04 + (0.5f * sp10[3]);
-                if (sp10[0] < 0.0f) {
-                    sp10[0] = 0.0f;
+                aspectRatio = 1.2f * ((cameraWork->viewport.width / 640.0f) / (cameraWork->viewport.height / 480.0f));
+                viewport[2] = cameraWork->viewport.width * cameraWork->viewportScale;
+                viewport[3] = cameraWork->viewport.height * cameraWork->viewportScale;
+                Hu3DCameraPerspectiveSet(cameraWork->cameraId, cameraWork->fieldOfView, cameraWork->nearClip, cameraWork->farClip, aspectRatio);
+                Hu3DCameraViewportSet(cameraWork->cameraId, cameraWork->viewport.centerX - (0.5f * viewport[2]), cameraWork->viewport.centerY - (0.5f * viewport[3]), viewport[2],
+                    viewport[3], 0.0f, 1.0f);
+                viewport[0] = cameraWork->viewport.centerX - (0.5f * viewport[2]);
+                viewport[1] = cameraWork->viewport.centerY - (0.5f * viewport[3]);
+                scissorSize[0] = cameraWork->viewport.centerX + (0.5f * viewport[2]);
+                scissorSize[1] = cameraWork->viewport.centerY + (0.5f * viewport[3]);
+                if (viewport[0] < 0.0f) {
+                    viewport[0] = 0.0f;
                 }
-                if (sp10[1] < 0.0f) {
-                    sp10[1] = 0.0f;
+                if (viewport[1] < 0.0f) {
+                    viewport[1] = 0.0f;
                 }
-                if (sp8[0] > 640.0f) {
-                    sp8[0] = 640.0f;
+                if (scissorSize[0] > 640.0f) {
+                    scissorSize[0] = 640.0f;
                 }
-                if (sp8[1] > 480.0f) {
-                    sp8[1] = 480.0f;
+                if (scissorSize[1] > 480.0f) {
+                    scissorSize[1] = 480.0f;
                 }
-                sp8[0] -= sp10[0];
-                sp8[1] -= sp10[1];
-                var_r21 = sp8[1];
-                var_r22 = sp8[0];
-                var_r23 = sp10[1];
-                Hu3DCameraScissorSet(var_r31->unk_3C, sp10[0], var_r23, var_r22, var_r21);
-                var_r29 = var_r31->unk_38;
-                CenterM[var_r29].x = var_r31->unk_1C.x;
-                CenterM[var_r29].y = var_r31->unk_1C.y;
-                CenterM[var_r29].z = var_r31->unk_1C.z;
-                CRotM[var_r29].x = var_r31->unk_28.x;
-                CRotM[var_r29].y = var_r31->unk_28.y;
-                CRotM[var_r29].z = var_r31->unk_28.z;
-                CZoomM[var_r29] = var_r31->unk_34;
+                scissorSize[0] -= viewport[0];
+                scissorSize[1] -= viewport[1];
+                scissorHeight = scissorSize[1];
+                scissorWidth = scissorSize[0];
+                scissorTop = viewport[1];
+                Hu3DCameraScissorSet(cameraWork->cameraId, viewport[0], scissorTop, scissorWidth, scissorHeight);
+                splitIndex = cameraWork->outputCameraIndex;
+                CenterM[splitIndex].x = cameraWork->lookAtTarget.x;
+                CenterM[splitIndex].y = cameraWork->lookAtTarget.y;
+                CenterM[splitIndex].z = cameraWork->lookAtTarget.z;
+                CRotM[splitIndex].x = cameraWork->rotation.x;
+                CRotM[splitIndex].y = cameraWork->rotation.y;
+                CRotM[splitIndex].z = cameraWork->rotation.z;
+                CZoomM[splitIndex] = cameraWork->zoomDistance;
             }
         }
     }
 }
 
-void fn_1_38FC(HU3DMODEL *model, Mtx mtx)
+void DrawCameraBackground(HU3DMODEL *model, Mtx mtx)
 {
-    Mtx spC;
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    Mtx identityMatrix;
+    float quadHalfWidth;
+    float quadHalfHeight;
+    float quadDepth;
 
-    MTXIdentity(spC);
-    GXLoadPosMtxImm(spC, 0);
+    MTXIdentity(identityMatrix);
+    GXLoadPosMtxImm(identityMatrix, 0);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_VTX, 0, GX_DF_CLAMP, GX_AF_NONE);
     GXSetNumTexGens(0);
     GXSetNumTevStages(1);
-    GXSetTevColor(GX_TEVREG0, lbl_1_data_A0);
+    GXSetTevColor(GX_TEVREG0, transparentBlack);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_C0);
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
@@ -668,241 +668,241 @@ void fn_1_38FC(HU3DMODEL *model, Mtx mtx)
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    var_f31 = 4125.0f;
-    var_f30 = 2750.0f;
-    var_f29 = 5494.5f;
+    quadHalfWidth = 4125.0f;
+    quadHalfHeight = 2750.0f;
+    quadDepth = 5494.5f;
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
-    GXPosition3f32(-var_f31, var_f30, -var_f29);
-    GXPosition3f32(var_f31, var_f30, -var_f29);
-    GXPosition3f32(var_f31, -var_f30, -var_f29);
-    GXPosition3f32(-var_f31, -var_f30, -var_f29);
+    GXPosition3f32(-quadHalfWidth, quadHalfHeight, -quadDepth);
+    GXPosition3f32(quadHalfWidth, quadHalfHeight, -quadDepth);
+    GXPosition3f32(quadHalfWidth, -quadHalfHeight, -quadDepth);
+    GXPosition3f32(-quadHalfWidth, -quadHalfHeight, -quadDepth);
 }
 
-void fn_1_3B50(u32 arg0)
+void SetCameraViewMode(u32 viewMode)
 {
-    lbl_1_bss_1C->work[1] = arg0;
+    cameraManagerObject->work[1] = viewMode;
 }
 
-u32 fn_1_3B64(void)
+u32 GetCameraViewMode(void)
 {
-    return lbl_1_bss_1C->work[1];
+    return cameraManagerObject->work[1];
 }
 
-M421DllCameraStruct *fn_1_3B78(s32 arg0)
+M421DllCameraStruct *GetCameraForViewFlag(s32 requestedViewFlags)
 {
-    M421DllCameraStruct *var_r31;
-    s32 var_r30;
-    M421DllCameraStruct *var_r29;
+    M421DllCameraStruct *cameraWork;
+    s32 cameraIndex;
+    M421DllCameraStruct *cameraWorkArray;
 
-    var_r29 = lbl_1_bss_1C->data;
-    for (var_r31 = var_r29, var_r30 = 0; var_r30 < 5; var_r30++, var_r31++) {
-        if ((var_r31->unk_0C & arg0) != 0) {
+    cameraWorkArray = cameraManagerObject->data;
+    for (cameraWork = cameraWorkArray, cameraIndex = 0; cameraIndex < 5; cameraIndex++, cameraWork++) {
+        if ((cameraWork->viewFlags & requestedViewFlags) != 0) {
             break;
         }
     }
-    if (var_r30 >= 5) {
+    if (cameraIndex >= 5) {
         OSReport("M421:Camera Flag Error!!\n");
         return NULL;
     }
-    return var_r31;
+    return cameraWork;
 }
 
-M421DllCameraStruct *fn_1_3C14(s32 arg0)
+M421DllCameraStruct *GetRenderCameraForViewFlag(s32 requestedViewFlags)
 {
-    M421DllCameraStruct *var_r31;
-    s32 var_r30;
-    M421DllCameraStruct *var_r29;
+    M421DllCameraStruct *cameraWork;
+    s32 cameraIndex;
+    M421DllCameraStruct *cameraWorkArray;
 
-    var_r29 = lbl_1_bss_1C->data;
-    for (var_r31 = &var_r29[5], var_r30 = 0; var_r30 < 5; var_r30++, var_r31++) {
-        if ((var_r31->unk_0C & arg0) != 0) {
+    cameraWorkArray = cameraManagerObject->data;
+    for (cameraWork = &cameraWorkArray[5], cameraIndex = 0; cameraIndex < 5; cameraIndex++, cameraWork++) {
+        if ((cameraWork->viewFlags & requestedViewFlags) != 0) {
             break;
         }
     }
-    if (var_r30 >= 5) {
+    if (cameraIndex >= 5) {
         OSReport("M421:Camera Flag Error!!\n");
         return NULL;
     }
-    return var_r31;
+    return cameraWork;
 }
 
-M421DllCameraStruct *fn_1_3CB0(u32 arg0)
+M421DllCameraStruct *GetCameraByIndex(u32 cameraIndex)
 {
-    M421DllCameraStruct *var_r31 = lbl_1_bss_1C->data;
-    if (arg0 >= 5) {
+    M421DllCameraStruct *cameraWorkArray = cameraManagerObject->data;
+    if (cameraIndex >= 5) {
         OSReport("M421:Camera No. Error!!\n");
         return NULL;
     }
-    return &var_r31[arg0];
+    return &cameraWorkArray[cameraIndex];
 }
 
-M421DllCameraStruct *fn_1_3D18(u32 arg0)
+M421DllCameraStruct *GetRenderCameraByIndex(u32 cameraIndex)
 {
-    M421DllCameraStruct *var_r31 = lbl_1_bss_1C->data;
-    if (arg0 >= 5) {
+    M421DllCameraStruct *cameraWorkArray = cameraManagerObject->data;
+    if (cameraIndex >= 5) {
         OSReport("M421:Camera No. Error!!\n");
         return NULL;
     }
-    return &var_r31[arg0 + 5];
+    return &cameraWorkArray[cameraIndex + 5];
 }
 
-void fn_1_3D84(s32 arg0, s32 arg1)
+void SetModelCameraForViewFlag(s32 modelId, s32 requestedViewFlags)
 {
-    M421DllCameraStruct *var_r31;
-    s32 var_r30;
-    s32 var_r29;
-    M421DllCameraStruct *var_r28;
-    M421DllCameraStruct *var_r27;
+    M421DllCameraStruct *cameraWork;
+    s32 cameraIndex;
+    s32 cameraMask;
+    M421DllCameraStruct *secondaryCameraWork;
+    M421DllCameraStruct *cameraWorkArray;
 
-    var_r29 = 0;
-    if (arg0 >= 0) {
-        var_r27 = lbl_1_bss_1C->data;
-        var_r28 = &var_r27[5];
-        for (var_r31 = var_r28, var_r30 = 0; var_r30 < 5; var_r30++, var_r31++) {
-            if ((var_r31->unk_0C & arg1) != 0) {
-                var_r29 |= var_r31->unk_3C;
+    cameraMask = 0;
+    if (modelId >= 0) {
+        cameraWorkArray = cameraManagerObject->data;
+        secondaryCameraWork = &cameraWorkArray[5];
+        for (cameraWork = secondaryCameraWork, cameraIndex = 0; cameraIndex < 5; cameraIndex++, cameraWork++) {
+            if ((cameraWork->viewFlags & requestedViewFlags) != 0) {
+                cameraMask |= cameraWork->cameraId;
             }
         }
-        Hu3DModelCameraSet(arg0, var_r29);
+        Hu3DModelCameraSet(modelId, cameraMask);
     }
 }
 
-s32 fn_1_3E1C(void)
+s32 GetMinigameFlowState(void)
 {
-    return ((M421DllWork *)lbl_1_bss_24->data)->unk_00;
+    return ((M421DllWork *)minigameObject->data)->flowState;
 }
 
-u32 fn_1_3E34(void)
+u32 GetCameraMode(void)
 {
-    return ((M421DllWork *)lbl_1_bss_24->data)->unk_0C;
+    return ((M421DllWork *)minigameObject->data)->cameraMode;
 }
 
-u32 fn_1_3E4C(void)
+u32 GetResultState(void)
 {
-    return ((M421DllWork *)lbl_1_bss_24->data)->unk_14;
+    return ((M421DllWork *)minigameObject->data)->resultState;
 }
 
-u32 fn_1_3E64(void)
+u32 GetExitState(void)
 {
-    return ((M421DllWork *)lbl_1_bss_24->data)->unk_28;
+    return ((M421DllWork *)minigameObject->data)->exitState;
 }
 
-s32 fn_1_3E7C(s32 arg0)
+s32 SetPlayerResultFlag(s32 playerIndex)
 {
-    M421DllWork *work = lbl_1_bss_24->data;
+    M421DllWork *work = minigameObject->data;
 
-    if (work->unk_64 != 2) {
+    if (work->resultMode != 2) {
         return 0;
     }
-    work->unk_60 |= (1 << ((arg0 & 3) * 4));
-    if (((work->unk_60 & 0x1110) == 0x1110) && (work->unk_64 == 2)) {
-        work->unk_64 = 0;
+    work->playerResultFlags |= (1 << ((playerIndex & 3) * 4));
+    if (((work->playerResultFlags & 0x1110) == 0x1110) && (work->resultMode == 2)) {
+        work->resultMode = 0;
     }
     return 1;
 }
 
-s32 fn_1_3EF8(s32 arg0)
+s32 GetWinnerPlayerId(s32 resultSlot)
 {
-    M421DllWork *work = lbl_1_bss_24->data;
-    return work->unk_50[arg0];
+    M421DllWork *work = minigameObject->data;
+    return work->winnerPlayerIds[resultSlot];
 }
 
-void fn_1_3F28(s32 arg0, s32 arg1, s32 arg2)
+void SetPlayerStatusAndOrder(s32 playerIndex, s32 playerStatus, s32 playerOrder)
 {
-    M421DllWork *work = lbl_1_bss_24->data;
-    arg0 &= 3;
-    work->unk_40[arg0] = arg1;
-    work->unk_30[arg0] = arg2;
+    M421DllWork *work = minigameObject->data;
+    playerIndex &= 3;
+    work->playerStatus[playerIndex] = playerStatus;
+    work->playerOrder[playerIndex] = playerOrder;
 }
 
-void fn_1_3F68(s32 arg0)
+void SetPlayerReadyFlag(s32 playerIndex)
 {
-    ((M421DllWork *)lbl_1_bss_24->data)->unk_68 |= (1 << ((arg0 & 7) * 4));
+    ((M421DllWork *)minigameObject->data)->playerReadyFlags |= (1 << ((playerIndex & 7) * 4));
 }
 
-void fn_1_3F98(s32 arg0)
+void SetPlayerConfirmFlag(s32 playerIndex)
 {
-    ((M421DllWork *)lbl_1_bss_24->data)->unk_6C |= (1 << ((arg0 & 3) * 4));
+    ((M421DllWork *)minigameObject->data)->playerConfirmFlags |= (1 << ((playerIndex & 3) * 4));
 }
 
-void fn_1_3FC8(s32 arg0)
+void SetPlayerExitFlag(s32 playerIndex)
 {
-    ((M421DllWork *)lbl_1_bss_24->data)->unk_70 |= (1 << ((arg0 & 3) * 4));
+    ((M421DllWork *)minigameObject->data)->playerExitFlags |= (1 << ((playerIndex & 3) * 4));
 }
 
-s32 fn_1_3FF8(void)
+s32 IsResultsSequenceFinished(void)
 {
-    return MGSeqStatGet(lbl_1_bss_E) == 0;
+    return MGSeqStatGet(introSequenceId) == 0;
 }
 
-void fn_1_4030(Vec *sp8, Vec *var_r31)
+void SetCameraLookAt(Vec *cameraPosition, Vec *cameraTarget)
 {
-    Vec sp10;
-    float var_f30;
-    float var_f29;
+    Vec viewDirection;
+    float horizontalDistance;
+    float verticalDistance;
 
-    VECSubtract(var_r31, sp8, &sp10);
-    Center = *var_r31;
-    CRot.x = atan2d(sp10.y, sqrtf((sp10.x * sp10.x) + (sp10.z * sp10.z)));
-    CRot.y = atan2d(-sp10.x, -sp10.z);
+    VECSubtract(cameraTarget, cameraPosition, &viewDirection);
+    Center = *cameraTarget;
+    CRot.x = atan2d(viewDirection.y, sqrtf((viewDirection.x * viewDirection.x) + (viewDirection.z * viewDirection.z)));
+    CRot.y = atan2d(-viewDirection.x, -viewDirection.z);
     CRot.z = 0.0f;
-    CZoom = VECMag(&sp10);
+    CZoom = VECMag(&viewDirection);
 }
 
-void fn_1_4238(float arg8, float arg9, float argA, float argB, float argC, float argD)
+void SetCameraPositionAndTarget(float currentAngle, float targetAngle, float interpolation, float targetX, float targetY, float targetZ)
 {
-    Vec sp3C;
-    Vec sp30;
-    Vec sp24;
+    Vec cameraPosition;
+    Vec cameraTarget;
+    Vec viewDirection;
 
-    sp3C.x = arg8;
-    sp3C.y = arg9;
-    sp3C.z = argA;
-    sp30.x = argB;
-    sp30.y = argC;
-    sp30.z = argD;
-    VECSubtract(&sp30, &sp3C, &sp24);
-    Center = sp30;
-    CRot.x = atan2d(sp24.y, sqrtf((sp24.x * sp24.x) + (sp24.z * sp24.z)));
-    CRot.y = atan2d(-sp24.x, -sp24.z);
+    cameraPosition.x = currentAngle;
+    cameraPosition.y = targetAngle;
+    cameraPosition.z = interpolation;
+    cameraTarget.x = targetX;
+    cameraTarget.y = targetY;
+    cameraTarget.z = targetZ;
+    VECSubtract(&cameraTarget, &cameraPosition, &viewDirection);
+    Center = cameraTarget;
+    CRot.x = atan2d(viewDirection.y, sqrtf((viewDirection.x * viewDirection.x) + (viewDirection.z * viewDirection.z)));
+    CRot.y = atan2d(-viewDirection.x, -viewDirection.z);
     CRot.z = 0.0f;
-    CZoom = VECMag(&sp24);
+    CZoom = VECMag(&viewDirection);
 }
 
-float fn_1_4478(float arg8, float arg9, float argA)
+float InterpolateAngle(float currentAngle, float targetAngle, float interpolation)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    float interpolatedAngle;
+    float angleDifference;
+    float normalizedAngle;
 
-    var_f30 = fmod(arg9 - arg8, 360.0);
-    var_f31 = var_f30;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    angleDifference = fmod(targetAngle - currentAngle, 360.0);
+    interpolatedAngle = angleDifference;
+    if (interpolatedAngle < 0.0f) {
+        interpolatedAngle += 360.0f;
     }
-    if (var_f31 > 180.0f) {
-        var_f31 -= 360.0f;
+    if (interpolatedAngle > 180.0f) {
+        interpolatedAngle -= 360.0f;
     }
-    var_f29 = fmod(arg8 + (argA * var_f31), 360.0);
-    var_f31 = var_f29;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    normalizedAngle = fmod(currentAngle + (interpolation * interpolatedAngle), 360.0);
+    interpolatedAngle = normalizedAngle;
+    if (interpolatedAngle < 0.0f) {
+        interpolatedAngle += 360.0f;
     }
-    return var_f31;
+    return interpolatedAngle;
 }
 
-float fn_1_4594(float arg8, float arg9)
+float GetShortestAngleDifference(float currentAngle, float targetAngle)
 {
-    float var_f31;
-    float var_f30;
+    float shortestAngle;
+    float angleDifference;
 
-    var_f30 = fmod(arg9 - arg8, 360.0);
-    var_f31 = var_f30;
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    angleDifference = fmod(targetAngle - currentAngle, 360.0);
+    shortestAngle = angleDifference;
+    if (shortestAngle < 0.0f) {
+        shortestAngle += 360.0f;
     }
-    if (var_f31 > 180.0f) {
-        var_f31 -= 360.0f;
+    if (shortestAngle > 180.0f) {
+        shortestAngle -= 360.0f;
     }
-    return var_f31;
+    return shortestAngle;
 }

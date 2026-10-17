@@ -3,60 +3,60 @@
 
 #include "game/object.h"
 
-typedef struct UnkM421DllStruct {
-    float unk_00;
-    float unk_04;
-    float unk_08;
-    float unk_0C;
-} UnkM421DllStruct;
+typedef struct M421DllViewport {
+    float isActive;
+    float sortPriority;
+    float viewIndex;
+    float viewFlags;
+} M421DllViewport;
 
 typedef struct M421DllCameraStruct {
-    s32 unk_00;
-    s32 unk_04;
-    s32 unk_08;
-    u32 unk_0C;
-    float unk_10;
-    float unk_14;
-    float unk_18;
-    Vec unk_1C;
-    Vec unk_28;
-    float unk_34;
-    s32 unk_38;
-    s32 unk_3C;
-    float unk_40;
-    UnkM421DllStruct unk_44;
-    float unk_54;
-    float unk_58;
-    float unk_5C;
-    float unk_60;
-    float unk_64;
-    float unk_68;
-    char unk6C[0x18];
-    float unk_84;
-    char unk88[0x4];
-    float unk_8C;
-    float unk_90;
-    u32 unk_94;
-    char unk98[0xC];
+    s32 isActive;
+    s32 sortPriority;
+    s32 viewIndex;
+    u32 viewFlags;
+    float fieldOfView;
+    float nearClip;
+    float farClip;
+    Vec lookAtTarget;
+    Vec rotation;
+    float zoomDistance;
+    s32 outputCameraIndex;
+    s32 cameraId;
+    float viewportScale;
+    M421DllViewport viewport;
+    float targetPositionX;
+    float targetPositionY;
+    float targetPositionZ;
+    float targetPitch;
+    float targetYaw;
+    float targetZoom;
+    char reserved6C[0x18];
+    float shakeIntensity;
+    char reserved88[0x4];
+    float cameraVelocity;
+    float cameraAcceleration;
+    u32 shakeTimer;
+    char reserved98[0xC];
 } M421DllCameraStruct; /* size = 0xA4 */ // same as M443DllCameraStruct and M460
 
-M421DllCameraStruct *fn_1_3C14(s32 arg0);
-u32 fn_1_3E34(void);
-u32 fn_1_3E4C(void);
-u32 fn_1_3E64(void);
-s32 fn_1_3E7C(s32 arg0);
-s32 fn_1_3EF8(s32 arg0);
-void fn_1_3F28(s32 arg0, s32 arg1, s32 arg2);
-void fn_1_3F68(s32 arg0);
-void fn_1_3F98(s32 arg0);
-void fn_1_3FC8(s32 arg0);
-s32 fn_1_3FF8(void);
-float fn_1_4478(float arg8, float arg9, float argA);
+M421DllCameraStruct *GetRenderCameraForViewFlag(s32 cameraIndex);
+u32 GetCameraMode(void);
+u32 GetResultState(void);
+u32 GetExitState(void);
+s32 SetPlayerResultFlag(s32 playerIndex);
+s32 GetWinnerPlayerId(s32 resultSlot);
+void SetPlayerStatusAndOrder(s32 playerIndex, s32 playerStatus, s32 playerOrder);
+void SetPlayerReadyFlag(s32 playerIndex);
+void SetPlayerConfirmFlag(s32 playerIndex);
+void SetPlayerExitFlag(s32 playerIndex);
+s32 IsResultsSequenceFinished(void);
+float InterpolateAngle(float currentAngle, float targetAngle, float interpolation);
 
-void fn_1_4648(HUPROCESS *process);
-void fn_1_48B0(void);
-void fn_1_B15C(HUPROCESS *process);
-void fn_1_B1BC(void);
-void fn_1_B39C(void);
+void CreatePlayers(HUPROCESS *process);
+void ResetPlayerMotion(void);
+void CreateHost(HUPROCESS *process);
+void EmptyHostCallback(void);
+void ResetHostMotion(void);
 
 #endif
