@@ -5,17 +5,17 @@
 
 #include "dolphin/types.h"
 
-s32 fn_1_7754(SeqWork *arg0, char *mess);
-void fn_1_7C00(void);
-void fn_1_7D6C(HUPROCESS *arg0);
-s32 fn_1_97D0(s32 arg0, s32 arg1);
-void fn_1_11020(void);
-void fn_1_111E0(void);
-void fn_1_11264(s32 arg0, s32 arg1, s32 arg2);
-void fn_1_11338(u32 arg0, s32 arg1);
-s32 fn_1_11390(s32 arg0);
-void fn_1_114EC(u32 arg0, s32 arg1);
-void fn_1_11708(u32 arg0);
-void fn_1_1190C(void);
+s32 CreateCharacterNameSprites(SeqWork *sequenceWork, char *mess);
+void LoadSelectedCharacterAssets(void);
+void StartPlayerSelectionTasks(HUPROCESS *parentProcess);
+s32 GetPlayerSelectionValue(s32 selectionMode, s32 restorePlayerSettings);
+void OpenSelectionWindow(void);
+void CloseSelectionWindow(void);
+void SetSelectionWindowMessage(s32 messageId, s32 waitFrames, s32 instantText);
+void InsertSelectionWindowMessage(u32 messageId, s32 insertPosition);
+s32 ShowSelectionConfirmation(s32 choiceCount);
+void OpenMessageWindowCentered(u32 messageId, s32 windowPositionMode);
+void OpenMessageWindow(u32 messageId);
+void CloseMessageWindow(void);
 
 #endif

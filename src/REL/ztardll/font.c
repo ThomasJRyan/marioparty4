@@ -6,7 +6,7 @@
 #define FONT_CHAR_MAX 100
 
 #if VERSION_ENG
-s32 lbl_1_data_B0[0xC6] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+s32 characterFontFileTable[0xC6] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, DATA_MAKE_NUM(DATADIR_INSTFONT, 0x00), DATA_MAKE_NUM(DATADIR_INSTFONT, 0x01), DATA_MAKE_NUM(DATADIR_INSTFONT, 0x02),
     DATA_MAKE_NUM(DATADIR_INSTFONT, 0x03), DATA_MAKE_NUM(DATADIR_INSTFONT, 0x04), DATA_MAKE_NUM(DATADIR_INSTFONT, 0x05),
     DATA_MAKE_NUM(DATADIR_INSTFONT, 0x06), DATA_MAKE_NUM(DATADIR_INSTFONT, 0x07), DATA_MAKE_NUM(DATADIR_INSTFONT, 0x08),
@@ -58,7 +58,7 @@ s32 lbl_1_data_B0[0xC6] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     DATA_MAKE_NUM(DATADIR_INSTFONT, 0x00), DATA_MAKE_NUM(DATADIR_INSTFONT, 0x00), DATA_MAKE_NUM(DATADIR_INSTFONT, 0x0B),
     DATA_MAKE_NUM(DATADIR_INSTFONT, 0x0C), DATA_MAKE_NUM(DATADIR_INSTFONT, 0x00), DATA_MAKE_NUM(DATADIR_INSTFONT, 0x00) };
 #elif VERSION_PAL
-s32 lbl_1_data_B0[0x130] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+s32 characterFontFileTable[0x130] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0x00140025, 0x00140026, 0x00140027, 0x00140028, 0x00140029, 0x0014002A, 0x0014002B, 0x0014002C, 0x0014002D, 0x0014002E,
     0x00140025, 0x00140025, 0x00140025, 0x0014002F, 0x00140025, 0x00140025, 0x00140025, 0x00140035, 0x00140036, 0x00140037, 0x00140038, 0x00140039,
     0x0014003A, 0x0014003B, 0x0014003C, 0x0014003D, 0x0014003E, 0x0014003F, 0x00140040, 0x00140041, 0x00140042, 0x00140043, 0x00140044, 0x00140045,
@@ -82,7 +82,7 @@ s32 lbl_1_data_B0[0x130] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0x00140025, 0x00140025, 0x00140025, 0x00140025, 0x00140025, 0x00140025, 0x00140025, 0x00140025, 0x00140025, 0x00140025, 0x00140025, 0x00140025,
     0x00140025, 0x00140025, 0x00140025, 0x00140025, 0x00140025, 0x00140025 };
 #else
-s32 lbl_1_data_B0[0x132] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+s32 characterFontFileTable[0x132] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0x00150000, 0x00150001, 0x00150002, 0x00150003, 0x00150004, 0x00150005, 0x00150006, 0x00150007, 0x00150008, 0x00150009,
     0x0013000A, 0x0013000A, 0x0013000A, 0x0015000A, 0x0013000A, 0x0013000A, 0x0013000A, 0x00130014, 0x00130015, 0x00130016, 0x00130017, 0x00130018,
     0x00130019, 0x001500AE, 0x0013001B, 0x0013001C, 0x0013001D, 0x0013001E, 0x0013001F, 0x00130020, 0x00130021, 0x001500AF, 0x00130023, 0x00130024,
@@ -107,160 +107,160 @@ s32 lbl_1_data_B0[0x132] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0x00150056, 0x00150057, 0x00150058, 0x00150059, 0x0015005A, 0x0015005B, 0x0015005C, 0x0015005D };
 #endif
 
-s32 fn_1_7754(SeqWork *work, char *mess)
+s32 CreateCharacterNameSprites(SeqWork *sequenceWork, char *message)
 {
-    char* str;
-    s16 len;
-    s16* posY;
-    s16 charNum;
-    s32* fileTbl;
-    s16 i;
-    s16 grpNo;
-    s32 file;
-    s16 *posX;
-    ANIMDATA **animP;
-    s16 gid;
-    s16 sprid;
-    s32 var_r19_2;
+    char* messageCharacter;
+    s16 textPixelWidth;
+    s16* characterRow;
+    s16 characterIndex;
+    s32* characterFileTable;
+    s16 spriteIndex;
+    s16 spriteGroupIndex;
+    s32 characterFileId;
+    s16 *characterXPositions;
+    ANIMDATA **characterAnimations;
+    s16 spriteGroupId;
+    s16 spriteId;
+    s32 characterFileId;
 
-    fileTbl = lbl_1_data_B0;
-    for (grpNo = 0; grpNo < 0x10; grpNo++) {
-        if (work->spr_grp[grpNo] == -1) {
+    characterFileTable = characterFontFileTable;
+    for (spriteGroupIndex = 0; spriteGroupIndex < 0x10; spriteGroupIndex++) {
+        if (sequenceWork->spr_grp[spriteGroupIndex] == -1) {
             break;
         }
     }
-    if (grpNo == 0x10) {
+    if (spriteGroupIndex == 0x10) {
         return -1;
     }
 
-    animP = HuMemDirectMalloc(HEAP_HEAP, (FONT_CHAR_MAX * sizeof(ANIMDATA*)));
-    posX = HuMemDirectMalloc(HEAP_HEAP, FONT_CHAR_MAX * sizeof(*posX));
-    posY = HuMemDirectMalloc(HEAP_HEAP, FONT_CHAR_MAX * sizeof(*posY));
+    characterAnimations = HuMemDirectMalloc(HEAP_HEAP, (FONT_CHAR_MAX * sizeof(ANIMDATA*)));
+    characterXPositions = HuMemDirectMalloc(HEAP_HEAP, FONT_CHAR_MAX * sizeof(*characterXPositions));
+    characterRow = HuMemDirectMalloc(HEAP_HEAP, FONT_CHAR_MAX * sizeof(*characterRow));
 
-    for (str = mess, len = 0, charNum = 0; str[0] != 0; str++) {
-        if (str[0] == 0x20 || str[0] == 0x10) {
-            len += VERSION_JP ? 0x1C : 0xE;
+    for (messageCharacter = message, textPixelWidth = 0, characterIndex = 0; messageCharacter[0] != 0; messageCharacter++) {
+        if (messageCharacter[0] == 0x20 || messageCharacter[0] == 0x10) {
+            textPixelWidth += VERSION_JP ? 0x1C : 0xE;
         }
 #if VERSION_PAL
-        else if (*str >= 0x30) {
-            var_r19_2 = fileTbl[*str];
-            animP[charNum] = HuSprAnimReadFile(var_r19_2);
-            posX[charNum] = len;
-            if ((*str >= 0x61) && (*str <= 0x7A)) {
-                posY[charNum] = 2;
-                len += 0x12;
+        else if (*messageCharacter >= 0x30) {
+            characterFileId = characterFileTable[*messageCharacter];
+            characterAnimations[characterIndex] = HuSprAnimReadFile(characterFileId);
+            characterXPositions[characterIndex] = textPixelWidth;
+            if ((*messageCharacter >= 0x61) && (*messageCharacter <= 0x7A)) {
+                characterRow[characterIndex] = 2;
+                textPixelWidth += 0x12;
             }
-            else if ((*str == 0xC2) || (*str == 0xC3) || (*str == 0xC7)) {
-                posY[charNum] = 0;
-                len += 0x12;
+            else if ((*messageCharacter == 0xC2) || (*messageCharacter == 0xC3) || (*messageCharacter == 0xC7)) {
+                characterRow[characterIndex] = 0;
+                textPixelWidth += 0x12;
             }
-            else if (*str == 0xC6) {
-                posY[charNum] = 0;
-                len += 0x18;
+            else if (*messageCharacter == 0xC6) {
+                characterRow[characterIndex] = 0;
+                textPixelWidth += 0x18;
             }
-            else if (*str == 0x5C) {
-                posY[charNum] = 0;
-                len += 8;
+            else if (*messageCharacter == 0x5C) {
+                characterRow[characterIndex] = 0;
+                textPixelWidth += 8;
             }
-            else if ((*str >= 0x90) && (*str <= 0x9F)) {
-                posY[charNum] = -2;
-                len += 0x18;
+            else if ((*messageCharacter >= 0x90) && (*messageCharacter <= 0x9F)) {
+                characterRow[characterIndex] = -2;
+                textPixelWidth += 0x18;
             }
-            else if ((*str >= 0xD0) && (*str <= 0xEF)) {
-                posY[charNum] = -2;
-                len += 0x12;
+            else if ((*messageCharacter >= 0xD0) && (*messageCharacter <= 0xEF)) {
+                characterRow[characterIndex] = -2;
+                textPixelWidth += 0x12;
             }
-            else if ((*str == 0x3D) || (*str == 0x84)) {
-                posY[charNum] = 0;
-                len += 0x14;
+            else if ((*messageCharacter == 0x3D) || (*messageCharacter == 0x84)) {
+                characterRow[characterIndex] = 0;
+                textPixelWidth += 0x14;
             }
             else {
-                posY[charNum] = 0;
-                len += 0x1C;
+                characterRow[characterIndex] = 0;
+                textPixelWidth += 0x1C;
             }
-            charNum++;
+            characterIndex++;
         }
 #else
-        else if (str[0] < 0x30) {
+        else if (messageCharacter[0] < 0x30) {
         }
-        else if (str[0] == 0x80) {
+        else if (messageCharacter[0] == 0x80) {
         }
-        else if (str[0] == 0x81) {
+        else if (messageCharacter[0] == 0x81) {
         }
         else {
-            if (str[1] == 0x80) {
-                if ((str[0] >= 0x96) && (str[0] <= 0xA4)) {
-                    file = fileTbl[str[0] + 0x6A];
+            if (messageCharacter[1] == 0x80) {
+                if ((messageCharacter[0] >= 0x96) && (messageCharacter[0] <= 0xA4)) {
+                    characterFileId = characterFileTable[messageCharacter[0] + 0x6A];
                 }
-                else if ((str[0] >= 0xAA) && (str[0] <= 0xAE)) {
-                    file = fileTbl[str[0] + 0x65];
+                else if ((messageCharacter[0] >= 0xAA) && (messageCharacter[0] <= 0xAE)) {
+                    characterFileId = characterFileTable[messageCharacter[0] + 0x65];
                 }
-                else if ((str[0] >= 0xD6) && (str[0] <= 0xE4)) {
-                    file = fileTbl[str[0] + 0x43];
+                else if ((messageCharacter[0] >= 0xD6) && (messageCharacter[0] <= 0xE4)) {
+                    characterFileId = characterFileTable[messageCharacter[0] + 0x43];
                 }
-                else if ((str[0] >= 0xEA) && (str[0] <= 0xEE)) {
-                    file = fileTbl[str[0] + 0x3E];
+                else if ((messageCharacter[0] >= 0xEA) && (messageCharacter[0] <= 0xEE)) {
+                    characterFileId = characterFileTable[messageCharacter[0] + 0x3E];
                 }
             }
-            else if (str[1] == 0x81) {
-                if ((str[0] >= 0xAA) && (str[0] <= 0xAE)) {
-                    file = fileTbl[str[0] + 0x6A];
+            else if (messageCharacter[1] == 0x81) {
+                if ((messageCharacter[0] >= 0xAA) && (messageCharacter[0] <= 0xAE)) {
+                    characterFileId = characterFileTable[messageCharacter[0] + 0x6A];
                 }
-                else if ((str[0] >= 0xEA) && (str[0] <= 0xEE)) {
-                    file = fileTbl[str[0] + 0x43];
+                else if ((messageCharacter[0] >= 0xEA) && (messageCharacter[0] <= 0xEE)) {
+                    characterFileId = characterFileTable[messageCharacter[0] + 0x43];
                 }
             }
             else {
-                file = fileTbl[str[0]];
+                characterFileId = characterFileTable[messageCharacter[0]];
             }
-            animP[charNum] = HuSprAnimReadFile(file);
-            posX[charNum] = len;
-            if ((str[0] >= 0x61) && (str[0] <= 0x7A)) {
-                posY[charNum] = 2;
-                len += 0x12;
+            characterAnimations[characterIndex] = HuSprAnimReadFile(characterFileId);
+            characterXPositions[characterIndex] = textPixelWidth;
+            if ((messageCharacter[0] >= 0x61) && (messageCharacter[0] <= 0x7A)) {
+                characterRow[characterIndex] = 2;
+                textPixelWidth += 0x12;
             }
-            else if ((str[0] == 0xC2) || (str[0] == 0xC3)) {
-                posY[charNum] = 0;
-                len += 0x12;
+            else if ((messageCharacter[0] == 0xC2) || (messageCharacter[0] == 0xC3)) {
+                characterRow[characterIndex] = 0;
+                textPixelWidth += 0x12;
             }
-            else if (str[0] == 0x5C) {
-                posY[charNum] = 0;
-                len += 8;
+            else if (messageCharacter[0] == 0x5C) {
+                characterRow[characterIndex] = 0;
+                textPixelWidth += 8;
             }
-            else if ((str[0] >= 0x87) && (str[0] <= 0x8F)) {
-                posY[charNum] = 4;
-                len += 0x18;
+            else if ((messageCharacter[0] >= 0x87) && (messageCharacter[0] <= 0x8F)) {
+                characterRow[characterIndex] = 4;
+                textPixelWidth += 0x18;
             }
-            else if ((str[0] >= 0xC7) && (str[0] <= 0xCF)) {
-                posY[charNum] = 4;
-                len += 0x18;
+            else if ((messageCharacter[0] >= 0xC7) && (messageCharacter[0] <= 0xCF)) {
+                characterRow[characterIndex] = 4;
+                textPixelWidth += 0x18;
             }
 #if !VERSION_JP
-            else if ((str[0] == 0x3D) || (str[0] == 0x84)) {
-                posY[charNum] = 0;
-                len += 0x14;
+            else if ((messageCharacter[0] == 0x3D) || (messageCharacter[0] == 0x84)) {
+                characterRow[characterIndex] = 0;
+                textPixelWidth += 0x14;
             }
 #endif
             else {
-                posY[charNum] = 0;
-                len += 0x1C;
+                characterRow[characterIndex] = 0;
+                textPixelWidth += 0x1C;
             }
-            charNum++;
+            characterIndex++;
         }
 #endif
     }
-    gid = HuSprGrpCreate(charNum);
-    work->spr_grp[grpNo] = gid;
-    work->alt_word_len = len;
-    len = (len / 2) - 0xE;
-    for (i = 0; i < charNum; i++) {
-        sprid = HuSprCreate(animP[i], 0, 0);
-        HuSprGrpMemberSet(gid, i, sprid);
-        HuSprPosSet(gid, i, posX[i] - len, posY[i]);
+    spriteGroupId = HuSprGrpCreate(characterIndex);
+    sequenceWork->spr_grp[spriteGroupIndex] = spriteGroupId;
+    sequenceWork->alt_word_len = textPixelWidth;
+    textPixelWidth = (textPixelWidth / 2) - 0xE;
+    for (spriteIndex = 0; spriteIndex < characterIndex; spriteIndex++) {
+        spriteId = HuSprCreate(characterAnimations[spriteIndex], 0, 0);
+        HuSprGrpMemberSet(spriteGroupId, spriteIndex, spriteId);
+        HuSprPosSet(spriteGroupId, spriteIndex, characterXPositions[spriteIndex] - textPixelWidth, characterRow[spriteIndex]);
     }
-    work->word_len = charNum;
-    HuMemDirectFree(animP);
-    HuMemDirectFree(posX);
-    HuMemDirectFree(posY);
-    return grpNo;
+    sequenceWork->word_len = characterIndex;
+    HuMemDirectFree(characterAnimations);
+    HuMemDirectFree(characterXPositions);
+    HuMemDirectFree(characterRow);
+    return spriteGroupIndex;
 }
