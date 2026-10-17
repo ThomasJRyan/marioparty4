@@ -29,580 +29,580 @@
 #undef ABS
 #define ABS(x) ((0 > (x)) ? -(x) : (x))
 
-typedef struct unk_bss_358_struct {
-    /* 0x00 */ u16 unk00;
-    /* 0x02 */ s16 unk02;
-    /* 0x04 */ struct unk_bss_358_struct *unk04;
-    /* 0x08 */ struct unk_bss_358_struct *unk08;
-} UnkBss254Struct; // Size 0xC
+typedef struct TimedValueNode {
+    /* 0x00 */ u16 key;
+    /* 0x02 */ s16 value;
+    /* 0x04 */ struct TimedValueNode *previous;
+    /* 0x08 */ struct TimedValueNode *next;
+} TimedValueNode; // Size 0xC
 
-typedef struct unk_bss_340_struct {
-    /* 0x00 */ HU3DPARMANPARAM *unk00;
-    /* 0x04 */ s32 *unk04;
-    /* 0x08 */ s32 unk08;
-    /* 0x0C */ s32 unk0C;
-    /* 0x10 */ struct unk_bss_340_struct *unk10;
-    /* 0x14 */ struct unk_bss_340_struct *unk14;
-} UnkBss23CStruct; // Size 0x18
+typedef struct ParticleGroupNode {
+    /* 0x00 */ HU3DPARMANPARAM *particleParam;
+    /* 0x04 */ s32 *particleIds;
+    /* 0x08 */ s32 framesRemaining;
+    /* 0x0C */ s32 particleCount;
+    /* 0x10 */ struct ParticleGroupNode *previous;
+    /* 0x14 */ struct ParticleGroupNode *next;
+} ParticleGroupNode; // Size 0x18
 
 typedef struct {
-    /* 0x00 */ u32 unk00;
-    /* 0x04 */ s16 unk04;
-} UnkBssACStruct; // Size 8
+    /* 0x00 */ u32 modelFile;
+    /* 0x04 */ s16 modelId;
+} ModelCacheEntry; // Size 8
 
-UnkBss254Struct lbl_1_bss_254;
-UnkBss23CStruct lbl_1_bss_23C;
-HUPROCESS *lbl_1_bss_238;
-Vec lbl_1_bss_22C;
-Vec lbl_1_bss_220;
-Vec lbl_1_bss_214;
-Vec lbl_1_bss_208;
-u32 lbl_1_bss_204;
-s32 lbl_1_bss_200;
-u32 lbl_1_bss_1FC;
-s16 lbl_1_bss_1FA;
-s16 lbl_1_bss_1F8;
-s32 lbl_1_bss_1F4;
-s32 lbl_1_bss_1F0;
-float lbl_1_bss_1EC;
-s32 lbl_1_bss_1AC[16];
-UnkBssACStruct lbl_1_bss_AC[32];
+TimedValueNode timedValueListSentinel;
+ParticleGroupNode particleGroupListSentinel;
+HUPROCESS *objectManager;
+Vec cameraStartPosition;
+Vec cameraEndPosition;
+Vec cameraStartTarget;
+Vec cameraEndTarget;
+u32 spawnCycle;
+s32 elapsedFrames;
+u32 bestTime;
+s16 messageSequenceId;
+s16 finishSequenceId;
+s32 musicSequenceId;
+s32 cameraTransitionActive;
+float timerPulseAngle;
+s32 timerSprites[16];
+ModelCacheEntry modelCache[32];
 
-void fn_1_0(void)
+void TimedValueListInit(void)
 {
-    lbl_1_bss_254.unk04 = NULL;
-    lbl_1_bss_254.unk08 = NULL;
+    timedValueListSentinel.previous = NULL;
+    timedValueListSentinel.next = NULL;
 }
 
-void fn_1_24(u16 arg0, s16 arg1)
+void TimedValueListInsert(u16 key, s16 value)
 {
-    UnkBss254Struct *temp_r31;
-    UnkBss254Struct *temp_r30;
-    UnkBss254Struct *temp_r29;
+    TimedValueNode *newEntry;
+    TimedValueNode *listHead;
+    TimedValueNode *previousFirstEntry;
 
-    temp_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*temp_r31), HU_MEMNUM_OVL);
-    temp_r31->unk00 = arg0;
-    temp_r31->unk02 = arg1;
-    temp_r30 = &lbl_1_bss_254;
-    temp_r29 = temp_r30->unk08;
-    temp_r30->unk08 = temp_r31;
-    if (NULL != temp_r29) {
-        temp_r29->unk04 = temp_r31;
+    newEntry = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*newEntry), HU_MEMNUM_OVL);
+    newEntry->key = key;
+    newEntry->value = value;
+    listHead = &timedValueListSentinel;
+    previousFirstEntry = listHead->next;
+    listHead->next = newEntry;
+    if (NULL != previousFirstEntry) {
+        previousFirstEntry->previous = newEntry;
     }
-    temp_r31->unk04 = temp_r30;
-    temp_r31->unk08 = temp_r29;
+    newEntry->previous = listHead;
+    newEntry->next = previousFirstEntry;
 }
 
-s16 fn_1_AC(s16 arg0)
+s16 TimedValueListRemove(s16 key)
 {
-    UnkBss254Struct *var_r31;
-    UnkBss254Struct *temp_r29;
-    UnkBss254Struct *temp_r30;
-    s16 temp_r28;
+    TimedValueNode *entry;
+    TimedValueNode *previousEntry;
+    TimedValueNode *nextEntry;
+    s16 value;
 
-    var_r31 = lbl_1_bss_254.unk08;
-    while (NULL != var_r31) {
-        if (arg0 == var_r31->unk00) {
-            temp_r28 = var_r31->unk02;
-            temp_r29 = var_r31->unk04;
-            temp_r30 = var_r31->unk08;
-            temp_r29->unk08 = temp_r30;
-            if (NULL != temp_r30) {
-                temp_r30->unk04 = temp_r29;
+    entry = timedValueListSentinel.next;
+    while (NULL != entry) {
+        if (key == entry->key) {
+            value = entry->value;
+            previousEntry = entry->previous;
+            nextEntry = entry->next;
+            previousEntry->next = nextEntry;
+            if (NULL != nextEntry) {
+                nextEntry->previous = previousEntry;
             }
-            HuMemDirectFree(var_r31);
-            return temp_r28;
+            HuMemDirectFree(entry);
+            return value;
         }
-        var_r31 = var_r31->unk08;
+        entry = entry->next;
     }
     return -1;
 }
 
-void fn_1_150(void)
+void ParticleGroupListInit(void)
 {
-    lbl_1_bss_23C.unk10 = NULL;
-    lbl_1_bss_23C.unk14 = NULL;
+    particleGroupListSentinel.previous = NULL;
+    particleGroupListSentinel.next = NULL;
 }
 
-void fn_1_174(s16 arg0, HU3DPARMANPARAM *arg1, s32 arg2, s32 arg3, s32 arg4, Vec *arg5, u8 arg6)
+void ParticleGroupSpawn(s16 particleFile, HU3DPARMANPARAM *particleParam, s32 modelLayer, s32 durationFrames, s32 particleCount, Vec *positions, u8 blendMode)
 {
-    UnkBss23CStruct *temp_r27;
-    UnkBss23CStruct *var_r31;
-    UnkBss23CStruct *temp_r28;
+    ParticleGroupNode *previousFirstGroup;
+    ParticleGroupNode *newGroup;
+    ParticleGroupNode *listHead;
     s32 i;
 
-    var_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*var_r31), HU_MEMNUM_OVL);
-    var_r31->unk00 = arg1;
-    var_r31->unk08 = arg3;
-    var_r31->unk0C = arg4;
-    var_r31->unk04 = HuMemDirectMallocNum(HEAP_HEAP, arg4 * sizeof(*var_r31->unk04), HU_MEMNUM_OVL);
-    for (i = 0; i < arg4; i++, arg5++) {
-        var_r31->unk04[i] = Hu3DParManLink(arg0, arg1);
-        if (var_r31->unk04[i] >= 0) {
-            Hu3DParManAttrReset(var_r31->unk04[i], 1);
-            Hu3DParManPosSet(var_r31->unk04[i], arg5->x, arg5->y, arg5->z);
-            Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(var_r31->unk04[i]), arg6);
-            Hu3DModelLayerSet(Hu3DParManModelIDGet(var_r31->unk04[i]), arg2);
+    newGroup = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*newGroup), HU_MEMNUM_OVL);
+    newGroup->particleParam = particleParam;
+    newGroup->framesRemaining = durationFrames;
+    newGroup->particleCount = particleCount;
+    newGroup->particleIds = HuMemDirectMallocNum(HEAP_HEAP, particleCount * sizeof(*newGroup->particleIds), HU_MEMNUM_OVL);
+    for (i = 0; i < particleCount; i++, positions++) {
+        newGroup->particleIds[i] = Hu3DParManLink(particleFile, particleParam);
+        if (newGroup->particleIds[i] >= 0) {
+            Hu3DParManAttrReset(newGroup->particleIds[i], 1);
+            Hu3DParManPosSet(newGroup->particleIds[i], positions->x, positions->y, positions->z);
+            Hu3DParticleBlendModeSet(Hu3DParManModelIDGet(newGroup->particleIds[i]), blendMode);
+            Hu3DModelLayerSet(Hu3DParManModelIDGet(newGroup->particleIds[i]), modelLayer);
         }
     }
-    temp_r28 = &lbl_1_bss_23C;
-    temp_r27 = temp_r28->unk14;
-    temp_r28->unk14 = var_r31;
-    if (NULL != temp_r27) {
-        temp_r27->unk10 = var_r31;
+    listHead = &particleGroupListSentinel;
+    previousFirstGroup = listHead->next;
+    listHead->next = newGroup;
+    if (NULL != previousFirstGroup) {
+        previousFirstGroup->previous = newGroup;
     }
-    var_r31->unk10 = temp_r28;
-    var_r31->unk14 = temp_r27;
+    newGroup->previous = listHead;
+    newGroup->next = previousFirstGroup;
 }
 
-void fn_1_2D8(void)
+void ParticleGroupUpdate(void)
 {
-    UnkBss23CStruct *var_r31;
-    UnkBss23CStruct *temp_r28;
-    UnkBss23CStruct *temp_r29;
+    ParticleGroupNode *group;
+    ParticleGroupNode *previousGroup;
+    ParticleGroupNode *nextGroup;
     s32 i;
 
-    var_r31 = lbl_1_bss_23C.unk14;
-    while (NULL != var_r31) {
-        var_r31->unk08--;
-        if (var_r31->unk08 == 0) {
-            for (i = 0; i < var_r31->unk0C; i++) {
-                if (var_r31->unk04[i] >= 0) {
-                    Hu3DParManAttrSet(var_r31->unk04[i], 1);
+    group = particleGroupListSentinel.next;
+    while (NULL != group) {
+        group->framesRemaining--;
+        if (group->framesRemaining == 0) {
+            for (i = 0; i < group->particleCount; i++) {
+                if (group->particleIds[i] >= 0) {
+                    Hu3DParManAttrSet(group->particleIds[i], 1);
                 }
             }
         }
-        temp_r28 = var_r31->unk10;
-        temp_r29 = var_r31->unk14;
-        if (-var_r31->unk00->maxTime > var_r31->unk08) {
-            for (i = 0; i < var_r31->unk0C; i++) {
-                if (var_r31->unk04[i] >= 0) {
-                    Hu3DParManKill(var_r31->unk04[i]);
+        previousGroup = group->previous;
+        nextGroup = group->next;
+        if (-group->particleParam->maxTime > group->framesRemaining) {
+            for (i = 0; i < group->particleCount; i++) {
+                if (group->particleIds[i] >= 0) {
+                    Hu3DParManKill(group->particleIds[i]);
                 }
             }
-            temp_r28->unk14 = temp_r29;
-            if (NULL != temp_r29) {
-                temp_r29->unk10 = temp_r28;
+            previousGroup->next = nextGroup;
+            if (NULL != nextGroup) {
+                nextGroup->previous = previousGroup;
             }
-            HuMemDirectFree(var_r31->unk04);
-            HuMemDirectFree(var_r31);
+            HuMemDirectFree(group->particleIds);
+            HuMemDirectFree(group);
         }
-        var_r31 = temp_r29;
+        group = nextGroup;
     }
 }
 
-void fn_1_414(void)
+void ModelCacheInit(void)
 {
     s32 i;
 
     for (i = 0; i < 32; i++) {
-        lbl_1_bss_AC[i].unk00 = 0;
-        lbl_1_bss_AC[i].unk04 = -1;
+        modelCache[i].modelFile = 0;
+        modelCache[i].modelId = -1;
     }
 }
 
-s16 fn_1_46C(s32 arg0)
+s16 ModelCacheGetOrCreate(s32 modelFile)
 {
     s32 i;
 
     for (i = 0; i < 32; i++) {
-        if (arg0 == lbl_1_bss_AC[i].unk00) {
-            return Hu3DModelLink(lbl_1_bss_AC[i].unk04);
+        if (modelFile == modelCache[i].modelFile) {
+            return Hu3DModelLink(modelCache[i].modelId);
         }
     }
     for (i = 0; i < 32; i++) {
-        if (lbl_1_bss_AC[i].unk00 == 0) {
-            lbl_1_bss_AC[i].unk00 = arg0;
-            lbl_1_bss_AC[i].unk04 = Hu3DModelCreateFile(arg0);
-            return lbl_1_bss_AC[i].unk04;
+        if (modelCache[i].modelFile == 0) {
+            modelCache[i].modelFile = modelFile;
+            modelCache[i].modelId = Hu3DModelCreateFile(modelFile);
+            return modelCache[i].modelId;
         }
     }
-    return Hu3DModelCreateFile(arg0);
+    return Hu3DModelCreateFile(modelFile);
 }
 
-void fn_1_580(s32 *arg0, s32 arg1, s32 arg2)
+void TimerDigitsUpdate(s32 *spriteIds, s32 firstDigitIndex, s32 frameCount)
 {
-    s32 var_r30;
+    s32 timeUnit;
 
-    espBankSet(arg0[arg1 + 1], 10);
-    espBankSet(arg0[arg1 + 4], 11);
-    if (600 * REFRESH_RATE <= arg2) {
-        arg2 = 600 * REFRESH_RATE - 1;
+    espBankSet(spriteIds[firstDigitIndex + 1], 10);
+    espBankSet(spriteIds[firstDigitIndex + 4], 11);
+    if (600 * REFRESH_RATE <= frameCount) {
+        frameCount = 600 * REFRESH_RATE - 1;
     }
-    var_r30 = arg2 / (60 * REFRESH_RATE);
-    arg2 -= var_r30 * (60 * REFRESH_RATE);
-    if (var_r30 > 9) {
-        var_r30 = 9;
+    timeUnit = frameCount / (60 * REFRESH_RATE);
+    frameCount -= timeUnit * (60 * REFRESH_RATE);
+    if (timeUnit > 9) {
+        timeUnit = 9;
     }
-    espBankSet(arg0[arg1], var_r30);
-    var_r30 = arg2 / REFRESH_RATE;
-    arg2 -= var_r30 * REFRESH_RATE;
-    espBankSet(arg0[arg1 + 2], var_r30 / 10);
-    espBankSet(arg0[arg1 + 3], var_r30 % 10);
-    var_r30 = 101.5f * arg2 / REFRESH_RATE;
-    espBankSet(arg0[arg1 + 5], var_r30 / 10);
-    espBankSet(arg0[arg1 + 6], var_r30 % 10);
+    espBankSet(spriteIds[firstDigitIndex], timeUnit);
+    timeUnit = frameCount / REFRESH_RATE;
+    frameCount -= timeUnit * REFRESH_RATE;
+    espBankSet(spriteIds[firstDigitIndex + 2], timeUnit / 10);
+    espBankSet(spriteIds[firstDigitIndex + 3], timeUnit % 10);
+    timeUnit = 101.5f * frameCount / REFRESH_RATE;
+    espBankSet(spriteIds[firstDigitIndex + 5], timeUnit / 10);
+    espBankSet(spriteIds[firstDigitIndex + 6], timeUnit % 10);
 }
 
-void fn_1_798(s32 arg0)
+void RecordTimeUpdate(s32 recordIndex)
 {
-    lbl_1_bss_1EC = 0.0f;
-    lbl_1_bss_1FC = lbl_1_bss_200;
-    GWMGRecordSet(arg0, lbl_1_bss_1FC);
-    fn_1_580(lbl_1_bss_1AC, 7, lbl_1_bss_200);
+    timerPulseAngle = 0.0f;
+    bestTime = elapsedFrames;
+    GWMGRecordSet(recordIndex, bestTime);
+    TimerDigitsUpdate(timerSprites, 7, elapsedFrames);
 }
 
-void fn_1_9EC(void)
+void TimerDisplayShow(void)
 {
     s32 i;
 
     for (i = 0; i < 16; i++) {
-        espDispOn(lbl_1_bss_1AC[i]);
+        espDispOn(timerSprites[i]);
     }
 }
 
-void fn_1_A40(void)
+void TimerDisplayPulse(void)
 {
-    float temp_f31;
+    float pulseScale;
     s32 i;
 
-    if (0.0f <= lbl_1_bss_1EC) {
-        lbl_1_bss_1EC += 16.0f;
-        temp_f31 = 1.0 + 0.2f * sind(lbl_1_bss_1EC);
+    if (0.0f <= timerPulseAngle) {
+        timerPulseAngle += 16.0f;
+        pulseScale = 1.0 + 0.2f * sind(timerPulseAngle);
         for (i = 7; i <= 14; i++) {
-            espScaleSet(lbl_1_bss_1AC[i], temp_f31, temp_f31);
+            espScaleSet(timerSprites[i], pulseScale, pulseScale);
         }
     }
 }
 
-void fn_1_B4C(float arg0, s32 arg1)
+void TimerDisplayCreate(float yPosition, s32 iconFile)
 {
-    float temp_f30;
-    float temp_f31;
+    float digitY;
+    float digitX;
     s32 i;
 
-    temp_f31 = 288.0f;
-    temp_f30 = arg0;
-    lbl_1_bss_1AC[15] = espEntry(arg1, 0, 0);
-    espTPLvlSet(lbl_1_bss_1AC[15], 0.5f);
-    espColorSet(lbl_1_bss_1AC[15], 0, 0, 0);
-    espPosSet(lbl_1_bss_1AC[15], temp_f31, temp_f30);
-    temp_f31 = 248.0f;
-    temp_f30 = arg0 - 8.0f;
-    lbl_1_bss_1AC[14] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 55), 0, 0);
-    espPosSet(lbl_1_bss_1AC[14], temp_f31 - 18.0f, temp_f30);
+    digitX = 288.0f;
+    digitY = yPosition;
+    timerSprites[15] = espEntry(iconFile, 0, 0);
+    espTPLvlSet(timerSprites[15], 0.5f);
+    espColorSet(timerSprites[15], 0, 0, 0);
+    espPosSet(timerSprites[15], digitX, digitY);
+    digitX = 248.0f;
+    digitY = yPosition - 8.0f;
+    timerSprites[14] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 55), 0, 0);
+    espPosSet(timerSprites[14], digitX - 18.0f, digitY);
     for (i = 7; i <= 13; i++) {
-        lbl_1_bss_1AC[i] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 48), 0, 0);
-        espPosSet(lbl_1_bss_1AC[i], temp_f31, temp_f30);
-        temp_f31 += 16.0f;
+        timerSprites[i] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 48), 0, 0);
+        espPosSet(timerSprites[i], digitX, digitY);
+        digitX += 16.0f;
     }
-    fn_1_580(lbl_1_bss_1AC, 7, lbl_1_bss_1FC);
-    temp_f31 = 248.0f;
-    temp_f30 = arg0 + 8.0f;
+    TimerDigitsUpdate(timerSprites, 7, bestTime);
+    digitX = 248.0f;
+    digitY = yPosition + 8.0f;
     for (i = 0; i <= 6; i++) {
-        lbl_1_bss_1AC[i] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 49), 0, 0);
-        espPosSet(lbl_1_bss_1AC[i], temp_f31, temp_f30);
-        temp_f31 += 16.0f;
+        timerSprites[i] = espEntry(DATA_MAKE_NUM(DATADIR_MGCONST, 49), 0, 0);
+        espPosSet(timerSprites[i], digitX, digitY);
+        digitX += 16.0f;
     }
-    fn_1_580(lbl_1_bss_1AC, 0, 0);
+    TimerDigitsUpdate(timerSprites, 0, 0);
     for (i = 0; i < 16; i++) {
-        espDrawNoSet(lbl_1_bss_1AC[i], 0);
-        espDispOff(lbl_1_bss_1AC[i]);
-        espAttrSet(lbl_1_bss_1AC[i], HUSPR_ATTR_NOANIM);
-        espPriSet(lbl_1_bss_1AC[i], 0x80 + i);
+        espDrawNoSet(timerSprites[i], 0);
+        espDispOff(timerSprites[i]);
+        espAttrSet(timerSprites[i], HUSPR_ATTR_NOANIM);
+        espPriSet(timerSprites[i], 0x80 + i);
     }
 }
 
-void fn_1_11F4(float arg0, Vec *arg1, Vec *arg2, Vec *arg3)
+void VectorEaseInterpolate(float progress, Vec *start, Vec *end, Vec *result)
 {
-    float temp_f31;
+    float interpolationWeight;
 
-    if (1.0f < arg0) {
-        arg0 = 1.0f;
+    if (1.0f < progress) {
+        progress = 1.0f;
     }
-    temp_f31 = sind(90.0f * arg0) * sind(90.0f * arg0);
-    arg3->x = arg1->x + temp_f31 * (arg2->x - arg1->x);
-    arg3->y = arg1->y + temp_f31 * (arg2->y - arg1->y);
-    arg3->z = arg1->z + temp_f31 * (arg2->z - arg1->z);
+    interpolationWeight = sind(90.0f * progress) * sind(90.0f * progress);
+    result->x = start->x + interpolationWeight * (end->x - start->x);
+    result->y = start->y + interpolationWeight * (end->y - start->y);
+    result->z = start->z + interpolationWeight * (end->z - start->z);
 }
 
-void fn_1_1350(Vec *arg0, Vec *arg1, Vec *arg2)
+void CameraPoseSet(Vec *position, Vec *up, Vec *target)
 {
-    Hu3DCameraPosSetV(1, arg0, arg1, arg2);
-    lbl_1_bss_22C = *arg0;
-    lbl_1_bss_214 = *arg2;
+    Hu3DCameraPosSetV(1, position, up, target);
+    cameraStartPosition = *position;
+    cameraStartTarget = *target;
 }
 
-s32 fn_1_13DC(float arg0, Vec *arg1)
+s32 CameraPoseTransitionUpdate(float progress, Vec *up)
 {
-    Vec sp18;
-    Vec spC;
+    Vec cameraPosition;
+    Vec cameraTarget;
 
-    fn_1_11F4(arg0, &lbl_1_bss_22C, &lbl_1_bss_220, &sp18);
-    fn_1_11F4(arg0, &lbl_1_bss_214, &lbl_1_bss_208, &spC);
-    Hu3DCameraPosSetV(1, &sp18, arg1, &spC);
-    if (1.0f <= arg0) {
+    VectorEaseInterpolate(progress, &cameraStartPosition, &cameraEndPosition, &cameraPosition);
+    VectorEaseInterpolate(progress, &cameraStartTarget, &cameraEndTarget, &cameraTarget);
+    Hu3DCameraPosSetV(1, &cameraPosition, up, &cameraTarget);
+    if (1.0f <= progress) {
         return 1;
     }
     else {
-        lbl_1_bss_1F0 = 1;
+        cameraTransitionActive = 1;
         return 0;
     }
 }
 
-void fn_1_1710(float arg0, Vec *arg1)
+void CameraPoseTransitionStart(float progress, Vec *up)
 {
-    Vec sp18;
-    Vec spC;
+    Vec cameraPosition;
+    Vec cameraTarget;
 
-    fn_1_11F4(arg0, &lbl_1_bss_22C, &lbl_1_bss_220, &sp18);
-    fn_1_11F4(arg0, &lbl_1_bss_214, &lbl_1_bss_208, &spC);
-    fn_1_1350(&sp18, arg1, &spC);
-    lbl_1_bss_1F0 = 1;
+    VectorEaseInterpolate(progress, &cameraStartPosition, &cameraEndPosition, &cameraPosition);
+    VectorEaseInterpolate(progress, &cameraStartTarget, &cameraEndTarget, &cameraTarget);
+    CameraPoseSet(&cameraPosition, up, &cameraTarget);
+    cameraTransitionActive = 1;
 }
 
-void fn_1_1A60(Vec *arg0, s16 arg1, Vec *arg2)
+void WorldToScreenPosition(Vec *worldPosition, s16 cameraMask, Vec *screenPosition)
 {
-    Mtx sp1C;
-    Vec sp10;
-    float temp_f30;
-    float temp_f29;
-    float temp_f28;
-    float temp_f31;
-    HU3DCAMERA *temp_r31;
+    Mtx cameraMatrix;
+    Vec cameraSpacePosition;
+    float horizontalProjectionScale;
+    float verticalProjectionScale;
+    float viewportXOffset;
+    float viewportWidth;
+    HU3DCAMERA *camera;
     s32 i;
 
     for (i = 0; i < 16; i++) {
-        if (arg1 & (1 << i)) {
+        if (cameraMask & (1 << i)) {
             break;
         }
     }
-    temp_r31 = &Hu3DCamera[i];
-    MTXLookAt(sp1C, &temp_r31->pos, &temp_r31->up, &temp_r31->target);
-    MTXMultVec(sp1C, arg0, &sp10);
-    temp_f30 = sp10.z * (sind(temp_r31->fov / 2) / cosd(temp_r31->fov / 2)) * temp_r31->aspect;
-    temp_f29 = sp10.z * (sind(temp_r31->fov / 2) / cosd(temp_r31->fov / 2));
-    temp_f28 = 0.9f * temp_r31->viewportX;
-    temp_f31 = 0.9f * temp_r31->viewportW;
-    arg2->x = temp_f31 / 2 + sp10.x * ((temp_f31 / 2) / -temp_f30) + temp_f28;
-    arg2->y = temp_r31->viewportH / 2 + sp10.y * ((temp_r31->viewportH / 2) / temp_f29) + temp_r31->viewportY;
-    arg2->z = 0.0f;
+    camera = &Hu3DCamera[i];
+    MTXLookAt(cameraMatrix, &camera->pos, &camera->up, &camera->target);
+    MTXMultVec(cameraMatrix, worldPosition, &cameraSpacePosition);
+    horizontalProjectionScale = cameraSpacePosition.z * (sind(camera->fov / 2) / cosd(camera->fov / 2)) * camera->aspect;
+    verticalProjectionScale = cameraSpacePosition.z * (sind(camera->fov / 2) / cosd(camera->fov / 2));
+    viewportXOffset = 0.9f * camera->viewportX;
+    viewportWidth = 0.9f * camera->viewportW;
+    screenPosition->x = viewportWidth / 2 + cameraSpacePosition.x * ((viewportWidth / 2) / -horizontalProjectionScale) + viewportXOffset;
+    screenPosition->y = camera->viewportH / 2 + cameraSpacePosition.y * ((camera->viewportH / 2) / verticalProjectionScale) + camera->viewportY;
+    screenPosition->z = 0.0f;
 }
 
-void fn_1_1D18(s16 arg0, char *arg1, Vec *arg2)
+void ModelJointPositionGet(s16 modelId, char *jointName, Vec *position)
 {
-    Mtx sp10;
+    Mtx modelMatrix;
 
-    Hu3DModelObjMtxGet(arg0, arg1, sp10);
-    arg2->x = sp10[0][3];
-    arg2->y = sp10[1][3];
-    arg2->z = sp10[2][3];
+    Hu3DModelObjMtxGet(modelId, jointName, modelMatrix);
+    position->x = modelMatrix[0][3];
+    position->y = modelMatrix[1][3];
+    position->z = modelMatrix[2][3];
 }
 
-void fn_1_1D70(s16 arg0, char *arg1, Vec *arg2, Mtx arg3)
+void ModelJointWorldPositionGet(s16 modelId, char *jointName, Vec *position, Mtx matrixOut)
 {
-    Mtx spC;
-    HU3DMODEL *var_r30;
+    Mtx worldMatrix;
+    HU3DMODEL *model;
 
-    var_r30 = &Hu3DData[arg0];
-    Hu3DModelObjMtxGet(arg0, arg1, spC);
-    MTXConcat(var_r30->mtx, spC, spC);
-    if (NULL != arg3) {
-        MTXCopy(spC, arg3);
+    model = &Hu3DData[modelId];
+    Hu3DModelObjMtxGet(modelId, jointName, worldMatrix);
+    MTXConcat(model->mtx, worldMatrix, worldMatrix);
+    if (NULL != matrixOut) {
+        MTXCopy(worldMatrix, matrixOut);
     }
-    arg2->x = spC[0][3];
-    arg2->y = spC[1][3];
-    arg2->z = spC[2][3];
+    position->x = worldMatrix[0][3];
+    position->y = worldMatrix[1][3];
+    position->z = worldMatrix[2][3];
 }
 
-float fn_1_1E20(float arg0, float arg1, float arg2)
+float AngleInterpolate(float startAngle, float targetAngle, float interpolationRate)
 {
-    float var_f31;
-    float var_f30;
+    float angleDifference;
+    float interpolatedAngle;
 
-    var_f31 = fmod(arg1 - arg0, 360.0);
-    if (0.0f > var_f31) {
-        var_f31 += 360.0f;
+    angleDifference = fmod(targetAngle - startAngle, 360.0);
+    if (0.0f > angleDifference) {
+        angleDifference += 360.0f;
     }
-    if (180.0f < var_f31) {
-        var_f31 -= 360.0f;
+    if (180.0f < angleDifference) {
+        angleDifference -= 360.0f;
     }
-    var_f30 = fmod(arg0 + var_f31 * arg2, 360.0);
-    if (0.0f > var_f30) {
-        var_f30 += 360.0f;
+    interpolatedAngle = fmod(startAngle + angleDifference * interpolationRate, 360.0);
+    if (0.0f > interpolatedAngle) {
+        interpolatedAngle += 360.0f;
     }
-    return var_f30;
+    return interpolatedAngle;
 }
 
-void fn_1_1F24(s32 arg0)
+void AudioSequencePlay(s32 sequenceId)
 {
-    lbl_1_bss_1F4 = HuAudSeqPlay((s32)arg0);
+    musicSequenceId = HuAudSeqPlay((s32)sequenceId);
 }
 
-void fn_1_1F58(s32 arg0)
+void AudioSequenceFadeOut(s32 fadeFrames)
 {
-    if (lbl_1_bss_1F4 >= 0) {
-        if (arg0 < 0) {
-            arg0 = 1000;
+    if (musicSequenceId >= 0) {
+        if (fadeFrames < 0) {
+            fadeFrames = 1000;
         }
-        HuAudSeqFadeOut(lbl_1_bss_1F4, arg0);
+        HuAudSeqFadeOut(musicSequenceId, fadeFrames);
     }
-    lbl_1_bss_1F4 = -1;
+    musicSequenceId = -1;
 }
 
-void fn_1_1FC4(Vec *arg0, float *arg1, s32 arg2, s32 arg3)
+void PlayerStickMovementUpdate(Vec *position, float *rotationY, s32 stickX, s32 stickY)
 {
-    Vec sp18;
-    float var_f28;
-    s32 var_r30;
+    Vec stickDirection;
+    float stickMagnitude;
+    s32 movementState;
 
-    sp18.x = 0.0f;
-    sp18.y = 0.0f;
-    sp18.z = 0.0f;
-    sp18.x = arg2 / 4.0f;
-    sp18.z = -(float)arg3 / 4.0f;
-    var_r30 = 0;
-    var_f28 = VECMagXZ(&sp18);
-    if (0.5f <= var_f28) {
-        if (10.0f <= var_f28) {
-            sp18.x /= var_f28;
-            sp18.z /= var_f28;
-            var_f28 = 10.0f;
-            sp18.x = 10.0f * sp18.x;
-            sp18.z = 10.0f * sp18.z;
+    stickDirection.x = 0.0f;
+    stickDirection.y = 0.0f;
+    stickDirection.z = 0.0f;
+    stickDirection.x = stickX / 4.0f;
+    stickDirection.z = -(float)stickY / 4.0f;
+    movementState = 0;
+    stickMagnitude = VECMagXZ(&stickDirection);
+    if (0.5f <= stickMagnitude) {
+        if (10.0f <= stickMagnitude) {
+            stickDirection.x /= stickMagnitude;
+            stickDirection.z /= stickMagnitude;
+            stickMagnitude = 10.0f;
+            stickDirection.x = 10.0f * stickDirection.x;
+            stickDirection.z = 10.0f * stickDirection.z;
         }
-        *arg1 = fn_1_1E20(*arg1, atan2d(sp18.x, sp18.z), 0.4f);
-        if (8.0f <= var_f28) {
-            var_r30 = 2;
+        *rotationY = AngleInterpolate(*rotationY, atan2d(stickDirection.x, stickDirection.z), 0.4f);
+        if (8.0f <= stickMagnitude) {
+            movementState = 2;
         }
         else {
-            var_r30 = 1;
+            movementState = 1;
         }
     }
-    VECAdd((Vec *)&arg0, &sp18, (Vec *)&arg0);
+    VECAdd((Vec *)&position, &stickDirection, (Vec *)&position);
 }
 
 typedef void (*PlayerOldHook)(OMOBJ *obj);
 typedef Vec *(*PlayerOldPosHook)(OMOBJ *obj);
 
-typedef struct work_playerold {
-    OMOBJ *unk0;
-    PlayerOldHook unk4;
-    PlayerOldPosHook unk8;
-    PlayerOldHook unkC;
-    PlayerOldHook unk10;
-    s32 *unk14;
-    s32 unk18;
-    s32 unk1C;
-    s32 unk20;
-    s32 unk24;
-    s32 unk28;
-    s32 unk2C;
-    s32 unk30;
-    s32 unk34;
-    s32 unk38;
-    s32 unk3C;
-    s32 unk40;
-    s32 unk44;
-    s32 unk48;
-    s32 unk4C;
-    Vec *unk50;
-    Vec unk54;
-    float unk60;
-    s32 unk64;
-    Vec *unk68;
-    Vec unk6C;
-    Vec unk78;
-    Vec unk84;
-    Vec unk90;
-    float unk9C;
-    float unkA0;
-    float unkA4;
-    float unkA8;
-    Vec unkAC;
-    float unkB8;
-    float unkBC;
-    float unkC0;
+typedef struct WorkPlayerold {
+    OMOBJ *object;
+    PlayerOldHook updateCallback;
+    PlayerOldPosHook positionCallback;
+    PlayerOldHook landingCallback;
+    PlayerOldHook collisionCallback;
+    s32 *motionIds;
+    s32 playerIndex;
+    s32 characterIndex;
+    s32 stickX;
+    s32 stickY;
+    s32 motionFlags;
+    s32 motionStateFlags;
+    s32 reserved30;
+    s32 reserved34;
+    s32 actionState;
+    s32 movementFlags;
+    s32 motionState;
+    s32 motionId;
+    s32 motionFrame;
+    s32 collisionFrame;
+    Vec *groundPositions;
+    Vec groundOffset;
+    float groundRotation;
+    s32 collisionBoxCount;
+    Vec *collisionBoxes;
+    Vec position;
+    Vec previousPosition;
+    Vec velocity;
+    Vec inputVelocity;
+    float rotationY;
+    float horizontalSpeed;
+    float jumpTimer;
+    float groundHeight;
+    Vec groundNormal;
+    float movementScale;
+    float collisionRadius;
+    float collisionHeight;
 } WorkPlayerOld;
 
 typedef WorkPlayerOld *(*PlayerOldFind)(int no);
 
-PlayerOldFind lbl_1_bss_A8;
-float lbl_1_bss_A4;
-OMOBJ *lbl_1_bss_A0;
-OMOBJ *lbl_1_bss_9C;
-OMOBJ *lbl_1_bss_4C[20];
-int lbl_1_bss_48;
-int lbl_1_bss_3C[3];
-int lbl_1_bss_2C[4];
-s32 lbl_1_bss_28;
-s32 lbl_1_bss_24;
-s32 lbl_1_bss_20;
-float lbl_1_bss_1C;
-BOOL lbl_1_bss_18;
-BOOL lbl_1_bss_14;
-s32 lbl_1_bss_10;
-s32 lbl_1_bss_C;
-float lbl_1_bss_8;
-float lbl_1_bss_4;
-float lbl_1_bss_0;
+PlayerOldFind playerOldLookup;
+float playerOldGroundOffset;
+OMOBJ *gameControllerObject;
+OMOBJ *playerObject;
+OMOBJ *bomheiObjects[20];
+int bomheiCount;
+int bomheiModelIds[3];
+int bomheiMotionIds[4];
+s32 spawnedBomheiMask;
+s32 bomheiSpawnLimit;
+s32 activeBomheiCount;
+float stateTimer;
+BOOL playerIndex;
+BOOL playerCollision;
+s32 leftAudioEmitter;
+s32 rightAudioEmitter;
+float cameraDistance;
+float cameraVerticalOffset;
+float cameraLookAtHeight;
 
-s16 lbl_1_data_0[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+s16 characterIds[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-s32 lbl_1_data_10[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+s32 playerMotionStates[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-float lbl_1_data_30[10] = { 70, 70, 70, 70, 70, 70, 70, 70, 70, 100 };
+float playerCollisionRadii[10] = { 70, 70, 70, 70, 70, 70, 70, 70, 70, 100 };
 
-float lbl_1_data_58[10] = { 150, 170, 190, 170, 160, 150, 180, 200, 150, 200 };
+float playerCollisionHeights[10] = { 150, 170, 190, 170, 160, 150, 180, 200, 150, 200 };
 
-void fn_1_23B4(WorkPlayerOld *player)
+void PlayerOldMotionStateUpdate(WorkPlayerOld *player)
 {
     s32 i;
     for (i = 0; i < 8; i++) {
-        if (player->unk44 == player->unk14[i]) {
-            player->unk40 = lbl_1_data_10[i];
+        if (player->motionId == player->motionIds[i]) {
+            player->motionState = playerMotionStates[i];
             return;
         }
     }
-    player->unk40 = -1;
+    player->motionState = -1;
 }
 
-void fn_1_2418(float *minDist, s32 *state, s32 stateNew, Vec *posA, float aYOfs, Vec *posB, float bYOfs)
+void PlayerCollisionHeightTest(float *minimumDistance, s32 *collisionStateOut, s32 collisionState, Vec *firstCenter, float firstVerticalOffset, Vec *secondCenter, float secondVerticalOffset)
 {
-    Vec pointA = *posA;
-    Vec pointB = *posB;
+    Vec pointA = *firstCenter;
+    Vec pointB = *secondCenter;
     float dist;
-    pointA.y += aYOfs;
-    pointB.y += bYOfs;
+    pointA.y += firstVerticalOffset;
+    pointB.y += secondVerticalOffset;
     dist = VECDistance(&pointA, &pointB);
-    if (*minDist > dist) {
-        *minDist = dist;
-        *state = stateNew;
+    if (*minimumDistance > dist) {
+        *minimumDistance = dist;
+        *collisionStateOut = collisionState;
     }
 }
 
-void fn_1_24F8(WorkPlayerOld *player1, WorkPlayerOld *player2, float *minDist, s32 *state)
+void PlayerPairCollisionTest(WorkPlayerOld *firstPlayer, WorkPlayerOld *secondPlayer, float *minimumDistance, s32 *collisionStateOut)
 {
-    *minDist = 10 * (player1->unkBC + player2->unkBC);
-    fn_1_2418(minDist, state, 0, &player1->unk6C, player1->unkBC, &player2->unk6C, player2->unkBC);
-    fn_1_2418(minDist, state, 1, &player1->unk6C, player1->unkC0 - player1->unkBC, &player2->unk6C, player2->unkC0 - player2->unkBC);
-    fn_1_2418(minDist, state, 2, &player1->unk6C, player1->unkBC, &player2->unk6C, player2->unkC0 - player2->unkBC);
-    fn_1_2418(minDist, state, 3, &player1->unk6C, player1->unkC0 - player1->unkBC, &player2->unk6C, player2->unkBC);
+    *minimumDistance = 10 * (firstPlayer->collisionRadius + secondPlayer->collisionRadius);
+    PlayerCollisionHeightTest(minimumDistance, collisionStateOut, 0, &firstPlayer->position, firstPlayer->collisionRadius, &secondPlayer->position, secondPlayer->collisionRadius);
+    PlayerCollisionHeightTest(minimumDistance, collisionStateOut, 1, &firstPlayer->position, firstPlayer->collisionHeight - firstPlayer->collisionRadius, &secondPlayer->position, secondPlayer->collisionHeight - secondPlayer->collisionRadius);
+    PlayerCollisionHeightTest(minimumDistance, collisionStateOut, 2, &firstPlayer->position, firstPlayer->collisionRadius, &secondPlayer->position, secondPlayer->collisionHeight - secondPlayer->collisionRadius);
+    PlayerCollisionHeightTest(minimumDistance, collisionStateOut, 3, &firstPlayer->position, firstPlayer->collisionHeight - firstPlayer->collisionRadius, &secondPlayer->position, secondPlayer->collisionRadius);
 }
 
-s32 fn_1_2824(WorkPlayerOld *player, WorkPlayerOld *player2)
+s32 PlayerPairResolve(WorkPlayerOld *player, WorkPlayerOld *otherPlayer)
 {
     Vec dir;
     Vec dir2;
     float dist;
 
-    player->unk3C |= 0x1;
-    player->unk90.x = player->unk20 / 4.0f;
-    player->unk90.z = -(float)player->unk24 / 4.0f;
-    if (player->unk90.x != 0.0f || player->unk90.z != 0.0f) {
+    player->movementFlags |= 0x1;
+    player->inputVelocity.x = player->stickX / 4.0f;
+    player->inputVelocity.z = -(float)player->stickY / 4.0f;
+    if (player->inputVelocity.x != 0.0f || player->inputVelocity.z != 0.0f) {
         return;
     }
-    VECSubtract(&player->unk6C, &player2->unk6C, &dir);
+    VECSubtract(&player->position, &otherPlayer->position, &dir);
     dist = VECMagXZ(&dir);
     if (0.0f == dist) {
         dir.x = 0;
@@ -612,142 +612,142 @@ s32 fn_1_2824(WorkPlayerOld *player, WorkPlayerOld *player2)
         dir.x /= dist;
         dir.z /= dist;
     }
-    VECSubtract(&player->unk6C, &player->unk78, &dir2);
+    VECSubtract(&player->position, &player->previousPosition, &dir2);
     dist = VECMagXZ(&dir2);
     if (5 > dist) {
         dist = 5;
     }
-    player->unk90.x = dir.x * dist;
-    player->unk90.z = dir.z * dist;
+    player->inputVelocity.x = dir.x * dist;
+    player->inputVelocity.z = dir.z * dist;
 }
 
-void fn_1_2BD0(WorkPlayerOld *player, float arg1, float arg2)
+void PlayerOldJumpSet(WorkPlayerOld *player, float verticalVelocity, float jumpDuration)
 {
-    player->unk38 = 1;
-    player->unk84.y = arg1;
-    player->unkA4 = arg2;
-    if (player->unk3C & 0x2) {
-        player->unk3C &= ~0x2;
+    player->actionState = 1;
+    player->velocity.y = verticalVelocity;
+    player->jumpTimer = jumpDuration;
+    if (player->movementFlags & 0x2) {
+        player->movementFlags &= ~0x2;
     }
 }
 
-void fn_1_2C00(PlayerOldFind find, float yDist)
+void PlayerOldManagerSet(PlayerOldFind playerLookup, float groundHeightOffset)
 {
-    lbl_1_bss_A8 = find;
-    lbl_1_bss_A4 = yDist;
+    playerOldLookup = playerLookup;
+    playerOldGroundOffset = groundHeightOffset;
 }
 
-void fn_1_2C1C(WorkPlayerOld *player, OMOBJ *obj, s32 arg2, s32 arg3, s32 *arg4, s32 arg5, Vec *pos, float arg7)
+void PlayerOldCreate(WorkPlayerOld *player, OMOBJ *obj, s32 playerIndex, s32 characterIndex, s32 *motionIds, s32 initialMotionId, Vec *initialPosition, float initialRotationY)
 {
-    player->unk0 = obj;
-    player->unk18 = arg2;
-    player->unk1C = arg3;
-    player->unk14 = arg4;
-    player->unk4 = NULL;
-    player->unk8 = NULL;
-    player->unkC = NULL;
-    player->unk10 = NULL;
-    player->unk50 = NULL;
-    player->unk64 = 0;
-    player->unk68 = 0;
-    player->unk38 = 0;
-    player->unk3C = 0;
-    player->unk44 = arg5;
-    player->unk48 = 0;
-    player->unk4C = 0;
-    fn_1_23B4(player);
-    player->unk9C = arg7;
-    player->unk6C = *pos;
-    player->unk78 = *pos;
-    player->unk84.x = 0;
-    player->unk84.y = 0;
-    player->unk84.z = 0;
-    player->unkB8 = 1;
-    player->unkA8 = 0;
-    player->unkBC = lbl_1_data_30[player->unk1C];
-    player->unkC0 = lbl_1_data_58[player->unk1C];
+    player->object = obj;
+    player->playerIndex = playerIndex;
+    player->characterIndex = characterIndex;
+    player->motionIds = motionIds;
+    player->updateCallback = NULL;
+    player->positionCallback = NULL;
+    player->landingCallback = NULL;
+    player->collisionCallback = NULL;
+    player->groundPositions = NULL;
+    player->collisionBoxCount = 0;
+    player->collisionBoxes = 0;
+    player->actionState = 0;
+    player->movementFlags = 0;
+    player->motionId = initialMotionId;
+    player->motionFrame = 0;
+    player->collisionFrame = 0;
+    PlayerOldMotionStateUpdate(player);
+    player->rotationY = initialRotationY;
+    player->position = *initialPosition;
+    player->previousPosition = *initialPosition;
+    player->velocity.x = 0;
+    player->velocity.y = 0;
+    player->velocity.z = 0;
+    player->movementScale = 1;
+    player->groundHeight = 0;
+    player->collisionRadius = playerCollisionRadii[player->characterIndex];
+    player->collisionHeight = playerCollisionHeights[player->characterIndex];
 }
 
-void fn_1_2DA8(WorkPlayerOld *player, PlayerOldHook func)
+void PlayerOldUpdateCallbackSet(WorkPlayerOld *player, PlayerOldHook updateCallback)
 {
-    player->unk4 = func;
+    player->updateCallback = updateCallback;
 }
 
-void fn_1_2DB0(WorkPlayerOld *player, PlayerOldPosHook func)
+void PlayerOldPositionCallbackSet(WorkPlayerOld *player, PlayerOldPosHook positionCallback)
 {
-    player->unk8 = func;
+    player->positionCallback = positionCallback;
 }
 
-void fn_1_2DB8(WorkPlayerOld *player, PlayerOldHook func)
+void PlayerOldLandingCallbackSet(WorkPlayerOld *player, PlayerOldHook landingCallback)
 {
-    player->unkC = func;
+    player->landingCallback = landingCallback;
 }
 
-void fn_1_2DC0(WorkPlayerOld *player, PlayerOldHook func)
+void PlayerOldCollisionCallbackSet(WorkPlayerOld *player, PlayerOldHook collisionCallback)
 {
-    player->unk10 = func;
+    player->collisionCallback = collisionCallback;
 }
 
-void fn_1_2DC8(WorkPlayerOld *player, s32 count, Vec *data)
+void PlayerOldCollisionBoxesSet(WorkPlayerOld *player, s32 collisionBoxCount, Vec *collisionBoxes)
 {
-    player->unk64 = count;
-    player->unk68 = data;
+    player->collisionBoxCount = collisionBoxCount;
+    player->collisionBoxes = collisionBoxes;
 }
 
-void fn_1_2DD4(WorkPlayerOld *player)
+void PlayerOldMotionFlagsSet(WorkPlayerOld *player)
 {
-    omSetTra(player->unk0, player->unk6C.x, player->unk6C.y, player->unk6C.z);
-    omSetRot(player->unk0, 0.0f, player->unk9C, 0.0f);
+    omSetTra(player->object, player->position.x, player->position.y, player->position.z);
+    omSetRot(player->object, 0.0f, player->rotationY, 0.0f);
 }
 
-void fn_1_2E34(WorkPlayerOld *player)
+void PlayerOldCollisionUpdate(WorkPlayerOld *player)
 {
     BOOL addTime;
     s32 i;
-    player->unk3C &= ~0x100;
-    if (player->unk3C & 0x8) {
+    player->movementFlags &= ~0x100;
+    if (player->movementFlags & 0x8) {
         return;
     }
-    if (NULL == lbl_1_bss_A8) {
+    if (NULL == playerOldLookup) {
         return;
     }
     addTime = FALSE;
     for (i = 0; i < 4; i++) {
-        WorkPlayerOld *player2 = lbl_1_bss_A8(i);
+        WorkPlayerOld *player2 = playerOldLookup(i);
         BOOL fixPos;
         float minDist;
         s32 state;
         if (player == player2) {
             continue;
         }
-        if (player2->unk3C & 0x8) {
+        if (player2->movementFlags & 0x8) {
             continue;
         }
         fixPos = FALSE;
-        fn_1_24F8(player, player2, &minDist, &state);
-        if (minDist < player->unkBC + player2->unkBC) {
+        PlayerPairCollisionTest(player, player2, &minDist, &state);
+        if (minDist < player->collisionRadius + player2->collisionRadius) {
             if (state < 2) {
                 fixPos = TRUE;
-                if (player->unk38 == 1) {
-                    fn_1_2824(player, player2);
+                if (player->actionState == 1) {
+                    PlayerPairResolve(player, player2);
                 }
             }
             else {
-                if (state == 2 && player->unk38 == 1) {
-                    fn_1_2824(player, player2);
-                    player->unk3C |= 0x100;
-                    player->unkA4 = 0;
-                    if (!(player2->unk3C & 0x100)) {
-                        player->unk84.y = (VERSION_PAL) ? 32.120003f : 26.766666f;
+                if (state == 2 && player->actionState == 1) {
+                    PlayerPairResolve(player, player2);
+                    player->movementFlags |= 0x100;
+                    player->jumpTimer = 0;
+                    if (!(player2->movementFlags & 0x100)) {
+                        player->velocity.y = (VERSION_PAL) ? 32.120003f : 26.766666f;
                     }
                 }
                 if (state == 3) {
                     fixPos = TRUE;
-                    if (player->unk38 == 1) {
-                        if (0.0f < player->unk84.y) {
-                            player->unk84.y = 0.0f;
+                    if (player->actionState == 1) {
+                        if (0.0f < player->velocity.y) {
+                            player->velocity.y = 0.0f;
                         }
-                        player->unkA4 = 0;
+                        player->jumpTimer = 0;
                     }
                 }
             }
@@ -755,7 +755,7 @@ void fn_1_2E34(WorkPlayerOld *player)
         if (fixPos) {
             Vec dir;
             addTime = TRUE;
-            VECSubtract(&player->unk6C, &player2->unk6C, &dir);
+            VECSubtract(&player->position, &player2->position, &dir);
             if (0.0f == minDist) {
                 dir.x = 0;
                 dir.z = -1;
@@ -764,59 +764,59 @@ void fn_1_2E34(WorkPlayerOld *player)
                 dir.x /= minDist;
                 dir.z /= minDist;
             }
-            player->unk6C.x = player2->unk6C.x + (dir.x * (player->unkBC + player2->unkBC));
-            player->unk6C.z = player2->unk6C.z + (dir.z * (player->unkBC + player2->unkBC));
+            player->position.x = player2->position.x + (dir.x * (player->collisionRadius + player2->collisionRadius));
+            player->position.z = player2->position.z + (dir.z * (player->collisionRadius + player2->collisionRadius));
         }
     }
     if (addTime) {
-        player->unk4C++;
+        player->collisionFrame++;
     }
     else {
-        player->unk4C = 0;
+        player->collisionFrame = 0;
     }
 }
 
-float fn_1_39C4(WorkPlayerOld *player, float arg2)
+float PlayerOldGroundHeightGet(WorkPlayerOld *player, float previousHeight)
 {
     Vec *pos;
     s32 i;
     AddX = 0;
     AddZ = 0;
-    if (NULL != player->unk68) {
-        for (pos = player->unk68, i = 0; i < player->unk64; i++, pos += 2) {
+    if (NULL != player->collisionBoxes) {
+        for (pos = player->collisionBoxes, i = 0; i < player->collisionBoxCount; i++, pos += 2) {
             int num = 0;
-            if (pos[0].x == pos[1].x || pos[0].x > player->unk6C.x || pos[1].x < player->unk6C.x) {
+            if (pos[0].x == pos[1].x || pos[0].x > player->position.x || pos[1].x < player->position.x) {
                 num++;
             }
-            if (pos[0].y == pos[1].y || pos[0].y > player->unk6C.y || pos[1].y < player->unk6C.y) {
+            if (pos[0].y == pos[1].y || pos[0].y > player->position.y || pos[1].y < player->position.y) {
                 num++;
             }
-            if (pos[0].z == pos[1].z || pos[0].z > player->unk6C.z || pos[1].z < player->unk6C.z) {
+            if (pos[0].z == pos[1].z || pos[0].z > player->position.z || pos[1].z < player->position.z) {
                 num++;
             }
             if (num == 3) {
                 if (pos[0].x != pos[1].x) {
-                    if (pos[0].x > player->unk6C.x) {
-                        player->unk6C.x = pos[0].x + player->unkBC;
+                    if (pos[0].x > player->position.x) {
+                        player->position.x = pos[0].x + player->collisionRadius;
                     }
-                    if (pos[1].x < player->unk6C.x) {
-                        player->unk6C.x = pos[1].x - player->unkBC;
+                    if (pos[1].x < player->position.x) {
+                        player->position.x = pos[1].x - player->collisionRadius;
                     }
                 }
                 if (pos[0].y != pos[1].y) {
-                    if (pos[0].y > player->unk6C.y) {
-                        player->unk6C.y = pos[0].y;
+                    if (pos[0].y > player->position.y) {
+                        player->position.y = pos[0].y;
                     }
-                    if (pos[1].y < player->unk6C.y) {
-                        player->unk6C.y = pos[1].y;
+                    if (pos[1].y < player->position.y) {
+                        player->position.y = pos[1].y;
                     }
                 }
                 if (pos[0].z != pos[1].z) {
-                    if (pos[0].z > player->unk6C.z) {
-                        player->unk6C.z = pos[0].z + player->unkBC;
+                    if (pos[0].z > player->position.z) {
+                        player->position.z = pos[0].z + player->collisionRadius;
                     }
-                    if (pos[1].z < player->unk6C.z) {
-                        player->unk6C.z = pos[1].z - player->unkBC;
+                    if (pos[1].z < player->position.z) {
+                        player->position.z = pos[1].z - player->collisionRadius;
                     }
                 }
             }
@@ -825,328 +825,328 @@ float fn_1_39C4(WorkPlayerOld *player, float arg2)
     return ABS(AddX) + ABS(AddZ);
 }
 
-void fn_1_3C74(WorkPlayerOld *player, s32 *state, u32 *motAttr)
+void PlayerOldIdleUpdate(WorkPlayerOld *player, s32 *motionStateOut, u32 *motionAttributesOut)
 {
-    *motAttr = HU3D_MOTATTR_LOOP;
-    *state = 0;
-    if (0.5f <= player->unkA0) {
-        if (7.0f <= player->unkA0) {
-            *state = 2;
+    *motionAttributesOut = HU3D_MOTATTR_LOOP;
+    *motionStateOut = 0;
+    if (0.5f <= player->horizontalSpeed) {
+        if (7.0f <= player->horizontalSpeed) {
+            *motionStateOut = 2;
         }
         else {
-            *state = 1;
+            *motionStateOut = 1;
         }
     }
 
-    if (player->unk14[3] >= 0 && (player->unk28 & 0x100)) {
-        fn_1_2BD0(player, (VERSION_PAL) ? 32.120003f : 26.766666f, 1.0f);
-        *motAttr = HU3D_MOTATTR_NONE;
-        *state = 3;
+    if (player->motionIds[3] >= 0 && (player->motionFlags & 0x100)) {
+        PlayerOldJumpSet(player, (VERSION_PAL) ? 32.120003f : 26.766666f, 1.0f);
+        *motionAttributesOut = HU3D_MOTATTR_NONE;
+        *motionStateOut = 3;
     }
 }
 
-void fn_1_3D4C(WorkPlayerOld *player, s32 *state, u32 *motAttr)
+void PlayerOldWalkUpdate(WorkPlayerOld *player, s32 *motionStateOut, u32 *motionAttributesOut)
 {
-    if (0.0f < player->unkA4) {
-        if (player->unk2C & 0x100) {
-            player->unkA4++;
-            if (4.0f < player->unkA4) {
-                player->unkA4 = 0;
+    if (0.0f < player->jumpTimer) {
+        if (player->motionStateFlags & 0x100) {
+            player->jumpTimer++;
+            if (4.0f < player->jumpTimer) {
+                player->jumpTimer = 0;
             }
             else {
-                player->unk84.y += 219.0f / REFRESH_RATE_F;
+                player->velocity.y += 219.0f / REFRESH_RATE_F;
             }
         }
         else {
-            player->unkA4 = 0;
+            player->jumpTimer = 0;
         }
     }
-    player->unk84.y += -146.0f / REFRESH_RATE_F;
-    if (player->unk14[5] >= 0 && (player->unk28 & 0x140)) {
-        player->unk38 = 3;
-        player->unk84.y = 0.0f;
-        player->unk3C &= ~0x3;
-        player->unk3C |= 0x4;
-        *motAttr = HU3D_MOTATTR_NONE;
-        *state = 5;
+    player->velocity.y += -146.0f / REFRESH_RATE_F;
+    if (player->motionIds[5] >= 0 && (player->motionFlags & 0x140)) {
+        player->actionState = 3;
+        player->velocity.y = 0.0f;
+        player->movementFlags &= ~0x3;
+        player->movementFlags |= 0x4;
+        *motionAttributesOut = HU3D_MOTATTR_NONE;
+        *motionStateOut = 5;
     }
 }
 
-void fn_1_3E60(WorkPlayerOld *player, s32 *state, u32 *motAttr)
+void PlayerOldJumpUpdate(WorkPlayerOld *player, s32 *motionStateOut, u32 *motionAttributesOut)
 {
-    if ((player->unk3C & 0x1000) || Hu3DMotionEndCheck(player->unk0->mdlId[0])) {
-        player->unk3C &= ~0x3;
-        if (player->unk40 == 6) {
-            player->unk38 = 4;
-            *motAttr = HU3D_MOTATTR_NONE;
-            *state = 7;
+    if ((player->movementFlags & 0x1000) || Hu3DMotionEndCheck(player->object->mdlId[0])) {
+        player->movementFlags &= ~0x3;
+        if (player->motionState == 6) {
+            player->actionState = 4;
+            *motionAttributesOut = HU3D_MOTATTR_NONE;
+            *motionStateOut = 7;
         }
         else {
-            player->unk38 = 0;
-            *motAttr = HU3D_MOTATTR_LOOP;
-            *state = 0;
+            player->actionState = 0;
+            *motionAttributesOut = HU3D_MOTATTR_LOOP;
+            *motionStateOut = 0;
         }
     }
 }
 
-void fn_1_3F18(WorkPlayerOld *player, s32 *state, u32 *motAttr)
+void PlayerOldFallUpdate(WorkPlayerOld *player, s32 *motionStateOut, u32 *motionAttributesOut)
 {
-    if (Hu3DMotionShiftIDGet(player->unk0->mdlId[0]) < 0 && Hu3DMotionEndCheck(player->unk0->mdlId[0])) {
-        fn_1_2BD0(player, 0.0f, 0.0f);
+    if (Hu3DMotionShiftIDGet(player->object->mdlId[0]) < 0 && Hu3DMotionEndCheck(player->object->mdlId[0])) {
+        PlayerOldJumpSet(player, 0.0f, 0.0f);
     }
 }
 
-void fn_1_3FB8(WorkPlayerOld *player, s32 *state, u32 *motAttr)
+void PlayerOldLandUpdate(WorkPlayerOld *player, s32 *motionStateOut, u32 *motionAttributesOut)
 {
-    if (Hu3DMotionShiftIDGet(player->unk0->mdlId[0]) < 0 && Hu3DMotionEndCheck(player->unk0->mdlId[0])) {
-        player->unk3C &= ~0x4;
-        player->unk38 = 0;
-        *motAttr = HU3D_MOTATTR_LOOP;
-        *state = 0;
+    if (Hu3DMotionShiftIDGet(player->object->mdlId[0]) < 0 && Hu3DMotionEndCheck(player->object->mdlId[0])) {
+        player->movementFlags &= ~0x4;
+        player->actionState = 0;
+        *motionAttributesOut = HU3D_MOTATTR_LOOP;
+        *motionStateOut = 0;
     }
 }
 
-void fn_1_4054(WorkPlayerOld *player)
+void PlayerOldUpdate(WorkPlayerOld *player)
 {
     u32 motAttr = HU3D_MOTATTR_NONE;
     s32 state = -1;
-    float temp_f28;
-    float temp_f23;
-    float temp_f22;
+    float heightOffset;
+    float distanceToGround;
+    float previousHeight;
     Vec *pos;
-    BOOL temp_r27;
-    if (player->unk3C & 0x1) {
-        player->unk84.x = player->unk90.x;
-        player->unk84.z = player->unk90.z;
+    BOOL hasGroundContact;
+    if (player->movementFlags & 0x1) {
+        player->velocity.x = player->inputVelocity.x;
+        player->velocity.z = player->inputVelocity.z;
     }
     else {
-        player->unk84.x = player->unk20 / 4.0f;
-        player->unk84.z = -(float)player->unk24 / 4.0f;
-        if (player->unk38 == 1 && 0.0f == player->unk84.x && 0.0f == player->unk84.z) {
-            player->unk84.x = 0.98f * (player->unk6C.x - player->unk78.x);
-            player->unk84.z = 0.98f * (player->unk6C.z - player->unk78.z);
+        player->velocity.x = player->stickX / 4.0f;
+        player->velocity.z = -(float)player->stickY / 4.0f;
+        if (player->actionState == 1 && 0.0f == player->velocity.x && 0.0f == player->velocity.z) {
+            player->velocity.x = 0.98f * (player->position.x - player->previousPosition.x);
+            player->velocity.z = 0.98f * (player->position.z - player->previousPosition.z);
         }
-        if (player->unk3C & 0x14) {
-            player->unk84.x = 0;
-            player->unk84.z = 0;
-            player->unk28 = 0;
+        if (player->movementFlags & 0x14) {
+            player->velocity.x = 0;
+            player->velocity.z = 0;
+            player->motionFlags = 0;
         }
     }
-    player->unk78 = player->unk6C;
-    player->unkA0 = VECMagXZ(&player->unk84);
-    if (0.5f <= player->unkA0) {
-        if (10.0f <= player->unkA0) {
-            player->unk84.x /= player->unkA0;
-            player->unk84.z /= player->unkA0;
-            player->unkA0 = 10;
-            player->unk84.x = 10 * player->unk84.x;
-            player->unk84.z = 10 * player->unk84.z;
+    player->previousPosition = player->position;
+    player->horizontalSpeed = VECMagXZ(&player->velocity);
+    if (0.5f <= player->horizontalSpeed) {
+        if (10.0f <= player->horizontalSpeed) {
+            player->velocity.x /= player->horizontalSpeed;
+            player->velocity.z /= player->horizontalSpeed;
+            player->horizontalSpeed = 10;
+            player->velocity.x = 10 * player->velocity.x;
+            player->velocity.z = 10 * player->velocity.z;
         }
     }
     else {
-        player->unk84.x = 0;
-        player->unk84.z = 0;
-        player->unkA0 = 0;
+        player->velocity.x = 0;
+        player->velocity.z = 0;
+        player->horizontalSpeed = 0;
     }
-    player->unk84.x *= player->unkB8;
-    player->unk84.z *= player->unkB8;
-    player->unkA0 *= player->unkB8;
-    if (player->unk3C & 0x800) {
-        player->unk28 |= 0x100;
-        player->unk2C |= 0x100;
-        if (player->unk38 == 1) {
-            if (0.0f == player->unkA4) {
-                player->unk3C &= ~0x800;
+    player->velocity.x *= player->movementScale;
+    player->velocity.z *= player->movementScale;
+    player->horizontalSpeed *= player->movementScale;
+    if (player->movementFlags & 0x800) {
+        player->motionFlags |= 0x100;
+        player->motionStateFlags |= 0x100;
+        if (player->actionState == 1) {
+            if (0.0f == player->jumpTimer) {
+                player->movementFlags &= ~0x800;
             }
         }
     }
-    switch (player->unk38) {
+    switch (player->actionState) {
         case 0:
-            fn_1_3C74(player, &state, &motAttr);
+            PlayerOldIdleUpdate(player, &state, &motAttr);
             break;
 
         case 1:
-            fn_1_3D4C(player, &state, &motAttr);
+            PlayerOldWalkUpdate(player, &state, &motAttr);
             break;
 
         case 2:
-            fn_1_3E60(player, &state, &motAttr);
+            PlayerOldJumpUpdate(player, &state, &motAttr);
             break;
 
         case 3:
-            fn_1_3F18(player, &state, &motAttr);
+            PlayerOldFallUpdate(player, &state, &motAttr);
             break;
 
         case 4:
-            fn_1_3FB8(player, &state, &motAttr);
+            PlayerOldLandUpdate(player, &state, &motAttr);
             break;
 
         default:
-            OSReport("*** player action error(%d)!!\n", player->unk38);
+            OSReport("*** player action error(%d)!!\n", player->actionState);
             break;
     }
-    if (player->unk3C & 0x2000) {
-        player->unk84.y = 0;
+    if (player->movementFlags & 0x2000) {
+        player->velocity.y = 0;
     }
-    temp_f28 = 0;
-    if (50.0f < ABS(player->unk84.y)) {
-        player->unk84.y = 50.0f * ((0.0f > player->unk84.y) ? -1 : 1);
+    heightOffset = 0;
+    if (50.0f < ABS(player->velocity.y)) {
+        player->velocity.y = 50.0f * ((0.0f > player->velocity.y) ? -1 : 1);
     }
-    if (player->unk3C & 0x2) {
+    if (player->movementFlags & 0x2) {
         Mtx rotMtx;
-        MTXRotDeg(rotMtx, 'y', player->unk50[2].x - player->unk60);
-        MTXMultVec(rotMtx, &player->unk54, &player->unk54);
-        VECAdd(&player->unk54, &player->unk50[0], &player->unk6C);
-        player->unk9C += player->unk50[2].x - player->unk60;
+        MTXRotDeg(rotMtx, 'y', player->groundPositions[2].x - player->groundRotation);
+        MTXMultVec(rotMtx, &player->groundOffset, &player->groundOffset);
+        VECAdd(&player->groundOffset, &player->groundPositions[0], &player->position);
+        player->rotationY += player->groundPositions[2].x - player->groundRotation;
     }
-    temp_f22 = player->unk6C.y;
-    VECAdd(&player->unk6C, &player->unk84, &player->unk6C);
-    if ((player->unk3C & 0x1) == 0 && (0.0f != player->unk84.x || 0.0f != player->unk84.z)) {
-        player->unk9C = fn_1_1E20(player->unk9C, atan2d(player->unk84.x, player->unk84.z), 0.4f * player->unkB8);
+    previousHeight = player->position.y;
+    VECAdd(&player->position, &player->velocity, &player->position);
+    if ((player->movementFlags & 0x1) == 0 && (0.0f != player->velocity.x || 0.0f != player->velocity.z)) {
+        player->rotationY = AngleInterpolate(player->rotationY, atan2d(player->velocity.x, player->velocity.z), 0.4f * player->movementScale);
     }
-    temp_f28 += fn_1_39C4(player, temp_f22);
+    heightOffset += PlayerOldGroundHeightGet(player, previousHeight);
     if (nMap == 0) {
-        player->unkA8 = lbl_1_bss_A4;
+        player->groundHeight = playerOldGroundOffset;
     }
     else {
-        player->unkA8 = MapPos(player->unk6C.x, player->unk6C.y, player->unk6C.z, player->unkC0, &player->unkAC);
+        player->groundHeight = MapPos(player->position.x, player->position.y, player->position.z, player->collisionHeight, &player->groundNormal);
     }
-    temp_r27 = FALSE;
-    if (NULL != player->unk8) {
-        pos = player->unk8(player->unk0);
+    hasGroundContact = FALSE;
+    if (NULL != player->positionCallback) {
+        pos = player->positionCallback(player->object);
         if (NULL != pos) {
-            if (player->unkA8 < pos[1].y) {
-                temp_r27 = TRUE;
-                player->unk50 = pos;
-                player->unkA8 = pos[1].y;
+            if (player->groundHeight < pos[1].y) {
+                hasGroundContact = TRUE;
+                player->groundPositions = pos;
+                player->groundHeight = pos[1].y;
             }
         }
     }
-    if (!temp_r27 && (player->unk3C & 0x2)) {
-        player->unk3C &= ~0x2;
+    if (!hasGroundContact && (player->movementFlags & 0x2)) {
+        player->movementFlags &= ~0x2;
     }
-    if (player->unk38 == 1 && player->unkA8 >= player->unk6C.y) {
-        player->unk38 = 2;
-        player->unk3C &= ~0x3;
-        player->unk6C.y = player->unkA8;
-        player->unk84.y = 0;
+    if (player->actionState == 1 && player->groundHeight >= player->position.y) {
+        player->actionState = 2;
+        player->movementFlags &= ~0x3;
+        player->position.y = player->groundHeight;
+        player->velocity.y = 0;
         motAttr = HU3D_MOTATTR_NONE;
         state = 4;
-        if (player->unk40 == 5) {
+        if (player->motionState == 5) {
             state = 6;
-            if (NULL != player->unk10) {
-                player->unk10(player->unk0);
+            if (NULL != player->collisionCallback) {
+                player->collisionCallback(player->object);
             }
-            if (player->unk18 < 4) {
-                omVibrate(player->unk18, 12, 4, 2);
+            if (player->playerIndex < 4) {
+                omVibrate(player->playerIndex, 12, 4, 2);
             }
         }
-        if (player->unk3C & 0x200) {
+        if (player->movementFlags & 0x200) {
             state = -1;
-            if (NULL != player->unkC) {
-                player->unkC(player->unk0);
+            if (NULL != player->landingCallback) {
+                player->landingCallback(player->object);
             }
         }
-        if (temp_r27) {
-            player->unk3C |= 0x2;
+        if (hasGroundContact) {
+            player->movementFlags |= 0x2;
         }
     }
-    temp_f23 = player->unk6C.y - player->unkA8;
-    if (player->unk38 == 0 && 10.0f < temp_f23) {
-        if (!(player->unk3C & 0x2000) && (player->unk3C & 0x400)) {
-            player->unk3C |= 0x800;
+    distanceToGround = player->position.y - player->groundHeight;
+    if (player->actionState == 0 && 10.0f < distanceToGround) {
+        if (!(player->movementFlags & 0x2000) && (player->movementFlags & 0x400)) {
+            player->movementFlags |= 0x800;
         }
     }
-    else if (temp_r27) {
-        if (!(player->unk3C & 0x2)) {
-            player->unk6C.y = player->unkA8;
-            player->unk3C |= 0x2;
+    else if (hasGroundContact) {
+        if (!(player->movementFlags & 0x2)) {
+            player->position.y = player->groundHeight;
+            player->movementFlags |= 0x2;
         }
     }
-    fn_1_2E34(player);
-    if (NULL != player->unk4) {
-        player->unk4(player->unk0);
+    PlayerOldCollisionUpdate(player);
+    if (NULL != player->updateCallback) {
+        player->updateCallback(player->object);
     }
-    temp_f28 += fn_1_39C4(player, player->unk6C.y);
-    if (player->unk3C & 0x2) {
-        player->unk60 = player->unk50[2].x;
-        VECSubtract(&player->unk6C, &player->unk50[0], &player->unk54);
+    heightOffset += PlayerOldGroundHeightGet(player, player->position.y);
+    if (player->movementFlags & 0x2) {
+        player->groundRotation = player->groundPositions[2].x;
+        VECSubtract(&player->position, &player->groundPositions[0], &player->groundOffset);
     }
-    if (0.0f != temp_f28) {
-        player->unk48++;
+    if (0.0f != heightOffset) {
+        player->motionFrame++;
     }
     else {
-        player->unk48 = 0;
+        player->motionFrame = 0;
     }
-    if (state >= 0 && player->unk40 != state) {
-        player->unk40 = state;
-        player->unk44 = player->unk14[player->unk40];
-        if (player->unk44 >= 0 && !(player->unk3C & 0x20)) {
-            Hu3DMotionShiftSet(player->unk0->mdlId[0], player->unk0->mtnId[player->unk44], 0, 8, motAttr);
+    if (state >= 0 && player->motionState != state) {
+        player->motionState = state;
+        player->motionId = player->motionIds[player->motionState];
+        if (player->motionId >= 0 && !(player->movementFlags & 0x20)) {
+            Hu3DMotionShiftSet(player->object->mdlId[0], player->object->mtnId[player->motionId], 0, 8, motAttr);
         }
     }
 }
 
-void fn_1_4E1C(WorkPlayerOld *player, s32 motNo)
+void PlayerOldMotionSet(WorkPlayerOld *player, s32 motionIndex)
 {
     s32 i;
-    player->unk44 = motNo;
-    player->unk38 = 0;
-    player->unk3C &= 0x1400;
-    player->unk78 = player->unk6C;
-    player->unk84.x = 0;
-    player->unk84.y = 0;
-    player->unk84.z = 0;
-    fn_1_23B4(player);
-    if (player->unk40 == 3) {
-        Hu3DModelAttrReset(player->unk0->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
-        Hu3DMotionSet(player->unk0->mdlId[0], player->unk0->mtnId[player->unk44]);
-        Hu3DMotionTimeSet(player->unk0->mdlId[0], Hu3DMotionMaxTimeGet(player->unk0->mdlId[0]) - 1);
+    player->motionId = motionIndex;
+    player->actionState = 0;
+    player->movementFlags &= 0x1400;
+    player->previousPosition = player->position;
+    player->velocity.x = 0;
+    player->velocity.y = 0;
+    player->velocity.z = 0;
+    PlayerOldMotionStateUpdate(player);
+    if (player->motionState == 3) {
+        Hu3DModelAttrReset(player->object->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
+        Hu3DMotionSet(player->object->mdlId[0], player->object->mtnId[player->motionId]);
+        Hu3DMotionTimeSet(player->object->mdlId[0], Hu3DMotionMaxTimeGet(player->object->mdlId[0]) - 1);
     }
-    else if (player->unk40 == 5) {
-        player->unk38 = 3;
-        player->unk3C |= 0x4;
-        Hu3DModelAttrReset(player->unk0->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
-        Hu3DMotionSet(player->unk0->mdlId[0], player->unk0->mtnId[player->unk44]);
-        Hu3DMotionTimeSet(player->unk0->mdlId[0], Hu3DMotionMaxTimeGet(player->unk0->mdlId[0]) - 1);
+    else if (player->motionState == 5) {
+        player->actionState = 3;
+        player->movementFlags |= 0x4;
+        Hu3DModelAttrReset(player->object->mdlId[0], HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE);
+        Hu3DMotionSet(player->object->mdlId[0], player->object->mtnId[player->motionId]);
+        Hu3DMotionTimeSet(player->object->mdlId[0], Hu3DMotionMaxTimeGet(player->object->mdlId[0]) - 1);
     }
     else {
-        Hu3DModelAttrReset(player->unk0->mdlId[0], HU3D_MOTATTR_PAUSE);
-        Hu3DMotionShiftSet(player->unk0->mdlId[0], player->unk0->mtnId[player->unk44], 0, 8, HU3D_MOTATTR_LOOP);
+        Hu3DModelAttrReset(player->object->mdlId[0], HU3D_MOTATTR_PAUSE);
+        Hu3DMotionShiftSet(player->object->mdlId[0], player->object->mtnId[player->motionId], 0, 8, HU3D_MOTATTR_LOOP);
     }
 }
 
-void fn_1_506C(WorkPlayerOld *player, s32 attr)
+void PlayerOldAttributeSet(WorkPlayerOld *player, s32 attributes)
 {
-    player->unk3C |= attr;
+    player->movementFlags |= attributes;
 }
 
-void fn_1_507C(WorkPlayerOld *player, s32 attr)
+void PlayerOldAttributeReset(WorkPlayerOld *player, s32 attributes)
 {
-    player->unk3C &= ~attr;
+    player->movementFlags &= ~attributes;
 }
 
 #ifdef __MWERKS__
 #include "src/REL/executor.c"
 #endif
 
-Vec lbl_1_data_A0 = { 0, 600, 600 };
-Vec lbl_1_data_AC = { 0, 1, 0 };
-Vec lbl_1_data_B8 = { 0, 100, 0 };
+Vec initialCameraPosition = { 0, 600, 600 };
+Vec initialCameraTarget = { 0, 1, 0 };
+Vec initialCameraUp = { 0, 100, 0 };
 
-Vec lbl_1_data_C4 = { 0, 2300, 2200 };
-Vec lbl_1_data_D0 = { 0, 1, 0 };
-Vec lbl_1_data_DC = { 0, 0, 0 };
+Vec finalCameraPosition = { 0, 2300, 2200 };
+Vec cameraTransitionTarget = { 0, 1, 0 };
+Vec finalCameraTarget = { 0, 0, 0 };
 
-Vec lbl_1_data_E8 = { -1500, 4000, 1500 };
-Vec lbl_1_data_F4 = { 1.5, -4, -1.5 };
-GXColor lbl_1_data_100 = { 255, 255, 255, 255 };
+Vec lightPosition = { -1500, 4000, 1500 };
+Vec lightDirection = { 1.5, -4, -1.5 };
+GXColor lightColor = { 255, 255, 255, 255 };
 
-Vec lbl_1_data_104 = { -1500, 4000, 1500 };
-Vec lbl_1_data_110 = { 0, 0, 0 };
-Vec lbl_1_data_11C = { 0, 1, 0 };
+Vec shadowPosition = { -1500, 4000, 1500 };
+Vec shadowTarget = { 0, 0, 0 };
+Vec shadowUp = { 0, 1, 0 };
 
-s32 lbl_1_data_128[8][5] = {
+s32 characterMotionFiles[8][5] = {
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x00),
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x02),
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x03),
@@ -1189,14 +1189,14 @@ s32 lbl_1_data_128[8][5] = {
     DATA_MAKE_NUM(DATADIR_WALUIGIMOT, 0x17),
 };
 
-s32 lbl_1_data_1C8[3] = { DATA_MAKE_NUM(DATADIR_M461, 0x02), DATA_MAKE_NUM(DATADIR_M461, 0x03), DATA_MAKE_NUM(DATADIR_M461, 0x08) };
+s32 bomheiModelFiles[3] = { DATA_MAKE_NUM(DATADIR_M461, 0x02), DATA_MAKE_NUM(DATADIR_M461, 0x03), DATA_MAKE_NUM(DATADIR_M461, 0x08) };
 
-s32 lbl_1_data_1D4[4]
+s32 bomheiMotionFiles[4]
     = { DATA_MAKE_NUM(DATADIR_M461, 0x04), DATA_MAKE_NUM(DATADIR_M461, 0x05), DATA_MAKE_NUM(DATADIR_M461, 0x06), DATA_MAKE_NUM(DATADIR_M461, 0x07) };
 
-float lbl_1_data_1E4[3] = { 0.3f, 0.5f, 0.9f };
+float bomheiTypeScales[3] = { 0.3f, 0.5f, 0.9f };
 
-float lbl_1_data_1F0[10][2] = {
+float spawnDifficultySchedule[10][2] = {
     0, 60,
     31 * REFRESH_RATE_F, 60,
     61 * REFRESH_RATE_F, 50,
@@ -1209,130 +1209,130 @@ float lbl_1_data_1F0[10][2] = {
     -1, 10
 };
 
-Vec lbl_1_data_240[3] = { { 0, 0, 2800 }, { 2800, 0, 0 }, { -2800, 0, 0 } };
+Vec bomheiSpawnPoints[3] = { { 0, 0, 2800 }, { 2800, 0, 0 }, { -2800, 0, 0 } };
 
-s32 lbl_1_data_264[3] = { 70, 30, 0 };
+s32 bomheiSpawnChances[3] = { 70, 30, 0 };
 
-typedef struct data270_struct {
-    Vec unk0;
-    float unkC;
-} Data270Struct;
+typedef struct BomheiSpawnPoint {
+    Vec position;
+    float rotationY;
+} BomheiSpawnPoint;
 
-Data270Struct lbl_1_data_270[8] = { { { 200, 0, 1400 }, 180 }, { { -200, 0, 1400 }, 180 }, { { 200, 0, -1400 }, 0 }, { { -200, 0, -1400 }, 0 },
+BomheiSpawnPoint bomheiArenaSpawnPoints[8] = { { { 200, 0, 1400 }, 180 }, { { -200, 0, 1400 }, 180 }, { { 200, 0, -1400 }, 0 }, { { -200, 0, -1400 }, 0 },
     { { 1400, 0, 200 }, 270 }, { { 1400, 0, -200 }, 270 }, { { -1400, 0, 200 }, 90 }, { { -1400, 0, -200 }, 90 } };
 
-Vec lbl_1_data_2F0[4] = { { 600, 0, 600 }, { 600, 0, -600 }, { -600, 0, 600 }, { -600, 0, -600 } };
+Vec bomhei2SpawnPoints[4] = { { 600, 0, 600 }, { 600, 0, -600 }, { -600, 0, 600 }, { -600, 0, -600 } };
 
-void fn_1_512C(void)
+void DebugControlsUpdate(void)
 {
     if (HuPadBtn[0] & PAD_BUTTON_X) {
-        lbl_1_bss_200 = REFRESH_RATE * 600 - 1;
+        elapsedFrames = REFRESH_RATE * 600 - 1;
     }
-    print8(24, 32, 1.5f, "COUNT:%d MODE:%d MES:%d %d/%d %02x", lbl_1_bss_204, lbl_1_bss_A0->work[0], lbl_1_bss_1FA, lbl_1_bss_20, lbl_1_bss_24,
-        lbl_1_bss_28);
-    print8(24, 48, 1.5f, "%f %f %f", lbl_1_bss_0, lbl_1_bss_8, lbl_1_bss_4);
+    print8(24, 32, 1.5f, "COUNT:%d MODE:%d MES:%d %d/%d %02x", spawnCycle, gameControllerObject->work[0], messageSequenceId, activeBomheiCount, bomheiSpawnLimit,
+        spawnedBomheiMask);
+    print8(24, 48, 1.5f, "%f %f %f", cameraLookAtHeight, cameraDistance, cameraVerticalOffset);
     print8(24, 64, 1.5f, "%x %x", HuMemHeapSizeGet(HEAP_HEAP) - HuMemUsedMallocSizeGet(HEAP_HEAP),
         HuMemHeapSizeGet(HEAP_MODEL) - HuMemUsedMallocSizeGet(HEAP_MODEL));
-    lbl_1_bss_4 -= HuPadSubStkX[0] / 59.0f;
-    lbl_1_bss_8 -= 4.0f * (HuPadSubStkY[0] / 59.0f);
-    lbl_1_bss_0 -= (HuPadTrigL[0] / 150.0f) * 4.0f;
-    lbl_1_bss_0 += (HuPadTrigR[0] / 150.0f) * 4.0f;
+    cameraVerticalOffset -= HuPadSubStkX[0] / 59.0f;
+    cameraDistance -= 4.0f * (HuPadSubStkY[0] / 59.0f);
+    cameraLookAtHeight -= (HuPadTrigL[0] / 150.0f) * 4.0f;
+    cameraLookAtHeight += (HuPadTrigR[0] / 150.0f) * 4.0f;
 }
 
-typedef struct work_player {
-    Vec unk0;
-    Vec unkC;
-    Vec unk18;
-    Vec unk24;
-    Vec unk30;
-    Vec unk3C;
-    float unk48;
-    s32 unk4C;
-    s32 unk50;
-    s32 unk54;
-    s32 unk58;
-    s32 unk5C;
-    s32 unk60;
+typedef struct WorkPlayer {
+    Vec position;
+    Vec velocity;
+    Vec turnState;
+    Vec startPosition;
+    Vec targetPosition;
+    Vec destination;
+    float movementSpeed;
+    s32 stickX;
+    s32 stickY;
+    s32 motion;
+    s32 aiState;
+    s32 characterId;
+    s32 controllerIndex;
 } WorkPlayer;
 
-typedef struct work_bomhei {
-    Vec unk0;
-    Vec unkC;
-    Vec unk18;
-    float unk24;
-    s32 unk28;
-    s32 unk2C;
-    s32 unk30;
-    s32 unk34;
+typedef struct WorkBomhei {
+    Vec position;
+    Vec rotation;
+    Vec timers;
+    float lifetime;
+    s32 playerMaskBit;
+    s32 motionId;
+    s32 type;
+    s32 state;
 } WorkBomhei;
 
-void fn_1_5438(Vec *pos)
+void PlayerDistanceVibrationUpdate(Vec *playerPosition)
 {
-    float dist = VECDistance(pos, &((WorkPlayer *)lbl_1_bss_9C->data)->unk0);
+    float dist = VECDistance(playerPosition, &((WorkPlayer *)playerObject->data)->position);
     if (2000 < dist) {
         return;
     }
     if (1000 < dist) {
-        omVibrate(lbl_1_bss_18, 12, 6, 6);
+        omVibrate(playerIndex, 12, 6, 6);
     }
     else if (300 < dist) {
-        omVibrate(lbl_1_bss_18, 12, 4, 2);
+        omVibrate(playerIndex, 12, 4, 2);
     }
     else {
-        omVibrate(lbl_1_bss_18, 12, 12, 0);
+        omVibrate(playerIndex, 12, 12, 0);
     }
 }
 
-BOOL fn_1_5528(Vec *pos, float offset)
+BOOL ArenaPositionClamp(Vec *position, float boundaryMargin)
 {
     BOOL result = FALSE;
-    float ofs = 700 - offset;
+    float ofs = 700 - boundaryMargin;
     Mtx rotMtx;
 
-    if (ofs < pos->x) {
-        pos->x = ofs;
+    if (ofs < position->x) {
+        position->x = ofs;
     }
-    if (ofs < pos->z) {
-        pos->z = ofs;
+    if (ofs < position->z) {
+        position->z = ofs;
     }
-    if (-ofs > pos->x) {
-        pos->x = -ofs;
+    if (-ofs > position->x) {
+        position->x = -ofs;
     }
-    if (-ofs > pos->z) {
-        pos->z = -ofs;
+    if (-ofs > position->z) {
+        position->z = -ofs;
     }
-    if (ofs == ABS(pos->x) || ofs == ABS(pos->z)) {
+    if (ofs == ABS(position->x) || ofs == ABS(position->z)) {
         result = TRUE;
     }
     MTXRotDeg(rotMtx, 'Y', 45);
-    MTXMultVec(rotMtx, pos, pos);
-    ofs = (550 * sqrtf(2)) - offset;
-    if (ofs < pos->x) {
-        pos->x = ofs;
+    MTXMultVec(rotMtx, position, position);
+    ofs = (550 * sqrtf(2)) - boundaryMargin;
+    if (ofs < position->x) {
+        position->x = ofs;
     }
-    if (ofs < pos->z) {
-        pos->z = ofs;
+    if (ofs < position->z) {
+        position->z = ofs;
     }
-    if (-ofs > pos->x) {
-        pos->x = -ofs;
+    if (-ofs > position->x) {
+        position->x = -ofs;
     }
-    if (-ofs > pos->z) {
-        pos->z = -ofs;
+    if (-ofs > position->z) {
+        position->z = -ofs;
     }
-    if (ofs == ABS(pos->x) || ofs == ABS(pos->z)) {
+    if (ofs == ABS(position->x) || ofs == ABS(position->z)) {
         result = TRUE;
     }
     MTXRotDeg(rotMtx, 'Y', -45);
-    MTXMultVec(rotMtx, pos, pos);
+    MTXMultVec(rotMtx, position, position);
     return result;
 }
 
-void fn_1_5894(Vec *pos1, Vec *pos2, float radius1, float radius2)
+void CircleCollisionResolve(Vec *firstPosition, Vec *secondPosition, float firstRadius, float secondRadius)
 {
-    float dx = pos1->x - pos2->x;
-    float dz = pos1->z - pos2->z;
+    float dx = firstPosition->x - secondPosition->x;
+    float dz = firstPosition->z - secondPosition->z;
     float dist = sqrtf((dx * dx) + (dz * dz));
-    if (radius1 + radius2 > dist) {
+    if (firstRadius + secondRadius > dist) {
         if (0.0f == dist) {
             dx = 0;
             dz = -1;
@@ -1341,233 +1341,233 @@ void fn_1_5894(Vec *pos1, Vec *pos2, float radius1, float radius2)
             dx /= dist;
             dz /= dist;
         }
-        pos1->x = pos2->x + (dx * (radius1 + radius2));
-        pos1->z = pos2->z + (dz * (radius1 + radius2));
+        firstPosition->x = secondPosition->x + (dx * (firstRadius + secondRadius));
+        firstPosition->z = secondPosition->z + (dz * (firstRadius + secondRadius));
     }
 }
 
-void fn_1_5A7C(WorkPlayer *player, OMOBJ *obj)
+void PlayerIntroUpdate(WorkPlayer *player, OMOBJ *obj)
 {
     float distMin;
     s32 i;
-    player->unk58 = 2002;
+    player->aiState = 2002;
     Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[3], 0, 8, HU3D_MOTATTR_NONE);
     distMin = 100000;
     for (i = 0; i < 3; i++) {
-        float dist = VECDistance(&lbl_1_data_240[i], &player->unk0);
+        float dist = VECDistance(&bomheiSpawnPoints[i], &player->position);
         if (distMin > dist) {
             distMin = dist;
-            player->unk3C = lbl_1_data_240[i];
+            player->destination = bomheiSpawnPoints[i];
         }
     }
-    player->unk24 = player->unk0;
-    player->unk30 = player->unk0;
-    player->unk48 = 15;
-    lbl_1_bss_10 = HuAudFXEmiterPlay(2084, &player->unk0);
-    lbl_1_bss_C = CharFXPlayPos(player->unk5C, 291, &player->unk0);
+    player->startPosition = player->position;
+    player->targetPosition = player->position;
+    player->movementSpeed = 15;
+    leftAudioEmitter = HuAudFXEmiterPlay(2084, &player->position);
+    rightAudioEmitter = CharFXPlayPos(player->characterId, 291, &player->position);
 }
 
-void fn_1_5BF4(WorkPlayer *player, OMOBJ *obj)
+void PlayerMovementUpdate(WorkPlayer *player, OMOBJ *obj)
 {
     s32 i;
     s32 action;
-    player->unkC.x = 0;
-    player->unkC.y = 0;
-    player->unkC.z = 0;
-    player->unkC.x = player->unk4C / 4.0f;
-    player->unkC.z = -(float)player->unk50 / 4.0f;
+    player->velocity.x = 0;
+    player->velocity.y = 0;
+    player->velocity.z = 0;
+    player->velocity.x = player->stickX / 4.0f;
+    player->velocity.z = -(float)player->stickY / 4.0f;
     action = 0;
-    player->unk18.z = VECMagXZ(&player->unkC);
-    if (0.5f <= player->unk18.z) {
-        if (10.0f <= player->unk18.z) {
-            player->unkC.x /= player->unk18.z;
-            player->unkC.z /= player->unk18.z;
-            player->unk18.z = 10;
-            player->unkC.x = 10 * player->unkC.x;
-            player->unkC.z = 10 * player->unkC.z;
+    player->turnState.z = VECMagXZ(&player->velocity);
+    if (0.5f <= player->turnState.z) {
+        if (10.0f <= player->turnState.z) {
+            player->velocity.x /= player->turnState.z;
+            player->velocity.z /= player->turnState.z;
+            player->turnState.z = 10;
+            player->velocity.x = 10 * player->velocity.x;
+            player->velocity.z = 10 * player->velocity.z;
         }
-        player->unk18.y = fn_1_1E20(player->unk18.y, atan2d(player->unkC.x, player->unkC.z), 0.4f);
-        if (7.0f <= player->unk18.z) {
+        player->turnState.y = AngleInterpolate(player->turnState.y, atan2d(player->velocity.x, player->velocity.z), 0.4f);
+        if (7.0f <= player->turnState.z) {
             action = 2;
         }
         else {
             action = 1;
         }
     }
-    VECAdd(&player->unk0, &player->unkC, &player->unk0);
-    fn_1_5528(&player->unk0, 70);
+    VECAdd(&player->position, &player->velocity, &player->position);
+    ArenaPositionClamp(&player->position, 70);
     for (i = 0; i < 20; i++) {
         WorkBomhei *bomhei;
-        if (NULL == lbl_1_bss_4C[i]) {
+        if (NULL == bomheiObjects[i]) {
             continue;
         }
-        bomhei = lbl_1_bss_4C[i]->data;
-        if (bomhei->unk34 == 3004 && 30 > Hu3DMotionTimeGet(lbl_1_bss_4C[i]->mdlId[2])) {
-            float dx = player->unk0.x - bomhei->unk0.x;
-            float dz = player->unk0.z - bomhei->unk0.z;
+        bomhei = bomheiObjects[i]->data;
+        if (bomhei->state == 3004 && 30 > Hu3DMotionTimeGet(bomheiObjects[i]->mdlId[2])) {
+            float dx = player->position.x - bomhei->position.x;
+            float dz = player->position.z - bomhei->position.z;
             if (200 > sqrtf((dx * dx) + (dz * dz))) {
-                lbl_1_bss_14 = 1;
+                playerCollision = 1;
             }
         }
         else {
-            fn_1_5894(&player->unk0, &bomhei->unk0, 70, 70);
+            CircleCollisionResolve(&player->position, &bomhei->position, 70, 70);
         }
     }
-    fn_1_5528(&player->unk0, 70);
-    if (player->unk54 != action) {
-        player->unk54 = action;
-        Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[player->unk54], 0, 8, HU3D_MOTATTR_LOOP);
+    ArenaPositionClamp(&player->position, 70);
+    if (player->motion != action) {
+        player->motion = action;
+        Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[player->motion], 0, 8, HU3D_MOTATTR_LOOP);
     }
 }
 
-void fn_1_6A00(OMOBJ *obj)
+void PlayerObjectUpdate(OMOBJ *obj)
 {
     WorkPlayer *player = obj->data;
     float dx;
     float dz;
     float dist;
-    switch (player->unk58) {
+    switch (player->aiState) {
         case 2000:
-            if (lbl_1_bss_A0->work[0] >= 1004) {
-                player->unk58++;
+            if (gameControllerObject->work[0] >= 1004) {
+                player->aiState++;
             }
             break;
 
         case 2001:
-            player->unk4C = HuPadStkX[player->unk60];
-            player->unk50 = HuPadStkY[player->unk60];
-            fn_1_5BF4(player, obj);
-            if (lbl_1_bss_A0->work[0] >= 1005) {
-                if (lbl_1_bss_14) {
-                    fn_1_5A7C(player, obj);
+            player->stickX = HuPadStkX[player->controllerIndex];
+            player->stickY = HuPadStkY[player->controllerIndex];
+            PlayerMovementUpdate(player, obj);
+            if (gameControllerObject->work[0] >= 1005) {
+                if (playerCollision) {
+                    PlayerIntroUpdate(player, obj);
                 }
                 else {
-                    player->unk58 = 2003;
+                    player->aiState = 2003;
                     Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[0], 0, 8, HU3D_MOTATTR_LOOP);
                 }
             }
             break;
 
         case 2002:
-            dx = player->unk3C.x - player->unk0.x;
-            dz = player->unk3C.z - player->unk0.z;
+            dx = player->destination.x - player->position.x;
+            dz = player->destination.z - player->position.z;
             dist = sqrtf((dx * dx) + (dz * dz));
-            if (player->unk48 < dist) {
-                dx = player->unk48 * (dx / dist);
-                dz = player->unk48 * (dz / dist);
+            if (player->movementSpeed < dist) {
+                dx = player->movementSpeed * (dx / dist);
+                dz = player->movementSpeed * (dz / dist);
             }
-            player->unk18.x -= player->unk48;
-            if (0.0f > player->unk18.x) {
-                player->unk18.x += 360;
+            player->turnState.x -= player->movementSpeed;
+            if (0.0f > player->turnState.x) {
+                player->turnState.x += 360;
             }
-            player->unk18.y = fn_1_1E20(player->unk18.y, atan2d(dx, dz) + 180.0, 0.4f);
-            player->unk0.x += dx;
-            player->unk0.z += dz;
-            dist = VECDistance(&player->unk3C, &player->unk0) / VECDistance(&player->unk3C, &player->unk30);
-            player->unk0.y = 500 * sind(dist * 180);
-            player->unk48 *= 1.05f;
-            if (lbl_1_bss_10 >= 0) {
-                HuAudFXEmiterUpDate(lbl_1_bss_10, &player->unk0);
+            player->turnState.y = AngleInterpolate(player->turnState.y, atan2d(dx, dz) + 180.0, 0.4f);
+            player->position.x += dx;
+            player->position.z += dz;
+            dist = VECDistance(&player->destination, &player->position) / VECDistance(&player->destination, &player->targetPosition);
+            player->position.y = 500 * sind(dist * 180);
+            player->movementSpeed *= 1.05f;
+            if (leftAudioEmitter >= 0) {
+                HuAudFXEmiterUpDate(leftAudioEmitter, &player->position);
             }
-            if (lbl_1_bss_C >= 0) {
-                HuAudFXEmiterUpDate(lbl_1_bss_C, &player->unk0);
+            if (rightAudioEmitter >= 0) {
+                HuAudFXEmiterUpDate(rightAudioEmitter, &player->position);
             }
-            fn_1_5438(&player->unk24);
-            if (lbl_1_bss_A0->work[0] >= 1007) {
-                player->unk58 = 2005;
+            PlayerDistanceVibrationUpdate(&player->startPosition);
+            if (gameControllerObject->work[0] >= 1007) {
+                player->aiState = 2005;
                 HuAudSStreamPlay(4);
             }
             break;
 
         case 2003:
-            if (lbl_1_bss_A0->work[0] >= 1007) {
-                player->unk58 = 2004;
+            if (gameControllerObject->work[0] >= 1007) {
+                player->aiState = 2004;
                 HuAudSStreamPlay(1);
                 Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[4], 0, 8, HU3D_MOTATTR_NONE);
             }
             break;
 
         case 2004:
-            player->unk18.y = fn_1_1E20(player->unk18.y, 0, 0.4f);
+            player->turnState.y = AngleInterpolate(player->turnState.y, 0, 0.4f);
             break;
 
         case 2005:
             break;
 
         default:
-            OSReport("*** player mode error(%d)!!\n", player->unk58);
+            OSReport("*** player mode error(%d)!!\n", player->aiState);
             break;
     }
-    omSetTra(obj, player->unk0.x, player->unk0.y, player->unk0.z);
-    omSetRot(obj, player->unk18.x, player->unk18.y, 0);
+    omSetTra(obj, player->position.x, player->position.y, player->position.z);
+    omSetRot(obj, player->turnState.x, player->turnState.y, 0);
 }
 
-void fn_1_7328(OMOBJ *obj)
+void PlayerObjectCreate(OMOBJ *obj)
 {
     WorkPlayer *player;
     s32 i;
     obj->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WorkPlayer), HU_MEMNUM_OVL);
     player = obj->data;
-    player->unk5C = GWPlayerCfg[lbl_1_bss_18].character;
-    player->unk60 = GWPlayerCfg[lbl_1_bss_18].pad_idx;
-    player->unk58 = 2000;
-    player->unk54 = 0;
-    obj->mdlId[0] = CharModelCreate(lbl_1_data_0[player->unk5C], 2);
-    CharModelStepFxSet(lbl_1_data_0[player->unk5C], 0);
+    player->characterId = GWPlayerCfg[playerIndex].character;
+    player->controllerIndex = GWPlayerCfg[playerIndex].pad_idx;
+    player->aiState = 2000;
+    player->motion = 0;
+    obj->mdlId[0] = CharModelCreate(characterIds[player->characterId], 2);
+    CharModelStepFxSet(characterIds[player->characterId], 0);
     for (i = 0; i < 5; i++) {
-        obj->mtnId[i] = CharMotionCreate(lbl_1_data_0[player->unk5C], lbl_1_data_128[player->unk5C][i]);
-        CharMotionSet(lbl_1_data_0[player->unk5C], obj->mtnId[i]);
+        obj->mtnId[i] = CharMotionCreate(characterIds[player->characterId], characterMotionFiles[player->characterId][i]);
+        CharMotionSet(characterIds[player->characterId], obj->mtnId[i]);
     }
     Hu3DModelAttrSet(obj->mdlId[0], HU3D_ATTR_DISPOFF);
     Hu3DModelAttrSet(obj->mdlId[0], HU3D_MOTATTR_LOOP);
     Hu3DModelLayerSet(obj->mdlId[0], 2);
     Hu3DMotionSet(obj->mdlId[0], obj->mtnId[0]);
     Hu3DModelShadowSet(obj->mdlId[0]);
-    player->unk18.x = 0;
-    player->unk18.y = 0;
-    player->unk0.x = 0;
-    player->unk0.y = 0;
-    player->unk0.z = 0;
-    omSetTra(obj, player->unk0.x, player->unk0.y, player->unk0.z);
-    omSetRot(obj, player->unk18.x, player->unk18.y, 0);
+    player->turnState.x = 0;
+    player->turnState.y = 0;
+    player->position.x = 0;
+    player->position.y = 0;
+    player->position.z = 0;
+    omSetTra(obj, player->position.x, player->position.y, player->position.z);
+    omSetRot(obj, player->turnState.x, player->turnState.y, 0);
     Hu3DModelAttrReset(obj->mdlId[0], HU3D_ATTR_DISPOFF);
     CharModelLayerSetAll2(6);
-    CharMotionDataClose(lbl_1_data_0[player->unk5C]);
-    obj->objFunc = fn_1_6A00;
+    CharMotionDataClose(characterIds[player->characterId]);
+    obj->objFunc = PlayerObjectUpdate;
 }
 
-void fn_1_75B0(WorkBomhei *bomhei, OMOBJ *obj)
+void BomheiMotionSelect(WorkBomhei *bomhei, OMOBJ *obj)
 {
     float *data1F0;
-    bomhei->unk34 = 3003;
-    bomhei->unk24 = 10;
-    for (data1F0 = &lbl_1_data_1F0[0][0]; 0.0f <= data1F0[0]; data1F0 += 2) {
-        if (data1F0[0] <= lbl_1_bss_200) {
-            bomhei->unk24 = data1F0[1];
+    bomhei->state = 3003;
+    bomhei->lifetime = 10;
+    for (data1F0 = &spawnDifficultySchedule[0][0]; 0.0f <= data1F0[0]; data1F0 += 2) {
+        if (data1F0[0] <= elapsedFrames) {
+            bomhei->lifetime = data1F0[1];
         }
     }
     Hu3DModelAttrSet(obj->mdlId[1], HU3D_MOTATTR_LOOP);
     Hu3DModelAttrReset(obj->mdlId[1], HU3D_MOTATTR_PAUSE);
     Hu3DModelAttrReset(obj->mdlId[1], HU3D_ATTR_DISPOFF);
     Hu3DModelAttrSet(obj->mdlId[0], HU3D_ATTR_DISPOFF);
-    HuAudFXEmiterPlay(2087, &bomhei->unk0);
+    HuAudFXEmiterPlay(2087, &bomhei->position);
 }
 
-BOOL fn_1_76CC(WorkBomhei *bomhei)
+BOOL BomheiArenaCollisionCheck(WorkBomhei *bomhei)
 {
-    if (bomhei->unk34 == 3002) {
-        if (fn_1_5528(&bomhei->unk0, 70)) {
+    if (bomhei->state == 3002) {
+        if (ArenaPositionClamp(&bomhei->position, 70)) {
             return TRUE;
         }
     }
     else {
         float ofs = 700 - 70;
 
-        if (ofs > bomhei->unk0.x && -ofs < bomhei->unk0.x) {
-            if (ofs > bomhei->unk0.z && -ofs < bomhei->unk0.z) {
-                if (bomhei->unk28 >= 0) {
-                    lbl_1_bss_28 = lbl_1_bss_28 & ~(u32)(1 << bomhei->unk28);
-                    bomhei->unk28 = -1;
+        if (ofs > bomhei->position.x && -ofs < bomhei->position.x) {
+            if (ofs > bomhei->position.z && -ofs < bomhei->position.z) {
+                if (bomhei->playerMaskBit >= 0) {
+                    spawnedBomheiMask = spawnedBomheiMask & ~(u32)(1 << bomhei->playerMaskBit);
+                    bomhei->playerMaskBit = -1;
                 }
             }
         }
@@ -1575,52 +1575,52 @@ BOOL fn_1_76CC(WorkBomhei *bomhei)
     return FALSE;
 }
 
-void fn_1_7AD8(WorkBomhei *bomhei, OMOBJ *obj)
+void BomheiUpdate(WorkBomhei *bomhei, OMOBJ *obj)
 {
-    float radius = 10 * lbl_1_data_1E4[bomhei->unk30];
+    float radius = 10 * bomheiTypeScales[bomhei->type];
     Vec playerOfs;
     Vec angle;
 
     s32 i;
     s32 state;
-    BOOL temp_r25;
+    BOOL hitTarget;
 
-    angle.x = bomhei->unkC.y;
-    if (bomhei->unk34 == 3002) {
-        switch (bomhei->unk30) {
+    angle.x = bomhei->rotation.y;
+    if (bomhei->state == 3002) {
+        switch (bomhei->type) {
             case 0:
-                bomhei->unk18.x--;
-                if (0.0f > bomhei->unk18.x) {
+                bomhei->timers.x--;
+                if (0.0f > bomhei->timers.x) {
                     radius = 0;
-                    if (-bomhei->unk18.y > bomhei->unk18.x) {
-                        bomhei->unk18.y = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
-                        bomhei->unk18.x = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
+                    if (-bomhei->timers.y > bomhei->timers.x) {
+                        bomhei->timers.y = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
+                        bomhei->timers.x = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
                     }
                 }
                 else {
-                    bomhei->unk18.z--;
-                    if (0.0f > bomhei->unk18.z) {
-                        bomhei->unk18.z = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
-                        bomhei->unkC.z = frandf() * 360;
+                    bomhei->timers.z--;
+                    if (0.0f > bomhei->timers.z) {
+                        bomhei->timers.z = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
+                        bomhei->rotation.z = frandf() * 360;
                     }
                 }
-                angle.x = bomhei->unkC.z;
+                angle.x = bomhei->rotation.z;
                 break;
 
             case 1:
             case 2:
-                VECSubtract(&((WorkPlayer *)lbl_1_bss_9C->data)->unk0, &bomhei->unk0, &playerOfs);
+                VECSubtract(&((WorkPlayer *)playerObject->data)->position, &bomhei->position, &playerOfs);
                 angle.x = atan2d(playerOfs.x, playerOfs.z);
                 break;
         }
     }
-    bomhei->unkC.y = fn_1_1E20(bomhei->unkC.y, angle.x, 0.05f);
-    angle.z = radius * sind(bomhei->unkC.y);
-    angle.y = radius * cosd(bomhei->unkC.y);
-    bomhei->unk0.x += angle.z;
-    bomhei->unk0.z += angle.y;
+    bomhei->rotation.y = AngleInterpolate(bomhei->rotation.y, angle.x, 0.05f);
+    angle.z = radius * sind(bomhei->rotation.y);
+    angle.y = radius * cosd(bomhei->rotation.y);
+    bomhei->position.x += angle.z;
+    bomhei->position.z += angle.y;
     if (0.0f < radius) {
-        bomhei->unkC.x = fn_1_1E20(bomhei->unkC.x, atan2d(angle.z, angle.y), 0.2f);
+        bomhei->rotation.x = AngleInterpolate(bomhei->rotation.x, atan2d(angle.z, angle.y), 0.2f);
     }
     state = 0;
     if (0.5f <= radius) {
@@ -1631,82 +1631,82 @@ void fn_1_7AD8(WorkBomhei *bomhei, OMOBJ *obj)
             state = 1;
         }
     }
-    temp_r25 = FALSE;
-    if (fn_1_76CC(bomhei)) {
-        temp_r25 = TRUE;
+    hitTarget = FALSE;
+    if (BomheiArenaCollisionCheck(bomhei)) {
+        hitTarget = TRUE;
     }
-    fn_1_5894(&bomhei->unk0, &((WorkPlayer *)lbl_1_bss_9C->data)->unk0, 70, 70);
+    CircleCollisionResolve(&bomhei->position, &((WorkPlayer *)playerObject->data)->position, 70, 70);
     for (i = 0; i < 20; i++) {
         WorkBomhei *bomhei2;
-        if (NULL == lbl_1_bss_4C[i]) {
+        if (NULL == bomheiObjects[i]) {
             continue;
         }
-        if (obj == lbl_1_bss_4C[i]) {
+        if (obj == bomheiObjects[i]) {
             continue;
         }
-        bomhei2 = lbl_1_bss_4C[i]->data;
-        if (bomhei2->unk34 != 3004) {
-            fn_1_5894(&bomhei->unk0, &bomhei2->unk0, 70, 70);
+        bomhei2 = bomheiObjects[i]->data;
+        if (bomhei2->state != 3004) {
+            CircleCollisionResolve(&bomhei->position, &bomhei2->position, 70, 70);
         }
     }
-    if (fn_1_76CC(bomhei)) {
-        temp_r25 = TRUE;
+    if (BomheiArenaCollisionCheck(bomhei)) {
+        hitTarget = TRUE;
     }
-    if (temp_r25 && bomhei->unk30 == 0) {
+    if (hitTarget && bomhei->type == 0) {
         float radius = frandf() * 350;
         float angle2 = frandf() * 360;
-        bomhei->unkC.z = atan2d((radius * sind(angle2)) - bomhei->unk0.x, (radius * cosd(angle2)) - bomhei->unk0.z);
-        bomhei->unk18.z = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
+        bomhei->rotation.z = atan2d((radius * sind(angle2)) - bomhei->position.x, (radius * cosd(angle2)) - bomhei->position.z);
+        bomhei->timers.z = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
     }
-    if (bomhei->unk2C != state) {
-        bomhei->unk2C = state;
-        Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[bomhei->unk2C], 0, 8, HU3D_MOTATTR_LOOP);
+    if (bomhei->motionId != state) {
+        bomhei->motionId = state;
+        Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[bomhei->motionId], 0, 8, HU3D_MOTATTR_LOOP);
     }
 }
 
-void fn_1_9724(OMOBJ *obj);
+void BomheiObjectDestroy(OMOBJ *obj);
 
-void fn_1_8D08(OMOBJ *obj)
+void BomheiObjectUpdate(OMOBJ *obj)
 {
     WorkBomhei *bomhei = obj->data;
     s32 i;
-    switch (bomhei->unk34) {
+    switch (bomhei->state) {
         case 3000:
-            if (lbl_1_bss_A0->work[0] >= 1004) {
-                bomhei->unk34 = 3002;
+            if (gameControllerObject->work[0] >= 1004) {
+                bomhei->state = 3002;
             }
             break;
 
         case 3001:
-            fn_1_7AD8(bomhei, obj);
-            if (bomhei->unk28 < 0) {
-                bomhei->unk34 = 3002;
+            BomheiUpdate(bomhei, obj);
+            if (bomhei->playerMaskBit < 0) {
+                bomhei->state = 3002;
             }
             break;
 
         case 3002:
-            fn_1_7AD8(bomhei, obj);
-            bomhei->unk24--;
-            if (0.0f > bomhei->unk24) {
-                fn_1_75B0(bomhei, obj);
+            BomheiUpdate(bomhei, obj);
+            bomhei->lifetime--;
+            if (0.0f > bomhei->lifetime) {
+                BomheiMotionSelect(bomhei, obj);
             }
             break;
 
         case 3003:
-            bomhei->unk24--;
-            if (0.0f > bomhei->unk24) {
-                bomhei->unk34++;
+            bomhei->lifetime--;
+            if (0.0f > bomhei->lifetime) {
+                bomhei->state++;
                 Hu3DModelAttrSet(obj->mdlId[1], HU3D_ATTR_DISPOFF);
                 Hu3DModelAttrReset(obj->mdlId[2], HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_LOOP);
                 Hu3DModelAttrReset(obj->mdlId[2], HU3D_ATTR_DISPOFF);
-                HuAudFXEmiterPlay(2082, &bomhei->unk0);
-                fn_1_5438(&bomhei->unk0);
+                HuAudFXEmiterPlay(2082, &bomhei->position);
+                PlayerDistanceVibrationUpdate(&bomhei->position);
             }
             break;
 
         case 3004:
             if (Hu3DMotionEndCheck(obj->mdlId[2])) {
-                fn_1_9724(obj);
+                BomheiObjectDestroy(obj);
                 return;
             }
             break;
@@ -1715,51 +1715,51 @@ void fn_1_8D08(OMOBJ *obj)
             break;
 
         default:
-            OSReport("*** bomhei mode error(%d)!!\n", bomhei->unk34);
+            OSReport("*** bomhei mode error(%d)!!\n", bomhei->state);
             break;
     }
-    if (bomhei->unk34 != 3004 && lbl_1_bss_A0->work[0] >= 1005) {
-        bomhei->unk34 = 3005;
+    if (bomhei->state != 3004 && gameControllerObject->work[0] >= 1005) {
+        bomhei->state = 3005;
         Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[0], 0, 8, HU3D_MOTATTR_LOOP);
     }
-    omSetTra(obj, bomhei->unk0.x, bomhei->unk0.y, bomhei->unk0.z);
-    omSetRot(obj, 0, bomhei->unkC.x, 0);
+    omSetTra(obj, bomhei->position.x, bomhei->position.y, bomhei->position.z);
+    omSetRot(obj, 0, bomhei->rotation.x, 0);
     for (i = 0; i < 3; i++) {
-        Hu3DModelPosSet(obj->mdlId[i], bomhei->unk0.x, bomhei->unk0.y, bomhei->unk0.z);
-        Hu3DModelRotSet(obj->mdlId[i], 0, bomhei->unkC.x, 0);
+        Hu3DModelPosSet(obj->mdlId[i], bomhei->position.x, bomhei->position.y, bomhei->position.z);
+        Hu3DModelRotSet(obj->mdlId[i], 0, bomhei->rotation.x, 0);
     }
 }
 
-void fn_1_9164(OMOBJ *obj)
+void BomheiObjectCreate(OMOBJ *obj)
 {
     WorkBomhei *bomhei = obj->data;
     s32 modelId;
     s32 i;
-    omSetTra(obj, bomhei->unk0.x, bomhei->unk0.y, bomhei->unk0.z);
-    omSetRot(obj, 0, bomhei->unkC.x, 0);
-    modelId = fn_1_AC(0x1000);
+    omSetTra(obj, bomhei->position.x, bomhei->position.y, bomhei->position.z);
+    omSetRot(obj, 0, bomhei->rotation.x, 0);
+    modelId = TimedValueListRemove(0x1000);
     if (modelId < 0) {
-        obj->mdlId[0] = Hu3DModelLink(lbl_1_bss_3C[0]);
+        obj->mdlId[0] = Hu3DModelLink(bomheiModelIds[0]);
     }
     else {
         obj->mdlId[0] = modelId;
     }
-    modelId = fn_1_AC(0x2000);
+    modelId = TimedValueListRemove(0x2000);
     if (modelId < 0) {
-        obj->mdlId[1] = Hu3DModelLink(lbl_1_bss_3C[1]);
+        obj->mdlId[1] = Hu3DModelLink(bomheiModelIds[1]);
     }
     else {
         obj->mdlId[1] = modelId;
     }
-    modelId = fn_1_AC(0x3000);
+    modelId = TimedValueListRemove(0x3000);
     if (modelId < 0) {
-        obj->mdlId[2] = Hu3DModelLink(lbl_1_bss_3C[2]);
+        obj->mdlId[2] = Hu3DModelLink(bomheiModelIds[2]);
     }
     else {
         obj->mdlId[2] = modelId;
     }
     for (i = 0; i < 4; i++) {
-        obj->mtnId[i] = lbl_1_bss_2C[i];
+        obj->mtnId[i] = bomheiMotionIds[i];
     }
     for (i = 0; i < 3; i++) {
         Hu3DModelAttrSet(obj->mdlId[i], HU3D_ATTR_DISPOFF);
@@ -1767,111 +1767,111 @@ void fn_1_9164(OMOBJ *obj)
         Hu3DModelAttrReset(obj->mdlId[i], HU3D_MOTATTR_PAUSE);
         Hu3DModelLayerSet(obj->mdlId[i], 3);
         Hu3DMotionTimeSet(obj->mdlId[i], 0);
-        Hu3DModelPosSet(obj->mdlId[i], bomhei->unk0.x, bomhei->unk0.y, bomhei->unk0.z);
-        Hu3DModelRotSet(obj->mdlId[i], 0, bomhei->unkC.x, 0);
+        Hu3DModelPosSet(obj->mdlId[i], bomhei->position.x, bomhei->position.y, bomhei->position.z);
+        Hu3DModelRotSet(obj->mdlId[i], 0, bomhei->rotation.x, 0);
     }
     Hu3DModelLayerSet(obj->mdlId[2], 4);
     Hu3DModelShadowSet(obj->mdlId[0]);
     Hu3DModelShadowSet(obj->mdlId[1]);
     for (i = 0; i < 20; i++) {
-        if (NULL == lbl_1_bss_4C[i]) {
-            lbl_1_bss_4C[i] = obj;
+        if (NULL == bomheiObjects[i]) {
+            bomheiObjects[i] = obj;
             break;
         }
     }
     Hu3DMotionSet(obj->mdlId[0], obj->mtnId[0]);
     Hu3DModelAttrSet(obj->mdlId[2], HU3D_MOTATTR_PAUSE);
     Hu3DModelAttrReset(obj->mdlId[0], HU3D_ATTR_DISPOFF);
-    obj->objFunc = fn_1_8D08;
+    obj->objFunc = BomheiObjectUpdate;
 }
 
-void fn_1_956C(Vec *pos, float rotY, s32 type, s32 mode, s32 time)
+void BomheiSpawn(Vec *position, float rotationY, s32 type, s32 initialState, s32 playerMaskBit)
 {
     WorkBomhei *bomhei;
     OMOBJ *obj;
-    lbl_1_bss_20++;
-    obj = omAddObjEx(lbl_1_bss_238, 101, 3, 4, -1, fn_1_9164);
+    activeBomheiCount++;
+    obj = omAddObjEx(objectManager, 101, 3, 4, -1, BomheiObjectCreate);
     obj->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WorkBomhei), HU_MEMNUM_OVL);
     bomhei = obj->data;
-    bomhei->unk0 = *pos;
-    bomhei->unkC.x = rotY;
-    bomhei->unk30 = type;
-    bomhei->unk34 = mode;
-    bomhei->unk28 = time;
-    bomhei->unkC.y = bomhei->unkC.x;
-    bomhei->unkC.z = bomhei->unkC.x;
-    bomhei->unk18.x = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
-    bomhei->unk18.y = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
-    bomhei->unk18.z = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
-    bomhei->unk24 = frandmod(REFRESH_RATE * 5) + REFRESH_RATE * 3;
-    bomhei->unk2C = 0;
+    bomhei->position = *position;
+    bomhei->rotation.x = rotationY;
+    bomhei->type = type;
+    bomhei->state = initialState;
+    bomhei->playerMaskBit = playerMaskBit;
+    bomhei->rotation.y = bomhei->rotation.x;
+    bomhei->rotation.z = bomhei->rotation.x;
+    bomhei->timers.x = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
+    bomhei->timers.y = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
+    bomhei->timers.z = frandmod(REFRESH_RATE * 2) + REFRESH_RATE * 2;
+    bomhei->lifetime = frandmod(REFRESH_RATE * 5) + REFRESH_RATE * 3;
+    bomhei->motionId = 0;
 }
 
-void fn_1_9724(OMOBJ *obj)
+void BomheiObjectDestroy(OMOBJ *obj)
 {
     s32 i;
-    lbl_1_bss_20--;
+    activeBomheiCount--;
     for (i = 0; i < 20; i++) {
-        if (obj == lbl_1_bss_4C[i]) {
-            lbl_1_bss_4C[i] = NULL;
+        if (obj == bomheiObjects[i]) {
+            bomheiObjects[i] = NULL;
             break;
         }
     }
     for (i = 0; i < 3; i++) {
         Hu3DModelAttrSet(obj->mdlId[i], HU3D_ATTR_DISPOFF);
-        fn_1_24((i * 4096) + 4096, obj->mdlId[i]);
+        TimedValueListInsert((i * 4096) + 4096, obj->mdlId[i]);
     }
-    omDelObjEx(lbl_1_bss_238, obj);
+    omDelObjEx(objectManager, obj);
 }
 
-typedef struct work_bomhei2 {
-    OMOBJ *unk0;
-    OMOBJ *unk4;
-    Vec unk8;
-    Vec unk14;
-    Vec unk20;
-    float unk2C;
-    float unk30;
-    float unk34;
-    BOOL unk38;
-    s32 unk3C;
-    s32 unk40;
-    s32 unk44;
-    float unk48;
+typedef struct WorkBomhei2 {
+    OMOBJ *object;
+    OMOBJ *linkedObject;
+    Vec position;
+    Vec goalPosition;
+    Vec previousPosition;
+    float rotationY;
+    float facingTargetY;
+    float stateTimer;
+    BOOL needsMotionRefresh;
+    s32 motionState;
+    s32 behaviorType;
+    s32 behaviorState;
+    float recoveryTimer;
 } WorkBomhei2;
 
-void fn_1_9854(void)
+void BomheiSpawnScheduleUpdate(void)
 {
-    if (lbl_1_bss_200 % (REFRESH_RATE * 15) == 0) {
-        if (++lbl_1_bss_24 >= 20) {
-            lbl_1_bss_24 = 20;
+    if (elapsedFrames % (REFRESH_RATE * 15) == 0) {
+        if (++bomheiSpawnLimit >= 20) {
+            bomheiSpawnLimit = 20;
         }
     }
-    if (lbl_1_bss_200 % (REFRESH_RATE * 30) == 0) {
-        if (lbl_1_data_264[2] < 40) {
-            lbl_1_data_264[2] += 10;
-            if (lbl_1_data_264[2] > 100) {
-                lbl_1_data_264[2] = 100;
+    if (elapsedFrames % (REFRESH_RATE * 30) == 0) {
+        if (bomheiSpawnChances[2] < 40) {
+            bomheiSpawnChances[2] += 10;
+            if (bomheiSpawnChances[2] > 100) {
+                bomheiSpawnChances[2] = 100;
             }
-            lbl_1_data_264[1] -= 5;
-            if (lbl_1_data_264[1] < 0) {
-                lbl_1_data_264[1] = 0;
-                lbl_1_data_264[0] -= 5;
+            bomheiSpawnChances[1] -= 5;
+            if (bomheiSpawnChances[1] < 0) {
+                bomheiSpawnChances[1] = 0;
+                bomheiSpawnChances[0] -= 5;
             }
-            lbl_1_data_264[0] -= 5;
-            if (lbl_1_data_264[0] < 0) {
-                lbl_1_data_264[0] = 0;
+            bomheiSpawnChances[0] -= 5;
+            if (bomheiSpawnChances[0] < 0) {
+                bomheiSpawnChances[0] = 0;
             }
         }
     }
-    if (lbl_1_bss_24 > lbl_1_bss_20) {
-        Data270Struct *data270 = NULL;
+    if (bomheiSpawnLimit > activeBomheiCount) {
+        BomheiSpawnPoint *spawnPoint = NULL;
         s32 bitNum = frandmod(8);
         s32 i;
         for (i = 0; i < 8; i++) {
-            if (((1 << bitNum) & lbl_1_bss_28) == 0) {
-                data270 = &lbl_1_data_270[bitNum];
-                lbl_1_bss_28 |= (1 << bitNum);
+            if (((1 << bitNum) & spawnedBomheiMask) == 0) {
+                spawnPoint = &bomheiArenaSpawnPoints[bitNum];
+                spawnedBomheiMask |= (1 << bitNum);
                 (void)i;
                 break;
             }
@@ -1880,53 +1880,53 @@ void fn_1_9854(void)
                 bitNum -= 8;
             }
         }
-        if (NULL != data270) {
+        if (NULL != spawnPoint) {
             s32 type = 2;
             s32 chance = frandmod(100);
-            Vec pos;
+            Vec spawnPosition;
             for (i = 0; i < 3; i++) {
-                if (lbl_1_data_264[i] > chance) {
+                if (bomheiSpawnChances[i] > chance) {
                     type = i;
                     break;
                 }
-                chance -= lbl_1_data_264[i];
+                chance -= bomheiSpawnChances[i];
             }
-            pos.x = data270->unk0.x;
-            pos.y = data270->unk0.y;
-            pos.z = data270->unk0.z;
-            fn_1_956C(&pos, data270->unkC, type, 3001, bitNum);
+            spawnPosition.x = spawnPoint->position.x;
+            spawnPosition.y = spawnPoint->position.y;
+            spawnPosition.z = spawnPoint->position.z;
+            BomheiSpawn(&spawnPosition, spawnPoint->rotationY, type, 3001, bitNum);
         }
     }
 }
 
-WorkBomhei2 *fn_1_9CAC(OMOBJFUNC func, s32 prio)
+WorkBomhei2 *Bomhei2Create(OMOBJFUNC updateCallback, s32 priority)
 {
-    OMOBJ *obj = omAddObjEx(lbl_1_bss_238, prio, 1, 4, -1, func);
+    OMOBJ *obj = omAddObjEx(objectManager, priority, 1, 4, -1, updateCallback);
     WorkBomhei2 *bomhei;
     s32 i;
     s32 modelId;
     obj->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WorkBomhei2), HU_MEMNUM_OVL);
     bomhei = obj->data;
-    bomhei->unk38 = 1;
-    bomhei->unk3C = 0;
-    bomhei->unk0 = obj;
-    bomhei->unk4 = NULL;
-    bomhei->unk2C = 0;
-    bomhei->unk8.x = 0;
-    bomhei->unk8.y = 10;
-    bomhei->unk8.z = 0;
-    modelId = fn_1_AC(0x1000);
+    bomhei->needsMotionRefresh = 1;
+    bomhei->motionState = 0;
+    bomhei->object = obj;
+    bomhei->linkedObject = NULL;
+    bomhei->rotationY = 0;
+    bomhei->position.x = 0;
+    bomhei->position.y = 10;
+    bomhei->position.z = 0;
+    modelId = TimedValueListRemove(0x1000);
     if (modelId < 0) {
-        obj->mdlId[0] = Hu3DModelLink(lbl_1_bss_3C[0]);
+        obj->mdlId[0] = Hu3DModelLink(bomheiModelIds[0]);
     }
     else {
         obj->mdlId[0] = modelId;
     }
     for (i = 0; i < 4; i++) {
-        obj->mtnId[i] = lbl_1_bss_2C[i];
+        obj->mtnId[i] = bomheiMotionIds[i];
     }
-    omSetTra(obj, bomhei->unk8.x, bomhei->unk8.y, bomhei->unk8.z);
-    omSetRot(obj, 0, bomhei->unk2C, 0);
+    omSetTra(obj, bomhei->position.x, bomhei->position.y, bomhei->position.z);
+    omSetRot(obj, 0, bomhei->rotationY, 0);
     Hu3DModelAttrSet(obj->mdlId[0], HU3D_ATTR_DISPOFF);
     Hu3DModelAttrSet(obj->mdlId[0], HU3D_MOTATTR_LOOP);
     Hu3DModelAttrReset(obj->mdlId[0], HU3D_MOTATTR_PAUSE);
@@ -1936,279 +1936,279 @@ WorkBomhei2 *fn_1_9CAC(OMOBJFUNC func, s32 prio)
     return bomhei;
 }
 
-void fn_1_9EF4(OMOBJ *obj)
+void Bomhei2ObjectUpdate(OMOBJ *obj)
 {
     float dist;
     WorkBomhei2 *bomhei = obj->data;
-    WorkBomhei2 *parent = bomhei->unk4->data;
+    WorkBomhei2 *parent = bomhei->linkedObject->data;
     float vel = 3;
     float dx;
     float dz;
 
     s32 state;
-    switch (bomhei->unk44) {
+    switch (bomhei->behaviorState) {
         case 0:
-            if (bomhei->unk3C != 1) {
-                bomhei->unk3C = 1;
-                Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[bomhei->unk3C], 0, 8, HU3D_MOTATTR_LOOP);
+            if (bomhei->motionState != 1) {
+                bomhei->motionState = 1;
+                Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[bomhei->motionState], 0, 8, HU3D_MOTATTR_LOOP);
             }
-            dx = bomhei->unk14.x - bomhei->unk8.x;
-            dz = bomhei->unk14.z - bomhei->unk8.z;
+            dx = bomhei->goalPosition.x - bomhei->position.x;
+            dz = bomhei->goalPosition.z - bomhei->position.z;
             dist = sqrtf((dx * dx) + (dz * dz));
             if (vel < dist) {
                 dx = vel * (dx / dist);
                 dz = vel * (dz / dist);
             }
-            bomhei->unk8.x += dx;
-            bomhei->unk8.z += dz;
-            bomhei->unk2C = fn_1_1E20(bomhei->unk2C, atan2d(dx, dz), 0.4f);
-            bomhei->unk30 = bomhei->unk2C;
+            bomhei->position.x += dx;
+            bomhei->position.z += dz;
+            bomhei->rotationY = AngleInterpolate(bomhei->rotationY, atan2d(dx, dz), 0.4f);
+            bomhei->facingTargetY = bomhei->rotationY;
             if (vel > dist) {
-                switch (bomhei->unk40) {
+                switch (bomhei->behaviorType) {
                     case 1:
                     case 2:
-                        bomhei->unk44 = 1;
-                        bomhei->unk34 = 0;
-                        bomhei->unk3C = 0;
-                        Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[bomhei->unk3C], 0, 8, HU3D_MOTATTR_LOOP);
+                        bomhei->behaviorState = 1;
+                        bomhei->stateTimer = 0;
+                        bomhei->motionState = 0;
+                        Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[bomhei->motionState], 0, 8, HU3D_MOTATTR_LOOP);
                         break;
 
                     default:
-                        bomhei->unk44 = 3;
+                        bomhei->behaviorState = 3;
                         break;
                 }
             }
             break;
 
         case 1:
-            bomhei->unk2C = fn_1_1E20(bomhei->unk2C, atan2d(parent->unk8.x - bomhei->unk8.x, parent->unk8.z - bomhei->unk8.z), 0.05f);
-            bomhei->unk30 = bomhei->unk2C;
-            parent->unk2C = fn_1_1E20(parent->unk2C, atan2d(bomhei->unk8.x - parent->unk8.x, bomhei->unk8.z - parent->unk8.z), 0.05f);
-            parent->unk30 = parent->unk2C;
-            bomhei->unk34++;
-            if (REFRESH_RATE_F * 3 < bomhei->unk34) {
-                bomhei->unk44 = 3;
-                if (bomhei->unk40 == 2) {
-                    bomhei->unk44 = 2;
+            bomhei->rotationY = AngleInterpolate(bomhei->rotationY, atan2d(parent->position.x - bomhei->position.x, parent->position.z - bomhei->position.z), 0.05f);
+            bomhei->facingTargetY = bomhei->rotationY;
+            parent->rotationY = AngleInterpolate(parent->rotationY, atan2d(bomhei->position.x - parent->position.x, bomhei->position.z - parent->position.z), 0.05f);
+            parent->facingTargetY = parent->rotationY;
+            bomhei->stateTimer++;
+            if (REFRESH_RATE_F * 3 < bomhei->stateTimer) {
+                bomhei->behaviorState = 3;
+                if (bomhei->behaviorType == 2) {
+                    bomhei->behaviorState = 2;
                 }
             }
             break;
 
         case 2: {
-            Vec temp = parent->unk8;
-            float tempAngle = parent->unk2C;
-            parent->unk20 = parent->unk8;
-            parent->unk8 = bomhei->unk8;
-            parent->unk2C = bomhei->unk2C;
-            bomhei->unk8 = temp;
-            bomhei->unk2C = tempAngle;
-            bomhei->unk30 = tempAngle;
-            bomhei->unk34 = 0;
-            bomhei->unk44 = 3;
+            Vec displacedPosition = parent->position;
+            float tempAngle = parent->rotationY;
+            parent->previousPosition = parent->position;
+            parent->position = bomhei->position;
+            parent->rotationY = bomhei->rotationY;
+            bomhei->position = displacedPosition;
+            bomhei->rotationY = tempAngle;
+            bomhei->facingTargetY = tempAngle;
+            bomhei->stateTimer = 0;
+            bomhei->behaviorState = 3;
         } break;
 
         case 3:
-            bomhei->unk30 = fn_1_1E20(bomhei->unk30, atan2d(bomhei->unk20.x - bomhei->unk14.x, bomhei->unk20.z - bomhei->unk14.z), 0.2f);
-            bomhei->unk2C = bomhei->unk30;
-            bomhei->unk8.x += vel * sind(bomhei->unk30);
-            bomhei->unk8.z += vel * cosd(bomhei->unk30);
-            if (bomhei->unk3C != 1) {
-                bomhei->unk3C = 1;
-                Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[bomhei->unk3C], 0, 8, HU3D_MOTATTR_LOOP);
+            bomhei->facingTargetY = AngleInterpolate(bomhei->facingTargetY, atan2d(bomhei->previousPosition.x - bomhei->goalPosition.x, bomhei->previousPosition.z - bomhei->goalPosition.z), 0.2f);
+            bomhei->rotationY = bomhei->facingTargetY;
+            bomhei->position.x += vel * sind(bomhei->facingTargetY);
+            bomhei->position.z += vel * cosd(bomhei->facingTargetY);
+            if (bomhei->motionState != 1) {
+                bomhei->motionState = 1;
+                Hu3DMotionShiftSet(obj->mdlId[0], obj->mtnId[bomhei->motionState], 0, 8, HU3D_MOTATTR_LOOP);
             }
-            parent->unk2C = fn_1_1E20(parent->unk2C, atan2d(-parent->unk8.x, -parent->unk8.z), 0.05f);
-            bomhei->unk34++;
-            if (bomhei->unk40 == 2 && 60.0f < bomhei->unk34) {
-                dx = parent->unk20.x - parent->unk8.x;
-                dz = parent->unk20.z - parent->unk8.z;
+            parent->rotationY = AngleInterpolate(parent->rotationY, atan2d(-parent->position.x, -parent->position.z), 0.05f);
+            bomhei->stateTimer++;
+            if (bomhei->behaviorType == 2 && 60.0f < bomhei->stateTimer) {
+                dx = parent->previousPosition.x - parent->position.x;
+                dz = parent->previousPosition.z - parent->position.z;
                 dist = sqrtf((dx * dx) + (dz * dz));
                 if (vel < dist) {
                     dx = vel * (dx / dist);
                     dz = vel * (dz / dist);
                 }
-                parent->unk8.x += dx;
-                parent->unk8.z += dz;
+                parent->position.x += dx;
+                parent->position.z += dz;
                 state = 0;
                 if (0.0f < dist) {
                     state = 1;
                 }
-                if (state != parent->unk3C) {
-                    parent->unk3C = state;
-                    Hu3DMotionShiftSet(parent->unk0->mdlId[0], parent->unk0->mtnId[parent->unk3C], 0, 8, HU3D_MOTATTR_LOOP);
+                if (state != parent->motionState) {
+                    parent->motionState = state;
+                    Hu3DMotionShiftSet(parent->object->mdlId[0], parent->object->mtnId[parent->motionState], 0, 8, HU3D_MOTATTR_LOOP);
                 }
             }
-            if (1750 < VECMagXZ(&bomhei->unk8)) {
-                parent->unk4 = NULL;
+            if (1750 < VECMagXZ(&bomhei->position)) {
+                parent->linkedObject = NULL;
                 Hu3DModelAttrSet(obj->mdlId[0], HU3D_ATTR_DISPOFF);
-                fn_1_24(0x1000, obj->mdlId[0]);
-                omDelObjEx(lbl_1_bss_238, obj);
+                TimedValueListInsert(0x1000, obj->mdlId[0]);
+                omDelObjEx(objectManager, obj);
                 return;
             }
             break;
     }
-    omSetTra(obj, bomhei->unk8.x, bomhei->unk8.y, bomhei->unk8.z);
-    omSetRot(obj, 0, bomhei->unk2C, 0);
-    if (bomhei->unk38) {
-        bomhei->unk38 = 0;
+    omSetTra(obj, bomhei->position.x, bomhei->position.y, bomhei->position.z);
+    omSetRot(obj, 0, bomhei->rotationY, 0);
+    if (bomhei->needsMotionRefresh) {
+        bomhei->needsMotionRefresh = 0;
         Hu3DMotionTimeSet(obj->mdlId[0], Hu3DMotionMaxTimeGet(obj->mdlId[0]) * frandf());
         Hu3DModelAttrReset(obj->mdlId[0], HU3D_ATTR_DISPOFF);
     }
 }
 
-s32 fn_1_ADDC(WorkBomhei2 *parent, WorkBomhei2 *bomhei)
+s32 Bomhei2LinkInitialize(WorkBomhei2 *parent, WorkBomhei2 *bomhei)
 {
-    parent->unk4 = bomhei->unk0;
-    bomhei->unk4 = parent->unk0;
-    bomhei->unk40 = frandmod(3);
-    bomhei->unk44 = 0;
-    bomhei->unk14.x = 750.0f * ((0 > parent->unk8.x) ? -1 : 1);
-    bomhei->unk14.z = 750.0f * ((0 > parent->unk8.z) ? -1 : 1);
-    if (lbl_1_bss_204 & 0x1) {
-        bomhei->unk8.x = 1400.0f * ((0 > parent->unk8.x) ? -1 : 1);
-        bomhei->unk8.z = 750.0f * ((0 > parent->unk8.z) ? -1 : 1);
-        bomhei->unk20.x = 750.0f * ((0 > parent->unk8.x) ? -1 : 1);
-        bomhei->unk20.z = 1400.0f * ((0 > parent->unk8.z) ? -1 : 1);
+    parent->linkedObject = bomhei->object;
+    bomhei->linkedObject = parent->object;
+    bomhei->behaviorType = frandmod(3);
+    bomhei->behaviorState = 0;
+    bomhei->goalPosition.x = 750.0f * ((0 > parent->position.x) ? -1 : 1);
+    bomhei->goalPosition.z = 750.0f * ((0 > parent->position.z) ? -1 : 1);
+    if (spawnCycle & 0x1) {
+        bomhei->position.x = 1400.0f * ((0 > parent->position.x) ? -1 : 1);
+        bomhei->position.z = 750.0f * ((0 > parent->position.z) ? -1 : 1);
+        bomhei->previousPosition.x = 750.0f * ((0 > parent->position.x) ? -1 : 1);
+        bomhei->previousPosition.z = 1400.0f * ((0 > parent->position.z) ? -1 : 1);
     }
     else {
-        bomhei->unk8.x = 750.0f * ((0 > parent->unk8.x) ? -1 : 1);
-        bomhei->unk8.z = 1400.0f * ((0 > parent->unk8.z) ? -1 : 1);
-        bomhei->unk20.x = 1400.0f * ((0 > parent->unk8.x) ? -1 : 1);
-        bomhei->unk20.z = 750.0f * ((0 > parent->unk8.z) ? -1 : 1);
+        bomhei->position.x = 750.0f * ((0 > parent->position.x) ? -1 : 1);
+        bomhei->position.z = 1400.0f * ((0 > parent->position.z) ? -1 : 1);
+        bomhei->previousPosition.x = 1400.0f * ((0 > parent->position.x) ? -1 : 1);
+        bomhei->previousPosition.z = 750.0f * ((0 > parent->position.z) ? -1 : 1);
     }
-    bomhei->unk2C = atan2d(bomhei->unk14.x - bomhei->unk8.x, bomhei->unk14.z - bomhei->unk8.z);
-    bomhei->unk30 = bomhei->unk2C;
+    bomhei->rotationY = atan2d(bomhei->goalPosition.x - bomhei->position.x, bomhei->goalPosition.z - bomhei->position.z);
+    bomhei->facingTargetY = bomhei->rotationY;
 }
 
-void fn_1_B234(OMOBJ *obj)
+void Bomhei2UnlinkedUpdate(OMOBJ *obj)
 {
     WorkBomhei2 *bomhei = obj->data;
-    if (NULL == bomhei->unk4) {
-        bomhei->unk2C = atan2d(-bomhei->unk8.x, -bomhei->unk8.z);
-        bomhei->unk48--;
-        if (0.0f > bomhei->unk48) {
+    if (NULL == bomhei->linkedObject) {
+        bomhei->rotationY = atan2d(-bomhei->position.x, -bomhei->position.z);
+        bomhei->recoveryTimer--;
+        if (0.0f > bomhei->recoveryTimer) {
             WorkBomhei2 *bomheiNew;
-            bomhei->unk48 = frandmod(REFRESH_RATE * 20) + REFRESH_RATE * 5;
-            bomheiNew = fn_1_9CAC(fn_1_9EF4, 102);
-            fn_1_ADDC(bomhei, bomheiNew);
+            bomhei->recoveryTimer = frandmod(REFRESH_RATE * 20) + REFRESH_RATE * 5;
+            bomheiNew = Bomhei2Create(Bomhei2ObjectUpdate, 102);
+            Bomhei2LinkInitialize(bomhei, bomheiNew);
         }
     }
-    omSetTra(obj, bomhei->unk8.x, bomhei->unk8.y, bomhei->unk8.z);
-    omSetRot(obj, 0, bomhei->unk2C, 0);
-    if (bomhei->unk38) {
-        bomhei->unk38 = 0;
+    omSetTra(obj, bomhei->position.x, bomhei->position.y, bomhei->position.z);
+    omSetRot(obj, 0, bomhei->rotationY, 0);
+    if (bomhei->needsMotionRefresh) {
+        bomhei->needsMotionRefresh = 0;
         Hu3DMotionTimeSet(obj->mdlId[0], Hu3DMotionMaxTimeGet(obj->mdlId[0]) * frandf());
         Hu3DModelAttrReset(obj->mdlId[0], HU3D_ATTR_DISPOFF);
     }
 }
 
-void fn_1_D70C(OMOBJ *obj);
+void MinigameCleanup(OMOBJ *obj);
 
-void fn_1_BA2C(OMOBJ *obj)
+void MinigameStateUpdate(OMOBJ *obj)
 {
     if (omSysExitReq) {
-        fn_1_1F58(-1);
+        AudioSequenceFadeOut(-1);
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-        obj->objFunc = fn_1_D70C;
+        obj->objFunc = MinigameCleanup;
     }
-    lbl_1_bss_204++;
+    spawnCycle++;
     switch (obj->work[0]) {
         case 1000:
             if (!WipeStatGet()) {
                 Vec dir;
                 obj->work[0]++;
-                lbl_1_bss_1C = 0;
-                lbl_1_bss_220 = lbl_1_data_C4;
-                lbl_1_bss_208 = lbl_1_data_DC;
-                VECSubtract(&lbl_1_bss_208, &lbl_1_bss_220, &dir);
+                stateTimer = 0;
+                cameraEndPosition = finalCameraPosition;
+                cameraEndTarget = finalCameraTarget;
+                VECSubtract(&cameraEndTarget, &cameraEndPosition, &dir);
                 VECNormalize(&dir, &dir);
-                HuAudFXListnerSetEX(&lbl_1_bss_220, &dir, 14000.0, 36000.0, 1000.0, 300.0, 300.0);
+                HuAudFXListnerSetEX(&cameraEndPosition, &dir, 14000.0, 36000.0, 1000.0, 300.0, 300.0);
             }
 
             break;
 
         case 1001:
-            lbl_1_bss_1C++;
-            if (30.0f < lbl_1_bss_1C) {
+            stateTimer++;
+            if (30.0f < stateTimer) {
                 obj->work[0]++;
-                lbl_1_bss_1C = 0;
+                stateTimer = 0;
             }
             break;
 
         case 1002:
-            lbl_1_bss_1C++;
-            fn_1_13DC(lbl_1_bss_1C / (REFRESH_RATE_F * 2), &lbl_1_data_D0);
-            if ((REFRESH_RATE_F * 2) <= lbl_1_bss_1C) {
+            stateTimer++;
+            CameraPoseTransitionUpdate(stateTimer / (REFRESH_RATE_F * 2), &cameraTransitionTarget);
+            if ((REFRESH_RATE_F * 2) <= stateTimer) {
                 obj->work[0]++;
-                lbl_1_bss_1C = 0;
-                fn_1_1350(&lbl_1_data_C4, &lbl_1_data_D0, &lbl_1_data_DC);
+                stateTimer = 0;
+                CameraPoseSet(&finalCameraPosition, &cameraTransitionTarget, &finalCameraTarget);
             }
             break;
 
         case 1003:
-            if (lbl_1_bss_1FA < 0) {
-                lbl_1_bss_1FA = MGSeqStartCreate();
+            if (messageSequenceId < 0) {
+                messageSequenceId = MGSeqStartCreate();
             }
             else {
-                if (lbl_1_bss_1F4 < 0 && (MGSeqStatGet(lbl_1_bss_1FA) & 0x10)) {
-                    fn_1_1F24(70);
+                if (musicSequenceId < 0 && (MGSeqStatGet(messageSequenceId) & 0x10)) {
+                    AudioSequencePlay(70);
                 }
-                if (MGSeqStatGet(lbl_1_bss_1FA) == 0) {
+                if (MGSeqStatGet(messageSequenceId) == 0) {
                     obj->work[0]++;
-                    lbl_1_bss_1FA = -1;
+                    messageSequenceId = -1;
                 }
             }
             break;
 
         case 1004:
-            lbl_1_bss_200++;
-            fn_1_580(lbl_1_bss_1AC, 0, lbl_1_bss_200);
-            if (lbl_1_bss_14 || (REFRESH_RATE * 600 - 1) <= lbl_1_bss_200) {
+            elapsedFrames++;
+            TimerDigitsUpdate(timerSprites, 0, elapsedFrames);
+            if (playerCollision || (REFRESH_RATE * 600 - 1) <= elapsedFrames) {
                 obj->work[0] = 1005;
-                lbl_1_bss_1C = 0;
+                stateTimer = 0;
             }
-            fn_1_9854();
+            BomheiSpawnScheduleUpdate();
             break;
 
         case 1005:
-            if (lbl_1_bss_1FA < 0) {
-                lbl_1_bss_1FA = MGSeqFinishCreate();
-                fn_1_1F58(100);
-                mgRecordExtra = lbl_1_bss_200;
+            if (messageSequenceId < 0) {
+                messageSequenceId = MGSeqFinishCreate();
+                AudioSequenceFadeOut(100);
+                mgRecordExtra = elapsedFrames;
             }
             else {
-                lbl_1_bss_1C++;
-                if (60.0f < lbl_1_bss_1C && !MGSeqStatGet(lbl_1_bss_1FA)) {
+                stateTimer++;
+                if (60.0f < stateTimer && !MGSeqStatGet(messageSequenceId)) {
                     obj->work[0] = 1007;
-                    if (lbl_1_bss_1FC < lbl_1_bss_200) {
+                    if (bestTime < elapsedFrames) {
                         obj->work[0] = 1006;
-                        fn_1_798(13);
+                        RecordTimeUpdate(13);
                     }
-                    lbl_1_bss_1FA = -1;
-                    lbl_1_bss_1C = 0;
+                    messageSequenceId = -1;
+                    stateTimer = 0;
                 }
             }
             break;
 
         case 1006:
-            if (lbl_1_bss_1FA < 0) {
-                lbl_1_bss_1FA = MGSeqRecordCreate(lbl_1_bss_1FC);
+            if (messageSequenceId < 0) {
+                messageSequenceId = MGSeqRecordCreate(bestTime);
             }
             else {
-                if (!MGSeqStatGet(lbl_1_bss_1FA)) {
+                if (!MGSeqStatGet(messageSequenceId)) {
                     obj->work[0]++;
-                    lbl_1_bss_1C = 0;
-                    lbl_1_bss_1FA = -1;
+                    stateTimer = 0;
+                    messageSequenceId = -1;
                 }
             }
             break;
 
         case 1007:
-            lbl_1_bss_1C++;
-            if (210.0f < lbl_1_bss_1C) {
-                fn_1_1F58(-1);
-                lbl_1_bss_1FA = -1;
+            stateTimer++;
+            if (210.0f < stateTimer) {
+                AudioSequenceFadeOut(-1);
+                messageSequenceId = -1;
                 WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-                obj->objFunc = fn_1_D70C;
+                obj->objFunc = MinigameCleanup;
             }
             break;
 
@@ -2216,10 +2216,10 @@ void fn_1_BA2C(OMOBJ *obj)
             OSReport("*** main mode error(%d)!!\n", obj->work[0]);
             break;
     }
-    fn_1_A40();
+    TimerDisplayPulse();
 }
 
-void fn_1_C970(OMOBJ *obj)
+void MinigameStateCreate(OMOBJ *obj)
 {
     s32 i;
     obj->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M461, 0x00));
@@ -2236,14 +2236,14 @@ void fn_1_C970(OMOBJ *obj)
     Hu3DModelShadowSet(obj->mdlId[1]);
     Hu3DModelPosSet(obj->mdlId[1], 0, 0, 0);
     Hu3DModelRotSet(obj->mdlId[1], 0, 0, 0);
-    fn_1_B4C(64, DATA_MAKE_NUM(DATADIR_M461, 0x09));
-    fn_1_9EC();
+    TimerDisplayCreate(64, DATA_MAKE_NUM(DATADIR_M461, 0x09));
+    TimerDisplayShow();
     for (i = 0; i < 2; i++) {
         Hu3DModelAttrReset(obj->mdlId[i], HU3D_ATTR_DISPOFF);
     }
     HuAudFXPlay(2085);
     WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
-    obj->objFunc = fn_1_BA2C;
+    obj->objFunc = MinigameStateUpdate;
 }
 
 void ObjectSetup(void)
@@ -2254,94 +2254,94 @@ void ObjectSetup(void)
     float radius;
     float radiusPrev;
     OSReport("******* M461 ObjectSetup *********\n");
-    lbl_1_bss_238 = omInitObjMan(200, 8192);
-    omGameSysInit(lbl_1_bss_238);
-    lbl_1_bss_14 = FALSE;
-    lbl_1_bss_18 = FALSE;
-    lbl_1_bss_204 = 0;
-    lbl_1_bss_1FA = -1;
-    lbl_1_bss_1F8 = -1;
-    lbl_1_bss_1F4 = -1;
-    lbl_1_bss_10 = -1;
-    lbl_1_bss_C = -1;
-    lbl_1_bss_4 = 0;
-    lbl_1_bss_8 = 2200;
-    lbl_1_bss_0 = 2300;
-    lbl_1_bss_200 = 0;
-    lbl_1_bss_1FC = GWMGRecordGet(13);
-    lbl_1_bss_1EC = -1;
+    objectManager = omInitObjMan(200, 8192);
+    omGameSysInit(objectManager);
+    playerCollision = FALSE;
+    playerIndex = FALSE;
+    spawnCycle = 0;
+    messageSequenceId = -1;
+    finishSequenceId = -1;
+    musicSequenceId = -1;
+    leftAudioEmitter = -1;
+    rightAudioEmitter = -1;
+    cameraVerticalOffset = 0;
+    cameraDistance = 2200;
+    cameraLookAtHeight = 2300;
+    elapsedFrames = 0;
+    bestTime = GWMGRecordGet(13);
+    timerPulseAngle = -1;
     Hu3DCameraViewportSet(HU3D_CAM0, 0, 0, 640, 480, 0, 1);
     Hu3DCameraPerspectiveSet(HU3D_CAM0, 30, 20, 30000, 1.2f);
-    fn_1_1350(&lbl_1_data_A0, &lbl_1_data_AC, &lbl_1_data_B8);
-    light = Hu3DGLightCreateV(&lbl_1_data_E8, &lbl_1_data_F4, &lbl_1_data_100);
+    CameraPoseSet(&initialCameraPosition, &initialCameraTarget, &initialCameraUp);
+    light = Hu3DGLightCreateV(&lightPosition, &lightDirection, &lightColor);
     Hu3DGLightStaticSet(light, 1);
     Hu3DGLightInfinitytSet(light);
     Hu3DShadowCreate(30, 20, 30000);
     Hu3DShadowTPLvlSet(0.5f);
-    Hu3DShadowPosSet(&lbl_1_data_104, &lbl_1_data_11C, &lbl_1_data_110);
-    fn_1_0();
+    Hu3DShadowPosSet(&shadowPosition, &shadowUp, &shadowTarget);
+    TimedValueListInit();
     for (i = 0; i < 20; i++) {
         s32 modelId;
-        lbl_1_bss_4C[i] = NULL;
+        bomheiObjects[i] = NULL;
         modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M461, 0x08));
         Hu3DModelAttrSet(modelId, HU3D_ATTR_DISPOFF);
-        fn_1_24(12288, modelId);
+        TimedValueListInsert(12288, modelId);
     }
     for (i = 0; i < 3; i++) {
-        lbl_1_bss_3C[i] = Hu3DModelCreateFile(lbl_1_data_1C8[i]);
-        Hu3DModelAttrSet(lbl_1_bss_3C[i], HU3D_ATTR_NOCULL | HU3D_ATTR_DISPOFF);
+        bomheiModelIds[i] = Hu3DModelCreateFile(bomheiModelFiles[i]);
+        Hu3DModelAttrSet(bomheiModelIds[i], HU3D_ATTR_NOCULL | HU3D_ATTR_DISPOFF);
     }
     for (i = 0; i < 4; i++) {
-        lbl_1_bss_2C[i] = Hu3DJointMotionFile(lbl_1_bss_3C[0], lbl_1_data_1D4[i]);
+        bomheiMotionIds[i] = Hu3DJointMotionFile(bomheiModelIds[0], bomheiMotionFiles[i]);
     }
-    lbl_1_bss_28 = 0;
-    lbl_1_bss_20 = 0;
-    lbl_1_bss_24 = 10;
+    spawnedBomheiMask = 0;
+    activeBomheiCount = 0;
+    bomheiSpawnLimit = 10;
     angle = 360.0f * frandf();
     radiusPrev = -1;
-    for (i = 0; i < lbl_1_bss_24; i++) {
-        Vec pos;
+    for (i = 0; i < bomheiSpawnLimit; i++) {
+        Vec spawnPosition;
         do {
             radius = frandmod(5);
         } while (radiusPrev == radius);
         radiusPrev = radius;
-        pos.x = (200 + (100 * radius)) * sind(angle);
-        pos.y = 0;
-        pos.z = (200 + (100 * radius)) * cosd(angle);
-        fn_1_956C(&pos, 360.0f * frandf(), (i == 0) ? 1 : 0, 3000, -1);
+        spawnPosition.x = (200 + (100 * radius)) * sind(angle);
+        spawnPosition.y = 0;
+        spawnPosition.z = (200 + (100 * radius)) * cosd(angle);
+        BomheiSpawn(&spawnPosition, 360.0f * frandf(), (i == 0) ? 1 : 0, 3000, -1);
         angle += 36;
         if (360.0f <= angle) {
             angle -= 360.0f;
         }
     }
     for (i = 0; i < 4; i++) {
-        WorkBomhei2 *bomhei2 = fn_1_9CAC(fn_1_B234, 103);
-        bomhei2->unk8 = lbl_1_data_2F0[i];
-        bomhei2->unk2C = atan2d(-bomhei2->unk8.x, -bomhei2->unk8.z);
-        bomhei2->unk48 = frandmod(REFRESH_RATE * 20) + REFRESH_RATE * 5;
+        WorkBomhei2 *bomhei2 = Bomhei2Create(Bomhei2UnlinkedUpdate, 103);
+        bomhei2->position = bomhei2SpawnPoints[i];
+        bomhei2->rotationY = atan2d(-bomhei2->position.x, -bomhei2->position.z);
+        bomhei2->recoveryTimer = frandmod(REFRESH_RATE * 20) + REFRESH_RATE * 5;
     }
-    lbl_1_bss_9C = omAddObjEx(lbl_1_bss_238, 100, 1, 5, -1, fn_1_7328);
-    lbl_1_bss_A0 = omAddObjEx(lbl_1_bss_238, 104, 2, 0, -1, fn_1_C970);
-    lbl_1_bss_A0->work[0] = 1000;
-    lbl_1_bss_1C = 0;
+    playerObject = omAddObjEx(objectManager, 100, 1, 5, -1, PlayerObjectCreate);
+    gameControllerObject = omAddObjEx(objectManager, 104, 2, 0, -1, MinigameStateCreate);
+    gameControllerObject->work[0] = 1000;
+    stateTimer = 0;
 }
 
-void fn_1_D70C(OMOBJ *obj)
+void MinigameCleanup(OMOBJ *obj)
 {
     s32 i;
     if (WipeStatGet()) {
         return;
     }
-    if (lbl_1_bss_1FA >= 0) {
-        MGSeqKill(lbl_1_bss_1FA);
+    if (messageSequenceId >= 0) {
+        MGSeqKill(messageSequenceId);
     }
-    if (lbl_1_bss_1F8 >= 0) {
-        MGSeqKill(lbl_1_bss_1F8);
+    if (finishSequenceId >= 0) {
+        MGSeqKill(finishSequenceId);
     }
     MGSeqKillAll();
     HuAudAllStop();
     for (i = 0; i < 4; i++) {
-        CharModelKill(lbl_1_data_0[GWPlayerCfg[i].character]);
+        CharModelKill(characterIds[GWPlayerCfg[i].character]);
     }
     omOvlReturnEx(1, 1);
 }
