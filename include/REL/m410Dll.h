@@ -6,220 +6,220 @@
 #include "game/process.h"
 #include "game/object.h"
 
-typedef struct UnkM410Struct {
-    u32 unk_00;
-    s32 unk_04;
-    s32 unk_08;
-    s32 unk_0C;
-    s32 unk_10;
-    u32 unk_14;
-    s32 unk_18;
-    u32 unk_1C;
-    u32 unk_20;
-    s32 unk_24;
-    u32 unk_28;
-    s32 unk_2C;
-    s32 unk_30;
-    s32 unk_34;
-} UnkM410Struct; // size 0x38
+typedef struct MinigameStateWork {
+    u32 sequenceState;
+    s32 elapsedFrames;
+    s32 transitionBlocked;
+    s32 minigameStateFlags;
+    s32 introTimer;
+    u32 resultState;
+    s32 resultTimer;
+    u32 resultSequenceParameter;
+    u32 countdownTimer;
+    s32 resultPhase;
+    u32 resultPhaseTimer;
+    s32 playerFlagMask;
+    s32 playerControlFlags;
+    s32 playerSequenceFlags;
+} MinigameStateWork; // size 0x38
 
-typedef struct UnkM410Struct2 {
+typedef struct PlayerPhysicsWork {
     struct {
-        u8 unk_00_field0 : 1;
-        u8 unk_00_field1 : 1;
-        u8 unk_00_field2 : 1;
-        u8 unk_00_field3 : 1;
-        u8 unk_00_field4 : 1;
-        u8 unk_00_field5 : 1;
-        u8 unk_00_field6 : 1;
-        u8 unk_00_field7 : 1;
+        u8 isActive : 1;
+        u8 isConnectedToGoal : 1;
+        u8 isVisible : 1;
+        u8 isVerticalCollisionState : 1;
+        u8 goalCollisionPending : 1;
+        u8 collisionUpdatePending : 1;
+        u8 wrappedAroundStage : 1;
+        u8 reservedFlag7 : 1;
     };
-    Vec unk_04;
-    Vec unk_10;
-    Vec unk_1C;
-    float unk_28;
-    float unk_2C;
-    s16 unk_30;
-    s16 unk_32;
-    s16 unk_34;
-    s16 unk_36;
-    struct UnkM410Struct2 *unk_38;
-    s16 unk_3C;
-    void *unk_40;
-    s16 unk_44;
-    s16 unk46;
-} UnkM410Struct2; // size 0x48
+    Vec position;
+    Vec previousPosition;
+    Vec velocity;
+    float collisionRadius;
+    float collisionHeight;
+    s16 modelId;
+    s16 sphereIndex;
+    s16 playerIndex;
+    s16 stateTimer;
+    struct PlayerPhysicsWork *linkedPhysicsWork;
+    s16 linkTimer;
+    void *collisionPartner;
+    s16 collisionCooldown;
+    s16 reservedState46;
+} PlayerPhysicsWork; // size 0x48
 
-typedef struct UnkM410Struct3 {
-    s32 unk00[6];
-    Vec unk_18;
-} UnkM410Struct3; // size unknown TODO is this even a thing?
+typedef struct PlayerVectorWork {
+    s32 reservedWords[6];
+    Vec directionVector;
+} PlayerVectorWork; // size 0x24
 
-typedef struct UnkM410Struct4 {
-    s32 unk_00;
-    u8 unk_04;
-    u8 unk05;
-    u8 unk06;
-    u8 unk07;
-    UnkM410Struct2 *unk_08;
+typedef struct PlayerCollisionWork {
+    s32 collisionType;
+    u8 collisionAxes;
+    u8 collisionKind;
+    u8 firstContactFrame;
+    u8 reservedByte07;
+    PlayerPhysicsWork *firstPhysicsWork;
     union {
-        UnkM410Struct2 *unk_0C_unk;
-        OMOBJ *unk_0C_obj;
+        PlayerPhysicsWork *secondPhysicsWork;
+        OMOBJ *collidingObject;
     };
-} UnkM410Struct4; // size 0x10
+} PlayerCollisionWork; // size 0x10
 
-typedef struct UnkM410Struct5 {
-    s32 unk_00;
-    u32 unk_04;
-    s32 unk_08;
-    s32 unk_0C;
-    u32 unk_10;
-    s32 unk_14;
-    s32 unk_18;
-    s32 unk_1C;
-    s32 unk_20;
-    s32 unk_24;
-    s32 unk_28;
-    s32 unk_2C;
-    s32 unk_30;
-    u16 unk_34;
-    s16 unk_36;
-    s16 unk_38;
-    s16 unk40;
-    float unk_3C;
-    float unk_40;
-    float unk_44;
-    float unk_48;
-    float unk_4C;
-    u16 unk_50;
-    u16 unk_52;
-    u16 unk_54;
-    Vec unk_58;
-    float unk_64;
-    float unk_68;
-    float unk_6C;
-    Vec unk_70;
-    Vec unk_7C;
-    Vec unk_88;
-} UnkM410Struct5; // size 0x94
+typedef struct PlayerCharacterWork {
+    s32 characterModelId;
+    u32 randomizedPlayerRank;
+    s32 hookIndex;
+    s32 currentMotionId;
+    u32 pressedButtons;
+    s32 resetModelPose;
+    s32 isGrounded;
+    s32 isJumping;
+    s32 isStunned;
+    s32 specialInputReady;
+    s32 movementActive;
+    s32 alternateActionReady;
+    s32 actionRequested;
+    u16 animationState;
+    s16 stateTimer;
+    s16 animationTimer;
+    s16 reservedS163a;
+    float currentFacingAngle;
+    float targetFacingAngle;
+    float facingAngleStep;
+    float facingAngleAcceleration;
+    float movementProbability;
+    u16 aiDecisionState;
+    u16 aiDecisionDelay;
+    u16 aiActionDuration;
+    Vec worldPosition;
+    float reservedFloat64;
+    float verticalVelocity;
+    float reservedFloat6c;
+    Vec modelAnchorPosition;
+    Vec movementVelocity;
+    Vec previousTargetPosition;
+} PlayerCharacterWork; // size 0x94
 
-typedef struct UnkM410Struct6 {
-    float unk_00[4];
-} UnkM410Struct6; // size 0x10
+typedef struct PlayerFloatParameters {
+    float movementChanceByDifficulty[4];
+} PlayerFloatParameters; // size 0x10
 
-typedef struct UnkM410Struct7 {
-    u32 unk_00[4];
-} UnkM410Struct7; // size 0x10
+typedef struct PlayerIntegerParameters {
+    u32 playerWaitFrames[4];
+} PlayerIntegerParameters; // size 0x10
 
-typedef struct UnkM410Struct8 {
-    u16 unk_00;
-    u16 unk_02;
-    float unk_04;
-    float unk_08;
-    float unk_0C;
-    Vec unk_10;
-} UnkM410Struct8; // size 0x1C
+typedef struct PlayerModelWork {
+    u16 playerIndex;
+    u16 characterId;
+    float modelOpacity;
+    float animationBlend;
+    float animationSpeed;
+    Vec modelPosition;
+} PlayerModelWork; // size 0x1C
 
-typedef struct UnkM410Struct9 {
-    s32 unk_00;
-    s32 unk_04;
-    u32 unk_08;
-    float unk_0C;
-    float unk_10;
-    s32 unk_14;
-    s32 unk_18;
-    s32 unk_1C;
-    s32 unk_20;
-    s32 unk_24;
-    s32 unk28;
-    float unk_2C[2];
-    s32 unk34[2];
-    s16 unk_3C[2];
-    s16 unk_40;
-    s16 unk_42;
-    s16 unk_44;
-    s16 unk46;
-} UnkM410Struct9; // size 0x48
+typedef struct PlayerAnimationWork {
+    s32 scorePopupActive;
+    s32 scoreDelta;
+    u32 displayedScore;
+    float scoreDisplayX;
+    float scoreDisplayY;
+    s32 popupState;
+    s32 popupTimer;
+    s32 tensDigit;
+    s32 onesDigit;
+    s32 hundredsDigit;
+    s32 reservedScoreValue;
+    float digitScale[2];
+    s32 reservedDigitData[2];
+    s16 digitSpriteIds[2];
+    s16 characterSpriteId;
+    s16 scoreIconSpriteId;
+    s16 scoreLabelSpriteId;
+    s16 reservedSpriteData;
+} PlayerAnimationWork; // size 0x48
 
-typedef struct UnkM410Struct10 {
-    float unk_00;
-    float unk04;
-    float unk_08;
-    s32 unk_0C;
-} UnkM410Struct10; // size 0x10
+typedef struct PlayerMotionTiming {
+    float blendInFrames;
+    float blendOutFrames;
+    float motionDuration;
+    s32 motionAttributes;
+} PlayerMotionTiming; // size 0x10
 
-typedef struct UnkM410Struct11 {
-    float unk_00;
-    float unk_04;
-    float unk08;
-    float unk_0C;
-    float unk_10;
-    float unk_14;
-    float unk_18;
-    float unk_1C;
-    float unk20;
-    float unk_24;
-    float unk_28;
-    float unk2C;
-    float unk_30;
-    float unk_34;
-    float unk38;
-} UnkM410Struct11; // size 0x3C
+typedef struct PlayerMotionWork {
+    float vertex0X;
+    float vertex0Z;
+    float vertex1X;
+    float vertex1Z;
+    float vertex2X;
+    float vertex2Z;
+    float vertex3X;
+    float vertex3Z;
+    float vertex4X;
+    float vertex4Z;
+    float vertex5X;
+    float vertex5Z;
+    float vertex6X;
+    float vertex6Z;
+    float vertex7X;
+} PlayerMotionWork; // size 0x3C
 
-typedef struct UnkM410Struct12 {
-    float unk_00;
-    float unk_04;
-    float unk_08;
-    float unk_0C;
-    float unk_10;
-    float unk_14;
-    float unk_18;
-    float unk_1C;
-    float unk_20;
-    float unk_24;
-} UnkM410Struct12; // size 0x28
+typedef struct PlayerMotionParameterWork {
+    float radialOffsetX;
+    float radialOffsetZ;
+    float reservedParameter08;
+    float reservedParameter0c;
+    float reservedParameter10;
+    float reservedParameter14;
+    float reservedParameter18;
+    float reservedParameter1c;
+    float reservedParameter20;
+    float reservedParameter24;
+} PlayerMotionParameterWork; // size 0x28
 
-typedef struct UnkM410Struct13 {
-    UnkM410Struct8 unk_00[16];
-    UnkM410Struct11 unk_1C0[32];
-    UnkM410Struct12 unk_940[32];
-    GXColor unk_E40[5];
-    s32 unk_E54;
-    u32 unk_E58;
-    void *unk_E5C;
-} UnkM410Struct13; // size 0xE60
+typedef struct PlayerDisplayListWork {
+    PlayerModelWork modelWork[16];
+    PlayerMotionWork particleVertexPositions[32];
+    PlayerMotionParameterWork particleVertexTextureCoordinates[32];
+    GXColor particleVertexColors[5];
+    s32 displayListSize;
+    u32 displayListLength;
+    void *displayListBuffer;
+} PlayerDisplayListWork; // size 0xE60
 
-typedef struct UnkM410Struct14 {
-    UnkM410Struct9 unk_00[4];
-    UnkM410Struct13 unk_120;
-    u32 unk_F80;
-    void *unk_F84;
-    char unkF88[0x2E98];
-} UnkM410Struct14; // size 0x3E20
+typedef struct PlayerRenderWork {
+    PlayerAnimationWork animationWork[4];
+    PlayerDisplayListWork displayListWork;
+    u32 framebufferSize;
+    void *framebufferBuffer;
+    char reservedRenderData[0x2E98];
+} PlayerRenderWork; // size 0x3E20
 
-s32 fn_1_27EC(void);
-u32 fn_1_2804(void);
-u32 fn_1_281C(void);
-u32 fn_1_2834(void);
-void fn_1_284C(s32 arg0);
-u32 fn_1_2864(void);
-void fn_1_287C(s32 arg0);
-void fn_1_28AC(s32 arg0);
-s32 fn_1_28DC(void);
-float fn_1_2FD4(float arg8, float arg9, float argA);
-float fn_1_30F0(float arg8, float arg9);
-void fn_1_31A4(HUPROCESS *process);
-void fn_1_31F8(void);
-void fn_1_33A8(HUPROCESS *objman);
-void fn_1_3484(void);
-s32 fn_1_76B8(Vec arg0, Vec arg1, u16 arg2);
-void fn_1_77E8(void *arg0);
-void fn_1_77F8(u16 arg0, Vec *arg1);
-void fn_1_7840(u16 arg0, Vec *arg1);
-void fn_1_7888(u16 arg0, u16 arg1, Vec *arg2);
-s32 fn_1_79F8(s16 arg0, char *arg1, Mtx arg2);
-void fn_1_7AC4(HSFOBJECT *arg0, Mtx arg1, char *arg2, Mtx arg3);
-void fn_1_7E30(HUPROCESS *objman);
-void fn_1_806C(void);
+s32 GetMinigameState(void);
+u32 GetMinigamePhase(void);
+u32 GetMinigameSubstate(void);
+u32 GetMinigameFlags(void);
+void SetMinigameFlags(s32 flags);
+u32 GetMinigameControlFlags(void);
+void SetMinigameControlFlag(s32 playerIndex);
+void SetMinigamePlayerFlag(s32 playerIndex);
+s32 IsMinigameSequenceDone(void);
+float ApproachAngle(float currentAngle, float targetAngle, float stepAngle);
+float AngleDifference(float firstAngle, float secondAngle);
+void InitializeStageObjects(HUPROCESS *process);
+void InitializeStageState(void);
+void InitializeGameObjects(HUPROCESS *objman);
+void SetGameObjectsHidden(void);
+s32 SetPlayerSphereState(Vec position, Vec velocity, u16 playerIndex);
+void SetGoalCallback(void *callback);
+void GetPlayerPosition(u16 playerIndex, Vec *positionOut);
+void GetPlayerVelocity(u16 playerIndex, Vec *velocityOut);
+void GetPlayerFuturePosition(u16 playerIndex, u16 framesAhead, Vec *positionOut);
+s32 FindModelJointMatrix(s16 modelId, char *jointName, Mtx transformOut);
+void SearchJointHierarchy(HSFOBJECT *joint, Mtx parentTransform, char *jointName, Mtx transformOut);
+void InitializePlayers(HUPROCESS *objman);
+void CleanupPlayers(void);
 
 #endif

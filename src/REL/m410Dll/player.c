@@ -19,16 +19,16 @@
 #include "game/frand.h"
 #endif
 
-OMOBJ *lbl_1_bss_74;
-ANIMDATA *lbl_1_bss_70;
-s32 lbl_1_bss_60[4];
+OMOBJ *playerManagerObject;
+ANIMDATA *playerSpriteAnimation;
+s32 playerOrderByRandomRank[4];
 
-char *lbl_1_data_140[] = { "dmy-itemhook-r", "dmy-itemhook-r", "dmy-itemhook-r", "dmy-itemhook-r", "dmy-itemhook-r", "dmy-itemhook-r",
+char *playerHookDummyNames[] = { "dmy-itemhook-r", "dmy-itemhook-r", "dmy-itemhook-r", "dmy-itemhook-r", "dmy-itemhook-r", "dmy-itemhook-r",
     "dmy-itemhook-r", "dmy-itemhook-r" };
 
-char *lbl_1_data_16C[] = { "itemhook-r", "itemhook-r", "itemhook-r", "itemhook-r", "itemhook-r", "itemhook-r", "itemhook-r", "itemhook-r" };
+char *playerHookNames[] = { "itemhook-r", "itemhook-r", "itemhook-r", "itemhook-r", "itemhook-r", "itemhook-r", "itemhook-r", "itemhook-r" };
 
-s32 lbl_1_data_18C[] = {
+s32 playerModelDataIds[] = {
     DATA_MAKE_NUM(DATADIR_M410, 0),
     DATA_MAKE_NUM(DATADIR_M410, 1),
     DATA_MAKE_NUM(DATADIR_M410, 2),
@@ -39,7 +39,7 @@ s32 lbl_1_data_18C[] = {
     DATA_MAKE_NUM(DATADIR_M410, 7),
 };
 
-u32 lbl_1_data_1AC[] = {
+u32 playerMotionDataIds[] = {
     0,
     DATA_MAKE_NUM(DATADIR_M410, 70),
     DATA_MAKE_NUM(DATADIR_M410, 22),
@@ -52,7 +52,7 @@ u32 lbl_1_data_1AC[] = {
     DATA_MAKE_NUM(DATADIR_E3SETUP, 24),
 };
 
-UnkM410Struct10 lbl_1_data_1D4[] = {
+PlayerMotionTiming playerMotionTimings[] = {
     { 0.0f, 0.0f, REFRESH_RATE_F * 0.2f, HU3D_MOTATTR_LOOP },
     { 0.0f, 0.0f, REFRESH_RATE_F * 0.02f, HU3D_MOTATTR_NONE },
     { 0.0f, 0.0f, REFRESH_RATE_F * 0.2f, HU3D_MOTATTR_LOOP },
@@ -65,7 +65,7 @@ UnkM410Struct10 lbl_1_data_1D4[] = {
     { 0.0f, 0.0f, REFRESH_RATE_F * 0.2f, HU3D_MOTATTR_NONE },
 };
 
-s32 lbl_1_data_274[] = {
+s32 playerCharacterDataIds[] = {
     DATA_MAKE_NUM(DATADIR_MGCONST, 0),
     DATA_MAKE_NUM(DATADIR_MGCONST, 1),
     DATA_MAKE_NUM(DATADIR_MGCONST, 2),
@@ -76,7 +76,7 @@ s32 lbl_1_data_274[] = {
     DATA_MAKE_NUM(DATADIR_MGCONST, 7),
 };
 
-GXColor lbl_1_data_294[] = {
+GXColor playerDisplayColors[] = {
     { 102, 0, 0, 255 },
     { 0, 0, 102, 255 },
     { 102, 0, 91, 255 },
@@ -87,273 +87,273 @@ GXColor lbl_1_data_294[] = {
     { 0, 0, 0, 255 },
 };
 
-void fn_1_80A0(OMOBJ *object);
-void fn_1_8414(OMOBJ *object);
-void fn_1_8678(OMOBJ *object);
-void fn_1_88D8(OMOBJ *object);
-void fn_1_8A10(OMOBJ *object);
-void fn_1_8ABC(OMOBJ *object);
-void fn_1_9E0C(OMOBJ *arg0, u32 arg1);
-void fn_1_96F4(OMOBJ *object);
-s32 fn_1_9A90(OMOBJ *object);
-s32 fn_1_9C84(OMOBJ *object);
-s32 fn_1_9EFC(OMOBJ *object);
-s32 fn_1_9F70(OMOBJ *object, u32 arg1);
-void fn_1_A0A4(OMOBJ *object);
-void fn_1_A3C0(OMOBJ *object);
-void fn_1_A828(u16 arg0, u16 arg1, u16 arg2);
-void fn_1_A9A4(UnkM410Struct13 *arg0);
-void fn_1_B140(HU3DMODEL *arg0, Mtx arg1);
+void CreatePlayerObject(OMOBJ *object);
+void UpdatePlayerMovement(OMOBJ *object);
+void UpdatePlayerAnimationState(OMOBJ *object);
+void UpdatePlayerCollisionState(OMOBJ *object);
+void UpdatePlayerGoalState(OMOBJ *object);
+void UpdatePlayerPhysics(OMOBJ *object);
+void SetPlayerMotion(OMOBJ *object, u32 motionId);
+void UpdatePlayerController(OMOBJ *object);
+s32 UpdatePlayerAi(OMOBJ *object);
+s32 UpdatePlayerAnimation(OMOBJ *object);
+s32 UpdatePlayerInput(OMOBJ *object);
+s32 SetPlayerAnimation(OMOBJ *object, u32 animationId);
+void CreatePlayerManager(OMOBJ *object);
+void UpdatePlayerManager(OMOBJ *object);
+void SetPlayerScore(u16 playerIndex, u16 scoreDelta, u16 scoreType);
+void BuildPlayerDisplayList(PlayerDisplayListWork *displayListWork);
+void UpdatePlayerModelMaterial(HU3DMODEL *model, Mtx transform);
 
-void fn_1_7E30(HUPROCESS *objman)
+void InitializePlayers(HUPROCESS *objman)
 {
-    u32 sp18[4];
-    u32 sp8[4];
+    u32 temporaryValue[4];
+    u32 temporaryValue2[4];
 
-    s16 var_r31;
-    s16 var_r30;
-    u32 var_r29;
-    OMOBJ *var_r27;
+    s16 loopIndex;
+    s16 loopIndex2;
+    u32 stateValue;
+    OMOBJ *object;
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        sp18[var_r31] = frandmod(1000);
-        sp8[var_r31] = var_r31;
+    for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+        temporaryValue[loopIndex] = frandmod(1000);
+        temporaryValue2[loopIndex] = loopIndex;
     }
 
-    for (var_r31 = 0; var_r31 < 3; var_r31++) {
-        for (var_r30 = var_r31 + 1; var_r30 < 4; var_r30++) {
-            if (sp18[var_r31] > sp18[var_r30]) {
-                var_r29 = sp18[var_r31];
-                sp18[var_r31] = sp18[var_r30];
-                sp18[var_r30] = var_r29;
-                var_r29 = sp8[var_r31];
-                sp8[var_r31] = sp8[var_r30];
-                sp8[var_r30] = var_r29;
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        for (loopIndex2 = loopIndex + 1; loopIndex2 < 4; loopIndex2++) {
+            if (temporaryValue[loopIndex] > temporaryValue[loopIndex2]) {
+                stateValue = temporaryValue[loopIndex];
+                temporaryValue[loopIndex] = temporaryValue[loopIndex2];
+                temporaryValue[loopIndex2] = stateValue;
+                stateValue = temporaryValue2[loopIndex];
+                temporaryValue2[loopIndex] = temporaryValue2[loopIndex2];
+                temporaryValue2[loopIndex2] = stateValue;
             }
         }
     }
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        lbl_1_bss_60[sp8[var_r31]] = var_r31;
+    for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+        playerOrderByRandomRank[temporaryValue2[loopIndex]] = loopIndex;
     }
     omMakeGroupEx(objman, 0, 4);
     omGetGroupMemberListEx(objman, 0);
 
-    for (var_r31 = 0; var_r31 < 4; var_r31++) {
-        var_r27 = omAddObjEx(objman, 40, 2, 10, 0, fn_1_80A0);
-        var_r27->work[0] = var_r31;
+    for (loopIndex = 0; loopIndex < 4; loopIndex++) {
+        object = omAddObjEx(objman, 40, 2, 10, 0, CreatePlayerObject);
+        object->work[0] = loopIndex;
     }
-    lbl_1_bss_74 = omAddObjEx(objman, 10, 1, 0, -1, fn_1_A0A4);
-    lbl_1_bss_70 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M410, 19), HU_MEMNUM_OVL));
+    playerManagerObject = omAddObjEx(objman, 10, 1, 0, -1, CreatePlayerManager);
+    playerSpriteAnimation = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M410, 19), HU_MEMNUM_OVL));
 }
 
-void fn_1_806C(void)
+void CleanupPlayers(void)
 {
-    HuSprAnimKill(lbl_1_bss_70);
+    HuSprAnimKill(playerSpriteAnimation);
     CharModelKill(-1);
 }
 
-void fn_1_80A0(OMOBJ *object)
+void CreatePlayerObject(OMOBJ *object)
 {
-    s32 sp8;
+    s32 temporaryValue;
 
-    UnkM410Struct5 *var_r31;
-    s16 var_r29;
-    s32 var_r28;
-    s32 var_r27;
+    PlayerCharacterWork *playerWork;
+    s16 loopIndex;
+    s32 stateValue;
+    s32 stateValue2;
 
-    UnkM410Struct6 spC = { { 0.0f, 0.13f, 0.26f, 0.4f } };
+    PlayerFloatParameters temporaryValue = { { 0.0f, 0.13f, 0.26f, 0.4f } };
     object->data = HuMemDirectMallocNum(HEAP_HEAP, 148, HU_MEMNUM_OVL);
-    var_r31 = object->data;
-    memset(var_r31, 0, 148);
-    var_r27 = object->work[0];
-    var_r28 = GWPlayerCfg[var_r27].character;
-    var_r31->unk_00 = var_r28;
-    var_r31->unk_04 = lbl_1_bss_60[object->work[0]];
-    sp8 = var_r31->unk_08 = 0;
-    var_r31->unk_4C = spC.unk_00[GWPlayerCfg[var_r27].diff & 3];
-    object->mdlId[0] = CharModelCreate(var_r28, 2);
+    playerWork = object->data;
+    memset(playerWork, 0, 148);
+    stateValue2 = object->work[0];
+    stateValue = GWPlayerCfg[stateValue2].character;
+    playerWork->characterModelId = stateValue;
+    playerWork->randomizedPlayerRank = playerOrderByRandomRank[object->work[0]];
+    temporaryValue = playerWork->hookIndex = 0;
+    playerWork->movementProbability = temporaryValue.movementChanceByDifficulty[GWPlayerCfg[stateValue2].diff & 3];
+    object->mdlId[0] = CharModelCreate(stateValue, 2);
     Hu3DModelLayerSet(object->mdlId[0], 4);
     Hu3DModelShadowSet(object->mdlId[0]);
-    object->mdlId[1] = Hu3DModelCreateFile(lbl_1_data_18C[var_r28]);
+    object->mdlId[1] = Hu3DModelCreateFile(playerModelDataIds[stateValue]);
     Hu3DModelShadowSet(object->mdlId[1]);
     Hu3DModelLayerSet(object->mdlId[1], 4);
 
-    for (var_r29 = 0; var_r29 < 10; var_r29++) {
-        if (lbl_1_data_1AC[var_r29] < 0x10000) {
-            object->mtnId[var_r29] = CharMotionCreate(var_r28, lbl_1_data_1AC[var_r29]);
+    for (loopIndex = 0; loopIndex < 10; loopIndex++) {
+        if (playerMotionDataIds[loopIndex] < 0x10000) {
+            object->mtnId[loopIndex] = CharMotionCreate(stateValue, playerMotionDataIds[loopIndex]);
         }
         else {
-            object->mtnId[var_r29] = Hu3DJointMotionFile(object->mdlId[0], var_r28 + lbl_1_data_1AC[var_r29]);
+            object->mtnId[loopIndex] = Hu3DJointMotionFile(object->mdlId[0], stateValue + playerMotionDataIds[loopIndex]);
         }
     }
-    CharMotionDataClose(var_r28);
-    object->trans.x = var_r31->unk_58.x = 2.0f * var_r31->unk_04 * 100.0f - 300.0f;
-    object->trans.y = var_r31->unk_58.y = 0.0f;
-    object->trans.z = var_r31->unk_58.z = 0.0f;
+    CharMotionDataClose(stateValue);
+    object->trans.x = playerWork->worldPosition.x = 2.0f * playerWork->randomizedPlayerRank * 100.0f - 300.0f;
+    object->trans.y = playerWork->worldPosition.y = 0.0f;
+    object->trans.z = playerWork->worldPosition.z = 0.0f;
 
-    var_r31->unk_64 = var_r31->unk_68 = var_r31->unk_6C = 0.0f;
-    var_r31->unk_3C = var_r31->unk_40 = 0.0f;
-    var_r31->unk_44 = 0.0f;
-    var_r31->unk_48 = 0.02f;
-    var_r31->unk_70.x = var_r31->unk_58.x;
-    var_r31->unk_70.y = 100.0f + var_r31->unk_58.y;
-    var_r31->unk_70.z = 400.0f + var_r31->unk_58.z;
-    var_r31->unk_14 = 1;
-    var_r31->unk_0C = -1;
-    fn_1_9E0C(object, 0);
-    Hu3DModelPosSet(object->mdlId[1], var_r31->unk_70.x, var_r31->unk_70.y, var_r31->unk_70.z);
-    var_r31->unk_34 = 0;
-    object->objFunc = fn_1_8414;
+    playerWork->reservedFloat64 = playerWork->verticalVelocity = playerWork->reservedFloat6c = 0.0f;
+    playerWork->currentFacingAngle = playerWork->targetFacingAngle = 0.0f;
+    playerWork->facingAngleStep = 0.0f;
+    playerWork->facingAngleAcceleration = 0.02f;
+    playerWork->modelAnchorPosition.x = playerWork->worldPosition.x;
+    playerWork->modelAnchorPosition.y = 100.0f + playerWork->worldPosition.y;
+    playerWork->modelAnchorPosition.z = 400.0f + playerWork->worldPosition.z;
+    playerWork->resetModelPose = 1;
+    playerWork->currentMotionId = -1;
+    SetPlayerMotion(object, 0);
+    Hu3DModelPosSet(object->mdlId[1], playerWork->modelAnchorPosition.x, playerWork->modelAnchorPosition.y, playerWork->modelAnchorPosition.z);
+    playerWork->animationState = 0;
+    object->objFunc = UpdatePlayerMovement;
 }
 
-void fn_1_8414(OMOBJ *object)
+void UpdatePlayerMovement(OMOBJ *object)
 {
-    UnkM410Struct5 *var_r31;
+    PlayerCharacterWork *playerWork;
 
-    var_r31 = object->data;
+    playerWork = object->data;
     {
-        UnkM410Struct7 sp8 = { {
+        PlayerIntegerParameters temporaryValue = { {
             7 * REFRESH_RATE / 10,
             13 * REFRESH_RATE / 10,
             18 * REFRESH_RATE / 10,
             25 * REFRESH_RATE / 12,
         } };
 
-        switch (var_r31->unk_34) {
+        switch (playerWork->animationState) {
             case 0:
-                fn_1_9F70(object, 0);
-                if (fn_1_2804()) {
-                    var_r31->unk_38 = 0;
-                    var_r31->unk_34++;
+                SetPlayerAnimation(object, 0);
+                if (getMinigamePhase()) {
+                    playerWork->animationTimer = 0;
+                    playerWork->animationState++;
                 }
                 break;
             case 1:
-                if (var_r31->unk_38 >= sp8.unk_00[var_r31->unk_04]) {
-                    var_r31->unk_28 = 1;
-                    var_r31->unk_34++;
+                if (playerWork->animationTimer >= temporaryValue.playerWaitFrames[playerWork->randomizedPlayerRank]) {
+                    playerWork->movementActive = 1;
+                    playerWork->animationState++;
                 }
                 break;
             case 2:
-                fn_1_96F4(object);
-                if (var_r31->unk_38 >= (2.8f + 0.00040000002f * frandmod(1000)) * REFRESH_RATE_F) {
-                    var_r31->unk_2C = 1;
-                    var_r31->unk_38 = 0;
-                    var_r31->unk_34++;
+                UpdatePlayerController(object);
+                if (playerWork->animationTimer >= (2.8f + 0.00040000002f * frandmod(1000)) * REFRESH_RATE_F) {
+                    playerWork->alternateActionReady = 1;
+                    playerWork->animationTimer = 0;
+                    playerWork->animationState++;
                 }
                 break;
             case 3:
-                if (var_r31->unk_24) {
-                    if (var_r31->unk_38 >=  9 * REFRESH_RATE_F / 20) {
-                        var_r31->unk_30 = 1;
+                if (playerWork->specialInputReady) {
+                    if (playerWork->animationTimer >=  9 * REFRESH_RATE_F / 20) {
+                        playerWork->actionRequested = 1;
                     }
                 }
-                if (fn_1_9A90(object)) {
-                    var_r31->unk_34++;
+                if (UpdatePlayerAi(object)) {
+                    playerWork->animationState++;
                 }
                 break;
             case 4:
-                fn_1_9F70(object, 0);
+                SetPlayerAnimation(object, 0);
                 break;
         }
     }
-    fn_1_8A10(object);
-    var_r31->unk_38++;
-    if (fn_1_2804() == 2) {
-        var_r31->unk_28 = 1;
-        var_r31->unk_34 = 0;
-        object->objFunc = fn_1_8678;
+    UpdatePlayerGoalState(object);
+    playerWork->animationTimer++;
+    if (getMinigamePhase() == 2) {
+        playerWork->movementActive = 1;
+        playerWork->animationState = 0;
+        object->objFunc = UpdatePlayerAnimationState;
     }
 }
 
-void fn_1_8678(OMOBJ *object)
+void UpdatePlayerAnimationState(OMOBJ *object)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    UnkM410Struct5 *var_r31;
-    s32 var_r29;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
+    PlayerCharacterWork *playerWork;
+    s32 stateValue;
 
-    var_r31 = object->data;
-    var_r29 = 0;
-    var_r31->unk_10 = 0;
-    if (fn_1_281C() == 2) {
-        var_r31->unk_10 = HuPadBtnDown[GWPlayerCfg[object->work[0]].pad_idx];
+    playerWork = object->data;
+    stateValue = 0;
+    playerWork->pressedButtons = 0;
+    if (getMinigameSubstate() == 2) {
+        playerWork->pressedButtons = HuPadBtnDown[GWPlayerCfg[object->work[0]].padIdx];
         if (GWPlayerCfg[object->work[0]].iscom) {
-            fn_1_8ABC(object);
+            UpdatePlayerPhysics(object);
         }
     }
-    switch (var_r31->unk_34) {
+    switch (playerWork->animationState) {
         case 0:
-            if (fn_1_9F70(object, 0)) {
-                var_r31->unk_28 = 1;
+            if (SetPlayerAnimation(object, 0)) {
+                playerWork->movementActive = 1;
             }
-            fn_1_96F4(object);
-            if (var_r31->unk_18) {
-                var_r31->unk_34++;
+            UpdatePlayerController(object);
+            if (playerWork->isGrounded) {
+                playerWork->animationState++;
             }
             break;
         case 1:
-            if (!var_r31->unk_1C && !var_r31->unk_20) {
-                if (var_r31->unk_10 & 0x100) {
-                    if (fn_1_281C() == 2) {
-                        var_r31->unk_2C = 1;
+            if (!playerWork->isJumping && !playerWork->isStunned) {
+                if (playerWork->pressedButtons & 0x100) {
+                    if (getMinigameSubstate() == 2) {
+                        playerWork->alternateActionReady = 1;
                     }
                 }
-                else if (var_r31->unk_10 & 0x200 && fn_1_281C() == 2) {
-                    if (fabs(fn_1_30F0(var_r31->unk_3C, var_r31->unk_40)) < 45.0) {
-                        var_r31->unk_30 = 1;
+                else if (playerWork->pressedButtons & 0x200 && getMinigameSubstate() == 2) {
+                    if (fabs(angleDifference(playerWork->currentFacingAngle, playerWork->targetFacingAngle)) < 45.0) {
+                        playerWork->actionRequested = 1;
                     }
                 }
-                var_r29 = 1;
+                stateValue = 1;
             }
-            else if (var_r31->unk_24 && var_r31->unk_10 & 0x200) {
-                var_r31->unk_30 = 1;
+            else if (playerWork->specialInputReady && playerWork->pressedButtons & 0x200) {
+                playerWork->actionRequested = 1;
             }
-            if (fn_1_9A90(object) || fn_1_9C84(object)) {
-                var_r31->unk_36 = 0;
-                var_r31->unk_34--;
+            if (UpdatePlayerAi(object) || UpdatePlayerAnimation(object)) {
+                playerWork->stateTimer = 0;
+                playerWork->animationState--;
             }
             break;
     }
-    fn_1_8A10(object);
-    if (fn_1_281C() == 3 && var_r29) {
-        fn_1_287C(object->work[0]);
-        var_r31->unk_34 = 0;
-        object->objFunc = fn_1_88D8;
+    UpdatePlayerGoalState(object);
+    if (getMinigameSubstate() == 3 && stateValue) {
+        SetMinigameControlFlag(object->work[0]);
+        playerWork->animationState = 0;
+        object->objFunc = UpdatePlayerCollisionState;
     }
 }
 
-void fn_1_88D8(OMOBJ *object)
+void UpdatePlayerCollisionState(OMOBJ *object)
 {
-    UnkM410Struct5 *var_r31;
+    PlayerCharacterWork *playerWork;
 
-    var_r31 = object->data;
-    fn_1_8A10(object);
-    switch (var_r31->unk_34) {
+    playerWork = object->data;
+    UpdatePlayerGoalState(object);
+    switch (playerWork->animationState) {
         case 0:
-            var_r31->unk_34++;
+            playerWork->animationState++;
             return;
         case 1:
-            if (fn_1_2834() == 1) {
+            if (getMinigameFlags() == 1) {
                 Hu3DModelHookReset(object->mdlId[0]);
                 Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
-                if ((1 << object->work[0]) & fn_1_2864()) {
-                    fn_1_9E0C(object, 8);
+                if ((1 << object->work[0]) & getMinigameControlFlags()) {
+                    SetPlayerMotion(object, 8);
                 }
                 else {
-                    fn_1_9E0C(object, 9);
+                    SetPlayerMotion(object, 9);
                 }
-                var_r31->unk_40 = 0.0f;
-                var_r31->unk_44 = 0.0f;
-                var_r31->unk_48 = 0.005f;
-                var_r31->unk_34++;
+                playerWork->targetFacingAngle = 0.0f;
+                playerWork->facingAngleStep = 0.0f;
+                playerWork->facingAngleAcceleration = 0.005f;
+                playerWork->animationState++;
             }
             break;
         case 2:
-            if (fn_1_9EFC(object)) {
-                fn_1_28AC(object->work[0]);
-                var_r31->unk_34++;
+            if (UpdatePlayerInput(object)) {
+                SetMinigamePlayerFlag(object->work[0]);
+                playerWork->animationState++;
             }
             break;
         default:
@@ -361,773 +361,773 @@ void fn_1_88D8(OMOBJ *object)
     }
 }
 
-void fn_1_8A10(OMOBJ *object)
+void UpdatePlayerGoalState(OMOBJ *object)
 {
-    UnkM410Struct5 *var_r31;
+    PlayerCharacterWork *playerWork;
 
-    var_r31 = object->data;
-    var_r31->unk_36++;
-    object->trans.x = var_r31->unk_58.x;
-    object->trans.y = var_r31->unk_58.y;
-    object->trans.z = var_r31->unk_58.z;
+    playerWork = object->data;
+    playerWork->stateTimer++;
+    object->trans.x = playerWork->worldPosition.x;
+    object->trans.y = playerWork->worldPosition.y;
+    object->trans.z = playerWork->worldPosition.z;
 
-    var_r31->unk_44 += var_r31->unk_48;
-    if (var_r31->unk_44 > 0.45f) {
-        var_r31->unk_44 = 0.45f;
+    playerWork->facingAngleStep += playerWork->facingAngleAcceleration;
+    if (playerWork->facingAngleStep > 0.45f) {
+        playerWork->facingAngleStep = 0.45f;
     }
-    var_r31->unk_3C = fn_1_2FD4(var_r31->unk_3C, var_r31->unk_40, var_r31->unk_44);
-    object->rot.y = var_r31->unk_3C;
+    playerWork->currentFacingAngle = approachAngle(playerWork->currentFacingAngle, playerWork->targetFacingAngle, playerWork->facingAngleStep);
+    object->rot.y = playerWork->currentFacingAngle;
 }
 
-void fn_1_8ABC(OMOBJ *object)
+void UpdatePlayerPhysics(OMOBJ *object)
 {
-    Vec sp34;
-    Vec sp28;
+    Vec temporaryPosition;
+    Vec temporaryPosition2;
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
+    float motionValue4;
+    float motionValue5;
 
-    UnkM410Struct5 *var_r31;
-    s32 var_r30;
-    s32 var_r29;
+    PlayerCharacterWork *playerWork;
+    s32 loopIndex;
+    s32 stateValue;
 
-    var_r31 = object->data;
-    var_r31->unk_10 = 0;
-    switch (var_r31->unk_50) {
+    playerWork = object->data;
+    playerWork->pressedButtons = 0;
+    switch (playerWork->aiDecisionState) {
         case 0:
-            if (!var_r31->unk_18) {
+            if (!playerWork->isGrounded) {
                 return;
             }
-            if (frandmod(1000) <= 1000.0f * var_r31->unk_4C) {
-                var_f28 = 7 * REFRESH_RATE_F / 10;
-                if (frandmod(1000) <= 1000.0f * var_r31->unk_4C) {
-                    var_f29 = 280.0f;
-                    var_r31->unk_54 = REFRESH_RATE_F * 0.53f + frandmod(REFRESH_RATE / 10);
+            if (frandmod(1000) <= 1000.0f * playerWork->movementProbability) {
+                motionValue4 = 7 * REFRESH_RATE_F / 10;
+                if (frandmod(1000) <= 1000.0f * playerWork->movementProbability) {
+                    motionValue3 = 280.0f;
+                    playerWork->aiActionDuration = REFRESH_RATE_F * 0.53f + frandmod(REFRESH_RATE / 10);
                 }
                 else {
-                    var_f29 = 419.99997f;
-                    var_r31->unk_54 = REFRESH_RATE_F * 0.15f + frandmod(REFRESH_RATE / 4);
+                    motionValue3 = 419.99997f;
+                    playerWork->aiActionDuration = REFRESH_RATE_F * 0.15f + frandmod(REFRESH_RATE / 4);
                 }
-                var_f27 = var_f28 + var_r31->unk_54;
-                var_r29 = -1;
-                var_f31 = 10000.0f;
-                for (var_r30 = 0; var_r30 < 18; var_r30++) {
-                    fn_1_7888(var_r30, (s32)var_f27, &sp28);
-                    if (fabs(sp28.y - var_f29) > 10.0) {
+                motionValue5 = motionValue4 + playerWork->aiActionDuration;
+                stateValue = -1;
+                motionValue = 10000.0f;
+                for (loopIndex = 0; loopIndex < 18; loopIndex++) {
+                    GetPlayerFuturePosition(loopIndex, (s32)motionValue5, &temporaryPosition2);
+                    if (fabs(temporaryPosition2.y - motionValue3) > 10.0) {
                         continue;
                     }
-                    fn_1_7840(var_r30, &sp34);
-                    if (fabs(sp34.x) < 115 * REFRESH_FREQ) {
+                    GetPlayerVelocity(loopIndex, &temporaryPosition);
+                    if (fabs(temporaryPosition.x) < 115 * REFRESH_FREQ) {
                         continue;
                     }
-                    var_f30 = sp28.x - var_r31->unk_88.x;
-                    if (sp34.x >= 0.0f) {
-                        if (var_f30 < 0.0f) {
-                            if (fabs(var_f30) < var_f31) {
-                                var_r29 = var_r30;
-                                var_f31 = fabs(var_f30);
+                    motionValue2 = temporaryPosition2.x - playerWork->previousTargetPosition.x;
+                    if (temporaryPosition.x >= 0.0f) {
+                        if (motionValue2 < 0.0f) {
+                            if (fabs(motionValue2) < motionValue) {
+                                stateValue = loopIndex;
+                                motionValue = fabs(motionValue2);
                             }
                         }
                     }
-                    else if (var_f30 > 0.0f) {
-                        if (fabs(var_f30) < var_f31) {
-                            var_r29 = var_r30;
-                            var_f31 = fabs(var_f30);
+                    else if (motionValue2 > 0.0f) {
+                        if (fabs(motionValue2) < motionValue) {
+                            stateValue = loopIndex;
+                            motionValue = fabs(motionValue2);
                         }
                     }
                 }
-                if (var_r29 < 0) {
+                if (stateValue < 0) {
                     return;
                 }
-                fn_1_7840(var_r29, &sp34);
-                var_f31 /= fabs(sp34.x);
-                var_r31->unk_52 = var_f27 + var_f31 - var_f28 - var_r31->unk_54;
+                GetPlayerVelocity(stateValue, &temporaryPosition);
+                motionValue /= fabs(temporaryPosition.x);
+                playerWork->aiDecisionDelay = motionValue5 + motionValue - motionValue4 - playerWork->aiActionDuration;
             }
             else {
-                var_r31->unk_52 = (2 * REFRESH_RATE_F / 5) + frandmod(6 * REFRESH_RATE / 10);
-                var_r31->unk_54 = (1 * REFRESH_RATE_F / 5) + frandmod(3 * REFRESH_RATE / 10);
+                playerWork->aiDecisionDelay = (2 * REFRESH_RATE_F / 5) + frandmod(6 * REFRESH_RATE / 10);
+                playerWork->aiActionDuration = (1 * REFRESH_RATE_F / 5) + frandmod(3 * REFRESH_RATE / 10);
             }
-            var_r31->unk_50++;
+            playerWork->aiDecisionState++;
             return;
         case 1:
-            if (!var_r31->unk_52) {
-                var_r31->unk_10 |= 256;
-                var_r31->unk_50++;
+            if (!playerWork->aiDecisionDelay) {
+                playerWork->pressedButtons |= 256;
+                playerWork->aiDecisionState++;
             }
-            var_r31->unk_52--;
+            playerWork->aiDecisionDelay--;
             return;
         case 2:
-            if (!var_r31->unk_54) {
-                var_r31->unk_10 |= 512;
-                var_r31->unk_50 = 0;
+            if (!playerWork->aiActionDuration) {
+                playerWork->pressedButtons |= 512;
+                playerWork->aiDecisionState = 0;
             }
-            var_r31->unk_54--;
+            playerWork->aiActionDuration--;
             break;
     }
 }
 
-void fn_1_9040(OMOBJ *object)
+void UpdatePlayerEffects(OMOBJ *object)
 {
-    Mtx sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+    Mtx temporaryTransform;
+    Vec temporaryPosition;
+    Vec temporaryPosition2;
+    Vec temporaryPosition3;
+    Vec temporaryPosition4;
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
-    float var_f25;
-    float var_f24;
-    float var_f23;
-    float var_f22;
-    double var_f21;
-    double var_f20;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
+    float motionValue4;
+    float motionValue5;
+    float motionValue6;
+    float motionValue7;
+    float motionValue8;
+    float motionValue9;
+    float motionValue10;
+    double motionValue11;
+    double motionValue12;
 
-    UnkM410Struct5 *var_r31;
-    s32 var_r29;
-    s32 var_r28;
-    s16 var_r27;
-    Vec *var_r26;
-    Vec *var_r25;
+    PlayerCharacterWork *playerWork;
+    s32 loopIndex;
+    s32 stateValue;
+    s16 stateValue2;
+    Vec *temporaryPosition;
+    Vec *temporaryPosition2;
 
-    var_r31 = object->data;
-    fn_1_79F8(object->mdlId[0], lbl_1_data_16C[var_r31->unk_08], sp38);
+    playerWork = object->data;
+    FindModelJointMatrix(object->mdlId[0], playerHookNames[playerWork->hookIndex], temporaryTransform);
 
-    var_r31->unk_70.x = sp38[0][3];
-    var_r31->unk_70.y = sp38[1][3];
-    var_r31->unk_70.z = sp38[2][3];
+    playerWork->modelAnchorPosition.x = temporaryTransform[0][3];
+    playerWork->modelAnchorPosition.y = temporaryTransform[1][3];
+    playerWork->modelAnchorPosition.z = temporaryTransform[2][3];
 
-    if (fn_1_2804() == 1) {
-        var_r31->unk_88 = var_r31->unk_70;
-        var_r28 = -1;
-        var_f30 = 10000.0f;
+    if (getMinigamePhase() == 1) {
+        playerWork->previousTargetPosition = playerWork->modelAnchorPosition;
+        stateValue = -1;
+        motionValue2 = 10000.0f;
 
-        for (var_r29 = 0; var_r29 < 18; var_r29++) {
-            fn_1_77F8(var_r29, &sp20);
-            if (sp20.y < 350.0f) {
+        for (loopIndex = 0; loopIndex < 18; loopIndex++) {
+            GetPlayerPosition(loopIndex, &temporaryPosition2);
+            if (temporaryPosition2.y < 350.0f) {
                 continue;
             }
-            VECSubtract(&sp20, &var_r31->unk_58, &sp2C);
-            var_f28 = VECMag(&sp2C);
-            if (var_f28 < var_f30) {
-                var_r28 = var_r29;
-                var_f30 = var_f28;
+            VECSubtract(&temporaryPosition2, &playerWork->worldPosition, &temporaryPosition);
+            motionValue4 = VECMag(&temporaryPosition);
+            if (motionValue4 < motionValue2) {
+                stateValue = loopIndex;
+                motionValue2 = motionValue4;
             }
         }
-        fn_1_77F8(var_r28, &sp20);
-        var_f29 = 5.0f + sp20.y;
-        var_f31 = 0.65f + 0.000100000005f * frandmod(1000);
+        GetPlayerPosition(stateValue, &temporaryPosition2);
+        motionValue3 = 5.0f + temporaryPosition2.y;
+        motionValue = 0.65f + 0.000100000005f * frandmod(1000);
 #if VERSION_PAL
-        var_f26 = -3430.0f;
+        motionValue6 = -3430.0f;
 #else
-        var_f26 = -3430.0002f;
+        motionValue6 = -3430.0002f;
 #endif
-        var_f27 = (var_f29 - var_r31->unk_70.y - (var_f31 * var_f31 * var_f26 * 0.5f)) / var_f31;
-        sp2C.x = (REFRESH_FREQ * (sp20.x - var_r31->unk_70.x)) / var_f31;
-        sp2C.y = REFRESH_FREQ * var_f27;
-        sp2C.z = (REFRESH_FREQ * (sp20.z - var_r31->unk_70.z)) / var_f31;
+        motionValue5 = (motionValue3 - playerWork->modelAnchorPosition.y - (motionValue * motionValue * motionValue6 * 0.5f)) / motionValue;
+        temporaryPosition.x = (REFRESH_FREQ * (temporaryPosition2.x - playerWork->modelAnchorPosition.x)) / motionValue;
+        temporaryPosition.y = REFRESH_FREQ * motionValue5;
+        temporaryPosition.z = (REFRESH_FREQ * (temporaryPosition2.z - playerWork->modelAnchorPosition.z)) / motionValue;
     }
     else {
-        if (var_r31->unk_20 != 0) {
-            var_f30 = -450.0f + (0.05f * frandmod(1000));
-            var_f29 = -100.0f;
-            var_f31 = 0.75f + (0.000100000005f * frandmod(1000));
-            sp20.x = var_r31->unk_70.x + (0.05f * (frandmod(2000) - 1000));
-            sp20.y = var_f29;
-            sp20.z = var_f30;
+        if (playerWork->isStunned != 0) {
+            motionValue2 = -450.0f + (0.05f * frandmod(1000));
+            motionValue3 = -100.0f;
+            motionValue = 0.75f + (0.000100000005f * frandmod(1000));
+            temporaryPosition2.x = playerWork->modelAnchorPosition.x + (0.05f * (frandmod(2000) - 1000));
+            temporaryPosition2.y = motionValue3;
+            temporaryPosition2.z = motionValue2;
         }
         else {
-            var_f30 = -700.0f;
-            var_f29 = 420.0f;
-            if (var_r31->unk_68 < -600.0f) {
-                var_f29 = 280.0f;
+            motionValue2 = -700.0f;
+            motionValue3 = 420.0f;
+            if (playerWork->verticalVelocity < -600.0f) {
+                motionValue3 = 280.0f;
             }
-            var_f31 = 0.65f + (0.000100000005f * frandmod(1000));
-            var_r27 = REFRESH_RATE * var_f31;
-            var_r28 = -1;
-            var_f30 = 10000.0f;
+            motionValue = 0.65f + (0.000100000005f * frandmod(1000));
+            stateValue2 = REFRESH_RATE * motionValue;
+            stateValue = -1;
+            motionValue2 = 10000.0f;
 
-            for (var_r29 = 0; var_r29 < 18; var_r29++) {
-                fn_1_7888(var_r29, var_r27, &sp20);
-                if (fabs(sp20.y - var_f29) > 20.0) {
+            for (loopIndex = 0; loopIndex < 18; loopIndex++) {
+                GetPlayerFuturePosition(loopIndex, stateValue2, &temporaryPosition2);
+                if (fabs(temporaryPosition2.y - motionValue3) > 20.0) {
                     continue;
                 }
-                var_f28 = fabs(sp20.x - var_r31->unk_88.x);
-                if (var_f28 < var_f30) {
-                    var_r28 = var_r29;
-                    var_f30 = var_f28;
+                motionValue4 = fabs(temporaryPosition2.x - playerWork->previousTargetPosition.x);
+                if (motionValue4 < motionValue2) {
+                    stateValue = loopIndex;
+                    motionValue2 = motionValue4;
                 }
             }
-            var_f25 = 75.0f;
+            motionValue7 = 75.0f;
             if (GWPlayerCfg[object->work[0]].iscom) {
-                var_f25 *= 0.25f;
+                motionValue7 *= 0.25f;
             }
-            if (var_r28 >= 0 && var_f30 <= var_f25) {
-                fn_1_7888(var_r28, var_r27, &sp20);
+            if (stateValue >= 0 && motionValue2 <= motionValue7) {
+                GetPlayerFuturePosition(stateValue, stateValue2, &temporaryPosition2);
             }
             else {
-                sp20.x = var_r31->unk_88.x;
-                sp20.y = var_f29;
-                sp20.z = -700.0f;
+                temporaryPosition2.x = playerWork->previousTargetPosition.x;
+                temporaryPosition2.y = motionValue3;
+                temporaryPosition2.z = -700.0f;
             }
         }
 #if VERSION_PAL
-        var_f26 = -3430.0f;
+        motionValue6 = -3430.0f;
 #else
-        var_f26 = -3430.0002f;
+        motionValue6 = -3430.0002f;
 #endif
-        var_f27 = ((sp20.y - var_r31->unk_70.y) - var_f31 * var_f31 * var_f26 * 0.5f) / var_f31;
-        sp2C.x = (sp20.x - var_r31->unk_70.x) * REFRESH_FREQ / var_f31;
-        sp2C.y = REFRESH_FREQ * var_f27;
-        sp2C.z = (sp20.z - var_r31->unk_70.z) * REFRESH_FREQ / var_f31;
+        motionValue5 = ((temporaryPosition2.y - playerWork->modelAnchorPosition.y) - motionValue * motionValue * motionValue6 * 0.5f) / motionValue;
+        temporaryPosition.x = (temporaryPosition2.x - playerWork->modelAnchorPosition.x) * REFRESH_FREQ / motionValue;
+        temporaryPosition.y = REFRESH_FREQ * motionValue5;
+        temporaryPosition.z = (temporaryPosition2.z - playerWork->modelAnchorPosition.z) * REFRESH_FREQ / motionValue;
     }
-    fn_1_76B8(var_r31->unk_70, sp2C, object->work[0]);
-    var_r31->unk_18 = 0;
-    var_r31->unk_24 = 0;
-    if (var_r31->unk_1C) {
-        fn_1_9E0C(object, 5);
+    SetPlayerSphereState(playerWork->modelAnchorPosition, temporaryPosition, object->work[0]);
+    playerWork->isGrounded = 0;
+    playerWork->specialInputReady = 0;
+    if (playerWork->isJumping) {
+        SetPlayerMotion(object, 5);
     }
     Hu3DModelHookReset(object->mdlId[0]);
-    Hu3DModelPosSet(object->mdlId[1], var_r31->unk_70.x, var_r31->unk_70.y, var_r31->unk_70.z);
+    Hu3DModelPosSet(object->mdlId[1], playerWork->modelAnchorPosition.x, playerWork->modelAnchorPosition.y, playerWork->modelAnchorPosition.z);
 }
 
-void fn_1_96F4(OMOBJ *object)
+void UpdatePlayerController(OMOBJ *object)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
+    float motionValue4;
+    float motionValue5;
 
-    UnkM410Struct5 *var_r31;
+    PlayerCharacterWork *playerWork;
 
-    var_r31 = object->data;
-    if (!var_r31->unk_18 && (!var_r31->unk_14 || var_r31->unk_28)) {
+    playerWork = object->data;
+    if (!playerWork->isGrounded && (!playerWork->resetModelPose || playerWork->movementActive)) {
 #if VERSION_PAL
-        var_f29 = -3430.0f;
+        motionValue3 = -3430.0f;
 #else
-        var_f29 = -3430.0002f;
+        motionValue3 = -3430.0002f;
 #endif
-        var_f30 = 70.0f + object->trans.y;
-        var_f31 = 0.3f;
-        if (var_r31->unk_14 && var_r31->unk_28) {
-            var_r31->unk_14 = 0;
-            var_r31->unk_28 = 0;
+        motionValue2 = 70.0f + object->trans.y;
+        motionValue = 0.3f;
+        if (playerWork->resetModelPose && playerWork->movementActive) {
+            playerWork->resetModelPose = 0;
+            playerWork->movementActive = 0;
             Hu3DModelAttrReset(object->mdlId[1], HU3D_ATTR_DISPOFF);
-            var_r31->unk_36 = 0;
-            var_r31->unk_70.x = object->trans.x;
-            var_r31->unk_70.y = 100.0f + object->trans.y;
-            var_r31->unk_70.z = 500.0f + object->trans.z;
-            var_f28 = ((var_f30 - var_r31->unk_70.y) - (var_f31 * var_f31 * var_f29 * 0.5f)) / var_f31;
-            var_f27 = 70.0f + object->trans.z;
-            var_r31->unk_7C.x = 0.0f;
-            var_r31->unk_7C.y = REFRESH_FREQ * var_f28;
-            var_r31->unk_7C.z = (REFRESH_FREQ * (var_f27 - var_r31->unk_70.z)) / var_f31;
-            var_r31->unk_40 = 0.0f;
-            var_r31->unk_44 = 0.0f;
-            var_r31->unk_48 = 0.04f;
+            playerWork->stateTimer = 0;
+            playerWork->modelAnchorPosition.x = object->trans.x;
+            playerWork->modelAnchorPosition.y = 100.0f + object->trans.y;
+            playerWork->modelAnchorPosition.z = 500.0f + object->trans.z;
+            motionValue4 = ((motionValue2 - playerWork->modelAnchorPosition.y) - (motionValue * motionValue * motionValue3 * 0.5f)) / motionValue;
+            motionValue5 = 70.0f + object->trans.z;
+            playerWork->movementVelocity.x = 0.0f;
+            playerWork->movementVelocity.y = REFRESH_FREQ * motionValue4;
+            playerWork->movementVelocity.z = (REFRESH_FREQ * (motionValue5 - playerWork->modelAnchorPosition.z)) / motionValue;
+            playerWork->targetFacingAngle = 0.0f;
+            playerWork->facingAngleStep = 0.0f;
+            playerWork->facingAngleAcceleration = 0.04f;
         }
-        VECAdd(&var_r31->unk_70, &var_r31->unk_7C, &var_r31->unk_70);
-        var_r31->unk_7C.y = var_r31->unk_7C.y + ((REFRESH_FREQ * REFRESH_FREQ) * var_f29);
-        if ((var_r31->unk_7C.y < 0.0f) && (var_r31->unk_70.y <= var_f30)) {
-            var_r31->unk_18 = 1;
-            var_r31->unk_14 = 1;
-            var_r31->unk_28 = 0;
-            Hu3DModelHookSet(object->mdlId[0], lbl_1_data_140[var_r31->unk_08], object->mdlId[1]);
-            CharMotionSpeedSet(var_r31->unk_00, 2.0f);
-            var_r31->unk_40 = 180.0f;
-            var_r31->unk_44 = 0.0f;
-            var_r31->unk_48 = 0.005f;
+        VECAdd(&playerWork->modelAnchorPosition, &playerWork->movementVelocity, &playerWork->modelAnchorPosition);
+        playerWork->movementVelocity.y = playerWork->movementVelocity.y + ((REFRESH_FREQ * REFRESH_FREQ) * motionValue3);
+        if ((playerWork->movementVelocity.y < 0.0f) && (playerWork->modelAnchorPosition.y <= motionValue2)) {
+            playerWork->isGrounded = 1;
+            playerWork->resetModelPose = 1;
+            playerWork->movementActive = 0;
+            Hu3DModelHookSet(object->mdlId[0], playerHookDummyNames[playerWork->hookIndex], object->mdlId[1]);
+            CharMotionSpeedSet(playerWork->characterModelId, 2.0f);
+            playerWork->targetFacingAngle = 180.0f;
+            playerWork->facingAngleStep = 0.0f;
+            playerWork->facingAngleAcceleration = 0.005f;
             HuAudFXPlay(1376);
         }
-        if (var_r31->unk_18 != 0) {
+        if (playerWork->isGrounded != 0) {
             Hu3DModelPosSet(object->mdlId[1], 0.0f, 0.0f, 0.0f);
         }
         else {
-            Hu3DModelPosSet(object->mdlId[1], var_r31->unk_70.x, var_r31->unk_70.y, var_r31->unk_70.z);
+            Hu3DModelPosSet(object->mdlId[1], playerWork->modelAnchorPosition.x, playerWork->modelAnchorPosition.y, playerWork->modelAnchorPosition.z);
         }
-        if (var_r31->unk_36 >= (REFRESH_RATE_F * (var_f31 - 0.17f))) {
-            fn_1_9E0C(object, 1);
+        if (playerWork->stateTimer >= (REFRESH_RATE_F * (motionValue - 0.17f))) {
+            SetPlayerMotion(object, 1);
         }
     }
 }
 
-s32 fn_1_9A90(OMOBJ *object)
+s32 UpdatePlayerAi(OMOBJ *object)
 {
-    UnkM410Struct5 *var_r31;
-    s32 var_r29;
+    PlayerCharacterWork *playerWork;
+    s32 stateValue;
 
-    var_r31 = object->data;
-    var_r29 = 0;
-    if (var_r31->unk_20) {
-        return var_r29;
+    playerWork = object->data;
+    stateValue = 0;
+    if (playerWork->isStunned) {
+        return stateValue;
     }
-    if (!var_r31->unk_18) {
+    if (!playerWork->isGrounded) {
         Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
     }
-    if (var_r31->unk_18 && !var_r31->unk_1C && var_r31->unk_2C) {
-        var_r31->unk_1C = 1;
-        var_r31->unk_2C = 0;
-        fn_1_9E0C(object, 4);
-        var_r31->unk_48 = 0.05f;
-        var_r31->unk_68 = 1300.0f;
+    if (playerWork->isGrounded && !playerWork->isJumping && playerWork->alternateActionReady) {
+        playerWork->isJumping = 1;
+        playerWork->alternateActionReady = 0;
+        SetPlayerMotion(object, 4);
+        playerWork->facingAngleAcceleration = 0.05f;
+        playerWork->verticalVelocity = 1300.0f;
     }
-    if (var_r31->unk_1C) {
-        var_r31->unk_58.y = var_r31->unk_58.y + (REFRESH_FREQ * var_r31->unk_68);
+    if (playerWork->isJumping) {
+        playerWork->worldPosition.y = playerWork->worldPosition.y + (REFRESH_FREQ * playerWork->verticalVelocity);
 #if VERSION_PAL
-        var_r31->unk_68 += -79.99999821186066;
+        playerWork->verticalVelocity += -79.99999821186066;
 #else
-        var_r31->unk_68 += -66.66667014360428;
+        playerWork->verticalVelocity += -66.66667014360428;
 #endif
-        if (var_r31->unk_58.y <= 0.0f) {
-            var_r31->unk_1C = 0;
-            if (var_r31->unk_18) {
-                fn_1_9E0C(object, 7);
+        if (playerWork->worldPosition.y <= 0.0f) {
+            playerWork->isJumping = 0;
+            if (playerWork->isGrounded) {
+                SetPlayerMotion(object, 7);
             }
             else {
-                var_r29 = 1;
-                fn_1_9E0C(object, 6);
+                stateValue = 1;
+                SetPlayerMotion(object, 6);
             }
-            var_r31->unk_58.y = 0.0f;
+            playerWork->worldPosition.y = 0.0f;
         }
-        var_r31->unk_24 = 0;
-        if (var_r31->unk_58.y >= 30.000002f && var_r31->unk_18) {
-            var_r31->unk_24 = 1;
-            if (var_r31->unk_30) {
-                fn_1_9040(object);
-                var_r31->unk_24 = 0;
-                var_r31->unk_30 = 0;
+        playerWork->specialInputReady = 0;
+        if (playerWork->worldPosition.y >= 30.000002f && playerWork->isGrounded) {
+            playerWork->specialInputReady = 1;
+            if (playerWork->actionRequested) {
+                UpdatePlayerEffects(object);
+                playerWork->specialInputReady = 0;
+                playerWork->actionRequested = 0;
             }
         }
     }
-    else if (var_r31->unk_18) {
-        fn_1_9F70(object, 2);
+    else if (playerWork->isGrounded) {
+        SetPlayerAnimation(object, 2);
     }
-    return var_r29;
+    return stateValue;
 }
 
-s32 fn_1_9C84(OMOBJ *object)
+s32 UpdatePlayerAnimation(OMOBJ *object)
 {
-    UnkM410Struct5 *var_r31;
-    s32 var_r29;
+    PlayerCharacterWork *playerWork;
+    s32 stateValue;
 
     object = object;
-    var_r31 = object->data;
-    var_r29 = 0;
-    if (!var_r31->unk_18) {
+    playerWork = object->data;
+    stateValue = 0;
+    if (!playerWork->isGrounded) {
         Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
     }
-    if (!var_r31->unk_20 && var_r31->unk_18 && !var_r31->unk_1C && var_r31->unk_30) {
-        fn_1_9E0C(object, 3);
-        var_r31->unk_30 = 0;
-        var_r31->unk_20 = 1;
-        var_r31->unk_36 = 0;
+    if (!playerWork->isStunned && playerWork->isGrounded && !playerWork->isJumping && playerWork->actionRequested) {
+        SetPlayerMotion(object, 3);
+        playerWork->actionRequested = 0;
+        playerWork->isStunned = 1;
+        playerWork->stateTimer = 0;
     }
-    else if (var_r31->unk_20) {
-        if (var_r31->unk_18) {
-            if (var_r31->unk_36 >= REFRESH_RATE_F * 0.3f) {
-                fn_1_9040(object);
+    else if (playerWork->isStunned) {
+        if (playerWork->isGrounded) {
+            if (playerWork->stateTimer >= REFRESH_RATE_F * 0.3f) {
+                UpdatePlayerEffects(object);
             }
         }
-        else if (var_r31->unk_36 >= REFRESH_RATE_F / 2 && fn_1_9EFC(object)) {
-            var_r31->unk_30 = 0;
-            var_r31->unk_2C = 0;
-            var_r31->unk_20 = 0;
-            var_r29 = 1;
+        else if (playerWork->stateTimer >= REFRESH_RATE_F / 2 && UpdatePlayerInput(object)) {
+            playerWork->actionRequested = 0;
+            playerWork->alternateActionReady = 0;
+            playerWork->isStunned = 0;
+            stateValue = 1;
         }
     }
-    return var_r29;
+    return stateValue;
 }
 
-void fn_1_9E0C(OMOBJ *object, u32 arg1)
+void SetPlayerMotion(OMOBJ *object, u32 motionId)
 {
-    float var_f31;
+    float motionValue;
 
-    UnkM410Struct5 *var_r31;
+    PlayerCharacterWork *playerWork;
 
-    var_r31 = object->data;
-    if ((var_r31->unk_0C != arg1) && (arg1 < 10)) {
-        var_f31 = lbl_1_data_1D4[arg1].unk_08;
-        if (var_r31->unk_0C < 0) {
-            var_f31 = 0.0f;
+    playerWork = object->data;
+    if ((playerWork->currentMotionId != motionId) && (motionId < 10)) {
+        motionValue = playerMotionTimings[motionId].motionDuration;
+        if (playerWork->currentMotionId < 0) {
+            motionValue = 0.0f;
         }
-        var_r31->unk_0C = arg1;
-        CharMotionShiftSet(var_r31->unk_00, object->mtnId[arg1], lbl_1_data_1D4[arg1].unk_00, var_f31, lbl_1_data_1D4[arg1].unk_0C);
-        CharMotionSpeedSet(var_r31->unk_00, 1.0f);
+        playerWork->currentMotionId = motionId;
+        CharMotionShiftSet(playerWork->characterModelId, object->mtnId[motionId], playerMotionTimings[motionId].blendInFrames, motionValue, playerMotionTimings[motionId].motionAttributes);
+        CharMotionSpeedSet(playerWork->characterModelId, 1.0f);
     }
 }
 
-s32 fn_1_9EFC(OMOBJ *object)
+s32 UpdatePlayerInput(OMOBJ *object)
 {
-    UnkM410Struct5 *var_r31;
-    s32 var_r30;
+    PlayerCharacterWork *playerWork;
+    s32 stateValue;
 
-    var_r31 = object->data;
-    var_r30 = 0;
-    if (CharMotionEndCheck(var_r31->unk_00) && (CharMotionShiftIDGet(var_r31->unk_00) < 0)) {
-        var_r30 = 1;
+    playerWork = object->data;
+    stateValue = 0;
+    if (CharMotionEndCheck(playerWork->characterModelId) && (CharMotionShiftIDGet(playerWork->characterModelId) < 0)) {
+        stateValue = 1;
     }
-    return var_r30;
+    return stateValue;
 }
 
-s32 fn_1_9F70(OMOBJ *object, u32 arg1)
+s32 SetPlayerAnimation(OMOBJ *object, u32 motionId)
 {
-    UnkM410Struct5 *var_r28;
-    s32 var_r27;
-    s32 var_r26;
+    PlayerCharacterWork *playerWork;
+    s32 stateValue;
+    s32 stateValue2;
 
-    var_r27 = 0;
-    var_r28 = object->data;
-    var_r26 = 0;
-    if (CharMotionEndCheck(var_r28->unk_00) && (CharMotionShiftIDGet(var_r28->unk_00) < 0)) {
-        var_r26 = 1;
+    stateValue = 0;
+    playerWork = object->data;
+    stateValue2 = 0;
+    if (CharMotionEndCheck(playerWork->characterModelId) && (CharMotionShiftIDGet(playerWork->characterModelId) < 0)) {
+        stateValue2 = 1;
     }
-    if (var_r26) {
-        fn_1_9E0C(object, arg1);
-        var_r27 = 1;
+    if (stateValue2) {
+        SetPlayerMotion(object, motionId);
+        stateValue = 1;
     }
-    return var_r27;
+    return stateValue;
 }
 
-void fn_1_A0A4(OMOBJ *object)
+void CreatePlayerManager(OMOBJ *object)
 {
 
-    UnkM410Struct9 *var_r31;
-    UnkM410Struct14 *var_r30;
-    s32 var_r28;
+    PlayerAnimationWork *animationWork;
+    PlayerRenderWork *renderWork;
+    s32 loopIndex;
 
-    float sp8[4][2] = { { 36.0f, 64.0f }, { 476.0f, 64.0f }, { 36.0f, 416.0f }, { 476.0f, 416.0f } };
+    float temporaryValue[4][2] = { { 36.0f, 64.0f }, { 476.0f, 64.0f }, { 36.0f, 416.0f }, { 476.0f, 416.0f } };
     object->stat |= 256;
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM410Struct14), HU_MEMNUM_OVL);
-    var_r30 = object->data;
-    memset(var_r30, 0, sizeof(UnkM410Struct14));
-    var_r30->unk_F80 = GXGetTexBufferSize(640, 480, GX_TF_RGB5A3, GX_FALSE, 0);
-    var_r30->unk_F84 = HuMemDirectMallocNum(HEAP_HEAP, var_r30->unk_F80, HU_MEMNUM_OVL);
-    DCFlushRange(var_r30->unk_F84, var_r30->unk_F80);
-    fn_1_A9A4(&var_r30->unk_120);
-    var_r31 = var_r30->unk_00;
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PlayerRenderWork), HU_MEMNUM_OVL);
+    renderWork = object->data;
+    memset(renderWork, 0, sizeof(PlayerRenderWork));
+    renderWork->framebufferSize = GXGetTexBufferSize(640, 480, GX_TF_RGB5A3, GX_FALSE, 0);
+    renderWork->framebufferBuffer = HuMemDirectMallocNum(HEAP_HEAP, renderWork->framebufferSize, HU_MEMNUM_OVL);
+    DCFlushRange(renderWork->framebufferBuffer, renderWork->framebufferSize);
+    BuildPlayerDisplayList(&renderWork->displayListWork);
+    animationWork = renderWork->animationWork;
 
-    for (var_r28 = 0; var_r28 < 4; var_r28++, var_r31++) {
-        var_r31->unk_0C = sp8[lbl_1_bss_60[var_r28]][0];
-        var_r31->unk_10 = sp8[lbl_1_bss_60[var_r28]][1];
-        var_r31->unk_2C[0] = var_r31->unk_2C[1] = 1.0f;
-        var_r31->unk_3C[0] = var_r31->unk_3C[1] = var_r31->unk_40 = var_r31->unk_42 = -1;
-        var_r31->unk_3C[0] = espEntry(6357043, 2, 0);
-        var_r31->unk_3C[1] = espEntry(6357043, 2, 0);
-        var_r31->unk_40 = espEntry(lbl_1_data_274[GWPlayerCfg[var_r28].character], 2, 0);
-        var_r31->unk_42 = espEntry(6357014, 3, 0);
-        espPosSet(var_r31->unk_42, 36.0f + var_r31->unk_0C, var_r31->unk_10);
-        var_r31->unk_44 = espEntry(6357015, 4, 0);
-        espPosSet(var_r31->unk_44, 36.0f + var_r31->unk_0C, var_r31->unk_10);
-        espColorSet(var_r31->unk_44, 0, 0, 0);
-        espTPLvlSet(var_r31->unk_44, 0.5);
-        espDispOff(var_r31->unk_3C[0]);
-        espDispOff(var_r31->unk_3C[1]);
-        espDispOff(var_r31->unk_40);
-        espDispOff(var_r31->unk_42);
-        espDispOff(var_r31->unk_44);
-        var_r31->unk_00 = 0;
+    for (loopIndex = 0; loopIndex < 4; loopIndex++, animationWork++) {
+        animationWork->scoreDisplayX = temporaryValue[playerOrderByRandomRank[loopIndex]][0];
+        animationWork->scoreDisplayY = temporaryValue[playerOrderByRandomRank[loopIndex]][1];
+        animationWork->digitScale[0] = animationWork->digitScale[1] = 1.0f;
+        animationWork->digitSpriteIds[0] = animationWork->digitSpriteIds[1] = animationWork->characterSpriteId = animationWork->scoreIconSpriteId = -1;
+        animationWork->digitSpriteIds[0] = espEntry(6357043, 2, 0);
+        animationWork->digitSpriteIds[1] = espEntry(6357043, 2, 0);
+        animationWork->characterSpriteId = espEntry(playerCharacterDataIds[GWPlayerCfg[loopIndex].character], 2, 0);
+        animationWork->scoreIconSpriteId = espEntry(6357014, 3, 0);
+        espPosSet(animationWork->scoreIconSpriteId, 36.0f + animationWork->scoreDisplayX, animationWork->scoreDisplayY);
+        animationWork->scoreLabelSpriteId = espEntry(6357015, 4, 0);
+        espPosSet(animationWork->scoreLabelSpriteId, 36.0f + animationWork->scoreDisplayX, animationWork->scoreDisplayY);
+        espColorSet(animationWork->scoreLabelSpriteId, 0, 0, 0);
+        espTPLvlSet(animationWork->scoreLabelSpriteId, 0.5);
+        espDispOff(animationWork->digitSpriteIds[0]);
+        espDispOff(animationWork->digitSpriteIds[1]);
+        espDispOff(animationWork->characterSpriteId);
+        espDispOff(animationWork->scoreIconSpriteId);
+        espDispOff(animationWork->scoreLabelSpriteId);
+        animationWork->scorePopupActive = 0;
     }
-    fn_1_77E8(fn_1_A828);
-    object->mdlId[0] = Hu3DHookFuncCreate(fn_1_B140);
+    SetGoalCallback(SetPlayerScore);
+    object->mdlId[0] = Hu3DHookFuncCreate(UpdatePlayerModelMaterial);
     Hu3DModelLayerSet(object->mdlId[0], 3);
     HuDataDirClose(DATADIR_MGCONST);
-    object->objFunc = fn_1_A3C0;
+    object->objFunc = UpdatePlayerManager;
 }
 
-void fn_1_A3C0(OMOBJ *object)
+void UpdatePlayerManager(OMOBJ *object)
 {
-    float var_f31;
+    float motionValue;
 
-    UnkM410Struct9 *var_r31;
-    UnkM410Struct8 *var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    UnkM410Struct14 *var_r27;
-    u32 var_r26;
-    s32 var_r25;
+    PlayerAnimationWork *animationWork;
+    PlayerModelWork *modelWork;
+    s32 loopIndex;
+    s32 loopIndex2;
+    PlayerRenderWork *renderWork;
+    u32 stateValue;
+    s32 stateValue2;
 
-    var_r27 = object->data;
-    var_r31 = var_r27->unk_00;
+    renderWork = object->data;
+    animationWork = renderWork->animationWork;
 
-    for (var_r29 = 0; var_r29 < 4; var_r29++, var_r31++) {
-        switch (var_r31->unk_14) {
+    for (loopIndex = 0; loopIndex < 4; loopIndex++, animationWork++) {
+        switch (animationWork->popupState) {
             case 0:
-                if (fn_1_281C() == 2) {
-                    var_r31->unk_14 = 1;
+                if (getMinigameSubstate() == 2) {
+                    animationWork->popupState = 1;
                 }
                 break;
             case 1:
-                var_r31->unk_18 = 0;
-                var_r31->unk_20 = var_r31->unk_08 % 10;
-                var_r31->unk_1C = (var_r31->unk_08 / 10) % 10;
-                espDispOn(var_r31->unk_3C[0]);
-                espDispOn(var_r31->unk_3C[1]);
-                espDispOn(var_r31->unk_40);
-                espDispOn(var_r31->unk_42);
-                espDispOn(var_r31->unk_44);
-                espBankSet(var_r31->unk_3C[0], var_r31->unk_1C);
-                espBankSet(var_r31->unk_3C[1], var_r31->unk_20);
-                espBankSet(var_r31->unk_40, var_r31->unk_24);
-                if (var_r31->unk_00) {
-                    var_r31->unk_2C[0] = var_r31->unk_2C[1] = 0.5f;
-                    var_r31->unk_14++;
+                animationWork->popupTimer = 0;
+                animationWork->onesDigit = animationWork->displayedScore % 10;
+                animationWork->tensDigit = (animationWork->displayedScore / 10) % 10;
+                espDispOn(animationWork->digitSpriteIds[0]);
+                espDispOn(animationWork->digitSpriteIds[1]);
+                espDispOn(animationWork->characterSpriteId);
+                espDispOn(animationWork->scoreIconSpriteId);
+                espDispOn(animationWork->scoreLabelSpriteId);
+                espBankSet(animationWork->digitSpriteIds[0], animationWork->tensDigit);
+                espBankSet(animationWork->digitSpriteIds[1], animationWork->onesDigit);
+                espBankSet(animationWork->characterSpriteId, animationWork->hundredsDigit);
+                if (animationWork->scorePopupActive) {
+                    animationWork->digitScale[0] = animationWork->digitScale[1] = 0.5f;
+                    animationWork->popupState++;
                 }
                 else {
-                    var_r31->unk_00 = 1;
-                    var_r31->unk_2C[0] = var_r31->unk_2C[1] = 1.0f;
-                    var_r31->unk_14 += 3;
+                    animationWork->scorePopupActive = 1;
+                    animationWork->digitScale[0] = animationWork->digitScale[1] = 1.0f;
+                    animationWork->popupState += 3;
                     break;
                 }
             case 2:
-                var_f31 = var_r31->unk_2C[0];
-                var_f31 += REFRESH_FREQ * 6;
-                if (var_f31 >= 1.5f) {
-                    var_r31->unk_14++;
+                motionValue = animationWork->digitScale[0];
+                motionValue += REFRESH_FREQ * 6;
+                if (motionValue >= 1.5f) {
+                    animationWork->popupState++;
                 }
-                var_r31->unk_2C[0] = var_r31->unk_2C[1] = var_f31;
+                animationWork->digitScale[0] = animationWork->digitScale[1] = motionValue;
                 break;
             case 3:
-                var_f31 = var_r31->unk_2C[0];
-                var_f31 -= REFRESH_FREQ * 6;
-                if (var_f31 <= 1.0f) {
-                    var_f31 = 1.0f;
-                    var_r31->unk_14 = var_r31->unk_14 + 1;
+                motionValue = animationWork->digitScale[0];
+                motionValue -= REFRESH_FREQ * 6;
+                if (motionValue <= 1.0f) {
+                    motionValue = 1.0f;
+                    animationWork->popupState = animationWork->popupState + 1;
                 }
-                var_r31->unk_2C[0] = var_r31->unk_2C[1] = var_f31;
+                animationWork->digitScale[0] = animationWork->digitScale[1] = motionValue;
                 break;
         }
-        var_r31->unk_18++;
+        animationWork->popupTimer++;
 
-        for (var_r28 = 0; var_r28 < 2; var_r28++) {
-            espPosSet(var_r31->unk_3C[var_r28], 34.0f + var_r31->unk_0C + (21.0f * var_r28), 2.0f + var_r31->unk_10);
-            espScaleSet(var_r31->unk_3C[var_r28], var_r31->unk_2C[var_r28], var_r31->unk_2C[var_r28]);
+        for (loopIndex2 = 0; loopIndex2 < 2; loopIndex2++) {
+            espPosSet(animationWork->digitSpriteIds[loopIndex2], 34.0f + animationWork->scoreDisplayX + (21.0f * loopIndex2), 2.0f + animationWork->scoreDisplayY);
+            espScaleSet(animationWork->digitSpriteIds[loopIndex2], animationWork->digitScale[loopIndex2], animationWork->digitScale[loopIndex2]);
         }
-        espPosSet(var_r31->unk_40, var_r31->unk_0C, var_r31->unk_10 - 2.0f);
+        espPosSet(animationWork->characterSpriteId, animationWork->scoreDisplayX, animationWork->scoreDisplayY - 2.0f);
     }
-    var_r30 = var_r27->unk_120.unk_00;
+    modelWork = renderWork->displayListWork.modelWork;
 
-    for (var_r29 = 0; var_r29 < 16; var_r29++, var_r30++) {
-        if (var_r30->unk_00) {
-            var_r30->unk_00++;
-            if (var_r30->unk_00 < REFRESH_RATE_F / 5) {
-                var_r30->unk_04 += 3.5f * REFRESH_FREQ;
+    for (loopIndex = 0; loopIndex < 16; loopIndex++, modelWork++) {
+        if (modelWork->isActive) {
+            modelWork->isActive++;
+            if (modelWork->isActive < REFRESH_RATE_F / 5) {
+                modelWork->modelScale += 3.5f * REFRESH_FREQ;
             }
             else {
-                var_r30->unk_04 += 1.5f * REFRESH_FREQ;
-                var_r30->unk_0C -= 3.0f * REFRESH_FREQ;
+                modelWork->modelScale += 1.5f * REFRESH_FREQ;
+                modelWork->modelOpacity -= 3.0f * REFRESH_FREQ;
             }
-            if (var_r30->unk_0C < 0.0f) {
-                var_r30->unk_00 = 0;
+            if (modelWork->modelOpacity < 0.0f) {
+                modelWork->isActive = 0;
             }
         }
     }
-    if (fn_1_281C() == 3) {
-        var_r25 = 0;
-        var_r31 = var_r27->unk_00;
-        var_r26 = 0;
+    if (getMinigameSubstate() == 3) {
+        stateValue2 = 0;
+        animationWork = renderWork->animationWork;
+        stateValue = 0;
 
-        for (var_r29 = 0; var_r29 < 4; var_r29++, var_r31++) {
-            if (var_r31->unk_04 > var_r26) {
-                var_r26 = var_r31->unk_04;
+        for (loopIndex = 0; loopIndex < 4; loopIndex++, animationWork++) {
+            if (animationWork->scoreDelta > stateValue) {
+                stateValue = animationWork->scoreDelta;
             }
         }
-        if (var_r26) {
-            var_r31 = var_r27->unk_00;
+        if (stateValue) {
+            animationWork = renderWork->animationWork;
 
-            for (var_r29 = 0; var_r29 < 4; var_r29++, var_r31++) {
-                if (var_r31->unk_04 >= var_r26) {
-                    var_r25 |= 1 << var_r29;
+            for (loopIndex = 0; loopIndex < 4; loopIndex++, animationWork++) {
+                if (animationWork->scoreDelta >= stateValue) {
+                    stateValue2 |= 1 << loopIndex;
                 }
             }
         }
-        fn_1_284C(var_r25);
+        SetMinigameFlags(stateValue2);
     }
 }
 
-void fn_1_A828(u16 arg0, u16 arg1, u16 arg2)
+void SetPlayerScore(u16 playerIndex, u16 playerIndex2, u16 playerIndex3)
 {
-    UnkM410Struct8 *var_r31;
-    UnkM410Struct9 *var_r30;
-    s32 var_r29;
-    UnkM410Struct14 *var_r27;
+    PlayerModelWork *modelWork;
+    PlayerAnimationWork *animationWork;
+    s32 loopIndex;
+    PlayerRenderWork *renderWork;
 
-    var_r27 = lbl_1_bss_74->data;
-    if (fn_1_281C() == 2 || fn_1_281C() == 3) {
-        var_r30 = var_r27->unk_00;
-        var_r30[arg0].unk_04 += arg1;
-        var_r30[arg0].unk_08 += arg1;
-        var_r30[arg0].unk_14 = 1;
+    renderWork = playerManagerObject->data;
+    if (getMinigameSubstate() == 2 || getMinigameSubstate() == 3) {
+        animationWork = renderWork->animationWork;
+        animationWork[playerIndex].scoreDelta += playerIndex2;
+        animationWork[playerIndex].displayedScore += playerIndex2;
+        animationWork[playerIndex].popupState = 1;
 
-        var_r31 = var_r27->unk_120.unk_00;
+        modelWork = renderWork->displayListWork.modelWork;
 
-        for (var_r29 = 0; var_r29 < 16; var_r29++, var_r31++) {
-            if (!var_r31->unk_00) {
+        for (loopIndex = 0; loopIndex < 16; loopIndex++, modelWork++) {
+            if (!modelWork->isActive) {
                 break;
             }
         }
-        if (var_r29 < 16) {
-            var_r31->unk_00 = 1;
-            var_r31->unk_02 = GWPlayerCfg[arg0].character;
-            var_r31->unk_0C = 1.0f;
-            var_r31->unk_04 = 0.25f;
-            var_r31->unk_08 = frandmod(360);
-            fn_1_77F8(arg2, &var_r31->unk_10);
-            var_r31->unk_10.y -= 30.000002f;
+        if (loopIndex < 16) {
+            modelWork->isActive = 1;
+            modelWork->characterId = GWPlayerCfg[playerIndex].character;
+            modelWork->modelOpacity = 1.0f;
+            modelWork->modelScale = 0.25f;
+            modelWork->modelRotation = frandmod(360);
+            GetPlayerPosition(playerIndex3, &modelWork->modelPosition);
+            modelWork->modelPosition.y -= 30.000002f;
         }
     }
 }
 
-void fn_1_A9A4(UnkM410Struct13 *arg0)
+void BuildPlayerDisplayList(PlayerDisplayListWork *displayListWork)
 {
-    float sp88[32][2];
-    float sp8[32];
+    float temporaryValue[32][2];
+    float temporaryValue2[32];
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
+    float motionValue4;
 
-    s32 var_r31;
-    UnkM410Struct12 *var_r29;
-    UnkM410Struct11 *var_r28;
+    s32 loopIndex;
+    PlayerMotionParameterWork *motionWork;
+    PlayerMotionWork *motionWork2;
 
-    var_f31 = 0.0f;
-    for (var_r31 = 0; var_r31 < 32; var_r31++) {
-        var_f28 = 1.0f + (0.001f * frandmod(1000));
-        sp8[var_r31] = var_f28;
-        var_f31 += var_f28;
-        sp88[var_r31][1] = 80.0f * var_f28;
-        sp88[var_r31][0] = 10.0f + (0.02f * frandmod(1000));
+    motionValue = 0.0f;
+    for (loopIndex = 0; loopIndex < 32; loopIndex++) {
+        motionValue4 = 1.0f + (0.001f * frandmod(1000));
+        temporaryValue2[loopIndex] = motionValue4;
+        motionValue += motionValue4;
+        temporaryValue[loopIndex][1] = 80.0f * motionValue4;
+        temporaryValue[loopIndex][0] = 10.0f + (0.02f * frandmod(1000));
     }
-    var_f31 = 360.0f / var_f31;
-    for (var_r31 = 0; var_r31 < 32; var_r31++) {
-        sp8[var_r31] *= var_f31;
+    motionValue = 360.0f / motionValue;
+    for (loopIndex = 0; loopIndex < 32; loopIndex++) {
+        temporaryValue2[loopIndex] *= motionValue;
     }
-    var_f31 = frandmod(90);
-    var_r28 = arg0->unk_1C0;
-    var_r29 = arg0->unk_940;
-    for (var_r31 = 0; var_r31 < 32; var_r28++, var_r29++, var_r31++) {
-        var_f29 = -cosd(var_f31);
-        var_f30 = sind(var_f31);
-        var_r28->unk_24 = var_f29 * sp88[var_r31][0];
-        var_r28->unk_28 = var_f30 * sp88[var_r31][0];
-        var_r28->unk_0C = var_f29 * (sp88[var_r31][0] + sp88[var_r31][1]);
-        var_r28->unk_10 = var_f30 * (sp88[var_r31][0] + sp88[var_r31][1]);
-        var_r28->unk_00 = var_f29 * (sp88[var_r31][0] + (0.85f * sp88[var_r31][1]));
-        var_r28->unk_04 = var_f30 * (sp88[var_r31][0] + (0.85f * sp88[var_r31][1]));
-        var_r29->unk_00 = -0.3f * -var_f29;
-        var_r29->unk_04 = -0.3f * var_f30;
-        var_f29 = -cosd(var_f31 - (0.4f * sp8[var_r31]));
-        var_f30 = sind(var_f31 - (0.4f * (&sp8[0])[var_r31]));
-        var_r28->unk_30 = var_f29 * (sp88[var_r31][0] + (0.7f * sp88[var_r31][1]));
-        var_r28->unk_34 = var_f30 * (sp88[var_r31][0] + (0.7f * sp88[var_r31][1]));
-        var_f29 = -cosd(var_f31 + (0.4f * sp8[var_r31]));
-        var_f30 = sind(var_f31 + (0.4f * sp8[var_r31]));
-        var_r28->unk_18 = var_f29 * (sp88[var_r31][0] + (0.7f * sp88[var_r31][1]));
-        var_r28->unk_1C = var_f30 * (sp88[var_r31][0] + (0.7f * sp88[var_r31][1]));
-        var_r29->unk_08 = var_r29->unk_0C = var_r29->unk_10 = var_r29->unk_14 = 0.0f;
-        var_r29->unk_18 = var_r29->unk_1C = var_r29->unk_20 = var_r29->unk_24 = 0.0f;
-        var_f31 += sp8[var_r31];
+    motionValue = frandmod(90);
+    motionWork2 = displayListWork->particleVertexPositions;
+    motionWork = displayListWork->particleVertexTextureCoordinates;
+    for (loopIndex = 0; loopIndex < 32; motionWork2++, motionWork++, loopIndex++) {
+        motionValue3 = -cosd(motionValue);
+        motionValue2 = sind(motionValue);
+        motionWork2->vertex5X = motionValue3 * temporaryValue[loopIndex][0];
+        motionWork2->vertex5Z = motionValue2 * temporaryValue[loopIndex][0];
+        motionWork2->vertex1X = motionValue3 * (temporaryValue[loopIndex][0] + temporaryValue[loopIndex][1]);
+        motionWork2->vertex1Z = motionValue2 * (temporaryValue[loopIndex][0] + temporaryValue[loopIndex][1]);
+        motionWork2->vertex0X = motionValue3 * (temporaryValue[loopIndex][0] + (0.85f * temporaryValue[loopIndex][1]));
+        motionWork2->vertex0Z = motionValue2 * (temporaryValue[loopIndex][0] + (0.85f * temporaryValue[loopIndex][1]));
+        motionWork->radialOffsetX = -0.3f * -motionValue3;
+        motionWork->radialOffsetZ = -0.3f * motionValue2;
+        motionValue3 = -cosd(motionValue - (0.4f * temporaryValue2[loopIndex]));
+        motionValue2 = sind(motionValue - (0.4f * (&temporaryValue2[0])[loopIndex]));
+        motionWork2->vertex7X = motionValue3 * (temporaryValue[loopIndex][0] + (0.7f * temporaryValue[loopIndex][1]));
+        motionWork2->vertex7Z = motionValue2 * (temporaryValue[loopIndex][0] + (0.7f * temporaryValue[loopIndex][1]));
+        motionValue3 = -cosd(motionValue + (0.4f * temporaryValue2[loopIndex]));
+        motionValue2 = sind(motionValue + (0.4f * temporaryValue2[loopIndex]));
+        motionWork2->vertex3X = motionValue3 * (temporaryValue[loopIndex][0] + (0.7f * temporaryValue[loopIndex][1]));
+        motionWork2->vertex3Z = motionValue2 * (temporaryValue[loopIndex][0] + (0.7f * temporaryValue[loopIndex][1]));
+        motionWork->reservedParameter08 = motionWork->reservedParameter0c = motionWork->reservedParameter10 = motionWork->reservedParameter14 = 0.0f;
+        motionWork->reservedParameter18 = motionWork->reservedParameter1c = motionWork->reservedParameter20 = motionWork->reservedParameter24 = 0.0f;
+        motionValue += temporaryValue2[loopIndex];
     }
 
-    for (var_r31 = 0; var_r31 < 5; var_r31++) {
-        arg0->unk_E40[var_r31].r = arg0->unk_E40[var_r31].g = arg0->unk_E40[var_r31].b = 255;
-        arg0->unk_E40[var_r31].a = 255;
+    for (loopIndex = 0; loopIndex < 5; loopIndex++) {
+        displayListWork->particleVertexColors[loopIndex].r = displayListWork->particleVertexColors[loopIndex].g = displayListWork->particleVertexColors[loopIndex].b = 255;
+        displayListWork->particleVertexColors[loopIndex].a = 255;
     }
-    arg0->unk_E54 = 0x6C0;
-    arg0->unk_E5C = HuMemDirectMallocNum(HEAP_HEAP, arg0->unk_E54, HU_MEMNUM_OVL);
-    DCFlushRange(arg0->unk_E5C, arg0->unk_E54);
-    GXBeginDisplayList(arg0->unk_E5C, arg0->unk_E54);
+    displayListWork->displayListSize = 0x6C0;
+    displayListWork->displayListBuffer = HuMemDirectMallocNum(HEAP_HEAP, displayListWork->displayListSize, HU_MEMNUM_OVL);
+    DCFlushRange(displayListWork->displayListBuffer, displayListWork->displayListSize);
+    GXBeginDisplayList(displayListWork->displayListBuffer, displayListWork->displayListSize);
 
-    for (var_r31 = 0; var_r31 < 32; var_r31++) {
+    for (loopIndex = 0; loopIndex < 32; loopIndex++) {
         GXBegin(GX_TRIANGLEFAN, GX_VTXFMT0, 6);
 
-        GXPosition1x16(var_r31 * 5);
+        GXPosition1x16(loopIndex * 5);
         GXColor1x16(0);
-        GXTexCoord1x16(var_r31 * 5);
+        GXTexCoord1x16(loopIndex * 5);
 
-        GXPosition1x16(var_r31 * 5 + 1);
+        GXPosition1x16(loopIndex * 5 + 1);
         GXColor1x16(1);
-        GXTexCoord1x16(var_r31 * 5 + 1);
+        GXTexCoord1x16(loopIndex * 5 + 1);
 
-        GXPosition1x16(var_r31 * 5 + 2);
+        GXPosition1x16(loopIndex * 5 + 2);
         GXColor1x16(2);
-        GXTexCoord1x16(var_r31 * 5 + 2);
+        GXTexCoord1x16(loopIndex * 5 + 2);
 
-        GXPosition1x16(var_r31 * 5 + 3);
+        GXPosition1x16(loopIndex * 5 + 3);
         GXColor1x16(3);
-        GXTexCoord1x16(var_r31 * 5 + 3);
+        GXTexCoord1x16(loopIndex * 5 + 3);
 
-        GXPosition1x16(var_r31 * 5 + 4);
+        GXPosition1x16(loopIndex * 5 + 4);
         GXColor1x16(4);
-        GXTexCoord1x16(var_r31 * 5 + 4);
+        GXTexCoord1x16(loopIndex * 5 + 4);
 
-        GXPosition1x16(var_r31 * 5 + 1);
+        GXPosition1x16(loopIndex * 5 + 1);
         GXColor1x16(1);
-        GXTexCoord1x16(var_r31 * 5 + 1);
+        GXTexCoord1x16(loopIndex * 5 + 1);
     }
-    arg0->unk_E58 = GXEndDisplayList();
-    DCStoreRange(arg0, sizeof(UnkM410Struct13));
+    displayListWork->displayListLength = GXEndDisplayList();
+    DCStoreRange(displayListWork, sizeof(PlayerDisplayListWork));
 }
 
-void fn_1_B140(HU3DMODEL *arg0, Mtx arg1)
+void UpdatePlayerModelMaterial(HU3DMODEL *model, Mtx transform)
 {
-    Mtx sp124;
-    Mtx spF4;
-    Mtx spC4;
-    Mtx sp94;
-    Mtx sp64;
-    Mtx sp34;
-    GXTexObj sp14;
+    Mtx temporaryTransform;
+    Mtx temporaryTransform2;
+    Mtx temporaryTransform3;
+    Mtx temporaryTransform4;
+    Mtx temporaryTransform5;
+    Mtx temporaryTransform6;
+    GXTexObj temporaryValue;
 
-    UnkM410Struct8 *var_r31;
-    UnkM410Struct14 *var_r30;
-    s32 var_r29;
+    PlayerModelWork *modelWork;
+    PlayerRenderWork *renderWork;
+    s32 loopIndex;
 
-    var_r30 = lbl_1_bss_74->data;
+    renderWork = playerManagerObject->data;
     {
-        GXColor sp10 = { 204, 204, 204, 204 };
+        GXColor temporaryValue = { 204, 204, 204, 204 };
         GXSetTexCopySrc(0, 0, 640, 480);
         GXSetTexCopyDst(640, 480, GX_TF_RGB5A3, GX_FALSE);
-        GXCopyTex(var_r30->unk_F84, GX_FALSE);
+        GXCopyTex(renderWork->framebufferBuffer, GX_FALSE);
         GXPixModeSync();
-        DCStoreRange(&sp10, 4);
+        DCStoreRange(&temporaryValue, 4);
 
-        DCStoreRange(&lbl_1_data_294, 32);
-        MTXTrans(spF4, -400.0f, 400.0f, -700.0f);
-        MTXConcat(Hu3DCameraMtx, spF4, sp64);
-        GXLoadPosMtxImm(sp64, 0);
+        DCStoreRange(&playerDisplayColors, 32);
+        MTXTrans(temporaryTransform2, -400.0f, 400.0f, -700.0f);
+        MTXConcat(Hu3DCameraMtx, temporaryTransform2, temporaryTransform5);
+        GXLoadPosMtxImm(temporaryTransform5, 0);
         GXSetNumChans(1);
         GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_VTX, 0, GX_DF_CLAMP, GX_AF_NONE);
-        GXInitTexObj(&sp14, var_r30->unk_F84, 640, 480, 5, GX_CLAMP, GX_CLAMP, GX_FALSE);
-        GXInitTexObjLOD(&sp14, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
-        GXLoadTexObj(&sp14, GX_TEXMAP0);
-        HuSprTexLoad(lbl_1_bss_70, 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
+        GXInitTexObj(&temporaryValue, renderWork->framebufferBuffer, 640, 480, 5, GX_CLAMP, GX_CLAMP, GX_FALSE);
+        GXInitTexObjLOD(&temporaryValue, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
+        GXLoadTexObj(&temporaryValue, GX_TEXMAP0);
+        HuSprTexLoad(playerSpriteAnimation, 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
         GXSetNumTexGens(2);
-        C_MTXLightPerspective(sp94, 41.5f, 1.2f, 0.5555555f, -0.5f, 0.5555555f, 0.5f);
-        MTXConcat(sp94, Hu3DCameraMtx, sp94);
-        MTXInverse(Hu3DCameraMtx, sp34);
-        MTXConcat(sp34, sp64, sp124);
-        MTXConcat(sp94, sp124, spF4);
-        GXLoadTexMtxImm(spF4, 30, GX_MTX3x4);
+        C_MTXLightPerspective(temporaryTransform4, 41.5f, 1.2f, 0.5555555f, -0.5f, 0.5555555f, 0.5f);
+        MTXConcat(temporaryTransform4, Hu3DCameraMtx, temporaryTransform4);
+        MTXInverse(Hu3DCameraMtx, temporaryTransform6);
+        MTXConcat(temporaryTransform6, temporaryTransform5, temporaryTransform);
+        MTXConcat(temporaryTransform4, temporaryTransform, temporaryTransform2);
+        GXLoadTexMtxImm(temporaryTransform2, 30, GX_MTX3x4);
         GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX3x4, GX_TG_POS, 30, GX_FALSE, 125);
         GXSetTexCoordGen2(GX_TEXCOORD1, GX_TG_MTX2x4, GX_TG_TEXCOORD0, 33, GX_FALSE, 125);
         GXSetNumIndStages(1);
         GXSetIndTexOrder(GX_INDTEXSTAGE0, GX_TEXCOORD1, GX_TEXMAP1);
         GXSetIndTexCoordScale(GX_INDTEXSTAGE0, GX_ITS_1, GX_ITS_1);
         GXSetTevIndWarp(GX_TEVSTAGE0, GX_INDTEXSTAGE0, GX_TRUE, GX_FALSE, GX_ITM_0);
-        MTXScale(spF4, -0.5f, -0.5f, 0.5f);
-        GXSetIndTexMtx(GX_ITM_0, (float(*)[3])spF4, -1);
+        MTXScale(temporaryTransform2, -0.5f, -0.5f, 0.5f);
+        GXSetIndTexMtx(GX_ITM_0, (float(*)[3])temporaryTransform2, -1);
         GXSetNumTevStages(1);
-        GXSetTevColor(GX_TEVREG1, sp10);
+        GXSetTevColor(GX_TEVREG1, temporaryValue);
         GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
         GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_C1, GX_CC_C0);
         GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
@@ -1142,28 +1142,28 @@ void fn_1_B140(HU3DMODEL *arg0, Mtx arg1)
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
         GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-        GXSetArray(GX_VA_POS, var_r30->unk_120.unk_1C0, 12);
-        GXSetArray(GX_VA_CLR0, var_r30->unk_120.unk_E40, 4);
-        GXSetArray(GX_VA_TEX0, var_r30->unk_120.unk_940, 8);
-        var_r31 = var_r30->unk_120.unk_00;
+        GXSetArray(GX_VA_POS, renderWork->displayListWork.particleVertexPositions, 12);
+        GXSetArray(GX_VA_CLR0, renderWork->displayListWork.particleVertexColors, 4);
+        GXSetArray(GX_VA_TEX0, renderWork->displayListWork.particleVertexTextureCoordinates, 8);
+        modelWork = renderWork->displayListWork.modelWork;
 
-        for (var_r29 = 0; var_r29 < 16; var_r29++, var_r31++) {
-            if (var_r31->unk_00) {
-                lbl_1_data_294[var_r31->unk_02].a = 255.0f * var_r31->unk_0C;
-                GXSetTevColor(GX_TEVREG0, lbl_1_data_294[var_r31->unk_02]);
-                MTXTrans(spF4, var_r31->unk_10.x, var_r31->unk_10.y, var_r31->unk_10.z);
-                MTXRotRad(sp124, 90, 0.017453292f * var_r31->unk_08);
-                MTXConcat(spF4, sp124, spF4);
-                MTXScale(spC4, var_r31->unk_04, var_r31->unk_04, var_r31->unk_04);
-                MTXConcat(spF4, spC4, spF4);
-                MTXConcat(Hu3DCameraMtx, spF4, sp64);
-                GXLoadPosMtxImm(sp64, 0);
-                MTXConcat(sp34, sp64, sp124);
-                MTXConcat(sp94, sp124, spF4);
-                GXLoadTexMtxImm(spF4, 30, GX_MTX3x4);
-                MTXRotRad(sp124, 90, 0.017453292f * -var_r31->unk_08);
-                GXLoadTexMtxImm(sp124, 33, GX_MTX2x4);
-                GXCallDisplayList(var_r30->unk_120.unk_E5C, var_r30->unk_120.unk_E58);
+        for (loopIndex = 0; loopIndex < 16; loopIndex++, modelWork++) {
+            if (modelWork->isActive) {
+                playerDisplayColors[modelWork->characterId].a = 255.0f * modelWork->modelOpacity;
+                GXSetTevColor(GX_TEVREG0, playerDisplayColors[modelWork->characterId]);
+                MTXTrans(temporaryTransform2, modelWork->modelPosition.x, modelWork->modelPosition.y, modelWork->modelPosition.z);
+                MTXRotRad(temporaryTransform, 90, 0.017453292f * modelWork->modelRotation);
+                MTXConcat(temporaryTransform2, temporaryTransform, temporaryTransform2);
+                MTXScale(temporaryTransform3, modelWork->modelScale, modelWork->modelScale, modelWork->modelScale);
+                MTXConcat(temporaryTransform2, temporaryTransform3, temporaryTransform2);
+                MTXConcat(Hu3DCameraMtx, temporaryTransform2, temporaryTransform5);
+                GXLoadPosMtxImm(temporaryTransform5, 0);
+                MTXConcat(temporaryTransform6, temporaryTransform5, temporaryTransform);
+                MTXConcat(temporaryTransform4, temporaryTransform, temporaryTransform2);
+                GXLoadTexMtxImm(temporaryTransform2, 30, GX_MTX3x4);
+                MTXRotRad(temporaryTransform, 90, 0.017453292f * -modelWork->modelRotation);
+                GXLoadTexMtxImm(temporaryTransform, 33, GX_MTX2x4);
+                GXCallDisplayList(renderWork->displayListWork.displayListBuffer, renderWork->displayListWork.displayListLength);
             }
         }
         GXSetNumIndStages(0);

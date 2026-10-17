@@ -10,97 +10,97 @@
 #include "version.h"
 #include <string.h>
 
-typedef void (*lbl_1_bss_44_type)(u16, u16, u16);
+typedef void (*GoalCallback)(u16, u16, u16);
 
-OMOBJ *lbl_1_bss_5C;
-OMOBJ *lbl_1_bss_58;
-OMOBJ *lbl_1_bss_54;
-float lbl_1_bss_50;
-float lbl_1_bss_4C;
-float lbl_1_bss_48;
-lbl_1_bss_44_type lbl_1_bss_44;
-HUPROCESS *lbl_1_bss_40;
-s32 lbl_1_bss_3C;
-s32 lbl_1_bss_38;
-s32 lbl_1_bss_34;
-s32 lbl_1_bss_30;
+OMOBJ *gameObject;
+OMOBJ *playerSphereObject;
+OMOBJ *goalObject;
+float currentGoalMotion;
+float targetGoalMotion;
+float goalMotionStep;
+GoalCallback goalCallback;
+HUPROCESS *gameObjectManager;
+s32 goalActivationTimer;
+s32 goalParticleModelId;
+s32 goalSoundEffectId;
+s32 jointSearchSucceeded;
 
-s16 lbl_1_data_D8 = 15 * REFRESH_RATE;
-s32 lbl_1_data_DC[]
+s16 goalAnimationTimer = 15 * REFRESH_RATE;
+s32 characterModelDataIds[]
     = { DATA_MAKE_NUM(DATADIR_M410, 0), DATA_MAKE_NUM(DATADIR_M410, 1), DATA_MAKE_NUM(DATADIR_M410, 2), DATA_MAKE_NUM(DATADIR_M410, 3),
           DATA_MAKE_NUM(DATADIR_M410, 4), DATA_MAKE_NUM(DATADIR_M410, 5), DATA_MAKE_NUM(DATADIR_M410, 6), DATA_MAKE_NUM(DATADIR_M410, 7) };
 
-void fn_1_34C0(OMOBJ *object);
-void fn_1_3614(OMOBJ *object);
-void fn_1_3BE0(s16 arg0);
-float fn_1_48D8(UnkM410Struct2 *arg0, u8 *arg1);
-float fn_1_4C04(Vec arg0, Vec arg1, float arg8, Vec arg2, Vec arg3, float arg9);
-float fn_1_4FEC(Vec arg0, Vec arg1, float arg8, Vec arg2, Vec arg3, float arg9, float argA);
-float fn_1_55C8(Vec arg0, Vec arg1, float arg8, Vec arg2, float arg9);
-s32 fn_1_598C(Vec *arg0, Vec *arg1, float arg8, Vec *arg2, Vec *arg3, float arg9, float argA);
-void fn_1_5AF4(UnkM410Struct2 *arg0, u8 arg1);
-void fn_1_5CA0(Vec arg0, Vec arg1, Vec arg2, Vec *arg3, Vec *arg4);
-void fn_1_61DC(UnkM410Struct2 *arg0, UnkM410Struct2 *arg1);
-void fn_1_6364(UnkM410Struct2 *arg0, UnkM410Struct2 *arg1);
-void fn_1_66B8(UnkM410Struct2 *arg0, UnkM410Struct2 *arg1);
-void fn_1_67D4(OMOBJ *object);
-void fn_1_6968(OMOBJ *object);
-void fn_1_6D84(OMOBJ *object);
-void fn_1_6DB4(OMOBJ *object);
-void fn_1_7138(OMOBJ *object);
-void fn_1_7464(OMOBJ *object);
-void fn_1_7494(void);
-void fn_1_7520(Vec *arg0);
-void fn_1_75A0(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
+void CreatePlayerModels(OMOBJ *object);
+void UpdatePlayerModels(OMOBJ *object);
+void UpdatePlayerModelLayer(s16 layer);
+float CalculateBoundaryCollisionTime(PlayerPhysicsWork *physicsWork, u8 *collisionAxisOut);
+float CalculateSphereCollisionTime(Vec startPosition, Vec velocity, float movingRadius, Vec targetPosition, Vec targetVelocity, float targetRadius);
+float CalculateVerticalSphereCollisionTime(Vec startPosition, Vec velocity, float movingRadius, Vec targetPosition, Vec targetVelocity, float targetRadius, float verticalRadius);
+float CalculateHorizontalSphereCollisionTime(Vec startPosition, Vec velocity, float movingRadius, Vec targetPosition, float targetRadius);
+s32 TestSweptSphereCollision(Vec *startPosition, Vec *startVelocity, float movingRadius, Vec *endPosition, Vec *endVelocity, float targetRadius, float targetVerticalRadius);
+void ReflectVelocityAtBoundary(PlayerPhysicsWork *physicsWork, u8 collisionAxes);
+void CalculateSphereCollisionResponse(Vec position, Vec velocity, Vec targetPosition, Vec *responseVelocityOut, Vec *responsePositionOut);
+void ResolvePlayerCollisions(PlayerPhysicsWork *firstPlayer, PlayerPhysicsWork *secondPlayer);
+void ResolvePlayerCollisionVariant(PlayerPhysicsWork *firstPlayer, PlayerPhysicsWork *secondPlayer);
+void ResolveGoalCollision(PlayerPhysicsWork *playerWork, PlayerPhysicsWork *goalWork);
+void CreatePlayerModelManager(OMOBJ *object);
+void UpdatePlayerModelManager(OMOBJ *object);
+void HidePlayerModels(OMOBJ *object);
+void CreateGoalObject(OMOBJ *object);
+void UpdateGoalObject(OMOBJ *object);
+void HideGoalObject(OMOBJ *object);
+void CreateGoalParticleEffect(void);
+void SetGoalParticlePosition(Vec *position);
+void UpdateGoalParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 
-void fn_1_33A8(HUPROCESS *objman)
+void InitializeGameObjects(HUPROCESS *objman)
 {
-    lbl_1_bss_5C = omAddObjEx(objman, 3, 3, 0, -1, fn_1_34C0);
-    lbl_1_bss_54 = omAddObjEx(objman, 5, 54, 3, -1, fn_1_6DB4);
-    lbl_1_bss_58 = omAddObjEx(objman, 7, 60, 0, -1, fn_1_67D4);
-    lbl_1_bss_44 = NULL;
-    lbl_1_bss_40 = objman;
-    lbl_1_bss_3C = 5 * REFRESH_RATE;
-    fn_1_7494();
+    gameObject = omAddObjEx(objman, 3, 3, 0, -1, CreatePlayerModels);
+    goalObject = omAddObjEx(objman, 5, 54, 3, -1, CreateGoalObject);
+    playerSphereObject = omAddObjEx(objman, 7, 60, 0, -1, CreatePlayerModelManager);
+    goalCallback = NULL;
+    gameObjectManager = objman;
+    goalActivationTimer = 5 * REFRESH_RATE;
+    CreateGoalParticleEffect();
 }
 
-void fn_1_3484(void)
+void SetGameObjectsHidden(void)
 {
-    fn_1_6D84(lbl_1_bss_58);
-    fn_1_7464(lbl_1_bss_54);
+    HidePlayerModels(playerSphereObject);
+    HideGoalObject(goalObject);
 }
 
-void fn_1_34C0(OMOBJ *object)
+void CreatePlayerModels(OMOBJ *object)
 {
-    s32 var_r30;
+    s32 loopIndex;
 
     object->stat |= 0x100;
-    for (var_r30 = 0; var_r30 < 3; var_r30++) {
-        if (!var_r30) {
-            object->mdlId[var_r30] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M410, 12));
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        if (!loopIndex) {
+            object->mdlId[loopIndex] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M410, 12));
         }
         else {
-            object->mdlId[var_r30] = Hu3DModelLink(*object->mdlId);
+            object->mdlId[loopIndex] = Hu3DModelLink(*object->mdlId);
         }
-        Hu3DModelPosSet(object->mdlId[var_r30], 0.0f, 140.0f + (140.0f * var_r30), -790.0f);
+        Hu3DModelPosSet(object->mdlId[loopIndex], 0.0f, 140.0f + (140.0f * loopIndex), -790.0f);
     }
-    object->objFunc = fn_1_3614;
-    Hu3DLayerHookSet(7, fn_1_3BE0);
-    lbl_1_bss_50 = lbl_1_bss_4C = lbl_1_bss_48 = 0.0f;
+    object->objFunc = UpdatePlayerModels;
+    Hu3DLayerHookSet(7, UpdatePlayerModelLayer);
+    currentGoalMotion = targetGoalMotion = goalMotionStep = 0.0f;
 }
 
-void fn_1_3614(OMOBJ *object)
+void UpdatePlayerModels(OMOBJ *object)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    HU3DMODEL *var_r30;
-    s32 var_r29;
-    s16 var_r28;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
+    HU3DMODEL *model;
+    s32 loopIndex;
+    s16 stateValue;
 
     switch (object->work[0]) {
         case 0:
-            if (fn_1_2804() == 1) {
+            if (getMinigamePhase() == 1) {
                 object->work[0]++;
 #if VERSION_PAL
                 object->work[1] = 213;
@@ -113,329 +113,329 @@ void fn_1_3614(OMOBJ *object)
             if (!--object->work[1]) {
                 object->work[0]++;
                 object->work[1] = REFRESH_RATE * 3 / 2;
-                lbl_1_bss_50 = 0.0f;
+                currentGoalMotion = 0.0f;
 #if VERSION_PAL
-                lbl_1_bss_4C = -12.0f;
-                lbl_1_bss_48 = 2.4f;
+                targetGoalMotion = -12.0f;
+                goalMotionStep = 2.4f;
 #else
-                lbl_1_bss_4C = -10.000001f;
-                lbl_1_bss_48 = 2.0000002f;
+                targetGoalMotion = -10.000001f;
+                goalMotionStep = 2.0000002f;
 #endif
-                lbl_1_bss_34 = HuAudFXPlay(1381);
+                goalSoundEffectId = HuAudFXPlay(1381);
             }
             break;
         case 2:
             if (!--object->work[1]) {
                 object->work[0]++;
-                lbl_1_bss_4C = 0.0f;
+                targetGoalMotion = 0.0f;
 #if VERSION_PAL
-                lbl_1_bss_48 = 0.576f;
+                goalMotionStep = 0.576f;
 #else
-                lbl_1_bss_48 = 0.40000007f;
+                goalMotionStep = 0.40000007f;
 #endif
             }
             break;
         case 3:
-            if (fn_1_281C() == 2) {
+            if (getMinigameSubstate() == 2) {
                 object->work[0]++;
 #if VERSION_PAL
-                lbl_1_bss_4C = -2.4f;
-                lbl_1_bss_48 = 0.072f;
+                targetGoalMotion = -2.4f;
+                goalMotionStep = 0.072f;
 #else
-                lbl_1_bss_4C = -2.0000002f;
-                lbl_1_bss_48 = 0.05000001f;
+                targetGoalMotion = -2.0000002f;
+                goalMotionStep = 0.05000001f;
 #endif
             }
             break;
     }
-    if (fn_1_281C() == 2) {
-        if (!--lbl_1_data_D8) {
-            lbl_1_bss_4C = -lbl_1_bss_4C;
-            lbl_1_data_D8 = 15 * REFRESH_RATE;
+    if (getMinigameSubstate() == 2) {
+        if (!--goalAnimationTimer) {
+            targetGoalMotion = -targetGoalMotion;
+            goalAnimationTimer = 15 * REFRESH_RATE;
         }
     }
-    else if (fn_1_281C() > 2) {
-        lbl_1_bss_4C = 0.0f;
+    else if (getMinigameSubstate() > 2) {
+        targetGoalMotion = 0.0f;
     }
-    if (lbl_1_bss_50 != lbl_1_bss_4C) {
-        if (lbl_1_bss_50 < lbl_1_bss_4C) {
-            lbl_1_bss_50 += lbl_1_bss_48;
-            if (lbl_1_bss_50 > lbl_1_bss_4C) {
-                lbl_1_bss_50 = lbl_1_bss_4C;
+    if (currentGoalMotion != targetGoalMotion) {
+        if (currentGoalMotion < targetGoalMotion) {
+            currentGoalMotion += goalMotionStep;
+            if (currentGoalMotion > targetGoalMotion) {
+                currentGoalMotion = targetGoalMotion;
             }
         }
         else {
-            lbl_1_bss_50 -= lbl_1_bss_48;
-            if (lbl_1_bss_50 < lbl_1_bss_4C) {
-                lbl_1_bss_50 = lbl_1_bss_4C;
+            currentGoalMotion -= goalMotionStep;
+            if (currentGoalMotion < targetGoalMotion) {
+                currentGoalMotion = targetGoalMotion;
             }
         }
     }
-    if (lbl_1_bss_34 >= 0) {
-        var_r28 = 512.0 * fabs(lbl_1_bss_50);
-        if (var_r28 > 127) {
-            var_r28 = 127;
+    if (goalSoundEffectId >= 0) {
+        stateValue = 512.0 * fabs(currentGoalMotion);
+        if (stateValue > 127) {
+            stateValue = 127;
         }
-        HuAudFXVolSet(lbl_1_bss_34, var_r28);
-        var_f31 = (0.5 * (16384.0 * fabs(lbl_1_bss_50))) - 8191.0;
-        if (var_f31 < -8191.0f) {
-            var_f31 = -8191.0f;
+        HuAudFXVolSet(goalSoundEffectId, stateValue);
+        motionValue = (0.5 * (16384.0 * fabs(currentGoalMotion))) - 8191.0;
+        if (motionValue < -8191.0f) {
+            motionValue = -8191.0f;
         }
-        else if (var_f31 > 8191.0f) {
-            var_f31 = 8191.0f;
+        else if (motionValue > 8191.0f) {
+            motionValue = 8191.0f;
         }
-        HuAudFXPitchSet(lbl_1_bss_34, var_f31);
+        HuAudFXPitchSet(goalSoundEffectId, motionValue);
     }
 
-    for (var_r29 = 0; var_r29 < 3; var_r29++) {
-        var_r30 = &Hu3DData[object->mdlId[var_r29]];
-        if (var_r29 & 1) {
-            var_f29 = lbl_1_bss_50;
+    for (loopIndex = 0; loopIndex < 3; loopIndex++) {
+        model = &Hu3DData[object->mdlId[loopIndex]];
+        if (loopIndex & 1) {
+            motionValue3 = currentGoalMotion;
         }
         else {
-            var_f29 = -lbl_1_bss_50;
+            motionValue3 = -currentGoalMotion;
         }
-        var_f30 = var_f29;
-        var_r30->pos.x += var_f30;
-        if (var_f30 < 0.0) {
-            if (var_r30->pos.x <= -40.0f) {
-                var_r30->pos.x += 40.0f;
+        motionValue2 = motionValue3;
+        model->pos.x += motionValue2;
+        if (motionValue2 < 0.0) {
+            if (model->pos.x <= -40.0f) {
+                model->pos.x += 40.0f;
             }
         }
         else {
-            if (var_r30->pos.x >= 40.0f) {
-                var_r30->pos.x -= 40.0f;
+            if (model->pos.x >= 40.0f) {
+                model->pos.x -= 40.0f;
             }
         }
     }
 }
 
-void fn_1_3BE0(s16 arg0) // what happens with the argument?
+void UpdatePlayerModelLayer(s16 playerIndex) // what happens with the argument?
 {
-    UnkM410Struct4 sp1B0[128]; // TODO get size right
-    UnkM410Struct2 *spC0[60]; // TODO get size right
-    Vec spB4;
-    Vec spA8;
+    PlayerCollisionWork collisionWork[128]; // TODO get size right
+    PlayerPhysicsWork *physicsWork[60]; // TODO get size right
+    Vec temporaryPosition;
+    Vec temporaryPosition2;
 
-    u8 sp8;
+    u8 temporaryValue;
 
-    f32 var_f31;
-    f32 var_f30;
-    f32 var_f29;
+    f32 motionValue;
+    f32 motionValue2;
+    f32 motionValue3;
 
-    UnkM410Struct2 *var_r31;
-    UnkM410Struct2 *var_r30;
-    s32 var_r29;
-    UnkM410Struct2 *var_r28;
-    u8 var_r27;
-    s32 var_r26;
-    s32 var_r25;
-    s32 var_r24;
-    OMOBJ *var_r23;
-    OMOBJ **var_r22;
+    PlayerPhysicsWork *physicsWork2;
+    PlayerPhysicsWork *physicsWork3;
+    s32 loopIndex;
+    PlayerPhysicsWork *physicsWork4;
+    u8 loopIndex2;
+    s32 loopIndex3;
+    s32 loopIndex4;
+    s32 stateValue;
+    OMOBJ *object;
+    OMOBJ **groupMembers;
 
-    var_r24 = 0;
+    stateValue = 0;
     if (omPauseChk()) {
 
         return;
     }
 
-    for (var_r25 = 0, var_r31 = lbl_1_bss_58->data, var_r29 = 0; var_r29 < 60; var_r29++, var_r31++) {
-        if (var_r31->unk_00_field0) {
-            spC0[var_r25++] = var_r31;
-            var_r31->unk_10 = var_r31->unk_04;
+    for (loopIndex4 = 0, physicsWork2 = playerSphereObject->data, loopIndex = 0; loopIndex < 60; loopIndex++, physicsWork2++) {
+        if (physicsWork2->isActive) {
+            physicsWork[loopIndex4++] = physicsWork2;
+            physicsWork2->previousPosition = physicsWork2->position;
         }
     }
-    for (var_r29 = 0; var_r29 < var_r25; var_r29++) {
-        var_r31 = spC0[var_r29];
-        var_r31->unk_00_field5 = 0;
-        var_r31->unk_40 = 0;
-        var_r31->unk_3C = 0;
+    for (loopIndex = 0; loopIndex < loopIndex4; loopIndex++) {
+        physicsWork2 = physicsWork[loopIndex];
+        physicsWork2->collisionUpdatePending = 0;
+        physicsWork2->collisionPartner = 0;
+        physicsWork2->linkTimer = 0;
     }
-    for (var_r31 = lbl_1_bss_54->data, var_r29 = 0; var_r29 < 18; var_r29++, var_r31++) {
-        var_r31->unk_40 = 0;
-        var_r31->unk_10 = var_r31->unk_04;
+    for (physicsWork2 = goalObject->data, loopIndex = 0; loopIndex < 18; loopIndex++, physicsWork2++) {
+        physicsWork2->collisionPartner = 0;
+        physicsWork2->previousPosition = physicsWork2->position;
     }
-    var_f30 = 1.0f;
+    motionValue2 = 1.0f;
     do {
-        for (var_r27 = 0, var_f29 = var_f30, var_r29 = 0; var_r29 < var_r25; var_r29++) {
-            var_r30 = spC0[var_r29];
-            if (var_r30->unk_00_field5) {
+        for (loopIndex2 = 0, motionValue3 = motionValue2, loopIndex = 0; loopIndex < loopIndex4; loopIndex++) {
+            physicsWork3 = physicsWork[loopIndex];
+            if (physicsWork3->collisionUpdatePending) {
                 continue;
             }
-            if (var_r30->unk_3C >= 8) {
-                var_r30->unk_1C.x = var_r30->unk_1C.y = var_r30->unk_1C.z = 0.0f;
+            if (physicsWork3->linkTimer >= 8) {
+                physicsWork3->velocity.x = physicsWork3->velocity.y = physicsWork3->velocity.z = 0.0f;
                 continue;
             }
-            var_r30->unk_00_field5 = 1;
-            if (!var_r30->unk_00_field1) {
-                var_f31 = fn_1_48D8(var_r30, &sp8);
-                if (var_f31 >= 0.0f && var_f31 < var_f30) {
-                    var_r30->unk_00_field5 = 0;
-                    if (var_f31 <= var_f29) {
-                        if (var_f31 < var_f29) {
-                            var_r27 = 0;
+            physicsWork3->collisionUpdatePending = 1;
+            if (!physicsWork3->isConnectedToGoal) {
+                motionValue = CalculateBoundaryCollisionTime(physicsWork3, &temporaryValue);
+                if (motionValue >= 0.0f && motionValue < motionValue2) {
+                    physicsWork3->collisionUpdatePending = 0;
+                    if (motionValue <= motionValue3) {
+                        if (motionValue < motionValue3) {
+                            loopIndex2 = 0;
                         }
-                        sp1B0[var_r27].unk_00 = 0;
-                        sp1B0[var_r27].unk_08 = var_r30;
-                        sp1B0[var_r27].unk_04 = sp8;
-                        var_r27++;
-                        var_f29 = var_f31;
-                        if (!var_r30->unk_00_field3 && (sp8 & 2) && var_r30->unk_1C.y < 0.0f) {
-                            var_r30->unk_00_field3 = 1;
-                            var_r30->unk_36 = 4 * REFRESH_RATE;
+                        collisionWork[loopIndex2].collisionType = 0;
+                        collisionWork[loopIndex2].firstPhysicsWork = physicsWork3;
+                        collisionWork[loopIndex2].collisionAxes = temporaryValue;
+                        loopIndex2++;
+                        motionValue3 = motionValue;
+                        if (!physicsWork3->isVerticalCollisionState && (temporaryValue & 2) && physicsWork3->velocity.y < 0.0f) {
+                            physicsWork3->isVerticalCollisionState = 1;
+                            physicsWork3->stateTimer = 4 * REFRESH_RATE;
                         }
                     }
                 }
             }
 
-            for (var_r26 = 0; var_r26 < var_r25; var_r26++) {
-                var_r28 = spC0[var_r26];
-                if (var_r30 != var_r28 && (var_r30->unk_40 != var_r28 || var_r28->unk_40 != var_r30)
-                    && !(var_r30->unk_00_field3 ^ var_r28->unk_00_field3)) {
-                    var_f31 = fn_1_4C04(var_r30->unk_04, var_r30->unk_1C, var_r30->unk_28, var_r28->unk_04, var_r28->unk_1C, var_r28->unk_28);
-                    if (var_f31 >= 0.0f && var_f31 < var_f30) {
-                        var_r30->unk_00_field5 = 0;
-                        if (var_f31 <= var_f29) {
-                            if (var_f31 < var_f29) {
-                                var_r27 = 0;
+            for (loopIndex3 = 0; loopIndex3 < loopIndex4; loopIndex3++) {
+                physicsWork4 = physicsWork[loopIndex3];
+                if (physicsWork3 != physicsWork4 && (physicsWork3->collisionPartner != physicsWork4 || physicsWork4->collisionPartner != physicsWork3)
+                    && !(physicsWork3->isVerticalCollisionState ^ physicsWork4->isVerticalCollisionState)) {
+                    motionValue = CalculateSphereCollisionTime(physicsWork3->position, physicsWork3->velocity, physicsWork3->collisionRadius, physicsWork4->position, physicsWork4->velocity, physicsWork4->collisionRadius);
+                    if (motionValue >= 0.0f && motionValue < motionValue2) {
+                        physicsWork3->collisionUpdatePending = 0;
+                        if (motionValue <= motionValue3) {
+                            if (motionValue < motionValue3) {
+                                loopIndex2 = 0;
                             }
-                            sp1B0[var_r27].unk_00 = 1;
-                            sp1B0[var_r27].unk_08 = var_r30;
-                            sp1B0[var_r27].unk_0C_unk = var_r28;
-                            var_r27++;
-                            var_f29 = var_f31;
+                            collisionWork[loopIndex2].collisionType = 1;
+                            collisionWork[loopIndex2].firstPhysicsWork = physicsWork3;
+                            collisionWork[loopIndex2].secondPhysicsWork = physicsWork4;
+                            loopIndex2++;
+                            motionValue3 = motionValue;
                         }
                     }
                 }
             }
-            var_r22 = omGetGroupMemberListEx(lbl_1_bss_40, 0);
-            for (var_r26 = 0; var_r26 < 4; var_r26++) {
-                var_r23 = var_r22[var_r26];
-                if (var_r30->unk_40 != var_r23 && var_r30->unk_00_field3) {
-                    var_f31 = fn_1_55C8(var_r30->unk_04, var_r30->unk_1C, var_r30->unk_28, var_r23->trans, 30.000002f);
-                    if (var_f31 >= 0.0f && var_f31 < var_f30) {
-                        var_r30->unk_00_field5 = 0;
-                        if (var_f31 <= var_f29) {
-                            if (var_f31 < var_f29) {
-                                var_r27 = 0;
+            groupMembers = omGetGroupMemberListEx(gameObjectManager, 0);
+            for (loopIndex3 = 0; loopIndex3 < 4; loopIndex3++) {
+                object = groupMembers[loopIndex3];
+                if (physicsWork3->collisionPartner != object && physicsWork3->isVerticalCollisionState) {
+                    motionValue = CalculateHorizontalSphereCollisionTime(physicsWork3->position, physicsWork3->velocity, physicsWork3->collisionRadius, object->trans, 30.000002f);
+                    if (motionValue >= 0.0f && motionValue < motionValue2) {
+                        physicsWork3->collisionUpdatePending = 0;
+                        if (motionValue <= motionValue3) {
+                            if (motionValue < motionValue3) {
+                                loopIndex2 = 0;
                             }
-                            sp1B0[var_r27].unk_00 = 2;
-                            sp1B0[var_r27].unk_08 = var_r30;
-                            sp1B0[var_r27].unk_0C_obj = var_r23;
-                            var_r27++;
-                            var_f29 = var_f31;
+                            collisionWork[loopIndex2].collisionType = 2;
+                            collisionWork[loopIndex2].firstPhysicsWork = physicsWork3;
+                            collisionWork[loopIndex2].collidingObject = object;
+                            loopIndex2++;
+                            motionValue3 = motionValue;
                         }
                     }
                 }
             }
-            if (!var_r30->unk_00_field3) {
-                var_r28 = lbl_1_bss_54->data;
+            if (!physicsWork3->isVerticalCollisionState) {
+                physicsWork4 = goalObject->data;
 
-                for (var_r26 = 0; var_r26 < 18; var_r26++, var_r28++) {
-                    if (var_r30->unk_40 != var_r28 || var_r28->unk_40 != var_r30) {
-                        var_f31 = fn_1_4FEC(
-                            var_r30->unk_04, var_r30->unk_1C, var_r30->unk_28, var_r28->unk_04, var_r28->unk_1C, var_r28->unk_28, var_r28->unk_2C);
-                        if (var_f31 >= 0.0f && var_f31 < var_f30) {
-                            var_r30->unk_00_field5 = 0;
-                            if (var_f31 <= var_f29) {
-                                if (var_f31 < var_f29) {
-                                    var_r27 = 0;
+                for (loopIndex3 = 0; loopIndex3 < 18; loopIndex3++, physicsWork4++) {
+                    if (physicsWork3->collisionPartner != physicsWork4 || physicsWork4->collisionPartner != physicsWork3) {
+                        motionValue = CalculateVerticalSphereCollisionTime(
+                            physicsWork3->position, physicsWork3->velocity, physicsWork3->collisionRadius, physicsWork4->position, physicsWork4->velocity, physicsWork4->collisionRadius, physicsWork4->collisionHeight);
+                        if (motionValue >= 0.0f && motionValue < motionValue2) {
+                            physicsWork3->collisionUpdatePending = 0;
+                            if (motionValue <= motionValue3) {
+                                if (motionValue < motionValue3) {
+                                    loopIndex2 = 0;
                                 }
-                                sp1B0[var_r27].unk_00 = 3;
-                                sp1B0[var_r27].unk_08 = var_r30;
-                                sp1B0[var_r27].unk_0C_unk = var_r28;
-                                var_r27++;
-                                var_f29 = var_f31;
+                                collisionWork[loopIndex2].collisionType = 3;
+                                collisionWork[loopIndex2].firstPhysicsWork = physicsWork3;
+                                collisionWork[loopIndex2].secondPhysicsWork = physicsWork4;
+                                loopIndex2++;
+                                motionValue3 = motionValue;
                             }
                         }
                     }
                 }
             }
         }
-        if (!var_r27) {
+        if (!loopIndex2) {
             break;
         }
-        for (var_r29 = 0; var_r29 < var_r25; var_r29++) {
-            var_r31 = spC0[var_r29];
-            var_r31->unk_04.x += var_r31->unk_1C.x * var_f29 * var_f30;
-            var_r31->unk_04.y += var_r31->unk_1C.y * var_f29 * var_f30;
-            var_r31->unk_04.z += var_r31->unk_1C.z * var_f29 * var_f30;
+        for (loopIndex = 0; loopIndex < loopIndex4; loopIndex++) {
+            physicsWork2 = physicsWork[loopIndex];
+            physicsWork2->position.x += physicsWork2->velocity.x * motionValue3 * motionValue2;
+            physicsWork2->position.y += physicsWork2->velocity.y * motionValue3 * motionValue2;
+            physicsWork2->position.z += physicsWork2->velocity.z * motionValue3 * motionValue2;
         }
-        var_r31 = lbl_1_bss_54->data;
+        physicsWork2 = goalObject->data;
 
-        for (var_r29 = 0; var_r29 < 18; var_r29++, var_r31++) {
-            var_r31->unk_04.x += var_r31->unk_1C.x * var_f29 * var_f30;
-            var_r31->unk_04.y += var_r31->unk_1C.y * var_f29 * var_f30;
-            var_r31->unk_04.z += var_r31->unk_1C.z * var_f29 * var_f30;
+        for (loopIndex = 0; loopIndex < 18; loopIndex++, physicsWork2++) {
+            physicsWork2->position.x += physicsWork2->velocity.x * motionValue3 * motionValue2;
+            physicsWork2->position.y += physicsWork2->velocity.y * motionValue3 * motionValue2;
+            physicsWork2->position.z += physicsWork2->velocity.z * motionValue3 * motionValue2;
         }
-        for (var_r29 = 0; var_r29 < var_r27; var_r29++) {
-            switch (sp1B0[var_r29].unk_00) {
+        for (loopIndex = 0; loopIndex < loopIndex2; loopIndex++) {
+            switch (collisionWork[loopIndex].collisionType) {
                 case 0:
-                    fn_1_5AF4(sp1B0[var_r29].unk_08, sp1B0[var_r29].unk_04);
-                    sp1B0[var_r29].unk_08->unk_40 = NULL;
-                    sp1B0[var_r29].unk_08->unk_3C++;
+                    ReflectVelocityAtBoundary(collisionWork[loopIndex].firstPhysicsWork, collisionWork[loopIndex].collisionAxes);
+                    collisionWork[loopIndex].firstPhysicsWork->collisionPartner = NULL;
+                    collisionWork[loopIndex].firstPhysicsWork->linkTimer++;
                     break;
                 case 1:
-                    fn_1_61DC(sp1B0[var_r29].unk_08, sp1B0[var_r29].unk_0C_unk);
-                    sp1B0[var_r29].unk_08->unk_40 = sp1B0[var_r29].unk_0C_unk;
-                    sp1B0[var_r29].unk_0C_unk->unk_40 = sp1B0[var_r29].unk_08;
-                    sp1B0[var_r29].unk_08->unk_3C++;
-                    sp1B0[var_r29].unk_0C_unk->unk_3C++;
+                    ResolvePlayerCollisions(collisionWork[loopIndex].firstPhysicsWork, collisionWork[loopIndex].secondPhysicsWork);
+                    collisionWork[loopIndex].firstPhysicsWork->collisionPartner = collisionWork[loopIndex].secondPhysicsWork;
+                    collisionWork[loopIndex].secondPhysicsWork->collisionPartner = collisionWork[loopIndex].firstPhysicsWork;
+                    collisionWork[loopIndex].firstPhysicsWork->linkTimer++;
+                    collisionWork[loopIndex].secondPhysicsWork->linkTimer++;
                     break;
                 case 2:
-                    fn_1_66B8(sp1B0[var_r29].unk_08, sp1B0[var_r29].unk_0C_unk);
-                    sp1B0[var_r29].unk_08->unk_40 = sp1B0[var_r29].unk_0C_unk;
-                    sp1B0[var_r29].unk_08->unk_3C++;
+                    ResolveGoalCollision(collisionWork[loopIndex].firstPhysicsWork, collisionWork[loopIndex].secondPhysicsWork);
+                    collisionWork[loopIndex].firstPhysicsWork->collisionPartner = collisionWork[loopIndex].secondPhysicsWork;
+                    collisionWork[loopIndex].firstPhysicsWork->linkTimer++;
                     break;
                 case 3:
-                    fn_1_6364(sp1B0[var_r29].unk_08, sp1B0[var_r29].unk_0C_unk);
-                    sp1B0[var_r29].unk_08->unk_40 = sp1B0[var_r29].unk_0C_unk;
-                    sp1B0[var_r29].unk_0C_unk->unk_40 = sp1B0[var_r29].unk_08;
-                    sp1B0[var_r29].unk_08->unk_3C++;
-                    sp1B0[var_r29].unk_08->unk_44 = 2;
-                    if (VECMag(&sp1B0[var_r29].unk_08->unk_1C) > 10.0f) {
+                    ResolvePlayerCollisionVariant(collisionWork[loopIndex].firstPhysicsWork, collisionWork[loopIndex].secondPhysicsWork);
+                    collisionWork[loopIndex].firstPhysicsWork->collisionPartner = collisionWork[loopIndex].secondPhysicsWork;
+                    collisionWork[loopIndex].secondPhysicsWork->collisionPartner = collisionWork[loopIndex].firstPhysicsWork;
+                    collisionWork[loopIndex].firstPhysicsWork->linkTimer++;
+                    collisionWork[loopIndex].firstPhysicsWork->collisionCooldown = 2;
+                    if (VECMag(&collisionWork[loopIndex].firstPhysicsWork->velocity) > 10.0f) {
                         HuAudFXPlay(1377);
                     }
                     break;
             }
         }
-        var_f30 *= 1.0f - var_f29;
-        var_r24++;
-    } while (var_r24 < 100);
-    (void)var_r24;
+        motionValue2 *= 1.0f - motionValue3;
+        stateValue++;
+    } while (stateValue < 100);
+    (void)stateValue;
 
-    for (var_r29 = 0; var_r29 < var_r25; var_r29++) {
-        var_r31 = spC0[var_r29];
-        var_r31->unk_04.x += var_r31->unk_1C.x * var_f30;
-        var_r31->unk_04.y += var_r31->unk_1C.y * var_f30;
-        var_r31->unk_04.z += var_r31->unk_1C.z * var_f30;
+    for (loopIndex = 0; loopIndex < loopIndex4; loopIndex++) {
+        physicsWork2 = physicsWork[loopIndex];
+        physicsWork2->position.x += physicsWork2->velocity.x * motionValue2;
+        physicsWork2->position.y += physicsWork2->velocity.y * motionValue2;
+        physicsWork2->position.z += physicsWork2->velocity.z * motionValue2;
     }
-    var_r31 = lbl_1_bss_54->data;
+    physicsWork2 = goalObject->data;
 
-    for (var_r29 = 0; var_r29 < 18; var_r29++, var_r31++) {
-        var_r31->unk_04.x += var_r31->unk_1C.x * var_f30;
-        var_r31->unk_04.y += var_r31->unk_1C.y * var_f30;
-        var_r31->unk_04.z += var_r31->unk_1C.z * var_f30;
+    for (loopIndex = 0; loopIndex < 18; loopIndex++, physicsWork2++) {
+        physicsWork2->position.x += physicsWork2->velocity.x * motionValue2;
+        physicsWork2->position.y += physicsWork2->velocity.y * motionValue2;
+        physicsWork2->position.z += physicsWork2->velocity.z * motionValue2;
     }
-    for (var_r29 = 0; var_r29 < var_r25; var_r29++) {
-        var_r30 = spC0[var_r29];
-        VECSubtract(&var_r30->unk_04, &var_r30->unk_10, &spB4);
-        var_r28 = lbl_1_bss_54->data;
+    for (loopIndex = 0; loopIndex < loopIndex4; loopIndex++) {
+        physicsWork3 = physicsWork[loopIndex];
+        VECSubtract(&physicsWork3->position, &physicsWork3->previousPosition, &temporaryPosition);
+        physicsWork4 = goalObject->data;
 
-        for (var_r26 = 0; var_r26 < 18; var_r26++, var_r28++) {
-            VECSubtract(&var_r28->unk_04, &var_r28->unk_10, &spA8);
-            if (fn_1_598C(&var_r30->unk_10, &spB4, var_r30->unk_28, &var_r28->unk_10, &spA8, var_r28->unk_28, var_r28->unk_2C)
-                && !var_r30->unk_00_field1 && var_r28->unk_38 == NULL) {
-                var_r30->unk_00_field1 = 1;
-                var_r30->unk_38 = var_r28;
-                var_r30->unk_36 = REFRESH_RATE / 6;
-                var_r28->unk_00_field4 = 1;
-                var_r28->unk_38 = var_r30;
-                if (lbl_1_bss_44 != NULL) {
-                    lbl_1_bss_44(var_r30->unk_34, (var_r28->unk_34 & 1) + 1, var_r28->unk_32);
-                    if (fn_1_281C() == 2) {
-                        omVibrate(var_r30->unk_34, 12, 6, 6);
+        for (loopIndex3 = 0; loopIndex3 < 18; loopIndex3++, physicsWork4++) {
+            VECSubtract(&physicsWork4->position, &physicsWork4->previousPosition, &temporaryPosition2);
+            if (TestSweptSphereCollision(&physicsWork3->previousPosition, &temporaryPosition, physicsWork3->collisionRadius, &physicsWork4->previousPosition, &temporaryPosition2, physicsWork4->collisionRadius, physicsWork4->collisionHeight)
+                && !physicsWork3->isConnectedToGoal && physicsWork4->linkedPhysicsWork == NULL) {
+                physicsWork3->isConnectedToGoal = 1;
+                physicsWork3->linkedPhysicsWork = physicsWork4;
+                physicsWork3->stateTimer = REFRESH_RATE / 6;
+                physicsWork4->goalCollisionPending = 1;
+                physicsWork4->linkedPhysicsWork = physicsWork3;
+                if (goalCallback != NULL) {
+                    goalCallback(physicsWork3->playerIndex, (physicsWork4->playerIndex & 1) + 1, physicsWork4->sphereIndex);
+                    if (getMinigameSubstate() == 2) {
+                        omVibrate(physicsWork3->playerIndex, 12, 6, 6);
                         HuAudFXPlay(9);
                         HuAudFXPlay(1378);
                     }
@@ -445,219 +445,219 @@ void fn_1_3BE0(s16 arg0) // what happens with the argument?
     }
 }
 
-float fn_1_48D8(UnkM410Struct2 *arg0, u8 *arg1)
+float CalculateBoundaryCollisionTime(PlayerPhysicsWork *physicsWork, u8 *collisionAxisOut)
 {
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
 
-    var_f30 = 1.0f;
-    if (0.0f == arg0->unk_1C.x && 0.0f == arg0->unk_1C.y && 0.0f == arg0->unk_1C.z) {
+    motionValue2 = 1.0f;
+    if (0.0f == physicsWork->velocity.x && 0.0f == physicsWork->velocity.y && 0.0f == physicsWork->velocity.z) {
         return -1.0f;
     }
-    *arg1 = 0;
-    if (0.0f != arg0->unk_1C.x) {
-        if (arg0->unk_1C.x < 0.0f) {
-            var_f29 = (-500.0f - arg0->unk_04.x + arg0->unk_28) / arg0->unk_1C.x;
+    *collisionAxisOut = 0;
+    if (0.0f != physicsWork->velocity.x) {
+        if (physicsWork->velocity.x < 0.0f) {
+            motionValue3 = (-500.0f - physicsWork->position.x + physicsWork->collisionRadius) / physicsWork->velocity.x;
         }
         else {
-            var_f29 = (500.0f - arg0->unk_04.x - arg0->unk_28) / arg0->unk_1C.x;
+            motionValue3 = (500.0f - physicsWork->position.x - physicsWork->collisionRadius) / physicsWork->velocity.x;
         }
-        var_f31 = var_f29;
-        if (var_f31 < 0.0f) {
-            var_f31 = 0.0f;
+        motionValue = motionValue3;
+        if (motionValue < 0.0f) {
+            motionValue = 0.0f;
         }
-        if (var_f31 >= 0.0f && var_f31 < 1.0f && var_f31 < var_f30) {
-            *arg1 = 1;
-            var_f30 = var_f31;
-        }
-    }
-    if (arg0->unk_1C.y < 0.0f) {
-        var_f31 = (-arg0->unk_04.y + arg0->unk_28) / arg0->unk_1C.y;
-        if (var_f31 < 0.0f) {
-            var_f31 = 0.0f;
-        }
-        if (var_f31 >= 0.0f && var_f31 < 1.0f) {
-            if (var_f31 == var_f30) {
-                *arg1 |= 2;
-            }
-            else if (var_f31 < var_f30) {
-                var_f30 = var_f31;
-                *arg1 = 2;
-            }
+        if (motionValue >= 0.0f && motionValue < 1.0f && motionValue < motionValue2) {
+            *collisionAxisOut = 1;
+            motionValue2 = motionValue;
         }
     }
-    if (arg0->unk_1C.z < 0.0f) {
-        var_f31 = (-800.0f - arg0->unk_04.z + arg0->unk_28) / arg0->unk_1C.z;
-        if (var_f31 < 0.0f) {
-            var_f31 = 0.0f;
+    if (physicsWork->velocity.y < 0.0f) {
+        motionValue = (-physicsWork->position.y + physicsWork->collisionRadius) / physicsWork->velocity.y;
+        if (motionValue < 0.0f) {
+            motionValue = 0.0f;
         }
-        if (var_f31 >= 0.0f && var_f31 < 1.0f) {
-            if (var_f31 == var_f30) {
-                *arg1 |= 4;
+        if (motionValue >= 0.0f && motionValue < 1.0f) {
+            if (motionValue == motionValue2) {
+                *collisionAxisOut |= 2;
             }
-            else if (var_f31 < var_f30) {
-                *arg1 = 4;
-                var_f30 = var_f31;
+            else if (motionValue < motionValue2) {
+                motionValue2 = motionValue;
+                *collisionAxisOut = 2;
             }
         }
     }
-    if (var_f30 >= 0.0f && var_f30 < 1.0f) {
-        return var_f30;
+    if (physicsWork->velocity.z < 0.0f) {
+        motionValue = (-800.0f - physicsWork->position.z + physicsWork->collisionRadius) / physicsWork->velocity.z;
+        if (motionValue < 0.0f) {
+            motionValue = 0.0f;
+        }
+        if (motionValue >= 0.0f && motionValue < 1.0f) {
+            if (motionValue == motionValue2) {
+                *collisionAxisOut |= 4;
+            }
+            else if (motionValue < motionValue2) {
+                *collisionAxisOut = 4;
+                motionValue2 = motionValue;
+            }
+        }
+    }
+    if (motionValue >= 0.0f && motionValue < 1.0f) {
+        return motionValue;
     }
     return -1.0f;
 }
 
-float fn_1_4C04(Vec arg0, Vec arg1, float arg8, Vec arg2, Vec arg3, float arg9)
+float CalculateSphereCollisionTime(Vec firstPosition, Vec firstVelocity, float angleStep, Vec secondPosition, Vec secondVelocity, float height)
 {
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
-    float var_f22;
-    float var_f21;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
+    float motionValue4;
+    float motionValue5;
+    float motionValue6;
+    float motionValue7;
 
-    VECSubtract(&arg2, &arg0, &arg2);
-    VECSubtract(&arg3, &arg1, &arg3);
-    if (VECMag(&arg2) > arg9 + (arg8 + VECMag(&arg3))) {
+    VECSubtract(&secondPosition, &firstPosition, &secondPosition);
+    VECSubtract(&secondVelocity, &firstVelocity, &secondVelocity);
+    if (VECMag(&secondPosition) > height + (angleStep + VECMag(&secondVelocity))) {
         return -1.0f;
     }
-    var_f22 = (arg8 + arg9) * (arg8 + arg9);
-    var_f28 = arg3.z * arg3.z + (arg3.x * arg3.x + (arg3.y * arg3.y));
-    var_f27 = 2.0f * (arg3.z * arg2.z + (arg3.x * arg2.x + arg3.y * arg2.y));
-    var_f21 = (arg2.z * arg2.z + (arg2.x * arg2.x + arg2.y * arg2.y)) - var_f22;
-    if (0.0f == var_f28) {
+    motionValue6 = (angleStep + height) * (angleStep + height);
+    motionValue3 = secondVelocity.z * secondVelocity.z + (secondVelocity.x * secondVelocity.x + (secondVelocity.y * secondVelocity.y));
+    motionValue4 = 2.0f * (secondVelocity.z * secondPosition.z + (secondVelocity.x * secondPosition.x + secondVelocity.y * secondPosition.y));
+    motionValue7 = (secondPosition.z * secondPosition.z + (secondPosition.x * secondPosition.x + secondPosition.y * secondPosition.y)) - motionValue6;
+    if (0.0f == motionValue3) {
         return -1.0f;
     }
-    var_f30 = var_f27 * var_f27 - 4.0f * var_f28 * var_f21;
-    if (var_f30 <= 0.0f) {
+    motionValue = motionValue4 * motionValue4 - 4.0f * motionValue3 * motionValue7;
+    if (motionValue <= 0.0f) {
         return -1.0f;
     }
-    var_f30 = sqrtf(var_f30);
-    var_f26 = (-var_f27 + var_f30) / (2.0f * var_f28);
-    var_f29 = (-var_f27 - var_f30) / (2.0f * var_f28);
-    if (var_f26 * var_f29 < 0.0f && var_f29 < 0.0f) {
-        if (var_f26 > fabs(var_f29)) {
+    motionValue = sqrtf(motionValue);
+    motionValue5 = (-motionValue4 + motionValue) / (2.0f * motionValue3);
+    motionValue2 = (-motionValue4 - motionValue) / (2.0f * motionValue3);
+    if (motionValue5 * motionValue2 < 0.0f && motionValue2 < 0.0f) {
+        if (motionValue5 > fabs(motionValue2)) {
             return 0.0f;
         }
     }
-    if (var_f29 >= 0.0f && var_f29 < 1.0f) {
-        return var_f29;
+    if (motionValue >= 0.0f && motionValue < 1.0f) {
+        return motionValue;
     }
     return -1.0f;
 }
 
-float fn_1_4FEC(Vec arg0, Vec arg1, float arg8, Vec arg2, Vec arg3, float arg9, float argA)
+float CalculateVerticalSphereCollisionTime(Vec firstPosition, Vec firstVelocity, float movingRadius, Vec secondPosition, Vec secondVelocity, float targetRadius, float verticalRadius)
 {
-    float sp2C;
+    float temporaryValue;
 
-    float var_f28;
-    float var_f26;
-    float var_f25;
-    float var_f24;
-    float var_f23;
-    float var_f22;
-    float var_f21;
-    float var_f18;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
+    float motionValue4;
+    float motionValue5;
+    float motionValue6;
+    float motionValue7;
+    float motionValue8;
 
-    VECSubtract(&arg0, &arg2, &arg0);
-    VECSubtract(&arg1, &arg3, &arg1);
+    VECSubtract(&firstPosition, &secondPosition, &firstPosition);
+    VECSubtract(&firstVelocity, &secondVelocity, &firstVelocity);
 
-    if (VECMag(&arg0) > (arg8) + VECMag(&arg1) + arg9 + argA) {
+    if (VECMag(&firstPosition) > (movingRadius) + VECMag(&firstVelocity) + targetRadius + verticalRadius) {
         return -1.0f;
     }
-    arg8 += arg9;
-    var_f24 = VECMagXZ(&arg0);
+    movingRadius += targetRadius;
+    motionValue4 = VECMagXZ(&firstPosition);
 
-    var_f23 = VECSumXZ(&arg0, &arg1) - var_f24;
+    motionValue5 = VECSumXZ(&firstPosition, &firstVelocity) - motionValue4;
 
-    var_f22 = (var_f23 * var_f23) + (arg1.y * arg1.y);
-    var_f21 = 2.0f * ((arg0.y * arg1.y) + ((-argA * var_f23) + (var_f24 * var_f23)));
-    sp2C = (arg0.y * arg0.y + (((argA * argA) + (var_f24 * var_f24)) - (2.0f * argA * var_f24))) - (arg8 * arg8);
-    if (0.0f == var_f22) {
+    motionValue6 = (motionValue5 * motionValue5) + (firstVelocity.y * firstVelocity.y);
+    motionValue7 = 2.0f * ((firstPosition.y * firstVelocity.y) + ((-verticalRadius * motionValue5) + (motionValue4 * motionValue5)));
+    temporaryValue = (firstPosition.y * firstPosition.y + (((verticalRadius * verticalRadius) + (motionValue4 * motionValue4)) - (2.0f * verticalRadius * motionValue4))) - (movingRadius * movingRadius);
+    if (0.0f == motionValue6) {
         return -1.0f;
     }
-    var_f28 = (var_f21 * var_f21) - (4.0f * var_f22 * sp2C);
-    if (var_f28 < 0.0f) {
+    motionValue = (motionValue7 * motionValue7) - (4.0f * motionValue6 * temporaryValue);
+    if (motionValue < 0.0f) {
         return -1.0f;
     }
 
-    var_f28 = sqrtf(var_f28);
-    var_f18 = (-var_f21 + var_f28) / (2.0f * var_f22);
-    var_f25 = (-var_f21 - var_f28) / (2.0f * var_f22);
+    motionValue = sqrtf(motionValue);
+    motionValue8 = (-motionValue7 + motionValue) / (2.0f * motionValue6);
+    motionValue3 = (-motionValue7 - motionValue) / (2.0f * motionValue6);
 
-    if (var_f18 * var_f25 < 0.0f && var_f25 < 0.0f) {
-        if (var_f18 > fabs(var_f25)) {
+    if (motionValue8 * motionValue3 < 0.0f && motionValue3 < 0.0f) {
+        if (motionValue8 > fabs(motionValue3)) {
             return 0.0f;
         }
     }
-    if (var_f25 >= 0.0f && var_f25 < 1.0f) {
-        return var_f25;
+    if (motionValue >= 0.0f && motionValue < 1.0f) {
+        return motionValue;
     }
     return -1.0f;
 }
 
-float fn_1_55C8(Vec arg0, Vec arg1, float arg8, Vec arg2, float arg9)
+float CalculateHorizontalSphereCollisionTime(Vec firstPosition, Vec firstVelocity, float movingRadius, Vec secondPosition, float collisionRadius)
 {
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-    float var_f26;
-    float var_f22;
-    float var_f21;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
+    float motionValue4;
+    float motionValue5;
+    float motionValue6;
+    float motionValue7;
 
-    VECSubtract(&arg0, &arg2, &arg0);
-    arg0.y = 0.0f;
-    arg1.y = 0.0f;
-    if (VECMag(&arg0) > arg8 + VECMag(&arg1) + arg9) {
+    VECSubtract(&firstPosition, &secondPosition, &firstPosition);
+    firstPosition.y = 0.0f;
+    firstVelocity.y = 0.0f;
+    if (VECMag(&firstPosition) > movingRadius + VECMag(&firstVelocity) + collisionRadius) {
         return -1.0f;
     }
-    var_f22 = (arg8 + arg9) * (arg8 + arg9);
-    var_f28 = (arg1.x * arg1.x) + (arg1.z * arg1.z);
-    var_f27 = 2.0f * ((arg1.x * arg0.x) + (arg1.z * arg0.z));
-    var_f21 = ((arg0.x * arg0.x) + (arg0.z * arg0.z)) - var_f22;
-    if (0.0f == var_f28) {
+    motionValue6 = (movingRadius + collisionRadius) * (movingRadius + collisionRadius);
+    motionValue3 = (firstVelocity.x * firstVelocity.x) + (firstVelocity.z * firstVelocity.z);
+    motionValue4 = 2.0f * ((firstVelocity.x * firstPosition.x) + (firstVelocity.z * firstPosition.z));
+    motionValue7 = ((firstPosition.x * firstPosition.x) + (firstPosition.z * firstPosition.z)) - motionValue6;
+    if (0.0f == motionValue3) {
         return -1.0f;
     }
-    var_f30 = (var_f27 * var_f27) - (4.0f * var_f28 * var_f21);
-    if (var_f30 <= 0.0f) {
+    motionValue = (motionValue4 * motionValue4) - (4.0f * motionValue3 * motionValue7);
+    if (motionValue <= 0.0f) {
         return -1.0f;
     }
-    var_f30 = sqrtf(var_f30);
-    var_f26 = (-var_f27 + var_f30) / (2.0f * var_f28);
-    var_f29 = (-var_f27 - var_f30) / (2.0f * var_f28);
-    if (var_f26 * var_f29 < 0.0f && var_f29 < 0.0f) {
-        if (var_f26 > fabs(var_f29)) {
+    motionValue = sqrtf(motionValue);
+    motionValue5 = (-motionValue4 + motionValue) / (2.0f * motionValue3);
+    motionValue2 = (-motionValue4 - motionValue) / (2.0f * motionValue3);
+    if (motionValue5 * motionValue2 < 0.0f && motionValue2 < 0.0f) {
+        if (motionValue5 > fabs(motionValue2)) {
             return 0.0f;
         }
     }
-    if (var_f29 >= 0.0f && var_f29 < 1.0f) {
-        return var_f29;
+    if (motionValue >= 0.0f && motionValue < 1.0f) {
+        return motionValue;
     }
     return -1.0f;
 }
 
-s32 fn_1_598C(Vec *arg0, Vec *arg1, float arg8, Vec *arg2, Vec *arg3, float arg9, float argA)
+s32 TestSweptSphereCollision(Vec *firstPosition, Vec *firstVelocity, float movingRadius, Vec *secondPosition, Vec *secondVelocity, float targetRadius, float targetVerticalRadius)
 {
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    float var_f31;
+    Vec temporaryPosition;
+    Vec temporaryPosition2;
+    Vec temporaryPosition3;
+    float motionValue;
 
-    VECSubtract(arg0, arg2, &sp38);
-    VECSubtract(arg1, arg3, &sp2C);
-    if (VECMag(&sp38) > arg8 + VECMag(&sp2C) + arg9 + argA) {
+    VECSubtract(firstPosition, secondPosition, &temporaryPosition);
+    VECSubtract(firstVelocity, secondVelocity, &temporaryPosition2);
+    if (VECMag(&temporaryPosition) > movingRadius + VECMag(&temporaryPosition2) + targetRadius + targetVerticalRadius) {
         return 0;
     }
-    if (sp2C.y < 0.0f) {
-        var_f31 = -sp38.y / sp2C.y;
-        if (var_f31 >= 0.0f && var_f31 < 1.0f) {
-            sp20.x = var_f31 * sp2C.x + sp38.x;
-            sp20.y = var_f31 * sp2C.y + sp38.y;
-            sp20.z = var_f31 * sp2C.z + sp38.z;
-            if (VECMag(&sp20) < argA) {
+    if (temporaryPosition2.y < 0.0f) {
+        motionValue = -temporaryPosition.y / temporaryPosition2.y;
+        if (motionValue >= 0.0f && motionValue < 1.0f) {
+            temporaryPosition3.x = motionValue * temporaryPosition2.x + temporaryPosition.x;
+            temporaryPosition3.y = motionValue * temporaryPosition2.y + temporaryPosition.y;
+            temporaryPosition3.z = motionValue * temporaryPosition2.z + temporaryPosition.z;
+            if (VECMag(&temporaryPosition3) < targetVerticalRadius) {
                 return 1;
             }
         }
@@ -665,18 +665,18 @@ s32 fn_1_598C(Vec *arg0, Vec *arg1, float arg8, Vec *arg2, Vec *arg3, float arg9
     return 0;
 }
 
-void fn_1_5AF4(UnkM410Struct2 *arg0, u8 arg1)
+void ReflectVelocityAtBoundary(PlayerPhysicsWork *physicsWork, u8 collisionAxes)
 {
-    if (arg1 & 1) {
-        arg0->unk_1C.x = -arg0->unk_1C.x;
+    if (collisionAxes & 1) {
+        physicsWork->velocity.x = -physicsWork->velocity.x;
     }
-    if (arg1 & 2) {
-        arg0->unk_1C.y = -arg0->unk_1C.y;
-        if (fabs(arg0->unk_1C.y) < 4.0) {
-            arg0->unk_1C.y = 0.0f;
+    if (collisionAxes & 2) {
+        physicsWork->velocity.y = -physicsWork->velocity.y;
+        if (fabs(physicsWork->velocity.y) < 4.0) {
+            physicsWork->velocity.y = 0.0f;
         }
-        if (fabs(arg0->unk_1C.y) > 10.0) {
-            if (arg0->unk_04.z < -400.0f) {
+        if (fabs(physicsWork->velocity.y) > 10.0) {
+            if (physicsWork->position.z < -400.0f) {
                 HuAudFXPlay(1380);
             }
             else {
@@ -684,670 +684,669 @@ void fn_1_5AF4(UnkM410Struct2 *arg0, u8 arg1)
             }
         }
     }
-    if (arg1 & 4) {
-        arg0->unk_1C.z = -arg0->unk_1C.z;
+    if (collisionAxes & 4) {
+        physicsWork->velocity.z = -physicsWork->velocity.z;
     }
-    arg0->unk_1C.x *= 0.7f;
-    arg0->unk_1C.y *= 0.7f;
-    arg0->unk_1C.z *= 0.7f;
+    physicsWork->velocity.x *= 0.7f;
+    physicsWork->velocity.y *= 0.7f;
+    physicsWork->velocity.z *= 0.7f;
 }
 
-void fn_1_5CA0(Vec arg0, Vec arg1, Vec arg2, Vec *arg3, Vec *arg4)
+void CalculateSphereCollisionResponse(Vec firstPosition, Vec firstVelocity, Vec firstRadius, Vec *secondPosition, Vec *secondVelocity)
 {
-    Vec sp34;
-    Vec sp28;
-    Vec sp1C;
-    Vec sp10;
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
+    Vec temporaryPosition;
+    Vec temporaryPosition2;
+    Vec temporaryPosition3;
+    Vec temporaryPosition4;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
+    float motionValue4;
 
-    sp34 = arg1;
-    var_f31 = VECMag(&sp34);
-    if (var_f31 < 0.001f) {
-        arg3->x = arg3->y = arg3->z = 0.0f;
-        arg4->x = arg4->y = arg4->z = 0.0f;
+    temporaryPosition = firstVelocity;
+    motionValue = VECMag(&temporaryPosition);
+    if (motionValue < 0.001f) {
+        secondPosition->x = secondPosition->y = secondPosition->z = 0.0f;
+        secondVelocity->x = secondVelocity->y = secondVelocity->z = 0.0f;
         return;
     }
-    VECNormalize(&sp34, &sp34);
-    var_f31 *= 0.9f;
-    VECSubtract(&arg2, &arg0, &sp28);
-    VECNormalize(&sp28, &sp28);
-    var_f28 = VECDotProduct(&sp34, &sp28);
-    if (var_f28 < 0.0f) {
-        arg3->x = arg1.x;
-        arg3->y = arg1.y;
-        arg3->z = arg1.z;
-        arg4->x = arg4->y = arg4->z = 0.0f;
+    VECNormalize(&temporaryPosition, &temporaryPosition);
+    motionValue *= 0.9f;
+    VECSubtract(&firstRadius, &firstPosition, &temporaryPosition2);
+    VECNormalize(&temporaryPosition2, &temporaryPosition2);
+    motionValue4 = VECDotProduct(&temporaryPosition, &temporaryPosition2);
+    if (motionValue4 < 0.0f) {
+        secondPosition->x = firstVelocity.x;
+        secondPosition->y = firstVelocity.y;
+        secondPosition->z = firstVelocity.z;
+        secondVelocity->x = secondVelocity->y = secondVelocity->z = 0.0f;
         return;
     }
-    var_f29 = var_f31 * var_f28;
-    var_f30 = var_f31 - var_f29;
-    if (var_f30 < 0.001f) {
-        arg3->x = arg3->y = arg3->z = 0.0f;
+    motionValue3 = motionValue * motionValue4;
+    motionValue2 = motionValue - motionValue3;
+    if (motionValue2 < 0.001f) {
+        secondPosition->x = secondPosition->y = secondPosition->z = 0.0f;
     }
     else {
-        VECCrossProduct(&sp34, &sp28, &sp10);
-        VECNormalize(&sp10, &sp10);
-        VECCrossProduct(&sp28, &sp10, &sp1C);
-        VECNormalize(&sp1C, &sp1C);
-        arg3->x = sp1C.x * var_f30;
-        arg3->y = sp1C.y * var_f30;
-        arg3->z = sp1C.z * var_f30;
+        VECCrossProduct(&temporaryPosition, &temporaryPosition2, &temporaryPosition4);
+        VECNormalize(&temporaryPosition4, &temporaryPosition4);
+        VECCrossProduct(&temporaryPosition2, &temporaryPosition4, &temporaryPosition3);
+        VECNormalize(&temporaryPosition3, &temporaryPosition3);
+        secondPosition->x = temporaryPosition3.x * motionValue2;
+        secondPosition->y = temporaryPosition3.y * motionValue2;
+        secondPosition->z = temporaryPosition3.z * motionValue2;
     }
-    arg4->x = sp28.x * var_f29;
-    arg4->y = sp28.y * var_f29;
-    arg4->z = sp28.z * var_f29;
+    secondVelocity->x = temporaryPosition2.x * motionValue3;
+    secondVelocity->y = temporaryPosition2.y * motionValue3;
+    secondVelocity->z = temporaryPosition2.z * motionValue3;
 }
 
-void fn_1_5EDC(UnkM410Struct2 *arg0, UnkM410Struct2 *arg1)
+void ResolveSphereCollision(PlayerPhysicsWork *playerWork, PlayerPhysicsWork *otherPlayerWork)
 {
-    Vec sp14;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
-    float var_f29;
+    Vec temporaryPosition;
+    Vec temporaryPosition2;
+    float motionValue;
+    float motionValue2;
+    float motionValue3;
 
-    arg0->unk_1C.x *= 0.9f;
-    arg0->unk_1C.y *= 0.9f;
-    arg0->unk_1C.z *= 0.9f;
-    VECSubtract(&arg0->unk_04, &arg1->unk_04, &sp14);
-    VECNormalize(&sp14, &sp8);
-    var_f30 = (arg0->unk_28 + arg1->unk_28) - VECMag(&sp14);
-    if (var_f30 > 0.001f) {
-        VECSubtract(&arg0->unk_1C, &arg1->unk_1C, &sp14);
-        if (VECMag(&sp14) < 0.001f) {
-            arg0->unk_04.x += sp8.x * var_f30;
-            arg0->unk_04.y += sp8.y * var_f30;
-            arg0->unk_04.z += sp8.z * var_f30;
+    playerWork->velocity.x *= 0.9f;
+    playerWork->velocity.y *= 0.9f;
+    playerWork->velocity.z *= 0.9f;
+    VECSubtract(&playerWork->position, &otherPlayerWork->position, &temporaryPosition);
+    VECNormalize(&temporaryPosition, &temporaryPosition2);
+    motionValue2 = (playerWork->collisionRadius + otherPlayerWork->collisionRadius) - VECMag(&temporaryPosition);
+    if (motionValue2 > 0.001f) {
+        VECSubtract(&playerWork->velocity, &otherPlayerWork->velocity, &temporaryPosition);
+        if (VECMag(&temporaryPosition) < 0.001f) {
+            playerWork->position.x += temporaryPosition2.x * motionValue2;
+            playerWork->position.y += temporaryPosition2.y * motionValue2;
+            playerWork->position.z += temporaryPosition2.z * motionValue2;
         }
         else {
-            VECNormalize(&sp14, &sp14);
-            arg0->unk_04.x -= sp14.x * var_f30;
-            arg0->unk_04.y -= sp14.y * var_f30;
-            arg0->unk_04.z -= sp14.z * var_f30;
+            VECNormalize(&temporaryPosition, &temporaryPosition);
+            playerWork->position.x -= temporaryPosition.x * motionValue2;
+            playerWork->position.y -= temporaryPosition.y * motionValue2;
+            playerWork->position.z -= temporaryPosition.z * motionValue2;
         }
     }
-    var_f31 = ((-arg0->unk_1C.x * sp8.x) - (arg0->unk_1C.y * sp8.y)) - (arg0->unk_1C.z * sp8.z);
-    if (var_f31 > 0.0f) {
-        arg0->unk_1C.x += 2.0f * sp8.x * var_f31;
-        arg0->unk_1C.y += 2.0f * sp8.y * var_f31;
-        arg0->unk_1C.z += 2.0f * sp8.z * var_f31;
+    motionValue = ((-playerWork->velocity.x * temporaryPosition2.x) - (playerWork->velocity.y * temporaryPosition2.y)) - (playerWork->velocity.z * temporaryPosition2.z);
+    if (motionValue > 0.0f) {
+        playerWork->velocity.x += 2.0f * temporaryPosition2.x * motionValue;
+        playerWork->velocity.y += 2.0f * temporaryPosition2.y * motionValue;
+        playerWork->velocity.z += 2.0f * temporaryPosition2.z * motionValue;
     }
-    VECSubtract(&arg1->unk_1C, &arg0->unk_1C, &sp14);
-    var_f29 = VECMag(&sp14);
-    if (var_f29 < 0.001f) {
+    VECSubtract(&otherPlayerWork->velocity, &playerWork->velocity, &temporaryPosition);
+    motionValue3 = VECMag(&temporaryPosition);
+    if (motionValue3 < 0.001f) {
         return;
     }
-    VECNormalize(&sp14, &sp14);
-    var_f31 = VECDotProduct(&sp8, &sp14);
-    if (var_f31 > 0.0f) {
-        arg0->unk_1C.x += sp8.x * var_f31 * var_f29;
-        arg0->unk_1C.y += sp8.y * var_f31 * var_f29;
-        arg0->unk_1C.z += sp8.z * var_f31 * var_f29;
+    VECNormalize(&temporaryPosition, &temporaryPosition);
+    motionValue = VECDotProduct(&temporaryPosition2, &temporaryPosition);
+    if (motionValue > 0.0f) {
+        playerWork->velocity.x += temporaryPosition2.x * motionValue * motionValue3;
+        playerWork->velocity.y += temporaryPosition2.y * motionValue * motionValue3;
+        playerWork->velocity.z += temporaryPosition2.z * motionValue * motionValue3;
     }
 }
 
-void fn_1_61DC(UnkM410Struct2 *arg0, UnkM410Struct2 *arg1)
+void ResolvePlayerCollisions(PlayerPhysicsWork *firstPlayer, PlayerPhysicsWork *secondPlayer)
 {
-    Vec sp74;
-    Vec sp68;
-    Vec sp5C;
-    Vec sp50;
-    Vec sp44;
-    Vec sp38;
-    Vec sp2C;
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+    Vec temporaryPosition;
+    Vec temporaryPosition2;
+    Vec temporaryPosition3;
+    Vec temporaryPosition4;
+    Vec temporaryPosition5;
+    Vec temporaryPosition6;
+    Vec temporaryPosition7;
+    Vec temporaryPosition8;
+    Vec temporaryPosition9;
+    Vec temporaryPosition10;
 
-    Vec *var_r29;
-    Vec *var_r28;
-    Vec *var_r27;
-    Vec *var_r26;
-    Vec *var_r25;
-    Vec *var_r24;
+    Vec *temporaryPosition;
+    Vec *temporaryPosition2;
+    Vec *temporaryPosition3;
+    Vec *temporaryPosition4;
+    Vec *temporaryPosition5;
+    Vec *temporaryPosition6;
 
-    if (arg0->unk_00_field1 || arg1->unk_00_field1) {
-        if (arg0->unk_00_field1) {
-            fn_1_5EDC(arg1, arg0);
+    if (firstPlayer->isConnectedToGoal || secondPlayer->isConnectedToGoal) {
+        if (firstPlayer->isConnectedToGoal) {
+            ResolveSphereCollision(secondPlayer, firstPlayer);
         }
         else {
-            fn_1_5EDC(arg0, arg1);
+            ResolveSphereCollision(firstPlayer, secondPlayer);
         }
         return;
     }
-    fn_1_5CA0(arg0->unk_04, arg0->unk_1C, arg1->unk_04, &sp68, &sp74);
-    fn_1_5CA0(arg1->unk_04, arg1->unk_1C, arg0->unk_04, &sp50, &sp5C);
-    VECAdd(&sp68, &sp5C, &arg0->unk_1C);
-    VECAdd(&sp74, &sp50, &arg1->unk_1C);
+    CalculateSphereCollisionResponse(firstPlayer->position, firstPlayer->velocity, secondPlayer->position, &temporaryPosition2, &temporaryPosition);
+    CalculateSphereCollisionResponse(secondPlayer->position, secondPlayer->velocity, firstPlayer->position, &temporaryPosition4, &temporaryPosition3);
+    VECAdd(&temporaryPosition2, &temporaryPosition3, &firstPlayer->velocity);
+    VECAdd(&temporaryPosition, &temporaryPosition4, &secondPlayer->velocity);
 }
 
-void fn_1_6364(UnkM410Struct2 *arg0, UnkM410Struct2 *arg1)
+void ResolvePlayerCollisionVariant(PlayerPhysicsWork *firstPlayer, PlayerPhysicsWork *secondPlayer)
 {
-    Vec sp20;
-    Vec sp14;
-    Vec sp8;
+    Vec temporaryPosition;
+    Vec temporaryPosition2;
+    Vec temporaryPosition3;
 
-    float var_f31;
-    float var_f30;
+    float motionValue;
+    float motionValue2;
 
-    arg0->unk_1C.x *= 0.7f;
-    arg0->unk_1C.y *= 0.7f;
-    arg0->unk_1C.z *= 0.7f;
-    VECSubtract(&arg0->unk_04, &arg1->unk_04, &sp14);
+    firstPlayer->velocity.x *= 0.7f;
+    firstPlayer->velocity.y *= 0.7f;
+    firstPlayer->velocity.z *= 0.7f;
+    VECSubtract(&firstPlayer->position, &secondPlayer->position, &temporaryPosition2);
 
-    sp14.y = 0.0f;
-    VECNormalize(&sp14, &sp14);
+    temporaryPosition2.y = 0.0f;
+    VECNormalize(&temporaryPosition2, &temporaryPosition2);
 
-    sp20.x = sp14.x * arg1->unk_2C + arg1->unk_04.x;
-    sp20.y = arg1->unk_04.y;
-    sp20.z = sp14.z * arg1->unk_2C + arg1->unk_04.z;
+    temporaryPosition.x = temporaryPosition2.x * secondPlayer->collisionHeight + secondPlayer->position.x;
+    temporaryPosition.y = secondPlayer->position.y;
+    temporaryPosition.z = temporaryPosition2.z * secondPlayer->collisionHeight + secondPlayer->position.z;
 
-    VECSubtract(&arg0->unk_04, &sp20, &sp14);
-    VECNormalize(&sp14, &sp8);
-    var_f31 = (arg0->unk_28 + arg1->unk_28) - VECMag(&sp14);
+    VECSubtract(&firstPlayer->position, &temporaryPosition, &temporaryPosition2);
+    VECNormalize(&temporaryPosition2, &temporaryPosition3);
+    motionValue = (firstPlayer->collisionRadius + secondPlayer->collisionRadius) - VECMag(&temporaryPosition2);
 
-    if (var_f31 > 0.001f) {
-        VECSubtract(&arg0->unk_1C, &arg1->unk_1C, &sp14);
-        if (VECMag(&sp14) < 0.001f) {
-            arg0->unk_04.x += sp8.x * var_f31;
-            arg0->unk_04.y += sp8.y * var_f31;
-            arg0->unk_04.z += sp8.z * var_f31;
+    if (motionValue > 0.001f) {
+        VECSubtract(&firstPlayer->velocity, &secondPlayer->velocity, &temporaryPosition2);
+        if (VECMag(&temporaryPosition2) < 0.001f) {
+            firstPlayer->position.x += temporaryPosition3.x * motionValue;
+            firstPlayer->position.y += temporaryPosition3.y * motionValue;
+            firstPlayer->position.z += temporaryPosition3.z * motionValue;
         }
         else {
-            VECNormalize(&sp14, &sp14);
-            arg0->unk_04.x -= sp14.x * var_f31;
-            arg0->unk_04.y -= sp14.y * var_f31;
-            arg0->unk_04.z -= sp14.z * var_f31;
+            VECNormalize(&temporaryPosition2, &temporaryPosition2);
+            firstPlayer->position.x -= temporaryPosition2.x * motionValue;
+            firstPlayer->position.y -= temporaryPosition2.y * motionValue;
+            firstPlayer->position.z -= temporaryPosition2.z * motionValue;
         }
     }
-    var_f30 = -arg0->unk_1C.x * sp8.x - arg0->unk_1C.y * sp8.y - arg0->unk_1C.z * sp8.z;
-    if (var_f30 > 0.0f) {
-        arg0->unk_1C.x += 2.0f * sp8.x * var_f30;
-        arg0->unk_1C.y += 2.0f * sp8.y * var_f30;
-        arg0->unk_1C.z += 2.0f * sp8.z * var_f30;
+    motionValue2 = -firstPlayer->velocity.x * temporaryPosition3.x - firstPlayer->velocity.y * temporaryPosition3.y - firstPlayer->velocity.z * temporaryPosition3.z;
+    if (motionValue2 > 0.0f) {
+        firstPlayer->velocity.x += 2.0f * temporaryPosition3.x * motionValue2;
+        firstPlayer->velocity.y += 2.0f * temporaryPosition3.y * motionValue2;
+        firstPlayer->velocity.z += 2.0f * temporaryPosition3.z * motionValue2;
     }
-    VECSubtract(&arg1->unk_1C, &arg0->unk_1C, &sp14);
-    var_f31 = VECMag(&sp14);
-    if (!(var_f31 < 0.001f)) {
-        VECNormalize(&sp14, &sp14);
-        var_f30 = VECDotProduct(&sp8, &sp14);
-        if (var_f30 > 0.0f) {
-            arg0->unk_1C.x += sp8.x * var_f30 * var_f31;
-            arg0->unk_1C.y += sp8.y * var_f30 * var_f31;
-            arg0->unk_1C.z += sp8.z * var_f30 * var_f31;
+    VECSubtract(&secondPlayer->velocity, &firstPlayer->velocity, &temporaryPosition2);
+    motionValue = VECMag(&temporaryPosition2);
+    if (!(motionValue < 0.001f)) {
+        VECNormalize(&temporaryPosition2, &temporaryPosition2);
+        motionValue2 = VECDotProduct(&temporaryPosition3, &temporaryPosition2);
+        if (motionValue2 > 0.0f) {
+            firstPlayer->velocity.x += temporaryPosition3.x * motionValue2 * motionValue;
+            firstPlayer->velocity.y += temporaryPosition3.y * motionValue2 * motionValue;
+            firstPlayer->velocity.z += temporaryPosition3.z * motionValue2 * motionValue;
         }
     }
 }
 
-void fn_1_66B8(UnkM410Struct2 *arg0, UnkM410Struct2 *arg1) // TODO maybe UnkM410Struct3?
+void ResolveGoalCollision(PlayerPhysicsWork *playerWork, PlayerPhysicsWork *goalWork)
 {
-    Vec spC;
-    float var_f31;
+    Vec temporaryPosition;
+    float motionValue;
 
-    VECSubtract(&arg0->unk_04, (Vec *)&arg1->unk_10.z, &spC);
-    spC.y = 0.0f;
-    VECNormalize(&spC, &spC);
-    var_f31 = -arg0->unk_1C.x * spC.x - arg0->unk_1C.z * spC.z;
-    arg0->unk_1C.x += 2.0f * spC.x * var_f31;
-    arg0->unk_1C.z += 2.0f * spC.z * var_f31;
-    arg0->unk_1C.x *= 0.5f;
-    arg0->unk_1C.y *= 0.5f;
-    arg0->unk_1C.z *= 0.5f;
+    VECSubtract(&playerWork->position, (Vec *)&goalWork->previousPosition.z, &temporaryPosition);
+    temporaryPosition.y = 0.0f;
+    VECNormalize(&temporaryPosition, &temporaryPosition);
+    motionValue = -playerWork->velocity.x * temporaryPosition.x - playerWork->velocity.z * temporaryPosition.z;
+    playerWork->velocity.x += 2.0f * temporaryPosition.x * motionValue;
+    playerWork->velocity.z += 2.0f * temporaryPosition.z * motionValue;
+    playerWork->velocity.x *= 0.5f;
+    playerWork->velocity.y *= 0.5f;
+    playerWork->velocity.z *= 0.5f;
 }
 
-void fn_1_67D4(OMOBJ *arg0)
+void CreatePlayerModelManager(OMOBJ *object)
 {
-    s32 var_r30;
-    UnkM410Struct2 *var_r29;
-    s16 var_r28;
+    s32 loopIndex;
+    PlayerPhysicsWork *physicsWork;
+    s16 stateValue;
 
-    arg0->stat |= 0x100;
-    var_r29 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM410Struct2) * 60, HU_MEMNUM_OVL);
-    arg0->data = var_r29;
-    memset(var_r29, 0, 4320);
+    object->stat |= 0x100;
+    physicsWork = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PlayerPhysicsWork) * 60, HU_MEMNUM_OVL);
+    object->data = physicsWork;
+    memset(physicsWork, 0, 4320);
 
-    for (var_r30 = 0; var_r30 < 60; var_r30++, var_r29++) {
-        var_r29->unk_32 = var_r30;
-        var_r29->unk_34 = var_r30 / 15;
-        if ((var_r30 % 15) == 0) {
-            arg0->mdlId[var_r30] = Hu3DModelCreateFile(lbl_1_data_DC[GWPlayerCfg[var_r29->unk_34].character]);
-            var_r28 = arg0->mdlId[var_r30];
+    for (loopIndex = 0; loopIndex < 60; loopIndex++, physicsWork++) {
+        physicsWork->sphereIndex = loopIndex;
+        physicsWork->playerIndex = loopIndex / 15;
+        if ((loopIndex % 15) == 0) {
+            object->mdlId[loopIndex] = Hu3DModelCreateFile(characterModelDataIds[GWPlayerCfg[physicsWork->playerIndex].character]);
+            stateValue = object->mdlId[loopIndex];
         }
         else {
-            arg0->mdlId[var_r30] = Hu3DModelLink(var_r28);
+            object->mdlId[loopIndex] = Hu3DModelLink(stateValue);
         }
-        var_r29->unk_30 = arg0->mdlId[var_r30];
-        Hu3DModelAttrSet(arg0->mdlId[var_r30], HU3D_ATTR_DISPOFF);
-        Hu3DModelShadowSet(arg0->mdlId[var_r30]);
+        physicsWork->modelId = object->mdlId[loopIndex];
+        Hu3DModelAttrSet(object->mdlId[loopIndex], HU3D_ATTR_DISPOFF);
+        Hu3DModelShadowSet(object->mdlId[loopIndex]);
     }
-    arg0->objFunc = fn_1_6968;
+    object->objFunc = UpdatePlayerModelManager;
 }
 
-void fn_1_6968(OMOBJ *object)
+void UpdatePlayerModelManager(OMOBJ *object)
 {
-    Mtx sp14;
-    Vec sp8;
-    float var_f31;
-    float var_f30;
-    UnkM410Struct2 *var_r31;
-    s32 var_r30;
-    HU3DMODEL *var_r28;
+    Mtx temporaryTransform;
+    Vec temporaryPosition;
+    float motionValue;
+    float motionValue2;
+    PlayerPhysicsWork *physicsWork;
+    s32 loopIndex;
+    HU3DMODEL *model;
 
-    var_r31 = object->data;
+    physicsWork = object->data;
 
-    for (var_r30 = 0; var_r30 < 60; var_r30++, var_r31++) {
-        if (!var_r31->unk_00_field0) {
-            Hu3DModelAttrSet(var_r31->unk_30, HU3D_ATTR_DISPOFF);
+    for (loopIndex = 0; loopIndex < 60; loopIndex++, physicsWork++) {
+        if (!physicsWork->isActive) {
+            Hu3DModelAttrSet(physicsWork->modelId, HU3D_ATTR_DISPOFF);
             continue;
         }
-        if (var_r31->unk_00_field1) {
-            Hu3DModelObjPosGet(var_r31->unk_38->unk_30, "i_hook", &sp8);
-            VECSubtract(&sp8, &var_r31->unk_04, &sp8);
-            if (var_r31->unk_36 != 0) {
-                var_f31 = cosd(90.0f * var_r31->unk_36 / (REFRESH_RATE / 6));
-                var_r31->unk_1C.x = var_f31 * sp8.x;
-                var_r31->unk_1C.y = var_f31 * sp8.y;
-                var_r31->unk_1C.z = var_f31 * sp8.z;
-                var_r31->unk_36--;
+        if (physicsWork->isConnectedToGoal) {
+            Hu3DModelObjPosGet(physicsWork->linkedPhysicsWork->modelId, "i_hook", &temporaryPosition);
+            VECSubtract(&temporaryPosition, &physicsWork->position, &temporaryPosition);
+            if (physicsWork->stateTimer != 0) {
+                motionValue = cosd(90.0f * physicsWork->stateTimer / (REFRESH_RATE / 6));
+                physicsWork->velocity.x = motionValue * temporaryPosition.x;
+                physicsWork->velocity.y = motionValue * temporaryPosition.y;
+                physicsWork->velocity.z = motionValue * temporaryPosition.z;
+                physicsWork->stateTimer--;
             }
             else {
-                var_r31->unk_1C = sp8;
+                physicsWork->velocity = temporaryPosition;
             }
         }
         else {
 #if VERSION_PAL
-            var_r31->unk_1C.y += -1.372f;
+            physicsWork->velocity.y += -1.372f;
 #else
-            var_r31->unk_1C.y += -0.95277786f;
+            physicsWork->velocity.y += -0.95277786f;
 #endif
-            if (var_r31->unk_00_field3 && (fn_1_281C() != 4 || (fn_1_281C() == 4 && var_r31->unk_36 < REFRESH_RATE / 4))) {
-                if (--var_r31->unk_36 == 0) {
-                    var_r31->unk_00_field0 = 0;
+            if (physicsWork->isVerticalCollisionState && (getMinigameSubstate() != 4 || (getMinigameSubstate() == 4 && physicsWork->stateTimer < REFRESH_RATE / 4))) {
+                if (--physicsWork->stateTimer == 0) {
+                    physicsWork->isActive = 0;
                 }
-                if (var_r31->unk_36 < REFRESH_RATE / 4) {
-                    var_r31->unk_00_field2 ^= 1;
+                if (physicsWork->stateTimer < REFRESH_RATE / 4) {
+                    physicsWork->isVisible ^= 1;
                 }
             }
-            if (!var_r31->unk_44) {
-                if (0.0f != var_r31->unk_1C.x || 0.0f != var_r31->unk_1C.z) {
-                    sp8.x = var_r31->unk_1C.z;
-                    sp8.y = 0.0f;
-                    sp8.z = -var_r31->unk_1C.x;
-                    var_f30 = VECMag(&sp8) / 30.000002f;
-                    if (var_f30 >= 0.001f) {
-                        MTXRotAxisRad(sp14, &sp8, var_f30);
-                        var_r28 = &Hu3DData[object->mdlId[var_r30]];
-                        MTXConcat(sp14, var_r28->mtx, var_r28->mtx);
+            if (!physicsWork->collisionCooldown) {
+                if (0.0f != physicsWork->velocity.x || 0.0f != physicsWork->velocity.z) {
+                    temporaryPosition.x = physicsWork->velocity.z;
+                    temporaryPosition.y = 0.0f;
+                    temporaryPosition.z = -physicsWork->velocity.x;
+                    motionValue2 = VECMag(&temporaryPosition) / 30.000002f;
+                    if (motionValue2 >= 0.001f) {
+                        MTXRotAxisRad(temporaryTransform, &temporaryPosition, motionValue2);
+                        model = &Hu3DData[object->mdlId[loopIndex]];
+                        MTXConcat(temporaryTransform, model->mtx, model->mtx);
                     }
                 }
             }
             else {
-                var_r31->unk_44--;
+                physicsWork->collisionCooldown--;
             }
         }
-        if (var_r31->unk_00_field2) {
-            Hu3DModelAttrReset(var_r31->unk_30, HU3D_ATTR_DISPOFF);
+        if (physicsWork->isVisible) {
+            Hu3DModelAttrReset(physicsWork->modelId, HU3D_ATTR_DISPOFF);
         }
         else {
-            Hu3DModelAttrSet(var_r31->unk_30, HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(physicsWork->modelId, HU3D_ATTR_DISPOFF);
         }
-        Hu3DModelPosSet(object->mdlId[var_r30], var_r31->unk_04.x, var_r31->unk_04.y, var_r31->unk_04.z);
+        Hu3DModelPosSet(object->mdlId[loopIndex], physicsWork->position.x, physicsWork->position.y, physicsWork->position.z);
     }
-    if (fn_1_281C() > 2 && fn_1_28DC() == 1) {
-        var_r31 = lbl_1_bss_58->data;
+    if (getMinigameSubstate() > 2 && isMinigameSequenceDone() == 1) {
+        physicsWork = playerSphereObject->data;
 
-        for (var_r30 = 0; var_r30 < 60; var_r30++, var_r31++) {
-            if (var_r31->unk_00_field0) {
-                fn_1_7520(&var_r31->unk_04);
-                Hu3DModelAttrSet(var_r31->unk_30, HU3D_ATTR_DISPOFF);
-                var_r31->unk_00_field0 = 0;
+        for (loopIndex = 0; loopIndex < 60; loopIndex++, physicsWork++) {
+            if (physicsWork->isActive) {
+                SetGoalParticlePosition(&physicsWork->position);
+                Hu3DModelAttrSet(physicsWork->modelId, HU3D_ATTR_DISPOFF);
+                physicsWork->isActive = 0;
             }
         }
-        lbl_1_bss_58->objFunc = NULL;
-        Hu3DModelAttrReset(lbl_1_bss_38, HU3D_ATTR_DISPOFF);
-        fn_1_287C(4);
+        playerSphereObject->objFunc = NULL;
+        Hu3DModelAttrReset(goalParticleModelId, HU3D_ATTR_DISPOFF);
+        SetMinigameControlFlag(4);
     }
 }
 
-void fn_1_6D84(OMOBJ *object)
+void HidePlayerModels(OMOBJ *object)
 {
     HuMemDirectFree(object->data);
 }
 
-s32 lbl_1_data_104[] = { DATA_MAKE_NUM(DATADIR_M410, 8), DATA_MAKE_NUM(DATADIR_M410, 9), DATA_MAKE_NUM(DATADIR_M410, 8) };
+s32 goalModelDataIds[] = { DATA_MAKE_NUM(DATADIR_M410, 8), DATA_MAKE_NUM(DATADIR_M410, 9), DATA_MAKE_NUM(DATADIR_M410, 8) };
 
-void fn_1_6DB4(OMOBJ *object)
+void CreateGoalObject(OMOBJ *object)
 {
-    UnkM410Struct2 *var_r31;
-    s32 var_r29;
-    s16 var_r28;
+    PlayerPhysicsWork *physicsWork;
+    s32 loopIndex;
+    s16 stateValue;
 
     object->stat |= 0x100;
-    var_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM410Struct2) * 18, HU_MEMNUM_OVL);
-    object->data = var_r31;
-    memset(var_r31, 0, sizeof(UnkM410Struct2) * 18);
+    physicsWork = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PlayerPhysicsWork) * 18, HU_MEMNUM_OVL);
+    object->data = physicsWork;
+    memset(physicsWork, 0, sizeof(PlayerPhysicsWork) * 18);
 
-    for (var_r29 = 0; var_r29 < 18; var_r29++, var_r31++) {
-        var_r31->unk_34 = var_r29 / 6;
-        object->mdlId[var_r29] = Hu3DModelCreateFile(lbl_1_data_104[var_r31->unk_34]);
-        var_r28 = object->mdlId[var_r29];
-        (void)var_r28;
-        Hu3DModelAttrSet(object->mdlId[var_r29], HU3D_MOTATTR_PAUSE);
-        Hu3DData[object->mdlId[var_r29]].clusterAttr[0] = 0;
-        var_r31->unk_30 = object->mdlId[var_r29];
-        var_r31->unk_32 = var_r29;
-        var_r31->unk_04.x = (250.0f * (var_r29 % 6)) - 750.0f;
+    for (loopIndex = 0; loopIndex < 18; loopIndex++, physicsWork++) {
+        physicsWork->playerIndex = loopIndex / 6;
+        object->mdlId[loopIndex] = Hu3DModelCreateFile(goalModelDataIds[physicsWork->playerIndex]);
+        stateValue = object->mdlId[loopIndex];
+        (void)stateValue;
+        Hu3DModelAttrSet(object->mdlId[loopIndex], HU3D_MOTATTR_PAUSE);
+        Hu3DData[object->mdlId[loopIndex]].clusterAttr[0] = 0;
+        physicsWork->modelId = object->mdlId[loopIndex];
+        physicsWork->sphereIndex = loopIndex;
+        physicsWork->position.x = (250.0f * (loopIndex % 6)) - 750.0f;
 
-        if ((var_r31->unk_34 & 1) == 0) {
-            var_r31->unk_04.x += 125.0f;
+        if ((physicsWork->playerIndex & 1) == 0) {
+            physicsWork->position.x += 125.0f;
         }
-        var_r31->unk_04.y = 140.0f + (140.0f * var_r31->unk_34);
-        var_r31->unk_04.z = -700.0f;
-        var_r31->unk_28 = 1.0f;
-        var_r31->unk_2C = 50.0f;
-        Hu3DModelPosSet(object->mdlId[var_r29], var_r31->unk_04.x, var_r31->unk_04.y, var_r31->unk_04.z);
+        physicsWork->position.y = 140.0f + (140.0f * physicsWork->playerIndex);
+        physicsWork->position.z = -700.0f;
+        physicsWork->collisionRadius = 1.0f;
+        physicsWork->collisionHeight = 50.0f;
+        Hu3DModelPosSet(object->mdlId[loopIndex], physicsWork->position.x, physicsWork->position.y, physicsWork->position.z);
 
-        if (!var_r29) {
-            object->mdlId[var_r29 + 0x12] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M410, 10));
+        if (!loopIndex) {
+            object->mdlId[loopIndex + 0x12] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M410, 10));
         }
         else {
-            object->mdlId[var_r29 + 0x12] = Hu3DModelLink(object->mdlId[18]);
+            object->mdlId[loopIndex + 0x12] = Hu3DModelLink(object->mdlId[18]);
         }
-        Hu3DModelShadowMapSet(object->mdlId[var_r29 + 18]);
-        Hu3DModelPosSet(object->mdlId[var_r29 + 18], var_r31->unk_04.x, var_r31->unk_04.y, var_r31->unk_04.z);
-        if (!var_r29) {
-            object->mdlId[var_r29 + 36] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M410, 11));
+        Hu3DModelShadowMapSet(object->mdlId[loopIndex + 18]);
+        Hu3DModelPosSet(object->mdlId[loopIndex + 18], physicsWork->position.x, physicsWork->position.y, physicsWork->position.z);
+        if (!loopIndex) {
+            object->mdlId[loopIndex + 36] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M410, 11));
         }
         else {
-            object->mdlId[var_r29 + 36] = Hu3DModelLink(object->mdlId[36]);
+            object->mdlId[loopIndex + 36] = Hu3DModelLink(object->mdlId[36]);
         }
-        Hu3DModelPosSet(object->mdlId[var_r29 + 0x24], 20.0f + var_r31->unk_04.x, -10.0f + var_r31->unk_04.y, var_r31->unk_04.z);
+        Hu3DModelPosSet(object->mdlId[loopIndex + 0x24], 20.0f + physicsWork->position.x, -10.0f + physicsWork->position.y, physicsWork->position.z);
     }
-    object->objFunc = fn_1_7138;
+    object->objFunc = UpdateGoalObject;
 }
 
-void fn_1_7138(OMOBJ *object)
+void UpdateGoalObject(OMOBJ *object)
 {
-    float var_f31;
-    UnkM410Struct2 *var_r31;
-    s32 var_r29;
+    float motionValue;
+    PlayerPhysicsWork *physicsWork;
+    s32 loopIndex;
 
-    var_r31 = object->data;
+    physicsWork = object->data;
 
-    for (var_r29 = 0; var_r29 < 18; var_r29++, var_r31++) {
-        if (var_r31->unk_34 & 1) {
-            var_f31 = lbl_1_bss_50;
+    for (loopIndex = 0; loopIndex < 18; loopIndex++, physicsWork++) {
+        if (physicsWork->playerIndex & 1) {
+            motionValue = currentGoalMotion;
         }
         else {
-            var_f31 = -lbl_1_bss_50;
+            motionValue = -currentGoalMotion;
         }
-        var_r31->unk_1C.x = var_f31;
-        if (var_r31->unk_00_field4) {
-            Hu3DModelAttrReset(object->mdlId[var_r29], HU3D_MOTATTR_PAUSE);
-            Hu3DMotionSpeedSet(object->mdlId[var_r29], 4.0f);
-            Hu3DMotionSet(object->mdlId[var_r29], 0);
-            Hu3DMotionClusterNoSet(object->mdlId[var_r29], Hu3DData[object->mdlId[var_r29]].motIdCluster[0], 0);
-            Hu3DData[object->mdlId[var_r29]].clusterSpeed[0] = 4.0f;
-            var_r31->unk_00_field4 = 0;
+        physicsWork->velocity.x = motionValue;
+        if (physicsWork->goalCollisionPending) {
+            Hu3DModelAttrReset(object->mdlId[loopIndex], HU3D_MOTATTR_PAUSE);
+            Hu3DMotionSpeedSet(object->mdlId[loopIndex], 4.0f);
+            Hu3DMotionSet(object->mdlId[loopIndex], 0);
+            Hu3DMotionClusterNoSet(object->mdlId[loopIndex], Hu3DData[object->mdlId[loopIndex]].motIdCluster[0], 0);
+            Hu3DData[object->mdlId[loopIndex]].clusterSpeed[0] = 4.0f;
+            physicsWork->goalCollisionPending = 0;
         }
-        if (var_r31->unk_1C.x < 0.0f) {
-            if (var_r31->unk_04.x < -750.0f) {
-                var_r31->unk_04.x += 1500.0f;
-                var_r31->unk_00_field6 = 1;
+        if (physicsWork->velocity.x < 0.0f) {
+            if (physicsWork->position.x < -750.0f) {
+                physicsWork->position.x += 1500.0f;
+                physicsWork->wrappedAroundStage = 1;
             }
         }
-        else if (var_r31->unk_04.x > 750.0f) {
-            var_r31->unk_04.x -= 1500.0f;
-            var_r31->unk_00_field6 = 1;
+        else if (physicsWork->position.x > 750.0f) {
+            physicsWork->position.x -= 1500.0f;
+            physicsWork->wrappedAroundStage = 1;
         }
-        if (var_r31->unk_00_field6) {
-            if (var_r31->unk_38 != NULL) {
-                var_r31->unk_38->unk_00_field0 = 0;
-                var_r31->unk_38 = NULL;
-                Hu3DMotionClusterNoSet(object->mdlId[var_r29], Hu3DData[object->mdlId[var_r29]].motIdCluster[0], 0);
-                Hu3DData[object->mdlId[var_r29]].clusterSpeed[0] = 0.0f;
+        if (physicsWork->wrappedAroundStage) {
+            if (physicsWork->linkedPhysicsWork != NULL) {
+                physicsWork->linkedPhysicsWork->isActive = 0;
+                physicsWork->linkedPhysicsWork = NULL;
+                Hu3DMotionClusterNoSet(object->mdlId[loopIndex], Hu3DData[object->mdlId[loopIndex]].motIdCluster[0], 0);
+                Hu3DData[object->mdlId[loopIndex]].clusterSpeed[0] = 0.0f;
             }
-            var_r31->unk_00_field6 = 0;
+            physicsWork->wrappedAroundStage = 0;
         }
-        Hu3DModelPosSet(object->mdlId[var_r29], var_r31->unk_04.x, var_r31->unk_04.y, var_r31->unk_04.z);
-        Hu3DModelPosSet(object->mdlId[var_r29 + 18], var_r31->unk_04.x, var_r31->unk_04.y, var_r31->unk_04.z);
-        Hu3DModelPosSet(object->mdlId[var_r29 + 36], 20.0f + var_r31->unk_04.x, -10.0f + var_r31->unk_04.y, var_r31->unk_04.z);
+        Hu3DModelPosSet(object->mdlId[loopIndex], physicsWork->position.x, physicsWork->position.y, physicsWork->position.z);
+        Hu3DModelPosSet(object->mdlId[loopIndex + 18], physicsWork->position.x, physicsWork->position.y, physicsWork->position.z);
+        Hu3DModelPosSet(object->mdlId[loopIndex + 36], 20.0f + physicsWork->position.x, -10.0f + physicsWork->position.y, physicsWork->position.z);
     }
 }
 
-void fn_1_7464(OMOBJ *object)
+void HideGoalObject(OMOBJ *object)
 {
     HuMemDirectFree(object->data);
 }
 
-void fn_1_7494(void)
+void CreateGoalParticleEffect(void)
 {
-    ANIMDATA *var_r31;
+    ANIMDATA *stateValue;
 
-    var_r31 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 2), HU_MEMNUM_OVL));
-    lbl_1_bss_38 = Hu3DParticleCreate(var_r31, 60);
-    Hu3DParticleHookSet(lbl_1_bss_38, fn_1_75A0);
-    Hu3DModelAttrSet(lbl_1_bss_38, HU3D_ATTR_DISPOFF);
+    stateValue = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 2), HU_MEMNUM_OVL));
+    goalParticleModelId = Hu3DParticleCreate(stateValue, 60);
+    Hu3DParticleHookSet(goalParticleModelId, UpdateGoalParticle);
+    Hu3DModelAttrSet(goalParticleModelId, HU3D_ATTR_DISPOFF);
 }
 
-void fn_1_7520(Vec *arg0)
+void SetGoalParticlePosition(Vec *position)
 {
-    HU3DPARTICLE *var_r30;
-    HU3DPARTICLEDATA *var_r31;
+    HU3DPARTICLE *stateValue;
+    HU3DPARTICLEDATA *stateValue2;
 
-    var_r30 = Hu3DData[lbl_1_bss_38].hookData;
-    var_r31 = &var_r30->data[var_r30->emitCnt++];
-    var_r31->scale = 100.0f;
-    var_r31->pos.x = arg0->x;
-    var_r31->pos.y = arg0->y;
-    var_r31->pos.z = arg0->z;
+    stateValue = Hu3DData[goalParticleModelId].hookData;
+    stateValue2 = &stateValue->data[stateValue->emitCnt++];
+    stateValue2->scale = 100.0f;
+    stateValue2->pos.x = position->x;
+    stateValue2->pos.y = position->y;
+    stateValue2->pos.z = position->z;
 }
 
-s32 lbl_1_data_110 = REFRESH_RATE;
+s32 endTransitionTimer = REFRESH_RATE;
 
-void fn_1_75A0(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
+void UpdateGoalParticle(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
 {
-    HU3DPARTICLEDATA *var_r30;
-    s32 var_r29;
-    s32 var_r28;
+    HU3DPARTICLEDATA *stateValue;
+    s32 loopIndex;
+    s32 stateValue;
 
     if (!particle->dataCnt) {
         particle->dataCnt = 1;
-        var_r30 = &particle->data[particle->emitCnt];
-        for (var_r29 = particle->emitCnt; var_r29 < particle->maxCnt; var_r29++, var_r30++) {
-            var_r30->scale = 0.0f;
+        stateValue = &particle->data[particle->emitCnt];
+        for (loopIndex = particle->emitCnt; loopIndex < particle->maxCnt; loopIndex++, stateValue++) {
+            stateValue->scale = 0.0f;
         }
     }
-    var_r28 = (lbl_1_data_110 * 0xFF) / REFRESH_RATE;
-    var_r30 = particle->data;
+    stateValue = (endTransitionTimer * 0xFF) / REFRESH_RATE;
+    stateValue = particle->data;
 
-    for (var_r29 = 0; var_r29 < particle->emitCnt; var_r29++, var_r30++) {
-        var_r30->color.a = var_r28; // 43?
+    for (loopIndex = 0; loopIndex < particle->emitCnt; loopIndex++, stateValue++) {
+        stateValue->color.a = stateValue; // 43?
     }
-    if (--lbl_1_data_110 == 0) {
+    if (--endTransitionTimer == 0) {
         model->attr |= 1;
     }
     DCStoreRange(particle->data, particle->maxCnt * 0x44);
 }
 
-s32 fn_1_76B8(Vec arg0, Vec arg1, u16 arg2)
+s32 SetPlayerSphereState(Vec position, Vec velocity, u16 playerIndex)
 {
-    UnkM410Struct2 *var_r31 = lbl_1_bss_58->data;
-    s32 var_r30;
+    PlayerPhysicsWork *physicsWork = playerSphereObject->data;
+    s32 loopIndex;
 
-    var_r31 = &var_r31[arg2 * 15];
-    for (var_r30 = 0; var_r30 < 15; var_r30++, var_r31++) {
-        if (!var_r31->unk_00_field0) {
-            *(s16 *)var_r31 = 0;
-            var_r31->unk_00_field0 = 1;
-            var_r31->unk_00_field2 = 1;
-            var_r31->unk_04 = arg0;
-            var_r31->unk_1C = arg1;
-            var_r31->unk_28 = 30.000002f;
-            var_r31->unk_38 = NULL;
-            var_r31->unk_36 = 0;
+    physicsWork = &physicsWork[playerIndex * 15];
+    for (loopIndex = 0; loopIndex < 15; loopIndex++, physicsWork++) {
+        if (!physicsWork->isActive) {
+            *(s16 *)physicsWork = 0;
+            physicsWork->isActive = 1;
+            physicsWork->isVisible = 1;
+            physicsWork->position = position;
+            physicsWork->velocity = velocity;
+            physicsWork->collisionRadius = 30.000002f;
+            physicsWork->linkedPhysicsWork = NULL;
+            physicsWork->stateTimer = 0;
             return 1;
         }
     }
     return 0;
 }
 
-void fn_1_77A4(u16 arg0, u16 arg1, u16 arg2)
+void ReportGoalScore(u16 index1, u16 index2, u16 index3)
 {
-    OSReport("GOAL!!(%d , %d , %d)\n", arg0, arg1, arg2);
+    OSReport("GOAL!!(%d , %d , %d)\n", index1, index2, index3);
 }
 
-void fn_1_77E8(void *arg0)
+void SetGoalCallback(void *callback)
 {
-    lbl_1_bss_44 = arg0;
+    goalCallback = callback;
 }
 
-void fn_1_77F8(u16 arg0, Vec *arg1)
+void GetPlayerPosition(u16 playerIndex, Vec *positionOut)
 {
-    UnkM410Struct2 *var_r31;
+    PlayerPhysicsWork *physicsWork;
 
-    var_r31 = &((UnkM410Struct2 *)lbl_1_bss_54->data)[arg0];
-    arg1->x = var_r31->unk_04.x;
-    arg1->y = var_r31->unk_04.y;
-    arg1->z = var_r31->unk_04.z;
+    physicsWork = &((PlayerPhysicsWork *)goalObject->data)[playerIndex];
+    positionOut->x = physicsWork->position.x;
+    positionOut->y = physicsWork->position.y;
+    positionOut->z = physicsWork->position.z;
 }
 
-void fn_1_7840(u16 arg0, Vec *arg1)
+void GetPlayerVelocity(u16 playerIndex, Vec *velocityOut)
 {
-    UnkM410Struct2 *var_r31;
+    PlayerPhysicsWork *physicsWork;
 
-    var_r31 = &((UnkM410Struct2 *)lbl_1_bss_54->data)[arg0];
-    arg1->x = var_r31->unk_1C.x;
-    arg1->y = var_r31->unk_1C.y;
-    arg1->z = var_r31->unk_1C.z;
+    physicsWork = &((PlayerPhysicsWork *)goalObject->data)[playerIndex];
+    velocityOut->x = physicsWork->velocity.x;
+    velocityOut->y = physicsWork->velocity.y;
+    velocityOut->z = physicsWork->velocity.z;
 }
 
-void fn_1_7888(u16 arg0, u16 arg1, Vec *arg2)
+void GetPlayerFuturePosition(u16 playerIndex, u16 framesAhead, Vec *positionOut)
 {
-    Vec sp8;
-    UnkM410Struct2 *var_r31;
+    Vec temporaryPosition;
+    PlayerPhysicsWork *physicsWork;
 
-    var_r31 = &((UnkM410Struct2 *)lbl_1_bss_54->data)[arg0];
-    sp8.x = var_r31->unk_04.x + var_r31->unk_1C.x * arg1;
-    sp8.y = var_r31->unk_04.y + var_r31->unk_1C.y * arg1;
-    sp8.z = var_r31->unk_04.z + var_r31->unk_1C.z * arg1;
-    if (var_r31->unk_1C.x < 0.0f) {
-        while (sp8.x < -750.0f) {
-            sp8.x += 1500.0f;
+    physicsWork = &((PlayerPhysicsWork *)goalObject->data)[playerIndex];
+    temporaryPosition.x = physicsWork->position.x + physicsWork->velocity.x * framesAhead;
+    temporaryPosition.y = physicsWork->position.y + physicsWork->velocity.y * framesAhead;
+    temporaryPosition.z = physicsWork->position.z + physicsWork->velocity.z * framesAhead;
+    if (physicsWork->velocity.x < 0.0f) {
+        while (temporaryPosition.x < -750.0f) {
+            temporaryPosition.x += 1500.0f;
         }
     }
     else {
-        while (sp8.x > 750.0f) {
-            sp8.x -= 1500.0f;
+        while (temporaryPosition.x > 750.0f) {
+            temporaryPosition.x -= 1500.0f;
         }
     }
-    arg2->x = sp8.x;
-    arg2->y = sp8.y;
-    arg2->z = sp8.z;
+    positionOut->x = temporaryPosition.x;
+    positionOut->y = temporaryPosition.y;
+    positionOut->z = temporaryPosition.z;
 }
 
-s32 fn_1_79F8(s16 arg0, char *arg1, Mtx arg2)
+s32 FindModelJointMatrix(s16 modelId, char *jointName, Mtx transformOut)
 {
-    Mtx sp44;
-    Mtx sp14;
-    HSFDATA *var_r30;
-    HU3DMODEL *var_r31;
+    Mtx temporaryTransform;
+    Mtx temporaryTransform2;
+    HSFDATA *stateValue;
+    HU3DMODEL *model;
 
-    var_r31 = &Hu3DData[arg0];
-    var_r30 = var_r31->hsf;
-    lbl_1_bss_30 = 0;
-    mtxRot(sp14, var_r31->rot.x, var_r31->rot.y, var_r31->rot.z);
-    MTXScale(sp44, var_r31->scale.x, var_r31->scale.y, var_r31->scale.z);
-    MTXConcat(sp14, sp44, sp44);
-    mtxTransCat(sp44, var_r31->pos.x, var_r31->pos.y, var_r31->pos.z);
-    fn_1_7AC4(var_r30->root, sp44, arg1, arg2);
-    return lbl_1_bss_30;
+    model = &Hu3DData[modelId];
+    stateValue = model->hsf;
+    jointSearchSucceeded = 0;
+    mtxRot(temporaryTransform2, model->rot.x, model->rot.y, model->rot.z);
+    MTXScale(temporaryTransform, model->scale.x, model->scale.y, model->scale.z);
+    MTXConcat(temporaryTransform2, temporaryTransform, temporaryTransform);
+    mtxTransCat(temporaryTransform, model->pos.x, model->pos.y, model->pos.z);
+    SearchJointHierarchy(stateValue->root, temporaryTransform, jointName, transformOut);
+    return jointSearchSucceeded;
 }
 
-void fn_1_7AC4(HSFOBJECT *arg0, Mtx arg1, char *arg2, Mtx arg3)
+void SearchJointHierarchy(HSFOBJECT *joint, Mtx parentTransform, char *jointName, Mtx transformOut)
 {
-    Mtx sp15C;
-    Mtx sp12C;
-    Mtx spFC;
-    Mtx spCC;
-    Mtx sp9C;
-    Mtx sp6C;
-    Mtx sp3C;
-    Mtx spC;
+    Mtx temporaryTransform;
+    Mtx temporaryTransform2;
+    Mtx temporaryTransform3;
+    Mtx temporaryTransform4;
+    Mtx temporaryTransform5;
+    Mtx temporaryTransform6;
+    Mtx temporaryTransform7;
+    Mtx temporaryTransform8;
 
-    HSFTRANSFORM *var_r31;
-    HSFTRANSFORM *var_r30;
-    HSFTRANSFORM *var_r29;
-    HSFTRANSFORM *var_r28;
-    HSFOBJECT *var_r27;
-    HSFOBJECT *var_r26;
-    HSFOBJECT *var_r25;
-    u32 var_r23;
-    u32 var_r22;
-    u32 var_r21;
-    u32 var_r20;
+    HSFTRANSFORM *stateValue;
+    HSFTRANSFORM *stateValue2;
+    HSFTRANSFORM *stateValue3;
+    HSFTRANSFORM *stateValue4;
+    HSFOBJECT *joint2;
+    HSFOBJECT *joint3;
+    u32 loopIndex;
+    u32 loopIndex2;
+    u32 loopIndex3;
+    u32 loopIndex4;
 
-    if (lbl_1_bss_30) {
+    if (jointSearchSucceeded) {
         return;
     }
-    var_r31 = &arg0->mesh.curr;
+    stateValue = &joint->mesh.curr;
 
-    mtxRot(sp12C, var_r31->rot.x, var_r31->rot.y, var_r31->rot.z);
-    MTXScale(sp15C, var_r31->scale.x, var_r31->scale.y, var_r31->scale.z);
-    MTXConcat(sp12C, sp15C, sp15C);
-    mtxTransCat(sp15C, var_r31->pos.x, var_r31->pos.y, var_r31->pos.z);
-    MTXConcat(arg1, sp15C, sp15C);
-    if (!strcmp(arg2, arg0->name)) {
-        MTXCopy(sp15C, arg3);
-        lbl_1_bss_30 = 1;
+    mtxRot(temporaryTransform2, stateValue->rot.x, stateValue->rot.y, stateValue->rot.z);
+    MTXScale(temporaryTransform, stateValue->scale.x, stateValue->scale.y, stateValue->scale.z);
+    MTXConcat(temporaryTransform2, temporaryTransform, temporaryTransform);
+    mtxTransCat(temporaryTransform, stateValue->pos.x, stateValue->pos.y, stateValue->pos.z);
+    MTXConcat(parentTransform, temporaryTransform, temporaryTransform);
+    if (!strcmp(jointName, joint->name)) {
+        MTXCopy(temporaryTransform, transformOut);
+        jointSearchSucceeded = 1;
     }
 
-    for (var_r23 = 0; var_r23 < arg0->mesh.childrenCount; var_r23++) {
-        var_r27 = arg0->mesh.children[var_r23];
-        if (!lbl_1_bss_30) {
-            var_r30 = &var_r27->mesh.curr;
-            mtxRot(spFC, var_r30->rot.x, var_r30->rot.y, var_r30->rot.z);
-            MTXScale(spCC, var_r30->scale.x, var_r30->scale.y, var_r30->scale.z);
-            MTXConcat(spFC, spCC, spCC);
-            mtxTransCat(spCC, var_r30->pos.x, var_r30->pos.y, var_r30->pos.z);
-            MTXConcat(sp15C, spCC, spCC);
-            if (!strcmp(arg2, var_r27->name)) {
-                MTXCopy(spCC, arg3);
-                lbl_1_bss_30 = 1;
+    for (loopIndex = 0; loopIndex < joint->mesh.childrenCount; loopIndex++) {
+        joint = joint->mesh.children[loopIndex];
+        if (!jointSearchSucceeded) {
+            stateValue2 = &joint->mesh.curr;
+            mtxRot(temporaryTransform3, stateValue2->rot.x, stateValue2->rot.y, stateValue2->rot.z);
+            MTXScale(temporaryTransform4, stateValue2->scale.x, stateValue2->scale.y, stateValue2->scale.z);
+            MTXConcat(temporaryTransform3, temporaryTransform4, temporaryTransform4);
+            mtxTransCat(temporaryTransform4, stateValue2->pos.x, stateValue2->pos.y, stateValue2->pos.z);
+            MTXConcat(temporaryTransform, temporaryTransform4, temporaryTransform4);
+            if (!strcmp(jointName, joint->name)) {
+                MTXCopy(temporaryTransform4, transformOut);
+                jointSearchSucceeded = 1;
             }
-            for (var_r22 = 0; var_r22 < var_r27->mesh.childrenCount; var_r22++) {
-                var_r26 = var_r27->mesh.children[var_r22];
-                if (!lbl_1_bss_30) {
-                    var_r29 = &var_r26->mesh.curr;
-                    mtxRot(sp9C, var_r29->rot.x, var_r29->rot.y, var_r29->rot.z);
-                    MTXScale(sp6C, var_r29->scale.x, var_r29->scale.y, var_r29->scale.z);
-                    MTXConcat(sp9C, sp6C, sp6C);
-                    mtxTransCat(sp6C, var_r29->pos.x, var_r29->pos.y, var_r29->pos.z);
-                    MTXConcat(spCC, sp6C, sp6C);
-                    if (!strcmp(arg2, var_r26->name)) {
-                        MTXCopy(sp6C, arg3);
-                        lbl_1_bss_30 = 1;
+            for (loopIndex2 = 0; loopIndex2 < joint->mesh.childrenCount; loopIndex2++) {
+                joint2 = joint->mesh.children[loopIndex2];
+                if (!jointSearchSucceeded) {
+                    stateValue3 = &joint2->mesh.curr;
+                    mtxRot(temporaryTransform5, stateValue3->rot.x, stateValue3->rot.y, stateValue3->rot.z);
+                    MTXScale(temporaryTransform6, stateValue3->scale.x, stateValue3->scale.y, stateValue3->scale.z);
+                    MTXConcat(temporaryTransform5, temporaryTransform6, temporaryTransform6);
+                    mtxTransCat(temporaryTransform6, stateValue3->pos.x, stateValue3->pos.y, stateValue3->pos.z);
+                    MTXConcat(temporaryTransform4, temporaryTransform6, temporaryTransform6);
+                    if (!strcmp(jointName, joint2->name)) {
+                        MTXCopy(temporaryTransform6, transformOut);
+                        jointSearchSucceeded = 1;
                     }
 
-                    for (var_r21 = 0; var_r21 < var_r26->mesh.childrenCount; var_r21++) {
-                        var_r25 = var_r26->mesh.children[var_r21];
-                        if (!lbl_1_bss_30) {
-                            var_r28 = &var_r25->mesh.curr;
-                            mtxRot(sp3C, var_r28->rot.x, var_r28->rot.y, var_r28->rot.z);
-                            MTXScale(spC, var_r28->scale.x, var_r28->scale.y, var_r28->scale.z);
-                            MTXConcat(sp3C, spC, spC);
-                            mtxTransCat(spC, var_r28->pos.x, var_r28->pos.y, var_r28->pos.z);
-                            MTXConcat(sp6C, spC, spC);
-                            if (!strcmp(arg2, var_r25->name)) {
-                                MTXCopy(spC, arg3);
-                                lbl_1_bss_30 = 1;
+                    for (loopIndex3 = 0; loopIndex3 < joint2->mesh.childrenCount; loopIndex3++) {
+                        joint3 = joint2->mesh.children[loopIndex3];
+                        if (!jointSearchSucceeded) {
+                            stateValue4 = &joint3->mesh.curr;
+                            mtxRot(temporaryTransform7, stateValue4->rot.x, stateValue4->rot.y, stateValue4->rot.z);
+                            MTXScale(temporaryTransform8, stateValue4->scale.x, stateValue4->scale.y, stateValue4->scale.z);
+                            MTXConcat(temporaryTransform7, temporaryTransform8, temporaryTransform8);
+                            mtxTransCat(temporaryTransform8, stateValue4->pos.x, stateValue4->pos.y, stateValue4->pos.z);
+                            MTXConcat(temporaryTransform6, temporaryTransform8, temporaryTransform8);
+                            if (!strcmp(jointName, joint3->name)) {
+                                MTXCopy(temporaryTransform8, transformOut);
+                                jointSearchSucceeded = 1;
                             }
 
-                            for (var_r20 = 0; var_r20 < var_r25->mesh.childrenCount; var_r20++) {
-                                fn_1_7AC4(var_r25->mesh.children[var_r20], spC, arg2, arg3);
+                            for (loopIndex4 = 0; loopIndex4 < joint3->mesh.childrenCount; loopIndex4++) {
+                                SearchJointHierarchy(joint3->mesh.children[loopIndex4], temporaryTransform8, jointName, transformOut);
                             }
                         }
                     }

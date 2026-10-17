@@ -1,20 +1,20 @@
 #include "game/hu3d.h"
 #include "game/object.h"
 
-void fn_1_31FC(OMOBJ *object);
-void fn_1_3350(OMOBJ *object);
+void CreateStageBackground(OMOBJ *object);
+void UpdateStageBackground(OMOBJ *object);
 
-void fn_1_31A4(HUPROCESS *process)
+void InitializeStageObjects(HUPROCESS *process)
 {
-    OMOBJ *var_r31;
+    OMOBJ *object;
 
-    var_r31 = omAddObjEx(process, 30, 6, 0, -1, fn_1_31FC);
-    var_r31->work[0] = 0;
+    object = omAddObjEx(process, 30, 6, 0, -1, CreateStageBackground);
+    object->work[0] = 0;
 }
 
-void fn_1_31F8(void) { }
+void InitializeStageState(void) { }
 
-void fn_1_31FC(OMOBJ *object)
+void CreateStageBackground(OMOBJ *object)
 {
     omSetTra(object, 0.0f, 0.0f, 0.0f);
     object->mdlId[0] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M410, 13));
@@ -26,10 +26,10 @@ void fn_1_31FC(OMOBJ *object)
     object->mdlId[4] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M410, 17));
     Hu3DModelAttrSet(object->mdlId[4], HU3D_MOTATTR_LOOP);
     object->mdlId[5] = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M410, 18));
-    object->objFunc = fn_1_3350;
+    object->objFunc = UpdateStageBackground;
 }
 
-void fn_1_3350(OMOBJ *object)
+void UpdateStageBackground(OMOBJ *object)
 {
     Hu3DModelPosSet(object->mdlId[5], Center.x, Center.y, Center.z);
 }
