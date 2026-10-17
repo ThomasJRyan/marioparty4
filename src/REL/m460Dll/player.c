@@ -16,60 +16,60 @@
 #include "game/frand.h"
 #endif
 
-typedef struct UnkData110Struct {
-    /* 0x00 */ u16 unk_00;
-    /* 0x04 */ float unk_04;
-    /* 0x08 */ float unk_08;
-    /* 0x0C */ float unk_0C;
-    /* 0x10 */ u32 unk_10;
-} UnkData110Struct; /* size = 0x14 */
+typedef struct M460PlayerMotionConfig {
+    /* 0x00 */ u16 motionIndex;
+    /* 0x04 */ float blendDuration;
+    /* 0x08 */ float motionStartFrame;
+    /* 0x0C */ float motionEndFrame;
+    /* 0x10 */ u32 motionFlags;
+} M460PlayerMotionConfig; /* size = 0x14 */
 
-typedef struct UnkM460DllPlayerWork {
-    s32 unk_00;
-    s32 unk_04;
-    s32 unk_08;
-    s32 unk_0C;
-    s32 unk_10;
-    u32 unk_14;
-    u32 unk_18;
-    float unk_1C;
-    float unk_20;
-    s32 unk_24;
-    s32 unk_28;
-    u16 unk_2C;
-    s32 unk_30;
-    char unk34[0x4];
-    s16 unk_38;
-    char unk3A[6];
-    s32 unk_40;
-    float unk_44;
-    float unk_48;
-    float unk_4C;
-    float unk_50;
-    float unk_54;
-    s32 unk_58;
-    float unk_5C;
-    Vec unk_60;
-    Vec unk_6C;
-    Vec unk_78;
-    s32 unk_84;
-} UnkM460DllPlayerWork; /* size = 0x88 */
+typedef struct M460PlayerWork {
+    s32 characterModelId;
+    s32 motionId;
+    s32 playerSlot;
+    s32 motionFlags;
+    s32 actionFlags;
+    u32 buttonPressed;
+    u32 buttonReleased;
+    float movementAngle;
+    float movementSpeed;
+    s32 isComputerPlayer;
+    s32 isRunning;
+    u16 actionState;
+    s32 actionTimer;
+    char unreferencedPlayerData34[0x4];
+    s16 motionFrame;
+    char unreferencedMotionData[6];
+    s32 motionStatus;
+    float currentYaw;
+    float targetYaw;
+    float turnProgress;
+    float turnSpeed;
+    float movementScale;
+    s32 soundState;
+    float jumpHeight;
+    Vec position;
+    Vec velocity;
+    Vec targetPosition;
+    s32 soundEmitterId;
+} M460PlayerWork; /* size = 0x88 */
 
-void fn_1_4C08(OMOBJ *object);
-void fn_1_4F6C(OMOBJ *object);
-void fn_1_5168(OMOBJ *object);
-void fn_1_55EC(OMOBJ *object);
-void fn_1_57D8(OMOBJ *object);
-s32 fn_1_58C8(OMOBJ *object, float arg8, float arg9);
-void fn_1_5A14(OMOBJ *object);
-void fn_1_5C88(OMOBJ *object);
-void fn_1_5CE0(OMOBJ *object, u32 arg1);
-s32 fn_1_5E6C(OMOBJ *object);
-void fn_1_60B0(OMOBJ *object);
-void fn_1_61F4(OMOBJ *object);
+void M460InitializePlayer(OMOBJ *object);
+void M460UpdatePlayerSelection(OMOBJ *object);
+void M460UpdatePlayerRound(OMOBJ *object);
+void M460UpdatePlayerResults(OMOBJ *object);
+void M460UpdatePlayerTurning(OMOBJ *object);
+s32 M460UpdatePlayerMovement(OMOBJ *object, float maxSpeed, float movementAcceleration);
+void M460UpdatePlayerAnimation(OMOBJ *object);
+void M460BeginPlayerAction(OMOBJ *object);
+void M460SetPlayerAction(OMOBJ *object, u32 motionAction);
+s32 M460IsPlayerActionDone(OMOBJ *object);
+void M460InitializeSpectator(OMOBJ *object);
+void M460UpdateSpectator(OMOBJ *object);
 
-u32 lbl_1_data_F0[8] = { 0, 2, 3, 0x590015, 0x59000D, 0x17, 0x18, 0x1A };
-struct UnkData110Struct lbl_1_data_110[8] = {
+u32 playerMotionFileIds[8] = { 0, 2, 3, 0x590015, 0x59000D, 0x17, 0x18, 0x1A };
+struct M460PlayerMotionConfig playerMotionConfigs[8] = {
     { 0, 0.2f, 0.0f, -1.0f, 0x40000001 },
     { 1, 0.2f, 0.0f, -1.0f, 0x40000001 },
     { 2, 0.2f, 0.0f, -1.0f, 0x40000001 },
@@ -80,469 +80,469 @@ struct UnkData110Struct lbl_1_data_110[8] = {
     { 7, 0.2f, 0.0f, -1.0f, 0x40000001 },
 };
 
-OMOBJ *lbl_1_bss_40[1];
-OMOBJ *lbl_1_bss_3C;
-s32 lbl_1_bss_38[1];
+OMOBJ *playerObjects[1];
+OMOBJ *spectatorObject;
+s32 playerSlotByObject[1];
 
-void fn_1_49A0(HUPROCESS *process)
+void M460CreatePlayerObjects(HUPROCESS *process)
 {
-    u32 spC[1];
-    u32 sp8[1];
+    u32 playerGroupIds[1];
+    u32 playerSlotOrder[1];
 
-    s16 var_r31;
-    s16 var_r30;
-    u32 var_r29;
-    OMOBJ *var_r27;
+    s16 playerIndex;
+    s16 nextPlayerIndex;
+    u32 swapValue;
+    OMOBJ *playerObject;
 
-    for (var_r31 = 0; var_r31 < 1; var_r31++) {
-        spC[var_r31] = GWPlayerCfg[var_r31].group;
-        sp8[var_r31] = var_r31;
+    for (playerIndex = 0; playerIndex < 1; playerIndex++) {
+        playerGroupIds[playerIndex] = GWPlayerCfg[playerIndex].group;
+        playerSlotOrder[playerIndex] = playerIndex;
     }
-    for (var_r31 = 0; var_r31 < 0; var_r31++) {
-        for (var_r30 = var_r31 + 1; var_r30 < 1; var_r30++) {
-            if (spC[var_r31] > spC[var_r30]) {
-                var_r29 = spC[var_r31];
-                spC[var_r31] = spC[var_r30];
-                spC[var_r30] = var_r29;
-                var_r29 = sp8[var_r31];
-                sp8[var_r31] = sp8[var_r30];
-                sp8[var_r30] = var_r29;
+    for (playerIndex = 0; playerIndex < 0; playerIndex++) {
+        for (nextPlayerIndex = playerIndex + 1; nextPlayerIndex < 1; nextPlayerIndex++) {
+            if (playerGroupIds[playerIndex] > playerGroupIds[nextPlayerIndex]) {
+                swapValue = playerGroupIds[playerIndex];
+                playerGroupIds[playerIndex] = playerGroupIds[nextPlayerIndex];
+                playerGroupIds[nextPlayerIndex] = swapValue;
+                swapValue = playerSlotOrder[playerIndex];
+                playerSlotOrder[playerIndex] = playerSlotOrder[nextPlayerIndex];
+                playerSlotOrder[nextPlayerIndex] = swapValue;
             }
         }
     }
-    for (var_r31 = 0; var_r31 < 1; var_r31++) {
-        lbl_1_bss_38[sp8[var_r31]] = var_r31;
+    for (playerIndex = 0; playerIndex < 1; playerIndex++) {
+        playerSlotByObject[playerSlotOrder[playerIndex]] = playerIndex;
     }
     omMakeGroupEx(process, 0, 1);
     omGetGroupMemberListEx(process, 0);
-    for (var_r31 = 0; var_r31 < 1; var_r31++) {
-        var_r27 = lbl_1_bss_40[var_r31] = omAddObjEx(process, 0x28, 1, 8, 0, fn_1_4C08);
-        var_r27->work[0] = var_r31;
+    for (playerIndex = 0; playerIndex < 1; playerIndex++) {
+        playerObject = playerObjects[playerIndex] = omAddObjEx(process, 0x28, 1, 8, 0, M460InitializePlayer);
+        playerObject->work[0] = playerIndex;
     }
-    lbl_1_bss_3C = omAddObjEx(process, 0x28, 1, 5, -1, fn_1_60B0);
+    spectatorObject = omAddObjEx(process, 0x28, 1, 5, -1, M460InitializeSpectator);
 }
 
-void fn_1_4BE4(void)
+void M460DestroyPlayerObjects(void)
 {
     CharModelKill(-1);
 }
 
-void fn_1_4C08(OMOBJ *object)
+void M460InitializePlayer(OMOBJ *object)
 {
-    UnkM460DllPlayerWork *var_r31;
-    s32 var_r29;
+    M460PlayerWork *playerWork;
+    s32 motionIndex;
 
-    float sp8[4] = { 0.25f, 0.5f, 0.75f, 1.0f };
-    Vec sp18[4] = {
+    float movementSpeed[4] = { 0.25f, 0.5f, 0.75f, 1.0f };
+    Vec position2[4] = {
         { 0.0f, 0.0f, 300.0f },
         { -450.0f, 0.0f, -50.0f },
         { 0.0f, 0.0f, -350.0f },
         { 450.0f, 0.0f, -50.0f },
     };
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM460DllPlayerWork), HU_MEMNUM_OVL);
-    var_r31 = object->data;
-    memset(var_r31, 0, sizeof(UnkM460DllPlayerWork));
+    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M460PlayerWork), HU_MEMNUM_OVL);
+    playerWork = object->data;
+    memset(playerWork, 0, sizeof(M460PlayerWork));
     object->stat |= 0x100;
-    var_r31->unk_00 = GWPlayerCfg[object->work[0]].character;
-    var_r31->unk_08 = lbl_1_bss_38[object->work[0]];
-    fn_1_41B4(object->work[0], var_r31->unk_08, var_r31->unk_00);
-    var_r31->unk_54 = sp8[GWPlayerCfg[object->work[0]].diff & 3];
-    var_r31->unk_24 = GWPlayerCfg[object->work[0]].iscom;
-    object->mdlId[0] = CharModelCreate(var_r31->unk_00, 2);
+    playerWork->characterModelId = GWPlayerCfg[object->work[0]].character;
+    playerWork->playerSlot = playerSlotByObject[object->work[0]];
+    M460SetPlayerResult(object->work[0], playerWork->playerSlot, playerWork->characterModelId);
+    playerWork->movementScale = movementSpeed[GWPlayerCfg[object->work[0]].diff & 3];
+    playerWork->isComputerPlayer = GWPlayerCfg[object->work[0]].iscom;
+    object->mdlId[0] = CharModelCreate(playerWork->characterModelId, 2);
     Hu3DModelLayerSet(object->mdlId[0], 1);
     CharEffectLayerSet(2);
     Hu3DModelShadowSet(object->mdlId[0]);
-    for (var_r29 = 0; var_r29 < 8; var_r29++) {
-        if (lbl_1_data_F0[var_r29] < 0x10000) {
-            object->mtnId[var_r29] = CharMotionCreate(var_r31->unk_00, lbl_1_data_F0[var_r29]);
+    for (motionIndex = 0; motionIndex < 8; motionIndex++) {
+        if (playerMotionFileIds[motionIndex] < 0x10000) {
+            object->mtnId[motionIndex] = CharMotionCreate(playerWork->characterModelId, playerMotionFileIds[motionIndex]);
         }
         else {
-            object->mtnId[var_r29] = Hu3DJointMotionFile(object->mdlId[0], var_r31->unk_00 + lbl_1_data_F0[var_r29]);
+            object->mtnId[motionIndex] = Hu3DJointMotionFile(object->mdlId[0], playerWork->characterModelId + playerMotionFileIds[motionIndex]);
         }
     }
-    CharMotionDataClose(var_r31->unk_00);
+    CharMotionDataClose(playerWork->characterModelId);
     CharNpcDustVoiceOffSet(object->mdlId[0], object->mtnId[3], 1);
-    object->trans.x = var_r31->unk_60.x = sp18[var_r31->unk_08].x;
-    object->trans.y = var_r31->unk_60.y = sp18[var_r31->unk_08].y;
-    object->trans.z = var_r31->unk_60.z = sp18[var_r31->unk_08].z;
-    var_r31->unk_44 = var_r31->unk_48 = 0.0f;
-    var_r31->unk_4C = 0.0f;
-    var_r31->unk_50 = 0.02f;
-    var_r31->unk_5C = 50.0f;
-    var_r31->unk_58 = 0;
-    var_r31->unk_2C = 0;
-    var_r31->unk_04 = -1;
-    fn_1_5CE0(object, 0);
-    var_r31->unk_84 = -1;
-    object->objFunc = fn_1_4F6C;
+    object->trans.x = playerWork->position.x = position2[playerWork->playerSlot].x;
+    object->trans.y = playerWork->position.y = position2[playerWork->playerSlot].y;
+    object->trans.z = playerWork->position.z = position2[playerWork->playerSlot].z;
+    playerWork->currentYaw = playerWork->targetYaw = 0.0f;
+    playerWork->turnProgress = 0.0f;
+    playerWork->turnSpeed = 0.02f;
+    playerWork->jumpHeight = 50.0f;
+    playerWork->soundState = 0;
+    playerWork->actionState = 0;
+    playerWork->motionId = -1;
+    M460SetPlayerAction(object, 0);
+    playerWork->soundEmitterId = -1;
+    object->objFunc = M460UpdatePlayerSelection;
 }
 
-void fn_1_4F6C(OMOBJ *object)
+void M460UpdatePlayerSelection(OMOBJ *object)
 {
-    UnkM460DllPlayerWork *var_r31;
-    s32 var_r29;
+    M460PlayerWork *playerWork;
+    s32 reachedTarget;
 
-    var_r31 = object->data;
-    var_r31->unk_14 = var_r31->unk_18 = 0;
-    var_r31->unk_0C = var_r31->unk_10 = 0;
-    var_r31->unk_1C = 0.0f;
-    var_r31->unk_20 = 0.0f;
-    switch (var_r31->unk_2C) {
+    playerWork = object->data;
+    playerWork->buttonPressed = playerWork->buttonReleased = 0;
+    playerWork->motionFlags = playerWork->actionFlags = 0;
+    playerWork->movementAngle = 0.0f;
+    playerWork->movementSpeed = 0.0f;
+    switch (playerWork->actionState) {
         case 0:
-            var_r31->unk_44 = var_r31->unk_48 = 180.0f;
-            var_r31->unk_60.x = 0.0f;
-            var_r31->unk_60.y = 0.0f;
-            var_r31->unk_60.z = -450.0f;
-            fn_1_5CE0(object, 7);
-            var_r31->unk_2C = 1;
-            var_r31->unk_30 = 0;
+            playerWork->currentYaw = playerWork->targetYaw = 180.0f;
+            playerWork->position.x = 0.0f;
+            playerWork->position.y = 0.0f;
+            playerWork->position.z = -450.0f;
+            M460SetPlayerAction(object, 7);
+            playerWork->actionState = 1;
+            playerWork->actionTimer = 0;
             break;
         case 1:
-            if (fn_1_414C() == 1) {
-                var_r31->unk_60.x = 0.0f;
-                var_r31->unk_60.y = 0.0f;
-                var_r31->unk_60.z = -100.0f;
-                var_r31->unk_78.x = 0.0f;
-                var_r31->unk_78.y = 0.0f;
-                var_r31->unk_78.z = -450.0f;
-                var_r31->unk_2C = 2;
-                var_r31->unk_30 = 0;
+            if (M460GetResultState() == 1) {
+                playerWork->position.x = 0.0f;
+                playerWork->position.y = 0.0f;
+                playerWork->position.z = -100.0f;
+                playerWork->targetPosition.x = 0.0f;
+                playerWork->targetPosition.y = 0.0f;
+                playerWork->targetPosition.z = -450.0f;
+                playerWork->actionState = 2;
+                playerWork->actionTimer = 0;
             }
             break;
         case 2:
-            var_r29 = fn_1_58C8(object, 0.5f, 20.0f);
-            fn_1_5A14(object);
-            if (var_r29 != 0) {
-                var_r31->unk_2C = 3;
-                var_r31->unk_30 = 0;
+            reachedTarget = M460UpdatePlayerMovement(object, 0.5f, 20.0f);
+            M460UpdatePlayerAnimation(object);
+            if (reachedTarget != 0) {
+                playerWork->actionState = 3;
+                playerWork->actionTimer = 0;
             }
             break;
     }
-    VECAdd(&var_r31->unk_60, &var_r31->unk_6C, &var_r31->unk_60);
-    fn_1_57D8(object);
-    if (fn_1_414C() == 2) {
-        var_r31->unk_2C = 0;
-        object->objFunc = fn_1_5168;
+    VECAdd(&playerWork->position, &playerWork->velocity, &playerWork->position);
+    M460UpdatePlayerTurning(object);
+    if (M460GetResultState() == 2) {
+        playerWork->actionState = 0;
+        object->objFunc = M460UpdatePlayerRound;
     }
 }
 
-void fn_1_5168(OMOBJ *object)
+void M460UpdatePlayerRound(OMOBJ *object)
 {
-    UnkM460DllPlayerWork *var_r31;
-    s32 var_r29;
-    u32 var_r28;
-    s32 var_r27;
+    M460PlayerWork *playerWork;
+    s32 reachedTarget;
+    u32 selectionState;
+    s32 playerReadyForResults;
 
-    var_r31 = object->data;
-    var_r27 = 0;
+    playerWork = object->data;
+    playerReadyForResults = 0;
     {
-        Vec sp20[2] = {
+        Vec selectionPositions[2] = {
             { -250.0f, 0.0f, -900.0f },
             { 250.0f, 0.0f, -900.0f },
         };
 
-        Vec sp8[2] = {
+        Vec resultPositions[2] = {
             { -250.0f, 0.0f, -1400.0f },
             { 250.0f, 0.0f, -1400.0f },
         };
-        var_r31->unk_14 = var_r31->unk_18 = 0;
-        var_r31->unk_0C = var_r31->unk_10 = 0;
-        var_r31->unk_1C = 0.0f;
-        var_r31->unk_20 = 0.0f;
-        if (fn_1_4164() == 2) {
-            if (var_r31->unk_24 != 0) {
-                fn_1_5C88(object);
+        playerWork->buttonPressed = playerWork->buttonReleased = 0;
+        playerWork->motionFlags = playerWork->actionFlags = 0;
+        playerWork->movementAngle = 0.0f;
+        playerWork->movementSpeed = 0.0f;
+        if (M460GetRoundState() == 2) {
+            if (playerWork->isComputerPlayer != 0) {
+                M460BeginPlayerAction(object);
             }
             else {
                 if (HuPadTrigL[GWPlayerCfg[object->work[0]].pad_idx] > 0x28) {
-                    var_r31->unk_14 = 1;
+                    playerWork->buttonPressed = 1;
                 }
                 if (HuPadTrigR[GWPlayerCfg[object->work[0]].pad_idx] > 0x28) {
-                    var_r31->unk_18 = 1;
+                    playerWork->buttonReleased = 1;
                 }
             }
         }
-        switch (var_r31->unk_2C) {
+        switch (playerWork->actionState) {
             case 0:
-                if (fn_1_4370() != 0) {
-                    var_r31->unk_60.x = -140.0f;
-                    var_r31->unk_60.y = 0.0f;
-                    var_r31->unk_60.z = -150.0f;
+                if (M460GetCurrentFrameCount() != 0) {
+                    playerWork->position.x = -140.0f;
+                    playerWork->position.y = 0.0f;
+                    playerWork->position.z = -150.0f;
                 }
-                var_r31->unk_78.x = 0.0f;
-                var_r31->unk_78.y = 0.0f;
-                var_r31->unk_78.z = -450.0f;
-                var_r31->unk_40 = 3;
-                var_r31->unk_2C = 4;
+                playerWork->targetPosition.x = 0.0f;
+                playerWork->targetPosition.y = 0.0f;
+                playerWork->targetPosition.z = -450.0f;
+                playerWork->motionStatus = 3;
+                playerWork->actionState = 4;
             case 4:
-                var_r29 = fn_1_58C8(object, 0.5f, 20.0f);
-                fn_1_5A14(object);
-                if ((var_r29 != 0) && (fn_1_4164() == 2)) {
-                    var_r31->unk_48 = 180.0f;
-                    var_r31->unk_6C.x = var_r31->unk_6C.y = var_r31->unk_6C.z = 0.0f;
-                    var_r31->unk_2C = 5;
+                reachedTarget = M460UpdatePlayerMovement(object, 0.5f, 20.0f);
+                M460UpdatePlayerAnimation(object);
+                if ((reachedTarget != 0) && (M460GetRoundState() == 2)) {
+                    playerWork->targetYaw = 180.0f;
+                    playerWork->velocity.x = playerWork->velocity.y = playerWork->velocity.z = 0.0f;
+                    playerWork->actionState = 5;
                 }
                 break;
             case 5:
-                var_r29 = 0;
-                fn_1_5A14(object);
-                if (CharMotionShiftIDGet(var_r31->unk_00) < 0) {
-                    var_r29 = 1;
+                reachedTarget = 0;
+                M460UpdatePlayerAnimation(object);
+                if (CharMotionShiftIDGet(playerWork->characterModelId) < 0) {
+                    reachedTarget = 1;
                 }
-                var_r28 = fn_1_42F0();
-                if (var_r28 == 3) {
-                    if (var_r29 != 0) {
-                        if (var_r31->unk_14 != 0) {
-                            var_r28 = 0;
+                selectionState = M460GetSelectionState();
+                if (selectionState == 3) {
+                    if (reachedTarget != 0) {
+                        if (playerWork->buttonPressed != 0) {
+                            selectionState = 0;
                         }
-                        else if (var_r31->unk_18 != 0) {
-                            var_r28 = 1;
+                        else if (playerWork->buttonReleased != 0) {
+                            selectionState = 1;
                         }
-                        if (var_r28 != 3) {
-                            fn_1_42BC(var_r28);
+                        if (selectionState != 3) {
+                            M460SetSelectionState(selectionState);
                         }
                     }
                 }
                 else {
-                    var_r31->unk_40 = var_r28;
-                    var_r31->unk_78 = sp20[var_r31->unk_40];
-                    var_r31->unk_2C = 6;
+                    playerWork->motionStatus = selectionState;
+                    playerWork->targetPosition = selectionPositions[playerWork->motionStatus];
+                    playerWork->actionState = 6;
                 }
                 break;
             case 6:
-                var_r29 = fn_1_58C8(object, 1.0f, 20.0f);
-                fn_1_5A14(object);
-                if (var_r29 != 0) {
-                    fn_1_4308();
-                    var_r31->unk_48 = 180.0f;
-                    var_r31->unk_6C.x = var_r31->unk_6C.y = var_r31->unk_6C.z = 0.0f;
-                    var_r31->unk_2C = 7;
+                reachedTarget = M460UpdatePlayerMovement(object, 1.0f, 20.0f);
+                M460UpdatePlayerAnimation(object);
+                if (reachedTarget != 0) {
+                    M460ConfirmSelection();
+                    playerWork->targetYaw = 180.0f;
+                    playerWork->velocity.x = playerWork->velocity.y = playerWork->velocity.z = 0.0f;
+                    playerWork->actionState = 7;
                 }
                 break;
             case 7:
-                fn_1_5A14(object);
-                if (fn_1_4358() != 0) {
-                    if (fn_1_419C() == 0) {
-                        var_r31->unk_78 = sp8[var_r31->unk_40];
-                        var_r31->unk_2C = 8;
+                M460UpdatePlayerAnimation(object);
+                if (M460IsSelectionReady() != 0) {
+                    if (M460IsGameComplete() == 0) {
+                        playerWork->targetPosition = resultPositions[playerWork->motionStatus];
+                        playerWork->actionState = 8;
                     }
                     else {
-                        var_r27 = 1;
+                        playerReadyForResults = 1;
                     }
                 }
                 break;
             case 8:
-                var_r29 = fn_1_58C8(object, 0.5f, 20.0f);
-                fn_1_5A14(object);
+                reachedTarget = M460UpdatePlayerMovement(object, 0.5f, 20.0f);
+                M460UpdatePlayerAnimation(object);
 
             default:
-                if (fn_1_4164() == 1) {
-                    var_r31->unk_2C = 0;
+                if (M460GetRoundState() == 1) {
+                    playerWork->actionState = 0;
                 }
-                var_r27 = 1;
+                playerReadyForResults = 1;
                 break;
         }
     }
-    VECAdd(&var_r31->unk_60, &var_r31->unk_6C, &var_r31->unk_60);
-    fn_1_57D8(object);
-    if ((fn_1_4164() == 5) && (var_r27 != 0)) {
-        var_r31->unk_2C = 0;
-        object->objFunc = fn_1_55EC;
+    VECAdd(&playerWork->position, &playerWork->velocity, &playerWork->position);
+    M460UpdatePlayerTurning(object);
+    if ((M460GetRoundState() == 5) && (playerReadyForResults != 0)) {
+        playerWork->actionState = 0;
+        object->objFunc = M460UpdatePlayerResults;
     }
 }
 
-void fn_1_55EC(OMOBJ *object)
+void M460UpdatePlayerResults(OMOBJ *object)
 {
-    Vec sp8;
-    UnkM460DllPlayerWork *var_r31;
-    s32 var_r29;
+    Vec emitterPosition;
+    M460PlayerWork *playerWork;
+    s32 reachedTarget;
 
-    var_r31 = object->data;
-    var_r29 = 0;
-    switch (var_r31->unk_2C) {
+    playerWork = object->data;
+    reachedTarget = 0;
+    switch (playerWork->actionState) {
         case 0:
-            fn_1_41F4(object->work[0]);
-            fn_1_5CE0(object, 4);
-            sp8 = var_r31->unk_60;
-            sp8.y += 160.0f;
-            var_r31->unk_2C = 9;
+            M460SetPlayerStateFlag(object->work[0]);
+            M460SetPlayerAction(object, 4);
+            emitterPosition = playerWork->position;
+            emitterPosition.y += 160.0f;
+            playerWork->actionState = 9;
             break;
         case 9:
-            if (fn_1_5E6C(object) != 0) {
-                var_r31->unk_78.x = 0.0f;
-                var_r31->unk_78.y = 0.0f;
-                var_r31->unk_78.z = 500.0f;
-                fn_1_4224(object->work[0]);
-                CharFXPlay(var_r31->unk_00, 0x128);
-                var_r31->unk_28 = 1;
-                var_r31->unk_2C = 0xA;
+            if (M460IsPlayerActionDone(object) != 0) {
+                playerWork->targetPosition.x = 0.0f;
+                playerWork->targetPosition.y = 0.0f;
+                playerWork->targetPosition.z = 500.0f;
+                M460SetCameraStateFlag(object->work[0]);
+                CharFXPlay(playerWork->characterModelId, 0x128);
+                playerWork->isRunning = 1;
+                playerWork->actionState = 0xA;
             }
             break;
         case 10:
-            var_r29 = fn_1_58C8(object, 1.0f, 20.0f);
-            fn_1_5A14(object);
-            if (var_r29 != 0) {
-                var_r31->unk_6C.x = var_r31->unk_6C.y = var_r31->unk_6C.z = 0.0f;
-                var_r31->unk_2C = 0xB;
+            reachedTarget = M460UpdatePlayerMovement(object, 1.0f, 20.0f);
+            M460UpdatePlayerAnimation(object);
+            if (reachedTarget != 0) {
+                playerWork->velocity.x = playerWork->velocity.y = playerWork->velocity.z = 0.0f;
+                playerWork->actionState = 0xB;
             }
             break;
         case 11:
-            fn_1_5CE0(object, 0);
+            M460SetPlayerAction(object, 0);
             break;
     }
-    VECAdd(&var_r31->unk_60, &var_r31->unk_6C, &var_r31->unk_60);
-    fn_1_57D8(object);
-    if (var_r31->unk_84 >= 0) {
-        sp8 = var_r31->unk_60;
-        sp8.y += 160.0f;
-        HuAudFXEmiterUpDate(var_r31->unk_84, &sp8);
+    VECAdd(&playerWork->position, &playerWork->velocity, &playerWork->position);
+    M460UpdatePlayerTurning(object);
+    if (playerWork->soundEmitterId >= 0) {
+        emitterPosition = playerWork->position;
+        emitterPosition.y += 160.0f;
+        HuAudFXEmiterUpDate(playerWork->soundEmitterId, &emitterPosition);
     }
 }
 
-void fn_1_57D8(OMOBJ *object)
+void M460UpdatePlayerTurning(OMOBJ *object)
 {
-    UnkM460DllPlayerWork *var_r31 = object->data;
-    var_r31->unk_38++;
-    var_r31->unk_30++;
-    object->trans.x = var_r31->unk_60.x;
-    object->trans.y = var_r31->unk_60.y;
-    object->trans.z = var_r31->unk_60.z;
-    var_r31->unk_4C = var_r31->unk_4C + var_r31->unk_50;
-    if (var_r31->unk_4C > 0.45f) {
-        var_r31->unk_4C = 0.45f;
+    M460PlayerWork *playerWork = object->data;
+    playerWork->motionFrame++;
+    playerWork->actionTimer++;
+    object->trans.x = playerWork->position.x;
+    object->trans.y = playerWork->position.y;
+    object->trans.z = playerWork->position.z;
+    playerWork->turnProgress = playerWork->turnProgress + playerWork->turnSpeed;
+    if (playerWork->turnProgress > 0.45f) {
+        playerWork->turnProgress = 0.45f;
     }
-    var_r31->unk_44 = fn_1_47D0(var_r31->unk_44, var_r31->unk_48, var_r31->unk_4C);
-    object->rot.y = var_r31->unk_44;
-    Hu3DModelPosSetV(object->mdlId[0], &var_r31->unk_60);
-    Hu3DModelRotSet(object->mdlId[0], 0.0f, var_r31->unk_44, 0.0f);
+    playerWork->currentYaw = M460ApproachAngle(playerWork->currentYaw, playerWork->targetYaw, playerWork->turnProgress);
+    object->rot.y = playerWork->currentYaw;
+    Hu3DModelPosSetV(object->mdlId[0], &playerWork->position);
+    Hu3DModelRotSet(object->mdlId[0], 0.0f, playerWork->currentYaw, 0.0f);
 }
 
-s32 fn_1_58C8(OMOBJ *object, float arg8, float arg9)
+s32 M460UpdatePlayerMovement(OMOBJ *object, float maximumSpeed, float acceleration)
 {
-    Vec spC;
-    float var_f31;
-    UnkM460DllPlayerWork *var_r31;
-    s32 var_r30;
+    Vec targetOffset;
+    float movementSpeed;
+    M460PlayerWork *playerWork;
+    s32 reachedTarget;
 
-    var_r31 = object->data;
-    var_r30 = 0;
-    VECSubtract(&var_r31->unk_78, &var_r31->unk_60, &spC);
-    spC.y = 0.0f;
-    var_f31 = VECMag(&spC);
-    if (var_f31 < arg9) {
-        var_f31 = 0.0f;
-        var_r30 = 1;
+    playerWork = object->data;
+    reachedTarget = 0;
+    VECSubtract(&playerWork->targetPosition, &playerWork->position, &targetOffset);
+    targetOffset.y = 0.0f;
+    movementSpeed = VECMag(&targetOffset);
+    if (movementSpeed < acceleration) {
+        movementSpeed = 0.0f;
+        reachedTarget = 1;
     }
     else {
-        if (VECMag(&spC) >= 100.0f) {
-            var_f31 = 100.0f;
+        if (VECMag(&targetOffset) >= 100.0f) {
+            movementSpeed = 100.0f;
         }
-        var_f31 = 0.2f + (0.008f * var_f31);
+        movementSpeed = 0.2f + (0.008f * movementSpeed);
     }
-    var_r31->unk_1C = atan2d(spC.x, spC.z);
-    var_r31->unk_20 = var_f31;
-    if (var_r31->unk_20 > arg8) {
-        var_r31->unk_20 = arg8;
+    playerWork->movementAngle = atan2d(targetOffset.x, targetOffset.z);
+    playerWork->movementSpeed = movementSpeed;
+    if (playerWork->movementSpeed > maximumSpeed) {
+        playerWork->movementSpeed = maximumSpeed;
     }
-    return var_r30;
+    return reachedTarget;
 }
 
-void fn_1_5A14(OMOBJ *object)
+void M460UpdatePlayerAnimation(OMOBJ *object)
 {
-    float var_f31;
-    float var_f30;
+    float movementSpeed;
+    float speedScale;
 
-    UnkM460DllPlayerWork *var_r31 = object->data;
-    if (var_r31->unk_20 > 0.0f) {
-        var_r31->unk_48 = var_r31->unk_1C;
+    M460PlayerWork *playerWork = object->data;
+    if (playerWork->movementSpeed > 0.0f) {
+        playerWork->targetYaw = playerWork->movementAngle;
     }
-    if (var_r31->unk_20 > 0.05f) {
+    if (playerWork->movementSpeed > 0.05f) {
         // 1 / REFRESH_RATE?
-        var_r31->unk_6C.x = REFRESH_FREQ * (550.0 * (var_r31->unk_20 * sind(var_r31->unk_1C)));
-        var_r31->unk_6C.z = REFRESH_FREQ * (550.0 * (var_r31->unk_20 * cosd(var_r31->unk_1C)));
-        if (var_r31->unk_28 != 0) {
-            var_r31->unk_6C.x *= 1.5f;
-            var_r31->unk_6C.z *= 1.5f;
+        playerWork->velocity.x = REFRESH_FREQ * (550.0 * (playerWork->movementSpeed * sind(playerWork->movementAngle)));
+        playerWork->velocity.z = REFRESH_FREQ * (550.0 * (playerWork->movementSpeed * cosd(playerWork->movementAngle)));
+        if (playerWork->isRunning != 0) {
+            playerWork->velocity.x *= 1.5f;
+            playerWork->velocity.z *= 1.5f;
         }
-        var_r31->unk_4C = 0.2f;
-        var_r31->unk_50 = 0.0f;
-        if (CharMotionShiftIDGet(var_r31->unk_00) < 0) {
-            var_f31 = 0.5f;
-            if (var_r31->unk_04 == 2) {
-                var_f31 = 0.45f;
+        playerWork->turnProgress = 0.2f;
+        playerWork->turnSpeed = 0.0f;
+        if (CharMotionShiftIDGet(playerWork->characterModelId) < 0) {
+            movementSpeed = 0.5f;
+            if (playerWork->motionId == 2) {
+                movementSpeed = 0.45f;
             }
-            if (var_r31->unk_20 > var_f31) {
-                if (var_r31->unk_28 != 0) {
-                    fn_1_5CE0(object, 3);
+            if (playerWork->movementSpeed > movementSpeed) {
+                if (playerWork->isRunning != 0) {
+                    M460SetPlayerAction(object, 3);
                 }
                 else {
-                    fn_1_5CE0(object, 2);
+                    M460SetPlayerAction(object, 2);
                 }
-                var_f30 = var_r31->unk_20;
+                speedScale = playerWork->movementSpeed;
             }
             else {
-                fn_1_5CE0(object, 1);
-                var_f30 = var_r31->unk_20 / var_f31;
+                M460SetPlayerAction(object, 1);
+                speedScale = playerWork->movementSpeed / movementSpeed;
             }
-            CharMotionSpeedSet(var_r31->unk_00, var_f30);
+            CharMotionSpeedSet(playerWork->characterModelId, speedScale);
         }
     }
     else {
-        var_r31->unk_6C.x = var_r31->unk_6C.y = var_r31->unk_6C.z = 0.0f;
-        if (CharMotionShiftIDGet(var_r31->unk_00) < 0) {
-            fn_1_5CE0(object, 0);
+        playerWork->velocity.x = playerWork->velocity.y = playerWork->velocity.z = 0.0f;
+        if (CharMotionShiftIDGet(playerWork->characterModelId) < 0) {
+            M460SetPlayerAction(object, 0);
         }
     }
 }
 
-void fn_1_5C88(OMOBJ *object)
+void M460BeginPlayerAction(OMOBJ *object)
 {
-    UnkM460DllPlayerWork *var_r31 = object->data;
+    M460PlayerWork *playerWork = object->data;
     if (frandmod(0x3E8) < 0x1F4) {
-        var_r31->unk_14 = 1;
+        playerWork->buttonPressed = 1;
         return;
     }
-    var_r31->unk_18 = 1;
+    playerWork->buttonReleased = 1;
 }
 
-void fn_1_5CE0(OMOBJ *object, u32 arg1)
+void M460SetPlayerAction(OMOBJ *object, u32 motionAction)
 {
-    UnkM460DllPlayerWork *var_r30 = object->data;
-    if ((var_r30->unk_04 != arg1) && (arg1 < 8)) {
-        float var_f31 = REFRESH_RATE_F * lbl_1_data_110[arg1].unk_04;
-        if (var_r30->unk_04 < 0) {
-            var_f31 = 0.0f;
+    M460PlayerWork *playerWork = object->data;
+    if ((playerWork->motionId != motionAction) && (motionAction < 8)) {
+        float movementSpeed = REFRESH_RATE_F * playerMotionConfigs[motionAction].blendDuration;
+        if (playerWork->motionId < 0) {
+            movementSpeed = 0.0f;
         }
-        var_r30->unk_04 = arg1;
+        playerWork->motionId = motionAction;
         CharMotionShiftSet(
-            var_r30->unk_00, object->mtnId[lbl_1_data_110[arg1].unk_00], REFRESH_RATE_F * lbl_1_data_110[arg1].unk_08, var_f31, lbl_1_data_110[arg1].unk_10);
-        if (lbl_1_data_110[arg1].unk_0C >= 0.0f) {
-            Hu3DMotionShiftStartEndSet(object->mdlId[0], REFRESH_RATE_F * lbl_1_data_110[arg1].unk_08, REFRESH_RATE_F * lbl_1_data_110[arg1].unk_0C);
+            playerWork->characterModelId, object->mtnId[playerMotionConfigs[motionAction].motionIndex], REFRESH_RATE_F * playerMotionConfigs[motionAction].motionStartFrame, movementSpeed, playerMotionConfigs[motionAction].motionFlags);
+        if (playerMotionConfigs[motionAction].motionEndFrame >= 0.0f) {
+            Hu3DMotionShiftStartEndSet(object->mdlId[0], REFRESH_RATE_F * playerMotionConfigs[motionAction].motionStartFrame, REFRESH_RATE_F * playerMotionConfigs[motionAction].motionEndFrame);
         }
     }
 }
 
-s32 fn_1_5E6C(OMOBJ *object)
+s32 M460IsPlayerActionDone(OMOBJ *object)
 {
-    M460DllCameraStruct *var_r31 = object->data;
-    s32 var_r30 = 0;
-    if ((CharMotionEndCheck(var_r31->unk_00) != 0) && (CharMotionShiftIDGet(var_r31->unk_00) < 0)) {
-        var_r30 = 1;
+    M460PlayerWork *playerWork = object->data;
+    s32 actionIsDone = 0;
+    if ((CharMotionEndCheck(playerWork->characterModelId) != 0) && (CharMotionShiftIDGet(playerWork->characterModelId) < 0)) {
+        actionIsDone = 1;
     }
-    return var_r30;
+    return actionIsDone;
 }
 
-s32 fn_1_5EE0(OMOBJ *object, u32 arg1)
+s32 M460SetPlayerActionIfDone(OMOBJ *object, u32 motionAction)
 {
-    s32 var_r27 = 0;
-    if (fn_1_5E6C(object)) {
-        fn_1_5CE0(object, arg1);
-        var_r27 = 1;
+    s32 actionChanged = 0;
+    if (M460IsPlayerActionDone(object)) {
+        M460SetPlayerAction(object, motionAction);
+        actionChanged = 1;
     }
-    return var_r27;
+    return actionChanged;
 }
 
-s32 lbl_1_data_1D4[5] = {
+s32 spectatorMotionFileIds[5] = {
     DATA_MAKE_NUM(DATADIR_M460, 0x1E),
     DATA_MAKE_NUM(DATADIR_M460, 0x1F),
     DATA_MAKE_NUM(DATADIR_M460, 0x20),
@@ -550,49 +550,49 @@ s32 lbl_1_data_1D4[5] = {
     DATA_MAKE_NUM(DATADIR_M460, 0x22),
 };
 
-void fn_1_60B0(OMOBJ *object)
+void M460InitializeSpectator(OMOBJ *object)
 {
-    s32 var_r30;
-    s32 var_r29;
+    s32 modelId;
+    s32 motionIndex;
 
     omSetTra(object, 0.0f, 0.0f, 0.0f);
-    var_r30 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M460, 0x1D));
-    object->mdlId[0] = var_r30;
-    Hu3DModelLayerSet(var_r30, 1);
-    Hu3DModelShadowSet(var_r30);
-    Hu3DModelAttrSet(var_r30, HU3D_ATTR_DISPOFF);
-    for (var_r29 = 0; var_r29 < 5; var_r29++) {
-        object->mtnId[var_r29] = Hu3DJointMotionFile(var_r30, lbl_1_data_1D4[var_r29]);
+    modelId = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M460, 0x1D));
+    object->mdlId[0] = modelId;
+    Hu3DModelLayerSet(modelId, 1);
+    Hu3DModelShadowSet(modelId);
+    Hu3DModelAttrSet(modelId, HU3D_ATTR_DISPOFF);
+    for (motionIndex = 0; motionIndex < 5; motionIndex++) {
+        object->mtnId[motionIndex] = Hu3DJointMotionFile(modelId, spectatorMotionFileIds[motionIndex]);
     }
-    CharNpcDustVoiceOffSet(var_r30, object->mtnId[1], 0);
-    CharNpcDustVoiceOffSet(var_r30, object->mtnId[2], 1);
-    CharNpcDustVoiceOffSet(var_r30, object->mtnId[3], 1);
+    CharNpcDustVoiceOffSet(modelId, object->mtnId[1], 0);
+    CharNpcDustVoiceOffSet(modelId, object->mtnId[2], 1);
+    CharNpcDustVoiceOffSet(modelId, object->mtnId[3], 1);
     object->work[1] = 0;
-    object->objFunc = fn_1_61F4;
+    object->objFunc = M460UpdateSpectator;
 }
 
-void fn_1_61F4(OMOBJ *object)
+void M460UpdateSpectator(OMOBJ *object)
 {
-    float var_f31;
-    float var_f30;
-    s32 var_r30;
-    s32 var_r29;
+    float interpolation;
+    float movementSpeed;
+    s32 spectatorSide;
+    s32 motionFrame;
 
-    Vec sp1C[2] = {
+    Vec spectatorStartPositions[2] = {
         { -250.0f, 0.0f, -2200.0f },
         { 250.0f, 0.0f, -2200.0f },
     };
-    Vec sp10;
-    s32 sp8[2] = { 6, 21 };
+    Vec playerOffset;
+    s32 footstepMotionFrames[2] = { 6, 21 };
     switch (object->work[1]) {
         case 0:
-            if ((fn_1_4164() == 3) && (fn_1_419C() != 0) && (fn_1_4324() != 0)) {
+            if ((M460GetRoundState() == 3) && (M460IsGameComplete() != 0) && (M460IsSelectionConfirmed() != 0)) {
                 Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
                 Hu3DMotionShiftSet(object->mdlId[0], object->mtnId[0], 0.0f, 0.0f, HU3D_MOTATTR_LOOP);
-                var_r30 = fn_1_42F0();
-                object->trans.x = sp1C[var_r30].x;
-                object->trans.y = sp1C[var_r30].y;
-                object->trans.z = sp1C[var_r30].z;
+                spectatorSide = M460GetSelectionState();
+                object->trans.x = spectatorStartPositions[spectatorSide].x;
+                object->trans.y = spectatorStartPositions[spectatorSide].y;
+                object->trans.z = spectatorStartPositions[spectatorSide].z;
                 object->rot.y = 0.0f;
                 object->work[1] = 1;
                 object->work[2] = 0;
@@ -606,12 +606,12 @@ void fn_1_61F4(OMOBJ *object)
             }
             break;
         case 2:
-            sp10.x = (*lbl_1_bss_40)->trans.x - object->trans.x;
-            sp10.y = 0.0f;
-            sp10.z = (*lbl_1_bss_40)->trans.z - object->trans.z;
-            object->rot.y = fn_1_47D0(object->rot.y, atan2d(sp10.x, sp10.z), 0.1f);
+            playerOffset.x = (*playerObjects)->trans.x - object->trans.x;
+            playerOffset.y = 0.0f;
+            playerOffset.z = (*playerObjects)->trans.z - object->trans.z;
+            object->rot.y = M460ApproachAngle(object->rot.y, atan2d(playerOffset.x, playerOffset.z), 0.1f);
             object->trans.z += 400.0f * REFRESH_FREQ;
-            if (fn_1_4358() != 0) {
+            if (M460IsSelectionReady() != 0) {
                 HuAudFXPlay(0x3C);
                 Hu3DMotionShiftSet(object->mdlId[0], object->mtnId[3], 0.0f, REFRESH_RATE_F / 2, HU3D_MOTATTR_LOOP);
                 object->work[1] = 3;
@@ -620,34 +620,34 @@ void fn_1_61F4(OMOBJ *object)
             break;
         case 3:
             Hu3DMotionSpeedSet(object->mdlId[0], 0.9f);
-            var_r29 = Hu3DMotionTimeGet(object->mdlId[0]);
-            for (var_r30 = 0; var_r30 < 2; var_r30++) {
-                if (var_r29 == sp8[var_r30]) {
-                    var_f30 = 127.0f / REFRESH_RATE_F * object->work[3];
-                    HuAudFXPlayVol(0x6B, var_f30);
+            motionFrame = Hu3DMotionTimeGet(object->mdlId[0]);
+            for (spectatorSide = 0; spectatorSide < 2; spectatorSide++) {
+                if (motionFrame == footstepMotionFrames[spectatorSide]) {
+                    movementSpeed = 127.0f / REFRESH_RATE_F * object->work[3];
+                    HuAudFXPlayVol(0x6B, movementSpeed);
                 }
             }
-            sp10.x = (*lbl_1_bss_40)->trans.x - object->trans.x;
-            sp10.y = 0.0f;
-            sp10.z = (*lbl_1_bss_40)->trans.z - object->trans.z;
-            object->rot.y = fn_1_47D0(object->rot.y, atan2d(sp10.x, sp10.z), 0.1f);
+            playerOffset.x = (*playerObjects)->trans.x - object->trans.x;
+            playerOffset.y = 0.0f;
+            playerOffset.z = (*playerObjects)->trans.z - object->trans.z;
+            object->rot.y = M460ApproachAngle(object->rot.y, atan2d(playerOffset.x, playerOffset.z), 0.1f);
             if (object->trans.z < -900.0f) {
                 object->trans.z += 700.0f / REFRESH_RATE_F;
             }
             else {
-                var_f31 = VECMag(&sp10);
-                if (var_f31 < 20.0f) {
-                    var_f31 = 0.0f;
+                interpolation = VECMag(&playerOffset);
+                if (interpolation < 20.0f) {
+                    interpolation = 0.0f;
                 }
                 else {
-                    if (VECMag(&sp10) >= 100.0f) {
-                        var_f31 = 100.0f;
+                    if (VECMag(&playerOffset) >= 100.0f) {
+                        interpolation = 100.0f;
                     }
-                    var_f31 = 0.2f + (0.008f * var_f31);
-                    var_f31 *= 700.0f / REFRESH_RATE_F;
+                    interpolation = 0.2f + (0.008f * interpolation);
+                    interpolation *= 700.0f / REFRESH_RATE_F;
                 }
-                object->trans.x = object->trans.x + (var_f31 * sind(object->rot.y));
-                object->trans.z = object->trans.z + (var_f31 * cosd(object->rot.y));
+                object->trans.x = object->trans.x + (interpolation * sind(object->rot.y));
+                object->trans.z = object->trans.z + (interpolation * cosd(object->rot.y));
             }
             if ((object->trans.z > 450.0f) && (object->work[3] != 0)) {
                 object->work[3]--;

@@ -8,176 +8,176 @@
 #ifndef __MWERKS__
 #endif
 
-typedef struct UnkM460DllScoreWork {
-    s32 unk_00;
-    s32 unk_04;
-    s16 unk_08;
-    s16 unk_0A;
-    s16 unk_0C[6];
-    s32 unk_18;
-    float unk_1C;
-} UnkM460DllScoreWork; /* size = 0x20 */
+typedef struct M460ScoreDisplayWork {
+    s32 displayState;
+    s32 stateTimer;
+    s16 recordScore;
+    s16 currentScore;
+    s16 digitSprites[6];
+    s32 isPulsing;
+    float pulseScale;
+} M460ScoreDisplayWork; /* size = 0x20 */
 
-typedef void (*UnkM460DllScoreFunc)(void);
+typedef void (*M460ScoreDisplayCallback)(void);
 
-void fn_1_9020(s32 arg0);
-void fn_1_9050(OMOBJ *object);
-void fn_1_916C(void);
-void fn_1_91E4(void);
-void fn_1_9270(void);
+void M460SetScoreDisplayMode(s32 displayMode);
+void M460UpdateScoreDisplay(OMOBJ *object);
+void M460HideScoreDisplay(void);
+void M460ShowScoreDisplay(void);
+void M460UpdateRecordScorePulse(void);
 
-UnkM460DllScoreFunc lbl_1_data_380[3] = { fn_1_916C, fn_1_91E4, fn_1_9270 };
+M460ScoreDisplayCallback scoreDisplayCallbacks[3] = { M460HideScoreDisplay, M460ShowScoreDisplay, M460UpdateRecordScorePulse };
 
-HUPROCESS *lbl_1_bss_54;
-OMOBJ *lbl_1_bss_50;
+HUPROCESS *scoreProcess;
+OMOBJ *scoreDisplayObject;
 // ? lbl_1_rodata_3D0;
 
-void fn_1_8CAC(HUPROCESS *process, s16 arg1)
+void M460CreateScoreDisplay(HUPROCESS *process, s16 recordScore)
 {
-    UnkM460DllScoreWork *var_r31;
-    u32 var_r30;
+    M460ScoreDisplayWork *scoreWork;
+    u32 digitIndex;
 
-    lbl_1_bss_54 = process;
-    lbl_1_bss_50 = omAddObjEx(lbl_1_bss_54, 0x800, 0, 0, 7, fn_1_9050);
-    lbl_1_bss_50->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM460DllScoreWork), HU_MEMNUM_OVL);
-    var_r31 = lbl_1_bss_50->data;
-    var_r31->unk_08 = arg1;
-    var_r31->unk_0A = 0;
-    var_r31->unk_0C[4] = espEntry(0x590024, 2, 0);
-    espColorSet(var_r31->unk_0C[4], 0, 0, 0);
-    espTPLvlSet(var_r31->unk_0C[4], 0.5f);
-    espPosSet(var_r31->unk_0C[4], 508.0f, 64.0f);
-    var_r31->unk_0C[5] = espEntry(0x610037, 1, 0);
-    espPosSet(var_r31->unk_0C[5], 490.0f, 56.0f);
-    for (var_r30 = 0; var_r30 < 2; var_r30++) {
-        var_r31->unk_0C[var_r30] = espEntry(0x610030, 0, 0);
-        espPosSet(var_r31->unk_0C[var_r30], (var_r30 * 0x10) + 0x1FE, 56.0f);
-        espDispOff(var_r31->unk_0C[var_r30]);
+    scoreProcess = process;
+    scoreDisplayObject = omAddObjEx(scoreProcess, 0x800, 0, 0, 7, M460UpdateScoreDisplay);
+    scoreDisplayObject->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M460ScoreDisplayWork), HU_MEMNUM_OVL);
+    scoreWork = scoreDisplayObject->data;
+    scoreWork->recordScore = recordScore;
+    scoreWork->currentScore = 0;
+    scoreWork->digitSprites[4] = espEntry(0x590024, 2, 0);
+    espColorSet(scoreWork->digitSprites[4], 0, 0, 0);
+    espTPLvlSet(scoreWork->digitSprites[4], 0.5f);
+    espPosSet(scoreWork->digitSprites[4], 508.0f, 64.0f);
+    scoreWork->digitSprites[5] = espEntry(0x610037, 1, 0);
+    espPosSet(scoreWork->digitSprites[5], 490.0f, 56.0f);
+    for (digitIndex = 0; digitIndex < 2; digitIndex++) {
+        scoreWork->digitSprites[digitIndex] = espEntry(0x610030, 0, 0);
+        espPosSet(scoreWork->digitSprites[digitIndex], (digitIndex * 0x10) + 0x1FE, 56.0f);
+        espDispOff(scoreWork->digitSprites[digitIndex]);
     }
-    for (var_r30 = 0; var_r30 < 2; var_r30++) {
-        var_r31->unk_0C[var_r30 + 2] = espEntry(0x610031, 1, 0);
-        espPosSet(var_r31->unk_0C[var_r30 + 2], (var_r30 * 0x10) + 0x1FE, 74.0f);
+    for (digitIndex = 0; digitIndex < 2; digitIndex++) {
+        scoreWork->digitSprites[digitIndex + 2] = espEntry(0x610031, 1, 0);
+        espPosSet(scoreWork->digitSprites[digitIndex + 2], (digitIndex * 0x10) + 0x1FE, 74.0f);
     }
-    for (var_r30 = 0; var_r30 < 6; var_r30++) {
-        espDispOff(var_r31->unk_0C[var_r30]);
+    for (digitIndex = 0; digitIndex < 6; digitIndex++) {
+        espDispOff(scoreWork->digitSprites[digitIndex]);
     }
     HuDataDirClose(DATA_MAKE_NUM(DATADIR_MGCONST, 0));
-    fn_1_9020(0);
+    M460SetScoreDisplayMode(0);
 }
 
-void fn_1_8F38(void)
+void M460DestroyScoreDisplay(void)
 {
-    s32 var_r31;
-    UnkM460DllScoreWork *var_r30 = lbl_1_bss_50->data;
-    for (var_r31 = 0; var_r31 < 6; var_r31++) {
-        espKill(var_r30->unk_0C[var_r31]);
+    s32 digitIndex;
+    M460ScoreDisplayWork *scoreWork = scoreDisplayObject->data;
+    for (digitIndex = 0; digitIndex < 6; digitIndex++) {
+        espKill(scoreWork->digitSprites[digitIndex]);
     }
-    HuMemDirectFree(lbl_1_bss_50->data);
+    HuMemDirectFree(scoreDisplayObject->data);
 }
 
-void fn_1_8FAC(s32 arg0)
+void M460SetScoreDisplayState(s32 displayState)
 {
-    s32 sp8;
-    s32 var_r3;
+    s32 unusedScoreTransition;
+    s32 unusedScoreState;
 
-    switch (arg0) {
+    switch (displayState) {
         case 0:
-            fn_1_9020(1);
+            M460SetScoreDisplayMode(1);
             break;
         case 1:
-            fn_1_9020(2);
+            M460SetScoreDisplayMode(2);
             break;
     }
 }
 
-void fn_1_8FFC(void)
+void M460ResetScoreDisplay(void)
 {
-    fn_1_9020(0);
+    M460SetScoreDisplayMode(0);
 }
 
-void fn_1_9020(s32 arg0)
+void M460SetScoreDisplayMode(s32 displayMode)
 {
-    UnkM460DllScoreWork *var_r31;
+    M460ScoreDisplayWork *scoreWork;
 
-    var_r31 = lbl_1_bss_50->data;
-    var_r31->unk_00 = arg0;
-    var_r31->unk_04 = 0;
+    scoreWork = scoreDisplayObject->data;
+    scoreWork->displayState = displayMode;
+    scoreWork->stateTimer = 0;
 }
 
-void fn_1_9050(OMOBJ *arg0)
+void M460UpdateScoreDisplay(OMOBJ *object)
 {
-    UnkM460DllScoreWork *var_r31;
-    s16 var_r30;
+    M460ScoreDisplayWork *scoreWork;
+    s16 displayedDigit;
 
-    var_r31 = lbl_1_bss_50->data;
-    lbl_1_data_380[var_r31->unk_00]();
-    var_r30 = var_r31->unk_08;
-    espBankSet(var_r31->unk_0C[0], var_r30 / 10);
-    var_r30 -= (var_r30 / 10) * 10;
-    espBankSet(var_r31->unk_0C[1], var_r30);
-    var_r30 = var_r31->unk_0A;
-    espBankSet(var_r31->unk_0C[2], var_r30 / 10);
-    var_r30 -= (var_r30 / 10) * 10;
-    espBankSet(var_r31->unk_0C[3], var_r30);
+    scoreWork = scoreDisplayObject->data;
+    scoreDisplayCallbacks[scoreWork->displayState]();
+    displayedDigit = scoreWork->recordScore;
+    espBankSet(scoreWork->digitSprites[0], displayedDigit / 10);
+    displayedDigit -= (displayedDigit / 10) * 10;
+    espBankSet(scoreWork->digitSprites[1], displayedDigit);
+    displayedDigit = scoreWork->currentScore;
+    espBankSet(scoreWork->digitSprites[2], displayedDigit / 10);
+    displayedDigit -= (displayedDigit / 10) * 10;
+    espBankSet(scoreWork->digitSprites[3], displayedDigit);
 }
 
-void fn_1_916C(void)
+void M460HideScoreDisplay(void)
 {
-    UnkM460DllScoreWork *var_r31;
-    s32 var_r30;
+    M460ScoreDisplayWork *scoreWork;
+    s32 digitIndex;
 
-    var_r31 = lbl_1_bss_50->data;
-    if (var_r31->unk_04 == 0) {
-        for (var_r30 = 0; var_r30 < 6; var_r30++) {
-            espDispOff(var_r31->unk_0C[var_r30]);
+    scoreWork = scoreDisplayObject->data;
+    if (scoreWork->stateTimer == 0) {
+        for (digitIndex = 0; digitIndex < 6; digitIndex++) {
+            espDispOff(scoreWork->digitSprites[digitIndex]);
         }
-        var_r31->unk_04++;
+        scoreWork->stateTimer++;
     }
 }
 
-void fn_1_91E4(void)
+void M460ShowScoreDisplay(void)
 {
-    UnkM460DllScoreWork *var_r31;
-    s16 var_r30;
+    M460ScoreDisplayWork *scoreWork;
+    s16 digitIndex;
 
-    var_r31 = lbl_1_bss_50->data;
-    if (var_r31->unk_04 == 0) {
-        for (var_r30 = 0; var_r30 < 6; var_r30++) {
-            espDispOn(var_r31->unk_0C[var_r30]);
+    scoreWork = scoreDisplayObject->data;
+    if (scoreWork->stateTimer == 0) {
+        for (digitIndex = 0; digitIndex < 6; digitIndex++) {
+            espDispOn(scoreWork->digitSprites[digitIndex]);
         }
-        var_r31->unk_04++;
+        scoreWork->stateTimer++;
     }
-    var_r31->unk_0A = fn_1_4370();
+    scoreWork->currentScore = M460GetCurrentFrameCount();
 }
 
-void fn_1_9270(void)
+void M460UpdateRecordScorePulse(void)
 {
-    UnkM460DllScoreWork *var_r31;
-    s32 var_r30;
+    M460ScoreDisplayWork *scoreWork;
+    s32 digitIndex;
 
-    var_r31 = lbl_1_bss_50->data;
-    if (var_r31->unk_04 == 0) {
-        var_r31->unk_18 = 0;
-        var_r31->unk_1C = 1.0f;
-        if (var_r31->unk_0A > var_r31->unk_08) {
-            var_r31->unk_08 = var_r31->unk_0A;
+    scoreWork = scoreDisplayObject->data;
+    if (scoreWork->stateTimer == 0) {
+        scoreWork->isPulsing = 0;
+        scoreWork->pulseScale = 1.0f;
+        if (scoreWork->currentScore > scoreWork->recordScore) {
+            scoreWork->recordScore = scoreWork->currentScore;
         }
-        var_r31->unk_04++;
+        scoreWork->stateTimer++;
     }
-    if (var_r31->unk_18 == 0) {
-        if ((var_r31->unk_1C += 0.02f) >= 1.2f) {
-            var_r31->unk_1C = 1.2f;
-            var_r31->unk_18 = 1;
+    if (scoreWork->isPulsing == 0) {
+        if ((scoreWork->pulseScale += 0.02f) >= 1.2f) {
+            scoreWork->pulseScale = 1.2f;
+            scoreWork->isPulsing = 1;
         }
     }
     else {
-        if ((var_r31->unk_1C -= 0.04f) <= 1.0f) {
-            var_r31->unk_1C = 1.0f;
-            var_r31->unk_18 = 0;
+        if ((scoreWork->pulseScale -= 0.04f) <= 1.0f) {
+            scoreWork->pulseScale = 1.0f;
+            scoreWork->isPulsing = 0;
         }
     }
-    for (var_r30 = 0; var_r30 <= 1; var_r30++) {
-        espScaleSet(var_r31->unk_0C[var_r30], var_r31->unk_1C, var_r31->unk_1C);
+    for (digitIndex = 0; digitIndex <= 1; digitIndex++) {
+        espScaleSet(scoreWork->digitSprites[digitIndex], scoreWork->pulseScale, scoreWork->pulseScale);
     }
-    espScaleSet(var_r31->unk_0C[5], var_r31->unk_1C, var_r31->unk_1C);
+    espScaleSet(scoreWork->digitSprites[5], scoreWork->pulseScale, scoreWork->pulseScale);
 }
