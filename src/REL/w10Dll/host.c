@@ -10,7 +10,7 @@
 #endif
 
 static s16 hostMdl;
-static s16 hostPos;
+static s16 hostPositionIndex;
 static HUPROCESS *hostProc;
 
 static s32 hostMot[2] = {
@@ -27,7 +27,7 @@ static void UpdateHost(void);
 
 
 void HostCreate(void) {
-    hostPos = 0;
+    hostPositionIndex = 0;
     hostMdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_W10, 15), hostMot, 0);
     BoardModelMotionStart(hostMdl, 1, 0x40000001);
     BoardTutorialHostSet(hostMdl);
@@ -35,30 +35,30 @@ void HostCreate(void) {
     hostProc = HuPrcCreate(UpdateHost, 0x1FFF, 0x1800, 0);
 }
 
-void HostWinExec(s32 arg0) {
-    s16 pos;
+void HostWinExec(s32 messageId) {
+    s16 hostWindowStyle;
 
-    switch (hostPos) {
+    switch (hostPositionIndex) {
     case 0:
-        pos = 5;
+        hostWindowStyle = 5;
         break;
     case 1:
-        pos = 6;
+        hostWindowStyle = 6;
         break;
     }
-    BoardWinCreate(pos, arg0, -1);
+    BoardWinCreate(hostWindowStyle, messageId, -1);
     BoardWinWait();
     BoardWinKill();
 }
 
-void HostPosSet(s16 arg0) {
-    hostPos = arg0;
+void HostPosSet(s16 positionIndex) {
+    hostPositionIndex = positionIndex;
 }
 
 static void UpdateHost(void) {
     Mtx rot;
-    Vec sp14;
-    Vec sp8;
+    Vec hostPosition;
+    Vec cameraRotation;
     
     while (1) {
         if (BoardIsKill() != 0) {
@@ -66,12 +66,12 @@ static void UpdateHost(void) {
             BoardTutorialHostSet(-1);
             HuPrcEnd();
         }
-        Hu3D2Dto3D(&hostPosTbl[hostPos], 1, &sp14);
-        BoardModelPosSetV(hostMdl, &sp14);
-        BoardCameraRotGet(&sp8);
+        Hu3D2Dto3D(&hostPosTbl[hostPositionIndex], 1, &hostPosition);
+        BoardModelPosSetV(hostMdl, &hostPosition);
+        BoardCameraRotGet(&cameraRotation);
         MTXRotDeg(rot, 'y', 15);
         BoardModelMtxSet(hostMdl, &rot);
-        BoardModelRotSet(hostMdl, sp8.x, 0.0f, 0.0f);
+        BoardModelRotSet(hostMdl, cameraRotation.x, 0.0f, 0.0f);
         BoardModelScaleSet(hostMdl, 0.2f, 0.2f, 0.2f);
         HuPrcVSleep();        
     }

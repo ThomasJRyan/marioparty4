@@ -61,7 +61,7 @@ static s16 rollDataTbl[11][3] = {
 	5, 6, -1,
 };
 
-static TutorialScene sceneTbl[42] = {
+static TutorialSceneEntry tutorialSceneTable[42] = {
 	{0, TutorialStartExec},
 	{1, TutorialPreRollExec},
 	{2, TutorialOrderExec},
@@ -106,23 +106,23 @@ static TutorialScene sceneTbl[42] = {
 	{-1, NULL },
 };
 
-int TutorialHookExec(s16 arg0, s32 arg1) {
-    if (arg0 == 30) {
+int TutorialHookExec(s16 eventCue, s32 eventParameter) {
+    if (eventCue == 30) {
         CloseTutorial();
         return;
     }
-    if (arg0 != 29) {
+    if (eventCue != 29) {
         OSReport("Tutorial Hook P0:%d P1:%d P2:%d P3:%d  SCEN:%d  CUE:%d  PRM:%d DICE:%d  MSG:%d\n",
             GWPlayer[0].com, GWPlayer[1].com,
             GWPlayer[2].com, GWPlayer[3].com,
-            boardWork->scene, arg0, arg1, boardWork->dice, boardWork->msg);
-        if (sceneTbl[boardWork->scene].cue != -1) {
-            if (arg0 == 5) {
-                BoardRollTutorialSet(&rollDataTbl[boardWork->dice++][0]);
+            tutorialBoardWork->sceneIndex, eventCue, eventParameter, tutorialBoardWork->rollIndex, tutorialBoardWork->messageIndex);
+        if (tutorialSceneTable[tutorialBoardWork->sceneIndex].eventCue != -1) {
+            if (eventCue == 5) {
+                BoardRollTutorialSet(&rollDataTbl[tutorialBoardWork->rollIndex++][0]);
             }
-            if (arg0 == sceneTbl[boardWork->scene].cue) {
-                TutorialSceneFunc func = sceneTbl[boardWork->scene++].func;
-                func();
+            if (eventCue == tutorialSceneTable[tutorialBoardWork->sceneIndex].eventCue) {
+                TutorialSceneFunc sceneFunction = tutorialSceneTable[tutorialBoardWork->sceneIndex++].execute;
+                sceneFunction();
             }
         }
     }
@@ -159,36 +159,36 @@ void TutorialSprKill(void) {
     }
 }
 
-void TutorialSpaceShow(s16 arg0, s16 arg1, s16 arg2) {
-    f32 var_f31;
-    f32 var_f30;
+void TutorialSpaceShow(s16 spriteIndex, s16 screenX, s16 screenY) {
+    f32 scaleX;
+    f32 scaleY;
     u32 i;
 
-    sprCurr = sprList[arg0];
-    espPosSet(sprCurr, arg1, arg2);
-    var_f31 = 0.0f;
-    var_f30 = 0.0f;
+    sprCurr = sprList[spriteIndex];
+    espPosSet(sprCurr, screenX, screenY);
+    scaleX = 0.0f;
+    scaleY = 0.0f;
     espDispOn(sprCurr);
     for (i = 0; i < 15; i++) {
-        var_f31 += 0.06666667f;
-        var_f30 += 0.06666667f;
-        espScaleSet(sprCurr, var_f31, var_f30);
+        scaleX += 0.06666667f;
+        scaleY += 0.06666667f;
+        espScaleSet(sprCurr, scaleX, scaleY);
         HuPrcVSleep();        
     }
     espScaleSet(sprCurr, 1.0f, 1.0f);
 }
 
 void TutorialSpaceHide(void) {
-    f32 var_f31;
-    f32 var_f30;
+    f32 scaleX;
+    f32 scaleY;
     u32 i;
 
-    var_f31 = 1.0f;
-    var_f30 = 1.0f;
+    scaleX = 1.0f;
+    scaleY = 1.0f;
     for (i = 0; i < 15; i++) {
-        var_f31 -= 0.06666667f;
-        var_f30 -= 0.06666667f;
-        espScaleSet(sprCurr, var_f31, var_f30);
+        scaleX -= 0.06666667f;
+        scaleY -= 0.06666667f;
+        espScaleSet(sprCurr, scaleX, scaleY);
         HuPrcVSleep();        
     }
     espDispOff(sprCurr);

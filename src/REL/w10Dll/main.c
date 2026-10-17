@@ -25,9 +25,9 @@ s16 boardMapObjMdl[MAPOBJ_MAX];
 
 s16 tutorialExitWin;
 s16 tutorialDoneF;
-static s32 *motTbl;
-s32 lbl_1_bss_4;
-W10BoardWork *boardWork;
+static s32 *mapObjectMotionTable;
+s32 boardEventState;
+W10TutorialBoardWork *tutorialBoardWork;
 
 static s16 bgMdl = -1;
 static s16 fgMdl = -1;
@@ -72,18 +72,18 @@ static s32 LandEvent(void);
 
 void BoardCreate(void)
 {
-    float size[2];
+    float windowSize[2];
     
     s32 i;
-    BoardMapObject *temp_r30;
+    BoardMapObject *mapObject;
     s32 space;
-    s32 board;
+    s32 boardIndex;
 
-    board = GWBoardGet();
-    boardWork = (W10BoardWork *)&GWSystem.board_data[0];
-    boardWork->scene = 0;
-    boardWork->dice = 0;
-    boardWork->msg = 0;
+    boardIndex = GWBoardGet();
+    tutorialBoardWork = (W10TutorialBoardWork *)&GWSystem.board_data[0];
+    tutorialBoardWork->sceneIndex = 0;
+    tutorialBoardWork->rollIndex = 0;
+    tutorialBoardWork->messageIndex = 0;
     BoardTutorialHookSet(TutorialHookExec);
     HostCreate();
     TutorialSprCreate();
@@ -111,22 +111,22 @@ void BoardCreate(void)
     BoardModelMotionStart(boardLotteryHostMdl, 1, 0x40000001);
     BoardLightHookSet(LightSetHook, LightResetHook);
     for (i = 0; i < MAPOBJ_MAX; i++) {
-        temp_r30 = &mapObjTbl[i];
-        if (temp_r30->data_num != -1) {
-            motTbl = NULL;
-            boardMapObjMdl[i] = BoardModelCreate(temp_r30->data_num, motTbl, 0);
-            BoardModelPosSetV(boardMapObjMdl[i], &temp_r30->pos);
-            BoardModelRotSetV(boardMapObjMdl[i], &temp_r30->rot);
-            BoardModelScaleSetV(boardMapObjMdl[i], &temp_r30->scale);
+        mapObject = &mapObjTbl[i];
+        if (mapObject->data_num != -1) {
+            mapObjectMotionTable = NULL;
+            boardMapObjMdl[i] = BoardModelCreate(mapObject->data_num, mapObjectMotionTable, 0);
+            BoardModelPosSetV(boardMapObjMdl[i], &mapObject->pos);
+            BoardModelRotSetV(boardMapObjMdl[i], &mapObject->rot);
+            BoardModelScaleSetV(boardMapObjMdl[i], &mapObject->scale);
             BoardModelVisibilitySet(boardMapObjMdl[i], 1);
-            if (motTbl != NULL) {
+            if (mapObjectMotionTable != NULL) {
                 BoardModelMotionStart(boardMapObjMdl[i], 0, 0x40000001);
             }
         }
     }
     BoardModelVisibilitySet(boardMapObjMdl[MAPOBJ_MELON], 0);
-    boardWork->focus_mdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 10), NULL, 0);
-    BoardModelVisibilitySet(boardWork->focus_mdl, 0);
+    tutorialBoardWork->focusModel = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 10), NULL, 0);
+    BoardModelVisibilitySet(tutorialBoardWork->focusModel, 0);
     BoardSpaceWalkEventFuncSet(WalkEvent);
     BoardSpaceWalkMiniEventFuncSet(WalkMiniEvent);
     BoardSpaceLandEventFuncSet(LandEvent);
@@ -134,8 +134,8 @@ void BoardCreate(void)
     BoardBooHouseHostSet(boardBooHouseHostMdl);
     BoardShopHostSet(boardShopHostMdl);
     BoardLotteryHostSet(boardLotteryHostMdl);
-    HuWinMesMaxSizeGet(1, size, MAKE_MESSID(0x2E, 0x3A));
-    tutorialExitWin = HuWinCreate(-10000.0f, 390.0f, size[0], size[1], 1);
+    HuWinMesMaxSizeGet(1, windowSize, MAKE_MESSID(0x2E, 0x3A));
+    tutorialExitWin = HuWinCreate(-10000.0f, 390.0f, windowSize[0], windowSize[1], 1);
     HuWinMesSet(tutorialExitWin, MAKE_MESSID(0x2E, 0x3A));
     HuWinMesSpeedSet(tutorialExitWin, 0);
     HuWinPriSet(tutorialExitWin, 1);
@@ -175,7 +175,7 @@ void BoardDestroy(void)
         BoardModelKill(fgMdl);
         fgMdl = -1;
     }
-    BoardModelKill(boardWork->focus_mdl);
+    BoardModelKill(tutorialBoardWork->focusModel);
     TutorialSprKill();
     HuWinKill(tutorialExitWin);
     BoardSpaceDestroy();
@@ -202,12 +202,12 @@ static s32 WalkEvent(void)
     return 0;
 }
 
-void fn_1_914(void)
+void TutorialEventInit(void)
 {
 	
 }
 
-void fn_1_918(void)
+void TutorialEventReset(void)
 {
 	
 }
@@ -217,45 +217,45 @@ static s32 WalkMiniEvent(void)
 	
 }
 
-s32 fn_1_920(s16 arg0, f32 arg8, f32 arg9) {
-    s32 var_r31;
-    f32 var_f29;
-    f32 var_f31;
+s32 BoardModelRotateTowardAngle(s16 modelId, f32 targetAngle, f32 maxAngleStep) {
+    s32 reachedTarget;
+    f32 targetAngleDifference;
+    f32 currentAngle;
 
-    var_r31 = 0;
-    var_f31 = BoardModelRotYGet(arg0);
-    arg8 = fmod(arg8, 360.0);
-    if (var_f31 < 0.0f) {
-        var_f31 += 360.0f;
+    reachedTarget = 0;
+    currentAngle = BoardModelRotYGet(modelId);
+    targetAngle = fmod(targetAngle, 360.0);
+    if (currentAngle < 0.0f) {
+        currentAngle += 360.0f;
     }
-    if (arg8 < 0.0f) {
-        arg8 += 360.0f;
+    if (targetAngle < 0.0f) {
+        targetAngle += 360.0f;
     }
-    if (var_f31 != arg8) {
-        var_f29 = arg8 - var_f31;
-        if (var_f29 < 0.0f) {
-            var_f29 += 360.0f;
+    if (currentAngle != targetAngle) {
+        targetAngleDifference = targetAngle - currentAngle;
+        if (targetAngleDifference < 0.0f) {
+            targetAngleDifference += 360.0f;
         }
-        if (var_f29 < 180.0f) {
-            if (var_f29 > arg9) {
-                var_f31 = var_f31 + arg9;
+        if (targetAngleDifference < 180.0f) {
+            if (targetAngleDifference > maxAngleStep) {
+                currentAngle = currentAngle + maxAngleStep;
             } else {
-                var_f31 = arg8;
+                currentAngle = targetAngle;
             }
-        } else if ((360.0f - var_f29) > arg9) {
-            var_f31 = var_f31 - arg9;
+        } else if ((360.0f - targetAngleDifference) > maxAngleStep) {
+            currentAngle = currentAngle - maxAngleStep;
         } else {
-            var_f31 = arg8;
+            currentAngle = targetAngle;
         }
-        if (var_f31 < 0.0f) {
-            var_f31 += 360.0f;
+        if (currentAngle < 0.0f) {
+            currentAngle += 360.0f;
         }
-        if (var_f31 >= 360.0f) {
-            var_f31 -= 360.0f;
+        if (currentAngle >= 360.0f) {
+            currentAngle -= 360.0f;
         }
-        BoardModelRotYSet(arg0, var_f31);
+        BoardModelRotYSet(modelId, currentAngle);
     } else {
-        var_r31 = 1;
+        reachedTarget = 1;
     }
-    return var_r31;
+    return reachedTarget;
 }
